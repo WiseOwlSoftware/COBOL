@@ -204,6 +204,8 @@ public sealed class CSharpEmitter
             case BoundInlinePerform p: EmitInlinePerform(p); return false;
             case BoundOutOfLinePerform p: EmitOutOfLinePerform(p); return false;
             case BoundSetConditions set: EmitSet(set); return false;
+            case BoundSetTo st: EmitSetTo(st); return false;
+            case BoundSetUpDown su: EmitSetUpDown(su); return false;
             case BoundOpen o: EmitOpen(o); return false;
             case BoundClose c: EmitClose(c); return false;
             case BoundWrite wr: EmitWrite(wr); return false;
@@ -464,6 +466,58 @@ public sealed class CSharpEmitter
         BoundOperandError e => LoudValue("long", e.Feature),
         _ => "1",
     };
+
+    private int _setCounter;   // unique-name counter for SET sender temporaries
+
+    /// <summary><c>SET … TO value</c> (ISO §14.9.39 Format 1): the sender is evaluated ONCE into an integer temp
+    /// (GR2 — "the value of the sending operand is determined once"), then each receiver takes it by kind: an
+    /// index-name or index data item receives it unchanged (GR2a/GR2b — in the §3.5 model an index IS its 1-based
+    /// occurrence number, so cross-table conversion is the identity); a numeric data item receives the occurrence
+    /// number through its own PICTURE store (GR2c). Range checking (EC-RANGE-INDEX) awaits the EC model — COBOL-85
+    /// has no exception conditions, so the unchecked store IS the 85 semantics.</summary>
+    private void EmitSetTo(BoundSetTo s)
+    {
+        var w = _ctx.Writer;
+        string tmp = $"__set{_setCounter++}";
+        w.Line($"long {tmp} = {NumericRenderer.Align(_num.Render(s.Value), 0)};");
+        foreach (var t in s.Targets)
+            switch (t)
+            {
+                case SetIndexTarget ix:
+                    w.Line($"{ix.IndexField} = {tmp};");
+                    break;
+                case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
+                    w.Line(p.Write(tmp));                                     // unchanged copy (GR2b)
+                    break;
+                case SetPlaceTarget { Place: var p }:
+                    StoreArith(p, new NumX(tmp, 0), CobolRounding.Truncation); // occurrence number via PIC store (GR2c)
+                    break;
+            }
+    }
+
+    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE
+    /// (GR3), then each index is adjusted by it (GR4). Only an index receiver is legal in COBOL-85 (the data-name
+    /// forms are the 2014 dynamic-capacity / 2002 pointer formats — their subsystems are separate).</summary>
+    private void EmitSetUpDown(BoundSetUpDown s)
+    {
+        var w = _ctx.Writer;
+        string tmp = $"__set{_setCounter++}";
+        w.Line($"long {tmp} = {NumericRenderer.Align(_num.Render(s.Amount), 0)};");
+        string op = s.Down ? "-" : "+";
+        foreach (var t in s.Targets)
+            switch (t)
+            {
+                case SetIndexTarget ix:
+                    w.Line($"{ix.IndexField} {op}= {tmp};");
+                    break;
+                case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
+                    w.Line(p.Write($"{p.Read()} {op} {tmp}"));
+                    break;
+                case SetPlaceTarget { Place: var p }:
+                    w.Line(LoudStmt($"SET UP/DOWN BY on non-index receiver '{p.Item.CobolName ?? p.Read()}' (pointer F10 is 2002+; dynamic-capacity F14 is 2014+)"));
+                    break;
+            }
+    }
 
     private void EmitSet(BoundSetConditions set)
     {

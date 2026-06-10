@@ -20,6 +20,7 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     {
         BoundNumLiteral l => EmitText.UnscaledLit(l.Text),
         BoundNumRef r => FieldNum(r.Place),
+        BoundIndexRef ix => new NumX(ix.IndexField, 0),   // an index IS its 1-based occurrence number (§3.5)
         BoundBinary b => Combine(Render(b.Left), b.Op.ToString(), Render(b.Right)),
         BoundNegate n => Negate(Render(n.Operand)),
         BoundPower p => new NumX($"(long)System.Math.Pow((double)({Real(Render(p.Base))}), (double)({Real(Render(p.Exp))}))", 0),

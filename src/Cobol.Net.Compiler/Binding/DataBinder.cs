@@ -74,12 +74,13 @@ public sealed class DataBinder
         if (program.dataDivision()?.workingStorageSection() is { } ws)
             BindEntries(ws.dataDescriptionEntry(), rootNames);
 
-        // Post-build (the forest is complete): apply group-level SIGN clauses (must precede the REDEFINES
-        // classification — a SEPARATE sign adds a character position to the item's image width, which feeds the
-        // class-max width); then resolve REDEFINES/RENAMES targets, group overlaid items into shared-storage
-        // classes and assign each a tier (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4). This now covers the FILE
-        // SECTION records too (their multi-01 area sharing is a synthesized REDEFINES). Finally resolve each
-        // file's FILE STATUS data item.
+        // Post-build (the forest is complete): fix up USAGE INDEX entries (children weren't known at entry bind);
+        // apply group-level SIGN clauses (must precede the REDEFINES classification — a SEPARATE sign adds a
+        // character position to the item's image width, which feeds the class-max width); then resolve
+        // REDEFINES/RENAMES targets, group overlaid items into shared-storage classes and assign each a tier
+        // (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4). This now covers the FILE SECTION records too (their
+        // multi-01 area sharing is a synthesized REDEFINES). Finally resolve each file's FILE STATUS data item.
+        ResolveIndexItems();
         InheritSignClauses();
         ResolveRedefines();
         ClassifyRedefinesClasses();
@@ -338,9 +339,11 @@ public sealed class DataBinder
                 }
             }
 
-        var pic = pictureText is null
-            ? null
-            : PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), ownSign);
+        // A PICTURE-less USAGE INDEX entry is an ELEMENTARY index data item (ISO §13.18.60 — class index, no
+        // PICTURE allowed), not a group: synthesize its profile so it emits as a long occurrence-number field.
+        var pic = pictureText is not null
+            ? PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), ownSign)
+            : PicInfo.ParseUsage(usageText) is Usage.Index ? PicInfo.IndexItem : null;
         var item = new DataItem
         {
             Level = level,
@@ -378,6 +381,27 @@ public sealed class DataBinder
     {
         var item = value.valueItem().FirstOrDefault();
         return item?.GetText();
+    }
+
+    /// <summary>Resolve PICTURE-less USAGE INDEX entries (ISO §13.18.60) once the forest is complete — entry bind
+    /// synthesized an elementary index profile (<see cref="PicInfo.IndexItem"/>) before subordinates were known. An
+    /// entry WITH subordinates is a GROUP whose USAGE INDEX merely inherits (GR1 — usage on a group applies to each
+    /// elementary item under it): clear the synthesized profile; a PICTURE-less LEAF below it is an index data item
+    /// even without its own USAGE clause.</summary>
+    private void ResolveIndexItems()
+    {
+        static void Walk(DataItem item, bool inherited)
+        {
+            bool isIndex = ReferenceEquals(item.Pic, PicInfo.IndexItem) || (inherited && item.Pic is null);
+            if (item.Children.Count > 0)
+            {
+                if (ReferenceEquals(item.Pic, PicInfo.IndexItem)) item.Pic = null;   // a group, not an elementary index
+                foreach (var c in item.Children) Walk(c, isIndex);
+            }
+            else if (isIndex && item.Pic is null)
+                item.Pic = PicInfo.IndexItem;
+        }
+        foreach (var root in Roots) Walk(root, false);
     }
 
     /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY items (ISO §13.18.52 GR1–3):

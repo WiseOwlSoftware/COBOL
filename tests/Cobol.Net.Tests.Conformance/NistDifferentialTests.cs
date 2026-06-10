@@ -41,6 +41,14 @@ public sealed class NistDifferentialTests
     // every subordinate signed numeric DISPLAY item, nearest enclosing clause wins (GF-17's SIGN LEADING SEPARATE
     // group overrides the 01's SIGN TRAILING; the separate '+' is readable through a REDEFINES view).
     [InlineData("NC116A")]   // SIGN clause precedence (GF-16/17/18) + signed data movement
+    // Greened by the SET statement + index machinery (ISO §14.9.39 Formats 1-2 + §13.18.60 USAGE INDEX, DEVLOG 526):
+    // SET index/index-item/numeric TO …, SET UP/DOWN BY, index-names in relations and subscripts.
+    [InlineData("NC121M")]   // table handling via SET + index subscripting
+    [InlineData("NC123A")]   // SET + GO TO DEPENDING over table paragraphs
+    [InlineData("NC131A")]   // SET across index-names, USAGE INDEX items (incl. a USAGE INDEX group), numeric receivers
+    [InlineData("NC137A")]   // SET + relative index subscripting
+    [InlineData("NC141A")]   // SET + multi-dimensional table indexing
+    [InlineData("NC248A")]   // SET + table relation conditions
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

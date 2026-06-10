@@ -39,6 +39,10 @@ public sealed record BoundNegate(BoundExpr Operand) : BoundExpr;
 /// <summary>Exponentiation (<c>base ** exp</c>).</summary>
 public sealed record BoundPower(BoundExpr Base, BoundExpr Exp) : BoundExpr;
 
+/// <summary>An INDEXED BY index-name read as its 1-based occurrence number (the C# <c>long</c> index field,
+/// COBOLNET_DESIGN §3.5). Valid in SET senders, SEARCH, relation conditions, and subscripts (ISO §13.18.38).</summary>
+public sealed record BoundIndexRef(string IndexField) : BoundExpr;
+
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundExprError(string Feature) : BoundExpr;
 
@@ -195,6 +199,24 @@ public sealed record BoundNop : BoundStatement;
 /// <summary><c>SET condition-name+ TO TRUE</c> — each names a level-88 whose first VALUE is stored into its
 /// (already-resolved) parent place.</summary>
 public sealed record BoundSetConditions(IReadOnlyList<(Place Parent, Condition88 Condition)> Sets) : BoundStatement;
+
+// ── SET index assignment / arithmetic (ISO §14.9.39 Formats 1–2; COBOLNET_DESIGN §3.5/§12.3) ──────────────────
+
+/// <summary>A SET receiving operand, dispatched by kind (the design's §12.3 rule).</summary>
+public abstract record BoundSetTarget;
+/// <summary>An INDEXED BY index-name receiver — its C# <c>long</c> occurrence-number field.</summary>
+public sealed record SetIndexTarget(string IndexField) : BoundSetTarget;
+/// <summary>A data-item receiver: an index data item (USAGE INDEX — receives the value unchanged, §14.9.39 GR2b)
+/// or an integer data item (receives the occurrence number via its own PICTURE store, GR2c).</summary>
+public sealed record SetPlaceTarget(Place Place) : BoundSetTarget;
+
+/// <summary><c>SET receivers… TO value</c> (ISO §14.9.39 Format 1): the sender (an occurrence number — in the
+/// §3.5 model an index IS its 1-based occurrence number) is determined ONCE (GR2), then stored per receiver kind.</summary>
+public sealed record BoundSetTo(IReadOnlyList<BoundSetTarget> Targets, BoundExpr Value) : BoundStatement;
+
+/// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is determined ONCE
+/// (GR3), then each index is incremented/decremented by it (GR4).</summary>
+public sealed record BoundSetUpDown(IReadOnlyList<BoundSetTarget> Targets, BoundExpr Amount, bool Down) : BoundStatement;
 
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
 

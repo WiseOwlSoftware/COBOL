@@ -35,6 +35,10 @@ public enum Usage
     Float,
     /// <summary>COMP-2 — double-precision float.</summary>
     Double,
+    /// <summary>USAGE INDEX — an index data item (class index, ISO §13.18.60): holds an occurrence number, which in
+    /// the typed-native model IS the index representation (a <c>long</c>, COBOLNET_DESIGN §3.5). Only SET, SEARCH,
+    /// and relation conditions may reference it; SET copies it UNCHANGED (no PICTURE store, §14.9.39 GR2b).</summary>
+    Index,
 }
 
 /// <summary>
@@ -209,6 +213,12 @@ public sealed record PicInfo(
         "COMP-5" => Usage.Comp5,
         "COMP-1" => Usage.Float,
         "COMP-2" => Usage.Double,
+        "INDEX" => Usage.Index,
         _ => Usage.Display,
     };
+
+    /// <summary>The synthesized profile of a PICTURE-less <c>USAGE INDEX</c> data item (ISO §13.18.60): an
+    /// elementary <c>long</c> holding an occurrence number. Digits/Scale are irrelevant — SET copies an index value
+    /// UNCHANGED (§14.9.39 GR2b), never through a PICTURE store.</summary>
+    public static PicInfo IndexItem { get; } = new(PicCategory.Numeric, Usage.Index, Length: 0, Digits: 0, Scale: 0, Signed: false);
 }

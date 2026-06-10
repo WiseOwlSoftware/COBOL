@@ -416,10 +416,62 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         : t.dataReference() is { } d ? FieldOperand(d)
         : new BoundNumericLiteral("1");
 
+    /// <summary>Bind a SET statement, dispatching by format (ISO §14.9.39; COBOLNET_DESIGN §12.3). The COBOL-85
+    /// surface — Format 1 index/value assignment, Format 2 UP/DOWN BY, Format 4 condition-name TO TRUE — binds here;
+    /// the later-edition formats (switches need SPECIAL-NAMES, pointers/objects their 2002 subsystems, TO FALSE the
+    /// 2002 FALSE phrase) fail loud by NAME until their subsystem lands.</summary>
     private BoundStatement BindSet(Core.SetStatementContext set)
     {
-        if (set.setBooleanStatement() is not { } b || b.TRUE_() is null)
-            return new BoundUnsupported($"SET form '{set.GetText()}'");
+        if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
+        if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
+        if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
+        if (set.setSwitchStatement() is not null)
+            return new BoundUnsupported("SET mnemonic-name TO ON/OFF (external switches — SPECIAL-NAMES SWITCH subsystem, ISO §14.9.39 F3)");
+        if (set.setAddressStatement() is not null)
+            return new BoundUnsupported("SET ADDRESS OF (data-pointer subsystem, COBOL-2002+, ISO §14.9.39 F7)");
+        if (set.setObjectReferenceStatement() is not null)
+            return new BoundUnsupported("SET object reference (OO subsystem, COBOL-2002+, ISO §14.9.39 F5)");
+        return new BoundUnsupported($"SET form '{set.GetText()}'");
+    }
+
+    /// <summary><c>SET receivers… TO value</c> (ISO §14.9.39 Format 1). Receivers may mix index-names and data
+    /// items; the sender is any integer-valued operand (an index-name sender reads its occurrence number, §3.5).</summary>
+    private BoundStatement BindSetTo(Core.SetToValueStatementContext tv)
+    {
+        var targets = new List<BoundSetTarget>();
+        foreach (var dref in tv.dataReference())
+        {
+            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
+            targets.Add(t);
+        }
+        return new BoundSetTo(targets, BindExpr(tv.arithmeticExpression()));
+    }
+
+    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2).</summary>
+    private BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
+    {
+        var targets = new List<BoundSetTarget>();
+        foreach (var dref in ud.dataReference())
+        {
+            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
+            targets.Add(t);
+        }
+        return new BoundSetUpDown(targets, BindExpr(ud.arithmeticExpression()), ud.DOWN() is not null);
+    }
+
+    /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item
+    /// (an index data item or an integer item — the emitter dispatches on its usage).</summary>
+    private BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
+        IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
+        : refs.Resolve(dref) is { } p ? new SetPlaceTarget(p)
+        : null;
+
+    /// <summary><c>SET condition-name+ TO TRUE</c> (ISO §14.9.39 Format 4). TO FALSE needs the 2002 <c>WHEN SET TO
+    /// FALSE</c> VALUE phrase (SR7) — loud until the 88 model captures it.</summary>
+    private BoundStatement BindSetCondition(Core.SetBooleanStatementContext b)
+    {
+        if (b.TRUE_() is null)
+            return new BoundUnsupported("SET condition-name TO FALSE (the VALUE … WHEN SET TO FALSE phrase, COBOL-2002+, ISO §14.9.39 SR7)");
         var sets = new List<(Place, Condition88)>();
         foreach (var dref in b.dataReference())
         {
@@ -429,6 +481,13 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         }
         return new BoundSetConditions(sets);
     }
+
+    /// <summary>The C# <c>long</c> index field when <paramref name="dref"/> is a bare INDEXED BY index-name
+    /// (ISO §13.18.38 — index-names are a separate name class living in <see cref="DataBinder.IndexFields"/>,
+    /// not the data-item tree), else <see langword="null"/>.</summary>
+    private string? IndexFieldOf(Core.DataReferenceContext dref) =>
+        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord()?.GetText() is { } w
+        && data.IndexFields.TryGetValue(w, out var f) ? f : null;
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 
@@ -456,7 +515,16 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     }
 
     private BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
-        refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError($"reference '{dref.GetText()}'");
+        IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
+        : refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError($"reference '{dref.GetText()}'");
+
+    /// <summary>Bind a data reference in a numeric-expression position: an INDEXED BY index-name reads its
+    /// occurrence number (valid in SET/SEARCH/relations, ISO §13.18.38); otherwise the resolved item's value.
+    /// The ONE dataReference→<see cref="BoundExpr"/> mapping, used by every expression path.</summary>
+    private BoundExpr RefExpr(Core.DataReferenceContext dref) =>
+        IndexFieldOf(dref) is { } ix ? new BoundIndexRef(ix)
+        : refs.Resolve(dref) is { } p ? new BoundNumRef(p)
+        : new BoundExprError($"reference '{dref.GetText()}'");
 
     private List<Place> ResolveTargets(IEnumerable<Core.DataReferenceContext> targets) =>
         targets.Select(refs.Resolve).OfType<Place>().ToList();
@@ -500,7 +568,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
             : u.addOp().GetText() == "-" ? new BoundNegate(BindExpr(u.unaryExpression())) : BindExpr(u.unaryExpression()),
         Core.PrimaryExpressionContext pe => BindPrimary(pe),
         Core.LiteralContext l => NumLiteral(l),
-        Core.DataReferenceContext d => refs.Resolve(d) is { } p ? new BoundNumRef(p) : new BoundExprError($"reference '{d.GetText()}'"),
+        Core.DataReferenceContext d => RefExpr(d),
         _ => BindOperandExpr(node),   // operand wrappers (addOperand, multiplyByOperand, …)
     };
 
@@ -537,7 +605,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     {
         if (pe.numericLiteral() is { } num) return new BoundNumLiteral(num.GetText());
         if (pe.ZERO_ARITH() is not null) return new BoundNumLiteral("0");
-        if (pe.dataReference() is { } dref) return refs.Resolve(dref) is { } p ? new BoundNumRef(p) : new BoundExprError($"reference '{dref.GetText()}'");
+        if (pe.dataReference() is { } dref) return RefExpr(dref);
         if (pe.arithmeticExpression() is { } paren) return BindExpr(paren);
         return new BoundExprError("function-call operand");
     }
@@ -551,7 +619,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         {
             var c = node.GetChild(i);
             if (c is Core.LiteralContext l) return NumLiteral(l);
-            if (c is Core.DataReferenceContext d) return refs.Resolve(d) is { } p ? new BoundNumRef(p) : new BoundExprError($"reference '{d.GetText()}'");
+            if (c is Core.DataReferenceContext d) return RefExpr(d);
             if (FindLeaf(c) is { } inner) return inner;
         }
         return new BoundNumLiteral("0");
@@ -563,7 +631,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         {
             var c = node.GetChild(i);
             if (c is Core.LiteralContext l) return NumLiteral(l);
-            if (c is Core.DataReferenceContext d) return refs.Resolve(d) is { } p ? new BoundNumRef(p) : new BoundExprError($"reference '{d.GetText()}'");
+            if (c is Core.DataReferenceContext d) return RefExpr(d);
             if (FindLeaf(c) is { } inner) return inner;
         }
         return null;
