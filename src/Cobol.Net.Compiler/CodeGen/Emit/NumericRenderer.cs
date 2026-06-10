@@ -55,9 +55,10 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
         // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant).
         { Category: PicCategory.Alphanumeric } => new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0),
-        // A numeric-edited sender needs DE-EDITING (ISO §14.9.25.4 GR5) — the CobolEdit wave; loud until then.
-        { Category: PicCategory.NumericEdited } =>
-            new NumX(EmitText.LoudValue("long", $"de-editing numeric use of numeric-edited item '{p.Item.CobolName ?? p.Read()}' (ISO §14.9.25.4 GR5)"), 0),
+        // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
+        // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
+        { Category: PicCategory.NumericEdited, EditMask: { } dem } =>
+            new NumX($"CobolEdit.DeEdit({p.Read()}, {EmitText.CsLiteral(dem)})", CobolNet.Runtime.CobolEdit.MaskScale(dem)),
         { } pic => new NumX(p.Read(), pic.Scale),
     };
 

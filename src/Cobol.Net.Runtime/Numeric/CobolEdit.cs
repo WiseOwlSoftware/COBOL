@@ -189,6 +189,45 @@ public static class CobolEdit
         return new string(output);
     }
 
+    /// <summary>DE-EDIT a numeric-edited item's image back to its numeric value (ISO §14.9.25.4 GR5 — a
+    /// numeric-edited SENDER moved to a numeric receiver, the COBOL-85 de-editing move): every digit POSITION of
+    /// the mask contributes its image digit (a suppressed/replaced position — space, <c>*</c>, a floating symbol's
+    /// landing spot — contributes zero), yielding the unscaled value at the mask's fraction scale
+    /// (<see cref="MaskScale"/>); the value is negative when the image carries the mask's negative sign
+    /// (<c>-</c> anywhere a sign can land, or a non-blank CR/DB).</summary>
+    public static Int128 DeEdit(string image, string picture)
+    {
+        string pattern = picture.Replace("V", "");
+        const char currencyChar = '$';
+        int plus = 0, minus = 0, cs = 0;
+        foreach (char raw in pattern)
+        {
+            char p = char.ToUpperInvariant(raw);
+            if (p == '+') plus++;
+            else if (p == '-') minus++;
+            else if (p == currencyChar) cs++;
+        }
+        bool fixedPlus = plus == 1 && minus == 0, fixedMinus = minus == 1 && plus == 0, fixedCs = cs == 1;
+
+        Int128 value = 0;
+        bool negative = false;
+        for (int i = 0; i < pattern.Length && i < image.Length; i++)
+        {
+            char p = char.ToUpperInvariant(pattern[i]);
+            char c = image[i];
+            bool digitPos = p is '9' or 'Z' or '*'
+                || (p == currencyChar && !fixedCs)
+                || (p == '+' && !fixedPlus)
+                || (p == '-' && !fixedMinus);
+            if (digitPos) { value = value * 10 + (c is >= '0' and <= '9' ? c - '0' : 0); continue; }
+            if (c == '-') negative = true;                      // a fixed sign position holding minus
+            else if (p == 'C' && c == 'C') negative = true;     // CR rendered (negative value)
+            else if (p == 'D' && c == 'D') negative = true;     // DB rendered
+        }
+        if (image.Contains('-')) negative = true;               // a floating minus landed inside its zone
+        return negative ? -value : value;
+    }
+
     /// <summary>The mask's fraction scale — digit positions right of the point (<c>V</c> or <c>.</c>). Public so
     /// the compiler can fold the working scale of an edited RECEIVER at emit time (a quotient/ROUNDED result must
     /// be computed and rounded AT this scale before editing, ISO §14.7.4/§14.7.7).</summary>

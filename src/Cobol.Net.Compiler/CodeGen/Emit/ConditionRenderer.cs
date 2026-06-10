@@ -21,8 +21,16 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         BoundLogical l => "(" + string.Join($" {l.Op} ", l.Operands.Select(Render)) + ")",
         BoundNot n => $"!({Render(n.Operand)})",
         BoundCondition88 c88 => RenderCondition88(c88),
+        // A switch-status condition (ISO §8.8.4.6 GR1): true when the external switch is at the posited position.
+        BoundSwitchCondition sw => sw.TestsOn
+            ? $"ExternalSwitches.Get({EmitText.CsLiteral(sw.ImplementorName)})"
+            : $"!ExternalSwitches.Get({EmitText.CsLiteral(sw.ImplementorName)})",
         BoundSignCondition s => RenderSign(s),
         BoundClassCondition cc => RenderClass(cc),
+        // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
+        BoundUserClassCondition uc => uc.Negated
+            ? $"!CobolClass.IsInClass({OperandText.AsString(uc.Operand)}, {EmitText.CsLiteral(uc.Members)})"
+            : $"CobolClass.IsInClass({OperandText.AsString(uc.Operand)}, {EmitText.CsLiteral(uc.Members)})",
         BoundConditionError e => EmitText.LoudValue("bool", e.Feature),
         _ => EmitText.LoudValue("bool", $"bound condition '{c.GetType().Name}'"),
     };
@@ -94,15 +102,23 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         return s.Negated ? $"!({test})" : $"({test})";
     }
 
-    /// <summary>A class condition (ISO §8.8.4.1.4). A typed-numeric operand IS NUMERIC folds to <c>true</c> (it can
-    /// only hold digits — COBOLNET_DESIGN §6.6); every other case checks the operand's character image at run time.</summary>
+    /// <summary>A class condition (ISO §8.8.4.1.4). A typed-numeric operand IS NUMERIC folds to <c>true</c> ONLY
+    /// when its storage is the native long/Int128 (it can only hold digits — COBOLNET_DESIGN §6.6); a numeric item
+    /// whose storage is a CHARACTER window (a REDEFINES view, or a whole-group-aliased StoreAsImage leaf) can hold
+    /// arbitrary characters and tests its image at run time — sign-aware for a signed zoned item (§8.8.4.4 r3,
+    /// NC174A CLASS-TEST-GF-8/10: S9(18) REDEFINES X(18) holding letters is NOT numeric).</summary>
     private string RenderClass(BoundClassCondition c)
     {
-        bool numericField = c.Operand is BoundFieldOperand f && f.Place.Item.Pic?.Category is PicCategory.Numeric;
+        var fld = c.Operand as BoundFieldOperand;
+        bool numericCategory = fld?.Place.Item.Pic?.Category is PicCategory.Numeric;
+        bool numericField = numericCategory && fld!.Place is not RedefViewPlace && !fld.Place.Item.StoreAsImage;
         string arg = OperandText.AsString(c.Operand);
+        string numericTest = numericCategory && fld!.Place.Item.Pic is { Signed: true } sp
+            ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")})"
+            : $"CobolClass.IsNumeric({arg})";
         string test = c.ClassKind switch
         {
-            'N' => numericField ? "true" : $"CobolClass.IsNumeric({arg})",
+            'N' => numericField ? "true" : numericTest,
             'A' => $"CobolClass.IsAlphabetic({arg})",
             'U' => $"CobolClass.IsAlphabeticUpper({arg})",
             'L' => $"CobolClass.IsAlphabeticLower({arg})",

@@ -12,7 +12,7 @@ using Core = CobolParserCore;
 /// layout; the .NET type IS the storage. (Slice scope: WORKING-STORAGE groups + elementary items with fixed
 /// OCCURS recorded; FILE/LINKAGE/LOCAL-STORAGE, level-66/88, and REDEFINES follow in later slices.)
 /// </summary>
-public sealed class DataBinder(EditionContext? edition = null)
+public sealed partial class DataBinder(EditionContext? edition = null)
 {
     private int _fillerCounter;
     private int _uidCounter;
@@ -85,6 +85,7 @@ public sealed class DataBinder(EditionContext? edition = null)
         // both emit as static fields, so a name used by an FD record must not collide with a WS root.
         var rootNames = new HashSet<string>(StringComparer.Ordinal);
 
+        SwitchBindSpecialNames(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)
         BindFileSection(program, rootNames);       // FD records → Roots + FileModel.Records + the shared-area REDEFINES
 
@@ -330,12 +331,15 @@ public sealed class DataBinder(EditionContext? edition = null)
         int? occurs = null;
         var indexNames = new List<string>();
         SignSpec? ownSign = null;
+        bool justified = false;
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
             {
                 if (clause.pictureClause()?.PIC_STRING() is { } picTok)
                     pictureText = picTok.GetText();
+                else if (clause.justifiedClause() is not null)
+                    justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
                 else if (clause.usageClause() is { } usage)
                     usageText = UsageKeyword(usage);
                 else if (clause.redefinesClause() is { } redef)
@@ -376,6 +380,7 @@ public sealed class DataBinder(EditionContext? edition = null)
             RawValue = rawValue,
             Occurs = occurs,
             RedefinesTargetName = redefinesTargetName,
+            Justified = justified,
         };
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
@@ -466,7 +471,29 @@ public sealed class DataBinder(EditionContext? edition = null)
                 var info = ren.Renames!;
                 info.From = FindDescendantOrSelf(root, info.FromName);
                 info.Thru = info.ThruName is { } t ? FindDescendantOrSelf(root, t) : null;
+                if (info.From is null || (info.ThruName is not null && info.Thru is null)) continue;
+
+                // The alias spans the record's contiguous leaf run FROM..THRU (§13.18.45 GR1/GR2); the alias item
+                // itself reads/writes as one elementary ALPHANUMERIC item of the span's width (its category per
+                // GR — a re-grouping, always treated as an alphanumeric data item when referenced as a whole).
+                var leaves = new List<DataItem>();
+                void Walk(DataItem n) { if (n.IsElementary) leaves.Add(n); else foreach (var c in n.Children) Walk(c); }
+                Walk(root);
+                int start = leaves.FindIndex(l => ReferenceEquals(l, info.From) || IsUnder(l, info.From));
+                DataItem last = info.Thru ?? info.From;
+                int end = leaves.FindLastIndex(l => ReferenceEquals(l, last) || IsUnder(l, last));
+                if (start < 0 || end < start) continue;
+                info.SpanLeaves.AddRange(leaves[start..(end + 1)]);
+                ren.Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display,
+                    Length: info.SpanLeaves.Sum(l => l.ImageWidth), Digits: 0, Scale: 0, Signed: false);
             }
+
+        static bool IsUnder(DataItem leaf, DataItem ancestor)
+        {
+            for (DataItem? n = leaf; n is not null; n = n.Parent)
+                if (ReferenceEquals(n, ancestor)) return true;
+            return false;
+        }
     }
 
     /// <summary>Group every redefining entry with the non-redefining anchor it ultimately overlays (SR7/SR11) into a

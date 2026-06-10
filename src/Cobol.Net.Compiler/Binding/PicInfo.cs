@@ -74,6 +74,11 @@ public sealed record PicInfo(
     /// every other category.</summary>
     public string? EditMask { get; init; }
 
+    /// <summary>True when every PICTURE position is <c>A</c> — category alphabetic (ISO §8.5.2). INITIALIZE
+    /// category matching (§14.9.20 GR5c/GR6c) must distinguish alphabetic from alphanumeric receivers; both map
+    /// to <see cref="PicCategory.Alphanumeric"/> storage, so the category needs this flag.</summary>
+    public bool IsAlphabetic { get; init; }
+
     /// <summary>True for the WIDE storage tier: a fixed-point picture of 19–38 digits (legal 19–31 at COBOL-2002+,
     /// ISO §8.3.1.2 / the composite rules §14.7) stores as <see cref="Int128"/> — the design's graduated substrate
     /// (numeric design D1 / SSOT §18 #4). ≤18 digits stay hardware-native <see cref="long"/>.</summary>
@@ -177,7 +182,7 @@ public sealed record PicInfo(
             return new PicInfo(PicCategory.Alphanumeric, usage,
                 Length: expanded.Count(c => c is 'X' or 'A' or '9' or 'B' or '0' or '/'),
                 Digits: 0, Scale: 0, Signed: false)
-            { EditMask = edited ? expanded : null };
+            { EditMask = edited ? expanded : null, IsAlphabetic = expanded.All(c => c is 'A') };
         }
 
         string signKind = SignKindFor(usage, signed, sign);

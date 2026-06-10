@@ -261,7 +261,7 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
 | EXIT PERFORM [CYCLE], EXIT PARAGRAPH, EXIT SECTION | ✘ diagnose not-in-edition | ✔ | ✔ | ✔ | 2002 introduction (derive from the 2002 standard) |
 | PERFORM … UNTIL EXIT | ✘ | ✘ | ✘ | ✔ | row 80 (E.3.3 item 37) |
 | Exception-checking PERFORM variant | ✘ | ✘ | ✘ | ✔ (owned by the EC deep-dive) | row 79 (E.3.3 item 36) |
-| ALTER + alterable GO TO | ✔ (obsolete-element flag) | per §18 #10 gated ON — ⚠ the 2002 standard DELETED ALTER; strict 2002/2014 may need reject-as-removed (reconcile in the SSOT) | same as 2002 | flagged obsolete in strict 2023 | §18 #10; Annex F.1 |
+| ALTER + alterable GO TO | ✔ (obsolete element; warning channel pending) | ✘ REJECTED as deleted (COBOLNET0810/0811 — ISO/IEC 1989:2002 deleted ALTER and the target-less GO TO) | same as 2002 | same as 2002 (the 2023 standard has no ALTER; §14.9.17 F1–F2 only) | ISO history (2002 deletion); ANSI X3.23-1985; §18 #10 (reconciled) |
 | EXIT PROGRAM | ✔ | ✔ | ✔ | ✔ + archaic flag | rows 89/126 (Annex F.1 #1) |
 
 Diagnostics: use below the introduction edition ⇒ reject with the standard not-in-this-edition diagnostic (the

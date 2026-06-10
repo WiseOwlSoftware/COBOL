@@ -106,6 +106,31 @@ public sealed class NistDifferentialTests
     // THRU ranges, NOT groups, ALSO multi-subject AND composition, ANY, TRUE/FALSE subjects↔condition objects,
     // and CONDITIONAL subjects (class tests + level-88 condition-names) paired with TRUE/FALSE — DEVLOG 542.
     [InlineData("NC225A")]   // the EVALUATE feature program (29 GF tests incl. 6-subject ALSO matrices)
+    // Greened by the SIX-FAMILY VERB WAVE (DEVLOG 543 — INSPECT §14.9.22, STRING §14.9.43 / UNSTRING §14.9.48,
+    // INITIALIZE §14.9.20, ACCEPT §14.9.1, MOVE/ADD/SUBTRACT CORRESPONDING §14.7.6, ALTER (85-only) + SPECIAL-NAMES
+    // switches §12.3.7 / SET F3 §14.9.39 / switch conditions §8.8.4.6) plus the integration fixes: JUSTIFIED
+    // §13.18.34, user-defined classes §12.3.7/§8.8.4.1.4, sign-aware zoned IS NUMERIC on character-backed views
+    // §8.8.4.4 r3, level-66 RENAMES places §13.18.45, de-editing §14.9.25.4 GR5, AN-edited figurative INITIALIZE
+    // §14.9.25.4 GR5, and the VARYING AFTER augment-then-reinit order §14.9.28 GR13e.
+    [InlineData("NC115A")]   // INSPECT TALLYING
+    [InlineData("NC216A")]   // INSPECT REPLACING/CONVERTING (BEFORE+AFTER combos)
+    [InlineData("NC221A")]   // INSPECT TALLYING+REPLACING combined
+    [InlineData("NC122A")]   // INSPECT over signed/edited senders
+    [InlineData("NC217A")]   // STRING (POINTER, DELIMITED, overflow)
+    [InlineData("NC218A")]   // UNSTRING (DELIMITER/COUNT/TALLYING IN, JUSTIFIED receivers)
+    [InlineData("NC223A")]   // INITIALIZE (REPLACING categories, AN-edited receivers)
+    [InlineData("NC201A")]   // INITIALIZE + PERFORM VARYING AFTER FROM-outer-var ordering
+    [InlineData("NC109M")]   // ACCEPT device reads (stdin .dat piped by the harness)
+    [InlineData("NC204M")]   // ACCEPT FROM mnemonic (SPECIAL-NAMES device registry)
+    [InlineData("NC202A")]   // ADD CORRESPONDING (ROUNDED, SIZE ERROR, qualified, tables)
+    [InlineData("NC207A")]   // ADD/SUBTRACT CORR over 5-deep identical-name subtrees
+    [InlineData("NC208A")]   // MOVE CORRESPONDING (partial matches)
+    [InlineData("NC209A")]   // MOVE CORR qualified/subscripted + level-66 RENAMES references
+    [InlineData("NC222A")]   // MOVE CORR tables + the de-editing MOVE (NE sender → numeric)
+    [InlineData("NC253A")]   // SUBTRACT CORRESPONDING suite
+    [InlineData("NC174A")]   // SPECIAL-NAMES switches + SET F3 + user-defined classes + zoned IS NUMERIC
+    [InlineData("NC254A")]   // switch conditions inside compound/abbreviated conditions
+    [InlineData("NC302M")]   // ALTER (no PROCEED) inside PERFORM THRU
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();
@@ -134,7 +159,11 @@ public sealed class NistDifferentialTests
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
-            var (runOk, stdout, runDetail) = CutRunner.Run(dll, dir);
+            string dat = Path.Combine(root, "tests", "nist", "data", testName + ".dat");
+            // Guard parity (scripts/guard.sh:120): the CCVS-85 switch programs (NC174A/NC254A) run with external
+            // SWITCH-1 ON, SWITCH-2 unset — their goldens assume exactly that.
+            var env = new Dictionary<string, string> { ["COBOL_SWITCH_1"] = "ON" };
+            var (runOk, stdout, runDetail) = CutRunner.Run(dll, dir, File.Exists(dat) ? dat : null, env);
             if (!runOk) return (false, "", $"[run] exit non-zero: {runDetail}");
 
             // The CCVS report lands in the print file (assign target → <lowercased>.txt in the run dir); a

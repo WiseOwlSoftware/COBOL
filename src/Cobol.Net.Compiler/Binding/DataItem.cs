@@ -56,6 +56,10 @@ public sealed class DataItem
     /// </summary>
     public bool StoreAsImage { get; set; }
 
+    /// <summary>JUSTIFIED [RIGHT] (ISO §13.18.34): alphanumeric/alphabetic receives right-justify — space-fill on
+    /// the LEFT when the sender is shorter, truncate from the LEFT when longer (§14.9.25.4 GR6c).</summary>
+    public bool Justified { get; init; }
+
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
     public List<DataItem> Children { get; } = [];
 

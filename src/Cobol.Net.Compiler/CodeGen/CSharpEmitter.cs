@@ -125,6 +125,7 @@ public sealed partial class CSharpEmitter
         // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
         w.Line($"private const int __N = {n};   // paragraph count");
+        AlterEmitFields(bound, w);   // the per-altered-paragraph mutable GO TO target fields (control-flow design D4)
         w.Line();
         using (w.Block("private static void Main()"))
         {
@@ -216,6 +217,9 @@ public sealed partial class CSharpEmitter
         BoundDivideGiving a => InSizeError(a.SizeError),
         BoundDivideRemainder a => InSizeError(a.SizeError),
         BoundCompute c => InSizeError(c.SizeError),
+        BoundCorresponding cr => InSizeError(cr.SizeError),
+        BoundStringStmt sstr => (sstr.OnOverflow is { } son && ContainsNextSentence(son)) || (sstr.NotOnOverflow is { } snot && ContainsNextSentence(snot)),
+        BoundUnstringStmt suns => (suns.OnOverflow is { } uon && ContainsNextSentence(uon)) || (suns.NotOnOverflow is { } unot && ContainsNextSentence(unot)),
         _ => false,
     });
 
@@ -272,15 +276,24 @@ public sealed partial class CSharpEmitter
             case BoundInlinePerform p: EmitInlinePerform(p); return false;
             case BoundOutOfLinePerform p: EmitOutOfLinePerform(p); return false;
             case BoundSetConditions set: EmitSet(set); return false;
+            case BoundSetSwitches ss: SwitchEmitSet(ss); return false;
+            case BoundAlter al: AlterEmitAlter(al); return false;
+            case BoundGoToAlterable ga: AlterEmitGoTo(ga); return true;
             case BoundSetTo st: EmitSetTo(st); return false;
             case BoundSetUpDown su: EmitSetUpDown(su); return false;
             case BoundSearch se: EmitSearch(se); return false;
             case BoundEvaluate ev: EmitEvaluate(ev); return false;
+            case BoundInspect ins: EmitInspect(ins); return false;
+            case BoundCorresponding corr: EmitCorresponding(corr); return false;
             case BoundOpen o: EmitOpen(o); return false;
             case BoundClose c: EmitClose(c); return false;
             case BoundWrite wr: EmitWrite(wr); return false;
             case BoundRead rd: EmitRead(rd); return false;
             case BoundRewrite rw: EmitRewrite(rw); return false;
+            case BoundStringStmt sstr: EmitString(sstr); return false;
+            case BoundUnstringStmt suns: EmitUnstring(suns); return false;
+            case BoundAccept ac: EmitAccept(ac); return false;
+            case BoundInitialize ini: EmitInitialize(ini); return false;
             default: w.Line(LoudStmt($"bound statement '{s.GetType().Name}'")); return false;
         }
     }
@@ -364,9 +377,12 @@ public sealed partial class CSharpEmitter
         var pic = target.Pic!;
         // A figurative constant fills the receiver to its width (ISO §8.3.1.2 / §14.9.24) — EXCEPT figurative
         // ZERO into a numeric-edited receiver, which is the numeric value 0 EDITED into the mask (§14.9.25.4 GR5;
-        // 'ZZ9.99' shows '  0.00', not a zero-fill).
+        // 'ZZ9.99' shows '  0.00', not a zero-fill), and EXCEPT an alphanumeric-EDITED receiver, whose insertion
+        // positions keep their characters under the editing move (GR5 — MOVE SPACES TO 'XXXBXX/XX' yields '/' at
+        // its position, NC223A INI-TEST-GF-1; handled in the switch below).
         if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric
-            && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited))
+            && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited)
+            && !(pic.Category is PicCategory.Alphanumeric && pic.EditMask is not null))
             return $"new string({FigurativeFill(f.Kind)}, {pic.Length})";
         // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2).
         if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric)
@@ -382,10 +398,15 @@ public sealed partial class CSharpEmitter
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
-                return $"CobolEdit.FormatAlphanumeric({OperandText.AsString(source, deSign: true)}, {CsLiteral(amask)})";
+                // A figurative source supplies its fill for EVERY data position (§8.3.1.2 — repeated to width).
+                string aeSrc = source is BoundFigurative ff
+                    ? $"new string({FigurativeFill(ff.Kind)}, {pic.Length})"
+                    : OperandText.AsString(source, deSign: true);
+                return $"CobolEdit.FormatAlphanumeric({aeSrc}, {CsLiteral(amask)})";
             case PicCategory.Alphanumeric or PicCategory.NumericEdited:
-                // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a).
-                return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length})";
+                // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
+                // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).
+                return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}{(target.Justified ? ", justifiedRight: true" : "")})";
             case PicCategory.Numeric:
                 NumX n = _num.AsNum(source);
                 string stored = Narrow($"CobolNum.Store({n.Expr}, {n.Scale}, {target.ProfileName})", target);
@@ -643,8 +664,11 @@ public sealed partial class CSharpEmitter
                     else
                     {
                         EmitBefore(k + 1);
-                        StoreSetTarget(levels[k + 1].Var, _num.Render(levels[k + 1].From));   // reset inner (GR13e.2a)
+                        // §14.9.28 GR13e ('85 6.20.4 GR10(d)1): the OUTER variable augments FIRST, THEN the inner
+                        // re-initializes from its CURRENT FROM value — `AFTER B FROM A` must see the augmented A
+                        // (NC201A PFM-TEST-F4-23: 3+2+1 = 6 iterations, not 3+3+2).
                         AugmentSetTarget(levels[k].Var, down: false, _num.Render(levels[k].By));
+                        StoreSetTarget(levels[k + 1].Var, _num.Render(levels[k + 1].From));
                     }
                 }
             }

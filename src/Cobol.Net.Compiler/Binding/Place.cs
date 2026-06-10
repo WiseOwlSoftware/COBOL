@@ -77,6 +77,43 @@ public sealed record RedefViewPlace(string Backing, string OffsetExpr, int Width
 }
 
 /// <summary>
+/// A level-66 RENAMES place (ISO §13.18.45): ONE elementary-alphanumeric view composed over the spanned record
+/// leaves. Reading concatenates the leaves' character images (each leaf field invariantly holds exactly its image
+/// width); writing stores the value at the span's width and distributes the slices back into the leaves left to
+/// right — so a write through the alias is visible through every renamed item and vice versa (no second storage,
+/// SR/GR — RENAMES adds no data item).
+/// </summary>
+public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasItem) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => AliasItem.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => AliasItem;
+
+    /// <inheritdoc/>
+    public override string Read() =>
+        Leaves.Count == 1 ? Leaves[0].Read() : "(" + string.Join(" + ", Leaves.Select(l => l.Read())) + ")";
+
+    /// <inheritdoc/>
+    public override string Write(string rhs)
+    {
+        if (Leaves.Count == 1) return Leaves[0].Write(rhs);
+        int width = Leaves.Sum(l => l.Item.ImageWidth);
+        var sb = new System.Text.StringBuilder();
+        sb.Append($"{{ string __ren = CobolString.Store({rhs}, {width});");
+        int off = 0;
+        foreach (var l in Leaves)
+        {
+            int w = l.Item.ImageWidth;
+            sb.Append(' ').Append(l.Write($"__ren.Substring({off}, {w})"));
+            off += w;
+        }
+        return sb.Append(" }").ToString();
+    }
+}
+
+/// <summary>
 /// A reference-modified place <c>inner(start:length)</c> (COBOLNET_DESIGN §3.3 / §7.2): reading is a substring
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
 /// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.

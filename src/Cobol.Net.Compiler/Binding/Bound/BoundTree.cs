@@ -106,6 +106,10 @@ public sealed record BoundSignCondition(BoundExpr Expr, char Kind, bool Negated)
 /// ALPHABETIC-LOWER} (ISO §8.8.4.1.4). <paramref name="ClassKind"/> ∈ {N, A, U, L}.</summary>
 public sealed record BoundClassCondition(BoundOperand Operand, char ClassKind, bool Negated) : BoundCondition;
 
+/// <summary>A USER-DEFINED class condition (ISO §8.8.4.1.4 with a SPECIAL-NAMES class-name, §12.3.7): true when
+/// the operand consists entirely of <paramref name="Members"/> (the clause's literals expanded at bind time).</summary>
+public sealed record BoundUserClassCondition(BoundOperand Operand, string Members, bool Negated) : BoundCondition;
+
 /// <summary>A condition the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundConditionError(string Feature) : BoundCondition;
 

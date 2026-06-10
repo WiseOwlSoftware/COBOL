@@ -1076,9 +1076,9 @@ legacy (a slice of NC).
 > edition-change checklist) and validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` — test
 > the compiler as N per-edition compilers; Phase 0 done). NIST-85 is the 85 positive corpus; the negative
 > (rejected-construct) corpus is NEW.
-> ⚠ Reconciliation TODO (owner-visible): §18 #10 gates ALTER ON through 2014, but the 2002 standard DELETED ALTER —
-> decide whether strict `--std 2002|2014` must reject-as-removed (the ledger has no 85→2002 rows; derive from the
-> 2002 standard).
+> ✔ Reconciled (ALTER family, DEVLOG 543): ALTER + the target-less GO TO are 85-only — REJECTED at
+> `--std 2002|2014|2023` as deleted elements (COBOLNET0810/0811, matching the ISO history and the legacy
+> CBL3601/3605); §18 #10 and the control-flow deep-dive edition table updated in the same change set.
 
 - OO → .NET classes (§10): single-inheritance, NEW/INVOKE/SELF/SUPER, instance vs static scopes, FACTORY, PROPERTY;
   the conformance corpus (`tests/conformance/<ver>/`).
@@ -1356,8 +1356,11 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
 9. **Dispatcher vs pretty output.** v1 always emits the PC dispatcher (correctness first). Lifting provably
    well-behaved (no GO TO/ALTER) paragraphs to idiomatic structured C# is a **post-conformance** "pretty pass",
    deferred.
-10. **ALTER / GOBACK / UNTIL EXIT.** ALTER supported (dialect-gated ON through 2014, flagged obsolete in strict
-    2023); `PERFORM UNTIL EXIT` in scope (`while(true)` + EXIT PERFORM=`break`); main-program `GOBACK`-with-status →
+10. **ALTER / GOBACK / UNTIL EXIT.** ALTER + the target-less GO TO are **85-ONLY**: obsolete in ANSI X3.23-1985
+    (accepted at `--std 85`, no failing diagnostic), DELETED by ISO/IEC 1989:2002 → REJECTED at 2002/2014/2023
+    (COBOLNET0810/0811) — the earlier "gated ON through 2014" was reconciled against the ISO history (the 2023
+    standard has no ALTER; §14.9.17 GO TO has only Formats 1–2). Realization: the D4 per-paragraph mutable field.
+    `PERFORM UNTIL EXIT` in scope (`while(true)` + EXIT PERFORM=`break`); main-program `GOBACK`-with-status →
     `ProgramReturn` carrying the status (process exit code).
 11. **CALL BY REFERENCE of an irregular receiver.** Array element → C# `ref`; a reference-modified splice →
     promote to BY CONTENT (lenient default), diagnosable under a strict dialect.

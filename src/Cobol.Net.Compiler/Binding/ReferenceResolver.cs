@@ -63,8 +63,23 @@ public sealed class ReferenceResolver(DataBinder data)
             indexExprs = e;
         }
 
-        // RENAMES (level 66) resolution lands in a later slice → loud for now (never emit an invalid member access).
-        if (item.Renames is not null) return null;
+        // A level-66 RENAMES alias (ISO §13.18.45): one elementary-alphanumeric view COMPOSED over the spanned
+        // leaves — reads concatenate their images, writes distribute slices back. This slice covers STRING-VALUED
+        // leaves (X / edited / StoreAsImage); a typed-numeric leaf in the span fails loud (the image codecs for a
+        // composed numeric leaf are a later slice). No subscripts: a RENAMES operand cannot have/live under OCCURS.
+        if (item.Renames is { } ren)
+        {
+            if (ren.SpanLeaves.Count == 0 || indexExprs.Count > 0) return null;
+            var leafPlaces = new List<Place>(ren.SpanLeaves.Count);
+            foreach (var leaf in ren.SpanLeaves)
+            {
+                bool stringValued = leaf.StoreAsImage
+                    || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
+                if (!stringValued || PlaceForItem(leaf, []) is not { } lp) return null;
+                leafPlaces.Add(lp);
+            }
+            return new RenamesPlace(leafPlaces, item);
+        }
 
         if (PlaceForItem(item, indexExprs) is not { } inner) return null;
 
@@ -187,7 +202,9 @@ public sealed class ReferenceResolver(DataBinder data)
         return scope is null ? null : FindDescendant(scope, name);
     }
 
-    /// <summary>Find a descendant (direct or nested) of <paramref name="scope"/> with COBOL name <paramref name="name"/>.</summary>
+    /// <summary>Find a descendant (direct or nested) of <paramref name="scope"/> with COBOL name <paramref name="name"/>.
+    /// A record's level-66 RENAMES aliases live OFF the children (no storage) but ARE qualifiable by the record
+    /// name (ISO §8.4.3.3 — <c>HARRY OF A-GLOB</c> where HARRY is a 66 of A-GLOB, NC209A), so they search too.</summary>
     private static DataItem? FindDescendant(DataItem scope, string name)
     {
         foreach (var child in scope.Children)
@@ -195,6 +212,8 @@ public sealed class ReferenceResolver(DataBinder data)
             if (string.Equals(child.CobolName, name, StringComparison.OrdinalIgnoreCase)) return child;
             if (FindDescendant(child, name) is { } found) return found;
         }
+        foreach (var ren in scope.Renames66)
+            if (string.Equals(ren.CobolName, name, StringComparison.OrdinalIgnoreCase)) return ren;
         return null;
     }
 

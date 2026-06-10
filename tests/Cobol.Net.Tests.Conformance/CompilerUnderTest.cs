@@ -51,18 +51,27 @@ internal static class CutRunner
         return string.Join("\n", lines).TrimEnd('\n');
     }
 
-    /// <summary>Run <c>dotnet &lt;dll&gt;</c> in <paramref name="workDir"/> and capture normalized stdout.</summary>
-    public static (bool ok, string stdout, string detail) Run(string dllPath, string workDir)
+    /// <summary>Run <c>dotnet &lt;dll&gt;</c> in <paramref name="workDir"/> and capture normalized stdout.
+    /// <paramref name="stdinFile"/> (when given) is piped to the program's stdin — ACCEPT device input (ISO
+    /// §14.9.1 F1); stdin is always redirected and closed so an over-reading ACCEPT sees EOF, never the console.</summary>
+    public static (bool ok, string stdout, string detail) Run(string dllPath, string workDir, string? stdinFile = null,
+        IReadOnlyDictionary<string, string>? env = null)
     {
         var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"")
         {
             WorkingDirectory = workDir,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            RedirectStandardInput = true,
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+        if (env is not null)
+            foreach (var (k, v) in env) psi.Environment[k] = v;
         using var proc = Process.Start(psi)!;
+        // ACCEPT device input (ISO §14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard.sh:135-138 parity.
+        if (stdinFile is not null) proc.StandardInput.Write(File.ReadAllText(stdinFile));
+        proc.StandardInput.Close();
         var outTask = proc.StandardOutput.ReadToEndAsync();
         var errTask = proc.StandardError.ReadToEndAsync();
         if (!proc.WaitForExit(30000))

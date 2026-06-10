@@ -127,14 +127,20 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.setStatement() is { } set => BindSet(set),
         _ when s.searchStatement() is { } se => BindSearch(se),
         _ when s.evaluateStatement() is { } ev => BindEvaluate(ev),
+        _ when s.inspectStatement() is { } ins => BindInspect(ins),
         _ when s.searchAllStatement() is { } sa => BindSearchAll(sa),
         _ when s.goToStatement() is { } g => BindGoTo(g),
+        _ when s.alterStatement() is { } al => BindAlter(al),   // 85-only; rejected ≥2002 inside BindAlter (deleted by ISO/IEC 1989:2002)
         _ when s.exitStatement() is { } e => BindExit(e),
         _ when s.openStatement() is { } o => BindOpen(o),
         _ when s.closeStatement() is { } c => BindClose(c),
         _ when s.writeStatement() is { } w => BindWrite(w),
         _ when s.readStatement() is { } r => BindRead(r),
         _ when s.rewriteStatement() is { } rw => BindRewrite(rw),
+        _ when s.stringStatement() is { } sstr => BindString(sstr),
+        _ when s.unstringStatement() is { } suns => BindUnstring(suns),
+        _ when s.acceptStatement() is { } ac => BindAccept(ac),
+        _ when s.initializeStatement() is { } ini => BindInitialize(ini),
         _ when s.continueStatement() is not null => new BoundNop(),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
         _ when s.stopStatement() is not null || s.gobackStatement() is not null => new BoundStop(),
@@ -155,10 +161,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             }
             return new BoundGoToDepending(FieldOperand(sel), targets);
         }
-        if (names.Length == 0) return new BoundUnsupported("GO TO (altered / no target)");   // ALTER form — later
-        return ResolveProcedure(names[0]) is { } target
-            ? new BoundGoTo(target.Start)
-            : new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'");
+        if (names.Length == 0) return AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
+        if (ResolveProcedure(names[0]) is not { } target)
+            return new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'");
+        return AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
     }
 
     private static BoundStatement BindExit(Core.ExitStatementContext e)
@@ -309,6 +315,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindMove(Core.MoveStatementContext move)
     {
+        if (move.CORRESPONDING() is not null || move.CORR() is not null)   // Format 2 — BOTH tokens (§14.9.25.3 SR11)
+            return BindCorresponding(CorrVerb.Move, move.dataReference(), CobolRounding.Truncation, null);
         if (move.moveSendingOperand() is not { } send || move.moveReceivingPhrase()?.dataReferenceList() is not { } targets)
             return new BoundUnsupported("MOVE CORRESPONDING / unsupported MOVE form");
         BoundOperand source = send.literal() is { } lit ? LiteralOperand(lit)
@@ -319,7 +327,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindAdd(Core.AddStatementContext add)
     {
-        if (add.addOperandList() is not { } operands) return new BoundUnsupported("ADD CORRESPONDING");
+        if (add.addOperandList() is not { } operands) return BindAddCorresponding(add);   // Format 3 (§14.9.2.2)
         var addends = operands.addOperand().Select(BindExpr).ToList();
         var sizeErr = BindSizeError(add.arithmeticOnSizeError());
         if (add.addGivingPhrase() is { } giving)
@@ -343,7 +351,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindSubtract(Core.SubtractStatementContext sub)
     {
-        if (sub.subtractOperandList() is not { } operands) return new BoundUnsupported("SUBTRACT CORRESPONDING");
+        if (sub.subtractOperandList() is not { } operands) return BindSubtractCorresponding(sub);   // Format 3 (§14.9.44.2)
         var minuends = operands.subtractOperand().Select(BindExpr).ToList();
         var sizeErr = BindSizeError(sub.arithmeticOnSizeError());
         if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
@@ -559,8 +567,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
-        if (set.setSwitchStatement() is not null)
-            return new BoundUnsupported("SET mnemonic-name TO ON/OFF (external switches — SPECIAL-NAMES SWITCH subsystem, ISO §14.9.39 F3)");
+        if (set.setSwitchStatement() is { } sw) return SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
         if (set.setAddressStatement() is not null)
             return new BoundUnsupported("SET ADDRESS OF (data-pointer subsystem, COBOL-2002+, ISO §14.9.39 F7)");
         if (set.setObjectReferenceStatement() is not null)
@@ -989,9 +996,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 : cls.ALPHABETIC_UPPER() is not null ? 'U'
                 : cls.ALPHABETIC_LOWER() is not null ? 'L'
                 : null;
-            return kind is { } k && operands.Length >= 1
-                ? new BoundClassCondition(ComparisonOperand(operands[0]), k, not)
-                : new BoundConditionError($"class condition '{cls.GetText()}'");   // user-defined CLASS — later
+            if (kind is { } k && operands.Length >= 1)
+                return new BoundClassCondition(ComparisonOperand(operands[0]), k, not);
+            // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
+            if (cls.cobolWord() is { } ucls && operands.Length >= 1
+                && data.UserClasses.TryGetValue(ucls.GetText(), out string? members))
+                return new BoundUserClassCondition(ComparisonOperand(operands[0]), members, not);
+            return new BoundConditionError($"class condition '{cls.GetText()}'");
         }
 
         if (cmp.POSITIVE() is not null || cmp.NEGATIVE() is not null || cmp.ZERO() is not null)
@@ -1025,6 +1036,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 return refs.ResolveForItem(dref, cond.Parent) is { } parent
                     ? new BoundCondition88(parent, cond)
                     : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
+            }
+            // A switch-status condition-name (ISO §8.8.4.6) is a complete simple condition — resolved AFTER
+            // level-88 (NC211A: a name defined as both → the 88 wins), BEFORE the abbreviated-carry fallback.
+            if (operands[0].valueOperand()?.arithmeticExpression() is { } swx
+                && SoleDataRef(swx) is { } swr && SwitchCondOf(swr) is { } swCond)
+            {
+                carry.Reset();
+                return swCond;
             }
             if (carry is { Subject: { } subject, Op: { } op })
                 return new BoundRelational(subject, op, ComparisonOperand(operands[0]));
