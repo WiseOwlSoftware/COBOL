@@ -24,8 +24,13 @@
 > SET + index machinery + USAGE INDEX ✅ (526), sections-as-procedure-targets + qualified procedure-names +
 > TIMES-once ✅ (527), PERFORM VARYING complete + ALL-to-group repeat + benign OOR subscripts via CobolTable.At ✅
 > (528), CobolEdit numeric-edited receivers + DIVIDE REMAINDER + alphanumeric→numeric MOVE ✅ (530).**
-> **36 NC programs byte-match the golden, all locked into `NistDifferentialTests`. 414 conformance + 15 unit
-> green.** Sweep (results2): 36 GREEN / 10 DIFF / 49 RUNERR-blocked. **TRACK-1 PHASE 1 ✅ (531):** canonical
+> **45 NC programs byte-match the golden, all locked into `NistDifferentialTests`. 431 conformance + 15 unit
+> green (DEVLOG 533–535: B2 Tier-B layout accounting + GAP-1 subscripted REDEFINES views + NEXT SENTENCE +
+> GAP-2 qualified subscripts + qualified/subscripted 88s + CobolTable.Occ + B3 + alphanumeric figurative
+> comparisons + ALPHANUMERIC-EDITED pictures + all-symbol edited masks). Legacy-oracle hole #4: legacy SEARCH
+> VARYING-other-index falls through to DE-LETE — NC236A is SPEC-PINNED (SpecPinnedNistTests), golden re-baselines
+> at G8. Close diffs to chase: NC114M (16), NC219A collating (16), NC203A/251A + NC170-175 (Int128 gap),
+> NC215A (34), NC250A (50); then SEARCH ALL + OCCURS KEY (NC233A/237A/238A), CORR + statements.** **TRACK-1 PHASE 1 ✅ (531):** canonical
 > `tests/version-matrix/constructs.json` (12 rows, 48 cells green) + `EditionHarness` + the FULL INV-1 continuity
 > sweep (`scripts/version-continuity-sweep.sh`) — **342/342 85-compiling NIST programs clean at 2002/2014/2023,
 > zero breaks**; first matrix catch fixed the placeholder JSON/XML grammar stubs to the real seam surface (legacy
