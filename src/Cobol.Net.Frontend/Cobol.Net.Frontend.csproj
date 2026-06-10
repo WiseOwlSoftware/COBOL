@@ -29,19 +29,11 @@
     <None Include="ANTLR4\antlr-4.13.2-complete.jar" />
   </ItemGroup>
 
-  <!-- NEVER compile the ANTLR staging folder. GenerateIfNewer/Invoke-Antlr4CSharp generate into Generated_temp/
-       (FLAT on every platform — each grammar is generated from its own directory with a bare filename, the
-       portable fix for ANTLR's separator-keyed output mirroring, DEVLOG 555), copy the final files to
-       Generated/, then delete the staging folder on the success path. A regen that fails partway can leave the
-       staging folder behind, and the SDK default **/*.cs glob would then compile a SECOND copy of
-       CobolLexer/CobolParserCore -> CS0102/CS0579 duplicate-definition build errors. Excluding it makes regen
-       harmless regardless of outcome. Generated/ itself is a BUILD OUTPUT (.gitignored, never checked in):
-       a fresh checkout regenerates, so java + pwsh are build prerequisites on every platform, and a failed
-       generation FAILS the build (no stale-parser fallback — the DEVLOG-554 CI break). -->
-  <ItemGroup>
-    <Compile Remove="Generated_temp\**\*.cs" />
-    <None Remove="Generated_temp\**\*" />
-  </ItemGroup>
+  <!-- Generated/ is a BUILD OUTPUT (.gitignored, never checked in): ANTLR generates DIRECTLY into it
+       (DEVLOG 555/556 — each grammar runs from its own directory with a bare filename, the portable fix for
+       ANTLR's separator-keyed output mirroring; the parser's -lib inputs stage under obj/antlr-lib/). A fresh
+       checkout regenerates, so java + pwsh are build prerequisites on every platform, and a failed generation
+       FAILS the build (no stale-parser fallback — the DEVLOG-554 CI break). -->
 
   <!-- Ensure Generated folder exists and regenerate parser if needed.
        Uses BeforeTargets="CoreCompile" so generation completes before csc runs.
@@ -78,7 +70,6 @@
     </ItemGroup>
     <Delete Files="@(GeneratedFiles)" TreatErrorsAsWarnings="true" />
     <RemoveDir Directories="$(MSBuildProjectDirectory)/Generated" ContinueOnError="true" />
-    <RemoveDir Directories="$(MSBuildProjectDirectory)/Generated_temp" ContinueOnError="true" />
   </Target>
 
 </Project>

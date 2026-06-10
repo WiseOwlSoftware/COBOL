@@ -1,22 +1,24 @@
 <#
 .SYNOPSIS
-  Invoke ANTLR4 on the COBOL grammars to generate C# lexer and parser files — portably (Windows AND Linux).
+  Invoke ANTLR4 on the COBOL grammars, generating C# directly into Generated/ — portably (Windows AND Linux).
 .DESCRIPTION
   - Expects:
       - antlr-4.13.2-complete.jar in ANTLR4/
       - CobolLexer.g4 in Grammar/Core/
       - CobolParserCore.g4 in Grammar/ (imports + tokenVocab resolve from Grammar/Core/)
       - java on PATH (the only external prerequisite besides pwsh itself)
-  - Generates into Generated_temp/, then copies the results to Generated/ (a BUILD OUTPUT — .gitignored,
-    never checked in; every build regenerates when a grammar is newer).
-  - CobolParserCoreBase.cs is hand-maintained in Parsing/ and is NEVER overwritten.
+  - Generates DIRECTLY into Generated/ (a BUILD OUTPUT — .gitignored, never checked in). No staging copy: a
+    failed step fails the build (exit code propagated by GenerateIfNewer.ps1), and the next build's staleness
+    check regenerates a partial folder, so atomicity buys nothing. ANTLR emits only its own lexer/parser/visitor
+    files — the hand-maintained CobolParserCoreBase.cs (referenced via the superClass option) is never emitted,
+    so nothing here can overwrite it.
+  - The parser's -lib inputs (imported Core/*.g4 + CobolLexer.tokens) are STAGED in obj/antlr-lib/ — already
+    ignored and cleaned by the SDK, and never globbed into Compile.
 
   PORTABILITY (the DEVLOG-554 CI break): ANTLR mirrors a grammar's RELATIVE DIRECTORY under -o, but it detects
   "has a directory" with the PLATFORM separator — `Core/CobolLexer.g4` is a bare name on Windows (flat output)
   yet a nested path on Linux (output lands in <out>/Core/), which silently broke the tokens hand-off. So each
-  grammar is generated FROM ITS OWN DIRECTORY with a BARE filename (flat output everywhere), and the parser's
-  -lib inputs (imported .g4s + CobolLexer.tokens) are STAGED into a temp lib dir — no source-tree writes, no
-  platform divergence.
+  grammar is generated FROM ITS OWN DIRECTORY with a BARE filename — flat output everywhere.
 #>
 
 function Invoke-Antlr4CSharp {
@@ -29,13 +31,7 @@ function Invoke-Antlr4CSharp {
 
     $grammarDir = Join-Path $PSScriptRoot 'Grammar'
     $coreDir = Join-Path $grammarDir 'Core'
-    $tempDir = Join-Path $PSScriptRoot 'Generated_temp'
-    $libDir = Join-Path $tempDir 'lib'
-
-    # Files we NEVER overwrite (hand-maintained in Parsing/)
-    $protectedFiles = @(
-        'CobolParserCoreBase.cs'
-    )
+    $libDir = Join-Path $PSScriptRoot 'obj' 'antlr-lib'
 
     # Validate prerequisites — fail LOUD with an actionable message (this script's exit code fails the build).
     if (-not (Get-Command java -ErrorAction SilentlyContinue)) {
@@ -57,15 +53,13 @@ function Invoke-Antlr4CSharp {
         return 1
     }
 
-    # Clean and create the staging directories.
-    if (Test-Path $tempDir) {
-        Remove-Item -Path $tempDir -Recurse -Force
-    }
-    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
-    New-Item -ItemType Directory -Path $libDir -Force | Out-Null
     if (-not (Test-Path $OutputDir)) {
         New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
     }
+    if (Test-Path $libDir) {
+        Remove-Item -Path $libDir -Recurse -Force
+    }
+    New-Item -ItemType Directory -Path $libDir -Force | Out-Null
 
     # Run one ANTLR generation from $workDir with a BARE grammar filename (flat output on every platform).
     function Invoke-AntlrStep([string]$workDir, [string]$grammarName, [string[]]$extraArgs) {
@@ -76,7 +70,7 @@ function Invoke-Antlr4CSharp {
                 -Dlanguage=CSharp `
                 -no-listener -visitor `
                 -package $PackageName `
-                -o $tempDir `
+                -o $OutputDir `
                 @extraArgs `
                 $grammarName 2>&1
             $exitCode = $LASTEXITCODE
@@ -102,12 +96,12 @@ function Invoke-Antlr4CSharp {
         }
     }
 
-    # --- Step 1: lexer, from Grammar/Core (bare name => flat output: Generated_temp/CobolLexer.*) ---
+    # --- Step 1: lexer, from Grammar/Core (bare name => flat output: Generated/CobolLexer.*) ---
     if (-not (Invoke-AntlrStep $coreDir 'CobolLexer.g4' @())) { return 1 }
 
     # --- Step 2: stage the parser's -lib inputs: imported sub-grammars + the lexer tokens ---
     Copy-Item -Path (Join-Path $coreDir '*.g4') -Destination $libDir -Force
-    $tokensFile = Join-Path $tempDir 'CobolLexer.tokens'
+    $tokensFile = Join-Path $OutputDir 'CobolLexer.tokens'
     if (-not (Test-Path $tokensFile)) {
         Write-Error "CobolLexer.tokens not produced at: $tokensFile (flat-output assumption violated)."
         return 1
@@ -117,23 +111,7 @@ function Invoke-Antlr4CSharp {
     # --- Step 3: parser, from Grammar (bare name), imports + tokenVocab from the staged lib dir ---
     if (-not (Invoke-AntlrStep $grammarDir 'CobolParserCore.g4' @('-lib', $libDir))) { return 1 }
 
-    # --- Step 4: copy results to Generated/, skipping protected files and the staging lib dir ---
-    $copiedCount = 0
-    $skippedCount = 0
-    foreach ($file in (Get-ChildItem -Path $tempDir -File)) {
-        if ($protectedFiles -contains $file.Name) {
-            Write-Host "  SKIPPED (hand-maintained): $($file.Name)" -ForegroundColor Yellow
-            $skippedCount++
-        } else {
-            Copy-Item -Path $file.FullName -Destination $OutputDir -Force
-            $copiedCount++
-        }
-    }
-
-    Write-Host "Copied $copiedCount files, skipped $skippedCount protected files." -ForegroundColor Green
     Write-Host "All ANTLR generation completed successfully." -ForegroundColor Green
-
-    Remove-Item -Path $tempDir -Recurse -Force
     return 0
 }
 
