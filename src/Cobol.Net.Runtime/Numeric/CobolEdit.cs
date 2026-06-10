@@ -225,6 +225,28 @@ public static class CobolEdit
         return n;
     }
 
+    /// <summary>ALPHANUMERIC-EDITED formatting (ISO §13.18.40 — X/A/9 with B 0 / simple insertion): source
+    /// characters fill the X/A/9 positions left-to-right (space-padded when exhausted); each insertion position
+    /// supplies its character (B → space).</summary>
+    public static string FormatAlphanumeric(string source, string picture)
+    {
+        var output = new char[picture.Length];
+        int si = 0;
+        for (int i = 0; i < picture.Length; i++)
+        {
+            char p = char.ToUpperInvariant(picture[i]);
+            output[i] = p switch
+            {
+                'X' or 'A' or '9' => si < source.Length ? source[si++] : ' ',
+                'B' => ' ',
+                '0' => '0',
+                '/' => '/',
+                _ => picture[i],
+            };
+        }
+        return new string(output);
+    }
+
     /// <summary>The rightmost suppressed position within a floating symbol's zone (the symbol's own positions plus
     /// suppressed <c>,</c>/<c>B</c> insertions inside it).</summary>
     private static int FindFloatingPlacement(string pattern, char[] output, char floatChar)

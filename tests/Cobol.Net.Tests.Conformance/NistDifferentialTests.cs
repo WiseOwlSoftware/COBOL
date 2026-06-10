@@ -84,6 +84,9 @@ public sealed class NistDifferentialTests
     // (§8.8.4.2.1) — DEVLOG 534.
     [InlineData("NC206A")]   // qualified base + qualified subscript (AX-2 IN AX(CX-SUB OF CX))
     [InlineData("NC246A")]   // 5-deep qualification + qualified 88s over multi-level tables
+    // Greened by ALPHANUMERIC-EDITED pictures (X/A/9 with B 0 / insertion, ISO §13.18.40) + the all-symbol
+    // numeric-edited classification fix (PIC ****/$$$$ are numeric-edited even with zero '9's) — DEVLOG 535.
+    [InlineData("NC126A")]   // level-number torture incl. XBXBXBX / 9090900 / **** edited receivers
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

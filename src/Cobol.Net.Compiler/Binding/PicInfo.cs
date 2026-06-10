@@ -155,14 +155,22 @@ public sealed record PicInfo(
         bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/');
 
         if (anyAlpha)
-            // Alphanumeric length = count of character positions (X, A, and any 9 mixed in).
+        {
+            // ALPHANUMERIC-EDITED (ISO §13.18.40 — X/A/9 with B 0 / simple insertion): every position counts in
+            // the length, and the mask drives MOVE editing. A plain alphanumeric has no insertion symbols.
+            bool edited = expanded.Any(c => c is 'B' or '0' or '/');
             return new PicInfo(PicCategory.Alphanumeric, usage,
-                Length: expanded.Count(c => c is 'X' or 'A' or '9'), Digits: 0, Scale: 0, Signed: false);
+                Length: expanded.Count(c => c is 'X' or 'A' or '9' or 'B' or '0' or '/'),
+                Digits: 0, Scale: 0, Signed: false)
+            { EditMask = edited ? expanded : null };
+        }
 
         string signKind = SignKindFor(usage, signed, sign);
 
-        if (anyEdit && digits > 0)
-            // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol count.
+        if (anyEdit)
+            // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
+            // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
+            // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
                 Length: expanded.Count(c => c is not ('V' or 'S' or 'P')), Digits: digits, Scale: scale, Signed: signed)
             { SignKind = signKind, EditMask = expanded };

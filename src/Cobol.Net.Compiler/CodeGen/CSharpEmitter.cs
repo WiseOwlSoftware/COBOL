@@ -375,6 +375,10 @@ public sealed class CSharpEmitter
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = _num.AsNum(source);
                 return $"CobolEdit.Format({e.Expr}, {e.Scale}, {CsLiteral(pic.EditMask!)})";
+            // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
+            // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
+            case PicCategory.Alphanumeric when pic.EditMask is { } amask:
+                return $"CobolEdit.FormatAlphanumeric({OperandText.AsString(source, deSign: true)}, {CsLiteral(amask)})";
             case PicCategory.Alphanumeric or PicCategory.NumericEdited:
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a).
                 return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length})";

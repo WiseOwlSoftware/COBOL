@@ -112,6 +112,27 @@ public sealed class NumericEditedDifferentialTests
             """));
 
     [Fact]
+    public void AlphanumericEdited_SimpleInsertion()
+        => AssertSameAsLegacy(Program("01 E1 PIC XBXBXBX.\n01 E2 PIC XX/XX/XX.\n01 E3 PIC 990099.", """
+                MOVE "NPLD" TO E1.
+                DISPLAY ">" E1 "<".
+                MOVE "311224" TO E2.
+                DISPLAY ">" E2 "<".
+                MOVE 3107 TO E3.
+                DISPLAY ">" E3 "<".
+            """));
+
+    [Fact]
+    public void AllSymbolMask_AsteriskFillOnZero()
+        => AssertSameAsLegacy(Program("01 E1 PIC ****.\n01 N1 PIC 9(4) VALUE 0.", """
+                MOVE N1 TO E1.
+                DISPLAY ">" E1 "<".
+                MOVE 42 TO N1.
+                MOVE N1 TO E1.
+                DISPLAY ">" E1 "<".
+            """));
+
+    [Fact]
     public void AlphanumericToNumeric_UnsignedInteger()
         => AssertSameAsLegacy(Program("01 X1 PIC X(5) VALUE \"00347\".\n01 N1 PIC 9(5).", """
                 MOVE X1 TO N1.
