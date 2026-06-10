@@ -13,6 +13,16 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 549 — 2026-06-10 15:00 PDT — Benign out-of-range chains through null tables → NC401M byte-matches (86/95)
+
+NC401M (the obsolete-elements program — ALTER, CORR, ACCEPT DAY-OF-WEEK, debug lines: everything else already
+worked after the verb wave) NRE'd in `CobolTable.At`: its 5-deep FAIL-path read chains subscripts through a
+zeroed scratch struct after an out-of-range OUTER subscript, and the scratch's nested OCCURS arrays are null —
+`At(null, …)` then dereferenced `table.Length`. Per the §8.4.2.3.4 GR2 benign-OOR rule the whole CHAIN must
+resolve benignly: `At` now treats a null table as out-of-range (the documented zeroed-scratch caveat in its
+doc-comment is hereby half-discharged — group-level scratch use still yields nulls for STRING members; the next
+corpus case decides whether per-type construction is worth it). 86/95 NC GREEN; 567 conformance + 15 unit.
+
 ## Entry 548 — 2026-06-10 14:45 PDT — Reference modification completed: numeric items + the parsed refModSpec form → NC224A byte-matches (85/95)
 
 NC224A (the ref-mod feature program) needed the two missing ref-mod shapes. (1) **Ref-mod over a NUMERIC

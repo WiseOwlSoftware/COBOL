@@ -21,7 +21,10 @@ public static class CobolTable
     /// </summary>
     public static ref T At<T>(T[] table, long occurrence)
     {
-        if (occurrence >= 1 && occurrence <= table.Length) return ref table[(int)(occurrence - 1)];
+        // A NULL table is itself an out-of-range chain: a multi-dimension reference whose OUTER subscript was
+        // out of range continues through the zeroed scratch struct, whose nested OCCURS arrays are null
+        // (NC401M's 5-deep FAIL-path read) — every further level resolves benignly too.
+        if (table is not null && occurrence >= 1 && occurrence <= table.Length) return ref table[(int)(occurrence - 1)];
         Scratch<T>.Slot = typeof(T) == typeof(string) ? (T)(object)string.Empty : default!;
         return ref Scratch<T>.Slot;
     }

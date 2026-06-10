@@ -157,6 +157,10 @@ public sealed class NistDifferentialTests
     // the unique result is an elementary ALPHANUMERIC item; NumericImagePlace formats/decodes the character image
     // around the slice, and a ref-mod result never takes the numeric render path) — DEVLOG 548.
     [InlineData("NC224A")]   // the reference-modification feature program (numeric/edited/group senders+receivers)
+    // Greened by the null-table benign chain in CobolTable.At (an out-of-range OUTER subscript's zeroed scratch
+    // struct carries null nested OCCURS arrays; every deeper level now resolves benignly too, §8.4.2.3.4 GR2) —
+    // DEVLOG 549.
+    [InlineData("NC401M")]   // obsolete-elements program: ALTER + CORR + ACCEPT DAY-OF-WEEK + 5-deep OOR chain
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();
