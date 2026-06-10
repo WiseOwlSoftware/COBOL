@@ -28,12 +28,14 @@ public sealed class CSharpEmitter
     private ConditionRenderer _cond = null!;
     private ReferenceResolver _refs = null!;
 
-    /// <summary>Emit C# source for the first program unit in <paramref name="tree"/>.</summary>
-    public string Emit(Core.CompilationUnitContext tree)
+    /// <summary>Emit C# source for the first program unit in <paramref name="tree"/>, binding under the targeted
+    /// EDITION (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the driver fails
+    /// the compile when any exist).</summary>
+    public string Emit(Core.CompilationUnitContext tree, EditionContext? edition = null)
     {
         Core.ProgramUnitContext? program = tree.compilationGroup().SelectMany(g => g.programUnit()).FirstOrDefault();
 
-        var data = new DataBinder();
+        var data = new DataBinder(edition);
         if (program is not null) data.Bind(program);
         _refs = new ReferenceResolver(data);
         BoundProgram bound = program is not null ? new StatementBinder(data, _refs).Bind(program) : new BoundProgram([]);

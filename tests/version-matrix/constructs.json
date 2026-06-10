@@ -90,6 +90,14 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99.\nPROCEDURE DIVISION RETURNING RC.\nMAIN.\n    MOVE 9 TO RC.\n    STOP RUN.\n"
     },
     {
+      "id": "pic-wide-19-digits-2002",
+      "description": "Fixed-point item wider than 18 digits (PIC 9(19)) — the 2002+ wide tier; COBOL-85 caps numeric items/literals at 18 digits (ISO §8.3.1.2, §13.18.40)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "85→2002 capacity change (derive from the 2002 standard; ISO §8.3.1.2 1..31-digit literals)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WIDE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(19) VALUE 1234567890123456789.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
       "id": "type-clause-2023",
       "description": "TYPE IS clause referencing a type declaration, ISO 2023 §13.18.58 (TYPEDEF family)",
       "introducedIn": 2023,

@@ -30,7 +30,7 @@ public static class CompilerDriver
         IReadOnlyList<string>? CopyPaths = null);
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
-    public enum Outcome { Success, SourceNotFound, FrontendError, BackendError }
+    public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
 
     /// <summary>The result of a compilation.</summary>
     /// <param name="Status">The phase reached / the failure category.</param>
@@ -64,8 +64,13 @@ public static class CompilerDriver
             return new Result(Outcome.FrontendError, "", null,
                 diagnostics.Diagnostics.Select(d => d.ToString()!).ToList());
 
-        // Phase 2 — emit typed-native C#.
-        string csharp = new CSharpEmitter().Emit(tree);
+        // Phase 2 — bind under the targeted EDITION + emit typed-native C#. Edition-gating diagnostics (the
+        // four-compilers rule: a construct the targeted edition lacks or forbids REJECTS the program) fail the
+        // compile here — they are semantic errors, not runtime guards.
+        var edition = new Binding.EditionContext(options.DialectLevel);
+        string csharp = new CSharpEmitter().Emit(tree, edition);
+        if (edition.Diagnostics.Count > 0)
+            return new Result(Outcome.BindError, "", null, edition.Diagnostics);
 
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         string outDir = Path.GetDirectoryName(Path.GetFullPath(outputDll)) is { Length: > 0 } d ? d : ".";

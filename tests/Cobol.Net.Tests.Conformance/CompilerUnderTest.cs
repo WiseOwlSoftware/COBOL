@@ -93,7 +93,9 @@ internal static class CutRunner
 /// The greenfield COBOL.NET compiler under test: drives <see cref="CompilerDriver"/> (COBOL → typed-native C# →
 /// Roslyn) into an isolated temp dir, then runs the produced assembly.
 /// </summary>
-public sealed class CobolNetCompiler : ICompilerUnderTest
+/// <param name="dialectLevel">The targeted ISO edition (default 85 — the differential harness compiles at the
+/// legacy oracle's edition; spec-pinned tests of post-85 features pass their own, e.g. 2023 for the wide tier).</param>
+public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
 {
     public string Name => "cobolnet";
 
@@ -106,7 +108,7 @@ public sealed class CobolNetCompiler : ICompilerUnderTest
             string dll = Path.Combine(dir, "prog.dll");
             File.WriteAllText(src, source);
 
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: 85));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
             if (!result.Success)
                 return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
 

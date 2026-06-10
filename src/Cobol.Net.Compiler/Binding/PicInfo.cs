@@ -74,14 +74,24 @@ public sealed record PicInfo(
     /// every other category.</summary>
     public string? EditMask { get; init; }
 
+    /// <summary>True for the WIDE storage tier: a fixed-point picture of 19–38 digits (legal 19–31 at COBOL-2002+,
+    /// ISO §8.3.1.2 / the composite rules §14.7) stores as <see cref="Int128"/> — the design's graduated substrate
+    /// (numeric design D1 / SSOT §18 #4). ≤18 digits stay hardware-native <see cref="long"/>.</summary>
+    public bool IsWide => Category is PicCategory.Numeric && !IsFloat && Digits > 18;
+
     /// <summary>The C# type used to store this item's value.</summary>
     public string ClrType => Category switch
     {
         PicCategory.Alphanumeric or PicCategory.NumericEdited => "string",
-        // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native long holding the UNSCALED value
-        // (all digits; the decimal point is implied by Scale, compile-time metadata) — hardware-native, exact, and
-        // its digits are the DISPLAY image directly. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
-        PicCategory.Numeric => Usage switch { Usage.Float => "float", Usage.Double => "double", _ => "long" },
+        // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
+        // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,
+        // Int128 for the 19–31-digit 2002+ tier. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
+        PicCategory.Numeric => Usage switch
+        {
+            Usage.Float => "float",
+            Usage.Double => "double",
+            _ => Digits > 18 ? "Int128" : "long",
+        },
         _ => "object", // Group: never stored as a scalar (emitted as a record struct).
     };
 
@@ -93,7 +103,12 @@ public sealed record PicInfo(
     {
         // Alphanumeric defaults to spaces; numeric to zero (unscaled).
         PicCategory.Alphanumeric or PicCategory.NumericEdited => $"new string(' ', {Length})",
-        PicCategory.Numeric => Usage switch { Usage.Float => "0f", Usage.Double => "0d", _ => "0L" },
+        PicCategory.Numeric => Usage switch
+        {
+            Usage.Float => "0f",
+            Usage.Double => "0d",
+            _ => Digits > 18 ? "(Int128)0" : "0L",
+        },
         _ => "default",
     };
 

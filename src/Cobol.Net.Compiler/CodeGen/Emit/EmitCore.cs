@@ -98,15 +98,26 @@ internal static class EmitText
         return rest.Length >= 2 && rest[0] == '"' && rest[^1] == '"' ? DecodeCobolString(rest) : null;
     }
 
-    /// <summary>Render a numeric literal as a scaled <c>long</c>: its digits as the unscaled value, its fractional
-    /// digit count as the scale (e.g. <c>"3.5"</c> → <c>(35L, 1)</c>, <c>"-12"</c> → <c>(-12L, 0)</c>).</summary>
+    /// <summary>Render a numeric literal as a scaled integer: its digits as the unscaled value, its fractional
+    /// digit count as the scale (e.g. <c>"3.5"</c> → <c>(35L, 1)</c>, <c>"-12"</c> → <c>(-12L, 0)</c>). A literal
+    /// wider than 18 digits (legal to 31, ISO §8.3.1.2 — the 2002+ wide tier) emits an <c>Int128.Parse</c> since
+    /// C# has no Int128 literal form.</summary>
     public static NumX UnscaledLit(string text)
     {
         string t = text.Trim().TrimStart('+');
         int dot = t.IndexOf('.');
-        if (dot < 0) return new NumX($"{t}L", 0);
+        if (dot < 0) return new NumX(IntLiteral(t), 0);
         int scale = t.Length - dot - 1;
-        return new NumX($"{t.Remove(dot, 1)}L", scale);
+        return new NumX(IntLiteral(t.Remove(dot, 1)), scale);
+    }
+
+    /// <summary>The C# literal for an unscaled integer digit string: <c>…L</c> while it fits <see cref="long"/>
+    /// (≤18 digits), else <c>Int128.Parse("…")</c>.</summary>
+    public static string IntLiteral(string signedDigits)
+    {
+        string mag = signedDigits.TrimStart('-').TrimStart('0');
+        return mag.Length <= 18 ? $"{signedDigits}L"
+            : $"Int128.Parse(\"{signedDigits}\")";
     }
 
     /// <summary>Render a numeric literal as a C# <c>long</c> holding its UNSCALED value at <paramref name="scale"/>
@@ -137,6 +148,6 @@ internal static class EmitText
             digits = all.Length > drop ? all[..^drop] : "0";
         }
         digits = digits.TrimStart('0');
-        return $"{(neg ? "-" : "")}{(digits.Length == 0 ? "0" : digits)}L";
+        return IntLiteral($"{(neg ? "-" : "")}{(digits.Length == 0 ? "0" : digits)}");
     }
 }

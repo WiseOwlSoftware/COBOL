@@ -663,7 +663,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         var nn = lit.nonNumericLiteral();
         if (nn?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
         if (nn?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
-        return new BoundNumericLiteral(lit.GetText());
+        return new BoundNumericLiteral(CheckLiteral(lit.GetText()));   // edition digit cap (ISO §8.3.1.2)
     }
 
     /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> (a multi-character figurative,
@@ -742,11 +742,20 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
     /// <summary>A numeric literal expression from a <c>literal</c> node, mapping a figurative ZERO (incl. <c>ALL ZEROS</c>)
     /// to <c>0</c> (ISO §8.3.1.2 — ZERO is a valid numeric operand); a non-numeric figurative (SPACE / HIGH-VALUE / …)
     /// in a numeric context is a loud error rather than the raw word rendered as an identifier.</summary>
-    private static BoundExpr NumLiteral(Core.LiteralContext lit) =>
+    private BoundExpr NumLiteral(Core.LiteralContext lit) =>
         lit.nonNumericLiteral()?.figurativeConstant() is { } fig
             ? fig.ZERO() is not null ? new BoundNumLiteral("0")
                 : new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context")
-            : new BoundNumLiteral(lit.GetText());
+            : new BoundNumLiteral(CheckLiteral(lit.GetText()));
+
+    /// <summary>Edition-gate a numeric literal's digit count (ISO §8.3.1.2 — 1..18 at COBOL-85, 1..31 at 2002+),
+    /// then return it unchanged. The ONE literal chokepoint for the expression paths.</summary>
+    private string CheckLiteral(string text)
+    {
+        int digits = text.Count(char.IsAsciiDigit);
+        data.Edition.CheckDigitCapacity(digits, $"numeric literal '{text}'");
+        return text;
+    }
 
     private BoundExpr BindChain(IParseTree node)
     {
@@ -944,7 +953,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
                 // A sole numeric LITERAL stays a literal operand — against an alphanumeric/group operand it
                 // participates as its WRITTEN character form, leading zeros intact (ISO §8.8.4.2.1), which a
                 // computed wrapper would lose.
-                : SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(lit)
+                : SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(CheckLiteral(lit))
                 : new BoundComputedOperand(BindExpr(expr));
         return new BoundOperandError("comparison operand");
     }

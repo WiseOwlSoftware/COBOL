@@ -12,10 +12,15 @@ using Core = CobolParserCore;
 /// layout; the .NET type IS the storage. (Slice scope: WORKING-STORAGE groups + elementary items with fixed
 /// OCCURS recorded; FILE/LINKAGE/LOCAL-STORAGE, level-66/88, and REDEFINES follow in later slices.)
 /// </summary>
-public sealed class DataBinder
+public sealed class DataBinder(EditionContext? edition = null)
 {
     private int _fillerCounter;
     private int _uidCounter;
+
+    /// <summary>The targeted-edition context (digit caps, bind-time rejection diagnostics). Defaults to the
+    /// latest edition for direct test construction; <c>CompilerDriver</c> always supplies the CLI's
+    /// <c>--std</c>.</summary>
+    public EditionContext Edition { get; } = edition ?? new EditionContext(2023);
 
     /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order.</summary>
     public List<DataItem> Roots { get; } = [];
@@ -344,6 +349,11 @@ public sealed class DataBinder
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), ownSign)
             : PicInfo.ParseUsage(usageText) is Usage.Index ? PicInfo.IndexItem : null;
+
+        // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
+        // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.
+        if (pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited, IsFloat: false, Digits: > 0 })
+            Edition.CheckDigitCapacity(pic.Digits, $"data item '{cobolName ?? "FILLER"}' (PICTURE {pictureText})");
         var item = new DataItem
         {
             Level = level,

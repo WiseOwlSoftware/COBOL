@@ -157,6 +157,13 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 ### D7. Fixed-point stays native long (unscaled, compile-time scale); 19-38 digits → Int128 via a WidePrecision flag; no decimal/BigInteger.
 
+> **✅ SHIPPED (DEVLOG 540), refinement:** the wide selector landed as the DERIVED property `PicInfo.IsWide`
+> (`Numeric && !IsFloat && Digits > 18`) driving `ClrType`/`DefaultInitializer` — not a stored flag (`Digits` is
+> already on PicInfo; a parallel flag could drift from it). Literals wider than long emit `Int128.Parse("…")`
+> (`EmitText.IntLiteral` — C# has no Int128 literal form); the store boundary narrows via the width-aware
+> `CSharpEmitter.Narrow`. The SURFACE cap is per-edition (18 at `--std 85`, 31 at 2002+, >31 rejected everywhere —
+> `EditionContext.CheckDigitCapacity`, COBOLNET0801/0802); Int128's 38 digits are substrate headroom only.
+
 **Rationale.** Owner-locked (DEVLOG 462): hardware-native, exact, DISPLAY image falls out for free; Int128 is a fixed-size value type far cheaper than BigInteger.
 
 **Rejected alternatives.** decimal (software, not hardware-native) and BigInteger (heap-allocating) — both rejected by the owner.
