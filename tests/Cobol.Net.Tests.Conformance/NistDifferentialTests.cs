@@ -190,6 +190,36 @@ public sealed class NistDifferentialTests
     // ST146A swept-only: its golden encodes the LEGACY's LOW-VALUE fill in the spec-UNDEFINED tail of a
     // max-length RETURN INTO record area (the byte tail beyond the returned record is undefined).
     [InlineData("ST147A")]   // NATIVE COLLATING SEQUENCE checks
+    // Greened by the KEYED I/O subsystem (DEVLOG 553 — RELATIVE §14.9.30 GR25/GR29 + INDEXED organizations,
+    // DELETE §14.9.10, START §14.9.41, INVALID KEY routing §9.1.14, RelativeFile slot store + IndexedFile
+    // prime/alternate keys; the record AREA is the largest record description §13.4.2).
+    [InlineData("RL101A")]
+    [InlineData("RL105A")]
+    [InlineData("RL106A")]
+    [InlineData("RL107A")]
+    [InlineData("RL108A")]
+    [InlineData("RL116A")]
+    [InlineData("RL117A")]
+    [InlineData("RL118A")]
+    [InlineData("RL119A")]
+    [InlineData("RL201A")]
+    [InlineData("RL205A")]
+    [InlineData("RL209A")]
+    [InlineData("RL210A")]
+    [InlineData("RL211A")]
+    [InlineData("RL302M")]
+    [InlineData("IX101A")]
+    [InlineData("IX105A")]
+    [InlineData("IX107A")]
+    [InlineData("IX108A")]
+    [InlineData("IX111A")]
+    [InlineData("IX201A")]
+    [InlineData("IX208A")]
+    [InlineData("IX209A")]
+    [InlineData("IX211A")]
+    [InlineData("IX212A")]
+    [InlineData("IX213A")]
+    [InlineData("IX302M")]
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

@@ -211,6 +211,8 @@ public sealed partial class CSharpEmitter
                           || se.Whens.Any(wn => ContainsNextSentence(wn.Statements)),
         BoundRead r => (r.AtEnd is { } at && ContainsNextSentence(at))
                        || (r.NotAtEnd is { } nat && ContainsNextSentence(nat)),
+        BoundKeyedRead or BoundKeyedWrite or BoundKeyedRewrite or BoundKeyedDelete or BoundKeyedStart
+            or BoundKeyedDeleteFile => KeyedHasNextSentence(s),
         BoundReturn rt => (rt.AtEnd is { } rta && ContainsNextSentence(rta))
                           || (rt.NotAtEnd is { } rtn && ContainsNextSentence(rtn)),
         BoundAddTo a => InSizeError(a.SizeError),
@@ -296,6 +298,12 @@ public sealed partial class CSharpEmitter
             case BoundWrite wr: EmitWrite(wr); return false;
             case BoundRead rd: EmitRead(rd); return false;
             case BoundRewrite rw: EmitRewrite(rw); return false;
+            case BoundKeyedRead krd: KeyedEmitRead(krd); return false;
+            case BoundKeyedWrite kwr: KeyedEmitWrite(kwr); return false;
+            case BoundKeyedRewrite krw: KeyedEmitRewrite(krw); return false;
+            case BoundKeyedDelete kdl: KeyedEmitDelete(kdl); return false;
+            case BoundKeyedStart kst: KeyedEmitStart(kst); return false;
+            case BoundKeyedDeleteFile kdf: KeyedEmitDeleteFile(kdf); return false;
             case BoundSort so: EmitSort(so); return false;
             case BoundTableSort tbs: EmitTableSort(tbs); return false;
             case BoundMerge mge: EmitMerge(mge); return false;
@@ -910,7 +918,9 @@ public sealed partial class CSharpEmitter
         w.Line("CobolFile.Init();");
         foreach (var file in _ctx.Data.Files)
         {
-            if (file.IsSortMerge || !file.IsSequential || file.Records.Count == 0) continue;   // an SD is the in-memory sort store (ISO §13.4.6) — never a host file
+            if (file.IsSortMerge) continue;   // an SD is the in-memory sort store (ISO §13.4.6) — never a host file
+            if (!file.IsSequential) { KeyedEmitRegistration(w, file); continue; }   // relative/indexed connectors
+            if (file.Records.Count == 0) continue;
             bool lineSeq = file.Organization == FileOrganization.LineSequential;
             w.Line($"CobolFile.Register({CsLiteral(file.CobolName)}, {CsLiteral(file.AssignTarget)}, " +
                    $"{file.RecordWidth}, {(lineSeq ? "true" : "false")}, {(file.Optional ? "true" : "false")});");

@@ -45,6 +45,27 @@ public sealed class FileModel
     /// other shares it (synthesized REDEFINES).</summary>
     public List<DataItem> Records { get; } = [];
 
+    /// <summary>The RECORD KEY data-name as written (ISO §12.4.5.12), resolved post-build to <see cref="RecordKeyItem"/>;
+    /// null when absent (the clause is required for ORGANIZATION INDEXED).</summary>
+    public string? RecordKeyName { get; set; }
+
+    /// <summary>The resolved prime RECORD KEY item — a data item within the file's record (ISO §12.4.5.12 SR2).</summary>
+    public DataItem? RecordKeyItem { get; set; }
+
+    /// <summary>The ALTERNATE RECORD KEY clauses as written, in declaration order: data-name + WITH DUPLICATES
+    /// (ISO §12.4.5.6); resolved post-build into <see cref="AlternateKeys"/>.</summary>
+    public List<(string Name, bool Duplicates)> AlternateKeyNames { get; } = [];
+
+    /// <summary>The resolved alternate keys, in declaration order (the runtime key index is the list index).</summary>
+    public List<(DataItem Item, bool Duplicates)> AlternateKeys { get; } = [];
+
+    /// <summary>The RELATIVE KEY data-name as written (ISO §12.4.5.13), resolved post-build; the item lives OUTSIDE
+    /// the file's record (SR3) and holds the 1-based relative record number (GR1).</summary>
+    public string? RelativeKeyName { get; set; }
+
+    /// <summary>The resolved RELATIVE KEY item (an unsigned integer item, ISO §12.4.5.13 SR2).</summary>
+    public DataItem? RelativeKeyItem { get; set; }
+
     /// <summary>True once an FD was matched to this SELECT (a SELECT with no FD is an error the front-end already
     /// diagnoses; here it simply has no records and is never opened with data).</summary>
     public bool HasFd { get; set; }

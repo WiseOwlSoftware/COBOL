@@ -10,6 +10,22 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NUC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(5) VALUE \"HI\".\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"BYE\" TO W.\n    DISPLAY W.\n    STOP RUN.\n"
     },
     {
+      "id": "read-previous-2002",
+      "description": "READ ... PREVIOUS (keyed sequential read in reverse), ISO §14.9.30 Format 1 — introduced 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard); rows 29/108 gate the after-OPEN behavior",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RP.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrp\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    READ F PREVIOUS AT END DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
+    },
+    {
+      "id": "start-first-last-2002",
+      "description": "START ... FIRST/LAST positioning, ISO §14.9.41 — introduced 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmsf\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    START F FIRST INVALID KEY DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
+    },
+    {
       "id": "delete-file-2023",
       "description": "DELETE FILE (physical file deletion), ISO 2023 §14.9.10 Format 2",
       "introducedIn": 2023,

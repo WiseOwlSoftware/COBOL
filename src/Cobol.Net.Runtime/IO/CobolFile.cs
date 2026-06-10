@@ -10,7 +10,7 @@ namespace CobolNet.Runtime.IO;
 /// this boundary as their <b>character image</b> (a <see cref="string"/>) — the typed record ↔ image conversion is in
 /// the generated code (a record struct's <c>AsImage</c>/<c>FromImage</c>), keeping the substrate typed.
 /// </summary>
-public static class CobolFile
+public static partial class CobolFile
 {
     private static readonly Dictionary<string, SequentialFile> Files = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> Locked = new(StringComparer.OrdinalIgnoreCase);
@@ -21,6 +21,7 @@ public static class CobolFile
         foreach (var f in Files.Values) f.Close();
         Files.Clear();
         Locked.Clear();
+        KeyedInit();
     }
 
     /// <summary>Register a SELECTed sequential file (emitted at program start, one per SELECT). The host path is
@@ -42,10 +43,11 @@ public static class CobolFile
             if (Locked.Contains(name)) { f.SetStatus(FileStatusCode.FileLocked); return; }
             f.Open(mode);
         }
+        else KeyedOpen(name, mode);   // relative/indexed connectors (ISO §14.9.27 GR14/GR15/GR17)
     }
 
     /// <summary>CLOSE the file (emitted for each closed file-name).</summary>
-    public static void Close(string name) { if (Files.TryGetValue(name, out var f)) f.Close(); }
+    public static void Close(string name) { if (Files.TryGetValue(name, out var f)) f.Close(); else KeyedClose(name); }
 
     /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38).</summary>
     public static void CloseWithLock(string name) { Close(name); Locked.Add(name); }
@@ -76,7 +78,7 @@ public static class CobolFile
     public static void Rewrite(string name, string image) { if (Files.TryGetValue(name, out var f)) f.Rewrite(image); }
 
     /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
-    public static string Status(string name) => Files.TryGetValue(name, out var f) ? f.Status : FileStatusCode.Success;
+    public static string Status(string name) => Files.TryGetValue(name, out var f) ? f.Status : KeyedStatus(name);
 
     /// <summary>The AT END condition for a file (status 10), driving the AT END / NOT AT END branch.</summary>
     public static bool AtEnd(string name) => Files.TryGetValue(name, out var f) && f.AtEnd;
@@ -85,7 +87,7 @@ public static class CobolFile
     public static bool Failed(string name) => Files.TryGetValue(name, out var f) && f.Status != FileStatusCode.Success;
 
     /// <summary>Close every open file (emitted at run-unit termination, ISO §14.6 — flushes print streams).</summary>
-    public static void CloseAll() { foreach (var f in Files.Values) f.Close(); }
+    public static void CloseAll() { foreach (var f in Files.Values) f.Close(); KeyedCloseAll(); }
 
     /// <summary>Resolve an ASSIGN target to a host file path: a target that already looks like a path (has a
     /// directory separator or an extension) is used verbatim; otherwise it becomes <c>&lt;lowercased&gt;.txt</c> in the

@@ -137,6 +137,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.writeStatement() is { } w => BindWrite(w),
         _ when s.readStatement() is { } r => BindRead(r),
         _ when s.rewriteStatement() is { } rw => BindRewrite(rw),
+        _ when s.startStatement() is { } st => KeyedBindStart(st),
+        _ when s.deleteStatement() is { } del => KeyedBindDelete(del),
+        _ when s.deleteFileStatement() is { } dfs => KeyedBindDeleteFile(dfs),
         _ when s.stringStatement() is { } sstr => BindString(sstr),
         _ when s.unstringStatement() is { } suns => BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => BindAccept(ac),
@@ -234,6 +237,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
         if (file is null || record is null)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");
+        if (!file.IsSequential) return KeyedBindWrite(w, file, record);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
         return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()),
             BindAdvancing(w.writeBeforeAfter()), UnsupportedOrg(file, "WRITE"));
@@ -244,6 +248,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         string name = r.fileName().GetText();
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"READ of undeclared file '{name}'");
+        if (!file.IsSequential) return KeyedBindRead(r, file);   // relative/indexed READ F1/F2 (ISO 14.9.30; KeyedIo partial)
         Place? into = r.readInto()?.dataReference() is { } d ? refs.Resolve(d) : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
@@ -261,6 +266,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         FileModel? file = record is not null ? FileOfRecord(record) : null;
         if (file is null || record is null)
             return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
+        if (!file.IsSequential) return KeyedBindRewrite(rw, file, record);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
         return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()),
             UnsupportedOrg(file, "REWRITE"));
     }
@@ -304,8 +310,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// indexed in the sequential slice), so the verb emits a runtime not-implemented guard; null when supported.</summary>
     private static string? UnsupportedOrg(FileModel file, string verb) =>
         // A sort-merge (SD) file may be referenced ONLY by SORT/MERGE/RELEASE/RETURN (ISO §13.4.6 SR3/SR4).
+        // Every ISO §12.4.5.10 organization (sequential, line sequential, relative, indexed) now has a dedicated
+        // bind/emit path — the relative/indexed verbs route through the KeyedIo partial and OPEN/CLOSE flow
+        // through the CobolFile facade's keyed registries. Retained as the single seam a future organization
+        // gates on (loud, never silent).
         file.IsSortMerge ? $"{verb} on sort-merge file '{file.CobolName}' — an SD file-name may appear only in SORT/MERGE/RELEASE/RETURN (ISO §13.4.6 SR3/SR4)"
-        : file.IsSequential ? null : $"{verb} on {file.Organization} file '{file.CobolName}' (sequential slice; relative/indexed are later)";
+        : null;
 
     private BoundStatement BindDisplay(Core.DisplayStatementContext display)
     {

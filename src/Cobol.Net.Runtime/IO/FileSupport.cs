@@ -48,4 +48,19 @@ public static class FileStatusCode
     public const string WriteNotOpenForOutput = "48";
     /// <summary>49 — DELETE/REWRITE on a file not open for I-O.</summary>
     public const string DeleteRewriteNotOpenForIO = "49";
+
+    /// <summary>02 — successful completion; a duplicate alternate record key was detected (ISO §9.1.13.2 item 2).</summary>
+    public const string DuplicateAlternateKey = "02";
+    /// <summary>14 — relative sequential READ: the RRN's significant digits exceed the RELATIVE KEY item (§9.1.13.4 item 2).</summary>
+    public const string RelativeKeyOverflow = "14";
+    /// <summary>21 — key sequence error on a sequentially-accessed indexed file (§9.1.13.5 item 1).</summary>
+    public const string SequenceError = "21";
+    /// <summary>22 — duplicate key: relative slot, prime key, or a no-DUPLICATES alternate (§9.1.13.5 item 2).</summary>
+    public const string DuplicateKey = "22";
+    /// <summary>23 — record not found on keyed access / keyed access to an absent optional file (§9.1.13.5 item 3).</summary>
+    public const string RecordNotFound = "23";
+    /// <summary>24 — invalid-key boundary violation on a relative/indexed WRITE (§9.1.13.5 item 4).</summary>
+    public const string BoundaryViolation = "24";
+    /// <summary>34 — permanent-error boundary violation (a relative random WRITE with a key &lt; 1, §14.9.51 GR29b / §9.1.13.6 item 4).</summary>
+    public const string PermanentBoundary = "34";
 }

@@ -208,6 +208,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clauses.organizationClause() is { } org) file.Organization = MapOrganization(org);
                 else if (clauses.accessModeClause() is { } acc) file.AccessMode = MapAccessMode(acc);
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs) file.FileStatusName = fs.GetText();
+                else if (clauses.recordKeyClause()?.dataReference() is { } rk) file.RecordKeyName = rk.GetText();   // ISO §12.4.5.12
+                else if (clauses.alternateKeyClause() is { } ak)                                                     // ISO §12.4.5.6
+                    file.AlternateKeyNames.Add((ak.dataReference().GetText(), ak.DUPLICATES() is not null));
+                else if (clauses.relativeKeyClause()?.dataReference() is { } rlk) file.RelativeKeyName = rlk.GetText();   // ISO §12.4.5.13
             }
             Files.Add(file);
             FilesByName[name] = file;
@@ -281,8 +285,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private void ResolveFiles()
     {
         foreach (var file in Files)
+        {
             if (file.FileStatusName is { } sn && ByName.TryGetValue(sn, out var list) && list.Count > 0)
                 file.FileStatusItem = list[0];
+            // Keyed organizations: RECORD KEY / ALTERNATE RECORD KEY name items WITHIN the file's record
+            // descriptions (ISO §12.4.5.12 SR2 / §12.4.5.6 SR2); RELATIVE KEY is OUTSIDE the record
+            // (ISO §12.4.5.13 SR3) — a plain name lookup.
+            DataItem? InRecords(string keyName) =>
+                file.Records.Select(r => FindDescendantOrSelf(r, keyName)).FirstOrDefault(x => x is not null)
+                ?? (ByName.TryGetValue(keyName, out var l) && l.Count > 0 ? l[0] : null);
+            if (file.RecordKeyName is { } rk) file.RecordKeyItem = InRecords(rk);
+            foreach (var (altName, dups) in file.AlternateKeyNames)
+                if (InRecords(altName) is { } alt)
+                    file.AlternateKeys.Add((alt, dups));
+            if (file.RelativeKeyName is { } rl && ByName.TryGetValue(rl, out var rlist) && rlist.Count > 0)
+                file.RelativeKeyItem = rlist[0];
+        }
     }
 
     private static FileOrganization MapOrganization(Core.OrganizationClauseContext org)
