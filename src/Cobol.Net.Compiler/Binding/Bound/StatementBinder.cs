@@ -126,6 +126,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         _ when s.ifStatement() is { } iff => BindIf(iff),
         _ when s.performStatement() is { } p => BindPerform(p),
         _ when s.setStatement() is { } set => BindSet(set),
+        _ when s.searchStatement() is { } se => BindSearch(se),
         _ when s.goToStatement() is { } g => BindGoTo(g),
         _ when s.exitStatement() is { } e => BindExit(e),
         _ when s.openStatement() is { } o => BindOpen(o),
@@ -576,6 +577,47 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
             sets.Add((parent, cond));
         }
         return new BoundSetConditions(sets);
+    }
+
+    /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). The searched operand names a table with INDEXED BY
+    /// (SR1); the scan uses the table's FIRST index — unless VARYING names another index OF THE SAME TABLE, which
+    /// then IS the search index (GR8a); VARYING a different table's index or a data item increments that item in
+    /// step with the search index (GR8b/c). SEARCH ALL (Format 2) is the binary-search wave (needs OCCURS KEY
+    /// capture); NOT AT END is a non-ISO extension — both fail loud by name.</summary>
+    private BoundStatement BindSearch(Core.SearchStatementContext s)
+    {
+        var drefs = s.dataReference();
+        string tableName = drefs[0].cobolWord()?.GetText() ?? drefs[0].GetText();
+        if (!data.ByName.TryGetValue(tableName, out var candidates)
+            || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
+            return new BoundUnsupported($"SEARCH of non-table '{tableName}'");
+        if (table.IndexNames.Count == 0)
+            return new BoundUnsupported($"SEARCH table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
+
+        string searchIx = data.IndexFields[table.IndexNames[0]];
+        BoundSetTarget? also = null;
+        if (drefs.Length > 1)   // the VARYING phrase
+        {
+            var v = drefs[1];
+            if (IndexFieldOf(v) is { } vix)
+            {
+                if (table.IndexNames.Any(n => data.IndexFields[n] == vix)) searchIx = vix;   // same table (GR8a)
+                else also = new SetIndexTarget(vix);                                          // other table (GR8b)
+            }
+            else if (refs.Resolve(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR8c)
+            else return new BoundUnsupported($"SEARCH VARYING '{v.GetText()}'");
+        }
+
+        List<BoundStatement>? atEnd = null;
+        if (s.searchAtEndClause() is { } ae)
+        {
+            if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
+            atEnd = BindBlocks(ae.statementBlock());
+        }
+        var whens = s.searchWhenClause()
+            .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
+            .ToList();
+        return new BoundSearch(searchIx, table.Occurs!.Value, also, atEnd, whens);
     }
 
     /// <summary>The C# <c>long</c> index field when <paramref name="dref"/> is a bare INDEXED BY index-name

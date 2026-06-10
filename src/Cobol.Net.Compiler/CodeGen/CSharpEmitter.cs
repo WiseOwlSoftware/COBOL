@@ -207,6 +207,7 @@ public sealed class CSharpEmitter
             case BoundSetConditions set: EmitSet(set); return false;
             case BoundSetTo st: EmitSetTo(st); return false;
             case BoundSetUpDown su: EmitSetUpDown(su); return false;
+            case BoundSearch se: EmitSearch(se); return false;
             case BoundOpen o: EmitOpen(o); return false;
             case BoundClose c: EmitClose(c); return false;
             case BoundWrite wr: EmitWrite(wr); return false;
@@ -593,7 +594,34 @@ public sealed class CSharpEmitter
         _ => "1",
     };
 
-    private int _setCounter;   // unique-name counter for SET sender temporaries
+    private int _setCounter;     // unique-name counter for SET sender temporaries
+    private int _searchCounter;  // unique-name counter for SEARCH loop labels
+
+    /// <summary>Serial SEARCH (ISO §14.9.37.4 GR5–8): scan from the index's CURRENT setting; each pass tests
+    /// past-end (→ AT END) then the WHEN conditions in order (first true wins); none true → the index (and the
+    /// in-step varied item, GR8) increments by 1. Emitted as a LABEL loop — not a C# while — so a GO TO inside a
+    /// WHEN/AT END body (`__pc = k; break;`) breaks the DISPATCHER case, not a search loop (transfer-of-control
+    /// out of SEARCH per GR5c/6b); a body that runs to completion jumps past the search.</summary>
+    private void EmitSearch(BoundSearch s)
+    {
+        var w = _ctx.Writer;
+        int id = _searchCounter++;
+        w.Line($"__search{id}:");
+        using (w.Block($"if ({s.IndexField} > {s.Count}L)"))
+        {
+            bool terminated = s.AtEnd is { } at && EmitStatementList(at);
+            if (!terminated) w.Line($"goto __searchEnd{id};");
+        }
+        foreach (var when in s.Whens)
+            using (w.Block($"if ({_cond.Render(when.Condition)})"))
+            {
+                if (!EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
+            }
+        w.Line($"{s.IndexField} += 1;");
+        if (s.AlsoVaried is { } also) AugmentSetTarget(also, down: false, new NumX("1", 0));
+        w.Line($"goto __search{id};");
+        w.Line($"__searchEnd{id}: ;");
+    }
 
     /// <summary><c>SET … TO value</c> (ISO §14.9.39 Format 1): the sender is evaluated ONCE into an integer temp
     /// (GR2 — "the value of the sending operand is determined once"), then each receiver takes it by kind: an

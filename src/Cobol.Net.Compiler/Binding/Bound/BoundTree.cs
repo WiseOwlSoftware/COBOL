@@ -234,6 +234,20 @@ public sealed record BoundSetTo(IReadOnlyList<BoundSetTarget> Targets, BoundExpr
 /// (GR3), then each index is incremented/decremented by it (GR4).</summary>
 public sealed record BoundSetUpDown(IReadOnlyList<BoundSetTarget> Targets, BoundExpr Amount, bool Down) : BoundStatement;
 
+// ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
+
+/// <summary>One WHEN arm of a serial SEARCH: its condition and imperative statements (evaluated in source order;
+/// the first true arm runs and ends the search, ISO §14.9.37.4 GR5).</summary>
+public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<BoundStatement> Statements);
+
+/// <summary><c>SEARCH table [VARYING …] [AT END …] WHEN…</c> (ISO §14.9.37 Format 1): a serial scan from the
+/// CURRENT setting of <paramref name="IndexField"/> (the table's first index, or the VARYING same-table index).
+/// Each pass: past-end → AT END; else the WHEN conditions in order; none true → the index (and
+/// <paramref name="AlsoVaried"/>, a different-table index or data item, GR8) increments by 1.</summary>
+public sealed record BoundSearch(
+    string IndexField, long Count, BoundSetTarget? AlsoVaried,
+    IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens) : BoundStatement;
+
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
 
 /// <summary>How a file is opened (ISO §14.9.25). Maps 1:1 to the runtime <c>FileOpenMode</c>.</summary>
