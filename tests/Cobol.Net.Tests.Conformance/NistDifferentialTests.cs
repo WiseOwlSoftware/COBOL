@@ -153,6 +153,10 @@ public sealed class NistDifferentialTests
     // §8.8.4.2.7), and PCS-derived HIGH-/LOW-VALUE character identity (§8.3.3.6 GR6/7 + §12.3.7 GR8/9 tie rules).
     [InlineData("NC215A")]   // THE-WILD-ONE alphabet: THRU+ALSO matrix, mixed numeric/alphanumeric collated compares
     [InlineData("NC219A")]   // figuratives INSIDE the alphabet (GR10 native), HIGH=0xFE re-derivation, VALUE LOW-VALUE
+    // Greened by reference modification over NUMERIC-DISPLAY items + the parsed refModSpec form (ISO §8.4.2.4 —
+    // the unique result is an elementary ALPHANUMERIC item; NumericImagePlace formats/decodes the character image
+    // around the slice, and a ref-mod result never takes the numeric render path) — DEVLOG 548.
+    [InlineData("NC224A")]   // the reference-modification feature program (numeric/edited/group senders+receivers)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

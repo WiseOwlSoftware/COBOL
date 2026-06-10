@@ -35,7 +35,7 @@ public sealed class ReferenceResolver(DataBinder data)
         var qualifiers = new List<string>();
         Core.SubscriptOrRefModContext? subCtx = null;    // the subscript group (no depth-0 colon)
         Core.SubscriptOrRefModContext? refCtx = null;    // a reference-modification group (start : length)
-        bool cleanRefMod = false;                        // the refModPart form (arithmeticExpression : …) — deferred
+        Core.RefModPartContext? cleanRef = null;         // the refModPart form (parsed arithmeticExpression : ...)
 
         void Classify(Core.SubscriptOrRefModContext s) { if (HasDepth0Colon(s)) refCtx ??= s; else subCtx ??= s; }
 
@@ -45,12 +45,11 @@ public sealed class ReferenceResolver(DataBinder data)
             {
                 qualifiers.Add(q.cobolWord().GetText());
                 foreach (var sp in q.subscriptPart()) if (sp.subscriptOrRefMod() is { } qs) Classify(qs);
-                if (q.refModPart().Length > 0) cleanRefMod = true;
+                if (q.refModPart().Length > 0) cleanRef ??= q.refModPart()[0];
             }
-            else if (suffix.refModPart() is not null) cleanRefMod = true;
+            else if (suffix.refModPart() is { } rmp) cleanRef ??= rmp;
             else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s) Classify(s);
         }
-        if (cleanRefMod) return null;   // the parsed-arithmetic refModSpec form is a later slice → loud
 
         DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
         if (item is null) return null;
@@ -83,10 +82,37 @@ public sealed class ReferenceResolver(DataBinder data)
 
         if (PlaceForItem(item, indexExprs) is not { } inner) return null;
 
-        if (refCtx is null) return inner;
-        // Reference modification is over a character string — alphanumeric / numeric-edited items (incl. a Tier-B view).
-        if (item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.NumericEdited)) return null;
-        var (rm, _) = InterpretSubscripts(refCtx);
+        if (refCtx is null && cleanRef is null) return inner;
+        // Reference modification is over a character string — alphanumeric / numeric-edited items (incl. a Tier-B
+        // view), or a NUMERIC USAGE-DISPLAY item viewed through its character image (ISO §8.4.2.4 — the unique
+        // result is alphanumeric; NC224A's TEST-1-DATA(3:) over PIC 9(6)). Binary/packed usage stays loud.
+        if (item.Pic?.Category is PicCategory.Numeric)
+        {
+            if (item.Pic is not { Usage: Usage.Display, IsFloat: false }) return null;
+            if (!item.StoreAsImage && inner is not RedefViewPlace) inner = new NumericImagePlace(inner);
+        }
+        else if (item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.NumericEdited)) return null;
+        if (cleanRef is not null)
+        {
+            // The PARSED refModSpec form `(arithmetic-expression : [arithmetic-expression])` (ISO §8.4.2.4 —
+            // the lexer stayed in DEFAULT mode): render each expression's leaf tokens through the same segment
+            // renderer the SUBSCRIPT-mode form uses (NC224A's TEST-1-DATA(3:)).
+            var rmExprs = cleanRef.refModSpec().arithmeticExpression();
+            if (rmExprs.Length == 0) return null;
+            var startToks = new List<IToken>();
+            CollectLeafTokens(rmExprs[0], startToks);
+            if (RenderSegment(startToks) is not { } rmStart) return null;
+            string? rmLen = null;
+            if (rmExprs.Length > 1)
+            {
+                var lenToks = new List<IToken>();
+                CollectLeafTokens(rmExprs[1], lenToks);
+                if (RenderSegment(lenToks) is not { } l) return null;
+                rmLen = l;
+            }
+            return new RefModPlace(inner, rmStart, rmLen);
+        }
+        var (rm, _) = InterpretSubscripts(refCtx!);
         return rm is { Count: > 0 } ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null) : null;
     }
 
@@ -376,14 +402,14 @@ public sealed class ReferenceResolver(DataBinder data)
             switch (t.Type)
             {
                 case Core.SUB_WS: sb.Append(' '); break;
-                case Core.SUB_INTEGERLIT or Core.SIGNED_INTEGERLIT: sb.Append(t.Text); break;
-                case Core.SUB_PLUS: sb.Append(" + "); break;
-                case Core.SUB_MINUS: sb.Append(" - "); break;
-                case Core.SUB_STAR: sb.Append(" * "); break;
-                case Core.SUB_SLASH: sb.Append(" / "); break;
-                case Core.SUB_LPAREN: sb.Append('('); break;
-                case Core.SUB_RPAREN: sb.Append(')'); break;
-                case Core.SUB_IDENTIFIER:
+                case Core.SUB_INTEGERLIT or Core.SIGNED_INTEGERLIT or Core.INTEGERLIT: sb.Append(t.Text); break;
+                case Core.SUB_PLUS or Core.PLUS: sb.Append(" + "); break;
+                case Core.SUB_MINUS or Core.MINUS: sb.Append(" - "); break;
+                case Core.SUB_STAR or Core.STAR: sb.Append(" * "); break;
+                case Core.SUB_SLASH or Core.SLASH: sb.Append(" / "); break;
+                case Core.SUB_LPAREN or Core.LPAREN: sb.Append('('); break;
+                case Core.SUB_RPAREN or Core.RPAREN: sb.Append(')'); break;
+                case Core.SUB_IDENTIFIER or Core.IDENTIFIER:
                 {
                     // Gather `name (OF|IN qualifier)*` — a QUALIFIED data-name subscript (ISO §8.4.2.3.2).
                     string name = t.Text;
@@ -393,10 +419,10 @@ public sealed class ReferenceResolver(DataBinder data)
                     {
                         int k = j + 1;
                         while (k < tokens.Count && tokens[k].Type == Core.SUB_WS) k++;
-                        if (k >= tokens.Count || (tokens[k].Type != Core.SUB_OF && tokens[k].Type != Core.SUB_IN)) break;
+                        if (k >= tokens.Count || tokens[k].Type is not (Core.SUB_OF or Core.SUB_IN or Core.OF or Core.IN)) break;
                         int m = k + 1;
                         while (m < tokens.Count && tokens[m].Type == Core.SUB_WS) m++;
-                        if (m >= tokens.Count || tokens[m].Type != Core.SUB_IDENTIFIER) break;
+                        if (m >= tokens.Count || tokens[m].Type is not (Core.SUB_IDENTIFIER or Core.IDENTIFIER)) break;
                         qualifiers.Add(tokens[m].Text);
                         j = m;
                     }

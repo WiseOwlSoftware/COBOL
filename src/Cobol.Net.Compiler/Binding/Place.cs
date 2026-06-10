@@ -114,6 +114,30 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 }
 
 /// <summary>
+/// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.2.4 — the unique
+/// result is an elementary alphanumeric item over the operand's standard data format): reading formats the stored
+/// value's display image; writing decodes the spliced image back into the typed field (sign-aware both ways via
+/// the FormatDisplay/ParseDisplay pair).
+/// </summary>
+public sealed record NumericImagePlace(Place Inner) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => Inner.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => Inner.Item;
+
+    /// <inheritdoc/>
+    public override string Read() => $"CobolNum.FormatDisplay({Inner.Read()}, {Inner.Item.ProfileName})";
+
+    /// <inheritdoc/>
+    public override string Write(string rhs) =>
+        Inner.Write(Inner.Item.Pic is { Digits: > 18 }
+            ? $"CobolNum.ParseDisplay({rhs}, {Inner.Item.ProfileName})"
+            : $"(long)CobolNum.ParseDisplay({rhs}, {Inner.Item.ProfileName})");
+}
+
+/// <summary>
 /// A reference-modified place <c>inner(start:length)</c> (COBOLNET_DESIGN §3.3 / §7.2): reading is a substring
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
 /// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.

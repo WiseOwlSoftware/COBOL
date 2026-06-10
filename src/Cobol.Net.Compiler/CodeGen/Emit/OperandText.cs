@@ -38,6 +38,10 @@ internal static class OperandText
 
     private static string FieldAsString(Place p, bool deSign = false)
     {
+        // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
+        // category (ISO §8.4.2.4) — its Read() is already the character slice (a numeric inner goes through
+        // NumericImagePlace), never the numeric format path.
+        if (p is RefModPlace) return p.Read();
         // A Tier-B REDEFINES view's Read() is already its character-image window (a string), for a group or an
         // elementary view alike — use it directly (no .AsImage(), no FormatDisplay). EXCEPT when this signed-numeric
         // view is the de-signed source of an alphanumeric move/compare: its window holds the sign-aware image

@@ -46,7 +46,11 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     /// <summary>The scaled value of a data item place (its unscaled <c>long</c> value + its scale). A float item is
     /// truncated to <c>long</c> for now (mixed float/fixed arithmetic is a later slice). A non-numeric place (a group
     /// or an alphanumeric item used in a numeric context) fails loud rather than crashing the compiler (§1.4).</summary>
-    public static NumX FieldNum(Place p) => p.Item.Pic switch
+    public static NumX FieldNum(Place p) => p is RefModPlace
+        // A reference-modified result is ALPHANUMERIC (ISO §8.4.2.4) — in a numeric context it decodes as an
+        // unsigned integer exactly like an alphanumeric field (§14.9.25.3 Table 16).
+        ? new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0)
+        : p.Item.Pic switch
     {
         // A GROUP operand in a numeric context is its alphanumeric IMAGE as an UNSIGNED integer (a group is
         // category alphanumeric, §8.8.4.1.1; the alphanumeric→numeric move is legal, §14.9.25.3 Table 16 /

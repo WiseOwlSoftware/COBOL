@@ -13,6 +13,22 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 548 — 2026-06-10 14:45 PDT — Reference modification completed: numeric items + the parsed refModSpec form → NC224A byte-matches (85/95)
+
+NC224A (the ref-mod feature program) needed the two missing ref-mod shapes. (1) **Ref-mod over a NUMERIC
+USAGE-DISPLAY item** (`TEST-1-DATA(3:)` on PIC 9(6)): §8.4.2.4 — reference modification views the item's STANDARD
+DATA FORMAT and the unique result is an elementary ALPHANUMERIC item. New `NumericImagePlace` wraps the typed
+place: Read formats the display image (sign-aware), Write decodes the spliced image back via ParseDisplay; the
+resolver inserts it for a numeric-DISPLAY inner (StoreAsImage/Tier-B windows are already strings; binary/packed
+usage stays loud — usage DISPLAY is the §8.4.2.4 precondition). Two render rules pin the alphanumeric-result
+semantics: `OperandText.FieldAsString` returns a RefModPlace's slice directly (never the numeric format path) and
+`NumericRenderer.FieldNum` decodes a ref-mod slice as an unsigned integer (Table 16). (2) **The parsed
+`refModSpec` form** (`(arithmetic-expression : [arithmetic-expression])` lexed in DEFAULT mode): the resolver now
+renders its expression leaf-tokens through the SAME segment renderer the SUBSCRIPT-mode form uses — RenderSegment
+accepts both token vocabularies (SUB_* and default INTEGERLIT/IDENTIFIER/operators incl. OF/IN qualifiers).
+**85/95 NC GREEN; 566 conformance + 15 unit.** Wave-2 workflow (CALL, RL/IX, ODO implementers + SORT/MERGE and
+DECIMAL-POINT scouts) is running in parallel as this lands.
+
 ## Entry 547 — 2026-06-10 14:15 PDT — Numeric-context MOVE legality: group + alphanumeric-literal senders (NC105A RUNERR → DIFF 124/132)
 
 Two Table-16 legalities the numeric render path still loud-guarded (§14.9.25.3 — both are valid moves with the
