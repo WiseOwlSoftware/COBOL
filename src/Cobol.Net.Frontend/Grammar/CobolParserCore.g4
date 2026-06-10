@@ -28,6 +28,8 @@ cobolWord
     | NATIONAL     // context: FOR NATIONAL
     | BIT          // context: USAGE BIT
     | NORMAL       // context: STOP RUN WITH NORMAL
+    | PARSE        // context: JSON/XML PARSE (2014+); a legal user word everywhere else
+    | PROCESSING   // context: XML PARSE … PROCESSING PROCEDURE (2014+); a legal user word everywhere else
     // Screen-related tokens that may be used as data names in non-screen contexts
     | AUTO
     | BELL

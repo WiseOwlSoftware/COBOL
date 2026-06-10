@@ -30,7 +30,7 @@ options {
     private static readonly System.Collections.Generic.HashSet<int> _dataNameTokens = new() {
         IDENTIFIER,
         // Context-sensitive keywords (mirrors cobolWord in CobolParserCore.g4):
-        LENGTH, NATIONAL, NORMAL,
+        LENGTH, NATIONAL, NORMAL, PARSE, PROCESSING,
         // Intrinsic function names that collide with reserved words
         // (mirrors functionName in CobolExpressions.g4):
         DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
@@ -414,6 +414,8 @@ PAGE        : 'PAGE' ;
 PAGE_COUNTER : 'PAGE-COUNTER' ;
 PADDING     : 'PADDING' ;
 PARAGRAPH   : 'PARAGRAPH' ;
+PARSE       : 'PARSE' ;        // JSON/XML PARSE (2014+); usable as a user word via cobolWord
+PROCESSING  : 'PROCESSING' ;   // XML PARSE … PROCESSING PROCEDURE (2014+); usable as a user word via cobolWord
 PF          : 'PF' ;
 PH          : 'PH' ;
 // PIC/PICTURE → push into PICMODE to capture the PIC string as one token.

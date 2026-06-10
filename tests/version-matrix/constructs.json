@@ -1,0 +1,101 @@
+{
+  "_comment": "THE canonical version-matrix construct catalogue (VERSION_TEST_MATRIX_DESIGN.md §10 #5). Each entry: a minimal program exercising ONE construct + its edition metadata. VersionMatrixTests computes the expected outcome per (construct × edition): compiles iff introducedIn <= V and (removedIn null or V < removedIn). The human-readable VERSION_CHANGE_REFERENCE.md and the (future) in-code ConstructDialectStatus registry are renderings of THIS file — extend it here, never fork. 'vcr' cites the VERSION_CHANGE_REFERENCE row/section or the introducing standard where the doc has no row (it covers 2002→2023 deltas only).",
+  "constructs": [
+    {
+      "id": "nucleus-move-display",
+      "description": "Nucleus MOVE/DISPLAY — edition-invariant since COBOL-85",
+      "introducedIn": 85,
+      "removedIn": null,
+      "vcr": "baseline (no row — never changed)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NUC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(5) VALUE \"HI\".\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"BYE\" TO W.\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
+      "id": "delete-file-2023",
+      "description": "DELETE FILE (physical file deletion), ISO 2023 §14.9.10 Format 2",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "vcr": "E.2 new-feature row (DELETE FILE)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. DF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    DELETE FILE F.\n    STOP RUN.\n"
+    },
+    {
+      "id": "allocate-2002",
+      "description": "ALLOCATE statement (dynamic storage), ISO §14.9.3 — introduced 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    ALLOCATE 100 CHARACTERS RETURNING P.\n    STOP RUN.\n"
+    },
+    {
+      "id": "free-2002",
+      "description": "FREE statement (release ALLOCATEd storage), ISO §14.9.15 — introduced 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    FREE P.\n    STOP RUN.\n"
+    },
+    {
+      "id": "json-generate-2014",
+      "description": "JSON GENERATE, ISO 2014 §14.9.x — introduced 2014",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "vcr": "2014 introduction (TR JSON; derive from the 2014 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. JG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 A PIC X(3) VALUE \"abc\".\n01 OUT-J PIC X(100).\nPROCEDURE DIVISION.\nMAIN.\n    JSON GENERATE OUT-J FROM G.\n    STOP RUN.\n"
+    },
+    {
+      "id": "xml-generate-2014",
+      "description": "XML GENERATE, introduced 2014 (TR XML folded into the standard)",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "vcr": "2014 introduction (derive from the 2014 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 A PIC X(3) VALUE \"abc\".\n01 OUT-X PIC X(100).\nPROCEDURE DIVISION.\nMAIN.\n    XML GENERATE OUT-X FROM G.\n    STOP RUN.\n"
+    },
+    {
+      "id": "invoke-2002",
+      "description": "INVOKE (OO method call), ISO §14.9.23 — introduced 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (OO; derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. IV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 OBJ USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE OBJ \"doIt\".\n    STOP RUN.\n"
+    },
+    {
+      "id": "goback-returning-2002",
+      "description": "GOBACK RETURNING status, ISO §14.9.18 — the RETURNING phrase is 2002+",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. GR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    GOBACK RETURNING RC.\n"
+    },
+    {
+      "id": "stop-run-status-2002",
+      "description": "STOP RUN WITH status phrase, ISO §14.9.42 — the status phrase is 2002+",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN WITH NORMAL STATUS RC.\n"
+    },
+    {
+      "id": "based-clause-2002",
+      "description": "BASED clause (a data item addressed via SET ADDRESS/ALLOCATE), ISO §13.18.5 — introduced 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 B BASED.\n   05 F PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "procedure-returning-2002",
+      "description": "PROCEDURE DIVISION … RETURNING, ISO §14.2 — the RETURNING phrase is 2002+",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99.\nPROCEDURE DIVISION RETURNING RC.\nMAIN.\n    MOVE 9 TO RC.\n    STOP RUN.\n"
+    },
+    {
+      "id": "type-clause-2023",
+      "description": "TYPE IS clause referencing a type declaration, ISO 2023 §13.18.58 (TYPEDEF family)",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "vcr": "E.2/E.3 type-declaration rows",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. TY.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W TYPE IS WTYPE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    }
+  ]
+}

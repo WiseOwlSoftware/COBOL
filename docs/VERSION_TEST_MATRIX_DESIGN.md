@@ -193,11 +193,19 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
   edition.) **Decision #2 ✅ IMPLEMENTED (DEVLOG 520):** the `CompilerDriver.Options.DialectLevel` default is now
   **2023** (`src/Cobol.Net.Compiler/CompilerDriver.cs`), pinned by a `CompilerDriverTests` regression test; the CLI
   `--std` defaults to 2023 and `--nist` without an explicit `--std` targets 85 (`src/Cobol.Net.Cli/CliOptions.cs`).
-  Still to scaffold (Phase 1): the canonical `constructs.json`, the greenfield diagnostic-assertion harness, threading
-  `DialectLevel` into the binder (bind-side only — see §6.1: per the dual-backend discipline, emitters render, they
-  never decide edition semantics).
-- **Phase 1 — seed + continuity.** Encode the ~12 highest-value rows (§4); add the INV-1 continuity property test
-  (NIST × later editions, "still compiles unless removed"). This catches the biggest regressions immediately.
+  **Phase 1 ✅ LANDED (DEVLOG 531):** the canonical **`tests/version-matrix/constructs.json`** (12 seeded rows —
+  85 baseline; 2002: ALLOCATE, FREE, INVOKE, GOBACK RETURNING, STOP-status, BASED, PROCEDURE…RETURNING; 2014: JSON
+  GENERATE, XML GENERATE; 2023: DELETE FILE, TYPE IS) loaded by `VersionMatrixTests` — 48 matrix cells, all green;
+  the **`EditionHarness`** (`Compile`/`CompileNist`/`GetDiagnostics`/`AssertHasDiagnostic` — THE per-edition
+  compile path every edition-targeted test shares); and the **full INV-1 continuity sweep**
+  (`scripts/version-continuity-sweep.sh`): **342 NIST programs compile at 85 AND at 2002/2014/2023 — ZERO
+  breaks** (117 don't compile at 85 yet — feature gaps, outside the witness set; re-run as features land).
+  First matrix catch: the JSON/XML statement grammar rules were pre-seam PLACEHOLDERS accepting no conforming
+  program — replaced with the real seam-level GENERATE/PARSE surface (statement heads + COUNT + PROCESSING
+  PROCEDURE + exception phrases; detail phrases ride the subsystem wave). Still pending from this block:
+  threading `DialectLevel` into the binder (bind-side only — see §6.1; arrives with Phase 2's EditionValidator,
+  which also upgrades grammar-gate rejections to edition-NAMING diagnostics asserted via `AssertHasDiagnostic`).
+- **Phase 1 — seed + continuity.** ✅ Done as above.
 - **Phase 2 — backfill + implement gating.** Grow the catalogue across all mechanically-testable rows; build the
   `EditionValidator` + `ConstructDialectStatus` registry; turn red cells green per row. Each new feature ships its
   matrix rows (extends `feedback_conformance_tests_per_feature`).

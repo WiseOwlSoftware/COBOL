@@ -2571,6 +2571,12 @@ public interface ICobolParserCoreVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitXmlStatement([NotNull] CobolParserCore.XmlStatementContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="CobolParserCore.jsonXmlExceptionPhrases"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitJsonXmlExceptionPhrases([NotNull] CobolParserCore.JsonXmlExceptionPhrasesContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="CobolParserCore.inlineMethodInvocationStatement"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
