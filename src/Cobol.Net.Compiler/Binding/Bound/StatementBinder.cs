@@ -358,18 +358,35 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
 
     private BoundStatement BindDivide(Core.DivideStatementContext div)
     {
-        if (div.divideRemainderPhrase() is not null) return new BoundUnsupported("DIVIDE … REMAINDER");
         if (div.divideOperand() is not { } aCtx) return new BoundUnsupported("DIVIDE form");
         var a = BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
         var sizeErr = BindSizeError(div.arithmeticOnSizeError());
+
+        // DIVIDE … GIVING q REMAINDER r (ISO §14.9.12 Formats 4–5): exactly one GIVING receiver (SR6).
+        if (div.divideRemainderPhrase() is { } rem)
+        {
+            if (div.divideGivingPhrase() is not { } g) return new BoundUnsupported("DIVIDE REMAINDER without GIVING");
+            var quotients = Receivers(g.receivingArithmeticOperand());
+            if (quotients.Count != 1) return new BoundUnsupported("DIVIDE REMAINDER quotient receiver");
+            if (refs.Resolve(rem.dataReference()) is not { } r)
+                return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.dataReference().GetText()}'");
+            BoundExpr dividend = div.divideIntoPhrase() is { } i ? BindExpr(i.divideIntoOperand())
+                : div.divideByPhrase() is not null ? a
+                : a;
+            BoundExpr divisor = div.divideIntoPhrase() is not null ? a
+                : div.divideByPhrase() is { } b ? BindExpr(b.divideOperand())
+                : a;
+            return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
+        }
+
         if (div.divideIntoPhrase() is { } into)
         {
             return div.divideGivingPhrase() is { } giving
                 ? new BoundDivideGiving(BindExpr(into.divideIntoOperand()), a, Receivers(giving.receivingArithmeticOperand()), sizeErr)
                 : new BoundDivideInto(a, Receivers(into.divideIntoOperand().receivingArithmeticOperand()), sizeErr);   // target ← target ÷ a
         }
-        if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } g)
-            return new BoundDivideGiving(a, BindExpr(byPhrase.divideOperand()), Receivers(g.receivingArithmeticOperand()), sizeErr);
+        if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } gv)
+            return new BoundDivideGiving(a, BindExpr(byPhrase.divideOperand()), Receivers(gv.receivingArithmeticOperand()), sizeErr);
         return new BoundUnsupported("DIVIDE form");
     }
 

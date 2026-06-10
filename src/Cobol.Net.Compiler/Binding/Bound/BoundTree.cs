@@ -154,6 +154,12 @@ public sealed record BoundDivideInto(BoundExpr Divisor, IReadOnlyList<Receiver> 
 /// — each target ← dividend ÷ divisor.</summary>
 public sealed record BoundDivideGiving(BoundExpr Dividend, BoundExpr Divisor, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 
+/// <summary><c>DIVIDE … GIVING quotient REMAINDER remainder</c> (ISO §14.9.12 Formats 4–5): one quotient receiver;
+/// the remainder = dividend − (intermediate quotient × divisor), where the intermediate quotient is TRUNCATED at
+/// the quotient receiver's scale even when the stored quotient is ROUNDED (GR7).</summary>
+public sealed record BoundDivideRemainder(
+    BoundExpr Dividend, BoundExpr Divisor, Receiver Quotient, Place Remainder, SizeErrorPhrase? SizeError) : BoundStatement;
+
 /// <summary><c>COMPUTE targets = rhs</c>.</summary>
 public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
 

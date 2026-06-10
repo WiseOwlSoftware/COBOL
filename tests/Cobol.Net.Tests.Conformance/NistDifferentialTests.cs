@@ -65,6 +65,10 @@ public sealed class NistDifferentialTests
     [InlineData("NC242A")]   // PERFORM VARYING + ALL-literal table seeding
     [InlineData("NC243A")]   // VARYING up to 7 AFTER levels over a 7-dim table + past-end FAIL-path reads
     [InlineData("NC244A")]   // SET multi-receiver + PERFORM VARYING
+    // Greened by the numeric-edited receiver stack (CobolEdit, ISO §13.18.40.4 + §14.7.7 ROUNDED-before-editing) —
+    // DEVLOG 530.
+    [InlineData("NC117A")]   // DIVIDE into numeric-edited receivers
+    [InlineData("NC120A")]   // MULTIPLY GIVING edited ROUNDED ($ZZ9.99CR etc.)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

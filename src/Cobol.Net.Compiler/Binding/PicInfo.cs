@@ -69,6 +69,11 @@ public sealed record PicInfo(
     /// </summary>
     public string SignKind { get; init; } = "TrailingOverpunch";
 
+    /// <summary>For a <see cref="PicCategory.NumericEdited"/> item: the EXPANDED edited picture (repeats unrolled,
+    /// uppercased, the implied point <c>V</c> retained) — the mask <c>CobolEdit.Format</c> renders into. Null for
+    /// every other category.</summary>
+    public string? EditMask { get; init; }
+
     /// <summary>The C# type used to store this item's value.</summary>
     public string ClrType => Category switch
     {
@@ -160,7 +165,7 @@ public sealed record PicInfo(
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol count.
             return new PicInfo(PicCategory.NumericEdited, usage,
                 Length: expanded.Count(c => c is not ('V' or 'S' or 'P')), Digits: digits, Scale: scale, Signed: signed)
-            { SignKind = signKind };
+            { SignKind = signKind, EditMask = expanded };
 
         // Pure numeric. The stored-digit count (Digits) and DISPLAY width (Length) are the '9' count — P holds no
         // storage; the implied decimal position lives entirely in the signed Scale.

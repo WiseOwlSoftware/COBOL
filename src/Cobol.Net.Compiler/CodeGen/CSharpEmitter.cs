@@ -199,6 +199,7 @@ public sealed class CSharpEmitter
             case BoundMultiplyGiving a: EmitGiving(a.Targets, () => _num.Combine(_num.Render(a.A), "*", _num.Render(a.B)), a.SizeError); return false;
             case BoundDivideInto a: EmitDivide(a.Targets, null, a.Divisor, a.SizeError); return false;
             case BoundDivideGiving a: EmitDivide(a.Targets, a.Dividend, a.Divisor, a.SizeError); return false;
+            case BoundDivideRemainder a: EmitDivideRemainder(a); return false;
             case BoundCompute c: EmitCompute(c); return false;
             case BoundIf iff: EmitIf(iff); return false;
             case BoundInlinePerform p: EmitInlinePerform(p); return false;
@@ -277,12 +278,26 @@ public sealed class CSharpEmitter
         _ctx.Writer.Line(target is RedefViewPlace ? target.Write(image) : $"{target.Read()}.FromImage({image});");
     }
 
+    /// <summary>True when a MOVE source is a NUMERIC operand (a numeric literal/expression, figurative ZERO, or a
+    /// numeric data item) — the §14.9.25.4 GR5 editing path into a numeric-edited receiver applies only to these;
+    /// an alphanumeric source moves as plain characters.</summary>
+    private static bool IsNumericOperand(BoundOperand source) => source switch
+    {
+        BoundNumericLiteral or BoundComputedOperand => true,
+        BoundFigurative { Kind: 'Z' } => true,
+        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Numeric,
+        _ => false,
+    };
+
     /// <summary>The C# expression a MOVE source converts to when stored into <paramref name="target"/>.</summary>
     private string ConvertSource(BoundOperand source, DataItem target)
     {
         var pic = target.Pic!;
-        // A figurative constant fills the receiver to its width (ISO §8.3.1.2 / §14.9.24).
-        if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric)
+        // A figurative constant fills the receiver to its width (ISO §8.3.1.2 / §14.9.24) — EXCEPT figurative
+        // ZERO into a numeric-edited receiver, which is the numeric value 0 EDITED into the mask (§14.9.25.4 GR5;
+        // 'ZZ9.99' shows '  0.00', not a zero-fill).
+        if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric
+            && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited))
             return $"new string({FigurativeFill(f.Kind)}, {pic.Length})";
         // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2).
         if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric)
@@ -290,6 +305,11 @@ public sealed class CSharpEmitter
 
         switch (pic.Category)
         {
+            // A NUMERIC source moving to a numeric-edited receiver is EDITED into the receiver's picture
+            // (ISO §14.9.25.4 GR5 — alignment + editing); an alphanumeric source stays a plain character move.
+            case PicCategory.NumericEdited when IsNumericOperand(source):
+                NumX e = _num.AsNum(source);
+                return $"CobolEdit.Format({e.Expr}, {e.Scale}, {CsLiteral(pic.EditMask!)})";
             case PicCategory.Alphanumeric or PicCategory.NumericEdited:
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a).
                 return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length})";
@@ -337,6 +357,29 @@ public sealed class CSharpEmitter
                 NumX num = dividend is not null ? _num.Render(dividend) : NumericRenderer.FieldNum(r.Place);   // INTO-no-GIVING divides the target
                 StoreArith(r.Place, _num.Combine(num, "/", divisorX), r.Rounding);
             }
+        });
+
+    /// <summary><c>DIVIDE … GIVING q REMAINDER r</c> (ISO §14.9.12 GR7): the remainder is defined from the
+    /// INTERMEDIATE quotient TRUNCATED at the quotient receiver's scale — even when the stored quotient is ROUNDED
+    /// — as <c>remainder = dividend − (intermediate quotient × divisor)</c>; the subtraction aligns scales exactly.
+    /// The quotient stores with its OWN rounding (recomputed at the receiver's mode when not truncation).</summary>
+    private void EmitDivideRemainder(BoundDivideRemainder d)
+        => EmitArith(d.SizeError, () =>
+        {
+            var w = _ctx.Writer;
+            NumX dividend = _num.Render(d.Dividend), divisor = _num.Render(d.Divisor);
+            int qs = ScaleOf(d.Quotient.Place);
+            _ctx.TargetScale = qs;
+            _ctx.TargetRounding = CobolRounding.Truncation;
+            string qt = $"__q{_storeTmpCounter++}";
+            w.Line($"long {qt} = {_num.Combine(dividend, "/", divisor).Expr};");
+            var product = new NumX($"({qt} * {divisor.Expr})", qs + divisor.Scale);
+            NumX remainder = _num.Combine(dividend, "-", product);
+            SetTarget(d.Quotient);
+            StoreArith(d.Quotient.Place,
+                d.Quotient.Rounding == CobolRounding.Truncation ? new NumX(qt, qs) : _num.Combine(dividend, "/", divisor),
+                d.Quotient.Rounding);
+            StoreArith(d.Remainder, remainder, CobolRounding.Truncation);   // REMAINDER has no ROUNDED phrase
         });
 
     /// <summary>COMPUTE: the RHS is rendered per receiver (so a quotient is computed at that receiver's scale + mode)
@@ -398,6 +441,17 @@ public sealed class CSharpEmitter
     private void StoreArith(Place target, NumX value, CobolRounding mode)
     {
         var w = _ctx.Writer;
+        // A numeric-edited receiver stores the EDITED image of the result (ISO §14.7.7 — arithmetic results store
+        // per the MOVE editing rules). ROUNDED applies BEFORE editing: the value is rescaled to the mask's
+        // fraction scale with the receiver's mode (§14.7.4), then formatted.
+        if (target.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } mask })
+        {
+            int ms = CobolEdit.MaskScale(mask);
+            string aligned = value.Scale == ms ? value.Expr
+                : $"CobolNum.Rescale({value.Expr}, {value.Scale}, {ms}, CobolRounding.{mode})";
+            w.Line(target.Write($"CobolEdit.Format({aligned}, {ms}, {CsLiteral(mask)})"));
+            return;
+        }
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
         {
             w.Line(LoudStmt($"arithmetic into a non-fixed-point target '{target.Item.CobolName ?? target.Read()}'"));
@@ -420,7 +474,11 @@ public sealed class CSharpEmitter
         w.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {profile})" : stored));
     }
 
-    private static int ScaleOf(Place p) => p.Item.Pic?.Scale ?? 0;
+    /// <summary>The receiver's working scale: an edited receiver's is its MASK's fraction scale (a `.`-pointed
+    /// mask has PicInfo.Scale 0 — the point lives in the mask, not in V); a numeric item's is its PIC scale.</summary>
+    private static int ScaleOf(Place p) =>
+        p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } m } ? CobolEdit.MaskScale(m)
+        : p.Item.Pic?.Scale ?? 0;
 
     // ── IF / PERFORM / SET ─────────────────────────────────────────────────────────────────────────────
 

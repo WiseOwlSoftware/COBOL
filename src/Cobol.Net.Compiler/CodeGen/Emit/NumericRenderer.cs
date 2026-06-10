@@ -52,6 +52,12 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         // unscaled value for numeric use (ISO §14.6.13.2 — incompatible content decodes deterministically).
         { } pic when p.Item.StoreAsImage =>
             new NumX($"CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName})", pic.Scale),
+        // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
+        // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant).
+        { Category: PicCategory.Alphanumeric } => new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0),
+        // A numeric-edited sender needs DE-EDITING (ISO §14.9.25.4 GR5) — the CobolEdit wave; loud until then.
+        { Category: PicCategory.NumericEdited } =>
+            new NumX(EmitText.LoudValue("long", $"de-editing numeric use of numeric-edited item '{p.Item.CobolName ?? p.Read()}' (ISO §14.9.25.4 GR5)"), 0),
         { } pic => new NumX(p.Read(), pic.Scale),
     };
 

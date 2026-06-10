@@ -193,6 +193,19 @@ public static class CobolNum
     /// using incompatible data in a numeric context is undefined (§14.6.13.2 / the EC-DATA-INCOMPATIBLE condition),
     /// so a deterministic 0 is conformant.
     /// </summary>
+    /// <summary>The unsigned integer value of an ALPHANUMERIC operand used in a numeric context (ISO §14.9.25.4
+    /// GR6 — an alphanumeric sending item moving to a numeric receiver is treated as an UNSIGNED integer;
+    /// §14.6.13.2 — incompatible content decodes deterministically: a non-digit position contributes no digit, an
+    /// all-non-digit image is 0).</summary>
+    public static long FromAlphanumeric(string image)
+    {
+        if (string.IsNullOrEmpty(image)) return 0;
+        long mag = 0;
+        foreach (char c in image)
+            if (c is >= '0' and <= '9') mag = mag * 10 + (c - '0');
+        return mag;
+    }
+
     public static long ParseDisplay(string image, in NumProfile receiver)
     {
         if (string.IsNullOrEmpty(image)) return 0;
