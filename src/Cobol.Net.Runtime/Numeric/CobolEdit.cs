@@ -228,6 +228,50 @@ public static class CobolEdit
         return negative ? -value : value;
     }
 
+    /// <summary>Checked numeric→edited conversion for ARITHMETIC stores under ON SIZE ERROR (ISO §14.7.5 — size
+    /// error condition case 3: after decimal-point alignment, |value| exceeds the mask's digit positions; storing
+    /// rule 2: that resultant is left UNCHANGED and only the flag is set, the statement's other receivers still
+    /// store). MOVE keeps the unchecked <see cref="Format"/> — high-order truncation IS the defined MOVE behavior
+    /// (§14.9.25).</summary>
+    public static bool TryFormat(Int128 value, int valueScale, string picture, out string image)
+    {
+        var (capacity, fracDigits) = MaskCapacity(picture);
+        Int128 scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
+        if (Int128.Abs(scaled) >= CobolNum.Pow10Wide(capacity)) { image = string.Empty; return false; }
+        image = Format(value, valueScale, picture);
+        return true;
+    }
+
+    /// <summary>The mask's total digit-position capacity (9/Z/* plus floating-string members, less the ONE
+    /// position the floating symbol itself occupies) and its fraction scale — the §14.7.5 size-error bound.
+    /// Mirrors <see cref="Format"/>'s prologue exactly.</summary>
+    private static (int Capacity, int FracDigits) MaskCapacity(string picture)
+    {
+        string pattern = picture.Replace("V", "");
+        const char currencyChar = '$';
+        int plus = 0, minus = 0, cs = 0;
+        foreach (char raw in pattern)
+        {
+            char p = char.ToUpperInvariant(raw);
+            if (p == '+') plus++;
+            else if (p == '-') minus++;
+            else if (p == currencyChar) cs++;
+        }
+        bool fixedPlus = plus == 1 && minus == 0, fixedMinus = minus == 1 && plus == 0, fixedCs = cs == 1;
+        int digits = 0;
+        foreach (char raw in pattern)
+        {
+            char p = char.ToUpperInvariant(raw);
+            if (p is '9' or 'Z' or '*') digits++;
+            else if (p == currencyChar && !fixedCs) digits++;
+            else if (p == '+' && !fixedPlus) digits++;
+            else if (p == '-' && !fixedMinus) digits++;
+        }
+        bool hasFloating = cs > 1 || plus > 1 || minus > 1;
+        return (hasFloating ? digits - 1 : digits,
+                FractionDigits(picture, currencyChar, fixedCs, fixedPlus, fixedMinus));
+    }
+
     /// <summary>The mask's fraction scale — digit positions right of the point (<c>V</c> or <c>.</c>). Public so
     /// the compiler can fold the working scale of an edited RECEIVER at emit time (a quotient/ROUNDED result must
     /// be computed and rounded AT this scale before editing, ISO §14.7.4/§14.7.7).</summary>

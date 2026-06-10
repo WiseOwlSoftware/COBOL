@@ -131,6 +131,17 @@ public sealed class NistDifferentialTests
     [InlineData("NC174A")]   // SPECIAL-NAMES switches + SET F3 + user-defined classes + zoned IS NUMERIC
     [InlineData("NC254A")]   // switch conditions inside compound/abbreviated conditions
     [InlineData("NC302M")]   // ALTER (no PROCEED) inside PERFORM THRU
+    // Greened by the ARITHMETIC WAVES (DEVLOG 544): single evaluation for multi-receiver arithmetic (§14.7.7 GR4 +
+    // NOTE 3 — sender snapshots), SIZE ERROR capacity checks for numeric-edited resultants (§14.7.5 case 3 +
+    // storing rule 2, CobolEdit.TryFormat), P-scale sending-image zeros (§13.18.40.3 / §14.9.25.4 GR6a),
+    // breadth-first sign-condition operand binding (§8.8.4.3), and bare figurative words in string 88 VALUEs
+    // (§8.3.1.2 + §8.3.3.6.4 GR2).
+    [InlineData("NC172A")]   // multi-result DIVIDE INTO with a dividend-aliasing receiver + 27-digit self-division
+    [InlineData("NC173A")]   // multi-result DIVIDE BY with a dividend-aliasing receiver
+    [InlineData("NC170A")]   // MULTIPLY GIVING into edited receivers under ON SIZE ERROR
+    [InlineData("NC175A")]   // SUBTRACT GIVING into edited receivers under ON SIZE ERROR ($.** / $**.**CR)
+    [InlineData("NC114M")]   // MOVE S9P(17) SIGN LEADING SEPARATE to X(18)/edited (P zeros + de-sign)
+    [InlineData("NC250A")]   // IF torture: multi-term sign conditions + 88 VALUE QUOTE/SPACE
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

@@ -335,8 +335,9 @@ public static class CobolNum
         return r;
     }
 
-    /// <summary>10^n as an <see cref="Int128"/> (n in 0..38 — the wide intermediate range, COBOLNET_DESIGN §18 #4).</summary>
-    private static Int128 Pow10Wide(int n)
+    /// <summary>10^n as an <see cref="Int128"/> (n in 0..38 — the wide intermediate range, COBOLNET_DESIGN §18 #4).
+    /// Internal: <see cref="CobolEdit.TryFormat"/> uses it for the edited-receiver digit-capacity bound.</summary>
+    internal static Int128 Pow10Wide(int n)
     {
         Int128 r = 1;
         for (int i = 0; i < n; i++) r *= 10;

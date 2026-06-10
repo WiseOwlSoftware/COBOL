@@ -162,9 +162,32 @@ internal sealed class ConditionRenderer(NumericRenderer num)
     }
 
     /// <summary>A string level-88 VALUE operand's character value: a figurative <c>ALL "literal"</c> repeated to the
-    /// conditional variable's <paramref name="width"/> (ISO §8.3.3.6.4 GR2), else the decoded literal.</summary>
+    /// conditional variable's <paramref name="width"/> (ISO §8.3.3.6.4 GR2), a bare figurative WORD (QUOTE / SPACE /
+    /// HIGH-VALUE / LOW-VALUE / ZERO — §8.3.1.2, materialized to the variable's width, NC250A IF--TEST-26/27),
+    /// else the decoded literal.</summary>
     private static string StringMembershipValue(string raw, int width) =>
-        EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width) : EmitText.DecodeCobolString(raw);
+        EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width)
+        : FigurativeFillChar(raw) is { } fill ? new string(fill, width)
+        : EmitText.DecodeCobolString(raw);
+
+    /// <summary>The fill character of a bare figurative-constant word (with or without a leading <c>ALL</c> —
+    /// the same figurative either way, ISO §8.3.1.2), or null when the text is not a figurative word. The fill
+    /// characters match <see cref="EmitText.FigurativeFill"/> (HIGH/LOW = U+00FF/U+0000, COBOLNET_DESIGN §14.9).</summary>
+    private static char? FigurativeFillChar(string raw)
+    {
+        string t = raw.Trim();
+        if (t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && t.Length > 3 && char.IsWhiteSpace(t[3]))
+            t = t[3..].Trim();
+        return t.ToUpperInvariant() switch
+        {
+            "SPACE" or "SPACES" => ' ',
+            "QUOTE" or "QUOTES" => '"',
+            "HIGH-VALUE" or "HIGH-VALUES" => '\u00ff',
+            "LOW-VALUE" or "LOW-VALUES" => '\u0000',
+            "ZERO" or "ZEROS" or "ZEROES" => '0',
+            _ => null,
+        };
+    }
 
     /// <summary>A numeric level-88 VALUE operand → its unscaled-<c>long</c> text. A figurative ZERO maps to <c>0</c>
     /// (ISO §8.3.1.2 — a valid numeric operand); otherwise the literal is scaled. Without this a figurative VALUE word
