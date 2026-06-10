@@ -30,7 +30,7 @@ public static class CobolNum
     {
         if (toScale == fromScale) return value;
         if (toScale > fromScale) return value * Pow10(toScale - fromScale);
-        return RoundDiv(value, Pow10(fromScale - toScale), mode);
+        return (long)RoundDiv(value, Pow10(fromScale - toScale), mode);
     }
 
     /// <summary>
@@ -117,8 +117,8 @@ public static class CobolNum
     private static bool DivisionLosesPrecision(long a, int aScale, long b, int bScale, int resultScale)
     {
         int exp = bScale + resultScale - aScale;
-        long num = a, den = b;
-        if (exp >= 0) num *= Pow10(exp); else den *= Pow10(-exp);
+        Int128 num = a, den = b;   // wide radix alignment — mirrors Divide exactly
+        if (exp >= 0) num *= Pow10Wide(exp); else den *= Pow10Wide(-exp);
         return num % den != 0;
     }
 
@@ -259,29 +259,33 @@ public static class CobolNum
     /// <summary>
     /// Divide two fixed-point operands and return the quotient as an unscaled integer at <paramref name="resultScale"/>
     /// fractional digits, rounding with <paramref name="mode"/>. Operands are given as unscaled integers with their
-    /// own scales; the computation is exact native integer math (<c>a/10^aScale ÷ b/10^bScale</c> rendered at
-    /// <paramref name="resultScale"/>). A zero divisor returns 0 (the caller raises ON SIZE ERROR — later slice).
+    /// own scales (<c>a/10^aScale ÷ b/10^bScale</c> rendered at <paramref name="resultScale"/>). The radix alignment
+    /// (<c>a × 10^exp</c>) runs in <see cref="Int128"/> — an 18-significant-digit dividend scaled by the receiver's
+    /// fraction digits exceeds the long range MID-computation even though the QUOTIENT fits (ISO §8.8.1: arithmetic
+    /// operates on the algebraic values; intermediate width is the implementor's problem, not the program's). A zero
+    /// divisor returns 0 (the caller raises ON SIZE ERROR — later slice).
     /// </summary>
     public static long Divide(long a, int aScale, long b, int bScale, int resultScale, CobolRounding mode)
     {
         if (b == 0) return 0;
         int exp = bScale + resultScale - aScale;     // quotient_unscaled = round(a × 10^exp / b)
-        long num = a, den = b;
-        if (exp >= 0) num *= Pow10(exp); else den *= Pow10(-exp);
+        Int128 num = a, den = b;
+        if (exp >= 0) num *= Pow10Wide(exp); else den *= Pow10Wide(-exp);
         if (den < 0) { num = -num; den = -den; }     // RoundDiv requires a positive divisor
-        return RoundDiv(num, den, mode);
+        return (long)RoundDiv(num, den, mode);
     }
 
     /// <summary>
     /// Integer division of <paramref name="value"/> by <paramref name="divisor"/> rounding the (nonzero) remainder
-    /// per a COBOL ROUNDED mode — the kernel for scale reduction. <paramref name="divisor"/> is a positive power of ten.
+    /// per a COBOL ROUNDED mode — the kernel for scale reduction, in <see cref="Int128"/> so radix-aligned
+    /// intermediates beyond the long range round exactly. <paramref name="divisor"/> is a positive power of ten.
     /// </summary>
-    private static long RoundDiv(long value, long divisor, CobolRounding mode)
+    private static Int128 RoundDiv(Int128 value, Int128 divisor, CobolRounding mode)
     {
-        long q = value / divisor, rem = value % divisor;
+        Int128 q = value / divisor, rem = value % divisor;
         if (rem == 0) return q;
         int sign = value < 0 ? -1 : 1;
-        long twiceRem = Math.Abs(rem) * 2;
+        Int128 twiceRem = Int128.Abs(rem) * 2;
         return mode switch
         {
             CobolRounding.Truncation or CobolRounding.Prohibited => q,                 // toward zero
@@ -299,6 +303,14 @@ public static class CobolNum
     private static long Pow10(int n)
     {
         long r = 1;
+        for (int i = 0; i < n; i++) r *= 10;
+        return r;
+    }
+
+    /// <summary>10^n as an <see cref="Int128"/> (n in 0..38 — the wide intermediate range, COBOLNET_DESIGN §18 #4).</summary>
+    private static Int128 Pow10Wide(int n)
+    {
+        Int128 r = 1;
         for (int i = 0; i < n; i++) r *= 10;
         return r;
     }

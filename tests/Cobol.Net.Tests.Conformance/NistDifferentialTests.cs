@@ -87,6 +87,9 @@ public sealed class NistDifferentialTests
     // Greened by ALPHANUMERIC-EDITED pictures (X/A/9 with B 0 / insertion, ISO §13.18.40) + the all-symbol
     // numeric-edited classification fix (PIC ****/$$$$ are numeric-edited even with zero '9's) — DEVLOG 535.
     [InlineData("NC126A")]   // level-number torture incl. XBXBXBX / 9090900 / **** edited receivers
+    // Greened by Int128 radix alignment in the division kernel (Divide/RoundDiv/DivisionLosesPrecision — an
+    // 18-digit dividend scaled by the receiver's fraction digits exceeded long MID-computation, DEVLOG 536).
+    [InlineData("NC171A")]   // DIVIDE INTO with 18-significant-digit operands
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();
