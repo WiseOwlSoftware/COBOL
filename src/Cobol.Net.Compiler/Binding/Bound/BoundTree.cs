@@ -15,9 +15,15 @@ namespace CobolNet.Binding.Bound;
 /// <summary>A bound program unit: its paragraphs in source order (the entry runs them in sequence until G4).</summary>
 public sealed record BoundProgram(IReadOnlyList<BoundParagraph> Paragraphs);
 
-/// <summary>A bound paragraph: its COBOL name and its statements. Its pc index is its position in
-/// <see cref="BoundProgram.Paragraphs"/> — the G4 PC dispatcher transfers control by that index.</summary>
-public sealed record BoundParagraph(string CobolName, IReadOnlyList<BoundStatement> Statements);
+/// <summary>A bound paragraph: its COBOL name and its SENTENCES (each a statement list — the separator-period
+/// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19 GR6).
+/// Its pc index is its position in <see cref="BoundProgram.Paragraphs"/> — the G4 PC dispatcher transfers control
+/// by that index.</summary>
+public sealed record BoundParagraph(string CobolName, IReadOnlyList<IReadOnlyList<BoundStatement>> Sentences)
+{
+    /// <summary>All statements in order (sentence boundaries flattened) — for consumers that don't care.</summary>
+    public IEnumerable<BoundStatement> Statements => Sentences.SelectMany(s => s);
+}
 
 // ── Numeric expressions (scale-tracked at render time by the backend) ──────────────────────────────────────────
 
@@ -211,6 +217,10 @@ public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
 
 /// <summary>A no-op statement: bare <c>EXIT</c>, <c>CONTINUE</c>, or <c>EXIT PROGRAM</c> in the main program.</summary>
 public sealed record BoundNop : BoundStatement;
+
+/// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19 GR6 / §14.9.37 — archaic per Annex F.1, legal at every edition):
+/// transfer to the implicit CONTINUE following the current sentence's separator period.</summary>
+public sealed record BoundNextSentence : BoundStatement;
 
 /// <summary><c>SET condition-name+ TO TRUE</c> — each names a level-88 whose first VALUE is stored into its
 /// (already-resolved) parent place.</summary>

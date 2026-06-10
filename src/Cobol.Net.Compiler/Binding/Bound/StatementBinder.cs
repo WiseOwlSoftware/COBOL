@@ -44,11 +44,10 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         for (int i = 0; i < _paras.Count; i++)
         {
             _currentSection = _paraSection[i];   // ISO §8.4.2.2 — unqualified names resolve in-section first
-            var stmts = new List<BoundStatement>();
+            var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in _paras[i].Ctx.sentence())
-                foreach (var statement in sentence.statement())
-                    stmts.Add(BindStatement(statement));
-            bound.Add(new BoundParagraph(_paras[i].Cobol, stmts));
+                sentences.Add(sentence.statement().Select(BindStatement).ToList());
+            bound.Add(new BoundParagraph(_paras[i].Cobol, sentences));
         }
         _currentSection = null;
         return new BoundProgram(bound);
@@ -135,6 +134,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         _ when s.readStatement() is { } r => BindRead(r),
         _ when s.rewriteStatement() is { } rw => BindRewrite(rw),
         _ when s.continueStatement() is not null => new BoundNop(),
+        _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
         _ when s.stopStatement() is not null || s.gobackStatement() is not null => new BoundStop(),
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };

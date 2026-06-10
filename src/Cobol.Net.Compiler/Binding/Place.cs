@@ -54,7 +54,7 @@ public sealed record MemberPlace(string Path, DataItem MemberItem) : Place
 /// <see cref="DataItem.StoreAsImage"/>, so the numeric pipeline decodes/encodes the window via
 /// <c>CobolNum.ParseDisplay</c>/<c>FormatDisplay</c> exactly as for a whole-group numeric leaf (no new emitter path).
 /// </summary>
-public sealed record RedefViewPlace(string Backing, int Offset, int Width, DataItem ViewItem) : Place
+public sealed record RedefViewPlace(string Backing, string OffsetExpr, int Width, DataItem ViewItem) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => ViewItem.Pic;
@@ -62,15 +62,18 @@ public sealed record RedefViewPlace(string Backing, int Offset, int Width, DataI
     /// <inheritdoc/>
     public override DataItem Item => ViewItem;
 
-    /// <summary>The character window this view occupies (1-based leftmost position; <c>CobolString.RefMod</c>).</summary>
-    private string Window => $"CobolString.RefMod({Backing}, {Offset + 1}, {Width})";
+    /// <summary>The character window this view occupies (1-based leftmost position; <c>CobolString.RefMod</c>).
+    /// <see cref="OffsetExpr"/> is a 0-based C# <c>long</c> expression — a constant for an unsubscripted view, or
+    /// the computed <c>classOffset + Σ (idx − 1) × stride</c> for a view inside an OCCURS (ISO §13.18.44 — a
+    /// redefined table lays its occurrences end-to-end in the ONE backing).</summary>
+    private string Window => $"CobolString.RefMod({Backing}, (int)({OffsetExpr} + 1), {Width})";
 
     /// <inheritdoc/>
     public override string Read() => Window;
 
     /// <inheritdoc/>
     public override string Write(string rhs) =>
-        $"{Backing} = CobolString.SpliceInto({Backing}, {Offset + 1}, {Width}, {rhs});";
+        $"{Backing} = CobolString.SpliceInto({Backing}, (int)({OffsetExpr} + 1), {Width}, {rhs});";
 }
 
 /// <summary>

@@ -70,6 +70,15 @@ public sealed class NistDifferentialTests
     [InlineData("NC117A")]   // DIVIDE into numeric-edited receivers
     [InlineData("NC120A")]   // MULTIPLY GIVING edited ROUNDED ($ZZ9.99CR etc.)
     [InlineData("NC220M")]   // SET + PERFORM VARYING + DIVIDE REMAINDER combined (greened by the union of waves)
+    // Greened by the wave-4 resolver work (DEVLOG 533): B2 Tier-B offset×OCCURS accounting + inner-REDEFINES
+    // target offsets (ISO §13.18.44 GR1), GAP-1 subscripted Tier-B views (computed-offset RedefViewPlace), and
+    // NEXT SENTENCE (§14.9.19 GR6, sentence-boundary labels).
+    [InlineData("NC125A")]   // tables REDEFINING a picture item, subscripted views
+    [InlineData("NC132A")]   // subscripted Tier-B views (ENTRY-B-2(1) style)
+    [InlineData("NC210A")]   // subscripted views + data-name subscripts
+    [InlineData("NC231A")]   // SEARCH F1 + PERFORM VARYING + NEXT SENTENCE
+    [InlineData("NC232A")]   // SEARCH F1 + NEXT SENTENCE
+    [InlineData("NC234A")]   // SEARCH F1 + VARYING + NEXT SENTENCE over REDEFINES tables
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

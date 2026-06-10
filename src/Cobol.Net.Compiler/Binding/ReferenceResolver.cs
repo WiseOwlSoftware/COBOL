@@ -95,16 +95,25 @@ public sealed class ReferenceResolver(DataBinder data)
     {
         if (item.Class is { Tier: RedefinesTier.StringCanonical } sc)
         {
-            // A subscripted Tier-B view (REDEFINES inside an OCCURS element) is a later slice → only the unsubscripted
-            // form here.
-            if (indexExprs.Count > 0) return null;
             // The backing is emitted in the canonical's containing struct (FieldEmitter.PhysicalFields), so a NESTED
             // class's backing must be reached through that struct's access path — a bare `_redef_X` resolves only for a
             // top-level (static-field) class. Fail loud if the parent path is unavailable (e.g. it is itself within an
             // OCCURS), rather than emit an unqualified reference that does not exist in scope.
             if (BackingPath(sc) is not { } backing) return null;
+            // A SUBSCRIPTED view: each OCCURS level on the item's path WITHIN the class displaces the window by
+            // (occurrence − 1) × that level's per-occurrence width — the redefined table lays its occurrences
+            // end-to-end in the ONE backing (ISO §13.18.44). ClassOffset is the occurrence-1 position; subscripts
+            // map to the in-class OCCURS levels outer→inner, exactly as in AccessPath.
+            var occursLevels = new List<DataItem>();
+            for (DataItem? n = item; n is not null && ReferenceEquals(n.Class, sc); n = n.Parent)
+                if (n.Occurs is not null) occursLevels.Add(n);
+            occursLevels.Reverse();
+            if (occursLevels.Count != indexExprs.Count) return null;   // wrong subscript count → loud
+            string offset = item.ClassOffset.ToString();
+            for (int k = 0; k < occursLevels.Count; k++)
+                offset += $" + ({indexExprs[k]} - 1) * {occursLevels[k].ImageWidth}";
             if (item.IsGroup) data.WholeGroupReferenced.Add(item);
-            return new RedefViewPlace(backing, item.ClassOffset, item.ImageWidth, item);
+            return new RedefViewPlace(backing, offset, item.ImageWidth, item);
         }
         // A Tier-A view forwards to the canonical (a numeric view reinterprets the shared unscaled value via its own
         // scale, for free). A not-yet-wired (Tier-C) / Rejected view is loud.

@@ -475,7 +475,7 @@ public sealed class DataBinder
         {
             cls.Tier = ComputeTier(cls, out string? reject);
             cls.RejectReason = reject;
-            cls.Width = cls.Members.Max(m => m.ImageWidth);
+            cls.Width = cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1));   // a member table's FULL extent (every occurrence)
             // Each top-level member overlays the area from its start (a REDEFINES begins at the target's first
             // position, SR10); a subordinate accumulates its window offset within the member. Subordinates of any
             // member are themselves views (suppressed field, SR9).
@@ -491,8 +491,11 @@ public sealed class DataBinder
     }
 
     /// <summary>Assign each item in a redefines class its window offset within the class image and its class link; a
-    /// top-level member starts at <paramref name="off"/> (0), a subordinate accumulates by preceding-sibling widths.
-    /// Every subordinate of a class member is itself a view (its stored field is suppressed — SR9).</summary>
+    /// top-level member starts at <paramref name="off"/> (0), a subordinate accumulates by preceding-sibling FULL
+    /// extents (per-occurrence image width × OCCURS count — every occurrence is part of the layout). A subordinate
+    /// that itself REDEFINES a prior sibling takes the TARGET's offset (redefinition begins at the redefined item's
+    /// first position, ISO §13.18.44 GR1) and contributes NO width of its own. Every subordinate of a class member
+    /// is itself a view (its stored field is suppressed — SR9).</summary>
     private static void AssignClassOffsets(DataItem item, int off, RedefinesClass cls)
     {
         item.ClassOffset = off;
@@ -501,8 +504,10 @@ public sealed class DataBinder
         foreach (var c in item.Children)
         {
             c.IsCanonical = false;
-            AssignClassOffsets(c, childOff, cls);
-            childOff += c.ImageWidth;
+            // The inner-REDEFINES target is a PRIOR sibling, so its offset is already assigned this walk.
+            int cOff = c.RedefinesTarget is { } target ? target.ClassOffset : childOff;
+            AssignClassOffsets(c, cOff, cls);
+            if (c.RedefinesTarget is null) childOff += c.ImageWidth * (c.Occurs ?? 1);
         }
     }
 
