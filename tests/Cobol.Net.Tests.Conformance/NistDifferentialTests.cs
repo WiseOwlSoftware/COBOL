@@ -170,6 +170,26 @@ public sealed class NistDifferentialTests
     // sending-slice / receiving direction-split via OdoGroupPlace + CobolTable.OdoExtent, SEARCH bounded by the
     // CURRENT count (§14.9.37.4 GR4/GR9). NC235A additionally EXCEEDS the legacy golden (spec-pinned).
     [InlineData("NC247A")]   // INSPECT/UNSTRING/STRING over ODO groups (the string[] CS0029 program)
+    // Greened by SORT/MERGE/RELEASE/RETURN (ISO §14.9.40/§14.9.24/§14.9.32/§14.9.34 — DEVLOG 552): SD binding,
+    // the three phases with implicit USING/GIVING transfers, INPUT/OUTPUT PROCEDURE dispatch ranges, stable
+    // DUPLICATES, algebraic numeric keys, the GR5 collating precedence over the PCS table. The 14 below are the
+    // STANDALONE-deterministic ST programs; chain consumers (ST103A/105A/111A… read a predecessor's output file)
+    // need harness chaining and stay swept-only.
+    [InlineData("ST101A")]
+    [InlineData("ST104A")]
+    [InlineData("ST106A")]
+    [InlineData("ST118A")]
+    [InlineData("ST119A")]
+    [InlineData("ST125A")]
+    [InlineData("ST132A")]
+    [InlineData("ST135A")]
+    [InlineData("ST136A")]
+    [InlineData("ST137A")]   // NATIVE collating via X-card
+    [InlineData("ST139A")]   // COLLATING keyword omitted (leniency)
+    [InlineData("ST140A")]
+    // ST146A swept-only: its golden encodes the LEGACY's LOW-VALUE fill in the spec-UNDEFINED tail of a
+    // max-length RETURN INTO record area (the byte tail beyond the returned record is undefined).
+    [InlineData("ST147A")]   // NATIVE COLLATING SEQUENCE checks
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

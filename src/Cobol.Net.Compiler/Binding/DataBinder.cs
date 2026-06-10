@@ -104,6 +104,31 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         ClassifyRedefinesClasses();
         OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
         ResolveFiles();
+
+        // Every FILE record area is filled WITHOUT conversion by READ/RETURN (ISO §9.1.2 — the record area is one
+        // character image), so its numeric-DISPLAY leaves store their images exactly like a whole-referenced
+        // group's — even when the PROCEDURE DIVISION never names the record as a whole (ST103A reads then tests
+        // only a child). MarkStoreAsImage consumes this set after binding.
+        foreach (var f in Files)
+            foreach (var rec in f.Records)
+                if (rec.IsGroup)
+                {
+                    WholeGroupReferenced.Add(rec);
+                    // Flag the leaves NOW (not at the emitter's whole-group pass): statement binding consults
+                    // IsCharacterImage — e.g. the SORT binder requires the SD record to be image-storable
+                    // (ST102A's all-DISPLAY S-RECORD must not read as a Tier-C island at bind time).
+                    MarkImageLeaves(rec);
+                }
+
+        static void MarkImageLeaves(DataItem item)
+        {
+            foreach (var child in item.Children)
+            {
+                if (child.IsGroup) MarkImageLeaves(child);
+                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                    child.StoreAsImage = true;   // same rule as the emitter's MarkStoreAsImage (§14.9 MOVE GR4)
+            }
+        }
     }
 
     /// <summary>Bind a run of data-description entries (a WORKING-STORAGE section or one FD's records) into the
@@ -212,6 +237,43 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             file.Records.AddRange(records);
             for (int i = 1; i < records.Count; i++)
                 records[i].RedefinesTarget ??= records[0];   // secondary record shares the first's storage area
+        }
+
+        // SD entries (ISO §13.4.6): a sort-merge file's records bind through the SAME entry path as FD records —
+        // they emit as Program fields and multi-01 records share ONE area (synthesized REDEFINES, ISO §9.1.2).
+        // The SD format admits only the record clause (§13.4.6); DATA RECORDS is an obsolete '85 element DELETED
+        // by ISO/IEC 1989:2002 — accepted-inert at 85 (every NIST SD writes it), rejected ≥2002.
+        foreach (var sd in fs.sortMergeDescriptionEntry())
+        {
+            if (sd.fileName()?.GetText() is not { } sdName) continue;
+            var sdRecords = BindEntries(sd.dataDescriptionEntry(), rootNames);
+            if (!FilesByName.TryGetValue(sdName, out var sdFile))
+            {
+                sdFile = new FileModel { CobolName = sdName };
+                Files.Add(sdFile);
+                FilesByName[sdName] = sdFile;
+            }
+            sdFile.HasFd = true;
+            sdFile.IsSortMerge = true;   // referenced only by SORT/MERGE/RELEASE/RETURN (§13.4.6 SR3/SR4)
+            sdFile.Records.AddRange(sdRecords);
+            for (int i = 1; i < sdRecords.Count; i++)
+                sdRecords[i].RedefinesTarget ??= sdRecords[0];
+            foreach (var clause in sd.sortMergeDescriptionClauses()?.sortMergeDescriptionClause() ?? [])
+            {
+                if (clause.recordClause() is { } rc && (rc.VARYING() is not null || rc.TO() is not null))
+                {
+                    // RECORD IS VARYING [FROM m] [TO n] [DEPENDING ON d] / RECORD CONTAINS m TO n (ISO §13.18.43).
+                    var lits = rc.integerLiteral();
+                    int? lo = lits.Length > 0 ? int.Parse(lits[0].GetText()) : null;
+                    int? hi = lits.Length > 1 ? int.Parse(lits[1].GetText()) : null;
+                    if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
+                    sdFile.Varying = new VaryingRecordInfo(lo, hi, rc.dataReference()?.GetText());
+                }
+                else if (clause.dataRecordsClause() is not null && Edition.DialectLevel >= 2002)
+                    Edition.Error("COBOLNET0873", "DATA RECORDS — an obsolete element of ANSI X3.23-1985, deleted by "
+                        + "ISO/IEC 1989:2002 (§13.4.6 admits only the record clause on an SD); it requires --std 85 "
+                        + $"(targeting COBOL-{Edition.DialectLevel})");
+            }
         }
     }
 

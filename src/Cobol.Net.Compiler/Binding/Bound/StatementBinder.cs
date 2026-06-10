@@ -144,6 +144,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.continueStatement() is not null => new BoundNop(),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
         _ when s.stopStatement() is not null || s.gobackStatement() is not null => new BoundStop(),
+        _ when s.sortStatement() is { } srt => BindSort(srt),
+        _ when s.mergeStatement() is { } mrg => BindMerge(mrg),
+        _ when s.releaseStatement() is { } rls => BindRelease(rls),
+        _ when s.returnStatement() is { } ret => BindReturn(ret),
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };
 
@@ -299,7 +303,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>A loud-reason string when <paramref name="file"/>'s organization is not yet implemented (relative /
     /// indexed in the sequential slice), so the verb emits a runtime not-implemented guard; null when supported.</summary>
     private static string? UnsupportedOrg(FileModel file, string verb) =>
-        file.IsSequential ? null : $"{verb} on {file.Organization} file '{file.CobolName}' (sequential slice; relative/indexed are later)";
+        // A sort-merge (SD) file may be referenced ONLY by SORT/MERGE/RELEASE/RETURN (ISO §13.4.6 SR3/SR4).
+        file.IsSortMerge ? $"{verb} on sort-merge file '{file.CobolName}' — an SD file-name may appear only in SORT/MERGE/RELEASE/RETURN (ISO §13.4.6 SR3/SR4)"
+        : file.IsSequential ? null : $"{verb} on {file.Organization} file '{file.CobolName}' (sequential slice; relative/indexed are later)";
 
     private BoundStatement BindDisplay(Core.DisplayStatementContext display)
     {

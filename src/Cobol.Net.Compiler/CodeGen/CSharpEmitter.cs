@@ -211,6 +211,8 @@ public sealed partial class CSharpEmitter
                           || se.Whens.Any(wn => ContainsNextSentence(wn.Statements)),
         BoundRead r => (r.AtEnd is { } at && ContainsNextSentence(at))
                        || (r.NotAtEnd is { } nat && ContainsNextSentence(nat)),
+        BoundReturn rt => (rt.AtEnd is { } rta && ContainsNextSentence(rta))
+                          || (rt.NotAtEnd is { } rtn && ContainsNextSentence(rtn)),
         BoundAddTo a => InSizeError(a.SizeError),
         BoundAddGiving a => InSizeError(a.SizeError),
         BoundSubtractFrom a => InSizeError(a.SizeError),
@@ -294,6 +296,11 @@ public sealed partial class CSharpEmitter
             case BoundWrite wr: EmitWrite(wr); return false;
             case BoundRead rd: EmitRead(rd); return false;
             case BoundRewrite rw: EmitRewrite(rw); return false;
+            case BoundSort so: EmitSort(so); return false;
+            case BoundTableSort tbs: EmitTableSort(tbs); return false;
+            case BoundMerge mge: EmitMerge(mge); return false;
+            case BoundRelease rls: EmitRelease(rls); return false;
+            case BoundReturn ret: EmitReturn(ret); return false;
             case BoundStringStmt sstr: EmitString(sstr); return false;
             case BoundUnstringStmt suns: EmitUnstring(suns); return false;
             case BoundAccept ac: EmitAccept(ac); return false;
@@ -903,7 +910,7 @@ public sealed partial class CSharpEmitter
         w.Line("CobolFile.Init();");
         foreach (var file in _ctx.Data.Files)
         {
-            if (!file.IsSequential || file.Records.Count == 0) continue;
+            if (file.IsSortMerge || !file.IsSequential || file.Records.Count == 0) continue;   // an SD is the in-memory sort store (ISO §13.4.6) — never a host file
             bool lineSeq = file.Organization == FileOrganization.LineSequential;
             w.Line($"CobolFile.Register({CsLiteral(file.CobolName)}, {CsLiteral(file.AssignTarget)}, " +
                    $"{file.RecordWidth}, {(lineSeq ? "true" : "false")}, {(file.Optional ? "true" : "false")});");

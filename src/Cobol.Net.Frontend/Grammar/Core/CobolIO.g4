@@ -488,9 +488,12 @@ returnStatement
 
 // AT is optional in the AT END phrase (ISO §14.9.39 — "AT" is an optional reserved word),
 // and RECORD above is optional, so "RETURN f END …" and "RETURN f RECORD AT END …" both parse.
+// ISO §14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order.
 returnAtEndPhrase
     : AT? END statementBlock
       (NOT AT? END statementBlock)?
+    | NOT AT? END statementBlock
+      (AT? END statementBlock)?
     ;
 
 // ==========================================

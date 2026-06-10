@@ -87,7 +87,6 @@ public sealed class VersionMatrixTests
     [InlineData("SQ101M", 2023)]
     [InlineData("RL101A", 2023)]
     [InlineData("IX101A", 2023)]
-    [InlineData("ST101A", 2023)]
     public void Cobol85Program_StillCompilesAtLaterEdition(string testName, int edition)
     {
         // Continuity is conditional on the program compiling at 85 at all (the greenfield doesn't bind every
@@ -100,4 +99,18 @@ public sealed class VersionMatrixTests
             + $"genuine removal/reserved-word collision it must trace to a VERSION_CHANGE_REFERENCE row, else it is "
             + $"a regression:\n{string.Join("\n", diagnostics)}");
     }
+    /// <summary>The ST representative is a DOCUMENTED removal, not a continuity witness: every NIST SD writes the
+    /// DATA RECORDS clause — an obsolete '85 element DELETED by ISO/IEC 1989:2002 (the 2023 SD format §13.4.6
+    /// admits only the record clause; VERSION_CHANGE_REFERENCE Table 7 row 7.1) — so ST101A must compile at 85
+    /// and REJECT at 2002+ with exactly the documented diagnostic.</summary>
+    [Fact]
+    public void St101A_SdDataRecords_DocumentedRemovalAt2002Plus()
+    {
+        var (ok85, _) = EditionHarness.CompileNist("ST101A", 85);
+        Assert.True(ok85, "ST101A must compile at --std 85");
+        var (ok, diagnostics) = EditionHarness.CompileNist("ST101A", 2023);
+        Assert.False(ok, "ST101A's SD DATA RECORDS clause must be rejected at COBOL-2023");
+        Assert.Contains(diagnostics, d => d.Contains("COBOLNET0873"));
+    }
+
 }

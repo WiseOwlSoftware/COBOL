@@ -49,9 +49,24 @@ public sealed class FileModel
     /// diagnoses; here it simply has no records and is never opened with data).</summary>
     public bool HasFd { get; set; }
 
+    /// <summary>True when this file is described by an SD (sort-merge file description, ISO §13.4.6): it has no
+    /// host storage — only SORT/MERGE/RELEASE/RETURN may reference it (SR3/SR4); its runtime store is the
+    /// in-memory <c>CobolSort</c> buffer.</summary>
+    public bool IsSortMerge { get; set; }
+
+    /// <summary>The RECORD clause's variable-length model (ISO §13.18.43 — RECORD IS VARYING / RECORD CONTAINS m
+    /// TO n), or null when the records are fixed-length. The sort verbs consume it (§13.18.43 GR13/GR15: RELEASE
+    /// takes each record's length from the DEPENDING item, RETURN restores it).</summary>
+    public VaryingRecordInfo? Varying { get; set; }
+
     /// <summary>The record area's character-image width (the max over the FD's records).</summary>
     public int RecordWidth => Records.Count == 0 ? 0 : Records.Max(r => r.ImageWidth);
 
     /// <summary>True for either sequential shape (the only organizations this slice can OPEN/READ/WRITE).</summary>
     public bool IsSequential => Organization is FileOrganization.Sequential or FileOrganization.LineSequential;
 }
+
+/// <summary>The variable-length record model of a RECORD clause (ISO §13.18.43): the declared minimum/maximum
+/// record sizes (null when unstated) and the <c>VARYING … DEPENDING ON</c> data-name (null when none — a
+/// <c>RECORD CONTAINS m TO n</c> file varies without a length register).</summary>
+public sealed record VaryingRecordInfo(int? Min, int? Max, string? DependingName);
