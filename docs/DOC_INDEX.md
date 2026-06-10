@@ -7,10 +7,9 @@
 > The authoritative design is **`docs/COBOLNET_DESIGN.md`** (the decision-complete SSOT for the rewrite — pipeline,
 > data model, native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO, EC, intrinsics,
 > project reorg/rename to Cobol.NET/`cobol.exe`, no-god-class structure, C# 14, G0–G8 build order);
-> `docs/COBOLNET_ARCHITECTURE.md` is the brief overview. The byte-engine docs below (incl. the "Mono.Cecil/CIL
-> backend" stack-of-record lines) are HISTORICAL — the new backend is **C# source via Roslyn**, numerics are native
-> `long`/`Int128` (NO `decimal`/`BigInteger`), and the legacy `CobolSharp.*` is kept only as a differential oracle
-> until cut-over (G8).
+> `docs/COBOLNET_ARCHITECTURE.md` is the brief overview. (The obsolete byte-engine architecture/plan docs were DELETED
+> 2026-06-09, DEVLOG 523.) The backend is **C# source via Roslyn**, numerics are native `long`/`Int128` (NO
+> `decimal`/`BigInteger`), and the legacy `CobolSharp.*` engine is kept only as a differential oracle until cut-over (G8).
 >
 > **COBOL.NET design corpus** (the LIVE rewrite docs — one SSOT + a deep-dive per subsystem):
 > `COBOLNET_DESIGN.md` (SSOT: invariants, cross-cutting, settled decisions, G0–G8 order) · `COBOLNET_ARCHITECTURE.md`
@@ -22,9 +21,10 @@
 
 ## How to use & maintain the docs
 - **Start from `resume-prompt.md`** (the live session kickoff — two-track RESUME AT) over the SSOT
-  **`docs/COBOLNET_DESIGN.md`** (the greenfield rewrite). ⛔ The pre-PIVOT byte-engine plan docs (`PROJECT_PLAN.md`,
-  `docs/MASTER_PLAN.md`, `docs/DATA_MODEL_ARCHITECTURE.md`, `docs/RECORD_STRUCT_STORAGE_DESIGN.md`,
-  `docs/DATA_MODEL_REVIEW.md`) are **OBSOLETE** (each carries an OBSOLETE banner) — do not use them.
+  **`docs/COBOLNET_DESIGN.md`** (the greenfield rewrite). ⛔ The pre-PIVOT byte-engine plan + architecture docs
+  (`PROJECT_PLAN.md`, `docs/MASTER_PLAN.md`, the `docs/DATA_MODEL_*` / `docs/RECORD_STRUCT_STORAGE_DESIGN.md` set, and
+  the ~50 `docs/CobolSharp …` byte-engine architecture/guide docs) were **DELETED** (DEVLOG 523) — they were obsolete
+  and misleading. The greenfield design lives in the `COBOLNET_*` corpus below.
 - **Subsystem design-references (§5)** are *target designs*; each opens with a status banner stating its **real
   implementation status**. **When you change a subsystem, update its one canonical design-reference** and flip its
   banner status as the feature lands. There is exactly **one canonical per subsystem** — extend it, never fork a
@@ -46,16 +46,11 @@
 | Doc | Type | Subject |
 |---|---|---|
 | `DEVLOG.md` | LIVE | Narrative of decisions, failures, and breakthroughs (the dev log). **DESCENDING order — newest entry FIRST** (latest `## Entry` is just below the preamble's `Ordering: DESCENDING` note; oldest at the end). Add new entries at the top. |
-| `PROJECT_PLAN.md` | OBSOLETE | ⛔ Pre-PIVOT byte-engine plan — superseded by the greenfield rewrite; do not follow (banner inside). Live plan: `resume-prompt.md` + `docs/COBOLNET_DESIGN.md`. |
 | `docs/ARCHITECTURE_ASSESSMENT.md` | LIVE | Evidence-based architecture audit + P0–P6 commercial-hardening roadmap (2026-06-03). |
 | `docs/COBOL85_COMPLIANCE_PLAN.md` | LIVE | M1 (COBOL-85) 100% execution plan — the 3-axis model (baseline / flagging / spec-completeness). |
-| `docs/DATA_MODEL_ARCHITECTURE.md` | OBSOLETE | ⛔ Pre-PIVOT byte-engine→typed MIGRATION ADR — superseded; the greenfield is born typed-native (SSOT `docs/COBOLNET_DESIGN.md`). Banner inside. |
-| `docs/DATA_MODEL_REVIEW.md` | OBSOLETE | ⛔ Review of the obsolete migration ADR — superseded (banner inside). |
 | `docs/ISO2023_CONFORMANCE_PLAN.md` | LEDGER | M2/M3/M4 FEATURE CATALOG (still useful — the post-85 features to implement). ⚠ Its data-model-migration framing is OBSOLETE (banner inside); live plan = `resume-prompt.md` + `docs/COBOLNET_DESIGN.md`. |
-| `docs/MASTER_PLAN.md` | OBSOLETE | ⛔ Pre-PIVOT byte-engine master plan (phased A–F with a data-model "migration") — superseded by the greenfield pivot; do not follow (banner inside). Live plan: `resume-prompt.md`. |
 | `docs/MULTIVERSION_ROADMAP.md` | LIVE | High-level milestone view of the 1985→2023 multi-version drive (M0→M4). |
 | `docs/OO_IMPLEMENTATION_DESIGN.md` | LIVE | LIVE OO turnkey design (§6.6 slice-1 map) + the consolidated OO subsystem canonical; grammar done, semantic/emit pending. |
-| `docs/RECORD_STRUCT_STORAGE_DESIGN.md` | OBSOLETE | ⛔ Pre-PIVOT 7-stage byte-engine→record-struct migration roadmap — superseded; the greenfield needs no migration (banner inside). |
 
 ## 2. Doctrine & process — rules of engagement
 
@@ -98,56 +93,6 @@
 
 | Doc | Type | Subject |
 |---|---|---|
-| `docs/CobolSharp COBOL ACCEPT, DISPLAY, Console IO & Environment‑Variable Architecture.md` | DESIGN | Define the authoritative architecture for |
-| `docs/CobolSharp COBOL CALL Convention, Parameter Passing, LINKAGE & BY VALUE-BY REFERENCE Architecture.md` | DESIGN | Implementation status: LARGELY IMPLEMENTED (~85–90%). CALL literal + CALL identifier, USING with |
-| `docs/CobolSharp COBOL CIL Backend & Code Generation Architecture.md` | DESIGN | This is a target-design document for the CIL backend (the final stage of the |
-| `docs/CobolSharp COBOL COPY-REPLACE Preprocessor Architecture.md` | DESIGN | Define the authoritative architecture for |
-| `docs/CobolSharp COBOL Compiler Directive & Conditional Compilation Architecture.md` | DESIGN | Not yet implemented). This describes the target architecture for compiler directives. Current implementation status and integration point: refer… |
-| `docs/CobolSharp COBOL Condition Names, Boolean Evaluation & Predicate Architecture.md` | DESIGN | [DESIGN REFERENCE] This document describes the authoritative architecture for condition-name evaluation and boolean operations. Implementation… |
-| `docs/CobolSharp COBOL EVALUATE, Branching & Control‑Flow Semantics Architecture.md` | DESIGN | Type: Authoritative design/architecture reference for COBOL branching, control flow, EVALUATE |
-| `docs/CobolSharp COBOL Expression Evaluation & Type System Architecture.md` | DESIGN | Define the authoritative rules for |
-| `docs/CobolSharp COBOL File IO, FD-SD, Sequential-Indexed-Relative & Record‑Buffer Architecture.md` | DESIGN | RELATIVE/INDEXED organizations, OPEN/CLOSE/READ/WRITE/REWRITE/DELETE/START, file-status, keys, locking) |
-| `docs/CobolSharp COBOL File Status, Error Handling & Exception Mapping Architecture.md` | DESIGN | Error Handling Architecture (authoritative target design, ~70% implemented) |
-| `docs/CobolSharp COBOL INSPECT, STRING, UNSTRING & Text‑Processing Engine Architecture.md` | DESIGN | subsystem design reference for COBOL text-processing statements (INSPECT / STRING / UNSTRING) |
-| `docs/CobolSharp COBOL Interop Architecture — .NET Types, Assemblies, INVOKE .NET & Type Mapping.md` | DESIGN | This is the authoritative TARGET design reference for COBOL ↔ .NET interop. Implementation status |
-| `docs/CobolSharp COBOL Language Feature Support Matrix.md` | DESIGN | Provide a comprehensive, authoritative matrix of COBOL language features supported by CobolSharp, aligned with ISO/IEC 1989:2023 |
-| `docs/CobolSharp COBOL MOVE, CORRESPONDING, INITIALIZE & Data‑Movement Architecture.md` | DESIGN | Define the authoritative architecture for |
-| `docs/CobolSharp COBOL National Character, Unicode & Locale‑Independent Text Architecture.md` | DESIGN | Define the authoritative architecture for |
-| `docs/CobolSharp COBOL Numeric Engine & Packed Decimal Architecture.md` | DESIGN | DIVIDE/COMPUTE, ROUNDED, SIZE ERROR, DISPLAY/COMP/COMP-3/COMP-5 numeric formats, packed-decimal encode/decode, |
-| `docs/CobolSharp COBOL Optimizer & Intermediate Representation (IR) Architecture.md` | DESIGN | optimizer. Implementation status: the IR layer is REAL and current |
-| `docs/CobolSharp COBOL PERFORM, Control‑Flow, Looping & Structured Execution Architecture.md` | DESIGN | This is a target-design / architecture reference for PERFORM and structured control‑flow lowering |
-| `docs/CobolSharp COBOL Paragraph, Section & Program Structure Architecture.md` | DESIGN | This document specifies the architecture for COBOL program/section/paragraph structure. It is a design document; the subsystem is ~80–90%… |
-| `docs/CobolSharp COBOL Program Lifecycle, STOP RUN, GOBACK & Runtime Termination Architecture.md` | DESIGN | Define the authoritative architecture for |
-| `docs/CobolSharp COBOL Program Registry, ENTRY Points & Multi‑Entry Dispatch Architecture.md` | DESIGN | Define the authoritative architecture for |
-| `docs/CobolSharp COBOL Runtime — ExecutionContext, StorageBlocks, ObjectTable, FileManager & Engine Integration Architecture.md` | DESIGN | runtime. It is an aspirational unified model, not a description of the code as built. Actual implementation |
-| `docs/CobolSharp COBOL SORT-MERGE, File‑Based Pipeline & Collation Architecture.md` | DESIGN | [DESIGN REFERENCE] This document describes SORT/MERGE architecture. Implementation status: core SORT/MERGE ~85–90% complete; M1 spec-fix backlog… |
-| `docs/CobolSharp COBOL Semantic Rules & Edge‑Case Behavior Specification.md` | DESIGN | the authoritative semantic rules and edge-case behaviors CobolSharp/COBOL.NET must implement |
-| `docs/CobolSharp COBOL‑to‑C# Interop Cookbook.md` | DESIGN | Provide a practical, example‑driven guide for developers integrating COBOL code compiled by CobolSharp with C# and other .NET languages |
-| `docs/CobolSharp Complete Developer Guide — Best Practices, Patterns, Anti‑Patterns & Performance Recipes.md` | DESIGN | Provide the authoritative developer guide for CobolSharp |
-| `docs/CobolSharp Complete ISO Compatibility Matrix — Feature Coverage, Deviations & Extensions.md` | DESIGN | / aspirational matrix. This document describes a complete ISO/IEC 1989:2023 compatibility reference. Actual coverage and correctness should be… |
-| `docs/CobolSharp Compliance & Governance Manual — Auditability, Traceability, Regulatory Controls & Long‑Term Retention.md` | DESIGN | Define the authoritative compliance and governance framework for CobolSharp |
-| `docs/CobolSharp Concurrency Model — Cooperative Scheduling, Event Loops & Deterministic Single‑Thread Execution.md` | DESIGN | Define the authoritative architecture for |
-| `docs/CobolSharp Contributor & Maintainer Guide Architecture.md` | DESIGN | Define the internal processes, standards, and workflows that ensure CobolSharp remains |
-| `docs/CobolSharp Cookbook — 100+ Ready‑to‑Use Patterns, Idioms & Recipes.md` | DESIGN | Production Patterns (target cookbook; implementation status varies by subsystem) |
-| `docs/CobolSharp Debugger Architecture — Breakpoints, StorageBlock Inspection, Step Semantics & ExecutionContext Visualization.md` | DESIGN | Implementation status: DESIGN-ONLY (~0 lines). There is no debugger, PDB-emission, sequence-point, LSP, or DAP |
-| `docs/CobolSharp Determinism Model — Cross‑Platform Guarantees, Encoding Rules & Reproducibility Architecture.md` | DESIGN | the determinism model for CobolSharp/COBOL.NET — cross-platform execution guarantees, encoding |
-| `docs/CobolSharp End‑User Handbook — Practical Examples, Templates & Real‑World Workflows.md` | DESIGN | Provide a practical, example‑driven handbook for CobolSharp end‑users |
-| `docs/CobolSharp Enterprise Deployment Guide — CI-CD, Version Pinning, Multi‑Tenant Hosting & Observability.md` | DESIGN | Define the authoritative enterprise‑grade deployment architecture for CobolSharp |
-| `docs/CobolSharp Error Model — Declaratives, ExceptionState, USE AFTER & Structured Recovery Architecture.md` | DESIGN | subsystem: DECLARATIVES, USE statements, ExceptionState propagation, statement-level handlers |
-| `docs/CobolSharp Formal Specification — Grammar, Type System, Operational Semantics & Memory Model (ISO‑Aligned, CIL‑Only).md` | DESIGN | This document is a formal specification essay authored as a target design. Actual implementation status varies by subsystem — refer to… |
-| `docs/CobolSharp Future Extensions Roadmap — SQL, CICS, Distributed Files & Multi‑Tenant Runtime Architecture.md` | DESIGN | Extensions (Phase F+) (0% implemented; design-only for deterministic SQL/CICS/distributed I/O/multi-tenant runtime) |
-| `docs/CobolSharp LSP  IDE Integration Architecture.md` | DESIGN | Provide a modern, language-server–driven development experience for COBOL |
-| `docs/CobolSharp Master Architecture Document.md` | DESIGN | It describes the target end-to-end architecture of the compiler+runtime. Implementation reality (2026-06-07, |
-| `docs/CobolSharp Memory Model — StorageBlocks, Offsets, REDEFINES, OCCURS & DEPENDING‑ON Architecture.md` | DESIGN | field offsets, REDEFINES overlays, OCCURS / OCCURS DEPENDING ON, PIC/USAGE encoding (DISPLAY, COMP, |
-| `docs/CobolSharp Modernization and Migration Toolkit Architecture.md` | DESIGN | This document specifies the target architecture for a legacy-COBOL modernization and migration toolkit. It is a design-only specification with ~0… |
-| `docs/CobolSharp Operational Runbook — Incident Response, Debugging in Production & Recovery Procedures.md` | DESIGN | Define the authoritative operational runbook for CobolSharp production systems |
-| `docs/CobolSharp Packaging & Distribution Architecture.md` | DESIGN | This is a TARGET design for the CobolSharp packaging / build / release / distribution |
-| `docs/CobolSharp Performance Architecture — IL Optimizations, StorageBlock Access Patterns & Engine Throughput.md` | DESIGN | Define the authoritative architecture for |
-| `docs/CobolSharp Security Architecture — Sandboxing, Capability Restrictions, WASM Isolation & Safe Interop.md` | DESIGN | This document is a security-architecture essay authored as a target design (CIL-only). Implementation is PARTIAL: memory safety and file-path… |
-| `docs/CobolSharp Standard Library — Intrinsics, FUNCTION Resolution, Runtime Helpers & Deterministic Semantics.md` | DESIGN | Implementation status: LARGELY IMPLEMENTED (~90%+). ~94 intrinsic FUNCTIONs are implemented and |
-| `docs/CobolSharp Test Harness & Validation Architecture.md` | DESIGN | Test Harness Architecture (authoritative target design, ~70% implemented) |
-| `docs/CobolSharp Testing & Verification Architecture — Unit Tests, Golden Files, Deterministic Snapshots & Runtime Validation.md` | DESIGN | [DESIGN REFERENCE] This document describes the testing and verification architecture. Current test status per MASTER_PLAN.md §2: 1196 unit / 509… |
-| `docs/Cobolsharp COBOL JSON & XML Processing Architecture.md` | DESIGN | Implementation status: DESIGN-ONLY (Phase C). A permissive grammar overlay exists |
 | `docs/IL-BYTECODE-GENERATION-DESIGN.md` | DESIGN | Transform the fully-resolved semantic model into a clean, deterministic IL/bytecode representation |
 | `docs/REPLACE Preprocessor, Source Mapping & Compilation Pipeline Architecture.md` | DESIGN | Define the authoritative architecture for |
 | `docs/Resume-Prompt-For-Docs.md` | DESIGN | You are continuing a long‑form, numbered architecture series for a real software project named CobolSharp |
@@ -182,15 +127,15 @@
 | `docs/TERMINAL-RUNTIME-CLASS-LAYOUT.md` | DESIGN | Runtime class layout for the terminal/SCREEN subsystem (CobolSharp.Runtime.Terminal types). |
 | `docs/TERMINAL-RUNTIME-ENTRY-POINTS.md` | DESIGN | Defines how bound ACCEPT/DISPLAY statements call into TerminalSession, bridging the |
 | `docs/TERMINAL-SESSION-API.md` | DESIGN | Implementation status: Design-only; part of complete 12-doc Terminal/SCREEN SECTION design per Phase C). This specifies the TerminalSession API… |
-| `docs/TERMINAL-TEST-HARNESS.md` | DESIGN | Terminal Test Harness (target design for deterministic screen I/O testing; implementation status ~30% per MASTER_PLAN §2) |
+| `docs/TERMINAL-TEST-HARNESS.md` | DESIGN | Terminal Test Harness (target design for deterministic screen I/O testing; implementation status ~30%) |
 
 ## 7. Conformance / gap / status ledgers (historical — append, don’t rewrite)
 
 | Doc | Type | Subject |
 |---|---|---|
-| `AUDIT_REPORT.md` | LEDGER | ⚠️ Status: Dated 2026-03-24 (pre-dates MASTER_PLAN 2026-06-07). Contains stale tech markers (.NET 9→10, C# 13→14,… |
+| `AUDIT_REPORT.md` | LEDGER | ⚠️ Status: Dated 2026-03-24 (pre-dates the greenfield pivot (DEVLOG 457)). Contains stale tech markers (.NET 9→10, C# 13→14,… |
 | `MIGRATION_LEDGER.md` | LEDGER | The C#-modernization + framework-retarget record (net8→net9→net10 / C# 14); append, don’t rewrite. |
-| `NIST_TEST_REPORT.md` | LEDGER | NIST CCVS test-status snapshot (historical; current counts live in MASTER_PLAN §2). |
+| `NIST_TEST_REPORT.md` | LEDGER | NIST CCVS test-status snapshot (historical; current counts live in DEVLOG / resume-prompt). |
 | `docs/BATCH5-IMPLEMENTATION-PLAN.md` | LEDGER | M429: Screen I/O runtime (Terminal abstraction, ACCEPT/DISPLAY screen forms) |
 | `docs/BATCH5-LEDGER-TASKS-M429-M431.md` | LEDGER | implementation-ready, with test names and method signatures. Zero ambiguity |
 | `docs/BATCH5-OVERLENIENT-GRAMMAR-APPROVAL.md` | LEDGER | rationale, diff, and approval notes. These proposals must be validated by ANTLR and |

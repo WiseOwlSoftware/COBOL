@@ -9,9 +9,9 @@
 > **Status: LIVE / under construction.** This is the single source of truth for the blank-slate rewrite
 > directed by the owner on 2026-06-08: *"Move entirely to .NET representations for COBOL objects … totally
 > rewrite it … the best possible COBOL to .NET implementation."* It supersedes the byte-substrate compiler in
-> `src/CobolSharp.Compiler` (the *legacy* engine, kept only as a differential oracle until cut-over, task G8) and
-> the gated migration roadmap in `RECORD_STRUCT_STORAGE_DESIGN.md`. See memory
-> `feedback_complete_dotnet_migration_no_byte`.
+> `src/CobolSharp.Compiler` (the *legacy* engine, kept only as a differential oracle until cut-over, task G8) and the
+> pre-PIVOT byte-engine "data-model migration" plan (those docs were deleted 2026-06-09, DEVLOG 523 — the greenfield is
+> born typed-native, no migration). See memory `feedback_complete_dotnet_migration_no_byte`.
 
 ## 1. North Star
 

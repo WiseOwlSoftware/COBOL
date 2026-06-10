@@ -21,9 +21,10 @@ support for all prior editions (1985 / 2002 / 2014)** — implemented with maxim
 back-compat. The live plan is **`resume-prompt.md`** (its two-track RESUME AT: the version-correctness framework + the
 feature/NIST corpus drive) over the SSOT **`docs/COBOLNET_DESIGN.md`**, validated by the VERSION TEST MATRIX
 (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist `docs/VERSION_CHANGE_REFERENCE.md`.
-⛔ The pre-PIVOT **byte-engine plan docs are OBSOLETE** — `PROJECT_PLAN.md`, `docs/MASTER_PLAN.md`,
-`docs/DATA_MODEL_ARCHITECTURE.md`, `docs/RECORD_STRUCT_STORAGE_DESIGN.md`, `docs/DATA_MODEL_REVIEW.md` (each carries an
-OBSOLETE banner); do NOT follow them. (memory `feedback_commercial_quality_north_star`.)
+⛔ The pre-PIVOT **byte-engine plan + architecture docs were DELETED** (DEVLOG 523, as obsolete/misleading):
+`PROJECT_PLAN.md`, `docs/MASTER_PLAN.md`, the `docs/DATA_MODEL_*` / `docs/RECORD_STRUCT_STORAGE_DESIGN.md` set, and the
+~50 `docs/CobolSharp …` byte-engine architecture/guide docs. The greenfield design lives in the `docs/COBOLNET_*`
+corpus. (memory `feedback_commercial_quality_north_star`.)
 
 ## 🗺 DOC MAP: read `docs/DOC_INDEX.md` to navigate the docs
 The index of all docs (~126) — each doc's subject, type (LIVE/DESIGN/LEDGER/SPEC), and a maintenance guide. **Consult
