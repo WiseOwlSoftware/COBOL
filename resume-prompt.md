@@ -19,7 +19,18 @@
 > editions is gated by `DialectLevel`; new features enabled only at ≥ their edition; obsolete/removed flagged. (Memories
 > `feedback_version_test_matrix`, `feedback_version_targeted_semantics`.)
 >
-> **STATE (DEVLOG 552, 2026-06-10 17:30): 88/95 NC byte-match + 14 ST locked; 605 conformance + 15 unit; legacy
+> **STATE (DEVLOG 553, 2026-06-10 18:30): 88/95 NC + 14 ST + 27 RL/IX byte-match (all locked); 648 conformance +
+> 15 unit; legacy guard ALL GREEN. THREE of four wave-2 families integrated (ODO 551, SORT/MERGE 552, KeyedIO
+> 553). **RESUME AT: integrate the PARKED CALL family ALONE** — files in `/e/tmp/wave2-hold/call/`, 11 STRUCTURAL
+> edits in `/e/tmp/verb-briefs/wave2result-call.json` (multi-unit emission, instance program classes/__Activate,
+> FieldEmitter instance fields, AlterSwitches instance state; targets the IC suite; verify HARD — full censuses +
+> both suites + legacy guard untouched-frontend check). Then: USE AFTER STANDARD ERROR DECLARATIVES subsystem
+> (RL104A/IX104A + the SQ declaratives programs), DECIMAL-POINT COMMA (brief saved; NC107A/108M), remaining RL/IX
+> DIFFs + IX102A timeout, ST chain-consumer harness support (ST103A/105A/111A), NC105A's last rows, reserved-word
+> tables (the `RF` find), then steps ④–⑦. Apply agent edits with the index-based python pattern; the Bash
+> transport mangles backslash escapes — never inline them in heredoc scripts.**
+>
+> > **STATE (DEVLOG 552, 2026-06-10 17:30): 88/95 NC byte-match + 14 ST locked; 605 conformance + 15 unit; legacy
 > guard ALL GREEN (re-proved on the RETURN grammar change). Landed since 545: ref-mod completion (548 — numeric
 > items via NumericImagePlace + the parsed refModSpec form), null-table benign chains (549), RENAMES/REDEFINES
 > layout closeout (550 — nested-class dissolution, no-THRU alias forward, StoreDisplay storage-form bridge,
