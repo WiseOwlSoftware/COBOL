@@ -170,10 +170,18 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
 
 ## 8. Phased rollout (the "substantial rework")
 
-- **Phase 0 — seams + harness scaffold (small).** Thread `DialectLevel` into bind/emit; add the edition param to
-  `CobolNetCompiler`/`CompileAndRun`; port `DialectConfig`; stand up the matrix `[Theory]` + the construct-catalogue
-  data file + the greenfield `DiagnosticTestBase`. Prove with ONE seed row end-to-end (e.g. ALTER: compiles+warns at 85,
-  rejected at 2002).
+- **Phase 0 — harness scaffold ✅ DONE (DEVLOG 519).** `tests/Cobol.Net.Tests.Conformance/VersionMatrixTests.cs`
+  stands up the matrix `[Theory]` over (construct × edition) with the computed `f(case,V)` and an inline seed catalogue,
+  plus the INV-1 continuity `[Theory]`. Proven end-to-end on current greenfield capability: **introduction-gating both
+  directions** (DELETE FILE, introduced 2023 — rejected at 85/2002/2014, compiles at 2023) and **continuity**
+  (NC101A/NC211A/NC136A compile at later editions). 13 cells green; conformance 294→307. (ALTER was the design's
+  example, but ALTER is a lexer token with no greenfield statement rule — removed-construct gating needs the
+  EditionValidator, Phase 2; DELETE FILE is the cleaner proof since it is fully grammar-gated AND compiles at its intro
+  edition.) **Immediate next step (decision #2, recorded but NOT yet implemented):** flip the
+  `CompilerDriver.Options.DialectLevel` default 85→2023 (with a regression test + verifying the `is85()`-gate
+  implications) — deferred from Phase 0 to keep an unvalidated CLI-default change out of a tail-of-session commit.
+  Still to scaffold (Phase 1): the canonical `constructs.json`, the greenfield diagnostic-assertion harness, threading
+  `DialectLevel` into bind/emit.
 - **Phase 1 — seed + continuity.** Encode the ~12 highest-value rows (§4); add the INV-1 continuity property test
   (NIST × later editions, "still compiles unless removed"). This catches the biggest regressions immediately.
 - **Phase 2 — backfill + implement gating.** Grow the catalogue across all mechanically-testable rows; build the
@@ -193,15 +201,21 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
 | Diagnostic-assertion harness | legacy `DiagnosticTestBase.GetDiagnostics/AssertHasDiagnostic` |
 | 85 positive + differential | `NistDifferentialTests` + the `ICompilerUnderTest` differential harness (add a dialect param) |
 
-## 10. Open decisions (owner-gated; sensible defaults proposed)
+## 10. Decisions (owner-resolved 2026-06-09 + remaining defaults)
 
-1. **Removed-construct outcome:** ERROR vs WARNING under a strict newer edition. *Default:* ERROR under strict
-   `--standard cobolNNNN`; WARNING under the permissive `Default`/`--nist` mode (mirrors legacy `FlagsFeaturesRemovedAfter85`).
-2. **Default `--standard`:** the legacy defaults to `StrictCobol85` (except `--nist` ⇒ permissive `Default`). *Default:*
-   keep that; the permissive `Default` mode (parse-superset, accept leniencies) stays the NIST-corpus mode.
-3. **INV-1 strong vs weak form:** "still compiles" (weak) vs "re-matches the 85 golden" (strong) at later editions.
+1. **Removed-construct outcome — RESOLVED:** **ERROR under a strict `--standard cobolNNNN`; WARNING under the permissive
+   `Default`/`--nist` mode** (mirrors legacy `FlagsFeaturesRemovedAfter85`). The matrix's reject cells for removed
+   constructs assert an error at strict editions ≥ `removedIn`, a warning under permissive.
+2. **Default `--standard` — RESOLVED:** **COBOL-2023** (the latest) when no `--standard` is given. ⚠ This DIFFERS from
+   the legacy default (`StrictCobol85`): the greenfield `CompilerDriver.Options.DialectLevel` default must become 2023
+   (currently 85). Consequence: an unflagged compile of legacy source may hit new-2023 reserved words / removed
+   constructs by default (that is intended — newest-standard-by-default). The test harnesses that target a specific
+   edition (NIST at 85, the differential harness, per-edition conformance) **pass the edition explicitly**, so the
+   default flip does not affect them. The permissive superset is reached via `Default`/`--nist`, not the no-flag default.
+3. **Next step — RESOLVED:** build **Phase 0** now (this session).
+4. **INV-1 strong vs weak form:** "still compiles" (weak) vs "re-matches the 85 golden" (strong) at later editions.
    *Default:* weak first (compiles), strengthen to golden-match where behavior is edition-invariant.
-4. **Catalogue ↔ registry source of truth:** make ONE **structured data file** canonical — e.g.
+5. **Catalogue ↔ registry source of truth:** make ONE **structured data file** canonical — e.g.
    `tests/version-matrix/constructs.json` (or `.yaml`) holding every catalogue entry (§4) with its edition metadata.
    BOTH the human-readable `VERSION_CHANGE_REFERENCE.md` table AND the in-code `ConstructDialectStatus` registry are
    derived/diffed from that file (a CI drift check). The "cannot drift" guarantee must **not** parse markdown — the doc
