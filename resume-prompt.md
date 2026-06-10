@@ -19,7 +19,24 @@
 > editions is gated by `DialectLevel`; new features enabled only at ≥ their edition; obsolete/removed flagged. (Memories
 > `feedback_version_test_matrix`, `feedback_version_targeted_semantics`.)
 >
-> **STATE (DEVLOG 530, session of 2026-06-10):** G1 ✅, G0 ✅, **G2 ✅, G3-core ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
+> **STATE (DEVLOG 545, 2026-06-10 13:20): 82/95 NC byte-match (locked), 564 conformance + 15 unit green. STEP ①
+> ('85 verbs) COMPLETE: EVALUATE (542), the SIX-FAMILY VERB WAVE (543 — INSPECT, STRING/UNSTRING, INITIALIZE,
+> ACCEPT, CORRESPONDING, ALTER-85-only + switches/SET-F3/switch-conditions, via 6 parallel agents over disjoint
+> `StatementBinder.<Verb>.cs`/`CSharpEmitter.<Verb>.cs` partials), the ARITHMETIC WAVES (544 — §14.7.7 single
+> evaluation/Snapshot, edited SIZE ERROR TryFormat, P-scale images, BFS sign-condition operands, figurative 88s),
+> and the MOVE/PICTURE closeout (545 — CR/DB classification, group VALUE distribution, BLANK WHEN ZERO, AN→NE
+> editing, P-scaled edited masks). Plus: JUSTIFIED, user-defined classes, zoned IS NUMERIC on character-backed
+> views, level-66 RENAMES places, de-editing GR5, VARYING-AFTER augment order. Remaining 13 NC: collating
+> NC215A/219A, DECIMAL-POINT COMMA NC107A/108M, ODO NC235A/247A, REDEFINES-tier NC252A (REDEF11 emission),
+> NC105A/224A/401M louds, NC236A spec-pinned, NC214M/303M no-golden. **RESUME AT: the wave-2 scout briefs
+> (CALL/inter-program, SORT/MERGE, RL/IX files, collating, ODO, DECIMAL-POINT COMMA) — workflow w7euzpx9q output at
+> `C:\Users\brent\AppData\Local\Temp\claude\E--CobolSharp\de401450-b4ae-4dd4-acdd-ad95a132ce21\tasks\w7euzpx9q.output`;
+> repeat the DEVLOG-543 pattern: 6 implementation agents over disjoint partial files, serial integration,
+> per-cluster sweeps (`/e/tmp/nc-sweep/sweep-one.sh`, pipes .dat + COBOL_SWITCH_1), suites, locks, commit+push.**
+> Then steps ④–⑦: EC model → Phase-2 EditionValidator + 85→2002 ledger → 2002 OO/UDF → 2014 JSON/XML → 2023 →
+> G8 cut-over.** (Pre-verb-wave STATE below for history.)
+>
+> **(superseded) STATE (DEVLOG 530, session of 2026-06-10):** G1 ✅, G0 ✅, **G2 ✅, G3-core ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
 > G6-core ✅, REDEFINES Tier A+B ✅, ON SIZE ERROR ✅, PICTURE P ✅, de-sign ✅, **SIGN-clause inheritance ✅ (525),
 > SET + index machinery + USAGE INDEX ✅ (526), sections-as-procedure-targets + qualified procedure-names +
 > TIMES-once ✅ (527), PERFORM VARYING complete + ALL-to-group repeat + benign OOR subscripts via CobolTable.At ✅
