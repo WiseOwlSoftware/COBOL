@@ -1014,7 +1014,7 @@ cross-design prerequisites the subsystem designs flagged are surfaced inline.
 
 **STATUS (2026-06-10, DEVLOG 520+):** G0 ✅ · G1 ✅ · G2 ✅ · G3-core ✅ · G4 ✅ · G5 sequential file I/O ✅
 (sequential file I/O done; SET/index machinery + sections landed; relative/indexed/SORT pending) · G6-core ✅
-(REDEFINES Tier A+B, AsImage, ON SIZE ERROR, PICTURE P). 27 NC programs byte-match the golden; 334 conformance + 15
+(REDEFINES Tier A+B, AsImage, ON SIZE ERROR, PICTURE P). 33 NC programs byte-match the golden; 348 conformance + 15
 unit tests green; default `--std` = COBOL-2023.
 
 ### G1 — Bootstrap ✅ (done)

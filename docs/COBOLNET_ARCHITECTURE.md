@@ -115,7 +115,7 @@ subsets. (Task G4.)
 - **G3 ✅ (core)** Core verbs (`MOVE`, arithmetic, `IF`/`EVALUATE`, `DISPLAY`/`ACCEPT`, `PERFORM` inline) on typed values.
 - **G4 ✅** Control-flow engine (port the PC/dispatch design) — `PERFORM THRU`, `GO TO`, `ALTER`, fall-through.
 - **G5 (in progress)** Drive the NIST corpus to green (NC → SM/IC/IF → SQ/RL/IX → ST), then the conformance corpus.
-  Sequential file I/O ✅; SET/index machinery + sections landed; 27 NC programs byte-match the golden; 334 conformance
+  Sequential file I/O ✅; SET/index machinery, sections + PERFORM VARYING landed; 33 NC programs byte-match the golden; 348 conformance
   + 15 unit green.
 - **G6 (core ✅)** Deferred data cases: `REDEFINES`/`RENAMES` (Tier A+B ✅), whole-group alphanumeric, file serialization.
 - **G7** Post-85 features (OO→.NET classes, UDF, pointers, national/boolean, JSON/XML, intrinsics) gated per `--std`
