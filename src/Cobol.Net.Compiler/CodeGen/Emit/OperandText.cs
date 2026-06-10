@@ -45,7 +45,7 @@ internal static class OperandText
         // as the StoreAsImage branch below does — the same de-sign rule, just a different storage shape.
         if (p is RedefViewPlace)
             return deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
-                ? $"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}), {rvp.Digits})"
+                ? PExpand($"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}), {rvp.Digits})", rvp)
                 : p.Read();
         if (p.Item.IsGroup)
             return p.Item.IsCharacterImage
@@ -55,7 +55,7 @@ internal static class OperandText
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)
             return deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
-                ? $"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}), {sip.Digits})"
+                ? PExpand($"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}), {sip.Digits})", sip)
                 : p.Read();
         return p.Item.Pic switch
         {
@@ -63,11 +63,24 @@ internal static class OperandText
             // sign — the de-signed magnitude digits (FormatUnsignedDisplay), not the zoned/overpunch image. FormatDisplay
             // already yields these for an unsigned item, so deSign on an unsigned numeric is a no-op.
             { Category: PicCategory.Numeric, IsFloat: false } pic => deSign
-                ? $"CobolNum.FormatUnsignedDisplay({p.Read()}, {pic.Digits})"
+                ? PExpand($"CobolNum.FormatUnsignedDisplay({p.Read()}, {pic.Digits})", pic)
                 : $"CobolNum.FormatDisplay({p.Read()}, {p.Item.ProfileName})",
             { Category: PicCategory.Numeric } => $"{p.Read()}.ToString()",            // COMP-1/2 float — refine later
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited } => p.Read(),
             _ => $"{p.Read()}.ToString()",
         };
+    }
+
+    /// <summary>The sending character image of a numeric item whose PICTURE has <c>P</c> scaling positions: the Ps
+    /// are counted in the sending size and are ZEROS (ISO §13.18.40.3 symbol-P operations item b; §14.9.25.4 GR6a)
+    /// — appended for trailing P (a negative scale), prepended for leading P (scale &gt; digit count). The zero
+    /// runs are compile-time constants, so they concatenate as literals.</summary>
+    private static string PExpand(string digitsExpr, PicInfo pic)
+    {
+        int trailing = pic.Scale < 0 ? -pic.Scale : 0;
+        int leading = pic.Scale > pic.Digits ? pic.Scale - pic.Digits : 0;
+        if (trailing > 0) return $"({digitsExpr} + \"{new string('0', trailing)}\")";
+        if (leading > 0) return $"(\"{new string('0', leading)}\" + {digitsExpr})";
+        return digitsExpr;
     }
 }

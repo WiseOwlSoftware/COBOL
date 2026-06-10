@@ -877,31 +877,28 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundExprError("function-call operand");
     }
 
-    /// <summary>Descend an operand-wrapper node to its inner arithmetic expression, or its leaf literal / data ref.</summary>
+    /// <summary>Descend an operand-wrapper node to its inner arithmetic expression, or its leaf literal / data
+    /// ref. The wrapper chain can nest the expression MORE than one level deep (<c>comparisonOperand →
+    /// valueOperand → arithmeticExpression</c>, CobolExpressions.g4), so the walk is BREADTH-FIRST to the
+    /// shallowest match — a depth-first leaf grab would collapse a multi-term operand to its first data
+    /// reference (a sign condition's operand is the WHOLE expression, ISO §8.8.4.3 — NC250A IF--TEST-55/56).</summary>
     private BoundExpr BindOperandExpr(IParseTree node)
     {
-        for (int i = 0; i < node.ChildCount; i++)
-            if (node.GetChild(i) is Core.ArithmeticExpressionContext ae) return BindExpr(ae);
-        for (int i = 0; i < node.ChildCount; i++)
+        var queue = new Queue<IParseTree>();
+        queue.Enqueue(node);
+        while (queue.Count > 0)
         {
-            var c = node.GetChild(i);
-            if (c is Core.LiteralContext l) return NumLiteral(l);
-            if (c is Core.DataReferenceContext d) return RefExpr(d);
-            if (FindLeaf(c) is { } inner) return inner;
+            var n = queue.Dequeue();
+            for (int i = 0; i < n.ChildCount; i++)
+            {
+                var c = n.GetChild(i);
+                if (c is Core.ArithmeticExpressionContext ae) return BindExpr(ae);
+                if (c is Core.LiteralContext l) return NumLiteral(l);
+                if (c is Core.DataReferenceContext d) return RefExpr(d);
+                queue.Enqueue(c);
+            }
         }
         return new BoundNumLiteral("0");
-    }
-
-    private BoundExpr? FindLeaf(IParseTree node)
-    {
-        for (int i = 0; i < node.ChildCount; i++)
-        {
-            var c = node.GetChild(i);
-            if (c is Core.LiteralContext l) return NumLiteral(l);
-            if (c is Core.DataReferenceContext d) return RefExpr(d);
-            if (FindLeaf(c) is { } inner) return inner;
-        }
-        return null;
     }
 
     // ── Conditions ─────────────────────────────────────────────────────────────────────────────────────────

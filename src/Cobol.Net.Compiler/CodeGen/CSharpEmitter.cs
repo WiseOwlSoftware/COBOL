@@ -403,7 +403,11 @@ public sealed partial class CSharpEmitter
     private void EmitInPlace(IReadOnlyList<Receiver> targets, string op, IReadOnlyList<BoundExpr> operands, SizeErrorPhrase? sizeErr)
         => EmitArith(sizeErr, () =>
         {
+            // The operand sum is the ONE initial evaluation (ISO §14.7.7 GR4 + NOTE 3): with several receivers it
+            // must be materialized, or a receiver that aliases an operand (ADD A TO B A C) would poison the
+            // receivers stored after it when the inlined expression re-reads the field.
             NumX value = _num.Fold(operands);
+            if (targets.Count > 1) value = Snapshot(value);
             foreach (var r in targets)
             {
                 SetTarget(r);
@@ -417,17 +421,34 @@ public sealed partial class CSharpEmitter
         => EmitArith(sizeErr, () =>
         {
             NumX v = value();
+            // ONE initial evaluation (§14.7.7 GR4 + NOTE 3): materialized with several receivers so a receiver
+            // aliasing a sender cannot change the value the remaining receivers store.
+            if (targets.Count > 1) v = Snapshot(v);
             foreach (var r in targets) StoreArith(r.Place, v, r.Rounding);
         });
 
     private void EmitDivide(IReadOnlyList<Receiver> targets, BoundExpr? dividend, BoundExpr divisor, SizeErrorPhrase? sizeErr)
         => EmitArith(sizeErr, () =>
         {
+            // The SENDERS are identified/evaluated ONCE (ISO §14.9.12.4 GR5 → §14.7.7 GR4 + NOTE 3): with several
+            // receivers both operands are materialized, so a receiver that aliases the dividend or the divisor
+            // (DIVIDE b INTO a GIVING x a y — NC172A/NC173A) cannot poison the quotients stored after it. The
+            // DIVISION itself still renders per receiver, at that receiver's scale + ROUNDED mode — equal to
+            // rounding the spec's intermediate to each resultant. Sub-expression quotients inside the operands
+            // render at the widest receiver scale (the intermediate must not lose receiver-visible digits).
+            _ctx.TargetScale = targets.Max(t => ScaleOf(t.Place));
+            _ctx.TargetRounding = CobolRounding.Truncation;
             NumX divisorX = _num.Render(divisor);
+            NumX? dividendX = dividend is not null ? _num.Render(dividend) : null;
+            if (targets.Count > 1)
+            {
+                divisorX = Snapshot(divisorX);
+                if (dividendX is { } dx) dividendX = Snapshot(dx);
+            }
             foreach (var r in targets)
             {
                 SetTarget(r);                                                       // quotient at the receiver's scale + mode
-                NumX num = dividend is not null ? _num.Render(dividend) : NumericRenderer.FieldNum(r.Place);   // INTO-no-GIVING divides the target
+                NumX num = dividendX ?? NumericRenderer.FieldNum(r.Place);          // INTO-no-GIVING divides the target
                 StoreArith(r.Place, _num.Combine(num, "/", divisorX), r.Rounding);
             }
         });
@@ -440,7 +461,10 @@ public sealed partial class CSharpEmitter
         => EmitArith(d.SizeError, () =>
         {
             var w = _ctx.Writer;
-            NumX dividend = _num.Render(d.Dividend), divisor = _num.Render(d.Divisor);
+            // Both senders are materialized (§14.9.12.4 GR5 — one item identification/evaluation): each appears in
+            // SEVERAL emitted expressions (kernel call(s) + the remainder back-multiply), and the quotient stores
+            // BEFORE the remainder is formed — a quotient receiver aliasing a sender must not poison the remainder.
+            NumX dividend = Snapshot(_num.Render(d.Dividend)), divisor = Snapshot(_num.Render(d.Divisor));
             int qs = ScaleOf(d.Quotient.Place);
             // The SUBSIDIARY quotient is truncated to the GIVING receiver's digits/scale (ISO §14.9.12 GR6c) —
             // a DIRECT kernel call at EXACTLY the receiver scale, not the renderer's working-scale promotion
@@ -463,6 +487,22 @@ public sealed partial class CSharpEmitter
     private void EmitCompute(BoundCompute c)
         => EmitArith(c.SizeError, () =>
         {
+            if (c.Targets.Count > 1)
+            {
+                // ONE initial evaluation (§14.7.7 GR4 + NOTE 3): the RHS renders ONCE — at the widest receiver
+                // scale so no receiver-visible digit is lost — is materialized, and every receiver stores from the
+                // temp with its own ROUNDED mode. Re-rendering per receiver would re-read senders a prior
+                // receiver may alias.
+                _ctx.TargetScale = c.Targets.Max(t => ScaleOf(t.Place));
+                _ctx.TargetRounding = CobolRounding.Truncation;
+                NumX v = Snapshot(_num.Render(c.Rhs));
+                foreach (var r in c.Targets)
+                {
+                    SetTarget(r);
+                    StoreArith(r.Place, v, r.Rounding);
+                }
+                return;
+            }
             foreach (var r in c.Targets)
             {
                 SetTarget(r);
@@ -472,6 +512,16 @@ public sealed partial class CSharpEmitter
 
     /// <summary>Set the working scale + rounding mode for the receiver about to be rendered/stored.</summary>
     private void SetTarget(Receiver r) { _ctx.TargetScale = ScaleOf(r.Place); _ctx.TargetRounding = r.Rounding; }
+
+    /// <summary>Materialize a rendered sender/initial-evaluation into a local temp (ISO §14.7.7 GR4 + NOTE 3 —
+    /// ONE initial evaluation; results independent of sender/receiver storage overlap). Inlining the expression
+    /// into each receiver's store would re-read its fields after earlier receivers stored.</summary>
+    private NumX Snapshot(NumX v)
+    {
+        string t = $"__ie{_storeTmpCounter++}";
+        _ctx.Writer.Line(v.Dec ? $"CobolDec {t} = {v.Expr};" : $"Int128 {t} = {v.Expr};");
+        return v with { Expr = t };
+    }
 
     /// <summary>
     /// Run an arithmetic statement's per-receiver stores (<paramref name="emitStores"/>), wrapping them in the
@@ -526,6 +576,16 @@ public sealed partial class CSharpEmitter
             string aligned = value.Dec ? $"({value.Expr}).ToUnscaled({ms}, CobolRounding.{mode})"
                 : value.Scale == ms ? value.Expr
                 : $"CobolNum.Rescale({value.Expr}, {value.Scale}, {ms}, CobolRounding.{mode})";
+            // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule
+            // 2): an aligned |value| exceeding the mask's digit positions sets the flag and leaves the receiver
+            // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§14.9.25).
+            if (_sizeErrVar is { } eflag)
+            {
+                string img = $"__sv{_storeTmpCounter++}";
+                w.Line($"if (!CobolEdit.TryFormat({aligned}, {ms}, {CsLiteral(mask)}, out var {img})) {eflag} = true;");
+                w.Line($"else {target.Write(img)}");
+                return;
+            }
             w.Line(target.Write($"CobolEdit.Format({aligned}, {ms}, {CsLiteral(mask)})"));
             return;
         }
