@@ -68,14 +68,34 @@ public sealed class ReferenceResolver(DataBinder data)
         // composed numeric leaf are a later slice). No subscripts: a RENAMES operand cannot have/live under OCCURS.
         if (item.Renames is { } ren)
         {
-            if (ren.SpanLeaves.Count == 0 || indexExprs.Count > 0) return null;
+            if (indexExprs.Count > 0) return null;
+            // The no-THRU form is an ALIAS: the 66 has the SAME description as the renamed item (§13.18.45 GR1)
+            // — forward to its place outright (numeric stays numeric: NC252A's ADD 3500 TO RENAME-12 over a
+            // PIC 9(4); a group forwards as the group). Only the THRU form composes an alphanumeric span (GR2).
+            if (ren.Thru is null) return ren.From is { } fwd ? PlaceForItem(fwd, []) : null;
+            if (ren.SpanLeaves.Count == 0) return null;
             var leafPlaces = new List<Place>(ren.SpanLeaves.Count);
             foreach (var leaf in ren.SpanLeaves)
             {
-                bool stringValued = leaf.StoreAsImage
-                    || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
-                if (!stringValued || PlaceForItem(leaf, []) is not { } lp) return null;
-                leafPlaces.Add(lp);
+                // An OCCURS leaf inside the span contributes EVERY occurrence in order (§13.18.45 — the alias
+                // covers the whole fixed-size area; NC252A's RENAME-7 over TABLE-ITEM-2 OCCURS 5).
+                int occ = leaf.Occurs ?? 1;
+                for (int k = 1; k <= occ; k++)
+                {
+                    if (PlaceForItem(leaf, leaf.Occurs is null ? [] : [k.ToString()]) is not { } lpRaw) return null;
+                    Place lp = lpRaw;
+                    bool stringValued = leaf.StoreAsImage || lp is RedefViewPlace
+                        || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
+                    // A typed NUMERIC-DISPLAY leaf participates through its character image (the alias is an
+                    // alphanumeric view of the span, §13.18.45 — NC252A's PIC 999 leaves under RENAMES-TEST-1).
+                    if (!stringValued)
+                    {
+                        if (leaf.Pic is not { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false })
+                            return null;
+                        lp = new NumericImagePlace(lp);
+                    }
+                    leafPlaces.Add(lp);
+                }
             }
             return new RenamesPlace(leafPlaces, item);
         }

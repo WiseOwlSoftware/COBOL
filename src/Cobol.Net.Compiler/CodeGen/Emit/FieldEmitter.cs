@@ -97,7 +97,9 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     {
         if (item.IsGroup)
         {
-            var parts = item.Children.Where(c => c.IsGroup || c.IsElementary).Select(ImageInitOf);
+            // Redefining children overlay storage already composed by their targets — never part of the image.
+            var parts = item.Children.Where(c => (c.IsGroup || c.IsElementary) && c.RedefinesTargetName is null)
+                .Select(ImageInitOf);
             return item.Children.Count > 0 ? "(" + string.Join(" + ", parts) + ")" : "\"\"";
         }
         var pic = item.Pic!;

@@ -161,6 +161,11 @@ public sealed class NistDifferentialTests
     // struct carries null nested OCCURS arrays; every deeper level now resolves benignly too, §8.4.2.3.4 GR2) —
     // DEVLOG 549.
     [InlineData("NC401M")]   // obsolete-elements program: ALTER + CORR + ACCEPT DAY-OF-WEEK + 5-deep OOR chain
+    // Greened by the RENAMES/REDEFINES layout closeout (DEVLOG 550): no-THRU RENAMES forwards to the renamed
+    // item (§13.18.45 GR1), THRU spans expand OCCURS leaves + numeric leaves via the StoreDisplay storage-form
+    // bridge, nested REDEFINES classes dissolve into the outer class's ONE backing, and group width/image
+    // exclude redefiner children (§13.18.44 — an overlay adds no storage).
+    [InlineData("NC252A")]   // the REDEFINES + RENAMES feature program
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

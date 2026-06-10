@@ -161,6 +161,26 @@ public static class CobolNum
             ? FormatDisplaySigned(unscaled, receiver)
             : FormatUnsignedDisplay(unscaled, receiver.Digits);
 
+    /// <summary>Storage-form bridge (the <c>CobolTable.Occ</c> pattern): a numeric-DISPLAY field whose backing the
+    /// post-bind whole-group analysis turned into its character IMAGE is already display-formatted — pass through.
+    /// Lets the compiler emit ONE expression for an image view whose field's storage form is decided later.</summary>
+    public static string FormatDisplay(string image, in NumProfile receiver) => image;
+
+    /// <summary>Store a (possibly spliced) DISPLAY image back into a numeric field — the write half of an image
+    /// view over a numeric item (reference modification / a RENAMES span leaf, ISO §8.4.2.4 / §13.18.45). The
+    /// overload set is the storage-form bridge: the <paramref name="current"/> dummy selects the conversion for
+    /// the field's ACTUAL storage (native <c>long</c>/<c>Int128</c> → sign-aware decode; an image-stored string
+    /// field keeps the image).</summary>
+    public static long StoreDisplay(string image, in NumProfile receiver, long current) =>
+        (long)ParseDisplay(image, receiver);
+
+    /// <inheritdoc cref="StoreDisplay(string, in NumProfile, long)"/>
+    public static Int128 StoreDisplay(string image, in NumProfile receiver, Int128 current) =>
+        ParseDisplay(image, receiver);
+
+    /// <inheritdoc cref="StoreDisplay(string, in NumProfile, long)"/>
+    public static string StoreDisplay(string image, in NumProfile receiver, string current) => image;
+
     // IBM-ASCII over-punch tables (ISO §8.5.1.2 / NIST-verified against the legacy): the units digit fused with the
     // operational sign. Positive 0–9 → "{ABCDEFGHI"; negative 0–9 → "}JKLMNOPQR".
     private const string PositiveOverpunch = "{ABCDEFGHI";

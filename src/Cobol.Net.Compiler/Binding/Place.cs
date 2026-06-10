@@ -128,13 +128,15 @@ public sealed record NumericImagePlace(Place Inner) : Place
     public override DataItem Item => Inner.Item;
 
     /// <inheritdoc/>
+    /// <remarks>The FormatDisplay/StoreDisplay overload sets are the storage-form BRIDGE (the
+    /// <c>CobolTable.Occ</c> pattern): whether the field is a native long/Int128 or an image-stored string is
+    /// decided by the post-bind whole-group analysis, AFTER this expression text is produced — C# overload
+    /// resolution picks the right conversion at backend-compile time.</remarks>
     public override string Read() => $"CobolNum.FormatDisplay({Inner.Read()}, {Inner.Item.ProfileName})";
 
     /// <inheritdoc/>
     public override string Write(string rhs) =>
-        Inner.Write(Inner.Item.Pic is { Digits: > 18 }
-            ? $"CobolNum.ParseDisplay({rhs}, {Inner.Item.ProfileName})"
-            : $"(long)CobolNum.ParseDisplay({rhs}, {Inner.Item.ProfileName})");
+        Inner.Write($"CobolNum.StoreDisplay({rhs}, {Inner.Item.ProfileName}, {Inner.Read()})");
 }
 
 /// <summary>

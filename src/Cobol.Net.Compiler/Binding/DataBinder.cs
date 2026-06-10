@@ -272,8 +272,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CsName = DataItem.Sanitize(name),
             Renames = new RenamesInfo
             {
-                FromName = rc.dataReference(0).GetText(),
-                ThruName = thru && rc.dataReference().Length > 1 ? rc.dataReference(1).GetText() : null,
+                // The BASE word only: an OF/IN-qualified operand (`SUB-GRP-1 OF GRP — NC252A RENAMES-TEST-2`)
+                // is redundant inside the owning record, and GetText() would glue the suffix into the name.
+                FromName = rc.dataReference(0).cobolWord()?.GetText() ?? rc.dataReference(0).GetText(),
+                ThruName = thru && rc.dataReference().Length > 1
+                    ? rc.dataReference(1).cobolWord()?.GetText() ?? rc.dataReference(1).GetText()
+                    : null,
             },
         };
         item.Uid = _uidCounter++;
@@ -475,6 +479,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 info.From = FindDescendantOrSelf(root, info.FromName);
                 info.Thru = info.ThruName is { } t ? FindDescendantOrSelf(root, t) : null;
                 if (info.From is null || (info.ThruName is not null && info.Thru is null)) continue;
+                // The no-THRU alias inherits the renamed item's description (§13.18.45 GR1) — the resolver
+                // forwards to the FROM item's place; no span, no synthetic alphanumeric picture.
+                if (info.Thru is null) { ren.Pic = info.From.Pic; continue; }
 
                 // The alias spans the record's contiguous leaf run FROM..THRU (§13.18.45 GR1/GR2); the alias item
                 // itself reads/writes as one elementary ALPHANUMERIC item of the span's width (its category per
@@ -488,7 +495,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (start < 0 || end < start) continue;
                 info.SpanLeaves.AddRange(leaves[start..(end + 1)]);
                 ren.Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display,
-                    Length: info.SpanLeaves.Sum(l => l.ImageWidth), Digits: 0, Scale: 0, Signed: false);
+                    Length: info.SpanLeaves.Sum(l => l.ImageWidth * (l.Occurs ?? 1)), Digits: 0, Scale: 0, Signed: false);
             }
 
         static bool IsUnder(DataItem leaf, DataItem ancestor)
@@ -522,6 +529,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             item.Class = cls;
             item.IsCanonical = false;
         }
+
+        // ONE shared area per overlay nest (ISO §13.18.44 — a REDEFINES nested under another class's member
+        // shares THAT storage): a class whose ANCHOR lies inside another class's subtree — its ancestor chain
+        // crosses a redefining member or another class's anchor (NC252A's `RDEF8 REDEFINES RDF8` under the view
+        // `REDEF11 REDEFINES REDEF10`) — DISSOLVES into the outer class. The outer subtree walk below assigns
+        // every nested item its window over the one backing (an inner redefiner starts at its target's
+        // already-assigned offset), so a dissolved class needs no members of its own; keeping it would let its
+        // later walk re-claim the subtree and emit a backing inside a suppressed view struct (CS0103).
+        foreach (var (anchor, cls) in byAnchor.ToList())
+            for (var a = anchor.Parent; a is not null; a = a.Parent)
+                if (a.RedefinesTargetName is not null || (byAnchor.ContainsKey(a) && !ReferenceEquals(byAnchor[a], cls)))
+                {
+                    byAnchor.Remove(anchor);
+                    break;
+                }
 
         foreach (var cls in byAnchor.Values)
         {

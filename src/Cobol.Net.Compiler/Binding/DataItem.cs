@@ -131,7 +131,10 @@ public sealed class DataItem
     /// occupies no extra position. (This is the per-occurrence width of THIS item; a parent multiplies by THIS item's
     /// own OCCURS count.)</summary>
     public int ImageWidth =>
-        IsElementary ? ElementaryImageWidth : Children.Sum(c => c.ImageWidth * (c.Occurs ?? 1));
+        // A REDEFINING child occupies NO new storage (ISO §13.18.44 — it overlays its target), so a group's size
+        // sums only the non-redefining subordinates (NC252A: REDEF10 is 46 chars, not 46 + its RDF3 overlay).
+        IsElementary ? ElementaryImageWidth
+        : Children.Where(c => c.RedefinesTargetName is null).Sum(c => c.ImageWidth * (c.Occurs ?? 1));
 
     /// <summary>The character-image width of an elementary item (digit count + a separate-sign position when present
     /// for a signed numeric; otherwise the PICTURE's character length).</summary>
