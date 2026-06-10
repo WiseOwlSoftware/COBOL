@@ -260,7 +260,7 @@ This is your mission.
 Do not deviate from it.
 
 8. Supplementary Documents
-Read CONSTRAINTS.md for the full anti-pattern catalog (with labels), migration phase breakdown,
-session rituals (start and end), and behavioral constraints.
-Read MIGRATION_LEDGER.md for the current migration state, phase status, session history,
-and outstanding TODOs. Update it at the end of every session.
+Read CONSTRAINTS.md for the full anti-pattern catalog (with labels), session rituals (start and end), and
+behavioral constraints.
+For the current state, plan, and session history, read `resume-prompt.md` (the live kickoff) + `DEVLOG.md`
+(the narrative log). (The old `MIGRATION_LEDGER.md` was deleted with the byte-engine docs, DEVLOG 524.)
