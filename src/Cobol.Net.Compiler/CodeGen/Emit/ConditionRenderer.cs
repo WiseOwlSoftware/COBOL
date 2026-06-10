@@ -45,8 +45,12 @@ internal sealed class ConditionRenderer(NumericRenderer num)
     private string RenderFigurativeRelational(BoundRelational r)
     {
         static bool IsFig(BoundOperand o) => o is BoundFigurative or BoundAllLiteral;
+        // A NON-NUMERIC figurative (SPACE/QUOTE/HIGH/LOW-VALUE — anything but ZERO) or an ALL "literal" makes the
+        // comparison ALPHANUMERIC even against a numeric item (ISO §8.8.4.2.1 — the figurative is alphanumeric
+        // class, so the numeric operand participates via its character image, at its own width).
+        static bool NonNumericFig(BoundOperand o) => o is BoundFigurative { Kind: not 'Z' } or BoundAllLiteral;
         BoundOperand anchor = IsFig(r.Left) ? r.Right : r.Left;
-        if (IsFig(anchor) || OperandText.IsString(anchor))
+        if (IsFig(anchor) || OperandText.IsString(anchor) || NonNumericFig(r.Left) || NonNumericFig(r.Right))
         {
             int width = AnchorWidth(anchor);
             return $"CobolString.Compare({FigOrString(r.Left, width)}, {FigOrString(r.Right, width)}) {r.Op} 0";
@@ -110,7 +114,10 @@ internal sealed class ConditionRenderer(NumericRenderer num)
         // GROUP is treated as an elementary alphanumeric data item (§8.8.4.1), i.e. its character IMAGE, not the raw
         // struct. (The numeric branch reads the scaled value directly; a numeric view stored as its image is a later
         // slice.)
-        string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent)) : c.Parent.Read();
+        // A NUMERIC conditional variable goes through the ONE numeric read path (NumericRenderer.FieldNum) — a
+        // whole-group-aliased / Tier-B-view leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay,
+        // never compare its raw image to an unscaled long (diagnosis B3).
+        string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent)) : NumericRenderer.FieldNum(c.Parent).Expr;
         var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High));
         return "(" + string.Join(" || ", tests) + ")";
     }

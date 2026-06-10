@@ -30,4 +30,13 @@ public static class CobolTable
     {
         public static T Slot = default!;
     }
+
+    /// <summary>A subscript data item's occurrence-number value. The two overloads let the compiler emit ONE
+    /// bind-time expression for a subscript read whose backing field's storage form (native <c>long</c> vs the
+    /// character image a post-bind whole-group analysis selects) is decided later — C# overload resolution picks
+    /// the right conversion at backend-compile time.</summary>
+    public static long Occ(long value) => value;
+
+    /// <inheritdoc cref="Occ(long)"/>
+    public static long Occ(string image) => CobolNum.FromAlphanumeric(image);
 }

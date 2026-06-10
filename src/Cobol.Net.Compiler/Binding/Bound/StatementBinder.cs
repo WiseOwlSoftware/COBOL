@@ -573,7 +573,9 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         foreach (var dref in b.dataReference())
         {
             if (ConditionOf(dref) is not { } cond) return new BoundUnsupported($"SET '{dref.GetText()}' TO TRUE (not a condition-name)");
-            if (refs.ResolveItem(cond.Parent) is not { } parent) return new BoundUnsupported($"SET subscripted condition '{cond.Name}'");
+            // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
+            if (refs.ResolveForItem(dref, cond.Parent) is not { } parent)
+                return new BoundUnsupported($"SET condition '{cond.Name}' (unresolvable conditional variable)");
             sets.Add((parent, cond));
         }
         return new BoundSetConditions(sets);
@@ -892,9 +894,10 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
                 && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
             {
                 carry.Reset();
-                return refs.ResolveItem(cond.Parent) is { } parent
+                // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
+                return refs.ResolveForItem(dref, cond.Parent) is { } parent
                     ? new BoundCondition88(parent, cond)
-                    : new BoundConditionError($"subscripted condition-name '{cond.Name}'");
+                    : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
             }
             if (carry is { Subject: { } subject, Op: { } op })
                 return new BoundRelational(subject, op, ComparisonOperand(operands[0]));
@@ -914,10 +917,32 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         return new BoundOperandError("comparison operand");
     }
 
+    /// <summary>Resolve a condition-name reference, honoring OF/IN qualifiers (ISO §8.4.2.2 Format 2: a
+    /// condition-name qualifies by its conditional variable and/or the variable's containing groups, innermost
+    /// first) — duplicate 88 names across tables select by the qualifier chain.</summary>
     private Condition88? ConditionOf(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-        return data.Conditions.TryGetValue(name, out var list) && list.Count > 0 ? list[0] : null;
+        if (!data.Conditions.TryGetValue(name, out var list) || list.Count == 0) return null;
+        var qualifiers = dref.dataReferenceSuffix()
+            .Select(sfx => sfx.qualification()?.cobolWord().GetText())
+            .OfType<string>().ToList();
+        if (qualifiers.Count == 0) return list[0];
+        return list.FirstOrDefault(c => MatchesQualifiers(c.Parent, qualifiers));
+    }
+
+    /// <summary>True when each qualifier (innermost→outermost) names the conditional variable itself or one of
+    /// its containing groups, in nesting order.</summary>
+    private static bool MatchesQualifiers(DataItem parent, List<string> qualifiers)
+    {
+        DataItem? n = parent;
+        foreach (string q in qualifiers)
+        {
+            while (n is not null && !string.Equals(n.CobolName, q, StringComparison.OrdinalIgnoreCase)) n = n.Parent;
+            if (n is null) return false;
+            n = n.Parent;
+        }
+        return true;
     }
 
     // ── Operator mapping + helpers (ported from the former emitter) ──────────────────────────────────────────

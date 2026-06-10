@@ -135,6 +135,30 @@ public sealed class ReferenceResolver(DataBinder data)
     /// item is within an OCCURS table (a subscripted reference is then required) or is an unhandled view form.</summary>
     public Place? ResolveItem(DataItem item) => PlaceForItem(item, []);
 
+    /// <summary>The place for an already-resolved <paramref name="item"/> using the SUBSCRIPTS of
+    /// <paramref name="dref"/> — the condition-name-with-subscripts form (ISO §8.4.2.3 Format 2): a level-88
+    /// reference's subscripts identify the occurrence of its CONDITIONAL VARIABLE. Null for an unhandled subscript
+    /// form (the caller fails loud).</summary>
+    public Place? ResolveForItem(Core.DataReferenceContext dref, DataItem item)
+    {
+        Core.SubscriptOrRefModContext? subCtx = null;
+        foreach (var suffix in dref.dataReferenceSuffix())
+        {
+            if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s && !HasDepth0Colon(s)) subCtx ??= s;
+            else if (suffix.qualification() is { } q)
+                foreach (var sp in q.subscriptPart())
+                    if (sp.subscriptOrRefMod() is { } qs && !HasDepth0Colon(qs)) subCtx ??= qs;
+        }
+        List<string> indexExprs = [];
+        if (subCtx is not null)
+        {
+            var (e, isRefMod) = InterpretSubscripts(subCtx);
+            if (isRefMod || e is null) return null;
+            indexExprs = e;
+        }
+        return PlaceForItem(item, indexExprs);
+    }
+
     /// <summary>The qualified C# access path to a Tier-B/Tier-C class's single stored backing field. The backing is
     /// emitted in the canonical's containing struct, so a NESTED class reaches it through that struct's path
     /// (<c>OUTER.GROUP._redef_X</c>); a top-level class's backing is the bare static field (<c>_redef_X</c>). Returns
@@ -296,17 +320,21 @@ public sealed class ReferenceResolver(DataBinder data)
                 if (next < tokens.Count && current.Count > 0)
                 {
                     var lastNonWs = current.FindLast(x => x.Type != Core.SUB_WS);
-                    bool endsWithOperator = lastNonWs is not null &&
-                        lastNonWs.Type is Core.SUB_PLUS or Core.SUB_MINUS or Core.SUB_STAR or Core.SUB_SLASH or Core.SUB_POWER;
+                    // A trailing operator OR a trailing OF/IN continues the SAME segment (`I + 1` relative
+                    // subscripts; `SUB1 OF GRP` qualified subscripts, ISO §8.4.2.3.2) — and a pending OF/IN also
+                    // continues into its qualifier identifier.
+                    bool continues = lastNonWs is not null &&
+                        lastNonWs.Type is Core.SUB_PLUS or Core.SUB_MINUS or Core.SUB_STAR or Core.SUB_SLASH
+                            or Core.SUB_POWER or Core.SUB_OF or Core.SUB_IN;
                     int nextType = tokens[next].Type;
-                    if (!endsWithOperator &&
-                        nextType is Core.SIGNED_INTEGERLIT or Core.SUB_IDENTIFIER or Core.SUB_INTEGERLIT)
+                    if (!continues && nextType is Core.SIGNED_INTEGERLIT or Core.SUB_IDENTIFIER or Core.SUB_INTEGERLIT)
                     {
                         segments.Add(current);
                         current = [];
                         i = next - 1;   // skip consumed WS
                         continue;
                     }
+                    // A following OF/IN never splits — `name OF qualifier` stays one segment.
                 }
                 current.Add(t);
                 continue;
@@ -323,8 +351,9 @@ public sealed class ReferenceResolver(DataBinder data)
     private string? RenderSegment(List<IToken> tokens)
     {
         var sb = new System.Text.StringBuilder();
-        foreach (var t in tokens)
+        for (int i = 0; i < tokens.Count; i++)
         {
+            var t = tokens[i];
             switch (t.Type)
             {
                 case Core.SUB_WS: sb.Append(' '); break;
@@ -336,22 +365,43 @@ public sealed class ReferenceResolver(DataBinder data)
                 case Core.SUB_LPAREN: sb.Append('('); break;
                 case Core.SUB_RPAREN: sb.Append(')'); break;
                 case Core.SUB_IDENTIFIER:
-                    if (ResolveSubscriptName(t.Text) is not { } readExpr) return null;
+                {
+                    // Gather `name (OF|IN qualifier)*` — a QUALIFIED data-name subscript (ISO §8.4.2.3.2).
+                    string name = t.Text;
+                    var qualifiers = new List<string>();
+                    int j = i;
+                    while (true)
+                    {
+                        int k = j + 1;
+                        while (k < tokens.Count && tokens[k].Type == Core.SUB_WS) k++;
+                        if (k >= tokens.Count || (tokens[k].Type != Core.SUB_OF && tokens[k].Type != Core.SUB_IN)) break;
+                        int m = k + 1;
+                        while (m < tokens.Count && tokens[m].Type == Core.SUB_WS) m++;
+                        if (m >= tokens.Count || tokens[m].Type != Core.SUB_IDENTIFIER) break;
+                        qualifiers.Add(tokens[m].Text);
+                        j = m;
+                    }
+                    i = j;
+                    if (ResolveSubscriptName(name, qualifiers) is not { } readExpr) return null;
                     sb.Append(readExpr);
                     break;
-                default: return null;   // SUB_STRINGLIT / SUB_DECIMALLIT / SUB_ALL / OF / IN / FUNCTION etc.
+                }
+                default: return null;   // SUB_STRINGLIT / SUB_DECIMALLIT / SUB_ALL / FUNCTION etc.
             }
         }
         string expr = sb.ToString().Trim();
         return expr.Length == 0 ? null : expr;
     }
 
-    /// <summary>A subscript data-name → its C# read expression: an INDEXED BY index-name (a <c>long</c> field) or a
-    /// numeric data item (its place read), or <see langword="null"/> if it is neither.</summary>
-    private string? ResolveSubscriptName(string name)
+    /// <summary>A subscript data-name → its C# read expression: an INDEXED BY index-name (a <c>long</c> field), or
+    /// a (possibly OF/IN-qualified, ISO §8.4.2.3.2) numeric data item read; <see langword="null"/> if unresolvable.
+    /// A data-item read is wrapped in <c>CobolTable.Occ(…)</c> — overload resolution converts a STRING-stored
+    /// occurrence number (a leaf the post-bind whole-group analysis flags <see cref="DataItem.StoreAsImage"/>, a
+    /// decision NOT yet made when this bind-time text is produced) exactly as a native <c>long</c>.</summary>
+    private string? ResolveSubscriptName(string name, List<string> qualifiers)
     {
-        if (data.IndexFields.TryGetValue(name, out var field)) return field;
-        if (ResolveUnqualified(name) is { } item) return AccessPath(item, []);
-        return null;
+        if (qualifiers.Count == 0 && data.IndexFields.TryGetValue(name, out var field)) return field;
+        DataItem? item = qualifiers.Count == 0 ? ResolveUnqualified(name) : ResolveQualified(name, qualifiers);
+        return item is not null && AccessPath(item, []) is { } path ? $"CobolTable.Occ({path})" : null;
     }
 }

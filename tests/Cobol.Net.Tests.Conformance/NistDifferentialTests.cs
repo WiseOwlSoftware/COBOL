@@ -79,6 +79,11 @@ public sealed class NistDifferentialTests
     [InlineData("NC231A")]   // SEARCH F1 + PERFORM VARYING + NEXT SENTENCE
     [InlineData("NC232A")]   // SEARCH F1 + NEXT SENTENCE
     [InlineData("NC234A")]   // SEARCH F1 + VARYING + NEXT SENTENCE over REDEFINES tables
+    // Greened by GAP-2 qualified subscripts (§8.4.2.3.2), qualifier-aware 88 selection (§8.4.2.2 F2), the
+    // CobolTable.Occ bind-time/emit-time storage-form bridge, and alphanumeric figurative-vs-numeric comparisons
+    // (§8.8.4.2.1) — DEVLOG 534.
+    [InlineData("NC206A")]   // qualified base + qualified subscript (AX-2 IN AX(CX-SUB OF CX))
+    [InlineData("NC246A")]   // 5-deep qualification + qualified 88s over multi-level tables
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();
