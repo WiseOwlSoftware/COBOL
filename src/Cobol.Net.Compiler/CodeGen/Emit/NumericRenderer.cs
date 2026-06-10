@@ -36,7 +36,9 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         BoundComputedOperand c => Render(c.Expr),
         BoundFigurative { Kind: 'Z' } => EmitText.UnscaledLit("0"),   // ZERO in a numeric context
         BoundFigurative f => new NumX(EmitText.LoudValue("long", $"figurative '{f.Kind}' in a numeric context"), 0),
-        BoundStringLiteral => new NumX(EmitText.LoudValue("long", "alphanumeric literal in a numeric context"), 0),
+        // An alphanumeric literal in a numeric context is an UNSIGNED integer (§14.9.25.3 Table 16 — the
+        // alphanumeric→numeric move; NC105A's MOVE "12345" TO MOVE1), decoded exactly like an alphanumeric field.
+        BoundStringLiteral s => new NumX($"CobolNum.FromAlphanumeric({EmitText.CsLiteral(s.Value)})", 0),
         BoundOperandError e => new NumX(EmitText.LoudValue("long", e.Feature), 0),
         _ => new NumX(EmitText.LoudValue("long", $"bound operand '{op.GetType().Name}'"), 0),
     };
@@ -46,6 +48,11 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     /// or an alphanumeric item used in a numeric context) fails loud rather than crashing the compiler (§1.4).</summary>
     public static NumX FieldNum(Place p) => p.Item.Pic switch
     {
+        // A GROUP operand in a numeric context is its alphanumeric IMAGE as an UNSIGNED integer (a group is
+        // category alphanumeric, §8.8.4.1.1; the alphanumeric→numeric move is legal, §14.9.25.3 Table 16 /
+        // GR6 — NC105A's MOVE MOVE43 TO MOVE3). A mixed-usage (COMP-leaf) group stays loud (Tier-C).
+        null when p.Item.IsCharacterImage =>
+            new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? p.Read() : $"{p.Read()}.AsImage()")})", 0),
         null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? p.Read()}'"), 0),
         { IsFloat: true } => new NumX($"(long){p.Read()}", 0),
         // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): decode the zoned image to its
