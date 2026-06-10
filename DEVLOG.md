@@ -13,6 +13,53 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 522 — 2026-06-09 18:10 PDT — Doc cleanup: remove the obsolete byte-engine sub-plan references (they mislead)
+
+Owner directive: "Remove all references to a historical byte-engine sub-plan. They are obsolete and can mislead." A
+read-only classification workflow confirmed the hazard is real — one of its own agents was MISLED, reading
+`docs/MASTER_PLAN.md` (DEVLOG 456) + the DATA_MODEL/RECORD_STRUCT docs as "current-greenfield, keep entirely",
+not realizing the greenfield PIVOT (DEVLOG 457) POST-dates MASTER_PLAN and supersedes them. Executed (owner authority
+over the agents' "keep"):
+- **resume-prompt.md**: cut the entire "HISTORICAL byte-engine kickoff" (§0–§9: the old Mono.Cecil/data-model-migration/
+  OO-on-byte mission) — 456 → 231 lines; the live top (PIVOT, STATE, version-correctness framework, two-track RESUME
+  AT, NON-NEGOTIABLE PROCESS RULES) is preserved.
+- **CLAUDE.md**: removed the "read MASTER_PLAN/PROJECT_PLAN first" directives and the obsolete "Session Resume Context"
+  (data-model-migration) block + the stale DEVLOG-485/483 snapshots — 195 → 65 lines; TOP-LEVEL PLAN now points to
+  `resume-prompt.md` + `docs/COBOLNET_DESIGN.md`; STATE → DEVLOG 520; mission = full ISO-2023 + all prior editions.
+- **Obsolete plan docs** (`PROJECT_PLAN.md`, `docs/MASTER_PLAN.md`, `docs/DATA_MODEL_ARCHITECTURE.md`,
+  `docs/RECORD_STRUCT_STORAGE_DESIGN.md`, `docs/DATA_MODEL_REVIEW.md`): prepended a prominent ⛔ OBSOLETE/SUPERSEDED
+  banner (kept the files as DEVLOG-article historical record rather than deleting — say the word to delete outright).
+- **`docs/ISO2023_CONFORMANCE_PLAN.md`**: bannered PARTIALLY-SUPERSEDED — its data-model-migration framing is obsolete;
+  keep it ONLY for the M2/M3/M4 feature catalog.
+- **`docs/DOC_INDEX.md`**: "Start from" → resume-prompt + COBOLNET_DESIGN; the 5 plan-doc rows marked OBSOLETE; the
+  conformance-plan row → LEDGER (catalog-only); the "stack of record" note corrected (greenfield = Roslyn, not the
+  Mono.Cecil byte engine).
+- **MEMORY.md** (the per-session memory index): removed the 3 misleading byte-engine-plan entries (MASTER_PLAN-as-SSOT,
+  data-model-migration #1 priority, conformance-plan-as-migration) → one accurate greenfield-plan pointer; fixed the
+  dangling "7-stage plan below" + the north-star MASTER_PLAN reference.
+Doc-only; greenfield suites unaffected. (Folds in the Entry-521 resume-doc refresh + the RECEIVE-grep-artifact
+correction, below.)
+
+## Entry 521 — 2026-06-09 17:55 PDT — Session handoff: resume docs updated for the multi-edition mission
+
+Owner directive: get all session-resume docs updated so a fresh session continues from the current state to FULL
+ISO-2023 AND all prior-edition (85/2002/2014) support. Updated:
+- **`resume-prompt.md`** (the live kickoff): restated the MISSION as two interlocking tracks — T1 the
+  version-correctness framework (`VERSION_CHANGE_REFERENCE.md` + `VERSION_TEST_MATRIX_DESIGN.md`), T2 the feature/NIST
+  corpus drive; refreshed STATE to DEVLOG 520 (15 NC green, 307 conformance / 15 unit, CI fixed + greenfield gated,
+  default `--standard` 2023); added the VERSION-CORRECTNESS FRAMEWORK section incl. the DEVLOG-520 key finding (the
+  greenfield only ENABLES post-85 features — REMOVAL/reserved-word gating is absent, the Phase-2 `EditionValidator`
+  worklist); rewrote RESUME AT into TRACK 1 (version-matrix Phase 1/2) + TRACK 2 (the NC corpus drive, NC116A SIGN
+  precedence / NC219A collating / NC114M editing / NC171A Int128 / the verb backlog).
+- **`CLAUDE.md`**: STATE snapshot → DEVLOG 520; added the multi-edition mission + the two version docs.
+- **CORRECTION** (accuracy): the "RECEIVE is a data name in 4 NIST-85 programs" claim (advisor review / DEVLOG 519 /
+  the design doc) was a GREP ARTIFACT — the matches were `SPACING-RECEIVE` (hyphenated → a `\b` word-boundary false
+  match), NOT a bare-`RECEIVE` collision. The continuity sweep's zero NC breaks is consistent with no live collision.
+  INV-1 class (b) (later-reserved-word collisions) remains spec-correct but is currently LATENT in the NC corpus (and
+  the greenfield does not yet edition-gate reserved words anyway). Fixed the claim in `VERSION_TEST_MATRIX_DESIGN.md`.
+
+Doc-only. Tree green (conformance 307 / unit 15; legacy guard unaffected).
+
 ## Entry 520 — 2026-06-09 17:45 PDT — Default --standard → COBOL-2023 (owner decision); --nist ⇒ 85
 
 Implemented owner decision #2 (DEVLOG 519): an unflagged compile now targets the LATEST edition.

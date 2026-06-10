@@ -13,15 +13,17 @@ These are the rules the owner most insists on (repeatedly corrected). Full text 
 4. **Keep the deep-dive docs CURRENT** — when superseded, update the deep-dive in the same change set with the current
    design AND why the original wasn't followed.
 **Live kickoff = `resume-prompt.md`** (read it FIRST; its top STATE banner + the §"NON-NEGOTIABLE PROCESS RULES" block
-are current). The COBOL.NET rewrite SSOT is `docs/COBOLNET_DESIGN.md` (the PIVOT below); `docs/MASTER_PLAN.md` is the
-HISTORICAL byte-engine plan.
+are current). The COBOL.NET rewrite SSOT is `docs/COBOLNET_DESIGN.md` (the PIVOT below).
 
-## ⛔ TOP-LEVEL PLAN: read `docs/MASTER_PLAN.md` FIRST
-It is the single SSOT + autonomous-execution playbook to reach the North Star — a **commercial-quality,
-decades-sustainable, full ISO/IEC 1989:2023** COBOL compiler, **no back-compat (rewrite/re-architect anything),
-implemented with maximum autonomy + maximum practical parallelism.** MASTER_PLAN sequences every phase and
-orchestrates the prior planning/architecture docs (it does not reinvent them). `resume-prompt.md` and
-`docs/ISO2023_CONFORMANCE_PLAN.md` are sub-plans it points to. (memory `feedback_commercial_quality_north_star`.)
+## ⛔ TOP-LEVEL PLAN: read `resume-prompt.md` FIRST, then `docs/COBOLNET_DESIGN.md`
+The North Star is a **commercial-quality, decades-sustainable, full ISO/IEC 1989:2023 COBOL compiler with correct
+support for all prior editions (1985 / 2002 / 2014)** — implemented with maximum autonomy + practical parallelism, no
+back-compat. The live plan is **`resume-prompt.md`** (its two-track RESUME AT: the version-correctness framework + the
+feature/NIST corpus drive) over the SSOT **`docs/COBOLNET_DESIGN.md`**, validated by the VERSION TEST MATRIX
+(`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist `docs/VERSION_CHANGE_REFERENCE.md`.
+⛔ The pre-PIVOT **byte-engine plan docs are OBSOLETE** — `PROJECT_PLAN.md`, `docs/MASTER_PLAN.md`,
+`docs/DATA_MODEL_ARCHITECTURE.md`, `docs/RECORD_STRUCT_STORAGE_DESIGN.md`, `docs/DATA_MODEL_REVIEW.md` (each carries an
+OBSOLETE banner); do NOT follow them. (memory `feedback_commercial_quality_north_star`.)
 
 ## 🗺 DOC MAP: read `docs/DOC_INDEX.md` to navigate the docs
 The index of all docs (~126) — each doc's subject, type (LIVE/DESIGN/LEDGER/SPEC), and a maintenance guide. **Consult
@@ -32,8 +34,6 @@ new index row.
 Read PROMPT.md before making any code change. It contains architectural doctrine and development
 rules derived from 13+ sessions of building this compiler. Every rule exists because it was
 violated and corrected. They are non-negotiable.
-
-Read PROJECT_PLAN.md to understand current status and next steps.
 
 Read DEVLOG.md for context on recent decisions, failures, and design rationale. **DEVLOG.md is in DESCENDING order —
 newest entry FIRST** (the latest `## Entry` is immediately below the preamble's `> **Ordering: DESCENDING**` note;
@@ -54,138 +54,12 @@ native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO
 reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
 `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
 [[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a differential oracle until cut-over
-(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 511): G1 ✅, G0 ✅, G2 ✅, G3-core ✅,
-G4 ✅, G5 sequential file I/O ✅, G6-core ✅, REDEFINES Tier A+B ✅. The differential harness drives the real NIST
-corpus — 8 NC programs byte-match the golden (NC101A + NC110M/111A/112A/113M/127A/136A + NC211A, the first nucleus
-CONDITIONAL program); 283 conformance + 14 unit green. See `resume-prompt.md` (live SSOT) for the current STATE +
-RESUME AT.** The (now-historical) DEVLOG-485 snapshot: figurative-constant operands + compiler crash-proofing
-(§1.4); **G4 = the PC dispatcher is DONE** (`__Dispatch` w/ paragraphs as pc cases; GO TO / DEPENDING / fall-through /
-out-of-line PERFORM-THRU-TIMES-UNTIL as recursive bounded dispatch / EXIT PARAGRAPH; `__`-prefixed internals avoid
-COBOL-field collisions). Out-of-line-PERFORM double-execution FIXED. **NC101A now compiles with only 3 unsupported
-statements** (OPEN/CLOSE/WRITE = G5) + 106 whole-group MOVE (G6). **RESUME AT → G5 (file I/O, §8) + G6 (whole-group
-MOVE via generated `AsImage`/`FromImage`, §14.4)** to unblock the first full NC program. (The DEVLOG-483 snapshot
-below has the architecture detail.) **STATE (DEVLOG 483): G1 ✅, G0 ✅, G2 FOUNDATION ✅.**
-The parse-tree-walk emitter is RETIRED → real bound semantic tree (`Binding/Bound/`: `BoundProgram` +
-`StatementBinder` + bound nodes + `Bound*Error` loud-failure) rendered by a §17 §2.2-decomposed backend
-(`CodeGen/Emit/`: `EmissionContext` + `NumericRenderer`/`ConditionRenderer`/`OperandText`/`FieldEmitter` + a 239-line
-orchestrator; no god class). Typed-native data model: groups→`record struct`, OCCURS→`T[]`+subscripts (ported SUB_*),
-`Place`/`ReferenceResolver` (unqualified + OF/IN), figurative VALUE, signed-DISPLAY (`NumProfile.SignKind`:
-over-punch/separate/binary-minus), level-88 + sign conditions, INDEXED BY, loud-failure (§1.4 `NotImplemented`).
-The differential harness is LIVE (`tests/Cobol.Net.Tests.Conformance/`: `LegacyCompiler` oracle vs `CobolNetCompiler`,
-NIST-acceptance-basis compare; 93 G2-scope tests green). Numerics still `long`-only (Int128/`CobolInt` deferred per
-§18 #4). RESUME AT → (a) small G2 tails: ref-mod `(s:l)` (G2-1c, needs `CobolString.RefMod`/`SpliceInto`; binder
-already detects the depth-0 SUB_COLON) + class conditions (IS NUMERIC/ALPHABETIC); then G3 (`CobolInt`/Int128 engine
-+ `TryStore` + ROUNDED + ON SIZE ERROR + INSPECT/STRING/UNSTRING + `CobolEdit`) and G4 (PC dispatcher — replaces the
-sequential-paragraph stopgap; out-of-line PERFORM+fall-through double-executes today) → G5 drive 364-NIST via the
-differential harness.** Everything below is the
-HISTORICAL byte-engine plan (architecture/backend SUPERSEDED; the COBOL feature surface + the NIST/conformance
-corpus remain the oracle).
-
-## Session Resume Context (updated 2026-06-06)
-
-**→ Start a new session from `resume-prompt.md` (repo root).** The single live plan is
-`docs/ISO2023_CONFORMANCE_PLAN.md` (its **§0.5** holds the current top priority).
-
-### #1 PRIORITY: the .NET-native data-model migration
-The owner approved a foundational re-architecture to **"the best native .NET implementation of COBOL."** **Do this
-FIRST, ahead of all remaining conformance features**, then keep every currently-passing test green at 100% (fixing
-bugs as they surface), running autonomously with all appropriate parallelism. The design is settled and reviewed:
-`docs/DATA_MODEL_ARCHITECTURE.md` (the ADR — typed-native `record struct`s; `long`/`decimal`/`bool`; character →
-`string` (UTF-16); byte image only as a classifier-scoped REDEFINES/file/hot-loop fallback; pointers → managed
-refs; OO → .NET classes) + `docs/DATA_MODEL_REVIEW.md` (the adversarial review). **Do not re-litigate it** (the
-owner co-authored it, DEVLOG 393); implement its 7-stage migration (ADR §10), guard-green at every step, character
-data first. Resolve the owner-gated decisions per ADR §12 (numeric substrate = `BigInteger` before Stage 1;
-classifier-trigger completeness before any Stage-3 typed flip).
-
-### Current State (updated 2026-06-08, DEVLOG 456; latest commit `a10bda9`, branch `main`, tree clean)
-- **→ The live kickoff prompt is `resume-prompt.md` (repo root). Read it first.** This block is a snapshot.
-- **Branch**: main; guard ALL GREEN — **1204 unit / 535 integration / 364 NIST** (`bash scripts/guard.sh`, or the
-  ~3.3-min parallel `scripts/guard-fast.sh`); baselines 0 FAIL*. Stack: **.NET 10 / C# 14**.
-- **DEVLOG at entry 456.** M1 (COBOL-85) complete; M2 (COBOL-2002) in progress.
-- ⛔ **OWNER DIRECTIVE (2026-06-08): OO is TYPED-NATIVE per ADR §7 — object data → per-instance typed .NET fields,
-  methods → real .NET methods, INVOKE → callvirt; NEVER the byte `State`. The `EnableTypedFields` default-OFF gate is
-  migration-safety for the LEGACY corpus, NOT design intent — OO is an always-on consumer of the typed pipeline.**
-  Tests may break temporarily mid-migration; bar = ALL green at completion. (Memory `feedback_oo_typed_native_not_byte`.)
-- **Data-model migration (for PROGRAMS): CORE done through Stage-4** (gated `EnableTypedFields`, default OFF → corpus
-  byte-identical): character→`string`, numeric→`long`/`decimal`, flat+nested groups→`record struct`, fixed
-  OCCURS→`T[]`, and **pointers→`ManagedPointer`**. Global flip-on + island-the-byte-engine is Stage-6/B3 (future).
-- **Phase A done** (DEVLOG 445–446): CLI `--standard`→DialectLevel verified + regression net; **CI enabled**.
-- **OO TYPED-NATIVE — object data model COMPLETE + multi-method + INVOKE SELF (DEVLOG 453–456):**
-  - Object data → per-instance typed .NET fields: `PIC X`→instance `string` (453), `PIC 9`→instance `long`/`decimal`
-    (454), `01` group→instance `record struct` + `OCCURS`→instance typed array (456). Byte `State` empty on a
-    fully-typed class. Instance dimension via the `CilDataEmitter.EmitTypedFieldOwner` chokepoint; also filled the
-    general typed-numeric→byte MOVE cell (454).
-  - Multi-method classes + INVOKE SELF (455): N `METHOD-ID`/class (each its own .NET method, exit-bounded dispatch;
-    per-method paragraph scope fixes CBL3104), `INVOKE SELF`→`callvirt` incl. polymorphic across INHERITS
-    (COBOL0112 lifted). 3-agent adversarial panel → edge gaps fail LOUD: **COBOL0116** (SECTION-in-method),
-    **COBOL0117** (multi-method class WITH method params — per-method LINKAGE is a later slice).
-  - Earlier OO (447–451, now on the typed path): NEW, INVOKE USING/RETURNING, OBJECT REFERENCE, INHERITS+virtual,
-    INVOKE SUPER. Deferred loud: COBOL0111/0113/0114/0115/0116/0117.
-  - Conformance (9): `oo_hello`/`oo_method_perform`/`oo_method_args`/`oo_inherit`/`oo_super`/`oo_instance_data`/
-    `oo_self`/`oo_self_polymorphic`/`oo_object_group` + `OoTests`.
-- **RESUME AT → (a) subclass own typed OBJECT data** (lift COBOL0113 — emit the subclass's own typed instance fields
-  + init in the subclass ctor; factor the typed field-defs + typed-init out of `CilEmitter.EmitProgramState`; reject
-  byte-island subclass data which has no own State); **(b) per-method LINKAGE** (multi-method-with-args, lifts
-  COBOL0117) + typed-field-by-reference INVOKE args; **(c) FACTORY**; then 5 PROPERTY / 6 universal-ref+EC; then the
-  remaining M2/M3/M4 catalog (`docs/ISO2023_CONFORMANCE_PLAN.md` §3). Then Stage-5 Roslyn backend, Stage-6 finalize +
-  flip-on + rename `CobolSharp`→`COBOL.NET` (exe `cobol.exe`). See `resume-prompt.md` + `docs/OO_IMPLEMENTATION_DESIGN.md` §5.
-- The blocks below are HISTORICAL (2026-05 / 2026-03 sessions); see `resume-prompt.md` + DEVLOG for everything since.
-
-### (historical) Current State as of 2026-03-28
-- **Unit tests**: 421 pass · **Integration**: 274 · **NIST**: 95 in guard
-- **Intrinsic functions**: 94/94 dispatched · **Source of truth**: GRAMMAR_AUDIT.md
-
-### What was done this session (2026-03-27/28/29)
-- **NIST expansion (65→95)**: 30 new tests via grammar fixes (DISPLAY UPON, SET ON/OFF,
-  WRITE ADVANCING, STRING/UNSTRING, INSPECT, IS >= operator, ACCEPT FROM, PIC lexer,
-  preprocessor continuation, VALUE THRU negative numbers), semantic fixes (comparisons,
-  REDEFINES, RENAMES, EVALUATE, ALPHABET, qualified names), ZERO_ARITH token rewriting,
-  SLL two-stage parsing (6× speedup), PERFORM VARYING subscripted FROM/BY fix.
-- **Spec compliance audit**: 8 parallel agents audited entire compiler vs ISO spec
-- **P0 bug sweep**: 8 critical bugs fixed (OPEN multi-clause, READ INVALID KEY,
-  NumericEdited MOVE, LOCAL-STORAGE routing, file status codes, etc.)
-- **P1 bug sweep**: 12 wrong-computation bugs fixed (PERFORM TEST AFTER, MOVE
-  subscript eval, INTEGER/MOD intrinsics, signed DISPLAY default, etc.)
-- **P2 feature sweep**: 14 COBOL-85 required features implemented (SORT/MERGE,
-  Alphabetic category, CLASS/SYMBOLIC/ALPHABET, EXIT CYCLE, ODO runtime, etc.)
-- **Remaining gaps**: 12 partial implementations completed (SYNCHRONIZED, COMP-1/2
-  IEEE 754, LOCAL-STORAGE re-init, EXTERNAL shared storage, file status codes, etc.)
-- **Intrinsic functions**: Full binder pipeline wired, 94/94 functions dispatched,
-  all stubs replaced, reserved word conflicts fixed, 212 tests added
-- **Grammar audit**: 10 agents did token-by-token grammar-vs-spec comparison,
-  version-categorized all ~300 mismatches (138 COBOL-85, 122 COBOL-2002, 42 COBOL-2023)
-- **Grammar fixes**: 7 agents fixed ~70 COBOL-85 grammar gaps (45 lexer tokens,
-  FD clauses, INITIALIZE, CORR, exponentiation, ALPHABET, empty paragraphs, etc.)
-- **Nested programs**: Grammar + multi-program compilation pipeline
-- **Doc cleanup**: Deleted 6 obsolete .md files, consolidated audit docs into
-  single GRAMMAR_AUDIT.md, updated README/PROJECT_PLAN
-
-### Key architectural decisions
-- SUBSCRIPT lexer mode for spec-true COBOL-85 subscript parsing (Entry 150)
-- CobolLexer.g4 co-located with parser fragments in Core/ for IDE support
-- SortRuntime.cs: in-memory sort (external merge sort deferred)
-- ExternalStorage.cs: ConcurrentDictionary for EXTERNAL shared storage
-- IrCachedLocation: ensures MOVE source evaluated once for multi-target
-- GRAMMAR_AUDIT.md is the single source of truth for compliance
-
-### Next session: Iterative audit-fix-verify loop
-The user requested a looping process:
-1. **Audit team**: agents compare grammar + compiler against spec + GRAMMAR_AUDIT.md
-2. **Fix team**: agents correct any gaps found
-3. **Verify**: build + test + guard
-4. **Repeat** until audit finds zero gaps
-
-~56 COBOL-85 grammar gaps remain (of ~138 identified). Key items FIXED this session:
-- DISPLAY UPON/NO ADVANCING, SET TO ON/OFF, WRITE ADVANCING optional, STRING/UNSTRING optionality,
-  INSPECT FOR+, IS >= operator, ACCEPT FROM mnemonic-name (all done)
-Key remaining items:
-- WRITE/REWRITE FILE form, retry-phrase, locking
-- SORT table format (Format 2)
-- USE GLOBAL/EXCEPTION/INPUT-OUTPUT modes
-- START WITH LENGTH
-- CURRENCY WITH PICTURE SYMBOL (blocked by PICMODE lexer architecture)
-- NC220M/NC237A runtime hangs (undiagnosed)
-- All 95 NC-series NIST tests pass (was 65 at session start)
-- Remaining non-NC suites (IC, IF, IX, SQ, ST, etc.) not yet attempted
-- Key infrastructure: ZERO_ARITH token rewriter, SLL+BailErrorStrategy parsing,
-  PIC_STRING lexer action for trailing period, preprocessor continuation trailing space fix
+(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 520): G1 ✅, G0 ✅, G2 ✅, G3-core ✅,
+G4 ✅, G5 sequential file I/O ✅, G6-core ✅, REDEFINES Tier A+B ✅, ON SIZE ERROR ✅, PICTURE P ✅, signed→alphanumeric
+de-sign COMPLETE ✅. The differential harness drives the real NIST corpus — 15 NC programs byte-match the golden;
+307 conformance + 15 unit green. CI fixed + greenfield suites now gated in CI (DEVLOG 512/515).** ⛔ **MISSION now =
+full ISO-2023 AND all prior editions (85/2002/2014), validated by the VERSION TEST MATRIX (test as N per-edition
+compilers): `docs/VERSION_CHANGE_REFERENCE.md` (130-row edition-change checklist) + `docs/VERSION_TEST_MATRIX_DESIGN.md`
+(matrix design, Phase 0 done). Default `--standard` is now COBOL-2023. Memories `feedback_version_test_matrix`,
+`feedback_version_targeted_semantics`.** **See `resume-prompt.md` (live SSOT) for the current STATE + the two-track
+RESUME AT.**

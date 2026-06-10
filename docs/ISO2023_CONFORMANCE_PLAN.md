@@ -1,5 +1,12 @@
 # COBOL.NET — ISO/IEC 1989:2023 Conformance Plan (SINGLE SOURCE OF TRUTH)
 
+> ⚠️ **PARTIALLY SUPERSEDED (2026-06-09, DEVLOG 521).** This doc predates the greenfield PIVOT (DEVLOG 457): its
+> framing — the byte-engine "data-model migration" being the #1 priority before conformance (§0 / §0.5), stages,
+> EnableTypedFields, "island the byte engine" — is **OBSOLETE** (the greenfield is born typed-native; there is no
+> migration). **Use this doc ONLY for the M2/M3/M4 FEATURE CATALOG (the still-valid list of post-85 features to
+> implement).** The live plan is `resume-prompt.md` (two-track RESUME AT) over the SSOT `docs/COBOLNET_DESIGN.md`;
+> multi-edition correctness is driven by `docs/VERSION_TEST_MATRIX_DESIGN.md` / `docs/VERSION_CHANGE_REFERENCE.md`.
+
 > **Purpose.** This is the durable, authoritative work-breakdown to take the compiler to **complete,
 > production-quality ISO/IEC 1989:2023 COBOL support**. Work *from* this document — do **not** re-run the gap
 > analysis each session (it has been done at least three times). When an item lands, tick it here in the same

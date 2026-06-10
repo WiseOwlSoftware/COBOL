@@ -1,3 +1,10 @@
+> ⛔ **OBSOLETE / SUPERSEDED (2026-06-09, DEVLOG 521) — pre-PIVOT byte-engine sub-plan. DO NOT FOLLOW.**
+> The project PIVOTED (DEVLOG 457) to a blank-slate GREENFIELD rewrite — COBOL → typed-native C# via Roslyn, with NO
+> byte engine and NO data-model "migration". This document predates / contradicts that pivot. The live plan is
+> `resume-prompt.md` + the SSOT `docs/COBOLNET_DESIGN.md`; multi-edition support is driven by
+> `docs/VERSION_TEST_MATRIX_DESIGN.md` against `docs/VERSION_CHANGE_REFERENCE.md`. Retained only as a historical
+> record (DEVLOG-article source material).
+
 # DATA_MODEL_ARCHITECTURE.md — Adversarial Review Report
 
 **Reviewed document:** `E:\CobolSharp\docs\DATA_MODEL_ARCHITECTURE.md`

@@ -21,20 +21,21 @@
 > `COBOLNET_PROJECT_ORG_DESIGN.md`. **Keep each subsystem deep-dive as the one canonical doc for its subsystem.**
 
 ## How to use & maintain the docs
-- **Start from `docs/MASTER_PLAN.md`** — the top-level SSOT + execution playbook. The **§1 LIVE plan/status SSOTs**
-  drive the work and must be kept current every session (tick items, update status + DEVLOG).
+- **Start from `resume-prompt.md`** (the live session kickoff — two-track RESUME AT) over the SSOT
+  **`docs/COBOLNET_DESIGN.md`** (the greenfield rewrite). ⛔ The pre-PIVOT byte-engine plan docs (`PROJECT_PLAN.md`,
+  `docs/MASTER_PLAN.md`, `docs/DATA_MODEL_ARCHITECTURE.md`, `docs/RECORD_STRUCT_STORAGE_DESIGN.md`,
+  `docs/DATA_MODEL_REVIEW.md`) are **OBSOLETE** (each carries an OBSOLETE banner) — do not use them.
 - **Subsystem design-references (§5)** are *target designs*; each opens with a status banner stating its **real
   implementation status**. **When you change a subsystem, update its one canonical design-reference** and flip its
   banner status as the feature lands. There is exactly **one canonical per subsystem** — extend it, never fork a
   second doc for the same subsystem.
 - **Adding a new subsystem/feature?** Create **one** doc in the right section, give it a status banner (subject ·
-  real status · stack `.NET 10` / `C# 14` · backend CIL-only via Mono.Cecil · pointer to `MASTER_PLAN.md`), and **add a
-  row here**.
+  real status · stack `.NET 10` / `C# 14` · pointer to `docs/COBOLNET_DESIGN.md`), and **add a row here**.
 - **Ledgers (§7)** are historical/status records — *append*, don’t rewrite history. **Spec text (§8)** is the ISO
   source — reference only.
-- **Stack of record:** `.NET 10` / `C# 14`; backend **CIL-only via Mono.Cecil** (no custom VM); pointers = one
-  `ManagedPointer`. Don’t reintroduce stale facts (`.NET 9`, `C# 13`, 8-byte pointer handle, `PointerRegistry`,
-  `CobolDataPointer`, "CilEmitter god class").
+- **Stack of record (greenfield):** `.NET 10` / `C# 14`; backend = **C# source compiled by Roslyn** (the greenfield
+  `src/Cobol.Net.*`; the legacy Mono.Cecil/CIL byte engine survives only as a differential oracle until G8). Don’t
+  reintroduce stale facts (`.NET 9`, `C# 13`).
 
 **Type legend:** **LIVE** = grounded/binding, keep current · **DESIGN** = target design (banner shows real status) ·
 **LEDGER** = historical/status record · **SPEC** = ISO reference.
@@ -45,16 +46,16 @@
 | Doc | Type | Subject |
 |---|---|---|
 | `DEVLOG.md` | LIVE | Narrative of decisions, failures, and breakthroughs (the dev log). **DESCENDING order — newest entry FIRST** (latest `## Entry` is just below the preamble's `Ordering: DESCENDING` note; oldest at the end). Add new entries at the top. |
-| `PROJECT_PLAN.md` | LIVE | Project status, KTDs (key technical decisions 1–5), and the per-session log. |
+| `PROJECT_PLAN.md` | OBSOLETE | ⛔ Pre-PIVOT byte-engine plan — superseded by the greenfield rewrite; do not follow (banner inside). Live plan: `resume-prompt.md` + `docs/COBOLNET_DESIGN.md`. |
 | `docs/ARCHITECTURE_ASSESSMENT.md` | LIVE | Evidence-based architecture audit + P0–P6 commercial-hardening roadmap (2026-06-03). |
 | `docs/COBOL85_COMPLIANCE_PLAN.md` | LIVE | M1 (COBOL-85) 100% execution plan — the 3-axis model (baseline / flagging / spec-completeness). |
-| `docs/DATA_MODEL_ARCHITECTURE.md` | LIVE | The typed-native data-model ADR (records→record struct, char→string, numeric→long/decimal, pointers→ManagedPointer) — SETTLED, do not re-litigate. |
-| `docs/DATA_MODEL_REVIEW.md` | LIVE | Adversarial review of the data-model ADR (companion to DATA_MODEL_ARCHITECTURE). |
-| `docs/ISO2023_CONFORMANCE_PLAN.md` | LIVE | THE conformance work-breakdown to full ISO-2023 (ranked M2/M3/M4 + execution waves) — the Phase-C SSOT; execute it, don’t re-audit. |
-| `docs/MASTER_PLAN.md` | LIVE | THE top-level SSOT + autonomous-execution playbook (North Star, phased roadmap A–F, doc index, grounded assessment). Start here. |
+| `docs/DATA_MODEL_ARCHITECTURE.md` | OBSOLETE | ⛔ Pre-PIVOT byte-engine→typed MIGRATION ADR — superseded; the greenfield is born typed-native (SSOT `docs/COBOLNET_DESIGN.md`). Banner inside. |
+| `docs/DATA_MODEL_REVIEW.md` | OBSOLETE | ⛔ Review of the obsolete migration ADR — superseded (banner inside). |
+| `docs/ISO2023_CONFORMANCE_PLAN.md` | LEDGER | M2/M3/M4 FEATURE CATALOG (still useful — the post-85 features to implement). ⚠ Its data-model-migration framing is OBSOLETE (banner inside); live plan = `resume-prompt.md` + `docs/COBOLNET_DESIGN.md`. |
+| `docs/MASTER_PLAN.md` | OBSOLETE | ⛔ Pre-PIVOT byte-engine master plan (phased A–F with a data-model "migration") — superseded by the greenfield pivot; do not follow (banner inside). Live plan: `resume-prompt.md`. |
 | `docs/MULTIVERSION_ROADMAP.md` | LIVE | High-level milestone view of the 1985→2023 multi-version drive (M0→M4). |
 | `docs/OO_IMPLEMENTATION_DESIGN.md` | LIVE | LIVE OO turnkey design (§6.6 slice-1 map) + the consolidated OO subsystem canonical; grammar done, semantic/emit pending. |
-| `docs/RECORD_STRUCT_STORAGE_DESIGN.md` | LIVE | The 7-stage data-model migration roadmap (record-struct storage; pointers done; Stage 5/6 + byte-engine islanding ahead). |
+| `docs/RECORD_STRUCT_STORAGE_DESIGN.md` | OBSOLETE | ⛔ Pre-PIVOT 7-stage byte-engine→record-struct migration roadmap — superseded; the greenfield needs no migration (banner inside). |
 
 ## 2. Doctrine & process — rules of engagement
 

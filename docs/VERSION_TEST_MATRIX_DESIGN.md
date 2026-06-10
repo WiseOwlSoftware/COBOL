@@ -55,10 +55,14 @@ A cell is *green* when the actual outcome equals `f(case, V)`.
   words/names"). A compile failure at a later edition is conformant **only if it traces to a reference-doc removal row
   (a) or new-reserved-word row (b)**; any other failure is a **regression**, not conformance. (Owner's rule: "the ones
   that do not [work later] must have been deprecated by that later version for the failure to be correct.")
-  > **This is LIVE, not hypothetical:** `RECEIVE` is used as a data name in **4 NIST-85 programs** and is a NEW reserved
-  > word in 2023 (reference-doc Row 32) — those programs MUST compile at 85/2002/2014 and be **rejected at 2023**. The
-  > naive "unless `removedIn ≤ V`" form would wrongly flag them as regressions. INV-1's class (b) is what makes the
-  > rejection conformant.
+  > **Why class (b) matters (and a corrected datum):** a program using a word newly reserved in 2023 (Row 32 —
+  > B-SHIFT-*, COMMIT, RECEIVE, SEND, XOR, …) as a user-defined name must compile pre-2023 and be **rejected at 2023**;
+  > the naive "unless `removedIn ≤ V`" form would wrongly flag it as a regression. ⚠ An earlier note claimed `RECEIVE`
+  > is a data name in 4 NIST-85 programs — that was a **grep artifact** (`SPACING-RECEIVE`, hyphenated → a word-boundary
+  > false match), NOT a bare collision; the DEVLOG-520 continuity sweep found **zero** NC breaks at 2023, consistent
+  > with no live collision. So class (b) is currently **latent** in the NC corpus (the greenfield also does not yet
+  > edition-gate reserved words — DEVLOG 520) — exercise it with a synthetic case and confirm against the full corpus
+  > once the `EditionValidator` reserves words by edition.
 - **INV-2 — Introduction-gating.** ∀ construct C introduced in edition E and ∀ V < E: C is **rejected** at V with the
   edition diagnostic. (A word newly reserved in 2023 is still usable as a user-defined name at 85/2002/2014.)
 - **INV-3 — Behavior-correctness.** ∀ behavior-variant construct and ∀ valid V: the output equals `behaviorVariants[V]`
