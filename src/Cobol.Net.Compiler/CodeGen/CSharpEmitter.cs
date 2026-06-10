@@ -437,13 +437,20 @@ public sealed class CSharpEmitter
     private void EmitOutOfLinePerform(BoundOutOfLinePerform p) =>
         EmitPerform(p.Control, () => _ctx.Writer.Line($"__Dispatch({p.StartPc}, {p.EndPc});"), inline: false);
 
+    private int _loopCounter;   // unique names for PERFORM TIMES loop locals (nested inline performs must not collide)
+
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
     {
         var w = _ctx.Writer;
         switch (control)
         {
             case PerformTimes t:
-                using (w.Block($"for (long _i = 0; _i < {CountExpr(t.Count)}; _i++)")) body();
+                // The TIMES count is determined ONCE at the start of the PERFORM (ISO §14.9.28 GR7) — the body
+                // modifying the count item must not change the iteration count (NC102A PFM-TEST-F2-6); a zero or
+                // negative count runs the body zero times.
+                int id = _loopCounter++;
+                w.Line($"long __n{id} = {CountExpr(t.Count)};");
+                using (w.Block($"for (long __i{id} = 0; __i{id} < __n{id}; __i{id}++)")) body();
                 break;
             case PerformUntil u when u.TestAfter:
                 using (w.Block("do")) body();

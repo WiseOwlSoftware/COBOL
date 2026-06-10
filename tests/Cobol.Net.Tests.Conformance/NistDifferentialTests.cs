@@ -49,6 +49,13 @@ public sealed class NistDifferentialTests
     [InlineData("NC137A")]   // SET + relative index subscripting
     [InlineData("NC141A")]   // SET + multi-dimensional table indexing
     [InlineData("NC248A")]   // SET + table relation conditions
+    // Greened by sections-as-procedure-targets + qualified procedure-names (ISO §14.4.3/§14.9.17/§14.9.28/§8.4.2.2)
+    // + the PERFORM TIMES once-evaluated count (§14.9.28 GR7) — DEVLOG 527.
+    [InlineData("NC102A")]   // PERFORM/GO TO torture: sections, inverted THRU ranges, TIMES with body-modified counts
+    [InlineData("NC138A")]   // GO TO section-name
+    [InlineData("NC139A")]   // SET + GO TO section-name
+    [InlineData("NC140A")]   // SET + GO TO section-name
+    [InlineData("NC245A")]   // SET + GO TO section-name (table series)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

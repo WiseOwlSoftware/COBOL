@@ -18,6 +18,21 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
 {
     private readonly List<(string Cobol, string Method, Core.ParagraphDefinitionContext Ctx)> _paras = [];
     private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, SectionInfo> _sections = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<SectionInfo?> _paraSection = [];   // per-pc owning section (parallel to _paras)
+    private SectionInfo? _currentSection;                     // the section whose paragraph is being bound
+
+    /// <summary>A PROCEDURE DIVISION section (ISO §14.4.3): its contiguous paragraph pc range — paragraphs flatten
+    /// into the one pc sequence in source order, so a section IS the inclusive range [StartPc, EndPc] (empty section
+    /// ⇒ StartPc &gt; EndPc) — and its own paragraph map for qualified procedure-name resolution (ISO §8.4.2.2:
+    /// <c>para OF section</c>, and the same-section implicit resolution of duplicated paragraph names).</summary>
+    private sealed class SectionInfo(string name, int startPc)
+    {
+        public string Name { get; } = name;
+        public int StartPc { get; } = startPc;
+        public int EndPc { get; set; } = startPc - 1;
+        public Dictionary<string, int> Paras { get; } = new(StringComparer.OrdinalIgnoreCase);
+    }
 
     /// <summary>Bind a program unit's PROCEDURE DIVISION into a <see cref="BoundProgram"/>.</summary>
     public BoundProgram Bind(Core.ProgramUnitContext program)
@@ -26,38 +41,69 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         CollectParagraphs(pd);
 
         var bound = new List<BoundParagraph>(_paras.Count);
-        foreach (var (cobol, _, ctx) in _paras)
+        for (int i = 0; i < _paras.Count; i++)
         {
+            _currentSection = _paraSection[i];   // ISO §8.4.2.2 — unqualified names resolve in-section first
             var stmts = new List<BoundStatement>();
-            foreach (var sentence in ctx.sentence())
+            foreach (var sentence in _paras[i].Ctx.sentence())
                 foreach (var statement in sentence.statement())
                     stmts.Add(BindStatement(statement));
-            bound.Add(new BoundParagraph(cobol, stmts));
+            bound.Add(new BoundParagraph(_paras[i].Cobol, stmts));
         }
+        _currentSection = null;
         return new BoundProgram(bound);
     }
 
-    // ── Paragraph table ────────────────────────────────────────────────────────────────────────────────────
+    // ── Procedure table (paragraphs + sections, ISO §14.4.3 / §8.4.2.2) ─────────────────────────────────────
 
     private void CollectParagraphs(Core.ProcedureDivisionContext pd)
     {
         var used = new HashSet<string>(StringComparer.Ordinal);
-        void Add(Core.ParagraphDefinitionContext p)
+        void Add(Core.ParagraphDefinitionContext p, SectionInfo? section)
         {
             string name = p.paragraphName().GetText();
             string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
             string method = baseName;
             for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
-            _paraIndex.TryAdd(name, _paras.Count);   // first definition wins for PERFORM resolution
+            _paraIndex.TryAdd(name, _paras.Count);     // first definition wins for the global fallback
+            section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
+            _paraSection.Add(section);
             _paras.Add((name, method, p));
         }
 
         foreach (var unit in pd.procedureUnit())
         {
-            if (unit.paragraphDefinition() is { } para) Add(para);
+            if (unit.paragraphDefinition() is { } para) Add(para, null);
             else if (unit.sectionDefinition() is { } section)
-                foreach (var p in section.paragraphDefinition()) Add(p);
+            {
+                // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
+                // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
+                // statement of its first paragraph through last statement of its last (ISO §14.9.28).
+                var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
+                foreach (var p in section.paragraphDefinition()) Add(p, info);
+                info.EndPc = _paras.Count - 1;
+                _sections.TryAdd(info.Name, info);
+            }
         }
+    }
+
+    /// <summary>Resolve a procedure-name reference to its inclusive pc range (ISO §8.4.2.2): a section name is its
+    /// paragraph range; a paragraph is (pc, pc). The head/qualifier are taken from the context's CHILDREN — never
+    /// <c>GetText()</c> of the whole context, which concatenates <c>PAR-1A OF SEC-1</c> into an unmatchable key.
+    /// Resolution order: explicit <c>OF/IN section</c> qualifier → the named section's own map; unqualified → a
+    /// paragraph of the CURRENT section (implicit qualification of duplicated names), then the global first-defined
+    /// paragraph, then a section name. Null when unknown (the caller fails loud).</summary>
+    private (int Start, int End)? ResolveProcedure(Core.ProcedureNameContext ctx)
+    {
+        string head = ctx.GetChild(0).GetText();
+        string? qualifier = ctx.ChildCount >= 3 ? ctx.GetChild(2).GetText() : null;
+        if (qualifier is not null)
+            return _sections.TryGetValue(qualifier, out var q) && q.Paras.TryGetValue(head, out int qpc)
+                ? (qpc, qpc) : null;
+        if (_currentSection is { } cur && cur.Paras.TryGetValue(head, out int local)) return (local, local);
+        if (_paraIndex.TryGetValue(head, out int pc)) return (pc, pc);
+        if (_sections.TryGetValue(head, out var sec)) return (sec.StartPc, sec.EndPc);
+        return null;
     }
 
     /// <summary>The emitted paragraphs (name + method + statements), exposed for the backend's method loop.</summary>
@@ -100,15 +146,16 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
             var targets = new List<int>();
             foreach (var n in names)
             {
-                if (PcOf(n.GetText()) is not { } pc) return new BoundUnsupported($"GO TO unknown paragraph '{n.GetText()}'");
-                targets.Add(pc);
+                // A section target transfers to its first paragraph (ISO §14.9.17 GR1).
+                if (ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'");
+                targets.Add(range.Start);
             }
             return new BoundGoToDepending(FieldOperand(sel), targets);
         }
         if (names.Length == 0) return new BoundUnsupported("GO TO (altered / no target)");   // ALTER form — later
-        return PcOf(names[0].GetText()) is { } target
-            ? new BoundGoTo(target)
-            : new BoundUnsupported($"GO TO unknown paragraph '{names[0].GetText()}'");
+        return ResolveProcedure(names[0]) is { } target
+            ? new BoundGoTo(target.Start)
+            : new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'");
     }
 
     private static BoundStatement BindExit(Core.ExitStatementContext e)
@@ -120,9 +167,6 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         if (e.METHOD() is not null || e.FUNCTION() is not null) return new BoundUnsupported("EXIT METHOD/FUNCTION");
         return new BoundNop();   // bare EXIT
     }
-
-    /// <summary>The pc index a paragraph name resolves to, or null if unknown.</summary>
-    private int? PcOf(string name) => _paraIndex.TryGetValue(name, out int i) ? i : null;
 
     // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────
 
@@ -380,15 +424,21 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         if (names.Length == 0)
             return new BoundInlinePerform(BindPerformControl(p), BindBlocks(p.statementBlock()));
 
-        // Out-of-line: the resolved pc range [start, end] — a single paragraph (start==end) or the THRU range.
-        if (PcOf(names[0].GetText()) is not { } start)
-            return new BoundUnsupported($"PERFORM unknown paragraph '{names[0].GetText()}'");
-        int end = start;
+        // Out-of-line: the resolved pc range [start, end] — a paragraph (start==end), a SECTION (its whole
+        // paragraph range, ISO §14.9.28 — first statement of its first paragraph through last of its last), or
+        // the THRU composition (first procedure's start through the last procedure's end).
+        if (ResolveProcedure(names[0]) is not { } first)
+            return new BoundUnsupported($"PERFORM unknown procedure '{names[0].GetText()}'");
+        (int start, int end) = first;
         if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
         {
-            if (PcOf(names[1].GetText()) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown paragraph '{names[1].GetText()}'");
-            end = thru;
+            if (ResolveProcedure(names[1]) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown procedure '{names[1].GetText()}'");
+            // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — NC102A
+            // PFM-TEST-F1-10) is legal: the dispatcher returns when the exit procedure completes, wherever it is.
+            end = thru.End;
         }
+        else if (start > end)
+            return new BoundNop();   // PERFORM of an EMPTY section runs nothing (no first statement, ISO §14.9.28)
 
         return new BoundOutOfLinePerform(start, end, BindPerformControl(p));
     }
