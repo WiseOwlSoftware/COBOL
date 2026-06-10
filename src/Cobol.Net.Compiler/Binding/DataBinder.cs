@@ -102,6 +102,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         InheritSignClauses();
         ResolveRedefines();
         ClassifyRedefinesClasses();
+        OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
         ResolveFiles();
     }
 
@@ -333,6 +334,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
         int? occurs = null;
+        OccursSpec? occursSpec = null;
         var indexNames = new List<string>();
         SignSpec? ownSign = null;
         bool justified = false, blankWhenZero = false;
@@ -358,8 +360,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
                 else if (clause.occursClause() is { } occ)
                 {
-                    if (occ.integerLiteral() is { Length: > 0 } lits && int.TryParse(lits[0].GetText(), out int n))
+                    // Allocate at the table's MAXIMUM occurrence count — the last integer literal (integer-2 for a
+                    // Format-2 `n TO m` table, the sole literal for a fixed table) — per ISO §8.5.1.8 (physical
+                    // capacity fixed at compile time). The min/DEPENDING/KEY surface is captured in the OccursSpec.
+                    if (occ.integerLiteral() is { Length: > 0 } lits && int.TryParse(lits[^1].GetText(), out int n))
                         occurs = n;
+                    occursSpec = OdoBindOccursSpec(occ);
                     if (occ.INDEXED() is not null && occ.dataReferenceList() is { } idxList)
                         foreach (var idx in idxList.dataReference())
                             indexNames.Add(idx.GetText());
@@ -385,6 +391,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             OwnSign = ownSign,
             RawValue = rawValue,
             Occurs = occurs,
+            OccursSpec = occursSpec,
             RedefinesTargetName = redefinesTargetName,
             Justified = justified,
             BlankWhenZero = blankWhenZero,

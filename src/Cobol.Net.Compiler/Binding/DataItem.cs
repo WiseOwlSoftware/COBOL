@@ -39,8 +39,17 @@ public sealed class DataItem
     /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.</summary>
     public string? RawValue { get; init; }
 
-    /// <summary>The fixed OCCURS count, or <see langword="null"/> if the item is not a table. (ODO is a later slice.)</summary>
+    /// <summary>The ALLOCATED occurrence count — the table's physical capacity — or <see langword="null"/> if the
+    /// item is not a table. For a fixed (Format 1) table this is the OCCURS count; for an occurs-depending (Format 2)
+    /// table it is the MAXIMUM, integer-2 (ISO §8.5.1.8 — "the physical capacity is fixed at compile time; the
+    /// logical capacity may vary"). The variable current count lives in <see cref="OccursSpec"/>.</summary>
     public int? Occurs { get; init; }
+
+    /// <summary>The structured OCCURS DEPENDING ON / KEY description (ISO §13.18.38 Format 2 + GR3), or
+    /// <see langword="null"/> for a non-table or a plain keyless fixed table (which <see cref="Occurs"/> alone
+    /// describes). Carries the integer-1..integer-2 bounds, the resolved DEPENDING ON data-name-1, and the
+    /// ASCENDING/DESCENDING KEY data-names.</summary>
+    public OccursSpec? OccursSpec { get; init; }
 
     /// <summary>The INDEXED BY index-names declared on this item's OCCURS clause (empty if none).</summary>
     public List<string> IndexNames { get; } = [];

@@ -42,4 +42,14 @@ public static class CobolTable
 
     /// <inheritdoc cref="Occ(long)"/>
     public static long Occ(string image) => (long)CobolNum.FromAlphanumeric(image);
+
+    /// <summary>The CURRENT character extent of an occurs-depending GROUP operand (ISO/IEC 1989:2023 §13.18.38
+    /// GR8): the fixed prefix plus data-name-1's value clamped to [0, max] occurrences, times the per-occurrence
+    /// width. A count outside integer-1..integer-2 makes the excess content undefined (GR7); the benign clamp is
+    /// the COBOL-85 policy (no exception conditions) and the 2002+ default until EC-BOUND-ODO checking lands.</summary>
+    public static int OdoExtent(long count, int max, int fixedChars, int elemChars)
+    {
+        long c = count < 0 ? 0 : count > max ? max : count;
+        return fixedChars + (int)c * elemChars;
+    }
 }

@@ -80,6 +80,10 @@ public sealed partial class CSharpEmitter
     private void InspectEmitStore(Place p, string img)
     {
         var w = _ctx.Writer;
+        // ISO §13.18.38 GR7 + §14.6.4 step 6: an occurs-depending group is INSPECTed over its current-count extent;
+        // the replaced image (already current-count, read via the GR8 sending slice) splices back over exactly that
+        // extent, leaving positions past the count unmodified.
+        if (p is OdoGroupPlace odo) { w.Line(odo.ReceiveInto(img)); return; }
         if (p.Item.IsGroup)
         {
             if (p is RedefViewPlace) { w.Line(p.Write(img)); return; }

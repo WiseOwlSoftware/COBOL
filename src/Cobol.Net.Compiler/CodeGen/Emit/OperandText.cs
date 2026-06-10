@@ -42,6 +42,11 @@ internal static class OperandText
         // category (ISO §8.4.2.4) — its Read() is already the character slice (a numeric inner goes through
         // NumericImagePlace), never the numeric format path.
         if (p is RefModPlace) return p.Read();
+        // An occurs-depending GROUP operand SENDS only the current-count part (ISO §13.18.38 GR8 — "that part of the
+        // table area specified by data-name-1 at the start of the operation"); a zero count with no fixed prefix is
+        // the zero-length item of §8.5.4. This is the read side of every quadrant (MOVE/compare/INSPECT/STRING/
+        // UNSTRING source); the receiving direction split lives at the store sites.
+        if (p is OdoGroupPlace odo) return odo.SendingImage();
         // A Tier-B REDEFINES view's Read() is already its character-image window (a string), for a group or an
         // elementary view alike — use it directly (no .AsImage(), no FormatDisplay). EXCEPT when this signed-numeric
         // view is the de-signed source of an alphanumeric move/compare: its window holds the sign-aware image

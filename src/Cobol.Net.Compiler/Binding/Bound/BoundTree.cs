@@ -263,7 +263,8 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 /// key-ordered tables Format 2 requires).</summary>
 public sealed record BoundSearch(
     string IndexField, long Count, BoundSetTarget? AlsoVaried,
-    IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens, bool FromStart = false) : BoundStatement;
+    IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
+    bool FromStart = false, string? DependCount = null) : BoundStatement;
 
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
 

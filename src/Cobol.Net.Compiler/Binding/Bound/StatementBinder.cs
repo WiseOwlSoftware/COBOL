@@ -663,7 +663,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var whens = s.searchWhenClause()
             .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
             .ToList();
-        return new BoundSearch(searchIx, table.Occurs!.Value, also, atEnd, whens);
+        return new BoundSearch(searchIx, table.Occurs!.Value, also, atEnd, whens,
+            DependCount: OdoModel.SearchBound(table, refs));
     }
 
     /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the binary-search form). The initial index setting
@@ -689,7 +690,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
             .ToList();
         return new BoundSearch(data.IndexFields[table.IndexNames[0]], table.Occurs!.Value,
-            AlsoVaried: null, atEnd, whens, FromStart: true);
+            AlsoVaried: null, atEnd, whens, FromStart: true, DependCount: OdoModel.SearchBound(table, refs));
     }
 
     /// <summary>The C# <c>long</c> index field when <paramref name="dref"/> is a bare INDEXED BY index-name

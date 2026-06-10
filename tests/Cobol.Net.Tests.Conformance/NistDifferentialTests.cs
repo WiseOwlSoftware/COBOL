@@ -166,6 +166,10 @@ public sealed class NistDifferentialTests
     // bridge, nested REDEFINES classes dissolve into the outer class's ONE backing, and group width/image
     // exclude redefiner children (§13.18.44 — an overlay adds no storage).
     [InlineData("NC252A")]   // the REDEFINES + RENAMES feature program
+    // Greened by OCCURS DEPENDING ON (ISO §13.18.38 — DEVLOG 551): max allocation (§8.5.1.8), the GR8
+    // sending-slice / receiving direction-split via OdoGroupPlace + CobolTable.OdoExtent, SEARCH bounded by the
+    // CURRENT count (§14.9.37.4 GR4/GR9). NC235A additionally EXCEEDS the legacy golden (spec-pinned).
+    [InlineData("NC247A")]   // INSPECT/UNSTRING/STRING over ODO groups (the string[] CS0029 program)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

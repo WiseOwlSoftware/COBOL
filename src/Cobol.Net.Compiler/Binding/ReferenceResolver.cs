@@ -187,7 +187,14 @@ public sealed class ReferenceResolver(DataBinder data)
         // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
         // analysis can decide which numeric-DISPLAY leaves must store their character image (§14.9 MOVE GR4).
         if (item.IsGroup) data.WholeGroupReferenced.Add(item);
-        return new MemberPlace(path, item);
+        var member = new MemberPlace(path, item);
+        // A group whose subtree contains an occurs-depending table is an ODO operand (ISO §13.18.38 GR8): wrap it so
+        // the sending slice / receiving direction-split applies. data-name-1 is resolved post-build, declared anywhere
+        // outside the table (SR20), and read at the operation site via CobolTable.Occ (storage-form-agnostic).
+        if (item.IsGroup && OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } table
+            && ResolveItem(dep) is { } depPlace)
+            return OdoModel.WrapGroup(member, depPlace, item, table);
+        return member;
     }
 
     /// <summary>A <see cref="Place"/> for an already-resolved item with no subscripts (e.g. a level-88's conditional

@@ -359,9 +359,16 @@ public sealed partial class CSharpEmitter
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
             : $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {width})";
-        // A Tier-B REDEFINES group view's image IS its character window — splice the image into the backing; a normal
-        // record-struct group distributes the image into its typed leaves via the generated FromImage.
-        _ctx.Writer.Line(target is RedefViewPlace ? target.Write(image) : $"{target.Read()}.FromImage({image});");
+        // ISO §13.18.38 GR8: an occurs-depending group RECEIVER with data-name-1 OUTSIDE the group uses only the
+        // CURRENT-count part (positions past the count are not modified, GR8a); with data-name-1 INSIDE, the MAXIMUM
+        // length is used (GR8b — the normal full-width FromImage). A Tier-B REDEFINES group view's image IS its
+        // character window. A normal record-struct group distributes the image into its typed leaves via FromImage.
+        _ctx.Writer.Line(target switch
+        {
+            OdoGroupPlace { DependingInside: false } odo => odo.ReceiveInto(image),
+            RedefViewPlace => target.Write(image),
+            _ => $"{target.Read()}.FromImage({image});",
+        });
     }
 
     /// <summary>True when a MOVE source is a NUMERIC operand (a numeric literal/expression, figurative ZERO, or a
@@ -789,7 +796,9 @@ public sealed partial class CSharpEmitter
         int id = _searchCounter++;
         if (s.FromStart) w.Line($"{s.IndexField} = 1;");   // SEARCH ALL ignores the initial setting (GR9)
         w.Line($"__search{id}:");
-        using (w.Block($"if ({s.IndexField} > {s.Count}L)"))
+        // The AT-END bound is the table's MAXIMUM occurrence count — or, for an occurs-depending table, its CURRENT
+        // count (ISO §14.9.37.4 GR4/GR9 → §13.18.38 GR7: the OCCURS clause says the count IS data-name-1's value).
+        using (w.Block($"if ({s.IndexField} > {s.DependCount ?? $"{s.Count}L"})"))
         {
             bool terminated = s.AtEnd is { } at && EmitStatementList(at);
             if (!terminated) w.Line($"goto __searchEnd{id};");
