@@ -69,6 +69,7 @@ public sealed class NistDifferentialTests
     // DEVLOG 530.
     [InlineData("NC117A")]   // DIVIDE into numeric-edited receivers
     [InlineData("NC120A")]   // MULTIPLY GIVING edited ROUNDED ($ZZ9.99CR etc.)
+    [InlineData("NC220M")]   // SET + PERFORM VARYING + DIVIDE REMAINDER combined (greened by the union of waves)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

@@ -19,15 +19,19 @@
 > editions is gated by `DialectLevel`; new features enabled only at ≥ their edition; obsolete/removed flagged. (Memories
 > `feedback_version_test_matrix`, `feedback_version_targeted_semantics`.)
 >
-> **STATE (DEVLOG 520):** G1 ✅, G0 ✅, **G2 FOUNDATION ✅, G3-core (partial) ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
-> G6-core ✅, REDEFINES Tier A+B ✅, ROUNDED ✅, OPTIONS parsed ✅, ON SIZE ERROR ✅, PICTURE P scaling ✅,
-> signed→alphanumeric de-sign COMPLETE (all sign kinds, elementary/group/redefines-view) ✅.**
-> Differential harness LIVE + driving the **real NIST corpus**: **15 NC programs byte-match the golden** — NC101A +
-> NC106A/110M/111A/112A/113M/118A/119A/127A/134A/136A/176A/177A/205A + NC211A — all locked into `NistDifferentialTests`
-> (`[InlineData]`). **307 conformance + 15 unit green.** Greenfield-only; the shared front-end + legacy oracle are
-> untouched (legacy guard last proven ALL GREEN — 364 NIST / 1204 unit / 536 integration; re-run
-> `scripts/guard-fast.sh` before any change that touches `Cobol.Net.Frontend` or `CobolSharp.*`).
-> **Default `--standard` is now COBOL-2023** (no flag ⇒ latest; `--nist` ⇒ 85 since CCVS is COBOL-85; DEVLOG 520).
+> **STATE (DEVLOG 530, session of 2026-06-10):** G1 ✅, G0 ✅, **G2 ✅, G3-core ✅, G4 ✅, G5 SEQUENTIAL FILE I/O ✅,
+> G6-core ✅, REDEFINES Tier A+B ✅, ON SIZE ERROR ✅, PICTURE P ✅, de-sign ✅, **SIGN-clause inheritance ✅ (525),
+> SET + index machinery + USAGE INDEX ✅ (526), sections-as-procedure-targets + qualified procedure-names +
+> TIMES-once ✅ (527), PERFORM VARYING complete + ALL-to-group repeat + benign OOR subscripts via CobolTable.At ✅
+> (528), CobolEdit numeric-edited receivers + DIVIDE REMAINDER + alphanumeric→numeric MOVE ✅ (530).**
+> **36 NC programs byte-match the golden, all locked into `NistDifferentialTests`. 360 conformance + 15 unit
+> green.** Sweep (results2): 36 GREEN / 10 DIFF / 49 RUNERR-blocked. The docs corpus was GOAL-ALIGNED (529) to the
+> owner's four restated goals (4-compilers-in-one + diagnostics co-equal; commercial/.NET 10/C#14-or-later with
+> .NET 11-preview pre-authorized; legacy = reference/oracle ONLY; ICodeGenBackend dual-backend discipline).
+> Greenfield-only; the shared front-end + legacy are untouched (re-run `scripts/guard-fast.sh` before touching
+> `Cobol.Net.Frontend` or `CobolSharp.*`). **Default `--std` is COBOL-2023** (`--nist` ⇒ 85).
+> ⚠ Legacy-oracle holes found this session (use SPEC-PINNED tests for these): same-section duplicate paragraph
+> resolution (§8.4.2.2.1 r6), omitted-BY multi-AFTER VARYING (legacy binder crashes), DISPLAY trailing-trim (known).
 >
 > **VERSION-CORRECTNESS FRAMEWORK (the path to multi-edition support — NEW, DEVLOG 512–520):**
 > - **The investigation rule (`feedback_version_targeted_semantics`):** when the legacy oracle ≠ ISO-2023, deep-
@@ -70,7 +74,26 @@
 > (ZERO in arithmetic → 0; `ALL ZEROS` VALUE init) — cleared 5 more. (505) **figurative ZERO in a level-88 VALUE**
 > (numeric) — cleared NC250A's `ZERO00L`; **identified the systematic Tier-B `.BB` blocker** (RESUME AT #1).
 >
-> **RESUME AT — two interlocking tracks (run both; they reinforce each other):**
+> **RESUME AT (refreshed after DEVLOG 530 — the 6-agent diagnosis workflow's wave plan is the worklist; its full
+> output is in the session log of 2026-06-10):**
+> - **(1) The remaining DIFF programs' single root causes:** NC203A/251A/170A/172A/173A/175A + NC171A = the
+>   **deferred G3 Int128 intermediate-arithmetic** (18-digit dividends, π-precision quotients — build the CobolInt/
+>   Int128 carrier per the numeric design); NC114M = **alphanumeric-EDITED insertion** (B/0,// in PIC X-edited —
+>   extend CobolEdit/alphanumeric path); NC219A = the **PROGRAM COLLATING SEQUENCE subsystem** (ALPHABET … ALSO,
+>   custom ordinals, HIGH/LOW-VALUE re-association — diagnosis wave 12 has the full inventory); NC124A (diff 382).
+> - **(2) The RUNERR clusters (49 programs), by yield:** SEARCH F1+F2 (§14.9.37, ~8 programs, needs OCCURS KEY
+>   capture for SEARCH ALL); subscripted/qualified condition-names (NC235A/250A); the remaining reference-resolver
+>   gaps (diagnosis wave 4: subscripted Tier-B views GAP-1 — REQUIRES the B2 offset×OCCURS fixes first —, qualified
+>   subscripts GAP-2, ref-mod-on-numeric GAP-3, RENAMES) → NC125A/132A/204M/206A/210A/224A/246A/252A; CORR +
+>   NEXT SENTENCE (wave 10) → NC202A/207A/208A/209A/253A/174A/254A; INSPECT/STRING/UNSTRING/EVALUATE/INITIALIZE/
+>   ACCEPT verbs (NC115A/216A/217A/218A/223A/225A/109M/214M/221A/122A); DECIMAL-POINT IS COMMA + BLANK WHEN ZERO
+>   (wave 11) → NC107A/108M; ALTER (NC302M/303M); remaining Wave-0 bugs B2/B3/B4 (Tier-B accounting — mandatory
+>   before GAP-1) + NC105A/103A/126A/215A singles.
+> - **(3) Track 1 Phase 1** (unstarted this session): full INV-1 continuity sweep SM/IC/SQ/RL/IX/ST × editions;
+>   `tests/version-matrix/constructs.json`; the `GetDiagnostics(source, edition)` harness; then Phase 2
+>   EditionValidator (the diagnose-correctly half of the four-compilers mission — co-equal, owner-emphasized).
+>
+> **The original two-track framing (kept for context):**
 >
 > **TRACK 1 — VERSION-CORRECTNESS ROLLOUT (the systematic path to multi-edition support):**
 > - **Phase 1 (next):** (a) the FULL INV-1 continuity sweep — every NIST-85 program × {2002,2014,2023} asserts "still

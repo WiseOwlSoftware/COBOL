@@ -54,11 +54,13 @@ item IS a native field. **NO byte `ProgramState` substrate; never fall back to t
 native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO, EC, intrinsics, project
 reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
 `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
-[[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a differential oracle until cut-over
-(G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 520): G1 ✅, G0 ✅, G2 ✅, G3-core ✅,
-G4 ✅, G5 sequential file I/O ✅, G6-core ✅, REDEFINES Tier A+B ✅, ON SIZE ERROR ✅, PICTURE P ✅, signed→alphanumeric
-de-sign COMPLETE ✅. The differential harness drives the real NIST corpus — 15 NC programs byte-match the golden;
-307 conformance + 15 unit green. CI fixed + greenfield suites now gated in CI (DEVLOG 512/515).** ⛔ **MISSION now =
+[[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a reference + differential oracle until
+cut-over (G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 530): G1 ✅, G0 ✅, G2 ✅,
+G3-core ✅, G4 ✅, G5 sequential file I/O ✅, G6-core ✅, REDEFINES Tier A+B ✅, SIGN inheritance ✅, SET/index/USAGE
+INDEX ✅, sections + qualified procedure-names ✅, PERFORM VARYING ✅, CobolTable.At benign subscripts ✅, CobolEdit
+numeric-edited ✅, DIVIDE REMAINDER ✅. The differential harness drives the real NIST corpus — 36 NC programs
+byte-match the golden; 360 conformance + 15 unit green. Docs corpus goal-aligned to the owner's four restated goals
+(DEVLOG 529).** ⛔ **MISSION now =
 full ISO-2023 AND all prior editions (85/2002/2014), validated by the VERSION TEST MATRIX (test as N per-edition
 compilers): `docs/VERSION_CHANGE_REFERENCE.md` (130-row edition-change checklist) + `docs/VERSION_TEST_MATRIX_DESIGN.md`
 (matrix design, Phase 0 done). Default `--standard` is now COBOL-2023. Memories `feedback_version_test_matrix`,
