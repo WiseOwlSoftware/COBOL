@@ -10,6 +10,13 @@
 >
 > **Scope:** the **greenfield** compiler (`src/Cobol.Net.*`, the active engine) is the target. The legacy
 > `CobolSharp.Compiler` is the **blueprint** (it already has the per-edition machinery) and is retired at G8.
+>
+> **Scope honesty (don't over-read this):** this matrix validates the edition **deltas / boundaries** — where gating
+> bugs live (the right ~80%): "feature introduced in E is rejected below E", "feature removed by E is rejected at E",
+> "85 program still compiles later unless removed or word-collided", per-edition behavior where it differs. It is NOT
+> comprehensive per-edition *construct* coverage — exhaustively re-validating every 2002/2014/2023 construct stays
+> gated on building those **positive corpora** (`tests/conformance/<ver>/`), which the survey confirms are young
+> (≈34 × 2002, ~0 × 2014, 1 × 2023). Delta-correctness first; corpus breadth is a parallel, longer effort.
 
 ---
 
@@ -42,9 +49,16 @@ A cell is *green* when the actual outcome equals `f(case, V)`.
 ## 3. The three correctness invariants (as property tests)
 
 - **INV-1 — Continuity.** ∀ COBOL-85 program P (the NIST CCVS85 corpus) and ∀ V ≥ 85: P **compiles** at V, *unless* P
-  uses a construct with `removedIn ≤ V`. A compile failure at a later edition is conformant **only if it traces to a
-  reference-doc removal row**; any other failure is a **regression**, not conformance. (This is the owner's rule:
-  "the ones that do not [work later] must have been deprecated by that later version for the failure to be correct.")
+  hits one of **two** legitimate-breakage classes documented in the reference doc: **(a)** P uses a construct with
+  `removedIn ≤ V` (a removed/obsoleted feature); or **(b)** P uses, as a user-defined word, a word that became a
+  **reserved word** at some edition ≤ V (Annex E.3.2 — "changes possibly affecting because of the addition of new
+  words/names"). A compile failure at a later edition is conformant **only if it traces to a reference-doc removal row
+  (a) or new-reserved-word row (b)**; any other failure is a **regression**, not conformance. (Owner's rule: "the ones
+  that do not [work later] must have been deprecated by that later version for the failure to be correct.")
+  > **This is LIVE, not hypothetical:** `RECEIVE` is used as a data name in **4 NIST-85 programs** and is a NEW reserved
+  > word in 2023 (reference-doc Row 32) — those programs MUST compile at 85/2002/2014 and be **rejected at 2023**. The
+  > naive "unless `removedIn ≤ V`" form would wrongly flag them as regressions. INV-1's class (b) is what makes the
+  > rejection conformant.
 - **INV-2 — Introduction-gating.** ∀ construct C introduced in edition E and ∀ V < E: C is **rejected** at V with the
   edition diagnostic. (A word newly reserved in 2023 is still usable as a user-defined name at 85/2002/2014.)
 - **INV-3 — Behavior-correctness.** ∀ behavior-variant construct and ∀ valid V: the output equals `behaviorVariants[V]`
@@ -52,6 +66,20 @@ A cell is *green* when the actual outcome equals `f(case, V)`.
   differences are version-INVARIANT, DEVLOG 517).
 
 ## 4. Construct catalogue — sourced from the reference doc
+
+**⚠ Source the catalogue from THREE places, not just the reference doc — the 85↔non-85 boundary (the owner's #1
+priority) is the part the 2023 reference doc covers *least*** (its Annex E is the 2014→2023 delta only). Harvest the
+edition metadata mechanically from the structured in-code sources that already encode it:
+
+| Metadata | Authoritative source | Covers |
+|---|---|---|
+| `introducedIn` (2002/2014/2023) | the **grammar `is2002()/is2014()/is2023()` gates** (39, per the survey) — each gated rule's predicate IS its introducing edition | the post-85 introduction points — the 85-rejects-post-85-feature half of the owner's #1 |
+| `removedIn` + 85↔2002 deltas | the **legacy `FlagsFeaturesRemovedAfter85` + `DialectStrictnessChecks` (ALTER, OPEN REVERSED, L1–L5) + FLAG-02** | constructs removed after 85; the 2002 incompatibilities the ref doc only points at |
+| 2014→2023 deltas, obsolete/archaic, new reserved words | **`VERSION_CHANGE_REFERENCE.md`** | the latest delta + the flagging rows |
+
+Each source feeds the same catalogue; the reference doc is canonical for the 2014→2023 slice, the grammar+legacy for
+the earlier slices. (This closes the gap the survey flagged: only ~30–40 ref-doc rows are mechanically testable, but
+the grammar gates + legacy registry supply the 85↔2002/2014 boundary directly.)
 
 A single **construct catalogue** (data, not code) is the source of truth for the matrix. Each entry:
 
@@ -173,5 +201,8 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
    keep that; the permissive `Default` mode (parse-superset, accept leniencies) stays the NIST-corpus mode.
 3. **INV-1 strong vs weak form:** "still compiles" (weak) vs "re-matches the 85 golden" (strong) at later editions.
    *Default:* weak first (compiles), strengthen to golden-match where behavior is edition-invariant.
-4. **Catalogue ↔ registry source of truth:** the reference doc (`VERSION_CHANGE_REFERENCE.md`) is canonical; the
-   in-code `ConstructDialectStatus` is generated/diffed against it (a CI drift check).
+4. **Catalogue ↔ registry source of truth:** make ONE **structured data file** canonical — e.g.
+   `tests/version-matrix/constructs.json` (or `.yaml`) holding every catalogue entry (§4) with its edition metadata.
+   BOTH the human-readable `VERSION_CHANGE_REFERENCE.md` table AND the in-code `ConstructDialectStatus` registry are
+   derived/diffed from that file (a CI drift check). The "cannot drift" guarantee must **not** parse markdown — the doc
+   is a rendering of the data, not the source.
