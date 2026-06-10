@@ -25,9 +25,29 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 **Rejected alternatives.** (a) Keep long-only — REJECTED: silently wrong on common multiply/divide; the whole point of the rewrite is correctness. (b) decimal/BigInteger intermediates — REJECTED: owner-locked out (decimal is software 96-bit/28-digit and can't even hold standard-decimal's 34; BigInteger allocates). (c) Generic `INumber<T>` arithmetic monomorphized per storage width — REJECTED: codegen + JIT-bloat complexity, unreadable generated C#, and storage-width-typed math reintroduces the very overflow we're eliminating. One Int128 path is the singular pattern.
 
+> **✅ SHIPPED (DEVLOG 539), with ONE deliberate refinement:** the engine is Int128-monomorphic as prescribed, but
+> the carrier is realized as **Int128-TYPED C# expressions + the COMPILE-TIME scale the renderer already owns
+> (`NumX(Expr, Scale)`) + monomorphic `CobolNum` kernels taking `(Int128 value, int scale)`** — i.e. `CobolInt`
+> with its `Scale` field resolved statically. Rationale: the renderer computes every scale at compile time and
+> emits them as constants; a runtime `Scale` field would box static knowledge into per-value state and add
+> construction ceremony to every generated expression for no semantic gain. The kernel surface (`Rescale`,
+> `Store`, `TryStore`, `Divide`, `DivideOrThrow`, `MulChecked`, `FormatDisplay*`, `ParseDisplay`,
+> `FromAlphanumeric`) IS this section's Align/Add/Sub/Mul/Div engine, in Int128. Every emitted operation forces
+> wide math (`(Int128)(a) op (b)`); a ≤18-digit receiver stores through one width-aware `(long)` cast at the
+> store site (`CSharpEmitter.Narrow` — Int128 storage for 19+ digits rides the wide-tier wave). The >38-digit
+> single-product ESCAPE raises OverflowException via checked `MulChecked` in ON SIZE ERROR contexts (full
+> EC-SIZE-OVERFLOW mapping with the EC model).
+
 ### D2. DIVIDE/COMPUTE-division quotient is computed at an explicit guard scale = max(all receiver fraction-scales, all operand scales) + DIV_GUARD_DIGITS, DIV_GUARD_DIGITS = 14; the final per-receiver store rescales+rounds to the receiver's scale.
 
 **Rationale.** The proven legacy lowerer (ArithmeticLowerer.LowerDivide) computes division into a `decimal` accumulator (≈28-29 significant digits) and only rescales to the receiver on the final IrMoveAccumulatedToTarget — so its division 'intermediate scale' is decimal's natural headroom, the ONE scale `decimal` auto-picked that Int128 forces me to make explicit. 14 guard digits past the deepest receiver/operand scale reproduces that headroom while staying inside Int128's 38 digits for realistic operand sizes; rounding then happens exactly once, at the receiver, honoring the ROUNDED mode (ISO §14.7 — ROUNDED applies to the transfer into the resultant, NOTE 1 p595).
+
+> **✅ SHIPPED (DEVLOG 539):** `NumericRenderer.Divide` keeps the exact single-rounding path for the OUTERMOST
+> division (no guard needed — `RoundDiv` rounds on the true integer remainder) and applies
+> `DivGuardDigits = 14` to the NESTED/higher-precision case, CLAMPED so the radix-alignment exponent keeps an
+> 18-digit dividend inside the wide engine (exponent ≤ 20 ⇒ ≤ 38 digits). The 54-program NC net + the full
+> conformance suite hold byte-identical under carrier + guard — the guard reproduces the legacy-decimal
+> headroom the goldens encode.
 
 **Rejected alternatives.** (a) Quotient at receiver scale directly (legacy IrPicDivide degenerate path) — REJECTED for the general case: rounds before the receiver knows its scale, loses guard digits, fails NIST division-rounding tests. (b) Unbounded rational/exact division — REJECTED: COBOL division is inherently lossy at a finite scale; exactness is undefined for non-terminating quotients. (c) decimal accumulator like legacy — REJECTED: locked out + caps at 28 digits anyway.
 

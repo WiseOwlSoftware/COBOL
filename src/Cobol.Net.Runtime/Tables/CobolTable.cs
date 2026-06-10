@@ -38,5 +38,5 @@ public static class CobolTable
     public static long Occ(long value) => value;
 
     /// <inheritdoc cref="Occ(long)"/>
-    public static long Occ(string image) => CobolNum.FromAlphanumeric(image);
+    public static long Occ(string image) => (long)CobolNum.FromAlphanumeric(image);
 }

@@ -70,28 +70,48 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         return acc;
     }
 
-    /// <summary>Combine two scaled values with a COBOL operator, tracking the result scale (ISO §8.8.1).</summary>
+    /// <summary>Combine two scaled values with a COBOL operator, tracking the result scale (ISO §8.8.1). EVERY
+    /// operation runs in <see cref="Int128"/> — the carrier (COBOLNET_DESIGN §18 #4 / numeric design D1): a product
+    /// of two 18-digit operands is 36 digits and an aligned sum 19+, both past the long range MID-computation even
+    /// when the final receiver fits. The leading <c>(Int128)</c> cast forces wide arithmetic whatever the leaf
+    /// types; storage stays narrow (the store path truncates/rounds once, at the receiver).</summary>
     public NumX Combine(NumX a, string op, NumX b) => op switch
     {
         "+" or "-" => CombineAdditive(a, op, b),
-        // Multiplication: scales add (exact). Under an ON SIZE ERROR phrase the product is overflow-checked (a
-        // runtime helper, so a constant product cannot overflow at compile time) → OverflowException maps to the
-        // size error condition (§14.7.5 case 5); without the phrase it is a bare unchecked `*` (unchanged).
-        "*" => new NumX(ctx.InSizeErrorContext ? $"CobolNum.MulChecked({a.Expr}, {b.Expr})" : $"({a.Expr} * {b.Expr})", a.Scale + b.Scale),
+        // Multiplication: scales add (exact). Under an ON SIZE ERROR phrase the product is overflow-checked at the
+        // Int128 ESCAPE boundary (~38 digits, design D1) → OverflowException maps to the size error condition
+        // (§14.7.5 case 5); without the phrase it is unchecked wide multiplication.
+        "*" => new NumX(ctx.InSizeErrorContext ? $"CobolNum.MulChecked({a.Expr}, {b.Expr})" : $"((Int128)({a.Expr}) * ({b.Expr}))", a.Scale + b.Scale),
         "/" => Divide(a, b),
         _ => a,
     };
 
+    /// <summary>Guard digits past the deepest receiver/operand scale for a division NESTED inside a larger
+    /// expression (numeric design D2): rounding happens ONCE, at the receiver, so the nested quotient must carry
+    /// enough fraction headroom for the operations above it. 14 reproduces the legacy decimal accumulator's
+    /// ~28-significant-digit behavior the golden corpus encodes.</summary>
+    private const int DivGuardDigits = 14;
+
     /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). When the working scale equals the receiver scale
     /// (<see cref="EmissionContext.TargetScale"/> — the common outermost-division case), the quotient is computed
     /// directly at the receiver scale and rounded with the receiver's mode in ONE exact step (<c>CobolNum.Divide</c>
-    /// → <c>RoundDiv</c> uses the true integer remainder, so no guard digits are needed). When an operand carries
-    /// more fraction digits than the receiver, the quotient is computed at that higher scale with TRUNCATION
-    /// (preserving the extra digits) and the receiver store performs the single rounding. (The deeper guard-scale
-    /// model for divisions nested inside a larger expression awaits the Int128 carrier — see the numeric design.)</summary>
+    /// → <c>RoundDiv</c> uses the true integer remainder, so no guard digits are needed). A division NESTED inside
+    /// a larger expression computes at the D2 guard scale with TRUNCATION — clamped so the Int128 radix alignment
+    /// (dividend digits ≤ 18 + the alignment exponent) cannot exceed the wide engine's 38 digits — and the single
+    /// receiver store performs the rounding.</summary>
     private NumX Divide(NumX a, NumX b)
     {
-        int ds = DivScale(a, b);
+        int baseScale = Math.Max(ctx.TargetScale, Math.Max(a.Scale, b.Scale));
+        int ds = baseScale;
+        if (baseScale != ctx.TargetScale || a.Scale > ctx.TargetScale || b.Scale > ctx.TargetScale)
+        {
+            // Nested / higher-precision case: add guard digits, clamped to the wide engine's alignment headroom
+            // (exponent = b.Scale + ds − a.Scale must keep dividend-digits + exponent ≤ 38; 18-digit operands ⇒
+            // exponent ≤ 20).
+            int maxExp = 20;
+            int guard = Math.Min(DivGuardDigits, maxExp - (b.Scale + baseScale - a.Scale));
+            ds = baseScale + Math.Max(0, guard);
+        }
         CobolRounding mode = ds == ctx.TargetScale ? ctx.TargetRounding : CobolRounding.Truncation;
         // Under an ON SIZE ERROR phrase, a zero divisor must raise the size error (ISO §14.7.5 case 2): the checked
         // DivideOrThrow signals it (caught by the statement's try); otherwise Divide returns 0 unchanged.
@@ -102,10 +122,8 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     private static NumX CombineAdditive(NumX a, string op, NumX b)
     {
         int s = Math.Max(a.Scale, b.Scale);
-        return new NumX($"({Align(a, s)} {op} {Align(b, s)})", s);
+        return new NumX($"((Int128)({Align(a, s)}) {op} ({Align(b, s)}))", s);
     }
-
-    private int DivScale(NumX a, NumX b) => Math.Max(ctx.TargetScale, Math.Max(a.Scale, b.Scale));
 
     /// <summary>Rescale a value's unscaled long up to <paramref name="toScale"/> (widening only here → exact).</summary>
     public static string Align(NumX x, int toScale) =>
@@ -113,7 +131,9 @@ internal sealed class NumericRenderer(EmissionContext ctx)
 
     private static NumX Negate(NumX x) => new($"(-{x.Expr})", x.Scale);
 
-    private static string Real(NumX x) => x.Scale == 0 ? $"(double){x.Expr}" : $"({x.Expr} / {Pow10D(x.Scale)})";
+    // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
+    private static string Real(NumX x) =>
+        x.Scale == 0 ? $"(double)({x.Expr})" : $"((double)({x.Expr}) / {Pow10D(x.Scale)})";
 
     /// <summary>10^<paramref name="n"/> as a C# <c>double</c> literal. Handles a NEGATIVE scale (a PICTURE-P
     /// trailing-scaled operand): 10^−1 → <c>0.1d</c>, so <see cref="Real"/>'s <c>value / 10^scale</c> scales correctly.</summary>

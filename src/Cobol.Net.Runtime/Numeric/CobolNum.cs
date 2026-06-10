@@ -26,11 +26,11 @@ public static class CobolNum
     /// Rescale an unscaled integer from <paramref name="fromScale"/> to <paramref name="toScale"/> fractional
     /// digits: widening multiplies by a power of ten (exact); narrowing divides, rounding with <paramref name="mode"/>.
     /// </summary>
-    public static long Rescale(long value, int fromScale, int toScale, CobolRounding mode)
+    public static Int128 Rescale(Int128 value, int fromScale, int toScale, CobolRounding mode)
     {
         if (toScale == fromScale) return value;
-        if (toScale > fromScale) return value * Pow10(toScale - fromScale);
-        return (long)RoundDiv(value, Pow10(fromScale - toScale), mode);
+        if (toScale > fromScale) return value * Pow10Wide(toScale - fromScale);
+        return RoundDiv(value, Pow10Wide(fromScale - toScale), mode);
     }
 
     /// <summary>
@@ -39,13 +39,13 @@ public static class CobolNum
     /// high-order digits beyond the picture (the no-ON-SIZE-ERROR behavior), and apply the unsigned-magnitude rule
     /// for an unsigned receiver (ISO §14.9.25 GR8). Returns the receiver's stored unscaled integer.
     /// </summary>
-    public static long Store(long value, int valueScale, in NumProfile receiver,
+    public static Int128 Store(Int128 value, int valueScale, in NumProfile receiver,
         CobolRounding mode = CobolRounding.Truncation)
     {
-        long v = Rescale(value, valueScale, receiver.FractionScale, mode);
+        Int128 v = Rescale(value, valueScale, receiver.FractionScale, mode);
         if (receiver.Truncation != NumericTruncation.BinaryCapacity)
-            v %= Pow10(receiver.Digits);   // high-order digit truncation (COMP-5 wraps by width — later slice)
-        return receiver.Signed ? v : Math.Abs(v);
+            v %= Pow10Wide(receiver.Digits);   // high-order digit truncation (COMP-5 wraps by width — later slice)
+        return receiver.Signed ? v : Int128.Abs(v);
     }
 
     /// <summary>
@@ -58,34 +58,34 @@ public static class CobolNum
     /// rule applied, §14.9.25 GR8) and returns <c>true</c>. This is the checked sibling of <see cref="Store"/>, used
     /// only when an ON SIZE ERROR phrase is present.
     /// </summary>
-    public static bool TryStore(long value, int valueScale, in NumProfile receiver, CobolRounding mode, out long stored)
+    public static bool TryStore(Int128 value, int valueScale, in NumProfile receiver, CobolRounding mode, out Int128 stored)
     {
         stored = 0;
         // PROHIBITED: an inexact rescale is a size error regardless of capacity (§14.7.4.3 r7) — receiver unchanged.
         if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, valueScale, receiver.FractionScale))
             return false;
 
-        long v = Rescale(value, valueScale, receiver.FractionScale, mode);
+        Int128 v = Rescale(value, valueScale, receiver.FractionScale, mode);
 
         // High-order capacity check by digit count (DISPLAY/COMP/BINARY). COMP-5 (BinaryCapacity) bounds by
         // two's-complement width — not yet checked here (a later slice), matching Store's no-truncation path.
         // The compare avoids Math.Abs(long.MinValue) by bounding both signs against the positive limit.
         if (receiver.Truncation != NumericTruncation.BinaryCapacity)
         {
-            long limit = Pow10(receiver.Digits);     // Digits ≤ 18 ⇒ ≤ 10^18 < long.MaxValue
+            Int128 limit = Pow10Wide(receiver.Digits);   // Digits ≤ 38 within the wide engine
             if (v >= limit || v <= -limit) return false;
         }
 
         // Unsigned receiver stores the magnitude (§14.9.25 GR8). On the digit-count path v is bounded (it passed the
         // capacity check), so Math.Abs is safe; the BinaryCapacity (COMP-5) magnitude rule is a later slice (as in Store).
-        stored = receiver.Signed ? v : Math.Abs(v);
+        stored = receiver.Signed ? v : Int128.Abs(v);
         return true;
     }
 
     /// <summary>True when rescaling <paramref name="value"/> from <paramref name="fromScale"/> to a smaller
     /// <paramref name="toScale"/> would drop a nonzero fraction (an inexact transfer).</summary>
-    private static bool IsInexactAtScale(long value, int fromScale, int toScale) =>
-        toScale < fromScale && value % Pow10(fromScale - toScale) != 0;
+    private static bool IsInexactAtScale(Int128 value, int fromScale, int toScale) =>
+        toScale < fromScale && value % Pow10Wide(fromScale - toScale) != 0;
 
     /// <summary>Multiply two unscaled operands with overflow checking against the long engine's range: raises
     /// <see cref="OverflowException"/> (mapped to the size error condition, ISO §14.7.5 case 5) when the product
@@ -93,14 +93,14 @@ public static class CobolNum
     /// no-phrase multiply stays a bare unchecked <c>*</c>. Being a method call (not a constant expression), a
     /// constant product is checked at run time, never folded to a compile-time error. (Products beyond the long
     /// range need the Int128 carrier; deferred — see the numeric design.)</summary>
-    public static long MulChecked(long a, long b) => checked(a * b);
+    public static Int128 MulChecked(Int128 a, Int128 b) => checked(a * b);
 
     /// <summary>
     /// Divide (see <see cref="Divide"/>) but raise <see cref="CobolSizeError"/> on a zero divisor (ISO §14.7.5 case
     /// 2) instead of returning 0. Emitted only inside a statement that carries an ON SIZE ERROR phrase, so a
     /// division in a statement WITHOUT the phrase keeps <see cref="Divide"/>'s behavior unchanged.
     /// </summary>
-    public static long DivideOrThrow(long a, int aScale, long b, int bScale, int resultScale, CobolRounding mode)
+    public static Int128 DivideOrThrow(Int128 a, int aScale, Int128 b, int bScale, int resultScale, CobolRounding mode)
     {
         if (b == 0) throw new CobolSizeError("divide by zero");
         // ROUNDED MODE IS PROHIBITED: an inexact quotient AT resultScale is a size error (§14.7.4.3 r7). When the
@@ -114,7 +114,7 @@ public static class CobolNum
     /// <summary>True when <c>a/10^aScale ÷ b/10^bScale</c> cannot be represented exactly at <paramref name="resultScale"/>
     /// fractional digits (a nonzero remainder after radix alignment) — used to detect a PROHIBITED violation in a
     /// division. Mirrors <see cref="Divide"/>'s scaling. Assumes <paramref name="b"/> != 0.</summary>
-    private static bool DivisionLosesPrecision(long a, int aScale, long b, int bScale, int resultScale)
+    private static bool DivisionLosesPrecision(Int128 a, int aScale, Int128 b, int bScale, int resultScale)
     {
         int exp = bScale + resultScale - aScale;
         Int128 num = a, den = b;   // wide radix alignment — mirrors Divide exactly
@@ -128,7 +128,7 @@ public static class CobolNum
     /// receiver's <see cref="NumProfile.SignKind"/> (over-punch, separate sign, or a binary leading minus); an
     /// unsigned item is the bare magnitude.
     /// </summary>
-    public static string FormatDisplay(long unscaled, in NumProfile receiver) =>
+    public static string FormatDisplay(Int128 unscaled, in NumProfile receiver) =>
         receiver.Signed
             ? FormatDisplaySigned(unscaled, receiver)
             : FormatUnsignedDisplay(unscaled, receiver.Digits);
@@ -149,7 +149,7 @@ public static class CobolNum
     ///   <item><see cref="NumericSign.BinaryMinus"/> — a leading <c>-</c> only when negative (positive/zero bare).</item>
     /// </list>
     /// </summary>
-    public static string FormatDisplaySigned(long unscaled, in NumProfile receiver)
+    public static string FormatDisplaySigned(Int128 unscaled, in NumProfile receiver)
     {
         string mag = FormatUnsignedDisplay(unscaled, receiver.Digits);
         bool neg = unscaled < 0;
@@ -175,10 +175,10 @@ public static class CobolNum
 
     /// <summary>The DISPLAY image of an unsigned integer with <paramref name="digits"/> digit positions: the
     /// magnitude's low <paramref name="digits"/> digits, zero-padded.</summary>
-    public static string FormatUnsignedDisplay(long value, int digits)
+    public static string FormatUnsignedDisplay(Int128 value, int digits)
     {
         if (digits <= 0) return "";
-        long v = value % Pow10(digits);
+        Int128 v = value % Pow10Wide(digits);
         string s = (v < 0 ? -v : v).ToString(CultureInfo.InvariantCulture);
         return s.PadLeft(digits, '0');
     }
@@ -197,16 +197,16 @@ public static class CobolNum
     /// GR6 — an alphanumeric sending item moving to a numeric receiver is treated as an UNSIGNED integer;
     /// §14.6.13.2 — incompatible content decodes deterministically: a non-digit position contributes no digit, an
     /// all-non-digit image is 0).</summary>
-    public static long FromAlphanumeric(string image)
+    public static Int128 FromAlphanumeric(string image)
     {
         if (string.IsNullOrEmpty(image)) return 0;
-        long mag = 0;
+        Int128 mag = 0;
         foreach (char c in image)
             if (c is >= '0' and <= '9') mag = mag * 10 + (c - '0');
         return mag;
     }
 
-    public static long ParseDisplay(string image, in NumProfile receiver)
+    public static Int128 ParseDisplay(string image, in NumProfile receiver)
     {
         if (string.IsNullOrEmpty(image)) return 0;
         var chars = image.ToCharArray();   // a mutable copy so a sign carrier can be reduced to its digit
@@ -237,7 +237,7 @@ public static class CobolNum
             }
         }
 
-        long mag = 0;
+        Int128 mag = 0;
         foreach (char c in chars)
             if (c is >= '0' and <= '9')
                 mag = mag * 10 + (c - '0');
@@ -265,14 +265,14 @@ public static class CobolNum
     /// operates on the algebraic values; intermediate width is the implementor's problem, not the program's). A zero
     /// divisor returns 0 (the caller raises ON SIZE ERROR — later slice).
     /// </summary>
-    public static long Divide(long a, int aScale, long b, int bScale, int resultScale, CobolRounding mode)
+    public static Int128 Divide(Int128 a, int aScale, Int128 b, int bScale, int resultScale, CobolRounding mode)
     {
         if (b == 0) return 0;
         int exp = bScale + resultScale - aScale;     // quotient_unscaled = round(a × 10^exp / b)
         Int128 num = a, den = b;
         if (exp >= 0) num *= Pow10Wide(exp); else den *= Pow10Wide(-exp);
         if (den < 0) { num = -num; den = -den; }     // RoundDiv requires a positive divisor
-        return (long)RoundDiv(num, den, mode);
+        return RoundDiv(num, den, mode);
     }
 
     /// <summary>

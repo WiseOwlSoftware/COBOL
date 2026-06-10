@@ -17,7 +17,7 @@ public static class CobolEdit
     /// <summary>Format <paramref name="value"/> (unscaled, with <paramref name="valueScale"/> fraction digits)
     /// into <paramref name="picture"/> — the EXPANDED edited picture (repeats unrolled, uppercased, the implied
     /// decimal point <c>V</c> retained; <c>V</c> occupies no output position).</summary>
-    public static string Format(long value, int valueScale, string picture)
+    public static string Format(Int128 value, int valueScale, string picture)
     {
         bool negative = value < 0;
 
@@ -58,8 +58,8 @@ public static class CobolEdit
 
         // Align the operand to the mask's scale (truncation — §14.9.25 GR: excess fraction digits truncate) and
         // render the absolute digit string at the mask's capacity (excess INTEGER digits truncate high-order).
-        long scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
-        string digits = Math.Abs(scaled).ToString(System.Globalization.CultureInfo.InvariantCulture);
+        Int128 scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
+        string digits = Int128.Abs(scaled).ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (digits.Length < effectiveDigitCount) digits = digits.PadLeft(effectiveDigitCount, '0');
         else if (digits.Length > effectiveDigitCount) digits = digits[^effectiveDigitCount..];
 

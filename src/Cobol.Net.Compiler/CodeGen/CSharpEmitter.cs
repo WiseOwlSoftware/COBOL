@@ -54,6 +54,7 @@ public sealed class CSharpEmitter
         w.Line("// </auto-generated>");
         w.Line("#nullable enable");
         w.Line("#pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to");
+        w.Line("using System;                    // Int128 — the wide arithmetic carrier (numeric design D1)");
         w.Line("using CobolNet.Runtime;          // CobolNum / CobolString typed-native runtime substrates");
         if (data.Files.Count > 0)
             w.Line("using CobolNet.Runtime.IO;       // CobolFile — the sequential file-I/O facade (§8)");
@@ -384,7 +385,7 @@ public sealed class CSharpEmitter
                 return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length})";
             case PicCategory.Numeric:
                 NumX n = _num.AsNum(source);
-                string stored = $"CobolNum.Store({n.Expr}, {n.Scale}, {target.ProfileName})";
+                string stored = Narrow($"CobolNum.Store({n.Expr}, {n.Scale}, {target.ProfileName})", target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
                 return target.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {target.ProfileName})" : stored;
             default:
@@ -443,7 +444,7 @@ public sealed class CSharpEmitter
             // (which yields the quotient at the dividend's higher scale and poisons the remainder multiply).
             string fn = _ctx.InSizeErrorContext ? "DivideOrThrow" : "Divide";
             string qt = $"__q{_storeTmpCounter++}";
-            w.Line($"long {qt} = CobolNum.{fn}({dividend.Expr}, {dividend.Scale}, {divisor.Expr}, {divisor.Scale}, {qs}, CobolRounding.Truncation);");
+            w.Line($"Int128 {qt} = CobolNum.{fn}({dividend.Expr}, {dividend.Scale}, {divisor.Expr}, {divisor.Scale}, {qs}, CobolRounding.Truncation);");
             var product = new NumX($"({qt} * {divisor.Expr})", qs + divisor.Scale);
             NumX remainder = _num.Combine(dividend, "-", product);   // GR7: dividend − subsidiaryQuotient × divisor
             StoreArith(d.Quotient.Place,
@@ -539,15 +540,21 @@ public sealed class CSharpEmitter
             // COMPILE time (CS0220) and reject valid COBOL — the runtime helper avoids that by not constant-folding.
             w.Line($"if (!CobolNum.TryStore({value.Expr}, {value.Scale}, {profile}, CobolRounding.{mode}, out var {tmp})) {flag} = true;");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
-            w.Line($"else {target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({tmp}, {profile})" : tmp)}");
+            w.Line($"else {target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({tmp}, {profile})" : Narrow(tmp, target.Item))}");
             return;
         }
         string stored = $"CobolNum.Store({value.Expr}, {value.Scale}, {profile}, CobolRounding.{mode})";
-        w.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {profile})" : stored));
+        w.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {profile})" : Narrow(stored, target.Item)));
     }
 
     /// <summary>The receiver's working scale: an edited receiver's is its MASK's fraction scale (a `.`-pointed
     /// mask has PicInfo.Scale 0 — the point lives in the mask, not in V); a numeric item's is its PIC scale.</summary>
+    /// <summary>Wrap a wide (Int128) stored value for assignment into a NARROW receiver field: a ≤18-digit item
+    /// stores as native <c>long</c> (the value is already truncated/rounded to the receiver's digits, so the cast
+    /// is exact); a 19+-digit item (the 2002+ wide tier) stores the Int128 directly.</summary>
+    private static string Narrow(string expr, DataItem item) =>
+        item.Pic is { Digits: > 18 } ? expr : $"(long)({expr})";
+
     private static int ScaleOf(Place p) =>
         p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } m } ? CobolEdit.MaskScale(m)
         : p.Item.Pic?.Scale ?? 0;
@@ -704,7 +711,7 @@ public sealed class CSharpEmitter
     private void EmitSetTo(BoundSetTo s)
     {
         string tmp = $"__set{_setCounter++}";
-        _ctx.Writer.Line($"long {tmp} = {NumericRenderer.Align(_num.Render(s.Value), 0)};");
+        _ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(_num.Render(s.Value), 0)});");
         foreach (var t in s.Targets) StoreSetTarget(t, new NumX(tmp, 0));
     }
 
@@ -713,7 +720,7 @@ public sealed class CSharpEmitter
     private void EmitSetUpDown(BoundSetUpDown s)
     {
         string tmp = $"__set{_setCounter++}";
-        _ctx.Writer.Line($"long {tmp} = {NumericRenderer.Align(_num.Render(s.Amount), 0)};");
+        _ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(_num.Render(s.Amount), 0)});");
         foreach (var t in s.Targets) AugmentSetTarget(t, s.Down, new NumX(tmp, 0));
     }
 
@@ -725,10 +732,10 @@ public sealed class CSharpEmitter
         switch (t)
         {
             case SetIndexTarget ix:
-                _ctx.Writer.Line($"{ix.IndexField} = {NumericRenderer.Align(value, 0)};");
+                _ctx.Writer.Line($"{ix.IndexField} = (long)({NumericRenderer.Align(value, 0)});");
                 break;
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
-                _ctx.Writer.Line(p.Write(NumericRenderer.Align(value, 0)));
+                _ctx.Writer.Line(p.Write($"(long)({NumericRenderer.Align(value, 0)})"));
                 break;
             case SetPlaceTarget { Place: var p }:
                 StoreArith(p, value, CobolRounding.Truncation);
@@ -746,10 +753,10 @@ public sealed class CSharpEmitter
         switch (t)
         {
             case SetIndexTarget ix:
-                _ctx.Writer.Line($"{ix.IndexField} {op}= {NumericRenderer.Align(amount, 0)};");
+                _ctx.Writer.Line($"{ix.IndexField} {op}= (long)({NumericRenderer.Align(amount, 0)});");
                 break;
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
-                _ctx.Writer.Line(p.Write($"{p.Read()} {op} {NumericRenderer.Align(amount, 0)}"));
+                _ctx.Writer.Line(p.Write($"(long)({p.Read()} {op} {NumericRenderer.Align(amount, 0)})"));
                 break;
             case SetPlaceTarget { Place: var p }:
                 StoreArith(p, _num.Combine(NumericRenderer.FieldNum(p), op, amount), CobolRounding.Truncation);
@@ -767,7 +774,7 @@ public sealed class CSharpEmitter
                 PicCategory.Alphanumeric or PicCategory.NumericEdited =>
                     $"CobolString.Store({CsLiteral(DecodeCobolString(low))}, {parent.Item.Pic.Length})",
                 PicCategory.Numeric =>
-                    $"CobolNum.Store({UnscaledAtScale(low, parent.Item.Pic.Scale)}, {parent.Item.Pic.Scale}, {parent.Item.ProfileName})",
+                    Narrow($"CobolNum.Store({UnscaledAtScale(low, parent.Item.Pic.Scale)}, {parent.Item.Pic.Scale}, {parent.Item.ProfileName})", parent.Item),
                 _ => LoudValue("string", $"SET condition '{cond.Name}' over a group parent"),
             };
             _ctx.Writer.Line(parent.Write(rhs));
