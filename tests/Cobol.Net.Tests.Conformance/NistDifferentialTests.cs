@@ -102,6 +102,10 @@ public sealed class NistDifferentialTests
     [InlineData("NC203A")]   // DIVIDE REMAINDER across scales (S9(6)V9(6) dividends, edited remainders)
     [InlineData("NC251A")]   // DIVIDE REMAINDER + END-DIVIDE scope
     [InlineData("NC135A")]   // 3-dim table build via sections + plain WRITE in a print stream
+    // Greened by EVALUATE (ISO §14.9.13 — bind-time chained selection): value/expression/literal subjects,
+    // THRU ranges, NOT groups, ALSO multi-subject AND composition, ANY, TRUE/FALSE subjects↔condition objects,
+    // and CONDITIONAL subjects (class tests + level-88 condition-names) paired with TRUE/FALSE — DEVLOG 542.
+    [InlineData("NC225A")]   // the EVALUATE feature program (29 GF tests incl. 6-subject ALSO matrices)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

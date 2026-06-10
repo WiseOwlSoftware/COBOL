@@ -14,7 +14,7 @@ using Core = CobolParserCore;
 /// <see cref="Place"/>, decodes every literal, and binds every expression / condition / statement into a bound node
 /// exactly once (COBOLNET_DESIGN §2). The backend then renders the bound tree — it never re-walks the parse tree.
 /// </summary>
-public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
+public sealed partial class StatementBinder(DataBinder data, ReferenceResolver refs)
 {
     private readonly List<(string Cobol, string Method, Core.ParagraphDefinitionContext Ctx)> _paras = [];
     private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
@@ -126,6 +126,7 @@ public sealed class StatementBinder(DataBinder data, ReferenceResolver refs)
         _ when s.performStatement() is { } p => BindPerform(p),
         _ when s.setStatement() is { } set => BindSet(set),
         _ when s.searchStatement() is { } se => BindSearch(se),
+        _ when s.evaluateStatement() is { } ev => BindEvaluate(ev),
         _ when s.searchAllStatement() is { } sa => BindSearchAll(sa),
         _ when s.goToStatement() is { } g => BindGoTo(g),
         _ when s.exitStatement() is { } e => BindExit(e),

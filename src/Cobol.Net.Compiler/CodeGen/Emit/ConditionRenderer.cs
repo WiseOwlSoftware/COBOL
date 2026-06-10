@@ -16,6 +16,8 @@ internal sealed class ConditionRenderer(NumericRenderer num)
     public string Render(BoundCondition c) => c switch
     {
         BoundRelational r => RenderRelational(r),
+        // An EMPTY logical is the tautology (EVALUATE's ANY object composes as an AND over zero terms).
+        BoundLogical { Operands.Count: 0 } => "true",
         BoundLogical l => "(" + string.Join($" {l.Op} ", l.Operands.Select(Render)) + ")",
         BoundNot n => $"!({Render(n.Operand)})",
         BoundCondition88 c88 => RenderCondition88(c88),

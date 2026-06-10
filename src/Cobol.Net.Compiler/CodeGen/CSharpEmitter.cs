@@ -21,7 +21,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// </summary>
 /// <remarks><b>Status — G2:</b> groups→record structs, OCCURS→arrays, qualified/subscripted refs, figurative +
 /// signed DISPLAY, level-88. Control flow is a sequential paragraph call-chain (the G4 PC dispatcher replaces it).</remarks>
-public sealed class CSharpEmitter
+public sealed partial class CSharpEmitter
 {
     private EmissionContext _ctx = null!;
     private NumericRenderer _num = null!;
@@ -275,6 +275,7 @@ public sealed class CSharpEmitter
             case BoundSetTo st: EmitSetTo(st); return false;
             case BoundSetUpDown su: EmitSetUpDown(su); return false;
             case BoundSearch se: EmitSearch(se); return false;
+            case BoundEvaluate ev: EmitEvaluate(ev); return false;
             case BoundOpen o: EmitOpen(o); return false;
             case BoundClose c: EmitClose(c); return false;
             case BoundWrite wr: EmitWrite(wr); return false;
