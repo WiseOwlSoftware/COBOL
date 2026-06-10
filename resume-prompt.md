@@ -19,7 +19,23 @@
 > editions is gated by `DialectLevel`; new features enabled only at ≥ their edition; obsolete/removed flagged. (Memories
 > `feedback_version_test_matrix`, `feedback_version_targeted_semantics`.)
 >
-> **STATE (DEVLOG 545, 2026-06-10 13:20): 82/95 NC byte-match (locked), 564 conformance + 15 unit green. STEP ①
+> **STATE (DEVLOG 552, 2026-06-10 17:30): 88/95 NC byte-match + 14 ST locked; 605 conformance + 15 unit; legacy
+> guard ALL GREEN (re-proved on the RETURN grammar change). Landed since 545: ref-mod completion (548 — numeric
+> items via NumericImagePlace + the parsed refModSpec form), null-table benign chains (549), RENAMES/REDEFINES
+> layout closeout (550 — nested-class dissolution, no-THRU alias forward, StoreDisplay storage-form bridge,
+> redefiner-excluded group width), ODO (551 — wave-2 agent; NC235A spec-pinned EXCEEDING the golden), SORT/MERGE
+> (552 — wave-2 pipeline; 6 facts spec-pinned over a legacy GO-TO-loop hole; VERSION_CHANGE_REFERENCE Table 7 =
+> the first 85→2002 rows). **RESUME AT: integrate the two PARKED wave-2 families from `/e/tmp/wave2-hold/`** —
+> (1) KeyedIO (RELATIVE/INDEXED files; 19 anchored edits in `/e/tmp/verb-briefs/wave2result-keyedio.json`;
+> targets RL/IX suites), then (2) CALL (11 STRUCTURAL edits in wave2result-call.json — multi-unit emission,
+> instance program classes/__Activate, FieldEmitter instance fields; targets the IC suite; integrate ALONE and
+> verify hard). Then: NC107A/108M (DECIMAL-POINT COMMA — brief at `/e/tmp/verb-briefs/wave2result-decimalPointBrief.txt`),
+> NC105A's last 8 group-move rows, ST chain-consumer harness support, the ST105A/110A residuals (chain + an
+> over-broad SR6 key check), then steps ④–⑦. Apply edits with the index-based python pattern (the Bash transport
+> mangles backslash escapes — never inline `
+` in heredoc scripts).**
+>
+> > **STATE (DEVLOG 545, 2026-06-10 13:20): 82/95 NC byte-match (locked), 564 conformance + 15 unit green. STEP ①
 > ('85 verbs) COMPLETE: EVALUATE (542), the SIX-FAMILY VERB WAVE (543 — INSPECT, STRING/UNSTRING, INITIALIZE,
 > ACCEPT, CORRESPONDING, ALTER-85-only + switches/SET-F3/switch-conditions, via 6 parallel agents over disjoint
 > `StatementBinder.<Verb>.cs`/`CSharpEmitter.<Verb>.cs` partials), the ARITHMETIC WAVES (544 — §14.7.7 single
