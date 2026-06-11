@@ -25,10 +25,12 @@ public sealed record BoundSortMergeKey(
     bool Descending, int Offset, int Length, bool Numeric, bool Signed, string SignKind);
 
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
-/// DEPENDING ON place — RELEASE takes each record's length from it (GR13), RETURN restores each returned record's
-/// length into it (GR15) — and the declared min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §14.9.40 GR12b;
-/// EC checking is OFF by default per COBOLNET_DESIGN §18.16, the bounds are carried for the seam).</summary>
-public sealed record SortVaryingInfo(Place Depending, int Min, int Max);
+/// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
+/// length into it (GR15) — and the min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §14.9.40 GR12b;
+/// EC checking is OFF by default per COBOLNET_DESIGN §18.16, the bounds are carried for the seam).
+/// <paramref name="Depending"/> is null for a variable-length SD/FD with no DEPENDING phrase (RECORD m TO n —
+/// GR13b/c: each record then releases/writes at its own size; there is no length register to restore).</summary>
+public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);
 
 /// <summary><c>SORT file-name-1 …</c> (ISO §14.9.40 Format 1): the three-phase file sort (GR9 — release, sequence,
 /// return). <paramref name="Using"/>/<paramref name="InputProcedure"/> is the release phase (GR11/GR12),
@@ -441,15 +443,14 @@ public sealed partial class StatementBinder
         return (start, end);
     }
 
-    /// <summary>The varying-record model of an SD/FD for the sort verbs, with the DEPENDING item resolved to its
-    /// place (§13.18.43 GR13/GR15), or null when the file's records are fixed-length / no DEPENDING item.</summary>
+    /// <summary>The varying-record model of an SD/FD for the sort verbs (§13.18.43 GR13/GR15), with the DEPENDING
+    /// item (when declared) resolved to its place; null when the file's records are fixed-length. Min/max default
+    /// per GR9/GR10 (the smallest/largest record described) via the FileModel accessors.</summary>
     private SortVaryingInfo? SortVaryingOf(FileModel file)
     {
-        if (file.Varying is not { } v || v.DependingName is not { } dn) return null;
-        if (!data.ByName.TryGetValue(dn, out var list) || list.Count == 0
-            || refs.ResolveItem(list[0]) is not { } dep) return null;
-        int max = v.Max ?? (file.Records.Count > 0 ? SortPhysicalWidth(file.Records[0]) : 0);
-        return new SortVaryingInfo(dep, v.Min ?? 1, max);
+        if (file.Varying is null) return null;
+        Place? dep = file.VaryingDependingItem is { } d ? refs.ResolveItem(d) : null;
+        return new SortVaryingInfo(dep, file.VaryMin, file.VaryMax);
     }
 
     /// <summary>The record root (01) an item belongs to.</summary>

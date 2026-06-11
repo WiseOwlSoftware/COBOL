@@ -34,10 +34,13 @@ public sealed partial class CSharpEmitter
         string name = CsLiteral(file.CobolName), assign = CsLiteral(file.AssignTarget);
         int access = (int)file.AccessMode;   // FileAccessMode ordinals mirror the runtime KeyedAccess enum
         string opt = file.Optional ? "true" : "false";
+        // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) for the GR14/§14.9.35
+        // GR20 '44' boundary checks; the keyed frames already carry per-record lengths.
+        string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
         if (file.Organization == FileOrganization.Relative)
         {
             int digits = file.RelativeKeyItem?.Pic?.Digits ?? 0;
-            w.Line($"CobolFile.RegisterRelative({name}, {assign}, {file.RecordWidth}, {opt}, {access}, {digits});");
+            w.Line($"CobolFile.RegisterRelative({name}, {assign}, {file.RecordWidth}, {opt}, {access}, {digits}{vary});");
             return;
         }
         if (file.RecordKeyItem is not { } pk || KeyedImageOffset(pk) is not { } pkOff)
@@ -47,7 +50,7 @@ public sealed partial class CSharpEmitter
             return;
         }
         w.Line($"CobolFile.RegisterIndexed({name}, {assign}, {file.RecordWidth}, {opt}, {access}, "
-            + $"{pkOff}, {pk.ImageWidth});");
+            + $"{pkOff}, {pk.ImageWidth}{vary});");
         foreach (var (alt, dups) in file.AlternateKeys)
         {
             if (KeyedImageOffset(alt) is not { } aOff)
@@ -104,6 +107,7 @@ public sealed partial class CSharpEmitter
         using (w.Block($"if ({st}[0] == '0')"))
         {
             if (area is not null) EmitImageInto(area, img);
+            EmitReadLengthStore(file);   // §13.18.43 GR15 — the just-read length into DEPENDING
             // §14.9.30 GR25 — a sequential READ of a relative file MOVEs the RRN of the record made available
             // into the RELATIVE KEY data item (MOVE rules — the canonical numeric store path).
             if (rd.Kind != KeyedReadKind.Random && file.Organization == FileOrganization.Relative
@@ -157,7 +161,10 @@ public sealed partial class CSharpEmitter
         }
         int id = _keyedSeq++;
         string st = $"__kst{id}";
-        w.Line($"var {st} = CobolFile.WriteKeyed({name}, {OperandText.AsString(new BoundFieldOperand(wr.Record))});");
+        string wimg = OperandText.AsString(new BoundFieldOperand(wr.Record));
+        w.Line(VaryingLengthArg(file) is { } wlen
+            ? $"var {st} = CobolFile.WriteKeyed({name}, {wimg}, {wlen});"   // §13.18.43 GR13a
+            : $"var {st} = CobolFile.WriteKeyed({name}, {wimg});");
         // §14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
         // item during execution of the WRITE.
         if (file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential
@@ -189,7 +196,10 @@ public sealed partial class CSharpEmitter
         }
         int id = _keyedSeq++;
         string st = $"__kst{id}";
-        w.Line($"var {st} = CobolFile.RewriteKeyed({name}, {OperandText.AsString(new BoundFieldOperand(rw.Record))});");
+        string rimg = OperandText.AsString(new BoundFieldOperand(rw.Record));
+        w.Line(VaryingLengthArg(file) is { } rlen
+            ? $"var {st} = CobolFile.RewriteKeyed({name}, {rimg}, {rlen});"   // §13.18.43 GR13a / §14.9.35 GR20
+            : $"var {st} = CobolFile.RewriteKeyed({name}, {rimg});");
         EmitStoreFileStatus(file);
         EmitUseHook(file, invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
         KeyedEmitInvalid(st, rw.InvalidKey);

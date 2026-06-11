@@ -63,13 +63,36 @@ public sealed class IndexedFile
     public int OpenModeView => _modeKnown ? (int)_mode : -1;
     private bool _modeKnown;
 
-    public IndexedFile(string hostPath, int recordWidth, KeyedAccess access, int primeOffset, int primeLength)
+    // RECORD IS VARYING bounds (ISO §13.18.43 GR9/GR10); (-1,-1) = fixed-length. The KeyedFrames store carries
+    // each record's exact length; key slices pad on demand (KeyOf), so a varying record persists at its written
+    // length (GR13) and reports it on READ (GR15). Out-of-bounds WRITE/REWRITE is the GR14/§14.9.35 GR20 '44'.
+    private readonly int _varyMin = -1, _varyMax = -1;
+    private bool IsVarying => _varyMin >= 0;
+
+    /// <summary>The length of the most recently read record (ISO §13.18.43 GR15).</summary>
+    public int LastReadLength { get; private set; }
+
+    public IndexedFile(string hostPath, int recordWidth, KeyedAccess access, int primeOffset, int primeLength,
+        int varyMin = -1, int varyMax = -1)
     {
         HostPath = hostPath;
         _recordWidth = recordWidth < 1 ? 1 : recordWidth;
         _access = access;
         _primeOff = primeOffset;
         _primeLen = primeLength;
+        _varyMin = varyMin;
+        _varyMax = varyMax;
+    }
+
+    /// <summary>The stored image of a record being written: a varying record keeps exactly its declared length
+    /// (§13.18.43 GR13); a fixed record fills the record width. Null (→ '44') when a varying length violates the
+    /// declared bounds (GR14 / §14.9.35 GR20).</summary>
+    private string? Stored(string image, int length)
+    {
+        if (!IsVarying) return Fit(image);
+        int len = length >= 0 ? length : image.Length;
+        if (len < _varyMin || len > _varyMax) return null;
+        return image.Length == len ? image : image.Length > len ? image[..len] : image.PadRight(len, ' ');
     }
 
     /// <summary>Register one ALTERNATE RECORD KEY's (offset, length, WITH DUPLICATES) geometry (§12.4.5.6).</summary>
@@ -230,6 +253,7 @@ public sealed class IndexedFile
         _lastReadPrime = KeyOf(found.Image, -1);
         _prevOpWasSuccessfulRead = true;
         _lastReadUnsuccessful = false;
+        LastReadLength = found.Image.Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(found.Image);
         return Status = status;
 
@@ -267,6 +291,7 @@ public sealed class IndexedFile
         _lastReadPrime = KeyOf(found.Image, -1);
         _prevOpWasSuccessfulRead = true;
         _lastReadUnsuccessful = false;
+        LastReadLength = found.Image.Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(found.Image);
         return Status = FileStatusCode.Success;
     }
@@ -278,10 +303,12 @@ public sealed class IndexedFile
     /// (GR40/GR42c); a permitted duplicate alternate succeeds with '02' (§9.1.13.2 2c) and takes the next arrival
     /// number — sequential retrieval order is the actual write order (GR40). Open-mode legality per §9.1.13.7
     /// item 8.</summary>
-    public string Write(string image)
+    public string Write(string image, int length = -1)
     {
         _prevOpWasSuccessfulRead = false;
-        image = Fit(image);
+        if (Stored(image, length) is not { } stored)
+            return Status = FileStatusCode.RecordSizeViolation;            // '44' §13.18.43 GR14a
+        image = Fit(image);   // key slices come from the record-area image (KeyOf pads on demand)
         bool sequential = _access == KeyedAccess.Sequential || _mode == FileOpenMode.Extend;
         if (sequential)
         {
@@ -303,7 +330,7 @@ public sealed class IndexedFile
             if (exists && !_alts[i].Dups) return Status = FileStatusCode.DuplicateKey;   // '22' GR40/GR42c
             if (exists) duplicateAlt = true;
         }
-        _recs.Add(new KeyedRec { Image = image, Arrival = _nextArrival++ });
+        _recs.Add(new KeyedRec { Image = stored, Arrival = _nextArrival++ });
         if (sequential) _lastWrittenPrime = prime;
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
     }
@@ -313,11 +340,14 @@ public sealed class IndexedFile
     /// random/dynamic an existing prime ('23', GR23/GR25b); a no-DUPLICATES alternate conflict with ANOTHER
     /// record → '22' (GR25c); a CHANGED alternate key repositions the record LAST in its duplicate set (GR24b —
     /// it takes the next arrival number); a permitted duplicate alternate created → '02' (§9.1.13.2 2c).</summary>
-    public string Rewrite(string image)
+    public string Rewrite(string image, int length = -1)
     {
         bool wasRead = _prevOpWasSuccessfulRead;
         _prevOpWasSuccessfulRead = false;
         if (!IsOpen || _mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
+        // §14.9.35 GR18 — an indexed record's size MAY differ from the replaced record's; GR20 still bounds it.
+        if (Stored(image, length) is not { } stored)
+            return Status = FileStatusCode.RecordSizeViolation;                                 // '44' GR20
         image = Fit(image);
         string prime = KeyOf(image, -1);
         if (_access == KeyedAccess.Sequential)
@@ -336,7 +366,7 @@ public sealed class IndexedFile
             if (exists) duplicateAlt = true;
             if (newValue != KeyOf(target.Image, i)) altChanged = true;
         }
-        target.Image = image;
+        target.Image = stored;
         if (altChanged) target.Arrival = _nextArrival++;                                         // GR24b
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
     }
@@ -458,9 +488,11 @@ public sealed class IndexedFile
     {
         _recs.Clear();
         _nextArrival = 1;
+        // A varying file's frames keep their exact stored lengths (§13.18.43 GR15 reports them on READ);
+        // fixed frames normalize to the record width.
         foreach (string? frame in KeyedFrames.Read(HostPath))
             if (frame is not null)
-                _recs.Add(new KeyedRec { Image = Fit(frame), Arrival = _nextArrival++ });
+                _recs.Add(new KeyedRec { Image = IsVarying ? frame : Fit(frame), Arrival = _nextArrival++ });
     }
 }
 
@@ -477,18 +509,20 @@ public static partial class CobolFile
     private static readonly Dictionary<string, IndexedFile> IndexedFiles = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Register a SELECTed RELATIVE file (emitted at program start). <paramref name="relativeKeyDigits"/>
-    /// is the RELATIVE KEY item's digit capacity (statuses '14'/'24', §9.1.13.4 / §14.9.51 GR29a; 0 = no clause).</summary>
+    /// is the RELATIVE KEY item's digit capacity (statuses '14'/'24', §9.1.13.4 / §14.9.51 GR29a; 0 = no clause).
+    /// <paramref name="varyMin"/>/<paramref name="varyMax"/> are the RECORD IS VARYING bounds (ISO §13.18.43
+    /// GR9/GR10; -1,-1 = fixed-length).</summary>
     public static void RegisterRelative(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int relativeKeyDigits) =>
+        int accessMode, int relativeKeyDigits, int varyMin = -1, int varyMax = -1) =>
         RelativeFiles[cobolName] = new RelativeFile(ResolveHostPath(assignTarget), recordWidth,
-            (KeyedAccess)accessMode, relativeKeyDigits) { IsOptional = optional };
+            (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax) { IsOptional = optional };
 
     /// <summary>Register a SELECTed INDEXED file (emitted at program start) with its PRIME key's (offset, length)
-    /// range of the record image (§12.4.5.12).</summary>
+    /// range of the record image (§12.4.5.12) and the RECORD IS VARYING bounds (-1,-1 = fixed-length).</summary>
     public static void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int primeOffset, int primeLength) =>
+        int accessMode, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1) =>
         IndexedFiles[cobolName] = new IndexedFile(ResolveHostPath(assignTarget), recordWidth,
-            (KeyedAccess)accessMode, primeOffset, primeLength) { IsOptional = optional };
+            (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax) { IsOptional = optional };
 
     /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order.</summary>
     public static void AddAlternateKey(string name, int offset, int length, bool duplicates)
@@ -506,17 +540,25 @@ public static partial class CobolFile
     public static long RelativeSlot(string name) =>
         RelativeFiles.TryGetValue(name, out var f) ? f.LastSlot : 0;
 
-    /// <summary>Keyed WRITE (§14.9.51) — returns the I-O status.</summary>
-    public static string WriteKeyed(string name, string image) =>
-        RelativeFiles.TryGetValue(name, out var r) ? r.Write(image)
-        : IndexedFiles.TryGetValue(name, out var ix) ? ix.Write(image)
+    /// <summary>Keyed WRITE (§14.9.51) — returns the I-O status. <paramref name="length"/> is the varying-record
+    /// length (ISO §13.18.43 GR13a), -1 = the record's own size.</summary>
+    public static string WriteKeyed(string name, string image, int length = -1) =>
+        RelativeFiles.TryGetValue(name, out var r) ? r.Write(image, length)
+        : IndexedFiles.TryGetValue(name, out var ix) ? ix.Write(image, length)
         : FileStatusCode.PermanentError;
 
-    /// <summary>Keyed REWRITE (§14.9.35) — returns the I-O status.</summary>
-    public static string RewriteKeyed(string name, string image) =>
-        RelativeFiles.TryGetValue(name, out var r) ? r.Rewrite(image)
-        : IndexedFiles.TryGetValue(name, out var ix) ? ix.Rewrite(image)
+    /// <summary>Keyed REWRITE (§14.9.35) — returns the I-O status. <paramref name="length"/> is the varying-record
+    /// length (§13.18.43 GR13a; the keyed record size MAY differ from the replaced record's, §14.9.35 GR18).</summary>
+    public static string RewriteKeyed(string name, string image, int length = -1) =>
+        RelativeFiles.TryGetValue(name, out var r) ? r.Rewrite(image, length)
+        : IndexedFiles.TryGetValue(name, out var ix) ? ix.Rewrite(image, length)
         : FileStatusCode.PermanentError;
+
+    /// <summary>The length of the most recently read keyed record (ISO §13.18.43 GR15).</summary>
+    private static int KeyedLastReadLength(string name) =>
+        RelativeFiles.TryGetValue(name, out var r) ? r.LastReadLength
+        : IndexedFiles.TryGetValue(name, out var ix) ? ix.LastReadLength
+        : 0;
 
     /// <summary>DELETE RECORD (§14.9.10 F1); for indexed random/dynamic the prime key is sliced from
     /// <paramref name="keyedRecordImage"/> (GR3) — relative uses the staged relative key (GR4).</summary>

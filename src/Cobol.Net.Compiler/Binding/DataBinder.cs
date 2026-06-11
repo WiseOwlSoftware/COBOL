@@ -251,6 +251,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             file.Records.AddRange(records);
             for (int i = 1; i < records.Count; i++)
                 records[i].RedefinesTarget ??= records[0];   // secondary record shares the first's storage area
+            foreach (var clause in fd.fileDescriptionClauses()?.fileDescriptionClause() ?? [])
+                if (clause.recordClause() is { } rc)
+                    BindRecordClause(rc, file);   // RECORD VARYING / m TO n → FileModel.Varying (ISO §13.18.43)
         }
 
         // SD entries (ISO §13.4.6): a sort-merge file's records bind through the SAME entry path as FD records —
@@ -274,21 +277,30 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 sdRecords[i].RedefinesTarget ??= sdRecords[0];
             foreach (var clause in sd.sortMergeDescriptionClauses()?.sortMergeDescriptionClause() ?? [])
             {
-                if (clause.recordClause() is { } rc && (rc.VARYING() is not null || rc.TO() is not null))
-                {
-                    // RECORD IS VARYING [FROM m] [TO n] [DEPENDING ON d] / RECORD CONTAINS m TO n (ISO §13.18.43).
-                    var lits = rc.integerLiteral();
-                    int? lo = lits.Length > 0 ? int.Parse(lits[0].GetText()) : null;
-                    int? hi = lits.Length > 1 ? int.Parse(lits[1].GetText()) : null;
-                    if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
-                    sdFile.Varying = new VaryingRecordInfo(lo, hi, rc.dataReference()?.GetText());
-                }
+                if (clause.recordClause() is { } rc)
+                    BindRecordClause(rc, sdFile);
                 else if (clause.dataRecordsClause() is not null && Edition.DialectLevel >= 2002)
                     Edition.Error("COBOLNET0873", "DATA RECORDS — an obsolete element of ANSI X3.23-1985, deleted by "
                         + "ISO/IEC 1989:2002 (§13.4.6 admits only the record clause on an SD); it requires --std 85 "
                         + $"(targeting COBOL-{Edition.DialectLevel})");
             }
         }
+    }
+
+    /// <summary>Bind a RECORD clause's variable-length forms into <see cref="FileModel.Varying"/> (ISO §13.18.43:
+    /// <c>RECORD IS VARYING [FROM m] [TO n] [DEPENDING ON d]</c> and <c>RECORD CONTAINS m TO n</c> describe
+    /// variable-length records; the fixed Format-1 <c>RECORD CONTAINS n</c> leaves it null). Shared by the FD and
+    /// SD loops — ONE binding for the clause. The DEPENDING name keeps only the base word (the FILE STATUS
+    /// capture pattern) and resolves post-build in <see cref="ResolveFiles"/>.</summary>
+    private static void BindRecordClause(Core.RecordClauseContext rc, FileModel file)
+    {
+        if (rc.VARYING() is null && rc.TO() is null) return;
+        var lits = rc.integerLiteral();
+        int? lo = lits.Length > 0 ? int.Parse(lits[0].GetText()) : null;
+        int? hi = lits.Length > 1 ? int.Parse(lits[1].GetText()) : null;
+        if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
+        string? dep = rc.dataReference() is { } d ? d.cobolWord()?.GetText() ?? d.GetText() : null;
+        file.Varying = new VaryingRecordInfo(lo, hi, dep);
     }
 
     /// <summary>Bind the I-O-CONTROL paragraph (ISO §12.4.6). A record-area SAME clause (Format 2) makes the listed
@@ -342,6 +354,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     file.AlternateKeys.Add((alt, dups));
             if (file.RelativeKeyName is { } rl && ByName.TryGetValue(rl, out var rlist) && rlist.Count > 0)
                 file.RelativeKeyItem = rlist[0];
+            // RECORD VARYING … DEPENDING ON names an integer item outside the record (ISO §13.18.43 SR — the
+            // length register WRITE/REWRITE/RELEASE read per GR13a and READ/RETURN set per GR15).
+            if (file.Varying?.DependingName is { } vn && ByName.TryGetValue(vn, out var vlist) && vlist.Count > 0)
+                file.VaryingDependingItem = vlist[0];
         }
     }
 

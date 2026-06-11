@@ -376,6 +376,20 @@ public sealed class NistDifferentialTests
     [InlineData("ST131A")]   // READ FILE3 / RELEASE S3 with no FROM through SAME RECORD AREA FOR SORT3 FILE3 (SR6)
     [InlineData("IX205A")]   // indexed pair: file A's record view shows B's data after READ B
     [InlineData("IX206A")]   // same shape over the second indexed organization pairing
+    // Greened by the I-O REWRITE fixes (DEVLOG 563): OPEN I-O opens the stream ReadWrite so the in-place
+    // record-sequential REWRITE can write (ISO §14.9.35 GR3 — REWRITE requires open mode I-O and replaces the
+    // record retrieved by the last successful READ), and the rewrite block start is the LOGICAL read offset
+    // (characters consumed), never the buffered StreamReader's BaseStream.Position.
+    [InlineData("IX106A")]   // sequential REWRITE interleaved with relative/indexed file work
+    // Greened by variable-length records end-to-end (ISO §13.18.43 — DEVLOG 563): FD RECORD VARYING / m TO n
+    // binds into FileModel.Varying; WRITE/REWRITE/RELEASE take the record length from the DEPENDING item (GR13a)
+    // or the record's own size (GR13b/c) and fail with I-O status '44' outside [min,max] (GR14 / §14.9.35 GR20);
+    // a record-sequential REWRITE must also match the replaced record's size (§14.9.35 GR16 → '44'); READ/RETURN
+    // restore the just-read length into DEPENDING (GR15). Varying connectors length-frame records on disk
+    // (4-byte LE prefixes — the KeyedFrames convention). Plus the handler-end fix: the CCVS termination-tail
+    // boundary is the LAST trivial-exit paragraph before the tail, not the first (SQ212A's FAIL-ROUTINE-EX1).
+    [InlineData("SQ212A")]   // 18..2048 var-len: 3 short + 9 long WRITEs ⇒ '44' + declarative; REWRITE size cases
+    [InlineData("RL206A")]   // relative RECORD VARYING 120..140 DEPENDING: per-record lengths round-trip
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

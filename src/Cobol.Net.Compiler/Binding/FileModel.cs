@@ -79,9 +79,33 @@ public sealed class FileModel
     public bool IsSortMerge { get; set; }
 
     /// <summary>The RECORD clause's variable-length model (ISO §13.18.43 — RECORD IS VARYING / RECORD CONTAINS m
-    /// TO n), or null when the records are fixed-length. The sort verbs consume it (§13.18.43 GR13/GR15: RELEASE
-    /// takes each record's length from the DEPENDING item, RETURN restores it).</summary>
+    /// TO n), or null when the records are fixed-length. All the record verbs consume it: WRITE/REWRITE/RELEASE
+    /// take the record length from the DEPENDING item (GR13a) or the record's own size (GR13b/c) and fail with
+    /// I-O status '44' outside [min,max] (GR14); READ/RETURN restore the just-read record's length (GR15).</summary>
     public VaryingRecordInfo? Varying { get; set; }
+
+    /// <summary>The resolved RECORD VARYING … DEPENDING ON data item (set post-build, like
+    /// <see cref="FileStatusItem"/>); null when fixed-length or no DEPENDING phrase.</summary>
+    public DataItem? VaryingDependingItem { get; set; }
+
+    /// <summary>The variable-length minimum record size (ISO §13.18.43 GR9 — an unstated minimum defaults to the
+    /// smallest record described for the file, where an occurs-depending table contributes its MINIMUM
+    /// occurrences per GR8a); −1 for fixed-length records.</summary>
+    public int VaryMin => Varying is { } v ? v.Min ?? (Records.Count == 0 ? 1 : Records.Min(MinRecordSize)) : -1;
+
+    /// <summary>The variable-length maximum record size (ISO §13.18.43 GR10 — an unstated maximum defaults to the
+    /// largest record described for the file; an ODO table allocates its maximum, GR8b); −1 for fixed-length
+    /// records.</summary>
+    public int VaryMax => Varying is { } v ? v.Max ?? Math.Max(1, RecordWidth) : -1;
+
+    /// <summary>The minimum byte size of one record description (ISO §13.18.43 GR8a): the sum over non-redefining
+    /// content with every occurs-depending table at its MINIMUM occurrence count (a bare <c>RECORD IS VARYING</c>
+    /// over an ODO record — RL211A — has minimum 120, not the 140 max allocation <see cref="DataItem.ImageWidth"/>
+    /// reports).</summary>
+    private static int MinRecordSize(DataItem item) =>
+        item.IsElementary ? item.ImageWidth
+        : item.Children.Where(c => c.RedefinesTargetName is null)
+            .Sum(c => MinRecordSize(c) * (c.OccursSpec is { DependingName: not null } od ? od.Min : c.Occurs ?? 1));
 
     /// <summary>The record area's character-image width (the max over the FD's records).</summary>
     public int RecordWidth => Records.Count == 0 ? 0 : Records.Max(r => r.ImageWidth);

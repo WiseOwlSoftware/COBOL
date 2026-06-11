@@ -1002,8 +1002,11 @@ public sealed partial class CSharpEmitter
             if (!file.IsSequential) { KeyedEmitRegistration(w, file); continue; }   // relative/indexed connectors
             if (file.Records.Count == 0) continue;
             bool lineSeq = file.Organization == FileOrganization.LineSequential;
+            // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) — the connector
+            // length-frames its records and enforces the GR14 '44' boundary checks.
+            string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
             w.Line($"CobolFile.Register({CsLiteral(file.CobolName)}, {CsLiteral(file.AssignTarget)}, " +
-                   $"{file.RecordWidth}, {(lineSeq ? "true" : "false")}, {(file.Optional ? "true" : "false")});");
+                   $"{file.RecordWidth}, {(lineSeq ? "true" : "false")}, {(file.Optional ? "true" : "false")}{vary});");
         }
     }
 
@@ -1058,9 +1061,29 @@ public sealed partial class CSharpEmitter
             w.Line($"CobolFile.WriteAdvancing({name}, {image}, {lines}, {(adv.Before ? "true" : "false")});");
         }
         else
-            w.Line($"CobolFile.Write({name}, {image});");
+            w.Line(VaryingLengthArg(wr.File) is { } len
+                ? $"CobolFile.Write({name}, {image}, {len});"
+                : $"CobolFile.Write({name}, {image});");
         EmitStoreFileStatus(wr.File);
         EmitUseHook(wr.File);
+    }
+
+    /// <summary>The record-length argument for a WRITE/REWRITE on a RECORD VARYING … DEPENDING file (ISO
+    /// §13.18.43 GR13a — the DEPENDING item's content names the record length), or null when the statement
+    /// writes the record's own size (GR13b/c — on a varying file the runtime takes the image's length; on a
+    /// fixed file it pads to the record width).</summary>
+    private string? VaryingLengthArg(FileModel file) =>
+        file is { Varying.DependingName: not null, VaryingDependingItem: { } d } && _refs.ResolveItem(d) is { } dep
+            ? $"(int)CobolTable.Occ({dep.Read()})" : null;
+
+    /// <summary>After a SUCCESSFUL read of a RECORD VARYING … DEPENDING file, store the just-read record's length
+    /// into the DEPENDING item (ISO §13.18.43 GR15; GR12 — an unsuccessful READ leaves it unchanged, so the call
+    /// site sits inside the success branch).</summary>
+    private void EmitReadLengthStore(FileModel file)
+    {
+        if (file is not { Varying.DependingName: not null, VaryingDependingItem: { } d }
+            || _refs.ResolveItem(d) is not { } dep) return;
+        StoreArith(dep, new NumX($"CobolFile.LastReadLength({CsLiteral(file.CobolName)})", 0), CobolRounding.Truncation);
     }
 
     /// <summary>READ file [INTO x] [AT END …][NOT AT END …] (ISO §14.9.30): on success the record image is
@@ -1078,8 +1101,12 @@ public sealed partial class CSharpEmitter
         using (w.Block($"if (CobolFile.Read({name}, out var {tmp}))"))
         {
             if (area is not null) EmitImageInto(area, tmp);
+            EmitReadLengthStore(rd.File);   // §13.18.43 GR15 — the just-read length into DEPENDING
             EmitStoreFileStatus(rd.File);
             // READ … INTO is READ then MOVE the record area to the target (ISO §14.9.30 GR — group move).
+            // §13.18.43 GR16a (a varying sender is the first DEPENDING-many bytes) is observationally identical
+            // here: Read space-fills the area beyond the record, and the implicit MOVE of the category-
+            // alphanumeric area space-fills the receiver the same way.
             if (rd.Into is { } into && area is not null)
                 EmitMove(new BoundMove(new BoundFieldOperand(area), [into]));
             if (rd.NotAtEnd is { } not) EmitStatementList(not);
@@ -1101,7 +1128,10 @@ public sealed partial class CSharpEmitter
         var w = _ctx.Writer;
         if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         if (rw.From is { } from) EmitMove(new BoundMove(from, [rw.Record]));
-        w.Line($"CobolFile.Rewrite({CsLiteral(rw.File.CobolName)}, {OperandText.AsString(new BoundFieldOperand(rw.Record))});");
+        string image = OperandText.AsString(new BoundFieldOperand(rw.Record));
+        w.Line(VaryingLengthArg(rw.File) is { } len
+            ? $"CobolFile.Rewrite({CsLiteral(rw.File.CobolName)}, {image}, {len});"
+            : $"CobolFile.Rewrite({CsLiteral(rw.File.CobolName)}, {image});");
         EmitStoreFileStatus(rw.File);
         EmitUseHook(rw.File);
     }

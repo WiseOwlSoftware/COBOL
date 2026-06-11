@@ -136,12 +136,36 @@ public sealed class RelativeFile
     /// §14.9.51 GR29b, §14.9.10 GR4). The compiler decodes the TYPED key field — never raw bytes.</summary>
     public void SetPendingKey(long rrn) => _pendingKey = rrn;
 
-    public RelativeFile(string hostPath, int recordWidth, KeyedAccess access, int relativeKeyDigits)
+    // RECORD IS VARYING bounds (ISO §13.18.43 GR9/GR10); (-1,-1) = fixed-length. The KeyedFrames store already
+    // carries each record's exact length, so a varying record persists at the length it was written (GR13) and
+    // reports it on READ (GR15); WRITE/REWRITE outside the bounds is the GR14/§14.9.35 GR20 '44'.
+    private readonly int _varyMin = -1, _varyMax = -1;
+    private bool IsVarying => _varyMin >= 0;
+
+    /// <summary>The length of the most recently read record (ISO §13.18.43 GR15 — the frame length on a varying
+    /// file, the record width on a fixed one).</summary>
+    public int LastReadLength { get; private set; }
+
+    public RelativeFile(string hostPath, int recordWidth, KeyedAccess access, int relativeKeyDigits,
+        int varyMin = -1, int varyMax = -1)
     {
         HostPath = hostPath;
         _recordWidth = recordWidth < 1 ? 1 : recordWidth;
         _access = access;
         _keyDigits = relativeKeyDigits;
+        _varyMin = varyMin;
+        _varyMax = varyMax;
+    }
+
+    /// <summary>The stored image of a record being written: a varying record keeps exactly its declared length
+    /// (§13.18.43 GR13 — truncate/pad the area image to it); a fixed record fills the record width. Returns null
+    /// (→ '44') when a varying length violates the declared bounds (GR14 / §14.9.35 GR20).</summary>
+    private string? Stored(string image, int length)
+    {
+        if (!IsVarying) return Fit(image);
+        int len = length >= 0 ? length : image.Length;
+        if (len < _varyMin || len > _varyMax) return null;
+        return image.Length == len ? image : image.Length > len ? image[..len] : image.PadRight(len, ' ');
     }
 
     // ── OPEN / CLOSE (ISO §14.9.27 / §14.9.6) ────────────────────────────────────────────────────────────────
@@ -282,6 +306,7 @@ public sealed class RelativeFile
         _lastSlot = s;
         _prevOpWasSuccessfulRead = true;
         _lastReadUnsuccessful = false;
+        LastReadLength = _slots[s].Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(_slots[s]);
         return Status = FileStatusCode.Success;
     }
@@ -304,6 +329,7 @@ public sealed class RelativeFile
         _lastSlot = _pendingKey;
         _prevOpWasSuccessfulRead = true;
         _lastReadUnsuccessful = false;
+        LastReadLength = rec.Length;         // §13.18.43 GR15 — the stored frame length
         image = Fit(rec);
         return Status = FileStatusCode.Success;
     }
@@ -314,7 +340,7 @@ public sealed class RelativeFile
     /// highest+1); RRN digit overflow of the key item → invalid key '24' (GR29a/GR33c). Random/dynamic writes the
     /// slot staged in the key item: occupied → '22' (GR33a), key &lt; 1 → permanent error '34' (GR29b). Open-mode
     /// legality per §9.1.13.7 item 8 ('48').</summary>
-    public string Write(string image)
+    public string Write(string image, int length = -1)
     {
         _prevOpWasSuccessfulRead = false;
         bool sequential = _access == KeyedAccess.Sequential || _mode == FileOpenMode.Extend;
@@ -325,7 +351,9 @@ public sealed class RelativeFile
             long slot = _seqNext;
             if (_keyDigits > 0 && slot.ToString().Length > _keyDigits)
                 return Status = FileStatusCode.BoundaryViolation;          // '24' §14.9.51 GR29a
-            _slots[slot] = Fit(image);
+            if (Stored(image, length) is not { } seqRec)
+                return Status = FileStatusCode.RecordSizeViolation;        // '44' §13.18.43 GR14a
+            _slots[slot] = seqRec;
             _seqNext = slot + 1;
             _lastSlot = slot;                                              // GR29a — MOVEd back into the key item
             return Status = FileStatusCode.Success;
@@ -335,7 +363,9 @@ public sealed class RelativeFile
         long key = _pendingKey;
         if (key < 1) return Status = FileStatusCode.PermanentBoundary;     // '34' §14.9.51 GR29b
         if (_slots.ContainsKey(key)) return Status = FileStatusCode.DuplicateKey;   // '22' §14.9.51 GR33a
-        _slots[key] = Fit(image);
+        if (Stored(image, length) is not { } rec)
+            return Status = FileStatusCode.RecordSizeViolation;            // '44' §13.18.43 GR14a
+        _slots[key] = rec;
         _lastSlot = key;
         return Status = FileStatusCode.Success;
     }
@@ -343,19 +373,24 @@ public sealed class RelativeFile
     /// <summary>REWRITE (§14.9.35): open mode must be I-O ('49', §9.1.13.7 item 9). Sequential access replaces
     /// the prior READ's record (no prior successful READ → '43', GR5); random/dynamic replaces the slot named by
     /// the key item (absent → '23', GR21). The FPI is unaffected (GR13).</summary>
-    public string Rewrite(string image)
+    public string Rewrite(string image, int length = -1)
     {
         bool wasRead = _prevOpWasSuccessfulRead;
         _prevOpWasSuccessfulRead = false;
         if (!IsOpen || _mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
+        // §14.9.35 GR18 — a relative record's size MAY differ from the replaced record's; GR20 still bounds it.
         if (_access == KeyedAccess.Sequential)
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43'
-            _slots[_lastSlot] = Fit(image);
+            if (Stored(image, length) is not { } seqRec)
+                return Status = FileStatusCode.RecordSizeViolation;                             // '44' GR20
+            _slots[_lastSlot] = seqRec;
             return Status = FileStatusCode.Success;
         }
         if (!_slots.ContainsKey(_pendingKey)) return Status = FileStatusCode.RecordNotFound;    // '23' GR21
-        _slots[_pendingKey] = Fit(image);
+        if (Stored(image, length) is not { } rec)
+            return Status = FileStatusCode.RecordSizeViolation;                                 // '44' GR20
+        _slots[_pendingKey] = rec;
         return Status = FileStatusCode.Success;
     }
 
@@ -445,7 +480,8 @@ public sealed class RelativeFile
         KeyedFrames.Write(HostPath, frames);
     }
 
-    /// <summary>Pad/truncate to the fixed record width (RECORD VARYING relative records are a later slice).</summary>
+    /// <summary>Pad/truncate to the record width — the record-AREA image a READ makes available (a shorter
+    /// varying record space-fills the area; its true length is <see cref="LastReadLength"/>).</summary>
     private string Fit(string s) =>
         s.Length == _recordWidth ? s : s.Length > _recordWidth ? s[.._recordWidth] : s.PadRight(_recordWidth, ' ');
 }

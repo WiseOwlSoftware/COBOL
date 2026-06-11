@@ -95,10 +95,10 @@ public sealed partial class CSharpEmitter
         {
             // GR12b: a record larger/smaller than the SD's record range ⇒ EC-SORT-MERGE-RELEASE (checking OFF,
             // §18.16). Fixed SD: the short record space-fills right to the fixed length (GR7c/MERGE GR2c — the
-            // Store pad); varying SD: each record releases at the size it was READ (GR12b — the sequential
-            // connector returns the input file's record width).
+            // Store pad); varying SD: each record releases at the size it was READ (GR12b — LastReadLength is
+            // the frame length on a varying input file, the record width on a fixed one; Read pads the area).
             w.Line(varying
-                ? $"CobolSort.Release({sdLit}, {tmp});"
+                ? $"CobolSort.Release({sdLit}, CobolString.RefMod({tmp}, 1, (int)CobolFile.LastReadLength({f})));"
                 : $"CobolSort.Release({sdLit}, CobolString.Store({tmp}, {sdWidth}));");
         }
         w.Line($"CobolFile.Close({f});   // implicit CLOSE (GR12c / GR7c)");
@@ -138,13 +138,15 @@ public sealed partial class CSharpEmitter
         if (rl.From is { } from) EmitMove(new BoundMove(from, [rl.Record]));   // GR4a: MOVE x TO record-name-1
         string sd = CsLiteral(rl.File.CobolName);
         string image = OperandText.AsString(new BoundFieldOperand(rl.Record));
-        if (rl.Varying is { } v)
+        if (rl.Varying is { Depending: { } dep })
         {
-            // §13.18.43 GR13: the released record's length = the RECORD VARYING DEPENDING ON item's current value.
-            // Out-of-range lengths are EC-SORT-MERGE-RELEASE (min {v.Min} max {v.Max}; checking OFF, §18.16).
-            w.Line($"CobolSort.Release({sd}, CobolString.RefMod({image}, 1, (int)CobolTable.Occ({v.Depending.Read()})));");
+            // §13.18.43 GR13a: the released record's length = the RECORD VARYING DEPENDING ON item's current value.
+            // Out-of-range lengths are EC-SORT-MERGE-RELEASE (GR14b; checking OFF, §18.16).
+            w.Line($"CobolSort.Release({sd}, CobolString.RefMod({image}, 1, (int)CobolTable.Occ({dep.Read()})));");
             return;
         }
+        // GR13b/c (no DEPENDING — incl. a varying m-TO-n SD): the named record's own size; the image renders at
+        // exactly that width, so the release carries it.
         w.Line($"CobolSort.Release({sd}, {image});");
     }
 
@@ -161,8 +163,8 @@ public sealed partial class CSharpEmitter
         using (w.Block($"if (CobolSort.Return({sd}, out var {tmp}))"))
         {
             EmitImageInto(rt.RecordArea, tmp);   // GR3 — made available in the record area
-            if (rt.Varying is { } v)             // §13.18.43 GR15 — each record's length restored into DEPENDING
-                StoreArith(v.Depending, new NumX($"CobolSort.LastReturnedLength({sd})", 0), CobolRounding.Truncation);
+            if (rt.Varying is { Depending: { } dep })   // §13.18.43 GR15 — the length restored into DEPENDING
+                StoreArith(dep, new NumX($"CobolSort.LastReturnedLength({sd})", 0), CobolRounding.Truncation);
             if (rt.Into is { } into)             // GR5 — RETURN then MOVE record-area → identifier-1
                 EmitMove(new BoundMove(new BoundFieldOperand(rt.RecordArea), [into]));
             if (rt.NotAtEnd is { } not) EmitStatementList(not);

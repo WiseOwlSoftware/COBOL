@@ -31,9 +31,26 @@ public sealed class SequentialFile
     private bool _lastReadUnsuccessful;
     private bool _prevOpWasSuccessfulRead;
 
-    // The most recently read record image (for a sequential REWRITE position; the in-memory line model rewrites the
-    // line at _rewriteIndex). For a record-sequential REWRITE the fixed-width block is replaced in place on disk.
+    // The byte offset of the most recently read record's fixed-width block (for the in-place record-sequential
+    // REWRITE) and the LOGICAL read offset it derives from. The logical offset counts characters CONSUMED from
+    // the reader (Latin1 — one byte per character; a record-sequential file is pure fixed-width blocks): the
+    // StreamReader BUFFERS, so BaseStream.Position is the buffer-fill boundary, never the read position —
+    // deriving the block start from it corrupted the rewrite target (IX106A REWRITE-TEST-GF-02).
     private long _lastReadBlockStart = -1;
+    private long _readOffset;
+
+    // RECORD IS VARYING bounds (ISO §13.18.43 GR9/GR10); (-1,-1) = fixed-length records. A varying file's
+    // records are length-framed on disk (a 4-byte little-endian length prefix per record — the same framing the
+    // keyed connectors' KeyedFrames use; the physical format is implementor-defined, §13.18.43 GR2, and only
+    // self-consistency matters since producer and consumer run on this connector). WRITE/REWRITE outside the
+    // bounds is the GR14 '44'; a record-sequential REWRITE must also match the replaced record's size
+    // (§14.9.35 GR16).
+    private readonly int _varyMin = -1, _varyMax = -1;
+    private bool IsVarying => _varyMin >= 0;
+
+    /// <summary>The length of the most recently read record (the frame length on a varying file, the record
+    /// width on a fixed one) — the value a RECORD VARYING … DEPENDING item receives (ISO §13.18.43 GR15).</summary>
+    public int LastReadLength { get; private set; }
 
     /// <summary>True for a SELECT OPTIONAL file (OPEN INPUT on a missing file is 05 + EOF, not 35).</summary>
     public bool IsOptional { get; set; }
@@ -53,11 +70,13 @@ public sealed class SequentialFile
     /// <summary>Set the I-O status directly (for facade-level conditions: a locked-file OPEN, a REEL/UNIT CLOSE).</summary>
     public void SetStatus(string status) => Status = status;
 
-    public SequentialFile(string hostPath, int recordWidth, bool lineSequential)
+    public SequentialFile(string hostPath, int recordWidth, bool lineSequential, int varyMin = -1, int varyMax = -1)
     {
         _hostPath = hostPath;
         _recordWidth = recordWidth < 1 ? 1 : recordWidth;
         _lineSequential = lineSequential;
+        _varyMin = varyMin;
+        _varyMax = varyMax;
     }
 
     // ── OPEN / CLOSE ─────────────────────────────────────────────────────────────────────────────────────────
@@ -72,6 +91,8 @@ public sealed class SequentialFile
         _optionalAbsentInput = false;
         _lastReadUnsuccessful = false;
         _prevOpWasSuccessfulRead = false;
+        _lastReadBlockStart = -1;
+        _readOffset = 0;
         bool exists = File.Exists(_hostPath);
         try
         {
@@ -98,10 +119,15 @@ public sealed class SequentialFile
                     break;
 
                 case FileOpenMode.IO:
-                    // I-O needs read+write; the typed line model loads the existing records, then writes them all
-                    // back at CLOSE. An absent non-optional file is 35; an optional one is created (05).
+                    // I-O permits both READ and REWRITE on the one open connector (ISO §14.9.35 GR3 — REWRITE
+                    // requires open mode I-O; its format-1 contract replaces the record retrieved by the last
+                    // successful READ in place), so the underlying stream must open ReadWrite — Rewrite's
+                    // seek-and-write path writes through the reader's BaseStream. An absent non-optional file
+                    // is 35; an optional one is created (05).
                     if (!exists && !IsOptional) return Status = FileStatusCode.FileNotFound;
-                    if (exists) _reader = new StreamReader(_hostPath, Encoding.Latin1);
+                    if (exists)
+                        _reader = new StreamReader(new FileStream(_hostPath, FileMode.Open, FileAccess.ReadWrite),
+                            Encoding.Latin1);
                     else { _writer = new StreamWriter(_hostPath, append: false, Encoding.Latin1) { NewLine = "\r\n" }; }
                     if (!exists && IsOptional) return Status = FileStatusCode.OptionalFileNotFound;
                     break;
@@ -130,8 +156,11 @@ public sealed class SequentialFile
     // ── WRITE ────────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46): line-sequential writes the trimmed image as a line;
-    /// record-sequential writes a fixed-width block. Valid only when open OUTPUT/EXTEND (else 48).</summary>
-    public string Write(string image)
+    /// record-sequential writes a fixed-width block; a VARYING file writes a length-framed record of
+    /// <paramref name="length"/> bytes (the DEPENDING item's content, §13.18.43 GR13a) or the image's own length
+    /// (GR13b/c), failing with '44' outside the declared bounds (GR14). Valid only when open OUTPUT/EXTEND
+    /// (else 48).</summary>
+    public string Write(string image, int length = -1)
     {
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (_mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
@@ -140,10 +169,28 @@ public sealed class SequentialFile
         // pending-advance stream model (each AFTER-write leads with its newline; CLOSE supplies the final one),
         // the write-then-advance shape reproduces the print stream the golden corpus encodes.
         if (_afterAdvancing && !_lineSequential) return WriteAdvancing(image, 1, before: true);
-        if (_lineSequential) _writer.WriteLine(image.TrimEnd());
+        if (IsVarying)
+        {
+            int len = length >= 0 ? length : image.Length;
+            if (len < _varyMin || len > _varyMax)
+                return Status = FileStatusCode.RecordSizeViolation;   // '44' §13.18.43 GR14a
+            if (_lineSequential) _writer.WriteLine(Fit(image, len).TrimEnd());
+            else { WriteFrameLength(len); _writer.Write(Fit(image, len)); }
+        }
+        else if (_lineSequential) _writer.WriteLine(image.TrimEnd());
         else _writer.Write(Fit(image, _recordWidth));
         _afterAdvancing = false;
         return Status = FileStatusCode.Success;
+    }
+
+    /// <summary>Write a record's 4-byte little-endian length prefix (the varying-file framing — chars 0–255 map
+    /// 1:1 to bytes under the Latin1 writer).</summary>
+    private void WriteFrameLength(int len)
+    {
+        _writer!.Write((char)(len & 0xFF));
+        _writer.Write((char)((len >> 8) & 0xFF));
+        _writer.Write((char)((len >> 16) & 0xFF));
+        _writer.Write((char)((len >> 24) & 0xFF));
     }
 
     /// <summary>Print-control <c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c> (ISO §14.9.46 GR): for
@@ -197,14 +244,33 @@ public sealed class SequentialFile
         {
             string? line = _reader.ReadLine();
             if (line is null) { _prevOpWasSuccessfulRead = false; _lastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
+            LastReadLength = Math.Min(line.Length, _recordWidth);
             image = Fit(line, _recordWidth);
+        }
+        else if (IsVarying)
+        {
+            // Length-framed record: 4-byte LE prefix + payload (see the framing note at the field declarations).
+            var pre = new char[4];
+            if (FillChars(pre, 4) < 4) { _prevOpWasSuccessfulRead = false; _lastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
+            int len = pre[0] | (pre[1] << 8) | (pre[2] << 16) | (pre[3] << 24);
+            var buf = new char[len];
+            int n = FillChars(buf, len);
+            _lastReadBlockStart = _reader.BaseStream.CanSeek ? _readOffset + 4 : -1;
+            _readOffset += 4 + n;
+            LastReadLength = n;
+            image = new string(buf, 0, n).PadRight(_recordWidth, ' ');
         }
         else
         {
-            _lastReadBlockStart = _reader.BaseStream.CanSeek ? _reader.BaseStream.Position : -1;
+            // The block start is the LOGICAL offset (characters consumed so far — 1:1 with bytes under Latin1),
+            // never BaseStream.Position: the StreamReader buffers ahead, so the base position is the buffer-fill
+            // boundary, not the read position.
             var buf = new char[_recordWidth];
-            int n = _reader.Read(buf, 0, _recordWidth);
+            int n = FillChars(buf, _recordWidth);
             if (n == 0) { _prevOpWasSuccessfulRead = false; _lastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
+            _lastReadBlockStart = _reader.BaseStream.CanSeek ? _readOffset : -1;
+            _readOffset += n;
+            LastReadLength = n;
             image = new string(buf, 0, n).PadRight(_recordWidth, ' ');
         }
         _prevOpWasSuccessfulRead = true;
@@ -212,21 +278,42 @@ public sealed class SequentialFile
         return true;
     }
 
+    /// <summary>Fill exactly <paramref name="count"/> characters (or to end-of-stream): StreamReader.Read may
+    /// return fewer than requested at an internal buffer boundary, which is not end-of-data.</summary>
+    private int FillChars(char[] buf, int count)
+    {
+        int total = 0;
+        while (total < count)
+        {
+            int n = _reader!.Read(buf, total, count - total);
+            if (n == 0) break;
+            total += n;
+        }
+        return total;
+    }
+
     // ── REWRITE ──────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Sequential <c>REWRITE record</c> (ISO §14.9.35): replace the last-read record. Valid only when open
-    /// I-O (else 49) and the immediately-previous op was a successful READ (else 43). For the line/record models the
-    /// rewrite is applied to the open stream in place where supported.</summary>
-    public string Rewrite(string image)
+    /// <summary>Sequential <c>REWRITE record</c> (ISO §14.9.35): replace the last-read record in place. Valid only
+    /// when open I-O (else 49) and the immediately-previous op was a successful READ (else 43). On a varying file
+    /// the rewritten record's length (<paramref name="length"/> = the DEPENDING item's content, GR13a, or the
+    /// image's own length, GR13b/c) must lie within the declared bounds (GR20 → '44') AND — record sequential —
+    /// equal the size of the record being replaced (GR16 → '44'; the in-place frame cannot change size).</summary>
+    public string Rewrite(string image, int length = -1)
     {
         if (!IsOpen || _mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         if (!_prevOpWasSuccessfulRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
         _prevOpWasSuccessfulRead = false;
+        int len = IsVarying ? (length >= 0 ? length : image.Length) : _recordWidth;
+        if (IsVarying && (len < _varyMin || len > _varyMax))
+            return Status = FileStatusCode.RecordSizeViolation;       // '44' §14.9.35 GR20
+        if (IsVarying && len != LastReadLength)
+            return Status = FileStatusCode.RecordSizeViolation;       // '44' §14.9.35 GR16 (record sequential)
         if (!_lineSequential && _lastReadBlockStart >= 0 && _reader is { BaseStream: { CanSeek: true, CanWrite: true } stream })
         {
             long resume = stream.Position;
             stream.Seek(_lastReadBlockStart, SeekOrigin.Begin);
-            byte[] bytes = Encoding.Latin1.GetBytes(Fit(image, _recordWidth));
+            byte[] bytes = Encoding.Latin1.GetBytes(Fit(image, len));
             stream.Write(bytes, 0, bytes.Length);
             stream.Flush();
             stream.Seek(resume, SeekOrigin.Begin);

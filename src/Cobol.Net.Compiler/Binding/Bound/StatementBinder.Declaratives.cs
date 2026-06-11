@@ -117,13 +117,16 @@ public sealed partial class StatementBinder
     /// some CCVS programs place an UNREFERENCED termination tail (CLOSE-FILES → footer → STOP RUN) inside the
     /// declarative section after a trivial exit paragraph; the NIST golden requires the handler to RETURN at
     /// that exit paragraph (the tail stays in pc space — an explicit GO TO still reaches it on the fatal path).
-    /// Rule: a paragraph whose statements are all bare EXIT/CONTINUE, FOLLOWED in the same section by a
-    /// paragraph containing STOP RUN / EXIT PROGRAM / GOBACK ⇒ HandlerEndPc = that exit paragraph's pc.</summary>
+    /// Rule: the LAST paragraph whose statements are all bare EXIT/CONTINUE that is still followed by a
+    /// paragraph containing STOP RUN / EXIT PROGRAM / GOBACK ⇒ HandlerEndPc = that exit paragraph's pc. It must
+    /// be the LAST such (the boundary adjoining the tail): the handler body's own PERFORM … THRU exit points
+    /// (SQ212A's FAIL-ROUTINE-EX1 before EXIT-PARA) are also trivial-exit paragraphs, and bounding at an
+    /// earlier one lets a handler GO TO past it fall through into the termination tail.</summary>
     private int DeclHandlerEndPc(Core.DeclarativeSectionContext sec, SectionInfo info)
     {
         var paras = sec.declarativeParagraph();
         int firstNamedPc = info.EndPc - paras.Length + 1;   // leading anonymous paragraph (if any) precedes
-        for (int i = 0; i < paras.Length - 1; i++)
+        for (int i = paras.Length - 2; i >= 0; i--)
         {
             if (!DeclIsTrivialExit(paras[i])) continue;
             for (int j = i + 1; j < paras.Length; j++)

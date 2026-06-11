@@ -25,10 +25,14 @@ public static partial class CobolFile
     }
 
     /// <summary>Register a SELECTed sequential file (emitted at program start, one per SELECT). The host path is
-    /// resolved from the ASSIGN target by <see cref="ResolveHostPath"/> so the same name round-trips OUTPUT→INPUT.</summary>
-    public static void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential, bool optional)
+    /// resolved from the ASSIGN target by <see cref="ResolveHostPath"/> so the same name round-trips OUTPUT→INPUT.
+    /// <paramref name="varyMin"/>/<paramref name="varyMax"/> are the RECORD IS VARYING bounds (ISO §13.18.43
+    /// GR9/GR10) — the connector then length-frames its records; (-1,-1) = fixed-length.</summary>
+    public static void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
+        bool optional, int varyMin = -1, int varyMax = -1)
     {
-        Files[cobolName] = new SequentialFile(ResolveHostPath(assignTarget), recordWidth, lineSequential) { IsOptional = optional };
+        Files[cobolName] = new SequentialFile(ResolveHostPath(assignTarget), recordWidth, lineSequential, varyMin, varyMax)
+            { IsOptional = optional };
     }
 
     public static void OpenInput(string name) => Open(name, FileOpenMode.Input);
@@ -59,8 +63,10 @@ public static partial class CobolFile
         if (Files.TryGetValue(name, out var f)) f.SetStatus(f.IsOpen ? "07" : FileStatusCode.FileNotOpen);
     }
 
-    /// <summary>Plain <c>WRITE record</c> — the record's character image.</summary>
-    public static void Write(string name, string image) { if (Files.TryGetValue(name, out var f)) f.Write(image); }
+    /// <summary>Plain <c>WRITE record</c> — the record's character image; <paramref name="length"/> is the
+    /// varying-record length (ISO §13.18.43 GR13a — the DEPENDING item's content), -1 = the record's own size.</summary>
+    public static void Write(string name, string image, int length = -1)
+    { if (Files.TryGetValue(name, out var f)) f.Write(image, length); }
 
     /// <summary><c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c>; <paramref name="lines"/> = -1 is PAGE.</summary>
     public static void WriteAdvancing(string name, string image, int lines, bool before)
@@ -74,8 +80,15 @@ public static partial class CobolFile
         return false;
     }
 
-    /// <summary>Sequential <c>REWRITE record</c> — replace the last-read record's image.</summary>
-    public static void Rewrite(string name, string image) { if (Files.TryGetValue(name, out var f)) f.Rewrite(image); }
+    /// <summary>Sequential <c>REWRITE record</c> — replace the last-read record's image; <paramref name="length"/>
+    /// is the varying-record length (§13.18.43 GR13a), -1 = the record's own size.</summary>
+    public static void Rewrite(string name, string image, int length = -1)
+    { if (Files.TryGetValue(name, out var f)) f.Rewrite(image, length); }
+
+    /// <summary>The length of the most recently read record (ISO §13.18.43 GR15 — the value the RECORD VARYING
+    /// DEPENDING item receives after a successful READ).</summary>
+    public static int LastReadLength(string name) =>
+        Files.TryGetValue(name, out var f) ? f.LastReadLength : KeyedLastReadLength(name);
 
     /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
     public static string Status(string name) => Files.TryGetValue(name, out var f) ? f.Status : KeyedStatus(name);
