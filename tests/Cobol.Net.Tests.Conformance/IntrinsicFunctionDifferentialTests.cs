@@ -1,0 +1,355 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Xunit;
+
+namespace CobolNet.Tests.Conformance;
+
+/// <summary>
+/// The intrinsic-function catalog (ISO §15; COBOLNET_INTRINSICS_DESIGN spine 1; the Phase-1B brief). Two nets:
+/// <list type="bullet">
+///   <item><b>Differential</b> — pinned to the legacy oracle where it is sound (float math on values away from
+///         quantization boundaries, string functions, statistics): the 42-program NIST IF suite is the bulk net;
+///         these cover the channel matrix (COMPUTE / IF / EVALUATE / MOVE) compactly.</item>
+///   <item><b>Spec-pinned</b> — where the legacy diverges from the standard or the value IS the spec: the §15.64.4
+///         MOD sign table, §15.61.4 MEDIAN, the §15.5.2 integer-date epoch, NUMVAL/NUMVAL-C formats (§15.67/68),
+///         CHAR/ORD ordinals (§15.15/§15.70), the FromDouble ROUNDING choice (hazard H2 — the legacy truncates the
+///         LOG10(1000) double artifact to 2.999999; rounding is the better §15.4.1 approximation), D8 edition
+///         gating, and the loud-failure doctrine for the named uncovered channels (hazard H3).</item>
+/// </list>
+/// </summary>
+public sealed class IntrinsicFunctionDifferentialTests
+{
+    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
+    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
+
+    private static void AssertSameAsLegacy(string source)
+    {
+        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
+        Assert.True(lok, $"legacy oracle failed: {ldetail}");
+        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
+        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
+        Assert.Equal(lout, cout);
+    }
+
+    private static void AssertSpec(string source, string expected, int dialect = 85)
+    {
+        var (cok, cout, cdetail) = new CobolNetCompiler(dialect).CompileAndRun(source);
+        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
+        Assert.Equal(CutRunner.Normalize(expected), cout);
+    }
+
+    private static string Program(string ws, string proc, string id = "IFTEST") => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {id}.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        {ws}
+        PROCEDURE DIVISION.
+        MAIN-PARA.
+        {proc}
+            STOP RUN.
+        """;
+
+    // ── Differential: float math away from quantization boundaries (§15.4.1 approximation license) ──────────
+
+    [Theory]
+    [InlineData("COMPUTE R = FUNCTION SQRT(625).")]                     // 25 exact
+    [InlineData("COMPUTE R = FUNCTION SQRT(2.25).")]                    // 1.5 exact
+    [InlineData("COMPUTE R = FUNCTION SIN(0).")]                        // 0
+    [InlineData("COMPUTE R = FUNCTION COS(0).")]                        // 1
+    [InlineData("COMPUTE R = FUNCTION ATAN(0).")]                       // 0
+    [InlineData("COMPUTE R = FUNCTION ACOS(1).")]                       // 0
+    [InlineData("COMPUTE R = FUNCTION LOG10(100).")]                    // 2 (double-exact)
+    [InlineData("COMPUTE R = FUNCTION ANNUITY(0, 4).")]                 // §15.9.4 rate 0 ⇒ 1/n = 0.25 exact
+    [InlineData("COMPUTE R = FUNCTION SQRT(2) * 0.")]                   // intrinsic inside a larger expression
+    public void FloatFamily_MatchesLegacy(string stmt) =>
+        AssertSameAsLegacy(Program("01 R PIC S9(5)V9(4).", $"    {stmt}\n    DISPLAY R."));
+
+    // ── Differential: exact statistics + the channel matrix ─────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("01 R PIC S9(5)V9(4).", "COMPUTE R = FUNCTION SUM(1.5, 2.25, 3).")]         // §15.88 — scale-aligned Σ
+    [InlineData("01 R PIC S9(5)V9(4).", "COMPUTE R = FUNCTION MEAN(1, 2, 4).")]             // §15.60 — Σ/n
+    [InlineData("01 R PIC S9(5)V9(4).", "COMPUTE R = FUNCTION MAX(-4.3, 10.2, -0.7, 3.9).")]
+    [InlineData("01 R PIC S9(5)V9(4).", "COMPUTE R = FUNCTION MIN(7, -2, 19).")]
+    [InlineData("01 R PIC S9(5)V9(4).", "COMPUTE R = FUNCTION RANGE(3, 11, 7).")]           // §15.76 max − min
+    [InlineData("01 R PIC S9(5)V9(4).", "COMPUTE R = FUNCTION MIDRANGE(2, 10).")]           // §15.62 (min+max)/2
+    [InlineData("01 R PIC S9(9).", "COMPUTE R = FUNCTION FACTORIAL(9).")]                   // §15.36 — 362880
+    [InlineData("01 R PIC S9(9).", "COMPUTE R = FUNCTION INTEGER(-1.5).")]                  // §15.44 floor → −2
+    [InlineData("01 R PIC S9(9).", "COMPUTE R = FUNCTION INTEGER-PART(-1.5).")]             // §15.49 truncate → −1
+    public void ExactFamily_MatchesLegacy(string ws, string stmt) =>
+        AssertSameAsLegacy(Program(ws, $"    {stmt}\n    DISPLAY R."));
+
+    [Fact]
+    public void ChannelMatrix_IfEvaluateMove_MatchesLegacy() =>
+        // The three non-COMPUTE channels the NIST suite exercises: a FUNCTION in an IF relation, as an EVALUATE
+        // subject, and as a MOVE source (§15.2 — usable wherever a sending item of its category is).
+        AssertSameAsLegacy(Program("01 R PIC S9(5)V9(4).\n01 T PIC X(5).", """
+                IF FUNCTION SQRT(625) = 25 DISPLAY "REL-OK" END-IF.
+                EVALUATE FUNCTION MAX(3, 9, 4)
+                    WHEN 9 DISPLAY "EVAL-OK"
+                    WHEN OTHER DISPLAY "EVAL-BAD"
+                END-EVALUATE.
+                MOVE FUNCTION REVERSE("ABCDE") TO T.
+                DISPLAY T.
+            """));
+
+    [Fact]
+    public void TableAllExpansion_MatchesLegacy() =>
+        // table(ALL): each occurrence becomes a separate argument, left to right (§15.3).
+        AssertSameAsLegacy(Program("""
+            01 P PIC S9(4) VALUE 2.
+            01 ARR VALUE "40537".
+                02 IND OCCURS 5 TIMES PIC 9.
+            01 R PIC S9(5)V9(4).
+            """, """
+                COMPUTE R = FUNCTION SUM(IND(ALL)).
+                DISPLAY R.
+                COMPUTE R = FUNCTION MAX(IND(ALL)).
+                DISPLAY R.
+                COMPUTE R = FUNCTION ORD-MAX(IND(ALL)).
+                DISPLAY R.
+                COMPUTE R = FUNCTION MEDIAN(IND(ALL)).
+                DISPLAY R.
+                COMPUTE R = FUNCTION SUM(IND(ALL)) + IND(P).
+                DISPLAY R.
+            """));
+
+    [Theory]
+    // SPEC-PINNED, not differential: the bracketed DISPLAY exposes the legacy's known non-conformance (it trims
+    // an alphanumeric operand's trailing spaces, contra ISO §14.9.11.4 GR6 — "the size … is the sum of the sizes
+    // of the operands"); the X(8) receiver's full padded image is the correct output.
+    [InlineData("MOVE FUNCTION UPPER-CASE(\"hello9z\") TO T.", "[HELLO9Z ]")]   // §15.97
+    [InlineData("MOVE FUNCTION LOWER-CASE(\"HELLO9Z\") TO T.", "[hello9z ]")]   // §15.57
+    [InlineData("MOVE FUNCTION REVERSE(\"abc 12\") TO T.", "[21 cba  ]")]       // §15.78
+    public void StringFamily_PinnedToSpec(string stmt, string expected) =>
+        AssertSpec(Program("01 T PIC X(8).", $"    {stmt}\n    DISPLAY \"[\" T \"]\"."), expected);
+
+    // ── Spec-pinned: the §15.64.4 MOD / §15.77.4 REM sign tables ─────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("11, 5", "+0001")]     // the §15.64.4 NOTE table, row by row
+    [InlineData("-11, 5", "+0004")]
+    [InlineData("11, -5", "-0004")]
+    [InlineData("-11, -5", "-0001")]
+    public void Mod_SignTable_PinnedToSpec(string args, string expected) =>
+        AssertSpec(Program("01 R PIC S9(4) SIGN LEADING SEPARATE.",
+            $"    COMPUTE R = FUNCTION MOD({args}).\n    DISPLAY R."), expected);
+
+    [Fact]
+    public void Rem_TruncatedRemainder_PinnedToSpec() =>
+        // §15.77.4: a − b × INTEGER-PART(a/b) — sign follows the dividend; fractional operands are class numeric.
+        AssertSpec(Program("01 R PIC S9(4)V9 SIGN LEADING SEPARATE.", """
+                COMPUTE R = FUNCTION REM(-11, 5).
+                DISPLAY R.
+                COMPUTE R = FUNCTION REM(7.5, 2).
+                DISPLAY R.
+            """), "-00010\n+00015");
+
+    [Fact]
+    public void Median_EvenCount_MeanOfMiddles_PinnedToSpec() =>
+        // §15.61.4 rule 2: an even argument count returns (b + c) / 2 of the two middle values — exact at one
+        // extra fraction digit (the renderer's ×10/2 discipline).
+        AssertSpec(Program("01 R PIC 9(3)V9(2).",
+            "    COMPUTE R = FUNCTION MEDIAN(1, 2, 3, 4).\n    DISPLAY R."), "00250");
+
+    [Fact]
+    public void OrdMax_TieTakesFirst_PinnedToSpec() =>
+        // §15.71.4: the ordinal of the GREATEST argument; the strictly-greater scan keeps the FIRST of equals.
+        AssertSpec(Program("01 R PIC 9(3).",
+            "    COMPUTE R = FUNCTION ORD-MAX(3, 7, 7, 2).\n    DISPLAY R."), "002");
+
+    // ── Spec-pinned: hazard H2 — FromDouble ROUNDS at the quantization point ────────────────────────────────
+
+    [Fact]
+    public void Log10_1000_RoundsTheDoubleArtifact_PinnedToSpec() =>
+        // Math.Log10(1000) = 2.9999999999999996 in IEEE double. §15.4.1 licenses an implementor-defined
+        // APPROXIMATION; rounding inside the ONE FromDouble yields the true value 3 (the legacy's truncation
+        // yields 2.999999 — conforming but strictly worse; hazard H2). The greenfield value is pinned.
+        AssertSpec(Program("01 R PIC 9V9(6).",
+            "    COMPUTE R = FUNCTION LOG10(1000).\n    DISPLAY R."), "3000000");
+
+    [Fact]
+    public void OutOfDomain_EcDefaultZero_PinnedToSpec() =>
+        // §15.3: with EC-ARGUMENT-FUNCTION checking disabled "the implementor defines the result" — this
+        // implementation returns 0 (NaN → 0 in FromDouble; the legacy-compatible default the goldens encode).
+        AssertSpec(Program("01 R PIC S9(4)V9(2) SIGN LEADING SEPARATE.", """
+                COMPUTE R = FUNCTION SQRT(0 - 4).
+                DISPLAY R.
+                COMPUTE R = FUNCTION ACOS(2).
+                DISPLAY R.
+                COMPUTE R = FUNCTION LOG(0).
+                DISPLAY R.
+                COMPUTE R = FUNCTION FACTORIAL(0 - 1).
+                DISPLAY R.
+            """), "+000000\n+000000\n+000000\n+000000");
+
+    // ── Spec-pinned: NUMVAL / NUMVAL-C formats (§15.67.3 / §15.68.3) ─────────────────────────────────────────
+
+    [Theory]
+    [InlineData("\"  -123.45 \"", "-0012345")]      // leading sign, surrounding spaces (format 1)
+    [InlineData("\"   -  929.03\"", "-0092903")]    // spaces between sign and digits — ignored before the first digit (r2)
+    [InlineData("\"82.93+\"", "+0008293")]          // trailing sign (format 2)
+    [InlineData("\"12cr\"", "-0001200")]            // CR suffix, case-insensitive (§15.67.3 r1) ⇒ negative (§15.67.4 r2)
+    [InlineData("\".5\"", "+0000050")]              // the ". digit" alternative
+    [InlineData("\"1O2\"", "+0000000")]             // malformed (letter O) → EC-ARGUMENT default 0 (§15.3)
+    public void Numval_Formats_PinnedToSpec(string arg, string expected) =>
+        AssertSpec(Program("01 R PIC S9(5)V9(2) SIGN LEADING SEPARATE.",
+            $"    COMPUTE R = FUNCTION NUMVAL({arg}).\n    DISPLAY R."), expected);
+
+    [Theory]
+    [InlineData("\"$1,234.56\"", "+0123456")]       // default currency + grouping separators ignored (§15.68.4 r2)
+    [InlineData("\"- $ 890.05\"", "-0089005")]      // sign before currency with space-strings (§15.68.3 r4a)
+    [InlineData("\"Z93,021\", \"Z\"", "+9302100")]  // argument-2 names the currency string (§15.68.3 r2)
+    public void NumvalC_Formats_PinnedToSpec(string args, string expected) =>
+        AssertSpec(Program("01 R PIC S9(5)V9(2) SIGN LEADING SEPARATE.",
+            $"    COMPUTE R = FUNCTION NUMVAL-C({args}).\n    DISPLAY R."), expected);
+
+    [Fact]
+    public void NumvalC_DefaultCurrencyFromSpecialNames_PinnedToSpec() =>
+        // §15.68.3 r3: with argument-2 omitted, the compilation unit's ONE currency string applies — the
+        // SPECIAL-NAMES CURRENCY SIGN literal, injected by the binder at bind time.
+        AssertSpec("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. NVCCUR.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                CURRENCY SIGN IS "F".
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 R PIC S9(5)V9(2) SIGN LEADING SEPARATE.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                COMPUTE R = FUNCTION NUMVAL-C("F12.50").
+                DISPLAY R.
+                STOP RUN.
+            """, "+0001250");
+
+    // ── Spec-pinned: CHAR / ORD ordinals + LENGTH fold + nesting ─────────────────────────────────────────────
+
+    [Fact]
+    public void CharOrd_NativeOrdinals_PinnedToSpec() =>
+        // §15.15.4: CHAR(n) is the character in ordinal position n of the collating sequence (native: code n−1,
+        // so CHAR(66) = 'A'); §15.70.4: ORD is its inverse; nesting must round-trip (the §15.3 nested-FUNCTION
+        // argument shape).
+        AssertSpec(Program("01 T PIC X(1).\n01 R PIC 9(3).", """
+                MOVE FUNCTION CHAR(66) TO T.
+                DISPLAY T.
+                COMPUTE R = FUNCTION ORD("A").
+                DISPLAY R.
+                COMPUTE R = FUNCTION ORD(FUNCTION CHAR(42)).
+                DISPLAY R.
+            """), "A\n066\n042");
+
+    [Fact]
+    public void LengthFold_CharacterPositions_PinnedToSpec() =>
+        // §15.50.4: length in character positions — a literal's size; a numeric item's digit positions (an
+        // over-punched sign occupies none, a SEPARATE sign one, §13.18.52); a group's leaf sum; and
+        // LENGTH(REVERSE(x)) = LENGTH(x) via the fixed-width image (D7).
+        AssertSpec(Program("""
+            01 N9 PIC S9(5)V9(3).
+            01 NSEP PIC S9(3) SIGN TRAILING SEPARATE.
+            01 G.
+                02 A1 PIC X(7).
+                02 A2 PIC 9(4) OCCURS 3 TIMES.
+            01 R PIC 9(3).
+            """, """
+                COMPUTE R = FUNCTION LENGTH("ABCD").
+                DISPLAY R.
+                COMPUTE R = FUNCTION LENGTH(N9).
+                DISPLAY R.
+                COMPUTE R = FUNCTION LENGTH(NSEP).
+                DISPLAY R.
+                COMPUTE R = FUNCTION LENGTH(G).
+                DISPLAY R.
+                COMPUTE R = FUNCTION LENGTH(FUNCTION REVERSE("ABCDEFG")).
+                DISPLAY R.
+            """), "004\n008\n004\n019\n007");
+
+    // ── Spec-pinned: the date/time family ────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void IntegerDateForm_Epoch_PinnedToSpec() =>
+        // §15.5.2: integer date 1 = Monday 1601-01-01; INTEGER-OF-DATE(99991231) = 3,067,671. Invalid calendar
+        // dates → the EC-ARGUMENT default 0 (§15.3).
+        AssertSpec(Program("01 R PIC 9(8).", """
+                COMPUTE R = FUNCTION INTEGER-OF-DATE(16010101).
+                DISPLAY R.
+                COMPUTE R = FUNCTION DATE-OF-INTEGER(1).
+                DISPLAY R.
+                COMPUTE R = FUNCTION DAY-OF-INTEGER(1).
+                DISPLAY R.
+                COMPUTE R = FUNCTION INTEGER-OF-DATE(99991231).
+                DISPLAY R.
+                COMPUTE R = FUNCTION INTEGER-OF-DAY(FUNCTION DAY-OF-INTEGER(150000)).
+                DISPLAY R.
+                COMPUTE R = FUNCTION INTEGER-OF-DATE(20230230).
+                DISPLAY R.
+            """), "00000001\n16010101\n01601001\n03067671\n00150000\n00000000");
+
+    [Fact]
+    public void WhenCompiled_CompileTimeConstant_PinnedToSpec() =>
+        // §15.99.3 r2: WHEN-COMPILED is the COMPILATION timestamp (baked constant) — never after CURRENT-DATE
+        // at run time, and in the §15.21.3 21-character layout (4-digit year sanity-checked via ref-mod).
+        AssertSpec(Program("01 T PIC X(21).", """
+                MOVE FUNCTION WHEN-COMPILED TO T.
+                IF T(1:2) = "20" DISPLAY "CENTURY-OK" ELSE DISPLAY "CENTURY-BAD " T END-IF.
+                IF FUNCTION CURRENT-DATE >= FUNCTION WHEN-COMPILED
+                    DISPLAY "ORDER-OK"
+                ELSE DISPLAY "ORDER-BAD" END-IF.
+            """), "CENTURY-OK\nORDER-OK");
+
+    [Fact]
+    public void Random_SeededSequence_PinnedToSpec()
+    {
+        // §15.75.3 r3/r5 + §15.75.4 r1/r2: a seeded reference restarts the sequence (same seed ⇒ same first
+        // value), argument-less references continue it, and every value is in [0, 1).
+        var (ok, stdout, detail) = CobolNet.CompileAndRun(Program(
+            "01 R1 PIC V9(9).\n01 R2 PIC V9(9).\n01 R3 PIC V9(9).", """
+                COMPUTE R1 = FUNCTION RANDOM(7).
+                COMPUTE R2 = FUNCTION RANDOM.
+                COMPUTE R3 = FUNCTION RANDOM(7).
+                IF R1 = R3 DISPLAY "SEED-REPEAT-OK" ELSE DISPLAY "SEED-REPEAT-BAD" END-IF.
+                IF R2 NOT = R1 DISPLAY "NEXT-DIFFERS-OK" ELSE DISPLAY "NEXT-DIFFERS-BAD" END-IF.
+            """));
+        Assert.True(ok, detail);
+        Assert.Equal("SEED-REPEAT-OK\nNEXT-DIFFERS-OK", stdout);
+    }
+
+    // ── D8 edition gating + the loud-failure doctrine (hazards H3/H6) ────────────────────────────────────────
+
+    [Fact]
+    public void EditionGate_2014FunctionAt85_RejectedByName()
+    {
+        // D8: outside its window a function is rejected with a diagnostic naming the function and editions
+        // (TRIM was introduced by ISO/IEC 1989:2014 — catalog row; the 1989-module rows bind at 85).
+        var (ok, _, detail) = new CobolNetCompiler(85).CompileAndRun(
+            Program("01 T PIC X(5).", "    MOVE FUNCTION TRIM(\"  X  \") TO T.\n    DISPLAY T."));
+        Assert.False(ok);
+        Assert.Contains("TRIM", detail);
+        Assert.Contains("COBOLNET1502", detail);
+    }
+
+    [Fact]
+    public void DeferredFunction_InWindow_FailsLoud_NeverWrong()
+    {
+        // A catalogued-but-deferred function INSIDE its window compiles and fails LOUD at run time naming the
+        // function (COBOLNET_DESIGN §1.4) — never a silent wrong value.
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            Program("01 T PIC X(5).", "    MOVE FUNCTION TRIM(\"  X  \") TO T.\n    DISPLAY T."));
+        Assert.False(ok);
+        Assert.Contains("TRIM", detail);
+    }
+
+    [Fact]
+    public void NumericIntrinsicInStringContext_FailsLoud()
+    {
+        // Hazard H3: a NUMERIC-result intrinsic moved to an alphanumeric receiver is a named staged-out channel
+        // (the §14.9.25 numeric→alphanumeric move of a function result) — loud, not wrong.
+        var (ok, _, detail) = CobolNet.CompileAndRun(
+            Program("01 T PIC X(8).", "    MOVE FUNCTION NUMVAL(\"1\") TO T.\n    DISPLAY T."));
+        Assert.False(ok);
+        Assert.Contains("not", detail, StringComparison.OrdinalIgnoreCase);
+    }
+}

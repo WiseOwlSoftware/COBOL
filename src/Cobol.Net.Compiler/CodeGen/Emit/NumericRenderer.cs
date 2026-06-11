@@ -15,6 +15,11 @@ namespace CobolNet.CodeGen.Emit;
 /// </summary>
 internal sealed class NumericRenderer(EmissionContext ctx)
 {
+    /// <summary>The intrinsic-function render dispatch (ISO §15; IntrinsicRenderer.cs) — created lazily because
+    /// the two renderers are mutually recursive (an intrinsic renders its numeric arguments through THIS).</summary>
+    internal IntrinsicRenderer Intrinsics => _intrinsics ??= new IntrinsicRenderer(ctx, this);
+    private IntrinsicRenderer? _intrinsics;
+
     /// <summary>Render a bound numeric expression as a scaled long.</summary>
     public NumX Render(BoundExpr e) => e switch
     {
@@ -23,7 +28,8 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         BoundIndexRef ix => new NumX(ix.IndexField, 0),   // an index IS its 1-based occurrence number (§3.5)
         BoundBinary b => Combine(Render(b.Left), b.Op.ToString(), Render(b.Right)),
         BoundNegate n => Negate(Render(n.Operand)),
-        BoundPower p => new NumX($"(long)System.Math.Pow((double)({Real(Render(p.Base))}), (double)({Real(Render(p.Exp))}))", 0),
+        BoundPower p => Power(Render(p.Base), Render(p.Exp)),
+        BoundIntrinsicCall ic => Intrinsics.RenderNum(ic),   // FUNCTION call (ISO §15)
         BoundExprError err => new NumX(EmitText.LoudValue("long", err.Feature), 0),
         _ => new NumX(EmitText.LoudValue("long", $"bound expression '{e.GetType().Name}'"), 0),
     };
@@ -45,8 +51,22 @@ internal sealed class NumericRenderer(EmissionContext ctx)
 
     /// <summary>The scaled value of a data item place (its unscaled <c>long</c> value + its scale). A float item is
     /// truncated to <c>long</c> for now (mixed float/fixed arithmetic is a later slice). A non-numeric place (a group
-    /// or an alphanumeric item used in a numeric context) fails loud rather than crashing the compiler (§1.4).</summary>
-    public NumX FieldNum(Place p) => p is RefModPlace
+    /// or an alphanumeric item used in a numeric context) fails loud rather than crashing the compiler (§1.4).
+    /// The instance entry adds ONLY the numeric-edited de-edit (it needs the SPECIAL-NAMES emission config);
+    /// every other branch lives in the context-free <see cref="FieldNumCore"/> so the static string-channel
+    /// intrinsic renderer reads fields through the SAME single implementation (singular-pattern rule).</summary>
+    public NumX FieldNum(Place p) =>
+        p is not RefModPlace && !p.Item.StoreAsImage
+            // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
+            // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
+            && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }
+        ? new NumX($"CobolEdit.DeEdit({p.Read()}, {EmitText.CsLiteral(dem)}{ctx.EditCfgArgs})",
+            CobolNet.Runtime.CobolEdit.MaskScale(dem, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma))
+        : FieldNumCore(p);
+
+    /// <summary>The context-free numeric read of a place (every branch of <see cref="FieldNum"/> except the
+    /// numeric-edited de-edit, which stays loud here — it requires the instance emission config).</summary>
+    internal static NumX FieldNumCore(Place p) => p is RefModPlace
         // A reference-modified result is ALPHANUMERIC (ISO §8.4.2.4) — in a numeric context it decodes as an
         // unsigned integer exactly like an alphanumeric field (§14.9.25.3 Table 16).
         ? new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0)
@@ -66,11 +86,10 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
         // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant).
         { Category: PicCategory.Alphanumeric } => new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0),
-        // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
-        // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
-        { Category: PicCategory.NumericEdited, EditMask: { } dem } =>
-            new NumX($"CobolEdit.DeEdit({p.Read()}, {EmitText.CsLiteral(dem)}{ctx.EditCfgArgs})",
-                CobolNet.Runtime.CobolEdit.MaskScale(dem, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)),
+        // The numeric-edited de-edit lives on the INSTANCE entry (it needs the SPECIAL-NAMES config); a static
+        // caller (the string-channel intrinsic renderer) reaching one is a staged-out shape — loud (§1.4).
+        { Category: PicCategory.NumericEdited } =>
+            new NumX(EmitText.LoudValue("long", $"numeric-edited operand '{p.Item.CobolName}' in a context-free numeric read"), 0),
         { } pic => new NumX(p.Read(), pic.Scale),
     };
 
@@ -167,11 +186,25 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     public static string Align(NumX x, int toScale) =>
         toScale == x.Scale ? x.Expr : $"CobolNum.Rescale({x.Expr}, {x.Scale}, {toScale}, CobolRounding.Truncation)";
 
+    /// <summary>Exponentiation (ISO §8.8.1.2: a native-arithmetic exponentiation whose result has no exact
+    /// representation is an IMPLEMENTOR-DEFINED approximation): computed in double, quantized through the ONE
+    /// <c>CobolIntrinsics.FromDouble</c> (rounding) at <c>max(TargetScale, 9)</c> fraction digits. The previous
+    /// scale-0 <c>(long)</c> truncation lost every fractional power result and turned the double artifact in
+    /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25); the 9-digit floor mirrors the float-intrinsic
+    /// working scale (hazard H1 — TargetScale is stale in receiver-less contexts).</summary>
+    private NumX Power(NumX b, NumX e)
+    {
+        int ws = Math.Max(ctx.TargetScale, 9);
+        return new NumX($"CobolIntrinsics.FromDouble(System.Math.Pow({Real(b)}, {Real(e)}), {ws})", ws);
+    }
+
     private static NumX Negate(NumX x) =>
         x.Dec ? new NumX($"(new CobolDec(-({x.Expr}).Sig, ({x.Expr}).Exp))", 0, Dec: true) : new($"(-{x.Expr})", x.Scale);
 
     // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
-    private static string Real(NumX x) =>
+    // Internal (not private): the intrinsic renderer converts float-family arguments to double through THIS
+    // one scaled-value→double conversion (ISO §15.4.1 native-arithmetic family; singular-pattern rule).
+    internal static string Real(NumX x) =>
         x.Dec ? $"({x.Expr}).ToDouble()"
         : x.Scale == 0 ? $"(double)({x.Expr})" : $"((double)({x.Expr}) / {Pow10D(x.Scale)})";
 

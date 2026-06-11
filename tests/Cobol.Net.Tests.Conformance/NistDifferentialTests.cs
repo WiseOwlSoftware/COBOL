@@ -440,6 +440,35 @@ public sealed class NistDifferentialTests
     [InlineData("SM206A")]   // statement fragments COPYed mid-IF-sentence (dangling-ELSE class)
     [InlineData("SM207A")]   // COPY text-name OF/IN library-name — same name, different libraries (GR2–3)
     [InlineData("SM208A")]   // qualified/REPLACING fragment COPY into PASS paths
+    // Greened by the INTRINSIC FUNCTION catalog (ISO §15 — DEVLOG 572): the ONE declarative IntrinsicCatalog
+    // (~94 rows with D8 edition windows), the SUB-token argument mini-parser (nested FUNCTION, table(ALL)
+    // expansion §15.3, qualified/subscripted args), the catalog-driven IntrinsicRenderer over the numeric and
+    // string channels (FromDouble = the ONE double→scaled-long quantization, Math.Round, NaN→0 EC default
+    // §15.3; float working scale ≥9; WHEN-COMPILED = the compile-time constant §15.99.3 r2), and the
+    // CobolIntrinsics/CobolDate runtime families (MOD §15.64.4 sign table, MEDIAN §15.61.4 r2, ORD-MAX/MIN
+    // tie=first, spec-form one-sequence RANDOM §15.75.3, NUMVAL/NUMVAL-C scaled parsers, CHAR/ORD
+    // PCS-relative §15.15/§15.68, the 1601-01-01 day-1 epoch §15.5.2). The whole 1989 Intrinsic Function
+    // Module suite:
+    [InlineData("IF101A")] [InlineData("IF102A")] [InlineData("IF103A")] [InlineData("IF104A")]
+    [InlineData("IF105A")] [InlineData("IF106A")] [InlineData("IF107A")] [InlineData("IF108A")]
+    [InlineData("IF109A")] [InlineData("IF110A")] [InlineData("IF111A")] [InlineData("IF112A")]
+    [InlineData("IF113A")] [InlineData("IF114A")] [InlineData("IF115A")] [InlineData("IF116A")]
+    [InlineData("IF117A")] [InlineData("IF118A")] [InlineData("IF119A")] [InlineData("IF120A")]
+    [InlineData("IF121A")] [InlineData("IF122A")] [InlineData("IF123A")] [InlineData("IF124A")]
+    [InlineData("IF125A")] [InlineData("IF126A")] [InlineData("IF127A")] [InlineData("IF128A")]
+    [InlineData("IF129A")] [InlineData("IF130A")] [InlineData("IF131A")] [InlineData("IF132A")]
+    [InlineData("IF133A")] [InlineData("IF134A")] [InlineData("IF135A")] [InlineData("IF136A")]
+    [InlineData("IF137A")] [InlineData("IF138A")] [InlineData("IF139A")] [InlineData("IF140A")]
+    [InlineData("IF141A")] [InlineData("IF142A")]
+    // Greened by the Tier-C mixed-usage record-image codec (DEVLOG 572): a fixed-point BINARY/PACKED leaf's
+    // record image is its zoned digit image with a trailing-overpunch sign (ISO §13.18.60 USAGE GR4 — the
+    // representation is implementor-defined; generated AsImage/FromImage arms gated on IsImageCapable), SORT
+    // key descriptors carry the IMAGE sign kind, and the SAME-RECORD-AREA COMP-leaf class relaxes to Tier B
+    // with image-stored windows. Float/COMP-5 puns stay loud (the narrowed island).
+    [InlineData("ST108A")]   // SD with PIC S99/S9(6) COMP sort keys (signed algebraic order)
+    [InlineData("ST127A")]   // nested mixed-usage SD record + non-aligned group MOVE
+    [InlineData("ST133A")]   // mixed FD WRITE/READ + DESCENDING signed-COMP key
+    [InlineData("ST134A")]   // SAME RECORD AREA over a COMP-leaf record (Tier-B relaxation)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

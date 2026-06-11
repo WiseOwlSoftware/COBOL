@@ -227,6 +227,27 @@ public sealed class ReferenceResolver(DataBinder data)
         return PlaceForItem(item, indexExprs);
     }
 
+    // ── Intrinsic-argument entries (ISO §15.3; consumed by StatementBinder.Intrinsics.cs) ─────────────────
+    // The function-argument mini-parser resolves identifiers from flat SUBSCRIPT-mode tokens, where no
+    // dataReference parse context exists — these thin internal entries expose the SAME private resolution
+    // (ResolveUnqualified/ResolveQualified → PlaceForItem → RenderSegment) so argument references see identical
+    // view/qualification/subscript semantics as every verb operand (singular-pattern rule).
+
+    /// <summary>Resolve a (possibly OF/IN-qualified) data-name to its <see cref="DataItem"/>, or null. Used by
+    /// the table(ALL) expansion (§15.3) to read the OCCURS counts before building per-occurrence places.</summary>
+    internal DataItem? FindItem(string name, IReadOnlyList<string> qualifiers) =>
+        qualifiers.Count > 0 ? ResolveQualified(name, [.. qualifiers]) : ResolveUnqualified(name);
+
+    /// <summary>Build the <see cref="Place"/> for a by-name reference with ALREADY-RENDERED C# index expressions
+    /// (one per OCCURS level, outermost first). A level-66 RENAMES alias stays null (loud) — its composition
+    /// lives only on the parse-context path.</summary>
+    internal Place? ResolveByName(string name, IReadOnlyList<string> qualifiers, IReadOnlyList<string> indexExprs) =>
+        FindItem(name, qualifiers) is { Renames: null } item ? PlaceForItem(item, indexExprs) : null;
+
+    /// <summary>Render one subscript token segment to a C# index expression (the private
+    /// <see cref="RenderSegment"/>), or null when the segment uses an unhandled form (caller fails loud).</summary>
+    internal string? RenderIndexSegment(List<IToken> tokens) => RenderSegment(tokens);
+
     /// <summary>The qualified C# access path to a Tier-B/Tier-C class's single stored backing field. The backing is
     /// emitted in the canonical's containing struct, so a NESTED class reaches it through that struct's path
     /// (<c>OUTER.GROUP._redef_X</c>); a top-level class's backing is the bare static field (<c>_redef_X</c>). Returns
@@ -378,7 +399,9 @@ public sealed class ReferenceResolver(DataBinder data)
         return (exprs, false);
     }
 
-    private static void CollectLeafTokens(IParseTree node, List<IToken> tokens)
+    // Internal (not private): the intrinsic-argument binder (StatementBinder.Intrinsics.cs) flattens and splits
+    // the SAME SUBSCRIPT-mode token streams for FUNCTION argument lists (ISO §15.3) — one splitter, not two.
+    internal static void CollectLeafTokens(IParseTree node, List<IToken> tokens)
     {
         if (node is ITerminalNode term) { tokens.Add(term.Symbol); return; }
         for (int i = 0; i < node.ChildCount; i++) CollectLeafTokens(node.GetChild(i), tokens);
@@ -387,7 +410,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <summary>Split a flat token list into subscript segments on depth-0 comma / multi-space boundaries (a faithful
     /// reduction of the legacy <c>ExpressionBinder.SplitSubscriptTokens</c>: a single space inside a relative
     /// subscript such as <c>I + 1</c> does not split; a separator space before a new operand does).</summary>
-    private static List<List<IToken>> SplitSubscriptTokens(List<IToken> tokens)
+    internal static List<List<IToken>> SplitSubscriptTokens(List<IToken> tokens)
     {
         var segments = new List<List<IToken>>();
         var current = new List<IToken>();
@@ -413,12 +436,22 @@ public sealed class ReferenceResolver(DataBinder data)
                     var lastNonWs = current.FindLast(x => x.Type != Core.SUB_WS);
                     // A trailing operator OR a trailing OF/IN continues the SAME segment (`I + 1` relative
                     // subscripts; `SUB1 OF GRP` qualified subscripts, ISO §8.4.2.3.2) — and a pending OF/IN also
-                    // continues into its qualifier identifier.
+                    // continues into its qualifier identifier. The FUNCTION keyword (a plain SUB_IDENTIFIER in
+                    // SUBSCRIPT mode) also continues: the following name belongs to a nested intrinsic call in a
+                    // FUNCTION argument list — `SQRT(FUNCTION SQRT(F))` is ONE argument (ISO §15.3; the legacy
+                    // splitter's endsWithFunction rule, dropped in the original subscript-only reduction).
                     bool continues = lastNonWs is not null &&
-                        lastNonWs.Type is Core.SUB_PLUS or Core.SUB_MINUS or Core.SUB_STAR or Core.SUB_SLASH
-                            or Core.SUB_POWER or Core.SUB_OF or Core.SUB_IN;
+                        (lastNonWs.Type is Core.SUB_PLUS or Core.SUB_MINUS or Core.SUB_STAR or Core.SUB_SLASH
+                            or Core.SUB_POWER or Core.SUB_OF or Core.SUB_IN
+                         || (lastNonWs.Type == Core.SUB_IDENTIFIER
+                             && lastNonWs.Text.Equals("FUNCTION", StringComparison.OrdinalIgnoreCase)));
                     int nextType = tokens[next].Type;
-                    if (!continues && nextType is Core.SIGNED_INTEGERLIT or Core.SUB_IDENTIFIER or Core.SUB_INTEGERLIT)
+                    // The new-segment starters: every token that can BEGIN an operand — identifiers, all four
+                    // numeric-literal shapes, string literals (intrinsic arguments may be space-separated,
+                    // ISO §15's general formats), and the ALL subscript word (§15.3 table(ALL) arguments).
+                    if (!continues && nextType is Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT
+                            or Core.SUB_IDENTIFIER or Core.SUB_INTEGERLIT or Core.SUB_DECIMALLIT
+                            or Core.SUB_STRINGLIT or Core.SUB_ALL)
                     {
                         segments.Add(current);
                         current = [];

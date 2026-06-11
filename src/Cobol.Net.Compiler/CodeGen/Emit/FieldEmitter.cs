@@ -47,8 +47,12 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     /// <summary>One emitted struct field. <paramref name="Width"/> is the field's TOTAL contribution to its group's
     /// character image — element-image-width × <paramref name="Occurs"/> for a fixed-OCCURS table, else the item's own
     /// image width. <paramref name="Occurs"/> is the fixed occurrence count (0 = not a table), so the image facility
-    /// knows to concat/distribute across the array's elements.</summary>
-    private readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0);
+    /// knows to concat/distribute across the array's elements. <paramref name="NumLeaf"/> is the source leaf when the
+    /// field stores a NATIVE fixed-point numeric (<c>long</c>/<c>Int128</c>; DISPLAY, BINARY, or PACKED usage) — the
+    /// image facility then encodes/decodes it through <c>CobolNum.FormatDisplay</c>/<c>ParseDisplay</c> with the
+    /// leaf's IMAGE profile (<see cref="ImageProfileOf"/>); null for every string-shaped field (alphanumeric, edited,
+    /// <see cref="DataItem.StoreAsImage"/>, a Tier-B class backing) and for nested group structs.</summary>
+    private readonly record struct Physical(string Name, string Type, int Width, bool IsGroupStruct, string Init, string Comment, int Occurs = 0, DataItem? NumLeaf = null);
 
     /// <summary>The memoized physical fields of a group's children (the root forest under the sentinel).</summary>
     private IReadOnlyList<Physical> PhysicalChildrenOf(DataItem owner)
@@ -88,7 +92,14 @@ internal sealed class FieldEmitter(EmissionContext ctx)
             int elemWidth = c.IsGroup ? PhysicalImageWidth(c) : c.ImageWidth;
             int occurs = c.Occurs ?? 0;
             int width = occurs > 0 ? elemWidth * occurs : elemWidth;
-            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, FieldInit(c), comment, occurs);
+            // A NATIVE fixed-point numeric field (the ElementType test excludes the string-stored shapes —
+            // StoreAsImage leaves, edited items — and floats): its slice of the group image is the zoned digit
+            // form, encoded/decoded by the image methods through CobolNum (COBOLNET_DESIGN §14.4). COMP-5 and
+            // INDEX never qualify (excluded by the usage filter; see DataItem.IsImageCapable).
+            DataItem? numLeaf = !c.IsGroup && c.ElementType is "long" or "Int128"
+                && c.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed }
+                ? c : null;
+            yield return new Physical(c.CsName, c.FieldType, width, c.IsGroup, FieldInit(c), comment, occurs, numLeaf);
         }
     }
 
@@ -141,11 +152,14 @@ internal sealed class FieldEmitter(EmissionContext ctx)
             foreach (var f in PhysicalChildrenOf(item))
                 w.Line($"public {f.Type} {f.Name};   // {f.Comment}");
 
-            // A pure-character (DISPLAY-homogeneous) group gets the whole-group image facility (COBOLNET_DESIGN
-            // §14.4): AsImage concatenates the leaves' character images; FromImage distributes a character image
-            // back into them. Used by whole-group MOVE / DISPLAY / compare. (Mixed-usage groups are the Tier-C
-            // byte island — not emitted here.)
-            if (item.IsCharacterImage) EmitImageMethods(item, w);
+            // An image-capable group gets the whole-group image facility (COBOLNET_DESIGN §14.4): AsImage
+            // concatenates the leaves' character images — a string-stored leaf its characters, a NATIVE
+            // fixed-point leaf (DISPLAY/BINARY/PACKED) its zoned digit image (trailing-overpunch sign, the
+            // §13.18.60 USAGE GR4 implementor representation) — and FromImage distributes a character image back
+            // into them. Used by whole-group MOVE / DISPLAY / compare / WRITE / RELEASE and the READ / RETURN
+            // record-area distribution; the SD/FD record codec IS this pair (§8.2). Only a group with a float /
+            // COMP-5 / INDEX leaf stays the loud Tier-C island (DataItem.IsImageCapable).
+            if (item.IsImageCapable) EmitImageMethods(item, w);
         }
     }
 
@@ -166,22 +180,33 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     }
 
     /// <summary>One member's AsImage sub-expression: a scalar string field directly, a nested group's
-    /// <c>AsImage()</c>, or — for a fixed-OCCURS table — the concatenation of every occurrence's image (ISO §14.9: a
-    /// group move treats the whole group, INCLUDING every OCCURS position, as one alphanumeric item).</summary>
+    /// <c>AsImage()</c>, a NATIVE fixed-point leaf its zoned digit image (<c>CobolNum.FormatDisplay</c> with the
+    /// leaf's image profile — fixed <c>Pic.Digits</c> width, trailing-overpunch sign for binary/packed), or — for a
+    /// fixed-OCCURS table — the concatenation of every occurrence's image (ISO §14.9: a group move treats the whole
+    /// group, INCLUDING every OCCURS position, as one alphanumeric item).</summary>
     private static string AsImageOf(Physical f) =>
-        f.Occurs == 0 ? (f.IsGroupStruct ? $"{f.Name}.AsImage()" : f.Name)
+        f.Occurs == 0
+            ? (f.IsGroupStruct ? $"{f.Name}.AsImage()"
+               : f.NumLeaf is { } leaf ? $"CobolNum.FormatDisplay({f.Name}, {ImageProfileOf(leaf)})"
+               : f.Name)
         : f.IsGroupStruct ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => __e.AsImage()))"
+        : f.NumLeaf is { } l ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => CobolNum.FormatDisplay(__e, {ImageProfileOf(l)})))"
         : $"string.Concat({f.Name})";
 
-    /// <summary>Distribute the slice of the image at <paramref name="off"/> into one member: a scalar field gets its
-    /// substring; a nested group gets <c>FromImage</c>; a fixed-OCCURS table loops its occurrences, each taking its
-    /// per-occurrence width in source order (the array elements are value-type structs/strings, mutated in place).</summary>
+    /// <summary>Distribute the slice of the image at <paramref name="off"/> into one member: a scalar string field
+    /// gets its substring; a nested group gets <c>FromImage</c>; a NATIVE fixed-point leaf decodes its zoned slice
+    /// (<c>CobolNum.ParseDisplay</c> with the image profile, cast to the leaf's CLR storage type — non-digit
+    /// positions, e.g. the spaces a short record's pad legitimately deposits, decode deterministically per ISO
+    /// §14.6.13.2, see CobolNum); a fixed-OCCURS table loops its occurrences, each taking its per-occurrence width
+    /// in source order (the array elements are value-type structs/strings, mutated in place).</summary>
     private static void EmitMemberFromImage(Physical f, int off, CodeWriter w)
     {
         if (f.Occurs == 0)
         {
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
+                : f.NumLeaf is { } leaf
+                ? $"{f.Name} = ({leaf.Pic!.ClrType})CobolNum.ParseDisplay(__s.Substring({off}, {f.Width}), {ImageProfileOf(leaf)});"
                 : $"{f.Name} = __s.Substring({off}, {f.Width});");
             return;
         }
@@ -189,7 +214,25 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         using (w.Block($"for (int __i = 0; __i < {f.Occurs}; __i++)"))
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}[__i].FromImage(__s.Substring({off} + __i * {elem}, {elem}));"
+                : f.NumLeaf is { } l
+                ? $"{f.Name}[__i] = ({l.Pic!.ClrType})CobolNum.ParseDisplay(__s.Substring({off} + __i * {elem}, {elem}), {ImageProfileOf(l)});"
                 : $"{f.Name}[__i] = __s.Substring({off} + __i * {elem}, {elem});");
+    }
+
+    /// <summary>The C# <c>NumProfile</c> expression a native fixed-point leaf's IMAGE encodes/decodes with: the
+    /// leaf's own <c>_P_</c> profile when its stored sign form IS its image form (every DISPLAY leaf), else the
+    /// profile with the sign overridden to the image convention (a signed BINARY/PACKED leaf: its stored profile
+    /// says <c>BinaryMinus</c> — a VARIABLE-width DISPLAY-statement form no fixed record window can carry — so its
+    /// image carries a trailing overpunch instead, <see cref="PicInfo.ImageSignKind"/>; ISO §13.18.60 USAGE GR4
+    /// makes the representation, including the sign, implementor-defined). The leaf's own profile is UNTOUCHED —
+    /// DISPLAY-statement output (a leading minus, locked golden behavior) still formats through <c>_P_</c>.
+    /// <c>NumProfile</c> is a readonly record struct, so the <c>with</c> copy is cheap and allocation-free.</summary>
+    private static string ImageProfileOf(DataItem leaf)
+    {
+        var pic = leaf.Pic!;
+        return pic.ImageSignKind == pic.SignKind
+            ? leaf.ProfileName
+            : $"({leaf.ProfileName} with {{ SignKind = NumericSign.{pic.ImageSignKind} }})";
     }
 
     private static void EmitProfiles(DataItem item, CodeWriter w)
@@ -237,12 +280,24 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     private static bool DistributableSubtree(DataItem item) =>
         item.Class is null && (item.IsGroup
             ? item.Children.All(DistributableSubtree)
-            : item.StoreAsImage || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited);
+            // A string-stored leaf takes its slice verbatim; a NATIVE numeric USAGE-DISPLAY leaf decodes its
+            // positional slice (the group VALUE initializes the area "without consideration for the individual
+            // elementary items", ISO §13.18.63 — the slice IS the leaf's zoned image; the IF-suite shape
+            // `01 ARR VALUE "40537". 02 IND OCCURS 5 PIC 9.`). Binary/packed/float leaves stay undistributable
+            // (their character image is the Tier-C byte boundary) and keep the member-wise default.
+            : item.StoreAsImage || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+              || item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false });
 
     /// <summary>Build the composed initializer of <paramref name="item"/> from its positional <paramref name="slice"/>
     /// of the group VALUE text — each subordinate (and each OCCURS occurrence) takes its own window.</summary>
     private static string SliceInit(DataItem item, string slice)
     {
+        // A native (long-stored) numeric-DISPLAY leaf decodes its zoned slice to the unscaled value (sign-aware
+        // overpunch/separate decode — the same ParseDisplay every image read uses). String-stored leaves
+        // (alphanumeric / edited / StoreAsImage) keep the characters.
+        if (!item.IsGroup && !item.StoreAsImage
+            && item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false })
+            return $"({item.ElementType})CobolNum.ParseDisplay({EmitText.CsLiteral(slice)}, {item.ProfileName})";
         if (!item.IsGroup) return EmitText.CsLiteral(slice);
         var parts = new List<string>();
         int off = 0;

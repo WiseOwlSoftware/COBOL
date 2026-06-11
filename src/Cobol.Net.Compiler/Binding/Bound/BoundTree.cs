@@ -73,6 +73,18 @@ public sealed record BoundIndexRef(string IndexField) : BoundExpr;
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundExprError(string Feature) : BoundExpr;
 
+/// <summary>A resolved intrinsic-function call (ISO §15; COBOLNET_INTRINSICS_DESIGN D2): the catalog row (already
+/// category-resolved for the polymorphic MAX/MIN families) plus the typed bound arguments — table(ALL) expanded,
+/// the §15.68.3 r3 default currency injected — never a pre-rendered C# fragment. <paramref name="Args"/> are
+/// <see cref="BoundOperand"/>s, NOT <see cref="BoundExpr"/>s: the string-argument functions (NUMVAL, ORD,
+/// LOWER-CASE …) take alphanumeric operands the expression tree cannot represent; numeric argument expressions
+/// wrap as <see cref="BoundComputedOperand"/> (the documented deviation from the deep-dive's original sketch —
+/// recorded there). <paramref name="Collate"/> marks a CHAR/ORD call bound under a NON-identity PROGRAM COLLATING
+/// SEQUENCE (§15.15.4 r2 / §15.70.4) — the backend then passes its collating-weights table; when false the field
+/// does not even exist (hazard H5).</summary>
+public sealed record BoundIntrinsicCall(
+    IntrinsicSig Sig, IReadOnlyList<BoundOperand> Args, PicCategory ResultCategory, bool Collate = false) : BoundExpr;
+
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────
 
 /// <summary>A bound operand usable where either a string image or a numeric value may be required.</summary>

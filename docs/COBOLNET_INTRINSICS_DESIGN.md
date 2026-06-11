@@ -4,6 +4,21 @@
 > typed-native C# via Roslyn; no byte substrate). The condensed cross-referenced view is
 > `docs/COBOLNET_DESIGN.md` §12; THIS is the full design (decisions + rationale + C# mapping + hard
 > problems + edge cases). The locked invariants and cross-cutting consistency live in the SSOT.
+>
+> **SPINE 1 LANDED (2026-06-11, Phase 1B):** `IntrinsicCatalog` (the complete §15 2023 table, ~94 rows with D8
+> windows — later-edition rows bind `Deferred` = loud until their wave), `BoundIntrinsicCall`,
+> `StatementBinder.Intrinsics.cs` (SUB-token argument mini-parser, table(ALL) expansion, MAX/MIN resolution,
+> LENGTH fold, the §15.68.3 r3 currency injection), `IntrinsicRenderer` (instance numeric channel + STATIC
+> string channel), runtime `CobolIntrinsics`/`CobolDate`. The 1989 Intrinsic Function Module (42 functions) is
+> fully implemented — all 42 NIST IF programs byte-match. **Two documented deviations from the original sketch
+> below:** (1) `BoundIntrinsicCall.Args` is `IReadOnlyList<BoundOperand>`, NOT `BoundExpr` — the string-argument
+> functions (NUMVAL, ORD, LOWER-CASE …) take alphanumeric operands the numeric expression tree cannot represent;
+> numeric argument expressions wrap as `BoundComputedOperand`. (2) The node carries a binder-set `Collate` flag
+> for CHAR/ORD under a NON-identity PROGRAM COLLATING SEQUENCE (§15.15.4 r2/§15.70.4) so the backend passes its
+> `__COLLATE` weights only when the field exists (hazard H5) — backend-neutral semantics, not a rendered
+> fragment. WHEN-COMPILED is realized as the spec-correct COMPILE-TIME constant (§15.99.3 r2) baked into the
+> generated source via the injectable `StatementBinder.CompileClock` (D6) — not the legacy's runtime-clock
+> placeholder.
 
 ## Summary
 
@@ -107,7 +122,9 @@ backends render (ALL semantics — availability per D8, arity/category checks, t
 happen in the binder; the sketch below is the RoslynBackend RENDERING; a future CilBackend renders the SAME node as a
 direct call to the same `CobolNet.Runtime` method):
 
-  sealed record BoundIntrinsicCall(IntrinsicSig Sig, IReadOnlyList<BoundExpr> Args, PicCategory ResultCategory) : BoundExpr;
+  // AS LANDED: Args are BoundOperand (not BoundExpr — deviation 1, see the status banner) and the binder sets
+  // Collate for CHAR/ORD under a non-identity PCS (deviation 2):
+  sealed record BoundIntrinsicCall(IntrinsicSig Sig, IReadOnlyList<BoundOperand> Args, PicCategory ResultCategory, bool Collate = false) : BoundExpr;
   // RoslynBackend, numeric result — the function-call operand cell returns:
   if (pe.functionCall() is { } fc) return EmitIntrinsicNum(fc);   // → NumX (numeric/integer/exact)
   // in ReadAsString / SendAsString / OperandAsString: if functionCall && result is alphanumeric → EmitIntrinsicStr(fc)
@@ -202,7 +219,7 @@ Port the legacy InterpretSubscriptTokens split + table(ALL)→per-occurrence exp
 - ALL literal repeat-to-width-then-truncate (§8.3.3.6): ALL "AB" into a PIC X(5) = "ABABA" (repeat until ≥ width, truncate from the right), applied before any JUSTIFIED.
 - NUMVAL / NUMVAL-C / NUMVAL-F parse human-formatted strings (currency sign, thousands separators, CR/DB, sign placement) — port the legacy parser exactly; affected by CURRENCY SIGN and DECIMAL-POINT IS COMMA config.
 - Out-of-domain math (ACOS/ASIN of |x|>1, SQRT of negative, LOG of ≤0) → EC-ARGUMENT-FUNCTION with a defined default result (legacy returns 0) rather than a .NET exception.
-- FACTORIAL(n) for n≥21 overflows long and n large overflows Int128 → size-error / EC-ARGUMENT-FUNCTION (legacy clamped at 28! for decimal; recompute the Int128 boundary, 33! overflows Int128).
+- FACTORIAL(n) for n≥21 overflows long and n large overflows Int128 → size-error / EC-ARGUMENT-FUNCTION (legacy clamped at 28! for decimal). The Int128 boundary, VERIFIED: 33! ≈ 8.68e36 FITS (Int128.Max ≈ 1.70e38); **34! is the first overflow** — the original "33! overflows" note was off by one; the runtime returns the EC default 0 for n > 33 or n < 0.
 - RANDOM with vs without a seed argument — seeded form is deterministic per-call, unseeded shares one generator; the optional-trailing-arg arity must be modeled so the no-arg and one-arg forms both bind.
 - WHEN-COMPILED and CURRENT-DATE differ in format (WHEN-COMPILED has no offset historically; CURRENT-DATE includes the Greenwich offset in positions 17-21) — both nondeterministic, both via the injectable clock; conformance tests must inject a fixed clock.
 - ADDRESS OF and SET … TO ADDRESS OF produce a ManagedPointer (managed ref), never a numeric address — and NULL/NULLS figurative sets it to the null ManagedPointer, semantically distinct from LOW-VALUE.

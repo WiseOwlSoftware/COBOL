@@ -754,8 +754,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // (CobolNum.ParseDisplay / FormatDisplay) — the same StoreAsImage path used for whole-group numeric leaves.
             if (cls.Tier == RedefinesTier.StringCanonical)
                 foreach (var leaf in cls.Members.SelectMany(LeavesOf))
+                {
                     if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                         leaf.StoreAsImage = true;
+                    else if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Binary or Usage.Packed } bp)
+                    {
+                        // A fixed-point BINARY/PACKED leaf of a Tier-B class is image-stored too: its window over
+                        // the one string backing IS its zoned digit image (ISO §13.18.60 USAGE GR4 — implementor
+                        // representation; COBOLNET_DESIGN §14.4). Its profile MUST be rewritten to describe that
+                        // zoned storage: every accessor (EmitArithAssign stores, NumericRenderer reads, the
+                        // window splice) threads `_P_`, and the leaf's declared BinaryMinus form is VARIABLE
+                        // width (a leading '-' only when negative) — FormatDisplay(BinaryMinus) would write a
+                        // Digits+1 image into the Digits-wide window and corrupt the value (and every following
+                        // leaf). NOTE the observable consequence: DISPLAY of such a leaf shows the zoned
+                        // overpunch image (like any signed zoned item), not the '-100' binary-minus form — the
+                        // conformant face of the GR4 license. The DigitCount truncation discipline is unchanged
+                        // (BINARY truncates by digit count; PACKED's 2n−1 over-capacity digits cannot survive an
+                        // image round trip — standard stores never create them without implementor permission).
+                        leaf.StoreAsImage = true;
+                        leaf.Pic = bp with { SignKind = bp.ImageSignKind };
+                    }
+                }
         }
     }
 
@@ -788,11 +807,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         reject = null;
         var leaves = cls.Members.SelectMany(LeavesOf).ToList();
 
-        // Tier C → Rejected (interim): any leaf is COMP/COMP-1/2/3/5 or float — a binary representation no character
-        // image can carry. (No pointer/object/strongly-typed items exist in the bound model yet → no Tier-D check.)
-        if (leaves.Any(l => l.Pic is { } p && (p.IsFloat || p.Usage is not Usage.Display)))
+        // Tier C → Rejected (interim): any leaf is float (COMP-1/2 — no fixed decimal-digit width), COMP-5 (its
+        // BinaryCapacity discipline stores values EXCEEDING the PICTURE digit count — a Digits-wide character
+        // window cannot carry them), or INDEX (no character image, §13.18.60). A DISPLAY + BINARY/PACKED mix is
+        // Tier B: under the digit-image representation (ISO §13.18.60 USAGE GR4 — the representation, including
+        // the sign, is implementor-defined; COBOLNET_DESIGN §4.2/§14.4) one string backing IS the shared area —
+        // exactly §12.4.6.4.4 SAME RECORD AREA GR2's "equivalent to an implicit redefinition of the area, with
+        // records aligned on the leftmost byte position". Its binary/packed leaves become zoned windows (the
+        // StoreAsImage loop in ClassifyRedefinesClasses). (No pointer/object/strongly-typed items exist in the
+        // bound model yet → no Tier-D check.)
+        if (leaves.Any(l => l.Pic is { } p && (p.IsFloat || p.Usage is Usage.Comp5 or Usage.Index)))
         {
-            reject = $"mixed-USAGE REDEFINES of '{cls.Canonical.CobolName}' (Tier-C byte path) not yet implemented";
+            reject = $"float/COMP-5/INDEX REDEFINES of '{cls.Canonical.CobolName}' (Tier-C byte path) not yet implemented";
             return RedefinesTier.Rejected;
         }
 

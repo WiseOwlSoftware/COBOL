@@ -335,10 +335,12 @@ public sealed partial class StatementBinder
     // ── Shared sort-family helpers ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>The SD's canonical record (the first 01 — secondary 01s share its area via the synthesized
-    /// REDEFINES, ISO §9.1.2), or null when absent / not a pure character image (a COMP/binary leaf makes the
-    /// record a Tier-C byte island the image store cannot carry — deferred, loud).</summary>
+    /// REDEFINES, ISO §9.1.2), or null when absent / not image-capable (the sort store carries record IMAGES, and
+    /// a fixed-point BINARY/PACKED leaf's image is its zoned digit form per the §13.18.60 USAGE GR4 implementor
+    /// representation — COBOLNET_DESIGN §14.4/§8.2; only a float/COMP-5/INDEX leaf keeps the record a Tier-C byte
+    /// island the image store cannot carry — deferred, loud).</summary>
     private static DataItem? SortRecordOf(FileModel file) =>
-        file.Records.Count > 0 && (file.Records[0].IsElementary || file.Records[0].IsCharacterImage)
+        file.Records.Count > 0 && (file.Records[0].IsElementary || file.Records[0].IsImageCapable)
             ? file.Records[0] : null;
 
     /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §14.9.40 GR1 — the
@@ -374,8 +376,14 @@ public sealed partial class StatementBinder
                     + $"{off + 1}..{off + len} of the record, but '{file.CobolName}' describes variable-length records "
                     + $"with minimum size {min} — all key data items shall be contained within the first {min} bytes "
                     + "(ISO §14.9.40.3 SR6g)");
+            // The key descriptor's sign convention is the key's IMAGE form, never the leaf's stored form: a signed
+            // BINARY/PACKED key's image inside the sort-record image is the zoned digit form with a TRAILING
+            // OVERPUNCH (PicInfo.ImageSignKind — the §13.18.60 USAGE GR4 implementor representation). The leaf's
+            // own SignKind (BinaryMinus) would mis-decode the zoned window — negatives would sort positive
+            // (CobolSort.NumericKey decodes via CobolNum.ParseDisplay; §14.9.40 GR8 + §8.8.4.2.4: numeric keys
+            // compare by ALGEBRAIC value regardless of how their usage is described).
             keys.Add(new BoundSortMergeKey(descending, off, len, numeric, pic?.Signed ?? false,
-                pic?.SignKind ?? "TrailingOverpunch"));
+                pic?.ImageSignKind ?? "TrailingOverpunch"));
         }
         return null;
     }

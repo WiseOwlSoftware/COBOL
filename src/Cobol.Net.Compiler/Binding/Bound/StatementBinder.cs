@@ -359,6 +359,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundUnsupported("MOVE CORRESPONDING / unsupported MOVE form");
         BoundOperand source = send.literal() is { } lit ? LiteralOperand(lit)
             : send.dataReference() is { } dref ? FieldOperand(dref)
+            // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).
+            : send.functionCall() is { } sfc ? IntrinsicOperand(sfc)
             : new BoundOperandError("MOVE source");
         return new BoundMove(source, ResolveTargets(targets.dataReference()));
     }
@@ -922,7 +924,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (pe.ZERO_ARITH() is not null) return new BoundNumLiteral("0");
         if (pe.dataReference() is { } dref) return RefExpr(dref);
         if (pe.arithmeticExpression() is { } paren) return BindExpr(paren);
-        return new BoundExprError("function-call operand");
+        // FUNCTION call (ISO §15; the 1989 Intrinsic Function Module) — StatementBinder.Intrinsics.cs.
+        if (pe.functionCall() is { } fc) return BindIntrinsic(fc);
+        return new BoundExprError("primary-expression operand");
     }
 
     /// <summary>Descend an operand-wrapper node to its inner arithmetic expression, or its leaf literal / data

@@ -100,12 +100,35 @@ public sealed class RedefinesClassificationTests
     }
 
     [Fact]
-    public void TierC_MixedUsage_RejectedInInterim()
+    public void TierB_BinaryLeafPun_StringCanonicalWithZonedWindow()
     {
-        var d = Bind("01 WS-A PIC X(4).\n01 WS-B REDEFINES WS-A PIC 9(8) COMP.");
+        // Phase 1E (supersedes the interim Tier-C rejection): a DISPLAY + fixed-point BINARY pun is Tier B under
+        // the digit-image representation (ISO §13.18.60 USAGE GR4 — the representation, incl. the sign, is
+        // implementor-defined; COBOLNET_DESIGN §4.2/§14.4): one string backing, the COMP leaf an image-stored
+        // zoned window with its profile rewritten to the image sign (REDEFINES deep-dive D10).
+        var d = Bind("01 WS-A PIC X(8).\n01 WS-B REDEFINES WS-A PIC S9(8) COMP.");
+        var cls = Item(d, "WS-A").Class!;
+        Assert.Equal(RedefinesTier.StringCanonical, cls.Tier);
+        Assert.Equal(8, cls.Width);   // the binary view's image width is its DIGIT count (no separate-sign add)
+        var b = Item(d, "WS-B");
+        Assert.True(b.StoreAsImage);
+        Assert.Equal("TrailingOverpunch", b.Pic!.SignKind);   // BinaryMinus would corrupt the fixed window (D10)
+    }
+
+    [Fact]
+    public void TierC_FloatAndComp5Puns_StayRejected()
+    {
+        // The narrowed Tier-C island: no fixed character-digit image — float (COMP-1/2) and COMP-5 (whose
+        // BinaryCapacity discipline stores values beyond the PICTURE digit count) stay loud-rejected.
+        // (The float leaf carries a PICTURE so the classifier sees a Pic: a PICTURE-less COMP-1 binds with no
+        // PicInfo at all today — a pre-existing data-model gap outside this classifier's scope.)
+        var d = Bind("01 WS-A PIC X(4).\n01 WS-B REDEFINES WS-A PIC 9(4) COMP-1.");
         var cls = Item(d, "WS-A").Class!;
         Assert.Equal(RedefinesTier.Rejected, cls.Tier);
         Assert.NotNull(cls.RejectReason);
+
+        var d5 = Bind("01 WS-C PIC X(4).\n01 WS-D REDEFINES WS-C PIC 9(4) COMP-5.");
+        Assert.Equal(RedefinesTier.Rejected, Item(d5, "WS-C").Class!.Tier);
     }
 
     [Fact]

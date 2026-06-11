@@ -139,6 +139,25 @@ public sealed class DataItem
             ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited || StoreAsImage
             : IsGroup && Children.All(c => c.IsCharacterImage);
 
+    /// <summary>
+    /// True if this item participates in the generated record-image codec (<c>AsImage()</c>/<c>FromImage()</c>,
+    /// COBOLNET_DESIGN §14.4): every <see cref="IsCharacterImage"/> item, PLUS any fixed-point numeric leaf —
+    /// DISPLAY (native <c>long</c>/<c>Int128</c>, its image is its zoned form) and BINARY/PACKED, whose character
+    /// image is the implementor-defined zoned digit image with a trailing-overpunch sign (ISO/IEC 1989:2023
+    /// §13.18.60 USAGE GR4 leaves the representation, including the sign, to the implementor; see
+    /// <see cref="PicInfo.ImageSignKind"/>). Excluded — kept loud (§1.4): COMP-1/COMP-2 floats (no fixed decimal
+    /// width) and COMP-5 (its <c>BinaryCapacity</c> discipline stores values EXCEEDING the PICTURE digit count —
+    /// a Digits-wide image cannot carry them) and INDEX items (no character image at all, §13.18.60). A group is
+    /// image-capable when every child is. Width-wise the codec reuses <see cref="ImageWidth"/> unchanged: a
+    /// binary/packed leaf's image is exactly <c>Pic.Digits</c> characters (the SIGN SEPARATE add is DISPLAY-only,
+    /// §13.18.52 SR2 — a binary item never carries a separate sign).
+    /// </summary>
+    public bool IsImageCapable =>
+        IsElementary
+            ? IsCharacterImage
+                || Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed }
+            : IsGroup && Children.All(c => c.IsImageCapable);
+
     /// <summary>The character width of this item's image — meaningful for an <see cref="IsCharacterImage"/> item. For a
     /// group it is the sum of each child's TOTAL image contribution, i.e. the child's per-occurrence image width × its
     /// fixed-OCCURS count (every OCCURS position is part of the group image, ISO §14.9). A numeric-DISPLAY leaf's image

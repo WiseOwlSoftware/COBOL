@@ -373,9 +373,10 @@ public sealed partial class CSharpEmitter
 
     /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9 MOVE GR4 — no conversion, filled without
     /// consideration for subordinate items): the source's character image fills the group's leaves via
-    /// <c>FromImage</c>. Handles any DISPLAY-homogeneous group — alphanumeric, numeric-edited, and numeric-DISPLAY
-    /// leaves (the last stored as their character image, <see cref="DataItem.StoreAsImage"/>). A group with a
-    /// COMP/COMP-3/COMP-5/float leaf is the genuine mixed-usage byte-island (Tier-C, deferred, loud).</summary>
+    /// <c>FromImage</c>. Handles any image-capable group — alphanumeric, numeric-edited, numeric-DISPLAY (native or
+    /// stored as its character image, <see cref="DataItem.StoreAsImage"/>), and BINARY/PACKED leaves (their image
+    /// slice is the zoned digit form, the §13.18.60 USAGE GR4 implementor representation — COBOLNET_DESIGN §14.4).
+    /// Only a group with a float/COMP-5/INDEX leaf stays the genuine Tier-C byte-island (deferred, loud).</summary>
     private void EmitGroupMove(Place target, BoundOperand source)
     {
         if (!target.Item.IsCharacterImage)
@@ -384,8 +385,9 @@ public sealed partial class CSharpEmitter
             // §14.9.25.4 GR4 — both operands treated as elementary alphanumeric). When the source is a group
             // whose flattened leaf LAYOUT is positionally identical to the receiver's (same usage / digits /
             // scale / sign / width leaf-by-leaf — NC107A's all-COMP U5 → U9), that representation copy is
-            // exactly a memberwise leaf copy — no byte substrate needed. Anything else stays the genuine
-            // Tier-C mixed-usage byte island (deferred, loud).
+            // exactly a memberwise leaf copy — kept FIRST: under the digit-image representation both paths are
+            // correct (GR4's representation copy ≡ memberwise copy for identical layouts), but the memberwise
+            // path skips the encode/decode round trip and is the locked NC107A shape.
             if (source is BoundFieldOperand { Place.Item: { IsGroup: true } srcGroup }
                 && AlignedLeafPairs(srcGroup, target.Item) is { } pairs
                 && pairs.Select(p => (S: _refs.ResolveItem(p.Src), T: _refs.ResolveItem(p.Tgt))).ToList()
@@ -395,8 +397,17 @@ public sealed partial class CSharpEmitter
                     _ctx.Writer.Line(t!.Write(s!.Read()));
                 return;
             }
-            _ctx.Writer.Line(LoudStmt($"MOVE to mixed-usage group '{target.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
-            return;
+            // Non-aligned layouts (ST127A's 10-leaf WS twin → 11-leaf SD record) and class-view sources
+            // (ST134A's SAME-RECORD-AREA window → SD record) fall through to the image path below: an
+            // image-capable receiver distributes the source's character image via FromImage exactly like a
+            // character group — its fixed-point leaves decode their zoned slices (GR4: filled without
+            // consideration for the individual items, over the implementor digit-image representation). Only
+            // the genuinely incapable receiver (float/COMP-5/INDEX leaf) stays loud (§1.4).
+            if (!target.Item.IsImageCapable)
+            {
+                _ctx.Writer.Line(LoudStmt($"MOVE to group '{target.Item.CobolName}' with a float/COMP-5/INDEX leaf (Tier-C byte island, deferred — COBOLNET_DESIGN §4.2)"));
+                return;
+            }
         }
         int width = target.Item.ImageWidth;
         // §8.8.4.1: an alphanumeric group receiver is treated as an elementary alphanumeric item, so a signed-numeric
@@ -1152,13 +1163,15 @@ public sealed partial class CSharpEmitter
         // an elementary record. (Mirrors EmitGroupImage's RedefViewPlace handling.)
         if (record is not RedefViewPlace && record.Item.IsGroup)
         {
-            // A group record with non-character (COMP/binary) leaves is the Tier-C byte island (COBOLNET_DESIGN
-            // §4.2/§8 record codec, deferred) — fence it LOUD (§1.4) rather than emit a string-into-struct
-            // assignment that fails the backend compile (the ST133A/ST134A/SQ203A CS0029 class).
-            if (!record.Item.IsCharacterImage)
+            // A mixed-usage record area distributes through the same generated FromImage — its BINARY/PACKED
+            // leaves decode their zoned digit slices (the §13.18.60 USAGE GR4 implementor representation,
+            // COBOLNET_DESIGN §14.4/§8.2: the record codec IS the AsImage/FromImage pair). Only a record with a
+            // float/COMP-5/INDEX leaf stays the loud Tier-C island (§1.4) rather than emit a string-into-struct
+            // assignment that fails the backend compile (the old ST133A/ST134A/SQ203A CS0029 class).
+            if (!record.Item.IsImageCapable)
             {
-                w.Line(LoudStmt($"record area '{record.Item.CobolName}' contains COMP/binary leaves — the Tier-C "
-                    + "byte-island record codec (COBOLNET_DESIGN §4.2), deferred"));
+                w.Line(LoudStmt($"record area '{record.Item.CobolName}' contains float/COMP-5/INDEX leaves — the "
+                    + "Tier-C byte island (COBOLNET_DESIGN §4.2), deferred"));
                 return;
             }
             w.Line($"{record.Read()}.FromImage(CobolString.Store({imageExpr}, {record.Item.ImageWidth}));");
@@ -1183,9 +1196,11 @@ public sealed partial class CSharpEmitter
         string status = $"CobolString.Store(CobolFile.Status({CsLiteral(file.CobolName)}), {(item.Pic?.Length ?? item.ImageWidth)})";
         if (item.IsGroup && place is not RedefViewPlace)
         {
-            if (!item.IsCharacterImage)
+            // Same image-capability rule as every other group receiver (COBOLNET_DESIGN §14.4): a mixed-usage
+            // status group distributes via FromImage; only a float/COMP-5/INDEX leaf stays loud (§1.4).
+            if (!item.IsImageCapable)
             {
-                _ctx.Writer.Line(LoudStmt($"FILE STATUS into mixed-usage group '{item.CobolName}' (Tier-C byte path, deferred)"));
+                _ctx.Writer.Line(LoudStmt($"FILE STATUS into group '{item.CobolName}' with a float/COMP-5/INDEX leaf (Tier-C byte island, deferred)"));
                 return;
             }
             // A GROUP status item fills without conversion through the image facility (§14.9.25.4 GR4 — the

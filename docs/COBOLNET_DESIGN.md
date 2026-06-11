@@ -282,15 +282,25 @@ and EVERY other view is a **computed accessor (a C# property)** over it. Never t
 
 - **A — Alias** (identical PIC+USAGE, or RENAMES without THRU): one typed field; other names are pass-through
   properties (`WS_COUNT_ALIAS { get => WS_COUNTER; set => WS_COUNTER = value; }`).
-- **B — StringCanonical** (whole class is `USAGE DISPLAY` — alphanumeric/DISPLAY-numeric/edited/alphabetic): canonical
-  = ONE `string` of class-max width (a DISPLAY item's byte image IS its characters); each view = a typed accessor
-  (substring / parse-digits→long / format) over it. NO bytes. **This is the dominant real case and covers the ENTIRE
-  near-term NIST path** (immediate REDEFINES classes are DISPLAY-homogeneous).
-- **C — ByteCanonical** (mixed-USAGE puns observing COMP/COMP-1/2/3/5/INDEX cross-view): canonical = ONE
-  *class-scoped* `byte[]` of class-max width (SYNC-aware offsets, from a ported `StorageLayoutComputer`); each leaf =
-  a typed get/set accessor over `(offset,length,usage)` via a small `RedefCodec` runtime helper. Byte image confined
-  to the class, never the record, never persisted further. The byte[] is the PERSISTENT canonical (not
-  materialize-on-demand — distinct from §14.4's transient whole-group image).
+- **B — StringCanonical** (whole class is character-imageable — alphanumeric/edited/alphabetic, DISPLAY-numeric,
+  **and fixed-point BINARY/PACKED**, per the §14.4 digit-image representation): canonical = ONE `string` of class-max
+  width (a DISPLAY item's byte image IS its characters; a fixed-point COMP/COMP-3 leaf's window IS its zoned digit
+  image — ISO §13.18.60 USAGE GR4 makes the representation, including the sign, implementor-defined); each view = a
+  typed accessor (substring / parse-digits→long / format) over it. NO bytes. An image-stored BINARY/PACKED leaf has
+  its `Pic.SignKind` REWRITTEN to `TrailingOverpunch` at classification (DataBinder) so every accessor that threads
+  its `_P_` profile describes the zoned window — `BinaryMinus` is variable-width and would corrupt the fixed window
+  (the observable consequence: DISPLAY of such a leaf shows the zoned overpunch image, the conformant face of the
+  GR4 license — Phase 1E / ST134A). **This is the dominant real case and covers the ENTIRE NIST path** (incl.
+  SAME RECORD AREA / multi-01 FD classes with COMP leaves).
+- **C — ByteCanonical** (puns observing a representation with NO fixed character-digit image cross-view: float
+  COMP-1/COMP-2, COMP-5 — whose `BinaryCapacity` discipline stores values exceeding the PICTURE digit count, which a
+  Digits-wide window cannot carry — and INDEX): canonical = ONE *class-scoped* `byte[]` of class-max width
+  (SYNC-aware offsets, from a ported `StorageLayoutComputer`); each leaf = a typed get/set accessor over
+  `(offset,length,usage)` via a small `RedefCodec` runtime helper. Byte image confined to the class, never the
+  record, never persisted further. The byte[] is the PERSISTENT canonical (not materialize-on-demand — distinct from
+  §14.4's transient whole-group image). NOT YET IMPLEMENTED — verdicts Rejected (loud) in the interim; the Phase-1E
+  narrowing moved the decimal-digit usages (BINARY/PACKED) out of this tier into B, where they have an exact
+  character representation.
 - **D — Reject loud** (spec-forbidden/unmodelable: object/pointer/message-tag/strongly-typed SR12/14; OCCURS
   DEPENDING ON / variable-length / dynamic-length SR5/17): a diagnostic — conformant, since these are already illegal.
 
@@ -572,6 +582,17 @@ value of the typed RECORD KEY / RELATIVE KEY field.
 - **SORT/MERGE:** SD record is a typed struct; the sort store holds serialized images ordered by the same `CobolKey`
   policy; key offsets computed into the deterministic serialized image at compile time. Format-2 in-place table SORT
   operates on the typed array directly (the one place the two SORT forms diverge — a typed comparer).
+- **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable
+  record — including mixed-usage records with fixed-point BINARY/PACKED leaves, which serialize each such leaf as
+  its §14.4 zoned digit image (width = `Pic.Digits`, trailing-overpunch sign; ISO §13.18.60 USAGE GR4 implementor
+  representation) — WRITE/RELEASE send `AsImage()`, READ/RETURN distribute via `FromImage()`. `IRecordCodec` for
+  these records is realized by that pair; no separate serializer exists (singular-pattern). A signed COMP/COMP-3
+  SORT/MERGE key's compile-time descriptor carries `PicInfo.ImageSignKind` (the IMAGE sign — trailing overpunch),
+  never the leaf's stored `BinaryMinus`, so `CobolSort.NumericKey` decodes the zoned window algebraically
+  (§14.9.40 GR8 / §8.8.4.2.4 — negatives order before positives; ST108A/ST127A/ST133A/ST134A). The greenfield
+  on-disk record width for such records legitimately differs from the legacy's raw-byte form (e.g. 80 chars where
+  the legacy wrote 72+4 binary bytes) — chains are same-engine, cross-engine file compatibility is not required.
+  Only float (COMP-1/2), COMP-5, and INDEX leaves keep a record outside the codec (loud Tier-C island, §4.2).
 
 ### 8.3 Hard problems / edge cases
 
@@ -857,19 +878,35 @@ There is ONE facility that turns a typed group/numeric into its alphanumeric ima
 UNSTRING of a group/numeric operand (§7.4), (c) ref-mod of a numeric receiver, and (d) RENAMES THRU composition over a
 heterogeneous span (§4.3). **Named loser:** the three names (`AsImage` / `GroupImage` / "materialize") are ONE thing
 — canonical name `AsImage()`/`FromImage()`. It uses the Latin-1 carrier (§14.9). This is **transient** (built on
-demand, never persisted) and is DISTINCT from REDEFINES Tier-C's PERSISTENT class-scoped `byte[]` (which is the only
-storage for a mixed-usage class). Whether `AsImage` is the permanent mechanism for mixed-usage groups vs the byte path
-is an owner question (§15).
+demand, never persisted) and is DISTINCT from REDEFINES Tier-C's PERSISTENT class-scoped `byte[]` (which would be the
+only storage for a float/COMP-5/INDEX pun class). SETTLED (Phase 1E): `AsImage` IS the permanent mechanism for
+mixed-usage (DISPLAY+BINARY+PACKED) groups — the byte path remains only for the genuinely non-character-imageable
+usages (see the total rule below).
 
-**Mixed-usage (COMP-leaf) groups in character contexts — the settled interim (DEVLOG 558).** The standard leaves a
-binary item's representation to the implementor (§8.8.4.1.1 — a group operand is alphanumeric over the items'
-representations); the typed-native backend DEFINES that representation, for group operands read in character contexts
-(compare/DISPLAY senders), as **each fixed-point leaf's decimal digit image** (`OperandText.MixedGroupImage` — plain
-nested shapes only; OCCURS / REDEFINES / float beneath stay the loud Tier-C island). A whole-group **MOVE between two
-mixed groups with positionally IDENTICAL leaf layouts** (same usage/digits/scale/sign leaf-by-leaf) is emitted as a
-**memberwise leaf copy** (`CSharpEmitter.AlignedLeafPairs`) — for identical layouts the §14.9.25.4 GR4 representation
-copy and the memberwise copy are indistinguishable. Non-aligned mixed-group MOVE receivers remain loud (the genuine
-Tier-C byte island, §15 owner question). NC107A's USAGE tests (`MOVE U5 TO U9`, `IF U22 > U12`) ride these.
+**Mixed-usage (COMP-leaf) groups — the settled TOTAL rule (Phase 1E; supersedes the DEVLOG 558 interim).** The
+standard leaves a binary item's representation to the implementor (§13.18.60 USAGE GR4 — "Each implementor specifies
+the precise effect of the USAGE BINARY clause upon the … representation of the data item …, including the
+representation of any algebraic sign"; §8.8.4.1.1 — a group operand is alphanumeric over the items'
+representations). The typed-native backend DEFINES that representation, totally: **a fixed-point BINARY/PACKED
+leaf's character image is its fixed-width zoned digit image — `Pic.Digits` characters, implied decimal point, sign
+as a TRAILING OVERPUNCH on the last digit** (`PicInfo.ImageSignKind`, the ONE image-sign mapping). The generated
+`AsImage()`/`FromImage()` (gated on `DataItem.IsImageCapable`) implements it for every consumer — whole-group
+MOVE/compare/DISPLAY senders, WRITE/RELEASE, READ/RETURN distribution, SORT/MERGE key decode — via
+`CobolNum.FormatDisplay`/`ParseDisplay` with the leaf's `_P_` profile `with`-overridden to the image sign (the
+leaf's OWN profile keeps `BinaryMinus`, so DISPLAY-statement output of a native leaf is unchanged). **Named losers:**
+(a) `OperandText.MixedGroupImage` (the DEVLOG 558 inline concat) — RETIRED: it formatted a signed leaf with its own
+`BinaryMinus` profile, a latent VARIABLE-WIDTH bug that would shift every following leaf for a negative value, and
+it bailed on fixed-OCCURS children the generated codec handles; (b) leading-separate-sign images (would change
+`ImageWidth` and every offset computation, buying only debuggability); (c) raw big-endian bytes as Latin-1 chars
+(the legacy on-disk form) — a SECOND representation for one concept (the §4.1 incoherence trap), and cross-engine
+file compatibility is not required. Excluded — kept loud: float (no fixed decimal width), COMP-5 (`BinaryCapacity`
+stores values beyond the PICTURE digit count), INDEX. A whole-group **MOVE between two mixed groups with
+positionally IDENTICAL leaf layouts** (same usage/digits/scale/sign leaf-by-leaf) is still emitted as a **memberwise
+leaf copy** (`CSharpEmitter.AlignedLeafPairs`, tried FIRST) — for identical layouts the §14.9.25.4 GR4
+representation copy and the memberwise copy are indistinguishable, and the memberwise path skips the encode/decode
+round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-aligned receivers fall through to
+`FromImage` (ST127A's 10→11-leaf MOVE; ST134A's class-view→SD MOVE). Conformance:
+`MixedUsageRecordImageDifferentialTests` + NIST ST108A/ST127A/ST133A/ST134A.
 
 ### 14.5 Control-flow PC × declaratives × EXIT × STOP RUN/GOBACK
 

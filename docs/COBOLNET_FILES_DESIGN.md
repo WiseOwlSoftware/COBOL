@@ -41,11 +41,24 @@ Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records,
 
 **Rejected alternatives.** A single shared byte-array record area for multi-01 FDs (the banned substrate); ignore the overlay (breaks reinterpretation-of-record NIST patterns).
 
+> **As-built note (Phase 1E):** the shared area is realized as a synthesized REDEFINES class over the 01s (the
+> REDEFINES deep-dive's tiers), not a separate wrapper type — the file edge and REDEFINES share ONE overlay
+> mechanism (singular-pattern). With a fixed-point BINARY/PACKED leaf among the records (ST134A's SAME RECORD AREA
+> pair) the class is Tier B: one string backing IS the record area (§12.4.6.4.4 GR2 — "an implicit redefinition of
+> the area, with records aligned on the leftmost byte position"), each record/leaf a window accessor, binary leaves
+> image-stored with the overpunch profile rewrite (REDEFINES deep-dive D10).
+
 ### D6. SORT and MERGE: the SD record is a typed struct; the sort store holds serialized images ordered by the same CobolKey policy; SORT key offsets are computed into the deterministic serialized image at compile time. Format-2 in-place table SORT operates on the typed array directly.
 
 **Rationale.** Reuses the proven stable sort plus numeric-value-versus-collated-image key rule (14.9.40 and 22; DUPLICATES IN ORDER is a stable sort). Table SORT data is already typed in memory so it diverges to a typed comparer, the one documented place the two SORT forms differ.
 
 **Rejected alternatives.** A true k-way priority-queue merge (a perf optimization, deferred); a byte comparer for table sort (the data is already typed).
+
+### D7 (Phase 1E, 2026-06-10). The serialized record image of a MIXED-USAGE record (fixed-point BINARY/PACKED leaves beside string-stored leaves) is the generated `AsImage()`/`FromImage()` character image — each such leaf contributes its fixed-width ZONED DIGIT image (`Pic.Digits` chars, trailing-overpunch sign), per `PicInfo.ImageSignKind`.
+
+**Rationale.** ISO §13.18.60 USAGE GR4 makes a binary item's representation — including the algebraic sign — implementor-defined; `COBOLNET_DESIGN.md` §14.4's total digit-image rule defines it ONCE for every character context, and the record codec rides the same definition (singular-pattern: `IRecordCodec` for these records IS the generated pair — WRITE/RELEASE send `AsImage()`, READ/RETURN distribute via `FromImage()`; `CSharpEmitter.EmitImageInto`, `StatementBinder.SortRecordOf`). The SORT/MERGE consequence is load-bearing: a signed COMP/COMP-3 key's compile-time descriptor (`BoundSortMergeKey.SignKind`) carries the IMAGE sign (`ImageSignKind` — trailing overpunch), never the leaf's stored `BinaryMinus`, so `CobolSort.NumericKey` decodes the zoned window algebraically (§14.9.40 GR8 / §8.8.4.2.4 — negatives before positives; the failure mode of decoding with `BinaryMinus` is SILENT: everything sorts, negatives order positive). Key offsets/lengths are already computed in digit-image coordinates (`SortOffsetInRecord`/`SortPhysicalWidth` sum `ImageWidth`) — no width changes anywhere. The on-disk record width for such records legitimately DIFFERS from the legacy's raw-byte form (e.g. ST133A: 80 chars where the legacy wrote 72 + 4 binary bytes) — chains are same-engine; cross-engine file compatibility is explicitly not required. Float (COMP-1/2), COMP-5 (BinaryCapacity exceeds the digit-count window), and INDEX leaves keep a record OUTSIDE the codec — the loud Tier-C island. Proven by ST108A/ST127A/ST133A/ST134A + `MixedUsageRecordImageDifferentialTests`.
+
+**Rejected alternatives.** Raw big-endian bytes as Latin-1 characters (the legacy on-disk form): a SECOND representation for the same concept — compare/DISPLAY contexts already use digit images, so `RETURN`-then-compare would disagree with `IF group = group` about what a record "looks like"; also needs a new Binary decode kind in `CobolSort.Key` and control characters through every string seam, buying only a cross-engine compatibility that is not required. Leading-separate-sign images (width = Digits+1 — would change `ImageWidth` and every offset computation).
 
 ## C# mapping
 
