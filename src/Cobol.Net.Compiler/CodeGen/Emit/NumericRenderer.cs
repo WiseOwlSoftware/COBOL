@@ -26,6 +26,9 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         BoundNumLiteral l => EmitText.UnscaledLit(l.Text),
         BoundNumRef r => FieldNum(r.Place),
         BoundIndexRef ix => new NumX(ix.IndexField, 0),   // an index IS its 1-based occurrence number (§3.5)
+        // The LINAGE-COUNTER register (ISO §8.4.3.14 GR1): an unsigned INTEGER read from the file connector —
+        // runtime-sourced (only the I-O control system modifies it, §13.18.34 GR7b), scale 0.
+        BoundLinageCounterRef lc => new NumX($"CobolFile.LinageCounter({EmitText.CsLiteral(lc.File.CobolName)})", 0),
         BoundBinary b => Combine(Render(b.Left), b.Op.ToString(), Render(b.Right)),
         BoundNegate n => Negate(Render(n.Operand)),
         BoundPower p => Power(Render(p.Base), Render(p.Exp)),
@@ -72,9 +75,12 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         ? new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0)
         : p.Item.Pic switch
     {
-        // A GROUP operand in a numeric context is its alphanumeric IMAGE as an UNSIGNED integer (a group is
-        // category alphanumeric, §8.8.4.1.1; the alphanumeric→numeric move is legal, §14.9.25.3 Table 16 /
-        // GR6 — NC105A's MOVE MOVE43 TO MOVE3). A mixed-usage (COMP-leaf) group stays loud (Tier-C).
+        // A GROUP operand in a remaining numeric context (an arithmetic operand, a subscript…) decodes its
+        // alphanumeric IMAGE as an UNSIGNED integer (a group is category alphanumeric, §8.8.4.1.1; the
+        // deterministic digit decode §14.6.13.2 permits for incompatible content). NOTE: a MOVE never reaches
+        // this branch — a group SENDER makes the move a GROUP move (§14.9.25.4 GR4: no conversion; classified
+        // at EmitMove → EmitGroupToElementaryMove), never a numeric decode of the image (the pre-fix NC105A
+        // MOVE MOVE43 TO MOVE3 mis-derivation). A mixed-usage (COMP-leaf) group stays loud (Tier-C).
         null when p.Item.IsCharacterImage =>
             new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? p.Read() : $"{p.Read()}.AsImage()")})", 0),
         null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? p.Read()}'"), 0),

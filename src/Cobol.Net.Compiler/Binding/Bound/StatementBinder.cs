@@ -256,8 +256,34 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");
         if (!file.IsSequential) return KeyedBindWrite(w, file, record);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
+        // END-OF-PAGE phrases (ISO §14.9.51 GR27b/GR28): blocks[0] = AT EOP, blocks[1] = NOT AT EOP — the grammar
+        // rule `writeAtEndOfPage : AT? (END_OF_PAGE|EOP) statementBlock (NOT AT? (END_OF_PAGE|EOP) statementBlock)?`
+        // fixes that order (the readAtEnd block shape).
+        List<BoundStatement>? atEop = null, notAtEop = null;
+        if (w.writeAtEndOfPage() is { } eop)
+        {
+            // SR19 (the silent-drop bug class): the END-OF-PAGE / NOT END-OF-PAGE phrase requires a LINAGE clause
+            // in the file's file description entry — a bind-time rejection, never a dropped branch.
+            if (file.Linage is null)
+                data.Edition.Error("COBOLNET0860", $"WRITE … END-OF-PAGE on file '{file.CobolName}', whose file "
+                    + "description entry has no LINAGE clause (ISO §14.9.51 SR19)");
+            // SR18: ADVANCING PAGE and END-OF-PAGE shall not both be specified in a single WRITE statement.
+            if (w.writeBeforeAfter()?.PAGE() is not null)
+                data.Edition.Error("COBOLNET0861", "WRITE … ADVANCING PAGE with an END-OF-PAGE phrase: the two "
+                    + "shall not both be specified in a single WRITE statement (ISO §14.9.51 SR18)");
+            var blocks = eop.statementBlock();
+            if (blocks.Length >= 1) atEop = BindBlocks([blocks[0]]);
+            if (blocks.Length >= 2) notAtEop = BindBlocks([blocks[1]]);
+        }
+        // SR13: with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES mnemonic (the
+        // implementor positioning rules and the logical-page model are mutually exclusive).
+        if (file.Linage is not null && w.writeBeforeAfter() is { } wba && wba.dataReference() is { } mref
+            && AcceptMnemonics(wba).ContainsKey(mref.GetText()))
+            data.Edition.Error("COBOLNET0862", $"WRITE … ADVANCING mnemonic-name on file '{file.CobolName}', whose "
+                + "file description entry contains a LINAGE clause (ISO §14.9.51 SR13)");
+
         return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()),
-            BindAdvancing(w.writeBeforeAfter()), UnsupportedOrg(file, "WRITE"));
+            BindAdvancing(w.writeBeforeAfter()), UnsupportedOrg(file, "WRITE"), atEop, notAtEop);
     }
 
     private BoundStatement BindRead(Core.ReadStatementContext r)
@@ -324,6 +350,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         DataItem root = record.Item;
         while (root.Parent is { } p) root = p;
         foreach (var f in data.Files)
+            if (f.Records.Contains(root)) return f;
+        // An inherited GLOBAL FD's record (ISO §13.18.30 — the record-names of a GLOBAL FD are GLOBAL names):
+        // the owning file is a CONTAINER's FileModel, present in this unit only through the FilesByName merge
+        // (CallBindUnit) — a contained program's WRITE/REWRITE of the owner's record resolves to the owner's
+        // ONE connector (IC233A's family; never a second mapping mechanism).
+        foreach (var f in data.FilesByName.Values)
             if (f.Records.Contains(root)) return f;
         return null;
     }
@@ -766,16 +798,47 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     }
 
     private BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
-        IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
+        dref.LINAGE_COUNTER() is not null
+            ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
+                : new BoundOperandError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
+        : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
         : refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError($"reference '{dref.GetText()}'");
 
     /// <summary>Bind a data reference in a numeric-expression position: an INDEXED BY index-name reads its
-    /// occurrence number (valid in SET/SEARCH/relations, ISO §13.18.38); otherwise the resolved item's value.
+    /// occurrence number (valid in SET/SEARCH/relations, ISO §13.18.38); the LINAGE-COUNTER register reads its
+    /// file's runtime counter (ISO §8.4.3.14 GR1 — an unsigned integer); otherwise the resolved item's value.
     /// The ONE dataReference→<see cref="BoundExpr"/> mapping, used by every expression path.</summary>
     private BoundExpr RefExpr(Core.DataReferenceContext dref) =>
-        IndexFieldOf(dref) is { } ix ? new BoundIndexRef(ix)
+        dref.LINAGE_COUNTER() is not null
+            ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
+                : new BoundExprError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
+        : IndexFieldOf(dref) is { } ix ? new BoundIndexRef(ix)
         : refs.Resolve(dref) is { } p ? new BoundNumRef(p)
         : new BoundExprError($"reference '{dref.GetText()}'");
+
+    /// <summary>Resolve a LINAGE-COUNTER reference to its file (ISO §8.4.3.14): in the grammar alternative
+    /// <c>LINAGE_COUNTER ((OF|IN) cobolWord)?</c> the cobolWord IS the file-name qualifier. Unqualified, the
+    /// register resolves only when exactly ONE file has a LINAGE clause — with several, qualification is
+    /// required (§8.4.3.14 SR3 / §8.4.2.2). Null (the caller binds a loud error) for no/an ambiguous match,
+    /// with a bind-time diagnostic naming the rule.</summary>
+    private FileModel? LinageFileOf(Core.DataReferenceContext dref)
+    {
+        if (dref.cobolWord() is { } q)   // qualified: LINAGE-COUNTER OF/IN file-name
+        {
+            if (data.FilesByName.TryGetValue(q.GetText(), out var named) && named.Linage is not null) return named;
+            data.Edition.Error("COBOLNET0863", $"LINAGE-COUNTER OF '{q.GetText()}': the qualifier shall name a "
+                + "file whose file description entry contains a LINAGE clause (ISO §8.4.3.14 / §13.18.34 GR7a)");
+            return null;
+        }
+        var linageFiles = data.Files.Where(f => f.Linage is not null).ToList();
+        if (linageFiles.Count == 1) return linageFiles[0];
+        data.Edition.Error("COBOLNET0864", linageFiles.Count == 0
+            ? "LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause (ISO §8.4.3.14 — "
+              + "the register is generated by the presence of a LINAGE clause)"
+            : "unqualified LINAGE-COUNTER with more than one LINAGE file: qualify by file-name (ISO §8.4.3.14 "
+              + "SR3 / §8.4.2.2 Qualification)");
+        return null;
+    }
 
     private List<Place> ResolveTargets(IEnumerable<Core.DataReferenceContext> targets) =>
         targets.Select(refs.Resolve).OfType<Place>().ToList();

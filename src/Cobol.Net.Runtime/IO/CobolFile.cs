@@ -27,10 +27,17 @@ public static partial class CobolFile
     /// <summary>Register a SELECTed sequential file (emitted at program start, one per SELECT). The host path is
     /// resolved from the ASSIGN target by <see cref="ResolveHostPath"/> so the same name round-trips OUTPUT→INPUT.
     /// <paramref name="varyMin"/>/<paramref name="varyMax"/> are the RECORD IS VARYING bounds (ISO §13.18.43
-    /// GR9/GR10) — the connector then length-frames its records; (-1,-1) = fixed-length.</summary>
+    /// GR9/GR10) — the connector then length-frames its records; (-1,-1) = fixed-length. Re-registering an
+    /// INTERNAL connector replaces it (a fresh program instance gets fresh connectors, ISO §14.6.2.3.2); an
+    /// EXTERNAL file connector (the compiler's <c>"::EXT::"</c> key band) is ONE per run unit shared by every
+    /// describing program (ISO §13.18.22.4 GR4a), so a later describer's activation keeps the existing live
+    /// connector — its open mode and position persist across activations (IC227A: the main OPENs, the
+    /// subprogram's first activation must not clobber that).</summary>
     public static void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
         bool optional, int varyMin = -1, int varyMax = -1)
     {
+        if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && Files.ContainsKey(cobolName))
+            return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a)
         Files[cobolName] = new SequentialFile(ResolveHostPath(assignTarget), recordWidth, lineSequential, varyMin, varyMax)
             { IsOptional = optional };
     }
@@ -71,6 +78,21 @@ public static partial class CobolFile
     /// <summary><c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c>; <paramref name="lines"/> = -1 is PAGE.</summary>
     public static void WriteAdvancing(string name, string image, int lines, bool before)
     { if (Files.TryGetValue(name, out var f)) f.WriteAdvancing(image, lines, before); }
+
+    /// <summary>Install a LINAGE file's logical-page evaluator (ISO §13.18.34 GR6; emitted right after
+    /// <see cref="Register"/> for an FD with a LINAGE clause). The closure defers the operand reads, so the
+    /// literal (GR6a) and data-name (GR6b) forms share ONE mechanism; the connector invokes it at OPEN OUTPUT,
+    /// WRITE ADVANCING PAGE, and page overflow (GR6b1–3).</summary>
+    public static void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
+    { if (Files.TryGetValue(name, out var f)) f.SetLinage(eval); }
+
+    /// <summary>The file's LINAGE-COUNTER register (ISO §8.4.3.14): the line at which the device is positioned
+    /// within the current page body (§13.18.34 GR7). 0 for an unknown name / before the first OPEN OUTPUT.</summary>
+    public static long LinageCounter(string name) => Files.TryGetValue(name, out var f) ? f.LinageCounter : 0;
+
+    /// <summary>The end-of-page condition of the file's most recent WRITE (ISO §14.9.51 GR26a/b), driving the
+    /// END-OF-PAGE / NOT END-OF-PAGE branch (GR27b/GR28).</summary>
+    public static bool EndOfPage(string name) => Files.TryGetValue(name, out var f) && f.EndOfPage;
 
     /// <summary>Sequential <c>READ … NEXT</c> — returns the record image and whether a record was obtained.</summary>
     public static bool Read(string name, out string image)

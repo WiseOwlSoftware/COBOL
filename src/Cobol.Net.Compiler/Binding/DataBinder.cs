@@ -273,6 +273,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var clause in fd.fileDescriptionClauses()?.fileDescriptionClause() ?? [])
                 if (clause.recordClause() is { } rc)
                     BindRecordClause(rc, file);   // RECORD VARYING / m TO n → FileModel.Varying (ISO §13.18.43)
+                else if (clause.linageClause() is { } lc)
+                    BindLinageClause(lc, file);   // LINAGE logical-page model → FileModel.Linage (ISO §13.18.34)
+                else if (clause.fileGlobalExternalClause() is { } ge)
+                {
+                    // FD IS EXTERNAL / IS GLOBAL (ISO §13.18.22 / §13.18.30): EXTERNAL ⇒ one run-unit file
+                    // connector + external record data (GR4a/GR4b), externalized as the FD name (GR5); GLOBAL ⇒
+                    // the file-name and record-names are global names, inherited by contained programs.
+                    if (ge.EXTERNAL() is not null)
+                    {
+                        file.IsExternal = true;
+                        file.ExternalName = name.ToUpperInvariant();
+                    }
+                    if (ge.GLOBAL() is not null) file.IsGlobal = true;
+                }
         }
 
         // SD entries (ISO §13.4.6): a sort-merge file's records bind through the SAME entry path as FD records —
@@ -320,6 +334,25 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
         string? dep = rc.dataReference() is { } d ? d.cobolWord()?.GetText() ?? d.GetText() : null;
         file.Varying = new VaryingRecordInfo(lo, hi, dep);
+    }
+
+    /// <summary>Bind a LINAGE clause into <see cref="FileModel.Linage"/> (ISO §13.18.34: <c>LINAGE IS
+    /// {data-name-1 | integer-1} LINES [WITH FOOTING AT {data-name-2 | integer-2}] [LINES AT TOP
+    /// {data-name-3 | integer-3}] [LINES AT BOTTOM {data-name-4 | integer-4}]</c>). Each operand is a fixed
+    /// literal (GR6a) or a data-name (GR6b — read at the evaluation points); a data-name keeps only the base
+    /// word (the FILE STATUS capture pattern) and resolves post-build in <see cref="ResolveFiles"/>. Absent
+    /// FOOTING/TOP/BOTTOM phrases stay null (GR1 — margins zero; no footing ⇒ no end-of-page condition
+    /// independent of page overflow).</summary>
+    private static void BindLinageClause(Core.LinageClauseContext lc, FileModel file)
+    {
+        static LinageOperand Operand(Core.DataReferenceContext? d, Core.IntegerLiteralContext? i) =>
+            i is not null ? new LinageOperand(int.Parse(i.GetText()), null)
+            : new LinageOperand(null, d!.cobolWord()?.GetText() ?? d.GetText());
+        file.Linage = new LinageInfo(
+            Operand(lc.dataReference(), lc.integerLiteral()),
+            lc.linageFootingPhrase() is { } f ? Operand(f.dataReference(), f.integerLiteral()) : null,
+            lc.linageLinesAtTopPhrase() is { } t ? Operand(t.dataReference(), t.integerLiteral()) : null,
+            lc.linageLinesAtBottomPhrase() is { } b ? Operand(b.dataReference(), b.integerLiteral()) : null);
     }
 
     /// <summary>Bind the I-O-CONTROL paragraph (ISO §12.4.6). A record-area SAME clause (Format 2) makes the listed
@@ -378,6 +411,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // length register WRITE/REWRITE/RELEASE read per GR13a and READ/RETURN set per GR15).
             if (file.Varying?.DependingName is { } vn && ByName.TryGetValue(vn, out var vlist) && vlist.Count > 0)
                 file.VaryingDependingItem = vlist[0];
+            // LINAGE data-name operands (ISO §13.18.34 GR6b) name elementary unsigned integer items not subject
+            // to OCCURS (SR1/SR2) — a plain name lookup, exactly the VaryingDependingItem pattern.
+            if (file.Linage is { } lin)
+                foreach (var op in lin.Operands)
+                    if (op.DataName is { } ln && ByName.TryGetValue(ln, out var llist) && llist.Count > 0)
+                        op.Item = llist[0];
         }
     }
 

@@ -79,11 +79,15 @@ public sealed partial class CSharpEmitter
     /// realizes the legacy's proven return-address / exit-bounded dispatch (DEVLOG 259–260) in idiomatic C#.
     /// </summary>
     private bool _useDecls;   // the program being emitted declares USE procedures (drives the __IoCheck hooks)
+    private bool _callOuterGlobalUse;   // a CONTAINING program has USE … GLOBAL declaratives (ISO §14.9.49.4 GR4b — the child's __IoCheck walks outward; set by CallEmitProgramClass)
 
     private void EmitDispatcher(BoundProgram bound, CodeWriter w)
     {
         int n = bound.Paragraphs.Count;
-        _useDecls = bound.Declaratives is { Count: > 0 };
+        // Hooks are needed for the program's OWN declaratives (GR4a) — or, with none, for the outward GR4b walk
+        // to a containing program's GLOBAL declaratives (IC233A: the contained unit has no declaratives, yet its
+        // failing OPEN must fire the outer's USE GLOBAL).
+        _useDecls = bound.Declaratives is { Count: > 0 } || _callOuterGlobalUse;
         w.Line();
         // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
@@ -146,15 +150,18 @@ public sealed partial class CSharpEmitter
     /// opened).</summary>
     private void EmitUseMachinery(BoundProgram bound, CodeWriter w)
     {
-        var decls = bound.Declaratives!;
-        w.Line($"private readonly bool[] __useActive = new bool[{decls.Count}];   // §14.9.49.4 GR2 re-entrancy guards");
-        using (w.Block("private void __RunUse(int __id, int __startPc, int __endPc)"))
+        var decls = bound.Declaratives ?? [];
+        if (decls.Count > 0)
         {
-            w.Line("if (__useActive[__id]) return;   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
-            w.Line("__useActive[__id] = true;");
-            w.Line("try { __Dispatch(__startPc, __endPc); } finally { __useActive[__id] = false; }");
+            w.Line($"private readonly bool[] __useActive = new bool[{decls.Count}];   // §14.9.49.4 GR2 re-entrancy guards");
+            using (w.Block("private void __RunUse(int __id, int __startPc, int __endPc)"))
+            {
+                w.Line("if (__useActive[__id]) return;   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
+                w.Line("__useActive[__id] = true;");
+                w.Line("try { __Dispatch(__startPc, __endPc); } finally { __useActive[__id] = false; }");
+            }
+            w.Line();
         }
-        w.Line();
         using (w.Block("private void __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
             w.Line("string __st = CobolFile.Status(__f);");
@@ -175,6 +182,12 @@ public sealed partial class CSharpEmitter
                         if (decls[i].ModeIndex is { } m)
                             w.Line($"case {m}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;");
                 }
+            // No local declarative qualified — walk OUTWARD to the nearest containing program with a USE GLOBAL
+            // declarative (ISO §14.9.49.4 GR4b: "a qualifying declarative with the GLOBAL attribute in the next
+            // inclusive directly containing source element", repeated outward). The declarative executes in the
+            // DECLARING program's instance — its data (§8.4.6.2) — via the container's __RunGlobalUse.
+            if (_callOuterGlobalUse)
+                w.Line("__outer.__RunGlobalUse(__f);");
         }
         w.Line();
     }
@@ -367,8 +380,55 @@ public sealed partial class CSharpEmitter
                 _ctx.Writer.Line(target.Write(OperandText.AsString(m.Source)));
             else if (target.Item.IsGroup)
                 EmitGroupMove(target, m.Source);
+            else if (IsGroupSender(m.Source))
+                // ISO §14.9.25.4 GR4 decides elementary-vs-group FIRST: a move is elementary only when the sender
+                // is a literal or elementary item AND the receiver is elementary — a GROUP sender makes this a
+                // group move even into an elementary receiver, so it must never reach the receiver-category
+                // conversion/editing of ConvertSource (NC105A MOVE-TEST-F1-16/-17/-20/-36/-38).
+                EmitGroupToElementaryMove(target, m.Source);
             else
                 _ctx.Writer.Line(target.Write(ConvertSource(m.Source, target.Item)));
+    }
+
+    /// <summary>True when a MOVE source operand is a GROUP data item (ISO §14.9.25.4 GR4 sender-side test). A
+    /// reference-modified sender is excluded — its unique result is an elementary alphanumeric item whatever the
+    /// underlying item (§8.4.2.4) — and so is a RENAMES alias (the level-66 view is composed as ONE elementary
+    /// alphanumeric item, §13.18.45). A Tier-B REDEFINES group VIEW counts: GR4 classifies by the data item,
+    /// not its storage shape.</summary>
+    private static bool IsGroupSender(BoundOperand source) =>
+        source is BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } f && f.Place.Item.IsGroup;
+
+    /// <summary>MOVE from a GROUP sender into an ELEMENTARY receiver — a GROUP MOVE (ISO §14.9.25.4 GR4): treated
+    /// "exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion
+    /// of data from one form of internal representation to another", the receiving area "filled without
+    /// consideration for the individual elementary or group items" — NO numeric conversion (F1-16), NO editing
+    /// into a numeric-edited or alphanumeric-edited mask (F1-38 / F1-20, F1-36; GR5 editing applies only to valid
+    /// ELEMENTARY moves), NO de-editing. Alignment is §14.6.8 alphanumeric: left-justified, right space-fill /
+    /// right truncation — and the receiver's JUSTIFIED still applies ("exactly as if … elementary move";
+    /// §13.18.34 attaches to the receiver). The raw image is then deposited by the receiver's STORAGE shape:
+    /// string-backed receivers store the width-fitted image directly; a native typed numeric receiver deposits
+    /// then decodes through the ONE storage-form bridge (<c>CobolNum.StoreDisplay</c> — the deterministic zoned
+    /// decode of possibly-incompatible content that §14.6.13.2 permits; EC-DATA-INCOMPATIBLE is a later EC
+    /// slice). A float receiver has no character image — loud (§1.4, the Tier-C island rule).</summary>
+    private void EmitGroupToElementaryMove(Place target, BoundOperand source)
+    {
+        var item = target.Item;
+        if (!item.IsImageCapable)
+        {
+            _ctx.Writer.Line(LoudStmt($"group MOVE into '{item.CobolName}' (a float/COMP-5/INDEX receiver has no character image — Tier-C, COBOLNET_DESIGN §4.2)"));
+            return;
+        }
+        // The width-fitted image (§14.6.8): receiver character-position count via the ONE canonical ImageWidth
+        // (V occupies no position; SIGN SEPARATE adds one; P adds none — §13.18.40). deSign is moot for a group.
+        string image = $"CobolString.Store({OperandText.AsString(source)}, {item.ImageWidth}{(item.Justified ? ", justifiedRight: true" : "")})";
+        // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
+        // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
+        // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.
+        bool nativeNumeric = item.Pic is { Category: PicCategory.Numeric } && !item.StoreAsImage
+            && target is not RedefViewPlace and not NumericImagePlace;
+        _ctx.Writer.Line(nativeNumeric
+            ? target.Write($"CobolNum.StoreDisplay({image}, {item.ProfileName}, {target.Read()})")
+            : target.Write(image));
     }
 
     /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9 MOVE GR4 — no conversion, filled without
@@ -509,9 +569,10 @@ public sealed partial class CSharpEmitter
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = _num.AsNum(source);
                 return $"CobolEdit.Format({e.Expr}, {e.Scale}, {CsLiteral(pic.EditMask!)}{BwzFlag(target)}{EditCfg()})";
-            // An ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3 Table 16): the
-            // sending characters are treated as an unsigned integer and EDITED into the mask (§14.9.25.4 GR5 —
-            // NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
+            // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
+            // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
+            // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
+            // (A GROUP sender never reaches here — GR4 makes that a group move, no editing: EmitGroupToElementaryMove.)
             case PicCategory.NumericEdited:
                 return $"CobolEdit.Format(CobolNum.FromAlphanumeric({OperandText.AsString(source, deSign: true)}), 0, {CsLiteral(pic.EditMask!)}{BwzFlag(target)}{EditCfg()})";
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
@@ -1018,7 +1079,31 @@ public sealed partial class CSharpEmitter
             string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
             w.Line($"CobolFile.Register({CsLiteral(file.CobolName)}, {CsLiteral(file.AssignTarget)}, " +
                    $"{file.RecordWidth}, {(lineSeq ? "true" : "false")}, {(file.Optional ? "true" : "false")}{vary});");
+            // A LINAGE file registers its logical-page evaluator (ISO §13.18.34 GR6): ONE closure for both the
+            // literal (GR6a — a constant lambda) and data-name (GR6b — the connector re-reads at OPEN OUTPUT /
+            // ADVANCING PAGE / page overflow) forms. The lambda READS the program fields at call time — it is
+            // emitted in __Activate (an instance method), so they are in scope and never captured by value.
+            if (file.Linage is { } lin)
+                w.Line($"CobolFile.SetLinage({CsLiteral(file.CobolName)}, () => ({LinageOpExpr(lin.Body)}, "
+                       + $"{LinageOpExpr(lin.Footing)}, {LinageOpExpr(lin.Top)}, {LinageOpExpr(lin.Bottom)}));");
         }
+    }
+
+    /// <summary>The C# <c>int</c> expression for one LINAGE clause operand (ISO §13.18.34 GR6): the fixed literal
+    /// (GR6a), the data item's current value (GR6b — scale 0 by SR2's elementary-unsigned-integer rule, with a
+    /// defensive rescale), or <c>0</c> for an absent TOP/BOTTOM/FOOTING phrase (GR1 — margins zero; footing 0 =
+    /// no footing area). A declared data-name that does not resolve to storage fails loud (§1.4).</summary>
+    private string LinageOpExpr(LinageOperand? op)
+    {
+        if (op is null) return "0";
+        if (op.Literal is { } lit) return lit.ToString();
+        if (op.Item is { } item && _refs.ResolveItem(item) is { } p)
+        {
+            var nx = _num.FieldNum(p);
+            return nx.Scale == 0 ? $"(int)({nx.Expr})"
+                : $"(int)CobolNum.Rescale({nx.Expr}, {nx.Scale}, 0, CobolRounding.Truncation)";
+        }
+        return LoudValue("int", $"LINAGE operand '{op.DataName}' is not resolvable to storage (ISO §13.18.34 SR2)");
     }
 
     private void EmitOpen(BoundOpen o)
@@ -1077,6 +1162,20 @@ public sealed partial class CSharpEmitter
                 : $"CobolFile.Write({name}, {image});");
         EmitStoreFileStatus(wr.File);
         EmitUseHook(wr.File);
+        // END-OF-PAGE branches (ISO §14.9.51 GR27b/GR28): an end-of-page WRITE is SUCCESSFUL — the branch runs
+        // after the status store (status 00, so no USE declarative competes). The flag is read in the `if`
+        // HEADER before either body runs: a branch body may WRITE the same file again (SQ208M's footing loop
+        // inside the AT phrase), which clobbers the connector's per-write flag.
+        if (wr.AtEop is not null || wr.NotAtEop is not null)
+        {
+            using (w.Block($"if (CobolFile.EndOfPage({name}))"))
+            {
+                if (wr.AtEop is { } at) EmitStatementList(at);
+            }
+            if (wr.NotAtEop is { } not)
+                using (w.Block("else"))
+                    EmitStatementList(not);
+        }
     }
 
     /// <summary>The record-length argument for a WRITE/REWRITE on a RECORD VARYING … DEPENDING file (ISO
@@ -1187,7 +1286,13 @@ public sealed partial class CSharpEmitter
         // ISO §12.4.5.8 / §9.1.13.1 — the two-character status is stored into the FILE STATUS item as part of
         // the I/O statement's execution, BEFORE any exception processing.
         if (file.FileStatusName is null) return;   // no FILE STATUS clause — nothing to store
-        if (file.FileStatusItem is not { } item || _refs.ResolveItem(item) is not { } place)
+        // An INHERITED GLOBAL file stores into the OWNER's status item through the __outer chain
+        // (§12.4.5.8.4 GR1 NOTE 1 — the item is updated by contained-program references to the global
+        // file-name even though it is a LOCAL name of the owner; map built per unit in CallEmitProgramClass).
+        Place? place = _callInheritedStatusPlace.TryGetValue(file, out var inherited)
+            ? inherited
+            : file.FileStatusItem is { } own ? _refs.ResolveItem(own) : null;
+        if (file.FileStatusItem is not { } item || place is null)
         {
             // §1.4 loud-guard doctrine: a DECLARED FILE STATUS name that did not resolve is never silent.
             _ctx.Writer.Line(LoudStmt($"FILE STATUS item '{file.FileStatusName}' is not resolvable to storage (ISO §12.4.5.8)"));

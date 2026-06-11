@@ -469,6 +469,28 @@ public sealed class NistDifferentialTests
     [InlineData("ST127A")]   // nested mixed-usage SD record + non-aligned group MOVE
     [InlineData("ST133A")]   // mixed FD WRITE/READ + DESCENDING signed-COMP key
     [InlineData("ST134A")]   // SAME RECORD AREA over a COMP-leaf record (Tier-B relaxation)
+    // Greened by the LINAGE subsystem (ISO §13.18.34 + §8.4.3.14 LINAGE-COUNTER + §14.9.51 END-OF-PAGE —
+    // DEVLOG 573): the logical-page counter state machine in the sequential connector (GR7 rules; the GR6
+    // one-closure literal/data-name evaluator re-evaluated at OPEN OUTPUT / ADVANCING PAGE / page overflow per
+    // GR6b1–3), the END-OF-PAGE vs page-overflow discrimination (GR26a/b), and the LINAGE-COUNTER register
+    // channel. SQ101M/SQ208M/SQ210M goldens re-baselined over verified legacy holes (LEGACY_DIVERGENT —
+    // citations in scripts/guard.sh).
+    [InlineData("SQ101M")]   // WRITE ADVANCING identifier operands incl. S99 overpunch + COMP (§14.9.51 GR25a)
+    [InlineData("SQ201M")]   // LINAGE page geometry + EOP + ADVANCING PAGE formfeeds
+    [InlineData("SQ208M")]   // data-name LINAGE re-evaluation across page transitions (GR6b2/3)
+    [InlineData("SQ209M")]   // LINAGE-COUNTER reads + footing-zone EOP
+    [InlineData("SQ210M")]   // LINAGE IS data-name mutated mid-run (20→30) — pages 20+30+30
+    // Greened by the Wave-2 IC residue (DEVLOG 573): the CALL ON EXCEPTION edition gate lifted (an ANSI
+    // X3.23-1985 Format-2 phrase — CCVS-85 IC222A tests it; the 0881 2002+ gate was wrong), the §14.9.25.4 GR4
+    // group-sender MOVE arms, the §14.2.3 GR8 full-allocation ODO CALL carrier, EXTERNAL FD run-unit-shared
+    // connectors (§13.18.22.4 GR4a — the ::EXT:: registry band), and cross-program GLOBAL USE declaratives
+    // (§13.18.30 + §14.9.49 GR4b — the __RunGlobalUse containment walk).
+    [InlineData("IC222A")]   // CALL ... ON EXCEPTION / NOT ON EXCEPTION at --std 85
+    [InlineData("NC105A")]   // group-sender MOVEs to elementary receivers (§14.9.25.4 GR4)
+    [InlineData("IC207A")]   // ODO group BY REFERENCE across CALL (full allocation, §8.5.1.8)
+    [InlineData("IC227A")]   // EXTERNAL FD shared by main + subprogram (one run-unit connector)
+    [InlineData("IC233A")]   // GLOBAL FD inherited into a contained program's I/O
+    [InlineData("IC234A")]   // a contained program's USE declarative on the owner's GLOBAL file
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

@@ -136,7 +136,13 @@ export COBOL_SWITCH_1=ON
 #                      documented refinement: the area is UNCHANGED (the spec's own pattern for every other
 #                      unsuccessful I-O verb — REWRITE GR14, WRITE GR15, DELETE GR8, START GR2); the legacy's
 #                      LOW-VALUE fill was a byte-engine artifact.
-LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M ST146A"
+#   SQ101M          — HOLE: the legacy text-parsed a WRITE ADVANCING identifier operand's raw bytes (signed-
+#                      overpunch S99 / COMP fail int.TryParse → advanced 0 lines); §14.9.51 GR25a — the operand's
+#                      VALUE governs (DEVLOG 573; evidence /e/tmp/phase1-out/linage/).
+#   SQ208M/SQ210M   — HOLE: a data-name LINAGE operand re-evaluates at OPEN OUTPUT, WRITE ADVANCING PAGE, and
+#                      page overflow, applying to the NEXT logical page (§13.18.34 GR6b1–3); the legacy evaluated
+#                      only at OPEN, so mid-run MOVEs to the LINAGE data-names never took effect (page stuck at 66).
+LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M ST146A SQ101M SQ208M SQ210M"
 
 FAILURES=0
 for test in $NIST_TESTS; do

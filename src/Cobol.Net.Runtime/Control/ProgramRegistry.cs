@@ -277,8 +277,12 @@ public static class ExternalStore
 /// and drives the §14.6.2.3 state model; CANCEL implements §14.9.5. Instances ARE the state: a plain program's
 /// cached singleton realizes last-used persistence (§8.6.4 / §14.6.2.3.3); dropping the instance realizes
 /// initial-state-on-next-CALL (§14.9.5 GR3); a fresh instance per activation realizes INITIAL (§14.6.2.3.2)
-/// and RECURSIVE (deep-dive D3/D4). In-assembly static registration is the implemented profile; cross-assembly
-/// reflective discovery is the one OPEN question (deep-dive "Open questions") — escalate before G8.
+/// and RECURSIVE (deep-dive D3/D4). In-assembly static registration is the primary profile; an unresolved
+/// outermost name additionally probes the application directory for a sibling compiled module
+/// (<c>&lt;name&gt;.dll</c>) and invokes its public <c>__CobolModule.Register()</c> registrar — the
+/// implementation-defined §14.9.4.4 GR3b "locate the program" mechanism (owner-approved resolution of the
+/// deep-dive's open question; a prebuilt-static-registry profile remains possible for AOT/trimming, where the
+/// probe simply never fires because every name is pre-registered).
 /// </summary>
 public static class ProgramRegistry
 {
@@ -296,12 +300,14 @@ public static class ProgramRegistry
 
     private static readonly Dictionary<string, Node> ByPath = new(StringComparer.OrdinalIgnoreCase);
     private static readonly List<Node> Order = [];
+    private static readonly HashSet<string> ProbedModules = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Clear all registrations and the external store (run-unit start).</summary>
     public static void Reset()
     {
         ByPath.Clear();
         Order.Clear();
+        ProbedModules.Clear();
         ExternalStore.Reset();
     }
 
@@ -445,7 +451,47 @@ public static class ProgramRegistry
         }
         foreach (var n in Order)                                                     // rule 4 — outermost programs
             if (n.ParentPath is null && NameEquals(n.Name, target)) return n;
+
+        // Rule-4 fallthrough: the run unit may be composed of SEPARATELY COMPILED modules ("a run unit contains
+        // one or more runtime modules", ISO §14.6.1; §14.9.4.4 GR3b — the runtime system "attempts to locate"
+        // the called program; the locating mechanics beyond the §8.4.6.3 name scope are implementor-defined).
+        // Probe the application directory for a sibling compiled module named after the program, invoke its
+        // public __CobolModule.Register() registrar (generated classes are internal — the registrar IS the
+        // discovery surface), and retry rule 4 once. Probed names are cached, hit or miss — one I/O probe per
+        // name per run unit.
+        if (ProbeSiblingModule(target))
+            foreach (var n in Order)
+                if (n.ParentPath is null && NameEquals(n.Name, target)) return n;
         return null;
+    }
+
+    /// <summary>Load the sibling compiled module <c>&lt;name&gt;.dll</c> from <see cref="AppContext.BaseDirectory"/>
+    /// (exact name first, then a case-insensitive scan — Linux filesystems are case-sensitive) into the default
+    /// <see cref="System.Runtime.Loader.AssemblyLoadContext"/> and run its <c>__CobolModule.Register()</c>.
+    /// Returns true when a registrar ran (the caller re-resolves); a missing file / foreign dll / load failure
+    /// is a quiet false — the CALL then raises the ordinary EC-PROGRAM-NOT-FOUND surface.</summary>
+    private static bool ProbeSiblingModule(string name)
+    {
+        if (!ProbedModules.Add(name)) return false;   // already probed this run unit (negative/positive cache)
+        try
+        {
+            string dir = AppContext.BaseDirectory;
+            string path = System.IO.Path.Combine(dir, name + ".dll");
+            if (!System.IO.File.Exists(path))
+                path = System.IO.Directory.EnumerateFiles(dir, "*.dll").FirstOrDefault(f =>
+                    string.Equals(System.IO.Path.GetFileNameWithoutExtension(f), name,
+                        StringComparison.OrdinalIgnoreCase)) ?? "";
+            if (path.Length == 0) return false;
+            var asm = System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(path);
+            var register = asm.GetType("__CobolModule")?.GetMethod("Register", Type.EmptyTypes);
+            if (register is null) return false;   // not a COBOL.NET module — no registrar surface
+            register.Invoke(null, null);
+            return true;
+        }
+        catch
+        {
+            return false;   // an unloadable/foreign dll is simply "not found" (§14.9.4.4 GR3b)
+        }
     }
 
     private static Node? ParentOf(Node n) =>

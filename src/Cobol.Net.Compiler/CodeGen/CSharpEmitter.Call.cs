@@ -58,6 +58,14 @@ public sealed partial class CSharpEmitter
     private int _callCounter;
     private int _callUidBand;
 
+    /// <summary>For each GLOBAL file INHERITED from a container (ISO §13.18.30), the place of the OWNER's FILE
+    /// STATUS item reached through the <c>__outer</c> instance chain. §12.4.5.8.4 GR1 NOTE 1: "In the case where
+    /// a file-name is global and data-name-1 is not, data-name-1 is updated by references to file-name in
+    /// contained programs even though data-name-1 is a local name" — the contained program's after-verb status
+    /// store must write the OWNER's storage although the NAME is not visible to it. Rebuilt per emitted unit
+    /// (nearest container first); consumed by <c>EmitStoreFileStatus</c>.</summary>
+    private readonly Dictionary<FileModel, Place> _callInheritedStatusPlace = [];
+
     // ── Run-unit emission (replaces the single-unit Emit body; design D3) ───────────────────────────────────
 
     /// <summary>
@@ -76,13 +84,19 @@ public sealed partial class CSharpEmitter
         foreach (var unit in units) MarkStoreAsImage(unit.Data);
 
         // Per-program file-connector namespace: the runtime file registry is run-unit-global, but a file
-        // connector is INTERNAL to its program (ISO §8.6.3 — only an EXTERNAL FD is the run-unit-shared case,
-        // the file subsystem's joint edge): two programs declaring the same file-name (the IC-suite PRINT-FILE
-        // pattern, e.g. IC101A's two units) must not clobber each other's connectors. Name resolution is done
-        // (bound nodes hold FileModel references), so qualifying the runtime key is purely an emit-side rename.
+        // connector is INTERNAL to its program (ISO §8.6.3): two programs declaring the same file-name (the
+        // IC-suite PRINT-FILE pattern, e.g. IC101A's two units) must not clobber each other's connectors. Name
+        // resolution is done (bound nodes hold FileModel references), so qualifying the runtime key is purely an
+        // emit-side rename. An EXTERNAL FD instead keys by its run-unit EXTERNALIZED name (ISO §13.18.22.4 GR4a:
+        // ONE external file connector per run unit, shared by every describer — two units' FileModels with the
+        // same external name converge on ONE registry key, hence one connector; GR5: the name is the FD name).
+        // Each FileModel lives in exactly ONE unit's Files list (a fix-E GLOBAL merge shares references through
+        // FilesByName only), so no model is renamed twice.
         foreach (var unit in units)
             foreach (var file in unit.Data.Files)
-                file.CobolName = unit.Path + "::" + file.CobolName;
+                file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
+                    ? "::EXT::" + ext
+                    : unit.Path + "::" + file.CobolName;
 
         bool anyFiles = units.Any(u => u.Data.Files.Count > 0);
 
@@ -219,6 +233,20 @@ public sealed partial class CSharpEmitter
         data.Bind(unit.Ctx);
         unit.Data = data;
 
+        // GLOBAL FD inheritance (ISO §13.18.30: the file-name of a GLOBAL FD is a GLOBAL name, visible in every
+        // directly/indirectly contained program; §13.18.27 GR1–2 — nearest container first, a local declaration
+        // shadows, which TryAdd realizes since local files are already present). Merge into FilesByName ONLY —
+        // never Files: the child must not re-register, re-qualify, or CANCEL-close the owner's connector; its
+        // bound verbs hold the SHARED FileModel reference, so the owner's one-time PROG::FILE qualification
+        // automatically keys the child's verbs to the owner's connector. (EXTERNAL is NOT global — §13.18.22
+        // NOTE 1: an EXTERNAL non-GLOBAL FD's name is not visible in contained programs.) The record-name half
+        // of §13.18.30 rides the standard GLOBAL-root bridges (DataBinder.CallBindExternalAndGlobal adds a
+        // GLOBAL FD's records to CallGlobalRoots).
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+            foreach (var f in anc.Data.Files)
+                if (f.IsGlobal)
+                    data.FilesByName.TryAdd(f.CobolName, f);
+
         int depth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
@@ -299,6 +327,23 @@ public sealed partial class CSharpEmitter
         _cond = new ConditionRenderer(_num, _ctx);
         _callSelfPath = unit.Path;
         _callReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
+        // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
+        // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
+        _callOuterGlobalUse = CallChainHasGlobalUse(unit.Parent);
+
+        // Inherited GLOBAL files' FILE STATUS routing (§12.4.5.8.4 GR1 NOTE 1 — see the field doc): resolve each
+        // ancestor's status item with the ANCESTOR's resolver, then re-anchor the place behind the __outer chain.
+        _callInheritedStatusPlace.Clear();
+        int statusDepth = 0;
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        {
+            statusDepth++;
+            string outerPrefix = string.Concat(Enumerable.Repeat("__outer.", statusDepth));
+            foreach (var f in anc.Data.Files)
+                if (f.IsGlobal && f.FileStatusItem is { } si && !_callInheritedStatusPlace.ContainsKey(f)
+                    && anc.Refs.ResolveItem(si) is { } sp && CallPrefixPlace(sp, outerPrefix) is { } pp)
+                    _callInheritedStatusPlace[f] = pp;
+        }
 
         // Per-formal carrier shape, resolved once: a carrier-resident formal aliases per access; a group /
         // redefined formal round-trips its character image at the activation boundary (deep-dive hard problem —
@@ -356,7 +401,10 @@ public sealed partial class CSharpEmitter
             w.Line("void ICobolProgram.Activate() => __Activate();");
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files)
-                    w.Line($"CobolFile.Close({CsLiteral(file.CobolName)});");
+                    if (!file.IsExternal)   // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists (GR8 / §13.18.22.4 GR4a)
+                        w.Line($"CobolFile.Close({CsLiteral(file.CobolName)});");
+            if (unit.Children.Count > 0 && CallChainHasGlobalUse(unit))
+                CallEmitRunGlobalUse(unit, w);
             w.Line();
 
             if (unit.Bound.Paragraphs.Count > 0)
@@ -367,6 +415,61 @@ public sealed partial class CSharpEmitter
             foreach (var child in unit.Children)
                 CallEmitProgramClass(child, w);
         }
+    }
+
+    /// <summary>Re-anchor a CONTAINER-resolved place behind the contained class's <c>__outer</c> instance chain
+    /// (the §12.4.5.8.4 GR1 NOTE 1 status routing). A FILE STATUS item is never subscripted (§12.4.5.8 SR1 — no
+    /// OCCURS), so its member path / Tier-B backing prefix textually. An unexpected place shape returns null —
+    /// the caller then falls back to the loud-guard path, never a silent wrong-storage store (§1.4).</summary>
+    private static Place? CallPrefixPlace(Place p, string prefix) => p switch
+    {
+        MemberPlace m => new MemberPlace(prefix + m.Path, m.MemberItem),
+        RedefViewPlace r => new RedefViewPlace(prefix + r.Backing, r.OffsetExpr, r.Width, r.ViewItem),
+        _ => null,
+    };
+
+    /// <summary>True when <paramref name="u"/> or any of its containers declares a <c>USE … GLOBAL</c>
+    /// declarative (ISO §14.9.49.4 GR4b — the containment chain a contained program's I-O check walks outward).</summary>
+    private static bool CallChainHasGlobalUse(CallUnit? u)
+    {
+        for (; u is not null; u = u.Parent)
+            if (u.Bound.Declaratives is { } ds && ds.Any(d => d.Global)) return true;
+        return false;
+    }
+
+    /// <summary>Emit the cross-program GLOBAL USE dispatch member (ISO §14.9.49.4 GR4b): a contained program's
+    /// <c>__IoCheck</c> fallthrough (no local match, GR4a) calls the container instance's
+    /// <c>__RunGlobalUse</c>, which examines THIS program's <c>USE … GLOBAL</c> declaratives — file-name scope
+    /// before open-mode scope (GR5) — and on a match runs the handler in THIS instance (the declaring program's
+    /// data, §8.4.6.2); otherwise the walk continues to the next container ("repeated with the next higher
+    /// directly containing source element", GR4b) or stops false at the outermost. Emitted only on classes a
+    /// contained program can actually reach (children exist + the chain has GLOBAL declaratives), so a
+    /// declarative-free compilation group's generated source is unchanged.</summary>
+    private void CallEmitRunGlobalUse(CallUnit unit, CodeWriter w)
+    {
+        var decls = unit.Bound.Declaratives ?? [];
+        using (w.Block("public bool __RunGlobalUse(string __f)"))
+        {
+            if (decls.Any(d => d.Global && d.Files.Count > 0))
+                using (w.Block("switch (__f)"))   // GLOBAL file-name scope first (GR5)
+                {
+                    for (int i = 0; i < decls.Count; i++)
+                        if (decls[i].Global)
+                            foreach (var f in decls[i].Files)
+                                w.Line($"case {CsLiteral(f.CobolName)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;");
+                }
+            if (decls.Any(d => d.Global && d.ModeIndex is not null))
+                using (w.Block("switch (CobolFile.OpenModeOf(__f))"))   // GLOBAL open-mode scope (GR3b/GR6b–e)
+                {
+                    for (int i = 0; i < decls.Count; i++)
+                        if (decls[i].Global && decls[i].ModeIndex is { } m)
+                            w.Line($"case {m}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;");
+                }
+            w.Line(unit.Parent is { } p && CallChainHasGlobalUse(p)
+                ? "return __outer.__RunGlobalUse(__f);   // continue outward (§14.9.49.4 GR4b)"
+                : "return false;   // outermost source element reached — no qualifying GLOBAL declarative (GR4b)");
+        }
+        w.Line();
     }
 
     /// <summary>Emit the opaque-ABI <c>Call</c> body: positional formal mapping (ISO §14.2.3 GR2), the
@@ -420,16 +523,18 @@ public sealed partial class CSharpEmitter
         }
     }
 
-    /// <summary>Emit the run-unit entry wrapper: register every program (containers before containees), run the
-    /// first program as main, and perform the §14.6.11 implicit CLOSE at run-unit termination. STOP RUN unwinds
-    /// to here (§14.9.43); a main-program GOBACK already returned normally through its activation entry.</summary>
+    /// <summary>Emit the module registrar + the run-unit entry wrapper. <c>__CobolModule</c> is the ONE public,
+    /// well-known discovery surface of a compiled module (deep-dive D2; the generated program classes are
+    /// internal): its <c>Register()</c> registers every program unit (containers before containees), serving
+    /// both the own-run-unit <c>Main</c> AND a CALLing run unit's sibling-assembly probe
+    /// (<c>ProgramRegistry.ResolveVisible</c> rule-4 fallthrough — the implementor-defined §14.9.4.4 GR3b
+    /// locate step; §14.6.1: a run unit contains one or more runtime modules). <c>Main</c> runs the first
+    /// program as main and performs the §14.6.11 implicit CLOSE at run-unit termination; STOP RUN unwinds to
+    /// here (§14.9.43); a main-program GOBACK already returned normally through its activation entry.</summary>
     private void CallEmitEntryWrapper(IReadOnlyList<CallUnit> units, CodeWriter w, bool anyFiles)
     {
-        using (w.Block("internal static class Program"))
-        using (w.Block("private static void Main()"))
-        {
-            w.Line("ProgramRegistry.Reset();");
-            if (anyFiles) w.Line("CobolFile.Init();");
+        using (w.Block("public static class __CobolModule"))
+        using (w.Block("public static void Register()"))
             foreach (var u in units)
             {
                 string parentPath = u.Parent is { } p ? CsLiteral(p.Path) : "null";
@@ -439,6 +544,13 @@ public sealed partial class CSharpEmitter
                 w.Line($"ProgramRegistry.Register({CsLiteral(u.Path)}, {CsLiteral(u.Name)}, {parentPath}, "
                     + $"{CallBool(u.Initial)}, {CallBool(u.Common)}, {CallBool(u.Recursive)}, {factory});");
             }
+        w.Line();
+        using (w.Block("internal static class Program"))
+        using (w.Block("private static void Main()"))
+        {
+            w.Line("ProgramRegistry.Reset();");
+            if (anyFiles) w.Line("CobolFile.Init();");
+            w.Line("__CobolModule.Register();");
             w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(units[0].Path)}); }}");
             w.Line("catch (StopRun) { }");
             if (anyFiles)
@@ -552,9 +664,22 @@ public sealed partial class CSharpEmitter
         || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
         || p.Item.Pic is { IsFloat: true } || p.Item.Pic is { Digits: > 18 };
 
-    private static string CallStringRead(Place p) => OperandText.AsString(new BoundFieldOperand(p));
+    /// <summary>The string image a place contributes ACROSS THE CALL BOUNDARY. An occurs-depending group reads
+    /// its FULL maximum-allocation image here, never the ODO window: BY REFERENCE "operates as if the [formal]
+    /// occupies the same storage area as the argument" (ISO §14.2.3 GR8 — the STORAGE is the maximum allocation)
+    /// and a BY CONTENT copy is of the whole record (GR9); the current-extent window of §13.18.38 GR8 is a
+    /// SENDING-OPERAND rule for MOVE/compare/INSPECT, not a storage-aliasing rule (IC207A: CALL … USING TABLE-01
+    /// with DN3=3 must still carry all 15 character positions in, and carry the callee's full table back out).
+    /// Every call site of this helper (the BY REFERENCE carrier, BY CONTENT snapshot, callee copy-out, and
+    /// RETURNING delivery) is such a boundary.</summary>
+    private static string CallStringRead(Place p) => p is OdoGroupPlace odo
+        ? $"{odo.Read()}.AsImage()"
+        : OperandText.AsString(new BoundFieldOperand(p));
 
     private static string CallStringWrite(Place p, string value) =>
+        // The boundary WRITE half of the §14.2.3 GR8/GR9 full-allocation rule above: a group (including an
+        // occurs-depending group — OdoGroupPlace.Write delegates to the full-width struct) distributes the whole
+        // image through FromImage, never the GR8a current-extent splice.
         p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsCharacterImage
             ? $"{p.Read()}.FromImage({value});"
             : p.Write(value);

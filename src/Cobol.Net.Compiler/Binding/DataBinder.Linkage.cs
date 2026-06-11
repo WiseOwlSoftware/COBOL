@@ -143,34 +143,59 @@ public sealed partial class DataBinder
     /// (after REDEFINES classification) so an EXTERNAL record that is also a redefines anchor folds its whole
     /// class onto the shared backing. The mechanism is the existing Tier-B string-canonical machinery: the
     /// backing becomes a <c>ref</c>-property over the external cell, every member an (offset,width) window —
-    /// ONE storage copy per name per run unit (§8.6.7), not reset by CANCEL (§14.9.5 GR8). (FD-level
-    /// EXTERNAL/GLOBAL is the file subsystem's joint edge — SSOT §8.3; not bound here.)
+    /// ONE storage copy per name per run unit (§8.6.7), not reset by CANCEL (§14.9.5 GR8). FD-level EXTERNAL
+    /// joins here too: the FD's record area is EXTERNAL record data (ISO §13.18.22.4 GR4b — one record area per
+    /// run unit, shared by every program describing the file), re-based through the SAME mechanism with the cell
+    /// keyed by the file's externalized name (GR5 — so two programs' differently-named records over one EXTERNAL
+    /// FD still share the one area; IC227A). FD-level GLOBAL is handled by the emitter's containment merge
+    /// (<c>CallBindUnit</c> — §13.18.30 makes the file-name and record-names global names).
     /// </summary>
     internal void CallBindExternalAndGlobal(Core.ProgramUnitContext program)
     {
-        if (program.dataDivision()?.workingStorageSection() is not { } ws) return;
-        foreach (var entry in ws.dataDescriptionEntry())
-        {
-            var clauses = entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
-            if (clauses is null) continue;
-            bool external = clauses.Any(cl => cl.externalClause() is not null);
-            bool global = clauses.Any(cl => cl.globalClause() is not null);
-            if (!external && !global) continue;
-            if (!int.TryParse(entry.levelNumber().GetText(), out int lvl) || lvl is not (1 or 77))
-                continue;   // §13.18.22 SR1 / §13.18.27 SR1 — record-description level-01/77 entries only
-            if (entry.dataName()?.GetText() is not { } name) continue;
-            var item = Roots.FirstOrDefault(r =>
-                r.Level == lvl && string.Equals(r.CobolName, name, StringComparison.OrdinalIgnoreCase));
-            if (item is null) continue;
-            if (global) CallGlobalRoots.Add(item);
-            if (external) CallMakeExternal(item);
-        }
+        if (program.dataDivision()?.workingStorageSection() is { } ws)
+            foreach (var entry in ws.dataDescriptionEntry())
+            {
+                var clauses = entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
+                if (clauses is null) continue;
+                bool external = clauses.Any(cl => cl.externalClause() is not null);
+                bool global = clauses.Any(cl => cl.globalClause() is not null);
+                if (!external && !global) continue;
+                if (!int.TryParse(entry.levelNumber().GetText(), out int lvl) || lvl is not (1 or 77))
+                    continue;   // §13.18.22 SR1 / §13.18.27 SR1 — record-description level-01/77 entries only
+                if (entry.dataName()?.GetText() is not { } name) continue;
+                var item = Roots.FirstOrDefault(r =>
+                    r.Level == lvl && string.Equals(r.CobolName, name, StringComparison.OrdinalIgnoreCase));
+                if (item is null) continue;
+                if (global) CallGlobalRoots.Add(item);
+                if (external) CallMakeExternal(item);
+            }
+
+        // EXTERNAL FDs: the record area is ONE run-unit cell keyed by the externalized FILE name (§13.18.22.4
+        // GR4b/GR5 — the records of every describer alias it; multi-01 records under the FD are already one
+        // REDEFINES class, so re-basing the first record re-bases the whole area). The GR6 same-byte-count
+        // conformance check across describers is EC-band work (§14.8.4) — not enforced here.
+        foreach (var file in Files)
+            if (file is { IsExternal: true, ExternalName: { } extName } && file.Records.Count > 0)
+                CallMakeExternal(file.Records[0], "FD::" + extName);
+
+        // GLOBAL FDs: the record-names of a GLOBAL FD are GLOBAL names (ISO §13.18.30 — the file-name and the
+        // record-names described subordinate to the FD are global names): the records join the GLOBAL roots so
+        // contained programs reach the OWNER's record area through the standard containment bridges
+        // (§13.18.27 GR2 — container storage, contained visibility). The file-NAME half of the rule is the
+        // emitter's FilesByName containment merge (CallBindUnit).
+        foreach (var file in Files)
+            if (file.IsGlobal)
+                foreach (var rec in file.Records)
+                    if (!CallGlobalRoots.Contains(rec))
+                        CallGlobalRoots.Add(rec);
     }
 
     /// <summary>Re-base one EXTERNAL record onto the run-unit external cell (see
-    /// <see cref="CallBindExternalAndGlobal"/>). A record with a non-DISPLAY (COMP/float/index) leaf would need
-    /// the Tier-C byte island — rejected loud, conformant-but-unimplemented.</summary>
-    private void CallMakeExternal(DataItem item)
+    /// <see cref="CallBindExternalAndGlobal"/>). <paramref name="externalName"/> overrides the cell key (the
+    /// FD-record case keys by the FILE's externalized name, §13.18.22.4 GR5; a WS record keys by its own name).
+    /// A record with a non-DISPLAY (COMP/float/index) leaf would need the Tier-C byte island — rejected loud,
+    /// conformant-but-unimplemented.</summary>
+    private void CallMakeExternal(DataItem item, string? externalName = null)
     {
         var cls = item.Class;
         if (cls is null)
@@ -203,7 +228,7 @@ public sealed partial class DataBinder
                 leaf.StoreAsImage = true;
 
         CallExternalBackings.Add(new CallExternalBacking(
-            cls.BackingCsName, item.CobolName!.ToUpperInvariant(), cls.Width,
+            cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width,
             CallInitialImage(item).PadRight(cls.Width)));
     }
 

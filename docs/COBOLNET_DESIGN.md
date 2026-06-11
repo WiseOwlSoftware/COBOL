@@ -598,8 +598,20 @@ value of the typed RECORD KEY / RELATIVE KEY field.
 
 Variable-length REWRITE must equal the replaced length (status 44; remember last-read length); the read-position
 state machine (READ NEXT after AT END = 46; sequential REWRITE/DELETE without a preceding READ = 43; START =
-inclusive FPI); EXTERNAL files (a process-wide registry keyed by external name + Area discriminator — IC227A) +
-GLOBAL FD inheritance (IC233A/234A); OPTIONAL files (OPEN INPUT missing → 05 + EOF; non-optional missing → 35);
+inclusive FPI); EXTERNAL FDs — **IMPLEMENTED (Phase 1F, IC227A; §13.18.22.4 GR4a/GR4b/GR5)**: the connector keys
+the run-unit registry by `"::EXT::" + externalized-name` (= the FD name, GR5) instead of the per-program
+`PROG::FILE` qualification, so every describer's verbs converge on ONE connector (`CobolFile.Register` keeps an
+existing `::EXT::` key — a later describer's activation never clobbers the live connector; CANCEL's `CloseFiles`
+skips external connectors, §14.9.5 GR8/GR9), and the record area re-bases onto ONE run-unit `ExternalStore` cell
+keyed `"FD::" + externalized-name` via the same Tier-B string-canonical machinery WS EXTERNAL 01s use
+(`DataBinder.Linkage.cs::CallBindExternalAndGlobal`); FILE STATUS items stay per-program; the GR6 same-byte-count
+cross-describer check is §14.8.4 EC-band work (documented-deferred). GLOBAL FD inheritance — **IMPLEMENTED
+(Phase 1F, IC233A/IC234A; §13.18.30)**: ancestors' GLOBAL FileModels merge into a contained unit's `FilesByName`
+ONLY (never `Files` — no re-registration/re-qualification/CANCEL-close; the shared FileModel reference keys the
+child's verbs to the owner's connector), the GLOBAL FD's records join `CallGlobalRoots` (record-names are global
+names → the standard `__outer` ref-bridges), `FileOfRecord` resolves a contained WRITE/REWRITE of the owner's
+record through the merge, and the I-O status routes to the owner's local status item (§12.4.5.8.4 GR1 NOTE 1);
+OPTIONAL files (OPEN INPUT missing → 05 + EOF; non-optional missing → 35);
 sequential RELATIVE WRITE assigns the next slot and MOVEs it into the RELATIVE KEY field; LINAGE (LINAGE-COUNTER,
 page reset/overflow, footing area, END-OF-PAGE). After each I/O verb the compiler stores `LastStatus` into the FILE
 STATUS item then branches AT END / INVALID KEY on the first char (1 at-end, 2 invalid-key, 3/4/7/9 fatal → a USE
@@ -928,8 +940,17 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   termination-tail accommodation — a trivial exit paragraph followed by a STOP-RUN tail inside the section caps
   `HandlerEndPc` at the exit paragraph (the SQ212A golden's shape; ISO leaves fatal-path behavior implementor-
   specific, §14.6.3); (b) a successful CLOSE resets the connector's open-mode view to none (§9.1.4) — a failed
-  OPEN records the ATTEMPTED mode for GR6b "being opened" scoping. Cross-program GLOBAL dispatch (GR4) is the
-  post-CALL wave (parsed + recorded, locally dispatched).
+  OPEN records the ATTEMPTED mode for GR6b "being opened" scoping. **Cross-program GLOBAL dispatch (GR4b) is
+  IMPLEMENTED (Phase 1F, IC233A/IC234A)** as a compile-time `__outer` instance-chain walk — no runtime registry
+  (the §5.6 registry sketch predates the instance-chain emission; ONE pattern): `__IoCheck`'s fallthrough (no
+  local match, GR4a) calls `__outer.__RunGlobalUse(fileKey)`, which examines that container's `USE … GLOBAL`
+  declaratives (file scope before mode scope, GR5), on a match runs the handler via its own `__RunUse` — in the
+  DECLARING program's instance, its data (§8.4.6.2) — else forwards to ITS `__outer` ("repeated with the next
+  higher directly containing source element", GR4b) or stops at the outermost. A contained program with NO local
+  declaratives still emits `__IoCheck` + hooks when an ancestor has GLOBAL ones. The §12.4.5.8.4 GR1 NOTE-1
+  corollary is implemented with it: a contained program's I-O on an inherited GLOBAL file stores the I-O status
+  into the OWNER's (local-name) FILE STATUS item through the `__outer` chain
+  (`CSharpEmitter.Call.cs::_callInheritedStatusPlace`).
 - **EXIT family is pure pc moves** (§5.2): EXIT PARAGRAPH/SECTION set pc; EXIT PERFORM/CYCLE map to break/continue in
   the inline-PERFORM loop; bare EXIT/CONTINUE are no-ops. They never touch the termination exceptions.
 

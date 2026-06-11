@@ -28,7 +28,12 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <summary>Resolve <paramref name="dref"/> to a <see cref="Place"/>, or <see langword="null"/> if unsupported here.</summary>
     public Place? Resolve(Core.DataReferenceContext dref)
     {
-        // Special registers (LINAGE-/LINE-/PAGE-COUNTER) have no cobolWord base — not handled in this slice.
+        // LINAGE-COUNTER is the I-O control system's register (ISO §8.4.3.14) — runtime-sourced, never a storage
+        // Place; the binder routes it to BoundLinageCounterRef. The early return also covers the QUALIFIED form
+        // (`LINAGE-COUNTER OF file`), where dref.cobolWord() is the FILE-NAME qualifier and would otherwise
+        // mis-resolve here as a base data-name.
+        if (dref.LINAGE_COUNTER() is not null) return null;
+        // The other special registers (LINE-/PAGE-COUNTER) have no cobolWord base — not handled in this slice.
         if (dref.cobolWord() is not { } baseWord) return null;
         string name = baseWord.GetText();
 

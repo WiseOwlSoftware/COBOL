@@ -58,8 +58,10 @@ public sealed partial class StatementBinder
     }
 
     /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
-    /// GLOBAL phrase recorded (cross-program dispatch GR4 is the post-CALL wave). Format 2 (BEFORE REPORTING)
-    /// is the Report Writer module — diagnosed, never silent.</summary>
+    /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
+    /// walk). <c>ON file-name</c> resolves against <c>FilesByName</c>, which includes containers' GLOBAL FDs
+    /// (§13.18.30 — merged by <c>CallBindUnit</c>; IC234A's contained USE names the outer's GLOBAL file).
+    /// Format 2 (BEFORE REPORTING) is the Report Writer module — diagnosed, never silent.</summary>
     private (IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global)? DeclBindUse(
         Core.UseStatementContext use, string sectionName)
     {

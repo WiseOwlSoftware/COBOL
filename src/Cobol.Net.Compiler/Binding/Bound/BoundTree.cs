@@ -70,6 +70,12 @@ public sealed record BoundPower(BoundExpr Base, BoundExpr Exp) : BoundExpr;
 /// COBOLNET_DESIGN §3.5). Valid in SET senders, SEARCH, relation conditions, and subscripts (ISO §13.18.38).</summary>
 public sealed record BoundIndexRef(string IndexField) : BoundExpr;
 
+/// <summary>The LINAGE-COUNTER special register of <paramref name="File"/> (ISO §8.4.3.14): a READ-ONLY unsigned
+/// integer the I-O control system alone modifies (§13.18.34 GR7b) — the current line within the page body. It is
+/// runtime-sourced (the connector's counter, COBOLNET_DESIGN's register-attaches-to-its-subsystem rule), never a
+/// synthesized storage item; SR2 bars it from receiving positions (receiving resolution already fails loud).</summary>
+public sealed record BoundLinageCounterRef(FileModel File) : BoundExpr;
+
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundExprError(string Feature) : BoundExpr;
 
@@ -323,8 +329,12 @@ public sealed record BoundAdvancing(bool Before, bool Page, BoundOperand? Lines)
 
 /// <summary><c>WRITE record [FROM x] [ADVANCING …]</c> (ISO §14.9.46): <paramref name="Record"/> is the record area
 /// place (its image is written); a FROM operand first MOVEs into the record. <paramref name="Advancing"/> null = a
-/// plain (data) WRITE. <paramref name="Unsupported"/> set (loud) when the owning file's organization is unsupported.</summary>
-public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From, BoundAdvancing? Advancing, string? Unsupported) : BoundStatement;
+/// plain (data) WRITE. <paramref name="Unsupported"/> set (loud) when the owning file's organization is unsupported.
+/// <paramref name="AtEop"/>/<paramref name="NotAtEop"/> are the END-OF-PAGE / NOT END-OF-PAGE imperatives (ISO
+/// §14.9.51 GR27b/GR28 — run after the SUCCESSFUL write, branching on the end-of-page condition; SR19 requires
+/// the file to have a LINAGE clause).</summary>
+public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From, BoundAdvancing? Advancing,
+    string? Unsupported, IReadOnlyList<BoundStatement>? AtEop = null, IReadOnlyList<BoundStatement>? NotAtEop = null) : BoundStatement;
 
 /// <summary><c>READ file [NEXT] [INTO x] [AT END …][NOT AT END …]</c> (ISO §14.9.30): a sequential read that
 /// distributes the record image into the FD record (and, with INTO, MOVEs it to <paramref name="Into"/>). The AT END

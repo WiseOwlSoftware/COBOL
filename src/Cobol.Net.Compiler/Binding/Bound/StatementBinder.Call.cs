@@ -138,8 +138,9 @@ public sealed partial class StatementBinder
         }
 
         // ── Exception phrases — edition-gated spellings (deep-dive "Edition gating"; VERSION_CHANGE_REFERENCE
-        //    row 3): ON OVERFLOW is the 85 form, REMOVED at 2023; ON EXCEPTION / NOT ON EXCEPTION are 2002+;
-        //    at 2002/2014 both spellings are accepted and equivalent. ──
+        //    row 3): [NOT] ON EXCEPTION is ANSI X3.23-1985 surface (CALL Format 2; CCVS-85 IC222A tests both
+        //    phrases — "'ON OVERFLOW' CAN BE USED IN PLACE OF 'ON EXCEPTION'"); ON OVERFLOW is the 74-carried
+        //    synonym, accepted 85–2014 and REMOVED at 2023 (Annex E.2 item 1c). ──
         List<BoundStatement>? onExc = null, notOnExc = null;
         if (call.callOnExceptionPhrase() is { } onp)
         {
@@ -155,24 +156,17 @@ public sealed partial class StatementBinder
         return new BoundCallProgram(literalName, dynamicName, args, returning, onExc, notOnExc);
     }
 
-    /// <summary>Edition-gate one CALL exception-phrase spelling: ON OVERFLOW is valid 85–2014 and REMOVED at
-    /// 2023 (VERSION_CHANGE_REFERENCE row 3 / E.2 item 1c); [NOT] ON EXCEPTION is 2002+; COBOL-85 has no NOT
-    /// phrase at all (its §14.9.4 format is <c>[ON OVERFLOW imperative]</c> only).</summary>
+    /// <summary>Edition-gate one CALL exception-phrase spelling. <c>[NOT] ON EXCEPTION</c> is ANSI X3.23-1985
+    /// surface (CALL Format 2 — CCVS-85 IC222A exercises both phrases; no VERSION_CHANGE_REFERENCE row records a
+    /// later introduction), so it is valid at EVERY edition. <c>ON OVERFLOW</c> is the COBOL-74-carried synonym,
+    /// valid 85–2014 and REMOVED at 2023 (VERSION_CHANGE_REFERENCE row 3 / ISO 2023 Annex E.2 item 1c).</summary>
     private void CallGateExceptionSpelling(bool isOverflow, bool negated)
     {
-        int level = data.Edition.DialectLevel;
-        if (isOverflow && level >= 2023)
+        _ = negated; // NOT ON EXCEPTION/OVERFLOW: same edition surface as the positive phrase (85+).
+        if (isOverflow && data.Edition.DialectLevel >= 2023)
             data.Edition.Error("COBOLNET0882",
                 "CALL … ON OVERFLOW was removed by ISO/IEC 1989:2023 (Annex E.2 item 1c) — use ON EXCEPTION, or "
                 + "target --std 85/2002/2014");
-        if (!isOverflow && level < 2002)
-            data.Edition.Error("COBOLNET0881",
-                "CALL … ON EXCEPTION was introduced by ISO/IEC 1989:2002 (§14.9.4) — COBOL-85 has only "
-                + $"ON OVERFLOW; requires --std 2002 or later (targeting COBOL-{level})");
-        if (negated && level < 2002)
-            data.Edition.Error("COBOLNET0881",
-                "the NOT ON EXCEPTION/OVERFLOW phrase was introduced by ISO/IEC 1989:2002 (§14.9.4) — the "
-                + $"COBOL-85 CALL has no NOT phrase; requires --std 2002 or later (targeting COBOL-{level})");
     }
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §14.9.5 — targets resolved like CALL's, §8.4.6.3).</summary>
