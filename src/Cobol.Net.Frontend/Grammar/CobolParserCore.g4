@@ -144,8 +144,11 @@ functionIdParagraph
 // PROGRAM-ID paragraph
 // ------------------------------------------
 
+// ISO §11.4.2: PROGRAM-ID. program-name [AS literal] [IS {COMMON|INITIAL|RECURSIVE}… PROGRAM].
+// IS and the trailing PROGRAM are optional noise words around the attribute list (IC401M writes
+// `IC401M IS INITIAL.`); the attribute list itself stays required inside the group.
 programIdParagraph
-    : PROGRAM_ID DOT programName programIdAttributes? DOT
+    : PROGRAM_ID DOT programName (IS? programIdAttributes PROGRAM?)? DOT
     ;
 
 programName

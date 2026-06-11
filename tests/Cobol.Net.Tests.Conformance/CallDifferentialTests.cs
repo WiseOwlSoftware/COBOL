@@ -33,6 +33,20 @@ public sealed class CallDifferentialTests
         Assert.Equal(expected, cout);
     }
 
+    /// <summary>ISO §11.4.2 — the PROGRAM-ID attribute list takes the optional IS … PROGRAM noise words
+    /// (<c>PROGRAM-ID. name IS INITIAL PROGRAM.</c>); IC401M writes the IS form. The INITIAL semantics
+    /// themselves (fresh state per activation, §14.6.2.3.3) are exercised by the IC suite.</summary>
+    [Fact]
+    public void ProgramId_IsInitialProgram_NoiseWordsParse()
+        => AssertSpecPinned("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PIDNW1 IS INITIAL PROGRAM.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "OK".
+                STOP RUN.
+            """, "OK");
+
     /// <summary>§14.2.3 GR8: BY REFERENCE — "the activated runtime element operates as if the formal parameter
     /// occupies the same storage area as the argument"; the callee's mutation is visible to the caller.</summary>
     [Fact]
