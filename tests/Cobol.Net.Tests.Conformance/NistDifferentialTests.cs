@@ -420,6 +420,26 @@ public sealed class NistDifferentialTests
                              //   §9.1.13.7 item 7): the area after an unsuccessful READ is spec-UNDEFINED
                              //   (§14.9.30 GR18); COBOL.NET's refinement = UNCHANGED (the spec's own pattern
                              //   for every other unsuccessful I-O verb); the legacy LOW-VALUE-filled it
+    // Greened by NIST-mode default-copy-library discovery (ISO §7.2.3.4 GR3 — the implementor-defined default
+    // COBOL library is the `copylib/` sibling of the source's directory, the legacy CLI's convention; DEVLOG
+    // 571). The shared CopyProcessor already implemented §7.2.3/§7.2.4 in full (COPY in every division,
+    // REPLACING word/identifier/literal/pseudo-text + LEADING/TRAILING, OF/IN library qualification, mid-
+    // sentence fragments, REPLACE) — the whole SM suite needed exactly the missing search path.
+    [InlineData("SM101A")]   // COPY supplying WS/FD/proc text incl. the entry's closing period (§7.2.3.4 GR6)
+    [InlineData("SM102A")]   // persistence of the COPY-built file (chain behind SM101A)
+    [InlineData("SM103A")]   // COPY in every ENVIRONMENT DIVISION paragraph
+    [InlineData("SM104A")]   // file persistence (chain behind SM103A)
+    [InlineData("SM105A")]   // COPY of an SD entry + SORT procedure text
+    [InlineData("SM106A")]   // ONE copybook generating text for all three divisions (K6SCA)
+    [InlineData("SM107A")]   // a 1600-card PROCEDURE library text
+    [InlineData("SM201A")]   // COPY … REPLACING word/identifier/literal operands (§7.2.3.4 GR8–9)
+    [InlineData("SM202A")]   // pseudo-text REPLACING (chain behind SM201A)
+    [InlineData("SM203A")]   // ENV-division COPY REPLACING
+    [InlineData("SM204A")]   // file persistence + ENV COPY (chain behind SM203A)
+    [InlineData("SM205A")]   // COPY REPLACING on SD/SORT text
+    [InlineData("SM206A")]   // statement fragments COPYed mid-IF-sentence (dangling-ELSE class)
+    [InlineData("SM207A")]   // COPY text-name OF/IN library-name — same name, different libraries (GR2–3)
+    [InlineData("SM208A")]   // qualified/REPLACING fragment COPY into PASS paths
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();
