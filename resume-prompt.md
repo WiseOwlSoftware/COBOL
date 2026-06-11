@@ -42,7 +42,12 @@
 > OMITTED args + header mode phrases (grammar), cross-assembly dynamic CALL (pre-G8). Then steps ④–⑦. Apply
 > agent edits with the index-based python pattern; the Bash transport mangles backslash escapes — never inline
 > them in heredoc scripts. ⚠ The sweep false-greens binary-content diffs and mislabels failed backend compiles
-> as "hostpolicy RUNERR" — trust the locked suite.**
+> as "hostpolicy RUNERR" — trust the locked suite.
+> **SESSION ARTIFACTS (off-repo, E:\tmp):** scout briefs in `/e/tmp/verb-briefs/`; sweep infra + the CURRENT
+> baseline census (`census-decl.txt`, 361 programs, run with `COBOL_SWITCH_1=ON` exported) in `/e/tmp/nc-sweep/`
+> (driver: `xargs -P 14 -I {} bash sweep-one.sh {} < all-census-list2.txt`); a frozen CLI at commit e591da2 in
+> `/e/tmp/cobolnet-frozen/` (see its VERSION.txt) for read-only scout agents. Memory
+> `project_greenfield_state.md` mirrors this map.**
 >
 > > **STATE (DEVLOG 552, 2026-06-10 17:30): 88/95 NC byte-match + 14 ST locked; 605 conformance + 15 unit; legacy
 > guard ALL GREEN (re-proved on the RETURN grammar change). Landed since 545: ref-mod completion (548 — numeric

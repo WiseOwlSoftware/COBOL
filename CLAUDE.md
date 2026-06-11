@@ -55,12 +55,12 @@ native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO
 reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
 `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
 [[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a reference + differential oracle until
-cut-over (G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 530): G1 ✅, G0 ✅, G2 ✅,
-G3-core ✅, G4 ✅, G5 sequential file I/O ✅, G6-core ✅, REDEFINES Tier A+B ✅, SIGN inheritance ✅, SET/index/USAGE
-INDEX ✅, sections + qualified procedure-names ✅, PERFORM VARYING ✅, CobolTable.At benign subscripts ✅, CobolEdit
-numeric-edited ✅, DIVIDE REMAINDER ✅. The differential harness drives the real NIST corpus — 36 NC programs
-byte-match the golden; 360 conformance + 15 unit green. Docs corpus goal-aligned to the owner's four restated goals
-(DEVLOG 529).** ⛔ **MISSION now =
+cut-over (G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 559, 2026-06-10): G0–G6
+✅ + ALL FOUR wave-2 families (ODO, SORT/MERGE, KeyedIO, CALL/inter-program with multi-unit instance-class
+emission), DECIMAL-POINT IS COMMA / CURRENCY SIGN, and the USE DECLARATIVES subsystem. The differential harness
+locks 226 NIST programs byte-match (90/95 NC + 14 ST + 44 RL/IX + 18 IC + 61 SQ); 776 conformance + 15 unit
+green. The CURRENT state + next steps live in `resume-prompt.md`'s top STATE banner — always read it, never this
+snapshot.** ⛔ **MISSION now =
 full ISO-2023 AND all prior editions (85/2002/2014), validated by the VERSION TEST MATRIX (test as N per-edition
 compilers): `docs/VERSION_CHANGE_REFERENCE.md` (130-row edition-change checklist) + `docs/VERSION_TEST_MATRIX_DESIGN.md`
 (matrix design, Phase 0 done). Default `--standard` is now COBOL-2023. Memories `feedback_version_test_matrix`,
