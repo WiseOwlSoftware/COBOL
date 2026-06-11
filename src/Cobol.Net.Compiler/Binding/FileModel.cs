@@ -86,6 +86,13 @@ public sealed class FileModel
     /// <summary>The record area's character-image width (the max over the FD's records).</summary>
     public int RecordWidth => Records.Count == 0 ? 0 : Records.Max(r => r.ImageWidth);
 
+    /// <summary>The record description whose view spans the WHOLE record area — the largest one (ISO §13.4.2: the
+    /// record area's size is that of the largest record description). Reading a record makes it available in the
+    /// whole area, so every area-wide store/read (sequential and keyed READ, sort RETURN) must go through THIS
+    /// record's view — a shorter <c>Records[0]</c> window would truncate the splice (ST111A's 50/75/100 FD,
+    /// RL106A's 56/102 pair). Null when the FD has no record description.</summary>
+    public DataItem? AreaRecord => Records.Count == 0 ? null : Records.MaxBy(r => r.ImageWidth);
+
     /// <summary>True for either sequential shape (the only organizations this slice can OPEN/READ/WRITE).</summary>
     public bool IsSequential => Organization is FileOrganization.Sequential or FileOrganization.LineSequential;
 }

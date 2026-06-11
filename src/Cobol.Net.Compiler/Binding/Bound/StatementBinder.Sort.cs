@@ -306,7 +306,11 @@ public sealed partial class StatementBinder
         if (!data.FilesByName.TryGetValue(name, out var file) || !file.IsSortMerge)
             return new BoundUnsupported($"RETURN file '{name}' is not described by a sort-merge description entry "
                 + "(ISO §14.9.34.3 SR1)");
-        if (SortRecordOf(file) is not { } recordItem || refs.ResolveItem(recordItem) is not { } area)
+        // GR3 makes the record available in the WHOLE record area — resolve it through the LARGEST record's view
+        // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the store (ST111A's
+        // 50/75/100 SD). SortRecordOf stays the usability gate (the Tier-C byte-island fence).
+        if (SortRecordOf(file) is null || file.AreaRecord is not { } areaRecord
+            || refs.ResolveItem(areaRecord) is not { } area)
             return new BoundUnsupported($"RETURN '{name}' without a usable SD record area");
         Place? into = null;
         if (r.INTO() is not null)
@@ -362,6 +366,12 @@ public sealed partial class StatementBinder
             bool numeric = pic is { Category: PicCategory.Numeric, IsFloat: false };
             int len = item.IsGroup ? SortPhysicalWidth(item) : item.ImageWidth;
             if (len <= 0) return $"SORT/MERGE key '{dref.GetText()}' has no character image";
+            // SR6g: with variable-length records every key must lie within the first min-record-size bytes.
+            if (file.Varying is { Min: { } min } && off + len > min)
+                data.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{dref.GetText()}' occupies character positions "
+                    + $"{off + 1}..{off + len} of the record, but '{file.CobolName}' describes variable-length records "
+                    + $"with minimum size {min} — all key data items shall be contained within the first {min} bytes "
+                    + "(ISO §14.9.40.3 SR6g)");
             keys.Add(new BoundSortMergeKey(descending, off, len, numeric, pic?.Signed ?? false,
                 pic?.SignKind ?? "TrailingOverpunch"));
         }
@@ -473,14 +483,18 @@ public sealed partial class StatementBinder
     /// record). An item inside a REDEFINES class sits at the class anchor's offset plus its
     /// <see cref="DataItem.ClassOffset"/> (a redefinition begins at the redefined item's first position,
     /// §13.18.44 GR1; covers keys under a redefining group — ST101A's RDF-KEYS — and keys in a secondary 01 of a
-    /// multi-01 SD, whose synthesized class anchors at the first record). Null when the target sits under an
-    /// OCCURS (not a legal key, §14.9.40.3 SR6b/SR6f) or cannot be located.</summary>
+    /// multi-01 SD, whose synthesized class anchors at the first record). When <paramref name="root"/> is ITSELF a
+    /// member of the target's class — a record of a multi-record SD/FD, where the records share one area
+    /// leftmost-aligned (ISO §9.1.2) — a key described in a sibling record description occupies the same byte
+    /// positions in every record (SR6e), so its window is its class offset relative to the root's. Null when the
+    /// target sits under an OCCURS (not a legal key, §14.9.40.3 SR6b/SR6f) or cannot be located.</summary>
     private static int? SortOffsetInRecord(DataItem root, DataItem target)
     {
         if (target.Class is { } cls)
         {
-            int? anchor = ReferenceEquals(cls.Canonical, root) ? 0 : SortPlainOffset(root, cls.Canonical);
-            return anchor is { } a ? a + target.ClassOffset : null;
+            if (ReferenceEquals(cls.Canonical, root)) return target.ClassOffset;
+            if (ReferenceEquals(root.Class, cls)) return target.ClassOffset - root.ClassOffset;
+            return SortPlainOffset(root, cls.Canonical) is { } a ? a + target.ClassOffset : null;
         }
         return SortPlainOffset(root, target);
     }

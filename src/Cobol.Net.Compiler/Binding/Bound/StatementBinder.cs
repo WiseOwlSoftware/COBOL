@@ -245,10 +245,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             record = place;
             file = FileOfRecord(place);
         }
-        else if (w.fileName() is { } fn && data.FilesByName.TryGetValue(fn.GetText(), out var f) && f.Records.Count > 0)
+        else if (w.fileName() is { } fn && data.FilesByName.TryGetValue(fn.GetText(), out var f) && f.AreaRecord is { } far)
         {
+            // The file-name fallback has no named record — write the WHOLE record area through the largest
+            // record's view (FileModel.AreaRecord, ISO §13.4.2).
             file = f;
-            record = refs.ResolveItem(f.Records[0]);
+            record = refs.ResolveItem(far);
         }
         if (file is null || record is null)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");

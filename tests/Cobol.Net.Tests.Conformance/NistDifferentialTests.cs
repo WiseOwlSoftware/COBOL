@@ -362,6 +362,13 @@ public sealed class NistDifferentialTests
     [InlineData("IX203A")]   // verifies IX202A's updates (chain IX201A→IX202A→IX203A)
     [InlineData("OBSQ4A")]   // obsolete-sequential consumer of OBSQ3A's TF004/8/9/10 outputs
     [InlineData("OBSQ5A")]   // consumes OBSQ3A+OBSQ4A outputs (chain OBSQ3A→OBSQ4A→OBSQ5A)
+    // Greened by the secondary-record SORT key window (ISO §14.9.40.3 SR6e — DEVLOG 561): keys described in a
+    // SECOND record description of a multi-record SD occupy the same byte positions in every record; the binder's
+    // key-offset walk now recognizes the record root as a sibling member of the key's synthesized REDEFINES class
+    // instead of mis-diagnosing SR6b/SR6f. Their producers ST110A/ST123A sort 50-to-100 variable records on keys
+    // in the 75-char MEDIUM record (legal per SR6g — keys end inside the 50-byte minimum).
+    [InlineData("ST111A")]   // verifies the variable-length sort (chain ST109A→ST110A→ST111A)
+    [InlineData("ST124A")]   // verifies the var-len build+sort (chain ST122A→ST123A→ST124A)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

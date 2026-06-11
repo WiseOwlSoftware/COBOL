@@ -69,12 +69,10 @@ public sealed partial class CSharpEmitter
         string name = CsLiteral(file.CobolName);
         int id = _keyedSeq++;
         string st = $"__kst{id}", img = $"__kim{id}";
-        // The RECORD AREA is the LARGEST record description (§13.4.2 — multi-01 FDs share one area; a READ
-        // makes the record available in the WHOLE area, so a shorter Records[0] must not truncate the splice —
-        // RL106A's 56/102-char pair left a stale tail).
-        Place? area = file.Records.Count > 0
-            ? _refs.ResolveItem(file.Records.OrderByDescending(r => r.ImageWidth).First())
-            : null;
+        // The RECORD AREA is the LARGEST record description (FileModel.AreaRecord, ISO §13.4.2 — multi-01 FDs
+        // share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
+        // truncate the splice — RL106A's 56/102-char pair left a stale tail).
+        Place? area = file.AreaRecord is { } ar ? _refs.ResolveItem(ar) : null;
 
         if (rd.Kind == KeyedReadKind.Random && file.Organization == FileOrganization.Relative)
         {
@@ -216,12 +214,10 @@ public sealed partial class CSharpEmitter
         }
         // §14.9.10 GR3 — indexed random/dynamic deletes by the PRIME RECORD KEY's current content; DELETE carries
         // no record operand, so the key value is sliced from the record area image (GR8 — the area is unchanged).
-        // The RECORD AREA is the LARGEST record description (§13.4.2 — multi-01 FDs share one area; a READ
-        // makes the record available in the WHOLE area, so a shorter Records[0] must not truncate the splice —
-        // RL106A's 56/102-char pair left a stale tail).
-        Place? area = file.Records.Count > 0
-            ? _refs.ResolveItem(file.Records.OrderByDescending(r => r.ImageWidth).First())
-            : null;
+        // The RECORD AREA is the LARGEST record description (FileModel.AreaRecord, ISO §13.4.2 — multi-01 FDs
+        // share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
+        // truncate the splice — RL106A's 56/102-char pair left a stale tail).
+        Place? area = file.AreaRecord is { } ar ? _refs.ResolveItem(ar) : null;
         string image = area is not null ? OperandText.AsString(new BoundFieldOperand(area)) : "\"\"";
         int id = _keyedSeq++;
         string st = $"__kst{id}";

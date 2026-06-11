@@ -1072,7 +1072,9 @@ public sealed partial class CSharpEmitter
         if (rd.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         string name = CsLiteral(rd.File.CobolName);
         string tmp = $"__rd{_readCounter++}";
-        Place? area = rd.File.Records.Count > 0 ? _refs.ResolveItem(rd.File.Records[0]) : null;
+        // The read record is made available in the WHOLE record area — store through the LARGEST record's view
+        // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the splice (ST111A).
+        Place? area = rd.File.AreaRecord is { } ar ? _refs.ResolveItem(ar) : null;
         using (w.Block($"if (CobolFile.Read({name}, out var {tmp}))"))
         {
             if (area is not null) EmitImageInto(area, tmp);
