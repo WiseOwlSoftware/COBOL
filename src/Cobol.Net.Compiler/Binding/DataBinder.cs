@@ -213,7 +213,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     file.AssignTarget = tgt.STRINGLIT() is { } s ? DecodeString(s.GetText()) : tgt.GetText();
                 else if (clauses.organizationClause() is { } org) file.Organization = MapOrganization(org);
                 else if (clauses.accessModeClause() is { } acc) file.AccessMode = MapAccessMode(acc);
-                else if (clauses.fileStatusClause()?.dataReference() is { } fs) file.FileStatusName = fs.GetText();
+                // The BASE word only: an OF/IN-qualified status name (`SQ-FS4-STATUS OF STATUS-GROUP`, SQ133A)
+                // would otherwise glue its qualifier into the lookup key (the RENAMES capture pattern).
+                else if (clauses.fileStatusClause()?.dataReference() is { } fs)
+                    file.FileStatusName = fs.cobolWord()?.GetText() ?? fs.GetText();
                 else if (clauses.recordKeyClause()?.dataReference() is { } rk) file.RecordKeyName = rk.GetText();   // ISO §12.4.5.12
                 else if (clauses.alternateKeyClause() is { } ak)                                                     // ISO §12.4.5.6
                     file.AlternateKeyNames.Add((ak.dataReference().GetText(), ak.DUPLICATES() is not null));

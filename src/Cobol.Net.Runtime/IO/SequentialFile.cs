@@ -44,6 +44,12 @@ public sealed class SequentialFile
     /// <summary>The latest I-O status (ISO §9.1.13). "00" until the first operation.</summary>
     public string Status { get; private set; } = FileStatusCode.Success;
 
+    /// <summary>The open-mode view for USE-declarative mode scoping (ISO §14.9.49.4 GR6b–e): <c>(int)</c> of the
+    /// mode while open OR the ATTEMPTED mode of a failed OPEN ("in the process of being opened"); −1 after a
+    /// successful CLOSE / before any OPEN (§9.1.4 — the file is then in no mode).</summary>
+    public int OpenModeView => _modeKnown ? (int)_mode : -1;
+    private bool _modeKnown;
+
     /// <summary>Set the I-O status directly (for facade-level conditions: a locked-file OPEN, a REEL/UNIT CLOSE).</summary>
     public void SetStatus(string status) => Status = status;
 
@@ -61,6 +67,7 @@ public sealed class SequentialFile
     {
         if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen;
         _mode = mode;
+        _modeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         _afterAdvancing = false;
         _optionalAbsentInput = false;
         _lastReadUnsuccessful = false;
@@ -116,6 +123,7 @@ public sealed class SequentialFile
         _reader = null;
         _writer = null;
         _optionalAbsentInput = false;
+        _modeKnown = false;   // §9.1.4 — after a successful CLOSE the file is in no open mode
         return Status = FileStatusCode.Success;
     }
 

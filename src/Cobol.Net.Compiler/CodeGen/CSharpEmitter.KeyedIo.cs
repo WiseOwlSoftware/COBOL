@@ -113,6 +113,7 @@ public sealed partial class CSharpEmitter
                 StoreArith(rkPlace, new NumX($"CobolFile.RelativeSlot({name})", 0), CobolRounding.Truncation);
         }
         EmitStoreFileStatus(file);
+        EmitUseHook(file, atEndHandled: rd.AtEnd is not null, invalidKeyHandled: rd.InvalidKey?.Invalid is not null);
 
         // The §9.1.14 / §14.9.30 GR24 transfer-of-control branches, uniform across the read kinds (a phrase
         // whose status family cannot arise for this kind — e.g. INVALID KEY on a sequential read — is simply
@@ -166,6 +167,7 @@ public sealed partial class CSharpEmitter
             using (w.Block($"if ({st}[0] == '0')"))
                 StoreArith(rkPlace, new NumX($"CobolFile.RelativeSlot({name})", 0), CobolRounding.Truncation);
         EmitStoreFileStatus(file);
+        EmitUseHook(file, invalidKeyHandled: wr.InvalidKey?.Invalid is not null);
         KeyedEmitInvalid(st, wr.InvalidKey);
     }
 
@@ -191,6 +193,7 @@ public sealed partial class CSharpEmitter
         string st = $"__kst{id}";
         w.Line($"var {st} = CobolFile.RewriteKeyed({name}, {OperandText.AsString(new BoundFieldOperand(rw.Record))});");
         EmitStoreFileStatus(file);
+        EmitUseHook(file, invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
         KeyedEmitInvalid(st, rw.InvalidKey);
     }
 
@@ -224,6 +227,7 @@ public sealed partial class CSharpEmitter
         string st = $"__kst{id}";
         w.Line($"var {st} = CobolFile.DeleteRecord({name}, {image});");
         EmitStoreFileStatus(file);
+        EmitUseHook(file, invalidKeyHandled: del.InvalidKey?.Invalid is not null);
         KeyedEmitInvalid(st, del.InvalidKey);
     }
 
@@ -240,6 +244,7 @@ public sealed partial class CSharpEmitter
         string st = $"__kst{id}";
         w.Line($"var {st} = CobolFile.DeleteFile({CsLiteral(df.File.CobolName)});");
         EmitStoreFileStatus(df.File);
+        if (df.OnException is null) EmitUseHook(df.File);   // the ON EXCEPTION phrase suppresses the declarative entirely (§9.1.13.1)
         // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
         // completion (GR14) and takes the NOT ON EXCEPTION path.
         if (df.OnException is { } on)
@@ -282,6 +287,7 @@ public sealed partial class CSharpEmitter
                 + $"{OperandText.AsString(new BoundFieldOperand(sta.Operand!))}, {len});");
         }
         EmitStoreFileStatus(file);
+        EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
         KeyedEmitInvalid(st, sta.InvalidKey);   // §14.9.41 GR6 — transfer per §9.1.14
     }
 

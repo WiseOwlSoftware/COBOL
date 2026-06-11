@@ -127,6 +127,11 @@ public sealed class RelativeFile
     /// <summary>Set the I-O status directly (facade-level conditions, e.g. a locked-file OPEN).</summary>
     public void SetStatus(string status) => Status = status;
 
+    /// <summary>The open-mode view for USE-declarative mode scoping (ISO 14.9.49.4 GR6b-e): (int) of the mode
+    /// while open OR the ATTEMPTED mode of a failed OPEN; -1 after a successful CLOSE / before any OPEN.</summary>
+    public int OpenModeView => _modeKnown ? (int)_mode : -1;
+    private bool _modeKnown;
+
     /// <summary>Stage the RELATIVE KEY item's value for the next keyed operation (§14.9.30 GR29, §14.9.35 GR21,
     /// §14.9.51 GR29b, §14.9.10 GR4). The compiler decodes the TYPED key field — never raw bytes.</summary>
     public void SetPendingKey(long rrn) => _pendingKey = rrn;
@@ -148,6 +153,7 @@ public sealed class RelativeFile
     {
         if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen;
         _mode = mode;
+        _modeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         _optionalAbsent = false;
         _lastReadUnsuccessful = false;
         _prevOpWasSuccessfulRead = false;
@@ -218,6 +224,7 @@ public sealed class RelativeFile
         catch (IOException) { IsOpen = false; return Status = FileStatusCode.PermanentError; }
         IsOpen = false;
         _optionalAbsent = false;
+        _modeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return Status = FileStatusCode.Success;
     }
 

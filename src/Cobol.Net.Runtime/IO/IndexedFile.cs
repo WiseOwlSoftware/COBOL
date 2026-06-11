@@ -58,6 +58,11 @@ public sealed class IndexedFile
     /// <summary>Set the I-O status directly (facade-level conditions).</summary>
     public void SetStatus(string status) => Status = status;
 
+    /// <summary>The open-mode view for USE-declarative mode scoping (ISO 14.9.49.4 GR6b-e): (int) of the mode
+    /// while open OR the ATTEMPTED mode of a failed OPEN; -1 after a successful CLOSE / before any OPEN.</summary>
+    public int OpenModeView => _modeKnown ? (int)_mode : -1;
+    private bool _modeKnown;
+
     public IndexedFile(string hostPath, int recordWidth, KeyedAccess access, int primeOffset, int primeLength)
     {
         HostPath = hostPath;
@@ -80,6 +85,7 @@ public sealed class IndexedFile
     {
         if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen;        // '41' §9.1.13.7 item 1
         _mode = mode;
+        _modeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         _optionalAbsent = false;
         _lastReadUnsuccessful = false;
         _prevOpWasSuccessfulRead = false;
@@ -154,6 +160,7 @@ public sealed class IndexedFile
         catch (IOException) { IsOpen = false; return Status = FileStatusCode.PermanentError; }
         IsOpen = false;
         _optionalAbsent = false;
+        _modeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return Status = FileStatusCode.Success;
     }
 
@@ -612,6 +619,11 @@ public static partial class CobolFile
         if (RelativeFiles.TryGetValue(name, out var r)) r.Close();
         else if (IndexedFiles.TryGetValue(name, out var ix)) ix.Close();
     }
+
+    private static int KeyedOpenModeOf(string name) =>
+        RelativeFiles.TryGetValue(name, out var r) ? r.OpenModeView
+        : IndexedFiles.TryGetValue(name, out var ix) ? ix.OpenModeView
+        : -1;
 
     private static string KeyedStatus(string name) =>
         RelativeFiles.TryGetValue(name, out var r) ? r.Status

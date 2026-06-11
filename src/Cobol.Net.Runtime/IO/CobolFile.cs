@@ -80,6 +80,11 @@ public static partial class CobolFile
     /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
     public static string Status(string name) => Files.TryGetValue(name, out var f) ? f.Status : KeyedStatus(name);
 
+    /// <summary>The open-mode view for USE-declarative mode scoping (ISO 14.9.49.4 GR6b-e): (int)FileOpenMode
+    /// while open or in-the-process-of-being-opened; -1 otherwise (incl. an unknown name).</summary>
+    public static int OpenModeOf(string name) =>
+        Files.TryGetValue(name, out var f) ? f.OpenModeView : KeyedOpenModeOf(name);
+
     /// <summary>The AT END condition for a file (status 10), driving the AT END / NOT AT END branch.</summary>
     public static bool AtEnd(string name) => Files.TryGetValue(name, out var f) && f.AtEnd;
 

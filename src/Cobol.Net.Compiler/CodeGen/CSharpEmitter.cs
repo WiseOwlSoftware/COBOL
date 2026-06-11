@@ -78,9 +78,12 @@ public sealed partial class CSharpEmitter
     /// <c>Dispatch(start, end)</c>). STOP RUN unwinds all frames via <c>StopRun</c>, caught at <c>Main</c>. This
     /// realizes the legacy's proven return-address / exit-bounded dispatch (DEVLOG 259–260) in idiomatic C#.
     /// </summary>
+    private bool _useDecls;   // the program being emitted declares USE procedures (drives the __IoCheck hooks)
+
     private void EmitDispatcher(BoundProgram bound, CodeWriter w)
     {
         int n = bound.Paragraphs.Count;
+        _useDecls = bound.Declaratives is { Count: > 0 };
         w.Line();
         // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
@@ -100,9 +103,12 @@ public sealed partial class CSharpEmitter
                     EmitFileRegistration(w);
                 }
             }
-            w.Line("try { __Dispatch(0, -1); } catch (ProgramReturn) { }   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
+            // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
+            // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM/GO TO (SR4).
+            w.Line($"try {{ __Dispatch({bound.EntryPc}, -1); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
         }
         w.Line();
+        if (_useDecls) EmitUseMachinery(bound, w);
         using (w.Block("private int __Dispatch(int __startPc, int __exitPc)"))
         {
             w.Line("int __pc = __startPc;");
@@ -129,6 +135,56 @@ public sealed partial class CSharpEmitter
             }
             w.Line("return __pc;");
         }
+    }
+
+    /// <summary>Emit the USE-declaratives machinery (ISO §14.9.49; emitted ONLY when the program declares USE
+    /// procedures — a declarative-free program's generated source is byte-identical): the per-section
+    /// re-entrancy guards (GR2 — instance state, reset by a fresh activation instance §14.6.2.3.2), the
+    /// <c>__RunUse</c> bounded-dispatch invoker, and the <c>__IoCheck</c> selector (GR3/GR5/GR6 + §9.1.13.1:
+    /// after an unsuccessful I-O status not covered by the statement's own AT END / INVALID KEY phrase, run at
+    /// most ONE declarative — file-scoped first, then the open-mode scope incl. a file in the process of being
+    /// opened).</summary>
+    private void EmitUseMachinery(BoundProgram bound, CodeWriter w)
+    {
+        var decls = bound.Declaratives!;
+        w.Line($"private readonly bool[] __useActive = new bool[{decls.Count}];   // §14.9.49.4 GR2 re-entrancy guards");
+        using (w.Block("private void __RunUse(int __id, int __startPc, int __endPc)"))
+        {
+            w.Line("if (__useActive[__id]) return;   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
+            w.Line("__useActive[__id] = true;");
+            w.Line("try { __Dispatch(__startPc, __endPc); } finally { __useActive[__id] = false; }");
+        }
+        w.Line();
+        using (w.Block("private void __IoCheck(string __f, bool __atEnd, bool __invKey)"))
+        {
+            w.Line("string __st = CobolFile.Status(__f);");
+            w.Line("if (__st.Length == 0 || __st[0] == '0') return;   // successful — no declarative (ISO §14.9.49.4 GR6)");
+            w.Line("if (__atEnd && __st[0] == '1') return;    // the statement's AT END phrase covers the at-end family (§9.1.13.1)");
+            w.Line("if (__invKey && __st[0] == '2') return;   // the statement's INVALID KEY phrase covers its family (§9.1.13.1)");
+            if (decls.Any(d => d.Files.Count > 0))
+                using (w.Block("switch (__f)"))   // file-name scope first (GR3a/GR5)
+                {
+                    for (int i = 0; i < decls.Count; i++)
+                        foreach (var f in decls[i].Files)
+                            w.Line($"case {CsLiteral(f.CobolName)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;");
+                }
+            if (decls.Any(d => d.ModeIndex is not null))
+                using (w.Block("switch (CobolFile.OpenModeOf(__f))"))   // open-mode scope (GR3b/GR6b–e)
+                {
+                    for (int i = 0; i < decls.Count; i++)
+                        if (decls[i].ModeIndex is { } m)
+                            w.Line($"case {m}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;");
+                }
+        }
+        w.Line();
+    }
+
+    /// <summary>The declarative hook after a verb's FILE STATUS store (GR6 — after the standard status routine,
+    /// BEFORE the statement's phrase branches). A no-op for a declarative-free program.</summary>
+    private void EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false)
+    {
+        if (!_useDecls) return;
+        _ctx.Writer.Line($"__IoCheck({CsLiteral(file.CobolName)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
     }
 
     private string? _sentenceEndLabel;   // the goto target NEXT SENTENCE jumps to (null in the last sentence)
@@ -966,6 +1022,7 @@ public sealed partial class CSharpEmitter
             };
             w.Line($"CobolFile.{method}({CsLiteral(file.CobolName)});");
             EmitStoreFileStatus(file);
+            EmitUseHook(file);   // a failed OPEN reaches a mode-scoped USE via the being-opened mode (GR6b)
         }
     }
 
@@ -982,6 +1039,7 @@ public sealed partial class CSharpEmitter
             };
             w.Line($"CobolFile.{method}({CsLiteral(file.CobolName)});");
             EmitStoreFileStatus(file);
+            EmitUseHook(file);
         }
     }
 
@@ -1002,6 +1060,7 @@ public sealed partial class CSharpEmitter
         else
             w.Line($"CobolFile.Write({name}, {image});");
         EmitStoreFileStatus(wr.File);
+        EmitUseHook(wr.File);
     }
 
     /// <summary>READ file [INTO x] [AT END …][NOT AT END …] (ISO §14.9.30): on success the record image is
@@ -1026,7 +1085,12 @@ public sealed partial class CSharpEmitter
         using (w.Block("else"))
         {
             EmitStoreFileStatus(rd.File);
-            if (rd.AtEnd is { } at) EmitStatementList(at);
+            EmitUseHook(rd.File, atEndHandled: rd.AtEnd is not null);
+            // The AT END imperative runs ONLY for the at-end status family (ISO 14.9.30 GR24c/d + 9.1.13.1 -
+            // a 3x/4x failure is NOT an at-end condition; it reaches a USE declarative instead).
+            if (rd.AtEnd is { } at)
+                using (w.Block($"if (CobolFile.Status({name})[0] == '1')"))
+                    EmitStatementList(at);
         }
     }
 
@@ -1037,6 +1101,7 @@ public sealed partial class CSharpEmitter
         if (rw.From is { } from) EmitMove(new BoundMove(from, [rw.Record]));
         w.Line($"CobolFile.Rewrite({CsLiteral(rw.File.CobolName)}, {OperandText.AsString(new BoundFieldOperand(rw.Record))});");
         EmitStoreFileStatus(rw.File);
+        EmitUseHook(rw.File);
     }
 
     /// <summary>Store a read record image into the FD record area: a character-image group distributes via FromImage;
@@ -1058,9 +1123,30 @@ public sealed partial class CSharpEmitter
     /// when the SELECT declared one.</summary>
     private void EmitStoreFileStatus(FileModel file)
     {
-        if (file.FileStatusItem is not { } item || _refs.ResolveItem(item) is not { } place) return;
-        int width = item.Pic?.Length ?? 2;
-        _ctx.Writer.Line(place.Write($"CobolString.Store(CobolFile.Status({CsLiteral(file.CobolName)}), {width})"));
+        // ISO §12.4.5.8 / §9.1.13.1 — the two-character status is stored into the FILE STATUS item as part of
+        // the I/O statement's execution, BEFORE any exception processing.
+        if (file.FileStatusName is null) return;   // no FILE STATUS clause — nothing to store
+        if (file.FileStatusItem is not { } item || _refs.ResolveItem(item) is not { } place)
+        {
+            // §1.4 loud-guard doctrine: a DECLARED FILE STATUS name that did not resolve is never silent.
+            _ctx.Writer.Line(LoudStmt($"FILE STATUS item '{file.FileStatusName}' is not resolvable to storage (ISO §12.4.5.8)"));
+            return;
+        }
+        string status = $"CobolString.Store(CobolFile.Status({CsLiteral(file.CobolName)}), {(item.Pic?.Length ?? item.ImageWidth)})";
+        if (item.IsGroup && place is not RedefViewPlace)
+        {
+            if (!item.IsCharacterImage)
+            {
+                _ctx.Writer.Line(LoudStmt($"FILE STATUS into mixed-usage group '{item.CobolName}' (Tier-C byte path, deferred)"));
+                return;
+            }
+            // A GROUP status item fills without conversion through the image facility (§14.9.25.4 GR4 — the
+            // CCVS shape `01 SQ-FS2-STATUS. 03 KEY-1 PIC X. 03 KEY-2 PIC X.`); a struct field cannot take the
+            // raw string write.
+            _ctx.Writer.Line($"{place.Read()}.FromImage({status});");
+            return;
+        }
+        _ctx.Writer.Line(place.Write(status));
     }
 
     /// <summary>The C# <c>int</c> expression for an ADVANCING line count (a literal or a numeric data-name).</summary>

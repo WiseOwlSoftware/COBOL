@@ -43,7 +43,7 @@ public sealed partial class StatementBinder
     private Dictionary<int, string>? _alterSwFields;
 
     /// <summary>Paragraph parse context → its pc, so a GO TO locates its OWNING paragraph without re-walking.</summary>
-    private Dictionary<Core.ParagraphDefinitionContext, int>? _alterSwParaPc;
+    private Dictionary<Core.SentenceContext, int>? _alterSwParaPc;   // sentence -> owning paragraph pc
 
     /// <summary>The whole-program ALTER prepass (port of the legacy <c>ScanAlterTargets</c> BEHAVIOR): collect
     /// every <c>ALTER proc-1 TO …</c> target paragraph and assign it its D4 field, BEFORE any GO TO binds — a GO TO
@@ -54,12 +54,13 @@ public sealed partial class StatementBinder
     {
         if (_alterSwFields is not null) return;
         _alterSwFields = new Dictionary<int, string>();
-        _alterSwParaPc = new Dictionary<Core.ParagraphDefinitionContext, int>();
-        for (int i = 0; i < _paras.Count; i++) _alterSwParaPc[_paras[i].Ctx] = i;
+        _alterSwParaPc = new Dictionary<Core.SentenceContext, int>();
+        for (int i = 0; i < _paras.Count; i++)
+            foreach (var sent in _paras[i].Sentences) _alterSwParaPc[sent] = i;
 
         SectionInfo? saved = _currentSection;
         for (int i = 0; i < _paras.Count; i++)
-            foreach (var al in AlterStatementsIn(_paras[i].Ctx))
+            foreach (var al in _paras[i].Sentences.SelectMany(AlterStatementsIn))
                 foreach (var entry in al.alterEntry())
                 {
                     if (entry.procedureName() is not { Length: >= 2 } names) continue;
@@ -89,7 +90,7 @@ public sealed partial class StatementBinder
     private int? AlterOwningPc(IParseTree node)
     {
         for (IParseTree? n = node; n is not null; n = n.Parent)
-            if (n is Core.ParagraphDefinitionContext p && _alterSwParaPc!.TryGetValue(p, out int pc))
+            if (n is Core.SentenceContext p && _alterSwParaPc!.TryGetValue(p, out int pc))
                 return pc;
         return null;
     }
@@ -159,7 +160,7 @@ public sealed partial class StatementBinder
     /// GO TO Format 1 — written target or target-less, never DEPENDING (the ANSI-85 ALTER shape requirement).</summary>
     private bool AlterIsSoleGoToParagraph(int pc)
     {
-        var sentences = _paras[pc].Ctx.sentence();
+        var sentences = _paras[pc].Sentences;
         if (sentences.Length != 1) return false;
         var stmts = sentences[0].statement();
         return stmts.Length == 1 && stmts[0].goToStatement() is { } g

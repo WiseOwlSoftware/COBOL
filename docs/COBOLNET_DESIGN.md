@@ -883,6 +883,16 @@ Tier-C byte island, §15 owner question). NC107A's USAGE tests (`MOVE U5 TO U9`,
   (so every pc value agrees), `Main` starts at `EntryParagraphIndex`; a USE handler runs via `Dispatch(declStart,
   declEnd)` from the runtime I/O/error path and returns a `ResumeAction` (§11.2). This is the same `ResumeAction`
   used by RESUME — one mechanism.
+  **IMPLEMENTED (DEVLOG 559) with two refinements:** the handler invocation is the generated `__RunUse(id, start,
+  handlerEnd)` (a GR2 re-entrancy-guarded bounded `__Dispatch`) called from the generated `__IoCheck` selector
+  emitted after every FILE STATUS store — selection is COMPILE-TIME knowledge (the program's USE set), so there is
+  no runtime registry for local dispatch and the return is VOID (continue after the failing statement, GR7b; the
+  `ResumeAction` form waits for the §11 EC subsystem where RESUME exists). Two settled deviations: (a) the CCVS
+  termination-tail accommodation — a trivial exit paragraph followed by a STOP-RUN tail inside the section caps
+  `HandlerEndPc` at the exit paragraph (the SQ212A golden's shape; ISO leaves fatal-path behavior implementor-
+  specific, §14.6.3); (b) a successful CLOSE resets the connector's open-mode view to none (§9.1.4) — a failed
+  OPEN records the ATTEMPTED mode for GR6b "being opened" scoping. Cross-program GLOBAL dispatch (GR4) is the
+  post-CALL wave (parsed + recorded, locally dispatched).
 - **EXIT family is pure pc moves** (§5.2): EXIT PARAGRAPH/SECTION set pc; EXIT PERFORM/CYCLE map to break/continue in
   the inline-PERFORM loop; bare EXIT/CONTINUE are no-ops. They never touch the termination exceptions.
 

@@ -12,8 +12,29 @@ namespace CobolNet.Binding.Bound;
 //  backend's concern; this tree faithfully represents the program's paragraph/statement structure.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-/// <summary>A bound program unit: its paragraphs in source order (the entry runs them in sequence until G4).</summary>
-public sealed record BoundProgram(IReadOnlyList<BoundParagraph> Paragraphs);
+/// <summary>A bound program unit: its paragraphs in source order — declarative sections FIRST (sharing the one
+/// pc space, COBOLNET_DESIGN §14.5), then the nondeclarative body starting at <paramref name="EntryPc"/>
+/// (ISO §14.2.3 GR1 — execution begins with the first nondeclarative procedure). <paramref name="Declaratives"/>
+/// carries the program's USE AFTER STANDARD ERROR/EXCEPTION sections (ISO §14.9.49; empty/null when none).</summary>
+public sealed record BoundProgram(
+    IReadOnlyList<BoundParagraph> Paragraphs,
+    int EntryPc = 0,
+    IReadOnlyList<BoundDeclarative>? Declaratives = null);
+
+/// <summary>One USE AFTER STANDARD ERROR/EXCEPTION declarative section (ISO §14.9.49 Format 1): its inclusive
+/// pc range, the §14.9.49.4 GR7 handler exit pc (== <paramref name="EndPc"/> except the CCVS termination-tail
+/// accommodation — see the binder), and its trigger scope: file-scoped (GR3a/GR5, <paramref name="Files"/>
+/// non-empty) or open-mode-scoped (GR3b/GR6b–e, <paramref name="ModeIndex"/> = the runtime
+/// <c>FileOpenMode</c> ordinal). <paramref name="Global"/> is parsed and recorded; cross-program dispatch (GR4)
+/// is the post-CALL wave.</summary>
+public sealed record BoundDeclarative(
+    string SectionName,
+    int StartPc,
+    int EndPc,
+    int HandlerEndPc,
+    IReadOnlyList<FileModel> Files,
+    int? ModeIndex,
+    bool Global);
 
 /// <summary>A bound paragraph: its COBOL name and its SENTENCES (each a statement list — the separator-period
 /// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19 GR6).

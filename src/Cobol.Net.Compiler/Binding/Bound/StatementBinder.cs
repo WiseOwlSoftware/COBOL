@@ -16,7 +16,7 @@ using Core = CobolParserCore;
 /// </summary>
 public sealed partial class StatementBinder(DataBinder data, ReferenceResolver refs)
 {
-    private readonly List<(string Cobol, string Method, Core.ParagraphDefinitionContext Ctx)> _paras = [];
+    private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
     private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, SectionInfo> _sections = new(StringComparer.OrdinalIgnoreCase);
     private readonly List<SectionInfo?> _paraSection = [];   // per-pc owning section (parallel to _paras)
@@ -45,41 +45,52 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         {
             _currentSection = _paraSection[i];   // ISO §8.4.2.2 — unqualified names resolve in-section first
             var sentences = new List<IReadOnlyList<BoundStatement>>();
-            foreach (var sentence in _paras[i].Ctx.sentence())
+            foreach (var sentence in _paras[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
             bound.Add(new BoundParagraph(_paras[i].Cobol, sentences));
         }
         _currentSection = null;
-        return new BoundProgram(bound);
+        return new BoundProgram(bound, _entryPc, _declaratives);
     }
 
     // ── Procedure table (paragraphs + sections, ISO §14.4.3 / §8.4.2.2) ─────────────────────────────────────
 
+    /// <summary>Register one paragraph (name + uniquified method key + its sentences) at the next pc.</summary>
+    private void AddParagraph(string name, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
+    {
+        string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
+        string method = baseName;
+        for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
+        _paraIndex.TryAdd(name, _paras.Count);     // first definition wins for the global fallback
+        section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
+        _paraSection.Add(section);
+        _paras.Add((name, method, sentences));
+    }
+
     private void CollectParagraphs(Core.ProcedureDivisionContext pd)
     {
         var used = new HashSet<string>(StringComparer.Ordinal);
-        void Add(Core.ParagraphDefinitionContext p, SectionInfo? section)
-        {
-            string name = p.paragraphName().GetText();
-            string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
-            string method = baseName;
-            for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
-            _paraIndex.TryAdd(name, _paras.Count);     // first definition wins for the global fallback
-            section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
-            _paraSection.Add(section);
-            _paras.Add((name, method, p));
-        }
+
+        // DECLARATIVES first (ISO §14.2.3 GR1 — execution begins with the first NONdeclarative procedure; the
+        // declarative sections share the ONE pc space, entered only via the USE dispatch or an explicit
+        // PERFORM/GO TO — SR4). The walk records the BoundDeclarative scopes (StatementBinder.Declaratives.cs).
+        foreach (var dp in pd.declarativePart())
+            foreach (var sec in dp.declarativeSection())
+                DeclCollectSection(sec, used);
+        _entryPc = _paras.Count;
 
         foreach (var unit in pd.procedureUnit())
         {
-            if (unit.paragraphDefinition() is { } para) Add(para, null);
+            if (unit.paragraphDefinition() is { } para)
+                AddParagraph(para.paragraphName().GetText(), para.sentence(), null, used);
             else if (unit.sectionDefinition() is { } section)
             {
                 // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
                 // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
                 // statement of its first paragraph through last statement of its last (ISO §14.9.28).
                 var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
-                foreach (var p in section.paragraphDefinition()) Add(p, info);
+                foreach (var p in section.paragraphDefinition())
+                    AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
                 info.EndPc = _paras.Count - 1;
                 _sections.TryAdd(info.Name, info);
             }
@@ -105,8 +116,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return null;
     }
 
-    /// <summary>The emitted paragraphs (name + method + statements), exposed for the backend's method loop.</summary>
-    public IReadOnlyList<(string Cobol, string Method, Core.ParagraphDefinitionContext Ctx)> Paragraphs => _paras;
+    /// <summary>The emitted paragraphs (name + method + sentences), exposed for the backend's method loop.</summary>
+    public IReadOnlyList<(string Cobol, string Method, Core.SentenceContext[] Sentences)> Paragraphs => _paras;
 
     private string MethodOf(string cobolName) =>
         _paraIndex.TryGetValue(cobolName, out int i) ? _paras[i].Method : "P_" + cobolName.Replace('-', '_');

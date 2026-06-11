@@ -90,6 +90,7 @@ public sealed partial class CSharpEmitter
         string f = CsLiteral(input.CobolName);
         string tmp = $"__srt{_sortCounter++}";
         w.Line($"CobolFile.OpenInput({f});   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
+        EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
         using (w.Block($"while (CobolFile.Read({f}, out var {tmp}))"))
         {
             // GR12b: a record larger/smaller than the SD's record range ⇒ EC-SORT-MERGE-RELEASE (checking OFF,
@@ -102,6 +103,9 @@ public sealed partial class CSharpEmitter
         }
         w.Line($"CobolFile.Close({f});   // implicit CLOSE (GR12c / GR7c)");
         EmitStoreFileStatus(input);
+        // GR12b: the implicit READ is "as if with the AT END phrase" - at-end never fires a declarative; any
+        // OTHER read/close failure still does.
+        EmitUseHook(input, atEndHandled: true);
     }
 
     /// <summary>The implicit GIVING transfer for one output file (SORT GR15 / MERGE GR12): REWIND the return
@@ -115,10 +119,12 @@ public sealed partial class CSharpEmitter
         string tmp = $"__srt{_sortCounter++}";
         w.Line($"CobolSort.Rewind({sdLit});   // each GIVING file receives the FULL result (GR15 / MERGE GR12)");
         w.Line($"CobolFile.OpenOutput({f});   // implicit OPEN OUTPUT (GR15a)");
+        EmitUseHook(output);   // a failed implicit OPEN reaches a USE declarative (GR15a)
         using (w.Block($"while (CobolSort.Return({sdLit}, out var {tmp}))"))
             w.Line($"CobolFile.Write({f}, {tmp});   // implicit WRITE without optional phrases (GR15b)");
         w.Line($"CobolFile.Close({f});   // implicit CLOSE (GR15c)");
         EmitStoreFileStatus(output);
+        EmitUseHook(output);
     }
 
     /// <summary>RELEASE (ISO §14.9.32): FROM first MOVEs into the record (GR4 — identical to the explicit MOVE),
