@@ -1,7 +1,9 @@
 # Version Test Matrix — Design (testing COBOL.NET as N per-edition compilers)
 
 > **STATUS BANNER — DESIGN, in build-out: Phase 0 ✅ harness scaffold (DEVLOG 519) + default-edition flip ✅
-> (DEVLOG 520); Phases 1–3 ahead. LIVE design reference.**
+> (DEVLOG 520); Phase 1 ✅ catalogue + EditionHarness + INV-1 continuity sweep (DEVLOG 531); Phase 2 plan
+> DECISION-COMPLETE (DEVLOG 578 — see "Phase-2 implementation plan" below §8), implementation next; Phase 3
+> ahead. LIVE design reference.**
 >
 > **Premise (owner, 2026-06-09):** *"Conceptually we have a different COBOL compiler for each ISO edition (1985 /
 > 2002 / 2014 / 2023). We should test it as such."* A single corpus run at one dialect cannot validate that. This
@@ -208,9 +210,139 @@ test for the gating implementation (TDD). "Done" = the row's cells are green at 
 - **Phase 1 — seed + continuity.** ✅ Done as above.
 - **Phase 2 — backfill + implement gating.** Grow the catalogue across all mechanically-testable rows; build the
   `EditionValidator` + `ConstructDialectStatus` registry; turn red cells green per row. Each new feature ships its
-  matrix rows (extends `feedback_conformance_tests_per_feature`).
+  matrix rows (extends `feedback_conformance_tests_per_feature`). **Plan DECISION-COMPLETE (DEVLOG 578) — the
+  full implementation plan is the next section.**
 - **Phase 3 — negative corpus + flagging complete.** Full `_negative/` corpus; obsolete/archaic/new-reserved-word
   flagging; behavior-variant rows where INV-3 applies; auto-check the registry against the reference doc (drift guard).
+
+---
+
+## Phase-2 implementation plan — EditionValidator (decision-complete, DEVLOG 578, 2026-06-11)
+
+> The canonical Phase-2 plan, folded in from the 2026-06-11 research wave (4 scouts over the spec word lists, the
+> 32-row removal inventory, and the hook architecture). Off-repo convenience copies (the verbose brief + raw scout
+> artifacts) live in `/e/tmp/g7/` — `RESUME-G7-PHASE2.md`, `words-2023.json`, `removal-inventory.json`,
+> `validator-arch.md`; THIS section is the SSOT if they diverge or are lost. Implementation lands in three waves;
+> each gate cites its `VERSION_CHANGE_REFERENCE.md` (VCR) row and ISO §.
+
+### P2.1 Channels and policy seam (`Binding/EditionContext.cs`)
+
+`EditionContext` is the seam (its doc comment already names it so). It gains: ctor
+`(int dialectLevel, bool permissive = false)`; `Permissive` (the legacy `DialectMode.Default` axis, §10 #1 —
+strict is the default, every named `--std` is strict); `List<string> Warnings` + `Warning(code,msg)`;
+`HasErrors`; and the ONE severity seam `Removed(code,msg)` = Error when strict / Warning when permissive.
+**`Diagnostics` stays ERRORS-ONLY** — `CompilerDriver` fails on ANY entry (CompilerDriver.cs:84), so a warning
+appended there would fail the compile; `Warning()` is the only writer to `Warnings`. Carriers:
+`CompilerDriver.Options` + `bool Permissive = false`; `Result` + `IReadOnlyList<string> Warnings = []` (set on
+every return); CLI `--permissive` flag (orthogonal to `--std`/`--nist`; the `--nist`-without-`--std` ⇒ 85 logic
+untouched); `Program.cs` prints warnings to stderr always.
+
+### P2.2 The validator pass (`src/Cobol.Net.Compiler/Validation/`)
+
+- **Walk:** NO listener is generated (ANTLR runs `-no-listener -visitor`) — `EditionValidator` derives from the
+  generated `CobolParserCoreBaseVisitor<object?>` (namespace `CobolSharp.Compiler.Generated`); overrides return
+  `base.VisitChildren(ctx)` to keep descending. Root = `CobolParserCore.CompilationUnitContext`
+  (`Frontend.Parse`, Pipeline/Frontend.cs:59).
+- **Hook:** in `CompilerDriver.Compile` between `EditionContext` construction and `CSharpEmitter.Emit`, with a
+  fail-fast `if (edition.HasErrors) return BindError` BEFORE Emit (a removed/unintroduced construct may have no
+  emit path). Validator errors ride the SAME `EditionContext` → the existing BindError path; no new `Outcome`.
+- **Division of labor:** syntax-only gating lives in the validator; gating that needs bind/type information
+  (e.g. the MOVE rows) stays binder-side — but EVERY severity decision routes through `Removed()`/the registry
+  (one policy, several emit sites; `feedback_singular_pattern`).
+
+### P2.3 Diagnostics band (COBOLNET0900–0999, verified unused)
+
+| Code | Meaning | Severity |
+|---|---|---|
+| COBOLNET0900 | construct requires COBOL-YYYY (introduction gating, validator-visible) | error |
+| COBOLNET0901 | word reserved in COBOL-YYYY used as a user-defined word (ISO §8.9) | error strict / warning permissive |
+| COBOLNET0902 | construct removed in COBOL-YYYY | error strict / warning permissive (via `Removed`) |
+| COBOLNET0903 | obsolete/archaic-element flag | warning (always) |
+
+Existing codes are KEPT where tests/history pin them: 0873 (DATA RECORDS, FD+SD), 0810/0811 (ALTER / bare
+GO TO), 0882 (CALL ON OVERFLOW).
+
+### P2.4 Per-edition reserved words (ISO §8.9; the INV-2-inverted obligation)
+
+- **The funnel:** every user-defined word reaches the tree through the `cobolWord` rule (CobolParserCore.g4:25 —
+  `IDENTIFIER` + an allowlist of context keywords). 2023-new words (COMMIT, ROLLBACK, FINALLY, RECEIVE, SEND,
+  EDITING, LOCATION, MESSAGE-TAG, END-RECEIVE, END-SEND, B-SHIFT-\*) are NOT lexer tokens — they lex as
+  IDENTIFIER, so the check is TEXT-based: `VisitCobolWord` tests `ctx.Start.Text` (upper) against
+  `ReservedWords.IsReservedAt(word, edition)`, deduped to ONE diagnostic per distinct word per compilation.
+  This also correctly rejects the allowlisted context keywords (RAISE/RAISING/RESUME/CONDITION/LENGTH/SUM…) at
+  editions where §8.9 reserves them — the grammar's "legal user word at every edition" posture stays (permissive
+  superset), the validator enforces per edition.
+- **Tables:** per-word 4-edition flags `(r85, r2002, r2014, r2023)` + confidence + provenance. Generation is
+  scripted (`scripts/gen-reserved-words.ps1`): parse the in-repo spec §8.9 (`specs/ISO_COBOL.md` lines
+  10306–10788; strip the 15 symbol entries; OCR fixes: EMD-START→END-START, `i-O`→I-O, I-OICONTROL→I-O-CONTROL,
+  en-dash minus; ADD the OCR-omitted METHOD) ⊕ a small authored delta file
+  (`tests/version-matrix/reserved-word-deltas.json`: the authoritative 16-word 2023 additions = VCR row 32; the
+  hand-authored X3.23-1985 list; a medium-confidence 2014 IEEE-754 family). Derivation: ∈2023 ∧ ∈85 ∧ ∉added2023
+  ⇒ continuous; ∈added2023 ⇒ 2023-only EXCEPT RECEIVE/SEND (85-reserved → unreserved 2002/2014 → re-reserved
+  2023); ∈85 ∧ ∉2023 ⇒ 85-only (removed 2002, flagged); remainder ⇒ added 2002. ROUNDED-mode words etc. are
+  §8.10 CONTEXT-SENSITIVE in 2023 — not reserved, not in the table. Script emits BOTH the C# table
+  (`Validation/ReservedWords.Table.cs`) AND the canonical `tests/version-matrix/reserved-words.json`; a drift
+  test compares them.
+- **Conservative policy:** only `confidence: high` rows REJECT; lower-confidence rows are present but inert
+  (documented), per the VCR scope-limit rule ("confirm against the older standard before gating") — a wrong
+  entry must never reject a valid program.
+- **⚠ Operational:** build the word tables IN-SESSION by script — never have a subagent emit the big lists as
+  output (the API content filter blocks dense recalled word dumps; bitten twice, DEVLOG 578).
+
+### P2.5 `ConstructDialectStatus` registry + drift checks
+
+`Validation/ConstructDialectStatus.cs` (record: Id, Display, IntroducedIn, RemovedIn, ObsoleteIn?,
+DiagnosticCode, Citation) + `ConstructRegistry` with `StatusAt(edition, permissive)` and the one `Check(...)`
+entry. `tests/version-matrix/constructs.json` stays THE canonical catalogue (§10 #5; gains an optional
+`expectDiagnostic` field); a unit drift test asserts registry↔json metadata equality both directions, and the
+ReservedWords drift test does the same one level up.
+
+### P2.6 Wave-1 construct checklist (validator overrides + binder migrations)
+
+85→2002 removals — `Removed` ≥2002 (VCR Table 7 grows a row per item): LABEL RECORDS (FD,
+Core/CobolData.g4:106; 0902) · VALUE OF (:118; 0902) · DATA RECORDS FD+SD (:111; **0873** — the DataBinder.cs:322
+SD gate MIGRATES into the validator, one enforcement site; Table 7 row 7.1's recorded follow-up) · MEMORY SIZE,
+SEGMENT-LIMIT, WITH DEBUGGING MODE (token-text scans of the `computerAttributes` wildcard sink,
+CobolParserCore.g4:433; 0902) · MULTIPLE FILE [TAPE] (CobolIO.g4:170; 0902) · the five identification comment
+paragraphs AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY (0902) · REMARKS (0902 ≥2002 ONLY — CCVS
+uses it; never flag at 85 until the FIPS-flagging strictness work) · STOP literal (CobolControlFlow.g4:222;
+0902) · OPEN REVERSED (CobolIO.g4:193; 0902).
+2014→2023 removals — `Removed` ≥2023: CLOSE WITH LOCK (CobolIO.g4:214; 0902; VCR row 7) · EXIT METHOD / EXIT
+FUNCTION (CobolControlFlow.g4:213; ALSO introduction-gated 0900 <2002; VCR rows 5/6).
+2023 archaic flags — 0903 warnings @≥2023: EXIT PROGRAM (VCR 89) · NEXT SENTENCE (VCR 90). No 85-obsolete
+warnings this wave (NIST noise; the 85 FIPS flagger is future strictness work).
+Binder migrations — `Error`→`Removed` at: AlterSwitches 0810/0811, Call 0882; VERIFY each site still BINDS the
+construct after a permissive warn (permissive @2002 must run ALTER with 85 semantics).
+
+### P2.7 Harness/test changes (and the continuity consequence)
+
+`EditionHarness` gains `permissive` params + a `CompileFull` returning (Ok, Errors, Warnings) (old tuple methods
+delegate); `AssertNoDiagnostic`. `VersionMatrixTests` asserts `expectDiagnostic` on reject cells and gains the
+permissive theory: rows with `removedIn`, compiled at ≥removedIn with permissive:true, MUST compile and carry
+the diagnostic as a warning (the §10 #1 contract). **⚠ Consequence:** every NIST FD writes LABEL RECORDS, so
+once gating lands the INV-1 continuity legs at ≥2002 (the file-suite `[InlineData]` rows AND
+`scripts/version-continuity-sweep.sh`) legitimately break under strict — they FLIP TO PERMISSIVE mode (the
+migration posture; INV-1's formal statement becomes "compiles permissive at later editions; strict failures
+must trace to removal/reserved rows"). New matrix rows: one per P2.6 gate, plus reserved-word rows via the
+interval encoding — `user-word-commit-2023` (intro 85 / removedIn 2023 / 0901), `user-word-raising-2002`
+(intro 85 / removedIn 2002 / 0901), and `receive-as-user-word` (intro **2002** / removedIn 2023 / 0901 — encodes
+85-reserved → 2002/2014-free → 2023-re-reserved in one f(case,V) row).
+
+### P2.8 Waves 2–3 (follow-on, same Phase)
+
+W2 (parallel agents, disjoint files): the MOVE rows (VCR 1 — alphanumeric-figurative→numeric `Removed` ≥2023
+with the digit-only-ALL exception; VCR 92/128 — ALL-digit→integer obsolete 0903 @2023) + fix the two latent
+bugs found by the inventory (STOP literal silently binds as STOP RUN, StatementBinder.cs:168 → runtime-loud or
+implement; MOVE ALL "5" TO integer fails loud though valid at EVERY edition, §14.9.25 GR5); the `_negative/`
+corpus discovery (→ Phase 3); VCR Status flips; adversarial review.
+W3 (frontend/grammar — FULL legacy guard + committed regen per the DEVLOG-554 CI note): the XOR/EXCLUSIVE-OR
+hole (unconditional lexer tokens wrongly commented "COBOL-2002" — they are 2023, VCR rows 41/32; not in
+`cobolWord` ⇒ unusable as user words at EVERY edition and the operator un-gated below 2023); the notInGrammar
+85-acceptance set (RERUN, ENTER, USE FOR DEBUGGING, section segment-numbers — generic parse errors today, a G1
+co-equal-diagnostic violation at 85); the preprocessor rows (COPY REPLACING non-pseudo-text ≥2023 = VCR 4,
+fixed-form word continuation ≥2023 = VCR 2, col-7 hyphen obsolete flag = VCR 94 — `DialectLevel` is not
+threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATION module stays an M2-scope
+decision.
 
 ## 9. Reuse / do-not-duplicate map
 

@@ -24,16 +24,19 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 578, 2026-06-11 13:30): ② G7 Phase-2 EditionValidator — DESIGN COMPLETE, IMPLEMENTATION NOT
-> STARTED (docs-only checkpoint; tree otherwise at the DEVLOG-577 state). ⛔ RESUME = read
-> `/e/tmp/g7/RESUME-G7-PHASE2.md` FIRST — the decision-complete brief (wave plan W1 core validator / W2 parallel
-> follow-ups / W3 grammar+preprocessor; the EditionContext warning-channel + Permissive axis; the COBOLNET0900–0903
-> band; the cobolWord single-funnel reserved check; the reserved-table generation rules incl. the OCR fixes +
-> METHOD omission; the latent bugs found: STOP-literal mis-bind, MOVE ALL-digit loud gap, the XOR/EXCLUSIVE-OR
-> 2023-words-as-unconditional-tokens hole; the NIST-continuity→permissive flip). Artifacts: `/e/tmp/g7/`
-> words-2023.json + removal-inventory.json + validator-arch.md. ⚠ Do NOT delegate word-list output to agents —
-> content-filter trips on it (2nd occurrence, DEVLOG 578); build tables in-session by script from spec §8.9
-> (lines 10306–10788). Then implement W1 exactly per the brief.**
+> **STATE (DEVLOG 579, 2026-06-11 13:42): ② G7 Phase-2 EditionValidator — DESIGN COMPLETE, IMPLEMENTATION NOT
+> STARTED (docs-only checkpoints 5be1983 + this; tree otherwise at the DEVLOG-577 state). ⛔ RESUME = read
+> **`docs/VERSION_TEST_MATRIX_DESIGN.md` → "Phase-2 implementation plan" (below its §8)** — the IN-REPO canonical
+> plan (P2.1 EditionContext warning-channel + Permissive axis + Removed() seam; P2.2 the visitor hook [no listener
+> — `CobolParserCoreBaseVisitor<object?>`]; P2.3 the COBOLNET0900–0903 band; P2.4 the cobolWord single-funnel
+> reserved check + scripted §8.9 table generation incl. OCR fixes/METHOD omission + the conservative-confidence
+> policy; P2.5 registry+drift; P2.6 the Wave-1 construct checklist; P2.7 harness changes + the
+> NIST-continuity→permissive flip; P2.8 Waves 2–3 incl. the latent bugs: STOP-literal mis-bind, MOVE ALL-digit
+> loud gap, the XOR/EXCLUSIVE-OR 2023-words-as-unconditional-tokens hole). Convenience copies + raw scout
+> artifacts: `/e/tmp/g7/` (RESUME-G7-PHASE2.md, words-2023.json, removal-inventory.json, validator-arch.md) —
+> the doc section is SSOT if they diverge. ⚠ Do NOT delegate word-list output to agents — content-filter trips
+> on it (2nd occurrence, DEVLOG 578); build tables in-session by script from spec §8.9 (lines 10306–10788).
+> Then implement Wave 1 exactly per P2.1–P2.7.**
 >
 > **(superseded) STATE (DEVLOG 577, 2026-06-11 12:09): ✅ the EC EXCEPTION-CONDITION MODEL (SSOT §16 step ①) is DONE END TO
 > END — ISO §14.6.13 + §7.3.25 >>TURN (the compile-time TurnState fold; zero-scaffolding when off) + §14.9.29
