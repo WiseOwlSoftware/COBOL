@@ -292,7 +292,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundOperand? WriteSource(Core.DataReferenceContext? dref, Core.LiteralContext? lit) =>
         lit is not null ? LiteralOperand(lit) : dref is not null ? FieldOperand(dref) : null;
 
-    /// <summary>Bind the <c>{BEFORE|AFTER} ADVANCING …</c> phrase (ISO §14.9.46), or null for a plain WRITE.</summary>
+    /// <summary>Bind the <c>{BEFORE|AFTER} ADVANCING …</c> phrase (ISO §14.9.46), or null for a plain WRITE.
+    /// An ADVANCING operand naming a SPECIAL-NAMES mnemonic (<c>XXXXX073 IS MNEMONIC-NAME</c>, SQ207M) positions
+    /// per the IMPLEMENTOR's rules for the associated feature (§14.9.46 GR — mnemonic-name-1); this
+    /// implementation's rule, inherited from the legacy oracle and encoded by the NIST goldens, is a ZERO-line
+    /// advance (the write lands on the current line).</summary>
     private BoundAdvancing? BindAdvancing(Core.WriteBeforeAfterContext? ctx)
     {
         if (ctx is null) return null;
@@ -300,7 +304,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (ctx.PAGE() is not null) return new BoundAdvancing(before, true, null);
         BoundOperand lines =
             ctx.integerLiteral() is { } il ? new BoundNumericLiteral(il.GetText())
-            : ctx.dataReference() is { } d ? FieldOperand(d)
+            : ctx.dataReference() is { } d ? AcceptMnemonics(ctx).ContainsKey(d.GetText())
+                ? new BoundNumericLiteral("0") : FieldOperand(d)
             : ctx.literal() is { } lit ? LiteralOperand(lit)
             : new BoundNumericLiteral("1");
         return new BoundAdvancing(before, false, lines);

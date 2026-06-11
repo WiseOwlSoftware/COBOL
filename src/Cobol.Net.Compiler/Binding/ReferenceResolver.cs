@@ -249,6 +249,25 @@ public sealed class ReferenceResolver(DataBinder data)
     /// </summary>
     private DataItem? ResolveQualified(string name, List<string> qualifiers)
     {
+        // §8.4.2.2 — the FD/SD's FILE-NAME is the highest permissible qualifier of its record names and their
+        // subordinates (SQ207M's `WRITE PRINT-REC IN PRINT-FILE`): scope the remaining reference to each of the
+        // file's record descriptions — the named item may BE a record (not only a descendant of one).
+        if (data.FilesByName.TryGetValue(qualifiers[^1], out var file))
+        {
+            foreach (var record in file.Records)
+            {
+                DataItem? s = qualifiers.Count >= 2
+                    ? string.Equals(record.CobolName, qualifiers[^2], StringComparison.OrdinalIgnoreCase)
+                        ? record : FindDescendant(record, qualifiers[^2])
+                    : record;
+                for (int k = qualifiers.Count - 3; k >= 0 && s is not null; k--)
+                    s = FindDescendant(s, qualifiers[k]);
+                if (s is null) continue;
+                if (string.Equals(s.CobolName, name, StringComparison.OrdinalIgnoreCase)) return s;
+                if (FindDescendant(s, name) is { } found) return found;
+            }
+            return null;
+        }
         DataItem? scope = ResolveUnqualified(qualifiers[^1]);            // outermost qualifier
         for (int k = qualifiers.Count - 2; k >= 0 && scope is not null; k--)
             scope = FindDescendant(scope, qualifiers[k]);

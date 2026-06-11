@@ -189,4 +189,57 @@ public sealed class FileIoDifferentialTests
                 END-PERFORM.
                 CLOSE F.
             """));
+
+    /// <summary>§14.9.46 — WRITE {BEFORE|AFTER} ADVANCING mnemonic-name: the positioning is IMPLEMENTOR-DEFINED
+    /// for the associated feature; this implementation's rule (inherited from the legacy oracle and encoded by
+    /// the SQ207M golden) is a ZERO-line advance — a BEFORE-mnemonic write welds the NEXT write onto its line.
+    /// SPEC-PINNED (not legacy-differential) because the record is ALWAYS released (§14.9.46 GR1 — the WRITE
+    /// transfers the record regardless of positioning): the legacy DROPS an AFTER-mnemonic write entirely, a
+    /// non-conformance its goldens fossilize (SQ207M is swept-only pending re-baseline). The last WRITE also
+    /// pins §8.4.2.2 FILE-NAME qualification of a record name (<c>WRITE P-REC IN P-OUT</c> — SQ207M's shape).</summary>
+    [Fact]
+    public void WriteAdvancingMnemonic_ZeroLineAdvance_RecordAlwaysReleased()
+    {
+        var (cok, cout, cdetail) = CobolNet.CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIOMNADV1.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES.
+                PRT-CHAN IS MN-ADV.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT P-OUT ASSIGN TO "FIOMNADV1F".
+                SELECT P-IN ASSIGN TO "FIOMNADV1F" ORGANIZATION IS LINE SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD P-OUT.
+            01 P-REC PIC X(8).
+            FD P-IN.
+            01 IN-REC PIC X(20).
+            WORKING-STORAGE SECTION.
+            01 WS-EOF PIC X VALUE "N".
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN OUTPUT P-OUT.
+                MOVE "AAAA" TO P-REC. WRITE P-REC BEFORE ADVANCING MN-ADV.
+                MOVE "BBBB" TO P-REC. WRITE P-REC BEFORE ADVANCING 1 LINE.
+                MOVE "CCCC" TO P-REC. WRITE P-REC AFTER ADVANCING MN-ADV.
+                MOVE "DDDD" TO P-REC.
+                WRITE P-REC IN P-OUT BEFORE ADVANCING 1 LINE.
+                CLOSE P-OUT.
+                OPEN INPUT P-IN.
+                PERFORM UNTIL WS-EOF = "Y"
+                    READ P-IN
+                        AT END MOVE "Y" TO WS-EOF
+                        NOT AT END DISPLAY "L=" IN-REC
+                    END-READ
+                END-PERFORM.
+                CLOSE P-IN.
+                STOP RUN.
+            """);
+        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
+        // The third (empty) line is the print stream's CLOSE-supplied final newline (the pending-advance model).
+        Assert.Equal("L=AAAABBBB\nL=CCCCDDDD\nL=", cout);
+    }
 }
