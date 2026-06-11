@@ -242,4 +242,42 @@ public sealed class FileIoDifferentialTests
         // The third (empty) line is the print stream's CLOSE-supplied final newline (the pending-advance model).
         Assert.Equal("L=AAAABBBB\nL=CCCCDDDD\nL=", cout);
     }
+
+    /// <summary>READ on a file connector that is NOT open: I-O status '47' (§9.1.13.7 item 7 / §14.9.30 GR2),
+    /// the statement is unsuccessful, and AT END does NOT fire ('47' is not the at-end family, §9.1.13.4).
+    /// SPEC-PINNED: the record area's content after an unsuccessful READ is spec-UNDEFINED (§14.9.30 GR18
+    /// "unless otherwise specified…"); COBOL.NET's documented refinement is that the area is UNCHANGED —
+    /// extending the spec's own rule for every other unsuccessful I-O verb (REWRITE GR14 / WRITE GR15 /
+    /// DELETE GR8 / START GR2: "unaffected"). The legacy LOW-VALUE-filled it (a byte-engine artifact — the
+    /// ST146A golden was re-baselined over it, DEVLOG 570), so this is not legacy-differential.</summary>
+    [Fact]
+    public void ReadNotOpen_Status47_AtEndNotTaken_RecordAreaUnchanged()
+    {
+        var (cok, cout, cdetail) = CobolNet.CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FIORD47.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN TO "FIORD47F" FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD F.
+            01 F-REC PIC X(10).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN.
+                OPEN OUTPUT F.
+                MOVE "KEEPSAKE" TO F-REC.
+                WRITE F-REC.
+                CLOSE F.
+                READ F AT END DISPLAY "AT-END TAKEN".
+                DISPLAY "FS=" WS-FS.
+                DISPLAY "REC=" F-REC.
+                STOP RUN.
+            """);
+        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
+        Assert.Equal("FS=47\nREC=KEEPSAKE", cout);
+    }
 }

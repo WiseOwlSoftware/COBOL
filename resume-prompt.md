@@ -24,13 +24,16 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 569, 2026-06-10 22:05): 272 NIST programs locked (92 NC + 24 ST + 32 RL + 40 IX + 18 IC +
+> **STATE (DEVLOG 570, 2026-06-10 22:30): 273 NIST programs locked (92 NC + 25 ST + 32 RL + 40 IX + 18 IC +
 > 64 SQ + 2 OBSQ — the authoritative `[InlineData]` census; earlier running tallies were undercounts);
-> 825 conformance + 15 unit; FULL legacy guard ALL GREEN = 357 MATCH + 7 `LEGACY_NONCONFORMANT` (the
-> owner-approved ISO re-baseline, DEVLOG 569: IX111A/IX210A/IX214A/IX215A/NC235A/NC236A/SQ207M goldens now hold
-> the spec-conforming output; the list + each hole's ISO citation live in `scripts/guard.sh`). The fresh
-> chain-aware census (`/e/tmp/nc-sweep/census-current.txt`, pre-567): 268/361 GREEN. Landed this session
-> (560–569): ① CHAIN-CONSUMER harness support —
+> 827 conformance + 15 unit; FULL legacy guard ALL GREEN = 356 MATCH + 8 `LEGACY_DIVERGENT` (the owner-approved
+> ISO re-baselines, DEVLOG 569/570: IX111A/IX210A/IX214A/IX215A/NC235A/NC236A/SQ207M = legacy HOLES;
+> ST146A = an UNDEFINED-CHOICE — §14.9.30 GR18 leaves the record area undefined after an unsuccessful READ and
+> COBOL.NET's canonical refinement is UNCHANGED, the spec's own pattern for the other I-O verbs; the list +
+> per-program citations live in `scripts/guard.sh`). The fresh chain-aware census
+> (`/e/tmp/nc-sweep/census-current.txt`, pre-567): 268/361 GREEN — ⚠ regenerate it: the sweep's binary
+> false-green is fixed (`diff -a`) and chains have grown. Landed this session
+> (560–570): ① CHAIN-CONSUMER harness support —
 > `tests/nist/chains.tsv` is the ONE chain topology (consumer→producers), `NistDifferentialTests.RunNist` runs
 > predecessors in the consumer's own temp dir, the sweep gained CHAINERR + the `-s` nonempty-dll check → 22
 > programs locked with zero compiler change (560); ② secondary-record SORT keys SR6e + SR6g diag 0874 + the
@@ -55,9 +58,9 @@
 > cross-assembly CALL item), IC113A timeout, IC222A (CALL ON EXCEPTION gated 2002+ yet used by a CCVS-85
 > program — version-targeted investigation), IC233A/234A cross-program GLOBAL USE (designed §5.6 of the
 > declaratives brief), IC207A/227A EXTERNAL FD, IC401M parse; ⑤ SM = COPY support (the whole suite);
-> ⑥ ~~owner sign-off queue~~ DONE (569 — all seven re-baselined + locked; the legacy guard reports them as
-> `LEGACY NONCONFORMANT`, list + citations in `scripts/guard.sh`; ST146A remains the one swept-only exceeds
-> case — a spec-UNDEFINED record-area tail, not a legacy hole — needs its own decision);
+> ⑥ ~~owner sign-off queue~~ DONE (569/570 — all eight re-baselined + locked, ST146A included after the
+> definitive spec search; the legacy guard reports them as `LEGACY DIVERGENT`, list + citations in
+> `scripts/guard.sh`);
 > ⑦ reserved-word tables (scout FAILED on content-filter — re-run; the `RF` find → 0900+ band);
 > ⑧ CALL follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence arm for ON-phrase bodies,
 > OMITTED args + header mode phrases (grammar). Then steps ④–⑦ (EC model → Phase-2 EditionValidator → 2002

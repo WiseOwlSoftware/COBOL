@@ -1088,7 +1088,12 @@ public sealed partial class CSharpEmitter
 
     /// <summary>READ file [INTO x] [AT END …][NOT AT END …] (ISO §14.9.30): on success the record image is
     /// distributed into the FD record area (and, with INTO, MOVEd to the target); the AT END / NOT AT END imperative
-    /// branches on the at-end condition.</summary>
+    /// branches on the at-end condition. After an UNSUCCESSFUL read the record area's content is spec-UNDEFINED
+    /// (§14.9.30 GR18 "unless otherwise specified…"); COBOL.NET's documented refinement is that the area is
+    /// UNCHANGED — the store sits in the success branch only — extending the spec's own rule for every other
+    /// unsuccessful I-O verb (REWRITE GR14 / WRITE GR15 / DELETE GR8 / START GR2 all say "unaffected"). The
+    /// legacy's LOW-VALUE fill there was a byte-engine artifact (ST146A's golden is re-baselined over it,
+    /// DEVLOG 570).</summary>
     private void EmitRead(BoundRead rd)
     {
         var w = _ctx.Writer;

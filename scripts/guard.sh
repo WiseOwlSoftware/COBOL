@@ -119,17 +119,24 @@ RW101A RW102A RW103A RW104A
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF (default)
 export COBOL_SWITCH_1=ON
 
-# Programs whose golden was RE-BASELINED to the ISO-conforming output (owner-approved, DEVLOG 569): the LEGACY
-# compiler is KNOWN-NONCONFORMING on these (process rule #1 — the ISO spec is authority; the legacy is a
-# regression net with holes). The guard still compiles and runs them, but the output diff is EXPECTED and is
+# Programs whose golden was RE-BASELINED to the ISO-conforming output (owner-approved, DEVLOG 569/570): the
+# LEGACY's output legitimately differs — either a verified legacy NON-CONFORMANCE (process rule #1 — the ISO
+# spec is authority; the legacy is a regression net with holes) or a different implementor choice of
+# spec-UNDEFINED behavior. The guard still compiles and runs them, but the output diff is EXPECTED and is
 # reported, never counted as a regression; the greenfield differential suite (NistDifferentialTests) locks the
-# conforming goldens byte-exact. The holes, each verified against the legacy directly:
-#   IX111A          — a failed OPEN fires the file-scoped USE declarative (§14.9.49.4 GR3a); the legacy never fired it
-#   IX210A/214A/215A — the legacy printed FAIL-ROUTINE info lines after PASS rows (unreachable per §14.9.17) and
+# conforming goldens byte-exact. Each divergence, verified against the legacy directly:
+#   IX111A          — HOLE: a failed OPEN fires the file-scoped USE declarative (§14.9.49.4 GR3a); the legacy never fired it
+#   IX210A/214A/215A — HOLE: the legacy printed FAIL-ROUTINE info lines after PASS rows (unreachable per §14.9.17) and
 #                      self-deleted 18 START tests whose spec statuses are '00'/'23' (§14.9.41 GR9 / §9.1.13.5)
-#   NC235A/NC236A   — the legacy's SEARCH fell through to the CCVS DE-LETE paragraph (§14.9.37.4 GR8b / F2)
-#   SQ207M          — the legacy DROPPED the AFTER-ADVANCING-mnemonic WRITE (§14.9.46 GR1 always releases the record)
-LEGACY_NONCONFORMANT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M"
+#   NC235A/NC236A   — HOLE: the legacy's SEARCH fell through to the CCVS DE-LETE paragraph (§14.9.37.4 GR8b / F2)
+#   SQ207M          — HOLE: the legacy DROPPED the AFTER-ADVANCING-mnemonic WRITE (§14.9.46 GR1 always releases the record)
+#   ST146A          — UNDEFINED-CHOICE: its X-card dump READs SQ-FS1 while CLOSED (a CCVS bug — F-D-1 never opens
+#                      it; status '47', §9.1.13.7 item 7) and prints the record area, whose content after an
+#                      unsuccessful READ is spec-UNDEFINED (§14.9.30 GR18 + the Annex catalog item 40). COBOL.NET's
+#                      documented refinement: the area is UNCHANGED (the spec's own pattern for every other
+#                      unsuccessful I-O verb — REWRITE GR14, WRITE GR15, DELETE GR8, START GR2); the legacy's
+#                      LOW-VALUE fill was a byte-engine artifact.
+LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M ST146A"
 
 FAILURES=0
 for test in $NIST_TESTS; do
@@ -161,10 +168,10 @@ for test in $NIST_TESTS; do
         continue
     fi
 
-    # An ISO-re-baselined golden the legacy is known-nonconforming on: compiled and ran above; the diff is
-    # expected (see LEGACY_NONCONFORMANT) — never a regression.
-    case " $LEGACY_NONCONFORMANT " in *" $test "*)
-        echo "  $test: LEGACY NONCONFORMANT (golden = ISO-conforming baseline; expected diff)"
+    # An ISO-re-baselined golden the legacy legitimately diverges from: compiled and ran above; the diff is
+    # expected (see LEGACY_DIVERGENT) — never a regression.
+    case " $LEGACY_DIVERGENT " in *" $test "*)
+        echo "  $test: LEGACY DIVERGENT (golden = ISO-conforming baseline; expected diff)"
         continue ;;
     esac
 

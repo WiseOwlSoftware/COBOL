@@ -187,8 +187,6 @@ public sealed class NistDifferentialTests
     [InlineData("ST137A")]   // NATIVE collating via X-card
     [InlineData("ST139A")]   // COLLATING keyword omitted (leniency)
     [InlineData("ST140A")]
-    // ST146A swept-only: its golden encodes the LEGACY's LOW-VALUE fill in the spec-UNDEFINED tail of a
-    // max-length RETURN INTO record area (the byte tail beyond the returned record is undefined).
     [InlineData("ST147A")]   // NATIVE COLLATING SEQUENCE checks
     // Greened by the KEYED I/O subsystem (DEVLOG 553 — RELATIVE §14.9.30 GR25/GR29 + INDEXED organizations,
     // DELETE §14.9.10, START §14.9.41, INVALID KEY routing §9.1.14, RelativeFile slot store + IndexedFile
@@ -404,10 +402,11 @@ public sealed class NistDifferentialTests
     [InlineData("IX118A")]
     [InlineData("IX119A")]
     [InlineData("IX120A")]
-    // Greened by the OWNER-APPROVED ISO re-baseline (DEVLOG 569): each golden previously fossilized a verified
-    // LEGACY non-conformance and now holds the spec-conforming output (the legacy guard carries these in its
-    // LEGACY_NONCONFORMANT list — reported, never a regression; scripts/guard.sh documents each hole with its
-    // ISO citation). Every produced run has ZERO FAIL rows.
+    // Greened by the OWNER-APPROVED ISO re-baseline (DEVLOG 569/570): each golden previously fossilized either
+    // a verified LEGACY non-conformance or the legacy's different choice of spec-UNDEFINED behavior, and now
+    // holds the conforming output (the legacy guard carries these in its LEGACY_DIVERGENT list — reported,
+    // never a regression; scripts/guard.sh documents each divergence with its ISO citation). Every produced
+    // run has ZERO FAIL rows.
     [InlineData("IX111A")]   // failed OPEN fires the file-scoped USE declarative (§14.9.49.4 GR3a) — 001 OF 001
     [InlineData("IX210A")]   // no FAIL-ROUTINE info after PASS rows (§14.9.17); START statuses '00'/'23'
                              //   (§14.9.41 GR9 / §9.1.13.5) — all 39 tests execute, 039 OF 039
@@ -417,6 +416,10 @@ public sealed class NistDifferentialTests
                              //   §13.18.38 GR7) — 013 OF 013, nothing deleted (the SpecPinned facts, now byte-locked)
     [InlineData("NC236A")]   // SEARCH VARYING another table's index executes (§14.9.37.4 GR8b) — 010 OF 010
     [InlineData("SQ207M")]   // the AFTER-ADVANCING-mnemonic WRITE is released (§14.9.46 GR1), 0-line advance
+    [InlineData("ST146A")]   // its X-card dump READs SQ-FS1 while CLOSED (a CCVS bug — no OPEN; '47',
+                             //   §9.1.13.7 item 7): the area after an unsuccessful READ is spec-UNDEFINED
+                             //   (§14.9.30 GR18); COBOL.NET's refinement = UNCHANGED (the spec's own pattern
+                             //   for every other unsuccessful I-O verb); the legacy LOW-VALUE-filled it
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

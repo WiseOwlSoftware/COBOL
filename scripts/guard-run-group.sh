@@ -51,10 +51,10 @@ for test in $TESTS; do
         continue
     fi
 
-    # An ISO-re-baselined golden the legacy is known-nonconforming on (the list lives in guard.sh; guard-fast
+    # An ISO-re-baselined golden the legacy legitimately diverges from (the list lives in guard.sh; guard-fast
     # exports it): compiled and ran above; the diff is expected — never a regression.
-    case " ${LEGACY_NONCONFORMANT:-} " in *" $test "*)
-        echo "$test: LEGACY NONCONFORMANT (golden = ISO-conforming baseline; expected diff)"
+    case " ${LEGACY_DIVERGENT:-} " in *" $test "*)
+        echo "$test: LEGACY DIVERGENT (golden = ISO-conforming baseline; expected diff)"
         continue ;;
     esac
 

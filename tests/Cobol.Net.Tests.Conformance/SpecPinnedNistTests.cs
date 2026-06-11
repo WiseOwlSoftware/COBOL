@@ -9,7 +9,7 @@ namespace CobolNet.Tests.Conformance;
 /// NIST programs whose original GOLDEN was legacy-tainted — the baselined expected file encoded a LEGACY
 /// non-conformance. Each pin asserts the SPEC-derived outcome with its ISO citation. The goldens below were
 /// RE-BASELINED to the conforming output (owner-approved, DEVLOG 569 — the legacy guard carries them in its
-/// LEGACY_NONCONFORMANT list), so the programs are ALSO byte-locked in <see cref="NistDifferentialTests"/>;
+/// LEGACY_DIVERGENT list), so the programs are ALSO byte-locked in <see cref="NistDifferentialTests"/>;
 /// these pins remain as the citation-bearing documentation of WHY each golden diverges from the legacy.
 /// </summary>
 public sealed class SpecPinnedNistTests
