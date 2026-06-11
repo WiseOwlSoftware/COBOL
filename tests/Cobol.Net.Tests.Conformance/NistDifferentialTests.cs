@@ -397,6 +397,17 @@ public sealed class NistDifferentialTests
     // re-baselined from the legacy run (the pre-substitution golden encoded the legacy's blank placeholder —
     // the ST137A/ST147A precedent, DEVLOG ~293); full legacy guard re-proved ALL GREEN on the change.
     [InlineData("ST144A")]   // MERGE with DESCENDING native collating checks
+    // Greened by chaining behind their TRUE producer (DEVLOG 567): the IX I-O status-test programs consume the
+    // TF024 file IX109A creates (the RECORD-KEY…END-OF-KEY key universe — IX101A also writes TF024 but with a
+    // DIFFERENT key universe, so duplicate-key '22' tests only pass behind IX109A). Byte-green chained.
+    [InlineData("IX110A")]   // duplicate-prime WRITE '22' / REWRITE-of-absent '23' status checks
+    [InlineData("IX114A")]   // OPEN I-O / CLOSE '00' status checks on the pre-existing indexed file
+    [InlineData("IX115A")]
+    [InlineData("IX116A")]
+    [InlineData("IX117A")]
+    [InlineData("IX118A")]
+    [InlineData("IX119A")]
+    [InlineData("IX120A")]
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

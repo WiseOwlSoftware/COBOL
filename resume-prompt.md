@@ -24,29 +24,39 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 559, 2026-06-10 19:00): 90/95 NC + 14 ST + 44 RL/IX + 18 IC + 61 SQ byte-match (226 locked);
-> 776 conformance + 15 unit; frontend/legacy untouched. Landed this session: CALL (557), DECIMAL-POINT
-> COMMA/CURRENCY SIGN (558), and the USE DECLARATIVES subsystem + FILE STATUS fix #0 (559 — the biggest
-> single-wave unlock: 78 programs; group FILE STATUS via FromImage, qualified status names, __IoCheck/__RunUse
-> per §9.1.13.1/§14.9.49 with GR2 guards + GR3/GR5/GR6 scoping, OpenModeOf GR6b being-opened scoping, the
-> sequential READ '1x'-family gate GR24c/d, the SQ212A termination-tail accommodation; IX111A now EXCEEDS its
-> golden — legacy hole, swept-only; diag 0897/0898). **RESUME AT: ① RL/IX + ST CHAIN-CONSUMER harness ordering**
-> (`rlix-diffs-brief.md` + `st-chain-brief.md` — 13 RL/IX programs incl. the 57/58 cluster + IX102A timeout are
-> HARNESS artifacts, byte-GREEN behind their producer chains; zero compiler work — wire chains into
-> NistDifferentialTests + the sweep), ② SQ residue (17 DIFFs + 5 RUNERRs untriaged; SQ212A = variable-length
-> sequential WRITE/REWRITE → status 44 [the legacy needed the same fix, DEVLOG 311]; ST144A DIFF 148), ③ NC105A
-> last rows (`nc105a-brief.md`), ④ reserved-word tables (scout FAILED on content-filter — re-run; the `RF` find
-> → 0900+ band). IC residuals: IC207A/227A DIFF (227A = EXTERNAL FD shared connectors), IC113A timeout, IC222A
-> CMPL_FAIL, IC233A/234A = cross-program GLOBAL USE (designed §5.6 of the declaratives brief, post-CALL wave).
-> CALL follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence arm for ON-phrase bodies,
-> OMITTED args + header mode phrases (grammar), cross-assembly dynamic CALL (pre-G8). Then steps ④–⑦. Apply
-> agent edits with the index-based python pattern; the Bash transport mangles backslash escapes — never inline
-> them in heredoc scripts. ⚠ The sweep false-greens binary-content diffs and mislabels failed backend compiles
-> as "hostpolicy RUNERR" — trust the locked suite.
-> **SESSION ARTIFACTS (off-repo, E:\tmp):** scout briefs in `/e/tmp/verb-briefs/`; sweep infra + the CURRENT
-> baseline census (`census-decl.txt`, 361 programs, run with `COBOL_SWITCH_1=ON` exported) in `/e/tmp/nc-sweep/`
-> (driver: `xargs -P 14 -I {} bash sweep-one.sh {} < all-census-list2.txt`); a frozen CLI at commit e591da2 in
-> `/e/tmp/cobolnet-frozen/` (see its VERSION.txt) for read-only scout agents. Memory
+> **STATE (DEVLOG 566, 2026-06-10 21:00): 236 NIST programs locked (90/95 NC + 24/29 ST + 49 RL/IX + 18 IC +
+> 63 SQ + OBSQ4A/5A); 809 conformance + 15 unit; FULL legacy guard re-proved ALL GREEN on the one shared-
+> frontend change (the XXXXX064 X-card). Landed this session (560–566): ① CHAIN-CONSUMER harness support —
+> `tests/nist/chains.tsv` is the ONE chain topology (consumer→producers), `NistDifferentialTests.RunNist` runs
+> predecessors in the consumer's own temp dir, the sweep gained CHAINERR + the `-s` nonempty-dll check → 22
+> programs locked with zero compiler change (560); ② secondary-record SORT keys SR6e + SR6g diag 0874 + the
+> ONE record-area accessor `FileModel.AreaRecord` (§13.4.2 — sequential READ, both KeyedIo sites, sort RETURN,
+> WRITE-filename fallback) → ST111A/ST124A (561); ③ I-O-CONTROL SAME RECORD AREA → synthesized cross-file
+> REDEFINES (§12.4.6.4 GR2; Formats 1/3 conformant no-ops; SR2–SR11 staged to EditionValidator) → ST131A/
+> IX205A/IX206A (562); ④ variable-length records END-TO-END §13.18.43 — FD RECORD VARYING/m-TO-n binding,
+> GR13a DEPENDING length on WRITE/REWRITE, GR15 read-back stores, '44' GR14/GR16/GR20 checks, 4-byte-LE length
+> framing on varying connectors, GR8a ODO-minimum record sizes, OPEN I-O ReadWrite + logical-offset rewrites,
+> the LAST-trivial-exit termination-tail fix → SQ212A/SQ228A/RL206A/RL211A/IX106A (563); ⑤ qualified
+> RECORD/ALTERNATE KEY operands (§8.4.2.2 `FindQualified`) → IX215A compiles, all 39 PASS (564); ⑥ no 0-byte
+> dll on failed emit + the Tier-C record fence → hostpolicy-phantom class retired, SQ203A locked (565);
+> ⑦ XXXXX064 + ST144A re-baselined from the legacy (566).
+> **RESUME AT: ① the fresh census** (`/e/tmp/nc-sweep/census-current.txt` — regenerate if absent: the driver
+> below; chain-aware now) — triage the remaining DIFFs/RUNERRs by family and repeat this session's pattern
+> (spec → fix → lock → commit); known residue going in: NC105A last rows (`nc105a-brief.md`), IC207A/227A DIFF
+> (227A = EXTERNAL FD shared connectors), IC113A timeout, IC222A CMPL_FAIL, IC233A/234A cross-program GLOBAL
+> USE (designed §5.6 of the declaratives brief), SM suite = COPY support, the four Tier-C COMP-record SORTs
+> (ST108A/127A/133A/134A — the §4.2 byte-island codec, now honestly loud), SQ204A-family leftovers; ② OWNER
+> SIGN-OFF QUEUE: IX210A/IX214A/IX215A exceed their goldens (the C9 PRINT-DETAIL legacy quirk — produced
+> outputs have zero FAIL rows; re-baseline like ST144A on approval), IX111A + NC235A/NC236A same class;
+> ③ reserved-word tables (scout FAILED on content-filter — re-run; the `RF` find → 0900+ band); ④ CALL
+> follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence arm for ON-phrase bodies, OMITTED
+> args + header mode phrases (grammar), cross-assembly dynamic CALL (pre-G8). Then steps ④–⑦ (EC model →
+> Phase-2 EditionValidator → 2002 OO/UDF → 2014 JSON/XML → 2023 → G8). ⚠ Apply agent edits with the
+> index-based python pattern; the Bash transport mangles backslash escapes — never inline them in heredocs.
+> **SESSION ARTIFACTS (off-repo, E:\tmp):** scout briefs in `/e/tmp/verb-briefs/`; sweep infra + censuses in
+> `/e/tmp/nc-sweep/` (driver: `xargs -P 14 -I {} bash sweep-one.sh {} < all-census-list2.txt` — sweep-one.sh
+> is now chain-aware via `tests/nist/chains.tsv` and judges compiles by NON-EMPTY dll); a frozen CLI at commit
+> e591da2 in `/e/tmp/cobolnet-frozen/` (pre-560; rebuild or use the live CLI for new scouting). Memory
 > `project_greenfield_state.md` mirrors this map.**
 >
 > > **STATE (DEVLOG 552, 2026-06-10 17:30): 88/95 NC byte-match + 14 ST locked; 605 conformance + 15 unit; legacy
