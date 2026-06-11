@@ -333,6 +333,35 @@ public sealed class NistDifferentialTests
     [InlineData("SQ229A")]
     [InlineData("SQ230A")]
     [InlineData("SQ302M")]
+    // Greened by chain-consumer harness support (DEVLOG 560 — tests/nist/chains.tsv + predecessor runs in RunNist):
+    // these CCVS programs CONSUME a shared TF### file that predecessor programs create, so in an isolated directory
+    // their first OPEN INPUT of the absent non-OPTIONAL file sets I-O status '35' (ISO §9.1.13.6) and the whole
+    // report cascades FAIL. Run behind their producer chains they are byte-green with NO compiler change (verified
+    // against the frozen scout build — st-chain-brief.md §5a / rlix-diffs-brief.md C1, 2026-06-10).
+    [InlineData("ST103A")]   // verifies TF002 from ST102A's SORT USING/GIVING (chain ST101A→ST102A→ST103A)
+    [InlineData("ST105A")]   // SORT USING the TF001 that ST104A builds (input-side SORT verification)
+    [InlineData("ST107A")]   // verifies ST106A's SORT GIVING output
+    [InlineData("ST114M")]   // verifies the 3-reel build+sort (ST112M→ST113M→ST114M)
+    [InlineData("ST117A")]   // verifies the 204-record BIG-SORT (ST115A→ST116A→ST117A)
+    [InlineData("ST121A")]   // verifies the double SORT USING/GIVING (ST119A→ST120A→ST121A)
+    [InlineData("ST126A")]   // MERGE-verifies ST125A's three GIVING files (TF001+TF002+TF003)
+    [InlineData("RL102A")]   // REWRITEs the 100 relative records RL101A creates in TF021
+    [InlineData("RL103A")]   // verifies RL102A's rewrites (chain RL101A→RL102A→RL103A)
+    [InlineData("RL109A")]   // TF061 consumer behind RL108A
+    [InlineData("RL110A")]   // verifies RL109A's rewrites (chain RL108A→RL109A→RL110A)
+    [InlineData("RL202A")]   // TF021 consumer behind RL201A
+    [InlineData("RL203A")]   // verifies RL202A's rewrites (chain RL201A→RL202A→RL203A)
+    [InlineData("RL207A")]   // TF021 consumer behind RL206A (RL206A's own golden still DIFFs — the FD RECORD
+    [InlineData("RL208A")]   //   VARYING gap — but its run produces exactly what these consumers verify)
+    [InlineData("RL213A")]   // OPTIONAL shared-assign consumer (allow-list ("RL213A","021")) behind RL212A
+    [InlineData("IX102A")]   // indexed TF024 consumer behind IX101A — the swept "timeout" was chain-induced:
+                             //   with the producer file absent every READ returns a logic status (not '1x'/'2x')
+                             //   and the CCVS GO-TO retrieval loop never exits
+    [InlineData("IX103A")]   // verifies IX102A's updates (chain IX101A→IX102A→IX103A)
+    [InlineData("IX202A")]   // TF024 consumer behind IX201A
+    [InlineData("IX203A")]   // verifies IX202A's updates (chain IX201A→IX202A→IX203A)
+    [InlineData("OBSQ4A")]   // obsolete-sequential consumer of OBSQ3A's TF004/8/9/10 outputs
+    [InlineData("OBSQ5A")]   // consumes OBSQ3A+OBSQ4A outputs (chain OBSQ3A→OBSQ4A→OBSQ5A)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();
@@ -344,9 +373,22 @@ public sealed class NistDifferentialTests
         Assert.Equal(Normalize(File.ReadAllText(goldenPath)), output);
     }
 
-    /// <summary>Compile a NIST program (with CCVS X-card preprocessing) and run it in an isolated temp directory,
-    /// returning the program's output read from its print file (the CCVS report) — or stdout for a DISPLAY-only
-    /// program — normalized to the NIST acceptance basis.</summary>
+    /// <summary>Producer→consumer chains (<c>tests/nist/chains.tsv</c> — the ONE chain source of truth, shared with
+    /// the off-repo sweep; never re-encode the topology elsewhere). A chain consumer's first op on the shared TF###
+    /// file is OPEN INPUT/I-O of a file its predecessors create, so <see cref="RunNist"/> compiles and runs the
+    /// predecessors (in order) inside the consumer's OWN isolated directory first — deterministic start-clean, zero
+    /// cross-test coupling under xunit parallelism.</summary>
+    private static readonly Lazy<IReadOnlyDictionary<string, string[]>> Chains = new(() =>
+        File.ReadLines(Path.Combine(RepoRoot(), "tests", "nist", "chains.tsv"))
+            .Select(line => line.Split('#')[0].Trim())
+            .Where(line => line.Length > 0)
+            .Select(line => line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+            .ToDictionary(parts => parts[0], parts => parts[1..]));
+
+    /// <summary>Compile a NIST program (with CCVS X-card preprocessing) and run it in an isolated temp directory —
+    /// chain predecessors first, when <c>chains.tsv</c> lists any — returning the program's output read from its
+    /// print file (the CCVS report) — or stdout for a DISPLAY-only program — normalized to the NIST acceptance
+    /// basis.</summary>
     private static (bool ok, string output, string detail) RunNist(string root, string testName)
     {
         string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Nist_" + Guid.NewGuid().ToString("N")[..8]);
@@ -357,22 +399,43 @@ public sealed class NistDifferentialTests
             if (!File.Exists(src)) return (false, "", $"source not found: {src}");
             string dll = Path.Combine(dir, testName + ".dll");
 
+            // Guard parity (scripts/guard.sh:120): the CCVS-85 switch programs (NC174A/NC254A) run with external
+            // SWITCH-1 ON, SWITCH-2 unset — their goldens assume exactly that.
+            var env = new Dictionary<string, string> { ["COBOL_SWITCH_1"] = "ON" };
+
+            // Chain predecessors: each producer compiles from its OWN .cob and runs in THIS directory so the
+            // consumer's shared TF### input files exist. Chains are self-sufficient in an isolated dir — every
+            // chain's first member re-creates its file via OPEN OUTPUT — so the legacy guard's cross-chain
+            // ordering constraints do not carry over.
+            bool chained = Chains.Value.TryGetValue(testName, out var predecessors);
+            if (chained)
+                foreach (string p in predecessors!)
+                {
+                    string pSrc = Path.Combine(root, "tests", "nist", "programs", p + ".cob");
+                    string pDll = Path.Combine(dir, p + ".dll");
+                    var pResult = CompilerDriver.Compile(new CompilerDriver.Options(pSrc, pDll, NistTestName: p, DialectLevel: 85));
+                    if (!pResult.Success)
+                        return (false, "", $"[chain {p}] compile {pResult.Status}: {string.Join("\n", pResult.Errors)}");
+                    string pDat = Path.Combine(root, "tests", "nist", "data", p + ".dat");
+                    var (pOk, _, pDetail) = CutRunner.Run(pDll, dir, File.Exists(pDat) ? pDat : null, env);
+                    if (!pOk) return (false, "", $"[chain {p}] run exit non-zero: {pDetail}");
+                }
+
             var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, NistTestName: testName, DialectLevel: 85));
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
             string dat = Path.Combine(root, "tests", "nist", "data", testName + ".dat");
-            // Guard parity (scripts/guard.sh:120): the CCVS-85 switch programs (NC174A/NC254A) run with external
-            // SWITCH-1 ON, SWITCH-2 unset — their goldens assume exactly that.
-            var env = new Dictionary<string, string> { ["COBOL_SWITCH_1"] = "ON" };
             var (runOk, stdout, runDetail) = CutRunner.Run(dll, dir, File.Exists(dat) ? dat : null, env);
             if (!runOk) return (false, "", $"[run] exit non-zero: {runDetail}");
 
             // The CCVS report lands in the print file (assign target → <lowercased>.txt in the run dir); a
-            // DISPLAY-only program produces no print file and is read from stdout — exactly the guard's discovery order.
+            // DISPLAY-only program produces no print file and is read from stdout — exactly the guard's discovery
+            // order. In a chain directory the any-*.txt fallback would pick a predecessor's report or a tf###
+            // data file, so it is disabled there (the consumer's print file is found by exact name only).
             string printFile = Path.Combine(dir, testName.ToLowerInvariant() + ".txt");
             string raw = File.Exists(printFile) ? File.ReadAllText(printFile)
-                : Directory.EnumerateFiles(dir, "*.txt").FirstOrDefault() is { } any ? File.ReadAllText(any)
+                : !chained && Directory.EnumerateFiles(dir, "*.txt").FirstOrDefault() is { } any ? File.ReadAllText(any)
                 : stdout;
             return (true, Normalize(raw), runDetail);
         }

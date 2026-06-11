@@ -1,0 +1,49 @@
+# NIST CCVS producer->consumer chains - the ONE chain source of truth (never re-encode this topology elsewhere).
+# One line per CONSUMER: <consumer> <pred1> <pred2> ...  (predecessors in run order; '#' starts a comment).
+# A consumer's first op on the shared TF### file is OPEN INPUT/I-O of a file its predecessors create, so the
+# harness must compile+run the predecessors in the consumer's OWN working directory first (isolated, start-clean;
+# every chain's FIRST member re-creates its TF### via OPEN OUTPUT, so chains are self-sufficient - the legacy
+# guard's cross-chain "MUST stay consecutive" ordering constraints do not apply here).
+# Derived from the per-unit X-card ASSIGN map (scout brief st-chain-brief.md SS2, 2026-06-10); both the
+# differential harness (NistDifferentialTests) and the sweep (sweep-one.sh) read THIS file.
+# ST
+ST102A ST101A
+ST103A ST101A ST102A
+ST105A ST104A
+ST107A ST106A
+ST110A ST109A
+ST111A ST109A ST110A
+ST113M ST112M
+ST114M ST112M ST113M
+ST116A ST115A
+ST117A ST115A ST116A
+ST120A ST119A
+ST121A ST119A ST120A
+ST123A ST122A
+ST124A ST122A ST123A
+ST126A ST125A
+# SM (blocked on COPY support)
+SM102A SM101A
+SM104A SM103A
+SM202A SM201A
+SM204A SM203A
+# SQ / OBSQ
+SQ203A SQ202A
+OBSQ4A OBSQ3A
+OBSQ5A OBSQ3A OBSQ4A
+# IX
+IX102A IX101A
+IX103A IX101A IX102A
+IX202A IX201A
+IX203A IX201A IX202A
+# RL
+RL102A RL101A
+RL103A RL101A RL102A
+RL109A RL108A
+RL110A RL108A RL109A
+RL117A RL107A
+RL202A RL201A
+RL203A RL201A RL202A
+RL207A RL206A
+RL208A RL206A RL207A
+RL213A RL212A
