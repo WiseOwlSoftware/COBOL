@@ -48,16 +48,21 @@ public sealed class FileModel
     /// other shares it (synthesized REDEFINES).</summary>
     public List<DataItem> Records { get; } = [];
 
-    /// <summary>The RECORD KEY data-name as written (ISO §12.4.5.12), resolved post-build to <see cref="RecordKeyItem"/>;
-    /// null when absent (the clause is required for ORGANIZATION INDEXED).</summary>
+    /// <summary>The RECORD KEY base data-name as written (ISO §12.4.5.12), resolved post-build to
+    /// <see cref="RecordKeyItem"/>; null when absent (the clause is required for ORGANIZATION INDEXED).</summary>
     public string? RecordKeyName { get; set; }
+
+    /// <summary>The RECORD KEY reference's IN/OF qualifier words, written order (innermost first) — identically
+    /// named key items under different areas of the record are legal and selected by qualification (ISO
+    /// §8.4.2.2; IX215A's three IX-FD3-KEY items). Empty = unqualified.</summary>
+    public IReadOnlyList<string> RecordKeyQualifiers { get; set; } = [];
 
     /// <summary>The resolved prime RECORD KEY item — a data item within the file's record (ISO §12.4.5.12 SR2).</summary>
     public DataItem? RecordKeyItem { get; set; }
 
-    /// <summary>The ALTERNATE RECORD KEY clauses as written, in declaration order: data-name + WITH DUPLICATES
-    /// (ISO §12.4.5.6); resolved post-build into <see cref="AlternateKeys"/>.</summary>
-    public List<(string Name, bool Duplicates)> AlternateKeyNames { get; } = [];
+    /// <summary>The ALTERNATE RECORD KEY clauses as written, in declaration order: base data-name + IN/OF
+    /// qualifiers + WITH DUPLICATES (ISO §12.4.5.6); resolved post-build into <see cref="AlternateKeys"/>.</summary>
+    public List<(string Name, IReadOnlyList<string> Qualifiers, bool Duplicates)> AlternateKeyNames { get; } = [];
 
     /// <summary>The resolved alternate keys, in declaration order (the runtime key index is the list index).</summary>
     public List<(DataItem Item, bool Duplicates)> AlternateKeys { get; } = [];

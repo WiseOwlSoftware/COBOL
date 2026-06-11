@@ -410,4 +410,62 @@ public sealed class KeyedIoDifferentialTests
                 CLOSE KFIL.
                 STOP RUN.
             """);
+
+    /// <summary>§12.4.5.12.3 SR2 / §12.4.5.6 SR2 + §8.4.2.2: the RECORD KEY / ALTERNATE RECORD KEY operands may
+    /// be IN/OF-QUALIFIED — identically named key items under different areas of the record are legal and
+    /// disambiguated by qualification (the IX215A shape; a glued GetText lookup could never resolve them).
+    /// START's key operand resolves through the same qualified reference machinery (§14.9.41 SR6 then matches
+    /// by storage position).</summary>
+    [Fact]
+    public void Indexed_QualifiedRecordAndAlternateKeys_ResolveByQualifier()
+        => AssertSameAsLegacy("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. KIQUAL1.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT KFIL ASSIGN TO "KIQUAL1F"
+                    ORGANIZATION IS INDEXED
+                    ACCESS MODE IS DYNAMIC
+                    RECORD KEY IS THE-KEY IN PRIME-AREA
+                    ALTERNATE RECORD KEY IS THE-KEY OF ALT-AREA WITH DUPLICATES
+                    FILE STATUS IS WS-FS.
+            DATA DIVISION.
+            FILE SECTION.
+            FD KFIL.
+            01 KFIL-REC.
+               02 PRIME-AREA.
+                  03 THE-KEY PIC X(4).
+               02 ALT-AREA.
+                  03 THE-KEY PIC X(4).
+               02 PAYLOAD PIC X(8).
+            WORKING-STORAGE SECTION.
+            01 WS-FS PIC XX.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                OPEN OUTPUT KFIL.
+                MOVE "K001" TO THE-KEY IN PRIME-AREA.
+                MOVE "A902" TO THE-KEY OF ALT-AREA.
+                MOVE "PAYLOAD1" TO PAYLOAD.
+                WRITE KFIL-REC.
+                DISPLAY "W1 FS=" WS-FS.
+                MOVE "K002" TO THE-KEY IN PRIME-AREA.
+                MOVE "A901" TO THE-KEY OF ALT-AREA.
+                MOVE "PAYLOAD2" TO PAYLOAD.
+                WRITE KFIL-REC.
+                DISPLAY "W2 FS=" WS-FS.
+                CLOSE KFIL.
+                OPEN INPUT KFIL.
+                MOVE "K002" TO THE-KEY IN PRIME-AREA.
+                READ KFIL INVALID KEY DISPLAY "RND INVALID".
+                DISPLAY "RND FS=" WS-FS " REC=" KFIL-REC.
+                MOVE "K001" TO THE-KEY IN PRIME-AREA.
+                START KFIL KEY IS NOT LESS THAN THE-KEY IN PRIME-AREA
+                    INVALID KEY DISPLAY "START INVALID".
+                DISPLAY "START FS=" WS-FS.
+                READ KFIL NEXT AT END DISPLAY "EOF".
+                DISPLAY "RN FS=" WS-FS " REC=" KFIL-REC.
+                CLOSE KFIL.
+                STOP RUN.
+            """);
 }

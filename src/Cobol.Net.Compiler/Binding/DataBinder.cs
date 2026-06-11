@@ -218,14 +218,33 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // would otherwise glue its qualifier into the lookup key (the RENAMES capture pattern).
                 else if (clauses.fileStatusClause()?.dataReference() is { } fs)
                     file.FileStatusName = fs.cobolWord()?.GetText() ?? fs.GetText();
-                else if (clauses.recordKeyClause()?.dataReference() is { } rk) file.RecordKeyName = rk.GetText();   // ISO §12.4.5.12
+                else if (clauses.recordKeyClause()?.dataReference() is { } rk)                                       // ISO §12.4.5.12
+                    (file.RecordKeyName, file.RecordKeyQualifiers) = KeyReference(rk);
                 else if (clauses.alternateKeyClause() is { } ak)                                                     // ISO §12.4.5.6
-                    file.AlternateKeyNames.Add((ak.dataReference().GetText(), ak.DUPLICATES() is not null));
-                else if (clauses.relativeKeyClause()?.dataReference() is { } rlk) file.RelativeKeyName = rlk.GetText();   // ISO §12.4.5.13
+                {
+                    var (an, aq) = KeyReference(ak.dataReference());
+                    file.AlternateKeyNames.Add((an, aq, ak.DUPLICATES() is not null));
+                }
+                else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
+                    file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13 SR3 — outside the record
             }
             Files.Add(file);
             FilesByName[name] = file;
         }
+    }
+
+    /// <summary>A FILE-CONTROL key reference: the base word plus its IN/OF qualifier words in written order
+    /// (innermost first, ISO §8.4.2.2). A raw <c>GetText()</c> would glue qualifiers into the lookup key
+    /// (<c>IX-FD3-KEYINIX-FD3-RECKEY-AREA</c>) and the name could never resolve — the FILE STATUS / RENAMES
+    /// capture pattern, applied to keys.</summary>
+    private static (string Base, IReadOnlyList<string> Quals) KeyReference(Core.DataReferenceContext dref)
+    {
+        string baseWord = dref.cobolWord()?.GetText() ?? dref.GetText();
+        var quals = new List<string>();
+        foreach (var s in dref.dataReferenceSuffix())
+            if (s.qualification()?.cobolWord() is { } q)
+                quals.Add(q.GetText());
+        return (baseWord, quals);
     }
 
     /// <summary>Bind the FILE SECTION's FD records into the storage forest (they emit as Program fields, like
@@ -343,14 +362,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (file.FileStatusName is { } sn && ByName.TryGetValue(sn, out var list) && list.Count > 0)
                 file.FileStatusItem = list[0];
             // Keyed organizations: RECORD KEY / ALTERNATE RECORD KEY name items WITHIN the file's record
-            // descriptions (ISO §12.4.5.12 SR2 / §12.4.5.6 SR2); RELATIVE KEY is OUTSIDE the record
-            // (ISO §12.4.5.13 SR3) — a plain name lookup.
-            DataItem? InRecords(string keyName) =>
-                file.Records.Select(r => FindDescendantOrSelf(r, keyName)).FirstOrDefault(x => x is not null)
-                ?? (ByName.TryGetValue(keyName, out var l) && l.Count > 0 ? l[0] : null);
-            if (file.RecordKeyName is { } rk) file.RecordKeyItem = InRecords(rk);
-            foreach (var (altName, dups) in file.AlternateKeyNames)
-                if (InRecords(altName) is { } alt)
+            // descriptions (ISO §12.4.5.12 SR2 / §12.4.5.6 SR2), possibly IN/OF-qualified (§8.4.2.2 — same-named
+            // keys under different areas, IX215A); RELATIVE KEY is OUTSIDE the record (ISO §12.4.5.13 SR3) —
+            // a plain name lookup.
+            DataItem? InRecords(string keyName, IReadOnlyList<string> quals) =>
+                file.Records.Select(r => FindQualified(r, keyName, quals)).FirstOrDefault(x => x is not null)
+                ?? (quals.Count == 0 && ByName.TryGetValue(keyName, out var l) && l.Count > 0 ? l[0] : null);
+            if (file.RecordKeyName is { } rk) file.RecordKeyItem = InRecords(rk, file.RecordKeyQualifiers);
+            foreach (var (altName, altQuals, dups) in file.AlternateKeyNames)
+                if (InRecords(altName, altQuals) is { } alt)
                     file.AlternateKeys.Add((alt, dups));
             if (file.RelativeKeyName is { } rl && ByName.TryGetValue(rl, out var rlist) && rlist.Count > 0)
                 file.RelativeKeyItem = rlist[0];
@@ -814,5 +834,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var c in root.Children)
             if (FindDescendantOrSelf(c, name) is { } f) return f;
         return null;
+    }
+
+    /// <summary>Find a (possibly qualified) item within a record subtree: the base name matches the item and
+    /// every IN/OF qualifier matches SOME ancestor, in written (innermost→outermost) order with skips allowed —
+    /// ISO §8.4.2.2 qualification. Identically-named items under different areas are legal and disambiguated by
+    /// their qualifiers (IX215A's three same-named keys).</summary>
+    private static DataItem? FindQualified(DataItem root, string name, IReadOnlyList<string> quals)
+    {
+        if (string.Equals(root.CobolName, name, StringComparison.OrdinalIgnoreCase) && QualsMatch(root, quals))
+            return root;
+        foreach (var c in root.Children)
+            if (FindQualified(c, name, quals) is { } f) return f;
+        return null;
+
+        static bool QualsMatch(DataItem item, IReadOnlyList<string> quals)
+        {
+            int qi = 0;
+            for (DataItem? a = item.Parent; a is not null && qi < quals.Count; a = a.Parent)
+                if (string.Equals(a.CobolName, quals[qi], StringComparison.OrdinalIgnoreCase)) qi++;
+            return qi == quals.Count;
+        }
     }
 }
