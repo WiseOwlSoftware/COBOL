@@ -37,6 +37,16 @@ licenses the refinement; (b) the legacy's LOW-VALUE fill is a byte-engine artifa
 store sits in the success branch by construction) and PINNED by the new
 `ReadNotOpen_Status47_AtEndNotTaken_RecordAreaUnchanged` spec test ('47' + no AT END + area intact).
 
+**Owner challenged "NIST would have fixed it if unintentional" — the corpus itself settles intent:** ST115A
+(same suite, same 4.2 release) carries the IDENTICAL column-7-X dump idiom and DOES open the file first
+(`XFILE-1-DUMP-INIT. / X OPEN INPUT SQ-FS1.` before its read loop), as does ST146A's own second half (F-D-3
+opens SQ-FS2). ST146A's F-D-1 deviates from the suite's own established idiom — an omission, not a design. Why
+it survived: the X-population is the CCVS's site-optional DEBUG aid — free-form dump text with no PASS/FAIL
+verdicts, never part of the scored validation summary (the verdicts, which WERE scored, are identical across
+both compilers here) — and CCVS85 4.2 (Apr 1993, per every program's header) was the FINAL release before
+NIST wound the COBOL validation program down, so no maintenance pipeline ever looked again. Even had they
+looked, the dump's content is spec-undefined ('47' + GR18) — there was no "right" output to score against.
+
 **Mechanics:** ST146A's golden re-baselined from the verified greenfield run (zero FAIL*, 004 OF 004; the one
 hunk is the dump) and locked as a differential row (**273 NIST**). The guard list is renamed
 `LEGACY_NONCONFORMANT` → **`LEGACY_DIVERGENT`** — more accurate now that it carries two classes, each
