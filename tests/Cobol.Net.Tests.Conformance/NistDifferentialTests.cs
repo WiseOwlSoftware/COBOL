@@ -392,6 +392,11 @@ public sealed class NistDifferentialTests
     [InlineData("RL206A")]   // relative RECORD VARYING 120..140 DEPENDING: per-record lengths round-trip
     [InlineData("SQ203A")]   // OPTIONAL "FILE PRESENT" consumer behind SQ202A (chained; greened by the
                              //   DEVLOG-559 group FILE STATUS store — its swept CS0029 label was stale)
+    // Greened by the XXXXX064 X-card substitution (DEVLOG 566): the DESCENDING native collating sequence as a
+    // 51-char literal (the mirror of XXXXX063), substituted in the SHARED NistPreprocessor; ST144A's golden
+    // re-baselined from the legacy run (the pre-substitution golden encoded the legacy's blank placeholder —
+    // the ST137A/ST147A precedent, DEVLOG ~293); full legacy guard re-proved ALL GREEN on the change.
+    [InlineData("ST144A")]   // MERGE with DESCENDING native collating checks
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

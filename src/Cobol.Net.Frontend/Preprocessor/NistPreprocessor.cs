@@ -88,6 +88,17 @@ public static class NistPreprocessor
             source, @"(?<![A-Za-z0-9])XXXXX063(?![A-Za-z0-9])",
             _ => "\" $$()*+,-./0123456789;<=>ABCDEFGHIJKLMNOPQRSTUVWXYZ\"");
 
+        // XXXXX064: the implementor's native collating sequence in DESCENDING order as a 51-character
+        // nonnumeric literal — the exact character mirror of XXXXX063 (ST144A's own source comments carry this
+        // ASCII sample). ST144A merges pre-collated inputs and checks the merged key order against it; left
+        // unsubstituted the expected-order items held the raw token text (the pre-substitution golden encoded
+        // the legacy's blank placeholder — ST144A re-baselined with this change, the ST137A/ST147A precedent,
+        // DEVLOG ~293). Token-boundary anchored + MatchEvaluator exactly as for 063 (IX106A embeds "…064…"
+        // inside a baselined test-data literal; '$' must not act as a replacement template).
+        source = System.Text.RegularExpressions.Regex.Replace(
+            source, @"(?<![A-Za-z0-9])XXXXX064(?![A-Za-z0-9])",
+            _ => "\"ZYXWVUTSRQPONMLKJIHGFEDCBA>=<;9876543210/.-,+*)($$ \"");
+
         // Data-file ASSIGN targets shared across run units by X-card number, mapped (per SELECT…period
         // entry, after COPY expansion) to one "TF###" literal so a producer's output is read by the matching
         // consumer in a shared directory:
