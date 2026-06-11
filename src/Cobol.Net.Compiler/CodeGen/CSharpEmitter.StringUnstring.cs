@@ -194,7 +194,7 @@ public sealed partial class CSharpEmitter
         switch (target.Item.Pic)
         {
             case { Category: PicCategory.NumericEdited, EditMask: { } mask }:
-                w.Line(target.Write($"CobolEdit.Format(CobolNum.FromAlphanumeric({valueExpr}), 0, {CsLiteral(mask)})"));
+                w.Line(target.Write($"CobolEdit.Format(CobolNum.FromAlphanumeric({valueExpr}), 0, {CsLiteral(mask)}{EditCfg()})"));
                 return;
             case { Category: PicCategory.Alphanumeric, EditMask: { } amask }:
                 w.Line(target.Write($"CobolEdit.FormatAlphanumeric({valueExpr}, {CsLiteral(amask)})"));

@@ -324,6 +324,21 @@ public sealed partial class CSharpEmitter
     {
         if (!target.Item.IsCharacterImage)
         {
+            // A group MOVE is a content copy of the underlying representation, without conversion (ISO
+            // §14.9.25.4 GR4 — both operands treated as elementary alphanumeric). When the source is a group
+            // whose flattened leaf LAYOUT is positionally identical to the receiver's (same usage / digits /
+            // scale / sign / width leaf-by-leaf — NC107A's all-COMP U5 → U9), that representation copy is
+            // exactly a memberwise leaf copy — no byte substrate needed. Anything else stays the genuine
+            // Tier-C mixed-usage byte island (deferred, loud).
+            if (source is BoundFieldOperand { Place.Item: { IsGroup: true } srcGroup }
+                && AlignedLeafPairs(srcGroup, target.Item) is { } pairs
+                && pairs.Select(p => (S: _refs.ResolveItem(p.Src), T: _refs.ResolveItem(p.Tgt))).ToList()
+                    is { } resolved && resolved.All(r => r.S is not null && r.T is not null))
+            {
+                foreach (var (s, t) in resolved)
+                    _ctx.Writer.Line(t!.Write(s!.Read()));
+                return;
+            }
             _ctx.Writer.Line(LoudStmt($"MOVE to mixed-usage group '{target.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
             return;
         }
@@ -347,6 +362,49 @@ public sealed partial class CSharpEmitter
             RedefViewPlace => target.Write(image),
             _ => $"{target.Read()}.FromImage({image});",
         });
+    }
+
+    /// <summary>The positionally-paired leaves of two groups whose flattened layouts are IDENTICAL — each pair
+    /// shares usage, digit count, scale, sign and storage shape, and neither group involves OCCURS, REDEFINES,
+    /// RENAMES or reference ambiguity (so <see cref="ReferenceResolver.ResolveItem"/> is exact). Null when the
+    /// layouts differ — the caller falls back to the Tier-C loud guard. (ISO §14.9.25.4 GR4: the group move
+    /// copies the underlying representation; identical layouts make that a memberwise copy.)</summary>
+    private static List<(DataItem Src, DataItem Tgt)>? AlignedLeafPairs(DataItem source, DataItem target)
+    {
+        // An OCCURS anywhere on the ancestor chain means the group reference is an ELEMENT (needs subscripts
+        // this item-level resolution cannot supply) — not this fast path.
+        for (var a = source; a is not null; a = a.Parent) if (a.Occurs is not null) return null;
+        for (var a = target; a is not null; a = a.Parent) if (a.Occurs is not null) return null;
+        var src = new List<DataItem>();
+        var tgt = new List<DataItem>();
+        if (!Flatten(source, src) || !Flatten(target, tgt) || src.Count != tgt.Count || src.Count == 0)
+            return null;
+        for (int i = 0; i < src.Count; i++)
+        {
+            var (a, b) = (src[i].Pic!, tgt[i].Pic!);
+            if (a.Usage != b.Usage || a.Category != b.Category || a.Digits != b.Digits || a.Scale != b.Scale
+                || a.Signed != b.Signed || a.Length != b.Length || src[i].StoreAsImage != tgt[i].StoreAsImage)
+                return null;
+        }
+        return src.Zip(tgt).ToList();
+
+        // Declaration-order leaves; false when the subtree has a shape the pairing cannot prove equivalent.
+        static bool Flatten(DataItem item, List<DataItem> leaves)
+        {
+            if (item.Occurs is not null || item.RedefinesTargetName is not null
+                || item.Renames66.Count > 0 || item.Class is not null)
+                return false;
+            if (!item.IsGroup)
+            {
+                if (item.Pic is null) return false;
+                leaves.Add(item);
+                return true;
+            }
+            foreach (var c in item.Children)
+                if (!Flatten(c, leaves))
+                    return false;
+            return true;
+        }
     }
 
     /// <summary>True when a MOVE source is a NUMERIC operand (a numeric literal/expression, figurative ZERO, or a
@@ -383,12 +441,12 @@ public sealed partial class CSharpEmitter
             // (ISO §14.9.25.4 GR5 — alignment + editing); an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = _num.AsNum(source);
-                return $"CobolEdit.Format({e.Expr}, {e.Scale}, {CsLiteral(pic.EditMask!)}{BwzFlag(target)})";
+                return $"CobolEdit.Format({e.Expr}, {e.Scale}, {CsLiteral(pic.EditMask!)}{BwzFlag(target)}{EditCfg()})";
             // An ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3 Table 16): the
             // sending characters are treated as an unsigned integer and EDITED into the mask (§14.9.25.4 GR5 —
             // NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
             case PicCategory.NumericEdited:
-                return $"CobolEdit.Format(CobolNum.FromAlphanumeric({OperandText.AsString(source, deSign: true)}), 0, {CsLiteral(pic.EditMask!)}{BwzFlag(target)})";
+                return $"CobolEdit.Format(CobolNum.FromAlphanumeric({OperandText.AsString(source, deSign: true)}), 0, {CsLiteral(pic.EditMask!)}{BwzFlag(target)}{EditCfg()})";
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
@@ -426,7 +484,7 @@ public sealed partial class CSharpEmitter
             foreach (var r in targets)
             {
                 SetTarget(r);
-                StoreArith(r.Place, _num.Combine(NumericRenderer.FieldNum(r.Place), op, value), r.Rounding);
+                StoreArith(r.Place, _num.Combine(_num.FieldNum(r.Place), op, value), r.Rounding);
             }
         });
 
@@ -463,7 +521,7 @@ public sealed partial class CSharpEmitter
             foreach (var r in targets)
             {
                 SetTarget(r);                                                       // quotient at the receiver's scale + mode
-                NumX num = dividendX ?? NumericRenderer.FieldNum(r.Place);          // INTO-no-GIVING divides the target
+                NumX num = dividendX ?? _num.FieldNum(r.Place);          // INTO-no-GIVING divides the target
                 StoreArith(r.Place, _num.Combine(num, "/", divisorX), r.Rounding);
             }
         });
@@ -532,6 +590,9 @@ public sealed partial class CSharpEmitter
     /// carries BLANK WHEN ZERO (ISO §13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
     private static string BwzFlag(DataItem item) => item.BlankWhenZero ? ", blankWhenZero: true" : "";
 
+    /// <summary>The program's SPECIAL-NAMES editing-config arguments (<see cref="EmissionContext.EditCfgArgs"/>).</summary>
+    private string EditCfg() => _ctx.EditCfgArgs;
+
     /// <summary>Materialize a rendered sender/initial-evaluation into a local temp (ISO §14.7.7 GR4 + NOTE 3 —
     /// ONE initial evaluation; results independent of sender/receiver storage overlap). Inlining the expression
     /// into each receiver's store would re-read its fields after earlier receivers stored.</summary>
@@ -591,7 +652,7 @@ public sealed partial class CSharpEmitter
         // fraction scale with the receiver's mode (§14.7.4), then formatted.
         if (target.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } mask })
         {
-            int ms = CobolEdit.MaskScale(mask);
+            int ms = CobolEdit.MaskScale(mask, _ctx.Data.CurrencyPicSymbol, _ctx.Data.DecimalPointIsComma);
             string aligned = value.Dec ? $"({value.Expr}).ToUnscaled({ms}, CobolRounding.{mode})"
                 : value.Scale == ms ? value.Expr
                 : $"CobolNum.Rescale({value.Expr}, {value.Scale}, {ms}, CobolRounding.{mode})";
@@ -601,11 +662,11 @@ public sealed partial class CSharpEmitter
             if (_sizeErrVar is { } eflag)
             {
                 string img = $"__sv{_storeTmpCounter++}";
-                w.Line($"if (!CobolEdit.TryFormat({aligned}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)})) {eflag} = true;");
+                w.Line($"if (!CobolEdit.TryFormat({aligned}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)}{EditCfg()})) {eflag} = true;");
                 w.Line($"else {target.Write(img)}");
                 return;
             }
-            w.Line(target.Write($"CobolEdit.Format({aligned}, {ms}, {CsLiteral(mask)}{BwzFlag(target.Item)})"));
+            w.Line(target.Write($"CobolEdit.Format({aligned}, {ms}, {CsLiteral(mask)}{BwzFlag(target.Item)}{EditCfg()})"));
             return;
         }
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
@@ -640,8 +701,9 @@ public sealed partial class CSharpEmitter
     private static string Narrow(string expr, DataItem item) =>
         item.Pic is { Digits: > 18 } ? expr : $"(long)({expr})";
 
-    private static int ScaleOf(Place p) =>
-        p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } m } ? CobolEdit.MaskScale(m)
+    private int ScaleOf(Place p) =>
+        p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } m }
+            ? CobolEdit.MaskScale(m, _ctx.Data.CurrencyPicSymbol, _ctx.Data.DecimalPointIsComma)
         : p.Item.Pic?.Scale ?? 0;
 
     // ── IF / PERFORM / SET ─────────────────────────────────────────────────────────────────────────────
@@ -849,7 +911,7 @@ public sealed partial class CSharpEmitter
                 _ctx.Writer.Line(p.Write($"(long)({p.Read()} {op} {NumericRenderer.Align(amount, 0)})"));
                 break;
             case SetPlaceTarget { Place: var p }:
-                StoreArith(p, _num.Combine(NumericRenderer.FieldNum(p), op, amount), CobolRounding.Truncation);
+                StoreArith(p, _num.Combine(_num.FieldNum(p), op, amount), CobolRounding.Truncation);
                 break;
         }
     }

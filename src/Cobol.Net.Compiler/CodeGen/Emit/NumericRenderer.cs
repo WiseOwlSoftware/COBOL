@@ -46,7 +46,7 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     /// <summary>The scaled value of a data item place (its unscaled <c>long</c> value + its scale). A float item is
     /// truncated to <c>long</c> for now (mixed float/fixed arithmetic is a later slice). A non-numeric place (a group
     /// or an alphanumeric item used in a numeric context) fails loud rather than crashing the compiler (§1.4).</summary>
-    public static NumX FieldNum(Place p) => p is RefModPlace
+    public NumX FieldNum(Place p) => p is RefModPlace
         // A reference-modified result is ALPHANUMERIC (ISO §8.4.2.4) — in a numeric context it decodes as an
         // unsigned integer exactly like an alphanumeric field (§14.9.25.3 Table 16).
         ? new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0)
@@ -69,7 +69,8 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
         // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
         { Category: PicCategory.NumericEdited, EditMask: { } dem } =>
-            new NumX($"CobolEdit.DeEdit({p.Read()}, {EmitText.CsLiteral(dem)})", CobolNet.Runtime.CobolEdit.MaskScale(dem)),
+            new NumX($"CobolEdit.DeEdit({p.Read()}, {EmitText.CsLiteral(dem)}{ctx.EditCfgArgs})",
+                CobolNet.Runtime.CobolEdit.MaskScale(dem, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)),
         { } pic => new NumX(p.Read(), pic.Scale),
     };
 

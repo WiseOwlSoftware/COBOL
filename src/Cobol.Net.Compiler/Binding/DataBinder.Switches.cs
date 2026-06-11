@@ -42,6 +42,151 @@ public sealed partial class DataBinder
     /// comparisons (GR11/GR13) and the runtime HIGH-/LOW-VALUE characters (§8.3.3.6 GR6/GR7).</summary>
     public CollatingTable? Collating { get; private set; }
 
+    /// <summary>DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14 — the decimal and grouping separator characters EXCHANGE
+    /// functionality in numeric literals [GR14a] and PICTURE character-strings / edited insertion [GR14b]).
+    /// Version-invariant 85→2023 (no VERSION_CHANGE_REFERENCE row). Set BEFORE any literal or PICTURE binds —
+    /// SPECIAL-NAMES is walked at the top of <see cref="Bind"/>.</summary>
+    public bool DecimalPointIsComma { get; private set; }
+
+    /// <summary>The currency PICTURE SYMBOL (ISO §12.3.7 GR13; <c>$</c> per the SR25 implied clause). A bare
+    /// <c>CURRENCY SIGN IS literal-7</c> makes literal-7 both string and symbol (SR22); the 2002+ <c>WITH PICTURE
+    /// SYMBOL literal-8</c> form names the symbol separately (SR23/SR26).</summary>
+    public char CurrencyPicSymbol { get; private set; } = '$';
+
+    /// <summary>The currency STRING inserted where the symbol lands (ISO §12.3.7 GR13). Today always one
+    /// character (== <see cref="CurrencyPicSymbol"/> for the bare form): a multi-character literal-7 under
+    /// PICTURE SYMBOL is rejected with COBOLNET0896 — the M2-deferred multi-char-currency surface (it changes
+    /// the edited item's SIZE per §13.18.40.4, which PicInfo/CobolEdit don't model yet).</summary>
+    public string CurrencyString { get; private set; } = "$";
+
+    /// <summary>Normalize a NUMERIC literal's source text to the canonical dot-decimal form the whole emit-side
+    /// decode pipeline consumes (ISO §12.3.7 GR14a: under DECIMAL-POINT IS COMMA "the character written in
+    /// numeric literals to represent the decimal separator shall be the comma" — and §8.3.3.3.2 admits ONLY the
+    /// decimal point in a fixed-point literal, so the OTHER separator is diagnosed in each mode; the legacy's
+    /// unconditional acceptance of both is a version-invariant non-conformance, not ported). The ONE literal
+    /// chokepoint: expression paths route through <c>StatementBinder.CheckLiteral</c>, VALUE / level-88 capture
+    /// call this directly.</summary>
+    public string NormalizeNumericLiteral(string text)
+    {
+        if (DecimalPointIsComma)
+        {
+            if (text.Contains('.'))
+                Edition.Error("COBOLNET0895", $"numeric literal '{text}': under DECIMAL-POINT IS COMMA the "
+                    + "decimal separator is the comma (ISO §12.3.7 GR14a); '.' is not valid in a numeric literal");
+            return text.Replace(',', '.');
+        }
+        if (text.Contains(','))
+            Edition.Error("COBOLNET0895", $"numeric literal '{text}': a comma decimal separator requires "
+                + "DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14a; §8.3.3.3.2 admits only '.' as the decimal point)");
+        return text.Replace(',', '.');   // diagnosed; normalized so downstream decode stays well-formed
+    }
+
+    /// <summary>Normalize <paramref name="text"/> when it is a numeric literal (digits with optional sign and
+    /// separators); any other operand text (quoted literal, figurative word, data-name) passes through. Used by
+    /// the VALUE-clause and level-88 capture paths, whose operand texts are not yet classified.</summary>
+    internal string NormalizeIfNumericLiteral(string text)
+    {
+        bool anyDigit = false;
+        foreach (char c in text)
+        {
+            if (char.IsAsciiDigit(c)) { anyDigit = true; continue; }
+            if (c is not ('+' or '-' or '.' or ',')) return text;
+        }
+        return anyDigit ? NormalizeNumericLiteral(text) : text;
+    }
+
+    /// <summary>Bind <c>DECIMAL-POINT IS COMMA</c> (ISO §12.3.7 — the only word the format admits after IS is
+    /// COMMA; the grammar carries it as a generic IDENTIFIER).</summary>
+    private void SwitchBindDecimalPoint(Core.DecimalPointClauseContext dp)
+    {
+        if (dp.IDENTIFIER()?.GetText() is { } word && word.Equals("COMMA", StringComparison.OrdinalIgnoreCase))
+            DecimalPointIsComma = true;
+        else
+            Edition.Error("COBOLNET0894", $"DECIMAL-POINT IS {dp.IDENTIFIER()?.GetText()}: the only form is "
+                + "DECIMAL-POINT IS COMMA (ISO §12.3.7)");
+    }
+
+    /// <summary>Bind <c>CURRENCY [SIGN] [IS] literal-7 [WITH PICTURE SYMBOL literal-8]</c> (ISO §12.3.7).
+    /// Bare form: literal-7 is both currency string and symbol — a single character outside the SR22 forbidden
+    /// set. PICTURE SYMBOL form (2002+ — the 85 standard had only the single-character form): literal-7 is the
+    /// currency string (SR23), literal-8 the symbol (SR26/SR27). SR21: two clauses may not give one symbol two
+    /// different strings.</summary>
+    private void SwitchBindCurrency(Core.CurrencySignClauseContext cur)
+    {
+        var lits = cur.literal();
+        if (lits.Length == 0) return;
+        string literal7 = LiteralChars(lits[0]);
+
+        char symbol;
+        string currencyString;
+        if (cur.PIC() is not null)
+        {
+            // WITH PICTURE SYMBOL — introduced by ISO/IEC 1989:2002 §12.3.7 (the 1985 CURRENCY SIGN clause had
+            // only the single-character literal form); VERSION_CHANGE_REFERENCE Table 7.
+            if (Edition.DialectLevel < 2002)
+                Edition.Error("COBOLNET0893", "CURRENCY SIGN … WITH PICTURE SYMBOL was introduced by ISO/IEC "
+                    + $"1989:2002 (§12.3.7) — requires --std 2002 or later (targeting COBOL-{Edition.DialectLevel})");
+            // PICMODE exploit: the word between PICTURE and literal-8 arrives as a PIC_STRING token — it must be
+            // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note).
+            if (cur.PIC_STRING()?.GetText() is { } sym && !sym.Equals("SYMBOL", StringComparison.OrdinalIgnoreCase))
+                Edition.Error("COBOLNET0892", $"CURRENCY SIGN: expected 'WITH PICTURE SYMBOL', found 'PICTURE {sym}' (ISO §12.3.7)");
+            string literal8 = lits.Length > 1 ? LiteralChars(lits[1]) : "";
+            if (literal8.Length != 1)
+            {
+                Edition.Error("COBOLNET0892", "CURRENCY SIGN: the PICTURE SYMBOL literal shall be a single "
+                    + "character (ISO §12.3.7 SR26)");
+                return;
+            }
+            if (literal7.Trim().Length == 0)
+                Edition.Error("COBOLNET0890", "CURRENCY SIGN: the currency string shall contain at least one "
+                    + "non-space character (ISO §12.3.7 SR23a)");
+            if (literal7.Length != 1)
+            {
+                // The multi-character currency STRING changes the edited item's size (§13.18.40.4) — the
+                // M2-deferred surface; reject loudly rather than mis-size (docs/MULTIVERSION_ROADMAP M2 catalog).
+                Edition.Error("COBOLNET0896", $"CURRENCY SIGN \"{literal7}\": a multi-character currency string "
+                    + "is not yet supported (single-character strings only; ISO §12.3.7 SR23)");
+                return;
+            }
+            symbol = literal8[0];
+            currencyString = literal7;
+            ValidateCurrencyChar(symbol, "PICTURE SYMBOL literal");   // SR27 — same forbidden set as SR22
+        }
+        else
+        {
+            // Bare form (the COBOL-85 surface): SR22 — one character, both string and symbol.
+            if (literal7.Length != 1)
+            {
+                Edition.Error("COBOLNET0890", $"CURRENCY SIGN \"{literal7}\": without PICTURE SYMBOL the literal "
+                    + "shall consist of a single character (ISO §12.3.7 SR22)");
+                return;
+            }
+            symbol = literal7[0];
+            currencyString = literal7;
+            ValidateCurrencyChar(symbol, "CURRENCY SIGN literal");
+        }
+
+        // SR21: no two clauses may bind equivalent symbols to different strings (single-clause programs trivially pass).
+        if (CurrencyPicSymbol != '$' && char.ToUpperInvariant(CurrencyPicSymbol) == char.ToUpperInvariant(symbol)
+            && CurrencyString != currencyString)
+            Edition.Error("COBOLNET0891", $"CURRENCY SIGN: the symbol '{symbol}' is already bound to "
+                + $"\"{CurrencyString}\" (ISO §12.3.7 SR21)");
+        CurrencyPicSymbol = symbol;
+        CurrencyString = currencyString;
+    }
+
+    /// <summary>The ISO §12.3.7 SR22/SR27 forbidden currency-symbol set: digits; A B C D E N P R S V X Z (either
+    /// case) or space; and <c>+ - , . * / ; ( ) " =</c>.</summary>
+    private void ValidateCurrencyChar(char c, string what)
+    {
+        bool forbidden = char.IsAsciiDigit(c)
+            || char.ToUpperInvariant(c) is 'A' or 'B' or 'C' or 'D' or 'E' or 'N' or 'P' or 'R' or 'S' or 'V' or 'X' or 'Z'
+            || c is ' ' or '+' or '-' or ',' or '.' or '*' or '/' or ';' or '(' or ')' or '"' or '=';
+        if (forbidden)
+            Edition.Error("COBOLNET0891", $"{what} '{c}': not a valid currency symbol — digits, the picture "
+                + "letters A B C D E N P R S V X Z, space, and + - , . * / ; ( ) \" = are excluded (ISO §12.3.7 SR22/SR27)");
+    }
+
     /// <summary>Populate the switch registry from the SPECIAL-NAMES paragraph's switch-name clauses (ISO §12.3.7
     /// general format: <c>switch-name-1 [IS mnemonic-name-1] [ON [STATUS] [IS] condition-name-1]
     /// [OFF [STATUS] [IS] condition-name-2]</c>; the NIST-85 surface also writes <c>ON IS cond</c> with no STATUS —
@@ -62,6 +207,8 @@ public sealed partial class DataBinder
             {
                 if (entry.alphabetClause() is { } alpha) { AlphabetBind(alpha); continue; }
                 if (entry.classDefinitionClause() is { } cd) { SwitchBindClass(cd); continue; }
+                if (entry.decimalPointClause() is { } dp) { SwitchBindDecimalPoint(dp); continue; }
+                if (entry.currencySignClause() is { } cur) { SwitchBindCurrency(cur); continue; }
                 if (entry.implementorSwitchEntry() is not { } sw) continue;
                 var ids = sw.cobolWord();   // [0] = switch-name; [1] = mnemonic-name when Option 1
                 if (ids.Length == 0) continue;

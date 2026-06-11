@@ -36,6 +36,12 @@ public sealed class DataItem
     /// clause winning (GR1–3, applied by the binder's post-build inheritance pass).</summary>
     public SignSpec? OwnSign { get; init; }
 
+    /// <summary>This entry's OWN USAGE keyword (ISO §13.18.60), or <see langword="null"/> when none — captured even
+    /// on a group item: a group-level USAGE applies to every elementary item subordinate to it (GR1; NC107A's
+    /// <c>01 U9 USAGE COMPUTATIONAL</c> makes the PICTURE-only U10 binary). Applied by the binder's post-build
+    /// <c>InheritUsageClauses</c> pass.</summary>
+    public Usage? OwnUsage { get; init; }
+
     /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.</summary>
     public string? RawValue { get; init; }
 

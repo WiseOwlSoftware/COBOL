@@ -266,7 +266,7 @@ public sealed partial class CSharpEmitter
         else if (file.Organization == FileOrganization.Relative)
         {
             // §14.9.41 GR9/GR10 — numeric comparison against the RELATIVE KEY item's value (typed read).
-            string rrn = $"(long)({NumericRenderer.Align(NumericRenderer.FieldNum(sta.Operand!), 0)})";
+            string rrn = $"(long)({NumericRenderer.Align(_num.FieldNum(sta.Operand!), 0)})";
             w.Line($"var {st} = CobolFile.StartRelative({name}, {CsLiteral(sta.Op)}, {rrn});");
         }
         else
@@ -310,7 +310,7 @@ public sealed partial class CSharpEmitter
     private string? KeyedRrn(FileModel file)
     {
         if (file.RelativeKeyItem is not { } rk || _refs.ResolveItem(rk) is not { } place) return null;
-        return $"(long)({NumericRenderer.Align(NumericRenderer.FieldNum(place), 0)})";
+        return $"(long)({NumericRenderer.Align(_num.FieldNum(place), 0)})";
     }
 
     /// <summary>The item's character offset within the record AREA image (its own 01's image layout — secondary

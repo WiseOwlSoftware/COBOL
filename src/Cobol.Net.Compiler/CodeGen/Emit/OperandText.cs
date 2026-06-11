@@ -59,7 +59,14 @@ internal static class OperandText
         if (p.Item.IsGroup)
             return p.Item.IsCharacterImage
                 ? $"{p.Read()}.AsImage()"
-                : EmitText.LoudValue("string", $"whole-group image of mixed-usage '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)");
+                // The typed-native backend's character representation of a binary (COMP/COMP-3/COMP-5) item IS
+                // its decimal digit image — implementor-defined territory (ISO §8.8.4.1.1: a group operand is
+                // alphanumeric over the item's representation, which the standard leaves to the implementor; the
+                // legacy byte engine used hardware bytes, the greenfield defines digits). Total for plain nested
+                // shapes (NC107A's IF U22 > U12 — all-COMP groups); a group with OCCURS / REDEFINES / float
+                // beneath stays the genuine Tier-C byte island (loud).
+                : MixedGroupImage(p.Read(), p.Item)
+                    ?? EmitText.LoudValue("string", $"whole-group image of mixed-usage '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)");
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)
@@ -78,6 +85,34 @@ internal static class OperandText
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited } => p.Read(),
             _ => $"{p.Read()}.ToString()",
         };
+    }
+
+    /// <summary>The concatenated character image of a group with binary leaves — each fixed-point leaf contributes
+    /// its decimal DIGIT image (the typed-native implementor representation, see the caller), each string-backed
+    /// leaf its characters, recursing through plain nested groups. Null when the shape has an OCCURS, a REDEFINES
+    /// class, a RENAMES, a float leaf, or a PICTURE-less leaf — those stay the loud Tier-C island.</summary>
+    private static string? MixedGroupImage(string path, DataItem group)
+    {
+        var parts = new List<string>();
+        foreach (var c in group.Children)
+        {
+            if (c.Occurs is not null || c.RedefinesTargetName is not null
+                || c.Class is not null || c.Renames66.Count > 0)
+                return null;
+            string member = $"{path}.{c.CsName}";
+            if (c.IsGroup)
+            {
+                if (MixedGroupImage(member, c) is not { } nested) return null;
+                parts.Add(nested);
+            }
+            else if (c.Pic is { Category: PicCategory.Numeric, IsFloat: false } && !c.StoreAsImage)
+                parts.Add($"CobolNum.FormatDisplay({member}, {c.ProfileName})");
+            else if (c.Pic is not null && c.Pic.Category is not PicCategory.Numeric || c.StoreAsImage)
+                parts.Add(member);   // string-backed leaf: alphanumeric / edited / image-stored numeric-DISPLAY
+            else
+                return null;
+        }
+        return parts.Count > 0 ? "(" + string.Join(" + ", parts) + ")" : null;
     }
 
     /// <summary>The sending character image of a numeric item whose PICTURE has <c>P</c> scaling positions: the Ps

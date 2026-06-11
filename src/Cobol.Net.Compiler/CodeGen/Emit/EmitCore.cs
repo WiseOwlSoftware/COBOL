@@ -25,6 +25,16 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
     /// empty (the native two-argument <c>CobolString.Compare</c> overload).</summary>
     public string CollateArg => Data.Collating is null ? "" : ", __COLLATE";
 
+    /// <summary>The SPECIAL-NAMES editing-config suffix for generated <c>CobolEdit</c> calls (named arguments,
+    /// composing after any <c>blankWhenZero:</c>): the program's currency PICTURE SYMBOL when not <c>$</c> and
+    /// DECIMAL-POINT IS COMMA when set (ISO §12.3.7 GR13/GR14). Empty under the default config, so the
+    /// generated code of an ordinary program is unchanged. The ONE producer of these arguments — used by the
+    /// orchestrator's MOVE/arithmetic edited stores and the renderer's DeEdit.</summary>
+    public string EditCfgArgs =>
+        (Data.CurrencyPicSymbol != '$'
+            ? $", currency: {SymbolDisplay.FormatLiteral(Data.CurrencyPicSymbol, quote: true)}" : "")
+        + (Data.DecimalPointIsComma ? ", commaMode: true" : "");
+
     /// <summary>The C# char-literal a figurative constant fills with, PCS-AWARE for HIGH-/LOW-VALUE: under a
     /// program collating sequence they are the sequence's extremes (ISO §8.3.3.6 GR6/GR7 + §12.3.7 GR8/GR9 —
     /// character IDENTITY, not just comparison weight); otherwise the native U+00FF/U+0000 (COBOLNET_DESIGN

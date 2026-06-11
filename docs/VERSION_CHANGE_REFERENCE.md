@@ -254,6 +254,7 @@ all dialects.
 |---|--------|------|-------------|
 | 7.1 | **DATA RECORDS clause deleted** (an obsolete element of ANSI X3.23-1985; ISO/IEC 1989:2002 removed it — the 2023 SD format §13.4.6 admits only the record clause, and the FD set likewise omits it). NIST-85 writes it on every SD/FD. | accepted-inert at `--std 85`; rejected ≥2002 | SD: COBOLNET0873 (DataBinder.BindFileSection, DEVLOG 552). FD: follow-up (same gate, same code). |
 | 7.2 | **ALTER + target-less GO TO deleted** (obsolete in '85, removed by 2002 — see Table 4 context). | accepted at 85; rejected ≥2002 | COBOLNET0810/0811 (DEVLOG 543). |
+| 7.3 | **CURRENCY SIGN ... WITH PICTURE SYMBOL introduced** (ISO/IEC 1989:2002 §12.3.7 separates the currency STRING from the PICTURE symbol; ANSI X3.23-1985 had only the bare single-character form — an introduction, not a deletion). | rejected at `--std 85` with a specific diagnostic; accepted ≥2002 | COBOLNET0893 (DataBinder.SwitchBindCurrency, DEVLOG 558); matrix row `currency-picture-symbol-2002`. Multi-character currency STRINGS stay rejected everywhere (COBOLNET0896 — the M2-deferred size-changing surface). |
 
 ## Appendix — spec line references (for jump-to-spec)
 

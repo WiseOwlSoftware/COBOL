@@ -113,8 +113,17 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         if (item.RawValue is { } raw)
         {
             if (FigurativeInitializer(raw, pic) is { } fig && pic.Category is not PicCategory.Numeric) return fig;
+            // CCVS leniency (same as InitializerFor): an ALPHANUMERIC literal VALUE on a numeric DISPLAY item
+            // contributes its CHARACTERS to the image (NC107A's `PIC 999 VALUE "000"` under a REDEFINES).
+            if (pic.Category is PicCategory.Numeric && !pic.IsFloat && raw.StartsWith('"'))
+                return $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})";
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && FigurativeInitializer(raw, pic) is null)
                 return $"CobolNum.FormatDisplay({EmitText.UnscaledAtScale(raw, pic.Scale)}, {item.ProfileName})";
+            // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§13.18.63 GR6).
+            if (pic.Category is PicCategory.NumericEdited && !raw.StartsWith('"')
+                && TryParseNumeric(raw, out var uv, out int sc))
+                return EmitText.CsLiteral(CobolNet.Runtime.CobolEdit.Format(uv, sc, pic.EditMask!,
+                    item.BlankWhenZero, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma));
             if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
                 return $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})";
         }
@@ -261,6 +270,15 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     {
         var pic = item.Pic!;
 
+        // CCVS leniency: an ALPHANUMERIC literal VALUE on a numeric DISPLAY item stores its CHARACTERS as the
+        // item's content (ISO §13.18.63 SR2 wants a numeric literal; the 85 corpus writes `PIC 999 VALUE "000"`
+        // — NC107A's DATA-P — and the legacy oracle accepts the character form). Strict rejection is a future
+        // EditionValidator row.
+        if (item.RawValue is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
+            return item.StoreAsImage
+                ? $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(q))}, {pic.Length})"
+                : EmitText.UnscaledAtScale(EmitText.DecodeCobolString(q), pic.Scale);
+
         // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): initialize to the formatted
         // image of its unscaled VALUE (a numeric/figurative VALUE → that value; no VALUE → 0). The _P_ profile is
         // declared textually earlier (EmitProfiles runs first), so it is initialized before this use.
@@ -283,12 +301,36 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
         return pic.Category switch
         {
+            // A NUMERIC literal VALUE on a numeric-edited item converts per the MOVE editing rules
+            // (ISO §13.18.63 GR6) — the edited image is a compile-time constant, baked here. (An alphanumeric
+            // literal stores verbatim — NOTE 3: the programmer supplies the edited form.)
+            PicCategory.NumericEdited when !raw.StartsWith('"') && TryParseNumeric(raw, out var uv, out int sc) =>
+                EmitText.CsLiteral(CobolNet.Runtime.CobolEdit.Format(uv, sc, pic.EditMask!, item.BlankWhenZero,
+                    ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)),
             PicCategory.Alphanumeric or PicCategory.NumericEdited =>
                 $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})",
             PicCategory.Numeric when pic.IsFloat => RawValueAsFloat(raw, pic),
             PicCategory.Numeric => EmitText.UnscaledAtScale(raw, pic.Scale),
             _ => pic.DefaultInitializer,
         };
+    }
+
+    /// <summary>Parse a canonical (dot-decimal) numeric VALUE text to its unscaled value + scale, for
+    /// compile-time editing. False for any non-numeric shape (the caller falls back to verbatim store).</summary>
+    private static bool TryParseNumeric(string text, out Int128 unscaled, out int scale)
+    {
+        unscaled = 0;
+        scale = 0;
+        string t = text.Trim();
+        bool neg = t.StartsWith('-');
+        if (neg || t.StartsWith('+')) t = t[1..];
+        int dot = t.IndexOf('.');
+        string digits = dot < 0 ? t : t.Remove(dot, 1);
+        if (digits.Length == 0 || !digits.All(char.IsAsciiDigit)) return false;
+        scale = dot < 0 ? 0 : t.Length - dot - 1;
+        foreach (char c in digits) unscaled = unscaled * 10 + (c - '0');
+        if (neg) unscaled = -unscaled;
+        return true;
     }
 
     /// <summary>If <paramref name="raw"/> is a figurative constant, its C# initializer given the receiver's category

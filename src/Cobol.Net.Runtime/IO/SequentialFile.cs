@@ -146,10 +146,23 @@ public sealed class SequentialFile
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
         if (_mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         _afterAdvancing = true;
-        string text = image.TrimEnd();
+        string text = PrintSafe(image.TrimEnd());
         if (before) { _writer.Write(text); Advance(lines); }
         else { Advance(lines); _writer.Write(text); }
         return Status = FileStatusCode.Success;
+    }
+
+    /// <summary>The PRINT-stream character mapping: a character above the 7-bit range writes as <c>?</c> — the
+    /// implementor-defined runtime print encoding the NIST golden corpus encodes (the legacy print writer's
+    /// ASCII fallback: HIGH-VALUE prints as <c>?</c>, NUL passes through — NC107A's figurative-constant
+    /// information lines). Applies ONLY to print-control writes; a record (data-file) WRITE keeps its raw
+    /// characters — a record image must round-trip through READ byte-exact.</summary>
+    private static string PrintSafe(string s)
+    {
+        if (!s.Any(c => c > '\x7f')) return s;
+        var a = s.ToCharArray();
+        for (int i = 0; i < a.Length; i++) if (a[i] > '\x7f') a[i] = '?';
+        return new string(a);
     }
 
     private void Advance(int lines)

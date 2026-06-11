@@ -133,7 +133,7 @@ public sealed partial class CSharpEmitter
                 return;
             case { Category: PicCategory.NumericEdited, EditMask: { } mask }:
                 // A numeric sender into a numeric-edited receiver is EDITED into the mask (§14.9.25.4 GR5).
-                w.Line(target.Write($"CobolEdit.Format({call}, 0, {CsLiteral(mask)})"));
+                w.Line(target.Write($"CobolEdit.Format({call}, 0, {CsLiteral(mask)}{EditCfg()})"));
                 return;
             case { Category: PicCategory.Alphanumeric, EditMask: { } amask }:
                 // Alphanumeric-edited: the sending characters place into the mask positions (§13.18.40 insertion).

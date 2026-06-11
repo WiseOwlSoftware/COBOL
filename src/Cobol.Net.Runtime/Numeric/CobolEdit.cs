@@ -9,16 +9,42 @@ namespace CobolNet.Runtime;
 /// conversion — used by MOVE to a numeric-edited receiver and by arithmetic GIVING/COMPUTE stores (§14.7.7: the
 /// result is stored per the MOVE editing rules). The algorithm is the legacy engine's, proven over the NIST-85
 /// corpus, re-hosted on the typed-native substrate (unscaled <see cref="long"/> + scale; no byte areas, no
-/// <c>decimal</c>). DECIMAL-POINT IS COMMA and multi-character CURRENCY SIGN are SPECIAL-NAMES features that
-/// thread in when their binder support lands.
+/// <c>decimal</c>).
+///
+/// SPECIAL-NAMES threading (ISO §12.3.7): <c>currency</c> is the program's currency PICTURE SYMBOL (GR13;
+/// default <c>$</c> per SR25); <c>commaMode</c> is DECIMAL-POINT IS COMMA (GR14 — the decimal and grouping
+/// separators EXCHANGE functionality; §13.18.40.2 SR13: "the rules for the symbol period apply to the symbol
+/// comma, and the rules for the symbol comma apply to the symbol period", and §13.18.40.6: "the precedence rules
+/// … are interchanged"). The public entries CANONICALIZE: under comma-mode the mask's <c>.</c>/<c>,</c> are
+/// swapped so the core logic always sees dot-as-decimal, and the rendered output swaps back — which realizes
+/// GR14b exactly (the inserted decimal separator IS the comma, the inserted grouping separator IS the period),
+/// including zero suppression absorbing GROUPING periods and stopping at the COMMA decimal position (§13.18.40.5
+/// — the legacy engine's dead-flag bug, fixed here per spec).
 /// </summary>
 public static class CobolEdit
 {
+    /// <summary>Swap <c>.</c>↔<c>,</c> — the §13.18.40.2 SR13 role exchange, applied to a mask entering the
+    /// dot-canonical core and to the rendered output leaving it (the swap is its own inverse).</summary>
+    private static string SwapSeparators(string s)
+    {
+        var a = s.ToCharArray();
+        for (int i = 0; i < a.Length; i++)
+            a[i] = a[i] switch { '.' => ',', ',' => '.', _ => a[i] };
+        return new string(a);
+    }
+
     /// <summary>Format <paramref name="value"/> (unscaled, with <paramref name="valueScale"/> fraction digits)
     /// into <paramref name="picture"/> — the EXPANDED edited picture (repeats unrolled, uppercased, the implied
     /// decimal point <c>V</c> retained; <c>V</c> occupies no output position).</summary>
-    public static string Format(Int128 value, int valueScale, string picture, bool blankWhenZero = false)
+    public static string Format(Int128 value, int valueScale, string picture, bool blankWhenZero = false,
+        char currency = '$', bool commaMode = false)
     {
+        if (commaMode)
+        {
+            // Canonicalize the mask (dot = decimal), render, swap the rendered separators back (GR14b).
+            string canonical = Format(value, valueScale, SwapSeparators(picture), blankWhenZero, currency);
+            return SwapSeparators(canonical);
+        }
         bool negative = value < 0;
 
         // The output pattern: V marks the implied point but holds no character position (ISO §13.18.40.3).
@@ -29,7 +55,8 @@ public static class CobolEdit
 
         // Pre-scan (on the full picture): fixed vs floating sign/currency — ONE occurrence is a fixed-insertion
         // character; TWO OR MORE form a floating string whose members are also digit positions (§13.18.40.4).
-        const char currencyChar = '$';
+        // The currency symbol is the program's CURRENCY SIGN PICTURE SYMBOL (ISO §12.3.7 GR13; '$' per SR25).
+        char currencyChar = char.ToUpperInvariant(currency);
         int plusCount = 0, minusCount = 0, currencyCount = 0;
         foreach (char raw in pattern)
         {
@@ -198,10 +225,11 @@ public static class CobolEdit
     /// landing spot — contributes zero), yielding the unscaled value at the mask's fraction scale
     /// (<see cref="MaskScale"/>); the value is negative when the image carries the mask's negative sign
     /// (<c>-</c> anywhere a sign can land, or a non-blank CR/DB).</summary>
-    public static Int128 DeEdit(string image, string picture)
+    public static Int128 DeEdit(string image, string picture, char currency = '$', bool commaMode = false)
     {
+        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13) — digit POSITIONS are unchanged
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
-        const char currencyChar = '$';
+        char currencyChar = char.ToUpperInvariant(currency);
         int plus = 0, minus = 0, cs = 0;
         foreach (char raw in pattern)
         {
@@ -236,22 +264,24 @@ public static class CobolEdit
     /// rule 2: that resultant is left UNCHANGED and only the flag is set, the statement's other receivers still
     /// store). MOVE keeps the unchecked <see cref="Format"/> — high-order truncation IS the defined MOVE behavior
     /// (§14.9.25).</summary>
-    public static bool TryFormat(Int128 value, int valueScale, string picture, out string image, bool blankWhenZero = false)
+    public static bool TryFormat(Int128 value, int valueScale, string picture, out string image,
+        bool blankWhenZero = false, char currency = '$', bool commaMode = false)
     {
-        var (capacity, fracDigits) = MaskCapacity(picture);
+        var (capacity, fracDigits) = MaskCapacity(picture, currency, commaMode);
         Int128 scaled = CobolNum.Rescale(value, valueScale, fracDigits, CobolRounding.Truncation);
         if (Int128.Abs(scaled) >= CobolNum.Pow10Wide(capacity)) { image = string.Empty; return false; }
-        image = Format(value, valueScale, picture, blankWhenZero);
+        image = Format(value, valueScale, picture, blankWhenZero, currency, commaMode);
         return true;
     }
 
     /// <summary>The mask's total digit-position capacity (9/Z/* plus floating-string members, less the ONE
     /// position the floating symbol itself occupies) and its fraction scale — the §14.7.5 size-error bound.
     /// Mirrors <see cref="Format"/>'s prologue exactly.</summary>
-    private static (int Capacity, int FracDigits) MaskCapacity(string picture)
+    private static (int Capacity, int FracDigits) MaskCapacity(string picture, char currency = '$', bool commaMode = false)
     {
+        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13)
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)
-        const char currencyChar = '$';
+        char currencyChar = char.ToUpperInvariant(currency);
         int plus = 0, minus = 0, cs = 0;
         foreach (char raw in pattern)
         {
@@ -278,17 +308,19 @@ public static class CobolEdit
     /// <summary>The mask's fraction scale — digit positions right of the point (<c>V</c> or <c>.</c>). Public so
     /// the compiler can fold the working scale of an edited RECEIVER at emit time (a quotient/ROUNDED result must
     /// be computed and rounded AT this scale before editing, ISO §14.7.4/§14.7.7).</summary>
-    public static int MaskScale(string picture)
+    public static int MaskScale(string picture, char currency = '$', bool commaMode = false)
     {
+        if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13) — the comma IS the decimal position
+        char currencyChar = char.ToUpperInvariant(currency);
         int plus = 0, minus = 0, cs = 0;
         foreach (char raw in picture)
         {
             char p = char.ToUpperInvariant(raw);
             if (p == '+') plus++;
             else if (p == '-') minus++;
-            else if (p == '$') cs++;
+            else if (p == currencyChar) cs++;
         }
-        return FractionDigits(picture, '$', cs == 1, plus == 1 && minus == 0, minus == 1 && plus == 0);
+        return FractionDigits(picture, currencyChar, cs == 1, plus == 1 && minus == 0, minus == 1 && plus == 0);
     }
 
     /// <summary>Digit positions to the right of the point — the <c>V</c> in the picture, or the <c>.</c> insertion

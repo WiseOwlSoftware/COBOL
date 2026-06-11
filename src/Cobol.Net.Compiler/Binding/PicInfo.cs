@@ -148,9 +148,13 @@ public sealed record PicInfo(
     /// <summary>
     /// Analyze a PICTURE string (already stripped of the <c>PIC</c> keyword) plus an optional usage keyword and the
     /// entry's own SIGN clause (<see langword="null"/> when the entry has none — a group-level SIGN may still apply,
-    /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3).
+    /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3). <paramref name="currency"/> is the
+    /// program's currency PICTURE SYMBOL (ISO §12.3.7 GR13; <c>$</c> per SR25) — a non-default symbol (e.g.
+    /// NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c>: its mask positions are
+    /// fixed/floating currency insertion, making the item NUMERIC-EDITED (§13.18.40.4).
     /// </summary>
-    public static PicInfo Analyze(string picture, Usage usage, SignSpec? sign = null)
+    public static PicInfo Analyze(string picture, Usage usage, SignSpec? sign = null, char currency = '$',
+        bool blankWhenZero = false)
     {
         // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99".
         string expanded = ExpandRepeats(picture);
@@ -174,10 +178,13 @@ public sealed record PicInfo(
         int digitPositions = expanded.Count(c => c is '9' or 'Z' or '*');
         int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions : afterV;
 
+        char cs = char.ToUpperInvariant(currency);
         bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
         // CR / DB are fixed-insertion editing symbols too (ISO §13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED
-        // (NC104A MOVE-TEST-F1-14), not pure numeric with stray letters.
-        bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/')
+        // (NC104A MOVE-TEST-F1-14), not pure numeric with stray letters. The program's currency symbol (ISO
+        // §12.3.7 GR13) is an editing symbol exactly like '$' — without it a `PIC WWWWW` would fall through to
+        // "pure numeric, zero digits".
+        bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/' || c == cs)
             || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal);
 
         if (anyAlpha)
@@ -193,7 +200,10 @@ public sealed record PicInfo(
 
         string signKind = SignKindFor(usage, signed, sign);
 
-        if (anyEdit)
+        // BLANK WHEN ZERO on a category-numeric picture DEFINES the item as numeric-edited (ISO §13.18.8 GR2;
+        // SR1 admits it only without 'S', SR2 only usage display/national) — NC108M's `PIC 9(9) BLANK ZERO`
+        // holds SPACES after a zero store and compares as an alphanumeric item.
+        if (anyEdit || (blankWhenZero && digits > 0 && !signed && usage is Usage.Display))
             // Numeric-edited: the .NET storage is the formatted display image (string); width = edited symbol
             // count. NOTE no digits>0 requirement — an all-symbol mask (PIC ****, $$$$) is numeric-edited too,
             // its digit positions being the Z/*/floating symbols themselves (§13.18.40).

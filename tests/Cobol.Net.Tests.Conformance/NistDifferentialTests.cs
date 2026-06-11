@@ -242,6 +242,12 @@ public sealed class NistDifferentialTests
     [InlineData("IC228A")]   // inherited-GLOBAL data visible in contained programs (§13.18.27 GR1-2)
     [InlineData("IC235A")]   // nested-program scoping — each unit binds exactly its own subtree
     [InlineData("IC237A")]
+    // Greened by SPECIAL-NAMES DECIMAL-POINT IS COMMA + CURRENCY SIGN (DEVLOG 558 — §12.3.7 GR13/GR14, the
+    // §13.18.40.2 SR13 separator role exchange, BLANK-WHEN-ZERO-defines-numeric-edited §13.18.8 GR2, group-level
+    // USAGE inheritance §13.18.60 GR1, and the typed-native digit-image representation of binary leaves in
+    // character contexts §8.8.4.1.1).
+    [InlineData("NC107A")]   // DECIMAL-POINT IS COMMA + CURRENCY "W" (comma literals, grouped-period masks, all-COMP group MOVE/compare)
+    [InlineData("NC108M")]   // CURRENCY "<" floating masks + BLANK ZERO on plain numeric
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

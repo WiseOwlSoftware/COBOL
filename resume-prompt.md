@@ -24,21 +24,27 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 557, 2026-06-10 17:45): 88/95 NC + 14 ST + 27 RL/IX + 18 IC byte-match (146 locked); 677
-> conformance + 15 unit; frontend/legacy untouched. ALL FOUR wave-2 families integrated (ODO 551, SORT/MERGE 552,
-> KeyedIO 553, CALL 557 — multi-unit emission, instance program classes/__Activate, LINKAGE/ManagedPointer,
-> ProgramRegistry §14.6.2.3 state model, GLOBAL bridges, EXTERNAL store; diag band relocated 0880–0889).
-> **RESUME AT: the five scout briefs in `/e/tmp/verb-briefs/`** (workflow w1b6qbs4b): ① USE AFTER STANDARD ERROR
-> DECLARATIVES subsystem (`use-declaratives-brief.md` — RL104A/IX104A/RL112A/RL204A/IX204A/IX216A DIFF-22 cluster
-> + SQ declaratives + IC233A/234A GLOBAL USE), ② DECIMAL-POINT COMMA + CURRENCY SIGN (brief
-> `wave2result-decimalPointBrief.txt`, decision-complete; NC107A/108M), ③ remaining RL/IX DIFFs + IX102A timeout
-> (`rlix-diffs-brief.md`), ④ ST chain-consumer harness (`st-chain-brief.md`; ST103A/105A/111A/121A), ⑤ NC105A
-> last rows (`nc105a-brief.md`) + reserved-word tables (`reserved-words-brief.md`, the `RF` find → 0890+ band).
-> IC residuals: IC207A/227A DIFF (227A = EXTERNAL FD shared connectors), IC113A timeout, IC222A CMPL_FAIL,
-> IC109A/110A/117M/205A/210A RUNERR. CALL follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence
-> arm for ON-phrase bodies, OMITTED args + header mode phrases (grammar), cross-assembly dynamic CALL (pre-G8).
-> Then steps ④–⑦. Apply agent edits with the index-based python pattern; the Bash transport mangles backslash
-> escapes — never inline them in heredoc scripts.**
+> **STATE (DEVLOG 558, 2026-06-10 18:35): 90/95 NC + 14 ST + 27 RL/IX + 18 IC byte-match (148 locked); 692
+> conformance + 15 unit; frontend/legacy untouched. Wave-2 families ALL integrated (ODO 551, SORT/MERGE 552,
+> KeyedIO 553, CALL 557) + DECIMAL-POINT IS COMMA / CURRENCY SIGN end-to-end (558 — NC107A/108M green; GR14a
+> literal chokepoint, SR13 mask canonicalization in CobolEdit, §13.18.8 GR2 BWZ⇒numeric-edited, §13.18.63 GR6
+> compile-time edited VALUE, §13.18.60 GR1 group-USAGE inheritance, the digit-image representation of COMP
+> leaves in character contexts + aligned-layout memberwise group MOVE [COBOLNET_DESIGN §14.4], PrintSafe `?`
+> mapping on print writes; diag band 0890–0896; ⚠ the SWEEP false-greens binary-content diffs — trust the
+> locked suite). **RESUME AT: the four scout briefs in `/e/tmp/verb-briefs/`** (workflow w1b6qbs4b): ① USE AFTER
+> STANDARD ERROR DECLARATIVES subsystem (`use-declaratives-brief.md`, decision-complete — DIFF-22 cluster
+> RL104A/112A/204A IX104A/204A/216A + RL111A/113A/114A IX207A + SQ133A/134A/144A/153A/212A/226A/227A/228A +
+> ST144A; **its fix #0 FIRST: the ~30-program "hostpolicy RUNERR" set is a DETERMINISTIC CS0029 —
+> EmitStoreFileStatus stores a string into a GROUP-typed FILE STATUS item, + qualified FILE STATUS names
+> silently unresolved**), ② RL/IX chain consumers (`rlix-diffs-brief.md` — 13 programs incl. the 57/58 cluster
+> + IX102A timeout are HARNESS artifacts, byte-GREEN behind their producer chains; fix = harness ordering, zero
+> compiler work) + ST chains (`st-chain-brief.md`), ③ NC105A last rows (`nc105a-brief.md`), ④ reserved-word
+> tables (scout FAILED on content-filter — re-run it; the `RF` find → 0900+ band). IC residuals: IC207A/227A
+> DIFF (227A = EXTERNAL FD shared connectors), IC113A timeout, IC222A CMPL_FAIL, IC233A/234A = GLOBAL USE (①).
+> CALL follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence arm for ON-phrase bodies,
+> OMITTED args + header mode phrases (grammar), cross-assembly dynamic CALL (pre-G8). Then steps ④–⑦. Apply
+> agent edits with the index-based python pattern; the Bash transport mangles backslash escapes — never inline
+> them in heredoc scripts.**
 >
 > > **STATE (DEVLOG 552, 2026-06-10 17:30): 88/95 NC byte-match + 14 ST locked; 605 conformance + 15 unit; legacy
 > guard ALL GREEN (re-proved on the RETURN grammar change). Landed since 545: ref-mod completion (548 — numeric

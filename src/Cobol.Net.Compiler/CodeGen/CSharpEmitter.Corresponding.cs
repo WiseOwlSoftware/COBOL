@@ -37,7 +37,7 @@ public sealed partial class CSharpEmitter
             {
                 SetTarget(new Receiver(p.Target, c.Rounding));   // ONE rounded-phrase mode for every pair (§14.7.4)
                 StoreArith(p.Target,
-                    _num.Combine(NumericRenderer.FieldNum(p.Target), op, NumericRenderer.FieldNum(p.Source)),
+                    _num.Combine(_num.FieldNum(p.Target), op, _num.FieldNum(p.Source)),
                     c.Rounding);
             }
         });

@@ -103,6 +103,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4). This now covers the FILE SECTION records too (their
         // multi-01 area sharing is a synthesized REDEFINES). Finally resolve each file's FILE STATUS data item.
         ResolveIndexItems();
+        InheritUsageClauses();
         InheritSignClauses();
         ResolveRedefines();
         ClassifyRedefinesClasses();
@@ -384,11 +385,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (clause.valueClause() is { } value)
                     foreach (var vi in value.valueItem())
                     {
+                        // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a).
                         if (vi.valueClauseRange() is { } range)
-                            cond.Values.Add((range.valueClauseOperand(0).GetText(), range.valueClauseOperand(1).GetText()));
+                            cond.Values.Add((NormalizeIfNumericLiteral(range.valueClauseOperand(0).GetText()),
+                                             NormalizeIfNumericLiteral(range.valueClauseOperand(1).GetText())));
                         else
                             foreach (var op in vi.valueClauseOperand())
-                                cond.Values.Add((op.GetText(), null));
+                                cond.Values.Add((NormalizeIfNumericLiteral(op.GetText()), null));
                     }
 
         if (!Conditions.TryGetValue(name, out var list)) Conditions[name] = list = [];
@@ -460,7 +463,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // A PICTURE-less USAGE INDEX entry is an ELEMENTARY index data item (ISO §13.18.60 — class index, no
         // PICTURE allowed), not a group: synthesize its profile so it emits as a long occurrence-number field.
         var pic = pictureText is not null
-            ? PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), ownSign)
+            ? PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), ownSign, CurrencyPicSymbol, blankWhenZero)
             : PicInfo.ParseUsage(usageText) is Usage.Index ? PicInfo.IndexItem : null;
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
@@ -474,6 +477,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CsName = csName,
             Pic = pic,
             OwnSign = ownSign,
+            OwnUsage = usageText is not null ? PicInfo.ParseUsage(usageText) : null,
             RawValue = rawValue,
             Occurs = occurs,
             OccursSpec = occursSpec,
@@ -502,11 +506,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Extract the first VALUE operand's raw source text (literal or figurative constant). THRU ranges /
     /// 88-levels are later. The emitter (<c>FieldEmitter</c>) interprets the text — including figurative constants
-    /// such as ZERO/SPACE — against the item's category and width.</summary>
-    private static string? ExtractValue(Core.ValueClauseContext value)
+    /// such as ZERO/SPACE — against the item's category and width. A numeric literal is normalized to the
+    /// canonical dot-decimal form (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a).</summary>
+    private string? ExtractValue(Core.ValueClauseContext value)
     {
         var item = value.valueItem().FirstOrDefault();
-        return item?.GetText();
+        return item?.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
     }
 
     /// <summary>Resolve PICTURE-less USAGE INDEX entries (ISO §13.18.60) once the forest is complete — entry bind
@@ -528,6 +533,32 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 item.Pic = PicInfo.IndexItem;
         }
         foreach (var root in Roots) Walk(root, false);
+    }
+
+    /// <summary>Apply group-level USAGE clauses to subordinate elementary items (ISO §13.18.60 GR1 — "the USAGE
+    /// clause of a group item applies to each elementary item subordinate to it"; the nearest enclosing clause
+    /// wins, an item's OWN clause outright). Scope: the binary/packed integer usages (NC107A's
+    /// <c>01 U9 USAGE COMPUTATIONAL</c> with PICTURE-only children) — USAGE INDEX inheritance is
+    /// <see cref="ResolveIndexItems"/>'s special case (PICTURE-less index items), and a float usage on a group
+    /// with PICTUREd children has no NIST surface (left to the float slice). Runs BEFORE
+    /// <see cref="InheritSignClauses"/> — a non-DISPLAY item takes the BinaryMinus sign form regardless of any
+    /// inherited SIGN clause (§13.18.52 applies only to usage-display items).</summary>
+    private void InheritUsageClauses()
+    {
+        static void Walk(DataItem item, Usage? inherited)
+        {
+            Usage? effective = item.OwnUsage ?? inherited;
+            if (item.OwnUsage is null
+                && effective is Usage.Binary or Usage.Packed or Usage.Comp5
+                && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } pic)
+                item.Pic = pic with
+                {
+                    Usage = effective.Value,
+                    SignKind = PicInfo.SignKindFor(effective.Value, pic.Signed, item.OwnSign),
+                };
+            foreach (var c in item.Children) Walk(c, effective);
+        }
+        foreach (var root in Roots) Walk(root, null);
     }
 
     /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY items (ISO §13.18.52 GR1–3):

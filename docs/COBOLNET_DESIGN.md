@@ -861,6 +861,16 @@ demand, never persisted) and is DISTINCT from REDEFINES Tier-C's PERSISTENT clas
 storage for a mixed-usage class). Whether `AsImage` is the permanent mechanism for mixed-usage groups vs the byte path
 is an owner question (§15).
 
+**Mixed-usage (COMP-leaf) groups in character contexts — the settled interim (DEVLOG 558).** The standard leaves a
+binary item's representation to the implementor (§8.8.4.1.1 — a group operand is alphanumeric over the items'
+representations); the typed-native backend DEFINES that representation, for group operands read in character contexts
+(compare/DISPLAY senders), as **each fixed-point leaf's decimal digit image** (`OperandText.MixedGroupImage` — plain
+nested shapes only; OCCURS / REDEFINES / float beneath stay the loud Tier-C island). A whole-group **MOVE between two
+mixed groups with positionally IDENTICAL leaf layouts** (same usage/digits/scale/sign leaf-by-leaf) is emitted as a
+**memberwise leaf copy** (`CSharpEmitter.AlignedLeafPairs`) — for identical layouts the §14.9.25.4 GR4 representation
+copy and the memberwise copy are indistinguishable. Non-aligned mixed-group MOVE receivers remain loud (the genuine
+Tier-C byte island, §15 owner question). NC107A's USAGE tests (`MOVE U5 TO U9`, `IF U22 > U12`) ride these.
+
 ### 14.5 Control-flow PC × declaratives × EXIT × STOP RUN/GOBACK
 
 - **Two exceptions, never integer-pc, for termination:** `StopRun` (run-unit, caught at `Main`) and `ProgramReturn`

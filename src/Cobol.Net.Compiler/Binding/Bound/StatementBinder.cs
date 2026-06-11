@@ -867,10 +867,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 : new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context")
             : new BoundNumLiteral(CheckLiteral(lit.GetText()));
 
-    /// <summary>Edition-gate a numeric literal's digit count (ISO §8.3.1.2 — 1..18 at COBOL-85, 1..31 at 2002+),
-    /// then return it unchanged. The ONE literal chokepoint for the expression paths.</summary>
+    /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a — the comma form
+    /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and edition-gate the digit count
+    /// (ISO §8.3.1.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
     private string CheckLiteral(string text)
     {
+        text = data.NormalizeNumericLiteral(text);
         int digits = text.Count(char.IsAsciiDigit);
         data.Edition.CheckDigitCapacity(digits, $"numeric literal '{text}'");
         return text;
@@ -898,7 +900,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundExpr BindPrimary(Core.PrimaryExpressionContext pe)
     {
-        if (pe.numericLiteral() is { } num) return new BoundNumLiteral(num.GetText());
+        if (pe.numericLiteral() is { } num) return new BoundNumLiteral(CheckLiteral(num.GetText()));
         if (pe.ZERO_ARITH() is not null) return new BoundNumLiteral("0");
         if (pe.dataReference() is { } dref) return RefExpr(dref);
         if (pe.arithmeticExpression() is { } paren) return BindExpr(paren);

@@ -139,7 +139,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         // A NUMERIC conditional variable goes through the ONE numeric read path (NumericRenderer.FieldNum) — a
         // whole-group-aliased / Tier-B-view leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay,
         // never compare its raw image to an unscaled long (diagnosis B3).
-        string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent)) : NumericRenderer.FieldNum(c.Parent).Expr;
+        string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent)) : num.FieldNum(c.Parent).Expr;
         var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High));
         return "(" + string.Join(" || ", tests) + ")";
     }
