@@ -24,9 +24,10 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 566, 2026-06-10 21:00): 236 NIST programs locked (90/95 NC + 24/29 ST + 49 RL/IX + 18 IC +
-> 63 SQ + OBSQ4A/5A); 809 conformance + 15 unit; FULL legacy guard re-proved ALL GREEN on the one shared-
-> frontend change (the XXXXX064 X-card). Landed this session (560–566): ① CHAIN-CONSUMER harness support —
+> **STATE (DEVLOG 568, 2026-06-10 21:25): 244 NIST programs locked (90/95 NC + 24/29 ST + 57 RL/IX + 18 IC +
+> 63 SQ + OBSQ4A/5A); 818 conformance + 15 unit; FULL legacy guard re-proved ALL GREEN on the one shared-
+> frontend change (the XXXXX064 X-card). The fresh chain-aware census (`/e/tmp/nc-sweep/census-current.txt`,
+> pre-567): 268/361 GREEN. Landed this session (560–568): ① CHAIN-CONSUMER harness support —
 > `tests/nist/chains.tsv` is the ONE chain topology (consumer→producers), `NistDifferentialTests.RunNist` runs
 > predecessors in the consumer's own temp dir, the sweep gained CHAINERR + the `-s` nonempty-dll check → 22
 > programs locked with zero compiler change (560); ② secondary-record SORT keys SR6e + SR6g diag 0874 + the
@@ -39,20 +40,25 @@
 > the LAST-trivial-exit termination-tail fix → SQ212A/SQ228A/RL206A/RL211A/IX106A (563); ⑤ qualified
 > RECORD/ALTERNATE KEY operands (§8.4.2.2 `FindQualified`) → IX215A compiles, all 39 PASS (564); ⑥ no 0-byte
 > dll on failed emit + the Tier-C record fence → hostpolicy-phantom class retired, SQ203A locked (565);
-> ⑦ XXXXX064 + ST144A re-baselined from the legacy (566).
-> **RESUME AT: ① the fresh census** (`/e/tmp/nc-sweep/census-current.txt` — regenerate if absent: the driver
-> below; chain-aware now) — triage the remaining DIFFs/RUNERRs by family and repeat this session's pattern
-> (spec → fix → lock → commit); known residue going in: NC105A last rows (`nc105a-brief.md`), IC207A/227A DIFF
-> (227A = EXTERNAL FD shared connectors), IC113A timeout, IC222A CMPL_FAIL, IC233A/234A cross-program GLOBAL
-> USE (designed §5.6 of the declaratives brief), SM suite = COPY support, the four Tier-C COMP-record SORTs
-> (ST108A/127A/133A/134A — the §4.2 byte-island codec, now honestly loud), SQ204A-family leftovers; ② OWNER
-> SIGN-OFF QUEUE: IX210A/IX214A/IX215A exceed their goldens (the C9 PRINT-DETAIL legacy quirk — produced
-> outputs have zero FAIL rows; re-baseline like ST144A on approval), IX111A + NC235A/NC236A same class;
-> ③ reserved-word tables (scout FAILED on content-filter — re-run; the `RF` find → 0900+ band); ④ CALL
-> follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence arm for ON-phrase bodies, OMITTED
-> args + header mode phrases (grammar), cross-assembly dynamic CALL (pre-G8). Then steps ④–⑦ (EC model →
-> Phase-2 EditionValidator → 2002 OO/UDF → 2014 JSON/XML → 2023 → G8). ⚠ Apply agent edits with the
-> index-based python pattern; the Bash transport mangles backslash escapes — never inline them in heredocs.
+> ⑦ XXXXX064 + ST144A re-baselined from the legacy (566); ⑧ the IX109A chain family — TF024 has TWO producers
+> with different key universes; 8 status-test consumers locked behind IX109A (567); ⑨ FILE-NAME qualification
+> §8.4.2.2 + ADVANCING mnemonic-name = 0 lines (568 — the legacy DROPS the AFTER-mnemonic write, a hole; SQ207M
+> DIFF 4 = exactly those rows → sign-off queue).
+> **RESUME AT — the census residue by family** (regenerate `census-current.txt` first — the driver below):
+> ① NC105A last rows (`nc105a-brief.md`, untouched); ② SQ101M (DIFF 11, extra blank lines — print-control
+> corner) + the LINAGE subsystem (§13.18.36 + LINAGE-COUNTER §8.4.3.14 — SQ201M/208M/209M/210M all loud on it);
+> ③ the Tier-C COMP-record codec (COBOLNET_DESIGN §4.2/§8 — ST108A/127A/133A/134A, honestly loud now);
+> ④ IC residue: cross-FILE dynamic CALL (IC109A/110A/117M/205A/210A `EC-PROGRAM-NOT-FOUND` — the pre-G8
+> cross-assembly CALL item), IC113A timeout, IC222A (CALL ON EXCEPTION gated 2002+ yet used by a CCVS-85
+> program — version-targeted investigation), IC233A/234A cross-program GLOBAL USE (designed §5.6 of the
+> declaratives brief), IC207A/227A EXTERNAL FD, IC401M parse; ⑤ SM = COPY support (the whole suite);
+> ⑥ OWNER SIGN-OFF QUEUE (exceeds-golden; re-baseline like ST144A on approval): IX210A/IX214A/IX215A (C9
+> PRINT-DETAIL quirk, zero FAIL rows produced), SQ207M (AFTER-mnemonic dropped-write quirk), IX111A +
+> NC235A/NC236A; ⑦ reserved-word tables (scout FAILED on content-filter — re-run; the `RF` find → 0900+ band);
+> ⑧ CALL follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence arm for ON-phrase bodies,
+> OMITTED args + header mode phrases (grammar). Then steps ④–⑦ (EC model → Phase-2 EditionValidator → 2002
+> OO/UDF → 2014 JSON/XML → 2023 → G8). ⚠ Apply agent edits with the index-based python pattern; the Bash
+> transport mangles backslash escapes — never inline them in heredocs.
 > **SESSION ARTIFACTS (off-repo, E:\tmp):** scout briefs in `/e/tmp/verb-briefs/`; sweep infra + censuses in
 > `/e/tmp/nc-sweep/` (driver: `xargs -P 14 -I {} bash sweep-one.sh {} < all-census-list2.txt` — sweep-one.sh
 > is now chain-aware via `tests/nist/chains.tsv` and judges compiles by NON-EMPTY dll); a frozen CLI at commit
