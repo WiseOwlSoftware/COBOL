@@ -20,7 +20,8 @@ public static partial class CobolIntrinsics
     /// (§15.3, checking disabled).</summary>
     public static Int128 Factorial(long n)
     {
-        if (n is < 0 or > 33) return 0;                      // EC-ARGUMENT-FUNCTION default (ISO §15.3)
+        if (n is < 0 or > 33)                                // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
+            return Exceptions.ExceptionState.ArgumentError($"FACTORIAL argument {n} violates §15.36.3 rule 1 (negative) or overflows the Int128 carrier (> 33)");
         Int128 r = 1;
         for (long i = 2; i <= n; i++) r *= i;
         return r;
@@ -57,7 +58,8 @@ public static partial class CobolIntrinsics
     /// integer arguments). A zero divisor violates rule 2 → EC-ARGUMENT default 0 (§15.3).</summary>
     public static Int128 ModScaled(Int128 a, Int128 b)
     {
-        if (b == 0) return 0;                                // EC-ARGUMENT-FUNCTION default (ISO §15.3)
+        if (b == 0)                                          // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
+            return Exceptions.ExceptionState.ArgumentError("MOD with a zero divisor (§15.64.3 rule 2)");
         Int128 q = a / b;                                    // truncating quotient of the ALIGNED values
         if (a % b != 0 && (a < 0) != (b < 0)) q -= 1;        // → floor (FUNCTION INTEGER of the true ratio)
         return a - b * q;
@@ -65,7 +67,9 @@ public static partial class CobolIntrinsics
 
     /// <summary>REM (§15.77.4): <c>a − b × FUNCTION INTEGER-PART(a / b)</c> — the truncated remainder (sign follows
     /// the dividend). Operands aligned to one scale, result at that scale. Zero divisor → 0 (§15.3 EC default).</summary>
-    public static Int128 RemScaled(Int128 a, Int128 b) => b == 0 ? 0 : a % b;   // C# % truncates toward zero — exactly INTEGER-PART
+    public static Int128 RemScaled(Int128 a, Int128 b) => b == 0
+        ? Exceptions.ExceptionState.ArgumentError("REM with a zero divisor (§15.77.3 rule 2)")   // raise point / §15.3 default
+        : a % b;   // C# % truncates toward zero — exactly INTEGER-PART
 
     // ── Variadic statistics over scale-ALIGNED unscaled values (ISO §15.59–§15.63, §15.71–72, §15.76, §15.88) ──
 
@@ -180,7 +184,8 @@ public static partial class CobolIntrinsics
     {
         char dec = commaMode ? ',' : '.';
         string s = text.Trim();
-        if (s.Length == 0) return 0;
+        if (s.Length == 0)                                   // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
+            return Exceptions.ExceptionState.ArgumentError("NUMVAL argument is empty (§15.67.3 — at least one digit required)");
         bool neg = false;
         // Trailing CR/DB (uppercase, lowercase, or mixed — §15.67.3 rule 1).
         if (s.Length >= 2 && (s.EndsWith("CR", StringComparison.OrdinalIgnoreCase)
@@ -209,9 +214,11 @@ public static partial class CobolIntrinsics
                 continue;
             }
             if (c == dec && frac < 0) { frac = 0; continue; }
-            return 0;                                        // malformed → EC-ARGUMENT-FUNCTION default (§15.3)
+            // Malformed content — the EC-ARGUMENT-FUNCTION raise point / §15.3 default 0.
+            return Exceptions.ExceptionState.ArgumentError($"NUMVAL argument '{text}' violates the §15.67.3 formats (unexpected character '{c}')");
         }
-        if (digits == 0) return 0;                           // the formats require at least one digit
+        if (digits == 0)                                     // the formats require at least one digit
+            return Exceptions.ExceptionState.ArgumentError($"NUMVAL argument '{text}' has no digits (§15.67.3)");
         if (frac < 0) frac = 0;
         // Rescale (unscaled, frac) → the requested scale. Widening is exact; narrowing truncates (the requested
         // scale already carries the ≥ 6 working floor, and the receiver's own store rounds/truncates once more).

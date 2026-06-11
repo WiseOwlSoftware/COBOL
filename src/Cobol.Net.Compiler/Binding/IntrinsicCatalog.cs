@@ -129,12 +129,15 @@ public static class IntrinsicCatalog
         Add(new("YEAR-TO-YYYY", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002));     // §15.100
         Add(new("DISPLAY-OF", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Deferred, false, 2002));   // §15.26
         Add(new("NATIONAL-OF", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Deferred, false, 2002));      // §15.66
-        Add(new("EXCEPTION-FILE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "", IntrinsicBind.Deferred, false, 2002)); // §15.28
+        Add(new("EXCEPTION-FILE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "EcFile", IntrinsicBind.Runtime, false, 2002)); // §15.28 (no-arg form r1; the 2023 file-connector-arg form renders loud — VCR row 68)
         Add(new("EXCEPTION-FILE-N", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 0, 1, "s", "", IntrinsicBind.Deferred, false, 2002));   // §15.29
-        Add(new("EXCEPTION-LOCATION", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "", IntrinsicBind.Deferred, false, 2002));         // §15.30
+        // EXCEPTION-LOCATION/-STATEMENT/-STATUS render the runtime last-exception register (EcFunctions, the §11
+        // EC model); the -N national twins stay Deferred-loud — no national runtime exists, and faking national
+        // as UTF-16 alphanumeric would be the wrong data class (§15.29/§15.31; EC scout hazard H8).
+        Add(new("EXCEPTION-LOCATION", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcLocation", IntrinsicBind.Runtime, false, 2002));  // §15.30
         Add(new("EXCEPTION-LOCATION-N", IntrinsicType.National, IntrinsicArity.Fixed, 0, 0, "", "", IntrinsicBind.Deferred, false, 2002));           // §15.31
-        Add(new("EXCEPTION-STATEMENT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "", IntrinsicBind.Deferred, false, 2002));        // §15.32
-        Add(new("EXCEPTION-STATUS", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "", IntrinsicBind.Deferred, false, 2002));           // §15.33
+        Add(new("EXCEPTION-STATEMENT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatement", IntrinsicBind.Runtime, false, 2002)); // §15.32
+        Add(new("EXCEPTION-STATUS", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatus", IntrinsicBind.Runtime, false, 2002));    // §15.33
         Add(new("HIGHEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002)); // §15.43
         Add(new("LOWEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002));  // §15.58
         Add(new("INTEGER-OF-BOOLEAN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002)); // §15.45

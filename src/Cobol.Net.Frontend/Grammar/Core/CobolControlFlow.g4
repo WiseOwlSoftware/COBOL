@@ -180,6 +180,18 @@ useStatement
     // STANDARD and ON are accepted as optional words: the CCVS suite and mainstream compilers write
     // both "USE GLOBAL AFTER ERROR PROCEDURE ON INPUT" and "USE AFTER STANDARD ERROR PROCEDURE OUTPUT".
     | USE GLOBAL? AFTER STANDARD? (EXCEPTION | ERROR) PROCEDURE ON? useOnTarget
+    // Format 3 (exception-name, EC model 2002+ — binder-gated): USE AFTER {EXCEPTION CONDITION | EC}
+    // {exception-name-1 | exception-name-2 {FILE file-name-2}…}… (ISO §14.9.49.2; SR12: EC ≡ EXCEPTION
+    // CONDITION). Exception-names are cobolWords — an OPEN set (EC-USER-*, §14.6.13.1.1 / §7.3.25.3 SR2), so
+    // name validation (and SR13/SR14) is the binder's, never a token enumeration.
+    // Format 4 (exception-object, USE AFTER {EXCEPTION OBJECT | EO}) is OO — out of this wave, not parsed.
+    | USE AFTER (EXCEPTION CONDITION | EC) useEcEntry+
+    ;
+
+// One Format-3 scope entry: an exception-name, optionally file-scoped ({FILE file-name-2}… — each file carries
+// its own FILE word per the §14.9.49.2 format figure; SR13 requires an EC-I-O name when FILE is given).
+useEcEntry
+    : cobolWord (FILE fileName)*
     ;
 
 useOnTarget
@@ -195,7 +207,10 @@ useOnTarget
 // ==========================================
 
 exitStatement
-    : EXIT ( PROGRAM | PERFORM CYCLE? | SECTION | PARAGRAPH | METHOD | FUNCTION )?
+    // EXIT PROGRAM [RAISING …] (ISO §14.9.14 Format 2 — the RAISING tail re-raises in the activator; archaic-
+    // flagged in 2023, parsed at every edition and binder-gated). The METHOD/FUNCTION forms share the tail
+    // syntactically (Formats 3/4); their semantics land with the OO wave.
+    : EXIT ( PROGRAM raisingPhrase? | PERFORM CYCLE? | SECTION | PARAGRAPH | METHOD raisingPhrase? | FUNCTION raisingPhrase? )?
     ;
 
 // ==========================================

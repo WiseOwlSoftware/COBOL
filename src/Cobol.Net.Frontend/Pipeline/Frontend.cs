@@ -47,6 +47,11 @@ public sealed class Frontend
     /// <summary>Add a directory to the COPY copybook search path.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
+    /// <summary>The <c>&gt;&gt;TURN</c> directive events of the LAST parsed source (ISO §7.3.25), anchored to
+    /// 1-based lines of the final preprocessed text (so token <c>Start.Line</c> is directly comparable — the
+    /// compile-time TurnState's basis, deep-dive D10). Empty when the source has no TURN directives.</summary>
+    public IReadOnlyList<TurnEvent> TurnEvents { get; private set; } = [];
+
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
     /// syntax error was reported (collected into <paramref name="diagnostics"/>).
@@ -71,7 +76,9 @@ public sealed class Frontend
         string text = ReferenceFormatProcessor.NormalizeToFreeForm(raw);
 
         // Conditional compilation runs on free-form text BEFORE COPY so an >>IF may include/omit COPY statements.
-        text = ConditionalCompilationProcessor.Process(text);
+        // leaveTurnDirectives: an emitting-branch >>TURN survives for the TurnDirectiveProcessor stage below
+        // (the COBOL.NET EC model, ISO §7.3.25) — the legacy pipeline still consumes TURN here.
+        text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true);
 
         // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false);
@@ -80,8 +87,19 @@ public sealed class Frontend
         if (NistTestName is { } nist)
             text = NistPreprocessor.Process(text, nist);
 
+        // >>TURN directive collection runs LAST — after COPY (so copybook TURNs are seen) and after the
+        // line-count-neutral NIST substitution — on the FINAL text, so each TurnEvent.Line is directly
+        // comparable to the parser tokens' Start.Line (the TurnState anchor, deep-dive D10 / hazard H3).
+        int linesBefore = CountLines(text);
+        (text, TurnEvents) = TurnDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "TurnDirectiveProcessor changed the line count — TURN scoping would silently misanchor (hazard H3)");
+
         return text;
     }
+
+    private static int CountLines(string s) => s.Count(c => c == '\n');
 
     /// <summary>
     /// Phase 1 — lex + parse. Uses the proven two-stage strategy: fast SLL prediction first (with a

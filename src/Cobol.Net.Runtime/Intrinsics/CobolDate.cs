@@ -34,7 +34,8 @@ public static class CobolDate
     /// 1..3,067,671 (§15.5.2) → 0 (EC default, §15.3).</summary>
     public static long DateOfInteger(long integerDate)
     {
-        if (integerDate is < 1 or > 3067671) return 0;
+        if (integerDate is < 1 or > 3067671)                 // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
+            return Exceptions.ExceptionState.ArgumentError($"DATE-OF-INTEGER argument {integerDate} outside 1..3,067,671 (§15.5.2)");
         DateTime d = Epoch.AddDays(integerDate - 1);
         return d.Year * 10000L + d.Month * 100L + d.Day;
     }
@@ -42,7 +43,8 @@ public static class CobolDate
     /// <summary>DAY-OF-INTEGER (§15.24.4): integer date form → Julian date form YYYYDDD (§15.5.4).</summary>
     public static long DayOfInteger(long integerDate)
     {
-        if (integerDate is < 1 or > 3067671) return 0;
+        if (integerDate is < 1 or > 3067671)                 // EC-ARGUMENT-FUNCTION raise point / §15.3 default 0
+            return Exceptions.ExceptionState.ArgumentError($"DAY-OF-INTEGER argument {integerDate} outside 1..3,067,671 (§15.5.2)");
         DateTime d = Epoch.AddDays(integerDate - 1);
         return d.Year * 1000L + d.DayOfYear;
     }
@@ -54,7 +56,7 @@ public static class CobolDate
         long year = yyyymmdd / 10000, month = yyyymmdd / 100 % 100, day = yyyymmdd % 100;
         if (year is < 1601 or > 9999 || month is < 1 or > 12 || day < 1
             || day > DateTime.DaysInMonth((int)year, (int)month))
-            return 0;
+            return Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-DATE argument {yyyymmdd} is not a valid standard date (§15.46.3)");
         return (new DateTime((int)year, (int)month, (int)day) - Epoch).Days + 1;
     }
 
@@ -64,7 +66,7 @@ public static class CobolDate
     {
         long year = yyyyddd / 1000, day = yyyyddd % 1000;
         if (year is < 1601 or > 9999 || day < 1 || day > (DateTime.IsLeapYear((int)year) ? 366 : 365))
-            return 0;
+            return Exceptions.ExceptionState.ArgumentError($"INTEGER-OF-DAY argument {yyyyddd} is not a valid Julian date (§15.47.3)");
         return (new DateTime((int)year, 1, 1).AddDays(day - 1) - Epoch).Days + 1;
     }
 }

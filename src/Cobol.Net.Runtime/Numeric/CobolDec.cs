@@ -67,7 +67,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// A zero divisor raises the size error (§14.7.5 case 2 — EC-SIZE-ZERO-DIVIDE territory).</summary>
     public static CobolDec Div(CobolDec a, CobolDec b, CobolRounding mode)
     {
-        if (b.Sig == 0) throw new CobolSizeError("divide by zero (standard-decimal)");
+        if (b.Sig == 0) throw new CobolSizeError("divide by zero (standard-decimal)", "EC-SIZE-ZERO-DIVIDE");
         if (a.Sig == 0) return new CobolDec(0, 0);
         bool negative = (a.Sig < 0) ^ (b.Sig < 0);
         UInt128 den = UAbs(b.Sig);

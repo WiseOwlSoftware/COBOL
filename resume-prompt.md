@@ -24,7 +24,26 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 575, 2026-06-11 02:15): ⛔🎉 PHASE 1 COMPLETE — the COBOL-85 corpus drive (G5/G6) is CLOSED.
+> **STATE (DEVLOG 577, 2026-06-11 12:09): ✅ the EC EXCEPTION-CONDITION MODEL (SSOT §16 step ①) is DONE END TO
+> END — ISO §14.6.13 + §7.3.25 >>TURN (the compile-time TurnState fold; zero-scaffolding when off) + §14.9.29
+> RAISE / §14.9.33 RESUME (both forms, the ResumeSignal/dispatch-result protocol) / §14.9.49 Format-3 USE
+> (GR3c–g `__EcDispatch` tiers) / §14.9.18+§14.9.14 GOBACK/EXIT RAISING propagation (CALL-site pickup + the
+> ProgramRegistry boundary default; ¶27403 SR2) / the §9.1.13.1 status→EC bridge (`__IoCheckEc`) / the EC-SIZE,
+> EC-OVERFLOW, EC-PROGRAM, EC-ARGUMENT-FUNCTION raise points / §15.28–33 EXCEPTION-* functions / SET LAST
+> EXCEPTION TO OFF / the full 0710–0719+0875–0879 diagnostics band with per-edition gating. The deep-dive
+> (`COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md`) carries the as-built section. **1074 conformance (48 new EC
+> facts) + 29 unit (13 new TurnState/catalog facts) ALL GREEN; FULL legacy guard ALL GREEN (353 MATCH + 11
+> LEGACY_DIVERGENT, 0 regressions) on the shared-frontend grammar change.** Later-wave EC remnants (listed in
+> the deep-dive's as-built tail): PERFORM…WHEN + >>PROPAGATE (2023), exception OBJECTS (OO wave), the
+> EXCEPTION-FILE 2023 file-connector arg, national -N twins, GLOBAL-walkable F3.
+> **RESUME AT: ② G7 per-edition correctness — Track-1 Phase-2 EditionValidator (removal/reserved-word gating
+> per `docs/VERSION_CHANGE_REFERENCE.md` + the negative corpus) and the M2 2002 catalog (OO is the largest —
+> reuse the legacy OO design per `project_oo_reuse_legacy`; then UDF prototypes, national/boolean,
+> pointers/ALLOCATE, SHARING/LOCK) → M3 2014 (dynamic tables, TYPEDEF, JSON/XML) → M4 2023 deltas;
+> ③ reserved-word tables (scout failed on content-filter — re-run; the `RF` find → 0900+ band); ④ G8 cut-over.**
+> *(The Phase-1 banner below is history.)*
+>
+> **(superseded) STATE (DEVLOG 575, 2026-06-11 02:15): ⛔🎉 PHASE 1 COMPLETE — the COBOL-85 corpus drive (G5/G6) is CLOSED.
 > Every golden-bearing NIST program is locked byte-exact: 318 = 93 NC + 29 ST + 32 RL + 40 IX + 23 IC + 69 SQ
 > + 42 IF + 15 SM + 4 RW + 2 OBSQ. The final census (403 programs, `/e/tmp/nc-sweep/census-phase1-final.txt`):
 > 357 GREEN, ZERO DIFF/CMPL_FAIL; residue is golden-less by NIST design (33 NO_GOLDEN, 6 chain-intermediate

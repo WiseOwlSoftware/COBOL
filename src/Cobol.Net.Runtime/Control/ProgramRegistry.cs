@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime;
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -37,10 +39,16 @@ public sealed class ProgramReturn : Exception;
 /// of an active non-RECURSIVE program (GR3f, EC-PROGRAM-RECURSIVE-CALL), CANCEL of an active program (§14.9.5
 /// GR5, EC-PROGRAM-CANCEL-ACTIVE), or a reference to an omitted argument (GR12, EC-PROGRAM-ARG-OMITTED). At
 /// <c>--std 85</c> there is no EC machinery — a CALL site with an ON OVERFLOW phrase converts this to the
-/// overflow branch (the 85 surface); without one, the run unit terminates loudly (abnormal termination). The
-/// EC-PROGRAM-* names route through the §11 exception subsystem when it lands (COBOLNET 07xx band).
+/// overflow branch (the 85 surface); without one, the run unit terminates loudly (abnormal termination).
+/// <paramref name="ecName"/> carries the Table 13 level-3 EC-PROGRAM-* name so a CALL site compiled with
+/// EC-PROGRAM checking enabled (>>TURN, §7.3.25) can set the last exception status and run the §14.9.49 F3
+/// declarative selection over the precise condition.
 /// </summary>
-public sealed class CobolCallException(string message) : Exception(message);
+public sealed class CobolCallException(string message, string ecName = "EC-PROGRAM-IMP") : Exception(message)
+{
+    /// <summary>The Table 13 level-3 exception-name of this failure (uppercase).</summary>
+    public string EcName { get; } = ecName;
+}
 
 /// <summary>How a CALL argument is passed (ISO §14.9.4 / §14.2.3 GR8–10).</summary>
 public enum CobolPassMode
@@ -235,9 +243,9 @@ public static class CobolArgAdapt
     /// (ISO §14.9.4.4 GR12 — referencing an omitted parameter is the EC-PROGRAM-ARG-OMITTED condition).</summary>
     private static ManagedPointer<T> Omitted<T>(int position) => ManagedPointer<T>.OverField(
         () => throw new CobolCallException(
-            $"reference to omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12 — EC-PROGRAM-ARG-OMITTED)"),
+            $"reference to omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12 — EC-PROGRAM-ARG-OMITTED)", "EC-PROGRAM-ARG-OMITTED"),
         _ => throw new CobolCallException(
-            $"store into omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12 — EC-PROGRAM-ARG-OMITTED)"));
+            $"store into omitted/absent CALL argument #{position + 1} (ISO §14.9.4.4 GR12 — EC-PROGRAM-ARG-OMITTED)", "EC-PROGRAM-ARG-OMITTED"));
 }
 
 /// <summary>
@@ -335,6 +343,23 @@ public static class ProgramRegistry
         n.Active++;
         try { inst.Activate(); }
         finally { n.Active--; }
+        // A GOBACK … RAISING in the MAIN program stages a propagation whose "activator" is the run-unit
+        // boundary itself — apply the activation-boundary default here (§14.9.18 GR; §14.6.13.1.3).
+        ApplyPropagationDefault();
+    }
+
+    /// <summary>Apply the activation-boundary default to an exception condition staged by the returning
+    /// element's <c>GOBACK / EXIT PROGRAM … RAISING</c> (ISO §14.9.18 GR) when the activating CALL site emitted
+    /// no pickup of its own (an EC-free caller — checking is off there, so the condition is not raised in the
+    /// activating element; the §14.6.13.1.3 #8 implementor choice, recorded in the conditions-exceptions
+    /// deep-dive): a FATAL staged condition terminates the run unit loudly; a nonfatal one stands in the
+    /// last-exception status (§14.6.13.1.4) and execution continues.</summary>
+    private static void ApplyPropagationDefault()
+    {
+        if (ExceptionState.TakePropagated(out string pn, out bool pf) && pf)
+            throw new CobolFatalException(pn, "exception condition propagated by GOBACK/EXIT PROGRAM RAISING "
+                + "into an activator without exception checking (ISO 14.9.18; 14.6.13.1.3 #8 - this "
+                + "implementation terminates)");
     }
 
     /// <summary>
@@ -344,14 +369,17 @@ public static class ProgramRegistry
     /// Failures raise <see cref="CobolCallException"/> — the call site's ON OVERFLOW / ON EXCEPTION phrase (when
     /// present) converts it to the exception branch (GR3h); otherwise the run unit terminates loudly.
     /// </summary>
-    public static void CallProgram(string name, string callerPath, CobolArg[] args, ManagedPointer? returning)
+    public static void CallProgram(string name, string callerPath, CobolArg[] args, ManagedPointer? returning,
+        bool siteHandlesPropagation = false)
     {
         var n = ResolveVisible(name, callerPath)
             ?? throw new CobolCallException(
-                $"CALL '{name?.Trim()}': program not found in the run unit (ISO §14.9.4.4 GR3b — EC-PROGRAM-NOT-FOUND)");
+                $"CALL '{name?.Trim()}': program not found in the run unit (ISO §14.9.4.4 GR3b — EC-PROGRAM-NOT-FOUND)",
+                "EC-PROGRAM-NOT-FOUND");
         if (n.Active > 0 && !n.Recursive)
             throw new CobolCallException(
-                $"CALL '{n.Name}': program is already active and has no RECURSIVE attribute (ISO §14.9.4.4 GR3f — EC-PROGRAM-RECURSIVE-CALL)");
+                $"CALL '{n.Name}': program is already active and has no RECURSIVE attribute (ISO §14.9.4.4 GR3f — EC-PROGRAM-RECURSIVE-CALL)",
+                "EC-PROGRAM-RECURSIVE-CALL");
 
         ICobolProgram inst;
         if (n.Initial || n.Recursive)
@@ -377,6 +405,11 @@ public static class ProgramRegistry
             CancelContained(n);
             n.Instance = null;
         }
+
+        // The callee may have staged an exception condition via GOBACK/EXIT PROGRAM … RAISING (§14.9.18 GR).
+        // An EC-active CALL site consumes it itself (siteHandlesPropagation — the generated pickup runs the
+        // §14.9.49 F3 selection and honors RESUME); otherwise apply the boundary default here.
+        if (!siteHandlesPropagation) ApplyPropagationDefault();
     }
 
     /// <summary>
@@ -400,7 +433,8 @@ public static class ProgramRegistry
     {
         if (n.Active > 0)
             throw new CobolCallException(
-                $"CANCEL '{n.Name}': program is active (ISO §14.9.5 GR5 — EC-PROGRAM-CANCEL-ACTIVE; not canceled)");
+                $"CANCEL '{n.Name}': program is active (ISO §14.9.5 GR5 — EC-PROGRAM-CANCEL-ACTIVE; not canceled)",
+                "EC-PROGRAM-CANCEL-ACTIVE");
         for (int i = n.Children.Count - 1; i >= 0; i--)   // GR4 — contained programs, REVERSE source order
             CancelNode(n.Children[i]);
         if (n.Instance is { } inst)

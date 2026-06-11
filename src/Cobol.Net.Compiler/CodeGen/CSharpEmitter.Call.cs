@@ -76,12 +76,23 @@ public sealed partial class CSharpEmitter
     /// run-unit entry wrapper (<c>Program.Main</c>: registry registration + main activation + the §14.6.11
     /// implicit CLOSE at run-unit termination).
     /// </summary>
-    internal string CallEmitRunUnit(Core.CompilationUnitContext tree, EditionContext edition)
+    internal string CallEmitRunUnit(Core.CompilationUnitContext tree, EditionContext edition,
+        IReadOnlyList<CobolSharp.Compiler.Preprocessor.TurnEvent>? turnEvents = null)
     {
+        // The group's compile-time TurnState (ISO §7.3.25; deep-dive D10) — built BEFORE binding so every unit's
+        // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
+        // group). Name/edition validation happens here (SR2 + the 2023-only families).
+        _turnState = TurnState.Build(turnEvents, edition);
+
         List<CallUnit> units = CallCollectUnits(tree, edition);
         _callUidBand = 0;
         foreach (var unit in units) CallBindUnit(unit, edition);
         foreach (var unit in units) MarkStoreAsImage(unit.Data);
+
+        // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
+        // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
+        // pre-EC build (the zero-scaffolding invariant, SSOT §18.16).
+        _ecActive = _turnState.AnyEnabled || units.Any(u => u.Bound.Ec is { Any: true });
 
         // Per-program file-connector namespace: the runtime file registry is run-unit-global, but a file
         // connector is INTERNAL to its program (ISO §8.6.3): two programs declaring the same file-name (the
@@ -114,6 +125,8 @@ public sealed partial class CSharpEmitter
         w.Line("using CobolNet.Runtime;          // CobolNum / CobolString substrates + the inter-program ABI (ManagedPointer / ICobolProgram / ProgramRegistry)");
         if (anyFiles)
             w.Line("using CobolNet.Runtime.IO;       // CobolFile — the sequential file-I/O facade (§8)");
+        if (_ecActive)
+            w.Line("using CobolNet.Runtime.Exceptions; // the EC exception-condition model (ISO §14.6.13; ExceptionState / ExceptionCatalog / ResumeSignal / CobolFatalException)");
         w.Line();
 
         if (units.Count == 0)
@@ -279,7 +292,9 @@ public sealed partial class CSharpEmitter
         }
 
         unit.Refs = new ReferenceResolver(data);
-        unit.Bound = new StatementBinder(data, unit.Refs).Bind(unit.Ctx);
+        var binder = new StatementBinder(data, unit.Refs);
+        binder.ConfigureEc(_turnState, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
+        unit.Bound = binder.Bind(unit.Ctx);
 
         // Resolve every boundary-copied formal (and the RETURNING item) ONCE during the bind phase: resolving a
         // GROUP registers it as whole-group-referenced, so the later MarkStoreAsImage pass flips its
@@ -331,6 +346,7 @@ public sealed partial class CSharpEmitter
         _cond = new ConditionRenderer(_num, _ctx);
         _callSelfPath = unit.Path;
         _callReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
+        _ecUnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
         _callOuterGlobalUse = CallChainHasGlobalUse(unit.Parent);
@@ -557,6 +573,11 @@ public sealed partial class CSharpEmitter
             w.Line("__CobolModule.Register();");
             w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(units[0].Path)}); }}");
             w.Line("catch (StopRun) { }");
+            if (_ecActive)
+                // The fatal-EC default (ISO §14.6.13.1.3 #7 → §14.6.12 abnormal run-unit termination; the settled
+                // SSOT §18.16 implementor choice): diagnostic on stderr + NONZERO exit. The finally's CloseAll is
+                // the §14.6.11 attempt-normal-termination step.
+                w.Line("catch (CobolFatalException __fx) { Console.Error.WriteLine(\"abnormal run-unit termination: \" + __fx.Message); Environment.ExitCode = 1; }");
             if (anyFiles)
                 w.Line("finally { CobolFile.CloseAll(); }   // run-unit termination implicit CLOSE (ISO §14.6.11)");
         }
@@ -580,18 +601,27 @@ public sealed partial class CSharpEmitter
             ? "System.Array.Empty<CobolArg>()"
             : $"new CobolArg[] {{ {string.Join(", ", c.Args.Select(CallArgText))} }}";
         string ret = c.Returning is { } rp ? CallRefCarrier(rp) : "null";
-        string invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(_callSelfPath)}, {args}, {ret});";
+        // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
+        // runs the §14.9.49 F3 selection and honors RESUME); the registry's boundary default stands down.
+        string invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(_callSelfPath)}, {args}, {ret}"
+            + $"{(_ecActive ? ", siteHandlesPropagation: true" : "")});";
 
-        if (c.OnException is null && c.NotOnException is null)
+        var ecProg = EcEnabledProgramNames();
+        bool hasPhrase = c.OnException is not null || c.NotOnException is not null;
+        if (!hasPhrase && ecProg.Count == 0)
         {
             w.Line(invocation);
+            CallEmitPropagationPickup();
             return false;
         }
         int id = _callCounter++;
-        w.Line($"bool __callErr{id} = false;");
+        if (hasPhrase) w.Line($"bool __callErr{id} = false;");
         using (w.Block("try"))
             w.Line(invocation);
-        w.Line($"catch (CobolCallException) {{ __callErr{id} = true; }}   // CALL exception condition → the ON phrase (ISO §14.9.4.4 GR3h)");
+        if (ecProg.Count > 0)
+            CallEmitProgramEcCatch(ecProg, hasPhrase, hasPhrase ? $"__callErr{id}" : null);
+        if (hasPhrase)
+            w.Line($"catch (CobolCallException) {{ __callErr{id} = true; }}   // CALL exception condition → the ON phrase (ISO §14.9.4.4 GR3h)");
         if (c.OnException is { } on)
         {
             using (w.Block($"if (__callErr{id})")) EmitStatementList(on);
@@ -600,7 +630,62 @@ public sealed partial class CSharpEmitter
         }
         else if (c.NotOnException is { } not)
             using (w.Block($"if (!__callErr{id})")) EmitStatementList(not);   // GR3i — only on a non-exception return
+        CallEmitPropagationPickup();
         return false;
+    }
+
+    /// <summary>The enabled EC-PROGRAM-* names of the current statement (empty when none / no wrapper).</summary>
+    private List<string> EcEnabledProgramNames() =>
+        _ecInfo?.Enabled.Where(p => p.Ec.StartsWith("EC-PROGRAM-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
+        ?? [];
+
+    /// <summary>Emit the name-filtered <c>catch (CobolCallException)</c> arm of a CALL/CANCEL under enabled
+    /// EC-PROGRAM checking (§9.1.13-style bridge for the inter-program family: the runtime latched the Table 13
+    /// level-3 name in <see cref="CobolCallException.EcName"/>): set the last exception status (§14.6.13.1.1),
+    /// then either flag the statement's own ON EXCEPTION phrase (it wins — §14.6.13.1.3 #1 / §14.9.4.4 GR3h) or
+    /// run the §14.9.49 F3 selection with the fatal default (every EC-PROGRAM-* is fatal, Table 13). A
+    /// CobolCallException whose name is NOT enabled falls through to the next catch arm / propagates — the
+    /// checking-off behavior unchanged.</summary>
+    private void CallEmitProgramEcCatch(List<string> ecProg, bool hasPhrase, string? phraseFlag)
+    {
+        var w = _ctx.Writer;
+        int id = _ecCounter++;
+        string nameTest = string.Join(" || ", ecProg.Select(n => $"__ce{id}.EcName == {CsLiteral(n)}"));
+        var (stmt, loc) = EcStmtLoc(_ecInfo!);
+        using (w.Block($"catch (CobolCallException __ce{id}) when ({nameTest})"))
+        {
+            w.Line($"ExceptionState.Set(__ce{id}.EcName, true, {stmt}, {loc});   // §14.6.13.1.1 — all EC-PROGRAM-* are fatal (Table 13)");
+            if (hasPhrase)
+                w.Line($"{phraseFlag} = true;   // the statement's ON EXCEPTION phrase handles it (§14.6.13.1.3 #1; §14.9.4.4 GR3h)");
+            else
+            {
+                w.Line($"int __r{id} = {EcDispatchExpr($"__ce{id}.EcName", "\"\"")};");
+                w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+                w.Line($"if (__r{id} != -2) throw new CobolFatalException(__ce{id}.EcName, __ce{id}.Message);   // §14.6.13.1.3 #5/#7");
+            }
+        }
+    }
+
+    /// <summary>Emit the activator-side pickup of a callee-staged <c>GOBACK / EXIT PROGRAM … RAISING</c>
+    /// exception condition (ISO §14.9.18 GR — raised "as if a RAISE statement" at the end of the activating
+    /// statement; §14.6.13.1.3 #6): run the §14.9.49 F3 selection over the DYNAMIC name, honor RESUME, and apply
+    /// the fatal default. Emitted only when the group uses the EC model (<c>_ecActive</c>) — the propagated name
+    /// is dynamic (RAISING LAST EXCEPTION), so the gate is the group's EC participation, not a per-name TURN
+    /// fold (the documented refinement, recorded in the deep-dive; an EC-free caller gets the registry's
+    /// boundary default instead).</summary>
+    private void CallEmitPropagationPickup()
+    {
+        if (!_ecActive) return;
+        var w = _ctx.Writer;
+        int id = _ecCounter++;
+        using (w.Block($"if (ExceptionState.TakePropagated(out var __pn{id}, out var __pf{id}))   // §14.9.18 GR — raised at the end of the CALL"))
+        {
+            w.Line($"int __pr{id} = {EcDispatchExpr($"__pn{id}", "\"\"")};");
+            w.Line($"if (__pr{id} >= 0) {{ __pc = __pr{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            w.Line($"if (__pr{id} != -2 && __pf{id}) throw new CobolFatalException(__pn{id}, "
+                + "\"exception condition propagated by GOBACK/EXIT PROGRAM RAISING and not resumed "
+                + "(ISO 14.9.18; 14.6.13.1.3 #6/#7)\");");
+        }
     }
 
     /// <summary>The C# <c>CobolArg</c> expression for one bound CALL argument (caller side; design D1/D2).
@@ -688,19 +773,33 @@ public sealed partial class CSharpEmitter
             ? $"{p.Read()}.FromImage({value});"
             : p.Write(value);
 
-    /// <summary>Emit CANCEL (ISO §14.9.5): one registry call per target, left to right (GR2).</summary>
+    /// <summary>Emit CANCEL (ISO §14.9.5): one registry call per target, left to right (GR2). Under enabled
+    /// EC-PROGRAM checking (>>TURN, §7.3.25) each target's <see cref="CobolCallException"/> runs the
+    /// §14.6.13.1.3 sequence (status, F3 selection, fatal default) instead of crashing raw.</summary>
     private void CallEmitCancel(BoundCancel c)
     {
+        var w = _ctx.Writer;
+        var ecProg = EcEnabledProgramNames();
         foreach (var (literal, dynamic) in c.Targets)
         {
             string nameExpr = literal is { } l ? CsLiteral(l) : $"({OperandText.AsString(dynamic!)}).Trim()";
-            _ctx.Writer.Line($"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(_callSelfPath)});");
+            string call = $"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(_callSelfPath)});";
+            if (ecProg.Count == 0)
+            {
+                w.Line(call);
+                continue;
+            }
+            using (w.Block("try"))
+                w.Line(call);
+            CallEmitProgramEcCatch(ecProg, hasPhrase: false, phraseFlag: null);
         }
     }
 
     /// <summary>Emit GOBACK (ISO §14.9.18): move the RETURNING source into the header RETURNING item (GR2 — the
-    /// activation result), then raise <see cref="ProgramReturn"/> — caught at THIS program's activation entry,
-    /// returning control to the activator (called program) or ending the run unit (main program, GR3).</summary>
+    /// activation result), stage a RAISING exception condition for the activator (the EC model — picked up at
+    /// the activating CALL site or by the registry's boundary default), then raise <see cref="ProgramReturn"/> —
+    /// caught at THIS program's activation entry, returning control to the activator (called program) or ending
+    /// the run unit (main program, GR3).</summary>
     private bool CallEmitGoback(BoundGoback g)
     {
         var w = _ctx.Writer;
@@ -711,7 +810,55 @@ public sealed partial class CSharpEmitter
             else
                 w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));
         }
+        if (g.Raising is { } r) CallEmitRaisingStage(r, "GOBACK");
         w.Line("throw new ProgramReturn();   // return to the activator; in a main program ≡ STOP (ISO §14.9.18 GR2/GR3)");
         return true;
+    }
+
+    /// <summary>Emit EXIT PROGRAM [RAISING …] (ISO §14.9.14 Format 2): GR2 — in a program NOT under the control
+    /// of a calling runtime element the statement is CONTINUE and "no exception condition is raised even if the
+    /// RAISING phrase is specified", so BOTH the staging and the return are <c>__asCalled</c>-gated; GR3 — in a
+    /// called program it returns per the GOBACK rules, staging the RAISING condition for the activator.</summary>
+    private void CallEmitExitProgram(BoundExitProgram ep)
+    {
+        var w = _ctx.Writer;
+        if (ep.Raising is null)
+        {
+            w.Line("if (__asCalled) throw new ProgramReturn();   // ISO §14.9.14 GR2: CONTINUE in a non-called program; GR3: return in a called one");
+            return;
+        }
+        using (w.Block("if (__asCalled)   // GR2 — a non-called program raises nothing, even with RAISING"))
+        {
+            CallEmitRaisingStage(ep.Raising, "EXIT PROGRAM");
+            w.Line("throw new ProgramReturn();   // return to the activator (ISO §14.9.14 GR3)");
+        }
+    }
+
+    /// <summary>Stage a <c>RAISING</c> phrase's exception condition for re-raise in the ACTIVATOR
+    /// (ISO §14.9.18 GR / §14.6.13.1.3 #6 — consumed by the activating CALL site's pickup, or by
+    /// <c>ProgramRegistry</c>'s boundary default when the caller is EC-free). The TURN decision was baked in at
+    /// bind time (§14.6.13.1.1: a condition is raised only when checking for it is enabled): disabled + nonfatal
+    /// stages nothing (§14.6.13.1.4 first sentence); disabled + fatal is the §14.6.13.1.3 #8 implementor
+    /// choice — this implementation terminates loudly (mirrors <see cref="EcEmitRaise"/>).</summary>
+    private void CallEmitRaisingStage(BoundRaising r, string verb)
+    {
+        var w = _ctx.Writer;
+        if (r.IsLast)
+        {
+            w.Line("ExceptionState.SetPropagatingLast();   // RAISING LAST EXCEPTION (§14.9.18.2 — nothing staged when the status is clear)");
+            return;
+        }
+        if (!r.Enabled)
+        {
+            if (!r.Fatal)
+            {
+                w.Line($"// {verb} RAISING {r.EcName}: checking not enabled — nonfatal, not raised (ISO §14.6.13.1.4)");
+                return;
+            }
+            w.Line($"throw new CobolFatalException({CsLiteral(r.EcName!)}, \"raised by {verb} RAISING with checking "
+                + "not enabled (ISO 14.6.13.1.3 #8 - implementor-defined; this implementation terminates)\");");
+            return;
+        }
+        w.Line($"ExceptionState.SetPropagating({CsLiteral(r.EcName!)}, {(r.Fatal ? "true" : "false")});   // staged for the activator (§14.9.18 GR)");
     }
 }

@@ -111,6 +111,10 @@ public sealed partial class StatementBinder
         // __COLLATE field exists only under a non-identity PCS; STANDARD-1/2/NATIVE normalize to identity).
         bool collate = sig.Name is "CHAR" or "ORD" && data.Collating is not null;
 
+        // A FUNCTION EXCEPTION-* reference reads the runtime last-exception register (§15.28–15.33) — flag the
+        // program's EC usage so the generated source carries the Exceptions using (the group EC gate).
+        if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) EcNoteFunction();
+
         return new BoundIntrinsicCall(resolved, args, category, collate);
     }
 

@@ -221,6 +221,15 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             "WhenCompiled" => EmitText.CsLiteral(WhenCompiledStamp.Value),
             "MaxString" or "MinString" =>                                      // §15.59/63 all-alphanumeric form
                 $"CobolIntrinsics.{sig.RuntimeMethod}({string.Join(", ", ic.Args.Select(StrStatic))})",
+            // The last-exception interrogation functions (§15.28/30/32/33 — the EC model): zero-argument reads
+            // of the runtime register; the binder's EcNoteFunction flagged the group EC gate, so the generated
+            // source carries the CobolNet.Runtime.Exceptions using.
+            "EcStatus" => "EcFunctions.Status()",                              // §15.33
+            "EcLocation" => "EcFunctions.Location()",                          // §15.30
+            "EcStatement" => "EcFunctions.Statement()",                        // §15.32
+            "EcFile" => ic.Args.Count == 0
+                ? "EcFunctions.File()"                                         // §15.28.4 r1 — the no-argument form
+                : EmitText.LoudValue("string", "FUNCTION EXCEPTION-FILE(file-connector-name) (the 2023 optional-argument form — VCR row 68)"),
             _ => EmitText.LoudValue("string", $"FUNCTION {sig.Name} in a string context"),
         };
     }

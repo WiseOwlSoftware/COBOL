@@ -130,7 +130,7 @@ public static class CobolNum
     /// </summary>
     public static Int128 DivideOrThrow(Int128 a, int aScale, Int128 b, int bScale, int resultScale, CobolRounding mode)
     {
-        if (b == 0) throw new CobolSizeError("divide by zero");
+        if (b == 0) throw new CobolSizeError("divide by zero", "EC-SIZE-ZERO-DIVIDE");
         // ROUNDED MODE IS PROHIBITED: an inexact quotient AT resultScale is a size error (§14.7.4.3 r7). When the
         // division rounds directly at the receiver scale (the outermost-division case), the inexactness is consumed
         // inside Divide, so it must be detected here from the exact remainder rather than by the receiver's TryStore.

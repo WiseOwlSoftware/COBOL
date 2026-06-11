@@ -30,6 +30,14 @@ cobolWord
     | NORMAL       // context: STOP RUN WITH NORMAL
     | PARSE        // context: JSON/XML PARSE (2014+); a legal user word everywhere else
     | PROCESSING   // context: XML PARSE … PROCESSING PROCEDURE (2014+); a legal user word everywhere else
+    // EC exception-model words (2002+, ISO §14.6.13 family) — context-sensitive, legal user words at every
+    // edition (the version-matrix continuity invariant; each is mirrored in the lexer _dataNameTokens set):
+    | RAISE        // context: RAISE statement (§14.9.29)
+    | RAISING      // context: GOBACK/EXIT … RAISING, PD-header RAISING (§14.9.18 / §14.2)
+    | RESUME       // context: RESUME statement (§14.9.33)
+    | STATEMENT    // context: RESUME AT NEXT STATEMENT (§14.9.33)
+    | CONDITION    // context: USE AFTER EXCEPTION CONDITION (§14.9.49 F3)
+    | EC           // context: USE AFTER EC (§14.9.49.3 SR12)
     // Screen-related tokens that may be used as data names in non-screen contexts
     | AUTO
     | BELL
@@ -431,7 +439,7 @@ computerAttributes
 // ==========================================
 
 procedureDivision
-    : PROCEDURE DIVISION usingClause? ({is2002()}? returningClause)? DOT
+    : PROCEDURE DIVISION usingClause? ({is2002()}? returningClause)? ({is2002()}? raisingClause)? DOT
       declarativePart*
       procedureUnit*
     ;
@@ -631,8 +639,10 @@ statement
     | multiplyStatement
     | openStatement
     | performStatement
+    | raiseStatement
     | readStatement
     | releaseStatement
+    | resumeStatement
     | returnStatement
     | rewriteStatement
     | searchStatement
@@ -936,12 +946,20 @@ cancelTarget
 // ==========================================
 
 setStatement
-    : setSwitchStatement
+    : setLastExceptionStatement
+    | setSwitchStatement
     | setToValueStatement
     | setBooleanStatement
     | setAddressStatement
     | setObjectReferenceStatement
     | setIndexStatement
+    ;
+
+// SET LAST EXCEPTION TO OFF (ISO §14.9.39 Format 13, saved-exception; 2002+ — binder-gated): the last
+// exception status indicates no exception condition exists (§14.6.13.1.1). Listed FIRST: LAST is a reserved
+// token (never a dataReference head), so no other SET form can claim the prefix.
+setLastExceptionStatement
+    : SET LAST EXCEPTION TO OFF
     ;
 
 // SET mnemonic-name+ TO {ON | OFF} (COBOL-85 §14.9.39 Format 3)
@@ -1020,8 +1038,11 @@ acceptSource
 // DISPLAY (§14.9.11)
 // ==========================================
 
+// An operand may be a function-identifier (ISO §8.4.4.1 — an identifier includes a function-identifier;
+// §14.9.11.2 identifier-1): DISPLAY FUNCTION EXCEPTION-STATUS is the EC model's canonical interrogation shape.
+// functionCall starts with the FUNCTION token, so the alternative is unambiguous.
 displayStatement
-    : DISPLAY (dataReference | literal)+ displayUpon? displayNoAdvancing? END_DISPLAY?
+    : DISPLAY (dataReference | literal | functionCall)+ displayUpon? displayNoAdvancing? END_DISPLAY?
     ;
 
 displayUpon
@@ -1037,7 +1058,37 @@ displayNoAdvancing
 // ==========================================
 
 gobackStatement
-    : GOBACK ({is2002()}? (RETURNING | GIVING) dataReference)?
+    : GOBACK ({is2002()}? (RETURNING | GIVING) dataReference)? raisingPhrase?
+    ;
+
+// ==========================================
+// RAISE / RESUME + the RAISING phrase (EC model, ISO §14.9.29 / §14.9.33 / §14.9.18; 2002+)
+// ==========================================
+// UNgated alternatives by design: the statements parse at every edition and the BINDER issues the targeted
+// not-in-this-edition diagnostic at --std 85 (a no-viable-alternative parse error names nothing — the
+// four-compilers rule wants the edition named).
+
+// RAISE {EXCEPTION exception-name-1 | identifier-1} (ISO §14.9.29.2). The exception-name is a cobolWord —
+// EC names are an OPEN set (EC-USER-*/EC-IMP-*, §14.6.13.1.1), so name validation is the binder's (SR1/SR2).
+raiseStatement
+    : RAISE (EXCEPTION cobolWord | dataReference)
+    ;
+
+// RESUME AT {NEXT STATEMENT | procedure-name-1} (ISO §14.9.33.2 — AT is required in the 2023 format).
+resumeStatement
+    : RESUME AT (NEXT STATEMENT | procedureName)
+    ;
+
+// RAISING {EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION} (ISO §14.9.18.2 / §14.9.14.2 F2) —
+// the ONE raising-phrase rule GOBACK and EXIT PROGRAM share.
+raisingPhrase
+    : RAISING (EXCEPTION cobolWord | LAST EXCEPTION | dataReference)
+    ;
+
+// The PROCEDURE DIVISION header RAISING clause (ISO §14.2.1: RAISING {exception-name | class-name |
+// interface-name}… — all cobolWords; classes/interfaces resolve at the OO wave).
+raisingClause
+    : RAISING cobolWord+
     ;
 
 // ==========================================

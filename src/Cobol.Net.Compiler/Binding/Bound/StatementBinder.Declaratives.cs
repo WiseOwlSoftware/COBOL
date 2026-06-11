@@ -31,7 +31,7 @@ public sealed partial class StatementBinder
 
         // SR1: the first sentence consists of exactly one USE statement.
         var leading = sec.sentence();
-        (IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report)? scope = null;
+        DeclScope? scope = null;
         if (leading.Length == 0
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
@@ -55,8 +55,15 @@ public sealed partial class StatementBinder
 
         if (scope is { } s)
             _declaratives.Add(new BoundDeclarative(
-                name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global, s.Report));
+                name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global, s.Report,
+                s.EcEntries));
     }
+
+    /// <summary>One USE statement's bound trigger scope: Format 1's files/mode (+GLOBAL), Format 2's report
+    /// group, or Format 3's (exception-name, file) entries (ISO §14.9.49).</summary>
+    private readonly record struct DeclScope(
+        IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report,
+        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null);
 
     /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
@@ -65,10 +72,11 @@ public sealed partial class StatementBinder
     /// Format 2 (BEFORE REPORTING, SR9) names a report group — the section becomes the group's
     /// before-reporting hook, invoked by the report engine just before the group is produced (GR8; wired in
     /// <c>CSharpEmitter.ReportWriter.cs</c>). The same group shall not appear in two such statements (SR9).</summary>
-    private (IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report)? DeclBindUse(
-        Core.UseStatementContext use, string sectionName)
+    private DeclScope? DeclBindUse(Core.UseStatementContext use, string sectionName)
     {
         bool global = use.GLOBAL() is not null;
+        if (use.useEcEntry() is { Length: > 0 } ecEntries)
+            return DeclBindUseF3(ecEntries, sectionName);
         if (use.REPORTING() is not null)
         {
             // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1 — identifier-1 references a report group
@@ -86,7 +94,7 @@ public sealed partial class StatementBinder
                     if (!_declReportGroups.Add(group))
                         data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': report group "
                             + $"'{head}' already has a USE BEFORE REPORTING procedure (ISO §14.9.49 SR9)");
-                    return ([], null, global, group);
+                    return new DeclScope([], null, global, group);
                 }
             }
             data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
@@ -108,7 +116,7 @@ public sealed partial class StatementBinder
             if (!_declScopedModes.Add(m))
                 data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': this open mode already "
                     + "has a USE procedure in this source element (ISO §14.9.49 SR7)");
-            return ([], m, global, null);
+            return new DeclScope([], m, global, null);
         }
 
         var files = new List<FileModel>();
@@ -132,7 +140,81 @@ public sealed partial class StatementBinder
                     + "has a USE procedure in this source element (ISO §14.9.49 SR8)");
             files.Add(file);
         }
-        return (files, null, global, null);
+        return new DeclScope(files, null, global, null);
+    }
+
+    /// <summary>Bind a Format-3 USE statement's scope (ISO §14.9.49.2 — <c>USE AFTER {EXCEPTION CONDITION | EC}
+    /// {exception-name-1 | exception-name-2 {FILE file-name-2}…}…</c>): validate every exception-name against
+    /// the §14.6.13.1 catalog (level 1/2/3 all legal — the GR3c–g tiers select by level), SR13 (a file-scoped
+    /// name shall begin EC-I-O), SR14 (no duplicate (ec, file) pair across the USE statements of one procedure
+    /// division), and the per-name edition window. The whole format is 2002+ (the EC model's introduction).</summary>
+    private DeclScope? DeclBindUseF3(Core.UseEcEntryContext[] entries, string sectionName)
+    {
+        if (data.Edition.DialectLevel < 2002)
+            data.Edition.Error("COBOLNET0877",
+                "USE AFTER EXCEPTION CONDITION (Format 3) is the COBOL-2002+ exception-condition declarative "
+                + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
+        _ecF3 = true;
+        var pairs = new List<(string Ec, FileModel? File)>();
+        foreach (var entry in entries)
+        {
+            string raw = entry.cobolWord().GetText();
+            if (!Runtime.Exceptions.ExceptionCatalog.TryGet(raw, out var info))
+            {
+                data.Edition.Error("COBOLNET0711", $"declarative section '{sectionName}': '{raw}' is not an "
+                    + "exception-name of ISO/IEC 1989 §14.6.13.1 (and not a valid EC-USER-/EC-IMP- name)");
+                continue;
+            }
+            if (info.Level == 3 && info.IntroducedIn > data.Edition.DialectLevel)
+            {
+                data.Edition.Error("COBOLNET0878", $"exception-name {info.Name} was introduced by ISO/IEC "
+                    + $"1989:{info.IntroducedIn} — it requires --std {info.IntroducedIn} or later "
+                    + $"(targeting COBOL-{data.Edition.DialectLevel})");
+                continue;
+            }
+            var fileNames = entry.fileName();
+            if (fileNames.Length > 0 && !Runtime.Exceptions.ExceptionCatalog.IsIoName(info.Name))
+            {
+                data.Edition.Error("COBOLNET0715", $"declarative section '{sectionName}': FILE may be specified "
+                    + $"only with an exception-name beginning 'EC-I-O' — '{info.Name}' does not (ISO §14.9.49.3 SR13)");
+                continue;
+            }
+            if (fileNames.Length == 0)
+            {
+                AddPair(info.Name, null);
+                continue;
+            }
+            foreach (var fn in fileNames)
+            {
+                string fname = fn.GetText();
+                if (!data.FilesByName.TryGetValue(fname, out var file))
+                {
+                    data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE names unknown "
+                        + $"file '{fname}' (ISO §14.9.49)");
+                    continue;
+                }
+                if (file.IsSortMerge)
+                {
+                    data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE may not name "
+                        + $"the sort/merge file '{fname}' (ISO §14.9.49.3 SR2)");
+                    continue;
+                }
+                AddPair(info.Name, file);
+            }
+        }
+        return new DeclScope([], null, Global: false, null, pairs);
+
+        void AddPair(string ec, FileModel? file)
+        {
+            // SR14: the same (exception-name, file-name) pair shall not appear in more than one USE statement
+            // within the same procedure division (the set spans sections — _declEcPairs is per division).
+            if (!_declEcPairs.Add(ec + "|" + (file?.CobolName ?? "")))
+                data.Edition.Error("COBOLNET0716", $"declarative section '{sectionName}': the exception-name/"
+                    + $"file pair '{ec}{(file is null ? "" : " FILE " + file.CobolName)}' is already specified in "
+                    + "another USE statement of this procedure division (ISO §14.9.49.3 SR14)");
+            else
+                pairs.Add((ec, file));
+        }
     }
 
     /// <summary>The pc the bounded handler dispatch ends at (§14.9.49.4 GR7 — normally the section's last

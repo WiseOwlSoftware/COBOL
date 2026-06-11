@@ -61,8 +61,10 @@ locked byte-exact (318 = 93 NC + 29 ST + 32 RL + 40 IX + 23 IC + 69 SQ + 42 IF +
 final census 357/403 GREEN with zero diffs (residue golden-less by NIST design); 1026 conformance + 16 unit;
 legacy guard 353 MATCH + 11 `LEGACY_DIVERGENT` (ISO-re-baselined goldens — citations in `scripts/guard.sh`),
 0 regressions. Landed in Phase 1: COPY/SM, the full §15 intrinsic catalog, the Tier-C record codec, LINAGE,
-the IC residue (EXTERNAL/GLOBAL FDs, cross-assembly CALL), and the Report Writer. NEXT (SSOT §16): the EC
-exception model (§11) → G7 per-edition correctness (EditionValidator + M2 OO/2002 → M3 2014 → M4 2023) → G8.
+the IC residue (EXTERNAL/GLOBAL FDs, cross-assembly CALL), and the Report Writer. The EC exception model
+(§11/§14.6.13 — >>TURN, RAISE/RESUME, USE F3, RAISING propagation, the status→EC bridges, EXCEPTION-*
+functions) is DONE (DEVLOG 577; 1074 conformance + 29 unit). NEXT (SSOT §16): G7 per-edition correctness
+(EditionValidator + M2 OO/2002 → M3 2014 → M4 2023) → G8.
 The CURRENT state + next steps live in `resume-prompt.md`'s top STATE banner — always read it, never this
 snapshot.** ⛔ **MISSION now =
 full ISO-2023 AND all prior editions (85/2002/2014), validated by the VERSION TEST MATRIX (test as N per-edition

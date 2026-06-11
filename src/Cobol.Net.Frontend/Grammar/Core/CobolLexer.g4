@@ -31,6 +31,9 @@ options {
         IDENTIFIER,
         // Context-sensitive keywords (mirrors cobolWord in CobolParserCore.g4):
         LENGTH, NATIONAL, NORMAL, PARSE, PROCESSING,
+        // EC exception-model words (ISO §14.6.13 / §14.9.29 / §14.9.33 / §14.9.49 F3, 2002+) — context-sensitive,
+        // legal user words at every edition (the cobolWord continuity guarantee):
+        RAISE, RAISING, RESUME, STATEMENT, CONDITION, EC,
         // Intrinsic function names that collide with reserved words
         // (mirrors functionName in CobolExpressions.g4):
         DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
@@ -426,6 +429,14 @@ PLUSWORD    : 'PLUS' ;       // the reserved WORD PLUS (LINE/NEXT GROUP relative
 PREVIOUS    : 'PREVIOUS' ;
 PRINTING    : 'PRINTING' ;
 PROGRAM     : 'PROGRAM' ;
+// ── EC exception-model words (ISO 2002+; each is ALSO a legal user word via cobolWord + _dataNameTokens) ──
+RAISING     : 'RAISING' ;    // GOBACK/EXIT … RAISING + the PD-header RAISING phrase (ISO §14.9.18 / §14.2)
+RAISE       : 'RAISE' ;      // RAISE statement (ISO §14.9.29)
+RESUME      : 'RESUME' ;     // RESUME statement (ISO §14.9.33)
+STATEMENT   : 'STATEMENT' ;  // RESUME AT NEXT STATEMENT (ISO §14.9.33)
+CONDITION   : 'CONDITION' ;  // USE AFTER EXCEPTION CONDITION (ISO §14.9.49 Format 3)
+EC          : 'EC' ;         // USE AFTER EC ≡ EXCEPTION CONDITION (ISO §14.9.49.3 SR12); maximal munch keeps
+                             // EC-I-O-AT-END etc. one IDENTIFIER (the longer match wins)
 RANDOM      : 'RANDOM' ;
 RECORD      : 'RECORD' ;
 RECORDS     : 'RECORDS' ;

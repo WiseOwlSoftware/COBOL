@@ -42,7 +42,7 @@ public sealed partial class CSharpEmitter
         }
         StrUnstrWriteImage(s.Into, acc);
         if (s.Pointer is { } p) StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
-        StrUnstrEmitOverflow(ovf, s.OnOverflow, s.NotOnOverflow);
+        StrUnstrEmitOverflow(ovf, "EC-OVERFLOW-STRING", s.OnOverflow, s.NotOnOverflow);   // GR8b
     }
 
     /// <summary>UNSTRING (ISO §14.9.48): the sender's image and the delimiter values are read ONCE at initiation
@@ -105,16 +105,19 @@ public sealed partial class CSharpEmitter
         }
         if (s.Pointer is { } p) StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);     // GR13
         if (s.Tallying is { } t) StoreArith(t, new NumX(tly, 0), CobolRounding.Truncation);    // GR14
-        StrUnstrEmitOverflow(ovf, s.OnOverflow, s.NotOnOverflow);
+        StrUnstrEmitOverflow(ovf, "EC-OVERFLOW-UNSTRING", s.OnOverflow, s.NotOnOverflow);   // GR16b
     }
 
     /// <summary>The shared ON / NOT ON OVERFLOW dispatch (STRING GR8c/8e/GR9; UNSTRING GR16c/16e/GR17): the ON
     /// imperative runs exactly when the flag is set, the NOT imperative exactly when it is not; with neither
-    /// phrase the (nonfatal) condition lets execution continue, §14.6.13.1.4.</summary>
+    /// phrase the (nonfatal) condition lets execution continue, §14.6.13.1.4. Under enabled EC-OVERFLOW checking
+    /// (>>TURN, §7.3.25) the raise (status + the no-phrase F3 selection) precedes the phrase branch — STRING
+    /// GR8b / UNSTRING GR16b via <see cref="EcEmitOverflow"/>.</summary>
     private void StrUnstrEmitOverflow(
-        string flag, IReadOnlyList<BoundStatement>? onOverflow, IReadOnlyList<BoundStatement>? notOnOverflow)
+        string flag, string ecName, IReadOnlyList<BoundStatement>? onOverflow, IReadOnlyList<BoundStatement>? notOnOverflow)
     {
         var w = _ctx.Writer;
+        EcEmitOverflow(flag, ecName, hasPhrase: onOverflow is not null);
         if (onOverflow is { } on)
         {
             using (w.Block($"if ({flag})")) EmitStatementList(on);

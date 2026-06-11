@@ -33,16 +33,19 @@ public sealed record BoundCallProgram(
 public sealed record BoundCancel(
     IReadOnlyList<(string? LiteralName, BoundOperand? DynamicName)> Targets) : BoundStatement;
 
-/// <summary><c>EXIT PROGRAM</c> (ISO §14.9.14 Format 2): in a program NOT under the control of a calling runtime
-/// element it is equivalent to CONTINUE (GR2); in a called program it returns to the activator per the GOBACK
-/// rules (GR3). The distinction is a RUNTIME property of the activation, so the bound node is unconditional and
-/// the emitted code tests the activation flag. (Archaic at 2023 — Annex F.1; flagged, not rejected.)</summary>
-public sealed record BoundExitProgram : BoundStatement;
+/// <summary><c>EXIT PROGRAM [RAISING …]</c> (ISO §14.9.14 Format 2): in a program NOT under the control of a
+/// calling runtime element it is equivalent to CONTINUE (GR2 — "no exception condition is raised even if the
+/// RAISING phrase is specified"); in a called program it returns to the activator per the GOBACK rules (GR3),
+/// staging <paramref name="Raising"/> for re-raise in the activator. The distinction is a RUNTIME property of
+/// the activation, so the bound node is unconditional and the emitted code tests the activation flag.
+/// (Archaic at 2023 — Annex F.1; flagged, not rejected.)</summary>
+public sealed record BoundExitProgram(BoundRaising? Raising = null) : BoundStatement;
 
-/// <summary><c>GOBACK [RETURNING x]</c> (ISO §14.9.18): terminates the executing program — return to the caller
-/// in a called program (GR2), STOP-equivalent in a main program (GR3). <paramref name="ReturningSource"/> moves
-/// into the procedure-division RETURNING item before return (the activation result, GR2). COBOL-2002+.</summary>
-public sealed record BoundGoback(Place? ReturningSource) : BoundStatement;
+/// <summary><c>GOBACK [RETURNING x] [RAISING …]</c> (ISO §14.9.18): terminates the executing program — return to
+/// the caller in a called program (GR2), STOP-equivalent in a main program (GR3). <paramref name="ReturningSource"/>
+/// moves into the procedure-division RETURNING item before return (the activation result, GR2);
+/// <paramref name="Raising"/> stages an exception condition for re-raise in the activator. COBOL-2002+.</summary>
+public sealed record BoundGoback(Place? ReturningSource, BoundRaising? Raising = null) : BoundStatement;
 
 /// <summary>
 /// The CALL / inter-program slice of the binder (ISO §14.9.4 / §14.9.5 / §14.9.18; deep-dive design
@@ -211,6 +214,10 @@ public sealed partial class StatementBinder
                 return new BoundUnsupported($"GOBACK RETURNING '{dref.GetText()}'");
             source = p;
         }
+        if (g.raisingPhrase() is { } raising)
+            return EcBindRaising(raising, g.Start.Line, "GOBACK") is { } r
+                ? new BoundGoback(source, r)
+                : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
         return new BoundGoback(source);
     }
 }

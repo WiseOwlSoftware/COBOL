@@ -13,6 +13,98 @@ Two C# code shapes — both are the Roslyn backend's rendering of the ONE backen
 
 Correct behavior is defined by the ISO spec (specs/ISO_COBOL.md — cite the §); the legacy CobolSharp.Compiler/CodeGen/Lowering/ConditionLowerer.cs and CobolSharp.Runtime/PicRuntime.cs (364 NIST green) are a differential regression net and reference ONLY, never authority; the byte IMPLEMENTATION is rejected and re-derived over native string/long(/Int128)/bool — the numeric design's scaled integers; System.Decimal is rejected (docs/COBOLNET_NUMERIC_DESIGN.md). THIS document is that full prose (condensed view: docs/COBOLNET_DESIGN.md §11; brief overview: docs/COBOLNET_ARCHITECTURE.md). New diagnostics occupy a COBOLNET07xx band. New runtime classes: CobolClass (class-condition predicates over UTF-16 chars), ExceptionCatalog (generated from ISO Table 13: level-3→level-2→EC-ALL hierarchy + fatality), ExceptionState (last-exception register, EXCEPTION-OBJECT, file/location/statement), CobolException/CobolFatalException, ExceptionDispatch (declarative registry). Implementation is mechanical from here.
 
+## As built (2026-06-11, DEVLOG 577) — the EC model landed; deviations from the sketch recorded
+
+The conditions half (D1–D8) landed across G2–G6 as designed. The EC half (D9–D12) is now BUILT; the file map and
+every place the as-built design refined the original sketch:
+
+**File map.** Frontend: `Preprocessor/TurnDirectiveProcessor.cs` (the `>>TURN` stage — runs LAST, after COPY/NIST,
+on the FINAL text so `TurnEvent.Line` is directly comparable to token `Start.Line`; line-count preserving, asserted
+by `Frontend.Parse`; an emitting-branch TURN survives `ConditionalCompilationProcessor` via `leaveTurnDirectives` —
+the legacy pipeline keeps consuming TURN there). Compiler: `Binding/TurnState.cs` (the compile-time §7.3.25.4 fold),
+`Binding/Bound/StatementBinder.Exceptions.cs` (RAISE/RESUME/SET LAST EXCEPTION/RAISING binds + the per-statement
+`EcWrap` fold → `BoundEcChecked`), `CodeGen/CSharpEmitter.Exceptions.cs` (guards + the generated `__EcDispatch` /
+`__IoCheckEc`), `CodeGen/CSharpEmitter.Call.cs` (RAISING staging, the CALL-site propagation pickup, the EC-PROGRAM
+catch). Runtime: `Runtime/Exceptions/` — `ExceptionCatalog` (Table 13), `ExceptionState` (last-exception register +
+propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.28/30/32/33), `CobolFatalException`,
+`ResumeSignal`. `CompilerDriver` hands `Frontend.TurnEvents` to `CSharpEmitter.Emit`.
+
+**Refinements vs the sketch (why the original was not followed verbatim):**
+- **D11's "declarative methods return a ResumeAction enum" → the dispatch-result protocol.** Declaratives are pc
+  RANGES run by the bounded `__Dispatch`, not C# methods — so RESUME throws the runtime `ResumeSignal`, the
+  int-returning `__RunUse` (emitted only when the group is EC-active; the void form stays byte-identical otherwise)
+  catches it, and every raise site speaks ONE protocol: `-1` normal completion (§14.6.13.1.2), `-2` RESUME AT NEXT
+  STATEMENT (suppresses a fatal — §14.6.13.1.3 #5 NOTE 2), `-3` no qualifying declarative, `≥0` RESUME AT
+  procedure-name's pc (≡ GO TO, §14.9.33.4 GR3). There is no `ExceptionDispatch` registry class: the F3 selector is
+  the GENERATED `__EcDispatch` (source-ordered GR3c–g tiers over the program's own declaratives).
+- **The TURN fold runs at BIND time, not emit time** (D10 refined): bound nodes carry no parse context, so the
+  binder (which has the statement's line) queries the TurnState and wraps the statement in `BoundEcChecked`
+  carrying the decision (`EcStatementInfo`: enabled (name, file) pairs, WITH LOCATION, statement name, the §15.30.3
+  r2 location string). Checking-off binds the bare node — zero scaffolding by construction.
+- **EcWrap's relevant-family rule (the unimplemented-raise license).** A statement wraps only for names its kind
+  can actually raise here: EC-SIZE-* (arithmetic), EC-I-O-* per referenced file, EC-OVERFLOW-STRING/-UNSTRING,
+  EC-PROGRAM-* (CALL/CANCEL), EC-ARGUMENT-FUNCTION (intrinsic-bearing statements). Conditions tied to
+  not-yet-implemented features (EC-BOUND, EC-DATA, EC-STORAGE, …) cannot occur in generated code, so no wrapper is
+  bound for them — §14.6.13.1.1 sets an indicator only "when the associated exception occurs".
+- **The EC-ARGUMENT-FUNCTION ambient statement gate.** Intrinsics render inline inside arbitrary expressions;
+  threading a checked-mask through every runtime signature would fork each intrinsic into twins. Instead the guard
+  wraps the STATEMENT (`ExceptionState.ArgumentFunctionChecking` set/reset + try/catch for the F3 dispatch), and
+  EVERY §15.3 default-result site in the intrinsic runtime routes through `ExceptionState.ArgumentError` (raise
+  when enabled, the documented default — 0 / one space — when off): `FromDouble` NaN/∞, FACTORIAL, MOD/REM zero
+  divisor, NUMVAL/NUMVAL-C malformed, the CobolDate range checks, CHAR/ORD out-of-domain.
+- **RAISING propagation = a runtime staging slot + a two-tier pickup.** GOBACK/EXIT PROGRAM RAISING stages
+  (name, fatal) via `ExceptionState.SetPropagating[Last]` (¶27403 SR2 — an EC-USER name must appear in the
+  PD-header RAISING phrase, checked at bind as COBOLNET0717). The ACTIVATOR raises it at the end of the CALL
+  (§14.6.13.1.3 #6): an EC-active caller's generated CALL site consumes it (`TakePropagated` → `__EcDispatch` →
+  RESUME honored → fatal default) and passes `siteHandlesPropagation: true` so the registry stands down; an
+  EC-free caller gets `ProgramRegistry`'s boundary default (fatal → terminate loudly — the §14.6.13.1.3 #8
+  implementor choice; nonfatal → the status stands, execution continues). The site pickup gates on the GROUP's EC
+  participation (not a per-name TURN fold) because RAISING LAST EXCEPTION makes the propagated name dynamic.
+  `RunMain` applies the same default for a MAIN program's GOBACK RAISING (its activator is the run-unit boundary).
+- **The EC-PROGRAM bridge rides `CobolCallException.EcName`.** The registry latches the Table 13 level-3 name
+  (NOT-FOUND / RECURSIVE-CALL / CANCEL-ACTIVE / ARG-OMITTED); a CALL/CANCEL under enabled checking emits a
+  name-FILTERED catch (`when (__ce.EcName == …)`) that sets the status and either flags the statement's own
+  ON EXCEPTION phrase (it wins — §14.6.13.1.3 #1) or runs the F3 selection + fatal default. A non-enabled name
+  falls through — checking-off behavior unchanged.
+- **The EC-SIZE bridge rides `CobolSizeError.EcName`.** The runtime kernels latch the precise condition
+  (EC-SIZE-ZERO-DIVIDE at the divide kernels; EC-SIZE-TRUNCATION at the TryStore/TryFormat receiver-capacity
+  failures; EC-SIZE-OVERFLOW otherwise) and an ENABLED statement routes through the same two-phase TryStore shape
+  even WITHOUT the phrase — the phrase, when present, handles (status still set, §14.6.13.1.4 #1).
+- **`__IoCheckEc`** is the EC-aware after-verb hook a statement with enabled EC-I-O checking calls INSTEAD of
+  `__IoCheck`: same F1 behavior (phrase short-circuits §9.1.13.1, GR3a/b selection, the GR4b outward-GLOBAL walk)
+  plus the §9.1.13.1 status→EC raise gated by the per-statement compile-time mask (`ExceptionCatalog.IoMaskNames`
+  bit order), the F3 tiers BEHIND the F1 tiers, and the fatal-status default (3x/4x/7x/9x). The GR3g
+  outward-GLOBAL continuation is realized only on this I-O path — F3 declaratives are not yet GLOBAL-walkable
+  (no corpus or conformance driver exercises it; revisit with the OO/2002 wave).
+- **WITH LOCATION (§15.30.3 r1 choice):** without the LOCATION phrase this implementation saves NO location
+  information — EXCEPTION-LOCATION returns one space, EXCEPTION-STATEMENT 63 spaces; with it, the bind-time
+  pre-rendered "element; paragraph[ OF section]; line" string and the uppercase statement name are recorded at the
+  raise site.
+- **The catalog is NAME-keyed, not a C# enum** (the sketch's `enum ExceptionCondition`): EC-USER-* / EC-IMP-* are
+  OPEN families (§14.6.13.1.1 — user-defined by mention, always nonfatal ¶24505), so the canonical identity is the
+  NAME; an enum would need a parallel name channel (two representations — the singular-pattern rule).
+- **Grammar continuity:** RAISE/RAISING/RESUME/STATEMENT/CONDITION/EC are context-sensitive tokens mirrored in
+  `cobolWord` — legal user-defined words at EVERY edition (pinned by a version-matrix continuity test). The
+  RAISE/RESUME statement alternatives are UNgated so `--std 85` gets the targeted COBOLNET0876 diagnostic, not a
+  nameless parse error. `displayStatement` gained the `functionCall` operand alternative (§8.4.4.1 — an identifier
+  includes a function-identifier; `DISPLAY FUNCTION EXCEPTION-STATUS` is the canonical interrogation shape).
+- **Diagnostics band as built:** COBOLNET0710 (RAISE of a non-level-3), 0711 (unknown exception-name), 0712/0713/
+  0714 (RESUME SR1/SR2/SR3), 0715/0716 (USE F3 SR13/SR14), 0717 (RAISING SR2 ¶27403), 0718/0719 (TURN SR3/SR1+SR4),
+  0875–0879 (the 2002+ edition gates: TURN / RAISE+RESUME / USE F3 / per-name edition window / SET LAST EXCEPTION+
+  RAISING).
+- **Verification:** `ExceptionConditionConformanceTests` (48 spec-pinned facts — TURN scoping/expansion, RAISE
+  fatal/nonfatal × enabled/off, RESUME both forms, F3 tier selection, the SIZE/OVERFLOW/I-O/PROGRAM/
+  ARGUMENT-FUNCTION bridges, RAISING propagation both verbs, the EXCEPTION-* functions, the edition gates, the
+  zero-scaffolding invariant asserted on generated source) + `TurnStateTests`/`ExceptionCatalogTests` (13 unit
+  facts: the GR2/GR3 EC-I-O-WARNING exclusion, file-scoped events, last-event-wins, strict GR5 lines, Table 13
+  fatalities, the §9.1.13.1 status map). The legacy oracle has NO EC model — every expected value derives from the
+  cited §.
+
+**Still later waves (unchanged):** the exception-checking PERFORM WHEN + `>>PROPAGATE` (2023 — VCR row 79/§4808),
+RAISE/RAISING identifier (exception OBJECTS — the OO wave; the `ExceptionState.ExceptionObject` slot exists),
+EXCEPTION-FILE's 2023 file-connector argument (loud by name), the national `-N` twins (no national runtime — loud),
+GLOBAL-walkable F3 declaratives, VALIDATE/EC-VALIDATE (§18.17).
+
 ## Decisions
 
 ### D1. Conditions are bound to backend-neutral BoundCondition nodes (BoundRelational/BoundLogical/BoundNot/BoundCondition88/BoundSignCondition/BoundClassCondition); the Roslyn backend's ConditionRenderer.Render(BoundCondition)→string emits them as pure, side-effect-free C# boolean expressions. The grammar's rule cascade (logicalOr→logicalXor→logicalAnd→unaryLogical→primaryCondition) fixes precedence at parse/bind time. (As built: src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs.)

@@ -34,6 +34,7 @@ public sealed partial class CSharpEmitter
     {
         switch (s)
         {
+            case BoundEcChecked ec: AlterCollectFields(ec.Inner, fields); break;   // the EC wrapper is transparent
             case BoundGoToAlterable g: fields.TryAdd(g.AlterField, g.DefaultPc); break;
             case BoundIf i: AlterCollectLists(fields, i.Then, i.Else); break;
             case BoundInlinePerform p: AlterCollectLists(fields, p.Body); break;

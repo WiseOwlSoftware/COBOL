@@ -38,19 +38,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     public BoundProgram Bind(Core.ProgramUnitContext program)
     {
         if (program.procedureDivision() is not { } pd) return new BoundProgram([]);
+        EcCollectPdRaising(pd);   // the PD-header RAISING list (§14.2.1) — consumed by the GOBACK/EXIT SR2 check
         CollectParagraphs(pd);
 
         var bound = new List<BoundParagraph>(_paras.Count);
         for (int i = 0; i < _paras.Count; i++)
         {
             _currentSection = _paraSection[i];   // ISO §8.4.2.2 — unqualified names resolve in-section first
+            _currentBindPc = i;                  // RESUME SR1/SR2 declarative context + §15.30 location anchoring
             var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in _paras[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
             bound.Add(new BoundParagraph(_paras[i].Cobol, sentences));
         }
         _currentSection = null;
-        return new BoundProgram(bound, _entryPc, _declaratives);
+        _currentBindPc = -1;
+        return new BoundProgram(bound, _entryPc, _declaratives, BuildEcFeatures());
     }
 
     // ── Procedure table (paragraphs + sections, ISO §14.4.3 / §8.4.2.2) ─────────────────────────────────────
@@ -124,7 +127,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     // ── Statements ─────────────────────────────────────────────────────────────────────────────────────────
 
-    private BoundStatement BindStatement(Core.StatementContext s) => s switch
+    /// <summary>Bind one statement, then apply the compile-time TurnState fold (StatementBinder.Exceptions.cs):
+    /// a statement under enabled EC checking wraps in <see cref="BoundEcChecked"/>; checking-off binds the bare
+    /// node — the zero-scaffolding gate (ISO §7.3.25.4 GR1 default OFF; deep-dive D10).</summary>
+    private BoundStatement BindStatement(Core.StatementContext s) => EcWrap(s, BindStatementCore(s));
+
+    private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {
         _ when s.displayStatement() is { } d => BindDisplay(d),
         _ when s.moveStatement() is { } m => BindMove(m),
@@ -169,6 +177,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.initiateStatement() is { } rwi => RwBindInitiate(rwi),     // Report Writer (ISO §14.9.21)
         _ when s.generateStatement() is { } rwg => RwBindGenerate(rwg),     // Report Writer (ISO §14.9.16)
         _ when s.terminateStatement() is { } rwt => RwBindTerminate(rwt),   // Report Writer (ISO §14.9.46)
+        _ when s.raiseStatement() is { } ra => BindRaise(ra),               // EC model (ISO §14.9.29; 2002+ gated)
+        _ when s.resumeStatement() is { } rs => BindResume(rs),             // EC model (ISO §14.9.33; 2002+ gated)
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };
 
@@ -192,11 +202,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
     }
 
-    private static BoundStatement BindExit(Core.ExitStatementContext e)
+    private BoundStatement BindExit(Core.ExitStatementContext e)
     {
         if (e.PARAGRAPH() is not null) return new BoundExitParagraph();
         if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
-        if (e.PROGRAM() is not null) return new BoundExitProgram();   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
+        if (e.PROGRAM() is not null)   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
+        {
+            if (e.raisingPhrase() is { } raising)   // Format 2's RAISING tail (§14.9.14.2) — re-raise in the activator
+                return EcBindRaising(raising, e.Start.Line, "EXIT PROGRAM") is { } r
+                    ? new BoundExitProgram(r)
+                    : new BoundUnsupported("EXIT PROGRAM RAISING identifier (exception object — the OO wave; ISO §14.9.14.3)");
+            return new BoundExitProgram();
+        }
         if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
         if (e.METHOD() is not null || e.FUNCTION() is not null) return new BoundUnsupported("EXIT METHOD/FUNCTION");
         return new BoundNop();   // bare EXIT
@@ -382,6 +399,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             {
                 case Core.LiteralContext lit: ops.Add(LiteralOperand(lit)); break;
                 case Core.DataReferenceContext dref: ops.Add(FieldOperand(dref)); break;
+                // DISPLAY FUNCTION … (ISO §8.4.4.1 — an identifier includes a function-identifier; §14.9.11.2).
+                case Core.FunctionCallContext fc: ops.Add(IntrinsicOperand(fc)); break;
             }
         return new BoundDisplay(ops, display.displayNoAdvancing() is not null);
     }
@@ -639,6 +658,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// 2002 FALSE phrase) fail loud by NAME until their subsystem lands.</summary>
     private BoundStatement BindSet(Core.SetStatementContext set)
     {
+        if (set.setLastExceptionStatement() is not null) return BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
         if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);

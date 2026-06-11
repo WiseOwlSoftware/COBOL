@@ -37,7 +37,12 @@ public static class ConditionalCompilationProcessor
         "FLAG-85", "FLAG-NATIVE-ARITHMETIC", "REF-MOD-ZERO-LENGTH", "TURN", "COBOL-WORDS",
     };
 
-    public static string Process(string text)
+    /// <param name="text">The free-form-normalized source text.</param>
+    /// <param name="leaveTurnDirectives">When true, an emitting-branch <c>&gt;&gt;TURN</c> line is LEFT IN the
+    /// text for the downstream <see cref="TurnDirectiveProcessor"/> (the COBOL.NET EC model, ISO §7.3.25); an
+    /// omitted-branch one still drops with its branch. The default (false) is the exact legacy behavior —
+    /// TURN consumed here, the legacy caller untouched.</param>
+    public static string Process(string text, bool leaveTurnDirectives = false)
     {
         var defines = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
         var stack = new Stack<Frame>();
@@ -124,7 +129,10 @@ public static class ConditionalCompilationProcessor
                     // consume it so the program still compiles with default behavior. A directive in an omitted
                     // branch is dropped regardless. An UNRECOGNIZED >> word is left in place when emitting so it
                     // surfaces downstream (catching typos like >>IFF) rather than being silently swallowed.
+                    // With leaveTurnDirectives (the COBOL.NET caller), an emitting-branch >>TURN survives for the
+                    // TurnDirectiveProcessor stage (ISO §7.3.25) — legacy callers keep consuming it.
                     if (!emitting) output[i] = "";
+                    else if (leaveTurnDirectives && keyword == "TURN") output[i] = line;
                     else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                     break;
             }

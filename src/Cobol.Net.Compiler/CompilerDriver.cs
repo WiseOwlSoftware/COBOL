@@ -78,7 +78,9 @@ public static class CompilerDriver
         // four-compilers rule: a construct the targeted edition lacks or forbids REJECTS the program) fail the
         // compile here — they are semantic errors, not runtime guards.
         var edition = new Binding.EditionContext(options.DialectLevel);
-        string csharp = new CSharpEmitter().Emit(tree, edition);
+        // frontend.TurnEvents — the >>TURN directive events (ISO §7.3.25) — build the group's compile-time
+        // TurnState (the EC model's checking decisions, conditions-exceptions deep-dive D10).
+        string csharp = new CSharpEmitter().Emit(tree, edition, frontend.TurnEvents);
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics);
 

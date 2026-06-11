@@ -31,9 +31,13 @@ public sealed partial class CSharpEmitter
     /// <summary>Emit C# source for the WHOLE compilation group in <paramref name="tree"/> (multi-unit run-unit
     /// emission — interprogram design D3 / SSOT §18 #8), binding under the targeted EDITION
     /// (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the driver fails the
-    /// compile when any exist). The body lives in <c>CSharpEmitter.Call.cs</c> (<see cref="CallEmitRunUnit"/>).</summary>
-    public string Emit(Core.CompilationUnitContext tree, EditionContext? edition = null)
-        => CallEmitRunUnit(tree, edition ?? new EditionContext(2023));
+    /// compile when any exist). <paramref name="turnEvents"/> are the frontend's <c>&gt;&gt;TURN</c> directive
+    /// events (ISO §7.3.25) — they build the group's compile-time TurnState (deep-dive D10); null/empty means
+    /// the GR1 default, EC-ALL CHECKING OFF. The body lives in <c>CSharpEmitter.Call.cs</c>
+    /// (<see cref="CallEmitRunUnit"/>).</summary>
+    public string Emit(Core.CompilationUnitContext tree, EditionContext? edition = null,
+        IReadOnlyList<CobolSharp.Compiler.Preprocessor.TurnEvent>? turnEvents = null)
+        => CallEmitRunUnit(tree, edition ?? new EditionContext(2023), turnEvents);
 
     /// <summary>
     /// Whole-group analysis (ISO/IEC 1989:2023 §14.9 MOVE GR4 / COBOLNET_DESIGN §14.4): for every group used as a
@@ -116,7 +120,10 @@ public sealed partial class CSharpEmitter
             w.Line($"try {{ __Dispatch({bound.EntryPc}, -1); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
         }
         w.Line();
-        if (_useDecls) EmitUseMachinery(bound, w);
+        // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking
+        // (__IoCheckEc needs no declaratives to bridge status→EC and apply the fatal default) — gated so an
+        // EC-free program's source is unchanged.
+        if (_useDecls || bound.Ec is { HasIoChecked: true }) EmitUseMachinery(bound, w);
         using (w.Block("private int __Dispatch(int __startPc, int __exitPc)"))
         {
             w.Line("int __pc = __startPc;");
@@ -158,14 +165,37 @@ public sealed partial class CSharpEmitter
         if (decls.Count > 0)
         {
             w.Line($"private readonly bool[] __useActive = new bool[{decls.Count}];   // §14.9.49.4 GR2 re-entrancy guards");
-            using (w.Block("private void __RunUse(int __id, int __startPc, int __endPc)"))
+            if (_ecActive)
             {
-                w.Line("if (__useActive[__id]) return;   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
-                w.Line("__useActive[__id] = true;");
-                w.Line("try { __Dispatch(__startPc, __endPc); } finally { __useActive[__id] = false; }");
+                // The EC-model form: __RunUse RETURNS the declarative's resume action (the dispatch result
+                // protocol — CSharpEmitter.Exceptions.cs): a RESUME statement unwinds via ResumeSignal
+                // (§14.9.33; the StopRun/ProgramReturn exception-as-control precedent) and __RunUse converts it
+                // to the action; normal completion is -1 (§14.6.13.1.2). Emitted ONLY when the group uses the
+                // EC model — an EC-free build keeps the void form byte-identical.
+                using (w.Block("private int __RunUse(int __id, int __startPc, int __endPc)"))
+                {
+                    w.Line("if (__useActive[__id]) return -1;   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
+                    w.Line("__useActive[__id] = true;");
+                    w.Line("try { __Dispatch(__startPc, __endPc); }");
+                    w.Line("catch (ResumeSignal __rs) { return __rs.TargetPc; }   // RESUME (§14.9.33) — the resume action");
+                    w.Line("finally { __useActive[__id] = false; }");
+                    w.Line("return -1;   // normal completion (§14.6.13.1.2)");
+                }
+            }
+            else
+            {
+                using (w.Block("private void __RunUse(int __id, int __startPc, int __endPc)"))
+                {
+                    w.Line("if (__useActive[__id]) return;   // ISO §14.9.49.4 GR2 — an active USE procedure is not re-invoked");
+                    w.Line("__useActive[__id] = true;");
+                    w.Line("try { __Dispatch(__startPc, __endPc); } finally { __useActive[__id] = false; }");
+                }
             }
             w.Line();
         }
+        if (decls.Any(d => d.EcEntries is not null)) EcEmitDispatchSelector(bound, w);
+        if (bound.Ec is { HasIoChecked: true }) EcEmitIoCheckEc(bound, w);
+        if (!_useDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
         using (w.Block("private void __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
             w.Line("string __st = CobolFile.Status(__f);");
@@ -197,11 +227,24 @@ public sealed partial class CSharpEmitter
     }
 
     /// <summary>The declarative hook after a verb's FILE STATUS store (GR6 — after the standard status routine,
-    /// BEFORE the statement's phrase branches). A no-op for a declarative-free program.</summary>
+    /// BEFORE the statement's phrase branches). A statement with ENABLED EC-I-O checking for this file (>>TURN,
+    /// ISO §7.3.25) calls the EC-aware <c>__IoCheckEc</c> variant instead — same F1 behavior plus the §9.1.13.1
+    /// status→EC raise, F3 selection and fatal default, returning a RESUME transfer pc when a declarative's
+    /// RESUME redirected control (§14.9.33). A no-op for a declarative-free, checking-off program.</summary>
     private void EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false)
     {
+        var w = _ctx.Writer;
+        if (EcIoMaskFor(file) is not 0 and var mask)
+        {
+            int id = _ecCounter++;
+            var (stmt, loc) = EcStmtLoc(_ecInfo!);
+            w.Line($"int __ior{id} = __IoCheckEc({CsLiteral(file.CobolName)}, {(atEndHandled ? "true" : "false")}, "
+                + $"{(invalidKeyHandled ? "true" : "false")}, {mask}, {stmt}, {loc});");
+            w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            return;
+        }
         if (!_useDecls) return;
-        _ctx.Writer.Line($"__IoCheck({CsLiteral(file.CobolName)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
+        w.Line($"__IoCheck({CsLiteral(file.CobolName)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
     }
 
     private string? _sentenceEndLabel;   // the goto target NEXT SENTENCE jumps to (null in the last sentence)
@@ -237,6 +280,7 @@ public sealed partial class CSharpEmitter
     private static bool ContainsNextSentence(IReadOnlyList<BoundStatement> stmts) => stmts.Any(s => s switch
     {
         BoundNextSentence => true,
+        BoundEcChecked ec => ContainsNextSentence([ec.Inner]),   // the EC wrapper is transparent
         BoundIf i => ContainsNextSentence(i.Then) || ContainsNextSentence(i.Else),
         BoundInlinePerform p => ContainsNextSentence(p.Body),
         BoundSearch se => (se.AtEnd is { } at && ContainsNextSentence(at))
@@ -350,8 +394,12 @@ public sealed partial class CSharpEmitter
             case BoundTerminate rwt: RwEmitTerminate(rwt); return false;  // Report Writer (ISO §14.9.46)
             case BoundCallProgram call: return CallEmitCall(call);
             case BoundCancel cancel: CallEmitCancel(cancel); return false;
-            case BoundExitProgram: w.Line("if (__asCalled) throw new ProgramReturn();   // ISO §14.9.14 GR2: CONTINUE in a non-called program; GR3: return in a called one"); return false;
+            case BoundExitProgram ep: CallEmitExitProgram(ep); return false;
             case BoundGoback gb: return CallEmitGoback(gb);
+            case BoundEcChecked ec: return EcEmitChecked(ec);                  // EC model (ISO §7.3.25 TURN scope)
+            case BoundRaise ra: return EcEmitRaise(ra);                        // EC model (ISO §14.9.29)
+            case BoundResume rs: EcEmitResume(rs); return true;                // EC model (ISO §14.9.33) — unwinds
+            case BoundSetLastException: w.Line("ExceptionState.Clear();   // SET LAST EXCEPTION TO OFF (ISO §14.9.39 F13)"); return false;
             default: w.Line(LoudStmt($"bound statement '{s.GetType().Name}'")); return false;
         }
     }
@@ -749,10 +797,22 @@ public sealed partial class CSharpEmitter
     private void EmitArith(SizeErrorPhrase? sizeErr, Action emitStores)
     {
         var w = _ctx.Writer;
-        if (sizeErr is null) { emitStores(); return; }
+        // EC-SIZE checking (>>TURN … EC-SIZE … CHECKING ON, ISO §7.3.25): an ENABLED statement routes through
+        // the same two-phase TryStore/try-catch shape even WITHOUT the phrase, latching WHICH Table 13 condition
+        // occurred so the §14.9.49 F3 selection and the fatal default see the precise level-3 name. Checking off
+        // + no phrase = the unchecked fast path, byte-identical (deep-dive D10 / SSOT §18.16).
+        var ecSize = EcEnabledSizeNames();
+        if (sizeErr is null && ecSize.Count == 0) { emitStores(); return; }
 
         string flag = $"__sizeErr{_sizeErrCounter++}";
         w.Line($"bool {flag} = false;");
+        string? ecnVar = null;
+        if (ecSize.Count > 0)
+        {
+            ecnVar = $"__sizeEc{_ecCounter++}";
+            w.Line($"string {ecnVar} = \"\";");
+            _sizeErrEcVar = ecnVar;
+        }
         _sizeErrVar = flag;
         _ctx.InSizeErrorContext = true;
         using (w.Block("try")) emitStores();
@@ -760,18 +820,31 @@ public sealed partial class CSharpEmitter
         // long engine raises OverflowException (the checked(...) the store wraps the value in). Both are the
         // statement's size error condition (ISO §14.7.5 — the phrase ENABLES checking, incl. case 5 intermediate
         // overflow). >long-range overflow still needs the Int128 carrier (G3).
-        w.Line($"catch (CobolSizeError) {{ {flag} = true; }}");
-        w.Line($"catch (System.OverflowException) {{ {flag} = true; }}");
+        if (ecnVar is not null)
+        {
+            int cid = _ecCounter++;
+            w.Line($"catch (CobolSizeError __cse{cid}) {{ {flag} = true; {ecnVar} = __cse{cid}.EcName; }}");
+            w.Line($"catch (System.OverflowException) {{ {flag} = true; {ecnVar} = \"EC-SIZE-OVERFLOW\"; }}");
+        }
+        else
+        {
+            w.Line($"catch (CobolSizeError) {{ {flag} = true; }}");
+            w.Line($"catch (System.OverflowException) {{ {flag} = true; }}");
+        }
         _ctx.InSizeErrorContext = false;
         _sizeErrVar = null;
+        _sizeErrEcVar = null;
 
-        if (sizeErr.OnError is { } on)
+        if (ecnVar is not null)
+            EcEmitSizeHandling(flag, ecnVar, ecSize, hasPhrase: sizeErr?.OnError is not null);
+
+        if (sizeErr?.OnError is { } on)
         {
             using (w.Block($"if ({flag})")) EmitStatementList(on);
             if (sizeErr.NotOnError is { } notAlso)
                 using (w.Block("else")) EmitStatementList(notAlso);
         }
-        else if (sizeErr.NotOnError is { } not)
+        else if (sizeErr?.NotOnError is { } not)
             using (w.Block($"if (!{flag})")) EmitStatementList(not);
     }
 
@@ -797,7 +870,10 @@ public sealed partial class CSharpEmitter
             if (_sizeErrVar is { } eflag)
             {
                 string img = $"__sv{_storeTmpCounter++}";
-                w.Line($"if (!CobolEdit.TryFormat({aligned}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)}{EditCfg()})) {eflag} = true;");
+                // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
+                // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
+                string onFail = _sizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
+                w.Line($"if (!CobolEdit.TryFormat({aligned}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)}{EditCfg()})) {onFail}");
                 w.Line($"else {target.Write(img)}");
                 return;
             }
@@ -819,7 +895,10 @@ public sealed partial class CSharpEmitter
             // size-error context (CobolNum.MulChecked → OverflowException, caught by the statement's try, §14.7.5
             // case 5). We do NOT wrap the value in checked(...) here: a constant subexpression would then overflow at
             // COMPILE time (CS0220) and reject valid COBOL — the runtime helper avoids that by not constant-folding.
-            w.Line($"if (!CobolNum.TryStore({args}, CobolRounding.{mode}, out var {tmp})) {flag} = true;");
+            // Under EC-SIZE checking the receiver-capacity failure latches EC-SIZE-TRUNCATION (Table 13 —
+            // "significant digits truncated in store"; the §14.7.5 size error on the final transfer).
+            string onFail = _sizeErrEcVar is { } ecn2 ? $"{{ {flag} = true; {ecn2} = \"EC-SIZE-TRUNCATION\"; }}" : $"{flag} = true;";
+            w.Line($"if (!CobolNum.TryStore({args}, CobolRounding.{mode}, out var {tmp})) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
             w.Line($"else {target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({tmp}, {profile})" : Narrow(tmp, target.Item))}");
             return;

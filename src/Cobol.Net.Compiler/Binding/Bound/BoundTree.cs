@@ -19,7 +19,26 @@ namespace CobolNet.Binding.Bound;
 public sealed record BoundProgram(
     IReadOnlyList<BoundParagraph> Paragraphs,
     int EntryPc = 0,
-    IReadOnlyList<BoundDeclarative>? Declaratives = null);
+    IReadOnlyList<BoundDeclarative>? Declaratives = null,
+    EcFeatures? Ec = null);
+
+/// <summary>What of the EC exception-condition model (ISO §14.6.13; COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN) a
+/// bound program actually USES — the emitter's gating summary: every piece of EC machinery (the int-returning
+/// <c>__RunUse</c>, <c>__EcDispatch</c>, <c>__IoCheckEc</c>, the entry-wrapper fatal catch, the
+/// <c>CobolNet.Runtime.Exceptions</c> using) is emitted ONLY when the group uses the feature, so an EC-free
+/// program's generated source is byte-identical to a pre-EC build (the zero-scaffolding invariant, SSOT §18.16).</summary>
+public sealed record EcFeatures(
+    bool HasChecked,      // any statement bound under enabled >>TURN checking (a BoundEcChecked exists)
+    bool HasIoChecked,    // any I-O statement with an enabled EC-I-O name (needs the generated __IoCheckEc)
+    bool HasRaise,        // a RAISE statement (§14.9.29)
+    bool HasResume,       // a RESUME statement (§14.9.33)
+    bool HasF3,           // a USE AFTER EXCEPTION CONDITION declarative (§14.9.49 F3 — needs __EcDispatch)
+    bool HasEcFunctions,  // a FUNCTION EXCEPTION-STATUS/-LOCATION/-STATEMENT reference (§15.28–15.33)
+    bool HasRaising)      // a GOBACK/EXIT … RAISING (§14.9.18 / §14.9.14)
+{
+    /// <summary>Any EC-model feature present (drives the group-level <c>_ecActive</c> gate).</summary>
+    public bool Any => HasChecked || HasIoChecked || HasRaise || HasResume || HasF3 || HasEcFunctions || HasRaising;
+}
 
 /// <summary>One USE declarative section (ISO §14.9.49): its inclusive pc range, the §14.9.49.4 GR7 handler exit
 /// pc (== <paramref name="EndPc"/> except the CCVS termination-tail accommodation — see the binder), and its
@@ -36,7 +55,12 @@ public sealed record BoundDeclarative(
     IReadOnlyList<FileModel> Files,
     int? ModeIndex,
     bool Global,
-    ReportGroupModel? ReportGroup = null);
+    ReportGroupModel? ReportGroup = null,
+    IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null);
+// EcEntries: the Format-3 scope (ISO §14.9.49.2 — USE AFTER {EXCEPTION CONDITION | EC} {ec-name [FILE f]…}…):
+// each pair is one (exception-name, optional file) selection entry, consumed by the generated __EcDispatch
+// selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,
+// so the F1 __IoCheck switches naturally exclude it.
 
 /// <summary>A bound paragraph: its COBOL name and its SENTENCES (each a statement list — the separator-period
 /// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19 GR6).
@@ -373,3 +397,53 @@ public sealed record BoundGenerate(ReportModel Report, ReportGroupModel? Detail)
 /// <summary><c>TERMINATE report-name…</c> (ISO §14.9.46): final control footings + report footing, report →
 /// inactive (GR3); unrolls in written order (GR4); does NOT close the file (GR6).</summary>
 public sealed record BoundTerminate(IReadOnlyList<ReportModel> Reports) : BoundStatement;
+
+// ── The EC exception-condition model (ISO §14.6.13 / §14.9.29 / §14.9.33 / §14.9.49 F3;
+//    COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN D9–D12) ─────────────────────────────────────────────────────────────
+
+/// <summary>The per-statement EC checking decision, computed at BIND time from the compile-time TurnState
+/// (deep-dive D10 — bound nodes carry no parse context, so the line-anchored TURN fold happens in the binder and
+/// its RESULT travels on the bound tree; the emitter renders guards from this record only).</summary>
+/// <param name="Enabled">The enabled (level-3 exception-name, file) pairs RELEVANT to this statement's kind —
+/// EC-SIZE-* for arithmetic, EC-I-O-* per referenced file connector, EC-OVERFLOW-* for STRING/UNSTRING,
+/// EC-PROGRAM-* for CALL/CANCEL, EC-ARGUMENT-FUNCTION for intrinsic-bearing statements. Never empty (an empty
+/// decision binds NO wrapper — the zero-scaffolding rule).</param>
+/// <param name="WithLocation">The enabling TURN carried WITH LOCATION (§7.3.25.4 GR7) — the raise site then
+/// records <paramref name="StatementName"/>/<paramref name="Location"/> into the last-exception state.</param>
+/// <param name="StatementName">The uppercase statement name (§15.32.3 r2, Table 12).</param>
+/// <param name="Location">The pre-rendered §15.30.3 r2 location string ("element; para[ OF section]; line").</param>
+public sealed record EcStatementInfo(
+    IReadOnlyList<(string Ec, FileModel? File)> Enabled,
+    bool WithLocation,
+    string StatementName,
+    string Location);
+
+/// <summary>A statement bound under ENABLED exception-condition checking (>>TURN … CHECKING ON in scope at its
+/// line, §7.3.25.4 GR6): the emitter sets the statement EC context, emits <paramref name="Inner"/> with the
+/// per-raise-point guards, and clears it. Absent wherever checking is off — checking-off emits NOTHING new.</summary>
+public sealed record BoundEcChecked(BoundStatement Inner, EcStatementInfo Info) : BoundStatement;
+
+/// <summary><c>RAISE EXCEPTION exception-name-1</c> (ISO §14.9.29; SR1 — level-3 only, validated at bind).
+/// The TURN decision is baked in at bind time (§14.6.13.1.1: an exception condition is raised only when checking
+/// is enabled): <paramref name="Enabled"/> false + nonfatal ⇒ the statement is a no-op (§14.6.13.1.4 first
+/// sentence — "execution continues as if the exception did not occur"); false + fatal ⇒ the implementor-defined
+/// §14.6.13.1.3 #8 case — this implementation terminates loudly (§1.4). The RAISE identifier-1 (exception object)
+/// form binds loud until the OO wave.</summary>
+public sealed record BoundRaise(
+    string EcName, bool Fatal, bool Enabled, bool WithLocation, string Location) : BoundStatement;
+
+/// <summary><c>RESUME AT {NEXT STATEMENT | procedure-name}</c> (ISO §14.9.33): unwinds the active declarative
+/// via the runtime ResumeSignal; <paramref name="TargetPc"/> is the resolved NONdeclarative pc (SR3), or the
+/// NextStatement sentinel (−2) — the raise site then falls through past the raising statement (GR2).</summary>
+public sealed record BoundResume(int TargetPc) : BoundStatement;
+
+/// <summary><c>SET LAST EXCEPTION TO OFF</c> (ISO §14.9.39 Format 13): clears the run-unit last exception
+/// status (§14.6.13.1.1).</summary>
+public sealed record BoundSetLastException : BoundStatement;
+
+/// <summary>The bound RAISING phrase of GOBACK / EXIT PROGRAM (ISO §14.9.18.2 / §14.9.14.2 Format 2): either a
+/// level-3 <paramref name="EcName"/> (with its catalog <paramref name="Fatal"/>ity and the bind-time TURN
+/// <paramref name="Enabled"/> decision at the statement's line) or <paramref name="IsLast"/> (RAISING LAST
+/// EXCEPTION — re-stages the current last exception status). The identifier (exception-object) form binds loud
+/// until the OO wave.</summary>
+public sealed record BoundRaising(string? EcName, bool IsLast, bool Fatal, bool Enabled);

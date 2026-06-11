@@ -18,7 +18,14 @@ public static partial class CobolIntrinsics
     public static string Char(long n)
     {
         long c = n - 1;
-        return c is < 0 or > 0xFFFF ? " " : ((char)c).ToString();
+        if (c is < 0 or > 0xFFFF)
+        {
+            // EC-ARGUMENT-FUNCTION raise point (the string-result twin of the long sites): the §15.3
+            // default one-space result when checking is off; the raise when enabled.
+            Exceptions.ExceptionState.ArgumentError($"CHAR argument {n} outside the collating sequence (§15.15.3 rule 1)");
+            return " ";
+        }
+        return ((char)c).ToString();
     }
 
     /// <summary>CHAR under a non-identity PCS (§15.15.4 rule 2): the FIRST (lowest-coded) character whose
@@ -30,19 +37,23 @@ public static partial class CobolIntrinsics
         for (int i = 0; i < weights.Length; i++)
             if (weights[i] == wanted)
                 return ((char)i).ToString();
+        Exceptions.ExceptionState.ArgumentError($"CHAR argument {n} has no character at that collating position (§15.15.3 rule 1)");
         return " ";                                          // no character at that position → EC default (§15.3)
     }
 
     /// <summary>ORD (§15.70.4): the 1-based ordinal position of the argument's (single) character in the
     /// alphanumeric program collating sequence — native: char code + 1. The inverse of CHAR.</summary>
-    public static long Ord(string s) => s.Length == 0 ? 0 : s[0] + 1;
+    public static long Ord(string s) => s.Length == 0
+        ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
+        : s[0] + 1;
 
     /// <summary>ORD under a non-identity PCS: the character's collating weight + 1 (<c>Positions[c]</c> is the
     /// 0-based position). A char beyond the table keeps its native ordinal (the table covers the alphabet's
     /// domain; ALSO members share one position).</summary>
     public static long Ord(string s, ushort[] weights)
     {
-        if (s.Length == 0) return 0;
+        if (s.Length == 0)
+            return Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)");
         char c = s[0];
         return c < weights.Length ? weights[c] + 1L : c + 1L;
     }

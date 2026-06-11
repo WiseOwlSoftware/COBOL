@@ -1,0 +1,307 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+namespace CobolNet.Runtime.Exceptions;
+
+/// <summary>The fatality category of an exception condition (ISO/IEC 1989:2023 §14.6.13.1.6 Table 13, the
+/// "Cat" column): nonfatal, fatal, or implementor-defined. A level-1/level-2 name has no category of its own
+/// (only level-3 names carry exception status indicators — §14.6.13.1.1).</summary>
+public enum EcFatality
+{
+    /// <summary>Nonfatal (Table 13 "NF") — handled per §14.6.13.1.4 (continue when unhandled).</summary>
+    Nonfatal,
+    /// <summary>Fatal — handled per §14.6.13.1.3 (abnormal run-unit termination when unhandled).</summary>
+    Fatal,
+    /// <summary>Implementor-defined ("Imp") — this implementation treats every raised EC-*-IMP as fatal
+    /// (loud-failure doctrine, COBOLNET_DESIGN §1.4; the implementor latitude of §14.6.13.1.1).</summary>
+    Imp,
+    /// <summary>A level-1/level-2 hierarchy name — enables/selects only, never raised itself (§14.6.13.1.1:
+    /// "Only the lowest level exception-names are associated with exception status indicators").</summary>
+    Hierarchy,
+}
+
+/// <summary>One exception-name row (ISO §14.6.13.1.6 Table 13): the canonical name, its level (1/2/3), its
+/// level-2 parent (level-3 rows only), its fatality, and the ISO edition that introduced it (the binder's D8-style
+/// edition gate; 2002 = the EC model's introduction, 2023 = the VCR row-40/61 additions).</summary>
+public readonly record struct EcInfo(string Name, int Level, string? Level2Parent, EcFatality Fatality, int IntroducedIn);
+
+/// <summary>
+/// The exception-name catalog — the ONE machine form of ISO/IEC 1989:2023 §14.6.13.1.6 Table 13 plus the
+/// three-level hierarchy of §14.6.13.1.1: level-1 <c>EC-ALL</c>; the level-2 family names; level-3 = level-2 +
+/// suffix (only level-3 names carry exception status indicators). The catalog is NAME-keyed (not an enum): the
+/// open-ended <c>EC-USER-*</c> (§14.6.13.1.1 — always nonfatal, user-defined by mention) and <c>EC-IMP-*</c>
+/// (implementor-defined) families make the NAME the canonical identity of an EC; a closed enum would need a
+/// parallel name channel — two representations for one concept (the singular-pattern rule). Compile-time consumers
+/// (TURN expansion, RAISE/USE-F3 validation, edition gating) and the runtime (last-exception state, the generated
+/// <c>__EcDispatch</c> selector's level-2 matching) share THIS table.
+/// </summary>
+public static class ExceptionCatalog
+{
+    /// <summary>The level-1 name (§14.6.13.1.1).</summary>
+    public const string EcAll = "EC-ALL";
+
+    // ── The level-2 family names (§14.6.13.1.1, 23 names + EC-CONTINUE) ───────────────────────────────────────
+    // NOTE: the §14.6.13.1.1 prose lists 23 level-2 names and omits EC-CONTINUE, yet Table 13 carries the
+    // EC-CONTINUE family (EC-CONTINUE-IMP / EC-CONTINUE-LESS-THAN-ZERO, the 2023 CONTINUE AFTER addition —
+    // VERSION_CHANGE_REFERENCE row 40). The table governs (it names the conditions); EC-CONTINUE is treated as a
+    // level-2 name introduced in 2023.
+    private static readonly string[] Level2Names =
+    [
+        "EC-ARGUMENT", "EC-BOUND", "EC-CONTINUE", "EC-DATA", "EC-EXTERNAL", "EC-FLOW", "EC-FUNCTION", "EC-I-O",
+        "EC-IMP", "EC-LOCALE", "EC-MCS", "EC-OO", "EC-ORDER", "EC-OVERFLOW", "EC-PROGRAM", "EC-RANGE",
+        "EC-RAISING", "EC-REPORT", "EC-SCREEN", "EC-SIZE", "EC-SORT-MERGE", "EC-STORAGE", "EC-USER", "EC-VALIDATE",
+    ];
+
+    private static readonly Dictionary<string, EcInfo> Table = Build();
+
+    private static Dictionary<string, EcInfo> Build()
+    {
+        var t = new Dictionary<string, EcInfo>(StringComparer.OrdinalIgnoreCase);
+        t[EcAll] = new EcInfo(EcAll, 1, null, EcFatality.Hierarchy, 2002);
+        foreach (string l2 in Level2Names)
+            t[l2] = new EcInfo(l2, 2, null, EcFatality.Hierarchy, l2 is "EC-CONTINUE" or "EC-MCS" or "EC-EXTERNAL" ? 2023 : 2002);
+
+        // Level-3 rows — ISO §14.6.13.1.6 Table 13 in table order. IntroducedIn: 2002 = the EC model's
+        // introduction edition; 2023 = the names VERSION_CHANGE_REFERENCE rows 40/61 record as new in 2023
+        // (EC-MCS-*, EC-FLOW-APPLY-COMMIT/-COMMIT/-ROLLBACK, EC-CONTINUE-*, EC-EXTERNAL-*, EC-I-O-WARNING,
+        // EC-I-O-RECORD-CONTENT). Other 2014-era candidates (dynamic-capacity tables) default to 2002 —
+        // PROVISIONAL pending the version-matrix per-name audit (scout brief H9).
+        void L3(string name, EcFatality f, int introduced = 2002) =>
+            t[name] = new EcInfo(name, 3, Level2OfName(name), f, introduced);
+
+        L3("EC-ARGUMENT-FUNCTION", EcFatality.Fatal);
+        L3("EC-ARGUMENT-IMP", EcFatality.Imp);
+        L3("EC-BOUND-FUNC-RET-VALUE", EcFatality.Nonfatal);
+        L3("EC-BOUND-IMP", EcFatality.Imp);
+        L3("EC-BOUND-ODO", EcFatality.Fatal);
+        L3("EC-BOUND-OVERFLOW", EcFatality.Nonfatal);
+        L3("EC-BOUND-PTR", EcFatality.Fatal);
+        L3("EC-BOUND-REF-MOD", EcFatality.Fatal);
+        L3("EC-BOUND-SET", EcFatality.Nonfatal);
+        L3("EC-BOUND-SUBSCRIPT", EcFatality.Fatal);
+        L3("EC-BOUND-TABLE-LIMIT", EcFatality.Fatal);
+        L3("EC-CONTINUE-IMP", EcFatality.Imp, 2023);
+        L3("EC-CONTINUE-LESS-THAN-ZERO", EcFatality.Nonfatal, 2023);
+        L3("EC-DATA-CONVERSION", EcFatality.Nonfatal);
+        L3("EC-DATA-IMP", EcFatality.Imp);
+        L3("EC-DATA-INCOMPATIBLE", EcFatality.Fatal);
+        L3("EC-DATA-NOT-FINITE", EcFatality.Fatal);
+        L3("EC-DATA-OVERFLOW", EcFatality.Fatal);
+        L3("EC-DATA-PTR-NULL", EcFatality.Fatal);
+        L3("EC-EXTERNAL-DATA-MISMATCH", EcFatality.Fatal, 2023);
+        L3("EC-EXTERNAL-FILE-MISMATCH", EcFatality.Fatal, 2023);
+        L3("EC-EXTERNAL-FORMAT-CONFLICT", EcFatality.Fatal, 2023);
+        L3("EC-EXTERNAL-IMP", EcFatality.Imp, 2023);
+        L3("EC-FLOW-APPLY-COMMIT", EcFatality.Fatal, 2023);
+        L3("EC-FLOW-COMMIT", EcFatality.Fatal, 2023);
+        L3("EC-FLOW-GLOBAL-EXIT", EcFatality.Fatal);
+        L3("EC-FLOW-GLOBAL-GOBACK", EcFatality.Fatal);
+        L3("EC-FLOW-IMP", EcFatality.Imp);
+        L3("EC-FLOW-RELEASE", EcFatality.Fatal);
+        L3("EC-FLOW-REPORT", EcFatality.Fatal);
+        L3("EC-FLOW-RETURN", EcFatality.Fatal);
+        L3("EC-FLOW-ROLLBACK", EcFatality.Fatal, 2023);
+        L3("EC-FLOW-SEARCH", EcFatality.Fatal);
+        L3("EC-FLOW-USE", EcFatality.Fatal);
+        L3("EC-FUNCTION-ARG-OMITTED", EcFatality.Fatal);
+        L3("EC-FUNCTION-IMP", EcFatality.Imp);
+        L3("EC-FUNCTION-NOT-FOUND", EcFatality.Fatal);
+        L3("EC-FUNCTION-PTR-INVALID", EcFatality.Fatal);
+        L3("EC-FUNCTION-PTR-NULL", EcFatality.Fatal);
+        L3("EC-I-O-AT-END", EcFatality.Nonfatal);
+        L3("EC-I-O-EOP", EcFatality.Nonfatal);
+        L3("EC-I-O-EOP-OVERFLOW", EcFatality.Nonfatal);
+        L3("EC-I-O-FILE-SHARING", EcFatality.Nonfatal);
+        L3("EC-I-O-IMP", EcFatality.Imp);
+        L3("EC-I-O-INVALID-KEY", EcFatality.Nonfatal);
+        L3("EC-I-O-LINAGE", EcFatality.Fatal);
+        L3("EC-I-O-LOGIC-ERROR", EcFatality.Fatal);
+        L3("EC-I-O-PERMANENT-ERROR", EcFatality.Fatal);
+        L3("EC-I-O-RECORD-CONTENT", EcFatality.Fatal, 2023);
+        L3("EC-I-O-RECORD-OPERATION", EcFatality.Nonfatal);
+        L3("EC-I-O-WARNING", EcFatality.Nonfatal, 2023);
+        L3("EC-LOCALE-IMP", EcFatality.Imp);
+        L3("EC-LOCALE-INCOMPATIBLE", EcFatality.Fatal);
+        L3("EC-LOCALE-INVALID", EcFatality.Fatal);
+        L3("EC-LOCALE-INVALID-PTR", EcFatality.Fatal);
+        L3("EC-LOCALE-MISSING", EcFatality.Fatal);
+        L3("EC-LOCALE-SIZE", EcFatality.Fatal);
+        L3("EC-MCS-ABNORMAL-TERMINATION", EcFatality.Nonfatal, 2023);
+        L3("EC-MCS-IMP", EcFatality.Imp, 2023);
+        L3("EC-MCS-INVALID-TAG", EcFatality.Nonfatal, 2023);
+        L3("EC-MCS-MESSAGE-LENGTH", EcFatality.Nonfatal, 2023);
+        L3("EC-MCS-NO-REQUESTER", EcFatality.Nonfatal, 2023);
+        L3("EC-MCS-NO-SERVER", EcFatality.Nonfatal, 2023);
+        L3("EC-MCS-NORMAL-TERMINATION", EcFatality.Nonfatal, 2023);
+        L3("EC-MCS-REQUESTOR-FAILED", EcFatality.Nonfatal, 2023);
+        L3("EC-OO-ARG-OMITTED", EcFatality.Fatal);
+        L3("EC-OO-CONFORMANCE", EcFatality.Fatal);
+        L3("EC-OO-EXCEPTION", EcFatality.Fatal);
+        L3("EC-OO-IMP", EcFatality.Imp);
+        L3("EC-OO-METHOD", EcFatality.Fatal);
+        L3("EC-OO-NULL", EcFatality.Fatal);
+        L3("EC-OO-RESOURCE", EcFatality.Fatal);
+        L3("EC-OO-UNIVERSAL", EcFatality.Fatal);
+        L3("EC-ORDER-IMP", EcFatality.Imp);
+        L3("EC-ORDER-NOT-SUPPORTED", EcFatality.Fatal);
+        L3("EC-OVERFLOW-IMP", EcFatality.Imp);
+        L3("EC-OVERFLOW-STRING", EcFatality.Nonfatal);
+        L3("EC-OVERFLOW-UNSTRING", EcFatality.Nonfatal);
+        L3("EC-PROGRAM-ARG-MISMATCH", EcFatality.Fatal);
+        L3("EC-PROGRAM-ARG-OMITTED", EcFatality.Fatal);
+        L3("EC-PROGRAM-CANCEL-ACTIVE", EcFatality.Fatal);
+        L3("EC-PROGRAM-IMP", EcFatality.Imp);
+        L3("EC-PROGRAM-NOT-FOUND", EcFatality.Fatal);
+        L3("EC-PROGRAM-PTR-NULL", EcFatality.Fatal);
+        L3("EC-PROGRAM-RECURSIVE-CALL", EcFatality.Fatal);
+        L3("EC-PROGRAM-RESOURCES", EcFatality.Fatal);
+        L3("EC-RAISING-IMP", EcFatality.Imp);
+        L3("EC-RAISING-NOT-SPECIFIED", EcFatality.Fatal);
+        L3("EC-RANGE-IMP", EcFatality.Imp);
+        L3("EC-RANGE-INDEX", EcFatality.Fatal);
+        L3("EC-RANGE-INSPECT-SIZE", EcFatality.Fatal);
+        L3("EC-RANGE-INVALID", EcFatality.Nonfatal);
+        L3("EC-RANGE-PERFORM-VARYING", EcFatality.Fatal);
+        L3("EC-RANGE-PTR", EcFatality.Fatal);
+        L3("EC-RANGE-SEARCH-INDEX", EcFatality.Nonfatal);
+        L3("EC-RANGE-SEARCH-NO-MATCH", EcFatality.Nonfatal);
+        L3("EC-REPORT-ACTIVE", EcFatality.Fatal);
+        L3("EC-REPORT-COLUMN-OVERLAP", EcFatality.Nonfatal);
+        L3("EC-REPORT-FILE-MODE", EcFatality.Fatal);
+        L3("EC-REPORT-IMP", EcFatality.Imp);
+        L3("EC-REPORT-INACTIVE", EcFatality.Fatal);
+        L3("EC-REPORT-LINE-OVERLAP", EcFatality.Nonfatal);
+        L3("EC-REPORT-NOT-TERMINATED", EcFatality.Nonfatal);
+        L3("EC-REPORT-PAGE-LIMIT", EcFatality.Nonfatal);
+        L3("EC-REPORT-PAGE-WIDTH", EcFatality.Nonfatal);
+        L3("EC-REPORT-SUM-SIZE", EcFatality.Fatal);
+        L3("EC-REPORT-VARYING", EcFatality.Fatal);
+        L3("EC-SCREEN-FIELD-OVERLAP", EcFatality.Nonfatal);
+        L3("EC-SCREEN-IMP", EcFatality.Imp);
+        L3("EC-SCREEN-ITEM-TRUNCATED", EcFatality.Nonfatal);
+        L3("EC-SCREEN-LINE-NUMBER", EcFatality.Nonfatal);
+        L3("EC-SCREEN-STARTING-COLUMN", EcFatality.Nonfatal);
+        L3("EC-SIZE-ADDRESS", EcFatality.Fatal);
+        L3("EC-SIZE-EXPONENTIATION", EcFatality.Fatal);
+        L3("EC-SIZE-IMP", EcFatality.Imp);
+        L3("EC-SIZE-OVERFLOW", EcFatality.Fatal);
+        L3("EC-SIZE-TRUNCATION", EcFatality.Fatal);
+        L3("EC-SIZE-UNDERFLOW", EcFatality.Fatal);
+        L3("EC-SIZE-ZERO-DIVIDE", EcFatality.Fatal);
+        L3("EC-SORT-MERGE-ACTIVE", EcFatality.Fatal);
+        L3("EC-SORT-MERGE-FILE-OPEN", EcFatality.Fatal);
+        L3("EC-SORT-MERGE-IMP", EcFatality.Imp);
+        L3("EC-SORT-MERGE-RELEASE", EcFatality.Fatal);
+        L3("EC-SORT-MERGE-RETURN", EcFatality.Fatal);
+        L3("EC-SORT-MERGE-SEQUENCE", EcFatality.Fatal);
+        L3("EC-STORAGE-IMP", EcFatality.Imp);
+        L3("EC-STORAGE-NOT-ALLOC", EcFatality.Nonfatal);
+        L3("EC-STORAGE-NOT-AVAIL", EcFatality.Nonfatal);
+        // The EC-VALIDATE family is OBSOLETE in 2023 (Table 13 NOTE; VERSION_CHANGE_REFERENCE row 125).
+        L3("EC-VALIDATE-CONTENT", EcFatality.Nonfatal);
+        L3("EC-VALIDATE-FORMAT", EcFatality.Nonfatal);
+        L3("EC-VALIDATE-IMP", EcFatality.Imp);
+        L3("EC-VALIDATE-RELATION", EcFatality.Nonfatal);
+        L3("EC-VALIDATE-VARYING", EcFatality.Fatal);
+        return t;
+    }
+
+    /// <summary>Look up a name's catalog row. Handles the Table 13 fixed names AND the open families: an
+    /// <c>EC-USER-suffix</c> (always nonfatal — §14.6.13.1.1) or <c>EC-IMP-suffix</c> (implementor-defined) with
+    /// a valid suffix (basic letters/digits/hyphen/underscore, not ending in hyphen or underscore — §14.6.13.1.1)
+    /// resolves to a synthesized level-3 row. Unknown names return false.</summary>
+    public static bool TryGet(string name, out EcInfo info)
+    {
+        if (Table.TryGetValue(name, out info)) return true;
+        string upper = name.ToUpperInvariant();
+        if (upper.StartsWith("EC-USER-", StringComparison.Ordinal) && ValidOpenSuffix(upper["EC-USER-".Length..]))
+        {
+            info = new EcInfo(upper, 3, "EC-USER", EcFatality.Nonfatal, 2002);
+            return true;
+        }
+        if (upper.StartsWith("EC-IMP-", StringComparison.Ordinal) && ValidOpenSuffix(upper["EC-IMP-".Length..]))
+        {
+            info = new EcInfo(upper, 3, "EC-IMP", EcFatality.Imp, 2002);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>The §14.6.13.1.1 open-suffix character rule: basic letters, basic digits, hyphen and underscore;
+    /// the hyphen or underscore shall not be the last character.</summary>
+    private static bool ValidOpenSuffix(string suffix) =>
+        suffix.Length > 0
+        && suffix.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_')
+        && suffix[^1] is not ('-' or '_');
+
+    /// <summary>The level-2 parent of a level-3 exception-name (longest-prefix match over the level-2 family
+    /// names — so <c>EC-I-O-AT-END</c> → <c>EC-I-O</c>, not <c>EC-IMP</c>; <c>EC-SORT-MERGE-ACTIVE</c> →
+    /// <c>EC-SORT-MERGE</c>). Null when the name is not under any family. Used by the generated
+    /// <c>__EcDispatch</c> selector's level-2 tiers (ISO §14.9.49.4 GR3d/GR3f).</summary>
+    public static string? Level2OfName(string level3Name)
+    {
+        string? best = null;
+        foreach (string l2 in Level2Names)
+            if (level3Name.StartsWith(l2 + "-", StringComparison.OrdinalIgnoreCase)
+                && (best is null || l2.Length > best.Length))
+                best = l2;
+        return best;
+    }
+
+    /// <summary>True when <paramref name="level3Name"/> falls under <paramref name="level2Name"/>
+    /// (§14.9.49.4 GR3d/f selection; case-insensitive, longest-family-prefix discipline).</summary>
+    public static bool UnderLevel2(string level3Name, string level2Name) =>
+        string.Equals(Level2OfName(level3Name), level2Name, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>True when <paramref name="name"/> begins with the COBOL characters <c>EC-I-O</c>
+    /// (the §14.9.49.3 SR13 / §7.3.25.3 SR4 file-association test).</summary>
+    public static bool IsIoName(string name) => name.StartsWith("EC-I-O", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>All catalogued LEVEL-3 names (the >>TURN GR2/GR3 expansion universe). The open EC-USER-*/EC-IMP-*
+    /// families are not enumerable — TURN matching treats EC-ALL / a level-2 event as covering them by the
+    /// hierarchy predicate instead of by expansion (same observable behavior, ISO §7.3.25.4 GR2/GR3).</summary>
+    public static IEnumerable<EcInfo> Level3Rows => Table.Values.Where(i => i.Level == 3);
+
+    /// <summary>The EC-I-O level-3 exception-name for an I-O status value (ISO §9.1.13.1): first digit 1→AT-END,
+    /// 2→INVALID-KEY, 3→PERMANENT-ERROR, 4→LOGIC-ERROR, 5→RECORD-OPERATION, 6→FILE-SHARING, 7→RECORD-CONTENT,
+    /// 9→IMP; '0x' with x≠'0' → EC-I-O-WARNING; '00' (clean success) → null (no exception condition).</summary>
+    public static string? IoEcOfStatus(string status)
+    {
+        if (status.Length < 2) return null;
+        return status[0] switch
+        {
+            '0' => status[1] == '0' ? null : "EC-I-O-WARNING",
+            '1' => "EC-I-O-AT-END",
+            '2' => "EC-I-O-INVALID-KEY",
+            '3' => "EC-I-O-PERMANENT-ERROR",
+            '4' => "EC-I-O-LOGIC-ERROR",
+            '5' => "EC-I-O-RECORD-OPERATION",
+            '6' => "EC-I-O-FILE-SHARING",
+            '7' => "EC-I-O-RECORD-CONTENT",
+            '9' => "EC-I-O-IMP",
+            _ => null,
+        };
+    }
+
+    /// <summary>True when the I-O status value indicates a FATAL EC-I-O exception condition (ISO §9.1.13.1:
+    /// "any that begin with the digit 3, 4, or 7, and any that begin with the digit 9 that the implementor
+    /// defines as fatal" — this implementation defines 9x as fatal, the loud-failure doctrine).</summary>
+    public static bool IsFatalIoStatus(string status) =>
+        status.Length > 0 && status[0] is '3' or '4' or '7' or '9';
+
+    /// <summary>The status-raised EC-I-O level-3 names in THE canonical mask-bit order — the compiler's
+    /// per-statement enable mask (bit i = name i) and the generated <c>__IoCheckEc</c> consult this one order;
+    /// never re-derive it elsewhere (singular-pattern rule).</summary>
+    public static readonly string[] IoMaskNames =
+    [
+        "EC-I-O-AT-END", "EC-I-O-INVALID-KEY", "EC-I-O-PERMANENT-ERROR", "EC-I-O-LOGIC-ERROR",
+        "EC-I-O-RECORD-OPERATION", "EC-I-O-FILE-SHARING", "EC-I-O-RECORD-CONTENT", "EC-I-O-IMP", "EC-I-O-WARNING",
+    ];
+
+    /// <summary>The mask bit of a status-raised EC-I-O name (0 for a name outside the mask set).</summary>
+    public static int IoBit(string ecName)
+    {
+        for (int i = 0; i < IoMaskNames.Length; i++)
+            if (IoMaskNames[i].Equals(ecName, StringComparison.OrdinalIgnoreCase)) return 1 << i;
+        return 0;
+    }
+}
