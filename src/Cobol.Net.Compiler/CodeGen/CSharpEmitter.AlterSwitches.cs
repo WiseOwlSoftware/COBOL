@@ -23,7 +23,7 @@ public sealed partial class CSharpEmitter
             foreach (var s in para.Statements)
                 AlterCollectFields(s, fields);
         foreach (var (field, defaultPc) in fields)
-            w.Line($"private static int {field} = {defaultPc};   // ALTERable GO TO target pc (control-flow design D4)");
+            w.Line($"private int {field} = {defaultPc};   // ALTERable GO TO target pc (control-flow design D4; instance — ALTER state is per-program-instance, ISO §14.6.2.3.2 resets it via a fresh instance)");
     }
 
     /// <summary>Collect alterable-GO-TO fields from a statement and every nested statement container the binder

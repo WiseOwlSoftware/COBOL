@@ -24,16 +24,21 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 553, 2026-06-10 18:30): 88/95 NC + 14 ST + 27 RL/IX byte-match (all locked); 648 conformance +
-> 15 unit; legacy guard ALL GREEN. THREE of four wave-2 families integrated (ODO 551, SORT/MERGE 552, KeyedIO
-> 553). **RESUME AT: integrate the PARKED CALL family ALONE** — files in `/e/tmp/wave2-hold/call/`, 11 STRUCTURAL
-> edits in `/e/tmp/verb-briefs/wave2result-call.json` (multi-unit emission, instance program classes/__Activate,
-> FieldEmitter instance fields, AlterSwitches instance state; targets the IC suite; verify HARD — full censuses +
-> both suites + legacy guard untouched-frontend check). Then: USE AFTER STANDARD ERROR DECLARATIVES subsystem
-> (RL104A/IX104A + the SQ declaratives programs), DECIMAL-POINT COMMA (brief saved; NC107A/108M), remaining RL/IX
-> DIFFs + IX102A timeout, ST chain-consumer harness support (ST103A/105A/111A), NC105A's last rows, reserved-word
-> tables (the `RF` find), then steps ④–⑦. Apply agent edits with the index-based python pattern; the Bash
-> transport mangles backslash escapes — never inline them in heredoc scripts.**
+> **STATE (DEVLOG 557, 2026-06-10 17:45): 88/95 NC + 14 ST + 27 RL/IX + 18 IC byte-match (146 locked); 677
+> conformance + 15 unit; frontend/legacy untouched. ALL FOUR wave-2 families integrated (ODO 551, SORT/MERGE 552,
+> KeyedIO 553, CALL 557 — multi-unit emission, instance program classes/__Activate, LINKAGE/ManagedPointer,
+> ProgramRegistry §14.6.2.3 state model, GLOBAL bridges, EXTERNAL store; diag band relocated 0880–0889).
+> **RESUME AT: the five scout briefs in `/e/tmp/verb-briefs/`** (workflow w1b6qbs4b): ① USE AFTER STANDARD ERROR
+> DECLARATIVES subsystem (`use-declaratives-brief.md` — RL104A/IX104A/RL112A/RL204A/IX204A/IX216A DIFF-22 cluster
+> + SQ declaratives + IC233A/234A GLOBAL USE), ② DECIMAL-POINT COMMA + CURRENCY SIGN (brief
+> `wave2result-decimalPointBrief.txt`, decision-complete; NC107A/108M), ③ remaining RL/IX DIFFs + IX102A timeout
+> (`rlix-diffs-brief.md`), ④ ST chain-consumer harness (`st-chain-brief.md`; ST103A/105A/111A/121A), ⑤ NC105A
+> last rows (`nc105a-brief.md`) + reserved-word tables (`reserved-words-brief.md`, the `RF` find → 0890+ band).
+> IC residuals: IC207A/227A DIFF (227A = EXTERNAL FD shared connectors), IC113A timeout, IC222A CMPL_FAIL,
+> IC109A/110A/117M/205A/210A RUNERR. CALL follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence
+> arm for ON-phrase bodies, OMITTED args + header mode phrases (grammar), cross-assembly dynamic CALL (pre-G8).
+> Then steps ④–⑦. Apply agent edits with the index-based python pattern; the Bash transport mangles backslash
+> escapes — never inline them in heredoc scripts.**
 >
 > > **STATE (DEVLOG 552, 2026-06-10 17:30): 88/95 NC byte-match + 14 ST locked; 605 conformance + 15 unit; legacy
 > guard ALL GREEN (re-proved on the RETURN grammar change). Landed since 545: ref-mod completion (548 — numeric

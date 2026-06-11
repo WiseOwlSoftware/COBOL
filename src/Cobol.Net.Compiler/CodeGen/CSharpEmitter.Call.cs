@@ -1,0 +1,588 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
+using Antlr4.Runtime.Tree;
+using CobolNet.Binding;
+using CobolNet.Binding.Bound;
+using CobolNet.CodeGen.Emit;
+using CobolNet.Runtime;
+using CobolSharp.Compiler.Generated;
+
+namespace CobolNet.CodeGen;
+
+using Core = CobolParserCore;
+using static CobolNet.CodeGen.Emit.EmitText;
+
+/// <summary>
+/// The inter-program half of the Roslyn backend (COBOLNET_INTERPROGRAM_DESIGN D1–D5; ISO §14.9.4 / §14.9.5 /
+/// §14.2 / §8.4.6.3): the MULTI-UNIT run-unit emission (every top-level program unit and every contained program
+/// compiles — one instantiable C# class per program, nested programs as nested classes, ONE <c>.g.cs</c> / ONE
+/// assembly, the first unit as entry — design D3, SSOT §18 #8), the program-class plumbing (the
+/// <see cref="ICobolProgram"/> ABI, LINKAGE carrier mapping, GLOBAL bridges, EXTERNAL backings), and the
+/// CALL / CANCEL / EXIT PROGRAM / GOBACK statement emitters.
+/// </summary>
+public sealed partial class CSharpEmitter
+{
+    // ── The per-compilation unit model ──────────────────────────────────────────────────────────────────────
+
+    /// <summary>One program unit of the compilation group: its identity, containment, PROGRAM-ID attributes
+    /// (ISO §11.10 / §8.6.6), bound model, and the GLOBAL bridges its class must emit (§13.18.27 GR2).</summary>
+    private sealed class CallUnit
+    {
+        public required string Name;
+        public required string ClassName;
+        public required Core.ProgramUnitContext Ctx;
+        public CallUnit? Parent;
+        public List<CallUnit> Children = [];
+        public bool Initial, Common, Recursive;
+        public DataBinder Data = null!;
+        public ReferenceResolver Refs = null!;
+        public BoundProgram Bound = null!;
+        public List<CallBridge> Bridges = [];
+
+        /// <summary>The run-unit-unique containment path id (registry key; §8.4.6.3 scoping).</summary>
+        public string Path => Parent is null ? Name : Parent.Path + "/" + Name;
+
+        /// <summary>The C# nested-type reference from the top-level scope (factory construction).</summary>
+        public string ClassRef => Parent is null ? ClassName : Parent.ClassRef + "." + ClassName;
+    }
+
+    /// <summary>One inherited-GLOBAL bridge a nested class emits: a <c>ref</c>-returning property aliasing the
+    /// containing instance's field (ISO §13.18.27 GR2 — the name is visible in every contained program; the
+    /// STORAGE stays the container's). <paramref name="Kind"/>: "field" (a global root's typed field), "backing"
+    /// (a Tier-B class's string backing), or "index" (an INDEXED BY <c>long</c> field of a global table).</summary>
+    private sealed record CallBridge(string Field, string Path, string Kind, DataItem? Item);
+
+    private string _callSelfPath = "";
+    private Place? _callReturningPlace;
+    private int _callCounter;
+    private int _callUidBand;
+
+    // ── Run-unit emission (replaces the single-unit Emit body; design D3) ───────────────────────────────────
+
+    /// <summary>
+    /// Emit the WHOLE compilation group: bind every program unit (containers first, so GLOBAL items inherit —
+    /// the legacy <c>CollectProgramContexts</c> shape re-derived from §8.4.6 scope rules), run the whole-group
+    /// image analysis over ALL units (shared <see cref="DataItem"/>s — a contained program's whole-group use of
+    /// an inherited GLOBAL item must flip the owner's leaf storage), then render one class per program plus the
+    /// run-unit entry wrapper (<c>Program.Main</c>: registry registration + main activation + the §14.6.11
+    /// implicit CLOSE at run-unit termination).
+    /// </summary>
+    internal string CallEmitRunUnit(Core.CompilationUnitContext tree, EditionContext edition)
+    {
+        List<CallUnit> units = CallCollectUnits(tree, edition);
+        _callUidBand = 0;
+        foreach (var unit in units) CallBindUnit(unit, edition);
+        foreach (var unit in units) MarkStoreAsImage(unit.Data);
+
+        // Per-program file-connector namespace: the runtime file registry is run-unit-global, but a file
+        // connector is INTERNAL to its program (ISO §8.6.3 — only an EXTERNAL FD is the run-unit-shared case,
+        // the file subsystem's joint edge): two programs declaring the same file-name (the IC-suite PRINT-FILE
+        // pattern, e.g. IC101A's two units) must not clobber each other's connectors. Name resolution is done
+        // (bound nodes hold FileModel references), so qualifying the runtime key is purely an emit-side rename.
+        foreach (var unit in units)
+            foreach (var file in unit.Data.Files)
+                file.CobolName = unit.Path + "::" + file.CobolName;
+
+        bool anyFiles = units.Any(u => u.Data.Files.Count > 0);
+
+        var w = new CodeWriter();
+        w.Line("// <auto-generated>");
+        w.Line("//   Generated by COBOL.NET — do not edit. A COBOL program compiled to typed-native C#.");
+        w.Line("// </auto-generated>");
+        w.Line("#nullable enable");
+        w.Line("#pragma warning disable CS0164   // unreferenced label — SEARCH/NEXT-SENTENCE emit per-boundary labels; not every one is jumped to");
+        w.Line("using System;                    // Int128 — the wide arithmetic carrier (numeric design D1)");
+        w.Line("using CobolNet.Runtime;          // CobolNum / CobolString substrates + the inter-program ABI (ManagedPointer / ICobolProgram / ProgramRegistry)");
+        if (anyFiles)
+            w.Line("using CobolNet.Runtime.IO;       // CobolFile — the sequential file-I/O facade (§8)");
+        w.Line();
+
+        if (units.Count == 0)
+        {
+            using (w.Block("internal static class Program"))
+            using (w.Block("private static void Main()")) { }
+            return w.ToString();
+        }
+
+        foreach (var unit in units)
+            if (unit.Parent is null)
+                CallEmitProgramClass(unit, w);
+        CallEmitEntryWrapper(units, w, anyFiles);
+        return w.ToString();
+    }
+
+    /// <summary>Flatten the compilation group into the ordered unit list — top-level units in source order, each
+    /// followed by its contained programs (containers precede containees; load-bearing for GLOBAL inheritance).
+    /// A contained <c>nestedProgram</c> parse context is re-shaped into a synthetic <c>programUnit</c> context
+    /// (identical child shape) so the per-unit binders consume one context type.</summary>
+    private List<CallUnit> CallCollectUnits(Core.CompilationUnitContext tree, EditionContext edition)
+    {
+        var all = new List<CallUnit>();
+        var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var group in tree.compilationGroup())
+            foreach (var pu in group.programUnit())
+                Collect(pu, null);
+        return all;
+
+        void Collect(Core.ProgramUnitContext ctx, CallUnit? parent)
+        {
+            var unit = CallMakeUnit(ctx, parent, all.Count, usedClassNames, edition);
+            all.Add(unit);
+            parent?.Children.Add(unit);
+            foreach (var nested in ctx.nestedProgram())
+                Collect(CallReparent(nested), unit);
+        }
+    }
+
+    /// <summary>Build one <see cref="CallUnit"/> from a program unit's IDENTIFICATION DIVISION: the program name
+    /// (PROGRAM-ID / FUNCTION-ID; the <c>AS literal</c> externalized name wins, ISO §11.10.4 GR1) and the
+    /// COMMON / INITIAL / RECURSIVE attributes with their per-edition + placement gates (§11.10.3 SR4–6).</summary>
+    private static CallUnit CallMakeUnit(
+        Core.ProgramUnitContext ctx, CallUnit? parent, int index, HashSet<string> usedClassNames, EditionContext edition)
+    {
+        var idBody = ctx.identificationDivision()?.identificationBody();
+        var pid = idBody?.programIdParagraph();
+        string name = pid?.programName()?.GetText()
+            ?? idBody?.functionIdParagraph()?.programName()?.GetText()
+            ?? $"PROGRAM{index}";
+        bool initial = false, common = false, recursive = false;
+        foreach (var attr in pid?.programIdAttributes()?.programIdAttribute() ?? [])
+        {
+            var cpa = attr.commonProgramAttribute();
+            if (cpa?.INITIAL_() is not null) initial = true;
+            else if (cpa?.COMMON() is not null) common = true;
+            else if (cpa?.RECURSIVE() is not null) recursive = true;
+            else if (attr.literalAttribute()?.STRINGLIT() is { } asLit
+                     && DecodeCobolString(asLit.GetText()) is { Length: > 0 } asName)
+                name = asName;   // PROGRAM-ID name AS "literal" — the externalized name (ISO §11.10.4 GR1)
+        }
+
+        if (recursive && edition.DialectLevel < 2002)
+            edition.Error("COBOLNET0885",
+                "PROGRAM-ID … RECURSIVE was introduced by ISO/IEC 1989:2002 (§11.10) — requires --std 2002 or "
+                + $"later (targeting COBOL-{edition.DialectLevel})");
+        if (initial && recursive)
+            edition.Error("COBOLNET0886",
+                $"program '{name}': INITIAL and RECURSIVE are mutually exclusive (ISO §11.10.3 SR5–6)");
+        if (common && parent is null)
+            edition.Error("COBOLNET0887",
+                $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO §11.10.3 SR4)");
+
+        string baseName = "_PRG_" + DataItem.Sanitize(name).ToUpperInvariant();
+        string className = baseName;
+        for (int n = 2; !usedClassNames.Add(className); n++) className = $"{baseName}_{n}";
+        return new CallUnit
+        {
+            Name = name, ClassName = className, Ctx = ctx,
+            Parent = parent, Initial = initial, Common = common, Recursive = recursive,
+        };
+    }
+
+    /// <summary>Re-shape a <c>nestedProgram</c> context into a synthetic <c>programUnit</c> context by adopting
+    /// its children (the two rules have the identical child sequence — the generated <c>dataDivision()</c> /
+    /// <c>procedureDivision()</c> accessors scan DIRECT children only, so each unit binds exactly its own
+    /// subtree, never a containee's — the IC235A nested-scoping lesson).</summary>
+    private static Core.ProgramUnitContext CallReparent(Core.NestedProgramContext nested)
+    {
+        var unit = new Core.ProgramUnitContext(null!, -1);
+        for (int i = 0; i < nested.ChildCount; i++)
+            switch (nested.GetChild(i))
+            {
+                case ParserRuleContext rc: unit.AddChild(rc); break;
+                case ITerminalNode t: unit.AddChild(t); break;
+            }
+        return unit;
+    }
+
+    /// <summary>Bind one unit: its own DATA + PROCEDURE DIVISION (a per-unit <see cref="DataBinder"/> with a
+    /// disjoint uid band so nested-class struct/profile names never shadow a container's), then inject the
+    /// containers' GLOBAL names (ISO §13.18.27 GR1–2 — nearest container first, a local name shadows) and
+    /// record the <c>ref</c>-bridges the nested class needs to reach the container's storage.</summary>
+    private void CallBindUnit(CallUnit unit, EditionContext edition)
+    {
+        var data = new DataBinder(edition);
+        data.CallSeedUids(_callUidBand);
+        _callUidBand += 100_000;
+
+        // Pre-seed inherited GLOBAL-table index names BEFORE Bind: the child's own INDEXED BY registrations then
+        // allocate from a later ordinal and can never collide with a bridged container index field. The seeded
+        // fields are SUPPRESSED from this unit's field emission — a global index-name is SHARED storage
+        // (ISO §13.18.27 GR2), reached through the ref-bridge, never re-declared locally.
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+            foreach (var g in anc.Data.CallGlobalRoots)
+                foreach (string idxName in CallIndexNamesUnder(g))
+                    if (anc.Data.IndexFields.TryGetValue(idxName, out string? field) && data.IndexFields.TryAdd(idxName, field))
+                        data.CallSuppressedRootFields.Add(field);
+
+        data.Bind(unit.Ctx);
+        unit.Data = data;
+
+        int depth = 0;
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        {
+            depth++;
+            string outer = string.Concat(Enumerable.Repeat("__outer.", depth));
+            foreach (var g in anc.Data.CallGlobalRoots)
+            {
+                if (g.CobolName is null) continue;
+                if (data.ByName.ContainsKey(g.CobolName)) continue;   // local (or nearer-container) name shadows (§13.18.27 GR2)
+                CallRegisterSubtree(data, g);
+                foreach (var (condName, conds) in anc.Data.Conditions)
+                    foreach (var cond in conds)
+                        if (CallIsUnder(cond.Parent, g))
+                        {
+                            if (!data.Conditions.TryGetValue(condName, out var list)) data.Conditions[condName] = list = [];
+                            list.Add(cond);
+                        }
+                if (g.Class is { Tier: RedefinesTier.StringCanonical } cls)
+                    unit.Bridges.Add(new CallBridge(cls.BackingCsName, outer + cls.BackingCsName, "backing", null));
+                else
+                    unit.Bridges.Add(new CallBridge(g.CsName, outer + g.CsName, "field", g));
+                foreach (string idxName in CallIndexNamesUnder(g))
+                    if (anc.Data.IndexFields.TryGetValue(idxName, out string? field))
+                        unit.Bridges.Add(new CallBridge(field, outer + field, "index", null));
+            }
+        }
+
+        unit.Refs = new ReferenceResolver(data);
+        unit.Bound = new StatementBinder(data, unit.Refs).Bind(unit.Ctx);
+
+        // Resolve every boundary-copied formal (and the RETURNING item) ONCE during the bind phase: resolving a
+        // GROUP registers it as whole-group-referenced, so the later MarkStoreAsImage pass flips its
+        // numeric-DISPLAY leaves to image storage BEFORE any field emission — the formal's FromImage/AsImage
+        // round trip then type-checks (ISO §14.9 MOVE GR4; COBOLNET_DESIGN §14.4).
+        foreach (var f in data.LinkageFormals)
+            if (!f.CarrierResident)
+                unit.Refs.ResolveItem(f.Item);
+        if (data.LinkageReturning is { } returning)
+            unit.Refs.ResolveItem(returning);
+    }
+
+    private static void CallRegisterSubtree(DataBinder data, DataItem item)
+    {
+        if (item.CobolName is { } name)
+        {
+            if (!data.ByName.TryGetValue(name, out var list)) data.ByName[name] = list = [];
+            list.Add(item);
+        }
+        foreach (var child in item.Children) CallRegisterSubtree(data, child);
+        foreach (var ren in item.Renames66) CallRegisterSubtree(data, ren);
+    }
+
+    private static IEnumerable<string> CallIndexNamesUnder(DataItem root)
+    {
+        foreach (string n in root.IndexNames) yield return n;
+        foreach (var child in root.Children)
+            foreach (string n in CallIndexNamesUnder(child)) yield return n;
+    }
+
+    private static bool CallIsUnder(DataItem item, DataItem ancestor)
+    {
+        for (DataItem? n = item; n is not null; n = n.Parent)
+            if (ReferenceEquals(n, ancestor)) return true;
+        return false;
+    }
+
+    // ── Program-class emission (design D3/D4) ───────────────────────────────────────────────────────────────
+
+    /// <summary>Emit one program's instantiable class (design D3 — a static class cannot recurse or hold the
+    /// per-activation copies INITIAL/RECURSIVE need; the registry's cached singleton realizes last-used state,
+    /// §14.6.2.3.3), its <see cref="ICobolProgram"/> ABI surface, and its contained programs as nested classes.</summary>
+    private void CallEmitProgramClass(CallUnit unit, CodeWriter w)
+    {
+        var data = unit.Data;
+        _refs = unit.Refs;
+        _ctx = new EmissionContext(w, data);
+        _num = new NumericRenderer(_ctx);
+        _cond = new ConditionRenderer(_num, _ctx);
+        _callSelfPath = unit.Path;
+        _callReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
+
+        // Per-formal carrier shape, resolved once: a carrier-resident formal aliases per access; a group /
+        // redefined formal round-trips its character image at the activation boundary (deep-dive hard problem —
+        // the whole-struct round trip, realized at the call boundary).
+        var formals = data.LinkageFormals
+            .Select(f =>
+            {
+                Place? place = f.CarrierResident ? null : _refs.ResolveItem(f.Item);
+                bool isNum = f.CarrierResident
+                    ? f.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } && !f.Item.StoreAsImage
+                    : place is not null && !CallPlaceIsString(place);
+                return (Formal: f, Place: place, IsNum: isNum);
+            })
+            .ToList();
+
+        using (w.Block($"internal sealed class {unit.ClassName} : ICobolProgram"))
+        {
+            if (unit.Parent is { } parent)
+            {
+                w.Line($"private readonly {parent.ClassName} __outer;   // the containing program's instance (GLOBAL storage lives there, ISO §13.18.27)");
+                using (w.Block($"public {unit.ClassName}({parent.ClassName} __o)")) w.Line("__outer = __o;");
+            }
+            w.Line("private bool __asCalled;   // true during a CALL activation — EXIT PROGRAM is CONTINUE otherwise (ISO §14.9.14 GR2)");
+            if (data.Files.Count > 0)
+                w.Line("private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)");
+            if (data.Collating is { } collate)
+                w.Line($"private static readonly ushort[] __COLLATE = {{ {string.Join(", ", collate.Positions)} }};");
+
+            foreach (var b in unit.Bridges)
+            {
+                string type = b.Kind switch
+                {
+                    "index" => "long",
+                    "backing" => "string",
+                    _ => b.Item!.Occurs is not null ? b.Item.ElementType + "[]" : b.Item.ElementType,
+                };
+                w.Line($"private ref {type} {b.Field} => ref {b.Path};   // GLOBAL item of a containing program (ISO §13.18.27 GR2 — container storage, contained visibility)");
+            }
+            foreach (var ext in data.CallExternalBackings)
+                w.Line($"private ref string {ext.BackingCsName} => ref ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
+                    + $"{CsLiteral(ext.InitImage)}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+
+            new FieldEmitter(_ctx).Emit();
+
+            foreach (var (f, _, isNum) in formals)
+            {
+                string init = isNum ? "ManagedPointer<long>.Cell(0L)"
+                    : $"ManagedPointer<string>.Cell(new string(' ', {Math.Max(1, f.Item.ImageWidth)}))";
+                w.Line($"private ManagedPointer<{(isNum ? "long" : "string")}> {f.CarrierField} = {init};   "
+                    + $"// LINKAGE formal #{f.Position + 1} — the caller-storage carrier (ISO §13.7.1; design D1)");
+            }
+            w.Line();
+
+            CallEmitCallMethod(unit, formals, w);
+            w.Line("void ICobolProgram.Activate() => __Activate();");
+            using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
+                foreach (var file in data.Files)
+                    w.Line($"CobolFile.Close({CsLiteral(file.CobolName)});");
+            w.Line();
+
+            if (unit.Bound.Paragraphs.Count > 0)
+                EmitDispatcher(unit.Bound, w);
+            else
+                using (w.Block("public void __Activate()")) { }
+
+            foreach (var child in unit.Children)
+                CallEmitProgramClass(child, w);
+        }
+    }
+
+    /// <summary>Emit the opaque-ABI <c>Call</c> body: positional formal mapping (ISO §14.2.3 GR2), the
+    /// activation, boundary copy-out for image formals, and RETURNING delivery (GR7).</summary>
+    private void CallEmitCallMethod(
+        CallUnit unit, List<(LinkageFormal Formal, Place? Place, bool IsNum)> formals, CodeWriter w)
+    {
+        using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
+        {
+            foreach (var (f, place, isNum) in formals)
+            {
+                if (f.CarrierResident)
+                {
+                    // Per-access aliasing of the caller's storage (§14.2.3 GR8): every reference to the formal
+                    // reads/writes through this carrier (its CsName IS `__lnkpN.Value`).
+                    w.Line(isNum
+                        ? $"{f.CarrierField} = CobolArgAdapt.Num(__args, {f.Position}, {f.Item.ProfileName}, {f.Item.Pic!.Scale});"
+                        : $"{f.CarrierField} = CobolArgAdapt.Text(__args, {f.Position}, {Math.Max(1, f.Item.Pic!.Length)});");
+                    continue;
+                }
+                // Boundary round-trip formal (group / redefined): adopt the carrier, copy the caller's image in.
+                w.Line(isNum
+                    ? $"{f.CarrierField} = CobolArgAdapt.Num(__args, {f.Position}, {f.Item.ProfileName}, {f.Item.Pic!.Scale});"
+                    : $"{f.CarrierField} = CobolArgAdapt.Text(__args, {f.Position}, {Math.Max(1, f.Item.ImageWidth)});");
+                using (w.Block($"if (CobolArgAdapt.Present(__args, {f.Position}))"))
+                {
+                    if (place is null)
+                        w.Line(LoudStmt($"LINKAGE formal '{f.Item.CobolName}' is not resolvable to storage"));
+                    else if (!isNum)
+                        w.Line(CallStringWrite(place, $"{f.CarrierField}.Value"));
+                    else
+                        w.Line(place.Write($"{f.CarrierField}.Value"));
+                }
+            }
+            w.Line("__asCalled = true;");
+            w.Line("try { __Activate(); } finally { __asCalled = false; }");
+            foreach (var (f, place, isNum) in formals)
+            {
+                if (f.CarrierResident || place is null) continue;
+                // Copy the (possibly mutated) formal back to the caller's storage — the BY REFERENCE result
+                // becomes visible at activation end (§14.2.3 GR8/GR9; a BY CONTENT cell absorbs it invisibly).
+                using (w.Block($"if (CobolArgAdapt.Present(__args, {f.Position}))"))
+                    w.Line(isNum
+                        ? $"{f.CarrierField}.Value = {place.Read()};"
+                        : $"{f.CarrierField}.Value = {CallStringRead(place)};");
+            }
+            if (_callReturningPlace is { } ret)
+                w.Line(CallPlaceIsString(ret)
+                    ? $"CobolArgAdapt.StoreReturn(__ret, {CallStringRead(ret)});"
+                    : $"CobolArgAdapt.StoreReturn(__ret, {ret.Read()});");
+        }
+    }
+
+    /// <summary>Emit the run-unit entry wrapper: register every program (containers before containees), run the
+    /// first program as main, and perform the §14.6.11 implicit CLOSE at run-unit termination. STOP RUN unwinds
+    /// to here (§14.9.43); a main-program GOBACK already returned normally through its activation entry.</summary>
+    private void CallEmitEntryWrapper(IReadOnlyList<CallUnit> units, CodeWriter w, bool anyFiles)
+    {
+        using (w.Block("internal static class Program"))
+        using (w.Block("private static void Main()"))
+        {
+            w.Line("ProgramRegistry.Reset();");
+            if (anyFiles) w.Line("CobolFile.Init();");
+            foreach (var u in units)
+            {
+                string parentPath = u.Parent is { } p ? CsLiteral(p.Path) : "null";
+                string factory = u.Parent is { } pp
+                    ? $"static __o => new {u.ClassRef}(({pp.ClassRef})__o!)"
+                    : $"static __o => new {u.ClassRef}()";
+                w.Line($"ProgramRegistry.Register({CsLiteral(u.Path)}, {CsLiteral(u.Name)}, {parentPath}, "
+                    + $"{CallBool(u.Initial)}, {CallBool(u.Common)}, {CallBool(u.Recursive)}, {factory});");
+            }
+            w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(units[0].Path)}); }}");
+            w.Line("catch (StopRun) { }");
+            if (anyFiles)
+                w.Line("finally { CobolFile.CloseAll(); }   // run-unit termination implicit CLOSE (ISO §14.6.11)");
+        }
+    }
+
+    private static string CallBool(bool b) => b ? "true" : "false";
+
+    // ── Statement emitters: CALL / CANCEL / GOBACK ──────────────────────────────────────────────────────────
+
+    /// <summary>Emit one CALL (ISO §14.9.4.4). With no exception phrase, a CALL failure (not found / recursive
+    /// re-entry) propagates and terminates the run unit loudly (the 85 abnormal-termination surface; the
+    /// EC-PROGRAM model is the §11 subsystem). With a phrase, the failure runs the ON imperative and control
+    /// falls to the end of the CALL (GR3h); NOT ON runs only on a successful return (GR3i).</summary>
+    private bool CallEmitCall(BoundCallProgram c)
+    {
+        var w = _ctx.Writer;
+        string nameExpr = c.LiteralName is { } literal
+            ? CsLiteral(literal)
+            : $"({OperandText.AsString(c.DynamicName!)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
+        string args = c.Args.Count == 0
+            ? "System.Array.Empty<CobolArg>()"
+            : $"new CobolArg[] {{ {string.Join(", ", c.Args.Select(CallArgText))} }}";
+        string ret = c.Returning is { } rp ? CallRefCarrier(rp) : "null";
+        string invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(_callSelfPath)}, {args}, {ret});";
+
+        if (c.OnException is null && c.NotOnException is null)
+        {
+            w.Line(invocation);
+            return false;
+        }
+        int id = _callCounter++;
+        w.Line($"bool __callErr{id} = false;");
+        using (w.Block("try"))
+            w.Line(invocation);
+        w.Line($"catch (CobolCallException) {{ __callErr{id} = true; }}   // CALL exception condition → the ON phrase (ISO §14.9.4.4 GR3h)");
+        if (c.OnException is { } on)
+        {
+            using (w.Block($"if (__callErr{id})")) EmitStatementList(on);
+            if (c.NotOnException is { } notAlso)
+                using (w.Block("else")) EmitStatementList(notAlso);
+        }
+        else if (c.NotOnException is { } not)
+            using (w.Block($"if (!__callErr{id})")) EmitStatementList(not);   // GR3i — only on a non-exception return
+        return false;
+    }
+
+    /// <summary>The C# <c>CobolArg</c> expression for one bound CALL argument (caller side; design D1/D2).
+    /// BY REFERENCE builds an accessor carrier over the caller's storage (§14.2.3 GR8); BY CONTENT/BY VALUE
+    /// snapshot the value into a cell AT CALL INITIATION — which also realizes the §14.9.4.4 GR3a once-only
+    /// evaluation for those modes. (A BY REFERENCE accessor over a SUBSCRIPTED operand re-evaluates the
+    /// subscript inside the closure — the GR3a capture-into-locals refinement is a known follow-up.)</summary>
+    private string CallArgText(BoundCallArg a)
+    {
+        if (a.Place is { } p)
+        {
+            string digits = (p.Pic?.Digits ?? 0).ToString();
+            string scale = (p.Pic?.Scale ?? 0).ToString();
+            if (p.Item.IsGroup && !p.Item.IsCharacterImage && p is not RedefViewPlace)
+                return $"new CobolArg(CobolPassMode.{a.Mode}, ManagedPointer<string>.Cell("
+                    + LoudValue("string", $"CALL USING mixed-usage group '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte island, deferred)")
+                    + "), 0, 0)";
+            if (a.Mode == CobolPassMode.Reference)
+                return $"new CobolArg(CobolPassMode.Reference, {CallRefCarrier(p)}, {digits}, {scale})";
+            // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9): a value snapshot.
+            return CallPlaceIsString(p)
+                ? $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
+                : $"new CobolArg(CobolPassMode.Content, ManagedPointer<long>.Cell({p.Read()}), {digits}, {scale})";
+        }
+        switch (a.Value)
+        {
+            case BoundStringLiteral s:
+                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), 0, 0)";
+            case BoundNumericLiteral n:
+            {
+                var lit = UnscaledLit(n.Text);
+                int digits = n.Text.Count(char.IsAsciiDigit);
+                if (digits > 18)
+                    return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell("
+                        + LoudValue("string", $"CALL USING wide numeric literal '{n.Text}' (19+ digits — the Int128 carrier tier)") + "), 0, 0)";
+                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<long>.Cell({lit.Expr}), {digits}, {lit.Scale})";
+            }
+            case BoundComputedOperand expr:
+            {
+                NumX x = _num.Render(expr.Expr);   // BY VALUE — a converted value copy (§14.2.3 GR10)
+                return $"new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
+            }
+            case BoundAllLiteral all:
+                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell({CsLiteral(all.Literal)}), 0, 0)";
+            case BoundFigurative fig:
+                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell(new string({_ctx.FigFill(fig.Kind)}, 1)), 0, 0)";
+            default:
+                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell("
+                    + LoudValue("string", "CALL USING argument form") + "), 0, 0)";
+        }
+    }
+
+    /// <summary>An accessor carrier over a caller place — the BY REFERENCE / RETURNING aliasing form (design D1:
+    /// <c>OverField</c> over the native field; a whole group crosses as its character image, distributed back
+    /// through <c>FromImage</c> — the deep-dive group round-trip).</summary>
+    private string CallRefCarrier(Place p) => CallPlaceIsString(p)
+        ? $"ManagedPointer<string>.OverField(() => {CallStringRead(p)}, __v => {{ {CallStringWrite(p, "__v")} }})"
+        : $"ManagedPointer<long>.OverField(() => {p.Read()}, __v => {{ {p.Write("__v")} }})";
+
+    /// <summary>True when a place's storage crosses the CALL boundary as a character image (string carrier):
+    /// groups, Tier-B windows, zoned-image leaves, alphanumeric / numeric-edited items. A native fixed-point
+    /// leaf crosses as its <c>long</c> (fully typed — the common conforming case).</summary>
+    private static bool CallPlaceIsString(Place p) =>
+        p is RedefViewPlace || p.Item.IsGroup || p.Item.StoreAsImage
+        || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+        || p.Item.Pic is { IsFloat: true } || p.Item.Pic is { Digits: > 18 };
+
+    private static string CallStringRead(Place p) => OperandText.AsString(new BoundFieldOperand(p));
+
+    private static string CallStringWrite(Place p, string value) =>
+        p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsCharacterImage
+            ? $"{p.Read()}.FromImage({value});"
+            : p.Write(value);
+
+    /// <summary>Emit CANCEL (ISO §14.9.5): one registry call per target, left to right (GR2).</summary>
+    private void CallEmitCancel(BoundCancel c)
+    {
+        foreach (var (literal, dynamic) in c.Targets)
+        {
+            string nameExpr = literal is { } l ? CsLiteral(l) : $"({OperandText.AsString(dynamic!)}).Trim()";
+            _ctx.Writer.Line($"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(_callSelfPath)});");
+        }
+    }
+
+    /// <summary>Emit GOBACK (ISO §14.9.18): move the RETURNING source into the header RETURNING item (GR2 — the
+    /// activation result), then raise <see cref="ProgramReturn"/> — caught at THIS program's activation entry,
+    /// returning control to the activator (called program) or ending the run unit (main program, GR3).</summary>
+    private bool CallEmitGoback(BoundGoback g)
+    {
+        var w = _ctx.Writer;
+        if (g.ReturningSource is { } src)
+        {
+            if (_callReturningPlace is { } ret)
+                EmitMove(new BoundMove(new BoundFieldOperand(src), [ret]));
+            else
+                w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));
+        }
+        w.Line("throw new ProgramReturn();   // return to the activator; in a main program ≡ STOP (ISO §14.9.18 GR2/GR3)");
+        return true;
+    }
+}

@@ -19,8 +19,11 @@ public enum FileAccessMode { Sequential, Random, Dynamic }
 /// </summary>
 public sealed class FileModel
 {
-    /// <summary>The COBOL file-name (the SELECT / FD name; the runtime registry key).</summary>
-    public required string CobolName { get; init; }
+    /// <summary>The COBOL file-name (the SELECT / FD name). At emission the multi-unit driver QUALIFIES it with
+    /// the owning program's path ("PROG::FILE") to namespace the run-unit-global runtime registry — a file
+    /// connector is internal to its program (ISO §8.6.3; two IC-suite units both declare PRINT-FILE). Name
+    /// resolution is finished by then (bound nodes hold FileModel references), so the rename is emit-only.</summary>
+    public required string CobolName { get; set; }
 
     /// <summary>The ASSIGN target text — a literal's decoded value or a data-name; resolved to a host path at run
     /// time by <c>CobolFile.ResolveHostPath</c>. Defaults to the file-name when no ASSIGN clause is present.</summary>

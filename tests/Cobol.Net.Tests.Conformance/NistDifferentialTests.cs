@@ -220,6 +220,28 @@ public sealed class NistDifferentialTests
     [InlineData("IX212A")]
     [InlineData("IX213A")]
     [InlineData("IX302M")]
+    // Greened by the INTER-PROGRAM (CALL) family (DEVLOG 555 — multi-unit run-unit emission with one instantiable
+    // class per program §8.4.6.3, CALL/CANCEL/EXIT PROGRAM/GOBACK §14.9.4/§14.9.5/§14.9.14/§14.9.18, LINKAGE +
+    // USING/RETURNING formals §13.7/§14.2, BY REFERENCE/CONTENT §14.2.3 GR8/GR9, program state model §14.6.2.3,
+    // GLOBAL inheritance §13.18.27, EXTERNAL storage §8.6.7, per-program file connectors §8.6.3).
+    [InlineData("IC101A")]
+    [InlineData("IC103A")]
+    [InlineData("IC106A")]
+    [InlineData("IC108A")]
+    [InlineData("IC112A")]
+    [InlineData("IC114A")]   // subprogram file connectors registered at the program's entry, not run-unit Main
+    [InlineData("IC201A")]
+    [InlineData("IC203A")]
+    [InlineData("IC209A")]
+    [InlineData("IC213A")]
+    [InlineData("IC216A")]
+    [InlineData("IC223A")]
+    [InlineData("IC224A")]
+    [InlineData("IC225A")]
+    [InlineData("IC226A")]
+    [InlineData("IC228A")]   // inherited-GLOBAL data visible in contained programs (§13.18.27 GR1-2)
+    [InlineData("IC235A")]   // nested-program scoping — each unit binds exactly its own subtree
+    [InlineData("IC237A")]
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

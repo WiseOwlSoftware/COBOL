@@ -92,6 +92,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (program.dataDivision()?.workingStorageSection() is { } ws)
             BindEntries(ws.dataDescriptionEntry(), rootNames);
 
+        // LINKAGE SECTION roots + the PROCEDURE DIVISION header's USING/RETURNING formals (ISO §13.7 / §14.2.2;
+        // COBOLNET_INTERPROGRAM_DESIGN D1/D3 — bound into the same forest so every verb works unchanged).
+        CallBindLinkage(program, rootNames);
+
         // Post-build (the forest is complete): fix up USAGE INDEX entries (children weren't known at entry bind);
         // apply group-level SIGN clauses (must precede the REDEFINES classification — a SEPARATE sign adds a
         // character position to the item's image width, which feeds the class-max width); then resolve
@@ -104,6 +108,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         ClassifyRedefinesClasses();
         OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
         ResolveFiles();
+        CallBindExternalAndGlobal(program);   // EXTERNAL 01s → run-unit image backings; GLOBAL 01s collected (ISO §13.18.22 / §13.18.27)
 
         // Every FILE record area is filled WITHOUT conversion by READ/RETURN (ISO §9.1.2 — the record area is one
         // character image), so its numeric-DISPLAY leaves store their images exactly like a whole-referenced

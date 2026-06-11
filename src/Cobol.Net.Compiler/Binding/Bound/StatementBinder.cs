@@ -146,7 +146,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.initializeStatement() is { } ini => BindInitialize(ini),
         _ when s.continueStatement() is not null => new BoundNop(),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
-        _ when s.stopStatement() is not null || s.gobackStatement() is not null => new BoundStop(),
+        _ when s.stopStatement() is not null => new BoundStop(),
+        _ when s.gobackStatement() is { } gb => CallBindGoback(gb),   // §14.9.18 — called-program return; 2002+ gated
+        _ when s.callStatement() is { } call => CallBindCall(call),
+        _ when s.cancelStatement() is { } cancel => CallBindCancel(cancel),
+        _ when s.entryStatement() is not null => new BoundUnsupported("ENTRY (ISO/IEC 1989 defines no ENTRY statement — vendor extension; interprogram design)"),
         _ when s.sortStatement() is { } srt => BindSort(srt),
         _ when s.mergeStatement() is { } mrg => BindMerge(mrg),
         _ when s.releaseStatement() is { } rls => BindRelease(rls),
@@ -178,7 +182,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         if (e.PARAGRAPH() is not null) return new BoundExitParagraph();
         if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
-        if (e.PROGRAM() is not null) return new BoundNop();        // EXIT PROGRAM in the main program is a no-op
+        if (e.PROGRAM() is not null) return new BoundExitProgram();   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
         if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
         if (e.METHOD() is not null || e.FUNCTION() is not null) return new BoundUnsupported("EXIT METHOD/FUNCTION");
         return new BoundNop();   // bare EXIT

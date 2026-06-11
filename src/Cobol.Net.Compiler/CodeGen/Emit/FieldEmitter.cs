@@ -28,10 +28,17 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         var w = ctx.Writer;
         foreach (var root in ctx.Data.Roots) EmitStructTypeDecls(root, w);
         foreach (var root in ctx.Data.Roots) EmitProfiles(root, w);
+        // Programs are instantiable classes (interprogram design D3): root + index fields are INSTANCE fields —
+        // a fresh instance IS the §14.6.2.3.2 initial state; the registry's cached singleton IS last-used state.
+        // The suppression filter skips members another mechanism provides: a carrier-resident LINKAGE formal
+        // (its field is `__lnkpN.Value` — caller storage, ISO §13.7.1) and an inherited GLOBAL table's index
+        // field (a ref-bridge to the container, §13.18.27 GR2).
         foreach (var (name, field) in ctx.Data.IndexFields)
-            w.Line($"private static long {field} = 1;   // INDEX-NAME {name}");
+            if (!ctx.Data.CallSuppressedRootFields.Contains(field))
+                w.Line($"private long {field} = 1;   // INDEX-NAME {name}");
         foreach (var f in RootPhysicals())
-            w.Line($"private static {f.Type} {f.Name} = {f.Init};   // {f.Comment}");
+            if (!ctx.Data.CallSuppressedRootFields.Contains(f.Name))
+                w.Line($"private {f.Type} {f.Name} = {f.Init};   // {f.Comment}");
     }
 
     /// <summary>A field that physically appears in the emitted C# — an item's own field, OR a REDEFINES class's single
