@@ -390,6 +390,8 @@ public sealed class NistDifferentialTests
     // boundary is the LAST trivial-exit paragraph before the tail, not the first (SQ212A's FAIL-ROUTINE-EX1).
     [InlineData("SQ212A")]   // 18..2048 var-len: 3 short + 9 long WRITEs ⇒ '44' + declarative; REWRITE size cases
     [InlineData("RL206A")]   // relative RECORD VARYING 120..140 DEPENDING: per-record lengths round-trip
+    [InlineData("SQ203A")]   // OPTIONAL "FILE PRESENT" consumer behind SQ202A (chained; greened by the
+                             //   DEVLOG-559 group FILE STATUS store — its swept CS0029 label was stale)
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

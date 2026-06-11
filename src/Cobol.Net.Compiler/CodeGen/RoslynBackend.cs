@@ -42,6 +42,13 @@ public static class RoslynBackend
             WriteRuntimeConfig(outputDllPath);
             DeployRuntime(outputDllPath);
         }
+        else
+        {
+            // A failed Emit leaves a partial/0-byte output file behind; running it dies with the misleading
+            // "hostpolicy.dll required" error (the swept phantom-RUNERR class — ST133A/ST134A/SQ203A were
+            // misread as environmental flakes). The output file exists only when the compile SUCCEEDED.
+            try { if (File.Exists(outputDllPath)) File.Delete(outputDllPath); } catch (IOException) { }
+        }
 
         return new Result(emit.Success, emit.Diagnostics);
     }

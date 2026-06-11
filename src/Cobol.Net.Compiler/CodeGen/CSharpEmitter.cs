@@ -1145,10 +1145,21 @@ public sealed partial class CSharpEmitter
         // A Tier-B view record (a multi-01 FD whose shared area is a synthesized REDEFINES) has no struct to call
         // FromImage on — its Read() is a string window — so splice the padded image into its backing via Write, as for
         // an elementary record. (Mirrors EmitGroupImage's RedefViewPlace handling.)
-        if (record is not RedefViewPlace && record.Item.IsGroup && record.Item.IsCharacterImage)
+        if (record is not RedefViewPlace && record.Item.IsGroup)
+        {
+            // A group record with non-character (COMP/binary) leaves is the Tier-C byte island (COBOLNET_DESIGN
+            // §4.2/§8 record codec, deferred) — fence it LOUD (§1.4) rather than emit a string-into-struct
+            // assignment that fails the backend compile (the ST133A/ST134A/SQ203A CS0029 class).
+            if (!record.Item.IsCharacterImage)
+            {
+                w.Line(LoudStmt($"record area '{record.Item.CobolName}' contains COMP/binary leaves — the Tier-C "
+                    + "byte-island record codec (COBOLNET_DESIGN §4.2), deferred"));
+                return;
+            }
             w.Line($"{record.Read()}.FromImage(CobolString.Store({imageExpr}, {record.Item.ImageWidth}));");
-        else
-            w.Line(record.Write($"CobolString.Store({imageExpr}, {record.Item.Pic?.Length ?? record.Item.ImageWidth})"));
+            return;
+        }
+        w.Line(record.Write($"CobolString.Store({imageExpr}, {record.Item.Pic?.Length ?? record.Item.ImageWidth})"));
     }
 
     /// <summary>After an I/O verb, store the file's two-character I-O status into its FILE STATUS item (ISO §9.1.13),
