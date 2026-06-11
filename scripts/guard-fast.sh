@@ -39,6 +39,10 @@ INT=$!
 el "=== NIST: parallel compile + grouped parallel run (JOBS=$JOBS) ==="
 # Authoritative test list — extracted from guard.sh's NIST_TESTS so the two never drift.
 TESTS=$(sed -n '/^NIST_TESTS="/,/^"/p' scripts/guard.sh | grep -vE '^NIST_TESTS=|^"$' | tr '\n' ' ')
+# The ISO-re-baselined goldens the LEGACY is known-nonconforming on — extracted from guard.sh (the ONE list;
+# see the rationale there) and passed to the group runner, which reports them instead of failing.
+LEGACY_NONCONFORMANT=$(sed -n 's/^LEGACY_NONCONFORMANT="\(.*\)"$/\1/p' scripts/guard.sh)
+export LEGACY_NONCONFORMANT
 
 OUT="tests/nist/output"
 mkdir -p "$OUT"

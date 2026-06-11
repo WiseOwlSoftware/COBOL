@@ -6,10 +6,11 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// NIST programs whose GOLDEN is legacy-tainted — the baselined expected file encodes a LEGACY non-conformance,
-/// so the spec-correct greenfield output cannot byte-match it while the legacy guard still consumes that golden
-/// (it retires at G8 cut-over, when these goldens are re-baselined). Each pin asserts the SPEC-derived outcome
-/// with its ISO citation. (The differential corpus stays the net everywhere the legacy is sound.)
+/// NIST programs whose original GOLDEN was legacy-tainted — the baselined expected file encoded a LEGACY
+/// non-conformance. Each pin asserts the SPEC-derived outcome with its ISO citation. The goldens below were
+/// RE-BASELINED to the conforming output (owner-approved, DEVLOG 569 — the legacy guard carries them in its
+/// LEGACY_NONCONFORMANT list), so the programs are ALSO byte-locked in <see cref="NistDifferentialTests"/>;
+/// these pins remain as the citation-bearing documentation of WHY each golden diverges from the legacy.
 /// </summary>
 public sealed class SpecPinnedNistTests
 {

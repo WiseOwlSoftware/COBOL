@@ -51,6 +51,13 @@ for test in $TESTS; do
         continue
     fi
 
+    # An ISO-re-baselined golden the legacy is known-nonconforming on (the list lives in guard.sh; guard-fast
+    # exports it): compiled and ran above; the diff is expected — never a regression.
+    case " ${LEGACY_NONCONFORMANT:-} " in *" $test "*)
+        echo "$test: LEGACY NONCONFORMANT (golden = ISO-conforming baseline; expected diff)"
+        continue ;;
+    esac
+
     actual=""
     if   diff <(normalize "$validfile") <(normalize "$WORK/$outfile")        >/dev/null 2>&1; then actual="$WORK/$outfile"
     elif diff <(normalize "$validfile") <(normalize "$WORK/print-file.txt")  >/dev/null 2>&1; then actual="$WORK/print-file.txt"

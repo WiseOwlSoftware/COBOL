@@ -22,10 +22,10 @@ TEST RESULT OF NC235A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F1-6
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F1-7
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-8
- LEVEL 3 TBL HANDLING ***** IDX-TEST-F2-9                 ****TEST DELETED****
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-9
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-10
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-11
- LEVEL 3 TBL HANDLING ***** IDX-TEST-F2-12                ****TEST DELETED****
+ LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-12
  LEVEL 3 TBL HANDLING PASS  IDX-TEST-F2-13
  ***********************************************************************************************************************
 
@@ -34,8 +34,8 @@ TEST RESULT OF NC235A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION
 
                                                     END OF TEST-  NC235A
 
-                                                    011 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
+                                                    013 OF 013  TESTS WERE EXECUTED SUCCESSFULLY
                                                     NO  TEST(S) FAILED
-                                                    002 TEST(S) DELETED
+                                                    NO  TEST(S) DELETED
                                                     NO  TEST(S) REQUIRE INSPECTION
  FOR OFFICIAL USE ONLY            ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.                   COPYRIGHT 1985

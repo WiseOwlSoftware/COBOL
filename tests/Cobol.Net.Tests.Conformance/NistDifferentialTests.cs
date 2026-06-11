@@ -212,10 +212,6 @@ public sealed class NistDifferentialTests
     [InlineData("IX105A")]
     [InlineData("IX107A")]
     [InlineData("IX108A")]
-    // IX111A swept-only: it now EXCEEDS the golden — the failed indexed OPEN (status 35) fires the file-scoped
-    // USE declarative per ISO §14.9.49.4 GR3a (OPEN references the file; no covering phrase exists on OPEN), so
-    // OPN-TEST-GF-01-0 PASSES (001 OF 001); the golden encodes the legacy run where the declarative never fired
-    // (000 OF 000 — a legacy-oracle hole; the UD3/UD4 facts pin the conforming behavior). Re-baselines at G8.
     [InlineData("IX201A")]
     [InlineData("IX208A")]
     [InlineData("IX209A")]
@@ -408,6 +404,19 @@ public sealed class NistDifferentialTests
     [InlineData("IX118A")]
     [InlineData("IX119A")]
     [InlineData("IX120A")]
+    // Greened by the OWNER-APPROVED ISO re-baseline (DEVLOG 569): each golden previously fossilized a verified
+    // LEGACY non-conformance and now holds the spec-conforming output (the legacy guard carries these in its
+    // LEGACY_NONCONFORMANT list — reported, never a regression; scripts/guard.sh documents each hole with its
+    // ISO citation). Every produced run has ZERO FAIL rows.
+    [InlineData("IX111A")]   // failed OPEN fires the file-scoped USE declarative (§14.9.49.4 GR3a) — 001 OF 001
+    [InlineData("IX210A")]   // no FAIL-ROUTINE info after PASS rows (§14.9.17); START statuses '00'/'23'
+                             //   (§14.9.41 GR9 / §9.1.13.5) — all 39 tests execute, 039 OF 039
+    [InlineData("IX214A")]   // the IX210A shape over the alternate-key START family
+    [InlineData("IX215A")]   // qualified keys (564) + the conforming PRINT-DETAIL reading — 033 OF 033
+    [InlineData("NC235A")]   // SEARCH ALL WHEN condition-name over an ODO table executes (§14.9.37 F2 +
+                             //   §13.18.38 GR7) — 013 OF 013, nothing deleted (the SpecPinned facts, now byte-locked)
+    [InlineData("NC236A")]   // SEARCH VARYING another table's index executes (§14.9.37.4 GR8b) — 010 OF 010
+    [InlineData("SQ207M")]   // the AFTER-ADVANCING-mnemonic WRITE is released (§14.9.46 GR1), 0-line advance
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

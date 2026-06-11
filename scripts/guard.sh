@@ -119,6 +119,18 @@ RW101A RW102A RW103A RW104A
 # NIST convention: SWITCH-1 ON, SWITCH-2 OFF (default)
 export COBOL_SWITCH_1=ON
 
+# Programs whose golden was RE-BASELINED to the ISO-conforming output (owner-approved, DEVLOG 569): the LEGACY
+# compiler is KNOWN-NONCONFORMING on these (process rule #1 — the ISO spec is authority; the legacy is a
+# regression net with holes). The guard still compiles and runs them, but the output diff is EXPECTED and is
+# reported, never counted as a regression; the greenfield differential suite (NistDifferentialTests) locks the
+# conforming goldens byte-exact. The holes, each verified against the legacy directly:
+#   IX111A          — a failed OPEN fires the file-scoped USE declarative (§14.9.49.4 GR3a); the legacy never fired it
+#   IX210A/214A/215A — the legacy printed FAIL-ROUTINE info lines after PASS rows (unreachable per §14.9.17) and
+#                      self-deleted 18 START tests whose spec statuses are '00'/'23' (§14.9.41 GR9 / §9.1.13.5)
+#   NC235A/NC236A   — the legacy's SEARCH fell through to the CCVS DE-LETE paragraph (§14.9.37.4 GR8b / F2)
+#   SQ207M          — the legacy DROPPED the AFTER-ADVANCING-mnemonic WRITE (§14.9.46 GR1 always releases the record)
+LEGACY_NONCONFORMANT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M"
+
 FAILURES=0
 for test in $NIST_TESTS; do
     # Compile
@@ -148,6 +160,13 @@ for test in $NIST_TESTS; do
         echo "  $test: NO BASELINE (${fail_count} FAIL* — pending fix)"
         continue
     fi
+
+    # An ISO-re-baselined golden the legacy is known-nonconforming on: compiled and ran above; the diff is
+    # expected (see LEGACY_NONCONFORMANT) — never a regression.
+    case " $LEGACY_NONCONFORMANT " in *" $test "*)
+        echo "  $test: LEGACY NONCONFORMANT (golden = ISO-conforming baseline; expected diff)"
+        continue ;;
+    esac
 
     # Normalize: strip CR (CRLF->LF), then trailing spaces, then time-dependent COMPUTED values.
     # tr -d '\r' must come FIRST: the golden tests/nist/valid/*.txt are CRLF; a compiled program's DISPLAY uses

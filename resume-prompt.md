@@ -24,10 +24,13 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 568, 2026-06-10 21:25): 244 NIST programs locked (90/95 NC + 24/29 ST + 57 RL/IX + 18 IC +
-> 63 SQ + OBSQ4A/5A); 818 conformance + 15 unit; FULL legacy guard re-proved ALL GREEN on the one shared-
-> frontend change (the XXXXX064 X-card). The fresh chain-aware census (`/e/tmp/nc-sweep/census-current.txt`,
-> pre-567): 268/361 GREEN. Landed this session (560–568): ① CHAIN-CONSUMER harness support —
+> **STATE (DEVLOG 569, 2026-06-10 22:05): 272 NIST programs locked (92 NC + 24 ST + 32 RL + 40 IX + 18 IC +
+> 64 SQ + 2 OBSQ — the authoritative `[InlineData]` census; earlier running tallies were undercounts);
+> 825 conformance + 15 unit; FULL legacy guard ALL GREEN = 357 MATCH + 7 `LEGACY_NONCONFORMANT` (the
+> owner-approved ISO re-baseline, DEVLOG 569: IX111A/IX210A/IX214A/IX215A/NC235A/NC236A/SQ207M goldens now hold
+> the spec-conforming output; the list + each hole's ISO citation live in `scripts/guard.sh`). The fresh
+> chain-aware census (`/e/tmp/nc-sweep/census-current.txt`, pre-567): 268/361 GREEN. Landed this session
+> (560–569): ① CHAIN-CONSUMER harness support —
 > `tests/nist/chains.tsv` is the ONE chain topology (consumer→producers), `NistDifferentialTests.RunNist` runs
 > predecessors in the consumer's own temp dir, the sweep gained CHAINERR + the `-s` nonempty-dll check → 22
 > programs locked with zero compiler change (560); ② secondary-record SORT keys SR6e + SR6g diag 0874 + the
@@ -52,9 +55,10 @@
 > cross-assembly CALL item), IC113A timeout, IC222A (CALL ON EXCEPTION gated 2002+ yet used by a CCVS-85
 > program — version-targeted investigation), IC233A/234A cross-program GLOBAL USE (designed §5.6 of the
 > declaratives brief), IC207A/227A EXTERNAL FD, IC401M parse; ⑤ SM = COPY support (the whole suite);
-> ⑥ OWNER SIGN-OFF QUEUE (exceeds-golden; re-baseline like ST144A on approval): IX210A/IX214A/IX215A (C9
-> PRINT-DETAIL quirk, zero FAIL rows produced), SQ207M (AFTER-mnemonic dropped-write quirk), IX111A +
-> NC235A/NC236A; ⑦ reserved-word tables (scout FAILED on content-filter — re-run; the `RF` find → 0900+ band);
+> ⑥ ~~owner sign-off queue~~ DONE (569 — all seven re-baselined + locked; the legacy guard reports them as
+> `LEGACY NONCONFORMANT`, list + citations in `scripts/guard.sh`; ST146A remains the one swept-only exceeds
+> case — a spec-UNDEFINED record-area tail, not a legacy hole — needs its own decision);
+> ⑦ reserved-word tables (scout FAILED on content-filter — re-run; the `RF` find → 0900+ band);
 > ⑧ CALL follow-ups: GR3a subscripted-BY-REFERENCE capture, ContainsNextSentence arm for ON-phrase bodies,
 > OMITTED args + header mode phrases (grammar). Then steps ④–⑦ (EC model → Phase-2 EditionValidator → 2002
 > OO/UDF → 2014 JSON/XML → 2023 → G8). ⚠ Apply agent edits with the index-based python pattern; the Bash
