@@ -1135,20 +1135,27 @@ legacy (a slice of NC).
   GOBACK is never miscompiled.
 **Checkpoint:** the GO TO/ALTER/PERFORM-THRU/inverted-range NIST programs (NC102A, NC208A, etc.) green.
 
-### G5 — Drive the NIST corpus to green (NC → SM/IC/IF → SQ/RL/IX → ST)
+### G5 — Drive the NIST corpus to green (NC → SM/IC/IF → SQ/RL/IX/ST) ✅ COMPLETE (DEVLOG 575, 2026-06-11)
 - Files subsystem (§8): `FileConnector`/`IRecordCodec`/`CobolKey`; sequential → relative → indexed; FILE STATUS,
   AT END/INVALID KEY, USE declaratives (dispatched via §14.5); SORT/MERGE.
 - Interprogram (§9): the opaque ABI + typed fast path; LINKAGE/USING/RETURNING; CALL/CANCEL; EXTERNAL/GLOBAL/COMMON;
   pointers (`ManagedRef`/ADDRESS OF/BASED/ALLOCATE).
 - Confirm **Q2 `DIV_GUARD_DIGITS`** empirically here.
-**Checkpoint:** the SQ/RL/IX/IC/ST NIST suites green (the legacy's 364 as the diff net).
+**Checkpoint MET:** every golden-bearing NIST program locked byte-exact (318 = 93 NC + 29 ST + 32 RL + 40 IX +
+23 IC + 69 SQ + 42 IF + 15 SM + 4 RW + 2 OBSQ); the final census is 357/403 GREEN with zero diffs (residue is
+golden-less by NIST design). Includes the intrinsic catalog (§12.1), COPY/SM, LINAGE, and the Report Writer
+(`COBOLNET_REPORT_WRITER_DESIGN.md`). Goldens that fossilized verified legacy holes were re-baselined to the
+ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` carries the list + citations).
 
-### G6 — Deferred data cases (the byte-boundary islands)
-- REDEFINES/RENAMES 4-tier model (§4) — Tiers A/B (no bytes) first; Tier C (`RedefCodec`) gated on **Q1**.
-- The whole-group **`AsImage()`/`FromImage()`** facility (§14.4) — wire it into whole-group MOVE/compare and the
-  group/numeric INSPECT path.
-- File-record serialization edge cases (variable-length, multi-01 overlay, CODE-SET) finalized.
-**Checkpoint:** the REDEFINES/RENAMES/whole-group-compare NIST programs + any deferred file cases green.
+### G6 — Deferred data cases (the byte-boundary islands) ✅ COMPLETE (DEVLOG 572/563)
+- REDEFINES/RENAMES 4-tier model (§4) — Tiers A/B (no bytes) first; Tier C resolved as the ZONED DIGIT-IMAGE
+  codec (§4.2 — no `RedefCodec` byte plan needed; ISO §13.18.60 GR4 implementor latitude; Q1 thereby settled:
+  the island narrowed to float/COMP-5 puns, which stay loud).
+- The whole-group **`AsImage()`/`FromImage()`** facility (§14.4) — wired into whole-group MOVE/compare, file
+  records, and SORT, including fixed-point BINARY/PACKED leaves.
+- File-record serialization edge cases (variable-length §13.18.43 end-to-end with length framing, multi-01
+  overlay, SAME RECORD AREA) finalized; CODE-SET remains accepted-inert (no NIST exercise).
+**Checkpoint MET:** the REDEFINES/RENAMES/whole-group-compare programs + all deferred file cases green.
 
 ### G7 — Per-edition correctness: features AND diagnostics per `--std` (85|2002|2014|2023; default 2023)
 

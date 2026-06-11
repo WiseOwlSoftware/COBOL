@@ -240,8 +240,13 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
 
 ## 1. Current status — DONE (do not re-list as gaps)
 
-- **M1 (COBOL-85): COMPLETE.** NIST CCVS85 = 364 baselines green (NC/IF/SM/IC/SQ/RL/IX/ST/OBSQ). Report Writer,
-  collating, intrinsic-function set, file I/O all done.
+- **M1 (COBOL-85): COMPLETE — on BOTH compilers.** Legacy: NIST CCVS85 = 364 baselines green. **GREENFIELD
+  (COBOL.NET): Phase 1 closed the COBOL-85 corpus drive (DEVLOG 571–575, 2026-06-11)** — every golden-bearing
+  NIST program locked byte-exact in `NistDifferentialTests` (318: NC/ST/RL/IX/IC/SQ/IF/SM/RW/OBSQ); Report
+  Writer, collating, the full §15 intrinsic catalog (with edition windows), COPY/REPLACE, LINAGE, and file I/O
+  (incl. variable-length records, EXTERNAL/GLOBAL FDs, the Tier-C record codec) all typed-native. ⚠ The ☑
+  marks in §3 below record LEGACY-era implementations of post-85 features — each still re-lands on the
+  greenfield substrate during G7 (the legacy code is the proven semantic reference, not the product).
 - **M2 (COBOL-2002): in progress.** Landed this drive (DEVLOG 353–369):
   - **WS-2002-FORMAT — COMPLETE:** `*>` inline comments; `>>SOURCE FORMAT IS FREE|FIXED`; conditional compilation
     `>>DEFINE` / `>>IF`/`>>ELSE`/`>>END-IF` / `>>EVALUATE`/`>>WHEN`/`>>END-EVALUATE`; recognize-and-ignore of the

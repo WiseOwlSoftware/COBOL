@@ -55,12 +55,15 @@ native scaled-integer numerics, PC-dispatcher control flow, REDEFINES, files, OO
 reorg/rename to Cobol.NET/cobol.exe, no-god-class structure, C# 14, §18 settled decisions, G0–G8 order);
 `COBOLNET_ARCHITECTURE.md` is the brief overview. Memory: [[feedback_complete_dotnet_migration_no_byte]],
 [[feedback_fully_autonomous_push]]. Legacy `CobolSharp.Compiler` kept ONLY as a reference + differential oracle until
-cut-over (G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 568, 2026-06-10): G0–G6
-✅ + the wave-2 families (ODO, SORT/MERGE, KeyedIO, CALL/inter-program), DECIMAL-POINT COMMA / CURRENCY SIGN,
-USE DECLARATIVES, the chain-consumer harness (`tests/nist/chains.tsv`), variable-length records (§13.18.43
-end-to-end), SAME RECORD AREA, qualified keys + FILE-NAME qualification. The differential harness locks 244
-NIST programs byte-match (90/95 NC + 24/29 ST + 57 RL/IX + 18 IC + 63 SQ + OBSQ); 818 conformance + 15 unit
-green. The CURRENT state + next steps live in `resume-prompt.md`'s top STATE banner — always read it, never this
+cut-over (G8). Tests may break mid-transition; 100% green at completion. **STATE (DEVLOG 575, 2026-06-11):
+⛔🎉 PHASE 1 COMPLETE — G0–G6 ✅, the COBOL-85 corpus drive is CLOSED. Every golden-bearing NIST program is
+locked byte-exact (318 = 93 NC + 29 ST + 32 RL + 40 IX + 23 IC + 69 SQ + 42 IF + 15 SM + 4 RW + 2 OBSQ);
+final census 357/403 GREEN with zero diffs (residue golden-less by NIST design); 1026 conformance + 16 unit;
+legacy guard 353 MATCH + 11 `LEGACY_DIVERGENT` (ISO-re-baselined goldens — citations in `scripts/guard.sh`),
+0 regressions. Landed in Phase 1: COPY/SM, the full §15 intrinsic catalog, the Tier-C record codec, LINAGE,
+the IC residue (EXTERNAL/GLOBAL FDs, cross-assembly CALL), and the Report Writer. NEXT (SSOT §16): the EC
+exception model (§11) → G7 per-edition correctness (EditionValidator + M2 OO/2002 → M3 2014 → M4 2023) → G8.
+The CURRENT state + next steps live in `resume-prompt.md`'s top STATE banner — always read it, never this
 snapshot.** ⛔ **MISSION now =
 full ISO-2023 AND all prior editions (85/2002/2014), validated by the VERSION TEST MATRIX (test as N per-edition
 compilers): `docs/VERSION_CHANGE_REFERENCE.md` (130-row edition-change checklist) + `docs/VERSION_TEST_MATRIX_DESIGN.md`

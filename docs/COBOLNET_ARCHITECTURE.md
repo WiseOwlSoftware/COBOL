@@ -114,12 +114,15 @@ subsets. (Task G4.)
 - **G2 ✅** Data division → typed C# (elementary fields, groups→record struct, tables→arrays; VALUE init).
 - **G3 ✅ (core)** Core verbs (`MOVE`, arithmetic, `IF`/`EVALUATE`, `DISPLAY`/`ACCEPT`, `PERFORM` inline) on typed values.
 - **G4 ✅** Control-flow engine (port the PC/dispatch design) — `PERFORM THRU`, `GO TO`, `ALTER`, fall-through.
-- **G5 (in progress)** Drive the NIST corpus to green (NC → SM/IC/IF → SQ/RL/IX → ST), then the conformance corpus.
-  Sequential file I/O ✅; SET/index machinery, sections + PERFORM VARYING landed; 33 NC programs byte-match the golden; 348 conformance
-  + 15 unit green.
-- **G6 (core ✅)** Deferred data cases: `REDEFINES`/`RENAMES` (Tier A+B ✅), whole-group alphanumeric, file serialization.
-- **G7** Post-85 features (OO→.NET classes, UDF, pointers, national/boolean, JSON/XML, intrinsics) gated per `--std`
-  — each with BOTH the per-edition spec behavior AND the correct rejection diagnostic in every edition that lacks it
+- **G5 ✅ (DEVLOG 575, 2026-06-11)** The NIST corpus drive is COMPLETE: every golden-bearing program locked
+  byte-exact (318 across NC/ST/RL/IX/IC/SQ/IF/SM/RW/OBSQ — incl. the full §15 intrinsic catalog, COPY/SM,
+  LINAGE, Report Writer, EXTERNAL/GLOBAL FDs, cross-assembly CALL); final census 357/403 GREEN, zero diffs.
+- **G6 ✅** Deferred data cases: the full `REDEFINES`/`RENAMES` tier model — Tier C resolved as the zoned
+  digit-image codec (§13.18.60 GR4); whole-group `AsImage`/`FromImage` incl. fixed-point BINARY/PACKED leaves;
+  variable-length records (§13.18.43) end-to-end.
+- **G7 (next, after the §11 EC model)** Post-85 features (OO→.NET classes, UDF, pointers, national/boolean,
+  JSON/XML, post-85 intrinsics) gated per `--std` — each with BOTH the per-edition spec behavior AND the
+  correct rejection diagnostic in every edition that lacks it
   (`docs/VERSION_CHANGE_REFERENCE.md`, `docs/VERSION_TEST_MATRIX_DESIGN.md`).
 - **G8** Cut over: delete the legacy `src/CobolSharp.*` oracle, finish the cosmetic namespace rename, final
   architecture/doc pass. (Projects already live as `Cobol.Net.*`; the exe is already `cobol`.)
