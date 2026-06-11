@@ -369,6 +369,13 @@ public sealed class NistDifferentialTests
     // in the 75-char MEDIUM record (legal per SR6g — keys end inside the 50-byte minimum).
     [InlineData("ST111A")]   // verifies the variable-length sort (chain ST109A→ST110A→ST111A)
     [InlineData("ST124A")]   // verifies the var-len build+sort (chain ST122A→ST123A→ST124A)
+    // Greened by I-O-CONTROL SAME RECORD AREA (ISO §12.4.6.4 GR2 — DEVLOG 562): the listed files share the
+    // current-logical-record area, "an implicit redefinition … aligned on the leftmost byte position" — bound by
+    // chaining each listed file's first record as a synthesized REDEFINES of the first listed file's first record
+    // (the multi-01 mechanism), so READ file-B then WRITE/RELEASE file-A sees B's record.
+    [InlineData("ST131A")]   // READ FILE3 / RELEASE S3 with no FROM through SAME RECORD AREA FOR SORT3 FILE3 (SR6)
+    [InlineData("IX205A")]   // indexed pair: file A's record view shows B's data after READ B
+    [InlineData("IX206A")]   // same shape over the second indexed organization pairing
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

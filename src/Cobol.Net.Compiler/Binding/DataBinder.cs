@@ -88,6 +88,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         SwitchBindSpecialNames(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)
         BindFileSection(program, rootNames);       // FD records → Roots + FileModel.Records + the shared-area REDEFINES
+        BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
             BindEntries(ws.dataDescriptionEntry(), rootNames);
@@ -286,6 +287,38 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     Edition.Error("COBOLNET0873", "DATA RECORDS — an obsolete element of ANSI X3.23-1985, deleted by "
                         + "ISO/IEC 1989:2002 (§13.4.6 admits only the record clause on an SD); it requires --std 85 "
                         + $"(targeting COBOL-{Edition.DialectLevel})");
+            }
+        }
+    }
+
+    /// <summary>Bind the I-O-CONTROL paragraph (ISO §12.4.6). A record-area SAME clause (Format 2) makes the listed
+    /// files "share a memory area for processing the current logical record … equivalent to an implicit redefinition
+    /// of the area with records aligned on the leftmost byte position" (§12.4.6.4 GR2) — modeled by chaining each
+    /// listed file's FIRST record as a synthesized REDEFINES of the first LISTED file's first record, exactly the
+    /// multi-01-under-one-FD mechanism (the singular-pattern rule): the tier machinery then aliases every record of
+    /// every listed file over ONE backing, and READ/WRITE/RELEASE image distribution gives the
+    /// record-of-the-most-recently-read-file semantics for free. A sort/merge file may appear in a record-area
+    /// clause (SR6 — ST131A's <c>READ FILE3</c> then <c>RELEASE S3</c> with no FROM relies on it). The file-area
+    /// (Format 1) and sort-merge-area (Format 3) formats are storage-economy permissions (GR1/GR4 — shared/reusable
+    /// ALLOCATION plus open-mode constraints on the program, nothing a typed-native runtime must alias) — bound as
+    /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note). The SR2–SR11 static
+    /// legality checks (report/sort/file-area cross-membership consistency) are the diagnose-correctly track —
+    /// staged with the EditionValidator phase, not silently absent by oversight.</summary>
+    private void BindIoControl(Core.ProgramUnitContext program)
+    {
+        var io = program.environmentDivision()?.inputOutputSection()?.ioControlParagraph();
+        if (io is null) return;
+        foreach (var clause in io.ioControlClause())
+        {
+            // Format 2 only — SAME RECORD AREA (the RECORD word distinguishes it; SORT/SORT-MERGE are Format 3).
+            if (clause.sameClause() is not { } same || same.RECORD() is null) continue;
+            DataItem? anchor = null;
+            foreach (var fn in same.fileName())
+            {
+                if (!FilesByName.TryGetValue(fn.GetText(), out var f) || f.Records.Count == 0) continue;
+                if (anchor is null) { anchor = f.Records[0]; continue; }
+                if (!ReferenceEquals(f.Records[0], anchor))
+                    f.Records[0].RedefinesTarget ??= anchor;   // leftmost-aligned over the one area (GR2)
             }
         }
     }
