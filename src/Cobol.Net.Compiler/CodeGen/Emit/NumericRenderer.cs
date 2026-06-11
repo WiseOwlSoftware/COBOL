@@ -29,6 +29,15 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         // The LINAGE-COUNTER register (ISO §8.4.3.14 GR1): an unsigned INTEGER read from the file connector —
         // runtime-sourced (only the I-O control system modifies it, §13.18.34 GR7b), scale 0.
         BoundLinageCounterRef lc => new NumX($"CobolFile.LinageCounter({EmitText.CsLiteral(lc.File.CobolName)})", 0),
+        // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15 GR1): unsigned integers read from the report's engine
+        // instance — runtime-sourced (only the RWCS maintains them), scale 0. This ONE case serves both the
+        // relation-condition and MOVE-source paths (both route through the renderer).
+        BoundReportCounterRef rc =>
+            new NumX($"__RPT_{rc.Report.CsIndex}.{(rc.IsPage ? "PageCounter" : "LineCounter")}", 0),
+        // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an
+        // unscaled integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
+        BoundReportSumRef rs =>
+            new NumX($"__RPT_{rs.Report.CsIndex}.SumValue({EmitText.CsLiteral(rs.Id)})", rs.Scale),
         BoundBinary b => Combine(Render(b.Left), b.Op.ToString(), Render(b.Right)),
         BoundNegate n => Negate(Render(n.Operand)),
         BoundPower p => Power(Render(p.Base), Render(p.Exp)),

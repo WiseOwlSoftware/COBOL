@@ -33,7 +33,12 @@ public sealed class ReferenceResolver(DataBinder data)
         // (`LINAGE-COUNTER OF file`), where dref.cobolWord() is the FILE-NAME qualifier and would otherwise
         // mis-resolve here as a base data-name.
         if (dref.LINAGE_COUNTER() is not null) return null;
-        // The other special registers (LINE-/PAGE-COUNTER) have no cobolWord base — not handled in this slice.
+        // LINE-COUNTER / PAGE-COUNTER are the Report Writer Control System's registers (ISO §8.4.3.15) —
+        // runtime-sourced from the report engine, never a storage Place; the binder routes them to
+        // BoundReportCounterRef (StatementBinder.ReportWriter.cs). The early return is LOAD-BEARING for the
+        // QUALIFIED form (`LINE-COUNTER OF report`): there dref.cobolWord() is the REPORT-NAME qualifier and
+        // would otherwise mis-resolve as a base data-name (the LINAGE-COUNTER lesson above).
+        if (dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null) return null;
         if (dref.cobolWord() is not { } baseWord) return null;
         string name = baseWord.GetText();
 

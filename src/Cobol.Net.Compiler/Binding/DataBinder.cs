@@ -88,6 +88,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         SwitchBindSpecialNames(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)
         BindFileSection(program, rootNames);       // FD records → Roots + FileModel.Records + the shared-area REDEFINES
+        BindReportSection(program);                // RD entries → ReportModels (ISO §13.14; DataBinder.Reports.cs)
         BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
@@ -110,6 +111,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         ClassifyRedefinesClasses();
         OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
         ResolveFiles();
+        ResolveReports();   // SOURCE/CONTROL/SUM items + owning files + line widths (ISO §13.18.46/.53/.16/.54)
         CallBindExternalAndGlobal(program);   // EXTERNAL 01s → run-unit image backings; GLOBAL 01s collected (ISO §13.18.22 / §13.18.27)
 
         // Every FILE record area is filled WITHOUT conversion by READ/RETURN (ISO §9.1.2 — the record area is one
@@ -275,6 +277,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     BindRecordClause(rc, file);   // RECORD VARYING / m TO n → FileModel.Varying (ISO §13.18.43)
                 else if (clause.linageClause() is { } lc)
                     BindLinageClause(lc, file);   // LINAGE logical-page model → FileModel.Linage (ISO §13.18.34)
+                else if (clause.reportClause() is { } rep)
+                    // REPORT(S) clause (ISO §13.18.46): the FD hosts these reports — a report FILE (§9.1.22,
+                    // legally record-less). Names resolve to ReportModels post-build (ResolveReports).
+                    foreach (var rn in rep.reportName())
+                        file.ReportNames.Add(rn.GetText());
                 else if (clause.fileGlobalExternalClause() is { } ge)
                 {
                     // FD IS EXTERNAL / IS GLOBAL (ISO §13.18.22 / §13.18.30): EXTERNAL ⇒ one run-unit file
@@ -327,7 +334,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// capture pattern) and resolves post-build in <see cref="ResolveFiles"/>.</summary>
     private static void BindRecordClause(Core.RecordClauseContext rc, FileModel file)
     {
-        if (rc.VARYING() is null && rc.TO() is null) return;
+        if (rc.VARYING() is null && rc.TO() is null)
+        {
+            // The fixed Format-1 RECORD CONTAINS n (ISO §13.18.43): captured for the report-file line width
+            // (COBOLNET_REPORT_WRITER_DESIGN §4); a record-bearing FD's width still comes from its records.
+            if (rc.integerLiteral() is { Length: > 0 } fixedLits && int.TryParse(fixedLits[0].GetText(), out int n0))
+                file.RecordContains = n0;
+            return;
+        }
         var lits = rc.integerLiteral();
         int? lo = lits.Length > 0 ? int.Parse(lits[0].GetText()) : null;
         int? hi = lits.Length > 1 ? int.Parse(lits[1].GetText()) : null;

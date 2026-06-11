@@ -47,6 +47,7 @@
 | `docs/COBOLNET_OO_DESIGN.md` | DESIGN | OO — classes/methods/INVOKE as typed-native .NET. |
 | `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` | DESIGN | Conditions + the EC exception model / declaratives. |
 | `docs/COBOLNET_INTRINSICS_DESIGN.md` | DESIGN | Intrinsic FUNCTION resolution + semantics. |
+| `docs/COBOLNET_REPORT_WRITER_DESIGN.md` | DESIGN | Report Writer — the `CobolReport` RWCS engine, compose-at-presentation lines, counters, CONTROL/SUM, USE BEFORE REPORTING (closes the SSOT's RW seam flag). |
 | `docs/COBOLNET_PROJECT_ORG_DESIGN.md` | DESIGN | Project/folder organization + the Cobol.NET / `cobol.exe` naming (G0 executed; G8 namespace big-bang pending). |
 
 ## Version-correctness (multi-edition)

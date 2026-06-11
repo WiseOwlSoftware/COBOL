@@ -166,6 +166,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.mergeStatement() is { } mrg => BindMerge(mrg),
         _ when s.releaseStatement() is { } rls => BindRelease(rls),
         _ when s.returnStatement() is { } ret => BindReturn(ret),
+        _ when s.initiateStatement() is { } rwi => RwBindInitiate(rwi),     // Report Writer (ISO §14.9.21)
+        _ when s.generateStatement() is { } rwg => RwBindGenerate(rwg),     // Report Writer (ISO §14.9.16)
+        _ when s.terminateStatement() is { } rwt => RwBindTerminate(rwt),   // Report Writer (ISO §14.9.46)
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };
 
@@ -676,7 +679,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// (an index data item or an integer item — the emitter dispatches on its usage).</summary>
     private BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
         IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
-        : refs.Resolve(dref) is { } p ? new SetPlaceTarget(p)
+        : ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand
         : null;
 
     /// <summary><c>SET condition-name+ TO TRUE</c> (ISO §14.9.39 Format 4). TO FALSE needs the 2002 <c>WHEN SET TO
@@ -801,6 +804,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
                 : new BoundOperandError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
+        // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15) — RWCS registers, intercepted ahead of name resolution
+        // (the LINAGE-COUNTER idiom); a BoundExprError inside the computed wrapper stays loud (§1.4).
+        : RwCounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
         : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
         : refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError($"reference '{dref.GetText()}'");
 
@@ -812,6 +818,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
                 : new BoundExprError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
+        // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15): in the PROCEDURE DIVISION the registers may appear
+        // wherever an integer item may (SR1) — read from the report's engine instance, never storage.
+        : RwCounterExpr(dref) is { } rcx ? rcx
         : IndexFieldOf(dref) is { } ix ? new BoundIndexRef(ix)
         : refs.Resolve(dref) is { } p ? new BoundNumRef(p)
         : new BoundExprError($"reference '{dref.GetText()}'");
@@ -840,8 +849,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return null;
     }
 
+    // Receiving references resolve through ResolveReceiving (StatementBinder.ReportWriter.cs) — the ONE
+    // receiving-side chokepoint: a report counter receiver is rejected at bind (LINE-COUNTER illegal per ISO
+    // §8.4.3.15 SR3; PAGE-COUNTER staged loud) instead of being SILENTLY dropped by .OfType<Place>() (§1.4).
     private List<Place> ResolveTargets(IEnumerable<Core.DataReferenceContext> targets) =>
-        targets.Select(refs.Resolve).OfType<Place>().ToList();
+        targets.Select(ResolveReceiving).OfType<Place>().ToList();
 
     // ── ROUNDED phrase → rounding mode + receiver resolution (ISO §14.7.4) ───────────────────────────────────
 
@@ -912,19 +924,19 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to
     /// <see cref="Receiver"/>s, each carrying its own ROUNDED mode; an unresolvable reference is dropped.</summary>
     private List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops) =>
-        ops.Select(o => refs.Resolve(o.dataReference()) is { } p ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
+        ops.Select(o => ResolveReceiving(o.dataReference()) is { } p ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
            .OfType<Receiver>().ToList();
 
     /// <summary>Resolve the in-place <c>MULTIPLY … BY</c> receivers (<c>multiplyByOperand</c> = receiving operand +
     /// optional ROUNDED), each carrying its own mode; a literal BY operand (only valid in a GIVING form) is dropped.</summary>
     private List<Receiver> Receivers(IEnumerable<Core.MultiplyByOperandContext> ops) =>
-        ops.Select(o => o.receivingOperand()?.dataReference() is { } d && refs.Resolve(d) is { } p
+        ops.Select(o => o.receivingOperand()?.dataReference() is { } d && ResolveReceiving(d) is { } p
                 ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
            .OfType<Receiver>().ToList();
 
     /// <summary>Resolve the <c>COMPUTE</c> resultants (<c>computeStore</c> = data reference + optional ROUNDED).</summary>
     private List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) =>
-        stores.Select(s => refs.Resolve(s.dataReference()) is { } p ? new Receiver(p, RoundingOf(s.roundedPhrase())) : null)
+        stores.Select(s => ResolveReceiving(s.dataReference()) is { } p ? new Receiver(p, RoundingOf(s.roundedPhrase())) : null)
               .OfType<Receiver>().ToList();
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) to a bound expression.</summary>

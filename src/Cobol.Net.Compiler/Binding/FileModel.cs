@@ -110,6 +110,16 @@ public sealed class FileModel
     /// <see cref="FileStatusItem"/>); null when fixed-length or no DEPENDING phrase.</summary>
     public DataItem? VaryingDependingItem { get; set; }
 
+    /// <summary>The report-names of the FD's REPORT(S) clause (ISO §13.18.46), in written order — a report file
+    /// is exactly an FD with a non-empty list (§9.1.22; it legally has NO record description entries). The
+    /// names resolve to <see cref="ReportModel"/>s post-build (<c>DataBinder.ResolveReports</c>).</summary>
+    public List<string> ReportNames { get; } = [];
+
+    /// <summary>The fixed <c>RECORD CONTAINS n</c> character count (ISO §13.18.43 Format 1), or null when absent
+    /// or variable-length. A report file's line width prefers it over the computed field extent
+    /// (COBOLNET_REPORT_WRITER_DESIGN §4).</summary>
+    public int? RecordContains { get; set; }
+
     /// <summary>The LINAGE clause's logical-page model (ISO §13.18.34), or null when the FD has no LINAGE clause.
     /// Its presence generates the file's LINAGE-COUNTER register (§8.4.3.14 / §13.18.34 GR7a) and enables the
     /// WRITE END-OF-PAGE phrases (§14.9.51 SR19). Data-name operands resolve post-build in

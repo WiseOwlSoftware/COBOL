@@ -491,6 +491,17 @@ public sealed class NistDifferentialTests
     [InlineData("IC227A")]   // EXTERNAL FD shared by main + subprogram (one run-unit connector)
     [InlineData("IC233A")]   // GLOBAL FD inherited into a contained program's I/O
     [InlineData("IC234A")]   // a contained program's USE declarative on the owner's GLOBAL file
+    // Greened by the REPORT WRITER subsystem (ISO §13.24 / §14.9.16/21/45 + §8.4.3.15 counters — DEVLOG 575):
+    // the CobolReport RWCS engine (page geometry/fit per §13.18.35.4 GR4/GR6 with LINE-COUNTER set BEFORE the
+    // line composes, CONTROL breaks with prior-value CF composition §13.18.16.4 GR4a, SUM rolling §13.18.54,
+    // GROUP INDICATE), RD/report-group binding, INITIATE/GENERATE/TERMINATE, USE BEFORE REPORTING wired into
+    // the declaratives machinery (COBOLNET0898 retired), and SOURCE fields through the ONE implicit-MOVE path
+    // (§13.18.53.4 GR1 — the legacy's raw byte-copy there is a documented hole; goldens only compare the CCVS
+    // print file, so no re-baseline was needed).
+    [InlineData("RW101A")]   // the basic report: PH/PF, detail GENERATE, page advance
+    [InlineData("RW102A")]   // SOURCE/VALUE/SUM fields, control breaks
+    [InlineData("RW103A")]   // multi-page counter checks (LINE-/PAGE-COUNTER)
+    [InlineData("RW104A")]   // USE BEFORE REPORTING + 3-page geometry
     public void NistProgram_MatchesGolden(string testName)
     {
         string root = RepoRoot();

@@ -21,12 +21,13 @@ public sealed record BoundProgram(
     int EntryPc = 0,
     IReadOnlyList<BoundDeclarative>? Declaratives = null);
 
-/// <summary>One USE AFTER STANDARD ERROR/EXCEPTION declarative section (ISO §14.9.49 Format 1): its inclusive
-/// pc range, the §14.9.49.4 GR7 handler exit pc (== <paramref name="EndPc"/> except the CCVS termination-tail
-/// accommodation — see the binder), and its trigger scope: file-scoped (GR3a/GR5, <paramref name="Files"/>
-/// non-empty) or open-mode-scoped (GR3b/GR6b–e, <paramref name="ModeIndex"/> = the runtime
-/// <c>FileOpenMode</c> ordinal). <paramref name="Global"/> is parsed and recorded; cross-program dispatch (GR4)
-/// is the post-CALL wave.</summary>
+/// <summary>One USE declarative section (ISO §14.9.49): its inclusive pc range, the §14.9.49.4 GR7 handler exit
+/// pc (== <paramref name="EndPc"/> except the CCVS termination-tail accommodation — see the binder), and its
+/// trigger scope. Format 1 (AFTER STANDARD ERROR/EXCEPTION): file-scoped (GR3a/GR5, <paramref name="Files"/>
+/// non-empty) or open-mode-scoped (GR3b/GR6b–e, <paramref name="ModeIndex"/> = the runtime <c>FileOpenMode</c>
+/// ordinal). Format 2 (BEFORE REPORTING): <paramref name="ReportGroup"/> names the report group the procedure
+/// runs just before (GR8 — wired into the report engine's per-group hook at emission). <paramref name="Global"/>
+/// is parsed and recorded; cross-program dispatch (GR4) is the post-CALL wave.</summary>
 public sealed record BoundDeclarative(
     string SectionName,
     int StartPc,
@@ -34,7 +35,8 @@ public sealed record BoundDeclarative(
     int HandlerEndPc,
     IReadOnlyList<FileModel> Files,
     int? ModeIndex,
-    bool Global);
+    bool Global,
+    ReportGroupModel? ReportGroup = null);
 
 /// <summary>A bound paragraph: its COBOL name and its SENTENCES (each a statement list — the separator-period
 /// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19 GR6).
@@ -75,6 +77,18 @@ public sealed record BoundIndexRef(string IndexField) : BoundExpr;
 /// runtime-sourced (the connector's counter, COBOLNET_DESIGN's register-attaches-to-its-subsystem rule), never a
 /// synthesized storage item; SR2 bars it from receiving positions (receiving resolution already fails loud).</summary>
 public sealed record BoundLinageCounterRef(FileModel File) : BoundExpr;
+
+/// <summary>A report's LINE-COUNTER or PAGE-COUNTER register (ISO §8.4.3.15): an unsigned integer the Report
+/// Writer Control System alone maintains (GR1–GR4) — runtime-sourced from the report's engine instance (the
+/// register-attaches-to-its-subsystem rule, the <see cref="BoundLinageCounterRef"/> precedent), never a storage
+/// item. SR3 bars LINE-COUNTER from receiving positions (receiving resolution rejects at bind).</summary>
+public sealed record BoundReportCounterRef(ReportModel Report, bool IsPage) : BoundExpr;
+
+/// <summary>A report SUM counter read (ISO §13.18.54.4 GR4 — the counter is the source item of its printable
+/// entry): an unscaled integer at <paramref name="Scale"/>, runtime-sourced from the report engine. Produced
+/// only by the report-section compose emission (sum counters are report-section names, unreachable from
+/// PROCEDURE DIVISION references in this slice).</summary>
+public sealed record BoundReportSumRef(ReportModel Report, string Id, int Scale) : BoundExpr;
 
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundExprError(string Feature) : BoundExpr;
@@ -344,3 +358,18 @@ public sealed record BoundRead(
 
 /// <summary><c>REWRITE record [FROM x]</c> (ISO §14.9.35): replace the last-read record with the record area's image.</summary>
 public sealed record BoundRewrite(FileModel File, Place Record, BoundOperand? From, string? Unsupported) : BoundStatement;
+
+// ── Report Writer verbs (ISO §14.9.21 / §14.9.16 / §14.9.46; COBOLNET_REPORT_WRITER_DESIGN §5) ────────────────
+
+/// <summary><c>INITIATE report-name…</c> (ISO §14.9.21): each report's counters/sum counters reset and the
+/// report becomes active (GR1/GR4); a multi-name statement unrolls in written order (GR5).</summary>
+public sealed record BoundInitiate(IReadOnlyList<ReportModel> Reports) : BoundStatement;
+
+/// <summary><c>GENERATE {detail | report-name}</c> (ISO §14.9.16): detail reporting prints one instance of
+/// <paramref name="Detail"/> after control-break/page-fit processing (GR1); a null detail is SUMMARY reporting
+/// (GR2 — the report-name form, same processing with no detail printed).</summary>
+public sealed record BoundGenerate(ReportModel Report, ReportGroupModel? Detail) : BoundStatement;
+
+/// <summary><c>TERMINATE report-name…</c> (ISO §14.9.46): final control footings + report footing, report →
+/// inactive (GR3); unrolls in written order (GR4); does NOT close the file (GR6).</summary>
+public sealed record BoundTerminate(IReadOnlyList<ReportModel> Reports) : BoundStatement;

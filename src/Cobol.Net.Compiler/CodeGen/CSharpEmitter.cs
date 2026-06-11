@@ -93,6 +93,7 @@ public sealed partial class CSharpEmitter
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
         w.Line($"private const int __N = {n};   // paragraph count");
         AlterEmitFields(bound, w);   // the per-altered-paragraph mutable GO TO target fields (control-flow design D4)
+        RwEmitReportMembers(w);      // per-report engine fields + line compose methods (CSharpEmitter.ReportWriter.cs)
         w.Line();
         using (w.Block("public void __Activate()"))
         {
@@ -105,6 +106,9 @@ public sealed partial class CSharpEmitter
                 {
                     w.Line("__filesRegistered = true;");
                     EmitFileRegistration(w);
+                    // Report engines construct WITH the connectors (hazard: the report FD must be registered
+                    // before the engine's first write — COBOLNET_REPORT_WRITER_DESIGN §4).
+                    RwEmitReportConstruction(bound, w);
                 }
             }
             // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
@@ -341,6 +345,9 @@ public sealed partial class CSharpEmitter
             case BoundUnstringStmt suns: EmitUnstring(suns); return false;
             case BoundAccept ac: EmitAccept(ac); return false;
             case BoundInitialize ini: EmitInitialize(ini); return false;
+            case BoundInitiate rwi: RwEmitInitiate(rwi); return false;     // Report Writer (ISO §14.9.21)
+            case BoundGenerate rwg: RwEmitGenerate(rwg); return false;    // Report Writer (ISO §14.9.16)
+            case BoundTerminate rwt: RwEmitTerminate(rwt); return false;  // Report Writer (ISO §14.9.46)
             case BoundCallProgram call: return CallEmitCall(call);
             case BoundCancel cancel: CallEmitCancel(cancel); return false;
             case BoundExitProgram: w.Line("if (__asCalled) throw new ProgramReturn();   // ISO §14.9.14 GR2: CONTINUE in a non-called program; GR3: return in a called one"); return false;
@@ -1072,7 +1079,22 @@ public sealed partial class CSharpEmitter
         {
             if (file.IsSortMerge) continue;   // an SD is the in-memory sort store (ISO §13.4.6) — never a host file
             if (!file.IsSequential) { KeyedEmitRegistration(w, file); continue; }   // relative/indexed connectors
-            if (file.Records.Count == 0) continue;
+            if (file.Records.Count == 0)
+            {
+                // A REPORT FILE legally has no record description (ISO §9.1.22 / §13.18.46) — it MUST still
+                // register, or its OPEN falls through to the keyed registries and the report engine's writes go
+                // into a void (the silent-OPEN-no-op hazard, COBOLNET_REPORT_WRITER_DESIGN §7). The record
+                // width is the widest hosted report's line width.
+                if (file.ReportNames.Count > 0)
+                {
+                    int width = Math.Max(1, _ctx.Data.Reports
+                        .Where(r => ReferenceEquals(r.File, file))
+                        .Select(r => r.LineWidth).DefaultIfEmpty(1).Max());
+                    w.Line($"CobolFile.Register({CsLiteral(file.CobolName)}, {CsLiteral(file.AssignTarget)}, " +
+                           $"{width}, false, {(file.Optional ? "true" : "false")});");
+                }
+                continue;
+            }
             bool lineSeq = file.Organization == FileOrganization.LineSequential;
             // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) — the connector
             // length-frames its records and enforces the GR14 '44' boundary checks.

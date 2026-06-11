@@ -49,6 +49,7 @@ C# mapping with worked examples + hard problems + edge cases + ISO citations):
 | §10 | OO → .NET classes | `docs/COBOLNET_OO_DESIGN.md` |
 | §11 | Conditions & exceptions | `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` |
 | §12 | Intrinsics, registers & misc | `docs/COBOLNET_INTRINSICS_DESIGN.md` |
+| §14 | Report Writer (RWCS) | `docs/COBOLNET_REPORT_WRITER_DESIGN.md` |
 | §17 | Project organization & rename | `docs/COBOLNET_PROJECT_ORG_DESIGN.md` |
 
 This SSOT stays authoritative for the **locked invariants (§1)**, the **cross-cutting consistency (§14)**, the
@@ -823,8 +824,11 @@ the process exit code — a cross-subsystem contract (§14, §15).
   YYYYMMDD/YYYYDDD; DAY-OF-WEEK remap `((int)DayOfWeek + 6) % 7 + 1` = 1=Mon..7=Sun) + console UPON SYSOUT/SYSERR.
 - **ALPHABET/CLASS/CURRENCY/DECIMAL-POINT IS COMMA** = a SPECIAL-NAMES config object threaded into emit (mostly
   compile-time).
-- **SCREEN SECTION, REPORT WRITER, JSON/XML GENERATE/PARSE** are scope-flagged big subsystems — designed only to the
+- **SCREEN SECTION, JSON/XML GENERATE/PARSE** are scope-flagged big subsystems — designed only to the
   seam (reserve their register names, one-paragraph deferral each). Their scope is an owner question (§15).
+  **REPORT WRITER is IMPLEMENTED** (the Phase-1C NIST drive brought it forward from the M3 ordering): the deep-dive
+  is `docs/COBOLNET_REPORT_WRITER_DESIGN.md` — the `CobolReport` engine, compose-at-presentation lines, the
+  LINE-/PAGE-COUNTER registers, CONTROL/SUM, USE BEFORE REPORTING; RW101A–RW104A byte-match.
 
 ---
 

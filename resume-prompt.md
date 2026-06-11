@@ -24,7 +24,31 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 570, 2026-06-10 22:30): 273 NIST programs locked (92 NC + 25 ST + 32 RL + 40 IX + 18 IC +
+> **STATE (DEVLOG 575, 2026-06-11 02:15): ⛔🎉 PHASE 1 COMPLETE — the COBOL-85 corpus drive (G5/G6) is CLOSED.
+> Every golden-bearing NIST program is locked byte-exact: 318 = 93 NC + 29 ST + 32 RL + 40 IX + 23 IC + 69 SQ
+> + 42 IF + 15 SM + 4 RW + 2 OBSQ. The final census (403 programs, `/e/tmp/nc-sweep/census-phase1-final.txt`):
+> 357 GREEN, ZERO DIFF/CMPL_FAIL; residue is golden-less by NIST design (33 NO_GOLDEN, 6 chain-intermediate
+> NO_REPORT, the 5-program cross-assembly subprogram-as-main RUNERR family + IC401M's no-golden companion, and
+> IC113A = a CONFORMING infinite loop per §14.9.14 GR2). 1026 conformance + 16 unit; legacy guard 353 MATCH +
+> 11 `LEGACY_DIVERGENT` (citations in `scripts/guard.sh`), 0 regressions. Landed in Phase 1 (DEVLOG 571–575,
+> six parallel scouts + five implementation agents): SM/COPY (the NIST default copy library §7.2.3.4 GR3),
+> the FULL intrinsic catalog (§15, `IntrinsicCatalog` + `CobolIntrinsics.*`/`CobolDate`), the Tier-C
+> mixed-usage record codec (zoned digit images §13.18.60 GR4), LINAGE (§13.18.34 end-to-end + 3 re-baselines),
+> the IC residue (CALL ON EXCEPTION gate, EXTERNAL FD `::EXT::` connectors, cross-program GLOBAL USE,
+> cross-assembly CALL sibling probe, GR4 group-sender MOVE), PROGRAM-ID IS-noise-words (§11.4.2, guard-gated),
+> and the REPORT WRITER subsystem (§13.24 `CobolReport` engine + USE BEFORE REPORTING).
+> **RESUME AT (the SSOT §16 order): ① the EC exception-condition model (§11 / the conditions-exceptions
+> deep-dive: >>TURN, the EC-* hierarchy, RAISE/RESUME, USE AFTER EXCEPTION CONDITION; the seams are placed,
+> checking is OFF per §18.16); ② G7 per-edition correctness — Track-1 Phase-2 EditionValidator
+> (removal/reserved-word gating per `docs/VERSION_CHANGE_REFERENCE.md` + the negative corpus) and the M2
+> 2002 catalog (OO is the largest; then UDF prototypes, national/boolean, pointers/ALLOCATE, SHARING/LOCK)
+> → M3 2014 (dynamic tables, TYPEDEF, JSON/XML) → M4 2023 deltas; ③ reserved-word tables (scout failed on
+> content-filter — re-run; the `RF` find → 0900+ band); ④ G8 cut-over. Removed-from-residue notes: NC214M/
+> NC303M/RW301M/302M/IF401M-403M/SM301M/401M etc. are NO_GOLDEN run-only; the sign-off/divergence protocol
+> is established (verify → re-baseline → `LEGACY_DIVERGENT` + citation → lock).**
+> *(Pre-Phase-1 banner below for history.)*
+>
+> **(superseded) STATE (DEVLOG 570, 2026-06-10 22:30): 273 NIST programs locked (92 NC + 25 ST + 32 RL + 40 IX + 18 IC +
 > 64 SQ + 2 OBSQ — the authoritative `[InlineData]` census; earlier running tallies were undercounts);
 > 827 conformance + 15 unit; FULL legacy guard ALL GREEN = 356 MATCH + 8 `LEGACY_DIVERGENT` (the owner-approved
 > ISO re-baselines, DEVLOG 569/570: IX111A/IX210A/IX214A/IX215A/NC235A/NC236A/SQ207M = legacy HOLES;
@@ -32,7 +56,7 @@
 > COBOL.NET's canonical refinement is UNCHANGED, the spec's own pattern for the other I-O verbs; the list +
 > per-program citations live in `scripts/guard.sh`). The fresh chain-aware census
 > (`/e/tmp/nc-sweep/census-current.txt`, pre-567): 268/361 GREEN — ⚠ regenerate it: the sweep's binary
-> false-green is fixed (`diff -a`) and chains have grown. Landed this session
+> false-green is fixed (`diff -a`) and chains have grown. Landed in the prior session
 > (560–570): ① CHAIN-CONSUMER harness support —
 > `tests/nist/chains.tsv` is the ONE chain topology (consumer→producers), `NistDifferentialTests.RunNist` runs
 > predecessors in the consumer's own temp dir, the sweep gained CHAINERR + the `-s` nonempty-dll check → 22

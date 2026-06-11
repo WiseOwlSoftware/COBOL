@@ -19,6 +19,7 @@ public sealed partial class StatementBinder
     private readonly List<BoundDeclarative> _declaratives = [];
     private readonly HashSet<string> _declScopedFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<int> _declScopedModes = [];
+    private readonly HashSet<ReportGroupModel> _declReportGroups = [];   // §14.9.49 SR9 — one Format-2 USE per group
 
     /// <summary>Collect one declarative section into the pc space: the USE sentence (SR1 — the section's first
     /// sentence), an anonymous paragraph for any further leading sentences (the CCVS handler-before-the-first-
@@ -30,7 +31,7 @@ public sealed partial class StatementBinder
 
         // SR1: the first sentence consists of exactly one USE statement.
         var leading = sec.sentence();
-        (IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global)? scope = null;
+        (IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report)? scope = null;
         if (leading.Length == 0
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
@@ -54,22 +55,42 @@ public sealed partial class StatementBinder
 
         if (scope is { } s)
             _declaratives.Add(new BoundDeclarative(
-                name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global));
+                name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global, s.Report));
     }
 
     /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
     /// walk). <c>ON file-name</c> resolves against <c>FilesByName</c>, which includes containers' GLOBAL FDs
     /// (§13.18.30 — merged by <c>CallBindUnit</c>; IC234A's contained USE names the outer's GLOBAL file).
-    /// Format 2 (BEFORE REPORTING) is the Report Writer module — diagnosed, never silent.</summary>
-    private (IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global)? DeclBindUse(
+    /// Format 2 (BEFORE REPORTING, SR9) names a report group — the section becomes the group's
+    /// before-reporting hook, invoked by the report engine just before the group is produced (GR8; wired in
+    /// <c>CSharpEmitter.ReportWriter.cs</c>). The same group shall not appear in two such statements (SR9).</summary>
+    private (IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report)? DeclBindUse(
         Core.UseStatementContext use, string sectionName)
     {
         bool global = use.GLOBAL() is not null;
         if (use.REPORTING() is not null)
         {
-            data.Edition.Error("COBOLNET0898", $"declarative section '{sectionName}': USE BEFORE REPORTING "
-                + "(ISO §14.9.49 Format 2 — Report Writer) is not yet implemented");
+            // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1 — identifier-1 references a report group
+            // (SR9), optionally qualified by its report-name (the procedureName's OF/IN tail).
+            var pn = use.procedureName();
+            string head = pn.GetChild(0).GetText();
+            string? qualifier = pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null;
+            foreach (var report in data.Reports)
+            {
+                if (qualifier is not null && !report.Name.Equals(qualifier, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (report.Groups.FirstOrDefault(g =>
+                        head.Equals(g.Name, StringComparison.OrdinalIgnoreCase)) is { } group)
+                {
+                    if (!_declReportGroups.Add(group))
+                        data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': report group "
+                            + $"'{head}' already has a USE BEFORE REPORTING procedure (ISO §14.9.49 SR9)");
+                    return ([], null, global, group);
+                }
+            }
+            data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
+                + $"'{head}' does not name a report group (ISO §14.9.49 SR9)");
             return null;
         }
         var target = use.useOnTarget();
@@ -87,7 +108,7 @@ public sealed partial class StatementBinder
             if (!_declScopedModes.Add(m))
                 data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': this open mode already "
                     + "has a USE procedure in this source element (ISO §14.9.49 SR7)");
-            return ([], m, global);
+            return ([], m, global, null);
         }
 
         var files = new List<FileModel>();
@@ -111,7 +132,7 @@ public sealed partial class StatementBinder
                     + "has a USE procedure in this source element (ISO §14.9.49 SR8)");
             files.Add(file);
         }
-        return (files, null, global);
+        return (files, null, global, null);
     }
 
     /// <summary>The pc the bounded handler dispatch ends at (§14.9.49.4 GR7 — normally the section's last
