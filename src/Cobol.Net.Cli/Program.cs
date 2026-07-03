@@ -11,7 +11,7 @@ namespace CobolNet.Cli;
 /// All compilation logic lives in the Cobol.Net.Compiler library (so it is testable without an exe).
 /// </summary>
 /// <remarks>
-/// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist NAME] [--std 85|2002|2014|2023] [--copy DIR] [--run]</c>.
+/// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist NAME] [--std 85|2002|2014|2023] [--permissive] [--copy DIR] [--run]</c>.
 /// The generated C# is always written next to the output assembly (<c>&lt;name&gt;.g.cs</c>) so the translation is
 /// directly inspectable.
 /// </remarks>
@@ -22,7 +22,7 @@ internal static class Program
         if (args.Length == 0 || args[0] is "-h" or "--help")
         {
             Console.Error.WriteLine(
-                "cobol <source.cob> [-o out.dll] [--nist NAME] [--std 85|2002|2014|2023] [--copy DIR] [--run]");
+                "cobol <source.cob> [-o out.dll] [--nist NAME] [--std 85|2002|2014|2023] [--permissive] [--copy DIR] [--run]");
             return args.Length == 0 ? 64 : 0;
         }
 
@@ -30,7 +30,13 @@ internal static class Program
         if (options is null) return 64;
 
         var result = CompilerDriver.Compile(new CompilerDriver.Options(
-            options.SourcePath, options.OutputPath, options.NistTestName, options.DialectLevel, options.CopyPaths));
+            options.SourcePath, options.OutputPath, options.NistTestName, options.DialectLevel, options.CopyPaths,
+            options.Permissive));
+
+        // Edition warnings (obsolete/archaic 0903 flags; removed constructs under --permissive) print to stderr
+        // ALWAYS — success or failure — so migration users see them without a failing build (P2.1).
+        foreach (string w in result.Warnings)
+            Console.Error.WriteLine($"  {w}");
 
         if (!result.Success)
         {

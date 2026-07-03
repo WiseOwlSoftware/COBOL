@@ -22,12 +22,17 @@ public static class CompilerDriver
     /// docs/VERSION_TEST_MATRIX_DESIGN.md §10 #2). Callers that target a specific edition (the NIST harness at 85, the
     /// differential harness, per-edition conformance) pass it explicitly, so the default flip does not affect them.</param>
     /// <param name="CopyPaths">Directories searched for COPY copybooks, in order.</param>
+    /// <param name="Permissive">The strict/permissive severity axis (CLI <c>--permissive</c>, orthogonal to
+    /// <paramref name="DialectLevel"/>): permissive accepts constructs the targeted edition REMOVED, emitting a
+    /// warning and the pre-removal semantics (the documented migration mode, VERSION_TEST_MATRIX_DESIGN §10 #1).
+    /// Strict (the default for every named <c>--std</c>) rejects them. Introduction gating is unaffected.</param>
     public sealed record Options(
         string SourcePath,
         string? OutputPath = null,
         string? NistTestName = null,
         int DialectLevel = 2023,
-        IReadOnlyList<string>? CopyPaths = null);
+        IReadOnlyList<string>? CopyPaths = null,
+        bool Permissive = false);
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
     public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
@@ -37,11 +42,15 @@ public static class CompilerDriver
     /// <param name="OutputDll">The output assembly path (set once an output location is known).</param>
     /// <param name="GeneratedCsPath">The emitted <c>.g.cs</c> path (set once C# is generated).</param>
     /// <param name="Errors">Human-readable diagnostics for a non-success outcome.</param>
+    /// <param name="Warnings">Non-failing edition diagnostics (obsolete/archaic 0903 flags; removed constructs
+    /// under <see cref="Options.Permissive"/>). Present on EVERY outcome, success included — the CLI prints them
+    /// to stderr always (P2.1).</param>
     public sealed record Result(
         Outcome Status,
         string OutputDll,
         string? GeneratedCsPath,
-        IReadOnlyList<string> Errors)
+        IReadOnlyList<string> Errors,
+        IReadOnlyList<string> Warnings)
     {
         /// <summary>True iff a runnable assembly was produced.</summary>
         public bool Success => Status == Outcome.Success;
@@ -51,7 +60,7 @@ public static class CompilerDriver
     public static Result Compile(Options options)
     {
         if (!File.Exists(options.SourcePath))
-            return new Result(Outcome.SourceNotFound, "", null, [$"source file not found: {options.SourcePath}"]);
+            return new Result(Outcome.SourceNotFound, "", null, [$"source file not found: {options.SourcePath}"], []);
 
         // Phase 1 — front-end: preprocess + parse.
         var diagnostics = new DiagnosticBag();
@@ -72,17 +81,22 @@ public static class CompilerDriver
         var tree = frontend.Parse(options.SourcePath, diagnostics);
         if (tree is null || diagnostics.HasErrors)
             return new Result(Outcome.FrontendError, "", null,
-                diagnostics.Diagnostics.Select(d => d.ToString()!).ToList());
+                diagnostics.Diagnostics.Select(d => d.ToString()!).ToList(), []);
 
-        // Phase 2 — bind under the targeted EDITION + emit typed-native C#. Edition-gating diagnostics (the
-        // four-compilers rule: a construct the targeted edition lacks or forbids REJECTS the program) fail the
-        // compile here — they are semantic errors, not runtime guards.
-        var edition = new Binding.EditionContext(options.DialectLevel);
+        // Phase 2 — validate + bind under the targeted EDITION, then emit typed-native C#. Edition-gating
+        // diagnostics (the four-compilers rule: a construct the targeted edition lacks or forbids REJECTS the
+        // program) fail the compile here — they are semantic errors, not runtime guards. The EditionValidator
+        // (P2.2) walks the raw tree FIRST, and its errors fail-fast BEFORE Emit — a removed or
+        // not-yet-introduced construct may have no emit path at all.
+        var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive);
+        new Validation.EditionValidator(edition).Validate(tree);
+        if (edition.HasErrors)
+            return new Result(Outcome.BindError, "", null, edition.Diagnostics, edition.Warnings);
         // frontend.TurnEvents — the >>TURN directive events (ISO §7.3.25) — build the group's compile-time
         // TurnState (the EC model's checking decisions, conditions-exceptions deep-dive D10).
         string csharp = new CSharpEmitter().Emit(tree, edition, frontend.TurnEvents);
         if (edition.Diagnostics.Count > 0)
-            return new Result(Outcome.BindError, "", null, edition.Diagnostics);
+            return new Result(Outcome.BindError, "", null, edition.Diagnostics, edition.Warnings);
 
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         string outDir = Path.GetDirectoryName(Path.GetFullPath(outputDll)) is { Length: > 0 } d ? d : ".";
@@ -98,8 +112,8 @@ public static class CompilerDriver
                 backend.Diagnostics
                     .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                     .Select(d => d.ToString())
-                    .ToList());
+                    .ToList(), edition.Warnings);
 
-        return new Result(Outcome.Success, outputDll, csPath, []);
+        return new Result(Outcome.Success, outputDll, csPath, [], edition.Warnings);
     }
 }

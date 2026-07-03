@@ -9,13 +9,17 @@ namespace CobolNet.Cli;
 /// <param name="DialectLevel">ISO dialect year (<c>--std</c>): 85 / 2002 / 2014 / 2023.</param>
 /// <param name="CopyPaths">COPY copybook search directories (<c>--copy</c>), in order.</param>
 /// <param name="Run">Run the compiled assembly after a successful compile (<c>--run</c>).</param>
+/// <param name="Permissive">The strict/permissive severity axis (<c>--permissive</c>, orthogonal to
+/// <c>--std</c>/<c>--nist</c>): accept constructs the targeted edition removed, warning instead of rejecting —
+/// the documented migration mode (VERSION_TEST_MATRIX_DESIGN §10 #1; owner decision 4).</param>
 internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,
     string? NistTestName,
     int DialectLevel,
     IReadOnlyList<string> CopyPaths,
-    bool Run)
+    bool Run,
+    bool Permissive)
 {
     /// <summary>Parse <paramref name="args"/>, or return <see langword="null"/> on a usage error.</summary>
     public static CliOptions? Parse(string[] args)
@@ -25,6 +29,7 @@ internal sealed record CliOptions(
         bool stdGiven = false;
         var copy = new List<string>();
         bool run = false;
+        bool permissive = false;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -34,6 +39,7 @@ internal sealed record CliOptions(
                 case "--nist": nist = Next(args, ref i); break;
                 case "--copy": if (Next(args, ref i) is { } c) copy.Add(c); break;
                 case "--run": run = true; break;
+                case "--permissive": permissive = true; break;
                 case "--std":
                     stdGiven = true;
                     if (!int.TryParse(Next(args, ref i), out std)) { Console.Error.WriteLine("error: --std expects a year"); return null; }
@@ -49,7 +55,7 @@ internal sealed record CliOptions(
         // The NIST CCVS corpus is COBOL-85: --nist without an explicit --std targets 85, not the 2023 default
         // (else a CCVS program hits new-2023 reserved words / removed constructs). DEVLOG 519.
         if (nist is not null && !stdGiven) std = 85;
-        return new CliOptions(source, output, nist, std, copy, run);
+        return new CliOptions(source, output, nist, std, copy, run, permissive);
 
         static string? Next(string[] a, ref int i) => ++i < a.Length ? a[i] : null;
     }
