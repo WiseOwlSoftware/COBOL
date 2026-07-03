@@ -24,7 +24,18 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 579, 2026-06-11 13:42): ② G7 Phase-2 EditionValidator — DESIGN COMPLETE, IMPLEMENTATION NOT
+> **STATE (DEVLOG 580, 2026-07-03 13:46): docs-only checkpoint — an 8-agent COUNCIL evaluated the full G7/G8
+> runway; its ADVISORY roadmap is persisted at `docs/COMPLETION_ROADMAP_COUNCIL.md` (upholds the SSOT §16 spine;
+> §3 = 7 proposed deltas incl. a behavioral leg at `--std 2023` on the P2.7 flip [the critics' one FATAL
+> finding], a pre-P2.5 constructs.json scrub [JSON/XML rows are non-ISO; the CobolData.g4:246 `{is2023()}?`
+> TYPE gate is provably wrong; XOR = 2023 per Annex E], and G8 in 3 serial cuts; §5 = the 11-item OWNER
+> DECISION PACKET with recommended defaults — ⛔ awaiting the owner). RESUME = unchanged, the DEVLOG-579 banner
+> below (P2 Wave 1 per the VERSION_TEST_MATRIX_DESIGN "Phase-2 implementation plan" section), but start with
+> the council doc's Phase 0 (clean rebuild + baseline re-verification after the idle gap) and note ⚠ the
+> `/e/tmp/g7` + `/e/tmp/nc-sweep` convenience copies are VERIFIED GONE — the in-repo doc sections are now the
+> ONLY source.**
+>
+> **(superseded) STATE (DEVLOG 579, 2026-06-11 13:42): ② G7 Phase-2 EditionValidator — DESIGN COMPLETE, IMPLEMENTATION NOT
 > STARTED (docs-only checkpoints 5be1983 + this; tree otherwise at the DEVLOG-577 state). ⛔ RESUME = read
 > **`docs/VERSION_TEST_MATRIX_DESIGN.md` → "Phase-2 implementation plan" (below its §8)** — the IN-REPO canonical
 > plan (P2.1 EditionContext warning-channel + Permissive axis + Removed() seam; P2.2 the visitor hook [no listener
