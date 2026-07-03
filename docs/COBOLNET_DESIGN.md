@@ -1174,11 +1174,25 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 - Full intrinsic catalog (§12.1); EC exception model (§11: `>>TURN`, RAISE/RESUME, USE…EXCEPTION, PERFORM…WHEN);
   national/boolean; UDF; per the `docs/ISO2023_CONFORMANCE_PLAN.md` §3 catalog. Resolve **Q5** scope for SCREEN/RW/
   JSON-XML.
+> ✔ **G7 execution detail is now `docs/COMPLETION_ROADMAP_COUNCIL.md` (RATIFIED 2026-07-03, DEVLOG 581)** —
+> Phases 0–8 with exit criteria. Ratified amendments to THIS section: **JSON/XML is removed from the ISO
+> catalog** (zero hits in the 2023 spec — re-tagged vendor-dialect, deferred post-G8; the Q5 JSON-XML leg is
+> thereby resolved, SCREEN = documented non-support per the A.4 line, RW stays as-built); a behavioral leg at
+> `--std 2023` (318-golden re-run) attaches to the validator's permissive flip and INV-1-strong at the default
+> edition joins the G7 exit criteria; new named workstreams (W1.5 gate-diagnostic upgrades, the silent-misbind
+> loud-guard sweep, the 43-row intrinsics backlog, the ~44 VCR Table-1/5 behavior-row wave, discovery runners,
+> CI sweep wiring, the ISO §4.2 conformance document).
 **Checkpoint:** the conformance corpus + the post-85 dialect-gated NIST programs green.
 
 ### G8 — Cut over
 Retire the byte engine, drop the legacy from the test graph (resolve **Q13**), rename `CobolSharp`→`COBOL.NET`
 (exe `cobol.exe`), final architecture/doc pass.
+> ✔ **Ratified refinement (2026-07-03, `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase 9):** G8 executes as THREE
+> serial cuts — Cut 1 test-graph (Q13 resolved: the ~47 differential files convert to pinned goldens; the CI
+> guard step swaps to the in-repo greenfield guard), Cut 2 byte-engine deletion (legacy preserved at a git
+> tag), Cut 3 the atomic rename + committed regen + final doc pass + the ISO §4.2 conformance document. A
+> greenfield-guard vs legacy-guard **equivalence proof (roadmap Phase 8) is a hard precondition of Cut 1** —
+> the legacy must still run when the verdict-diff executes.
 **Checkpoint:** full guard green on COBOL.NET alone; the architecture doc + this SSOT reconciled.
 
 ---

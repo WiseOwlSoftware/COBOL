@@ -1,12 +1,17 @@
-> **Status: ADVISORY — council report, NOT yet owner-ratified.** Produced 2026-07-03 by an 8-agent council
-> workflow (5 advisors — edition-gating, feature-catalog, architecture-readiness, verification, sequencing —
-> → 2 adversarial critics [26 challenges, 14 gaps] → chair synthesis with in-repo re-verification of contested
-> claims), evaluating the tree at commit `f73595f` (the DEVLOG-579 state). **The live plan remains
-> `resume-prompt.md` over the SSOT `docs/COBOLNET_DESIGN.md` §16** — this report *upholds* that spine and
-> proposes the deltas in its §3; §5 is the 11-item owner decision packet (with the council's recommended
-> defaults). Once the owner ratifies/amends, fold the ratified deltas into the canonical docs
-> (resume-prompt.md STATE, VERSION_TEST_MATRIX_DESIGN.md, COBOLNET_DESIGN.md §16) per process rule #4 and
-> update this banner. Provenance: workflow run `wf_15c4eba5-547` (session b43d1d01), DEVLOG 580.
+> **Status: RATIFIED (2026-07-03, owner — DEVLOG 581). This is the EXECUTION ROADMAP for G7→G8**, read under
+> `resume-prompt.md` (still the session-kickoff head; its STATE banner points here). The owner resolved the §5
+> decision packet: **#1 = NO further standards acquisition** — the ISO docs in hand are the authority
+> (`specs/ISO_COBOL_2023.pdf` + the extracted `specs/ISO_COBOL.md`); prior-edition
+> edges derive from the 2023 spec's Annex E + the legacy inventory as interim authority, with
+> provisional-confidence markers retained wherever the 2023 text cannot adjudicate (the "blocked on standards
+> acquisition" track in Phase 4 is thereby re-scoped to that permanent policy). **#2–#11 = the council's
+> recommended defaults ADOPTED as written** (incl. #6 — the OO/M2 grammar grant, same log + full-guard +
+> committed-regen discipline; memory `never-change-grammar-without-user-approval` updated).
+>
+> Provenance: produced 2026-07-03 by an 8-agent council workflow (5 advisors — edition-gating,
+> feature-catalog, architecture-readiness, verification, sequencing — → 2 adversarial critics [26 challenges,
+> 14 gaps] → chair synthesis with in-repo re-verification of contested claims), evaluating the tree at commit
+> `f73595f` (the DEVLOG-579 state). Workflow run `wf_15c4eba5-547` (session b43d1d01), DEVLOG 580/581.
 
 # COBOL.NET Completion Roadmap — Council Report
 
@@ -93,6 +98,11 @@ The council **confirms** the SSOT §16 / resume-prompt.md backbone (EditionValid
 5. **Silent mis-binds produce false greens through the M2/M3 waves** (2002+ usages → DISPLAY, PIC N → numeric, dropped class definitions — pattern-mates of the STOP-literal bug). *Baked in:* the Phase 2 loud-guard sweep closes the family before any feature wave exercises those paths, each closure with an adversarial negative test in the same commit.
 
 ## 5. Decisions needed from the owner
+
+> ✅ **RATIFIED 2026-07-03 (DEVLOG 581):** the owner adopted the council recommendation on every row. For #1
+> the ruling is **no acquisition** — the in-repo 2023 spec (PDF + extracted MD in `specs/`) is the sole ISO
+> authority; Annex E + the legacy inventory adjudicate prior-edition edges, provisional markers stay where
+> they cannot. #6's grammar grant is standing (logged in memory). The table below is preserved as decided.
 
 | # | Decision | Council recommendation |
 |---|---|---|
