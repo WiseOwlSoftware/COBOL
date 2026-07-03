@@ -24,7 +24,18 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 581, 2026-07-03): ⛔ the G7→G8 EXECUTION ROADMAP is `docs/COMPLETION_ROADMAP_COUNCIL.md` —
+> **STATE (DEVLOG 582, 2026-07-03 14:28): ✅ roadmap Phase 0 COMPLETE — the DEVLOG-579 baseline reproduces
+> green after the idle gap (fresh full build 0W/0E; 1074 conformance + 29 unit; guard-fast 353 MATCH,
+> 0 regressions). ✅ The roadmap is now ISO-VALIDATED against `specs/ISO_COBOL.md` (12-agent workflow: 39
+> claims — 30 confirmed / 9 partial / **0 refuted**; 10 serious coverage gaps) — corrections D1–D16 + minors
+> APPLIED INLINE (newly-owned mandatory surface: boolean OPERATIONS, `&`-concat, CONSTANT, DYNAMIC-LENGTH
+> items, §4.2.2 suboption, EXTERNAL cluster; >>PROPAGATE re-editioned ≤2014; the §4.2.16 seven-leg conformance
+> doc; the Phase-1 scrub gains the float-edge split + CONSTANT/`&` row seeds; word tables designed per-unit
+> overridable for COBOL-WORDS); the audit report is the roadmap's Appendix. **RESUME = roadmap Phase 1**
+> (EditionValidator Wave 1 = P2.1–P2.7 per the VERSION_TEST_MATRIX_DESIGN "Phase-2 implementation plan"
+> section + the roadmap's amended Phase-1 items).**
+>
+> **(superseded) STATE (DEVLOG 581, 2026-07-03): ⛔ the G7→G8 EXECUTION ROADMAP is `docs/COMPLETION_ROADMAP_COUNCIL.md` —
 > RATIFIED by the owner (all 11 §5 decisions resolved: #1 = NO standards acquisition, the in-repo 2023 spec
 > [`specs/` PDF + MD] is the sole ISO authority with Annex E + the legacy inventory adjudicating prior-edition
 > edges; #2–#11 = council defaults, incl. the #6 OO/M2 grammar grant). Docs-only checkpoints (580/581); the

@@ -1174,7 +1174,10 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 - Full intrinsic catalog (§12.1); EC exception model (§11: `>>TURN`, RAISE/RESUME, USE…EXCEPTION, PERFORM…WHEN);
   national/boolean; UDF; per the `docs/ISO2023_CONFORMANCE_PLAN.md` §3 catalog. Resolve **Q5** scope for SCREEN/RW/
   JSON-XML.
-> ✔ **G7 execution detail is now `docs/COMPLETION_ROADMAP_COUNCIL.md` (RATIFIED 2026-07-03, DEVLOG 581)** —
+> ✔ **G7 execution detail is now `docs/COMPLETION_ROADMAP_COUNCIL.md` (RATIFIED 2026-07-03, DEVLOG 581;
+> ISO-VALIDATED against the spec DEVLOG 582 — 0 refuted claims; its Appendix carries the audit + the
+> DEVLOG-582 amendments: boolean operations, `&`-concatenation, CONSTANT entries, DYNAMIC-LENGTH items,
+> the §4.2.16 full conformance-documentation set, >>PROPAGATE re-editioned ≤2014)** —
 > Phases 0–8 with exit criteria. Ratified amendments to THIS section: **JSON/XML is removed from the ISO
 > catalog** (zero hits in the 2023 spec — re-tagged vendor-dialect, deferred post-G8; the Q5 JSON-XML leg is
 > thereby resolved, SCREEN = documented non-support per the A.4 line, RW stays as-built); a behavioral leg at
