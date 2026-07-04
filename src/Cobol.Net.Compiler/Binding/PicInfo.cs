@@ -241,16 +241,12 @@ public sealed record PicInfo(
         SignSpec? sign = null, char currency = '$', bool blankWhenZero = false)
     {
         // A TRAILING ';' is the clause SEPARATOR (ISO §8.3.5 rule 2 — a semicolon immediately followed by a
-        // space is a separator; ';' is never a PICTURE symbol), over-captured by the lexer's greedy PIC_STRING
-        // match (`77 X PIC 99; VALUE 3` lexes the picture as "99;" — NC203A/245A/251A/252A). Strip exactly ONE
-        // here at the analysis funnel (one over-captured separator is the only legal shape; `PIC 99;;` and a
-        // bare `PIC ;` remain invalid and fall to the 0808 whitelist below — the adversarial-review fix for the
-        // strip-to-empty leak). The real cure (lexer-mode trim, like its existing trailing-'.' hack) is queued
-        // to the W3 grammar batch. ⚠ A trailing ',' is NOT strippable HERE: §13.18.40.3 SR7 makes a trailing
-        // ',' picture symbol legal when PICTURE is the last clause before the separator period, so
-        // disambiguation needs clause-position context this funnel lacks — `77 X PIC 99, VALUE 3` silently
-        // classifies numeric-edited "99," today (the ';' bug's exact twin, legacy shares it). DOCUMENTED KNOWN
-        // MISBIND (DEVLOG 595; VCR Table 7 row 7.14) — the W3 lexer cure owns both separators.
+        // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
+        // (DEVLOG 596; VCR Table 7 row 7.14): PIC_STRING trims a trailing ','/';' when LA(1) is whitespace —
+        // the separator shape — so a legal SR7 trailing-',' mask (NC125A's `…9,.`) keeps its comma. This
+        // single-';'-strip stays as DEFENSE-IN-DEPTH for the funnel's other callers; `PIC 99;;` and a bare
+        // `PIC ;` remain invalid and fall to the 0808 whitelist below (the adversarial-review fix for the
+        // strip-to-empty leak).
         if (picture.EndsWith(';')) picture = picture[..^1];
         if (picture.Length == 0)
         {

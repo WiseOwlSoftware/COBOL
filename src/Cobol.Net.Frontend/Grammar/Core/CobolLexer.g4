@@ -34,6 +34,8 @@ options {
         // EC exception-model words (ISO §14.6.13 / §14.9.29 / §14.9.33 / §14.9.49 F3, 2002+) — context-sensitive,
         // legal user words at every edition (the cobolWord continuity guarantee):
         RAISE, RAISING, RESUME, STATEMENT, CONDITION, EC,
+        // The 2023 logical-operator words (Annex E.2 item 25; the W3 XOR regating) — user words below 2023:
+        XOR, EXCLUSIVE_OR,
         // Intrinsic function names that collide with reserved words
         // (mirrors functionName in CobolExpressions.g4):
         DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
@@ -102,7 +104,7 @@ EOP          : 'EOP' ;
 
 PROGRAM_ID      : 'PROGRAM-ID' ;
 FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit header (ISO §11.5)
-EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2002 logical exclusive-or operator, equivalent to XOR (ISO §8.8.4.9)
+EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2023 logical exclusive-or operator, = XOR (ISO §8.8.4.9; a 2023 addition per Annex E.2 item 25 — VCR rows 32/41; the former "2002" note was the W3-corrected mislabel)
 FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
 FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
 FLOAT_EXTENDED  : 'FLOAT-EXTENDED' ;// COBOL-2002 extended float — mapped to IEEE-754 double (.NET has no quad)
@@ -404,7 +406,7 @@ OF          : 'OF' ;
 OFF         : 'OFF' ;
 ON          : 'ON' ;
 OR          : 'OR' ;
-XOR         : 'XOR' ;   // COBOL-2002 logical exclusive-or operator (ISO §8.8.4.9)
+XOR         : 'XOR' ;   // COBOL-2023 logical exclusive-or operator (ISO §8.8.4.9; 2023 per Annex E.2 item 25 — VCR rows 32/41)
 OMITTED     : 'OMITTED' ;
 OPTIONAL    : 'OPTIONAL' ;
 OPTIONS     : 'OPTIONS' ;   // COBOL-2002 OPTIONS paragraph header (ISO §11.9)
@@ -610,11 +612,29 @@ PIC_STRING  : ( ~[ \t\r\n.] | '.' ~[ \t\r\n] )+
             Text = t.Substring(0, t.Length - 1);
             InputStream.Seek(InputStream.Index - 1);
         }
+        // A trailing ',' or ';' IMMEDIATELY FOLLOWED BY A SPACE is the CLAUSE SEPARATOR over-captured by the
+        // greedy match (ISO §8.3.5 rule 2) — `77 X PIC 99, VALUE 3.` must lex the picture as "99" (VCR Table 7
+        // row 7.14; the W2 adversarial-review finding; the ';' twin was NC203A/245A/251A/252A). The
+        // following-character GUARD is load-bearing: a LEGAL trailing ',' (§13.18.40.3 SR7 — PICTURE as the
+        // last clause) is followed by the separator PERIOD, not a space (NC125A's `PIC 9,9,…,9,.` — the token
+        // ends at the ',' because '.'+newline cannot extend the match, so LA(1) is '.' and the ',' is a
+        // PICTURE SYMBOL to keep). The seek-back re-lexes a trimmed separator in DEFAULT mode
+        // (COMMA_SEP / SEMICOLON — both skipped).
+        else if (t.Length > 1 && (t[t.Length - 1] == ',' || t[t.Length - 1] == ';'))
+        {
+            int la = InputStream.LA(1);
+            if (la == ' ' || la == '\t' || la == '\r' || la == '\n' || la == Antlr4.Runtime.IntStreamConstants.EOF)
+            {
+                Text = t.Substring(0, t.Length - 1);
+                InputStream.Seek(InputStream.Index - 1);
+            }
+        }
     } -> popMode ;
     // Matches: any non-whitespace-non-period char,
     //      OR: a period followed by a non-whitespace char (embedded decimal)
     // Post-action: if PIC string ends with '.', the greedy match consumed a
-    //   sentence-ending period — back up one char so it tokenizes as DOT.
+    //   sentence-ending period — back up one char so it tokenizes as DOT;
+    //   likewise a trailing ','/';' clause separator (§8.3.5 r2) backs up and re-lexes as a skip token.
 
 // ==========================================
 // COMMENT_MODE — *> to end of line

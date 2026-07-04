@@ -173,6 +173,10 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         CobolLexer.IDENTIFIER,
         CobolLexer.RAISE, CobolLexer.RAISING, CobolLexer.RESUME,
         CobolLexer.CONDITION, CobolLexer.EC, CobolLexer.STATEMENT,
+        // The 2023 logical-operator words (the W3 XOR regating, VCR rows 32/41): admitted to cobolWord as
+        // user words below 2023; their keyword occurrences parse through the {is2023()}?-gated operator
+        // alternative, never a name slot — so, like the EC band, they are position-safe to check everywhere.
+        CobolLexer.XOR, CobolLexer.EXCLUSIVE_OR,
     ];
 
     /// <summary>

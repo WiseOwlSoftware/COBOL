@@ -608,10 +608,14 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   IrDeleteFile → FileRuntime.DeleteFile = ResolveHostPath + File.Delete + I-O status 00/35/30). Verified status
   35 after delete + the physical file removed. Conformance `tests/conformance/2023/delete_file`. **Follow-up:**
   the `ON EXCEPTION`/`NOT ON EXCEPTION` phrases + multiple file-names are not yet honored.
-- ☑ **M4-2a — logical `XOR` / `EXCLUSIVE-OR` operator (DONE — DEVLOG 375).** New `logicalXorExpression` grammar
-  level (precedence NOT>AND>XOR>OR), `BoundBinaryOperatorKind.Xor` → `IrLogicalOp.Xor` → CIL `xor`. NOTE: XOR is a
-  §8.8.4.9 logical operator (2002-era), not a 2023 delta — the audit mis-tagged it. Conformance
-  `tests/conformance/2002/logical_xor`.
+- ☑ **M4-2a — logical `XOR` / `EXCLUSIVE-OR` operator (DONE — DEVLOG 375; RE-EDITIONED to 2023 — DEVLOG 596).**
+  New `logicalXorExpression` grammar level (precedence NOT>AND>XOR>OR), `BoundBinaryOperatorKind.Xor` →
+  `IrLogicalOp.Xor` → CIL `xor`. ⚠ CORRECTION (the W3 chair adjudication, roadmap §2 Phase 2): the former NOTE
+  here claimed XOR is "2002-era, not a 2023 delta" — that parenthetical was UNSOURCED and is WRONG: Annex E.2
+  item 25 / E.3.2 item 4 (the spec's own change annex) list XOR and EXCLUSIVE-OR among the words newly reserved
+  by 2023 (they were user-defined words before), and presence in the 2023 body (§8.8.4.9) proves nothing about
+  2002. The operator is `{is2023()}?`-gated; conformance re-editioned to `tests/conformance/2023/logical_xor`
+  (VCR rows 32/41; constructs.json rows `logical-xor-operator-2023` + the two user-word interval rows).
 - ☐ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics.** Both verified REAL but non-trivial:
   EXCEPTION-FILE-N (§15.29) returns NATIONAL data (blocked on M2-DATA-3 national support); SMALLEST-ALGEBRAIC
   (§15.83) = 10^(-fractionDigits) of the argument's PIC — needs the binder to pass the argument's fraction-digit

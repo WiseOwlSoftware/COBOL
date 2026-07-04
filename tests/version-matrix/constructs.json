@@ -527,6 +527,33 @@
     "expectDiagnostic": "COBOLNET0902",
     "vcr": "VCR rows 1+28 (E.2 item 21; E.2 item 1; 14.9.25.3 SR5)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVQTN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE QUOTE TO W-NUM.\n    STOP RUN.\n"
+  },
+  {
+    "id": "logical-xor-operator-2023",
+    "description": "The logical XOR / EXCLUSIVE-OR operator (ISO 8.8.4.9; precedence NOT > AND > XOR > OR) - a 2023 addition (Annex E.2 item 25 reserves both words; VCR rows 32/41 - the chair-adjudicated regating of the former '2002' mislabel). The operator is {is2023()}?-gated; below 2023 the W1.5 parse-layer mapping names the edition (0900) and both words are user-defined words.",
+    "introducedIn": 2023,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "VCR rows 32/41 (Annex E.2 item 25); W3 regating (DEVLOG 596)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. LXOR1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-A PIC 9 VALUE 1.\n01 WS-B PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    IF WS-A = 1 XOR WS-B = 1 DISPLAY \"T\" ELSE DISPLAY \"F\".\n    STOP RUN.\n"
+  },
+  {
+    "id": "user-word-xor-2023",
+    "description": "The word XOR as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014 (the operator did not exist), reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token at the W3 regating; the funnel rejects 0901 at 2023.",
+    "introducedIn": 85,
+    "removedIn": 2023,
+    "expectDiagnostic": "COBOLNET0901",
+    "vcr": "VCR row 32 (Annex E.2 item 25); W3 regating (DEVLOG 596)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWXOR1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 XOR PIC 9 VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY XOR.\n    STOP RUN.\n"
+  },
+  {
+    "id": "user-word-exclusive-or-2023",
+    "description": "The word EXCLUSIVE-OR as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014, reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token at the W3 regating; the funnel rejects 0901 at 2023.",
+    "introducedIn": 85,
+    "removedIn": 2023,
+    "expectDiagnostic": "COBOLNET0901",
+    "vcr": "VCR row 32 (Annex E.2 item 25); W3 regating (DEVLOG 596)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWXOR2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 EXCLUSIVE-OR PIC 9 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY EXCLUSIVE-OR.\n    STOP RUN.\n"
   }
   ]
 }

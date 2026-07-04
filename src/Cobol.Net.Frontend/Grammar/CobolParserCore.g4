@@ -38,6 +38,11 @@ cobolWord
     | STATEMENT    // context: RESUME AT NEXT STATEMENT (§14.9.33)
     | CONDITION    // context: USE AFTER EXCEPTION CONDITION (§14.9.49 F3)
     | EC           // context: USE AFTER EC (§14.9.49.3 SR12)
+    // The 2023 logical-operator words (Annex E.2 item 25; VCR rows 32/41 — the W3 XOR regating): user-defined
+    // words below 2023 (the operator is {is2023()}?-gated in CobolExpressions.g4); the §8.9 funnel rejects
+    // them 0901 at 2023 (both are high-confidence table rows). Mirrored in the lexer _dataNameTokens set.
+    | XOR          // context: the logical exclusive-or operator (2023, §8.8.4.9)
+    | EXCLUSIVE_OR // context: = XOR (2023, §8.8.4.9)
     // Screen-related tokens that may be used as data names in non-screen contexts
     | AUTO
     | BELL

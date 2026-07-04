@@ -43,8 +43,10 @@ jobs:
 
       # The greenfield COBOL.NET compiler (src/Cobol.Net.*) and its suites — the ACTIVE work. guard.sh covers only
       # the LEGACY CobolSharp engine, so these are gated separately (DEVLOG 515). They build on demand; CI Linux has
-      # pwsh for the Frontend's ANTLR generation step (the committed Generated/*.cs are up to date, so regen is
-      # skipped). Separate steps per project so a failure in one is never masked by the other's exit code.
+      # pwsh + java (both preinstalled on the runner image) for the Frontend's ANTLR generation step — Generated/
+      # is a PURE BUILD OUTPUT since DEVLOG 555/556 and is UNTRACKED as of DEVLOG 596 (a fresh checkout ALWAYS
+      # regenerates; a failed generation FAILS the build — the DEVLOG-552/554 stale-parser fallback class is
+      # structurally impossible now). Separate steps per project so a failure in one is never masked by the other.
       - name: Greenfield conformance tests (differential + NIST)
         run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
       - name: Greenfield unit tests

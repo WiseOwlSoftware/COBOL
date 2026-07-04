@@ -64,10 +64,13 @@ logicalOrExpression
     : logicalXorExpression ( OR ( logicalXorExpression | abbreviatedAndChain ) )*
     ;
 
-// COBOL-2002 logical exclusive-or (ISO §8.8.4.9; precedence NOT > AND > XOR > OR). XOR and EXCLUSIVE-OR are
-// equivalent. Sits between OR and AND so `a OR b XOR c` parses as `a OR (b XOR c)`.
+// COBOL-2023 logical exclusive-or (ISO §8.8.4.9; precedence NOT > AND > XOR > OR). XOR and EXCLUSIVE-OR are
+// equivalent. Sits between OR and AND so `a OR b XOR c` parses as `a OR (b XOR c)`. The OPERATOR is a 2023
+// addition (Annex E.2 item 25 reserves both words; VCR rows 32/41 — the W3 regating of the former "2002"
+// mislabel): gated {is2023()}?; below 2023 both words are USER-DEFINED words (cobolWord admits the tokens;
+// the §8.9 funnel + table enforce the 2023 reservation as 0901 in provable positions).
 logicalXorExpression
-    : logicalAndExpression ( ( XOR | EXCLUSIVE_OR ) logicalAndExpression )*
+    : logicalAndExpression ( {is2023()}? ( XOR | EXCLUSIVE_OR ) logicalAndExpression )*
     ;
 
 logicalAndExpression

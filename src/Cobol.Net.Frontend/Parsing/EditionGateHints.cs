@@ -47,6 +47,7 @@ public static class EditionGateHints
     private static readonly Gate SpecialNamesFor = new("the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)", 2002, "ISO §12.3.7", "special-names-for-national-2002");
     private static readonly Gate CallByValue = new("the CALL BY VALUE phrase", 2002, "ISO §14.9.4", "call-by-value-2002");
     private static readonly Gate ClassDefinition = new("a class definition (CLASS-ID compilation unit)", 2002, "ISO §11.2/§11.3 (OO)", "class-definition-2002");
+    private static readonly Gate LogicalXor = new("the logical XOR/EXCLUSIVE-OR operator", 2023, "ISO §8.8.4.9; Annex E.2 item 25 (VCR rows 32/41)", "logical-xor-operator-2023");
 
     /// <summary>
     /// Recognize an edition-gated construct behind a generic parse error. Returns the COBOLNET0900-band
@@ -96,6 +97,10 @@ public static class EditionGateHints
             CobolLexer.FOR when InRule(ruleStack, "specialNamesParagraph") => SpecialNamesFor,
             CobolLexer.BY when InRule(ruleStack, "callStatement") && Next(stream, token, 1)?.Type == CobolLexer.VALUE => CallByValue,
             CobolLexer.VALUE when InRule(ruleStack, "callStatement") && Next(stream, token, -1)?.Type == CobolLexer.BY => CallByValue,
+            // The XOR OPERATOR below 2023 (the W3 regating): a parse error AT the XOR/EXCLUSIVE-OR token is
+            // the gated operator by construction — as a USER word the token parses through cobolWord and
+            // never errors (the condition-rule stack has popped by report time, so no rule filter applies).
+            CobolLexer.XOR or CobolLexer.EXCLUSIVE_OR => LogicalXor,
             _ => null,
         };
 

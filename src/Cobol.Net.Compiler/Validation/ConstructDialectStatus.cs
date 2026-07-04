@@ -118,6 +118,10 @@ public static class ConstructRegistry
         new("special-names-for-national-2002", "the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)", 2002, null, null, EditionCodes.Introduction, "ISO §12.3.7; grammar-gated at three SPECIAL-NAMES sites; W1.5 parse-layer 0900 mapping"),
         new("call-by-value-2002", "the CALL BY VALUE phrase", 2002, null, null, EditionCodes.Introduction, "ISO §14.9.4; grammar-gated (callByValue); W1.5 parse-layer 0900 mapping"),
         new("class-definition-2002", "a class definition (CLASS-ID compilation unit)", 2002, null, null, EditionCodes.Introduction, "ISO §11.2/§11.3 (OO); grammar-gated in compilationGroup + 0899 not-implemented at ≥2002 (W2 track B); PENDING (Phase 3)"),
+        // ── The W3 XOR regating (VCR rows 32/41; Annex E.2 item 25 — DEVLOG 596) ──
+        new("logical-xor-operator-2023", "the logical XOR/EXCLUSIVE-OR operator", 2023, null, null, EditionCodes.Introduction, "ISO §8.8.4.9; a 2023 addition per Annex E.2 item 25 (VCR rows 32/41 — the chair-adjudicated regating of the former '2002' mislabel); {is2023()}?-gated operator + W1.5 parse-layer 0900 mapping"),
+        new("user-word-xor-2023", "the word XOR as a user-defined word", 85, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32); cobolWord-admitted at the W3 regating"),
+        new("user-word-exclusive-or-2023", "the word EXCLUSIVE-OR as a user-defined word", 85, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32); cobolWord-admitted at the W3 regating"),
     ];
 
     private static Dictionary<string, ConstructDialectStatus>? _byId;

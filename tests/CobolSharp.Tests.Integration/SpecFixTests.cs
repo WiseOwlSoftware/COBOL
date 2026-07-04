@@ -1361,7 +1361,9 @@ public sealed class SpecFixTests : EndToEndTestBase
     }
 
     // ISO §8.8.4.9 / §8.8.4.11.3 — logical exclusive-or (XOR): true iff exactly one operand condition is true,
-    // with precedence NOT > AND > XOR > OR (so "A OR B XOR C" = "A OR (B XOR C)").
+    // with precedence NOT > AND > XOR > OR (so "A OR B XOR C" = "A OR (B XOR C)"). The operator is a
+    // COBOL-2023 addition (Annex E.2 item 25 reserves XOR/EXCLUSIVE-OR; the W3 regating of the former "2002"
+    // mislabel, DEVLOG 596) — the shared grammar gates it {is2023()}?, so this test targets Cobol2023.
     [Fact]
     public void LogicalXor_TruthValuesAndPrecedence()
     {
@@ -1380,7 +1382,7 @@ public sealed class SpecFixTests : EndToEndTestBase
             "           IF WS-B = 1 XOR WS-B = 1 DISPLAY \"3T\" ELSE DISPLAY \"3F\" END-IF.\n" +
             "           IF WS-A = 1 OR WS-B = 1 XOR WS-C = 1 DISPLAY \"4T\" ELSE DISPLAY \"4F\" END-IF.\n" +
             "           STOP RUN.\n",
-            CobolSharp.Compiler.Semantics.DialectMode.Cobol2002);
+            CobolSharp.Compiler.Semantics.DialectMode.Cobol2023);
         Assert.True(ok, stderr);
         Assert.Equal("1T\r\n2F\r\n3F\r\n4T", stdout);
     }
