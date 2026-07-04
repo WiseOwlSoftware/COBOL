@@ -445,8 +445,44 @@ public sealed partial class CSharpEmitter
                 // group move even into an elementary receiver, so it must never reach the receiver-category
                 // conversion/editing of ConvertSource (NC105A MOVE-TEST-F1-16/-17/-20/-36/-38).
                 EmitGroupToElementaryMove(target, m.Source);
-            else
+            else if (!TryEmitFigurativeToNumericImage(target, m.Source))
                 _ctx.Writer.Line(target.Write(ConvertSource(m.Source, target.Item)));
+    }
+
+    /// <summary>MOVE of an alphanumeric figurative constant (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE) or an ALL
+    /// "literal" containing a non-digit into an ELEMENTARY NUMERIC receiver — the PRE-REMOVAL semantics of a
+    /// construct ISO/IEC 1989:2023 REMOVED (§14.9.25.3 SR5; Annex E.2 item 1 bullet 1 — permitted through 2014).
+    /// The binder's "move-alphanumeric-figurative-removed-2023" gate carries the 0902 diagnostics; this emit path
+    /// exists regardless, reachable at --std 85/2002/2014 and at 2023 --permissive. Provisional (ratified decision
+    /// 1 — the legacy oracle is the interim authority for pre-2023 semantics of removed constructs): the fill
+    /// CHARACTERS are deposited as the receiver's character image, repeated to its width (§8.3.3.6.4 GR2), exactly
+    /// the legacy byte engine's fill — MOVE QUOTE TO PIC 9(3) leaves three quotation marks, IS NUMERIC is then
+    /// false, and a later numeric read decodes deterministically (§14.6.13.2: a non-digit contributes no digit).
+    /// The binder flagged an eligible numeric-DISPLAY receiver <see cref="DataItem.StoreAsImage"/> (REUSING the
+    /// §14.9 MOVE GR4 whole-group image substrate — never a parallel mechanism), so the store is a plain image
+    /// write; a Tier-B REDEFINES window / NumericImagePlace writes its character image directly. Only a
+    /// non-DISPLAY numeric receiver (BINARY / PACKED / COMP-5 / float — no character image in the typed-native
+    /// model) remains a NARROW loud guard (§1.4). Returns false when the move is not this shape (the caller falls
+    /// through to <see cref="ConvertSource"/> — figurative ZERO and digit-only ALL are VALUE moves, not fills).</summary>
+    private bool TryEmitFigurativeToNumericImage(Place target, BoundOperand source)
+    {
+        if (target.Item.Pic is not { Category: PicCategory.Numeric }) return false;
+        string? image = source switch
+        {
+            BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } f =>
+                $"new string({_ctx.FigFill(f.Kind)}, {target.Item.ImageWidth})",
+            BoundAllLiteral { IsDigitOnly: false } a =>
+                CsLiteral(EmitText.RepeatToWidth(a.Literal, target.Item.ImageWidth)),
+            _ => null,
+        };
+        if (image is null) return false;
+        _ctx.Writer.Line(target.Item.StoreAsImage || target is RedefViewPlace or NumericImagePlace
+            ? target.Write(image)
+            : LoudStmt($"MOVE of an alphanumeric figurative constant into the numeric item "
+                + $"'{target.Item.CobolName}' without image-backed storage (a BINARY/PACKED/COMP-5/float or "
+                + "Tier-A shared-storage receiver has no character image to fill — narrow pre-2023 residue of "
+                + "the move ISO 2023 removed, §14.9.25.3 SR5 / Annex E.2 item 1)"));
+        return true;
     }
 
     /// <summary>True when a MOVE source operand is a GROUP data item (ISO §14.9.25.4 GR4 sender-side test). A
@@ -593,6 +629,20 @@ public sealed partial class CSharpEmitter
         }
     }
 
+    /// <summary>The compile-time numeric value of a digit-only <c>ALL "literal"</c> moving to a numeric receiver
+    /// (ISO §8.3.3.6.4 GR2 repetition + §14.9.25.4 GR6d3b — the digit string spans the receiver's digit positions,
+    /// fraction digits included, so the unscaled value IS the repeated digit run at the receiver's scale). ≤18
+    /// digit positions fold to a native <c>long</c> literal; a WIDE receiver (19–31 digits, COBOL-2002+ — ISO
+    /// §8.3.1.2) decodes its digit run through the ONE deterministic digit decode (<c>CobolNum.FromAlphanumeric</c>,
+    /// Int128 — numeric design D1).</summary>
+    private static NumX AllDigitFill(string literal, PicInfo pic)
+    {
+        string digits = EmitText.RepeatToWidth(literal, Math.Max(pic.Digits, 1));
+        return digits.Length <= 18
+            ? new NumX($"{long.Parse(digits, System.Globalization.CultureInfo.InvariantCulture)}L", pic.Scale)
+            : new NumX($"CobolNum.FromAlphanumeric({CsLiteral(digits)})", pic.Scale);
+    }
+
     /// <summary>True when a MOVE source is a NUMERIC operand (a numeric literal/expression, figurative ZERO, or a
     /// numeric data item) — the §14.9.25.4 GR5 editing path into a numeric-edited receiver applies only to these;
     /// an alphanumeric source moves as plain characters.</summary>
@@ -647,7 +697,19 @@ public sealed partial class CSharpEmitter
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).
                 return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}{(target.Justified ? ", justifiedRight: true" : "")})";
             case PicCategory.Numeric:
-                NumX n = _num.AsNum(source);
+                // A digit-only ALL "literal" repeats across the RECEIVER's digit positions (ISO §8.3.3.6.4 GR2 —
+                // repetition to the associated item's size, truncated from the right; §14.9.25.4 GR6d3b — a
+                // figurative sending operand takes the receiver's digit count, fraction digits included), so
+                // every digit position holds the pattern: ALL "5" → PIC 9(3) stores 555; → PIC 9V9 stores 5.5
+                // (unscaled 55 at scale 1 — legacy-oracle confirmed). Valid at EVERY edition for the
+                // single-digit-ALL → integer case (§14.9.25.3 SR5, obsolete-flagged 0903 at 2023 by the binder);
+                // the non-integer / multi-character shapes are 0902-gated at 2023 and keep these pre-removal
+                // semantics at 85/2002/2014 and under --permissive (ALL "57" → PIC 9(3) stores 575, the legacy
+                // oracle's '85-obsolete-element behavior — provisional, ratified decision 1). This was the
+                // BoundAllLiteral runtime-loud latent bug (W2 track A): the move compiled then died in AsNum.
+                NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
+                    ? AllDigitFill(allDigit.Literal, pic)
+                    : _num.AsNum(source);
                 string stored = Narrow($"CobolNum.Store({n.Expr}, {n.Scale}, {target.ProfileName})", target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
                 return target.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {target.ProfileName})" : stored;

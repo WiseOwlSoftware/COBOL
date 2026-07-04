@@ -421,7 +421,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).
             : send.functionCall() is { } sfc ? IntrinsicOperand(sfc)
             : new BoundOperandError("MOVE source");
-        return new BoundMove(source, ResolveTargets(targets.dataReference()));
+        var resolved = ResolveTargets(targets.dataReference());
+        // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128): an alphanumeric figurative or ALL "literal"
+        // moving to a numeric / numeric-edited receiver — 0902 removed at 2023 except the digit-only-ALL-to-integer
+        // case, which is 0903 obsolete (StatementBinder.MoveFigurative.cs).
+        MoveFigurativeEditionGates(source, resolved);
+        return new BoundMove(source, resolved);
     }
 
     private BoundStatement BindAdd(Core.AddStatementContext add)

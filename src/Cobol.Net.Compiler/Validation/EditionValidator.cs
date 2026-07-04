@@ -158,15 +158,16 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         return base.VisitChildren(ctx);
     }
 
-    // Which cobolWord token TYPES the funnel checks (P2.4, refined — DEVLOG 585): IDENTIFIER occurrences are
-    // ALWAYS genuine words (the lexer didn't tokenize them), and they carry the whole newly-reserved payload
-    // (the Annex-E 2023 additions lex as IDENTIFIER). The six EC-band tokens are ALSO checked — they are
-    // §8.9-reserved at 2023 and their keyword uses parse through dedicated statement rules, never a name slot.
-    // The REMAINING allowlisted tokens (the screen/report band: COL, COLUMN, AUTO, …) are EXCLUDED for now:
-    // the permissive grammar can bind their KEYWORD occurrences into optional entry-name slots (RW104A binds
-    // the report COLUMN clause's keyword into the report-group entry-name slot), so a position-blind check
-    // false-rejects conforming CCVS-85 programs. Their per-edition enforcement needs position-aware checking —
-    // parked to the W2 adversarial review (P2.8).
+    // Which cobolWord token TYPES the funnel checks POSITION-BLIND (P2.4, refined — DEVLOG 585): IDENTIFIER
+    // occurrences are ALWAYS genuine words (the lexer didn't tokenize them), and they carry the whole
+    // newly-reserved payload (the Annex-E 2023 additions lex as IDENTIFIER). The six EC-band tokens are ALSO
+    // checked everywhere — §8.9-reserved since 2002 (except the context-sensitive STATEMENT, inert in the
+    // table) and their keyword uses parse through dedicated statement rules, never a name slot. The REMAINING
+    // allowlisted tokens (the screen/report/OPTIONS bands: COL, COLUMN, AUTO, …) are checked POSITION-AWARE
+    // instead (the P2.8 W2 adversarial review of the former blanket exclusion): the permissive grammar can
+    // bind their KEYWORD occurrences into optional entry-name slots (RW104A binds the report COLUMN clause's
+    // keyword into the report-group entry-name slot), so a position-blind check false-rejects conforming
+    // CCVS-85 programs. They reject only in a position provably a user-word use — IsProvableUserWordPosition.
     private static readonly HashSet<int> CheckedTokenTypes =
     [
         CobolLexer.IDENTIFIER,
@@ -179,14 +180,16 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     /// <c>cobolWord</c> rule — IDENTIFIER plus the allowlisted context-keyword tokens — so ONE text-based check
     /// here covers 2023-new words that lex as IDENTIFIER (COMMIT, FINALLY, …) AND the EC-band tokens the 2023
     /// edition reserves (RAISE/RAISING/RESUME/CONDITION/EC). The grammar stays a permissive superset ("legal
-    /// user word at every edition"); the VALIDATOR enforces per edition — restricted to
-    /// <see cref="CheckedTokenTypes"/> (see the note there). Only high-confidence rows reject
-    /// (<see cref="ReservedWordSet.RejectsAt"/> — the conservative policy); severity routes through
-    /// <see cref="EditionContext.Removed"/> (error strict / warning permissive, the 0901 band row).
+    /// user word at every edition"); the VALIDATOR enforces per edition — position-blind for
+    /// <see cref="CheckedTokenTypes"/>, position-AWARE for every other allowlisted context keyword
+    /// (<see cref="IsProvableUserWordPosition"/> — the P2.8 W2 subset; see the note on the set). Only
+    /// high-confidence rows reject (<see cref="ReservedWordSet.RejectsAt"/> — the conservative policy);
+    /// severity routes through <see cref="EditionContext.Removed"/> (error strict / warning permissive, the
+    /// 0901 band row).
     /// </summary>
     public override object? VisitCobolWord(CobolParserCore.CobolWordContext ctx)
     {
-        if (!CheckedTokenTypes.Contains(ctx.Start.Type))
+        if (!CheckedTokenTypes.Contains(ctx.Start.Type) && !IsProvableUserWordPosition(ctx))
             return base.VisitChildren(ctx);
         string word = ctx.Start.Text.ToUpperInvariant();
         if (_reservedWords.RejectsAt(word, _edition.DialectLevel) && (_flaggedWords ??= []).Add(word))
@@ -195,4 +198,47 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
                 + "user-defined word (ISO §8.9)");
         return base.VisitChildren(ctx);
     }
+
+    /// <summary>
+    /// Whether this <c>cobolWord</c> occurrence sits in a grammar position that is UNAMBIGUOUSLY a
+    /// user-defined-word use (ISO §8.3.2.2), so a context-keyword token there is provably the program NAMING
+    /// something with that word — the §8.3.2.1 rule-1 violation ("reserved words shall not be used as
+    /// user-defined words"; restated §8.3.2.4.1) the 0901 band enforces. CONSERVATIVE by design (P2.8 W2 —
+    /// the RW104A adversarial review): a slot qualifies only when NO clause/statement keyword admitted by
+    /// <c>cobolWord</c> can legally occupy it, proven against the grammar rule by rule below. Mis-parse-prone
+    /// OPTIONAL entry-name slots stay UNCHECKED — the report-group entry-name (<c>reportGroupName?</c>
+    /// swallows the keyword of RW102A/103A/104A's report COLUMN clause, §13.18.14) and the screen entry-name
+    /// (<c>screenName?</c> would swallow a screen attribute keyword) — as does every REFERENCE position
+    /// (dataReference, qualification, procedure-name refs, DISPLAY UPON, SPECIAL-NAMES operands, …), keeping
+    /// the funnel's no-false-reject guarantee (VCR scope-limit rule).
+    /// </summary>
+    internal static bool IsProvableUserWordPosition(CobolParserCore.CobolWordContext ctx) => ctx.Parent switch
+    {
+        // The data-description / linkage-parameter ENTRY-NAME slot (§13.16 level-number data-name-1): the
+        // slot is optional, but NO dataDescriptionClause alternative begins with a cobolWord-admitted token
+        // (PIC/USAGE/OCCURS/VALUE/… are dedicated tokens outside cobolWord; bare NATIONAL/BIT usages require
+        // the USAGE prefix in this grammar), so a cobolWord token here is always the entry's name.
+        CobolParserCore.DataNameContext
+        {
+            Parent: CobolParserCore.DataDescriptionEntryContext
+                or CobolParserCore.LinkageProcedureParameterContext
+        } => true,
+        // A paragraph/section DEFINITION (§14.4.2/§14.4.3: section-name SECTION. / paragraph-name.): the name
+        // stands at a procedure-unit boundary followed by [SECTION] DOT — no statement in cobolWord's token
+        // set can begin a sentence there, so the word is the procedure's name. REFERENCES (GO TO / PERFORM /
+        // RESUME AT targets) route through procedureName under OTHER parents and stay unchecked.
+        CobolParserCore.ProcedureNameContext
+        {
+            Parent: CobolParserCore.ParagraphNameContext or CobolParserCore.SectionNameContext
+        } => true,
+        // The SELECT clause file-name (§12.4.5.1 general formats: SELECT [OPTIONAL] file-name-1): the name is
+        // mandatory and directly follows SELECT [OPTIONAL], before any file-control clause keyword — the slot
+        // is always the file being DEFINED. FD/statement file-name REFERENCES stay unchecked.
+        CobolParserCore.FileNameContext { Parent: CobolParserCore.FileControlClauseGroupContext } => true,
+        // The PROGRAM-ID / FUNCTION-ID / END-marker program-name (§11.4.2 / §11.5 / §10.6.1): program-names
+        // are user-defined words (§8.3.2.2) and every programName site names the source unit itself, directly
+        // after a dedicated header token — no keyword can occupy the slot.
+        CobolParserCore.ProgramNameContext => true,
+        _ => false,
+    };
 }

@@ -583,11 +583,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
             }
 
+        // Parse the usage keyword ONCE per entry — ParseUsage carries the W2 loud-guard gates (the 2002+
+        // skeleton usages error, ISO §13.18.60), and a re-parse would duplicate their diagnostics.
+        string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
+        Usage entryUsage = PicInfo.ParseUsage(usageText, Edition, entryWhere);
+
         // A PICTURE-less USAGE INDEX entry is an ELEMENTARY index data item (ISO §13.18.60 — class index, no
         // PICTURE allowed), not a group: synthesize its profile so it emits as a long occurrence-number field.
         var pic = pictureText is not null
-            ? PicInfo.Analyze(pictureText, PicInfo.ParseUsage(usageText), ownSign, CurrencyPicSymbol, blankWhenZero)
-            : PicInfo.ParseUsage(usageText) is Usage.Index ? PicInfo.IndexItem : null;
+            ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
+            : entryUsage is Usage.Index ? PicInfo.IndexItem : null;
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.
@@ -600,7 +605,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CsName = csName,
             Pic = pic,
             OwnSign = ownSign,
-            OwnUsage = usageText is not null ? PicInfo.ParseUsage(usageText) : null,
+            OwnUsage = usageText is not null ? entryUsage : null,
             RawValue = rawValue,
             Occurs = occurs,
             OccursSpec = occursSpec,
@@ -619,12 +624,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return item;
     }
 
-    /// <summary>Extract a usage keyword's text (the form after USAGE IS, or the bare keyword).</summary>
+    /// <summary>Extract a usage clause's canonical keyword text by TOKEN inspection — never string-stripping.
+    /// The full form (<c>USAGE [IS] usageKeyword [binarySign]</c>) carries the keyword in its
+    /// <c>usageKeyword</c> child; a bare-keyword alternative (the USAGE word is optional, ISO §13.18.60 general
+    /// format) carries the keyword TERMINAL as the clause's FIRST child with an optional <c>binarySign</c>
+    /// sibling (SIGNED/UNSIGNED on the BINARY-CHAR/-SHORT/-LONG/-DOUBLE family). The historical
+    /// <c>GetText()</c>-and-strip fallback GLUED the sign phrase into the keyword (bare <c>BINARY-CHAR
+    /// SIGNED</c> → <c>"BINARY-CHARSIGNED"</c>, which then silently misbound to DISPLAY — the W2 loud-guard
+    /// sweep), and even bare <c>DISPLAY</c> survived it only by accident. <c>USAGE OBJECT REFERENCE</c> (a rule,
+    /// not one terminal) canonicalizes to <c>"OBJECT REFERENCE"</c> — its class-name operand is not part of the
+    /// keyword.</summary>
     private static string UsageKeyword(Core.UsageClauseContext usage)
     {
-        // The keyword is the last child for the bare forms and the usageKeyword child for "USAGE IS <kw>".
-        var kw = usage.usageKeyword();
-        return kw is not null ? kw.GetText() : usage.GetText().Replace("USAGE", "").Replace("IS", "");
+        if (usage.usageKeyword() is { } kw)
+            return kw.objectReferenceUsage() is not null ? "OBJECT REFERENCE" : kw.GetText();
+        return usage.GetChild(0).GetText();
     }
 
     /// <summary>Extract the first VALUE operand's raw source text (literal or figurative constant). THRU ranges /

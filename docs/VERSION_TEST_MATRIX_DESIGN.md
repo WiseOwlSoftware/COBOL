@@ -361,6 +361,49 @@ fixed-form word continuation ≥2023 = VCR 2, col-7 hyphen obsolete flag = VCR 9
 threaded into `CopyProcessor`/`ReferenceFormatProcessor` today). The COMMUNICATION module stays an M2-scope
 decision.
 
+> **P2.8 W2 AS-BUILT (2026-07-03, DEVLOG 593; four parallel agents on disjoint files, serial integration):**
+> **(a) MOVE rows** — the binder-side gate is the new `StatementBinder.MoveFigurative.cs` partial: a digit-only
+> single-character ALL → integer numeric elementary receiver rides `move-all-digit-integer-obsolete-2023`
+> (0903 ≥2023, VCR 92/128); every other alphanumeric-figurative/ALL → numeric/numeric-edited elementary move
+> rides `move-alphanumeric-figurative-removed-2023` (0902 @2023, VCR 1) with the §-mandated exemptions (ZERO
+> §8.3.3.6.4 GR4; group receivers §14.9.25.4 GR4; ref-mod receivers §8.4.2.4). The two latent bugs are fixed:
+> ALL-digit folds to its GR6d3b/GR2 value compile-time (`AllDigitFill` in `CSharpEmitter.ConvertSource`; ALL
+> "5"→9(3)=555, →9V9=5.5); non-digit fills deposit the character image by REUSING the StoreAsImage substrate
+> (bind-time flag; legacy-oracle-adjudicated, provisional per ratified decision 1). Two legacy NON-conformances
+> documented and not mirrored (legacy CBL0906 compile-rejects QUOTE/HIGH/LOW→numeric at every standard;
+> legacy DISPLAYs a space-filled numeric as empty). ⚠ Open Table-7 research row: §8.3.3.6.3 SR3's
+> multi-character-ALL-with-numeric prohibition may be an '85-obsolete→2002 deletion — no in-repo evidence
+> beyond the 2023 SR text, so it currently rides the 2023 removal row (under-strict at 2002/2014, provisional).
+> **(b) The loud-guard sweep** — `PicInfo.ParseUsage`/`Analyze` now take `(EditionContext, where)`: the silent
+> Display catch-all is dead; the 2002+ recognized-but-unimplemented inventory (NATIONAL, BIT, POINTER, OBJECT
+> REFERENCE, BINARY-CHAR family, FLOAT-SHORT/LONG/EXTENDED, PIC N/1/E) routes its registry row (0900 below
+> 2002) + a COBOLNET0899 not-implemented error at ≥2002 naming the owning phase; an unknown usage keyword or
+> PICTURE symbol is loud (new COBOLNET0808 invalid-PICTURE-symbol; §13.18.40.3 SR2 whitelist honoring the
+> program currency symbol). `UsageKeyword` reads tokens, not stripped text (bare `BINARY-CHAR SIGNED` gates
+> identically to the full form). Skeleton enum members (PicCategory.National/.Boolean + 11 Usage members) throw
+> loud from every storage-mapping member if reached. `CallCollectUnits` no longer silently drops a
+> `classDefinition` (0899, Phase 3). ⚠ This exposed the allocate/free/invoke matrix rows as DOUBLE-silent-hole
+> false-greens (pointer usage misbound to Display + statements bind BoundUnsupported) — flipped to pending
+> until Phase 4b/3.
+> **(c) The negative corpus** — 18 cases enabled (11 2002-removal gates, 3 2023 removals, 4 reserved-word
+> interval witnesses), every (case × edition) rejection AND every pre-removal-edition clean compile verified
+> against the CLI before enablement.
+> **(d) Position-aware reserved words** — the P2.4 token-type restriction is LIFTED for provable positions:
+> non-IDENTIFIER/non-EC-band `cobolWord` occurrences now reject 0901 when (and only when) they occupy a slot no
+> cobolWord-admitted keyword can legally occupy — the data/parameter entry-name (`dataName` under
+> `dataDescriptionEntry`/`linkageProcedureParameter`), paragraph/section DEFINITIONS, the SELECT file-name, and
+> the three `programName` sites (`EditionValidator.IsProvableUserWordPosition`, grammar-proved per slot). The
+> mis-parse-prone optional entry-name slots (`reportGroupName` — the RW104A COLUMN hazard — and `screenName`)
+> and all reference positions stay unchecked (conservative false-negative, never false-positive). Adversarial
+> review outcome: of the 34 formerly-excluded band tokens only 7 have §8.9 table rows (2 continuous-since-85
+> incl. COLUMN, 5 added-2002); the other 27 are §8.10 context-sensitive words with no reservation to enforce —
+> the position machinery closes the ENTIRE real gap. New correct strictness: a data item/paragraph/SELECT
+> file/program named with a continuously-reserved band word now rejects 0901 even at 85 strict (§8.3.2.1 rule
+> 1); corpus-swept clean (the only corpus band-word hits are RW102A/103A/104A report-group COLUMN clause
+> keywords — excluded positions by construction). ⚠ Standing hazard, flagged in the slot comments: a future
+> grammar change adding a data-description clause that BEGINS with a cobolWord-admitted token would silently
+> re-open the RW104A-style hazard for the entry-name slot.
+
 ## 9. Reuse / do-not-duplicate map
 
 | Need | Existing (reuse / port) |

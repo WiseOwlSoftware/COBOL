@@ -154,7 +154,14 @@ public sealed record BoundFigurative(char Kind) : BoundOperand;
 /// <summary>The figurative <c>ALL "literal"</c> (ISO §8.3.3.6.4 Format 6): the multi-character <paramref name="Literal"/>
 /// repeated to the associated width (the receiver in a MOVE, the other operand in a comparison — GR2) or used once in a
 /// length-unspecified context such as DISPLAY (GR3c).</summary>
-public sealed record BoundAllLiteral(string Literal) : BoundOperand;
+public sealed record BoundAllLiteral(string Literal) : BoundOperand
+{
+    /// <summary>True when the literal is one or more digit characters — the shape of ISO §14.9.25.3 SR5's sole
+    /// surviving figurative→numeric MOVE ("an ALL "literal" figurative constant (containing only digits) … to an
+    /// integer numeric item"). The ONE definition both the binder's edition gates and the emitter's value/image
+    /// split consult (feedback_singular_pattern).</summary>
+    public bool IsDigitOnly => Literal.Length > 0 && Literal.All(c => c is >= '0' and <= '9');
+}
 
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundOperandError(string Feature) : BoundOperand;

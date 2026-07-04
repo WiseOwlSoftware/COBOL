@@ -153,8 +153,20 @@ public sealed partial class CSharpEmitter
         var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var group in tree.compilationGroup())
+        {
+            // A class definition (an OO compilation unit, ISO §11.2 class definition composition / §11.3
+            // CLASS-ID paragraph; the {is2002()}?-gated compilationGroup alternative) has NO emit path yet.
+            // Historically it was SILENTLY DROPPED here — no unit, no diagnostic (the W2 loud-guard sweep).
+            // Reject loud instead; below 2002 the grammar predicate already parse-errors (W1.5 upgrades that
+            // edge to a 0900 edition-naming diagnostic). Full implementation: roadmap Phase 3 (OO/2002).
+            foreach (var cd in group.classDefinition())
+                edition.Error("COBOLNET0899",
+                    $"class definition '{cd.classIdParagraph()?.className(0)?.GetText() ?? "?"}' (an OO "
+                    + "compilation unit, ISO §11.2/§11.3) is recognized but not yet implemented (owning "
+                    + "roadmap phase: Phase 3)");
             foreach (var pu in group.programUnit())
                 Collect(pu, null);
+        }
         return all;
 
         void Collect(Core.ProgramUnitContext ctx, CallUnit? parent)

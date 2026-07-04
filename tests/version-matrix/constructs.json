@@ -35,7 +35,8 @@
     },
     {
       "id": "allocate-2002",
-      "description": "ALLOCATE statement (dynamic storage), ISO §14.9.3 — introduced 2002",
+      "status": "pending",
+      "description": "ALLOCATE statement (dynamic storage), ISO §14.9.3 — introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (a DOUBLE silent hole — the source's USAGE POINTER misbound to DISPLAY and ALLOCATE binds BoundUnsupported runtime-loud); reactivates with Phase 4b (pointers/ALLOCATE on ManagedPointer).",
       "introducedIn": 2002,
       "removedIn": null,
       "vcr": "2002 introduction (derive from the 2002 standard)",
@@ -43,7 +44,8 @@
     },
     {
       "id": "free-2002",
-      "description": "FREE statement (release ALLOCATEd storage), ISO §14.9.15 — introduced 2002",
+      "status": "pending",
+      "description": "FREE statement (release ALLOCATEd storage), ISO §14.9.15 — introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (USAGE POINTER misbound to DISPLAY; FREE binds BoundUnsupported); reactivates with Phase 4b.",
       "introducedIn": 2002,
       "removedIn": null,
       "vcr": "2002 introduction (derive from the 2002 standard)",
@@ -51,7 +53,8 @@
     },
     {
       "id": "invoke-2002",
-      "description": "INVOKE (OO method call), ISO §14.9.23 — introduced 2002",
+      "status": "pending",
+      "description": "INVOKE (OO method call), ISO §14.9.23 — introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (USAGE OBJECT REFERENCE misbound to DISPLAY; INVOKE binds BoundUnsupported); reactivates with Phase 3 (the M2 OO port).",
       "introducedIn": 2002,
       "removedIn": null,
       "vcr": "2002 introduction (OO; derive from the 2002 standard)",
@@ -359,8 +362,7 @@
     },
   {
     "id": "move-alphanumeric-figurative-removed-2023",
-    "status": "pending",
-    "description": "MOVE of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics preserved under permissive), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case. PENDING: W2 track A implements the pre-removal semantics (runtime-loud today) + the binder-side 0902 gate, then flips this row active.",
+    "description": "MOVE of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics per the legacy oracle, provisional per ratified decision 1; implemented on the StoreAsImage substrate), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case. Gate: StatementBinder.MoveFigurative.cs (W2 track A, DEVLOG 593).",
     "introducedIn": 85,
     "removedIn": 2023,
     "expectDiagnostic": "COBOLNET0902",
@@ -369,8 +371,7 @@
   },
   {
     "id": "move-all-digit-integer-obsolete-2023",
-    "status": "pending",
-    "description": "MOVE of a digit-only ALL literal (or a digit symbolic-character) to an INTEGER numeric item - the sole surviving alphanumeric-figurative-to-numeric MOVE (14.9.25.3 SR5), valid at EVERY edition, obsolete-flagged 0903 at 2023 (SR5 NOTE; Annex F.2 item 2). PENDING: W2 track A fixes the BoundAllLiteral runtime-loud latent bug (the move is valid everywhere), then flips this row active.",
+    "description": "MOVE of a digit-only ALL literal (or a digit symbolic-character) to an INTEGER numeric item - the sole surviving alphanumeric-figurative-to-numeric MOVE (14.9.25.3 SR5), valid at EVERY edition (the BoundAllLiteral runtime-loud latent bug fixed by AllDigitFill compile-time folding, 8.3.3.6.4 GR2 + 14.9.25.4 GR6d3b), obsolete-flagged 0903 at 2023 (SR5 NOTE; Annex F.2 item 2). Gate: StatementBinder.MoveFigurative.cs (W2 track A, DEVLOG 593).",
     "introducedIn": 85,
     "removedIn": null,
     "obsoleteIn": 2023,

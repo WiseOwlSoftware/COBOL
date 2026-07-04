@@ -323,8 +323,10 @@ public sealed partial class DataBinder
                 // The printable item (§13.18.14): a SYNTHETIC DataItem carrying the PICTURE so the emitter's ONE
                 // MOVE conversion path renders the §13.18.53.4 GR1 implicit MOVE. A printable item is a
                 // USAGE-DISPLAY elementary item; its numeric face stores its character IMAGE (StoreAsImage).
+                string itemWhere = $"RD '{model.Name}' printable item '{entryName ?? "FILLER"}'";
                 var pic = picText is not null
-                    ? PicInfo.Analyze(picText, PicInfo.ParseUsage(usageText), ownSign, CurrencyPicSymbol, blankWhenZero)
+                    ? PicInfo.Analyze(picText, PicInfo.ParseUsage(usageText, Edition, itemWhere), Edition,
+                        itemWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
                     : null;
                 if (pic is null)
                 {
@@ -422,7 +424,12 @@ public sealed partial class DataBinder
     private ReportSumModel BindSumClause(
         Core.ReportSumClauseContext sm, string? entryName, string? picText, ReportGroupModel group, ReportModel model)
     {
-        var pic = picText is not null ? PicInfo.Analyze(picText, Usage.Display) : null;
+        // Scale-derivation analysis (GR1) — threads the edition + the program currency symbol like every other
+        // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
+        var pic = picText is not null
+            ? PicInfo.Analyze(picText, Usage.Display, Edition,
+                $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'", currency: CurrencyPicSymbol)
+            : null;
         var sum = new ReportSumModel
         {
             Id = entryName ?? $"__SUM{_sumCounterId++}",

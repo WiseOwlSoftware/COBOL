@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Validation;
+
 namespace CobolNet.Binding;
 
 /// <summary>The data category a PICTURE describes (ISO/IEC 1989:2023 §8.4.2).</summary>
@@ -13,6 +15,13 @@ public enum PicCategory
     Numeric,
     /// <summary>Numeric-edited (<c>Z * $ , . + - CR DB B 0</c>) — a formatted display image; later slice.</summary>
     NumericEdited,
+    /// <summary>National (<c>PIC N</c>, ISO §8.5.2.10 / §13.18.40.4 GR9) — SKELETON (W2 loud guard): the enum
+    /// member exists so the Phase-4a implementation lands on a stable shape, but NOTHING constructs it yet —
+    /// the bind-time gate (<c>national-data-2002</c>) rejects every national picture before classification.</summary>
+    National,
+    /// <summary>Boolean (<c>PIC 1</c>, ISO §8.5.2.5 / §13.18.40.4 GR8) — SKELETON (W2 loud guard): never
+    /// constructed until Phase 4a; the <c>boolean-data-2002</c> gate rejects every boolean picture first.</summary>
+    Boolean,
 }
 
 /// <summary>A SIGN clause's content (ISO §13.18.52): position (LEADING/TRAILING) and SEPARATE CHARACTER mode.
@@ -39,6 +48,39 @@ public enum Usage
     /// the typed-native model IS the index representation (a <c>long</c>, COBOLNET_DESIGN §3.5). Only SET, SEARCH,
     /// and relation conditions may reference it; SET copies it UNCHANGED (no PICTURE store, §14.9.39 GR2b).</summary>
     Index,
+
+    // ── SKELETON usages (the W2 loud-guard sweep): the ISO-2002 §13.18.60 usage inventory that COBOL.NET
+    // recognizes + edition-gates but does NOT implement yet. NOTHING constructs a PicInfo carrying one of
+    // these — PicInfo.ParseUsage rejects each loudly (its ConstructRegistry introduction gate + the
+    // COBOLNET0899 not-implemented error) and recovers to Display so the already-failed compile finishes its
+    // doomed emit pass without crashing. Every storage-mapping switch over Usage guards them with a THROW
+    // (never a silent default arm) so a future phase that starts constructing them fails loud, not wrong. ──
+
+    /// <summary>USAGE NATIONAL (ISO §13.18.60 / §8.5.2.10) — SKELETON; full implementation Phase 4a.</summary>
+    National,
+    /// <summary>USAGE BIT (ISO §13.18.60 / §8.5.2.5 category boolean) — SKELETON; Phase 4a.</summary>
+    Bit,
+    /// <summary>USAGE POINTER (ISO §13.18.60 / §8.5.2.6 data-pointer) — SKELETON; Phase 4b (the
+    /// ManagedPointer carrier).</summary>
+    Pointer,
+    /// <summary>USAGE OBJECT REFERENCE (ISO §13.18.60 / §8.5.2.14) — SKELETON; Phase 3 (OO).</summary>
+    ObjectReference,
+    /// <summary>USAGE FLOAT-SHORT (ISO §13.18.60; the §13.18.59 D16 split) — SKELETON; Phase 6. NOT part of
+    /// <see cref="PicInfo.IsFloat"/> until implemented — COMP-1/COMP-2 remain the only live float usages.</summary>
+    FloatShort,
+    /// <summary>USAGE FLOAT-LONG (ISO §13.18.60) — SKELETON; Phase 6.</summary>
+    FloatLong,
+    /// <summary>USAGE FLOAT-EXTENDED (ISO §13.18.60) — SKELETON; Phase 6.</summary>
+    FloatExtended,
+    /// <summary>USAGE BINARY-CHAR [SIGNED|UNSIGNED] (ISO §13.18.60) — SKELETON; Phase 4 (the M2 catalog
+    /// reconciliation).</summary>
+    BinaryChar,
+    /// <summary>USAGE BINARY-SHORT (ISO §13.18.60) — SKELETON; Phase 4.</summary>
+    BinaryShort,
+    /// <summary>USAGE BINARY-LONG (ISO §13.18.60) — SKELETON; Phase 4.</summary>
+    BinaryLong,
+    /// <summary>USAGE BINARY-DOUBLE (ISO §13.18.60) — SKELETON; Phase 4.</summary>
+    BinaryDouble,
 }
 
 /// <summary>
@@ -98,9 +140,28 @@ public sealed record PicInfo(
     /// (numeric design D1 / SSOT §18 #4). ≤18 digits stay hardware-native <see cref="long"/>.</summary>
     public bool IsWide => Category is PicCategory.Numeric && !IsFloat && Digits > 18;
 
+    /// <summary>True when this PicInfo carries a SKELETON representation (a W2 loud-guard category/usage —
+    /// recognized + edition-gated but NOT implemented). By construction NOTHING creates one: the bind-time
+    /// gates in <see cref="ParseUsage"/>/<see cref="Analyze"/> reject the construct and recover to a safe
+    /// Display shape. Every storage-mapping member throws through this guard rather than silently defaulting
+    /// (feedback: every misbind is a wrong-answer bug — fail LOUD).</summary>
+    private bool IsUnimplementedSkeleton =>
+        Category is PicCategory.National or PicCategory.Boolean
+        || Usage is Usage.National or Usage.Bit or Usage.Pointer or Usage.ObjectReference
+            or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+            or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble;
+
+    /// <summary>The loud internal error for a skeleton representation reaching a storage-mapping switch —
+    /// the bind-time gates must have rejected it first (W2 loud guard; owning phases per ConstructRegistry).</summary>
+    private InvalidOperationException SkeletonReached() =>
+        new($"internal: PicInfo (category {Category}, usage {Usage}) is a recognized-but-unimplemented skeleton "
+            + "representation — the bind-time gates (PicInfo.ParseUsage/Analyze) must reject it before any "
+            + "storage mapping is consulted");
+
     /// <summary>The C# type used to store this item's value.</summary>
     public string ClrType => Category switch
     {
+        _ when IsUnimplementedSkeleton => throw SkeletonReached(),
         PicCategory.Alphanumeric or PicCategory.NumericEdited => "string",
         // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
         // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,
@@ -120,6 +181,7 @@ public sealed record PicInfo(
     /// <summary>The default C# initializer for an item with no VALUE clause (COBOL initial state, ISO §13.18.63).</summary>
     public string DefaultInitializer => Category switch
     {
+        _ when IsUnimplementedSkeleton => throw SkeletonReached(),
         // Alphanumeric defaults to spaces; numeric to zero (unscaled).
         PicCategory.Alphanumeric or PicCategory.NumericEdited => $"new string(' ', {Length})",
         PicCategory.Numeric => Usage switch
@@ -134,6 +196,7 @@ public sealed record PicInfo(
     /// <summary>Storage width in bytes, for the PACKED-DECIMAL / COMP-5 capacity disciplines (else 0 — unused).</summary>
     public int StorageWidth => Usage switch
     {
+        _ when IsUnimplementedSkeleton => throw SkeletonReached(),
         Usage.Packed => Digits / 2 + 1,
         Usage.Binary or Usage.Comp5 => Digits <= 2 ? 1 : Digits <= 4 ? 2 : Digits <= 9 ? 4 : 8,
         _ => 0,
@@ -147,6 +210,7 @@ public sealed record PicInfo(
     {
         get
         {
+            if (IsUnimplementedSkeleton) throw SkeletonReached();
             string trunc = Usage switch
             {
                 Usage.Packed => "NumericTruncation.PackedDecimal",
@@ -165,13 +229,73 @@ public sealed record PicInfo(
     /// via the binder's post-build inheritance pass, ISO §13.18.52 GR1–3). <paramref name="currency"/> is the
     /// program's currency PICTURE SYMBOL (ISO §12.3.7 GR13; <c>$</c> per SR25) — a non-default symbol (e.g.
     /// NC107A's <c>W</c>, NC108M's <c>&lt;</c>) classifies exactly like <c>$</c>: its mask positions are
-    /// fixed/floating currency insertion, making the item NUMERIC-EDITED (§13.18.40.4).
+    /// fixed/floating currency insertion, making the item NUMERIC-EDITED (§13.18.40.4). <paramref name="edition"/>
+    /// + <paramref name="where"/> carry the W2 loud-guard diagnostics: the symbol whitelist (§13.18.40.3 SR2) —
+    /// a symbol outside the legal set is a COBOLNET0808 error, and the legal-but-unimplemented 2002+ symbols
+    /// <c>N</c>/<c>1</c>/<c>E</c> route their introduction gates + a not-implemented error (never the historical
+    /// silent fall-through to "pure numeric, zero digits"). Analyze sees the RAW picture — DECIMAL-POINT IS COMMA
+    /// (ISO §13.18.40.3 SR13) swaps the ROLES of <c>,</c> and <c>.</c> at edit time (<c>CobolEdit.MaskScale</c>'s
+    /// flag), not the symbols themselves, and both are whitelisted regardless.
     /// </summary>
-    public static PicInfo Analyze(string picture, Usage usage, SignSpec? sign = null, char currency = '$',
-        bool blankWhenZero = false)
+    public static PicInfo Analyze(string picture, Usage usage, EditionContext edition, string where,
+        SignSpec? sign = null, char currency = '$', bool blankWhenZero = false)
     {
+        // A TRAILING ';' is the clause SEPARATOR (ISO §6.2 — a semicolon immediately followed by a space is a
+        // separator; ';' is never a PICTURE symbol), over-captured by the lexer's greedy PIC_STRING match
+        // (`77 X PIC 99; VALUE 3` lexes the picture as "99;" — NC203A/245A/251A/252A). Strip it here at the ONE
+        // analysis funnel; the real cure (lexer-mode trim, like its existing trailing-'.' hack) is queued to the
+        // W3 grammar batch. A trailing ',' is NOT stripped — ',' is a legal insertion symbol and the historical
+        // classifier treated it as part of the mask (zero-regression discipline). An EMBEDDED ';' stays 0808.
+        picture = picture.TrimEnd(';');
+
         // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99".
         string expanded = ExpandRepeats(picture);
+        char cs = char.ToUpperInvariant(currency);
+
+        // ── The §13.18.40.3 SR2 symbol whitelist (the W2 loud guard). The legal ISO 2023 Format-1 symbols are
+        // A B E N P S V X Z 0 1 9 / , . + - * CR DB and the program's currency symbol (§13.18.40.4 GR14;
+        // ExpandRepeats has already uppercased, so the §8.1.3 GR3 case equivalence is folded). 'N' (national,
+        // §8.5.2.10), '1' (boolean, §8.5.2.5) and 'E' (external float, §13.18.40.4 GR13b) are LEGAL 2002+
+        // symbols with no implementation yet: each fires its ConstructRegistry introduction gate (0900 below
+        // 2002) plus the not-implemented error at 2002+. Anything else is an invalid PICTURE. ──
+        bool hasN = false, has1 = false, hasE = false;
+        char? invalid = null;
+        for (int i = 0; i < expanded.Length; i++)
+        {
+            char c = expanded[i];
+            switch (c)
+            {
+                // '$' stays legal even under a custom §12.3.7 currency symbol — the classification below has
+                // always treated it as an editing symbol unconditionally (the anyEdit set), and this scan must
+                // not reject anything the classifier accepts (the zero-regression discipline of this sweep).
+                case 'A' or 'B' or 'P' or 'S' or 'V' or 'X' or 'Z'
+                    or '0' or '9' or '/' or ',' or '.' or '+' or '-' or '*' or '$':
+                    break;
+                case 'C' when i + 1 < expanded.Length && expanded[i + 1] == 'R':
+                case 'D' when i + 1 < expanded.Length && expanded[i + 1] == 'B':
+                    i++; break;   // CR / DB — each two-character pair is ONE symbol (§13.18.40.3 SR12 NOTE 2)
+                case 'N': hasN = true; break;
+                case '1': has1 = true; break;
+                case 'E': hasE = true; break;
+                default:
+                    if (c == cs) break;   // the program's currency symbol (ISO §12.3.7 GR13)
+                    invalid ??= c;        // 'C'/'D' not opening CR/DB land here too — no legal lone use
+                    break;
+            }
+        }
+        if (hasN || has1 || hasE || invalid is not null)
+        {
+            if (hasN) NotImplementedSkeleton(edition, "national-data-2002", "Phase 4a", where);
+            if (has1) NotImplementedSkeleton(edition, "boolean-data-2002", "Phase 4a", where);
+            if (hasE) NotImplementedSkeleton(edition, "pic-external-float-2002", "Phase 6", where);
+            if (invalid is { } bad)
+                edition.Error("COBOLNET0808", $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
+                    + "(ISO §13.18.40.3 SR2: not an allowable picture symbol combination)");
+            // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
+            // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes).
+            return new PicInfo(PicCategory.Alphanumeric, Usage.Display,
+                Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false);
+        }
 
         bool signed = expanded.Contains('S');
         bool hasV = expanded.Contains('V');
@@ -192,7 +316,6 @@ public sealed record PicInfo(
         int digitPositions = expanded.Count(c => c is '9' or 'Z' or '*');
         int scale = trailingP > 0 ? -trailingP : leadingP > 0 ? leadingP + digitPositions : afterV;
 
-        char cs = char.ToUpperInvariant(currency);
         bool anyAlpha = expanded.Any(c => c is 'X' or 'A');
         // CR / DB are fixed-insertion editing symbols too (ISO §13.18.40.4) — `PIC 9(5)CR` is NUMERIC-EDITED
         // (NC104A MOVE-TEST-F1-14), not pure numeric with stray letters. The program's currency symbol (ISO
@@ -267,18 +390,72 @@ public sealed record PicInfo(
         return sb.ToString();
     }
 
-    /// <summary>Map a COBOL usage keyword (e.g. <c>COMP-3</c>) to a <see cref="Usage"/>.</summary>
-    public static Usage ParseUsage(string? keyword) => keyword?.ToUpperInvariant().Replace("COMPUTATIONAL", "COMP") switch
+    /// <summary>
+    /// Map a COBOL usage keyword (e.g. <c>COMP-3</c>) to a <see cref="Usage"/>. EVERY grammar-accepted keyword
+    /// (the ISO §13.18.60 inventory in <c>CobolData.g4 usageClause/usageKeyword</c>) is recognized EXPLICITLY —
+    /// the historical silent catch-all mapped the whole 2002 inventory (NATIONAL, BIT, POINTER, OBJECT
+    /// REFERENCE, the FLOAT-x and BINARY-x families) to <see cref="Usage.Display"/>, a wrong-answer misbind (the
+    /// W2 loud-guard sweep). The recognized-but-unimplemented 2002+ usages route their ConstructRegistry
+    /// introduction gate (COBOLNET0900 below 2002) plus the COBOLNET0899 not-implemented error at 2002+, then
+    /// recover to Display (the compile has already failed; the value only keeps the doomed emit crash-free).
+    /// An unrecognized keyword is a LOUD internal error — never Display.
+    /// </summary>
+    public static Usage ParseUsage(string? keyword, EditionContext edition, string where)
     {
-        null or "DISPLAY" => Usage.Display,
-        "COMP" or "COMP-4" or "BINARY" => Usage.Binary,
-        "COMP-3" or "PACKED-DECIMAL" => Usage.Packed,
-        "COMP-5" => Usage.Comp5,
-        "COMP-1" => Usage.Float,
-        "COMP-2" => Usage.Double,
-        "INDEX" => Usage.Index,
-        _ => Usage.Display,
-    };
+        switch (keyword?.ToUpperInvariant().Replace("COMPUTATIONAL", "COMP"))
+        {
+            case null or "DISPLAY": return Usage.Display;
+            case "COMP" or "COMP-4" or "BINARY": return Usage.Binary;
+            case "COMP-3" or "PACKED-DECIMAL": return Usage.Packed;
+            case "COMP-5": return Usage.Comp5;
+            case "COMP-1": return Usage.Float;
+            case "COMP-2": return Usage.Double;
+            case "INDEX": return Usage.Index;
+            // ── The 2002+ recognized-but-unimplemented inventory (ISO §13.18.60): gate loud, recover Display ──
+            case "NATIONAL": return SkeletonUsage(edition, "national-data-2002", "Phase 4a", where);
+            case "BIT": return SkeletonUsage(edition, "boolean-data-2002", "Phase 4a", where);
+            case "POINTER": return SkeletonUsage(edition, "usage-pointer-2002", "Phase 4b", where);
+            case "OBJECT REFERENCE": return SkeletonUsage(edition, "usage-object-reference-2002", "Phase 3", where);
+            case "BINARY-CHAR" or "BINARY-SHORT" or "BINARY-LONG" or "BINARY-DOUBLE":
+                return SkeletonUsage(edition, "usage-binary-char-family-2002", "Phase 4", where);
+            case "FLOAT-SHORT": return SkeletonUsage(edition, "usage-float-short-2002", "Phase 6", where);
+            case "FLOAT-LONG": return SkeletonUsage(edition, "usage-float-long-2002", "Phase 6", where);
+            case "FLOAT-EXTENDED": return SkeletonUsage(edition, "usage-float-extended-2002", "Phase 6", where);
+            case { } other:
+                // The grammar admits nothing else — reaching here is a compiler defect (a new grammar
+                // alternative without its ParseUsage arm). LOUD, never a silent Display misbind.
+                edition.Error("COBOLNET0899",
+                    $"internal: unrecognized USAGE keyword '{other}' — {where} (ISO §13.18.60; every "
+                    + "grammar-accepted usage keyword must have an explicit ParseUsage mapping)");
+                return Usage.Display;
+        }
+    }
+
+    /// <summary>The W2 skeleton gate for a recognized-but-unimplemented USAGE: fire the introduction gate +
+    /// the not-implemented error via <see cref="NotImplementedSkeleton"/>, then recover to
+    /// <see cref="Usage.Display"/> — the compile has already failed, so the skeleton <see cref="Usage"/> member
+    /// never enters the bound model (the storage-mapping switches throw if one ever does).</summary>
+    private static Usage SkeletonUsage(EditionContext edition, string rowId, string phase, string where)
+    {
+        NotImplementedSkeleton(edition, rowId, phase, where);
+        return Usage.Display;
+    }
+
+    /// <summary>THE loud gate for a construct that is recognized + registry-gated but not implemented (the W2
+    /// skeleton set): below the row's introducing edition <see cref="ConstructRegistry.Check"/> emits the
+    /// COBOLNET0900 introduction error (both axes); AT or ABOVE it — where Check is silent for an
+    /// introduction-only row — a COBOLNET0899 not-implemented error (the existing 08xx staging convention,
+    /// DataBinder.Reports.cs) naming the owning roadmap phase (COMPLETION_ROADMAP_COUNCIL). Either way the
+    /// compile FAILS — never a silent misbind.</summary>
+    private static void NotImplementedSkeleton(EditionContext edition, string rowId, string phase, string where)
+    {
+        var row = ConstructRegistry.Find(rowId)
+            ?? throw new ArgumentException($"unregistered construct id '{rowId}'", nameof(rowId));
+        ConstructRegistry.Check(edition, rowId, where);
+        if (edition.DialectLevel >= row.IntroducedIn)
+            edition.Error("COBOLNET0899", $"{row.Display} is recognized but not yet implemented (owning "
+                + $"roadmap phase: {phase}) — {where} ({row.Citation})");
+    }
 
     /// <summary>The synthesized profile of a PICTURE-less <c>USAGE INDEX</c> data item (ISO §13.18.60): an
     /// elementary <c>long</c> holding an occurrence number. Digits/Scale are irrelevant — SET copies an index value
