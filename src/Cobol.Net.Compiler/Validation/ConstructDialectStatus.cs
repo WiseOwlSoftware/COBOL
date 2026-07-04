@@ -84,6 +84,22 @@ public static class ConstructRegistry
         new("user-word-raising-2002", "the word RAISING as a user-defined word", 85, 2002, null, EditionCodes.ReservedWord, "§8.9 interval encoding: user-definable at 85, reserved since 2002 (the EC family — DEVLOG 585 correction)"),
         new("receive-as-user-word", "the word RECEIVE as a user-defined word", 2002, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding of the RE-reservation: 85-reserved (communication) → user-definable 2002/2014 → re-reserved 2023 (Annex E.2 item 25)"),
         new("end-receive-as-user-word", "the word END-RECEIVE as a user-defined word", 2002, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding: the THIRD re-reserved communication word — discovered mechanically (DEVLOG 585); same interval as RECEIVE"),
+        // ── The P2.6 Wave-1 gate batch (DEVLOG 589) ──
+        new("value-of-removed-2002", "the VALUE OF clause (FD)", 85, 2002, null, EditionCodes.RemovedConstruct, "obsolete '85 label-field clause, deleted by ISO 2002; VCR Table 7"),
+        new("data-records-removed-2002", "the DATA RECORDS clause (FD/SD)", 85, 2002, null, "COBOLNET0873", "obsolete '85 element deleted by ISO 2002 (§13.4.6 admits only the record clause); pinned code kept; VCR Table 7 row 7.1"),
+        new("multiple-file-tape-removed-2002", "the MULTIPLE FILE [TAPE] clause (I-O-CONTROL)", 85, 2002, null, EditionCodes.RemovedConstruct, "obsolete '85 reel-sharing description, deleted by ISO 2002; VCR Table 7"),
+        new("memory-size-removed-2002", "the MEMORY SIZE clause (OBJECT-COMPUTER)", 85, 2002, null, EditionCodes.RemovedConstruct, "obsolete '85 element deleted by ISO 2002; token-scan of the computerAttributes sink; VCR Table 7"),
+        new("segment-limit-removed-2002", "the SEGMENT-LIMIT clause (OBJECT-COMPUTER)", 85, 2002, null, EditionCodes.RemovedConstruct, "segmentation deleted by ISO 2002; token-scan of the computerAttributes sink; VCR Table 7"),
+        new("debugging-mode-removed-2002", "the WITH DEBUGGING MODE clause (SOURCE-COMPUTER)", 85, 2002, null, EditionCodes.RemovedConstruct, "the '85 debug facility deleted by ISO 2002; token-scan of the computerAttributes sink; VCR Table 7"),
+        new("identification-comments-removed-2002", "an identification comment paragraph (AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY)", 85, 2002, null, EditionCodes.RemovedConstruct, "the five obsolete '85 comment paragraphs deleted by ISO 2002; one row, paragraph named per site; VCR Table 7"),
+        new("remarks-removed-2002", "the REMARKS paragraph", 85, 2002, null, EditionCodes.RemovedConstruct, "'74 carryover accepted at 85 for CCVS (never flagged there); absent from ISO 2002+; VCR Table 7"),
+        new("stop-literal-removed-2002", "the STOP literal statement", 85, 2002, null, EditionCodes.RemovedConstruct, "X3.23-1985 Format 2 (operator message + continue — implemented via BoundStopLiteral), deleted by ISO 2002 (§14.9.42 has no literal form); the DEVLOG-578 mis-bind fixed same change set"),
+        new("open-reversed-removed-2002", "the OPEN REVERSED phrase", 85, 2002, null, EditionCodes.RemovedConstruct, "obsolete '85 tape phrase deleted by ISO 2002 (NO REWIND survives, §14.9.26); VCR Table 7"),
+        new("close-with-lock-removed-2023", "the CLOSE WITH LOCK phrase", 85, 2023, null, EditionCodes.RemovedConstruct, "REMOVED 2014→2023 (Annex E deletion; VCR row 7)"),
+        new("exit-method-window", "the EXIT METHOD statement", 2002, 2023, null, EditionCodes.RemovedConstruct, "introduced 2002 (OO), REMOVED 2023 (Annex E @49034; VCR row 5; the OO deep-dive correction #2) — the dual-obligation window: 0900 below 2002, 0902 at 2023"),
+        new("exit-function-window", "the EXIT FUNCTION statement", 2002, 2023, null, EditionCodes.RemovedConstruct, "introduced 2002 (UDF), REMOVED 2023 (Annex E @49036; VCR row 6) — dual-obligation window"),
+        new("exit-program-archaic-2023", "the EXIT PROGRAM statement", 85, null, 2023, EditionCodes.ObsoleteFlag, "ARCHAIC in ISO 2023 (Annex F.1; §4.2.12; VCR row 89) — warning only, the element remains conforming"),
+        new("next-sentence-archaic-2023", "the NEXT SENTENCE phrase", 85, null, 2023, EditionCodes.ObsoleteFlag, "ARCHAIC in ISO 2023 (Annex F.1; §4.2.12; VCR row 90) — warning only"),
     ];
 
     private static Dictionary<string, ConstructDialectStatus>? _byId;
@@ -104,7 +120,9 @@ public static class ConstructRegistry
         switch (c.StatusAt(edition.DialectLevel))
         {
             case ConstructAvailability.NotYetIntroduced:
-                edition.Error(c.DiagnosticCode,
+                // Dual-obligation rows (an availability WINDOW: DiagnosticCode names the removal edge) use the
+                // 0900 band for the introduction edge; single-edge rows keep their pinned code (pic-wide's 0802).
+                edition.Error(c.RemovedIn is null ? c.DiagnosticCode : EditionCodes.Introduction,
                     $"{c.Display} requires COBOL-{c.IntroducedIn} (targeting COBOL-{edition.DialectLevel}) — {where} ({c.Citation})");
                 break;
             case ConstructAvailability.Removed:

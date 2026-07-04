@@ -201,6 +201,13 @@ public sealed record BoundUnsupported(string Feature) : BoundStatement;
 /// <summary><c>STOP RUN</c> / <c>GOBACK</c> (this slice: both unwind the paragraph chain).</summary>
 public sealed record BoundStop : BoundStatement;
 
+/// <summary>STOP literal (X3.23-1985 §14 Format 2, deleted 2002; edition-gated ≥2002 by the validator): "the
+/// literal is communicated to the operator" and, on resume, "execution continues with the next executable
+/// statement". The greenfield realization (implementor latitude on the operator interaction): write the
+/// literal to the operator channel — stderr, never the program's output stream — and continue immediately.
+/// Replaces the silent bind-as-STOP-RUN mis-bind (the DEVLOG-578 latent bug; P2.6).</summary>
+public sealed record BoundStopLiteral(string Text) : BoundStatement;
+
 /// <summary><c>DISPLAY</c> of a sequence of operands (each rendered as its display image).</summary>
 public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoAdvancing) : BoundStatement;
 

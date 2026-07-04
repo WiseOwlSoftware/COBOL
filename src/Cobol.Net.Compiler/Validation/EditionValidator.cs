@@ -49,6 +49,115 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         return base.VisitChildren(ctx);
     }
 
+    /// <summary>VALUE OF (FD) — obsolete '85 label-field clause, deleted 2002 (P2.6).</summary>
+    public override object? VisitValueOfClause(CobolParserCore.ValueOfClauseContext ctx)
+    {
+        ConstructRegistry.Check(_edition, "value-of-removed-2002", "the FD VALUE OF clause");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>DATA RECORDS (FD **and** SD — one grammar rule, so ONE enforcement site; the former
+    /// DataBinder SD-only 0873 gate MIGRATED here, P2.6/Table-7 row 7.1 follow-up). Keeps its pinned 0873.</summary>
+    public override object? VisitDataRecordsClause(CobolParserCore.DataRecordsClauseContext ctx)
+    {
+        ConstructRegistry.Check(_edition, "data-records-removed-2002", "the FD/SD DATA RECORDS clause");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>MULTIPLE FILE [TAPE] (I-O-CONTROL) — reel-sharing description, deleted 2002 (P2.6).</summary>
+    public override object? VisitMultipleFileClause(CobolParserCore.MultipleFileClauseContext ctx)
+    {
+        ConstructRegistry.Check(_edition, "multiple-file-tape-removed-2002", "the I-O-CONTROL MULTIPLE FILE clause");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>The SOURCE-/OBJECT-COMPUTER attribute SINK (the grammar swallows the obsolete '85 clauses as
+    /// raw tokens — <c>~(DOT|PROGRAM)+</c>), so the deleted elements hiding in it are gated by TOKEN-TEXT scan
+    /// (P2.6): MEMORY SIZE, SEGMENT-LIMIT, WITH DEBUGGING MODE — each its own registry row/VCR item.</summary>
+    public override object? VisitComputerAttributes(CobolParserCore.ComputerAttributesContext ctx)
+    {
+        for (int i = 0; i < ctx.ChildCount; i++)
+        {
+            switch (ctx.GetChild(i).GetText().ToUpperInvariant())
+            {
+                case "MEMORY":
+                    ConstructRegistry.Check(_edition, "memory-size-removed-2002", "the OBJECT-COMPUTER MEMORY SIZE clause");
+                    break;
+                case "SEGMENT-LIMIT":
+                    ConstructRegistry.Check(_edition, "segment-limit-removed-2002", "the OBJECT-COMPUTER SEGMENT-LIMIT clause");
+                    break;
+                case "DEBUGGING":
+                    ConstructRegistry.Check(_edition, "debugging-mode-removed-2002", "the SOURCE-COMPUTER WITH DEBUGGING MODE clause");
+                    break;
+            }
+        }
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>The five identification comment paragraphs — obsolete '85 elements deleted 2002 (P2.6; one
+    /// registry row, the paragraph named per site).</summary>
+    public override object? VisitAuthorParagraph(CobolParserCore.AuthorParagraphContext ctx)
+    { ConstructRegistry.Check(_edition, "identification-comments-removed-2002", "the AUTHOR paragraph"); return base.VisitChildren(ctx); }
+    public override object? VisitInstallationParagraph(CobolParserCore.InstallationParagraphContext ctx)
+    { ConstructRegistry.Check(_edition, "identification-comments-removed-2002", "the INSTALLATION paragraph"); return base.VisitChildren(ctx); }
+    public override object? VisitDateWrittenParagraph(CobolParserCore.DateWrittenParagraphContext ctx)
+    { ConstructRegistry.Check(_edition, "identification-comments-removed-2002", "the DATE-WRITTEN paragraph"); return base.VisitChildren(ctx); }
+    public override object? VisitDateCompiledParagraph(CobolParserCore.DateCompiledParagraphContext ctx)
+    { ConstructRegistry.Check(_edition, "identification-comments-removed-2002", "the DATE-COMPILED paragraph"); return base.VisitChildren(ctx); }
+    public override object? VisitSecurityParagraph(CobolParserCore.SecurityParagraphContext ctx)
+    { ConstructRegistry.Check(_edition, "identification-comments-removed-2002", "the SECURITY paragraph"); return base.VisitChildren(ctx); }
+
+    /// <summary>REMARKS — a '74 carryover the grammar accepts for CCVS; flagged ≥2002 ONLY (never at 85 —
+    /// CCVS-85 programs write it; the 85 FIPS flagger is future strictness work, P2.6).</summary>
+    public override object? VisitRemarksParagraph(CobolParserCore.RemarksParagraphContext ctx)
+    { ConstructRegistry.Check(_edition, "remarks-removed-2002", "the REMARKS paragraph"); return base.VisitChildren(ctx); }
+
+    /// <summary>STOP literal (Format 2) — obsolete '85 element deleted 2002 (P2.6). Its 85 SEMANTICS are
+    /// implemented binder-side this same change set (the silent bind-as-STOP-RUN mis-bind fixed).</summary>
+    public override object? VisitStopStatement(CobolParserCore.StopStatementContext ctx)
+    {
+        if (ctx.literal() is not null)
+            ConstructRegistry.Check(_edition, "stop-literal-removed-2002", "the STOP literal statement");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>OPEN … REVERSED — obsolete '85 tape phrase deleted 2002 (P2.6; NO REWIND stays — it survives
+    /// into 2023 §14.9.26).</summary>
+    public override object? VisitOpenFileSpec(CobolParserCore.OpenFileSpecContext ctx)
+    {
+        if (ctx.REVERSED() is not null)
+            ConstructRegistry.Check(_edition, "open-reversed-removed-2002", "the OPEN REVERSED phrase");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>CLOSE … WITH LOCK — REMOVED 2014→2023 (Annex E deletion; VCR row 7; P2.6).</summary>
+    public override object? VisitCloseOption(CobolParserCore.CloseOptionContext ctx)
+    {
+        if (ctx.LOCK() is not null)
+            ConstructRegistry.Check(_edition, "close-with-lock-removed-2023", "the CLOSE WITH LOCK phrase");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>EXIT METHOD / EXIT FUNCTION — introduced 2002 (0900 below), REMOVED 2023 (Annex E; VCR rows
+    /// 5/6) — the dual-obligation window rows; EXIT PROGRAM — ARCHAIC in 2023 (0903 warning; VCR 89).</summary>
+    public override object? VisitExitStatement(CobolParserCore.ExitStatementContext ctx)
+    {
+        if (ctx.METHOD() is not null)
+            ConstructRegistry.Check(_edition, "exit-method-window", "the EXIT METHOD statement");
+        else if (ctx.FUNCTION() is not null)
+            ConstructRegistry.Check(_edition, "exit-function-window", "the EXIT FUNCTION statement");
+        else if (ctx.PROGRAM() is not null)
+            ConstructRegistry.Check(_edition, "exit-program-archaic-2023", "the EXIT PROGRAM statement");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>NEXT SENTENCE — ARCHAIC in 2023 (0903 warning; VCR 90; P2.6).</summary>
+    public override object? VisitNextSentenceStatement(CobolParserCore.NextSentenceStatementContext ctx)
+    {
+        ConstructRegistry.Check(_edition, "next-sentence-archaic-2023", "the NEXT SENTENCE phrase");
+        return base.VisitChildren(ctx);
+    }
+
     // Which cobolWord token TYPES the funnel checks (P2.4, refined — DEVLOG 585): IDENTIFIER occurrences are
     // ALWAYS genuine words (the lexer didn't tokenize them), and they carry the whole newly-reserved payload
     // (the Annex-E 2023 additions lex as IDENTIFIER). The six EC-band tokens are ALSO checked — they are

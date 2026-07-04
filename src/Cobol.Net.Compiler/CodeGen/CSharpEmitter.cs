@@ -331,6 +331,10 @@ public sealed partial class CSharpEmitter
         switch (s)
         {
             case BoundStop: w.Line("throw new StopRun();"); return true;
+            case BoundStopLiteral sl:
+                // X3.23-1985 STOP literal: communicate to the operator (stderr), then continue (BoundTree doc).
+                w.Line($"Console.Error.WriteLine({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(sl.Text, quote: true)});");
+                return false;
             case BoundGoTo g: w.Line($"__pc = {g.TargetPc};"); w.Line("break;"); return true;
             case BoundExitParagraph: w.Line($"__pc = {_currentPc + 1};"); w.Line("break;"); return true;
             case BoundExitPerform e: w.Line(e.Cycle ? "continue;" : "break;"); return false;   // inline-PERFORM loop

@@ -22,7 +22,7 @@ namespace CobolNet.Tests.Conformance;
 public sealed class VersionMatrixTests
 {
     private sealed record Construct(string Id, string Description, int IntroducedIn, int? RemovedIn, string Vcr,
-        string Source, string Status, string? ExpectDiagnostic);
+        string Source, string Status, string? ExpectDiagnostic, int? ObsoleteIn);
 
     private static readonly IReadOnlyList<Construct> Catalogue = LoadCatalogue();
 
@@ -40,7 +40,8 @@ public sealed class VersionMatrixTests
                 e.GetProperty("vcr").GetString()!,
                 e.GetProperty("source").GetString()!,
                 e.TryGetProperty("status", out var s) ? s.GetString()! : "active",
-                e.TryGetProperty("expectDiagnostic", out var d) ? d.GetString() : null));
+                e.TryGetProperty("expectDiagnostic", out var d) ? d.GetString() : null,
+                e.TryGetProperty("obsoleteIn", out var o) && o.ValueKind != JsonValueKind.Null ? o.GetInt32() : null));
         return list;
     }
 
@@ -115,6 +116,29 @@ public sealed class VersionMatrixTests
             EditionHarness.AssertHasDiagnostic(warnings, code);
     }
 
+    /// <summary>The archaic/obsolete flag contract (P2.6, ISO §4.2.12/§4.2.13): an <c>obsoleteIn</c> row
+    /// COMPILES at every edition (the element remains conforming) and carries its 0903 WARNING exactly at
+    /// editions ≥ obsoleteIn — never below (no NIST-85 noise).</summary>
+    public static IEnumerable<object[]> ObsoleteMatrix()
+    {
+        foreach (var c in Catalogue.Where(c => c.Status == "active" && c.ObsoleteIn is not null))
+            foreach (int v in EditionHarness.Editions.Where(v => v >= c.IntroducedIn))
+                yield return [c.Id, v];
+    }
+
+    [Theory]
+    [MemberData(nameof(ObsoleteMatrix))]
+    public void ObsoleteConstruct_CompilesEverywhere_WarnsFromObsoleteEdition(string constructId, int edition)
+    {
+        var c = Catalogue.First(x => x.Id == constructId);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition);
+        Assert.True(ok, $"[{constructId}] must COMPILE at COBOL-{edition} (archaic ≠ removed): {string.Join("\n", errors)}");
+        if (edition >= c.ObsoleteIn)
+            EditionHarness.AssertHasDiagnostic(warnings, c.ExpectDiagnostic!);
+        else
+            EditionHarness.AssertNoDiagnostic(warnings, c.ExpectDiagnostic!);
+    }
+
     /// <summary>INV-1 (continuity), RESTATED at the P2.7 flip (the §10 #1 migration posture): a COBOL-85 NIST
     /// program that compiles at 85 must still compile at every later edition **UNDER PERMISSIVE** — under
     /// strict, later editions legitimately REJECT the removed '85 elements every NIST program carries (LABEL
@@ -162,7 +186,10 @@ public sealed class VersionMatrixTests
         Assert.True(ok85, "ST101A must compile at --std 85");
         var (ok, diagnostics) = EditionHarness.CompileNist("ST101A", 2023);
         Assert.False(ok, "ST101A's removed '85 elements must be rejected at COBOL-2023 strict");
-        Assert.Contains(diagnostics, d => d.Contains("COBOLNET0902"));
+        Assert.Contains(diagnostics, d => d.Contains("COBOLNET0902"));   // the FD LABEL RECORDS gate
+        // Both removed elements surface in the ONE validator pass now that the SD DATA RECORDS 0873 gate
+        // migrated validator-side (P2.6 / Table-7 row 7.1 — the fail-fast no longer hides it behind Emit).
+        Assert.Contains(diagnostics, d => d.Contains("COBOLNET0873"));
     }
 
 }

@@ -217,6 +217,145 @@
       "expectDiagnostic": "COBOLNET0901",
       "vcr": "VCR row 32; reserved-words.json row END-RECEIVE",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 END-RECEIVE PIC 9 VALUE 4.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY END-RECEIVE.\n    STOP RUN.\n"
+    },
+    {
+      "id": "value-of-removed-2002",
+      "description": "VALUE OF clause (FD) — obsolete '85 label-field clause, deleted by ISO 2002 (P2.6 gate).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7 (85→2002 deletions)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VO.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmvo\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F\n    VALUE OF RETENTION IS 30.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    CLOSE F.\n    STOP RUN.\n"
+    },
+    {
+      "id": "data-records-removed-2002",
+      "description": "DATA RECORDS clause (FD and SD — one grammar rule, ONE validator site; the former SD-only binder gate migrated; pinned 0873 kept) — obsolete '85 element deleted by ISO 2002.",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0873",
+      "vcr": "VCR Table 7 row 7.1",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. DR.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmdr\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F\n    DATA RECORD IS R.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    CLOSE F.\n    STOP RUN.\n"
+    },
+    {
+      "id": "multiple-file-tape-removed-2002",
+      "description": "MULTIPLE FILE [TAPE] clause (I-O-CONTROL) — obsolete '85 reel-sharing description, deleted by ISO 2002 (P2.6 gate).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmmf\" ORGANIZATION IS SEQUENTIAL.\nI-O-CONTROL.\n    MULTIPLE FILE TAPE CONTAINS F POSITION 1.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    CLOSE F.\n    STOP RUN.\n"
+    },
+    {
+      "id": "memory-size-removed-2002",
+      "description": "MEMORY SIZE clause (OBJECT-COMPUTER) — obsolete '85 element deleted by ISO 2002; gated by token-scan of the computerAttributes wildcard sink (P2.6).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MS.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. GENERIC-BOX\n    MEMORY SIZE 64000 WORDS.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "segment-limit-removed-2002",
+      "description": "SEGMENT-LIMIT clause (OBJECT-COMPUTER) — segmentation deleted by ISO 2002; token-scan gated (P2.6).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SL.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. GENERIC-BOX\n    SEGMENT-LIMIT IS 20.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "debugging-mode-removed-2002",
+      "description": "WITH DEBUGGING MODE clause (SOURCE-COMPUTER) — the '85 debug facility deleted by ISO 2002; token-scan gated (P2.6).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. DM.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSOURCE-COMPUTER. GENERIC-BOX\n    WITH DEBUGGING MODE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "identification-comments-removed-2002",
+      "description": "The five identification comment paragraphs (AUTHOR/INSTALLATION/DATE-WRITTEN/DATE-COMPILED/SECURITY) — obsolete '85 elements deleted by ISO 2002; ONE row, the AUTHOR witness (the gate names each paragraph per site).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AC.\nAUTHOR. CCVS-STYLE COMMENT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "remarks-removed-2002",
+      "description": "REMARKS paragraph — a '74 carryover the grammar accepts at 85 for CCVS (NEVER flagged there — the 85 FIPS flagger is future strictness work); absent from ISO 2002+ (P2.6 gate ≥2002 only).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7; the P2.6 REMARKS carve-out",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RM2.\nREMARKS. CCVS-STYLE REMARK TEXT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "stop-literal-removed-2002",
+      "description": "STOP literal (X3.23-1985 Format 2: communicate the literal to the operator, then CONTINUE — implemented via BoundStopLiteral to stderr, fixing the DEVLOG-578 silent bind-as-STOP-RUN); deleted by ISO 2002 (§14.9.42 has no literal form).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7; P2.8 W2 latent-bug fix folded into P2.6",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SPL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    STOP \"OPERATOR MESSAGE\".\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
+      "id": "open-reversed-removed-2002",
+      "description": "OPEN … REVERSED — obsolete '85 tape phrase deleted by ISO 2002 (NO REWIND survives into 2023 §14.9.26); P2.6 gate.",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OR2.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmor\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN INPUT F REVERSED.\n    CLOSE F.\n    STOP RUN.\n"
+    },
+    {
+      "id": "close-with-lock-removed-2023",
+      "description": "CLOSE … WITH LOCK — REMOVED 2014→2023 (an Annex E deletion; the only pre-P2.6 gate already covering a 2023 removal was CALL ON OVERFLOW).",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR row 7 (Annex E 2014→2023 deletions)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CL.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmcl\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    CLOSE F WITH LOCK.\n    STOP RUN.\n"
+    },
+    {
+      "id": "exit-method-window",
+      "status": "pending",
+      "description": "EXIT METHOD — introduced 2002 (OO), REMOVED 2023 (Annex E; the OO deep-dive correction #2): the dual-obligation WINDOW row (0900 below 2002, 0902 at 2023). PENDING: the 2002/2014 compile legs need the OO wave (roadmap Phase 3) — the gate is LIVE, only the positive cells wait.",
+      "introducedIn": 2002,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR row 5 (Annex E @49034)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XM.\nPROCEDURE DIVISION.\nMAIN.\n    EXIT METHOD.\n    STOP RUN.\n"
+    },
+    {
+      "id": "exit-function-window",
+      "status": "pending",
+      "description": "EXIT FUNCTION — introduced 2002 (UDF), REMOVED 2023 (Annex E): dual-obligation window. PENDING: the positive cells need the UDF wave (roadmap Phase 4c); the gate is LIVE.",
+      "introducedIn": 2002,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR row 6 (Annex E @49036)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XF.\nPROCEDURE DIVISION.\nMAIN.\n    EXIT FUNCTION.\n    STOP RUN.\n"
+    },
+    {
+      "id": "exit-program-archaic-2023",
+      "description": "EXIT PROGRAM — ARCHAIC in ISO 2023 (Annex F.1 / §4.2.12; VCR row 89): 0903 WARNING at ≥2023, the element remains conforming (compiles at every edition).",
+      "introducedIn": 85,
+      "removedIn": null,
+      "obsoleteIn": 2023,
+      "expectDiagnostic": "COBOLNET0903",
+      "vcr": "VCR row 89 (Annex F.1 archaic)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XP.\nPROCEDURE DIVISION.\nMAIN.\n    EXIT PROGRAM.\n    STOP RUN.\n"
+    },
+    {
+      "id": "next-sentence-archaic-2023",
+      "description": "NEXT SENTENCE — ARCHAIC in ISO 2023 (Annex F.1 / §4.2.12; VCR row 90): 0903 WARNING at ≥2023, remains conforming.",
+      "introducedIn": 85,
+      "removedIn": null,
+      "obsoleteIn": 2023,
+      "expectDiagnostic": "COBOLNET0903",
+      "vcr": "VCR row 90 (Annex F.1 archaic)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    IF W = 1 THEN NEXT SENTENCE ELSE DISPLAY \"NO\".\n    DISPLAY \"OK\".\n    STOP RUN.\n"
     }
   ]
 }

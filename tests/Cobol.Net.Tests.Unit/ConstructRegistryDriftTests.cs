@@ -15,7 +15,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class ConstructRegistryDriftTests
 {
-    private sealed record JsonRow(string Id, int IntroducedIn, int? RemovedIn, string? ExpectDiagnostic);
+    private sealed record JsonRow(string Id, int IntroducedIn, int? RemovedIn, string? ExpectDiagnostic, int? ObsoleteIn);
 
     private static List<JsonRow> LoadRows()
     {
@@ -25,7 +25,8 @@ public sealed class ConstructRegistryDriftTests
             e.GetProperty("id").GetString()!,
             e.GetProperty("introducedIn").GetInt32(),
             e.GetProperty("removedIn").ValueKind == JsonValueKind.Null ? null : e.GetProperty("removedIn").GetInt32(),
-            e.TryGetProperty("expectDiagnostic", out var d) ? d.GetString() : null))];
+            e.TryGetProperty("expectDiagnostic", out var d) ? d.GetString() : null,
+            e.TryGetProperty("obsoleteIn", out var o) && o.ValueKind != JsonValueKind.Null ? o.GetInt32() : null))];
     }
 
     [Fact]
@@ -42,9 +43,11 @@ public sealed class ConstructRegistryDriftTests
         foreach (var (id, r) in rows)
         {
             var e = reg[id];
-            Assert.True(e.IntroducedIn == r.IntroducedIn && e.RemovedIn == r.RemovedIn,
-                $"drift on {id}: registry ({e.IntroducedIn},{e.RemovedIn?.ToString() ?? "-"}) vs json ({r.IntroducedIn},{r.RemovedIn?.ToString() ?? "-"})");
-            if (r.ExpectDiagnostic is { } code)
+            Assert.True(e.IntroducedIn == r.IntroducedIn && e.RemovedIn == r.RemovedIn && e.ObsoleteIn == r.ObsoleteIn,
+                $"drift on {id}: registry ({e.IntroducedIn},{e.RemovedIn?.ToString() ?? "-"},{e.ObsoleteIn?.ToString() ?? "-"}) "
+                + $"vs json ({r.IntroducedIn},{r.RemovedIn?.ToString() ?? "-"},{r.ObsoleteIn?.ToString() ?? "-"})");
+            // Obsolete rows warn with the FIXED 0903 band code regardless of the entry's own code field.
+            if (r.ExpectDiagnostic is { } code && r.ObsoleteIn is null)
                 Assert.True(e.DiagnosticCode == code, $"drift on {id}: DiagnosticCode {e.DiagnosticCode} vs expectDiagnostic {code}");
         }
     }

@@ -165,7 +165,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.initializeStatement() is { } ini => BindInitialize(ini),
         _ when s.continueStatement() is not null => new BoundNop(),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
-        _ when s.stopStatement() is not null => new BoundStop(),
+        // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
+        // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
+        // the validator, its 85 semantics implemented via BoundStopLiteral).
+        _ when s.stopStatement() is { } stop => stop.literal() is { } slit
+            ? new BoundStopLiteral(DecodeCobolString(slit.GetText()))
+            : new BoundStop(),
         _ when s.gobackStatement() is { } gb => CallBindGoback(gb),   // §14.9.18 — called-program return; 2002+ gated
         _ when s.callStatement() is { } call => CallBindCall(call),
         _ when s.cancelStatement() is { } cancel => CallBindCancel(cancel),

@@ -319,10 +319,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 if (clause.recordClause() is { } rc)
                     BindRecordClause(rc, sdFile);
-                else if (clause.dataRecordsClause() is not null && Edition.DialectLevel >= 2002)
-                    Edition.Removed("COBOLNET0873", "DATA RECORDS — an obsolete element of ANSI X3.23-1985, deleted by "
-                        + "ISO/IEC 1989:2002 (§13.4.6 admits only the record clause on an SD); it requires --std 85 "
-                        + $"or --permissive (targeting COBOL-{Edition.DialectLevel})");
+                // (The SD DATA RECORDS 0873 gate MIGRATED to EditionValidator.VisitDataRecordsClause — one
+                // enforcement site covering FD AND SD via the shared grammar rule; P2.6 / Table-7 row 7.1.)
             }
         }
     }
