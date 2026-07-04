@@ -356,6 +356,99 @@
       "expectDiagnostic": "COBOLNET0903",
       "vcr": "VCR row 90 (Annex F.1 archaic)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    IF W = 1 THEN NEXT SENTENCE ELSE DISPLAY \"NO\".\n    DISPLAY \"OK\".\n    STOP RUN.\n"
-    }
+    },
+  {
+    "id": "move-alphanumeric-figurative-removed-2023",
+    "status": "pending",
+    "description": "MOVE of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics preserved under permissive), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case. PENDING: W2 track A implements the pre-removal semantics (runtime-loud today) + the binder-side 0902 gate, then flips this row active.",
+    "introducedIn": 85,
+    "removedIn": 2023,
+    "expectDiagnostic": "COBOLNET0902",
+    "vcr": "VCR row 1 (E.2 item 1 bullet 1; 14.9.25.3 SR5)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVFIG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE SPACE TO W-NUM.\n    STOP RUN.\n"
+  },
+  {
+    "id": "move-all-digit-integer-obsolete-2023",
+    "status": "pending",
+    "description": "MOVE of a digit-only ALL literal (or a digit symbolic-character) to an INTEGER numeric item - the sole surviving alphanumeric-figurative-to-numeric MOVE (14.9.25.3 SR5), valid at EVERY edition, obsolete-flagged 0903 at 2023 (SR5 NOTE; Annex F.2 item 2). PENDING: W2 track A fixes the BoundAllLiteral runtime-loud latent bug (the move is valid everywhere), then flips this row active.",
+    "introducedIn": 85,
+    "removedIn": null,
+    "obsoleteIn": 2023,
+    "expectDiagnostic": "COBOLNET0903",
+    "vcr": "VCR rows 92/128 (F.2 item 2; 14.9.25.3 SR5 + NOTE)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVALLD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-INT PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE ALL \"5\" TO W-INT.\n    DISPLAY W-INT.\n    STOP RUN.\n"
+  },
+  {
+    "id": "national-data-2002",
+    "status": "pending",
+    "description": "National data (PICTURE symbol N / USAGE NATIONAL, ISO 8.5.2 category national / 13.18.40 / 13.18.60). PENDING: PIC N currently silent-misbinds (category falls through); the W2 loud-guard sweep adds the skeleton (enum entries, 0900 gate below 2002, loud not-implemented at 2002+); Phase 4a implements.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "vcr": "M2 catalog national/boolean; roadmap Phase 4a; D16-adjacent skeleton (W2)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NATD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-N PIC N(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "boolean-data-2002",
+    "status": "pending",
+    "description": "Boolean data (PICTURE symbol 1 / USAGE BIT, ISO 8.5.2 category boolean / 13.18.40 / 13.18.60). PENDING: PIC 1 currently silent-misbinds; the W2 loud-guard sweep adds the skeleton (enum entries, 0900 gate below 2002, loud not-implemented at 2002+); Phase 4a implements (boolean OPERATIONS ride D4).",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "vcr": "M2 catalog national/boolean; roadmap Phase 4a + D4; skeleton (W2)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BOOLD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-B PIC 1(8).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "pic-external-float-2002",
+    "status": "pending",
+    "description": "External floating-point PICTURE (symbol E, ISO 13.18.40). PENDING: the E symbol currently silent-misbinds in PicInfo.Analyze; the W2 loud-guard sweep makes it loud (0900 below 2002); Phase 6 (IEEE float catchall) implements.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "vcr": "M3-4 catchall (float edges split per D16); skeleton (W2)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. EXTF.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-E PIC +9V99E+99.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "usage-pointer-2002",
+    "status": "pending",
+    "description": "USAGE POINTER (ISO 13.18.60). PENDING: currently silent-misbinds to DISPLAY in PicInfo.ParseUsage; the W2 loud-guard sweep makes it loud (0900 below 2002, not-implemented at 2002+); Phase 4b implements on the ManagedPointer carrier.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "vcr": "M2 catalog pointers/ALLOCATE (Phase 4b); skeleton (W2)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UPTR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "usage-object-reference-2002",
+    "status": "pending",
+    "description": "USAGE OBJECT REFERENCE (ISO 13.18.60, OO). PENDING: currently silent-misbinds to DISPLAY; the W2 loud-guard sweep makes it loud; Phase 3 (the M2 OO port) implements.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "vcr": "M2 OO (roadmap Phase 3); skeleton (W2)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UOBJ.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-O USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "usage-binary-char-family-2002",
+    "status": "pending",
+    "description": "The fixed-width binary usages BINARY-CHAR/-SHORT/-LONG/-DOUBLE (ISO 13.18.60). PENDING: currently silent-misbind to DISPLAY (the bare-form UsageKeyword string-strip makes BINARY-CHAR SIGNED fall through); the W2 loud-guard sweep makes them loud (0900 below 2002); Phase 4 reconciliation sizes the implementation.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "vcr": "M2 catalog (Phase 4 reconciliation); skeleton (W2)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UBIN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-B USAGE BINARY-LONG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "usage-float-long-2002",
+    "status": "pending",
+    "description": "USAGE FLOAT-LONG (IEEE binary64 basic float, 13.18.59) - PROVISIONAL 2002 edge (D16: the short/long/extended trio is the presumed-2002 half of the float family split). PENDING: float usages currently silent-misbind to DISPLAY; the Phase-2 loud-guard sweep makes them loud, Phase 6 implements.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "vcr": "D16 float-family split (provisional 2002)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-LONG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "usage-float-extended-2002",
+    "status": "pending",
+    "description": "USAGE FLOAT-EXTENDED (IEEE extended float, 13.18.59) - PROVISIONAL 2002 edge (D16). PENDING: float usages currently silent-misbind to DISPLAY; the Phase-2 loud-guard sweep makes them loud, Phase 6 implements.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "vcr": "D16 float-family split (provisional 2002)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FX.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-EXTENDED.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  }
   ]
 }

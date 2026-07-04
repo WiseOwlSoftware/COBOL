@@ -100,6 +100,17 @@ public static class ConstructRegistry
         new("exit-function-window", "the EXIT FUNCTION statement", 2002, 2023, null, EditionCodes.RemovedConstruct, "introduced 2002 (UDF), REMOVED 2023 (Annex E @49036; VCR row 6) — dual-obligation window"),
         new("exit-program-archaic-2023", "the EXIT PROGRAM statement", 85, null, 2023, EditionCodes.ObsoleteFlag, "ARCHAIC in ISO 2023 (Annex F.1; §4.2.12; VCR row 89) — warning only, the element remains conforming"),
         new("next-sentence-archaic-2023", "the NEXT SENTENCE phrase", 85, null, 2023, EditionCodes.ObsoleteFlag, "ARCHAIC in ISO 2023 (Annex F.1; §4.2.12; VCR row 90) — warning only"),
+        // ── The P2.8 W2 wave (roadmap Phase 2): MOVE rows (track A) + the loud-guard skeleton rows (track B) ──
+        new("move-alphanumeric-figurative-removed-2023", "MOVE of an alphanumeric figurative constant (SPACE/QUOTE/HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item", 85, 2023, null, EditionCodes.RemovedConstruct, "Annex E.2 item 1 bullet 1; §14.9.25.3 SR5; VCR row 1 — permitted through 2014 (pre-removal semantics preserved permissive), REMOVED 2023 except the digit-only-ALL-to-integer case"),
+        new("move-all-digit-integer-obsolete-2023", "MOVE of a digit-only ALL literal (or a digit symbolic-character) to an integer numeric item", 85, null, 2023, EditionCodes.ObsoleteFlag, "§14.9.25.3 SR5 + its NOTE; Annex F.2 item 2; VCR rows 92/128 — the sole surviving figurative→numeric MOVE, obsolete-flagged at 2023"),
+        new("national-data-2002", "national data (PICTURE symbol N / USAGE NATIONAL)", 2002, null, null, EditionCodes.Introduction, "ISO §8.5.2 category national / §13.18.40 / §13.18.60; skeleton W2 (loud), full Phase 4a; PENDING"),
+        new("boolean-data-2002", "boolean data (PICTURE symbol 1 / USAGE BIT)", 2002, null, null, EditionCodes.Introduction, "ISO §8.5.2 category boolean / §13.18.40 / §13.18.60; skeleton W2 (loud), full Phase 4a; PENDING"),
+        new("pic-external-float-2002", "an external floating-point PICTURE (symbol E)", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING"),
+        new("usage-pointer-2002", "USAGE POINTER", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60; Phase 4b (ManagedPointer carrier); skeleton W2 (loud); PENDING"),
+        new("usage-object-reference-2002", "USAGE OBJECT REFERENCE", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60 (OO); Phase 3; skeleton W2 (loud); PENDING"),
+        new("usage-binary-char-family-2002", "a fixed-width binary usage (BINARY-CHAR/-SHORT/-LONG/-DOUBLE)", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60; Phase 4 reconciliation (M2 catalog); skeleton W2 (loud); PENDING"),
+        new("usage-float-long-2002", "USAGE FLOAT-LONG", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.59; D16 split (provisional 2002); PENDING (Phase 6)"),
+        new("usage-float-extended-2002", "USAGE FLOAT-EXTENDED", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.59; D16 split (provisional 2002); PENDING (Phase 6)"),
     ];
 
     private static Dictionary<string, ConstructDialectStatus>? _byId;
