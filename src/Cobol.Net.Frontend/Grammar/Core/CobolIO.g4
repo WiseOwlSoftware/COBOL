@@ -155,6 +155,7 @@ ioControlParagraph
 ioControlClause
     : sameClause
     | multipleFileClause
+    | rerunClause
     | genericClause
     ;
 
@@ -173,6 +174,27 @@ multipleFileClause
 
 multipleFileTapeEntry
     : fileName (POSITION integerLiteral)?
+    ;
+
+// X3.23-1985 RERUN clause (I-O-CONTROL) — a checkpoint hint stating WHEN rerun records are written; the
+// rerun mechanism itself is implementor-defined, so a null rerun facility accepts and ignores it (parsed
+// and ignored, the MULTIPLE FILE posture). Obsolete '85 element DELETED by ISO 2002 (RERUN is absent from
+// the 2023 text entirely, §8.9 included); the EditionValidator flags it COBOLNET0902 ≥2002
+// (`rerun-removed-2002`, VCR Table 7 row 7.15).
+//   RERUN [ON {file-name-1 | implementor-name-1}]
+//         EVERY { [END OF] {REEL|UNIT} OF file-name-2
+//               | integer-1 RECORDS [OF file-name-2]
+//               | integer-2 CLOCK-UNITS
+//               | condition-name-1 }
+// The ON operand and condition-name-1 (a switch-status condition) are both plain words → cobolWord.
+rerunClause
+    : RERUN (ON cobolWord)? EVERY rerunEvery
+    ;
+
+rerunEvery
+    : (END OF)? (REEL | UNIT) OF fileName
+    | integerLiteral (RECORDS (OF fileName)? | CLOCK_UNITS)
+    | cobolWord
     ;
 
 // ==========================================

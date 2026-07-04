@@ -128,6 +128,14 @@ public static class ConstructRegistry
         new("fixed-form-word-continuation-removed-2023", "continuation of a COBOL word in fixed-form reference format", 85, 2023, null, EditionCodes.RemovedConstruct, "Annex E.2 item 1 bullet 2; VCR row 2 — emit site: ReferenceFormatProcessor.EditionGates (frontend)"),
         new("copy-replacing-non-pseudo-text-removed-2023", "a non-pseudo-text COPY REPLACING operand (identifier/literal/word)", 85, 2023, null, EditionCodes.RemovedConstruct, "Annex E.2 item 1 bullet 4; VCR row 4 — emit site: CopyProcessor.OnNonPseudoTextOperand (frontend)"),
         new("col7-continuation-obsolete-2023", "the fixed continuation indicator (hyphen in column 7)", 85, null, 2023, EditionCodes.ObsoleteFlag, "Annex F.2 item 4; §4.2.13; VCR row 94 — emit site: ReferenceFormatProcessor.EditionGates (frontend); warning only"),
+        // ── The W3 notInGrammar 85-acceptance batch (VCR Table 7 rows 7.15–7.18; DEVLOG 599): obsolete '85
+        //    elements deleted by ISO 2002, formerly absent from the grammar entirely (generic parse errors at
+        //    every edition). All four cite the §8.9 ABSENCE pinpoints — no 2023 removal note exists (Annex E
+        //    covers only 2014→2023). ──
+        new("rerun-removed-2002", "the RERUN clause (I-O-CONTROL)", 85, 2002, null, EditionCodes.RemovedConstruct, "obsolete '85 checkpoint hint deleted by ISO 2002 (absent from the whole 2023 text; §8.9 absence @10661–10662); parsed-and-ignored at 85; VCR Table 7 row 7.15"),
+        new("enter-removed-2002", "the ENTER statement", 85, 2002, null, EditionCodes.RemovedConstruct, "obsolete '85 other-language entry deleted by ISO 2002 (§8.9 absence @10459–10460); comment-equivalent (BoundNop) at 85; VCR Table 7 row 7.16"),
+        new("use-for-debugging-removed-2002", "the USE FOR DEBUGGING declarative", 85, 2002, null, EditionCodes.RemovedConstruct, "the '85 debug facility's declarative, deleted by ISO 2002 with the whole facility incl. DEBUG-* registers (§8.9 absence @10407–10408); inert at 85 (comment-treated without WITH DEBUGGING MODE, never-triggered with it); companion of debugging-mode-removed-2002; VCR Table 7 row 7.17"),
+        new("segment-numbers-removed-2002", "a section-header segment-number", 85, 2002, null, EditionCodes.RemovedConstruct, "the '85 Segmentation module's section priority number, deleted by ISO 2002 ('segment' is absent from the 2023 text; §8.9 absence @10681–10682); parsed-and-ignored at 85 (all segments resident); companion of segment-limit-removed-2002; VCR Table 7 row 7.18"),
     ];
 
     private static Dictionary<string, ConstructDialectStatus>? _byId;

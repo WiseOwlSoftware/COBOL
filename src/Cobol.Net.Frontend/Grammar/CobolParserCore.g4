@@ -43,6 +43,19 @@ cobolWord
     // them 0901 at 2023 (both are high-confidence table rows). Mirrored in the lexer _dataNameTokens set.
     | XOR          // context: the logical exclusive-or operator (2023, §8.8.4.9)
     | EXCLUSIVE_OR // context: = XOR (2023, §8.8.4.9)
+    // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18 — the W3 batch): each
+    // parses through its own dedicated rule (rerunClause / enterStatement / the USE FOR DEBUGGING format /
+    // the section-header segment-number), never a name slot, so they are position-safe in the §8.9 funnel
+    // (CheckedTokenTypes). '85-reserved; user-defined words at the editions where the funnel frees them
+    // (RERUN/ENTER ≥2002, DEBUGGING ≥2014, the rest ≥2023 per ReservedWords.Table). Mirrored in the lexer
+    // _dataNameTokens set.
+    | RERUN        // context: the I-O-CONTROL RERUN clause ('85; row 7.15)
+    | ENTER        // context: the ENTER statement ('85; row 7.16)
+    | EVERY        // context: RERUN … EVERY ('85; row 7.15)
+    | CLOCK_UNITS  // context: RERUN … EVERY n CLOCK-UNITS ('85; row 7.15)
+    | DEBUGGING    // context: USE FOR DEBUGGING ('85; row 7.17)
+    | REFERENCES   // context: USE FOR DEBUGGING ON ALL REFERENCES OF ('85; row 7.17)
+    | PROCEDURES   // context: USE FOR DEBUGGING ON ALL PROCEDURES ('85; row 7.17)
     // Screen-related tokens that may be used as data names in non-screen contexts
     | AUTO
     | BELL
@@ -568,8 +581,13 @@ declarativePart
     : DECLARATIVES DOT declarativeSection+ END DECLARATIVES DOT
     ;
 
+// The optional integer after SECTION is the X3.23-1985 segment-number (Segmentation module, 0–99;
+// ≥50 = independent segment) — an obsolete '85 element DELETED by ISO 2002. Parsed at every edition
+// (accepted-inert at 85: all segments resident, a conforming posture); the EditionValidator flags it
+// COBOLNET0902 ≥2002 (`segment-numbers-removed-2002`, VCR Table 7 row 7.18). The companion
+// SEGMENT-LIMIT clause is row 7.8 (already gated via the computerAttributes sink).
 declarativeSection
-    : sectionName SECTION DOT sentence* declarativeParagraph*
+    : sectionName SECTION integerLiteral? DOT sentence* declarativeParagraph*
     ;
 
 declarativeParagraph
@@ -591,8 +609,9 @@ procedureUnit
     | paragraphDefinition
     ;
 
+// SECTION integerLiteral? — the '85 segment-number; see the declarativeSection note (VCR Table 7 row 7.18).
 sectionDefinition
-    : sectionName SECTION DOT paragraphDefinition*
+    : sectionName SECTION integerLiteral? DOT paragraphDefinition*
     ;
 
 sectionName
@@ -623,6 +642,7 @@ statement
     | useStatement
     | callStatement
     | entryStatement
+    | enterStatement
     | cancelStatement
     | closeStatement
     | computeStatement
@@ -931,6 +951,27 @@ callNotOnExceptionPhrase
 
 entryStatement
     : ENTRY literal usingClause?
+    ;
+
+// ==========================================
+// ENTER (X3.23-1985 Nucleus — obsolete '85 element DELETED by ISO 2002)
+// ==========================================
+
+// ENTER language-name-1 [routine-name-1] — the other-language entry statement. Accepted-inert at 85
+// (comment-equivalent when only COBOL is supported — the conforming '85 posture; bound as a no-op);
+// the EditionValidator flags it COBOLNET0902 ≥2002 (`enter-removed-2002`, VCR Table 7 row 7.16).
+// The operands are deliberately NOT cobolWord: language-name-1 is a SYSTEM-name (`ENTER COBOL.` is the
+// canonical '85 switch-back and COBOL is an '85 reserved word — a cobolWord slot would trip the §8.9
+// funnel 0901 on conforming source), and routine-name-1 names an external routine, not a word in the
+// program's name space. The classic `ENTER LINKAGE.` idiom collides with the LINKAGE SECTION keyword,
+// so LINKAGE is admitted explicitly.
+enterStatement
+    : ENTER enterOperand enterOperand?
+    ;
+
+enterOperand
+    : IDENTIFIER
+    | LINKAGE
     ;
 
 // ==========================================

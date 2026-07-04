@@ -61,6 +61,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// targets and to map a WRITE/REWRITE record-name back to its owning file.</summary>
     public Dictionary<string, FileModel> FilesByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>True when SOURCE-COMPUTER declares WITH DEBUGGING MODE (the X3.23-1985 compile-time debug
+    /// switch) — consumed by the declaratives binder to decide the USE FOR DEBUGGING posture (compiled but
+    /// never triggered vs comment-treated; VCR Table 7 rows 7.9/7.17).</summary>
+    public bool DebuggingModeDeclared { get; private set; }
+
     /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
     /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
     /// fields), and WORKING-STORAGE; then classify the shared-storage (REDEFINES) classes over the whole forest and
@@ -80,6 +85,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 ? "ARITHMETIC IS STANDARD was dropped by ISO/IEC 1989:2023 (§8.8.1 defines NATIVE, "
                   + "STANDARD-BINARY, STANDARD-DECIMAL); use STANDARD-DECIMAL"
                 : "ARITHMETIC IS STANDARD (the 2014 mode) is not supported; use STANDARD-DECIMAL or NATIVE");
+
+        // The '85 debug facility's compile-time switch (X3.23-1985 SOURCE-COMPUTER … WITH DEBUGGING MODE; the
+        // clause itself is 0902-gated ≥2002 by the EditionValidator): its presence decides whether a USE FOR
+        // DEBUGGING declarative section is COMPILED (switch present — the object-time switch is permanently off
+        // here, so it never triggers) or treated as comment lines (switch absent — the '85 rule). Token-text
+        // scan of the computerAttributes sink, the VisitComputerAttributes pattern (VCR Table 7 rows 7.9/7.17).
+        DebuggingModeDeclared = program.environmentDivision()?.configurationSection()?.configurationParagraph()
+            .Select(p => p.sourceComputerParagraph()?.computerAttributes())
+            .Any(attrs => attrs is not null && Enumerable.Range(0, attrs.ChildCount)
+                .Any(i => attrs.GetChild(i).GetText().Equals("DEBUGGING", StringComparison.OrdinalIgnoreCase)))
+            ?? false;
 
         // The C#-field-name scope at the Program level is shared by FILE SECTION records AND WORKING-STORAGE roots —
         // both emit as static fields, so a name used by an FD record must not collide with a WS root.
@@ -377,7 +393,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// clause (SR6 — ST131A's <c>READ FILE3</c> then <c>RELEASE S3</c> with no FROM relies on it). The file-area
     /// (Format 1) and sort-merge-area (Format 3) formats are storage-economy permissions (GR1/GR4 — shared/reusable
     /// ALLOCATION plus open-mode constraints on the program, nothing a typed-native runtime must alias) — bound as
-    /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note). The SR2–SR11 static
+    /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note), and so is the
+    /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
+    /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the EditionValidator, VCR Table 7 row 7.15) —
+    /// both skip through the non-SAME `continue` below by design. The SR2–SR11 static
     /// legality checks (report/sort/file-area cross-membership consistency) are the diagnose-correctly track —
     /// staged with the EditionValidator phase, not silently absent by oversight.</summary>
     private void BindIoControl(Core.ProgramUnitContext program)

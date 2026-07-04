@@ -175,6 +175,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.callStatement() is { } call => CallBindCall(call),
         _ when s.cancelStatement() is { } cancel => CallBindCancel(cancel),
         _ when s.entryStatement() is not null => new BoundUnsupported("ENTRY (ISO/IEC 1989 defines no ENTRY statement — vendor extension; interprogram design)"),
+        // ENTER language-name [routine-name] (X3.23-1985 Nucleus, deleted by ISO 2002 — 0902-gated ≥2002 by
+        // the EditionValidator, VCR Table 7 row 7.16): comment-equivalent when only COBOL is supported — the
+        // conforming '85 posture; accepted-inert as a no-op.
+        _ when s.enterStatement() is not null => new BoundNop(),
         _ when s.sortStatement() is { } srt => BindSort(srt),
         _ when s.mergeStatement() is { } mrg => BindMerge(mrg),
         _ when s.releaseStatement() is { } rls => BindRelease(rls),

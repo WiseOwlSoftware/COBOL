@@ -37,6 +37,17 @@ public sealed partial class StatementBinder
             || first[0].useStatement() is not { } use)
             data.Edition.Error("COBOLNET0897", $"declarative section '{name}': the first sentence shall consist "
                 + "of a single USE statement (ISO §14.2.4 / §14.9.49 SR1)");
+        else if (use.DEBUGGING() is not null)
+        {
+            // X3.23-1985 USE FOR DEBUGGING (the '85 debug facility, deleted by ISO 2002 — 0902-gated ≥2002 by
+            // the EditionValidator, VCR Table 7 row 7.17). Accepted-inert at 85 per the '85 rules: WITHOUT
+            // SOURCE-COMPUTER … WITH DEBUGGING MODE the whole debugging section is compiled as if it were
+            // comment lines (skip it — nothing binds, its names leave the pc space); WITH the switch the
+            // section IS compiled, but the object-time debug switch (implementor-defined) is permanently OFF
+            // here, so no trigger ever fires (scope stays null — no BoundDeclarative). The DEBUG-ITEM register
+            // family is not implemented (the full debug facility is deferred with the golden-less DB series).
+            if (!data.DebuggingModeDeclared) return;
+        }
         else
             scope = DeclBindUse(use, name);
 

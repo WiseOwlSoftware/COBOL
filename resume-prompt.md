@@ -63,13 +63,27 @@
 > `CopyProcessor.OnNonPseudoTextOperand` 0902; `Frontend.Permissive` threaded; frontend-bag warnings now ride
 > `Result.Warnings` on every outcome — they were silently dropped). 3 drift-locked rows + 2 negative
 > witnesses; battery green at conformance 1398/1398.
-> **RESUME = W3 ④ (the LAST Phase-2 item):** the notInGrammar 85-acceptance set (RERUN, ENTER, USE FOR
-> DEBUGGING, section segment-numbers — accepted-inert at 85 + 0902 ≥2002, Table-7 rows; grammar additions ⇒
-> FULL legacy guard). Then Phase 3 = the M2 OO port (docs/COBOLNET_OO_DESIGN.md carries the port map; the OO
-> grammar grant is standing). Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE
-> precedence-table pass; Tier-A/BINARY figurative-MOVE receivers stay runtime-loud; exit-window conforming
-> witnesses need METHOD-ID/FUNCTION-ID units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase
-> 5/7); options_paragraph awaits ARITHMETIC IS STANDARD (Phase 4e).**
+> **W3 ④ DONE (DEVLOG 599, 2026-07-04) — ⛔🎉 ROADMAP PHASE 2 IS CLOSED.** The notInGrammar 85-acceptance
+> set is GATED (VCR Table 7 rows 7.15–7.18): RERUN / ENTER / USE FOR DEBUGGING / section segment-numbers
+> parse UNGATED at every edition, bind accepted-inert at 85 per the X3.23-1985 rules, and 0902 ≥2002 via
+> the registry. 7 new lexer tokens (RERUN/ENTER/EVERY/CLOCK-UNITS/DEBUGGING/REFERENCES/PROCEDURES) admitted
+> at all three user-word sites; `enterOperand` is deliberately NOT cobolWord (`ENTER COBOL.` — COBOL is
+> '85-reserved, a funnel false-reject caught by probe); the '85 debug DUAL posture is implemented
+> (switch-absent ⇒ comment-treated section, binder AND validator — DB103M with its 95 DEBUG-register
+> references now COMPILES at 85; switch-present ⇒ compiled-never-triggered, DB301M/302M/305M; DEBUG-*
+> under the switch ⇒ 0899 not-implemented, never the false 0901 — DB101A). 4 registry+json rows, 4
+> negative cases, Ansi85AcceptanceTests ×23 (incl. per-word §8.9 freeing editions: RERUN/ENTER 2002,
+> DEBUGGING 2014, EVERY/CLOCK-UNITS/REFERENCES/PROCEDURES 2023). Battery: conformance 1453/1453 (+55) ·
+> unit 102/102 · INV-1-STRONG 349/349 · sweep 439 OK / 20 SKIP85 / 0 BREAKS (grew from 419 OK — the
+> DB/SG/OBIC SKIP85→OK migration, predicted) · FULL legacy guard ALL GREEN (353 MATCH · 1204 · 537).
+> **RESUME = roadmap Phase 3: the M2 OO port** (docs/COBOLNET_OO_DESIGN.md carries the regenerated port
+> map; the OO grammar grant is standing — reuse the legacy OO design per `project_oo_reuse_legacy`).
+> Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
+> figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
+> units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits
+> ARITHMETIC IS STANDARD (Phase 4e). W3-④ residues: the full '85 debug facility (DEBUG-ITEM registers,
+> trigger invocation — the golden-less DB1xx/2xx series) stays deferred; binder-side WITH-DEBUGGING-MODE
+> detection is per-unit (nested inheritance validator-side only).**
 >
 > **(superseded) STATE (DEVLOG 590, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 1 COMPLETE — the EditionValidator Wave 1 landed
 > END-TO-END in one autonomous session (DEVLOG 583–590, commits c0cf723…): P2.1 channels + `Removed()` seam ·

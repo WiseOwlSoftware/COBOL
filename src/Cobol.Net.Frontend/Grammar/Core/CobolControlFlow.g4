@@ -186,6 +186,25 @@ useStatement
     // name validation (and SR13/SR14) is the binder's, never a token enumeration.
     // Format 4 (exception-object, USE AFTER {EXCEPTION OBJECT | EO}) is OO — out of this wave, not parsed.
     | USE AFTER (EXCEPTION CONDITION | EC) useEcEntry+
+    // X3.23-1985 debug-module format (obsolete '85 element DELETED by ISO 2002 — the whole facility,
+    // DEBUG-* registers included, is absent from the 2023 text): USE FOR DEBUGGING ON {cd-name-1 |
+    // [ALL REFERENCES OF] identifier-1 | file-name-1 | procedure-name-1 | ALL PROCEDURES}… .
+    // Accepted-inert at 85 (the section is compiled as if comment lines — the conforming posture when
+    // WITH DEBUGGING MODE is absent, and our permanently-off object-time switch when present); the
+    // EditionValidator flags it COBOLNET0902 ≥2002 (`use-for-debugging-removed-2002`, VCR Table 7
+    // row 7.17). ON is written by every CCVS-85 witness but accepted as optional (house optional-word
+    // tolerance, cf. Format 1's ON).
+    | USE FOR DEBUGGING ON? useDebugTarget+
+    ;
+
+// One '85 debug-operand: ALL PROCEDURES / [ALL REFERENCES OF] identifier / a bare name (file-name,
+// procedure-name, cd-name, or unqualified identifier — the binder never distinguishes: the whole
+// section is inert). dataReference covers the OF/IN-qualified identifier forms (DB201A writes
+// `ABC1 OF AB2 OF A1`). The ALL-led alternatives precede the bare form (first-alternative-wins).
+useDebugTarget
+    : ALL PROCEDURES
+    | ALL REFERENCES OF? dataReference
+    | dataReference
     ;
 
 // One Format-3 scope entry: an exception-name, optionally file-scoped ({FILE file-name-2}… — each file carries

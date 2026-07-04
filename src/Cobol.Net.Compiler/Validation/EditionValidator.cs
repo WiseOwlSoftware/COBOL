@@ -33,6 +33,19 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     private readonly ReservedWordSet _reservedWords = ReservedWordSet.Default;
     // One COBOLNET0901 per distinct word per compilation (P2.4) — not one per occurrence.
     private HashSet<string>? _flaggedWords;
+    // Whether the CURRENT source unit declares SOURCE-COMPUTER … WITH DEBUGGING MODE (the X3.23-1985
+    // compile-time debug switch): decides the USE FOR DEBUGGING posture (VCR Table 7 row 7.17) — without it
+    // a debugging section is comment-treated (never walked); with it, DEBUG-* register references diagnose
+    // 0899 (the deferred facility), not 0901. Reset per top-level program unit; nestedProgram subtrees are
+    // walked within the outer unit, so contained programs INHERIT the switch (the '85 rule).
+    private bool _debuggingModeDeclared;
+
+    /// <summary>Reset the per-source-unit state at each TOP-LEVEL unit (nested programs keep the outer's).</summary>
+    public override object? VisitProgramUnit(CobolParserCore.ProgramUnitContext ctx)
+    {
+        _debuggingModeDeclared = false;
+        return base.VisitChildren(ctx);
+    }
 
     /// <summary>Run the pass over a parsed compilation unit, recording diagnostics on the
     /// <see cref="EditionContext"/> passed at construction.</summary>
@@ -88,6 +101,10 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
                     break;
                 case "DEBUGGING":
                     ConstructRegistry.Check(_edition, "debugging-mode-removed-2002", "the SOURCE-COMPUTER WITH DEBUGGING MODE clause");
+                    // The switch also drives the USE FOR DEBUGGING posture (row 7.17): the configuration
+                    // section precedes the procedure division in the walk, so the flag is set before any
+                    // declarative section is visited.
+                    _debuggingModeDeclared = true;
                     break;
             }
         }
@@ -158,6 +175,72 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         return base.VisitChildren(ctx);
     }
 
+    // ── The W3 notInGrammar 85-acceptance gates (VCR Table 7 rows 7.15–7.18; DEVLOG 599): four obsolete '85
+    //    elements DELETED by ISO 2002 that formerly had no grammar at all (generic parse errors at EVERY
+    //    edition — the G1 co-equal-diagnostic violation). Each now parses unconditionally, binds inert at 85,
+    //    and gates here. ─────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>RERUN (I-O-CONTROL) — the '85 checkpoint hint, deleted 2002 (RERUN is absent from the whole
+    /// 2023 text, §8.9 @10661–10662 included). Parsed-and-ignored at 85 (a null rerun facility is conforming).</summary>
+    public override object? VisitRerunClause(CobolParserCore.RerunClauseContext ctx)
+    {
+        ConstructRegistry.Check(_edition, "rerun-removed-2002", "the I-O-CONTROL RERUN clause");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>ENTER — the '85 other-language entry statement, deleted 2002 (absent from the 2023 text, §8.9
+    /// @10459–10460 included). Comment-equivalent (BoundNop) at 85 — the conforming COBOL-only posture.</summary>
+    public override object? VisitEnterStatement(CobolParserCore.EnterStatementContext ctx)
+    {
+        ConstructRegistry.Check(_edition, "enter-removed-2002", "the ENTER statement");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>USE FOR DEBUGGING — the '85 debug facility's declarative, deleted 2002 with the whole facility
+    /// (the DEBUG-* register family included; §8.9 @10407–10408). Sub-shape gate on the one useStatement rule
+    /// (the STOP-literal pattern); the WITH DEBUGGING MODE companion is row 7.9's gate above.</summary>
+    public override object? VisitUseStatement(CobolParserCore.UseStatementContext ctx)
+    {
+        if (ctx.DEBUGGING() is not null)
+            ConstructRegistry.Check(_edition, "use-for-debugging-removed-2002", "the USE FOR DEBUGGING declarative");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>A section-header segment-number — the '85 Segmentation module's priority number, deleted 2002
+    /// (the word 'segment' is absent from the 2023 text; the SEGMENT-LIMIT companion is row 7.8). Parsed and
+    /// ignored at 85 (all segments resident — a conforming posture).</summary>
+    public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
+    {
+        if (ctx.integerLiteral() is not null)
+            ConstructRegistry.Check(_edition, "segment-numbers-removed-2002",
+                $"the segment-number on section '{ctx.sectionName().GetText()}'");
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>The declarative-section twin of <see cref="VisitSectionDefinition"/> (one registry row, the
+    /// site named per header — the identification-comments pattern). ALSO the '85 comment-treatment seam
+    /// (row 7.17): without WITH DEBUGGING MODE, X3.23-1985 compiles a USE FOR DEBUGGING section as if it
+    /// were comment lines — so the walk visits ONLY the USE statement (its ≥2002 0902 gate must still fire;
+    /// the construct is present in source) and never the section body, keeping the §8.9 funnel off the
+    /// unimplemented DEBUG-* register references inside (DB103M is the corpus witness: no switch, 95
+    /// register references, designed to run with the sections inert). The binder twin is
+    /// StatementBinder.DeclCollectSection.</summary>
+    public override object? VisitDeclarativeSection(CobolParserCore.DeclarativeSectionContext ctx)
+    {
+        if (ctx.integerLiteral() is not null)
+            ConstructRegistry.Check(_edition, "segment-numbers-removed-2002",
+                $"the segment-number on declarative section '{ctx.sectionName().GetText()}'");
+        if (!_debuggingModeDeclared
+            && ctx.sentence() is { Length: > 0 } sentences
+            && sentences[0].statement() is { Length: 1 } first
+            && first[0].useStatement() is { } use && use.DEBUGGING() is not null)
+        {
+            Visit(use);
+            return null;
+        }
+        return base.VisitChildren(ctx);
+    }
+
     // Which cobolWord token TYPES the funnel checks POSITION-BLIND (P2.4, refined — DEVLOG 585): IDENTIFIER
     // occurrences are ALWAYS genuine words (the lexer didn't tokenize them), and they carry the whole
     // newly-reserved payload (the Annex-E 2023 additions lex as IDENTIFIER). The six EC-band tokens are ALSO
@@ -177,6 +260,13 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         // user words below 2023; their keyword occurrences parse through the {is2023()}?-gated operator
         // alternative, never a name slot — so, like the EC band, they are position-safe to check everywhere.
         CobolLexer.XOR, CobolLexer.EXCLUSIVE_OR,
+        // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18): '85-reserved, user
+        // words at later editions per the §8.9 table (RERUN/ENTER free ≥2002, DEBUGGING ≥2014, the rest
+        // ≥2023). Their keyword occurrences parse through dedicated rules (rerunClause / enterStatement —
+        // whose operands are deliberately NOT cobolWord / the USE FOR DEBUGGING format), never a name slot —
+        // position-safe to check everywhere.
+        CobolLexer.RERUN, CobolLexer.ENTER, CobolLexer.EVERY, CobolLexer.CLOCK_UNITS,
+        CobolLexer.DEBUGGING, CobolLexer.REFERENCES, CobolLexer.PROCEDURES,
     ];
 
     /// <summary>
@@ -197,9 +287,21 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
             return base.VisitChildren(ctx);
         string word = ctx.Start.Text.ToUpperInvariant();
         if (_reservedWords.RejectsAt(word, _edition.DialectLevel) && (_flaggedWords ??= []).Add(word))
-            _edition.Removed(EditionCodes.ReservedWord,
-                $"'{word}' is a reserved word in COBOL-{_edition.DialectLevel} and cannot be used as a "
-                + "user-defined word (ISO §8.9)");
+        {
+            // Under WITH DEBUGGING MODE a DEBUG-* occurrence is the X3.23-1985 REGISTER (DEBUG-ITEM family),
+            // not a user-defined word — a legal '85 reference to a facility this compiler defers (VCR Table 7
+            // row 7.17; the switch-ABSENT case never gets here — comment treatment skips the section body).
+            // Diagnose the truth (0899 not-implemented) instead of a false §8.9 violation.
+            if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
+                _edition.Error("COBOLNET0899",
+                    $"the X3.23-1985 debug register '{word}' is recognized, but the '85 debug facility "
+                    + "(DEBUG-ITEM registers, debugging-section invocation) is not implemented — deferred "
+                    + "with the golden-less DB series (VCR Table 7 row 7.17)");
+            else
+                _edition.Removed(EditionCodes.ReservedWord,
+                    $"'{word}' is a reserved word in COBOL-{_edition.DialectLevel} and cannot be used as a "
+                    + "user-defined word (ISO §8.9)");
+        }
         return base.VisitChildren(ctx);
     }
 

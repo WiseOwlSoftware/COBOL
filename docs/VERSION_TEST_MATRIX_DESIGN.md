@@ -423,6 +423,26 @@ decision.
 > (`MarkRefModStoreImage` — the round-trip-loss fix). ⚠ KNOWN MISBIND queued to W3: the trailing `,`
 > clause-separator twin of the fixed `;` over-capture (VCR Table 7 row 7.14 — needs the lexer-mode cure).
 
+> **W3 ④ AS-BUILT (2026-07-04, DEVLOG 599) — the notInGrammar 85-acceptance set (VCR Table 7 rows
+> 7.15–7.18):** all four constructs now parse UNGATED at every edition (the STOP-literal house style — a
+> `{is85()}?` predicate would be wrong: at ≥2002 they must produce 0902 with edition naming, not a parse
+> error) and gate via `EditionValidator` → `ConstructRegistry`. Grammar: 7 new lexer tokens (RERUN, ENTER,
+> EVERY, CLOCK-UNITS, DEBUGGING, REFERENCES, PROCEDURES), each admitted to cobolWord + `_dataNameTokens` +
+> `CheckedTokenTypes` (position-safe: their keyword occurrences parse through dedicated rules, never a name
+> slot); `rerunClause` (CobolIO.g4, all four EVERY forms), `enterStatement` (operands are SYSTEM-names via
+> `enterOperand : IDENTIFIER | LINKAGE` — NOT cobolWord, else the funnel false-0901s the conforming
+> `ENTER COBOL.`), the `USE FOR DEBUGGING ON? useDebugTarget+` format, and `SECTION integerLiteral?` on both
+> section-header rules. Inert-at-85 bindings: RERUN rides `BindIoControl`'s non-SAME skip; ENTER →
+> `BoundNop`; segment-numbers ignored by the collectors; USE FOR DEBUGGING implements the '85 dual rule —
+> switch-absent ⇒ the section is compiled AS IF COMMENT LINES (binder skips it in `DeclCollectSection` AND
+> the validator skips the body in `VisitDeclarativeSection`, still visiting the USE so its ≥2002 gate fires;
+> DB103M = the corpus witness), switch-present ⇒ compiled-but-never-triggered (`_debuggingModeDeclared`,
+> reset per top-level unit so nested programs inherit), and a DEBUG-* register reference under the switch
+> diagnoses 0899 not-implemented instead of the false 0901 (DB101A). New coverage: 4 registry+json rows,
+> 4 negative-corpus cases, `Ansi85AcceptanceTests` (23 facts: inert runs, operand forms, the SAME+RERUN
+> one-period adjacency, DB residue compiles, per-word §8.9 freeing editions per ReservedWords.Table —
+> RERUN/ENTER 2002, DEBUGGING 2014, EVERY/CLOCK-UNITS/REFERENCES/PROCEDURES 2023).
+
 ## 9. Reuse / do-not-duplicate map
 
 | Need | Existing (reuse / port) |

@@ -60,10 +60,14 @@ semantics).
 migrated) · MULTIPLE FILE [TAPE] · MEMORY SIZE · SEGMENT-LIMIT · WITH DEBUGGING MODE (token-scans of the
 `computerAttributes` sink) · the five identification comment paragraphs · REMARKS (≥2002 only — CCVS carve-out)
 · STOP literal (85 semantics implemented: `BoundStopLiteral` → operator channel/stderr + continue) · OPEN
-REVERSED. 2014→2023: CLOSE WITH LOCK · CALL ON OVERFLOW (binder, 0882). Windows: EXIT METHOD/FUNCTION
-(2002→2023). Archaic 0903 @≥2023: EXIT PROGRAM · NEXT SENTENCE. Reserved-word intervals: COMMIT@2023,
-RAISING@2002, RECEIVE + END-RECEIVE (85-reserved → free 2002/2014 → re-reserved 2023). Binder `Removed()`
-sites: ALTER 0810 · bare GO TO 0811 · CALL ON OVERFLOW 0882.
+REVERSED · **the W3-④ notInGrammar batch (DEVLOG 599, VCR Table 7 rows 7.15–7.18): RERUN (parsed-and-ignored)
+· ENTER (BoundNop; system-name operands outside the funnel) · USE FOR DEBUGGING (the '85 dual posture —
+comment-treated without WITH DEBUGGING MODE [DB103M], compiled-never-triggered with it; DEBUG-* register
+references under the switch diagnose 0899 not-implemented, never the false 0901) · section-header
+segment-numbers (both header rules)**. 2014→2023: CLOSE WITH LOCK · CALL ON OVERFLOW (binder, 0882). Windows:
+EXIT METHOD/FUNCTION (2002→2023). Archaic 0903 @≥2023: EXIT PROGRAM · NEXT SENTENCE. Reserved-word intervals:
+COMMIT@2023, RAISING@2002, RECEIVE + END-RECEIVE (85-reserved → free 2002/2014 → re-reserved 2023). Binder
+`Removed()` sites: ALTER 0810 · bare GO TO 0811 · CALL ON OVERFLOW 0882.
 
 ## 4. The measurable G7 exit criteria (roadmap Phase-1 docs item; Phase 8 audits them as counts/exit codes)
 

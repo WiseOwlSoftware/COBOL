@@ -36,6 +36,9 @@ options {
         RAISE, RAISING, RESUME, STATEMENT, CONDITION, EC,
         // The 2023 logical-operator words (Annex E.2 item 25; the W3 XOR regating) — user words below 2023:
         XOR, EXCLUSIVE_OR,
+        // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18) — '85-reserved,
+        // user words at the editions where the §8.9 funnel frees them:
+        RERUN, ENTER, EVERY, CLOCK_UNITS, DEBUGGING, REFERENCES, PROCEDURES,
         // Intrinsic function names that collide with reserved words
         // (mirrors functionName in CobolExpressions.g4):
         DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
@@ -160,6 +163,11 @@ DEFAULT           : 'DEFAULT' ;
 INTERMEDIATE      : 'INTERMEDIATE' ;
 ROUNDING          : 'ROUNDING' ;
 // BLANK [WHEN] ZERO is parsed as individual tokens in the parser grammar
+// X3.23-1985 RERUN clause unit (obsolete '85 element deleted by ISO 2002 — accepted-inert at 85, 0902 ≥2002
+// per VCR Table 7 row 7.15). Hyphenated, so it must precede IDENTIFIER; a longer user word like
+// CLOCK-UNITS-X still lexes as one IDENTIFIER (maximal munch). Also a legal user word via cobolWord where
+// the §8.9 funnel frees it (mirrored in _dataNameTokens).
+CLOCK_UNITS     : 'CLOCK-UNITS' ;
 DAY_OF_WEEK     : 'DAY-OF-WEEK' ;
 REVERSE_VIDEO   : 'REVERSE-VIDEO' ;
 FOREGROUND_COLOR: 'FOREGROUND-COLOR' ;
@@ -194,6 +202,10 @@ COMPUTE     : 'COMPUTE' ;
 CONTINUE    : 'CONTINUE' ;
 DELETE      : 'DELETE' ;
 DISPLAY     : 'DISPLAY' ;
+// X3.23-1985 ENTER statement verb (obsolete '85 element deleted by ISO 2002 — accepted-inert at 85,
+// 0902 ≥2002 per VCR Table 7 row 7.16). A legal user word via cobolWord at editions where the §8.9
+// funnel frees it (85-only reserved per ReservedWords.Table); mirrored in _dataNameTokens.
+ENTER       : 'ENTER' ;
 GENERATE    : 'GENERATE' ;
 DIVIDE      : 'DIVIDE' ;
 EVALUATE    : 'EVALUATE' ;
@@ -316,6 +328,15 @@ DESCENDING  : 'DESCENDING' ;
 DOWN        : 'DOWN' ;
 DUPLICATES  : 'DUPLICATES' ;
 DYNAMIC     : 'DYNAMIC' ;
+// ── The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18; obsolete '85 elements
+//    deleted by ISO 2002; each is ALSO a legal user word via cobolWord at the editions where the §8.9
+//    funnel frees it — all five are mirrored in _dataNameTokens above, with ENTER and CLOCK-UNITS in
+//    their own bands) ──
+DEBUGGING   : 'DEBUGGING' ;   // USE FOR DEBUGGING (the '85 debug facility, row 7.17)
+EVERY       : 'EVERY' ;       // RERUN … EVERY (row 7.15)
+RERUN       : 'RERUN' ;       // the I-O-CONTROL RERUN clause head (row 7.15)
+REFERENCES  : 'REFERENCES' ;  // USE FOR DEBUGGING ON ALL REFERENCES OF (row 7.17); distinct from REFERENCE
+PROCEDURES  : 'PROCEDURES' ;  // USE FOR DEBUGGING ON ALL PROCEDURES (row 7.17); distinct from PROCEDURE
 EDITED      : 'EDITED' ;
 ELSE        : 'ELSE' ;
 END         : 'END' ;

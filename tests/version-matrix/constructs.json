@@ -582,6 +582,42 @@
     "expectDiagnostic": "COBOLNET0903",
     "vcr": "VCR row 94 (F.2 item 4); W3 preprocessor threading (DEVLOG 598)",
     "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. VMLC1.\n000300 DATA DIVISION.\n000400 WORKING-STORAGE SECTION.\n000500 01 W-TXT PIC X(20) VALUE \"AAAAAAAAAA\n000600-    \"BBBBBBBBBB\".\n000700 PROCEDURE DIVISION.\n000800 MAIN.\n000900     DISPLAY W-TXT.\n001000     STOP RUN.\n"
+  },
+  {
+    "id": "rerun-removed-2002",
+    "description": "RERUN clause (I-O-CONTROL) - the '85 checkpoint hint (RERUN [ON file/implementor-name] EVERY {[END OF] REEL/UNIT OF f | n RECORDS [OF f] | n CLOCK-UNITS | condition-name}); no program-visible effect, parsed-and-ignored at 85 (a null rerun facility is conforming); deleted by ISO 2002 (absent from the whole 2023 text, 8.9 included).",
+    "introducedIn": 85,
+    "removedIn": 2002,
+    "expectDiagnostic": "COBOLNET0902",
+    "vcr": "VCR Table 7 row 7.15; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRR1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrr\" ORGANIZATION IS SEQUENTIAL.\nI-O-CONTROL.\n    RERUN ON F EVERY 10 RECORDS OF F.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"CHECKPOINT\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+  },
+  {
+    "id": "enter-removed-2002",
+    "description": "ENTER statement (X3.23-1985 Nucleus: ENTER language-name [routine-name]) - other-language entry, comment-equivalent when only COBOL is supported (bound BoundNop at 85; the operands are SYSTEM-names, deliberately not cobolWord - ENTER COBOL is conforming '85 source and COBOL is an '85 reserved word); deleted by ISO 2002.",
+    "introducedIn": 85,
+    "removedIn": 2002,
+    "expectDiagnostic": "COBOLNET0902",
+    "vcr": "VCR Table 7 row 7.16; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEN1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    ENTER LINKAGE.\n    DISPLAY W.\n    ENTER COBOL.\n    STOP RUN.\n"
+  },
+  {
+    "id": "use-for-debugging-removed-2002",
+    "description": "USE FOR DEBUGGING declarative (the '85 debug facility) - deleted by ISO 2002 with the whole facility (DEBUG-* registers included). Accepted-inert at 85: without WITH DEBUGGING MODE the debugging section is compiled as if comment lines (the '85 rule); with it, compiled but never triggered (the object-time switch is permanently off). Companion of debugging-mode-removed-2002.",
+    "introducedIn": 85,
+    "removedIn": 2002,
+    "expectDiagnostic": "COBOLNET0902",
+    "vcr": "VCR Table 7 row 7.17; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMUD1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSOURCE-COMPUTER. VMCOMP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 3.\nPROCEDURE DIVISION.\nDECLARATIVES.\nDBG-SEC SECTION.\n    USE FOR DEBUGGING ON ALL PROCEDURES.\nDBG-PARA.\n    DISPLAY \"NEVER-SEEN\".\nEND DECLARATIVES.\nMAIN SECTION.\nM1.\n    DISPLAY W.\n    STOP RUN.\n"
+  },
+  {
+    "id": "segment-numbers-removed-2002",
+    "description": "Section-header segment-number (the '85 Segmentation module: section-name SECTION [0-99].; 50-99 = independent segments) - parsed-and-ignored at 85 (all segments resident, a conforming posture; the independent-segment ALTER-reversion rules are deliberately not implemented - ALTER is itself gated 0810/0811); deleted by ISO 2002. Companion of segment-limit-removed-2002.",
+    "introducedIn": 85,
+    "removedIn": 2002,
+    "expectDiagnostic": "COBOLNET0902",
+    "vcr": "VCR Table 7 row 7.18; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSG1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nFIRST-PART SECTION 10.\nP1.\n    DISPLAY W.\nSECOND-HALF SECTION 50.\nP2.\n    STOP RUN.\n"
   }
   ]
 }
