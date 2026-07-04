@@ -416,7 +416,16 @@ public sealed record PicInfo(
     /// An unrecognized keyword is a LOUD internal error — never Display.
     /// </summary>
     public static Usage ParseUsage(string? keyword, EditionContext edition, string where)
+        => ParseUsage(keyword, edition, where, out _);
+
+    /// <summary><paramref name="skeleton"/> reports that the keyword was a recognized-but-unimplemented W2
+    /// skeleton usage (compile already failed; the caller must give a PICTURE-less entry a RECOVERY SHAPE —
+    /// <see cref="RecoveryItem"/> — because these usages are legally picture-less per §13.18.60 and a
+    /// Pic-null item NREs the doomed emit pass instead of surfacing the diagnostics: the binary_usage crash,
+    /// DEVLOG 597).</summary>
+    public static Usage ParseUsage(string? keyword, EditionContext edition, string where, out bool skeleton)
     {
+        skeleton = false;
         switch (keyword?.ToUpperInvariant().Replace("COMPUTATIONAL", "COMP"))
         {
             case null or "DISPLAY": return Usage.Display;
@@ -427,15 +436,15 @@ public sealed record PicInfo(
             case "COMP-2": return Usage.Double;
             case "INDEX": return Usage.Index;
             // ── The 2002+ recognized-but-unimplemented inventory (ISO §13.18.60): gate loud, recover Display ──
-            case "NATIONAL": return SkeletonUsage(edition, "national-data-2002", "Phase 4a", where);
-            case "BIT": return SkeletonUsage(edition, "boolean-data-2002", "Phase 4a", where);
-            case "POINTER": return SkeletonUsage(edition, "usage-pointer-2002", "Phase 4b", where);
-            case "OBJECT REFERENCE": return SkeletonUsage(edition, "usage-object-reference-2002", "Phase 3", where);
+            case "NATIONAL": return SkeletonUsage(edition, "national-data-2002", "Phase 4a", where, out skeleton);
+            case "BIT": return SkeletonUsage(edition, "boolean-data-2002", "Phase 4a", where, out skeleton);
+            case "POINTER": return SkeletonUsage(edition, "usage-pointer-2002", "Phase 4b", where, out skeleton);
+            case "OBJECT REFERENCE": return SkeletonUsage(edition, "usage-object-reference-2002", "Phase 3", where, out skeleton);
             case "BINARY-CHAR" or "BINARY-SHORT" or "BINARY-LONG" or "BINARY-DOUBLE":
-                return SkeletonUsage(edition, "usage-binary-char-family-2002", "Phase 4", where);
-            case "FLOAT-SHORT": return SkeletonUsage(edition, "usage-float-short-2002", "Phase 6", where);
-            case "FLOAT-LONG": return SkeletonUsage(edition, "usage-float-long-2002", "Phase 6", where);
-            case "FLOAT-EXTENDED": return SkeletonUsage(edition, "usage-float-extended-2002", "Phase 6", where);
+                return SkeletonUsage(edition, "usage-binary-char-family-2002", "Phase 4", where, out skeleton);
+            case "FLOAT-SHORT": return SkeletonUsage(edition, "usage-float-short-2002", "Phase 6", where, out skeleton);
+            case "FLOAT-LONG": return SkeletonUsage(edition, "usage-float-long-2002", "Phase 6", where, out skeleton);
+            case "FLOAT-EXTENDED": return SkeletonUsage(edition, "usage-float-extended-2002", "Phase 6", where, out skeleton);
             case { } other:
                 // The grammar admits nothing else — reaching here is a compiler defect (a new grammar
                 // alternative without its ParseUsage arm). LOUD, never a silent Display misbind.
@@ -446,13 +455,21 @@ public sealed record PicInfo(
         }
     }
 
+    /// <summary>The RECOVERY SHAPE for a PICTURE-less skeleton-usage entry (alphanumeric, width 1) — a
+    /// reference-comparable singleton like <see cref="IndexItem"/>: the compile has already failed (0899/0900),
+    /// this shape only keeps the doomed emit crash-free; the binder's group-fixup pass CLEARS it from entries
+    /// that turn out to be group headers (usage on a group inherits per §13.18.60.4 GR1).</summary>
+    public static PicInfo RecoveryItem { get; } =
+        new(PicCategory.Alphanumeric, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false);
+
     /// <summary>The W2 skeleton gate for a recognized-but-unimplemented USAGE: fire the introduction gate +
     /// the not-implemented error via <see cref="NotImplementedSkeleton"/>, then recover to
     /// <see cref="Usage.Display"/> — the compile has already failed, so the skeleton <see cref="Usage"/> member
     /// never enters the bound model (the storage-mapping switches throw if one ever does).</summary>
-    private static Usage SkeletonUsage(EditionContext edition, string rowId, string phase, string where)
+    private static Usage SkeletonUsage(EditionContext edition, string rowId, string phase, string where, out bool skeleton)
     {
         NotImplementedSkeleton(edition, rowId, phase, where);
+        skeleton = true;
         return Usage.Display;
     }
 

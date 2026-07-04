@@ -1,4 +1,5 @@
-      *> ISO §14.9.21 — INSPECT BACKWARD (COBOL-2002): inspection proceeds right-to-left.
+      *> ISO §14.9.22 — INSPECT BACKWARD (COBOL-2023: Annex E.3 item 34 adds the BACKWARD context-sensitive
+      *> word to INSPECT): inspection proceeds right-to-left. Re-editioned from 2002 at the W3 audit (DEVLOG 597).
       *> R: FIRST "A" backward = the RIGHTMOST "A" (forward FIRST would hit index 0).
       *>    "ABABA" -> "ABAB*".
       *> T: LEADING "0" backward counts the trailing run of zeros (2). Forward LEADING would be 0.

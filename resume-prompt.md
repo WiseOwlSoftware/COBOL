@@ -51,13 +51,21 @@
 > corpus re-edition + the M4-2a doc correction + the legacy XOR test retargeted to Cobol2023). Battery:
 > conformance 1367/1367 · sweep 419/0 · INV-1-STRONG 349/349 · FULL legacy guard green (353 MATCH,
 > 1204 unit, 537 integration).
-> **RESUME = W3 part 2:** ④ the notInGrammar 85-acceptance set (RERUN, ENTER, USE FOR DEBUGGING, section
-> segment-numbers — accepted-inert at 85 + 0902 ≥2002, Table-7 rows); ⑤ preprocessor DialectLevel threading
-> (VCR 2/4/94 — CopyProcessor/ReferenceFormatProcessor); ⑥ the 2002-corpus edition audit (33 pending
-> programs vs the VCR). Then Phase 3 = the M2 OO port (docs/COBOLNET_OO_DESIGN.md carries the port map; the
-> OO grammar grant is standing). Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE
-> precedence-table pass; Tier-A/BINARY figurative-MOVE receivers stay runtime-loud; exit-window conforming
-> witnesses need METHOD-ID/FUNCTION-ID units (Phase 3/4c).**
+> **W3 ⑥ DONE (DEVLOG 597): the 2002-corpus audit** — 6 programs re-editioned (inspect_backward→2023 per
+> Annex E.3 item 34; the 5 OPTIONS/ROUNDED-MODE programs→2014), **11 programs ENABLED with a live RUN
+> CONTRACT** (CorpusRunnerTests now compiles strict + runs + byte-compares vs .out on the CutRunner.Normalize
+> basis; the 2002+ positive corpus is no longer empty), a Pic-null doomed-emit CRASH fixed (picture-less
+> skeleton usages get PicInfo.RecoveryItem, the IndexItem pattern), 2 .outs re-baselined to ISO (§14.9.11.4
+> GR6 full-width DISPLAY; the legacy ConformanceTests gained the guard-style LEGACY_DIVERGENT skip with
+> citations). CI PROVEN on the untracked-Generated path (both jobs green on 01cb96d).
+> **RESUME = W3 part 2 (final):** ④ the notInGrammar 85-acceptance set (RERUN, ENTER, USE FOR DEBUGGING,
+> section segment-numbers — accepted-inert at 85 + 0902 ≥2002, Table-7 rows); ⑤ preprocessor DialectLevel
+> threading (VCR 2/4/94 — CopyProcessor/ReferenceFormatProcessor). Then Phase 3 = the M2 OO port
+> (docs/COBOLNET_OO_DESIGN.md carries the port map; the OO grammar grant is standing). Deferred-from-review
+> (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY figurative-MOVE
+> receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID units (Phase
+> 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits ARITHMETIC IS
+> STANDARD (Phase 4e).**
 >
 > **(superseded) STATE (DEVLOG 590, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 1 COMPLETE — the EditionValidator Wave 1 landed
 > END-TO-END in one autonomous session (DEVLOG 583–590, commits c0cf723…): P2.1 channels + `Removed()` seam ·

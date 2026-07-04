@@ -65,10 +65,26 @@ public sealed class CorpusRunnerTests
         if (edition == "shell") return;   // the empty-manifest sentinel
         string dir = Path.Combine(Root, edition);
         string src = Path.Combine(dir, name + ".cob");
-        var (ok, errors, _) = EditionHarness.CompileFull(File.ReadAllText(src), int.Parse(edition));
-        Assert.True(ok, $"[{edition}/{name}] must compile strict: {string.Join("\n", errors)}");
-        // Output comparison (sibling .out) upgrades here when the first wave enables a run-bearing program —
-        // the shell asserts compilation; the enabling wave owns the run contract (roadmap Phase 3+).
+        // The RUN CONTRACT (landed with the first enabling wave — the W3 corpus audit, DEVLOG 597): an
+        // enabled program with a sibling .out must compile STRICT at its edition, run, and byte-match the
+        // expected output (line endings normalized — the .out files are LF; a Windows run emits CRLF).
+        string outFile = Path.Combine(dir, name + ".out");
+        string tmp = Path.Combine(Path.GetTempPath(), "CobolNet_Corpus_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(tmp);
+        try
+        {
+            string dll = Path.Combine(tmp, name + ".dll");
+            var r = CobolNet.CompilerDriver.Compile(new CobolNet.CompilerDriver.Options(
+                src, dll, DialectLevel: int.Parse(edition)));
+            Assert.True(r.Success, $"[{edition}/{name}] must compile strict: {string.Join("\n", r.Errors)}");
+            if (!File.Exists(outFile)) return;   // compile-only entry (no expected output recorded)
+            var (ran, stdout, detail) = CutRunner.Run(dll, tmp);
+            Assert.True(ran, $"[{edition}/{name}] must run: {detail}");
+            // The same comparison basis as the NIST differential harness (CutRunner.Normalize — LF line
+            // endings, per-line trailing-space trim, no trailing newline).
+            Assert.Equal(CutRunner.Normalize(File.ReadAllText(outFile)), CutRunner.Normalize(stdout));
+        }
+        finally { try { Directory.Delete(tmp, recursive: true); } catch { /* best-effort */ } }
     }
 
     public static IEnumerable<object[]> EnabledNegative()

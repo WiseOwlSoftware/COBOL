@@ -41,6 +41,19 @@ public sealed class ConformanceTests : EndToEndTestBase
         }
     }
 
+    /// <summary>Programs whose .out files are ISO-CONFORMING baselines the LEGACY engine cannot reproduce —
+    /// the same divergence protocol as scripts/guard.sh's LEGACY_DIVERGENT list (per-program ISO citations).
+    /// Both entries are the legacy DISPLAY trailing-space TRIM (non-conforming per ISO §14.9.11.4 GR6 — the
+    /// greenfield emits the full field; the .out files were re-baselined at the W3 corpus audit, DEVLOG 597):
+    /// the trimmed spaces sit INTERIOR to the expected lines ("DF=[   ]…"), so no whitespace normalization can
+    /// bridge them. The greenfield CorpusRunnerTests asserts these baselines; the legacy runner SKIPS the
+    /// output comparison (compile+run still asserted) until the G8 cut-over retires it.</summary>
+    private static readonly HashSet<(string, string)> LegacyDivergent =
+    [
+        ("2002", "initialize_phrases"),
+        ("2002", "table_value_occurs"),
+    ];
+
     [Theory]
     [MemberData(nameof(Cases))]
     public void Conformance(string version, string name)
@@ -51,6 +64,7 @@ public sealed class ConformanceTests : EndToEndTestBase
 
         var (ok, stdout, stderr) = CompileAndRun(source, dialect);
         Assert.True(ok, $"[conformance {version}/{name}] compile/run failed:\n{stderr}");
+        if (LegacyDivergent.Contains((version, name))) return;   // ISO-adjudicated divergence — see the list
         Assert.Equal(expected, Normalize(stdout));
     }
 

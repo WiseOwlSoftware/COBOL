@@ -586,13 +586,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // Parse the usage keyword ONCE per entry — ParseUsage carries the W2 loud-guard gates (the 2002+
         // skeleton usages error, ISO §13.18.60), and a re-parse would duplicate their diagnostics.
         string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
-        Usage entryUsage = PicInfo.ParseUsage(usageText, Edition, entryWhere);
+        Usage entryUsage = PicInfo.ParseUsage(usageText, Edition, entryWhere, out bool skeletonUsage);
 
         // A PICTURE-less USAGE INDEX entry is an ELEMENTARY index data item (ISO §13.18.60 — class index, no
         // PICTURE allowed), not a group: synthesize its profile so it emits as a long occurrence-number field.
+        // A PICTURE-less SKELETON usage (BINARY-CHAR / POINTER / OBJECT REFERENCE / FLOAT-x / NATIONAL / BIT —
+        // legally picture-less per §13.18.60) gets the RECOVERY shape: the compile has already failed, and a
+        // Pic-null elementary item NREs the doomed emit on any MOVE receiver (the binary_usage crash,
+        // DEVLOG 597) instead of surfacing the 0899/0900. Group headers shed it in ResolveIndexItems.
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
-            : entryUsage is Usage.Index ? PicInfo.IndexItem : null;
+            : entryUsage is Usage.Index ? PicInfo.IndexItem
+            : skeletonUsage ? PicInfo.RecoveryItem : null;
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.
@@ -664,6 +669,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (item.Children.Count > 0)
             {
                 if (ReferenceEquals(item.Pic, PicInfo.IndexItem)) item.Pic = null;   // a group, not an elementary index
+                // A skeleton-usage RECOVERY shape on a GROUP header sheds the same way (the usage merely
+                // inherits per §13.18.60.4 GR1; a Pic'd "group" would stop grouping — DEVLOG 597).
+                if (ReferenceEquals(item.Pic, PicInfo.RecoveryItem)) item.Pic = null;
                 foreach (var c in item.Children) Walk(c, isIndex);
             }
             else if (isIndex && item.Pic is null)
