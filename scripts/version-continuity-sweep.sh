@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# INV-1 CONTINUITY SWEEP (VERSION_TEST_MATRIX_DESIGN.md §3 / Phase 1a): every NIST CCVS-85 program that COMPILES
-# at --std 85 must still compile at 2002 / 2014 / 2023 — a break is either a VERSION_CHANGE_REFERENCE-documented
-# removal/reserved-word collision (expected, must be cited) or a REGRESSION in the greenfield's edition gating.
+# INV-1 CONTINUITY SWEEP (VERSION_TEST_MATRIX_DESIGN.md §3; RESTATED at the P2.7 flip — the §10 #1 migration
+# posture): every NIST CCVS-85 program that COMPILES at --std 85 must still compile at 2002 / 2014 / 2023
+# **UNDER --permissive** — under strict, later editions legitimately REJECT the removed '85 elements every
+# NIST program carries (LABEL RECORDS in every FD; gate live since DEVLOG 588), and every strict failure must
+# trace to a recognized edition-band diagnostic code. A PERMISSIVE break is a REGRESSION, full stop.
 #
 # Usage: scripts/version-continuity-sweep.sh [parallelism]   (default 12)
 # Output: one line per 85-compiling program — "NAME OK" or "NAME BREAKS@<edition>[,<edition>…]";
@@ -24,7 +26,7 @@ sweep_one() {
   fi
   breaks=""
   for ED in 2002 2014 2023; do
-    if ! dotnet "$CLI" "$SRC" -o "$DIR/p$ED.dll" --nist "$NAME" --std $ED >/dev/null 2>&1; then
+    if ! dotnet "$CLI" "$SRC" -o "$DIR/p$ED.dll" --nist "$NAME" --std $ED --permissive >/dev/null 2>&1; then
       breaks="$breaks,$ED"
     fi
   done

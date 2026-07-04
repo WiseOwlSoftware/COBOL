@@ -38,6 +38,17 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     /// <see cref="EditionContext"/> passed at construction.</summary>
     public void Validate(CobolParserCore.CompilationUnitContext tree) => Visit(tree);
 
+    // ── P2.6 removal gates: every override routes through ConstructRegistry.Check (one policy) ─────────────
+
+    /// <summary>LABEL RECORDS (FD) — obsolete '85 element DELETED by ISO/IEC 1989:2002; the 2023 FD clause set
+    /// (§13.18) has no LABEL clause. The FIRST removal gate, shipped in the SAME commit as the permissive flip
+    /// (every NIST FD writes this clause — 243/459 programs).</summary>
+    public override object? VisitLabelRecordsClause(CobolParserCore.LabelRecordsClauseContext ctx)
+    {
+        ConstructRegistry.Check(_edition, "label-records-removed-2002", "the FD LABEL RECORDS clause");
+        return base.VisitChildren(ctx);
+    }
+
     // Which cobolWord token TYPES the funnel checks (P2.4, refined — DEVLOG 585): IDENTIFIER occurrences are
     // ALWAYS genuine words (the lexer didn't tokenize them), and they carry the whole newly-reserved payload
     // (the Annex-E 2023 additions lex as IDENTIFIER). The six EC-band tokens are ALSO checked — they are

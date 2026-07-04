@@ -78,6 +78,12 @@ public static class ConstructRegistry
         new("usage-float-binary32-2014", "USAGE FLOAT-BINARY-32", 2014, null, null, EditionCodes.Introduction, "ISO §13.18.59; D16 split (provisional 2014); PENDING (Phase 6)"),
         new("constant-entry-2002", "constant entry (01 … CONSTANT AS)", 2002, null, null, EditionCodes.Introduction, "ISO §13.10 + §13.18.15; D5; PENDING (Phase 6)"),
         new("concat-operator-2002", "concatenation expression (&)", 2002, null, null, EditionCodes.Introduction, "ISO §8.8.3; D6; PENDING (Phase 4g)"),
+        // ── Removal gates (P2.6) + reserved-word interval rows (P2.7): RemovedIn drives Removed()/0901 ──
+        new("label-records-removed-2002", "the LABEL RECORDS clause", 85, 2002, null, EditionCodes.RemovedConstruct, "obsolete '85 FD element DELETED by ISO 2002; the 2023 FD clause set (§13.18) has no LABEL clause; VCR Table 7"),
+        new("user-word-commit-2023", "the word COMMIT as a user-defined word", 85, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32)"),
+        new("user-word-raising-2002", "the word RAISING as a user-defined word", 85, 2002, null, EditionCodes.ReservedWord, "§8.9 interval encoding: user-definable at 85, reserved since 2002 (the EC family — DEVLOG 585 correction)"),
+        new("receive-as-user-word", "the word RECEIVE as a user-defined word", 2002, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding of the RE-reservation: 85-reserved (communication) → user-definable 2002/2014 → re-reserved 2023 (Annex E.2 item 25)"),
+        new("end-receive-as-user-word", "the word END-RECEIVE as a user-defined word", 2002, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding: the THIRD re-reserved communication word — discovered mechanically (DEVLOG 585); same interval as RECEIVE"),
     ];
 
     private static Dictionary<string, ConstructDialectStatus>? _byId;

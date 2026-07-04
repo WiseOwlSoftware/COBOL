@@ -525,6 +525,16 @@ public sealed class NistDifferentialTests
             .Select(line => line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
             .ToDictionary(parts => parts[0], parts => parts[1..]));
 
+    /// <summary>The per-edition override for the INV-1-STRONG behavioral leg (the roadmap's fatal-challenge fix,
+    /// attached to the P2.7 flip; promoted to a G7 exit criterion at Phase 8): <c>COBOLNET_NIST_STD</c>
+    /// (85|2002|2014|2023, default 85) + <c>COBOLNET_NIST_PERMISSIVE=1</c> re-target the WHOLE golden run — e.g.
+    /// <c>COBOLNET_NIST_STD=2023 COBOLNET_NIST_PERMISSIVE=1</c> compiles AND RUNS all 318 goldens at the
+    /// shipping default edition in migration mode, asserting byte-identical output.</summary>
+    private static readonly int NistStd =
+        int.TryParse(Environment.GetEnvironmentVariable("COBOLNET_NIST_STD"), out int v) ? v : 85;
+    private static readonly bool NistPermissive =
+        Environment.GetEnvironmentVariable("COBOLNET_NIST_PERMISSIVE") == "1";
+
     /// <summary>Compile a NIST program (with CCVS X-card preprocessing) and run it in an isolated temp directory —
     /// chain predecessors first, when <c>chains.tsv</c> lists any — returning the program's output read from its
     /// print file (the CCVS report) — or stdout for a DISPLAY-only program — normalized to the NIST acceptance
@@ -553,7 +563,8 @@ public sealed class NistDifferentialTests
                 {
                     string pSrc = Path.Combine(root, "tests", "nist", "programs", p + ".cob");
                     string pDll = Path.Combine(dir, p + ".dll");
-                    var pResult = CompilerDriver.Compile(new CompilerDriver.Options(pSrc, pDll, NistTestName: p, DialectLevel: 85));
+                    var pResult = CompilerDriver.Compile(new CompilerDriver.Options(pSrc, pDll, NistTestName: p,
+                        DialectLevel: NistStd, Permissive: NistPermissive));
                     if (!pResult.Success)
                         return (false, "", $"[chain {p}] compile {pResult.Status}: {string.Join("\n", pResult.Errors)}");
                     string pDat = Path.Combine(root, "tests", "nist", "data", p + ".dat");
@@ -561,7 +572,8 @@ public sealed class NistDifferentialTests
                     if (!pOk) return (false, "", $"[chain {p}] run exit non-zero: {pDetail}");
                 }
 
-            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, NistTestName: testName, DialectLevel: 85));
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, NistTestName: testName,
+                DialectLevel: NistStd, Permissive: NistPermissive));
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 

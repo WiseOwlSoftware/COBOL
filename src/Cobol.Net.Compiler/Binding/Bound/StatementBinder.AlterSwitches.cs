@@ -116,9 +116,9 @@ public sealed partial class StatementBinder
         if (g.dataReference() is not null)   // `GO TO DEPENDING ON x` with NO procedure-names is malformed, not bare
             return new BoundUnsupported("GO TO DEPENDING without procedure-names (ISO §14.9.17 Format 2)");
         if (data.Edition.DialectLevel >= 2002)
-            data.Edition.Error("COBOLNET0811", "GO TO without a procedure-name (the ALTER-dependent form) was an "
+            data.Edition.Removed("COBOLNET0811", "GO TO without a procedure-name (the ALTER-dependent form) was an "
                 + "obsolete element of ANSI X3.23-1985 and was deleted by ISO/IEC 1989:2002 (§14.9.17 requires "
-                + $"procedure-name-1); it requires --std 85 (targeting COBOL-{data.Edition.DialectLevel})");
+                + $"procedure-name-1); it requires --std 85 or --permissive (targeting COBOL-{data.Edition.DialectLevel})");
         // At 85 the construct is an OBSOLETE element: accepted with no failing diagnostic (the obsolete-element
         // flag awaits the EditionContext warning channel — it must not fail the 85 compile).
         AlterEnsureScan();
@@ -134,9 +134,9 @@ public sealed partial class StatementBinder
     private BoundStatement BindAlter(Core.AlterStatementContext al)
     {
         if (data.Edition.DialectLevel >= 2002)
-            data.Edition.Error("COBOLNET0810", "ALTER was an obsolete element of ANSI X3.23-1985 and was deleted "
+            data.Edition.Removed("COBOLNET0810", "ALTER was an obsolete element of ANSI X3.23-1985 and was deleted "
                 + "by ISO/IEC 1989:2002 — the 2023 standard has no ALTER and GO TO has no altered form (§14.9.17); "
-                + $"it requires --std 85 (targeting COBOL-{data.Edition.DialectLevel})");
+                + $"it requires --std 85 or --permissive (targeting COBOL-{data.Edition.DialectLevel})");
         // At 85: obsolete element, accepted with no failing diagnostic (warning channel pending, as above).
         AlterEnsureScan();
         var entries = new List<BoundAlterEntry>();

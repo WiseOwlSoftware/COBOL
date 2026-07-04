@@ -16,9 +16,11 @@ public static class EditionHarness
     /// <summary>The supported ISO editions, in order.</summary>
     public static readonly int[] Editions = [85, 2002, 2014, 2023];
 
-    /// <summary>Compile <paramref name="source"/> targeting <paramref name="edition"/>; returns success and the
-    /// diagnostics (empty on success).</summary>
-    public static (bool Ok, IReadOnlyList<string> Diagnostics) Compile(string source, int edition)
+    /// <summary>Compile <paramref name="source"/> targeting <paramref name="edition"/> on either severity axis
+    /// (P2.7): returns success plus BOTH channels — the failing errors and the non-failing warnings (permissive
+    /// removals, 0903 flags).</summary>
+    public static (bool Ok, IReadOnlyList<string> Errors, IReadOnlyList<string> Warnings) CompileFull(
+        string source, int edition, bool permissive = false)
     {
         string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Ed_" + Guid.NewGuid().ToString("N")[..8]);
         Directory.CreateDirectory(dir);
@@ -26,14 +28,25 @@ public static class EditionHarness
         {
             string src = Path.Combine(dir, "prog.cob");
             File.WriteAllText(src, source);
-            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, "prog.dll"), DialectLevel: edition));
-            return (r.Success, r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")]);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                src, Path.Combine(dir, "prog.dll"), DialectLevel: edition, Permissive: permissive));
+            return (r.Success, r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")], r.Warnings);
         }
         finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
     }
 
-    /// <summary>Compile a NIST CCVS program (X-card preprocessing applied) targeting <paramref name="edition"/>.</summary>
-    public static (bool Ok, IReadOnlyList<string> Diagnostics) CompileNist(string testName, int edition)
+    /// <summary>Compile <paramref name="source"/> targeting <paramref name="edition"/> (strict); returns success
+    /// and the diagnostics (empty on success). Delegates to <see cref="CompileFull"/>.</summary>
+    public static (bool Ok, IReadOnlyList<string> Diagnostics) Compile(string source, int edition)
+    {
+        var (ok, errors, _) = CompileFull(source, edition);
+        return (ok, errors);
+    }
+
+    /// <summary>Compile a NIST CCVS program (X-card preprocessing applied) targeting <paramref name="edition"/>,
+    /// optionally on the permissive axis (the INV-1 continuity legs at ≥2002 run permissive — the §10 #1
+    /// migration posture — once removal gating exists).</summary>
+    public static (bool Ok, IReadOnlyList<string> Diagnostics) CompileNist(string testName, int edition, bool permissive = false)
     {
         string src = Path.Combine(RepoRoot(), "tests", "nist", "programs", testName + ".cob");
         Assert.True(File.Exists(src), $"NIST source not found: {src}");
@@ -42,7 +55,8 @@ public static class EditionHarness
         try
         {
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
-                src, Path.Combine(dir, testName + ".dll"), NistTestName: testName, DialectLevel: edition));
+                src, Path.Combine(dir, testName + ".dll"), NistTestName: testName, DialectLevel: edition,
+                Permissive: permissive));
             return (r.Success, r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")]);
         }
         finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
@@ -61,6 +75,14 @@ public static class EditionHarness
         var all = diagnostics.ToList();
         Assert.True(all.Any(d => d.Contains(expectedSubstring, StringComparison.OrdinalIgnoreCase)),
             $"expected a diagnostic containing '{expectedSubstring}'; got:\n{string.Join("\n", all.DefaultIfEmpty("(none)"))}");
+    }
+
+    /// <summary>Assert NO diagnostic contains <paramref name="substring"/> (P2.7 — e.g. a permissive compile of
+    /// a construct the edition still HAS must not carry its removal warning).</summary>
+    public static void AssertNoDiagnostic(IEnumerable<string> diagnostics, string substring)
+    {
+        var hit = diagnostics.FirstOrDefault(d => d.Contains(substring, StringComparison.OrdinalIgnoreCase));
+        Assert.True(hit is null, $"expected NO diagnostic containing '{substring}' but found: {hit}");
     }
 
     /// <summary>Walk up from the test assembly to the repository root.</summary>

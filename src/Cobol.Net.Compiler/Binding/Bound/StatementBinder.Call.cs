@@ -167,9 +167,9 @@ public sealed partial class StatementBinder
     {
         _ = negated; // NOT ON EXCEPTION/OVERFLOW: same edition surface as the positive phrase (85+).
         if (isOverflow && data.Edition.DialectLevel >= 2023)
-            data.Edition.Error("COBOLNET0882",
-                "CALL … ON OVERFLOW was removed by ISO/IEC 1989:2023 (Annex E.2 item 1c) — use ON EXCEPTION, or "
-                + "target --std 85/2002/2014");
+            data.Edition.Removed("COBOLNET0882",
+                "CALL … ON OVERFLOW was removed by ISO/IEC 1989:2023 (Annex E.2 item 1c) — use ON EXCEPTION, "
+                + "target --std 85/2002/2014, or --permissive");
     }
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §14.9.5 — targets resolved like CALL's, §8.4.6.3).</summary>

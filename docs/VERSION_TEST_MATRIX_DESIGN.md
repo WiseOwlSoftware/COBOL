@@ -328,6 +328,23 @@ interval encoding — `user-word-commit-2023` (intro 85 / removedIn 2023 / 0901)
 (intro 85 / removedIn 2002 / 0901), and `receive-as-user-word` (intro **2002** / removedIn 2023 / 0901 — encodes
 85-reserved → 2002/2014-free → 2023-re-reserved in one f(case,V) row).
 
+> **P2.1–P2.5 + P2.7 AS-BUILT (2026-07-03, DEVLOG 583–588; P2.4 revised under fire):** all landed as designed
+> with these deltas. **P2.4 derivation replaced** — a 4th content-filter kill took out the deltas-authoring
+> agent, so the 85/2002/2014 lists now come from GnuCOBOL's per-standard `config/*.words` (curl disk-to-disk,
+> gitignored `.cache/`, facts-only into the repo) ⊕ the in-repo spec §8.9 ⊕ VCR row 32; the mechanical
+> derivation corrected recall three times (the re-reservation set is THREE words incl. the END- scope
+> terminator; the EC words are reserved since 2002, not 2023-only; Annex E overrides the GnuCOBOL 2002/2014
+> curation, which keeps the communication trio). **The funnel is token-type-restricted** (IDENTIFIER + the six
+> EC-band tokens): the permissive grammar binds keyword COLUMN into a report-group entry-NAME slot (RW104A),
+> so the screen/report allowlist band awaits position-aware checking (W2 adversarial review). ORDER carries a
+> CCVS-proof not-85 override (conforming ST127A uses it as a data name). **P2.7:** the interval rows include
+> `end-receive-as-user-word`; the INV-1-strong behavioral leg is `COBOLNET_NIST_STD=2023
+> COBOLNET_NIST_PERMISSIVE=1` over the golden run — **349/349 byte-exact at the default edition** (the
+> roadmap's fatal-challenge criterion, seeded; Phase-8 promotes it to the G7 exit). The four binder
+> Error→`Removed()` migrations (0810/0811/0882/0873-SD) were folded INTO the flip commit — the 2023-permissive
+> triage showed they were its only blockers (zero behavioral diffs) — so P2.6's remaining scope is the
+> validator gates + the STOP-literal fix + the 0903 archaic flags + the 0873 validator-side migration.
+
 ### P2.8 Waves 2–3 (follow-on, same Phase)
 
 W2 (parallel agents, disjoint files): the MOVE rows (VCR 1 — alphanumeric-figurative→numeric `Removed` ≥2023

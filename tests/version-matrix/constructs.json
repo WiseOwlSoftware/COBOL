@@ -172,6 +172,51 @@
       "removedIn": null,
       "vcr": "ISO-validation D6 (§8.8.3 concatenation expressions); provisional edge per decision 1",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(6).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"ABC\" & \"DEF\" TO W.\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
+      "id": "label-records-removed-2002",
+      "description": "LABEL RECORDS clause (FD) — obsolete '85 element DELETED by ISO/IEC 1989:2002; the 2023 FD clause set (§13.18) has no LABEL clause. The FIRST removal gate, shipped with the permissive flip (every NIST FD writes this clause).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0902",
+      "vcr": "VCR Table 7 (85→2002 deletions); §10 #1 migration posture",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. LR.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmlr\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F LABEL RECORDS ARE STANDARD.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT F.\n    MOVE \"X\" TO R.\n    WRITE R.\n    CLOSE F.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-commit-2023",
+      "description": "The word COMMIT as a user-defined word — §8.9 interval encoding: user-definable until COBOL-2023 reserved it (Annex E.2 item 25 = VCR row 32; the P2.4 funnel emits 0901).",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "VCR row 32; reserved-words.json row COMMIT",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 COMMIT PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY COMMIT.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-raising-2002",
+      "description": "The word RAISING as a user-defined word — §8.9 interval encoding: user-definable at 85, reserved since 2002 (the EC family; the DEVLOG-585 mechanical correction of the 2023-only assumption).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "reserved-words.json row RAISING (GnuCOBOL 2002/2014 lists + ISO 2023 §8.9)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 RAISING PIC 9 VALUE 6.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY RAISING.\n    STOP RUN.\n"
+    },
+    {
+      "id": "receive-as-user-word",
+      "description": "The word RECEIVE as a user-defined word — the RE-reservation interval in ONE f(case,V) row: 85-reserved (communication module) → user-definable 2002/2014 → re-reserved 2023 (Annex E.2 item 25).",
+      "introducedIn": 2002,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "VCR row 32; reserved-words.json row RECEIVE (ISO Annex E overrides the GnuCOBOL 2002/2014 curation)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 RECEIVE PIC 9 VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY RECEIVE.\n    STOP RUN.\n"
+    },
+    {
+      "id": "end-receive-as-user-word",
+      "description": "The word END-RECEIVE as a user-defined word — the THIRD re-reserved communication word (discovered mechanically, DEVLOG 585; the recall-based classification knew only two): same interval as RECEIVE.",
+      "introducedIn": 2002,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "VCR row 32; reserved-words.json row END-RECEIVE",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 END-RECEIVE PIC 9 VALUE 4.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY END-RECEIVE.\n    STOP RUN.\n"
     }
   ]
 }

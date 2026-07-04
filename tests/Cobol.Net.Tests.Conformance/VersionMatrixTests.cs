@@ -22,7 +22,7 @@ namespace CobolNet.Tests.Conformance;
 public sealed class VersionMatrixTests
 {
     private sealed record Construct(string Id, string Description, int IntroducedIn, int? RemovedIn, string Vcr,
-        string Source, string Status);
+        string Source, string Status, string? ExpectDiagnostic);
 
     private static readonly IReadOnlyList<Construct> Catalogue = LoadCatalogue();
 
@@ -39,7 +39,8 @@ public sealed class VersionMatrixTests
                 e.GetProperty("removedIn").ValueKind == JsonValueKind.Null ? null : e.GetProperty("removedIn").GetInt32(),
                 e.GetProperty("vcr").GetString()!,
                 e.GetProperty("source").GetString()!,
-                e.TryGetProperty("status", out var s) ? s.GetString()! : "active"));
+                e.TryGetProperty("status", out var s) ? s.GetString()! : "active",
+                e.TryGetProperty("expectDiagnostic", out var d) ? d.GetString() : null));
         return list;
     }
 
@@ -82,15 +83,45 @@ public sealed class VersionMatrixTests
             Assert.True(ok, $"[{constructId}] expected to COMPILE at COBOL-{edition} (introduced {c.IntroducedIn}"
                 + $"{(c.RemovedIn is { } r ? $", removed {r}" : "")}; {c.Vcr}) but failed:\n{string.Join("\n", diagnostics)}");
         else
+        {
             Assert.False(ok, $"[{constructId}] expected to be REJECTED at COBOL-{edition} (not valid until "
                 + $"{c.IntroducedIn}{(c.RemovedIn is { } r ? $" / removed {r}" : "")}; {c.Vcr}) but it compiled.");
+            // The two-obligation rule's diagnostic half: reject cells assert the QUALITY of the rejection
+            // once their edition-band code exists (P2.7 — expectDiagnostic in constructs.json).
+            if (c.ExpectDiagnostic is { } code)
+                EditionHarness.AssertHasDiagnostic(diagnostics, code);
+        }
     }
 
-    /// <summary>INV-1 (continuity): a COBOL-85 NIST program that compiles at 85 must still COMPILE at every later
-    /// edition unless a VERSION_CHANGE_REFERENCE row documents a removal/reserved-word collision in it (design §3).
-    /// Representative rows across the suite FAMILIES (NC nucleus, IF intrinsics, SM source-manipulation, IC
-    /// inter-program, SQ sequential-I-O, RL relative, IX indexed, ST sort) — the FULL 85-greens × {2002,2014,2023}
-    /// sweep is <c>scripts/version-continuity-sweep.sh</c>, proven clean 2026-06-10 (DEVLOG 531): zero breaks.</summary>
+    /// <summary>The §10 #1 migration contract (P2.7): a construct the targeted edition REMOVED must COMPILE
+    /// under <c>--permissive</c> — with its edition-band diagnostic carried as a WARNING — preserving the
+    /// pre-removal semantics. One theory row per (removed-construct × edition ≥ removedIn).</summary>
+    public static IEnumerable<object[]> RemovedMatrix()
+    {
+        foreach (var c in Catalogue.Where(c => c.Status == "active" && c.RemovedIn is not null))
+            foreach (int v in EditionHarness.Editions.Where(v => v >= c.RemovedIn))
+                yield return [c.Id, v];
+    }
+
+    [Theory]
+    [MemberData(nameof(RemovedMatrix))]
+    public void RemovedConstruct_CompilesPermissive_WithWarning(string constructId, int edition)
+    {
+        var c = Catalogue.First(x => x.Id == constructId);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition, permissive: true);
+        Assert.True(ok, $"[{constructId}] permissive at COBOL-{edition} must COMPILE (the §10 #1 migration "
+            + $"contract): {string.Join("\n", errors)}");
+        if (c.ExpectDiagnostic is { } code)
+            EditionHarness.AssertHasDiagnostic(warnings, code);
+    }
+
+    /// <summary>INV-1 (continuity), RESTATED at the P2.7 flip (the §10 #1 migration posture): a COBOL-85 NIST
+    /// program that compiles at 85 must still compile at every later edition **UNDER PERMISSIVE** — under
+    /// strict, later editions legitimately REJECT the removed '85 elements every NIST program carries (LABEL
+    /// RECORDS in every FD, first gate 2026-07-03), and every strict failure must trace to a recognized
+    /// edition-band code. Representative rows across the suite FAMILIES (NC nucleus, IF intrinsics, SM
+    /// source-manipulation, IC inter-program, SQ sequential-I-O, RL relative, IX indexed, ST sort) — the FULL
+    /// sweep is <c>scripts/version-continuity-sweep.sh</c> (flipped to permissive legs the same commit).</summary>
     [Theory]
     [InlineData("NC101A", 2002)]
     [InlineData("NC101A", 2014)]
@@ -112,23 +143,26 @@ public sealed class VersionMatrixTests
         var (ok85, _) = EditionHarness.CompileNist(testName, 85);
         if (!ok85) return;   // not yet in the 85-compiling set; the sweep re-checks as features land
 
-        var (ok, diagnostics) = EditionHarness.CompileNist(testName, edition);
-        Assert.True(ok, $"[INV-1 continuity] {testName} (compiles at 85) failed at COBOL-{edition}; if this is a "
-            + $"genuine removal/reserved-word collision it must trace to a VERSION_CHANGE_REFERENCE row, else it is "
-            + $"a regression:\n{string.Join("\n", diagnostics)}");
+        var (ok, diagnostics) = EditionHarness.CompileNist(testName, edition, permissive: true);
+        Assert.True(ok, $"[INV-1 continuity] {testName} (compiles at 85) failed PERMISSIVE at COBOL-{edition}; "
+            + $"permissive must accept documented removals with warnings (§10 #1), so this is a regression:\n"
+            + $"{string.Join("\n", diagnostics)}");
     }
-    /// <summary>The ST representative is a DOCUMENTED removal, not a continuity witness: every NIST SD writes the
-    /// DATA RECORDS clause — an obsolete '85 element DELETED by ISO/IEC 1989:2002 (the 2023 SD format §13.4.6
-    /// admits only the record clause; VERSION_CHANGE_REFERENCE Table 7 row 7.1) — so ST101A must compile at 85
-    /// and REJECT at 2002+ with exactly the documented diagnostic.</summary>
+    /// <summary>The ST representative is a DOCUMENTED removal, not a continuity witness: NIST programs carry
+    /// obsolete '85 elements DELETED by ISO/IEC 1989:2002 — ST101A's FDs write LABEL RECORDS (0902, the
+    /// validator's first gate, DEVLOG 588) and its SD writes DATA RECORDS (0873, still binder-side) — so it
+    /// must compile at 85 and REJECT at 2002+ STRICT with a recognized edition-band code. The validator
+    /// fail-fasts BEFORE Emit, so today only the 0902s surface; once P2.6 migrates the SD 0873 gate into the
+    /// validator (one enforcement site), BOTH appear in the one pass — re-assert 0873 then. Under PERMISSIVE
+    /// it must COMPILE (the removals warn), which the continuity theory above already witnesses.</summary>
     [Fact]
-    public void St101A_SdDataRecords_DocumentedRemovalAt2002Plus()
+    public void St101A_DocumentedRemovals_RejectStrictAt2002Plus()
     {
         var (ok85, _) = EditionHarness.CompileNist("ST101A", 85);
         Assert.True(ok85, "ST101A must compile at --std 85");
         var (ok, diagnostics) = EditionHarness.CompileNist("ST101A", 2023);
-        Assert.False(ok, "ST101A's SD DATA RECORDS clause must be rejected at COBOL-2023");
-        Assert.Contains(diagnostics, d => d.Contains("COBOLNET0873"));
+        Assert.False(ok, "ST101A's removed '85 elements must be rejected at COBOL-2023 strict");
+        Assert.Contains(diagnostics, d => d.Contains("COBOLNET0902"));
     }
 
 }
