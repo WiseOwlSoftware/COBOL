@@ -50,6 +50,7 @@
 | `docs/COBOLNET_INTRINSICS_DESIGN.md` | DESIGN | Intrinsic FUNCTION resolution + semantics. |
 | `docs/COBOLNET_REPORT_WRITER_DESIGN.md` | DESIGN | Report Writer — the `CobolReport` RWCS engine, compose-at-presentation lines, counters, CONTROL/SUM, USE BEFORE REPORTING (closes the SSOT's RW seam flag). |
 | `docs/COBOLNET_PROJECT_ORG_DESIGN.md` | DESIGN | Project/folder organization + the Cobol.NET / `cobol.exe` naming (G0 executed; G8 namespace big-bang pending). |
+| `docs/COBOLNET_VALIDATION_DESIGN.md` | DESIGN | **Edition validation (AS-BUILT Wave 1, DEVLOG 583–590):** the EditionValidator pass, the strict/permissive channels + `Removed()` seam, the 0900–0903 band, the four-source reserved-word tables + the cobolWord funnel, the ConstructDialectStatus registry + drift disciplines, the corpus runner shells, and the measurable G7 exit criteria. |
 
 ## Version-correctness (multi-edition)
 

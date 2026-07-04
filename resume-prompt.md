@@ -24,16 +24,34 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 582, 2026-07-03 14:28): ✅ roadmap Phase 0 COMPLETE — the DEVLOG-579 baseline reproduces
+> **STATE (DEVLOG 590, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 1 COMPLETE — the EditionValidator Wave 1 landed
+> END-TO-END in one autonomous session (DEVLOG 583–590, commits c0cf723…): P2.1 channels + `Removed()` seam ·
+> P2.2 validator pass (fail-fast pre-Emit) · P2.3 the 0900–0903 band · P2.4 the FOUR-SOURCE reserved-word
+> tables (GnuCOBOL per-standard lists disk-to-disk + spec §8.9 + VCR row 32; the funnel LIVE, token-type
+> restricted per the RW104A hazard; THREE recall corrections incl. the third re-reserved word END-RECEIVE and
+> the EC words being 2002-reserved) · pre-P2.5 scrub + the TYPE `{is2002()}?` gate fix · P2.5 registry + both
+> drift disciplines · P2.6 the full Wave-1 gate batch (15 rows, 12 overrides, the STOP-literal BoundStopLiteral
+> fix, the 0873 FD+SD migration, the 0903 archaic flags) · P2.7 THE FLIP (permissive continuity restated;
+> **INV-1-STRONG AT 2023: 349/349 goldens BYTE-EXACT at `--std 2023 --permissive`, zero behavioral diffs** —
+> the roadmap's fatal-challenge criterion, seeded via `COBOLNET_NIST_STD`/`COBOLNET_NIST_PERMISSIVE`) · the
+> permissive sweep 419 OK/0 BREAKS wired into CI · `docs/COBOLNET_VALIDATION_DESIGN.md` (as-built + the
+> measurable G7 exit criteria) · the corpus runner shells + manifests (2002: 0/33, 2014 seeded, negative/
+> shell). Suites: conformance 1195/1195 + unit 38/38 + guard 353 MATCH. ⚠ Content filter tripped a 4TH time
+> (even file-Writes of word lists) — the standing rule is now ABSOLUTE: word lists move disk-to-disk only.
+> ⚠ guard-fast showed 2 transient single-program flakes (re-run clean; JOBS=32 race suspected, watched).
+> **RESUME = roadmap Phase 2: W2 (MOVE rows SR5 · the loud-guard misbind sweep + national/boolean skeleton ·
+> negative-corpus seeds · position-aware token checking · VCR flips · adversarial review) → W1.5 (~24 0900
+> upgrades) → W3 (the serialized grammar batch + FULL legacy guard). Then Phase 3 = the M2 OO port (the
+> refreshed `docs/COBOLNET_OO_DESIGN.md` carries the regenerated port map).**
+>
+> **(superseded) STATE (DEVLOG 582, 2026-07-03 14:28): ✅ roadmap Phase 0 COMPLETE — the DEVLOG-579 baseline reproduces
 > green after the idle gap (fresh full build 0W/0E; 1074 conformance + 29 unit; guard-fast 353 MATCH,
 > 0 regressions). ✅ The roadmap is now ISO-VALIDATED against `specs/ISO_COBOL.md` (12-agent workflow: 39
 > claims — 30 confirmed / 9 partial / **0 refuted**; 10 serious coverage gaps) — corrections D1–D16 + minors
 > APPLIED INLINE (newly-owned mandatory surface: boolean OPERATIONS, `&`-concat, CONSTANT, DYNAMIC-LENGTH
 > items, §4.2.2 suboption, EXTERNAL cluster; >>PROPAGATE re-editioned ≤2014; the §4.2.16 seven-leg conformance
 > doc; the Phase-1 scrub gains the float-edge split + CONSTANT/`&` row seeds; word tables designed per-unit
-> overridable for COBOL-WORDS); the audit report is the roadmap's Appendix. **RESUME = roadmap Phase 1**
-> (EditionValidator Wave 1 = P2.1–P2.7 per the VERSION_TEST_MATRIX_DESIGN "Phase-2 implementation plan"
-> section + the roadmap's amended Phase-1 items).**
+> overridable for COBOL-WORDS); the audit report is the roadmap's Appendix. RESUME superseded above.**
 >
 > **(superseded) STATE (DEVLOG 581, 2026-07-03): ⛔ the G7→G8 EXECUTION ROADMAP is `docs/COMPLETION_ROADMAP_COUNCIL.md` —
 > RATIFIED by the owner (all 11 §5 decisions resolved: #1 = NO standards acquisition, the in-repo 2023 spec

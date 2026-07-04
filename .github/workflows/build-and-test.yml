@@ -50,6 +50,17 @@ jobs:
       - name: Greenfield unit tests
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
 
+      # INV-1 continuity (VERSION_TEST_MATRIX_DESIGN §3, restated at the P2.7 flip): every 85-compiling NIST
+      # program must still compile at 2002/2014/2023 under --permissive — a permissive break is a regression.
+      # Wired per the ratified roadmap (Phase 1 CI item; the ISO-validation review found it unowned). The CLI
+      # was built by the test steps above (Debug). Fails on any BREAKS line.
+      - name: Build greenfield CLI (Debug — the sweep drives cobol.dll)
+        run: dotnet build src/Cobol.Net.Cli/Cobol.Net.Cli.csproj
+      - name: INV-1 permissive continuity sweep (85-greens × 2002/2014/2023)
+        run: |
+          bash scripts/version-continuity-sweep.sh 8 | tee sweep.log
+          ! grep -q "BREAKS" sweep.log
+
   # Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
   # build) plus the unit & integration suites on Windows. The NIST guard is Linux-only (bash), so this job
   # gives the Windows build + managed-test coverage the guard job cannot.
