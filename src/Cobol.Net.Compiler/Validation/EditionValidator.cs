@@ -28,8 +28,51 @@ namespace CobolNet.Validation;
 public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBaseVisitor<object?>
 {
     private readonly EditionContext _edition = edition;
+    // The effective reserved-word set for THIS compilation unit (P2.4/D9 seam): the generated §8.9 table is
+    // only the default layer — the 2023 COBOL-WORDS directive mutates the set per unit (roadmap Phase 7).
+    private readonly ReservedWordSet _reservedWords = ReservedWordSet.Default;
+    // One COBOLNET0901 per distinct word per compilation (P2.4) — not one per occurrence.
+    private HashSet<string>? _flaggedWords;
 
     /// <summary>Run the pass over a parsed compilation unit, recording diagnostics on the
     /// <see cref="EditionContext"/> passed at construction.</summary>
     public void Validate(CobolParserCore.CompilationUnitContext tree) => Visit(tree);
+
+    // Which cobolWord token TYPES the funnel checks (P2.4, refined — DEVLOG 585): IDENTIFIER occurrences are
+    // ALWAYS genuine words (the lexer didn't tokenize them), and they carry the whole newly-reserved payload
+    // (the Annex-E 2023 additions lex as IDENTIFIER). The six EC-band tokens are ALSO checked — they are
+    // §8.9-reserved at 2023 and their keyword uses parse through dedicated statement rules, never a name slot.
+    // The REMAINING allowlisted tokens (the screen/report band: COL, COLUMN, AUTO, …) are EXCLUDED for now:
+    // the permissive grammar can bind their KEYWORD occurrences into optional entry-name slots (RW104A binds
+    // the report COLUMN clause's keyword into the report-group entry-name slot), so a position-blind check
+    // false-rejects conforming CCVS-85 programs. Their per-edition enforcement needs position-aware checking —
+    // parked to the W2 adversarial review (P2.8).
+    private static readonly HashSet<int> CheckedTokenTypes =
+    [
+        CobolLexer.IDENTIFIER,
+        CobolLexer.RAISE, CobolLexer.RAISING, CobolLexer.RESUME,
+        CobolLexer.CONDITION, CobolLexer.EC, CobolLexer.STATEMENT,
+    ];
+
+    /// <summary>
+    /// The §8.9 reserved-word funnel (P2.4): every user-defined word reaches the tree through the
+    /// <c>cobolWord</c> rule — IDENTIFIER plus the allowlisted context-keyword tokens — so ONE text-based check
+    /// here covers 2023-new words that lex as IDENTIFIER (COMMIT, FINALLY, …) AND the EC-band tokens the 2023
+    /// edition reserves (RAISE/RAISING/RESUME/CONDITION/EC). The grammar stays a permissive superset ("legal
+    /// user word at every edition"); the VALIDATOR enforces per edition — restricted to
+    /// <see cref="CheckedTokenTypes"/> (see the note there). Only high-confidence rows reject
+    /// (<see cref="ReservedWordSet.RejectsAt"/> — the conservative policy); severity routes through
+    /// <see cref="EditionContext.Removed"/> (error strict / warning permissive, the 0901 band row).
+    /// </summary>
+    public override object? VisitCobolWord(CobolParserCore.CobolWordContext ctx)
+    {
+        if (!CheckedTokenTypes.Contains(ctx.Start.Type))
+            return base.VisitChildren(ctx);
+        string word = ctx.Start.Text.ToUpperInvariant();
+        if (_reservedWords.RejectsAt(word, _edition.DialectLevel) && (_flaggedWords ??= []).Add(word))
+            _edition.Removed(EditionCodes.ReservedWord,
+                $"'{word}' is a reserved word in COBOL-{_edition.DialectLevel} and cannot be used as a "
+                + "user-defined word (ISO §8.9)");
+        return base.VisitChildren(ctx);
+    }
 }

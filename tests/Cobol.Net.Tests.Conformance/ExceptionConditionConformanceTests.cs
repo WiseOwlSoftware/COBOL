@@ -819,31 +819,47 @@ public sealed class ExceptionConditionConformanceTests
                 GOBACK RAISING EXCEPTION EC-USER-A.
             """, 85), "COBOLNET0879");
 
-    /// <summary>The EC words stay legal USER-DEFINED words at every edition (the cobolWord continuity
-    /// guarantee — the version-matrix INV-1 invariant for the newly-tokenized RAISE/RESUME/STATEMENT/
-    /// CONDITION/EC/RAISING).</summary>
-    [Theory]
-    [InlineData(85)]
-    [InlineData(2023)]
-    public void EcWords_RemainUserDefinedWords_AtEveryEdition(int edition)
+    private const string EcWordsProgram = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. ECT045.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 RAISE PIC 9 VALUE 1.
+        01 RESUME PIC 9 VALUE 2.
+        01 EC PIC 9 VALUE 3.
+        01 CONDITION PIC 9 VALUE 4.
+        01 STATEMENT PIC 9 VALUE 5.
+        01 RAISING PIC 9 VALUE 6.
+        PROCEDURE DIVISION.
+        MAIN-PARA.
+            DISPLAY RAISE RESUME EC CONDITION STATEMENT RAISING.
+            STOP RUN.
+        """;
+
+    /// <summary>The EC words are legal USER-DEFINED words at COBOL-85 only — the edition that predates the
+    /// exception model. (The pre-validator posture said "legal at every edition"; the P2.4 mechanical tables
+    /// corrected it TWICE: DEVLOG 578 proved them §8.9-reserved at 2023, and the per-standard source lists
+    /// prove them reserved since 2002 — they are NOT among the Annex E.2 item-25 words newly reserved in 2023,
+    /// so 2023-only was under-inclusive. DEVLOG 585.)</summary>
+    [Fact]
+    public void EcWords_RemainUserDefinedWords_At85()
     {
-        var (ok, diags) = EditionHarness.Compile("""
-            IDENTIFICATION DIVISION.
-            PROGRAM-ID. ECT045.
-            DATA DIVISION.
-            WORKING-STORAGE SECTION.
-            01 RAISE PIC 9 VALUE 1.
-            01 RESUME PIC 9 VALUE 2.
-            01 EC PIC 9 VALUE 3.
-            01 CONDITION PIC 9 VALUE 4.
-            01 STATEMENT PIC 9 VALUE 5.
-            01 RAISING PIC 9 VALUE 6.
-            PROCEDURE DIVISION.
-            MAIN-PARA.
-                DISPLAY RAISE RESUME EC CONDITION STATEMENT RAISING.
-                STOP RUN.
-            """, edition);
-        Assert.True(ok, $"--std {edition}: {string.Join("; ", diags)}");
+        var (ok, diags) = EditionHarness.Compile(EcWordsProgram, 85);
+        Assert.True(ok, $"--std 85: {string.Join("; ", diags)}");
+    }
+
+    /// <summary>At 2002/2014/2023 the EC words (except the context-sensitive STATEMENT) ARE reserved words —
+    /// the P2.4 EditionValidator funnel enforces it per edition: strict rejects with COBOLNET0901.</summary>
+    [Theory]
+    [InlineData(2002)]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void EcWords_AsUserWords_2002Plus_Rejected0901(int edition)
+    {
+        var (ok, diags) = EditionHarness.Compile(EcWordsProgram, edition);
+        Assert.False(ok, $"--std {edition} strict must reject reserved EC words used as user-defined words");
+        EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0901");
+        EditionHarness.AssertHasDiagnostic(diags, "'RAISE'");
     }
 
     // ── The zero-scaffolding invariant (SSOT §18.16 / deep-dive D9–D10) ──────────────────────────────────────
