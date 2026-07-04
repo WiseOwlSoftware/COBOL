@@ -19592,7 +19592,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 			EnterOuterAlt(_localctx, 1);
 			{
 			State = 3002;
-			if (!(is2023())) throw new FailedPredicateException(this, "is2023()");
+			if (!(is2002())) throw new FailedPredicateException(this, "is2002()");
 			State = 3003;
 			Match(TYPE);
 			State = 3005;
@@ -40651,7 +40651,7 @@ public partial class CobolParserCore : CobolParserCoreBase {
 	}
 	private bool typeClause_sempred(TypeClauseContext _localctx, int predIndex) {
 		switch (predIndex) {
-		case 17: return is2023();
+		case 17: return is2002();
 		}
 		return true;
 	}
