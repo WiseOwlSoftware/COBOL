@@ -333,12 +333,12 @@ public sealed class OoSpineTests
             """), "COBOLNET0827");
     }
 
-    /// <summary>The staged part-2 boundaries stay LOUD (never a silent drop): INVOKE USING/RETURNING on an
-    /// instance method (slice 2) and INVOKE SELF (slice 3b) reach the runtime not-implemented guard.</summary>
+    /// <summary>The staged boundaries stay LOUD (never a silent drop): INVOKE SELF (slice 3b) reaches the
+    /// runtime not-implemented guard; an arity mismatch (slice 2 — trap #3: a dropped/extra argument would
+    /// shift every following slot, the legacy DEVLOG-449 blocker) is a compile-time 0828.</summary>
     [Fact]
-    public void StagedInvokeForms_FailLoud()
-    {
-        var (ok, _, detail) = CompileAndRun(DriverAndClass("OOSP16", "OSPC16", """
+    public void Trap3_InvokeArityMismatch_0828()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP16", "OSPC16", """
                 INVOKE OSPC16 "NEW" RETURNING T.
                 INVOKE T "M1" USING T.
             """, """
@@ -347,8 +347,265 @@ public sealed class OoSpineTests
             PARA-A.
                 DISPLAY "X".
             END METHOD M1.
-            """));
-        Assert.False(ok, "INVOKE USING (slice 2) must stay loud");
-        Assert.Contains("slice 2", detail);
+            """)), "COBOLNET0828");
+
+    // ── Slice 2 (deep-dive D3/D6 — method LINKAGE/LOCAL-STORAGE/WS + INVOKE USING/RETURNING) ───────────────
+
+    /// <summary>Trap #6 — sibling-method LINKAGE cross-wiring: two methods each declare <c>LK-V</c> with
+    /// DIFFERENT descriptions; each resolves its OWN (per-method data scopes, §11.7 GR5) — the legacy
+    /// static-<c>_linkage_</c> field bug is structurally impossible.</summary>
+    [Fact]
+    public void Trap6_SiblingMethodLinkage_NoCrossWiring()
+    {
+        var (ok, stdout, detail) = CompileAndRun($$"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP17.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS OSPC17.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE OBJECT REFERENCE OSPC17.
+            01 N1 PIC 9(4) VALUE 7.
+            01 S1 PIC X(4) VALUE "ABCD".
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE OSPC17 "NEW" RETURNING T.
+                INVOKE T "M1" USING N1.
+                INVOKE T "M2" USING S1.
+                STOP RUN.
+            END PROGRAM OOSP17.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. OSPC17.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M1.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-V PIC 9(4).
+            PROCEDURE DIVISION USING LK-V.
+            MAIN.
+                DISPLAY "M1-NUM=" LK-V.
+            END METHOD M1.
+            METHOD-ID. M2.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-V PIC X(4).
+            PROCEDURE DIVISION USING LK-V.
+            MAIN.
+                DISPLAY "M2-STR=" LK-V.
+            END METHOD M2.
+            END OBJECT.
+            END CLASS OSPC17.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("M1-NUM=0007\nM2-STR=ABCD", CutRunner.Normalize(stdout));
+    }
+
+    /// <summary>Methods are implicitly RECURSIVE (spec :12032): recursion through a typed object-reference
+    /// FORMAL, with LOCAL-STORAGE re-initialized per activation (§14.5.3) — each frame keeps its own LK-N
+    /// (the local-function dispatcher captures per-activation locals), and the driver's BY REFERENCE argument
+    /// is untouched (the method never writes LK-N).</summary>
+    [Fact]
+    public void MethodRecursion_ViaObjectRefFormal_ReentrantLocals()
+    {
+        var (ok, stdout, detail) = CompileAndRun($$"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP18.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS OSPC18.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE OBJECT REFERENCE OSPC18.
+            01 N PIC 9(2) VALUE 3.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE OSPC18 "NEW" RETURNING T.
+                INVOKE T "COUNTDOWN" USING N T.
+                DISPLAY "N-AFTER=" N.
+                STOP RUN.
+            END PROGRAM OOSP18.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. OSPC18.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. COUNTDOWN.
+            DATA DIVISION.
+            LOCAL-STORAGE SECTION.
+            01 LS-NEXT PIC 9(2) VALUE 0.
+            LINKAGE SECTION.
+            01 LK-N PIC 9(2).
+            01 LK-SELF USAGE OBJECT REFERENCE OSPC18.
+            PROCEDURE DIVISION USING LK-N LK-SELF.
+            MAIN.
+                DISPLAY "AT-" LK-N.
+                IF LK-N > 1
+                    SUBTRACT 1 FROM LK-N GIVING LS-NEXT
+                    INVOKE LK-SELF "COUNTDOWN" USING LS-NEXT LK-SELF
+                END-IF.
+                DISPLAY "UP-" LK-N.
+            END METHOD COUNTDOWN.
+            END OBJECT.
+            END CLASS OSPC18.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("AT-03\nAT-02\nAT-01\nUP-01\nUP-02\nUP-03\nN-AFTER=03", CutRunner.Normalize(stdout));
+    }
+
+    /// <summary>§14.9.23.3 SR 10 both ways: OBJECT data may NOT cross an INVOKE BY REFERENCE — a BARE
+    /// object-data argument is assumed BY CONTENT (GR6a2: the callee's writes are invisible to the object's
+    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time 0828. A driver WS argument
+    /// (SR 9) crosses BY REFERENCE and the callee's write IS visible.</summary>
+    [Fact]
+    public void ObjectData_AutoContent_Sr10()
+    {
+        const string cls = """
+            IDENTIFICATION DIVISION.
+            CLASS-ID. {C}.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OD PIC 9(2) VALUE 5.
+            PROCEDURE DIVISION.
+            METHOD-ID. RUNIT.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-SELF USAGE OBJECT REFERENCE {C}.
+            PROCEDURE DIVISION USING LK-SELF.
+            MAIN.
+                INVOKE LK-SELF "BUMP" USING {REF}OD.
+                DISPLAY "OD=" OD.
+            END METHOD RUNIT.
+            METHOD-ID. BUMP.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-N PIC 9(2).
+            PROCEDURE DIVISION USING LK-N.
+            MAIN.
+                ADD 1 TO LK-N.
+            END METHOD BUMP.
+            END OBJECT.
+            END CLASS {C}.
+            """;
+        const string drv = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {P}.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS {C}.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE OBJECT REFERENCE {C}.
+            01 WN PIC 9(2) VALUE 5.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE {C} "NEW" RETURNING T.
+                INVOKE T "RUNIT" USING T.
+                INVOKE T "BUMP" USING WN.
+                DISPLAY "WN=" WN.
+                STOP RUN.
+            END PROGRAM {P}.
+
+            """;
+        var (ok, stdout, detail) = CompileAndRun(
+            (drv + cls).Replace("{P}", "OOSP19").Replace("{C}", "OSPC19").Replace("{REF}", ""));
+        Assert.True(ok, detail);
+        // OD unchanged (auto-CONTENT — SR 10); the driver's WS item updated (BY REFERENCE — SR 9).
+        Assert.Equal("OD=05\nWN=06", CutRunner.Normalize(stdout));
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(
+            (drv + cls).Replace("{P}", "OOSP20").Replace("{C}", "OSPC20").Replace("{REF}", "BY REFERENCE ")),
+            "COBOLNET0828");
+    }
+
+    /// <summary>§14.8.2 strict REFERENCE conformance: a description mismatch (PIC 9(4) formal, PIC 9(5)
+    /// argument) is the compile-time 0828 — never a silent re-scale across the boundary. RETURNING pairing
+    /// mismatches (either direction) are equally loud (the deep-dive signature-check edge case).</summary>
+    [Fact]
+    public void InvokeConformanceAndReturningPairing_0828()
+    {
+        string Mk(string pid, string cls, string driverArgPic, string invoke) => DriverAndClass(pid, cls, invoke, """
+            METHOD-ID. M1.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-A PIC 9(4).
+            PROCEDURE DIVISION USING LK-A.
+            MAIN.
+                DISPLAY LK-A.
+            END METHOD M1.
+            """).Replace("01 T USAGE OBJECT", $"01 W {driverArgPic}.\n01 T USAGE OBJECT");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Mk("OOSP21", "OSPC21", "PIC 9(5) VALUE 1", """
+                INVOKE OSPC21 "NEW" RETURNING T.
+                INVOKE T "M1" USING W.
+            """)), "COBOLNET0828");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Mk("OOSP22", "OSPC22", "PIC 9(4) VALUE 1", """
+                INVOKE OSPC22 "NEW" RETURNING T.
+                INVOKE T "M1" USING W RETURNING W.
+            """)), "COBOLNET0828");   // method declares no RETURNING
+    }
+
+    /// <summary>D3 — method WORKING-STORAGE is STATIC state (one copy per class, shared across INSTANCES,
+    /// persistent across activations — the naive instance-field mapping silently miscompiles this exact
+    /// counter) in the editions that HAVE it; the 2023 §13.5.3 SR 1 ban is 0902 strict / pre-removal
+    /// semantics under --permissive (the migration contract; VCR Table 6 row 130e).</summary>
+    [Fact]
+    public void MethodWorkingStorage_StaticSemantics_EditionWindow()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP23.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS OSPC23.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T1 USAGE OBJECT REFERENCE OSPC23.
+            01 T2 USAGE OBJECT REFERENCE OSPC23.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE OSPC23 "NEW" RETURNING T1.
+                INVOKE OSPC23 "NEW" RETURNING T2.
+                INVOKE T1 "TICK".
+                INVOKE T2 "TICK".
+                INVOKE T1 "TICK".
+                STOP RUN.
+            END PROGRAM OOSP23.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. OSPC23.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. TICK.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-CTR PIC 9(2) VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN.
+                ADD 1 TO WS-CTR.
+                DISPLAY "CTR=" WS-CTR.
+            END METHOD TICK.
+            END OBJECT.
+            END CLASS OSPC23.
+            """;
+        var (ok, stdout, detail) = CompileAndRun(src, 2002);
+        Assert.True(ok, detail);
+        Assert.Equal("CTR=01\nCTR=02\nCTR=03", CutRunner.Normalize(stdout));   // shared + persistent, NOT per-instance
+        var (ok23, errors23, _) = EditionHarness.CompileFull(src, 2023);
+        Assert.False(ok23, "method WS must be rejected at --std 2023 strict (ISO §13.5.3 SR 1)");
+        EditionHarness.AssertHasDiagnostic(errors23, "COBOLNET0902");
+        var (okPerm, errsPerm, warnsPerm) = EditionHarness.CompileFull(src, 2023, permissive: true);
+        Assert.True(okPerm, "the §10 #1 migration contract: --permissive keeps the pre-removal semantics: "
+            + string.Join("\n", errsPerm));
+        EditionHarness.AssertHasDiagnostic(warnsPerm, "COBOLNET0902");
     }
 }

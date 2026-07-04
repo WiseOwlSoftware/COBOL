@@ -335,13 +335,25 @@
     },
     {
       "id": "exit-method-window",
-      "status": "pending",
-      "description": "EXIT METHOD statement - introduced 2002 (OO/UDF), REMOVED 2023 (Annex E; dual-obligation window: 0900 below 2002, 0902 at 2023). PENDING (rationale corrected per the W2 adversarial review, DEVLOG 595): the source COMPILES at 2002/2014 today only because the placement SR (the statement may appear only inside a method/function definition - cf. the 14.9.14.3 rule-7 pattern) is unimplemented, and the emitted stub is runtime-loud; a conforming positive source needs a METHOD-ID/FUNCTION-ID unit plus per-edition expectDiagnostic support (0900 at 85 vs 0902 at 2023). Reactivates with Phase 3/4c.",
+      "status": "active",
+      "description": "EXIT METHOD statement - introduced 2002 (OO), REMOVED 2023 (Annex E; dual-obligation window). ACTIVE since OO port slice 2 (DEVLOG 602): the source is a real driver+class+method (the placement SR is enforced - 0827 outside a method); the dual-edge codes ride the new expectDiagnosticBelow mechanism (0900 at 85 via the class parse gate, 0902 at 2023 via the exit-method-window registry row); at 2002/2014 EXIT METHOD is the method-return synonym (BoundMethodReturn), proven by OoSpineTests run facts.",
       "introducedIn": 2002,
       "removedIn": 2023,
       "expectDiagnostic": "COBOLNET0902",
+      "expectDiagnosticBelow": "COBOLNET0900",
       "vcr": "VCR row 5 (Annex E @49034)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XM.\nPROCEDURE DIVISION.\nMAIN.\n    EXIT METHOD.\n    STOP RUN.\n"
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XM.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS XMC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 OBJ USAGE OBJECT REFERENCE XMC.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE XMC \"NEW\" RETURNING OBJ.\n    INVOKE OBJ \"M1\".\n    STOP RUN.\nEND PROGRAM XM.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. XMC.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. M1.\nPROCEDURE DIVISION.\nMAIN.\n    EXIT METHOD.\nEND METHOD M1.\nEND OBJECT.\nEND CLASS XMC.\n"
+    },
+    {
+      "id": "method-working-storage-window",
+      "status": "active",
+      "description": "A WORKING-STORAGE SECTION in a method definition - legal 2002/2014 (OO deep-dive D3: STATIC-field semantics - one copy per class, shared across instances, persistent across activations, ISO 11.7; proven by OoSpineTests), BANNED by 2023 13.5.3 SR 1 (deep-dive Spec correction #1). ACTIVE since OO port slice 2 (DEVLOG 602): 0900 at 85 (class parse gate), 0902 at 2023 (method-working-storage-window registry row); --permissive at 2023 keeps the pre-removal static semantics (the RemovedMatrix migration contract).",
+      "introducedIn": 2002,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0902",
+      "expectDiagnosticBelow": "COBOLNET0900",
+      "vcr": "VCR Table 6 row 130e (13.5.3 SR 1 @16461; deep-dive Spec correction #1; the 2002/2014-legal boundary is PINNED provisional - E.2 does not itemize the removal)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MW.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS MWC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 OBJ USAGE OBJECT REFERENCE MWC.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE MWC \"NEW\" RETURNING OBJ.\n    INVOKE OBJ \"TICK\".\n    STOP RUN.\nEND PROGRAM MW.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. MWC.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. TICK.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-CTR PIC 9(2) VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    ADD 1 TO WS-CTR.\n    DISPLAY \"CTR=\" WS-CTR.\nEND METHOD TICK.\nEND OBJECT.\nEND CLASS MWC.\n"
     },
     {
       "id": "exit-function-window",

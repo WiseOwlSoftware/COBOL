@@ -22,10 +22,20 @@ public enum InvokeForm
 /// type (New form); <paramref name="Receiver"/>/<paramref name="MethodCsName"/> drive the Instance form (the
 /// method name is the ROSTER's exact spelling — COBOL names compare case-insensitively, §8.3.2.2, and the
 /// C# override chain must reuse one spelling — the legacy trap-#2 rule); <paramref name="Returning"/> receives
-/// the invocation result (NEW's created object today; method RETURNING values land with port slice 2).</summary>
+/// the invocation result (NEW's created object, or the method's <paramref name="ReturningSource"/> item per
+/// §14.9.23.4 GR8); <paramref name="Args"/> carries the positionally-bound USING arguments (D6 — GR3).</summary>
 public sealed record BoundInvoke(
-    InvokeForm Form, string? ClassCsName, Place? Receiver, string? MethodCsName, Place? Returning)
+    InvokeForm Form, string? ClassCsName, Place? Receiver, string? MethodCsName, Place? Returning,
+    IReadOnlyList<BoundInvokeArg>? Args = null, DataItem? ReturningSource = null)
     : BoundStatement;
+
+/// <summary>One bound INVOKE argument (deep-dive D6; §14.9.23.4 GR6): the FORMAL it corresponds to
+/// positionally (its description drives the marshaling — §14.8.2's strict conformance was validated at bind,
+/// so the crossing is type-preserving), the identifier source place OR the literal (decoded string / raw
+/// numeric text), and whether the argument writes back (BY REFERENCE identifier — changes visible to the
+/// caller; BY CONTENT and the §14.9.23.3 SR 10 object-data auto-CONTENT case do not).</summary>
+public sealed record BoundInvokeArg(
+    DataItem Formal, Place? Source, string? NumericLiteral, string? StringLiteral, bool WriteBack);
 
 /// <summary>A method-context <c>GOBACK</c> / (pre-2023) <c>EXIT METHOD</c> (ISO §14.9.18.4 GR4; deep-dive D8 —
 /// the one decision that silently miscompiles if missed): terminates the executing METHOD only, returning
@@ -49,6 +59,9 @@ public sealed partial class StatementBinder
     {
         public readonly Dictionary<string, int> Paras = new(StringComparer.OrdinalIgnoreCase);
         public readonly Dictionary<string, SectionInfo> Sections = new(StringComparer.OrdinalIgnoreCase);
+        /// <summary>The method's DATA name scope (§11.7 GR5) — activated on <c>DataBinder.ActiveMethodScope</c>
+        /// while this method's statements bind (slice 2).</summary>
+        public OoMethodDataScope? Data;
     }
 
     private OoMethodScope? _currentMethodScope;               // ambient during method collection AND binding
@@ -78,22 +91,14 @@ public sealed partial class StatementBinder
 
         foreach (var m in cls.Methods)
         {
-            var scope = new OoMethodScope();
+            // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
+            // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
+            // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
+            var scope = new OoMethodScope { Data = m.DataScope };
             _currentMethodScope = scope;
             m.EntryPc = _paras.Count;
-            if (m.Ctx.environmentDivision() is not null || m.Ctx.dataDivision() is not null)
-                data.Edition.Error("COBOLNET0899",
-                    $"class '{cls.Name}', method '{m.Name}': a method's own ENVIRONMENT/DATA DIVISION "
-                    + "(LOCAL-STORAGE locals, LINKAGE formals — ISO §11.7/§13.5.3) is recognized but not yet "
-                    + "implemented (owning roadmap phase: Phase 3, OO port slice 2)");
             if (m.Ctx.procedureDivision() is { } pd)
             {
-                if (pd.usingClause() is not null || pd.returningClause() is not null
-                    || pd.raisingClause() is not null)
-                    data.Edition.Error("COBOLNET0899",
-                        $"class '{cls.Name}', method '{m.Name}': PROCEDURE DIVISION USING/RETURNING/RAISING "
-                        + "on a method (typed parameter marshaling, ISO §14.9.23.4 GR6/GR8) is recognized but "
-                        + "not yet implemented (owning roadmap phase: Phase 3, OO port slice 2)");
                 if (pd.declarativePart().Length > 0)
                     data.Edition.Error("COBOLNET0899",
                         $"class '{cls.Name}', method '{m.Name}': DECLARATIVES inside a method (ISO §14.2.1) "
@@ -124,6 +129,7 @@ public sealed partial class StatementBinder
         {
             _currentSection = _paraSection[i];        // in-section resolution first (§8.4.2.2)
             _currentMethodScope = _paraMethod[i];     // then the OWNING METHOD's scope — never a sibling's
+            data.ActiveMethodScope = _currentMethodScope?.Data;   // §11.7 GR5 data shadowing (slice 2)
             _currentBindPc = i;
             var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in _paras[i].Sentences)
@@ -132,6 +138,7 @@ public sealed partial class StatementBinder
         }
         _currentSection = null;
         _currentMethodScope = null;
+        data.ActiveMethodScope = null;
         _currentBindPc = -1;
         return new BoundProgram(bound, 0, null, BuildEcFeatures(), methods);
     }
@@ -259,10 +266,235 @@ public sealed partial class StatementBinder
                 + "for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b)");
             return new BoundNop();
         }
-        if (inv.invokeUsing() is not null || inv.invokeReturning() is not null || m.HasUsing || m.HasReturning)
-            return new BoundUnsupported($"INVOKE \"{m.Name}\" with USING/RETURNING (typed parameter "
-                + "marshaling, ISO §14.9.23.4 GR6/GR8 — OO port slice 2)");
-        return new BoundInvoke(InvokeForm.Instance, null, receiver, m.CsName, null);
+
+        // ── USING marshaling (slice 2 — D6; §14.9.23.4 GR3: positional correspondence) ──
+        var argCtxs = inv.invokeUsing()?.invokeArgument() ?? [];
+        if (argCtxs.Length != m.Formals.Count)
+        {
+            // The trap-#3 rule: an arity mismatch is LOUD — a silently dropped/extra argument would shift
+            // every following slot (the legacy DEVLOG-449 blocker: the first USING bound to the RETURNING).
+            data.Edition.Error("COBOLNET0828",
+                $"INVOKE \"{m.Name}\": {argCtxs.Length} USING argument(s) for {m.Formals.Count} formal "
+                + $"parameter(s) of the method (ISO §14.9.23.4 GR3 — correspondence is positional; "
+                + "trailing-OMITTED support is a later slice)");
+            return new BoundNop();
+        }
+        var args = new List<BoundInvokeArg>(argCtxs.Length);
+        for (int i = 0; i < argCtxs.Length; i++)
+        {
+            if (OoBindInvokeArg(argCtxs[i], m.Formals[i].Item, m.Name) is not { } a) return new BoundNop();
+            args.Add(a);
+        }
+
+        // ── RETURNING pairing + conformance (GR8; §14.8.3; the deep-dive signature-check edge case:
+        // BOTH mismatch directions are compile-time diagnostics) ──
+        var retRef = inv.invokeReturning()?.dataReference();
+        Place? retPlace = null;
+        if (retRef is not null && m.Returning is null)
+        {
+            data.Edition.Error("COBOLNET0828",
+                $"INVOKE \"{m.Name}\" RETURNING: the method declares no RETURNING item (ISO §14.9.23.4 GR8 / "
+                + "§14.8.3 — nothing to deliver)");
+            return new BoundNop();
+        }
+        if (retRef is null && m.Returning is not null)
+        {
+            data.Edition.Error("COBOLNET0828",
+                $"INVOKE \"{m.Name}\": the method declares a RETURNING item ('{m.Returning.CobolName}') — "
+                + "the INVOKE must specify RETURNING to receive it (the binder's signature check, deep-dive "
+                + "D1; ISO §14.9.23.4 GR8)");
+            return new BoundNop();
+        }
+        if (retRef is not null)
+        {
+            if (refs.Resolve(retRef) is not { } rp)
+            {
+                data.Edition.Error("COBOLNET0828",
+                    $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': the receiving identifier is not "
+                    + "resolvable to storage");
+                return new BoundNop();
+            }
+            if (OoConformanceError(m.Returning!, rp.Item) is { } err)
+            {
+                data.Edition.Error("COBOLNET0828",
+                    $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': {err} (ISO §14.8.3 returning-item "
+                    + "conformance)");
+                return new BoundNop();
+            }
+            retPlace = rp;
+        }
+        return new BoundInvoke(InvokeForm.Instance, null, receiver, m.CsName, retPlace, args, m.Returning);
+    }
+
+    /// <summary>Bind ONE INVOKE argument against its positional formal (§14.9.23.4 GR6 + §14.9.23.3 SR5/SR9/
+    /// SR10 + §14.8.2 conformance). Null on a diagnostic (the caller drops the statement — the compile already
+    /// failed).</summary>
+    private BoundInvokeArg? OoBindInvokeArg(Core.InvokeArgumentContext arg, DataItem formal, string methodName)
+    {
+        string Err(string msg)
+        {
+            data.Edition.Error("COBOLNET0828", $"INVOKE \"{methodName}\": {msg}");
+            return msg;
+        }
+
+        if (arg.VALUE() is not null)
+        {
+            // SR5b: a BY VALUE argument requires a BY VALUE formal; every formal is BY REFERENCE today (the
+            // procedure-division-header BY phrases are an unparsed grammar extension — added with them).
+            Err($"BY VALUE argument #{formal.CobolName}: the corresponding formal parameter is BY REFERENCE "
+                + "(ISO §14.9.23.3 SR5b; header BY VALUE formals are a later slice)");
+            return null;
+        }
+
+        bool explicitReference = arg.REFERENCE() is not null;
+        bool explicitContent = arg.CONTENT() is not null;
+
+        if (arg.dataReference() is { } dref)
+        {
+            if (refs.Resolve(dref) is not { } place)
+            {
+                Err($"USING argument '{dref.GetText()}' is not resolvable to storage (or uses a reference "
+                    + "form not yet carried across INVOKE)");
+                return null;
+            }
+            // §14.9.23.3 SR 10: an argument shall not be object data (factory/instance WORKING-STORAGE) —
+            // explicit BY REFERENCE violates the rule; a BARE object-data identifier is assumed BY CONTENT
+            // (GR6a2: it fails SR 9/10, so BY REFERENCE cannot be assumed).
+            bool objectData = data.OoIsObjectData(place.Item);
+            if (explicitReference && objectData)
+            {
+                Err($"BY REFERENCE argument '{dref.GetText()}' references OBJECT data — factory/instance "
+                    + "working-storage may not cross an INVOKE by reference (ISO §14.9.23.3 SR 10); pass it "
+                    + "BY CONTENT");
+                return null;
+            }
+            if (OoConformanceError(formal, place.Item) is { } err1)
+            {
+                Err($"USING argument '{dref.GetText()}' does not conform to formal parameter "
+                    + $"'{formal.CobolName}': {err1} (ISO §14.8.2 — BY REFERENCE/BY CONTENT require the same "
+                    + "description)");
+                return null;
+            }
+            bool byReference = !explicitContent && !objectData;   // GR6a: REFERENCE assumed when SR9/10 hold
+            return new BoundInvokeArg(formal, place, null, null, WriteBack: byReference);
+        }
+
+        // A literal argument — BY CONTENT (GR6a2; a literal never meets SR9).
+        var lit = arg.literal();
+        if (lit?.nonNumericLiteral()?.STRINGLIT() is { } sl)
+        {
+            string s = DecodeCobolString(sl.GetText());
+            if (formal.Pic?.Category is not PicCategory.Alphanumeric)
+            {
+                Err($"nonnumeric literal argument {sl.GetText()} for the non-alphanumeric formal "
+                    + $"'{formal.CobolName}' (ISO §14.8.2 literal conformance)");
+                return null;
+            }
+            if (s.Length > formal.Pic.Length)
+            {
+                Err($"nonnumeric literal argument of length {s.Length} exceeds formal '{formal.CobolName}' "
+                    + $"PIC X({formal.Pic.Length}) (ISO §14.8.2 — a literal shall fit the formal)");
+                return null;
+            }
+            return new BoundInvokeArg(formal, null, null, s, WriteBack: false);
+        }
+        if (lit?.numericLiteral() is { } nl)
+        {
+            string raw = nl.GetText();
+            if (formal.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
+            {
+                Err($"numeric literal argument {raw} for the non-numeric formal '{formal.CobolName}' "
+                    + "(ISO §14.8.2 literal conformance)");
+                return null;
+            }
+            // Rescale to the formal at BIND time (exact string math) and require it to fit the formal's
+            // digit positions — a literal that cannot conform is loud, never silently truncated.
+            if (OoUnscaledDigitCount(raw, formal.Pic.Scale) > formal.Pic.Digits)
+            {
+                Err($"numeric literal argument {raw} does not fit formal '{formal.CobolName}' "
+                    + $"({formal.Pic.Digits} digit(s), scale {formal.Pic.Scale}) (ISO §14.8.2)");
+                return null;
+            }
+            return new BoundInvokeArg(formal, null, raw, null, WriteBack: false);
+        }
+        Err($"USING argument form for formal '{formal.CobolName}' is not yet carried across INVOKE");
+        return null;
+    }
+
+    /// <summary>The significant-digit count of a numeric literal rescaled to <paramref name="scale"/> (the
+    /// same string math as the emitter's <c>EmitText.UnscaledAtScale</c>, counting only — the bind-time
+    /// fits-the-formal check for literal arguments, §14.8.2).</summary>
+    private static int OoUnscaledDigitCount(string raw, int scale)
+    {
+        string t = raw.Trim().TrimStart('+').TrimStart('-');
+        int dot = t.IndexOf('.');
+        string intPart = dot < 0 ? t : t[..dot];
+        string fracPart = dot < 0 ? "" : t[(dot + 1)..];
+        string digits = scale >= 0
+            ? intPart + (fracPart.Length < scale ? fracPart.PadRight(scale, '0') : fracPart[..scale])
+            : (intPart + fracPart) is var all && all.Length > -scale ? all[..^(-scale)] : "0";
+        return digits.TrimStart('0').Length;
+    }
+
+    /// <summary>The §14.8.2/§14.8.3 STRICT conformance check between a formal/returning item and an
+    /// argument/receiver item — the rule set that makes the emitted marshaling TYPE-PRESERVING (no conversion
+    /// crosses the boundary, so no cross-class numeric profile is ever referenced). Null when conformant, else
+    /// the human-readable mismatch.</summary>
+    private string? OoConformanceError(DataItem formal, DataItem arg)
+    {
+        if (formal.IsGroup)
+        {
+            // A group crosses as its character image (the CALL-boundary discipline): the argument must be a
+            // group (image-capable) or an alphanumeric elementary item of the SAME character length.
+            if (!(arg.IsGroup || arg.Pic?.Category is PicCategory.Alphanumeric))
+                return "a group formal requires a group or alphanumeric argument";
+            if (arg.IsGroup && !arg.IsImageCapable)
+                return "the argument group has a float/COMP-5/INDEX leaf (no character image — Tier-C)";
+            if (!formal.IsImageCapable)
+                return "the formal group has a float/COMP-5/INDEX leaf (no character image — Tier-C)";
+            return arg.ImageWidth != formal.ImageWidth
+                ? $"character length mismatch (formal {formal.ImageWidth}, argument {arg.ImageWidth})"
+                : null;
+        }
+        var f = formal.Pic!;
+        if (arg.IsGroup)
+        {
+            // A GROUP argument to an elementary formal: legal only for an alphanumeric formal of the same
+            // character length (the group crosses as its image).
+            if (f.Category is not PicCategory.Alphanumeric)
+                return "a group argument requires a group or alphanumeric formal";
+            if (!arg.IsImageCapable) return "the argument group has no character image (Tier-C)";
+            return arg.ImageWidth != f.Length
+                ? $"character length mismatch (formal {f.Length}, argument {arg.ImageWidth})"
+                : null;
+        }
+        var a = arg.Pic!;
+        if (f.Category != a.Category)
+            return $"category mismatch (formal {f.Category}, argument {a.Category})";
+        switch (f.Category)
+        {
+            case PicCategory.ObjectReference:
+                // §14.8.2 for object references: identical description — the same declared class (or both
+                // universal). Subclass-to-base widening BY REFERENCE would need C# ref variance — rejected.
+                return string.Equals(f.ObjectClassName, a.ObjectClassName, StringComparison.OrdinalIgnoreCase)
+                    ? null
+                    : $"declared class mismatch (formal '{f.ObjectClassName ?? "universal"}', argument "
+                      + $"'{a.ObjectClassName ?? "universal"}')";
+            case PicCategory.Numeric:
+                if (f.Usage != a.Usage)
+                    return $"USAGE mismatch (formal {f.Usage}, argument {a.Usage} — §14.8.2 requires the "
+                        + "identical description for BY REFERENCE/BY CONTENT)";
+                return f.Digits != a.Digits || f.Scale != a.Scale || f.Signed != a.Signed
+                    ? $"numeric description mismatch (formal {(f.Signed ? "S" : "")}9({f.Digits}) scale "
+                      + $"{f.Scale}, argument {(a.Signed ? "S" : "")}9({a.Digits}) scale {a.Scale})"
+                    : null;
+            case PicCategory.Alphanumeric:
+                return f.Length != a.Length
+                    ? $"length mismatch (formal X({f.Length}), argument X({a.Length}))"
+                    : null;
+            default:
+                return $"formal category {f.Category} is not yet carried across INVOKE";
+        }
     }
 
     // ── Method-context control flow (deep-dive D8) ──────────────────────────────────────────────────────────

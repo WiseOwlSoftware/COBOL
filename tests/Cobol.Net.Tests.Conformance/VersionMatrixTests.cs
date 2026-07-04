@@ -22,7 +22,7 @@ namespace CobolNet.Tests.Conformance;
 public sealed class VersionMatrixTests
 {
     private sealed record Construct(string Id, string Description, int IntroducedIn, int? RemovedIn, string Vcr,
-        string Source, string Status, string? ExpectDiagnostic, int? ObsoleteIn);
+        string Source, string Status, string? ExpectDiagnostic, int? ObsoleteIn, string? ExpectDiagnosticBelow);
 
     private static readonly IReadOnlyList<Construct> Catalogue = LoadCatalogue();
 
@@ -41,7 +41,8 @@ public sealed class VersionMatrixTests
                 e.GetProperty("source").GetString()!,
                 e.TryGetProperty("status", out var s) ? s.GetString()! : "active",
                 e.TryGetProperty("expectDiagnostic", out var d) ? d.GetString() : null,
-                e.TryGetProperty("obsoleteIn", out var o) && o.ValueKind != JsonValueKind.Null ? o.GetInt32() : null));
+                e.TryGetProperty("obsoleteIn", out var o) && o.ValueKind != JsonValueKind.Null ? o.GetInt32() : null,
+                e.TryGetProperty("expectDiagnosticBelow", out var db) ? db.GetString() : null));
         return list;
     }
 
@@ -88,8 +89,13 @@ public sealed class VersionMatrixTests
             Assert.False(ok, $"[{constructId}] expected to be REJECTED at COBOL-{edition} (not valid until "
                 + $"{c.IntroducedIn}{(c.RemovedIn is { } r ? $" / removed {r}" : "")}; {c.Vcr}) but it compiled.");
             // The two-obligation rule's diagnostic half: reject cells assert the QUALITY of the rejection
-            // once their edition-band code exists (P2.7 — expectDiagnostic in constructs.json).
-            if (c.ExpectDiagnostic is { } code)
+            // once their edition-band code exists (P2.7 — expectDiagnostic in constructs.json). A DUAL-window
+            // row (introduced ≥2002 AND removed — e.g. EXIT METHOD, method WS) rejects with DIFFERENT codes at
+            // the two edges: expectDiagnosticBelow (0900 not-yet-introduced) below introducedIn,
+            // expectDiagnostic (0902 removed) at/after removedIn (the exit-method-window reactivation
+            // contract, landed with OO slice 2).
+            string? code = edition < c.IntroducedIn ? c.ExpectDiagnosticBelow ?? c.ExpectDiagnostic : c.ExpectDiagnostic;
+            if (code is not null)
                 EditionHarness.AssertHasDiagnostic(diagnostics, code);
         }
     }

@@ -78,6 +78,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// resolve each file's FILE STATUS item.</summary>
     public void Bind(Core.ProgramUnitContext program)
     {
+        BindDeclarations(program);
+        BindResolve(program);
+    }
+
+    /// <summary>The declaration half of <see cref="Bind"/>: OPTIONS/SPECIAL-NAMES/FILE-CONTROL, the FILE /
+    /// WORKING-STORAGE / LINKAGE sections, and the PD header formals — everything that ADDS items to the
+    /// forest. Split from <see cref="BindResolve"/> so a CLASS unit can bind its METHODS' data sections
+    /// (OO deep-dive D3/D6 — <c>DataBinder.Oo.cs</c>) into the same forest BEFORE the post-build passes run
+    /// over it (a method item participates in USAGE/SIGN inheritance and object-reference resolution exactly
+    /// like program data).</summary>
+    internal void BindDeclarations(Core.ProgramUnitContext program)
+    {
         Options = OptionsBinder.Bind(program, Edition);   // captured even when there is no WORKING-STORAGE
 
         // ARITHMETIC mode validity (§11.9.5 / §8.8.1): NATIVE and STANDARD-DECIMAL are implemented;
@@ -103,23 +115,29 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 .Any(i => attrs.GetChild(i).GetText().Equals("DEBUGGING", StringComparison.OrdinalIgnoreCase)))
             ?? false;
 
-        // The C#-field-name scope at the Program level is shared by FILE SECTION records AND WORKING-STORAGE roots —
-        // both emit as static fields, so a name used by an FD record must not collide with a WS root.
-        var rootNames = new HashSet<string>(StringComparer.Ordinal);
-
         SwitchBindSpecialNames(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)
-        BindFileSection(program, rootNames);       // FD records → Roots + FileModel.Records + the shared-area REDEFINES
+        BindFileSection(program, _rootNames);      // FD records → Roots + FileModel.Records + the shared-area REDEFINES
         BindReportSection(program);                // RD entries → ReportModels (ISO §13.14; DataBinder.Reports.cs)
         BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
-            BindEntries(ws.dataDescriptionEntry(), rootNames);
+            BindEntries(ws.dataDescriptionEntry(), _rootNames);
 
         // LINKAGE SECTION roots + the PROCEDURE DIVISION header's USING/RETURNING formals (ISO §13.7 / §14.2.2;
         // COBOLNET_INTERPROGRAM_DESIGN D1/D3 — bound into the same forest so every verb works unchanged).
-        CallBindLinkage(program, rootNames);
+        CallBindLinkage(program, _rootNames);
+    }
 
+    /// <summary>The C#-field-name scope at the class level, shared by FILE SECTION records, WORKING-STORAGE
+    /// roots, LINKAGE roots — and, in a CLASS unit, every METHOD's data roots (an emitted field/local name is
+    /// unique across the whole class, so sibling methods' same-named items can never cross-wire — the legacy
+    /// trap-#6 guard at the NAME level).</summary>
+    private readonly HashSet<string> _rootNames = new(StringComparer.Ordinal);
+
+    /// <summary>The resolution half of <see cref="Bind"/> — the post-build passes over the COMPLETE forest.</summary>
+    internal void BindResolve(Core.ProgramUnitContext program)
+    {
         // Post-build (the forest is complete): fix up USAGE INDEX entries (children weren't known at entry bind);
         // apply group-level SIGN clauses (must precede the REDEFINES classification — a SEPARATE sign adds a
         // character position to the item's image width, which feeds the class-max width); then resolve

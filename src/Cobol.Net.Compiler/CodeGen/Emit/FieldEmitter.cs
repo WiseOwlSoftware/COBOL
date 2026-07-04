@@ -38,8 +38,16 @@ internal sealed class FieldEmitter(EmissionContext ctx)
                 w.Line($"private long {field} = 1;   // INDEX-NAME {name}");
         foreach (var f in RootPhysicals())
             if (!ctx.Data.CallSuppressedRootFields.Contains(f.Name))
-                w.Line($"private {f.Type} {f.Name} = {f.Init};   // {f.Comment}");
+                // A method-WS root is a STATIC field (OO deep-dive D3 — one copy per class, shared across
+                // instances, persistent across activations, ISO §11.7; pre-2023 editions only, §13.5.3 SR 1).
+                w.Line($"private {(ctx.Data.OoStaticRootFields.Contains(f.Name) ? "static " : "")}{f.Type} {f.Name} = {f.Init};   // {f.Comment}");
     }
+
+    /// <summary>The C# (type, initializer) pair for declaring one root as a METHOD LOCAL (the OO slice-2
+    /// LINKAGE/LOCAL-STORAGE mapping) — the same composed initializer a field declaration gets, so a group
+    /// local's OCCURS arrays and VALUE seeds are identical to field semantics (§14.5.3: LOCAL-STORAGE
+    /// re-initializes on every activation — a C# local declaration does exactly that).</summary>
+    internal (string Type, string Init) RootDecl(DataItem item) => (item.FieldType, FieldInit(item));
 
     /// <summary>A field that physically appears in the emitted C# — an item's own field, OR a REDEFINES class's single
     /// string backing (which replaces ALL the class's members). A REDEFINES <i>view</i> yields no physical field

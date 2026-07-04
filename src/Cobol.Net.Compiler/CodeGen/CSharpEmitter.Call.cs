@@ -86,7 +86,8 @@ public sealed partial class CSharpEmitter
 
         var (units, classes) = CallCollectUnits(tree, edition);
         _callUidBand = 0;
-        foreach (var cls in classes) OoBindClassUnit(cls, edition);
+        foreach (var cls in classes) OoBindClassData(cls, edition);   // ALL signatures before ANY body (D1 pass-1)
+        foreach (var cls in classes) OoBindClassBody(cls);
         foreach (var unit in units) CallBindUnit(unit, edition);
         foreach (var cls in classes) MarkStoreAsImage(cls.Data);
         foreach (var unit in units) MarkStoreAsImage(unit.Data);

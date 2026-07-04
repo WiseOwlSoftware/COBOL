@@ -13,14 +13,22 @@
 > plus the emit-into-a-type parameterization of the emitter), then the ported legacy slices 1–6, then
 > FACTORY → PROPERTY → INTERFACE-ID → universal object reference → EC-OO.
 >
-> **STATUS (2026-07-04, DEVLOG 600/601): the SPINE is LANDED.** Part 1 — CobolObject runtime base (D2)
-> + USAGE OBJECT REFERENCE (universal). Part 2 — ClassUnit collection + the pass-1 class symbol table
-> (D1), the emit-into-a-type parameterization (OoEmitClassUnit on the shared __Dispatch), method
+> **STATUS (2026-07-04, DEVLOG 600/601/602): the SPINE (parts 1–2) AND PORT SLICE 2 are LANDED.**
+> Part 1 — CobolObject runtime base (D2) + USAGE OBJECT REFERENCE (universal). Part 2 — ClassUnit
+> collection + the pass-1 class symbol table (D1), the emit-into-a-type parameterization, method
 > exit-bounded PC ranges + BoundMethodReturn (D8, realized catch-at-entry — see the D8 AS-BUILT note),
 > INVOKE NEW / no-arg instance (D5 subset), typed object references, the 0813/0820–0827 diagnostic
-> band, and 4 of the 9 oo_* goldens ENABLED under the 2002 manifest run contract. Slice 1 (and the
-> 455-slice method scoping) is subsumed. **NEXT = slice 2** (method LINKAGE/LOCAL-STORAGE + INVOKE
-> USING/RETURNING marshaling — D6), then 3a INHERITS, 3b SELF/SUPER.
+> band. **Slice 2 (DEVLOG 602)** — method LINKAGE → typed <c>ref</c> C# parameters over capturable
+> locals, LOCAL-STORAGE → C# locals (re-init per activation), method WS → STATIC fields with the
+> §13.5.3 SR 1 edition window (`method-working-storage-window`, VCR Table 6 row 130e), per-method DATA
+> scopes (§11.7 GR5 shadowing; trap #6 structural), the LOCAL-FUNCTION dispatcher realization (see the
+> emitter-seam AS-BUILT), INVOKE USING/RETURNING marshaling under §14.8.2 STRICT conformance (D6 —
+> type-preserving crossings, 0828 band, SR 10 object-data auto-CONTENT), and implicit-RECURSIVE
+> reentrancy (:12032) proven by test. **5 of the 9 oo_* goldens ENABLED** (+ oo_method_args). Slices 1
+> + 2 (and the 455-slice scoping, and the legacy-never-landed multi-method LINKAGE) are DONE.
+> **NEXT = slice 3a INHERITS** (`: BASE`, override under the base's EXACT spelling — trap #2) →
+> oo_inherit/oo_super, then 3b SELF/SUPER → oo_self/oo_self_polymorphic, then FACTORY → PROPERTY →
+> INTERFACE-ID → universal reference → EC-OO.
 
 ## Summary
 
@@ -76,6 +84,8 @@ Positive conformance tests live in `tests/conformance/2002/oo_*.cob`; the reject
 
 **CORRECTION (2026-07-03, regenerated brief — Spec corrections #1).** In ISO 2023 a method definition may NOT contain a working-storage section at all (§13.5.3 SR 1, specs/ISO_COBOL.md:16461; interfaces get none either). So the method-WS→static-fields mapping is a pre-2023 behavior only, edition-gated; at `--std 2023` method WS is a compile-time versioned diagnostic from the EditionValidator. The 2023-legal method storage is LOCAL-STORAGE (→ C# locals) + LINKAGE (→ parameters); OBJECT/FACTORY WS is unaffected.
 
+**AS BUILT (2026-07-04, slice 2 — DEVLOG 602).** D3 is LIVE in full: method WS → `private static` fields (the two-instance shared-counter fact is `OoSpineTests.MethodWorkingStorage_StaticSemantics_EditionWindow`); LOCAL-STORAGE → C# locals declared in the method entry (re-init per activation is the language semantics of a local declaration); LINKAGE → `ref` parameters copied into CAPTURABLE locals (see the D6/D8 notes for why locals, not raw params). The 2023 ban is the `method-working-storage-window` registry row (0900 below 2002 / 0902 at 2023; `--permissive` keeps the static semantics — the §10 #1 migration contract, matrix-verified). ⚠ The pre-2023 legality boundary is PINNED PROVISIONAL at 2002–2014 (Annex E.2 does not itemize the removal and the 2002/2014 texts are not in-repo — VCR Table 6 row 130e records the pin and the one-line `removedIn` shift if the 2014 text proves otherwise). Method-data shapes staged loud for later waves: REDEFINES / OCCURS INDEXED / ODO / level-66 / EXTERNAL / GLOBAL inside method data, and FILE/REPORT/SCREEN sections in a method.
+
 ### D4. The predefined NEW factory = the generated public ctor: base ctor chains first, then VALUE-initialize this class's own instance fields.
 
 **Rationale.** C# already runs base-then-derived ctor order, which matches COBOL initialize-inherited-then-own-data; §16.2.1 NEW is the built-in factory needing no explicit FACTORY METHOD-ID.
@@ -94,6 +104,8 @@ Positive conformance tests live in `tests/conformance/2002/oo_*.cob`; the reject
 
 **Rejected alternatives.** Keep the ManagedPointer[] args ABI (legacy) for uniformity with CALL — rejected: byte-substrate-adjacent, unidiomatic, and unnecessary now that types are native. Box everything to object[] for all params — rejected: loses Roslyn type checking and adds boxing.
 
+**AS BUILT (2026-07-04, slice 2 — DEVLOG 602).** Every formal is a `ref` parameter (uniform; the value-param-when-never-written polish is deferred — deciding it needs the body's write-set, which isn't known when signatures must exist). Two load-bearing realizations: (1) **§14.8.2 STRICT conformance at bind time IS the marshaling design** — because BY REFERENCE/BY CONTENT demand the identical description (category + digits/scale/sign/USAGE, alphanumeric length, exact object-reference class, group image width), every crossing is TYPE-PRESERVING, so the call site never needs a conversion and never references the invoked class's private numeric profiles (the cross-class-profile trap). Mismatches are the 0828 band; a numeric literal must FIT the formal (bind-time string math). (2) **§14.9.23.3 SR 10 auto-CONTENT**: a bare OBJECT-data argument cannot cross BY REFERENCE — GR6a2 assumes BY CONTENT (callee writes invisible); explicit BY REFERENCE of object data is 0828 (`DataBinder.OoIsObjectData`). Call-site lowering: a plain field of matching storage passes `ref` DIRECTLY (subscripts evaluate once — GR7a for free); everything else is copy-in temp → `ref` temp → copy-out (BY REFERENCE identifiers only), with groups crossing as character images (`CallStringRead`/`CallStringWrite` — a caller's group struct TYPE differs from the method's) and storage-form bridges via the caller-side `FormatDisplay`/`ParseDisplay`/`NumericImagePlace`. RETURNING = the C# return value, delivered into identifier-4 with the same bridges (GR8). BY VALUE args stage 0828 pending the unparsed header BY-phrases; OMITTED is a later slice.
+
 ### D7. Method attributes: instance methods are `virtual` by default; OVERRIDE→`override`; FINAL→`sealed override` (FINAL root → non-virtual); FACTORY methods→`static`. Never emit C# `new`/method-hiding.
 
 **Rationale.** §9.3.6 dispatch is always on the runtime class → virtual by default. §11.7 SR4a makes redefining a base signature WITHOUT OVERRIDE a compile error, so COBOL never expresses C# hiding — the mapping stays clean and total.
@@ -110,7 +122,7 @@ Positive conformance tests live in `tests/conformance/2002/oo_*.cob`; the reject
 
 **NOTE (2026-07-03 — the original citations were STALE; decision UNCHANGED).** This decision originally claimed the pipeline "conflates both at BIND time (StatementBinder.cs ~line 91 → one BoundStop → throw new StopRun(), CSharpEmitter.cs ~line 185)". Current reality: the interprogram wave ALREADY un-conflated the two signals — STOP → `BoundStop` (`src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs:168`) → `throw new StopRun()` (`src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.cs:333`); GOBACK binds separately via `CallBindGoback` (StatementBinder.cs:169) → `BoundGoback` → `CallEmitGoback` (`CSharpEmitter.Call.cs:803-816`), which moves the RETURNING source, stages RAISING, and throws `ProgramReturn` — caught at the program's own `__Activate` (CSharpEmitter.cs:120), never crossing a CALL boundary (ProgramReturn = the settled SSOT §18 #10 carrier, `ProgramRegistry.cs:28-35`). The REMAINING gap this decision governs: (a) method-context GOBACK must become `BoundMethodReturn` (or reuse the ProgramReturn-style catch-at-entry pattern scoped to the method — the D8 `return` form remains preferred); (b) EXIT METHOD is currently `BoundUnsupported` (StatementBinder.cs:218) and is edition-dependent: a method-return synonym at 2002/2014, REMOVED in 2023 (**Spec corrections #2**, specs/ISO_COBOL.md:27346-27381, :49034) — it maps to the method-return path only in pre-2023 editions and to a removed-feature diagnostic at 2023.
 
-**AS BUILT (2026-07-04, spine part 2 — DEVLOG 601): the catch-at-entry form was chosen over the `return` form, deliberately.** A method-context GOBACK executes inside however many NESTED bounded `__Dispatch(start, end)` frames its out-of-line PERFORMs have stacked — a C# `return` exits ONE frame, resuming the outer PERFORM's loop (a silent wrong-control-flow miscompile; the day-one test `OoSpineTests.MethodGoback_ReturnsFromMethodOnly_UnwindingNestedPerformFrames` reproduces exactly this shape). So the realization mirrors ProgramReturn precisely: `BoundMethodReturn` → `throw new MethodReturn()` (`src/Cobol.Net.Runtime/Control/MethodReturn.cs`), caught at the method's public entry — `public virtual void M() { try { __Dispatch(entry, last); } catch (MethodReturn) { } }` — after which the entry returns the method's RETURNING item (slice 2). The RETURNING value is NOT lost (the D8 rejection concerned conflation with StopRun, not the signal mechanism). STOP RUN inside a method deliberately stays `StopRun` — it must NOT be caught at the method boundary (§14.9.43). EXIT METHOD binds to the same `BoundMethodReturn` in a method (`OoBindExitMethod`), 0827 outside one; its 2023 removal rides the pre-existing `exit-method-window` registry row (0900 below 2002 / 0902 at 2023).
+**AS BUILT (2026-07-04, spine part 2 — DEVLOG 601): the catch-at-entry form was chosen over the `return` form, deliberately.** A method-context GOBACK executes inside however many NESTED bounded `__Dispatch(start, end)` frames its out-of-line PERFORMs have stacked — a C# `return` exits ONE frame, resuming the outer PERFORM's loop (a silent wrong-control-flow miscompile; the day-one test `OoSpineTests.MethodGoback_ReturnsFromMethodOnly_UnwindingNestedPerformFrames` reproduces exactly this shape). So the realization mirrors ProgramReturn precisely: `BoundMethodReturn` → `throw new MethodReturn()` (`src/Cobol.Net.Runtime/Control/MethodReturn.cs`), caught at the method's public entry — `public virtual void M() { try { __Dispatch(entry, last); } catch (MethodReturn) { } }` — after which the entry returns the method's RETURNING item (LIVE as of slice 2: the RETURNING LINKAGE local is the C# return value). The RETURNING value is NOT lost (the D8 rejection concerned conflation with StopRun, not the signal mechanism). STOP RUN inside a method deliberately stays `StopRun` — it must NOT be caught at the method boundary (§14.9.43). EXIT METHOD binds to the same `BoundMethodReturn` in a method (`OoBindExitMethod`), 0827 outside one; its 2023 removal rides the pre-existing `exit-method-window` registry row (0900 below 2002 / 0902 at 2023).
 
 ### D9. Defer parametric polymorphism (method overloading by signature); v1 requires unique method names per class.
 
@@ -267,7 +279,7 @@ The pass-1 symbol table records each method's ordered formal parameters with mod
 - **Portable — two-phase method emission:** declare all method signatures BEFORE any body so (a) INVOKE SELF resolves a sibling and (b) the public COBOL method names are reserved first, with paragraph-helper names uniquified AROUND them; keep the dispatch map keyed by method identity, not name (`CilEmitter.cs:335-362`, DEVLOG 455).
 
 ### Never landed in legacy (net-new design here, NOT a port)
-FACTORY (slice 4 — §11.4, D7); PROPERTY (slice 5 — §13.18.42); EC-OO (slice 6 tail — Table 13); per-method LINKAGE with multi-method params (legacy COBOL0117 reject); method-scoped SECTIONs (COBOL0116); INVOKE literal / BY VALUE / BY CONTENT arguments (COBOL0111 — greenfield binds them fully per D6); subclass-own OBJECT data; data-name method selector (universal-ref-only per SR 7); SET on object references; object references held BY a class instance. These follow the banner order: spine → slices 1–6 → FACTORY → PROPERTY → INTERFACE-ID → universal reference → EC-OO. (Per §A.4.10, specs/ISO_COBOL.md:40408-40414, only THREE OO items are optional — multiple-inheritance repetition ×2 and parametric polymorphism; everything above is MANDATORY for a conforming 2023 implementation.)
+FACTORY (slice 4 — §11.4, D7); PROPERTY (slice 5 — §13.18.42); EC-OO (slice 6 tail — Table 13); ~~per-method LINKAGE with multi-method params (legacy COBOL0117 reject)~~ — **LANDED net-new in slice 2 (DEVLOG 602: per-method data scopes + typed `ref` params; the trap-#6 cross-wiring test is `OoSpineTests.Trap6_SiblingMethodLinkage_NoCrossWiring`)**; ~~method-scoped SECTIONs (COBOL0116)~~ — **landed with the spine (method-scoped ranges)**; ~~INVOKE literal / BY CONTENT arguments (COBOL0111)~~ — **landed in slice 2 (bound fully per D6; BY VALUE stages 0828 pending the header BY-phrases)**; subclass-own OBJECT data; data-name method selector (universal-ref-only per SR 7); SET on object references; object references held BY a class instance (an object-ref item in OBJECT data works today — oo_hello-shaped drivers hold refs in program WS; a CLASS holding refs to OTHER classes rides the same PicInfo machinery). These follow the banner order: spine → slices 1–6 → FACTORY → PROPERTY → INTERFACE-ID → universal reference → EC-OO. (Per §A.4.10, specs/ISO_COBOL.md:40408-40414, only THREE OO items are optional — multiple-inheritance repetition ×2 and parametric polymorphism; everything above is MANDATORY for a conforming 2023 implementation.)
 
 ### Adversarial regression traps (each was a REAL caught bug — reproduce as day-one greenfield tests)
 1. Two-object independence (shared-static corruption; oo_instance_data pattern b1/b2/b1).
@@ -281,7 +293,7 @@ FACTORY (slice 4 — §11.4, D7); PROPERTY (slice 5 — §13.18.42); EC-OO (slic
 9. Subclass-own-data detection must not false-fire on synthesized index-names placed in WS (ISO §8.5.1.2).
 10. Three-level SUPER chains; state allocated exactly once across ctor chaining; PERFORM/GO TO method-local resolution incl. backward GO TO; cross-method PERFORM rejected.
 
-**Reusable test assets:** `tests/conformance/2002/oo_hello|oo_instance_data|oo_method_perform|oo_method_args|oo_inherit|oo_super|oo_self|oo_self_polymorphic|oo_object_group` (.cob + .out goldens — 9 pairs). AS OF SPINE PART 2 (DEVLOG 601) **4 of the 9 are ENABLED in the greenfield 2002 manifest run contract** (oo_hello, oo_instance_data [= trap #1 two-object independence], oo_method_perform, oo_object_group — compiled strict + run + byte-compared by CorpusRunnerTests); the remaining 5 stay pending on their slices (oo_method_args → slice 2; oo_inherit/oo_super/oo_self_polymorphic → 3a/3b; oo_self → 3b). The greenfield day-one adversarial suite is `tests/Cobol.Net.Tests.Conformance/OoSpineTests.cs` (traps #4/#10, the D8 GOBACK/STOP RUN/EXIT METHOD split, the 0813/0820–0827 diagnostic band). The legacy `OoTests` suite (`tests/CobolSharp.Tests.Integration/OoTests.cs` — 13 tests) remains the port checklist for the later slices.
+**Reusable test assets:** `tests/conformance/2002/oo_hello|oo_instance_data|oo_method_perform|oo_method_args|oo_inherit|oo_super|oo_self|oo_self_polymorphic|oo_object_group` (.cob + .out goldens — 9 pairs). AS OF SLICE 2 (DEVLOG 602) **5 of the 9 are ENABLED in the greenfield 2002 manifest run contract** (oo_hello, oo_instance_data [= trap #1 two-object independence], oo_method_perform, oo_object_group, oo_method_args [USING/RETURNING] — compiled strict + run + byte-compared by CorpusRunnerTests); the remaining 4 stay pending on their slices (oo_inherit/oo_super → 3a; oo_self/oo_self_polymorphic → 3b). The greenfield day-one adversarial suite is `tests/Cobol.Net.Tests.Conformance/OoSpineTests.cs` (traps #4/#10, the D8 GOBACK/STOP RUN/EXIT METHOD split, the 0813/0820–0827 diagnostic band). The legacy `OoTests` suite (`tests/CobolSharp.Tests.Integration/OoTests.cs` — 13 tests) remains the port checklist for the later slices.
 
 ## Greenfield seams (what the port plugs into — verified 2026-07-03)
 
@@ -306,19 +318,25 @@ GOBACK → `BoundMethodReturn` (D8), EXIT METHOD → same in a method / 0827 out
 (`StatementBinder.Exceptions.cs:53-54`).
 
 ### Emitter seam — the CallUnit machinery IS the ClassUnit template (AS BUILT in spine part 2, DEVLOG 601)
-AS BUILT: `CSharpEmitter.Oo.cs` — `OoClassUnit` (the ClassUnit counterpart of CallUnit), `OoBindClassUnit`
-(per-class DataBinder over a `CallReparent`-style synthetic programUnit adopting the OBJECT paragraph's
-env/data divisions; disjoint uid band; class FILE SECTION staged 0899), and `OoEmitClassUnit` — the SAME
-per-unit emitter-state switch as `CallEmitProgramClass` renders `public class FOO : CobolObject` with
-FieldEmitter INSTANCE fields (VALUE → field initializers; the implicit public ctor IS the predefined NEW —
-D4), one `public virtual` C# method per METHOD-ID running `try { __Dispatch(entry, last); } catch
-(MethodReturn) { }` over its contiguous EXIT-BOUNDED pc range (trap #4 structural: falling past the last
-paragraph returns, never runs a sibling's paragraphs), and ONE shared `__Dispatch` body (`EmitDispatchMethod`,
-extracted from EmitDispatcher — the realized emit-into-a-type parameterization; all PERFORM/SORT/declarative
-emit sites reuse it untouched because a class has one pc space exactly like a program). INVOKE renders in
-`OoEmitInvoke`: NEW → `place.Write("new FOO()")`; instance → `CobolObject.RequireNonNull(recv).M()` (GR5).
-Classes emit before programs (source order; Roslyn needs no depth sort — the legacy Cecil ordering is
-obsolete); a class-only compilation unit emits classes + an empty Main. The original seam notes follow:
+AS BUILT: `CSharpEmitter.Oo.cs` — `OoClassUnit` (the ClassUnit counterpart of CallUnit), the two-phase bind
+(`OoBindClassData` for EVERY class — the synthetic-unit DataBinder + `OoBindMethodData` per method between
+`BindDeclarations`/`BindResolve`, so signatures exist before ANY body binds regardless of source order —
+then `OoBindClassBody`; class FILE SECTION staged 0899), and `OoEmitClassUnit` — the SAME per-unit
+emitter-state switch as `CallEmitProgramClass` renders `public class FOO : CobolObject` with FieldEmitter
+INSTANCE fields (VALUE → field initializers; the implicit public ctor IS the predefined NEW — D4) and
+method-WS STATIC fields (D3).
+**Dispatcher realization (slice 2 supersedes the part-2 shared-instance-`__Dispatch` shape — deliberately):**
+each METHOD-ID emits as `public virtual <ret> M(ref …)` whose paragraphs render inside a LOCAL FUNCTION
+`__MDispatch` over the method's contiguous slice of the class's ONE pc space (`EmitDispatchMethod(header,
+from, to)`; `_dispatchName` threads the PERFORM/SORT emit sites). The local function is what lets paragraph
+code address the method's LINKAGE/LOCAL-STORAGE C# LOCALS by capture (a `ref` parameter is NOT capturable —
+hence the param→local copy-in/copy-out at the method boundary); captures lower to by-ref frames (zero
+allocation), and recursion (methods are implicitly RECURSIVE, :12032) is reentrant because every activation
+owns fresh locals. Falling past the slice's last paragraph returns (trap #4); `__N` stays one class-level
+const. INVOKE renders in `OoEmitInvoke`: NEW → `place.Write("new FOO()")`; instance → the D6 marshaling
+around `CobolObject.RequireNonNull(recv).M(…)` (GR5; see the D6 AS-BUILT note). Classes emit before programs
+(source order; Roslyn needs no depth sort — the legacy Cecil ordering is obsolete); a class-only compilation
+unit emits classes + an empty Main. The original seam notes follow:
 The interprogram wave already emits N instantiable classes per compilation: `CallEmitRunUnit` (`CSharpEmitter.Call.cs:79-144`) binds every unit (per-unit DataBinder, disjoint uid bands, `CallBindUnit` :234-308) and emits one `internal sealed class _PRG_<NAME> : ICobolProgram` per program into ONE .g.cs (`CallEmitProgramClass` :340-438) — each with INSTANCE fields, a ctor taking the container, instance `__Activate()` + `__Dispatch(int,int)` PC-loop methods (`CSharpEmitter.cs:88-153`), and `private ref T fld => ref __outer.fld` bridge properties. The CallUnit model (:30-48) is the natural ClassUnit shape; the per-unit emitter-state switch (:343-347) is exactly the "emit fields+paragraphs+statements into a type parameterized by (type, instance-vs-static, storage-source)" refactor this doc's Summary calls for. Port notes: the pass-1 class symbol table (D1) is built during/after CallCollectUnits, before per-unit binding, so a driver INVOKE sees later classes; methodDefinition contexts (which own their own data/procedure divisions) need the `CallReparent`-style synthetic reshaping (:218-228 — direct-children-only accessor discipline, the IC235A lesson); `CallBindUnit`'s LINKAGE-formal resolution before field emission is where method LINKAGE→parameters slots in; the EC group gate `_ecActive` spans all units (:95) and CALL sites emit EC propagation pickups (:676-689) — INVOKE sites need the analogous decision (per Spec corrections #3 they surface EC-OO conditions, so they participate in the same propagation).
 
 ### Registry/GOBACK seam — OO bypasses the registry; the two-signal architecture is already in place

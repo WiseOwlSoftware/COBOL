@@ -124,17 +124,24 @@ public sealed partial class CSharpEmitter
         // (__IoCheckEc needs no declaratives to bridge status→EC and apply the fatal default) — gated so an
         // EC-free program's source is unchanged.
         if (_useDecls || bound.Ec is { HasIoChecked: true }) EmitUseMachinery(bound, w);
-        EmitDispatchMethod(bound, w);
+        EmitDispatchMethod(bound, w, "private int __Dispatch(int __startPc, int __exitPc)",
+            0, bound.Paragraphs.Count - 1);
     }
 
-    /// <summary>Emit the <c>__Dispatch</c> method itself — SHARED by program classes (via
-    /// <see cref="EmitDispatcher"/>) and COBOL classes (<c>OoEmitClassUnit</c> — every METHOD-ID's paragraphs
-    /// share the class's one pc space; each public method runs its exit-bounded range through this same body:
-    /// the emit-into-a-type parameterization of the OO deep-dive).</summary>
-    private void EmitDispatchMethod(BoundProgram bound, CodeWriter w)
+    /// <summary>The dispatch-method NAME the statement emitters call for a bounded range (out-of-line PERFORM,
+    /// SORT/MERGE procedures): <c>__Dispatch</c> for a program's instance method; <c>__MDispatch</c> while a
+    /// COBOL-class METHOD body emits — its dispatcher is a LOCAL FUNCTION of the emitted method, so the
+    /// method's LINKAGE/LOCAL-STORAGE locals are capturable (OO deep-dive D3/D6, slice 2).</summary>
+    private string _dispatchName = "__Dispatch";
+
+    /// <summary>Emit one dispatch-method body over the pc slice [<paramref name="fromPc"/>..<paramref name="toPc"/>]
+    /// — SHARED by program classes (via <see cref="EmitDispatcher"/>: the full range as the instance
+    /// <c>__Dispatch</c>) and COBOL classes (<c>OoEmitMethod</c>: each METHOD-ID's contiguous slice of the
+    /// class's ONE pc space as a local function; a pc outside the slice hits <c>default:</c> and exits — the
+    /// emit-into-a-type parameterization of the OO deep-dive).</summary>
+    private void EmitDispatchMethod(BoundProgram bound, CodeWriter w, string header, int fromPc, int toPc)
     {
-        int n = bound.Paragraphs.Count;
-        using (w.Block("private int __Dispatch(int __startPc, int __exitPc)"))
+        using (w.Block(header))
         {
             w.Line("int __pc = __startPc;");
             using (w.Block("while ((uint)__pc < (uint)__N)"))
@@ -142,7 +149,7 @@ public sealed partial class CSharpEmitter
                 w.Line("bool __atExit = __pc == __exitPc;   // captured before the body overwrites __pc");
                 using (w.Block("switch (__pc)"))
                 {
-                    for (int i = 0; i < n; i++)
+                    for (int i = fromPc; i <= toPc; i++)
                     {
                         _currentPc = i;
                         using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
@@ -1017,7 +1024,7 @@ public sealed partial class CSharpEmitter
     /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
     /// (the C# call stack is the return-address stack, COBOLNET_DESIGN §5.4).</summary>
     private void EmitOutOfLinePerform(BoundOutOfLinePerform p) =>
-        EmitPerform(p.Control, () => _ctx.Writer.Line($"__Dispatch({p.StartPc}, {p.EndPc});"), inline: false);
+        EmitPerform(p.Control, () => _ctx.Writer.Line($"{_dispatchName}({p.StartPc}, {p.EndPc});"), inline: false);
 
     private int _loopCounter;   // unique names for PERFORM TIMES loop locals (nested inline performs must not collide)
 

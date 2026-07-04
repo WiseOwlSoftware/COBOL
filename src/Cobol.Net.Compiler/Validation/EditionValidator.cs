@@ -175,6 +175,20 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         return base.VisitChildren(ctx);
     }
 
+    /// <summary>A WORKING-STORAGE SECTION in a METHOD definition — legal 2002/2014 (D3: static-field
+    /// semantics, shared across instances and persistent across activations, §11.7), BANNED by 2023
+    /// (§13.5.3 SR 1: within a class definition WS may appear only in a factory or instance definition,
+    /// "but not in a method definition" — OO deep-dive Spec correction #1). The dual window: 0900 below
+    /// 2002, 0902 at 2023, silent between; under <c>--permissive</c> the pre-removal static semantics
+    /// stand (the §10 #1 migration contract).</summary>
+    public override object? VisitMethodDefinition(CobolParserCore.MethodDefinitionContext ctx)
+    {
+        if (ctx.dataDivision()?.workingStorageSection() is not null)
+            ConstructRegistry.Check(_edition, "method-working-storage-window",
+                "a WORKING-STORAGE SECTION in a method definition");
+        return base.VisitChildren(ctx);
+    }
+
     // ── The W3 notInGrammar 85-acceptance gates (VCR Table 7 rows 7.15–7.18; DEVLOG 599): four obsolete '85
     //    elements DELETED by ISO 2002 that formerly had no grammar at all (generic parse errors at EVERY
     //    edition — the G1 co-equal-diagnostic violation). Each now parses unconditionally, binds inert at 85,

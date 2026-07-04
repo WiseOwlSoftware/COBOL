@@ -102,13 +102,32 @@
 > (+12 cells); new `OoSpineTests` ×12 day-one adversarial facts. Battery: conformance **1472/1472** ·
 > unit 101/101 · **INV-1-STRONG 349/349 byte-exact** · sweep 438 OK + 1 solo-clean transient (ST137A,
 > the DEVLOG-590 watched flake) / 20 SKIP85 · drift green · zero grammar/legacy exposure.
-> **RESUME = Phase 3, ported slice 2:** method LINKAGE → typed C# params + LOCAL-STORAGE → locals
-> (+ the method-WS edition gate: static fields ≤2014 per D3, the §13.5.3 SR1 rejection at 2023 — Spec
-> corrections #1), INVOKE USING/RETURNING marshaling (D6 — BY REFERENCE `ref`, BY CONTENT copy, BY VALUE,
-> RETURNING as return value; `BoundMethodReturn` carries the RETURNING delivery), oo_method_args GREEN.
-> Then 3a INHERITS (`: BASE`, override under the base's EXACT spelling — trap #2, depth emission) →
-> oo_inherit + oo_super, 3b SELF/SUPER dispatch → oo_self + oo_self_polymorphic; then FACTORY → PROPERTY
-> → INTERFACE-ID → universal reference → EC-OO per the deep-dive banner order.
+> **OO PORT SLICE 2 LANDED (DEVLOG 602, 2026-07-04)** — method LINKAGE → typed `ref` C# params over
+> CAPTURABLE locals, LOCAL-STORAGE → C# locals (re-init per activation), method WS → STATIC fields (D3)
+> with the §13.5.3 SR1 window (`method-working-storage-window` — 0900/0902; permissive keeps the static
+> semantics; boundary PINNED provisional, VCR Table 6 row 130e), per-method DATA scopes (§11.7 GR5
+> shadowing; trap #6 structural — `OoMethodDataScope` + the resolver/88 overlays), the LOCAL-FUNCTION
+> dispatcher realization (paragraphs emit inside `__MDispatch` capturing the method locals — reentrant,
+> :12032 implicit-RECURSIVE proven by a 3-deep obj-ref-formal recursion test; `EmitDispatchMethod`
+> slices + `_dispatchName` threading), and INVOKE USING/RETURNING marshaling (D6): §14.8.2 STRICT
+> conformance at bind = TYPE-PRESERVING crossings (no cross-class profile references), direct-`ref`
+> fast path (GR7a once-evaluation free), copy-in/out temps elsewhere, groups as character images,
+> SR 10 object-data auto-CONTENT (GR6a2) + explicit-BY-REFERENCE-of-object-data 0828, literal
+> fit-checking, RETURNING = the C# return value delivered via receiver-side bridges (GR8). New 0828
+> conformance band; matrix: `exit-method-window` fliped ACTIVE + the new `method-working-storage-window`
+> row via the NEW `expectDiagnosticBelow` dual-window mechanism (the documented reactivation contract —
+> closed). **5 of 9 oo_* goldens ENABLED** (+ oo_method_args, byte-exact); OoSpineTests ×18 (trap #3
+> arity 0828, trap #6 cross-wiring, recursion/reentrancy, SR 10 both ways, strict-conformance 0828s,
+> method-WS static semantics + window). Legacy-never-landed multi-method LINKAGE: DONE net-new.
+> **RESUME = Phase 3, ported slice 3a: INHERITS** — `: BASE` emission (single inheritance v1; SSOT §18
+> item 18), override under the base's EXACT spelling (trap #2 — case-insensitive detection across the
+> chain, emit under the base's roster spelling), subclass-own OBJECT data posture (loud or implement —
+> the legacy rejected; decide per §11.8), the un-stage of the pass-1 INHERITS 0899, oo_inherit +
+> oo_super GREEN (SUPER itself is 3b — oo_super uses INVOKE SUPER, so it may need 3a+3b together;
+> verify per-program). Then 3b SELF/SUPER dispatch (D5 rules: SELF → `this.M()` virtual §8.4.3.8 GR2,
+> SUPER → `base.M()` non-virtual GR3, SUPER-in-root 0827-style diagnostic — trap #7) → oo_self +
+> oo_self_polymorphic; then FACTORY → PROPERTY → INTERFACE-ID → universal reference → EC-OO per the
+> deep-dive banner order.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits

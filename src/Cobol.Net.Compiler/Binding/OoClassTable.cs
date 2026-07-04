@@ -158,9 +158,10 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     }
 }
 
-/// <summary>One method of a class roster (ISO §11.7): the COBOL name, the emitted C# method name, and whether
-/// its procedure-division header declares USING / RETURNING formals (the part-2 spine records presence only;
-/// the full param-mode/type list lands with port slice 2 — INVOKE USING/RETURNING marshaling).</summary>
+/// <summary>One method of a class roster (ISO §11.7): the COBOL name, the emitted C# method name, the header
+/// USING/RETURNING presence recorded at pass-1, and — filled by <c>DataBinder.OoBindMethodData</c> at class
+/// bind time (BEFORE any statement binds, so every INVOKE site in the group sees the full signature) — the
+/// resolved formal list, RETURNING item, and data roots (port slice 2, deep-dive D3/D6).</summary>
 public sealed record OoMethodSymbol(
     string Name, string CsName, bool HasUsing, bool HasReturning,
     CobolParserCore.MethodDefinitionContext Ctx)
@@ -170,4 +171,30 @@ public sealed record OoMethodSymbol(
     /// the last paragraph returns from the method, never into a sibling's paragraphs — the legacy trap #4).</summary>
     public int EntryPc { get; set; } = -1;
     public int EndPc { get; set; } = -2;   // Entry > End ⇔ an empty method body
+
+    /// <summary>The ordered PD USING formals (§14.9.23.4 GR3 — positional correspondence; every formal is
+    /// BY REFERENCE, the header BY VALUE phrase being an unparsed grammar extension).</summary>
+    public List<OoFormal> Formals { get; } = [];
+
+    /// <summary>The PD RETURNING item (a LINKAGE 01/77 — §14.2.3 GR6: callee-allocated; the method's C# return
+    /// value delivers it, §14.9.23.4 GR8), or null for a void method.</summary>
+    public DataItem? Returning { get; set; }
+
+    /// <summary>The method's LINKAGE roots (ALL of them — formals, the RETURNING item, and any unattached
+    /// entry): each becomes a capturable C# LOCAL of the emitted method.</summary>
+    public List<DataItem> LinkageRoots { get; } = [];
+
+    /// <summary>LOCAL-STORAGE roots → C# locals, re-initialized on every activation (§14.5.3).</summary>
+    public List<DataItem> LocalRoots { get; } = [];
+
+    /// <summary>Method WORKING-STORAGE roots → STATIC fields (D3 — shared across instances, persistent across
+    /// activations, §11.7; ILLEGAL at 2023, §13.5.3 SR 1 — the EditionValidator window row).</summary>
+    public List<DataItem> StaticRoots { get; } = [];
+
+    /// <summary>The method's own name scope (§11.7 GR5 shadowing; sibling invisibility — trap #6).</summary>
+    public OoMethodDataScope DataScope { get; } = new();
 }
+
+/// <summary>One resolved USING formal: the LINKAGE item (its <see cref="DataItem.CsName"/> is the capturable
+/// LOCAL the body addresses), the 0-based positional slot, and the emitted C# parameter name.</summary>
+public sealed record OoFormal(DataItem Item, int Position, string ParamName);

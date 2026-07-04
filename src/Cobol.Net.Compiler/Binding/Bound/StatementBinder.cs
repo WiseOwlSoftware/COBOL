@@ -1258,7 +1258,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private Condition88? ConditionOf(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-        if (!data.Conditions.TryGetValue(name, out var list) || list.Count == 0) return null;
+        // §11.7 GR5 — a method-local 88 (under LINKAGE / LOCAL-STORAGE / method-WS data) shadows object data;
+        // see ReferenceResolver.ResolveUnqualified for the data-name half of the rule.
+        List<Condition88>? list;
+        if (data.ActiveMethodScope is { } ms && ms.Conditions.TryGetValue(name, out list) && list.Count > 0) { }
+        else if (!data.Conditions.TryGetValue(name, out list) || list.Count == 0) return null;
         var qualifiers = dref.dataReferenceSuffix()
             .Select(sfx => sfx.qualification()?.cobolWord().GetText())
             .OfType<string>().ToList();
