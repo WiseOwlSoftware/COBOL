@@ -21,7 +21,8 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class VersionMatrixTests
 {
-    private sealed record Construct(string Id, string Description, int IntroducedIn, int? RemovedIn, string Vcr, string Source);
+    private sealed record Construct(string Id, string Description, int IntroducedIn, int? RemovedIn, string Vcr,
+        string Source, string Status);
 
     private static readonly IReadOnlyList<Construct> Catalogue = LoadCatalogue();
 
@@ -37,7 +38,8 @@ public sealed class VersionMatrixTests
                 e.GetProperty("introducedIn").GetInt32(),
                 e.GetProperty("removedIn").ValueKind == JsonValueKind.Null ? null : e.GetProperty("removedIn").GetInt32(),
                 e.GetProperty("vcr").GetString()!,
-                e.GetProperty("source").GetString()!));
+                e.GetProperty("source").GetString()!,
+                e.TryGetProperty("status", out var s) ? s.GetString()! : "active"));
         return list;
     }
 
@@ -47,9 +49,25 @@ public sealed class VersionMatrixTests
 
     public static IEnumerable<object[]> Matrix()
     {
-        foreach (var c in Catalogue)
+        // status:"pending" rows are catalogued (their edition metadata is frozen by the registry drift tests)
+        // but not yet implemented — their compile assertions activate when the owning roadmap phase lands.
+        foreach (var c in Catalogue.Where(c => c.Status == "active"))
             foreach (int v in EditionHarness.Editions)
                 yield return [c.Id, v];
+    }
+
+    /// <summary>Every pending row must carry its activation contract: an owning-phase note in the description
+    /// and edition metadata good enough to freeze — pending is a scheduling state, never a metadata hole.</summary>
+    [Fact]
+    public void PendingRows_AreCataloguedWithActivationContracts()
+    {
+        foreach (var c in Catalogue.Where(c => c.Status == "pending"))
+        {
+            Assert.Contains("PENDING", c.Description, StringComparison.Ordinal);
+            Assert.False(string.IsNullOrWhiteSpace(c.Vcr), $"{c.Id}: pending row without a vcr citation");
+            Assert.False(string.IsNullOrWhiteSpace(c.Source), $"{c.Id}: pending row without a source program");
+        }
+        Assert.All(Catalogue, c => Assert.True(c.Status is "active" or "pending", $"{c.Id}: bad status '{c.Status}'"));
     }
 
     [Theory]

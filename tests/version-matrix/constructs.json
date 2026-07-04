@@ -1,5 +1,5 @@
 {
-  "_comment": "THE canonical version-matrix construct catalogue (VERSION_TEST_MATRIX_DESIGN.md §10 #5). Each entry: a minimal program exercising ONE construct + its edition metadata. VersionMatrixTests computes the expected outcome per (construct × edition): compiles iff introducedIn <= V and (removedIn null or V < removedIn). The human-readable VERSION_CHANGE_REFERENCE.md and the (future) in-code ConstructDialectStatus registry are renderings of THIS file — extend it here, never fork. 'vcr' cites the VERSION_CHANGE_REFERENCE row/section or the introducing standard where the doc has no row (it covers 2002→2023 deltas only).",
+  "_comment": "THE canonical version-matrix construct catalogue (VERSION_TEST_MATRIX_DESIGN.md §10 #5). Each entry: a minimal program exercising ONE construct + its edition metadata. VersionMatrixTests computes the expected outcome per (construct × edition): compiles iff introducedIn <= V and (removedIn null or V < removedIn). The human-readable VERSION_CHANGE_REFERENCE.md and the in-code ConstructDialectStatus registry are renderings of THIS file — extend it here, never fork. 'vcr' cites the VERSION_CHANGE_REFERENCE row/section or the introducing standard where the doc has no row (it covers 2002→2023 deltas only). OPTIONAL 'status': 'pending' = catalogued (edition metadata frozen by the drift tests) but not yet implemented — the matrix SKIPS its compile assertions until the owning roadmap phase lands and flips it active (the one pending mechanism, shared with the corpus discovery manifests). Vendor-dialect constructs live in vendor-constructs.json (owner decision 2), never here.",
   "constructs": [
     {
       "id": "nucleus-move-display",
@@ -48,22 +48,6 @@
       "removedIn": null,
       "vcr": "2002 introduction (derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    FREE P.\n    STOP RUN.\n"
-    },
-    {
-      "id": "json-generate-2014",
-      "description": "JSON GENERATE, ISO 2014 §14.9.x — introduced 2014",
-      "introducedIn": 2014,
-      "removedIn": null,
-      "vcr": "2014 introduction (TR JSON; derive from the 2014 standard)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. JG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 A PIC X(3) VALUE \"abc\".\n01 OUT-J PIC X(100).\nPROCEDURE DIVISION.\nMAIN.\n    JSON GENERATE OUT-J FROM G.\n    STOP RUN.\n"
-    },
-    {
-      "id": "xml-generate-2014",
-      "description": "XML GENERATE, introduced 2014 (TR XML folded into the standard)",
-      "introducedIn": 2014,
-      "removedIn": null,
-      "vcr": "2014 introduction (derive from the 2014 standard)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 A PIC X(3) VALUE \"abc\".\n01 OUT-X PIC X(100).\nPROCEDURE DIVISION.\nMAIN.\n    XML GENERATE OUT-X FROM G.\n    STOP RUN.\n"
     },
     {
       "id": "invoke-2002",
@@ -146,12 +130,48 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SDPROG.\nOPTIONS.\n    ARITHMETIC IS STANDARD-DECIMAL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9V9(5).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = 1 / 8.\n    DISPLAY W.\n    STOP RUN.\n"
     },
     {
-      "id": "type-clause-2023",
-      "description": "TYPE IS clause referencing a type declaration, ISO 2023 §13.18.58 (TYPEDEF family)",
-      "introducedIn": 2023,
+      "id": "type-clause-2002",
+      "description": "TYPE IS clause referencing a type declaration, ISO §13.18.58 (TYPEDEF family) — PROVISIONAL 2002 edge (ISO-validation, DEVLOG 582: zero Annex E 2014→2023 rows ⇒ predates 2023, so the old 2023 seed was provably wrong; the 2002-vs-2014 refinement is blocked on the older standards per decision 1)",
+      "introducedIn": 2002,
       "removedIn": null,
-      "vcr": "E.2/E.3 type-declaration rows",
+      "vcr": "TYPEDEF family §13.18.58; provisional per the decision-1 policy",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. TY.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W TYPE IS WTYPE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "usage-float-short-2002",
+      "status": "pending",
+      "description": "USAGE FLOAT-SHORT (IEEE binary32 basic float, §13.18.59) — PROVISIONAL 2002 edge (roadmap ISO-validation D16: the short/long/extended trio is the presumed-2002 half of the float family split). PENDING: float usages currently silent-misbind to DISPLAY; the Phase-2 loud-guard sweep makes them loud, Phase 6 implements.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "D16 float-family split (provisional 2002)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-SHORT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "usage-float-binary32-2014",
+      "status": "pending",
+      "description": "USAGE FLOAT-BINARY-32 (IEEE interchange format, §13.18.59) — PROVISIONAL 2014 edge (roadmap ISO-validation D16: the FLOAT-BINARY-*/FLOAT-DECIMAL-* family is the presumed-2014 half of the split; the reserved-word table carries the same medium-confidence 2014 edge). PENDING like usage-float-short-2002.",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "vcr": "D16 float-family split (provisional 2014); reserved-word rows FLOAT-BINARY-*/FLOAT-DECIMAL-*",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FB.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-BINARY-32.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "constant-entry-2002",
+      "status": "pending",
+      "description": "Constant entry (01 name CONSTANT AS literal, §13.10) + the CONSTANT RECORD clause §13.18.15 — mandatory core with ZERO owner before the ISO validation (roadmap D5); PROVISIONAL pre-2023 edge (zero Annex E hits ⇒ predates 2023). PENDING: Phase 6 implements; this row seeds the registry before the P2.5 drift-test freeze.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "ISO-validation D5 (§13.10 constant entry; §13.18.15 CONSTANT RECORD); provisional edge per decision 1",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 K CONSTANT AS 42.\n01 W PIC 99.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE K TO W.\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
+      "id": "concat-operator-2002",
+      "status": "pending",
+      "description": "Concatenation expression — the & operator joining literals (§8.8.3) — mandatory 2002-era core with ZERO owner before the ISO validation (roadmap D6; the 2023 CONCAT function is defined by reference to this operator). PENDING: Phase 4(g) implements; row seeds the registry before the P2.5 freeze.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "ISO-validation D6 (§8.8.3 concatenation expressions); provisional edge per decision 1",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(6).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"ABC\" & \"DEF\" TO W.\n    DISPLAY W.\n    STOP RUN.\n"
     }
   ]
 }

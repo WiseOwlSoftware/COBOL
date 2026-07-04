@@ -63,10 +63,12 @@ imperativeStatement
 //   objectDataDivision    — {is2002()}?
 
 // ==========================================
-// COBOL-2014+ FEATURES (JSON/XML)
+// VENDOR-DIALECT FEATURES (JSON/XML) — NOT ISO
 // ==========================================
 
-// JSON/XML features are gated by is2014():
+// JSON/XML GENERATE/PARSE are VENDOR extensions (zero hits in the ISO 2023 spec — ISO-validation DEVLOG 582;
+// owner decision 2: re-tagged vendor-dialect, deferred post-G8; parked rows in
+// tests/version-matrix/vendor-constructs.json). The is2014() gates remain as the vendor surface's floor:
 //   jsonStatement         — {is2014()}?
 //   xmlStatement          — {is2014()}?
 
@@ -75,12 +77,15 @@ imperativeStatement
 // ==========================================
 
 // 2023 features are gated by is2023():
-//   typeDefinitionEntry   — {is2023()}?
-//   genericParameterList  — {is2023()}?
-//   deleteFileStatement   — {is2023()}?
+//   deleteFileStatement   — {is2023()}?  (Annex E.3.3 item 15)
 //   inlineMethodInvocationStatement — {is2023()}?
+//   genericParameterList  — {is2023()}?  (parametric polymorphism, OPTIONAL per Annex A.4.10 — decision 7:
+//     documented non-support; the rule lives in the DEAD design-ahead CobolParserGenerics.g4)
 //   END-JSON, END-XML, END-INVOKE (always accepted, but
 //     semantically validated for 2023+ only)
+// MOVED OUT of the 2023 list (ISO-validation, DEVLOG 582/586): typeClause — TYPEDEF-family §13.18.58,
+//   provably pre-2023 (zero Annex E rows) — now {is2002()}? PROVISIONAL in Core/CobolData.g4
+//   (typeDefinitionEntry likewise belongs to the pre-2023 family; its rule is in the dead generics file).
 
 // ==========================================
 // DIALECT PREDICATE HELPERS

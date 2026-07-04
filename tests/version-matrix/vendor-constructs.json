@@ -1,0 +1,17 @@
+{
+  "_comment": "PARKED vendor-dialect constructs — NOT ISO (owner decision 2, ratified 2026-07-03; roadmap COMPLETION_ROADMAP_COUNCIL.md §5 #2): JSON/XML GENERATE/PARSE have ZERO hits in the entire ISO/IEC 1989:2023 spec (chair-verified; the former 'ISO 2014 §14.9.x' citations were fictional). Deferred post-G8; if built, they get a DIALECT axis (e.g. IBM Enterprise), never edition metadata in constructs.json. Sources preserved verbatim from the pre-scrub catalogue (DEVLOG 586).",
+  "constructs": [
+    {
+      "id": "json-generate-vendor",
+      "dialect": "ibm-enterprise (candidate)",
+      "description": "JSON GENERATE — vendor extension (IBM Enterprise COBOL et al.); formerly mis-catalogued as 'ISO 2014 §14.9.x'",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. JG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 A PIC X(3) VALUE \"abc\".\n01 OUT-J PIC X(100).\nPROCEDURE DIVISION.\nMAIN.\n    JSON GENERATE OUT-J FROM G.\n    STOP RUN.\n"
+    },
+    {
+      "id": "xml-generate-vendor",
+      "dialect": "ibm-enterprise (candidate)",
+      "description": "XML GENERATE — vendor extension; formerly mis-catalogued as a 2014 ISO introduction (no TR was folded into the standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G.\n   05 A PIC X(3) VALUE \"abc\".\n01 OUT-X PIC X(100).\nPROCEDURE DIVISION.\nMAIN.\n    XML GENERATE OUT-X FROM G.\n    STOP RUN.\n"
+    }
+  ]
+}
