@@ -24,7 +24,36 @@
 > parser (the DEVLOG-552 break, fixed cdd3b8f). WSL verifies the Linux side locally (build on Windows,
 > `~/.dotnet/dotnet test --no-build` under WSL). Queued: make the regen target path-portable.**
 >
-> **STATE (DEVLOG 590, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 1 COMPLETE — the EditionValidator Wave 1 landed
+> **STATE (DEVLOG 595, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 2 W2 + W1.5 COMPLETE (commits a3e29b6 + 1f2156b) —
+> the four-track W2 wave (A: the MOVE rows 1/92/128 + both latent bugs on the StoreAsImage substrate ·
+> B: the loud-guard misbind sweep, ParseUsage/Analyze now (EditionContext,where), COBOLNET0899/0808, the
+> allocate/free/invoke false-greens exposed→pending · C: the 18-case negative corpus, all CLI-verified ·
+> D: position-aware reserved words, `IsProvableUserWordPosition`, the RW104A hazard closed — only 7 of 34
+> band tokens even had §8.9 rows) + the ADVERSARIAL REVIEW (6 confirmed / 0 refuted, ALL fixed: SR1
+> class-index 0809, the ref-mod round-trip loss `MarkRefModStoreImage`, the QUOTE dual row
+> move-quote-numeric-obsolete-2014 [E.2 item 21], the ';' single-strip + `PIC ;` leak, '$'-under-custom-
+> currency, .err specificity ×18) + W1.5 (all 17 reachable intro-gate sites → COBOLNET0900 edition-naming
+> via the new frontend `EditionGateHints` parse-layer mapping; JSON/XML → vendor COBOL0313; the 0860/0861
+> double allocation resolved by registry migration; 5 new rows; expectDiagnostic on 21 rows). Battery:
+> conformance 1353/1353 · unit 102/102 · sweep 419 OK/0 BREAKS · INV-1-STRONG 349/349 byte-exact at
+> 2023-permissive · FULL legacy guard-fast ALL GREEN. VCR: rows 1/5/6/7/32/89/90/92/126/127/128 GATED,
+> 28 PARTIAL (QUOTE leg), Table 7 grown 7.4–7.14 (7.14 = the trailing-`,` KNOWN MISBIND — the `;` twin —
+> queued to the W3 lexer cure; 7.13 = the multi-char-ALL 2002-edge research row).
+> **RESUME = W3, the serialized grammar batch (FULL legacy guard + committed regen per DEVLOG-554):**
+> ① the path-portable ANTLR regen fix (retires the Linux-CI stale-parser fallback); ② the PIC_STRING
+> lexer-mode cure for BOTH trailing separators (`;` and `,` — VCR 7.14; keep the legal `,.` SR7 shape);
+> ③ XOR/EXCLUSIVE-OR regating (unconditional tokens at CobolLexer.g4:105/407 wrongly commented 2002 — they
+> are 2023 per VCR 32/41: `{is2023()}?` the operator in CobolExpressions.g4:70, admit both tokens into
+> cobolWord + CheckedTokenTypes + interval rows, re-edition tests/conformance/2002/logical_xor → 2023,
+> correct ISO2023_CONFORMANCE_PLAN M4-2a); ④ the notInGrammar 85-acceptance set (RERUN, ENTER, USE FOR
+> DEBUGGING, section segment-numbers — accepted-inert at 85 + 0902 ≥2002, Table-7 rows); ⑤ preprocessor
+> DialectLevel threading (VCR 2/4/94 — CopyProcessor/ReferenceFormatProcessor); ⑥ the 2002-corpus edition
+> audit (33 pending programs vs the VCR). Then Phase 3 = the M2 OO port (docs/COBOLNET_OO_DESIGN.md carries
+> the port map; the OO grammar grant is standing). Deferred-from-review (queued, documented): the
+> §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY figurative-MOVE receivers stay runtime-loud;
+> exit-window conforming witnesses need METHOD-ID/FUNCTION-ID units (Phase 3/4c).**
+>
+> **(superseded) STATE (DEVLOG 590, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 1 COMPLETE — the EditionValidator Wave 1 landed
 > END-TO-END in one autonomous session (DEVLOG 583–590, commits c0cf723…): P2.1 channels + `Removed()` seam ·
 > P2.2 validator pass (fail-fast pre-Emit) · P2.3 the 0900–0903 band · P2.4 the FOUR-SOURCE reserved-word
 > tables (GnuCOBOL per-standard lists disk-to-disk + spec §8.9 + VCR row 32; the funnel LIVE, token-type
