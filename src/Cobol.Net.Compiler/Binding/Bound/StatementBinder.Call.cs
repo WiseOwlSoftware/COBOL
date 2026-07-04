@@ -201,6 +201,7 @@ public sealed partial class StatementBinder
     /// the grammar yet (VERSION_CHANGE_REFERENCE row 75 — a later slice with the §12 RETURN-CODE wiring).</summary>
     private BoundStatement CallBindGoback(Core.GobackStatementContext g)
     {
+        if (InMethod) return OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
         if (data.Edition.DialectLevel < 2002)
             data.Edition.Error("COBOLNET0880",
                 "GOBACK was introduced by ISO/IEC 1989:2002 (§14.9.16 there; §14.9.18 in 2023) — COBOL-85 uses "

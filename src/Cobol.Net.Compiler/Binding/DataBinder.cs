@@ -66,6 +66,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// never triggered vs comment-treated; VCR Table 7 rows 7.9/7.17).</summary>
     public bool DebuggingModeDeclared { get; private set; }
 
+    /// <summary>The compilation group's pass-1 class symbol table (OO deep-dive D1) — set by the run-unit
+    /// emitter BEFORE <see cref="Bind"/> so a typed <c>USAGE OBJECT REFERENCE class-name</c> validates its
+    /// declared class (§13.18.60.4) against classes defined anywhere in the group. Null only in unit-test
+    /// direct construction, which then behaves as an empty group (every typed reference is unknown-class).</summary>
+    public OoClassTable? OoClasses { get; set; }
+
     /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
     /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
     /// fields), and WORKING-STORAGE; then classify the shared-storage (REDEFINES) classes over the whole forest and
@@ -626,14 +632,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "REFERENCE (ISO §13.18.60.4 — an object-reference item is picture-less)");
             pictureText = null;
         }
-        // STAGING (spine part 2 removes this): a TYPED reference's field type is the class's emitted C# type,
-        // which needs the pass-1 class symbol table (OO deep-dive D1) to resolve/validate — without it the
-        // declared name would surface as a Roslyn CS0246 on user source (a loud-failure violation). Universal
-        // references are fully live.
-        if (entryUsage is Usage.ObjectReference && objectClassName is not null)
-            Edition.Error("COBOLNET0899", $"{entryWhere}: a TYPED object reference (USAGE OBJECT REFERENCE "
-                + $"{objectClassName}) awaits the class symbol table (owning roadmap phase: Phase 3, the OO "
-                + "spine — in progress); a universal OBJECT REFERENCE is available");
+        // A TYPED reference (spine part 2 — LIVE): the declared class must resolve in the group's pass-1
+        // class symbol table (OO deep-dive D1) — its emitted C# field type IS the class's emitted type
+        // (PicInfo.ClrType), so an unresolved name would surface as a Roslyn CS0246 on user source (a
+        // loud-failure violation). §13.18.60.4: class-name-1 shall reference a class.
+        if (entryUsage is Usage.ObjectReference && objectClassName is not null
+            && OoClasses?.Find(objectClassName) is null)
+            Edition.Error("COBOLNET0813", $"{entryWhere}: USAGE OBJECT REFERENCE names the unknown class "
+                + $"'{objectClassName}' — the declared class of a typed object reference shall be a class of "
+                + "the compilation group (ISO §13.18.60.4; separate class compilation is a later slice)");
 
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)

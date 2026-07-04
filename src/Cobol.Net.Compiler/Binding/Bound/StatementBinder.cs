@@ -58,15 +58,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     // ── Procedure table (paragraphs + sections, ISO §14.4.3 / §8.4.2.2) ─────────────────────────────────────
 
-    /// <summary>Register one paragraph (name + uniquified method key + its sentences) at the next pc.</summary>
+    /// <summary>Register one paragraph (name + uniquified method key + its sentences) at the next pc. Inside a
+    /// METHOD body (<see cref="_currentMethodScope"/> set — the class-body collection) the name declares
+    /// METHOD-LOCALLY (ISO §11.7 — sibling methods may reuse names; cross-method resolution must FAIL), so it
+    /// registers in the method's own map, never the program-global fallback.</summary>
     private void AddParagraph(string name, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
     {
         string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
         string method = baseName;
         for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
-        _paraIndex.TryAdd(name, _paras.Count);     // first definition wins for the global fallback
+        if (_currentMethodScope is { } ms)
+            ms.Paras.TryAdd(name, _paras.Count);   // method-local declaration (§11.7)
+        else
+            _paraIndex.TryAdd(name, _paras.Count); // first definition wins for the global fallback
         section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
         _paraSection.Add(section);
+        _paraMethod.Add(_currentMethodScope);
         _paras.Add((name, method, sentences));
     }
 
@@ -110,6 +117,19 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         string head = ctx.GetChild(0).GetText();
         string? qualifier = ctx.ChildCount >= 3 ? ctx.GetChild(2).GetText() : null;
+        // Inside a METHOD body resolution is CONFINED to the method's own maps (ISO §11.7 — method-local
+        // procedure names; a cross-method PERFORM/GO TO resolves to nothing and the caller fails loud, the
+        // legacy trap-#10 rule made structural).
+        if (_currentMethodScope is { } m)
+        {
+            if (qualifier is not null)
+                return m.Sections.TryGetValue(qualifier, out var mq) && mq.Paras.TryGetValue(head, out int mqpc)
+                    ? (mqpc, mqpc) : null;
+            if (_currentSection is { } mcur && mcur.Paras.TryGetValue(head, out int mlocal)) return (mlocal, mlocal);
+            if (m.Paras.TryGetValue(head, out int mpc)) return (mpc, mpc);
+            if (m.Sections.TryGetValue(head, out var msec)) return (msec.StartPc, msec.EndPc);
+            return null;
+        }
         if (qualifier is not null)
             return _sections.TryGetValue(qualifier, out var q) && q.Paras.TryGetValue(head, out int qpc)
                 ? (qpc, qpc) : null;
@@ -172,6 +192,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             ? new BoundStopLiteral(DecodeCobolString(slit.GetText()))
             : new BoundStop(),
         _ when s.gobackStatement() is { } gb => CallBindGoback(gb),   // §14.9.18 — called-program return; 2002+ gated
+        _ when s.invokeStatement() is { } inv => OoBindInvoke(inv),   // §14.9.23 — OO method invocation (2002+ grammar-gated)
         _ when s.callStatement() is { } call => CallBindCall(call),
         _ when s.cancelStatement() is { } cancel => CallBindCancel(cancel),
         _ when s.entryStatement() is not null => new BoundUnsupported("ENTRY (ISO/IEC 1989 defines no ENTRY statement — vendor extension; interprogram design)"),
@@ -200,14 +221,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             foreach (var n in names)
             {
                 // A section target transfers to its first paragraph (ISO §14.9.17 GR1).
-                if (ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'");
+                if (ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{OoScopeHint}");
                 targets.Add(range.Start);
             }
             return new BoundGoToDepending(FieldOperand(sel), targets);
         }
         if (names.Length == 0) return AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
         if (ResolveProcedure(names[0]) is not { } target)
-            return new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'");
+            return new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'{OoScopeHint}");
         return AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
     }
 
@@ -217,6 +238,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
         if (e.PROGRAM() is not null)   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
         {
+            if (InMethod)   // §14.9.14.3 SR7: EXIT PROGRAM only in a PROGRAM procedure division
+            {
+                data.Edition.Error("COBOLNET0827",
+                    "EXIT PROGRAM may be specified only in a program procedure division, not in a method "
+                    + "(ISO §14.9.14.3 SR7 — a method returns via GOBACK)");
+                return new BoundNop();
+            }
             if (e.raisingPhrase() is { } raising)   // Format 2's RAISING tail (§14.9.14.2) — re-raise in the activator
                 return EcBindRaising(raising, e.Start.Line, "EXIT PROGRAM") is { } r
                     ? new BoundExitProgram(r)
@@ -224,7 +252,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundExitProgram();
         }
         if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
-        if (e.METHOD() is not null || e.FUNCTION() is not null) return new BoundUnsupported("EXIT METHOD/FUNCTION");
+        if (e.METHOD() is not null) return OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
+        if (e.FUNCTION() is not null) return new BoundUnsupported("EXIT FUNCTION (FUNCTION-ID units — Phase 4)");
         return new BoundNop();   // bare EXIT
     }
 
@@ -603,11 +632,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // paragraph range, ISO §14.9.28 — first statement of its first paragraph through last of its last), or
         // the THRU composition (first procedure's start through the last procedure's end).
         if (ResolveProcedure(names[0]) is not { } first)
-            return new BoundUnsupported($"PERFORM unknown procedure '{names[0].GetText()}'");
+            return new BoundUnsupported($"PERFORM unknown procedure '{names[0].GetText()}'{OoScopeHint}");
         (int start, int end) = first;
         if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
         {
-            if (ResolveProcedure(names[1]) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown procedure '{names[1].GetText()}'");
+            if (ResolveProcedure(names[1]) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown procedure '{names[1].GetText()}'{OoScopeHint}");
             // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — NC102A
             // PFM-TEST-F1-10) is legal: the dispatcher returns when the exit procedure completes, wherever it is.
             end = thru.End;

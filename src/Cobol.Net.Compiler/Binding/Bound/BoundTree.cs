@@ -20,7 +20,16 @@ public sealed record BoundProgram(
     IReadOnlyList<BoundParagraph> Paragraphs,
     int EntryPc = 0,
     IReadOnlyList<BoundDeclarative>? Declaratives = null,
-    EcFeatures? Ec = null);
+    EcFeatures? Ec = null,
+    IReadOnlyList<BoundMethod>? Methods = null);
+
+/// <summary>One bound METHOD of a class body (ISO §11.7; OO deep-dive — the emit-into-a-type spine): its
+/// contiguous pc range in the class's ONE dispatch space. The emitted public method runs
+/// <c>__Dispatch(EntryPc, EndPc)</c> — the exit bound IS the method's LAST paragraph, so falling off the end
+/// is the implicit method return, never a run into a sibling method's paragraphs (the legacy trap-#4 guard,
+/// ported from CilEmitter's exit-bounded ranges). <paramref name="EntryPc"/> &gt; <paramref name="EndPc"/> ⇔
+/// an empty method body (emitted as an empty C# method — no dispatch call at all).</summary>
+public sealed record BoundMethod(string CobolName, string CsName, int EntryPc, int EndPc);
 
 /// <summary>What of the EC exception-condition model (ISO §14.6.13; COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN) a
 /// bound program actually USES — the emitter's gating summary: every piece of EC machinery (the int-returning

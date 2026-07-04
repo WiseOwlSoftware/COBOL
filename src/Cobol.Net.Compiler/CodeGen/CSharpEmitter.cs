@@ -124,6 +124,16 @@ public sealed partial class CSharpEmitter
         // (__IoCheckEc needs no declaratives to bridge status→EC and apply the fatal default) — gated so an
         // EC-free program's source is unchanged.
         if (_useDecls || bound.Ec is { HasIoChecked: true }) EmitUseMachinery(bound, w);
+        EmitDispatchMethod(bound, w);
+    }
+
+    /// <summary>Emit the <c>__Dispatch</c> method itself — SHARED by program classes (via
+    /// <see cref="EmitDispatcher"/>) and COBOL classes (<c>OoEmitClassUnit</c> — every METHOD-ID's paragraphs
+    /// share the class's one pc space; each public method runs its exit-bounded range through this same body:
+    /// the emit-into-a-type parameterization of the OO deep-dive).</summary>
+    private void EmitDispatchMethod(BoundProgram bound, CodeWriter w)
+    {
+        int n = bound.Paragraphs.Count;
         using (w.Block("private int __Dispatch(int __startPc, int __exitPc)"))
         {
             w.Line("int __pc = __startPc;");
@@ -400,6 +410,10 @@ public sealed partial class CSharpEmitter
             case BoundCancel cancel: CallEmitCancel(cancel); return false;
             case BoundExitProgram ep: CallEmitExitProgram(ep); return false;
             case BoundGoback gb: return CallEmitGoback(gb);
+            case BoundInvoke inv: OoEmitInvoke(inv); return false;              // OO (ISO §14.9.23; deep-dive D5)
+            case BoundMethodReturn:                                             // method GOBACK/EXIT METHOD (D8)
+                w.Line("throw new MethodReturn();   // terminate the METHOD only — caught at the method entry (ISO §14.9.18.4 GR4)");
+                return true;
             case BoundEcChecked ec: return EcEmitChecked(ec);                  // EC model (ISO §7.3.25 TURN scope)
             case BoundRaise ra: return EcEmitRaise(ra);                        // EC model (ISO §14.9.29)
             case BoundResume rs: EcEmitResume(rs); return true;                // EC model (ISO §14.9.33) — unwinds

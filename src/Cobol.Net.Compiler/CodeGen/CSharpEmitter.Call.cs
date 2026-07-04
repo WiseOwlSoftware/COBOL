@@ -84,15 +84,18 @@ public sealed partial class CSharpEmitter
         // group). Name/edition validation happens here (SR2 + the 2023-only families).
         _turnState = TurnState.Build(turnEvents, edition);
 
-        List<CallUnit> units = CallCollectUnits(tree, edition);
+        var (units, classes) = CallCollectUnits(tree, edition);
         _callUidBand = 0;
+        foreach (var cls in classes) OoBindClassUnit(cls, edition);
         foreach (var unit in units) CallBindUnit(unit, edition);
+        foreach (var cls in classes) MarkStoreAsImage(cls.Data);
         foreach (var unit in units) MarkStoreAsImage(unit.Data);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
         // pre-EC build (the zero-scaffolding invariant, SSOT §18.16).
-        _ecActive = _turnState.AnyEnabled || units.Any(u => u.Bound.Ec is { Any: true });
+        _ecActive = _turnState.AnyEnabled || units.Any(u => u.Bound.Ec is { Any: true })
+            || classes.Any(c => c.Bound.Ec is { Any: true });
 
         // Per-program file-connector namespace: the runtime file registry is run-unit-global, but a file
         // connector is INTERNAL to its program (ISO §8.6.3): two programs declaring the same file-name (the
@@ -129,6 +132,11 @@ public sealed partial class CSharpEmitter
             w.Line("using CobolNet.Runtime.Exceptions; // the EC exception-condition model (ISO §14.6.13; ExceptionState / ExceptionCatalog / ResumeSignal / CobolFatalException)");
         w.Line();
 
+        // Classes first (source order — deterministic; Roslyn needs no declaration ordering, unlike the legacy
+        // Cecil emitter's depth-sort), then the program classes, then the run-unit entry wrapper. A class-only
+        // compilation unit (no program) is legal (§10.6) — its module emits the classes and an empty Main.
+        foreach (var cls in classes)
+            OoEmitClassUnit(cls, w);
         if (units.Count == 0)
         {
             using (w.Block("internal static class Program"))
@@ -143,31 +151,29 @@ public sealed partial class CSharpEmitter
         return w.ToString();
     }
 
-    /// <summary>Flatten the compilation group into the ordered unit list — top-level units in source order, each
-    /// followed by its contained programs (containers precede containees; load-bearing for GLOBAL inheritance).
-    /// A contained <c>nestedProgram</c> parse context is re-shaped into a synthetic <c>programUnit</c> context
-    /// (identical child shape) so the per-unit binders consume one context type.</summary>
-    private List<CallUnit> CallCollectUnits(Core.CompilationUnitContext tree, EditionContext edition)
+    /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source
+    /// order, each followed by its contained programs (containers precede containees; load-bearing for GLOBAL
+    /// inheritance), plus the group's CLASS-ID units (the Phase-3 OO spine). The pass-1 class symbol table
+    /// (deep-dive D1) is built HERE — before ANY unit binds — so a driver's typed object references and INVOKEs
+    /// resolve classes defined later in the file. A contained <c>nestedProgram</c> parse context is re-shaped
+    /// into a synthetic <c>programUnit</c> context (identical child shape) so the per-unit binders consume one
+    /// context type.</summary>
+    private (List<CallUnit> Programs, List<OoClassUnit> Classes) CallCollectUnits(
+        Core.CompilationUnitContext tree, EditionContext edition)
     {
         var all = new List<CallUnit>();
         var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
+        var classDefs = new List<Core.ClassDefinitionContext>();
 
         foreach (var group in tree.compilationGroup())
         {
-            // A class definition (an OO compilation unit, ISO §11.2 class definition composition / §11.3
-            // CLASS-ID paragraph; the {is2002()}?-gated compilationGroup alternative) has NO emit path yet.
-            // Historically it was SILENTLY DROPPED here — no unit, no diagnostic (the W2 loud-guard sweep).
-            // Reject loud instead; below 2002 the grammar predicate already parse-errors (W1.5 upgrades that
-            // edge to a 0900 edition-naming diagnostic). Full implementation: roadmap Phase 3 (OO/2002).
-            foreach (var cd in group.classDefinition())
-                edition.Error("COBOLNET0899",
-                    $"class definition '{cd.classIdParagraph()?.className(0)?.GetText() ?? "?"}' (an OO "
-                    + "compilation unit, ISO §11.2/§11.3) is recognized but not yet implemented (owning "
-                    + "roadmap phase: Phase 3)");
+            classDefs.AddRange(group.classDefinition());
             foreach (var pu in group.programUnit())
                 Collect(pu, null);
         }
-        return all;
+        _ooClasses = OoClassTable.Build(classDefs, edition);
+        var classes = _ooClasses.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
+        return (all, classes);
 
         void Collect(Core.ProgramUnitContext ctx, CallUnit? parent)
         {
@@ -245,7 +251,7 @@ public sealed partial class CSharpEmitter
     /// record the <c>ref</c>-bridges the nested class needs to reach the container's storage.</summary>
     private void CallBindUnit(CallUnit unit, EditionContext edition)
     {
-        var data = new DataBinder(edition);
+        var data = new DataBinder(edition) { OoClasses = _ooClasses };
         data.CallSeedUids(_callUidBand);
         _callUidBand += 100_000;
 
@@ -304,7 +310,7 @@ public sealed partial class CSharpEmitter
         }
 
         unit.Refs = new ReferenceResolver(data);
-        var binder = new StatementBinder(data, unit.Refs);
+        var binder = new StatementBinder(data, unit.Refs) { OoClasses = _ooClasses };
         binder.ConfigureEc(_turnState, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
         unit.Bound = binder.Bind(unit.Ctx);
 

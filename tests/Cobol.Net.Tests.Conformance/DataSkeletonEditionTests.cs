@@ -146,11 +146,14 @@ public sealed class DataSkeletonEditionTests
         EditionHarness.AssertHasDiagnostic(errors, "invalid PICTURE symbol");
     }
 
-    /// <summary>A class definition (an OO compilation unit, ISO §11.2/§11.3) was SILENTLY DROPPED by the
-    /// run-unit collector (no unit, no diagnostic, an empty Program emitted); it must now fail loud at 2002+
-    /// with the Phase-3 not-implemented error. At 85 the <c>{is2002()}?</c> grammar gate parse-errors.</summary>
+    /// <summary>A class definition went LIVE with the Phase-3 OO spine part 2 (ISO §11.2/§11.3 — the ClassUnit
+    /// collection + pass-1 class symbol table): a class-only compilation unit COMPILES clean at every 2002+
+    /// edition (the emitted module carries the class and an empty Main — a class translation unit with no
+    /// program is legal, §10.6), and stays grammar-gated at 85 (the <c>{is2002()}?</c> hook + the W1.5 0900
+    /// mapping). The former recognized-but-unimplemented 0899 posture (and before that the SILENT DROP the W2
+    /// loud-guard sweep caught) is retired.</summary>
     [Fact]
-    public void ClassDefinition_NotImplementedAt2002Plus_NeverSilentlyDropped()
+    public void ClassDefinition_CompilesAt2002Plus_RejectedAt85()
     {
         const string cls = """
             IDENTIFICATION DIVISION.
@@ -160,9 +163,8 @@ public sealed class DataSkeletonEditionTests
         foreach (int edition in new[] { 2002, 2014, 2023 })
         {
             var (ok, errors, _) = EditionHarness.CompileFull(cls, edition);
-            Assert.False(ok, $"a class definition must NOT be silently dropped at --std {edition} (ISO §11.2)");
-            EditionHarness.AssertHasDiagnostic(errors, "class definition");
-            EditionHarness.AssertHasDiagnostic(errors, "phase: Phase 3)");
+            Assert.True(ok, $"a class-only compilation unit must compile at --std {edition} (ISO §10.6): "
+                + string.Join("\n", errors));
         }
         var (ok85, _, _) = EditionHarness.CompileFull(cls, 85);
         Assert.False(ok85, "a class definition must be rejected at --std 85 (grammar-gated OO/2002)");

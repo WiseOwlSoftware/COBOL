@@ -58,13 +58,13 @@
     },
     {
       "id": "invoke-2002",
-      "status": "pending",
-      "description": "INVOKE (OO method call), ISO §14.9.23 — introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (USAGE OBJECT REFERENCE misbound to DISPLAY; INVOKE binds BoundUnsupported); reactivates with Phase 3 (the M2 OO port).",
+      "status": "active",
+      "description": "INVOKE (OO method call), ISO §14.9.23 — introduced 2002. LIVE since the Phase-3 spine part 2 (DEVLOG 601): Class NEW RETURNING → new C(); no-arg instance INVOKE → virtual call behind the EC-OO-NULL guard (§14.9.23.4 GR5); USING/RETURNING marshaling (slice 2), SELF/SUPER (3b), factory and universal dispatch stage loud. Below 2002 the grammar gate + W1.5 mapping name the edition (0900).",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (OO; derive from the 2002 standard)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. IV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 OBJ USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE OBJ \"doIt\".\n    STOP RUN.\n"
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. IV.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS IVC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 OBJ USAGE OBJECT REFERENCE IVC.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE IVC \"NEW\" RETURNING OBJ.\n    INVOKE OBJ \"DOIT\".\n    STOP RUN.\nEND PROGRAM IV.\n\nIDENTIFICATION DIVISION.\nCLASS-ID. IVC.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. DOIT.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"OK\".\nEND METHOD DOIT.\nEND OBJECT.\nEND CLASS IVC.\n"
     },
     {
       "id": "goback-returning-2002",
@@ -434,8 +434,8 @@
   },
   {
     "id": "usage-object-reference-2002",
-    "status": "pending",
-    "description": "USAGE OBJECT REFERENCE (ISO 13.18.60, OO). PENDING: currently silent-misbinds to DISPLAY; the W2 loud-guard sweep makes it loud; Phase 3 (the M2 OO port) implements.",
+    "status": "active",
+    "description": "USAGE OBJECT REFERENCE (ISO 13.18.60, OO). LIVE since the Phase-3 spine (part 1 universal, part 2 typed via the pass-1 class symbol table, DEVLOG 600/601): universal → object?, typed → the class’s emitted C# type; PICTURE-conflict 0812; unknown declared class 0813.",
     "introducedIn": 2002,
     "removedIn": null,
     "expectDiagnostic": "COBOLNET0900",
@@ -510,8 +510,8 @@
   },
   {
     "id": "class-definition-2002",
-    "status": "pending",
-    "description": "A class definition (CLASS-ID compilation unit), ISO 11.2/11.3 - introduced 2002 (OO). Grammar-gated in compilationGroup; below 2002 the W1.5 parse-layer mapping names the edition (0900); at 2002+ the W2 track-B gate is a COBOLNET0899 not-implemented error. PENDING: reactivates with Phase 3 (the M2 OO port).",
+    "status": "active",
+    "description": "A class definition (CLASS-ID compilation unit), ISO 11.2/11.3 - introduced 2002 (OO). Grammar-gated in compilationGroup; below 2002 the W1.5 parse-layer mapping names the edition (0900); LIVE since the Phase-3 spine part 2 (the ClassUnit collection + pass-1 class symbol table, DEVLOG 601): a class-only unit compiles at 2002+ to a real C# class rooted at CobolObject.",
     "introducedIn": 2002,
     "removedIn": null,
     "expectDiagnostic": "COBOLNET0900",

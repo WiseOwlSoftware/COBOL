@@ -82,14 +82,33 @@
 > ObjectReferenceItem(className?)`; new 0812 PICTURE-conflict gate; GR1 inheritance in ResolveIndexItems;
 > typed references 0899-STAGED pending the class symbol table; skeleton tests flipped to the live
 > contract). Battery: conformance 1454/1454 · unit 101/101 · no NIST/grammar exposure.
-> **RESUME = Phase 3 spine part 2:** ClassUnit collection + the pass-1 class symbol table
-> (`CallCollectUnits` — replace the classDefinition 0899), the emit-into-a-type parameterization
-> (`CallEmitProgramClass` IS the template per the deep-dive's Greenfield-seams section), method PC-dispatch
-> ranges + `BoundMethodReturn` (D8 — method-context GOBACK; EXIT METHOD = method-return synonym ≤2014,
-> 0902 at 2023 [already gated]; accommodate-or-defer the 2023 GOBACK status phrase), INVOKE binding (NEW +
-> no-arg instance first), un-stage typed object references, oo_hello GREEN via the 2002 manifest run
-> contract (9 oo_* pairs pending there). Then the ported legacy slices 1–6 in order
-> (docs/COBOLNET_OO_DESIGN.md "Legacy port map" + the 10 adversarial regression traps as day-one tests).
+> **SPINE PART 2 LANDED (DEVLOG 601, 2026-07-04) — ⛔🎉 THE OO SPINE IS CLOSED; legacy slice 1 (+ the
+> 455-slice method scoping) SUBSUMED.** A CLASS-ID compiles to a real `public class FOO : CobolObject`:
+> the pass-1 class symbol table (D1 — new `OoClassTable`, built in CallCollectUnits BEFORE any bind;
+> 0820/0821/0822 structural band), typed object references un-staged (unknown class → new 0813), the
+> emit-into-a-type parameterization (new `CSharpEmitter.Oo.cs` — OBJECT WS → instance fields, VALUE →
+> field initializers = the D4 predefined-NEW ctor; one `public virtual` method per METHOD-ID over its
+> EXIT-BOUNDED pc range in the class's ONE dispatch space; the shared `EmitDispatchMethod` extracted from
+> EmitDispatcher and reused untouched), per-method paragraph scopes with NO program-wide fallback
+> (traps #4/#10 structural; SECTIONs-in-methods implemented, superseding legacy COBOL0116), D8 realized
+> CATCH-AT-ENTRY (`BoundMethodReturn` → new runtime `MethodReturn`, the ProgramReturn pattern — a plain
+> `return` can't unwind nested PERFORM __Dispatch frames; STOP RUN in a method still kills the run unit;
+> EXIT METHOD = method return, 0827 misplacement, 0902-at-2023 via the existing window row), and INVOKE
+> binding (`OoBindInvoke`: NEW → `new FOO()` w/ RETURNING+§14.8 conformance 0826, no-arg instance →
+> `RequireNonNull(recv).M()` w/ compile-time 0825 unknown-method; 0823/0824 target band; SELF/SUPER/
+> factory/USING-RETURNING/universal stage LOUD). **4 of the 9 oo_* goldens ENABLED under the 2002
+> manifest run contract** (oo_hello, oo_instance_data = trap-#1 two-object independence,
+> oo_method_perform, oo_object_group — all byte-exact); the 3 pending OO matrix rows flipped ACTIVE
+> (+12 cells); new `OoSpineTests` ×12 day-one adversarial facts. Battery: conformance **1472/1472** ·
+> unit 101/101 · **INV-1-STRONG 349/349 byte-exact** · sweep 438 OK + 1 solo-clean transient (ST137A,
+> the DEVLOG-590 watched flake) / 20 SKIP85 · drift green · zero grammar/legacy exposure.
+> **RESUME = Phase 3, ported slice 2:** method LINKAGE → typed C# params + LOCAL-STORAGE → locals
+> (+ the method-WS edition gate: static fields ≤2014 per D3, the §13.5.3 SR1 rejection at 2023 — Spec
+> corrections #1), INVOKE USING/RETURNING marshaling (D6 — BY REFERENCE `ref`, BY CONTENT copy, BY VALUE,
+> RETURNING as return value; `BoundMethodReturn` carries the RETURNING delivery), oo_method_args GREEN.
+> Then 3a INHERITS (`: BASE`, override under the base's EXACT spelling — trap #2, depth emission) →
+> oo_inherit + oo_super, 3b SELF/SUPER dispatch → oo_self + oo_self_polymorphic; then FACTORY → PROPERTY
+> → INTERFACE-ID → universal reference → EC-OO per the deep-dive banner order.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits
