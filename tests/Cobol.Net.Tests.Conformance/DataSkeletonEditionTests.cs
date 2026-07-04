@@ -28,8 +28,8 @@ public sealed class DataSkeletonEditionTests
         """;
 
     /// <summary>The skeleton constructs: id-suffix, WS entry, owning roadmap phase (per ConstructRegistry).
-    /// USAGE OBJECT REFERENCE is listed separately — its grammar hook is <c>is2002()</c>-gated, so at 85
-    /// it is a PARSE error today (W1.5 upgrades that edge to the 0900 diagnostic).</summary>
+    /// USAGE OBJECT REFERENCE left this set at the Phase-3 OO spine (LIVE — see the dedicated facts below);
+    /// its 85 edge stays the <c>{is2002()}?</c> grammar hook + the W1.5 0900 edition-naming hint.</summary>
     public static TheoryData<string, string, string> SkeletonConstructs() => new()
     {
         { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "phase: Phase 4a)" },
@@ -80,22 +80,35 @@ public sealed class DataSkeletonEditionTests
         }
     }
 
-    /// <summary>USAGE OBJECT REFERENCE (ISO §13.18.60 / §8.5.2.14): at 2002+ the recognized-but-unimplemented
-    /// gate fires (Phase 3 — OO); at 85 the <c>{is2002()}?</c> grammar hook parse-errors today (any failure is
-    /// asserted; W1.5 owns upgrading that edge to the 0900 edition-naming diagnostic).</summary>
+    /// <summary>USAGE OBJECT REFERENCE went LIVE with the Phase-3 OO spine (ISO §13.18.60.4 / §8.5.2.14): a
+    /// universal (class-less) reference item compiles at every 2002+ edition — a nullable <c>object?</c> field,
+    /// COBOL initial state NULL — and stays introduction-gated at 85 (the <c>{is2002()}?</c> grammar hook +
+    /// the W1.5 0900 edition-naming hint). The former recognized-but-unimplemented 0899 posture is retired.</summary>
     [Fact]
-    public void UsageObjectReference_NotImplementedAt2002Plus_FailsAt85()
+    public void UsageObjectReference_Universal_CompilesAt2002Plus_0900At85()
     {
         foreach (int edition in new[] { 2002, 2014, 2023 })
         {
             var (ok, errors, _) = EditionHarness.CompileFull(
                 Prog("DSKOREF" + edition, "01 WS-O USAGE OBJECT REFERENCE."), edition);
-            Assert.False(ok, $"USAGE OBJECT REFERENCE must not compile silently at --std {edition}");
-            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0899");
-            EditionHarness.AssertHasDiagnostic(errors, "phase: Phase 3)");
+            Assert.True(ok, $"a universal USAGE OBJECT REFERENCE item must compile at --std {edition}: "
+                + string.Join("\n", errors));
         }
-        var (ok85, _, _) = EditionHarness.CompileFull(Prog("DSKOREF85", "01 WS-O USAGE OBJECT REFERENCE."), 85);
-        Assert.False(ok85, "USAGE OBJECT REFERENCE must be rejected at --std 85 (grammar-gated; W1.5 upgrades the diagnostic)");
+        var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKOREF85", "01 WS-O USAGE OBJECT REFERENCE."), 85);
+        Assert.False(ok85, "USAGE OBJECT REFERENCE is a 2002 introduction — rejected at --std 85");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
+    }
+
+    /// <summary>PICTURE is prohibited with USAGE OBJECT REFERENCE (§13.18.60.4 — the item is picture-less);
+    /// the conflict diagnoses COBOLNET0812, never an incoherent picture-with-reference classification.</summary>
+    [Fact]
+    public void UsageObjectReference_WithPicture_Rejects0812()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(
+            Prog("DSKOREFP", "01 WS-O PIC X(4) USAGE OBJECT REFERENCE."), 2002);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0812");
     }
 
     /// <summary>The bare and full USAGE spellings gate IDENTICALLY (ISO §13.18.60 general format — the USAGE

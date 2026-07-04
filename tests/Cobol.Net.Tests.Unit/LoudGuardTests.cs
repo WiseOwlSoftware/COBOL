@@ -41,13 +41,27 @@ public sealed class LoudGuardTests
         Assert.Empty(ed.Warnings);
     }
 
+    /// <summary>USAGE OBJECT REFERENCE went LIVE with the Phase-3 OO spine: only the introduction gate
+    /// remains — Usage.ObjectReference, silent at 2002+, COBOLNET0900 naming COBOL-2002 at 85 (the registry
+    /// row usage-object-reference-2002; ISO §13.18.60.4).</summary>
+    [Fact]
+    public void ParseUsage_ObjectReference_LiveAt2002_IntroductionGatedAt85()
+    {
+        var ok = Ed(2002);
+        Assert.Equal(Usage.ObjectReference, PicInfo.ParseUsage("OBJECT REFERENCE", ok, "data item 'T'"));
+        Assert.False(ok.HasErrors);
+        var ed85 = Ed(85);
+        Assert.Equal(Usage.ObjectReference, PicInfo.ParseUsage("OBJECT REFERENCE", ed85, "data item 'T'"));
+        Assert.True(ed85.HasErrors);
+        Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
+    }
+
     // ── ParseUsage: the 2002+ skeleton inventory is NEVER silent (ISO §13.18.60 general format) ────────────
 
     [Theory]
     [InlineData("NATIONAL")]
     [InlineData("BIT")]
     [InlineData("POINTER")]
-    [InlineData("OBJECT REFERENCE")]
     [InlineData("BINARY-CHAR")]
     [InlineData("BINARY-SHORT")]
     [InlineData("BINARY-LONG")]
@@ -67,7 +81,6 @@ public sealed class LoudGuardTests
     [InlineData("NATIONAL", "phase: Phase 4a)")]
     [InlineData("BIT", "phase: Phase 4a)")]
     [InlineData("POINTER", "phase: Phase 4b)")]
-    [InlineData("OBJECT REFERENCE", "phase: Phase 3)")]
     [InlineData("BINARY-CHAR", "phase: Phase 4)")]
     [InlineData("FLOAT-SHORT", "phase: Phase 6)")]
     [InlineData("FLOAT-LONG", "phase: Phase 6)")]

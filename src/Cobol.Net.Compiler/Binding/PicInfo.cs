@@ -22,6 +22,12 @@ public enum PicCategory
     /// <summary>Boolean (<c>PIC 1</c>, ISO §8.5.2.5 / §13.18.40.4 GR8) — SKELETON (W2 loud guard): never
     /// constructed until Phase 4a; the <c>boolean-data-2002</c> gate rejects every boolean picture first.</summary>
     Boolean,
+    /// <summary>Object reference (ISO §8.5.2.14; USAGE OBJECT REFERENCE [class-name], §13.18.60.4) — LIVE as of
+    /// the Phase-3 OO spine: a PICTURE-less elementary item holding a .NET object reference (typed → the class's
+    /// C# type, universal → <c>object?</c>; <see cref="PicInfo.ObjectClassName"/>). Occupies NO character
+    /// positions — it never participates in a group's character image (its size is implementor-defined storage,
+    /// not part of the §13.18.60 GR4 image rules; a whole-group image over one is rejected loud).</summary>
+    ObjectReference,
 }
 
 /// <summary>A SIGN clause's content (ISO §13.18.52): position (LEADING/TRAILING) and SEPARATE CHARACTER mode.
@@ -48,6 +54,9 @@ public enum Usage
     /// the typed-native model IS the index representation (a <c>long</c>, COBOLNET_DESIGN §3.5). Only SET, SEARCH,
     /// and relation conditions may reference it; SET copies it UNCHANGED (no PICTURE store, §14.9.39 GR2b).</summary>
     Index,
+    /// <summary>USAGE OBJECT REFERENCE (ISO §13.18.60.4 / §8.5.2.14) — LIVE (the Phase-3 OO spine): a .NET
+    /// reference field (typed or universal — <see cref="PicInfo.ObjectClassName"/>); zero character positions.</summary>
+    ObjectReference,
 
     // ── SKELETON usages (the W2 loud-guard sweep): the ISO-2002 §13.18.60 usage inventory that COBOL.NET
     // recognizes + edition-gates but does NOT implement yet. NOTHING constructs a PicInfo carrying one of
@@ -63,8 +72,6 @@ public enum Usage
     /// <summary>USAGE POINTER (ISO §13.18.60 / §8.5.2.6 data-pointer) — SKELETON; Phase 4b (the
     /// ManagedPointer carrier).</summary>
     Pointer,
-    /// <summary>USAGE OBJECT REFERENCE (ISO §13.18.60 / §8.5.2.14) — SKELETON; Phase 3 (OO).</summary>
-    ObjectReference,
     /// <summary>USAGE FLOAT-SHORT (ISO §13.18.60; the §13.18.59 D16 split) — SKELETON; Phase 6. NOT part of
     /// <see cref="PicInfo.IsFloat"/> until implemented — COMP-1/COMP-2 remain the only live float usages.</summary>
     FloatShort,
@@ -147,9 +154,20 @@ public sealed record PicInfo(
     /// (feedback: every misbind is a wrong-answer bug — fail LOUD).</summary>
     private bool IsUnimplementedSkeleton =>
         Category is PicCategory.National or PicCategory.Boolean
-        || Usage is Usage.National or Usage.Bit or Usage.Pointer or Usage.ObjectReference
+        || Usage is Usage.National or Usage.Bit or Usage.Pointer
             or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
             or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble;
+
+    /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the declared class name
+    /// (<c>USAGE OBJECT REFERENCE class-name</c>, ISO §13.18.60.4) — null for a UNIVERSAL object reference
+    /// (bare <c>OBJECT REFERENCE</c>; C# <c>object?</c>). The emitter renders the class's C# type.</summary>
+    public string? ObjectClassName { get; init; }
+
+    /// <summary>An object-reference item's representation (the Phase-3 OO spine; PICTURE-less per
+    /// §13.18.60.4 — the <see cref="PicInfo.IndexItem"/> synthesis pattern).</summary>
+    public static PicInfo ObjectReferenceItem(string? className) =>
+        new(PicCategory.ObjectReference, Usage.ObjectReference, Length: 0, Digits: 0, Scale: 0, Signed: false)
+        { ObjectClassName = className };
 
     /// <summary>The loud internal error for a skeleton representation reaching a storage-mapping switch —
     /// the bind-time gates must have rejected it first (W2 loud guard; owning phases per ConstructRegistry).</summary>
@@ -162,6 +180,11 @@ public sealed record PicInfo(
     public string ClrType => Category switch
     {
         _ when IsUnimplementedSkeleton => throw SkeletonReached(),
+        // A typed object reference is the class's emitted C# type (nullable — COBOL initial state is NULL,
+        // §13.18.63); universal → object?. The name mapping matches the ClassUnit emission convention
+        // (Sanitize + uppercase — COBOL class names are case-insensitive, §8.3.2.2).
+        PicCategory.ObjectReference =>
+            ObjectClassName is { } cls ? DataItem.Sanitize(cls).ToUpperInvariant() + "?" : "object?",
         PicCategory.Alphanumeric or PicCategory.NumericEdited => "string",
         // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
         // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,
@@ -182,6 +205,9 @@ public sealed record PicInfo(
     public string DefaultInitializer => Category switch
     {
         _ when IsUnimplementedSkeleton => throw SkeletonReached(),
+        // An object reference's COBOL initial state IS null (§13.18.60.4 — the predefined NULL reference);
+        // .NET reference-default null matches exactly, no init needed beyond the explicit form.
+        PicCategory.ObjectReference => "null",
         // Alphanumeric defaults to spaces; numeric to zero (unscaled).
         PicCategory.Alphanumeric or PicCategory.NumericEdited => $"new string(' ', {Length})",
         PicCategory.Numeric => Usage switch
@@ -439,7 +465,12 @@ public sealed record PicInfo(
             case "NATIONAL": return SkeletonUsage(edition, "national-data-2002", "Phase 4a", where, out skeleton);
             case "BIT": return SkeletonUsage(edition, "boolean-data-2002", "Phase 4a", where, out skeleton);
             case "POINTER": return SkeletonUsage(edition, "usage-pointer-2002", "Phase 4b", where, out skeleton);
-            case "OBJECT REFERENCE": return SkeletonUsage(edition, "usage-object-reference-2002", "Phase 3", where, out skeleton);
+            // LIVE as of the Phase-3 OO spine: only the introduction gate remains (0900 below 2002 — the
+            // registry row is silent at 2002+); the caller synthesizes PicInfo.ObjectReferenceItem with the
+            // declared class name (PICTURE-less per §13.18.60.4, the IndexItem pattern).
+            case "OBJECT REFERENCE":
+                ConstructRegistry.Check(edition, "usage-object-reference-2002", where);
+                return Usage.ObjectReference;
             case "BINARY-CHAR" or "BINARY-SHORT" or "BINARY-LONG" or "BINARY-DOUBLE":
                 return SkeletonUsage(edition, "usage-binary-char-family-2002", "Phase 4", where, out skeleton);
             case "FLOAT-SHORT": return SkeletonUsage(edition, "usage-float-short-2002", "Phase 6", where, out skeleton);

@@ -108,7 +108,7 @@ public static class ConstructRegistry
         new("boolean-data-2002", "boolean data (PICTURE symbol 1 / USAGE BIT)", 2002, null, null, EditionCodes.Introduction, "ISO §8.5.2 category boolean / §13.18.40 / §13.18.60; skeleton W2 (loud), full Phase 4a; PENDING"),
         new("pic-external-float-2002", "an external floating-point PICTURE (symbol E)", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.40 external float; skeleton W2 (loud), full Phase 6 (IEEE float catchall); PENDING"),
         new("usage-pointer-2002", "USAGE POINTER", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60; Phase 4b (ManagedPointer carrier); skeleton W2 (loud); PENDING"),
-        new("usage-object-reference-2002", "USAGE OBJECT REFERENCE", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60 (OO); Phase 3; skeleton W2 (loud); PENDING"),
+        new("usage-object-reference-2002", "USAGE OBJECT REFERENCE", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60.4 / §8.5.2.14 (OO); LIVE as of the Phase-3 spine (PicInfo.ObjectReferenceItem — typed/universal reference fields; 0900 below 2002)"),
         new("usage-binary-char-family-2002", "a fixed-width binary usage (BINARY-CHAR/-SHORT/-LONG/-DOUBLE)", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60; Phase 4 reconciliation (M2 catalog); skeleton W2 (loud); PENDING"),
         new("usage-float-long-2002", "USAGE FLOAT-LONG", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.59; D16 split (provisional 2002); PENDING (Phase 6)"),
         new("usage-float-extended-2002", "USAGE FLOAT-EXTENDED", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.59; D16 split (provisional 2002); PENDING (Phase 6)"),

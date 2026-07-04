@@ -563,6 +563,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string csName = isFiller ? $"_filler{_fillerCounter++}" : DataItem.Sanitize(cobolName!);
 
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
+        string? objectClassName = null;   // USAGE OBJECT REFERENCE class-name (null = universal; §13.18.60.4)
         int? occurs = null;
         OccursSpec? occursSpec = null;
         var indexNames = new List<string>();
@@ -579,7 +580,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clause.blankWhenZeroClause() is not null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
                 else if (clause.usageClause() is { } usage)
+                {
                     usageText = UsageKeyword(usage);
+                    objectClassName = usage.usageKeyword()?.objectReferenceUsage()?.className()?.GetText();
+                }
                 else if (clause.redefinesClause() is { } redef)
                     // Capture the target name only; resolution waits until the forest is built (the target is a
                     // prior sibling, but a chain A REDEFINES B REDEFINES C resolves in the post-build pass).
@@ -609,13 +613,32 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // A PICTURE-less USAGE INDEX entry is an ELEMENTARY index data item (ISO §13.18.60 — class index, no
         // PICTURE allowed), not a group: synthesize its profile so it emits as a long occurrence-number field.
-        // A PICTURE-less SKELETON usage (BINARY-CHAR / POINTER / OBJECT REFERENCE / FLOAT-x / NATIONAL / BIT —
+        // A PICTURE-less SKELETON usage (BINARY-CHAR / POINTER / FLOAT-x / NATIONAL / BIT —
         // legally picture-less per §13.18.60) gets the RECOVERY shape: the compile has already failed, and a
         // Pic-null elementary item NREs the doomed emit on any MOVE receiver (the binary_usage crash,
         // DEVLOG 597) instead of surfacing the 0899/0900. Group headers shed it in ResolveIndexItems.
+        // USAGE OBJECT REFERENCE (LIVE — the Phase-3 OO spine): a PICTURE-less elementary reference item
+        // (§13.18.60.4; the IndexItem synthesis pattern). PICTURE is prohibited with it — reject loud, never
+        // let Analyze classify an incoherent picture-with-reference shape (the W2 silent-misbind rule).
+        if (entryUsage is Usage.ObjectReference && pictureText is not null)
+        {
+            Edition.Error("COBOLNET0812", $"{entryWhere}: PICTURE may not be specified with USAGE OBJECT "
+                + "REFERENCE (ISO §13.18.60.4 — an object-reference item is picture-less)");
+            pictureText = null;
+        }
+        // STAGING (spine part 2 removes this): a TYPED reference's field type is the class's emitted C# type,
+        // which needs the pass-1 class symbol table (OO deep-dive D1) to resolve/validate — without it the
+        // declared name would surface as a Roslyn CS0246 on user source (a loud-failure violation). Universal
+        // references are fully live.
+        if (entryUsage is Usage.ObjectReference && objectClassName is not null)
+            Edition.Error("COBOLNET0899", $"{entryWhere}: a TYPED object reference (USAGE OBJECT REFERENCE "
+                + $"{objectClassName}) awaits the class symbol table (owning roadmap phase: Phase 3, the OO "
+                + "spine — in progress); a universal OBJECT REFERENCE is available");
+
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
+            : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
             : skeletonUsage ? PicInfo.RecoveryItem : null;
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
@@ -682,21 +705,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// even without its own USAGE clause.</summary>
     private void ResolveIndexItems()
     {
-        static void Walk(DataItem item, bool inherited)
+        static void Walk(DataItem item, bool inherited, PicInfo? inheritedObjRef)
         {
             bool isIndex = ReferenceEquals(item.Pic, PicInfo.IndexItem) || (inherited && item.Pic is null);
+            // USAGE OBJECT REFERENCE inherits the same way (§13.18.60.4 GR1): a group header sheds its
+            // synthesized reference profile; a PICTURE-less leaf below takes it (sharing the immutable
+            // PicInfo — the declared class flows down with it).
+            var objRef = item.Pic is { Category: PicCategory.ObjectReference } p ? p : inheritedObjRef;
             if (item.Children.Count > 0)
             {
                 if (ReferenceEquals(item.Pic, PicInfo.IndexItem)) item.Pic = null;   // a group, not an elementary index
                 // A skeleton-usage RECOVERY shape on a GROUP header sheds the same way (the usage merely
                 // inherits per §13.18.60.4 GR1; a Pic'd "group" would stop grouping — DEVLOG 597).
                 if (ReferenceEquals(item.Pic, PicInfo.RecoveryItem)) item.Pic = null;
-                foreach (var c in item.Children) Walk(c, isIndex);
+                if (item.Pic is { Category: PicCategory.ObjectReference }) item.Pic = null;
+                foreach (var c in item.Children) Walk(c, isIndex, objRef);
             }
             else if (isIndex && item.Pic is null)
                 item.Pic = PicInfo.IndexItem;
+            else if (item.Pic is null && objRef is not null)
+                item.Pic = objRef;
         }
-        foreach (var root in Roots) Walk(root, false);
+        foreach (var root in Roots) Walk(root, false, null);
     }
 
     /// <summary>Apply group-level USAGE clauses to subordinate elementary items (ISO §13.18.60 GR1 — "the USAGE

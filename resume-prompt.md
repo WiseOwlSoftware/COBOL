@@ -76,8 +76,20 @@
 > DEBUGGING 2014, EVERY/CLOCK-UNITS/REFERENCES/PROCEDURES 2023). Battery: conformance 1453/1453 (+55) ·
 > unit 102/102 · INV-1-STRONG 349/349 · sweep 439 OK / 20 SKIP85 / 0 BREAKS (grew from 419 OK — the
 > DB/SG/OBIC SKIP85→OK migration, predicted) · FULL legacy guard ALL GREEN (353 MATCH · 1204 · 537).
-> **RESUME = roadmap Phase 3: the M2 OO port** (docs/COBOLNET_OO_DESIGN.md carries the regenerated port
-> map; the OO grammar grant is standing — reuse the legacy OO design per `project_oo_reuse_legacy`).
+> **PHASE 3 OPENED (DEVLOG 600): spine part 1 LANDED** — `CobolObject` runtime base (D2: `__CobolInvoke`
+> default → EC-OO-METHOD; `RequireNonNull` → EC-OO-NULL, both via the landed EC engine) + USAGE OBJECT
+> REFERENCE LIVE in its universal form (PicCategory/Usage out of the skeleton band; `PicInfo.
+> ObjectReferenceItem(className?)`; new 0812 PICTURE-conflict gate; GR1 inheritance in ResolveIndexItems;
+> typed references 0899-STAGED pending the class symbol table; skeleton tests flipped to the live
+> contract). Battery: conformance 1454/1454 · unit 101/101 · no NIST/grammar exposure.
+> **RESUME = Phase 3 spine part 2:** ClassUnit collection + the pass-1 class symbol table
+> (`CallCollectUnits` — replace the classDefinition 0899), the emit-into-a-type parameterization
+> (`CallEmitProgramClass` IS the template per the deep-dive's Greenfield-seams section), method PC-dispatch
+> ranges + `BoundMethodReturn` (D8 — method-context GOBACK; EXIT METHOD = method-return synonym ≤2014,
+> 0902 at 2023 [already gated]; accommodate-or-defer the 2023 GOBACK status phrase), INVOKE binding (NEW +
+> no-arg instance first), un-stage typed object references, oo_hello GREEN via the 2002 manifest run
+> contract (9 oo_* pairs pending there). Then the ported legacy slices 1–6 in order
+> (docs/COBOLNET_OO_DESIGN.md "Legacy port map" + the 10 adversarial regression traps as day-one tests).
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits
