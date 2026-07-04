@@ -13,6 +13,80 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 595 — 2026-07-03 21:02 PDT — The W2 adversarial review: 6 confirmed / 0 refuted / 7 minors — every actionable finding FIXED in-session
+
+**Three refute-oriented lenses (spec / regression / test-quality) + per-finding adversarial verification (9
+agents, 760k tokens) over commit a3e29b6. Every serious finding verified REAL; fixes landed with the W1.5
+batch (one commit — the tree interleaves shared files):**
+1. **Trailing `,` separator misbind** — the `;` bug's exact twin (`77 X PIC 99, VALUE 3.` silently classifies
+   numeric-edited "99,"; §8.3.5 r2 + §13.18.40.3 SR7 prove the source conforming). Analyze CANNOT fix it
+   (SR7 needs clause-position context) → DOCUMENTED (VCR Table 7 row 7.14), the W3 lexer cure owns BOTH
+   separators. Also fixed the strip-to-empty leak: Analyze now strips exactly ONE trailing `;` and 0808s an
+   empty/multi-`;` picture (`PIC ;` no longer births a zero-length item).
+2. **USAGE INDEX receivers rode the 0902 edition row** — "permitted through 2014" was a FALSE spec claim:
+   §14.9.25.3 SR1 + §13.18.60 GR10 prohibit class-index MOVE operands at EVERY edition. NEW version-invariant
+   COBOLNET0809 (sender + receiver arms, error even permissive); Usage.Index exempted from the SR5 rows.
+3. **Ref-mod slice round-trip loss** — `MOVE SPACE TO N(1:2)` printed [003]/NUM (the spliced image round-
+   tripped through the backing long; the result FLIPPED with whether unrelated code image-backed N).
+   §8.4.2.4/§8.4.3.3.4 GR5 want [  3]/NOTNUM. Fixed: `MarkRefModStoreImage` — EVERY MOVE with a ref-mod
+   target over an eligible numeric-DISPLAY item image-backs it at bind time (any sender; digits round-trip
+   either way). Verified: [  3]/NOTNUM + [AB6], and the slice MOVE stays legal at 2023 strict.
+4. **QUOTE→numeric is 2014-OBSOLETE** (Annex E.2 item 21 — the ONE figurative the change annex tracks
+   separately; VCR row 1's blanket "not even flagged obsolete in 2014" was wrong for it). NEW dual row
+   `move-quote-numeric-obsolete-2014` (85 / obsolete 2014 / removed 2023): 0903 warning at 2014, 0902 at
+   2023, silent at 85/2002. ObsoleteMatrix theory bounded below removedIn; the obsolete warning asserts the
+   FIXED 0903 band code (the contract), expectDiagnostic keeps the removal code. VCR row 28 → PARTIAL.
+5. **exit-method/function**: the 0900-at-85 introduction leg was untested (now pinned in
+   EditionGateDiagnosticTests) and the pending rationale was stale — corrected: the sources compile at
+   2002/2014 only because the placement SR is unimplemented (runtime-loud stub, not a silent misbind);
+   conforming positive sources need METHOD-ID/FUNCTION-ID units (Phase 3/4c).
+6. Minors fixed: `.err` files now pin construct-specific substrings (all 18 re-verified against the CLI);
+   the 0808 wording no longer overclaims SR2 "combination" (membership only; the §13.18.40.6 precedence-table
+   pass queued); `'$'` is whitelisted ONLY as the actual currency picture symbol (PIC $$$9 under CURRENCY "W"
+   now 0808s — the ungated always-on leniency closed; NC107A/NC108M carry no `$` pictures, corpus-safe);
+   the loose "Phase 4" assertions are delimiter-safe; programName/section band-token slots have end-to-end
+   0901 facts; HIGH/LOW-VALUE pre-removal fills pinned by comparison (legacy CBL0906 makes them
+   un-cross-checkable). Documented residue (VCR row 1 + registry citation): Tier-A REDEFINES-class and
+   BINARY/PACKED/COMP-5/float receivers keep the NARROW runtime-loud guard (legal-per-2014 shapes, zero
+   corpus hits).
+
+## Entry 594 — 2026-07-03 21:02 PDT — W1.5 COMPLETE — all 17 reachable grammar introduction gates now diagnose 0900 with edition naming; the 0860/0861 code collision resolved
+
+**The critic's mechanism caveat held exactly:** every gated site probed below its edition surfaces as a
+generic `NoViableAlternative` (the predicate suppresses the alternative during adaptive prediction), so W1.5
+is a PARSE-LAYER mapping, not a grammar change: `EditionGateHints` (new, frontend Parsing/) recognizes each
+site's (offending-token, rule-stack, adjacent-token) signature — dual-path where the enclosing rule pops
+before the report (GOBACK RETURNING, STOP RUN WITH) — and, ONLY when the parser targets an edition below the
+construct's introduction, upgrades the message to the same wording family as `ConstructRegistry.Check`:
+`[COBOLNET0900] <display> requires COBOL-YYYY (targeting COBOL-XXXX) — <citation> (constructs.json row <id>)`.
+`CobolErrorStrategy` consults it at priority 0; the new `COBOLNET0900` descriptor carries the band code
+through the existing `[code]`-prefix extraction.
+
+- **All 17 reachable sites verified end-to-end** (probe sweep, this session): DELETE FILE (names COBOL-2023
+  at 85 AND at 2014), ALLOCATE, FREE, INVOKE, GOBACK RETURNING, PROCEDURE DIVISION RETURNING, STOP RUN WITH
+  status, START KEY WITH LENGTH, BASED, TYPE, USAGE OBJECT REFERENCE, REPOSITORY CLASS, the three
+  SPECIAL-NAMES FOR ALPHANUMERIC/NATIONAL sites, CLASS-ID unit (lookahead scan — the failure reports at the
+  unit start), CALL BY VALUE. **JSON/XML map to the vendor hint** (new COBOL0313: "not an ISO/IEC 1989
+  construct — vendor-dialect extension, deferred"; the 0900 band would be a lie) — below 2014 only; at ≥2014
+  the legacy grammar stub still parses (runtime-loud; W3 owns re-gating it to the vendor axis).
+- **Unmapped residue (documented in EditionGateHints):** inlineMethodInvocationStatement (2023 — `x(…)` has
+  no distinctive token; OO wave), parameterDescription (2002 — unreachable without a UDF prototype),
+  SET…TO objectReference (no signature distinct from the 85 SET forms).
+- **The 0860/0861 collision found and resolved:** READ PREVIOUS / START FIRST-LAST emitted ad-hoc
+  COBOLNET0860/0861 — codes ALSO used by the WRITE END-OF-PAGE diagnostics (a double allocation), and not in
+  the P2.3 pinned set — migrated to `ConstructRegistry.Check` (0900, uniform wording); pinned by
+  EditionGateDiagnosticTests with explicit no-0860/0861 assertions.
+- **Registry truth-fixes:** currency-picture-symbol-2002's DiagnosticCode corrected to the pinned
+  COBOLNET0893 (was mislabeled 0900 — it IS in the roadmap traceability band). Five NEW rows (drift-locked):
+  repository-class-2002, start-with-length-2002, special-names-for-national-2002, call-by-value-2002
+  (active — sources verified compiling at 2002), class-definition-2002 (pending — 0899 at ≥2002 until
+  Phase 3). `expectDiagnostic: COBOLNET0900` added to 21 rows — the matrix reject cells now assert the CODE,
+  not just rejection.
+- **Verification battery (combined with DEVLOG 595's fixes, one commit): build 0W/0E · unit 102/102 ·
+  conformance 1353/1353 (+49) · sweep 419 OK / 0 BREAKS · INV-1-STRONG 349/349 byte-exact at 2023-permissive
+  · FULL legacy guard-fast ALL GREEN (353 MATCH + expected LEGACY_DIVERGENT; 1204 unit + 536 integration) —
+  the frontend change (error strategy) verified against the legacy side.**
+
 ## Entry 593 — 2026-07-03 20:15 PDT — ⛔ ROADMAP PHASE 2 W2 COMPLETE — the four-track wave (MOVE rows · loud-guard sweep · negative corpus · position-aware reserved words) landed in one fan-out
 
 **The P2.8 W2 wave shipped end-to-end: four parallel agents on disjoint files (the DEVLOG-543 pattern — no

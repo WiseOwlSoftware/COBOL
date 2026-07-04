@@ -404,6 +404,25 @@ decision.
 > grammar change adding a data-description clause that BEGINS with a cobolWord-admitted token would silently
 > re-open the RW104A-style hazard for the entry-name slot.
 
+> **W1.5 AS-BUILT (2026-07-03, DEVLOG 594) + the W2 adversarial-review fixes (DEVLOG 595):** the ~24
+> intro-gate upgrade landed as a PARSE-LAYER mapping (no grammar change): every gated site surfaces below its
+> edition as a generic NoViableAlternative, so `EditionGateHints` (frontend) recognizes the per-site
+> (token, rule-stack, adjacency) signature and — only when the targeted edition is below the construct's
+> introduction — emits the `ConstructRegistry.Check` wording on COBOLNET0900 through `CobolErrorStrategy`
+> (priority-0 hint; the code rides the `[code]`-prefix extraction). All 17 reachable sites verified; JSON/XML
+> map to the vendor hint COBOL0313 (not ISO — the 0900 band would be a lie); unmapped residue documented
+> in-code (inline method invocation / UDF parameterDescription / SET-TO-objectReference). The 0860/0861
+> double allocation (READ PREVIOUS / START FIRST-LAST vs the WRITE END-OF-PAGE diagnostics) resolved by
+> registry migration; currency-picture-symbol re-pinned 0893; 5 new rows (repository-class, start-with-length,
+> special-names-for-national, call-by-value active; class-definition pending) and `expectDiagnostic:
+> COBOLNET0900` on 21 rows — the matrix reject cells assert the CODE now. Review-driven model corrections:
+> QUOTE→numeric rides its own dual row `move-quote-numeric-obsolete-2014` (Annex E.2 item 21: 0903@2014,
+> 0902@2023 — the ObsoleteMatrix theory is bounded below `removedIn` and asserts the FIXED 0903 band code);
+> the version-invariant §14.9.25.3 SR1 class-index MOVE check is COBOLNET0809 (every edition, both operands);
+> ref-mod slice stores on numeric-DISPLAY items image-back the item at bind time for EVERY sender
+> (`MarkRefModStoreImage` — the round-trip-loss fix). ⚠ KNOWN MISBIND queued to W3: the trailing `,`
+> clause-separator twin of the fixed `;` over-capture (VCR Table 7 row 7.14 — needs the lexer-mode cure).
+
 ## 9. Reuse / do-not-duplicate map
 
 | Need | Existing (reuse / port) |

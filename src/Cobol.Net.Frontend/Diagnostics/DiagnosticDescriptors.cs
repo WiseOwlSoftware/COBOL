@@ -500,6 +500,19 @@ public static partial class DiagnosticDescriptors
     // feature that now works; removed (DEVLOG 232).
     public static readonly DiagnosticDescriptor COBOL0312 = new("COBOL0312", DiagnosticSeverity.Warning,
         "Unexpected token in FILE-CONTROL paragraph. Check SELECT/ASSIGN TO syntax.");
+    // W1.5 (VERSION_TEST_MATRIX_DESIGN P2.8): a non-ISO vendor statement (JSON/XML) behind a parse error —
+    // NOT the 0900 edition band (no ISO edition has the construct; owner decision 2, DEVLOG 581).
+    public static readonly DiagnosticDescriptor COBOL0313 = new("COBOL0313", DiagnosticSeverity.Error,
+        "{0}");
+
+    // ══════════════════════════════════════
+    // COBOLNET0900: the edition-gating band's INTRODUCTION code, emitted from the PARSE layer (W1.5).
+    // The bind-layer twin lives in CobolNet.Validation.EditionCodes.Introduction — same code string, one
+    // policy, two emit layers: a grammar-predicate rejection surfaces here (EditionGateHints), a bind-time
+    // gate routes through ConstructRegistry.Check. Keep the code text identical.
+    // ══════════════════════════════════════
+    public static readonly DiagnosticDescriptor COBOLNET0900 = new("COBOLNET0900", DiagnosticSeverity.Error,
+        "{0}");
 
     // ══════════════════════════════════════
     // COBOL0400–0412: Bound tree builder

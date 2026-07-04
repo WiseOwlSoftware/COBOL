@@ -14,6 +14,7 @@
       "description": "READ ... PREVIOUS (keyed sequential read in reverse), ISO §14.9.30 Format 1 — introduced 2002",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard); rows 29/108 gate the after-OPEN behavior",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RP.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmrp\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    READ F PREVIOUS AT END DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
     },
@@ -22,6 +23,7 @@
       "description": "START ... FIRST/LAST positioning, ISO §14.9.41 — introduced 2002",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmsf\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    START F FIRST INVALID KEY DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
     },
@@ -30,6 +32,7 @@
       "description": "DELETE FILE (physical file deletion), ISO 2023 §14.9.10 Format 2",
       "introducedIn": 2023,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "E.2 new-feature row (DELETE FILE)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. DF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nPROCEDURE DIVISION.\nMAIN.\n    DELETE FILE F.\n    STOP RUN.\n"
     },
@@ -39,6 +42,7 @@
       "description": "ALLOCATE statement (dynamic storage), ISO §14.9.3 — introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (a DOUBLE silent hole — the source's USAGE POINTER misbound to DISPLAY and ALLOCATE binds BoundUnsupported runtime-loud); reactivates with Phase 4b (pointers/ALLOCATE on ManagedPointer).",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    ALLOCATE 100 CHARACTERS RETURNING P.\n    STOP RUN.\n"
     },
@@ -48,6 +52,7 @@
       "description": "FREE statement (release ALLOCATEd storage), ISO §14.9.15 — introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (USAGE POINTER misbound to DISPLAY; FREE binds BoundUnsupported); reactivates with Phase 4b.",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    FREE P.\n    STOP RUN.\n"
     },
@@ -57,6 +62,7 @@
       "description": "INVOKE (OO method call), ISO §14.9.23 — introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (USAGE OBJECT REFERENCE misbound to DISPLAY; INVOKE binds BoundUnsupported); reactivates with Phase 3 (the M2 OO port).",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (OO; derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. IV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 OBJ USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE OBJ \"doIt\".\n    STOP RUN.\n"
     },
@@ -65,6 +71,7 @@
       "description": "GOBACK RETURNING status, ISO §14.9.18 — the RETURNING phrase is 2002+",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. GR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    GOBACK RETURNING RC.\n"
     },
@@ -73,6 +80,7 @@
       "description": "STOP RUN WITH status phrase, ISO §14.9.42 — the status phrase is 2002+",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 RC PIC 99 VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN WITH NORMAL STATUS RC.\n"
     },
@@ -81,6 +89,7 @@
       "description": "BASED clause (a data item addressed via SET ADDRESS/ALLOCATE), ISO §13.18.5 — introduced 2002",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 B BASED.\n   05 F PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
@@ -89,6 +98,7 @@
       "description": "PROCEDURE DIVISION … RETURNING, ISO §14.2 — the RETURNING phrase is 2002+",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PR.\nDATA DIVISION.\nLINKAGE SECTION.\n77 RC PIC 99.\nPROCEDURE DIVISION RETURNING RC.\nMAIN.\n    MOVE 9 TO RC.\n    STOP RUN.\n"
     },
@@ -97,6 +107,7 @@
       "description": "CURRENCY SIGN … WITH PICTURE SYMBOL, ISO §12.3.7 — the symbol-separate form is 2002+; COBOL-85 had only the bare single-character CURRENCY SIGN",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0893",
       "vcr": "2002 introduction (VERSION_CHANGE_REFERENCE Table 7; derive from the 2002 standard)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. CPS.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    CURRENCY SIGN IS \"F\" WITH PICTURE SYMBOL \"F\".\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 E PICTURE FF9.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 5 TO E.\n    DISPLAY E.\n    STOP RUN.\n"
     },
@@ -137,6 +148,7 @@
       "description": "TYPE IS clause referencing a type declaration, ISO §13.18.58 (TYPEDEF family) — PROVISIONAL 2002 edge (ISO-validation, DEVLOG 582: zero Annex E 2014→2023 rows ⇒ predates 2023, so the old 2023 seed was provably wrong; the 2002-vs-2014 refinement is blocked on the older standards per decision 1)",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "TYPEDEF family §13.18.58; provisional per the decision-1 policy",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. TY.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W TYPE IS WTYPE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
@@ -146,6 +158,7 @@
       "description": "USAGE FLOAT-SHORT (IEEE binary32 basic float, §13.18.59) — PROVISIONAL 2002 edge (roadmap ISO-validation D16: the short/long/extended trio is the presumed-2002 half of the float family split). PENDING: float usages currently silent-misbind to DISPLAY; the Phase-2 loud-guard sweep makes them loud, Phase 6 implements.",
       "introducedIn": 2002,
       "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
       "vcr": "D16 float-family split (provisional 2002)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-SHORT.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
@@ -323,7 +336,7 @@
     {
       "id": "exit-method-window",
       "status": "pending",
-      "description": "EXIT METHOD — introduced 2002 (OO), REMOVED 2023 (Annex E; the OO deep-dive correction #2): the dual-obligation WINDOW row (0900 below 2002, 0902 at 2023). PENDING: the 2002/2014 compile legs need the OO wave (roadmap Phase 3) — the gate is LIVE, only the positive cells wait.",
+      "description": "EXIT METHOD statement - introduced 2002 (OO/UDF), REMOVED 2023 (Annex E; dual-obligation window: 0900 below 2002, 0902 at 2023). PENDING (rationale corrected per the W2 adversarial review, DEVLOG 595): the source COMPILES at 2002/2014 today only because the placement SR (the statement may appear only inside a method/function definition - cf. the 14.9.14.3 rule-7 pattern) is unimplemented, and the emitted stub is runtime-loud; a conforming positive source needs a METHOD-ID/FUNCTION-ID unit plus per-edition expectDiagnostic support (0900 at 85 vs 0902 at 2023). Reactivates with Phase 3/4c.",
       "introducedIn": 2002,
       "removedIn": 2023,
       "expectDiagnostic": "COBOLNET0902",
@@ -333,7 +346,7 @@
     {
       "id": "exit-function-window",
       "status": "pending",
-      "description": "EXIT FUNCTION — introduced 2002 (UDF), REMOVED 2023 (Annex E): dual-obligation window. PENDING: the positive cells need the UDF wave (roadmap Phase 4c); the gate is LIVE.",
+      "description": "EXIT FUNCTION statement - introduced 2002 (OO/UDF), REMOVED 2023 (Annex E; dual-obligation window: 0900 below 2002, 0902 at 2023). PENDING (rationale corrected per the W2 adversarial review, DEVLOG 595): the source COMPILES at 2002/2014 today only because the placement SR (the statement may appear only inside a method/function definition - cf. the 14.9.14.3 rule-7 pattern) is unimplemented, and the emitted stub is runtime-loud; a conforming positive source needs a METHOD-ID/FUNCTION-ID unit plus per-edition expectDiagnostic support (0900 at 85 vs 0902 at 2023). Reactivates with Phase 3/4c.",
       "introducedIn": 2002,
       "removedIn": 2023,
       "expectDiagnostic": "COBOLNET0902",
@@ -362,7 +375,7 @@
     },
   {
     "id": "move-alphanumeric-figurative-removed-2023",
-    "description": "MOVE of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics per the legacy oracle, provisional per ratified decision 1; implemented on the StoreAsImage substrate), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case. Gate: StatementBinder.MoveFigurative.cs (W2 track A, DEVLOG 593).",
+    "description": "MOVE of an alphanumeric figurative constant (SPACE, QUOTE, HIGH-VALUE, LOW-VALUE, non-digit ALL literal) to a numeric or numeric-edited item - permitted through 2014 (pre-removal semantics per the legacy oracle, provisional per ratified decision 1; implemented on the StoreAsImage substrate), REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 14.9.25.3 SR5) except the digit-only-ALL-to-integer case; QUOTE rides its own dual row move-quote-numeric-obsolete-2014 (obsolete 2014 first, Annex E.2 item 21 - the adversarial-review correction). Documented residues (DEVLOG 595): pre-removal image semantics cover elementary numeric-DISPLAY receivers - a Tier-A REDEFINES-class or BINARY/PACKED/COMP-5/float receiver stays a NARROW runtime-loud guard (legal-per-ISO-2014 shapes, no corpus hits); multi-char digit-only ALL rides this row at 2023 (the 2002 edge unproven in-repo, VCR 7.13). Gate: StatementBinder.MoveFigurative.cs (W2 track A, DEVLOG 593).",
     "introducedIn": 85,
     "removedIn": 2023,
     "expectDiagnostic": "COBOLNET0902",
@@ -385,6 +398,7 @@
     "description": "National data (PICTURE symbol N / USAGE NATIONAL, ISO 8.5.2 category national / 13.18.40 / 13.18.60). PENDING: PIC N currently silent-misbinds (category falls through); the W2 loud-guard sweep adds the skeleton (enum entries, 0900 gate below 2002, loud not-implemented at 2002+); Phase 4a implements.",
     "introducedIn": 2002,
     "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
     "vcr": "M2 catalog national/boolean; roadmap Phase 4a; D16-adjacent skeleton (W2)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NATD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-N PIC N(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
@@ -394,6 +408,7 @@
     "description": "Boolean data (PICTURE symbol 1 / USAGE BIT, ISO 8.5.2 category boolean / 13.18.40 / 13.18.60). PENDING: PIC 1 currently silent-misbinds; the W2 loud-guard sweep adds the skeleton (enum entries, 0900 gate below 2002, loud not-implemented at 2002+); Phase 4a implements (boolean OPERATIONS ride D4).",
     "introducedIn": 2002,
     "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
     "vcr": "M2 catalog national/boolean; roadmap Phase 4a + D4; skeleton (W2)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BOOLD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-B PIC 1(8).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
@@ -403,6 +418,7 @@
     "description": "External floating-point PICTURE (symbol E, ISO 13.18.40). PENDING: the E symbol currently silent-misbinds in PicInfo.Analyze; the W2 loud-guard sweep makes it loud (0900 below 2002); Phase 6 (IEEE float catchall) implements.",
     "introducedIn": 2002,
     "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
     "vcr": "M3-4 catchall (float edges split per D16); skeleton (W2)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. EXTF.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-E PIC +9V99E+99.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
@@ -412,6 +428,7 @@
     "description": "USAGE POINTER (ISO 13.18.60). PENDING: currently silent-misbinds to DISPLAY in PicInfo.ParseUsage; the W2 loud-guard sweep makes it loud (0900 below 2002, not-implemented at 2002+); Phase 4b implements on the ManagedPointer carrier.",
     "introducedIn": 2002,
     "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
     "vcr": "M2 catalog pointers/ALLOCATE (Phase 4b); skeleton (W2)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UPTR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
@@ -421,6 +438,7 @@
     "description": "USAGE OBJECT REFERENCE (ISO 13.18.60, OO). PENDING: currently silent-misbinds to DISPLAY; the W2 loud-guard sweep makes it loud; Phase 3 (the M2 OO port) implements.",
     "introducedIn": 2002,
     "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
     "vcr": "M2 OO (roadmap Phase 3); skeleton (W2)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UOBJ.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-O USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
@@ -430,6 +448,7 @@
     "description": "The fixed-width binary usages BINARY-CHAR/-SHORT/-LONG/-DOUBLE (ISO 13.18.60). PENDING: currently silent-misbind to DISPLAY (the bare-form UsageKeyword string-strip makes BINARY-CHAR SIGNED fall through); the W2 loud-guard sweep makes them loud (0900 below 2002); Phase 4 reconciliation sizes the implementation.",
     "introducedIn": 2002,
     "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
     "vcr": "M2 catalog (Phase 4 reconciliation); skeleton (W2)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UBIN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-B USAGE BINARY-LONG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
@@ -439,6 +458,7 @@
     "description": "USAGE FLOAT-LONG (IEEE binary64 basic float, 13.18.59) - PROVISIONAL 2002 edge (D16: the short/long/extended trio is the presumed-2002 half of the float family split). PENDING: float usages currently silent-misbind to DISPLAY; the Phase-2 loud-guard sweep makes them loud, Phase 6 implements.",
     "introducedIn": 2002,
     "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
     "vcr": "D16 float-family split (provisional 2002)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-LONG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
   },
@@ -448,8 +468,65 @@
     "description": "USAGE FLOAT-EXTENDED (IEEE extended float, 13.18.59) - PROVISIONAL 2002 edge (D16). PENDING: float usages currently silent-misbind to DISPLAY; the Phase-2 loud-guard sweep makes them loud, Phase 6 implements.",
     "introducedIn": 2002,
     "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
     "vcr": "D16 float-family split (provisional 2002)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. FX.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 F USAGE FLOAT-EXTENDED.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "repository-class-2002",
+    "description": "REPOSITORY paragraph CLASS entry (declares a referenced OO class), ISO 12.3.8 - introduced 2002. Grammar-gated (repositoryEntry {is2002()}?); below 2002 the W1.5 parse-layer mapping (EditionGateHints) names the edition (COBOLNET0900).",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO surface; W1.5 parse-layer mapping (DEVLOG 594)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15N.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    CLASS CL1.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "start-with-length-2002",
+    "description": "START KEY ... WITH LENGTH phrase (variable-length key comparison), ISO 14.9.41 - provisional 2002 edge. Grammar-gated (startKeyPhrase {is2002()}?); W1.5 parse-layer 0900 mapping below 2002.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "provisional 2002 edge (decision-1 policy); W1.5 parse-layer mapping (DEVLOG 594)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15P.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F2 ASSIGN TO \"f2.dat\"\n        ORGANIZATION INDEXED ACCESS DYNAMIC RECORD KEY RK.\nDATA DIVISION.\nFILE SECTION.\nFD F2.\n01 R2.\n   05 RK PIC X(5).\n   05 RD2 PIC X(5).\nPROCEDURE DIVISION.\nMAIN.\n    START F2 KEY = RK WITH LENGTH 3.\n    STOP RUN.\n"
+  },
+  {
+    "id": "special-names-for-national-2002",
+    "description": "The FOR ALPHANUMERIC / FOR NATIONAL phrase on the SPECIAL-NAMES ALPHABET, CLASS, and SYMBOLIC CHARACTERS clauses, ISO 12.3.7 - introduced 2002 (national repertoire). Grammar-gated at the three sites; W1.5 parse-layer 0900 mapping below 2002.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 national surface; W1.5 parse-layer mapping (DEVLOG 594)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15L.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET AB1 IS STANDARD-1 FOR NATIONAL.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "call-by-value-2002",
+    "description": "CALL ... USING BY VALUE argument phrase, ISO 14.9.4 - introduced 2002 (BY REFERENCE/BY CONTENT are 85). Grammar-gated (callByValue {is2002()}?); W1.5 parse-layer 0900 mapping below 2002.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 interprogram surface; W1.5 parse-layer mapping (DEVLOG 594)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15Q.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4) VALUE 3.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"SUB1\" USING BY VALUE W.\n    STOP RUN.\n"
+  },
+  {
+    "id": "class-definition-2002",
+    "status": "pending",
+    "description": "A class definition (CLASS-ID compilation unit), ISO 11.2/11.3 - introduced 2002 (OO). Grammar-gated in compilationGroup; below 2002 the W1.5 parse-layer mapping names the edition (0900); at 2002+ the W2 track-B gate is a COBOLNET0899 not-implemented error. PENDING: reactivates with Phase 3 (the M2 OO port).",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 594)",
+    "source": "IDENTIFICATION DIVISION.\nCLASS-ID. CD1.\nEND CLASS CD1.\n"
+  },
+  {
+    "id": "move-quote-numeric-obsolete-2014",
+    "description": "MOVE of the figurative constant QUOTE to a numeric or numeric-edited item - the ONE figurative the change annex tracks separately (W2 adversarial-review correction): designated OBSOLETE by ISO 2014 (Annex E.2 item 21 - 'features that were classified as obsolete in the previous COBOL standard'), then REMOVED 2023 with the rest (E.2 item 1; 14.9.25.3 SR5). 0903 warning at 2014, 0902 at 2023; pre-removal semantics on the StoreAsImage substrate (spec-pinned - legacy CBL0906 compile-rejects this shape at every standard, a documented legacy non-conformance).",
+    "introducedIn": 85,
+    "removedIn": 2023,
+    "obsoleteIn": 2014,
+    "expectDiagnostic": "COBOLNET0902",
+    "vcr": "VCR rows 1+28 (E.2 item 21; E.2 item 1; 14.9.25.3 SR5)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVQTN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE QUOTE TO W-NUM.\n    STOP RUN.\n"
   }
   ]
 }

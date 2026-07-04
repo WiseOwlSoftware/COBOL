@@ -240,13 +240,24 @@ public sealed record PicInfo(
     public static PicInfo Analyze(string picture, Usage usage, EditionContext edition, string where,
         SignSpec? sign = null, char currency = '$', bool blankWhenZero = false)
     {
-        // A TRAILING ';' is the clause SEPARATOR (ISO §6.2 — a semicolon immediately followed by a space is a
-        // separator; ';' is never a PICTURE symbol), over-captured by the lexer's greedy PIC_STRING match
-        // (`77 X PIC 99; VALUE 3` lexes the picture as "99;" — NC203A/245A/251A/252A). Strip it here at the ONE
-        // analysis funnel; the real cure (lexer-mode trim, like its existing trailing-'.' hack) is queued to the
-        // W3 grammar batch. A trailing ',' is NOT stripped — ',' is a legal insertion symbol and the historical
-        // classifier treated it as part of the mask (zero-regression discipline). An EMBEDDED ';' stays 0808.
-        picture = picture.TrimEnd(';');
+        // A TRAILING ';' is the clause SEPARATOR (ISO §8.3.5 rule 2 — a semicolon immediately followed by a
+        // space is a separator; ';' is never a PICTURE symbol), over-captured by the lexer's greedy PIC_STRING
+        // match (`77 X PIC 99; VALUE 3` lexes the picture as "99;" — NC203A/245A/251A/252A). Strip exactly ONE
+        // here at the analysis funnel (one over-captured separator is the only legal shape; `PIC 99;;` and a
+        // bare `PIC ;` remain invalid and fall to the 0808 whitelist below — the adversarial-review fix for the
+        // strip-to-empty leak). The real cure (lexer-mode trim, like its existing trailing-'.' hack) is queued
+        // to the W3 grammar batch. ⚠ A trailing ',' is NOT strippable HERE: §13.18.40.3 SR7 makes a trailing
+        // ',' picture symbol legal when PICTURE is the last clause before the separator period, so
+        // disambiguation needs clause-position context this funnel lacks — `77 X PIC 99, VALUE 3` silently
+        // classifies numeric-edited "99," today (the ';' bug's exact twin, legacy shares it). DOCUMENTED KNOWN
+        // MISBIND (DEVLOG 595; VCR Table 7 row 7.14) — the W3 lexer cure owns both separators.
+        if (picture.EndsWith(';')) picture = picture[..^1];
+        if (picture.Length == 0)
+        {
+            edition.Error("COBOLNET0808", $"invalid PICTURE character-string — {where} "
+                + "(ISO §13.18.40.3 SR2: empty after separating the trailing ';' separator)");
+            return new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false);
+        }
 
         // Expand (n) repetition into a flat symbol run, e.g. "X(4)" → "XXXX", "9(3)V99" → "999V99".
         string expanded = ExpandRepeats(picture);
@@ -265,11 +276,16 @@ public sealed record PicInfo(
             char c = expanded[i];
             switch (c)
             {
-                // '$' stays legal even under a custom §12.3.7 currency symbol — the classification below has
-                // always treated it as an editing symbol unconditionally (the anyEdit set), and this scan must
-                // not reject anything the classifier accepts (the zero-regression discipline of this sweep).
+                // '$' is the currency picture symbol ONLY when no CURRENCY SIGN clause redefines it
+                // (§12.3.7 SR25 default / §13.18.40.3 SR2) — under a custom symbol a stray '$' is not an
+                // allowable picture symbol and previously slipped through as an ungated always-on leniency
+                // (PIC $$$9 under CURRENCY "W" silently produced a wrong-shaped mask; adversarial-review fix,
+                // DEVLOG 595). The corpus's custom-currency programs (NC107A 'W', NC108M '<') use no '$'
+                // pictures, so the gate is corpus-safe.
+                case '$' when cs == '$':
+                    break;
                 case 'A' or 'B' or 'P' or 'S' or 'V' or 'X' or 'Z'
-                    or '0' or '9' or '/' or ',' or '.' or '+' or '-' or '*' or '$':
+                    or '0' or '9' or '/' or ',' or '.' or '+' or '-' or '*':
                     break;
                 case 'C' when i + 1 < expanded.Length && expanded[i + 1] == 'R':
                 case 'D' when i + 1 < expanded.Length && expanded[i + 1] == 'B':
@@ -289,8 +305,11 @@ public sealed record PicInfo(
             if (has1) NotImplementedSkeleton(edition, "boolean-data-2002", "Phase 4a", where);
             if (hasE) NotImplementedSkeleton(edition, "pic-external-float-2002", "Phase 6", where);
             if (invalid is { } bad)
+                // Wording is exact about what IS checked: symbol MEMBERSHIP in the SR2 inventory. The SR2/
+                // §13.18.40.6 precedence-rule validation (symbol ORDER/multiplicity — 'PIC 99.99.99' etc.)
+                // is a separate self-contained table walk, queued (adversarial-review minor, DEVLOG 595).
                 edition.Error("COBOLNET0808", $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
-                    + "(ISO §13.18.40.3 SR2: not an allowable picture symbol combination)");
+                    + "(ISO §13.18.40.3 SR2: not an allowable picture symbol)");
             // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
             // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes).
             return new PicInfo(PicCategory.Alphanumeric, Usage.Display,

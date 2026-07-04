@@ -41,6 +41,23 @@ public sealed partial class StatementBinder
     /// </summary>
     private void MoveFigurativeEditionGates(BoundOperand source, IReadOnlyList<Place> targets)
     {
+        // The §14.9.25.3 SR1 class check FIRST — version-invariant, every sender kind: "The class of
+        // identifier-1 or identifier-2 shall not be index, message-tag, object, or pointer." An index data
+        // item may be referenced only by SET, SEARCH, relation conditions, and as a function/USING argument
+        // (§13.18.60 GR10) — a MOVE operand of class index is invalid at EVERY edition, never an Annex-E
+        // removal (the W2 adversarial review caught the 0902 row mislabeling it "permitted through 2014").
+        // Message-tag/object/pointer classes cannot reach a bound MOVE yet (their usages are compile-gated
+        // skeletons, W2 track B) — this check gains those arms when their phases land.
+        if (source is BoundFieldOperand { Place.Item.Pic.Usage: Usage.Index } sIdx)
+            data.Edition.Error("COBOLNET0809",
+                $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60 GR10 — only SET, "
+                + $"SEARCH, and relation conditions may reference an index data item) — MOVE {sIdx.Place.Item.CobolName}");
+        foreach (var t in targets)
+            if (t.Item.Pic is { Usage: Usage.Index })
+                data.Edition.Error("COBOLNET0809",
+                    $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60 GR10) — "
+                    + $"MOVE … TO {t.Item.CobolName}");
+
         // Classify the SENDER. Only the SR5 alphanumeric figuratives participate: SPACE, QUOTE, HIGH-VALUE,
         // LOW-VALUE, and ALL "literal". (ALL symbolic-character is in SR5's list too, but SYMBOLIC CHARACTERS
         // is not yet bound — its gate rides the same rows when it lands. NULL is not a §8.3.3.6 figurative
@@ -61,6 +78,7 @@ public sealed partial class StatementBinder
         {
             if (t is RefModPlace || t.Item.IsGroup || t.Item.Pic is not { } pic) continue;   // exemptions above
             if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)) continue;
+            if (pic.Usage is Usage.Index) continue;   // class index — SR1 errored above, never an SR5 row
 
             string where = $"MOVE {figText} TO {t.Item.CobolName}";
             // An INTEGER numeric item: fixed-point with no digit positions right of the decimal point (a
@@ -72,8 +90,18 @@ public sealed partial class StatementBinder
                 ConstructRegistry.Check(data.Edition, "move-all-digit-integer-obsolete-2023", where);
                 continue;
             }
-            // Every other shape: removed by ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
-            ConstructRegistry.Check(data.Edition, "move-alphanumeric-figurative-removed-2023", where);
+            // QUOTE is the ONE figurative the spec's own change annex tracks separately: QUOTE→numeric was
+            // designated OBSOLETE by ISO 2014 (Annex E.2 item 21 — "features that were classified as obsolete
+            // in the previous COBOL standard"), then removed with the rest at 2023. Its row therefore carries
+            // obsoleteIn 2014 (0903 warning at 2014) on top of the removal edge — the W2 adversarial review's
+            // correction to VCR row 1's blanket "not even flagged obsolete in 2014" wording.
+            if (source is BoundFigurative { Kind: 'Q' })
+            {
+                ConstructRegistry.Check(data.Edition, "move-quote-numeric-obsolete-2014", where);
+            }
+            else
+                // Every other shape: removed by ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
+                ConstructRegistry.Check(data.Edition, "move-alphanumeric-figurative-removed-2023", where);
 
             // Pre-removal storage (reachable at --std 85/2002/2014 and at 2023 --permissive): a NON-digit fill
             // (SPACE/QUOTE/HIGH-VALUE/LOW-VALUE, or an ALL literal containing a non-digit) deposits the fill
@@ -94,5 +122,26 @@ public sealed partial class StatementBinder
                 && pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                 t.Item.StoreAsImage = true;
         }
+    }
+
+    /// <summary>
+    /// Ref-mod STORE backing (the W2 adversarial-review fix, DEVLOG 595): a MOVE into a reference-modified
+    /// slice of a numeric USAGE-DISPLAY item writes CHARACTERS into the item's character positions
+    /// (§8.4.2.4 — the unique result is an elementary alphanumeric item). Without image backing the resolver
+    /// wraps <c>NumericImagePlace(long)</c> and the spliced image ROUND-TRIPS through the <c>long</c> on
+    /// store, silently losing any non-digit deposit (<c>MOVE SPACE TO N(1:2)</c> left N's digits — and the
+    /// observable result flipped with whether UNRELATED code elsewhere image-backed the item). Mark the
+    /// underlying item <c>StoreAsImage</c> at bind time for EVERY sender kind — digits round-trip either way,
+    /// so the flag is safe, and the byte-semantics model (a ref-mod store is a character-cell write) is what
+    /// §14.6.8's fixed-width transfer implies. Same substrate + eligibility as the figurative pass; a Tier-B
+    /// window already writes character images; a REDEFINES-class member keeps its (already-run) tier
+    /// classification — the emitter's narrow loud guard covers that residue.
+    /// </summary>
+    private static void MarkRefModStoreImage(IReadOnlyList<Place> targets)
+    {
+        foreach (var t in targets)
+            if (t is RefModPlace rm
+                && rm.Item is { Class: null, Pic: { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } } item)
+                item.StoreAsImage = true;
     }
 }

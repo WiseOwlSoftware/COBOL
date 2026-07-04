@@ -221,4 +221,50 @@ public sealed class ReservedWordPositionConformanceTests
         var (ok, diags) = EditionHarness.CompileNist("RW104A", 85);
         Assert.True(ok, $"RW104A --std 85: {string.Join("; ", diags)}");
     }
+
+    // ── The W2 adversarial-review coverage additions (DEVLOG 595): the programName and section-name slots
+    // end-to-end with a BAND token (the unit facts used IDENTIFIER names, which the funnel checks
+    // position-blind anyway). The linkageProcedureParameter arm stays untested by design: its grammar rule
+    // (parameterDescription, CobolData.g4:169) is 2002-gated UDF-prototype surface with no parseable
+    // plain-program shape today — Phase 4(c) owns its witness.
+
+    /// <summary>A program NAMED with a band word: user-definable at 85, 0901 at 2002+ strict (§8.3.2.1 r1;
+    /// SCREEN reserved 2002 — the A.4.2 module word).</summary>
+    [Fact]
+    public void ProgramNamedScreen_At85Compiles_2002Strict0901()
+    {
+        const string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SCREEN.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            """;
+        var (ok85, errors85, warn85) = EditionHarness.CompileFull(source, 85);
+        Assert.True(ok85, string.Join("; ", errors85));
+        EditionHarness.AssertNoDiagnostic(warn85, "COBOLNET0901");
+        var (ok02, diags02) = EditionHarness.Compile(source, 2002);
+        Assert.False(ok02, "--std 2002 strict must reject a program named SCREEN");
+        EditionHarness.AssertHasDiagnostic(diags02, "COBOLNET0901");
+    }
+
+    /// <summary>A SECTION defined with a band word (BIT reserved 2002): 85 clean, 2002 strict 0901.</summary>
+    [Fact]
+    public void SectionNamedBit_At85Compiles_2002Strict0901()
+    {
+        const string source = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. RWPSEC1.
+            PROCEDURE DIVISION.
+            BIT SECTION.
+            MAIN.
+                STOP RUN.
+            """;
+        var (ok85, errors85, warn85) = EditionHarness.CompileFull(source, 85);
+        Assert.True(ok85, string.Join("; ", errors85));
+        EditionHarness.AssertNoDiagnostic(warn85, "COBOLNET0901");
+        var (ok02, diags02) = EditionHarness.Compile(source, 2002);
+        Assert.False(ok02, "--std 2002 strict must reject a section named BIT");
+        EditionHarness.AssertHasDiagnostic(diags02, "COBOLNET0901");
+    }
 }

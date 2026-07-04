@@ -356,4 +356,99 @@ public sealed class MoveEditionDifferentialTests
         if (edition >= 2023) EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0903");
         else EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
     }
+
+    // ── The W2 adversarial-review fixes (DEVLOG 595) ────────────────────────────────────────────────────────
+
+    private static readonly string QuoteToNumeric =
+        Program("MVQTN2", "01 W-NUM PIC 9(3).", "    MOVE QUOTE TO W-NUM.");
+
+    /// <summary>QUOTE→numeric is the ONE figurative the change annex tracks separately: designated OBSOLETE
+    /// by ISO 2014 (Annex E.2 item 21), removed 2023 — row move-quote-numeric-obsolete-2014 warns 0903 at
+    /// 2014 and stays SILENT at 85/2002 (the review's correction to VCR row 1's blanket wording).</summary>
+    [Theory]
+    [InlineData(85, false)]
+    [InlineData(2002, false)]
+    [InlineData(2014, true)]
+    public void QuoteToNumeric_Obsolete0903_ExactlyFrom2014_E2Item21(int edition, bool expectFlag)
+    {
+        var (ok, errors, warnings) = EditionHarness.CompileFull(QuoteToNumeric, edition);
+        Assert.True(ok, string.Join("\n", errors));
+        if (expectFlag) EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0903");
+        else EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
+    }
+
+    /// <summary>The QUOTE row's removal edge: 0902 error strict at 2023, warning + pre-removal run permissive.</summary>
+    [Fact]
+    public void QuoteToNumeric_Removed0902_At2023()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(QuoteToNumeric, 2023);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0902");
+    }
+
+    /// <summary>§14.9.25.3 SR1 — "The class of identifier-1 or identifier-2 shall not be index" — is
+    /// version-INVARIANT (§13.18.60 GR10 admits only SET/SEARCH/relation references), never an Annex-E
+    /// removal row: COBOLNET0809 error at EVERY edition, on the receiver AND the sender arm, and it stays an
+    /// ERROR under --permissive (the review caught the 0902 row mislabeling this "permitted through 2014").</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void MoveIndexOperand_Sr1Rejected_EveryEdition(int edition)
+    {
+        var source = Program("MVIXSR1", "01 IXI USAGE INDEX.\n01 W PIC 9(3).",
+            "    MOVE SPACE TO IXI.\n    MOVE 5 TO IXI.\n    MOVE IXI TO W.");
+        var (ok, errors) = EditionHarness.Compile(source, edition);
+        Assert.False(ok);
+        Assert.Equal(3, errors.Count(e => e.Contains("COBOLNET0809")));
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0902");   // never the edition row
+    }
+
+    [Fact]
+    public void MoveIndexOperand_Sr1_StaysErrorUnderPermissive()
+    {
+        var source = Program("MVIXSR2", "01 IXI USAGE INDEX.", "    MOVE SPACE TO IXI.");
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023, permissive: true);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0809");
+    }
+
+    /// <summary>The ref-mod round-trip-loss fix: a MOVE into a reference-modified slice of a numeric-DISPLAY
+    /// item deposits CHARACTERS (§8.4.2.4 — the unique result is elementary alphanumeric; §8.4.3.3.4 GR5 the
+    /// slice is a subset of the item's character positions). Before the fix the spliced image round-tripped
+    /// through the backing long and silently lost the spaces (printed [003]/NUM); the item is now image-backed
+    /// at bind time for EVERY sender kind. Pinned (no legacy cross-check: the greenfield value matches the
+    /// spec derivation; §14.6.13.2 gives the deterministic NOT-NUMERIC verdict).</summary>
+    [Fact]
+    public void RefModSlice_FigurativeAndLiteralSenders_PreserveCharacters()
+        => AssertPinned(Program("MVRFM1", "01 N PIC 9(3) VALUE 123.\n01 M PIC 9(3) VALUE 456.", """
+                MOVE SPACE TO N (1:2).
+                DISPLAY "[" N "]".
+                IF N IS NUMERIC DISPLAY "NUM" ELSE DISPLAY "NOTNUM".
+                MOVE "AB" TO M (1:2).
+                DISPLAY "[" M "]".
+            """), "[  3]\nNOTNUM\n[AB6]\n");
+
+    /// <summary>The ref-mod receiver is ALPHANUMERIC (§8.4.2.4), so a figurative MOVE into a slice is legal
+    /// at EVERY edition — no 0902 even at 2023 strict (the SR5 exemption the gate honors).</summary>
+    [Fact]
+    public void RefModSlice_FigurativeMove_Legal_At2023Strict()
+    {
+        var source = Program("MVRFM2", "01 N PIC 9(3) VALUE 123.", "    MOVE SPACE TO N (1:2).");
+        var (ok, errors) = EditionHarness.Compile(source, 2023);
+        Assert.True(ok, string.Join("\n", errors));
+    }
+
+    /// <summary>HIGH-VALUE / LOW-VALUE pre-removal fills (§8.3.3.6.4 GR6/GR7 — the highest/lowest ordinal
+    /// character repeated to the receiver's width), pinned by COMPARISON (the fill bytes are unprintable):
+    /// the stored image equals the same figurative, and IS NUMERIC is false. Pinned, no legacy cross-check —
+    /// legacy CBL0906 compile-rejects these at every standard (documented non-conformance vs E.2 item 1).</summary>
+    [Fact]
+    public void HighLowValue_PreRemoval_ImageFill_At85()
+        => AssertPinned(Program("MVHLV1", "01 N PIC 9(3) VALUE 123.", """
+                MOVE HIGH-VALUE TO N.
+                IF N = HIGH-VALUES DISPLAY "EQHV" ELSE DISPLAY "NEHV".
+                IF N IS NUMERIC DISPLAY "NUM" ELSE DISPLAY "NOTNUM".
+                MOVE LOW-VALUE TO N.
+                IF N = LOW-VALUES DISPLAY "EQLV" ELSE DISPLAY "NELV".
+            """), "EQHV\nNOTNUM\nEQLV\n");
 }

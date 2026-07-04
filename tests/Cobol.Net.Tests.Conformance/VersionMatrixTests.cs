@@ -117,12 +117,16 @@ public sealed class VersionMatrixTests
     }
 
     /// <summary>The archaic/obsolete flag contract (P2.6, ISO §4.2.12/§4.2.13): an <c>obsoleteIn</c> row
-    /// COMPILES at every edition (the element remains conforming) and carries its 0903 WARNING exactly at
-    /// editions ≥ obsoleteIn — never below (no NIST-85 noise).</summary>
+    /// COMPILES throughout its availability window (the element remains conforming) and carries the FIXED
+    /// 0903 band WARNING exactly at editions ≥ obsoleteIn — never below (no NIST-85 noise). A DUAL row
+    /// (obsolete then later REMOVED — QUOTE→numeric: obsolete 2014 per Annex E.2 item 21, removed 2023) is
+    /// bounded below its <c>removedIn</c>; the removal edge is the ValidAt/RemovedMatrix theories' job and
+    /// carries the row's <c>expectDiagnostic</c> (0902), while the obsolete verdict's code is ALWAYS 0903
+    /// (<c>ConstructRegistry.Check</c> emits <c>EditionCodes.ObsoleteFlag</c> for every Obsolete verdict).</summary>
     public static IEnumerable<object[]> ObsoleteMatrix()
     {
         foreach (var c in Catalogue.Where(c => c.Status == "active" && c.ObsoleteIn is not null))
-            foreach (int v in EditionHarness.Editions.Where(v => v >= c.IntroducedIn))
+            foreach (int v in EditionHarness.Editions.Where(v => v >= c.IntroducedIn && v < (c.RemovedIn ?? int.MaxValue)))
                 yield return [c.Id, v];
     }
 
@@ -134,9 +138,9 @@ public sealed class VersionMatrixTests
         var (ok, errors, warnings) = EditionHarness.CompileFull(c.Source, edition);
         Assert.True(ok, $"[{constructId}] must COMPILE at COBOL-{edition} (archaic ≠ removed): {string.Join("\n", errors)}");
         if (edition >= c.ObsoleteIn)
-            EditionHarness.AssertHasDiagnostic(warnings, c.ExpectDiagnostic!);
+            EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0903");
         else
-            EditionHarness.AssertNoDiagnostic(warnings, c.ExpectDiagnostic!);
+            EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
     }
 
     /// <summary>INV-1 (continuity), RESTATED at the P2.7 flip (the §10 #1 migration posture): a COBOL-85 NIST

@@ -422,10 +422,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             : send.functionCall() is { } sfc ? IntrinsicOperand(sfc)
             : new BoundOperandError("MOVE source");
         var resolved = ResolveTargets(targets.dataReference());
-        // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128): an alphanumeric figurative or ALL "literal"
-        // moving to a numeric / numeric-edited receiver — 0902 removed at 2023 except the digit-only-ALL-to-integer
-        // case, which is 0903 obsolete (StatementBinder.MoveFigurative.cs).
+        // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128) + the SR1 class-index check: an
+        // alphanumeric figurative or ALL "literal" moving to a numeric / numeric-edited receiver — 0902
+        // removed at 2023 except the digit-only-ALL-to-integer case, which is 0903 obsolete
+        // (StatementBinder.MoveFigurative.cs).
         MoveFigurativeEditionGates(source, resolved);
+        // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.2.4;
+        // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
+        MarkRefModStoreImage(resolved);
         return new BoundMove(source, resolved);
     }
 

@@ -64,14 +64,14 @@ public sealed class LoudGuardTests
     }
 
     [Theory]
-    [InlineData("NATIONAL", "Phase 4a")]
-    [InlineData("BIT", "Phase 4a")]
-    [InlineData("POINTER", "Phase 4b")]
-    [InlineData("OBJECT REFERENCE", "Phase 3")]
-    [InlineData("BINARY-CHAR", "Phase 4")]
-    [InlineData("FLOAT-SHORT", "Phase 6")]
-    [InlineData("FLOAT-LONG", "Phase 6")]
-    [InlineData("FLOAT-EXTENDED", "Phase 6")]
+    [InlineData("NATIONAL", "phase: Phase 4a)")]
+    [InlineData("BIT", "phase: Phase 4a)")]
+    [InlineData("POINTER", "phase: Phase 4b)")]
+    [InlineData("OBJECT REFERENCE", "phase: Phase 3)")]
+    [InlineData("BINARY-CHAR", "phase: Phase 4)")]
+    [InlineData("FLOAT-SHORT", "phase: Phase 6)")]
+    [InlineData("FLOAT-LONG", "phase: Phase 6)")]
+    [InlineData("FLOAT-EXTENDED", "phase: Phase 6)")]
     public void ParseUsage_SkeletonKeyword_NotImplementedErrorAt2023_NamingOwningPhase(string keyword, string phase)
     {
         var ed = Ed(2023);

@@ -106,6 +106,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var ruleStack = recognizer.GetRuleInvocationStack().ToArray();
         string tokenUpper = token.Text?.ToUpperInvariant() ?? "";
 
+        // 0. An edition-gated construct behind the generic error (W1.5, VERSION_TEST_MATRIX_DESIGN P2.8):
+        // the grammar's {isYYYY()}? introduction predicates reject during prediction, so a too-new construct
+        // surfaces as NoViableAlternative — map it to the COBOLNET0900 edition-naming diagnostic (priority 0,
+        // so its code wins the message prefix). Vendor JSON/XML map to COBOL0313 instead (not ISO).
+        if (EditionGateHints.Recognize(recognizer, token, ruleStack) is { } gate)
+            hints.Add(new(
+                gate.Code == "COBOL0313" ? Diagnostics.DiagnosticDescriptors.COBOL0313
+                                         : Diagnostics.DiagnosticDescriptors.COBOLNET0900,
+                gate.Message + ".", 0));
+
         // 1. Missing space before string literal
         if (token.Text?.StartsWith('"') == true && prev != null && IsIdentifier(prev))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0301, "Missing space before string literal.", 20));

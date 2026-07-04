@@ -32,20 +32,20 @@ public sealed class DataSkeletonEditionTests
     /// it is a PARSE error today (W1.5 upgrades that edge to the 0900 diagnostic).</summary>
     public static TheoryData<string, string, string> SkeletonConstructs() => new()
     {
-        { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "Phase 4a" },
-        { "BIT1", "01 WS-B PIC 1(4) USAGE BIT.", "Phase 4a" },
-        { "PTR1", "01 WS-P USAGE POINTER.", "Phase 4b" },
-        { "BCF1", "01 WS-C BINARY-CHAR SIGNED.", "Phase 4" },          // the BARE form (no USAGE word)
-        { "BCF2", "01 WS-D USAGE IS BINARY-CHAR SIGNED.", "Phase 4" }, // the full form — must gate identically
-        { "BCS1", "01 WS-E USAGE BINARY-SHORT.", "Phase 4" },
-        { "BCL1", "01 WS-F USAGE BINARY-LONG UNSIGNED.", "Phase 4" },
-        { "BCD1", "01 WS-G USAGE BINARY-DOUBLE.", "Phase 4" },
-        { "FLS1", "01 WS-H USAGE FLOAT-SHORT.", "Phase 6" },
-        { "FLL1", "01 WS-I USAGE FLOAT-LONG.", "Phase 6" },
-        { "FLX1", "01 WS-J USAGE FLOAT-EXTENDED.", "Phase 6" },
-        { "PICN", "01 WS-N PIC N(4).", "Phase 4a" },                   // national picture, §13.18.40.4 GR9
-        { "PIC1", "01 WS-1 PIC 1(8).", "Phase 4a" },                   // boolean picture, §13.18.40.4 GR8
-        { "PICE", "01 WS-EF PIC 9V99E+99.", "Phase 6" },               // external float, §13.18.40.4 GR13b
+        { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "phase: Phase 4a)" },
+        { "BIT1", "01 WS-B PIC 1(4) USAGE BIT.", "phase: Phase 4a)" },
+        { "PTR1", "01 WS-P USAGE POINTER.", "phase: Phase 4b)" },
+        { "BCF1", "01 WS-C BINARY-CHAR SIGNED.", "phase: Phase 4)" },          // the BARE form (no USAGE word)
+        { "BCF2", "01 WS-D USAGE IS BINARY-CHAR SIGNED.", "phase: Phase 4)" }, // the full form — must gate identically
+        { "BCS1", "01 WS-E USAGE BINARY-SHORT.", "phase: Phase 4)" },
+        { "BCL1", "01 WS-F USAGE BINARY-LONG UNSIGNED.", "phase: Phase 4)" },
+        { "BCD1", "01 WS-G USAGE BINARY-DOUBLE.", "phase: Phase 4)" },
+        { "FLS1", "01 WS-H USAGE FLOAT-SHORT.", "phase: Phase 6)" },
+        { "FLL1", "01 WS-I USAGE FLOAT-LONG.", "phase: Phase 6)" },
+        { "FLX1", "01 WS-J USAGE FLOAT-EXTENDED.", "phase: Phase 6)" },
+        { "PICN", "01 WS-N PIC N(4).", "phase: Phase 4a)" },                   // national picture, §13.18.40.4 GR9
+        { "PIC1", "01 WS-1 PIC 1(8).", "phase: Phase 4a)" },                   // boolean picture, §13.18.40.4 GR8
+        { "PICE", "01 WS-EF PIC 9V99E+99.", "phase: Phase 6)" },               // external float, §13.18.40.4 GR13b
     };
 
     /// <summary>At COBOL-85 every skeleton construct is a 2002 introduction: rejected with the COBOLNET0900
@@ -92,7 +92,7 @@ public sealed class DataSkeletonEditionTests
                 Prog("DSKOREF" + edition, "01 WS-O USAGE OBJECT REFERENCE."), edition);
             Assert.False(ok, $"USAGE OBJECT REFERENCE must not compile silently at --std {edition}");
             EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0899");
-            EditionHarness.AssertHasDiagnostic(errors, "Phase 3");
+            EditionHarness.AssertHasDiagnostic(errors, "phase: Phase 3)");
         }
         var (ok85, _, _) = EditionHarness.CompileFull(Prog("DSKOREF85", "01 WS-O USAGE OBJECT REFERENCE."), 85);
         Assert.False(ok85, "USAGE OBJECT REFERENCE must be rejected at --std 85 (grammar-gated; W1.5 upgrades the diagnostic)");
@@ -149,7 +149,7 @@ public sealed class DataSkeletonEditionTests
             var (ok, errors, _) = EditionHarness.CompileFull(cls, edition);
             Assert.False(ok, $"a class definition must NOT be silently dropped at --std {edition} (ISO §11.2)");
             EditionHarness.AssertHasDiagnostic(errors, "class definition");
-            EditionHarness.AssertHasDiagnostic(errors, "Phase 3");
+            EditionHarness.AssertHasDiagnostic(errors, "phase: Phase 3)");
         }
         var (ok85, _, _) = EditionHarness.CompileFull(cls, 85);
         Assert.False(ok85, "a class definition must be rejected at --std 85 (grammar-gated OO/2002)");

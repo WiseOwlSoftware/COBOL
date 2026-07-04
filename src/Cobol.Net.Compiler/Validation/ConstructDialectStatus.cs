@@ -68,7 +68,7 @@ public static class ConstructRegistry
         new("stop-run-status-2002", "STOP RUN WITH status", 2002, null, null, EditionCodes.Introduction, "ISO §14.9.42"),
         new("based-clause-2002", "BASED clause", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.5"),
         new("procedure-returning-2002", "PROCEDURE DIVISION RETURNING", 2002, null, null, EditionCodes.Introduction, "ISO §14.2"),
-        new("currency-picture-symbol-2002", "CURRENCY SIGN WITH PICTURE SYMBOL", 2002, null, null, EditionCodes.Introduction, "ISO §12.3.7"),
+        new("currency-picture-symbol-2002", "CURRENCY SIGN WITH PICTURE SYMBOL", 2002, null, null, "COBOLNET0893", "ISO §12.3.7; pinned pre-band code (VCR Table 7 row 7.3, DEVLOG 558 — in the roadmap traceability band); the W1.5 registry truth-fix (was mislabeled 0900)"),
         new("pic-wide-19-digits-2002", "fixed-point item wider than 18 digits", 2002, null, null, "COBOLNET0802", "ISO §8.3.1.2 / §13.18.40 (the LIVE digit-capacity gate)"),
         new("options-arithmetic-native-2014", "OPTIONS paragraph / ARITHMETIC IS NATIVE", 2014, null, null, EditionCodes.Introduction, "ISO §11.9"),
         new("rounded-mode-is-2014", "ROUNDED MODE IS", 2014, null, null, EditionCodes.Introduction, "ISO §14.7.4"),
@@ -101,7 +101,8 @@ public static class ConstructRegistry
         new("exit-program-archaic-2023", "the EXIT PROGRAM statement", 85, null, 2023, EditionCodes.ObsoleteFlag, "ARCHAIC in ISO 2023 (Annex F.1; §4.2.12; VCR row 89) — warning only, the element remains conforming"),
         new("next-sentence-archaic-2023", "the NEXT SENTENCE phrase", 85, null, 2023, EditionCodes.ObsoleteFlag, "ARCHAIC in ISO 2023 (Annex F.1; §4.2.12; VCR row 90) — warning only"),
         // ── The P2.8 W2 wave (roadmap Phase 2): MOVE rows (track A) + the loud-guard skeleton rows (track B) ──
-        new("move-alphanumeric-figurative-removed-2023", "MOVE of an alphanumeric figurative constant (SPACE/QUOTE/HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item", 85, 2023, null, EditionCodes.RemovedConstruct, "Annex E.2 item 1 bullet 1; §14.9.25.3 SR5; VCR row 1 — permitted through 2014 (pre-removal semantics preserved permissive), REMOVED 2023 except the digit-only-ALL-to-integer case"),
+        new("move-alphanumeric-figurative-removed-2023", "MOVE of an alphanumeric figurative constant (SPACE/HIGH-VALUE/LOW-VALUE/non-digit ALL) to a numeric or numeric-edited item", 85, 2023, null, EditionCodes.RemovedConstruct, "Annex E.2 item 1 bullet 1; §14.9.25.3 SR5; VCR row 1 — permitted through 2014 (pre-removal semantics preserved permissive), REMOVED 2023 except the digit-only-ALL-to-integer case; QUOTE rides its own dual row (obsolete 2014 first — E.2 item 21)"),
+        new("move-quote-numeric-obsolete-2014", "MOVE of the figurative constant QUOTE to a numeric or numeric-edited item", 85, 2023, 2014, EditionCodes.RemovedConstruct, "Annex E.2 item 21 (obsolete-in-2014) + E.2 item 1 (removed 2023); §14.9.25.3 SR5 — the ONE figurative the change annex tracks separately (W2 adversarial-review correction, DEVLOG 595): 0903 warning at 2014, 0902 at 2023"),
         new("move-all-digit-integer-obsolete-2023", "MOVE of a digit-only ALL literal (or a digit symbolic-character) to an integer numeric item", 85, null, 2023, EditionCodes.ObsoleteFlag, "§14.9.25.3 SR5 + its NOTE; Annex F.2 item 2; VCR rows 92/128 — the sole surviving figurative→numeric MOVE, obsolete-flagged at 2023"),
         new("national-data-2002", "national data (PICTURE symbol N / USAGE NATIONAL)", 2002, null, null, EditionCodes.Introduction, "ISO §8.5.2 category national / §13.18.40 / §13.18.60; skeleton W2 (loud), full Phase 4a; PENDING"),
         new("boolean-data-2002", "boolean data (PICTURE symbol 1 / USAGE BIT)", 2002, null, null, EditionCodes.Introduction, "ISO §8.5.2 category boolean / §13.18.40 / §13.18.60; skeleton W2 (loud), full Phase 4a; PENDING"),
@@ -111,6 +112,12 @@ public static class ConstructRegistry
         new("usage-binary-char-family-2002", "a fixed-width binary usage (BINARY-CHAR/-SHORT/-LONG/-DOUBLE)", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60; Phase 4 reconciliation (M2 catalog); skeleton W2 (loud); PENDING"),
         new("usage-float-long-2002", "USAGE FLOAT-LONG", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.59; D16 split (provisional 2002); PENDING (Phase 6)"),
         new("usage-float-extended-2002", "USAGE FLOAT-EXTENDED", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.59; D16 split (provisional 2002); PENDING (Phase 6)"),
+        // ── The W1.5 parse-layer mapping rows (EditionGateHints; roadmap Phase 2 W1.5, DEVLOG 594) ──
+        new("repository-class-2002", "the REPOSITORY CLASS entry", 2002, null, null, EditionCodes.Introduction, "ISO §12.3.8 (OO); grammar-gated (repositoryEntry); W1.5 parse-layer 0900 mapping"),
+        new("start-with-length-2002", "the START KEY … WITH LENGTH phrase", 2002, null, null, EditionCodes.Introduction, "ISO §14.9.41 (provisional 2002 edge); grammar-gated (startKeyPhrase); W1.5 parse-layer 0900 mapping"),
+        new("special-names-for-national-2002", "the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)", 2002, null, null, EditionCodes.Introduction, "ISO §12.3.7; grammar-gated at three SPECIAL-NAMES sites; W1.5 parse-layer 0900 mapping"),
+        new("call-by-value-2002", "the CALL BY VALUE phrase", 2002, null, null, EditionCodes.Introduction, "ISO §14.9.4; grammar-gated (callByValue); W1.5 parse-layer 0900 mapping"),
+        new("class-definition-2002", "a class definition (CLASS-ID compilation unit)", 2002, null, null, EditionCodes.Introduction, "ISO §11.2/§11.3 (OO); grammar-gated in compilationGroup + 0899 not-implemented at ≥2002 (W2 track B); PENDING (Phase 3)"),
     ];
 
     private static Dictionary<string, ConstructDialectStatus>? _byId;

@@ -1,0 +1,130 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using Antlr4.Runtime;
+using CobolSharp.Compiler.Generated;
+
+namespace CobolSharp.Compiler.Parsing;
+
+/// <summary>
+/// The W1.5 edition-gate diagnostic mapping (VERSION_TEST_MATRIX_DESIGN P2.8 / roadmap Phase 2 W1.5): the
+/// grammar's introduction predicates (<c>{is2002()}?</c> …) reject a too-new construct during ANTLR adaptive
+/// prediction, so the failure surfaces as a GENERIC <c>NoViableAlternative</c> parse error — a G1
+/// co-equal-diagnostic violation (the reject is correct, the diagnosis is not). This table recognizes the
+/// characteristic (offending-token, rule-stack, lookahead) signature of each gated construct and, when the
+/// parser's targeted edition is BELOW the construct's introduction edition, upgrades the message to the
+/// COBOLNET0900 edition-naming form used by <c>ConstructRegistry.Check</c> (one wording, two emit layers).
+/// Every ISO entry names its <c>tests/version-matrix/constructs.json</c> row id — the registry row is the
+/// canonical metadata; this table only maps a PARSE-time surface onto it (bind-time gates keep routing
+/// through the registry itself).
+/// </summary>
+/// <remarks>
+/// Signatures were derived empirically (DEVLOG 594): every gated site probed below its edition reports
+/// <c>NoViableAlternative</c> with the construct's own keyword as (or adjacent to) the offending token.
+/// NOT mapped (documented residue): <c>inlineMethodInvocationStatement</c> (2023 — <c>x(…)</c> has no
+/// distinctive token; the OO wave owns it), <c>parameterDescription</c> (2002 — unreachable without a UDF
+/// prototype context), and <c>SET … TO objectReference</c> (2002 — no signature distinct from the 85 SET
+/// forms). JSON/XML are NOT ISO constructs (0 spec hits; owner decision 2, DEVLOG 581) — they map to the
+/// vendor-extension hint (COBOL0313), never to the 0900 band.
+/// </remarks>
+public static class EditionGateHints
+{
+    /// <summary>One recognized edition-gated construct: the display name, its introducing edition, the ISO
+    /// citation, and the constructs.json row id that canonically carries the metadata.</summary>
+    private readonly record struct Gate(string Display, int IntroducedIn, string Citation, string RowId);
+
+    private static readonly Gate DeleteFile = new("the DELETE FILE statement", 2023, "ISO 2023 §14.9.10 Format 2; Annex E.3.3 item 15", "delete-file-2023");
+    private static readonly Gate Allocate = new("the ALLOCATE statement", 2002, "ISO §14.9.3", "allocate-2002");
+    private static readonly Gate Free = new("the FREE statement", 2002, "ISO §14.9.15", "free-2002");
+    private static readonly Gate Invoke = new("the INVOKE statement", 2002, "ISO §14.9.23 (OO)", "invoke-2002");
+    private static readonly Gate GobackReturning = new("GOBACK RETURNING", 2002, "ISO §14.9.18", "goback-returning-2002");
+    private static readonly Gate ProcedureReturning = new("PROCEDURE DIVISION RETURNING", 2002, "ISO §14.2", "procedure-returning-2002");
+    private static readonly Gate StopRunStatus = new("STOP RUN WITH … STATUS", 2002, "ISO §14.9.42", "stop-run-status-2002");
+    private static readonly Gate StartWithLength = new("the START KEY … WITH LENGTH phrase", 2002, "ISO §14.9.41", "start-with-length-2002");
+    private static readonly Gate Based = new("the BASED clause", 2002, "ISO §13.18.5", "based-clause-2002");
+    private static readonly Gate TypeClause = new("the TYPE clause (TYPEDEF family)", 2002, "ISO §13.18.58; provisional 2002 edge", "type-clause-2002");
+    private static readonly Gate UsageObject = new("USAGE OBJECT REFERENCE", 2002, "ISO §13.18.60 (OO)", "usage-object-reference-2002");
+    private static readonly Gate RepositoryClass = new("the REPOSITORY CLASS entry", 2002, "ISO §12.3.8 (OO)", "repository-class-2002");
+    private static readonly Gate SpecialNamesFor = new("the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)", 2002, "ISO §12.3.7", "special-names-for-national-2002");
+    private static readonly Gate CallByValue = new("the CALL BY VALUE phrase", 2002, "ISO §14.9.4", "call-by-value-2002");
+    private static readonly Gate ClassDefinition = new("a class definition (CLASS-ID compilation unit)", 2002, "ISO §11.2/§11.3 (OO)", "class-definition-2002");
+
+    /// <summary>
+    /// Recognize an edition-gated construct behind a generic parse error. Returns the COBOLNET0900-band
+    /// message when the signature matches AND the parser targets an edition below the construct's
+    /// introduction (at ≥ the introduction edition the same signature means some OTHER syntax problem — the
+    /// generic diagnosis stands). Returns the vendor-extension message for the non-ISO JSON/XML statements at
+    /// every edition. Null = no mapping; the caller keeps its generic hints.
+    /// </summary>
+    public static (string Code, string Message)? Recognize(Parser recognizer, IToken token, string[] ruleStack)
+    {
+        if (recognizer is not CobolParserCoreBase core) return null;
+        int dialect = core.DialectLevel;
+        var stream = (ITokenStream)recognizer.InputStream;
+
+        // The non-ISO vendor statements first — edition-independent (owner decision 2: vendor-dialect,
+        // deferred post-G8; the 0900 band would be a lie, no ISO edition has them).
+        if (token.Type is CobolLexer.JSON or CobolLexer.XML && InRule(ruleStack, "procedureDivision"))
+            return ("COBOL0313",
+                $"{(token.Type == CobolLexer.JSON ? "JSON" : "XML")} GENERATE/PARSE is not an ISO/IEC 1989 construct — "
+                + "vendor-dialect extension, deferred (owner decision 2, DEVLOG 581)");
+
+        // Each condition is dual-path where the site is an OPTIONAL statement tail: the enclosing rule can
+        // have POPPED off the invocation stack by the time the error is reported (the optional subrule's
+        // prediction fails, the rule completes empty, the error surfaces one level up), so the adjacent-token
+        // signature is the fallback the stack test cannot give.
+        Gate? gate = token.Type switch
+        {
+            CobolLexer.DELETE when Next(stream, token, 1)?.Type == CobolLexer.FILE => DeleteFile,
+            CobolLexer.ALLOCATE => Allocate,
+            CobolLexer.FREE => Free,
+            CobolLexer.INVOKE => Invoke,
+            CobolLexer.RETURNING when InRule(ruleStack, "gobackStatement")
+                || Next(stream, token, -1)?.Type == CobolLexer.GOBACK => GobackReturning,
+            // The division-header RETURNING: inside procedureDivision but NOT inside any statement (the
+            // header parses before the first statement rule is entered). CALL … RETURNING is 85-legal and
+            // parses through callReturningPhrase — its stack contains "statement", so it never lands here.
+            CobolLexer.RETURNING when InRule(ruleStack, "procedureDivision") && !InRule(ruleStack, "statement") => ProcedureReturning,
+            CobolLexer.WITH when InRule(ruleStack, "stopStatement")
+                || (Next(stream, token, -1)?.Type == CobolLexer.RUN && Next(stream, token, -2)?.Type == CobolLexer.STOP) => StopRunStatus,
+            CobolLexer.WITH when Next(stream, token, 1)?.Type == CobolLexer.LENGTH
+                && (InRule(ruleStack, "startStatement") || PrevWithin(stream, token, 8, CobolLexer.START)) => StartWithLength,
+            CobolLexer.BASED when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Based,
+            CobolLexer.TYPE when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => TypeClause,
+            CobolLexer.OBJECT when Next(stream, token, 1)?.Type == CobolLexer.REFERENCE
+                && (InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") || Next(stream, token, -1)?.Type == CobolLexer.USAGE) => UsageObject,
+            CobolLexer.CLASS when InRule(ruleStack, "repositoryParagraph") => RepositoryClass,
+            CobolLexer.FOR when InRule(ruleStack, "specialNamesParagraph") => SpecialNamesFor,
+            CobolLexer.BY when InRule(ruleStack, "callStatement") && Next(stream, token, 1)?.Type == CobolLexer.VALUE => CallByValue,
+            CobolLexer.VALUE when InRule(ruleStack, "callStatement") && Next(stream, token, -1)?.Type == CobolLexer.BY => CallByValue,
+            _ => null,
+        };
+
+        // A classDefinition rejected at the compilationGroup level reports the offending token at the unit
+        // start (empirically 'IDENTIFICATION'); the CLASS-ID token a few tokens ahead is the signature.
+        if (gate is null && token.Type is CobolLexer.IDENTIFICATION or CobolLexer.CLASS_ID)
+            for (int i = 0; gate is null && i <= 4; i++)
+                if (Next(stream, token, i)?.Type == CobolLexer.CLASS_ID)
+                    gate = ClassDefinition;
+
+        if (gate is not { } g || dialect >= g.IntroducedIn) return null;
+        return ("COBOLNET0900",
+            $"{g.Display} requires COBOL-{g.IntroducedIn} (targeting COBOL-{dialect}) — {g.Citation} "
+            + $"(constructs.json row {g.RowId})");
+    }
+
+    private static IToken? Next(ITokenStream stream, IToken from, int offset)
+    {
+        int i = from.TokenIndex + offset;
+        return i >= 0 && i < stream.Size ? stream.Get(i) : null;
+    }
+
+    private static bool PrevWithin(ITokenStream stream, IToken from, int window, int tokenType)
+    {
+        for (int i = 1; i <= window; i++)
+            if (Next(stream, from, -i)?.Type == tokenType) return true;
+        return false;
+    }
+
+    private static bool InRule(string[] ruleStack, string ruleName)
+        => ruleStack.Any(r => string.Equals(r, ruleName, StringComparison.OrdinalIgnoreCase));
+}
