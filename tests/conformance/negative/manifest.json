@@ -3,10 +3,12 @@
   "enabled": [
     "author-paragraph",
     "close-with-lock",
+    "copy-replacing-non-pseudo-text",
     "data-records-fd",
     "debugging-mode",
     "exit-function",
     "exit-method",
+    "fixed-form-word-continuation",
     "label-records-fd",
     "memory-size",
     "multiple-file-tape",

@@ -554,6 +554,34 @@
     "expectDiagnostic": "COBOLNET0901",
     "vcr": "VCR row 32 (Annex E.2 item 25); W3 regating (DEVLOG 596)",
     "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWXOR2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 EXCLUSIVE-OR PIC 9 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY EXCLUSIVE-OR.\n    STOP RUN.\n"
+  },
+  {
+    "id": "fixed-form-word-continuation-removed-2023",
+    "description": "Continuation of a COBOL word across fixed-form lines via the col-7 hyphen - permitted through 2014, REMOVED by ISO 2023 (Annex E.2 item 1 bullet 2). Emit site: the frontend ReferenceFormatProcessor (only the column-aware pass sees the indicator); 0902 error strict / warning permissive at 2023, pre-removal join semantics preserved.",
+    "introducedIn": 85,
+    "removedIn": 2023,
+    "expectDiagnostic": "COBOLNET0902",
+    "vcr": "VCR row 2 (E.2 item 1 bullet 2); W3 preprocessor threading (DEVLOG 598)",
+    "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. VMWC1.\n000300 DATA DIVISION.\n000400 WORKING-STORAGE SECTION.\n000500 01 W-LONG-DATA-NA\n000600-    ME PIC 9(3) VALUE 123.\n000700 PROCEDURE DIVISION.\n000800 MAIN.\n000900     DISPLAY W-LONG-DATA-NAME.\n001000     STOP RUN.\n"
+  },
+  {
+    "id": "copy-replacing-non-pseudo-text-removed-2023",
+    "description": "Non-pseudo-text COPY REPLACING operands (identifier/literal/word forms) - permitted through 2014, REMOVED by ISO 2023 (Annex E.2 item 1 bullet 4; ==pseudo-text== is the only conforming shape). Emit site: CopyProcessor (frontend); the source uses a deliberately-missing copybook (the non-strict comment fallback) so the gate is exercised without copybook plumbing.",
+    "introducedIn": 85,
+    "removedIn": 2023,
+    "expectDiagnostic": "COBOLNET0902",
+    "vcr": "VCR row 4 (E.2 item 1 bullet 4); W3 preprocessor threading (DEVLOG 598)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCR1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\nCOPY NOSUCHBOOK REPLACING KWRD BY K-NEW.\n01 W PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+  },
+  {
+    "id": "col7-continuation-obsolete-2023",
+    "description": "The fixed continuation indicator (hyphen in column 7), incl. literal continuation - OBSOLETE as of ISO 2023 (Annex F.2 item 4; use the floating indicator), warning-only (the element remains conforming). Emit site: the frontend ReferenceFormatProcessor, once per compilation.",
+    "introducedIn": 85,
+    "removedIn": null,
+    "obsoleteIn": 2023,
+    "expectDiagnostic": "COBOLNET0903",
+    "vcr": "VCR row 94 (F.2 item 4); W3 preprocessor threading (DEVLOG 598)",
+    "source": "000100 IDENTIFICATION DIVISION.\n000200 PROGRAM-ID. VMLC1.\n000300 DATA DIVISION.\n000400 WORKING-STORAGE SECTION.\n000500 01 W-TXT PIC X(20) VALUE \"AAAAAAAAAA\n000600-    \"BBBBBBBBBB\".\n000700 PROCEDURE DIVISION.\n000800 MAIN.\n000900     DISPLAY W-TXT.\n001000     STOP RUN.\n"
   }
   ]
 }

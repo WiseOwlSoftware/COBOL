@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
 using System.Text.RegularExpressions;
+using CobolSharp.Compiler.Diagnostics;
 
 namespace CobolSharp.Compiler.Preprocessor;
 
@@ -87,14 +88,64 @@ public static class ReferenceFormatProcessor
     /// — mid-file format switching is a documented WS-2002-FORMAT follow-up; the first directive wins.
     /// </summary>
     public static string NormalizeToFreeForm(string sourceText)
+        => NormalizeToFreeForm(sourceText, dialectLevel: 85, permissive: false, diagnostics: null, sourcePath: "<source>");
+
+    /// <summary>
+    /// The edition-aware overload (W3 preprocessor threading, VCR rows 2/4/94 — DEVLOG 598): fixed-form
+    /// continuation carries TWO per-edition obligations the column-blind path cannot see downstream:
+    /// the col-7 hyphen indicator itself is OBSOLETE at 2023 (Annex F.2 item 4 → COBOLNET0903, once per
+    /// compilation), and continuing a COBOL WORD across lines is REMOVED at 2023 (Annex E.2 item 1 bullet 2
+    /// → COBOLNET0902, error strict / warning permissive — the pre-removal join semantics preserved).
+    /// </summary>
+    public static string NormalizeToFreeForm(
+        string sourceText, int dialectLevel, bool permissive, DiagnosticBag? diagnostics, string sourcePath)
     {
+        var gates = diagnostics is null ? null : new EditionGates(dialectLevel, permissive, diagnostics, sourcePath);
         var declared = DetectDeclaredFormat(sourceText);
         if (declared != DeclaredFormat.Auto)
         {
             string stripped = StripSourceFormatDirectives(sourceText);
-            return declared == DeclaredFormat.Fixed ? ConvertFixedToFree(stripped) : stripped;
+            return declared == DeclaredFormat.Fixed ? ConvertFixedToFree(stripped, gates) : stripped;
         }
-        return IsFixedForm(sourceText) ? ConvertFixedToFree(sourceText) : sourceText;
+        return IsFixedForm(sourceText) ? ConvertFixedToFree(sourceText, gates) : sourceText;
+    }
+
+    /// <summary>
+    /// The per-compilation edition gates of the fixed-form continuation mechanism (registry rows
+    /// <c>col7-continuation-obsolete-2023</c> / <c>fixed-form-word-continuation-removed-2023</c>; the emit
+    /// sites live HERE because only the column-aware pass can see the indicator — the metadata stays
+    /// registry-canonical, and the severity policy mirrors <c>EditionContext</c>: removed = error strict /
+    /// warning permissive, obsolete = warning always. One diagnostic per file per gate.
+    /// </summary>
+    private sealed class EditionGates(int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath)
+    {
+        private bool _col7Flagged, _wordFlagged;
+
+        /// <summary>Any col-7 '-' continuation — OBSOLETE at 2023 (Annex F.2 item 4; VCR row 94).</summary>
+        public void OnContinuation(int line)
+        {
+            if (dialectLevel < 2023 || _col7Flagged) return;
+            _col7Flagged = true;
+            diagnostics.ReportWarning("COBOLNET0903",
+                "the fixed continuation indicator (hyphen in column 7) is obsolete as of COBOL-2023 "
+                + "(Annex F.2 item 4; use the floating continuation indicator) — first use at line " + line,
+                new Common.SourceLocation(sourcePath, 0, line, IndicatorColumn), default);
+        }
+
+        /// <summary>A continuation that SPLICES a COBOL word across lines — REMOVED at 2023
+        /// (Annex E.2 item 1 bullet 2; VCR row 2). Pre-removal join semantics are preserved either way.</summary>
+        public void OnWordContinuation(int line)
+        {
+            if (dialectLevel < 2023 || _wordFlagged) return;
+            _wordFlagged = true;
+            const string msg = "continuation of a COBOL word in fixed-form reference format was removed in "
+                + "COBOL-2023 (Annex E.2 item 1 bullet 2) — first use at line ";
+            var loc = new Common.SourceLocation(sourcePath, 0, line, IndicatorColumn);
+            if (permissive)
+                diagnostics.ReportWarning("COBOLNET0902", msg + line, loc, default);
+            else
+                diagnostics.ReportError("COBOLNET0902", msg + line, loc, default);
+        }
     }
 
     /// <summary>Return the format the first <c>&gt;&gt;SOURCE FORMAT</c> directive selects, or Auto if none.</summary>
@@ -189,10 +240,13 @@ public static class ReferenceFormatProcessor
     /// Tracks literal/quote state across lines to correctly handle doubled-quotes
     /// ("") that straddle continuation boundaries (ISO §6.2.2).
     /// </summary>
-    public static string ConvertFixedToFree(string sourceText)
+    public static string ConvertFixedToFree(string sourceText) => ConvertFixedToFree(sourceText, gates: null);
+
+    private static string ConvertFixedToFree(string sourceText, EditionGates? gates)
     {
         var lines = sourceText.Split('\n');
         var result = new StringBuilder();
+        int lineNo = 0;
 
         // Literal state carried across lines for continuation decisions
         bool inLiteral = false;
@@ -204,6 +258,7 @@ public static class ReferenceFormatProcessor
 
         foreach (var rawLine in lines)
         {
+            lineNo++;
             var line = rawLine.TrimEnd('\r');
 
             if (line.Length < SourceAreaStart)
@@ -301,6 +356,15 @@ public static class ReferenceFormatProcessor
                     break;
 
                 case '-':
+                    gates?.OnContinuation(lineNo);
+                    // The WORD-continuation shape (removed 2023, VCR row 2): a NON-literal continuation whose
+                    // splice joins two COBOL word characters (§6.2.4 — the continuation's first nonblank
+                    // immediately follows the preceding line's last nonblank). Literal continuation and
+                    // non-word splices (e.g. after a period or parenthesis) are NOT word continuation.
+                    if (gates is not null && !inLiteral
+                        && LastNonSpace(result) is { } prevCh && IsCobolWordChar(prevCh)
+                        && sourceArea.TrimStart() is { Length: > 0 } contText && IsCobolWordChar(contText[0]))
+                        gates.OnWordContinuation(lineNo);
                     HandleContinuation(result, sourceArea,
                         ref inLiteral, ref pendingQuote);
                     break;
@@ -412,6 +476,19 @@ public static class ReferenceFormatProcessor
                 pendingQuote = true;
             }
         }
+    }
+
+    /// <summary>A COBOL word-forming character (§8.3.1 — letters, digits, hyphen; the underscore joined at
+    /// 2002 and rides the same splice rule).</summary>
+    private static bool IsCobolWordChar(char c) => char.IsLetterOrDigit(c) || c is '-' or '_';
+
+    /// <summary>The last non-space, non-newline character accumulated so far (the splice's LEFT side), or
+    /// null when the previous content is empty.</summary>
+    private static char? LastNonSpace(StringBuilder sb)
+    {
+        for (int i = sb.Length - 1; i >= 0; i--)
+            if (sb[i] is not (' ' or '\n' or '\r')) return sb[i];
+        return null;
     }
 
     /// <summary>

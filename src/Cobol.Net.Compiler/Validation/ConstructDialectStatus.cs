@@ -122,6 +122,12 @@ public static class ConstructRegistry
         new("logical-xor-operator-2023", "the logical XOR/EXCLUSIVE-OR operator", 2023, null, null, EditionCodes.Introduction, "ISO §8.8.4.9; a 2023 addition per Annex E.2 item 25 (VCR rows 32/41 — the chair-adjudicated regating of the former '2002' mislabel); {is2023()}?-gated operator + W1.5 parse-layer 0900 mapping"),
         new("user-word-xor-2023", "the word XOR as a user-defined word", 85, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32); cobolWord-admitted at the W3 regating"),
         new("user-word-exclusive-or-2023", "the word EXCLUSIVE-OR as a user-defined word", 85, 2023, null, EditionCodes.ReservedWord, "§8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32); cobolWord-admitted at the W3 regating"),
+        // ── The W3 preprocessor threading (VCR rows 2/4/94; DEVLOG 598) — emit sites live in the FRONTEND
+        //    (only the column-aware pass sees the col-7 indicator; only the COPY expander sees the operands);
+        //    the severity policy mirrors EditionContext there, and the metadata stays registry-canonical. ──
+        new("fixed-form-word-continuation-removed-2023", "continuation of a COBOL word in fixed-form reference format", 85, 2023, null, EditionCodes.RemovedConstruct, "Annex E.2 item 1 bullet 2; VCR row 2 — emit site: ReferenceFormatProcessor.EditionGates (frontend)"),
+        new("copy-replacing-non-pseudo-text-removed-2023", "a non-pseudo-text COPY REPLACING operand (identifier/literal/word)", 85, 2023, null, EditionCodes.RemovedConstruct, "Annex E.2 item 1 bullet 4; VCR row 4 — emit site: CopyProcessor.OnNonPseudoTextOperand (frontend)"),
+        new("col7-continuation-obsolete-2023", "the fixed continuation indicator (hyphen in column 7)", 85, null, 2023, EditionCodes.ObsoleteFlag, "Annex F.2 item 4; §4.2.13; VCR row 94 — emit site: ReferenceFormatProcessor.EditionGates (frontend); warning only"),
     ];
 
     private static Dictionary<string, ConstructDialectStatus>? _byId;

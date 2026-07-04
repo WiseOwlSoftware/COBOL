@@ -44,6 +44,11 @@ public sealed class Frontend
     /// </summary>
     public int DialectLevel { get; init; } = 85;
 
+    /// <summary>The strict/permissive severity axis (the P2.7 flip) as it applies to PREPROCESSOR-level
+    /// removal gates (the W3 VCR 2/4/94 threading, DEVLOG 598): removed = error strict / warning permissive.
+    /// Defaults strict, matching <c>EditionContext</c>.</summary>
+    public bool Permissive { get; init; }
+
     /// <summary>Add a directory to the COPY copybook search path.</summary>
     public void AddCopySearchPath(string path) => _copySearchPaths.Add(path);
 
@@ -73,7 +78,9 @@ public sealed class Frontend
         string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
 
         raw = ReferenceFormatProcessor.StripNistArchiveMarkers(raw);
-        string text = ReferenceFormatProcessor.NormalizeToFreeForm(raw);
+        // The edition-aware overload carries the fixed-form continuation gates (VCR rows 2/94, W3): only the
+        // column-aware pass can see the col-7 indicator, so the per-edition obligations emit HERE.
+        string text = ReferenceFormatProcessor.NormalizeToFreeForm(raw, DialectLevel, Permissive, diagnostics, sourcePath);
 
         // Conditional compilation runs on free-form text BEFORE COPY so an >>IF may include/omit COPY statements.
         // leaveTurnDirectives: an emitting-branch >>TURN survives for the TurnDirectiveProcessor stage below
@@ -81,7 +88,8 @@ public sealed class Frontend
         text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true);
 
         // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
-        var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false);
+        var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
+            dialectLevel: DialectLevel, permissive: Permissive);
         text = copy.Process(text, sourceDir);
 
         if (NistTestName is { } nist)

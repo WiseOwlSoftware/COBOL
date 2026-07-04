@@ -58,14 +58,18 @@
 > skeleton usages get PicInfo.RecoveryItem, the IndexItem pattern), 2 .outs re-baselined to ISO (§14.9.11.4
 > GR6 full-width DISPLAY; the legacy ConformanceTests gained the guard-style LEGACY_DIVERGENT skip with
 > citations). CI PROVEN on the untracked-Generated path (both jobs green on 01cb96d).
-> **RESUME = W3 part 2 (final):** ④ the notInGrammar 85-acceptance set (RERUN, ENTER, USE FOR DEBUGGING,
-> section segment-numbers — accepted-inert at 85 + 0902 ≥2002, Table-7 rows); ⑤ preprocessor DialectLevel
-> threading (VCR 2/4/94 — CopyProcessor/ReferenceFormatProcessor). Then Phase 3 = the M2 OO port
-> (docs/COBOLNET_OO_DESIGN.md carries the port map; the OO grammar grant is standing). Deferred-from-review
-> (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY figurative-MOVE
-> receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID units (Phase
-> 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits ARITHMETIC IS
-> STANDARD (Phase 4e).**
+> **W3 ⑤ DONE (DEVLOG 598): preprocessor DialectLevel threading — VCR rows 2/4/94 GATED** (the frontend's
+> first edition-aware gates: `ReferenceFormatProcessor.EditionGates` word-continuation 0902 + col-7 0903;
+> `CopyProcessor.OnNonPseudoTextOperand` 0902; `Frontend.Permissive` threaded; frontend-bag warnings now ride
+> `Result.Warnings` on every outcome — they were silently dropped). 3 drift-locked rows + 2 negative
+> witnesses; battery green at conformance 1398/1398.
+> **RESUME = W3 ④ (the LAST Phase-2 item):** the notInGrammar 85-acceptance set (RERUN, ENTER, USE FOR
+> DEBUGGING, section segment-numbers — accepted-inert at 85 + 0902 ≥2002, Table-7 rows; grammar additions ⇒
+> FULL legacy guard). Then Phase 3 = the M2 OO port (docs/COBOLNET_OO_DESIGN.md carries the port map; the OO
+> grammar grant is standing). Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE
+> precedence-table pass; Tier-A/BINARY figurative-MOVE receivers stay runtime-loud; exit-window conforming
+> witnesses need METHOD-ID/FUNCTION-ID units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase
+> 5/7); options_paragraph awaits ARITHMETIC IS STANDARD (Phase 4e).**
 >
 > **(superseded) STATE (DEVLOG 590, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 1 COMPLETE — the EditionValidator Wave 1 landed
 > END-TO-END in one autonomous session (DEVLOG 583–590, commits c0cf723…): P2.1 channels + `Removed()` seam ·

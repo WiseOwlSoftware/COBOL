@@ -64,7 +64,13 @@ public static class CompilerDriver
 
         // Phase 1 — front-end: preprocess + parse.
         var diagnostics = new DiagnosticBag();
-        var frontend = new Frontend.Frontend { NistTestName = options.NistTestName, DialectLevel = options.DialectLevel };
+        var frontend = new Frontend.Frontend
+        {
+            NistTestName = options.NistTestName,
+            DialectLevel = options.DialectLevel,
+            // The preprocessor-level removal gates (VCR 2/4, W3 — DEVLOG 598) honor the same severity axis.
+            Permissive = options.Permissive,
+        };
         foreach (string dir in options.CopyPaths ?? [])
             frontend.AddCopySearchPath(dir);
         // The implementor-defined DEFAULT COBOL LIBRARY (ISO §7.2.3.4 GR3 — "the implementor defines the
@@ -79,9 +85,12 @@ public static class CompilerDriver
             frontend.AddCopySearchPath(copylib);
 
         var tree = frontend.Parse(options.SourcePath, diagnostics);
+        // Frontend WARNINGS (the preprocessor 0902-permissive/0903 gates) ride Result.Warnings on every
+        // outcome, merged ahead of the edition channel's — same contract as edition warnings.
+        var feWarnings = diagnostics.Diagnostics.Where(d => !d.IsError).Select(d => d.ToString()!).ToList();
         if (tree is null || diagnostics.HasErrors)
             return new Result(Outcome.FrontendError, "", null,
-                diagnostics.Diagnostics.Select(d => d.ToString()!).ToList(), []);
+                diagnostics.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()!).ToList(), feWarnings);
 
         // Phase 2 — validate + bind under the targeted EDITION, then emit typed-native C#. Edition-gating
         // diagnostics (the four-compilers rule: a construct the targeted edition lacks or forbids REJECTS the
@@ -91,12 +100,12 @@ public static class CompilerDriver
         var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive);
         new Validation.EditionValidator(edition).Validate(tree);
         if (edition.HasErrors)
-            return new Result(Outcome.BindError, "", null, edition.Diagnostics, edition.Warnings);
+            return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
         // frontend.TurnEvents — the >>TURN directive events (ISO §7.3.25) — build the group's compile-time
         // TurnState (the EC model's checking decisions, conditions-exceptions deep-dive D10).
         string csharp = new CSharpEmitter().Emit(tree, edition, frontend.TurnEvents);
         if (edition.Diagnostics.Count > 0)
-            return new Result(Outcome.BindError, "", null, edition.Diagnostics, edition.Warnings);
+            return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
 
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         string outDir = Path.GetDirectoryName(Path.GetFullPath(outputDll)) is { Length: > 0 } d ? d : ".";
@@ -112,8 +121,8 @@ public static class CompilerDriver
                 backend.Diagnostics
                     .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                     .Select(d => d.ToString())
-                    .ToList(), edition.Warnings);
+                    .ToList(), [.. feWarnings, .. edition.Warnings]);
 
-        return new Result(Outcome.Success, outputDll, csPath, [], edition.Warnings);
+        return new Result(Outcome.Success, outputDll, csPath, [], [.. feWarnings, .. edition.Warnings]);
     }
 }

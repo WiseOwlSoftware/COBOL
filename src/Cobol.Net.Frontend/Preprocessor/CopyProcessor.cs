@@ -14,8 +14,31 @@ public sealed class CopyProcessor(
     IEnumerable<string>? searchPaths = null,
     DiagnosticBag? diagnostics = null,
     string sourceName = "<source>",
-    bool strict = false)
+    bool strict = false,
+    int dialectLevel = 85,
+    bool permissive = false)
 {
+    // One COBOLNET0902 per compilation for the VCR-row-4 gate (COPY REPLACING non-pseudo-text, W3 — DEVLOG 598).
+    private bool _nonPseudoTextFlagged;
+
+    /// <summary>The VCR-row-4 gate: non-pseudo-text COPY REPLACING operands (identifier/literal/word forms)
+    /// were REMOVED by ISO 2023 (Annex E.2 item 1 bullet 4 — "Removal of support for non-pseudo-text operands
+    /// in the replacing phrase of the COPY statement"). Error strict / warning permissive at ≥2023, silent
+    /// below (the ==pseudo-text== form is the only 2023-conforming shape); the pre-removal substitution
+    /// semantics are preserved either way.</summary>
+    private void OnNonPseudoTextOperand(string text, int pos)
+    {
+        if (dialectLevel < 2023 || _nonPseudoTextFlagged || _diagnostics is null) return;
+        _nonPseudoTextFlagged = true;
+        int line = LineOf(text, pos);
+        const string msg = "a non-pseudo-text COPY REPLACING operand (identifier/literal/word) was removed in "
+            + "COBOL-2023 (Annex E.2 item 1 bullet 4) — use ==pseudo-text==; first use at line ";
+        var loc = new Common.SourceLocation(_sourceName, 0, line, 0);
+        if (permissive)
+            _diagnostics.ReportWarning("COBOLNET0902", msg + line, loc, default);
+        else
+            _diagnostics.ReportError("COBOLNET0902", msg + line, loc, default);
+    }
     /// <summary>Maximum COPY nesting depth to prevent infinite recursion.</summary>
     private const int MaxCopyDepth = 20;
 
@@ -332,7 +355,8 @@ public sealed class CopyProcessor(
             {
                 afterCopy += "REPLACING".Length;
                 SkipWhitespace(text, ref afterCopy);
-                ParseReplacements(text, ref afterCopy, replacements);
+                // The VCR-row-4 gate rides the operand reads (COPY only — REPLACE is not in the E.2 removal).
+                ParseReplacements(text, ref afterCopy, replacements, p => OnNonPseudoTextOperand(text, p));
             }
 
             while (afterCopy < text.Length && text[afterCopy] != '.')
@@ -541,7 +565,7 @@ public sealed class CopyProcessor(
     }
 
     private static void ParseReplacements(string text, ref int pos,
-        List<(string from, string to, ReplaceKind kind)> replacements)
+        List<(string from, string to, ReplaceKind kind)> replacements, Action<int>? onNonPseudoText = null)
     {
         while (pos < text.Length && text[pos] != '.')
         {
@@ -555,6 +579,7 @@ public sealed class CopyProcessor(
             else if (MatchWord(text, pos, "TRAILING"))
             { pos += "TRAILING".Length; SkipWhitespace(text, ref pos); kind = ReplaceKind.Trailing; }
 
+            NoteNonPseudoText(text, pos, onNonPseudoText);
             string from = ReadReplaceOperand(text, ref pos);
             SkipWhitespace(text, ref pos);
 
@@ -564,9 +589,21 @@ public sealed class CopyProcessor(
                 SkipWhitespace(text, ref pos);
             }
 
+            NoteNonPseudoText(text, pos, onNonPseudoText);
             string to = ReadReplaceOperand(text, ref pos);
             replacements.Add((from, to, kind));
         }
+    }
+
+    /// <summary>Report an operand about to be read that is NOT <c>==pseudo-text==</c> (the identifier /
+    /// literal / word forms) to <paramref name="onNonPseudoText"/> — the COPY REPLACING call site's VCR-row-4
+    /// gate (removed 2023); the REPLACE statement's caller passes null (REPLACE is pseudo-text-only surface
+    /// and not part of the E.2 removal).</summary>
+    private static void NoteNonPseudoText(string text, int pos, Action<int>? onNonPseudoText)
+    {
+        if (onNonPseudoText is not null
+            && !(pos < text.Length - 1 && text[pos] == '=' && text[pos + 1] == '='))
+            onNonPseudoText(pos);
     }
 
     private static string ReadReplaceOperand(string text, ref int pos)
