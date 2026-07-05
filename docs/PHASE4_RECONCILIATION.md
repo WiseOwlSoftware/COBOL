@@ -27,6 +27,47 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
 | M2-UDF-3 | Separate-compilation function prototypes (§8.13) | open | NOT-STARTED | CobolParserCore.g4:168 FUNCTION-ID is CALL-target only; :426 "WS-2002-UDF follow-up"; no prototype grammar/binder | (c) | **Verified NOT-STARTED.** Depends on UDF-1/2. |
 | M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | PARTIAL | Grammar parses (repository_paragraph.cob green); specifiers inert; functionCall still requires FUNCTION token | (c) | Parse landed, semantic bind unbuilt (ISO §12.3.8). |
 
+### M2-UDF-1 — DECISION-COMPLETE DESIGN (recon workflow wf_a1e33856-215, 2026-07-05; ready to implement)
+
+> Scope: the three whole-source corpus programs `udf_invocation` / `udf_inline_expression` / `udf_value_args`
+> (each a `PROGRAM-ID` caller + a sibling `FUNCTION-ID DOUBLER` with `PROCEDURE DIVISION USING L-X RETURNING L-R`
+> / `COMPUTE L-R = L-X * 2`), invoking `FUNCTION DOUBLER(WS-X)` / `DOUBLER(5)` / `DOUBLER(WS-A + 1)` in COMPUTE/MOVE.
+> Goldens: `C=0042`/`M=0042`, `EXPR=0043`, `LIT=0010`/`ARI=0010`. **No grammar change** (functionCall,
+> functionIdParagraph, `repositoryEntry : FUNCTION functionName INTRINSIC?` all already parse).
+
+- **Spec (ISO 2023).** §9.4 a user function is a FUNCTION-ID unit that behaves like a program but RETURNs a value
+  and is always RECURSIVE (independent activations). §12.3.8.2 the name must appear in the caller's REPOSITORY as
+  `FUNCTION function-prototype-name` (no INTRINSIC) to resolve as a user function (GR12). §8.4.3.2.4 GR5 argument
+  manner: an identifier valid as a receiving operand ⇒ **BY REFERENCE** (`DOUBLER(WS-X)`); a literal / arithmetic
+  expression ⇒ **BY CONTENT** (`DOUBLER(5)`, `DOUBLER(WS-A+1)`) — a private copy, COMPUTE-conformed to the formal
+  (§14.8.2.3.3 rule 2a; copy-in §14.2.3 GR9). §14.6.5 / §14.2.3 NOTE 1: the result is placed in a TEMPORARY item
+  **allocated in the caller** whose description = the RETURNING linkage item. §8.4.3.2.3 SR1: a function-identifier
+  is never a receiving operand.
+- **KEY ENABLER — the bind is TWO-PHASE.** `CSharpEmitter.Call.cs:94` binds EVERY unit's DATA division
+  (`CallBindUnit` → `data.Bind`) before ANY procedure body binds (`:327 binder.Bind`, after `MarkStoreAsImage`).
+  So when a caller's PROCEDURE binds `FUNCTION DOUBLER`, the callee's `data.LinkageReturning` PicInfo + USING
+  formals are ALREADY resolved — the forward reference (DOUBLER follows the caller in-file) is free, exactly as
+  `OoClassTable` gives typed object refs their class defined-later (D1).
+- **Registration.** (a) In `DataBinder.cs:131-135` (the repositoryEntry loop that today reads only PROPERTY), also
+  collect `re.FUNCTION() is not null && re.INTRINSIC() is null ⇒ re.functionName().GetText()` into a new per-unit
+  `UserFunctionNames` set (mirror `OoRepositoryProperties`, :77). (b) Thread the group `CallUnit` list (or a small
+  `UserFunctionTable` name→CallUnit built in `CallCollectUnits`, like `OoClassTable`) into each `StatementBinder`
+  (alongside `OoClasses`) so a call can find DOUBLER's CallUnit → its bound RETURNING DataItem/PicInfo + USING formals.
+- **Dispatch.** `StatementBinder.Intrinsics.cs:55` — on `IntrinsicCatalog.TryGet` MISS, if the name is in the
+  caller's `UserFunctionNames` AND the group table ⇒ bind a new `BoundUserFunctionCall`; else the existing
+  COBOLNET1501. (One point serves both COMPUTE-expr `BindIntrinsic` and MOVE `IntrinsicOperand`.)
+- **Lowering (reuse, no new emit path).** Synthesize a caller-side temp DataItem `__fnres_N` with the RETURNING
+  PicInfo (a Roots-declared field, the property-ref synthesis pattern), bind a `BoundCallProgram` = CALL "DOUBLER"
+  USING «args» RETURNING «temp» (args: identifier→Reference, literal/arith→Content over a temp of the formal's PIC —
+  `BoundCallArg` already models all three modes), and HOIST it before the enclosing statement via the property-ref
+  `BoundSequence` mechanism (`OoWrapPropertyOps`, DEVLOG 607); the expression/operand then reads «temp». Emission is
+  the existing `CallEmitCall` → `ProgramRegistry.CallProgram(...)`; FUNCTION-ID units already emit as callable
+  `_PRG_DOUBLER` with the RETURNING carrier.
+- **Tests / registry / docs.** Flip `udf_invocation`/`udf_inline_expression`/`udf_value_args` pending→enabled
+  (`tests/conformance/2002/manifest.json`); add a `ConstructRegistry` row `user-function-invocation-2002`
+  (IntroducedIn 2002) + a version-matrix row per feedback_conformance_tests_per_feature; a dedicated
+  `UdfInvocationTests` (no-arg/ref/content/nested-in-expr). Unblocks M2-UDF-2 (folds in) and EXIT FUNCTION (M2-PROC-6).
+
 ## M2-DATA — new data types
 
 | ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |

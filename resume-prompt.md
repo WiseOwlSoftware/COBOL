@@ -203,10 +203,15 @@
 > BinaryCapacity path was a documented stub — also cures COMP-5's stubbed overflow); binary_usage.cob
 > byte-exact; PICTURE prohibited COBOLNET0870 (§13.16.3 SR8); implied DISPLAY width 3/5/10/19·20. Battery:
 > Unit 123 · Conformance 1610 (+18) · 0 regressions. Floats (M2-DATA-2) stay Phase 6.
-> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md):** (b)
-> pointers increment 2, (a) national/boolean, (c) UDF invocation, (d) sharing/lock/retry; OO
-> riders queued (interface GET/SET PROPERTY prototypes, group-valued property refs, FACTORY OF usage,
-> object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.
+> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md).** ⭐ NEXT UP
+> and READY: **(c) M2-UDF-1 inline user-defined function invocation — DECISION-COMPLETE DESIGN captured in
+> `docs/PHASE4_RECONCILIATION.md` §"M2-UDF-1 — DECISION-COMPLETE DESIGN" (recon wf_a1e33856-215): no grammar
+> change, the two-phase bind gives forward-ref signatures free, lower to a hoisted CALL…RETURNING temp (the
+> property-ref BoundSequence pattern) over the existing `_PRG_*` callable; enable udf_* goldens. Implement
+> this first — a fresh context should go straight to it.** Then (b) pointers increment 2, (a) national/boolean
+> (note: boolean OPERATORS B-AND/OR/XOR/NOT are NOT in the grammar → owner-approval-gated), (d) sharing/lock/
+> retry (grammar-gated too); OO riders queued (interface GET/SET PROPERTY prototypes, group-valued property
+> refs, FACTORY OF usage, object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits
