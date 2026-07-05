@@ -139,7 +139,9 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         return CombineNative(a, op, b);
     }
 
-    private bool StandardDecimal => ctx.Data.Options.Arithmetic == ArithmeticMode.StandardDecimal;
+    // Plain STANDARD arithmetic uses the standard DECIMAL intermediate for fixed-point operands (§8.8.1.2 /
+    // §8.8.1.4 — identical to STANDARD-DECIMAL there; the float divergence is staged loud, DEVLOG 611 track (e)).
+    private bool StandardDecimal => ctx.Data.Options.Arithmetic is ArithmeticMode.StandardDecimal or ArithmeticMode.Standard;
 
     private string IntermediateMode => $"CobolRounding.{ctx.Data.Options.IntermediateRounding}";
 

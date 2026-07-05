@@ -964,9 +964,15 @@ public sealed partial class CSharpEmitter
         if (target.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } mask })
         {
             int ms = CobolEdit.MaskScale(mask, _ctx.Data.CurrencyPicSymbol, _ctx.Data.DecimalPointIsComma);
-            string aligned = value.Dec ? $"({value.Expr}).ToUnscaled({ms}, CobolRounding.{mode})"
+            // The narrowing rescale: under ON SIZE ERROR / EC-SIZE, a PROHIBITED-inexact transfer to an edited
+            // receiver is a size error (ISO §14.7.4.3 r7 — the receiver stays UNCHANGED). The Dec path's
+            // .ToUnscaled and the numeric path's TryStore already throw/flag on that; the Int128 edited path used
+            // plain Rescale (silent truncation) — the DEVLOG-610-audited PROHIBITED leak. Use RescaleChecked in
+            // the checked branch so all three receiver categories agree; the unchecked branch stays silent
+            // (matching the numeric Store path's no-phrase behavior).
+            string Aligned(bool checkedPath) => value.Dec ? $"({value.Expr}).ToUnscaled({ms}, CobolRounding.{mode})"
                 : value.Scale == ms ? value.Expr
-                : $"CobolNum.Rescale({value.Expr}, {value.Scale}, {ms}, CobolRounding.{mode})";
+                : $"CobolNum.{(checkedPath ? "RescaleChecked" : "Rescale")}({value.Expr}, {value.Scale}, {ms}, CobolRounding.{mode})";
             // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule
             // 2): an aligned |value| exceeding the mask's digit positions sets the flag and leaves the receiver
             // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§14.9.25).
@@ -976,11 +982,11 @@ public sealed partial class CSharpEmitter
                 // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
                 // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
                 string onFail = _sizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
-                w.Line($"if (!CobolEdit.TryFormat({aligned}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)}{EditCfg()})) {onFail}");
+                w.Line($"if (!CobolEdit.TryFormat({Aligned(true)}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)}{EditCfg()})) {onFail}");
                 w.Line($"else {target.Write(img)}");
                 return;
             }
-            w.Line(target.Write($"CobolEdit.Format({aligned}, {ms}, {CsLiteral(mask)}{BwzFlag(target.Item)}{EditCfg()})"));
+            w.Line(target.Write($"CobolEdit.Format({Aligned(false)}, {ms}, {CsLiteral(mask)}{BwzFlag(target.Item)}{EditCfg()})"));
             return;
         }
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })

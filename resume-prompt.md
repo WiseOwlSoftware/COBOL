@@ -189,8 +189,10 @@
 > **PHASE 4 OPEN (DEVLOG 610): the reconciliation audit LANDED** — `docs/PHASE4_RECONCILIATION.md` is the
 > greenfield-truth view (catalog ☑ marks are legacy-only mirages: all M2-DATA + UDF-invocation rows stage
 > LOUD; M2-PROC-4 EC + the OO umbrella are actually done). Per-track sizing there.
-> **RESUME = the Phase-4 tracks, sized against truth:** (e) arithmetic FIRST (smallest —
-> rounded_mode_prohibited move-COMPUTE checked-store leak + options_paragraph rebaseline), then (a)
+> **(e) arithmetic DONE (DEVLOG 611)** — the PROHIBITED-inexact edited-receiver cure (CobolNum.RescaleChecked;
+> the leak was the edited-store path's plain Rescale) + ARITHMETIC IS STANDARD positive behavior (routes to
+> the CobolDec engine for fixed-point, §8.8.1.2/§8.8.1.4; removed at 2023); both 2014 goldens enabled.
+> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md):** (a)
 > national/boolean, (c) UDF invocation, (b) pointers on ManagedPointer, (d) sharing/lock/retry; OO
 > riders queued (interface GET/SET PROPERTY prototypes, group-valued property refs, FACTORY OF usage,
 > object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.

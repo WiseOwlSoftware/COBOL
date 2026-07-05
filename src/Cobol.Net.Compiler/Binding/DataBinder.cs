@@ -96,17 +96,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         Options = OptionsBinder.Bind(program, Edition);   // captured even when there is no WORKING-STORAGE
 
-        // ARITHMETIC mode validity (§11.9.5 / §8.8.1): NATIVE and STANDARD-DECIMAL are implemented;
-        // STANDARD-BINARY is spec-obsolete (§8.8.1.4.1 NOTE 1) and documented-unsupported; plain STANDARD (the
-        // 2014 mode) was dropped by the 2023 revision (§8.8.1.2 names only the three) and is unsupported here.
+        // ARITHMETIC mode validity (§11.9.5 / §8.8.1): NATIVE, STANDARD-DECIMAL, and — as of Phase-4 track (e),
+        // DEVLOG 611 — plain STANDARD are implemented. STANDARD arithmetic (§8.8.1.2) performs operations in the
+        // standard intermediate data item; for FIXED-POINT (non-float) operands that item IS the standard
+        // DECIMAL form (§8.8.1.4), so STANDARD and STANDARD-DECIMAL produce identical results — STANDARD routes
+        // to the same CobolDec engine (NumericRenderer.StandardDecimal). The two diverge only for FLOATING-POINT
+        // operands (STANDARD may use an IEEE-binary intermediate); the float USAGE families are staged loud
+        // (PicInfo COBOLNET0899, Phase 6/D16), so no reachable STANDARD program observes the divergence yet —
+        // when the float types land they carry the STANDARD-binary-intermediate leg. STANDARD was DROPPED by
+        // ISO/IEC 1989:2023 (§8.8.1 names only NATIVE/STANDARD-BINARY/STANDARD-DECIMAL) → a removed-feature error
+        // at --std 2023. STANDARD-BINARY is spec-obsolete (§8.8.1.4.1 NOTE 1) and documented-unsupported.
         if (Options.Arithmetic == ArithmeticMode.StandardBinary)
             Edition.Error("COBOLNET0806", "ARITHMETIC IS STANDARD-BINARY is an obsolete feature (ISO §8.8.1.4.1 "
                 + "NOTE 1 / Annex F) and is not supported; use NATIVE or STANDARD-DECIMAL");
-        else if (Options.Arithmetic == ArithmeticMode.Standard)
-            Edition.Error("COBOLNET0807", Edition.DialectLevel >= 2023
-                ? "ARITHMETIC IS STANDARD was dropped by ISO/IEC 1989:2023 (§8.8.1 defines NATIVE, "
-                  + "STANDARD-BINARY, STANDARD-DECIMAL); use STANDARD-DECIMAL"
-                : "ARITHMETIC IS STANDARD (the 2014 mode) is not supported; use STANDARD-DECIMAL or NATIVE");
+        else if (Options.Arithmetic == ArithmeticMode.Standard && Edition.DialectLevel >= 2023)
+            Edition.Error("COBOLNET0807", "ARITHMETIC IS STANDARD was dropped by ISO/IEC 1989:2023 "
+                + "(§8.8.1 defines NATIVE, STANDARD-BINARY, STANDARD-DECIMAL); use STANDARD-DECIMAL");
 
         // The '85 debug facility's compile-time switch (X3.23-1985 SOURCE-COMPUTER … WITH DEBUGGING MODE; the
         // clause itself is 0902-gated ≥2002 by the EditionValidator): its presence decides whether a USE FOR

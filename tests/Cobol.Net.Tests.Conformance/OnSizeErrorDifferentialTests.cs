@@ -131,4 +131,28 @@ public sealed class OnSizeErrorDifferentialTests
     [Fact]
     public void NoPhrase_NormalArithmetic_Unaffected()
         => AssertSameAsLegacy(Program("01 R PIC 9(2).", "    ADD 1 2 GIVING R.\n    DISPLAY R."));
+
+    // ── ROUNDED MODE IS PROHIBITED into a numeric-EDITED receiver: an inexact transfer is a size error
+    //    (§14.7.4.3 r7 → EC-SIZE-TRUNCATION), receiver UNCHANGED. The DEVLOG-610-audited leak: the edited-store
+    //    path used plain CobolNum.Rescale (silent truncation) while the numeric path's TryStore checked it; the
+    //    RescaleChecked cure makes all three receiver categories agree. 2014-only (ROUNDED MODE is 2014+). The
+    //    fix lives in the ONE shared StoreArith edited branch, so it holds across COMPUTE / ADD-GIVING / DIVIDE. ──
+    [Theory]
+    [InlineData("COMPUTE E ROUNDED MODE IS PROHIBITED = A")]                 // 2.25 → 9.9 inexact
+    [InlineData("ADD A B GIVING E ROUNDED MODE IS PROHIBITED")]             // 1.15+1.10 = 2.25
+    [InlineData("DIVIDE A BY B GIVING E ROUNDED MODE IS PROHIBITED")]       // 1.15/1.10 inexact
+    public void ProhibitedInexact_EditedReceiver_FiresSizeError_Unchanged(string verb)
+        => AssertOutput(Program(
+            "01 A PIC 9V99 VALUE 1.15.\n        01 B PIC 9V99 VALUE 1.10.\n        01 E PIC 9.9.",
+            $"    MOVE 8.8 TO E.\n    {verb}\n        ON SIZE ERROR DISPLAY \"SE\".\n    DISPLAY E."),
+            "SE\n8.8", needs2014: true);
+
+    // The EXACT counterpart binds without a size error and stores (2.20 into 9.9 is exact).
+    [Fact]
+    public void ProhibitedExact_EditedReceiver_Stores()
+        => AssertOutput(Program(
+            "01 A PIC 9V99 VALUE 2.20.\n        01 E PIC 9.9.",
+            "    MOVE 8.8 TO E.\n    COMPUTE E ROUNDED MODE IS PROHIBITED = A\n        "
+            + "NOT ON SIZE ERROR DISPLAY \"OK\".\n    DISPLAY E."),
+            "OK\n2.2", needs2014: true);
 }

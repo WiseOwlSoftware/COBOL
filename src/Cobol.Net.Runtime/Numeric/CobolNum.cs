@@ -33,6 +33,20 @@ public static class CobolNum
         return RoundDiv(value, Pow10Wide(fromScale - toScale), mode);
     }
 
+    /// <summary>The size-error-CHECKED sibling of <see cref="Rescale"/> for a numeric-EDITED receiver's final
+    /// transfer (ISO §14.7.4.3 r7): under <see cref="CobolRounding.Prohibited"/> an inexact narrowing throws
+    /// <see cref="CobolSizeError"/> — the caller's ON SIZE ERROR / EC-SIZE machinery catches it and leaves the
+    /// receiver UNCHANGED. Mirror of the numeric path's <see cref="TryStore"/> Prohibited check and the
+    /// standard-decimal <c>CobolDec.ToUnscaled</c> throw, so all three receiver categories agree. Every other
+    /// mode rescales normally (a rounding mode is never a size error by rescale).</summary>
+    public static Int128 RescaleChecked(Int128 value, int fromScale, int toScale, CobolRounding mode)
+    {
+        if (mode == CobolRounding.Prohibited && IsInexactAtScale(value, fromScale, toScale))
+            throw new CobolSizeError("ROUNDED MODE IS PROHIBITED on an inexact transfer to an edited receiver "
+                + "(ISO §14.7.4.3 r7 — EC-SIZE-TRUNCATION; the receiver is left unchanged)");
+        return Rescale(value, fromScale, toScale, mode);
+    }
+
     /// <summary>
     /// Store an arithmetic result (the unscaled integer <paramref name="value"/> at <paramref name="valueScale"/>)
     /// into the receiver: rescale to the receiver's scale (rounding with <paramref name="mode"/>), drop any

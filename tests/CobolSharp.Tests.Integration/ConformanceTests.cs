@@ -85,6 +85,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // The EC-OO wave (§14.9.29 RAISE identifier / §14.9.49 F4 / §14.6.13.1.5) — net-new (DEVLOG 609):
         ("2002", "oo_ec_raise_object"),
         ("2002", "oo_ec_goback_raising"),
+        // Phase-4 track (e), DEVLOG 611: ARITHMETIC IS STANDARD routes fixed-point through the standard
+        // DECIMAL intermediate (§8.8.1.2/§8.8.1.4 — 2/7*7 = 2.00000); the FROZEN legacy engine does not
+        // implement that routing (it gives the native-clipped 1.99997), so this is greenfield-only.
+        ("2014", "options_paragraph"),
     ];
 
     [Theory]

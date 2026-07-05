@@ -3,10 +3,9 @@
   "enabled": [
     "corresponding_rounded_mode",
     "options_default_rounded",
+    "options_paragraph",
+    "rounded_mode_prohibited",
     "rounded_modes"
   ],
-  "pending": [
-    "options_paragraph",
-    "rounded_mode_prohibited"
-  ]
+  "pending": []
 }
