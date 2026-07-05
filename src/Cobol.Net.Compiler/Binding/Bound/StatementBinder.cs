@@ -267,7 +267,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
         if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
         if (e.METHOD() is not null) return OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
-        if (e.FUNCTION() is not null) return new BoundUnsupported("EXIT FUNCTION (FUNCTION-ID units — Phase 4)");
+        if (e.FUNCTION() is not null) return UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
         return new BoundNop();   // bare EXIT
     }
 

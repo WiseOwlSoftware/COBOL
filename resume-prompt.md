@@ -223,11 +223,15 @@
 > unit 123 · 0 regressions. Residue named in the reconciliation as-built: UDF-3 prototypes (1505), UDF-4
 > ALL-INTRINSIC/keyword-omitted legs, EXIT FUNCTION (unblocked), class-unit UDF refs, BY VALUE header
 > formals, per-evaluation activation (1509), the category-carrying result channel (1510).
+> **EXIT FUNCTION leg DONE (DEVLOG 616)** — UdfBindExitFunction → BoundGoback (§14.9.18.4 GR5 synonym;
+> RAISING rides GOBACK's), 0827 placement band, exit-function-window matrix row ACTIVE (witness +
+> expectDiagnosticBelow 0900 / 0902-at-2023 + the permissive leg), udf_exit_function golden X=0014
+> (6 udf goldens). Track (c) residue = M2-UDF-3 prototypes + M2-UDF-4 legs only.
 > **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md).** ⭐ NEXT UP:
 > **(b) pointers increment 2 — ADDRESS OF (byte-backing) / BASED / SET ADDRESS OF / ALLOCATE-FREE** (grammar
 > already wired at CobolParserCore.g4 allocate/free; no .g4 change needed; based_pointer/pointer_alloc/
-> pointer_arith goldens PENDING) — or the small EXIT FUNCTION leg (M2-PROC-6, now unblocked, needs the
-> in-function placement flag + the exit-function-window row flip). Then (a) national/boolean
+> pointer_arith goldens PENDING; design against the pointer increment-1 carrier notes + the ManagedPointer
+> deep-dive seams before coding). Then (a) national/boolean
 > (note: boolean OPERATORS B-AND/OR/XOR/NOT are NOT in the grammar → owner-approval-gated), (d) sharing/lock/
 > retry (grammar-gated too); OO riders queued (interface GET/SET PROPERTY prototypes, group-valued property
 > refs, FACTORY OF usage, object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.

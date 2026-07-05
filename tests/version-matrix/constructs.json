@@ -357,13 +357,14 @@
     },
     {
       "id": "exit-function-window",
-      "status": "pending",
-      "description": "EXIT FUNCTION statement - introduced 2002 (OO/UDF), REMOVED 2023 (Annex E; dual-obligation window: 0900 below 2002, 0902 at 2023). PENDING (rationale corrected per the W2 adversarial review, DEVLOG 595): the source COMPILES at 2002/2014 today only because the placement SR (the statement may appear only inside a method/function definition - cf. the 14.9.14.3 rule-7 pattern) is unimplemented, and the emitted stub is runtime-loud; a conforming positive source needs a METHOD-ID/FUNCTION-ID unit plus per-edition expectDiagnostic support (0900 at 85 vs 0902 at 2023). Reactivates with Phase 3/4c.",
+      "status": "active",
+      "description": "EXIT FUNCTION statement - introduced 2002 with user-defined functions, REMOVED 2023 (Annex E :49036; dual-obligation window: 0900 below 2002 via expectDiagnosticBelow, 0902 at 2023). ACTIVE as of Phase 4c (DEVLOG 616): the binder realizes the function-return synonym (UdfBindExitFunction -> BoundGoback, the 14.9.18.4 GR5 semantics) with the 0827 placement band (only in a function definition); the conforming witness is a whole-source caller + FUNCTION-ID unit (the udf_exit_function golden proves the early-return behavior X=0014). At 85 the {is2002()}? PD-header RETURNING parse hint names the edition (0900).",
       "introducedIn": 2002,
       "removedIn": 2023,
       "expectDiagnostic": "COBOLNET0902",
       "vcr": "VCR row 6 (Annex E @49036)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XF.\nPROCEDURE DIVISION.\nMAIN.\n    EXIT FUNCTION.\n    STOP RUN.\n"
+      "expectDiagnosticBelow": "COBOLNET0900",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. XFMX1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION XFDBL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = FUNCTION XFDBL(21).\n    STOP RUN.\nEND PROGRAM XFMX1.\nIDENTIFICATION DIVISION.\nFUNCTION-ID. XFDBL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(4).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nP.\n    COMPUTE L-R = L-X * 2.\n    EXIT FUNCTION.\nEND FUNCTION XFDBL.\n"
     },
     {
       "id": "exit-program-archaic-2023",

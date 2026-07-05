@@ -329,6 +329,56 @@ public sealed class UdfInvocationTests
         Assert.True(ok, string.Join("\n", errors));
     }
 
+    /// <summary>EXIT FUNCTION placement (the 0827 EXIT-family band): the pre-2023 function-return synonym
+    /// may appear only in a function definition — in a program procedure division it is rejected.</summary>
+    [Fact]
+    public void ExitFunction_OutsideFunction_0827()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Group("UDFT15", "    EXIT FUNCTION."), 2002);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0827");
+    }
+
+    /// <summary>The exit-function-window removal edge (Annex E.2 :49036): valid at 2002/2014, 0902 at 2023
+    /// strict (the matrix row's RemovedMatrix theory proves the permissive migration contract). The runtime
+    /// early-return behavior is the udf_exit_function golden (X=0014).</summary>
+    [Fact]
+    public void ExitFunction_Window()
+    {
+        string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDFT16.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION UDFT16F.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-R PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                COMPUTE WS-R = FUNCTION UDFT16F(3).
+                STOP RUN.
+            END PROGRAM UDFT16.
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UDFT16F.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(4).
+            01 L-R PIC 9(4).
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            P.
+                COMPUTE L-R = L-X * 2.
+                EXIT FUNCTION.
+            END FUNCTION UDFT16F.
+            """;
+        var (ok02, e02, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.True(ok02, string.Join("\n", e02));
+        var (ok23, e23, _) = EditionHarness.CompileFull(src, 2023);
+        Assert.False(ok23, "EXIT FUNCTION was removed by 2023 (Annex E.2) — strict must reject");
+        EditionHarness.AssertHasDiagnostic(e23, "COBOLNET0902");
+    }
+
     /// <summary>The staged RETURNING categories (COBOLNET1510): only an elementary fixed-point numeric
     /// result is implemented — a group or alphanumeric RETURNING would silently mis-carry (a Pic-less temp /
     /// a numeric comparison of string data), so both fail loud by name.</summary>

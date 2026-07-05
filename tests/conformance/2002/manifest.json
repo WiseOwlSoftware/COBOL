@@ -33,6 +33,7 @@
     "repository_paragraph",
     "sort_table_format2",
     "table_value_occurs",
+    "udf_exit_function",
     "udf_inline_expression",
     "udf_invocation",
     "udf_nested_args",

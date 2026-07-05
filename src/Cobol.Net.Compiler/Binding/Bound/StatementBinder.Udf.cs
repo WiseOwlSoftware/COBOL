@@ -188,6 +188,29 @@ public sealed partial class StatementBinder
         return new BoundSequence([.. taken, core]);
     }
 
+    /// <summary>EXIT FUNCTION (pre-2023 editions — introduced 2002 with user functions, REMOVED by 2023,
+    /// Annex E.2 :49036; the <c>exit-function-window</c> registry row flags 0900/0902 at the window edges
+    /// via the EditionValidator, mirroring EXIT METHOD): inside a function definition it is the
+    /// function-return synonym — equivalent to GOBACK (the §14.9.18.4 GR5 semantics: the activation
+    /// terminates and the RETURNING item's value becomes the function result); outside one it violates its
+    /// placement rule (the 0827 EXIT-family placement band). The optional RAISING tail stages exactly like
+    /// GOBACK RAISING (§14.9.18 GR — re-raised in the activator).</summary>
+    private BoundStatement UdfBindExitFunction(Core.ExitStatementContext e)
+    {
+        if (UdfSelfName is null)
+        {
+            data.Edition.Error("COBOLNET0827",
+                "EXIT FUNCTION may be specified only in a function definition (the pre-2023 §14.9.14 "
+                + "function form of the EXIT statement; this is not a function procedure division)");
+            return new BoundNop();
+        }
+        if (e.raisingPhrase() is { } raising)
+            return EcBindRaising(raising, e.Start.Line, "EXIT FUNCTION") is { } r
+                ? new BoundGoback(null, r)
+                : new BoundUnsupported("EXIT FUNCTION RAISING identifier (exception object — ISO §14.9.14)");
+        return new BoundGoback(null);
+    }
+
     /// <summary>The §8.8.4.13 short-circuit guard for combined conditions: rule 1 terminates a hierarchical
     /// level's evaluation as soon as its truth value is determined, and rule 2 evaluates functions "if and
     /// when the conditions containing them are evaluated" — so a user-function reference in any operand
