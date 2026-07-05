@@ -87,10 +87,12 @@ public sealed partial class CSharpEmitter
         var (units, classes) = CallCollectUnits(tree, edition);
         _callUidBand = 0;
         foreach (var cls in classes) OoBindClassData(cls, edition);   // ALL signatures before ANY body (D1 pass-1)
+        _ooClasses.ValidateOverrideSignatures(edition);               // §9.3.8.2 — after all formals resolve (slice 3a)
         foreach (var cls in classes) OoBindClassBody(cls);
         foreach (var unit in units) CallBindUnit(unit, edition);
         foreach (var cls in classes) MarkStoreAsImage(cls.Data);
         foreach (var unit in units) MarkStoreAsImage(unit.Data);
+        OoHarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a

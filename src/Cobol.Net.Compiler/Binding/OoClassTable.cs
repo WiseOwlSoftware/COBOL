@@ -25,6 +25,154 @@ public sealed class OoClassTable
     /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive).</summary>
     public OoClassSymbol? Find(string name) => _byName.TryGetValue(name, out var c) ? c : null;
 
+    /// <summary>Validate every override's SIGNATURE against the overridden method (§9.3.8.2 method-signature
+    /// conformance: the same formal count with identical descriptions, and identical RETURNING items — via
+    /// <see cref="DescriptionMismatch"/>, the ONE description-equality check shared with INVOKE argument
+    /// conformance so the two rules can never drift apart). Runs AFTER every class's data has bound (formals
+    /// resolve at data-bind time, not pass-1). A violation is COBOLNET0829 — a COBOL-worded bind diagnostic,
+    /// never a Roslyn CS0508/CS0115 on user source (the G4 rule).</summary>
+    public void ValidateOverrideSignatures(EditionContext edition)
+    {
+        foreach (var cls in _classes)
+            foreach (var m in cls.Methods)
+            {
+                if (m.OverrideOf is not { } baseM) continue;
+                string where = $"class '{cls.Name}', method '{m.Name}' overriding '{baseM.Name}'";
+                if (m.Formals.Count != baseM.Formals.Count)
+                {
+                    edition.Error("COBOLNET0829", $"{where}: {m.Formals.Count} formal parameter(s) vs the "
+                        + $"overridden method's {baseM.Formals.Count} (ISO §9.3.8.2 — an override's signature "
+                        + "shall conform)");
+                    continue;
+                }
+                for (int i = 0; i < m.Formals.Count; i++)
+                    if (DescriptionMismatch(baseM.Formals[i].Item, m.Formals[i].Item) is { } err)
+                        edition.Error("COBOLNET0829", $"{where}: formal parameter #{i + 1} "
+                            + $"('{m.Formals[i].Item.CobolName}'): {err} (ISO §9.3.8.2)");
+                if ((m.Returning is null) != (baseM.Returning is null))
+                    edition.Error("COBOLNET0829", $"{where}: RETURNING presence differs from the overridden "
+                        + "method (ISO §9.3.8.2)");
+                else if (m.Returning is { } r && baseM.Returning is { } br)
+                {
+                    // §9.3.8.2.3 rules 5a/5c2 — a COVARIANT object-reference RETURNING is legal: a universal
+                    // base accepts any object-reference override; a typed base accepts the SAME class or a
+                    // SUBCLASS (C# 9+ covariant returns render it directly). Everything else stays the strict
+                    // rule-6 identical-description check.
+                    if (r.Pic is { Category: PicCategory.ObjectReference } rp
+                        && br.Pic is { Category: PicCategory.ObjectReference } brp)
+                    {
+                        if (ObjectRefWideningMismatch(rp, brp) is { } werr)
+                            edition.Error("COBOLNET0829", $"{where}: RETURNING item: {werr} "
+                                + "(ISO §9.3.8.2.3 rules 5a/5c2 — the override's class shall be the same "
+                                + "class or a subclass of the overridden method's)");
+                    }
+                    else if (DescriptionMismatch(br, r) is { } rerr)
+                        edition.Error("COBOLNET0829", $"{where}: RETURNING item: {rerr} (ISO §9.3.8.2)");
+                }
+            }
+    }
+
+    /// <summary>The ONE strict IDENTICAL-DESCRIPTION check — §14.8.2.3.2 (BY REFERENCE parameters ONLY; BY
+    /// CONTENT follows §14.8.2.3.3 COMPUTE/MOVE/SET rules in the binder mode dispatch) and §9.3.8.2
+    /// override-signature validation. Identical = same category; numeric: same USAGE + SIGN representation +
+    /// BLANK WHEN ZERO + digits + scale + sign; alphanumeric: same length + JUSTIFIED; object reference: same
+    /// declared class; group: image crossing with equal character length (except the §14.8.2.2 rule-1 BY
+    /// REFERENCE prefix case — <paramref name="byRefGroupPrefix"/> allows a SMALLER formal). Null when
+    /// conformant. This strictness keeps BY REFERENCE marshaling TYPE-PRESERVING (the slice-2 design fact);
+    /// CONTENT conversions qualify the owner class internal profiles instead.</summary>
+    public static string? DescriptionMismatch(DataItem formal, DataItem arg, bool byRefGroupPrefix = false)
+    {
+        if (formal.IsGroup)
+        {
+            if (!(arg.IsGroup || arg.Pic?.Category is PicCategory.Alphanumeric))
+                return "a group formal requires a group or alphanumeric argument";
+            if (arg.IsGroup && !arg.IsImageCapable)
+                return "the argument group has a float/COMP-5/INDEX leaf (no character image — Tier-C)";
+            if (!formal.IsImageCapable)
+                return "the formal group has a float/COMP-5/INDEX leaf (no character image — Tier-C)";
+            // §14.8.2.2 rule 1 (BY REFERENCE): the formal may be SMALLER than (a prefix of) the argument —
+            // the callee sees the leading formal-width character positions; the tail survives write-back.
+            // Override signatures and RETURNING pairs keep strict equality.
+            return byRefGroupPrefix
+                ? (formal.ImageWidth > arg.ImageWidth
+                    ? $"the formal ({formal.ImageWidth} character positions) exceeds the argument "
+                      + $"({arg.ImageWidth}) (ISO §14.8.2.2 rule 1 — the formal shall not be larger)"
+                    : null)
+                : arg.ImageWidth != formal.ImageWidth
+                    ? $"character length mismatch (formal {formal.ImageWidth}, argument {arg.ImageWidth})"
+                    : null;
+        }
+        if (formal.Pic is not { } f)
+            return "the formal parameter has no resolvable description (PICTURE-less item — a later slice)";
+        if (arg.IsGroup)
+        {
+            if (f.Category is not PicCategory.Alphanumeric)
+                return "a group argument requires a group or alphanumeric formal";
+            if (!arg.IsImageCapable) return "the argument group has no character image (Tier-C)";
+            return byRefGroupPrefix
+                ? (f.Length > arg.ImageWidth
+                    ? $"the formal ({f.Length} character positions) exceeds the argument "
+                      + $"({arg.ImageWidth}) (ISO §14.8.2.2 rule 1)"
+                    : null)
+                : arg.ImageWidth != f.Length
+                    ? $"character length mismatch (formal {f.Length}, argument {arg.ImageWidth})"
+                    : null;
+        }
+        if (arg.Pic is not { } a)
+            return "the argument has no resolvable description (PICTURE-less item — a later slice)";
+        if (f.Category != a.Category)
+            return $"category mismatch (formal {f.Category}, argument {a.Category})";
+        switch (f.Category)
+        {
+            case PicCategory.ObjectReference:
+                return string.Equals(f.ObjectClassName, a.ObjectClassName, StringComparison.OrdinalIgnoreCase)
+                    ? null
+                    : $"declared class mismatch (formal '{f.ObjectClassName ?? "universal"}', argument "
+                      + $"'{a.ObjectClassName ?? "universal"}')";
+            case PicCategory.Numeric:
+                if (f.Usage != a.Usage)
+                    return $"USAGE mismatch (formal {f.Usage}, argument {a.Usage} — §14.8.2.3.2 rule 2 "
+                        + "requires the same USAGE clause BY REFERENCE)";
+                if (f.ImageSignKind != a.ImageSignKind)
+                    return $"SIGN clause mismatch (formal {f.ImageSignKind}, argument {a.ImageSignKind} — "
+                        + "§14.8.2.3.2 rule 2: the SIGN clauses shall be the same)";
+                if (formal.BlankWhenZero != arg.BlankWhenZero)
+                    return "BLANK WHEN ZERO mismatch (§14.8.2.3.2 rule 2)";
+                return f.Digits != a.Digits || f.Scale != a.Scale || f.Signed != a.Signed
+                    ? $"numeric description mismatch (formal {(f.Signed ? "S" : "")}9({f.Digits}) scale "
+                      + $"{f.Scale}, argument {(a.Signed ? "S" : "")}9({a.Digits}) scale {a.Scale})"
+                    : null;
+            case PicCategory.Alphanumeric:
+                if (formal.Justified != arg.Justified)
+                    return "JUSTIFIED mismatch (§14.8.2.3.2 rule 2)";
+                return f.Length != a.Length
+                    ? $"length mismatch (formal X({f.Length}), argument X({a.Length}))"
+                    : null;
+            default:
+                return $"formal category {f.Category} is not yet carried across INVOKE";
+        }
+    }
+
+    /// <summary>The §14.8.3.3-rule-1 / SET-SR12a2 WIDENING direction for object-reference assignment pairs
+    /// (INVOKE RETURNING delivery, BY CONTENT object-reference arguments, covariant override RETURNING —
+    /// specs/ISO_COBOL.md:25456-25458, :31340): a UNIVERSAL receiver accepts any object reference; a typed
+    /// receiver accepts the SAME class or a SUBCLASS. Distinct from <see cref="DescriptionMismatch"/> strict
+    /// identity, which stays correct for BY REFERENCE (§14.8.2.3.2) and invariant override formals.</summary>
+    public string? ObjectRefWideningMismatch(PicInfo sender, PicInfo receiver)
+    {
+        if (receiver.ObjectClassName is not { } recvName) return null;   // universal receiver (SET SR8)
+        if (sender.ObjectClassName is not { } sendName)
+            return "a UNIVERSAL object reference does not conform to a typed receiver "
+                + "(ISO SET SR12 — the sender shall be of the receiver class or a subclass)";
+        var sendCls = Find(sendName);
+        var recvCls = Find(recvName);
+        if (sendCls is null || recvCls is null)
+            return $"unresolvable class in the pair (sender {sendName} to receiver {recvName})";
+        return sendCls.ConformsTo(recvCls)
+            ? null
+            : $"class {sendName} is not {recvName} or one of its subclasses (ISO SET SR12a2 via §14.8.3.3 rule 1)";
+    }
+
     /// <summary>
     /// Build the table from the group's class definitions (pass-1: identity + roster only — no data or statement
     /// binding). Structural diagnostics raised here, each per its ISO rule: duplicate class name / emitted-type
@@ -68,12 +216,16 @@ public sealed class OoClassTable
             {
                 string methodName = m.methodName(0).GetText();
                 var pd = m.procedureDivision();
+                string mcs = DataItem.Sanitize(methodName).ToUpperInvariant();
+                // CS0542 guard: a C# member may not be named like its enclosing type — a METHOD-ID named like
+                // its CLASS-ID is legal COBOL (§8.4.5 distinct name categories), so the SYMBOL renames.
+                if (mcs == csName) mcs += "_M";
                 var method = new OoMethodSymbol(
                     methodName,
-                    DataItem.Sanitize(methodName).ToUpperInvariant(),
                     HasUsing: pd?.usingClause() is not null,
                     HasReturning: pd?.returningClause() is not null,
-                    m);
+                    m)
+                { CsName = mcs, Owner = sym };
                 if (!sym.TryAddMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate method name '{methodName}' — method names shall be unique "
@@ -92,20 +244,55 @@ public sealed class OoClassTable
         {
             if (sym.BaseName is not { } baseName) continue;
             if (table.Find(baseName) is { } baseSym)
-            {
                 sym.Base = baseSym;
-                // The INHERITS EMISSION (`: BASE`, override-under-exact-name, depth ordering) is port slice 3a —
-                // recognized but staged loud until it lands; the resolved link above already lets method lookup
-                // walk the chain (§9.3.6).
-                edition.Error("COBOLNET0899",
-                    $"class '{sym.Name}': INHERITS FROM '{baseName}' (ISO §11.3.2) is recognized but not yet "
-                    + "implemented (owning roadmap phase: Phase 3, OO port slice 3a)");
-            }
             else
                 edition.Error("COBOLNET0821",
                     $"class '{sym.Name}': INHERITS FROM unknown class '{baseName}' — object-class-name-2 shall "
                     + "reference a class defined in the compilation group (ISO §11.3.2; never degraded to a "
                     + "root class)");
+        }
+
+        // An inheritance CYCLE would emit circular C# base declarations — a Roslyn CS error on user source
+        // (the loud-failure violation). Reject at pass-1 and CUT the link so downstream chain walks stay finite.
+        foreach (var sym in table._classes)
+        {
+            var seen = new HashSet<OoClassSymbol> { sym };
+            for (OoClassSymbol? b = sym.Base; b is not null; b = b.Base)
+                if (!seen.Add(b))
+                {
+                    edition.Error("COBOLNET0820",
+                        $"class '{sym.Name}': the INHERITS chain is cyclic through '{b.Name}' (ISO §11.3.2 — "
+                        + "a class shall not inherit from itself directly or indirectly)");
+                    sym.Base = null;
+                    break;
+                }
+        }
+
+        // OVERRIDE detection (slice 3a — §9.3.6 runtime-class dispatch / D7): a subclass method whose name
+        // matches a base-chain method OVERRIDES it (the corpus and the legacy write overrides WITHOUT the
+        // OVERRIDE attribute — the grammar does not carry §11.7's [OVERRIDE]/[IS FINAL] attributes yet, so
+        // §11.7 SR4a's redefinition-without-OVERRIDE error is a DOCUMENTED leniency until they land; the
+        // uppercase CsName convention already neutralizes the legacy case-mismatch trap #2 — both spellings
+        // map to ONE emitted name). The override's SIGNATURE must conform (§9.3.8.2: corresponding formals
+        // and returning items with identical descriptions) — mismatch is COBOLNET0829, never a Roslyn CS
+        // error on user source.
+        foreach (var sym in table._classes)
+        {
+            if (sym.Base is null) continue;
+            foreach (var m in sym.Methods)
+                if (sym.Base.FindMethod(m.Name) is { } baseM)
+                {
+                    m.OverrideOf = baseM;
+                    // C# requires the override member to reuse the base slot's exact name (which may carry a
+                    // collision suffix). The one unrepresentable corner: the base slot's name equals THIS
+                    // class's type name — reject loud, never a raw Roslyn CS0542 on user source (G4 rule).
+                    m.CsName = baseM.CsName;
+                    if (m.CsName == sym.CsName)
+                        edition.Error("COBOLNET0820",
+                            $"class '{sym.Name}': the inherited method '{m.Name}' collides with the class's "
+                            + "own emitted type name (implementation restriction — rename the class or the "
+                            + "method; §8.3.2.2 externalized-name mapping)");
+                }
         }
         return table;
     }
@@ -163,9 +350,20 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
 /// bind time (BEFORE any statement binds, so every INVOKE site in the group sees the full signature) — the
 /// resolved formal list, RETURNING item, and data roots (port slice 2, deep-dive D3/D6).</summary>
 public sealed record OoMethodSymbol(
-    string Name, string CsName, bool HasUsing, bool HasReturning,
+    string Name, bool HasUsing, bool HasReturning,
     CobolParserCore.MethodDefinitionContext Ctx)
 {
+    /// <summary>The emitted C# method name. Starts as the sanitized-uppercase COBOL name; an OVERRIDE adopts
+    /// its base slot's name verbatim (C# requires the override member name to match), and a collision with
+    /// the owning class's type name (C# CS0542) or an emitted field takes a deterministic suffix — always a
+    /// SYMBOL-level rename so every INVOKE site in the group follows automatically (§8.3.2.2: the
+    /// user-word→externalized-name mapping is implementor-defined).</summary>
+    public required string CsName { get; set; }
+
+    /// <summary>The class that declares this method (set at pass-1) — the marshaling qualifier for the
+    /// formal's class-level statics (numeric profiles) at CONTENT-conversion call sites.</summary>
+    public OoClassSymbol Owner { get; set; } = null!;
+
     /// <summary>The method's contiguous pc range in its class's one dispatch space — assigned by
     /// <c>StatementBinder.BindClassBody</c> (the exit-bounded range IS the fall-through guard: running past
     /// the last paragraph returns from the method, never into a sibling's paragraphs — the legacy trap #4).</summary>
@@ -193,6 +391,13 @@ public sealed record OoMethodSymbol(
 
     /// <summary>The method's own name scope (§11.7 GR5 shadowing; sibling invisibility — trap #6).</summary>
     public OoMethodDataScope DataScope { get; } = new();
+
+    /// <summary>The base-chain method this method OVERRIDES (slice 3a — §9.3.6 dispatch is on the runtime
+    /// class; D7: emitted as C# <c>override</c>), or null for a fresh <c>virtual</c> slot. Marked at pass-1
+    /// by name (the OVERRIDE attribute is not in the grammar yet — the documented SR4a leniency); the
+    /// SIGNATURE conformance (§9.3.8.2) validates after all class data binds
+    /// (<see cref="OoClassTable.ValidateOverrideSignatures"/>).</summary>
+    public OoMethodSymbol? OverrideOf { get; set; }
 }
 
 /// <summary>One resolved USING formal: the LINKAGE item (its <see cref="DataItem.CsName"/> is the capturable

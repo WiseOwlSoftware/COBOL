@@ -776,7 +776,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         var drefs = s.dataReference();
         string tableName = drefs[0].cobolWord()?.GetText() ?? drefs[0].GetText();
-        if (!data.ByName.TryGetValue(tableName, out var candidates)
+        if (data.LookupData(tableName) is not { } candidates
             || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
             return new BoundUnsupported($"SEARCH of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
@@ -816,7 +816,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
     {
         string tableName = s.dataReference().cobolWord()?.GetText() ?? s.dataReference().GetText();
-        if (!data.ByName.TryGetValue(tableName, out var candidates)
+        if (data.LookupData(tableName) is not { } candidates
             || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
             return new BoundUnsupported($"SEARCH ALL of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
@@ -840,7 +840,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// not the data-item tree), else <see langword="null"/>.</summary>
     private string? IndexFieldOf(Core.DataReferenceContext dref) =>
         dref.dataReferenceSuffix().Length == 0 && dref.cobolWord()?.GetText() is { } w
-        && data.IndexFields.TryGetValue(w, out var f) ? f : null;
+        && data.TryGetVisibleIndexField(w, out var f) ? f : null;
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 

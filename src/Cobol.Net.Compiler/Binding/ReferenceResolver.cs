@@ -540,7 +540,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// decision NOT yet made when this bind-time text is produced) exactly as a native <c>long</c>.</summary>
     private string? ResolveSubscriptName(string name, List<string> qualifiers)
     {
-        if (qualifiers.Count == 0 && data.IndexFields.TryGetValue(name, out var field)) return field;
+        if (qualifiers.Count == 0 && data.TryGetVisibleIndexField(name, out var field)) return field;
         DataItem? item = qualifiers.Count == 0 ? ResolveUnqualified(name) : ResolveQualified(name, qualifiers);
         return item is not null && AccessPath(item, []) is { } path ? $"CobolTable.Occ({path})" : null;
     }

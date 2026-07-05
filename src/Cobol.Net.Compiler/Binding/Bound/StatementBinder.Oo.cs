@@ -15,6 +15,13 @@ public enum InvokeForm
     /// <summary><c>INVOKE obj "M" …</c> → <c>RequireNonNull(obj).M(…)</c> — virtual dispatch on the runtime
     /// class (§9.3.6) behind the §14.9.23.4 GR5 null guard.</summary>
     Instance,
+    /// <summary><c>INVOKE SELF "M" …</c> → <c>this.M(…)</c> — VIRTUAL dispatch on the RUNTIME class
+    /// (§8.4.3.8 GR2: a subclass override wins even when the SELF call sits in an inherited base method —
+    /// oo_self_polymorphic). Never null — no guard (slice 3b).</summary>
+    Self,
+    /// <summary><c>INVOKE SUPER "M" …</c> → <c>base.M(…)</c> — NON-virtual, resolution STARTS at the base
+    /// class (§8.4.3.8 GR3 restricted search), so an override calling its base cannot recurse (slice 3b).</summary>
+    Super,
 }
 
 /// <summary>A bound INVOKE (ISO §14.9.23; deep-dive D5): the RESOLVED call form plus everything the backend
@@ -26,7 +33,8 @@ public enum InvokeForm
 /// §14.9.23.4 GR8); <paramref name="Args"/> carries the positionally-bound USING arguments (D6 — GR3).</summary>
 public sealed record BoundInvoke(
     InvokeForm Form, string? ClassCsName, Place? Receiver, string? MethodCsName, Place? Returning,
-    IReadOnlyList<BoundInvokeArg>? Args = null, DataItem? ReturningSource = null)
+    IReadOnlyList<BoundInvokeArg>? Args = null, DataItem? ReturningSource = null,
+    string? OwnerCsName = null)
     : BoundStatement;
 
 /// <summary>One bound INVOKE argument (deep-dive D6; §14.9.23.4 GR6): the FORMAL it corresponds to
@@ -35,7 +43,8 @@ public sealed record BoundInvoke(
 /// numeric text), and whether the argument writes back (BY REFERENCE identifier — changes visible to the
 /// caller; BY CONTENT and the §14.9.23.3 SR 10 object-data auto-CONTENT case do not).</summary>
 public sealed record BoundInvokeArg(
-    DataItem Formal, Place? Source, string? NumericLiteral, string? StringLiteral, bool WriteBack);
+    DataItem Formal, Place? Source, string? NumericLiteral, string? StringLiteral, bool WriteBack,
+    bool ByContent = false);
 
 /// <summary>A method-context <c>GOBACK</c> / (pre-2023) <c>EXIT METHOD</c> (ISO §14.9.18.4 GR4; deep-dive D8 —
 /// the one decision that silently miscompiles if missed): terminates the executing METHOD only, returning
@@ -50,6 +59,11 @@ public sealed partial class StatementBinder
     /// <summary>The group's pass-1 class symbol table (deep-dive D1) — set by the run-unit emitter before
     /// binding so INVOKE resolves classes/methods defined anywhere in the group. Null ⇔ empty group.</summary>
     public OoClassTable? OoClasses { get; set; }
+
+    /// <summary>The CLASS whose method bodies this binder is binding (set by the emitter's OoBindClassBody;
+    /// null in a program unit) — the SELF/SUPER resolution root (§8.4.3.8: SELF resolves on the current
+    /// class's chain, SUPER starts at its BASE; slice 3b).</summary>
+    public OoClassSymbol? OoCurrentClass { get; set; }
 
     /// <summary>The paragraph scope of ONE method body (ISO §11.7 — the legacy per-method scope algorithm,
     /// ported): paragraph and section names declare METHOD-LOCALLY; PERFORM/GO TO inside the method resolve
@@ -154,23 +168,62 @@ public sealed partial class StatementBinder
     {
         var target = inv.invokeTarget().objectReference();
 
-        // The method selector: a nonnumeric literal binds statically; identifier-2 (a method name held in a
-        // data item) is legal ONLY through a universal receiver (§14.9.23.3 SR7) — the D10 dynamic wave.
-        string? methodName = inv.invokeMethodName().literal() is { } lit
-            ? lit.nonNumericLiteral()?.STRINGLIT() is { } sl ? DecodeCobolString(sl.GetText()) : null
-            : null;
+        // The method selector: an alphanumeric/national literal binds statically (§14.9.23.3 SR2);
+        // identifier-2 (a method name held in a data item) is legal ONLY through a universal receiver
+        // (§14.9.23.3 SR7) — the D10 dynamic wave.
         if (inv.invokeMethodName().dataReference() is not null)
             return new BoundUnsupported("INVOKE with identifier-2 as the method selector (a method name held "
                 + "in a data item — universal/dynamic dispatch, ISO §14.9.23.3 SR7; deep-dive D10 wave)");
+        string? methodName = OoDecodeMethodNameLiteral(inv.invokeMethodName().literal());
         if (methodName is null)
         {
             data.Edition.Error("COBOLNET0823",
-                "INVOKE: literal-1 (the method name) shall be a nonnumeric literal (ISO §14.9.23.3 SR5)");
+                "INVOKE: literal-1 (the method name) shall be of class alphanumeric or national "
+                + "(ISO §14.9.23.3 SR2)");
+            return new BoundNop();
+        }
+        if (methodName.Length == 0)
+        {
+            data.Edition.Error("COBOLNET0823",
+                "INVOKE: literal-1 shall not be a zero-length literal (ISO §14.9.23.3 SR2)");
             return new BoundNop();
         }
 
         if (target.SELF() is not null || target.SUPER() is not null)
-            return new BoundUnsupported("INVOKE SELF/SUPER (ISO §8.4.3.8 — port slice 3b)");
+        {
+            // Slice 3b — §8.4.3.8: SELF/SUPER are the predefined object references of the CURRENT method's
+            // object; legal only within a method body.
+            bool isSuper = target.SUPER() is not null;
+            if (!InMethod || OoCurrentClass is not { } cur)
+            {
+                data.Edition.Error("COBOLNET0827",
+                    $"INVOKE {(isSuper ? "SUPER" : "SELF")} may be specified only within a method definition "
+                    + "(ISO §8.4.3.8 — the predefined object references of the current object)");
+                return new BoundNop();
+            }
+            OoClassSymbol searchRoot;
+            if (!isSuper)
+                searchRoot = cur;   // GR2 — resolve on the current class's chain; dispatch on the RUNTIME class
+            else if (cur.Base is { } b)
+                searchRoot = b;     // GR3 — the restricted search STARTS at the base class
+            else
+            {
+                // Trap #7 — SUPER in a root class is a clean compile diagnostic, never an internal error.
+                data.Edition.Error("COBOLNET0827",
+                    $"INVOKE SUPER in class '{cur.Name}', which INHERITS from no class (ISO §8.4.3.8 — SUPER "
+                    + "references the inherited class's methods)");
+                return new BoundNop();
+            }
+            if (searchRoot.FindMethod(methodName) is not { } sm)
+            {
+                data.Edition.Error("COBOLNET0825",
+                    $"INVOKE {(isSuper ? "SUPER" : "SELF")} \"{methodName}\": class '{searchRoot.Name}' (and "
+                    + "its inheritance chain) does not define a method named '" + methodName + "' "
+                    + "(ISO §14.9.23.3 SR4g/SR4i — the SELF/SUPER method-name placement rules)");
+                return new BoundNop();
+            }
+            return OoBindResolvedInvoke(inv, sm, isSuper ? InvokeForm.Super : InvokeForm.Self, null);
+        }
         if (target.dataReference() is not { } dref)
         {
             data.Edition.Error("COBOLNET0823",
@@ -266,7 +319,14 @@ public sealed partial class StatementBinder
                 + "for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b)");
             return new BoundNop();
         }
+        return OoBindResolvedInvoke(inv, m, InvokeForm.Instance, receiver);
+    }
 
+    /// <summary>The shared USING + RETURNING binding tail for a RESOLVED method — the Instance / SELF / SUPER
+    /// forms differ only in receiver resolution and dispatch rendering (§8.4.3.8), never in marshaling.</summary>
+    private BoundStatement OoBindResolvedInvoke(
+        Core.InvokeStatementContext inv, OoMethodSymbol m, InvokeForm form, Place? receiver)
+    {
         // ── USING marshaling (slice 2 — D6; §14.9.23.4 GR3: positional correspondence) ──
         var argCtxs = inv.invokeUsing()?.invokeArgument() ?? [];
         if (argCtxs.Length != m.Formals.Count)
@@ -314,35 +374,43 @@ public sealed partial class StatementBinder
                     + "resolvable to storage");
                 return new BoundNop();
             }
-            if (OoConformanceError(m.Returning!, rp.Item) is { } err)
+            // §14.8.3.3 rule 1: the RETURNING delivery conforms "as if a SET statement were performed" —
+            // for object references that is the WIDENING direction (universal receiver accepts anything; a
+            // typed receiver accepts the same class or a subclass — SET SR12a2), NOT the §14.8.2.3.2
+            // identity rule. Everything else keeps the strict description check.
+            string? rerr = m.Returning!.Pic is { Category: PicCategory.ObjectReference } sendPic
+                    && rp.Item.Pic is { Category: PicCategory.ObjectReference } recvPic
+                ? OoClasses?.ObjectRefWideningMismatch(sendPic, recvPic)
+                : OoConformanceError(m.Returning!, rp.Item);
+            if (rerr is not null)
             {
                 data.Edition.Error("COBOLNET0828",
-                    $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': {err} (ISO §14.8.3 returning-item "
-                    + "conformance)");
+                    $"INVOKE \"{m.Name}\" RETURNING '{retRef.GetText()}': {rerr} (ISO §14.8.3.3 "
+                    + "returning-item conformance)");
                 return new BoundNop();
             }
             retPlace = rp;
         }
-        return new BoundInvoke(InvokeForm.Instance, null, receiver, m.CsName, retPlace, args, m.Returning);
+        return new BoundInvoke(form, null, receiver, m.CsName, retPlace, args, m.Returning, m.Owner.CsName);
     }
 
-    /// <summary>Bind ONE INVOKE argument against its positional formal (§14.9.23.4 GR6 + §14.9.23.3 SR5/SR9/
-    /// SR10 + §14.8.2 conformance). Null on a diagnostic (the caller drops the statement — the compile already
-    /// failed).</summary>
+    /// <summary>Bind ONE INVOKE argument against its positional formal — the conformance RULE is selected
+    /// by the EFFECTIVE passing mode (§14.9.23.4 GR6): BY REFERENCE takes §14.8.2.3.2 strict identity (with
+    /// the §14.8.2.2 rule-1 group-prefix allowance); BY CONTENT — explicit, the §14.9.23.3 SR 10 object-data
+    /// auto-CONTENT, and every literal — takes §14.8.2.3.3: COMPUTE rules for a numeric formal (any numeric
+    /// argument), SET rules for an object-reference formal (widening), MOVE rules otherwise. A
+    /// reference-modified argument conforms by its EFFECTIVE description (a unique elementary alphanumeric
+    /// item of the window length, §8.4.2.4). Null on a diagnostic.</summary>
     private BoundInvokeArg? OoBindInvokeArg(Core.InvokeArgumentContext arg, DataItem formal, string methodName)
     {
-        string Err(string msg)
-        {
-            data.Edition.Error("COBOLNET0828", $"INVOKE \"{methodName}\": {msg}");
-            return msg;
-        }
+        void Err(string msg) => data.Edition.Error("COBOLNET0828", $"INVOKE \"{methodName}\": {msg}");
 
         if (arg.VALUE() is not null)
         {
             // SR5b: a BY VALUE argument requires a BY VALUE formal; every formal is BY REFERENCE today (the
             // procedure-division-header BY phrases are an unparsed grammar extension — added with them).
-            Err($"BY VALUE argument #{formal.CobolName}: the corresponding formal parameter is BY REFERENCE "
-                + "(ISO §14.9.23.3 SR5b; header BY VALUE formals are a later slice)");
+            Err($"BY VALUE argument for formal '{formal.CobolName}': the corresponding formal parameter is "
+                + "BY REFERENCE (ISO §14.9.23.3 SR5b; header BY VALUE formals are a later slice)");
             return null;
         }
 
@@ -357,9 +425,8 @@ public sealed partial class StatementBinder
                     + "form not yet carried across INVOKE)");
                 return null;
             }
-            // §14.9.23.3 SR 10: an argument shall not be object data (factory/instance WORKING-STORAGE) —
-            // explicit BY REFERENCE violates the rule; a BARE object-data identifier is assumed BY CONTENT
-            // (GR6a2: it fails SR 9/10, so BY REFERENCE cannot be assumed).
+            // §14.9.23.3 SR 10: object data (factory/instance WS) cannot cross BY REFERENCE — explicit
+            // BY REFERENCE violates the rule; a BARE object-data identifier is assumed BY CONTENT (GR6a2).
             bool objectData = data.OoIsObjectData(place.Item);
             if (explicitReference && objectData)
             {
@@ -368,56 +435,156 @@ public sealed partial class StatementBinder
                     + "BY CONTENT");
                 return null;
             }
-            if (OoConformanceError(formal, place.Item) is { } err1)
+            bool byReference = !explicitContent && !objectData;   // GR6a — REFERENCE assumed when SR9/10 hold
+
+            // A reference-modified operand is a unique ELEMENTARY ALPHANUMERIC item of the window length
+            // (§8.4.2.4): conformance goes against that effective description, never the whole inner item.
+            if (place is RefModPlace rmp)
             {
-                Err($"USING argument '{dref.GetText()}' does not conform to formal parameter "
-                    + $"'{formal.CobolName}': {err1} (ISO §14.8.2 — BY REFERENCE/BY CONTENT require the same "
-                    + "description)");
+                if (formal.IsGroup || formal.Pic?.Category is not PicCategory.Alphanumeric)
+                {
+                    Err($"reference-modified argument '{dref.GetText()}': the operand is elementary "
+                        + $"alphanumeric (§8.4.2.4) and does not conform to formal '{formal.CobolName}'");
+                    return null;
+                }
+                if (byReference)
+                {
+                    // Strict identity needs a PROVABLE window length equal to the formal's.
+                    if (!int.TryParse(rmp.Start, out _) || rmp.Length is null
+                        || !int.TryParse(rmp.Length, out int rlen))
+                    {
+                        Err($"BY REFERENCE reference-modified argument '{dref.GetText()}' needs a "
+                            + "compile-time (start:length) to prove §14.8.2.3.2 conformance — pass it "
+                            + "BY CONTENT or use literal subscripts");
+                        return null;
+                    }
+                    if (rlen != formal.Pic.Length)
+                    {
+                        Err($"reference-modified argument window ({rlen}) does not match formal "
+                            + $"'{formal.CobolName}' X({formal.Pic.Length}) (ISO §14.8.2.3.2)");
+                        return null;
+                    }
+                }
+                return new BoundInvokeArg(formal, place, null, null,
+                    WriteBack: byReference, ByContent: !byReference);
+            }
+
+            if (byReference)
+            {
+                if (OoClassTable.DescriptionMismatch(formal, place.Item, byRefGroupPrefix: true) is { } err1)
+                {
+                    Err($"USING argument '{dref.GetText()}' does not conform to formal parameter "
+                        + $"'{formal.CobolName}': {err1} (ISO §14.8.2.3.2 — BY REFERENCE requires the "
+                        + "identical description)");
+                    return null;
+                }
+                return new BoundInvokeArg(formal, place, null, null, WriteBack: true);
+            }
+
+            // Effective BY CONTENT (§14.8.2.3.3): rule-per-formal-category.
+            if (OoContentMismatch(formal, place.Item) is { } cerr)
+            {
+                Err($"BY CONTENT argument '{dref.GetText()}' does not conform to formal "
+                    + $"'{formal.CobolName}': {cerr} (ISO §14.8.2.3.3)");
                 return null;
             }
-            bool byReference = !explicitContent && !objectData;   // GR6a: REFERENCE assumed when SR9/10 hold
-            return new BoundInvokeArg(formal, place, null, null, WriteBack: byReference);
+            return new BoundInvokeArg(formal, place, null, null, WriteBack: false, ByContent: true);
         }
 
-        // A literal argument — BY CONTENT (GR6a2; a literal never meets SR9).
+        // A literal argument — BY CONTENT (GR6a2; a literal never meets SR9). Per §9.3.6 resolution rule 5
+        // a literal that would TRUNCATE still conforms (the SET/MOVE no-truncation requirements are ignored
+        // for literal arguments), so length/digit overflow converts per MOVE rules rather than erroring.
         var lit = arg.literal();
         if (lit?.nonNumericLiteral()?.STRINGLIT() is { } sl)
         {
-            string s = DecodeCobolString(sl.GetText());
-            if (formal.Pic?.Category is not PicCategory.Alphanumeric)
-            {
-                Err($"nonnumeric literal argument {sl.GetText()} for the non-alphanumeric formal "
-                    + $"'{formal.CobolName}' (ISO §14.8.2 literal conformance)");
-                return null;
-            }
-            if (s.Length > formal.Pic.Length)
-            {
-                Err($"nonnumeric literal argument of length {s.Length} exceeds formal '{formal.CobolName}' "
-                    + $"PIC X({formal.Pic.Length}) (ISO §14.8.2 — a literal shall fit the formal)");
-                return null;
-            }
-            return new BoundInvokeArg(formal, null, null, s, WriteBack: false);
+            string txt = DecodeCobolString(sl.GetText());
+            if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
+                return new BoundInvokeArg(formal, null, null, txt, WriteBack: false, ByContent: true);
+            Err($"nonnumeric literal argument {sl.GetText()} for the non-alphanumeric formal "
+                + $"'{formal.CobolName}' (ISO §14.8.2.3.3 MOVE-rule conformance)");
+            return null;
         }
         if (lit?.numericLiteral() is { } nl)
         {
             string raw = nl.GetText();
-            if (formal.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
-            {
-                Err($"numeric literal argument {raw} for the non-numeric formal '{formal.CobolName}' "
-                    + "(ISO §14.8.2 literal conformance)");
-                return null;
-            }
-            // Rescale to the formal at BIND time (exact string math) and require it to fit the formal's
-            // digit positions — a literal that cannot conform is loud, never silently truncated.
-            if (OoUnscaledDigitCount(raw, formal.Pic.Scale) > formal.Pic.Digits)
-            {
-                Err($"numeric literal argument {raw} does not fit formal '{formal.CobolName}' "
-                    + $"({formal.Pic.Digits} digit(s), scale {formal.Pic.Scale}) (ISO §14.8.2)");
-                return null;
-            }
-            return new BoundInvokeArg(formal, null, raw, null, WriteBack: false);
+            if (formal.Pic is { Category: PicCategory.Numeric, IsFloat: false })
+                return new BoundInvokeArg(formal, null, raw, null, WriteBack: false, ByContent: true);
+            if (!formal.IsGroup && formal.Pic?.Category is PicCategory.Alphanumeric
+                && !raw.Contains('.') && !raw.StartsWith('-') && !raw.StartsWith('+'))
+                // MOVE rules: an unsigned integer numeric literal moves to an alphanumeric receiver as its
+                // digit characters (§14.9.25).
+                return new BoundInvokeArg(formal, null, null, raw, WriteBack: false, ByContent: true);
+            Err($"numeric literal argument {raw} for formal '{formal.CobolName}' "
+                + "(ISO §14.8.2.3.3 — no conforming COMPUTE/MOVE rule applies)");
+            return null;
         }
         Err($"USING argument form for formal '{formal.CobolName}' is not yet carried across INVOKE");
+        return null;
+    }
+
+    /// <summary>§14.8.2.3.3 — the BY CONTENT conformance rules per formal category: COMPUTE for numeric
+    /// (any fixed-point numeric argument; float formals require the identical float usage — the cross-float
+    /// CONTENT conversion is a documented later refinement), SET for object references (widening — the
+    /// argument's class shall be the receiver's class or a subclass), MOVE otherwise (alphanumeric/group
+    /// formals take any alphanumeric/group/integer-display argument, pad/truncate per MOVE).</summary>
+    private string? OoContentMismatch(DataItem formal, DataItem arg)
+    {
+        if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
+        {
+            if (arg.IsGroup)
+                return arg.IsImageCapable ? null : "the argument group has no character image (Tier-C)";
+            return arg.Pic?.Category switch
+            {
+                PicCategory.Alphanumeric or PicCategory.NumericEdited => null,
+                PicCategory.Numeric when arg.Pic is { IsFloat: false, Scale: 0 } => null,   // MOVE integer→alnum
+                _ => "no conforming MOVE rule applies (ISO §14.8.2.2 rule 2 / §14.9.25)",
+            };
+        }
+        var f = formal.Pic!;
+        return f.Category switch
+        {
+            PicCategory.Numeric when f.IsFloat =>
+                arg.Pic is { IsFloat: true } a2 && a2.Usage == f.Usage
+                    ? null
+                    : "a float formal takes the identical float usage BY CONTENT (cross-float COMPUTE "
+                      + "conversion is a later refinement)",
+            PicCategory.Numeric =>
+                arg.IsGroup ? "a group argument does not conform to a numeric formal (§14.8.2.3.3)"
+                : arg.Pic is { Category: PicCategory.Numeric, IsFloat: false } ? null
+                : "COMPUTE-rule conformance needs a numeric argument (ISO §14.8.2.3.3 rule 2a)",
+            PicCategory.ObjectReference =>
+                arg.Pic is { Category: PicCategory.ObjectReference } ap
+                    ? OoClasses?.ObjectRefWideningMismatch(ap, f)
+                    : "an object-reference formal takes an object-reference argument (SET rules, §14.8.2.3.3)",
+            _ => OoClassTable.DescriptionMismatch(formal, arg),   // edited/other: conservative strict gate
+        };
+    }
+
+    /// <summary>Decode INVOKE's literal-1 (§14.9.23.3 SR2 — class alphanumeric or national): an alphanumeric
+    /// STRINGLIT, a national N"…" literal (the method NAME is its character value — §8.3.2.2 comparison), or
+    /// a hex X"…" literal (byte pairs decoded through the alphanumeric runtime encoding). Null for a literal
+    /// class SR2 excludes (boolean B"…", figurative constants) — the caller diagnoses.</summary>
+    private static string? OoDecodeMethodNameLiteral(Core.LiteralContext? lit)
+    {
+        var nn = lit?.nonNumericLiteral();
+        if (nn is null) return null;
+        if (nn.STRINGLIT() is { } sl) return DecodeCobolString(sl.GetText());
+        if (nn.NATLIT() is { } nat)
+        {
+            string t = nat.GetText();
+            return t.Length >= 3 ? DecodeCobolString(t[1..]) : "";   // strip the N prefix, decode the body
+        }
+        if (nn.HEXLIT() is { } hex)
+        {
+            string t = hex.GetText();
+            int q = t.IndexOf(t[^1]);   // the opening quote (matches the closing one)
+            string digits = t[(q + 1)..^1];
+            if (digits.Length % 2 != 0) return "";
+            var chars = new char[digits.Length / 2];
+            for (int i = 0; i < chars.Length; i++)
+                chars[i] = (char)Convert.ToInt32(digits.Substring(i * 2, 2), 16);
+            return new string(chars);
+        }
         return null;
     }
 
@@ -437,65 +604,11 @@ public sealed partial class StatementBinder
     }
 
     /// <summary>The §14.8.2/§14.8.3 STRICT conformance check between a formal/returning item and an
-    /// argument/receiver item — the rule set that makes the emitted marshaling TYPE-PRESERVING (no conversion
-    /// crosses the boundary, so no cross-class numeric profile is ever referenced). Null when conformant, else
-    /// the human-readable mismatch.</summary>
-    private string? OoConformanceError(DataItem formal, DataItem arg)
-    {
-        if (formal.IsGroup)
-        {
-            // A group crosses as its character image (the CALL-boundary discipline): the argument must be a
-            // group (image-capable) or an alphanumeric elementary item of the SAME character length.
-            if (!(arg.IsGroup || arg.Pic?.Category is PicCategory.Alphanumeric))
-                return "a group formal requires a group or alphanumeric argument";
-            if (arg.IsGroup && !arg.IsImageCapable)
-                return "the argument group has a float/COMP-5/INDEX leaf (no character image — Tier-C)";
-            if (!formal.IsImageCapable)
-                return "the formal group has a float/COMP-5/INDEX leaf (no character image — Tier-C)";
-            return arg.ImageWidth != formal.ImageWidth
-                ? $"character length mismatch (formal {formal.ImageWidth}, argument {arg.ImageWidth})"
-                : null;
-        }
-        var f = formal.Pic!;
-        if (arg.IsGroup)
-        {
-            // A GROUP argument to an elementary formal: legal only for an alphanumeric formal of the same
-            // character length (the group crosses as its image).
-            if (f.Category is not PicCategory.Alphanumeric)
-                return "a group argument requires a group or alphanumeric formal";
-            if (!arg.IsImageCapable) return "the argument group has no character image (Tier-C)";
-            return arg.ImageWidth != f.Length
-                ? $"character length mismatch (formal {f.Length}, argument {arg.ImageWidth})"
-                : null;
-        }
-        var a = arg.Pic!;
-        if (f.Category != a.Category)
-            return $"category mismatch (formal {f.Category}, argument {a.Category})";
-        switch (f.Category)
-        {
-            case PicCategory.ObjectReference:
-                // §14.8.2 for object references: identical description — the same declared class (or both
-                // universal). Subclass-to-base widening BY REFERENCE would need C# ref variance — rejected.
-                return string.Equals(f.ObjectClassName, a.ObjectClassName, StringComparison.OrdinalIgnoreCase)
-                    ? null
-                    : $"declared class mismatch (formal '{f.ObjectClassName ?? "universal"}', argument "
-                      + $"'{a.ObjectClassName ?? "universal"}')";
-            case PicCategory.Numeric:
-                if (f.Usage != a.Usage)
-                    return $"USAGE mismatch (formal {f.Usage}, argument {a.Usage} — §14.8.2 requires the "
-                        + "identical description for BY REFERENCE/BY CONTENT)";
-                return f.Digits != a.Digits || f.Scale != a.Scale || f.Signed != a.Signed
-                    ? $"numeric description mismatch (formal {(f.Signed ? "S" : "")}9({f.Digits}) scale "
-                      + $"{f.Scale}, argument {(a.Signed ? "S" : "")}9({a.Digits}) scale {a.Scale})"
-                    : null;
-            case PicCategory.Alphanumeric:
-                return f.Length != a.Length
-                    ? $"length mismatch (formal X({f.Length}), argument X({a.Length}))"
-                    : null;
-            default:
-                return $"formal category {f.Category} is not yet carried across INVOKE";
-        }
-    }
+    /// argument/receiver item — delegates to the ONE shared description-equality rule
+    /// (<see cref="OoClassTable.DescriptionMismatch"/>, also the §9.3.8.2 override-signature check) that
+    /// makes the emitted marshaling TYPE-PRESERVING. Null when conformant, else the mismatch.</summary>
+    private static string? OoConformanceError(DataItem formal, DataItem arg)
+        => OoClassTable.DescriptionMismatch(formal, arg);
 
     // ── Method-context control flow (deep-dive D8) ──────────────────────────────────────────────────────────
 

@@ -46,6 +46,29 @@ public sealed partial class DataBinder
     /// field with the <c>static</c> modifier.</summary>
     public HashSet<string> OoStaticRootFields { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>The ONE scope-aware data-name lookup (§8.4.6.2.1 rule 3a — a method-local declaration
+    /// REPLACES, never unions with, the object/program-level name): consumers that read <see cref="ByName"/>
+    /// directly for a USER-WRITTEN name (SEARCH/SORT table resolution, INITIALIZE) route through this so a
+    /// method-local name shadows correctly. Mirrors ReferenceResolver.ResolveUnqualified.</summary>
+    public List<DataItem>? LookupData(string name)
+    {
+        if (ActiveMethodScope is { } m && m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
+            return mlist;
+        return ByName.TryGetValue(name, out var list) && list.Count > 0 ? list : null;
+    }
+
+    /// <summary>Scope-aware INDEX-NAME lookup (§8.4.6.2.1 rule 3a / §8.4.6.2.3): a METHOD-LOCAL data-name
+    /// SHADOWS an object-level index-name of the same spelling — without this, every IndexFields-first
+    /// consumer would silently bind the subscript/SET target to the OBJECT's index cell (a torn read/write
+    /// of the wrong storage).</summary>
+    public bool TryGetVisibleIndexField(string name, out string field)
+    {
+        field = "";
+        if (ActiveMethodScope is { } m && m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
+            return false;   // the method-local data-name wins (§8.4.6.2.1 rule 3a)
+        return IndexFields.TryGetValue(name, out field!);
+    }
+
     /// <summary>True when <paramref name="item"/> is OBJECT data of a class unit (§14.9.23.3 SR 10): its 01/77
     /// root is not method-scoped. Always false outside a class unit.</summary>
     public bool OoIsObjectData(DataItem item)
@@ -146,6 +169,16 @@ public sealed partial class DataBinder
         if (pd?.raisingClause() is not null)
             Edition.Error("COBOLNET0899", $"{where}: PROCEDURE DIVISION RAISING on a method (exception "
                 + "propagation, ISO §14.2.1) is recognized but not yet implemented (the EC-OO slice)");
+
+        // A GROUP formal/RETURNING item crosses the boundary as its character image (FromImage/AsImage) —
+        // register it whole-group-referenced NOW so MarkStoreAsImage flips its numeric-DISPLAY leaves to
+        // image storage and untouched caller bytes round-trip unchanged (§14.2.3 GR8; the review's
+        // spaces→zeros corruption finding). Mirrors the program-formal registration in CallBindUnit.
+        foreach (var f in m.Formals)
+            if (f.Item.IsGroup)
+                WholeGroupReferenced.Add(f.Item);
+        if (m.Returning is { IsGroup: true } retg)
+            WholeGroupReferenced.Add(retg);
     }
 
     /// <summary>The C# parameter name for a formal: <c>__</c> + the sanitized COBOL name, uniquified within
@@ -207,5 +240,8 @@ public sealed partial class DataBinder
             Edition.Error("COBOLNET0899", $"{where}: a level-66 RENAMES entry in method data is recognized "
                 + "but not yet implemented (Phase 3, OO port)");
         foreach (var child in item.Children) OoGateUnsupportedShapes(child, where);
+        // Level-66s live OFF the children (Renames66) — without this walk the gate above is dead code and a
+        // 66 in method data slips through unstaged (the 3a/3b review's dead-gate finding).
+        foreach (var ren in item.Renames66) OoGateUnsupportedShapes(ren, where);
     }
 }

@@ -67,7 +67,11 @@ public sealed partial class CSharpEmitter
     /// scopes — §11.7; <c>StatementBinder.BindClassBody</c>).</summary>
     private void OoBindClassBody(OoClassUnit cls)
     {
-        var binder = new StatementBinder(cls.Data, cls.Refs) { OoClasses = _ooClasses };
+        var binder = new StatementBinder(cls.Data, cls.Refs)
+        {
+            OoClasses = _ooClasses,
+            OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§8.4.3.8; slice 3b)
+        };
         binder.ConfigureEc(_turnState, cls.Name);   // methods fold the same source-ordered >>TURN state (§7.3.25 GR6)
         cls.Bound = binder.BindClassBody(cls.Symbol);
     }
@@ -107,9 +111,10 @@ public sealed partial class CSharpEmitter
         _callOuterGlobalUse = false;
         _callInheritedStatusPlace.Clear();
 
-        // v1 restricts to single inheritance and INHERITS emission is port slice 3a (staged loud at pass-1) —
-        // every class emitted today roots directly at CobolObject (D2).
-        using (w.Block($"public class {cls.CsName} : CobolObject"))
+        // D1/D2 + slice 3a: `: BASE` when the class INHERITS (single inheritance v1 — SSOT §18.18; the grammar
+        // carries one INHERITS FROM operand), else the CobolObject runtime root. Roslyn resolves the base
+        // regardless of declaration order (classes emit in source order — no Cecil-style depth sort).
+        using (w.Block($"public class {cls.CsName} : {cls.Symbol.Base?.CsName ?? "CobolObject"}"))
         {
             var fields = new FieldEmitter(_ctx);
             fields.Emit();   // OBJECT WS → INSTANCE fields (D3); method WS → statics; VALUE inits = field initializers (D4)
@@ -137,7 +142,12 @@ public sealed partial class CSharpEmitter
         string retType = m.Returning is { } ret ? (OoStringCarried(ret) ? "string" : ret.ElementType) : "void";
         string sig = string.Join(", ", m.Formals.Select(f =>
             $"ref {(OoStringCarried(f.Item) ? "string" : f.Item.ElementType)} {f.ParamName}"));
-        using (w.Block($"public virtual {retType} {m.CsName}({sig})   // METHOD-ID {m.Name} (ISO §11.7)"))
+        // D7: virtual by default (§9.3.6 — dispatch on the runtime class); a base-chain name match emits
+        // `override` (slice 3a; §11.7 SR4a's OVERRIDE attribute is a documented grammar gap — the uppercase
+        // CsName convention already collapses case-mismatched spellings onto ONE slot, trap #2). COBOL never
+        // expresses C# `new`/hiding (SR4a), so the modifier set is total.
+        string modifier = m.OverrideOf is not null ? "override" : "virtual";
+        using (w.Block($"public {modifier} {retType} {m.CsName}({sig})   // METHOD-ID {m.Name} (ISO §11.7)"))
         {
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes
             // the BY REFERENCE write-through at the method boundary); the RETURNING item and unattached
@@ -193,6 +203,42 @@ public sealed partial class CSharpEmitter
         item.IsGroup || item.StoreAsImage
         || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
 
+    /// <summary>Unify the INVOKE-boundary CROSSING FORM across every override chain (the 3a/3b review's
+    /// signature-desync finding): MarkStoreAsImage can flip ONE side's numeric-DISPLAY formal/RETURNING item
+    /// to image storage (its class whole-group-references it; the other class's doesn't), which would emit
+    /// `M(ref string)` in the base and `override M(ref long)` in the subclass — a raw Roslyn CS0115 on legal
+    /// COBOL (the G4 violation). The §14.8.2/§9.3.8.2 checks already guarantee identical DESCRIPTIONS, so
+    /// unioning to the image form is semantics-preserving (the FormatDisplay/StoreDisplay storage-form
+    /// bridges absorb either storage). Iterates to a fixed point — a flip through one link can propagate
+    /// down a chain or across sibling subclasses.</summary>
+    private void OoHarmonizeOverrideCrossings()
+    {
+        bool changed = true;
+        while (changed)
+        {
+            changed = false;
+            foreach (var cls in _ooClasses.Classes)
+                foreach (var m in cls.Methods)
+                {
+                    if (m.OverrideOf is not { } baseM) continue;
+                    for (int i = 0; i < Math.Min(m.Formals.Count, baseM.Formals.Count); i++)
+                        changed |= OoUnifyCrossing(m.Formals[i].Item, baseM.Formals[i].Item);
+                    if (m.Returning is { } r && baseM.Returning is { } br)
+                        changed |= OoUnifyCrossing(r, br);
+                }
+        }
+
+        static bool OoUnifyCrossing(DataItem a, DataItem b)
+        {
+            if (OoStringCarried(a) == OoStringCarried(b)) return false;
+            var native = a.StoreAsImage ? b : a;
+            if (native.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                return false;   // only the display-numeric pair can diverge; anything else conformance-blocked
+            native.StoreAsImage = true;
+            return true;
+        }
+    }
+
     private int _ooInvokeCounter;
 
     /// <summary>Emit one bound INVOKE (deep-dive D5/D6 — the binder already resolved the call form and
@@ -208,6 +254,8 @@ public sealed partial class CSharpEmitter
                 w.Line(inv.Returning!.Write($"new {inv.ClassCsName}()") + "   // INVOKE … \"NEW\" RETURNING (§16.2.1)");
                 return;
             case InvokeForm.Instance:
+            case InvokeForm.Self:
+            case InvokeForm.Super:
                 OoEmitInstanceInvoke(inv);
                 return;
             default:
@@ -219,9 +267,11 @@ public sealed partial class CSharpEmitter
     /// <summary>The instance-call marshaling (D6; §14.9.23.4 GR6/GR7a/GR8): every formal is a <c>ref</c>
     /// parameter — a plain field of matching storage passes DIRECTLY (aliasing; subscripts evaluate once at
     /// the call, the GR7a once-only rule); anything else lowers to a copy-in temp, <c>ref</c> the temp, and —
-    /// for BY REFERENCE identifier args — a copy-out (write-through at statement granularity). The §14.8.2
-    /// strict-conformance bind rules make every crossing type-preserving, so the ONLY numeric profiles
-    /// referenced here are the CALLING unit's own (never a private profile of the class being invoked).</summary>
+    /// for BY REFERENCE identifier args — a copy-out. BY REFERENCE crossings are TYPE-PRESERVING (the strict
+    /// §14.8.2.3.2 bind rules); BY CONTENT crossings CONVERT into the formal's description per §14.8.2.3.3
+    /// (COMPUTE/MOVE/SET), composing the formal's value/image through the OWNER class's internal profiles
+    /// (<c>{OWNER}._P_n</c>). Order per GR8: the call, the BY REFERENCE copy-outs, then the RETURNING
+    /// delivery — identifier-4's store is the FINAL effect (the review's overlap finding).</summary>
     private void OoEmitInstanceInvoke(BoundInvoke inv)
     {
         var w = _ctx.Writer;
@@ -234,8 +284,11 @@ public sealed partial class CSharpEmitter
         {
             var a = args[i];
             bool stringCarried = OoStringCarried(a.Formal);
+            string qualProfile = a.Formal.Pic is { Category: PicCategory.Numeric, IsFloat: false }
+                ? $"{inv.OwnerCsName}.{a.Formal.ProfileName}" : "";
 
-            // The direct-ref fast path: a MemberPlace whose STORAGE form matches the parameter type exactly.
+            // The direct-ref fast path: a MemberPlace whose STORAGE form matches the parameter type exactly
+            // (BY REFERENCE identifiers only — CONTENT always copies).
             if (a.Source is MemberPlace mp && a.WriteBack
                 && (stringCarried
                     ? !mp.Item.IsGroup && OoStringCarried(mp.Item)
@@ -246,34 +299,54 @@ public sealed partial class CSharpEmitter
                 continue;
             }
 
-            // Temp lowering: copy-in per the formal's crossing form.
             string tmp = $"__iv{id}_{i}";
             if (a.Formal.IsGroup || (stringCarried && a.Source?.Item.IsGroup == true))
-                w.Line($"string {tmp} = {(a.Source is { } gsp ? CallStringRead(gsp) : CsLiteral(a.StringLiteral ?? ""))};");
+            {
+                // The image crossing. BY REFERENCE allows a SMALLER formal (§14.8.2.2 rule 1 — a PREFIX of
+                // the argument): pass the leading formal-width characters; the write-back below splices the
+                // prefix back, preserving the argument's tail. CONTENT pads/truncates per MOVE.
+                int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
+                string read = a.Source is { } gsp ? CallStringRead(gsp) : CsLiteral(a.StringLiteral ?? "");
+                w.Line($"string {tmp} = CobolString.Store({read}, {fw});");
+            }
             else if (stringCarried)
                 w.Line(a.Source is { } sp
-                    ? $"string {tmp} = {(OoStringCarried(sp.Item) ? sp.Read() : new NumericImagePlace(sp).Read())};"
+                    ? $"string {tmp} = {OoStringReadOf(sp, a)};"
                     : a.StringLiteral is { } slit
                     ? $"string {tmp} = CobolString.Store({CsLiteral(slit)}, {Math.Max(1, a.Formal.Pic!.Length)});"
-                    // A numeric literal for an IMAGE-STORED method formal: composing the zoned image needs the
-                    // formal's profile — a private static of the INVOKED class (the one crossing the strict
-                    // rules cannot type-preserve). Narrow (an image-stored formal means the method
-                    // whole-group-references its own parameter) — loud, never a wrong image.
-                    : $"string {tmp} = {LoudValue("string", $"numeric literal argument for the image-stored method formal '{a.Formal.CobolName}' (slice-2 residue — pass a data item instead)")};");
+                    // A numeric literal into an image-stored numeric formal: compose the zoned image through
+                    // the OWNER's internal profile (the review's cross-class rule — qualified, never bare).
+                    : $"string {tmp} = CobolNum.FormatDisplay({EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale)}, {qualProfile});");
             else if (a.Formal.Pic is { Category: PicCategory.ObjectReference })
                 w.Line($"{a.Formal.ElementType} {tmp} = {a.Source!.Read()};");
+            else if (a.Formal.Pic is { IsFloat: true })
+                // Same-usage float (bind-enforced): read the float value directly — never through the
+                // scaled-integer path (the review's silent-truncation finding).
+                w.Line($"{a.Formal.ElementType} {tmp} = {a.Source!.Read()};");
+            else if (a.ByContent && a.Source is { } cp
+                     && _num.AsNum(new BoundFieldOperand(cp)) is var cx
+                     && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale))
+                // CONTENT numeric conversion (COMPUTE rules, §14.8.2.3.3 2a): rescale + truncate into the
+                // formal's description through the OWNER's internal profile.
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})CobolNum.Store({cx.Expr}, {cx.Scale}, {qualProfile});");
             else
-                // A native numeric formal: the arg reads as its unscaled value (AsNum bridges an image-stored
-                // arg through the ARG's own profile); scales are equal by the bind-time conformance rule.
                 w.Line(a.Source is { } np
                     ? $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({_num.AsNum(new BoundFieldOperand(np)).Expr});"
-                    : $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale)});");
+                    : $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})CobolNum.Store({UnscaledLit(a.NumericLiteral!).Expr}, {UnscaledLit(a.NumericLiteral!).Scale}, {qualProfile});");
             argExprs.Add($"ref {tmp}");
 
             if (!a.WriteBack || a.Source is not { } src) continue;
             // Copy-out to the CALLER's storage (BY REFERENCE — §14.2.3 GR8 at statement granularity).
             if (a.Formal.IsGroup || src.Item.IsGroup)
-                post.Add(CallStringWrite(src, tmp));
+            {
+                int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
+                // The §14.8.2.2 rule-1 prefix: splice the formal's characters back over the argument's
+                // LEADING positions, preserving the tail beyond the formal's width.
+                post.Add(CallStringWrite(src,
+                    $"{tmp} + CobolString.RefMod({CallStringRead(src)}, {fw + 1}, -1)"));
+            }
+            else if (src is RefModPlace)
+                post.Add(src.Write(tmp));   // RefModPlace.Write splices the window (§8.4.2.4)
             else if (stringCarried)
                 post.Add(OoStringCarried(src.Item) ? src.Write(tmp) : new NumericImagePlace(src).Write(tmp));
             else
@@ -282,19 +355,27 @@ public sealed partial class CSharpEmitter
                     : src.Write(tmp));
         }
 
-        string call = $"CobolObject.RequireNonNull({inv.Receiver!.Read()}).{inv.MethodCsName}("
-            + string.Join(", ", argExprs) + ")";
+        string target = inv.Form switch
+        {
+            InvokeForm.Self => "this",
+            InvokeForm.Super => "base",
+            _ => $"CobolObject.RequireNonNull({inv.Receiver!.Read()})",
+        };
+        string call = $"{target}.{inv.MethodCsName}(" + string.Join(", ", argExprs) + ")";
 
         if (inv.ReturningSource is { } rs && inv.Returning is { } recv)
         {
-            // GR8 — the method's RETURNING item value becomes the result, delivered into identifier-4. The
-            // bind-time §14.8.3 conformance made the descriptions identical; only the STORAGE FORMS may
-            // differ, bridged through the RECEIVER's own profile.
+            // GR8 — capture the result AT RETURN, flush the BY REFERENCE copy-outs, and store into
+            // identifier-4 LAST (the final effect of the INVOKE — a receiver overlapping a temp-lowered
+            // argument must see the argument's write-back first).
             string tmp = $"__ivr{id}";
             bool retString = OoStringCarried(rs);
             w.Line($"var {tmp} = {call};   // INVOKE (§14.9.23; null receiver → EC-OO-NULL, GR5)");
+            foreach (var pLine in post) w.Line(pLine);
             if (rs.IsGroup || recv.Item.IsGroup)
                 w.Line(CallStringWrite(inv.Returning, tmp));
+            else if (recv is RefModPlace)
+                w.Line(recv.Write(tmp));
             else if (retString == OoStringCarried(recv.Item))
                 w.Line(recv.Write(tmp));
             else if (retString)   // string-carried result into native-numeric storage
@@ -303,8 +384,24 @@ public sealed partial class CSharpEmitter
                 w.Line(recv.Write($"CobolNum.FormatDisplay({tmp}, {recv.Item.ProfileName})"));
         }
         else
+        {
             w.Line($"{call};   // INVOKE (§14.9.23; null receiver → EC-OO-NULL, §14.9.23.4 GR5)");
-
-        foreach (var p in post) w.Line(p);
+            foreach (var pLine in post) w.Line(pLine);
+        }
     }
+
+    /// <summary>The copy-in read of an identifier argument for a STRING-CARRIED formal: a reference-modified
+    /// place reads its window verbatim (§8.4.2.4 — the operand IS elementary alphanumeric); a string-stored
+    /// item reads directly; a native display-numeric item formats through its OWN profile (caller-side). A
+    /// CONTENT crossing normalizes to the formal's width (MOVE pad/truncate).</summary>
+    private string OoStringReadOf(Place sp, BoundInvokeArg a)
+    {
+        string read = sp is RefModPlace ? sp.Read()
+            : OoStringCarried(sp.Item) ? sp.Read()
+            : new NumericImagePlace(sp).Read();
+        return a.ByContent && a.Formal.Pic is { } fp && fp.Category is PicCategory.Alphanumeric
+            ? $"CobolString.Store({read}, {Math.Max(1, fp.Length)})"
+            : read;
+    }
+
 }

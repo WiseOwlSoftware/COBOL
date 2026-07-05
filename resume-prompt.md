@@ -119,15 +119,19 @@
 > closed). **5 of 9 oo_* goldens ENABLED** (+ oo_method_args, byte-exact); OoSpineTests ×18 (trap #3
 > arity 0828, trap #6 cross-wiring, recursion/reentrancy, SR 10 both ways, strict-conformance 0828s,
 > method-WS static semantics + window). Legacy-never-landed multi-method LINKAGE: DONE net-new.
-> **RESUME = Phase 3, ported slice 3a: INHERITS** — `: BASE` emission (single inheritance v1; SSOT §18
-> item 18), override under the base's EXACT spelling (trap #2 — case-insensitive detection across the
-> chain, emit under the base's roster spelling), subclass-own OBJECT data posture (loud or implement —
-> the legacy rejected; decide per §11.8), the un-stage of the pass-1 INHERITS 0899, oo_inherit +
-> oo_super GREEN (SUPER itself is 3b — oo_super uses INVOKE SUPER, so it may need 3a+3b together;
-> verify per-program). Then 3b SELF/SUPER dispatch (D5 rules: SELF → `this.M()` virtual §8.4.3.8 GR2,
-> SUPER → `base.M()` non-virtual GR3, SUPER-in-root 0827-style diagnostic — trap #7) → oo_self +
-> oo_self_polymorphic; then FACTORY → PROPERTY → INTERFACE-ID → universal reference → EC-OO per the
-> deep-dive banner order.
+> **SLICES 3a+3b LANDED (DEVLOG 603, 2026-07-04)** — INHERITS (`: BASE`, cycle 0820, override marking
+> + §9.3.8.2 signature 0829 via the ONE shared DescriptionMismatch rule; trap #2 dead by the uppercase
+> CsName convention) + SELF/SUPER (D5: `this.M(…)` virtual GR2 / `base.M(…)` non-virtual GR3;
+> 0827 placement band incl. SUPER-in-root trap #7; full slice-2 marshaling shared via
+> OoBindResolvedInvoke). Subclass-own OBJECT data native (base data name-invisible per encapsulation).
+> **ALL 9 oo_* GOLDENS BYTE-EXACT AND ENABLED.** The 3a/3b wave was reviewed by the multi-lens
+> adversarial workflow (find→verify) + a 12-probe edge battery on the prebuilt CLI; next-slice briefs
+> (FACTORY / OVERRIDE-FINAL attrs / universal dispatch / EC-OO / INTERFACE+PROPERTY) regenerated there.
+> **RESUME = the post-corpus OO waves in deep-dive banner order: FACTORY** (§11.4 — grammar
+> factoryParagraph + static members/methods, INVOKE Class "M" static calls) → the OVERRIDE/FINAL
+> attribute grammar (unlocks strict §11.7 SR4a) → PROPERTY → INTERFACE-ID → universal reference (D10
+> __CobolInvoke switches) → EC-OO; then the wider Phase-4 catalog per
+> `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers, national/boolean, UDFs, intrinsics gaps) toward 100%.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits

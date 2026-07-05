@@ -46,6 +46,7 @@
 | `docs/COBOLNET_FILES_DESIGN.md` | DESIGN | File I/O — connectors, FILE STATUS, OPEN/CLOSE/READ/WRITE/REWRITE state machines (§9.1.13). |
 | `docs/COBOLNET_INTERPROGRAM_DESIGN.md` | DESIGN | CALL / interprogram linkage / nested programs. |
 | `docs/COBOLNET_OO_DESIGN.md` | DESIGN | OO — classes/methods/INVOKE as typed-native .NET. |
+| `docs/COBOLNET_OO_SLICE_BRIEFS.md` | LEDGER | OO — workflow-regenerated implementation briefs for the remaining slices (FACTORY / OVERRIDE-FINAL / universal / EC-OO / INTERFACE+PROPERTY); decisions fold into the OO deep-dive per slice. |
 | `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` | DESIGN | Conditions + the EC exception model / declaratives. |
 | `docs/COBOLNET_INTRINSICS_DESIGN.md` | DESIGN | Intrinsic FUNCTION resolution + semantics. |
 | `docs/COBOLNET_REPORT_WRITER_DESIGN.md` | DESIGN | Report Writer — the `CobolReport` RWCS engine, compose-at-presentation lines, counters, CONTROL/SUM, USE BEFORE REPORTING (closes the SSOT's RW seam flag). |

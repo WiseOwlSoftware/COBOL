@@ -397,7 +397,7 @@ public sealed partial class StatementBinder
             }
 
             // A bare INDEXED BY index-name argument reads its occurrence number (ISO §13.18.38 / §3.5).
-            if (quals.Count == 0 && data.IndexFields.TryGetValue(name, out var ix))
+            if (quals.Count == 0 && data.TryGetVisibleIndexField(name, out var ix))
                 return new BoundComputedOperand(new BoundIndexRef(ix));
 
             return refs.ResolveByName(name, quals, []) is { } place

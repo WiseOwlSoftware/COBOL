@@ -246,7 +246,10 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     private static void EmitProfiles(DataItem item, CodeWriter w)
     {
         if (item.IsElementary && item.Pic is { Category: PicCategory.Numeric, IsFloat: false })
-            w.Line($"private static readonly NumProfile {item.ProfileName} = {item.Pic.ProfileInitializer};");
+            // INTERNAL (not private): an INVOKE BY CONTENT conversion composes the FORMAL's value/image at
+            // the CALL SITE, qualifying the profile by its owner class ({OWNER}._P_n) — same assembly, one
+            // generated file (the OO slice-2 review's cross-class-profile rule).
+            w.Line($"internal static readonly NumProfile {item.ProfileName} = {item.Pic.ProfileInitializer};");
         foreach (var child in item.Children) EmitProfiles(child, w);
     }
 

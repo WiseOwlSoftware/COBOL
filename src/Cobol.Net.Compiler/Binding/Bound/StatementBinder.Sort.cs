@@ -171,7 +171,7 @@ public sealed partial class StatementBinder
                 + "sort-merge FILE operand (ISO §14.9.40.2 — Format 2 sorts the table in place)");
 
         // SR13: data-name-2 shall have an OCCURS clause. Resolve like SEARCH does: the named table item.
-        if (!data.ByName.TryGetValue(name, out var candidates)
+        if (data.LookupData(name) is not { } candidates
             || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
             return new BoundUnsupported($"SORT of '{name}' — neither a SELECTed/SD file nor an OCCURS table "
                 + "(ISO §14.9.40.3 SR4/SR13)");

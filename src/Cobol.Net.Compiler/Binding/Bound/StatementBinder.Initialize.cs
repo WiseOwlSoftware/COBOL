@@ -110,7 +110,7 @@ public sealed partial class StatementBinder
         {
             // ISO §14.9.20.3 SR5: identifier-1 shall not have a RENAMES clause (a level-66 entry — NC401M territory).
             string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-            if (data.ByName.TryGetValue(name, out var named) && named.Any(i => i.Renames is not null))
+            if (data.LookupData(name) is { } named && named.Any(i => i.Renames is not null))
                 data.Edition.Error("COBOLNET0835",
                     $"INITIALIZE '{name}' — identifier-1 shall not have a RENAMES clause (ISO §14.9.20.3 SR5)");
             actions.Add(new InitializeErrorAction($"INITIALIZE target '{dref.GetText()}'"));

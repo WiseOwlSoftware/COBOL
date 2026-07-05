@@ -243,9 +243,9 @@ public sealed class OoSpineTests
             """), "COBOLNET0822");
 
     /// <summary>Trap #8 — INHERITS of an unknown base is LOUD (0821), never silently a root class; a KNOWN
-    /// base stages loud (0899 — port slice 3a) until inheritance emission lands.</summary>
+    /// base COMPILES (slice 3a — `: BASE` emission; the former 0899 staging is retired).</summary>
     [Fact]
-    public void InheritsUnknownBase_0821_KnownBaseStaged0899()
+    public void InheritsUnknownBase_0821_KnownBaseCompiles()
     {
         var unknown = ErrorsOf("""
             IDENTIFICATION DIVISION.
@@ -253,7 +253,7 @@ public sealed class OoSpineTests
             END CLASS OSPC9.
             """);
         EditionHarness.AssertHasDiagnostic(unknown, "COBOLNET0821");
-        var known = ErrorsOf("""
+        var (okKnown, knownErrors, _) = EditionHarness.CompileFull("""
             IDENTIFICATION DIVISION.
             CLASS-ID. OSPB10.
             END CLASS OSPB10.
@@ -261,9 +261,9 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             CLASS-ID. OSPC10 INHERITS FROM OSPB10.
             END CLASS OSPC10.
-            """);
-        EditionHarness.AssertHasDiagnostic(known, "COBOLNET0899");
-        EditionHarness.AssertHasDiagnostic(known, "slice 3a");
+            """, 2002);
+        Assert.True(okKnown, "INHERITS FROM a known base must compile (slice 3a): "
+            + string.Join("\n", knownErrors));
     }
 
     /// <summary>§14.9.23.3 SR4d — for a TYPED receiver an unknown method is a COMPILE-time diagnostic (the
@@ -607,5 +607,535 @@ public sealed class OoSpineTests
         Assert.True(okPerm, "the §10 #1 migration contract: --permissive keeps the pre-removal semantics: "
             + string.Join("\n", errsPerm));
         EditionHarness.AssertHasDiagnostic(warnsPerm, "COBOLNET0902");
+    }
+
+    // ── Slice 3a/3b (INHERITS + SELF/SUPER — deep-dive D5/D7, §8.4.3.8, §9.3.6/§9.3.8.2) ───────────────────
+
+    /// <summary>A three-level SUPER chain (trap #10's chain case): C : B : A, each override calls SUPER then
+    /// speaks — the non-virtual restricted search (§8.4.3.8 GR3) runs A, B, C in order and cannot recurse;
+    /// the same instance through a ROOT-typed reference still dispatches virtually to C's override (GR2).</summary>
+    [Fact]
+    public void ThreeLevelSuperChain_RunsBaseFirst_NoRecursion()
+    {
+        var (ok, stdout, detail) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP24.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS CH24A.
+                CLASS CH24B.
+                CLASS CH24C.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 C3 USAGE OBJECT REFERENCE CH24C.
+            01 A1 USAGE OBJECT REFERENCE CH24A.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE CH24C "NEW" RETURNING C3.
+                INVOKE C3 "M".
+                INVOKE CH24C "NEW" RETURNING A1.
+                INVOKE A1 "M".
+                STOP RUN.
+            END PROGRAM OOSP24.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CH24A.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "A".
+            END METHOD M.
+            END OBJECT.
+            END CLASS CH24A.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CH24B INHERITS FROM CH24A.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SUPER "M".
+                DISPLAY "B".
+            END METHOD M.
+            END OBJECT.
+            END CLASS CH24B.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CH24C INHERITS FROM CH24B.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SUPER "M".
+                DISPLAY "C".
+            END METHOD M.
+            END OBJECT.
+            END CLASS CH24C.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("A\nB\nC\nA\nB\nC", CutRunner.Normalize(stdout));
+    }
+
+    /// <summary>Trap #2 — a CASE-MISMATCHED override spelling ("Speak" vs "SPEAK") still overrides and still
+    /// dispatches virtually (COBOL names are case-insensitive, §8.3.2.2; the uppercase CsName convention
+    /// collapses both onto ONE C# slot — the legacy silently took a NEW slot and dispatched to the base).</summary>
+    [Fact]
+    public void Trap2_CaseMismatchedOverride_StillDispatches()
+    {
+        var (ok, stdout, detail) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP25.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE25.
+                CLASS SUB25.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 B USAGE OBJECT REFERENCE BASE25.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SUB25 "NEW" RETURNING B.
+                INVOKE B "SPEAK".
+                STOP RUN.
+            END PROGRAM OOSP25.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. BASE25.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "BASE".
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS BASE25.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. SUB25 INHERITS FROM BASE25.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. Speak.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "SUB".
+            END METHOD Speak.
+            END OBJECT.
+            END CLASS SUB25.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("SUB", CutRunner.Normalize(stdout));
+    }
+
+    /// <summary>Subclass-OWN object data: per-instance on the DERIVED class, independent across instances,
+    /// while an INHERITED method reads BASE state — the C#-native inheritance dividend (the legacy rejected
+    /// subclass-own data outright).</summary>
+    [Fact]
+    public void SubclassOwnObjectData_IndependentPerInstance()
+    {
+        var (ok, stdout, detail) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP26.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE26.
+                CLASS SUB26.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 S1 USAGE OBJECT REFERENCE SUB26.
+            01 S2 USAGE OBJECT REFERENCE SUB26.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SUB26 "NEW" RETURNING S1.
+                INVOKE SUB26 "NEW" RETURNING S2.
+                INVOKE S1 "BUMPS".
+                INVOKE S1 "GETS".
+                INVOKE S2 "GETS".
+                INVOKE S1 "GETB".
+                STOP RUN.
+            END PROGRAM OOSP26.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. BASE26.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BN PIC 9(2) VALUE 10.
+            PROCEDURE DIVISION.
+            METHOD-ID. GETB.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "B=" BN.
+            END METHOD GETB.
+            END OBJECT.
+            END CLASS BASE26.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. SUB26 INHERITS FROM BASE26.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 SN PIC 9(2) VALUE 20.
+            PROCEDURE DIVISION.
+            METHOD-ID. BUMPS.
+            PROCEDURE DIVISION.
+            MAIN.
+                ADD 1 TO SN.
+            END METHOD BUMPS.
+            METHOD-ID. GETS.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "S=" SN.
+            END METHOD GETS.
+            END OBJECT.
+            END CLASS SUB26.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("S=21\nS=20\nB=10", CutRunner.Normalize(stdout));
+    }
+
+    /// <summary>§9.3.8.2 — an override whose SIGNATURE does not conform to the overridden method is the
+    /// compile-time COBOLNET0829 (never a Roslyn CS error on user source); trap #7 — SUPER in a root class
+    /// and SELF outside any method are clean 0827 placement diagnostics; an INHERITS cycle is 0820.</summary>
+    [Fact]
+    public void InheritanceDiagnostics_0829_0827_0820()
+    {
+        EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP27.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM OOSP27.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. B27.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L PIC 9(4).
+            PROCEDURE DIVISION USING L.
+            MAIN.
+                DISPLAY L.
+            END METHOD M.
+            END OBJECT.
+            END CLASS B27.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. S27 INHERITS FROM B27.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L PIC 9(5).
+            PROCEDURE DIVISION USING L.
+            MAIN.
+                DISPLAY L.
+            END METHOD M.
+            END OBJECT.
+            END CLASS S27.
+            """), "COBOLNET0829");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP28", "OSPC28", """
+                INVOKE OSPC28 "NEW" RETURNING T.
+            """, """
+            METHOD-ID. M1.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SUPER "M1".
+            END METHOD M1.
+            """)), "COBOLNET0827");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP29.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM OOSP29.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. A29 INHERITS FROM B29.
+            END CLASS A29.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. B29 INHERITS FROM A29.
+            END CLASS B29.
+            """), "COBOLNET0820");
+    }
+
+    // ── The 3a/3b adversarial-review fixes (workflow find→verify, DEVLOG 603) ───────────────────────────────
+
+    /// <summary>§14.8.3.3 rule 1 — RETURNING delivery follows SET rules: a method returning a SUBCLASS object
+    /// delivers into a receiver declared with the SUPERCLASS (widening — SET SR12a2), and into a UNIVERSAL
+    /// receiver; C# covariance renders it directly. The former strict-identity 0828 was the review's confirmed
+    /// spec violation.</summary>
+    [Fact]
+    public void ReturningWidening_SubclassIntoBaseAndUniversalReceivers()
+    {
+        var (ok, stdout, detail) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP30.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS ANI30.
+                CLASS DOG30.
+                CLASS MAK30.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 M USAGE OBJECT REFERENCE MAK30.
+            01 A USAGE OBJECT REFERENCE ANI30.
+            01 U USAGE OBJECT REFERENCE.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE MAK30 "NEW" RETURNING M.
+                INVOKE M "MAKE" RETURNING A.
+                INVOKE A "SPEAK".
+                INVOKE M "MAKE" RETURNING U.
+                STOP RUN.
+            END PROGRAM OOSP30.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. ANI30.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "GENERIC".
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS ANI30.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. DOG30 INHERITS FROM ANI30.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "WOOF".
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS DOG30.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. MAK30.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. MAKE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-D USAGE OBJECT REFERENCE DOG30.
+            PROCEDURE DIVISION RETURNING LK-D.
+            MAIN.
+                INVOKE DOG30 "NEW" RETURNING LK-D.
+            END METHOD MAKE.
+            END OBJECT.
+            END CLASS MAK30.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("WOOF", CutRunner.Normalize(stdout));   // virtual dispatch through the widened receiver
+    }
+
+    /// <summary>§9.3.8.2.3 rules 5a/5c2 — a COVARIANT override RETURNING (the override returns a SUBCLASS of
+    /// the base method's returning class) is legal and dispatches; §14.8.2.3.2 rule 2 — a SIGN-clause
+    /// mismatch on a BY REFERENCE argument is the 0828 the old check silently passed.</summary>
+    [Fact]
+    public void CovariantOverrideReturning_And_SignClauseConformance()
+    {
+        var (ok, stdout, detail) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP31.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS ANI31.
+                CLASS DOG31.
+                CLASS FAC31.
+                CLASS SUB31.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 F USAGE OBJECT REFERENCE FAC31.
+            01 A USAGE OBJECT REFERENCE ANI31.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SUB31 "NEW" RETURNING F.
+                INVOKE F "MAKE" RETURNING A.
+                INVOKE A "SPEAK".
+                STOP RUN.
+            END PROGRAM OOSP31.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. ANI31.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "GENERIC".
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS ANI31.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. DOG31 INHERITS FROM ANI31.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "WOOF".
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS DOG31.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. FAC31.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. MAKE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-A USAGE OBJECT REFERENCE ANI31.
+            PROCEDURE DIVISION RETURNING LK-A.
+            MAIN.
+                INVOKE ANI31 "NEW" RETURNING LK-A.
+            END METHOD MAKE.
+            END OBJECT.
+            END CLASS FAC31.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. SUB31 INHERITS FROM FAC31.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. MAKE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-D USAGE OBJECT REFERENCE DOG31.
+            PROCEDURE DIVISION RETURNING LK-D.
+            MAIN.
+                INVOKE DOG31 "NEW" RETURNING LK-D.
+            END METHOD MAKE.
+            END OBJECT.
+            END CLASS SUB31.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("WOOF", CutRunner.Normalize(stdout));
+
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP32", "OSPC32", """
+                INVOKE OSPC32 "NEW" RETURNING T.
+                INVOKE T "M" USING WS.
+            """, """
+            METHOD-ID. M.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK PIC S9(4).
+            PROCEDURE DIVISION USING LK.
+            MAIN.
+                DISPLAY LK.
+            END METHOD M.
+            """).Replace("01 T USAGE OBJECT",
+                "01 WS PIC S9(4) SIGN LEADING SEPARATE VALUE -1.\n01 T USAGE OBJECT")), "SIGN clause mismatch");
+    }
+
+    /// <summary>§14.8.2.3.3 rule 2a — BY CONTENT numeric arguments follow COMPUTE rules: ANY numeric argument
+    /// (or literal, §9.3.6 rule 5 — truncation legal) converts into the formal's description; the value
+    /// crosses rescaled through the OWNER's internal profile.</summary>
+    [Fact]
+    public void ByContentNumeric_ComputeRuleConversion()
+    {
+        var (ok, stdout, detail) = CompileAndRun(DriverAndClass("OOSP33", "OSPC33", """
+                INVOKE OSPC33 "NEW" RETURNING T.
+                INVOKE T "SHOW" USING BY CONTENT W5.
+                INVOKE T "SHOW" USING 42.5.
+            """, """
+            METHOD-ID. SHOW.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK PIC 9(3)V9.
+            PROCEDURE DIVISION USING LK.
+            MAIN.
+                DISPLAY "LK=" LK.
+            END METHOD SHOW.
+            """).Replace("01 T USAGE OBJECT", "01 W5 PIC 9(5) VALUE 123.\n01 T USAGE OBJECT"));
+        Assert.True(ok, detail);
+        Assert.Equal("LK=1230\nLK=0425", CutRunner.Normalize(stdout));
+    }
+
+    /// <summary>§8.4.6.2.1 rule 3a — a METHOD-LOCAL declaration shadows the object level in EVERY lookup
+    /// path: SEARCH's table resolution and the subscript index-name lookup must see the method's item, never
+    /// the object's same-named table/index (the review's scope-bypass findings); and the dead level-66 gate
+    /// now fires (a 66 in method data stages 0899, never a silent drop).</summary>
+    [Fact]
+    public void MethodScope_SearchAndIndexLookups_And66Gate()
+    {
+        // SEARCH of a method-local NON-table (shadowing an object-level TABLE of the same name) must bind
+        // the METHOD-LOCAL item — the loud not-a-table guard fires, never a silent search of the object's
+        // table (§8.4.6.2.1 rule 3a: shadowing is replacement).
+        var (okShadow, _, shadowDetail) = CompileAndRun(DriverAndClass("OOSP34", "OSPC34", """
+                INVOKE OSPC34 "NEW" RETURNING T.
+                INVOKE T "M".
+            """, """
+            METHOD-ID. M.
+            DATA DIVISION.
+            LOCAL-STORAGE SECTION.
+            01 TAB2 PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                SEARCH TAB2
+                    WHEN 1 = 1 CONTINUE
+                END-SEARCH.
+            END METHOD M.
+            """).Replace("PROCEDURE DIVISION.\nMETHOD-ID. M.", """
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 TWRAP.
+               05 TAB2 PIC 9 OCCURS 3 INDEXED BY IXO.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            """));
+        Assert.False(okShadow, "SEARCH must bind the METHOD-LOCAL TAB2 (not a table) — loud, never the object's table");
+        Assert.Contains("TAB2", shadowDetail);
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP35", "OSPC35", """
+                INVOKE OSPC35 "NEW" RETURNING T.
+            """, """
+            METHOD-ID. M.
+            DATA DIVISION.
+            LOCAL-STORAGE SECTION.
+            01 LS-REC.
+               05 LS-A PIC X(2).
+               05 LS-B PIC X(2).
+            66 LS-ALIAS RENAMES LS-A THRU LS-B.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY LS-ALIAS.
+            END METHOD M.
+            """)), "level-66");
     }
 }
