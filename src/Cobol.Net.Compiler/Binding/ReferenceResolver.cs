@@ -25,6 +25,29 @@ using Core = CobolParserCore;
 /// </summary>
 public sealed class ReferenceResolver(DataBinder data)
 {
+    /// <summary>The object-property reference SHAPE (§8.4.3.9 — <c>prop OF receiver</c> where the single
+    /// qualifier is a class-name or a TYPED object-reference item and the head names a PROPERTY of its
+    /// roster): normal data-name qualification legitimately fails on it, and the desugar (the implicit
+    /// INVOKE of §8.4.3.9.4 GR1–GR3 via BoundSequence + temps) is the property-REFERENCE increment — the
+    /// immediate next wave. Until it lands, the shape stages LOUD at THIS chokepoint (every operand
+    /// resolution funnels through <see cref="Resolve"/>), never the generic unknown-name guard.</summary>
+    private void OoStagePropertyReference(string name, List<string> qualifiers)
+    {
+        if (qualifiers.Count != 1 || data.OoClasses is not { } table) return;
+        var cls = table.Find(qualifiers[0]);
+        if (cls is null
+            && data.LookupData(qualifiers[0])?.FirstOrDefault() is { } recv
+            && recv.Pic is { Category: PicCategory.ObjectReference, ObjectClassName: { } cn })
+            cls = table.Find(cn);
+        if (cls is null) return;
+        if (cls.Methods.Concat(cls.FactoryMethods).Any(m =>
+                string.Equals(m.PropertyName, name, StringComparison.OrdinalIgnoreCase)))
+            data.Edition.Error("COBOLNET0899",
+                $"the object-property reference '{name}' OF '{qualifiers[0]}' (ISO §8.4.3.9 — the implicit "
+                + "accessor INVOKE) awaits the property-REFERENCE increment of the OO wave; the accessor "
+                + "methods themselves are already emitted");
+    }
+
     /// <summary>Resolve <paramref name="dref"/> to a <see cref="Place"/>, or <see langword="null"/> if unsupported here.</summary>
     public Place? Resolve(Core.DataReferenceContext dref)
     {
@@ -62,7 +85,11 @@ public sealed class ReferenceResolver(DataBinder data)
         }
 
         DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
-        if (item is null) return null;
+        if (item is null)
+        {
+            OoStagePropertyReference(name, qualifiers);
+            return null;
+        }
 
         List<string> indexExprs = [];
         if (subCtx is not null)

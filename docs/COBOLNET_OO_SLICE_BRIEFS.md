@@ -938,6 +938,13 @@ sync. Compile/test after every step (feedback_test_after_every_change); one fail
 
 # Brief: INTERFACE-ID + IMPLEMENTS + PROPERTY (§11.6/§13.18.42)
 
+> **LANDED (DEVLOG 606)** — declarations complete (interfaces, IMPLEMENTS + the 0841 binder-authoritative
+> conformance pass with covariant adapters, PROPERTY clause + explicit accessors, 0840/0841/0842 bands,
+> registry rows, 4 goldens). Deltas vs this brief: diagnostic codes shifted to 0840–0843 (0836 was taken by
+> FACTORY); factory IMPLEMENTS now EMITS (D11 singletons superseded the validate-only posture); property
+> REFERENCES (`P OF obj` desugar) + interface GET/SET PROPERTY prototypes are STAGED under a named 0899 —
+> the next increment. The as-built record is the deep-dive's INTERFACE/PROPERTY AS-BUILT section.
+
 # Design brief — INTERFACE-ID + IMPLEMENTS + PROPERTY (OO port, post-FACTORY slice)
 
 > **Scope.** The three remaining declared-surface OO features after FACTORY in the banner order

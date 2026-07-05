@@ -117,6 +117,16 @@ public sealed partial class StatementBinder
 
         foreach (var m in roster)
         {
+            if (m.PropertySubject is not null)
+            {
+                // A PROPERTY-clause-SYNTHESIZED accessor: no COBOL body exists — the emitter renders the
+                // direct field read/write (D-P1; observably identical to the §13.18.42 GR1/GR2 implicit
+                // MOVE methods). It still occupies a roster slot (override/implements machinery applies).
+                m.EntryPc = _paras.Count;
+                m.EndPc = _paras.Count - 1;   // empty body by construction
+                methods.Add(new BoundMethod(m.Name, m.CsName, m.EntryPc, m.EndPc));
+                continue;
+            }
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
             // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
@@ -245,12 +255,10 @@ public sealed partial class StatementBinder
                 // The runtime class is the CONTAINING class or a subclass — the containing class's
                 // conformance is the strongest compile-time guarantee (§14.8 — a subclass instance still
                 // conforms downstream of anything the containing class conforms to).
-                if (nrp.ObjectClassName is { } ndecl
-                    && (OoClasses?.Find(ndecl) is not { } ndeclCls || !cur.ConformsTo(ndeclCls)))
+                if (OoClasses?.ObjectRefWideningMismatch(PicInfo.ObjectReferenceItem(cur.Name), nrp) is { } nwerr)
                 {
                     data.Edition.Error("COBOLNET0826",
-                        $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': a {cur.Name} object does "
-                        + $"not conform to the receiver's declared class '{ndecl}' (ISO §14.8)");
+                        $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': {nwerr} (ISO §14.8)");
                     return new BoundNop();
                 }
                 return new BoundInvoke(InvokeForm.NewSelf, cur.CsName, null, null, nret);
@@ -346,15 +354,13 @@ public sealed partial class StatementBinder
                 + "USAGE OBJECT REFERENCE data item (ISO §14.9.23.4 GR8 / §14.8 conformance)");
             return new BoundNop();
         }
-        // Receiver conformance (§14.8): universal accepts anything; a typed receiver accepts the class or a
-        // subclass of its declared class (the created class must CONFORM TO the declared class).
-        if (retPic.ObjectClassName is { } declared
-            && (OoClasses?.Find(declared) is not { } declaredCls || !cls.ConformsTo(declaredCls)))
+        // Receiver conformance (§14.8 via the SET/widening direction): universal accepts anything; a typed
+        // receiver accepts the class, a subclass, or — for an INTERFACE-typed receiver — any class whose
+        // §11.8.4 closure implements it (the ONE ObjectRefWideningMismatch rule).
+        if (OoClasses?.ObjectRefWideningMismatch(PicInfo.ObjectReferenceItem(cls.Name), retPic) is { } werr)
         {
             data.Edition.Error("COBOLNET0826",
-                $"INVOKE {cls.Name} \"NEW\" RETURNING '{retRef.GetText()}': a {cls.Name} object does not "
-                + $"conform to the receiver's declared class '{declared}' (ISO §14.8 — the sending object "
-                + "shall be of the declared class or one of its subclasses)");
+                $"INVOKE {cls.Name} \"NEW\" RETURNING '{retRef.GetText()}': {werr} (ISO §14.8)");
             return new BoundNop();
         }
         return new BoundInvoke(InvokeForm.New, cls.CsName, null, null, ret);
@@ -375,6 +381,23 @@ public sealed partial class StatementBinder
         if (pic.ObjectClassName is not { } className)
             return new BoundUnsupported("INVOKE through a UNIVERSAL object reference (reflection-free "
                 + "__CobolInvoke dispatch, deep-dive D10 — the universal-reference wave)");
+        // An INTERFACE-typed receiver: resolution over the interface's prototype closure (§14.9.23.3 SR4e);
+        // the emitted call is static C# interface dispatch behind the same GR5 null guard.
+        if (OoClasses?.FindInterface(className) is { } recvIface)
+        {
+            var proto = recvIface.AllPrototypes()
+                .FirstOrDefault(pm => string.Equals(pm.Name, method, StringComparison.OrdinalIgnoreCase));
+            if (proto is null)
+            {
+                data.Edition.Error("COBOLNET0825",
+                    $"INVOKE '{receiver.Item.CobolName}' \"{method}\": interface '{recvIface.Name}' (and "
+                    + "its INHERITS closure) does not declare a method named '" + method + "' "
+                    + "(ISO §14.9.23.3 SR4e)");
+                return new BoundNop();
+            }
+            var ibound = OoBindResolvedInvoke(inv, proto, InvokeForm.Instance, receiver);
+            return ibound is BoundInvoke ibi ? ibi with { OwnerCsName = recvIface.CsName } : ibound;
+        }
         if (OoClasses?.Find(className) is not { } cls)
         {
             // Unreachable when DataBinder validated the declared class (COBOLNET0813) — defensive, loud.
@@ -467,7 +490,7 @@ public sealed partial class StatementBinder
             }
             retPlace = rp;
         }
-        return new BoundInvoke(form, null, receiver, m.CsName, retPlace, args, m.Returning, m.Owner.CsName);
+        return new BoundInvoke(form, null, receiver, m.CsName, retPlace, args, m.Returning, m.Owner?.CsName);
     }
 
     /// <summary>Bind ONE INVOKE argument against its positional formal — the conformance RULE is selected

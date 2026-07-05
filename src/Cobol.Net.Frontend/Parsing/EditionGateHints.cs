@@ -47,6 +47,10 @@ public static class EditionGateHints
     private static readonly Gate SpecialNamesFor = new("the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)", 2002, "ISO §12.3.7", "special-names-for-national-2002");
     private static readonly Gate CallByValue = new("the CALL BY VALUE phrase", 2002, "ISO §14.9.4", "call-by-value-2002");
     private static readonly Gate ClassDefinition = new("a class definition (CLASS-ID compilation unit)", 2002, "ISO §11.2/§11.3 (OO)", "class-definition-2002");
+    private static readonly Gate InterfaceDefinition = new("an interface definition (INTERFACE-ID compilation unit)", 2002, "ISO §11.5/§11.6 (OO)", "interface-definition-2002");
+    private static readonly Gate RepositoryInterface = new("the REPOSITORY INTERFACE entry", 2002, "ISO §12.3.8 (OO)", "repository-interface-2002");
+    private static readonly Gate RepositoryProperty = new("the REPOSITORY PROPERTY entry", 2002, "ISO §12.3.8 (OO; §8.4.3.9.3 SR1)", "repository-property-2002");
+    private static readonly Gate PropertyClause = new("the PROPERTY data-description clause", 2002, "ISO §13.18.42 (OO)", "property-clause-2002");
     private static readonly Gate LogicalXor = new("the logical XOR/EXCLUSIVE-OR operator", 2023, "ISO §8.8.4.9; Annex E.2 item 25 (VCR rows 32/41)", "logical-xor-operator-2023");
 
     /// <summary>
@@ -94,6 +98,10 @@ public static class EditionGateHints
             CobolLexer.OBJECT when Next(stream, token, 1)?.Type == CobolLexer.REFERENCE
                 && (InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") || Next(stream, token, -1)?.Type == CobolLexer.USAGE) => UsageObject,
             CobolLexer.CLASS when InRule(ruleStack, "repositoryParagraph") => RepositoryClass,
+            CobolLexer.INTERFACE when InRule(ruleStack, "repositoryParagraph") => RepositoryInterface,
+            CobolLexer.PROPERTY when InRule(ruleStack, "repositoryParagraph") => RepositoryProperty,
+            CobolLexer.PROPERTY when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription")
+                || InRule(ruleStack, "workingStorageSection") => PropertyClause,
             CobolLexer.FOR when InRule(ruleStack, "specialNamesParagraph") => SpecialNamesFor,
             CobolLexer.BY when InRule(ruleStack, "callStatement") && Next(stream, token, 1)?.Type == CobolLexer.VALUE => CallByValue,
             CobolLexer.VALUE when InRule(ruleStack, "callStatement") && Next(stream, token, -1)?.Type == CobolLexer.BY => CallByValue,
@@ -104,12 +112,19 @@ public static class EditionGateHints
             _ => null,
         };
 
-        // A classDefinition rejected at the compilationGroup level reports the offending token at the unit
-        // start (empirically 'IDENTIFICATION'); the CLASS-ID token a few tokens ahead is the signature.
-        if (gate is null && token.Type is CobolLexer.IDENTIFICATION or CobolLexer.CLASS_ID)
+        // A classDefinition/interfaceDefinition rejected at the compilationGroup level reports the
+        // offending token at the unit start (empirically 'IDENTIFICATION'); the CLASS-ID/INTERFACE-ID token
+        // a few tokens ahead is the signature. (IMPLEMENTS and the METHOD-ID GET/SET PROPERTY selector are
+        // NOT mapped — they only occur INSIDE a class/interface unit, whose own gate fires first; same
+        // transitive-coverage argument as the remarks' residue list.)
+        if (gate is null && token.Type is CobolLexer.IDENTIFICATION or CobolLexer.CLASS_ID or CobolLexer.INTERFACE_ID)
             for (int i = 0; gate is null && i <= 4; i++)
-                if (Next(stream, token, i)?.Type == CobolLexer.CLASS_ID)
-                    gate = ClassDefinition;
+                gate = Next(stream, token, i)?.Type switch
+                {
+                    CobolLexer.CLASS_ID => ClassDefinition,
+                    CobolLexer.INTERFACE_ID => InterfaceDefinition,
+                    _ => null,
+                };
 
         if (gate is not { } g || dialect >= g.IntroducedIn) return null;
         return ("COBOLNET0900",

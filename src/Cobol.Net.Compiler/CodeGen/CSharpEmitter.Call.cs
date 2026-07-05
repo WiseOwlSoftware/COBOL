@@ -86,8 +86,10 @@ public sealed partial class CSharpEmitter
 
         var (units, classes) = CallCollectUnits(tree, edition);
         _callUidBand = 0;
+        foreach (var iface in _ooClasses.Interfaces) OoBindInterfaceData(iface, edition);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) OoBindClassData(cls, edition);   // ALL signatures before ANY body (D1 pass-1)
         _ooClasses.ValidateOverrideSignatures(edition);               // §9.3.8.2 — after all formals resolve (slice 3a)
+        _ooClasses.ValidateImplements(edition);                       // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority)
         foreach (var cls in classes) OoBindClassBody(cls);
         foreach (var unit in units) CallBindUnit(unit, edition);
         foreach (var cls in classes) { MarkStoreAsImage(cls.Data); MarkStoreAsImage(cls.FactoryData); }
@@ -135,9 +137,11 @@ public sealed partial class CSharpEmitter
             w.Line("using CobolNet.Runtime.Exceptions; // the EC exception-condition model (ISO §14.6.13; ExceptionState / ExceptionCatalog / ResumeSignal / CobolFatalException)");
         w.Line();
 
-        // Classes first (source order — deterministic; Roslyn needs no declaration ordering, unlike the legacy
-        // Cecil emitter's depth-sort), then the program classes, then the run-unit entry wrapper. A class-only
-        // compilation unit (no program) is legal (§10.6) — its module emits the classes and an empty Main.
+        // Interfaces first (readability only — Roslyn needs no ordering), then classes (source order), then
+        // the program classes and the run-unit entry wrapper. A class-only/interface-only compilation unit is
+        // legal (§10.6) — its module emits the types and an empty Main.
+        foreach (var iface in _ooClasses.Interfaces)
+            OoEmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
             OoEmitClassUnit(cls, w);
         if (units.Count == 0)
@@ -167,14 +171,16 @@ public sealed partial class CSharpEmitter
         var all = new List<CallUnit>();
         var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
         var classDefs = new List<Core.ClassDefinitionContext>();
+        var ifaceDefs = new List<Core.InterfaceDefinitionContext>();
 
         foreach (var group in tree.compilationGroup())
         {
             classDefs.AddRange(group.classDefinition());
+            ifaceDefs.AddRange(group.interfaceDefinition());   // §11.6 — collected, NEVER silently dropped (the W2 rule)
             foreach (var pu in group.programUnit())
                 Collect(pu, null);
         }
-        _ooClasses = OoClassTable.Build(classDefs, edition);
+        _ooClasses = OoClassTable.Build(classDefs, edition, ifaceDefs);
         var classes = _ooClasses.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
         return (all, classes);
 

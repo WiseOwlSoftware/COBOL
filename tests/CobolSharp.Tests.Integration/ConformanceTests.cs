@@ -68,6 +68,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "oo_inherit"),
         ("2002", "oo_super"),
         ("2002", "oo_self_polymorphic"),
+        // The INTERFACE/PROPERTY wave (§11.5/§11.6/§13.18.42) — net-new in the greenfield (DEVLOG 606):
+        ("2002", "oo_interface"),
+        ("2002", "oo_interface_covariant"),
+        ("2002", "oo_property"),
+        ("2002", "oo_property_methods"),
     ];
 
     [Theory]

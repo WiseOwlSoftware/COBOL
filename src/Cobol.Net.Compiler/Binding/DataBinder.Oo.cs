@@ -224,6 +224,80 @@ public sealed partial class DataBinder
         foreach (var ren in item.Renames66) OoScopeSubtree(ren, scope);
     }
 
+    /// <summary>Scan the OBJECT/FACTORY WORKING-STORAGE parse entries for PROPERTY clauses (§13.18.42) and
+    /// SYNTHESIZE the accessor method symbols (D-P1 — the PINNED §11.7.4 GR1a implementor naming
+    /// <c>__GET_&lt;P&gt;</c>/<c>__SET_&lt;P&gt;</c>): GET returns the SUBJECT item's description; SET takes
+    /// one formal of it. The emitter renders DIRECT field bodies — observably identical to the spec's
+    /// implicit MOVE methods (GR1/GR2 :21214-21229) because the descriptions are identical by construction.
+    /// SR checks are the 0842 family; WITH NO GET/SET suppresses the accessor; explicit GET/SET PROPERTY
+    /// methods (already on the roster) take precedence — a clause + an explicit accessor for the same
+    /// property is the §11.7 SR5 duplicate (0842).</summary>
+    internal void OoBindPropertyClauses(OoClassSymbol cls, Core.WorkingStorageSectionContext? ws, bool factory)
+    {
+        foreach (var entry in ws?.dataDescriptionEntry() ?? [])
+        {
+            var clauses = entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
+            var pc = clauses?.Select(c => c.propertyClause()).FirstOrDefault(c => c is not null);
+            if (pc is null) continue;
+            string where = $"class '{cls.Name}'{(factory ? " (FACTORY)" : "")}";
+            if (entry.dataName()?.GetText() is not { } subjName)
+            {
+                Edition.Error("COBOLNET0842", $"{where}: a PROPERTY clause requires a named data item "
+                    + "(ISO §13.18.42 — FILLER cannot be a property subject)");
+                continue;
+            }
+            var subject = Roots.SelectMany(Flatten).FirstOrDefault(i =>
+                string.Equals(i.CobolName, subjName, StringComparison.OrdinalIgnoreCase));
+            if (subject is null) continue;   // the entry failed to bind — already diagnosed
+            if (subject.Occurs is not null)
+            {
+                Edition.Error("COBOLNET0842", $"{where}: property subject '{subjName}' shall not carry "
+                    + "OCCURS (ISO §13.18.42 SR — no table subjects)");
+                continue;
+            }
+            // Superclass property-name collision (§13.18.42.3 SR4): walk the base chain's accessor rosters.
+            for (var b = cls.Base; b is not null; b = b.Base)
+                if ((factory ? b.FactoryMethods : b.Methods).Any(bm =>
+                        string.Equals(bm.PropertyName, subjName, StringComparison.OrdinalIgnoreCase)))
+                    Edition.Error("COBOLNET0842", $"{where}: property '{subjName}' collides with a property "
+                        + $"of superclass '{b.Name}' (ISO §13.18.42.3 SR4)");
+
+            bool noGet = pc.NO() is not null && pc.GET() is not null;
+            bool noSet = pc.NO() is not null && pc.SET() is not null;
+            string sanitized = DataItem.Sanitize(subjName).ToUpperInvariant();
+            if (!noGet)
+                AddAccessor('G', "__GET_" + sanitized);
+            if (!noSet)
+                AddAccessor('S', "__SET_" + sanitized);
+
+            void AddAccessor(char kind, string csName)
+            {
+                var m = new OoMethodSymbol(csName,
+                    HasUsing: kind == 'S', HasReturning: kind == 'G',
+                    Ctx: null!)
+                {
+                    CsName = csName, Owner = cls, IsFactory = factory,
+                    Accessor = kind, PropertyName = subjName, PropertySubject = subject,
+                    IsFinal = pc.FINAL() is not null,
+                };
+                if (kind == 'G') m.Returning = subject; else m.Formals.Add(new OoFormal(subject, 0, "__V"));
+                bool added = factory ? cls.TryAddFactoryMethod(m) : cls.TryAddMethod(m);
+                if (!added)
+                    Edition.Error("COBOLNET0842", $"{where}: duplicate accessor for property '{subjName}' — "
+                        + "a data-name with the PROPERTY clause shall not also have an explicit GET/SET "
+                        + "PROPERTY method (ISO §11.7 SR5), and only one PROPERTY clause per name");
+            }
+        }
+
+        static IEnumerable<DataItem> Flatten(DataItem i)
+        {
+            yield return i;
+            foreach (var c in i.Children)
+                foreach (var d in Flatten(c))
+                    yield return d;
+        }
+    }
+
     /// <summary>Stage the method-data shapes slice 2 does not carry yet — LOUD, naming the owning wave.</summary>
     private void OoGateUnsupportedShapes(DataItem item, string where)
     {

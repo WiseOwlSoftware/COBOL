@@ -1441,4 +1441,236 @@ public sealed class OoSpineTests
         Assert.False(ok02, "OVERRIDE is §8.9-reserved at 2002+ — the funnel must 0901");
         EditionHarness.AssertHasDiagnostic(errors02, "COBOLNET0901");
     }
+
+    // ── The INTERFACE/PROPERTY wave (§11.5/§11.6/§11.8/§13.18.42 — DEVLOG 606) ──────────────────────────────
+
+    private const string SpeakerInterface = """
+        IDENTIFICATION DIVISION.
+        INTERFACE-ID. ISPK50.
+        PROCEDURE DIVISION.
+        METHOD-ID. SPEAK.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-N PIC 9(4).
+        PROCEDURE DIVISION USING LK-N.
+        END METHOD SPEAK.
+        END INTERFACE ISPK50.
+        """;
+
+    /// <summary>THE headline 0841: PIC 9(4) and PIC 9(8) formals BOTH project to C# <c>ref long</c>, so
+    /// Roslyn would accept the implementation — §9.3.8.2.3 rules 2/3 demand identical descriptions and only
+    /// the binder can check them. The under-rejection direction of the D-I1 authority argument.</summary>
+    [Fact]
+    public void Implements_NumericDescriptionMismatch_0841()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf($$"""
+            {{SpeakerInterface}}
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CSPK50.
+            IDENTIFICATION DIVISION.
+            OBJECT. IMPLEMENTS ISPK50.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-N PIC 9(8).
+            PROCEDURE DIVISION USING LK-N.
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS CSPK50.
+            """), "COBOLNET0841");
+
+    /// <summary>§9.3.11 — a class shall implement ALL prototypes of its interfaces (incl. inherited).</summary>
+    [Fact]
+    public void Implements_MissingMethod_0841()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf($$"""
+            {{SpeakerInterface}}
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CSPK51.
+            IDENTIFICATION DIVISION.
+            OBJECT. IMPLEMENTS ISPK50.
+            END OBJECT.
+            END CLASS CSPK51.
+            """), "COBOLNET0841");
+
+    /// <summary>§10.7 — END INTERFACE names its interface (the 0840 structural family).</summary>
+    [Fact]
+    public void Interface_EndNameMismatch_0840()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. ISPK52.
+            END INTERFACE OTHER52.
+            """), "COBOLNET0840");
+
+    /// <summary>§10.6.2 SR4 — a method prototype is a header only; a body is the 0840 family.</summary>
+    [Fact]
+    public void Interface_PrototypeWithBody_0840()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. ISPK53.
+            PROCEDURE DIVISION.
+            METHOD-ID. PING.
+            PROCEDURE DIVISION.
+            MAIN.
+                CONTINUE.
+            END METHOD PING.
+            END INTERFACE ISPK53.
+            """), "COBOLNET0840");
+
+    /// <summary>§11.7 SR6 — a GET accessor has no USING and exactly one RETURNING (0842).</summary>
+    [Fact]
+    public void AccessorShape_GetWithUsing_0842()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CPRP54.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. GET PROPERTY BAL.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-V PIC 9(4).
+            PROCEDURE DIVISION USING LK-V.
+            END METHOD.
+            END OBJECT.
+            END CLASS CPRP54.
+            """), "COBOLNET0842");
+
+    /// <summary>§11.7 SR5 — a PROPERTY-clause subject shall not ALSO have an explicit accessor (0842).</summary>
+    [Fact]
+    public void PropertyClause_DuplicateExplicitAccessor_0842()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CPRP55.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(4) PROPERTY.
+            PROCEDURE DIVISION.
+            METHOD-ID. GET PROPERTY BAL.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-R PIC 9(4).
+            PROCEDURE DIVISION RETURNING LK-R.
+            END METHOD.
+            END OBJECT.
+            END CLASS CPRP55.
+            """), "COBOLNET0842");
+
+    /// <summary>The property-REFERENCE increment boundary: <c>P OF obj</c> stages LOUD under its own named
+    /// 0899 (at the ReferenceResolver chokepoint), never the generic unknown-name guard.</summary>
+    [Fact]
+    public void PropertyReference_StagedLoud_0899()
+    {
+        var errors = ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP56.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS CPRP56.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A USAGE OBJECT REFERENCE CPRP56.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE CPRP56 "NEW" RETURNING A.
+                DISPLAY BAL OF A.
+                STOP RUN.
+            END PROGRAM OOSP56.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CPRP56.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(4) PROPERTY.
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS CPRP56.
+            """);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0899");
+        Assert.Contains(errors, e => e.Contains("object-property reference"));
+    }
+
+    /// <summary>PROPERTY/GET/INTERFACE are legal USER words at 85 (§8.9 reserves them from 2002) — the
+    /// continuity invariant for the wave's newly-admitted tokens; the funnel 0901s them at 2002+.</summary>
+    [Theory]
+    [InlineData("PROPERTY")]
+    [InlineData("GET")]
+    [InlineData("INTERFACE")]
+    public void InterfaceWaveWords_UserNamesAt85_Reserved2002Plus(string word)
+    {
+        string src(string pid) => $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {pid}.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 {word} PIC 9(2) VALUE 3.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY {word}.
+                STOP RUN.
+            END PROGRAM {pid}.
+            """;
+        var (ok85, errors85, _) = EditionHarness.CompileFull(src("OOSP57"), 85);
+        Assert.True(ok85, $"{word} must be a legal user word at --std 85: " + string.Join("\n", errors85));
+        var (ok02, errors02, _) = EditionHarness.CompileFull(src("OOSP58"), 2002);
+        Assert.False(ok02, $"{word} is §8.9-reserved at 2002+ — the funnel must 0901");
+        EditionHarness.AssertHasDiagnostic(errors02, "COBOLNET0901");
+    }
+
+    /// <summary>IMPLEMENTS is §8.10 CONTEXT-SENSITIVE (spec :10853), NOT §8.9-reserved — a legal user word
+    /// at EVERY edition, including 2023 (the deliberate asymmetry with the XOR-recipe words).</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void ImplementsWord_UserWordAtAllEditions(int edition)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP59.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 IMPLEMENTS PIC 9(2) VALUE 7.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY IMPLEMENTS.
+                STOP RUN.
+            END PROGRAM OOSP59.
+            """, edition);
+        Assert.True(ok, $"IMPLEMENTS must stay a user word at --std {edition} (§8.10 context-sensitive): "
+            + string.Join("\n", errors));
+    }
+
+    /// <summary>SET SR10/§9.3.8.2 — a class that does NOT implement the interface cannot widen into an
+    /// interface-typed receiver (the negative of the oo_interface golden's NEW-RETURNING path).</summary>
+    [Fact]
+    public void InterfaceReceiver_NonImplementingClass_Rejected()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf($$"""
+            {{SpeakerInterface}}
+
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP60.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS CSPK60.
+                INTERFACE ISPK50.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 S USAGE OBJECT REFERENCE ISPK50.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE CSPK60 "NEW" RETURNING S.
+                STOP RUN.
+            END PROGRAM OOSP60.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CSPK60.
+            END CLASS CSPK60.
+            """), "COBOLNET0826");
 }

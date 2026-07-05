@@ -663,10 +663,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // (PicInfo.ClrType), so an unresolved name would surface as a Roslyn CS0246 on user source (a
         // loud-failure violation). §13.18.60.4: class-name-1 shall reference a class.
         if (entryUsage is Usage.ObjectReference && objectClassName is not null
-            && OoClasses?.Find(objectClassName) is null)
-            Edition.Error("COBOLNET0813", $"{entryWhere}: USAGE OBJECT REFERENCE names the unknown class "
-                + $"'{objectClassName}' — the declared class of a typed object reference shall be a class of "
-                + "the compilation group (ISO §13.18.60.4; separate class compilation is a later slice)");
+            && OoClasses?.Find(objectClassName) is null && OoClasses?.FindInterface(objectClassName) is null)
+            Edition.Error("COBOLNET0813", $"{entryWhere}: USAGE OBJECT REFERENCE names the unknown class or "
+                + $"interface '{objectClassName}' — the declared name of a typed object reference shall be a "
+                + "class or interface of the compilation group (ISO §13.18.60.2/.4; separate compilation is "
+                + "a later slice)");
 
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)

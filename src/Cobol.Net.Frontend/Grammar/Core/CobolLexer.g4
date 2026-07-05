@@ -45,6 +45,10 @@ options {
         // OVERRIDE (ISO §11.7 method attribute, reserved 2002+ per §8.9): user data name at 85 —
         // the funnel 0901s it at 2002+ (the OVERRIDE/FINAL wave, DEVLOG 605):
         OVERRIDE,
+        // The INTERFACE/PROPERTY wave (DEVLOG 606): GET/PROPERTY/INTERFACE are §8.9-reserved 2002+ (user
+        // words at 85 — funnel rows exist); IMPLEMENTS is §8.10 CONTEXT-SENSITIVE (a user word at EVERY
+        // edition — cobolWord always, never CheckedTokenTypes):
+        GET, PROPERTY, INTERFACE, IMPLEMENTS,
         // Intrinsic function names that collide with reserved words
         // (mirrors functionName in CobolExpressions.g4):
         DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
@@ -138,6 +142,10 @@ SOURCE_COMPUTER : 'SOURCE-COMPUTER' ;
 OBJECT_COMPUTER : 'OBJECT-COMPUTER' ;
 OBJECT      : 'OBJECT' ;
 OVERRIDE    : 'OVERRIDE' ;  // METHOD-ID attribute (ISO §11.7, 2002+; §8.9-reserved 2002+ — user word at 85, funnel row exists)
+IMPLEMENTS  : 'IMPLEMENTS' ;  // FACTORY/OBJECT paragraph clause (§11.8; §8.10 CONTEXT-SENSITIVE — a user word at EVERY edition, never funneled)
+PROPERTY    : 'PROPERTY' ;  // the PROPERTY clause / GET-SET selector / repository specifier (§13.18.42/§11.7/§12.3.8; §8.9-reserved 2002+)
+GET         : 'GET' ;       // METHOD-ID GET PROPERTY selector (§11.7; §8.9-reserved 2002+ — user word at 85)
+INTERFACE   : 'INTERFACE' ; // END INTERFACE + the repository INTERFACE specifier (§11.6/§12.3.8; §8.9-reserved 2002+)
 FACTORY     : 'FACTORY' ;   // the FACTORY paragraph (ISO §11.4, 2002+; §8.9-reserved 2002+ — user word at 85, funnel row exists)
 INHERITS    : 'INHERITS' ;   // COBOL-2002 OO: CLASS-ID. name INHERITS FROM base (ISO §11.3); corpus-clean
 SPECIAL_NAMES   : 'SPECIAL-NAMES' ;

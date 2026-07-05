@@ -218,6 +218,7 @@ dataDescriptionClause
     | syncClause
     | justifiedClause
     | blankWhenZeroClause
+    | {is2002()}? propertyClause
     | externalClause
     | globalClause
     | typeClause
@@ -226,6 +227,10 @@ dataDescriptionClause
     ;
 
 // EXTERNAL clause (§13.18.22) — shared storage across run unit
+propertyClause
+    : PROPERTY (WITH? NO (GET | SET))? (IS? FINAL)?   // §13.18.42.2 :21146-21148 (WITH optional per the IS?-style tolerance)
+    ;
+
 externalClause
     : IS? EXTERNAL
     ;
@@ -351,15 +356,18 @@ renamesClause
 // For level-88 condition entries, valueItem supports THRU ranges.
 // Format 3 (§13.18.63): WHEN SET TO FALSE IS literal for condition-names;
 //                        IN alphabet-name for character comparisons.
+// The valueItem loop guard: at 2002+ PROPERTY is reserved (ISO 8.9) so it can NEVER be a constant-name
+// operand — without the predicate the greedy loop consumes it as a cobolWord and the propertyClause
+// (13.18.42) that follows VALUE never matches. At 85 PROPERTY stays a legal user word (the XOR recipe).
 valueClause
-    : (VALUE | VALUES) (IS | ARE)? valueItem (COMMA? valueItem)*
+    : (VALUE | VALUES) (IS | ARE)? valueItem ({!(is2002() && TokenStream.LA(1)==PROPERTY)}? COMMA? valueItem)*
       (WHEN SET TO FALSE_ IS? literal)?
       (IN IDENTIFIER)?
     ;
 
 valueItem
     : valueClauseRange
-    | valueClauseOperand+
+    | valueClauseOperand ({!(is2002() && TokenStream.LA(1)==PROPERTY)}? valueClauseOperand)*
     ;
 
 // SIGN Clause

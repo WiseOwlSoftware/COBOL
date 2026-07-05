@@ -50,6 +50,10 @@ cobolWord
     // (RERUN/ENTER ≥2002, DEBUGGING ≥2014, the rest ≥2023 per ReservedWords.Table). Mirrored in the lexer
     // _dataNameTokens set.
     | OVERRIDE     // context: the METHOD-ID attribute slot (§11.7, 2002+; a direct token there, never a name slot — position-safe); '85 user word, 0901 >=2002 (ReservedWords.Table)
+    | GET          // context: METHOD-ID GET PROPERTY (§11.7, 2002+); '85 user word, 0901 >=2002
+    | PROPERTY     // context: the PROPERTY clause / selector / repository specifier (2002+); '85 user word, 0901 >=2002
+    | INTERFACE    // context: END INTERFACE / repository INTERFACE specifier (2002+); '85 user word, 0901 >=2002
+    | IMPLEMENTS   // context: the FACTORY/OBJECT IMPLEMENTS clause (§11.8) — §8.10 CONTEXT-SENSITIVE: a user word at EVERY edition (never funneled)
     | FACTORY      // context: the FACTORY paragraph (§11.4, 2002+; keyword occurrences parse only via factoryParagraph/END FACTORY/FACTORY OF — position-safe in the funnel); '85 user word, 0901 >=2002 (ReservedWords.Table)
     | RERUN        // context: the I-O-CONTROL RERUN clause ('85; row 7.15)
     | ENTER        // context: the ENTER statement ('85; row 7.16)
@@ -122,7 +126,7 @@ compilationUnit
     ;
 
 compilationGroup
-    : (programUnit | {is2002()}? classDefinition)+   // classDefinition (OO/2002) rule is in Core/CobolOO.g4
+    : (programUnit | {is2002()}? classDefinition | {is2002()}? interfaceDefinition)+   // OO/2002 rules live in Core/CobolOO.g4
     ;
 
 programUnit
@@ -430,6 +434,8 @@ repositoryEntry
     : FUNCTION ALL INTRINSIC
     | FUNCTION functionName INTRINSIC?
     | {is2002()}? CLASS className   // OO (2002): CLASS class-name [AS literal] — declares a referenced class (className rule in Core/CobolOO.g4)
+    | {is2002()}? INTERFACE interfaceName   // OO (2002): the interface specifier (§12.3.8; AS-literal tail deferred like CLASS's)
+    | {is2002()}? PROPERTY propertyName     // OO (2002): the property specifier (§12.3.8 — required by §8.4.3.9.3 SR1 property references)
     ;
 
 // SOURCE-COMPUTER.

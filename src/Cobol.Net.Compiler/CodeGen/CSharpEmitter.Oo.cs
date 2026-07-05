@@ -43,6 +43,28 @@ public sealed partial class CSharpEmitter
     /// classes defined anywhere in the file. Never null after collection (empty table when no classes).</summary>
     private OoClassTable _ooClasses = null!;
 
+    /// <summary>The per-interface DATA forests (prototype LINKAGE formals — bound so ValidateImplements has
+    /// resolved descriptions, and so the interface emission can render the formals' numeric profiles and
+    /// group struct types as INTERFACE statics, which CONTENT conversions through interface-typed receivers
+    /// qualify as <c>{IFACE}._P_n</c>; C# 8+ interfaces carry static members natively).</summary>
+    private readonly Dictionary<OoInterfaceSymbol, DataBinder> _ooIfaceData = [];
+
+    /// <summary>Bind one INTERFACE's prototype formals (§10.6.2 SR4 — LINKAGE-only data divisions; the
+    /// prototypes reuse the whole OoBindMethodData machinery with no bodies).</summary>
+    private void OoBindInterfaceData(OoInterfaceSymbol iface, EditionContext edition)
+    {
+        var data = new DataBinder(edition) { OoClasses = _ooClasses, OoIsClassUnit = true };
+        data.CallSeedUids(_callUidBand);
+        _callUidBand += 100_000;
+        var synthetic = new Core.ProgramUnitContext(null!, -1);
+        if (iface.Ctx.environmentDivision() is { } env) synthetic.AddChild(env);
+        data.BindDeclarations(synthetic);
+        foreach (var proto in iface.Prototypes)
+            data.OoBindMethodData(proto);
+        data.BindResolve(synthetic);
+        _ooIfaceData[iface] = data;
+    }
+
     /// <summary>Phase A of class binding — the DATA + SIGNATURES: the OBJECT paragraph's data division binds
     /// through the STANDARD DataBinder over a synthetic program-unit context (the <c>CallReparent</c>
     /// discipline — direct-children accessors see exactly the class's own divisions) producing INSTANCE
@@ -57,8 +79,10 @@ public sealed partial class CSharpEmitter
         _callUidBand += 100_000;
         var synthetic = OoReparentClassData(cls.Symbol.Ctx);
         data.BindDeclarations(synthetic);
-        foreach (var m in cls.Symbol.Methods)
+        foreach (var m in cls.Symbol.Methods.ToList())   // snapshot — property synthesis appends accessors
             data.OoBindMethodData(m);
+        data.OoBindPropertyClauses(cls.Symbol,
+            cls.Symbol.Ctx.objectParagraph()?.dataDivision()?.workingStorageSection(), factory: false);
         data.BindResolve(synthetic);
         if (data.Files.Count > 0)
             edition.Error("COBOLNET0899",
@@ -76,8 +100,10 @@ public sealed partial class CSharpEmitter
         _callUidBand += 100_000;
         var fsynthetic = OoReparentFactoryData(cls.Symbol.Ctx);
         fdata.BindDeclarations(fsynthetic);
-        foreach (var m in cls.Symbol.FactoryMethods)
+        foreach (var m in cls.Symbol.FactoryMethods.ToList())
             fdata.OoBindMethodData(m);
+        fdata.OoBindPropertyClauses(cls.Symbol,
+            cls.Symbol.Ctx.factoryParagraph()?.dataDivision()?.workingStorageSection(), factory: true);
         fdata.BindResolve(fsynthetic);
         if (fdata.Files.Count > 0)
             edition.Error("COBOLNET0899",
@@ -149,16 +175,32 @@ public sealed partial class CSharpEmitter
     private void OoEmitClassUnit(OoClassUnit cls, CodeWriter w)
     {
         // The INSTANCE class (D1/D2 + slice 3a: `: BASE` when the class INHERITS — single inheritance v1,
-        // SSOT §18.18 — else the CobolObject runtime root; Roslyn needs no declaration ordering).
-        OoEmitTypeHalf(cls.Name, cls.CsName, cls.Symbol.Base?.CsName ?? "CobolObject",
-            cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w, headerExtras: null,
+        // SSOT §18.18 — else the CobolObject runtime root; Roslyn needs no declaration ordering). The DIRECT
+        // IMPLEMENTS list joins the base list (§11.8 — the closure arrives transitively at the C# level);
+        // covariant-return conformances render as EXPLICIT interface implementations (D-I1's adapter cure:
+        // C# forbids covariant interface implementations that §9.3.8.2.3 5a/5c2 permit).
+        string instBase = string.Join(", ", new[] { cls.Symbol.Base?.CsName ?? "CobolObject" }
+            .Concat(cls.Symbol.Implements.Select(i => i.CsName)));
+        var instExtras = _ooClasses.AdapterPairs
+            .Where(a => !a.Factory && ReferenceEquals(a.Impl.Owner, cls.Symbol))
+            .Select(a =>
+            {
+                var (protoRet, protoSig) = OoSignatureOf(a.Proto);
+                string args = string.Join(", ", a.Proto.Formals.Select(f => $"ref {f.ParamName}"));
+                return $"{protoRet} {a.Iface.CsName}.{a.Proto.CsName}({protoSig}) => this.{a.Impl.CsName}({args});   // covariant-return adapter (§9.3.8.2.3 5c2)";
+            })
+            .ToList();
+        OoEmitTypeHalf(cls.Name, cls.CsName, instBase,
+            cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w,
+            headerExtras: instExtras.Count > 0 ? instExtras : null,
             sealedType: cls.Symbol.IsFinal);
 
         // The FACTORY class (brief D11 — a REAL sibling singleton, NEVER statics: §8.6.4 per-class copies of
         // inherited factory data; SELF-in-factory polymorphism SR4f + GR2; §9.3.6 chain resolution). Every
         // CLASS-ID emits one — a class with no FACTORY paragraph still needs its own factory object and a
         // chain node for inherited factory methods.
-        string facBase = cls.Symbol.Base?.FactoryCsName ?? "CobolObject";
+        string facBase = string.Join(", ", new[] { cls.Symbol.Base?.FactoryCsName ?? "CobolObject" }
+            .Concat(cls.Symbol.FactoryImplements.Select(i => i.CsName)));
         var extras = new List<string>
         {
             // The singleton (§9.3.14.2 "created before it is first referenced" — .NET static-readonly type
@@ -222,9 +264,22 @@ public sealed partial class CSharpEmitter
     /// </summary>
     private void OoEmitMethod(BoundProgram bound, OoMethodSymbol m, FieldEmitter fields, CodeWriter w)
     {
-        string retType = m.Returning is { } ret ? (OoStringCarried(ret) ? "string" : ret.ElementType) : "void";
-        string sig = string.Join(", ", m.Formals.Select(f =>
-            $"ref {(OoStringCarried(f.Item) ? "string" : f.Item.ElementType)} {f.ParamName}"));
+        var (retType, sig) = OoSignatureOf(m);
+        if (m.PropertySubject is { } subject)
+        {
+            // A PROPERTY-clause-synthesized accessor (D-P1): a DIRECT field body — identical descriptions
+            // make the spec's implicit MOVE a straight copy (§13.18.42 GR1/GR2 :21214-21229).
+            string pmod = m.OverrideOf is not null
+                ? (m.IsFinal && !m.Owner.IsFinal ? "sealed override" : "override")
+                : (m.IsFinal || m.Owner.IsFinal) ? "" : "virtual";
+            string pmods = pmod.Length == 0 ? "" : pmod + " ";
+            if (m.Accessor == 'G')
+                w.Line($"public {pmods}{retType} {m.CsName}() => {subject.CsName};   // PROPERTY {m.PropertyName} GET (§13.18.42 GR1)");
+            else
+                w.Line($"public {pmods}void {m.CsName}(ref {(OoStringCarried(subject) ? "string" : subject.ElementType)} __V) {{ {subject.CsName} = __V; }}   // PROPERTY {m.PropertyName} SET (GR2)");
+            w.Line();
+            return;
+        }
         // D7's TOTAL modifier table (the OVERRIDE/FINAL wave): virtual by default (§9.3.6 runtime-class
         // dispatch); an override emits `override` — `sealed override` when ITS FINAL and the class is not
         // already sealed; a FINAL root method (or ANY fresh slot in a FINAL class) emits NON-virtual — a
@@ -278,6 +333,39 @@ public sealed partial class CSharpEmitter
                 w.Line(r.IsGroup
                     ? $"return {r.CsName}.AsImage();   // the invocation result (§14.9.23.4 GR8)"
                     : $"return {r.CsName};   // the invocation result (§14.9.23.4 GR8)");
+        }
+        w.Line();
+    }
+
+    /// <summary>The C# (return-type, parameter-list) of a method or prototype — ONE builder shared by class
+    /// method emission, interface member emission, and the covariant adapters, so the three can never drift
+    /// (the same reasoning as the ONE DescriptionMismatch).</summary>
+    private static (string RetType, string Sig) OoSignatureOf(OoMethodSymbol m)
+    {
+        string retType = m.Returning is { } ret ? (OoStringCarried(ret) ? "string" : ret.ElementType) : "void";
+        string sig = string.Join(", ", m.Formals.Select(f =>
+            $"ref {(OoStringCarried(f.Item) ? "string" : f.Item.ElementType)} {f.ParamName}"));
+        return (retType, sig);
+    }
+
+    /// <summary>Emit one INTERFACE-ID as a C# interface (§11.6; D-I1): members are the prototypes' signatures
+    /// (the SAME builder class methods use); the prototypes' numeric profiles and group struct types emit as
+    /// interface STATICS (C# 8+) so cross-unit CONTENT conversions can qualify them.</summary>
+    private void OoEmitInterfaceUnit(OoInterfaceSymbol iface, CodeWriter w)
+    {
+        var data = _ooIfaceData[iface];
+        _ctx = new EmissionContext(w, data);
+        string bases = iface.Inherits.Count > 0
+            ? " : " + string.Join(", ", iface.Inherits.Select(b => b.CsName))
+            : "";
+        using (w.Block($"public interface {iface.CsName}{bases}"))
+        {
+            new FieldEmitter(_ctx).Emit();   // profiles + struct types only (LINKAGE roots are suppressed)
+            foreach (var proto in iface.Prototypes)
+            {
+                var (retType, sig) = OoSignatureOf(proto);
+                w.Line($"{retType} {proto.CsName}({sig});   // METHOD-ID {proto.Name} (prototype, §10.6.2 SR4)");
+            }
         }
         w.Line();
     }

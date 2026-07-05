@@ -531,6 +531,66 @@
     "source": "IDENTIFICATION DIVISION.\nCLASS-ID. CD1.\nEND CLASS CD1.\n"
   },
   {
+    "id": "interface-definition-2002",
+    "status": "active",
+    "description": "An interface definition (INTERFACE-ID compilation unit), ISO 11.5/11.6 - introduced 2002 (OO). Grammar-gated in compilationGroup; below 2002 the W1.5 parse-layer mapping names the edition (0900); LIVE at the INTERFACE wave: emits a real C# interface whose members are the prototypes' signatures, prototype LINKAGE bound per 10.6.2 SR4, class conformance via the binder-authoritative 9.3.8.2.3 pass (0841).",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 606)",
+    "source": "IDENTIFICATION DIVISION.\nINTERFACE-ID. IFQ1.\nPROCEDURE DIVISION.\nMETHOD-ID. PING.\nPROCEDURE DIVISION.\nEND METHOD PING.\nEND INTERFACE IFQ1.\n"
+  },
+  {
+    "id": "repository-interface-2002",
+    "status": "active",
+    "description": "The REPOSITORY INTERFACE entry (ISO 12.3.8) - introduced 2002 (OO). Grammar-gated in repositoryEntry; below 2002 the W1.5 parse-layer mapping names the edition (0900).",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 606)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RIFQ1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    INTERFACE IFQX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "repository-property-2002",
+    "status": "active",
+    "description": "The REPOSITORY PROPERTY entry (ISO 12.3.8; required by 8.4.3.9.3 SR1 for property references) - introduced 2002 (OO). Grammar-gated in repositoryEntry; below 2002 the W1.5 parse-layer mapping names the edition (0900).",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 606)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RPRQ1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    PROPERTY PRQX.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "property-clause-2002",
+    "status": "active",
+    "description": "The PROPERTY data-description clause (ISO 13.18.42) - introduced 2002 (OO). {is2002()}?-gated in dataDescriptionClause plus the valueItem loop guard (at 2002+ PROPERTY is reserved (8.9) so it terminates a VALUE clause instead of parsing as a constant-name operand); accessors synthesize per GR1/GR2 under the pinned __GET_/__SET_ names (11.7.4 GR1a). Below 2002 the W1.5 parse-layer mapping names the edition (0900).",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 606)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PCLQ1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-B PIC 9(4) PROPERTY.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+  },
+  {
+    "id": "implements-clause-2002",
+    "status": "pending",
+    "description": "The IMPLEMENTS clause in a FACTORY/OBJECT paragraph (ISO 11.8) - introduced 2002 (OO). PENDING as a matrix PROBE only (the construct is LIVE, DEVLOG 606): it is TRANSITIVELY grammar-gated inside classDefinition, whose own gate fires first below 2002, so no independent below-edition signature exists to probe (the same residue argument as EditionGateHints' remarks). Conformance is the binder-authoritative 9.3.8.2.3 pass over the 11.8.4 GR2 closure (COBOLNET0841); the word IMPLEMENTS is 8.10 context-sensitive - a user word at every edition.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO (roadmap Phase 3; DEVLOG 606)",
+    "source": "IDENTIFICATION DIVISION.\nCLASS-ID. IMPQ1.\nIDENTIFICATION DIVISION.\nOBJECT. IMPLEMENTS IFQX.\nEND OBJECT.\nEND CLASS IMPQ1.\n"
+  },
+  {
+    "id": "method-property-selector-2002",
+    "status": "pending",
+    "description": "The METHOD-ID GET/SET PROPERTY selector (ISO 11.7; the SR6/SR7 accessor shapes are COBOLNET0842) - introduced 2002 (OO). PENDING as a matrix PROBE only (the construct is LIVE, DEVLOG 606): transitively grammar-gated inside classDefinition, whose own gate fires first below 2002 - no independent below-edition signature to probe. Explicit accessors join the roster under the pinned __GET_/__SET_ names (11.7.4 GR1a), identical to clause-synthesized ones.",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO (roadmap Phase 3; DEVLOG 606)",
+    "source": "IDENTIFICATION DIVISION.\nCLASS-ID. MPSQ1.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. GET PROPERTY BAL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LK-R PIC 9(4).\nPROCEDURE DIVISION RETURNING LK-R.\nEND METHOD.\nEND OBJECT.\nEND CLASS MPSQ1.\n"
+  },
+  {
     "id": "move-quote-numeric-obsolete-2014",
     "description": "MOVE of the figurative constant QUOTE to a numeric or numeric-edited item - the ONE figurative the change annex tracks separately (W2 adversarial-review correction): designated OBSOLETE by ISO 2014 (Annex E.2 item 21 - 'features that were classified as obsolete in the previous COBOL standard'), then REMOVED 2023 with the rest (E.2 item 1; 14.9.25.3 SR5). 0903 warning at 2014, 0902 at 2023; pre-removal semantics on the StoreAsImage substrate (spec-pinned - legacy CBL0906 compile-rejects this shape at every standard, a documented legacy non-conformance).",
     "introducedIn": 85,

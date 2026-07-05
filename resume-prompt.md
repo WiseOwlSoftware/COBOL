@@ -145,9 +145,20 @@
 > TOTAL D7 modifier table emits sealed/sealed-override/non-virtual (the CS0549 sealed-factory `__New`
 > trap caught on the golden's first compile). Corpus: the three redefining oo_* sources gained OVERRIDE
 > (greenfield-only now — the frozen legacy can't parse it); new oo_override_final golden (12/12 oo).
-> **RESUME = PROPERTY (§13.18.42)** per its brief (grammar GET/SET PROPERTY + the generated
-> getter/setter methods + property temps via implicit INVOKE) → INTERFACE-ID (+ the SR2/SR8
-> method-prototype obligation) → universal reference (D10 __CobolInvoke switches) → EC-OO; then the
+> **INTERFACE-ID + IMPLEMENTS + PROPERTY declarations LANDED (DEVLOG 606):** C# interface emission
+> (prototypes via the ONE OoSignatureOf; §10.6.2 SR4 LINKAGE binding; 0840 band), the
+> BINDER-authoritative §9.3.11/§9.3.8.2.3 conformance pass over the §11.8.4 GR2 closure = 0841
+> (Roslyn insufficient BOTH directions — 9(4)/9(8) `ref long` under-reject; covariant returns
+> over-reject, cured by explicit-implementation AdapterPairs), interface-typed receivers
+> (SR4e prototype dispatch + the widening interface branch on every path), PROPERTY declarations
+> (clause-synthesized accessors under the pinned §11.7.4 GR1a `__GET_/__SET_` names + explicit
+> GET/SET PROPERTY methods; 0842 = SR5/SR6/SR7/§13.18.42.3-SR4), the VALUE-loop PROPERTY guard
+> (both consumption points; TokenStream.LA in C# predicates), 6 registry + 4 matrix rows + W1.5
+> hints, 4 goldens (16 oo_*), +11 OoSpine tests. Words: GET/PROPERTY/INTERFACE reserved 2002+;
+> IMPLEMENTS §8.10 context-sensitive (user word at ALL editions).
+> **RESUME = property REFERENCES (`P OF obj` — the §8.4.3.9.4 GR1–GR3 implicit-INVOKE desugar via
+> BoundSequence + temps; staged 0899 at the ReferenceResolver chokepoint; interface GET/SET PROPERTY
+> prototypes ride along) → universal reference (D10 __CobolInvoke switches) → EC-OO; then the
 > Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers, national/boolean, UDFs,
 > intrinsics gaps) toward 100%.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY

@@ -22,6 +22,22 @@ public sealed class OoClassTable
     public IReadOnlyList<OoClassSymbol> Classes => _classes;
     private readonly List<OoClassSymbol> _classes = [];
 
+    /// <summary>All interfaces in source order (§11.6 — emitted as C# interfaces BEFORE the classes, purely
+    /// for readability; Roslyn needs no ordering). Interfaces and classes share ONE name namespace
+    /// (<see cref="_ifaceByName"/> is checked against <see cref="_byName"/> at Build — a collision is 0840).</summary>
+    public IReadOnlyList<OoInterfaceSymbol> Interfaces => _interfaces;
+    private readonly List<OoInterfaceSymbol> _interfaces = [];
+    private readonly Dictionary<string, OoInterfaceSymbol> _ifaceByName = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The interface named <paramref name="name"/>, or null (case-insensitive, §8.3.2.2).</summary>
+    public OoInterfaceSymbol? FindInterface(string name) => _ifaceByName.TryGetValue(name, out var i) ? i : null;
+    /// <summary>Covariant-return adapter pairs (§9.3.8.2.3 rules 5a/5c2 — conforming COBOL that C# interface
+    /// implementation cannot express directly, because interface implementations demand the EXACT return
+    /// type): the emitter renders an EXPLICIT interface implementation
+    /// <c>PROTO_RET I_CS.M(…) =&gt; this.M(…);</c> per pair. (Item1 = the interface; Item2 = the prototype;
+    /// Item3 = the implementing method; Item4 = true for the FACTORY side.)</summary>
+    public List<(OoInterfaceSymbol Iface, OoMethodSymbol Proto, OoMethodSymbol Impl, bool Factory)> AdapterPairs { get; } = [];
+
     /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive).</summary>
     public OoClassSymbol? Find(string name) => _byName.TryGetValue(name, out var c) ? c : null;
 
@@ -70,6 +86,98 @@ public sealed class OoClassTable
                         edition.Error("COBOLNET0829", $"{where}: RETURNING item: {rerr} (ISO §9.3.8.2)");
                 }
             }
+    }
+
+    /// <summary>The §9.3.11 IMPLEMENTS conformance pass (via §9.3.8.2.3 — D-I1: the BINDER is the authority;
+    /// Roslyn satisfaction is provably insufficient BOTH directions: the C# projection is lossy for
+    /// non-object descriptions [PIC 9(4) and 9(8) both emit `ref long` — Roslyn under-rejects], and C#
+    /// interface implementations forbid covariant returns that rules 5a/5c2 PERMIT [Roslyn over-rejects
+    /// conforming COBOL — cured by the explicit-implementation adapters]). Runs AFTER all class AND
+    /// interface formals resolve. The check runs over the §11.8.4 GR2 transitive CLOSURE (direct IMPLEMENTS
+    /// + interface-INHERITed + class-INHERITed) per class; each violation is COBOLNET0841 citing the
+    /// numbered rule.</summary>
+    public void ValidateImplements(EditionContext edition)
+    {
+        foreach (var cls in _classes)
+        {
+            Check(cls, ImplementsClosure(cls, factory: false), factory: false);
+            Check(cls, ImplementsClosure(cls, factory: true), factory: true);
+        }
+
+        void Check(OoClassSymbol cls, IReadOnlyList<OoInterfaceSymbol> closure, bool factory)
+        {
+            string side = factory ? "factory " : "";
+            foreach (var iface in closure)
+                foreach (var proto in iface.AllPrototypes())
+                {
+                    var impl = factory ? cls.FindFactoryMethod(proto.Name) : cls.FindMethod(proto.Name);
+                    if (impl is null)
+                    {
+                        edition.Error("COBOLNET0841",
+                            $"class '{cls.Name}': the {side}interface '{iface.Name}' requires a method "
+                            + $"'{proto.Name}' and none is defined or inherited (ISO §9.3.11 — a class "
+                            + "shall implement ALL the method prototypes of its interfaces, including "
+                            + "inherited ones)");
+                        continue;
+                    }
+                    if (impl.Formals.Count != proto.Formals.Count)
+                    {
+                        edition.Error("COBOLNET0841",
+                            $"class '{cls.Name}', method '{impl.Name}': {impl.Formals.Count} formal(s) vs "
+                            + $"the '{iface.Name}' prototype's {proto.Formals.Count} (ISO §9.3.8.2.3 rule 1)");
+                        continue;
+                    }
+                    for (int i = 0; i < impl.Formals.Count; i++)
+                        if (DescriptionMismatch(proto.Formals[i].Item, impl.Formals[i].Item) is { } err)
+                            edition.Error("COBOLNET0841",
+                                $"class '{cls.Name}', method '{impl.Name}', formal #{i + 1}: {err} "
+                                + $"(ISO §9.3.8.2.3 rules 2/3 vs interface '{iface.Name}' — identical "
+                                + "descriptions; the C# projection cannot check this)");
+                    if ((impl.Returning is null) != (proto.Returning is null))
+                        edition.Error("COBOLNET0841",
+                            $"class '{cls.Name}', method '{impl.Name}': RETURNING presence differs from the "
+                            + $"'{iface.Name}' prototype (ISO §9.3.8.2.3 rule 4)");
+                    else if (impl.Returning is { } r && proto.Returning is { } pr)
+                    {
+                        if (r.Pic is { Category: PicCategory.ObjectReference } rp
+                            && pr.Pic is { Category: PicCategory.ObjectReference } prp)
+                        {
+                            if (ObjectRefWideningMismatch(rp, prp) is { } werr)
+                                edition.Error("COBOLNET0841",
+                                    $"class '{cls.Name}', method '{impl.Name}': RETURNING: {werr} "
+                                    + "(ISO §9.3.8.2.3 rules 5a/5c2)");
+                            else if (!string.Equals(rp.ObjectClassName, prp.ObjectClassName,
+                                         StringComparison.OrdinalIgnoreCase))
+                                // Conformant-but-covariant: C# needs the explicit-implementation adapter.
+                                AdapterPairs.Add((iface, proto, impl, factory));
+                        }
+                        else if (DescriptionMismatch(pr, r) is { } rerr)
+                            edition.Error("COBOLNET0841",
+                                $"class '{cls.Name}', method '{impl.Name}': RETURNING: {rerr} "
+                                + "(ISO §9.3.8.2.3 rule 6)");
+                    }
+                }
+        }
+    }
+
+    /// <summary>The §11.8.4 GR2 closure: direct IMPLEMENTS + everything an implemented interface INHERITS +
+    /// everything an inherited CLASS implements (transitively, cycle-safe).</summary>
+    public IReadOnlyList<OoInterfaceSymbol> ImplementsClosure(OoClassSymbol cls, bool factory)
+    {
+        var result = new List<OoInterfaceSymbol>();
+        var seen = new HashSet<OoInterfaceSymbol>();
+        var seenCls = new HashSet<OoClassSymbol>();
+        for (OoClassSymbol? c = cls; c is not null && seenCls.Add(c); c = c.Base)
+            foreach (var direct in factory ? c.FactoryImplements : c.Implements)
+                AddWithInherits(direct);
+        return result;
+
+        void AddWithInherits(OoInterfaceSymbol i)
+        {
+            if (!seen.Add(i)) return;
+            result.Add(i);
+            foreach (var b in i.Inherits) AddWithInherits(b);
+        }
     }
 
     /// <summary>The ONE strict IDENTICAL-DESCRIPTION check — §14.8.2.3.2 (BY REFERENCE parameters ONLY; BY
@@ -164,6 +272,35 @@ public sealed class OoClassTable
         if (sender.ObjectClassName is not { } sendName)
             return "a UNIVERSAL object reference does not conform to a typed receiver "
                 + "(ISO SET SR12 — the sender shall be of the receiver class or a subclass)";
+        // An INTERFACE-typed receiver accepts a class that IMPLEMENTS it — through the §11.8.4 GR2 closure
+        // (SET SR10/§9.3.8.2 interface conformance) — or an interface that INHERITS it.
+        if (FindInterface(recvName) is { } recvIface)
+        {
+            if (Find(sendName) is { } sc)
+                return ImplementsClosure(sc, factory: false).Contains(recvIface)
+                    ? null
+                    : $"class {sendName} does not implement interface {recvName} (ISO §9.3.8.2/SET SR10)";
+            if (FindInterface(sendName) is { } si)
+                return si == recvIface || si.Inherits.Contains(recvIface)
+                       || ImpliedBy(si, recvIface)
+                    ? null
+                    : $"interface {sendName} does not inherit interface {recvName}";
+            return $"unresolvable sender '{sendName}'";
+
+            static bool ImpliedBy(OoInterfaceSymbol from, OoInterfaceSymbol target)
+            {
+                var seen = new HashSet<OoInterfaceSymbol>();
+                var stack = new Stack<OoInterfaceSymbol>([from]);
+                while (stack.Count > 0)
+                {
+                    var cur = stack.Pop();
+                    if (!seen.Add(cur)) continue;
+                    if (cur == target) return true;
+                    foreach (var b in cur.Inherits) stack.Push(b);
+                }
+                return false;
+            }
+        }
         var sendCls = Find(sendName);
         var recvCls = Find(recvName);
         if (sendCls is null || recvCls is null)
@@ -182,10 +319,110 @@ public sealed class OoClassTable
     /// INHERITS emission itself is a later port slice (3a) — a KNOWN base still 0899s until it lands, but the
     /// base link is recorded so method lookup walks the chain from day one.
     /// </summary>
-    public static OoClassTable Build(IReadOnlyList<Core.ClassDefinitionContext> classes, EditionContext edition)
+    public static OoClassTable Build(IReadOnlyList<Core.ClassDefinitionContext> classes, EditionContext edition,
+        IReadOnlyList<Core.InterfaceDefinitionContext>? interfaces = null)
     {
         var table = new OoClassTable();
         var usedCsNames = new HashSet<string>(StringComparer.Ordinal);
+
+        // ── INTERFACES first (§11.6) — classes' IMPLEMENTS then resolve regardless of source order ──
+        foreach (var ictx in interfaces ?? [])
+        {
+            string iname = ictx.interfaceName(0).GetText();
+            string icsName = DataItem.Sanitize(iname).ToUpperInvariant();
+            var isym = new OoInterfaceSymbol(iname, icsName, ictx);
+            if (table._ifaceByName.ContainsKey(iname) || table._byName.ContainsKey(iname)
+                || !usedCsNames.Add(icsName))
+            {
+                edition.Error("COBOLNET0840",
+                    $"duplicate interface definition '{iname}' — interface and class names share one "
+                    + "namespace and shall be unique in the compilation group (ISO §8.3.2.2/§11.6)");
+                continue;
+            }
+            table._ifaceByName.Add(iname, isym);
+            table._interfaces.Add(isym);
+            foreach (var inh in ictx.interfaceName().Skip(1).Take(ictx.interfaceName().Length - 2))
+                isym.InheritNames.Add(inh.GetText());
+            if (!string.Equals(ictx.interfaceName(ictx.interfaceName().Length - 1).GetText(), iname,
+                    StringComparison.OrdinalIgnoreCase))
+                edition.Error("COBOLNET0840",
+                    $"END INTERFACE does not match INTERFACE-ID '{iname}' (ISO §10.7)");
+
+            // PROTOTYPES (§10.6.2 SR4): a header + optional LINKAGE-only data division, NO procedure body,
+            // NO OVERRIDE/FINAL attributes (§11.7 SR2/SR8 — the OVERRIDE/FINAL wave's forward obligation).
+            foreach (var m in ictx.methodDefinition())
+            {
+                string pname = (m.methodName().Length > 0 ? m.methodName(0)?.GetText() : null)
+                    ?? m.methodPropertySelector()?.propertyName()?.GetText() ?? "?";
+                var pd = m.procedureDivision();
+                if (m.OVERRIDE() is not null || m.FINAL() is not null)
+                    edition.Error("COBOLNET0840",
+                        $"interface '{iname}', method '{pname}': OVERRIDE/FINAL may not appear in a method "
+                        + "PROTOTYPE (ISO §11.7 SR2/SR8)");
+                if (pd?.procedureUnit().Length > 0 || pd?.declarativePart().Length > 0)
+                    edition.Error("COBOLNET0840",
+                        $"interface '{iname}', method '{pname}': a method prototype has no procedure body "
+                        + "(ISO §10.6.2 SR4 — header only)");
+                if (m.dataDivision() is { } pdd
+                    && (pdd.workingStorageSection() is not null || pdd.localStorageSection() is not null
+                        || pdd.fileSection() is not null))
+                    edition.Error("COBOLNET0840",
+                        $"interface '{iname}', method '{pname}': a prototype's data division may carry only "
+                        + "a LINKAGE SECTION (ISO §10.6.2 SR4)");
+                if (m.methodPropertySelector() is not null)
+                {
+                    edition.Error("COBOLNET0899",
+                        $"interface '{iname}': a GET/SET PROPERTY prototype is recognized but not yet "
+                        + "implemented (the property-prototype leg — a later refinement)");
+                    continue;
+                }
+                var proto = new OoMethodSymbol(
+                    pname,
+                    HasUsing: pd?.usingClause() is not null,
+                    HasReturning: pd?.returningClause() is not null,
+                    m)
+                { CsName = DataItem.Sanitize(pname).ToUpperInvariant() };
+                if (!isym.TryAddPrototype(proto))
+                    edition.Error("COBOLNET0840",
+                        $"interface '{iname}': duplicate method prototype '{pname}' (v1 unique-name rule, D9)");
+            }
+        }
+        // Interface INHERITS resolution + cycle check (§11.6.3 SR2/SR3/SR6).
+        foreach (var isym in table._interfaces)
+            foreach (string inh in isym.InheritNames)
+            {
+                if (table.FindInterface(inh) is { } b)
+                {
+                    if (isym.Inherits.Contains(b))
+                        edition.Error("COBOLNET0840",
+                            $"interface '{isym.Name}': duplicate INHERITS FROM '{inh}' (ISO §11.6 SR6)");
+                    else
+                        isym.Inherits.Add(b);
+                }
+                else
+                    edition.Error("COBOLNET0840",
+                        $"interface '{isym.Name}': INHERITS FROM unknown interface '{inh}' (ISO §11.6 SR2)");
+            }
+        foreach (var isym in table._interfaces)
+        {
+            var seenI = new HashSet<OoInterfaceSymbol>();
+            var stack = new Stack<OoInterfaceSymbol>([isym]);
+            while (stack.Count > 0)
+            {
+                var cur = stack.Pop();
+                foreach (var b in cur.Inherits)
+                {
+                    if (ReferenceEquals(b, isym))
+                    {
+                        edition.Error("COBOLNET0840",
+                            $"interface '{isym.Name}': the INHERITS graph is cyclic (ISO §11.6 SR3)");
+                        stack.Clear();
+                        break;
+                    }
+                    if (seenI.Add(b)) stack.Push(b);
+                }
+            }
+        }
 
         foreach (var ctx in classes)
         {
@@ -198,6 +435,10 @@ public sealed class OoClassTable
                 IsFinal = id.FINAL() is not null,
             };
             usedCsNames.Add(csName + "__FACTORY");   // belt-and-braces (a `__` name cannot collide with COBOL-derived names)
+            if (table._ifaceByName.ContainsKey(name))
+                edition.Error("COBOLNET0840",
+                    $"'{name}' is defined as both a class and an interface — one name namespace "
+                    + "(ISO §8.3.2.2)");
             if (!table._byName.TryAdd(name, sym) || !usedCsNames.Add(csName))
             {
                 edition.Error("COBOLNET0820",
@@ -216,9 +457,13 @@ public sealed class OoClassTable
 
             foreach (var m in ctx.objectParagraph()?.methodDefinition() ?? [])
             {
-                string methodName = m.methodName(0).GetText();
+                var sel = m.methodPropertySelector();
+                string methodName = sel is not null
+                    ? (sel.GET() is not null ? "__GET_" : "__SET_")
+                      + DataItem.Sanitize(sel.propertyName().GetText()).ToUpperInvariant()
+                    : m.methodName(0).GetText();
                 var pd = m.procedureDivision();
-                string mcs = DataItem.Sanitize(methodName).ToUpperInvariant();
+                string mcs = sel is not null ? methodName : DataItem.Sanitize(methodName).ToUpperInvariant();
                 // CS0542 guard: a C# member may not be named like its enclosing type — a METHOD-ID named like
                 // its CLASS-ID is legal COBOL (§8.4.5 distinct name categories), so the SYMBOL renames.
                 if (mcs == csName) mcs += "_M";
@@ -227,13 +472,26 @@ public sealed class OoClassTable
                     HasUsing: pd?.usingClause() is not null,
                     HasReturning: pd?.returningClause() is not null,
                     m)
-                { CsName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null };
+                { CsName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
+                  Accessor = sel is null ? '\0' : sel.GET() is not null ? 'G' : 'S',
+                  PropertyName = sel?.propertyName().GetText() };
+                // §11.7 SR6/SR7 — the accessor SHAPES: GET = no USING + exactly one RETURNING; SET = exactly
+                // one USING + no RETURNING (checked here on header presence; formal counts re-checked at
+                // data-bind when they resolve).
+                if (method.Accessor == 'G' && (method.HasUsing || !method.HasReturning))
+                    edition.Error("COBOLNET0842",
+                        $"class '{name}': METHOD-ID GET PROPERTY {method.PropertyName} shall have no USING "
+                        + "and exactly one RETURNING (ISO §11.7 SR6)");
+                if (method.Accessor == 'S' && (!method.HasUsing || method.HasReturning))
+                    edition.Error("COBOLNET0842",
+                        $"class '{name}': METHOD-ID SET PROPERTY {method.PropertyName} shall have exactly "
+                        + "one USING and no RETURNING (ISO §11.7 SR7)");
                 if (!sym.TryAddMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate method name '{methodName}' — method names shall be unique "
                         + "within a class (v1 restriction, OO deep-dive D9: overloading by method resolution "
                         + "signature, ISO §12063, is an OPTIONAL feature and is deferred)");
-                if (m.methodName().Length > 1
+                if (sel is null && m.methodName().Length > 1
                     && !string.Equals(m.methodName(1).GetText(), methodName, StringComparison.OrdinalIgnoreCase))
                     edition.Error("COBOLNET0820",
                         $"class '{name}': END METHOD '{m.methodName(1).GetText()}' does not match METHOD-ID "
@@ -245,7 +503,11 @@ public sealed class OoClassTable
             // predefined New (§16.2.1) is the generated ctor (D4) and overriding it is a v1 restriction.
             foreach (var m in ctx.factoryParagraph()?.methodDefinition() ?? [])
             {
-                string methodName = m.methodName(0).GetText();
+                var fsel = m.methodPropertySelector();
+                string methodName = fsel is not null
+                    ? (fsel.GET() is not null ? "__GET_" : "__SET_")
+                      + DataItem.Sanitize(fsel.propertyName().GetText()).ToUpperInvariant()
+                    : m.methodName(0).GetText();
                 var pd = m.procedureDivision();
                 if (string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
                 {
@@ -255,7 +517,7 @@ public sealed class OoClassTable
                         + "New is a deferred v1 restriction");
                     continue;
                 }
-                string fcs = DataItem.Sanitize(methodName).ToUpperInvariant();
+                string fcs = fsel is not null ? methodName : DataItem.Sanitize(methodName).ToUpperInvariant();
                 if (fcs == csName + "__FACTORY") fcs += "_M";   // unreachable (no __ in COBOL names) — defensive
                 var method = new OoMethodSymbol(
                     methodName,
@@ -263,12 +525,14 @@ public sealed class OoClassTable
                     HasReturning: pd?.returningClause() is not null,
                     m)
                 { CsName = fcs, Owner = sym, IsFactory = true,
-                  HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null };
+                  HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null,
+                  Accessor = fsel is null ? '\0' : fsel.GET() is not null ? 'G' : 'S',
+                  PropertyName = fsel?.propertyName().GetText() };
                 if (!sym.TryAddFactoryMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate factory method name '{methodName}' — method names shall "
                         + "be unique within the factory definition (v1 restriction, deep-dive D9)");
-                if (m.methodName().Length > 1
+                if (fsel is null && m.methodName().Length > 1
                     && !string.Equals(m.methodName(1).GetText(), methodName, StringComparison.OrdinalIgnoreCase))
                     edition.Error("COBOLNET0820",
                         $"class '{name}': END METHOD '{m.methodName(1).GetText()}' does not match METHOD-ID "
@@ -324,6 +588,35 @@ public sealed class OoClassTable
         {
             MarkRoster(sym, sym.Methods, sym.Base is null ? null : (n => sym.Base!.FindMethod(n)), "");
             MarkRoster(sym, sym.FactoryMethods, sym.Base is null ? null : (n => sym.Base!.FindFactoryMethod(n)), "factory ");
+        }
+
+        // IMPLEMENTS capture (§11.8.2 — the OBJECT/FACTORY paragraph headers; interface names resolve
+        // against the group's interface table; §11.8.3 SR1's REPOSITORY requirement is enforced with the
+        // repository binding — staged as a documented follow-up, the conformance pass is the substance).
+        foreach (var sym in table._classes)
+        {
+            CaptureImplements(sym.Ctx.objectParagraph()?.implementsClause(), sym.Implements, "OBJECT");
+            CaptureImplements(sym.Ctx.factoryParagraph()?.implementsClause(), sym.FactoryImplements, "FACTORY");
+
+            void CaptureImplements(Core.ImplementsClauseContext? impl, List<OoInterfaceSymbol> into, string where)
+            {
+                foreach (var iref in impl?.interfaceName() ?? [])
+                {
+                    if (table.FindInterface(iref.GetText()) is { } isym)
+                    {
+                        if (into.Contains(isym))
+                            edition.Error("COBOLNET0840",
+                                $"class '{sym.Name}' ({where}): duplicate IMPLEMENTS '{iref.GetText()}' "
+                                + "(ISO §11.8 SR)");
+                        else
+                            into.Add(isym);
+                    }
+                    else
+                        edition.Error("COBOLNET0840",
+                            $"class '{sym.Name}' ({where}): IMPLEMENTS unknown interface '{iref.GetText()}' "
+                            + "(ISO §11.8.3 — interface-name shall reference an interface of the group)");
+                }
+            }
         }
         return table;
 
@@ -381,6 +674,18 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     /// C# <c>sealed</c>; every fresh method slot in it emits NON-virtual (the CS0549 trap — a virtual
     /// member inside a sealed class is a Roslyn error on emitted code).</summary>
     public bool IsFinal { get; init; }
+
+    /// <summary>The OBJECT paragraph's IMPLEMENTS interfaces (§11.8.2), resolved at pass-1; the CONFORMANCE
+    /// closure (§11.8.4 GR2: direct + interface-INHERITed + class-INHERITed) is computed by
+    /// <c>ValidateImplements</c> — the C# base-list emission carries only the DIRECT list (the closure
+    /// arrives transitively at the C# level).</summary>
+    public List<OoInterfaceSymbol> Implements { get; } = [];
+
+    /// <summary>The FACTORY paragraph's IMPLEMENTS interfaces (§11.8.2 :12755). The factory SINGLETON class
+    /// (brief D11 — real virtual members, post-FACTORY-wave) emits and satisfies them exactly like the
+    /// instance side; the original brief's validate-only posture is SUPERSEDED by D11.</summary>
+    public List<OoInterfaceSymbol> FactoryImplements { get; } = [];
+
 
     private readonly Dictionary<string, OoMethodSymbol> _methods = new(StringComparer.OrdinalIgnoreCase);
 
@@ -483,6 +788,20 @@ public sealed record OoMethodSymbol(
     /// C# <c>sealed override</c> (or a non-virtual fresh slot at a root).</summary>
     public bool IsFinal { get; init; }
 
+    /// <summary>The property-accessor identity (§11.7/§13.18.42 — the PROPERTY wave): 'G'/'S' for a GET/SET
+    /// accessor of <see cref="PropertyName"/> (explicit <c>METHOD-ID. GET|SET PROPERTY p</c> or synthesized
+    /// from a PROPERTY clause), '\0' for an ordinary named method. Accessor rosters key by the PINNED
+    /// implementor-defined names <c>__GET_&lt;P&gt;</c>/<c>__SET_&lt;P&gt;</c> (§11.7.4 GR1a — the `__`
+    /// cannot-collide rule), so override/0829/implements machinery applies to accessors unchanged.</summary>
+    public char Accessor { get; init; }
+    public string? PropertyName { get; init; }
+
+    /// <summary>For a PROPERTY-clause-synthesized accessor: the SUBJECT data item (the emitter renders a
+    /// direct field read/write — observably identical to the spec's implicit MOVE method, §13.18.42 GR1/GR2
+    /// :21214-21229, because the cloned descriptions are identical by construction). Null for explicit
+    /// GET/SET PROPERTY methods (they carry real bodies).</summary>
+    public DataItem? PropertySubject { get; set; }
+
     /// <summary>The method's contiguous pc range in its class's one dispatch space — assigned by
     /// <c>StatementBinder.BindClassBody</c> (the exit-bounded range IS the fall-through guard: running past
     /// the last paragraph returns from the method, never into a sibling's paragraphs — the legacy trap #4).</summary>
@@ -522,3 +841,46 @@ public sealed record OoMethodSymbol(
 /// <summary>One resolved USING formal: the LINKAGE item (its <see cref="DataItem.CsName"/> is the capturable
 /// LOCAL the body addresses), the 0-based positional slot, and the emitted C# parameter name.</summary>
 public sealed record OoFormal(DataItem Item, int Position, string ParamName);
+
+/// <summary>One INTERFACE-ID of the compilation group (§11.6 — pass-1): the PROTOTYPE roster (reusing
+/// <see cref="OoMethodSymbol"/> — headers + LINKAGE formals, no bodies), the INHERITS list (repetition
+/// SUPPORTED — C# interface lists are native; the deliberate asymmetry with the class-side single-base
+/// restriction, SSOT §18.18), and the emitted C# interface name.</summary>
+public sealed class OoInterfaceSymbol(string name, string csName, CobolParserCore.InterfaceDefinitionContext ctx)
+{
+    public string Name { get; } = name;
+    public string CsName { get; } = csName;
+    public CobolParserCore.InterfaceDefinitionContext Ctx { get; } = ctx;
+    public List<string> InheritNames { get; } = [];
+    public List<OoInterfaceSymbol> Inherits { get; } = [];
+
+    private readonly Dictionary<string, OoMethodSymbol> _protos = new(StringComparer.OrdinalIgnoreCase);
+    public IReadOnlyList<OoMethodSymbol> Prototypes => _protoList;
+    private readonly List<OoMethodSymbol> _protoList = [];
+
+    internal bool TryAddPrototype(OoMethodSymbol m)
+    {
+        if (!_protos.TryAdd(m.Name, m)) return false;
+        _protoList.Add(m);
+        return true;
+    }
+
+    /// <summary>The interface's FULL method surface: own prototypes + the INHERITS closure (§9.3.8.2.2),
+    /// first declaration wins per name (SR5 mutual-conformance across multi-inherit is validated at Build).</summary>
+    public IEnumerable<OoMethodSymbol> AllPrototypes()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var stack = new Stack<OoInterfaceSymbol>();
+        var visited = new HashSet<OoInterfaceSymbol>();
+        stack.Push(this);
+        while (stack.Count > 0)
+        {
+            var i = stack.Pop();
+            if (!visited.Add(i)) continue;
+            foreach (var m in i._protoList)
+                if (seen.Add(m.Name))
+                    yield return m;
+            foreach (var b in i.Inherits) stack.Push(b);
+        }
+    }
+}

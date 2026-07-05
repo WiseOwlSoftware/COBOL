@@ -29,7 +29,7 @@ classDefinition
 // is the INTERFACE-ID slice (deliberately unparsed, matching objectParagraph). END FACTORY carries NO name
 // (§10.6 :12760).
 factoryParagraph
-    : (IDENTIFICATION DIVISION DOT)? FACTORY DOT
+    : (IDENTIFICATION DIVISION DOT)? FACTORY DOT implementsClause?
       environmentDivision?
       dataDivision?
       (PROCEDURE DIVISION DOT methodDefinition*)?
@@ -45,17 +45,41 @@ className
     ;
 
 // OBJECT (instance) definition — instance data (DATA DIVISION) + instance methods (in the PROCEDURE DIVISION).
+// IMPLEMENTS rides the paragraph HEADER with its OWN trailing period (§11.8.2 :13305; instance-definition
+// format :12765) — never the CLASS-ID (the dead sketch put it there; spec-wrong).
 objectParagraph
-    : (IDENTIFICATION DIVISION DOT)? OBJECT DOT
+    : (IDENTIFICATION DIVISION DOT)? OBJECT DOT implementsClause?
       environmentDivision?
       dataDivision?
       (PROCEDURE DIVISION DOT methodDefinition*)?
       END OBJECT DOT
     ;
 
+implementsClause
+    : IMPLEMENTS interfaceName+ DOT
+    ;
+
+interfaceName
+    : cobolWord
+    ;
+
+// INTERFACE definition (§11.6 :13157; §10.6 :12783-12796 — NO data division at the interface level; methods
+// are PROTOTYPES: header + optional LINKAGE-only data division, no procedure body — enforced at pass-1,
+// COBOLNET0840). INHERITS repetition is SUPPORTED (C# interface lists are native — the deliberate asymmetry
+// with the class-side single-inheritance restriction, SSOT §18.18).
+interfaceDefinition
+    : (IDENTIFICATION DIVISION DOT)? INTERFACE_ID DOT interfaceName
+      (INHERITS FROM interfaceName+)? DOT
+      environmentDivision?
+      (PROCEDURE DIVISION DOT methodDefinition*)?
+      END INTERFACE interfaceName DOT
+    ;
+
 // METHOD-ID … END METHOD — a method definition (its own DATA/PROCEDURE divisions). ISO §11.7 / §12798.
 methodDefinition
-    : (IDENTIFICATION DIVISION DOT)? METHOD_ID DOT methodName OVERRIDE? (IS? FINAL)? DOT
+    : (IDENTIFICATION DIVISION DOT)? METHOD_ID DOT
+      ( methodName | methodPropertySelector )
+      OVERRIDE? (IS? FINAL)? DOT
       environmentDivision?
       dataDivision?
       procedureDivision?
@@ -63,6 +87,16 @@ methodDefinition
     ;   // the ONLY ISO method attributes: [OVERRIDE] [IS FINAL] (§10.6 :12798-12821; Spec corrections #4 — ABSTRACT is NOT ISO); SR4a/SR3/FINAL enforced at bind (0837/0838/0839)
 
 methodName
+    : cobolWord
+    ;
+
+// METHOD-ID. GET|SET PROPERTY prop-name — the explicit property-accessor selector (§10.6 :12810-12814;
+// §11.7 SR6/SR7 shape checks are pass-1, COBOLNET0842).
+methodPropertySelector
+    : (GET | SET) PROPERTY propertyName
+    ;
+
+propertyName
     : cobolWord
     ;
 

@@ -42,8 +42,20 @@
 > `CLS__FACTORY.__Instance.M(…)`, SELF/SUPER roster selection by context (SR4f–i) + SELF|SUPER "NEW"
 > active-class creation (§16.2.1, `this.__New()`), factory-WS SR-10 auto-CONTENT free, 0836 (factory NEW
 > name), `OBJECT REFERENCE FACTORY OF` staged 0899; oo_factory proves the §8.6.4 per-class copies
-> (trap #11). **NEXT = OVERRIDE/FINAL attributes → PROPERTY → INTERFACE-ID → universal reference →
-> EC-OO** (briefs in the LEDGER doc), then the Phase-4 catalog.
+> (trap #11). **OVERRIDE/[IS] FINAL LANDED (DEVLOG 605)** — strict §11.7 SR4a/SR3 + the FINAL family
+> (0837/0838/0839) and the TOTAL D7 modifier table (see the D7 AS-BUILT).
+> **INTERFACE-ID + IMPLEMENTS + PROPERTY declarations LANDED (DEVLOG 606):** C# interface emission
+> over the prototypes' signatures (§11.5/§11.6; prototype LINKAGE per §10.6.2 SR4; 0840 structural
+> band), the BINDER-authoritative §9.3.11/§9.3.8.2.3 conformance pass over the §11.8.4 GR2 closure
+> (**0841** — Roslyn is provably insufficient BOTH directions: 9(4)/9(8)→`ref long` under-reject;
+> legal covariant returns over-reject, cured by explicit-interface-implementation ADAPTERS),
+> interface-typed receivers (INVOKE over `AllPrototypes()` per §14.9.23.3 SR4e + the widening branch
+> on every NEW/RETURNING/arg path), and PROPERTY declarations (§13.18.42: clause-synthesized accessors
+> under the PINNED §11.7.4 GR1a names `__GET_/__SET_`, explicit GET/SET PROPERTY methods, the
+> SR5/SR6/SR7 + §13.18.42.3 SR4 band = **0842**). Property REFERENCES (`P OF obj` → the §8.4.3.9.4
+> implicit-INVOKE desugar) are the NEXT increment — staged LOUD under a NAMED 0899 at the
+> ReferenceResolver chokepoint. **NEXT = property references → universal reference → EC-OO** (briefs
+> in the LEDGER doc), then the Phase-4 catalog.
 
 ## Summary
 
@@ -136,6 +148,54 @@ BY VALUE args stage 0828 pending the unparsed header BY-phrases; OMITTED, cross-
 **CORRECTION (2026-07-03, regenerated brief — Spec corrections #4).** This decision originally mapped `ABSTRACT→abstract (+abstract class)`; ABSTRACT is NOT ISO (zero occurrences in the whole spec; CLASS-ID modifiers are only AS/FINAL/INHERITS/USING, :12742-12744; method attributes only OVERRIDE and [IS] FINAL, :12798-12821). ABSTRACT (and STATIC/visibility attributes) are vendor extensions — out of the ISO surface; FACTORY methods emit as `virtual`/`override` members of the FACTORY SINGLETON class (§11.4; brief D11 — NOT C# statics: SELF-in-factory dispatches on the runtime factory, SR4f/GR2), never via a method attribute. If a vendor-dialect ABSTRACT is ever wanted it is a dialect-gated extension, never default 2023 surface.
 
 **AS BUILT (the OVERRIDE/FINAL wave — DEVLOG 605).** The attributes are LIVE: `METHOD-ID … [OVERRIDE] [IS FINAL]` + `CLASS-ID … [IS FINAL]` parse (spec order; the OVERRIDE token via the XOR-recipe — user word at 85, 0901 ≥2002), and STRICT §11.7 is enforced at pass-1: SR4a redefinition-without-OVERRIDE = **0837** through the ONE `EditionContext.Removed` policy seam (error strict; warning + the pre-wave name-match inference under `--permissive` — the documented migration leniency); SR3 OVERRIDE-without-a-base-method = **0838**; the FINAL-violation family (override of a FINAL method, GR3; INHERITS FROM a FINAL class, §11.3 GR3) = **0839**. Both rosters (instance + factory) take identical rules. Emission is the TOTAL D7 table: override → `override` (`sealed override` when itself FINAL in a non-sealed class); FINAL root method or ANY fresh slot in a FINAL class → NON-virtual; FINAL class → `sealed` (both type halves — and a sealed factory's root `__New` is non-virtual: a `virtual` member in a `sealed` type is Roslyn **CS0549** on emitted code, the trap the table exists for, caught live by the oo_override_final golden's first compile). SR2/SR8 (no attributes in method PROTOTYPES) is a FORWARD OBLIGATION of the INTERFACE-ID wave.
+
+**AS BUILT (the INTERFACE/PROPERTY wave — DEVLOG 606).** INTERFACE-ID (§11.5/§11.6) is LIVE end-to-end.
+GRAMMAR: `interfaceDefinition` ({is2002()}? in compilationGroup; INTERFACE_ID token; interface INHERITS
+repetition supported — C#-native, the deliberate asymmetry with single class inheritance), the
+`implementsClause` in both FACTORY/OBJECT paragraphs, `methodPropertySelector` on METHOD-ID, the
+`propertyClause` in dataDescriptionClause, and the REPOSITORY INTERFACE/PROPERTY specifiers. WORDS:
+GET/PROPERTY/INTERFACE are §8.9-reserved 2002+ via the XOR recipe (user words at 85, 0901 ≥2002);
+IMPLEMENTS is §8.10 CONTEXT-SENSITIVE (spec :10853) — a user word at EVERY edition, token + cobolWord but
+NEVER CheckedTokenTypes. The VALUE clause needed a loop guard (both the valueItem list AND the
+multi-operand `valueClauseOperand+` item): at 2002+ PROPERTY terminates a VALUE clause — reserved, never a
+constant-name operand — else `VALUE 100 PROPERTY.` swallows the clause. PASS-1: interfaces build FIRST
+(OoInterfaceSymbol; prototypes via TryAddPrototype; the 0840 structural family — one class/interface
+namespace §8.3.2.2, END INTERFACE §10.7, SR2/SR8 no prototype attributes, §10.6.2 SR4 header-only +
+LINKAGE-only data division); prototype LINKAGE binds through the SAME OoBindMethodData machinery
+(`OoBindInterfaceData`), so ValidateImplements compares RESOLVED descriptions. CONFORMANCE: the
+§9.3.11-via-§9.3.8.2.3 pass over the §11.8.4 GR2 closure (`ImplementsClosure`: direct + interface-INHERITed
++ class-INHERITed, cycle-safe; instance and factory sides separately) is BINDER-authoritative = **0841**,
+because the C# projection is insufficient in BOTH directions: PIC 9(4) and 9(8) formals both emit
+`ref long` (Roslyn under-rejects — the identical-description rules 2/3 live only in DescriptionMismatch),
+and C# forbids the covariant interface-implementation returns that rules 5a/5c2 PERMIT (Roslyn
+over-rejects — cured by `AdapterPairs` → explicit interface implementations
+`PROTO_RET IFACE.M(…) => this.M(…);` as headerExtras on the instance half). EMISSION: `public interface
+IFOO [: BASES]` with FieldEmitter statics (numeric profiles + group structs — C# 8+ interface statics, so
+cross-unit CONTENT conversions qualify `{IFACE}._P_n`) + the prototypes' signatures through the ONE
+`OoSignatureOf` builder (shared with class methods and adapters — the no-drift rule); the instance base
+list joins direct Implements (the closure arrives transitively at the C# level); the factory half takes
+FactoryImplements (D11 singletons made factory IMPLEMENTS EMITTABLE — the brief's validate-only posture is
+SUPERSEDED). RECEIVERS: an interface-typed `USAGE OBJECT REFERENCE IFOO` is legal (0813 accepts interfaces,
+§13.18.60.2); INVOKE through it resolves over `AllPrototypes()` (§14.9.23.3 SR4e; 0825 on a miss) and emits
+static C# interface dispatch behind the same GR5 null guard; `ObjectRefWideningMismatch` gained the
+interface branch (class→implemented-interface via the closure; interface→inherited-interface) and ALL
+NEW/RETURNING/argument paths route through it. PROPERTY (§13.18.42) DECLARATIONS are LIVE: the clause
+synthesizes accessors per GR1/GR2 under the PINNED §11.7.4 GR1a names `__GET_<P>`/`__SET_<P>` — the
+"clone" of the subject description is the SUBJECT DataItem itself (identical by construction), and the
+emitter renders DIRECT field bodies (`=> subject;` / `{ subject = __V; }`) — observably identical to the
+spec's implicit-MOVE methods; WITH NO GET/SET suppresses a side; FINAL carries. Explicit
+`METHOD-ID. GET|SET PROPERTY p` methods join the roster under the SAME pinned names (real bodies), so
+override/0829/implements machinery applies to accessors UNCHANGED. The 0842 band: SR6/SR7 accessor shapes,
+SR5 clause+explicit duplicate, §13.18.42.3 SR4 superclass property collision, no-OCCURS subject, no-FILLER
+subject. STAGED (named 0899, never a generic guard): property REFERENCES (`P OF obj` — the §8.4.3.9.4
+GR1–GR3 implicit-INVOKE desugar with BoundSequence + temps; detected at the ReferenceResolver
+resolution-failure chokepoint by the single-qualifier + roster-property shape) and GET/SET PROPERTY
+prototypes in interfaces. REGISTRY: interface-definition-2002, repository-interface-2002,
+repository-property-2002, implements-clause-2002, property-clause-2002, method-property-selector-2002
+(constructs.json rows for the four independently-reachable gates; W1.5 EditionGateHints for the
+INTERFACE-ID unit + both repository specifiers + the property clause). GOLDENS: oo_interface (two classes
+implementing one interface, polymorphic dispatch through an interface-typed reference), oo_interface_covariant
+(the adapter, compile+run), oo_property, oo_property_methods.
 
 ### D8. GOBACK inside a METHOD returns from the method only; STOP RUN ends the run unit. Emit a method-return path (a `return`/labeled break out of the method's PC-dispatch loop) distinct from the `StopRun` exception.
 
@@ -321,7 +381,7 @@ FACTORY (slice 4 — §11.4, D7); PROPERTY (slice 5 — §13.18.42); EC-OO (slic
 ## Greenfield seams (what the port plugs into — verified 2026-07-03)
 
 ### Grammar seam — the OO surface already parses
-The LIVE fragment is `src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4:18-98`: classDefinition (CLASS-ID, single INHERITS FROM), objectParagraph, methodDefinition (full env/data/procedure divisions), invokeStatement (USING BY VALUE/REFERENCE/CONTENT/bare/literal + RETURNING, NO exception phrase — already ISO-correct per Spec corrections #3), and objectReferenceUsage as TWO explicit alternatives (the DEVLOG-438/439 lesson: never an optional `className?` tail — it regressed '85 `IS [NOT] NUMERIC`). `CobolParserOO.g4` is a DEAD unbuilt sketch (regen inputs are only `Grammar/CobolParserCore.g4;Grammar/Core/*.g4`, `Cobol.Net.Frontend.csproj:44`) — its FACTORY/attributes/generics/invokeOnException content is reference-only, and invokeOnException is spec-WRONG. Gate inventory (nine `{is2002()}?` hooks): `CobolParserCore.g4:105` (classDefinition in compilationGroup), `:412` (repository CLASS entry), `:442` (PD returningClause/raisingClause), `:626-627` (ALLOCATE/FREE), `:663` (invokeStatement), `:904` (BY VALUE arg), `:1004` (SET … TO objectReference), `:1061` (GOBACK RETURNING/GIVING), `Core/CobolData.g4:312` (objectReferenceUsage). Missing (updated DEVLOG 605): INTERFACE-ID/IMPLEMENTS, PROPERTY, method-name AS literal, class OF SUPER — added incrementally per the Version-gating rules (FACTORY landed DEVLOG 604; OVERRIDE/[IS] FINAL attributes landed DEVLOG 605 with strict SR4a). Edition-gates to ADD per the Spec corrections: method-WS rejection at 2023 (#1) and `EXIT METHOD` removal at 2023 (#2, `Core/CobolControlFlow.g4:213`).
+The LIVE fragment is `src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4:18-98`: classDefinition (CLASS-ID, single INHERITS FROM), objectParagraph, methodDefinition (full env/data/procedure divisions), invokeStatement (USING BY VALUE/REFERENCE/CONTENT/bare/literal + RETURNING, NO exception phrase — already ISO-correct per Spec corrections #3), and objectReferenceUsage as TWO explicit alternatives (the DEVLOG-438/439 lesson: never an optional `className?` tail — it regressed '85 `IS [NOT] NUMERIC`). `CobolParserOO.g4` is a DEAD unbuilt sketch (regen inputs are only `Grammar/CobolParserCore.g4;Grammar/Core/*.g4`, `Cobol.Net.Frontend.csproj:44`) — its FACTORY/attributes/generics/invokeOnException content is reference-only, and invokeOnException is spec-WRONG. Gate inventory (nine `{is2002()}?` hooks): `CobolParserCore.g4:105` (classDefinition in compilationGroup), `:412` (repository CLASS entry), `:442` (PD returningClause/raisingClause), `:626-627` (ALLOCATE/FREE), `:663` (invokeStatement), `:904` (BY VALUE arg), `:1004` (SET … TO objectReference), `:1061` (GOBACK RETURNING/GIVING), `Core/CobolData.g4:312` (objectReferenceUsage). Missing (updated DEVLOG 606): method-name AS literal and class OF SUPER only — added incrementally per the Version-gating rules (FACTORY landed DEVLOG 604; OVERRIDE/[IS] FINAL DEVLOG 605; INTERFACE-ID/IMPLEMENTS/PROPERTY DEVLOG 606). Edition-gates to ADD per the Spec corrections: method-WS rejection at 2023 (#1) and `EXIT METHOD` removal at 2023 (#2, `Core/CobolControlFlow.g4:213`).
 
 ### Binder seam — LIVE as of spine part 2 (DEVLOG 601; the silent-drop hazard is FIXED)
 AS BUILT: `CallCollectUnits` collects `classDefinition` units and builds the pass-1 `OoClassTable`
@@ -395,6 +455,6 @@ The interprogram wave already emits N instantiable classes per compilation: `Cal
 
 - OWNER-LEVEL: COBOL allows MULTIPLE class inheritance (§11.3.2 `INHERITS FROM {object-class-name-2}…`); C# allows only one base class. v1 restricts to single inheritance (sufficient for the entire current corpus). When a multi-base program appears, choose: (a) linearize to one C# base + extract secondary supers as C# interfaces the class IMPLEMENTS (with member forwarding), or (b) declare multiple inheritance unsupported. Needs an owner decision before any multi-base program is targeted.
 - Parametric polymorphism (overloading by method-resolution-signature, §12063) is OPTIONAL and currently deferred (no corpus use). If targeted, decide between C# name-mangling by signature vs leaning on the processor's object-management-system methodology the spec permits — an owner/architecture call about generated-name idiomaticity.
-- Grammar extension scope/ordering: the reused live Core/CobolOO.g4 lacks FACTORY, INTERFACE-ID/IMPLEMENTS, PROPERTY (GET/SET), the ISO method attributes (OVERRIDE / IS FINAL — the ONLY ISO method attributes per §10.6 :12798-12821; ABSTRACT/STATIC/visibility are NOT ISO, Spec corrections #4), method-name `AS literal`, and qualified `object-class-name OF SUPER`. These must be added incrementally (guard-fast after EACH per the prior LL-regression lesson), each behind the `{is2002()}?` dialect predicate with its paired pre-2002 diagnostic and a version-matrix negative case (G1), before the corresponding emit slices. Ordering is now SET by the refreshed banner (FACTORY → PROPERTY → INTERFACE-ID → universal reference → EC-OO) — and per §A.4.10 (:40408-40414) ALL of these are MANDATORY for a conforming 2023 implementation, so "later" means sequencing, never optional scope.
-- INTERFACE-ID + IMPLEMENTS → C# interfaces: the spec's interface-conformance model (§9.3.8.2.3) is richer than C# structural/nominal interface satisfaction. Confirm whether v1 maps IMPLEMENTS to plain C# interface implementation (Roslyn-checked) or needs an explicit conformance pass.
+- Grammar extension scope/ordering — MOSTLY RETIRED (DEVLOG 604/605/606): FACTORY, OVERRIDE/[IS] FINAL, INTERFACE-ID/IMPLEMENTS, and PROPERTY (clause + GET/SET selector) are ALL LANDED behind `{is2002()}?` gates with paired pre-2002 diagnostics and matrix rows. Still missing: method-name `AS literal` and qualified `object-class-name OF SUPER` (per §A.4.10 :40408-40414 both MANDATORY for a conforming 2023 implementation — sequencing, never optional scope).
+- INTERFACE-ID + IMPLEMENTS → C# interfaces — RESOLVED (DEVLOG 606): an explicit BINDER conformance pass is REQUIRED, not optional; Roslyn satisfaction is provably insufficient in both directions (lossy projections under-reject: 9(4)/9(8) both `ref long`; covariant returns over-reject: rules 5a/5c2 permit what C# interface implementations forbid — cured by explicit-implementation adapters). See the INTERFACE/PROPERTY AS-BUILT.
 - EC-OO-* exception catalog integration (the full Table-13 family, :24748-24756) rides the LANDED EC subsystem (DEVLOG 577: >>TURN, USE declaratives, RAISE/RESUME, EXCEPTION-* functions); v1 raises EC-OO-NULL/METHOD through that engine. CORRECTED (Spec corrections #3): there is NO inline ON EXCEPTION on INVOKE — the earlier "honors inline ON EXCEPTION" plan is void; handling is declaratives/fatal-EC semantics only. Remaining sequencing: the RAISE identifier-1 exception-object channel (§14.9.29 :29727) + EXCEPTION-OBJECT (implicitly universal, :7249) + unhandled-object→EC-OO-EXCEPTION conversion (:24602-24608) land with the EC-OO slice.
