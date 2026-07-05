@@ -236,10 +236,23 @@
 > ClassOffset drop, the GR19 silent truncation + false registry claim, BASED×EXTERNAL/USING-formal/class-unit
 > gates, FREE's missing F3 selection, and REVERTED the wrongly-invented VALUE-on-BASED 0881; named residue =
 > CALL-boundary pointer legs, TURN'd-fatal-EC USE-F3 walk, gap-#10 image guard (reconciliation as-built).
-> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md).** ⭐ NEXT UP:
-> **(a) national/boolean data** (M2-DATA-3/4 — PIC N/USAGE NATIONAL + PIC 1/USAGE BIT; boolean OPERATORS
-> B-AND/OR/XOR/NOT are NOT in the grammar → owner-approval-gated for that leg; the data-model legs are
-> grammar-free). Or (d) sharing/lock/retry (grammar-gated too). Then (a)/(d) leftovers
+> **CI NOTE (DEVLOG 618):** the 615/616/617 pushes ran RED on CI — the legacy jobs run the SHARED 2002
+> corpus through the frozen oracle, and `udf_exit_function` + `udf_nested_args` exercise legs it never had;
+> both joined the legacy runner's `GreenfieldOnly` exclusion (the DEVLOG-604 mechanism) in 618. ⚠ STANDING
+> RULE: enabling a shared-corpus golden ⇒ run the LEGACY conformance suite locally too (or add the exclusion
+> in the same change set) — CI is the backstop, not the discovery mechanism.
+> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md).** A fresh
+> session: ① confirm CI green on HEAD (expected from 618 on); ② pick the next track and run the PROVEN
+> cadence — a RECON WORKFLOW (parallel readers: goldens/spec/seams/model → xhigh synthesis) producing a
+> decision-complete design INTO the reconciliation doc, spot-verify its anchors, implement, then an
+> ADVERSARIAL find→verify workflow over the diff with every confirmed finding fixed/staged/documented in the
+> SAME change set, full battery + legacy conformance, commit+push (the DEVLOG 615/617 pattern — 47 confirmed
+> findings caught across the two waves). ⭐ NEXT UP:
+> **(a) national/boolean data** (M2-DATA-3/4 — PIC N/USAGE NATIONAL + PIC 1/USAGE BIT; skeleton-loud today at
+> PicInfo 0899 with national_data/boolean_data goldens PENDING; boolean OPERATORS B-AND/OR/XOR/NOT are NOT in
+> the grammar → owner-approval-gated for that leg; the data-model legs are grammar-free; byte≠char under
+> NATIONAL coordinates with the pointer residue). Or **(d) sharing/lock/retry** (M2-FILE-1 — grammar-gated
+> too: no SHARING/LOCK MODE/RETRY in CobolIO.g4; runtime CobolFile.Locked primitive exists). Then (a)/(d) leftovers
 > (note: boolean OPERATORS B-AND/OR/XOR/NOT are NOT in the grammar → owner-approval-gated), (d) sharing/lock/
 > retry (grammar-gated too); OO riders queued (interface GET/SET PROPERTY prototypes, group-valued property
 > refs, FACTORY OF usage, object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.

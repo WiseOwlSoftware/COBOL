@@ -93,6 +93,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // legacy grammar cannot parse; the greenfield CorpusRunner byte-compares the sequential leg.
         ("2023", "delete_file"),
         ("2023", "delete_file_absent"),
+        // Phase-4 track (c), DEVLOG 615/616: the frozen legacy's partial UDF support runs the simple
+        // invocation goldens but lacks EXIT FUNCTION's control transfer (§14.9.14 — it falls through to the
+        // trailing MOVE, X=9999 not X=0014) and the nested-args legs (GR5a by-ref argument mutation /
+        // intrinsic-in-UDF); the greenfield CorpusRunner byte-compares both.
+        ("2002", "udf_exit_function"),
+        ("2002", "udf_nested_args"),
     ];
 
     [Theory]
