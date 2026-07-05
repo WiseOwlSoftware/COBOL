@@ -76,6 +76,13 @@ public sealed class RedefinesClass
     /// <summary>The C# name of the single stored backing field for a Tier-B/Tier-C class.</summary>
     public string BackingCsName => "_redef_" + Canonical.CsName;
 
+    /// <summary>For a BASED class (Phase-4b increment 2, ISO §13.18.5): the C# name of the implicit
+    /// data-address pointer field (<c>__addr_X</c>). The backing "field" is then a deref bridge property
+    /// (<c>ref CobolPtr.Deref(__addr_X, width).Ref</c>) and every view's window offset is displaced by the
+    /// pointer's runtime offset (<c>CobolPtr.OffsetOf</c>) — the ONE place-construction site adds it. Null
+    /// for ordinary (stored / external-cell / addressable-cell) classes.</summary>
+    public string? BasedPointerField { get; set; }
+
     /// <summary>The loud-reject reason when <see cref="Tier"/> is <see cref="RedefinesTier.Rejected"/>, else null.</summary>
     public string? RejectReason { get; set; }
 }

@@ -227,11 +227,19 @@
 > RAISING rides GOBACK's), 0827 placement band, exit-function-window matrix row ACTIVE (witness +
 > expectDiagnosticBelow 0900 / 0902-at-2023 + the permissive leg), udf_exit_function golden X=0014
 > (6 udf goldens). Track (c) residue = M2-UDF-3 prototypes + M2-UDF-4 legs only.
+> **(b) pointers increment 2 DONE (DEVLOG 617)** — data pointers end-to-end on the StorageCell+CellPointer
+> window model: ADDRESS OF (ForceStringCanonical cell-forcing — the ONE Tier-B re-basing, EXTERNAL unified),
+> BASED deref bridges (GR2 NULL / GR3-GR4 loud), SET F7 both directions (SR18), ALLOCATE both formats /
+> FREE three-way, F10 arithmetic (GR19 EXACT via UpByScaled — runtime EC-SIZE-ADDRESS); structural §8.8.4.2
+> equality; 3 goldens byte-exact; 7 negative cases; zero grammar change; IC/EXTERNAL baselines byte-identical
+> over the Holder→StorageCell rename. The adversarial wave (23 confirmed) fixed subordinate-ADDRESS-OF
+> ClassOffset drop, the GR19 silent truncation + false registry claim, BASED×EXTERNAL/USING-formal/class-unit
+> gates, FREE's missing F3 selection, and REVERTED the wrongly-invented VALUE-on-BASED 0881; named residue =
+> CALL-boundary pointer legs, TURN'd-fatal-EC USE-F3 walk, gap-#10 image guard (reconciliation as-built).
 > **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md).** ⭐ NEXT UP:
-> **(b) pointers increment 2 — ADDRESS OF (byte-backing) / BASED / SET ADDRESS OF / ALLOCATE-FREE** (grammar
-> already wired at CobolParserCore.g4 allocate/free; no .g4 change needed; based_pointer/pointer_alloc/
-> pointer_arith goldens PENDING; design against the pointer increment-1 carrier notes + the ManagedPointer
-> deep-dive seams before coding). Then (a) national/boolean
+> **(a) national/boolean data** (M2-DATA-3/4 — PIC N/USAGE NATIONAL + PIC 1/USAGE BIT; boolean OPERATORS
+> B-AND/OR/XOR/NOT are NOT in the grammar → owner-approval-gated for that leg; the data-model legs are
+> grammar-free). Or (d) sharing/lock/retry (grammar-gated too). Then (a)/(d) leftovers
 > (note: boolean OPERATORS B-AND/OR/XOR/NOT are NOT in the grammar → owner-approval-gated), (d) sharing/lock/
 > retry (grammar-gated too); OO riders queued (interface GET/SET PROPERTY prototypes, group-valued property
 > refs, FACTORY OF usage, object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.

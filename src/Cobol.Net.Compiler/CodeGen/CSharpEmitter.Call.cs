@@ -512,6 +512,18 @@ public sealed partial class CSharpEmitter
             foreach (var ext in data.CallExternalBackings)
                 w.Line($"private ref string {ext.BackingCsName} => ref ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
                     + $"{CsLiteral(ext.InitImage)}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+            foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
+            {
+                // The seed is the SAME VALUE-honoring image expression the Tier-B stored backing uses.
+                string seed = $"CobolString.Store({new FieldEmitter(_ctx).ImageInitOf(canonical)}, {cellWidth})";
+                w.Line($"private readonly StorageCell {cellField} = new StorageCell {{ Ref = {seed} }};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
+                w.Line($"private ref string {backing} => ref {cellField}.Ref;");
+            }
+            foreach (var (backing, addrField, width) in data.PtrBasedBridges)
+            {
+                w.Line($"private ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5 GR2 — initially NULL)");
+                w.Line($"private ref string {backing} => ref CobolPtr.Deref({addrField}, {width}).Ref;   // BASED deref bridge (GR3/GR4 loud)");
+            }
 
             new FieldEmitter(_ctx).Emit();
 

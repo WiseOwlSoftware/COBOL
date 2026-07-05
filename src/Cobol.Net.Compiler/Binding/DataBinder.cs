@@ -185,6 +185,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         ResolveFiles();
         ResolveReports();   // SOURCE/CONTROL/SUM items + owning files + line widths (ISO §13.18.46/.53/.16/.54)
         CallBindExternalAndGlobal(program);   // EXTERNAL 01s → run-unit image backings; GLOBAL 01s collected (ISO §13.18.22 / §13.18.27)
+        PtrBindBasedAndAddressables(program); // BASED templates + ADDRESS-OF-taken items → cell backings (ISO §13.18.5 / §8.4.3.11; Phase-4b inc 2)
 
         // Every FILE record area is filled WITHOUT conversion by READ/RETURN (ISO §9.1.2 — the record area is one
         // character image), so its numeric-DISPLAY leaves store their images exactly like a whole-referenced
@@ -626,12 +627,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         SignSpec? ownSign = null;
         bool justified = false, blankWhenZero = false;
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
+        bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
+        bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
             {
                 if (clause.pictureClause()?.PIC_STRING() is { } picTok)
                     pictureText = picTok.GetText();
+                else if (clause.basedClause() is not null)
+                    isBased = true;   // validated below (§13.16 SR16 placement; the 0881 declaration band)
+                else if (clause.externalClause() is not null)
+                    hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                 else if (clause.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
                 else if (clause.blankWhenZeroClause() is not null)
@@ -717,6 +724,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             pictureText = null;
         }
 
+        // PICTURE is prohibited with USAGE POINTER (§13.18.60.4 — a data-pointer is picture-less; before this
+        // gate the entry silently misbound BY ITS PICTURE, the W2 hazard class). The 0881 declaration band.
+        if (entryUsage is Usage.Pointer && pictureText is not null)
+        {
+            Edition.Error("COBOLNET0881", $"{entryWhere}: PICTURE may not be specified with USAGE POINTER — "
+                + "a data-pointer item is picture-less (ISO §13.18.60.4)");
+            pictureText = null;
+        }
+
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
@@ -745,6 +761,40 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Justified = justified,
             BlankWhenZero = blankWhenZero,
         };
+
+        // BASED declaration validation (the 0881 declaration-entry band; Phase-4b increment 2): §13.16 SR16 —
+        // a BASED entry is a level-01/77 record-description entry (WS/LS/LINKAGE; the file-subsystem sweep is
+        // a named residue); §13.18.5 SRs — REDEFINES and BASED are mutually exclusive (:17215) and a VALUE
+        // clause cannot seed storage the item does not own. Violations clear the flag so the item binds as
+        // ordinary storage under an already-failed compile (never a half-based state).
+        if (isBased)
+        {
+            if (level is not (1 or 77))
+            {
+                Edition.Error("COBOLNET0881", $"{entryWhere}: the BASED clause may be specified only in a "
+                    + "level-01 or level-77 entry (ISO §13.16 SR16 / §13.18.5)");
+                isBased = false;
+            }
+            else if (redefinesTargetName is not null)
+            {
+                Edition.Error("COBOLNET0881", $"{entryWhere}: BASED and REDEFINES may not be specified "
+                    + "together (ISO §13.18.5 SR)");
+                isBased = false;
+            }
+            else if (hasExternal)
+            {
+                // §13.16.3 SR5: "The EXTERNAL clause shall not be specified in the same data description
+                // entry as the REDEFINES or BASED clause" — without this, BOTH mechanisms would emit a
+                // bridge under the ONE BackingCsName (a CS0102 duplicate member, the review finding).
+                Edition.Error("COBOLNET0881", $"{entryWhere}: BASED and EXTERNAL may not be specified "
+                    + "together (ISO §13.16.3 SR5)");
+                isBased = false;
+            }
+            // A VALUE clause on a BASED entry is LEGAL (its data seeds ALLOCATE … INITIALIZED per §14.9.3
+            // GR7's TO-VALUE leg); without INITIALIZED the allocated content is undefined (GR8), so the
+            // space-filled cell is conformant — the clause simply has no stored field to seed here.
+        }
+        item.IsBased = isBased;
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
         foreach (var idxName in indexNames)

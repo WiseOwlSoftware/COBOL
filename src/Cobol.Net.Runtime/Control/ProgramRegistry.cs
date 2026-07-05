@@ -74,16 +74,59 @@ public abstract class ManagedPointer
     /// <summary>True for the NULL carrier.</summary>
     public virtual bool IsNull => false;
 
-    /// <summary>Data-pointer equality (ISO §8.8.4.1.3 / §8.8.4.2 — two data pointers are equal iff they
-    /// address the same storage; two NULLs are equal). Increment 1 holds only NULL, so this reduces to the
-    /// both-null / same-instance test; when ADDRESS OF lands (increment 2) it compares referenced storage.</summary>
+    /// <summary>Data-pointer equality (ISO §8.8.4.1.3 / §8.8.4.2 :9772 — "equal if they reference the same
+    /// address": STRUCTURAL over (storage cell, byte offset) for window pointers; two NULLs are equal; a
+    /// legacy accessor carrier compares by instance (the CALL-ABI closures carry no address identity).</summary>
     public static bool SameTarget(ManagedPointer? a, ManagedPointer? b)
-        => (a is null || a.IsNull) ? (b is null || b.IsNull) : ReferenceEquals(a, b);
+    {
+        if (a is null || a.IsNull) return b is null || b.IsNull;
+        if (b is null || b.IsNull) return false;
+        if (a is CellPointer wa && b is CellPointer wb)
+            return ReferenceEquals(wa.Cell, wb.Cell) && wa.Offset == wb.Offset;
+        return ReferenceEquals(a, b);
+    }
+
+    /// <summary>A window pointer at <paramref name="offset"/> character positions into <paramref name="cell"/>
+    /// (the ADDRESS OF / ALLOCATE value shape — increment 2).</summary>
+    public static ManagedPointer At(StorageCell cell, long offset) => new CellPointer(cell, offset);
 
     private sealed class NullManagedPointer : ManagedPointer
     {
         public override bool IsNull => true;
     }
+}
+
+/// <summary>
+/// One shared, aliasable character-storage cell (the Tier-B string-canonical backing lifted onto the heap —
+/// never a byte substrate): EXTERNAL records, ADDRESS-OF-taken items, and ALLOCATEd areas all live in one of
+/// these; <see cref="Ref"/> is a FIELD so the generated <c>ref</c>-returning bridge property can alias it.
+/// </summary>
+public sealed class StorageCell
+{
+    /// <summary>The storage's character image (its full width; every view windows it).</summary>
+    public string Ref = "";
+
+    /// <summary>True for a cell obtained by ALLOCATE (ISO §14.9.3) — the only cells FREE releases (GR1a).</summary>
+    public bool Allocated;
+
+    /// <summary>True once FREE released the cell (§14.9.15 GR1a — "the contents become undefined"; this
+    /// implementation makes any later dereference loud, EC-BOUND-PTR).</summary>
+    public bool Freed;
+}
+
+/// <summary>
+/// A data-pointer VALUE: a byte(character)-granular window position inside one <see cref="StorageCell"/>
+/// (ISO §8.5.2.6 — a data pointer identifies a storage address; §14.9.39 Format 10 moves it by bytes).
+/// Structural equality via <see cref="ManagedPointer.SameTarget"/>: same cell, same offset.
+/// </summary>
+public sealed class CellPointer(StorageCell cell, long offset) : ManagedPointer
+{
+    /// <summary>The addressed storage cell.</summary>
+    public StorageCell Cell { get; } = cell;
+
+    /// <summary>The character-position offset into <see cref="Cell"/> (0-based; byte = character in the
+    /// alphanumeric/zoned character model).</summary>
+    public long Offset { get; } = offset;
 }
 
 /// <summary>
@@ -111,7 +154,9 @@ public sealed class ManagedPointer<T> : ManagedPointer
     public static ManagedPointer<T> OverField(Func<T> get, Action<T> set) => new(get, set);
 
     /// <summary>A standalone storage cell seeded with <paramref name="initial"/> — the BY CONTENT copy
-    /// (ISO §14.2.3 GR9: "a record allocated by the activating element"), also the ALLOCATE backing.</summary>
+    /// (ISO §14.2.3 GR9: "a record allocated by the activating element"). NOT the ALLOCATE backing — dynamic
+    /// storage lives in <see cref="StorageCell"/> behind a <see cref="CellPointer"/> window (increment 2:
+    /// closures carry no address identity for §8.8.4.2 structural equality and no byte offset for F10).</summary>
     public static ManagedPointer<T> Cell(T initial)
     {
         var box = new T[1] { initial };
@@ -263,21 +308,15 @@ public static class CobolArgAdapt
 /// </summary>
 public static class ExternalStore
 {
-    /// <summary>The one mutable holder per external name — <see cref="Ref"/> is a FIELD so the generated
-    /// <c>ref</c>-returning bridge property can alias it (<c>ref ExternalStore.Cell(...).Ref</c>).</summary>
-    public sealed class Holder
-    {
-        /// <summary>The external record's character image (its full width, every describer windows it).</summary>
-        public string Ref = "";
-    }
-
-    private static readonly Dictionary<string, Holder> Cells = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, StorageCell> Cells = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The run-unit cell for <paramref name="name"/>, created with <paramref name="initialImage"/> on
-    /// first reference (ISO §14.6.2.3.2 — external data takes its initial state once per run unit).</summary>
-    public static Holder Cell(string name, string initialImage)
+    /// first reference (ISO §14.6.2.3.2 — external data takes its initial state once per run unit). The cell
+    /// is the ONE shared-storage shape (<see cref="StorageCell"/> — increment-2 unification), so ADDRESS OF an
+    /// EXTERNAL item needs no special case.</summary>
+    public static StorageCell Cell(string name, string initialImage)
     {
-        if (!Cells.TryGetValue(name, out var h)) Cells[name] = h = new Holder { Ref = initialImage };
+        if (!Cells.TryGetValue(name, out var h)) Cells[name] = h = new StorageCell { Ref = initialImage };
         return h;
     }
 

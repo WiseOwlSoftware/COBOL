@@ -1,6 +1,7 @@
 {
   "_comment": "The 2002 positive-corpus DISCOVERY MANIFEST (roadmap Phase-1 runner shells): CorpusRunnerTests compiles (and, given a sibling .out, runs+compares) every ENABLED program at --std 2002 strict. Programs exercising not-yet-implemented features stay PENDING (the ISO-validation critics' mass-red guard) and are enabled by the wave that lands their feature. The integrity fact asserts every .cob here is listed (enabled or pending) - nothing is silently undiscovered.",
   "enabled": [
+    "based_pointer",
     "binary_usage",
     "conditional_compilation",
     "goback_returning",
@@ -29,6 +30,8 @@
     "oo_universal_inherit",
     "oo_universal_name",
     "oo_universal_relation",
+    "pointer_alloc",
+    "pointer_arith",
     "pointer_data",
     "repository_paragraph",
     "sort_table_format2",
@@ -41,11 +44,8 @@
     "udf_value_args"
   ],
   "pending": [
-    "based_pointer",
     "boolean_data",
     "float_usage",
-    "national_data",
-    "pointer_alloc",
-    "pointer_arith"
+    "national_data"
   ]
 }

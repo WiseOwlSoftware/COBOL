@@ -109,6 +109,16 @@ public sealed partial class DataBinder
                 // §14.2.2 SR1: a formal parameter shall not include a REDEFINES clause.
                 Edition.Error("COBOLNET0889",
                     $"formal parameter '{pname}' shall not contain a REDEFINES clause (ISO §14.2.2 SR1)");
+            if (item.IsBased)
+            {
+                // The SAME SR1 sentence (:23658) bans the BASED clause on a formal — without this, a
+                // carrier-resident formal's CsName rewrite would poison the based class's BackingCsName
+                // into invalid C# (the review finding); the flag clears so the entry binds as an
+                // ordinary (already-diagnosed) formal.
+                Edition.Error("COBOLNET0889",
+                    $"formal parameter '{pname}' shall not contain a BASED clause (ISO §14.2.2 SR1)");
+                item.IsBased = false;
+            }
 
             string carrier = $"__lnkp{pos}";
             // Carrier-resident = per-access aliasing of the caller's storage (design D1: "refs to LK-CTR
@@ -206,6 +216,21 @@ public sealed partial class DataBinder
     /// conformant-but-unimplemented.</summary>
     private void CallMakeExternal(DataItem item, string? externalName = null)
     {
+        if (ForceStringCanonical(item, "EXTERNAL record") is not { } cls) return;
+        CallExternalBackings.Add(new CallExternalBacking(
+            cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width,
+            CallInitialImage(item).PadRight(cls.Width)));
+    }
+
+    /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —
+    /// feedback_singular_pattern): make <paramref name="item"/>'s class Tier-B StringCanonical with NO stored
+    /// member, so a heap-cell-backed <c>ref</c>-property with the class's <see cref="RedefinesClass.BackingCsName"/>
+    /// can supply the storage (EXTERNAL records → the run-unit <c>ExternalStore</c> cell; ADDRESS-OF-taken items →
+    /// a per-instance <c>StorageCell</c>; BASED items → the pointer-deref bridge). A COMP/float/index leaf fails
+    /// the shared-character-image gate — the class goes Rejected and every reference fails loud (the caller
+    /// skips its bridge registration). Returns the forced class, or null on rejection.</summary>
+    internal RedefinesClass? ForceStringCanonical(DataItem item, string what)
+    {
         var cls = item.Class;
         if (cls is null)
         {
@@ -218,9 +243,9 @@ public sealed partial class DataBinder
         if (leaves.Any(l => l.Pic is not { IsFloat: false, Usage: Usage.Display }))
         {
             cls.Tier = RedefinesTier.Rejected;
-            cls.RejectReason = $"EXTERNAL record '{item.CobolName}' has a COMP/float/index leaf — the shared "
+            cls.RejectReason = $"{what} '{item.CobolName}' has a COMP/float/index leaf — the shared "
                 + "character image cannot carry it (Tier-C byte island, deferred)";
-            return;
+            return null;
         }
 
         cls.Tier = RedefinesTier.StringCanonical;
@@ -228,17 +253,14 @@ public sealed partial class DataBinder
         foreach (var member in cls.Members)
         {
             AssignClassOffsets(member, 0, cls);
-            member.IsCanonical = false;   // NO local stored field — the backing is the run-unit cell
+            member.IsCanonical = false;   // NO local stored field — the backing is the cell bridge
         }
         // A numeric-DISPLAY leaf windowed over a string backing decodes/encodes its zoned image (the same
         // StoreAsImage pipeline Tier-B uses — ClassifyRedefinesClasses' rule, applied here for the synth class).
         foreach (var leaf in leaves)
             if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                 leaf.StoreAsImage = true;
-
-        CallExternalBackings.Add(new CallExternalBacking(
-            cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width,
-            CallInitialImage(item).PadRight(cls.Width)));
+        return cls;
     }
 
     /// <summary>The compile-time initial character image of a record: zoned zeros for a numeric-DISPLAY leaf,

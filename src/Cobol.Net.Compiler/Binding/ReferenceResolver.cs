@@ -248,6 +248,12 @@ public sealed class ReferenceResolver(DataBinder data)
             string offset = item.ClassOffset.ToString();
             for (int k = 0; k < occursLevels.Count; k++)
                 offset += $" + ({indexExprs[k]} - 1) * {occursLevels[k].ImageWidth}";
+            // A BASED class's window is displaced by the data-address pointer's runtime offset (ISO §13.18.5
+            // — the view addresses wherever the pointer currently points; Phase-4b increment 2). The backing
+            // property renders FIRST in both Read and Write, so the Deref null/bounds traps (GR3/GR4) fire
+            // before the null-lenient OffsetOf.
+            if (sc.BasedPointerField is { } addr)
+                offset = $"CobolPtr.OffsetOf({addr}) + {offset}";
             if (item.IsGroup) data.WholeGroupReferenced.Add(item);
             return new RedefViewPlace(backing, offset, item.ImageWidth, item);
         }

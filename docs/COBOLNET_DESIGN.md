@@ -631,10 +631,18 @@ construction modes + a Null state:
 ```csharp
 // accessor-over-native-field (the common case — WORKING-STORAGE stays native, zero boxing):
 ManagedRef<long>.OverField(() => WS_X, v => WS_X = v)
-// standalone cell (LINKAGE / ALLOCATE / BY CONTENT copy):
+// standalone cell (LINKAGE / BY CONTENT copy):
 ManagedRef<long>.Cell(5L)
 ManagedRef<long>.Null
 ```
+
+> **AS BUILT (Phase-4b increment 2, DEVLOG 617 — supersedes `Cell(T)` as the ALLOCATE backing):** DATA-POINTER
+> VALUES are a third concrete carrier, `CellPointer(StorageCell, byteOffset)` — a window position inside ONE
+> shared character-storage cell (`StorageCell` = the Tier-B string backing lifted onto the heap; EXTERNAL
+> records, ADDRESS-OF-taken items, and ALLOCATEd areas all use it). WHY not the closures: an accessor pair has
+> no address identity for §8.8.4.2 STRUCTURAL pointer equality (two independent `ADDRESS OF X` must compare
+> EQUAL) and no byte offset for §14.9.39 Format-10 arithmetic. `OverField`/`Cell` stay exactly what they are —
+> the CALL-ABI carriers. The full design + as-built: PHASE4_RECONCILIATION "M2-DATA-5 / M2-PROC-5 — increment 2".
 
 Crucially the carrier does NOT box WORKING-STORAGE: an ordinary `01 WS-X PIC 9(4)` stays a native `long`; a carrier
 is built ONLY at a call site as an accessor over the caller's native field, so DISPLAY/MOVE/arithmetic keep zero

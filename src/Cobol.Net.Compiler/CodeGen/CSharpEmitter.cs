@@ -431,6 +431,10 @@ public sealed partial class CSharpEmitter
             case BoundInvokeUniversal uinv: OoEmitUniversalInvoke(uinv); return false;   // D10 universal dispatch (GR7c runtime conformance)
             case BoundSetObjectRef sor: OoEmitSetObjectRef(sor); return false;           // SET F5 (ISO §14.9.39; D-U7)
             case BoundSetPointer sp: EmitSetPointer(sp); return false;                   // SET pointer F4 (ISO §14.9.39; Phase-4b)
+            case BoundSetAddressOfBased sab: PtrEmitSetAddressOfBased(sab); return false;   // SET F7 (ISO §14.9.39; Phase-4b inc 2)
+            case BoundSetPointerUpDown pud: PtrEmitSetPointerUpDown(pud); return false;     // SET F10 (ISO §14.9.39; Phase-4b inc 2)
+            case BoundAllocate alc: PtrEmitAllocate(alc); return false;                     // ALLOCATE (ISO §14.9.3; Phase-4b inc 2)
+            case BoundFree fre: PtrEmitFree(fre); return false;                             // FREE (ISO §14.9.15; Phase-4b inc 2)
             case BoundMethodReturn mr:                                          // method GOBACK/EXIT METHOD (D8)
                 // GR1b (§14.9.18.4): the RAISING stages BEFORE the throw; the entry's catch(MethodReturn)
                 // still delivers the RETURNING local + copy-outs, so the INVOKE-site pickup sees the
@@ -1197,9 +1201,11 @@ public sealed partial class CSharpEmitter
     /// copy; a data pointer carries no PICTURE store).</summary>
     private void EmitSetPointer(BoundSetPointer s)
     {
-        string src = s.ToNull ? "ManagedPointer.Null" : s.Source!.Read();
+        string src = s.ToNull ? "ManagedPointer.Null"
+            : s.Address is { } a ? PtrAddressOfText(a)   // ADDRESS OF sender (F7; Phase-4b inc 2)
+            : s.Source!.Read();
         foreach (var t in s.Targets)
-            _ctx.Writer.Line(t.Write(src) + "   // SET pointer (ISO §14.9.39 Format 4)");
+            _ctx.Writer.Line(t.Write(src) + "   // SET pointer (ISO §14.9.39 Format 4/7)");
     }
 
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE

@@ -223,6 +223,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.terminateStatement() is { } rwt => RwBindTerminate(rwt),   // Report Writer (ISO §14.9.46)
         _ when s.raiseStatement() is { } ra => BindRaise(ra),               // EC model (ISO §14.9.29; 2002+ gated)
         _ when s.resumeStatement() is { } rs => BindResume(rs),             // EC model (ISO §14.9.33; 2002+ gated)
+        _ when s.allocateStatement() is { } al => PtrBindAllocate(al),      // dynamic storage (ISO §14.9.3; Phase-4b inc 2)
+        _ when s.freeStatement() is { } fr => PtrBindFree(fr),              // dynamic storage (ISO §14.9.15; Phase-4b inc 2)
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };
 
@@ -724,8 +726,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
         if (set.setSwitchStatement() is { } sw) return SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
-        if (set.setAddressStatement() is not null)
-            return new BoundUnsupported("SET ADDRESS OF (data-pointer subsystem, COBOL-2002+, ISO §14.9.39 F7)");
+        if (set.setAddressStatement() is { } sa)
+            return PtrBindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
         if (set.setObjectReferenceStatement() is { } sor)
         {
             // A POINTER target (§14.9.39 Format 4 — SET pointer TO NULL/pointer) is bound BEFORE the
@@ -815,9 +817,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundSetTo(targets, BindExpr(tv.arithmeticExpression()));
     }
 
-    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2).</summary>
+    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2) — with the Format-10
+    /// data-pointer re-route on the FIRST target's category (the D-U7 semantic-re-route pattern; the two
+    /// formats share one grammar shape).</summary>
     private BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
     {
+        if (PtrTryBindSetUpDown(ud) is { } ptr) return ptr;   // F10 — pointer arithmetic (Phase-4b inc 2)
         var targets = new List<BoundSetTarget>();
         foreach (var dref in ud.dataReference())
         {

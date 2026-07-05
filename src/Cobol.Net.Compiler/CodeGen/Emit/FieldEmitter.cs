@@ -119,7 +119,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     /// <summary>The C# string-expression for an item's INITIAL character image (used to seed a Tier-B backing from
     /// the canonical's VALUE): a group concatenates its leaves' images; an elementary item formats its VALUE (numeric
     /// → <c>CobolNum.FormatDisplay</c>; alphanumeric/edited → the stored string; figurative/default per width).</summary>
-    private string ImageInitOf(DataItem item)
+    internal string ImageInitOf(DataItem item)
     {
         if (item.IsGroup)
         {

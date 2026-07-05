@@ -38,8 +38,8 @@
     },
     {
       "id": "allocate-2002",
-      "status": "pending",
-      "description": "ALLOCATE statement (dynamic storage), ISO \u00a714.9.3 \u2014 introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (a DOUBLE silent hole \u2014 the source's USAGE POINTER misbound to DISPLAY and ALLOCATE binds BoundUnsupported runtime-loud); reactivates with Phase 4b (pointers/ALLOCATE on ManagedPointer).",
+      "status": "active",
+      "description": "ALLOCATE statement (dynamic storage), ISO \u00a714.9.3 - introduced 2002. ACTIVE as of Phase-4b increment 2 (DEVLOG 617): both formats bind (n CHARACTERS RETURNING p -> a fresh StorageCell window pointer, GR1 round-up / GR2 <=0 -> NULL no EC / GR6 INITIALIZED zero-fill; based-item -> the implicit pointer takes a cell of the template width, GR3/GR4); the based INITIALIZED GR7 INITIALIZE lowering is a named staged residue.",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
@@ -48,8 +48,8 @@
     },
     {
       "id": "free-2002",
-      "status": "pending",
-      "description": "FREE statement (release ALLOCATEd storage), ISO \u00a714.9.15 \u2014 introduced 2002. PENDING: exposed as a false-green by the W2 loud-guard sweep (USAGE POINTER misbound to DISPLAY; FREE binds BoundUnsupported); reactivates with Phase 4b.",
+      "status": "active",
+      "description": "FREE statement (release ALLOCATEd storage), ISO \u00a714.9.15 - introduced 2002. ACTIVE as of Phase-4b increment 2 (DEVLOG 617): per-operand GR1 three-way (release-and-null / NULL no-op / nonfatal EC-STORAGE-NOT-ALLOC through the TurnState-gated status block); SR1 data-pointer operands only (the vendor FREE based-item form rejects 0869); a freed cell's dangling aliases fail loud at the next dereference (EC-BOUND-PTR).",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
@@ -438,7 +438,7 @@
     {
       "id": "usage-pointer-2002",
       "status": "active",
-      "description": "USAGE POINTER (ISO 13.18.60 / 8.5.2.6) - introduced 2002. LIVE on the ManagedPointer carrier (Phase-4b increment 1, DEVLOG 613: SET TO NULL/pointer + equality; ADDRESS OF/BASED/ALLOCATE are increment 2+). Below 2002 the introduction gate names the edition (0900).",
+      "description": "USAGE POINTER data (ISO \u00a713.18.60 / \u00a78.5.2.6) - introduced 2002. LIVE end-to-end on the ONE ManagedPointer carrier: increment 1 (DEVLOG 613) SET TO NULL/pointer + [NOT] EQUAL; increment 2 (DEVLOG 617) ADDRESS OF / BASED / SET ADDRESS OF / ALLOCATE-FREE / Format-10 arithmetic on the StorageCell+CellPointer window model with structural \u00a78.8.4.2 equality. Below 2002 the W1.5 mapping names the edition (0900).",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
@@ -710,6 +710,26 @@
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "M2 UDF catalog (PHASE4_RECONCILIATION M2-UDF-1); unblocks M2-UDF-2 (folds in) + EXIT FUNCTION (M2-PROC-6)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UFMX1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION UFMXDBL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = FUNCTION UFMXDBL(21).\n    STOP RUN.\nEND PROGRAM UFMX1.\nIDENTIFICATION DIVISION.\nFUNCTION-ID. UFMXDBL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(4).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nP.\n    COMPUTE L-R = L-X * 2.\n    GOBACK.\nEND FUNCTION UFMXDBL.\n"
+    },
+    {
+      "id": "set-address-2002",
+      "status": "active",
+      "description": "SET ADDRESS OF (data-pointer assignment), ISO \u00a714.9.39 Format 7 + \u00a78.4.3.11 ADDRESS OF - introduced 2002. LIVE (Phase-4b increment 2, DEVLOG 617): both directions - SET p TO ADDRESS OF x (the sender form; x's record is forced onto a StorageCell so a CellPointer window can alias it) and SET ADDRESS OF b TO p (SR18 - the receiver shall be BASED; GR12-13 snapshot assignment). Binder-side registry gate (a grammar predicate would fall through to the other SET alternatives and mis-diagnose).",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SAMX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(5) VALUE \"HELLO\".\n01 P USAGE POINTER.\n01 B PIC X(5) BASED.\nPROCEDURE DIVISION.\nMAIN.\n    SET P TO ADDRESS OF X.\n    SET ADDRESS OF B TO P.\n    STOP RUN.\n"
+    },
+    {
+      "id": "pointer-arithmetic-2002",
+      "status": "active",
+      "description": "SET pointer UP/DOWN BY (data-pointer arithmetic), ISO \u00a714.9.39 Format 10 - introduced 2002 (GR20 byte-granular movement; GR18 NULL -> EC-DATA-PTR-NULL; GR19: a non-integer amount VALUE is a runtime EC-SIZE-ADDRESS fatal via CobolPtr.UpByScaled - the exact value rule, never a silent truncation). LIVE (Phase-4b increment 2, DEVLOG 617): the D-U7 category re-route on the shared 85 index grammar shape - the 85 index form itself stays ungated.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PAMX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(5) VALUE \"HELLO\".\n01 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET P TO ADDRESS OF X.\n    SET P UP BY 2.\n    STOP RUN.\n"
     }
   ]
 }

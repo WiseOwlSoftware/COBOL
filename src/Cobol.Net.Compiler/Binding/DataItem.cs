@@ -100,6 +100,11 @@ public sealed class DataItem
     /// member is a computed view. Defaults true so a standalone item (the whole existing corpus) emits normally.</summary>
     public bool IsCanonical { get; set; } = true;
 
+    /// <summary>True for a BASED 01/77 entry (ISO §13.18.5 — a storage TEMPLATE with an implicit data-address
+    /// pointer, initially NULL; no storage of its own until SET ADDRESS OF / ALLOCATE gives it one). The
+    /// post-build pass routes every reference through the pointer (Phase-4b increment 2).</summary>
+    public bool IsBased { get; set; }
+
     /// <summary>The start of this view's window within its class's concatenated image (0 for a whole-area redefiner;
     /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.</summary>
     public int ClassOffset { get; set; }

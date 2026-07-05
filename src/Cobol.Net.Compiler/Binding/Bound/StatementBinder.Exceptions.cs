@@ -347,6 +347,9 @@ public sealed partial class StatementBinder
                 case BoundCallProgram or BoundCancel:
                     Query(ProgramNames);
                     break;
+                case BoundFree:
+                    Query(["EC-STORAGE-NOT-ALLOC"]);   // §14.9.15 GR1c (nonfatal; Phase-4b inc 2)
+                    break;
             }
             // EC-ARGUMENT-FUNCTION rides any intrinsic-bearing statement (the ambient statement gate — the
             // intrinsic renders inline inside expressions, so the guard wraps the STATEMENT).

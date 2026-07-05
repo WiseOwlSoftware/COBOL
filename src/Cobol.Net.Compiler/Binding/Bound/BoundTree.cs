@@ -342,8 +342,37 @@ public sealed record BoundSetConditions(IReadOnlyList<(Place Parent, Condition88
 
 /// <summary>SET data-pointer assignment (ISO §14.9.39 Format 4 — SET pointer TO {NULL | pointer};
 /// Phase-4b increment 1): copy the NULL singleton or the source pointer into each target in order.
-/// <paramref name="ToNull"/> ⇔ the sender is the NULL figurative (renders <c>ManagedPointer.Null</c>).</summary>
-public sealed record BoundSetPointer(IReadOnlyList<Place> Targets, Place? Source, bool ToNull) : BoundStatement;
+/// <paramref name="ToNull"/> ⇔ the sender is the NULL figurative (renders <c>ManagedPointer.Null</c>);
+/// <paramref name="Address"/> ⇔ the sender is <c>ADDRESS OF identifier</c> (increment 2 — ONE node per job,
+/// never a parallel SET-pointer node).</summary>
+public sealed record BoundSetPointer(
+    IReadOnlyList<Place> Targets, Place? Source, bool ToNull, BoundAddressOf? Address = null) : BoundStatement;
+
+/// <summary><c>ADDRESS OF identifier</c> as a pointer VALUE (ISO §8.4.3.11 GR1; Phase-4b increment 2): for a
+/// BASED item the value IS its implicit data-address pointer (§8.6.5 :8791); for a cell-backed record the
+/// emitter renders <c>ManagedPointer.At(cell, classOffset)</c> over the item's forced/EXTERNAL storage cell.</summary>
+public sealed record BoundAddressOf(DataItem Item);
+
+/// <summary><c>SET ADDRESS OF based-item TO pointer</c> (ISO §14.9.39 Format 7; SR18 — the receiver shall be
+/// BASED; GR12–13 — the address VALUE is assigned, a snapshot): <c>__addr_B = pointer</c>.</summary>
+public sealed record BoundSetAddressOfBased(DataItem Based, Place Source) : BoundStatement;
+
+/// <summary><c>SET pointer… {UP|DOWN} BY integer</c> (ISO §14.9.39 Format 10; 2002+): the address moves by
+/// bytes (GR20 — character positions in this model); NULL → EC-DATA-PTR-NULL at runtime (GR18).</summary>
+public sealed record BoundSetPointerUpDown(IReadOnlyList<Place> Targets, BoundExpr Amount, bool Down) : BoundStatement;
+
+/// <summary><c>ALLOCATE</c> (ISO §14.9.3): form 1 — <paramref name="Chars"/> characters (GR1 rounds a
+/// fractional request UP; GR2 ≤0 ⇒ NULL, no EC) RETURNING <paramref name="Returning"/> (SR2 — required with
+/// CHARACTERS); form 2 — storage sized for the BASED <paramref name="Based"/> (GR3), its implicit pointer set
+/// (GR4a) and <paramref name="Returning"/> also set when present (GR4b). <paramref name="Initialized"/>: GR6
+/// binary-zero fill (form 1) / the GR7 INITIALIZE lowering (form 2).</summary>
+public sealed record BoundAllocate(
+    DataItem? Based, BoundExpr? Chars, bool Initialized, Place? Returning) : BoundStatement;
+
+/// <summary><c>FREE pointer…</c> (ISO §14.9.15): per-operand left to right (GR2); each operand runs the GR1
+/// three-way (release-and-null / NULL no-op / EC-STORAGE-NOT-ALLOC nonfatal, reported through the
+/// TurnState-gated status block).</summary>
+public sealed record BoundFree(IReadOnlyList<Place> Operands) : BoundStatement;
 
 // ── SET index assignment / arithmetic (ISO §14.9.39 Formats 1–2; COBOLNET_DESIGN §3.5/§12.3) ──────────────────
 
