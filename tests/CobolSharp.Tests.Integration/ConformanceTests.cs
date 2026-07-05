@@ -82,6 +82,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "oo_universal_name"),
         ("2002", "oo_universal_inherit"),
         ("2002", "oo_universal_relation"),
+        // The EC-OO wave (§14.9.29 RAISE identifier / §14.9.49 F4 / §14.6.13.1.5) — net-new (DEVLOG 609):
+        ("2002", "oo_ec_raise_object"),
+        ("2002", "oo_ec_goback_raising"),
     ];
 
     [Theory]

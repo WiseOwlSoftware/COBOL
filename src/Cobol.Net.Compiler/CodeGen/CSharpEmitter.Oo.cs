@@ -359,6 +359,7 @@ public sealed partial class CSharpEmitter
             w.Line(OoUnivCallerWrite(u.Args[i].Source, $"__ua{id}[{i}].Value") + "   // BY REFERENCE copy-out (SR6)");
         if (u.Returning is { } ret)
             w.Line(OoUnivCallerWrite(ret, $"__ur{id}!.Value") + "   // RETURNING delivery (§14.9.23.4 GR8)");
+        OoEmitInvokePickup();   // §14.6.13.1.5 — the universal path propagates identically (D-EO6)
     }
 
     /// <summary>SET Format 5 (D-U7; §14.9.39 GR9/GR10): copy the ONE sender reference into each target in
@@ -367,6 +368,28 @@ public sealed partial class CSharpEmitter
     private void OoEmitSetObjectRef(BoundSetObjectRef s)
     {
         var w = _ctx.Writer;
+        if (s.FromExceptionObject)
+        {
+            // §8.4.3.6 — the register is implicitly UNIVERSAL: a universal target copies the reference;
+            // a TYPED target takes the runtime narrow check (§9.3.8.2 :12291 — conformance through a
+            // universal source is a RUNTIME question; failure = EC-OO-UNIVERSAL, Table 13).
+            foreach (var tp in s.Targets)
+            {
+                if (tp.Item.Pic!.ObjectClassName is null)
+                {
+                    w.Line(tp.Write("ExceptionState.ExceptionObject") + "   // SET universal TO EXCEPTION-OBJECT (§8.4.3.6)");
+                    continue;
+                }
+                string clr = tp.Item.Pic!.ClrType.TrimEnd('?');
+                int id = _storeTmpCounter++;
+                w.Line($"var __xo{id} = ExceptionState.ExceptionObject;");
+                w.Line($"if (__xo{id} is not null && __xo{id} is not {clr}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
+                    + $"\"SET {tp.Item.CobolName} TO EXCEPTION-OBJECT: the current exception object is not a "
+                    + $"{tp.Item.Pic!.ObjectClassName} (ISO 9.3.8.2 runtime conformance; Table 13)\");");
+                w.Line(tp.Write($"({clr}?)__xo{id}") + "   // SET typed TO EXCEPTION-OBJECT (runtime-narrowed)");
+            }
+            return;
+        }
         string src = s.SourceIsNull ? "null"
             : s.SourceIsSelf ? "this"
             : s.SourceFactoryCs is { } fac ? $"{fac}.__Instance"
@@ -709,12 +732,19 @@ public sealed partial class CSharpEmitter
             w.Line($"{call};   // INVOKE (§14.9.23; null receiver → EC-OO-NULL, §14.9.23.4 GR5)");
             foreach (var pLine in post) w.Line(pLine);
         }
+        OoEmitInvokePickup();   // §14.6.13.1.5 — a method GOBACK RAISING obj is consumed HERE (after GR8)
     }
 
     /// <summary>The copy-in read of an identifier argument for a STRING-CARRIED formal: a reference-modified
     /// place reads its window verbatim (§8.4.2.4 — the operand IS elementary alphanumeric); a string-stored
     /// item reads directly; a native display-numeric item formats through its OWN profile (caller-side). A
     /// CONTENT crossing normalizes to the formal's width (MOVE pad/truncate).</summary>
+    /// <summary>The INVOKE-site propagation pickup (D-EO6): a method GOBACK/EXIT … RAISING stages; the
+    /// ACTIVATING site consumes — after the RETURNING delivery and copy-outs (GR1b ordering). Instance/
+    /// Self/Super/Factory + UNIVERSAL dispatches all pick up; NEW needs none (the generated ctor runs no
+    /// user statements, D4). Gated on <c>_ecActive</c>, which spans class units.</summary>
+    private void OoEmitInvokePickup() => CallEmitPropagationPickup();
+
     private string OoStringReadOf(Place sp, BoundInvokeArg a)
     {
         string read = sp is RefModPlace ? sp.Read()

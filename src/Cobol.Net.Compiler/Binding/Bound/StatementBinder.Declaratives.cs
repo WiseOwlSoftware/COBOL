@@ -67,14 +67,14 @@ public sealed partial class StatementBinder
         if (scope is { } s)
             _declaratives.Add(new BoundDeclarative(
                 name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global, s.Report,
-                s.EcEntries));
+                s.EcEntries, s.EoClassCsName));
     }
 
     /// <summary>One USE statement's bound trigger scope: Format 1's files/mode (+GLOBAL), Format 2's report
     /// group, or Format 3's (exception-name, file) entries (ISO §14.9.49).</summary>
     private readonly record struct DeclScope(
         IReadOnlyList<FileModel> Files, int? ModeIndex, bool Global, ReportGroupModel? Report,
-        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null);
+        IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null, string? EoClassCsName = null);
 
     /// <summary>Bind the USE statement's trigger scope (ISO §14.9.49): Format 1's file list or open mode; the
     /// GLOBAL phrase drives the cross-program GR4b dispatch (the emitter's <c>__RunGlobalUse</c> containment
@@ -88,6 +88,26 @@ public sealed partial class StatementBinder
         bool global = use.GLOBAL() is not null;
         if (use.useEcEntry() is { Length: > 0 } ecEntries)
             return DeclBindUseF3(ecEntries, sectionName);
+        if (use.OBJECT() is not null || use.EO() is not null)
+        {
+            // Format 4 (§14.9.49.2 — ONE class/interface operand; SR15 EO ≡ EXCEPTION OBJECT). GR3: for an
+            // OBJECT raise, F4 selection REPLACES the F1/F3 tiers (the generated __EcObjDispatch, D-EO7).
+            if (data.Edition.DialectLevel < 2002)
+                data.Edition.Error("COBOLNET0876",
+                    "USE AFTER EXCEPTION OBJECT is the COBOL-2002+ exception-object declarative "
+                    + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
+            _ecF3 = true;   // the ONE "EC declaratives present" feature bit — F4 rides the same group gate
+            string cname = use.cobolWord().GetText();
+            if (OoClasses?.Find(cname) is not { } cls)
+            {
+                data.Edition.Error("COBOLNET0859",
+                    $"declarative section '{sectionName}': USE AFTER EXCEPTION OBJECT '{cname}' does not "
+                    + "name a class of the compilation group (ISO §14.9.49.3 SR16; interface entries are "
+                    + "the interface-RAISING refinement)");
+                return null;
+            }
+            return new DeclScope([], null, global, null, EoClassCsName: cls.CsName);
+        }
         if (use.REPORTING() is not null)
         {
             // Format 2: USE [GLOBAL] BEFORE REPORTING identifier-1 — identifier-1 references a report group

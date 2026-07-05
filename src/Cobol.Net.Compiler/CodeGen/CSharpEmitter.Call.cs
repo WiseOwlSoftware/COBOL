@@ -377,6 +377,7 @@ public sealed partial class CSharpEmitter
         _callSelfPath = unit.Path;
         _callReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
         _ecUnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
+        _ecUnitHasF4 = unit.Bound.Declaratives?.Any(d => d.EoClassCsName is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
         _callOuterGlobalUse = CallChainHasGlobalUse(unit.Parent);
@@ -708,6 +709,21 @@ public sealed partial class CSharpEmitter
         if (!_ecActive) return;
         var w = _ctx.Writer;
         int id = _ecCounter++;
+        using (w.Block($"if (ExceptionState.TakePropagatedObject(out var __po{id}))   // §14.6.13.1.5 — an exception OBJECT propagated"))
+        {
+            w.Line($"ExceptionState.SetObject(__po{id});   // GR1b2 — the current exception object HERE (the activator)");
+            w.Line($"int __or{id} = {EcObjDispatchExpr($"__po{id}")};   // rule 2 — USE AFTER EXCEPTION OBJECT (GR14)");
+            w.Line($"if (__or{id} >= 0) {{ __pc = __or{id}; break; }}   // RESUME AT procedure-name");
+            using (w.Block($"if (__or{id} == -3)   // rule 3 PROPAGATE ON: directive not implemented (residue); rule 4 —"))
+            {
+                w.Line("ExceptionState.Set(\"EC-OO-EXCEPTION\", true);   // as if EXCEPTION EC-OO-EXCEPTION (:24608)");
+                w.Line($"int __oq{id} = {EcDispatchExpr("\"EC-OO-EXCEPTION\"", "\"\"")};   // the name enters the F3 tiers");
+                w.Line($"if (__oq{id} >= 0) {{ __pc = __oq{id}; break; }}");
+                w.Line($"if (__oq{id} != -2) throw new CobolFatalException(\"EC-OO-EXCEPTION\", "
+                    + "\"an exception object was not handled (ISO 14.6.13.1.5; Table 13 - fatal)\");");
+            }
+            w.Line("// -1/-2: declarative completed / RESUME NEXT — normal continuation (:24604)");
+        }
         using (w.Block($"if (ExceptionState.TakePropagated(out var __pn{id}, out var __pf{id}))   // §14.9.18 GR — raised at the end of the CALL"))
         {
             w.Line($"int __pr{id} = {EcDispatchExpr($"__pn{id}", "\"\"")};");
@@ -873,6 +889,13 @@ public sealed partial class CSharpEmitter
     private void CallEmitRaisingStage(BoundRaising r, string verb)
     {
         var w = _ctx.Writer;
+        if (r.ObjectSource is { } os)
+        {
+            // The exception-OBJECT leg (§14.9.18.4 GR1b; the EC-OO wave): no Enabled/Fatal logic — objects
+            // are not TURN-gated (§7.3.25 takes names only); the activator's §14.6.13.1.5 rules decide.
+            w.Line($"ExceptionState.SetPropagatingObject({os.Read()});   // {verb} RAISING identifier-1 — staged for the activator");
+            return;
+        }
         if (r.IsLast)
         {
             w.Line("ExceptionState.SetPropagatingLast();   // RAISING LAST EXCEPTION (§14.9.18.2 — nothing staged when the status is clear)");

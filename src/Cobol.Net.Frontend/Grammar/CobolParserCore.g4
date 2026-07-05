@@ -38,6 +38,7 @@ cobolWord
     | STATEMENT    // context: RESUME AT NEXT STATEMENT (§14.9.33)
     | CONDITION    // context: USE AFTER EXCEPTION CONDITION (§14.9.49 F3)
     | EC           // context: USE AFTER EC (§14.9.49.3 SR12)
+    | EO           // context: USE AFTER EO (§14.9.49.3 SR15; EC-OO wave) — a user word at every edition
     // The 2023 logical-operator words (Annex E.2 item 25; VCR rows 32/41 — the W3 XOR regating): user-defined
     // words below 2023 (the operator is {is2023()}?-gated in CobolExpressions.g4); the §8.9 funnel rejects
     // them 0901 at 2023 (both are high-confidence table rows). Mirrored in the lexer _dataNameTokens set.
@@ -1128,8 +1129,11 @@ gobackStatement
 
 // RAISE {EXCEPTION exception-name-1 | identifier-1} (ISO §14.9.29.2). The exception-name is a cobolWord —
 // EC names are an OPEN set (EC-USER-*/EC-IMP-*, §14.6.13.1.1), so name validation is the binder's (SR1/SR2).
+// RAISE identifier-1 takes objectReference (not bare dataReference) so SR2's "NULL and SUPER shall not
+// be specified" gets a TARGETED diagnostic instead of a parse error, and RAISE SELF (legal) parses
+// (§14.9.29.3 SR2; the EC-OO wave, deep-dive slice 6).
 raiseStatement
-    : RAISE (EXCEPTION cobolWord | dataReference)
+    : RAISE (EXCEPTION cobolWord | objectReference)
     ;
 
 // RESUME AT {NEXT STATEMENT | procedure-name-1} (ISO §14.9.33.2 — AT is required in the 2023 format).

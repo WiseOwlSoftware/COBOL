@@ -637,6 +637,13 @@ Pre-commit: full battery + corpus sweep + legacy guard per the standing rules.
 
 # Brief: EC-OO (Table 13 + RAISE identifier + EXCEPTION-OBJECT)
 
+> **LANDED (DEVLOG 609)** — complete per D-EO1–D-EO10 with these deltas: diagnostic codes shifted to
+> **0848/0849/0858/0859** (0830-0833 were long taken); D-EO9's "minimal SET F5" shrank to the
+> EXCEPTION-OBJECT sender leg on the ALREADY-LANDED full F5 (DEVLOG 608); UNIVERSAL dispatch sites (D10 —
+> landed after this brief) also run the pickup; the EXCEPTION-OBJECT reserved word needed a
+> register-context 0901-funnel exemption (objectReference + the SET re-route shape). The as-built record
+> is `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md`'s EC-OO AS-BUILT + the deep-dive's closed bullet.
+
 # EC-OO slice — implementation brief (OO deep-dive slice 6: the exception-object channel over the landed EC engine)
 
 > **Status: DECISION-COMPLETE brief for roadmap Phase 3, OO port, slice 6 (EC-OO).** Written 2026-07-04 against

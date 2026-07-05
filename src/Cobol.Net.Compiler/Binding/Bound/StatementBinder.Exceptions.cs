@@ -20,6 +20,7 @@ public sealed partial class StatementBinder
     private TurnState _turn = TurnState.Empty;
     private string _programName = "";
     private readonly HashSet<string> _pdRaising = new(StringComparer.OrdinalIgnoreCase);   // PD-header RAISING names (§14.2.1)
+    private readonly HashSet<string> _pdRaisingClasses = new(StringComparer.OrdinalIgnoreCase);   // header RAISING class names (§14.2.2 SR8; the SR4a check)
     private readonly HashSet<string> _declEcPairs = new(StringComparer.OrdinalIgnoreCase); // USE F3 SR14 cross-USE (ec,file) pairs
     private int _currentBindPc = -1;   // the pc whose sentences are being bound (RESUME SR1/SR2 context)
 
@@ -50,8 +51,38 @@ public sealed partial class StatementBinder
                 "RAISE is the COBOL-2002+ exception-condition statement (ISO §14.9.29) — it requires --std 2002 "
                 + $"or later (targeting COBOL-{data.Edition.DialectLevel})");
         if (r.cobolWord() is not { } ecWord)
-            // RAISE identifier-1 — an exception OBJECT (SR2/SR3, §14.6.13.1.5) — parses; awaits the OO wave.
-            return new BoundUnsupported("RAISE identifier (exception object — the OO wave; ISO §14.9.29.2)");
+        {
+            // RAISE identifier-1 — an exception OBJECT (§14.9.29.3 SR2/SR3; §14.6.13.1.5). NOT TURN-gated
+            // (§7.3.25 takes exception-NAMES only) and never fatal by itself (GR2).
+            var oref = r.objectReference();
+            if (oref.NULL_() is not null || oref.SUPER() is not null)
+            {
+                data.Edition.Error("COBOLNET0848",
+                    $"RAISE {(oref.NULL_() is not null ? "NULL" : "SUPER")}: NULL and SUPER shall not be "
+                    + "specified as the raised object (ISO §14.9.29.3 SR2)");
+                return new BoundNop();
+            }
+            _ecRaise = true;   // the machinery gate — the object channel is live once used
+            if (oref.SELF() is not null)
+            {
+                if (!InMethod)
+                {
+                    data.Edition.Error("COBOLNET0848",
+                        "RAISE SELF may be specified only within a method definition (ISO §8.4.3.8)");
+                    return new BoundNop();
+                }
+                return new BoundRaiseObject(null);
+            }
+            if (refs.Resolve(oref.dataReference()!) is not { } op
+                || op.Item.Pic?.Category is not PicCategory.ObjectReference)
+            {
+                data.Edition.Error("COBOLNET0848",
+                    $"RAISE '{oref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE data item "
+                    + "(ISO §14.9.29.3 SR2)");
+                return new BoundNop();
+            }
+            return new BoundRaiseObject(op);
+        }
 
         if (EcResolveLevel3(ecWord.GetText(), "RAISE") is not { } info)
             return new BoundNop();   // diagnosed — fail the compile, bind a placeholder
@@ -154,7 +185,40 @@ public sealed partial class StatementBinder
                 + $"requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
         _ecRaising = true;
         if (raising.LAST() is not null) return new BoundRaising(null, IsLast: true, Fatal: false, Enabled: true);
-        if (raising.cobolWord() is not { } ecWord) return null;   // identifier form — OO wave
+        if (raising.cobolWord() is not { } ecWord)
+        {
+            // The identifier leg (§14.9.18.3 SR4 / §14.9.14.3 — the EC-OO wave): propagate an exception
+            // OBJECT to the activator. SR4d: never a universal reference. SR4a: the DECLARED class (or a
+            // superclass) shall appear in the containing source element's PD-header RAISING phrase —
+            // discharged at COMPILE time, which makes the activated-side EC-OO-EXCEPTION rule-1 check
+            // STATICALLY true in v1 (D-EO5: a typed reference only ever holds a conforming object, no
+            // universal identifier-1 exists, and factory objects cannot enter a typed reference).
+            if (raising.dataReference() is not { } dref) return null;
+            if (refs.Resolve(dref) is not { } op
+                || op.Item.Pic is not { Category: PicCategory.ObjectReference } opic)
+            {
+                data.Edition.Error("COBOLNET0849",
+                    $"{verb} RAISING '{dref.GetText()}': identifier-1 shall be a USAGE OBJECT REFERENCE "
+                    + "data item (ISO §14.9.18.3 SR4)");
+                return null;
+            }
+            if (opic.ObjectClassName is not { } declared)
+            {
+                data.Edition.Error("COBOLNET0849",
+                    $"{verb} RAISING '{op.Item.CobolName}': identifier-1 shall not be a UNIVERSAL object "
+                    + "reference (ISO §14.9.18.3 SR4d)");
+                return null;
+            }
+            bool listed = false;
+            for (var c = OoClasses?.Find(declared); c is not null; c = c.Base)
+                if (_pdRaisingClasses.Contains(c.Name)) { listed = true; break; }
+            if (!listed)
+                data.Edition.Error("COBOLNET0849",
+                    $"{verb} RAISING '{op.Item.CobolName}': its declared class '{declared}' (or a "
+                    + "superclass) shall be specified in the RAISING phrase of the procedure division "
+                    + "header of the containing source element (ISO §14.9.18.3 SR4a)");
+            return new BoundRaising(null, IsLast: false, Fatal: false, Enabled: true, ObjectSource: op);
+        }
 
         if (EcResolveLevel3(ecWord.GetText(), $"{verb} RAISING") is not { } info)
             return new BoundRaising("EC-RAISING-IMP", false, false, false);   // diagnosed; placeholder
@@ -173,7 +237,38 @@ public sealed partial class StatementBinder
     private void EcCollectPdRaising(Core.ProcedureDivisionContext pd)
     {
         if (pd.raisingClause() is not { } rc) return;
-        foreach (var w in rc.cobolWord()) _pdRaising.Add(w.GetText().ToUpperInvariant());
+        foreach (var w in rc.cobolWord()) EcAddPdRaisingWord(w.GetText());
+    }
+
+    /// <summary>Load a METHOD's pre-partitioned header RAISING lists as the current source element's
+    /// sets (per-method reset — methods of one class bind through ONE binder).</summary>
+    internal void EcLoadPdRaising(IReadOnlyList<string> ecNames, IReadOnlyList<string> classes)
+    {
+        _pdRaising.Clear();
+        _pdRaisingClasses.Clear();
+        foreach (var n in ecNames) _pdRaising.Add(n);
+        foreach (var c in classes) _pdRaisingClasses.Add(c);
+    }
+
+    /// <summary>Partition ONE PD-header RAISING operand (§14.2.2 — the EC-OO wave, D-EO8): a catalog EC
+    /// name must be level-3 EC-USER (SR7 → 0858 otherwise); a class of the group joins the SR4a class list;
+    /// anything else is 0858 (SR8/SR9 — interface names are the interface-RAISING refinement).</summary>
+    internal void EcAddPdRaisingWord(string word)
+    {
+        string up = word.ToUpperInvariant();
+        if (CobolNet.Runtime.Exceptions.ExceptionCatalog.TryGet(up, out var info))
+        {
+            if (info.Level is 3 && info.Level2Parent is "EC-USER") _pdRaising.Add(up);
+            else
+                data.Edition.Error("COBOLNET0858",
+                    $"PROCEDURE DIVISION RAISING {up}: an exception-name here shall be a level-3 EC-USER "
+                    + "name (ISO §14.2.2 SR7)");
+            return;
+        }
+        if (OoClasses?.Find(up) is not null) { _pdRaisingClasses.Add(up); return; }
+        data.Edition.Error("COBOLNET0858",
+            $"PROCEDURE DIVISION RAISING {up}: not an exception-name or a class of the compilation group "
+            + "(ISO §14.2.2 SR7–SR9; interface names are a later refinement of the EC-OO wave)");
     }
 
     // ── The per-statement TurnState fold (deep-dive D10) ─────────────────────────────────────────────────────

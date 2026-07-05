@@ -27,6 +27,7 @@ public sealed partial class CSharpEmitter
     private TurnState _turnState = TurnState.Empty;
     private bool _ecActive;            // group-level: ANY EC feature in use (gates every machinery emission)
     private bool _ecUnitHasF3;         // the program class being emitted has F3 declaratives (→ __EcDispatch exists)
+    private bool _ecUnitHasF4;         // … has F4 (EXCEPTION OBJECT) declaratives (→ __EcObjDispatch exists)
     private EcStatementInfo? _ecInfo;  // the wrapper context of the statement being emitted (else null)
     private int _ecCounter;            // unique-name counter for EC locals
     private string? _sizeErrEcVar;     // the current EC-SIZE name local while emitting a checked arithmetic body
@@ -35,6 +36,26 @@ public sealed partial class CSharpEmitter
     /// declaratives — same protocol, zero machinery).</summary>
     private string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
         _ecUnitHasF3 ? $"__EcDispatch({ecNameExpr}, {fileExpr})" : "-3";
+
+    /// <summary>The <c>__EcObjDispatch</c> invocation (or the no-declarative constant when this unit has no
+    /// Format-4 declaratives) — the §14.9.49.4 GR14 exception-OBJECT selector (the EC-OO wave).</summary>
+    private string EcObjDispatchExpr(string objExpr) =>
+        _ecUnitHasF4 ? $"__EcObjDispatch({objExpr})" : "-3";
+
+    /// <summary>RAISE identifier-1 (ISO §14.9.29.4 GR2; §14.6.13.1.5): set EXCEPTION-OBJECT, run the F4
+    /// declarative if one matches (GR14 — GR3: F4 REPLACES the F1/F3 tiers for object raises), and in EVERY
+    /// no-match/complete case continue with the next statement — a RAISE of an object is NEVER fatal by
+    /// itself.</summary>
+    private bool EcEmitRaiseObject(BoundRaiseObject ro)
+    {
+        var w = _ctx.Writer;
+        int id = _ecCounter++;
+        w.Line($"ExceptionState.SetObject({ro.Source?.Read() ?? "this"});   // §14.6.13.1.5 (1)/(2) — EXCEPTION-OBJECT + the status sentinel");
+        w.Line($"int __r{id} = {EcObjDispatchExpr($"ExceptionState.ExceptionObject")};");
+        w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+        w.Line($"// -1/-2/-3: declarative completed / RESUME NEXT / no match — continue after RAISE (§14.9.29.4 GR2)");
+        return false;   // the continue-after-RAISE path IS the normal exit (GR2 — never fatal by itself)
+    }
 
     private (string Stmt, string Loc) EcStmtLoc(EcStatementInfo info) =>
         info.WithLocation ? (CsLiteral(info.StatementName), CsLiteral(info.Location)) : ("null", "null");
@@ -220,6 +241,24 @@ public sealed partial class CSharpEmitter
             Tier("// GR3g — the level-1 EC-ALL entry", (ec, f, i) =>
                 f is null && ec.Equals(ExceptionCatalog.EcAll, StringComparison.OrdinalIgnoreCase) ? "true" : null);
             w.Line("return -3;   // no qualifying declarative (GR3g tail)");
+        }
+        w.Line();
+    }
+
+    /// <summary>Generate <c>__EcObjDispatch</c> — the Format-4 exception-OBJECT selector (ISO §14.9.49.4
+    /// GR14): source-order scan; a class entry matches the object's class OR a subclass — exactly C#'s
+    /// <c>is</c> (GR14a); GR15 (EXCEPTION-OBJECT references the object on declarative entry) already holds —
+    /// the raise site set the register before dispatching. A null object matches nothing (spec-literal:
+    /// no class describes it) → -3, the caller's §14.6.13.1.5 conversion.</summary>
+    private void EcEmitObjDispatchSelector(BoundProgram bound, CodeWriter w)
+    {
+        var decls = bound.Declaratives ?? [];
+        using (w.Block("private int __EcObjDispatch(object? __obj)"))
+        {
+            for (int i = 0; i < decls.Count; i++)
+                if (decls[i].EoClassCsName is { } cs)
+                    w.Line($"if (__obj is {cs}) return __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc});");
+            w.Line("return -3;   // no matching class entry (GR14 tail → 14.6.13.1.5)");
         }
         w.Line();
     }

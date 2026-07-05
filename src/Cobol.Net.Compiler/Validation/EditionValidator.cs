@@ -303,6 +303,19 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         if (!CheckedTokenTypes.Contains(ctx.Start.Type) && !IsProvableUserWordPosition(ctx))
             return base.VisitChildren(ctx);
         string word = ctx.Start.Text.ToUpperInvariant();
+        // EXCEPTION-OBJECT inside an objectReference operand (SET sender, RAISE operand) is a reference to
+        // the PREDEFINED register (§8.4.3.6 — the EC-OO wave), not a user-defined word: the reservation
+        // (§8.9, 2002+) is exactly what makes the reference unambiguous. Any other position (declarations,
+        // non-object operands) keeps the 0901 funnel.
+        if (word == "EXCEPTION-OBJECT")
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent, guard = null; a is not null && a != guard; a = a.Parent)
+            {
+                // SetToValueStatement: `SET x TO EXCEPTION-OBJECT` PARSES as the Format-1 value shape
+                // (alternative order) and re-routes to Format 5 at bind — same register reference.
+                if (a is CobolParserCore.ObjectReferenceContext or CobolParserCore.SetToValueStatementContext)
+                    return base.VisitChildren(ctx);
+                if (a is CobolParserCore.StatementContext) break;   // far enough — not an object operand
+            }
         if (_reservedWords.RejectsAt(word, _edition.DialectLevel) && (_flaggedWords ??= []).Add(word))
         {
             // Under WITH DEBUGGING MODE a DEBUG-* occurrence is the X3.23-1985 REGISTER (DEBUG-ITEM family),

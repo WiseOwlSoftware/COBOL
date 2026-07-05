@@ -827,6 +827,12 @@ public sealed record OoMethodSymbol(
     public char Accessor { get; init; }
     public string? PropertyName { get; init; }
 
+    /// <summary>The method PD-header RAISING partition (§14.2.2; the EC-OO wave D-EO8): level-3 EC-USER
+    /// names + classes of the group — loaded into the statement binder's per-source-element sets before
+    /// this method's body binds (a method IS a source element, §14.9.18.3 SR2/SR4a).</summary>
+    public List<string> RaisingEcNames { get; } = [];
+    public List<string> RaisingClasses { get; } = [];
+
     /// <summary>For a PROPERTY-clause-synthesized accessor: the SUBJECT data item (the emitter renders a
     /// direct field read/write — observably identical to the spec's implicit MOVE method, §13.18.42 GR1/GR2
     /// :21214-21229, because the cloned descriptions are identical by construction). Null for explicit

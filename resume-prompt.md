@@ -176,10 +176,19 @@
 > side object ⇒ F5; NULL/SELF/SR13-factory senders; universal-into-typed FORBIDDEN → 0867). Object
 > relations live (Format 3 =/<>; ReferenceEquals identity; 0868; IS-class STRUCK non-ISO). 4 goldens
 > (23 oo_*), +11 spine tests, set-object-reference-2002 row+hint.
-> **RESUME = EC-OO (the LAST OO brief: Table-13 catalog, RAISE identifier, EXCEPTION-OBJECT, object
-> views §8.4.3.5/EC-OO-CONFORMANCE; interface GET/SET PROPERTY prototypes + group-valued property refs
-> ride along) → then the Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers,
-> national/boolean, UDFs, intrinsics gaps) toward 100%.
+> **⛔🎉 EC-OO LANDED (DEVLOG 609) — ALL FIVE OO BRIEFS COMPLETE (604–609).** The exception-OBJECT
+> channel: RAISE identifier (GR2 never-fatal, 0848 band), ExceptionState.ExceptionObject (CobolObject?)
+> + the "EXCEPTION-OBJECT" EXCEPTION-STATUS sentinel (zero function changes), USE F4 __EcObjDispatch
+> (GR14a = C# `is`; GR3 replaces F1/F3 tiers), GOBACK/EXIT/method RAISING identifier
+> (BoundRaising.ObjectSource; SR4a/SR4d = 0849 compile-time — the activated-side rule-1 check statically
+> discharged, D-EO5), the ONE pickup with the object branch at every CALL + INVOKE + universal site
+> (rule-4 EC-OO-EXCEPTION fatal conversion into the F3 tiers), SET … TO EXCEPTION-OBJECT (typed targets
+> runtime-narrow → EC-OO-UNIVERSAL), header partitions (0858), F4 unknown-class 0859, the 0901
+> register-context exemption. 2 goldens (25 oo_*), +9 spine tests. Residue 0899-named: PROPAGATE ON,
+> interface/FACTORY-OF/ACTIVE-CLASS RAISING legs, method declaratives, object VIEWS.
+> **RESUME = the Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md`** (pointers/ALLOCATE on
+> ManagedPointer, national/boolean, UDFs, the intrinsics gaps; OO riders queued: interface GET/SET
+> PROPERTY prototypes, group-valued property refs, FACTORY OF usage, object views) **toward 100%.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits

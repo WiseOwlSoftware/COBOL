@@ -166,10 +166,22 @@ public sealed partial class DataBinder
                 Edition.Error("COBOLNET0888", $"{where}: '{rref.GetText()}' may not be both a USING parameter "
                     + "and the RETURNING item (ISO §14.2.2 SR4)");
         }
-        if (pd?.raisingClause() is not null)
-            Edition.Error("COBOLNET0899", $"{where}: PROCEDURE DIVISION RAISING on a method (exception "
-                + "propagation, ISO §14.2.1) is recognized but not yet implemented (the EC-OO slice)");
-
+        if (pd?.raisingClause() is { } mrc)
+            foreach (var w in mrc.cobolWord())
+            {
+                // The same §14.2.2 partition as program headers (D-EO8): EC-USER level-3 names and classes.
+                string up = w.GetText().ToUpperInvariant();
+                if (CobolNet.Runtime.Exceptions.ExceptionCatalog.TryGet(up, out var einfo))
+                {
+                    if (einfo.Level is 3 && einfo.Level2Parent is "EC-USER") m.RaisingEcNames.Add(up);
+                    else Edition.Error("COBOLNET0858", $"{where}: METHOD-ID RAISING {up}: an exception-name "
+                        + "here shall be a level-3 EC-USER name (ISO §14.2.2 SR7)");
+                }
+                else if (OoClasses?.Find(up) is not null) m.RaisingClasses.Add(up);
+                else Edition.Error("COBOLNET0858", $"{where}: METHOD-ID RAISING {up}: not an exception-name "
+                    + "or a class of the compilation group (ISO §14.2.2 SR7–SR9; interfaces are a later "
+                    + "refinement)");
+            }
         // A GROUP formal/RETURNING item crosses the boundary as its character image (FromImage/AsImage) —
         // register it whole-group-referenced NOW so MarkStoreAsImage flips its numeric-DISPLAY leaves to
         // image storage and untouched caller bytes round-trip unchanged (§14.2.3 GR8; the review's

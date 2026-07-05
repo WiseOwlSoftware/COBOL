@@ -1924,6 +1924,170 @@ public sealed class OoSpineTests
             END CLASS CUV17.
             """), "COBOLNET0867");
 
+    // ── The EC-OO wave (§14.9.29 / §14.9.18 SR4 / §14.9.49 F4 / §8.4.3.6 — DEVLOG 609) ─────────────────────
+
+    private static string EcOoDriver(string pid, string decls, string statements) => $$"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {{pid}}.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS CEOX1
+            CLASS CEOX2.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 E USAGE OBJECT REFERENCE CEOX1.
+        01 X2 USAGE OBJECT REFERENCE CEOX2.
+        01 U USAGE OBJECT REFERENCE.
+        01 N4 PIC 9(4).
+        PROCEDURE DIVISION.
+        {{decls}}
+        MAIN SECTION.
+        MAIN-P.
+            INVOKE CEOX1 "NEW" RETURNING E.
+        {{statements}}
+            STOP RUN.
+        END PROGRAM {{pid}}.
+
+        IDENTIFICATION DIVISION.
+        CLASS-ID. CEOX1.
+        END CLASS CEOX1.
+
+        IDENTIFICATION DIVISION.
+        CLASS-ID. CEOX2.
+        END CLASS CEOX2.
+        """;
+
+    /// <summary>§14.9.29.4 GR2 — a RAISE of an object with no matching declarative CONTINUES with the next
+    /// statement; it is never fatal by itself.</summary>
+    [Fact]
+    public void RaiseObject_NoDeclarative_ContinuesNextStatement()
+    {
+        var (ok, stdout, detail) = CompileAndRun(EcOoDriver("OOEC10", "",
+            "    RAISE E.\n    DISPLAY \"CONTINUED\"."));
+        Assert.True(ok, detail);
+        Assert.Equal("CONTINUED", CutRunner.Normalize(stdout));
+    }
+
+    /// <summary>§14.6.13.1.5 rule 4 — the EC-OO-EXCEPTION conversion enters the F3 tiers: a USE AFTER EC
+    /// EC-OO declarative catches an unhandled propagated object. EC-OO-EXCEPTION is FATAL (Table 13), so
+    /// surviving it needs RESUME AT NEXT STATEMENT (§14.6.13.1.3 #5 NOTE 2 — the same rule as every fatal
+    /// named condition).</summary>
+    [Fact]
+    public void GobackRaisingObject_NoF4_F3CatchesEcOoException()
+    {
+        var (ok, stdout, detail) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOEC11.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS CEOY1
+                CLASS CEOY2.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 S USAGE OBJECT REFERENCE CEOY2.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            CATCH-SEC SECTION.
+                USE AFTER EC EC-OO.
+            CATCH-P.
+                DISPLAY "F3-CAUGHT".
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-P.
+                INVOKE CEOY2 "NEW" RETURNING S.
+                INVOKE S "BOOM".
+                DISPLAY "AFTER".
+                STOP RUN.
+            END PROGRAM OOEC11.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CEOY1.
+            END CLASS CEOY1.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CEOY2.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 W-E USAGE OBJECT REFERENCE CEOY1.
+            PROCEDURE DIVISION.
+            METHOD-ID. BOOM.
+            PROCEDURE DIVISION RAISING CEOY1.
+            MAIN.
+                INVOKE CEOY1 "NEW" RETURNING W-E.
+                GOBACK RAISING W-E.
+            END METHOD BOOM.
+            END OBJECT.
+            END CLASS CEOY2.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("F3-CAUGHT\nAFTER", CutRunner.Normalize(stdout));
+    }
+
+    /// <summary>§9.3.8.2 :12291 — SET typed TO EXCEPTION-OBJECT narrows at RUNTIME; a wrong-class object
+    /// raises EC-OO-UNIVERSAL.</summary>
+    [Fact]
+    public void SetTypedFromExceptionObject_WrongClass_EcOoUniversal()
+    {
+        var (ok, _, detail) = CompileAndRun(EcOoDriver("OOEC12", "",
+            "    RAISE E.\n    SET X2 TO EXCEPTION-OBJECT."));
+        Assert.False(ok);
+        Assert.Contains("EC-OO-UNIVERSAL", detail);
+    }
+
+    /// <summary>The 0848 band: RAISE NULL (SR2), RAISE of a non-object item (SR2), and EXCEPTION-OBJECT as
+    /// a receiving operand (§8.4.3.6 SR1).</summary>
+    [Theory]
+    [InlineData("    RAISE NULL.", "COBOLNET0848")]
+    [InlineData("    RAISE N4.", "COBOLNET0848")]
+    [InlineData("    SET EXCEPTION-OBJECT TO E.", "COBOLNET0848")]
+    public void RaiseObject_BindViolations(string stmt, string code)
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC13", "", stmt)), code);
+
+    /// <summary>The 0849 band (§14.9.18.3 SR4): a UNIVERSAL identifier (SR4d) and a declared class missing
+    /// from the PD-header RAISING list (SR4a).</summary>
+    [Theory]
+    [InlineData("    GOBACK RAISING U.")]
+    [InlineData("    GOBACK RAISING E.")]
+    public void GobackRaising_BindViolations_0849(string stmt)
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC14", "", stmt)), "COBOLNET0849");
+
+    /// <summary>§14.2.2 SR7 — a header RAISING exception-name shall be level-3 EC-USER (0858).</summary>
+    [Fact]
+    public void MethodHeaderRaising_NonEcUser_0858()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CEOZ1.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M1.
+            PROCEDURE DIVISION RAISING EC-SIZE-TRUNCATION.
+            MAIN.
+                CONTINUE.
+            END METHOD M1.
+            END OBJECT.
+            END CLASS CEOZ1.
+            """), "COBOLNET0858");
+
+    /// <summary>§14.9.49.3 SR16 — USE AFTER EXCEPTION OBJECT names a class of the group (0859).</summary>
+    [Fact]
+    public void UseF4_UnknownClass_0859()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC15",
+            """
+            DECLARATIVES.
+            BAD-SEC SECTION.
+                USE AFTER EXCEPTION OBJECT NOSUCH.
+            BAD-P.
+                CONTINUE.
+            END DECLARATIVES.
+            """,
+            "    CONTINUE.")), "COBOLNET0859");
+
     /// <summary>§8.8.4.2.1 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
     [Theory]
     [InlineData("IF U > G DISPLAY \"X\" END-IF.")]

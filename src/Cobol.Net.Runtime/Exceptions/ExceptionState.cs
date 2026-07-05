@@ -37,9 +37,33 @@ public static class ExceptionState
     /// LOCATION (r1 otherwise).</summary>
     public static string? LastStatement { get; private set; }
 
-    /// <summary>EXCEPTION-OBJECT (§8.4.3.6) — null until the OO exception-object wave lands (RAISE identifier-1
-    /// binds loud; the slot exists so §14.9.29.4 GR1's "EXCEPTION-OBJECT is set to null" is real).</summary>
-    public static object? ExceptionObject { get; private set; }
+    /// <summary>EXCEPTION-OBJECT (§8.4.3.6) — the run unit's ONE predefined object reference (GR2):
+    /// references the current exception object, null when none (GR1). Implicitly UNIVERSAL (SR2 :7249) —
+    /// typed <see cref="CobolObject"/> per the D-U1 universal model. Set by RAISE identifier-1, by
+    /// the GR1b2 activator-side pickup, and (GR15) it already holds the object when an F4 declarative
+    /// enters; nulled by every NAMED raise (§14.9.29.4 GR1 / :24485).</summary>
+    public static CobolObject? ExceptionObject { get; private set; }
+
+    /// <summary>§15.33.3 rule 1's literal EXCEPTION-STATUS value when the last exception is an exception
+    /// OBJECT — the LastName sentinel (NOT a catalog exception-name; ExceptionCatalog.TryGet fails on it
+    /// by design, and the EXCEPTION-* functions degrade correctly: not an IO name → "00", no location →
+    /// spaces).</summary>
+    public const string ObjectSentinel = "EXCEPTION-OBJECT";
+
+    /// <summary>Record a raised exception OBJECT (§14.6.13.1.5 (1)/(2): EXCEPTION-OBJECT references the
+    /// object; the last exception status indicates an exception object — realized as the
+    /// <see cref="ObjectSentinel"/> LastName). Exception objects are NOT TURN-gated (§7.3.25 takes
+    /// exception-NAMES only) and a RAISE of an object is never fatal by itself (§14.9.29.4 GR2).</summary>
+    public static void SetObject(CobolObject? obj)
+    {
+        LastName = ObjectSentinel;
+        LastFatal = false;
+        LastFile = null;
+        LastIoStatus = null;
+        LastStatement = null;
+        LastLocation = null;
+        ExceptionObject = obj;
+    }
 
     /// <summary>Record a raised non-I-O exception condition (§14.6.13.1.1: sets the last exception status;
     /// EXCEPTION-OBJECT is set to null — §14.9.29.4 GR1).</summary>
@@ -52,6 +76,7 @@ public static class ExceptionState
         LastStatement = statement;
         LastLocation = location;
         ExceptionObject = null;
+        _propagatedObject = default;   // a NAMED raise supersedes any staged object (the slots are exclusive)
     }
 
     /// <summary>Record a raised EC-I-O exception condition with its file connector and I-O status
@@ -75,6 +100,7 @@ public static class ExceptionState
         LastLocation = null;
         ExceptionObject = null;
         _propagated = null;
+        _propagatedObject = default;
     }
 
     // ── GOBACK / EXIT … RAISING propagation (§14.9.18 GR / §14.6.13.1.3 #6 shape) ────────────────────────────
@@ -91,11 +117,39 @@ public static class ExceptionState
         _propagated = (name.ToUpperInvariant(), fatal);
     }
 
+    // ── The exception-OBJECT propagation slot (§14.6.13.1.5; GOBACK/EXIT/EXIT METHOD … RAISING identifier).
+    //    Mutually exclusive with _propagated — a GOBACK stages exactly ONE of a name or an object. ──
+
+    private static (bool Has, CobolObject? Obj) _propagatedObject;
+
+    /// <summary>Stage an exception OBJECT for the activator (GOBACK / EXIT PROGRAM / method-return RAISING
+    /// identifier-1, §14.9.18.4 GR1b): the returning element's status reflects the raise (GR1b1 via
+    /// <see cref="SetObject"/>); the ACTIVATING site consumes via <see cref="TakePropagatedObject"/> and
+    /// applies the §14.6.13.1.5 activator rules (F4 → declarative; none → EC-OO-EXCEPTION).</summary>
+    public static void SetPropagatingObject(CobolObject? obj)
+    {
+        SetObject(obj);
+        _propagatedObject = (true, obj);
+        _propagated = null;
+    }
+
+    /// <summary>Consume the staged exception object at the activating CALL/INVOKE site (mirrors
+    /// <see cref="TakePropagated"/>; clears the slot).</summary>
+    public static bool TakePropagatedObject(out CobolObject? obj)
+    {
+        (bool has, obj) = _propagatedObject;
+        _propagatedObject = default;
+        return has;
+    }
+
     /// <summary>Stage the LAST EXCEPTION for re-raising (GOBACK RAISING LAST EXCEPTION, §14.9.18.2). A clear
     /// last-exception status stages nothing.</summary>
     public static void SetPropagatingLast()
     {
-        if (LastName is { } n) _propagated = (n, LastFatal);
+        // GOBACK RAISING LAST EXCEPTION with an OBJECT status re-propagates the OBJECT (§14.9.18.4 GR1b3a
+        // :27724 → the §14.6.13.1.5 rules); a clear status stages nothing.
+        if (LastName == ObjectSentinel) { _propagatedObject = (true, ExceptionObject); _propagated = null; }
+        else if (LastName is { } n) _propagated = (n, LastFatal);
     }
 
     /// <summary>Consume the staged propagation (the generated CALL-site pickup). Returns false when none.</summary>

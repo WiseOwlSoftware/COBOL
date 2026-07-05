@@ -65,7 +65,10 @@ public sealed record BoundDeclarative(
     int? ModeIndex,
     bool Global,
     ReportGroupModel? ReportGroup = null,
-    IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null);
+    IReadOnlyList<(string Ec, FileModel? File)>? EcEntries = null,
+    string? EoClassCsName = null);
+// EoClassCsName: Format 4 (USE AFTER EXCEPTION OBJECT class-name, §14.9.49 — the EC-OO wave): the emitted
+// C# class the generated __EcObjDispatch matches with `is` (GR14a: the object's class OR a subclass).
 // EcEntries: the Format-3 scope (ISO §14.9.49.2 — USE AFTER {EXCEPTION CONDITION | EC} {ec-name [FILE f]…}…):
 // each pair is one (exception-name, optional file) selection entry, consumed by the generated __EcDispatch
 // selector's GR3c–g tiers. Null for Format 1/2 declaratives; an F3 declarative has empty Files / null ModeIndex,
@@ -476,4 +479,13 @@ public sealed record BoundSetLastException : BoundStatement;
 /// <paramref name="Enabled"/> decision at the statement's line) or <paramref name="IsLast"/> (RAISING LAST
 /// EXCEPTION — re-stages the current last exception status). The identifier (exception-object) form binds loud
 /// until the OO wave.</summary>
-public sealed record BoundRaising(string? EcName, bool IsLast, bool Fatal, bool Enabled);
+public sealed record BoundRaising(string? EcName, bool IsLast, bool Fatal, bool Enabled,
+    Place? ObjectSource = null);
+// ObjectSource: the GOBACK/EXIT … RAISING identifier-1 leg (§14.9.18.3 SR4; the EC-OO wave) — exactly one
+// of EcName / IsLast / ObjectSource is set. Objects are NOT TURN-gated (§7.3.25 takes names only), so the
+// Enabled/Fatal fields are meaningless on this leg (the §14.6.13.1.5 activator rules decide fatality).
+
+/// <summary>RAISE identifier-1 (ISO §14.9.29; §14.6.13.1.5 — the EC-OO wave): raise an exception OBJECT.
+/// <paramref name="Source"/> null ⇔ SELF (renders <c>this</c>). NEVER fatal by itself (GR2): the F4
+/// declarative runs if one matches, else execution continues with the next statement.</summary>
+public sealed record BoundRaiseObject(Place? Source) : BoundStatement;

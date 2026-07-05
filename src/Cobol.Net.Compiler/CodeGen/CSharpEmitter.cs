@@ -211,6 +211,7 @@ public sealed partial class CSharpEmitter
             w.Line();
         }
         if (decls.Any(d => d.EcEntries is not null)) EcEmitDispatchSelector(bound, w);
+        if (decls.Any(d => d.EoClassCsName is not null)) EcEmitObjDispatchSelector(bound, w);   // F4 (EC-OO)
         if (bound.Ec is { HasIoChecked: true }) EcEmitIoCheckEc(bound, w);
         if (!_useDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
         using (w.Block("private void __IoCheck(string __f, bool __atEnd, bool __invKey)"))
@@ -428,9 +429,14 @@ public sealed partial class CSharpEmitter
             case BoundInvoke inv: OoEmitInvoke(inv); return false;              // OO (ISO §14.9.23; deep-dive D5)
             case BoundInvokeUniversal uinv: OoEmitUniversalInvoke(uinv); return false;   // D10 universal dispatch (GR7c runtime conformance)
             case BoundSetObjectRef sor: OoEmitSetObjectRef(sor); return false;           // SET F5 (ISO §14.9.39; D-U7)
-            case BoundMethodReturn:                                             // method GOBACK/EXIT METHOD (D8)
+            case BoundMethodReturn mr:                                          // method GOBACK/EXIT METHOD (D8)
+                // GR1b (§14.9.18.4): the RAISING stages BEFORE the throw; the entry's catch(MethodReturn)
+                // still delivers the RETURNING local + copy-outs, so the INVOKE-site pickup sees the
+                // exception only AFTER the result — the result-before-exception ordering for free (D-EO6).
+                if (mr.Raising is { } mrr) CallEmitRaisingStage(mrr, "GOBACK");
                 w.Line("throw new MethodReturn();   // terminate the METHOD only — caught at the method entry (ISO §14.9.18.4 GR4)");
                 return true;
+            case BoundRaiseObject ro: return EcEmitRaiseObject(ro);            // EC-OO (ISO §14.9.29; §14.6.13.1.5)
             case BoundEcChecked ec: return EcEmitChecked(ec);                  // EC model (ISO §7.3.25 TURN scope)
             case BoundRaise ra: return EcEmitRaise(ra);                        // EC model (ISO §14.9.29)
             case BoundResume rs: EcEmitResume(rs); return true;                // EC model (ISO §14.9.33) — unwinds

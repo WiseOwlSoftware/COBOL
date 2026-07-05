@@ -33,7 +33,7 @@ options {
         LENGTH, NATIONAL, NORMAL, PARSE, PROCESSING,
         // EC exception-model words (ISO §14.6.13 / §14.9.29 / §14.9.33 / §14.9.49 F3, 2002+) — context-sensitive,
         // legal user words at every edition (the cobolWord continuity guarantee):
-        RAISE, RAISING, RESUME, STATEMENT, CONDITION, EC,
+        RAISE, RAISING, RESUME, STATEMENT, CONDITION, EC, EO,
         // The 2023 logical-operator words (Annex E.2 item 25; the W3 XOR regating) — user words below 2023:
         XOR, EXCLUSIVE_OR,
         // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18) — '85-reserved,
@@ -474,6 +474,7 @@ RAISE       : 'RAISE' ;      // RAISE statement (ISO §14.9.29)
 RESUME      : 'RESUME' ;     // RESUME statement (ISO §14.9.33)
 STATEMENT   : 'STATEMENT' ;  // RESUME AT NEXT STATEMENT (ISO §14.9.33)
 CONDITION   : 'CONDITION' ;  // USE AFTER EXCEPTION CONDITION (ISO §14.9.49 Format 3)
+EO          : 'EO' ;         // USE AFTER EO ≡ EXCEPTION OBJECT (ISO §14.9.49.3 SR15; the EC-OO wave) — same context-sensitive recipe as EC
 EC          : 'EC' ;         // USE AFTER EC ≡ EXCEPTION CONDITION (ISO §14.9.49.3 SR12); maximal munch keeps
                              // EC-I-O-AT-END etc. one IDENTIFIER (the longer match wins)
 RANDOM      : 'RANDOM' ;

@@ -69,11 +69,14 @@ public sealed record BoundUniversalArg(Place Source, string Descriptor);
 
 /// <summary>SET Format 5 — object-reference assignment (ISO §14.9.39 :31162; D-U7): copy ONE sender
 /// reference into each target in order (GR9/GR10). The sender is a Place, the NULL figurative, SELF
-/// (legal only inside a method; renders <c>this</c>), or a class-name (SR13 — renders the D11 factory
-/// singleton <c>{SourceFactoryCs}.__Instance</c>).</summary>
+/// (legal only inside a method; renders <c>this</c>), a class-name (SR13 — renders the D11 factory
+/// singleton <c>{SourceFactoryCs}.__Instance</c>), or the EXCEPTION-OBJECT register (§8.4.3.6 — the
+/// EC-OO wave; implicitly UNIVERSAL, so a TYPED target takes the generated runtime narrow check,
+/// §9.3.8.2 :12291 → EC-OO-UNIVERSAL).</summary>
 public sealed record BoundSetObjectRef(IReadOnlyList<Place> Targets, Place? Source, bool SourceIsNull, bool SourceIsSelf) : BoundStatement
 {
     public string? SourceFactoryCs { get; init; }
+    public bool FromExceptionObject { get; init; }
 }
 
 /// <summary>A method-context <c>GOBACK</c> / (pre-2023) <c>EXIT METHOD</c> (ISO §14.9.18.4 GR4; deep-dive D8 —
@@ -82,7 +85,10 @@ public sealed record BoundSetObjectRef(IReadOnlyList<Place> Targets, Place? Sour
 /// (<see cref="BoundGoback"/>). Rendered as <c>throw new MethodReturn()</c>, caught at the method's public
 /// entry (the ProgramReturn-pattern realization of D8: a plain <c>return</c> cannot unwind the nested bounded
 /// <c>__Dispatch</c> frames an out-of-line PERFORM stacks).</summary>
-public sealed record BoundMethodReturn : BoundStatement;
+public sealed record BoundMethodReturn(BoundRaising? Raising = null) : BoundStatement;
+// Raising: GOBACK/EXIT METHOD … RAISING from a method (§14.9.18.4 GR1b; the EC-OO wave) — STAGED before
+// the MethodReturn throw; the INVOKE site's pickup applies the §14.6.13.1.5 activator rules AFTER the
+// RETURNING delivery + copy-outs (GR1b's result-before-exception ordering falls out of the throw/catch).
 
 public sealed partial class StatementBinder
 {
@@ -208,6 +214,9 @@ public sealed partial class StatementBinder
                 methods.Add(new BoundMethod(m.Name, m.CsName, m.EntryPc, m.EndPc));
                 continue;
             }
+            // A method IS a source element (§14.9.18.3 SR2/SR4a): its OWN PD-header RAISING partition
+            // (D-EO8) becomes the binder's per-element sets while its body binds.
+            EcLoadPdRaising(m.RaisingEcNames, m.RaisingClasses);
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
             // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
@@ -871,6 +880,13 @@ public sealed partial class StatementBinder
         var targets = new List<Place>(targetRefs.Count);
         foreach (var t in targetRefs)
         {
+            if (string.Equals(t.GetText(), "EXCEPTION-OBJECT", StringComparison.OrdinalIgnoreCase))
+            {
+                data.Edition.Error("COBOLNET0848",
+                    "SET EXCEPTION-OBJECT: the predefined object reference shall not be a receiving "
+                    + "operand (ISO §8.4.3.6 SR1)");
+                return new BoundNop();
+            }
             if (refs.Resolve(t) is not { } tp || tp.Item.Pic is not { Category: PicCategory.ObjectReference })
             {
                 data.Edition.Error("COBOLNET0867",
@@ -912,6 +928,12 @@ public sealed partial class StatementBinder
                             + "(ISO §14.9.39.3 SR12 — a universal sender needs an object view to narrow)");
                 src = sp;
             }
+            else if (string.Equals(senderRef.GetText(), "EXCEPTION-OBJECT", StringComparison.OrdinalIgnoreCase))
+                // §8.4.3.6 — the predefined register (ONE per run unit, GR2; implicitly universal SR2):
+                // a universal target copies the reference; a TYPED target gets the RUNTIME narrow check
+                // in the emitter (§9.3.8.2 :12291 — EC-OO-UNIVERSAL on failure; the SR12 closed list is
+                // satisfied through the object-view-equivalent runtime conformance this register carries).
+                return new BoundSetObjectRef(targets, null, false, false) { FromExceptionObject = true };
             else if (senderRef.cobolWord()?.GetText() is { } sname && OoClasses?.Find(sname) is { } scls)
             {
                 // SR13 (:31371): the sender names a CLASS → the factory object of that class. D11's
@@ -1015,10 +1037,27 @@ public sealed partial class StatementBinder
     /// status phrases are activation-result forms that do not apply to a method return).</summary>
     private BoundStatement OoBindMethodGoback(Core.GobackStatementContext g)
     {
-        if (g.dataReference() is not null || g.raisingPhrase() is not null)
-            return new BoundUnsupported("GOBACK with a RETURNING/GIVING/RAISING phrase inside a method "
-                + "(ISO §14.9.18.4 GR4 returns the METHOD's RETURNING item — port slice 2 / the EC-OO slice)");
-        return new BoundMethodReturn();
+        if (g.dataReference() is not null)
+            return new BoundUnsupported("GOBACK with a RETURNING/GIVING phrase inside a method "
+                + "(ISO §14.9.18.4 GR4 returns the METHOD's RETURNING item — an activation-result form)");
+        return new BoundMethodReturn(OoBindMethodRaising(g.raisingPhrase(), "GOBACK"));
+    }
+
+    /// <summary>Bind a method-context RAISING phrase (§14.9.18.4 GR1b — staged before the MethodReturn
+    /// throw; the INVOKE site picks up). RAISING LAST inside a method needs method DECLARATIVES (SR5: only
+    /// in a declarative/WHEN) — staged with the method-declaratives refinement.</summary>
+    private BoundRaising? OoBindMethodRaising(Core.RaisingPhraseContext? raising, string verb)
+    {
+        if (raising is null) return null;
+        if (raising.LAST() is not null)
+        {
+            data.Edition.Error("COBOLNET0899",
+                $"{verb} RAISING LAST EXCEPTION inside a method: LAST is legal only within a declarative "
+                + "or a PERFORM WHEN (ISO §14.9.18.3 SR5) — method declaratives are a later refinement of "
+                + "the EC-OO wave");
+            return null;
+        }
+        return EcBindRaising(raising, raising.Start.Line, verb);
     }
 
     /// <summary>EXIT METHOD (pre-2023 editions — REMOVED by 2023, Annex E.2; the <c>exit-method-window</c>
@@ -1033,9 +1072,6 @@ public sealed partial class StatementBinder
                 + "of the EXIT statement; this is not a method procedure division)");
             return new BoundNop();
         }
-        if (e.raisingPhrase() is not null)
-            return new BoundUnsupported("EXIT METHOD RAISING (exception propagation from a method — the "
-                + "EC-OO slice; ISO §14.9.14)");
-        return new BoundMethodReturn();
+        return new BoundMethodReturn(OoBindMethodRaising(e.raisingPhrase(), "EXIT METHOD"));
     }
 }

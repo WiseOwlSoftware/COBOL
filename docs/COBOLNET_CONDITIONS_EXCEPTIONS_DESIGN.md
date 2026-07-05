@@ -5,6 +5,47 @@
 > `docs/COBOLNET_DESIGN.md` §11; THIS is the full design (decisions + rationale + C# mapping + hard
 > problems + edge cases). The locked invariants and cross-cutting consistency live in the SSOT.
 
+## AS BUILT — the EC-OO slice (DEVLOG 609): the exception-OBJECT channel
+
+The OO exception-object model (ISO §14.6.13.1.5; the OO deep-dive slice 6, brief D-EO1–D-EO10 in
+`docs/COBOLNET_OO_SLICE_BRIEFS.md`) is LANDED over this engine with ONE signal architecture — no parallel
+OO mechanism (feedback_singular_pattern):
+
+- **ExceptionState** gained: `CobolObject? ExceptionObject` (the §8.4.3.6 register — ONE per run unit,
+  GR2; typed per the OO D-U1 universal model), the `"EXCEPTION-OBJECT"` **LastName sentinel** (§15.33.3
+  r1's literal EXCEPTION-STATUS value — the EXCEPTION-* functions needed ZERO changes; the sentinel is NOT
+  a catalog name and `ExceptionCatalog.TryGet` fails on it by design), `SetObject`,
+  `SetPropagatingObject`/`TakePropagatedObject` (the object propagation slot — mutually exclusive with the
+  named `_propagated` slot; a named `Set` clears it and vice versa), and the `SetPropagatingLast` object
+  leg (GOBACK RAISING LAST with an object status re-propagates the OBJECT, §14.9.18.4 GR1b3a).
+- **RAISE identifier-1** → `BoundRaiseObject` (grammar takes `objectReference` so NULL/SUPER get the
+  targeted 0848, and RAISE SELF parses); NOT TURN-gated (§7.3.25 takes names only); NEVER fatal by itself
+  (GR2 — the continue-after-RAISE path is the normal exit).
+- **USE Format 4** (`USE AFTER {EXCEPTION OBJECT | EO} class-name`; EO is context-sensitive like EC) →
+  `BoundDeclarative.EoClassCsName` → the generated `__EcObjDispatch(object?)`: source-order `is` checks
+  (GR14a class-or-subclass), −3 tail. GR3: for an OBJECT raise F4 REPLACES the F1/F3 tiers. GR15 holds
+  structurally (the raise site sets the register before dispatching).
+- **GOBACK / EXIT PROGRAM / method-return RAISING identifier-1** → `BoundRaising.ObjectSource` (exactly
+  one of EcName/IsLast/ObjectSource); SR4d no-universal + SR4a declared-class-in-header (walking the base
+  chain) = 0849 at COMPILE time — which statically discharges the activated-side rule-1 check in v1
+  (D-EO5; revisit when FACTORY OF / interface RAISING legs land). The stage
+  (`ExceptionState.SetPropagatingObject`) has no Enabled/Fatal logic — objects are not TURN-gated.
+- **The pickup** (`CallEmitPropagationPickup`) grew the object branch FIRST (slots exclusive): GR1b2
+  re-registers in the activator → F4 dispatch (rule 2) → on −3, the rule-4 conversion:
+  `Set("EC-OO-EXCEPTION", true)` → the F3 tiers (EC-OO-EXCEPTION/EC-OO/EC-ALL match) → unresumed ⇒
+  `CobolFatalException` (fatal per Table 13 — surviving needs RESUME AT NEXT STATEMENT, the standard
+  fatal-EC protocol). The SAME pickup runs after every CALL and every Instance/Self/Super/Factory INVOKE
+  and every UNIVERSAL dispatch (`OoEmitInvokePickup`); NEW needs none (the ctor runs no user statements).
+  GR1b's result-before-exception ordering falls out of stage-then-`throw MethodReturn` + the entry catch
+  delivering RETURNING/copy-outs before the site's pickup.
+- **Headers**: PD-header RAISING partitions into level-3 EC-USER names (SR7; else 0858) + classes of the
+  group (the SR4a list); methods carry their own partition (`OoMethodSymbol.RaisingEcNames/RaisingClasses`,
+  loaded per-method — a method IS a source element).
+- **PROPAGATE ON** (:24606) is an un-implemented directive — the pickup's rule-3 hole is documented in the
+  generated comment (residue). Method declaratives, interface/FACTORY-OF/ACTIVE-CLASS legs, and object
+  VIEWS (EC-OO-CONFORMANCE) stay 0899-named.
+
+
 ## Summary
 
 Decision-complete design for the conditions + exception subsystem of the greenfield COBOL→C#/Roslyn compiler (src/Cobol.Net.{Frontend,Compiler,Runtime,Cli}; C# namespaces `CobolNet.*`). Covers IF/ELSE/END-IF; EVALUATE (all forms); level-88 condition-names + SET cond TO TRUE/FALSE; class/sign/relational/abbreviated-combined conditions with NOT>AND>XOR>OR precedence; and the COBOL-2002/2023 EC exception model (EC-* hierarchy, >>TURN, RAISE/RESUME, USE…EXCEPTION/ERROR declaratives, EXCEPTION-OBJECT, ON SIZE ERROR/AT END/INVALID KEY/ON OVERFLOW/ON EXCEPTION).

@@ -184,8 +184,11 @@ useStatement
     // {exception-name-1 | exception-name-2 {FILE file-name-2}…}… (ISO §14.9.49.2; SR12: EC ≡ EXCEPTION
     // CONDITION). Exception-names are cobolWords — an OPEN set (EC-USER-*, §14.6.13.1.1 / §7.3.25.3 SR2), so
     // name validation (and SR13/SR14) is the binder's, never a token enumeration.
-    // Format 4 (exception-object, USE AFTER {EXCEPTION OBJECT | EO}) is OO — out of this wave, not parsed.
     | USE AFTER (EXCEPTION CONDITION | EC) useEcEntry+
+    // Format 4 (ISO §14.9.49.2 — USE AFTER {EXCEPTION OBJECT | EO} {class-name | interface-name}, ONE
+    // operand; SR15: EO ≡ EXCEPTION OBJECT): the exception-OBJECT declarative selector (GR14 — class-or-
+    // subclass / IMPLEMENTS match; GR3: F4 REPLACES the F1/F3 tiers for object raises). EC-OO wave.
+    | USE AFTER (EXCEPTION OBJECT | EO) cobolWord
     // X3.23-1985 debug-module format (obsolete '85 element DELETED by ISO 2002 — the whole facility,
     // DEBUG-* registers included, is absent from the 2023 text): USE FOR DEBUGGING ON {cd-name-1 |
     // [ALL REFERENCES OF] identifier-1 | file-name-1 | procedure-name-1 | ALL PROCEDURES}… .

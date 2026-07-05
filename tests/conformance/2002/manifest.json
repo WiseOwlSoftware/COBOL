@@ -4,6 +4,8 @@
     "conditional_compilation",
     "goback_returning",
     "initialize_phrases",
+    "oo_ec_goback_raising",
+    "oo_ec_raise_object",
     "oo_factory",
     "oo_hello",
     "oo_interface",
