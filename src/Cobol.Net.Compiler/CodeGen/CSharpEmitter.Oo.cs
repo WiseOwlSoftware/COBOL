@@ -31,6 +31,11 @@ public sealed partial class CSharpEmitter
         public DataBinder Data = null!;
         public ReferenceResolver Refs = null!;
         public BoundProgram Bound = null!;
+        // The FACTORY half (§11.4; brief D11 — a sibling singleton class): its OWN data forest (factory and
+        // instance data are separate source elements, §10.6 :12752-12770 — name separation is structural).
+        public DataBinder FactoryData = null!;
+        public ReferenceResolver FactoryRefs = null!;
+        public BoundProgram FactoryBound = null!;
     }
 
     /// <summary>The group's pass-1 class symbol table (deep-dive D1) — built by <c>CallCollectUnits</c> BEFORE
@@ -61,6 +66,25 @@ public sealed partial class CSharpEmitter
                 + "implemented (owning roadmap phase: Phase 3, OO port)");
         cls.Data = data;
         cls.Refs = new ReferenceResolver(data);
+
+        // The FACTORY half (§11.4; brief D11/D13): its OWN forest + uid band — factory data names are
+        // invisible to instance methods and vice versa (separate source elements, §10.6), realized exactly
+        // like method scoping: a second binder, never a merged namespace. SR 10 (INVOKE-argument ban on
+        // factory WS) works free: the factory binder's WS roots are not method-scoped → OoIsObjectData.
+        var fdata = new DataBinder(edition) { OoClasses = _ooClasses, OoIsClassUnit = true };
+        fdata.CallSeedUids(_callUidBand);
+        _callUidBand += 100_000;
+        var fsynthetic = OoReparentFactoryData(cls.Symbol.Ctx);
+        fdata.BindDeclarations(fsynthetic);
+        foreach (var m in cls.Symbol.FactoryMethods)
+            fdata.OoBindMethodData(m);
+        fdata.BindResolve(fsynthetic);
+        if (fdata.Files.Count > 0)
+            edition.Error("COBOLNET0899",
+                $"class '{cls.Name}': a FILE SECTION in the FACTORY paragraph is recognized but not yet "
+                + "implemented (owning roadmap phase: Phase 3, OO port)");
+        cls.FactoryData = fdata;
+        cls.FactoryRefs = new ReferenceResolver(fdata);
     }
 
     /// <summary>Phase B — the method BODIES bind into the class's one pc space (per-method paragraph AND data
@@ -73,7 +97,18 @@ public sealed partial class CSharpEmitter
             OoCurrentClass = cls.Symbol,   // the SELF/SUPER resolution root (§8.4.3.8; slice 3b)
         };
         binder.ConfigureEc(_turnState, cls.Name);   // methods fold the same source-ordered >>TURN state (§7.3.25 GR6)
-        cls.Bound = binder.BindClassBody(cls.Symbol);
+        cls.Bound = binder.BindMethodRoster(cls.Symbol, cls.Symbol.Methods);
+
+        // The FACTORY roster binds through a SEPARATE binder over the factory forest, with the factory
+        // SELF/SUPER context (§14.9.23.3 SR4f/h; §16.2.1 SELF|SUPER "NEW" — OoInFactory).
+        var fbinder = new StatementBinder(cls.FactoryData, cls.FactoryRefs)
+        {
+            OoClasses = _ooClasses,
+            OoCurrentClass = cls.Symbol,
+            OoInFactory = true,
+        };
+        fbinder.ConfigureEc(_turnState, cls.Name);
+        cls.FactoryBound = fbinder.BindMethodRoster(cls.Symbol, cls.Symbol.FactoryMethods);
     }
 
     /// <summary>Re-shape a class definition's data surface into a synthetic <c>programUnit</c> context for the
@@ -90,6 +125,18 @@ public sealed partial class CSharpEmitter
         return unit;
     }
 
+    /// <summary>Re-shape the FACTORY paragraph's data surface into a synthetic <c>programUnit</c> (the
+    /// CallReparent discipline): factory env → class env → factory data division.</summary>
+    private static Core.ProgramUnitContext OoReparentFactoryData(Core.ClassDefinitionContext ctx)
+    {
+        var unit = new Core.ProgramUnitContext(null!, -1);
+        var fac = ctx.factoryParagraph();
+        if (fac?.environmentDivision() is { } envFac) unit.AddChild(envFac);
+        if (ctx.environmentDivision() is { } envCls) unit.AddChild(envCls);
+        if (fac?.dataDivision() is { } dd) unit.AddChild(dd);
+        return unit;
+    }
+
     /// <summary>
     /// Emit one COBOL class as a real C# class (deep-dive D1/D2/D3/D7): instance fields from OBJECT data
     /// (VALUE clauses become field initializers — the generated public parameterless ctor IS the predefined
@@ -101,28 +148,60 @@ public sealed partial class CSharpEmitter
     /// </summary>
     private void OoEmitClassUnit(OoClassUnit cls, CodeWriter w)
     {
-        _refs = cls.Refs;
-        _ctx = new EmissionContext(w, cls.Data);
+        // The INSTANCE class (D1/D2 + slice 3a: `: BASE` when the class INHERITS — single inheritance v1,
+        // SSOT §18.18 — else the CobolObject runtime root; Roslyn needs no declaration ordering).
+        OoEmitTypeHalf(cls.Name, cls.CsName, cls.Symbol.Base?.CsName ?? "CobolObject",
+            cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w, headerExtras: null);
+
+        // The FACTORY class (brief D11 — a REAL sibling singleton, NEVER statics: §8.6.4 per-class copies of
+        // inherited factory data; SELF-in-factory polymorphism SR4f + GR2; §9.3.6 chain resolution). Every
+        // CLASS-ID emits one — a class with no FACTORY paragraph still needs its own factory object and a
+        // chain node for inherited factory methods.
+        string facBase = cls.Symbol.Base?.FactoryCsName ?? "CobolObject";
+        var extras = new List<string>
+        {
+            // The singleton (§9.3.14.2 "created before it is first referenced" — .NET static-readonly type
+            // initialization satisfies it exactly). A derived factory needs `new` to shadow the base's.
+            $"public {(cls.Symbol.Base is not null ? "new " : "")}static readonly {cls.Symbol.FactoryCsName} __Instance = new();",
+            // The predefined New as a COVARIANT virtual (§16.2.1 GR1 ACTIVE-CLASS creation — an inherited
+            // factory MAKE reached via INVOKE DOG "…" creates a DOG through the runtime override).
+            cls.Symbol.Base is not null
+                ? $"public override {cls.CsName} __New() => new {cls.CsName}();"
+                : $"public virtual {cls.CsName} __New() => new {cls.CsName}();",
+        };
+        OoEmitTypeHalf(cls.Name, cls.Symbol.FactoryCsName, facBase,
+            cls.FactoryData, cls.FactoryRefs, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras);
+    }
+
+    /// <summary>The emit-into-a-type parameterization, realized (deep-dive Summary): ONE routine renders
+    /// fields + methods + dispatch into a named type — called for the instance class and the factory class
+    /// of every CLASS-ID (identical machinery; only the type identity, base, data forest, roster, and header
+    /// extras differ).</summary>
+    private void OoEmitTypeHalf(string cobolName, string csName, string baseCsName,
+        DataBinder data, ReferenceResolver refs, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
+        CodeWriter w, IReadOnlyList<string>? headerExtras)
+    {
+        _refs = refs;
+        _ctx = new EmissionContext(w, data);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
-        _callSelfPath = cls.Name;        // a CALL from a method names the class as its calling path (§8.4.6.3)
+        _callSelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
         _callReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
         _ecUnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)
         _callOuterGlobalUse = false;
         _callInheritedStatusPlace.Clear();
 
-        // D1/D2 + slice 3a: `: BASE` when the class INHERITS (single inheritance v1 — SSOT §18.18; the grammar
-        // carries one INHERITS FROM operand), else the CobolObject runtime root. Roslyn resolves the base
-        // regardless of declaration order (classes emit in source order — no Cecil-style depth sort).
-        using (w.Block($"public class {cls.CsName} : {cls.Symbol.Base?.CsName ?? "CobolObject"}"))
+        using (w.Block($"public class {csName} : {baseCsName}"))
         {
+            foreach (string line in headerExtras ?? [])
+                w.Line(line);
             var fields = new FieldEmitter(_ctx);
-            fields.Emit();   // OBJECT WS → INSTANCE fields (D3); method WS → statics; VALUE inits = field initializers (D4)
-            if (cls.Bound.Paragraphs.Count > 0)
-                w.Line($"private const int __N = {cls.Bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
+            fields.Emit();   // WS → INSTANCE fields (D3/D11); method WS → statics; VALUE inits = field initializers (D4)
+            if (bound.Paragraphs.Count > 0)
+                w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
             w.Line();
-            foreach (var m in cls.Symbol.Methods)
-                OoEmitMethod(cls, m, fields, w);
+            foreach (var m in roster)
+                OoEmitMethod(bound, m, fields, w);
         }
         w.Line();
     }
@@ -137,7 +216,7 @@ public sealed partial class CSharpEmitter
     /// default. The exit-bounded slice is the trap-#4 guard; a group formal crosses as its character image
     /// (the CALL-boundary discipline — a caller's group struct TYPE differs from the method's).
     /// </summary>
-    private void OoEmitMethod(OoClassUnit cls, OoMethodSymbol m, FieldEmitter fields, CodeWriter w)
+    private void OoEmitMethod(BoundProgram bound, OoMethodSymbol m, FieldEmitter fields, CodeWriter w)
     {
         string retType = m.Returning is { } ret ? (OoStringCarried(ret) ? "string" : ret.ElementType) : "void";
         string sig = string.Join(", ", m.Formals.Select(f =>
@@ -178,7 +257,7 @@ public sealed partial class CSharpEmitter
                 // above by reference — zero allocation for direct calls).
                 string saved = _dispatchName;
                 _dispatchName = "__MDispatch";
-                EmitDispatchMethod(cls.Bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.EntryPc, m.EndPc);
+                EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.EntryPc, m.EndPc);
                 _dispatchName = saved;
                 w.Line($"try {{ __MDispatch({m.EntryPc}, {m.EndPc}); }} catch (MethodReturn) {{ }}   "
                     + "// GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
@@ -218,7 +297,7 @@ public sealed partial class CSharpEmitter
         {
             changed = false;
             foreach (var cls in _ooClasses.Classes)
-                foreach (var m in cls.Methods)
+                foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
                 {
                     if (m.OverrideOf is not { } baseM) continue;
                     for (int i = 0; i < Math.Min(m.Formals.Count, baseM.Formals.Count); i++)
@@ -253,9 +332,17 @@ public sealed partial class CSharpEmitter
                 // reference is delivered through RETURNING (§14.9.23.4 GR8).
                 w.Line(inv.Returning!.Write($"new {inv.ClassCsName}()") + "   // INVOKE … \"NEW\" RETURNING (§16.2.1)");
                 return;
+            case InvokeForm.NewSelf:
+                // §16.2.1 GR1 — ACTIVE-CLASS creation in a factory method: the covariant __New override on
+                // the RUNTIME factory creates the runtime class (SUPER "NEW" deliberately identical — the
+                // restricted search finds the same predefined New, GR3/GR1).
+                w.Line(inv.Returning!.Write("this.__New()")
+                    + "   // INVOKE SELF|SUPER \"NEW\" (§16.2.1 — active-class creation via the covariant __New)");
+                return;
             case InvokeForm.Instance:
             case InvokeForm.Self:
             case InvokeForm.Super:
+            case InvokeForm.Factory:
                 OoEmitInstanceInvoke(inv);
                 return;
             default:
@@ -285,7 +372,7 @@ public sealed partial class CSharpEmitter
             var a = args[i];
             bool stringCarried = OoStringCarried(a.Formal);
             string qualProfile = a.Formal.Pic is { Category: PicCategory.Numeric, IsFloat: false }
-                ? $"{inv.OwnerCsName}.{a.Formal.ProfileName}" : "";
+                ? $"{inv.OwnerCsName}{(inv.Form is InvokeForm.Factory ? "__FACTORY" : "")}.{a.Formal.ProfileName}" : "";
 
             // The direct-ref fast path: a MemberPlace whose STORAGE form matches the parameter type exactly
             // (BY REFERENCE identifiers only — CONTENT always copies).
@@ -359,6 +446,9 @@ public sealed partial class CSharpEmitter
         {
             InvokeForm.Self => "this",
             InvokeForm.Super => "base",
+            // The factory singleton is never null — no GR5 guard (brief D11); virtual dispatch through the
+            // factory hierarchy realizes §9.3.6 factory resolution.
+            InvokeForm.Factory => $"{inv.ClassCsName}__FACTORY.__Instance",
             _ => $"CobolObject.RequireNonNull({inv.Receiver!.Read()})",
         };
         string call = $"{target}.{inv.MethodCsName}(" + string.Join(", ", argExprs) + ")";

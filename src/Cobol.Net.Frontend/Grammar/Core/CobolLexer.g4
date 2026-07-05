@@ -39,6 +39,9 @@ options {
         // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18) — '85-reserved,
         // user words at the editions where the §8.9 funnel frees them:
         RERUN, ENTER, EVERY, CLOCK_UNITS, DEBUGGING, REFERENCES, PROCEDURES,
+        // FACTORY (ISO §11.4, reserved 2002+ per §8.9): a legal user data name at COBOL-85 — the funnel
+        // 0901s it at 2002+ (ReservedWords.Table row; the OO FACTORY slice, DEVLOG 604):
+        FACTORY,
         // Intrinsic function names that collide with reserved words
         // (mirrors functionName in CobolExpressions.g4):
         DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
@@ -131,6 +134,7 @@ DATE_COMPILED   : 'DATE-COMPILED' ;
 SOURCE_COMPUTER : 'SOURCE-COMPUTER' ;
 OBJECT_COMPUTER : 'OBJECT-COMPUTER' ;
 OBJECT      : 'OBJECT' ;
+FACTORY     : 'FACTORY' ;   // the FACTORY paragraph (ISO §11.4, 2002+; §8.9-reserved 2002+ — user word at 85, funnel row exists)
 INHERITS    : 'INHERITS' ;   // COBOL-2002 OO: CLASS-ID. name INHERITS FROM base (ISO §11.3); corpus-clean
 SPECIAL_NAMES   : 'SPECIAL-NAMES' ;
 FILE_CONTROL    : 'FILE-CONTROL' ;

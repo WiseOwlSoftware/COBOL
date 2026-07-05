@@ -1138,4 +1138,165 @@ public sealed class OoSpineTests
             END METHOD M.
             """)), "level-66");
     }
+
+    // ── The FACTORY slice (§11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────
+
+    /// <summary>An instance method and a factory method may SHARE a name (§9.3.6 — two interfaces): INVOKE
+    /// through the class-name resolves the FACTORY roster, through an object the INSTANCE roster — dual
+    /// dispatch, no collision. A factory METHOD-ID named NEW is the 0836 v1 restriction; INVOKE class-name
+    /// of a method in NEITHER factory roster is the SR3 0825; SUPER in a ROOT class's factory method is the
+    /// trap-#7 0827 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (0828).</summary>
+    [Fact]
+    public void Factory_DualRoster_AndDiagnosticBand()
+    {
+        var (ok, stdout, detail) = CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP36.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS OSPC36.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T USAGE OBJECT REFERENCE OSPC36.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE OSPC36 "NEW" RETURNING T.
+                INVOKE OSPC36 "PING".
+                INVOKE T "PING".
+                STOP RUN.
+            END PROGRAM OOSP36.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. OSPC36.
+            IDENTIFICATION DIVISION.
+            FACTORY.
+            PROCEDURE DIVISION.
+            METHOD-ID. PING.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "FACTORY-PING".
+            END METHOD PING.
+            END FACTORY.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. PING.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "INSTANCE-PING".
+            END METHOD PING.
+            END OBJECT.
+            END CLASS OSPC36.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("FACTORY-PING\nINSTANCE-PING", CutRunner.Normalize(stdout));
+
+        EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. OSPC37.
+            IDENTIFICATION DIVISION.
+            FACTORY.
+            PROCEDURE DIVISION.
+            METHOD-ID. NEW.
+            PROCEDURE DIVISION.
+            END METHOD NEW.
+            END FACTORY.
+            END CLASS OSPC37.
+            """), "COBOLNET0836");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP38", "OSPC38", """
+                INVOKE OSPC38 "NOFM".
+            """, """
+            METHOD-ID. M1.
+            PROCEDURE DIVISION.
+            END METHOD M1.
+            """)), "COBOLNET0825");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP39.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM OOSP39.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. OSPC39.
+            IDENTIFICATION DIVISION.
+            FACTORY.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SUPER "M".
+            END METHOD M.
+            END FACTORY.
+            END CLASS OSPC39.
+            """), "COBOLNET0827");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP40.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM OOSP40.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. OSPC40.
+            IDENTIFICATION DIVISION.
+            FACTORY.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FW PIC 9(2) VALUE 5.
+            PROCEDURE DIVISION.
+            METHOD-ID. M2.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LN PIC 9(2).
+            PROCEDURE DIVISION USING LN.
+            MAIN.
+                ADD 1 TO LN.
+            END METHOD M2.
+            METHOD-ID. DRIVE.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SELF "M2" USING BY REFERENCE FW.
+            END METHOD DRIVE.
+            END FACTORY.
+            END CLASS OSPC40.
+            """), "COBOLNET0828");
+    }
+
+    /// <summary>FACTORY is a legal USER WORD at COBOL-85 (§8.9 reserves it only from 2002) — the continuity
+    /// invariant for the newly-admitted token; at 2002+ the funnel 0901s it.</summary>
+    [Fact]
+    public void FactoryWord_UserNameAt85_Reserved2002Plus()
+    {
+        var (ok85, errors85, _) = EditionHarness.CompileFull("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP41.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FACTORY PIC 9(2) VALUE 7.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY FACTORY.
+                STOP RUN.
+            END PROGRAM OOSP41.
+            """, 85);
+        Assert.True(ok85, "FACTORY must be a legal user word at --std 85: " + string.Join("\n", errors85));
+        var (ok02, errors02, _) = EditionHarness.CompileFull("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP42.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 FACTORY PIC 9(2) VALUE 7.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY FACTORY.
+                STOP RUN.
+            END PROGRAM OOSP42.
+            """, 2002);
+        Assert.False(ok02, "FACTORY is §8.9-reserved at 2002+ — the funnel must 0901");
+        EditionHarness.AssertHasDiagnostic(errors02, "COBOLNET0901");
+    }
 }

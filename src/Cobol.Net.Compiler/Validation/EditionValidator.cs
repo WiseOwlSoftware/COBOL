@@ -279,6 +279,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         // ≥2023). Their keyword occurrences parse through dedicated rules (rerunClause / enterStatement —
         // whose operands are deliberately NOT cobolWord / the USE FOR DEBUGGING format), never a name slot —
         // position-safe to check everywhere.
+        CobolLexer.FACTORY,   // §11.4 (2002+): keyword slots are factoryParagraph/END FACTORY/FACTORY OF only — position-blind safe (the EC-band argument)
         CobolLexer.RERUN, CobolLexer.ENTER, CobolLexer.EVERY, CobolLexer.CLOCK_UNITS,
         CobolLexer.DEBUGGING, CobolLexer.REFERENCES, CobolLexer.PROCEDURES,
     ];

@@ -18,8 +18,22 @@ options { tokenVocab = CobolLexer; }
 classDefinition
     : (IDENTIFICATION DIVISION DOT)? classIdParagraph
       environmentDivision?
+      factoryParagraph?
       objectParagraph?
       endClassHeader
+    ;
+
+// FACTORY definition (ISO §11.4 :13069; order per the §10.6 class-definition format :12745-12748) — factory
+// data (DATA DIVISION → the factory singleton's instance fields, brief D11) + factory methods (same
+// methodDefinition rule as the OBJECT paragraph, so the whole method machinery reuses verbatim). IMPLEMENTS
+// is the INTERFACE-ID slice (deliberately unparsed, matching objectParagraph). END FACTORY carries NO name
+// (§10.6 :12760).
+factoryParagraph
+    : (IDENTIFICATION DIVISION DOT)? FACTORY DOT
+      environmentDivision?
+      dataDivision?
+      (PROCEDURE DIVISION DOT methodDefinition*)?
+      END FACTORY DOT
     ;
 
 classIdParagraph
@@ -93,6 +107,7 @@ invokeReturning
 // Factored as its own rule (two explicit alternatives — NOT an optional-tail className?) so it left-factors cleanly
 // when hooked into usageKeyword (the optional tail was a suspected ambiguity, OO design doc §6.5).
 objectReferenceUsage
-    : OBJECT REFERENCE className
+    : OBJECT REFERENCE FACTORY OF className   // a FACTORY-object reference (§13.18.60 :22681) — binder-staged 0899 (the universal-reference wave)
+    | OBJECT REFERENCE className
     | OBJECT REFERENCE
     ;

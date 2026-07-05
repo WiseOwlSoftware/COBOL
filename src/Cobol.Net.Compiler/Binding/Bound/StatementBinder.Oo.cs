@@ -22,6 +22,14 @@ public enum InvokeForm
     /// <summary><c>INVOKE SUPER "M" …</c> → <c>base.M(…)</c> — NON-virtual, resolution STARTS at the base
     /// class (§8.4.3.8 GR3 restricted search), so an override calling its base cannot recurse (slice 3b).</summary>
     Super,
+    /// <summary><c>INVOKE class-name "M" …</c> (non-NEW) → <c>CLS__FACTORY.__Instance.M(…)</c> — a FACTORY
+    /// method through the class's factory singleton (§11.4/§9.3.6; brief D11 — never null, no guard;
+    /// virtual, so an inherited factory override dispatches).</summary>
+    Factory,
+    /// <summary><c>INVOKE SELF|SUPER "NEW" RETURNING r</c> inside a FACTORY method → <c>r = this.__New()</c>
+    /// (§16.2.1 GR1 ACTIVE-CLASS creation: the covariant per-class <c>__New</c> override makes an inherited
+    /// factory MAKE create the RUNTIME factory's class — the canonical factory pattern).</summary>
+    NewSelf,
 }
 
 /// <summary>A bound INVOKE (ISO §14.9.23; deep-dive D5): the RESOLVED call form plus everything the backend
@@ -65,6 +73,10 @@ public sealed partial class StatementBinder
     /// class's chain, SUPER starts at its BASE; slice 3b).</summary>
     public OoClassSymbol? OoCurrentClass { get; set; }
 
+    /// <summary>True while binding the FACTORY roster (§11.4): SELF/SUPER resolve over the FACTORY interface
+    /// (§14.9.23.3 SR4f/h) and SELF|SUPER "NEW" binds the ACTIVE-CLASS creation form (§16.2.1).</summary>
+    public bool OoInFactory { get; set; }
+
     /// <summary>The paragraph scope of ONE method body (ISO §11.7 — the legacy per-method scope algorithm,
     /// ported): paragraph and section names declare METHOD-LOCALLY; PERFORM/GO TO inside the method resolve
     /// against THESE maps only, so sibling methods may reuse names and a cross-method transfer fails loud
@@ -98,12 +110,12 @@ public sealed partial class StatementBinder
     /// scope binds parameterless void methods completely; a method's own data division, PD USING/RETURNING/
     /// RAISING formals, and declaratives are recognized-but-staged loud (port slice 2), never silently skipped.
     /// </summary>
-    public BoundProgram BindClassBody(OoClassSymbol cls)
+    public BoundProgram BindMethodRoster(OoClassSymbol cls, IReadOnlyList<OoMethodSymbol> roster)
     {
         var used = new HashSet<string>(StringComparer.Ordinal);
-        var methods = new List<BoundMethod>(cls.Methods.Count);
+        var methods = new List<BoundMethod>(roster.Count);
 
-        foreach (var m in cls.Methods)
+        foreach (var m in roster)
         {
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
             // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
@@ -201,6 +213,48 @@ public sealed partial class StatementBinder
                     + "(ISO §8.4.3.8 — the predefined object references of the current object)");
                 return new BoundNop();
             }
+            // In a FACTORY method, SELF|SUPER "NEW" is the ACTIVE-CLASS creation (§16.2.1 GR1 — the
+            // BaseFactoryInterface's New): bind InvokeForm.NewSelf → `this.__New()` (covariant per class;
+            // SUPER restricts the METHOD SEARCH, GR3, but the found method IS the predefined New whose
+            // behavior is active-class creation on the SAME runtime factory — the equivalence is deliberate).
+            if (OoInFactory && string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
+            {
+                if (inv.invokeUsing() is not null)
+                {
+                    data.Edition.Error("COBOLNET0826",
+                        "INVOKE SELF/SUPER \"NEW\": the predefined NEW method takes no USING arguments "
+                        + "(ISO §16.2.1)");
+                    return new BoundNop();
+                }
+                if (inv.invokeReturning()?.dataReference() is not { } nrRef)
+                {
+                    data.Edition.Error("COBOLNET0826",
+                        "INVOKE SELF/SUPER \"NEW\" without RETURNING — the created object would be lost "
+                        + "(ISO §16.2.1/§14.9.23.4 GR8)");
+                    return new BoundNop();
+                }
+                if (refs.Resolve(nrRef) is not { } nret)
+                    return new BoundUnsupported($"INVOKE … RETURNING '{nrRef.GetText()}' (unresolvable receiver)");
+                if (nret.Item.Pic is not { Category: PicCategory.ObjectReference } nrp)
+                {
+                    data.Edition.Error("COBOLNET0826",
+                        $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': the receiving item shall "
+                        + "be a USAGE OBJECT REFERENCE data item (ISO §14.9.23.4 GR8)");
+                    return new BoundNop();
+                }
+                // The runtime class is the CONTAINING class or a subclass — the containing class's
+                // conformance is the strongest compile-time guarantee (§14.8 — a subclass instance still
+                // conforms downstream of anything the containing class conforms to).
+                if (nrp.ObjectClassName is { } ndecl
+                    && (OoClasses?.Find(ndecl) is not { } ndeclCls || !cur.ConformsTo(ndeclCls)))
+                {
+                    data.Edition.Error("COBOLNET0826",
+                        $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': a {cur.Name} object does "
+                        + $"not conform to the receiver's declared class '{ndecl}' (ISO §14.8)");
+                    return new BoundNop();
+                }
+                return new BoundInvoke(InvokeForm.NewSelf, cur.CsName, null, null, nret);
+            }
             OoClassSymbol searchRoot;
             if (!isSuper)
                 searchRoot = cur;   // GR2 — resolve on the current class's chain; dispatch on the RUNTIME class
@@ -208,18 +262,23 @@ public sealed partial class StatementBinder
                 searchRoot = b;     // GR3 — the restricted search STARTS at the base class
             else
             {
-                // Trap #7 — SUPER in a root class is a clean compile diagnostic, never an internal error.
+                // Trap #7 — SUPER in a root class is a clean compile diagnostic, never an internal error
+                // (applies identically to the FACTORY flavor).
                 data.Edition.Error("COBOLNET0827",
                     $"INVOKE SUPER in class '{cur.Name}', which INHERITS from no class (ISO §8.4.3.8 — SUPER "
                     + "references the inherited class's methods)");
                 return new BoundNop();
             }
-            if (searchRoot.FindMethod(methodName) is not { } sm)
+            // Roster selection by CONTEXT (§14.9.23.3 SR4f/g/h/i): a factory method's SELF/SUPER resolve
+            // over the FACTORY interface; an instance method's over the instance interface.
+            var sm = OoInFactory ? searchRoot.FindFactoryMethod(methodName) : searchRoot.FindMethod(methodName);
+            if (sm is null)
             {
                 data.Edition.Error("COBOLNET0825",
                     $"INVOKE {(isSuper ? "SUPER" : "SELF")} \"{methodName}\": class '{searchRoot.Name}' (and "
-                    + "its inheritance chain) does not define a method named '" + methodName + "' "
-                    + "(ISO §14.9.23.3 SR4g/SR4i — the SELF/SUPER method-name placement rules)");
+                    + $"its inheritance chain) does not define a{(OoInFactory ? " factory" : "n instance")} "
+                    + "method named '" + methodName + "' "
+                    + "(ISO §14.9.23.3 SR4f–SR4i — the SELF/SUPER method-name placement rules)");
                 return new BoundNop();
             }
             return OoBindResolvedInvoke(inv, sm, isSuper ? InvokeForm.Super : InvokeForm.Self, null);
@@ -249,8 +308,21 @@ public sealed partial class StatementBinder
     private BoundStatement OoBindClassInvoke(Core.InvokeStatementContext inv, OoClassSymbol cls, string method)
     {
         if (!string.Equals(method, "NEW", StringComparison.OrdinalIgnoreCase))
-            return new BoundUnsupported($"INVOKE {cls.Name} \"{method}\" (a FACTORY/static method, ISO §11.4 "
-                + "— the FACTORY slice)");
+        {
+            // §14.9.23.3 SR3: literal-1 names a method of the FACTORY interface of class-name-1 — resolution
+            // walks the INHERITS chain over the factory rosters (§9.3.6); the lookup failure is the
+            // compile-time analog of EC-OO-METHOD (GR7b).
+            if (cls.FindFactoryMethod(method) is { } fm)
+            {
+                var bound = OoBindResolvedInvoke(inv, fm, InvokeForm.Factory, null);
+                return bound is BoundInvoke bi ? bi with { ClassCsName = cls.CsName } : bound;
+            }
+            data.Edition.Error("COBOLNET0825",
+                $"INVOKE {cls.Name} \"{method}\": class '{cls.Name}' (and its inheritance chain) does not "
+                + "define a FACTORY method named '" + method + "' (ISO §14.9.23.3 SR3 — literal-1 shall name "
+                + "a method of the factory interface; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b)");
+            return new BoundNop();
+        }
         if (inv.invokeUsing() is not null)
         {
             data.Edition.Error("COBOLNET0826",
@@ -313,10 +385,14 @@ public sealed partial class StatementBinder
         }
         if (cls.FindMethod(method) is not { } m)
         {
+            string hint = cls.FindFactoryMethod(method) is not null
+                ? $" ('{method}' IS a FACTORY method of class '{cls.Name}' — invoke it through the "
+                  + "class-name: an instance receiver resolves the INSTANCE interface, §14.9.23.3 SR4b)"
+                : "";
             data.Edition.Error("COBOLNET0825",
                 $"INVOKE '{receiver.Item.CobolName}' \"{method}\": class '{cls.Name}' (and its inheritance "
                 + "chain) does not define a method named '" + method + "' (ISO §14.9.23.3 SR4d — compile-time "
-                + "for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b)");
+                + $"for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b){hint}");
             return new BoundNop();
         }
         return OoBindResolvedInvoke(inv, m, InvokeForm.Instance, receiver);

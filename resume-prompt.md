@@ -127,11 +127,23 @@
 > **ALL 9 oo_* GOLDENS BYTE-EXACT AND ENABLED.** The 3a/3b wave was reviewed by the multi-lens
 > adversarial workflow (find→verify) + a 12-probe edge battery on the prebuilt CLI; next-slice briefs
 > (FACTORY / OVERRIDE-FINAL attrs / universal dispatch / EC-OO / INTERFACE+PROPERTY) regenerated there.
-> **RESUME = the post-corpus OO waves in deep-dive banner order: FACTORY** (§11.4 — grammar
-> factoryParagraph + static members/methods, INVOKE Class "M" static calls) → the OVERRIDE/FINAL
-> attribute grammar (unlocks strict §11.7 SR4a) → PROPERTY → INTERFACE-ID → universal reference (D10
-> __CobolInvoke switches) → EC-OO; then the wider Phase-4 catalog per
-> `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers, national/boolean, UDFs, intrinsics gaps) toward 100%.
+> **FACTORY LANDED (DEVLOG 604, per its brief's D11 — statics SUPERSEDED):** factoryParagraph grammar
+> (+ the FACTORY token via the XOR-recipe: lexer + _dataNameTokens + cobolWord + funnel — user word at
+> 85, 0901 ≥2002, proven both ways), per-class factory SINGLETON classes (`FOO__FACTORY :
+> BASE__FACTORY | CobolObject`, `__Instance` + covariant `__New`), separate factory roster (dual
+> dispatch with instance names §9.3.6; 0836 factory-NEW-name; factory overrides + 0829), `INVOKE
+> Class "M"` → `__Instance.M(…)`, SELF/SUPER roster selection by OoInFactory (SR4f–i) + SELF|SUPER
+> "NEW" → `this.__New()` active-class creation (§16.2.1), factory data/method-WS on the factory class
+> (SR-10 auto-CONTENT + the §13.5.3 window ride free), `OBJECT REFERENCE FACTORY OF` staged 0899.
+> oo_factory (10/10 oo corpus) proves §8.6.4 per-class copies of INHERITED factory data (trap #11 —
+> FC=02/FC=01) and inherited-MAKE-creates-the-runtime-class (WOOF). FIRST .g4 change of the OO drive —
+> FULL legacy guard in the battery.
+> **RESUME = the OVERRIDE/FINAL attribute wave** (per `docs/COBOLNET_OO_SLICE_BRIEFS.md`: methodDefinition
+> grammar `[OVERRIDE] [IS FINAL]` + CLASS-ID `IS FINAL`; unlocks STRICT §11.7 SR4a — redefinition
+> without OVERRIDE becomes the error the current name-match leniency documents; FINAL → sealed) →
+> PROPERTY → INTERFACE-ID → universal reference (D10 __CobolInvoke switches) → EC-OO; then the
+> Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers, national/boolean, UDFs,
+> intrinsics gaps) toward 100%.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits

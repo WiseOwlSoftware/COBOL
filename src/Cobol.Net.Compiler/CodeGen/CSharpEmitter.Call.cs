@@ -90,7 +90,7 @@ public sealed partial class CSharpEmitter
         _ooClasses.ValidateOverrideSignatures(edition);               // §9.3.8.2 — after all formals resolve (slice 3a)
         foreach (var cls in classes) OoBindClassBody(cls);
         foreach (var unit in units) CallBindUnit(unit, edition);
-        foreach (var cls in classes) MarkStoreAsImage(cls.Data);
+        foreach (var cls in classes) { MarkStoreAsImage(cls.Data); MarkStoreAsImage(cls.FactoryData); }
         foreach (var unit in units) MarkStoreAsImage(unit.Data);
         OoHarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
 
@@ -98,7 +98,7 @@ public sealed partial class CSharpEmitter
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
         // pre-EC build (the zero-scaffolding invariant, SSOT §18.16).
         _ecActive = _turnState.AnyEnabled || units.Any(u => u.Bound.Ec is { Any: true })
-            || classes.Any(c => c.Bound.Ec is { Any: true });
+            || classes.Any(c => c.Bound.Ec is { Any: true } || c.FactoryBound.Ec is { Any: true });
 
         // Per-program file-connector namespace: the runtime file registry is run-unit-global, but a file
         // connector is INTERNAL to its program (ISO §8.6.3): two programs declaring the same file-name (the

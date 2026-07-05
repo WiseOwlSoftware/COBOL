@@ -606,7 +606,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clause.usageClause() is { } usage)
                 {
                     usageText = UsageKeyword(usage);
-                    objectClassName = usage.usageKeyword()?.objectReferenceUsage()?.className()?.GetText();
+                    var oru = usage.usageKeyword()?.objectReferenceUsage();
+                    if (oru?.FACTORY() is not null)
+                        // OBJECT REFERENCE FACTORY OF class (§13.18.60 :22681) — the factory-object
+                        // reference item awaits the universal-reference wave (§16.2.2 FactoryObject).
+                        Edition.Error("COBOLNET0899", "USAGE OBJECT REFERENCE FACTORY OF (a factory-object "
+                            + "reference, ISO §13.18.60) is recognized but not yet implemented (the "
+                            + "universal-reference wave)");
+                    else
+                        objectClassName = oru?.className()?.GetText();
                 }
                 else if (clause.redefinesClause() is { } redef)
                     // Capture the target name only; resolution waits until the forest is built (the target is a

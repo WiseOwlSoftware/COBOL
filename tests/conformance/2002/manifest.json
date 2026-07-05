@@ -4,6 +4,7 @@
     "conditional_compilation",
     "goback_returning",
     "initialize_phrases",
+    "oo_factory",
     "oo_hello",
     "oo_inherit",
     "oo_instance_data",

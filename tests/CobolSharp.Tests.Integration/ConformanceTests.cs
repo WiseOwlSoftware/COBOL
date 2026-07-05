@@ -54,10 +54,21 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "table_value_occurs"),
     ];
 
+    /// <summary>Programs exercising features the FROZEN legacy engine never implemented (the OO deep-dive's
+    /// "Never landed in legacy" list): greenfield-ONLY coverage — CorpusRunnerTests compiles, runs, and
+    /// byte-compares them under the 2002 manifest run contract; the legacy runner skips them ENTIRELY (the
+    /// legacy is kept only as a differential oracle until the G8 cut-over — no new legacy features, the
+    /// DEVLOG-457 owner directive).</summary>
+    private static readonly HashSet<(string, string)> GreenfieldOnly =
+    [
+        ("2002", "oo_factory"),   // the FACTORY paragraph (ISO §11.4) — net-new in the greenfield (DEVLOG 604)
+    ];
+
     [Theory]
     [MemberData(nameof(Cases))]
     public void Conformance(string version, string name)
     {
+        if (GreenfieldOnly.Contains((version, name))) return;   // never landed in legacy — greenfield coverage only
         DialectMode dialect = Versions.First(v => v.Dir == version).Dialect;
         string source = File.ReadAllText(Path.Combine(ConformanceRoot, version, name + ".cob"));
         string expected = Normalize(File.ReadAllText(Path.Combine(ConformanceRoot, version, name + ".out")));

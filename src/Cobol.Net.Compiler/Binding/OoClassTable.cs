@@ -34,7 +34,7 @@ public sealed class OoClassTable
     public void ValidateOverrideSignatures(EditionContext edition)
     {
         foreach (var cls in _classes)
-            foreach (var m in cls.Methods)
+            foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
             {
                 if (m.OverrideOf is not { } baseM) continue;
                 string where = $"class '{cls.Name}', method '{m.Name}' overriding '{baseM.Name}'";
@@ -196,6 +196,7 @@ public sealed class OoClassTable
             {
                 BaseName = id.className().Length > 1 ? id.className(1).GetText() : null,
             };
+            usedCsNames.Add(csName + "__FACTORY");   // belt-and-braces (a `__` name cannot collide with COBOL-derived names)
             if (!table._byName.TryAdd(name, sym) || !usedCsNames.Add(csName))
             {
                 edition.Error("COBOLNET0820",
@@ -231,6 +232,40 @@ public sealed class OoClassTable
                         $"class '{name}': duplicate method name '{methodName}' — method names shall be unique "
                         + "within a class (v1 restriction, OO deep-dive D9: overloading by method resolution "
                         + "signature, ISO §12063, is an OPTIONAL feature and is deferred)");
+                if (m.methodName().Length > 1
+                    && !string.Equals(m.methodName(1).GetText(), methodName, StringComparison.OrdinalIgnoreCase))
+                    edition.Error("COBOLNET0820",
+                        $"class '{name}': END METHOD '{m.methodName(1).GetText()}' does not match METHOD-ID "
+                        + $"'{methodName}' (ISO §10.7)");
+            }
+
+            // FACTORY methods (§11.4) — a SEPARATE roster/interface (§9.3.6: an instance method and a
+            // factory method may share a name). A factory METHOD-ID named NEW is COBOLNET0836: the
+            // predefined New (§16.2.1) is the generated ctor (D4) and overriding it is a v1 restriction.
+            foreach (var m in ctx.factoryParagraph()?.methodDefinition() ?? [])
+            {
+                string methodName = m.methodName(0).GetText();
+                var pd = m.procedureDivision();
+                if (string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
+                {
+                    edition.Error("COBOLNET0836",
+                        $"class '{name}': a factory method may not be named 'NEW' — the predefined New "
+                        + "(ISO §16.2.1) is realized by the generated constructor (deep-dive D4); overriding "
+                        + "New is a deferred v1 restriction");
+                    continue;
+                }
+                string fcs = DataItem.Sanitize(methodName).ToUpperInvariant();
+                if (fcs == csName + "__FACTORY") fcs += "_M";   // unreachable (no __ in COBOL names) — defensive
+                var method = new OoMethodSymbol(
+                    methodName,
+                    HasUsing: pd?.usingClause() is not null,
+                    HasReturning: pd?.returningClause() is not null,
+                    m)
+                { CsName = fcs, Owner = sym, IsFactory = true };
+                if (!sym.TryAddFactoryMethod(method))
+                    edition.Error("COBOLNET0822",
+                        $"class '{name}': duplicate factory method name '{methodName}' — method names shall "
+                        + "be unique within the factory definition (v1 restriction, deep-dive D9)");
                 if (m.methodName().Length > 1
                     && !string.Equals(m.methodName(1).GetText(), methodName, StringComparison.OrdinalIgnoreCase))
                     edition.Error("COBOLNET0820",
@@ -294,6 +329,19 @@ public sealed class OoClassTable
                             + "method; §8.3.2.2 externalized-name mapping)");
                 }
         }
+
+        // FACTORY overrides mark against the base chain's FACTORY roster ONLY (§9.3.8.2 conformance is
+        // per-interface — never cross-roster; the factory C# hierarchy mirrors the class hierarchy, D11).
+        foreach (var sym in table._classes)
+        {
+            if (sym.Base is null) continue;
+            foreach (var m in sym.FactoryMethods)
+                if (sym.Base.FindFactoryMethod(m.Name) is { } baseM)
+                {
+                    m.OverrideOf = baseM;
+                    m.CsName = baseM.CsName;
+                }
+        }
         return table;
     }
 }
@@ -311,15 +359,47 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
 
     private readonly Dictionary<string, OoMethodSymbol> _methods = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>The methods in declaration order (the emitter's roster).</summary>
+    /// <summary>The INSTANCE methods in declaration order (the emitter's roster).</summary>
     public IReadOnlyList<OoMethodSymbol> Methods => _methodList;
     private readonly List<OoMethodSymbol> _methodList = [];
+
+    /// <summary>The emitted C# type of this class's FACTORY OBJECT (brief D11 — a REAL sibling singleton
+    /// class, `FOO__FACTORY : BASE__FACTORY | CobolObject`, NEVER statics: §8.6.4 gives every class its OWN
+    /// copy of inherited factory data; SELF in a factory method is polymorphic §14.9.23.3 SR4f + §8.4.3.8
+    /// GR2; factory resolution walks INHERITS §9.3.6. `__` cannot appear in a COBOL-derived name — no
+    /// collision).</summary>
+    public string FactoryCsName => CsName + "__FACTORY";
+
+    private readonly Dictionary<string, OoMethodSymbol> _factoryMethods = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The FACTORY methods in declaration order (§11.4 — a SEPARATE interface from the instance
+    /// roster; the two may share names, §9.3.6).</summary>
+    public IReadOnlyList<OoMethodSymbol> FactoryMethods => _factoryMethodList;
+    private readonly List<OoMethodSymbol> _factoryMethodList = [];
 
     internal bool TryAddMethod(OoMethodSymbol m)
     {
         if (!_methods.TryAdd(m.Name, m)) return false;
         _methodList.Add(m);
         return true;
+    }
+
+    internal bool TryAddFactoryMethod(OoMethodSymbol m)
+    {
+        if (!_factoryMethods.TryAdd(m.Name, m)) return false;
+        _factoryMethodList.Add(m);
+        return true;
+    }
+
+    /// <summary>Resolve a FACTORY method by name over THIS class and its base chain (§9.3.6 — factory
+    /// resolution walks INHERITS exactly like instance resolution, over the factory interface).</summary>
+    public OoMethodSymbol? FindFactoryMethod(string name)
+    {
+        var seen = new HashSet<OoClassSymbol>();
+        for (OoClassSymbol? c = this; c is not null && seen.Add(c); c = c.Base)
+            if (c._factoryMethods.TryGetValue(name, out var m))
+                return m;
+        return null;
     }
 
     /// <summary>Resolve a method by name over THIS class and its base chain (§9.3.6 method resolution; the
@@ -363,6 +443,11 @@ public sealed record OoMethodSymbol(
     /// <summary>The class that declares this method (set at pass-1) — the marshaling qualifier for the
     /// formal's class-level statics (numeric profiles) at CONTENT-conversion call sites.</summary>
     public OoClassSymbol Owner { get; set; } = null!;
+
+    /// <summary>True for a FACTORY method (§11.4) — the SELF/SUPER roster selector and diagnostic wording;
+    /// its formals' profiles/statics live on the FACTORY class, so CONTENT-conversion call sites qualify by
+    /// <see cref="OoClassSymbol.FactoryCsName"/>.</summary>
+    public bool IsFactory { get; init; }
 
     /// <summary>The method's contiguous pc range in its class's one dispatch space — assigned by
     /// <c>StatementBinder.BindClassBody</c> (the exit-bounded range IS the fall-through guard: running past
