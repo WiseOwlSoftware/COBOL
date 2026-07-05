@@ -59,6 +59,10 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false)
     /// is an error under strict, a warning (with the pre-removal semantics preserved) under
     /// <see cref="Permissive"/>. Every removed/reserved-word emit site routes its severity decision through
     /// here — never a local strictness test.</summary>
+    // NOTE (the OVERRIDE/FINAL wave, DEVLOG 605): this seam now also carries DOCUMENTED-DIALECT-LENIENCY
+    // gating (e.g. §11.7 SR4a redefinition-without-OVERRIDE, 0837 — error strict, warning + the pre-wave
+    // name-match inference under --permissive), not only removed-construct gating: ONE policy seam, never a
+    // parallel Lenient() method or a local Permissive test (feedback_singular_pattern).
     public void Removed(string code, string message)
     {
         if (Permissive) Warning(code, message);

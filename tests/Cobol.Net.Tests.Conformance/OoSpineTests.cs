@@ -657,7 +657,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
-            METHOD-ID. M.
+            METHOD-ID. M OVERRIDE.
             PROCEDURE DIVISION.
             MAIN.
                 INVOKE SUPER "M".
@@ -671,7 +671,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
-            METHOD-ID. M.
+            METHOD-ID. M OVERRIDE.
             PROCEDURE DIVISION.
             MAIN.
                 INVOKE SUPER "M".
@@ -726,7 +726,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
-            METHOD-ID. Speak.
+            METHOD-ID. Speak OVERRIDE.
             PROCEDURE DIVISION.
             MAIN.
                 DISPLAY "SUB".
@@ -931,7 +931,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
-            METHOD-ID. SPEAK.
+            METHOD-ID. SPEAK OVERRIDE.
             PROCEDURE DIVISION.
             MAIN.
                 DISPLAY "WOOF".
@@ -1005,7 +1005,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
-            METHOD-ID. SPEAK.
+            METHOD-ID. SPEAK OVERRIDE.
             PROCEDURE DIVISION.
             MAIN.
                 DISPLAY "WOOF".
@@ -1034,7 +1034,7 @@ public sealed class OoSpineTests
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
-            METHOD-ID. MAKE.
+            METHOD-ID. MAKE OVERRIDE.
             DATA DIVISION.
             LINKAGE SECTION.
             01 LK-D USAGE OBJECT REFERENCE DOG31.
@@ -1297,6 +1297,148 @@ public sealed class OoSpineTests
             END PROGRAM OOSP42.
             """, 2002);
         Assert.False(ok02, "FACTORY is §8.9-reserved at 2002+ — the funnel must 0901");
+        EditionHarness.AssertHasDiagnostic(errors02, "COBOLNET0901");
+    }
+
+    // ── The OVERRIDE/FINAL attribute wave (§11.7 SR3/SR4a/GR3, §11.3 GR3 — DEVLOG 605) ─────────────────────
+
+    /// <summary>§11.7 SR4a — redefining an inherited method WITHOUT the OVERRIDE attribute is 0837 STRICT
+    /// (the pre-wave name-match inference is retired as the default); under <c>--permissive</c> it is a
+    /// WARNING and the inference stands (the documented migration leniency), so the pre-wave program still
+    /// runs with virtual dispatch.</summary>
+    [Fact]
+    public void Sr4a_RedefinitionWithoutOverride_0837Strict_InferredPermissive()
+    {
+        const string src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP43.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BAS43.
+                CLASS SUB43.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 B USAGE OBJECT REFERENCE BAS43.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE SUB43 "NEW" RETURNING B.
+                INVOKE B "SPEAK".
+                STOP RUN.
+            END PROGRAM OOSP43.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. BAS43.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "BASE".
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS BAS43.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. SUB43 INHERITS FROM BAS43.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "SUB".
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS SUB43.
+            """;
+        var (okStrict, errsStrict, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.False(okStrict, "SR4a: redefinition without OVERRIDE must be rejected strict");
+        EditionHarness.AssertHasDiagnostic(errsStrict, "COBOLNET0837");
+        var (okPerm, errsPerm, warnsPerm) = EditionHarness.CompileFull(src, 2002, permissive: true);
+        Assert.True(okPerm, "the migration leniency: --permissive keeps the pre-wave inference: "
+            + string.Join("\n", errsPerm));
+        EditionHarness.AssertHasDiagnostic(warnsPerm, "COBOLNET0837");
+    }
+
+    /// <summary>§11.7 SR3 — OVERRIDE with no matching superclass method (incl. no INHERITS at all) is 0838;
+    /// §11.7 GR3 / §11.3 GR3 — overriding a FINAL method and inheriting a FINAL class are the 0839 family.</summary>
+    [Fact]
+    public void OverrideFinal_0838_0839()
+    {
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP44", "OSPC44", """
+                INVOKE OSPC44 "NEW" RETURNING T.
+            """, """
+            METHOD-ID. M OVERRIDE.
+            PROCEDURE DIVISION.
+            END METHOD M.
+            """)), "COBOLNET0838");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. BAS45.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M IS FINAL.
+            PROCEDURE DIVISION.
+            END METHOD M.
+            END OBJECT.
+            END CLASS BAS45.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. SUB45 INHERITS FROM BAS45.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
+            METHOD-ID. M OVERRIDE.
+            PROCEDURE DIVISION.
+            END METHOD M.
+            END OBJECT.
+            END CLASS SUB45.
+            """), "COBOLNET0839");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. BAS46 IS FINAL.
+            END CLASS BAS46.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. SUB46 INHERITS FROM BAS46.
+            END CLASS SUB46.
+            """), "COBOLNET0839");
+    }
+
+    /// <summary>OVERRIDE is a legal USER word at COBOL-85 (§8.9 reserves it from 2002) — the continuity
+    /// invariant for the newly-admitted token; the funnel 0901s it at 2002+.</summary>
+    [Fact]
+    public void OverrideWord_UserNameAt85_Reserved2002Plus()
+    {
+        var (ok85, errors85, _) = EditionHarness.CompileFull("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP47.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OVERRIDE PIC 9(2) VALUE 3.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY OVERRIDE.
+                STOP RUN.
+            END PROGRAM OOSP47.
+            """, 85);
+        Assert.True(ok85, "OVERRIDE must be a legal user word at --std 85: " + string.Join("\n", errors85));
+        var (ok02, errors02, _) = EditionHarness.CompileFull("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP48.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OVERRIDE PIC 9(2) VALUE 3.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY OVERRIDE.
+                STOP RUN.
+            END PROGRAM OOSP48.
+            """, 2002);
+        Assert.False(ok02, "OVERRIDE is §8.9-reserved at 2002+ — the funnel must 0901");
         EditionHarness.AssertHasDiagnostic(errors02, "COBOLNET0901");
     }
 }

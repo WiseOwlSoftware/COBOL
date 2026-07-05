@@ -49,6 +49,7 @@ cobolWord
     // (CheckedTokenTypes). '85-reserved; user-defined words at the editions where the funnel frees them
     // (RERUN/ENTER ≥2002, DEBUGGING ≥2014, the rest ≥2023 per ReservedWords.Table). Mirrored in the lexer
     // _dataNameTokens set.
+    | OVERRIDE     // context: the METHOD-ID attribute slot (§11.7, 2002+; a direct token there, never a name slot — position-safe); '85 user word, 0901 >=2002 (ReservedWords.Table)
     | FACTORY      // context: the FACTORY paragraph (§11.4, 2002+; keyword occurrences parse only via factoryParagraph/END FACTORY/FACTORY OF — position-safe in the funnel); '85 user word, 0901 >=2002 (ReservedWords.Table)
     | RERUN        // context: the I-O-CONTROL RERUN clause ('85; row 7.15)
     | ENTER        // context: the ENTER statement ('85; row 7.16)

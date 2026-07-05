@@ -280,6 +280,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         // whose operands are deliberately NOT cobolWord / the USE FOR DEBUGGING format), never a name slot —
         // position-safe to check everywhere.
         CobolLexer.FACTORY,   // §11.4 (2002+): keyword slots are factoryParagraph/END FACTORY/FACTORY OF only — position-blind safe (the EC-band argument)
+        CobolLexer.OVERRIDE,  // §11.7 (2002+): the METHOD-ID attribute slot is a direct token — position-blind safe
         CobolLexer.RERUN, CobolLexer.ENTER, CobolLexer.EVERY, CobolLexer.CLOCK_UNITS,
         CobolLexer.DEBUGGING, CobolLexer.REFERENCES, CobolLexer.PROCEDURES,
     ];

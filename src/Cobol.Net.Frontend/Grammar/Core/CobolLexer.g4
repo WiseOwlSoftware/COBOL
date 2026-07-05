@@ -42,6 +42,9 @@ options {
         // FACTORY (ISO §11.4, reserved 2002+ per §8.9): a legal user data name at COBOL-85 — the funnel
         // 0901s it at 2002+ (ReservedWords.Table row; the OO FACTORY slice, DEVLOG 604):
         FACTORY,
+        // OVERRIDE (ISO §11.7 method attribute, reserved 2002+ per §8.9): user data name at 85 —
+        // the funnel 0901s it at 2002+ (the OVERRIDE/FINAL wave, DEVLOG 605):
+        OVERRIDE,
         // Intrinsic function names that collide with reserved words
         // (mirrors functionName in CobolExpressions.g4):
         DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
@@ -134,6 +137,7 @@ DATE_COMPILED   : 'DATE-COMPILED' ;
 SOURCE_COMPUTER : 'SOURCE-COMPUTER' ;
 OBJECT_COMPUTER : 'OBJECT-COMPUTER' ;
 OBJECT      : 'OBJECT' ;
+OVERRIDE    : 'OVERRIDE' ;  // METHOD-ID attribute (ISO §11.7, 2002+; §8.9-reserved 2002+ — user word at 85, funnel row exists)
 FACTORY     : 'FACTORY' ;   // the FACTORY paragraph (ISO §11.4, 2002+; §8.9-reserved 2002+ — user word at 85, funnel row exists)
 INHERITS    : 'INHERITS' ;   // COBOL-2002 OO: CLASS-ID. name INHERITS FROM base (ISO §11.3); corpus-clean
 SPECIAL_NAMES   : 'SPECIAL-NAMES' ;

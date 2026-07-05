@@ -37,8 +37,8 @@ factoryParagraph
     ;
 
 classIdParagraph
-    : CLASS_ID DOT className (INHERITS FROM className)? DOT
-    ;
+    : CLASS_ID DOT className (IS? FINAL)? (INHERITS FROM className)? DOT
+    ;   // [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3 GR3 — bind-gated 0839)
 
 className
     : cobolWord
@@ -55,12 +55,12 @@ objectParagraph
 
 // METHOD-ID … END METHOD — a method definition (its own DATA/PROCEDURE divisions). ISO §11.7 / §12798.
 methodDefinition
-    : (IDENTIFICATION DIVISION DOT)? METHOD_ID DOT methodName DOT
+    : (IDENTIFICATION DIVISION DOT)? METHOD_ID DOT methodName OVERRIDE? (IS? FINAL)? DOT
       environmentDivision?
       dataDivision?
       procedureDivision?
       END METHOD methodName? DOT
-    ;
+    ;   // the ONLY ISO method attributes: [OVERRIDE] [IS FINAL] (§10.6 :12798-12821; Spec corrections #4 — ABSTRACT is NOT ISO); SR4a/SR3/FINAL enforced at bind (0837/0838/0839)
 
 methodName
     : cobolWord

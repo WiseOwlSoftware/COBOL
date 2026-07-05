@@ -195,6 +195,7 @@ public sealed class OoClassTable
             var sym = new OoClassSymbol(name, csName, ctx)
             {
                 BaseName = id.className().Length > 1 ? id.className(1).GetText() : null,
+                IsFinal = id.FINAL() is not null,
             };
             usedCsNames.Add(csName + "__FACTORY");   // belt-and-braces (a `__` name cannot collide with COBOL-derived names)
             if (!table._byName.TryAdd(name, sym) || !usedCsNames.Add(csName))
@@ -226,7 +227,7 @@ public sealed class OoClassTable
                     HasUsing: pd?.usingClause() is not null,
                     HasReturning: pd?.returningClause() is not null,
                     m)
-                { CsName = mcs, Owner = sym };
+                { CsName = mcs, Owner = sym, HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null };
                 if (!sym.TryAddMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate method name '{methodName}' — method names shall be unique "
@@ -261,7 +262,8 @@ public sealed class OoClassTable
                     HasUsing: pd?.usingClause() is not null,
                     HasReturning: pd?.returningClause() is not null,
                     m)
-                { CsName = fcs, Owner = sym, IsFactory = true };
+                { CsName = fcs, Owner = sym, IsFactory = true,
+                  HasOverride = m.OVERRIDE() is not null, IsFinal = m.FINAL() is not null };
                 if (!sym.TryAddFactoryMethod(method))
                     edition.Error("COBOLNET0822",
                         $"class '{name}': duplicate factory method name '{methodName}' — method names shall "
@@ -279,7 +281,13 @@ public sealed class OoClassTable
         {
             if (sym.BaseName is not { } baseName) continue;
             if (table.Find(baseName) is { } baseSym)
+            {
                 sym.Base = baseSym;
+                if (baseSym.IsFinal)
+                    edition.Error("COBOLNET0839",
+                        $"class '{sym.Name}': INHERITS FROM '{baseName}', which is declared FINAL — a FINAL "
+                        + "class shall not be a superclass (ISO §11.3 SR5/GR3)");
+            }
             else
                 edition.Error("COBOLNET0821",
                     $"class '{sym.Name}': INHERITS FROM unknown class '{baseName}' — object-class-name-2 shall "
@@ -303,46 +311,58 @@ public sealed class OoClassTable
                 }
         }
 
-        // OVERRIDE detection (slice 3a — §9.3.6 runtime-class dispatch / D7): a subclass method whose name
-        // matches a base-chain method OVERRIDES it (the corpus and the legacy write overrides WITHOUT the
-        // OVERRIDE attribute — the grammar does not carry §11.7's [OVERRIDE]/[IS FINAL] attributes yet, so
-        // §11.7 SR4a's redefinition-without-OVERRIDE error is a DOCUMENTED leniency until they land; the
-        // uppercase CsName convention already neutralizes the legacy case-mismatch trap #2 — both spellings
-        // map to ONE emitted name). The override's SIGNATURE must conform (§9.3.8.2: corresponding formals
-        // and returning items with identical descriptions) — mismatch is COBOLNET0829, never a Roslyn CS
-        // error on user source.
+        // OVERRIDE marking + the §11.7 SR3/SR4a/GR3 attribute rules (the OVERRIDE/FINAL wave, DEVLOG 605 —
+        // the former by-name-inference leniency is RETIRED as the default): an EXPLICIT OVERRIDE marks the
+        // override (0839 when the overridden method is FINAL — GR3); a name match WITHOUT the attribute is
+        // the SR4a 0837 via EditionContext.Removed (error strict; warning + the pre-wave inference under
+        // --permissive — the documented migration leniency), and the override is STILL marked so 0829
+        // signature messages stay coherent; OVERRIDE with NO matching base method is the SR3 0838. Both
+        // rosters (instance + factory) take the identical rules — per-interface, never cross-roster (D11).
+        // The uppercase CsName convention still neutralizes trap #2; the override adopts the base slot's
+        // CsName (C# requires the exact member name; the class-name collision corner stays 0820).
         foreach (var sym in table._classes)
         {
-            if (sym.Base is null) continue;
-            foreach (var m in sym.Methods)
-                if (sym.Base.FindMethod(m.Name) is { } baseM)
-                {
-                    m.OverrideOf = baseM;
-                    // C# requires the override member to reuse the base slot's exact name (which may carry a
-                    // collision suffix). The one unrepresentable corner: the base slot's name equals THIS
-                    // class's type name — reject loud, never a raw Roslyn CS0542 on user source (G4 rule).
-                    m.CsName = baseM.CsName;
-                    if (m.CsName == sym.CsName)
-                        edition.Error("COBOLNET0820",
-                            $"class '{sym.Name}': the inherited method '{m.Name}' collides with the class's "
-                            + "own emitted type name (implementation restriction — rename the class or the "
-                            + "method; §8.3.2.2 externalized-name mapping)");
-                }
-        }
-
-        // FACTORY overrides mark against the base chain's FACTORY roster ONLY (§9.3.8.2 conformance is
-        // per-interface — never cross-roster; the factory C# hierarchy mirrors the class hierarchy, D11).
-        foreach (var sym in table._classes)
-        {
-            if (sym.Base is null) continue;
-            foreach (var m in sym.FactoryMethods)
-                if (sym.Base.FindFactoryMethod(m.Name) is { } baseM)
-                {
-                    m.OverrideOf = baseM;
-                    m.CsName = baseM.CsName;
-                }
+            MarkRoster(sym, sym.Methods, sym.Base is null ? null : (n => sym.Base!.FindMethod(n)), "");
+            MarkRoster(sym, sym.FactoryMethods, sym.Base is null ? null : (n => sym.Base!.FindFactoryMethod(n)), "factory ");
         }
         return table;
+
+        void MarkRoster(OoClassSymbol sym, IReadOnlyList<OoMethodSymbol> roster,
+            Func<string, OoMethodSymbol?>? findInBase, string kind)
+        {
+            foreach (var m in roster)
+            {
+                var baseM = findInBase?.Invoke(m.Name);
+                if (baseM is null)
+                {
+                    if (m.HasOverride)
+                        edition.Error("COBOLNET0838",
+                            $"class '{sym.Name}': {kind}method '{m.Name}' specifies OVERRIDE but no "
+                            + "superclass defines a method with that name"
+                            + (sym.Base is null ? " (the class has no INHERITS clause)" : "")
+                            + " (ISO §11.7 SR3)");
+                    continue;
+                }
+                if (!m.HasOverride)
+                    edition.Removed("COBOLNET0837",
+                        $"class '{sym.Name}': {kind}method '{m.Name}' redefines a method inherited from "
+                        + $"'{baseM.Owner.Name}' without the OVERRIDE attribute (ISO §11.7 SR4a — an "
+                        + "inherited method may be redefined only with OVERRIDE; add OVERRIDE to the "
+                        + "METHOD-ID paragraph)");
+                if (baseM.IsFinal)
+                    edition.Error("COBOLNET0839",
+                        $"class '{sym.Name}': {kind}method '{m.Name}' overrides '{baseM.Owner.Name}'."
+                        + $"'{baseM.Name}', which is declared FINAL — a FINAL method shall not be "
+                        + "overridden (ISO §11.7 SR3/GR3)");
+                m.OverrideOf = baseM;
+                m.CsName = baseM.CsName;
+                if (m.CsName == sym.CsName)
+                    edition.Error("COBOLNET0820",
+                        $"class '{sym.Name}': the inherited method '{m.Name}' collides with the class's "
+                        + "own emitted type name (implementation restriction — rename the class or the "
+                        + "method; §8.3.2.2 externalized-name mapping)");
+            }
+        }
     }
 }
 
@@ -356,6 +376,11 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     public CobolParserCore.ClassDefinitionContext Ctx { get; } = ctx;
     public string? BaseName { get; init; }
     public OoClassSymbol? Base { get; set; }
+
+    /// <summary>CLASS-ID … IS FINAL (§11.3 — GR3: a FINAL class shall not be a superclass; 0839). Emits
+    /// C# <c>sealed</c>; every fresh method slot in it emits NON-virtual (the CS0549 trap — a virtual
+    /// member inside a sealed class is a Roslyn error on emitted code).</summary>
+    public bool IsFinal { get; init; }
 
     private readonly Dictionary<string, OoMethodSymbol> _methods = new(StringComparer.OrdinalIgnoreCase);
 
@@ -448,6 +473,15 @@ public sealed record OoMethodSymbol(
     /// its formals' profiles/statics live on the FACTORY class, so CONTENT-conversion call sites qualify by
     /// <see cref="OoClassSymbol.FactoryCsName"/>.</summary>
     public bool IsFactory { get; init; }
+
+    /// <summary>METHOD-ID … OVERRIDE (§11.7 SR3/SR4a — the OVERRIDE/FINAL wave, DEVLOG 605): an explicit
+    /// override declaration. Redefinition WITHOUT it is the SR4a 0837 (error strict; warning + the pre-wave
+    /// name-match inference under <c>--permissive</c> — the documented migration leniency).</summary>
+    public bool HasOverride { get; init; }
+
+    /// <summary>METHOD-ID … [IS] FINAL (§11.7 GR3 — shall not be overridden; 0839 on the attempt). Emits
+    /// C# <c>sealed override</c> (or a non-virtual fresh slot at a root).</summary>
+    public bool IsFinal { get; init; }
 
     /// <summary>The method's contiguous pc range in its class's one dispatch space — assigned by
     /// <c>StatementBinder.BindClassBody</c> (the exit-bounded range IS the fall-through guard: running past

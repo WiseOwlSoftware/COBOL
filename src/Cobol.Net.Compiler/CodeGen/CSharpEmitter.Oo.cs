@@ -151,7 +151,8 @@ public sealed partial class CSharpEmitter
         // The INSTANCE class (D1/D2 + slice 3a: `: BASE` when the class INHERITS — single inheritance v1,
         // SSOT §18.18 — else the CobolObject runtime root; Roslyn needs no declaration ordering).
         OoEmitTypeHalf(cls.Name, cls.CsName, cls.Symbol.Base?.CsName ?? "CobolObject",
-            cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w, headerExtras: null);
+            cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w, headerExtras: null,
+            sealedType: cls.Symbol.IsFinal);
 
         // The FACTORY class (brief D11 — a REAL sibling singleton, NEVER statics: §8.6.4 per-class copies of
         // inherited factory data; SELF-in-factory polymorphism SR4f + GR2; §9.3.6 chain resolution). Every
@@ -164,13 +165,16 @@ public sealed partial class CSharpEmitter
             // initialization satisfies it exactly). A derived factory needs `new` to shadow the base's.
             $"public {(cls.Symbol.Base is not null ? "new " : "")}static readonly {cls.Symbol.FactoryCsName} __Instance = new();",
             // The predefined New as a COVARIANT virtual (§16.2.1 GR1 ACTIVE-CLASS creation — an inherited
-            // factory MAKE reached via INVOKE DOG "…" creates a DOG through the runtime override).
+            // factory MAKE reached via INVOKE DOG "…" creates a DOG through the runtime override). A FINAL
+            // class's factory is SEALED: its root __New emits NON-virtual (a virtual member in a sealed type
+            // is Roslyn CS0549 on emitted code — the same trap the method-modifier table guards).
             cls.Symbol.Base is not null
                 ? $"public override {cls.CsName} __New() => new {cls.CsName}();"
-                : $"public virtual {cls.CsName} __New() => new {cls.CsName}();",
+                : $"public {(cls.Symbol.IsFinal ? "" : "virtual ")}{cls.CsName} __New() => new {cls.CsName}();",
         };
         OoEmitTypeHalf(cls.Name, cls.Symbol.FactoryCsName, facBase,
-            cls.FactoryData, cls.FactoryRefs, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras);
+            cls.FactoryData, cls.FactoryRefs, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
+            sealedType: cls.Symbol.IsFinal);
     }
 
     /// <summary>The emit-into-a-type parameterization, realized (deep-dive Summary): ONE routine renders
@@ -179,7 +183,7 @@ public sealed partial class CSharpEmitter
     /// extras differ).</summary>
     private void OoEmitTypeHalf(string cobolName, string csName, string baseCsName,
         DataBinder data, ReferenceResolver refs, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
-        CodeWriter w, IReadOnlyList<string>? headerExtras)
+        CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType = false)
     {
         _refs = refs;
         _ctx = new EmissionContext(w, data);
@@ -191,7 +195,7 @@ public sealed partial class CSharpEmitter
         _callOuterGlobalUse = false;
         _callInheritedStatusPlace.Clear();
 
-        using (w.Block($"public class {csName} : {baseCsName}"))
+        using (w.Block($"public {(sealedType ? "sealed " : "")}class {csName} : {baseCsName}"))
         {
             foreach (string line in headerExtras ?? [])
                 w.Line(line);
@@ -221,12 +225,16 @@ public sealed partial class CSharpEmitter
         string retType = m.Returning is { } ret ? (OoStringCarried(ret) ? "string" : ret.ElementType) : "void";
         string sig = string.Join(", ", m.Formals.Select(f =>
             $"ref {(OoStringCarried(f.Item) ? "string" : f.Item.ElementType)} {f.ParamName}"));
-        // D7: virtual by default (§9.3.6 — dispatch on the runtime class); a base-chain name match emits
-        // `override` (slice 3a; §11.7 SR4a's OVERRIDE attribute is a documented grammar gap — the uppercase
-        // CsName convention already collapses case-mismatched spellings onto ONE slot, trap #2). COBOL never
-        // expresses C# `new`/hiding (SR4a), so the modifier set is total.
-        string modifier = m.OverrideOf is not null ? "override" : "virtual";
-        using (w.Block($"public {modifier} {retType} {m.CsName}({sig})   // METHOD-ID {m.Name} (ISO §11.7)"))
+        // D7's TOTAL modifier table (the OVERRIDE/FINAL wave): virtual by default (§9.3.6 runtime-class
+        // dispatch); an override emits `override` — `sealed override` when ITS FINAL and the class is not
+        // already sealed; a FINAL root method (or ANY fresh slot in a FINAL class) emits NON-virtual — a
+        // `virtual` member inside a `sealed` class is Roslyn CS0549 on EMITTED code (the loud-failure trap
+        // this table exists for). COBOL never expresses C# `new`/hiding (SR4a), so the set is total.
+        string modifier = m.OverrideOf is not null
+            ? (m.IsFinal && !m.Owner.IsFinal ? "sealed override" : "override")
+            : (m.IsFinal || m.Owner.IsFinal) ? ""
+            : "virtual";
+        using (w.Block($"public {(modifier.Length == 0 ? "" : modifier + " ")}{retType} {m.CsName}({sig})   // METHOD-ID {m.Name} (ISO §11.7)"))
         {
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes
             // the BY REFERENCE write-through at the method boundary); the RETURNING item and unattached
