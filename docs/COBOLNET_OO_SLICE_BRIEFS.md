@@ -944,6 +944,9 @@ sync. Compile/test after every step (feedback_test_after_every_change); one fail
 > FACTORY); factory IMPLEMENTS now EMITS (D11 singletons superseded the validate-only posture); property
 > REFERENCES (`P OF obj` desugar) + interface GET/SET PROPERTY prototypes are STAGED under a named 0899 —
 > the next increment. The as-built record is the deep-dive's INTERFACE/PROPERTY AS-BUILT section.
+> **Property REFERENCES landed too (DEVLOG 607)** — the D-P2 desugar as designed (codes 0843; the
+> polarity classifier is `BoundStores.StoreKindOf`, a total emitter-verified taxonomy walk; the factory
+> leg went live directly). See the D-P2 AS-BUILT below the rejected-alternatives block.
 
 # Design brief — INTERFACE-ID + IMPLEMENTS + PROPERTY (OO port, post-FACTORY slice)
 
@@ -1135,6 +1138,32 @@ uniquified `__prop<N>_<NAME>`.
 - *Restricting property access to MOVE/DISPLAY* — spec scoping violation (SR5/SR6 :7384-7386: the property is
   valid wherever a data item of that description is a sending/receiving item); the temp desugar makes every
   statement work without touching per-statement emitters.
+
+**AS BUILT (DEVLOG 607).** Landed exactly per this design, with these realizations/deltas:
+(1) the diagnostic band is **0843** (this brief predates the FACTORY wave taking 0836; the family:
+SR1 missing REPOSITORY specifier, SR2 universal receiver, SR3 sending-without-GET, SR4
+receiving-without-SET — SR3/SR4 checked AGAINST THE CLASSIFIED POLARITY, so a WITH NO SET property
+remains readable);
+(2) the sending/receiving classifier is **`Binding/Bound/BoundStores.StoreKindOf`** — a TOTAL explicit
+taxonomy over every BoundStatement returning None/Write/ReadWrite (GR1/GR2/GR3 selection), built from the
+15-agent emitter-verified survey (scratchpad `bound_stores_classification.md`: 119 nodes, polarity per
+store position — in-place arithmetic = ReadWrite, GIVING/MOVE = Write, STRING Into = ReadWrite per GR7,
+CALL BY REFERENCE = ReadWrite, etc.); an unclassified node → 0843 LOUD, never a guess about whether a
+side-effecting accessor runs;
+(3) the hook lives at ReferenceResolver's resolution-failure exit and returns the TEMP ITEM into the
+normal resolve tail (so reference-modification on the property value rides the existing RefModPlace path,
+and subscripts reject on the OCCURS-less temp);
+(4) the drain is `StatementBinder.OoWrapPropertyOps` at the ONE BindStatement chokepoint with
+mark-on-entry/drain-own-suffix discipline (a reference in an IF condition belongs to the IF, not an arm);
+(5) `prop OF Class-name` → the FACTORY accessors via the Factory call form (LIVE — this brief's 0899
+stage for the factory leg predates D11);
+(6) the temp joins `DataBinder.Roots` post-resolve (FieldEmitter declares it; uid from the unit band;
+`__prop<uid>_<PROP>`); GROUP-valued properties stage 0899 (temps over a group description — later);
+(7) invocation-count semantics are GOLDEN-proven: oo_property_explicit_ref's side-effecting accessors
+print exactly SET-CALLED then GET-CALLED for a receive-then-send pair (GR2 no-get / GR1 no-set);
+oo_property_ref exercises all three GR forms over synthesized accessors (the first RUNTIME exercise);
+oo_property_factory_ref proves the factory form. Interface GET/SET PROPERTY prototypes remain 0899
+(the interface-property leg rides the universal-reference/EC-OO waves).
 
 ---
 

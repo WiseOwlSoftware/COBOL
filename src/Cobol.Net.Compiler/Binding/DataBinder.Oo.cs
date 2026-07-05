@@ -224,6 +224,44 @@ public sealed partial class DataBinder
         foreach (var ren in item.Renames66) OoScopeSubtree(ren, scope);
     }
 
+    /// <summary>One RESOLVED object-property reference awaiting its statement-level desugar (deep-dive
+    /// D-P2; ISO §8.4.3.9.4): the synthesized temp the statement bound over, the receiver (a Place for the
+    /// instance form, null for the <c>prop OF Class-name</c> factory form), the accessor symbols found on
+    /// the pinned-name roster (either may be null — SR3/SR4 checked against the CLASSIFIED polarity, not
+    /// eagerly), and the source names for diagnostics. Registered by ReferenceResolver at resolution time,
+    /// drained by StatementBinder.OoWrapPropertyOps after the carrying statement binds.</summary>
+    internal sealed record OoPendingPropertyOp(
+        DataItem Temp, Place? Receiver, string ClassCsName, bool Factory,
+        OoMethodSymbol? Get, OoMethodSymbol? Set, string PropName, string ReceiverName);
+
+    /// <summary>The unit's un-drained property-reference ops (statement-scoped: BindStatement marks the
+    /// count on entry and drains only its own suffix, so a reference in an IF condition belongs to the IF,
+    /// not to an arm statement that binds later).</summary>
+    internal List<OoPendingPropertyOp> OoPendingPropertyOps { get; } = [];
+
+    /// <summary>Synthesize the GR1/GR2/GR3 compiler temp for one property reference: a level-1 elementary
+    /// item CLONED from the accessor's crossing description (<paramref name="model"/> = the GET RETURNING
+    /// item or the SET formal — identical by the §13.18.42 clone rule / the 0842 SR7 description-equality
+    /// check), appended to <see cref="DataBinder.Roots"/> so the FieldEmitter declares it like any other
+    /// item. One temp per REFERENCE (GR1 temp-1 / GR2 temp-2; GR3 reuses one — the caller decides).</summary>
+    internal DataItem OoCreatePropertyTemp(DataItem model, string prop)
+    {
+        var t = new DataItem
+        {
+            Level = 1,
+            CobolName = "__PROP-TEMP-" + _uidCounter,
+            CsName = "__prop" + _uidCounter + "_" + DataItem.Sanitize(prop).ToUpperInvariant(),
+            Pic = model.Pic,
+            OwnSign = model.OwnSign,
+            Justified = model.Justified,
+            BlankWhenZero = model.BlankWhenZero,
+            StoreAsImage = model.StoreAsImage,
+        };
+        t.Uid = _uidCounter++;
+        Roots.Add(t);
+        return t;
+    }
+
     /// <summary>Scan the OBJECT/FACTORY WORKING-STORAGE parse entries for PROPERTY clauses (§13.18.42) and
     /// SYNTHESIZE the accessor method symbols (D-P1 — the PINNED §11.7.4 GR1a implementor naming
     /// <c>__GET_&lt;P&gt;</c>/<c>__SET_&lt;P&gt;</c>): GET returns the SUBJECT item's description; SET takes

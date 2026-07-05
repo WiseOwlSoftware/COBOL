@@ -1559,18 +1559,19 @@ public sealed class OoSpineTests
             END CLASS CPRP55.
             """), "COBOLNET0842");
 
-    /// <summary>The property-REFERENCE increment boundary: <c>P OF obj</c> stages LOUD under its own named
-    /// 0899 (at the ReferenceResolver chokepoint), never the generic unknown-name guard.</summary>
+    /// <summary>The property REFERENCE binds (§8.4.3.9 — the GR1 implicit get-INVOKE desugar; DEVLOG 607
+    /// retired the DEVLOG-606 named-0899 stage) when the §8.4.3.9.3 SR1 REPOSITORY specifier is present.</summary>
     [Fact]
-    public void PropertyReference_StagedLoud_0899()
+    public void PropertyReference_Binds_WithSpecifier()
     {
-        var errors = ErrorsOf("""
+        var (ok, errors, _) = EditionHarness.CompileFull("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP56.
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             REPOSITORY.
                 CLASS CPRP56.
+                PROPERTY BAL.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
             01 A USAGE OBJECT REFERENCE CPRP56.
@@ -1591,9 +1592,8 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             END OBJECT.
             END CLASS CPRP56.
-            """);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0899");
-        Assert.Contains(errors, e => e.Contains("object-property reference"));
+            """, 2002);
+        Assert.True(ok, "a specifier-backed property reference must bind (GR1): " + string.Join("\n", errors));
     }
 
     /// <summary>PROPERTY/GET/INTERFACE are legal USER words at 85 (§8.9 reserves them from 2002) — the
@@ -1673,4 +1673,88 @@ public sealed class OoSpineTests
             CLASS-ID. CSPK60.
             END CLASS CSPK60.
             """), "COBOLNET0826");
+
+    // ── Property REFERENCES (§8.4.3.9 — the GR1–GR3 desugar; DEVLOG 607) ────────────────────────────────────
+
+    private static string PropRefDriver(string pid, string cls, string repository, string statements) => $"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {pid}.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS {cls}.
+        {repository}
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 A USAGE OBJECT REFERENCE {cls}.
+        01 W PIC 9(4).
+        PROCEDURE DIVISION.
+        MAIN.
+            INVOKE {cls} "NEW" RETURNING A.
+        {statements}
+            STOP RUN.
+        END PROGRAM {pid}.
+        """;
+
+    /// <summary>§8.4.3.9.3 SR1 — a property reference requires a REPOSITORY PROPERTY specifier (0843).</summary>
+    [Fact]
+    public void PropertyReference_NoRepositorySpecifier_0843()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(PropRefDriver("OOSP61", "CPRR61", "",
+            "    DISPLAY BAL OF A.") + """
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CPRR61.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(4) PROPERTY.
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS CPRR61.
+            """), "COBOLNET0843");
+
+    /// <summary>§8.4.3.9.3 SR3 — a SENDING property reference needs a GET accessor; WITH NO GET → 0843.</summary>
+    [Fact]
+    public void PropertyReference_SendingWithNoGet_0843()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(PropRefDriver("OOSP62", "CPRR62", "    PROPERTY BAL.",
+            "    MOVE BAL OF A TO W.") + """
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CPRR62.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(4) PROPERTY WITH NO GET.
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS CPRR62.
+            """), "COBOLNET0843");
+
+    /// <summary>§8.4.3.9.3 SR4 — a RECEIVING property reference needs a SET accessor; WITH NO SET → 0843.
+    /// The polarity is CLASSIFIED (BoundStores), so the same reference is fine as a sender.</summary>
+    [Fact]
+    public void PropertyReference_ReceivingWithNoSet_0843()
+    {
+        string cls = """
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CPRR63.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 BAL PIC 9(4) VALUE 5 PROPERTY WITH NO SET.
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS CPRR63.
+            """;
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(PropRefDriver("OOSP63", "CPRR63", "    PROPERTY BAL.",
+            "    MOVE 9 TO BAL OF A.") + cls), "COBOLNET0843");
+        var (ok, errors, _) = EditionHarness.CompileFull(PropRefDriver("OOSP64", "CPRR63", "    PROPERTY BAL.",
+            "    MOVE BAL OF A TO W.") + cls, 2002);
+        Assert.True(ok, "the SAME property must remain readable (GR1 — sending only): "
+            + string.Join("\n", errors));
+    }
 }

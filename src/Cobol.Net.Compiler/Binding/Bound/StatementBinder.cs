@@ -150,7 +150,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Bind one statement, then apply the compile-time TurnState fold (StatementBinder.Exceptions.cs):
     /// a statement under enabled EC checking wraps in <see cref="BoundEcChecked"/>; checking-off binds the bare
     /// node — the zero-scaffolding gate (ISO §7.3.25.4 GR1 default OFF; deep-dive D10).</summary>
-    private BoundStatement BindStatement(Core.StatementContext s) => EcWrap(s, BindStatementCore(s));
+    private BoundStatement BindStatement(Core.StatementContext s)
+    {
+        // Object-property references (D-P2): mark-on-entry / drain-own-suffix — a reference resolved while
+        // THIS statement bound (including in its condition) belongs to THIS statement's GR1–GR3 wrap; one
+        // resolved inside a nested statement was already drained by that statement's own BindStatement.
+        int mark = data.OoPendingPropertyOps.Count;
+        var core = BindStatementCore(s);
+        core = OoWrapPropertyOps(core, mark);
+        return EcWrap(s, core);
+    }
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {

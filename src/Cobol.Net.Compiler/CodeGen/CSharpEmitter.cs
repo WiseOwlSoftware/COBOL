@@ -357,6 +357,14 @@ public sealed partial class CSharpEmitter
             case BoundExitPerform e: w.Line(e.Cycle ? "continue;" : "break;"); return false;   // inline-PERFORM loop
             case BoundGoToDepending d: EmitGoToDepending(d); return false;
             case BoundNop: return false;
+            case BoundSequence seq:
+            {
+                // Render children consecutively (D-P2); "terminates" iff the last child does (a GET/SET
+                // wrapper never changes the wrapped statement's fall-through shape).
+                bool terminated = false;
+                foreach (var step in seq.Steps) terminated = EmitStatement(step);
+                return terminated;
+            }
             case BoundNextSentence:
                 // §14.9.19 GR6: to the implicit CONTINUE after the current sentence; in the LAST sentence that is
                 // the paragraph fall-through (pc+1 — the dispatcher's at-exit check then handles a PERFORM return).

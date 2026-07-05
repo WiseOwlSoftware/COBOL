@@ -322,6 +322,13 @@ public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
 /// <summary>A no-op statement: bare <c>EXIT</c>, <c>CONTINUE</c>, or <c>EXIT PROGRAM</c> in the main program.</summary>
 public sealed record BoundNop : BoundStatement;
 
+/// <summary>A fixed pre/main/post statement group emitted in order — the carrier for bind-time desugars
+/// that wrap ONE source statement in synthesized neighbors (first client: object-property references,
+/// ISO §8.4.3.9.4 GR1–GR3 — the pre-GET / statement / post-SET triple over a compiler temp; deep-dive
+/// D-P2). NOT a control-flow construct: no pc identity of its own, both backends render the children
+/// consecutively; a child that transfers control (GO TO/EXIT) behaves exactly as if written in line.</summary>
+public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps) : BoundStatement;
+
 /// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19 GR6 / §14.9.37 — archaic per Annex F.1, legal at every edition):
 /// transfer to the implicit CONTINUE following the current sentence's separator period.</summary>
 public sealed record BoundNextSentence : BoundStatement;

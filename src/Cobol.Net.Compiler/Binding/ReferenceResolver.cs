@@ -25,27 +25,64 @@ using Core = CobolParserCore;
 /// </summary>
 public sealed class ReferenceResolver(DataBinder data)
 {
-    /// <summary>The object-property reference SHAPE (§8.4.3.9 — <c>prop OF receiver</c> where the single
-    /// qualifier is a class-name or a TYPED object-reference item and the head names a PROPERTY of its
-    /// roster): normal data-name qualification legitimately fails on it, and the desugar (the implicit
-    /// INVOKE of §8.4.3.9.4 GR1–GR3 via BoundSequence + temps) is the property-REFERENCE increment — the
-    /// immediate next wave. Until it lands, the shape stages LOUD at THIS chokepoint (every operand
-    /// resolution funnels through <see cref="Resolve"/>), never the generic unknown-name guard.</summary>
-    private void OoStagePropertyReference(string name, List<string> qualifiers)
+    /// <summary>The object-property reference BINDER (ISO §8.4.3.9; deep-dive D-P2): when normal
+    /// qualification fails and the single qualifier is a class-name (factory form) or a TYPED object
+    /// reference (instance form) whose roster carries an accessor for the head word under the PINNED
+    /// §11.7.4 GR1a names, synthesize the compiler temp, register the pending op (drained into the
+    /// GR1/GR2/GR3 BoundSequence by StatementBinder once the carrying statement's polarity is known), and
+    /// return the temp so the statement binds over its Place. Returns null when the shape is NOT a property
+    /// reference (the caller keeps its generic unknown-name diagnosis). SR checks here: SR1 (:7376) the
+    /// REPOSITORY property-specifier, SR2 (:7378) no universal receiver — both COBOLNET0843; SR3/SR4
+    /// (accessor existence) belong to the drain, where the sending/receiving polarity is known.</summary>
+    private DataItem? OoTryBindPropertyReference(string name, List<string> qualifiers)
     {
-        if (qualifiers.Count != 1 || data.OoClasses is not { } table) return;
-        var cls = table.Find(qualifiers[0]);
-        if (cls is null
-            && data.LookupData(qualifiers[0])?.FirstOrDefault() is { } recv
-            && recv.Pic is { Category: PicCategory.ObjectReference, ObjectClassName: { } cn })
+        if (qualifiers.Count != 1 || data.OoClasses is not { } table) return null;
+        string recv = qualifiers[0];
+
+        OoClassSymbol? cls = table.Find(recv);
+        bool factory = cls is not null;                      // prop OF Class-name → the FACTORY accessors (SR3/SR4 "or in the factory object")
+        DataItem? recvItem = null;
+        if (cls is null)
+        {
+            recvItem = data.LookupData(recv)?.FirstOrDefault();
+            if (recvItem?.Pic is not { Category: PicCategory.ObjectReference } rp) return null;
+            if (rp.ObjectClassName is not { } cn)
+            {
+                // The shape IS a property reference on a universal receiver — SR2 rejects it by name.
+                data.Edition.Error("COBOLNET0843",
+                    $"the object-property reference '{name}' OF '{recv}': the receiving identifier shall "
+                    + "not be a universal object reference (ISO §8.4.3.9.3 SR2)");
+                return null;
+            }
             cls = table.Find(cn);
-        if (cls is null) return;
-        if (cls.Methods.Concat(cls.FactoryMethods).Any(m =>
-                string.Equals(m.PropertyName, name, StringComparison.OrdinalIgnoreCase)))
+            if (cls is null) return null;                    // interface-typed receivers: property prototypes are a later refinement (0899 at the interface)
+        }
+
+        string pinned = DataItem.Sanitize(name).ToUpperInvariant();
+        var get = factory ? cls.FindFactoryMethod("__GET_" + pinned) : cls.FindMethod("__GET_" + pinned);
+        var set = factory ? cls.FindFactoryMethod("__SET_" + pinned) : cls.FindMethod("__SET_" + pinned);
+        if (get is null && set is null) return null;         // not a property of the roster → generic diagnosis
+
+        if (!data.OoRepositoryProperties.Contains(name))
+            data.Edition.Error("COBOLNET0843",
+                $"the object-property reference '{name}' OF '{recv}' requires a PROPERTY specifier in the "
+                + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");
+
+        var model = get?.Returning ?? set!.Formals[0].Item;
+        if (model.IsGroup)
+        {
             data.Edition.Error("COBOLNET0899",
-                $"the object-property reference '{name}' OF '{qualifiers[0]}' (ISO §8.4.3.9 — the implicit "
-                + "accessor INVOKE) awaits the property-REFERENCE increment of the OO wave; the accessor "
-                + "methods themselves are already emitted");
+                $"the object-property reference '{name}' OF '{recv}': a GROUP-valued property reference "
+                + "(the §8.4.3.9.4 temps over a group description) is a later refinement of the OO wave");
+            return null;
+        }
+
+        var temp = data.OoCreatePropertyTemp(model, name);
+        data.OoPendingPropertyOps.Add(new DataBinder.OoPendingPropertyOp(
+            temp,
+            recvItem is null ? null : PlaceForItem(recvItem, []),
+            cls.CsName, factory, get, set, name, recv));
+        return temp;
     }
 
     /// <summary>Resolve <paramref name="dref"/> to a <see cref="Place"/>, or <see langword="null"/> if unsupported here.</summary>
@@ -85,11 +122,12 @@ public sealed class ReferenceResolver(DataBinder data)
         }
 
         DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
-        if (item is null)
-        {
-            OoStagePropertyReference(name, qualifiers);
-            return null;
-        }
+        // The object-property fallback (§8.4.3.9.2 — `prop OF {class-name | identifier}` is textually a
+        // qualified data reference, so it legitimately FAILS normal qualification): the hook synthesizes the
+        // GR1–GR3 temp and the rest of THIS method gives the temp the full normal tail (subscript rejection —
+        // a temp has no OCCURS — and reference-modification, which SR5/SR6 permit on the property value).
+        item ??= OoTryBindPropertyReference(name, qualifiers);
+        if (item is null) return null;
 
         List<string> indexExprs = [];
         if (subCtx is not null)

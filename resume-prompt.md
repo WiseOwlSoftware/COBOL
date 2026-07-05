@@ -156,11 +156,19 @@
 > (both consumption points; TokenStream.LA in C# predicates), 6 registry + 4 matrix rows + W1.5
 > hints, 4 goldens (16 oo_*), +11 OoSpine tests. Words: GET/PROPERTY/INTERFACE reserved 2002+;
 > IMPLEMENTS §8.10 context-sensitive (user word at ALL editions).
-> **RESUME = property REFERENCES (`P OF obj` — the §8.4.3.9.4 GR1–GR3 implicit-INVOKE desugar via
-> BoundSequence + temps; staged 0899 at the ReferenceResolver chokepoint; interface GET/SET PROPERTY
-> prototypes ride along) → universal reference (D10 __CobolInvoke switches) → EC-OO; then the
-> Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers, national/boolean, UDFs,
-> intrinsics gaps) toward 100%.
+> **Property REFERENCES LANDED (DEVLOG 607):** the §8.4.3.9.4 GR1–GR3 desugar is LIVE —
+> ReferenceResolver's fallback binds `P OF {obj|Class}` to a synthesized temp (Roots-declared,
+> refmod rides the normal tail), `BoundStores.StoreKindOf` (NEW — a TOTAL 3-state store-polarity walk
+> over all 119 bound nodes, emitter-verified by a 15-agent survey; unknown → 0843 loud) classifies
+> GR1/GR2/GR3, and `StatementBinder.OoWrapPropertyOps` wraps at the ONE BindStatement chokepoint
+> (mark/drain-own-suffix) into the NEW `BoundSequence` node. 0843 band = SR1 specifier / SR2
+> universal / SR3 no-GET-when-sending / SR4 no-SET-when-receiving (polarity-aware — WITH NO SET stays
+> readable). Factory form (`P OF Class`) live. 3 goldens (19 oo_*): oo_property_ref (all three GR
+> forms — the FIRST runtime exercise of synthesized accessors), oo_property_explicit_ref
+> (invocation-count proof: GR2 never gets, GR1 never sets), oo_property_factory_ref. +4 spine tests.
+> **RESUME = universal reference (D10 __CobolInvoke switches; interface GET/SET PROPERTY prototypes
+> ride along) → EC-OO; then the Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers,
+> national/boolean, UDFs, intrinsics gaps) toward 100%.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits

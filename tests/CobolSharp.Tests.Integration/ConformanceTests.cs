@@ -73,6 +73,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "oo_interface_covariant"),
         ("2002", "oo_property"),
         ("2002", "oo_property_methods"),
+        // The property-REFERENCE increment (§8.4.3.9.4 GR1–GR3 desugar) — net-new (DEVLOG 607):
+        ("2002", "oo_property_ref"),
+        ("2002", "oo_property_explicit_ref"),
+        ("2002", "oo_property_factory_ref"),
     ];
 
     [Theory]

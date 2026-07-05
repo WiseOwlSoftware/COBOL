@@ -72,6 +72,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// direct construction, which then behaves as an empty group (every typed reference is unknown-class).</summary>
     public OoClassTable? OoClasses { get; set; }
 
+    /// <summary>The unit's REPOSITORY PROPERTY specifier names (§12.3.8) — the §8.4.3.9.3 SR1 gate for
+    /// object-property references (case-insensitive per §8.3.2).</summary>
+    internal HashSet<string> OoRepositoryProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
     /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
     /// fields), and WORKING-STORAGE; then classify the shared-storage (REDEFINES) classes over the whole forest and
@@ -114,6 +118,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             .Any(attrs => attrs is not null && Enumerable.Range(0, attrs.ChildCount)
                 .Any(i => attrs.GetChild(i).GetText().Equals("DEBUGGING", StringComparison.OrdinalIgnoreCase)))
             ?? false;
+
+        // REPOSITORY PROPERTY specifiers (§12.3.8 :14727-14729) — §8.4.3.9.3 SR1 makes a property-specifier
+        // a PRECONDITION of every object-property reference in the unit; captured here, checked at the
+        // property-reference desugar (0843). CLASS/INTERFACE specifiers stay declarative (names resolve
+        // through the group-wide pass-1 table).
+        foreach (var re in program.environmentDivision()?.configurationSection()?.configurationParagraph()
+                     .Select(p => p.repositoryParagraph()).FirstOrDefault(r => r is not null)
+                     ?.repositoryEntry() ?? [])
+            if (re.PROPERTY() is not null && re.propertyName() is { } pn)
+                OoRepositoryProperties.Add(pn.GetText());
 
         SwitchBindSpecialNames(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)

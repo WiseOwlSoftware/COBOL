@@ -97,6 +97,65 @@ public sealed partial class StatementBinder
     /// method return; EXIT PROGRAM → §14.9.14.3 SR7 violation).</summary>
     private bool InMethod => _currentMethodScope is not null;
 
+    /// <summary>Drain THIS statement's pending object-property ops (registered by the ReferenceResolver
+    /// fallback while the statement bound) into the §8.4.3.9.4 GR1–GR3 desugar: classify each temp's store
+    /// polarity over the BOUND statement (BoundStores — the emitter-verified taxonomy), then
+    /// GR1 (pure sending) = prepend the get-invoke; GR2 (write-only receiving) = append the set-invoke, get
+    /// NOT invoked; GR3 (read-modify-write) = both around ONE temp. SR3/SR4 (:7380/:7382 — the needed
+    /// accessor must exist, on the instance or factory roster per the reference form) check HERE, against
+    /// the classified need, both COBOLNET0843. An unclassifiable statement (a taxonomy hole) stages LOUD —
+    /// never a silent guess about whether a side-effecting accessor runs.</summary>
+    internal BoundStatement OoWrapPropertyOps(BoundStatement core, int mark)
+    {
+        var ops = data.OoPendingPropertyOps;
+        if (ops.Count <= mark) return core;
+        var taken = ops.GetRange(mark, ops.Count - mark);
+        ops.RemoveRange(mark, ops.Count - mark);
+
+        List<BoundStatement> pre = [], post = [];
+        foreach (var op in taken)
+        {
+            var kind = BoundStores.StoreKindOf(core, op.Temp);
+            if (kind is null)
+            {
+                data.Edition.Error("COBOLNET0843",
+                    $"the object-property reference '{op.PropName}' OF '{op.ReceiverName}' occurs in a "
+                    + $"statement ({core.GetType().Name}) outside the classified store taxonomy — the "
+                    + "sending/receiving polarity (ISO §8.4.3.9.4 GR1–GR3) cannot be established; extend "
+                    + "BoundStores before accepting this shape");
+                continue;
+            }
+            bool needGet = kind == StoreKind.None || kind == StoreKind.ReadWrite;
+            bool needSet = kind == StoreKind.Write || kind == StoreKind.ReadWrite;
+            string where = $"'{op.PropName}' OF '{op.ReceiverName}'";
+            var form = op.Factory ? InvokeForm.Factory : InvokeForm.Instance;
+            var tempPlace = refs.ResolveItem(op.Temp)!;
+
+            if (needGet)
+            {
+                if (op.Get is null)
+                    data.Edition.Error("COBOLNET0843",
+                        $"the object-property reference {where} is a SENDING operand but the class has no "
+                        + "GET property method (ISO §8.4.3.9.3 SR3 — WITH NO GET, or no accessor defined)");
+                else
+                    pre.Add(new BoundInvoke(form, op.ClassCsName, op.Receiver, op.Get.CsName, tempPlace,
+                        null, op.Get.Returning, op.Get.Owner?.CsName));
+            }
+            if (needSet)
+            {
+                if (op.Set is null)
+                    data.Edition.Error("COBOLNET0843",
+                        $"the object-property reference {where} is a RECEIVING operand but the class has no "
+                        + "SET property method (ISO §8.4.3.9.3 SR4 — WITH NO SET, or no accessor defined)");
+                else
+                    post.Add(new BoundInvoke(form, op.ClassCsName, op.Receiver, op.Set.CsName, null,
+                        [new BoundInvokeArg(op.Set.Formals[0].Item, tempPlace, null, null, WriteBack: false)],
+                        null, op.Set.Owner?.CsName));
+            }
+        }
+        return pre.Count + post.Count == 0 ? core : new BoundSequence([.. pre, core, .. post]);
+    }
+
     /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY
     /// (§11.7), so a reference to a sibling method's paragraph fails HERE by design (the legacy trap-#10
     /// cross-method reject) — the hint tells the reader why the name a human can see is "unknown".</summary>

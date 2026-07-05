@@ -52,10 +52,13 @@
 > interface-typed receivers (INVOKE over `AllPrototypes()` per §14.9.23.3 SR4e + the widening branch
 > on every NEW/RETURNING/arg path), and PROPERTY declarations (§13.18.42: clause-synthesized accessors
 > under the PINNED §11.7.4 GR1a names `__GET_/__SET_`, explicit GET/SET PROPERTY methods, the
-> SR5/SR6/SR7 + §13.18.42.3 SR4 band = **0842**). Property REFERENCES (`P OF obj` → the §8.4.3.9.4
-> implicit-INVOKE desugar) are the NEXT increment — staged LOUD under a NAMED 0899 at the
-> ReferenceResolver chokepoint. **NEXT = property references → universal reference → EC-OO** (briefs
-> in the LEDGER doc), then the Phase-4 catalog.
+> SR5/SR6/SR7 + §13.18.42.3 SR4 band = **0842**). **Property REFERENCES LANDED (DEVLOG 607):**
+> the §8.4.3.9.4 GR1–GR3 desugar is LIVE — the ReferenceResolver fallback binds `P OF {obj|Class}` to a
+> synthesized temp, `BoundStores` (the emitter-verified 3-state store-polarity walk over the ENTIRE
+> bound taxonomy — the 15-agent survey) classifies the occurrence, and the statement wraps in
+> `BoundSequence` (pre-GET / statement / post-SET; GR2 provably does NOT invoke the get, GR1 not the
+> set — proven by the side-effecting-accessor golden). SR1/SR2/SR3/SR4 = 0843. **NEXT = universal
+> reference (D10 __CobolInvoke switches) → EC-OO** (briefs in the LEDGER doc), then the Phase-4 catalog.
 
 ## Summary
 
