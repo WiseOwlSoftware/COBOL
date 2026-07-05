@@ -28,6 +28,11 @@ public enum PicCategory
     /// positions — it never participates in a group's character image (its size is implementor-defined storage,
     /// not part of the §13.18.60 GR4 image rules; a whole-group image over one is rejected loud).</summary>
     ObjectReference,
+    /// <summary>Data pointer (USAGE POINTER, ISO §8.5.2.6 / §13.18.60) — LIVE as of Phase-4b increment 1: a
+    /// PICTURE-less elementary item holding a data address, carried by the runtime <c>ManagedPointer</c>
+    /// (feedback_managed_pointers — the ONE managed-ref carrier; never an 8-byte handle). Increment 1 holds
+    /// only NULL (SET TO NULL / pointer, equality); ADDRESS OF / BASED / ALLOCATE are increment 2+.</summary>
+    Pointer,
 }
 
 /// <summary>A SIGN clause's content (ISO §13.18.52): position (LEADING/TRAILING) and SEPARATE CHARACTER mode.
@@ -154,7 +159,7 @@ public sealed record PicInfo(
     /// (feedback: every misbind is a wrong-answer bug — fail LOUD).</summary>
     private bool IsUnimplementedSkeleton =>
         Category is PicCategory.National or PicCategory.Boolean
-        || Usage is Usage.National or Usage.Bit or Usage.Pointer
+        || Usage is Usage.National or Usage.Bit
             or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
             or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble;
 
@@ -168,6 +173,11 @@ public sealed record PicInfo(
     public static PicInfo ObjectReferenceItem(string? className) =>
         new(PicCategory.ObjectReference, Usage.ObjectReference, Length: 0, Digits: 0, Scale: 0, Signed: false)
         { ObjectClassName = className };
+
+    /// <summary>A USAGE POINTER item's representation (Phase-4b; PICTURE-less per §13.18.60 — the IndexItem
+    /// synthesis pattern). Occupies NO character positions (never part of a group's §13.18.60 GR4 image).</summary>
+    public static PicInfo PointerItem { get; } =
+        new(PicCategory.Pointer, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false);
 
     /// <summary>The loud internal error for a skeleton representation reaching a storage-mapping switch —
     /// the bind-time gates must have rejected it first (W2 loud guard; owning phases per ConstructRegistry).</summary>
@@ -187,6 +197,9 @@ public sealed record PicInfo(
         // (Sanitize + uppercase — COBOL class names are case-insensitive, §8.3.2.2).
         PicCategory.ObjectReference =>
             ObjectClassName is { } cls ? DataItem.Sanitize(cls).ToUpperInvariant() + "?" : "CobolObject?",
+        // A data pointer is the runtime ManagedPointer carrier; its COBOL initial state is NULL (the Null
+        // singleton), so the field is non-nullable and always at least Null.
+        PicCategory.Pointer => "ManagedPointer",
         PicCategory.Alphanumeric or PicCategory.NumericEdited => "string",
         // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
         // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,
@@ -210,6 +223,7 @@ public sealed record PicInfo(
         // An object reference's COBOL initial state IS null (§13.18.60.4 — the predefined NULL reference);
         // .NET reference-default null matches exactly, no init needed beyond the explicit form.
         PicCategory.ObjectReference => "null",
+        PicCategory.Pointer => "ManagedPointer.Null",   // the predefined NULL data pointer (§8.4.3.10)
         // Alphanumeric defaults to spaces; numeric to zero (unscaled).
         PicCategory.Alphanumeric or PicCategory.NumericEdited => $"new string(' ', {Length})",
         PicCategory.Numeric => Usage switch
@@ -466,7 +480,12 @@ public sealed record PicInfo(
             // ── The 2002+ recognized-but-unimplemented inventory (ISO §13.18.60): gate loud, recover Display ──
             case "NATIONAL": return SkeletonUsage(edition, "national-data-2002", "Phase 4a", where, out skeleton);
             case "BIT": return SkeletonUsage(edition, "boolean-data-2002", "Phase 4a", where, out skeleton);
-            case "POINTER": return SkeletonUsage(edition, "usage-pointer-2002", "Phase 4b", where, out skeleton);
+            // USAGE POINTER — LIVE (Phase-4b increment 1): only the introduction gate remains (0900 below
+            // 2002; the registry row is silent at 2002+), like OBJECT REFERENCE. The caller synthesizes
+            // PicInfo.PointerItem (PICTURE-less, the IndexItem pattern).
+            case "POINTER":
+                ConstructRegistry.Check(edition, "usage-pointer-2002", where);
+                return Usage.Pointer;
             // LIVE as of the Phase-3 OO spine: only the introduction gate remains (0900 below 2002 — the
             // registry row is silent at 2002+); the caller synthesizes PicInfo.ObjectReferenceItem with the
             // declared class name (PICTURE-less per §13.18.60.4, the IndexItem pattern).

@@ -340,6 +340,11 @@ public sealed record BoundNextSentence : BoundStatement;
 /// (already-resolved) parent place.</summary>
 public sealed record BoundSetConditions(IReadOnlyList<(Place Parent, Condition88 Condition)> Sets) : BoundStatement;
 
+/// <summary>SET data-pointer assignment (ISO §14.9.39 Format 4 — SET pointer TO {NULL | pointer};
+/// Phase-4b increment 1): copy the NULL singleton or the source pointer into each target in order.
+/// <paramref name="ToNull"/> ⇔ the sender is the NULL figurative (renders <c>ManagedPointer.Null</c>).</summary>
+public sealed record BoundSetPointer(IReadOnlyList<Place> Targets, Place? Source, bool ToNull) : BoundStatement;
+
 // ── SET index assignment / arithmetic (ISO §14.9.39 Formats 1–2; COBOLNET_DESIGN §3.5/§12.3) ──────────────────
 
 /// <summary>A SET receiving operand, dispatched by kind (the design's §12.3 rule).</summary>

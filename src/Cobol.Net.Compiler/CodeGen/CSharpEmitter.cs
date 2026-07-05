@@ -429,6 +429,7 @@ public sealed partial class CSharpEmitter
             case BoundInvoke inv: OoEmitInvoke(inv); return false;              // OO (ISO §14.9.23; deep-dive D5)
             case BoundInvokeUniversal uinv: OoEmitUniversalInvoke(uinv); return false;   // D10 universal dispatch (GR7c runtime conformance)
             case BoundSetObjectRef sor: OoEmitSetObjectRef(sor); return false;           // SET F5 (ISO §14.9.39; D-U7)
+            case BoundSetPointer sp: EmitSetPointer(sp); return false;                   // SET pointer F4 (ISO §14.9.39; Phase-4b)
             case BoundMethodReturn mr:                                          // method GOBACK/EXIT METHOD (D8)
                 // GR1b (§14.9.18.4): the RAISING stages BEFORE the throw; the entry's catch(MethodReturn)
                 // still delivers the RETURNING local + copy-outs, so the INVOKE-site pickup sees the
@@ -1188,6 +1189,16 @@ public sealed partial class CSharpEmitter
         string tmp = $"__set{_setCounter++}";
         _ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(_num.Render(s.Value), 0)});");
         foreach (var t in s.Targets) StoreSetTarget(t, new NumX(tmp, 0));
+    }
+
+    /// <summary><c>SET pointer… TO {NULL | pointer}</c> (ISO §14.9.39 Format 4; Phase-4b increment 1): copy
+    /// the NULL singleton or the source pointer's carrier into each target in order (GR — a straight handle
+    /// copy; a data pointer carries no PICTURE store).</summary>
+    private void EmitSetPointer(BoundSetPointer s)
+    {
+        string src = s.ToNull ? "ManagedPointer.Null" : s.Source!.Read();
+        foreach (var t in s.Targets)
+            _ctx.Writer.Line(t.Write(src) + "   // SET pointer (ISO §14.9.39 Format 4)");
     }
 
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE

@@ -49,6 +49,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
             string core = $"object.ReferenceEquals({ObjRead(r.Left)}, {ObjRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
+        // Data-pointer relations (Phase-4b; §8.8.4.1.3 — ManagedPointer.SameTarget: both-NULL / same-storage;
+        // the NULL figurative renders as the null carrier). Before the figurative branch (NULL must not
+        // width-materialize against a pointer).
+        static bool IsPtr(BoundOperand o) =>
+            o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.Pointer;
+        if (IsPtr(r.Left) || IsPtr(r.Right))
+        {
+            static string PtrRead(BoundOperand o) => o is BoundFieldOperand f ? f.Place.Read() : "null";
+            string core = $"ManagedPointer.SameTarget({PtrRead(r.Left)}, {PtrRead(r.Right)})";
+            return r.Op == "==" ? core : $"!({core})";
+        }
         // A figurative operand (a single-character constant OR an ALL "literal") is materialized against the OTHER
         // operand's width (ISO §8.3.3.6.4 GR2), so it routes through the width-aware figurative path.
         if (r.Left is BoundFigurative or BoundAllLiteral || r.Right is BoundFigurative or BoundAllLiteral)

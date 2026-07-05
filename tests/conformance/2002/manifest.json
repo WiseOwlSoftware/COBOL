@@ -8,10 +8,10 @@
     "oo_ec_raise_object",
     "oo_factory",
     "oo_hello",
-    "oo_interface",
-    "oo_interface_covariant",
     "oo_inherit",
     "oo_instance_data",
+    "oo_interface",
+    "oo_interface_covariant",
     "oo_method_args",
     "oo_method_perform",
     "oo_object_group",
@@ -28,6 +28,7 @@
     "oo_universal_inherit",
     "oo_universal_name",
     "oo_universal_relation",
+    "pointer_data",
     "repository_paragraph",
     "sort_table_format2",
     "table_value_occurs"
@@ -40,7 +41,6 @@
     "national_data",
     "pointer_alloc",
     "pointer_arith",
-    "pointer_data",
     "udf_inline_expression",
     "udf_invocation",
     "udf_value_args"

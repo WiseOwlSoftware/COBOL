@@ -35,7 +35,7 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
 | M2-DATA-2 | USAGE FLOAT-SHORT/LONG/EXTENDED | done | STAGED-LOUD | PicInfo.cs:75-81 skeleton → 0899; ConstructDialectStatus 114-115 "Phase 6"; float_usage.cob PENDING | phase 6 | IEEE-float families deferred to Phase 6 (D16). |
 | M2-DATA-3 | National data — USAGE NATIONAL + PIC N | done | STAGED-LOUD | PicInfo.cs:317/328/467 → 0899; national_data.cob PENDING | (a) | Both N symbol + USAGE NATIONAL reject loud. |
 | M2-DATA-4 | Boolean & bit — USAGE BIT + PIC 1 | done | STAGED-LOUD | PicInfo.cs:318/329/468 → 0899; boolean_data.cob PENDING | (a) | Boolean OPERATORS (B-AND/OR/XOR/NOT) also absent; (a) adds them. |
-| M2-DATA-5 | Pointers & based addressing (POINTER/NULL/SET/BASED/ADDRESS OF) | partial | STAGED-LOUD | PicInfo.cs:72-74/469 → 0899; pointer_*/based_pointer.cob ALL PENDING | (b) | Catalog Phase-1 done is LEGACY-only; greenfield has ZERO pointer support. ManagedPointer carrier mandated. |
+| M2-DATA-5 | Pointers & based addressing (POINTER/NULL/SET/BASED/ADDRESS OF) | partial | **PARTIAL (increment 1 LANDED, DEVLOG 613)** | USAGE POINTER data + SET TO NULL/pointer + [NOT] EQUAL on the ManagedPointer carrier (PicInfo.Pointer, BoundSetPointer, ManagedPointer.SameTarget; pointer_data.cob ENABLED, +5 PointerDataTests, 0869 band); ADDRESS OF / BASED / SET ADDRESS OF / ALLOCATE-FREE still staged (based_pointer/pointer_alloc/pointer_arith PENDING) | (b increment 2+) | The carrier + data model are now LIVE; increment 2 adds real addresses (ADDRESS OF → byte-backing) + BASED rebasing + ALLOCATE. |
 
 ## M2-ARITH — arithmetic
 

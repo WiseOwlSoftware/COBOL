@@ -28,13 +28,13 @@ public sealed class DataSkeletonEditionTests
         """;
 
     /// <summary>The skeleton constructs: id-suffix, WS entry, owning roadmap phase (per ConstructRegistry).
-    /// USAGE OBJECT REFERENCE left this set at the Phase-3 OO spine (LIVE — see the dedicated facts below);
-    /// its 85 edge stays the <c>{is2002()}?</c> grammar hook + the W1.5 0900 edition-naming hint.</summary>
+    /// USAGE OBJECT REFERENCE left this set at the Phase-3 OO spine (LIVE); USAGE POINTER left it at Phase-4b
+    /// increment 1 (LIVE — the ManagedPointer carrier, DEVLOG 613; its 85 edge is the 0900 introduction gate).
+    /// Both keep the <c>{is2002()}?</c>/W1.5 0900 edition-naming hint below 2002.</summary>
     public static TheoryData<string, string, string> SkeletonConstructs() => new()
     {
         { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "phase: Phase 4a)" },
         { "BIT1", "01 WS-B PIC 1(4) USAGE BIT.", "phase: Phase 4a)" },
-        { "PTR1", "01 WS-P USAGE POINTER.", "phase: Phase 4b)" },
         { "BCF1", "01 WS-C BINARY-CHAR SIGNED.", "phase: Phase 4)" },          // the BARE form (no USAGE word)
         { "BCF2", "01 WS-D USAGE IS BINARY-CHAR SIGNED.", "phase: Phase 4)" }, // the full form — must gate identically
         { "BCS1", "01 WS-E USAGE BINARY-SHORT.", "phase: Phase 4)" },

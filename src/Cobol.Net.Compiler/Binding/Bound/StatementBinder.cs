@@ -722,29 +722,85 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (set.setAddressStatement() is not null)
             return new BoundUnsupported("SET ADDRESS OF (data-pointer subsystem, COBOL-2002+, ISO §14.9.39 F7)");
         if (set.setObjectReferenceStatement() is { } sor)
+        {
+            // A POINTER target (§14.9.39 Format 4 — SET pointer TO NULL/pointer) is bound BEFORE the
+            // object-reference Format 5: both share the `SET dataRef+ TO objectReference` shape.
+            if (sor.dataReference().Length > 0 && refs.Resolve(sor.dataReference(0))?.Item.Pic?.Category
+                    is PicCategory.Pointer)
+                return BindSetPointer(sor.dataReference(),
+                    sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
+                    sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
             return OoBindSetObjectRef(sor.dataReference(),
                 senderRef: sor.objectReference().dataReference(),
                 senderNull: sor.objectReference().NULL_() is not null,
                 senderSelf: sor.objectReference().SELF() is not null,
                 senderSuper: sor.objectReference().SUPER() is not null);
+        }
         return new BoundUnsupported($"SET form '{set.GetText()}'");
     }
 
     /// <summary><c>SET receivers… TO value</c> (ISO §14.9.39 Format 1). Receivers may mix index-names and data
     /// items; the sender is any integer-valued operand (an index-name sender reads its occurrence number, §3.5).</summary>
+    /// <summary>SET data-pointer assignment (§14.9.39 Format 4; Phase-4b increment 1): every target shall
+    /// be USAGE POINTER (COBOLNET0869 otherwise); the sender is the NULL figurative or another data pointer
+    /// (SELF/SUPER are object-only — 0869). ADDRESS OF senders/receivers are increment 2 (staged loud).</summary>
+    private BoundStatement BindSetPointer(
+        IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
+        bool toNull, bool senderIsSelfSuper)
+    {
+        if (senderIsSelfSuper)
+        {
+            data.Edition.Error("COBOLNET0869",
+                "SET … TO SELF/SUPER: SELF and SUPER are object references, not data pointers "
+                + "(ISO §14.9.39 Format 4/5 — the sender of a pointer SET is NULL or another pointer)");
+            return new BoundNop();
+        }
+        var targets = new List<Place>(targetRefs.Count);
+        foreach (var t in targetRefs)
+        {
+            if (refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
+            {
+                data.Edition.Error("COBOLNET0869",
+                    $"SET '{t.GetText()}': the receiving operand of a data-pointer SET shall be USAGE POINTER "
+                    + "(ISO §14.9.39 Format 4)");
+                return new BoundNop();
+            }
+            targets.Add(tp);
+        }
+        Place? source = null;
+        if (!toNull)
+        {
+            if (senderRef is null) return new BoundUnsupported("SET pointer — sender shape");
+            if (refs.Resolve(senderRef) is not { } sp || sp.Item.Pic?.Category is not PicCategory.Pointer)
+            {
+                data.Edition.Error("COBOLNET0869",
+                    $"SET … TO '{senderRef?.GetText()}': a data-pointer sender shall be NULL or another "
+                    + "USAGE POINTER item (ISO §14.9.39 Format 4; ADDRESS OF senders are a later increment)");
+                return new BoundNop();
+            }
+            source = sp;
+        }
+        return new BoundSetPointer(targets, source, toNull);
+    }
+
     private BoundStatement BindSetTo(Core.SetToValueStatementContext tv)
     {
         // The Format-5 SEMANTIC re-route (D-U7): `SET U TO A` parses HERE (alternative order — a
         // dataReference sender is an arithmeticExpression prefix), but an object-reference TARGET selects
         // §14.9.39 Format 5. Detect on the FIRST target; mixed target categories then fail SR8 inside.
         if (tv.dataReference() is { Length: > 0 } tds
-            && OoExtractBareReference(tv.arithmeticExpression()) is { } senderDref
-            && (refs.Resolve(tds[0])?.Item.Pic?.Category is PicCategory.ObjectReference
-                || refs.Resolve(senderDref)?.Item.Pic?.Category is PicCategory.ObjectReference))
-            // Either side being an object reference selects Format 5 — an object TARGET takes the F5
-            // rules directly; an object SENDER into a non-object target is the SR8 diagnostic (0867),
-            // far better than a Format-1 category error.
-            return OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);
+            && OoExtractBareReference(tv.arithmeticExpression()) is { } senderDref)
+        {
+            var t0 = refs.Resolve(tds[0])?.Item.Pic?.Category;
+            var s0 = refs.Resolve(senderDref)?.Item.Pic?.Category;
+            // A POINTER on either side selects Format 4 (SET pointer TO pointer) — the Format-1 numeric
+            // path cannot carry a ManagedPointer.
+            if (t0 is PicCategory.Pointer || s0 is PicCategory.Pointer)
+                return BindSetPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
+            // Either side being an object reference selects Format 5 (§14.9.39 F5; D-U7).
+            if (t0 is PicCategory.ObjectReference || s0 is PicCategory.ObjectReference)
+                return OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);
+        }
         var targets = new List<BoundSetTarget>();
         foreach (var dref in tv.dataReference())
         {
@@ -1247,6 +1303,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                     data.Edition.Error("COBOLNET0868",
                         "both operands of an object-reference relation shall be of class object — an "
                         + "object reference or the NULL figurative (ISO §8.8.4.2.1 SR5)");
+            }
+            // Data-pointer relations (ISO §8.8.4.1.3 / §8.8.4.2 — pointers admit ONLY [NOT] EQUAL, against
+            // another pointer or the NULL figurative; the renderer's pointer branch does SameTarget identity).
+            static bool IsPtrOperand(BoundOperand o) =>
+                o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.Pointer;
+            if (IsPtrOperand(subject) || IsPtrOperand(right))
+            {
+                if (op is not ("==" or "!="))
+                    data.Edition.Error("COBOLNET0869",
+                        "a data-pointer relation admits only [NOT] EQUAL (ISO §8.8.4.1.3 — pointers are "
+                        + "not ordered)");
+                else if (!(IsPtrOperand(subject) || subject is BoundFigurative { Kind: 'N' })
+                         || !(IsPtrOperand(right) || right is BoundFigurative { Kind: 'N' }))
+                    data.Edition.Error("COBOLNET0869",
+                        "both operands of a data-pointer relation shall be a data pointer or NULL "
+                        + "(ISO §8.8.4.1.3)");
             }
             return new BoundRelational(subject, op, right);
         }

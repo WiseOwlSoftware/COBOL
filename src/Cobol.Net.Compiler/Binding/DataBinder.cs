@@ -691,6 +691,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
+            : entryUsage is Usage.Pointer ? PicInfo.PointerItem
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
             : skeletonUsage ? PicInfo.RecoveryItem : null;
 

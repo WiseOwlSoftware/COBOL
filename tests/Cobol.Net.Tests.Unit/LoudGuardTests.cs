@@ -80,7 +80,7 @@ public sealed class LoudGuardTests
     [Theory]
     [InlineData("NATIONAL", "phase: Phase 4a)")]
     [InlineData("BIT", "phase: Phase 4a)")]
-    [InlineData("POINTER", "phase: Phase 4b)")]
+    // POINTER left this set at Phase-4b increment 1 (LIVE, DEVLOG 613) — it binds at 2002+, no 0899.
     [InlineData("BINARY-CHAR", "phase: Phase 4)")]
     [InlineData("FLOAT-SHORT", "phase: Phase 6)")]
     [InlineData("FLOAT-LONG", "phase: Phase 6)")]
@@ -223,11 +223,13 @@ public sealed class LoudGuardTests
     [Fact]
     public void SkeletonUsage_StorageMappingMembers_ThrowLoud()
     {
-        var pointer = new PicInfo(PicCategory.Numeric, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false);
-        Assert.Throws<InvalidOperationException>(() => pointer.ClrType);
-        Assert.Throws<InvalidOperationException>(() => pointer.DefaultInitializer);
-        Assert.Throws<InvalidOperationException>(() => pointer.StorageWidth);
-        Assert.Throws<InvalidOperationException>(() => pointer.ProfileInitializer);
+        // USAGE POINTER left the skeleton set at Phase-4b increment 1 (LIVE, DEVLOG 613); FLOAT-SHORT stays
+        // a skeleton (Phase 6), so it exercises the storage-mapping loud guard for a skeleton USAGE.
+        var flt = new PicInfo(PicCategory.Numeric, Usage.FloatShort, Length: 0, Digits: 0, Scale: 0, Signed: false);
+        Assert.Throws<InvalidOperationException>(() => flt.ClrType);
+        Assert.Throws<InvalidOperationException>(() => flt.DefaultInitializer);
+        Assert.Throws<InvalidOperationException>(() => flt.StorageWidth);
+        Assert.Throws<InvalidOperationException>(() => flt.ProfileInitializer);
     }
 
     [Fact]

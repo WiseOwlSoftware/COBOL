@@ -74,6 +74,12 @@ public abstract class ManagedPointer
     /// <summary>True for the NULL carrier.</summary>
     public virtual bool IsNull => false;
 
+    /// <summary>Data-pointer equality (ISO §8.8.4.1.3 / §8.8.4.2 — two data pointers are equal iff they
+    /// address the same storage; two NULLs are equal). Increment 1 holds only NULL, so this reduces to the
+    /// both-null / same-instance test; when ADDRESS OF lands (increment 2) it compares referenced storage.</summary>
+    public static bool SameTarget(ManagedPointer? a, ManagedPointer? b)
+        => (a is null || a.IsNull) ? (b is null || b.IsNull) : ReferenceEquals(a, b);
+
     private sealed class NullManagedPointer : ManagedPointer
     {
         public override bool IsNull => true;

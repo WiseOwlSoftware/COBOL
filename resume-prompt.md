@@ -192,8 +192,12 @@
 > **(e) arithmetic DONE (DEVLOG 611)** — the PROHIBITED-inexact edited-receiver cure (CobolNum.RescaleChecked;
 > the leak was the edited-store path's plain Rescale) + ARITHMETIC IS STANDARD positive behavior (routes to
 > the CobolDec engine for fixed-point, §8.8.1.2/§8.8.1.4; removed at 2023); both 2014 goldens enabled.
-> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md):** (a)
-> national/boolean, (c) UDF invocation, (b) pointers on ManagedPointer, (d) sharing/lock/retry; OO
+> **(b) pointers increment 1 DONE (DEVLOG 613)** — USAGE POINTER data + SET TO NULL/pointer + [NOT] EQUAL
+> on the ManagedPointer carrier (PicCategory.Pointer, BoundSetPointer, ManagedPointer.SameTarget, 0869
+> band); pointer_data.cob enabled; increment 2 = ADDRESS OF (byte-backing) / BASED / SET ADDRESS OF /
+> ALLOCATE-FREE (based_pointer/pointer_alloc/pointer_arith PENDING).
+> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md):** (b)
+> pointers increment 2, (a) national/boolean, (c) UDF invocation, (d) sharing/lock/retry; OO
 > riders queued (interface GET/SET PROPERTY prototypes, group-valued property refs, FACTORY OF usage,
 > object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
