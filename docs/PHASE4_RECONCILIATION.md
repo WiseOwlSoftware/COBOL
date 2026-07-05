@@ -1,0 +1,136 @@
+# Phase 4 Greenfield-vs-Catalog Reconciliation
+
+> **STATUS: the AUTHORITATIVE greenfield-truth view of the M2/M3/M4 catalog** (DEVLOG 610, the ratified
+> Phase-4 entry audit — `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase 4). The catalog
+> `docs/ISO2023_CONFORMANCE_PLAN.md` §3 carries LEGACY-era ☑/◐ marks; THIS table supersedes them with the
+> per-item greenfield status verified against `src/Cobol.Net.*` by a 10-agent audit (no LANDED/NOT-STARTED
+> mark overturned on cross-check). The single largest finding: the M2-DATA "done" marks are
+> LEGACY-ONLY mirages — national/boolean/pointers/floats were implemented in the retired byte engine and
+> stage LOUD (COBOLNET0899) in the greenfield; Phase 4 reclaims them. Keep this in sync as tracks land.
+
+
+Audit of docs/ISO2023_CONFORMANCE_PLAN.md §3 (M2/M3/M4 catalog) against the live greenfield tree
+(src/Cobol.Net.*). Cross-checked 8 LANDED + 3 NOT-STARTED (all NOT-STARTED rows in the set) + spot
+checks on ALLOCATE / VALIDATE / PicInfo skeletons. **No LANDED or NOT-STARTED mark overturned.** Minor
+corrections in the Corrections section.
+
+Legend: LANDED = end-to-end greenfield + green golden; STAGED-LOUD = recognized, fails with a named
+diagnostic (0899/0313/COBOLNET15xx or generic BoundUnsupported); PARTIAL = some legs land, some gap;
+NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decision.
+
+## M2-UDF — user-defined functions
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | STAGED-LOUD | StatementBinder.Intrinsics.cs:53-60 → COBOLNET1501; manifest udf_inline_expression PENDING | (c) | Catalog "done" is LEGACY-only. Verified: named loud-stop, not silent. |
+| M2-UDF-2 | Literal/arith args to a UDF | done | STAGED-LOUD | Rejected at COBOLNET1501 before arg encoding; udf_value_args PENDING | (c) | Moot until M2-UDF-1 invocation lands; folds into (c). |
+| M2-UDF-3 | Separate-compilation function prototypes (§8.13) | open | NOT-STARTED | CobolParserCore.g4:168 FUNCTION-ID is CALL-target only; :426 "WS-2002-UDF follow-up"; no prototype grammar/binder | (c) | **Verified NOT-STARTED.** Depends on UDF-1/2. |
+| M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | PARTIAL | Grammar parses (repository_paragraph.cob green); specifiers inert; functionCall still requires FUNCTION token | (c) | Parse landed, semantic bind unbuilt (ISO §12.3.8). |
+
+## M2-DATA — new data types
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M2-DATA-1 | USAGE BINARY-CHAR/SHORT/LONG/DOUBLE [SIGNED\|UNSIGNED] | done | STAGED-LOUD | PicInfo.cs:82-90 skeleton → COBOLNET0899; DataSkeletonEditionTests BCF/BCS/BCL/BCD; binary_usage.cob PENDING | Phase 4 numeric-usage add-on (unlettered) | LEGACY-only "done". Bare + full spellings gate identically. |
+| M2-DATA-2 | USAGE FLOAT-SHORT/LONG/EXTENDED | done | STAGED-LOUD | PicInfo.cs:75-81 skeleton → 0899; ConstructDialectStatus 114-115 "Phase 6"; float_usage.cob PENDING | phase 6 | IEEE-float families deferred to Phase 6 (D16). |
+| M2-DATA-3 | National data — USAGE NATIONAL + PIC N | done | STAGED-LOUD | PicInfo.cs:317/328/467 → 0899; national_data.cob PENDING | (a) | Both N symbol + USAGE NATIONAL reject loud. |
+| M2-DATA-4 | Boolean & bit — USAGE BIT + PIC 1 | done | STAGED-LOUD | PicInfo.cs:318/329/468 → 0899; boolean_data.cob PENDING | (a) | Boolean OPERATORS (B-AND/OR/XOR/NOT) also absent; (a) adds them. |
+| M2-DATA-5 | Pointers & based addressing (POINTER/NULL/SET/BASED/ADDRESS OF) | partial | STAGED-LOUD | PicInfo.cs:72-74/469 → 0899; pointer_*/based_pointer.cob ALL PENDING | (b) | Catalog Phase-1 done is LEGACY-only; greenfield has ZERO pointer support. ManagedPointer carrier mandated. |
+
+## M2-ARITH — arithmetic
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M2-ARITH-1 | ROUNDED MODE (8) + DEFAULT ROUNDED + PROHIBITED→EC-SIZE-TRUNCATION | partial | PARTIAL | 8 modes + DEFAULT ROUNDED LANDED (RoundingModes.cs, rounded_modes.cob green); rounded_mode_prohibited.cob PENDING — move-lowered sole-ref COMPUTE skips checked store | e | Headline landed; only the PROHIBITED-via-move COMPUTE path leaks. Small lowering bugfix. |
+| M2-ARITH-2 | Remaining OPTIONS clauses (ARITHMETIC/INTERMEDIATE/FLOAT DEFAULT/ENTRY-CONVENTION) | partial | PARTIAL | STANDARD-DECIMAL fully impl (CobolDec.cs, StandardDecimalTests 5 facts); STANDARD-BINARY/STANDARD staged-loud 0806/0807; FLOAT DEFAULT + ENTRY-CONVENTION parsed-inert; options_paragraph.cob PENDING+OBSOLETE | e | The "real intermediate-precision change" landed. Residual: rebaseline the obsolete golden; FLOAT DEFAULT waits on standard-float types (phase 5/6). |
+
+## M2-PROC — procedural statements
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M2-PROC-1 | INITIALIZE …TO VALUE/DEFAULT/WITH FILLER | done | LANDED | **Verified:** StatementBinder.Initialize.cs + CSharpEmitter.Initialize.cs; initialize_phrases.cob ENABLED | none | Re-implemented greenfield; pre-85 phrases gated 0830-0835. |
+| M2-PROC-2 | INSPECT …BACKWARD | done | LANDED | **Verified:** StatementBinder.Inspect.cs:63-65 Backward flag, gated 2023 via COBOLNET0845; inspect_backward.cob ENABLED (2023 manifest) | none | Gated 2023 (not 2002); ISO annex E.3.3 #34. |
+| M2-PROC-3 | VALIDATE statement + validation clauses | open | OBSOLETE | **Verified:** zero VALIDATE grammar hits; council decision-3 = documented non-support is conformance-legal (F.2 #5 obsolete) | phase 7 | By design. Residual = a flag-obsolete WARNING row (Phase 7). Currently bare parse error. |
+| M2-PROC-4 | Exception handling (RAISE/EC/>>TURN/RESUME/USE AFTER EXCEPTION) | open | LANDED | **Verified:** StatementBinder.Exceptions.cs, TurnState.cs, CSharpEmitter.Exceptions.cs; oo_ec_* ENABLED; DEVLOG 577 | none | Catalog stale-open; landed post-catalog. -N EC twins ride Phase 4(a). |
+| M2-PROC-5 | ALLOCATE / FREE (based storage) | open | STAGED-LOUD | **Verified:** grammar wired CobolParserCore.g4:660-661 but NO binder arm → generic BoundUnsupported fall-through (StatementBinder.cs has no allocate/free case); pointer_alloc.cob PENDING | (b) | Blocked on pointer subsystem (M2-DATA-5). Generic loud, not a dedicated 0899. |
+| M2-PROC-6 | GOBACK RETURNING (done); EXIT variants; CONTINUE AFTER (deferred) | partial | LANDED | **Verified:** BoundGoback ReturningSource+Raising (StatementBinder.Call.cs), CallEmitGoback; goback_returning.cob ENABLED | phase 7 | Core landed. EXIT SECTION/FUNCTION → BoundUnsupported (FUNCTION leg = Phase 4c). CONTINUE AFTER not in grammar → Phase 7. |
+
+## M2-PRE — preprocessor
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M2-PRE-1 | Preprocessor robustness trio (SOURCE FORMAT switch / CC-in-copy / unknown >>) | partial | PARTIAL | Leg (c) landed (ConditionalCompilationProcessor.cs:126-137); (a) first-wins SOURCE FORMAT only; (b) CC-then-COPY order bug (Frontend.cs:88-93) | none | Low-severity follow-ups (WS-2002-FORMAT). (b) = stage-order swap; (a) = per-line format state. |
+| M2-PRE-2 | Directive semantics depth (>>TURN toggle / recognize-ignore / >>DEFINE AS PARAMETER / >>CALL-CONVENTION) | open | PARTIAL | >>TURN EC-toggle LANDED (TurnState/StatementBinder.Exceptions); recognize-and-ignore LANDED (KnownIgnoredDirectives); >>DEFINE AS PARAMETER Deferred; >>CALL-CONVENTION inert | none | Load-bearing legs landed. Residual low-value, no named track. |
+
+## M2-FILE — file I/O
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M2-FILE-1 | SHARING, LOCK MODE/LOCK ON, RETRY | open | NOT-STARTED | **Verified:** no SHARING/LOCK MODE/RETRY in CobolIO.g4 fileControlClauses/openMode; reserved-word rows only → generic COBOLNET0001 parse error | (d) | Runtime has CobolFile.Locked primitive to build on. |
+| M2-FILE-2 | Line-sequential org + 2002 FILE STATUS codes | open | LANDED | **Verified:** DataBinder.cs:496 MapOrganization, SequentialFile.cs:161/273/276 WriteLine/ReadLine; FileIoDifferentialTests:175 passes | none | Named deliverable landed. Narrow status codes (04/39) + sharing-tied (9x) ride Phase 4(d). |
+
+## M2-OO — object orientation (parent M2-OO-1 + sub-features a–h)
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M2-OO-1 | OO COBOL umbrella (CLASS/METHOD/INVOKE/INHERITS/FACTORY/PROPERTY/INTERFACE/universal/EC-OO) | partial | PARTIAL | 24 oo_* goldens ENABLED (verified on disk — corrected from 25); DEVLOG 600-609. Bulk landed, residue = 1h | none (residue = Phase 3 port) | Catalog ◐ is stale-low. |
+| M2-OO-1a | Instance data + typed params + INHERITS + INVOKE SELF/SUPER + multi-method | remain | LANDED | oo_instance_data/method_args/self/inherit/super/object_group ENABLED; DEVLOG 601-603 | none | 45-agent sweep fixed 22 bugs. |
+| M2-OO-1b | FACTORY (static) methods and data | remain | LANDED | oo_factory ENABLED; DEVLOG 604 | none | FACTORY OF/ACTIVE-CLASS RAISING → 1h. |
+| M2-OO-1c | OVERRIDE / IS FINAL | remain | LANDED | oo_override_final ENABLED; DEVLOG 605 | none | |
+| M2-OO-1d | INTERFACE-ID + IMPLEMENTS | post-slice-6 | LANDED | oo_interface / oo_interface_covariant ENABLED; DEVLOG 606 | none | |
+| M2-OO-1e | PROPERTY (GET/SET) decl + refs | remain | LANDED | oo_property{,_ref,_explicit_ref,_factory_ref,_methods} ENABLED; DEVLOG 606-607 | none | Pinned __GET_/__SET_ accessors. |
+| M2-OO-1f | Universal object ref + __CobolInvoke dispatch | remain | LANDED | oo_universal{,_inherit,_name,_relation} ENABLED; DEVLOG 608 | none | |
+| M2-OO-1g | EC-OO-* model (RAISE id/EXCEPTION-OBJECT/USE F4/RAISING via INVOKE) | remain | LANDED | oo_ec_raise_object / oo_ec_goback_raising ENABLED; DEVLOG 609; conformance 1592/1592 | none | |
+| M2-OO-1h | OO residue (method own ENV/FILE/SCREEN, REDEFINES/ODO/RENAMES/INDEXED in method data, PROPAGATE ON, FACTORY-OF/ACTIVE-CLASS RAISING, object VIEWS, STOP…RAISING) | implied ◐ | STAGED-LOUD | DataBinder.Oo.cs:93-101/115-116/352-369 COBOLNET0899; DEVLOG 609 residue list | none (Phase 3 port residue) | Each fails loud naming owning phase. Some are 2014/2023 surface. |
+
+## M3 — COBOL-2014
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M3-1 | OCCURS DYNAMIC [CAPACITY IN][FROM…TO] | open | NOT-STARTED | **Verified:** zero CAPACITY/OCCURS DYNAMIC grammar hits; only ACCESS MODE DYNAMIC exists; 2014 corpus seeded empty | phase 6 | Phase 6 serial spine (deep-dive first). |
+| M3-2 | TYPEDEF / SAME AS / TYPE TO | open | PARTIAL | TYPE IS reference clause parses (CobolData.g4:253-255) but no bind; TYPEDEF/SAME AS/TYPE TO don't parse | phase 6 | PARTIAL only in the weak sense (TYPE-IS tokenizes). Feature unimplemented end-to-end. |
+| M3-3 | JSON & XML GENERATE/PARSE + XML-CODE/JSON-CODE | open | STAGED-LOUD | Seam grammar only; COBOL0313 vendor diagnostic (EditionGateHints.cs:72-74) | phase 6 | Owner decision-2: VENDOR extensions, zero ISO hits. ISO framing OBSOLETE; statements staged loud. |
+| M3-4 | File lock finalization / function-method pointers / IEEE-754 / limits / cond-expr | open | PARTIAL | CLOSE…WITH LOCK binds + 2023-removal gated; OPEN SHARING/record LOCK/RETRY/UNLOCK reserved-only; FUNCTION/PROGRAM-POINTER reserved-only | d (+ b, 6/7) | Bundle: (d) sharing/lock; (b) USAGE FUNCTION/PROGRAM-POINTER; IEEE/limits/cond-expr → 6/7. "method pointers" wording wrong (0 spec hits). |
+
+## M4 — COBOL-2023
+
+| ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
+|---|---|---|---|---|---|---|
+| M4-1 | DELETE FILE execution (§14.9.10 Fmt 2) | done | PARTIAL | Keyed leg LANDED (StatementBinder.KeyedIo.cs:205-219, IndexedFile.cs:617); sequential leg staged-loud (CSharpEmitter.KeyedIo.cs:246); delete_file.cob (SEQUENTIAL) PENDING | (d) | ON EXCEPTION now honored (catalog follow-up resolved). Sequential leg = file-connector task; multiple file-names not honored. |
+| M4-2a | logical XOR / EXCLUSIVE-OR | done | LANDED | **Verified:** StatementBinder.cs:1144 BindFlatSequence(xorExpr,"^"); logical_xor.cob+.out ENABLED; re-editioned 2023 (DEVLOG 596) | none | Parse+bind+emit(^)+green golden. |
+| M4-2b | SMALLEST-ALGEBRAIC + EXCEPTION-FILE-N intrinsics | open | STAGED-LOUD | IntrinsicCatalog.cs:178/133 Deferred; IntrinsicRenderer.cs:44 LoudValue | phase 5 (+ a) | Gated+arity-checked+loud. EXCEPTION-FILE-N also blocked on national (a). |
+| M4-3 | Other 2023 intrinsic/bit/boolean + dynamic-table finalization | open | STAGED-LOUD | IntrinsicCatalog.cs:172-179 (BASECONVERT/CONCAT/CONVERT/FIND-STRING/MODULE-NAME/SMALLEST-ALGEBRAIC/SUBSTITUTE) Deferred+2023-gated+loud | phase 5 (+ a, 6) | Umbrella. Intrinsics→5; boolean/bit→4(a) not-started; dynamic-table→6 (overlaps M3-1). |
+
+## Wave sizing (remaining work per track)
+
+Excludes 13 LANDED and 1 OBSOLETE-by-design (M2-PROC-3, warning-row only). 24 rows carry remaining work.
+
+| Track | Owns (remaining) | Count | Notes |
+|---|---|---|---|
+| **(a) national/boolean** | M2-DATA-3, M2-DATA-4; + boolean/bit leg of M4-3; + EC-OO -N twins (from OO-1h), EXCEPTION-FILE-N national leg (M4-2b) | 2 primary (+3 shared legs) | National runtime + boolean ops. Unblocks several -N/EC-N legs. |
+| **(b) pointers/ALLOCATE/BASED** | M2-DATA-5, M2-PROC-5; + USAGE FUNCTION/PROGRAM-POINTER leg of M3-4 | 2 primary (+1 shared) | ManagedPointer carrier is the spine; ALLOCATE binder blocked here. |
+| **(c) UDF/prototypes** | M2-UDF-1, M2-UDF-2, M2-UDF-3, M2-UDF-4; + EXIT FUNCTION leg of M2-PROC-6; + >>CALL-CONVENTION (loose) | 4 primary (+1 leg) | Largest single-track cluster. UDF-1 invocation unblocks 2/4 and EXIT FUNCTION. |
+| **(d) file sharing/lock/retry** | M2-FILE-1, M4-1 (sequential leg); + file-lock leg of M3-4; + narrow status codes of M2-FILE-2 | 2 primary (+2 legs) | Runtime CobolFile.Locked primitive exists. |
+| **(e) arithmetic** | M2-ARITH-1 (PROHIBITED move-COMPUTE fix), M2-ARITH-2 (golden rebaseline + inert legs) | 2 (both small) | Effectively bugfix + rebaseline, not new features. |
+| **(f)** | — | 0 | No catalog item maps to (f). |
+| **(g)** | — | 0 | No catalog item maps to (g). |
+| **Phase 4 misc (unlettered)** | M2-DATA-1 (BINARY-CHAR family numeric-usage) | 1 | ConstructDialectStatus numeric-usage add-on. |
+| **Phase 3 OO port residue** | M2-OO-1h (0899-staged edges) | 1 | Not an (a)-(g) track; owned by the OO port. |
+| **Phase 5 (intrinsics)** | M4-2b, M4-3 (intrinsic slice: BASECONVERT/CONCAT/CONVERT/FIND-STRING/MODULE-NAME/SMALLEST-ALGEBRAIC/SUBSTITUTE) | 2 | Catalogued+gated+loud; runtime bodies remain. |
+| **Phase 6** | M2-DATA-2 (IEEE floats), M3-1 (OCCURS DYNAMIC), M3-2 (TYPEDEF/SAME AS/TYPE TO), M3-3 (JSON/XML vendor), + dynamic-table leg of M4-3 | 4 primary (+1 leg) | OCCURS DYNAMIC deep-dive is the serial spine. |
+| **Phase 7** | M2-PROC-3 (VALIDATE warning row), M2-PROC-6 (CONTINUE AFTER remnant); + M2-PRE-1, M2-PRE-2 (preprocessor robustness, no lettered track) | 2 primary (+2 preproc) | Disposition sweep / low-severity follow-ups. |
+
+## Corrections (claims adjusted or clarified)
+
+1. **M2-OO-1 golden count: 25 → 24.** The audit row says "25 oo_* goldens ENABLED"; disk truth is 24
+   oo_*.out files and 24 distinct oo_* names in the 2002 manifest. Sub-feature evidence (1a-1g) is
+   otherwise accurate. Correction is cosmetic — does not change the LANDED verdict for any sub-item.
+2. **M2-PROC-2 diagnostic code named.** Audit left the code unstated; the greenfield gate is
+   `COBOLNET0845` (StatementBinder.Inspect.cs:65), gated to 2023 (not 2002). Confirms the row's own
+   2023-framing note over the catalog's 2002 framing. No status change.
+3. **No status marks overturned.** All 8 spot-checked LANDED (INITIALIZE, INSPECT BACKWARD, Exception
+   handling, GOBACK RETURNING, line-sequential, OO-1a/e/g representative, XOR) verified genuinely
+   end-to-end with green goldens. All 3 NOT-STARTED (UDF-3 prototypes, OCCURS DYNAMIC, SHARING/LOCK/RETRY)
+   verified as zero greenfield surface. Extra checks (M2-PROC-5 ALLOCATE falls to generic
+   BoundUnsupported; M2-PROC-3 VALIDATE zero grammar; PicInfo 19 skeleton-usage hits for DATA-1..5)
+   all match the audit. The audit rows are trustworthy for wave planning.

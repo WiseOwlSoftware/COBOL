@@ -340,6 +340,13 @@ first; large subsystems (pointers, exceptions, OO) last.
 
 ## 3. Work-breakdown — the catalog
 
+> ⛔ **The ☑/◐ marks below are LEGACY-era. For GREENFIELD truth read `docs/PHASE4_RECONCILIATION.md`**
+> (DEVLOG 610 — the ratified Phase-4 entry audit). Many "done" items (all of §3.2 M2-DATA:
+> BINARY-CHAR / FLOAT / NATIONAL / BIT / POINTER; both §3.1 UDF invocation rows) were done in the RETIRED
+> byte engine and stage LOUD (COBOLNET0899) in the greenfield — Phase 4 reclaims them. The OO umbrella
+> (§3.7, catalogued ◐) is effectively DONE (24 goldens; DEVLOG 600-609). Use the reconciliation table's
+> per-track wave sizing, not these marks, to scope work.
+
 Each item: **ID** · feature · spec ref · severity · tractability · current state · recipe (files) · deps.
 
 ### 3.1 M2 — User-defined functions (finish the workstream)

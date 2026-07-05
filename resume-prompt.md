@@ -186,9 +186,14 @@
 > runtime-narrow → EC-OO-UNIVERSAL), header partitions (0858), F4 unknown-class 0859, the 0901
 > register-context exemption. 2 goldens (25 oo_*), +9 spine tests. Residue 0899-named: PROPAGATE ON,
 > interface/FACTORY-OF/ACTIVE-CLASS RAISING legs, method declaratives, object VIEWS.
-> **RESUME = the Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md`** (pointers/ALLOCATE on
-> ManagedPointer, national/boolean, UDFs, the intrinsics gaps; OO riders queued: interface GET/SET
-> PROPERTY prototypes, group-valued property refs, FACTORY OF usage, object views) **toward 100%.
+> **PHASE 4 OPEN (DEVLOG 610): the reconciliation audit LANDED** — `docs/PHASE4_RECONCILIATION.md` is the
+> greenfield-truth view (catalog ☑ marks are legacy-only mirages: all M2-DATA + UDF-invocation rows stage
+> LOUD; M2-PROC-4 EC + the OO umbrella are actually done). Per-track sizing there.
+> **RESUME = the Phase-4 tracks, sized against truth:** (e) arithmetic FIRST (smallest —
+> rounded_mode_prohibited move-COMPUTE checked-store leak + options_paragraph rebaseline), then (a)
+> national/boolean, (c) UDF invocation, (b) pointers on ManagedPointer, (d) sharing/lock/retry; OO
+> riders queued (interface GET/SET PROPERTY prototypes, group-valued property refs, FACTORY OF usage,
+> object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits

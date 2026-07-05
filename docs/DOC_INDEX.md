@@ -71,6 +71,7 @@
 | Doc | Type | Subject |
 |---|---|---|
 | `docs/ISO2023_CONFORMANCE_PLAN.md` | LEDGER | The M2/M3/M4 feature catalog (post-85 features to implement). ⚠ Its data-model-migration framing is obsolete (banner inside) — use it only for the feature list. |
+| `docs/PHASE4_RECONCILIATION.md` | LEDGER | **The GREENFIELD-truth view of the M2/M3/M4 catalog** (DEVLOG 610, the ratified Phase-4 entry audit): per-item LANDED/PARTIAL/STAGED-LOUD/NOT-STARTED/OBSOLETE with evidence + per-track wave sizing. SUPERSEDES the catalog's legacy ☑/◐ marks. Keep in sync as Phase-4 tracks land. |
 
 ## ISO specification (authoritative)
 
