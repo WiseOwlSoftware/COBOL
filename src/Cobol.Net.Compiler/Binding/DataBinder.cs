@@ -612,6 +612,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var indexNames = new List<string>();
         SignSpec? ownSign = null;
         bool justified = false, blankWhenZero = false;
+        bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
@@ -625,6 +626,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clause.usageClause() is { } usage)
                 {
                     usageText = UsageKeyword(usage);
+                    // SIGNED (default) / UNSIGNED on a fixed-width binary usage (ISO §13.18.60.4 GR12) — the
+                    // binarySign sibling is a direct child of usageClause in BOTH the full (USAGE IS
+                    // BINARY-CHAR SIGNED) and the bare (BINARY-CHAR SIGNED) alternatives.
+                    binaryUnsigned = usage.binarySign()?.UNSIGNED() is not null;
                     var oru = usage.usageKeyword()?.objectReferenceUsage();
                     if (oru?.FACTORY() is not null)
                         // OBJECT REFERENCE FACTORY OF class (§13.18.60 :22681) — the factory-object
@@ -688,11 +693,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "class or interface of the compilation group (ISO §13.18.60.2/.4; separate compilation is "
                 + "a later slice)");
 
+        // PICTURE is prohibited on a fixed-width binary usage (ISO §13.16.3 SR8 — the item is picture-less; its
+        // width and range are fixed by the usage, §13.18.60.4 GR12). Reject loud, never let Analyze classify an
+        // incoherent picture-with-binary shape (the W2 silent-misbind rule; the OBJECT REFERENCE 0812 pattern).
+        if (entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
+            && pictureText is not null)
+        {
+            Edition.Error("COBOLNET0870", $"{entryWhere}: PICTURE may not be specified with a fixed-width binary "
+                + "usage (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) — the item is picture-less (ISO §13.16.3 SR8)");
+            pictureText = null;
+        }
+
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
+            : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
+                ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
             : skeletonUsage ? PicInfo.RecoveryItem : null;
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
@@ -773,6 +791,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // inherits per §13.18.60.4 GR1; a Pic'd "group" would stop grouping — DEVLOG 597).
                 if (ReferenceEquals(item.Pic, PicInfo.RecoveryItem)) item.Pic = null;
                 if (item.Pic is { Category: PicCategory.ObjectReference }) item.Pic = null;
+                // A synthesized fixed-width binary profile on a GROUP header sheds the same way (the usage
+                // merely inherits per §13.18.60.4 GR1). Group-level BINARY-* over PICTURE'd children is a spec
+                // corner with no corpus surface (PICTURE is §13.16.3 SR8-illegal on the family) — left to a
+                // later slice, mirroring the float-on-group deferral in InheritUsageClauses.
+                if (item.Pic is { Category: PicCategory.Numeric, Usage: Usage.BinaryChar or Usage.BinaryShort
+                        or Usage.BinaryLong or Usage.BinaryDouble }) item.Pic = null;
                 foreach (var c in item.Children) Walk(c, isIndex, objRef);
             }
             else if (isIndex && item.Pic is null)
@@ -992,9 +1016,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // records aligned on the leftmost byte position". Its binary/packed leaves become zoned windows (the
         // StoreAsImage loop in ClassifyRedefinesClasses). (No pointer/object/strongly-typed items exist in the
         // bound model yet → no Tier-D check.)
-        if (leaves.Any(l => l.Pic is { } p && (p.IsFloat || p.Usage is Usage.Comp5 or Usage.Index)))
+        if (leaves.Any(l => l.Pic is { } p && (p.IsFloat
+            || p.Usage is Usage.Comp5 or Usage.Index
+                or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble)))
         {
-            reject = $"float/COMP-5/INDEX REDEFINES of '{cls.Canonical.CobolName}' (Tier-C byte path) not yet implemented";
+            reject = $"float/COMP-5/BINARY-*/INDEX REDEFINES of '{cls.Canonical.CobolName}' (Tier-C byte path) not yet implemented";
             return RedefinesTier.Rejected;
         }
 

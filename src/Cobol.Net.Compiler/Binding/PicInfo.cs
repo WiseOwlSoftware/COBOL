@@ -63,19 +63,20 @@ public enum Usage
     /// reference field (typed or universal — <see cref="PicInfo.ObjectClassName"/>); zero character positions.</summary>
     ObjectReference,
 
-    // ── SKELETON usages (the W2 loud-guard sweep): the ISO-2002 §13.18.60 usage inventory that COBOL.NET
-    // recognizes + edition-gates but does NOT implement yet. NOTHING constructs a PicInfo carrying one of
-    // these — PicInfo.ParseUsage rejects each loudly (its ConstructRegistry introduction gate + the
-    // COBOLNET0899 not-implemented error) and recovers to Display so the already-failed compile finishes its
-    // doomed emit pass without crashing. Every storage-mapping switch over Usage guards them with a THROW
-    // (never a silent default arm) so a future phase that starts constructing them fails loud, not wrong. ──
+    // ── The post-'85 §13.18.60 usage inventory. POINTER and the BINARY-CHAR family are LIVE (constructed
+    // by DataBinder). The rest are W2 SKELETONS COBOL.NET recognizes + edition-gates but does NOT implement
+    // yet: for a skeleton member NOTHING constructs a PicInfo carrying it — PicInfo.ParseUsage rejects each
+    // loudly (its ConstructRegistry introduction gate + the COBOLNET0899 not-implemented error) and recovers
+    // to Display so the already-failed compile finishes its doomed emit pass without crashing. Every
+    // storage-mapping switch over Usage guards the skeleton members with a THROW (never a silent default arm)
+    // so a future phase that starts constructing one fails loud, not wrong. ──
 
     /// <summary>USAGE NATIONAL (ISO §13.18.60 / §8.5.2.10) — SKELETON; full implementation Phase 4a.</summary>
     National,
     /// <summary>USAGE BIT (ISO §13.18.60 / §8.5.2.5 category boolean) — SKELETON; Phase 4a.</summary>
     Bit,
-    /// <summary>USAGE POINTER (ISO §13.18.60 / §8.5.2.6 data-pointer) — SKELETON; Phase 4b (the
-    /// ManagedPointer carrier).</summary>
+    /// <summary>USAGE POINTER (ISO §13.18.60 / §8.5.2.6 data-pointer) — LIVE (Phase-4b increment 1): the
+    /// ManagedPointer carrier (<see cref="PicCategory.Pointer"/>).</summary>
     Pointer,
     /// <summary>USAGE FLOAT-SHORT (ISO §13.18.60; the §13.18.59 D16 split) — SKELETON; Phase 6. NOT part of
     /// <see cref="PicInfo.IsFloat"/> until implemented — COMP-1/COMP-2 remain the only live float usages.</summary>
@@ -84,14 +85,18 @@ public enum Usage
     FloatLong,
     /// <summary>USAGE FLOAT-EXTENDED (ISO §13.18.60) — SKELETON; Phase 6.</summary>
     FloatExtended,
-    /// <summary>USAGE BINARY-CHAR [SIGNED|UNSIGNED] (ISO §13.18.60) — SKELETON; Phase 4 (the M2 catalog
-    /// reconciliation).</summary>
+    /// <summary>USAGE BINARY-CHAR [SIGNED|UNSIGNED] (ISO §13.18.60.4 GR12) — LIVE (Phase 4 M2-DATA-1): a
+    /// PICTURE-less native 1-byte two's-complement integer (SIGNED −128..127, UNSIGNED 0..255), realized on the
+    /// COMP-5 BinaryCapacity discipline (<see cref="PicInfo.BinaryItem"/>).</summary>
     BinaryChar,
-    /// <summary>USAGE BINARY-SHORT (ISO §13.18.60) — SKELETON; Phase 4.</summary>
+    /// <summary>USAGE BINARY-SHORT (ISO §13.18.60.4 GR12) — LIVE (Phase 4): a native 2-byte integer
+    /// (SIGNED −32768..32767, UNSIGNED 0..65535).</summary>
     BinaryShort,
-    /// <summary>USAGE BINARY-LONG (ISO §13.18.60) — SKELETON; Phase 4.</summary>
+    /// <summary>USAGE BINARY-LONG (ISO §13.18.60.4 GR12) — LIVE (Phase 4): a native 4-byte integer
+    /// (SIGNED −2^31..2^31−1, UNSIGNED 0..2^32−1).</summary>
     BinaryLong,
-    /// <summary>USAGE BINARY-DOUBLE (ISO §13.18.60) — SKELETON; Phase 4.</summary>
+    /// <summary>USAGE BINARY-DOUBLE (ISO §13.18.60.4 GR12) — LIVE (Phase 4): a native 8-byte integer
+    /// (SIGNED −2^63..2^63−1, UNSIGNED 0..2^64−1; stored as <see cref="Int128"/>).</summary>
     BinaryDouble,
 }
 
@@ -160,8 +165,7 @@ public sealed record PicInfo(
     private bool IsUnimplementedSkeleton =>
         Category is PicCategory.National or PicCategory.Boolean
         || Usage is Usage.National or Usage.Bit
-            or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
-            or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble;
+            or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended;
 
     /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the declared class name
     /// (<c>USAGE OBJECT REFERENCE class-name</c>, ISO §13.18.60.4) — null for a UNIVERSAL object reference
@@ -178,6 +182,27 @@ public sealed record PicInfo(
     /// synthesis pattern). Occupies NO character positions (never part of a group's §13.18.60 GR4 image).</summary>
     public static PicInfo PointerItem { get; } =
         new(PicCategory.Pointer, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false);
+
+    /// <summary>The synthesized profile of a PICTURE-less fixed-width binary item (USAGE BINARY-CHAR/-SHORT/
+    /// -LONG/-DOUBLE, ISO §13.18.60.4 GR12; PICTURE prohibited per §13.16.3 SR8). Category numeric, realized as
+    /// a native two's-complement integer of the fixed byte width (1/2/4/8) under the COMP-5 BinaryCapacity
+    /// truncation discipline (numeric design D6). SIGNED is the default (GR12); UNSIGNED clears the operational
+    /// sign and widens the positive range (same storage width, GR21). The spec gives no implied PICTURE, so the
+    /// DISPLAY digit count is COBOL.NET's documented implementor choice: the decimal width of the range's
+    /// maximum magnitude — CHAR 3 / SHORT 5 / LONG 10 / DOUBLE 19 (signed) · 20 (unsigned).</summary>
+    public static PicInfo BinaryItem(Usage usage, bool signed)
+    {
+        int digits = usage switch
+        {
+            Usage.BinaryChar => 3,
+            Usage.BinaryShort => 5,
+            Usage.BinaryLong => 10,
+            Usage.BinaryDouble => signed ? 19 : 20,
+            _ => throw new ArgumentException($"not a fixed-width binary usage: {usage}", nameof(usage)),
+        };
+        return new PicInfo(PicCategory.Numeric, usage, Length: digits, Digits: digits, Scale: 0, Signed: signed)
+            { SignKind = SignKindFor(usage, signed, sign: null) };
+    }
 
     /// <summary>The loud internal error for a skeleton representation reaching a storage-mapping switch —
     /// the bind-time gates must have rejected it first (W2 loud guard; owning phases per ConstructRegistry).</summary>
@@ -241,6 +266,12 @@ public sealed record PicInfo(
         _ when IsUnimplementedSkeleton => throw SkeletonReached(),
         Usage.Packed => Digits / 2 + 1,
         Usage.Binary or Usage.Comp5 => Digits <= 2 ? 1 : Digits <= 4 ? 2 : Digits <= 9 ? 4 : 8,
+        // The fixed-width binary usages own their byte width directly (independent of the implied Digits;
+        // ISO §13.18.60.4 GR21 — implementor-defined length, SIGNED and UNSIGNED the same width).
+        Usage.BinaryChar => 1,
+        Usage.BinaryShort => 2,
+        Usage.BinaryLong => 4,
+        Usage.BinaryDouble => 8,
         _ => 0,
     };
 
@@ -256,7 +287,8 @@ public sealed record PicInfo(
             string trunc = Usage switch
             {
                 Usage.Packed => "NumericTruncation.PackedDecimal",
-                Usage.Comp5 => "NumericTruncation.BinaryCapacity",
+                Usage.Comp5 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
+                    => "NumericTruncation.BinaryCapacity",
                 _ => "NumericTruncation.DigitCount",
             };
             return $"new NumProfile {{ Digits = {Digits}, FractionDigits = {Scale}, " +
@@ -492,8 +524,21 @@ public sealed record PicInfo(
             case "OBJECT REFERENCE":
                 ConstructRegistry.Check(edition, "usage-object-reference-2002", where);
                 return Usage.ObjectReference;
-            case "BINARY-CHAR" or "BINARY-SHORT" or "BINARY-LONG" or "BINARY-DOUBLE":
-                return SkeletonUsage(edition, "usage-binary-char-family-2002", "Phase 4", where, out skeleton);
+            // The fixed-width binary usages — LIVE (Phase 4 M2-DATA-1): only the introduction gate remains
+            // (0900 below 2002; the registry row is silent at 2002+, like POINTER / OBJECT REFERENCE). The
+            // caller synthesizes PicInfo.BinaryItem (PICTURE-less per §13.16.3 SR8; the IndexItem pattern).
+            case "BINARY-CHAR":
+                ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
+                return Usage.BinaryChar;
+            case "BINARY-SHORT":
+                ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
+                return Usage.BinaryShort;
+            case "BINARY-LONG":
+                ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
+                return Usage.BinaryLong;
+            case "BINARY-DOUBLE":
+                ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
+                return Usage.BinaryDouble;
             case "FLOAT-SHORT": return SkeletonUsage(edition, "usage-float-short-2002", "Phase 6", where, out skeleton);
             case "FLOAT-LONG": return SkeletonUsage(edition, "usage-float-long-2002", "Phase 6", where, out skeleton);
             case "FLOAT-EXTENDED": return SkeletonUsage(edition, "usage-float-extended-2002", "Phase 6", where, out skeleton);

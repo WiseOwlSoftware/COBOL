@@ -56,16 +56,31 @@ public sealed class LoudGuardTests
         Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
     }
 
+    /// <summary>The BINARY-CHAR family went LIVE with Phase 4 M2-DATA-1 (ISO §13.18.60.4 GR12): each keyword
+    /// maps to its OWN <see cref="Usage"/> member and binds silently at 2002+; below 2002 the introduction
+    /// gate names the edition (COBOLNET0900) — never the retired 0899 not-implemented posture.</summary>
+    [Theory]
+    [InlineData("BINARY-CHAR", Usage.BinaryChar)]
+    [InlineData("BINARY-SHORT", Usage.BinaryShort)]
+    [InlineData("BINARY-LONG", Usage.BinaryLong)]
+    [InlineData("BINARY-DOUBLE", Usage.BinaryDouble)]
+    public void ParseUsage_BinaryCharFamily_LiveAt2002_IntroductionGatedAt85(string keyword, Usage expected)
+    {
+        var ok = Ed(2002);
+        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ok, "data item 'T'"));
+        Assert.False(ok.HasErrors, $"USAGE {keyword} must bind cleanly at 2002: {string.Join("; ", ok.Diagnostics)}");
+        var ed85 = Ed(85);
+        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed85, "data item 'T'"));
+        Assert.True(ed85.HasErrors, $"USAGE {keyword} is 2002+; 85 must reject");
+        Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
+    }
+
     // ── ParseUsage: the 2002+ skeleton inventory is NEVER silent (ISO §13.18.60 general format) ────────────
 
     [Theory]
     [InlineData("NATIONAL")]
     [InlineData("BIT")]
     [InlineData("POINTER")]
-    [InlineData("BINARY-CHAR")]
-    [InlineData("BINARY-SHORT")]
-    [InlineData("BINARY-LONG")]
-    [InlineData("BINARY-DOUBLE")]
     [InlineData("FLOAT-SHORT")]
     [InlineData("FLOAT-LONG")]
     [InlineData("FLOAT-EXTENDED")]
@@ -80,8 +95,8 @@ public sealed class LoudGuardTests
     [Theory]
     [InlineData("NATIONAL", "phase: Phase 4a)")]
     [InlineData("BIT", "phase: Phase 4a)")]
-    // POINTER left this set at Phase-4b increment 1 (LIVE, DEVLOG 613) — it binds at 2002+, no 0899.
-    [InlineData("BINARY-CHAR", "phase: Phase 4)")]
+    // POINTER left this set at Phase-4b increment 1 (LIVE, DEVLOG 613); the BINARY-CHAR family left it at
+    // Phase 4 M2-DATA-1 (LIVE, DEVLOG 614) — both bind at 2002+, no 0899.
     [InlineData("FLOAT-SHORT", "phase: Phase 6)")]
     [InlineData("FLOAT-LONG", "phase: Phase 6)")]
     [InlineData("FLOAT-EXTENDED", "phase: Phase 6)")]

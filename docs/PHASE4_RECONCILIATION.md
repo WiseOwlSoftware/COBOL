@@ -31,7 +31,7 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
 
 | ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
 |---|---|---|---|---|---|---|
-| M2-DATA-1 | USAGE BINARY-CHAR/SHORT/LONG/DOUBLE [SIGNED\|UNSIGNED] | done | STAGED-LOUD | PicInfo.cs:82-90 skeleton → COBOLNET0899; DataSkeletonEditionTests BCF/BCS/BCL/BCD; binary_usage.cob PENDING | Phase 4 numeric-usage add-on (unlettered) | LEGACY-only "done". Bare + full spellings gate identically. |
+| M2-DATA-1 | USAGE BINARY-CHAR/SHORT/LONG/DOUBLE [SIGNED\|UNSIGNED] | done | **LANDED (DEVLOG 614)** | PICTURE-less native 1/2/4/8-byte two's-complement integers (SIGNED default / UNSIGNED widens) on the COMP-5 BinaryCapacity discipline: `PicInfo.BinaryItem` + `Usage.BinaryChar/Short/Long/Double` un-skeletoned; `CobolNum.WrapBinary`/`InBinaryRange` implement the byte-width wrap + SIZE-ERROR range check (was a documented stub); `binary_usage.cob` ENABLED byte-exact; PICTURE prohibited COBOLNET0870 (§13.16.3 SR8); +24 BinaryCapacityTests unit + BinaryUsageDataTests end-to-end + DataSkeleton/LoudGuard/VersionMatrix flips | none | Implied DISPLAY width 3/5/10/19·20 (GR21 implementor choice); 0900 below 2002. |
 | M2-DATA-2 | USAGE FLOAT-SHORT/LONG/EXTENDED | done | STAGED-LOUD | PicInfo.cs:75-81 skeleton → 0899; ConstructDialectStatus 114-115 "Phase 6"; float_usage.cob PENDING | phase 6 | IEEE-float families deferred to Phase 6 (D16). |
 | M2-DATA-3 | National data — USAGE NATIONAL + PIC N | done | STAGED-LOUD | PicInfo.cs:317/328/467 → 0899; national_data.cob PENDING | (a) | Both N symbol + USAGE NATIONAL reject loud. |
 | M2-DATA-4 | Boolean & bit — USAGE BIT + PIC 1 | done | STAGED-LOUD | PicInfo.cs:318/329/468 → 0899; boolean_data.cob PENDING | (a) | Boolean OPERATORS (B-AND/OR/XOR/NOT) also absent; (a) adds them. |
@@ -114,7 +114,7 @@ Excludes 13 LANDED and 1 OBSOLETE-by-design (M2-PROC-3, warning-row only). 24 ro
 | **(e) arithmetic** | M2-ARITH-1 (PROHIBITED move-COMPUTE fix), M2-ARITH-2 (golden rebaseline + inert legs) | 2 (both small) | Effectively bugfix + rebaseline, not new features. |
 | **(f)** | — | 0 | No catalog item maps to (f). |
 | **(g)** | — | 0 | No catalog item maps to (g). |
-| **Phase 4 misc (unlettered)** | M2-DATA-1 (BINARY-CHAR family numeric-usage) | 1 | ConstructDialectStatus numeric-usage add-on. |
+| **Phase 4 misc (unlettered)** | ~~M2-DATA-1 (BINARY-CHAR family numeric-usage)~~ **LANDED (DEVLOG 614)** | 0 | Native fixed-width binary integers + the BinaryCapacity wrap (also cures COMP-5's stubbed overflow). |
 | **Phase 3 OO port residue** | M2-OO-1h (0899-staged edges) | 1 | Not an (a)-(g) track; owned by the OO port. |
 | **Phase 5 (intrinsics)** | M4-2b, M4-3 (intrinsic slice: BASECONVERT/CONCAT/CONVERT/FIND-STRING/MODULE-NAME/SMALLEST-ALGEBRAIC/SUBSTITUTE) | 2 | Catalogued+gated+loud; runtime bodies remain. |
 | **Phase 6** | M2-DATA-2 (IEEE floats), M3-1 (OCCURS DYNAMIC), M3-2 (TYPEDEF/SAME AS/TYPE TO), M3-3 (JSON/XML vendor), + dynamic-table leg of M4-3 | 4 primary (+1 leg) | OCCURS DYNAMIC deep-dive is the serial spine. |

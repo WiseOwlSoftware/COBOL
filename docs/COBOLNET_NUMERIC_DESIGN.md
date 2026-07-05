@@ -99,6 +99,21 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 **Rejected alternatives.** (a) Throw on overflow — REJECTED: SIZE ERROR is a recoverable COBOL condition with an imperative handler, not an exception; throwing would skip the receiver-unchanged rule and the NOT ON SIZE ERROR path. (b) Always truncate silently — REJECTED: wrong when ON SIZE ERROR is present and wrong for PROHIBITED.
 
+> **✅ SHIPPED (DEVLOG 614, Phase 4 M2-DATA-1):** the BinaryCapacity leg — previously a documented stub
+> (`%= Pow10(Digits)` skipped, "COMP-5 wraps by width — later slice") — is now enforced in BOTH `Store`
+> (WRAP by native two's-complement width: the deterministic no-ON-SIZE-ERROR truncation, the width analog of
+> high-order digit truncation) and `TryStore` (range check → SIZE ERROR when the value leaves the byte-width
+> range), keyed off `NumProfile.StorageLength` and branching signed vs unsigned (`WrapBinary` / `InBinaryRange`,
+> §14.9.25 GR8 for the unsigned magnitude rule). ONE refinement vs the sketch above: the unsigned 8-byte range
+> (0..2^64−1) is carried by the existing **Int128** substrate rather than a native `ulong` — the monomorphic
+> wide engine already represents it, so no new storage type was added (COMP-5 and BINARY-DOUBLE both stay
+> long/Int128 by digit tier, ClrType unchanged). The **BINARY-CHAR family** (USAGE BINARY-CHAR/-SHORT/-LONG/
+> -DOUBLE, ISO §13.18.60.4 GR12) rides this exact leg: `PicInfo.BinaryItem` synthesizes a PICTURE-less Numeric
+> item with the fixed byte width (1/2/4/8 → StorageWidth), BinaryCapacity truncation, SIGNED default / UNSIGNED,
+> and an implied DISPLAY digit count = the range's max-magnitude decimal width (CHAR 3 / SHORT 5 / LONG 10 /
+> DOUBLE 19 signed · 20 unsigned — the spec gives no implied PICTURE, GR21, so this is the documented
+> implementor choice). PICTURE is prohibited on the family (§13.16.3 SR8 → COBOLNET0870).
+
 ### D7. COMP-1/COMP-2 (and mixed float/fixed expressions) bypass the scaled-integer engine: the float operand promotes the whole sub-expression to `double`, computed in IEEE, and the final store to a fixed-point receiver converts double→CobolInt at the receiver scale (round per mode).
 
 **Rationale.** ISO §8.8.1: a floating operand makes the result floating. The legacy MoveNumericToNumeric / StoreArithmeticResult explicitly guard `if (Usage is Comp1 or Comp2) skip fixed-point scaling` and store the IEEE value directly. COMP-1=float, COMP-2=double are hardware IEEE (no PIC truncation). The 31-digit composite rule excludes float operands (§ rule 2b p595: when any operand is float, the limit applies to the OTHER operands only).
@@ -180,7 +195,7 @@ if (CobolNum.IsNumericClass(rawImageOrValue, P_X)) ...
 - **Composite-of-operands limit — 18 digits (1985) vs 31 (2002+)** (§14.7.5 rule 2): the compile-time threshold is per-edition, not the constant 31.
 - **ROUNDED MODE IS / the 8 modes / DEFAULT ROUNDED (§11.9.6) / INTERMEDIATE ROUNDING (§11.9.11) — 2014+**: at `--std 85|2002` bare ROUNDED means the single nearest-away-from-zero rounding, and `ROUNDED MODE IS …` + those OPTIONS clauses are not-yet-introduced diagnostics. 2014→2023 behavior delta: rounding raises EC-SIZE-TRUNCATION only under PROHIBITED (`VERSION_CHANGE_REFERENCE.md` row 53).
 - **ARITHMETIC clause**: `NATIVE`/`STANDARD` are 2002 introductions (derive from the 2002 standard); `STANDARD-BINARY`/`STANDARD-DECIMAL` 2014+; at 2023 `STANDARD` is REMOVED (row 28) and `STANDARD-BINARY` is flagged OBSOLETE (row 116). At `--std 85` the whole clause is not-yet-introduced. A legal-but-unimplemented mode (STANDARD-DECIMAL at 2014/2023) additionally needs a clean not-implemented diagnostic, distinct from the edition gate.
-- **BINARY-CHAR/SHORT/LONG/DOUBLE usages — 2002+** (they lower to the COMP-5 binary-wrap discipline); diagnosed at `--std 85`. COMP-5 itself is an extension — document its per-dialect availability.
+- **BINARY-CHAR/SHORT/LONG/DOUBLE usages — 2002+** (they lower to the COMP-5 binary-wrap discipline); diagnosed at `--std 85`. **LIVE (Phase 4 M2-DATA-1, DEVLOG 614):** PICTURE-less native 1/2/4/8-byte two's-complement integers (SIGNED default / UNSIGNED widens), BinaryCapacity truncation, implied DISPLAY digit width 3/5/10/19·20; introduction gate COBOLNET0900 below 2002, PICTURE prohibited COBOLNET0870 (§13.16.3 SR8). COMP-5 itself is an extension — document its per-dialect availability.
 - **EC-* exception conditions (EC-SIZE-*) — 2002+**: at `--std 85` only the ON SIZE ERROR phrase semantics exist; EC names/TURN must not surface.
 
 (Verify every edition attribution above against the spec's Annex E / the edition record before wiring the gate — the spec, not this list, is authority.)

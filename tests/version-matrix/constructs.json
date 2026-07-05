@@ -456,12 +456,11 @@
     },
     {
       "id": "usage-binary-char-family-2002",
-      "status": "pending",
-      "description": "The fixed-width binary usages BINARY-CHAR/-SHORT/-LONG/-DOUBLE (ISO 13.18.60). PENDING: currently silent-misbind to DISPLAY (the bare-form UsageKeyword string-strip makes BINARY-CHAR SIGNED fall through); the W2 loud-guard sweep makes them loud (0900 below 2002); Phase 4 reconciliation sizes the implementation.",
+      "description": "The fixed-width binary usages BINARY-CHAR/-SHORT/-LONG/-DOUBLE (ISO 13.18.60.4 GR12/GR21) - native two's-complement 1/2/4/8-byte integers, SIGNED default / UNSIGNED widens, realized on the COMP-5 BinaryCapacity discipline. LIVE (Phase 4 M2-DATA-1, DEVLOG 614): compiles at 2002+; below 2002 the introduction gate names the edition (COBOLNET0900).",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
-      "vcr": "M2 catalog (Phase 4 reconciliation); skeleton (W2)",
+      "vcr": "M2 catalog (Phase 4 M2-DATA-1); native fixed-width binary integers",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UBIN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-B USAGE BINARY-LONG.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
     {

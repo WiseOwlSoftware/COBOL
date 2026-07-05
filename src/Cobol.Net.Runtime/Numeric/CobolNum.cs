@@ -57,8 +57,9 @@ public static class CobolNum
         CobolRounding mode = CobolRounding.Truncation)
     {
         Int128 v = Rescale(value, valueScale, receiver.FractionScale, mode);
-        if (receiver.Truncation != NumericTruncation.BinaryCapacity)
-            v %= Pow10Wide(receiver.Digits);   // high-order digit truncation (COMP-5 wraps by width — later slice)
+        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
+            return WrapBinary(v, receiver);   // native two's-complement width (COMP-5 / BINARY-CHAR family)
+        v %= Pow10Wide(receiver.Digits);      // high-order digit truncation (DISPLAY / COMP / BINARY)
         return receiver.Signed ? v : Int128.Abs(v);
     }
 
@@ -81,17 +82,23 @@ public static class CobolNum
 
         Int128 v = Rescale(value, valueScale, receiver.FractionScale, mode);
 
-        // High-order capacity check by digit count (DISPLAY/COMP/BINARY). COMP-5 (BinaryCapacity) bounds by
-        // two's-complement width — not yet checked here (a later slice), matching Store's no-truncation path.
-        // The compare avoids Math.Abs(long.MinValue) by bounding both signs against the positive limit.
-        if (receiver.Truncation != NumericTruncation.BinaryCapacity)
+        // BinaryCapacity (COMP-5 / BINARY-CHAR family): the SIZE ERROR boundary is the native two's-complement
+        // range of the byte width (ISO §13.18.60.4 GR12) — signed [-2^(bits-1), 2^(bits-1)), unsigned magnitude
+        // [0, 2^bits) (§14.9.25 GR8 for the unsigned-magnitude rule).
+        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
         {
-            Int128 limit = Pow10Wide(receiver.Digits);   // Digits ≤ 38 within the wide engine
-            if (v >= limit || v <= -limit) return false;
+            if (!InBinaryRange(v, receiver)) return false;
+            stored = receiver.Signed ? v : Int128.Abs(v);
+            return true;
         }
 
-        // Unsigned receiver stores the magnitude (§14.9.25 GR8). On the digit-count path v is bounded (it passed the
-        // capacity check), so Math.Abs is safe; the BinaryCapacity (COMP-5) magnitude rule is a later slice (as in Store).
+        // High-order capacity check by digit count (DISPLAY/COMP/BINARY). The compare avoids
+        // Math.Abs(long.MinValue) by bounding both signs against the positive limit.
+        Int128 limit = Pow10Wide(receiver.Digits);   // Digits ≤ 38 within the wide engine
+        if (v >= limit || v <= -limit) return false;
+
+        // Unsigned receiver stores the magnitude (§14.9.25 GR8); v is bounded (it passed the capacity check),
+        // so Math.Abs is safe.
         stored = receiver.Signed ? v : Int128.Abs(v);
         return true;
     }
@@ -102,8 +109,9 @@ public static class CobolNum
     public static Int128 Store(CobolDec value, in NumProfile receiver, CobolRounding mode = CobolRounding.Truncation)
     {
         Int128 v = value.ToUnscaled(receiver.FractionScale, mode);
-        if (receiver.Truncation != NumericTruncation.BinaryCapacity)
-            v %= Pow10Wide(receiver.Digits);
+        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
+            return WrapBinary(v, receiver);
+        v %= Pow10Wide(receiver.Digits);
         return receiver.Signed ? v : Int128.Abs(v);
     }
 
@@ -115,13 +123,44 @@ public static class CobolNum
         Int128 v;
         try { v = value.ToUnscaled(receiver.FractionScale, mode); }
         catch (CobolSizeError) { return false; }   // PROHIBITED-inexact transfer (§14.7.4.3 r7)
-        if (receiver.Truncation != NumericTruncation.BinaryCapacity)
+        if (receiver.Truncation == NumericTruncation.BinaryCapacity)
         {
-            Int128 limit = Pow10Wide(receiver.Digits);
-            if (v >= limit || v <= -limit) return false;
+            if (!InBinaryRange(v, receiver)) return false;
+            stored = receiver.Signed ? v : Int128.Abs(v);
+            return true;
         }
+        Int128 limit = Pow10Wide(receiver.Digits);
+        if (v >= limit || v <= -limit) return false;
         stored = receiver.Signed ? v : Int128.Abs(v);
         return true;
+    }
+
+    /// <summary>Reduce an unscaled value to the native two's-complement range of a BinaryCapacity receiver's
+    /// storage width — the deterministic no-ON-SIZE-ERROR truncation for COMP-5 / the BINARY-CHAR family (the
+    /// width analog of the DigitCount path's <c>%= 10^Digits</c>). A signed receiver folds by modulo 2^bits into
+    /// [-2^(bits-1), 2^(bits-1)) (exactly a native sbyte/short/int/long cast); an unsigned receiver stores the
+    /// magnitude (ISO §14.9.25 GR8) reduced modulo 2^bits into [0, 2^bits). ISO §13.18.60.4 GR12/GR21.</summary>
+    private static Int128 WrapBinary(Int128 value, in NumProfile receiver)
+    {
+        int bits = 8 * receiver.StorageLength;
+        Int128 modulus = (Int128)1 << bits;
+        if (!receiver.Signed)
+            return Int128.Abs(value) % modulus;
+        Int128 m = ((value % modulus) + modulus) % modulus;   // non-negative residue in [0, 2^bits)
+        return m >= (modulus >> 1) ? m - modulus : m;          // fold the high half to the negative range
+    }
+
+    /// <summary>Whether a value fits the native two's-complement range of a BinaryCapacity receiver's storage
+    /// width — the SIZE ERROR test for COMP-5 / the BINARY-CHAR family: signed [-2^(bits-1), 2^(bits-1));
+    /// unsigned magnitude [0, 2^bits) (ISO §13.18.60.4 GR12; §14.9.25 GR8 for the unsigned-magnitude rule).</summary>
+    private static bool InBinaryRange(Int128 value, in NumProfile receiver)
+    {
+        int bits = 8 * receiver.StorageLength;
+        Int128 modulus = (Int128)1 << bits;
+        if (!receiver.Signed)
+            return Int128.Abs(value) < modulus;
+        Int128 half = modulus >> 1;
+        return value >= -half && value < half;
     }
 
     /// <summary>True when rescaling <paramref name="value"/> from <paramref name="fromScale"/> to a smaller

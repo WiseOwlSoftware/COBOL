@@ -196,6 +196,13 @@
 > on the ManagedPointer carrier (PicCategory.Pointer, BoundSetPointer, ManagedPointer.SameTarget, 0869
 > band); pointer_data.cob enabled; increment 2 = ADDRESS OF (byte-backing) / BASED / SET ADDRESS OF /
 > ALLOCATE-FREE (based_pointer/pointer_alloc/pointer_arith PENDING).
+> **(M2-DATA-1) BINARY-CHAR family DONE (DEVLOG 614)** — USAGE BINARY-CHAR/-SHORT/-LONG/-DOUBLE
+> [SIGNED|UNSIGNED] are now PICTURE-less native 1/2/4/8-byte two's-complement integers (SIGNED default /
+> UNSIGNED widens) on the COMP-5 BinaryCapacity discipline: PicInfo.BinaryItem + the un-skeletoned Usage
+> members; CobolNum.WrapBinary/InBinaryRange IMPLEMENT the byte-width wrap + SIZE-ERROR range check (the
+> BinaryCapacity path was a documented stub — also cures COMP-5's stubbed overflow); binary_usage.cob
+> byte-exact; PICTURE prohibited COBOLNET0870 (§13.16.3 SR8); implied DISPLAY width 3/5/10/19·20. Battery:
+> Unit 123 · Conformance 1610 (+18) · 0 regressions. Floats (M2-DATA-2) stay Phase 6.
 > **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md):** (b)
 > pointers increment 2, (a) national/boolean, (c) UDF invocation, (d) sharing/lock/retry; OO
 > riders queued (interface GET/SET PROPERTY prototypes, group-valued property refs, FACTORY OF usage,
