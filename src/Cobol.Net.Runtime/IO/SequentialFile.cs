@@ -146,6 +146,9 @@ public sealed class SequentialFile
     /// <summary>True between a successful OPEN and the matching CLOSE.</summary>
     public bool IsOpen => _reader is not null || _writer is not null || _optionalAbsentInput;
 
+    /// <summary>The resolved host path the file is stored at (for DELETE FILE, ISO §14.9.10 Format 2).</summary>
+    public string HostPath => _hostPath;
+
     /// <summary>The latest I-O status (ISO §9.1.13). "00" until the first operation.</summary>
     public string Status { get; private set; } = FileStatusCode.Success;
 

@@ -240,12 +240,11 @@ public sealed partial class CSharpEmitter
     private void KeyedEmitDeleteFile(BoundKeyedDeleteFile df)
     {
         var w = _ctx.Writer;
-        if (df.File.IsSequential)
-        {
-            // The sequential connector does not yet expose its host path to the facade — loud, never silent.
-            w.Line(LoudStmt($"DELETE FILE on sequential-organization file '{df.File.CobolName}' (keyed slice)"));
-            return;
-        }
+        // §14.9.10 Format 2 applies to EVERY organization (GR13/GR14/GR16): the sequential connector now
+        // exposes its host path, so CobolFile.DeleteFile handles it uniformly with relative/indexed (DEVLOG
+        // 612, Phase-4 track d). After a successful delete, the same name's next OPEN INPUT reports '35'
+        // (file not available) — the golden's round-trip. (Multiple file-names, §14.9.10 GR — `DELETE FILE
+        // f1 f2…` — need the fileName+ grammar; a documented follow-up.)
         int id = _keyedSeq++;
         string st = $"__kst{id}";
         w.Line($"var {st} = CobolFile.DeleteFile({CsLiteral(df.File.CobolName)});");

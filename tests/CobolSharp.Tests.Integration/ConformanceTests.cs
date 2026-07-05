@@ -89,6 +89,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // DECIMAL intermediate (§8.8.1.2/§8.8.1.4 — 2/7*7 = 2.00000); the FROZEN legacy engine does not
         // implement that routing (it gives the native-clipped 1.99997), so this is greenfield-only.
         ("2014", "options_paragraph"),
+        // Phase-4 track (d), DEVLOG 612: DELETE FILE (§14.9.10 Format 2) is a 2023 construct the frozen
+        // legacy grammar cannot parse; the greenfield CorpusRunner byte-compares the sequential leg.
+        ("2023", "delete_file"),
+        ("2023", "delete_file_absent"),
     ];
 
     [Theory]

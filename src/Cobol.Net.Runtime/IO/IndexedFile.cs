@@ -619,7 +619,11 @@ public static partial class CobolFile
         string host;
         bool open;
         Action<string> setStatus;
-        if (RelativeFiles.TryGetValue(name, out var r)) { host = r.HostPath; open = r.IsOpen; setStatus = r.SetStatus; }
+        // The SEQUENTIAL-organization connector (§14.9.10 Format 2 applies to every organization — the keyed
+        // half owns the runtime dispatch, so it checks the sequential Files registry first): same GR13/GR14/GR16
+        // outcomes on the host path.
+        if (Files.TryGetValue(name, out var sq)) { host = sq.HostPath; open = sq.IsOpen; setStatus = sq.SetStatus; }
+        else if (RelativeFiles.TryGetValue(name, out var r)) { host = r.HostPath; open = r.IsOpen; setStatus = r.SetStatus; }
         else if (IndexedFiles.TryGetValue(name, out var ix)) { host = ix.HostPath; open = ix.IsOpen; setStatus = ix.SetStatus; }
         else return FileStatusCode.PermanentError;
         string status;
