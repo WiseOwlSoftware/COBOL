@@ -63,6 +63,21 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
   `BoundSequence` mechanism (`OoWrapPropertyOps`, DEVLOG 607); the expression/operand then reads «temp». Emission is
   the existing `CallEmitCall` → `ProgramRegistry.CallProgram(...)`; FUNCTION-ID units already emit as callable
   `_PRG_DOUBLER` with the RETURNING carrier.
+- **EXACT SEAMS (all confirmed by reading — turn-key).** (1) Group table: build a `name→CallUnit` (or
+  `name→{ReturningItem, UsingFormals}`) map AFTER the DATA-bind loop `CSharpEmitter.Call.cs:94`
+  (`foreach unit CallBindUnit`) and BEFORE procedure binding (`:327`); each function unit's RETURNING item is
+  `data.LinkageReturning` and its USING formals live in the DataBinder linkage (DataBinder.Linkage.cs). Thread it
+  into each `StatementBinder` like `OoClasses` (constructed at `:325`). (2) Temp synthesis: mirror
+  `DataBinder.OoCreatePropertyTemp` (DataBinder.Oo.cs:254 — synthesizes a level-1 elementary root DataItem from a
+  model) to make `__fnres_N` from the RETURNING item. (3) Hoisting: the chokepoint is `StatementBinder.cs:158-160`
+  (`int mark = data.OoPendingPropertyOps.Count; core = BindStatementCore(s); core = OoWrapPropertyOps(core,mark)`).
+  Add a parallel `data.PendingUdfCalls` list + a `UdfWrap(core, udfMark)` that prepends one `BoundCallProgram`
+  per pending call → `BoundSequence` (UDF is ALWAYS a pre-op — a function-identifier is never receiving, §8.4.3.2.3
+  SR1 — so no `BoundStores.StoreKindOf` polarity step, unlike property refs). (4) Args: reuse the CALL
+  `BoundCallArg` construction (StatementBinder.Call.cs) — identifier→Reference, literal/arith→Content over a temp
+  of the formal's PIC. (5) The bound value the expression/MOVE reads is a `BoundComputedOperand`/field operand over
+  `__fnres_N`, carrying the RETURNING PicInfo for arithmetic typing. Nested-UDF / property-op-ordering within one
+  statement is a documented follow-up (the corpus has neither).
 - **Tests / registry / docs.** Flip `udf_invocation`/`udf_inline_expression`/`udf_value_args` pending→enabled
   (`tests/conformance/2002/manifest.json`); add a `ConstructRegistry` row `user-function-invocation-2002`
   (IntroducedIn 2002) + a version-matrix row per feedback_conformance_tests_per_feature; a dedicated
