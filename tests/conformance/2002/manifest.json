@@ -22,6 +22,10 @@
     "oo_self",
     "oo_self_polymorphic",
     "oo_super",
+    "oo_universal",
+    "oo_universal_inherit",
+    "oo_universal_name",
+    "oo_universal_relation",
     "repository_paragraph",
     "sort_table_format2",
     "table_value_occurs"

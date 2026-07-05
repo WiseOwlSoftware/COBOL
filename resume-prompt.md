@@ -166,8 +166,19 @@
 > readable). Factory form (`P OF Class`) live. 3 goldens (19 oo_*): oo_property_ref (all three GR
 > forms — the FIRST runtime exercise of synthesized accessors), oo_property_explicit_ref
 > (invocation-count proof: GR2 never gets, GR1 never sets), oo_property_factory_ref. +4 spine tests.
-> **RESUME = universal reference (D10 __CobolInvoke switches; interface GET/SET PROPERTY prototypes
-> ride along) → EC-OO; then the Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers,
+> **THE UNIVERSAL WAVE LANDED (DEVLOG 608, D10 complete):** universal refs emit `CobolObject?`;
+> per-class `__CobolInvoke(string, CobolInvokeArg[], CobolInvokeArg?)` switches (declared-non-override
+> roster, base-chain = §9.3.6, both halves); §14.9.23.4 GR7c conformance AT RUNTIME via
+> ConformanceDescriptor (ONE rule beside DescriptionMismatch) → EC-OO-UNIVERSAL on
+> arity/descriptor/RETURNING-presence, unconditionally; canonical-by-descriptor box forms (D-U6a —
+> N:Display boxes the IMAGE string, bridged by FormatDisplay/StoreDisplay per side); identifier-2
+> (SR7/SR8) live; 0866 band. SET Format 5 live (dataReference+; the BindSetTo SEMANTIC re-route — either
+> side object ⇒ F5; NULL/SELF/SR13-factory senders; universal-into-typed FORBIDDEN → 0867). Object
+> relations live (Format 3 =/<>; ReferenceEquals identity; 0868; IS-class STRUCK non-ISO). 4 goldens
+> (23 oo_*), +11 spine tests, set-object-reference-2002 row+hint.
+> **RESUME = EC-OO (the LAST OO brief: Table-13 catalog, RAISE identifier, EXCEPTION-OBJECT, object
+> views §8.4.3.5/EC-OO-CONFORMANCE; interface GET/SET PROPERTY prototypes + group-valued property refs
+> ride along) → then the Phase-4 catalog per `docs/COMPLETION_ROADMAP_COUNCIL.md` (pointers,
 > national/boolean, UDFs, intrinsics gaps) toward 100%.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID

@@ -222,6 +222,36 @@ implementing one interface, polymorphic dispatch through an interface-typed refe
 
 **Rejected alternatives.** Reflection (MethodInfo.Invoke) — rejected: not AOT/WASM-safe, slow, and forbidden by the interop AOT rule. A global Dictionary<(Type,string),Delegate> — rejected: still needs runtime type lookup and is less debuggable than a per-class switch.
 
+**AS BUILT (the UNIVERSAL wave — DEVLOG 608; brief D-U1–D-U8, codes shifted to 0866/0867/0868).**
+The signature is `void __CobolInvoke(string name, CobolInvokeArg[] args, CobolInvokeArg? returning)` — NOT
+the sketched `object? (string, object?[])`: the mutable `CobolInvokeArg.Value` is the SR6 BY-REFERENCE
+write-back channel and its `Descriptor` carries the D-U3 runtime-conformance encoding
+(`OoClassTable.ConformanceDescriptor`, ONE rule beside DescriptionMismatch — §14.9.23.4 GR7c checks
+§14.8.2/§14.8.3 AT RUNTIME through string equality; mismatch/arity/RETURNING-presence →
+`CobolFatalException("EC-OO-UNIVERSAL", …)`, raised UNCONDITIONALLY per the EC-OO-NULL/METHOD precedent —
+proceeding with a nonconforming crossing in a typed-native model is never an option; a TURN gate can
+soften later if the spec's "enabled in both" reading ever matters; ANY LENGTH is moot — no implementation
+anywhere yet). A UNIVERSAL reference emits as **`CobolObject?`** (D-U1 — NOT `object?`: CobolObject IS the
+runtime universal type, GR2b defers non-COBOL interop, no cast at dispatch sites). Roster rule: cases only
+for methods the type DECLARES that are NOT overrides (the base's case + C# virtual dispatch delivers
+overrides — proven by oo_universal_inherit's DERIVED-VOICE); `default:` chains base — the chain IS §9.3.6;
+zero non-override methods ⇒ no override emitted; BOTH type halves get switches (a universal can hold a
+factory object). Box forms are CANONICAL BY DESCRIPTOR (**D-U6a**, an as-built addition — either side's
+`StoreAsImage` flips per unit via MarkStoreAsImage, so "box per your own storage" would desync): `S:*` →
+string; `N:Display:*` → the display IMAGE string (the FormatDisplay/StoreDisplay overload pair bridges
+native↔image on each side independently); other `N:*` → the native value; `O:*` → the reference. Binder:
+`BoundInvokeUniversal`/`BoundUniversalArg` (facts differ in KIND from BoundInvoke — no roster exists);
+SR6/SR7/SR8/SR10 + Tier-C = **0866**. SET Format 5 is LIVE (D-U7 — grammar `dataReference+`; a
+dataReference SENDER parses as the Format-1 shape by alternative order, so `BindSetTo` re-routes
+SEMANTICALLY when either side is an object reference; NULL/SELF senders + SR13 class-name→factory-
+singleton senders come through the gated rule; SR8/SR9/SR12 = **0867**; universal-into-typed is rejected —
+the narrowing tool is an OBJECT VIEW, deferred to the EC-OO/object-view wave). Object relations are LIVE
+(D-U8 — Format 3 `=`/`<>` only + both-class-object = **0868**; identity renders
+`object.ReferenceEquals(l, r)` in the ConditionRenderer's object branch BEFORE the figurative branch, so
+NULL never width-materializes). Descriptor-vs-DescriptionMismatch drift protection is BEHAVIORAL (the
+EC-OO-UNIVERSAL / conforming-crossing test pair over the 9(4)/9(8) hazard) rather than the brief's direct
+unit matrix — DataItem construction outside the binder is not a supported seam; noted honestly.
+
 ## C# mapping
 
 TYPE + NEW + DISPLAY (from oo_hello.cob):
@@ -273,13 +303,22 @@ OBJECT GROUP + OCCURS per-instance (from oo_object_group.cob):
 
 OBJECT REFERENCE storage (universal vs typed):
   01 G USAGE OBJECT REFERENCE GREETER. → private GREETER? G = null;
-  01 U USAGE OBJECT REFERENCE.          → private object? U = null;   // universal → object?
-  SET G TO NULL → G = null;   IF G = NULL → G is null;   IF G IS GREETER → G is GREETER.
+  01 U USAGE OBJECT REFERENCE.          → private CobolObject? U = null;   // universal → CobolObject? (D-U1)
+  SET G TO NULL → G = null;   IF G = NULL → G is null;   IF U = G → object.ReferenceEquals(U, G).
+  ("IS class-name" is NOT ISO — struck at the D-U8 spec verification: no instance-of condition exists in
+  the 2023 text; the runtime-type-test surfaces are the Format-3 relations above and OBJECT VIEWS
+  (§8.4.3.5, EC-OO-CONFORMANCE — the EC-OO/object-view wave). A vendor IS-class test would be
+  dialect-gated extension surface, never default.)
 
-DYNAMIC/UNIVERSAL dispatch (no conformance test yet — design completeness):
-  INVOKE U meth-name USING X  →  U.__CobolInvoke(MethName, new object?[]{ X });   // U:CobolObject
-  // CobolObject defines `public virtual object? __CobolInvoke(string n, object?[] a){ throw EC_OO_METHOD; }`
-  // each class overrides: switch(n){ case "SAYHELLO": SAYHELLO(); return null; ... default: return base.__CobolInvoke(n,a); }
+DYNAMIC/UNIVERSAL dispatch (LIVE — DEVLOG 608; goldens oo_universal / _name / _inherit / _relation):
+  INVOKE U MNAME USING X RETURNING R →
+      var __ua = new CobolInvokeArg[]{ new("N:Display:4:0:U:None:-", <X boxed per descriptor>) };
+      var __ur = new CobolInvokeArg("N:Display:4:0:U:None:-");
+      CobolObject.RequireNonNull(U).__CobolInvoke(CobolObject.NormalizeMethodName(_MNAME), __ua, __ur);
+      <X copy-out>; <R store>;   // SR6 write-back + GR8 delivery, forms per D-U6a
+  // each class: public override void __CobolInvoke(string __name, CobolInvokeArg[] __a, CobolInvokeArg? __ret)
+  //   { switch(__name){ case "BUMP": <GR7c checks> <unbox> this.BUMP(ref __p0); <re-box> return;
+  //     default: base.__CobolInvoke(__name, __a, __ret); return; } }
 
 ## Hard problems
 

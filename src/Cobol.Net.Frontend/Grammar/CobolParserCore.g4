@@ -1053,9 +1053,13 @@ freeStatement
     : FREE dataReference+
     ;
 
-// SET object-reference TO class/object reference (OO)
+// SET {identifier-3}... TO object/NULL/SELF (ISO 14.9.39 Format 5, OO 2002+). ANTLR-order reality
+// (feedback_grammar_precedence): a dataReference SENDER parses as setToValueStatement (alternative 3
+// precedes this rule and `TO arithmeticExpression` matches it) — BindSetTo re-routes SEMANTICALLY when a
+// target is an object-reference item; only NULL/SELF/SUPER senders (no arithmeticExpression prefix) reach
+// THIS rule. SUPER is admitted syntactically and rejected at bind (SR9 - 0867) for the better diagnostic.
 setObjectReferenceStatement
-    : {is2002()}? SET dataReference TO objectReference
+    : {is2002()}? SET dataReference+ TO objectReference
     ;
 
 objectReference

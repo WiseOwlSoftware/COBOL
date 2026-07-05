@@ -248,9 +248,144 @@ public sealed partial class CSharpEmitter
             w.Line();
             foreach (var m in roster)
                 OoEmitMethod(bound, m, fields, w);
+            OoEmitCobolInvoke(cobolName, roster, w);   // D10: the universal-dispatch switch (BOTH halves —
+                                                       // a universal reference can hold a factory object)
         }
         w.Line();
     }
+
+    /// <summary>Emit the class's <c>__CobolInvoke</c> override (D10/D-U2/D-U4): a switch over the methods
+    /// this type DECLARES that are NOT overrides (an override needs no case — the BASE class's case calls
+    /// <c>this.M(…)</c> and C# virtual dispatch delivers the override; 0829 guarantees identical
+    /// descriptors), <c>default:</c> chains <c>base.__CobolInvoke</c> — the chain IS §9.3.6 resolution
+    /// order, and the CobolObject root raises EC-OO-METHOD (GR7b). Each case enforces §14.9.23.4 GR7c at
+    /// runtime — arity, per-argument conformance-descriptor equality (D-U3: the SAME rule as the
+    /// compile-time strict check), RETURNING presence BOTH directions — raising EC-OO-UNIVERSAL (Table 13,
+    /// fatal; unconditionally — the EC-OO-NULL/METHOD precedent: proceeding with a nonconforming crossing
+    /// in a typed-native model is never an option). Box forms are CANONICAL BY DESCRIPTOR (D-U6a — never
+    /// by either side's StoreAsImage, which MarkStoreAsImage flips per unit): S:* → string; N:Display:* →
+    /// the display IMAGE string (bridged by the FormatDisplay/StoreDisplay overload pair); other N:* →
+    /// the native value; O:* → the CobolObject reference. A type declaring zero non-override methods
+    /// emits no override.</summary>
+    private void OoEmitCobolInvoke(string cobolName, IReadOnlyList<OoMethodSymbol> roster, CodeWriter w)
+    {
+        var cases = roster.Where(m => m.OverrideOf is null).ToList();
+        if (cases.Count == 0) return;
+        w.Line();
+        using (w.Block("public override void __CobolInvoke(string __name, CobolInvokeArg[] __a, CobolInvokeArg? __ret)"))
+        using (w.Block("switch (__name)"))
+        {
+            foreach (var m in cases)
+            {
+                using (w.Block($"case {Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Name.ToUpperInvariant(), quote: true)}:"))
+                {
+                    w.Line($"if (__a.Length != {m.Formals.Count}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
+                        + $"$\"INVOKE '{cobolName}' '{m.Name}': {{__a.Length}} argument(s) for {m.Formals.Count} formal(s) "
+                        + "(ISO §14.9.23.4 GR7c/§14.8.2 — runtime conformance through a universal receiver)\");");
+                    for (int i = 0; i < m.Formals.Count; i++)
+                    {
+                        var f = m.Formals[i];
+                        string want = OoClassTable.ConformanceDescriptor(f.Item);
+                        string wantLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(want, quote: true);
+                        w.Line($"if (__a[{i}].Descriptor != {wantLit}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
+                            + $"$\"INVOKE '{cobolName}' '{m.Name}': argument {i + 1} does not conform to the formal "
+                            + $"(caller {{__a[{i}].Descriptor}}, formal {want.Replace('"', '\'')}) (ISO §14.9.23.4 GR7c/§14.8.2)\");");
+                        w.Line($"var __p{i} = {OoUnivUnbox(f.Item, $"__a[{i}].Value")};");
+                    }
+                    if (m.Returning is null)
+                        w.Line("if (__ret is not null) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
+                            + $"\"INVOKE '{cobolName}' '{m.Name}': RETURNING specified but the method declares none "
+                            + "(ISO §14.8.3/GR7c)\");");
+                    else
+                    {
+                        string rl = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(
+                            OoClassTable.ConformanceDescriptor(m.Returning), quote: true);
+                        w.Line($"if (__ret is null || __ret.Descriptor != {rl}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
+                            + $"\"INVOKE '{cobolName}' '{m.Name}': the RETURNING item is absent or does not conform "
+                            + "(ISO §14.8.3/GR7c)\");");
+                    }
+                    string argList = string.Join(", ", Enumerable.Range(0, m.Formals.Count).Select(i => $"ref __p{i}"));
+                    w.Line(m.Returning is null
+                        ? $"this.{m.CsName}({argList});"
+                        : $"var __rv = this.{m.CsName}({argList});");
+                    for (int i = 0; i < m.Formals.Count; i++)
+                        w.Line($"__a[{i}].Value = {OoUnivRebox(m.Formals[i].Item, $"__p{i}")};   // SR6 BY REFERENCE write-back");
+                    if (m.Returning is not null)
+                        w.Line($"__ret!.Value = {OoUnivRebox(m.Returning, "__rv")};");
+                    w.Line("return;");
+                }
+            }
+            w.Line("default: base.__CobolInvoke(__name, __a, __ret); return;");
+        }
+    }
+
+    /// <summary>D-U6a: true when the item's canonical UNIVERSAL box form is the display IMAGE string while
+    /// its local crossing form is native — the FormatDisplay/StoreDisplay bridge applies both directions.</summary>
+    private static bool OoUnivImageBridged(DataItem item) =>
+        !OoStringCarried(item)
+        && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display };
+
+    /// <summary>The callee-side unbox: box value → a local in the FORMAL's own crossing form.</summary>
+    private static string OoUnivUnbox(DataItem item, string box) =>
+        OoStringCarried(item) ? $"(string){box}!"
+        : OoUnivImageBridged(item) ? $"CobolNum.StoreDisplay((string){box}!, {item.ProfileName}, ({item.ElementType})0)"
+        : item.Pic is { Category: PicCategory.ObjectReference } p ? $"({p.ClrType}){box}"
+        : $"({item.ElementType}){box}!";
+
+    /// <summary>The callee-side re-box: a local in the formal's crossing form → the canonical box form.</summary>
+    private static string OoUnivRebox(DataItem item, string local) =>
+        OoUnivImageBridged(item) ? $"CobolNum.FormatDisplay({local}, {item.ProfileName})" : $"(object?){local}";
+
+    /// <summary>Caller-side universal dispatch (D-U6): box every argument per ITS OWN descriptor's canonical
+    /// form, dispatch through the GR5 null guard with the bind-normalized literal or the runtime-normalized
+    /// identifier-2 value, then copy out every argument (SR6 — all BY REFERENCE) and deliver RETURNING (GR8)
+    /// through the receiver's own storage form. No direct-<c>ref</c> fast path BY DESIGN — the box IS the
+    /// crossing (the abstract dispatch signature cannot take refs without per-signature generics).</summary>
+    private void OoEmitUniversalInvoke(BoundInvokeUniversal u)
+    {
+        var w = _ctx.Writer;
+        int id = _storeTmpCounter++;
+        string boxes = string.Join(", ", u.Args.Select(a =>
+            $"new CobolInvokeArg({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(a.Descriptor, quote: true)}, {OoUnivCallerRead(a.Source)})"));
+        w.Line($"var __ua{id} = new CobolInvokeArg[] {{ {boxes} }};");
+        w.Line(u.Returning is not null
+            ? $"var __ur{id} = new CobolInvokeArg({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(u.ReturningDescriptor!, quote: true)});"
+            : $"CobolInvokeArg? __ur{id} = null;");
+        string selector = u.MethodLiteral is { } lit
+            ? Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(lit, quote: true)
+            : $"CobolObject.NormalizeMethodName({u.MethodSource!.Read()})";
+        w.Line($"CobolObject.RequireNonNull({u.Receiver.Read()}).__CobolInvoke({selector}, __ua{id}, __ur{id});");
+        for (int i = 0; i < u.Args.Count; i++)
+            w.Line(OoUnivCallerWrite(u.Args[i].Source, $"__ua{id}[{i}].Value") + "   // BY REFERENCE copy-out (SR6)");
+        if (u.Returning is { } ret)
+            w.Line(OoUnivCallerWrite(ret, $"__ur{id}!.Value") + "   // RETURNING delivery (§14.9.23.4 GR8)");
+    }
+
+    /// <summary>SET Format 5 (D-U7; §14.9.39 GR9/GR10): copy the ONE sender reference into each target in
+    /// order. The cast renders total: conformance was bind-checked (0867), and C# reference conversions
+    /// cover the widening directions (typed→universal, subclass→base, null, this).</summary>
+    private void OoEmitSetObjectRef(BoundSetObjectRef s)
+    {
+        var w = _ctx.Writer;
+        string src = s.SourceIsNull ? "null"
+            : s.SourceIsSelf ? "this"
+            : s.SourceFactoryCs is { } fac ? $"{fac}.__Instance"
+            : s.Source!.Read();
+        foreach (var tp in s.Targets)
+            w.Line(tp.Write($"({tp.Item.Pic!.ClrType})({src})") + "   // SET F5 (ISO §14.9.39 GR9 — reference copy)");
+    }
+
+    private static string OoUnivCallerRead(Place p) =>
+        p is RefModPlace ? p.Read()
+        : OoUnivImageBridged(p.Item) ? new NumericImagePlace(p).Read()
+        : p.Read();
+
+    private static string OoUnivCallerWrite(Place p, string box) =>
+        p is RefModPlace ? p.Write($"(string){box}!")
+        : OoStringCarried(p.Item) ? p.Write($"(string){box}!")
+        : OoUnivImageBridged(p.Item) ? new NumericImagePlace(p).Write($"(string){box}!")
+        : p.Item.Pic is { Category: PicCategory.ObjectReference } pic ? p.Write($"({pic.ClrType}){box}")
+        : p.Write($"({p.Item.ElementType}){box}!");
 
     /// <summary>
     /// Emit one METHOD-ID as a real typed C# method (slice 2 — deep-dive D3/D6/D7/D8): BY REFERENCE formals as

@@ -188,6 +188,37 @@ public sealed class OoClassTable
     /// REFERENCE prefix case — <paramref name="byRefGroupPrefix"/> allows a SMALLER formal). Null when
     /// conformant. This strictness keeps BY REFERENCE marshaling TYPE-PRESERVING (the slice-2 design fact);
     /// CONTENT conversions qualify the owner class internal profiles instead.</summary>
+    /// <summary>The RUNTIME projection of the strict-conformance rule (D-U3 — the universal-dispatch
+    /// wave): ONE descriptor string per description, computed at BIND time on both sides of a universal
+    /// crossing; the generated <c>__CobolInvoke</c> switch compares for STRING EQUALITY and raises
+    /// EC-OO-UNIVERSAL on mismatch (ISO §14.9.23.4 GR7c — §14.8.2/§14.8.3 conformance through a universal
+    /// receiver is checked at runtime, §9.3.8.2.1 NOTE). Locked invariant (unit-tested): descriptor
+    /// equality ⇔ <see cref="DescriptionMismatch"/> == null over every carried category — derived NEXT TO
+    /// the one mismatch function so the two projections cannot drift (feedback_singular_pattern).
+    /// Deliberate strictness deltas, both LOUD-fail directions (AS-BUILT notes): equality cannot express
+    /// §14.8.2.2 rule 1's by-ref group-PREFIX leniency (a smaller formal group raises EC-OO-UNIVERSAL
+    /// through universal where the TYPED path accepts a prefix), and JUSTIFIED is encoded on alphanumeric
+    /// items while the group⇄alphanumeric image pairing carries none. Not-carried categories return the
+    /// <c>T:!</c> sentinel — bind rejects them from universal crossings (0866) before any box exists, and
+    /// the sentinel deliberately matches nothing the callee ever emits as a checked formal.</summary>
+    public static string ConformanceDescriptor(DataItem item)
+    {
+        if (item.IsGroup)
+            return item.IsImageCapable ? $"S:{item.ImageWidth}:N" : "T:!";
+        if (item.Pic is not { } p) return "T:!";
+        return p.Category switch
+        {
+            PicCategory.ObjectReference =>
+                p.ObjectClassName is { } cls ? "O:" + cls.ToUpperInvariant() : "O:*",
+            PicCategory.Numeric =>
+                $"N:{p.Usage}:{p.Digits}:{p.Scale}:{(p.Signed ? "S" : "U")}:{p.ImageSignKind}:"
+                + (item.BlankWhenZero ? "B" : "-"),
+            PicCategory.Alphanumeric =>
+                $"S:{p.Length}:{(item.Justified ? "J" : "N")}",
+            _ => "T:!",
+        };
+    }
+
     public static string? DescriptionMismatch(DataItem formal, DataItem arg, bool byRefGroupPrefix = false)
     {
         if (formal.IsGroup)

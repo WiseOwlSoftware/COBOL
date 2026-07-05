@@ -1757,4 +1757,198 @@ public sealed class OoSpineTests
         Assert.True(ok, "the SAME property must remain readable (GR1 — sending only): "
             + string.Join("\n", errors));
     }
+
+    // ── The UNIVERSAL wave (D10, §13.18.60.4 / §14.9.23 GR7c / §14.9.39 F5 / §8.8.4.2 F3 — DEVLOG 608) ──────
+
+    /// <summary>One driver + two classes whose same-named method takes DIFFERENT PIC formals — THE
+    /// polymorphic hazard: a wrong-shaped crossing through universal must raise EC-OO-UNIVERSAL at run
+    /// (GR7c), never deliver silently wrong data (both formals project to C# <c>ref long</c>).</summary>
+    private static string UnivHazard(string pid, string statements) => $$"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {{pid}}.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS CUH4A.
+            CLASS CUH8B.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 U USAGE OBJECT REFERENCE.
+        01 N4 PIC 9(4) VALUE 1.
+        01 N8 PIC 9(8) VALUE 1.
+        PROCEDURE DIVISION.
+        MAIN.
+        {{statements}}
+            STOP RUN.
+        END PROGRAM {{pid}}.
+
+        IDENTIFICATION DIVISION.
+        CLASS-ID. CUH4A.
+        IDENTIFICATION DIVISION.
+        OBJECT.
+        PROCEDURE DIVISION.
+        METHOD-ID. BUMP.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-N PIC 9(4).
+        PROCEDURE DIVISION USING LK-N.
+        MAIN.
+            ADD 1 TO LK-N.
+        END METHOD BUMP.
+        END OBJECT.
+        END CLASS CUH4A.
+
+        IDENTIFICATION DIVISION.
+        CLASS-ID. CUH8B.
+        IDENTIFICATION DIVISION.
+        OBJECT.
+        PROCEDURE DIVISION.
+        METHOD-ID. BUMP.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-N PIC 9(8).
+        PROCEDURE DIVISION USING LK-N.
+        MAIN.
+            ADD 1 TO LK-N.
+        END METHOD BUMP.
+        END OBJECT.
+        END CLASS CUH8B.
+        """;
+
+    [Fact]
+    public void Universal_WrongShapedArg_EcOoUniversal()
+    {
+        // U holds a CUH8B (formal 9(8)); the caller crosses N4 (9(4)) — same C# type, WRONG description.
+        var (ok, stdout, detail) = CompileAndRun(UnivHazard("OOUV10", """
+            INVOKE CUH8B "NEW" RETURNING U.
+            INVOKE U "BUMP" USING N4.
+        """));
+        Assert.False(ok, "a nonconforming universal crossing must FAIL: " + stdout);
+        Assert.Contains("EC-OO-UNIVERSAL", detail);
+    }
+
+    [Fact]
+    public void Universal_RightShapedArg_Runs()
+    {
+        var (ok, _, detail) = CompileAndRun(UnivHazard("OOUV11", """
+            INVOKE CUH4A "NEW" RETURNING U.
+            INVOKE U "BUMP" USING N4.
+            INVOKE CUH8B "NEW" RETURNING U.
+            INVOKE U "BUMP" USING N8.
+        """));
+        Assert.True(ok, "conforming universal crossings must run: " + detail);
+    }
+
+    [Fact]
+    public void Universal_ArityMismatch_EcOoUniversal()
+    {
+        var (ok, _, detail) = CompileAndRun(UnivHazard("OOUV12", """
+            INVOKE CUH4A "NEW" RETURNING U.
+            INVOKE U "BUMP".
+        """));
+        Assert.False(ok);
+        Assert.Contains("EC-OO-UNIVERSAL", detail);
+    }
+
+    [Fact]
+    public void Universal_ReturningPresenceMismatch_EcOoUniversal()
+    {
+        // BUMP declares no RETURNING — supplying one is the runtime analog of the typed dual-0828.
+        var (ok, _, detail) = CompileAndRun(UnivHazard("OOUV13", """
+            INVOKE CUH4A "NEW" RETURNING U.
+            INVOKE U "BUMP" USING N4 RETURNING N8.
+        """));
+        Assert.False(ok);
+        Assert.Contains("EC-OO-UNIVERSAL", detail);
+    }
+
+    [Fact]
+    public void Universal_UnknownMethod_EcOoMethod()
+    {
+        var (ok, _, detail) = CompileAndRun(UnivHazard("OOUV14", """
+            INVOKE CUH4A "NEW" RETURNING U.
+            INVOKE U "NOSUCH".
+        """));
+        Assert.False(ok);
+        Assert.Contains("EC-OO-METHOD", detail);
+    }
+
+    [Fact]
+    public void Universal_NullReceiver_EcOoNull()
+    {
+        var (ok, _, detail) = CompileAndRun(UnivHazard("OOUV15", """
+            INVOKE U "BUMP" USING N4.
+        """));
+        Assert.False(ok);
+        Assert.Contains("EC-OO-NULL", detail);
+    }
+
+    /// <summary>§14.9.23.3 SR6 — BY CONTENT/BY VALUE and literal arguments are compile-rejected through a
+    /// universal receiver (0866).</summary>
+    [Theory]
+    [InlineData("INVOKE U \"BUMP\" USING BY CONTENT N4.")]
+    [InlineData("INVOKE U \"BUMP\" USING BY VALUE N4.")]
+    [InlineData("INVOKE U \"BUMP\" USING 5.")]
+    public void Universal_ForbiddenArgShapes_0866(string stmt)
+        => EditionHarness.AssertHasDiagnostic(
+            ErrorsOf(UnivHazard("OOUV16", "    INVOKE CUH4A \"NEW\" RETURNING U.\n    " + stmt)),
+            "COBOLNET0866");
+
+    /// <summary>§14.9.39 F5 SR12 — a UNIVERSAL sender cannot narrow into a TYPED receiver (an object view
+    /// is the narrowing tool); SUPER is never a sender (SR9); a non-object receiver fails SR8.</summary>
+    [Theory]
+    [InlineData("SET G TO U.")]
+    [InlineData("SET U TO SUPER.")]
+    [InlineData("SET N4 TO U.")]
+    public void SetObjectRef_Violations_0867(string stmt)
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf($$"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOUV17.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS CUV17.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 U USAGE OBJECT REFERENCE.
+            01 G USAGE OBJECT REFERENCE CUV17.
+            01 N4 PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                {{stmt}}
+                STOP RUN.
+            END PROGRAM OOUV17.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CUV17.
+            END CLASS CUV17.
+            """), "COBOLNET0867");
+
+    /// <summary>§8.8.4.2.1 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
+    [Theory]
+    [InlineData("IF U > G DISPLAY \"X\" END-IF.")]
+    [InlineData("IF U = N4 DISPLAY \"X\" END-IF.")]
+    public void ObjectRelation_Violations_0868(string stmt)
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf($$"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOUV18.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS CUV18.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 U USAGE OBJECT REFERENCE.
+            01 G USAGE OBJECT REFERENCE CUV18.
+            01 N4 PIC 9(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                {{stmt}}
+                STOP RUN.
+            END PROGRAM OOUV18.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CUV18.
+            END CLASS CUV18.
+            """), "COBOLNET0868");
 }

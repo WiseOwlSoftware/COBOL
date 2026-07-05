@@ -181,10 +181,12 @@ public sealed record PicInfo(
     {
         _ when IsUnimplementedSkeleton => throw SkeletonReached(),
         // A typed object reference is the class's emitted C# type (nullable — COBOL initial state is NULL,
-        // §13.18.63); universal → object?. The name mapping matches the ClassUnit emission convention
+        // §13.18.63); universal → CobolObject? (D-U1: CobolObject IS the runtime universal type — every
+        // emitted class derives from it (D2), GR2b defers non-COBOL interop, dispatch sites need no cast,
+        // and a non-CobolObject can never leak in). The name mapping matches the ClassUnit emission convention
         // (Sanitize + uppercase — COBOL class names are case-insensitive, §8.3.2.2).
         PicCategory.ObjectReference =>
-            ObjectClassName is { } cls ? DataItem.Sanitize(cls).ToUpperInvariant() + "?" : "object?",
+            ObjectClassName is { } cls ? DataItem.Sanitize(cls).ToUpperInvariant() + "?" : "CobolObject?",
         PicCategory.Alphanumeric or PicCategory.NumericEdited => "string",
         // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
         // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,

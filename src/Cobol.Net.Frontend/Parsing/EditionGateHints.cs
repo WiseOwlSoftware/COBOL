@@ -51,6 +51,7 @@ public static class EditionGateHints
     private static readonly Gate RepositoryInterface = new("the REPOSITORY INTERFACE entry", 2002, "ISO §12.3.8 (OO)", "repository-interface-2002");
     private static readonly Gate RepositoryProperty = new("the REPOSITORY PROPERTY entry", 2002, "ISO §12.3.8 (OO; §8.4.3.9.3 SR1)", "repository-property-2002");
     private static readonly Gate PropertyClause = new("the PROPERTY data-description clause", 2002, "ISO §13.18.42 (OO)", "property-clause-2002");
+    private static readonly Gate SetObjectRef = new("SET … TO object-reference (Format 5)", 2002, "ISO §14.9.39 F5 (OO)", "set-object-reference-2002");
     private static readonly Gate LogicalXor = new("the logical XOR/EXCLUSIVE-OR operator", 2023, "ISO §8.8.4.9; Annex E.2 item 25 (VCR rows 32/41)", "logical-xor-operator-2023");
 
     /// <summary>
@@ -102,6 +103,11 @@ public static class EditionGateHints
             CobolLexer.PROPERTY when InRule(ruleStack, "repositoryParagraph") => RepositoryProperty,
             CobolLexer.PROPERTY when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription")
                 || InRule(ruleStack, "workingStorageSection") => PropertyClause,
+            // SET … TO NULL/SELF (F5): the NULL_/SELF token after TO inside a SET statement is the
+            // signature (a dataReference sender parses as the 85-legal Format-1 shape and never errors).
+            CobolLexer.NULL_ when InRule(ruleStack, "setStatement")
+                || Next(stream, token, -1)?.Type == CobolLexer.TO => SetObjectRef,
+            CobolLexer.SELF when InRule(ruleStack, "setStatement") => SetObjectRef,
             CobolLexer.FOR when InRule(ruleStack, "specialNamesParagraph") => SpecialNamesFor,
             CobolLexer.BY when InRule(ruleStack, "callStatement") && Next(stream, token, 1)?.Type == CobolLexer.VALUE => CallByValue,
             CobolLexer.VALUE when InRule(ruleStack, "callStatement") && Next(stream, token, -1)?.Type == CobolLexer.BY => CallByValue,

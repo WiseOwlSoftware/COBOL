@@ -496,6 +496,15 @@ regression trap). Compiled strict `--std 2002`, run, byte-compared by CorpusRunn
 
 # Brief: Universal object-reference dispatch (D10, §13.18.60.4)
 
+> **LANDED (DEVLOG 608)** — complete per D-U1–D-U8 with these deltas: diagnostic codes shifted to
+> **0866/0867/0868** (the brief's "0836-0838 unused" was stale — FACTORY/OVERRIDE took them); a NEW locked
+> decision **D-U6a** (canonical-by-descriptor box forms — StoreAsImage flips per unit, so per-side forms
+> would desync); the SET F5 dataReference-sender path is a SEMANTIC re-route in BindSetTo (ANTLR
+> alternative order — setToValueStatement wins the parse); SR13 factory-object senders are LIVE into
+> UNIVERSAL receivers (typed receivers need the FACTORY OF usage phrase — not yet carried, 0867-named);
+> the descriptor⇔mismatch invariant is proven BEHAVIORALLY (the 9(4)/9(8) hazard pair), not by the direct
+> unit matrix. The as-built record is the deep-dive's D10 AS-BUILT.
+
 # Implementation brief — UNIVERSAL object-reference dispatch (OO deep-dive D10 wave)
 
 > Slice: the "universal reference" wave of the Phase-3 OO port (banner order: FACTORY → PROPERTY → INTERFACE-ID → **universal reference** → EC-OO; `docs/COBOLNET_OO_DESIGN.md`). Everything below is derived from `specs/ISO_COBOL.md` (ISO/IEC 1989:2023) with line anchors, and from the AS-BUILT seams verified 2026-07-04 (post slice 3a/3b). Style = the deep-dive's Decisions format: chosen design + rejected alternatives + citations + exact files/seams + diagnostics + tests.

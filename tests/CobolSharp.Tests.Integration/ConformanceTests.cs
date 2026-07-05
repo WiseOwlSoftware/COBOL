@@ -77,6 +77,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "oo_property_ref"),
         ("2002", "oo_property_explicit_ref"),
         ("2002", "oo_property_factory_ref"),
+        // The UNIVERSAL wave (D10, §13.18.60.4/§14.9.23 GR7c) — net-new (DEVLOG 608):
+        ("2002", "oo_universal"),
+        ("2002", "oo_universal_name"),
+        ("2002", "oo_universal_inherit"),
+        ("2002", "oo_universal_relation"),
     ];
 
     [Theory]

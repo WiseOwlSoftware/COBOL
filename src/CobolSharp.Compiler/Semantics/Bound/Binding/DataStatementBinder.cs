@@ -190,7 +190,9 @@ internal sealed class DataStatementBinder
 
     internal BoundStatement? BindSetObjectReference(CobolParserCore.SetObjectReferenceStatementContext ctx)
     {
-        if (_ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference())
+        // The D-U7 grammar widened the rule to `dataReference+` (ISO §14.9.39 F5 {identifier-3}…) for the
+        // greenfield; the FROZEN legacy keeps its single-target scope — first target only (oracle-only code).
+        if (_ctx.Expression.BindDataReferenceWithSubscripts(ctx.dataReference(0))
                 is not BoundIdentifierExpression target)
             return null;
         // Pointers (Stage-4): SET pointer TO NULL / SET pointer TO pointer stores into the target's managed

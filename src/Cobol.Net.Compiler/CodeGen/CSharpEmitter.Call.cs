@@ -133,8 +133,11 @@ public sealed partial class CSharpEmitter
         w.Line("using CobolNet.Runtime;          // CobolNum / CobolString substrates + the inter-program ABI (ManagedPointer / ICobolProgram / ProgramRegistry)");
         if (anyFiles)
             w.Line("using CobolNet.Runtime.IO;       // CobolFile — the sequential file-I/O facade (§8)");
-        if (_ecActive)
-            w.Line("using CobolNet.Runtime.Exceptions; // the EC exception-condition model (ISO §14.6.13; ExceptionState / ExceptionCatalog / ResumeSignal / CobolFatalException)");
+        if (_ecActive || classes.Count > 0)
+            // The EC model, OR any class (D10): every class's generated __CobolInvoke switch raises
+            // CobolFatalException (EC-OO-UNIVERSAL, GR7c). A class-less EC-free program keeps the
+            // zero-scaffolding invariant byte-exact (SSOT §18.16 — the test greps the namespace).
+            w.Line("using CobolNet.Runtime.Exceptions; // CobolFatalException — the EC signal type (ISO §14.6.13) + the D10 GR7c raises");
         w.Line();
 
         // Interfaces first (readability only — Roslyn needs no ordering), then classes (source order), then

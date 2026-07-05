@@ -721,8 +721,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (set.setSwitchStatement() is { } sw) return SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
         if (set.setAddressStatement() is not null)
             return new BoundUnsupported("SET ADDRESS OF (data-pointer subsystem, COBOL-2002+, ISO §14.9.39 F7)");
-        if (set.setObjectReferenceStatement() is not null)
-            return new BoundUnsupported("SET object reference (OO subsystem, COBOL-2002+, ISO §14.9.39 F5)");
+        if (set.setObjectReferenceStatement() is { } sor)
+            return OoBindSetObjectRef(sor.dataReference(),
+                senderRef: sor.objectReference().dataReference(),
+                senderNull: sor.objectReference().NULL_() is not null,
+                senderSelf: sor.objectReference().SELF() is not null,
+                senderSuper: sor.objectReference().SUPER() is not null);
         return new BoundUnsupported($"SET form '{set.GetText()}'");
     }
 
@@ -730,6 +734,17 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// items; the sender is any integer-valued operand (an index-name sender reads its occurrence number, §3.5).</summary>
     private BoundStatement BindSetTo(Core.SetToValueStatementContext tv)
     {
+        // The Format-5 SEMANTIC re-route (D-U7): `SET U TO A` parses HERE (alternative order — a
+        // dataReference sender is an arithmeticExpression prefix), but an object-reference TARGET selects
+        // §14.9.39 Format 5. Detect on the FIRST target; mixed target categories then fail SR8 inside.
+        if (tv.dataReference() is { Length: > 0 } tds
+            && OoExtractBareReference(tv.arithmeticExpression()) is { } senderDref
+            && (refs.Resolve(tds[0])?.Item.Pic?.Category is PicCategory.ObjectReference
+                || refs.Resolve(senderDref)?.Item.Pic?.Category is PicCategory.ObjectReference))
+            // Either side being an object reference selects Format 5 — an object TARGET takes the F5
+            // rules directly; an object SENDER into a non-object target is the SR8 diagnostic (0867),
+            // far better than a Format-1 category error.
+            return OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);
         var targets = new List<BoundSetTarget>();
         foreach (var dref in tv.dataReference())
         {
@@ -1213,7 +1228,27 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             string op = MapOperator(opCtx.GetText());
             carry.Subject = subject;
             carry.Op = op;
-            return new BoundRelational(subject, op, ComparisonOperand(operands[1]));
+            BoundOperand right = ComparisonOperand(operands[1]);
+            // Object relations (ISO §8.8.4.2.1 Format 3 :9591 — D-U8): class-object operands admit ONLY
+            // [NOT] EQUAL, and SR5 (:9614) requires BOTH operands of class object (figurative NULL rides —
+            // it is a class-object sender). Reference IDENTITY (§8.8.4.2.15 :9769) renders in the
+            // ConditionRenderer's object branch. Typed-vs-typed of UNRELATED classes is LEGAL (identity is
+            // simply false); ordering operators and object-vs-non-object mixes are COBOLNET0868.
+            static bool IsObjOperand(BoundOperand o) =>
+                o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ObjectReference;
+            if (IsObjOperand(subject) || IsObjOperand(right))
+            {
+                if (op is not ("==" or "!="))
+                    data.Edition.Error("COBOLNET0868",
+                        "an object-reference relation admits only [NOT] EQUAL / '=' / '<>' "
+                        + "(ISO §8.8.4.2.1 Format 3 — ordering is undefined for references)");
+                else if (!(IsObjOperand(subject) || subject is BoundFigurative { Kind: 'N' })
+                         || !(IsObjOperand(right) || right is BoundFigurative { Kind: 'N' }))
+                    data.Edition.Error("COBOLNET0868",
+                        "both operands of an object-reference relation shall be of class object — an "
+                        + "object reference or the NULL figurative (ISO §8.8.4.2.1 SR5)");
+            }
+            return new BoundRelational(subject, op, right);
         }
 
         // A bare single operand is either a level-88 condition-name (a complete simple condition — terminates the

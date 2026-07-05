@@ -37,6 +37,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
 
     private string RenderRelational(BoundRelational r)
     {
+        // Object relations FIRST (D-U8; §8.8.4.2.15 :9769 — reference IDENTITY): the figurative branch
+        // below would materialize NULL against a width — nonsense for references. The only legal operand
+        // shapes reached here are an object-reference field and the NULL figurative (bind-checked, 0868);
+        // C# implicit upcasts cover typed-vs-universal mixes (both are CobolObject-rooted).
+        static bool IsObj(BoundOperand o) =>
+            o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ObjectReference;
+        if (IsObj(r.Left) || IsObj(r.Right))
+        {
+            static string ObjRead(BoundOperand o) => o is BoundFieldOperand f ? f.Place.Read() : "null";
+            string core = $"object.ReferenceEquals({ObjRead(r.Left)}, {ObjRead(r.Right)})";
+            return r.Op == "==" ? core : $"!({core})";
+        }
         // A figurative operand (a single-character constant OR an ALL "literal") is materialized against the OTHER
         // operand's width (ISO §8.3.3.6.4 GR2), so it routes through the width-aware figurative path.
         if (r.Left is BoundFigurative or BoundAllLiteral || r.Right is BoundFigurative or BoundAllLiteral)

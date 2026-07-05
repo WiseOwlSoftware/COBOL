@@ -23,15 +23,23 @@ namespace CobolNet.Runtime;
 /// </summary>
 public abstract class CobolObject
 {
-    /// <summary>Dynamic/universal method dispatch (D10; §14.9.23.3 SR6/SR7 — the universal-reference path).
-    /// The UNIVERSAL-REFERENCE wave emits a per-class switch override over the method roster (COBOL method
-    /// names compare case-insensitively, §8.3.2.2) chaining to <c>base.__CobolInvoke</c>; until that wave
-    /// lands no emitter produces overrides and universal INVOKE stages loud at bind, so reaching this default
-    /// means no class in the hierarchy declares the method → EC-OO-METHOD (§14.9.23.4 GR7b, Table 13 — fatal).</summary>
-    public virtual object? __CobolInvoke(string name, object?[] args) =>
+    /// <summary>Dynamic/universal method dispatch (D10/D-U2; §14.9.23.3 SR6/SR7): each emitted class
+    /// overrides with a switch over the methods it DECLARES that are not overrides (an override wins through
+    /// C# virtual dispatch from the BASE class's case; inherited methods resolve through the <c>default:</c>
+    /// base chain — the chain IS §9.3.6 resolution order), unboxing each <see cref="CobolInvokeArg"/> after
+    /// a descriptor-equality check (§14.9.23.4 GR7c — runtime conformance; mismatch → EC-OO-UNIVERSAL,
+    /// Table 13 fatal). Reaching THIS default means no class in the hierarchy declares the name →
+    /// EC-OO-METHOD (GR7b). <paramref name="returning"/> is null exactly when the INVOKE had no RETURNING —
+    /// presence mismatches in either direction are EC-OO-UNIVERSAL in the generated cases.</summary>
+    public virtual void __CobolInvoke(string name, CobolInvokeArg[] args, CobolInvokeArg? returning) =>
         throw new CobolFatalException("EC-OO-METHOD",
             $"INVOKE: the runtime class '{GetType().Name}' does not implement a method named '{name}' "
             + "(ISO §14.9.23.4 GR7b)");
+
+    /// <summary>Normalize an identifier-2 method-name value (§14.9.23.4 GR2a): the content IS a
+    /// user-defined word — case-insensitive (§8.3.2.2), and the PIC X trailing-space padding is not part
+    /// of the name. Generated case labels are the COBOL spelling uppercased.</summary>
+    public static string NormalizeMethodName(string raw) => raw.TrimEnd().ToUpperInvariant();
 
     /// <summary>The INVOKE null-receiver guard (§14.9.23.4 GR5): emitted before every instance dispatch —
     /// <c>CobolObject.RequireNonNull(recv).M(args)</c> — so a null object reference raises EC-OO-NULL (fatal,

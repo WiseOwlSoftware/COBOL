@@ -54,6 +54,28 @@ public sealed record BoundInvokeArg(
     DataItem Formal, Place? Source, string? NumericLiteral, string? StringLiteral, bool WriteBack,
     bool ByContent = false);
 
+/// <summary>A bound UNIVERSAL-receiver INVOKE (deep-dive D10/D-U5): there is NO formal roster at compile
+/// time, so the bound facts differ in KIND from <see cref="BoundInvoke"/> — the method selector is a
+/// bind-normalized literal OR a data-item Place read at runtime (§14.9.23.3 SR7), and every argument
+/// carries its caller-side CONFORMANCE DESCRIPTOR (OoClassTable.ConformanceDescriptor — checked by the
+/// callee's generated switch at runtime per §14.9.23.4 GR7c, mismatch → EC-OO-UNIVERSAL). Every argument
+/// is BY REFERENCE (SR6 — implicit), so every argument writes back through its box.</summary>
+public sealed record BoundInvokeUniversal(
+    Place Receiver, string? MethodLiteral, Place? MethodSource,
+    IReadOnlyList<BoundUniversalArg> Args, Place? Returning, string? ReturningDescriptor) : BoundStatement;
+
+/// <summary>One universal-dispatch argument: the storage and its conformance descriptor (D-U3).</summary>
+public sealed record BoundUniversalArg(Place Source, string Descriptor);
+
+/// <summary>SET Format 5 — object-reference assignment (ISO §14.9.39 :31162; D-U7): copy ONE sender
+/// reference into each target in order (GR9/GR10). The sender is a Place, the NULL figurative, SELF
+/// (legal only inside a method; renders <c>this</c>), or a class-name (SR13 — renders the D11 factory
+/// singleton <c>{SourceFactoryCs}.__Instance</c>).</summary>
+public sealed record BoundSetObjectRef(IReadOnlyList<Place> Targets, Place? Source, bool SourceIsNull, bool SourceIsSelf) : BoundStatement
+{
+    public string? SourceFactoryCs { get; init; }
+}
+
 /// <summary>A method-context <c>GOBACK</c> / (pre-2023) <c>EXIT METHOD</c> (ISO §14.9.18.4 GR4; deep-dive D8 —
 /// the one decision that silently miscompiles if missed): terminates the executing METHOD only, returning
 /// control to the INVOKE site — never the run unit (<see cref="BoundStop"/>) and never the program activation
@@ -250,11 +272,33 @@ public sealed partial class StatementBinder
         var target = inv.invokeTarget().objectReference();
 
         // The method selector: an alphanumeric/national literal binds statically (§14.9.23.3 SR2);
-        // identifier-2 (a method name held in a data item) is legal ONLY through a universal receiver
-        // (§14.9.23.3 SR7) — the D10 dynamic wave.
-        if (inv.invokeMethodName().dataReference() is not null)
-            return new BoundUnsupported("INVOKE with identifier-2 as the method selector (a method name held "
-                + "in a data item — universal/dynamic dispatch, ISO §14.9.23.3 SR7; deep-dive D10 wave)");
+        // identifier-2 (a method name held in a data item) is legal ONLY through a UNIVERSAL receiver
+        // (§14.9.23.3 SR7) — the D10 dynamic path, live as of the universal wave.
+        if (inv.invokeMethodName().dataReference() is { } mref)
+        {
+            if (target.dataReference() is not { } uref || refs.Resolve(uref) is not { } urecv
+                || urecv.Item.Pic is not { Category: PicCategory.ObjectReference, ObjectClassName: null })
+            {
+                data.Edition.Error("COBOLNET0866",
+                    "INVOKE: identifier-2 (a method name held in a data item) is permitted only when "
+                    + "identifier-1 is a UNIVERSAL object reference (ISO §14.9.23.3 SR7)");
+                return new BoundNop();
+            }
+            if (refs.Resolve(mref) is not { } msrc)
+            {
+                data.Edition.Error("COBOLNET0866",
+                    $"INVOKE: the method-name identifier '{mref.GetText()}' is not resolvable to storage");
+                return new BoundNop();
+            }
+            if (msrc.Item.Pic?.Category is not PicCategory.Alphanumeric && !msrc.Item.IsGroup)
+            {
+                data.Edition.Error("COBOLNET0866",
+                    $"INVOKE: identifier-2 ('{mref.GetText()}') shall be of class alphanumeric "
+                    + "(ISO §14.9.23.3 SR8; national identifier-2 is a later refinement)");
+                return new BoundNop();
+            }
+            return OoBindUniversalInvoke(inv, urecv, methodLiteral: null, methodSource: msrc);
+        }
         string? methodName = OoDecodeMethodNameLiteral(inv.invokeMethodName().literal());
         if (methodName is null)
         {
@@ -438,8 +482,9 @@ public sealed partial class StatementBinder
             return new BoundNop();
         }
         if (pic.ObjectClassName is not { } className)
-            return new BoundUnsupported("INVOKE through a UNIVERSAL object reference (reflection-free "
-                + "__CobolInvoke dispatch, deep-dive D10 — the universal-reference wave)");
+            // A UNIVERSAL receiver with a literal selector (SR4 permits literal-1; it still cannot bind
+            // statically — no roster exists at compile time): the D10 dynamic path.
+            return OoBindUniversalInvoke(inv, receiver, methodLiteral: method, methodSource: null);
         // An INTERFACE-typed receiver: resolution over the interface's prototype closure (§14.9.23.3 SR4e);
         // the emitted call is static C# interface dispatch behind the same GR5 null guard.
         if (OoClasses?.FindInterface(className) is { } recvIface)
@@ -722,6 +767,200 @@ public sealed partial class StatementBinder
     /// STRINGLIT, a national N"…" literal (the method NAME is its character value — §8.3.2.2 comparison), or
     /// a hex X"…" literal (byte pairs decoded through the alphanumeric runtime encoding). Null for a literal
     /// class SR2 excludes (boolean B"…", figurative constants) — the caller diagnoses.</summary>
+    /// <summary>Bind an INVOKE through a UNIVERSAL receiver (D10/D-U5; §14.9.23.4 GR7c): no compile-time
+    /// conformance — each argument and the RETURNING item carry their CONFORMANCE DESCRIPTOR for the
+    /// callee's runtime check (§9.3.8.2.1 NOTE). Argument rules, all COBOLNET0866 with citations: explicit
+    /// BY CONTENT/BY VALUE are forbidden (SR6 :28435 — BY REFERENCE is assumed implicitly); a literal or
+    /// arithmetic-expression argument cannot cross by reference (SR6 + GR6's non-universal-only scope);
+    /// OBJECT data may not cross at all (SR10 bans by-reference and SR6 removes the typed path's GR6a2
+    /// auto-CONTENT fallback); a Tier-C group (no character image) has no crossing form.</summary>
+    private BoundStatement OoBindUniversalInvoke(
+        Core.InvokeStatementContext inv, Place receiver, string? methodLiteral, Place? methodSource)
+    {
+        var argCtxs = inv.invokeUsing()?.invokeArgument() ?? [];
+        var args = new List<BoundUniversalArg>(argCtxs.Length);
+        foreach (var a in argCtxs)
+        {
+            if (a.VALUE() is not null || a.CONTENT() is not null)
+            {
+                data.Edition.Error("COBOLNET0866",
+                    "INVOKE through a universal object reference: neither BY CONTENT nor BY VALUE may be "
+                    + "specified — BY REFERENCE is assumed implicitly (ISO §14.9.23.3 SR6)");
+                return new BoundNop();
+            }
+            if (a.dataReference() is not { } dref)
+            {
+                data.Edition.Error("COBOLNET0866",
+                    "INVOKE through a universal object reference: a literal or arithmetic-expression "
+                    + "argument cannot cross BY REFERENCE (ISO §14.9.23.3 SR6 — every universal argument "
+                    + "is implicitly BY REFERENCE)");
+                return new BoundNop();
+            }
+            if (refs.Resolve(dref) is not { } p)
+            {
+                data.Edition.Error("COBOLNET0866",
+                    $"INVOKE: the argument '{dref.GetText()}' is not resolvable to storage");
+                return new BoundNop();
+            }
+            if (data.OoIsObjectData(p.Item))
+            {
+                data.Edition.Error("COBOLNET0866",
+                    $"INVOKE through a universal object reference: '{p.Item.CobolName}' is OBJECT "
+                    + "(factory/instance) data — it may not cross BY REFERENCE (ISO §14.9.23.3 SR10), and "
+                    + "the universal path has no BY CONTENT fallback (SR6)");
+                return new BoundNop();
+            }
+            string d = OoClassTable.ConformanceDescriptor(p.Item);
+            if (d == "T:!")
+            {
+                data.Edition.Error("COBOLNET0866",
+                    $"INVOKE: the argument '{p.Item.CobolName}' has no crossing form (a Tier-C group or a "
+                    + "not-yet-carried category — mirrors the typed path's rejection)");
+                return new BoundNop();
+            }
+            args.Add(new BoundUniversalArg(p, d));
+        }
+
+        Place? retPlace = null;
+        string? retDesc = null;
+        if (inv.invokeReturning()?.dataReference() is { } retRef)
+        {
+            if (refs.Resolve(retRef) is not { } rp)
+            {
+                data.Edition.Error("COBOLNET0866",
+                    $"INVOKE RETURNING '{retRef.GetText()}': the receiving identifier is not resolvable "
+                    + "to storage");
+                return new BoundNop();
+            }
+            retDesc = OoClassTable.ConformanceDescriptor(rp.Item);
+            if (retDesc == "T:!")
+            {
+                data.Edition.Error("COBOLNET0866",
+                    $"INVOKE RETURNING '{rp.Item.CobolName}': no crossing form (Tier-C / not-carried)");
+                return new BoundNop();
+            }
+            retPlace = rp;
+        }
+        // GR2a/§8.3.2.2: the selector is a user-defined word — normalize the LITERAL at bind time (the
+        // identifier-2 value normalizes at runtime via CobolObject.NormalizeMethodName).
+        return new BoundInvokeUniversal(receiver, methodLiteral?.TrimEnd().ToUpperInvariant(), methodSource,
+            args, retPlace, retDesc);
+    }
+
+    /// <summary>SET Format 5 core (§14.9.39; D-U7) — shared by the grammar's NULL/SELF/SUPER-sender rule
+    /// and BindSetTo's SEMANTIC re-route (a dataReference sender parses as the Format-1 shape). Rules, all
+    /// COBOLNET0867: every target an object-reference item (SR8 :31298); SUPER sender rejected (SR9
+    /// :31300); SELF only inside a method, and a TYPED target requires the current class to conform
+    /// (SR12c :31353); a dataReference sender must be an object-reference item, and a TYPED target
+    /// requires a TYPED, conforming sender (SR12a2 :31341 — universal-into-typed is OUTSIDE SR12's closed
+    /// list: the narrowing tool is an object view, the EC-OO wave); a UNIVERSAL target is unconstrained
+    /// (SET universal TO typed is unconditionally legal). An unresolvable sender that names a CLASS of the
+    /// group is the SR13 factory-object form — the factory singleton reference (D11 makes it directly
+    /// emittable).</summary>
+    internal BoundStatement OoBindSetObjectRef(
+        IReadOnlyList<Core.DataReferenceContext> targetRefs,
+        Core.DataReferenceContext? senderRef, bool senderNull, bool senderSelf, bool senderSuper)
+    {
+        if (senderSuper)
+        {
+            data.Edition.Error("COBOLNET0867",
+                "SET … TO SUPER: SUPER shall not be the sending operand of an object-reference SET "
+                + "(ISO §14.9.39.3 SR9)");
+            return new BoundNop();
+        }
+        var targets = new List<Place>(targetRefs.Count);
+        foreach (var t in targetRefs)
+        {
+            if (refs.Resolve(t) is not { } tp || tp.Item.Pic is not { Category: PicCategory.ObjectReference })
+            {
+                data.Edition.Error("COBOLNET0867",
+                    $"SET '{t.GetText()}': the receiving operand of an object-reference SET shall be a "
+                    + "USAGE OBJECT REFERENCE data item (ISO §14.9.39.3 SR8)");
+                return new BoundNop();
+            }
+            targets.Add(tp);
+        }
+
+        Place? src = null;
+        string? srcFactoryClassCs = null;
+        if (senderSelf)
+        {
+            if (OoCurrentClass is not { } cur)
+            {
+                data.Edition.Error("COBOLNET0867",
+                    "SET … TO SELF: SELF is defined only within a method of a class (ISO §14.9.39.3 SR12c)");
+                return new BoundNop();
+            }
+            foreach (var tp in targets)
+                if (tp.Item.Pic!.ObjectClassName is { } tcn
+                    && OoClasses?.Find(tcn) is { } tcls && !cur.ConformsTo(tcls))
+                    data.Edition.Error("COBOLNET0867",
+                        $"SET '{tp.Item.CobolName}' TO SELF: class '{cur.Name}' is not '{tcls.Name}' or a "
+                        + "subclass of it (ISO §14.9.39.3 SR12c2)");
+        }
+        else if (!senderNull)
+        {
+            if (senderRef is null) return new BoundUnsupported("SET object-reference sender shape");
+            var sp = refs.Resolve(senderRef);
+            if (sp is not null && sp.Item.Pic is { Category: PicCategory.ObjectReference } spic)
+            {
+                foreach (var tp in targets)
+                    if (tp.Item.Pic!.ObjectClassName is not null
+                        && OoClasses?.ObjectRefWideningMismatch(spic, tp.Item.Pic!) is { } werr)
+                        data.Edition.Error("COBOLNET0867",
+                            $"SET '{tp.Item.CobolName}' TO '{sp.Item.CobolName}': {werr} "
+                            + "(ISO §14.9.39.3 SR12 — a universal sender needs an object view to narrow)");
+                src = sp;
+            }
+            else if (senderRef.cobolWord()?.GetText() is { } sname && OoClasses?.Find(sname) is { } scls)
+            {
+                // SR13 (:31371): the sender names a CLASS → the factory object of that class. D11's
+                // singleton makes it a direct reference; conformance into a TYPED target is the FACTORY
+                // conformance question — v1 permits only a UNIVERSAL target (factory-class hierarchies
+                // widen via FACTORY OF phrases the USAGE grammar does not carry yet — 0899-noted).
+                foreach (var tp in targets)
+                    if (tp.Item.Pic!.ObjectClassName is not null)
+                    {
+                        data.Edition.Error("COBOLNET0867",
+                            $"SET '{tp.Item.CobolName}' TO {sname}: a factory-object sender (SR13) into a "
+                            + "TYPED receiver needs the FACTORY OF usage phrase — not yet carried "
+                            + "(universal receivers accept it)");
+                        return new BoundNop();
+                    }
+                srcFactoryClassCs = scls.FactoryCsName;
+            }
+            else
+            {
+                data.Edition.Error("COBOLNET0867",
+                    $"SET … TO '{senderRef.GetText()}': the sending operand shall be an object-reference "
+                    + "data item, NULL, SELF, or a class-name (ISO §14.9.39.3 SR9/SR12/SR13)");
+                return new BoundNop();
+            }
+        }
+        return new BoundSetObjectRef(targets, src, senderNull, senderSelf) { SourceFactoryCs = srcFactoryClassCs };
+    }
+
+    /// <summary>True when an arithmetic expression is EXACTLY one bare data reference (the Format-5
+    /// re-route's sender shape) — its single dataReference descendant spans the whole expression text.</summary>
+    private static Core.DataReferenceContext? OoExtractBareReference(Core.ArithmeticExpressionContext e)
+    {
+        Core.DataReferenceContext? only = null;
+        var stack = new Stack<Antlr4.Runtime.Tree.IParseTree>();
+        stack.Push(e);
+        while (stack.Count > 0)
+        {
+            var cur = stack.Pop();
+            if (cur is Core.DataReferenceContext d)
+            {
+                if (only is not null) return null;
+                only = d;
+                continue;
+            }
+            for (int i = 0; i < cur.ChildCount; i++) stack.Push(cur.GetChild(i));
+        }
+        return only is not null && only.GetText() == e.GetText() ? only : null;
+    }
+
     private static string? OoDecodeMethodNameLiteral(Core.LiteralContext? lit)
     {
         var nn = lit?.nonNumericLiteral();

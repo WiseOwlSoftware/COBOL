@@ -426,6 +426,8 @@ public sealed partial class CSharpEmitter
             case BoundExitProgram ep: CallEmitExitProgram(ep); return false;
             case BoundGoback gb: return CallEmitGoback(gb);
             case BoundInvoke inv: OoEmitInvoke(inv); return false;              // OO (ISO §14.9.23; deep-dive D5)
+            case BoundInvokeUniversal uinv: OoEmitUniversalInvoke(uinv); return false;   // D10 universal dispatch (GR7c runtime conformance)
+            case BoundSetObjectRef sor: OoEmitSetObjectRef(sor); return false;           // SET F5 (ISO §14.9.39; D-U7)
             case BoundMethodReturn:                                             // method GOBACK/EXIT METHOD (D8)
                 w.Line("throw new MethodReturn();   // terminate the METHOD only — caught at the method entry (ISO §14.9.18.4 GR4)");
                 return true;

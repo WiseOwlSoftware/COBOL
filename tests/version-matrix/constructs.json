@@ -591,6 +591,16 @@
     "source": "IDENTIFICATION DIVISION.\nCLASS-ID. MPSQ1.\nIDENTIFICATION DIVISION.\nOBJECT.\nPROCEDURE DIVISION.\nMETHOD-ID. GET PROPERTY BAL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LK-R PIC 9(4).\nPROCEDURE DIVISION RETURNING LK-R.\nEND METHOD.\nEND OBJECT.\nEND CLASS MPSQ1.\n"
   },
   {
+    "id": "set-object-reference-2002",
+    "status": "active",
+    "description": "SET ... TO object-reference (ISO 14.9.39 Format 5) - introduced 2002 (OO). Grammar-gated (setObjectReferenceStatement) for NULL/SELF senders; a dataReference sender parses as the Format-1 shape and re-routes SEMANTICALLY in BindSetTo (the ANTLR alternative-order reality). Below 2002 the W1.5 mapping fires on the NULL/SELF-after-TO signature (0900). SR8/SR9/SR12/SR13 violations are COBOLNET0867; LIVE as of the universal wave (D-U7, DEVLOG 608).",
+    "introducedIn": 2002,
+    "removedIn": null,
+    "expectDiagnostic": "COBOLNET0900",
+    "vcr": "M2 OO (roadmap Phase 3); W1.5 parse-layer mapping (DEVLOG 608)",
+    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SORQ1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    SET W TO NULL.\n    STOP RUN.\n"
+  },
+  {
     "id": "move-quote-numeric-obsolete-2014",
     "description": "MOVE of the figurative constant QUOTE to a numeric or numeric-edited item - the ONE figurative the change annex tracks separately (W2 adversarial-review correction): designated OBSOLETE by ISO 2014 (Annex E.2 item 21 - 'features that were classified as obsolete in the previous COBOL standard'), then REMOVED 2023 with the rest (E.2 item 1; 14.9.25.3 SR5). 0903 warning at 2014, 0902 at 2023; pre-removal semantics on the StoreAsImage substrate (spec-pinned - legacy CBL0906 compile-rejects this shape at every standard, a documented legacy non-conformance).",
     "introducedIn": 85,
