@@ -254,15 +254,28 @@ public sealed partial class DataBinder
     /// <summary>Synthesize the GR1/GR2/GR3 compiler temp for one property reference: a level-1 elementary
     /// item CLONED from the accessor's crossing description (<paramref name="model"/> = the GET RETURNING
     /// item or the SET formal — identical by the §13.18.42 clone rule / the 0842 SR7 description-equality
-    /// check), appended to <see cref="DataBinder.Roots"/> so the FieldEmitter declares it like any other
-    /// item. One temp per REFERENCE (GR1 temp-1 / GR2 temp-2; GR3 reuses one — the caller decides).</summary>
-    internal DataItem OoCreatePropertyTemp(DataItem model, string prop)
+    /// check). One temp per REFERENCE (GR1 temp-1 / GR2 temp-2; GR3 reuses one — the caller decides).</summary>
+    internal DataItem OoCreatePropertyTemp(DataItem model, string prop) =>
+        CreateCompilerTemp(model, "__PROP-TEMP-", "__prop", prop);
+
+    /// <summary>The (temp, model) clone pairs <see cref="CreateCompilerTemp"/> produced — consumed by the
+    /// run-unit emitter's post-bind re-sync: <c>StoreAsImage</c> is still MUTABLE while procedure bodies
+    /// bind (a ref-mod store or a figurative MOVE inside the MODEL's own unit flips it AFTER a temp cloned
+    /// it — the M2-UDF-1 review's unit-order desync), so the frozen copy must be re-read once every
+    /// procedure has bound.</summary>
+    internal List<(DataItem Temp, DataItem Model)> CompilerTempClones { get; } = [];
+
+    /// <summary>The ONE synthesized-compiler-temp constructor (property-reference temps, user-function result
+    /// temps): a level-1 elementary item cloned from <paramref name="model"/>'s description, appended to
+    /// <see cref="Roots"/> so the FieldEmitter declares it like any other item. The pair is recorded for the
+    /// post-bind <c>StoreAsImage</c> re-sync (see <see cref="CompilerTempClones"/>).</summary>
+    internal DataItem CreateCompilerTemp(DataItem model, string cobolPrefix, string csPrefix, string tag)
     {
         var t = new DataItem
         {
             Level = 1,
-            CobolName = "__PROP-TEMP-" + _uidCounter,
-            CsName = "__prop" + _uidCounter + "_" + DataItem.Sanitize(prop).ToUpperInvariant(),
+            CobolName = cobolPrefix + _uidCounter,
+            CsName = csPrefix + _uidCounter + "_" + DataItem.Sanitize(tag).ToUpperInvariant(),
             Pic = model.Pic,
             OwnSign = model.OwnSign,
             Justified = model.Justified,
@@ -271,6 +284,7 @@ public sealed partial class DataBinder
         };
         t.Uid = _uidCounter++;
         Roots.Add(t);
+        CompilerTempClones.Add((t, model));
         return t;
     }
 

@@ -44,6 +44,7 @@ public sealed partial class StatementBinder
     private static BoundOperand OperandOf(BoundExpr e) => e switch
     {
         BoundNumLiteral l => new BoundNumericLiteral(l.Text),       // a folded LENGTH
+        BoundNumRef r => new BoundFieldOperand(r.Place),            // a user-function result temp (M2-UDF-1)
         BoundExprError err => new BoundOperandError(err.Feature),
         _ => new BoundComputedOperand(e),
     };
@@ -52,10 +53,25 @@ public sealed partial class StatementBinder
     /// entries above and the nested-FUNCTION recursion inside argument segments).</summary>
     private BoundExpr BindIntrinsicCore(string name, List<IToken> argTokens)
     {
+        // §12.3.8.2 GR12 (:14885): within the environment division's scope, a REPOSITORY-declared
+        // function-prototype-name refers to the USER-DEFINED function "and not to an intrinsic function of
+        // the same name" (the spec's own factorial-override example, :43651) — so the user-function
+        // dispatch PRECEDES the catalog. §8.4.6.6 adds the CONTAINING function definition's own name with
+        // no repository declaration (self-recursion; a present self-entry is ignored, §12.3.8 GR11).
+        if (data.UserFunctionNames.Contains(name)
+            || name.Equals(UdfSelfName, StringComparison.OrdinalIgnoreCase))
+            return UdfBindCall(name, argTokens);
+
         if (!IntrinsicCatalog.TryGet(name, out var sig))
         {
+            bool definedInGroup = UserFunctions?.ContainsKey(name) == true;
             data.Edition.Error("COBOLNET1501", $"FUNCTION {name.ToUpperInvariant()} is not an intrinsic function "
-                + "of ISO/IEC 1989 (§15.6 summary of functions)");
+                + "of ISO/IEC 1989 (§15.6 summary of functions)"
+                + (definedInGroup
+                    ? $"; the compilation group defines FUNCTION-ID {name.ToUpperInvariant()} — declare "
+                      + $"FUNCTION {name.ToUpperInvariant()} in this unit's REPOSITORY paragraph to reference "
+                      + "it as a user-defined function (ISO §12.3.8.2 GR12)"
+                    : ""));
             return new BoundExprError($"FUNCTION {name}");
         }
 

@@ -35,6 +35,9 @@ public sealed partial class CSharpEmitter
         public CallUnit? Parent;
         public List<CallUnit> Children = [];
         public bool Initial, Common, Recursive;
+        /// <summary>True for a FUNCTION-ID unit (ISO §9.4 — a user-defined function; program-shaped except it
+        /// RETURNs a value and always possesses the recursive attribute).</summary>
+        public bool IsFunction;
         public DataBinder Data = null!;
         public ReferenceResolver Refs = null!;
         public BoundProgram Bound = null!;
@@ -91,7 +94,22 @@ public sealed partial class CSharpEmitter
         _ooClasses.ValidateOverrideSignatures(edition);               // §9.3.8.2 — after all formals resolve (slice 3a)
         _ooClasses.ValidateImplements(edition);                       // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority)
         foreach (var cls in classes) OoBindClassBody(cls);
-        foreach (var unit in units) CallBindUnit(unit, edition);
+        // TWO-PHASE program-unit binding (M2-UDF-1 key enabler): EVERY unit's DATA division binds before ANY
+        // unit's procedure body binds, so a function-identifier reference resolves the callee's RETURNING /
+        // USING signatures even when the FUNCTION-ID unit FOLLOWS the caller in the compilation group
+        // (§8.4.3.2.4 GR1 — the caller-side temporary takes the callee's RETURNING description; the same
+        // forward-reference discipline OoClassTable D1 gives typed object references).
+        foreach (var unit in units) CallBindUnitData(unit, edition);
+        var userFunctions = CallBuildUserFunctionTable(units, edition);
+        foreach (var unit in units) CallBindUnitProcedure(unit, userFunctions);
+        // Compiler-temp description re-sync: StoreAsImage is still mutable while procedure bodies bind
+        // (a ref-mod store / figurative MOVE in the MODEL's own unit flips it after a temp cloned it — the
+        // M2-UDF-1 review's unit-order desync; both sides of the activation boundary must agree on the
+        // carrier form). Runs after ALL procedure binds, before the image-marking pass reads the flags.
+        foreach (var d in units.Select(u => u.Data)
+                     .Concat(classes.SelectMany(c => new[] { c.Data, c.FactoryData })))
+            foreach (var (temp, model) in d.CompilerTempClones)
+                temp.StoreAsImage = model.StoreAsImage;
         foreach (var cls in classes) { MarkStoreAsImage(cls.Data); MarkStoreAsImage(cls.FactoryData); }
         foreach (var unit in units) MarkStoreAsImage(unit.Data);
         OoHarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
@@ -205,9 +223,11 @@ public sealed partial class CSharpEmitter
     {
         var idBody = ctx.identificationDivision()?.identificationBody();
         var pid = idBody?.programIdParagraph();
+        var fid = idBody?.functionIdParagraph();
         string name = pid?.programName()?.GetText()
-            ?? idBody?.functionIdParagraph()?.programName()?.GetText()
+            ?? fid?.programName()?.GetText()
             ?? $"PROGRAM{index}";
+        bool isFunction = pid is null && fid is not null;
         bool initial = false, common = false, recursive = false;
         foreach (var attr in pid?.programIdAttributes()?.programIdAttribute() ?? [])
         {
@@ -231,6 +251,10 @@ public sealed partial class CSharpEmitter
             edition.Error("COBOLNET0887",
                 $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO §11.10.3 SR4)");
 
+        // §9.4 (:12529): "a user defined function always possesses the recursive attribute and may call
+        // itself" — implicit, never the explicit PROGRAM-ID attribute, so it rides AFTER the 0885/0886 gates.
+        if (isFunction) recursive = true;
+
         string baseName = "_PRG_" + DataItem.Sanitize(name).ToUpperInvariant();
         string className = baseName;
         for (int n = 2; !usedClassNames.Add(className); n++) className = $"{baseName}_{n}";
@@ -238,6 +262,7 @@ public sealed partial class CSharpEmitter
         {
             Name = name, ClassName = className, Ctx = ctx,
             Parent = parent, Initial = initial, Common = common, Recursive = recursive,
+            IsFunction = isFunction,
         };
     }
 
@@ -257,11 +282,13 @@ public sealed partial class CSharpEmitter
         return unit;
     }
 
-    /// <summary>Bind one unit: its own DATA + PROCEDURE DIVISION (a per-unit <see cref="DataBinder"/> with a
-    /// disjoint uid band so nested-class struct/profile names never shadow a container's), then inject the
-    /// containers' GLOBAL names (ISO §13.18.27 GR1–2 — nearest container first, a local name shadows) and
-    /// record the <c>ref</c>-bridges the nested class needs to reach the container's storage.</summary>
-    private void CallBindUnit(CallUnit unit, EditionContext edition)
+    /// <summary>The DATA half of unit binding (phase 1 of the two-phase bind): the unit's DATA DIVISION on a
+    /// per-unit <see cref="DataBinder"/> with a disjoint uid band (so nested-class struct/profile names never
+    /// shadow a container's), then inject the containers' GLOBAL names (ISO §13.18.27 GR1–2 — nearest container
+    /// first, a local name shadows) and record the <c>ref</c>-bridges the nested class needs to reach the
+    /// container's storage. Every unit passes through here BEFORE any unit's procedure binds
+    /// (<see cref="CallBindUnitProcedure"/>) — the forward-reference enabler for user-function signatures.</summary>
+    private void CallBindUnitData(CallUnit unit, EditionContext edition)
     {
         var data = new DataBinder(edition) { OoClasses = _ooClasses };
         data.CallSeedUids(_callUidBand);
@@ -294,6 +321,14 @@ public sealed partial class CSharpEmitter
                 if (f.IsGlobal)
                     data.FilesByName.TryAdd(f.CobolName, f);
 
+        // Configuration-section inheritance (ISO §12.3.4 GR1: "the entries explicitly or implicitly
+        // specified in the configuration section of a source unit that contains other source units apply to
+        // each directly or indirectly contained source unit"; §12.3.3 SR1 — a contained program cannot have
+        // its own): the containers' REPOSITORY user-function specifiers apply here, so a contained program's
+        // FUNCTION reference resolves (the M2-UDF-1 review finding).
+        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+            data.UserFunctionNames.UnionWith(anc.Data.UserFunctionNames);
+
         int depth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
@@ -322,7 +357,23 @@ public sealed partial class CSharpEmitter
         }
 
         unit.Refs = new ReferenceResolver(data);
-        var binder = new StatementBinder(data, unit.Refs) { OoClasses = _ooClasses };
+    }
+
+    /// <summary>The PROCEDURE half of unit binding (phase 2): every unit's DATA is already bound
+    /// (<see cref="CallBindUnitData"/>) and the group's user-function signature table is built, so a
+    /// <c>FUNCTION user-name(args)</c> reference resolves its callee's RETURNING/USING descriptions
+    /// regardless of unit order in the source (§8.4.3.2.4 GR1).</summary>
+    private void CallBindUnitProcedure(CallUnit unit, IReadOnlyDictionary<string, UserFunctionSignature> userFunctions)
+    {
+        var data = unit.Data;
+        var binder = new StatementBinder(data, unit.Refs)
+        {
+            OoClasses = _ooClasses,
+            UserFunctions = userFunctions,
+            // §8.4.6.6 — inside a function definition its OWN name is a referable function-prototype-name
+            // (self-recursion without a repository entry; §12.3.8 GR11 makes a present self-entry a no-op).
+            UdfSelfName = unit.IsFunction ? unit.Name : null,
+        };
         binder.ConfigureEc(_turnState, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
         unit.Bound = binder.Bind(unit.Ctx);
 
@@ -335,6 +386,31 @@ public sealed partial class CSharpEmitter
                 unit.Refs.ResolveItem(f.Item);
         if (data.LinkageReturning is { } returning)
             unit.Refs.ResolveItem(returning);
+    }
+
+    /// <summary>Build the compilation group's user-function signature table (name → bound RETURNING item +
+    /// USING formals), between the DATA and PROCEDURE bind phases: FUNCTION-ID units only (ISO §9.4 — the
+    /// binder's function namespace never sees PROGRAM-ID units; §8.4.6.6 scope of function-prototype-names).
+    /// The §14.2 procedure-division-header rule "The RETURNING phrase shall be specified in a function
+    /// definition" (:23666) is checked HERE, once per unit — even an uncalled function without RETURNING is
+    /// ill-formed.</summary>
+    private static Dictionary<string, UserFunctionSignature> CallBuildUserFunctionTable(
+        List<CallUnit> units, EditionContext edition)
+    {
+        var table = new Dictionary<string, UserFunctionSignature>(StringComparer.OrdinalIgnoreCase);
+        foreach (var u in units)
+        {
+            if (!u.IsFunction) continue;
+            if (u.Data.LinkageReturning is null)
+                edition.Error("COBOLNET1507",
+                    $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function definition "
+                    + "(ISO §14.2, procedure division header) — the function cannot deliver a result without it");
+            if (!table.TryAdd(u.Name, new UserFunctionSignature(u.Name, u.Data.LinkageReturning, u.Data.LinkageFormals)))
+                edition.Error("COBOLNET1508",
+                    $"duplicate FUNCTION-ID '{u.Name}' in the compilation group — two function definitions with "
+                    + "one name cannot both register in the run unit's activation namespace (ISO §8.4.6.6)");
+        }
+        return table;
     }
 
     private static void CallRegisterSubtree(DataBinder data, DataItem item)

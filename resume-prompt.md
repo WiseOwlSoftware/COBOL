@@ -203,12 +203,31 @@
 > BinaryCapacity path was a documented stub — also cures COMP-5's stubbed overflow); binary_usage.cob
 > byte-exact; PICTURE prohibited COBOLNET0870 (§13.16.3 SR8); implied DISPLAY width 3/5/10/19·20. Battery:
 > Unit 123 · Conformance 1610 (+18) · 0 regressions. Floats (M2-DATA-2) stay Phase 6.
-> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md).** ⭐ NEXT UP
-> and READY: **(c) M2-UDF-1 inline user-defined function invocation — DECISION-COMPLETE DESIGN captured in
-> `docs/PHASE4_RECONCILIATION.md` §"M2-UDF-1 — DECISION-COMPLETE DESIGN" (recon wf_a1e33856-215): no grammar
-> change, the two-phase bind gives forward-ref signatures free, lower to a hoisted CALL…RETURNING temp (the
-> property-ref BoundSequence pattern) over the existing `_PRG_*` callable; enable udf_* goldens. Implement
-> this first — a fresh context should go straight to it.** Then (b) pointers increment 2, (a) national/boolean
+> **(c) M2-UDF-1+2 inline UDF invocation DONE (DEVLOG 615)** — `FUNCTION user-name(args)` live for the
+> in-group whole-source form: hoisted CALL…RETURNING over a §8.4.3.2.4 GR1 result temp (BoundSequence
+> pre-op; §8.4.3.2.3 SR1 = never receiving), args per §8.4.3.2.4 GR5 (identifier→Reference, literal/arith→
+> content cell conformed by CobolArgAdapt), §12.3.8.2 GR12 user-shadows-intrinsic dispatch, FUNCTION-ID
+> units structurally RECURSIVE (§9.4). ⚠ The design's "bind is already two-phase" claim was FALSE — the
+> real work was splitting `CallBindUnit` → `CallBindUnitData`/`CallBindUnitProcedure` with the
+> `UserFunctionSignature` table between (INV-1-STRONG + full battery prove it behavior-neutral). New
+> 1505–1509 band (+1501 GR12 hint), 1509 = the PERFORM-UNTIL/SEARCH re-evaluation loud-guard the design
+> missed. THE ADVERSARIAL REVIEW WAVE landed same change set (wf_e38982d1-0d2: 28 raw → 24 confirmed, all
+> fixed/staged/documented — see the reconciliation's review subsection): the StoreAsImage (temp,model)
+> re-sync pass, EcWrap + ContainsNextSentence BoundSequence transparency (both holes predated UDFs via
+> property ops), the §8.8.4.13 short-circuit + EVALUATE 1509 guards, §12.3.4 GR1 repository inheritance
+> into contained programs, §8.4.6.6 self-recursion without a repository entry, 1510 staged non-numeric
+> RETURNING; documented deviations = §12.3.8 SR10 forward-definition leniency (ordering diagnostic lands
+> with UDF-3 prototypes) + the pre-existing D3/D4 recursive-model static-WS deviation (§14.6.2.3.2/.3).
+> All 5 udf_* goldens byte-exact FIRST RUN (incl. udf_recursion 5!=120 + udf_nested_args GR5a by-ref
+> mutation); UdfInvocationTests ×26; user-function-invocation-2002 registry+matrix row. Conformance 1645 ·
+> unit 123 · 0 regressions. Residue named in the reconciliation as-built: UDF-3 prototypes (1505), UDF-4
+> ALL-INTRINSIC/keyword-omitted legs, EXIT FUNCTION (unblocked), class-unit UDF refs, BY VALUE header
+> formals, per-evaluation activation (1509), the category-carrying result channel (1510).
+> **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md).** ⭐ NEXT UP:
+> **(b) pointers increment 2 — ADDRESS OF (byte-backing) / BASED / SET ADDRESS OF / ALLOCATE-FREE** (grammar
+> already wired at CobolParserCore.g4 allocate/free; no .g4 change needed; based_pointer/pointer_alloc/
+> pointer_arith goldens PENDING) — or the small EXIT FUNCTION leg (M2-PROC-6, now unblocked, needs the
+> in-function placement flag + the exit-function-window row flip). Then (a) national/boolean
 > (note: boolean OPERATORS B-AND/OR/XOR/NOT are NOT in the grammar → owner-approval-gated), (d) sharing/lock/
 > retry (grammar-gated too); OO riders queued (interface GET/SET PROPERTY prototypes, group-valued property
 > refs, FACTORY OF usage, object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.

@@ -22,10 +22,10 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
 
 | ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
 |---|---|---|---|---|---|---|
-| M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | STAGED-LOUD | StatementBinder.Intrinsics.cs:53-60 → COBOLNET1501; manifest udf_inline_expression PENDING | (c) | Catalog "done" is LEGACY-only. Verified: named loud-stop, not silent. |
-| M2-UDF-2 | Literal/arith args to a UDF | done | STAGED-LOUD | Rejected at COBOLNET1501 before arg encoding; udf_value_args PENDING | (c) | Moot until M2-UDF-1 invocation lands; folds into (c). |
-| M2-UDF-3 | Separate-compilation function prototypes (§8.13) | open | NOT-STARTED | CobolParserCore.g4:168 FUNCTION-ID is CALL-target only; :426 "WS-2002-UDF follow-up"; no prototype grammar/binder | (c) | **Verified NOT-STARTED.** Depends on UDF-1/2. |
-| M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | PARTIAL | Grammar parses (repository_paragraph.cob green); specifiers inert; functionCall still requires FUNCTION token | (c) | Parse landed, semantic bind unbuilt (ISO §12.3.8). |
+| M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | **LANDED (DEVLOG 615)** | StatementBinder.Udf.cs (bind → hoisted CALL…RETURNING over a §8.4.3.2.4 GR1 result temp); 5 udf_* goldens ENABLED byte-exact (invocation, inline_expression, value_args, recursion, nested_args); UdfInvocationTests ×26; user-function-invocation-2002 registry+matrix row | none | As-built + adversarial-review notes below (the two-phase bind was REALIZED, not found). |
+| M2-UDF-2 | Literal/arith args to a UDF | done | **LANDED (DEVLOG 615)** | §8.4.3.2.4 GR5b private-copy cells conformed by CobolArgAdapt; udf_value_args ENABLED byte-exact (LIT/ARI) | none | Folded into M2-UDF-1 as designed. |
+| M2-UDF-3 | Separate-compilation function prototypes (§8.13) | open | NOT-STARTED | Repository-declared-but-undefined now stages LOUD at the dedicated COBOLNET1505 (was the generic 1501) | (c residual) | Depends on a cross-assembly function locate step (the EC-FUNCTION-NOT-FOUND §8.4.3.2.4 GR6b surface). |
+| M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | PARTIAL | Named non-INTRINSIC specifiers now BIND (DataBinder.UserFunctionNames → the §12.3.8.2 GR12 dispatch + intrinsic shadowing); ALL INTRINSIC still inert; the FUNCTION-keyword-omitted reference form (§8.4.3.2 SR2) not in the grammar | (c residual) | GR12 named-specifier leg landed with UDF-1. |
 
 ### M2-UDF-1 — DECISION-COMPLETE DESIGN (recon workflow wf_a1e33856-215, 2026-07-05; ready to implement)
 
@@ -82,6 +82,110 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
   (`tests/conformance/2002/manifest.json`); add a `ConstructRegistry` row `user-function-invocation-2002`
   (IntroducedIn 2002) + a version-matrix row per feedback_conformance_tests_per_feature; a dedicated
   `UdfInvocationTests` (no-arg/ref/content/nested-in-expr). Unblocks M2-UDF-2 (folds in) and EXIT FUNCTION (M2-PROC-6).
+
+#### M2-UDF-1 — AS BUILT (DEVLOG 615, 2026-07-05; all three goldens byte-exact on first run)
+
+Landed exactly on the design's lowering (temp + hoisted `BoundCallProgram` + `BoundSequence`; zero new emit
+surface; no grammar change), with these deviations/realizations — recorded per the process rule:
+
+1. **The "KEY ENABLER" was REALIZED, not found.** The design read `CSharpEmitter.Call.cs` as already two-phase;
+   in truth `CallBindUnit` bound each unit's DATA **and** PROCEDURE per-unit sequentially, so a caller's
+   procedure bind could not see a later FUNCTION-ID unit's signatures. The as-built SPLITS it:
+   `CallBindUnitData` (DataBinder + GLOBAL/index injection + bridges + ReferenceResolver) loops over ALL units,
+   then `CallBuildUserFunctionTable`, then `CallBindUnitProcedure` loops (StatementBinder + formal resolution).
+   Relative order vs `MarkStoreAsImage` and class binding is unchanged; INV-1-STRONG + the full battery prove
+   the restructure behavior-neutral.
+2. **The table is `Dictionary<string, UserFunctionSignature>`** (`DataBinder.Linkage.cs` — Name, Returning
+   DataItem, LinkageFormals), not name→CallUnit: `CallUnit` is emitter-private and the binder needs only the
+   bound signature. FUNCTION-ID units get `Recursive = true` structurally (§9.4 :12529 — always recursive).
+3. **GR12 dispatch precedence.** §12.3.8.2 GR12 (:14885) makes a REPOSITORY-declared name refer to the USER
+   function "and not to an intrinsic function of the same name" (the spec's factorial example :43651) — so the
+   user-function check runs BEFORE `IntrinsicCatalog.TryGet`, not on its miss as the design sketched.
+   `DataBinder.UserFunctionNames` collects the non-INTRINSIC FUNCTION specifiers (the M2-UDF-4 named leg).
+4. **The content-arg "temp of the formal's PIC" is realized by the runtime ABI, not a bind-time temp:**
+   literal/arith args ride the existing `BoundCallArg` value forms; `CobolArgAdapt.Num/Text` conform the cell
+   to the callee's profile (same-scale cells alias; a scale difference gets the rescaling truncation view) —
+   observably the §14.2.3 GR9 copy-in. Header BY VALUE formals (GR5c) are not modeled (LinkageFormal carries
+   no mode); follow-up with the program-CALL header modes.
+5. **The pending-call list lives on StatementBinder** (`_udfPendingCalls`), not DataBinder: registration
+   happens inside the binder itself (property ops needed DataBinder only because ReferenceResolver registers
+   them). The UDF wrap is the INNER sequence at the BindStatement chokepoint (before `OoWrapPropertyOps`), so
+   a property-reference argument's GET still precedes the activation consuming its temp.
+6. **A per-iteration re-evaluation guard the design missed:** a once-hoisted activation cannot honor a
+   PERFORM UNTIL/VARYING condition (or FROM/BY operand) or SEARCH WHEN condition, which re-evaluate per
+   iteration (§14.9.28/§14.9.37) — COBOLNET1509 loud, never a stale-temp loop. Body statements are safe
+   (they drain their own suffix).
+7. **Temp synthesis generalized:** `OoCreatePropertyTemp` now delegates to the ONE `CreateCompilerTemp`
+   (feedback_singular_pattern); the UDF result temp is `CreateCompilerTemp(returning, "__FNRES-", "__fnres", name)`.
+8. **Diagnostics band:** 1501 (+ a GR12 hint when the group defines the FUNCTION-ID), 1505 declared-but-undefined
+   (the M2-UDF-3 prototype gap, also class-unit references), 1506 arity (§14.8.2 positional; empty parens are a
+   §8.4.3.2 parse error by design), 1507 function without PD RETURNING (§14.2 :23666, checked once per unit even
+   uncalled), 1508 duplicate FUNCTION-ID, 1509 re-evaluation guard.
+9. **Residue (named, staged):** function prototypes/cross-assembly locate (UDF-3 → EC-FUNCTION-NOT-FOUND
+   surface), ALL INTRINSIC semantic bind + the FUNCTION-keyword-omitted reference form §8.4.3.2 SR2 (UDF-4),
+   EXIT FUNCTION (M2-PROC-6 leg — now unblocked, needs the in-function placement flag), UDF references from
+   class-unit methods, per-evaluation activation (1509), BY VALUE header formals, §14.8.2.3 static
+   description-conformance for reference args (runtime-adapted today, the program-CALL posture).
+
+#### M2-UDF-1 — the ADVERSARIAL REVIEW WAVE (same change set; 28 raw findings → 24 confirmed → fixed/staged/documented)
+
+The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed diff confirmed 24 findings
+(4 refuted). Disposition, all in the same change set:
+
+**Fixed:**
+- **StoreAsImage clone desync (major).** `StoreAsImage` is still mutable while procedure bodies bind (a
+  ref-mod store / non-digit figurative MOVE in the callee flips its RETURNING item AFTER a caller's temp
+  cloned it) — the two activation-boundary sides then disagree on the carrier and `StoreReturn(long,string)`
+  silently drops a non-digit image. Cured structurally: `CreateCompilerTemp` records every (temp, model)
+  pair (`DataBinder.CompilerTempClones`) and the run-unit emitter re-syncs `StoreAsImage` after ALL
+  procedure binds — property-reference temps ride the same cure.
+- **EcWrap sequence transparency (major).** The family selection switched on the bound node's TYPE, so a
+  hoisted-activation `BoundSequence` matched nothing and the carrying statement silently LOST its >>TURN
+  checking (a hole the property-op sequence had since DEVLOG 607). `QueryFor` now recurses into sequence
+  steps: the carrying statement keeps its families, each hoisted CALL contributes EC-PROGRAM, duplicates
+  dedup.
+- **ContainsNextSentence sequence transparency (major).** A NEXT SENTENCE inside a UDF/property-carrying
+  statement was invisible to the label machinery — `BoundSequence` arm added.
+- **§8.8.4.13 short-circuit + EVALUATE over-evaluation (major).** Rule 1 terminates a hierarchical level as
+  soon as its truth value is determined; rule 2 evaluates functions "if and when the conditions containing
+  them are evaluated" — a hoisted activation in a NON-FIRST AND/OR operand (XOR exempt) or in EVALUATE
+  selection (whose subjects this backend's chained lowering re-renders per WHEN) would over-evaluate.
+  Guarded loud: `UdfGuardConditionalOperand` at BindFlatSequence + `BoundEvaluate` in the 1509 shape check.
+- **§12.3.4 GR1 configuration inheritance (major).** A contained program (which cannot own a CONFIGURATION
+  SECTION, §12.3.3 SR1) now inherits the containers' `UserFunctionNames` — conforming references bound,
+  the misleading add-a-REPOSITORY hint can no longer fire there. (The same inheritance for PROPERTY
+  specifiers is a pre-existing hole, noted for the OO track.)
+- **§8.4.6.6 self-name (major).** A function's OWN name is referable with no repository entry
+  (self-recursion; §12.3.8 GR11 makes a present self-entry a no-op) — `UdfSelfName` threaded per unit;
+  the udf_recursion golden (5! = 120 through five nested activations) proves it end-to-end.
+- **Non-numeric RETURNING mis-carry (critical).** The result reads through `BoundNumRef`, whose category
+  classifiers and relation rendering are numeric — an alphanumeric result would COMPARE numerically and a
+  group RETURNING cloned a Pic-less undeclarable temp (Roslyn failure). STAGED LOUD as COBOLNET1510: only
+  elementary fixed-point numeric RETURNING is implemented; the category-carrying result channel is the
+  named follow-up.
+- **Honest argument diagnostics (minor).** A ref-mod/figurative/unresolvable argument now reports ITS
+  actual staged shape in COBOLNET1506, never a message claiming a legal form is illegal.
+- **§8.4.3.2.4 mis-citation (minor).** Every "§8.4.3.2.6" citation corrected (the GR1 temp rule and GR2/GR5/
+  GR6 all live under §8.4.3.2.4 General rules).
+- **Coverage (majors on the tests lens):** the 0900 BINDER gate now has a caller-only 85 witness (the
+  whole-source matrix row's 85 leg trips the {is2002()}? PD-header RETURNING parse hint first); 1508 and
+  the SEARCH/VARYING/EVALUATE/short-circuit 1509 legs and 1510 both categories gained facts; runtime
+  coverage grew two goldens — udf_recursion and udf_nested_args (sibling activations, UDF-in-UDF,
+  intrinsic-in-UDF, and the GR5a BY REFERENCE argument mutation visible in the caller: A=0005).
+
+**Documented deviations (deliberate, cited):**
+- **§12.3.8 SR10 forward reference without a prototype.** SR10 admits a repository FUNCTION specifier only
+  naming (a) a function PROTOTYPE in the group, (b) a definition specified PREVIOUSLY, or (c) an
+  external-repository entry. The whole-source corpus places callers FIRST — strictly conforming spelling
+  needs `IS PROTOTYPE`, which is M2-UDF-3 (NOT-STARTED). Accepting the in-group forward DEFINITION is a
+  deliberate, documented leniency (GnuCOBOL-compatible); the SR10 ordering diagnostic lands WITH prototypes,
+  when the conforming spelling becomes available.
+- **§14.6.2.3.2/.3 static-data state under the recursive model.** Functions ride the pre-existing D3/D4
+  registry model (`Initial || Recursive` ⇒ fresh instance per activation), so a function's WORKING-STORAGE
+  re-initializes per activation, where the spec keeps static data last-used after the FIRST activation.
+  This deviation PREDATES UDFs (any PROGRAM-ID … RECURSIVE unit has it) and is observable only when WS
+  carries state across activations; the conforming split (shared static WS + per-activation
+  automatic/LOCAL-STORAGE/formals) is a named follow-up on the interprogram track.
 
 ## M2-DATA — new data types
 
@@ -165,7 +269,7 @@ Excludes 13 LANDED and 1 OBSOLETE-by-design (M2-PROC-3, warning-row only). 24 ro
 |---|---|---|---|
 | **(a) national/boolean** | M2-DATA-3, M2-DATA-4; + boolean/bit leg of M4-3; + EC-OO -N twins (from OO-1h), EXCEPTION-FILE-N national leg (M4-2b) | 2 primary (+3 shared legs) | National runtime + boolean ops. Unblocks several -N/EC-N legs. |
 | **(b) pointers/ALLOCATE/BASED** | M2-DATA-5, M2-PROC-5; + USAGE FUNCTION/PROGRAM-POINTER leg of M3-4 | 2 primary (+1 shared) | ManagedPointer carrier is the spine; ALLOCATE binder blocked here. |
-| **(c) UDF/prototypes** | M2-UDF-1, M2-UDF-2, M2-UDF-3, M2-UDF-4; + EXIT FUNCTION leg of M2-PROC-6; + >>CALL-CONVENTION (loose) | 4 primary (+1 leg) | Largest single-track cluster. UDF-1 invocation unblocks 2/4 and EXIT FUNCTION. |
+| **(c) UDF/prototypes** | ~~M2-UDF-1, M2-UDF-2~~ **LANDED (DEVLOG 615)**; M2-UDF-3, M2-UDF-4 (ALL INTRINSIC + keyword-omitted legs); + EXIT FUNCTION leg of M2-PROC-6 (now unblocked); + >>CALL-CONVENTION (loose) | 2 primary (+1 leg) | UDF invocation live in-group; residue = prototypes/cross-assembly + the UDF-4 legs. |
 | **(d) file sharing/lock/retry** | M2-FILE-1, M4-1 (sequential leg); + file-lock leg of M3-4; + narrow status codes of M2-FILE-2 | 2 primary (+2 legs) | Runtime CobolFile.Locked primitive exists. |
 | **(e) arithmetic** | M2-ARITH-1 (PROHIBITED move-COMPUTE fix), M2-ARITH-2 (golden rebaseline + inert legs) | 2 (both small) | Effectively bugfix + rebaseline, not new features. |
 | **(f)** | — | 0 | No catalog item maps to (f). |

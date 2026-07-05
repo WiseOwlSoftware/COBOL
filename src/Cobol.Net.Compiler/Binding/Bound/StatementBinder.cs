@@ -152,11 +152,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// node — the zero-scaffolding gate (ISO §7.3.25.4 GR1 default OFF; deep-dive D10).</summary>
     private BoundStatement BindStatement(Core.StatementContext s)
     {
-        // Object-property references (D-P2): mark-on-entry / drain-own-suffix — a reference resolved while
-        // THIS statement bound (including in its condition) belongs to THIS statement's GR1–GR3 wrap; one
-        // resolved inside a nested statement was already drained by that statement's own BindStatement.
+        // Object-property references (D-P2) and user-function activations (M2-UDF-1): mark-on-entry /
+        // drain-own-suffix — a reference resolved while THIS statement bound (including in its condition)
+        // belongs to THIS statement's wrap; one resolved inside a nested statement was already drained by
+        // that statement's own BindStatement. The UDF wrap is the INNER sequence (function activations are
+        // always pre-ops, §8.4.3.2.3 SR1), so a property argument's GET — a pre-op of the OUTER property
+        // wrap — still runs before the activation that consumes its temp.
+        int udfMark = _udfPendingCalls.Count;
         int mark = data.OoPendingPropertyOps.Count;
         var core = BindStatementCore(s);
+        core = UdfWrapCalls(core, udfMark);
         core = OoWrapPropertyOps(core, mark);
         return EcWrap(s, core);
     }
@@ -1209,7 +1214,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>Bind a left-to-right logical sequence (an OR / XOR / AND chain, or an abbreviated-AND chain), threading
     /// the abbreviation <paramref name="carry"/> through every operand in SOURCE ORDER so a later abbreviated relation
-    /// sees the subject / operator an earlier one established. A lone operand returns its own condition (no wrapper).</summary>
+    /// sees the subject / operator an earlier one established. A lone operand returns its own condition (no wrapper).
+    /// A user-function reference in a NON-FIRST operand of an AND/OR chain is conditionally evaluated
+    /// (§8.8.4.13 r1 short-circuit / r2 function timing) — guarded loud, the hoist cannot honor it.</summary>
     private BoundCondition BindFlatSequence(IParseTree ctx, string op, AbbrevCarry carry)
     {
         var parts = new List<BoundCondition>();
@@ -1217,7 +1224,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         {
             var ch = ctx.GetChild(i);
             if (ch is ITerminalNode) continue;   // the AND / OR / XOR / EXCLUSIVE-OR connective tokens
+            int udfMark = _udfPendingCalls.Count;
             parts.Add(BindCondition(ch, carry));
+            if (parts.Count > 1) UdfGuardConditionalOperand(udfMark, op);
         }
         return parts.Count == 1 ? parts[0] : new BoundLogical(op, parts);
     }

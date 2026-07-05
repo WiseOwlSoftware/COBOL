@@ -76,6 +76,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// object-property references (case-insensitive per §8.3.2).</summary>
     internal HashSet<string> OoRepositoryProperties { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>The unit's REPOSITORY user-function specifiers (§12.3.8 — <c>FUNCTION function-prototype-name</c>
+    /// WITHOUT the INTRINSIC phrase): the precondition for a user-function reference, and per §12.3.8.2 GR12
+    /// (:14885) the declaration that makes the name refer to the USER-DEFINED function "and not to an intrinsic
+    /// function of the same name" — so the binder's user-function dispatch precedes the intrinsic catalog.</summary>
+    internal HashSet<string> UserFunctionNames { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
     /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
     /// fields), and WORKING-STORAGE; then classify the shared-storage (REDEFINES) classes over the whole forest and
@@ -126,13 +132,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // REPOSITORY PROPERTY specifiers (§12.3.8 :14727-14729) — §8.4.3.9.3 SR1 makes a property-specifier
         // a PRECONDITION of every object-property reference in the unit; captured here, checked at the
-        // property-reference desugar (0843). CLASS/INTERFACE specifiers stay declarative (names resolve
-        // through the group-wide pass-1 table).
+        // property-reference desugar (0843). FUNCTION specifiers WITHOUT the INTRINSIC phrase declare
+        // user-defined functions (§12.3.8.2 GR12 — the name then refers to the user function, never a
+        // same-named intrinsic; the `FUNCTION ALL INTRINSIC` alternative carries no functionName and the
+        // per-name INTRINSIC form is excluded by its phrase). CLASS/INTERFACE specifiers stay declarative
+        // (names resolve through the group-wide pass-1 table).
         foreach (var re in program.environmentDivision()?.configurationSection()?.configurationParagraph()
                      .Select(p => p.repositoryParagraph()).FirstOrDefault(r => r is not null)
                      ?.repositoryEntry() ?? [])
+        {
             if (re.PROPERTY() is not null && re.propertyName() is { } pn)
                 OoRepositoryProperties.Add(pn.GetText());
+            else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is { } fn)
+                UserFunctionNames.Add(fn.GetText());
+        }
 
         SwitchBindSpecialNames(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)
         BindFileControl(program);                  // SELECT clauses → FileModels (before the FD records bind)

@@ -32,7 +32,12 @@
     "pointer_data",
     "repository_paragraph",
     "sort_table_format2",
-    "table_value_occurs"
+    "table_value_occurs",
+    "udf_inline_expression",
+    "udf_invocation",
+    "udf_nested_args",
+    "udf_recursion",
+    "udf_value_args"
   ],
   "pending": [
     "based_pointer",
@@ -40,9 +45,6 @@
     "float_usage",
     "national_data",
     "pointer_alloc",
-    "pointer_arith",
-    "udf_inline_expression",
-    "udf_invocation",
-    "udf_value_args"
+    "pointer_arith"
   ]
 }

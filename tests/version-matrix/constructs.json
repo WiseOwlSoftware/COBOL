@@ -699,6 +699,16 @@
       "expectDiagnostic": "COBOLNET0902",
       "vcr": "VCR Table 7 row 7.18; the W3 notInGrammar 85-acceptance batch (DEVLOG 599)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSG1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9 VALUE 5.\nPROCEDURE DIVISION.\nFIRST-PART SECTION 10.\nP1.\n    DISPLAY W.\nSECOND-HALF SECTION 50.\nP2.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-function-invocation-2002",
+      "status": "active",
+      "description": "User-defined function reference FUNCTION function-prototype-name(args) - ISO \u00a78.4.3.2 function-identifier / \u00a79.4 user-defined functions / \u00a712.3.8.2 GR12 (a REPOSITORY-declared name refers to the user function, never a same-named intrinsic). LIVE (Phase 4c M2-UDF-1, DEVLOG 615): in-group whole-source activation lowered onto the program-activation ABI - a hoisted CALL...RETURNING over an \u00a78.4.3.2.4 GR1 result temporary; args in the \u00a78.4.3.2.4 GR5 manner (identifier BY REFERENCE, literal/arith-expr private copy). Below 2002 the binder gate names the edition (0900); the {is2002()}?-gated PD-header RETURNING parse hint fires there too (procedure-returning-2002).",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "M2 UDF catalog (PHASE4_RECONCILIATION M2-UDF-1); unblocks M2-UDF-2 (folds in) + EXIT FUNCTION (M2-PROC-6)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UFMX1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION UFMXDBL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = FUNCTION UFMXDBL(21).\n    STOP RUN.\nEND PROGRAM UFMX1.\nIDENTIFICATION DIVISION.\nFUNCTION-ID. UFMXDBL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(4).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nP.\n    COMPUTE L-R = L-X * 2.\n    GOBACK.\nEND FUNCTION UFMXDBL.\n"
     }
   ]
 }

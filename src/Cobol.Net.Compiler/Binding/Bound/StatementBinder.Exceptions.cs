@@ -305,43 +305,60 @@ public sealed partial class StatementBinder
                     enabled.Add((n, file));
         }
 
-        switch (bound)
+        // A desugar wrapper (a hoisted user-function activation / property-op sequence) is TRANSPARENT to
+        // the family selection: the carrying statement keeps ITS families, and each hoisted
+        // BoundCallProgram step contributes the EC-PROGRAM family — otherwise a checked COMPUTE that also
+        // carries a function reference would silently lose its EC-SIZE wrap (the M2-UDF-1 review finding;
+        // the property-op sequence had the same latent hole since DEVLOG 607).
+        void QueryFor(BoundStatement node)
         {
-            case BoundAddTo or BoundAddGiving or BoundSubtractFrom or BoundSubtractGiving or BoundMultiplyBy
-                or BoundMultiplyGiving or BoundDivideInto or BoundDivideGiving or BoundDivideRemainder
-                or BoundCompute or BoundCorresponding:
-                Query(SizeNames);
-                break;
-            case BoundStringStmt:
-                Query(["EC-OVERFLOW-STRING"]);
-                break;
-            case BoundUnstringStmt:
-                Query(["EC-OVERFLOW-UNSTRING"]);
-                break;
-            case BoundOpen o:
-                foreach (var (file, _, _) in o.Files) Query(IoNames, file);
-                break;
-            case BoundClose c:
-                foreach (var (file, _) in c.Files) Query(IoNames, file);
-                break;
-            case BoundRead rd: Query(IoNames, rd.File); break;
-            case BoundWrite wr: Query(IoNames, wr.File); break;
-            case BoundRewrite rw: Query(IoNames, rw.File); break;
-            case BoundKeyedRead k: Query(IoNames, k.File); break;
-            case BoundKeyedWrite k: Query(IoNames, k.File); break;
-            case BoundKeyedRewrite k: Query(IoNames, k.File); break;
-            case BoundKeyedDelete k: Query(IoNames, k.File); break;
-            case BoundKeyedStart k: Query(IoNames, k.File); break;
-            case BoundCallProgram or BoundCancel:
-                Query(ProgramNames);
-                break;
+            if (node is BoundSequence seq)
+            {
+                foreach (var step in seq.Steps) QueryFor(step);
+                return;
+            }
+            switch (node)
+            {
+                case BoundAddTo or BoundAddGiving or BoundSubtractFrom or BoundSubtractGiving or BoundMultiplyBy
+                    or BoundMultiplyGiving or BoundDivideInto or BoundDivideGiving or BoundDivideRemainder
+                    or BoundCompute or BoundCorresponding:
+                    Query(SizeNames);
+                    break;
+                case BoundStringStmt:
+                    Query(["EC-OVERFLOW-STRING"]);
+                    break;
+                case BoundUnstringStmt:
+                    Query(["EC-OVERFLOW-UNSTRING"]);
+                    break;
+                case BoundOpen o:
+                    foreach (var (file, _, _) in o.Files) Query(IoNames, file);
+                    break;
+                case BoundClose c:
+                    foreach (var (file, _) in c.Files) Query(IoNames, file);
+                    break;
+                case BoundRead rd: Query(IoNames, rd.File); break;
+                case BoundWrite wr: Query(IoNames, wr.File); break;
+                case BoundRewrite rw: Query(IoNames, rw.File); break;
+                case BoundKeyedRead k: Query(IoNames, k.File); break;
+                case BoundKeyedWrite k: Query(IoNames, k.File); break;
+                case BoundKeyedRewrite k: Query(IoNames, k.File); break;
+                case BoundKeyedDelete k: Query(IoNames, k.File); break;
+                case BoundKeyedStart k: Query(IoNames, k.File); break;
+                case BoundCallProgram or BoundCancel:
+                    Query(ProgramNames);
+                    break;
+            }
+            // EC-ARGUMENT-FUNCTION rides any intrinsic-bearing statement (the ambient statement gate — the
+            // intrinsic renders inline inside expressions, so the guard wraps the STATEMENT).
+            if (_turn.Enabled("EC-ARGUMENT-FUNCTION", null, line) && ContainsIntrinsic(node))
+                enabled.Add(("EC-ARGUMENT-FUNCTION", null));
         }
-        // EC-ARGUMENT-FUNCTION rides any intrinsic-bearing statement (the ambient statement gate — the
-        // intrinsic renders inline inside expressions, so the guard wraps the STATEMENT).
-        if (_turn.Enabled("EC-ARGUMENT-FUNCTION", null, line) && ContainsIntrinsic(bound))
-            enabled.Add(("EC-ARGUMENT-FUNCTION", null));
+        QueryFor(bound);
 
         if (enabled.Count == 0) return bound;
+        // A sequence's steps can re-contribute a family (two hoisted activations ⇒ ProgramNames twice) —
+        // the checked wrapper carries each (name, connector) once.
+        if (bound is BoundSequence) enabled = enabled.Distinct().ToList();
         _ecChecked = true;
         if (enabled.Any(e => e.Ec.StartsWith("EC-I-O", StringComparison.Ordinal))) _ecIoChecked = true;
         bool withLoc = enabled.Any(e => _turn.WithLocation(e.Ec, e.File?.CobolName, line));

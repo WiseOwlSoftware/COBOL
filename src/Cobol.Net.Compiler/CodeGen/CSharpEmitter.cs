@@ -299,6 +299,7 @@ public sealed partial class CSharpEmitter
     {
         BoundNextSentence => true,
         BoundEcChecked ec => ContainsNextSentence([ec.Inner]),   // the EC wrapper is transparent
+        BoundSequence sq => ContainsNextSentence(sq.Steps),      // the hoist wrapper (UDF/property pre-ops) is transparent
         BoundIf i => ContainsNextSentence(i.Then) || ContainsNextSentence(i.Else),
         BoundInlinePerform p => ContainsNextSentence(p.Body),
         BoundSearch se => (se.AtEnd is { } at && ContainsNextSentence(at))

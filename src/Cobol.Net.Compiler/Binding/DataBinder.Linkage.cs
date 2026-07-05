@@ -27,6 +27,15 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 /// and every reference windows it through the Tier-B view machinery.</summary>
 public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, string InitImage);
 
+/// <summary>One FUNCTION-ID unit's activation signature (ISO §9.4 user-defined functions; M2-UDF-1): the
+/// registered function name, its PROCEDURE DIVISION RETURNING item (whose description the caller-side result
+/// temporary clones — §8.4.3.2.4 GR1), and its positional USING formals (§14.8.2). Built by the run-unit
+/// emitter BETWEEN the DATA and PROCEDURE bind phases, so a <c>FUNCTION user-name(args)</c> reference binds
+/// against signatures of function units defined ANYWHERE in the compilation group, including after the caller.
+/// <paramref name="Returning"/> is null only for the ill-formed no-RETURNING function (COBOLNET1507 — already
+/// diagnosed; call sites fail loud without re-reporting).</summary>
+public sealed record UserFunctionSignature(string Name, DataItem? Returning, IReadOnlyList<LinkageFormal> Formals);
+
 /// <summary>
 /// The LINKAGE SECTION / EXTERNAL / GLOBAL half of the data binder (COBOLNET_INTERPROGRAM_DESIGN D1–D5).
 /// LINKAGE 01/77 items bind into the ordinary storage forest (so every verb, REDEFINES tier, level-88, and
