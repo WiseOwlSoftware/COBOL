@@ -232,6 +232,7 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             "Trim" =>                                                          // §15.96 — delete leading/trailing/both of the char set (default: space)
                 $"CobolIntrinsics.Trim({StrStatic(ic.Args[0])}, {ic.TrimMode}"
                     + string.Concat(ic.Args.Skip(1).Select(a => $", {StrStatic(a)}")) + ")",
+            "Substitute" => RenderSubstitute(ic),                              // §15.87 — replace argument-2 pairs (2023)
             // The last-exception interrogation functions (§15.28/30/32/33 — the EC model): zero-argument reads
             // of the runtime register; the binder's EcNoteFunction flagged the group EC gate, so the generated
             // source carries the CobolNet.Runtime.Exceptions using.
@@ -243,6 +244,23 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
                 : EmitText.LoudValue("string", "FUNCTION EXCEPTION-FILE(file-connector-name) (the 2023 optional-argument form — VCR row 68)"),
             _ => EmitText.LoudValue("string", $"FUNCTION {sig.Name} in a string context"),
         };
+    }
+
+    /// <summary>SUBSTITUTE (§15.87): the source (Args[0]) plus parallel from/to/mode arrays over the pair operands
+    /// (Args[1..] taken two at a time; one <see cref="BoundIntrinsicCall.SubstituteModes"/> entry per pair).</summary>
+    private static string RenderSubstitute(BoundIntrinsicCall ic)
+    {
+        var froms = new List<string>();
+        var tos = new List<string>();
+        for (int i = 1; i + 1 < ic.Args.Count; i += 2)
+        {
+            froms.Add(StrStatic(ic.Args[i]));
+            tos.Add(StrStatic(ic.Args[i + 1]));
+        }
+        return $"CobolIntrinsics.Substitute({StrStatic(ic.Args[0])}, "
+            + $"new string[] {{ {string.Join(", ", froms)} }}, "
+            + $"new string[] {{ {string.Join(", ", tos)} }}, "
+            + $"new int[] {{ {string.Join(", ", ic.SubstituteModes ?? [])} }})";
     }
 
     /// <summary>A string-kind argument, context-free: a literal, a field's display image (the static

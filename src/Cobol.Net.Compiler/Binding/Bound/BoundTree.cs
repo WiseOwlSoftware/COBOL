@@ -152,6 +152,11 @@ public sealed record BoundIntrinsicCall(
     /// <summary>FIND-STRING (§15.37.2 / .4 rule 4): the <c>ANYCASE</c> phrase keyword — case-insensitive matching
     /// (as if both arguments were lowered per LOWER-CASE). False for every other function.</summary>
     public bool FindAnycase { get; init; }
+
+    /// <summary>SUBSTITUTE (§15.87.2): one mode flag per (argument-2, argument-3) pair — bit 0 = FIRST (rule 3.a),
+    /// bit 1 = LAST (rule 3.b), bit 2 = ANYCASE (rule 5); 0 = replace ALL occurrences. <see cref="Args"/> holds
+    /// [argument-1, from₁, to₁, from₂, to₂, …]; this list has one entry per pair. Null for every other function.</summary>
+    public IReadOnlyList<int>? SubstituteModes { get; init; }
 }
 
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────

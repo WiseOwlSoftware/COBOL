@@ -176,7 +176,7 @@ public static class IntrinsicCatalog
         Add(new("FIND-STRING", IntrinsicType.Integer, IntrinsicArity.Variadic, 2, 3, "sssii", "FindString", IntrinsicBind.Runtime, false, 2023)); // §15.37 — arg-1 arg-2 [LAST] [[START AFTER] arg-3] [ANYCASE] (special bind path)
         Add(new("MODULE-NAME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.65
         Add(new("SMALLEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.83
-        Add(new("SUBSTITUTE", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 3, inf, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.87
+        Add(new("SUBSTITUTE", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 3, inf, "s", "Substitute", IntrinsicBind.Runtime, false, 2023)); // §15.87 — arg-1 + one-or-more [ANYCASE][FIRST|LAST] arg-2 arg-3 pairs (special bind path)
 
         return t;
     }

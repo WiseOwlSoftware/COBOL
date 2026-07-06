@@ -117,6 +117,55 @@ public static partial class CobolIntrinsics
         return sb.ToString();
     }
 
+    /// <summary>SUBSTITUTE (§15.87.4): argument-1 (<paramref name="source"/>) with each occurrence of a
+    /// <paramref name="froms"/> substring replaced by the parallel <paramref name="tos"/> string. Each pair's
+    /// <paramref name="modes"/> flags select FIRST (bit 0, only the first occurrence — rule 3.a), LAST (bit 1,
+    /// only the last — rule 3.b), or ALL (default), and ANYCASE (bit 2, case-folded matching per LOWER-CASE —
+    /// rule 5). The scan is a single left-to-right pass: at each position the first pair (in listed order) whose
+    /// argument-2 matches AND is eligible is substituted, then the scan resumes past the matched SOURCE substring
+    /// (rules 3/4 — a substituted argument-3 is never re-scanned; occurrences count over argument-1, non-
+    /// overlapping). A zero-length argument-1 or any zero-length argument-2 sets EC-ARGUMENT-FUNCTION and returns
+    /// a zero-length value (rule 1). FIRST/LAST target the pair's first/last occurrence in the source.</summary>
+    public static string Substitute(string source, string[] froms, string[] tos, int[] modes)
+    {
+        if (source.Length == 0 || froms.Any(f => f.Length == 0))                 // §15.87.4 rule 1
+        {
+            Exceptions.ExceptionState.ArgumentError("SUBSTITUTE argument-1 or an argument-2 is of zero length (§15.87.4 rule 1)");
+            return "";
+        }
+        int k = froms.Length;
+        static bool MatchAt(string s, int i, string f, bool anycase) =>
+            i + f.Length <= s.Length
+            && string.Compare(s, i, f, 0, f.Length,
+                   anycase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) == 0;
+        // The single designated position for a FIRST/LAST pair (rule 3.a/3.b), computed over the SOURCE
+        // occurrences (non-overlapping); −1 means "every occurrence" (the default) or "no occurrence".
+        var target = new int[k];
+        for (int p = 0; p < k; p++)
+        {
+            bool anycase = (modes[p] & 4) != 0;
+            if ((modes[p] & 3) == 0) { target[p] = -1; continue; }               // ALL — no single target
+            int first = -1, last = -1;
+            for (int i = 0; i <= source.Length - froms[p].Length; )
+                if (MatchAt(source, i, froms[p], anycase))
+                { if (first < 0) first = i; last = i; i += froms[p].Length; }
+                else i++;
+            target[p] = (modes[p] & 1) != 0 ? first : last;                      // FIRST or LAST
+        }
+        var sb = new System.Text.StringBuilder(source.Length);
+        for (int i = 0; i < source.Length; )
+        {
+            int hit = -1;
+            for (int p = 0; p < k; p++)
+                if (MatchAt(source, i, froms[p], (modes[p] & 4) != 0)
+                    && (target[p] == -1 ? (modes[p] & 3) == 0 : target[p] == i)) // ALL, or the FIRST/LAST target
+                { hit = p; break; }
+            if (hit >= 0) { sb.Append(tos[hit]); i += froms[hit].Length; }        // rule 3 — resume past the source match
+            else { sb.Append(source[i]); i++; }
+        }
+        return sb.ToString();
+    }
+
     /// <summary>FIND-STRING (§15.37.4): the 1-based character position of argument-2 (<paramref name="needle"/>)
     /// within argument-1 (<paramref name="hay"/>). With <paramref name="last"/> the LAST occurrence is sought
     /// (rule 1); <paramref name="skip"/> is argument-3 — the number of matches to ignore before determining the

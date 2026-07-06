@@ -109,6 +109,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // phrase keywords is a 2023 construct the frozen legacy grammar cannot bind; the greenfield CorpusRunner
         // byte-compares find_string.
         ("2023", "find_string"),
+        // Phase 5 intrinsics, DEVLOG 631: FUNCTION SUBSTITUTE (§15.87) with per-pair ANYCASE/FIRST/LAST phrase
+        // keywords is a 2023 construct the frozen legacy grammar cannot bind; the greenfield CorpusRunner
+        // byte-compares substitute.
+        ("2023", "substitute"),
         // Phase-4 track (c), DEVLOG 615/616: the frozen legacy's partial UDF support runs the simple
         // invocation goldens but lacks EXIT FUNCTION's control transfer (§14.9.14 — it falls through to the
         // trailing MOVE, X=9999 not X=0014) and the nested-args legs (GR5a by-ref argument mutation /

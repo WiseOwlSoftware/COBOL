@@ -456,4 +456,39 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.False(ok, "FIND-STRING is 2023+; 2014 must reject");
         Assert.Contains("COBOLNET1502", detail);
     }
+
+    // ── SUBSTITUTE (§15.87, Phase 5, DEVLOG 631): per-pair replacement; ANYCASE / FIRST / LAST; multi-pair ────
+
+    [Theory]
+    [InlineData("FUNCTION SUBSTITUTE(S \"A\" \"X\")", "XBXBXB")]           // §15.87.4 r3 — all occurrences
+    [InlineData("FUNCTION SUBSTITUTE(S FIRST \"A\" \"X\")", "XBABAB")]     // r3.a — first only
+    [InlineData("FUNCTION SUBSTITUTE(S LAST \"A\" \"X\")", "ABABXB")]      // r3.b — last only
+    [InlineData("FUNCTION SUBSTITUTE(S \"AB\" \"WXYZ\")", "WXYZWXYZWXYZ")] // growing replacement, all
+    public void Substitute_SinglePair_2023(string call, string expected)
+        => AssertSpec(Program("01 S PIC X(6) VALUE \"ABABAB\".\n           01 R PIC X(12).",
+            $"    MOVE {call} TO R.\n    DISPLAY R.", "IFSUBS"), expected, 2023);
+
+    [Fact]
+    public void Substitute_Anycase_FoldsCase_2023()
+        // §15.87.4 r5 — ANYCASE folds case; every a/A in "aAaA" becomes "-".
+        => AssertSpec(Program("01 S PIC X(4) VALUE \"aAaA\".\n           01 R PIC X(8).",
+            "    MOVE FUNCTION SUBSTITUTE(S ANYCASE \"a\" \"-\") TO R.\n    DISPLAY R.", "IFSUBA"), "----", 2023);
+
+    [Fact]
+    public void Substitute_MultiPair_OnePass_2023()
+        // §15.87.4 r3/r4 — two pairs applied in one left-to-right pass: "CAT DOG" ⇒ "FISH BIRD".
+        => AssertSpec(Program("01 S PIC X(7) VALUE \"CAT DOG\".\n           01 R PIC X(12).",
+            "    MOVE FUNCTION SUBSTITUTE(S \"CAT\" \"FISH\" \"DOG\" \"BIRD\") TO R.\n    DISPLAY R.", "IFSUBM"),
+            "FISH BIRD", 2023);
+
+    [Fact]
+    public void Substitute_GatedBelow2023_1502()
+    {
+        // SUBSTITUTE is a 2023 addition (§15.87) — rejected by name+edition below 2023.
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 S PIC X(3) VALUE \"ABC\".\n           01 R PIC X(3).",
+                "    MOVE FUNCTION SUBSTITUTE(S \"B\" \"X\") TO R.\n    DISPLAY R."));
+        Assert.False(ok, "SUBSTITUTE is 2023+; 2014 must reject");
+        Assert.Contains("COBOLNET1502", detail);
+    }
 }

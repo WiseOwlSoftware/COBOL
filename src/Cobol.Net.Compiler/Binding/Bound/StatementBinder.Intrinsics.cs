@@ -123,6 +123,10 @@ public sealed partial class StatementBinder
         // keywords interleaved with operands, bound apart from the generic argument path.
         if (sig.Name == "FIND-STRING") return BindFindString(sig, argTokens);
 
+        // SUBSTITUTE (§15.87) — argument-1 { [ANYCASE] [FIRST|LAST] argument-2 argument-3 } …: per-pair phrase
+        // keywords ahead of each replacement pair, bound apart from the generic argument path.
+        if (sig.Name == "SUBSTITUTE") return BindSubstitute(sig, argTokens);
+
         var args = BindIntrinsicArgs(argTokens);
         if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
         {
@@ -250,6 +254,48 @@ public sealed partial class StatementBinder
             return new BoundExprError("FUNCTION FIND-STRING");
         }
         return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { FindLast = last, FindAnycase = anycase };
+    }
+
+    /// <summary>SUBSTITUTE (§15.87) — <c>argument-1 { [ANYCASE] [FIRST|LAST] argument-2 argument-3 } …</c>
+    /// (§15.87.2). argument-1 is the source; each following group is a replacement PAIR (argument-2 matched,
+    /// argument-3 substituted) preceded by its own optional phrase keywords: ANYCASE (case fold, rule 5),
+    /// FIRST (first occurrence only, rule 3.a) or LAST (last only, rule 3.b) — default replaces ALL occurrences.
+    /// The keyword words arrive as lone <c>SUB_IDENTIFIER</c> segments; each pair's mode (bits 0=FIRST/1=LAST/
+    /// 2=ANYCASE) rides on <see cref="BoundIntrinsicCall.SubstituteModes"/>, and <see cref="BoundIntrinsicCall.Args"/>
+    /// carries [source, from₁, to₁, from₂, to₂, …].</summary>
+    private BoundExpr BindSubstitute(IntrinsicSig sig, List<IToken> argTokens)
+    {
+        var operands = new List<BoundOperand>();   // [source, from₁, to₁, from₂, to₂, …]
+        var modes = new List<int>();               // one mode per completed pair
+        int pending = 0;                           // phrase flags accumulating for the NEXT pair
+        bool haveSource = false;
+        int pairOperands = 0;                      // operands seen since the last completed pair
+        BoundExpr Malformed() { data.Edition.Error("COBOLNET1504", "FUNCTION SUBSTITUTE takes argument-1 and one "
+            + "or more [ANYCASE][FIRST|LAST] argument-2 argument-3 pairs (ISO §15.87.2)"); return new BoundExprError("FUNCTION SUBSTITUTE"); }
+
+        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        {
+            if (seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } kw])
+            {
+                if (kw.Text.Equals("ANYCASE", StringComparison.OrdinalIgnoreCase)) { pending |= 4; continue; }
+                if (kw.Text.Equals("FIRST", StringComparison.OrdinalIgnoreCase)) { pending |= 1; continue; }
+                if (kw.Text.Equals("LAST", StringComparison.OrdinalIgnoreCase)) { pending |= 2; continue; }
+            }
+            var op = ParseArgSegment(seg);
+            if (!haveSource) { operands.Add(op); haveSource = true; continue; }
+            operands.Add(op);
+            if (++pairOperands == 2)   // argument-2 then argument-3 complete a pair
+            {
+                if ((pending & 3) == 3) return Malformed();   // FIRST and LAST are mutually exclusive (§15.87.2)
+                modes.Add(pending);
+                pending = 0;
+                pairOperands = 0;
+            }
+        }
+        // A well-formed call ends on a completed pair with no dangling keyword/operand (§15.87.3 rule requires
+        // at least one pair; the source alone or a half pair is malformed).
+        if (!haveSource || modes.Count == 0 || pairOperands != 0 || pending != 0) return Malformed();
+        return new BoundIntrinsicCall(sig, operands, PicCategory.Alphanumeric) { SubstituteModes = modes };
     }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string

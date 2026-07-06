@@ -7,7 +7,8 @@
     "inspect_backward",
     "intrinsics_string_2023",
     "intrinsics_trim",
-    "logical_xor"
+    "logical_xor",
+    "substitute"
   ],
   "pending": []
 }
