@@ -421,4 +421,39 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.True(ok2, d2);
         Assert.Equal("  HI", out2);
     }
+
+    // ── FIND-STRING (§15.37, Phase 5, DEVLOG 630): substring position; LAST / START AFTER argument-3 / ANYCASE ─
+
+    [Theory]
+    [InlineData("FUNCTION FIND-STRING(H N)", "1")]                     // §15.37.4 r1 — first occurrence
+    [InlineData("FUNCTION FIND-STRING(H N LAST)", "7")]                // r1 — last occurrence (positions 1,4,7)
+    [InlineData("FUNCTION FIND-STRING(H N START AFTER 1)", "4")]       // r2 — ignore 1 match from the first
+    [InlineData("FUNCTION FIND-STRING(H N LAST START AFTER 1)", "4")]  // r1+r2 — 1 before the last
+    [InlineData("FUNCTION FIND-STRING(H \"ZZ\")", "0")]                // r3 — no match
+    public void FindString_Positions_2023(string call, string expected)
+        => AssertSpec(Program("01 H PIC X(9) VALUE \"ABCABCABC\".\n           01 N PIC X(3) VALUE \"ABC\".\n           01 P PIC 9.",
+            $"    MOVE {call} TO P.\n    DISPLAY P.", "IFFIND"), expected, 2023);
+
+    [Fact]
+    public void FindString_Anycase_FoldsCase_2023()
+        // §15.37.4 r4 — ANYCASE folds case per LOWER-CASE; "WORLD" matches "World" at position 7.
+        => AssertSpec(Program("01 T PIC X(11) VALUE \"Hello World\".\n           01 P PIC 9.",
+            "    MOVE FUNCTION FIND-STRING(T \"WORLD\" ANYCASE) TO P.\n    DISPLAY P.", "IFFINDA"), "7", 2023);
+
+    [Fact]
+    public void FindString_CaseSensitiveByDefault_2023()
+        // Without ANYCASE the match is ordinal — "WORLD" (upper) does not occur in "Hello World" ⇒ 0 (r3).
+        => AssertSpec(Program("01 T PIC X(11) VALUE \"Hello World\".\n           01 P PIC 9.",
+            "    MOVE FUNCTION FIND-STRING(T \"WORLD\") TO P.\n    DISPLAY P.", "IFFINDC"), "0", 2023);
+
+    [Fact]
+    public void FindString_GatedBelow2023_1502()
+    {
+        // FIND-STRING is a 2023 addition (§15.37) — rejected by name+edition below 2023.
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 H PIC X(3) VALUE \"ABC\".\n           01 P PIC 9.",
+                "    MOVE FUNCTION FIND-STRING(H \"B\") TO P.\n    DISPLAY P."));
+        Assert.False(ok, "FIND-STRING is 2023+; 2014 must reject");
+        Assert.Contains("COBOLNET1502", detail);
+    }
 }

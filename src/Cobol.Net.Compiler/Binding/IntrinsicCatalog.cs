@@ -173,7 +173,7 @@ public static class IntrinsicCatalog
         Add(new("BASECONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 3, 3, "sii", "BaseConvert", IntrinsicBind.Runtime, false, 2023)); // §15.12
         Add(new("CONCAT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, inf, "s", "Concat", IntrinsicBind.Runtime, false, 2023)); // §15.18
         Add(new("CONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, 4, "ssss", "", IntrinsicBind.Deferred, false, 2023)); // §15.19
-        Add(new("FIND-STRING", IntrinsicType.Integer, IntrinsicArity.Variadic, 2, 5, "sssss", "", IntrinsicBind.Deferred, false, 2023)); // §15.37
+        Add(new("FIND-STRING", IntrinsicType.Integer, IntrinsicArity.Variadic, 2, 3, "sssii", "FindString", IntrinsicBind.Runtime, false, 2023)); // §15.37 — arg-1 arg-2 [LAST] [[START AFTER] arg-3] [ANYCASE] (special bind path)
         Add(new("MODULE-NAME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.65
         Add(new("SMALLEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.83
         Add(new("SUBSTITUTE", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 3, inf, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.87

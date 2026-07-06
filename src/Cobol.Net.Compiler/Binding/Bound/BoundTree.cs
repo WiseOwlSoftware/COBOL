@@ -144,6 +144,14 @@ public sealed record BoundIntrinsicCall(
     /// <summary>TRIM (§15.96.4): 0 = both leading and trailing (rule 3), 1 = LEADING (rule 1), 2 = TRAILING
     /// (rule 2) — the LEADING/TRAILING phrase keyword, extracted at bind time. Zero for every other function.</summary>
     public int TrimMode { get; init; }
+
+    /// <summary>FIND-STRING (§15.37.2): the <c>LAST</c> phrase keyword — seek the LAST occurrence of argument-2
+    /// (rule 1) rather than the first. False for every other function.</summary>
+    public bool FindLast { get; init; }
+
+    /// <summary>FIND-STRING (§15.37.2 / .4 rule 4): the <c>ANYCASE</c> phrase keyword — case-insensitive matching
+    /// (as if both arguments were lowered per LOWER-CASE). False for every other function.</summary>
+    public bool FindAnycase { get; init; }
 }
 
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────

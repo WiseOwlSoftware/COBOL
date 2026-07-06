@@ -119,6 +119,10 @@ public sealed partial class StatementBinder
         // its bespoke shape is bound apart from the generic comma/space-split argument path.
         if (sig.Name == "TRIM") return BindTrim(sig, argTokens);
 
+        // FIND-STRING (§15.37) — argument-1 argument-2 [LAST] [[START AFTER] argument-3] [ANYCASE]: phrase
+        // keywords interleaved with operands, bound apart from the generic argument path.
+        if (sig.Name == "FIND-STRING") return BindFindString(sig, argTokens);
+
         var args = BindIntrinsicArgs(argTokens);
         if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
         {
@@ -214,6 +218,38 @@ public sealed partial class StatementBinder
                 + "space) was introduced by ISO/IEC 1989:2023 (§15.96; Annex E.3.3 item 31) — it requires "
                 + $"--std 2023 or later (targeting COBOL-{data.Edition.DialectLevel}); TRIM removed only spaces through 2014");
         return new BoundIntrinsicCall(sig, operands, PicCategory.Alphanumeric) { TrimMode = mode };
+    }
+
+    /// <summary>FIND-STRING (§15.37) — <c>argument-1 argument-2 [LAST] [[START AFTER] argument-3] [ANYCASE]</c>
+    /// (§15.37.2). The phrase words arrive as lone <c>SUB_IDENTIFIER</c> segments (the whitespace splitter isolates
+    /// each): LAST selects the last occurrence (rule 1); ANYCASE folds case (rule 4); START/AFTER are the optional
+    /// argument-3 introducer (noise — argument-3's mere presence selects the skip form, rule 2). The operand
+    /// segments are argument-1 (the haystack), argument-2 (the needle), and the optional integer argument-3 (the
+    /// number of matches to ignore). The two flags ride on <see cref="BoundIntrinsicCall.FindLast"/> /
+    /// <see cref="BoundIntrinsicCall.FindAnycase"/>; argument-3 (if given) is the third operand.</summary>
+    private BoundExpr BindFindString(IntrinsicSig sig, List<IToken> argTokens)
+    {
+        bool last = false, anycase = false;
+        var operands = new List<BoundOperand>();
+        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        {
+            if (seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } kw])
+            {
+                if (kw.Text.Equals("LAST", StringComparison.OrdinalIgnoreCase)) { last = true; continue; }
+                if (kw.Text.Equals("ANYCASE", StringComparison.OrdinalIgnoreCase)) { anycase = true; continue; }
+                // START AFTER — the argument-3 introducer words (§15.37.2); the integer that follows is argument-3.
+                if (kw.Text.Equals("START", StringComparison.OrdinalIgnoreCase)
+                    || kw.Text.Equals("AFTER", StringComparison.OrdinalIgnoreCase)) continue;
+            }
+            operands.Add(ParseArgSegment(seg));
+        }
+        if (operands.Count is < 2 or > 3)
+        {
+            data.Edition.Error("COBOLNET1504", "FUNCTION FIND-STRING takes argument-1 argument-2 "
+                + $"[[START AFTER] argument-3] (ISO §15.37.2); {operands.Count} operand argument(s) given");
+            return new BoundExprError("FUNCTION FIND-STRING");
+        }
+        return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { FindLast = last, FindAnycase = anycase };
     }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string

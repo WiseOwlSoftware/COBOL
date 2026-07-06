@@ -3,6 +3,7 @@
   "enabled": [
     "delete_file",
     "delete_file_absent",
+    "find_string",
     "inspect_backward",
     "intrinsics_string_2023",
     "intrinsics_trim",

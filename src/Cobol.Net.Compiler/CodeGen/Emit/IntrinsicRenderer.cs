@@ -127,6 +127,10 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
                 return new NumX($"CobolIntrinsics.NumvalC({Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag})", ws);
             }
 
+            case "FindString":                                                  // §15.37 FIND-STRING (2023) — 1-based position of argument-2 in argument-1
+                return new NumX($"CobolIntrinsics.FindString({Str(ic.Args[0])}, {Str(ic.Args[1])}, "
+                    + $"{(ic.FindLast ? "true" : "false")}, {(ic.Args.Count > 2 ? IntArg(ic, 2) : "0")}, "
+                    + $"{(ic.FindAnycase ? "true" : "false")})", 0);
             case "Ord":                                                         // §15.70 — PCS-relative ordinal (H5: weights only when flagged)
                 return new NumX($"CobolIntrinsics.Ord({Str(ic.Args[0])}{Collate(ic)})", 0);
             case "Length":                                                      // §15.50 runtime residue (nested string-fn argument)

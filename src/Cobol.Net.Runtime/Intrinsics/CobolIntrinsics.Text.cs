@@ -117,6 +117,28 @@ public static partial class CobolIntrinsics
         return sb.ToString();
     }
 
+    /// <summary>FIND-STRING (§15.37.4): the 1-based character position of argument-2 (<paramref name="needle"/>)
+    /// within argument-1 (<paramref name="hay"/>). With <paramref name="last"/> the LAST occurrence is sought
+    /// (rule 1); <paramref name="skip"/> is argument-3 — the number of matches to ignore before determining the
+    /// position returned (rule 2, counted from the first occurrence, or from the last when <paramref name="last"/>);
+    /// <paramref name="anycase"/> folds case per LOWER-CASE without a locale (rule 4). A zero-length argument-1 or
+    /// argument-2 (rule 5), or no remaining match (rule 3), returns 0. Occurrences are counted NON-OVERLAPPING (a
+    /// match consumes argument-2's length — §15.37 is silent on overlap, so this follows the INSPECT "all
+    /// occurrences" reading §14.4.6; the canonical COBOL.NET refinement).</summary>
+    public static long FindString(string hay, string needle, bool last, long skip, bool anycase)
+    {
+        if (hay.Length == 0 || needle.Length == 0) return 0;                     // §15.37.4 rule 5
+        string h = anycase ? hay.ToLowerInvariant() : hay;                       // rule 4 — the LOWER-CASE fold
+        string n = anycase ? needle.ToLowerInvariant() : needle;
+        var positions = new List<int>();
+        for (int i = 0; (i = h.IndexOf(n, i, StringComparison.Ordinal)) >= 0; i += n.Length)
+            positions.Add(i + 1);                                                // 1-based character position
+        if (positions.Count == 0) return 0;                                      // rule 3 — no match
+        if (skip < 0) skip = 0;
+        int idx = last ? positions.Count - 1 - (int)skip : (int)skip;            // rule 1 (first/LAST) + rule 2 (ignore skip)
+        return idx >= 0 && idx < positions.Count ? positions[idx] : 0;          // exhausted matches → 0 (rule 3)
+    }
+
     /// <summary>TRIM (§15.96.4): the argument with LEADING (<paramref name="mode"/> 1), TRAILING (2), or BOTH
     /// (0) characters that match the delete set removed. The delete set is each argument-2's single character
     /// (§15.96.3 rule 2); with no argument-2 it is a space (rule 3.a). An argument consisting only of delete-set

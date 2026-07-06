@@ -105,6 +105,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // frozen legacy trims only spaces (ZERO=0042, ignoring the "0" arg-2) where the greenfield gives ZERO=42;
         // the greenfield CorpusRunner byte-compares intrinsics_trim.
         ("2023", "intrinsics_trim"),
+        // Phase 5 intrinsics, DEVLOG 630: FUNCTION FIND-STRING (§15.37) with the LAST / START AFTER / ANYCASE
+        // phrase keywords is a 2023 construct the frozen legacy grammar cannot bind; the greenfield CorpusRunner
+        // byte-compares find_string.
+        ("2023", "find_string"),
         // Phase-4 track (c), DEVLOG 615/616: the frozen legacy's partial UDF support runs the simple
         // invocation goldens but lacks EXIT FUNCTION's control transfer (§14.9.14 — it falls through to the
         // trailing MOVE, X=9999 not X=0014) and the nested-args legs (GR5a by-ref argument mutation /
