@@ -22,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Cobol.Net.Compiler\Cobol.Net.Compiler.csproj" />
     <ProjectReference Include="..\..\src\Cobol.Net.Runtime\Cobol.Net.Runtime.csproj" />
+    <ProjectReference Include="..\..\src\Cobol.Net.Cli\Cobol.Net.Cli.csproj" />
   </ItemGroup>
 
 </Project>

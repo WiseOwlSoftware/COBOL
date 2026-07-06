@@ -14,6 +14,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cobol.Net.Compiler\Cobol.Net.Compiler.csproj" />
+    <PackageReference Include="System.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cobol.Net.Tests.Unit" />
   </ItemGroup>
 
 </Project>
