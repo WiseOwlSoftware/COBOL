@@ -27,10 +27,17 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 628, 2026-07-06 14:47 PDT): PHASE 5 OPENED — the 2023 CONCAT (§15.18) + BASECONVERT (§15.12)
-> intrinsics LANDED** (the clean positional-arg pair: catalog Deferred→Runtime + a RenderString case + a
-> CobolIntrinsics.Text body; golden `intrinsics_string_2023`, GreenfieldOnly — the legacy crashes on BASECONVERT;
-> 1875 conformance · 216 unit GREEN). **ALSO a CI SPEEDUP ~17min→~7min (DEVLOG 627, runs green):** the monolithic
+> **STATE (DEVLOG 629, 2026-07-06 15:38 PDT): PHASE 5 IN PROGRESS — 3 intrinsics LANDED: CONCAT (§15.18) +
+> BASECONVERT (§15.12) [628] + TRIM (§15.96) IN FULL [629]** (catalog Deferred→Runtime + a RenderString case + a
+> CobolIntrinsics.Text body; TRIM added a bespoke `BindTrim` for the LEADING/TRAILING phrase + the 2023 argument-2
+> char-set form gated 1502 below 2023 — done completely, per the owner's *do every feature well* directive).
+> Goldens `intrinsics_string_2023` + `intrinsics_trim`, GreenfieldOnly (the legacy crashes on BASECONVERT / trims
+> only spaces). **1881 conformance · 216 unit · legacy integration 61 GREEN. RESUME NEXT: continue Phase 5 — each
+> remaining intrinsic is bespoke (no single "shared mechanism"): FIND-STRING (§15.37, paren-LESS + LAST/START
+> AFTER/ANYCASE keywords), SUBSTITUTE (§15.87, per-pair FIRST/LAST/ANYCASE), CONVERT (§15.19) — each done in full
+> like TRIM; then MODULE-NAME (§15.65, runtime module context), SMALLEST-ALGEBRAIC (§15.83, PIC metadata), and the
+> 2014 date family (FORMATTED-*/NUMVAL-F). Then the M2-OO-1h residue (extend the data-model machinery into method
+> scope — must be done in full, not dismissed) + M2-PRE; Phase 6/7.** **ALSO a CI SPEEDUP ~17min→~7min (DEVLOG 627, runs green):** the monolithic
 > guard job → 4 parallel jobs + guard-fast.sh (parallel NIST, proven ≡ by guard-verify) + NuGet caching; and the
 > ~29-min INV-1 sweep pole → **~2 min** via a no-emit `CompilerDriver.CheckOnly` + a `cobol check-batch` subcommand
 > (parse+bind-check the whole manifest in one warm parallel process — the Roslyn backend is skipped since the
