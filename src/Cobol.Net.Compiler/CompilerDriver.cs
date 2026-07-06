@@ -26,13 +26,19 @@ public static class CompilerDriver
     /// <paramref name="DialectLevel"/>): permissive accepts constructs the targeted edition REMOVED, emitting a
     /// warning and the pre-removal semantics (the documented migration mode, VERSION_TEST_MATRIX_DESIGN §10 #1).
     /// Strict (the default for every named <c>--std</c>) rejects them. Introduction gating is unaffected.</param>
+    /// <param name="CheckOnly">Parse + edition-validate + bind/emit ONLY — do NOT run the Roslyn C#→IL backend
+    /// and write no <c>.dll</c>/<c>.g.cs</c>. Every edition-gating diagnostic (the "does this compile at edition
+    /// X" question the INV-1 continuity sweep asks) is produced in Phase 1/2, BEFORE the backend, so a check-only
+    /// compile is verdict-equivalent to a full one for that question while skipping the backend — the dominant
+    /// cost. Backend (C#-type) errors are NOT surfaced (they are not an edition-continuity concern).</param>
     public sealed record Options(
         string SourcePath,
         string? OutputPath = null,
         string? NistTestName = null,
         int DialectLevel = 2023,
         IReadOnlyList<string>? CopyPaths = null,
-        bool Permissive = false);
+        bool Permissive = false,
+        bool CheckOnly = false);
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
     public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
@@ -106,6 +112,12 @@ public static class CompilerDriver
         string csharp = new CSharpEmitter().Emit(tree, edition, frontend.TurnEvents);
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
+
+        // Check-only: every edition-gating diagnostic is now produced (parse + EditionValidator + the emit above),
+        // so the compile VERDICT is settled. Skip Phase 3 (the Roslyn C#→IL backend + the dll/g.cs writes) — the
+        // dominant cost — since no runnable assembly is wanted (the INV-1 continuity sweep / CLI `check-batch`).
+        if (options.CheckOnly)
+            return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]);
 
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         string outDir = Path.GetDirectoryName(Path.GetFullPath(outputDll)) is { Length: > 0 } d ? d : ".";

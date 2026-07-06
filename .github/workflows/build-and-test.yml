@@ -79,8 +79,10 @@ jobs:
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build
 
   # ── INV-1 continuity (VERSION_TEST_MATRIX_DESIGN §3): every 85-compiling NIST program must still compile at
-  # 2002/2014/2023 under --permissive — a permissive break is a regression. Its own job (it drives the greenfield
-  # cobol.dll over ~350 programs × 3 editions), parallel with the gates above. Fails on any BREAKS line. ──
+  # 2002/2014/2023 under --permissive — a permissive break is a regression. The sweep now runs `cobol check-batch`
+  # (DEVLOG 627): ONE warm process parse+bind-checks all ~350 programs × 4 editions IN PARALLEL with NO Roslyn
+  # emit (the compile VERDICT is settled pre-backend), collapsing the former ~29-min pole of ~1400 cold `dotnet`
+  # full compiles to well under a minute. Fails on any BREAKS line. ──
   inv1-sweep:
     name: INV-1 permissive continuity sweep
     runs-on: ubuntu-latest
@@ -102,7 +104,7 @@ jobs:
         run: dotnet build src/Cobol.Net.Cli/Cobol.Net.Cli.csproj
       - name: INV-1 permissive continuity sweep (85-greens × 2002/2014/2023)
         run: |
-          bash scripts/version-continuity-sweep.sh 8 | tee sweep.log
+          bash scripts/version-continuity-sweep.sh | tee sweep.log
           ! grep -q "BREAKS" sweep.log
 
   # ── Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the

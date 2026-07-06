@@ -20,12 +20,7 @@ namespace CobolNet.Cli;
 /// </remarks>
 internal static class Program
 {
-    private static int Main(string[] args)
-    {
-        var (root, resolve) = BuildParser();
-        root.SetAction(parse => RunCompile(resolve(parse)));
-        return root.Parse(args).Invoke();
-    }
+    private static int Main(string[] args) => BuildParser().Command.Parse(args).Invoke();
 
     /// <summary>Build the argument parser (exposed for unit testing the grammar without spawning a process):
     /// the configured <see cref="RootCommand"/> plus a pure resolver that maps a <see cref="ParseResult"/> to the
@@ -96,7 +91,60 @@ internal static class Program
                 source, parse.GetValue(outputOption), nistName, std,
                 parse.GetValue(copyOption) ?? [], parse.GetValue(runOption), parse.GetValue(permissiveOption));
         }
+
+        // A no-emit BATCH check subcommand (the INV-1 continuity sweep fast path): parse + edition-validate +
+        // bind-check many (source, edition) entries in ONE warm process — skipping the Roslyn backend AND the
+        // ~2s-per-file `dotnet` cold-start that made the sweep ~1400 cold full compiles.
+        var manifestArgument = new Argument<string>("manifest")
+        {
+            Description = "A TSV file; each line `source<TAB>std<TAB>nist-name<TAB>permissive(0|1)` is "
+                + "parse+bind-checked (no Roslyn emit). Prints `source<TAB>std<TAB>PASS|FAIL` per line.",
+        };
+        var checkBatch = new Command("check-batch",
+            "Parse + edition-validate + bind-check many (source, edition) entries in one process (no Roslyn emit).")
+        {
+            manifestArgument,
+        };
+        checkBatch.SetAction(parse => RunCheckBatch(parse.GetValue(manifestArgument)!));
+        root.Subcommands.Add(checkBatch);
+
+        // The root's OWN action (a bare `cobol <source>` compiles) — set here so the root is invokable WITHOUT a
+        // subcommand (otherwise System.CommandLine treats a command that has subcommands but no action as a pure
+        // group and errors "Required command was not provided").
+        root.SetAction(parse => RunCompile(Resolve(parse)));
+
         return (root, Resolve);
+    }
+
+    /// <summary>Parse + edition-validate + bind-check every entry of a TSV manifest in one warm process, in
+    /// parallel (CompilerDriver.Compile is proven concurrency-safe — ConcurrentCompilationTests). Each entry
+    /// uses the no-emit CheckOnly path (no Roslyn backend, no file writes), so what were ~1400 cold-`dotnet`
+    /// full compiles collapse to a single parallel in-process pass. Prints one `source&lt;TAB&gt;std&lt;TAB&gt;
+    /// PASS|FAIL` line per entry and always exits 0 — the per-entry verdicts are the output the caller aggregates
+    /// (e.g. scripts/version-continuity-sweep.sh classifies SKIP85 / OK / BREAKS).</summary>
+    private static int RunCheckBatch(string manifestPath)
+    {
+        if (!File.Exists(manifestPath))
+        {
+            Console.Error.WriteLine($"error: manifest not found: {manifestPath}");
+            return 66;
+        }
+        string[] entries = File.ReadAllLines(manifestPath).Where(l => l.Trim().Length > 0).ToArray();
+        var results = new System.Collections.Concurrent.ConcurrentBag<string>();
+        Parallel.ForEach(entries, line =>
+        {
+            string[] f = line.Split('\t');
+            string source = f[0];
+            int std = f.Length > 1 && int.TryParse(f[1], out int s) ? s : 2023;
+            string? nist = f.Length > 2 && f[2].Length > 0 ? f[2] : null;
+            bool permissive = f.Length > 3 && f[3] == "1";
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(
+                source, NistTestName: nist, DialectLevel: std, Permissive: permissive, CheckOnly: true));
+            results.Add($"{source}\t{std}\t{(r.Success ? "PASS" : "FAIL")}");
+        });
+        foreach (string line in results)
+            Console.Out.WriteLine(line);
+        return 0;
     }
 
     /// <summary>Compile per the resolved options, print diagnostics, and map the outcome to a POSIX exit code.</summary>
