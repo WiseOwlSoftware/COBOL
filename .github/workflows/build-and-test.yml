@@ -11,51 +11,93 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# The former single Linux "guard" job ran five heavy activities BACK-TO-BACK (serial guard.sh → greenfield
+# conformance → greenfield unit → CLI build → INV-1 sweep), so wall-clock was their SUM (~17 min). They are now
+# separate JOBS that run CONCURRENTLY (wall-clock = the slowest single job), the NIST regression is parallelised
+# across cores (guard-fast.sh), and NuGet packages are cached. All jobs are independent gates — a failure in one
+# is never masked by another.
 jobs:
-  # The authoritative gate: the full guard (build + unit + integration + the 364 NIST CCVS85 baselines) —
-  # exactly what scripts/guard.sh runs locally, the project's "law". Linux only, because the NIST loop is a
-  # bash script. A non-zero guard exit (any regression, DIFF, FAIL*, or build warning) fails the job.
+  # ── The authoritative legacy gate: the PARALLEL guard. guard-fast.sh runs exactly the checks scripts/guard.sh
+  # does (build + unit + integration + the ~350 NIST CCVS-85 baselines) but fans the NIST suite across the
+  # runner's cores (JOBS defaults to nproc) with a per-suite isolation model PROVEN equivalent to the serial
+  # guard by scripts/guard-verify.sh (which diffs the per-test verdicts). Linux only — the NIST loop is bash. A
+  # non-zero exit (any REGRESSION, DIFF, FAIL*, or build warning) fails the job. ──
   guard:
-    name: Guard (build + unit + integration + NIST)
+    name: Guard (legacy build + unit + integration + NIST, parallel)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          # The specs/ submodule is a private repo and is NOT needed to build or test (it is only the
-          # spec text, referenced from doc comments). Skipping it keeps CI credential-free.
+          # The specs/ submodule is a private repo and is NOT needed to build or test (only the spec text,
+          # referenced from doc comments). Skipping it keeps CI credential-free.
           submodules: false
-
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      # guard-fast.sh restores + builds the legacy stack itself, creates tests/nist/output, and copies the
+      # runtime DLL there; a fresh checkout needs no extra prep.
+      - name: Run parallel guard (scripts/guard-fast.sh)
+        run: bash scripts/guard-fast.sh
 
-      - name: Restore
-        run: dotnet restore CobolSharp.sln
-
-      # The guard copies the runtime DLL into this directory and writes each test's output there; it is
-      # not tracked in git, so a clean checkout must create it before the guard runs.
-      - name: Prepare NIST output directory
-        run: mkdir -p tests/nist/output
-
-      - name: Run guard (scripts/guard.sh)
-        run: bash scripts/guard.sh
-
-      # The greenfield COBOL.NET compiler (src/Cobol.Net.*) and its suites — the ACTIVE work. guard.sh covers only
-      # the LEGACY CobolSharp engine, so these are gated separately (DEVLOG 515). They build on demand; CI Linux has
-      # pwsh + java (both preinstalled on the runner image) for the Frontend's ANTLR generation step — Generated/
-      # is a PURE BUILD OUTPUT since DEVLOG 555/556 and is UNTRACKED as of DEVLOG 596 (a fresh checkout ALWAYS
-      # regenerates; a failed generation FAILS the build — the DEVLOG-552/554 stale-parser fallback class is
-      # structurally impossible now). Separate steps per project so a failure in one is never masked by the other.
-      - name: Greenfield conformance tests (differential + NIST)
-        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+  # ── The greenfield COBOL.NET compiler (src/Cobol.Net.*) suites — the ACTIVE work (differential vs the legacy
+  # oracle + the NIST byte-baselines + the version matrix + unit). guard.sh covers only the LEGACY engine, so
+  # these are a separate gate (DEVLOG 515). Built ONCE, then run --no-build so the suites don't each re-restore
+  # and rebuild. The Frontend's ANTLR generation needs java + pwsh (both preinstalled on the ubuntu-latest
+  # image); Generated/ is a PURE BUILD OUTPUT, untracked since DEVLOG 596 — a fresh checkout always regenerates,
+  # and a failed generation FAILS the build. ──
+  greenfield-tests:
+    name: Greenfield tests (conformance + unit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Build greenfield test projects
+        run: |
+          dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+          dotnet build tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
+      - name: Greenfield conformance tests (differential + NIST + matrix)
+        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build
       - name: Greenfield unit tests
-        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
+        run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build
 
-      # INV-1 continuity (VERSION_TEST_MATRIX_DESIGN §3, restated at the P2.7 flip): every 85-compiling NIST
-      # program must still compile at 2002/2014/2023 under --permissive — a permissive break is a regression.
-      # Wired per the ratified roadmap (Phase 1 CI item; the ISO-validation review found it unowned). The CLI
-      # was built by the test steps above (Debug). Fails on any BREAKS line.
+  # ── INV-1 continuity (VERSION_TEST_MATRIX_DESIGN §3): every 85-compiling NIST program must still compile at
+  # 2002/2014/2023 under --permissive — a permissive break is a regression. Its own job (it drives the greenfield
+  # cobol.dll over ~350 programs × 3 editions), parallel with the gates above. Fails on any BREAKS line. ──
+  inv1-sweep:
+    name: INV-1 permissive continuity sweep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
       - name: Build greenfield CLI (Debug — the sweep drives cobol.dll)
         run: dotnet build src/Cobol.Net.Cli/Cobol.Net.Cli.csproj
       - name: INV-1 permissive continuity sweep (85-greens × 2002/2014/2023)
@@ -63,9 +105,9 @@ jobs:
           bash scripts/version-continuity-sweep.sh 8 | tee sweep.log
           ! grep -q "BREAKS" sweep.log
 
-  # Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
-  # build) plus the unit & integration suites on Windows. The NIST guard is Linux-only (bash), so this job
-  # gives the Windows build + managed-test coverage the guard job cannot.
+  # ── Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
+  # build) plus the legacy + greenfield suites on Windows. The NIST guard is Linux-only (bash), so this job gives
+  # the Windows build + managed-test coverage the guard job cannot. ──
   windows-build-test:
     name: Windows build + tests
     runs-on: windows-latest
@@ -73,25 +115,22 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: false
-
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
-
-      - name: Restore
-        run: dotnet restore CobolSharp.sln
-
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
       - name: Build (Release, warnings-as-errors)
-        run: dotnet build CobolSharp.sln --no-restore --configuration Release
-
+        run: dotnet build CobolSharp.sln --configuration Release
       - name: Unit tests
         run: dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --no-build --configuration Release
-
       - name: Integration tests
         run: dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --configuration Release
-
-      # The greenfield COBOL.NET suites (built by the Release sln build above) — cross-platform coverage on Windows.
       - name: Greenfield conformance tests (differential + NIST)
         run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --configuration Release
       - name: Greenfield unit tests
