@@ -225,6 +225,9 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
                 $"CobolIntrinsics.Concat({string.Join(", ", ic.Args.Select(StrStatic))})",
             "BaseConvert" =>                                                   // §15.12 — unsigned-integer base conversion (2023)
                 $"CobolIntrinsics.BaseConvert({StrStatic(ic.Args[0])}, {IntStatic(ic.Args[1])}, {IntStatic(ic.Args[2])})",
+            "Trim" =>                                                          // §15.96 — delete leading/trailing/both of the char set (default: space)
+                $"CobolIntrinsics.Trim({StrStatic(ic.Args[0])}, {ic.TrimMode}"
+                    + string.Concat(ic.Args.Skip(1).Select(a => $", {StrStatic(a)}")) + ")",
             // The last-exception interrogation functions (§15.28/30/32/33 — the EC model): zero-argument reads
             // of the runtime register; the binder's EcNoteFunction flagged the group EC gate, so the generated
             // source carries the CobolNet.Runtime.Exceptions using.

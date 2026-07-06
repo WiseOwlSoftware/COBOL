@@ -116,4 +116,20 @@ public static partial class CobolIntrinsics
         for (; acc > 0; acc /= toBase) sb.Insert(0, digits[(int)(acc % toBase)]);
         return sb.ToString();
     }
+
+    /// <summary>TRIM (§15.96.4): the argument with LEADING (<paramref name="mode"/> 1), TRAILING (2), or BOTH
+    /// (0) characters that match the delete set removed. The delete set is each argument-2's single character
+    /// (§15.96.3 rule 2); with no argument-2 it is a space (rule 3.a). An argument consisting only of delete-set
+    /// characters (or of zero length) returns a zero-length string (rule 4).</summary>
+    public static string Trim(string s, long mode, params string[] chars)
+    {
+        char[] set = chars.Length == 0 ? [' '] : chars.Where(c => c.Length > 0).Select(c => c[0]).ToArray();
+        if (set.Length == 0) set = [' '];
+        return mode switch
+        {
+            1 => s.TrimStart(set),   // LEADING (rule 1)
+            2 => s.TrimEnd(set),     // TRAILING (rule 2)
+            _ => s.Trim(set),        // both (rule 3)
+        };
+    }
 }

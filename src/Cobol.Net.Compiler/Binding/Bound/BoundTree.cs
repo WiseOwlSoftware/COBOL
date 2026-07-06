@@ -139,7 +139,12 @@ public sealed record BoundExprError(string Feature) : BoundExpr;
 /// SEQUENCE (§15.15.4 r2 / §15.70.4) — the backend then passes its collating-weights table; when false the field
 /// does not even exist (hazard H5).</summary>
 public sealed record BoundIntrinsicCall(
-    IntrinsicSig Sig, IReadOnlyList<BoundOperand> Args, PicCategory ResultCategory, bool Collate = false) : BoundExpr;
+    IntrinsicSig Sig, IReadOnlyList<BoundOperand> Args, PicCategory ResultCategory, bool Collate = false) : BoundExpr
+{
+    /// <summary>TRIM (§15.96.4): 0 = both leading and trailing (rule 3), 1 = LEADING (rule 1), 2 = TRAILING
+    /// (rule 2) — the LEADING/TRAILING phrase keyword, extracted at bind time. Zero for every other function.</summary>
+    public int TrimMode { get; init; }
+}
 
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────
 

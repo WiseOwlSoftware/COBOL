@@ -115,6 +115,10 @@ public sealed partial class StatementBinder
             data.Edition.Error("COBOLNET1503", $"FUNCTION {sig.Name} was removed by ISO/IEC 1989:{gone} — "
                 + $"it is not available when targeting COBOL-{data.Edition.DialectLevel}");
 
+        // TRIM (§15.96) — the one §15 function whose argument list carries a phrase keyword (LEADING/TRAILING);
+        // its bespoke shape is bound apart from the generic comma/space-split argument path.
+        if (sig.Name == "TRIM") return BindTrim(sig, argTokens);
+
         var args = BindIntrinsicArgs(argTokens);
         if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
         {
@@ -175,6 +179,41 @@ public sealed partial class StatementBinder
         if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) EcNoteFunction();
 
         return new BoundIntrinsicCall(resolved, args, category, collate);
+    }
+
+    /// <summary>TRIM (§15.96) — the ONE §15 function with a phrase keyword in its argument list
+    /// (<c>[LEADING|TRAILING]</c>, §15.96.2). The keyword is a bare <c>SUB_IDENTIFIER</c> segment (space- or
+    /// comma-separated), extracted here so the remaining segments bind as ordinary operands: argument-1 (the
+    /// string, required) followed by zero-or-more single-character argument-2 trim characters (§15.96.3 rule 2 —
+    /// the default when none is given is a space, rule 3.a). The LEADING/TRAILING mode rides on the bound node's
+    /// <see cref="BoundIntrinsicCall.TrimMode"/> (0 = both, rule 3).</summary>
+    private BoundExpr BindTrim(IntrinsicSig sig, List<IToken> argTokens)
+    {
+        int mode = 0;   // 0 = both leading+trailing (r3), 1 = LEADING (r1), 2 = TRAILING (r2)
+        var operands = new List<BoundOperand>();
+        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        {
+            // A lone LEADING / TRAILING word (a bare SUB_IDENTIFIER segment) is the phrase keyword, not an operand.
+            if (seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } kw])
+            {
+                if (kw.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase)) { mode = 1; continue; }
+                if (kw.Text.Equals("TRAILING", StringComparison.OrdinalIgnoreCase)) { mode = 2; continue; }
+            }
+            operands.Add(ParseArgSegment(seg));
+        }
+        if (operands.Count == 0)
+        {
+            data.Edition.Error("COBOLNET1504", "FUNCTION TRIM takes at least a string argument-1 (ISO §15.96.2/.3)");
+            return new BoundExprError("FUNCTION TRIM");
+        }
+        // The argument-2 form (delete characters OTHER than space) is a 2023 enhancement — TRIM removed only
+        // spaces through 2014 (Annex E.3.3 item 31; VERSION_CHANGE_REFERENCE row 74). Its introduction is gated
+        // by name+edition, like the whole-function 1502 gate above.
+        if (operands.Count > 1 && data.Edition.DialectLevel < 2023)
+            data.Edition.Error("COBOLNET1502", "the FUNCTION TRIM argument-2 form (removing characters other than "
+                + "space) was introduced by ISO/IEC 1989:2023 (§15.96; Annex E.3.3 item 31) — it requires "
+                + $"--std 2023 or later (targeting COBOL-{data.Edition.DialectLevel}); TRIM removed only spaces through 2014");
+        return new BoundIntrinsicCall(sig, operands, PicCategory.Alphanumeric) { TrimMode = mode };
     }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string

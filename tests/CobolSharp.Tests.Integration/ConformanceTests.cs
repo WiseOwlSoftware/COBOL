@@ -101,6 +101,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // legacy has CONCAT but crashes on BASECONVERT (InvalidCastException); the greenfield CorpusRunner
         // byte-compares intrinsics_string_2023.
         ("2023", "intrinsics_string_2023"),
+        // Phase 5 intrinsics, DEVLOG 629: FUNCTION TRIM (§15.96) with the 2023 argument-2 char-set form — the
+        // frozen legacy trims only spaces (ZERO=0042, ignoring the "0" arg-2) where the greenfield gives ZERO=42;
+        // the greenfield CorpusRunner byte-compares intrinsics_trim.
+        ("2023", "intrinsics_trim"),
         // Phase-4 track (c), DEVLOG 615/616: the frozen legacy's partial UDF support runs the simple
         // invocation goldens but lacks EXIT FUNCTION's control transfer (§14.9.14 — it falls through to the
         // trailing MOVE, X=9999 not X=0014) and the nested-args legs (GR5a by-ref argument mutation /

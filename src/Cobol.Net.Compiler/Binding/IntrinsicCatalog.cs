@@ -167,7 +167,7 @@ public static class IntrinsicCatalog
         Add(new("SECONDS-FROM-FORMATTED-TIME", IntrinsicType.Numeric, IntrinsicArity.Fixed, 2, 2, "ss", "", IntrinsicBind.Deferred, false, 2014)); // §15.79
         Add(new("TEST-FORMATTED-DATETIME", IntrinsicType.Integer, IntrinsicArity.Fixed, 2, 2, "ss", "", IntrinsicBind.Deferred, false, 2014)); // §15.92
         Add(new("TEST-NUMVAL-F", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2014));   // §15.95
-        Add(new("TRIM", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Deferred, false, 2014)); // §15.96 (2023 widens beyond spaces — ref row 74)
+        Add(new("TRIM", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 1, inf, "ss", "Trim", IntrinsicBind.Runtime, false, 2014)); // §15.96 — arg-1 + the LEADING/TRAILING phrase + one-or-more argument-2 trim chars (special bind path)
 
         // ── COBOL-2023 additions (docs/VERSION_CHANGE_REFERENCE.md rows 65–73) ────────────────────────────────
         Add(new("BASECONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 3, 3, "sii", "BaseConvert", IntrinsicBind.Runtime, false, 2023)); // §15.12

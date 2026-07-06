@@ -337,9 +337,9 @@ public sealed class IntrinsicFunctionDifferentialTests
         // A catalogued-but-deferred function INSIDE its window compiles and fails LOUD at run time naming the
         // function (COBOLNET_DESIGN §1.4) — never a silent wrong value.
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
-            Program("01 T PIC X(5).", "    MOVE FUNCTION TRIM(\"  X  \") TO T.\n    DISPLAY T."));
+            Program("01 T PIC X(21).", "    MOVE FUNCTION FORMATTED-CURRENT-DATE(\"YYYYMMDD\") TO T.\n    DISPLAY T."));
         Assert.False(ok);
-        Assert.Contains("TRIM", detail);
+        Assert.Contains("FORMATTED-CURRENT-DATE", detail);
     }
 
     [Fact]
@@ -387,5 +387,38 @@ public sealed class IntrinsicFunctionDifferentialTests
             Assert.False(ok, $"{call} is 2023+; 2014 must reject");
             Assert.Contains("COBOLNET1502", detail);
         }
+    }
+
+    // ── TRIM (§15.96, Phase 5, DEVLOG 629): LEADING/TRAILING/both + the 2023 argument-2 char set ─────────────
+
+    [Theory]
+    [InlineData("FUNCTION TRIM(S)", "HELLO")]            // §15.96.4 r3 — both, default space (the 2014 form)
+    [InlineData("FUNCTION TRIM(S LEADING)", "HELLO")]    // r1 — leading (the trailing padding is Normalize-trimmed)
+    [InlineData("FUNCTION TRIM(S TRAILING)", "  HELLO")] // r2 — trailing (leading spaces are preserved)
+    public void Trim_SpaceForm_2014(string call, string expected)
+        => AssertSpec(Program("01 S PIC X(10) VALUE \"  HELLO   \".\n           01 R PIC X(12).",
+            $"    MOVE {call} TO R.\n    DISPLAY R.", "IFTRIM"), expected, 2014);
+
+    [Fact]
+    public void Trim_ArgumentTwoCharSet_2023()
+        // §15.96 argument-2 (delete a specified character) — the 2023 enhancement. Z = "0042" ⇒ leading "0" ⇒ "42".
+        => AssertSpec(Program("01 Z PIC X(8) VALUE \"0042\".\n           01 R PIC X(12).",
+            "    MOVE FUNCTION TRIM(Z LEADING \"0\") TO R.\n    DISPLAY R.", "IFTRIM2"), "42", 2023);
+
+    [Fact]
+    public void Trim_ArgumentTwo_GatedBelow2023_1502_ButSpaceFormBinds()
+    {
+        // The argument-2 form is a 2023 enhancement (Annex E.3.3 item 31) — rejected at 2014 by name+edition…
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 Z PIC X(8) VALUE \"0042\".\n           01 R PIC X(8).",
+                "    MOVE FUNCTION TRIM(Z LEADING \"0\") TO R.\n    DISPLAY R."));
+        Assert.False(ok, "TRIM argument-2 is 2023+; 2014 must reject");
+        Assert.Contains("COBOLNET1502", detail);
+        // …but TRIM itself (the space-trimming form) is 2014, so it binds+runs there.
+        var (ok2, out2, d2) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 S PIC X(8) VALUE \"  HI  \".\n           01 R PIC X(8).",
+                "    MOVE FUNCTION TRIM(S TRAILING) TO R.\n    DISPLAY R."));
+        Assert.True(ok2, d2);
+        Assert.Equal("  HI", out2);
     }
 }
