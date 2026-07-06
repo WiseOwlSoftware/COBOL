@@ -52,6 +52,12 @@ cobolWord
     | B_OR         // context: boolean inclusive-or operator (2002, §8.7.2)
     | B_XOR        // context: boolean exclusive-or operator (2002, §8.7.2)
     | B_NOT        // context: boolean negation operator (2002, §8.7.2)
+    // The 2002 file-sharing / record-locking words: user words at 85, funnel-0901'd ≥2002 for the three §8.9
+    // words (SHARING/RETRY/UNLOCK); the six §8.10 words (MANUAL/AUTOMATIC/IGNORING/FOREVER/SECONDS/ONLY) stay
+    // user-legal at all editions. Keyword occurrences parse only through the {is2002()}?-gated sharing/lock
+    // rules (CobolIO.g4) — never a name slot.
+    | SHARING | RETRY | UNLOCK
+    | MANUAL | AUTOMATIC | IGNORING | FOREVER | SECONDS | ONLY
     // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18 — the W3 batch): each
     // parses through its own dedicated rule (rerunClause / enterStatement / the USE FOR DEBUGGING format /
     // the section-header segment-number), never a name slot, so they are position-safe in the §8.9 funnel
@@ -669,6 +675,7 @@ statement
     | {is2023()}? deleteFileStatement
     | {is2002()}? allocateStatement
     | {is2002()}? freeStatement
+    | {is2002()}? unlockStatement
     | displayStatement
     | divideStatement
     | evaluateStatement

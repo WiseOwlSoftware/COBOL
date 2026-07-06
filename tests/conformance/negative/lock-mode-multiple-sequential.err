@@ -1,0 +1,1 @@
+WITH LOCK ON MULTIPLE RECORDS may not be specified for a sequential

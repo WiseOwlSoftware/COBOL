@@ -475,10 +475,34 @@ public enum BoundOpenMode { Input, Output, Extend, IO }
 /// <c>REEL/UNIT</c> phrase (a no-op on a disk medium, leaves the file open).</summary>
 public enum BoundCloseKind { Normal, WithLock, ReelUnit }
 
+/// <summary>The record-lock phrase on a READ/WRITE/REWRITE (ISO §14.9.30 etc.): explicit WITH LOCK, WITH NO
+/// LOCK (never lock), or IGNORING LOCK (read despite another connector's lock — READ only). None = the file's
+/// effective LOCK MODE governs (AUTOMATIC locks on READ, MANUAL does not).</summary>
+public enum BoundRecordLock { None, WithLock, WithNoLock, IgnoringLock }
+
+/// <summary>A RETRY phrase (ISO §14.7.9): retry a locked operation N TIMES, FOR N SECONDS, or FOREVER. In the
+/// single-run-unit model the n-TIMES count is a real bounded loop over the connector registry; SECONDS/FOREVER
+/// are documented no-ops (no competing process ever releases — named residue).</summary>
+public enum RetryKind { Times, Seconds, Forever }
+public sealed record RetrySpec(RetryKind Kind, BoundExpr? Amount);
+
+/// <summary><c>UNLOCK file [RECORD[S]]</c> (ISO §14.9.47): release all record locks this connector holds on the
+/// file; always succeeds when the file is open (else I-O status 42).</summary>
+public sealed record BoundUnlock(FileModel File, bool Records) : BoundStatement;
+
 /// <summary><c>OPEN {INPUT|OUTPUT|I-O|EXTEND} file …</c> — each opened file with its mode (ISO §14.9.25). An
 /// unsupported organization (relative/indexed in the sequential slice) carries a loud <paramref name="Unsupported"/>
 /// reason so the file opens to a runtime not-implemented guard.</summary>
-public sealed record BoundOpen(IReadOnlyList<(FileModel File, BoundOpenMode Mode, string? Unsupported)> Files) : BoundStatement;
+public sealed record BoundOpen(IReadOnlyList<(FileModel File, BoundOpenMode Mode, string? Unsupported)> Files) : BoundStatement
+{
+    /// <summary>An OPEN SHARING phrase (ISO §14.9.27), overriding each file's SELECT SHARING clause for this
+    /// OPEN; null = use the file-control clause. Applies to every file in the statement.</summary>
+    public SharingMode? SharingOverride { get; init; }
+
+    /// <summary>An OPEN RETRY phrase (ISO §14.7.9), or null. The n-TIMES count bounds a re-attempt loop over
+    /// the connector registry; SECONDS/FOREVER are single-run-unit no-ops (residue).</summary>
+    public RetrySpec? Retry { get; init; }
+}
 
 /// <summary><c>CLOSE file [WITH LOCK | REEL/UNIT] …</c> (ISO §14.9.7).</summary>
 public sealed record BoundClose(IReadOnlyList<(FileModel File, BoundCloseKind Kind)> Files) : BoundStatement;

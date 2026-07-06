@@ -40,6 +40,10 @@ public sealed class IndexedFile
     private char _positioner = 'O';      // 'O' OPEN / 'S' START / 'R' READ
     private string? _lastWrittenPrime;   // sequential-access ascending check (§14.9.51 GR38; EXTEND seeds highest)
     private string? _lastReadPrime;      // sequential-access REWRITE/DELETE target (§14.9.35 GR22 / §14.9.10 GR2)
+
+    /// <summary>The prime record key of the most recently read record — the record-lock identity for §9.1.16
+    /// record locking (Phase 4d M2-FILE-1). Null before the first successful READ.</summary>
+    public string? LastReadPrime => _lastReadPrime;
     private bool _lastReadUnsuccessful;  // → '46' (§14.9.30 GR21)
     private bool _prevOpWasSuccessfulRead;
 

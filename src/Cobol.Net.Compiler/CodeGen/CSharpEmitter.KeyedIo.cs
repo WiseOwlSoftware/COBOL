@@ -104,6 +104,17 @@ public sealed partial class CSharpEmitter
                 w.Line($"var {st} = CobolFile.ReadKeyed({name}, {rd.KeyIndex}, {keyImage}, out var {img});");
                 break;
         }
+        // §9.1.16 record-lock governance (Phase 4d): a sharing-active file (or a READ carrying an explicit
+        // lock/RETRY phrase) has its just-read status adjusted — 51 when another connector holds the record's
+        // lock (unless IGNORING LOCK), else the WITH LOCK / AUTOMATIC lock is acquired. Runs BEFORE the success
+        // block so a 51 denial leaves the record area untouched (the record is not made available).
+        if (file.Sharing != SharingMode.None || file.LockMode is not null
+            || rd.Lock != BoundRecordLock.None || rd.Retry is not null)
+        {
+            var (retryKind, retryAmount) = RenderRetry(rd.Retry);
+            w.Line($"{st} = CobolFile.ReadLockGovern({name}, {st}, {RuntimeRecordLock(rd.Lock)}, "
+                + $"{retryKind}, {retryAmount});");
+        }
         using (w.Block($"if ({st}[0] == '0')"))
         {
             if (area is not null) EmitImageInto(area, img);

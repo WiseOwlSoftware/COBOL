@@ -63,7 +63,30 @@ fileControlClauses
     | fileStatusClause
     | fileReserveClause
     | paddingCharacterClause
+    // COBOL-2002 file sharing / record locking (ISO §12.4.5.15 / §12.4.5.9) — unique leading tokens
+    // (SHARING / LOCK), {is2002()}?-gated, ADDITIVE (the DEVLOG 621/622 lesson).
+    | {is2002()}? sharingClause
+    | {is2002()}? lockModeClause
     | vendorFileControlClause
+    ;
+
+// COBOL-2002 SHARING clause (ISO §12.4.5.15): the file-connector sharing mode.
+sharingClause
+    : SHARING WITH? sharingMode
+    ;
+sharingMode
+    : ALL OTHER?
+    | NO OTHER?
+    | READ ONLY
+    ;
+
+// COBOL-2002 LOCK MODE clause (ISO §12.4.5.9): MANUAL / AUTOMATIC (no EXCLUSIVE), with an optional
+// single/multiple record-lock granularity.
+lockModeClause
+    : LOCK MODE IS? (MANUAL | AUTOMATIC) lockOnPhrase?
+    ;
+lockOnPhrase
+    : WITH? LOCK ON? MULTIPLE? (RECORD | RECORDS)
     ;
 
 fileReserveClause
@@ -206,7 +229,25 @@ openStatement
     ;
 
 openClause
-    : openMode openFileSpec+
+    : openMode ({is2002()}? sharingPhrase)? ({is2002()}? retryPhrase)? openFileSpec+
+    ;
+
+// COBOL-2002 OPEN SHARING phrase (ISO §14.9.27) — overrides the file-control SHARING clause for this OPEN.
+sharingPhrase
+    : SHARING WITH? sharingMode
+    ;
+
+// COBOL-2002 RETRY phrase (ISO §14.7.9) on OPEN / READ / WRITE / REWRITE / DELETE — how to react to a lock.
+retryPhrase
+    : RETRY (arithmeticExpression TIMES | FOR? arithmeticExpression SECONDS | FOREVER)
+    ;
+
+// COBOL-2002 record-lock phrase on READ / WRITE / REWRITE (ISO §14.9.30 etc.). Order: WITH? NO LOCK before
+// WITH? LOCK so `WITH NO LOCK` is not shadowed by `WITH LOCK`.
+recordLockPhrase
+    : IGNORING LOCK
+    | WITH? NO LOCK
+    | WITH? LOCK
     ;
 
 // Each opened file may carry an obsolete tape phrase (ISO §14.9.25): REVERSED or WITH NO REWIND —
@@ -246,10 +287,18 @@ readStatement
       RECORD?
       readInto?
       readKey?
+      ({is2002()}? readAdvancingOnLock)?    // ADVANCING ON LOCK (ISO §14.9.30 fmt1)
+      ({is2002()}? retryPhrase)?
+      ({is2002()}? recordLockPhrase)?
       readAtEnd?
       readInvalidKey?
       END_READ?
 
+    ;
+
+// COBOL-2002 READ … ADVANCING ON LOCK (ISO §14.9.30 GR22): skip-scan locked records on NEXT/PREVIOUS.
+readAdvancingOnLock
+    : ADVANCING ON LOCK
     ;
 
 readDirection
@@ -291,6 +340,8 @@ writeStatement
     : WRITE (recordName | FILE fileName)
       writeFrom?
       writeBeforeAfter?
+      ({is2002()}? retryPhrase)?
+      ({is2002()}? recordLockPhrase)?
       writeAtEndOfPage?
       writeInvalidKey?
       END_WRITE?
@@ -330,6 +381,8 @@ recordName
 rewriteStatement
     : REWRITE (recordName | FILE fileName)
       rewriteFrom?
+      ({is2002()}? retryPhrase)?
+      ({is2002()}? recordLockPhrase)?
       rewriteInvalidKeyPhrase?
       END_REWRITE?
 
@@ -351,6 +404,7 @@ rewriteInvalidKeyPhrase
 
 deleteStatement
     : DELETE fileName RECORD?
+      ({is2002()}? retryPhrase)?
       deleteInvalidKeyPhrase?
       END_DELETE?
 
@@ -368,9 +422,15 @@ deleteInvalidKeyPhrase
 
 deleteFileStatement
     : DELETE FILE fileName
+      ({is2002()}? retryPhrase)?
       deleteFileOnException?
       END_DELETE?
 
+    ;
+
+// COBOL-2002 UNLOCK statement (ISO §14.9.47): release all this-connector record locks on the file.
+unlockStatement
+    : UNLOCK fileName (RECORD | RECORDS)?
     ;
 
 deleteFileOnException

@@ -89,7 +89,7 @@ public static class BoundStores
                 or BoundTerminate or BoundRaise or BoundResume or BoundSetLastException
                 or BoundGoToAlterable or BoundCancel or BoundExitProgram or BoundGoback
                 or BoundMethodReturn or BoundAlter or BoundSetSwitches or BoundKeyedDelete
-                or BoundSort or BoundMerge or BoundTableSort
+                or BoundSort or BoundMerge or BoundTableSort or BoundUnlock
                 => StoreKind.None,
 
             // ── Wrappers / containers ───────────────────────────────────────────────────────────────────

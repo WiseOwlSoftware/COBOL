@@ -303,11 +303,36 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                     file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13 SR3 — outside the record
+                else if (clauses.sharingClause() is { } sh) file.Sharing = MapSharing(sh.sharingMode());   // §12.4.5.15
+                else if (clauses.lockModeClause() is { } lm) file.LockMode = MapLockMode(lm);               // §12.4.5.9
             }
+            // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
+            // or sequential-organization file.
+            if (file.LockMode is { Multiple: true }
+                && (file.AccessMode is FileAccessMode.Sequential
+                    || file.Organization is FileOrganization.Sequential or FileOrganization.LineSequential))
+                Edition.Error("COBOLNET1512", $"file '{name}': LOCK MODE … WITH LOCK ON MULTIPLE RECORDS may "
+                    + "not be specified for a sequential-access or sequential-organization file (ISO §12.4.5.9 SR2)");
+            // §14.9.27 SR8: a file described SHARING WITH ALL OTHER (whether via the SELECT clause here or the
+            // OPEN phrase, which BindOpen also checks) shall be described with a LOCK MODE clause.
+            if (file.Sharing == SharingMode.AllOther && file.LockMode is null)
+                Edition.Error("COBOLNET1512", $"file '{name}': SHARING WITH ALL OTHER requires the file to have a "
+                    + "LOCK MODE clause (ISO §14.9.27 SR8)");
             Files.Add(file);
             FilesByName[name] = file;
         }
     }
+
+    /// <summary>Map the SHARING clause / phrase mode (ISO §12.4.5.15).</summary>
+    private static SharingMode MapSharing(Core.SharingModeContext m) =>
+        m.READ() is not null ? SharingMode.ReadOnly
+        : m.NO() is not null ? SharingMode.NoOther
+        : SharingMode.AllOther;   // ALL OTHER
+
+    /// <summary>Map the LOCK MODE clause (ISO §12.4.5.9): MANUAL / AUTOMATIC + single/MULTIPLE granularity.</summary>
+    private static LockModeInfo MapLockMode(Core.LockModeClauseContext lm) =>
+        new(lm.AUTOMATIC() is not null ? LockKind.Automatic : LockKind.Manual,
+            lm.lockOnPhrase()?.MULTIPLE() is not null);
 
     /// <summary>A FILE-CONTROL key reference: the base word plus its IN/OF qualifier words in written order
     /// (innermost first, ISO §8.4.2.2). A raw <c>GetText()</c> would glue qualifiers into the lookup key

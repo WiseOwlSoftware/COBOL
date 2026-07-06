@@ -403,6 +403,7 @@ public sealed partial class CSharpEmitter
             case BoundCorresponding corr: EmitCorresponding(corr); return false;
             case BoundOpen o: EmitOpen(o); return false;
             case BoundClose c: EmitClose(c); return false;
+            case BoundUnlock ul: EmitUnlock(ul); return false;
             case BoundWrite wr: EmitWrite(wr); return false;
             case BoundRead rd: EmitRead(rd); return false;
             case BoundRewrite rw: EmitRewrite(rw); return false;
@@ -1364,7 +1365,7 @@ public sealed partial class CSharpEmitter
         foreach (var file in _ctx.Data.Files)
         {
             if (file.IsSortMerge) continue;   // an SD is the in-memory sort store (ISO §13.4.6) — never a host file
-            if (!file.IsSequential) { KeyedEmitRegistration(w, file); continue; }   // relative/indexed connectors
+            if (!file.IsSequential) { KeyedEmitRegistration(w, file); EmitSharingRegistration(w, file); continue; }   // relative/indexed connectors
             if (file.Records.Count == 0)
             {
                 // A REPORT FILE legally has no record description (ISO §9.1.22 / §13.18.46) — it MUST still
@@ -1394,7 +1395,34 @@ public sealed partial class CSharpEmitter
             if (file.Linage is { } lin)
                 w.Line($"CobolFile.SetLinage({CsLiteral(file.CobolName)}, () => ({LinageOpExpr(lin.Body)}, "
                        + $"{LinageOpExpr(lin.Footing)}, {LinageOpExpr(lin.Top)}, {LinageOpExpr(lin.Bottom)}));");
+            EmitSharingRegistration(w, file);
         }
+    }
+
+    /// <summary>Emit the <c>CobolFile.RegisterSharing</c> call for a file that declares a SHARING and/or LOCK MODE
+    /// clause (Phase 4d M2-FILE-1) — this marks the connector "sharing-active" so its OPEN routes through the
+    /// physical-file registry (Table-19 → 61) and its READs through record-lock governance. Files without either
+    /// clause emit nothing and keep the legacy exclusive path byte-for-byte (ISO §14.9.27 GR23 implementor
+    /// default). A LOCK-MODE-only file has no sharing conflict posture, so its sharing maps to the neutral
+    /// ALL OTHER (record locking observable, no spurious 61).</summary>
+    private void EmitSharingRegistration(CodeWriter w, FileModel file)
+    {
+        if (file.Sharing == SharingMode.None && file.LockMode is null) return;
+        string sharing = file.Sharing switch
+        {
+            SharingMode.NoOther => "FileSharing.NoOther",
+            SharingMode.ReadOnly => "FileSharing.ReadOnly",
+            _ => "FileSharing.AllOther",   // AllOther, or None (LOCK-MODE-only) → neutral default
+        };
+        string lockMode = (file.LockMode?.Kind ?? LockKind.None) switch
+        {
+            LockKind.Manual => "FileLockMode.Manual",
+            LockKind.Automatic => "FileLockMode.Automatic",
+            _ => "FileLockMode.None",
+        };
+        bool multiple = file.LockMode?.Multiple ?? false;
+        w.Line($"CobolFile.RegisterSharing({CsLiteral(file.CobolName)}, {sharing}, {lockMode}, "
+            + $"{(multiple ? "true" : "false")});");
     }
 
     /// <summary>The C# <c>int</c> expression for one LINAGE clause operand (ISO §13.18.34 GR6): the fixed literal
@@ -1417,21 +1445,73 @@ public sealed partial class CSharpEmitter
     private void EmitOpen(BoundOpen o)
     {
         var w = _ctx.Writer;
+        // A SHARING override or RETRY phrase on the OPEN (ISO §14.9.27, COBOL-2002) routes every file in the
+        // statement's mode group through the sharing-aware facade; a plain OPEN keeps the direct entry points.
+        bool shared = o.SharingOverride is not null || o.Retry is not null;
         foreach (var (file, mode, unsupported) in o.Files)
         {
             if (unsupported is { } u) { w.Line(LoudStmt(u)); continue; }
-            string method = mode switch
+            if (shared)
             {
-                BoundOpenMode.Output => "OpenOutput",
-                BoundOpenMode.Extend => "OpenExtend",
-                BoundOpenMode.IO => "OpenIO",
-                _ => "OpenInput",
-            };
-            w.Line($"CobolFile.{method}({CsLiteral(file.CobolName)});");
+                string modeEnum = mode switch
+                {
+                    BoundOpenMode.Output => "FileOpenMode.Output",
+                    BoundOpenMode.Extend => "FileOpenMode.Extend",
+                    BoundOpenMode.IO => "FileOpenMode.IO",
+                    _ => "FileOpenMode.Input",
+                };
+                var (retryKind, retryAmount) = RenderRetry(o.Retry);
+                string shHas = o.SharingOverride is not null ? "true" : "false";
+                string shVal = o.SharingOverride is { } sm ? RuntimeSharing(sm) : "FileSharing.AllOther";
+                w.Line($"CobolFile.OpenShared({CsLiteral(file.CobolName)}, {modeEnum}, {shHas}, {shVal}, "
+                    + $"{retryKind}, {retryAmount});");
+            }
+            else
+            {
+                string method = mode switch
+                {
+                    BoundOpenMode.Output => "OpenOutput",
+                    BoundOpenMode.Extend => "OpenExtend",
+                    BoundOpenMode.IO => "OpenIO",
+                    _ => "OpenInput",
+                };
+                w.Line($"CobolFile.{method}({CsLiteral(file.CobolName)});");
+            }
             EmitStoreFileStatus(file);
             EmitUseHook(file);   // a failed OPEN reaches a mode-scoped USE via the being-opened mode (GR6b)
         }
     }
+
+    /// <summary>Map a bound SHARING mode to the runtime <c>FileSharing</c> enum member (Phase 4d).</summary>
+    private static string RuntimeSharing(SharingMode m) => m switch
+    {
+        SharingMode.NoOther => "FileSharing.NoOther",
+        SharingMode.ReadOnly => "FileSharing.ReadOnly",
+        _ => "FileSharing.AllOther",
+    };
+
+    /// <summary>Render a bound RETRY phrase (ISO §14.7.9) to the runtime <c>(FileRetryKind, int amount)</c> pair —
+    /// the amount is the n-TIMES count (rendered as a C# int); SECONDS/FOREVER pass 0 (their amount is a
+    /// single-run-unit no-op, deadlock-bailing to status 52).</summary>
+    private (string Kind, string Amount) RenderRetry(RetrySpec? retry) => retry switch
+    {
+        null => ("FileRetryKind.None", "0"),
+        { Kind: RetryKind.Forever } => ("FileRetryKind.Forever", "0"),
+        { Kind: RetryKind.Seconds } => ("FileRetryKind.Seconds", RetryAmount(retry.Amount)),
+        _ => ("FileRetryKind.Times", RetryAmount(retry.Amount)),
+    };
+
+    private string RetryAmount(BoundExpr? amount) =>
+        amount is null ? "0" : $"(int)({NumericRenderer.Align(_num.Render(amount), 0)})";
+
+    /// <summary>Map a bound record-lock phrase to the runtime <c>FileRecordLock</c> enum member (Phase 4d).</summary>
+    private static string RuntimeRecordLock(BoundRecordLock l) => l switch
+    {
+        BoundRecordLock.WithLock => "FileRecordLock.WithLock",
+        BoundRecordLock.WithNoLock => "FileRecordLock.WithNoLock",
+        BoundRecordLock.IgnoringLock => "FileRecordLock.Ignoring",
+        _ => "FileRecordLock.None",
+    };
 
     private void EmitClose(BoundClose c)
     {
@@ -1448,6 +1528,16 @@ public sealed partial class CSharpEmitter
             EmitStoreFileStatus(file);
             EmitUseHook(file);
         }
+    }
+
+    /// <summary>UNLOCK file [RECORD[S]] (ISO §14.9.47, COBOL-2002): release the connector's record locks and set
+    /// the I-O status (00, or 42 if not open). The two hooks let a USE declarative see the status like any I-O.</summary>
+    private void EmitUnlock(BoundUnlock ul)
+    {
+        var w = _ctx.Writer;
+        w.Line($"CobolFile.Unlock({CsLiteral(ul.File.CobolName)}, {(ul.Records ? "true" : "false")});");
+        EmitStoreFileStatus(ul.File);
+        EmitUseHook(ul.File);
     }
 
     /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §14.9.46): a FROM operand first MOVEs into the record area,

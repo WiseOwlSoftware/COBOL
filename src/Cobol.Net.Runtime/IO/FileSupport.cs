@@ -15,6 +15,59 @@ public enum FileOpenMode
     IO,
 }
 
+/// <summary>The file-sharing mode of a connector (ISO/IEC 1989:2023 §9.1.15; the SHARING clause §12.4.5.15 / the
+/// OPEN SHARING phrase §14.9.27). Governs whether OTHER connectors may open the same physical file (Table 19 →
+/// status 61). The implementor default for a connector without any SHARING/LOCK-MODE clause is <b>outside</b> the
+/// sharing subsystem entirely (legacy exclusive behavior — no physical-registry participation, so the existing
+/// corpus is byte-invariant); <see cref="AllOther"/> is the neutral in-subsystem default.</summary>
+public enum FileSharing
+{
+    /// <summary>SHARING WITH NO OTHER — exclusive; no other connector may open the file (record locks ignored, GR3).</summary>
+    NoOther,
+    /// <summary>SHARING WITH READ ONLY — other connectors may open only for INPUT.</summary>
+    ReadOnly,
+    /// <summary>SHARING WITH ALL OTHER — other connectors may open in any mode (record locking is then observable).</summary>
+    AllOther,
+}
+
+/// <summary>The record-locking mode of a connector (ISO §12.4.5.9 LOCK MODE).</summary>
+public enum FileLockMode
+{
+    /// <summary>No LOCK MODE clause — no record locking (the implementor default, GR1).</summary>
+    None,
+    /// <summary>LOCK MODE IS MANUAL — a lock is acquired only for a READ … WITH LOCK (GR5).</summary>
+    Manual,
+    /// <summary>LOCK MODE IS AUTOMATIC — a lock is acquired on every successful READ (GR4).</summary>
+    Automatic,
+}
+
+/// <summary>The explicit record-lock phrase on a READ/WRITE/REWRITE (ISO §14.9.30 etc.).</summary>
+public enum FileRecordLock
+{
+    /// <summary>No phrase — the connector's LOCK MODE governs (AUTOMATIC auto-locks; MANUAL/None do not).</summary>
+    None,
+    /// <summary>WITH LOCK — request a lock on the accessed record (MANUAL locking).</summary>
+    WithLock,
+    /// <summary>WITH NO LOCK — do not lock the accessed record.</summary>
+    WithNoLock,
+    /// <summary>IGNORING LOCK — access the record even if another connector holds its lock (§9.1.16).</summary>
+    Ignoring,
+}
+
+/// <summary>The RETRY phrase kind (ISO §14.7.9).</summary>
+public enum FileRetryKind
+{
+    /// <summary>No RETRY phrase — a single lock attempt (GR4a).</summary>
+    None,
+    /// <summary>RETRY n TIMES — the lock check is attempted n+1 times (GR1).</summary>
+    Times,
+    /// <summary>RETRY FOR n SECONDS — wall-clock retry; in one run unit no external releaser exists, so an
+    /// unsatisfiable conflict deadlock-bails to status 52 rather than blocking (GR2 + §9.1.13.8 impl-license).</summary>
+    Seconds,
+    /// <summary>RETRY FOREVER — likewise deadlock-bails to 52 in one run unit (GR3).</summary>
+    Forever,
+}
+
 /// <summary>The ISO/IEC 1989:2023 §9.1.13 I-O status codes the sequential connector reports (a focused subset of the
 /// full table — the codes a sequential file can produce). The two-character code is stored into the FILE STATUS
 /// data item after each I/O verb and steers the AT END / declarative branches.</summary>
@@ -32,7 +85,9 @@ public static class FileStatusCode
     public const string FileNotFound = "35";
     /// <summary>37 — OPEN failed: insufficient access permission.</summary>
     public const string PermissionDenied = "37";
-    /// <summary>38 — OPEN of a file previously CLOSEd WITH LOCK.</summary>
+    /// <summary>38 — OPEN of a file previously CLOSEd WITH LOCK (the ≤2014 CLOSE … WITH LOCK leg; NOT part of the
+    /// 2002 5x/6x file-sharing family — that construct is COBOLNET0902-rejected at 2023 via the
+    /// close-with-lock-removed-2023 gate, so 38 stays only for the still-legal ≤2014 path).</summary>
     public const string FileLocked = "38";
     /// <summary>41 — OPEN attempted on an already-open file.</summary>
     public const string FileAlreadyOpen = "41";
@@ -67,4 +122,23 @@ public static class FileStatusCode
     public const string BoundaryViolation = "24";
     /// <summary>34 — permanent-error boundary violation (a relative random WRITE with a key &lt; 1, §14.9.51 GR29b / §9.1.13.6 item 4).</summary>
     public const string PermanentBoundary = "34";
+
+    // ── The COBOL-2002 file-sharing / record-locking status family (ISO §9.1.13.8/9; Phase 4d M2-FILE-1). The
+    //    '5' first digit maps to EC-I-O-RECORD-OPERATION, '6' to EC-I-O-FILE-SHARING (§9.1.13.1) — both
+    //    continuable; the EC bridge (ExceptionCatalog) already routes them, so producing the code is the whole job.
+    /// <summary>51 — a record READ/REWRITE/DELETE could not lock the record because another file connector holds
+    /// its lock (§9.1.13.8 item 1).</summary>
+    public const string RecordLocked = "51";
+    /// <summary>52 — an implementor-detected deadlock: a record/file lock cannot be granted and a bounded RETRY
+    /// (or SECONDS/FOREVER, which cannot block productively in one run unit) is exhausted (§9.1.13.8 item 2).</summary>
+    public const string Deadlock = "52";
+    /// <summary>53 — the maximum number of record locks for the run unit has been exceeded (§9.1.13.8 item 3).</summary>
+    public const string RunUnitLockLimit = "53";
+    /// <summary>54 — the maximum number of record locks for this file connector has been exceeded (§9.1.13.8 item 4).</summary>
+    public const string ConnectorLockLimit = "54";
+    /// <summary>61 — OPEN failed: a sharing conflict, based on the sharing mode of a previously-opened file
+    /// connector or this OPEN's SHARING phrase, prevents the open (§9.1.13.9 item 1, sub-cases a–e).</summary>
+    public const string FileSharingConflict = "61";
+    /// <summary>62 — DELETE FILE failed: the file is currently open by another file connector (§9.1.13.9 item 2).</summary>
+    public const string DeleteFileSharing = "62";
 }

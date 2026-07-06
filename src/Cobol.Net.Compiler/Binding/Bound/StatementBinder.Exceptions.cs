@@ -336,6 +336,7 @@ public sealed partial class StatementBinder
                 case BoundClose c:
                     foreach (var (file, _) in c.Files) Query(IoNames, file);
                     break;
+                case BoundUnlock ul: Query(IoNames, ul.File); break;   // §14.9.47: UNLOCK is an I-O operation
                 case BoundRead rd: Query(IoNames, rd.File); break;
                 case BoundWrite wr: Query(IoNames, wr.File); break;
                 case BoundRewrite rw: Query(IoNames, rw.File); break;

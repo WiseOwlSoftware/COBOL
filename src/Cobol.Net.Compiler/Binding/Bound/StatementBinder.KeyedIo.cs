@@ -37,7 +37,17 @@ public enum KeyedStartMode { First, Last, Key }
 public sealed record BoundKeyedRead(
     FileModel File, KeyedReadKind Kind, int KeyIndex, Place? Into,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
-    KeyedInvalidKey? InvalidKey) : BoundStatement;
+    KeyedInvalidKey? InvalidKey) : BoundStatement
+{
+    /// <summary>The explicit record-lock phrase (ISO §14.9.30 — WITH LOCK / WITH NO LOCK / IGNORING LOCK), or
+    /// None; combined at runtime with the file's declared LOCK MODE (AUTOMATIC auto-locks on any READ).</summary>
+    public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
+    /// <summary>The RETRY phrase (§14.7.9): n TIMES loops the registry lock-check; SECONDS/FOREVER deadlock-bail
+    /// to status 52 in one run unit (GR4a — no external releaser).</summary>
+    public RetrySpec? Retry { get; init; }
+    /// <summary>ADVANCING ON LOCK (§14.9.30 GR22, sequential NEXT/PREVIOUS only): skip-scan locked records.</summary>
+    public bool AdvancingOnLock { get; init; }
+}
 
 /// <summary><c>WRITE record [FROM x] [INVALID KEY …]</c> on a RELATIVE or INDEXED file (ISO §14.9.51 GR29–GR33
 /// relative / GR34–GR42 indexed). For a sequential-access relative file the released RRN is MOVEd back into the
@@ -143,7 +153,12 @@ public sealed partial class StatementBinder
             }
             else keyIndex = ki;
         }
-        return new BoundKeyedRead(file, kind, keyIndex, into, atEnd, notAtEnd, invalid);
+        return new BoundKeyedRead(file, kind, keyIndex, into, atEnd, notAtEnd, invalid)
+        {
+            Lock = CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ"),
+            Retry = BindVerbRetry(r.retryPhrase()),
+            AdvancingOnLock = r.readAdvancingOnLock() is not null,
+        };
     }
 
     // ── WRITE / REWRITE (ISO §14.9.51 / §14.9.35 on relative/indexed organizations) ────────────────────────────

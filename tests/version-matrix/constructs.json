@@ -758,6 +758,60 @@
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PAMX1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X PIC X(5) VALUE \"HELLO\".\n01 P USAGE POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    SET P TO ADDRESS OF X.\n    SET P UP BY 2.\n    STOP RUN.\n"
+    },
+    {
+      "id": "file-sharing-clause-2002",
+      "description": "The SHARING clause / OPEN SHARING phrase (ISO 12.4.5.15 / 14.9.27) - governs whether another file connector may open the same physical file (Table 19 -> status 61). 2002 introduction; {is2002()}?-gated, so below 2002 the W1.5 parse-layer mapping names the edition (0900).",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWSH.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL\n               SHARING WITH ALL OTHER LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+    },
+    {
+      "id": "lock-mode-clause-2002",
+      "description": "The LOCK MODE clause (ISO 12.4.5.9; LOCK MODE IS MANUAL/AUTOMATIC [WITH LOCK ON [MULTIPLE] RECORD(S)]) - MANUAL locks only on WITH LOCK, AUTOMATIC on every READ. 2002 introduction; 0900 below 2002.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWLM.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL\n               LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+    },
+    {
+      "id": "retry-phrase-2002",
+      "description": "The RETRY phrase (ISO 14.7.9; RETRY n TIMES | FOR n SECONDS | FOREVER on OPEN/READ/WRITE/REWRITE/DELETE) - n TIMES loops the lock check, SECONDS/FOREVER deadlock-bail to 52 in one run unit (GR4a). 2002 introduction; 0900 below 2002.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWRT.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN.\n           OPEN INPUT RETRY 3 TIMES F.\n           CLOSE F.\n           STOP RUN.\n"
+    },
+    {
+      "id": "unlock-statement-2002",
+      "description": "The UNLOCK statement (ISO 14.9.47; UNLOCK file [RECORD[S]]) - releases every record lock this connector holds on the file. 2002 introduction; 0900 below 2002.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWUN.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN.\n           UNLOCK F.\n           STOP RUN.\n"
+    },
+    {
+      "id": "record-lock-phrase-2002",
+      "description": "A record-lock phrase on READ/WRITE/REWRITE (ISO 14.9.30/14.9.51/14.9.35; WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK) - explicit MANUAL locking + the IGNORING-LOCK bypass. 2002 introduction; 0900 below 2002.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWRL.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS RELATIVE\n               ACCESS MODE IS RANDOM RELATIVE KEY IS K\n               LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       WORKING-STORAGE SECTION.\n       01 K PIC 9(4).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE 1 TO K.\n           READ F WITH LOCK.\n           STOP RUN.\n"
+    },
+    {
+      "id": "user-word-sharing-2002",
+      "description": "The word SHARING as a user-defined word - 8.9 interval encoding: user-definable at 85 (the clause did not exist), reserved since 2002 (ReservedWords.Table covers SHARING/RETRY/UNLOCK). cobolWord admits the token; the funnel rejects 0901 at >=2002.",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "8.9 (2002 introduction); ReservedWords.Table SHARING/RETRY/UNLOCK rows",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWUW.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 SHARING PIC X.\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
     }
   ]
 }

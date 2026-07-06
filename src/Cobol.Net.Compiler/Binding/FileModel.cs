@@ -9,6 +9,16 @@ public enum FileOrganization { Sequential, LineSequential, Relative, Indexed }
 /// <summary>The access mode (ISO §12.4.5.3). Sequential is the default and the only mode the sequential slice needs.</summary>
 public enum FileAccessMode { Sequential, Random, Dynamic }
 
+/// <summary>The SHARING mode (ISO §12.4.5.15 / §14.9.27): how OTHER file connectors may access this file while
+/// it is open. <c>None</c> = the implementor default (COBOL.NET: ALL OTHER). NoOther = exclusive.</summary>
+public enum SharingMode { None, AllOther, NoOther, ReadOnly }
+
+/// <summary>The LOCK MODE granularity (ISO §12.4.5.9): MANUAL (locks acquired only by an explicit WITH LOCK) vs
+/// AUTOMATIC (a READ locks the record). <see cref="Multiple"/> = WITH LOCK ON MULTIPLE RECORDS (else single —
+/// any I-O except START releases the prior lock, §12.4.5.9 GR6).</summary>
+public enum LockKind { None, Manual, Automatic }
+public sealed record LockModeInfo(LockKind Kind, bool Multiple);
+
 /// <summary>
 /// A bound file connector (COBOLNET_DESIGN §8): the SELECT clause's properties joined with the FD's record
 /// description(s). The FD's record area is a typed field — for multiple <c>01</c>s under one FD they SHARE one
@@ -119,6 +129,14 @@ public sealed class FileModel
     /// or variable-length. A report file's line width prefers it over the computed field extent
     /// (COBOLNET_REPORT_WRITER_DESIGN §4).</summary>
     public int? RecordContains { get; set; }
+
+    /// <summary>The SHARING clause mode (ISO §12.4.5.15; <see cref="SharingMode.None"/> = the implementor default).
+    /// An OPEN SHARING phrase overrides it per-OPEN (§14.9.27; carried on the bound OPEN).</summary>
+    public SharingMode Sharing { get; set; } = SharingMode.None;
+
+    /// <summary>The LOCK MODE clause (ISO §12.4.5.9), or null when absent (locking off — the single-run-unit
+    /// default is no record locking).</summary>
+    public LockModeInfo? LockMode { get; set; }
 
     /// <summary>The LINAGE clause's logical-page model (ISO §13.18.34), or null when the FD has no LINAGE clause.
     /// Its presence generates the file's LINAGE-COUNTER register (§8.4.3.14 / §13.18.34 GR7a) and enables the

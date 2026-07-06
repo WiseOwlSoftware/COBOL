@@ -27,7 +27,22 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 595, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 2 W2 + W1.5 COMPLETE (commits a3e29b6 + 1f2156b) —
+> **STATE (DEVLOG 623, 2026-07-06 01:40 PDT): ⛔🎉 PHASE 4 TRACK (d) — FILE SHARING / LOCK MODE / RETRY / UNLOCK
+> (M2-FILE-1) LANDED.** The COBOL-2002 file-sharing / record-locking subsystem is live end-to-end: the SHARING clause
+> + OPEN SHARING phrase (§12.4.5.15/§14.9.27), LOCK MODE (§12.4.5.9), RETRY (§14.7.9), the WITH/NO/IGNORING LOCK
+> record-lock phrases (§14.9.30/.51/.35), UNLOCK (§14.9.47), the 51/52/53/54/61/62 statuses, the COBOLNET1512 SR band.
+> **Synthesis decision D1 — built REAL** (not stubbed): a physical-file registry (`src/Cobol.Net.Runtime/IO/CobolFile.Locks.cs`)
+> keyed by resolved host path makes two-SELECTs-one-file 61/51 conflicts deterministic in ONE run unit. Golden
+> `file_sharing` byte-exact (`OPEN-A=00/OPEN-B=00/READA=00/READB=51/RETRYB=51/IGN=ALPHA/AFTER=00/EXCL=61`). AS-BUILT
+> deviations (sharing-active-only-on-clause default → legacy corpus byte-invariant; sequential record-lock effect =
+> residue) logged in `docs/PHASE4_RECONCILIATION.md` §M2-FILE-1. Battery: 201 unit + 1844 conformance + 557 legacy
+> integration GREEN; full guard running. **RESUME NEXT: the remaining M2 tracks (M2-OO sub-features a–h; M2-ARITH /
+> M2-PRE / M2-ILA residue). Recent track chain: (a) national/boolean [DEVLOG 619–622], (b) data pointers [617],
+> (c) UDFs [615/616], (d) file sharing [623]. The proven cadence: recon→design into PHASE4_RECONCILIATION→implement
+> in small green commits→adversarial find/verify wave→full battery + FULL legacy guard→GreenfieldOnly for shared-corpus
+> goldens the frozen legacy can't bind→commit+push+CI.**
+>
+> **(superseded) STATE (DEVLOG 595, 2026-07-03 21:10): ⛔🎉 ROADMAP PHASE 2 W2 + W1.5 COMPLETE (commits a3e29b6 + 1f2156b) —
 > the four-track W2 wave (A: the MOVE rows 1/92/128 + both latent bugs on the StoreAsImage substrate ·
 > B: the loud-guard misbind sweep, ParseUsage/Analyze now (EditionContext,where), COBOLNET0899/0808, the
 > allocate/free/invoke false-greens exposed→pending · C: the 18-case negative corpus, all CLI-verified ·
@@ -255,8 +270,10 @@
 > boolean relations/IF-conditions) passed the greenfield battery but the FULL LEGACY GUARD caught 31 integration
 > regressions — subscript/refmod comparisons at 2002+ (`IF ELEM(I)=x`, every SEARCH WHEN) broke, invisible to the
 > greenfield suite which runs at 85. REVERTED. The boolean RELATION (§8.8.4.2.2) + IF-condition B-op forms are
-> STAGED RESIDUE for a focused grammar pass that does NOT touch comparisonExpression. **RESUME NEXT: either that
-> focused boolean-condition grammar pass, or track (d) sharing/lock/retry.**
+> STAGED RESIDUE for a focused grammar pass that does NOT touch comparisonExpression. **✅ BOTH DONE: the
+> boolean-condition pass landed via a `boolExprAhead()` semantic predicate at `primaryCondition` — NOT touching
+> comparisonExpression (DEVLOG 622); track (d) file-sharing/lock/retry landed (DEVLOG 623). RESUME NEXT: the
+> remaining M2 tracks — M2-OO sub-features (a–h) or the M2-ARITH/M2-PRE/M2-ILA residue.**
 > **(a) national/boolean increment 1 DONE (DEVLOG 619)** — M2-DATA-3/4 END-TO-END on the string substrate:
 > PIC N = one UTF-16 char per position (D-N1, char-position widths everywhere, ImageWidth never doubled),
 > PIC 1/USAGE BIT = one '0'/'1' char per position (D-B1, GR14 R14 — both usages, same storage; pad params on

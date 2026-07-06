@@ -21,6 +21,7 @@ public static partial class CobolFile
         foreach (var f in Files.Values) f.Close();
         Files.Clear();
         Locked.Clear();
+        LocksInit();
         KeyedInit();
     }
 
@@ -49,6 +50,11 @@ public static partial class CobolFile
 
     private static void Open(string name, FileOpenMode mode)
     {
+        // A sharing-active connector (SHARING / LOCK MODE declared) routes through the physical-file registry
+        // (Table-19 → 61); every other file keeps the legacy exclusive path byte-for-byte (ISO §14.9.27 GR23
+        // implementor default — outside the sharing subsystem). Handles all three organizations via
+        // ResolveConnector, so KeyedOpen is only reached on the legacy path.
+        if (IsSharingActive(name)) { SharedOpenAttempt(name, mode, null); return; }
         if (Files.TryGetValue(name, out var f))
         {
             if (Locked.Contains(name)) { f.SetStatus(FileStatusCode.FileLocked); return; }
@@ -57,8 +63,13 @@ public static partial class CobolFile
         else KeyedOpen(name, mode);   // relative/indexed connectors (ISO §14.9.27 GR14/GR15/GR17)
     }
 
-    /// <summary>CLOSE the file (emitted for each closed file-name).</summary>
-    public static void Close(string name) { if (Files.TryGetValue(name, out var f)) f.Close(); else KeyedClose(name); }
+    /// <summary>CLOSE the file (emitted for each closed file-name). For a sharing-active connector this also
+    /// deregisters it from the physical-file registry and releases its record locks (§9.1.16 :11754).</summary>
+    public static void Close(string name)
+    {
+        SharedClose(name);   // no-op for a non-sharing-active connector
+        if (Files.TryGetValue(name, out var f)) f.Close(); else KeyedClose(name);
+    }
 
     /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38).</summary>
     public static void CloseWithLock(string name) { Close(name); Locked.Add(name); }

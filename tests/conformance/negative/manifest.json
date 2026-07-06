@@ -40,6 +40,10 @@
     "user-word-commit",
     "user-word-end-receive",
     "user-word-raising",
+    "lock-mode-multiple-sequential",
+    "read-auto-with-lock",
+    "sharing-all-no-lockmode",
+    "unlock-sort-file",
     "user-word-receive",
     "value-boolean-mismatch",
     "value-of-fd"

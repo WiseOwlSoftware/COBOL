@@ -39,6 +39,10 @@ options {
         // The 2002 boolean operators (ISO §8.7.2) — user words below 2002; the operator meaning is gated in
         // the expression tiers. Must be in the whitelist so `01 B-AND PIC 9.` triggers SUBSCRIPT mode at 85.
         B_AND, B_OR, B_XOR, B_NOT,
+        // The 2002 file-sharing / record-locking words (ISO §12.4.5/§14.7.9/§14.9.x) — user words below 2002
+        // (SHARING/RETRY/UNLOCK) or at every edition (the §8.10 context-sensitive six); admitted so
+        // `01 SHARING PIC X.` / `01 MANUAL PIC 9.` trigger SUBSCRIPT mode.
+        SHARING, RETRY, UNLOCK, MANUAL, AUTOMATIC, IGNORING, FOREVER, SECONDS, ONLY,
         // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18) — '85-reserved,
         // user words at the editions where the §8.9 funnel frees them:
         RERUN, ENTER, EVERY, CLOCK_UNITS, DEBUGGING, REFERENCES, PROCEDURES,
@@ -438,6 +442,17 @@ LINE        : 'LINE' ;
 LINES       : 'LINES' ;
 LOCK        : 'LOCK' ;
 LOWLIGHT    : 'LOWLIGHT' ;
+// ── COBOL-2002 file sharing / record locking (ISO §12.4.5.9/.15, §14.7.9, §14.9.27/.30/.47). SHARING/RETRY/
+// UNLOCK are §8.9-reserved since 2002 (funnel-gated); MANUAL/AUTOMATIC/IGNORING/FOREVER/SECONDS/ONLY are
+// §8.10 context-sensitive (user-legal at every edition). The operator meaning is {is2002()}?-gated in CobolIO.g4.
+MANUAL      : 'MANUAL' ;
+AUTOMATIC   : 'AUTOMATIC' ;
+IGNORING    : 'IGNORING' ;
+FOREVER     : 'FOREVER' ;
+SECONDS     : 'SECONDS' ;
+SHARING     : 'SHARING' ;
+RETRY       : 'RETRY' ;
+UNLOCK      : 'UNLOCK' ;
 METHOD      : 'METHOD' ;
 MODE        : 'MODE' ;
 NATIONAL    : 'NATIONAL' ;
@@ -453,6 +468,7 @@ OCCURS      : 'OCCURS' ;
 OF          : 'OF' ;
 OFF         : 'OFF' ;
 ON          : 'ON' ;
+ONLY        : 'ONLY' ;   // COBOL-2002 SHARING READ ONLY (ISO §12.4.5.15) — §8.10 context-sensitive (user word)
 OR          : 'OR' ;
 XOR         : 'XOR' ;   // COBOL-2023 logical exclusive-or operator (ISO §8.8.4.9; 2023 per Annex E.2 item 25 — VCR rows 32/41)
 OMITTED     : 'OMITTED' ;

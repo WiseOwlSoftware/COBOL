@@ -107,6 +107,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         // are net-new in the greenfield — the frozen legacy grammar has no boolean-expression support at all;
         // the greenfield CorpusRunner byte-compares boolean_ops.
         ("2002", "boolean_ops"),
+        // Phase-4 track (d), DEVLOG 623: the file-sharing / record-locking subsystem (SHARING / LOCK MODE /
+        // RETRY / WITH LOCK / IGNORING LOCK / UNLOCK — §14.9.27/.30/.47) is net-new in the greenfield; the
+        // frozen legacy binder has only the by-name CLOSE-WITH-LOCK/38 primitive and cannot bind these clauses.
+        // The greenfield CorpusRunner byte-compares file_sharing (two connectors → 61/51/00 in one run unit).
+        ("2002", "file_sharing"),
     ];
 
     [Theory]

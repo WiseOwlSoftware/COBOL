@@ -194,6 +194,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.startStatement() is { } st => KeyedBindStart(st),
         _ when s.deleteStatement() is { } del => KeyedBindDelete(del),
         _ when s.deleteFileStatement() is { } dfs => KeyedBindDeleteFile(dfs),
+        _ when s.unlockStatement() is { } ul => BindUnlock(ul),
         _ when s.stringStatement() is { } sstr => BindString(sstr),
         _ when s.unstringStatement() is { } suns => BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => BindAccept(ac),
@@ -279,19 +280,44 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundStatement BindOpen(Core.OpenStatementContext o)
     {
         var opens = new List<(FileModel, BoundOpenMode, string?)>();
+        SharingMode? sharing = null;
+        RetrySpec? retry = null;
         foreach (var clause in o.openClause())
         {
             BoundOpenMode mode = MapOpenMode(clause.openMode());
+            // OPEN SHARING phrase (ISO §14.9.27) overrides the SELECT SHARING clause for this OPEN; the RETRY
+            // phrase (ISO §14.7.9) governs a locked-file re-attempt. Both are per-statement.
+            if (clause.sharingPhrase()?.sharingMode() is { } sm) sharing = MapSharingMode(sm);
+            if (clause.retryPhrase() is { } rp) retry = BindRetry(rp);
             foreach (var spec in clause.openFileSpec())
             {
                 string name = spec.dataReference().GetText();
                 if (!data.FilesByName.TryGetValue(name, out var file))
                     return new BoundUnsupported($"OPEN of undeclared file '{name}'");
+                // §14.9.27 SR8: OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.
+                var effShare = sharing ?? file.Sharing;
+                if (effShare is SharingMode.AllOther && file.LockMode is null)
+                    data.Edition.Error("COBOLNET1512", $"OPEN of file '{name}' with SHARING WITH ALL OTHER "
+                        + "requires the file to have a LOCK MODE clause (ISO §14.9.27 SR8)");
                 opens.Add((file, mode, UnsupportedOrg(file, "OPEN")));
             }
         }
-        return new BoundOpen(opens);
+        return new BoundOpen(opens) { SharingOverride = sharing, Retry = retry };
     }
+
+    /// <summary>Map a SHARING mode context (ISO §12.4.5.15) at the binder layer (the DataBinder twin serves the
+    /// SELECT clause).</summary>
+    private static SharingMode MapSharingMode(Core.SharingModeContext m) =>
+        m.READ() is not null ? SharingMode.ReadOnly
+        : m.NO() is not null ? SharingMode.NoOther
+        : SharingMode.AllOther;
+
+    /// <summary>Bind a RETRY phrase (ISO §14.7.9). The n-TIMES amount is a bounded re-attempt count; FOR n
+    /// SECONDS / FOREVER are single-run-unit no-ops (no competing process releases — named residue).</summary>
+    private RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
+        rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)
+        : rp.SECONDS() is not null ? new RetrySpec(RetryKind.Seconds, BindExpr(rp.arithmeticExpression()))
+        : new RetrySpec(RetryKind.Times, BindExpr(rp.arithmeticExpression()));
 
     private BoundStatement BindClose(Core.CloseStatementContext c)
     {
@@ -329,6 +355,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
         if (file is null || record is null)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");
+        CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
         if (!file.IsSequential) return KeyedBindWrite(w, file, record);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
         // END-OF-PAGE phrases (ISO §14.9.51 GR27b/GR28): blocks[0] = AT EOP, blocks[1] = NOT AT EOP — the grammar
@@ -367,6 +394,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"READ of undeclared file '{name}'");
         if (!file.IsSequential) return KeyedBindRead(r, file);   // relative/indexed READ F1/F2 (ISO 14.9.30; KeyedIo partial)
+        CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR3/SR4 → COBOLNET1512 (sequential leg: SR-validated, effect residue)
         Place? into = r.readInto()?.dataReference() is { } d ? refs.Resolve(d) : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
@@ -384,6 +412,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         FileModel? file = record is not null ? FileOfRecord(record) : null;
         if (file is null || record is null)
             return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
+        CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
         if (!file.IsSequential) return KeyedBindRewrite(rw, file, record);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
         return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()),
             UnsupportedOrg(file, "REWRITE"));

@@ -54,6 +54,10 @@ public static class EditionGateHints
     private static readonly Gate SetObjectRef = new("SET … TO object-reference (Format 5)", 2002, "ISO §14.9.39 F5 (OO)", "set-object-reference-2002");
     private static readonly Gate LogicalXor = new("the logical XOR/EXCLUSIVE-OR operator", 2023, "ISO §8.8.4.9; Annex E.2 item 25 (VCR rows 32/41)", "logical-xor-operator-2023");
     private static readonly Gate BooleanOps = new("the boolean operators B-AND/B-OR/B-XOR/B-NOT", 2002, "ISO §8.7.2/§8.8.2 (COMPUTE F2 §14.9.8; relation §8.8.4.2.2)", "boolean-operators-2002");
+    private static readonly Gate Sharing = new("the SHARING clause / OPEN SHARING phrase", 2002, "ISO §12.4.5.15 / §14.9.27", "file-sharing-clause-2002");
+    private static readonly Gate LockMode = new("the LOCK MODE clause", 2002, "ISO §12.4.5.9", "lock-mode-clause-2002");
+    private static readonly Gate Retry = new("the RETRY phrase", 2002, "ISO §14.7.9", "retry-phrase-2002");
+    private static readonly Gate Unlock = new("the UNLOCK statement", 2002, "ISO §14.9.47", "unlock-statement-2002");
 
     /// <summary>
     /// Recognize an edition-gated construct behind a generic parse error. Returns the COBOLNET0900-band
@@ -124,6 +128,14 @@ public static class EditionGateHints
             // Recognize it by a B-operator ahead in the statement (before the sentence terminator).
             CobolLexer.COMPUTE when NextWithin(stream, token, 24,
                     CobolLexer.B_AND, CobolLexer.B_OR, CobolLexer.B_XOR, CobolLexer.B_NOT) => BooleanOps,
+            // The file-sharing family (2002). SHARING/RETRY/UNLOCK are §8.9 reserved-since-2002 words: below
+            // 2002 they parse as user words through cobolWord and never error, so an error AT one of these
+            // tokens IS the gated construct (the XOR argument). LOCK is continuous-since-85 (CLOSE … WITH
+            // LOCK), so the LOCK-MODE clause needs the MODE lookahead to disjoin it from that legal 85 form.
+            CobolLexer.SHARING => Sharing,
+            CobolLexer.LOCK when Next(stream, token, 1)?.Type == CobolLexer.MODE => LockMode,
+            CobolLexer.RETRY => Retry,
+            CobolLexer.UNLOCK => Unlock,
             _ => null,
         };
 
