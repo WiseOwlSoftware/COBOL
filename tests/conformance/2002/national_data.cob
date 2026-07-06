@@ -1,10 +1,16 @@
       *> ISO §13.18.60.4 / §8.3.3.5 / §14.6.8.5 / Table 16 — COBOL-2002 NATIONAL data.
       *> National items (USAGE NATIONAL / PIC N(n)) are UTF-16: two bytes per character position.
       *> Covers N"…" literals; MOVE national←national (left-justify, national-space pad, right
-      *> truncate); national↔alphanumeric and numeric→national conversion (Latin-1 subset); literal
-      *> and figurative VALUE; MOVE SPACE and INITIALIZE (national-space fill); and national
-      *> comparison. (NATIONAL-EDITED, NX"…", non-Latin-1 correspondence, and collating-sequence
-      *> national compare are deferred.)
+      *> truncate); alphanumeric→national widening and numeric→national conversion (Latin-1
+      *> subset); literal and figurative VALUE; MOVE SPACE and INITIALIZE (national-space fill);
+      *> and national comparison. (NATIONAL-EDITED, NX"…", non-Latin-1 correspondence, and
+      *> collating-sequence national compare are deferred. The original N2A leg — MOVE national
+      *> TO alphanumeric — was REMOVED 2026-07-05: §14.9.25.3 Table 16 marks that move invalid at
+      *> every national-bearing edition [National row, Alphanumeric column = No]; FUNCTION
+      *> DISPLAY-OF §15.26 is the sanctioned narrowing, itself deferred. The negative case
+      *> move-national-to-an enforces the prohibition. The .out was re-baselined the same day
+      *> to FULL-WIDTH DISPLAY — trailing national spaces shown — per §14.9.11.4 GR6, the
+      *> established ISO posture; the legacy engine's trailing-trim is the known non-conformance.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. NATIONALDATA.
        DATA DIVISION.
@@ -39,10 +45,6 @@
            MOVE "XY" TO A-WORK.
            MOVE A-WORK TO N-WORK.
            DISPLAY "A2N=" N-WORK.
-      *> National field -> alphanumeric receiver (Latin-1 narrowing).
-           MOVE N"GHI" TO N-WORK.
-           MOVE N-WORK TO A-WORK.
-           DISPLAY "N2A=" A-WORK.
       *> Numeric field -> national receiver (display digits, widened).
            MOVE NUM TO N-WORK.
            DISPLAY "NUM=" N-WORK.

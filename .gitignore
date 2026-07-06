@@ -46,3 +46,9 @@ src/Cobol.Net.Frontend/Generated/
 
 # gen-reserved-words.ps1 fetch cache (GnuCOBOL per-standard word lists — derived facts are committed, sources are not)
 .cache/
+
+# CorpusRunner in-place build artifacts (compiled next to each 2002/2014/2023 golden)
+tests/conformance/**/*.dll
+tests/conformance/**/*.g.cs
+tests/conformance/**/*.runtimeconfig.json
+tests/conformance/**/*.pdb

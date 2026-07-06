@@ -476,10 +476,16 @@ public sealed partial class CSharpEmitter
     private void EmitMove(BoundMove m)
     {
         foreach (var target in m.Targets)
-            if (target is RefModPlace)
+            if (target is RefModPlace rmp)
                 // A reference-modified receiver: the slice takes the source's characters (SpliceInto left-justifies,
                 // space-fills, and truncates to the slice length), so pass the raw image, not a full-width store.
-                _ctx.Writer.Line(target.Write(OperandText.AsString(m.Source)));
+                // EXCEPT a figurative source, which fills EVERY position of the slice (ISO §8.3.3.6.4 GR2 —
+                // repeated to the associated fixed-length item; §8.4.3.3 GR5/GR6 make the slice a unique
+                // fixed-length item), not one character then space-pad; the fill char is category-aware
+                // (national/boolean HIGH/LOW-VALUE = the D-N3 pin, not the alphanumeric PCS extreme).
+                _ctx.Writer.Line(m.Source is BoundFigurative fig
+                    ? rmp.WriteFill(_ctx.FigFill(fig.Kind, rmp.Inner.Item.Pic?.Category))
+                    : rmp.Write(OperandText.AsString(m.Source)));
             else if (target.Item.IsGroup)
                 EmitGroupMove(target, m.Source);
             else if (IsGroupSender(m.Source))
@@ -709,7 +715,9 @@ public sealed partial class CSharpEmitter
         if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric
             && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited)
             && !(pic.Category is PicCategory.Alphanumeric && pic.EditMask is not null))
-            return $"new string({_ctx.FigFill(f.Kind)}, {pic.Length})";
+            // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE is the D-N3 pin, never the
+            // ALPHANUMERIC program collating sequence's extreme (§8.3.3.6 GR6/GR7 over the national sequence).
+            return $"new string({_ctx.FigFill(f.Kind, pic.Category)}, {pic.Length})";
         // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2).
         if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric)
             return CsLiteral(EmitText.RepeatToWidth(a.Literal, pic.Length));
@@ -739,6 +747,18 @@ public sealed partial class CSharpEmitter
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).
                 return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}{(target.Justified ? ", justifiedRight: true" : "")})";
+            // A NATIONAL receiver stores exactly like alphanumeric on the character substrate (§14.6.8.5 —
+            // left-justify, national-space pad, right truncation; JUSTIFIED per §13.18.32): A→N widening,
+            // N→N, 9→N digit imaging, and boolean→N all ride AsString under the D-N4 Latin-1 identity
+            // correspondence (§14.9.25.4 GR6/GR6a).
+            case PicCategory.National:
+                return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}{(target.Justified ? ", justifiedRight: true" : "")})";
+            // A BOOLEAN receiver pads/left-fills with boolean ZEROS (§14.6.8.6; JUSTIFIED §13.18.32 GR2).
+            // Figurative ZERO already early-returned above as a '0' fill; the SR7-illegal figurative shapes
+            // never reach emit (bind-rejected, MoveCategoryLegality).
+            case PicCategory.Boolean:
+                return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}, "
+                    + $"justifiedRight: {(target.Justified ? "true" : "false")}, pad: '0')";
             case PicCategory.Numeric:
                 // A digit-only ALL "literal" repeats across the RECEIVER's digit positions (ISO §8.3.3.6.4 GR2 —
                 // repetition to the associated item's size, truncated from the right; §14.9.25.4 GR6d3b — a
@@ -1262,16 +1282,49 @@ public sealed partial class CSharpEmitter
         foreach (var (parent, cond) in set.Sets)
         {
             var (low, _) = cond.Values[0];   // SET TO TRUE stores the first VALUE (ISO §14.9.39 Format 5)
-            string rhs = parent.Item.Pic?.Category switch
+            var pic = parent.Item.Pic;
+            // A FIGURATIVE-word VALUE (SPACE/ZERO/QUOTE/HIGH-VALUE/LOW-VALUE, incl. ALL forms) fills the
+            // conditional variable to its width (§8.3.3.6.4 GR2), not the WORD stored as characters — the
+            // fill char is category-aware (national/boolean HIGH/LOW-VALUE = the D-N3 pin). '0' for boolean/
+            // numeric ZERO. Only reaches the string categories here (numeric SET handles ZERO natively).
+            string? figFill = pic is { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean } ? FigurativeWordFill(low, pic.Category) : null;
+            string rhs = figFill is not null
+                ? $"new string({figFill}, {pic!.Length})"
+                : pic?.Category switch
             {
-                PicCategory.Alphanumeric or PicCategory.NumericEdited =>
-                    $"CobolString.Store({CsLiteral(DecodeCobolString(low))}, {parent.Item.Pic.Length})",
+                // National joins the character store (its 88-VALUE is the prefix-stripped N"…" text);
+                // a boolean parent stores its B"…" bits with the §14.6.8.6 zero pad.
+                PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
+                    $"CobolString.Store({CsLiteral(DecodeCobolString(low))}, {pic.Length})",
+                PicCategory.Boolean =>
+                    $"CobolString.Store({CsLiteral(DecodeCobolString(low))}, {pic.Length}, justifiedRight: false, pad: '0')",
                 PicCategory.Numeric =>
-                    Narrow($"CobolNum.Store({UnscaledAtScale(low, parent.Item.Pic.Scale)}, {parent.Item.Pic.Scale}, {parent.Item.ProfileName})", parent.Item),
+                    Narrow($"CobolNum.Store({UnscaledAtScale(low, pic.Scale)}, {pic.Scale}, {parent.Item.ProfileName})", parent.Item),
                 _ => LoudValue("string", $"SET condition '{cond.Name}' over a group parent"),
             };
             _ctx.Writer.Line(parent.Write(rhs));
         }
+    }
+
+    /// <summary>The category-aware C# <c>char</c>-literal a level-88 figurative-word VALUE fills with (SET TO
+    /// TRUE, ISO §14.9.39 Format 5 + §8.3.3.6.4 GR2), or null when the operand is not a bare figurative word
+    /// (a quoted / N"…" / B"…" / numeric literal takes the store path). Tolerates the ALL-prefixed spelling.</summary>
+    private string? FigurativeWordFill(string raw, PicCategory cat)
+    {
+        string w = raw.Trim();
+        if (w.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && w.Length > 3
+            && (char.IsWhiteSpace(w[3]) || char.IsLetter(w[3])))
+            w = w[3..].TrimStart();
+        return w.ToUpperInvariant() switch
+        {
+            "ZERO" or "ZEROS" or "ZEROES" => "'0'",
+            "SPACE" or "SPACES" => "' '",
+            "HIGH-VALUE" or "HIGH-VALUES" => _ctx.FigFill('H', cat),
+            "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => _ctx.FigFill('L', cat),
+            "QUOTE" or "QUOTES" => "'\\\"'",
+            _ => null,
+        };
     }
 
     // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ─────────────────────────────────────────────────────────────

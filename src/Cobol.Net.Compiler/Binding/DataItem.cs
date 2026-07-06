@@ -141,7 +141,11 @@ public sealed class DataItem
     /// </summary>
     public bool IsCharacterImage =>
         IsElementary
-            ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited || StoreAsImage
+            // National and boolean leaves are string-stored (D-N1/D-B1) and contribute their CHARACTER
+            // positions to a group image (ImageWidth = Length — never byte-doubled for national; a byte
+            // width, if ever needed, is a NEW member, not this one).
+            ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean || StoreAsImage
             : IsGroup && Children.All(c => c.IsCharacterImage);
 
     /// <summary>

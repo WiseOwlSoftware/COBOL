@@ -534,7 +534,8 @@ public sealed partial class CSharpEmitter
     /// WIDTH/description — which is what keeps the marshaling free of cross-class numeric profiles.</summary>
     private static bool OoStringCarried(DataItem item) =>
         item.IsGroup || item.StoreAsImage
-        || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
+        || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+            or PicCategory.National or PicCategory.Boolean;   // string-stored (D-N1/D-B1) — char crossing
 
     /// <summary>Unify the INVOKE-boundary CROSSING FORM across every override chain (the 3a/3b review's
     /// signature-desync finding): MarkStoreAsImage can flip ONE side's numeric-DISPLAY formal/RETURNING item

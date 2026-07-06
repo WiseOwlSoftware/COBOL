@@ -127,6 +127,19 @@ public sealed partial class StatementBinder
         // __COLLATE field exists only under a non-identity PCS; STANDARD-1/2/NATIVE normalize to identity).
         bool collate = sig.Name is "CHAR" or "ORD" && data.Collating is not null;
 
+        // CHAR/ORD take ALPHANUMERIC operands (§15.15/§15.70; CHAR-NATIONAL §15.16 is the national twin —
+        // Phase-4a residue #11). Belt-and-braces beside the D-N2 guards: a national arg through the 256-entry
+        // weight table would alias its characters via `& 0xFF` — reject at bind, never a wrong ordinal.
+        if (sig.Name is "CHAR" or "ORD" && args.Any(a => a switch
+            {
+                BoundStringLiteral { Category: PicCategory.National } => true,
+                BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.National,
+                _ => false,
+            }))
+            data.Edition.Error("COBOLNET0844", $"FUNCTION {sig.Name} takes an alphanumeric operand — the "
+                + "national forms (FUNCTION CHAR-NATIONAL §15.16 / ORD over national) are not yet implemented "
+                + "(Phase 4a residue)");
+
         // A FUNCTION EXCEPTION-* reference reads the runtime last-exception register (§15.28–15.33) — flag the
         // program's EC usage so the generated source carries the Exceptions using (the group EC gate).
         if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) EcNoteFunction();
@@ -139,8 +152,11 @@ public sealed partial class StatementBinder
     private static bool IsStringOperand(BoundOperand op) => op switch
     {
         BoundStringLiteral => true,
+        // National/boolean operands participate through the char pipeline (MAX/MIN over national compares
+        // ordinal per D-N3; the category-national RESULT channel is the -N intrinsic residue, #11).
         BoundFieldOperand f => f.Place.Item.IsGroup
-            || f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited,
+            || f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean,
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } } => true,
         _ => false,
     };
@@ -362,6 +378,20 @@ public sealed partial class StatementBinder
         {
             pos++;
             return new BoundStringLiteral(DecodeSubString(tok.Text));
+        }
+
+        // National/boolean literal arguments decode char-correct with their category tags (the introduction
+        // gates + 0814 guards ride the shared helpers); per-function class conformance is the intrinsic
+        // catalog's binding job (the -N function family is Phase-4a residue #11).
+        if (tok.Type == Core.SUB_NATLIT)
+        {
+            pos++;
+            return NationalLiteralOperand(tok.Text);
+        }
+        if (tok.Type == Core.SUB_BOOLLIT)
+        {
+            pos++;
+            return BooleanLiteralOperand(tok.Text);
         }
 
         if (tok.Type == Core.SUB_IDENTIFIER)

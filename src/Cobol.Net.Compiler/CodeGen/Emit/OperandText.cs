@@ -38,7 +38,9 @@ internal static class OperandText
     {
         BoundStringLiteral => true,
         BoundAllLiteral => true,   // ALL "literal" is an alphanumeric figurative
-        BoundFieldOperand f => f.Place.Item.IsGroup || f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited,
+        BoundFieldOperand f => f.Place.Item.IsGroup || f.Place.Item.Pic?.Category
+            is PicCategory.Alphanumeric or PicCategory.NumericEdited
+            or PicCategory.National or PicCategory.Boolean,
         // An intrinsic result compares by its §15.2 function type: alphanumeric functions are class/category
         // alphanumeric (IF107A's `IF FUNCTION CURRENT-DATE >= TEMP1` is a STRING comparison); numeric/integer
         // functions stay numeric operands.
@@ -94,7 +96,9 @@ internal static class OperandText
                 ? PExpand($"CobolNum.FormatUnsignedDisplay({p.Read()}, {pic.Digits})", pic)
                 : $"CobolNum.FormatDisplay({p.Read()}, {p.Item.ProfileName})",
             { Category: PicCategory.Numeric } => $"{p.Read()}.ToString()",            // COMP-1/2 float — refine later
-            { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited } => p.Read(),
+            // National and boolean items are string-stored (D-N1/D-B1) — the value IS the character image.
+            { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean } => p.Read(),
             _ => $"{p.Read()}.ToString()",
         };
     }

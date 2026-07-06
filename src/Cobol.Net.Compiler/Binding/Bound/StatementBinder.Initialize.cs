@@ -31,9 +31,11 @@ public sealed record InitializeLoop(string Var, int Count, IReadOnlyList<Initial
 public sealed record InitializeErrorAction(string Feature) : InitializeAction;
 
 /// <summary>The INITIALIZE data categories (ISO §14.9.20.2 category-name, per §8.5.2 class/category) — the
-/// COBOL-85 five. The 2002+ categories (BOOLEAN, NATIONAL[-EDITED], DATA-/FUNCTION-/PROGRAM-POINTER,
-/// OBJECT-REFERENCE; MESSAGE-TAG 2023) arrive with their lexer tokens in the edition-gated grammar fragments.</summary>
-public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited }
+/// COBOL-85 five plus the Phase-4a BOOLEAN and NATIONAL members (binder-side classification + GR6c default
+/// fills; the REPLACING/VALUE <em>category words</em> BOOLEAN/NATIONAL — like NATIONAL-EDITED, the pointer
+/// categories, and OBJECT-REFERENCE — are still absent from the initializeCategory grammar rule and arrive
+/// with their lexer tokens in the edition-gated grammar fragments, a parse error today = loud).</summary>
+public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National }
 
 public sealed partial class StatementBinder
 {
@@ -193,7 +195,10 @@ public sealed partial class StatementBinder
         foreach (var (rcat, value) in spec.Replacements)
             if (rcat == cat) return value;
         if (spec.ToDefault || (!spec.ToValue && spec.Replacements.Count == 0))
-            return cat is InitializeCategory.Numeric or InitializeCategory.NumericEdited
+            // GR6c fill table: ZEROES for numeric/numeric-edited AND boolean (boolean zeros — the figurative
+            // materializes '0' fill against the boolean receiver); SPACES for the character categories
+            // including national (national spaces under the D-N4 Latin-1 identity).
+            return cat is InitializeCategory.Numeric or InitializeCategory.NumericEdited or InitializeCategory.Boolean
                 ? new BoundFigurative('Z')
                 : new BoundFigurative('S');
         return null;
@@ -211,6 +216,8 @@ public sealed partial class StatementBinder
         { Category: PicCategory.Alphanumeric, EditMask: not null } => InitializeCategory.AlphanumericEdited,
         { Category: PicCategory.Alphanumeric, IsAlphabetic: true } => InitializeCategory.Alphabetic,
         { Category: PicCategory.Alphanumeric } => InitializeCategory.Alphanumeric,
+        { Category: PicCategory.Boolean } => InitializeCategory.Boolean,     // GR6c: boolean → ZEROES
+        { Category: PicCategory.National } => InitializeCategory.National,   // GR6c: national → SPACES
         _ => null,
     };
 
@@ -241,6 +248,12 @@ public sealed partial class StatementBinder
             if (rest.Length >= 2 && rest[0] == '"' && rest[^1] == '"') return new BoundAllLiteral(DecodeCobolString(rest));
             if (InitializeFigurativeKind(rest) is { } k) return new BoundFigurative(k);
         }
+        // N"…"/B"…" VALUE clauses re-produce their category-tagged literal (declaration-time validation —
+        // 0898/0900 — already ran in DataBinder; no re-gating here).
+        if (t.Length >= 3 && t[0] is 'N' or 'n' && t[1] is '"' && t[^1] == '"')
+            return new BoundStringLiteral(DecodeCobolString(t)) { Category = PicCategory.National };
+        if (t.Length >= 3 && t[0] is 'B' or 'b' && t[1] is '"' && t[^1] == '"')
+            return new BoundStringLiteral(DecodeCobolString(t)) { Category = PicCategory.Boolean };
         if (t.Length >= 2 && t[0] == '"' && t[^1] == '"') return new BoundStringLiteral(DecodeCobolString(t));
         return new BoundNumericLiteral(t);
     }

@@ -64,6 +64,18 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         // operand's width (ISO §8.3.3.6.4 GR2), so it routes through the width-aware figurative path.
         if (r.Left is BoundFigurative or BoundAllLiteral || r.Right is BoundFigurative or BoundAllLiteral)
             return RenderFigurativeRelational(r);
+        // BOOLEAN relations (§8.8.4.2.2 Format 2 / §8.8.4.2.8): a VALUE comparison, usage-independent, the
+        // shorter operand right-extended with boolean ZEROS — never the alphanumeric program collating
+        // sequence (equality-only + class purity are bind-enforced, 0844).
+        if (StringCategoryOf(r.Left) is PicCategory.Boolean || StringCategoryOf(r.Right) is PicCategory.Boolean)
+            return $"CobolString.Compare({OperandText.AsString(r.Left)}, {OperandText.AsString(r.Right)}, pad: '0') {r.Op} 0";
+        // NATIONAL relations (§8.8.4.2.9/.10): full ordering under the NATIONAL collating sequence — D-N3
+        // pins the default to the UTF-16 ordinal, and the ALPHANUMERIC program collating sequence never
+        // applies (so ctx.CollateArg — whose 256-entry weight table would alias national chars through
+        // `& 0xFF` — is deliberately absent). A mixed alphanumeric operand converts to national by the
+        // D-N4 Latin-1 identity (§8.8.4.2.6), which is exactly the ordinal compare.
+        if (StringCategoryOf(r.Left) is PicCategory.National || StringCategoryOf(r.Right) is PicCategory.National)
+            return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}) {r.Op} 0";
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
             return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
@@ -89,12 +101,41 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         if (IsFig(anchor) || OperandText.IsString(anchor) || NonNumericFig(r.Left) || NonNumericFig(r.Right))
         {
             int width = AnchorWidth(anchor);
-            return $"CobolString.Compare({FigOrString(r.Left, width)}, {FigOrString(r.Right, width)}{ctx.CollateArg}) {r.Op} 0";
+            var anchorCat = StringCategoryOf(anchor);
+            // A boolean/national anchor exempts the ALPHANUMERIC program collating sequence: boolean
+            // comparisons are value comparisons (§8.8.4.2.8; only ZERO reaches here — the class mix is
+            // bind-rejected 0844) and national comparisons order under the NATIONAL sequence (§8.8.4.2.9,
+            // D-N3 ordinal — the 256-entry weight table would alias national chars through `& 0xFF`).
+            string collate = anchorCat is PicCategory.Boolean or PicCategory.National ? "" : ctx.CollateArg;
+            // A boolean anchor right-extends the shorter operand with boolean ZEROS (§8.8.4.2.8) — the same
+            // pad the direct-relation and level-88 legs thread; pad and collate never coexist (a boolean
+            // anchor forces collate empty). The figurative materializes category-aware (national/boolean
+            // HIGH/LOW-VALUE = the D-N3 pin, not the alphanumeric PCS extreme).
+            string pad = anchorCat is PicCategory.Boolean ? ", pad: '0'" : "";
+            return $"CobolString.Compare({FigOrString(r.Left, width, anchorCat)}, {FigOrString(r.Right, width, anchorCat)}{pad}{collate}) {r.Op} 0";
         }
         NumX l = FigOrNum(r.Left), rr = FigOrNum(r.Right);
         int s = Math.Max(l.Scale, rr.Scale);
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
     }
+
+    /// <summary>An operand's STRING data category for the relation dispatch — literals carry their own tag
+    /// (<see cref="BoundStringLiteral.Category"/>); a reference-modified field is the unique item of its
+    /// inner's class view (alphanumeric for the classic categories, §8.4.3.3 GR6 — but national/boolean
+    /// ref-mod stays national/boolean, GR1/GR5a); null for figuratives/computed/error shapes.</summary>
+    private static PicCategory? StringCategoryOf(BoundOperand o) => o switch
+    {
+        BoundStringLiteral sl => sl.Category,
+        BoundAllLiteral al => al.Category,
+        BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category switch
+        {
+            PicCategory.National => PicCategory.National,
+            PicCategory.Boolean => PicCategory.Boolean,
+            _ => PicCategory.Alphanumeric,
+        },
+        BoundFieldOperand f => f.Place.Item.Pic?.Category,
+        _ => null,
+    };
 
     private static int AnchorWidth(BoundOperand op) => op switch
     {
@@ -104,10 +145,11 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         _ => 1,
     };
 
-    private string FigOrString(BoundOperand op, int width) => op switch
+    private string FigOrString(BoundOperand op, int width, PicCategory? anchorCat = null) => op switch
     {
-        // PCS-aware: HIGH-/LOW-VALUE materialize as the program sequence's extreme characters (§8.3.3.6 GR6/7).
-        BoundFigurative f => $"new string({ctx.FigFill(f.Kind)}, {width})",
+        // PCS-aware for alphanumeric anchors: HIGH-/LOW-VALUE materialize as the program sequence's extreme
+        // characters (§8.3.3.6 GR6/7); a national/boolean anchor uses the D-N3 pin (FigFill's category arm).
+        BoundFigurative f => $"new string({ctx.FigFill(f.Kind, anchorCat)}, {width})",
         BoundAllLiteral a => EmitText.CsLiteral(EmitText.RepeatToWidth(a.Literal, width)),   // ALL "literal" → repeated to width (GR2)
         _ => OperandText.AsString(op),
     };
@@ -153,7 +195,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
 
     private string RenderCondition88(BoundCondition88 c)
     {
-        bool isString = c.Parent.Item.IsGroup || c.Parent.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
+        bool isString = c.Parent.Item.IsGroup || c.Parent.Item.Pic?.Category is PicCategory.Alphanumeric
+            or PicCategory.NumericEdited or PicCategory.National or PicCategory.Boolean;
         // ISO §8.8.4.5 GR2: a condition-name test compares the conditional variable by the RELATION-CONDITION rules, so
         // the variable is rendered as a comparison operand exactly as a relation condition renders it — an alphanumeric
         // GROUP is treated as an elementary alphanumeric data item (§8.8.4.1), i.e. its character IMAGE, not the raw
@@ -173,11 +216,16 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         if (isString)
         {
             // A level-88 VALUE compares against the conditional variable, so a figurative ALL "literal" is repeated to
-            // the variable's width (ISO §8.3.3.6.4 GR2); a plain literal is decoded as-is.
+            // the variable's width (ISO §8.3.3.6.4 GR2); a plain literal is decoded as-is. A BOOLEAN conditional
+            // variable compares by value with boolean-zero extension and never the alphanumeric PCS (§8.8.4.2.8);
+            // a NATIONAL one orders ordinal under the national sequence (§8.8.4.2.9, D-N3 — no PCS weights).
+            var cat = parent.Pic?.Category;
+            string collate = cat is PicCategory.Boolean or PicCategory.National ? "" : ctx.CollateArg;
+            string pad = cat is PicCategory.Boolean ? ", pad: '0'" : "";
             int width = parent.Pic?.Length ?? parent.ImageWidth;
             string lo = EmitText.CsLiteral(StringMembershipValue(low, width));
-            if (high is null) return $"CobolString.Compare({read}, {lo}{ctx.CollateArg}) == 0";
-            return $"(CobolString.Compare({read}, {lo}{ctx.CollateArg}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(StringMembershipValue(high, width))}{ctx.CollateArg}) <= 0)";
+            if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";
+            return $"(CobolString.Compare({read}, {lo}{pad}{collate}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(StringMembershipValue(high, width))}{pad}{collate}) <= 0)";
         }
         int scale = parent.Pic?.Scale ?? 0;
         string loN = NumericMembershipValue(low, scale);

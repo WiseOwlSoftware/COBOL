@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
 using CobolNet.Runtime;
+using CobolNet.Validation;
 using CobolSharp.Compiler.Generated;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -476,6 +477,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // removed at 2023 except the digit-only-ALL-to-integer case, which is 0903 obsolete
         // (StatementBinder.MoveFigurative.cs).
         MoveFigurativeEditionGates(source, resolved);
+        // The Table 16 boolean/national legality arms + SR7 (Phase 4a — StatementBinder.MoveFigurative.cs).
+        MoveCategoryLegality(source, resolved);
         // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.2.4;
         // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
         MarkRefModStoreImage(resolved);
@@ -939,7 +942,42 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var nn = lit.nonNumericLiteral();
         if (nn?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
         if (nn?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
+        // National N"…" (§8.3.3.5) / boolean B"…" (§8.3.3.4) literals — LIVE (Phase 4a): the introduction
+        // gate rides every occurrence (0900 below 2002); content/size guards are the 0814 band. The lexer
+        // already restricts a BOOLLIT's content to [01]+ (CobolLexer.g4).
+        if (nn?.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
+        if (nn?.BOOLLIT() is { } b) return BooleanLiteralOperand(b.GetText());
         return new BoundNumericLiteral(CheckLiteral(lit.GetText()));   // edition digit cap (ISO §8.3.1.2)
+    }
+
+    /// <summary>Bind an <c>N"…"</c> national literal (ISO §8.3.3.5): SR1 caps the length at 8,191 national
+    /// positions; the track-(a) repertoire is Latin-1 (chars ≤ U+00FF, D-N4) — a wider character needs the
+    /// staged alphanumeric↔national correspondence (§8.3.3.5 SR2/GR3 + §8.1.2) and errors 0814, never a
+    /// silent mojibake store.</summary>
+    private BoundStringLiteral NationalLiteralOperand(string raw)
+    {
+        ConstructRegistry.Check(data.Edition, "national-data-2002", "national literal N\"…\"");
+        string value = DecodeCobolString(raw);
+        if (value.Length > 8191)
+            data.Edition.Error("COBOLNET0814", $"national literal of {value.Length} positions exceeds the "
+                + "8,191-position maximum (ISO §8.3.3.5 SR1)");
+        if (value.Any(c => c > 'ÿ'))
+            data.Edition.Error("COBOLNET0814", "national literal contains a character outside the Latin-1 "
+                + "repertoire — the alphanumeric↔national correspondence for wider characters is not yet "
+                + "implemented (Phase 4a residue; ISO §8.3.3.5 SR2/GR3, §8.1.2)");
+        return new BoundStringLiteral(value) { Category = PicCategory.National };
+    }
+
+    /// <summary>Bind a <c>B"…"</c> boolean literal (ISO §8.3.3.4): SR1 caps the length at 8,191 boolean
+    /// positions; SR2 ('0'/'1' only) is lexer-enforced.</summary>
+    private BoundStringLiteral BooleanLiteralOperand(string raw)
+    {
+        ConstructRegistry.Check(data.Edition, "boolean-data-2002", "boolean literal B\"…\"");
+        string value = DecodeCobolString(raw);
+        if (value.Length > 8191)
+            data.Edition.Error("COBOLNET0814", $"boolean literal of {value.Length} positions exceeds the "
+                + "8,191-position maximum (ISO §8.3.3.4 SR1)");
+        return new BoundStringLiteral(value) { Category = PicCategory.Boolean };
     }
 
     /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> (a multi-character figurative,
@@ -965,7 +1003,21 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // (the LINAGE-COUNTER idiom); a BoundExprError inside the computed wrapper stays loud (§1.4).
         : RwCounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
         : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
-        : refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError($"reference '{dref.GetText()}'");
+        : refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError(RefFailure(dref));
+
+    /// <summary>The loud-failure text for an unresolvable data reference — when the name belongs to a REJECTED
+    /// shared-storage class (a Tier-C / national REDEFINES, an unsupported cell shape), the class's
+    /// <c>RejectReason</c> rides along so the runtime loud names WHY, not just the reference (the
+    /// design's "references then fail loud" contract, made self-explanatory).</summary>
+    private string RefFailure(Core.DataReferenceContext dref)
+    {
+        string name = dref.cobolWord()?.GetText() ?? dref.GetText();
+        string? reason = data.LookupData(name)
+            ?.Select(i => i.Class)
+            .FirstOrDefault(c => c is { Tier: RedefinesTier.Rejected, RejectReason: not null })
+            ?.RejectReason;
+        return reason is null ? $"reference '{dref.GetText()}'" : $"reference '{dref.GetText()}' — {reason}";
+    }
 
     /// <summary>Bind a data reference in a numeric-expression position: an INDEXED BY index-name reads its
     /// occurrence number (valid in SET/SEARCH/relations, ISO §13.18.38); the LINAGE-COUNTER register reads its
@@ -980,7 +1032,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         : RwCounterExpr(dref) is { } rcx ? rcx
         : IndexFieldOf(dref) is { } ix ? new BoundIndexRef(ix)
         : refs.Resolve(dref) is { } p ? new BoundNumRef(p)
-        : new BoundExprError($"reference '{dref.GetText()}'");
+        : new BoundExprError(RefFailure(dref));
 
     /// <summary>Resolve a LINAGE-COUNTER reference to its file (ISO §8.4.3.14): in the grammar alternative
     /// <c>LINAGE_COUNTER ((OF|IN) cobolWord)?</c> the cobolWord IS the file-name qualifier. Unqualified, the
@@ -1112,12 +1164,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>A numeric literal expression from a <c>literal</c> node, mapping a figurative ZERO (incl. <c>ALL ZEROS</c>)
     /// to <c>0</c> (ISO §8.3.1.2 — ZERO is a valid numeric operand); a non-numeric figurative (SPACE / HIGH-VALUE / …)
-    /// in a numeric context is a loud error rather than the raw word rendered as an identifier.</summary>
-    private BoundExpr NumLiteral(Core.LiteralContext lit) =>
-        lit.nonNumericLiteral()?.figurativeConstant() is { } fig
-            ? fig.ZERO() is not null ? new BoundNumLiteral("0")
-                : new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context")
-            : new BoundNumLiteral(CheckLiteral(lit.GetText()));
+    /// in a numeric context is a loud error rather than the raw word rendered as an identifier. A national or
+    /// boolean literal is NOT a numeric operand (§8.8.1.1 — arithmetic operands shall be numeric): COBOLNET0844
+    /// at bind, never raw literal text spliced into the generated expression.</summary>
+    private BoundExpr NumLiteral(Core.LiteralContext lit)
+    {
+        if (lit.nonNumericLiteral()?.figurativeConstant() is { } fig)
+            return fig.ZERO() is not null ? new BoundNumLiteral("0")
+                : new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context");
+        if (lit.nonNumericLiteral() is { } nn && (nn.NATLIT() ?? nn.BOOLLIT()) is not null)
+        {
+            data.Edition.Error("COBOLNET0844", $"a {(nn.NATLIT() is not null ? "national" : "boolean")} "
+                + "literal is not a numeric operand (ISO §8.8.1.1 — arithmetic operands shall be numeric)");
+            return new BoundExprError($"literal '{lit.GetText()}' in a numeric context");
+        }
+        return new BoundNumLiteral(CheckLiteral(lit.GetText()));
+    }
 
     /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a — the comma form
     /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and edition-gate the digit count
@@ -1258,7 +1320,30 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundConditionError("abbreviated relation with no preceding relation subject");
         string op = MapOperator(ar.comparisonOperator().GetText());
         carry.Op = op;
-        return new BoundRelational(subject, op, ComparisonOperand(ar.comparisonOperand()));
+        return CheckedRelational(subject, op, ComparisonOperand(ar.comparisonOperand()));
+    }
+
+    /// <summary>The §8.8.4.4.3 class-condition operand rules for the boolean category (the one class the
+    /// data increment newly introduces): SR8 — NUMERIC requires an operand whose usage is display or national
+    /// or whose category is numeric, so a USAGE BIT boolean is rejected (a DISPLAY-form boolean is admitted);
+    /// SR4 — ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / class-name (<paramref name="kind"/> 'A'/'U'/
+    /// 'L'/'C') shall not be specified for a boolean operand at all. Both → COBOLNET0844.</summary>
+    private void CheckClassConditionOperand(BoundOperand op, char kind)
+    {
+        PicInfo? pic = op switch
+        {
+            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic,
+            BoundFieldOperand f => f.Place.Item.Pic,
+            _ => null,
+        };
+        if (pic is not { Category: PicCategory.Boolean }) return;
+        if (kind is 'N' && pic.Usage is Usage.Bit)
+            data.Edition.Error("COBOLNET0844", "the NUMERIC class condition requires an operand whose usage is "
+                + "display or national or whose category is numeric — a USAGE BIT boolean item is none of these "
+                + "(ISO §8.8.4.4.3 SR8)");
+        else if (kind is 'A' or 'U' or 'L' or 'C')
+            data.Edition.Error("COBOLNET0844", "ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / a class-name "
+                + "shall not be specified for a boolean operand (ISO §8.8.4.4.3 SR4)");
     }
 
     private BoundCondition BindComparison(Core.ComparisonExpressionContext cmp, AbbrevCarry carry)
@@ -1275,11 +1360,19 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 : cls.ALPHABETIC_LOWER() is not null ? 'L'
                 : null;
             if (kind is { } k && operands.Length >= 1)
-                return new BoundClassCondition(ComparisonOperand(operands[0]), k, not);
+            {
+                var opnd = ComparisonOperand(operands[0]);
+                CheckClassConditionOperand(opnd, k);
+                return new BoundClassCondition(opnd, k, not);
+            }
             // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
             if (cls.cobolWord() is { } ucls && operands.Length >= 1
                 && data.UserClasses.TryGetValue(ucls.GetText(), out string? members))
-                return new BoundUserClassCondition(ComparisonOperand(operands[0]), members, not);
+            {
+                var opnd = ComparisonOperand(operands[0]);
+                CheckClassConditionOperand(opnd, 'C');   // SR4 also forbids a class-name for a boolean operand
+                return new BoundUserClassCondition(opnd, members, not);
+            }
             return new BoundConditionError($"class condition '{cls.GetText()}'");
         }
 
@@ -1334,7 +1427,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                         "both operands of a data-pointer relation shall be a data pointer or NULL "
                         + "(ISO §8.8.4.1.3)");
             }
-            return new BoundRelational(subject, op, right);
+            return CheckedRelational(subject, op, right);
         }
 
         // A bare single operand is either a level-88 condition-name (a complete simple condition — terminates the
@@ -1360,10 +1453,50 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 return swCond;
             }
             if (carry is { Subject: { } subject, Op: { } op })
-                return new BoundRelational(subject, op, ComparisonOperand(operands[0]));
+                return CheckedRelational(subject, op, ComparisonOperand(operands[0]));
         }
 
         return new BoundConditionError($"condition '{cmp.GetText()}'");
+    }
+
+    /// <summary>The ONE <see cref="BoundRelational"/> construction checkpoint — the §8.8.4.2.2 boolean
+    /// relation rules ride every site (IF / EVALUATE pairing + ranges / PERFORM UNTIL / SEARCH): a boolean
+    /// operand compares only with another boolean operand (§8.8.4.2.1 F1 SR2/SR3 exclude class boolean from
+    /// the general relation — a class mix is 0844) and only for [in]equality (Format 2 — an ordering operator
+    /// on boolean operands is 0844; an EVALUATE THRU range over a boolean subject trips the same check,
+    /// §14.9.13.3 SR4). Figurative ZERO is boolean zeros by context (§8.3.3.6.4 GR4); every other figurative
+    /// against a boolean operand is non-boolean.</summary>
+    internal BoundRelational CheckedRelational(BoundOperand left, string op, BoundOperand right)
+    {
+        static bool IsBoolOperand(BoundOperand o) => o switch
+        {
+            BoundStringLiteral { Category: PicCategory.Boolean } => true,
+            BoundAllLiteral { Category: PicCategory.Boolean } => true,
+            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
+            BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
+            _ => false,
+        };
+        bool lb = IsBoolOperand(left), rb = IsBoolOperand(right);
+        if (lb || rb)
+        {
+            static bool BoolCompatible(BoundOperand o) =>
+                o is BoundFigurative { Kind: 'Z' } || o switch
+                {
+                    BoundStringLiteral { Category: PicCategory.Boolean } => true,
+                    BoundAllLiteral { Category: PicCategory.Boolean } => true,
+                    BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
+                    BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
+                    _ => false,
+                };
+            if (!(BoolCompatible(left) && BoolCompatible(right)))
+                data.Edition.Error("COBOLNET0844", "a boolean operand may be compared only with another "
+                    + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.1 F1 "
+                    + "SR2/SR3 exclude class boolean from the general relation)");
+            else if (op is not ("==" or "!="))
+                data.Edition.Error("COBOLNET0844", "boolean operands compare for equality only — an ordering "
+                    + "relation is not defined for class boolean (ISO §8.8.4.2.2 Format 2)");
+        }
+        return new BoundRelational(left, op, right);
     }
 
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>
@@ -1372,6 +1505,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var vo = operand.valueOperand();
         if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
         if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
+        if (vo?.nonNumericLiteral()?.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
+        if (vo?.nonNumericLiteral()?.BOOLLIT() is { } bl) return BooleanLiteralOperand(bl.GetText());
         if (vo?.arithmeticExpression() is { } expr)
             return SoleDataRef(expr) is { } dref ? FieldOperand(dref)
                 // A sole numeric LITERAL stays a literal operand — against an alphanumeric/group operand it
@@ -1464,8 +1599,20 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
     }
 
-    private static string DecodeCobolString(string raw) =>
-        raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"' ? raw[1..^1].Replace("\"\"", "\"") : raw;
+    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) — or a national/boolean
+    /// literal (<c>N"…"</c>/<c>B"…"</c>, ISO §8.3.3.5/§8.3.3.4: the prefix letter is part of the token) — to
+    /// its character value. One of THREE deliberate per-layer twins (DataBinder.DecodeString /
+    /// EmitText.DecodeCobolString — Binding must not depend on CodeGen.Emit); keep the three in sync.</summary>
+    private static string DecodeCobolString(string raw)
+    {
+        if (raw.Length >= 3 && raw[0] is 'N' or 'n' or 'B' or 'b' && raw[1] is '"' or '\'')
+            raw = raw[1..];
+        // Unwrap EITHER delimiter (ISO §8.3.1.2 — the apostrophe form is equal-standing; doubled opening
+        // quote = one embedded quote). Keep in sync with the EmitText/DataBinder twins.
+        return raw.Length >= 2 && raw[0] is '"' or '\'' && raw[^1] == raw[0]
+            ? raw[1..^1].Replace(new string(raw[0], 2), raw[0].ToString())
+            : raw;
+    }
 
     private static IEnumerable<IParseTree> Children(IParseTree node)
     {

@@ -407,8 +407,8 @@
     },
     {
       "id": "national-data-2002",
-      "status": "pending",
-      "description": "National data (PICTURE symbol N / USAGE NATIONAL, ISO 8.5.2 category national / 13.18.40 / 13.18.60). PENDING: PIC N currently silent-misbinds (category falls through); the W2 loud-guard sweep adds the skeleton (enum entries, 0900 gate below 2002, loud not-implemented at 2002+); Phase 4a implements.",
+      "status": "active",
+      "description": "National data (PICTURE symbol N / USAGE NATIONAL, ISO 8.5.2 category national / 13.18.40 / 13.18.60). LIVE (Phase 4a track (a)): compiles at 2002+ (one UTF-16 char per national position, D-N1; MOVE Table 16 + 14.6.8.5 alignment + 8.8.4.2.9 ordinal comparison); below 2002 the introduction gate rejects (COBOLNET0900). Byte-surface legs (REDEFINES/cells/FD records) + national-form numerics + NATIONAL-EDITED stage 0899.",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
@@ -416,9 +416,19 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NATD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-N PIC N(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
     {
-      "id": "boolean-data-2002",
+      "id": "national-edited-2002",
       "status": "pending",
-      "description": "Boolean data (PICTURE symbol 1 / USAGE BIT, ISO 8.5.2 category boolean / 13.18.40 / 13.18.60). PENDING: PIC 1 currently silent-misbinds; the W2 loud-guard sweep adds the skeleton (enum entries, 0900 gate below 2002, loud not-implemented at 2002+); Phase 4a implements (boolean OPERATIONS ride D4).",
+      "description": "National-edited data (PICTURE N with the insertion symbols B 0 /, ISO 8.5.2.11 / 13.18.40.4 GR10). PENDING (Phase 4a residue #2): recognized + edition-gated (0900 below 2002), representation not implemented (0899 at 2002+).",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "M2 catalog national/boolean; Phase 4a residue #2 (PHASE4_RECONCILIATION M2-DATA-3/4 design)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NATED.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NE PIC NN0NN.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "boolean-data-2002",
+      "status": "active",
+      "description": "Boolean data (PICTURE symbol 1 / USAGE BIT, ISO 8.5.2 category boolean / 13.18.40 / 13.18.60). LIVE (Phase 4a track (a)): compiles at 2002+ (one alphanumeric '0'/'1' character per boolean position, the 13.18.40.4 GR14 R14 license, D-B1; MOVE zero-fill 14.6.8.6; equality-only relations 8.8.4.2.2); below 2002 the introduction gate rejects (COBOLNET0900). The B-AND/B-OR/B-XOR/B-NOT operator leg is track (a) increment 2.",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",

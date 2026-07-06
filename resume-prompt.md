@@ -241,21 +241,40 @@
 > both joined the legacy runner's `GreenfieldOnly` exclusion (the DEVLOG-604 mechanism) in 618. ⚠ STANDING
 > RULE: enabling a shared-corpus golden ⇒ run the LEGACY conformance suite locally too (or add the exclusion
 > in the same change set) — CI is the backstop, not the discovery mechanism.
+> **⛔ OWNER GRANTS (2026-07-05, mid-session):** ① **ALL grammar changes pre-authorized** ("approved to make all
+> required grammar changes without further owner approval" — `feedback_grammar_approval` rewritten; the FULL
+> legacy guard in the same change set remains the discipline); ② **"use worktrees and maximum parallelism where
+> beneficial"** — the worktree stale-base hazard is CURED (fresh worktrees verified basing at HEAD; the leftover
+> `worktree-agent-a0cfb422` branch deleted; `feedback_worktree_workflows_stale` rewritten).
+> **(a) national/boolean increment 1 DONE (DEVLOG 619)** — M2-DATA-3/4 END-TO-END on the string substrate:
+> PIC N = one UTF-16 char per position (D-N1, char-position widths everywhere, ImageWidth never doubled),
+> PIC 1/USAGE BIT = one '0'/'1' char per position (D-B1, GR14 R14 — both usages, same storage; pad params on
+> CobolString.Store/SpliceInto/Compare carry the category); SR5/SR12/SR13/SR20 usage resolution (0881/0899);
+> N"/B" literals at every funnel incl. the NEW SUB_NATLIT/SUB_BOOLLIT lexer tokens (the SUBSCRIPT-mode
+> misbind cure — first grammar change under the grant); MOVE Table 16 (0819+SR7); equality-only boolean
+> relations via the ONE CheckedRelational factory (0844); national ordinal comparison (never the alphanumeric
+> PCS — the &0xFF alias is unreachable); VALUE/88 validation (0898/SR29); INITIALIZE GR6c fills; the D-N2
+> byte-surface guards (REDEFINES/cells/FD records/SORT keys reject loud; display-form boolean passes
+> deliberately). BOTH goldens byte-exact + ENABLED; national_data ISO-re-baselined TWICE-in-one (the N2A leg
+> cut per Table 16 :28847 — verified in-spec — + full-width §14.9.11.4 GR6) with a LegacyDivergent entry;
+> 6 negative cases; 4 new test batteries (the parallel worktree test-author's blind tests caught FIVE real
+> holes: the 88-renderer raw-splice, ADD-of-B-literal raw emit, INSPECT's over-tight SR1 guard, the EXTERNAL
+> silent-skip → 0899-with-reason, RefFailure now names WHY on rejected-class references). Deep-dive currency:
+> COBOLNET_DATA_MODEL_DESIGN D8 (D-N1..D-N4/D-B1; supersedes the PIC 1→bool sketch). Battery: conformance
+> 1760 · unit 159 · legacy ConformanceTests 55 · FULL guard on the .g4 change. The M2-DATA-3/4 design +
+> as-built + the INCREMENT-2 boolean-operators design (recon'd CONCURRENTLY, ready) live in the reconciliation.
 > **RESUME = the remaining Phase-4 tracks, sized against truth (docs/PHASE4_RECONCILIATION.md).** A fresh
-> session: ① confirm CI green on HEAD (expected from 618 on); ② pick the next track and run the PROVEN
+> session: ① confirm CI green on HEAD; ② pick the next track and run the PROVEN
 > cadence — a RECON WORKFLOW (parallel readers: goldens/spec/seams/model → xhigh synthesis) producing a
 > decision-complete design INTO the reconciliation doc, spot-verify its anchors, implement, then an
 > ADVERSARIAL find→verify workflow over the diff with every confirmed finding fixed/staged/documented in the
-> SAME change set, full battery + legacy conformance, commit+push (the DEVLOG 615/617 pattern — 47 confirmed
-> findings caught across the two waves). ⭐ NEXT UP:
-> **(a) national/boolean data** (M2-DATA-3/4 — PIC N/USAGE NATIONAL + PIC 1/USAGE BIT; skeleton-loud today at
-> PicInfo 0899 with national_data/boolean_data goldens PENDING; boolean OPERATORS B-AND/OR/XOR/NOT are NOT in
-> the grammar → owner-approval-gated for that leg; the data-model legs are grammar-free; byte≠char under
-> NATIONAL coordinates with the pointer residue). Or **(d) sharing/lock/retry** (M2-FILE-1 — grammar-gated
-> too: no SHARING/LOCK MODE/RETRY in CobolIO.g4; runtime CobolFile.Locked primitive exists). Then (a)/(d) leftovers
-> (note: boolean OPERATORS B-AND/OR/XOR/NOT are NOT in the grammar → owner-approval-gated), (d) sharing/lock/
-> retry (grammar-gated too); OO riders queued (interface GET/SET PROPERTY prototypes, group-valued property
-> refs, FACTORY OF usage, object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.
+> SAME change set, full battery + legacy conformance, commit+push (the DEVLOG 615/617/619 pattern). ⭐ NEXT UP:
+> **(a) increment 2: the boolean OPERATORS B-AND/B-OR/B-XOR/B-NOT** (§8.8.2 + COMPUTE Format 2 + the boolean
+> relation/simple-condition legs — the DECISION-COMPLETE design is already in the reconciliation beside
+> M2-DATA-3/4, recon wf_600c5a02; grammar pre-authorized; golden `boolean_ops` will need GreenfieldOnly).
+> Then **(d) sharing/lock/retry** (M2-FILE-1 — grammar now granted; no SHARING/LOCK MODE/RETRY in CobolIO.g4;
+> runtime CobolFile.Locked primitive exists); OO riders queued (interface GET/SET PROPERTY prototypes,
+> group-valued property refs, FACTORY OF usage, object views). Phase 5 intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF) / 7 (2023) per the reconciliation.
 > Deferred-from-review (queued, documented): the §13.18.40.6 PICTURE precedence-table pass; Tier-A/BINARY
 > figurative-MOVE receivers stay runtime-loud; exit-window conforming witnesses need METHOD-ID/FUNCTION-ID
 > units (Phase 3/4c); rounded_mode_prohibited's SIZE-ERROR leg (Phase 5/7); options_paragraph awaits

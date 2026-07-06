@@ -15,12 +15,16 @@ public enum PicCategory
     Numeric,
     /// <summary>Numeric-edited (<c>Z * $ , . + - CR DB B 0</c>) — a formatted display image; later slice.</summary>
     NumericEdited,
-    /// <summary>National (<c>PIC N</c>, ISO §8.5.2.10 / §13.18.40.4 GR9) — SKELETON (W2 loud guard): the enum
-    /// member exists so the Phase-4a implementation lands on a stable shape, but NOTHING constructs it yet —
-    /// the bind-time gate (<c>national-data-2002</c>) rejects every national picture before classification.</summary>
+    /// <summary>National (<c>PIC N</c> / <c>USAGE NATIONAL</c>, ISO §8.5.2.10 / §13.18.40.4 GR9/GR14) — LIVE
+    /// (Phase 4a track (a)): one .NET UTF-16 <see cref="char"/> per national position over the string substrate
+    /// (the documented D-N1 implementor choice; §13.18.60.4 GR8 + §8.1.2 NOTE 2 leave the size implementor-
+    /// specified). Width machinery is CHARACTER-position based throughout; byte-addressed surfaces (REDEFINES /
+    /// cells / file records) REFUSE national leaves loud (D-N2) until the 2-byte layout residue lands.</summary>
     National,
-    /// <summary>Boolean (<c>PIC 1</c>, ISO §8.5.2.5 / §13.18.40.4 GR8) — SKELETON (W2 loud guard): never
-    /// constructed until Phase 4a; the <c>boolean-data-2002</c> gate rejects every boolean picture first.</summary>
+    /// <summary>Boolean (<c>PIC 1</c>, optionally <c>USAGE BIT</c>, ISO §8.5.2.5 / §13.18.40.4 GR8) — LIVE
+    /// (Phase 4a track (a)): one alphanumeric character '0'/'1' per boolean position (the §13.18.40.4 GR14 R14
+    /// representation license — a permanently conforming choice, D-B1); byte=char holds, so boolean leaves ride
+    /// every character surface. True bit-packing stays an optional future representation (residue).</summary>
     Boolean,
     /// <summary>Object reference (ISO §8.5.2.14; USAGE OBJECT REFERENCE [class-name], §13.18.60.4) — LIVE as of
     /// the Phase-3 OO spine: a PICTURE-less elementary item holding a .NET object reference (typed → the class's
@@ -71,9 +75,15 @@ public enum Usage
     // storage-mapping switch over Usage guards the skeleton members with a THROW (never a silent default arm)
     // so a future phase that starts constructing one fails loud, not wrong. ──
 
-    /// <summary>USAGE NATIONAL (ISO §13.18.60 / §8.5.2.10) — SKELETON; full implementation Phase 4a.</summary>
+    /// <summary>USAGE NATIONAL (ISO §13.18.60.3 SR12/SR13/SR20 / §8.5.2.10) — LIVE (Phase 4a track (a)):
+    /// the usage of every category-national item (implied by PIC N without a USAGE clause, SR13a); stored as a
+    /// .NET string, one UTF-16 char per national position (D-N1). The SR12 national-form NUMERIC/boolean legs
+    /// (PIC 9/PIC 1 USAGE NATIONAL) are recognized-but-staged (0899).</summary>
     National,
-    /// <summary>USAGE BIT (ISO §13.18.60 / §8.5.2.5 category boolean) — SKELETON; Phase 4a.</summary>
+    /// <summary>USAGE BIT (ISO §13.18.60.3 SR5 / §8.5.2.5 category boolean) — LIVE (Phase 4a track (a)):
+    /// maps to the SAME one-'0'/'1'-character-per-position string storage as a display-form boolean item (the
+    /// §13.18.40.4 GR14 R14 representation license, D-B1); the member stays distinct for declaration fidelity
+    /// (SR5 checking) and a future opt-in packed representation.</summary>
     Bit,
     /// <summary>USAGE POINTER (ISO §13.18.60 / §8.5.2.6 data-pointer) — LIVE (Phase-4b increment 1): the
     /// ManagedPointer carrier (<see cref="PicCategory.Pointer"/>).</summary>
@@ -163,9 +173,7 @@ public sealed record PicInfo(
     /// Display shape. Every storage-mapping member throws through this guard rather than silently defaulting
     /// (feedback: every misbind is a wrong-answer bug — fail LOUD).</summary>
     private bool IsUnimplementedSkeleton =>
-        Category is PicCategory.National or PicCategory.Boolean
-        || Usage is Usage.National or Usage.Bit
-            or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended;
+        Usage is Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended;
 
     /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the declared class name
     /// (<c>USAGE OBJECT REFERENCE class-name</c>, ISO §13.18.60.4) — null for a UNIVERSAL object reference
@@ -225,7 +233,10 @@ public sealed record PicInfo(
         // A data pointer is the runtime ManagedPointer carrier; its COBOL initial state is NULL (the Null
         // singleton), so the field is non-nullable and always at least Null.
         PicCategory.Pointer => "ManagedPointer",
-        PicCategory.Alphanumeric or PicCategory.NumericEdited => "string",
+        // National (one UTF-16 char per national position, D-N1) and boolean (one '0'/'1' char per boolean
+        // position, D-B1 — §13.18.40.4 GR14 R14) ride the same fixed-width string substrate as alphanumeric.
+        PicCategory.Alphanumeric or PicCategory.NumericEdited
+            or PicCategory.National or PicCategory.Boolean => "string",
         // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
         // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,
         // Int128 for the 19–31-digit 2002+ tier. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
@@ -249,8 +260,11 @@ public sealed record PicInfo(
         // .NET reference-default null matches exactly, no init needed beyond the explicit form.
         PicCategory.ObjectReference => "null",
         PicCategory.Pointer => "ManagedPointer.Null",   // the predefined NULL data pointer (§8.4.3.10)
-        // Alphanumeric defaults to spaces; numeric to zero (unscaled).
-        PicCategory.Alphanumeric or PicCategory.NumericEdited => $"new string(' ', {Length})",
+        // Alphanumeric AND national default to spaces (the national space is U+0020 under the D-N4 Latin-1
+        // repertoire); boolean to boolean zeros (§13.18.63 — the category fill values); numeric to zero (unscaled).
+        PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National
+            => $"new string(' ', {Length})",
+        PicCategory.Boolean => $"new string('0', {Length})",
         PicCategory.Numeric => Usage switch
         {
             Usage.Float => "0f",
@@ -312,7 +326,7 @@ public sealed record PicInfo(
     /// flag), not the symbols themselves, and both are whitelisted regardless.
     /// </summary>
     public static PicInfo Analyze(string picture, Usage usage, EditionContext edition, string where,
-        SignSpec? sign = null, char currency = '$', bool blankWhenZero = false)
+        SignSpec? sign = null, char currency = '$', bool blankWhenZero = false, bool explicitUsage = false)
     {
         // A TRAILING ';' is the clause SEPARATOR (ISO §8.3.5 rule 2 — a semicolon immediately followed by a
         // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
@@ -369,10 +383,8 @@ public sealed record PicInfo(
                     break;
             }
         }
-        if (hasN || has1 || hasE || invalid is not null)
+        if (hasE || invalid is not null || (hasN && has1))
         {
-            if (hasN) NotImplementedSkeleton(edition, "national-data-2002", "Phase 4a", where);
-            if (has1) NotImplementedSkeleton(edition, "boolean-data-2002", "Phase 4a", where);
             if (hasE) NotImplementedSkeleton(edition, "pic-external-float-2002", "Phase 6", where);
             if (invalid is { } bad)
                 // Wording is exact about what IS checked: symbol MEMBERSHIP in the SR2 inventory. The SR2/
@@ -380,10 +392,111 @@ public sealed record PicInfo(
                 // is a separate self-contained table walk, queued (adversarial-review minor, DEVLOG 595).
                 edition.Error("COBOLNET0808", $"invalid PICTURE symbol '{bad}' in PICTURE {picture} — {where} "
                     + "(ISO §13.18.40.3 SR2: not an allowable picture symbol)");
+            if (hasN && has1)
+                // Precedence Table 10: the boolean symbol '1' combines with no other symbol; 'N' admits only
+                // B 0 / N (§13.18.40.4 GR8–GR10) — a picture holding both can never be legal.
+                edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
+                    + "(ISO §13.18.40.6 Table 10: the 'N' and '1' picture symbols may not be combined)");
             // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
             // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes).
             return new PicInfo(PicCategory.Alphanumeric, Usage.Display,
                 Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false);
+        }
+
+        // ── Category national (§8.5.2.10) / boolean (§8.5.2.5) — LIVE, Phase 4a track (a). The introduction
+        // gate stays at every entry point (COBOLNET0900 below 2002; the registry rows are silent at 2002+),
+        // exactly the BINARY-CHAR/POINTER pattern. Usage resolution per §13.18.60.4: SR13a — PIC N with no
+        // USAGE clause implies NATIONAL; SR20 — PIC N admits ONLY usage NATIONAL; SR13b — PIC 1 with no usage
+        // is DISPLAY; SR5 — usage BIT requires a boolean picture; SR12 national-form boolean (PIC 1 USAGE
+        // NATIONAL) is spec-legal but STAGED (0899). ──
+        if (hasN)
+        {
+            if (expanded.All(c => c is 'N'))
+            {
+                // The introduction gate rides the PICTURE — EXCEPT when USAGE NATIONAL is explicit, where
+                // ParseUsage already fired it (avoid the duplicate COBOLNET0900 at <2002).
+                if (!(explicitUsage && usage is Usage.National))
+                    ConstructRegistry.Check(edition, "national-data-2002", where);
+                if (explicitUsage && usage is not Usage.National)
+                    edition.Error("COBOLNET0881", $"{where}: a national PICTURE (symbol N) admits only USAGE "
+                        + $"NATIONAL, not {usage} (ISO §13.18.60.3 SR20; SR13a implies NATIONAL when no USAGE "
+                        + "clause is specified)");
+                return new PicInfo(PicCategory.National, Usage.National,
+                    Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
+            }
+            if (expanded.All(c => c is 'N' or 'B' or '0' or '/'))
+            {
+                // NATIONAL-EDITED (§13.18.40.4 GR10 / §8.5.2.11) — recognized, edition-gated, STAGED.
+                NotImplementedSkeleton(edition, "national-edited-2002", "Phase 4a residue", where);
+                return new PicInfo(PicCategory.Alphanumeric, Usage.Display,
+                    Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false);
+            }
+            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
+                + "(ISO §13.18.40.6 Table 10: 'N' may be combined only with the insertion symbols B 0 /)");
+            return new PicInfo(PicCategory.Alphanumeric, Usage.Display,
+                Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false);
+        }
+        if (has1)
+        {
+            if (expanded.All(c => c is '1'))
+            {
+                // As above: skip the gate when USAGE BIT/NATIONAL already fired it in ParseUsage.
+                if (!(explicitUsage && usage is Usage.Bit or Usage.National))
+                    ConstructRegistry.Check(edition, "boolean-data-2002", where);
+                switch (usage)
+                {
+                    case Usage.Display or Usage.Bit:
+                        break;   // display-form (SR13b) and bit-form (SR5) — identical D-B1 string storage
+                    case Usage.National:
+                        // SR12 admits a boolean picture under USAGE NATIONAL — spec-legal, representation
+                        // staged (one national char per boolean position; nothing constructs it yet).
+                        edition.Error("COBOLNET0899", $"national-form boolean data (PIC 1 with USAGE NATIONAL) "
+                            + $"is recognized but not yet implemented (Phase 4a residue) — {where} "
+                            + "(ISO §13.18.60.3 SR12)");
+                        usage = Usage.Display;
+                        break;
+                    default:
+                        edition.Error("COBOLNET0881", $"{where}: a boolean PICTURE (symbol 1) admits only USAGE "
+                            + $"DISPLAY, BIT, or NATIONAL, not {usage} (ISO §13.18.60.3 SR5/SR12/SR13b)");
+                        usage = Usage.Display;
+                        break;
+                }
+                return new PicInfo(PicCategory.Boolean, usage,
+                    Length: expanded.Length, Digits: 0, Scale: 0, Signed: false);
+            }
+            edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
+                + "(ISO §13.18.40.6 Table 10: the boolean symbol '1' may not be combined with any other symbol)");
+            return new PicInfo(PicCategory.Alphanumeric, Usage.Display,
+                Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false);
+        }
+
+        // ── USAGE BIT / NATIONAL against a picture WITHOUT the matching symbol (§13.18.60.4). BIT requires a
+        // boolean picture (SR5 — hard error). NATIONAL admits national/boolean pictures (handled above) plus
+        // the national-form NUMERIC legs (SR12 — spec-legal, STAGED 0899); an alphabetic/alphanumeric picture
+        // under NATIONAL is illegal outright (SR12 + §13.18.40.3 SR30). Both recover to Display — the compile
+        // has already failed; the value only keeps the doomed emit crash-free. ──
+        if (usage is Usage.Bit)
+        {
+            edition.Error("COBOLNET0881", $"{where}: USAGE BIT requires a boolean PICTURE (symbol 1 only) — "
+                + $"PICTURE {picture} is not boolean (ISO §13.18.60.3 SR5)");
+            usage = Usage.Display;
+        }
+        else if (usage is Usage.National)
+        {
+            if (expanded.Any(c => c is 'X' or 'A'))
+            {
+                edition.Error("COBOLNET0881", $"{where}: USAGE NATIONAL may not be specified with an "
+                    + $"alphabetic or alphanumeric PICTURE ({picture}) — it admits boolean, national, "
+                    + "national-edited, numeric, and numeric-edited pictures only (ISO §13.18.60.3 SR12; "
+                    + "§13.18.40.3 SR30)");
+            }
+            else
+            {
+                edition.Error("COBOLNET0899", $"national-form numeric data (a numeric or numeric-edited "
+                    + $"PICTURE {picture} with USAGE NATIONAL — national digits) is recognized but not yet "
+                    + $"implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
+            }
+            usage = Usage.Display;
         }
 
         bool signed = expanded.Contains('S');
@@ -509,9 +622,17 @@ public sealed record PicInfo(
             case "COMP-1": return Usage.Float;
             case "COMP-2": return Usage.Double;
             case "INDEX": return Usage.Index;
-            // ── The 2002+ recognized-but-unimplemented inventory (ISO §13.18.60): gate loud, recover Display ──
-            case "NATIONAL": return SkeletonUsage(edition, "national-data-2002", "Phase 4a", where, out skeleton);
-            case "BIT": return SkeletonUsage(edition, "boolean-data-2002", "Phase 4a", where, out skeleton);
+            // USAGE NATIONAL / BIT — LIVE (Phase 4a track (a)): only the introduction gate remains (0900
+            // below 2002; the registry rows are silent at 2002+), the POINTER/BINARY-CHAR pattern. Picture
+            // conformance (SR5/SR12/SR13/SR20) is Analyze's job; a picture-LESS elementary entry is caught at
+            // the group-fixup pass (DataBinder.ResolveIndexItems — a group header legally sheds the usage to
+            // its subordinates per §13.18.60.4 GR1).
+            case "NATIONAL":
+                ConstructRegistry.Check(edition, "national-data-2002", where);
+                return Usage.National;
+            case "BIT":
+                ConstructRegistry.Check(edition, "boolean-data-2002", where);
+                return Usage.Bit;
             // USAGE POINTER — LIVE (Phase-4b increment 1): only the introduction gate remains (0900 below
             // 2002; the registry row is silent at 2002+), like OBJECT REFERENCE. The caller synthesizes
             // PicInfo.PointerItem (PICTURE-less, the IndexItem pattern).
@@ -557,6 +678,19 @@ public sealed record PicInfo(
     /// this shape only keeps the doomed emit crash-free; the binder's group-fixup pass CLEARS it from entries
     /// that turn out to be group headers (usage on a group inherits per §13.18.60.4 GR1).</summary>
     public static PicInfo RecoveryItem { get; } =
+        new(PicCategory.Alphanumeric, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false);
+
+    /// <summary>Placeholder shape for a PICTURE-less <c>USAGE NATIONAL</c> entry at entry-bind time — whether
+    /// the entry is a group header (legal: the usage merely sheds to subordinates, §13.18.60.4 GR1) or an
+    /// elementary item (illegal: NATIONAL is not among the picture-less usages — COBOLNET0881) is unknown until
+    /// the forest is complete; <c>DataBinder.ResolveIndexItems</c> adjudicates (the <see cref="RecoveryItem"/>
+    /// shedding pattern). Reference-comparable singleton — test with <see cref="object.ReferenceEquals"/>.</summary>
+    public static PicInfo NationalUsagePending { get; } =
+        new(PicCategory.Alphanumeric, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false);
+
+    /// <summary>Placeholder shape for a PICTURE-less <c>USAGE BIT</c> entry — see
+    /// <see cref="NationalUsagePending"/> (the same group-vs-elementary adjudication, §13.18.60.3 SR5).</summary>
+    public static PicInfo BitUsagePending { get; } =
         new(PicCategory.Alphanumeric, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false);
 
     /// <summary>The W2 skeleton gate for a recognized-but-unimplemented USAGE: fire the introduction gate +

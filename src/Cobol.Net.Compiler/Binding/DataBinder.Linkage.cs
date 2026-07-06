@@ -216,7 +216,15 @@ public sealed partial class DataBinder
     /// conformant-but-unimplemented.</summary>
     private void CallMakeExternal(DataItem item, string? externalName = null)
     {
-        if (ForceStringCanonical(item, "EXTERNAL record") is not { } cls) return;
+        if (ForceStringCanonical(item, "EXTERNAL record") is not { } cls)
+        {
+            // The silent-skip left the record as ORDINARY storage — the program ran with its EXTERNAL
+            // sharing semantics silently dropped (the W1-test finding, Phase 4a). Loud at bind: the
+            // reason names the leaf (COMP/float/index Tier-C, or the RESIDUE-11 national/bit cell legs).
+            Edition.Error("COBOLNET0899", $"EXTERNAL record '{item.CobolName}' cannot be cell-backed — "
+                + $"{item.Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented");
+            return;
+        }
         CallExternalBackings.Add(new CallExternalBacking(
             cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width,
             CallInitialImage(item).PadRight(cls.Width)));
@@ -243,8 +251,13 @@ public sealed partial class DataBinder
         if (leaves.Any(l => l.Pic is not { IsFloat: false, Usage: Usage.Display }))
         {
             cls.Tier = RedefinesTier.Rejected;
-            cls.RejectReason = $"{what} '{item.CobolName}' has a COMP/float/index leaf — the shared "
-                + "character image cannot carry it (Tier-C byte island, deferred)";
+            // The gate is usage-keyed, so it also refuses NATIONAL (two bytes per position — a byte-addressed
+            // cell window over it would break ADDRESS-OF/BASED/F10 byte arithmetic, RESIDUE-11) and BIT
+            // (kept out of cells until the packing residue closes — one leg, one posture). Display-form
+            // BOOLEAN leaves PASS deliberately: one '0'/'1' char = one byte (D-B1), cell-safe.
+            cls.RejectReason = $"{what} '{item.CobolName}' has a COMP/float/index/national/bit leaf — the "
+                + "shared single-byte character image cannot carry it (Tier-C byte island / the RESIDUE-11 "
+                + "2-byte national layout, deferred)";
             return null;
         }
 
@@ -271,7 +284,10 @@ public sealed partial class DataBinder
     {
         if (item.IsElementary)
         {
-            char fill = item.Pic is { Category: PicCategory.Numeric, IsFloat: false } ? '0' : ' ';
+            // Zoned zeros for numeric-DISPLAY; boolean zeros for a boolean leaf (§13.18.63 — its initial
+            // state; byte=char under D-B1 so it sits in the cell image directly); spaces elsewhere.
+            char fill = item.Pic is { Category: PicCategory.Numeric, IsFloat: false }
+                or { Category: PicCategory.Boolean } ? '0' : ' ';
             string one = new(fill, item.ImageWidth);
             return item.Occurs is { } n ? string.Concat(Enumerable.Repeat(one, n)) : one;
         }

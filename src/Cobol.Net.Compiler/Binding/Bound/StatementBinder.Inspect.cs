@@ -55,8 +55,11 @@ public sealed partial class StatementBinder
         if (refs.Resolve(ins.dataReference()) is not { } target)
             return new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
         // SR1: identifier-1 is an alphanumeric/national group or an elementary usage DISPLAY/NATIONAL item — a
-        // binary/packed/float/index elementary item has no character image to inspect.
-        if (target.Item.Pic is { } tp && tp.Usage is not Usage.Display)
+        // binary/packed/float/index elementary item has no character image to inspect. USAGE NATIONAL joined
+        // the admitted set at Phase 4a (M2-DATA-3): a national item is a plain string under D-N1, so the
+        // character-based INSPECT machinery applies unchanged (the cross-class operand-MIX validation across
+        // the whole operand set is residue #12). Display-form boolean items pass the Display arm.
+        if (target.Item.Pic is { } tp && tp.Usage is not (Usage.Display or Usage.National))
             return new BoundUnsupported(
                 $"INSPECT identifier-1 '{target.Item.CobolName}' of USAGE {tp.Usage} (ISO §14.9.22.3 SR1 — usage display or national only)");
 
@@ -203,6 +206,12 @@ public sealed partial class StatementBinder
         }
         if (c.literal()?.nonNumericLiteral()?.STRINGLIT() is { } s)
             return (new BoundStringLiteral(DecodeCobolString(s.GetText())), false);
+        // National/boolean literal operands decode char-correct (the class-mix SR validation across the
+        // INSPECT operand set — §14.9.22.3 SR2/SR3's per-class forms — is named Phase-4a residue #12).
+        if (c.literal()?.nonNumericLiteral()?.NATLIT() is { } nlit)
+            return (NationalLiteralOperand(nlit.GetText()), false);
+        if (c.literal()?.nonNumericLiteral()?.BOOLLIT() is { } blit)
+            return (BooleanLiteralOperand(blit.GetText()), false);
         if (c.dataReference() is { } dref)
         {
             if (refs.Resolve(dref) is not { } p)

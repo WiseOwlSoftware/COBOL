@@ -93,10 +93,9 @@ public sealed class LoudGuardTests
     }
 
     [Theory]
-    [InlineData("NATIONAL", "phase: Phase 4a)")]
-    [InlineData("BIT", "phase: Phase 4a)")]
     // POINTER left this set at Phase-4b increment 1 (LIVE, DEVLOG 613); the BINARY-CHAR family left it at
-    // Phase 4 M2-DATA-1 (LIVE, DEVLOG 614) — both bind at 2002+, no 0899.
+    // Phase 4 M2-DATA-1 (LIVE, DEVLOG 614); NATIONAL and BIT left it at Phase 4a M2-DATA-3/4 — all bind at
+    // 2002+, no 0899 (the positive fact below).
     [InlineData("FLOAT-SHORT", "phase: Phase 6)")]
     [InlineData("FLOAT-LONG", "phase: Phase 6)")]
     [InlineData("FLOAT-EXTENDED", "phase: Phase 6)")]
@@ -107,6 +106,24 @@ public sealed class LoudGuardTests
         Assert.True(ed.HasErrors, $"USAGE {keyword} must not compile silently (ISO §13.18.60; not yet implemented)");
         Assert.Contains(ed.Diagnostics,
             d => d.Contains("COBOLNET0899") && d.Contains("not yet implemented") && d.Contains(phase));
+    }
+
+    /// <summary>USAGE NATIONAL / BIT went LIVE at Phase 4a M2-DATA-3/4 (ISO §13.18.60.4 SR12/SR5): each maps
+    /// to its OWN <see cref="Usage"/> member silently at 2002+; below 2002 the introduction gate names the
+    /// edition (COBOLNET0900) — never the retired 0899 posture. (Picture conformance is Analyze's job; a
+    /// picture-LESS elementary entry is the group-fixup 0881.)</summary>
+    [Theory]
+    [InlineData("NATIONAL", Usage.National)]
+    [InlineData("BIT", Usage.Bit)]
+    public void ParseUsage_NationalBit_LiveAt2002_IntroductionGatedAt85(string keyword, Usage expected)
+    {
+        var ok = Ed(2002);
+        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ok, "data item 'T'"));
+        Assert.False(ok.HasErrors, $"USAGE {keyword} must bind cleanly at 2002: {string.Join("; ", ok.Diagnostics)}");
+        var ed85 = Ed(85);
+        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed85, "data item 'T'"));
+        Assert.True(ed85.HasErrors, $"USAGE {keyword} is 2002+; 85 must reject");
+        Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
     }
 
     /// <summary>An unrecognized keyword (a compiler defect — the grammar admits nothing outside the map) is a
@@ -135,8 +152,8 @@ public sealed class LoudGuardTests
     }
 
     [Theory]
-    [InlineData("N(4)")]
-    [InlineData("1(8)")]
+    // N(4) and 1(8) left this set at Phase 4a M2-DATA-3/4 (LIVE — the positive facts below); the external
+    // float symbol E stays a Phase-6 skeleton.
     [InlineData("9V99E+99")]
     public void Analyze_2002Symbol_NotImplementedErrorAt2023(string picture)
     {
@@ -144,6 +161,62 @@ public sealed class LoudGuardTests
         PicInfo.Analyze(picture, Usage.Display, ed, "data item 'T'");
         Assert.True(ed.HasErrors, $"PIC {picture} must not classify silently (§13.18.40.4 — no implementation yet)");
         Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("not yet implemented"));
+    }
+
+    /// <summary>PIC N classifies category NATIONAL with the SR13a IMPLIED usage NATIONAL (no USAGE clause;
+    /// ISO §13.18.60.4 SR13a / §13.18.40.4 GR9) — silent at 2002+, one character position per N.</summary>
+    [Fact]
+    public void Analyze_PicN_ClassifiesNational_UsageImplied()
+    {
+        var ed = Ed(2002);
+        var pic = PicInfo.Analyze("N(4)", Usage.Display, ed, "data item 'T'");
+        Assert.False(ed.HasErrors, string.Join("; ", ed.Diagnostics));
+        Assert.Equal(PicCategory.National, pic.Category);
+        Assert.Equal(Usage.National, pic.Usage);
+        Assert.Equal(4, pic.Length);
+    }
+
+    /// <summary>PIC 1 without a USAGE clause classifies category BOOLEAN at usage DISPLAY (ISO §13.18.60.4
+    /// SR13b / §13.18.40.4 GR8) — silent at 2002+, one boolean position per 1; PIC 1 USAGE BIT takes
+    /// <see cref="Usage.Bit"/> over the SAME representation (GR14 R14, D-B1).</summary>
+    [Fact]
+    public void Analyze_Pic1_ClassifiesBoolean_UsageDisplay()
+    {
+        var ed = Ed(2002);
+        var pic = PicInfo.Analyze("1(8)", Usage.Display, ed, "data item 'T'");
+        Assert.False(ed.HasErrors, string.Join("; ", ed.Diagnostics));
+        Assert.Equal(PicCategory.Boolean, pic.Category);
+        Assert.Equal(Usage.Display, pic.Usage);
+        Assert.Equal(8, pic.Length);
+
+        var edBit = Ed(2002);
+        var bit = PicInfo.Analyze("1(4)", Usage.Bit, edBit, "data item 'T'", explicitUsage: true);
+        Assert.False(edBit.HasErrors, string.Join("; ", edBit.Diagnostics));
+        Assert.Equal(PicCategory.Boolean, bit.Category);
+        Assert.Equal(Usage.Bit, bit.Usage);
+    }
+
+    /// <summary>The SR20/SR5/SR12 usage×picture conformance shapes (ISO §13.18.60.4): PIC N with an explicit
+    /// non-NATIONAL usage and USAGE BIT with a non-boolean picture are declaration errors (0881); the
+    /// SR12-legal national FORMS (numeric/boolean pictures under NATIONAL) stage 0899.</summary>
+    [Fact]
+    public void Analyze_UsagePictureConformance_0881And0899Shapes()
+    {
+        var ed = Ed(2002);
+        PicInfo.Analyze("N(4)", Usage.Display, ed, "data item 'T'", explicitUsage: true);   // SR20
+        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0881"));
+
+        var ed2 = Ed(2002);
+        PicInfo.Analyze("X(4)", Usage.Bit, ed2, "data item 'T'", explicitUsage: true);      // SR5
+        Assert.Contains(ed2.Diagnostics, d => d.Contains("COBOLNET0881"));
+
+        var ed3 = Ed(2002);
+        PicInfo.Analyze("9(4)", Usage.National, ed3, "data item 'T'", explicitUsage: true); // SR12 staged
+        Assert.Contains(ed3.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("national-form numeric"));
+
+        var ed4 = Ed(2002);
+        PicInfo.Analyze("1(4)", Usage.National, ed4, "data item 'T'", explicitUsage: true); // SR12 staged
+        Assert.Contains(ed4.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("national-form boolean"));
     }
 
     /// <summary>A symbol outside the §13.18.40.3 SR2 set is an invalid PICTURE (COBOLNET0808) at every
@@ -247,14 +320,17 @@ public sealed class LoudGuardTests
         Assert.Throws<InvalidOperationException>(() => flt.ProfileInitializer);
     }
 
+    /// <summary>National/boolean LEFT the skeleton set at Phase 4a (M2-DATA-3/4): the storage-mapping members
+    /// now answer the LIVE shapes — a C# string field, national space / boolean-zero defaults (D-N1/D-B1;
+    /// §13.18.63) — instead of throwing the skeleton guard.</summary>
     [Fact]
-    public void SkeletonCategory_StorageMappingMembers_ThrowLoud()
+    public void NationalBoolean_StorageMappingMembers_Live()
     {
-        var national = new PicInfo(PicCategory.National, Usage.Display, Length: 4, Digits: 0, Scale: 0, Signed: false);
-        Assert.Throws<InvalidOperationException>(() => national.ClrType);
-        Assert.Throws<InvalidOperationException>(() => national.DefaultInitializer);
+        var national = new PicInfo(PicCategory.National, Usage.National, Length: 4, Digits: 0, Scale: 0, Signed: false);
+        Assert.Equal("string", national.ClrType);
+        Assert.Equal("new string(' ', 4)", national.DefaultInitializer);
         var boolean = new PicInfo(PicCategory.Boolean, Usage.Bit, Length: 8, Digits: 0, Scale: 0, Signed: false);
-        Assert.Throws<InvalidOperationException>(() => boolean.ClrType);
-        Assert.Throws<InvalidOperationException>(() => boolean.DefaultInitializer);
+        Assert.Equal("string", boolean.ClrType);
+        Assert.Equal("new string('0', 8)", boolean.DefaultInitializer);
     }
 }

@@ -55,7 +55,11 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         BoundFigurative { Kind: 'Z' } => EmitText.UnscaledLit("0"),   // ZERO in a numeric context
         BoundFigurative f => new NumX(EmitText.LoudValue("long", $"figurative '{f.Kind}' in a numeric context"), 0),
         // An alphanumeric literal in a numeric context is an UNSIGNED integer (§14.9.25.3 Table 16 — the
-        // alphanumeric→numeric move; NC105A's MOVE "12345" TO MOVE1), decoded exactly like an alphanumeric field.
+        // alphanumeric→numeric move; NC105A's MOVE "12345" TO MOVE1), decoded exactly like an alphanumeric
+        // field. A NATIONAL literal decodes the same way (§14.9.25.4 GR6d3 — national→numeric as an unsigned
+        // integer under the Latin-1 identity); class BOOLEAN is not a numeric operand (§8.8.1) — loud.
+        BoundStringLiteral { Category: PicCategory.Boolean } =>
+            new NumX(EmitText.LoudValue("long", "boolean literal in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0),
         BoundStringLiteral s => new NumX($"CobolNum.FromAlphanumeric({EmitText.CsLiteral(s.Value)})", 0),
         BoundOperandError e => new NumX(EmitText.LoudValue("long", e.Feature), 0),
         _ => new NumX(EmitText.LoudValue("long", $"bound operand '{op.GetType().Name}'"), 0),
@@ -99,8 +103,13 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         { } pic when p.Item.StoreAsImage =>
             new NumX($"CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName})", pic.Scale),
         // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
-        // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant).
-        { Category: PicCategory.Alphanumeric } => new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0),
+        // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant). A NATIONAL
+        // operand decodes identically (GR6d3 — its digit characters are the Latin-1 digits under D-N4);
+        // class BOOLEAN is not a numeric operand (§8.8.1; Table 16 Boolean→Numeric = No) — loud.
+        { Category: PicCategory.Alphanumeric or PicCategory.National } =>
+            new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0),
+        { Category: PicCategory.Boolean } =>
+            new NumX(EmitText.LoudValue("long", $"boolean operand '{p.Item.CobolName}' in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0),
         // The numeric-edited de-edit lives on the INSTANCE entry (it needs the SPECIAL-NAMES config); a static
         // caller (the string-channel intrinsic renderer) reaching one is a staged-out shape — loud (§1.4).
         { Category: PicCategory.NumericEdited } =>

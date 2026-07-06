@@ -46,6 +46,16 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
         _ => EmitText.FigurativeFill(kind),
     };
 
+    /// <summary>The figurative fill char for a receiver/anchor of the given data <paramref name="cat"/>: the
+    /// ALPHANUMERIC program collating sequence governs HIGH-/LOW-VALUE ONLY for alphanumeric contexts. Category
+    /// national and boolean use their OWN sequence (D-N3: HIGH/LOW-VALUE = U+00FF/U+0000 — the alphanumeric PCS
+    /// never applies to national/boolean data, §8.3.3.6 GR6/GR7 over the NATIONAL sequence), so they take the
+    /// PCS-independent <see cref="EmitText.FigurativeFill"/> pins.</summary>
+    public string FigFill(char kind, Binding.PicCategory? cat) =>
+        cat is Binding.PicCategory.National or Binding.PicCategory.Boolean
+            ? EmitText.FigurativeFill(kind)
+            : FigFill(kind);
+
     /// <summary>The current division working scale (the receiving item's scale).</summary>
     public int TargetScale { get; set; }
 
@@ -96,9 +106,20 @@ internal static class EmitText
         _ => "' '",
     };
 
-    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) to its character value.</summary>
-    public static string DecodeCobolString(string raw) =>
-        raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"' ? raw[1..^1].Replace("\"\"", "\"") : raw;
+    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) — or a national/boolean
+    /// literal (<c>N"…"</c>/<c>B"…"</c>, ISO §8.3.3.5/§8.3.3.4: the prefix letter is part of the token) — to its
+    /// character value. Safe unconditionally: no other raw operand shape starts with a letter immediately
+    /// followed by a quote.</summary>
+    public static string DecodeCobolString(string raw)
+    {
+        if (raw.Length >= 3 && raw[0] is 'N' or 'n' or 'B' or 'b' && raw[1] is '"' or '\'')
+            raw = raw[1..];
+        // Unwrap EITHER delimiter (ISO §8.3.1.2 — quotation-mark and apostrophe forms are equal-standing;
+        // the delimiters are not part of the value, and a doubled OPENING quote is one embedded quote).
+        return raw.Length >= 2 && raw[0] is '"' or '\'' && raw[^1] == raw[0]
+            ? raw[1..^1].Replace(new string(raw[0], 2), raw[0].ToString())
+            : raw;
+    }
 
     /// <summary>The character value of a figurative <c>ALL literal-1</c> in a WIDTH-SPECIFIED context (a VALUE clause /
     /// a fixed-length receiver / a compared-with operand; ISO §8.3.3.6.4 GR2): the literal is repeated character by

@@ -168,6 +168,32 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 **Rejected alternatives.** decimal (software, not hardware-native) and BigInteger (heap-allocating) — both rejected by the owner.
 
+### D8. National and boolean data ride the fixed-width STRING substrate (Phase 4a, 2026-07-05 — the M2-DATA-3/4 design in `PHASE4_RECONCILIATION.md` carries the full decision set D-N1..D-N4/D-B1).
+
+- **D-N1 national**: an elementary national item is a plain C# `string` of `Length` characters — .NET strings are
+  natively UTF-16, so "two bytes per character position" is the documented implementor choice (§13.18.60.4 GR8 +
+  §8.1.2 NOTE 2). ALL width machinery stays CHARACTER-position based; `ImageWidth` is NEVER byte-doubled.
+- **D-N2 byte≠char containment**: every byte-addressed surface REFUSES a national leaf loud (REDEFINES ComputeTier,
+  EXTERNAL/ADDRESS-OF/BASED cells via ForceStringCanonical, FD/SD records, SORT keys) until the 2-byte layout
+  residue lands (RESIDUE-11 coordination with the pointer track).
+- **D-N3 collating**: national comparisons order by UTF-16 ordinal (the implementor default national sequence);
+  the ALPHANUMERIC program collating sequence never applies (separate sequences — §8.8.4.2.9; the 256-entry
+  weight table would alias national chars through `& 0xFF`).
+- **D-N4 repertoire**: Latin-1 (≤ U+00FF) this phase; the only wider-char source is an N"…" literal, 0814 at bind.
+- **D-B1 boolean**: one alphanumeric character '0'/'1' per boolean position for BOTH usage display AND usage BIT —
+  the §13.18.40.4 GR14 R14 license, a PERMANENTLY conforming choice. byte=char HOLDS: boolean leaves are admitted
+  at every character surface (Tier-B windows, images, records, cells for the display form). The category
+  difference is carried entirely by the CobolString pad parameter ('0' fills, §14.6.8.6).
+
+**Rationale.** The string substrate gives MOVE/compare/ref-mod/images for free on the ONE proven machinery;
+the alternatives (a 1-byte national size, C# bool for PIC 1, bit-packing) each break a spec surface —
+see the reconciliation design's F4 and the residue ledger.
+
+**Rejected alternatives.** (a) The C# mapping sketch's original `PIC 1 → bool` — superseded (multi-position
+PIC 1(n)/fills/ref-mod need character semantics; a bool cannot carry them). (b) GR8's size-equal-alphanumeric
+national — rejected for forward-compat (the non-Latin-1/NX"/BYTE-LENGTH residue presumes 2-byte). (c) True
+bit-packing for USAGE BIT — optional forever under R14; revisit only with GROUP-USAGE BIT.
+
 ## C# mapping
 
 CONCRETE COBOL→C# MAPPINGS:
@@ -178,7 +204,8 @@ CONCRETE COBOL→C# MAPPINGS:
   05 AMT   PIC S9(5)V99 COMP-3.           →  public long Amt; // unscaled (7 digits), scale=2; profile threads truncation=Packed
   05 BIG   PIC 9(30).                     →  public Int128 Big;  // WidePrecision → Int128
   05 RATE  COMP-2.                        →  public double Rate;
-  05 FLAG  PIC 1.                         →  public bool Flag;   // PICTURE symbol '1' (boolean) is 2002+ — diagnose at --std 85 (per-edition gating section)
+  05 FLAG  PIC 1(4).                      →  public string Flag; // boolean: one '0'/'1' CHAR per position (D8) — NOT a C# bool (superseded 2026-07-05: the original bool sketch predated multi-position PIC 1(n), MOVE fills, and ref-mod; §13.18.40.4 GR14 R14 licenses the character representation). 2002+ — 0900 at --std 85.
+  05 NNAME PIC N(4).                      →  public string Nname; // national: one UTF-16 char per national position (D8); usage NATIONAL implied (§13.18.60.4 SR13a). 2002+ — 0900 at --std 85.
 
 — Group → nested record struct —
   01 WS-REC.                              →  record struct _T_WsRec { public string Name; public long Ct; }

@@ -13,6 +13,99 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 620 — 2026-07-05 21:26 PDT — the M2-DATA-3/4 adversarial review wave: 9 real findings fixed same change set
+
+**The proven find→verify wave over the track-(a) diff (5 lenses × 2-skeptic verify) confirmed 6 findings by dual
+skeptics; the Fable-5 limit then killed 34 of 53 verify agents mid-run, so I switched to Opus 4.8 and adjudicated
+the unverified findings myself (each re-checked against the spec text + a live CLI probe). 9 real bugs fixed in
+THIS change set; the rest refuted or staged with a name.** This is exactly why the wave exists — the goldens were
+byte-exact and every battery green, yet the review surfaced NINE genuine defects, several silent-wrong-value.
+
+**Confirmed + fixed (all probed on the prebuilt CLI):** (1) **apostrophe literals `N'…'`/`B'…'` stored their
+quotes** — all three DecodeCobolString twins unwrapped only `"`; now either delimiter + doubled-opening-quote
+collapse (§8.3.1.2), which ALSO closed a pre-existing plain-`'…'` STRINGLIT leak; (2) **§14.9.25.3 SR8** — a
+BINARY-LONG→national MOVE compiled silently and destroyed the value (`00000`); added the SR8 guard ahead of the
+Table-16 arms; (3) **figurative → ref-mod slice filled only position 1** (`MOVE ZERO TO N5(2:3)` → `A0␠␠E`); new
+`RefModPlace.WriteFill` fills every position (§8.3.3.6.4 GR2); (4) **boolean figurative relation dropped the
+zero-pad** (`IF B(1:2) = ZERO` compared unequal); threaded `pad:'0'` like the sibling legs; (5) **level-88 VALUE
+category unchecked both directions** — `88 X VALUE B"01"` under PIC X accepted; routed through the ONE
+ValidateValueCategory; (6) **class conditions on boolean** — `IS NUMERIC` on USAGE BIT answered a tautology;
+new CheckClassConditionOperand (§8.8.4.4.3 SR8/SR4, DISPLAY-form boolean IS NUMERIC stays legal).
+
+**Self-adjudicated real (skeptics died) + fixed:** (7) **`N"…"`/`B"…"` intrinsic args were a hard PARSE error** —
+the SUB_NATLIT/SUB_BOOLLIT tokens were added to the lexer in 619 but NOT to the `subToken` parser rule, so the
+Intrinsics decode arms were DEAD CODE and DEVLOG 619's "cured FUNCTION LENGTH(N\"AB\")" claim was aspirational;
+added the two subToken alternatives — now genuinely cured (LENGTH(N"AB")=2); (8) **`ALL SPACES`/`ALL ZEROS` VALUE
+falsely rejected** on PIC N/PIC 1 (the National arm rejected any ALL-prefix); (9) **SET 88 TO TRUE stored the
+figurative WORD** (`88 F VALUE ZERO` → stored "ZERO"); EmitSet now fills via FigurativeWordFill. Plus two
+correctness riders: **national/boolean HIGH/LOW-VALUE fill now uses the D-N3 pins** not the alphanumeric PCS
+extreme (new `FigFill(kind, cat)`), and the **USAGE SR citations corrected `.4 → .3`** (SRs live in §13.18.60.3),
+and the **double COBOLNET0900** for `PIC N USAGE NATIONAL` at <2002 suppressed.
+
+**Refuted/staged:** `national_data` "asserted by no runner" REFUTED (CorpusRunnerTests byte-compares it);
+zero-length `B""` named as residue #23 (the lexer's `[01]+` can't express it; `[01]*` risks ambiguity).
+
+**Battery:** conformance **1776** (+16: 9 regression facts in the new NationalBooleanReviewFixTests + 5 negative
+cases + the wave's own) · unit **159** · legacy ConformanceTests **55** · FULL legacy guard on the subToken .g4
+change. The as-built + this disposition list live in docs/PHASE4_RECONCILIATION.md. ⚠ Process note: a workflow
+that dies on a model-usage limit is not a failed review — its Find phase completed and the confirmed set + the
+one-vote findings were all actionable; the fix is to finish verification in-session, which caught all 9.
+
+## Entry 619 — 2026-07-05 20:21 PDT — Phase 4 track (a) increment 1: NATIONAL + BOOLEAN data end-to-end (M2-DATA-3/4)
+
+**Both 2002 data categories are LIVE on the string substrate, both goldens byte-exact, and two owner directives
+landed mid-flight: a BLANKET grammar grant ("all required grammar changes without further owner approval" —
+`feedback_grammar_approval` rewritten) and "use worktrees and maximum parallelism where beneficial" (the
+worktree stale-base hazard re-verified CURED: fresh worktrees base at HEAD; the leftover `worktree-agent-a0cfb422`
+branch — the likely DEVLOG-334 cause — deleted).**
+
+**The cadence, parallel edition.** Recon workflow #1 (4 readers → xhigh synthesis) produced the decision-complete
+M2-DATA-3/4 design (now in `PHASE4_RECONCILIATION.md`); recon workflow #2 ran CONCURRENTLY for increment 2 (the
+newly-unblocked B-AND/B-OR/B-XOR/B-NOT leg — its design is spliced beside it, HARD-dependent on this increment);
+a worktree test-author wrote the 4 new test batteries in parallel with the compiler work on main (it died on a
+session limit mid-partition — files A–D harvested from its worktree, E/F/G finished in-session). Two
+spec adjudications verified IN-SPEC before acting: Table 16 (:28847) marks MOVE national→alphanumeric invalid —
+the golden's N2A leg was cut (negative case `move-national-to-an` enforces it); the .out re-baselined to
+full-width DISPLAY (§14.9.11.4 GR6, the DEVLOG-597 posture; `LegacyDivergent` carries it).
+
+**What landed** (the design's anchor list, all sites): PicInfo un-skeletoned (Analyze N/1 classification +
+SR5/SR12/SR13/SR20 usage resolution; ParseUsage → the POINTER pattern; the IsUnimplementedSkeleton guard now
+floats-only; `NationalUsagePending`/`BitUsagePending` markers for picture-less entries adjudicated at the
+group-fixup pass); N"…"/B"…" literals bind at EVERY funnel (LiteralOperand + ComparisonOperand + EVALUATE +
+INSPECT + the SUBSCRIPT-mode intrinsic walker) with the 0814 band (>8191, non-Latin-1); MOVE Table 16 legality
+(0819 + SR7, `MoveCategoryLegality` beside the figurative gates); boolean relations equality-only via the ONE
+`CheckedRelational` factory at all 5 BoundRelational sites (0844 — EVALUATE THRU ranges ride free, §14.9.13.3
+SR4); comparisons category-dispatched (boolean zero-extend value compare / national ordinal, NEVER the
+alphanumeric PCS — the `& 0xFF` weight-table alias is unreachable); CobolString gained pad params (Store/
+SpliceInto/Compare — defaults byte-identical); VALUE/level-88 validation (0898 both directions + SR29 boolean
+THROUGH; national THROUGH staged 0899); INITIALIZE Boolean/National categories (GR6c fills); D-N2 byte-surface
+guards (ComputeTier reject, FD/SD record gate, SORT-key guard, the cell gate re-worded — display-form boolean
+passes DELIBERATELY, byte=char under D-B1); registry rows LIVE + the new `national-edited-2002` pending row
+(json + registry, drift-locked).
+
+**Grammar (under the new grant): SUB_NATLIT/SUB_BOOLLIT** — in SUBSCRIPT mode `N"AB"` lexed as
+SUB_IDENTIFIER('N') + SUB_STRINGLIT, silently misbinding `FUNCTION LENGTH(N"AB")`; the proper-token fix
+(feedback_proper_fixes, literally the lexer-token case).
+
+**Honest misses caught by the process.** (1) The stale-build trap AGAIN (the standing lesson): the CLI dir held
+16:23 Frontend/Runtime dlls while probing 19:51 code — `--no-incremental` after `build-server shutdown` cured it.
+(2) A THIRD DecodeCobolString twin (StatementBinder-local) shadowed the two the design named — found only because
+the boolean golden probe stored raw `B"01`; all three per-layer twins now strip the N/B prefix and name each
+other. (3) W1's blind tests found FIVE real holes the goldens missed: the 88-predicate renderer spliced raw
+B-literal text into C# (category-aware isString + pad/collate fix); a B-literal in an ADD emitted raw text
+(NumLiteral 0844 arm); INSPECT's usage guard blocked spec-legal national targets (SR1 admits national — widened);
+an EXTERNAL record with a rejected leaf SILENTLY dropped its sharing semantics (CallMakeExternal now 0899s with
+the RejectReason); rejected-class references now carry WHY at runtime (`RefFailure` threads RejectReason). Two
+W1 test sources were themselves non-conforming (bare CALL literals need BY CONTENT §14.9.4.2; COMPUTE's
+primaryExpression is structurally numeric-only) — fixed with citations.
+
+**Battery:** greenfield conformance (full run pending at entry time — the NationalBoolean batteries 56/56, the
+two goldens byte-exact via CLI probe) · unit 159/159 (was 130) · LEGACY ConformanceTests 55/55 with the ONE new
+`LegacyDivergent` (national_data — trailing-trim, §14.9.11.4 GR6) · FULL legacy guard next (the .g4 change).
+Deep-dive currency: `COBOLNET_DATA_MODEL_DESIGN.md` D8 records D-N1..D-N4/D-B1 and supersedes the stale
+`PIC 1 → bool` mapping sketch. Residue: the reconciliation's 22-item ledger (bit operators = increment 2, design
+ready; NX"/BX"; national-edited; -N intrinsics; RESIDUE-11 coordination…).
+
 ## Entry 618 — 2026-07-05 14:47 PDT — CI cure (legacy-runner GreenfieldOnly exclusions) + the session state-save
 
 **An honest miss caught at session close: all three of today's pushes (615/616/617) ran RED on CI while every

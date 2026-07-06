@@ -160,7 +160,8 @@ public sealed class ReferenceResolver(DataBinder data)
                     if (PlaceForItem(leaf, leaf.Occurs is null ? [] : [k.ToString()]) is not { } lpRaw) return null;
                     Place lp = lpRaw;
                     bool stringValued = leaf.StoreAsImage || lp is RedefViewPlace
-                        || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited;
+                        || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                            or PicCategory.National or PicCategory.Boolean;
                     // A typed NUMERIC-DISPLAY leaf participates through its character image (the alias is an
                     // alphanumeric view of the span, §13.18.45 — NC252A's PIC 999 leaves under RENAMES-TEST-1).
                     if (!stringValued)
@@ -186,7 +187,10 @@ public sealed class ReferenceResolver(DataBinder data)
             if (item.Pic is not { Usage: Usage.Display, IsFloat: false }) return null;
             if (!item.StoreAsImage && inner is not RedefViewPlace) inner = new NumericImagePlace(inner);
         }
-        else if (item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.NumericEdited)) return null;
+        // National/boolean items reference-modify in their OWN character positions (§8.4.3.3 GR1/GR5a — a
+        // national position is one UTF-16 char, a bit position one '0'/'1' char, under D-N1/D-B1).
+        else if (item.Pic?.Category is not (PicCategory.Alphanumeric or PicCategory.NumericEdited
+            or PicCategory.National or PicCategory.Boolean)) return null;
         if (cleanRef is not null)
         {
             // The PARSED refModSpec form `(arithmetic-expression : [arithmetic-expression])` (ISO §8.4.2.4 —

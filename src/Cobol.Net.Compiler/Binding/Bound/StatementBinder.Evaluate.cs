@@ -106,10 +106,10 @@ public sealed partial class StatementBinder
             var lo = BindValueOperand(range.valueOperand(0));
             var hi = BindValueOperand(range.valueOperand(1));
             return new BoundLogical("&&",
-                [new BoundRelational(left, ">=", lo), new BoundRelational(left, "<=", hi)]);
+                [CheckedRelational(left, ">=", lo), CheckedRelational(left, "<=", hi)]);
         }
         if (item.valueOperand() is { } v)
-            return new BoundRelational(left, "==", BindValueOperand(v));
+            return CheckedRelational(left, "==", BindValueOperand(v));
         return new BoundConditionError($"EVALUATE WHEN object '{item.GetText()}'");
     }
 
@@ -135,7 +135,9 @@ public sealed partial class StatementBinder
             : cls.ALPHABETIC_LOWER() is not null ? 'L'
             : null;
         if (kind is not { } k) return new BoundConditionError($"class condition '{cls.GetText()}'");
-        return new BoundClassCondition(BindValueOperand(vo), k, Negated: subject.NOT() is not null);
+        var opnd = BindValueOperand(vo);
+        CheckClassConditionOperand(opnd, k);   // §8.8.4.4.3 SR8/SR4 — boolean-operand guard
+        return new BoundClassCondition(opnd, k, Negated: subject.NOT() is not null);
     }
 
     /// <summary>The boolean value of a condition that is a SOLE <c>TRUE</c>/<c>FALSE</c> literal, else null.</summary>
@@ -156,6 +158,8 @@ public sealed partial class StatementBinder
     {
         if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
         if (vo.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
+        if (vo.nonNumericLiteral()?.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
+        if (vo.nonNumericLiteral()?.BOOLLIT() is { } bl) return BooleanLiteralOperand(bl.GetText());
         if (vo.arithmeticExpression() is { } expr)
             return SoleDataRef(expr) is { } dref ? FieldOperand(dref)
                 : SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(CheckLiteral(lit))

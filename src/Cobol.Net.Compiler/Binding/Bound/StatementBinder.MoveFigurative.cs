@@ -124,6 +124,123 @@ public sealed partial class StatementBinder
         }
     }
 
+    /// <summary>The receiver-view data category of a MOVE target for the §14.9.25.3 Table 16 legality check:
+    /// a reference-modified receiver is the unique elementary item of its INNER's class — alphanumeric for the
+    /// classic categories (§8.4.3.3 GR6), but ref-mod of a national/boolean item stays national/boolean (GR1
+    /// positions are national/boolean positions; GR5a). Groups return null (a group move is a conversion-free
+    /// character copy, GR4 — Table 16 does not reach it; bit/national GROUP-USAGE groups are grammar residue).</summary>
+    private static PicCategory? MoveReceiverCategory(Place t) => t switch
+    {
+        _ when t.Item.IsGroup || t.Item.Pic is null => null,
+        RefModPlace rm => rm.Inner.Item.Pic?.Category switch
+        {
+            PicCategory.National => PicCategory.National,
+            PicCategory.Boolean => PicCategory.Boolean,
+            _ => PicCategory.Alphanumeric,
+        },
+        _ => t.Item.Pic!.Category,
+    };
+
+    /// <summary>
+    /// The §14.9.25.3 Table 16 category-legality arms for the 2002 categories (boolean / national), plus SR7
+    /// (a figurative whose characters are not boolean shall not move to a boolean item) — all COBOLNET0819,
+    /// version-invariant at ≥2002 (below 2002 the operands themselves are already 0900-introduction-gated).
+    /// Only the arms Table 16 marks "No" around the NEW categories are checked here — the classic
+    /// alphanumeric/numeric rows keep their existing paths (VCR rows 1/92/128 above). A GROUP sender or
+    /// receiver is exempt (GR4 group moves copy characters without conversion).
+    /// </summary>
+    private void MoveCategoryLegality(BoundOperand source, IReadOnlyList<Place> targets)
+    {
+        // ── The SENDER's category view ──
+        PicCategory? senderCat = source switch
+        {
+            BoundStringLiteral sl => sl.Category,
+            BoundAllLiteral al => al.Category,
+            BoundFieldOperand { Place: RefModPlace rm } => MoveReceiverCategory(rm),   // same view rule
+            BoundFieldOperand f when f.Place.Item.IsGroup || f.Place.Item.Pic is null => null,   // GR4
+            BoundFieldOperand f => f.Place.Item.Pic!.Category,
+            BoundNumericLiteral => PicCategory.Numeric,
+            // A computed expression is numeric unless it is an intrinsic call with a string result category.
+            BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
+            BoundComputedOperand => PicCategory.Numeric,
+            _ => null,   // figuratives (SR7 below) / errors
+        };
+        bool senderNonInteger = source switch
+        {
+            BoundFieldOperand f => f.Place.Item.Pic is { Category: PicCategory.Numeric } p && (p.IsFloat || p.Scale > 0),
+            BoundNumericLiteral nl => nl.Text.Contains('.'),
+            _ => false,
+        };
+        bool senderIsAlphabetic = source is BoundFieldOperand fa && fa.Place.Item.Pic is { IsAlphabetic: true };
+        bool senderIsAnEdited = source is BoundFieldOperand fe
+            && fe.Place.Item.Pic is { Category: PicCategory.Alphanumeric, EditMask: not null };
+        // §14.9.25.3 SR8: a fixed-width binary sender (BINARY-CHAR/-SHORT/-LONG/-DOUBLE) shall reference
+        // only a numeric or numeric-edited receiver — SR10 (Table 16) applies only to cases NOT covered by
+        // SR8, so this precedes the Table-16 arms. The family is 2002+ (absent from the '85 corpus), so
+        // the check is corpus-safe at every receiver category.
+        bool senderBinaryFamily = source is BoundFieldOperand fb
+            && fb.Place.Item.Pic is { Usage: Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble };
+
+        foreach (var t in targets)
+        {
+            if (MoveReceiverCategory(t) is not { } recvCat) continue;   // group receiver — GR4 exempt
+            string where = $"MOVE … TO {t.Item.CobolName}";
+
+            if (senderBinaryFamily && recvCat is not (PicCategory.Numeric or PicCategory.NumericEdited))
+            {
+                data.Edition.Error("COBOLNET0819", $"{where}: a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending "
+                    + "operand shall reference only a numeric or numeric-edited receiver (ISO §14.9.25.3 SR8)");
+                continue;
+            }
+
+            if (recvCat is PicCategory.Boolean)
+            {
+                // SR7: SPACE/QUOTE/HIGH-VALUE/LOW-VALUE (and ALL of non-boolean characters) never move to a
+                // boolean item; ZERO is boolean zeros by context (§8.3.3.6.4 GR4). Table 16 Boolean column:
+                // senders alphabetic / alphanumeric-edited / numeric / numeric-edited are "No".
+                if (source is BoundFigurative { Kind: not 'Z' })
+                    data.Edition.Error("COBOLNET0819", $"{where}: a figurative constant whose characters are "
+                        + "not boolean characters shall not be moved to a boolean data item "
+                        + "(ISO §14.9.25.3 SR7)");
+                else if (source is BoundAllLiteral bal && (bal.Literal.Length == 0
+                             || !bal.Literal.All(c => c is '0' or '1')))
+                    data.Edition.Error("COBOLNET0819", $"{where}: ALL \"{bal.Literal}\" contains non-boolean "
+                        + "characters and shall not be moved to a boolean data item (ISO §14.9.25.3 SR7)");
+                else if (senderIsAlphabetic || senderIsAnEdited
+                         || senderCat is PicCategory.Numeric or PicCategory.NumericEdited)
+                    data.Edition.Error("COBOLNET0819", $"{where}: MOVE of an alphabetic, alphanumeric-edited, "
+                        + "numeric, or numeric-edited operand to a boolean data item is invalid "
+                        + "(ISO §14.9.25.3 SR10, Table 16)");
+            }
+            else if (recvCat is PicCategory.National)
+            {
+                // Table 16 National column: only a NON-integer numeric sender is "No".
+                if (senderNonInteger)
+                    data.Edition.Error("COBOLNET0819", $"{where}: MOVE of a non-integer numeric operand to a "
+                        + "national data item is invalid (ISO §14.9.25.3 SR10, Table 16)");
+            }
+            else if (senderCat is PicCategory.National)
+            {
+                // Table 16 National row: alphabetic / alphanumeric / alphanumeric-edited receivers are "No"
+                // (FUNCTION DISPLAY-OF §15.26 is the sanctioned national→alphanumeric narrowing — residue).
+                if (recvCat is PicCategory.Alphanumeric)
+                    data.Edition.Error("COBOLNET0819", $"{where}: MOVE of a national sending operand to an "
+                        + "alphabetic, alphanumeric, or alphanumeric-edited receiver is invalid (ISO "
+                        + "§14.9.25.3 SR10, Table 16; FUNCTION DISPLAY-OF is the sanctioned conversion)");
+            }
+            else if (senderCat is PicCategory.Boolean)
+            {
+                // Table 16 Boolean row: alphabetic / numeric / numeric-edited receivers are "No"
+                // (boolean → plain alphanumeric is "Yes").
+                if (t.Item.Pic is { IsAlphabetic: true }
+                    || recvCat is PicCategory.Numeric or PicCategory.NumericEdited)
+                    data.Edition.Error("COBOLNET0819", $"{where}: MOVE of a boolean sending operand to an "
+                        + "alphabetic, numeric, or numeric-edited receiver is invalid "
+                        + "(ISO §14.9.25.3 SR10, Table 16)");
+            }
+        }
+    }
+
     /// <summary>
     /// Ref-mod STORE backing (the W2 adversarial-review fix, DEVLOG 595): a MOVE into a reference-modified
     /// slice of a numeric USAGE-DISPLAY item writes CHARACTERS into the item's character positions

@@ -748,6 +748,9 @@ public sealed partial class StatementBinder
             return arg.Pic?.Category switch
             {
                 PicCategory.Alphanumeric or PicCategory.NumericEdited => null,
+                // Table 16: boolean→alphanumeric is a conforming MOVE; national→alphanumeric is NOT
+                // (§14.9.25.3 — DISPLAY-OF is the sanctioned narrowing), so National keeps the mismatch arm.
+                PicCategory.Boolean => null,
                 PicCategory.Numeric when arg.Pic is { IsFloat: false, Scale: 0 } => null,   // MOVE integer→alnum
                 _ => "no conforming MOVE rule applies (ISO §14.8.2.2 rule 2 / §14.9.25)",
             };

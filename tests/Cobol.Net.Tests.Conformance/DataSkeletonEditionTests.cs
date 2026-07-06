@@ -5,13 +5,15 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// The W2 national/boolean/pointer/float data-skeleton × edition matrix (roadmap Phase 2; VERSION_TEST_MATRIX
-/// introduction invariants). Every 2002-introduced data construct that COBOL.NET recognizes but does not yet
-/// implement — USAGE NATIONAL / BIT / POINTER / OBJECT REFERENCE, the BINARY-CHAR and FLOAT-SHORT families
-/// (ISO §13.18.60), and the PICTURE symbols N / 1 / E (ISO §13.18.40.4 GR8/GR9/GR13b, §8.5.2.5/§8.5.2.10) —
-/// must NEVER compile silently: below 2002 the ConstructRegistry introduction gate rejects (COBOLNET0900 naming
-/// COBOL-2002); at 2002/2014/2023 the COBOLNET0899 not-implemented error names the owning roadmap phase.
-/// Before this sweep each of these silently misbound to USAGE DISPLAY / "pure numeric, zero digits".
+/// The W2 data-skeleton × edition matrix (roadmap Phase 2; VERSION_TEST_MATRIX introduction invariants). Every
+/// 2002-introduced data construct that COBOL.NET recognizes but does not yet implement — the FLOAT-SHORT family
+/// (ISO §13.18.60) and the PICTURE symbol E (ISO §13.18.40.4 GR13b) — must NEVER compile silently: below 2002
+/// the ConstructRegistry introduction gate rejects (COBOLNET0900 naming COBOL-2002); at 2002/2014/2023 the
+/// COBOLNET0899 not-implemented error names the owning roadmap phase. Before this sweep each of these silently
+/// misbound to USAGE DISPLAY / "pure numeric, zero digits". The constructs that have since gone LIVE (USAGE
+/// OBJECT REFERENCE, USAGE POINTER, the BINARY-CHAR family, and — Phase 4a M2-DATA-3/4 — NATIONAL data
+/// (PIC N / USAGE NATIONAL, §8.5.2.10) and BOOLEAN data (PIC 1 / USAGE BIT, §8.5.2.5)) keep only the
+/// introduction edge: they compile at 2002+ and 0900 at 85.
 /// </summary>
 public sealed class DataSkeletonEditionTests
 {
@@ -34,13 +36,15 @@ public sealed class DataSkeletonEditionTests
     /// the live ones are exercised positively (BinaryCharFamily_CompilesAt2002Plus_RejectedAt85).</summary>
     public static TheoryData<string, string, string> SkeletonConstructs() => new()
     {
-        { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "phase: Phase 4a)" },
-        { "BIT1", "01 WS-B PIC 1(4) USAGE BIT.", "phase: Phase 4a)" },
+        // NATIONAL/BOOLEAN data went LIVE at Phase 4a (M2-DATA-3/4) — PIC N / PIC 1 / USAGE BIT left this
+        // set (the positive NationalData_/BooleanData_ facts below). The staged SUB-LEGS of the live rows
+        // remain skeleton shapes: national-form numerics (§13.18.60.4 SR12) and NATIONAL-EDITED pictures
+        // (§13.18.40.4 GR10) — 0899 "Phase 4a residue" at 2002+, 0900 at 85.
+        { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "Phase 4a residue" },    // national-form numeric, SR12
+        { "NED1", "01 WS-M PIC NN0NN.", "Phase 4a residue" },                  // national-edited, GR10
         { "FLS1", "01 WS-H USAGE FLOAT-SHORT.", "phase: Phase 6)" },
         { "FLL1", "01 WS-I USAGE FLOAT-LONG.", "phase: Phase 6)" },
         { "FLX1", "01 WS-J USAGE FLOAT-EXTENDED.", "phase: Phase 6)" },
-        { "PICN", "01 WS-N PIC N(4).", "phase: Phase 4a)" },                   // national picture, §13.18.40.4 GR9
-        { "PIC1", "01 WS-1 PIC 1(8).", "phase: Phase 4a)" },                   // boolean picture, §13.18.40.4 GR8
         { "PICE", "01 WS-EF PIC 9V99E+99.", "phase: Phase 6)" },               // external float, §13.18.40.4 GR13b
     };
 
@@ -126,6 +130,46 @@ public sealed class DataSkeletonEditionTests
         }
         var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKBIN85", wsEntry), 85);
         Assert.False(ok85, "the BINARY-CHAR family is a 2002 introduction — rejected at --std 85");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
+    }
+
+    /// <summary>NATIONAL data went LIVE at Phase 4a M2-DATA-3 (ISO §8.5.2.10 / §13.18.40.4 GR9 /
+    /// §13.18.60.4 SR13a): a PIC N item (usage implied NATIONAL) compiles at every 2002+ edition — one UTF-16
+    /// char per national position (D-N1) — and stays introduction-gated at 85 (COBOLNET0900 naming COBOL-2002).
+    /// The former 0899 not-implemented posture is retired.</summary>
+    [Theory]
+    [InlineData("01 WS-N PIC N(4).")]
+    [InlineData("01 WS-N PIC N(4) USAGE NATIONAL.")]
+    public void NationalData_CompilesAt2002Plus_RejectedAt85(string wsEntry)
+    {
+        foreach (int edition in new[] { 2002, 2014, 2023 })
+        {
+            var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKNAT" + edition, wsEntry), edition);
+            Assert.True(ok, $"a national item must compile at --std {edition}: {string.Join("\n", errors)}");
+        }
+        var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKNAT85", wsEntry), 85);
+        Assert.False(ok85, "national data is a 2002 introduction — rejected at --std 85");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
+        EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
+    }
+
+    /// <summary>BOOLEAN data went LIVE at Phase 4a M2-DATA-4 (ISO §8.5.2.5 / §13.18.40.4 GR8/GR14 R14 /
+    /// §13.18.60.4 SR5): a PIC 1 item (display- or bit-form — the same one-'0'/'1'-character-per-position
+    /// representation, D-B1) compiles at every 2002+ edition and stays introduction-gated at 85. The former
+    /// 0899 not-implemented posture is retired.</summary>
+    [Theory]
+    [InlineData("01 WS-B PIC 1(8).")]
+    [InlineData("01 WS-B PIC 1(4) USAGE BIT.")]
+    public void BooleanData_CompilesAt2002Plus_RejectedAt85(string wsEntry)
+    {
+        foreach (int edition in new[] { 2002, 2014, 2023 })
+        {
+            var (ok, errors, _) = EditionHarness.CompileFull(Prog("DSKBOOL" + edition, wsEntry), edition);
+            Assert.True(ok, $"a boolean item must compile at --std {edition}: {string.Join("\n", errors)}");
+        }
+        var (ok85, errors85, _) = EditionHarness.CompileFull(Prog("DSKBOOL85", wsEntry), 85);
+        Assert.False(ok85, "boolean data is a 2002 introduction — rejected at --std 85");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOLNET0900");
         EditionHarness.AssertHasDiagnostic(errors85, "COBOL-2002");
     }

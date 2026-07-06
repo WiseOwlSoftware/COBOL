@@ -204,6 +204,12 @@ public sealed partial class StatementBinder
                     return new BoundUnsupported($"SORT table key '{kn}' — keys shall not be described with / "
                         + "subordinate to an inner OCCURS (ISO §14.9.40.3 SR14e), and a REDEFINES-view key in the "
                         + "typed-array path is deferred");
+                // A NATIONAL key orders under the NATIONAL collating sequence (§14.9.40 GR5b) — the key
+                // comparator's collating leg for national is Phase-4a residue #5 (file-sort national keys are
+                // already blocked by the FD/SD record gate). Staged loud, never a wrong ordinal.
+                if (key.Pic is { Category: PicCategory.National })
+                    data.Edition.Error("COBOLNET0899", $"SORT with a national key ('{kn}') is recognized but "
+                        + "not yet implemented — national key collating (Phase 4a residue; ISO §14.9.40 GR5b)");
                 keys.Add(new BoundTableSortKey(desc, path, key));
             }
         }

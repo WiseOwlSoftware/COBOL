@@ -183,6 +183,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         ClassifyRedefinesClasses();
         OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
         ResolveFiles();
+        GateNationalRecords();   // D-N2: the record codec is single-byte — national FD/SD leaves stage loud
         ResolveReports();   // SOURCE/CONTROL/SUM items + owning files + line widths (ISO §13.18.46/.53/.16/.54)
         CallBindExternalAndGlobal(program);   // EXTERNAL 01s → run-unit image backings; GLOBAL 01s collected (ISO §13.18.22 / §13.18.27)
         PtrBindBasedAndAddressables(program); // BASED templates + ADDRESS-OF-taken items → cell backings (ISO §13.18.5 / §8.4.3.11; Phase-4b inc 2)
@@ -526,9 +527,74 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return FileAccessMode.Sequential;
     }
 
-    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) to its character value.</summary>
-    private static string DecodeString(string raw) =>
-        raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"' ? raw[1..^1].Replace("\"\"", "\"") : raw;
+    /// <summary>VALUE-clause literal/category conformance for national and boolean receivers (ISO §13.18.63,
+    /// the COBOLNET0898 band). SR5: a category-national item takes a national literal or a figurative constant
+    /// (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE / ZERO, §8.3.3.6 GR1/GR6/GR7). SR10: a category-boolean item
+    /// takes a boolean literal or figurative ZERO (no boolean SPACE/QUOTE/HIGH/LOW exists — the §14.9.25.3 SR7
+    /// posture). Both directions: an <c>N"…"</c>/<c>B"…"</c> literal seeds no OTHER category. Size: the decoded
+    /// content shall not exceed the item's positions (SR5/SR10; alphanumeric receivers keep their historical
+    /// truncating store — only the new categories get the strict check).</summary>
+    private void ValidateValueCategory(PicInfo pic, string raw, string where)
+    {
+        bool isNatLit = raw.Length >= 3 && raw[0] is 'N' or 'n' && raw[1] is '"' or '\'';
+        bool isBoolLit = raw.Length >= 3 && raw[0] is 'B' or 'b' && raw[1] is '"' or '\'';
+        bool isPlainString = raw.Length >= 1 && raw[0] is '"' or '\'';
+        bool isNumeric = raw.Length >= 1 && (char.IsAsciiDigit(raw[0]) || raw[0] is '+' or '-' or '.');
+        // The part after a leading ALL (GetText concatenates tokens, so `ALL SPACES` → "ALLSPACES",
+        // `ALL "AB"` → 'ALL"AB"'). `ALL "literal"` is an alphanumeric ALL-literal (illegal for national/
+        // boolean); `ALL SPACES` / `ALL ZEROS` is just the figurative WORD repeated (legal).
+        string afterAll = raw.Length > 3 && raw.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)
+            ? raw[3..] : raw;
+        bool isAllQuoted = !ReferenceEquals(afterAll, raw) && afterAll.Length >= 1 && afterAll[0] is '"' or '\'';
+        string word = afterAll.ToUpperInvariant();
+        bool isZeroWord = word is "ZERO" or "ZEROS" or "ZEROES";
+        bool isNationalFigurative = isZeroWord
+            || word is "SPACE" or "SPACES" or "QUOTE" or "QUOTES"
+                or "HIGH-VALUE" or "HIGH-VALUES" or "LOW-VALUE" or "LOW-VALUES";
+        switch (pic.Category)
+        {
+            // National: an N"…" literal or a figurative constant (§8.3.3.6 GR1/GR6/GR7 — SPACE/QUOTE/HIGH/
+            // LOW/ZERO, incl. their ALL-prefixed forms). Plain strings, B"…", numeric, and ALL "literal" are
+            // illegal.
+            case PicCategory.National when isPlainString || isBoolLit || isNumeric || isAllQuoted
+                    || !(isNatLit || isNationalFigurative):
+                Edition.Error("COBOLNET0898", $"{where}: the VALUE of a national data item shall be a national "
+                    + "literal (N\"…\") or a figurative constant (ISO §13.18.63 SR5)");
+                break;
+            case PicCategory.National when isNatLit && DecodeString(raw).Length > pic.Length:
+                Edition.Error("COBOLNET0898", $"{where}: the VALUE national literal exceeds the item's "
+                    + $"{pic.Length} national positions (ISO §13.18.63 SR5)");
+                break;
+            // Boolean: a B"…" literal or figurative ZERO (incl. ALL ZEROS) — no boolean SPACE/QUOTE/HIGH/LOW
+            // exists (§14.9.25.3 SR7 posture).
+            case PicCategory.Boolean when !isBoolLit && !isZeroWord:
+                Edition.Error("COBOLNET0898", $"{where}: the VALUE of a boolean data item shall be a boolean "
+                    + "literal (B\"…\") or the figurative constant ZERO (ISO §13.18.63 SR10)");
+                break;
+            case PicCategory.Boolean when isBoolLit && DecodeString(raw).Length > pic.Length:
+                Edition.Error("COBOLNET0898", $"{where}: the VALUE boolean literal exceeds the item's "
+                    + $"{pic.Length} boolean positions (ISO §13.18.63 SR10)");
+                break;
+            case not (PicCategory.National or PicCategory.Boolean) when isNatLit || isBoolLit:
+                Edition.Error("COBOLNET0898", $"{where}: a {(isNatLit ? "national (N\"…\")" : "boolean (B\"…\")")} "
+                    + "literal may seed only a data item of its own category (ISO §13.18.63 SR5/SR10)");
+                break;
+        }
+    }
+
+    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) — or a national/boolean
+    /// literal (<c>N"…"</c>/<c>B"…"</c>, ISO §8.3.3.5/§8.3.3.4: the prefix letter is part of the token) — to
+    /// its character value (the <c>EmitText.DecodeCobolString</c> twin).</summary>
+    private static string DecodeString(string raw)
+    {
+        if (raw.Length >= 3 && raw[0] is 'N' or 'n' or 'B' or 'b' && raw[1] is '"' or '\'')
+            raw = raw[1..];
+        // Unwrap EITHER delimiter (ISO §8.3.1.2 — the apostrophe form is equal-standing; doubled opening
+        // quote = one embedded quote). Keep in sync with the EmitText/StatementBinder twins.
+        return raw.Length >= 2 && raw[0] is '"' or '\'' && raw[^1] == raw[0]
+            ? raw[1..^1].Replace(new string(raw[0], 2), raw[0].ToString())
+            : raw;
+    }
 
     /// <summary>The most-recently-opened 01/77 record, so a following level-66 RENAMES attaches to its owner.</summary>
     private DataItem? _lastRoot;
@@ -586,11 +652,39 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     {
                         // Numeric operands normalize to dot-decimal form (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a).
                         if (vi.valueClauseRange() is { } range)
+                        {
+                            // §13.18.63 SR29: THROUGH shall not be specified for a boolean conditional
+                            // variable (0898). A national THROUGH range is spec-legal but orders under a
+                            // NATIONAL alphabet (SR31) — recognized, staged (0899).
+                            if (parent.Pic is { Category: PicCategory.Boolean })
+                                Edition.Error("COBOLNET0898", $"condition-name '{name}': THROUGH may not be "
+                                    + "specified when the conditional variable is boolean (ISO §13.18.63 SR29)");
+                            else if (parent.Pic is { Category: PicCategory.National })
+                                Edition.Error("COBOLNET0899", $"condition-name '{name}': a THROUGH range over "
+                                    + "a national conditional variable (ordered by the national collating "
+                                    + "sequence) is recognized but not yet implemented (Phase 4a residue) — "
+                                    + "(ISO §13.18.63 SR31)");
+                            else if (parent.Pic is { } rp)
+                            {
+                                // §13.18.63 SR4/SR5/SR24→SR10: the VALUE literals' category must match the
+                                // conditional variable's — the SAME funnel the item-entry VALUE uses.
+                                ValidateValueCategory(rp, range.valueClauseOperand(0).GetText(), $"condition-name '{name}'");
+                                ValidateValueCategory(rp, range.valueClauseOperand(1).GetText(), $"condition-name '{name}'");
+                            }
                             cond.Values.Add((NormalizeIfNumericLiteral(range.valueClauseOperand(0).GetText()),
                                              NormalizeIfNumericLiteral(range.valueClauseOperand(1).GetText())));
+                        }
                         else
                             foreach (var op in vi.valueClauseOperand())
+                            {
+                                // §13.18.63 SR4/SR5/SR24→SR10 (both directions): an N"…"/B"…" literal seeds
+                                // only its own category, and a national/boolean conditional variable takes only
+                                // its own literal form — the ONE canonical checker (0898 band). Group parents
+                                // (Pic null) are a separate leg.
+                                if (parent.Pic is { } sp)
+                                    ValidateValueCategory(sp, op.GetText(), $"condition-name '{name}'");
                                 cond.Values.Add((NormalizeIfNumericLiteral(op.GetText()), null));
+                            }
                     }
 
         if (!Conditions.TryGetValue(name, out var list)) Conditions[name] = list = [];
@@ -734,18 +828,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
 
         var pic = pictureText is not null
-            ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
+            ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol,
+                blankWhenZero, explicitUsage: usageText is not null)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
                 ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
+            // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to
+            // subordinates, §13.18.60.4 GR1) or an illegal picture-less elementary item (0881) — unknowable
+            // until the forest is complete: ResolveIndexItems adjudicates via these marker shapes.
+            : entryUsage is Usage.National ? PicInfo.NationalUsagePending
+            : entryUsage is Usage.Bit ? PicInfo.BitUsagePending
             : skeletonUsage ? PicInfo.RecoveryItem : null;
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.
         if (pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited, IsFloat: false, Digits: > 0 })
             Edition.CheckDigitCapacity(pic.Digits, $"data item '{cobolName ?? "FILLER"}' (PICTURE {pictureText})");
+
+        // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
+        // SR5 national / SR10 boolean — the 0898 band, both directions).
+        if (rawValue is { } rv && pic is not null) ValidateValueCategory(pic, rv, entryWhere);
         var item = new DataItem
         {
             Level = level,
@@ -840,7 +944,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// even without its own USAGE clause.</summary>
     private void ResolveIndexItems()
     {
-        static void Walk(DataItem item, bool inherited, PicInfo? inheritedObjRef)
+        // Every elementary leaf under a group (for the NATIONAL/BIT group-usage conformance check below).
+        static IEnumerable<DataItem> Leaves(DataItem g)
+        {
+            foreach (var c in g.Children)
+                if (c.Children.Count > 0) foreach (var l in Leaves(c)) yield return l;
+                else yield return c;
+        }
+
+        void Walk(DataItem item, bool inherited, PicInfo? inheritedObjRef)
         {
             bool isIndex = ReferenceEquals(item.Pic, PicInfo.IndexItem) || (inherited && item.Pic is null);
             // USAGE OBJECT REFERENCE inherits the same way (§13.18.60.4 GR1): a group header sheds its
@@ -853,6 +965,35 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // A skeleton-usage RECOVERY shape on a GROUP header sheds the same way (the usage merely
                 // inherits per §13.18.60.4 GR1; a Pic'd "group" would stop grouping — DEVLOG 597).
                 if (ReferenceEquals(item.Pic, PicInfo.RecoveryItem)) item.Pic = null;
+                // USAGE NATIONAL / BIT on a GROUP header sheds per §13.18.60.4 GR1 — with the SR12/SR5
+                // conformance check over the subordinate leaves (each leaf's own PICTURE has already
+                // classified it): under NATIONAL a leaf must be national (fine), boolean/numeric (spec-legal
+                // national FORMS — staged, the Analyze 0899 legs), never alphabetic/alphanumeric; under BIT
+                // every leaf must be boolean (SR5).
+                if (ReferenceEquals(item.Pic, PicInfo.NationalUsagePending))
+                {
+                    item.Pic = null;
+                    foreach (var l in Leaves(item))
+                        if (l.Pic is { Category: PicCategory.Boolean or PicCategory.Numeric or PicCategory.NumericEdited })
+                            Edition.Error("COBOLNET0899", "national-form data (a boolean or numeric item "
+                                + $"under a group USAGE NATIONAL) is recognized but not yet implemented "
+                                + $"(Phase 4a residue) — data item '{l.CobolName ?? "FILLER"}' "
+                                + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1)");
+                        else if (l.Pic is not null and not { Category: PicCategory.National })
+                            Edition.Error("COBOLNET0881", $"data item '{l.CobolName ?? "FILLER"}': USAGE "
+                                + "NATIONAL inherited from its group admits boolean, national, "
+                                + "national-edited, numeric, and numeric-edited pictures only "
+                                + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1; §13.18.40.3 SR30)");
+                }
+                if (ReferenceEquals(item.Pic, PicInfo.BitUsagePending))
+                {
+                    item.Pic = null;
+                    foreach (var l in Leaves(item))
+                        if (l.Pic is not null and not { Category: PicCategory.Boolean })
+                            Edition.Error("COBOLNET0881", $"data item '{l.CobolName ?? "FILLER"}': USAGE BIT "
+                                + "inherited from its group requires a boolean PICTURE (symbol 1 only) "
+                                + "(ISO §13.18.60.3 SR5 / §13.18.60.4 GR1)");
+                }
                 if (item.Pic is { Category: PicCategory.ObjectReference }) item.Pic = null;
                 // A synthesized fixed-width binary profile on a GROUP header sheds the same way (the usage
                 // merely inherits per §13.18.60.4 GR1). Group-level BINARY-* over PICTURE'd children is a spec
@@ -861,6 +1002,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (item.Pic is { Category: PicCategory.Numeric, Usage: Usage.BinaryChar or Usage.BinaryShort
                         or Usage.BinaryLong or Usage.BinaryDouble }) item.Pic = null;
                 foreach (var c in item.Children) Walk(c, isIndex, objRef);
+            }
+            else if (ReferenceEquals(item.Pic, PicInfo.NationalUsagePending)
+                     || ReferenceEquals(item.Pic, PicInfo.BitUsagePending))
+            {
+                // A PICTURE-less ELEMENTARY item may not carry USAGE NATIONAL/BIT — they are not among the
+                // picture-less usages (§13.18.60.4; contrast INDEX/POINTER/OBJECT REFERENCE/BINARY-x). The
+                // recovery shape keeps the doomed emit crash-free (the DEVLOG-597 pattern).
+                Edition.Error("COBOLNET0881", $"data item '{item.CobolName ?? "FILLER"}': an elementary item "
+                    + $"with USAGE {(ReferenceEquals(item.Pic, PicInfo.BitUsagePending) ? "BIT" : "NATIONAL")} "
+                    + "requires a PICTURE clause (ISO §13.18.60.4 — not a picture-less usage)");
+                item.Pic = PicInfo.RecoveryItem;
             }
             else if (isIndex && item.Pic is null)
                 item.Pic = PicInfo.IndexItem;
@@ -1087,6 +1239,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             return RedefinesTier.Rejected;
         }
 
+        // A NATIONAL leaf: §13.18.44 lays the shared area in BYTES, and the documented 2-byte national
+        // character (D-N1/D-N2) has no char-window overlay over the single-byte members — recognized, staged
+        // loud (Phase 4a residue: per-item byte offsets + UTF-16LE class images). BOOLEAN leaves fall through
+        // legitimately (one '0'/'1' char = one byte, D-B1).
+        if (leaves.Any(l => l.Pic is { Category: PicCategory.National }))
+        {
+            reject = $"REDEFINES over national data in '{cls.Canonical.CobolName}' (the 2-byte national "
+                + "character has no single-byte char-window overlay) not yet implemented (Phase 4a residue)";
+            return RedefinesTier.Rejected;
+        }
+
         // Tier A — every member is an elementary item sharing the canonical's CLR storage type AND its image width:
         // one stored field, the rest pass-throughs (a numeric view reinterprets the shared value via its own scale).
         DataItem canon = cls.Canonical;
@@ -1096,6 +1259,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         // Tier B — DISPLAY-homogeneous: one string canonical of class-max width, each view an (offset,width) accessor.
         return RedefinesTier.StringCanonical;
+    }
+
+    /// <summary>The D-N2 byte-surface gate for FILE records: the record codec reads/writes single-byte
+    /// characters (Latin-1, <c>SequentialFile</c>), and a national leaf occupies TWO bytes per position under
+    /// the documented D-N1 representation — a national leaf in an FD/SD record would silently halve its
+    /// positions on disk. Recognized, staged loud (Phase 4a residue: the 2-byte national record layout).
+    /// Boolean leaves flow — one '0'/'1' character IS one byte (D-B1).</summary>
+    private void GateNationalRecords()
+    {
+        foreach (var f in Files)
+            foreach (var rec in f.Records)
+                foreach (var leaf in LeavesOf(rec))
+                    if (leaf.Pic is { Category: PicCategory.National })
+                        Edition.Error("COBOLNET0899", $"national data in a file record (data item "
+                            + $"'{leaf.CobolName ?? "FILLER"}' of record '{rec.CobolName}') is recognized but "
+                            + "not yet implemented — the record codec is single-byte and the national "
+                            + "character is two bytes (Phase 4a residue; ISO §8.1.2 / §13.18.60.4 GR8)");
     }
 
     /// <summary>Every item in the WORKING-STORAGE forest, in declaration (pre-order DFS) order.</summary>

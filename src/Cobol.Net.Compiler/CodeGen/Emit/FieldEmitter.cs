@@ -145,10 +145,17 @@ internal sealed class FieldEmitter(EmissionContext ctx)
                     item.BlankWhenZero, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma));
             if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
                 return $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})";
+            // Boolean members of a Tier-B class contribute their zero-padded VALUE image (national never
+            // reaches a Tier-B backing — ComputeTier rejects the class; the arm is defensive).
+            if (pic.Category is PicCategory.Boolean or PicCategory.National)
+                return $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length}"
+                    + $"{(pic.Category is PicCategory.Boolean ? ", justifiedRight: false, pad: '0'" : "")})";
         }
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
             ? $"CobolNum.FormatDisplay(0L, {item.ProfileName})"
-            : $"new string(' ', {pic.Length})";
+            : pic.Category is PicCategory.Boolean
+                ? $"new string('0', {pic.Length})"   // boolean initial state — zeros (§13.18.63)
+                : $"new string(' ', {pic.Length})";
     }
 
     private void EmitStructTypeDecls(DataItem item, CodeWriter w)
@@ -297,6 +304,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
             // `01 ARR VALUE "40537". 02 IND OCCURS 5 PIC 9.`). Binary/packed/float leaves stay undistributable
             // (their character image is the Tier-C byte boundary) and keep the member-wise default.
             : item.StoreAsImage || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean   // string-stored — the slice is the chars (D-N4 identity)
               || item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false });
 
     /// <summary>Build the composed initializer of <paramref name="item"/> from its positional <paramref name="slice"/>
@@ -373,8 +381,12 @@ internal sealed class FieldEmitter(EmissionContext ctx)
             PicCategory.NumericEdited when !raw.StartsWith('"') && TryParseNumeric(raw, out var uv, out int sc) =>
                 EmitText.CsLiteral(CobolNet.Runtime.CobolEdit.Format(uv, sc, pic.EditMask!, item.BlankWhenZero,
                     ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)),
-            PicCategory.Alphanumeric or PicCategory.NumericEdited =>
+            // National VALUE stores like alphanumeric on the char substrate (§13.18.63 SR5 — the N"…" literal,
+            // already prefix-stripped by DecodeCobolString); boolean VALUE zero-pads (SR10; §14.6.8.6).
+            PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
                 $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})",
+            PicCategory.Boolean =>
+                $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length}, justifiedRight: false, pad: '0')",
             PicCategory.Numeric when pic.IsFloat => RawValueAsFloat(raw, pic),
             PicCategory.Numeric => EmitText.UnscaledAtScale(raw, pic.Scale),
             _ => pic.DefaultInitializer,
@@ -407,22 +419,25 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         // ALL <figurative-word> (e.g. ALL ZEROS, ALL SPACES) is equivalent to the bare figurative (a single-character
         // figurative repeated to the width); strip the ALL prefix when the remainder is a figurative WORD. (ALL "literal"
         // — repeating a multi-character literal — is a separate form left to the literal path.)
-        if (FillCharFor(key) is null && key.StartsWith("ALL") && key.Length > 3 && FillCharFor(key[3..]) is not null)
+        if (FillCharFor(key, pic.Category) is null && key.StartsWith("ALL") && key.Length > 3
+            && FillCharFor(key[3..], pic.Category) is not null)
             key = key[3..];
-        if (FillCharFor(key) is not { } fillChar) return null;
+        if (FillCharFor(key, pic.Category) is not { } fillChar) return null;
         return pic.Category is PicCategory.Numeric ? pic.DefaultInitializer : $"new string({fillChar}, {pic.Length})";
     }
 
     /// <summary>The C# <c>char</c>-literal a figurative-constant word fills with, or null if the text is not a
-    /// figurative word (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
-    private string? FillCharFor(string word) => word switch
+    /// figurative word (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9). The alphanumeric
+    /// program collating sequence governs HIGH/LOW-VALUE only for alphanumeric receivers — a national/boolean
+    /// item uses the D-N3 pin (its own sequence; §8.3.3.6 GR6/GR7).</summary>
+    private string? FillCharFor(string word, PicCategory cat) => word switch
     {
         "ZERO" or "ZEROS" or "ZEROES" => "'0'",
         "SPACE" or "SPACES" => "' '",
         // VALUE HIGH-/LOW-VALUE under a PROGRAM COLLATING SEQUENCE is the sequence's extreme character
         // (ISO §8.3.3.6 GR7 — compile-time figurative; NC219A's NEW-LOW PIC X VALUE LOW-VALUE = 'F').
-        "HIGH-VALUE" or "HIGH-VALUES" => ctx.FigFill('H'),
-        "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => ctx.FigFill('L'),
+        "HIGH-VALUE" or "HIGH-VALUES" => ctx.FigFill('H', cat),
+        "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => ctx.FigFill('L', cat),
         "QUOTE" or "QUOTES" => "'\\\"'",
         _ => null,
     };

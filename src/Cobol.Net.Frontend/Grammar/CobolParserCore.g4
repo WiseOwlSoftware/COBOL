@@ -527,6 +527,8 @@ subToken
     | SUB_INTEGERLIT
     | SUB_DECIMALLIT
     | SUB_STRINGLIT
+    | SUB_NATLIT       // national literal argument N"…" (ISO §15.50.3 — FUNCTION LENGTH(N"…") etc.)
+    | SUB_BOOLLIT      // boolean literal argument B"…"
     | SIGNED_DECIMALLIT
     | SIGNED_INTEGERLIT
     | SUB_PLUS

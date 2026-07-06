@@ -161,5 +161,16 @@ public sealed record RefModPlace(Place Inner, string Start, string? Length) : Pl
 
     /// <inheritdoc/>
     public override string Write(string rhs) =>
-        Inner.Write($"CobolString.SpliceInto({Inner.Read()}, {Start32}, {Len32}, {rhs})");
+        // A boolean receiver splices with boolean-zero fill (§14.6.8.6; §8.4.3.3 GR5a — under D-B1 a bit
+        // position IS a char index); every other category keeps the space fill.
+        Inner.Write($"CobolString.SpliceInto({Inner.Read()}, {Start32}, {Len32}, {rhs}"
+            + $"{(Inner.Item.Pic is { Category: PicCategory.Boolean } ? ", pad: '0'" : "")})");
+
+    /// <summary>A figurative-constant store into the slice: the figurative fills EVERY position of the
+    /// reference-modified item (ISO §8.3.3.6.4 GR2 — repeated to the size of the associated fixed-length item;
+    /// §8.4.3.3 GR5/GR6 — the ref-mod result is a unique elementary item of the slice length). Realized by an
+    /// EMPTY slice with the fill char as the SpliceInto pad, so every targeted position takes the fill (works
+    /// for a runtime-length slice too). <paramref name="fillChar"/> is a C# <c>char</c>-literal expression.</summary>
+    public string WriteFill(string fillChar) =>
+        Inner.Write($"CobolString.SpliceInto({Inner.Read()}, {Start32}, {Len32}, \"\", pad: {fillChar})");
 }

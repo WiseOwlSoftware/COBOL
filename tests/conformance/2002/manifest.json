@@ -3,9 +3,11 @@
   "enabled": [
     "based_pointer",
     "binary_usage",
+    "boolean_data",
     "conditional_compilation",
     "goback_returning",
     "initialize_phrases",
+    "national_data",
     "oo_ec_goback_raising",
     "oo_ec_raise_object",
     "oo_factory",
@@ -44,8 +46,6 @@
     "udf_value_args"
   ],
   "pending": [
-    "boolean_data",
-    "float_usage",
-    "national_data"
+    "float_usage"
   ]
 }

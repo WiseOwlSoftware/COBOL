@@ -52,6 +52,10 @@ public sealed class ConformanceTests : EndToEndTestBase
     [
         ("2002", "initialize_phrases"),
         ("2002", "table_value_occurs"),
+        // Phase-4 track (a), M2-DATA-3: the .out was re-baselined to FULL-WIDTH DISPLAY (trailing national
+        // spaces shown — PAD=P·· etc.) per the same §14.9.11.4 GR6 posture; the legacy's trailing-trim
+        // cannot reproduce it. (boolean_data needs no entry — its values are exact-width, no trim exposure.)
+        ("2002", "national_data"),
     ];
 
     /// <summary>Programs exercising features the FROZEN legacy engine never implemented (the OO deep-dive's

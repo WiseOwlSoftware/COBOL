@@ -710,6 +710,13 @@ SUB_DECIMALLIT      : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 // e.g. FUNCTION LOWER-CASE("ABC"), FUNCTION NUMVAL("12.3"). Mirrors STRINGLIT.
 SUB_STRINGLIT       : '"' (~["\r\n] | '""')* '"' | '\'' (~['\r\n] | '\'\'')* '\'' ;
 
+// National/boolean literal arguments (N"…"/B"…", ISO §8.3.3.5/§8.3.3.4) — mirror NATLIT/BOOLLIT. MUST
+// precede SUB_IDENTIFIER (and win by longest match anyway) so the prefix letter is never orphaned as a
+// one-character data-name with the quoted body becoming a separate SUB_STRINGLIT — that shape silently
+// misbound FUNCTION LENGTH(N"AB") before these tokens existed (Phase 4a, the proper-token rule).
+SUB_NATLIT          : 'N' '"' (~["\r\n] | '""')* '"' | 'N' '\'' (~['\r\n] | '\'\'')* '\'' ;
+SUB_BOOLLIT         : 'B' '"' [01]+ '"' | 'B' '\'' [01]+ '\'' ;
+
 // Data-name / index-name (must follow keywords to avoid capturing OF/IN/ALL)
 SUB_IDENTIFIER      : [0-9]+ '-' [a-z0-9] [a-z0-9-]* | [0-9]+ [a-z] [a-z0-9-]* | [a-z] [a-z0-9-]* [a-z0-9] | [a-z] ;
 

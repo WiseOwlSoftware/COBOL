@@ -193,8 +193,8 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
 |---|---|---|---|---|---|---|
 | M2-DATA-1 | USAGE BINARY-CHAR/SHORT/LONG/DOUBLE [SIGNED\|UNSIGNED] | done | **LANDED (DEVLOG 614)** | PICTURE-less native 1/2/4/8-byte two's-complement integers (SIGNED default / UNSIGNED widens) on the COMP-5 BinaryCapacity discipline: `PicInfo.BinaryItem` + `Usage.BinaryChar/Short/Long/Double` un-skeletoned; `CobolNum.WrapBinary`/`InBinaryRange` implement the byte-width wrap + SIZE-ERROR range check (was a documented stub); `binary_usage.cob` ENABLED byte-exact; PICTURE prohibited COBOLNET0870 (§13.16.3 SR8); +24 BinaryCapacityTests unit + BinaryUsageDataTests end-to-end + DataSkeleton/LoudGuard/VersionMatrix flips | none | Implied DISPLAY width 3/5/10/19·20 (GR21 implementor choice); 0900 below 2002. |
 | M2-DATA-2 | USAGE FLOAT-SHORT/LONG/EXTENDED | done | STAGED-LOUD | PicInfo.cs:75-81 skeleton → 0899; ConstructDialectStatus 114-115 "Phase 6"; float_usage.cob PENDING | phase 6 | IEEE-float families deferred to Phase 6 (D16). |
-| M2-DATA-3 | National data — USAGE NATIONAL + PIC N | done | STAGED-LOUD | PicInfo.cs:317/328/467 → 0899; national_data.cob PENDING | (a) | Both N symbol + USAGE NATIONAL reject loud. |
-| M2-DATA-4 | Boolean & bit — USAGE BIT + PIC 1 | done | STAGED-LOUD | PicInfo.cs:318/329/468 → 0899; boolean_data.cob PENDING | (a) | Boolean OPERATORS (B-AND/OR/XOR/NOT) also absent; (a) adds them. |
+| M2-DATA-3 | National data — USAGE NATIONAL + PIC N | done | **LANDED (Phase 4a track (a), 2026-07-05)** | One UTF-16 char per national position (D-N1) on the string substrate; SR13a implied usage; Table 16 MOVE legality (0819) incl. the sanctioned-narrowing reject; §8.8.4.2.9 ordinal comparison (no alphanumeric PCS); byte-surface guards (REDEFINES/cells/FD records/SORT keys → 0899, D-N2); N"…" literals at every funnel (0814 band); `national_data` ENABLED (N2A leg re-baselined per Table 16 + full-width §14.9.11.4 GR6 — LegacyDivergent) | none (residue in the design section) | national-edited + national-form numerics + non-Latin-1 + -N intrinsics stage 0899/0814. |
+| M2-DATA-4 | Boolean & bit — USAGE BIT + PIC 1 | done | **LANDED (Phase 4a track (a), 2026-07-05)** | One '0'/'1' char per boolean position for BOTH usages (GR14 R14, D-B1); zero-fill stores (§14.6.8.6) via the CobolString pad params; equality-only relations (0844, CheckedRelational); VALUE/level-88 validation (0898); figurative SR7 (0819); `boolean_data` ENABLED byte-exact | increment 2 = the B-AND/B-OR/B-XOR/B-NOT operator leg (design below; grammar grant 2026-07-05) | True bit-packing stays an optional residue (never required — R14). |
 | M2-DATA-5 | Pointers & based addressing (POINTER/NULL/SET/BASED/ADDRESS OF) | partial | **LANDED (increments 1+2, DEVLOG 613/617)** | Increment 1: USAGE POINTER + SET TO NULL/pointer + [NOT] EQUAL. Increment 2: ADDRESS OF / BASED / SET ADDRESS OF / F10 arithmetic on the StorageCell+CellPointer window model (structural §8.8.4.2 equality; the deref bridge makes §13.18.5 GR3/GR4 loud); based_pointer/pointer_alloc/pointer_arith ENABLED byte-exact; 6 negative cases; CobolPtrTests ×6; 0869/0881 bands; set-address-2002 + pointer-arithmetic-2002 rows | none (residue named in the as-built) | CALL-boundary pointers, restricted `POINTER TO`, FUNCTION/PROGRAM-POINTER stay staged (M3-4 leg). |
 
 ### M2-DATA-5 / M2-PROC-5 — increment 2 (ADDRESS OF / BASED / SET ADDRESS OF / ALLOCATE-FREE) — DECISION-COMPLETE DESIGN (recon wave 2026-07-05; ready to implement)
@@ -511,6 +511,770 @@ review showed the two new 0900 gates were deletable without any test failing —
 own where-texts), the ALLOCATE legs (fractional round-up / INITIALIZED / form-2 RETURNING / zero→NULL),
 FREE under >>TURN'd checking (both emit legs compile), subordinate-of-BASED; CobolPtrTests +1 (UpByScaled
 both ways); negative corpus +1 (based-level-05).
+
+### M2-DATA-3 / M2-DATA-4 — track (a) NATIONAL + BOOLEAN data (data-model legs only) — DECISION-COMPLETE DESIGN (synthesis 2026-07-05; ready to implement)
+
+> Scope: the COMPLETE ISO data-model semantics for category **national** (§8.5.2.10) and category **boolean**
+> (§8.5.2.5) — classification (PIC N / PIC 1 / USAGE NATIONAL / USAGE BIT), N"…"/B"…" literal binding, VALUE,
+> MOVE (Table 16 legality + alignment), comparisons, DISPLAY, INITIALIZE, figurative constants, JUSTIFIED,
+> ref-mod, group images — implemented to spec+design, never to the goldens (tests VERIFY, not SCOPE). Every leg
+> the spec defines but this increment stages is NAMED with its § and a loud guard (RESIDUE list). **Grammar is
+> UNTOUCHED**: the bit-operator leg (B-AND/B-OR/B-XOR/B-NOT, §8.8.2) stays OUT of THIS increment
+> (residue #1 — UNBLOCKED by the owner's 2026-07-05 blanket grammar grant; queued as track (a) increment 2 with its
+> own recon), as does every other .g4-requiring leg (INITIALIZE REPLACING BOOLEAN/NATIONAL category words,
+> ALL N"…"/ALL B"…", NX"/BX", GROUP-USAGE, IS BOOLEAN class test — all named residue). Deliverables: both
+> pending goldens ENABLED (`tests/conformance/2002/national_data`, `boolean_data`), the national golden
+> ISO-re-baselined (one leg, audit below), the staged-loud test set flipped, registry/matrix rows LIVE.
+
+- **Spec (ISO 2023; specs/ISO_COBOL.md :line anchors).** Literals: boolean §8.3.3.4 (:6082–6155 — SR1 ≤8,191
+  positions :6111; SR2 only '0'/'1' :6115; GR4 zero-length legal :6147), national §8.3.3.5 (:6158–6248 — SR1
+  ≤8,191 national positions :6196; SR2 repertoire + NOTE 1 mixed representation :6198–6204; GR3 compile→runtime
+  CCS :6238). Classes §8.5.2 Table 2 (:8427–8439 — class National ⊃ national, national-edited, AND
+  numeric-edited-usage-national; class Boolean ⊃ boolean only). PICTURE §13.18.40: GR8 boolean = only 1s
+  (:20467), GR9 national = only Ns (:20469), GR10 national-edited = N + B/0// (:20471–20474), GR14 symbol 1
+  **R14**: "each boolean character can be represented … as a bit, an alphanumeric character, or a national
+  character" (:20567), GR14 symbol N (:20523), precedence Table 10 (1 accepts only 1 :21006; N accepts B 0 / N
+  :21007 — so "boolean-edited" does not exist). USAGE §13.18.60.4: SR5 BIT ⇒ boolean PIC (:22722); SR12
+  NATIONAL ⇒ PIC boolean/national/national-edited/numeric/numeric-edited (:22744); SR13 no USAGE + PIC N ⇒
+  **implied NATIONAL**, bare PIC 1 ⇒ implied DISPLAY (:22746–22750); SR20 PIC N ⇒ only NATIONAL may be
+  specified (:22764); GR8 national char size = equal to OR an integer multiple of the alphanumeric size,
+  implementor-specified (:22793). MOVE §14.9.25: Table 16 (:28839–28852 — **verified in-spec this recon**:
+  National→Alphanumeric/AN-edited = **No** :28847; Boolean→AN = Yes :28846; National→Boolean = Yes;
+  AN→Boolean = Yes; AN-edited→Boolean = No; Numeric-int→National = Yes :28849); SR7 non-boolean figurative →
+  boolean prohibited (:28817); GR2/3 zero-length literal ⇒ SPACE / ZERO (:28895–28897); GR6a alignment +
+  A→N correspondence + EC-DATA-CONVERSION (:28909–28925); GR6d3 AN/national → numeric as unsigned integer.
+  Receivers: national fills/truncates right with **national spaces** §14.6.8.5 (:24297–24301); boolean with
+  **boolean zeros** §14.6.8.6 (:24304–24308); JUSTIFIED §13.18.32 SR3 legal for boolean/national, GR1/2 left
+  fill = national spaces / bit zeros (:19264–19273). Comparisons §8.8.4.2: boolean = Format 2 **equality only**
+  (F1 SR2/SR3 exclude class boolean :9608–9610; F2 :9566–9581), by VALUE regardless of usage, right-extend with
+  boolean zeros (§8.8.4.2.8 :9683–9689); national = full ordering under the **national** program collating
+  sequence, right-extend national spaces (§8.8.4.2.9/10 :9692–9715); AN-vs-national converts AN to a national
+  temp (§8.8.4.2.6 :9645). DISPLAY §14.9.11 SR1 admits both; device conversion implementor-defined (GR1 :26893).
+  VALUE §13.18.63 SR5 national literal for national items (:23232), SR10 boolean literal ≤ size (:23254),
+  SR29 no THROUGH for boolean (:23327). INITIALIZE §14.9.20 GR6c fill table: Boolean → ZEROES, National →
+  national SPACES (:27995–28009). Figuratives §8.3.3.6: GR4 ZERO is boolean '0's by context (:6375); GR1/6/7
+  national SPACE/QUOTE/HIGH/LOW (:6350, :6383–6407); no boolean SPACE/QUOTE/HIGH/LOW (MOVE SR7). Ref-mod
+  §8.4.3.3: positions are boolean/national positions, never bytes (GR1 :7073; GR5a bit positions :7083).
+  Storage §8.1.2: char sizes per-charset, compile-time, implementor (:5083–5095); UTF-16 national is a
+  conforming choice, not mandated (NOTE 2 :5077).
+
+- **GOLDEN-vs-ISO AUDIT — ⛔ ONE re-baseline required (the rest conforming).** `national_data.cob:43–45` +
+  `.out` line 8 (`N2A=GHI`) exercise **MOVE national → alphanumeric — prohibited by Table 16 at every
+  national-bearing edition** (:28847 National row, AN column = No; DISPLAY-OF §15.26 :35335 is the sanctioned
+  narrowing, itself residue). The golden predates the pivot (authored against the permissive legacy engine,
+  commits d8cf144/338ba5a) — per the #1 process rule the spec wins: **DELETE the N2A leg** (source lines 42–45,
+  `.out` line 8 → 12 lines), extend the header's deferral note with the Table-16 citation, and convert the
+  adjudication into enforced coverage via a NEW negative case `move-national-to-an` (below). Legacy re-run on
+  the edited program in the same commit (pure deletion — expected green; escalation ladder in the test plan).
+  Everything else audited conforming: A2N (Table 16 AN→National Yes + GR6a conversion), NUM=042
+  (Numeric-int→National Yes), boolean JR=0011 (§13.18.32 GR2 bit-zero left fill), MOVE ZERO/INITIALIZE fills
+  (GR4 :6375 / GR6c), equality-only boolean relations, `<` national ordering under the default national PCS,
+  `MOVE B-NAME TO B-FLAG` display-form→bit-form (§8.8.4.2.8's usage-independence, value moved per GR6a :28925).
+
+- **STORAGE DECISIONS (the documented implementor choices — record in COBOLNET_DESIGN with the WHY).**
+  **D-N1 National representation**: an elementary national item is a plain C# `string` of `Length` characters
+  (Length = count of N positions); .NET strings are natively UTF-16, so the golden header's "two bytes per
+  character position" is the *documented implementor choice* (§13.18.60.4 GR8 + §8.1.2 NOTE 2). ALL width
+  machinery stays CHARACTER-position based (`CobolString.Store/RefMod/SpliceInto/Compare`, `ImageWidth`,
+  `FUNCTION LENGTH`) — exactly the §14.6.8.5/§8.4.3.3/§15.50 unit. **ImageWidth is NEVER doubled** (a national
+  leaf contributes `Length` chars to a group image; if a byte width is ever needed it is a NEW `ByteWidth`
+  member, never an overload of ImageWidth). **D-N2 byte=char containment**: byte=char does NOT hold for
+  national under D-N1 — every byte-addressed surface REFUSES a national leaf, loud (REDEFINES via ComputeTier,
+  EXTERNAL/ADDRESS-OF/BASED cells via ForceStringCanonical, FD/SD records via a new record gate; details
+  below). Rationale over the size-equal-1-byte alternative GR8 would also permit: forward-compat — the named
+  residue (non-Latin-1 correspondence, NX", BYTE-LENGTH = 2×chars, national collating) all presume the 2-byte
+  choice, and baking 1-byte layouts into REDEFINES/files/cells now would force a breaking re-layout later
+  (RESIDUE-11 coordination with track (b)). **D-B1 Boolean representation**: one alphanumeric character
+  ('0'/'1') per boolean position for BOTH usage display AND usage bit — the §13.18.40.4 GR14 R14 license
+  (:20567), a PERMANENTLY conforming choice (not an interim hack). `Usage.Bit` stays a distinct enum member
+  (declaration fidelity, SR5 checking, future packing option) but maps to the identical string storage.
+  **byte=char HOLDS for boolean**, so boolean leaves (both usages) are admitted at every char surface:
+  Tier-B REDEFINES windows, group images, FD/SD records, EXTERNAL/cell classes, pointer windows (F10 GR20
+  "bytes" = one byte per boolean position under D-B1 — conforming). True bit-packing = residue (an opt-in
+  future representation, never required for conformance). **D-N3 National collating**: the national program
+  collating sequence defaults to the native UTF-16 ordinal (§8.8.4.2.9's implementor default); the
+  alphanumeric PCS **never** applies to national comparisons (separate sequences — §12.3.7 FOR NATIONAL,
+  itself gated by the existing `special-names-for-national-2002` row); HIGH/LOW-VALUE in national contexts =
+  U+00FF/U+0000 (identical to alphanumeric under the Latin-1 repertoire — revisit with non-Latin-1 residue).
+  **D-N4 Repertoire**: track (a) supports the Latin-1 subset (chars ≤ U+00FF); the ONLY source of wider chars
+  is an N"…" literal, guarded at bind (0814). A→N widening and 9→N digit imaging are ≤U+00FF by construction.
+
+- **PicInfo (the M2-DATA-1 BinaryItem un-skeleton recipe, adapted).** (1) **Classification**
+  (`PicInfo.Analyze`, PicInfo.cs:314–444): remove `hasN`/`has1` from the gate block :372–387 (keep `hasE` +
+  `invalid`); add a national/boolean classification block BEFORE the `anyAlpha`/`anyEdit` branches — expanded
+  all-'N' ⇒ `ConstructRegistry.Check(edition, "national-data-2002", where)` (0900 below 2002, silent above) +
+  return `new PicInfo(PicCategory.National, Usage.National, Length: count of N, Digits:0, Scale:0,
+  Signed:false)`; expanded ⊆ {N,B,0,/} with ≥1 N ⇒ `NotImplementedSkeleton(edition, "national-edited-2002",
+  "Phase 4a residue", where)` (NEW pending row, below) + alphanumeric recovery; expanded all-'1' ⇒
+  `Check("boolean-data-2002")` + return `PicCategory.Boolean` with Length = count of 1s; any other mix
+  containing N or 1 ⇒ COBOLNET0808 (Table 10: 1 accepts only 1; N accepts only B 0 / N). `ExpandRepeats`
+  :459–480 already handles `N(4)`/`1(8)`. (2) **Usage resolution inside Analyze** (SR5/SR12/SR13/SR20;
+  signature gains `bool explicitUsage = false`, threaded from DataBinder's `usageText is not null` :688/756):
+  PIC N + implicit Display ⇒ usage National (SR13a); PIC N + explicit non-NATIONAL ⇒ **COBOLNET0881** (SR20);
+  PIC 1 + Display (implicit or explicit) ⇒ Usage.Display char-form (SR13b); PIC 1 + BIT ⇒ Usage.Bit; PIC 1 +
+  NATIONAL ⇒ SR12-legal but STAGED — direct 0899 "national-form boolean, Phase 4a residue"; PIC 1 + any other
+  usage ⇒ 0881; USAGE BIT + non-boolean PIC ⇒ 0881 (SR5); USAGE NATIONAL + numeric/numeric-edited PIC ⇒
+  SR12-legal but STAGED — direct 0899 "national-form numeric (national digits), Phase 4a residue"; USAGE
+  NATIONAL + alphabetic/AN PIC ⇒ 0881 (SR12 + §13.18.40.3 SR30 :20395). (3) **`ParseUsage`** :513–514 flips
+  both arms from `SkeletonUsage(...)` to the POINTER pattern :518–520: `ConstructRegistry.Check(edition,
+  "national-data-2002"|"boolean-data-2002", where); return Usage.National|Usage.Bit;` (0899 gone; 0900
+  introduction edge stays). (4) **`IsUnimplementedSkeleton`** :165–168 — delete `PicCategory.National or
+  PicCategory.Boolean` and `Usage.National or Usage.Bit` (the master un-skeleton switch; FloatShort/Long/
+  Extended remain); re-document Usage.National/Bit :74–77 as LIVE with phase + DEVLOG (the :88–100 precedent).
+  (5) **Storage-mapping arms**: `ClrType` :228 gains `or PicCategory.National or PicCategory.Boolean` on the
+  string arm; `DefaultInitializer` :253 splits — National ⇒ `new string(' ', {Length})` (national space,
+  Latin-1 identity), Boolean ⇒ `new string('0', {Length})` (§13.18.63 GR — boolean initial/default zero fill);
+  `StorageWidth` :264–276 falls to the existing `_ => 0` arm like Display (document); `ProfileInitializer`
+  :286 is unreachable for the new categories (numeric-only caller) — the staged national-form-numeric 0899
+  keeps it that way. (6) NO picture-less factory (unlike BinaryItem): USAGE NATIONAL/BIT **require** a PICTURE
+  on an elementary item — a picture-less elementary NATIONAL/BIT entry errors **0881** at the group-fixup pass
+  (the RecoveryItem-clearing site, DataBinder.cs:855 area — a group header sheds the usage to subordinates per
+  §13.18.60.4 GR1, unchanged) and takes `PicInfo.RecoveryItem` for the doomed emit; the DataBinder ladder
+  :736–743 drops its `skeletonUsage` reliance for these two usages (pic stays null → group-or-error path).
+
+- **Literals — N"…"/B"…" bind arms (the silent-misbind fix; feedback_scan_all_similar sweep).**
+  **Representation (feedback_singular_pattern — ONE literal node per job):** `BoundStringLiteral`
+  (Bound/BoundTree.cs:93) gains `PicCategory Category { get; init; } = PicCategory.Alphanumeric`; same prop on
+  `BoundAllLiteral` (:164). NO new bound-literal classes. **Decode helper**: extend `EmitText.DecodeCobolString`
+  (CodeGen/Emit/EmitCore.cs:99–101) and `DataBinder.DecodeString` (DataBinder.cs:529) to strip a leading
+  `N`/`B` (case-insensitive) when followed by the opening quote — safe (no other raw shape starts `N"`/`B"`).
+  **Chokepoint arms** at `LiteralOperand` (StatementBinder.cs:937–943): `nn?.NATLIT()` ⇒
+  `Check("national-data-2002")` + Latin-1 guard (any char > U+00FF ⇒ **COBOLNET0814**, the staged non-Latin-1
+  correspondence §8.3.3.5 SR2/GR3 + §8.1.2 :5137) + length ≤ 8,191 (SR1, 0814) ⇒
+  `BoundStringLiteral(decoded){Category = National}`; `nn?.BOOLLIT()` ⇒ `Check("boolean-data-2002")` + length
+  cap ⇒ `{Category = Boolean}` (lexer already restricts content to [01]+, CobolLexer.g4:596–598; zero-length
+  N"" ⇒ SPACE per MOVE GR2 falls out of `Store("", w)`). **Sweep the remaining funnels** — each gains an arm
+  that either decodes (string-legal context) or rejects **COBOLNET0844** (numeric context — a boolean/national
+  literal is not a numeric operand): StatementBinder.cs:1380 + Evaluate.cs:161 (`SoleNumLiteral` paths — EVALUATE
+  selection objects take the decode arm), Intrinsics.cs:358 (numeric chokepoint — 0844), Inspect.cs:199–204 and
+  Call.cs:68/183 (decode arms), plus the `figurativeConstant` note: `ALL NATLIT`/`ALL BOOLLIT` are NOT in the
+  grammar (CobolExpressions.g4:291–299 — only ALL STRINGLIT/HEXLIT, verified) ⇒ grammar residue; FigurativeOperand
+  :948–958 unchanged. The one existing decode precedent stays: StatementBinder.Oo.cs:991–995.
+
+- **MOVE.** **Bind legality** — new `MoveCategoryLegality(source, targets)` beside `MoveFigurativeEditionGates`
+  (StatementBinder.MoveFigurative.cs:42, called from BindMove StatementBinder.cs:462–483), all
+  **COBOLNET0819**, version-invariant at ≥2002 (the operands themselves are 0900-gated below 2002): the Table
+  16 boolean/national arms — receiver Boolean rejects senders alphabetic (`IsAlphabetic`), AN-edited
+  (`EditMask`), numeric, numeric-edited; receiver National rejects non-integer numeric senders (Scale > 0,
+  float); sender National rejects receivers alphabetic, alphanumeric[-edited] (the re-baselined leg), numeric
+  non-integer stays legal→numeric per :28847 col Numeric = Yes; sender Boolean rejects receivers alphabetic,
+  numeric[-edited]; **SR7** (:28817): BoundFigurative S/Q/H/L or a BoundAllLiteral containing a non-'0'/'1'
+  char → category-Boolean receiver rejected (ZERO and digit-only ALL of 0/1s legal). Ref-mod receivers keep the
+  §8.4.3.3 GR6 view (the RefModPlace exemption pattern :79). **Emit** — `ConvertSource` (CSharpEmitter.cs:701–
+  762) gains two arms: `case PicCategory.National:` ⇒ `CobolString.Store(OperandText.AsString(source, deSign:
+  true), pic.Length{, justifiedRight})` (identical shape to the Alphanumeric arm :738–741 — A→N widening, N→N,
+  9→N digit imaging, boolean→N all ride `AsString`, the Latin-1 identity correspondence per GR6 :28909); `case
+  PicCategory.Boolean:` ⇒ same with `pad: '0'` (§14.6.8.6). The figurative early-return :709–712 already
+  produces the right fills (FigFill 'Z'→'0' for MOVE ZERO→boolean; 'S'→' ' for MOVE SPACE→national; SR7 shapes
+  never reach emit — bind-rejected). National→numeric rides the existing `case PicCategory.Numeric` :742–758
+  via `_num.AsNum` — **sweep item**: NumericRenderer's field-category dispatch must treat a National sender
+  like the existing AN sender (`CobolNum.FromAlphanumeric`, GR6d3). **Runtime**: `CobolString.Store`
+  (Runtime/Text/CobolString.cs:17–26) gains `char pad = ' '` (PadRight/PadLeft with pad — JR=0011 falls out);
+  `SpliceInto` :52–62 gains the same (ref-mod stores into boolean pad '0'; RefModPlace.Write threads it when
+  `Item.Pic.Category is Boolean`). All existing call sites untouched (default ' ').
+
+- **Comparisons.** `OperandText.IsString` (OperandText.cs:37–47) — the field arm :41 adds `or
+  PicCategory.National or PicCategory.Boolean`; `FieldAsString` :97 likewise (both are string-stored — `Read()`
+  verbatim). `ConditionRenderer.RenderRelational` (ConditionRenderer.cs:38–76) gains a category dispatch ahead
+  of the generic string leg :67–69 (the object/pointer precedent :44–62): a new `CategoryOf(BoundOperand)`
+  helper (field pic category / literal Category tag). **Boolean leg**: either operand boolean ⇒ the other must
+  be boolean (field or B-literal; mixed class ⇒ **COBOLNET0844** at bind — F1 SR2/SR3 exclude class boolean);
+  operator must be `==`/`!=` (ordering ⇒ 0844 at bind, §8.8.4.2.2 vs F2 :9566–9581); emit
+  `CobolString.Compare(l, r, pad: '0') == 0` — value compare, usage-independent, zero-extended (§8.8.4.2.8);
+  `Compare` gains `char pad = ' '` on the 2-arg overload (:68–79; the ' ' defaults keep every existing site
+  byte-identical). **National leg**: either operand national ⇒ full ordering via `CobolString.Compare(l, r)`
+  **without `ctx.CollateArg`** — the alphanumeric PCS never governs national comparisons (§8.8.4.2.9; D-N3
+  ordinal = the national default; the &0xFF weight-table aliasing hazard at :94–95 is thereby unreachable);
+  AN-vs-national mixes ride the same leg (§8.8.4.2.6 — Latin-1 identity conversion). Figurative-vs-national
+  comparisons ride the existing `RenderFigurativeRelational` :81+ (width-materialized, FigFill values per
+  D-N3); figurative-vs-boolean: ZERO legal (zero fill), others 0844 (no boolean SPACE/QUOTE/HIGH/LOW —
+  §8.3.3.6). Level-88 boolean/national VALUES: the 88 decode path (DataBinder.DecodeString callers) reads the
+  prefix-stripped text; THROUGH with boolean values ⇒ **COBOLNET0898** (SR29 :23327); national THROUGH needs a
+  national alphabet ⇒ 0899 staged (SR31 :23331, residue).
+
+- **DISPLAY / VALUE / INITIALIZE / figuratives / ref-mod.** **DISPLAY** (CSharpEmitter.cs:467–474): zero code —
+  national/boolean fields and tagged literals flow through `OperandText.AsString` as strings; console
+  conversion is implementor-defined (§14.9.11 GR1); ASCII-only goldens are encoding-safe (no OutputEncoding
+  change). **VALUE**: `FieldEmitter.InitializerFor` (FieldEmitter.cs:335–382) — the :376–377 arm becomes
+  `PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National` ⇒ `CobolString.Store(
+  DecodeCobolString(raw), Length)` and a Boolean arm with `pad: '0'`; `ImageInitOf` :146–147 and the default
+  tail :149–151 gain the same category+pad arms (defensive — national never reaches Tier-B backings, boolean
+  does); `FigurativeInitializer`/`FillCharFor` :404–428 already yield VALUE ZERO ⇒ '0'-fill and VALUE SPACE ⇒
+  ' '-fill correctly. **VALUE validation** (**COBOLNET0898**, §13.18.63 SR5/SR10, checked at DataBinder entry
+  build where RawValue+pic meet): category National requires an N"…" literal or a legal figurative
+  (SPACE/QUOTE/HIGH/LOW/ZERO — GR1 :6350); category Boolean requires B"…" or ZERO; conversely N"/B" VALUE on
+  any other category ⇒ 0898; length ≤ item size (SR5/SR10). **INITIALIZE** (StatementBinder.Initialize.cs):
+  enum :36 gains `Boolean, National` members (binder-side only — the `initializeCategory` grammar rule
+  CobolData.g4:431–437 has no such tokens, verified: REPLACING BOOLEAN/NATIONAL DATA = grammar residue, a
+  parse error today = loud); `InitializeItemCategory` :206–215 gains `{ Category: PicCategory.Boolean } =>
+  Boolean` and National likewise; `InitializeSender` :189–200 default-fill arm: Boolean joins the
+  `BoundFigurative('Z')` leg, National the `'S'` leg (GR6c :27995–28009 — the golden's INIT=0000/INIT=R);
+  `InitializeValueOperand` :233–246 gains N"/B" prefix decode arms (TO VALUE fidelity). **Figuratives**: no
+  FigFill changes (EmitCore.cs:89–97 — Z '0', S ' ', H U+00FF, L U+0000, Q '"' all conform under D-N3/D-N4).
+  **Ref-mod**: zero structural change — `CobolString.RefMod`/`SpliceInto` are position-based (§8.4.3.3 GR1;
+  under D-B1 a bit position IS a char index, so GR5a's bit-position rule is satisfied); the boolean splice pad
+  is the one addition (above). **Group images**: `DataItem.IsCharacterImage` :142–145 category test gains
+  `or PicCategory.National or PicCategory.Boolean` (a national/boolean leaf is string-stored ⇒ groups
+  containing them get AsImage/FromImage, group MOVE/DISPLAY/compare work in char space); `ElementaryImageWidth`
+  :180–189 already returns `pic.Length` ✓; `ElementType` :193 → "string" via ClrType ✓.
+
+- **Byte-addressed guards (D-N2 enforcement — each loud, each cited).** (1) **REDEFINES**: `ComputeTier`
+  (DataBinder.cs:1068–1099) gains a reject arm before the Tier-B fall-through: any leaf of category National ⇒
+  `RedefinesTier.Rejected` with reason naming national + "§13.18.44 lays the shared area in bytes; the
+  documented 2-byte national character (D-N1/D-N2) has no char-window overlay — Phase 4a residue" (the
+  existing float/COMP-5 reject pattern :1082–1087; references then fail loud like today). Boolean leaves (both
+  usages) fall through to Tier-B legitimately (char windows over '0'/'1'). (2) **Cells (EXTERNAL / ADDRESS OF /
+  BASED — RESIDUE-11)**: `ForceStringCanonical`'s gate (DataBinder.Linkage.cs:243–249) ALREADY rejects
+  `Usage.National`/`Usage.Bit` leaves (verified: `l.Pic is not { IsFloat: false, Usage: Usage.Display }`);
+  extend the RejectReason wording to NAME national/bit + cite RESIDUE-11 (F10 byte arithmetic vs 2-byte
+  national). Display-form boolean leaves PASS the gate and are cell-safe (byte=char, D-B1) — deliberate,
+  document. Usage.Bit stays rejected in cells (conservative until the packing residue is closed — one leg, one
+  posture). (3) **FD/SD records**: a new late DataBinder pass over `Files[*].Records` (the enumeration
+  precedent DataBinder.Linkage.cs:205–209): any record leaf of category National ⇒ direct **0899** "national
+  data in a file record — staged: the record codec is Latin-1 single-byte (SequentialFile.cs:422); the 2-byte
+  national record layout is Phase 4a residue". Boolean record leaves flow (1 char = 1 byte ✓). (4) **PCS/
+  intrinsic 256-table guards**: unreachable by construction — national compares never take CollateArg (above),
+  `special-names-for-national-2002` already gates FOR NATIONAL (ConstructDialectStatus.cs:121 +
+  EditionGateHints :111), CHAR/ORD take alphanumeric args only per their existing binds (StatementBinder.
+  Intrinsics.cs:128 pattern — add a national-arg 0844 guard there for belt-and-braces), and BYTE-LENGTH is
+  already `IntrinsicBind.Deferred` (IntrinsicCatalog.cs:125 — MUST return 2×chars for national when it lands;
+  never port the legacy `Encoding.ASCII.GetByteCount`). `FUNCTION LENGTH` folds from ImageWidth = char
+  positions ✓ §15.50 (Intrinsics.cs:163, no change). (5) **SORT/MERGE keys of category national** ⇒ 0899
+  staged at key bind (file sorts are already caught by the record gate; the table-SORT key check is the only
+  extra site).
+
+- **Diagnostics band plan (all four free 08xx codes allocated — verified free this recon: 0814/0819/0844/0898;
+  0900–0903 = the edition band; 0899 = the pinned staging code).** **NEW 0814** — national/boolean literal
+  repertoire/size: non-Latin-1 char in N"…" (staged correspondence, §8.3.3.5 SR2/GR3 + §8.1.2 :5137); length
+  > 8,191 (§8.3.3.4 SR1 :6111 / §8.3.3.5 SR1 :6196). **NEW 0819** — MOVE category legality: the Table 16
+  boolean/national arms (§14.9.25.3 SR10 + Table 16 :28839–28852) and SR7 figurative→boolean (:28817).
+  **NEW 0844** — operand/relation misuse: ordering operator on boolean operands (§8.8.4.2.2 F1 SR2/SR3
+  :9608–9610); boolean-vs-non-boolean relation mix; boolean/national literal in a numeric-expression position
+  (§8.8.1); CHAR/ORD national-arg guard. **NEW 0898** — VALUE clause category mismatch (§13.18.63 SR5 :23232 /
+  SR10 :23254, both directions) + boolean THROUGH (SR29 :23327). **0881 (existing declaration band, extended
+  message-differentiated — the M2-DATA-5 precedent)**: SR5 USAGE BIT with non-boolean PIC (:22722); SR20 PIC N
+  with explicit non-NATIONAL usage (:22764); SR12/SR30 illegal PIC-with-NATIONAL shapes (:22744/:20395);
+  picture-less elementary USAGE NATIONAL/BIT. **0899 direct (staged-legal sub-legs of the LIVE rows — the
+  ParseUsage:548/EditionValidator:326 direct-emission precedent)**: national-form numerics (PIC 9/9V9/edited
+  USAGE NATIONAL), national-form boolean (PIC 1 USAGE NATIONAL), FD/SD national records, national SORT keys,
+  national THROUGH (SR31). **0899 via NotImplementedSkeleton + NEW pending registry row
+  `national-edited-2002`**: N+B/0// pictures (§13.18.40.4 GR10, §8.5.2.11).
+
+- **Edition gating (registry + matrix + drift-lock).** Flip `national-data-2002` (constructs.json:408–417) and
+  `boolean-data-2002` (:418–427): `"status": "pending"` → `"active"`, descriptions rewritten LIVE ("LIVE
+  (Phase 4a track (a), DEVLOG NNN): compiles at 2002+; below 2002 the introduction gate rejects
+  (COBOLNET0900)" — the `usage-binary-char-family-2002` :459–465 pattern), keep `introducedIn: 2002` +
+  `expectDiagnostic: "COBOLNET0900"` (matrix reject cells at 85 keep passing — the Check calls remain at every
+  entry point: PicInfo.Analyze, ParseUsage, LiteralOperand). Update both registry citations
+  (ConstructDialectStatus.cs:108–109) from "…PENDING" to LIVE wording — metadata fields unchanged, so
+  `ConstructRegistryDriftTests` (:33–53) stays green by construction. ADD the pending row
+  `national-edited-2002` BOTH sides (json + registry — drift-locked): introducedIn 2002, DiagnosticCode
+  Introduction/0900, description+vcr+source all carrying "PENDING" (the `PendingRows_AreCataloguedWith
+  ActivationContracts` contract, VersionMatrixTests.cs:64–74). **EditionGateHints: NO new entries** (N"/B"
+  tokens parse at all editions — the gate is binder-side; verified only `special-names-for-national-2002` :47
+  exists and stays).
+
+- **Tests / goldens / legacy-runner (definitive).** (1) `tests/conformance/2002/manifest.json`: move
+  `boolean_data` (after `binary_usage`, line 5) and `national_data` (after `initialize_phrases`, line 8) into
+  `enabled`; `pending` becomes `["float_usage"]`. (2) **Golden re-baseline**: `national_data.cob` N2A leg
+  deleted + header note (Table 16 citation, DISPLAY-OF named as the sanctioned narrowing residue);
+  `national_data.out` drops line 8 (13→12 lines). (3) **LEGACY runner: NO GreenfieldOnly exclusion** — the
+  seams brief's closing claim is WRONG for these two programs: discovery is manifest-blind
+  (ConformanceTests.cs:30–42) and the legacy engine ALREADY compiles+runs both goldens green TODAY (they were
+  authored against the legacy national/boolean implementation, commits d8cf144/338ba5a; verified neither
+  appears in GreenfieldOnly :62–102). The DEVLOG-618 standing rule applies only to programs the frozen legacy
+  cannot run. ONE contingency: after the N2A re-baseline, re-run the legacy conformance suite in the same
+  commit ([[feedback_legacy_suite_on_shared_corpus]]) — a pure statement deletion is expected green; if the
+  legacy output diverges anyway ⇒ `LegacyDivergent` entry with the Table-16 citation (the initialize_phrases
+  precedent :51–55); only a legacy COMPILE failure (not expected) would justify GreenfieldOnly. (4)
+  **Staged-loud flips**: DataSkeletonEditionTests.cs — delete rows NAT1 :37, BIT1 :38, PICN :42, PIC1 :43 from
+  `SkeletonConstructs()`; add `NationalData_CompilesAt2002Plus_RejectedAt85` and
+  `BooleanData_CompilesAt2002Plus_RejectedAt85` on the :114–128 BinaryCharFamily pattern; update the :30–34
+  doc comment. LoudGuardTests.cs — delete NATIONAL/BIT rows :96–97 from the 0899-at-2023 usage theory and
+  `N(4)`/`1(8)` rows :138–139 from the 0899-at-2023 Analyze theory; ADD
+  `ParseUsage_NationalBit_LiveAt2002_IntroductionGatedAt85` (the :62–76 pattern, expecting
+  `Usage.National`/`Usage.Bit` silently at 2002 + 0900 at 85) and positive Analyze facts
+  (`Analyze_PicN_ClassifiesNational_UsageImplied` — category National, Usage National, Length 4;
+  `Analyze_Pic1_ClassifiesBoolean_UsageDisplay` — Length 8); KEEP the 0900-at-85 Analyze rows :126–127 (still
+  true via the retained Check). (5) **NEW unit/conformance batteries**:
+  `NationalBooleanLiteralTests` (literal decode at every funnel — DISPLAY N"AB"/B"01", EVALUATE WHEN, INSPECT
+  args, CALL USING literal, 0814 non-Latin-1, 0844 numeric-context); `NationalBooleanMoveTests` (every Table
+  16 Yes/No cell reachable — the No cells assert 0819; SR7 cells; zero-length N""); `CobolStringPadTests`
+  (Store/SpliceInto/Compare pad-char overloads — byte-identical defaults); `NationalBooleanDataTests`
+  (0881 SR5/SR20 shapes, 0898 VALUE mismatches + boolean THROUGH, 0899 staged shapes: national-edited PIC,
+  PIC 9 USAGE NATIONAL, FD national record, REDEFINES national reject, EXTERNAL cell reject naming RESIDUE-11,
+  boolean ordering 0844); level-88 B"…" condition test. (6) **Negative corpus** (contract: first line
+  `*> reject-at: 2002 2014 2023`, `.err` = ONE case-insensitive substring): `move-national-to-an` ("national
+  sending operand"), `move-space-to-boolean` (SR7), `pic-n-usage-display` (SR20), `bit-usage-numeric-pic`
+  (SR5), `boolean-ordering-relation` (0844), `value-boolean-mismatch` (SR10); manifest.json (negative) gains
+  all six in `enabled`. (7) Both goldens double as the phase demo — outputs ISO-derived above
+  (feedback_demo_per_phase / feedback_verify_demo_output).
+
+- **Implementation order (small commits, battery-gated).** **Commit 1 — BOOLEAN (M2-DATA-4)**: CobolString
+  pad params → PicInfo boolean legs (Analyze/ParseUsage/skeleton-list removal for Boolean+Bit only) →
+  BoundStringLiteral.Category + BOOLLIT arms at all funnels → ConvertSource Boolean arm + SpliceInto pad →
+  MoveCategoryLegality boolean half (0819) + relation guard (0844) + Compare pad → InitializeCategory.Boolean
+  → VALUE decode/validation (0898) + 0881 SR5 → IsCharacterImage Boolean → boolean test flips + new tests +
+  negative cases → `boolean_data` enabled + registry/json boolean flip + docs (COBOLNET_DESIGN data §: D-B1) +
+  DEVLOG. GATE: full greenfield battery + LEGACY ConformanceTests + guard-fast. **Commit 2 — NATIONAL
+  (M2-DATA-3)**: PicInfo national legs + `national-edited-2002` pending row + SR12/SR20/SR13 resolution (0881/
+  0899 shapes) → NATLIT arms + 0814 guard → ConvertSource National arm + Table 16 national half → national
+  comparison leg (no CollateArg) → InitializeCategory.National → VALUE arms → IsCharacterImage National →
+  byte-addressed guards (ComputeTier reject, ForceStringCanonical wording, FD record gate, SORT-key guard,
+  CHAR/ORD guard) → **golden re-baseline (N2A)** + `national_data` enabled + `move-national-to-an` negative +
+  registry/json national flip + docs (D-N1..D-N4 + the M2-DATA-3/4 row flips in THIS file) + DEVLOG. GATE:
+  full battery + legacy ConformanceTests on the EDITED golden + FULL legacy guard. **Commit 3** — adversarial
+  find→verify wave over the whole diff (the proven track cadence), fixes same-set; resume-prompt STATE banner;
+  push every checkpoint (feedback_fully_autonomous_push).
+
+- **ANCHOR LIST (verified this recon unless marked [brief]).** PicInfo.cs :18–24, :66–77, :115–121, :165–168,
+  :209–212, :217/:228, :245–261, :264–276, :282–298, :314–315, :342–387, :416–424, :459–480, :492–553
+  (:513–514, :518–520), :559–587; StatementBinder.cs :937–943, :948–958, :1380; StatementBinder.Evaluate.cs
+  :161; StatementBinder.Intrinsics.cs :358, :128 [brief], :163 [brief]; StatementBinder.Inspect.cs :199–204
+  [brief]; StatementBinder.Call.cs :68, :183 [brief]; StatementBinder.Oo.cs :986–1008;
+  StatementBinder.MoveFigurative.cs :42–125 (:44–59 0809 SR1 precedent), :140–146; StatementBinder.Initialize.cs
+  :36, :189–200, :206–215, :233–246; Bound/BoundTree.cs :93, :164 [brief]; CSharpEmitter.cs :467–474, :476–493,
+  :510–529, :551–570, :692–698, :701–762 (:709–715, :738–758); CodeGen/Emit/ConditionRenderer.cs :38–76
+  (:67–69), :81+; CodeGen/Emit/OperandText.cs :17–33, :37–47 (:41), :49–100 (:97); CodeGen/Emit/FieldEmitter.cs
+  :122–152 (:137–151), :174–228, :335–382 (:343, :376–377), :404–428; CodeGen/Emit/EmitCore.cs :89–101,
+  :103–115; CodeGen/Emit/NumericRenderer.cs (AsNum field-category dispatch — sweep site); Binding/DataItem.cs
+  :142–145, :160–164, :172–189, :193; Binding/DataBinder.cs :529, :667–668, :685–743 (:688, :729–743), :855
+  [brief], :971–1042, :1050–1063, :1068–1099; Binding/DataBinder.Linkage.cs :205–223, :232–259;
+  Runtime/Text/CobolString.cs :17–26, :34–44, :52–62, :68–79, :88–99; Runtime/Text/CobolClass.cs [brief];
+  Validation/ConstructDialectStatus.cs :108–109, :121; Frontend/Parsing/EditionGateHints.cs :47, :111 [brief];
+  Grammar/Core/CobolLexer.g4 :584–598 [brief]; Grammar/Core/CobolExpressions.g4 :264–270, :291–299;
+  Grammar/Core/CobolData.g4 :428–437; tests/version-matrix/constructs.json :408–427;
+  tests/conformance/2002/manifest.json :5, :8, :46; tests/conformance/2002/national_data.cob :42–45 + .out
+  line 8; tests/CobolSharp.Tests.Integration/ConformanceTests.cs :51–55, :62–102, :108;
+  tests/Cobol.Net.Tests.Conformance/CorpusRunnerTests.cs :25–31, :61–88, :97–115 [brief];
+  DataSkeletonEditionTests.cs :30–45, :50–77, :114–128 [brief]; LoudGuardTests.cs :62–76, :84–110, :125–147
+  [brief]; VersionMatrixTests.cs :53–74 [brief]; ConstructRegistryDriftTests.cs :33–53 [brief];
+  Runtime SequentialFile.cs :199–222, :422 [brief]; IntrinsicCatalog.cs :125 [brief]. Plus the
+  **category-set sweep command**: grep `PicCategory.Alphanumeric or PicCategory.NumericEdited` across
+  src/Cobol.Net.Compiler — every hit consciously extended (National/Boolean join) or exempted with a comment
+  (feedback_scan_all_similar).
+
+- **STAGED RESIDUE (named, loud — each with § + guard).** (1) **Bit operators** B-AND/B-OR/B-XOR/B-NOT/
+  B-SHIFT-* + boolean COMPUTE (§8.8.2 :9323–9420) — GRAMMAR; approval GRANTED 2026-07-05 (blanket grammar
+  grant) — queued as track (a) increment 2 (own recon/design); no lexer tokens ⇒ parse error today. (2) **NATIONAL-EDITED** pictures (§13.18.40.4 GR10; §8.5.2.11) — the new
+  `national-edited-2002` pending row, 0899 in Analyze. (3) **NX"…"/BX"…"** (§8.3.3.5.2/§8.3.3.4.2) — no lexer
+  rules (CobolLexer.g4 comments name it); parse error. (4) **Non-Latin-1 national content** (§8.3.3.5 SR2,
+  MOVE GR6 correspondence + EC-DATA-CONVERSION :28919) — 0814 at literal bind. (5) **National collating
+  suite**: ALPHABET/CLASS FOR NATIONAL (§12.3.7 — existing `special-names-for-national-2002` gate), SORT/MERGE
+  COLLATING FOR NATIONAL, indexed national keys, CODE-SET FOR NATIONAL, national HIGH/LOW-VALUE under a
+  declared sequence — parse/0900-gated + the SORT-key 0899. (6) **True bit-packing + §8.5.1.6.3 alignment** —
+  permanently optional under D-B1 (R14); revisit only with GROUP-USAGE BIT. (7) **GROUP-USAGE BIT/NATIONAL**
+  (§13.18.29) — grammar; parse error. (8) **National-form numerics / national-form boolean** (PIC 9 / PIC 1
+  USAGE NATIONAL, §13.18.60.4 SR12) — direct 0899 in Analyze. (9) **FD/SD national records** (§8.1.2 +
+  Latin-1 codec posture) — 0899 record gate. (10) **REDEFINES / EXTERNAL / ADDRESS-OF / BASED over national;
+  USAGE BIT in cells** (RESIDUE-11, F10 GR20 byte arithmetic) — ComputeTier reject + ForceStringCanonical
+  reject, wording names the leg; the real fix = per-item byte offsets + UTF-16LE cell images, out of scope.
+  (11) **NATIONAL-OF §15.66 / DISPLAY-OF §15.26 / CHAR-NATIONAL §15.16 / STANDARD-COMPARE §15.85 /
+  BYTE-LENGTH §15.14** — IntrinsicBind.Deferred (BYTE-LENGTH must answer 2× for national when it lands).
+  (12) **STRING/UNSTRING/INSPECT class-mix SR validation for national/boolean operands** (§14.9.43/48/22) —
+  operands flow char-correct for legal all-national programs; the SR diagnostics sweep is residue. (13)
+  **Simple boolean condition** `IF bool-item` (§8.8.4.3) — binds as an unresolved condition-name today (loud).
+  (14) **IS BOOLEAN class condition** + NUMERIC-on-national (§8.8.4.4) — grammar/bind residue. (15)
+  **Concatenation `&`** of boolean/national literals (§8.8.3). (16) **INITIALIZE REPLACING BOOLEAN/NATIONAL
+  category words** (§14.9.20.2) — grammar (CobolData.g4:428–437 comment already names it); parse error. (17)
+  **ALL N"…"/ALL B"…"** (§8.3.3.6.3 SR2) — grammar (figurativeConstant has only ALL STRINGLIT/HEXLIT). (18)
+  **Level-88 national THROUGH** (SR31) — 0899. (19) **MOVE CORR bit/national groups as groups** (NOTE 5
+  :29039) — moot until (7). (20) **VALIDATE N/1 format checks** (:20625/:20644) — VALIDATE subsystem. (21)
+  **Screen/ACCEPT national items** (USAGE SR17/VALUE SR15) + boolean ACCEPT zero-pad — ACCEPT stores chars
+  today; content legs ride the screen-section residue. (22) **Dynamic-length national/boolean** (zero-length
+  semantics §8.5.4) — not modeled. (23) **Zero-length boolean literal `B""`** (§8.3.3.4 GR4 — spec-legal) —
+  the lexer's `BOOLLIT : 'B' '"' [01]+ '"'` requires ≥1 position, so `B""` lexes as `B` + `""`, not an empty
+  boolean literal (adversarial-review, DEVLOG 620); relaxing to `[01]*` risks `B`-identifier-then-string
+  ambiguity, deferred. (`N""` already lexes — NATLIT's body is `…*`.)
+
+- **⚠ FLAGS (brief conflicts, resolved in-repo).** **F1** Goldens brief §1 lists `N2A` as a behavior to
+  implement; the spec brief marks national→AN illegal — **verified in the spec itself** (Table 16 :28847) ⇒
+  re-baseline, negative case added (the spec-over-golden process rule). **F2** Seams brief's closing note
+  demands a GreenfieldOnly exclusion; goldens brief §7 proves none is needed — **verified**
+  (ConformanceTests.cs:62–102 + manifest-blind discovery; legacy implements both). **F3** Seams brief calls
+  the INITIALIZE category words "grammar-gated work" — verified (CobolData.g4:431–437); the ENUM+default-fill
+  legs are binder-side and IN scope, the REPLACING words are residue #16. **F4** Storage brief's
+  REDEFINES-stage-loud vs the GR8 size-equal alternative — DECIDED for the 2-byte documented choice (D-N2
+  rationale). **F5** PicInfo anchors in the older reconciliation (317/328/467) have drifted — current anchors
+  verified and used throughout. **F6** ForceStringCanonical already rejects Usage.National/Bit generically
+  (verified :243) — only the naming/citation changes. **F7** The picture-less elementary USAGE NATIONAL/BIT
+  error site (group-fixup pass, DataBinder.cs:855 area) is the one anchor taken from the briefs without a
+  direct read this session — verify at implementation.
+
+#### M2-DATA-3/4 — AS BUILT (2026-07-05, same day; deviations + notes)
+
+- Implemented exactly per the design with these adjudications: (1) **Call.cs:68/:183 are NOT decode arms** —
+  CALL/CANCEL literal targets must be alphanumeric (§14.9.4.3 SR2 / §14.9.5.2 SR1); the existing loud
+  BoundUnsupported is the correct posture (the design's funnel list marked them decode — refuted at
+  implementation). (2) **A THIRD DecodeCobolString twin** existed at StatementBinder.cs (the design's decode
+  plan named two) — all three per-layer twins now strip the N/B prefix; found via the boolean golden probing
+  raw `B"01` stores. (3) **SUB-mode literal tokens added** (SUB_NATLIT/SUB_BOOLLIT, CobolLexer.g4 SUBSCRIPT
+  mode): in SUBSCRIPT mode `N"AB"` lexed as SUB_IDENTIFIER('N') + SUB_STRINGLIT — FUNCTION LENGTH(N"AB")
+  misbound; the proper-token rule (feedback_proper_fixes) under the 2026-07-05 blanket grammar grant.
+  (4) **The boolean relation checkpoint is ONE factory** — CheckedRelational at every BoundRelational site
+  (IF / EVALUATE pairing + THRU ranges / UNTIL / SEARCH), which also discharges §14.9.13.3 SR4 (boolean THRU
+  range) for free. (5) **The national golden was re-baselined twice-in-one**: the N2A leg deleted (Table 16
+  :28847, verified in-spec before the edit) AND the .out flipped to full-width DISPLAY (§14.9.11.4 GR6, the
+  DEVLOG-597 posture) → the legacy runner carries a `LegacyDivergent` entry; boolean_data needs none
+  (exact-width values). (6) **Group USAGE NATIONAL/BIT conformance** rides the ResolveIndexItems shed site
+  (SR12/SR5 over subordinate leaves); a picture-less elementary NATIONAL/BIT errors 0881 there (the
+  NationalUsagePending/BitUsagePending marker singletons — the RecoveryItem pattern).
+- Battery: unit 159 (was 130) · conformance grew by the two goldens + 4 new test batteries + 6 negative
+  cases; legacy ConformanceTests green with the one LegacyDivergent addition.
+
+**ADVERSARIAL REVIEW WAVE (wf_ecf6ff42, 5 lenses × find→2-skeptic-verify; the Fable limit killed 34/53 verify
+agents mid-run, so the unverified findings were adjudicated in-session on Opus). 6 dual-confirmed + 3
+self-adjudicated-real fixed SAME change set; the rest refuted or staged:**
+1. **Apostrophe-delimited `N'…'`/`B'…'` stored their quotes** (silent-wrong-value) — all THREE DecodeCobolString
+   twins unwrapped only `"`; now unwrap EITHER delimiter and collapse the doubled OPENING quote (§8.3.1.2).
+   ALSO closed the pre-existing plain-`'…'` STRINGLIT leg. Probed `N'AB'`→`AB `, `N'IT''S'`→`IT'S`.
+2. **§14.9.25.3 SR8 unenforced** (spec-violation) — a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sender to a national
+   (or any non-numeric) receiver compiled silently; `MoveCategoryLegality` gained a top-of-loop SR8 guard
+   (0819) preceding the Table-16 arms. Corpus-safe (the family is 2002+). Negative: `move-binary-to-national`.
+3. **Figurative MOVE into a ref-mod slice filled only position 1** (silent-wrong-value) — `MOVE ZERO TO N5(2:3)`
+   gave `A0␠␠E`; new `RefModPlace.WriteFill` (empty slice + fill-char pad) fills EVERY position (§8.3.3.6.4 GR2 /
+   §8.4.3.3 GR5), category-aware fill. Now `A000E`.
+4. **Boolean figurative relation dropped the boolean-zero pad** (silent-wrong-value) — `IF B(1:2) = ZERO`
+   space-extended and compared unequal; `RenderFigurativeRelational` now threads `pad: '0'` for a boolean
+   anchor (§8.8.4.2.8), mirroring the direct + 88 legs.
+5. **Level-88 VALUE category unchecked both directions** (spec-violation) — `88 X VALUE B"01"` under PIC X (and
+   the reverse) silently accepted; `BindCondition` routes every 88 VALUE operand (singleton + THRU bounds)
+   through the ONE `ValidateValueCategory` (0898, §13.18.63 SR4/SR5/SR24→SR10). Negatives:
+   `level88-boolean-value-alnum`, `level88-alnum-value-boolean`.
+6. **Class conditions on boolean operands accepted silently** (spec-violation) — `IF bit-item IS NUMERIC`
+   answered a tautology; `IS ALPHABETIC` too. New `CheckClassConditionOperand` at BOTH BoundClassCondition
+   sites (0844, §8.8.4.4.3 SR8/SR4 — DISPLAY-form boolean IS NUMERIC stays legal per SR8). Negatives:
+   `class-numeric-on-bit`, `class-alphabetic-on-boolean`.
+7. **`N"…"`/`B"…"` intrinsic args were a hard PARSE error / the Intrinsics decode arms were DEAD CODE** — the
+   SUB_NATLIT/SUB_BOOLLIT tokens were added to the lexer but not to the `subToken` parser rule (as-built claim
+   #3 above was aspirational until this). Added the two `subToken` alternatives; `FUNCTION LENGTH(N"AB")`=2 now.
+8. **`ValidateValueCategory` falsely rejected `VALUE ALL SPACES` on PIC N / `ALL ZEROS` on PIC 1** — the
+   National arm rejected any `ALL`-prefixed raw; now distinguishes `ALL "quoted"` (illegal) from the figurative
+   WORD forms (legal). Both arms accept the figurative-word set.
+9. **SET condition-name TO TRUE stored the figurative WORD** — `88 F VALUE ZERO` + `SET F TO TRUE` stored
+   `"ZERO"`; `EmitSet` now fills via `FigurativeWordFill` (category-aware) for figurative-word 88 VALUEs
+   (§14.9.39 F5 + §8.3.3.6.4 GR2). New surface for boolean/national; the pre-existing alphanumeric leg is
+   cured by the same code.
+- Also fixed while here: **the HIGH/LOW-VALUE fill for national/boolean now uses the D-N3 pins** (U+00FF/U+0000),
+  never the alphanumeric program collating sequence's extreme — new `EmissionContext.FigFill(kind, cat)`,
+  threaded through ConvertSource / ref-mod / comparison / VALUE / SET (a declared alphanumeric PCS + national
+  HIGH/LOW was the one-vote finding). **The USAGE syntax-rule citations were corrected `§13.18.60.4 → .3`** (SRs
+  live in .3 / GRs in .4). **The double COBOLNET0900** for `PIC N USAGE NATIONAL` at <2002 (both ParseUsage and
+  Analyze gated) — Analyze now skips the gate when the usage already fired it.
+- **Refuted / staged (not fixed):** national HIGH/LOW-VALUE COMPARISON under a *declared* alphanumeric PCS
+  (the FigFill fix covers stores/fills; the comparison leg already exempts the PCS via the D-N3 collate
+  omission); `national_data` "asserted by no runner" — REFUTED (CorpusRunnerTests compiles+runs+byte-compares
+  every enabled program). **NEW named residue: zero-length `B""`** — the lexer's BOOLLIT is `[01]+`, so `B""`
+  (spec-legal per §8.3.3.4 GR4) lexes as `B` + `""` rather than an empty boolean literal; deferred (the
+  ambiguity risk of `[01]*` outweighs the rare zero-length case). `N""` already lexes (NATLIT is `…*`).
+- Battery (post-review): conformance **1776** · unit **159** · legacy ConformanceTests **55** ·
+  FULL legacy guard on the subToken .g4 change.
+
+### M2-DATA-4 / track (a) — increment 2: BOOLEAN OPERATORS B-AND / B-OR / B-XOR / B-NOT — DECISION-COMPLETE DESIGN (recon wave 2026-07-05; grammar pre-authorized; ready to implement AFTER the boolean-data increment)
+
+> Scope: the ISO §8.8.2 boolean-expression machinery over the boolean-DATA substrate the parallel M2-DATA-4
+> increment lands FIRST (PIC 1 / USAGE-BIT-as-display items stored as '0'/'1' strings, `B"…"` literals,
+> MOVE/compare/VALUE/INITIALIZE). This increment adds: the four operators with §8.8.2 precedence and
+> parenthesization; COMPUTE Format 2 (boolean-compute, §14.9.8); the boolean relation condition (Format 2,
+> §8.8.4.2.2); the simple boolean condition (§8.8.4.3) in IF / PERFORM UNTIL / SEARCH WHEN / EVALUATE via the
+> generic condition path; EVALUATE boolean-expression subjects/objects (§14.9.13); the `boolean-operators-2002`
+> gate + matrix row + EditionGateHints; runtime `CobolBool`; golden `boolean_ops` (GreenfieldOnly — legacy has
+> ZERO B-op support). 2023 shift operators, BY CONTENT expression arguments, BX literals, `&`-concat and the
+> compile-time directive expressions stage LOUD (named residue below). **HARD DEPENDENCY: lands after the data
+> increment flips `boolean-data-2002` active** (the matrix-row source and every golden use PIC 1 items).
+
+- **Spec (ISO 2023; specs/ISO_COBOL.md :line anchors).** Operator catalog §8.7.2 (:8865–8878 — binary B-AND
+  conjunction / B-OR inclusive / B-XOR exclusive disjunction; unary B-NOT; the ":8878 '-NOT'" is an OCR artifact,
+  the word is B-NOT per :9343/:10340). Boolean expressions §8.8.2 (:9323–9420): operand forms :9325–9334
+  (boolean-item identifier, boolean literal, figurative ZERO, `ALL boolean-literal`, B-NOT-prefixed, binary
+  combination, parenthesized — shift forms are 2023 residue); formation rules 1–3 (:9338–9356 begin/end/balanced
+  parens) + Table 4 adjacency (:9370–9382) — enforced STRUCTURALLY by the tier grammar; rule 4 (:9364) both
+  operands of a binary op shall not both be `ALL literal`; precedence rule 7 (:9384–9406): parens innermost-first,
+  then 1st B-NOT, 2nd B-AND, 3rd B-XOR, 4th B-OR, equal precedence left-to-right; **rule 9 (:9416)** ops performed
+  without regard to usage, equal lengths combine positionwise left→right, **unequal lengths ⇒ the shorter operand
+  is treated as extended on the RIGHT with boolean zeros — no error, no EC**; NOTE 2 (:9418) lengths are
+  per-operation in evaluation order, zero-length operands ⇒ zero-length result; **rule 10 (:9420)** each
+  operation's result length = the LARGER item referenced in that operation (B-NOT ⇒ its operand's length).
+  COMPUTE §14.9.8 (:26538–26606): Format 2 (:26558–26560) `COMPUTE {identifier-2}… = boolean-expression-1
+  [END-COMPUTE]` — **no rounded-phrase, no [NOT] ON SIZE ERROR at the format level**; SR2 (:26573) identifier-2 =
+  elementary boolean item; SR3 (:26575) the expression shall not consist solely of `ALL literal`; **GR3
+  (:26604–26606)** the stored value's boolean positions = "the number of boolean positions in the largest boolean
+  ITEM referenced in the expression" — this can DIFFER from the root operation's rule-10 width (literal-only
+  larger sides don't count; a ref-mod operand is its own §8.4.3.3 unique data item at the ref-mod length), and it
+  is observable only through the store (JUSTIFIED interplay) — encode GR3 as written. Storing §14.6.8.6
+  (:24303–24308): category-boolean receivers left-aligned, zero-fill or truncate on the RIGHT (JUSTIFIED per
+  §13.18.32 follows the data increment's posture). Boolean relation §8.8.4.2.2 (:9566–9581): two boolean
+  expressions, **equality/inequality ONLY** (`IS [NOT] EQUAL TO / IS [NOT] = / IS <>`); comparison semantics
+  §8.8.4.2.8 (:9683–9689): positionwise, usage-independent, unequal lengths ⇒ shorter zero-extended right, two
+  zero-length operands EQUAL. Simple boolean condition §8.8.4.3 (:9795–9817): `[NOT] boolean-expression-1`; SR1
+  (:9810) the expression shall reference only boolean items of LENGTH 1; GR1 (:9815) true iff the result is 1
+  (bind-check literals to length 1 too — GR1's binary premise); it is a §8.8.4.2.1 simple condition (:9493) ⇒
+  flows into IF/UNTIL/SEARCH/EVALUATE-WHEN-condition through the generic conditional-expression rules — no
+  per-statement work. EVALUATE §14.9.13: boolean-expression subject :27164 / `[NOT] boolean-expression-2` object
+  :27176; SR4 (:27206) range operands shall NOT be class boolean; SR6a–d (:27212–27218) a length-1 boolean
+  expression paired with TRUE/FALSE reclassifies as a boolean CONDITION; SR7a + Table 15 (:27230/:27244–27260)
+  pairing; GR1/GR3a/GR3d (:27271/:27277/:27283) sole-literal/sole-identifier stay literal/identifier. Figurative
+  `ALL boolean-literal` materializes against the other operand (§8.3.3.6.4 GR2). Truth tables + worked COMPUTEs:
+  Annex D.10 (:44534–44625, Table A.2 :44594–44605) — the unit-test oracle. **No boolean-operator EC exists**
+  (§8.8.2 defines none; F2 has no SIZE ERROR ⇒ no EC-SIZE path); EC-DATA-INCOMPATIBLE (§14.6.13.2 r1 :24869) and
+  EC-BOUND-REF-MOD ride existing/residue machinery.
+- **Editions.** B-AND/B-NOT/B-OR/B-XOR reserved 2002/2014/2023, NOT 85 (§8.9 :10339–10341/:10347; absent from
+  Annex E.2 item 25's 2023-new list :49320–49344 ⇒ pre-2014; catalogued M2 = **2002 introduction** per the VCR
+  preamble derivation rule, VERSION_CHANGE_REFERENCE.md:20). `ReservedWords.Table.cs:43-50` ALREADY has all four
+  rows (R85=false, high confidence) + the four 2023-only B-SHIFT rows. **Operators gated `{is2002()}?`; the words
+  are USER-defined at 85** — the exact shipped XOR pattern (DEVLOG 596), inverted edition (2002 not 2023).
+  **Do not conflate** with logical `XOR`/`EXCLUSIVE-OR` (2023, §8.8.4.9, VCR row 41 — already gated): those
+  combine condition TRUTH VALUES; B-ops combine boolean BIT-STRING values. No evidence of any 2002→2014 operator
+  change (Annex E covers 2014→2023 only) — treat as edition-continuous 2002→2023 with the standard
+  `vcr: "2002 introduction (derive from the 2002 standard)"` caveat.
+- **Grammar plan (pre-authorized; ALL edits keep the 85 parse surface bit-identical — every new alternative is
+  head-gated `{is2002()}?` so prediction kills it instantly at 85/NIST).**
+  (1) **Lexer** (`Grammar\Core\CobolLexer.g4`, the hyphenated band :116–135, beside `EXCLUSIVE_OR` :120):
+  `B_AND : 'B-AND' ;  B_OR : 'B-OR' ;  B_XOR : 'B-XOR' ;  B_NOT : 'B-NOT' ;` — maximal munch safe (`B-AND-MASK`/
+  `B-ORDER` stay IDENTIFIER by longer match; `BOOLLIT` :596–598 disjoint — next char is a quote).
+  (2) **`_dataNameTokens`** (:30–62, beside `XOR, EXCLUSIVE_OR` :38): add the four (85 user table `B-AND(3)` must
+  trigger SUBSCRIPT mode — the whitelist mirror rule :19–29).
+  (3) **`cobolWord`** (`CobolParserCore.g4:25-98`, beside XOR/EXCLUSIVE_OR :45-46): add the four with the comment
+  "user words at 85, funnel-0901'd ≥2002; keyword occurrences parse only through the gated operator tier — never a
+  name slot".
+  (4) **New boolean tier** (CobolExpressions.g4, after the condition section — precedence per §8.8.2 rule 7b):
+  ```
+  // ── COBOL-2002 boolean expressions (ISO §8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
+  // Permissive-superset doctrine: operand SHAPES (boolean item / boolean literal / ZERO / ALL B"…") are
+  // enforced at bind (COBOLNET0898); the tiers enforce formation rules 1–3 + Table 4 structurally.
+  booleanExpression : booleanXorTerm ( {is2002()}? B_OR booleanXorTerm )* ;
+  booleanXorTerm    : booleanAndTerm ( {is2002()}? B_XOR booleanAndTerm )* ;
+  booleanAndTerm    : booleanFactor  ( {is2002()}? B_AND booleanFactor )* ;
+  booleanFactor     : {is2002()}? B_NOT booleanFactor
+                    | {is2002()}? LPAREN booleanExpression RPAREN
+                    | valueOperand ;
+  ```
+  (paren alt ordered BEFORE valueOperand so `(A B-AND B)` predicts the boolean paren; `(A)` alone still reaches it
+  first but reduces identically — bind treats both shapes as one).
+  (5) **`comparisonOperand`** (:115–117): `comparisonOperand : valueOperand | {is2002()}? booleanExpression ;` —
+  order preserves every existing accessor/prediction; a B-op-containing operand is unviable as alt 1 (B_AND is in
+  no follow set) so full-context prediction picks alt 2. This ONE edit delivers the boolean relation (both
+  operands), the simple boolean condition (the bare-operand comparisonExpression path), abbreviated-relation
+  operands, and EVALUATE WHEN condition-path objects. ⚠ DFA watch-item: alt 2 shares the valueOperand prefix (the
+  signCondition lesson :55–57) — safe at 85 (dead predicate), measure conformance parse time at 2002+ in the
+  battery gate; escalate if growth appears.
+  (6) **`computeStatement`** (CobolParserCore.g4:869-871) — two alternatives, alt-1 subtree shape UNCHANGED (the
+  legacy binder's `arithmeticExpression()` accessor keeps working untouched):
+  ```
+  computeStatement
+      : COMPUTE computeStore+ EQUALS arithmeticExpression computeOnSizeError? END_COMPUTE?   // F1 (§14.9.8)
+      | {is2002()}? COMPUTE computeStore+ EQUALS booleanExpression computeOnSizeError? END_COMPUTE?  // F2 (boolean-compute)
+      ;
+  ```
+  `COMPUTE X = A` (sole identifier) deterministically picks alt 1 — the binder re-routes a boolean-receiver/
+  boolean-RHS Format-1 tree to the boolean bind (the SET-object-reference "ANTLR alternative-order reality"
+  precedent, ConstructDialectStatus.cs:130). Alt 2 keeps `computeStore+`'s roundedPhrase and the size-error tail
+  parseable; bind rejects both (F2 format :26558–26560) for co-equal diagnostics.
+  (7) **`evaluateSubject`** (Core/CobolControlFlow.g4:83-86): add `| {is2002()}? booleanExpression` as the LAST
+  alternative (sole identifiers keep alt 2; only B-op-containing subjects reach it). Objects need NO grammar edit —
+  `evaluateWhenItem : … | condition` reaches the new comparisonOperand alternative.
+  (8) **`figurativeConstant`** (CobolExpressions.g4:291-305): add `| ALL BOOLLIT` (§8.8.2 :9331 / §8.3.3.6.4 —
+  COORDINATE: one line, either increment may land it first; do not duplicate).
+  (9) **Regen both OSes** (Generated/ is build output — feedback_commit_generated_parser); **FULL legacy guard
+  (`scripts/guard.sh`) MANDATORY** — the grammar is shared (CobolSharp.Compiler.csproj:25); NIST runs at `--nist`
+  ⇒ 85 where every gate is off and the four words behave as user words (identical to today's IDENTIFIER behavior
+  once steps 2–3 land).
+- **Reserved-word funnel** (`Validation\EditionValidator.cs`): add `CobolLexer.B_AND, CobolLexer.B_OR,
+  CobolLexer.B_XOR, CobolLexer.B_NOT` to `CheckedTokenTypes` (:268–287, beside XOR :276) — position-blind safe by
+  the XOR argument (keyword occurrences parse only through the gated operator tiers, never a name slot). Funnel →
+  `ReservedWordSet.RejectsAt` → 0901 at ≥2002; table rows already exist. NO table edits needed.
+- **Bound nodes** (Bound/BoundTree.cs — a new value channel; boolean values are '0'/'1' strings, never numerics):
+  `public abstract record BoundBoolExpr;` with `BoundBoolLiteral(string Bits)` (B"1010" decoded),
+  `BoundBoolRef(Place Place)` (a category-Boolean item, incl. static ref-mod), `BoundBoolAll(string Bits)`
+  (figurative `ALL B"…"`; figurative ZERO normalizes to `BoundBoolAll("0")` at bind; `B-NOT ALL …` constant-folds
+  to the flipped `BoundBoolAll` — ALL is positionless), `BoundBoolBinary(BoundBoolExpr Left, char Op,
+  BoundBoolExpr Right)` (Op ∈ '&','|','^'), `BoundBoolNot(BoundBoolExpr Operand)`, `BoundBoolError(string
+  Feature)`. Plus: **`BoundBoolOperand(BoundBoolExpr Expr) : BoundOperand`** — the ONE relation-operand carrier
+  (never a parallel relational node; the item↔item compares of the data increment ride the SAME
+  `BoundRelational` + renderer branch — feedback_singular_pattern); **`BoundBooleanCondition(BoundBoolExpr Expr)
+  : BoundCondition`** (§8.8.4.3 — negation composes via the existing `BoundNot`); **`BoundComputeBoolean(
+  BoundBoolExpr Rhs, IReadOnlyList<Place> Targets, int Gr3Width) : BoundStatement`** (Gr3Width computed at BIND =
+  max static boolean positions over items referenced, §14.9.8 GR3; all-literal expressions use the root
+  operation's rule-10 width — GR3 is silent, documented implementor reading; a DYNAMIC-length ref-mod operand
+  stages 0898 loud this increment).
+- **Binder** (new partial `Bound\StatementBinder.Boolean.cs` + touch points):
+  `BindBoolExpr(Core.BooleanExpressionContext)` walks the tiers left-to-right (rule 7c); operand resolution from
+  `booleanFactor`/`valueOperand`: BOOLLIT → decode (ONE shared decoder with the data increment); figurative
+  ZERO / `ALL BOOLLIT` → `BoundBoolAll`; sole dataReference → resolve; **category must be `PicCategory.Boolean`**
+  else 0898 (§8.8.2 operand list); any non-sole-ref arithmeticExpression / STRINGLIT / other figurative → 0898.
+  Rule-4 both-ALL binary ⇒ 0898 (:9364). `BindCompute` (:596–601): if `compute.booleanExpression()` non-null ⇒
+  `BindComputeBoolean` (receivers: elementary boolean per SR2 else 0898; roundedPhrase present ⇒ 0898; size-error
+  phrase present ⇒ 0898; SR3 solely-ALL ⇒ 0898); ALSO the F1 re-route: an alt-1 tree whose RHS is a sole
+  boolean-category ref OR whose first receiver is boolean re-routes to the boolean bind (mixed
+  boolean/non-boolean receivers ⇒ 0898). `BindComparison` (:1264+): add `IsBoolOperand` beside `IsPtrOperand`
+  (:1323–1324) — true for `BoundBoolOperand` or a `BoundFieldOperand` with Category Boolean; boolean sides admit
+  only `==`/`!=` (0898 — §8.8.4.2.2 Format 2 is equality-only; **the grammar/seams brief's "ordinal over
+  positions" note is WRONG — flagged below**); both sides must be boolean-valued (boolean expr / item / literal /
+  ZERO / ALL) else 0898. `ComparisonOperand` (:1370) + `BindValueOperand` (StatementBinder.Evaluate.cs:155): add
+  the `operand.booleanExpression()` arm → `BoundBoolOperand`, and bind a BOOLLIT literal as
+  `BoundBoolOperand(BoundBoolLiteral)` (zero-extension semantics, NOT `BoundStringLiteral` — space-padding is
+  wrong; coordinate with the data increment). Bare-operand simple boolean condition: in `BindComparison`'s
+  `operands.Length == 1` branch (:1343–1364), AFTER the 88-name and switch-status resolutions (NC211A order),
+  a sole boolean expression / boolean-category ref / BOOLLIT binds `BoundBooleanCondition` with the §8.8.4.3 SR1
+  bind check (every referenced item AND literal length 1, else 0898). EVALUATE
+  (`StatementBinder.Evaluate.cs`): `SubjectCondition`/`BindWhenItem` gain the boolean-subject leg —
+  `subject.booleanExpression()` binds as a value subject `BoundBoolOperand`; TRUE/FALSE objects against a
+  length-1 boolean subject reclassify per SR6a/b to `BoundBooleanCondition`(±`BoundNot`); operand objects pair as
+  `BoundRelational(subj, "==", obj)`; `valueRange` objects with a boolean side ⇒ 0898 (SR4 :27206). **UDF guard:**
+  NO `BindFlatSequence` change — B-ops are expression-channel, and §8.8.2 rule 7 has no short-circuit, so the
+  hoisted-activation model is inherently safe INSIDE a boolean expression; a boolean expression sitting in a
+  non-first AND/OR condition operand already trips the existing COBOLNET1509 guard via `_udfPendingCalls`
+  (Udf.cs:220–222) — document at the guard.
+- **TOTAL-walk checklist** (every exhaustive switch the new nodes visit): `BoundStores.StoreKindOf`
+  (BoundStores.cs:47-182) — **add the `BoundComputeBoolean` arm** (Targets → Write; a miss returns null = loud
+  staging, DEVLOG 607 rule); `StatementBinder.Exceptions.cs` — `ContainsIntrinsic` (:388–408) add
+  `BoundComputeBoolean => BoolExprHasIntrinsic(Rhs)`; `OpHasIntrinsic` (:410–414) add `BoundBoolOperand`;
+  `CondHasIntrinsic` (:425–432) add `BoundBooleanCondition`; new `BoolExprHasIntrinsic` walk (intrinsic operands
+  are residue but the walk must be total from day one); `ConditionRenderer.Render` (:16–36) — add
+  `BoundBooleanCondition` arm; `RenderRelational` (:38–76) — boolean branch (below); `NumericRenderer.AsNum` /
+  `IntrinsicRenderer.NumStaticExpr` / `CheckComposite.OfExpr` — NO arms (BoundBoolExpr is a separate root type
+  that never enters the numeric channel; the LoudValue defaults are the correct staging — note in code);
+  `OperandText.AsString/IsString` (:17–47) — `BoundBoolOperand` correctly hits the loud default / returns false
+  (a boolean EXPRESSION is not a DISPLAY/MOVE operand — MOVE takes identifiers/literals only; note in code).
+- **Emitter + runtime.** New `CodeGen\Emit\BooleanRenderer.cs`: `Render(BoundBoolExpr)` → side-effect-free C#
+  over `CobolBool` — `BoundBoolBinary` ⇒ `CobolBool.And/Or/Xor(l, r)`; an ALL side (rule 4 guarantees at most
+  one) ⇒ `CobolBool.AndAll/OrAll/XorAll(concrete, bits)` (no double-render of the concrete side — intrinsic/UDF
+  operands must evaluate once); `BoundBoolNot` ⇒ `CobolBool.Not(…)`; ref ⇒ `Place.Read()`; literal ⇒
+  `EmitText.CsLiteral(bits)`; `BoundBoolError` + default ⇒ `EmitText.LoudValue("string", …)`.
+  `ConditionRenderer.RenderRelational`: boolean branch **after** the pointer branch and **before** the
+  figurative/string branches (boolean comparison zero-extends, `CobolString.Compare` space-pads — §8.8.4.2.8) —
+  `CobolBool.Equal(BoolRead(l), BoolRead(r))` (ALL side ⇒ `EqualAll`), negate for `!=`. `Render`:
+  `BoundBooleanCondition b => $"CobolBool.IsTrue({bool.Render(b.Expr)})"`. `CSharpEmitter`: dispatch arm
+  `case BoundComputeBoolean` beside `BoundCompute`; `EmitComputeBoolean` — render RHS once,
+  `CobolBool.Resize(rhs, Gr3Width)` (GR3), materialize a temp when Targets.Count > 1 (the §14.7.7-GR4-shaped
+  EmitCompute precedent :856–869), store each via the data increment's ONE boolean store rule (§14.6.8.6
+  left-align / zero-fill / truncate right — if the data increment inlined it at MOVE sites, factor
+  `CobolBool.Fit(value, width)` and make both use it; feedback_singular_pattern). **New
+  `src\Cobol.Net.Runtime\Text\CobolBool.cs`** (beside CobolString.cs/CobolClass.cs, sibling namespace):
+  `And/Or/Xor(string a, string b)` — rule 9 right-zero-extend shorter to max length, positionwise, result length
+  = max (rule 10); `AndAll/OrAll/XorAll(string a, string bits)` — bits repeated/truncated to `a.Length`
+  (§8.3.3.6.4 GR2) then combined; `Not(string a)` — flip, length preserved; `Equal(string a, string b)` —
+  §8.8.4.2.8 zero-extension, two empty strings EQUAL (:9689); `EqualAll(string a, string bits)`;
+  `IsTrue(string a)` ⇒ `a == "1"` (§8.8.4.3.4 GR1); `Resize(string v, int w)` — right zero-fill / right
+  truncate. Zero-length operands flow naturally as `""` (NOTE 2 :9418). No EC raise points (none exist —
+  see Spec bullet); non-0/1 content = the §14.6.13.2 "undefined result" license, proceeds charwise (the
+  EC-DATA-INCOMPATIBLE bridge is residue #8).
+- **Diagnostics.** **NEW band COBOLNET0898** — the boolean-expression/boolean-compute constraint band,
+  message-differentiated (the 0869 pointer-band precedent): non-boolean operand (§8.8.2 operand list); both-ALL
+  (rule 4 :9364); F2 receiver not elementary boolean (SR2 :26573); ROUNDED / [NOT] ON SIZE ERROR on F2
+  (:26558–26560); solely-ALL RHS (SR3 :26575); ordering operator or mixed-class boolean relation (§8.8.4.2.2 /
+  §8.8.4.2.1); simple-boolean-condition operand not length 1 (SR1 :9810); EVALUATE boolean range operand (SR4
+  :27206); mixed boolean/non-boolean COMPUTE receivers; dynamic-length ref-mod GR3 width (staged). **0898 is the
+  LAST free 08xx code** (0814/0819/0844 are retired per the M2-DATA-5 allocation note; grep confirms 0801–0903
+  otherwise dense) — ⚠ CONFLICT-1 below coordinates it with the parallel data increment. Next-free 15xx = 1511 —
+  NOT needed here (no new intrinsic/UDF interplay; BOOLEAN-OF-INTEGER/INTEGER-OF-BOOLEAN stay catalog-Deferred,
+  IntrinsicCatalog.cs:124/:143). Introduction gating = 0900 via the registry row; reserved words = 0901 via the
+  funnel; NO binder-side `ConstructRegistry.Check` (the XOR precedent: grammar predicate + parse-layer hint ARE
+  the gate — at 85 the binder is unreachable).
+- **Registry / matrix / hints (SAME commit — the drift test asserts both directions).**
+  `ConstructDialectStatus.cs` (beside `logical-xor-operator-2023` :135): `new("boolean-operators-2002",
+  "the boolean operators B-AND/B-OR/B-XOR/B-NOT (boolean expressions)", 2002, null, null,
+  EditionCodes.Introduction, "ISO §8.7.2/§8.8.2; COMPUTE F2 §14.9.8; boolean relation §8.8.4.2.2; simple boolean
+  condition §8.8.4.3; {is2002()}?-gated operator tiers + W1.5 parse-layer 0900 mapping; 2002 introduction (derive
+  from the 2002 standard — Annex E covers 2014→2023 only)")` + ONE representative interval row
+  `new("user-word-b-and-2002", "the word B-AND as a user-defined word", 85, 2002, null,
+  EditionCodes.ReservedWord, "§8.9 interval encoding: user-definable at 85, reserved since 2002
+  (ReservedWords.Table rows cover all four; single representative — the user-word-raising-2002 precedent)")`.
+  `tests/version-matrix/constructs.json`: mirror both rows (active), `expectDiagnostic: "COBOLNET0900"` /
+  `"COBOLNET0901"`, embedded `source` programs — the operator row's source declares two PIC 1(4) items and
+  executes `COMPUTE R = A B-AND B` (0900 at 85 via the hint; compiles clean at 2002+ — hence the data-increment
+  dependency); the user-word row declares `01 B-AND PIC 9.` (clean at 85, 0901 at ≥2002). Refresh the
+  `boolean-data-2002` row descriptions (registry :109 + json :419–427) to drop "boolean OPERATIONS ride D4"
+  staleness in the same commit the operators land. `EditionGateHints.cs`: `private static readonly Gate
+  BooleanOps = new("the boolean operators B-AND/B-OR/B-XOR/B-NOT", 2002, "ISO §8.7.2/§8.8.2 (COMPUTE F2
+  §14.9.8; relation §8.8.4.2.2)", "boolean-operators-2002");` + token arm beside :117:
+  `CobolLexer.B_AND or CobolLexer.B_OR or CobolLexer.B_XOR or CobolLexer.B_NOT => BooleanOps` — token-type match
+  alone (the rule stack has popped; the XOR :114–116 argument transfers exactly: as user words the tokens parse
+  through cobolWord and never error, so an error AT the token is the gated operator).
+- **Tests / goldens / docs.** NEW golden `tests/conformance/2002/boolean_ops.cob` + `.out` (manifest `enabled`,
+  alphabetical; `boolean_data` stays the data increment's). Data: `BA PIC 1(4) VALUE B"1100"`, `BB PIC 1(4)
+  VALUE B"1010"`, `BS PIC 1(2) VALUE B"11"`, `B1 PIC 1 VALUE B"1"`, `B0 PIC 1 VALUE B"0"`, `BR PIC 1(4)`,
+  `BW PIC 1(6)`. Expected lines (each ISO-derived, shown with its derivation): `AND=1000` (1100∧1010);
+  `OR=1110`; `XOR=0110`; `NOT=0011` (B-NOT BA); `PREC=1100` (`BA B-OR BB B-AND BS` — B-AND first: 1010∧(11→1100
+  rule-9 extension)=1000; 1100∨1000); `PAREN=0100` (`(BA B-XOR BB) B-AND BS` = 0110∧1100); `EXT=100000`
+  (`COMPUTE BW = BA B-AND BB` — GR3 width 4, stored into PIC 1(6) per §14.6.8.6 right zero-fill); `REL=Y`
+  (`IF BA B-AND BB = B"1000"`); `NEQ=Y` (`IF BS <> BA B-AND BB` — "11"→"1100" vs "1000"); `SBC=Y`
+  (`IF B1 B-OR B0`); `NSBC=Y` (`IF NOT (B1 B-AND B0)` — GR2 :9817); `EVAL=1` (`EVALUATE BA B-XOR BB WHEN
+  B"0110"`); `ZED=Y` (`IF BA B-AND ZERO = B"0000"` — figurative ZERO operand :9329); `ALL=Y`
+  (`IF BA B-OR ALL B"1" = B"1111"`). **Legacy-runner impact: legacy has ZERO B-op support** (grep-verified —
+  only the greenfield reserved table + the legacy CBL2601 boolean-in-arithmetic REJECTION,
+  ArithmeticTypeSystem.cs:115-121; its byte-engine boolean support was data-only) ⇒ **`GreenfieldOnly` exclusion
+  `("2002", "boolean_ops")` in ConformanceTests.cs:62 in the SAME commit** (feedback_legacy_suite_on_shared_corpus,
+  the DEVLOG 618 precedent). NEW unit battery `CobolBoolTests`: the four truth tables against Annex D.10 Table
+  A.2 (:44594–44605); rule-9 unequal-length extension both directions; rule-10 result widths; zero-length ⇒
+  zero-length (NOTE 2) and zero-length Equal (:9689); AllTo repetition/truncation; Resize; IsTrue. NEGATIVE cases
+  (the pointer-wave negative harness, each asserting 0898): bool_op_nonbool_operand, bool_op_arith_operand
+  (`A + B` as a B-AND operand), bool_compute_rounded, bool_compute_size_error, bool_compute_all_only (SR3),
+  bool_both_all (rule 4), bool_relation_ordering (`<` over boolean operands), bool_condition_len (SR1 length-1),
+  bool_compute_nonbool_receiver (SR2). Matrix expectations: the two new rows green at all four editions.
+  boolean_ops doubles as the phase demo leg (feedback_demo_per_phase — outputs derived above, not just
+  non-crashing). Same-change-set docs: this file's M2-DATA-4 row + track-(a) row, DEVLOG entry, resume-prompt
+  STATE banner; COBOLNET_DESIGN's boolean section gets the CobolBool/BoundBoolExpr model + the GR3-vs-rule-10
+  width distinction (feedback_follow_design_docs_and_spec).
+- **Implementation order + battery gates** (each step ends green before the next): **(0)** PRE: the boolean-data
+  increment merged (`boolean-data-2002` active; '0'/'1' storage + BOOLLIT decode live). **(1)** Lexer tokens +
+  `_dataNameTokens` + `cobolWord` + `CheckedTokenTypes` + regen → full greenfield battery + **FULL legacy guard**
+  (85 surface must be invariant: the four words behave as user words end-to-end). **(2)** Grammar tiers +
+  comparisonOperand/computeStatement/evaluateSubject/figurativeConstant edits + EditionGateHints + registry/json
+  rows → battery + FULL legacy guard + the DFA watch-item timing check; empirically verify the two prediction
+  claims (`COMPUTE X = A B-AND B` picks alt 2; `WHEN B1 B-AND B2` picks the condition item). **(3)** Binder
+  (nodes + BindBoolExpr + BindComputeBoolean + relation/condition/EVALUATE seams + 0898 checks + total-walk
+  arms) → battery. **(4)** CobolBool + BooleanRenderer + emitter arms + CobolBoolTests → battery. **(5)** Golden
+  + GreenfieldOnly exclusion + negatives + manifest + matrix activation → full battery + legacy conformance +
+  FULL legacy guard. **(6)** Docs + DEVLOG + commit/push (feedback_fully_autonomous_push).
+- **STAGED RESIDUE (named, loud).** (1) **B-SHIFT-L/R/LC/RC** (2023-only — §8.7.2 :8880–8885; rules 5/8/9
+  :9366/:9408–9416; contextual precedence :9395; Table 4 shift row :9376 no-paren/no-B-NOT after a shift; VCR
+  rows 9 [gate TODO]/32): NOT tokenized — they lex as IDENTIFIER ⇒ loud parse error at the operator position;
+  user-word misuse 0901s at 2023 via the existing table rows :46–49. The tier design pre-plans the slot:
+  contextual precedence = a shift repetition inside EACH tier. (2) **CALL/INVOKE `BY CONTENT
+  boolean-expression`** (§14.9.4 :26060, SR17 :26126, GR :26165/:26237; §14.9.23 :28381, SR21 :28477) —
+  grammar-absent ⇒ loud parse error (the M2-DATA-5 grammar-absent-residue precedent). (3) **Inline
+  method-invocation boolean args** (§8.4.3.4.2 :7121–7140) — rides the inline-invocation residue. (4)
+  **Compile-time boolean expressions** in >>DEFINE/>>EVALUATE/>>IF (§7.3.7 :3833 SR1 :3844; §7.3.8; :4051+/
+  :4221+) — already a documented deferral, ConditionalCompilationProcessor.cs:20–21. (5) **BX"…" literals**
+  (lexer comment :595) + **`&` boolean concatenation** (§8.8.3 :9429–9450; `concat-operator-2002` row PENDING
+  Phase 4g). (6) **BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN / LENGTH-over-boolean** (§15; catalog Deferred rows
+  IntrinsicCatalog.cs:124/:143 — already loud). (7) **Dynamic-length ref-mod operand in F2's GR3 width** — 0898.
+  (8) **The boolean EC-DATA-INCOMPATIBLE bridge** (§14.6.13.2 r1 :24869 — non-0/1 sender via REDEFINES/aliasing;
+  unchecked = the "undefined result" license, charwise). (9) **USAGE BIT positions under ref-mod** (GR5a :7083)
+  — coordinate with the data increment's BIT residue. (10) **Strongly-typed groups containing boolean in =/<>**
+  (§8.8.4.2 SR4 :9612) — rides the TYPEDEF residue. (11) **Boolean operands in ARITHMETIC contexts** (legacy
+  CBL2601 precedent) — verify the data increment's category checks cover `ADD B1 TO X`; add to ITS residue if not.
+- **ANCHOR LIST.** Grammar: CobolLexer.g4:116–135 (:120 model), :30–62 (:38), :596–598; CobolParserCore.g4:25–98
+  (:45–46), :869–871; CobolExpressions.g4:24–27, :55–57 (DFA lesson), :63–109 (:72–74 XOR model), :115–123,
+  :264–270, :291–305; Core/CobolControlFlow.g4:77–108 (:83–86 subject, :103–108 whenItem); predicates
+  CobolParserCoreBase.cs:19–22. Validation: EditionValidator.cs:268–287, :301–336; ReservedWords.Table.cs:43–50;
+  ConstructDialectStatus.cs:58–152 (:109, :135–137), :166–186; EditionGateHints.cs:55, :114–117, :135–138.
+  Binder: StatementBinder.cs:596–601, :1204–1218, :1239–1251 (:1250), :1264–1367 (:1307–1309, :1323–1336,
+  :1343–1364), :1370–1383; StatementBinder.Evaluate.cs:26–164 (:77–113, :119–139, :155–164);
+  StatementBinder.Udf.cs:220–222; StatementBinder.Exceptions.cs:388–432; BoundTree.cs:90–210, :277;
+  BoundStores.cs:47–182. Emit: ConditionRenderer.cs:16–76; CSharpEmitter.cs:852–876; OperandText.cs:17–47;
+  NumericRenderer.cs:24–62; IntrinsicRenderer.cs:271. Runtime: src/Cobol.Net.Runtime/Text/ (new CobolBool.cs).
+  Tests: constructs.json:419–427, :614; manifest.json:46–47; ConformanceTests.cs:62/:108. Spec: :8865–8885,
+  :9323–9420, :9566–9581, :9683–9689, :9795–9817, :10339–10347, :23254, :24303–24308, :24869–24881,
+  :26538–26606, :27153–27283, :49320–49344, :44534–44625. Legacy: ArithmeticTypeSystem.cs:67–74/:115–121;
+  CobolSharp.Compiler.csproj:25.
+- **CONFLICTS FLAGGED (brief-vs-brief / parallel-change-set).** (C1) **COBOLNET0898 contention**: it is the last
+  free 08xx code and the parallel data increment may also want a fresh band — THIS increment claims 0898; the
+  data increment extends 0899 (its existing skeleton band) message-differentiated, or the merge escalates a
+  next-band decision to the owner. Reconcile at merge. (C2) **The boolean relation branch is ONE branch**: the
+  data increment's item↔item compares MUST route through `CobolBool.Equal` (zero-extension, §8.8.4.2.8 :9683),
+  never `CobolString.Compare` (space-padding gives "10" ≠ "10 "-vs-"100" wrong verdicts); whichever change set
+  lands first creates the `RenderRelational` boolean branch + `CobolBool`, the other extends operand shapes.
+  (C3) **`ALL BOOLLIT` in figurativeConstant** and **the BOOLLIT decoder**: one .g4 line / one helper, needed by
+  both increments (MOVE ALL B"1" is data-increment surface; §8.8.2 :9331 is operator surface) — land once.
+  (C4) **The grammar/seams brief's COMPUTE citation "§14.9.7" is wrong** — boolean-compute is §14.9.8 Format 2
+  (:26545–26560, spec-verified). (C5) **The grammar/seams brief's "ISO §8.8.4.2 boolean relation = ordinal over
+  positions" is wrong** — Format 2 admits equality/inequality ONLY (:9566–9581); the design implements
+  `Equal`/negation, no ordering. (C6) **BOOLLIT comparison operands**: if the data increment bound them as
+  `BoundStringLiteral`, re-route to `BoundBoolOperand(BoundBoolLiteral)` here (zero-extension again). (C7) The
+  data increment's `boolean-data-2002` registry/json descriptions go stale the moment operators land — refreshed
+  in this change set (listed above).
 
 ## M2-ARITH — arithmetic
 

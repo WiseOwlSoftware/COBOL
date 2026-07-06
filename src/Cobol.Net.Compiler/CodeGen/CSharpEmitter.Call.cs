@@ -885,6 +885,7 @@ public sealed partial class CSharpEmitter
     private static bool CallPlaceIsString(Place p) =>
         p is RedefViewPlace || p.Item.IsGroup || p.Item.StoreAsImage
         || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+            or PicCategory.National or PicCategory.Boolean   // string-stored (D-N1/D-B1): both ABI sides are C# strings, char-correct
         || p.Item.Pic is { IsFloat: true } || p.Item.Pic is { Digits: > 18 };
 
     /// <summary>The string image a place contributes ACROSS THE CALL BOUNDARY. An occurs-depending group reads
