@@ -103,7 +103,13 @@ unaryLogicalExpression
     ;
 
 primaryCondition
-    : comparisonExpression
+    // COBOL-2002 boolean forms (ISO §8.8.4.2.2 relation / §8.8.4.3 simple condition) — gated by the
+    // boolExprAhead() predicate so it fires ONLY when a B-operator is actually present in this condition;
+    // a normal comparison returns false and falls to comparisonExpression UNCHANGED (the shared rule is
+    // untouched — the DEVLOG-621 regression lesson). booleanExpression's leaf is valueOperand, so the binder
+    // unwraps a B-op-free operand back to a normal operand (BindPrimaryBoolean).
+    : {is2002() && boolExprAhead()}? booleanExpression ( comparisonOperator booleanExpression )?
+    | comparisonExpression
     | booleanLiteral
     | LPAREN condition RPAREN
     ;

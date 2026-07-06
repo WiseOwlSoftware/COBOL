@@ -976,12 +976,15 @@ The boolean operators B-AND/B-OR/B-XOR/B-NOT are LIVE in **COMPUTE Format 2** (b
 Table A.2 oracle `1100 B-AND 0101 = 0100 / B-OR 1101 / B-XOR 1001 / B-NOT 0011`), including **nesting/precedence
 via parens** and the **figurative `ALL B"…"`** operand (§8.3.3.6.4 GR2), plus the **simple boolean condition
 over a bare length-1 boolean item** (`IF flag`, §8.8.4.3, via the pre-existing generic condition path).
-**⚠ SCOPE (DEVLOG 621): the boolean RELATION (§8.8.4.2.2) and B-op-in-condition forms (`IF (a B-AND b) = c`) are
-STAGED RESIDUE** — the `comparisonExpression` booleanExpression alternative that supported them regressed 31
-legacy integration tests (subscripted/ref-mod comparisons at 2002+ — `IF ELEM(I) = x` / every SEARCH WHEN broke
-with "no viable alternative", caught ONLY by the FULL legacy guard, not the greenfield battery which runs at 85);
-it was REVERTED, restoring the shared parser exactly. The condition-context boolean forms await a focused grammar
-pass that disambiguates without touching `comparisonExpression`. As-built vs the design:
+**✅ RESIDUE CLOSED (DEVLOG 622): the boolean RELATION (§8.8.4.2.2) and the simple boolean condition (§8.8.4.3)
+now work in conditions — unparenthesized (`IF a B-AND b`, `IF a B-AND b = c`) and parenthesized alike — with ZERO
+regression.** The DEVLOG-621 lesson applied: NOT via `comparisonExpression` (whose modification regressed 31
+legacy integration tests — subscript/ref-mod comparisons at 2002+ — caught only by the FULL legacy guard). The
+working fix is a new `primaryCondition` alternative gated by a semantic predicate `boolExprAhead()`
+(CobolParserCoreBase) that scans for a B-operator ahead of the condition boundary; a normal comparison returns
+false and falls to `comparisonExpression` UNCHANGED (the predicate prunes at parse time and never enters the
+shared rule's static DFA). The binder `BindPrimaryBoolean` unwraps a B-op-free relation operand to its normal
+binding. Guard re-green (556 integration, the 31 all pass). As-built vs the design:
 - **Diagnostic band = COBOLNET1511** (NOT 0898 — increment 1 consumed 0898 for the VALUE band; the C1 conflict
   resolved as recorded). 1511 covers: non-boolean operand (§8.8.2), both-ALL rule 4, F2 receiver-not-boolean
   (SR2), ROUNDED/SIZE-ERROR on F2, solely-ALL RHS (SR3), ordering/mixed-class boolean relation (§8.8.4.2.2),
@@ -1268,11 +1271,10 @@ pass that disambiguates without touching `comparisonExpression`. As-built vs the
   arms) → battery. **(4)** CobolBool + BooleanRenderer + emitter arms + CobolBoolTests → battery. **(5)** Golden
   + GreenfieldOnly exclusion + negatives + manifest + matrix activation → full battery + legacy conformance +
   FULL legacy guard. **(6)** Docs + DEVLOG + commit/push (feedback_fully_autonomous_push).
-- **STAGED RESIDUE (named, loud). [AS-BUILT ADDITIONS, DEVLOG 621: (0a) the UNPARENTHESIZED top-level boolean
-  CONDITION `IF a B-AND b` / `IF a B-AND b = c` — an ANTLR operand-vs-condition ambiguity; a boolean expression
-  in a condition must be PARENTHESIZED this increment (`IF (a B-AND b)`); COMPUTE needs no parens. (0b) the
-  85-rejection of a boolean COMPUTE surfaces a generic parse error, not COBOLNET0900 (the EditionGateHints
-  token-map fires for the IF case, not the F2-dead-at-85 COMPUTE path); the rejection is correct.]**
+- **STAGED RESIDUE (named, loud). [AS-BUILT ADDITIONS: (0a) CLOSED (DEVLOG 622) — the boolean CONDITION/RELATION
+  forms (`IF a B-AND b`, `IF (a B-AND b) = c`) now work via the `boolExprAhead()`-gated `primaryCondition` alt,
+  zero regression. (0b) the 85-rejection of a boolean COMPUTE now emits COBOLNET0900 (the EditionGateHints
+  COMPUTE-token arm with a B-op lookahead, DEVLOG 621) — CLOSED.]**
   (1) **B-SHIFT-L/R/LC/RC** (2023-only — §8.7.2 :8880–8885; rules 5/8/9
   :9366/:9408–9416; contextual precedence :9395; Table 4 shift row :9376 no-paren/no-B-NOT after a shift; VCR
   rows 9 [gate TODO]/32): NOT tokenized — they lex as IDENTIFIER ⇒ loud parse error at the operator position;

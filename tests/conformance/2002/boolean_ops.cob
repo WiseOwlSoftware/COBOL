@@ -32,10 +32,19 @@
       *> A figurative ALL B"1" operand materializes to the operand width (§8.3.3.6.4 GR2): 1100 B-AND 1111 = 1100.
            COMPUTE R = A B-AND ALL B"1".
            DISPLAY "ALL=" R.
-      *> Combining B-op results: COMPUTE the AND, then test the resulting flag positions individually.
-           COMPUTE F = B-NOT G.
-           DISPLAY "NF=" F.
-      *> The SIMPLE boolean condition (§8.8.4.3): a length-1 boolean item used directly as a condition.
+      *> The boolean RELATION (equality-only, §8.8.4.2.2): a boolean expression compared to a boolean literal.
+           IF A B-AND B = B"0100"
+               DISPLAY "REL-EQ=YES"
+           ELSE
+               DISPLAY "REL-EQ=NO".
+           IF A B-XOR B = B"1111"
+               DISPLAY "REL-NE=YES"
+           ELSE
+               DISPLAY "REL-NE=NO".
+      *> The SIMPLE boolean condition (§8.8.4.3): a length-1 boolean item, a B-op expression, and B-NOT.
            IF F DISPLAY "F-ON" ELSE DISPLAY "F-OFF".
            IF G DISPLAY "G-ON" ELSE DISPLAY "G-OFF".
+           IF F B-OR G DISPLAY "FG-OR-ON" ELSE DISPLAY "FG-OR-OFF".
+           IF F B-AND G DISPLAY "FG-AND-ON" ELSE DISPLAY "FG-AND-OFF".
+           IF B-NOT G DISPLAY "NOT-G-ON" ELSE DISPLAY "NOT-G-OFF".
            STOP RUN.

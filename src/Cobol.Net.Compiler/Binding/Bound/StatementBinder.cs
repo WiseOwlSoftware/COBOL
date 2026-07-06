@@ -1355,6 +1355,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundCondition BindPrimary(Core.PrimaryConditionContext p, AbbrevCarry carry)
     {
+        // COBOL-2002 boolean forms (the boolExprAhead()-gated primaryCondition alt) — a boolean relation
+        // (§8.8.4.2.2) or a simple boolean condition (§8.8.4.3).
+        if (p.booleanExpression() is { Length: > 0 } be) return BindPrimaryBoolean(be, p.comparisonOperator(), carry);
         if (p.comparisonExpression() is { } cmp) return BindComparison(cmp, carry);
         if (p.condition() is { } inner)
         {

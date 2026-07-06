@@ -9,9 +9,10 @@ namespace CobolNet.Tests.Conformance;
 /// §8.8.2 boolean expressions, §14.9.8 Format-2 COMPUTE, §8.8.4.2.2 the boolean relation, §8.8.4.3 the simple
 /// boolean condition). End-to-end facts over the ISO Annex A Table A.2 oracle
 /// (<c>1100 B-AND 0101 = 0100</c> / <c>B-OR = 1101</c> / <c>B-XOR = 1001</c> / <c>B-NOT 1100 = 0011</c>) plus the
-/// constraint band (COBOLNET1511) and the edition gates. (Runtime bit logic is unit-tested in
-/// <c>CobolBoolTests</c>; this exercises the whole compiler.) NOTE: a top-level boolean expression in a CONDITION
-/// is PARENTHESIZED this increment (`IF (a B-AND b)`) — the unparenthesized bare form is deferred residue.
+/// constraint band (COBOLNET1511) and the edition gates. Covers COMPUTE Format 2, the boolean relation
+/// (§8.8.4.2.2, equality-only), and the simple boolean condition (§8.8.4.3) — including the UNPARENTHESIZED
+/// forms, admitted by the <c>boolExprAhead()</c> predicate that leaves <c>comparisonExpression</c> untouched.
+/// (Runtime bit logic is unit-tested in <c>CobolBoolTests</c>.)
 /// </summary>
 public sealed class BooleanOperatorTests
 {
@@ -46,15 +47,51 @@ public sealed class BooleanOperatorTests
     }
 
     [Theory]
-    [InlineData("IF F DISPLAY \"Y\" ELSE DISPLAY \"N\".", "Y")]   // simple boolean condition (§8.8.4.3, item true)
-    [InlineData("IF G DISPLAY \"Y\" ELSE DISPLAY \"N\".", "N")]   // simple boolean condition (item false)
-    public void SimpleBooleanCondition_OverBooleanItem_EvaluatesCorrectly(string proc, string expected)
+    [InlineData("IF F DISPLAY \"Y\" ELSE DISPLAY \"N\".", "Y")]                 // simple condition (item true)
+    [InlineData("IF G DISPLAY \"Y\" ELSE DISPLAY \"N\".", "N")]                 // simple condition (item false)
+    [InlineData("IF F B-AND G DISPLAY \"Y\" ELSE DISPLAY \"N\".", "N")]         // 1 AND 0 = false (unparenthesized)
+    [InlineData("IF F B-OR G DISPLAY \"Y\" ELSE DISPLAY \"N\".", "Y")]          // 1 OR 0 = true
+    [InlineData("IF B-NOT G DISPLAY \"Y\" ELSE DISPLAY \"N\".", "Y")]           // NOT 0 = true
+    [InlineData("IF (F B-AND G) DISPLAY \"Y\" ELSE DISPLAY \"N\".", "N")]       // parenthesized
+    public void SimpleBooleanCondition_EvaluatesCorrectly(string proc, string expected)
     {
-        // A length-1 boolean item used directly as a condition (§8.8.4.3.4 GR1 — true iff the value is 1).
-        // (Boolean-EXPRESSION conditions / relations `IF (a B-AND b) …` are staged residue this increment.)
+        // A boolean expression used directly as a condition (§8.8.4.3.4 GR1 — true iff the value is 1), gated
+        // by the boolExprAhead() predicate so a normal comparison is unaffected (comparisonExpression untouched).
         var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun(Prog("BOP02", proc));
         Assert.True(ok, detail);
         Assert.Equal(expected, stdout.TrimEnd('\n'));
+    }
+
+    [Theory]
+    [InlineData("IF A B-AND B = B\"0100\" DISPLAY \"Y\" ELSE DISPLAY \"N\".", "Y")]   // relation, unparenthesized subject
+    [InlineData("IF (A B-AND B) = B\"0100\" DISPLAY \"Y\" ELSE DISPLAY \"N\".", "Y")] // parenthesized subject
+    [InlineData("IF A B-XOR B = B\"1111\" DISPLAY \"Y\" ELSE DISPLAY \"N\".", "N")]   // inequality
+    public void BooleanRelation_EqualityOnly_EvaluatesCorrectly(string proc, string expected)
+    {
+        var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun(Prog("BOP0R", proc));
+        Assert.True(ok, detail);
+        Assert.Equal(expected, stdout.TrimEnd('\n'));
+    }
+
+    [Fact]
+    public void NormalComparison_WithBooleanGrammarPresent_StillBinds()
+    {
+        // The boolExprAhead() predicate must NOT disturb ordinary comparisons (incl. subscripted) — the
+        // DEVLOG-621 regression guard: `IF ELEM(I) = x` / SEARCH WHEN must keep parsing at 2002+.
+        var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. BOP0C.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 T. 05 ELEM PIC 9 OCCURS 3 VALUE 5.
+            01 I PIC 9 VALUE 2.
+            PROCEDURE DIVISION.
+            MAIN.
+                IF ELEM(I) = 5 DISPLAY "SUB-EQ" ELSE DISPLAY "SUB-NE".
+                STOP RUN.
+            """);
+        Assert.True(ok, detail);
+        Assert.Equal("SUB-EQ", stdout.TrimEnd('\n'));
     }
 
     [Fact]
@@ -105,6 +142,15 @@ public sealed class BooleanOperatorTests
                 STOP RUN.
             """, 2002);
         Assert.False(ok, "a boolean COMPUTE receiver shall be an elementary boolean item (ISO §14.9.8 SR2)");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1511");
+    }
+
+    [Fact]
+    public void BooleanRelation_OrderingOperator_Rejected1511()
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(
+            Prog("BOP06", "IF (A B-AND B) < B\"1111\" DISPLAY \"X\"."), 2002);
+        Assert.False(ok, "boolean relations admit only [NOT] EQUAL (ISO §8.8.4.2.2 Format 2)");
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1511");
     }
 

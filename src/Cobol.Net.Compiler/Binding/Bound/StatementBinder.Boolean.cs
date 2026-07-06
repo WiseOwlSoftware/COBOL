@@ -163,4 +163,86 @@ public sealed partial class StatementBinder
         BoundBoolAll => true,   // positionless — materializes to the sibling's length
         _ => true,              // error nodes already reported
     };
+
+    /// <summary>Bind the boolExprAhead()-gated <c>primaryCondition</c> boolean alternative (ISO §8.8.4.2.2
+    /// relation / §8.8.4.3 simple condition): <c>booleanExpression (comparisonOperator booleanExpression)?</c>.
+    /// Only an expression that ACTUALLY contains a B-operator uses the boolean channel — the predicate
+    /// guarantees at least one B-op somewhere, but an INDIVIDUAL relation operand may still be B-op-free (e.g.
+    /// the RHS literal in `(a B-AND b) = c`), so each side unwraps to a normal operand when it has no B-op.</summary>
+    private BoundCondition BindPrimaryBoolean(Core.BooleanExpressionContext[] be, Core.ComparisonOperatorContext? opCtx, AbbrevCarry carry)
+    {
+        carry.Reset();
+        if (opCtx is not null && be.Length >= 2)
+        {
+            BoundOperand left = BindBoolOrValueOperand(be[0]);
+            string op = MapOperator(opCtx.GetText());
+            BoundOperand right = BindBoolOrValueOperand(be[1]);
+            // A boolean relation (§8.8.4.2.2 Format 2): equality-only, both operands boolean-valued.
+            if (left is BoundBoolOperand || right is BoundBoolOperand)
+            {
+                if (op is not ("==" or "!="))
+                    data.Edition.Error("COBOLNET1511", "a boolean relation admits only [NOT] EQUAL / '=' / '<>' "
+                        + "(ISO §8.8.4.2.2 Format 2 — no ordering is defined for boolean values)");
+                else if (!BoolValued(left) || !BoolValued(right))
+                    data.Edition.Error("COBOLNET1511", "both operands of a boolean relation shall be "
+                        + "boolean-valued (ISO §8.8.4.2.2)");
+            }
+            return CheckedRelational(left, op, right);
+        }
+        // A bare boolean expression ⇒ a simple boolean condition (§8.8.4.3).
+        if (HasBoolOp(be[0])) return BindSimpleBooleanCondition(BindBoolExpr(be[0]));
+        // Defensive: a B-op-free bare operand (the predicate should have excluded it) unwraps to the normal
+        // sole-operand resolution.
+        var vo = UnwrapBareBool(be[0]);
+        return BindSoleOperandCondition(vo, () => vo is not null ? ComparisonOperandOf(vo) : new BoundOperandError("operand"), carry);
+    }
+
+    /// <summary>Bind a boolean-expression RELATION operand: a real boolean expression (contains a B-op) →
+    /// <see cref="BoundBoolOperand"/>; a B-op-free operand → its normal comparison-operand binding (so a plain
+    /// boolean-item / literal / numeric operand rides its existing channel).</summary>
+    private BoundOperand BindBoolOrValueOperand(Core.BooleanExpressionContext ctx) =>
+        HasBoolOp(ctx) ? new BoundBoolOperand(BindBoolExpr(ctx)) : ComparisonOperandOf(UnwrapBareBool(ctx));
+
+    /// <summary>True when a bound relation operand is BOOLEAN-VALUED (a boolean expression, a category-boolean
+    /// item incl. ref-mod, a boolean literal, or figurative ZERO — boolean by context, §8.3.3.6.4 GR4).</summary>
+    private static bool BoolValued(BoundOperand o) => o switch
+    {
+        BoundBoolOperand => true,
+        BoundStringLiteral { Category: PicCategory.Boolean } => true,
+        BoundFigurative { Kind: 'Z' } => true,
+        BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
+        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
+        _ => false,
+    };
+
+    /// <summary>True when a boolean-expression subtree contains any B-operator token — the discriminator
+    /// between a genuine boolean expression and a bare operand parsed through the booleanExpression rule.</summary>
+    private static bool HasBoolOp(Antlr4.Runtime.Tree.IParseTree t)
+    {
+        if (t is Antlr4.Runtime.Tree.ITerminalNode term)
+            return term.Symbol.Type is Core.B_AND or Core.B_OR or Core.B_XOR or Core.B_NOT;
+        for (int i = 0; i < t.ChildCount; i++)
+            if (HasBoolOp(t.GetChild(i))) return true;
+        return false;
+    }
+
+    /// <summary>The single leaf <c>valueOperand</c> of a B-op-FREE boolean expression (walking single-child
+    /// tiers and paren groups), for re-binding as a normal operand; null if the shape is not a bare operand.</summary>
+    private static Core.ValueOperandContext? UnwrapBareBool(Core.BooleanExpressionContext ctx)
+    {
+        var xor = ctx.booleanXorTerm();
+        if (xor.Length != 1) return null;
+        var and = xor[0].booleanAndTerm();
+        if (and.Length != 1) return null;
+        var fac = and[0].booleanFactor();
+        if (fac.Length != 1) return null;
+        return UnwrapFactor(fac[0]);
+    }
+
+    private static Core.ValueOperandContext? UnwrapFactor(Core.BooleanFactorContext f)
+    {
+        if (f.valueOperand() is { } vo) return vo;
+        if (f.booleanExpression() is { } inner) return UnwrapBareBool(inner);   // ( … ) group
+        return null;   // B-NOT factor — has a B-op, never reaches here
+    }
 }
