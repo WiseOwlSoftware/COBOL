@@ -246,6 +246,17 @@
 > legacy guard in the same change set remains the discipline); ② **"use worktrees and maximum parallelism where
 > beneficial"** — the worktree stale-base hazard is CURED (fresh worktrees verified basing at HEAD; the leftover
 > `worktree-agent-a0cfb422` branch deleted; `feedback_worktree_workflows_stale` rewritten).
+> **⛔🎉 TRACK (a) COMPLETE (2026-07-05, HEAD=66773d6): increment 1 (national+boolean DATA, DEVLOG 619/620, CI
+> green) + increment 2 (boolean OPERATORS, DEVLOG 621) both landed.** Increment 2: B-AND/B-OR/B-XOR/B-NOT LIVE in
+> COMPUTE Format 2 (byte-exact vs the ISO Annex A oracle 0100/1101/1001/0011; nesting via parens; figurative
+> ALL B"…") + the simple boolean condition over a bare length-1 boolean item; NEW BoundBoolExpr channel + runtime
+> CobolBool (28 unit facts); COBOLNET1511 band. Battery: conformance 1803 · unit 187 · FULL guard ALL GREEN.
+> ⚠ **THE INCREMENT-2 LESSON**: adding a booleanExpression alt to the SHARED comparisonExpression rule (to get
+> boolean relations/IF-conditions) passed the greenfield battery but the FULL LEGACY GUARD caught 31 integration
+> regressions — subscript/refmod comparisons at 2002+ (`IF ELEM(I)=x`, every SEARCH WHEN) broke, invisible to the
+> greenfield suite which runs at 85. REVERTED. The boolean RELATION (§8.8.4.2.2) + IF-condition B-op forms are
+> STAGED RESIDUE for a focused grammar pass that does NOT touch comparisonExpression. **RESUME NEXT: either that
+> focused boolean-condition grammar pass, or track (d) sharing/lock/retry.**
 > **(a) national/boolean increment 1 DONE (DEVLOG 619)** — M2-DATA-3/4 END-TO-END on the string substrate:
 > PIC N = one UTF-16 char per position (D-N1, char-position widths everywhere, ImageWidth never doubled),
 > PIC 1/USAGE BIT = one '0'/'1' char per position (D-B1, GR14 R14 — both usages, same storage; pad params on
