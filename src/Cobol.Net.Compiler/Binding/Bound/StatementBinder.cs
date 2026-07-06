@@ -1080,7 +1080,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     }
 
     private BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
-        dref.LINAGE_COUNTER() is not null
+        KeywordOmittedFunction(dref) is { } kof ? OperandOf(kof)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
+        : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
                 : new BoundOperandError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15) — RWCS registers, intercepted ahead of name resolution
@@ -1108,7 +1109,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// file's runtime counter (ISO §8.4.3.14 GR1 — an unsigned integer); otherwise the resolved item's value.
     /// The ONE dataReference→<see cref="BoundExpr"/> mapping, used by every expression path.</summary>
     private BoundExpr RefExpr(Core.DataReferenceContext dref) =>
-        dref.LINAGE_COUNTER() is not null
+        KeywordOmittedFunction(dref) is { } kof ? kof   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
+        : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
                 : new BoundExprError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15): in the PROCEDURE DIVISION the registers may appear

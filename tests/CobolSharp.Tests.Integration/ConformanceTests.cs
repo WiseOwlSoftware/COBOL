@@ -106,6 +106,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // Phase-4 track (c) residue, DEVLOG 624: FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2) is a construct the
         // frozen legacy grammar cannot parse; the greenfield CorpusRunner byte-compares udf_prototype.
         ("2002", "udf_prototype"),
+        // Phase-4 track (c) residue, DEVLOG 626: the §8.4.3.2 SR2 FUNCTION-keyword-omitted reference form (via
+        // REPOSITORY FUNCTION ALL INTRINSIC) is net-new in the greenfield — the frozen legacy treats MAX/MIN/MOD
+        // without FUNCTION as undefined data-names (CBL3128); the greenfield CorpusRunner byte-compares it.
+        ("2002", "udf_keyword_omitted"),
         // Phase-4 track (a) increment 2, DEVLOG 621: the boolean operators B-AND/B-OR/B-XOR/B-NOT (§8.7.2)
         // are net-new in the greenfield — the frozen legacy grammar has no boolean-expression support at all;
         // the greenfield CorpusRunner byte-compares boolean_ops.

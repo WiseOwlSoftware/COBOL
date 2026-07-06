@@ -82,6 +82,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// function of the same name" — so the binder's user-function dispatch precedes the intrinsic catalog.</summary>
     internal HashSet<string> UserFunctionNames { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>The unit's REPOSITORY intrinsic-function specifiers by name (§12.3.8 —
+    /// <c>FUNCTION intrinsic-function-name INTRINSIC</c>): the §8.4.3.2 SR2 precondition that lets the word
+    /// FUNCTION be OMITTED when referencing that intrinsic (GR13). §8.3.2 case-insensitive.</summary>
+    internal HashSet<string> RepositoryIntrinsics { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>True when the unit's REPOSITORY specifies <c>FUNCTION ALL INTRINSIC</c> (§12.3.8 GR14): the word
+    /// FUNCTION may be omitted for EVERY §8.11 intrinsic-function-name in this scope (SR2/GR13). The SR13
+    /// user-word prohibition (an intrinsic name shall not be a user-defined word here) is staged residue.</summary>
+    internal bool RepositoryAllIntrinsic { get; set; }
+
     /// <summary>Bind a program unit's DATA DIVISION + the FILE-CONTROL paragraph: the OPTIONS paragraph, the SELECT
     /// clauses, the FILE SECTION records (which share storage with the WORKING-STORAGE roots — they emit as Program
     /// fields), and WORKING-STORAGE; then classify the shared-storage (REDEFINES) classes over the whole forest and
@@ -145,6 +155,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 OoRepositoryProperties.Add(pn.GetText());
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is { } fn)
                 UserFunctionNames.Add(fn.GetText());
+            // FUNCTION … INTRINSIC (§12.3.8): `ALL` (GR14) or a named intrinsic — the §8.4.3.2 SR2 keyword-
+            // omission enabler (M2-UDF-4). `FUNCTION ALL INTRINSIC` carries no functionName; `FUNCTION name
+            // INTRINSIC` does.
+            else if (re.FUNCTION() is not null && re.INTRINSIC() is not null)
+            {
+                if (re.ALL() is not null) RepositoryAllIntrinsic = true;
+                else if (re.functionName() is { } inf) RepositoryIntrinsics.Add(inf.GetText());
+            }
         }
 
         SwitchBindSpecialNames(program);           // SPECIAL-NAMES switch clauses → the external-switch registry (ISO §12.3.7)

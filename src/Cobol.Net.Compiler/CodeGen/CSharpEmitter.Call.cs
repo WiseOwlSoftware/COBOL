@@ -334,7 +334,11 @@ public sealed partial class CSharpEmitter
         // its own): the containers' REPOSITORY user-function specifiers apply here, so a contained program's
         // FUNCTION reference resolves (the M2-UDF-1 review finding).
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
+        {
             data.UserFunctionNames.UnionWith(anc.Data.UserFunctionNames);
+            data.RepositoryIntrinsics.UnionWith(anc.Data.RepositoryIntrinsics);   // §12.3.4 GR1 — the intrinsic keyword-omission specifiers inherit too (M2-UDF-4)
+            if (anc.Data.RepositoryAllIntrinsic) data.RepositoryAllIntrinsic = true;
+        }
 
         int depth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)

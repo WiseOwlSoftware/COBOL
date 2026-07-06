@@ -25,7 +25,7 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
 | M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | **LANDED (DEVLOG 615)** | StatementBinder.Udf.cs (bind → hoisted CALL…RETURNING over a §8.4.3.2.4 GR1 result temp); 5 udf_* goldens ENABLED byte-exact (invocation, inline_expression, value_args, recursion, nested_args); UdfInvocationTests ×26; user-function-invocation-2002 registry+matrix row | none | As-built + adversarial-review notes below (the two-phase bind was REALIZED, not found). |
 | M2-UDF-2 | Literal/arith args to a UDF | done | **LANDED (DEVLOG 615)** | §8.4.3.2.4 GR5b private-copy cells conformed by CobolArgAdapt; udf_value_args ENABLED byte-exact (LIT/ARI) | none | Folded into M2-UDF-1 as designed. |
 | M2-UDF-3 | Separate-compilation function prototypes (§8.13 / §11.5 Format 2) | open | **LANDED (DEVLOG 624)** | `FUNCTION-ID … IS PROTOTYPE` parses (PROTOTYPE token, `functionIdParagraph` tail, 0900 at 85); a prototype registers a signature but emits no runtime module (CallUnit.IsPrototype filters CallEmitProgramClass/Register); cross-assembly resolution reuses the sibling probe (§12.3.8 GR11c); EC-FUNCTION-NOT-FOUND (Fatal) on a locate miss. Golden `udf_prototype` (P=000049, GreenfieldOnly) + 2 cross-assembly tests + 5 UdfInvocationTests | (c) | AS-BUILT below. Runtime half was free (D1). |
-| M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | PARTIAL | Named non-INTRINSIC specifiers now BIND (DataBinder.UserFunctionNames → the §12.3.8.2 GR12 dispatch + intrinsic shadowing); ALL INTRINSIC still inert; the FUNCTION-keyword-omitted reference form (§8.4.3.2 SR2) not in the grammar | (c residual) | GR12 named-specifier leg landed with UDF-1. |
+| M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | **LANDED (DEVLOG 626)** | `FUNCTION ALL INTRINSIC` (GR14) + `FUNCTION name INTRINSIC` now BIND (DataBinder.RepositoryAllIntrinsic / RepositoryIntrinsics, inherited into contained programs); the §8.4.3.2 SR2 **FUNCTION-keyword-omitted** reference form is LIVE bind-side (D2 — the ONE dataReference→Bound* chokepoints RefExpr/FieldOperand re-route `name(args)` to BindIntrinsicCore when the head is a repository intrinsic/ALL/user-function, SR6; data-item-wins guard). Gated ≥2002. Golden `udf_keyword_omitted` (MAX/MIN/MOD without FUNCTION, GreenfieldOnly) + 5 UdfInvocationTests | (c) | AS-BUILT below. GR12 named-specifier leg landed with UDF-1. |
 
 ### M2-UDF-1 — DECISION-COMPLETE DESIGN (recon workflow wf_a1e33856-215, 2026-07-05; ready to implement)
 
@@ -196,9 +196,21 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
 > — a function/prototype-only module emits `Register()` and NO `RunMain` (a callable library); (3) the §10.6.2 SR3
 > pair check is COBOLNET1513 (arity only — full §8.13 conformance staged); (4) the prototype-at-85 clean 0900 is a
 > new `EditionGateHints.FunctionPrototype` gate recognizing the `IS`/`PROTOTYPE` token inside `functionIdParagraph`.
-> **M2-UDF-4 (ALL INTRINSIC binding + the §8.4.3.2 SR2 keyword-omitted form) remains to implement** per the design
-> below. The runtime cross-assembly leg is proven in `InterProgramFileDifferentialTests` (present → P=000049,
-> absent → EC-FUNCTION-NOT-FOUND).
+> **M2-UDF-4 AS BUILT (DEVLOG 626, 2026-07-06; landed on the design's D2).** `FUNCTION ALL INTRINSIC` (GR14) and
+> `FUNCTION name INTRINSIC` are collected into `DataBinder.RepositoryAllIntrinsic`/`RepositoryIntrinsics` (and
+> inherited into contained programs alongside `UserFunctionNames`, §12.3.4 GR1). The keyword-omitted form landed
+> exactly as D2 prescribed — **bind-side, no grammar change**: `KeywordOmittedFunction(dref)` re-routes `name(args)`
+> to `BindIntrinsicCore` at the TWO `dataReference→Bound*` chokepoints (`RefExpr` / `FieldOperand`, each documented
+> as "the ONE mapping used by every path") when the head is a repository intrinsic / ALL / user-function /
+> prototype AND is NOT a declared data item (the data-item-wins guard — a table named like an intrinsic stays a
+> subscript; SR13 enforcement is staged). Gated `< 2002 ⇒ inert`, so the 85/NIST surface is byte-invariant (the
+> greenfield NIST differential confirms). **NO version-matrix row**: keyword omission is a RUNTIME-observable
+> behavior (below 2002 `MAX(a,b)` degrades to an undefined-reference §1.4 loud-fail, not a compile-time
+> rejection), so it does not fit the compile-time introduction-gating matrix model — the golden + unit tests are
+> its conformance coverage. **Track (c) — the UDF subsystem — is now COMPLETE** (invocation 615, EXIT FUNCTION
+> 616, prototypes/cross-assembly 624, REPOSITORY specifiers + keyword omission 626); residue is the named
+> staged-loud items only. The runtime cross-assembly leg is proven in `InterProgramFileDifferentialTests` (present
+> → P=000049, absent → EC-FUNCTION-NOT-FOUND).
 
 > Scope: COMPLETE the user-defined-function subsystem (track (c) residue) to spec. Two catalog items:
 > **M2-UDF-3** = separate-compilation function **prototypes** (`FUNCTION-ID … IS PROTOTYPE`, §11.5 Format 2) +
@@ -1592,7 +1604,7 @@ Excludes 13 LANDED and 1 OBSOLETE-by-design (M2-PROC-3, warning-row only). 24 ro
 |---|---|---|---|
 | **(a) national/boolean** | M2-DATA-3, M2-DATA-4; + boolean/bit leg of M4-3; + EC-OO -N twins (from OO-1h), EXCEPTION-FILE-N national leg (M4-2b) | 2 primary (+3 shared legs) | National runtime + boolean ops. Unblocks several -N/EC-N legs. |
 | **(b) pointers/ALLOCATE/BASED** | ~~M2-DATA-5, M2-PROC-5~~ **LANDED (DEVLOG 613/617)**; + USAGE FUNCTION/PROGRAM-POINTER leg of M3-4 | 0 primary (+1 shared leg) | Data pointers live end-to-end (StorageCell+CellPointer); residue = CALL-boundary pointers + the M3-4 typed-pointer leg (as-built list). |
-| **(c) UDF/prototypes** | ~~M2-UDF-1, M2-UDF-2~~ **LANDED (615)**; ~~EXIT FUNCTION leg of M2-PROC-6~~ **LANDED (616)**; ~~M2-UDF-3 prototypes/cross-assembly~~ **LANDED (624)**; M2-UDF-4 (ALL INTRINSIC + keyword-omitted legs); + >>CALL-CONVENTION (loose) | 1 primary | UDF invocation + EXIT FUNCTION + prototypes/cross-assembly live; residue = the UDF-4 legs. |
+| **(c) UDF/prototypes** | ~~M2-UDF-1, M2-UDF-2~~ **LANDED (615)**; ~~EXIT FUNCTION leg of M2-PROC-6~~ **LANDED (616)**; ~~M2-UDF-3 prototypes/cross-assembly~~ **LANDED (624)**; ~~M2-UDF-4 ALL INTRINSIC + keyword-omitted~~ **LANDED (626)**; residue: `>>CALL-CONVENTION` (loose), strict SR10/SR12/SR13 (staged) | **0 primary** | ⛔🎉 The UDF subsystem (track (c)) is COMPLETE — invocation + EXIT FUNCTION + prototypes/cross-assembly + REPOSITORY specifiers/keyword-omission all live. |
 | **(d) file sharing/lock/retry** | M2-FILE-1, M4-1 (sequential leg); + file-lock leg of M3-4; + narrow status codes of M2-FILE-2 | 2 primary (+2 legs) | Runtime CobolFile.Locked primitive exists. |
 | **(e) arithmetic** | M2-ARITH-1 (PROHIBITED move-COMPUTE fix), M2-ARITH-2 (golden rebaseline + inert legs) | 2 (both small) | Effectively bugfix + rebaseline, not new features. |
 | **(f)** | — | 0 | No catalog item maps to (f). |

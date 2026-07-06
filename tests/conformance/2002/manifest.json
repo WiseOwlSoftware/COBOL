@@ -43,6 +43,7 @@
     "udf_exit_function",
     "udf_inline_expression",
     "udf_invocation",
+    "udf_keyword_omitted",
     "udf_nested_args",
     "udf_prototype",
     "udf_recursion",

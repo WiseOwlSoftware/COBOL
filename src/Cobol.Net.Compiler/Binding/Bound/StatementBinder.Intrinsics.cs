@@ -49,6 +49,36 @@ public sealed partial class StatementBinder
         _ => new BoundComputedOperand(e),
     };
 
+    /// <summary>The §8.4.3.2 SR2 FUNCTION-keyword-OMITTED reference form (M2-UDF-4): a data reference whose head
+    /// is a REPOSITORY-declared user-function / function-prototype-name (or the containing function's own name),
+    /// or — when <c>FUNCTION ALL INTRINSIC</c> / <c>FUNCTION name INTRINSIC</c> is in effect — an
+    /// intrinsic-function-name, followed by a single subscript part, is a FUNCTION CALL, not a subscripted data
+    /// item (SR6 :6918 — a <c>(</c> after such a name is ALWAYS its argument list). Bind-side, no grammar change
+    /// (D2 — the discriminator is semantic, so a keyword-omitted <c>functionCall</c> grammar alternative would be
+    /// an irreducible ambiguity with subscripted <c>dataReference</c>). Data-item-safe: a name that ALSO resolves
+    /// to a declared data item stays a subscript (a data item wins — zero regression). Called at the two
+    /// dataReference chokepoints (<see cref="RefExpr"/> / <see cref="FieldOperand"/>). Null = not one.</summary>
+    private BoundExpr? KeywordOmittedFunction(Core.DataReferenceContext dref)
+    {
+        // Keyword omission via the REPOSITORY FUNCTION specifier is a COBOL-2002 introduction (§12.3.8) — below
+        // 2002 the routing is inert, so the 85/NIST surface is byte-invariant (a lone name(args) stays a data
+        // reference exactly as before). The FUNCTION-keyword form is unaffected at every edition.
+        if (data.Edition.DialectLevel < 2002) return null;
+        if (dref.cobolWord() is not { } cw) return null;                    // special registers (LINAGE/LINE/PAGE-COUNTER) are never functions
+        var suffixes = dref.dataReferenceSuffix();
+        if (suffixes.Length != 1 || suffixes[0].subscriptPart() is not { } sp) return null;   // exactly `name(args)` — no qualification / refmod tail
+        string name = cw.GetText();
+        bool isFn = data.UserFunctionNames.Contains(name)
+            || name.Equals(UdfSelfName, StringComparison.OrdinalIgnoreCase)
+            || ((data.RepositoryAllIntrinsic || data.RepositoryIntrinsics.Contains(name))
+                && IntrinsicCatalog.TryGet(name, out _));
+        if (!isFn) return null;
+        if (data.LookupData(name) is { Count: > 0 }) return null;          // a declared data item wins — never a mis-routed subscript
+        var tokens = new List<IToken>();
+        if (sp.subscriptOrRefMod() is { } args) ReferenceResolver.CollectLeafTokens(args, tokens);
+        return BindIntrinsicCore(name, tokens);
+    }
+
     /// <summary>Bind one FUNCTION reference from its name + flat argument tokens (shared by the parse-context
     /// entries above and the nested-FUNCTION recursion inside argument segments).</summary>
     private BoundExpr BindIntrinsicCore(string name, List<IToken> argTokens)

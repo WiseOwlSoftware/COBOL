@@ -683,4 +683,90 @@ public sealed class UdfInvocationTests
         Assert.False(ok, "a function prototype is 2002+; 85 must reject");
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
     }
+
+    // ── M2-UDF-4: REPOSITORY specifiers + the §8.4.3.2 SR2 keyword-omitted reference form (DEVLOG 626) ────────
+
+    /// <summary>A minimal program that references <paramref name="expr"/> as its COMPUTE/MOVE body under the
+    /// given <paramref name="repository"/> and optional extra <paramref name="ws"/> — for the keyword-omission
+    /// facts (byte-exact behaviour rides the udf_keyword_omitted golden).</summary>
+    private static string KoGroup(string pid, string repository, string body, string ws = "") => $$"""
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {{pid}}.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+        {{repository}}
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 WS-A PIC 9(4) VALUE 12.
+        01 WS-B PIC 9(4) VALUE 34.
+        01 WS-R PIC 9(4).
+        {{ws}}
+        PROCEDURE DIVISION.
+        MAIN.
+        {{body}}
+            STOP RUN.
+        END PROGRAM {{pid}}.
+        """;
+
+    /// <summary>§8.4.3.2 SR2 + §12.3.8 GR13/GR14 — with FUNCTION ALL INTRINSIC in the REPOSITORY the word
+    /// FUNCTION may be omitted for an intrinsic reference (SR6: the '(' is the argument list). Binds at 2002.</summary>
+    [Fact]
+    public void KeywordOmitted_AllIntrinsic_Binds()
+    {
+        string src = KoGroup("UDFT22", "    FUNCTION ALL INTRINSIC.",
+            "    COMPUTE WS-R = MAX(WS-A, WS-B).\n    MOVE MIN(WS-A, WS-B) TO WS-R.");
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.True(ok, string.Join("\n", errors));
+    }
+
+    /// <summary>§12.3.8 — a specifically-named intrinsic (FUNCTION MAX INTRINSIC, no ALL) also enables keyword
+    /// omission for THAT name.</summary>
+    [Fact]
+    public void KeywordOmitted_NamedIntrinsic_Binds()
+    {
+        string src = KoGroup("UDFT23", "    FUNCTION MAX INTRINSIC.", "    COMPUTE WS-R = MAX(WS-A, WS-B).");
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.True(ok, string.Join("\n", errors));
+    }
+
+    /// <summary>The D2 data-item-wins safety: a declared data item whose NAME matches an intrinsic stays a
+    /// subscripted reference — never mis-routed to the intrinsic — even under FUNCTION ALL INTRINSIC (SR13 would
+    /// prohibit the declaration; enforcing it is staged, so the reference must remain the data item, not silently
+    /// become a function). Binds as the table element.</summary>
+    [Fact]
+    public void KeywordOmitted_DataItemWins()
+    {
+        string src = KoGroup("UDFT24", "    FUNCTION ALL INTRINSIC.", "    MOVE MOD(2) TO WS-R.",
+            ws: "01 GRP.\n           05 MOD PIC 9(4) OCCURS 3 VALUE 7.");
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.True(ok, "a data item named like an intrinsic must stay a subscript: " + string.Join("\n", errors));
+    }
+
+    /// <summary>§8.4.3.2 SR2 is a PRECONDITION (a RUNTIME-observable property): WITHOUT a REPOSITORY intrinsic/ALL
+    /// specifier the word FUNCTION is REQUIRED — a bare MAX(a, b) is NOT the intrinsic. It is an unresolved data
+    /// reference, which under the §1.4 "references then fail loud" contract compiles but loud-fails at run time
+    /// (a compile-time assertion cannot distinguish it from the intrinsic-routed case — both compile). Contrast:
+    /// with FUNCTION ALL INTRINSIC the same source runs and computes MAX=34.</summary>
+    [Fact]
+    public void KeywordOmitted_RequiresRepositoryDeclaration_RuntimeLoudFail()
+    {
+        string dir = CutRunner.NewTempDir("udfko");
+        try
+        {
+            string src = KoGroup("UDFKON", "    FUNCTION UDFDBL.",
+                "    COMPUTE WS-R = MAX(WS-A, WS-B).\n    DISPLAY \"R=\" WS-R.");
+            string cob = Path.Combine(dir, "UDFKON.cob");
+            File.WriteAllText(cob, src);
+            var r = CobolNet.CompilerDriver.Compile(
+                new CobolNet.CompilerDriver.Options(cob, Path.Combine(dir, "UDFKON.dll"), DialectLevel: 2002));
+            Assert.True(r.Success, "the undefined-reference program compiles (the §1.4 loud-fail is deferred to run "
+                + "time): " + string.Join("\n", r.Errors));
+            var (ok, _, detail) = CutRunner.Run(Path.Combine(dir, "UDFKON.dll"), dir);
+            Assert.False(ok, "MAX without FUNCTION and without an ALL/named-intrinsic specifier must not bind as "
+                + "the intrinsic — it is an unresolved reference that loud-fails");
+            Assert.Contains("MAX", detail, StringComparison.Ordinal);   // the loud-fail names the unresolved reference
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
 }
