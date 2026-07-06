@@ -27,7 +27,27 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 623, 2026-07-06 01:40 PDT): ⛔🎉 PHASE 4 TRACK (d) — FILE SHARING / LOCK MODE / RETRY / UNLOCK
+> **STATE (DEVLOG 626, 2026-07-06 12:26 PDT): ⛔🎉 PHASE 4 TRACK (c) — THE UDF SUBSYSTEM IS COMPLETE.** M2-UDF-3
+> (separate-compilation function PROTOTYPES: `FUNCTION-ID … IS PROTOTYPE`, cross-assembly locate via the sibling probe
+> → **EC-FUNCTION-NOT-FOUND** on absence, §12.3.8 GR11 in-group-def→prototype→external resolution — DEVLOG 624) +
+> M2-UDF-4 (REPOSITORY `FUNCTION ALL INTRINSIC` / named-intrinsic binding + the §8.4.3.2 SR2 **keyword-omitted**
+> reference form, bind-side D2 at the RefExpr/FieldOperand chokepoints, data-item-wins-safe, gated ≥2002 — DEVLOG
+> 626) both LANDED. Track (c) = invocation(615)+EXIT FUNCTION(616)+prototypes/cross-asm(624)+specifiers/omission(626),
+> DONE. Goldens `udf_prototype` (P=000049, in-group + a cross-assembly Fix-G test) + `udf_keyword_omitted`
+> (MAX=0034/MIN=0012/MOD=0004), both GreenfieldOnly. Battery: **201+ unit · 1868 conformance · FULL legacy guard
+> 353 MATCH + 11 DIVERGENT** — 0 regressions; the PROTOTYPE grammar token + the RefExpr/FieldOperand re-route are
+> both 85-byte-invariant. ⛔ **ALSO: a ROOT-CAUSE CLI fix (DEVLOG 625) — the hand-rolled `cobol` arg parser (which
+> let a value option swallow a following flag: `--nist --run` ate `--run`, so the program never ran) was replaced
+> with `System.CommandLine`** (owner-chosen; the owner restated the standing rule *never work around — fix the root
+> cause; apply to all existing workarounds*, memory `feedback_no_workarounds_root_cause`). 11 CliParserTests lock it.
+> **RESUME NEXT: the remaining Phase-4 M2 tracks — the M2-OO-1h residue (0899-staged: method own ENV/FILE/SCREEN,
+> REDEFINES/ODO/RENAMES/INDEXED in method data, PROPAGATE ON, FACTORY-OF/ACTIVE-CLASS RAISING, object VIEWS,
+> STOP…RAISING — Phase-3 OO-port residue) and the M2-PRE preprocessor robustness follow-ups; then Phase 5
+> intrinsics / 6 (OCCURS DYNAMIC, TYPEDEF, floats) / 7 (2023). All (a)-(g) LETTERED Phase-4 tracks are now LANDED.
+> The proven cadence: recon→design into PHASE4_RECONCILIATION→implement in small green commits→adversarial
+> find/verify→full battery + FULL legacy guard→GreenfieldOnly for shared-corpus goldens→commit+push+CI.**
+>
+> **(superseded) STATE (DEVLOG 623, 2026-07-06 01:40 PDT): ⛔🎉 PHASE 4 TRACK (d) — FILE SHARING / LOCK MODE / RETRY / UNLOCK
 > (M2-FILE-1) LANDED.** The COBOL-2002 file-sharing / record-locking subsystem is live end-to-end: the SHARING clause
 > + OPEN SHARING phrase (§12.4.5.15/§14.9.27), LOCK MODE (§12.4.5.9), RETRY (§14.7.9), the WITH/NO/IGNORING LOCK
 > record-lock phrases (§14.9.30/.51/.35), UNLOCK (§14.9.47), the 51/52/53/54/61/62 statuses, the COBOLNET1512 SR band.
