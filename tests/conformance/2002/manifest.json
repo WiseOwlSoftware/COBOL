@@ -44,6 +44,7 @@
     "udf_inline_expression",
     "udf_invocation",
     "udf_nested_args",
+    "udf_prototype",
     "udf_recursion",
     "udf_value_args"
   ],

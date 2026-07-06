@@ -26,7 +26,13 @@ public sealed record BoundCallProgram(
     IReadOnlyList<BoundCallArg> Args,
     Place? Returning,
     IReadOnlyList<BoundStatement>? OnException,
-    IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement;
+    IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement
+{
+    /// <summary>True when this node is the lowering of a user-defined FUNCTION reference (M2-UDF): a locate
+    /// miss stamps EC-FUNCTION-NOT-FOUND (Fatal, ISO §8.4.3.2.4 GR6b / Table 13) rather than the CALL's
+    /// EC-PROGRAM-NOT-FOUND. Runtime dispatch is otherwise identical (the shared activation ABI).</summary>
+    public bool IsFunction { get; init; }
+}
 
 /// <summary><c>CANCEL {literal|identifier}…</c> (ISO §14.9.5): each target's next CALL finds its initial state
 /// (GR3); contained programs cascade in reverse source order (GR4); open files close implicitly (GR9).</summary>

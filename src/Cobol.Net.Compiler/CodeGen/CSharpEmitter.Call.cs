@@ -38,6 +38,12 @@ public sealed partial class CSharpEmitter
         /// <summary>True for a FUNCTION-ID unit (ISO §9.4 — a user-defined function; program-shaped except it
         /// RETURNs a value and always possesses the recursive attribute).</summary>
         public bool IsFunction;
+        /// <summary>True for a FUNCTION-ID … IS PROTOTYPE unit (ISO §11.5 Format 2 / §10.6.2 SR4 — a
+        /// signature-only unit: LINKAGE-only data + a header-only procedure division). It contributes its
+        /// signature to the user-function table (M2-UDF-3) but emits NO body and does NOT register in the run
+        /// unit — the separately-compiled definition (in-group per GR11a, else a sibling assembly) is the
+        /// activation target. Always implies <see cref="IsFunction"/>.</summary>
+        public bool IsPrototype;
         public DataBinder Data = null!;
         public ReferenceResolver Refs = null!;
         public BoundProgram Bound = null!;
@@ -173,7 +179,7 @@ public sealed partial class CSharpEmitter
         }
 
         foreach (var unit in units)
-            if (unit.Parent is null)
+            if (unit.Parent is null && !unit.IsPrototype)   // a prototype has no body (§10.6.2 SR4f) — no class
                 CallEmitProgramClass(unit, w);
         CallEmitEntryWrapper(units, w, anyFiles);
         return w.ToString();
@@ -228,6 +234,7 @@ public sealed partial class CSharpEmitter
             ?? fid?.programName()?.GetText()
             ?? $"PROGRAM{index}";
         bool isFunction = pid is null && fid is not null;
+        bool isPrototype = fid?.PROTOTYPE() is not null;   // §11.5 Format 2 — a signature-only prototype unit (M2-UDF-3)
         bool initial = false, common = false, recursive = false;
         foreach (var attr in pid?.programIdAttributes()?.programIdAttribute() ?? [])
         {
@@ -262,7 +269,7 @@ public sealed partial class CSharpEmitter
         {
             Name = name, ClassName = className, Ctx = ctx,
             Parent = parent, Initial = initial, Common = common, Recursive = recursive,
-            IsFunction = isFunction,
+            IsFunction = isFunction, IsPrototype = isPrototype,
         };
     }
 
@@ -397,18 +404,44 @@ public sealed partial class CSharpEmitter
     private static Dictionary<string, UserFunctionSignature> CallBuildUserFunctionTable(
         List<CallUnit> units, EditionContext edition)
     {
-        var table = new Dictionary<string, UserFunctionSignature>(StringComparer.OrdinalIgnoreCase);
+        // Partition the group's FUNCTION-ID units by name into DEFINITIONS (a real body) and PROTOTYPES
+        // (signature-only, §11.5 Format 2). A prototype precedes all other units (§10.6.2 SR1), so a naive
+        // first-wins TryAdd would false-report the FOLLOWING same-name definition as a duplicate (1508) — the
+        // partition prevents that. Every function unit must carry a RETURNING (§14.2 :23666) — checked once here.
+        var defs = new Dictionary<string, CallUnit>(StringComparer.OrdinalIgnoreCase);
+        var protos = new Dictionary<string, CallUnit>(StringComparer.OrdinalIgnoreCase);
         foreach (var u in units)
         {
             if (!u.IsFunction) continue;
             if (u.Data.LinkageReturning is null)
                 edition.Error("COBOLNET1507",
-                    $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function definition "
+                    $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function {(u.IsPrototype ? "prototype" : "definition")} "
                     + "(ISO §14.2, procedure division header) — the function cannot deliver a result without it");
-            if (!table.TryAdd(u.Name, new UserFunctionSignature(u.Name, u.Data.LinkageReturning, u.Data.LinkageFormals)))
+            if (!(u.IsPrototype ? protos : defs).TryAdd(u.Name, u))
                 edition.Error("COBOLNET1508",
-                    $"duplicate FUNCTION-ID '{u.Name}' in the compilation group — two function definitions with "
+                    $"duplicate FUNCTION-ID '{u.Name}' in the compilation group — two function {(u.IsPrototype ? "prototypes" : "definitions")} with "
                     + "one name cannot both register in the run unit's activation namespace (ISO §8.4.6.6)");
+        }
+
+        // §12.3.8 GR11(a) — an in-group DEFINITION is authoritative over a same-name PROTOTYPE (:14871); a lone
+        // prototype supplies the signature for a separately-compiled target (:14875 / §8.4.3.2.4 GR6b :6997).
+        var table = new Dictionary<string, UserFunctionSignature>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (name, u) in defs)
+            table[name] = new UserFunctionSignature(name, u.Data.LinkageReturning, u.Data.LinkageFormals);
+        foreach (var (name, p) in protos)
+        {
+            if (defs.TryGetValue(name, out var def))
+            {
+                // §10.6.2 SR3 — an in-group prototype+definition pair shall have the SAME signature. Light check
+                // (argument count; full §8.13 external-repository conformance is staged residue).
+                if (p.Data.LinkageFormals.Count != def.Data.LinkageFormals.Count)
+                    edition.Error("COBOLNET1513",
+                        $"FUNCTION '{name}': the IS PROTOTYPE signature declares {p.Data.LinkageFormals.Count} "
+                        + $"argument(s) but the in-group definition declares {def.Data.LinkageFormals.Count} — a "
+                        + "function prototype and a same-name definition shall have the same signature (ISO §10.6.2 SR3)");
+                continue;   // the definition's signature is authoritative (GR11a)
+            }
+            table[name] = new UserFunctionSignature(name, p.Data.LinkageReturning, p.Data.LinkageFormals);
         }
         return table;
     }
@@ -676,6 +709,7 @@ public sealed partial class CSharpEmitter
         using (w.Block("public static void Register()"))
             foreach (var u in units)
             {
+                if (u.IsPrototype) continue;   // a prototype registers no runtime module — the separately-compiled definition does (§10.6.3 GR1)
                 string parentPath = u.Parent is { } p ? CsLiteral(p.Path) : "null";
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {u.ClassRef}(({pp.ClassRef})__o!)"
@@ -684,21 +718,28 @@ public sealed partial class CSharpEmitter
                     + $"{CallBool(u.Initial)}, {CallBool(u.Common)}, {CallBool(u.Recursive)}, {factory});");
             }
         w.Line();
+        // The run-unit main is the first top-level PROGRAM unit (§8.3.1). A prototype precedes every other unit
+        // (§10.6.2 SR1), so units[0] may be a prototype; a function/prototype-only module (a callable library —
+        // the cross-assembly UDF-3 target) has no main and only exposes Register() for the sibling probe.
+        var mainUnit = units.FirstOrDefault(u => u.Parent is null && !u.IsFunction);
         using (w.Block("internal static class Program"))
         using (w.Block("private static void Main()"))
         {
             w.Line("ProgramRegistry.Reset();");
             if (anyFiles) w.Line("CobolFile.Init();");
             w.Line("__CobolModule.Register();");
-            w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(units[0].Path)}); }}");
-            w.Line("catch (StopRun) { }");
-            if (_ecActive)
-                // The fatal-EC default (ISO §14.6.13.1.3 #7 → §14.6.12 abnormal run-unit termination; the settled
-                // SSOT §18.16 implementor choice): diagnostic on stderr + NONZERO exit. The finally's CloseAll is
-                // the §14.6.11 attempt-normal-termination step.
-                w.Line("catch (CobolFatalException __fx) { Console.Error.WriteLine(\"abnormal run-unit termination: \" + __fx.Message); Environment.ExitCode = 1; }");
-            if (anyFiles)
-                w.Line("finally { CobolFile.CloseAll(); }   // run-unit termination implicit CLOSE (ISO §14.6.11)");
+            if (mainUnit is not null)
+            {
+                w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(mainUnit.Path)}); }}");
+                w.Line("catch (StopRun) { }");
+                if (_ecActive)
+                    // The fatal-EC default (ISO §14.6.13.1.3 #7 → §14.6.12 abnormal run-unit termination; the settled
+                    // SSOT §18.16 implementor choice): diagnostic on stderr + NONZERO exit. The finally's CloseAll is
+                    // the §14.6.11 attempt-normal-termination step.
+                    w.Line("catch (CobolFatalException __fx) { Console.Error.WriteLine(\"abnormal run-unit termination: \" + __fx.Message); Environment.ExitCode = 1; }");
+                if (anyFiles)
+                    w.Line("finally { CobolFile.CloseAll(); }   // run-unit termination implicit CLOSE (ISO §14.6.11)");
+            }
         }
     }
 
@@ -723,7 +764,8 @@ public sealed partial class CSharpEmitter
         // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
         // runs the §14.9.49 F3 selection and honors RESUME); the registry's boundary default stands down.
         string invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(_callSelfPath)}, {args}, {ret}"
-            + $"{(_ecActive ? ", siteHandlesPropagation: true" : "")});";
+            + $"{(_ecActive ? ", siteHandlesPropagation: true" : "")}"
+            + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")});";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
 
         var ecProg = EcEnabledProgramNames();
         bool hasPhrase = c.OnException is not null || c.NotOnException is not null;

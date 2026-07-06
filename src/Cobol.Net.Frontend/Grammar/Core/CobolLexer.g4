@@ -52,6 +52,9 @@ options {
         // OVERRIDE (ISO §11.7 method attribute, reserved 2002+ per §8.9): user data name at 85 —
         // the funnel 0901s it at 2002+ (the OVERRIDE/FINAL wave, DEVLOG 605):
         OVERRIDE,
+        // PROTOTYPE (ISO §11.5 FUNCTION-ID … IS PROTOTYPE, reserved 2002+ per §8.9): user data name at 85 —
+        // the funnel 0901s it at 2002+ (the UDF-3 function-prototype wave):
+        PROTOTYPE,
         // The INTERFACE/PROPERTY wave (DEVLOG 606): GET/PROPERTY/INTERFACE are §8.9-reserved 2002+ (user
         // words at 85 — funnel rows exist); IMPLEMENTS is §8.10 CONTEXT-SENSITIVE (a user word at EVERY
         // edition — cobolWord always, never CheckedTokenTypes):
@@ -162,6 +165,7 @@ PROPERTY    : 'PROPERTY' ;  // the PROPERTY clause / GET-SET selector / reposito
 GET         : 'GET' ;       // METHOD-ID GET PROPERTY selector (§11.7; §8.9-reserved 2002+ — user word at 85)
 INTERFACE   : 'INTERFACE' ; // END INTERFACE + the repository INTERFACE specifier (§11.6/§12.3.8; §8.9-reserved 2002+)
 FACTORY     : 'FACTORY' ;   // the FACTORY paragraph (ISO §11.4, 2002+; §8.9-reserved 2002+ — user word at 85, funnel row exists)
+PROTOTYPE   : 'PROTOTYPE' ; // FUNCTION-ID … IS PROTOTYPE (ISO §11.5 Format 2 / §10.6; §8.9-reserved 2002+ — user word at 85, funnel row exists)
 INHERITS    : 'INHERITS' ;   // COBOL-2002 OO: CLASS-ID. name INHERITS FROM base (ISO §11.3); corpus-clean
 SPECIAL_NAMES   : 'SPECIAL-NAMES' ;
 FILE_CONTROL    : 'FILE-CONTROL' ;

@@ -61,10 +61,11 @@ public sealed partial class StatementBinder
         if (UserFunctions is null || !UserFunctions.TryGetValue(name, out var fn))
         {
             data.Edition.Error("COBOLNET1505",
-                $"FUNCTION {name.ToUpperInvariant()} is declared in the REPOSITORY paragraph but no "
-                + "FUNCTION-ID definition for it is bound in this compilation group — activating a "
-                + "separately-compiled user-defined function (a function prototype, ISO §8.13.2 / §12.3.8) "
-                + "is not implemented (M2-UDF-3), nor are function references from class units");
+                $"FUNCTION {name.ToUpperInvariant()} is declared in the REPOSITORY paragraph but the compilation "
+                + "group contains neither a FUNCTION-ID definition nor a FUNCTION-ID … IS PROTOTYPE for it — "
+                + "declare a function prototype (ISO §11.5 / §12.3.8 SR10) so its signature is available for a "
+                + "separately-compiled target, or provide the definition in this group (function references from "
+                + "class units remain a separate follow-up)");
             return new BoundExprError($"FUNCTION {name}");
         }
         if (fn.Returning is null)
@@ -135,7 +136,7 @@ public sealed partial class StatementBinder
         if (refs.ResolveItem(temp) is not { } tempPlace)
             return new BoundExprError($"FUNCTION {name} result temporary");
 
-        _udfPendingCalls.Add(new BoundCallProgram(fn.Name, null, callArgs, tempPlace, null, null));
+        _udfPendingCalls.Add(new BoundCallProgram(fn.Name, null, callArgs, tempPlace, null, null) { IsFunction = true });
         return new BoundNumRef(tempPlace);
     }
 

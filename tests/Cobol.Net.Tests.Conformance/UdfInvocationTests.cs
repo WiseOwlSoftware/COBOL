@@ -507,4 +507,180 @@ public sealed class UdfInvocationTests
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
         Assert.True(ok, string.Join("\n", errors));
     }
+
+    // ── M2-UDF-3: function prototypes (ISO §11.5 Format 2 / §10.6 / §12.3.8; DEVLOG 624) ─────────────────────
+
+    /// <summary>UDF-3: a FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2) preceding the caller (§10.6.2 SR1) supplies
+    /// the signature; the same-name in-group DEFINITION that follows is authoritative (§12.3.8 GR11a) — the pair
+    /// is NOT a COBOLNET1508 duplicate. Binds clean at 2002.</summary>
+    [Fact]
+    public void Prototype_WithDefinition_NotDuplicate_Binds()
+    {
+        string src = """
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UPSQ IS PROTOTYPE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(4).
+            01 L-R PIC 9(6).
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            END FUNCTION UPSQ.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDFT17.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION UPSQ.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(4) VALUE 6.
+            01 WS-R PIC 9(6).
+            PROCEDURE DIVISION.
+            MAIN.
+                COMPUTE WS-R = FUNCTION UPSQ(WS-A).
+                STOP RUN.
+            END PROGRAM UDFT17.
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UPSQ.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(4).
+            01 L-R PIC 9(6).
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            P.
+                COMPUTE L-R = L-X * L-X.
+                GOBACK.
+            END FUNCTION UPSQ.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.True(ok, string.Join("\n", errors));
+    }
+
+    /// <summary>UDF-3: a prototype-declared function with NO in-group definition BINDS — the prototype supplies
+    /// the §8.4.3.2.4 GR1 signature and the definition is a separately-compiled target resolved at run time
+    /// (§12.3.8 GR11c / §8.4.3.2.4 GR6b). The former COBOLNET1505 "not implemented" gap is closed for the
+    /// prototyped case (the cross-assembly run is proven in InterProgramFileDifferentialTests).</summary>
+    [Fact]
+    public void PrototypeOnly_NoInGroupDefinition_Binds()
+    {
+        string src = """
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UPXTERN IS PROTOTYPE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(4).
+            01 L-R PIC 9(6).
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            END FUNCTION UPXTERN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDFT18.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION UPXTERN.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(4) VALUE 6.
+            01 WS-R PIC 9(6).
+            PROCEDURE DIVISION.
+            MAIN.
+                COMPUTE WS-R = FUNCTION UPXTERN(WS-A).
+                STOP RUN.
+            END PROGRAM UDFT18.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.True(ok, "a prototype-declared function must bind with no in-group definition: " + string.Join("\n", errors));
+    }
+
+    /// <summary>UDF-3: §10.6.2 SR3 — an in-group prototype and same-name definition shall have the same
+    /// signature; an argument-count mismatch is COBOLNET1513.</summary>
+    [Fact]
+    public void PrototypeDefinitionSignatureMismatch_1513()
+    {
+        string src = """
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UPMIS IS PROTOTYPE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(4).
+            01 L-R PIC 9(6).
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            END FUNCTION UPMIS.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDFT19.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-R PIC 9(6).
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM UDFT19.
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UPMIS.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-A PIC 9(4).
+            01 L-B PIC 9(4).
+            01 L-R PIC 9(6).
+            PROCEDURE DIVISION USING L-A L-B RETURNING L-R.
+            P.
+                COMPUTE L-R = L-A + L-B.
+                GOBACK.
+            END FUNCTION UPMIS.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1513");
+    }
+
+    /// <summary>UDF-3: a function prototype without a RETURNING phrase is ill-formed — COBOLNET1507 (a function
+    /// cannot deliver a result without it, §14.2).</summary>
+    [Fact]
+    public void PrototypeWithoutReturning_1507()
+    {
+        string src = """
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UPNORET IS PROTOTYPE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(4).
+            PROCEDURE DIVISION USING L-X.
+            END FUNCTION UPNORET.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDFT20.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM UDFT20.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
+        Assert.False(ok);
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1507");
+    }
+
+    /// <summary>UDF-3: FUNCTION-ID … IS PROTOTYPE is a 2002 introduction — a prototype at 85 is rejected with the
+    /// edition-naming COBOLNET0900 (the W1.5 EditionGateHints mapping for the {is2002()}?-gated tail).</summary>
+    [Fact]
+    public void PrototypeAt85_0900()
+    {
+        string src = """
+            IDENTIFICATION DIVISION.
+            FUNCTION-ID. UP85 IS PROTOTYPE.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 L-X PIC 9(4).
+            01 L-R PIC 9(6).
+            PROCEDURE DIVISION USING L-X RETURNING L-R.
+            END FUNCTION UP85.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. UDFT21.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM UDFT21.
+            """;
+        var (ok, errors, _) = EditionHarness.CompileFull(src, 85);
+        Assert.False(ok, "a function prototype is 2002+; 85 must reject");
+        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0900");
+    }
 }

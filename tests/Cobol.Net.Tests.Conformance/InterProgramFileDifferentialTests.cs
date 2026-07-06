@@ -259,11 +259,11 @@ public sealed class InterProgramFileDifferentialTests
 
     // ── Fix G: cross-assembly run-unit composition (§14.6.1; §14.9.4.4 GR3b — greenfield-only) ────────────
 
-    private static void CompileTo(string source, string dir, string name)
+    private static void CompileTo(string source, string dir, string name, int dialect = 85)
     {
         string src = Path.Combine(dir, name + ".cob");
         File.WriteAllText(src, source);
-        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: 85));
+        var r = CompilerDriver.Compile(new CompilerDriver.Options(src, Path.Combine(dir, name + ".dll"), DialectLevel: dialect));
         Assert.True(r.Success, $"compile {name}: {string.Join("; ", r.Errors)}");
     }
 
@@ -326,6 +326,86 @@ public sealed class InterProgramFileDifferentialTests
             var (ok, _, detail) = CutRunner.Run(Path.Combine(dir, "XASMC1.dll"), dir);
             Assert.False(ok, "a CALL to an absent program must terminate the run unit loudly (no exception phrase)");
             Assert.Contains("EC-PROGRAM-NOT-FOUND", detail);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
+    // ── UDF-3: separately-compiled function prototypes (ISO §11.5 Format 2 / §8.13 / §12.3.8; greenfield-only) ──
+
+    private const string UdfProtoCaller = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. SQUARER IS PROTOTYPE.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 L-X PIC 9(4).
+        01 L-R PIC 9(6).
+        PROCEDURE DIVISION USING L-X RETURNING L-R.
+        END FUNCTION SQUARER.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. UPROTOX.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            FUNCTION SQUARER.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 WS-N PIC 9(4) VALUE 0007.
+        01 WS-R PIC 9(6).
+        PROCEDURE DIVISION.
+        MAIN.
+            COMPUTE WS-R = FUNCTION SQUARER(WS-N).
+            DISPLAY "P=" WS-R.
+            STOP RUN.
+        END PROGRAM UPROTOX.
+        """;
+
+    private const string UdfProtoDefinition = """
+        IDENTIFICATION DIVISION.
+        FUNCTION-ID. SQUARER.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 L-X PIC 9(4).
+        01 L-R PIC 9(6).
+        PROCEDURE DIVISION USING L-X RETURNING L-R.
+        COMPUTE-IT.
+            COMPUTE L-R = L-X * L-X.
+            GOBACK.
+        END FUNCTION SQUARER.
+        """;
+
+    /// <summary>ISO §12.3.8 GR11(c) / §8.4.3.2.4 GR6b — the caller declares only a FUNCTION-ID … IS PROTOTYPE for
+    /// SQUARER (its signature) and invokes FUNCTION SQUARER(x); the separately-compiled DEFINITION lives in a
+    /// sibling assembly SQUARER.dll. The prototype registers NO runtime module, so the UDF-lowered call falls
+    /// through to the registry's sibling probe (the same §14.9.4.4 GR3b path as cross-assembly CALL), loads
+    /// SQUARER.dll, and the RETURNING value crosses the assembly boundary. 7*7 = 49 ⇒ P=000049.</summary>
+    [Fact]
+    public void Udf_SeparatelyCompiledPrototypeTarget_ResolvesCrossAssembly()
+    {
+        string dir = CutRunner.NewTempDir("udfproto");
+        try
+        {
+            CompileTo(UdfProtoCaller, dir, "UPROTOX", 2002);
+            CompileTo(UdfProtoDefinition, dir, "SQUARER", 2002);
+            var (ok, stdout, detail) = CutRunner.Run(Path.Combine(dir, "UPROTOX.dll"), dir);
+            Assert.True(ok, detail);
+            Assert.Equal("P=000049", stdout);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
+    /// <summary>ISO §8.4.3.2.4 GR6b + Table 13 — with the SQUARER definition absent, the UDF locate miss raises
+    /// EC-FUNCTION-NOT-FOUND (Fatal), NOT the CALL's EC-PROGRAM-NOT-FOUND: the run unit terminates loudly with the
+    /// function-specific condition name (the prototype supplied a signature but no activation target exists).</summary>
+    [Fact]
+    public void Udf_AbsentFunctionDefinition_RaisesFunctionNotFound()
+    {
+        string dir = CutRunner.NewTempDir("udfproton");
+        try
+        {
+            CompileTo(UdfProtoCaller, dir, "UPROTOX", 2002);
+            var (ok, _, detail) = CutRunner.Run(Path.Combine(dir, "UPROTOX.dll"), dir);
+            Assert.False(ok, "a FUNCTION reference to an absent separately-compiled definition must terminate loudly");
+            Assert.Contains("EC-FUNCTION-NOT-FOUND", detail);
         }
         finally { CutRunner.TryDelete(dir); }
     }

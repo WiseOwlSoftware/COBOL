@@ -415,12 +415,15 @@ public static class ProgramRegistry
     /// present) converts it to the exception branch (GR3h); otherwise the run unit terminates loudly.
     /// </summary>
     public static void CallProgram(string name, string callerPath, CobolArg[] args, ManagedPointer? returning,
-        bool siteHandlesPropagation = false)
+        bool siteHandlesPropagation = false, string notFoundEc = "EC-PROGRAM-NOT-FOUND")
     {
         var n = ResolveVisible(name, callerPath)
             ?? throw new CobolCallException(
-                $"CALL '{name?.Trim()}': program not found in the run unit (ISO §14.9.4.4 GR3b — EC-PROGRAM-NOT-FOUND)",
-                "EC-PROGRAM-NOT-FOUND");
+                notFoundEc == "EC-FUNCTION-NOT-FOUND"
+                    ? $"FUNCTION '{name?.Trim()}': the user-defined function could not be located in the run unit "
+                      + "(ISO §8.4.3.2.4 GR6b — EC-FUNCTION-NOT-FOUND)"
+                    : $"CALL '{name?.Trim()}': program not found in the run unit (ISO §14.9.4.4 GR3b — EC-PROGRAM-NOT-FOUND)",
+                notFoundEc);
         if (n.Active > 0 && !n.Recursive)
             throw new CobolCallException(
                 $"CALL '{n.Name}': program is already active and has no RECURSIVE attribute (ISO §14.9.4.4 GR3f — EC-PROGRAM-RECURSIVE-CALL)",

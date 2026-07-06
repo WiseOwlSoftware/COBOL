@@ -70,6 +70,7 @@ cobolWord
     | INTERFACE    // context: END INTERFACE / repository INTERFACE specifier (2002+); '85 user word, 0901 >=2002
     | IMPLEMENTS   // context: the FACTORY/OBJECT IMPLEMENTS clause (§11.8) — §8.10 CONTEXT-SENSITIVE: a user word at EVERY edition (never funneled)
     | FACTORY      // context: the FACTORY paragraph (§11.4, 2002+; keyword occurrences parse only via factoryParagraph/END FACTORY/FACTORY OF — position-safe in the funnel); '85 user word, 0901 >=2002 (ReservedWords.Table)
+    | PROTOTYPE    // context: FUNCTION-ID … IS PROTOTYPE (§11.5, 2002+; the keyword occurs only in the functionIdParagraph tail — position-safe in the funnel); '85 user word, 0901 >=2002 (ReservedWords.Table)
     | RERUN        // context: the I-O-CONTROL RERUN clause ('85; row 7.15)
     | ENTER        // context: the ENTER statement ('85; row 7.16)
     | EVERY        // context: RERUN … EVERY ('85; row 7.15)
@@ -181,10 +182,13 @@ identificationBody
 
 // FUNCTION-ID paragraph (COBOL-2002 user-defined function, ISO §11.5). The function unit is otherwise an
 // ordinary source unit (its own ENVIRONMENT/DATA/PROCEDURE DIVISION USING…RETURNING) and is compiled as a
-// callable program named after the function — invocation via FUNCTION user-name(args) is a later slice; for now
-// it is reachable as a CALL target, exercising the same RETURNING path.
+// callable program named after the function; a FUNCTION user-name(args) reference lowers onto it (M2-UDF-1,
+// DEVLOG 615). Format 2 — `IS PROTOTYPE` (ISO §11.5 :13127 / §10.6) — is a signature-only prototype unit
+// (LINKAGE-only data + a header-only procedure division, §10.6.2 SR4): it registers a signature but emits NO
+// body, so a caller resolves a separately-compiled definition across the run unit (M2-UDF-3). The optional tail
+// is a unique-leading-token additive change on a LOCAL rule (never a shared core), gated 2002+.
 functionIdParagraph
-    : FUNCTION_ID DOT programName DOT
+    : FUNCTION_ID DOT programName ({is2002()}? IS? PROTOTYPE)? DOT
     ;
 
 // ------------------------------------------

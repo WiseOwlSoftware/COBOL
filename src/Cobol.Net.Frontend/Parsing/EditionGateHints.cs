@@ -58,6 +58,7 @@ public static class EditionGateHints
     private static readonly Gate LockMode = new("the LOCK MODE clause", 2002, "ISO §12.4.5.9", "lock-mode-clause-2002");
     private static readonly Gate Retry = new("the RETRY phrase", 2002, "ISO §14.7.9", "retry-phrase-2002");
     private static readonly Gate Unlock = new("the UNLOCK statement", 2002, "ISO §14.9.47", "unlock-statement-2002");
+    private static readonly Gate FunctionPrototype = new("a FUNCTION-ID … IS PROTOTYPE (function prototype)", 2002, "ISO §11.5 Format 2 / §10.6", "function-prototype-2002");
 
     /// <summary>
     /// Recognize an edition-gated construct behind a generic parse error. Returns the COBOLNET0900-band
@@ -136,6 +137,12 @@ public static class EditionGateHints
             CobolLexer.LOCK when Next(stream, token, 1)?.Type == CobolLexer.MODE => LockMode,
             CobolLexer.RETRY => Retry,
             CobolLexer.UNLOCK => Unlock,
+            // FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2): the {is2002()}?-gated tail is dead below 2002, so the
+            // error lands on the IS token (PROTOTYPE ahead) or on PROTOTYPE itself (IS omitted), inside the
+            // functionIdParagraph. PROTOTYPE is a §8.9 user word below 2002, so an error AT it there IS the gate.
+            CobolLexer.PROTOTYPE when InRule(ruleStack, "functionIdParagraph") => FunctionPrototype,
+            CobolLexer.IS when InRule(ruleStack, "functionIdParagraph")
+                && Next(stream, token, 1)?.Type == CobolLexer.PROTOTYPE => FunctionPrototype,
             _ => null,
         };
 

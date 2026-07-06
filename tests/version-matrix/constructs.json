@@ -639,6 +639,15 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWBAND.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 B-AND PIC 9.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
     {
+      "id": "user-word-prototype-2002",
+      "description": "The word PROTOTYPE as a user-defined word - 8.9 interval encoding: user-definable at 85, reserved since 2002 (ReservedWords.Table row; the FUNCTION-ID ... IS PROTOTYPE keyword). cobolWord + _dataNameTokens admit the token at 85; the funnel rejects 0901 at >=2002 (CheckedTokenTypes).",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "8.9 (2002 introduction); ReservedWords.Table PROTOTYPE row (UDF-3 wave, DEVLOG 624)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PROTOTYPE PIC X.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
       "id": "logical-xor-operator-2023",
       "description": "The logical XOR / EXCLUSIVE-OR operator (ISO 8.8.4.9; precedence NOT > AND > XOR > OR) - a 2023 addition (Annex E.2 item 25 reserves both words; VCR rows 32/41 - the chair-adjudicated regating of the former '2002' mislabel). The operator is {is2023()}?-gated; below 2023 the W1.5 parse-layer mapping names the edition (0900) and both words are user-defined words.",
       "introducedIn": 2023,
@@ -738,6 +747,16 @@
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "M2 UDF catalog (PHASE4_RECONCILIATION M2-UDF-1); unblocks M2-UDF-2 (folds in) + EXIT FUNCTION (M2-PROC-6)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UFMX1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION UFMXDBL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = FUNCTION UFMXDBL(21).\n    STOP RUN.\nEND PROGRAM UFMX1.\nIDENTIFICATION DIVISION.\nFUNCTION-ID. UFMXDBL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(4).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nP.\n    COMPUTE L-R = L-X * 2.\n    GOBACK.\nEND FUNCTION UFMXDBL.\n"
+    },
+    {
+      "id": "function-prototype-2002",
+      "status": "active",
+      "description": "A FUNCTION-ID ... IS PROTOTYPE separate-compilation function prototype (ISO §11.5 Format 2 / §10.6 / §12.3.8). A signature-only unit - LINKAGE-only data division + a header-only PROCEDURE DIVISION (§10.6.2 SR4) - registers a signature but emits no runtime module; a same-name in-group DEFINITION (GR11a) or a separately-compiled sibling assembly is the activation target (§8.4.3.2.4 GR6b -> EC-FUNCTION-NOT-FOUND on absence). LIVE (Phase 4c M2-UDF-3, DEVLOG 624). The {is2002()}?-gated IS PROTOTYPE tail is dead below 2002 -> the W1.5 EditionGateHints parse-layer mapping names the edition (0900).",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "M2 UDF catalog (PHASE4_RECONCILIATION M2-UDF-3); 2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only)",
+      "source": "IDENTIFICATION DIVISION.\nFUNCTION-ID. FPROTO IS PROTOTYPE.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(6).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nEND FUNCTION FPROTO.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. VMFP1.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nREPOSITORY.\n    FUNCTION FPROTO.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC 9(6).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE W = FUNCTION FPROTO(7).\n    STOP RUN.\nEND PROGRAM VMFP1.\nIDENTIFICATION DIVISION.\nFUNCTION-ID. FPROTO.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L-X PIC 9(4).\n01 L-R PIC 9(6).\nPROCEDURE DIVISION USING L-X RETURNING L-R.\nP.\n    COMPUTE L-R = L-X * L-X.\n    GOBACK.\nEND FUNCTION FPROTO.\n"
     },
     {
       "id": "set-address-2002",
