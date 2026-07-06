@@ -5,6 +5,7 @@
     "delete_file_absent",
     "find_string",
     "inspect_backward",
+    "intrinsics_convert",
     "intrinsics_string_2023",
     "intrinsics_trim",
     "logical_xor",

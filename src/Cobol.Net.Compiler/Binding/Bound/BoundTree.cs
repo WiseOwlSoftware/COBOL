@@ -157,6 +157,17 @@ public sealed record BoundIntrinsicCall(
     /// bit 1 = LAST (rule 3.b), bit 2 = ANYCASE (rule 5); 0 = replace ALL occurrences. <see cref="Args"/> holds
     /// [argument-1, from₁, to₁, from₂, to₂, …]; this list has one entry per pair. Null for every other function.</summary>
     public IReadOnlyList<int>? SubstituteModes { get; init; }
+
+    /// <summary>CONVERT (§15.19.2) source-format: 0 = ANY, 1 = ANUM/ALPHANUMERIC, 2 = HEX, 3 = NAT/NATIONAL.
+    /// Zero for every other function (== ANY, unused there).</summary>
+    public int ConvertSource { get; init; }
+
+    /// <summary>CONVERT (§15.19.2) destination base-format: 1 = ANUM, 3 = NAT, 4 = BYTE. Zero for every other
+    /// function.</summary>
+    public int ConvertDest { get; init; }
+
+    /// <summary>CONVERT (§15.19.2): the HEX destination modifier (§15.19.4 r2/r4). False for every other function.</summary>
+    public bool ConvertDestHex { get; init; }
 }
 
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────

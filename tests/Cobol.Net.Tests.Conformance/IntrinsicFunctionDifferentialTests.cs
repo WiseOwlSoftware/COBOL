@@ -491,4 +491,71 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.False(ok, "SUBSTITUTE is 2023+; 2014 must reject");
         Assert.Contains("COBOLNET1502", detail);
     }
+
+    // ── CONVERT (§15.19, Phase 5, DEVLOG 632): data-representation conversion; source/destination formats ─────
+
+    [Theory]
+    [InlineData("01 A PIC X VALUE \"A\".\n           01 R PIC X(4).", "CONVERT(A ANUM ANUM HEX)", "41")]   // NOTE 3a
+    [InlineData("01 H PIC XX VALUE \"41\".\n           01 R PIC X(4).", "CONVERT(H HEX ANUM)", "A")]         // NOTE 3b
+    [InlineData("01 H PIC XX VALUE \"41\".\n           01 R PIC X(4).", "CONVERT(H HEX BYTE)", "A")]         // r5
+    [InlineData("01 A PIC XXX VALUE \"AB\".\n           01 R PIC X(8).", "CONVERT(A ANUM ANUM HEX)", "414220")] // r2, image space 0x20
+    [InlineData("01 N PIC N VALUE N\"A\".\n           01 R PIC X(8).", "CONVERT(N NAT ANUM HEX)", "0041")]   // r2 over UTF-16BE
+    public void Convert_Formats_2023(string ws, string call, string expected)
+        => AssertSpec(Program(ws, $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R.", "IFCONV"), expected, 2023);
+
+    [Fact]
+    public void Convert_AnumNatAnum_RoundTrip_2023()
+        // §15.19.4 r1/r3 — ANUM→NAT→ANUM repertoire round-trip returns the original character (Latin-1 ⊂ national).
+        => AssertSpec(Program("01 A PIC X VALUE \"Z\".\n           01 NR PIC N.\n           01 R PIC X(4).",
+            "    MOVE FUNCTION CONVERT(A ANUM NAT) TO NR.\n    MOVE FUNCTION CONVERT(NR NAT ANUM) TO R.\n    DISPLAY R.",
+            "IFCONVR"), "Z", 2023);
+
+    [Theory]
+    [InlineData("CONVERT(A ANUM ANUM)", "COBOLNET1514")]   // SR3 — source == destination
+    [InlineData("CONVERT(A ANUM BYTE)", "COBOLNET1514")]   // SR9 — BYTE needs a HEX source
+    [InlineData("CONVERT(A ANY ANUM)", "COBOLNET1514")]    // SR8 — ANY needs an ANUM HEX / NAT HEX destination
+    public void Convert_SyntaxRuleViolations_1514(string call, string code)
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            Program("01 A PIC X VALUE \"A\".\n           01 R PIC X(4).",
+                $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R."));
+        Assert.False(ok, $"{call} violates a §15.19.3 syntax rule");
+        Assert.Contains(code, detail);
+    }
+
+    [Fact]
+    public void Convert_GatedBelow2023_1502()
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 A PIC X VALUE \"A\".\n           01 R PIC X(4).",
+                "    MOVE FUNCTION CONVERT(A ANUM ANUM HEX) TO R.\n    DISPLAY R."));
+        Assert.False(ok, "CONVERT is 2023+; 2014 must reject");
+        Assert.Contains("COBOLNET1502", detail);
+    }
+
+    [Fact]
+    public void Convert_UntranslatableSetsDataConversion_WhenChecked_2023()
+    {
+        // §15.19.4 r1 — a national character with no alphanumeric correspondent (U+0100) yields the substitution
+        // char AND sets EC-DATA-CONVERSION; under >>TURN … CHECKING ON, EXCEPTION-STATUS reports the condition.
+        var src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFCONVEC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-N PIC N(2) VALUE N"AŠ".
+            01 WS-R PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN.
+            >>TURN EC-DATA-CONVERSION CHECKING ON
+                MOVE FUNCTION CONVERT(WS-N NAT ANUM) TO WS-R.
+            >>TURN EC-DATA-CONVERSION CHECKING OFF
+                DISPLAY "S=" FUNCTION EXCEPTION-STATUS.
+                STOP RUN.
+            """;
+        var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        // EXCEPTION-STATUS is a fixed-width register; its trailing spaces are trimmed by Normalize.
+        Assert.Equal("S=EC-DATA-CONVERSION", output);
+    }
 }

@@ -25,7 +25,7 @@ internal static class OperandText
         // case that lets MOVE-to-alphanumeric, string relational comparisons, and group moves take FUNCTION
         // operands unmodified. deSign is a no-op (the result carries no operational sign). A NUMERIC intrinsic
         // in a string context falls through to the loud computed-operand case (hazard H3 — by design).
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } ic } =>
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } ic } =>
             IntrinsicRenderer.RenderString(ic),
         BoundComputedOperand => EmitText.LoudValue("string", "computed expression in a string context"),
         BoundOperandError e => EmitText.LoudValue("string", e.Feature),
@@ -44,7 +44,8 @@ internal static class OperandText
         // An intrinsic result compares by its §15.2 function type: alphanumeric functions are class/category
         // alphanumeric (IF107A's `IF FUNCTION CURRENT-DATE >= TEMP1` is a STRING comparison); numeric/integer
         // functions stay numeric operands.
-        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory == PicCategory.Alphanumeric,
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
+            ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National,
         _ => false,
     };
 

@@ -189,4 +189,21 @@ public static class ExceptionState
         }
         return 0;
     }
+
+    // ── EC-DATA-CONVERSION ambient statement gate (CONVERT / DISPLAY-OF / NATIONAL-OF) ────────────────────────
+
+    /// <summary>True while the currently-executing statement has EC-DATA-CONVERSION checking enabled (set and
+    /// reset by the generated statement guard — the nonfatal twin of <see cref="ArgumentFunctionChecking"/>).
+    /// CONVERT's untranslatable-character sites consult it: the implementor-defined substitution character stands
+    /// unconditionally, but the last exception status is recorded ONLY when checking is enabled (§14.6.13.1.1).</summary>
+    public static bool DataConversionChecking { get; set; }
+
+    /// <summary>Record EC-DATA-CONVERSION for an untranslatable CONVERT value (§15.19.4 r1/r3). Nonfatal
+    /// (Table 13 — <see cref="ExceptionCatalog"/> EC-DATA-CONVERSION), so it never throws; it only sets the last
+    /// exception status, and only while checking for the condition is enabled (§14.6.13.1.1). The substitution
+    /// character is applied by the caller regardless.</summary>
+    public static void DataConversionError(string detail)
+    {
+        if (DataConversionChecking) Set("EC-DATA-CONVERSION", fatal: false);
+    }
 }

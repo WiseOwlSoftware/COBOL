@@ -113,6 +113,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // keywords is a 2023 construct the frozen legacy grammar cannot bind; the greenfield CorpusRunner
         // byte-compares substitute.
         ("2023", "substitute"),
+        // Phase 5 intrinsics, DEVLOG 632: FUNCTION CONVERT (§15.19) with the source-format/destination-format
+        // keywords (ANY/ANUM/HEX/NAT/BYTE) is a 2023 construct the frozen legacy grammar cannot bind; the
+        // greenfield CorpusRunner byte-compares intrinsics_convert.
+        ("2023", "intrinsics_convert"),
         // Phase-4 track (c), DEVLOG 615/616: the frozen legacy's partial UDF support runs the simple
         // invocation goldens but lacks EXIT FUNCTION's control transfer (§14.9.14 — it falls through to the
         // trailing MOVE, X=9999 not X=0014) and the nested-args legs (GR5a by-ref argument mutation /

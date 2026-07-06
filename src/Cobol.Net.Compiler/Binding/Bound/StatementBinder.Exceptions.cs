@@ -356,6 +356,11 @@ public sealed partial class StatementBinder
             // intrinsic renders inline inside expressions, so the guard wraps the STATEMENT).
             if (_turn.Enabled("EC-ARGUMENT-FUNCTION", null, line) && ContainsIntrinsic(node))
                 enabled.Add(("EC-ARGUMENT-FUNCTION", null));
+            // EC-DATA-CONVERSION (nonfatal, §15.19.4 r1/r3) rides any intrinsic-bearing statement too — FUNCTION
+            // CONVERT sets it when an untranslatable character forces the substitution character; the ambient
+            // gate records it while checking is enabled (harmless around a non-CONVERT intrinsic — no site sets it).
+            if (_turn.Enabled("EC-DATA-CONVERSION", null, line) && ContainsIntrinsic(node))
+                enabled.Add(("EC-DATA-CONVERSION", null));
         }
         QueryFor(bound);
 

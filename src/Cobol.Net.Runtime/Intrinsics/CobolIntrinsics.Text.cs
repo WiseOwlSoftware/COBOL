@@ -117,6 +117,96 @@ public static partial class CobolIntrinsics
         return sb.ToString();
     }
 
+    // ── CONVERT (§15.19, 2023) — data-representation conversion ─────────────────────────────────────────────────
+    // Source codes: 0 = ANY, 1 = ANUM, 2 = HEX, 3 = NAT.  Dest codes: 1 = ANUM, 3 = NAT, 4 = BYTE.
+    // Char-set model: the alphanumeric coded set is 8-bit Latin-1 (code point == byte); national is UTF-16BE, one
+    // char/position (D-N1 / §8.1.2 NOTE 2). Substitution char '?' for an untranslatable value (§15.19.4 r1/r3,
+    // implementor-defined). Source ANY = the item's canonical display image (typed-native model; §8.1.2 NOTE 2
+    // leaves the usage representation implementor-defined) — always paired with a HEX destination (SR8).
+
+    /// <summary>CONVERT (§15.19.4): re-express <paramref name="arg"/> (in source format <paramref name="src"/>) in
+    /// the destination format (<paramref name="dst"/> + <paramref name="dstHex"/>). An untranslatable character
+    /// yields the substitution character and sets EC-DATA-CONVERSION (nonfatal, rules 1/3).</summary>
+    public static string Convert(string arg, int src, int dst, bool dstHex)
+    {
+        const int ANUM = 1, HEX = 2, NAT = 3, BYTE = 4;
+
+        // Repertoire translation (§15.19.4 r1/r3): both sides character, no HEX — the DISPLAY-OF/NATIONAL-OF map.
+        if (!dstHex && dst != BYTE && (src == ANUM || src == NAT))
+        {
+            var sb = new System.Text.StringBuilder(arg.Length);
+            foreach (char c in arg)
+                sb.Append(dst == NAT ? c                             // ANUM→NAT: same code point (Latin-1 ⊂ national, D-N4)
+                                     : c <= 0xFF ? c : Sub());        // NAT→ANUM: fits a byte, else substitute (r1)
+            return sb.ToString();
+        }
+
+        // Bit/byte pathway — reduce argument-1 to a byte string per the source format.
+        byte[] bytes;
+        switch (src)
+        {
+            case NAT:                                                // national → UTF-16BE (2 bytes/position, r4 basis)
+                bytes = new byte[arg.Length * 2];
+                for (int i = 0; i < arg.Length; i++) { bytes[2 * i] = (byte)(arg[i] >> 8); bytes[2 * i + 1] = (byte)arg[i]; }
+                break;
+            case HEX:                                                // a string of hex digits representing complete bytes (SR4)
+                bytes = HexDigitsToBytes(arg);
+                break;
+            default:                                                 // ANUM / ANY → Latin-1 (1 byte/char); ANY = the item's canonical image
+                bytes = new byte[arg.Length];
+                for (int i = 0; i < arg.Length; i++)
+                    bytes[i] = arg[i] <= 0xFF ? (byte)arg[i] : ByteSub();
+                break;
+        }
+
+        // Render the byte string in the destination format.
+        if (dstHex) return ToHex(bytes);                             // r2 (ANUM HEX) / r4 (NAT HEX) — same digit code points (D-N4)
+        if (dst == NAT)                                              // HEX → NAT (r3): 2 bytes → one national char, pad a trailing odd byte
+        {
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < bytes.Length; i += 2)
+                sb.Append((char)((bytes[i] << 8) | (i + 1 < bytes.Length ? bytes[i + 1] : 0)));
+            return sb.ToString();
+        }
+        // ANUM (r1) / BYTE (r5): one alphanumeric char per byte.
+        var chars = new char[bytes.Length];
+        for (int i = 0; i < bytes.Length; i++) chars[i] = (char)bytes[i];
+        return new string(chars);
+    }
+
+    private static char Sub()
+    {
+        Exceptions.ExceptionState.DataConversionError("CONVERT: value has no destination-repertoire correspondent (§15.19.4 r1/r3)");
+        return '?';
+    }
+    private static byte ByteSub() { _ = Sub(); return (byte)'?'; }
+
+    private static byte[] HexDigitsToBytes(string s)
+    {
+        string t = s.Trim();                                         // the fixed-width image's surrounding spaces are not digits
+        if ((t.Length & 1) != 0)                                     // SR4 — complete bytes ⇒ an even digit count
+        { Exceptions.ExceptionState.DataConversionError("CONVERT: HEX source is not a whole number of bytes (§15.19.3 SR4)"); t += "0"; }
+        var b = new byte[t.Length / 2];
+        for (int i = 0; i < b.Length; i++)
+        {
+            int hi = HexVal(t[2 * i]), lo = HexVal(t[2 * i + 1]);
+            if (hi < 0 || lo < 0)
+            { Exceptions.ExceptionState.DataConversionError("CONVERT: HEX source has a non-hex digit (§15.19.3 SR4)"); hi = hi < 0 ? 0 : hi; lo = lo < 0 ? 0 : lo; }
+            b[i] = (byte)((hi << 4) | lo);
+        }
+        return b;
+    }
+    private static int HexVal(char c) => c is >= '0' and <= '9' ? c - '0'
+        : c is >= 'A' and <= 'F' ? c - 'A' + 10 : c is >= 'a' and <= 'f' ? c - 'a' + 10 : -1;
+
+    private static string ToHex(byte[] bytes)
+    {
+        const string D = "0123456789ABCDEF";
+        var sb = new System.Text.StringBuilder(bytes.Length * 2);
+        foreach (byte x in bytes) { sb.Append(D[x >> 4]); sb.Append(D[x & 0xF]); }
+        return sb.ToString();
+    }
+
     /// <summary>SUBSTITUTE (§15.87.4): argument-1 (<paramref name="source"/>) with each occurrence of a
     /// <paramref name="froms"/> substring replaced by the parallel <paramref name="tos"/> string. Each pair's
     /// <paramref name="modes"/> flags select FIRST (bit 0, only the first occurrence — rule 3.a), LAST (bit 1,

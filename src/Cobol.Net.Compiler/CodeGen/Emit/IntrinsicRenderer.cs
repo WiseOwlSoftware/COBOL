@@ -233,6 +233,9 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
                 $"CobolIntrinsics.Trim({StrStatic(ic.Args[0])}, {ic.TrimMode}"
                     + string.Concat(ic.Args.Skip(1).Select(a => $", {StrStatic(a)}")) + ")",
             "Substitute" => RenderSubstitute(ic),                              // §15.87 — replace argument-2 pairs (2023)
+            "Convert" =>                                                       // §15.19 — repertoire / hex / byte conversion (2023)
+                $"CobolIntrinsics.Convert({StrStatic(ic.Args[0])}, {ic.ConvertSource}, {ic.ConvertDest}, "
+                    + $"{(ic.ConvertDestHex ? "true" : "false")})",
             // The last-exception interrogation functions (§15.28/30/32/33 — the EC model): zero-argument reads
             // of the runtime register; the binder's EcNoteFunction flagged the group EC gate, so the generated
             // source carries the CobolNet.Runtime.Exceptions using.

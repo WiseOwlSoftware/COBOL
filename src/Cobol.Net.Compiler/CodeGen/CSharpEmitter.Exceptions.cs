@@ -67,6 +67,31 @@ public sealed partial class CSharpEmitter
         var prev = _ecInfo;
         _ecInfo = ec.Info;
         bool terminated;
+        // EC-DATA-CONVERSION (nonfatal, §15.19.4 r1/r3) rides an ambient per-statement gate — the nonfatal twin of
+        // the EC-ARGUMENT-FUNCTION gate below: FUNCTION CONVERT's substitution site records the last exception
+        // status while checking is enabled. Nonfatal ⇒ set/reset only (no catch, no throw); it wraps whichever
+        // inner dispatch (the fatal-gated or the plain) the statement needs.
+        if (ec.Info.Enabled.Any(p => p.Ec == "EC-DATA-CONVERSION"))
+        {
+            var w = _ctx.Writer;
+            w.Line("ExceptionState.DataConversionChecking = true;");
+            using (w.Block("try"))
+                EcEmitArgOrPlain(ec);
+            w.Line("finally { ExceptionState.DataConversionChecking = false; }");
+            _ecInfo = prev;
+            return false;   // conservative: the inner dispatch may itself resume past a transfer
+        }
+        terminated = EcEmitArgOrPlain(ec);
+        _ecInfo = prev;
+        return terminated;
+    }
+
+    /// <summary>The inner EC dispatch of a checked statement: the EC-ARGUMENT-FUNCTION fatal ambient gate (with
+    /// USE F3 dispatch on the raise) or, when that condition is not enabled, a plain statement emission. Wrapped by
+    /// <see cref="EcEmitChecked"/> with the nonfatal EC-DATA-CONVERSION gate when needed.</summary>
+    private bool EcEmitArgOrPlain(BoundEcChecked ec)
+    {
+        bool terminated;
         if (ec.Info.Enabled.Any(p => p.Ec == "EC-ARGUMENT-FUNCTION"))
         {
             // EC-ARGUMENT-FUNCTION rides an ambient per-statement gate (ExceptionState.ArgumentFunctionChecking):
@@ -92,7 +117,6 @@ public sealed partial class CSharpEmitter
         }
         else
             terminated = EmitStatement(ec.Inner);
-        _ecInfo = prev;
         return terminated;
     }
 

@@ -127,6 +127,10 @@ public sealed partial class StatementBinder
         // keywords ahead of each replacement pair, bound apart from the generic argument path.
         if (sig.Name == "SUBSTITUTE") return BindSubstitute(sig, argTokens);
 
+        // CONVERT (§15.19) — argument-1 source-format destination-format: two keyword groups after the operand,
+        // bound apart from the generic argument path (the result category is computed per §15.19.1).
+        if (sig.Name == "CONVERT") return BindConvert(sig, argTokens);
+
         var args = BindIntrinsicArgs(argTokens);
         if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
         {
@@ -297,6 +301,66 @@ public sealed partial class StatementBinder
         if (!haveSource || modes.Count == 0 || pairOperands != 0 || pending != 0) return Malformed();
         return new BoundIntrinsicCall(sig, operands, PicCategory.Alphanumeric) { SubstituteModes = modes };
     }
+
+    /// <summary>CONVERT (§15.19) — data-representation conversion (2023). Argument-1 is followed by two phrase
+    /// keyword groups: source-format (ANY | ANUM | HEX | NAT) and destination-format (ANUM | NAT [HEX] | BYTE),
+    /// each a bare <c>SUB_IDENTIFIER</c> segment (§15.19.2). The operand binds ordinarily; the format words ride
+    /// the node's <c>Convert*</c> init-properties. The argument/SR rules (§15.19.3) are enforced here
+    /// (COBOLNET1514); the result category (§15.19.1) is National for a NAT destination, Alphanumeric otherwise.</summary>
+    private BoundExpr BindConvert(IntrinsicSig sig, List<IToken> argTokens)
+    {
+        var kws = new List<string>();
+        var operands = new List<BoundOperand>();
+        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        {
+            if (seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } w]
+                && IsConvertFormatWord(w.Text))
+            { kws.Add(w.Text.ToUpperInvariant()); continue; }
+            operands.Add(ParseArgSegment(seg));
+        }
+        if (operands.Count != 1 || kws.Count < 2)
+        {
+            data.Edition.Error("COBOLNET1504", "FUNCTION CONVERT takes argument-1 source-format destination-format "
+                + $"(ISO §15.19.2); {operands.Count} operand + {kws.Count} format keyword(s) given");
+            return new BoundExprError("FUNCTION CONVERT");
+        }
+
+        int src = kws[0] switch { "ANY" => 0, "ALPHANUMERIC" or "ANUM" => 1, "HEX" => 2, "NATIONAL" or "NAT" => 3, _ => -1 };
+        int i = 1, dst; bool hex = false;
+        dst = kws[i] switch { "BYTE" => 4, "ALPHANUMERIC" or "ANUM" => 1, "NATIONAL" or "NAT" => 3, _ => -1 };
+        if (dst >= 0) i++;
+        if (dst is 1 or 3 && i < kws.Count && kws[i] == "HEX") { hex = true; i++; }
+
+        if (src < 0 || dst < 0 || i != kws.Count)
+        {
+            data.Edition.Error("COBOLNET1514", $"FUNCTION CONVERT: '{string.Join(' ', kws)}' is not a valid "
+                + "source-format destination-format pair (ISO §15.19.2 — ANY|ANUM|HEX|NAT then ANUM|NAT [HEX] | BYTE)");
+            return new BoundExprError("FUNCTION CONVERT");
+        }
+        // SR3 — source shall differ from destination (only ANUM→ANUM / NAT→NAT with no HEX collide, §15.19.3).
+        if ((src == 1 && dst == 1 && !hex) || (src == 3 && dst == 3 && !hex))
+            data.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: the source-format and destination-format are the "
+                + "same (ISO §15.19.3 SR3)");
+        // SR8 — an ANY source requires an ANUM HEX or NAT HEX destination.
+        if (src == 0 && !(hex && dst is 1 or 3))
+            data.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: a source-format of ANY requires a destination of "
+                + "ANUM HEX or NAT HEX (ISO §15.19.3 SR8)");
+        // SR9 — a BYTE destination requires a HEX source.
+        if (dst == 4 && src != 2)
+            data.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: a destination-format of BYTE requires a "
+                + "source-format of HEX (ISO §15.19.3 SR9)");
+        // SR1 — argument-1 shall not be zero length (compile-time catch for an empty literal).
+        if (operands[0] is BoundStringLiteral { Value.Length: 0 })
+            data.Edition.Error("COBOLNET1514", "FUNCTION CONVERT: argument-1 is of zero length (ISO §15.19.3 SR1)");
+
+        var category = dst == 3 ? PicCategory.National : PicCategory.Alphanumeric;   // §15.19.1 table
+        return new BoundIntrinsicCall(sig, operands, category)
+            { ConvertSource = src, ConvertDest = dst, ConvertDestHex = hex };
+    }
+
+    /// <summary>The §15.19.2 CONVERT format words (reserved within the argument list, like TRIM's LEADING/TRAILING).</summary>
+    private static bool IsConvertFormatWord(string w) =>
+        w.ToUpperInvariant() is "ANY" or "ALPHANUMERIC" or "ANUM" or "HEX" or "NATIONAL" or "NAT" or "BYTE";
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
     /// literal, an alphanumeric/edited/group item, or a nested alphanumeric-result intrinsic.</summary>
