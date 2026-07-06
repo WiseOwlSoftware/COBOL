@@ -598,9 +598,64 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindCompute(Core.ComputeStatementContext compute)
     {
+        // COMPUTE Format 2 — boolean-compute (ISO §14.9.8; the {is2002()}? grammar alternative).
+        if (compute.booleanExpression() is { } boolExpr) return BindComputeBoolean(compute, boolExpr);
         if (compute.arithmeticExpression() is not { } expr) return new BoundUnsupported("COMPUTE without an expression");
+        // F1 → F2 re-route: `COMPUTE bool-item = bool-item` parses as Format 1 (a sole-identifier RHS predicts
+        // the arithmetic alt), so a boolean receiver or a sole boolean-category RHS re-routes to the boolean
+        // bind (the "ANTLR alternative-order reality" precedent). A boolean RHS/receiver never reaches the
+        // numeric channel.
+        bool receiverBoolean = compute.computeStore().Length > 0
+            && refs.Resolve(compute.computeStore(0).dataReference()) is { Item.Pic.Category: PicCategory.Boolean };
+        bool rhsBoolean = SoleDataRef(expr) is { } d && refs.Resolve(d) is { Item.Pic.Category: PicCategory.Boolean };
+        if (receiverBoolean || rhsBoolean)
+        {
+            BoundBoolExpr rerouted = SoleDataRef(expr) is { } sd && refs.Resolve(sd) is { } sp
+                    && (sp is RefModPlace rm2 ? rm2.Inner.Item.Pic?.Category : sp.Item.Pic?.Category) is PicCategory.Boolean
+                ? new BoundBoolRef(sp)
+                : new BoundBoolError($"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
+                    + "(ISO §14.9.8 Format 2)");
+            return BuildComputeBoolean(compute, rerouted);
+        }
         var rhs = BindExpr(expr);
         return new BoundCompute(rhs, Receivers(compute.computeStore()), BindSizeError(compute.computeOnSizeError()));
+    }
+
+    private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)
+    {
+        var rhs = BindBoolExpr(boolExpr);
+        // SR3 (§14.9.8 :26575): the expression shall not consist solely of an ALL literal.
+        if (rhs is BoundBoolAll)
+            data.Edition.Error("COBOLNET1511", "a boolean COMPUTE expression shall not consist solely of an ALL "
+                + "literal (ISO §14.9.8 Format 2 SR3)");
+        return BuildComputeBoolean(compute, rhs);
+    }
+
+    /// <summary>Shared tail for both the direct Format-2 bind and the F1→F2 re-route: receiver conformance
+    /// (SR2 — elementary boolean), the ROUNDED / SIZE-ERROR prohibition (F2 has neither), the GR3 store width.</summary>
+    private BoundStatement BuildComputeBoolean(Core.ComputeStatementContext compute, BoundBoolExpr rhs)
+    {
+        if (compute.computeOnSizeError() is not null)
+            data.Edition.Error("COBOLNET1511", "ON SIZE ERROR may not be specified on a boolean COMPUTE "
+                + "(ISO §14.9.8 Format 2 — no size-error phrase)");
+        var targets = new List<Place>();
+        foreach (var store in compute.computeStore())
+        {
+            if (store.roundedPhrase() is not null)
+                data.Edition.Error("COBOLNET1511", "ROUNDED may not be specified on a boolean COMPUTE "
+                    + "(ISO §14.9.8 Format 2)");
+            if (refs.Resolve(store.dataReference()) is not { } p)
+            {
+                data.Edition.Error("COBOLNET1511", $"COMPUTE receiver '{store.dataReference().GetText()}' is unresolvable");
+                continue;
+            }
+            var cat = p is RefModPlace rm ? rm.Inner.Item.Pic?.Category : p.Item.Pic?.Category;
+            if (cat is not PicCategory.Boolean)
+                data.Edition.Error("COBOLNET1511", $"the receiver '{store.dataReference().GetText()}' of a boolean "
+                    + "COMPUTE shall be an elementary boolean item (ISO §14.9.8 Format 2 SR2)");
+            targets.Add(p);
+        }
+        return new BoundComputeBoolean(rhs, targets, Gr3Width(rhs));
     }
 
     private BoundStatement BindIf(Core.IfStatementContext iff)
@@ -1383,6 +1438,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundSignCondition(BindOperandExpr(operands[0]), kind, not);
         }
 
+
         if (cmp.comparisonOperator() is { } opCtx && operands.Length >= 2)
         {
             // A fully-stated relation establishes the subject + operator for any following abbreviated relation in the
@@ -1427,36 +1483,49 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                         "both operands of a data-pointer relation shall be a data pointer or NULL "
                         + "(ISO §8.8.4.1.3)");
             }
+            // (A boolean-EXPRESSION relation — `IF (a B-AND b) = c` — is staged residue this increment; the
+            // item↔item boolean compares of the data increment ride CheckedRelational's 0844 guard below.)
             return CheckedRelational(subject, op, right);
         }
 
-        // A bare single operand is either a level-88 condition-name (a complete simple condition — terminates the
-        // abbreviation), or, within an abbreviated sequence, a relation with BOTH subject and operator omitted
-        // (ISO §8.8.4.12 — e.g. the trailing C in `A = B AND C` ≡ `A = C`). A condition-name takes precedence.
+        // A bare single operand — resolve as a sole-operand condition (88 / switch / simple-boolean / abbreviated).
         if (operands.Length == 1)
-        {
-            if (operands[0].valueOperand()?.arithmeticExpression() is { } expr
-                && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
-            {
-                carry.Reset();
-                // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
-                return refs.ResolveForItem(dref, cond.Parent) is { } parent
-                    ? new BoundCondition88(parent, cond)
-                    : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
-            }
-            // A switch-status condition-name (ISO §8.8.4.6) is a complete simple condition — resolved AFTER
-            // level-88 (NC211A: a name defined as both → the 88 wins), BEFORE the abbreviated-carry fallback.
-            if (operands[0].valueOperand()?.arithmeticExpression() is { } swx
-                && SoleDataRef(swx) is { } swr && SwitchCondOf(swr) is { } swCond)
-            {
-                carry.Reset();
-                return swCond;
-            }
-            if (carry is { Subject: { } subject, Op: { } op })
-                return CheckedRelational(subject, op, ComparisonOperand(operands[0]));
-        }
+            return BindSoleOperandCondition(operands[0].valueOperand(), () => ComparisonOperand(operands[0]), carry);
 
         return new BoundConditionError($"condition '{cmp.GetText()}'");
+    }
+
+    /// <summary>A bare single operand is either a level-88 condition-name (a complete simple condition —
+    /// terminates the abbreviation), a switch-status condition-name (§8.8.4.6), a SIMPLE BOOLEAN CONDITION over
+    /// a length-1 boolean item/literal (§8.8.4.3), or — within an abbreviated sequence — a relation with BOTH
+    /// subject and operator omitted (§8.8.4.12; the trailing C in `A = B AND C` ≡ `A = C`). A condition-name
+    /// takes precedence. Shared by the generic path and the boolean-alt unwrap (a B-op-free bare operand).</summary>
+    private BoundCondition BindSoleOperandCondition(Core.ValueOperandContext? vo, System.Func<BoundOperand> bindOperand, AbbrevCarry carry)
+    {
+        if (vo?.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref && ConditionOf(dref) is { } cond)
+        {
+            carry.Reset();
+            // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
+            return refs.ResolveForItem(dref, cond.Parent) is { } parent
+                ? new BoundCondition88(parent, cond)
+                : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
+        }
+        // A switch-status condition-name — resolved AFTER level-88 (NC211A: a name defined as both → the 88
+        // wins), BEFORE the abbreviated-carry fallback.
+        if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && SwitchCondOf(swr) is { } swCond)
+        {
+            carry.Reset();
+            return swCond;
+        }
+        // A SIMPLE BOOLEAN CONDITION over a bare length-1 boolean item/literal (§8.8.4.3).
+        if (vo is not null && IsBooleanValueOperand(vo))
+        {
+            carry.Reset();
+            return BindSimpleBooleanCondition(BindBoolOperandValue(vo));
+        }
+        if (carry is { Subject: { } subject, Op: { } op })
+            return CheckedRelational(subject, op, bindOperand());
+        return new BoundConditionError($"condition '{vo?.GetText() ?? "operand"}'");
     }
 
     /// <summary>The ONE <see cref="BoundRelational"/> construction checkpoint — the §8.8.4.2.2 boolean
@@ -1470,6 +1539,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         static bool IsBoolOperand(BoundOperand o) => o switch
         {
+            BoundBoolOperand => true,   // a boolean EXPRESSION (B-op tier, increment 2)
             BoundStringLiteral { Category: PicCategory.Boolean } => true,
             BoundAllLiteral { Category: PicCategory.Boolean } => true,
             BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
@@ -1482,6 +1552,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             static bool BoolCompatible(BoundOperand o) =>
                 o is BoundFigurative { Kind: 'Z' } || o switch
                 {
+                    BoundBoolOperand => true,
                     BoundStringLiteral { Category: PicCategory.Boolean } => true,
                     BoundAllLiteral { Category: PicCategory.Boolean } => true,
                     BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
@@ -1500,9 +1571,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     }
 
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>
-    private BoundOperand ComparisonOperand(Core.ComparisonOperandContext operand)
+    private BoundOperand ComparisonOperand(Core.ComparisonOperandContext operand) =>
+        ComparisonOperandOf(operand.valueOperand());
+
+    /// <summary>Bind a <c>valueOperand</c> as a comparison operand (the shared body of <see cref="ComparisonOperand"/>
+    /// and the boolean-alt unwrap path — feedback_singular_pattern).</summary>
+    private BoundOperand ComparisonOperandOf(Core.ValueOperandContext? vo)
     {
-        var vo = operand.valueOperand();
         if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
         if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
         if (vo?.nonNumericLiteral()?.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());

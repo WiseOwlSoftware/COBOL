@@ -4,6 +4,7 @@
     "based_pointer",
     "binary_usage",
     "boolean_data",
+    "boolean_ops",
     "conditional_compilation",
     "goback_returning",
     "initialize_phrases",

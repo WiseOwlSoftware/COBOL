@@ -621,6 +621,24 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. MVQTN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-NUM PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n    MOVE QUOTE TO W-NUM.\n    STOP RUN.\n"
     },
     {
+      "id": "boolean-operators-2002",
+      "description": "The boolean operators B-AND/B-OR/B-XOR/B-NOT (boolean expressions, ISO 8.7.2/8.8.2; COMPUTE Format 2 14.9.8; boolean relation 8.8.4.2.2; simple boolean condition 8.8.4.3). 2002 introduction; the operator tiers are {is2002()}?-gated, so below 2002 the W1.5 parse-layer mapping names the edition (0900) and the words are user-defined. (Depends on boolean data - the source uses PIC 1 items.)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BOOLOP1.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-A PIC 1(4) VALUE B\"1100\".\n01 WS-B PIC 1(4) VALUE B\"0101\".\n01 WS-R PIC 1(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE WS-R = WS-A B-AND WS-B.\n    DISPLAY WS-R.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-b-and-2002",
+      "description": "The word B-AND as a user-defined word - 8.9 interval encoding: user-definable at 85 (the operator did not exist), reserved since 2002 (ReservedWords.Table rows cover all four B-operators). cobolWord admits the token; the funnel rejects 0901 at >=2002.",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "8.9 (2002 introduction); ReservedWords.Table B-AND/B-OR/B-XOR/B-NOT rows",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWBAND.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 B-AND PIC 9.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
       "id": "logical-xor-operator-2023",
       "description": "The logical XOR / EXCLUSIVE-OR operator (ISO 8.8.4.9; precedence NOT > AND > XOR > OR) - a 2023 addition (Annex E.2 item 25 reserves both words; VCR rows 32/41 - the chair-adjudicated regating of the former '2002' mislabel). The operator is {is2023()}?-gated; below 2023 the W1.5 parse-layer mapping names the edition (0900) and both words are user-defined words.",
       "introducedIn": 2023,

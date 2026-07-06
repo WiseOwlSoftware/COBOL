@@ -44,6 +44,14 @@ cobolWord
     // them 0901 at 2023 (both are high-confidence table rows). Mirrored in the lexer _dataNameTokens set.
     | XOR          // context: the logical exclusive-or operator (2023, §8.8.4.9)
     | EXCLUSIVE_OR // context: = XOR (2023, §8.8.4.9)
+    // The 2002 BOOLEAN operators (ISO §8.7.2): user-defined words at 85, funnel-0901'd at ≥2002. Keyword
+    // occurrences parse ONLY through the {is2002()}?-gated booleanExpression tiers (CobolExpressions.g4),
+    // never a name slot — so they are position-safe in the §8.9 funnel (the XOR argument). Mirrored in
+    // the lexer _dataNameTokens set.
+    | B_AND        // context: boolean conjunction operator (2002, §8.7.2)
+    | B_OR         // context: boolean inclusive-or operator (2002, §8.7.2)
+    | B_XOR        // context: boolean exclusive-or operator (2002, §8.7.2)
+    | B_NOT        // context: boolean negation operator (2002, §8.7.2)
     // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18 — the W3 batch): each
     // parses through its own dedicated rule (rerunClause / enterStatement / the USE FOR DEBUGGING format /
     // the section-header segment-number), never a name slot, so they are position-safe in the §8.9 funnel
@@ -869,7 +877,8 @@ divideRemainderPhrase
 // ==========================================
 
 computeStatement
-    : COMPUTE computeStore+ EQUALS arithmeticExpression computeOnSizeError? END_COMPUTE?
+    : COMPUTE computeStore+ EQUALS arithmeticExpression computeOnSizeError? END_COMPUTE?          // F1 (§14.9.8)
+    | {is2002()}? COMPUTE computeStore+ EQUALS booleanExpression computeOnSizeError? END_COMPUTE?  // F2 boolean-compute (§14.9.8 Format 2)
     ;
 
 computeStore

@@ -274,6 +274,10 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
         // user words below 2023; their keyword occurrences parse through the {is2023()}?-gated operator
         // alternative, never a name slot — so, like the EC band, they are position-safe to check everywhere.
         CobolLexer.XOR, CobolLexer.EXCLUSIVE_OR,
+        // The 2002 boolean operators (ISO §8.7.2): user words at 85, funnel-0901'd at ≥2002. Their keyword
+        // occurrences parse only through the {is2002()}?-gated booleanExpression tiers, never a name slot —
+        // so, like XOR, they are position-safe to check everywhere (the reserved-word table rows exist).
+        CobolLexer.B_AND, CobolLexer.B_OR, CobolLexer.B_XOR, CobolLexer.B_NOT,
         // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18): '85-reserved, user
         // words at later editions per the §8.9 table (RERUN/ENTER free ≥2002, DEBUGGING ≥2014, the rest
         // ≥2023). Their keyword occurrences parse through dedicated rules (rerunClause / enterStatement —

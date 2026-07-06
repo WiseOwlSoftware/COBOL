@@ -53,6 +53,7 @@ public static class EditionGateHints
     private static readonly Gate PropertyClause = new("the PROPERTY data-description clause", 2002, "ISO §13.18.42 (OO)", "property-clause-2002");
     private static readonly Gate SetObjectRef = new("SET … TO object-reference (Format 5)", 2002, "ISO §14.9.39 F5 (OO)", "set-object-reference-2002");
     private static readonly Gate LogicalXor = new("the logical XOR/EXCLUSIVE-OR operator", 2023, "ISO §8.8.4.9; Annex E.2 item 25 (VCR rows 32/41)", "logical-xor-operator-2023");
+    private static readonly Gate BooleanOps = new("the boolean operators B-AND/B-OR/B-XOR/B-NOT", 2002, "ISO §8.7.2/§8.8.2 (COMPUTE F2 §14.9.8; relation §8.8.4.2.2)", "boolean-operators-2002");
 
     /// <summary>
     /// Recognize an edition-gated construct behind a generic parse error. Returns the COBOLNET0900-band
@@ -115,6 +116,14 @@ public static class EditionGateHints
             // the gated operator by construction — as a USER word the token parses through cobolWord and
             // never errors (the condition-rule stack has popped by report time, so no rule filter applies).
             CobolLexer.XOR or CobolLexer.EXCLUSIVE_OR => LogicalXor,
+            // The boolean operators (2002): as user words they parse through cobolWord and never error, so an
+            // error AT one of these tokens is the {is2002()}?-gated operator meaning below 2002 (the XOR argument).
+            CobolLexer.B_AND or CobolLexer.B_OR or CobolLexer.B_XOR or CobolLexer.B_NOT => BooleanOps,
+            // A boolean COMPUTE (Format 2) below 2002: the {is2002()}?-gated F2 alt is dead, so the whole
+            // computeStatement fails to predict and the error surfaces AT the COMPUTE token (not the B-op).
+            // Recognize it by a B-operator ahead in the statement (before the sentence terminator).
+            CobolLexer.COMPUTE when NextWithin(stream, token, 24,
+                    CobolLexer.B_AND, CobolLexer.B_OR, CobolLexer.B_XOR, CobolLexer.B_NOT) => BooleanOps,
             _ => null,
         };
 
@@ -148,6 +157,21 @@ public static class EditionGateHints
     {
         for (int i = 1; i <= window; i++)
             if (Next(stream, from, -i)?.Type == tokenType) return true;
+        return false;
+    }
+
+    /// <summary>True when any of <paramref name="tokenTypes"/> appears within <paramref name="window"/> tokens
+    /// AHEAD of <paramref name="from"/>, stopping at the sentence terminator (a period). Used to recognize a
+    /// gated OPERATOR whose statement fails to predict at the keyword (so the error lands on the keyword, not
+    /// the operator) — e.g. a boolean COMPUTE below 2002.</summary>
+    private static bool NextWithin(ITokenStream stream, IToken from, int window, params int[] tokenTypes)
+    {
+        for (int i = 1; i <= window; i++)
+        {
+            var t = Next(stream, from, i);
+            if (t is null || t.Type == CobolLexer.DOT) return false;
+            if (System.Array.IndexOf(tokenTypes, t.Type) >= 0) return true;
+        }
         return false;
     }
 

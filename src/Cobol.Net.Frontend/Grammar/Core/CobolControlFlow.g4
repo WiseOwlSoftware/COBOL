@@ -84,6 +84,8 @@ evaluateSubject
     : booleanLiteral                                     // EVALUATE TRUE / FALSE
     | valueOperand (IS? NOT? classCondition)?            // EVALUATE X [NUMERIC / class test]
     ;
+    // NOTE (DEVLOG 621): an EVALUATE boolean-expression subject is STAGED RESIDUE with the condition-context
+    // boolean forms (see comparisonExpression) — the boolean OPERATORS work in COMPUTE Format 2 only.
 
 // One or more consecutive WHEN phrases share the following imperative (ISO 1989:1985
 // 14.8.4): "WHEN a  WHEN b  WHEN c  imperative" executes the imperative if a, b, OR c

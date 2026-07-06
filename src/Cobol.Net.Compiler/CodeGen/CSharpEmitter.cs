@@ -387,6 +387,7 @@ public sealed partial class CSharpEmitter
             case BoundDivideGiving a: EmitDivide(a.Targets, a.Dividend, a.Divisor, a.SizeError); return false;
             case BoundDivideRemainder a: EmitDivideRemainder(a); return false;
             case BoundCompute c: EmitCompute(c); return false;
+            case BoundComputeBoolean cb: EmitComputeBoolean(cb); return false;
             case BoundIf iff: EmitIf(iff); return false;
             case BoundInlinePerform p: EmitInlinePerform(p); return false;
             case BoundOutOfLinePerform p: EmitOutOfLinePerform(p); return false;
@@ -869,6 +870,32 @@ public sealed partial class CSharpEmitter
 
     /// <summary>COMPUTE: the RHS is rendered per receiver (so a quotient is computed at that receiver's scale + mode)
     /// then stored, rounded by the receiver's ROUNDED mode, under the ON SIZE ERROR phrase if any.</summary>
+    /// <summary>COMPUTE Format 2 — boolean-compute (ISO §14.9.8): render the boolean RHS ONCE, resize to the
+    /// GR3 width (the max static boolean-ITEM positions in the expression; 0 = all-literal, no intermediate
+    /// resize — the per-receiver store fits it), then store into each elementary boolean receiver with the
+    /// §14.6.8.6 left-align / zero-fill / truncate discipline (CobolString.Store, pad '0'; JUSTIFIED honored).
+    /// A multi-receiver COMPUTE materializes the value once (the §14.7.7-shaped once-evaluation).</summary>
+    private void EmitComputeBoolean(BoundComputeBoolean cb)
+    {
+        string value = BooleanRenderer.Render(cb.Rhs);
+        if (cb.Gr3Width > 0) value = $"CobolBool.Resize({value}, {cb.Gr3Width})";
+        // One evaluation for multiple receivers (a boolean expr can read an item a prior receiver aliases).
+        if (cb.Targets.Count > 1)
+        {
+            string tmp = $"__be{_storeTmpCounter++}";
+            _ctx.Writer.Line($"string {tmp} = {value};");
+            value = tmp;
+        }
+        foreach (var t in cb.Targets)
+        {
+            int width = t is RefModPlace ? -1 : t.Item.Pic?.Length ?? 0;
+            string store = width < 0
+                ? value   // a ref-mod boolean receiver — the slice write fits via SpliceInto (pad '0')
+                : $"CobolString.Store({value}, {width}, justifiedRight: {(t.Item.Justified ? "true" : "false")}, pad: '0')";
+            _ctx.Writer.Line(t.Write(store));
+        }
+    }
+
     private void EmitCompute(BoundCompute c)
         => EmitArith(c.SizeError, () =>
         {

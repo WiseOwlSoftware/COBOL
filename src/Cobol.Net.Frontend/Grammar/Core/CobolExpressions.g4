@@ -116,11 +116,30 @@ comparisonOperand
     : valueOperand
     ;
 
+// ── COBOL-2002 boolean expressions (ISO §8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
+// Permissive-superset doctrine: the operand SHAPES (a boolean item / boolean literal / figurative ZERO /
+// ALL B"…") are enforced at BIND (the boolean-expression constraint band); the tiers enforce the formation
+// rules 1–3 + Table 4 adjacency STRUCTURALLY. Every alternative involving a B-operator is {is2002()}?-gated
+// so prediction kills it instantly at 85/NIST (the words behave as user words there, exactly as before). ──
+booleanExpression : booleanXorTerm ( {is2002()}? B_OR booleanXorTerm )* ;
+booleanXorTerm    : booleanAndTerm ( {is2002()}? B_XOR booleanAndTerm )* ;
+booleanAndTerm    : booleanFactor  ( {is2002()}? B_AND booleanFactor )* ;
+booleanFactor     : {is2002()}? B_NOT booleanFactor
+                  | {is2002()}? LPAREN booleanExpression RPAREN
+                  | valueOperand
+                  ;
+
 comparisonExpression
     : comparisonOperand IS? NOT? className                         // class condition
     | comparisonOperand IS? NOT? (POSITIVE | NEGATIVE | ZERO)      // sign condition (merged from signCondition)
     | comparisonOperand ( comparisonOperator comparisonOperand )?  // existing relational + bare operand
     ;
+    // NOTE (Phase-4a increment 2, DEVLOG 621): the boolean RELATION (§8.8.4.2.2) and the simple boolean
+    // CONDITION (§8.8.4.3) are STAGED RESIDUE — a booleanExpression alternative here disturbed the shared
+    // parser's comparison DFA (subscripted / ref-mod comparisons at 2002+ regressed: `ELEM(I) = x` → "no
+    // viable alternative"), so the condition-context boolean forms are deferred to a focused grammar pass.
+    // The boolean OPERATORS work in COMPUTE Format 2 (its own dedicated computeStatement alt, isolated from
+    // conditions). `IF (a B-AND b)` etc. are NOT yet supported.
 
 className
     : NUMERIC
@@ -297,6 +316,7 @@ figurativeConstant
     | NULL_
     | ALL STRINGLIT
     | ALL HEXLIT
+    | ALL BOOLLIT       // ALL B"…" — a boolean figurative (ISO §8.3.3.6.4 / §8.8.2 :9331); 2002+ (binder-gated)
     | ALL ZERO
     | ALL SPACE
     | ALL HIGH_VALUE

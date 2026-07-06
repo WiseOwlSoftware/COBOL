@@ -117,6 +117,7 @@ public static class BoundStores
             BoundDivideRemainder d => StoreOrKids(Hit(d.Quotient.Place) || Hit(d.Remainder), StoreKind.Write,
                 d.SizeError?.OnError, d.SizeError?.NotOnError),
             BoundCompute c => StoreOrKids(ReceiversHit(c.Targets), StoreKind.Write, c.SizeError?.OnError, c.SizeError?.NotOnError),
+            BoundComputeBoolean cb => cb.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None,   // §14.9.8 F2 — no size-error phrase
             BoundCorresponding co => StoreOrKids(co.Pairs.Any(p => Hit(p.Target)),
                 co.Verb == CorrVerb.Move ? StoreKind.Write : StoreKind.ReadWrite,
                 co.SizeError?.OnError, co.SizeError?.NotOnError),

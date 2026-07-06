@@ -103,6 +103,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // intrinsic-in-UDF); the greenfield CorpusRunner byte-compares both.
         ("2002", "udf_exit_function"),
         ("2002", "udf_nested_args"),
+        // Phase-4 track (a) increment 2, DEVLOG 621: the boolean operators B-AND/B-OR/B-XOR/B-NOT (§8.7.2)
+        // are net-new in the greenfield — the frozen legacy grammar has no boolean-expression support at all;
+        // the greenfield CorpusRunner byte-compares boolean_ops.
+        ("2002", "boolean_ops"),
     ];
 
     [Theory]

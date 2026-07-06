@@ -26,6 +26,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
             ? $"ExternalSwitches.Get({EmitText.CsLiteral(sw.ImplementorName)})"
             : $"!ExternalSwitches.Get({EmitText.CsLiteral(sw.ImplementorName)})",
         BoundSignCondition s => RenderSign(s),
+        // A simple boolean condition (ISO §8.8.4.3.4 GR1): true iff the boolean value is 1.
+        BoundBooleanCondition b => $"CobolBool.IsTrue({BooleanRenderer.Render(b.Expr)})",
         BoundClassCondition cc => RenderClass(cc),
         // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
         BoundUserClassCondition uc => uc.Negated
@@ -58,6 +60,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         {
             static string PtrRead(BoundOperand o) => o is BoundFieldOperand f ? f.Place.Read() : "null";
             string core = $"ManagedPointer.SameTarget({PtrRead(r.Left)}, {PtrRead(r.Right)})";
+            return r.Op == "==" ? core : $"!({core})";
+        }
+        // Boolean-EXPRESSION relations (ISO §8.8.4.2.2 Format 2): when either side is a boolean expression
+        // (a B-op tier, BoundBoolOperand), render BOTH sides as '0'/'1' strings and compare by VALUE with
+        // right-zero-extension (§8.8.4.2.8) via CobolBool.Equal. A bare boolean item/literal mixed with an
+        // expression reads the same '0'/'1' form. Equality-only + boolean purity are bind-enforced (1511).
+        // (Bare item↔item boolean compares — no expression — ride the CobolString.Compare(pad:'0') branch
+        // below, which is the identical zero-extension under D-B1.)
+        if (r.Left is BoundBoolOperand || r.Right is BoundBoolOperand)
+        {
+            string core = $"CobolBool.Equal({BoolRead(r.Left)}, {BoolRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
         // A figurative operand (a single-character constant OR an ALL "literal") is materialized against the OTHER
@@ -135,6 +148,19 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         },
         BoundFieldOperand f => f.Place.Item.Pic?.Category,
         _ => null,
+    };
+
+    /// <summary>Read a relation operand as a '0'/'1' boolean string (for a boolean-expression relation): a
+    /// boolean expression via <see cref="BooleanRenderer"/>, a boolean field via its <c>Place.Read()</c>, a
+    /// boolean literal via its value, and figurative ZERO as "0" (CobolBool.Equal zero-extends it to the other
+    /// operand's width — §8.3.3.6.4 GR4 boolean zeros).</summary>
+    private static string BoolRead(BoundOperand o) => o switch
+    {
+        BoundBoolOperand b => BooleanRenderer.Render(b.Expr),
+        BoundFieldOperand f => f.Place.Read(),
+        BoundStringLiteral { Category: PicCategory.Boolean } s => EmitText.CsLiteral(s.Value),
+        BoundFigurative { Kind: 'Z' } => "\"0\"",
+        _ => EmitText.LoudValue("string", $"boolean relation operand '{o.GetType().Name}'"),
     };
 
     private static int AnchorWidth(BoundOperand op) => op switch

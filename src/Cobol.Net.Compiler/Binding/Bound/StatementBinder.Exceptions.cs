@@ -390,6 +390,7 @@ public sealed partial class StatementBinder
         BoundDisplay d => d.Operands.Any(OpHasIntrinsic),
         BoundMove m => OpHasIntrinsic(m.Source),
         BoundCompute c => ExprHasIntrinsic(c.Rhs),
+        BoundComputeBoolean cb => BoolExprHasIntrinsic(cb.Rhs),
         BoundAddTo a => a.Addends.Any(ExprHasIntrinsic),
         BoundAddGiving a => a.Addends.Any(ExprHasIntrinsic),
         BoundSubtractFrom a => a.Minuends.Any(ExprHasIntrinsic),
@@ -410,6 +411,17 @@ public sealed partial class StatementBinder
     private static bool OpHasIntrinsic(BoundOperand op) => op switch
     {
         BoundComputedOperand c => ExprHasIntrinsic(c.Expr),
+        BoundBoolOperand b => BoolExprHasIntrinsic(b.Expr),
+        _ => false,
+    };
+
+    /// <summary>The intrinsic walk over the boolean channel (ISO §8.8.2). Boolean-op operands are boolean items/
+    /// literals today — intrinsic operands inside a boolean expression are named residue — but the walk is TOTAL
+    /// from day one (the DEVLOG-607 rule: a new node must register in every exhaustive walk).</summary>
+    private static bool BoolExprHasIntrinsic(BoundBoolExpr e) => e switch
+    {
+        BoundBoolBinary b => BoolExprHasIntrinsic(b.Left) || BoolExprHasIntrinsic(b.Right),
+        BoundBoolNot n => BoolExprHasIntrinsic(n.Operand),
         _ => false,
     };
 
@@ -428,6 +440,7 @@ public sealed partial class StatementBinder
         BoundLogical l => l.Operands.Any(CondHasIntrinsic),
         BoundNot n => CondHasIntrinsic(n.Operand),
         BoundSignCondition s => ExprHasIntrinsic(s.Expr),
+        BoundBooleanCondition bc => BoolExprHasIntrinsic(bc.Expr),
         _ => false,
     };
 }

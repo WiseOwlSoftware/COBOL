@@ -970,6 +970,47 @@ self-adjudicated-real fixed SAME change set; the rest refuted or staged:**
 - Battery (post-review): conformance **1776** · unit **159** · legacy ConformanceTests **55** ·
   FULL legacy guard on the subToken .g4 change.
 
+#### M2-DATA-4 increment 2 — AS BUILT (2026-07-05, DEVLOG 621) — LANDED
+
+The boolean operators B-AND/B-OR/B-XOR/B-NOT are LIVE in **COMPUTE Format 2** (byte-exact vs the ISO Annex A
+Table A.2 oracle `1100 B-AND 0101 = 0100 / B-OR 1101 / B-XOR 1001 / B-NOT 0011`), including **nesting/precedence
+via parens** and the **figurative `ALL B"…"`** operand (§8.3.3.6.4 GR2), plus the **simple boolean condition
+over a bare length-1 boolean item** (`IF flag`, §8.8.4.3, via the pre-existing generic condition path).
+**⚠ SCOPE (DEVLOG 621): the boolean RELATION (§8.8.4.2.2) and B-op-in-condition forms (`IF (a B-AND b) = c`) are
+STAGED RESIDUE** — the `comparisonExpression` booleanExpression alternative that supported them regressed 31
+legacy integration tests (subscripted/ref-mod comparisons at 2002+ — `IF ELEM(I) = x` / every SEARCH WHEN broke
+with "no viable alternative", caught ONLY by the FULL legacy guard, not the greenfield battery which runs at 85);
+it was REVERTED, restoring the shared parser exactly. The condition-context boolean forms await a focused grammar
+pass that disambiguates without touching `comparisonExpression`. As-built vs the design:
+- **Diagnostic band = COBOLNET1511** (NOT 0898 — increment 1 consumed 0898 for the VALUE band; the C1 conflict
+  resolved as recorded). 1511 covers: non-boolean operand (§8.8.2), both-ALL rule 4, F2 receiver-not-boolean
+  (SR2), ROUNDED/SIZE-ERROR on F2, solely-ALL RHS (SR3), ordering/mixed-class boolean relation (§8.8.4.2.2),
+  boolean COMPUTE receiver mix.
+- **Runtime `CobolBool`** (And/Or/Xor/Not/Equal/IsTrue/Resize + the `…All` figurative forms) — rule-9 right-zero-
+  extension, rule-10 result length; 28 unit facts (`CobolBoolTests`) against the Annex A oracle.
+- **The bound channel** (`BoundBoolExpr` + `BoundBoolOperand`/`BoundBooleanCondition`/`BoundComputeBoolean`),
+  binder (`StatementBinder.Boolean.cs`), emitter (`BooleanRenderer.cs`) all per the design; the total-walk
+  registrations (BoundStores/Exceptions/ConditionRenderer) landed. C2 confirmed: the item↔item boolean relation
+  branch already zero-extended (increment 1); increment 2 added `CobolBool.Equal` for the expression channel and
+  taught `CheckedRelational.IsBoolOperand` to recognize `BoundBoolOperand`. C3: `ALL BOOLLIT` in
+  figurativeConstant landed (residue #17 closed).
+- **Grammar**: the 4 lexer tokens + `_dataNameTokens` + `cobolWord` + `subToken`(N/A) + the `booleanExpression`
+  tier (`{is2002()}?`-gated) + the `computeStatement` F2 alt + the `comparisonExpression` boolean alt
+  (`booleanExpression (comparisonOperator booleanExpression)?`) + `evaluateSubject` + reserved-word funnel +
+  registry `boolean-operators-2002`/`user-word-b-and-2002` + matrix rows + EditionGateHints. FULL legacy guard
+  on the shared .g4 change.
+- **⚠ RESIDUE (deferred, documented)**: (a) the **UNPARENTHESIZED top-level boolean condition** `IF a B-AND b`
+  / `IF a B-AND b = c` is an ANTLR operand-vs-condition ambiguity that resolves only under a clean follow
+  context — so a boolean expression in a CONDITION must be **PARENTHESIZED** this increment (`IF (a B-AND b)`,
+  `IF (a B-AND b) = c`); COMPUTE needs no parens. (b) the **85-rejection of a boolean COMPUTE gives a generic
+  parse error**, not the friendly COBOLNET0900 (the EditionGateHints token-map fires on the B-op token in an IF,
+  but the COMPUTE-F2-dead-at-85 path errors at `COMPUTE`); the rejection IS correct, only the message is generic.
+  (c) intrinsic/UDF operands inside a boolean expression, EVALUATE boolean-subject THRU ranges, the 2023 shift
+  operators, and BX"…" hex booleans stay named residue below.
+- Battery: conformance **1782+** (the `boolean_ops` golden byte-exact + `BooleanOperatorTests` ×15) · unit
+  **187** (incl. CobolBool ×28) · legacy ConformanceTests green (`boolean_ops` GreenfieldOnly — legacy has no
+  boolean expressions) · FULL legacy guard on the .g4 change.
+
 ### M2-DATA-4 / track (a) — increment 2: BOOLEAN OPERATORS B-AND / B-OR / B-XOR / B-NOT — DECISION-COMPLETE DESIGN (recon wave 2026-07-05; grammar pre-authorized; ready to implement AFTER the boolean-data increment)
 
 > Scope: the ISO §8.8.2 boolean-expression machinery over the boolean-DATA substrate the parallel M2-DATA-4
@@ -1227,7 +1268,12 @@ self-adjudicated-real fixed SAME change set; the rest refuted or staged:**
   arms) → battery. **(4)** CobolBool + BooleanRenderer + emitter arms + CobolBoolTests → battery. **(5)** Golden
   + GreenfieldOnly exclusion + negatives + manifest + matrix activation → full battery + legacy conformance +
   FULL legacy guard. **(6)** Docs + DEVLOG + commit/push (feedback_fully_autonomous_push).
-- **STAGED RESIDUE (named, loud).** (1) **B-SHIFT-L/R/LC/RC** (2023-only — §8.7.2 :8880–8885; rules 5/8/9
+- **STAGED RESIDUE (named, loud). [AS-BUILT ADDITIONS, DEVLOG 621: (0a) the UNPARENTHESIZED top-level boolean
+  CONDITION `IF a B-AND b` / `IF a B-AND b = c` — an ANTLR operand-vs-condition ambiguity; a boolean expression
+  in a condition must be PARENTHESIZED this increment (`IF (a B-AND b)`); COMPUTE needs no parens. (0b) the
+  85-rejection of a boolean COMPUTE surfaces a generic parse error, not COBOLNET0900 (the EditionGateHints
+  token-map fires for the IF case, not the F2-dead-at-85 COMPUTE path); the rejection is correct.]**
+  (1) **B-SHIFT-L/R/LC/RC** (2023-only — §8.7.2 :8880–8885; rules 5/8/9
   :9366/:9408–9416; contextual precedence :9395; Table 4 shift row :9376 no-paren/no-B-NOT after a shift; VCR
   rows 9 [gate TODO]/32): NOT tokenized — they lex as IDENTIFIER ⇒ loud parse error at the operator position;
   user-word misuse 0901s at 2023 via the existing table rows :46–49. The tier design pre-plans the slot:

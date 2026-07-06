@@ -36,6 +36,9 @@ options {
         RAISE, RAISING, RESUME, STATEMENT, CONDITION, EC, EO,
         // The 2023 logical-operator words (Annex E.2 item 25; the W3 XOR regating) — user words below 2023:
         XOR, EXCLUSIVE_OR,
+        // The 2002 boolean operators (ISO §8.7.2) — user words below 2002; the operator meaning is gated in
+        // the expression tiers. Must be in the whitelist so `01 B-AND PIC 9.` triggers SUBSCRIPT mode at 85.
+        B_AND, B_OR, B_XOR, B_NOT,
         // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18) — '85-reserved,
         // user words at the editions where the §8.9 funnel frees them:
         RERUN, ENTER, EVERY, CLOCK_UNITS, DEBUGGING, REFERENCES, PROCEDURES,
@@ -118,6 +121,14 @@ EOP          : 'EOP' ;
 PROGRAM_ID      : 'PROGRAM-ID' ;
 FUNCTION_ID     : 'FUNCTION-ID' ;   // COBOL-2002 user-defined function unit header (ISO §11.5)
 EXCLUSIVE_OR    : 'EXCLUSIVE-OR' ;  // COBOL-2023 logical exclusive-or operator, = XOR (ISO §8.8.4.9; a 2023 addition per Annex E.2 item 25 — VCR rows 32/41; the former "2002" note was the W3-corrected mislabel)
+// COBOL-2002 BOOLEAN OPERATORS (ISO §8.7.2 / §8.8.2). Maximal-munch safe: `B-ANDER`/`B-ORDER` stay IDENTIFIER
+// by longer match; `B-AND` exact reduces to the keyword by rule order (hyphenated keywords precede IDENTIFIER);
+// BOOLLIT `B"…"` is disjoint (the char after B is a quote). User words at 85 (admitted via cobolWord +
+// _dataNameTokens); the operator meaning is {is2002()}?-gated in the expression tiers.
+B_AND           : 'B-AND' ;
+B_OR            : 'B-OR' ;
+B_XOR           : 'B-XOR' ;
+B_NOT           : 'B-NOT' ;
 FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
 FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
 FLOAT_EXTENDED  : 'FLOAT-EXTENDED' ;// COBOL-2002 extended float — mapped to IEEE-754 double (.NET has no quad)

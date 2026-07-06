@@ -190,6 +190,40 @@ public sealed record BoundAllLiteral(string Literal) : BoundOperand
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundOperandError(string Feature) : BoundOperand;
 
+// ── Boolean expressions (ISO §8.8.2; Phase-4 track (a) increment 2) — a SEPARATE value channel from the numeric
+//    BoundExpr and the DISPLAY/MOVE BoundOperand: a boolean value IS a '0'/'1' string (D-B1), combined by the
+//    B-AND/B-OR/B-XOR/B-NOT operators. It never enters the numeric channel (NumericRenderer) or the string
+//    channel (OperandText) — the emitter routes it through BooleanRenderer over the runtime CobolBool. ─────────
+
+/// <summary>A bound boolean expression (COBOLNET_DESIGN §11 / ISO §8.8.2).</summary>
+public abstract record BoundBoolExpr;
+
+/// <summary>A boolean literal <c>B"1010"</c>, decoded to its '0'/'1' bit string.</summary>
+public sealed record BoundBoolLiteral(string Bits) : BoundBoolExpr;
+
+/// <summary>A reference to a category-boolean data item (including a static ref-mod of one).</summary>
+public sealed record BoundBoolRef(Place Place) : BoundBoolExpr;
+
+/// <summary>The figurative <c>ALL B"…"</c> (and figurative ZERO, normalized to <c>ALL B"0"</c> at bind) — a
+/// positionless pattern that materializes to the OTHER operand's length (ISO §8.3.3.6.4 GR2). <c>B-NOT ALL …</c>
+/// constant-folds to the flipped pattern at bind (ALL is positionless).</summary>
+public sealed record BoundBoolAll(string Bits) : BoundBoolExpr;
+
+/// <summary>A binary boolean operation (<paramref name="Op"/> ∈ <c>'&amp;'</c> B-AND / <c>'|'</c> B-OR /
+/// <c>'^'</c> B-XOR), positionwise with rule-9 right-zero-extension and rule-10 result length (§8.8.2).</summary>
+public sealed record BoundBoolBinary(BoundBoolExpr Left, char Op, BoundBoolExpr Right) : BoundBoolExpr;
+
+/// <summary>Boolean negation (B-NOT) — length preserved (ISO §8.8.2 rule 10).</summary>
+public sealed record BoundBoolNot(BoundBoolExpr Operand) : BoundBoolExpr;
+
+/// <summary>A boolean expression the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
+public sealed record BoundBoolError(string Feature) : BoundBoolExpr;
+
+/// <summary>A boolean expression used as a RELATION operand (ISO §8.8.4.2.2) — the ONE carrier that lets a
+/// boolean expression sit in a <see cref="BoundRelational"/> beside another boolean operand (item↔item compares
+/// ride the SAME BoundRelational + renderer branch, never a parallel node; feedback_singular_pattern).</summary>
+public sealed record BoundBoolOperand(BoundBoolExpr Expr) : BoundOperand;
+
 // ── Conditions ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 /// <summary>A bound condition — a side-effect-free predicate tree (COBOLNET_DESIGN §11).</summary>
@@ -203,6 +237,10 @@ public sealed record BoundLogical(string Op, IReadOnlyList<BoundCondition> Opera
 
 /// <summary>Logical negation.</summary>
 public sealed record BoundNot(BoundCondition Operand) : BoundCondition;
+
+/// <summary>A simple boolean condition (ISO §8.8.4.3): a boolean expression of length 1 used as a condition —
+/// true iff its value is boolean 1 (GR1). Negation composes via <see cref="BoundNot"/>.</summary>
+public sealed record BoundBooleanCondition(BoundBoolExpr Expr) : BoundCondition;
 
 /// <summary>A level-88 condition-name membership test over its (already-resolved) conditional variable place.</summary>
 public sealed record BoundCondition88(Place Parent, Condition88 Condition) : BoundCondition;
@@ -287,6 +325,12 @@ public sealed record BoundDivideRemainder(
 
 /// <summary><c>COMPUTE targets = rhs</c>.</summary>
 public sealed record BoundCompute(BoundExpr Rhs, IReadOnlyList<Receiver> Targets, SizeErrorPhrase? SizeError) : BoundStatement;
+
+/// <summary><c>COMPUTE boolean-targets = boolean-expression</c> (ISO §14.9.8 Format 2). Each receiver is an
+/// elementary boolean item; the stored value is resized to <paramref name="Gr3Width"/> = the number of boolean
+/// positions in the LARGEST boolean ITEM referenced in the expression (GR3 — literal-only larger sides don't
+/// count), left-aligned / right-zero-filled / right-truncated (§14.6.8.6). No ROUNDED, no SIZE ERROR (F2).</summary>
+public sealed record BoundComputeBoolean(BoundBoolExpr Rhs, IReadOnlyList<Place> Targets, int Gr3Width) : BoundStatement;
 
 /// <summary><c>IF cond THEN then-stmts [ELSE else-stmts]</c>.</summary>
 public sealed record BoundIf(
