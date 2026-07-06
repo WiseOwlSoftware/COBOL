@@ -78,4 +78,42 @@ public static partial class CobolIntrinsics
     /// fixed-width image length IS its character-position count). Fixed items and literals fold at bind time and
     /// never reach here.</summary>
     public static long Length(string s) => s.Length;
+
+    /// <summary>CONCAT (§15.18.4, 2023): the characters of all arguments in order — argument-1 followed by each
+    /// argument-2 (rules 1 &amp; 4). Each argument arrives as its fixed-width display IMAGE (trailing padding
+    /// included — §15.18.4 rule 1 "all of the characters"), so the result length is the sum of the argument
+    /// widths.</summary>
+    public static string Concat(params string[] parts) => string.Concat(parts);
+
+    /// <summary>BASECONVERT (§15.12.4, 2023): the unsigned integer whose digits are <paramref name="value"/> in
+    /// base <paramref name="fromBase"/>, re-expressed as a string of 0-9 / A-F digits in base
+    /// <paramref name="toBase"/> (both bases 2..16 — §15.12.3). An out-of-range base or a digit invalid for the
+    /// source base sets EC-ARGUMENT-FUNCTION and returns the §15.3 default (a zero-length result when checking is
+    /// off). Leading/trailing spaces of the fixed-width argument image are ignored.</summary>
+    public static string BaseConvert(string value, long fromBase, long toBase)
+    {
+        if (fromBase is < 2 or > 16 || toBase is < 2 or > 16)
+        {
+            Exceptions.ExceptionState.ArgumentError($"BASECONVERT base(s) {fromBase}/{toBase} out of the range 2..16 (§15.12.3 rule 1)");
+            return "";
+        }
+        System.Numerics.BigInteger acc = 0;
+        foreach (char ch in value.Trim())
+        {
+            int d = ch is >= '0' and <= '9' ? ch - '0'
+                  : ch is >= 'A' and <= 'F' ? ch - 'A' + 10
+                  : ch is >= 'a' and <= 'f' ? ch - 'a' + 10 : -1;
+            if (d < 0 || d >= fromBase)
+            {
+                Exceptions.ExceptionState.ArgumentError($"BASECONVERT: '{ch}' is not a base-{fromBase} digit (§15.12.3 rule 2)");
+                return "";
+            }
+            acc = acc * fromBase + d;
+        }
+        if (acc == 0) return "0";
+        const string digits = "0123456789ABCDEF";
+        var sb = new System.Text.StringBuilder();
+        for (; acc > 0; acc /= toBase) sb.Insert(0, digits[(int)(acc % toBase)]);
+        return sb.ToString();
+    }
 }

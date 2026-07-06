@@ -4,6 +4,7 @@
     "delete_file",
     "delete_file_absent",
     "inspect_backward",
+    "intrinsics_string_2023",
     "logical_xor"
   ],
   "pending": []

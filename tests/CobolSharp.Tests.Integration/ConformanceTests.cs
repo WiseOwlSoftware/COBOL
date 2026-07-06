@@ -97,6 +97,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // legacy grammar cannot parse; the greenfield CorpusRunner byte-compares the sequential leg.
         ("2023", "delete_file"),
         ("2023", "delete_file_absent"),
+        // Phase 5 intrinsics, DEVLOG 628: the 2023 CONCAT (§15.18) + BASECONVERT (§15.12) intrinsics — the frozen
+        // legacy has CONCAT but crashes on BASECONVERT (InvalidCastException); the greenfield CorpusRunner
+        // byte-compares intrinsics_string_2023.
+        ("2023", "intrinsics_string_2023"),
         // Phase-4 track (c), DEVLOG 615/616: the frozen legacy's partial UDF support runs the simple
         // invocation goldens but lacks EXIT FUNCTION's control transfer (§14.9.14 — it falls through to the
         // trailing MOVE, X=9999 not X=0014) and the nested-args legs (GR5a by-ref argument mutation /

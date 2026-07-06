@@ -352,4 +352,40 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.False(ok);
         Assert.Contains("not", detail, StringComparison.OrdinalIgnoreCase);
     }
+
+    // ── 2023 string intrinsics (Phase 5, DEVLOG 628): CONCAT §15.18, BASECONVERT §15.12 ─────────────────────
+
+    [Fact]
+    public void Concat_ConcatenatesArgumentImages_2023()
+    {
+        // §15.18.4 rule 1 — all characters of each argument (a fixed-width image includes its trailing padding);
+        // rule 4 — variadic, left to right. A = PIC X(3) VALUE "AB" ⇒ image "AB " ⇒ CONCAT(A, B) = "AB CD".
+        AssertSpec(Program(
+            "01 A PIC X(3) VALUE \"AB\".\n           01 B PIC X(2) VALUE \"CD\".\n           01 R PIC X(8).",
+            "    MOVE FUNCTION CONCAT(A, B) TO R.\n    DISPLAY R.\n"
+            + "    MOVE FUNCTION CONCAT(\"X\", \"Y\", \"Z\") TO R.\n    DISPLAY R.", "IFCAT"),
+            "AB CD\nXYZ", 2023);
+    }
+
+    [Theory]
+    [InlineData("\"FF\", 16, 10", "255")]     // §15.12.4 — base 16 → base 10
+    [InlineData("\"255\", 10, 16", "FF")]     //           base 10 → base 16
+    [InlineData("\"1010\", 2, 16", "A")]      //           base 2  → base 16 (10 = A)
+    [InlineData("\"0\", 10, 2", "0")]         //           zero
+    public void BaseConvert_ReExpressesInTargetBase_2023(string args, string expected)
+        => AssertSpec(Program("01 R PIC X(10).",
+            $"    MOVE FUNCTION BASECONVERT({args}) TO R.\n    DISPLAY R.", "IFBASE"), expected, 2023);
+
+    [Fact]
+    public void Concat_And_BaseConvert_GatedBelow2023_1502()
+    {
+        // Both are 2023 introductions (D8 edition window) — the binder names the edition (COBOLNET1502) at 2014.
+        foreach (string call in new[] { "FUNCTION CONCAT(\"A\", \"B\")", "FUNCTION BASECONVERT(\"F\", 16, 10)" })
+        {
+            var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+                Program("01 R PIC X(8).", $"    MOVE {call} TO R.\n    DISPLAY R."));
+            Assert.False(ok, $"{call} is 2023+; 2014 must reject");
+            Assert.Contains("COBOLNET1502", detail);
+        }
+    }
 }

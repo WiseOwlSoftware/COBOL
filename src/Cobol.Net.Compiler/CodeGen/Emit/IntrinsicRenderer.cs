@@ -221,6 +221,10 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             "WhenCompiled" => EmitText.CsLiteral(WhenCompiledStamp.Value),
             "MaxString" or "MinString" =>                                      // §15.59/63 all-alphanumeric form
                 $"CobolIntrinsics.{sig.RuntimeMethod}({string.Join(", ", ic.Args.Select(StrStatic))})",
+            "Concat" =>                                                        // §15.18 — concatenate all argument images (2023)
+                $"CobolIntrinsics.Concat({string.Join(", ", ic.Args.Select(StrStatic))})",
+            "BaseConvert" =>                                                   // §15.12 — unsigned-integer base conversion (2023)
+                $"CobolIntrinsics.BaseConvert({StrStatic(ic.Args[0])}, {IntStatic(ic.Args[1])}, {IntStatic(ic.Args[2])})",
             // The last-exception interrogation functions (§15.28/30/32/33 — the EC model): zero-argument reads
             // of the runtime register; the binder's EcNoteFunction flagged the group EC gate, so the generated
             // source carries the CobolNet.Runtime.Exceptions using.

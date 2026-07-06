@@ -170,8 +170,8 @@ public static class IntrinsicCatalog
         Add(new("TRIM", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Deferred, false, 2014)); // §15.96 (2023 widens beyond spaces — ref row 74)
 
         // ── COBOL-2023 additions (docs/VERSION_CHANGE_REFERENCE.md rows 65–73) ────────────────────────────────
-        Add(new("BASECONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 3, 3, "sii", "", IntrinsicBind.Deferred, false, 2023)); // §15.12
-        Add(new("CONCAT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 1, inf, "s", "", IntrinsicBind.Deferred, false, 2023));   // §15.18
+        Add(new("BASECONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 3, 3, "sii", "BaseConvert", IntrinsicBind.Runtime, false, 2023)); // §15.12
+        Add(new("CONCAT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, inf, "s", "Concat", IntrinsicBind.Runtime, false, 2023)); // §15.18
         Add(new("CONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, 4, "ssss", "", IntrinsicBind.Deferred, false, 2023)); // §15.19
         Add(new("FIND-STRING", IntrinsicType.Integer, IntrinsicArity.Variadic, 2, 5, "sssss", "", IntrinsicBind.Deferred, false, 2023)); // §15.37
         Add(new("MODULE-NAME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.65
