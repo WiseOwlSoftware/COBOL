@@ -1259,15 +1259,23 @@ self-adjudicated-real fixed SAME change set; the rest refuted or staged:**
   :9323–9420, :9566–9581, :9683–9689, :9795–9817, :10339–10347, :23254, :24303–24308, :24869–24881,
   :26538–26606, :27153–27283, :49320–49344, :44534–44625. Legacy: ArithmeticTypeSystem.cs:67–74/:115–121;
   CobolSharp.Compiler.csproj:25.
-- **CONFLICTS FLAGGED (brief-vs-brief / parallel-change-set).** (C1) **COBOLNET0898 contention**: it is the last
-  free 08xx code and the parallel data increment may also want a fresh band — THIS increment claims 0898; the
-  data increment extends 0899 (its existing skeleton band) message-differentiated, or the merge escalates a
-  next-band decision to the owner. Reconcile at merge. (C2) **The boolean relation branch is ONE branch**: the
+- **CONFLICTS FLAGGED (brief-vs-brief / parallel-change-set).** (C1) **COBOLNET0898 contention — RESOLVED at the
+  increment-1 merge (DEVLOG 619/620): increment 1 CONSUMED 0898** for the VALUE-clause category-mismatch band
+  (§13.18.63 SR5/SR10, both directions). So **increment 2 must pick a DIFFERENT code** for the
+  boolean-expression/boolean-compute constraint band — 08xx is otherwise dense, so use the **15xx band
+  (next-free 1511)** for the boolean-op constraints, OR reuse 0844 (the operand/relation-misuse band increment 1
+  established — a good fit for "ordering operator on boolean operands" / "non-boolean operand in a boolean
+  expression"). Decide at implementation; update every "0898" in this increment-2 design to the chosen code. (C2) **The boolean relation branch is ONE branch**: the
   data increment's item↔item compares MUST route through `CobolBool.Equal` (zero-extension, §8.8.4.2.8 :9683),
-  never `CobolString.Compare` (space-padding gives "10" ≠ "10 "-vs-"100" wrong verdicts); whichever change set
-  lands first creates the `RenderRelational` boolean branch + `CobolBool`, the other extends operand shapes.
-  (C3) **`ALL BOOLLIT` in figurativeConstant** and **the BOOLLIT decoder**: one .g4 line / one helper, needed by
-  both increments (MOVE ALL B"1" is data-increment surface; §8.8.2 :9331 is operator surface) — land once.
+  never `CobolString.Compare` (space-padding gives wrong verdicts); whichever change set lands first creates the
+  `RenderRelational` boolean branch. **AS BUILT (increment 1):** the boolean item↔item branch already exists and
+  zero-extends CORRECTLY via `CobolString.Compare(l, r, pad: '0')` (D-B1: a boolean position IS a '0'/'1' char,
+  so the boolean-zero pad IS §8.8.4.2.8 zero-extension). Increment 2 adds `CobolBool` + the `BoundBoolOperand`
+  expression path; for pure item/literal operands it may keep that path or unify on `CobolBool.Equal` (both
+  zero-extend). The "space-padding is wrong" hazard was already avoided.
+  (C3) **`ALL BOOLLIT` in figurativeConstant** — NOT landed by increment 1 (still residue #17); increment 2
+  lands the one .g4 line. **The BOOLLIT/NATLIT decoder DID land** (increment 1: the three
+  `DecodeCobolString`/`DecodeString` twins) — increment 2 REUSES it, does not re-add.
   (C4) **The grammar/seams brief's COMPUTE citation "§14.9.7" is wrong** — boolean-compute is §14.9.8 Format 2
   (:26545–26560, spec-verified). (C5) **The grammar/seams brief's "ISO §8.8.4.2 boolean relation = ordinal over
   positions" is wrong** — Format 2 admits equality/inequality ONLY (:9566–9581); the design implements
