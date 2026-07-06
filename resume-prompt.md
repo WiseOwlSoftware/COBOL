@@ -27,7 +27,24 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 626, 2026-07-06 12:26 PDT): ⛔🎉 PHASE 4 TRACK (c) — THE UDF SUBSYSTEM IS COMPLETE.** M2-UDF-3
+> **STATE (DEVLOG 628, 2026-07-06 14:47 PDT): PHASE 5 OPENED — the 2023 CONCAT (§15.18) + BASECONVERT (§15.12)
+> intrinsics LANDED** (the clean positional-arg pair: catalog Deferred→Runtime + a RenderString case + a
+> CobolIntrinsics.Text body; golden `intrinsics_string_2023`, GreenfieldOnly — the legacy crashes on BASECONVERT;
+> 1875 conformance · 216 unit GREEN). **ALSO a CI SPEEDUP ~17min→~7min (DEVLOG 627, runs green):** the monolithic
+> guard job → 4 parallel jobs + guard-fast.sh (parallel NIST, proven ≡ by guard-verify) + NuGet caching; and the
+> ~29-min INV-1 sweep pole → **~2 min** via a no-emit `CompilerDriver.CheckOnly` + a `cobol check-batch` subcommand
+> (parse+bind-check the whole manifest in one warm parallel process — the Roslyn backend is skipped since the
+> edition-continuity verdict is settled pre-backend). **RESUME NEXT: continue Phase 5 intrinsics** — the residue
+> five (FIND-STRING §15.37 / SUBSTITUTE §15.87 / TRIM §15.96 / CONVERT §15.19 carry KEYWORD modifiers → build a
+> shared intrinsic-keyword-argument grammar/bind mechanism FIRST, then they fall out together; MODULE-NAME §15.65
+> needs runtime module context; SMALLEST-ALGEBRAIC §15.83 needs the argument's PICTURE metadata) + the 2014 date
+> intrinsics (FORMATTED-* / NUMVAL-F). Also still open: the **M2-OO-1h residue** (intricate — unstaging
+> REDEFINES/ODO/RENAMES/INDEXED in method data means extending the data-model classification/index/ODO machinery
+> into method scope; method own ENV/FILE/SCREEN; PROPAGATE ON + object VIEWS + OO-RAISING are 2014/2023) and the
+> low-severity **M2-PRE** follow-ups. Then Phase 6 (OCCURS DYNAMIC, TYPEDEF, floats) / 7 (2023 finalization). All
+> Phase-4 lettered tracks (a)-(g) + the UDF subsystem are DONE.
+>
+> **(superseded) STATE (DEVLOG 626, 2026-07-06 12:26 PDT): ⛔🎉 PHASE 4 TRACK (c) — THE UDF SUBSYSTEM IS COMPLETE.** M2-UDF-3
 > (separate-compilation function PROTOTYPES: `FUNCTION-ID … IS PROTOTYPE`, cross-assembly locate via the sibling probe
 > → **EC-FUNCTION-NOT-FOUND** on absence, §12.3.8 GR11 in-group-def→prototype→external resolution — DEVLOG 624) +
 > M2-UDF-4 (REPOSITORY `FUNCTION ALL INTRINSIC` / named-intrinsic binding + the §8.4.3.2 SR2 **keyword-omitted**
