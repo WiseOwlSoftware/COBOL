@@ -309,7 +309,23 @@ refinement):** empirically reference modification of a dynamic-table element wor
 code. Negative tests: `OccursDynamicGuardTests` (1522/1525/1528 + the positive companions). **EC-BOUND-OVERFLOW**
 (nonfatal, checking-gated) and **FULL variable-length-group MOVE/COMPARE** (a bind-time 1527 + a `DynWholeTablePlace`
 carrying FUNCTION LENGTH = `Capacity × elemWidth`) remain the two flagged follow-ons (an EC-integration pass + a
-whole-dynamic-table-operations pass); today both are LOUD, never silently wrong. Increments 2–5 are
+whole-dynamic-table-operations pass); today both are LOUD, never silently wrong.
+
+**Adversarial review (wf_3f05d472-ad8; DEVLOG 657) — 7 confirmed / 10 candidates, all fixed.** [HIGH] a whole-GROUP
+receiving MOVE into a group nested BELOW the dynamic level used `RefSending` (no growth → out-of-capacity write
+silently lost); fixed with a `DynTablePlace` arm in `EmitGroupMove` routing to `ReceivingPath` (`RefReceiving`).
+[MED] `CorrEligible` gated on `Occurs is null` not `!IsTable` → CORRESPONDING mis-emitted member access on a
+`CobolDynTable<T>` field (CS1061); §14.7.6 rule 4. [MED] SEARCH of a dynamic table nested under a fixed OCCURS
+(`TablePath` null) silently scanned ZERO occurrences → now fails LOUD (a subscripted-capacity path is a later
+increment). [MED] OCCURS DYNAMIC in the FILE SECTION was silently accepted → **COBOLNET1526** (§8.5.1.9.1 item 3 —
+"any place OTHER THAN the file section"; 1526 was free — the ref-mod guard was skipped). [MED] the SET Format 14
+capacity peek used `refs.Resolve` (routing an OO `prop OF obj` first target through the property hook, enqueuing a
+spurious pending op) → a PURE `ReferenceResolver.CapacityRegisterFor` peek. [LOW] the **1528** guard now also covers
+a GROUP dynamic table with a subordinate VALUE AND a TO (the §13.18.63 GR16 superordinate-scope derivation; a
+subordinate VALUE with NO TO stays supported = capacity FROM). [LOW] the `CobolDynTable.GrowTo` docstring no longer
+falsely claims EC-BOUND-OVERFLOW/EC-BOUND-SET are wired (both remain the flagged nonfatal follow-on). Regression
+goldens `dyn_nested_group_move`/`dyn_corr`; guard tests `GroupSubordinateValueWithTo_Rejected1528`/
+`FileSectionDynamicTable_Rejected1526`. Increments 2–5 are
 greenfield-only (guard-fast; CI is the backstop). All 3 recon open questions resolved to their recommended defaults
 (VALUE-capacity staged; EC-FLOW-SEARCH in CORE; extend THIS doc).
 

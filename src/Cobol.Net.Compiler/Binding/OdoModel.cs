@@ -376,15 +376,27 @@ public sealed partial class DataBinder
     /// <see cref="ReferenceResolver"/> can build a <see cref="CapacityRegisterPlace"/>. The register is NOT a stored
     /// field (no <c>FieldEmitter</c> entry): its value IS the runtime <c>CobolDynTable&lt;T&gt;.Capacity</c>. A
     /// register-name that duplicates an explicit data-name (or another table's register) violates the
-    /// implicit-definition rule → COBOLNET1523. (The declaration/placement rules — SR28 FILE SECTION, FROM ≤ TO,
-    /// no nesting under another OCCURS — are the inc-5 staged-loud 1522 sweep.)
+    /// implicit-definition rule → COBOLNET1523. Placement/declaration guards: SR28 FROM ≤ TO (1522); the FILE
+    /// SECTION prohibition §8.5.1.9.1 (1526); the VALUE-derived-capacity §13.18.63 GR16 staging (1528).
     /// </summary>
     private void DynamicResolve()
     {
+        // §8.5.1.9.1 item 3 (:8195) — the roots of every FILE SECTION record, so a dynamic table in one is rejected.
+        var fileRecordRoots = new HashSet<DataItem>(Files.SelectMany(f => f.Records));
+        static bool SubtreeHasValue(DataItem d) => d.RawValue is not null || d.Children.Any(SubtreeHasValue);
+
         foreach (var item in AllItems())
         {
             if (item.OccursSpec is not { IsDynamic: true } spec) continue;
             string subject = item.CobolName ?? item.CsName;
+
+            // §8.5.1.9.1 item 3 (:8195) — a dynamic-capacity table "may be defined in any place, OTHER THAN the file
+            // section" (its out-of-line CobolDynTable has no place in a record image). Reject a dynamic table whose
+            // storage root is an FD/SD record.
+            DataItem root = item; while (root.Parent is { } p) root = p;
+            if (fileRecordRoots.Contains(root))
+                Edition.Error("COBOLNET1526", $"OCCURS DYNAMIC on '{subject}': a dynamic-capacity table shall not be "
+                    + "defined in the FILE SECTION (ISO §8.5.1.9.1)");
 
             // SR28 (:19987): integer-4 (FROM) shall be nonnegative and integer-5 (TO), if both present, shall be
             // GREATER THAN integer-4. (FROM<0 cannot be written — the grammar takes an unsigned integerLiteral.)
@@ -393,15 +405,18 @@ public sealed partial class DataBinder
                     + $"capacity (TO integer-5) shall be greater than the minimum capacity (FROM integer-4) "
                     + "(ISO §13.18.38 SR28)");
 
-            // §13.18.38 GR16 / §13.18.63 GR6 (:24102) — a dynamic table "defined by an ELEMENTARY entry with a
-            // VALUE clause" takes its initial capacity FROM THE VALUE (the VALUE-derived-capacity subrules), NOT the
-            // FROM phrase. That derivation is staged (data-model D9) — a VALUE on an elementary dynamic entry is
-            // LOUD rather than silently mis-seeded. (A VALUE on a SUBORDINATE of a GROUP dynamic table is the
-            // element's per-occurrence seed, capacity = FROM — that is supported and NOT caught here.)
-            if (item.IsElementary && item.RawValue is not null)
-                Edition.Error("COBOLNET1528", $"OCCURS DYNAMIC with a VALUE clause on the elementary entry "
-                    + $"'{subject}': a VALUE clause on an elementary dynamic-capacity entry derives the initial "
-                    + "capacity (ISO §13.18.38 GR16 / §13.18.63 GR6) — that derivation is not yet implemented");
+            // §13.18.63 GR16 (:23440) — a VALUE clause in the DYNAMIC entry OR any entry SUPERORDINATE to it derives
+            // the initial capacity (GR16b: no-TO-in-VALUE → the OCCURS expected capacity/TO). That derivation is
+            // staged (data-model D9) → LOUD, never silently mis-sized: (a) an elementary dynamic entry's OWN VALUE;
+            // (b) a GROUP dynamic table whose subtree carries a VALUE AND whose OCCURS has a TO (an expected capacity
+            // for GR16b to use). A subordinate VALUE with NO TO has no expected capacity for GR16b, so the
+            // §14.6.2.3.2 item-6 default (capacity = FROM, elements seeded) applies and IS supported (the
+            // dyn_initialize / dyn_initialized goldens).
+            if ((item.IsElementary && item.RawValue is not null)
+                || (item.IsGroup && spec.ExpectedMax is not null && item.Children.Any(SubtreeHasValue)))
+                Edition.Error("COBOLNET1528", $"OCCURS DYNAMIC on '{subject}' with a VALUE clause: a VALUE in the "
+                    + "dynamic entry or a superordinate entry derives the initial capacity (ISO §13.18.63 GR16) — "
+                    + "that derivation is not yet implemented");
 
             if (spec.CapacityName is not { } capName) continue;
 

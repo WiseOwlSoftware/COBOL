@@ -67,8 +67,10 @@ public sealed class CobolDynTable<T>
 
     /// <summary>Raise the current capacity to <paramref name="newCount"/>, seeding new occurrences [old..new)
     /// (§8.5.1.9.5). A request past <see cref="MaxOccurrences"/> raises EC-BOUND-TABLE-LIMIT (fatal, capacity
-    /// unchanged). (The nonfatal EC-BOUND-OVERFLOW on exceeding the expected capacity is wired with the SET-Format-14
-    /// emit + the checking gate — inc 2.)</summary>
+    /// unchanged). NOTE: the nonfatal capacity-overflow exceptions are NOT yet raised — EC-BOUND-OVERFLOW on implicit
+    /// growth past the expected capacity (§8.5.1.9.6 item 1) and EC-BOUND-SET on an explicit SET past it (§14.9.39
+    /// GR30) are checking-gated and, being nonfatal, produce identical observable results with checking OFF (the
+    /// default); <see cref="_expected"/> is captured for that future wiring (data-model D9 flagged follow-on).</summary>
     private void GrowTo(int newCount)
     {
         if (newCount <= _count) return;

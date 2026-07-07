@@ -182,7 +182,7 @@ public sealed partial class StatementBinder
     /// <see cref="DataItem.Renames"/> test is defensive.</summary>
     private static bool CorrEligible(DataItem item) =>
         item.CobolName is not null
-        && item.Occurs is null
+        && !item.IsTable   // rule 4 — ANY OCCURS: fixed OR Format-4 DYNAMIC (Occurs is null for a dynamic table, D9)
         && item.RedefinesTargetName is null
         && item.Renames is null
         && item.Pic?.Usage is not Usage.Index;

@@ -113,11 +113,7 @@ public sealed class ReferenceResolver(DataBinder data)
         // {tablePath}.Capacity. An unqualified, unsubscripted reference is the covered form; a register nested under
         // a fixed OCCURS (whose ancestor levels would need subscripts) or an OF/IN-qualified reference falls through
         // to loud (AccessPath null / normal resolution fails) — a later refinement.
-        if (dref.dataReferenceSuffix().Length == 0
-            && data.CapacityRegisters.TryGetValue(name, out var capTable)
-            && capTable.OccursSpec?.CapacityRegister is { } capReg
-            && TablePath(capTable) is { } capPath)
-            return new CapacityRegisterPlace(capPath, capReg);
+        if (CapacityRegisterFor(dref) is { } capReg) return capReg;
 
         var qualifiers = new List<string>();
         Core.SubscriptOrRefModContext? subCtx = null;    // the subscript group (no depth-0 colon)
@@ -455,6 +451,18 @@ public sealed class ReferenceResolver(DataBinder data)
             if (chain[i].IsTable) return null;
         return string.Join(".", chain.Select(n => n.CsName));
     }
+
+    /// <summary>The <see cref="CapacityRegisterPlace"/> for an unqualified, unsubscripted reference to an OCCURS
+    /// DYNAMIC CAPACITY register, or null — a PURE check over <see cref="DataBinder.CapacityRegisters"/> with NO side
+    /// effects (unlike the full <see cref="Resolve"/> pipeline, which routes an unresolved qualified name through the
+    /// property-reference hook and enqueues a pending op). The SET Format 14 reroute peek uses this so it never mints
+    /// a spurious property temp/op for a non-capacity target (data-model D9; OCCURS DYNAMIC review #7).</summary>
+    internal CapacityRegisterPlace? CapacityRegisterFor(Core.DataReferenceContext dref) =>
+        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord()?.GetText() is { } name
+            && data.CapacityRegisters.TryGetValue(name, out var capTable)
+            && capTable.OccursSpec?.CapacityRegister is { } capReg
+            && TablePath(capTable) is { } capPath
+            ? new CapacityRegisterPlace(capPath, capReg) : null;
 
     private static string? AccessPath(DataItem item, IReadOnlyList<string> indexExprs,
         AccessDir dir = AccessDir.Sending)

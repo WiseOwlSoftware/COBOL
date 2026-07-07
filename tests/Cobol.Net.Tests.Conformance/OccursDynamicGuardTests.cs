@@ -59,6 +59,48 @@ public sealed class OccursDynamicGuardTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1528");
     }
 
+    /// <summary>§13.18.63 GR16 (review #4) — a VALUE clause in an entry SUPERORDINATE to a DYNAMIC entry derives the
+    /// initial capacity (GR16b: no-TO-in-VALUE → the OCCURS expected capacity). When the OCCURS carries a TO, that
+    /// derivation applies to a GROUP dynamic table's subordinate VALUE too → staged loud COBOLNET1528 (not the
+    /// silently-wrong capacity = FROM).</summary>
+    [Fact]
+    public void GroupSubordinateValueWithTo_Rejected1528()
+    {
+        var (ok, diag) = EditionHarness.Compile(Prog("""
+            01 WS-TABLE.
+               05 ROW OCCURS DYNAMIC CAPACITY IN WS-CAP FROM 2 TO 10.
+                  10 ELEM PIC 99 VALUE 07.
+            """), 2014);
+        Assert.False(ok, "a group dynamic table with a subordinate VALUE and a TO derives capacity (GR16) — staged loud");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1528");
+    }
+
+    /// <summary>§8.5.1.9.1 item 3 (review #6) — a dynamic-capacity table "may be defined in any place, OTHER THAN the
+    /// file section" (its out-of-line storage has no place in a record image). COBOLNET1526.</summary>
+    [Fact]
+    public void FileSectionDynamicTable_Rejected1526()
+    {
+        var (ok, diag) = EditionHarness.Compile("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. FDYN.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT F ASSIGN TO "fdyn.dat" ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD  F.
+            01  REC.
+                05  DT OCCURS DYNAMIC FROM 2 CAPACITY IN CP PIC 9(3).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                DISPLAY "X".
+                STOP RUN.
+            """, 2014);
+        Assert.False(ok, "OCCURS DYNAMIC in the FILE SECTION must be rejected (ISO §8.5.1.9.1)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1526");
+    }
+
     /// <summary>The positive companions: a well-formed FROM/TO, and a VALUE on the SUBORDINATE of a GROUP dynamic
     /// table (the element's per-occurrence seed, capacity = FROM — supported, NOT a VALUE-derived capacity), both
     /// compile cleanly. Guards must not over-restrict the supported surface.</summary>

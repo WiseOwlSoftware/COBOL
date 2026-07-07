@@ -935,7 +935,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundStatement? DynTryBindSetCapacity(
         IReadOnlyList<Core.DataReferenceContext> targets, Core.ArithmeticExpressionContext amount, SetCapacityKind kind)
     {
-        if (targets.Count == 0 || refs.Resolve(targets[0]) is not CapacityRegisterPlace cap) return null;
+        // A PURE capacity-register peek (NOT refs.Resolve, which would route an OO `prop OF obj` first target through
+        // the property hook and enqueue a spurious pending op — OCCURS DYNAMIC review #7).
+        if (targets.Count == 0 || refs.CapacityRegisterFor(targets[0]) is not { } cap) return null;
         if (targets.Count > 1)
         {
             data.Edition.Error("COBOLNET1524",
@@ -988,6 +990,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundUnsupported($"SEARCH of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
             return new BoundUnsupported($"SEARCH table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
+        // A dynamic table NESTED under another table has no whole-table path (TablePath null), so the AT-END bound
+        // (§8.5.1.9.1 current capacity) and the EnterSearch/ExitSearch bracket cannot be addressed by name — a
+        // subscripted capacity path over the enclosing indices is a later increment. Reject rather than let
+        // SearchBound fall back to Count=0 and silently scan ZERO occurrences (OCCURS DYNAMIC review #5; D9).
+        if (table.IsDynamicTable && refs.TablePath(table) is null)
+            return new BoundUnsupported($"SEARCH of the dynamic-capacity table '{tableName}' nested under another "
+                + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
 
         string searchIx = data.IndexFieldFor(table.IndexNames[0]);   // scope-aware (method cell first, M2-OO-1h step 4)
         BoundSetTarget? also = null;
@@ -1029,6 +1038,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundUnsupported($"SEARCH ALL of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
             return new BoundUnsupported($"SEARCH ALL table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
+        if (table.IsDynamicTable && refs.TablePath(table) is null)   // nested dynamic — see BindSearch (review #5, D9)
+            return new BoundUnsupported($"SEARCH ALL of the dynamic-capacity table '{tableName}' nested under another "
+                + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
 
         List<BoundStatement>? atEnd = null;
         if (s.searchAtEndClause() is { } ae)

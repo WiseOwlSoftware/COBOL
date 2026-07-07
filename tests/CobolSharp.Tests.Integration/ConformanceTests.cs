@@ -205,6 +205,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         // every occurrence up to Capacity with the statement's category defaults. Greenfield CorpusRunner only.
         ("2014", "dyn_search"),
         ("2014", "dyn_initialize"),
+        // Phase 6, OCCURS DYNAMIC adversarial review (wf_3f05d472-ad8) regressions — data-model D9. Greenfield only.
+        ("2014", "dyn_nested_group_move"),   // #1 a group MOVE nested below a dynamic level grows via RefReceiving
+        ("2014", "dyn_corr"),                // #2 CORRESPONDING excludes a dynamic-table member (§14.7.6 rule 4)
     ];
 
     [Theory]

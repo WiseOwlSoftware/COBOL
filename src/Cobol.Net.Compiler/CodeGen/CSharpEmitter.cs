@@ -634,6 +634,10 @@ public sealed partial class CSharpEmitter
         {
             OdoGroupPlace { DependingInside: false } odo => odo.ReceiveInto(image),
             RedefViewPlace => target.Write(image),
+            // A group receiver nested under an OCCURS DYNAMIC level (data-model D9): distribute the image through the
+            // RECEIVING accessor (RefReceiving grows-and-seeds past the current capacity, §8.5.1.9.3), NOT target.Read()
+            // (=RefSending, which drops an out-of-capacity write into benign scratch — silent data loss).
+            DynTablePlace dyn => $"{dyn.ReceivingPath}.FromImage({image});",
             _ => $"{target.Read()}.FromImage({image});",
         });
     }
