@@ -945,10 +945,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         item.IsBased = isBased;
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
+        // A method's index-names (M2-OO-1h step 4) register into the METHOD's own scope with a FRESH cell — two
+        // methods' IX, or a method IX shadowing an object IX, get distinct cells (§11.7.4 GR5); the program/object
+        // path keeps the de-dup dict.
         foreach (var idxName in indexNames)
         {
             item.IndexNames.Add(idxName);
-            if (!IndexFields.ContainsKey(idxName))
+            if (_bindingMethodScope is { } ms)
+                ms.IndexFields[idxName] = "_MIX_" + _ixSeq++;
+            else if (!IndexFields.ContainsKey(idxName))
                 IndexFields[idxName] = "_IX_" + IndexFields.Count;
         }
         return item;

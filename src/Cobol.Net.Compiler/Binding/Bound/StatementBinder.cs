@@ -959,14 +959,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (table.IndexNames.Count == 0)
             return new BoundUnsupported($"SEARCH table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
 
-        string searchIx = data.IndexFields[table.IndexNames[0]];
+        string searchIx = data.IndexFieldFor(table.IndexNames[0]);   // scope-aware (method cell first, M2-OO-1h step 4)
         BoundSetTarget? also = null;
         if (drefs.Length > 1)   // the VARYING phrase
         {
             var v = drefs[1];
             if (IndexFieldOf(v) is { } vix)
             {
-                if (table.IndexNames.Any(n => data.IndexFields[n] == vix)) searchIx = vix;   // same table (GR8a)
+                if (table.IndexNames.Any(n => data.IndexFieldFor(n) == vix)) searchIx = vix;   // same table (GR8a)
                 else also = new SetIndexTarget(vix);                                          // other table (GR8b)
             }
             else if (refs.Resolve(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR8c)
@@ -1008,7 +1008,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var whens = s.searchAllWhenClause()
             .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
             .ToList();
-        return new BoundSearch(data.IndexFields[table.IndexNames[0]], table.Occurs!.Value,
+        return new BoundSearch(data.IndexFieldFor(table.IndexNames[0]), table.Occurs!.Value,
             AlsoVaried: null, atEnd, whens, FromStart: true, DependCount: OdoModel.SearchBound(table, refs));
     }
 

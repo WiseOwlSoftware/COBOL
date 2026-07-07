@@ -487,6 +487,12 @@ public sealed partial class CSharpEmitter
                 var (type, init) = fields.RootDecl(root);
                 w.Line($"{type} {root.CsName} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§14.5.3)");
             }
+            // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§14.5.3; M2-OO-1h step 4) —
+            // the method's own cell (§11.7.4 GR5), reset to 1 each activation, never the shared class index field.
+            foreach (var root in m.LocalRoots.Concat(m.LinkageRoots))
+                foreach (var idx in DataBinder.IndexNamesUnder(root))
+                    if (m.DataScope.IndexFields.TryGetValue(idx, out var cell))
+                        w.Line($"long {cell} = 1;   // INDEX-NAME {idx} (LOCAL/LINKAGE table cell, §14.5.3)");
             if (m.EntryPc <= m.EndPc)
             {
                 // The method's slice of the class's one pc space, as a LOCAL FUNCTION (captures the locals

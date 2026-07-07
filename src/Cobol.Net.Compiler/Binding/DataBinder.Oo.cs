@@ -15,6 +15,11 @@ public sealed class OoMethodDataScope
 {
     public Dictionary<string, List<DataItem>> ByName { get; } = new(StringComparer.OrdinalIgnoreCase);
     public Dictionary<string, List<Condition88>> Conditions { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Method-local INDEX-NAME → C# cell name (M2-OO-1h step 4; §11.7.4 GR5 — index-names are
+    /// method-private: two methods each with <c>INDEXED BY IX</c> get DISTINCT cells, and a method IX shadows an
+    /// object IX with its OWN cell — never the shared global <see cref="DataBinder.IndexFields"/>).</summary>
+    public Dictionary<string, string> IndexFields { get; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 /// <summary>
@@ -52,6 +57,18 @@ public sealed partial class DataBinder
     /// target through its OWNING method's scope (§11.7.4 GR5), keyed off the item's root, never the class globals.</summary>
     internal Dictionary<DataItem, OoMethodSymbol> OoRootOwner { get; } = new(ReferenceEqualityComparer.Instance);
 
+    /// <summary>Method index cells (M2-OO-1h step 4) whose table is method WORKING-STORAGE — emitted as class-level
+    /// STATIC <c>long</c> fields (persistent across activations, §11.7). A LOCAL/LINKAGE table's cell is instead a
+    /// per-activation method local (emitted in <c>OoEmitMethod</c>) and never appears here.</summary>
+    public HashSet<string> OoStaticIndexCells { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>Every INDEX-NAME declared under a root (its subtree's <c>INDEXED BY</c> names).</summary>
+    internal static IEnumerable<string> IndexNamesUnder(DataItem root)
+    {
+        foreach (var n in root.IndexNames) yield return n;
+        foreach (var c in root.Children) foreach (var n in IndexNamesUnder(c)) yield return n;
+    }
+
     /// <summary>The ONE scope-aware data-name lookup (§8.4.6.2.1 rule 3a — a method-local declaration
     /// REPLACES, never unions with, the object/program-level name): consumers that read <see cref="ByName"/>
     /// directly for a USER-WRITTEN name (SEARCH/SORT table resolution, INITIALIZE) route through this so a
@@ -85,8 +102,23 @@ public sealed partial class DataBinder
         field = "";
         if (ActiveMethodScope is { } m && m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
             return false;   // the method-local data-name wins (§8.4.6.2.1 rule 3a)
+        // A method-local index-name (M2-OO-1h step 4) shadows an object index-name with its OWN cell (§11.7.4 GR5).
+        if (ActiveMethodScope is { } ms && ms.IndexFields.TryGetValue(name, out field!)) return true;
         return IndexFields.TryGetValue(name, out field!);
     }
+
+    /// <summary>Set while binding a METHOD's data entries (M2-OO-1h step 4) so INDEXED BY index-names register into
+    /// the method's own scope, never the global de-dup dict. Null at program/object scope.</summary>
+    private OoMethodDataScope? _bindingMethodScope;
+
+    /// <summary>Monotonic counter for method-local index cells — a distinct <c>_MIX_</c> prefix, so method and
+    /// global cells never collide and every method IX gets a FRESH cell (§11.7.4 GR5 privacy).</summary>
+    private int _ixSeq;
+
+    /// <summary>Scope-aware index-cell accessor (M2-OO-1h step 4): the ACTIVE method's cell first (§8.4.6.2.1
+    /// rule 3a / §11.7.4 GR5), then the global. Consumed by SEARCH, where the index-name is known to resolve.</summary>
+    public string IndexFieldFor(string name) =>
+        ActiveMethodScope is { } m && m.IndexFields.TryGetValue(name, out var cell) ? cell : IndexFields[name];
 
     /// <summary>True when <paramref name="item"/> is OBJECT data of a class unit (§14.9.23.3 SR 10): its 01/77
     /// root is not method-scoped. Always false outside a class unit.</summary>
@@ -113,6 +145,7 @@ public sealed partial class DataBinder
                 + "recognized but not yet implemented (owning roadmap phase: Phase 3, OO port)");
 
         var dd = m.Ctx.dataDivision();
+        _bindingMethodScope = m.DataScope;   // M2-OO-1h step 4: route INDEXED BY index-names to the method scope
         if (dd is not null)
         {
             if (dd.fileSection() is not null || dd.reportSection() is not null || dd.screenSection() is not null)
@@ -145,6 +178,7 @@ public sealed partial class DataBinder
                     lk.linkageEntry().Select(e => e.dataDescriptionEntry()).Where(e => e is not null).Select(e => e!),
                     _rootNames));
         }
+        _bindingMethodScope = null;
 
         foreach (var root in m.StaticRoots.Concat(m.LocalRoots).Concat(m.LinkageRoots))
         {
@@ -153,6 +187,11 @@ public sealed partial class DataBinder
             OoGateUnsupportedShapes(root, where);
             OoScopeSubtree(root, m.DataScope);
         }
+        // M2-OO-1h step 4: a method-WS table's index cell is a class STATIC (persistent); a LOCAL/LINKAGE table's
+        // cell is a per-activation method local (emitted in OoEmitMethod).
+        foreach (var root in m.StaticRoots)
+            foreach (var idx in IndexNamesUnder(root))
+                if (m.DataScope.IndexFields.TryGetValue(idx, out var cell)) OoStaticIndexCells.Add(cell);
         // LINKAGE + LOCAL-STORAGE roots are C# LOCALS of the emitted method (their struct types and numeric
         // profiles still emit at class level) — never instance fields. Method-WS roots DO emit (as statics).
         foreach (var root in m.LocalRoots.Concat(m.LinkageRoots))
@@ -388,9 +427,9 @@ public sealed partial class DataBinder
         // REDEFINES in method data is LIVE (M2-OO-1h step 3, DEVLOG 639): ResolveRedefines scopes a top-level
         // method redefiner's target to the owning method's own roots (§13.18.44.3 SR / §11.7.4); the Tier-B
         // string backing is routed static (method-WS) or method-local (LOCAL/LINKAGE) by OoRouteMethodRedefinesBackings.
-        if (item.IndexNames.Count > 0)
-            Edition.Error("COBOLNET0899", $"{where}: OCCURS … INDEXED BY on the method data item "
-                + $"'{item.CobolName ?? "FILLER"}' is recognized but not yet implemented (Phase 3, OO port)");
+        // OCCURS … INDEXED BY in method data is LIVE (M2-OO-1h step 4, DEVLOG 640): index-names register into the
+        // method's own scope with a FRESH cell (§11.7.4 GR5 privacy — no cross-method sharing), resolved via
+        // IndexFieldFor / TryGetVisibleIndexField and emitted static (method-WS) or per-activation local (LOCAL/LINKAGE).
         // OCCURS DEPENDING ON in method data is LIVE (M2-OO-1h step 2, DEVLOG 638): OdoResolve resolves
         // data-name-1 through LookupDataInScopeOf(RootOf(item), …) — the method's own scope first (§11.7.4 GR5),
         // then a visible object item — instead of the raw global ByName.

@@ -36,6 +36,10 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         foreach (var (name, field) in ctx.Data.IndexFields)
             if (!ctx.Data.CallSuppressedRootFields.Contains(field))
                 w.Line($"private long {field} = 1;   // INDEX-NAME {name}");
+        // A method WORKING-STORAGE table's index cell is a class STATIC (persistent across activations, §11.7;
+        // M2-OO-1h step 4). LOCAL/LINKAGE table cells are per-activation method locals, emitted in OoEmitMethod.
+        foreach (var cell in ctx.Data.OoStaticIndexCells)
+            w.Line($"private static long {cell} = 1;   // method-WS INDEX-NAME cell (M2-OO-1h)");
         foreach (var f in RootPhysicals())
             if (!ctx.Data.CallSuppressedRootFields.Contains(f.Name))
                 // A method-WS root is a STATIC field (OO deep-dive D3 — one copy per class, shared across
