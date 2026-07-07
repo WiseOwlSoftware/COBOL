@@ -27,7 +27,45 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 652–656, 2026-07-07 02:54 PDT): ⛔🎉 OCCURS DYNAMIC (data-model D9, §13.18.38 Format 4, COBOL-2014)
+> **STATE (DEVLOG 657–659, 2026-07-07 11:23 PDT): ⛔ TYPEDEF / the TYPE clause (data-model D17, §13.18.58 /
+> §13.18.57, COBOL-2002) — increment 1 (the weak-TYPE spine) LANDED; OCCURS DYNAMIC review-hardened.**
+> ⛔🎯 **RESUME AT: TYPEDEF increment 2 (STRONG typing) — all remaining incs (2–4) are BINDER-ONLY (no grammar, no
+> legacy guard; greenfield battery suffices).** Implement directly from the D17 section of `docs/COBOLNET_DATA_MODEL_DESIGN.md`
+> (the decision-complete design; the full recon plan is also saved at `scratchpad/typedef_plan.txt`). The 4-increment
+> plan: **(1) ✅ DONE (659)** grammar (`STRONG` token + `typedefClause` — the ONLY legacy-guard slice; the TYPE-reference
+> rule pre-existed) + the weak-TYPE spine: `DataItem` `IsTypedef`/`TypedefStrong`/`TypeRefName`/`TypeName`/`StrongType`;
+> `BindEntries` routes a level-01 TYPEDEF to `DataBinder.TypeDecls` (off `Roots`/`ByName`; `RegisterTypeDecl`→**1529**);
+> a post-build `ExpandTypes` (top of `BindResolve`, after ALL `BindEntries` → forward refs OK) clones each `TYPE IS name`
+> via `CloneItem` (fresh `Uid`; CLONED `OccursSpec` [D17 risk#1]; elementary→copy PIC, group→clone children; subject
+> VALUE/OCCURS kept GR3/SR14; unresolved/recursive→**1530**). Zero emitter change (a weak TYPE = macro-expansion). Fixes
+> the silent-drop bug (TYPE was parsed+dropped). Goldens `typedef_weak_elem`/`typedef_weak_group` (2002 corpus,
+> GreenfieldOnly). **(2) NEXT — STRONG typing:** `StrongRootOf(item)` (walk to the outermost `StrongType`) + `SameType(a,b)`
+> (equal strong-root `TypeName` + relative `CsName` path, §8.5.3.3) → gate `BindMove`(StatementBinder.cs ~492)/
+> `BindComparison`(~1470)/the class-condition arm → **COBOLNET1533** on a non-same-type operand; declaration SRs
+> §13.18.57.3 SR3/SR4/SR6 (rename/redefine/placement of a strong item) → **1532**. Goldens `typedef_strong_ok`/
+> `typedef_strong_bad`. **(3)** level-88 condition-names inside a TYPEDEF (clone + re-`BindCondition`; §13.18.58.4 GR1) →
+> `typedef_88`. **(4)** staged-loud residue — EXTERNAL type decl→**1534**, RENAMES-in-TYPEDEF→**1535**, strong boolean/
+> object non-equality compare→1535, type-with-INDEXED-BY referenced ≥2×→**1531** — + the matrix behavior/continuity rows +
+> `DOC_INDEX`/`ISO2023_CONFORMANCE_PLAN` M3-2 sync; **then an adversarial find→verify review over TYPEDEF incs 1–4**
+> (every prior feature's review found real defects — run it). SAME AS is DEFERRED (a distinct feature; a hard `AS`
+> keyword is a legacy-compat hazard; `CloneItem` is built generically for its later reuse). Diagnostic band 15xx: 1529/
+> 1530 used, 1531–1535 reserved. **Battery at head: 2003 conformance · 213 unit GREEN; FULL legacy guard NIST 353 MATCH
+> (the shared `STRONG`/`typedefClause` grammar is byte-safe — the first run's 3 RL "regressions" were a JOBS=32
+> parallel-build race, gone on re-run).**
+>
+> **STATE (DEVLOG 652–657, 2026-07-07 03:44 PDT — superseded by 659 above): ⛔🎉 OCCURS DYNAMIC (data-model D9, §13.18.38
+> Format 4, COBOL-2014) COMPLETE + REVIEW-HARDENED across all 5 increments.** Adversarial review (wf_3f05d472-ad8, DEVLOG
+> 657): **7 confirmed defects / 10 candidates, ALL FIXED** — #1 [HIGH] a whole-GROUP receiving MOVE into a group nested
+> BELOW the dynamic level used `RefSending` (no growth → silent data loss) → a `DynTablePlace` arm in `EmitGroupMove`;
+> #2 [MED] `CorrEligible` `Occurs is null`→`!IsTable` (CORRESPONDING mis-emitted member access on a `CobolDynTable<T>`
+> field, CS1061); #5 [MED] SEARCH of a dynamic table nested under a fixed OCCURS silently scanned ZERO → now LOUD; #6
+> [MED] OCCURS DYNAMIC in the FILE SECTION silently accepted → **COBOLNET1526** (§8.5.1.9.1); #7 [MED] the SET F14
+> capacity peek `refs.Resolve` routed an OO property through the property hook → a PURE `CapacityRegisterFor` peek; #4
+> [LOW] group-subordinate VALUE + TO → the 1528 guard extended (§13.18.63 GR16); #3 [LOW] the `GrowTo` docstring's false
+> "EC-BOUND-OVERFLOW wired" claim corrected. Goldens `dyn_nested_group_move`/`dyn_corr`; guards
+> `GroupSubordinateValueWithTo_Rejected1528`/`FileSectionDynamicTable_Rejected1526`.
+>
+> **STATE (DEVLOG 652–656, 2026-07-07 02:54 PDT — superseded by 657–659 above): ⛔🎉 OCCURS DYNAMIC (data-model D9, §13.18.38 Format 4, COBOL-2014)
 > COMPLETE — dynamic-capacity tables across all 5 increments.** Built recon-first (wf_973560a9-bb6: 6 parallel readers →
 > an xhigh synthesis, 761k tok) then implemented + verify-by-running each leg. (1) **652** declaration + the out-of-line
 > growable `CobolNet.Runtime.CobolDynTable<T>` substrate + the `{is2014()}?` grammar (`CAPACITY` token, `OCCURS DYNAMIC
