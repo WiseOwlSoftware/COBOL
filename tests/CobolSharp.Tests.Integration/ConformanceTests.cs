@@ -189,6 +189,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // legacy binder/emitter has no dynamic-table model (it predates the D9 rewrite), so although the shared
         // grammar now parses OCCURS DYNAMIC, the legacy engine cannot emit it — greenfield CorpusRunner only.
         ("2014", "dyn_declare"),
+        // Phase 6, OCCURS DYNAMIC increment 2 (data-model D9, §13.18.38 GR15 / §14.9.39): the CAPACITY register
+        // (an implicit view over the table's current capacity) + SET Format 14 (TO / UP BY / DOWN BY). The frozen
+        // legacy has no dynamic-table model — greenfield CorpusRunner only.
+        ("2014", "dyn_capacity_read"),
+        ("2014", "dyn_capacity_set"),
+        ("2014", "dyn_capacity_bounds"),
     ];
 
     [Theory]

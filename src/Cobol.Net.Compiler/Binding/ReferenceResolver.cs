@@ -102,6 +102,18 @@ public sealed class ReferenceResolver(DataBinder data)
         if (dref.cobolWord() is not { } baseWord) return null;
         string name = baseWord.GetText();
 
+        // The OCCURS DYNAMIC CAPACITY register (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9): an implicitly-
+        // defined VIEW over the owning dynamic table's current capacity — never a storage item, so it is not in
+        // ByName and is resolved HERE (before ordinary name lookup) to a CapacityRegisterPlace whose Read() emits
+        // {tablePath}.Capacity. An unqualified, unsubscripted reference is the covered form; a register nested under
+        // a fixed OCCURS (whose ancestor levels would need subscripts) or an OF/IN-qualified reference falls through
+        // to loud (AccessPath null / normal resolution fails) — a later refinement.
+        if (dref.dataReferenceSuffix().Length == 0
+            && data.CapacityRegisters.TryGetValue(name, out var capTable)
+            && capTable.OccursSpec?.CapacityRegister is { } capReg
+            && TablePath(capTable) is { } capPath)
+            return new CapacityRegisterPlace(capPath, capReg);
+
         var qualifiers = new List<string>();
         Core.SubscriptOrRefModContext? subCtx = null;    // the subscript group (no depth-0 colon)
         Core.SubscriptOrRefModContext? refCtx = null;    // a reference-modification group (start : length)
@@ -233,6 +245,12 @@ public sealed class ReferenceResolver(DataBinder data)
     /// </summary>
     private Place? PlaceForItem(DataItem item, IReadOnlyList<string> indexExprs)
     {
+        // A WHOLE (unsubscripted) OCCURS DYNAMIC table reference has no element access — it would otherwise fold to a
+        // MemberPlace wrapping the bare CobolDynTable<T> object, which is uncompilable in any value context. Fail
+        // LOUD here (data-model D9); FUNCTION LENGTH and other whole-table operations route to a dedicated
+        // DynWholeTablePlace in a later increment. A SUBSCRIPTED dynamic element (indexExprs non-empty) is inc 3's
+        // access path and is NOT caught by this guard.
+        if (item.IsDynamicTable && indexExprs.Count == 0) return null;
         if (item.Class is { Tier: RedefinesTier.StringCanonical } sc)
         {
             // The backing is emitted in the canonical's containing struct (FieldEmitter.PhysicalFields), so a NESTED
@@ -408,6 +426,21 @@ public sealed class ReferenceResolver(DataBinder data)
     /// each <paramref name="indexExprs"/> entry inserted as <c>[expr - 1]</c> at its OCCURS level (outermost first).
     /// Returns <see langword="null"/> if the subscript count does not match the table's OCCURS dimension.
     /// </summary>
+    /// <summary>The C# field path to a WHOLE table's field (the bare <c>.CsName</c> chain, NO subscript wrap) — for
+    /// the OCCURS DYNAMIC CAPACITY-register view (<c>{path}.Capacity</c>), and (later increments) FUNCTION LENGTH,
+    /// the SEARCH bound, and INITIALIZE of a dynamic table. Returns <see langword="null"/> when an ancestor is
+    /// ITSELF a table (fixed or dynamic): a subscript would be required, so a whole-table reference is ambiguous and
+    /// the caller fails loud (ISO §13.18.38; data-model D9).</summary>
+    internal string? TablePath(DataItem table)
+    {
+        var chain = new List<DataItem>();
+        for (DataItem? n = table; n is not null; n = n.Parent) chain.Add(n);
+        chain.Reverse();
+        for (int i = 0; i < chain.Count - 1; i++)   // any table STRICTLY above → ambiguous whole-table reference
+            if (chain[i].IsTable) return null;
+        return string.Join(".", chain.Select(n => n.CsName));
+    }
+
     private static string? AccessPath(DataItem item, IReadOnlyList<string> indexExprs)
     {
         var chain = new List<DataItem>();

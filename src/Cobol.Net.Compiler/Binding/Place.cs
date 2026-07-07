@@ -140,6 +140,36 @@ public sealed record NumericImagePlace(Place Inner) : Place
 }
 
 /// <summary>
+/// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §13.18.38 GR15 / §8.5.1.9.1; data-model D9):
+/// a VIEW over the table's current capacity, NOT its own storage. Reading emits <c>{TablePath}.Capacity</c> — the
+/// runtime <see cref="CobolNet.Runtime.CobolDynTable{T}.Capacity"/> (a native <c>long</c>, an unsigned integer per
+/// SR31), so <see cref="RegisterItem"/> carries a native-binary <see cref="PicInfo"/> (scale 0) and the numeric
+/// pipeline reads it as a scale-0 integer with no profile. The register is set ONLY by SET Format 14 (which emits
+/// <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> directly, never through <see cref="Write"/>); an
+/// ordinary store receiver is rejected COBOLNET1523 at bind time (SR30–32), so <see cref="Write"/> is unreachable.
+/// </summary>
+public sealed record CapacityRegisterPlace(string TablePath, DataItem RegisterItem) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => RegisterItem.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => RegisterItem;
+
+    /// <inheritdoc/>
+    public override string Read() => $"{TablePath}.Capacity";
+
+    /// <inheritdoc/>
+    public override string Write(string rhs) =>
+        // Unreachable: SET Format 14 routes to BoundSetCapacity (SetCapacity/CapacityUpBy/CapacityDownBy), and any
+        // other store into the register is rejected COBOLNET1523 before a receiving Place.Write is emitted (§13.18.38
+        // SR30–32). This throw is the internal-error backstop if a new receiver path forgets that bind-time gate.
+        throw new InvalidOperationException(
+            "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38 SR30-32); a direct store must be "
+            + "rejected COBOLNET1523 at bind time and never reach Place.Write");
+}
+
+/// <summary>
 /// A reference-modified place <c>inner(start:length)</c> (COBOLNET_DESIGN §3.3 / §7.2): reading is a substring
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
 /// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.

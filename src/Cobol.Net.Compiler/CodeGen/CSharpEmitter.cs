@@ -397,6 +397,7 @@ public sealed partial class CSharpEmitter
             case BoundGoToAlterable ga: AlterEmitGoTo(ga); return true;
             case BoundSetTo st: EmitSetTo(st); return false;
             case BoundSetUpDown su: EmitSetUpDown(su); return false;
+            case BoundSetCapacity sc: EmitSetCapacity(sc); return false;
             case BoundSearch se: EmitSearch(se); return false;
             case BoundEvaluate ev: EmitEvaluate(ev); return false;
             case BoundInspect ins: EmitInspect(ins); return false;
@@ -1311,6 +1312,23 @@ public sealed partial class CSharpEmitter
         string tmp = $"__set{_setCounter++}";
         _ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(_num.Render(s.Amount), 0)});");
         foreach (var t in s.Targets) AugmentSetTarget(t, s.Down, new NumX(tmp, 0));
+    }
+
+    /// <summary>SET Format 14 (ISO §14.9.39 GR29; OCCURS DYNAMIC, data-model D9): the amount is evaluated ONCE,
+    /// then the owning table's current capacity is set / raised / lowered through the runtime — new occurrences
+    /// seeded (§8.5.1.9.5), clamped to the minimum, and EC-FLOW-SEARCH raised if a SEARCH of the same table is
+    /// active (GR31). The register carries no storage; the operation is on the <c>CobolDynTable&lt;T&gt;</c> itself.</summary>
+    private void EmitSetCapacity(BoundSetCapacity s)
+    {
+        string tmp = $"__cap{_setCounter++}";
+        _ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(_num.Render(s.Amount), 0)});");
+        string call = s.Kind switch
+        {
+            SetCapacityKind.To => "SetCapacity",
+            SetCapacityKind.UpBy => "CapacityUpBy",
+            _ => "CapacityDownBy",
+        };
+        _ctx.Writer.Line($"{s.TablePath}.{call}({tmp});");
     }
 
     /// <summary>THE store into a SET-style target (shared by SET TO and PERFORM VARYING initialization): an

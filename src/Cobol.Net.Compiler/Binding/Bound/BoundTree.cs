@@ -481,6 +481,17 @@ public sealed record BoundSetTo(IReadOnlyList<BoundSetTarget> Targets, BoundExpr
 /// (GR3), then each index is incremented/decremented by it (GR4).</summary>
 public sealed record BoundSetUpDown(IReadOnlyList<BoundSetTarget> Targets, BoundExpr Amount, bool Down) : BoundStatement;
 
+/// <summary>How SET Format 14 changes a dynamic table's current capacity (ISO §13.18.38 Format 4 / §14.9.39 GR29;
+/// data-model D9).</summary>
+public enum SetCapacityKind { To, UpBy, DownBy }
+
+/// <summary><c>SET dynamic-capacity-register {TO | UP BY | DOWN BY} amount</c> (ISO §14.9.39 SET Format 14; the
+/// COBOL-2014 OCCURS DYNAMIC feature, data-model D9). The register is a VIEW over its owning table, so the emitter
+/// calls the table's <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> (via <paramref name="TablePath"/>)
+/// — raising or lowering the current capacity, seeding new occurrences (§8.5.1.9.5), clamped to the minimum, and
+/// raising EC-FLOW-SEARCH if a SEARCH of that same table is active (GR31).</summary>
+public sealed record BoundSetCapacity(string TablePath, BoundExpr Amount, SetCapacityKind Kind) : BoundStatement;
+
 // ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
 
 /// <summary>One WHEN arm of a serial SEARCH: its condition and imperative statements (evaluated in source order;

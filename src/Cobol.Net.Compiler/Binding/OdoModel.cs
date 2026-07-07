@@ -364,4 +364,49 @@ public sealed partial class DataBinder
             }
         }
     }
+
+    /// <summary>
+    /// Post-build OCCURS DYNAMIC pass (ISO §13.18.38 Format 4 / §8.5.1.9; data-model D9): for each dynamic-capacity
+    /// table carrying a <c>CAPACITY IN data-name-3</c> phrase, synthesize the IMPLICITLY-defined CAPACITY register
+    /// (SR30) — a VIEW over the table's current capacity, an unsigned integer (SR31) — and index it by name so the
+    /// <see cref="ReferenceResolver"/> can build a <see cref="CapacityRegisterPlace"/>. The register is NOT a stored
+    /// field (no <c>FieldEmitter</c> entry): its value IS the runtime <c>CobolDynTable&lt;T&gt;.Capacity</c>. A
+    /// register-name that duplicates an explicit data-name (or another table's register) violates the
+    /// implicit-definition rule → COBOLNET1523. (The declaration/placement rules — SR28 FILE SECTION, FROM ≤ TO,
+    /// no nesting under another OCCURS — are the inc-5 staged-loud 1522 sweep.)
+    /// </summary>
+    private void DynamicResolve()
+    {
+        foreach (var item in AllItems())
+        {
+            if (item.OccursSpec is not { IsDynamic: true, CapacityName: { } capName } spec) continue;
+            string subject = item.CobolName ?? item.CsName;
+
+            // SR30 — data-name-3 is implicitly defined at the OCCURS entry, so it must not also be an explicit
+            // data-name (a duplicate definition) nor the CAPACITY register of another dynamic table.
+            if (ByName.ContainsKey(capName) || CapacityRegisters.ContainsKey(capName))
+            {
+                Edition.Error("COBOLNET1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
+                    + "defined by the OCCURS DYNAMIC entry and shall not duplicate another data-name or CAPACITY "
+                    + "register (ISO §13.18.38 SR30)");
+                continue;
+            }
+
+            // The register: an unsigned-integer VIEW over the table's Capacity (SR31) — a native-binary PicInfo so
+            // the numeric pipeline reads {tablePath}.Capacity (a long) as a scale-0 integer; no stored field. The
+            // implementor digit count is 10 (unsigned BinaryLong): the CobolDynTable implementor maximum,
+            // 0x3FFF_FFFF ≈ 1.07e9, fits in 10 digits (§8.5.1.9.1 — "a number of digits sufficient to hold the
+            // maximum"). Kept off ByName/Roots — reachable ONLY through CapacityRegisters (the resolver hook).
+            var reg = new DataItem
+            {
+                Level = 49,
+                CsName = "__cap_" + item.CsName,
+                CobolName = capName,
+                Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
+                Uid = _uidCounter++,
+            };
+            spec.CapacityRegister = reg;
+            CapacityRegisters[capName] = item;
+        }
+    }
 }

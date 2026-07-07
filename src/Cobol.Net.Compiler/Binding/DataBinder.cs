@@ -40,6 +40,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// may be duplicated under different parents and disambiguated by qualification).</summary>
     public Dictionary<string, List<Condition88>> Conditions { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>OCCURS DYNAMIC <c>CAPACITY IN data-name-3</c> register-names (case-insensitive) → the owning
+    /// dynamic-table <see cref="DataItem"/> (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9). The register is
+    /// IMPLICITLY defined at the OCCURS entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults
+    /// this map to build a <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated
+    /// by the post-build <see cref="DynamicResolve"/> pass.</summary>
+    public Dictionary<string, DataItem> CapacityRegisters { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>
     /// Group items referenced as a whole (non-elementary) operand anywhere in the PROCEDURE DIVISION — recorded by
     /// <see cref="ReferenceResolver"/> as it resolves each reference. A group name can only be used as a whole (MOVE
@@ -201,6 +208,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         ClassifyRedefinesClasses();
         OoRouteMethodRedefinesBackings();   // M2-OO-1h step 3: route method Tier-B backings static/local
         OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
+        DynamicResolve();   // synthesize each OCCURS DYNAMIC table's CAPACITY register (ISO §13.18.38 Format 4; D9)
         ResolveFiles();
         GateNationalRecords();   // D-N2: the record codec is single-byte — national FD/SD leaves stage loud
         ResolveReports();   // SOURCE/CONTROL/SUM items + owning files + line widths (ISO §13.18.46/.53/.16/.54)

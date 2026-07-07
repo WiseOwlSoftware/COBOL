@@ -115,6 +115,16 @@ public sealed partial class StatementBinder
                 + "program assigns page numbers) is not yet implemented");
             return null;
         }
-        return refs.Resolve(dref);
+        var place = refs.Resolve(dref);
+        // The OCCURS DYNAMIC CAPACITY register (§13.18.38 SR30–32; D9) is set ONLY by a SET Format 14 statement
+        // (which reroutes BEFORE this chokepoint). Any other receiving use — MOVE/arithmetic resultant/ordinary SET
+        // receiver — is illegal; reject it here rather than reach CapacityRegisterPlace.Write (an internal throw).
+        if (place is CapacityRegisterPlace cap)
+        {
+            data.Edition.Error("COBOLNET1523", $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
+                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38 SR30–32)");
+            return null;
+        }
+        return place;
     }
 }

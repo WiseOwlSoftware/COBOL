@@ -879,6 +879,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindSetTo(Core.SetToValueStatementContext tv)
     {
+        // SET Format 14 (ISO §14.9.39; the OCCURS DYNAMIC feature, data-model D9): a CAPACITY-register target
+        // reroutes to a capacity change. It runs BEFORE the F4/F5 pointer/object reroutes — a register is numeric,
+        // so it would otherwise fall through to the Format-1 store and throw at CapacityRegisterPlace.Write.
+        if (DynTryBindSetCapacity(tv.dataReference(), tv.arithmeticExpression(), SetCapacityKind.To) is { } dcap)
+            return dcap;
         // The Format-5 SEMANTIC re-route (D-U7): `SET U TO A` parses HERE (alternative order — a
         // dataReference sender is an arithmeticExpression prefix), but an object-reference TARGET selects
         // §14.9.39 Format 5. Detect on the FIRST target; mixed target categories then fail SR8 inside.
@@ -910,6 +915,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
     {
         if (PtrTryBindSetUpDown(ud) is { } ptr) return ptr;   // F10 — pointer arithmetic (Phase-4b inc 2)
+        if (DynTryBindSetCapacity(ud.dataReference(), ud.arithmeticExpression(),
+                ud.DOWN() is not null ? SetCapacityKind.DownBy : SetCapacityKind.UpBy) is { } dcap)
+            return dcap;   // F14 — dynamic-capacity change (OCCURS DYNAMIC, D9)
         var targets = new List<BoundSetTarget>();
         foreach (var dref in ud.dataReference())
         {
@@ -918,6 +926,28 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
         return new BoundSetUpDown(targets, BindExpr(ud.arithmeticExpression()), ud.DOWN() is not null);
     }
+
+    /// <summary>SET Format 14 (ISO §14.9.39; OCCURS DYNAMIC, data-model D9): reroute when the FIRST target resolves
+    /// to a dynamic-table CAPACITY register — <c>SET reg {TO | UP BY | DOWN BY} n</c> changes the table's current
+    /// capacity. A non-register first target returns <see langword="null"/> so the normal Format-1/2 path continues
+    /// (the non-consuming peek idiom, mirroring <c>PtrTryBindSetUpDown</c>). The register is the SOLE receiver of a
+    /// capacity SET (one capacity per statement); a second/mixed target is COBOLNET1524.</summary>
+    private BoundStatement? DynTryBindSetCapacity(
+        IReadOnlyList<Core.DataReferenceContext> targets, Core.ArithmeticExpressionContext amount, SetCapacityKind kind)
+    {
+        if (targets.Count == 0 || refs.Resolve(targets[0]) is not CapacityRegisterPlace cap) return null;
+        if (targets.Count > 1)
+        {
+            data.Edition.Error("COBOLNET1524",
+                $"SET '{cap.RegisterItem.CobolName}' {SetCapacityKindText(kind)}: a dynamic-table CAPACITY register "
+                + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
+            return new BoundNop();
+        }
+        return new BoundSetCapacity(cap.TablePath, BindExpr(amount), kind);
+    }
+
+    private static string SetCapacityKindText(SetCapacityKind kind) =>
+        kind switch { SetCapacityKind.To => "TO", SetCapacityKind.UpBy => "UP BY", _ => "DOWN BY" };
 
     /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item
     /// (an index data item or an integer item — the emitter dispatches on its usage).</summary>

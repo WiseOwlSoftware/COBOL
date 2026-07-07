@@ -258,10 +258,29 @@ canonical introduction record. (b) NO separate `dyn_pre2014` corpus golden — t
 SUCCESS only; the below-2014 **COBOLNET0900** rejection is asserted by the matrix row's `expectDiagnostic` at editions
 85/2002 (`VersionMatrixTests`), the one place negative gating belongs. `DynamicResolve` (CAPACITY-register/access
 resolution) moved to inc 2/3 where the register becomes a readable item;
-(2) CAPACITY read + SET Format 14 + capacity ECs → `dyn_declare_capacity`/`dyn_from_to`/`dyn_set_grow`/
-`dyn_set_up_down`/`dyn_bounds_overflow`; (3) subscripted element access (`AccessDir` in `AccessPath` +
-`CobolTable.At(CobolDynTable, occ, receiving)` + `RefSending`/`RefReceiving`/`GrowTo`) → `dyn_implicit_grow`/
-`dyn_initialized`; (4) SEARCH over current capacity + EC-FLOW-SEARCH + `INITIALIZE` → `dyn_search`, flip the matrix
+(2) **✅ LANDED (DEVLOG 653)** — CAPACITY register read + SET Format 14. The register is a `CapacityRegisterPlace`
+(a VIEW over `{tablePath}.Capacity`, synthesized in a `DataBinder.DynamicResolve` post-build pass, indexed by
+`DataBinder.CapacityRegisters`, resolved via an early `ReferenceResolver.Resolve` hook + the new
+`ReferenceResolver.TablePath` whole-table-path helper); an unsigned-integer native-binary `PicInfo` so numeric reads
+hit the plain scale-0 branch, its `NumProfile` emitted (not a field) for the DISPLAY/`FormatDisplay` path. SET Format
+14 (TO/UP BY/DOWN BY) reroutes in `BindSetTo`/`BindSetUpDown` on a `CapacityRegisterPlace` first target →
+`BoundSetCapacity` → `SetCapacity`/`CapacityUpBy`/`CapacityDownBy`. Diagnostics: **1523** (register as an ordinary
+receiver — the `ResolveReceiving` chokepoint; and the SR30 implicit-definition name collision in `DynamicResolve`),
+**1524** (SET F14 with a second/mixed target). A whole (unsubscripted) dynamic-table reference now fails LOUD (a
+`PlaceForItem` guard) instead of emitting a bare `CobolDynTable<T>` object. Goldens `dyn_capacity_read`/
+`dyn_capacity_set`/`dyn_capacity_bounds` (greenfield-only). **Deferred with rationale (recorded here per the process
+rule):** (a) **EC-BOUND-OVERFLOW** on exceeding the TO/expected capacity is NONFATAL and checking-gated — with
+runtime checking off (the default) the operation continues either way (identical observable behavior), so the
+runtime `_expected` enforcement + the `>>TURN … CHECKING ON` gate ride the EC-integration pass, not inc 2
+(`dyn_capacity_bounds` proves the checking-off continue). (b) **FUNCTION LENGTH over a dynamic table**
+(= `Capacity × elemWidth`) + the `DynWholeTablePlace` whole-table place + its value-funnel loud belong with the
+inc-5 §14.6.9 **1527** whole-/variable-length-group work (one home for whole-dynamic-table operations); inc 2 ships
+the clean whole-table loud guard as the interim. (3) subscripted element access — **⚠ the D9 sketch
+`CobolTable.At(CobolDynTable, occ, receiving)` is WRONG** (a single `MemberPlace` path cannot carry read-vs-write
+polarity; `ref T` covers the fixed case only). CORRECTED design: an `AccessDir { Sending, Receiving }` threaded
+through `AccessPath`, and a new `DynTablePlace(SendingPath, ReceivingPath, Item)` whose `Read()` emits
+`…RefSending(occ)` and `Write(rhs)` emits `…RefReceiving(occ) = rhs;` (the receiving side grows-and-seeds). Arity
+recognition switches to `IsTable` at the OCCURS-level count. → `dyn_implicit_grow`/`dyn_initialized`; (4) SEARCH over current capacity + EC-FLOW-SEARCH + `INITIALIZE` → `dyn_search`, flip the matrix
 row active; (5) the staged-loud guards (1525–1528) + doc/DOC_INDEX + negative goldens. Increments 2–5 are
 greenfield-only (guard-fast; CI is the backstop). All 3 recon open questions resolved to their recommended defaults
 (VALUE-capacity staged; EC-FLOW-SEARCH in CORE; extend THIS doc).
