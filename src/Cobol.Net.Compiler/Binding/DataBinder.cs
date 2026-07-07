@@ -200,6 +200,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// trap-#6 guard at the NAME level).</summary>
     private readonly HashSet<string> _rootNames = new(StringComparer.Ordinal);
 
+    /// <summary>Index-names contributed by TYPE-expanded clones (data-model D17 inc 4): a TYPEDEF whose OCCURS carries
+    /// an INDEXED BY phrase can be referenced at most ONCE — a second reference clones the same global index-name and
+    /// the two tables' indexes would collide on one C# field. A repeat here → COBOLNET1531 (staged loud). Cleared at
+    /// the top of <see cref="ExpandTypes"/> (per program unit).</summary>
+    private readonly HashSet<string> _typedIndexNames = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>The resolution half of <see cref="Bind"/> — the post-build passes over the COMPLETE forest.</summary>
     internal void BindResolve(Core.ProgramUnitContext program)
     {
@@ -275,6 +281,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // A level-66 RENAMES entry is a re-grouping alias on the owning record — not a node in the storage tree.
             if (lvl == 66)
             {
+                // A RENAMES INSIDE a TYPEDEF template is part of the type (§13.18.58.4 GR1) but CloneItem does not
+                // carry Renames66 into a TYPE reference — so it would be silently dropped. Staged loud (D17 inc 4).
+                if (rootIsTemplate)
+                    Edition.Error("COBOLNET1535", "a level-66 RENAMES inside a TYPEDEF (part of the type per "
+                        + "ISO §13.18.58.4 GR1) is recognized but not yet cloned into TYPE references (data-model "
+                        + "D17 residue)");
                 BindRenames(entry);
                 continue;
             }
@@ -719,6 +731,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// BEFORE the resolution passes (so the clone is a normal part of the forest they walk).</summary>
     private void ExpandTypes()
     {
+        _typedIndexNames.Clear();   // per-program: the ≥2×-INDEXED-type collision guard (D17 inc 4)
         foreach (var item in AllItems().Where(i => i.TypeRefName is not null).ToList())
             ExpandType(item, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
     }
@@ -800,7 +813,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         };
         clone.Uid = _uidCounter++;
         clone.Parent = newParent;
-        foreach (var idx in src.IndexNames) clone.IndexNames.Add(idx);
+        foreach (var idx in src.IndexNames)
+        {
+            clone.IndexNames.Add(idx);
+            // §13.18.38 (D17 inc 4, staged loud): a TYPE with an INDEXED BY table referenced ≥2× clones the same
+            // global index-name onto two tables — they would share one C# index field and silently cross-drive.
+            if (!_typedIndexNames.Add(idx))
+                Edition.Error("COBOLNET1531", $"INDEXED BY '{idx}' comes from a type declaration referenced more "
+                    + "than once — a type whose OCCURS has an INDEXED BY phrase may be referenced at most once, else "
+                    + "the global index-name collides (ISO §13.18.38; data-model D17 residue)");
+        }
         RegisterName(clone);
         foreach (var c88 in src.Own88s) CloneConditionOnto(clone, c88);   // §13.18.58.4 GR1 — the 88s are part of the type (D17 inc 3)
         foreach (var child in src.Children)
@@ -1130,6 +1152,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
         if (rawValue is { } rv && pic is not null) ValidateValueCategory(pic, rv, entryWhere);
+        // §13.18.57.4 GR5 / §13.18.22 (D17 inc 4, staged loud): an EXTERNAL type declaration shares the type across
+        // the run unit (a strong external record's type must also be external). Cross-program external TYPE sharing
+        // is not yet modeled — reject loud rather than clone a per-program copy that silently diverges.
+        if (isTypedef && hasExternal)
+            Edition.Error("COBOLNET1534", $"{entryWhere}: an EXTERNAL type declaration (a run-unit-shared type, "
+                + "ISO §13.18.57.4 GR5 / §13.18.22) is recognized but not yet implemented (data-model D17 residue)");
         var item = new DataItem
         {
             Level = level,

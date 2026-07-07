@@ -1678,10 +1678,30 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         DataItem? sl = left is BoundFieldOperand fl ? fl.Place.Item : null;
         DataItem? sr = right is BoundFieldOperand fr ? fr.Place.Item : null;
         if (sl?.IsStrongGroup == true || sr?.IsStrongGroup == true)
+        {
             if (sl is null || sr is null || !DataItem.SameStrongType(sl, sr))
                 data.Edition.Error("COBOLNET1533", "a strongly-typed group may be compared only with a group of the "
                     + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
+            // §8.8.4.2.3 SR4 (D17 inc 4, staged loud): a strong group whose elements include class boolean,
+            // object-reference, or pointer may be compared only for equality — an ordering relation on such a group
+            // is not defined/implemented.
+            else if (op is not ("==" or "!=") && (ContainsNonOrderableLeaf(sl) || ContainsNonOrderableLeaf(sr)))
+                data.Edition.Error("COBOLNET1535", "a strongly-typed group containing a boolean, object-reference, "
+                    + "or pointer element may be compared only for equality (ISO §8.8.4.2.3 SR4) — an ordering "
+                    + "relation is not implemented (data-model D17 residue)");
+        }
         return new BoundRelational(left, op, right);
+    }
+
+    /// <summary>True when a group (or elementary) item has any leaf of class boolean / object-reference / pointer —
+    /// the categories that make a strongly-typed group comparable only for equality (ISO §8.8.4.2.3 SR4).</summary>
+    private static bool ContainsNonOrderableLeaf(DataItem item)
+    {
+        if (item.IsElementary)
+            return item.Pic?.Category is PicCategory.Boolean or PicCategory.ObjectReference or PicCategory.Pointer;
+        foreach (var c in item.Children)
+            if (ContainsNonOrderableLeaf(c)) return true;
+        return false;
     }
 
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>

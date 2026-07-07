@@ -190,6 +190,7 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "typedef_weak_group"),
         ("2002", "typedef_strong_ok"),   // TYPEDEF inc 2: a STRONG type + same-type MOVE/compare (D17, §8.5.3.3) — net-new
         ("2002", "typedef_88"),          // TYPEDEF inc 3: level-88 condition-names cloned per TYPE reference (D17, §13.18.58.4 GR1) — net-new
+        ("2002", "typedef_indexed"),     // TYPEDEF inc 4: a single INDEXED-BY type reference (D17, §13.18.38) — net-new
 
         // Phase 6, OCCURS DYNAMIC increment 1 (data-model D9, §13.18.38 Format 4 / §8.5.1.9): the
         // dynamic-capacity table declaration + the growable CobolDynTable<T> storage substrate. The frozen

@@ -397,8 +397,18 @@ EVALUATE/PERFORM UNTIL/SEARCH WHEN), a strong-group guard in `CheckClassConditio
 post-resolution `CheckStrongTypeDeclarations` pass (a RENAMES/REDEFINES over any part of a strong subtree, INTERNAL
 template redefines excluded via the shared-strong-root test). Golden `typedef_strong_ok` (same-type whole-record
 MOVE+compare byte-verified) + `TypedefStrongTests` ×8 negatives (SR2/SR1/class-cond/SR6/SR4/SR3/relative-path + a
-clean companion). (3) level-88s in a TYPEDEF → `typedef_88`. (4) staged-loud
-residue (1534/1535) + the matrix behavior/continuity rows + DOC_INDEX / ISO2023_CONFORMANCE_PLAN M3-2 sync.
+clean companion). (3) **✅ LANDED (DEVLOG 662)** — level-88 condition-names inside a TYPEDEF (§13.18.58.4 GR1):
+`DataItem.Own88s` (the item's own 88s), `BindCondition(…, registerGlobal: !rootIsTemplate)` keeps a template's 88s OFF
+the global by-name index (GR1), and `ExpandType`/`CloneItem` call `CloneConditionOnto` to clone them onto each
+reference (registered globally — clones ARE referenceable). Golden `typedef_88` + `TypedefConditionTests` ×2.
+(4) **✅ LANDED (DEVLOG 663)** — staged-loud residue: **1534** EXTERNAL type declaration (`BindEntry`), **1535**
+RENAMES-in-TYPEDEF (the in-template level-66 guard in `BindEntries`) + a strong-group-with-boolean/object/pointer
+ordering compare (§8.8.4.2.3 SR4, in `CheckedRelational`), **1531** an INDEXED-BY type referenced ≥2× (the
+`_typedIndexNames` collision set in `CloneItem`). Golden `typedef_indexed` (a single INDEXED-type reference works) +
+`TypedefResidueTests` ×5. **Matrix note:** the STRONG phrase rides the SAME `typedefClause` gate as `typedef-def-2002`
+(introduction gating already covered) and 1531–1535 are edition-INVARIANT compile-time diagnostics (no cross-edition
+behavior variance), so no new matrix row is warranted; `ISO2023_CONFORMANCE_PLAN` M3-2 synced (TYPEDEF ◑ DONE; SAME AS
+/ TYPE TO deferred).
 
 **RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached
 resolved items); `INDEXED BY` in a TYPEDEF used ≥2× = a global index-name collision (staged loud 1531); method/OO-scope

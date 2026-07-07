@@ -601,8 +601,14 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ### 3.8 M3 — COBOL-2014
 
-- ☐ **M3-1 — Dynamic-capacity tables** `OCCURS DYNAMIC [CAPACITY IN dn] [FROM…TO]`. *Medium–large.*
-- ☐ **M3-2 — `TYPEDEF` / `SAME AS` / `TYPE TO`.** *Medium.*
+- ☑ **M3-1 — Dynamic-capacity tables** `OCCURS DYNAMIC [CAPACITY IN dn] [FROM…TO]`. *Medium–large.* **DONE**
+  (data-model D9, DEVLOG 652–657 — all 5 increments + adversarial review; note: 2014 feature but the corpus lives
+  under `tests/conformance/2014`).
+- ◑ **M3-2 — `TYPEDEF` / `SAME AS` / `TYPE TO`.** *Medium.* **TYPEDEF + the `TYPE` clause DONE** (data-model D17,
+  DEVLOG 659–663 — inc 1 weak-TYPE spine, inc 2 STRONG typing, inc 3 level-88s, inc 4 staged-loud residue; goldens
+  `typedef_weak_elem`/`typedef_weak_group`/`typedef_strong_ok`/`typedef_88`/`typedef_indexed`). **DEFERRED:** `SAME AS`
+  (a distinct feature — a hard `AS` keyword is a legacy-compat hazard; `CloneItem` is built generically for its reuse)
+  and `TYPE TO` (the pointer-target form). Diagnostic band 15xx = 1529–1535.
 - ☐ **M3-3 — JSON & XML** `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` + special registers (XML-CODE/JSON-CODE/…).
   *Large.* Greenfield: a version-gated grammar fragment in the `Cobol.Net.Frontend` parser (the legacy
   `CobolParserJsonXml.g4` overlay is dead/unwired — do not build on it); needs binder/emit/runtime. §14.9.
