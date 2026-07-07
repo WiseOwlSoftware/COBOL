@@ -140,17 +140,33 @@ public sealed partial class DataBinder
     internal void OoBindMethodData(OoMethodSymbol m)
     {
         string where = $"method '{m.Name}'";
+        // A method definition shall NOT contain an ENVIRONMENT DIVISION: the configuration section (§12.3.3 SR2)
+        // and the input-output section / FILE-CONTROL (§12.4.3 SR1) may appear only in a factory or instance
+        // definition — never a method. (Object/factory FILE-CONTROL is the M2-OO-1i object/factory ENV+FILE leg;
+        // a method references those files via §11.7.4 GR5, it does not declare its own.) Hard error, not the old
+        // "not yet implemented" 0899 — the construct is spec-forbidden, not unimplemented.
         if (m.Ctx.environmentDivision() is not null)
-            Edition.Error("COBOLNET0899", $"{where}: a method's own ENVIRONMENT DIVISION (ISO §11.7) is "
-                + "recognized but not yet implemented (owning roadmap phase: Phase 3, OO port)");
+            Edition.Error("COBOLNET1519", $"{where}: a method definition shall not contain an ENVIRONMENT DIVISION "
+                + "— the configuration and input-output sections may appear only in a factory or instance "
+                + "definition (ISO §12.3.3 SR2 / §12.4.3 SR1)");
 
         var dd = m.Ctx.dataDivision();
         _bindingMethodScope = m.DataScope;   // M2-OO-1h step 4: route INDEXED BY index-names to the method scope
         if (dd is not null)
         {
-            if (dd.fileSection() is not null || dd.reportSection() is not null || dd.screenSection() is not null)
-                Edition.Error("COBOLNET0899", $"{where}: a FILE/REPORT/SCREEN SECTION in a method definition "
-                    + "is recognized but not yet implemented (owning roadmap phase: Phase 3, OO port)");
+            // FILE / REPORT / SCREEN sections may appear only in a factory or instance definition, never in a
+            // method (§13.4.3 SR1 / §13.9 / §13.10). One error class (COBOLNET1519, "section not permitted in a
+            // method"), split so the message names the offending section + its §. A method's own data division is
+            // limited to LOCAL-STORAGE (§13.6.3) and LINKAGE (§13.7.3), both handled below.
+            if (dd.fileSection() is not null)
+                Edition.Error("COBOLNET1519", $"{where}: a method definition shall not contain a FILE SECTION — it "
+                    + "may appear only in a factory or instance definition (ISO §13.4.3 SR1)");
+            if (dd.reportSection() is not null)
+                Edition.Error("COBOLNET1519", $"{where}: a method definition shall not contain a REPORT SECTION — it "
+                    + "may appear only in a factory or instance definition (ISO §13.9)");
+            if (dd.screenSection() is not null)
+                Edition.Error("COBOLNET1519", $"{where}: a method definition shall not contain a SCREEN SECTION — it "
+                    + "may appear only in a factory or instance definition (ISO §13.10)");
             if (dd.workingStorageSection() is { } ws)
             {
                 // D3: method WS → STATIC fields (per-class, shared, persistent — §11.7; the naive instance-field

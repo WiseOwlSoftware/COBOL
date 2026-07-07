@@ -1576,7 +1576,7 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 | M2-OO-1e | PROPERTY (GET/SET) decl + refs | remain | LANDED | oo_property{,_ref,_explicit_ref,_factory_ref,_methods} ENABLED; DEVLOG 606-607 | none | Pinned __GET_/__SET_ accessors. |
 | M2-OO-1f | Universal object ref + __CobolInvoke dispatch | remain | LANDED | oo_universal{,_inherit,_name,_relation} ENABLED; DEVLOG 608 | none | |
 | M2-OO-1g | EC-OO-* model (RAISE id/EXCEPTION-OBJECT/USE F4/RAISING via INVOKE) | remain | LANDED | oo_ec_raise_object / oo_ec_goback_raising ENABLED; DEVLOG 609; conformance 1592/1592 | none | |
-| M2-OO-1h | OO residue (method own ENV/FILE/SCREEN, REDEFINES/ODO/RENAMES/INDEXED in method data, PROPAGATE ON, FACTORY-OF/ACTIVE-CLASS RAISING, object VIEWS, STOP…RAISING) | implied ◐ | **DATA-MODEL LANDED (DEVLOG 637-640)** | **The four method-scope data-model shapes are LIVE: RENAMES (637, gate-only) / ODO (638, scope-aware LookupDataInScopeOf) / REDEFINES (639, scope-aware target + Tier-B backing static/local routing + COBOLNET1518) / INDEXED (640, per-method index namespace, GR5). `OoGateUnsupportedShapes` stages nothing. Goldens oo_method_{renames,odo,redefines_local,redefines_ws,indexed_search,indexed_two_methods}.** Residue → M2-OO-1i (method own ENV/FILE/SCREEN + EXTERNAL/GLOBAL, gated in OoBindMethodData:92-116) + the OO-specific legs (PROPAGATE ON / FACTORY-OF/ACTIVE-CLASS RAISING / object VIEWS / STOP…RAISING) | none (Phase 3 port residue) | Data-model DONE. M2-OO-1i + OO-RAISING/VIEWS legs remain (some 2014/2023 surface). |
+| M2-OO-1h | OO residue (method own ENV/FILE/SCREEN, REDEFINES/ODO/RENAMES/INDEXED in method data, PROPAGATE ON, FACTORY-OF/ACTIVE-CLASS RAISING, object VIEWS, STOP…RAISING) | implied ◐ | **DATA-MODEL LANDED (DEVLOG 637-640)** | **The four method-scope data-model shapes are LIVE: RENAMES (637, gate-only) / ODO (638, scope-aware LookupDataInScopeOf) / REDEFINES (639, scope-aware target + Tier-B backing static/local routing + COBOLNET1518) / INDEXED (640, per-method index namespace, GR5). `OoGateUnsupportedShapes` stages nothing. Goldens oo_method_{renames,odo,redefines_local,redefines_ws,indexed_search,indexed_two_methods}.** Residue → M2-OO-1i (the OBJECT/FACTORY ENV+FILE division referenceable from methods — a method canNOT own ENV/FILE/WS per §12.4.3/§13.4.3/§13.5.3 SR1; the object/factory FILE gates are CSharpEmitter.Oo.cs:87-90/108-111; method-scope ENV/FILE become hard 1519 errors) + the OO-specific legs (PROPAGATE ON / FACTORY-OF/ACTIVE-CLASS RAISING / object VIEWS / STOP…RAISING) | none (Phase 3 port residue) | Data-model DONE. M2-OO-1i (see its DECISION-COMPLETE design below) + OO-RAISING/VIEWS legs remain (some 2014/2023 surface). |
 
 ### M2-OO-1h data-model design (REDEFINES / ODO / INDEXED / RENAMES in METHOD scope) — DECISION-COMPLETE
 
@@ -1641,6 +1641,109 @@ so the shape goldens target LOCAL-STORAGE/LINKAGE (2023-clean) + one method-WS g
 
 **Separate follow-ups (NOT this leg):** method own ENV/FILE/REPORT/SCREEN (`OoBindMethodData:92-101`) and
 EXTERNAL/GLOBAL on method WS (`:111-116`) — orthogonal subsystems, keep their loud gates → **M2-OO-1i**.
+
+### M2-OO-1i — the OBJECT/FACTORY ENVIRONMENT + FILE division (files referenceable from methods) — DECISION-COMPLETE
+
+*Recon workflow wf_5d22beb6-140 (4 readers + xhigh synthesis, 2026-07-06). **All 7 load-bearing spec citations
+verified verbatim in-session** (§12.4.3 SR1 :14920 · §13.4.3 SR1 :16184 · §13.5.3 SR1 :16461 · §13.6.3 SR1 :16513 ·
+§13.18.27.3 SR4 :19038 · §9.1.4 :11206-11218 · §11.7.4 GR5 :13281) and the code gates/reparent/grammar confirmed by
+reading (CSharpEmitter.Oo.cs:87-90/108-111/144-164, CobolOO.g4:31/50).*
+
+**⛔ THE RE-FRAMING (the ticket title is spec-impossible).** A method definition **cannot** own an ENVIRONMENT
+DIVISION, a FILE SECTION, a WORKING-STORAGE / REPORT / SCREEN SECTION — §12.4.3 SR1 / §13.4.3 SR1 / §13.5.3 SR1 all
+say those sections may appear *only in a factory or instance definition, not in a method definition* (a method may
+own **only** LOCAL-STORAGE §13.6.3 + LINKAGE §13.7.3). So M2-OO-1i's real construct is **the OBJECT-paragraph and
+FACTORY-paragraph INPUT-OUTPUT SECTION (FILE-CONTROL) + FILE SECTION (FDs), referenceable from the class's method
+bodies** via §11.7.4 GR5 (:13281 — a name in the containing object definition is visible in its methods). The two
+emitter gates `CSharpEmitter.Oo.cs:87-90` (OBJECT) / `:108-111` (FACTORY) — `if (data.Files.Count > 0) 0899` — are
+what stand in for it today; the DataBinder.Oo.cs method-ENV/FILE gates are for a construct the spec **forbids**.
+
+**Three facts that collapse most machinery.** (1) **Object/factory file binding is already wired** —
+`OoReparentClassData`/`OoReparentFactoryData` (:144-164) reparent `obj/fac.environmentDivision()` +
+`.dataDivision()` into the synthetic unit, so `data.BindDeclarations` already runs `BindFileControl` +
+`BindFileSection`; that is *why* `data.Files.Count > 0` at the gate. FD records already flow to `data.Roots` →
+`FieldEmitter` as instance fields (object) / factory-type fields (factory) — correct storage, no re-routing. (2)
+**Method bodies already see object/factory files with zero scoping** — they bind through `new
+StatementBinder(cls.Data, cls.Refs)` (:120), and `cls.Data.FilesByName` holds the object files, so OPEN/CLOSE/
+READ/WRITE/`FileOfRecord`/keyed-I/O/USE/LINAGE-COUNTER resolve unchanged. FILE STATUS / RECORD KEY / DEPENDING
+operands are *object WS* items in `data.ByName` (never moved by `OoScopeSubtree`, which only re-homes **method**
+names) → `ResolveFiles` needs no scope-awareness. **Discard the recon's method-scoped-file-map / scope-aware-resolver
+idea — it is for a construct that cannot exist.** (3) **The only real gaps:** (a) the loud gates → proper
+diagnostics/emission, and (b) connector REGISTRATION + connector-KEY namespacing (the class emit path never runs
+`__Activate`/`EmitFileRegistration`; the qualification loop at `CSharpEmitter.Call.cs:138-142` iterates *program
+units only*, so class FileModels are never registered nor key-qualified).
+
+**Decided semantics (each spec-cited).**
+- **(a) Instance file-connector lifetime = per-object** (not per-class-shared). §9.1.4 (:11216) executes an implicit
+  CLOSE "for file connectors in an object when the object is deleted"; the NOTE (:11218) licenses GC-deferred close.
+  Realized as a per-object connector key in an instance field, closed by a finalizer (run-unit `CloseAll` is the
+  backstop). *Distinct from method-WS's static-per-class call — a file connector is object-lifetime.*
+- **(b) EXTERNAL object/factory FD → the one run-unit-shared connector.** `IS EXTERNAL` is permitted on any FD
+  (§13.18.22 SR1); §9.1.3/§9.1.5 make it one run-unit connector by name. `CallBindExternalAndGlobal` already
+  re-bases the record area onto the `ExternalStore` cell (it runs on `cls.Data` via `BindResolve`); the only missing
+  half is the emit-side `::EXT::` connector-key rewrite (today program-units only). `CobolFile.Register`'s idempotent
+  guard then yields exactly one shared connector — no per-object key for EXTERNAL.
+- **(c) GLOBAL in a factory/instance/method = hard error.** §13.18.27.3 SR4 (:19038, verified): "The GLOBAL clause
+  shall not be specified in a factory definition, an instance definition, or a method definition." → **COBOLNET1520**
+  (not a no-op, not a silent accept). Program↔class file sharing is achievable *only* via EXTERNAL (§9.1.5).
+- **(d) Name scope** — object/factory files are visible in method bodies (§11.7.4 GR5); a surrounding program's
+  files are **not** visible across the class boundary (GLOBAL barred here; a method is not a contained program).
+  Two sibling methods cannot collide on a file-name — neither owns a file; they share the one object/factory file.
+
+**Implementation plan (file-by-file).**
+- *Binder `DataBinder.Oo.cs`* — replace the method-placement catch-all 0899s with **COBOLNET1519** (one class of
+  error, "construct X not permitted in a method definition", message names the specific section + §): the method
+  `environmentDivision()` gate (§12.3.3 SR2 / §12.4.3 SR1) and the `fileSection`/`reportSection`/`screenSection`
+  split (§13.4.3 SR1 / §13.9 / §13.10). Method WORKING-STORAGE keeps its existing edition-window path; method-WS
+  EXTERNAL/GLOBAL keeps its 0899 (follow-up). No other binder change.
+- *Emitter `CSharpEmitter.Oo.cs`* — remove the two object/factory FILE gates (:87-90, :108-111); add a **GLOBAL guard
+  (COBOLNET1520)** post-`BindResolve` on both `data`/`fdata` (`foreach f in Files if (f.IsGlobal) …`); add
+  `OoQualifyClassFiles(cls)` (mirror of the program loop Call.cs:138-142): instance file →
+  `f.IsExternal ? "::EXT::"+ext : cls.CsName+"::INST::"+name` and set `f.InstanceKeyField="__fkey_"+San(name)`;
+  factory file → `… "::FACT::"+name`. New `OoEmitFileMembers(data, factory, w)` in `OoEmitTypeHalf` after
+  `fields.Emit()`: instance-non-EXTERNAL → an instance field `__fkey_<name> = CobolFile.MintInstanceKey(base)` + a
+  registration line in the emitted instance ctor (base ctor chains first, D4 order) + `__TrackInstanceFile(key)`;
+  instance-EXTERNAL / factory → literal-key registration (factory in the factory-singleton ctor; EXTERNAL
+  registration idempotent). Report-file / keyed / sharing registration reuse the existing
+  `EmitFileRegistration`/`KeyedEmitRegistration`/`EmitSharingRegistration` bodies with the connector-key arg swapped
+  to `FileKeyExpr(file)`.
+- *Emitter `FileKeyExpr` sweep* — one helper
+  `FileKeyExpr(f) => f.InstanceKeyField is {} fld ? $"this.{fld}" : CsLiteral(f.CobolName)`; replace every I/O
+  connector-name site that emits `CsLiteral(file.CobolName)` (a full grep sweep across CSharpEmitter.cs / .KeyedIo /
+  .Sort / .ReportWriter / .Exceptions + NumericRenderer LINAGE-COUNTER — feedback_scan_all_similar). For every
+  program/EXTERNAL file `InstanceKeyField` is null → identical literal → **byte-identical output**, proven by the
+  full battery (not a new golden; feedback_refactor_first_always / feedback_singular_pattern).
+- *Runtime* — `CobolFile.cs`: `MintInstanceKey(base) => base+"#"+Interlocked.Increment(ref _instSeq)` (`_instSeq`
+  reset in `Init()` for determinism) + `CloseAndDrop(key)` (per-object implicit CLOSE + registry removal); `Register`
+  unchanged. `CobolObject.cs`: `__instFiles` list + `__TrackInstanceFile` + a finalizer `~CobolObject()` calling
+  `CobolFile.CloseAndDrop` (§9.1.4). `FileModel.cs`: add `string? InstanceKeyField`.
+
+**Diagnostics.** COBOLNET**1519** (a section not permitted in a method: ENV / FILE / REPORT / SCREEN — one error
+class, message names which) · COBOLNET**1520** (GLOBAL on a factory/instance/method FD, §13.18.27.3 SR4). Both in the
+free 15xx band (1518 is last-used). Edition-invariant — OO cannot parse below 2002, so no explicit dialect guard.
+*Not over-diagnosed:* method-WS keeps 0900/0902; method-WS EXTERNAL/GLOBAL keeps 0899.
+
+**Golden & test plan (one golden per branch; all GreenfieldOnly — legacy can't parse OO).** Positive corpus goldens
+in `tests/conformance/2002/` (driver PROGRAM + CLASS; sequential FD OPEN OUTPUT→WRITE→CLOSE→OPEN INPUT→READ→DISPLAY):
+(1) `oo_object_file` — instance file, one object → `GOT=HELLO OBJECT`; (2) `oo_object_file_two_instances` — two
+objects write/read their own files un-closed → `A=AAA`/`B=BBB` (proves distinct `__fkey#n`, §9.1.4); (3)
+`oo_factory_file` — factory singleton file → `FGOT=FACTORY DATA`; (4) `oo_external_file_shared` — EXTERNAL program↔
+object shared connector + record area. Registration recipe per golden: `.cob`+`.out` + `enabled` in `manifest.json`
++ `("2002","<name>")` in `ConformanceTests.cs` `GreenfieldOnly` (same change set — feedback_legacy_suite_on_shared_corpus).
+Negative facts in `OoSpineTests` (CRLF-safe `.Replace("\r\n","\n")` splice, DEVLOG 641 lesson): method FILE/ENV/
+REPORT/SCREEN SECTION → 1519 (one assert each); OBJECT/FACTORY `FD … IS GLOBAL` → 1520.
+
+**Increments (smallest first; build + full battery + commit + DEVLOG each).** (1) **method-placement diagnostics**
+(DataBinder.Oo.cs → 1519 split + the OoSpineTests facts; no emission change). (2) **`FileKeyExpr` refactor** (helper
++ `FileModel.InstanceKeyField` + the sweep; byte-identical, battery-proven, no golden). (3) **factory files** (remove
+:108-111 gate; `OoQualifyClassFiles` factory branch + ctor registration + 1520 factory half; golden 3 + the FACTORY
+1520 fact). (4) **instance files** (remove :87-90 gate; instance branch + `MintInstanceKey`/`CloseAndDrop` +
+`__TrackInstanceFile`/finalizer + 1520 object half; goldens 1+2 + the OBJECT 1520 fact). (5) **EXTERNAL object/factory
+FD** (`::EXT::` qualification; golden 4). Update this doc's AS-BUILT row + resume-prompt STATE at close of (5).
+
+**Out of scope (stay loud / follow-up):** REPORT (RD) / SCREEN sections in an object/factory paragraph (their own
+legs); SORT/MERGE SD in an object/factory (in-memory store + method RELEASE/RETURN — the `FileKeyExpr` sweep touches
+SD sites for uniformity but no SD golden ships); method-WS EXTERNAL/GLOBAL. **Open questions: none require the owner.**
 
 ## M3 — COBOL-2014
 

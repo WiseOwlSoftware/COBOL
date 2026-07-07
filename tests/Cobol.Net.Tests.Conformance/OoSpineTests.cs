@@ -336,6 +336,46 @@ public sealed class OoSpineTests
             """), "COBOLNET0827");
     }
 
+    /// <summary>M2-OO-1i — a method definition shall NOT own an ENVIRONMENT DIVISION, FILE SECTION, REPORT
+    /// SECTION, or SCREEN SECTION: each may appear only in a factory or instance definition (ISO §12.4.3 SR1 /
+    /// §13.4.3 SR1 / §13.9 / §13.10). A method's own data division is limited to LOCAL-STORAGE (§13.6.3) +
+    /// LINKAGE (§13.7.3). Each violation is a HARD COBOLNET1519 (superseding the old "recognized but not yet
+    /// implemented" 0899 — the construct is spec-forbidden, not merely unimplemented). Object/factory FILE-CONTROL
+    /// + FILE SECTION ARE legal (the M2-OO-1i object/factory leg); a method references those files via
+    /// §11.7.4 GR5, it never declares its own.</summary>
+    [Theory]
+    [InlineData("""
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT F ASSIGN "m.dat".
+        """)]
+    [InlineData("""
+        DATA DIVISION.
+        FILE SECTION.
+        FD F.
+        01 F-REC PIC X(4).
+        """)]
+    [InlineData("""
+        DATA DIVISION.
+        REPORT SECTION.
+        """)]
+    [InlineData("""
+        DATA DIVISION.
+        SCREEN SECTION.
+        """)]
+    public void MethodMayNotOwnEnvOrFileSection_1519(string methodSection)
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSPME", "OSPCME", """
+                INVOKE OSPCME "NEW" RETURNING T.
+            """, $$"""
+            METHOD-ID. M.
+            {{methodSection}}
+            PROCEDURE DIVISION.
+            PARA-A.
+                CONTINUE.
+            END METHOD M.
+            """)), "COBOLNET1519");
+
     /// <summary>The staged boundaries stay LOUD (never a silent drop): INVOKE SELF (slice 3b) reaches the
     /// runtime not-implemented guard; an arity mismatch (slice 2 — trap #3: a dropped/extra argument would
     /// shift every following slot, the legacy DEVLOG-449 blocker) is a compile-time 0828.</summary>
