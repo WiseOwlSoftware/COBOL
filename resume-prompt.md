@@ -27,29 +27,46 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 629, 2026-07-06 15:38 PDT): PHASE 5 IN PROGRESS — 3 intrinsics LANDED: CONCAT (§15.18) +
-> BASECONVERT (§15.12) [628] + TRIM (§15.96) IN FULL [629]** (catalog Deferred→Runtime + a RenderString case + a
-> CobolIntrinsics.Text body; TRIM added a bespoke `BindTrim` for the LEADING/TRAILING phrase + the 2023 argument-2
-> char-set form gated 1502 below 2023 — done completely, per the owner's *do every feature well* directive).
-> Goldens `intrinsics_string_2023` + `intrinsics_trim`, GreenfieldOnly (the legacy crashes on BASECONVERT / trims
-> only spaces). **1881 conformance · 216 unit · legacy integration 61 GREEN. RESUME NEXT: continue Phase 5 — each
-> remaining intrinsic is bespoke (no single "shared mechanism"): FIND-STRING (§15.37, paren-LESS + LAST/START
-> AFTER/ANYCASE keywords), SUBSTITUTE (§15.87, per-pair FIRST/LAST/ANYCASE), CONVERT (§15.19) — each done in full
-> like TRIM; then MODULE-NAME (§15.65, runtime module context), SMALLEST-ALGEBRAIC (§15.83, PIC metadata), and the
-> 2014 date family (FORMATTED-*/NUMVAL-F). Then the M2-OO-1h residue (extend the data-model machinery into method
-> scope — must be done in full, not dismissed) + M2-PRE; Phase 6/7.** **ALSO a CI SPEEDUP ~17min→~7min (DEVLOG 627, runs green):** the monolithic
-> guard job → 4 parallel jobs + guard-fast.sh (parallel NIST, proven ≡ by guard-verify) + NuGet caching; and the
-> ~29-min INV-1 sweep pole → **~2 min** via a no-emit `CompilerDriver.CheckOnly` + a `cobol check-batch` subcommand
-> (parse+bind-check the whole manifest in one warm parallel process — the Roslyn backend is skipped since the
-> edition-continuity verdict is settled pre-backend). **RESUME NEXT: continue Phase 5 intrinsics** — the residue
-> five (FIND-STRING §15.37 / SUBSTITUTE §15.87 / TRIM §15.96 / CONVERT §15.19 carry KEYWORD modifiers → build a
-> shared intrinsic-keyword-argument grammar/bind mechanism FIRST, then they fall out together; MODULE-NAME §15.65
-> needs runtime module context; SMALLEST-ALGEBRAIC §15.83 needs the argument's PICTURE metadata) + the 2014 date
-> intrinsics (FORMATTED-* / NUMVAL-F). Also still open: the **M2-OO-1h residue** (intricate — unstaging
-> REDEFINES/ODO/RENAMES/INDEXED in method data means extending the data-model classification/index/ODO machinery
-> into method scope; method own ENV/FILE/SCREEN; PROPAGATE ON + object VIEWS + OO-RAISING are 2014/2023) and the
-> low-severity **M2-PRE** follow-ups. Then Phase 6 (OCCURS DYNAMIC, TYPEDEF, floats) / 7 (2023 finalization). All
-> Phase-4 lettered tracks (a)-(g) + the UDF subsystem are DONE.
+> **STATE (DEVLOG 635, 2026-07-06 20:05 PDT): ⛔🎉 PHASE 5 INTRINSICS COMPLETE — all six remaining §15 families
+> LANDED IN FULL this session (DEVLOG 630–635), each done completely per the owner's *do every feature well*
+> directive.** The proven per-intrinsic cadence: a background RECON WORKFLOW (wf_840f8070-fdf) produced
+> decision-complete designs for the four research-heavy families (date/CONVERT/algebraic/MODULE-NAME) while
+> FIND-STRING + SUBSTITUTE were implemented inline; then catalog Deferred→Runtime + bespoke bind (keyword functions)
+> or generic bind + a renderer case + a runtime body → golden (GreenfieldOnly) + differential tests + a full
+> battery per commit. Landed:
+> • **FIND-STRING (§15.37, 630)** — LAST / START AFTER argument-3 / ANYCASE keyword phrase; non-overlapping match
+>   counting; `CobolIntrinsics.FindString`.
+> • **SUBSTITUTE (§15.87, 631)** — per-pair `[ANYCASE][FIRST|LAST]` variadic replacement in one left-to-right pass;
+>   EC-ARGUMENT-FUNCTION on zero length.
+> • **CONVERT (§15.19, 632)** — source/destination format keywords (ANY/ANUM/HEX/NAT/BYTE); Latin-1 ↔ UTF-16BE ↔ hex
+>   ↔ byte; the NONFATAL **EC-DATA-CONVERSION** ambient gate BUILT end-to-end (`DataConversionChecking`, verified via
+>   EXCEPTION-STATUS under `>>TURN … ON`); COBOLNET1514 SR band.
+> • **MODULE-NAME (§15.65, 633)** — a real runtime **module call-name stack** (`CobolModule`, thread-static, pushed/
+>   popped in `ProgramRegistry.RunMain`/`CallProgram`); CURRENT/ACTIVATING/NESTED/STACK/TOP-LEVEL; NESTED gate 1515.
+> • **SMALLEST / HIGHEST / LOWEST-ALGEBRAIC (§15.83/§15.43/§15.58, 634)** — the PICTURE-metadata compile-time fold
+>   family (all-nines / two's-complement container / edited-mask via the now-public `CobolEdit.MaskCapacity`);
+>   COBOLNET1516.
+> • **The COBOL-2014 date/time + number family (§15.17/38-41/48/69/79/92/95, 635)** — a full §15.3 format engine
+>   (one `Tokenize` → `EmitFormatted` + `Analyze`; ISO-week / UTC / offset / fractional seconds; §15.92.4 per-digit
+>   error positions) + NUMVAL-F/TEST-NUMVAL-F; non-literal-format gate 1517. Golden `formatted_datetime` (16 lines,
+>   every one spec-verified).
+> **Battery: 1941 conformance (+60 this session) · 216 unit · 117 corpus goldens GREEN; greenfield-only, CI green
+> per commit (the legacy job passes — every new golden is GreenfieldOnly).** Diagnostic-code map: 1514 CONVERT,
+> 1515 MODULE-NAME NESTED, 1516 ALGEBRAIC, 1517 non-literal-format. Still-Deferred §15 rows (loud, never wrong):
+> BYTE-LENGTH, DISPLAY-OF/NATIONAL-OF (residue #11 national data-class), the LOCALE-* / TEST-DATE / BOOLEAN-OF-*
+> family, CHAR-NATIONAL, SECONDS-PAST-MIDNIGHT, TEST-NUMVAL(-C), the DATE/DAY/YEAR-TO-* 4-digit-year family.
+> **RESUME NEXT: the M2-OO-1h data-model residue** (intricate — unstaging REDEFINES/ODO/RENAMES/INDEXED in method
+> data means extending the data-model classification/index/ODO machinery into method scope; method own ENV/FILE/
+> SCREEN; PROPAGATE ON + object VIEWS + OO-RAISING are 2014/2023 — must be done in full, not dismissed) **+ the
+> low-severity M2-PRE preprocessor follow-ups; then Phase 6 (OCCURS DYNAMIC, TYPEDEF, floats) / 7 (2023
+> finalization).** All Phase-4 lettered tracks (a)-(g) + the UDF subsystem + all Phase-5 intrinsics are DONE.
+>
+> **(superseded) STATE (DEVLOG 629, 2026-07-06 15:38 PDT): PHASE 5 IN PROGRESS — 3 intrinsics LANDED: CONCAT (§15.18) +
+> BASECONVERT (§15.12) [628] + TRIM (§15.96) IN FULL [629].** Goldens `intrinsics_string_2023` + `intrinsics_trim`,
+> GreenfieldOnly. 1881 conformance · 216 unit. **ALSO a CI SPEEDUP ~17min→~7min (DEVLOG 627):** the monolithic guard
+> job → 4 parallel jobs + guard-fast.sh + NuGet caching; and the ~29-min INV-1 sweep pole → **~2 min** via a no-emit
+> `CompilerDriver.CheckOnly` + a `cobol check-batch` subcommand (parse+bind-check the whole manifest in one warm
+> parallel process). (The Phase-5-in-progress RESUME AT is now closed — see the DEVLOG 635 banner above.)
 >
 > **(superseded) STATE (DEVLOG 626, 2026-07-06 12:26 PDT): ⛔🎉 PHASE 4 TRACK (c) — THE UDF SUBSYSTEM IS COMPLETE.** M2-UDF-3
 > (separate-compilation function PROTOTYPES: `FUNCTION-ID … IS PROTOTYPE`, cross-assembly locate via the sibling probe
