@@ -580,7 +580,7 @@ public sealed partial class CSharpEmitter
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files)
                     if (!file.IsExternal)   // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists (GR8 / §13.18.22.4 GR4a)
-                        w.Line($"CobolFile.Close({CsLiteral(file.CobolName)});");
+                        w.Line($"CobolFile.Close({FileKeyExpr(file)});");
             if (unit.Children.Count > 0 && CallChainHasGlobalUse(unit))
                 CallEmitRunGlobalUse(unit, w);
             w.Line();
@@ -634,7 +634,7 @@ public sealed partial class CSharpEmitter
                     for (int i = 0; i < decls.Count; i++)
                         if (decls[i].Global)
                             foreach (var f in decls[i].Files)
-                                w.Line($"case {CsLiteral(f.CobolName)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;");
+                                w.Line($"case {FileKeyExpr(f)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;");
                 }
             if (decls.Any(d => d.Global && d.ModeIndex is not null))
                 using (w.Block("switch (CobolFile.OpenModeOf(__f))"))   // GLOBAL open-mode scope (GR3b/GR6b–e)

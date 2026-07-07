@@ -255,9 +255,9 @@ public sealed partial class CSharpEmitter
             bool L2(string ec) => ExceptionCatalog.TryGet(ec, out var i) && i.Level == 2;
 
             Tier("// GR3c — file-scoped level-3 entries", (ec, f, i) =>
-                f is not null && L3(ec) ? $"__f == {CsLiteral(f.CobolName)} && __ec == {CsLiteral(ec)}" : null);
+                f is not null && L3(ec) ? $"__f == {FileKeyExpr(f)} && __ec == {CsLiteral(ec)}" : null);
             Tier("// GR3d — file-scoped level-2 entries", (ec, f, i) =>
-                f is not null && L2(ec) ? $"__f == {CsLiteral(f.CobolName)} && ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(ec)})" : null);
+                f is not null && L2(ec) ? $"__f == {FileKeyExpr(f)} && ExceptionCatalog.UnderLevel2(__ec, {CsLiteral(ec)})" : null);
             Tier("// GR3e — level-3 entries", (ec, f, i) =>
                 f is null && L3(ec) ? $"__ec == {CsLiteral(ec)}" : null);
             Tier("// GR3f — level-2 entries", (ec, f, i) =>
@@ -319,7 +319,7 @@ public sealed partial class CSharpEmitter
                 {
                     for (int i = 0; i < decls.Count; i++)
                         foreach (var f in decls[i].Files)
-                            w.Line($"case {CsLiteral(f.CobolName)}: __sel = __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); break;");
+                            w.Line($"case {FileKeyExpr(f)}: __sel = __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); break;");
                 }
             if (decls.Any(d => d.ModeIndex is not null))
                 using (w.Block("if (__sel == -3) switch (CobolFile.OpenModeOf(__f))"))   // F1 open-mode scope (GR3b/GR6b–e)

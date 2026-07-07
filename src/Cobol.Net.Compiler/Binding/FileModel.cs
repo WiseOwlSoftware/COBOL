@@ -105,6 +105,13 @@ public sealed class FileModel
     /// grammar carries no <c>AS literal</c> on the FD clause yet). Null for a non-EXTERNAL file.</summary>
     public string? ExternalName { get; set; }
 
+    /// <summary>For a per-object instance file (M2-OO-1i): the name of the emitted object field holding this
+    /// connector's per-object minted key (<c>__fkey_&lt;name&gt;</c>). One connector per object instance
+    /// (ISO §9.1.4 — implicit CLOSE at object deletion), so the runtime key is minted per object rather than a
+    /// static literal. Null for every program / factory / EXTERNAL file, whose connector key IS the static
+    /// qualified <see cref="CobolName"/>; <c>EmitText.FileKeyExpr</c> selects between the two.</summary>
+    public string? InstanceKeyField { get; set; }
+
     /// <summary>True when this file is described by an SD (sort-merge file description, ISO §13.4.6): it has no
     /// host storage — only SORT/MERGE/RELEASE/RETURN may reference it (SR3/SR4); its runtime store is the
     /// in-memory <c>CobolSort</c> buffer.</summary>

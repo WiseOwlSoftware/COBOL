@@ -30,7 +30,7 @@ public sealed partial class CSharpEmitter
     private void EmitSort(BoundSort so)
     {
         var w = _ctx.Writer;
-        string sd = CsLiteral(so.File.CobolName);
+        string sd = FileKeyExpr(so.File);
         w.Line($"CobolSort.Init({sd});   // SORT {so.File.CobolName} (ISO §14.9.40)");
 
         // Phase a — release (GR9a). USING/GIVING files must not be open when their phase starts (GR9a/GR9c —
@@ -63,7 +63,7 @@ public sealed partial class CSharpEmitter
     private void EmitMerge(BoundMerge mg)
     {
         var w = _ctx.Writer;
-        string sd = CsLiteral(mg.File.CobolName);
+        string sd = FileKeyExpr(mg.File);
         w.Line($"CobolSort.Init({sd});   // MERGE {mg.File.CobolName} (ISO §14.9.24)");
         foreach (var input in mg.Using)
         {
@@ -87,7 +87,7 @@ public sealed partial class CSharpEmitter
     private void SortEmitInputFile(FileModel input, string sdLit, int sdWidth, bool varying)
     {
         var w = _ctx.Writer;
-        string f = CsLiteral(input.CobolName);
+        string f = FileKeyExpr(input);
         string tmp = $"__srt{_sortCounter++}";
         w.Line($"CobolFile.OpenInput({f});   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
         EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
@@ -115,7 +115,7 @@ public sealed partial class CSharpEmitter
     private void SortEmitGivingFile(FileModel output, string sdLit)
     {
         var w = _ctx.Writer;
-        string f = CsLiteral(output.CobolName);
+        string f = FileKeyExpr(output);
         string tmp = $"__srt{_sortCounter++}";
         w.Line($"CobolSort.Rewind({sdLit});   // each GIVING file receives the FULL result (GR15 / MERGE GR12)");
         w.Line($"CobolFile.OpenOutput({f});   // implicit OPEN OUTPUT (GR15a)");
@@ -136,7 +136,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         if (rl.From is { } from) EmitMove(new BoundMove(from, [rl.Record]));   // GR4a: MOVE x TO record-name-1
-        string sd = CsLiteral(rl.File.CobolName);
+        string sd = FileKeyExpr(rl.File);
         string image = OperandText.AsString(new BoundFieldOperand(rl.Record));
         if (rl.Varying is { Depending: { } dep })
         {
@@ -158,7 +158,7 @@ public sealed partial class CSharpEmitter
     private void EmitReturn(BoundReturn rt)
     {
         var w = _ctx.Writer;
-        string sd = CsLiteral(rt.File.CobolName);
+        string sd = FileKeyExpr(rt.File);
         string tmp = $"__srt{_sortCounter++}";
         using (w.Block($"if (CobolSort.Return({sd}, out var {tmp}))"))
         {

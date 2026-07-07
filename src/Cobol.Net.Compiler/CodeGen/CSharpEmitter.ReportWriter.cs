@@ -120,7 +120,7 @@ public sealed partial class CSharpEmitter
         foreach (var r in reports)
         {
             if (r.File is null) continue;   // diagnosed at bind (§13.18.46) — compile already failed
-            w.Line($"__RPT_{r.CsIndex} = new CobolReport({CsLiteral(r.Name)}, {CsLiteral(r.File.CobolName)}, "
+            w.Line($"__RPT_{r.CsIndex} = new CobolReport({CsLiteral(r.Name)}, {FileKeyExpr(r.File)}, "
                 + $"{r.LineWidth}, {(r.Paged ? "true" : "false")}, {r.PageLimit}, {r.Heading}, {r.FirstDetail}, "
                 + $"{r.LastControlHeading}, {r.LastDetail}, {r.Footing});");
             foreach (var (group, gi) in r.Groups.Select((g, i) => (g, i)))

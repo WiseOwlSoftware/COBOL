@@ -31,7 +31,7 @@ public sealed partial class CSharpEmitter
     private void KeyedEmitRegistration(CodeWriter w, FileModel file)
     {
         if (file.Records.Count == 0) return;   // a SELECT with no FD — never opened with data (sequential convention)
-        string name = CsLiteral(file.CobolName), assign = CsLiteral(file.AssignTarget);
+        string name = FileKeyExpr(file), assign = CsLiteral(file.AssignTarget);
         int access = (int)file.AccessMode;   // FileAccessMode ordinals mirror the runtime KeyedAccess enum
         string opt = file.Optional ? "true" : "false";
         // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) for the GR14/§14.9.35
@@ -69,7 +69,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         FileModel file = rd.File;
-        string name = CsLiteral(file.CobolName);
+        string name = FileKeyExpr(file);
         int id = _keyedSeq++;
         string st = $"__kst{id}", img = $"__kim{id}";
         // The RECORD AREA is the LARGEST record description (FileModel.AreaRecord, ISO §13.4.2 — multi-01 FDs
@@ -157,7 +157,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         FileModel file = wr.File;
-        string name = CsLiteral(file.CobolName);
+        string name = FileKeyExpr(file);
         if (wr.From is { } from) EmitMove(new BoundMove(from, [wr.Record]));   // FROM is an implicit MOVE (GR4)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
@@ -193,7 +193,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         FileModel file = rw.File;
-        string name = CsLiteral(file.CobolName);
+        string name = FileKeyExpr(file);
         if (rw.From is { } from) EmitMove(new BoundMove(from, [rw.Record]));
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
@@ -222,7 +222,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         FileModel file = del.File;
-        string name = CsLiteral(file.CobolName);
+        string name = FileKeyExpr(file);
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.10 GR4 — relative random/dynamic deletes the record named by the RELATIVE KEY item.
@@ -258,7 +258,7 @@ public sealed partial class CSharpEmitter
         // f1 f2…` — need the fileName+ grammar; a documented follow-up.)
         int id = _keyedSeq++;
         string st = $"__kst{id}";
-        w.Line($"var {st} = CobolFile.DeleteFile({CsLiteral(df.File.CobolName)});");
+        w.Line($"var {st} = CobolFile.DeleteFile({FileKeyExpr(df.File)});");
         EmitStoreFileStatus(df.File);
         if (df.OnException is null) EmitUseHook(df.File);   // the ON EXCEPTION phrase suppresses the declarative entirely (§9.1.13.1)
         // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
@@ -279,7 +279,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         FileModel file = sta.File;
-        string name = CsLiteral(file.CobolName);
+        string name = FileKeyExpr(file);
         int id = _keyedSeq++;
         string st = $"__kst{id}";
         if (sta.Mode != KeyedStartMode.Key)

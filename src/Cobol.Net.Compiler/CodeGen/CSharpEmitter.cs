@@ -225,7 +225,7 @@ public sealed partial class CSharpEmitter
                 {
                     for (int i = 0; i < decls.Count; i++)
                         foreach (var f in decls[i].Files)
-                            w.Line($"case {CsLiteral(f.CobolName)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;");
+                            w.Line($"case {FileKeyExpr(f)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return;");
                 }
             if (decls.Any(d => d.ModeIndex is not null))
                 using (w.Block("switch (CobolFile.OpenModeOf(__f))"))   // open-mode scope (GR3b/GR6b–e)
@@ -256,13 +256,13 @@ public sealed partial class CSharpEmitter
         {
             int id = _ecCounter++;
             var (stmt, loc) = EcStmtLoc(_ecInfo!);
-            w.Line($"int __ior{id} = __IoCheckEc({CsLiteral(file.CobolName)}, {(atEndHandled ? "true" : "false")}, "
+            w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
                 + $"{(invalidKeyHandled ? "true" : "false")}, {mask}, {stmt}, {loc});");
             w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
             return;
         }
         if (!_useDecls) return;
-        w.Line($"__IoCheck({CsLiteral(file.CobolName)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
+        w.Line($"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
     }
 
     private string? _sentenceEndLabel;   // the goto target NEXT SENTENCE jumps to (null in the last sentence)
@@ -1377,7 +1377,7 @@ public sealed partial class CSharpEmitter
                     int width = Math.Max(1, _ctx.Data.Reports
                         .Where(r => ReferenceEquals(r.File, file))
                         .Select(r => r.LineWidth).DefaultIfEmpty(1).Max());
-                    w.Line($"CobolFile.Register({CsLiteral(file.CobolName)}, {CsLiteral(file.AssignTarget)}, " +
+                    w.Line($"CobolFile.Register({FileKeyExpr(file)}, {CsLiteral(file.AssignTarget)}, " +
                            $"{width}, false, {(file.Optional ? "true" : "false")});");
                 }
                 continue;
@@ -1386,14 +1386,14 @@ public sealed partial class CSharpEmitter
             // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) — the connector
             // length-frames its records and enforces the GR14 '44' boundary checks.
             string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
-            w.Line($"CobolFile.Register({CsLiteral(file.CobolName)}, {CsLiteral(file.AssignTarget)}, " +
+            w.Line($"CobolFile.Register({FileKeyExpr(file)}, {CsLiteral(file.AssignTarget)}, " +
                    $"{file.RecordWidth}, {(lineSeq ? "true" : "false")}, {(file.Optional ? "true" : "false")}{vary});");
             // A LINAGE file registers its logical-page evaluator (ISO §13.18.34 GR6): ONE closure for both the
             // literal (GR6a — a constant lambda) and data-name (GR6b — the connector re-reads at OPEN OUTPUT /
             // ADVANCING PAGE / page overflow) forms. The lambda READS the program fields at call time — it is
             // emitted in __Activate (an instance method), so they are in scope and never captured by value.
             if (file.Linage is { } lin)
-                w.Line($"CobolFile.SetLinage({CsLiteral(file.CobolName)}, () => ({LinageOpExpr(lin.Body)}, "
+                w.Line($"CobolFile.SetLinage({FileKeyExpr(file)}, () => ({LinageOpExpr(lin.Body)}, "
                        + $"{LinageOpExpr(lin.Footing)}, {LinageOpExpr(lin.Top)}, {LinageOpExpr(lin.Bottom)}));");
             EmitSharingRegistration(w, file);
         }
@@ -1421,7 +1421,7 @@ public sealed partial class CSharpEmitter
             _ => "FileLockMode.None",
         };
         bool multiple = file.LockMode?.Multiple ?? false;
-        w.Line($"CobolFile.RegisterSharing({CsLiteral(file.CobolName)}, {sharing}, {lockMode}, "
+        w.Line($"CobolFile.RegisterSharing({FileKeyExpr(file)}, {sharing}, {lockMode}, "
             + $"{(multiple ? "true" : "false")});");
     }
 
@@ -1463,7 +1463,7 @@ public sealed partial class CSharpEmitter
                 var (retryKind, retryAmount) = RenderRetry(o.Retry);
                 string shHas = o.SharingOverride is not null ? "true" : "false";
                 string shVal = o.SharingOverride is { } sm ? RuntimeSharing(sm) : "FileSharing.AllOther";
-                w.Line($"CobolFile.OpenShared({CsLiteral(file.CobolName)}, {modeEnum}, {shHas}, {shVal}, "
+                w.Line($"CobolFile.OpenShared({FileKeyExpr(file)}, {modeEnum}, {shHas}, {shVal}, "
                     + $"{retryKind}, {retryAmount});");
             }
             else
@@ -1475,7 +1475,7 @@ public sealed partial class CSharpEmitter
                     BoundOpenMode.IO => "OpenIO",
                     _ => "OpenInput",
                 };
-                w.Line($"CobolFile.{method}({CsLiteral(file.CobolName)});");
+                w.Line($"CobolFile.{method}({FileKeyExpr(file)});");
             }
             EmitStoreFileStatus(file);
             EmitUseHook(file);   // a failed OPEN reaches a mode-scoped USE via the being-opened mode (GR6b)
@@ -1524,7 +1524,7 @@ public sealed partial class CSharpEmitter
                 BoundCloseKind.ReelUnit => "CloseReelUnit",
                 _ => "Close",
             };
-            w.Line($"CobolFile.{method}({CsLiteral(file.CobolName)});");
+            w.Line($"CobolFile.{method}({FileKeyExpr(file)});");
             EmitStoreFileStatus(file);
             EmitUseHook(file);
         }
@@ -1535,7 +1535,7 @@ public sealed partial class CSharpEmitter
     private void EmitUnlock(BoundUnlock ul)
     {
         var w = _ctx.Writer;
-        w.Line($"CobolFile.Unlock({CsLiteral(ul.File.CobolName)}, {(ul.Records ? "true" : "false")});");
+        w.Line($"CobolFile.Unlock({FileKeyExpr(ul.File)}, {(ul.Records ? "true" : "false")});");
         EmitStoreFileStatus(ul.File);
         EmitUseHook(ul.File);
     }
@@ -1547,7 +1547,7 @@ public sealed partial class CSharpEmitter
         var w = _ctx.Writer;
         if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         if (wr.From is { } from) EmitMove(new BoundMove(from, [wr.Record]));
-        string name = CsLiteral(wr.File.CobolName);
+        string name = FileKeyExpr(wr.File);
         string image = OperandText.AsString(new BoundFieldOperand(wr.Record));
         if (wr.Advancing is { } adv)
         {
@@ -1591,7 +1591,7 @@ public sealed partial class CSharpEmitter
     {
         if (file is not { Varying.DependingName: not null, VaryingDependingItem: { } d }
             || _refs.ResolveItem(d) is not { } dep) return;
-        StoreArith(dep, new NumX($"CobolFile.LastReadLength({CsLiteral(file.CobolName)})", 0), CobolRounding.Truncation);
+        StoreArith(dep, new NumX($"CobolFile.LastReadLength({FileKeyExpr(file)})", 0), CobolRounding.Truncation);
     }
 
     /// <summary>READ file [INTO x] [AT END …][NOT AT END …] (ISO §14.9.30): on success the record image is
@@ -1606,7 +1606,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         if (rd.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
-        string name = CsLiteral(rd.File.CobolName);
+        string name = FileKeyExpr(rd.File);
         string tmp = $"__rd{_readCounter++}";
         // The read record is made available in the WHOLE record area — store through the LARGEST record's view
         // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the splice (ST111A).
@@ -1643,8 +1643,8 @@ public sealed partial class CSharpEmitter
         if (rw.From is { } from) EmitMove(new BoundMove(from, [rw.Record]));
         string image = OperandText.AsString(new BoundFieldOperand(rw.Record));
         w.Line(VaryingLengthArg(rw.File) is { } len
-            ? $"CobolFile.Rewrite({CsLiteral(rw.File.CobolName)}, {image}, {len});"
-            : $"CobolFile.Rewrite({CsLiteral(rw.File.CobolName)}, {image});");
+            ? $"CobolFile.Rewrite({FileKeyExpr(rw.File)}, {image}, {len});"
+            : $"CobolFile.Rewrite({FileKeyExpr(rw.File)}, {image});");
         EmitStoreFileStatus(rw.File);
         EmitUseHook(rw.File);
     }
@@ -1696,7 +1696,7 @@ public sealed partial class CSharpEmitter
             _ctx.Writer.Line(LoudStmt($"FILE STATUS item '{file.FileStatusName}' is not resolvable to storage (ISO §12.4.5.8)"));
             return;
         }
-        string status = $"CobolString.Store(CobolFile.Status({CsLiteral(file.CobolName)}), {(item.Pic?.Length ?? item.ImageWidth)})";
+        string status = $"CobolString.Store(CobolFile.Status({FileKeyExpr(file)}), {(item.Pic?.Length ?? item.ImageWidth)})";
         if (item.IsGroup && place is not RedefViewPlace)
         {
             // Same image-capability rule as every other group receiver (COBOLNET_DESIGN §14.4): a mixed-usage

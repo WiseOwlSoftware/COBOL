@@ -28,7 +28,7 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         BoundIndexRef ix => new NumX(ix.IndexField, 0),   // an index IS its 1-based occurrence number (§3.5)
         // The LINAGE-COUNTER register (ISO §8.4.3.14 GR1): an unsigned INTEGER read from the file connector —
         // runtime-sourced (only the I-O control system modifies it, §13.18.34 GR7b), scale 0.
-        BoundLinageCounterRef lc => new NumX($"CobolFile.LinageCounter({EmitText.CsLiteral(lc.File.CobolName)})", 0),
+        BoundLinageCounterRef lc => new NumX($"CobolFile.LinageCounter({EmitText.FileKeyExpr(lc.File)})", 0),
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15 GR1): unsigned integers read from the report's engine
         // instance — runtime-sourced (only the RWCS maintains them), scale 0. This ONE case serves both the
         // relation-condition and MOVE-source paths (both route through the renderer).
