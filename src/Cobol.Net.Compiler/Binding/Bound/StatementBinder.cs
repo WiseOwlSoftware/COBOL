@@ -511,7 +511,25 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.2.4;
         // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
         MarkRefModStoreImage(resolved);
+        CheckStrongMove(source, resolved);   // §14.9.25.3 SR2 — a strongly-typed group receiver wants a same-type sender (D17 inc 2)
         return new BoundMove(source, resolved);
+    }
+
+    /// <summary>ISO §14.9.25.3 SR2 (data-model D17): if a receiving operand is a strongly-typed group, the sending
+    /// operand shall be a group item of the SAME type (§8.5.3.3 — a strong record accepts only a same-type whole-record
+    /// source; its individual fields are still set by ordinary field MOVEs, and a strong-type SENDER to a non-strong
+    /// receiver is permitted per Table 16). A mismatch → COBOLNET1533.</summary>
+    private void CheckStrongMove(BoundOperand source, IReadOnlyList<Place> receivers)
+    {
+        DataItem? sender = source is BoundFieldOperand sf ? sf.Place.Item : null;
+        foreach (var r in receivers)
+        {
+            if (!r.Item.IsStrongGroup) continue;
+            if (sender is null || !DataItem.SameStrongType(sender, r.Item))
+                data.Edition.Error("COBOLNET1533", "MOVE to strongly-typed group "
+                    + $"'{r.Item.CobolName ?? r.Item.CsName}': the sending operand shall be a group item of the same "
+                    + "type (ISO §14.9.25.3 SR2 / §8.5.3.3)");
+        }
     }
 
     private BoundStatement BindAdd(Core.AddStatementContext add)
@@ -1463,6 +1481,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// 'L'/'C') shall not be specified for a boolean operand at all. Both → COBOLNET0844.</summary>
     private void CheckClassConditionOperand(BoundOperand op, char kind)
     {
+        // §8.8.4.4.3 SR1 (data-model D17): a strongly-typed group item may not appear in a class condition — it has
+        // its own unique class and category (the type-name), not one of the general classes a class condition tests.
+        if (op is BoundFieldOperand fg && fg.Place.Item.IsStrongGroup)
+        {
+            data.Edition.Error("COBOLNET1533", "a strongly-typed group item may not appear in a class condition — "
+                + "it has its own unique class and category (ISO §8.8.4.4.3 SR1)");
+            return;
+        }
         PicInfo? pic = op switch
         {
             BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic,
@@ -1645,6 +1671,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 data.Edition.Error("COBOLNET0844", "boolean operands compare for equality only — an ordering "
                     + "relation is not defined for class boolean (ISO §8.8.4.2.2 Format 2)");
         }
+        // §8.8.4.2.3 SR1 (data-model D17): if either operand is a strongly-typed group, both shall be of the same
+        // type (§8.5.3.3). This is the ONE relation checkpoint, so it also covers EVALUATE pairings/ranges,
+        // PERFORM UNTIL, and SEARCH WHEN. (SR4 — a strong group with boolean/object/pointer elements admits only
+        // equality — is staged residue, inc 4.)
+        DataItem? sl = left is BoundFieldOperand fl ? fl.Place.Item : null;
+        DataItem? sr = right is BoundFieldOperand fr ? fr.Place.Item : null;
+        if (sl?.IsStrongGroup == true || sr?.IsStrongGroup == true)
+            if (sl is null || sr is null || !DataItem.SameStrongType(sl, sr))
+                data.Edition.Error("COBOLNET1533", "a strongly-typed group may be compared only with a group of the "
+                    + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
         return new BoundRelational(left, op, right);
     }
 

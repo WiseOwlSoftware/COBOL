@@ -67,6 +67,56 @@ public sealed class DataItem
     /// type declaration (an item is strongly typed if it or any ancestor has this set). Drives the §8.8.4 gates.</summary>
     public bool StrongType { get; set; }
 
+    /// <summary>The outermost enclosing item (this item or an ancestor) whose data description is strongly typed —
+    /// i.e. carries, or is subordinate to, a TYPE clause referencing a STRONG type declaration (ISO §8.5.3.1). Null
+    /// when the item is not part of any strongly-typed subtree. Backs the §8.5.3.3 use-restriction gates and the
+    /// §8.5.3 same-type test.</summary>
+    public DataItem? StrongRoot
+    {
+        get
+        {
+            DataItem? root = null;
+            for (DataItem? cur = this; cur is not null; cur = cur.Parent)
+                if (cur.StrongType) root = cur;
+            return root;
+        }
+    }
+
+    /// <summary>True when this item is a strongly-typed GROUP — the operand form the MOVE / comparison /
+    /// class-condition same-type gates restrict (ISO §8.5.3.3: only group items may be strongly typed;
+    /// §14.9.25.3 SR2 / §8.8.4.2.3 SR1 / §8.8.4.4.3 SR1). An elementary leaf subordinate to a strong group is NOT
+    /// strongly typed, so its individual MOVE / comparison is unrestricted (a strong record is still built up field
+    /// by field).</summary>
+    public bool IsStrongGroup => IsGroup && StrongRoot is not null;
+
+    /// <summary>True when this item is part of any strongly-typed subtree (a strong group OR a leaf subordinate to
+    /// one) — backs the §13.18.57.3 SR3/SR4 "in whole or in part" declaration checks (a RENAMES / REDEFINES touching
+    /// any part of a strong item is prohibited).</summary>
+    public bool IsStronglyTyped => StrongRoot is not null;
+
+    /// <summary>Two operands are of the SAME strong type (ISO §8.5.3 / §8.5.3.3) when their strong roots reference
+    /// equivalent type declarations — within one source element, identically-named ones (cross-program EXTERNAL
+    /// equivalence is a follow-up) — and each operand occupies the identical relative position within that type
+    /// (the §8.5.3 "same subordinate item in equivalent type declarations" rule; both are clones of one template,
+    /// so corresponding items share a member-name path from the strong root down).</summary>
+    public static bool SameStrongType(DataItem a, DataItem b)
+    {
+        if (a.StrongRoot is not { } ra || b.StrongRoot is not { } rb) return false;
+        if (!string.Equals(ra.TypeName, rb.TypeName, StringComparison.OrdinalIgnoreCase)) return false;
+        return RelativeMemberPath(a, ra).SequenceEqual(RelativeMemberPath(b, rb), StringComparer.Ordinal);
+    }
+
+    /// <summary>The member-name path from <paramref name="root"/> (exclusive) down to <paramref name="item"/>
+    /// (inclusive), root-first — the operand's relative position within its strong type.</summary>
+    private static List<string> RelativeMemberPath(DataItem item, DataItem root)
+    {
+        var path = new List<string>();
+        for (DataItem? cur = item; cur is not null && !ReferenceEquals(cur, root); cur = cur.Parent)
+            path.Add(cur.CsName);
+        path.Reverse();
+        return path;
+    }
+
     /// <summary>The ALLOCATED occurrence count — the table's physical capacity — or <see langword="null"/> if the
     /// item is not a table. For a fixed (Format 1) table this is the OCCURS count; for an occurs-depending (Format 2)
     /// table it is the MAXIMUM, integer-2 (ISO §8.5.1.8 — "the physical capacity is fixed at compile time; the

@@ -348,8 +348,9 @@ referenceable (§13.18.58.4 GR2/GR1) — the template is built WITHOUT `Register
 the referencing entry (§13.18.57.4 GR1/GR2), handling elementary + group types, subject-owned OCCURS (array-of-type,
 §13.16 SR14) and subject VALUE override (GR3), GR1 exclusions (the type's level/name/GLOBAL/SELECT WHEN/TYPEDEF are
 not copied). (3) **STRONG typing** (§13.18.58.2): declaration SRs (§13.18.57.3 SR3/SR4/SR6) + same-type gating at MOVE
-(§8.8.4.1.1 item 12), comparison (§8.8.4.2.3 SR1), class-condition (§8.8.4.4.3 SR1); intra-element same-type =
-template identity (`TypeName` + relative path, §8.5.3 NOTE). (4) **level-88s inside a TYPEDEF** (GR1 — part of the
+(§14.9.25.3 SR2 — a strongly-typed group RECEIVER wants a same-type sender; the design's earlier "§8.8.4.1.1 item 12"
+cite was the COMPARISON list, corrected inc 2), comparison (§8.8.4.2.3 SR1), class-condition (§8.8.4.4.3 SR1);
+intra-element same-type = template identity (`TypeName` + relative path, §8.5.3 NOTE). (4) **level-88s inside a TYPEDEF** (GR1 — part of the
 type): cloned + re-registered. (5) recursion/placement guards. **This also fixes a current SILENT-DROP bug:** at 2002+
 `TYPE IS name` parses and is silently dropped (no `typeClause` binder branch) — CORE wires it (unresolved → 1530).
 
@@ -360,9 +361,10 @@ flat `CreateCompilerTemp`, `DataBinder.Oo.cs:362`): a fresh `Uid` per node (CRIT
 on it), shares the immutable `Pic`, copies the description fields, re-uniquifies `CsName` in the NEW scope, and DOES
 `RegisterName` (clones ARE referenceable, unlike the template). **`ExpandType`** runs inside `BindEntries` right after
 an item is placed (so the clone is in the forest BEFORE `BindResolve` — every post-build pass sees it automatically,
-the same invariant `CreateCompilerTemp` relies on). STRONG equivalence: `StrongRootOf(item)` (walk to the outermost
-`StrongType`) + `SameType(a,b)` (equal strong-root `TypeName` + relative `CsName` path), checked in `BindMove`/
-`BindComparison`/the class-condition arm.
+the same invariant `CreateCompilerTemp` relies on). STRONG equivalence (as built, inc 2): `DataItem.StrongRoot` (walk
+to the outermost `StrongType` ancestor) + `SameStrongType(a,b)` (equal strong-root `TypeName` + relative `CsName`
+path), checked in `BindMove` (`CheckStrongMove`) / `CheckedRelational` (the ONE relation chokepoint) / the
+class-condition arm (`CheckClassConditionOperand`).
 
 **Grammar (ONE shared-.g4 change → FULL legacy guard).** The TYPE-reference rule already exists (`{is2002()}? TYPE
 IS? IDENTIFIER`). ADD only: a `STRONG` lexer token; `typedefClause : {is2002()}? IS? TYPEDEF STRONG? ;` on
@@ -385,8 +387,17 @@ RENAMES-in-TYPEDEF / strong-group boolean-object non-equality compare.
 `ExpandTypes` at the top of `BindResolve` clones each `TYPE IS type-name` via `CloneItem` — fresh `Uid`/re-uniquified
 `CsName`/registered — elementary→copy PIC, group→clone children, forward refs OK; unresolved/recursive → **1530**).
 `TypeName`/`StrongType` are populated but UNCHECKED until inc 2. — **the ONLY grammar/legacy-guard slice** → goldens
-`typedef_weak_elem`/`typedef_weak_group`. (2) STRONG typing
-(1532/1533) → `typedef_strong_ok`/`typedef_strong_bad`. (3) level-88s in a TYPEDEF → `typedef_88`. (4) staged-loud
+`typedef_weak_elem`/`typedef_weak_group`. (2) **✅ LANDED (DEVLOG 661)** — STRONG typing (all BINDER-ONLY): the
+`DataItem.StrongRoot` walk (outermost `StrongType` ancestor — §8.5.3.1, a group SUBORDINATE to a strong group is
+itself strongly typed) + `IsStrongGroup`/`IsStronglyTyped` + the static `SameStrongType(a,b)` (equal strong-root
+`TypeName` + equal relative member-name path). USE gates → **1533**: `CheckStrongMove` in `BindMove` (§14.9.25.3 SR2),
+the strong-group same-type check in the ONE `CheckedRelational` chokepoint (§8.8.4.2.3 SR1 — so it also covers
+EVALUATE/PERFORM UNTIL/SEARCH WHEN), a strong-group guard in `CheckClassConditionOperand` (§8.8.4.4.3 SR1). DECL gates
+→ **1532**: SR6 at clone time in `ExpandType` (level-1-or-under-strong; also catches SR7's 77→group), SR3/SR4 in a
+post-resolution `CheckStrongTypeDeclarations` pass (a RENAMES/REDEFINES over any part of a strong subtree, INTERNAL
+template redefines excluded via the shared-strong-root test). Golden `typedef_strong_ok` (same-type whole-record
+MOVE+compare byte-verified) + `TypedefStrongTests` ×8 negatives (SR2/SR1/class-cond/SR6/SR4/SR3/relative-path + a
+clean companion). (3) level-88s in a TYPEDEF → `typedef_88`. (4) staged-loud
 residue (1534/1535) + the matrix behavior/continuity rows + DOC_INDEX / ISO2023_CONFORMANCE_PLAN M3-2 sync.
 
 **RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached

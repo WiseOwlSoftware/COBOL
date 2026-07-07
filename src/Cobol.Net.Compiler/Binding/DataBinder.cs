@@ -215,6 +215,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         InheritSignClauses();
         ResolveRedefines();
         ClassifyRedefinesClasses();
+        CheckStrongTypeDeclarations();   // §13.18.57.3 SR3/SR4 — a strongly-typed item shall not be RENAMED/REDEFINED (D17 inc 2)
         OoRouteMethodRedefinesBackings();   // M2-OO-1h step 3: route method Tier-B backings static/local
         OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
         DynamicResolve();   // synthesize each OCCURS DYNAMIC table's CAPACITY register (ISO §13.18.38 Format 4; D9)
@@ -748,6 +749,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             item.Pic ??= template.Pic;   // elementary type → item becomes this leaf (its own VALUE/OCCURS kept, GR3/SR14)
         item.TypeName = typeName;
         item.StrongType = template.TypedefStrong;
+        if (template.TypedefStrong)
+        {
+            // §13.18.57.3 SR6: a STRONG type may be referenced only at level 1 or by an item subordinate to another
+            // strongly-typed group — strong typing always covers a WHOLE record, never a lone field in an ordinary
+            // group. (A nested TYPE ref inside a strong template already has a strong ancestor set here — ExpandType
+            // ran on the outer subject before CloneItem recursed into this reference. SR7's "level 77 → elementary
+            // type" is also caught: a 77 referencing a STRONG group is neither level 1 nor under a strong parent.)
+            bool underStrong = false;
+            for (var p = item.Parent; p is not null; p = p.Parent)
+                if (p.StrongType) { underStrong = true; break; }
+            if (item.Level != 1 && !underStrong)
+                Edition.Error("COBOLNET1532", $"'{subject}' references STRONG type '{typeName}': a strongly-typed "
+                    + "item shall be specified only at level 1 or subordinate to a strongly-typed group "
+                    + "(ISO §13.18.57.3 SR6)");
+        }
         expanding.Remove(typeName);
     }
 
@@ -802,6 +818,30 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         c.AscendingKeyNames.AddRange(s.AscendingKeyNames);
         c.DescendingKeyNames.AddRange(s.DescendingKeyNames);
         return c;
+    }
+
+    /// <summary>The STRONG type-declaration use restrictions that need the RESOLVED REDEFINES/RENAMES graph
+    /// (ISO §13.18.57.3): <b>SR4</b> — a strongly-typed item shall not be redefined in whole or in part; <b>SR3</b> —
+    /// nor renamed in whole or in part. Both → COBOLNET1532. (SR6, the level-1/strong-parent placement rule, is
+    /// checked at clone time in <see cref="ExpandType"/>.) An INTERNAL redefine — a REDEFINES that is part of the same
+    /// strong subtree, cloned in from the type template — is legitimate and NOT flagged (its subject and target share
+    /// a strong root); only an EXTERNAL redefinition of a strong item is prohibited.</summary>
+    private void CheckStrongTypeDeclarations()
+    {
+        foreach (var item in AllItems())
+            if (item.RedefinesTarget is { IsStronglyTyped: true } tgt
+                && !ReferenceEquals(item.StrongRoot, tgt.StrongRoot))
+                Edition.Error("COBOLNET1532", $"'{item.CobolName ?? item.CsName}' REDEFINES strongly-typed item "
+                    + $"'{tgt.CobolName ?? tgt.CsName}': a strongly-typed item shall not be redefined in whole or in "
+                    + "part (ISO §13.18.57.3 SR4)");
+
+        foreach (var owner in Roots)
+            foreach (var ren66 in owner.Renames66)
+                if (ren66.Renames is { } ri
+                    && ((ri.From?.IsStronglyTyped ?? false) || (ri.Thru?.IsStronglyTyped ?? false)
+                        || ri.SpanLeaves.Any(l => l.IsStronglyTyped)))
+                    Edition.Error("COBOLNET1532", $"RENAMES '{ren66.CobolName ?? ren66.CsName}' renames a "
+                        + "strongly-typed item in whole or in part — prohibited (ISO §13.18.57.3 SR3)");
     }
 
     /// <summary>Bind a level-66 RENAMES entry (ISO §13.18.45): a re-grouping alias <c>RENAMES from [THRU thru]</c>

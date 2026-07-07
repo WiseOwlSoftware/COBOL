@@ -188,6 +188,8 @@ public sealed class ConformanceTests : EndToEndTestBase
         // subtree clone. The frozen legacy has no TYPEDEF model — greenfield CorpusRunner only.
         ("2002", "typedef_weak_elem"),
         ("2002", "typedef_weak_group"),
+        ("2002", "typedef_strong_ok"),   // TYPEDEF inc 2: a STRONG type + same-type MOVE/compare (D17, §8.5.3.3) — net-new
+
         // Phase 6, OCCURS DYNAMIC increment 1 (data-model D9, §13.18.38 Format 4 / §8.5.1.9): the
         // dynamic-capacity table declaration + the growable CobolDynTable<T> storage substrate. The frozen
         // legacy binder/emitter has no dynamic-table model (it predates the D9 rewrite), so although the shared
