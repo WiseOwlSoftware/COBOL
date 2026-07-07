@@ -14,6 +14,7 @@
     "oo_ec_goback_raising",
     "oo_ec_raise_object",
     "oo_factory",
+    "oo_factory_file",
     "oo_hello",
     "oo_inherit",
     "oo_instance_data",

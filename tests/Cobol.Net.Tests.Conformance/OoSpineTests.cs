@@ -376,6 +376,44 @@ public sealed class OoSpineTests
             END METHOD M.
             """)), "COBOLNET1519");
 
+    /// <summary>M2-OO-1i — the GLOBAL clause shall not be specified in a factory / instance / method definition
+    /// (ISO §13.18.27.3 SR4). A FACTORY <c>FD … IS GLOBAL</c> is COBOLNET1520 — GLOBAL is a nested-PROGRAM
+    /// containment mechanism that does not cross the class boundary; program↔class file sharing is EXTERNAL only
+    /// (§9.1.5). (The FACTORY file itself is legal — inc 3 — only the GLOBAL clause on it is rejected.)</summary>
+    [Fact]
+    public void FactoryFile_Global_1520()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOGF1.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS GFCLS.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM OOGF1.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. GFCLS.
+            IDENTIFICATION DIVISION.
+            FACTORY.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT GF ASSIGN TO "g.dat".
+            DATA DIVISION.
+            FILE SECTION.
+            FD GF IS GLOBAL.
+            01 GF-REC PIC X(4).
+            PROCEDURE DIVISION.
+            END FACTORY.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            END OBJECT.
+            END CLASS GFCLS.
+            """).Replace("\r\n", "\n")), "COBOLNET1520");
+
     /// <summary>The staged boundaries stay LOUD (never a silent drop): INVOKE SELF (slice 3b) reaches the
     /// runtime not-implemented guard; an arity mismatch (slice 2 — trap #3: a dropped/extra argument would
     /// shift every following slot, the legacy DEVLOG-449 blocker) is a compile-time 0828.</summary>

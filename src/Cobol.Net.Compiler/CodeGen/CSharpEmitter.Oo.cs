@@ -105,10 +105,14 @@ public sealed partial class CSharpEmitter
         fdata.OoBindPropertyClauses(cls.Symbol,
             cls.Symbol.Ctx.factoryParagraph()?.dataDivision()?.workingStorageSection(), factory: true);
         fdata.BindResolve(fsynthetic);
-        if (fdata.Files.Count > 0)
-            edition.Error("COBOLNET0899",
-                $"class '{cls.Name}': a FILE SECTION in the FACTORY paragraph is recognized but not yet "
-                + "implemented (owning roadmap phase: Phase 3, OO port)");
+        // A FACTORY file connector is legal (§12.4.3 SR1 / §13.4.3 SR1 admit the input-output + file sections in a
+        // factory definition) and registers in the singleton (inc 3). GLOBAL on it is not: §13.18.27.3 SR4 bars the
+        // GLOBAL clause in a factory / instance / method definition.
+        foreach (var f in fdata.Files)
+            if (f.IsGlobal)
+                edition.Error("COBOLNET1520", $"class '{cls.Name}': FACTORY file '{f.CobolName}' specifies the "
+                    + "GLOBAL clause — GLOBAL shall not be specified in a factory, instance, or method definition "
+                    + "(ISO §13.18.27.3 SR4)");
         cls.FactoryData = fdata;
         cls.FactoryRefs = new ReferenceResolver(fdata);
     }
@@ -161,6 +165,35 @@ public sealed partial class CSharpEmitter
         if (ctx.environmentDivision() is { } envCls) unit.AddChild(envCls);
         if (fac?.dataDivision() is { } dd) unit.AddChild(dd);
         return unit;
+    }
+
+    /// <summary>Qualify a class's OBJECT/FACTORY file connectors into the run-unit registry namespace (M2-OO-1i —
+    /// the OO analogue of the per-program qualification in <see cref="CallEmitRunUnit"/>). A FACTORY file (the class
+    /// singleton, §9.3.14.2) keys by class — <c>Class::FACT::name</c>; an EXTERNAL class file keys by its run-unit
+    /// external name (§13.18.22.4 GR4a — one connector shared by every describer, inc 5). An OBJECT (instance) file
+    /// is per-object (inc 4): a class-qualified BASE key plus a minted per-object <c>__fkey</c> field. Name
+    /// resolution is done (bound nodes hold FileModel references), so this is a pure emit-side rename.</summary>
+    private static void OoQualifyClassFiles(OoClassUnit cls)
+    {
+        foreach (var f in cls.FactoryData.Files)
+            f.CobolName = f is { IsExternal: true, ExternalName: { } ext }
+                ? "::EXT::" + ext
+                : cls.CsName + "::FACT::" + f.CobolName;
+    }
+
+    /// <summary>Emit the object/factory file-connector members (M2-OO-1i): each host file the class declares
+    /// registers in an emitted parameterless constructor — a FACTORY file registers once in the class singleton's
+    /// ctor (inc 3); an OBJECT file registers once per object at construction (§9.1.4, inc 4) and also gets a
+    /// per-object minted-key field. Zero host files ⇒ NO ctor emitted (byte-identical to a file-less class). The
+    /// registration reuses <see cref="EmitFileRegistration"/> over <c>_ctx.Data</c> (set to this half's forest in
+    /// <see cref="OoEmitTypeHalf"/>), each file addressed through <c>FileKeyExpr</c>.</summary>
+    private void OoEmitFileMembers(string csName, DataBinder data, CodeWriter w)
+    {
+        if (!data.Files.Any(f => !f.IsSortMerge)) return;   // an SD is the in-memory sort store, never a host connector
+        w.Line();
+        using (w.Block($"public {csName}()"))
+            EmitFileRegistration(w);
+        w.Line();
     }
 
     /// <summary>
@@ -243,6 +276,7 @@ public sealed partial class CSharpEmitter
                 w.Line(line);
             var fields = new FieldEmitter(_ctx);
             fields.Emit();   // WS → INSTANCE fields (D3/D11); method WS → statics; VALUE inits = field initializers (D4)
+            OoEmitFileMembers(csName, data, w);   // M2-OO-1i: object/factory file connectors register in an emitted ctor
             if (bound.Paragraphs.Count > 0)
                 w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
             w.Line();

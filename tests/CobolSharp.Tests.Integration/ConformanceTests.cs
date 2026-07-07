@@ -66,6 +66,7 @@ public sealed class ConformanceTests : EndToEndTestBase
     private static readonly HashSet<(string, string)> GreenfieldOnly =
     [
         ("2002", "oo_factory"),         // the FACTORY paragraph (ISO §11.4) — net-new in the greenfield (DEVLOG 604)
+        ("2002", "oo_factory_file"),    // FACTORY-paragraph FILE-CONTROL + FILE SECTION (M2-OO-1i inc 3) — net-new (DEVLOG 646)
         ("2002", "oo_override_final"),  // METHOD-ID OVERRIDE/IS FINAL attributes (§11.7) — net-new (DEVLOG 605)
         // These three gained the SR4a-required OVERRIDE attribute (the strict §11.7 wave) — the frozen legacy
         // grammar cannot parse it; the greenfield CorpusRunnerTests byte-compares them:
