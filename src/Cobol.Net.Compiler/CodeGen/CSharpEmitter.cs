@@ -772,10 +772,21 @@ public sealed partial class CSharpEmitter
                 // semantics at 85/2002/2014 and under --permissive (ALL "57" → PIC 9(3) stores 575, the legacy
                 // oracle's '85-obsolete-element behavior — provisional, ratified decision 1). This was the
                 // BoundAllLiteral runtime-loud latent bug (W2 track A): the move compiled then died in AsNum.
+                // A float RECEIVER (COMP-1/2/FLOAT-*, D16) holds the algebraic value in a native float/double —
+                // no PICTURE, no scaled-integer store, no SIZE ERROR (IEEE overflow is Inf, a valid value;
+                // §14.6.8.3 GR1). Emit a native cast to its ClrType; a single-precision receiver rounds via (float).
+                if (pic.IsFloat)
+                    return $"({pic.ClrType})({NumericRenderer.Real(_num.AsNum(source))})";
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)
                     : _num.AsNum(source);
-                string stored = Narrow($"CobolNum.Store({n.Expr}, {n.Scale}, {target.ProfileName})", target);
+                // A float SOURCE lands into the fixed receiver via CobolFloat.ToScaled at the receiver scale (MOVE
+                // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
+                // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
+                int recvScaleM = target.Pic!.Scale;
+                string nExpr = n.Real ? $"CobolFloat.ToScaled({n.Expr}, {recvScaleM}, CobolRounding.Truncation)" : n.Expr;
+                int nScale = n.Real ? recvScaleM : n.Scale;
+                string stored = Narrow($"CobolNum.Store({nExpr}, {nScale}, {target.ProfileName})", target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
                 return target.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {target.ProfileName})" : stored;
             default:
@@ -1043,14 +1054,29 @@ public sealed partial class CSharpEmitter
             w.Line(target.Write($"CobolEdit.Format({Aligned(false)}, {ms}, {CsLiteral(mask)}{BwzFlag(target.Item)}{EditCfg()})"));
             return;
         }
+        // A float RECEIVER (COMP-1/2/FLOAT-*, D16) takes the algebraic value as a native cast — no PICTURE, no
+        // scaled store, no SIZE ERROR (IEEE overflow is Inf, a valid value; §14.6.8.3 GR1); ROUNDED is a no-op
+        // (the receiver holds the exact algebraic value). BEFORE the fixed-point guard below.
+        if (target.Item.Pic is { IsFloat: true })
+        {
+            w.Line(target.Write($"({target.Item.Pic.ClrType})({NumericRenderer.Real(value)})"));
+            return;
+        }
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
         {
             w.Line(LoudStmt($"arithmetic into a non-fixed-point target '{target.Item.CobolName ?? target.Read()}'"));
             return;
         }
         string profile = target.Item.ProfileName;
-        // A STANDARD-DECIMAL intermediate stores through the SDIDI overloads (the §14.7 final transfer).
-        string args = value.Dec ? $"{value.Expr}, {profile}" : $"{value.Expr}, {value.Scale}, {profile}";
+        // A float (Real) arithmetic result lands into this FIXED receiver via CobolFloat.ToScaled at the receiver
+        // scale with the receiver's ROUNDED mode (D16), then flows through the ordinary store funnel (rescale
+        // identity ⇒ no double-rounding; capacity + SIZE ERROR still apply). A STANDARD-DECIMAL intermediate stores
+        // through the SDIDI overloads (the §14.7 final transfer).
+        int recvScale = target.Item.Pic!.Scale;
+        string valExprA = value.Real ? $"CobolFloat.ToScaled({value.Expr}, {recvScale}, CobolRounding.{mode})" : value.Expr;
+        string args = value.Dec ? $"{value.Expr}, {profile}"
+            : value.Real ? $"{valExprA}, {recvScale}, {profile}"
+            : $"{value.Expr}, {value.Scale}, {profile}";
         if (_sizeErrVar is { } flag)
         {
             string tmp = $"__sv{_storeTmpCounter++}";

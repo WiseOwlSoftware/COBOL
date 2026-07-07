@@ -97,7 +97,9 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         null when p.Item.IsCharacterImage =>
             new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? p.Read() : $"{p.Read()}.AsImage()")})", 0),
         null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? p.Read()}'"), 0),
-        { IsFloat: true } => new NumX($"(long){p.Read()}", 0),
+        // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native
+        // IEEE double — NOT truncated to (long) at scale 0 (the pre-D16 stub that silently dropped the fraction).
+        { IsFloat: true } => new NumX($"(double)({p.Read()})", 0, Real: true),
         // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): decode the zoned image to its
         // unscaled value for numeric use (ISO §14.6.13.2 — incompatible content decodes deterministically).
         { } pic when p.Item.StoreAsImage =>
@@ -133,6 +135,11 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     /// types; storage stays narrow (the store path truncates/rounds once, at the receiver).</summary>
     public NumX Combine(NumX a, string op, NumX b)
     {
+        // D16: any expression with ≥1 float operand evaluates ENTIRELY in IEEE binary64 (a single-precision operand
+        // widens exactly) — BEFORE the StandardDecimal branch, because COBOL float arithmetic is IEEE binary, never
+        // decimal. This holds regardless of the ARITHMETIC mode (the SBIDI/SDIDI-of-float conversion is Phase 6b;
+        // STANDARD-BINARY is obsolete in 2023 §8.8.1.4 NOTE). +,-,*,/ are native double ops.
+        if (a.Real || b.Real) return new NumX($"({Real(a)} {op} {Real(b)})", 0, Real: true);
         // STANDARD-DECIMAL arithmetic (§8.8.1.5): every operation evaluates in SDIDI form (decimal128 semantics),
         // rounded per-op to 34 significant digits with the INTERMEDIATE ROUNDING mode (§11.9.11); the receiver's
         // ROUNDED applies only at the final transfer (§14.7 NOTE 1).
@@ -220,18 +227,25 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     /// working scale (hazard H1 — TargetScale is stale in receiver-less contexts).</summary>
     private NumX Power(NumX b, NumX e)
     {
+        // D16: a float base or exponent keeps the result FLOATING (native double) — skip the FromDouble quantize-back
+        // that a pure fixed-point power needs, so a float ** stays in the float pipeline.
+        if (b.Real || e.Real)
+            return new NumX($"System.Math.Pow({Real(b)}, {Real(e)})", 0, Real: true);
         int ws = Math.Max(ctx.TargetScale, 9);
         return new NumX($"CobolIntrinsics.FromDouble(System.Math.Pow({Real(b)}, {Real(e)}), {ws})", ws);
     }
 
     private static NumX Negate(NumX x) =>
-        x.Dec ? new NumX($"(new CobolDec(-({x.Expr}).Sig, ({x.Expr}).Exp))", 0, Dec: true) : new($"(-{x.Expr})", x.Scale);
+        x.Real ? new NumX($"(-({Real(x)}))", 0, Real: true)
+        : x.Dec ? new NumX($"(new CobolDec(-({x.Expr}).Sig, ({x.Expr}).Exp))", 0, Dec: true)
+        : new($"(-{x.Expr})", x.Scale);
 
     // Int128 has no implicit conversion to double, so the cast is explicit before the floating divide.
     // Internal (not private): the intrinsic renderer converts float-family arguments to double through THIS
     // one scaled-value→double conversion (ISO §15.4.1 native-arithmetic family; singular-pattern rule).
     internal static string Real(NumX x) =>
-        x.Dec ? $"({x.Expr}).ToDouble()"
+        x.Real ? x.Expr                                   // already a double-typed float intermediate (D16)
+        : x.Dec ? $"({x.Expr}).ToDouble()"
         : x.Scale == 0 ? $"(double)({x.Expr})" : $"((double)({x.Expr}) / {Pow10D(x.Scale)})";
 
     /// <summary>10^<paramref name="n"/> as a C# <c>double</c> literal. Handles a NEGATIVE scale (a PICTURE-P

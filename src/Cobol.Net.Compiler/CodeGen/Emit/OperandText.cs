@@ -96,7 +96,9 @@ internal static class OperandText
             { Category: PicCategory.Numeric, IsFloat: false } pic => deSign
                 ? PExpand($"CobolNum.FormatUnsignedDisplay({p.Read()}, {pic.Digits})", pic)
                 : $"CobolNum.FormatDisplay({p.Read()}, {p.Item.ProfileName})",
-            { Category: PicCategory.Numeric } => $"{p.Read()}.ToString()",            // COMP-1/2 float — refine later
+            // A float item (COMP-1/2/FLOAT-*, D16): DISPLAY renders the algebraic value via CobolFloat.Display
+            // (invariant-culture shortest round-trip, §14.9.11 GR1 implementor-defined) — never a bare .ToString().
+            { Category: PicCategory.Numeric } => $"CobolFloat.Display({p.Read()})",
             // National and boolean items are string-stored (D-N1/D-B1) — the value IS the character image.
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean } => p.Read(),

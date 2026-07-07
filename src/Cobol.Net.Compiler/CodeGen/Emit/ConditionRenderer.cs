@@ -93,6 +93,10 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
             return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
         NumX l = num.AsNum(r.Left), rr = num.AsNum(r.Right);
+        // A float operand (D16): compare the algebraic values natively in IEEE double (§8.8.4.2.4). IEEE
+        // NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# — spec-conformant, no epsilon.
+        if (l.Real || rr.Real)
+            return $"{NumericRenderer.Real(l)} {r.Op} {NumericRenderer.Real(rr)}";
         // A STANDARD-DECIMAL intermediate compares algebraically in SDIDI form (§8.8.1.5).
         if (l.Dec || rr.Dec)
             return $"CobolDec.Compare({num.DecOperand(l)}, {num.DecOperand(rr)}) {r.Op} 0";
@@ -128,6 +132,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
             return $"CobolString.Compare({FigOrString(r.Left, width, anchorCat)}, {FigOrString(r.Right, width, anchorCat)}{pad}{collate}) {r.Op} 0";
         }
         NumX l = FigOrNum(r.Left), rr = FigOrNum(r.Right);
+        if (l.Real || rr.Real)   // a float vs ZERO figurative — native IEEE compare (D16, §8.8.4.2.4)
+            return $"{NumericRenderer.Real(l)} {r.Op} {NumericRenderer.Real(rr)}";
         int s = Math.Max(l.Scale, rr.Scale);
         return $"{NumericRenderer.Align(l, s)} {r.Op} {NumericRenderer.Align(rr, s)}";
     }

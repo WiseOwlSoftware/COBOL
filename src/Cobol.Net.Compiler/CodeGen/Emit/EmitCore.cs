@@ -78,7 +78,10 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
 /// </summary>
 /// <param name="Dec">True when <see cref="Expr"/> is a STANDARD-DECIMAL intermediate (<c>CobolDec</c>-typed,
 /// §8.8.1.5) — <see cref="Scale"/> is then meaningless (the SDIDI carries its own exponent).</param>
-internal readonly record struct NumX(string Expr, int Scale, bool Dec = false);
+/// <param name="Real">True when <see cref="Expr"/> is a C#-<c>double</c>-typed FLOATING-POINT intermediate (D16 —
+/// any expression with a float operand evaluates in IEEE binary64); <see cref="Scale"/> is 0 and unused. <c>Real</c>
+/// and <see cref="Dec"/> are mutually exclusive.</param>
+internal readonly record struct NumX(string Expr, int Scale, bool Dec = false, bool Real = false);
 
 /// <summary>Small text utilities shared by every backend emitter: loud-failure guards, literal escaping, and the
 /// numeric-literal → unscaled-<c>long</c> conversions.</summary>

@@ -60,10 +60,15 @@
     "udf_keyword_omitted",
     "udf_nested_args",
     "udf_prototype",
+    "comp1_comp2",
+    "float_compare",
+    "float_move",
+    "float_neg",
+    "float_rounded",
+    "float_usage",
     "udf_recursion",
     "udf_value_args"
   ],
   "pending": [
-    "float_usage"
   ]
 }

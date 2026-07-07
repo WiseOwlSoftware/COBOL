@@ -465,5 +465,5 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     /// <summary>A numeric VALUE literal as a C# float/double literal for a COMP-1/COMP-2 item.</summary>
     private static string RawValueAsFloat(string raw, PicInfo pic) =>
-        pic.Usage == Usage.Float ? $"{raw.Trim().TrimStart('+')}f" : $"{raw.Trim().TrimStart('+')}d";
+        pic.IsSingle ? $"{raw.Trim().TrimStart('+')}f" : $"{raw.Trim().TrimStart('+')}d";   // COMP-1/FLOAT-SHORT → float literal, else double
 }

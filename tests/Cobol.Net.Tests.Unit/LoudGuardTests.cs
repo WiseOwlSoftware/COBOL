@@ -81,9 +81,6 @@ public sealed class LoudGuardTests
     [InlineData("NATIONAL")]
     [InlineData("BIT")]
     [InlineData("POINTER")]
-    [InlineData("FLOAT-SHORT")]
-    [InlineData("FLOAT-LONG")]
-    [InlineData("FLOAT-EXTENDED")]
     public void ParseUsage_SkeletonKeyword_0900At85_NamingCobol2002(string keyword)
     {
         var ed = Ed(85);
@@ -92,20 +89,22 @@ public sealed class LoudGuardTests
         Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
     }
 
+    /// <summary>The float trio went LIVE at Phase 6a (D16, §13.18.60.4 GR13): FLOAT-SHORT→FloatShort,
+    /// FLOAT-LONG→FloatLong, FLOAT-EXTENDED→FloatExtended, each binding cleanly at 2002+ (no 0899), with the
+    /// introduction gate (COBOLNET0900) below 2002. The skeleton set that once held them is now empty.</summary>
     [Theory]
-    // POINTER left this set at Phase-4b increment 1 (LIVE, DEVLOG 613); the BINARY-CHAR family left it at
-    // Phase 4 M2-DATA-1 (LIVE, DEVLOG 614); NATIONAL and BIT left it at Phase 4a M2-DATA-3/4 — all bind at
-    // 2002+, no 0899 (the positive fact below).
-    [InlineData("FLOAT-SHORT", "phase: Phase 6)")]
-    [InlineData("FLOAT-LONG", "phase: Phase 6)")]
-    [InlineData("FLOAT-EXTENDED", "phase: Phase 6)")]
-    public void ParseUsage_SkeletonKeyword_NotImplementedErrorAt2023_NamingOwningPhase(string keyword, string phase)
+    [InlineData("FLOAT-SHORT", Usage.FloatShort)]
+    [InlineData("FLOAT-LONG", Usage.FloatLong)]
+    [InlineData("FLOAT-EXTENDED", Usage.FloatExtended)]
+    public void ParseUsage_FloatTrio_LiveAt2002_IntroductionGatedAt85(string keyword, Usage expected)
     {
-        var ed = Ed(2023);
-        PicInfo.ParseUsage(keyword, ed, "data item 'T'");
-        Assert.True(ed.HasErrors, $"USAGE {keyword} must not compile silently (ISO §13.18.60; not yet implemented)");
-        Assert.Contains(ed.Diagnostics,
-            d => d.Contains("COBOLNET0899") && d.Contains("not yet implemented") && d.Contains(phase));
+        var ok = Ed(2002);
+        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ok, "data item 'T'"));
+        Assert.False(ok.HasErrors, $"USAGE {keyword} must bind cleanly at 2002: {string.Join("; ", ok.Diagnostics)}");
+        var ed85 = Ed(85);
+        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed85, "data item 'T'"));
+        Assert.True(ed85.HasErrors, $"USAGE {keyword} is 2002+; 85 must reject");
+        Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
     }
 
     /// <summary>USAGE NATIONAL / BIT went LIVE at Phase 4a M2-DATA-3/4 (ISO §13.18.60.4 SR12/SR5): each maps
@@ -309,15 +308,24 @@ public sealed class LoudGuardTests
     /// gates reject first, ISO §13.18.60/§13.18.40) — if a future phase starts constructing them without
     /// implementing the storage mapping, every derived member throws instead of silently defaulting.</summary>
     [Fact]
-    public void SkeletonUsage_StorageMappingMembers_ThrowLoud()
+    public void FloatTrio_StorageMappingMembers_Live()
     {
-        // USAGE POINTER left the skeleton set at Phase-4b increment 1 (LIVE, DEVLOG 613); FLOAT-SHORT stays
-        // a skeleton (Phase 6), so it exercises the storage-mapping loud guard for a skeleton USAGE.
-        var flt = new PicInfo(PicCategory.Numeric, Usage.FloatShort, Length: 0, Digits: 0, Scale: 0, Signed: false);
-        Assert.Throws<InvalidOperationException>(() => flt.ClrType);
-        Assert.Throws<InvalidOperationException>(() => flt.DefaultInitializer);
-        Assert.Throws<InvalidOperationException>(() => flt.StorageWidth);
-        Assert.Throws<InvalidOperationException>(() => flt.ProfileInitializer);
+        // The float trio LEFT the skeleton set at Phase 6a (LIVE, D16): the storage-mapping members now answer the
+        // native IEEE shapes (float/double, 0f/0d) instead of throwing the skeleton guard. IsUnimplementedSkeleton
+        // is now always false — no USAGE is a skeleton — so the loud guard shell is retained only for the 6b family.
+        var single = PicInfo.FloatItem(Usage.FloatShort);
+        Assert.Equal("float", single.ClrType);
+        Assert.Equal("0f", single.DefaultInitializer);
+        Assert.True(single.IsFloat);
+        Assert.True(single.IsSingle);
+        foreach (var u in new[] { Usage.FloatLong, Usage.FloatExtended })
+        {
+            var dbl = PicInfo.FloatItem(u);
+            Assert.Equal("double", dbl.ClrType);
+            Assert.Equal("0d", dbl.DefaultInitializer);
+            Assert.True(dbl.IsFloat);
+            Assert.False(dbl.IsSingle);
+        }
     }
 
     /// <summary>National/boolean LEFT the skeleton set at Phase 4a (M2-DATA-3/4): the storage-mapping members

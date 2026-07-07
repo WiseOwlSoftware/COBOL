@@ -871,6 +871,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             pictureText = null;
         }
 
+        // PICTURE is prohibited with a floating-point usage (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) — the item
+        // is picture-less (§13.18.60.2). COBOLNET1521 (the 08xx declaration band is exhausted; this is a syntax-rule
+        // violation, 15xx). Before this a float item synthesized pic=null and NRE'd the emit; a float WITH a picture
+        // would misbind by that (illegal) picture. (D16.)
+        if (entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+            && pictureText is not null)
+        {
+            Edition.Error("COBOLNET1521", $"{entryWhere}: PICTURE may not be specified with a floating-point usage "
+                + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) — a floating-point item is picture-less (ISO §13.18.60.2)");
+            pictureText = null;
+        }
+
         var pic = pictureText is not null
             ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol,
                 blankWhenZero, explicitUsage: usageText is not null)
@@ -879,6 +891,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
                 ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
+            // A PICTURE-less floating-point item (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, §13.18.60.2, D16) —
+            // its value is a native float/double, never scaled-integer (before this the chain fell to null → NRE).
+            : entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+                ? PicInfo.FloatItem(entryUsage)
             // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to
             // subordinates, §13.18.60.4 GR1) or an illegal picture-less elementary item (0881) — unknowable
             // until the forest is complete: ResolveIndexItems adjudicates via these marker shapes.

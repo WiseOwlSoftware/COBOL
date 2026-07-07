@@ -72,6 +72,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "oo_external_file_shared"),   // EXTERNAL FD shared program<->object: one connector + record area (M2-OO-1i inc 5) — net-new (DEVLOG 648)
         ("2002", "oo_object_report"),   // REPORT SECTION in an OBJECT paragraph (M2-OO-1i review — Report Writer wired into the class path) — net-new (DEVLOG 649)
         ("2002", "oo_method_sort"),     // OBJECT-paragraph SD sorted by a method (M2-OO-1i review — SD keeps a static key) — net-new (DEVLOG 649)
+        // Phase-6a floats (D16): the raw-float-DISPLAY goldens use CobolFloat.Display (invariant shortest round-trip,
+        // §14.9.11 GR1 implementor-defined) — NOT the legacy oracle's form — and float→PIC rounding — so GreenfieldOnly.
+        ("2002", "float_move"),         // float→float MOVE, raw-float DISPLAY (DEVLOG 650)
+        ("2002", "float_neg"),          // negative/fractional literal → float, raw-float DISPLAY (DEVLOG 650)
+        ("2002", "float_rounded"),      // float→PIC 9(2) truncate vs ROUNDED (DEVLOG 650)
+        ("2002", "float_compare"),      // float vs fixed/int comparison (DEVLOG 650)
         ("2002", "oo_override_final"),  // METHOD-ID OVERRIDE/IS FINAL attributes (§11.7) — net-new (DEVLOG 605)
         // These three gained the SR4a-required OVERRIDE attribute (the strict §11.7 wave) — the frozen legacy
         // grammar cannot parse it; the greenfield CorpusRunnerTests byte-compares them:

@@ -42,9 +42,8 @@ public sealed class DataSkeletonEditionTests
         // (§13.18.40.4 GR10) — 0899 "Phase 4a residue" at 2002+, 0900 at 85.
         { "NAT1", "01 WS-A PIC 9(4) USAGE NATIONAL.", "Phase 4a residue" },    // national-form numeric, SR12
         { "NED1", "01 WS-M PIC NN0NN.", "Phase 4a residue" },                  // national-edited, GR10
-        { "FLS1", "01 WS-H USAGE FLOAT-SHORT.", "phase: Phase 6)" },
-        { "FLL1", "01 WS-I USAGE FLOAT-LONG.", "phase: Phase 6)" },
-        { "FLX1", "01 WS-J USAGE FLOAT-EXTENDED.", "phase: Phase 6)" },
+        // The FLOAT-SHORT/-LONG/-EXTENDED trio went LIVE at Phase 6a (D16) — see the FloatUsage_* positive facts;
+        // only the external-float PICTURE symbol E (a distinct 6b leg) remains a skeleton here.
         { "PICE", "01 WS-EF PIC 9V99E+99.", "phase: Phase 6)" },               // external float, §13.18.40.4 GR13b
     };
 

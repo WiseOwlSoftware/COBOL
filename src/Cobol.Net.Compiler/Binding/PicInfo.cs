@@ -172,8 +172,7 @@ public sealed record PicInfo(
     /// gates in <see cref="ParseUsage"/>/<see cref="Analyze"/> reject the construct and recover to a safe
     /// Display shape. Every storage-mapping member throws through this guard rather than silently defaulting
     /// (feedback: every misbind is a wrong-answer bug — fail LOUD).</summary>
-    private bool IsUnimplementedSkeleton =>
-        Usage is Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended;
+    private bool IsUnimplementedSkeleton => false;   // the float trio is LIVE (D16, Phase 6a); the 6b family (FLOAT-BINARY/DECIMAL) gates in ParseUsage, never reaching here
 
     /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the declared class name
     /// (<c>USAGE OBJECT REFERENCE class-name</c>, ISO §13.18.60.4) — null for a UNIVERSAL object reference
@@ -242,15 +241,21 @@ public sealed record PicInfo(
         // Int128 for the 19–31-digit 2002+ tier. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
         PicCategory.Numeric => Usage switch
         {
-            Usage.Float => "float",
-            Usage.Double => "double",
+            Usage.Float or Usage.FloatShort => "float",
+            Usage.Double or Usage.FloatLong or Usage.FloatExtended => "double",
             _ => Digits > 18 ? "Int128" : "long",
         },
         _ => "object", // Group: never stored as a scalar (emitted as a record struct).
     };
 
-    /// <summary>True for a floating-point usage (COMP-1/COMP-2); its value is IEEE, not a scaled integer.</summary>
-    public bool IsFloat => Usage is Usage.Float or Usage.Double;
+    /// <summary>True for a floating-point usage (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED); its value is IEEE, not
+    /// a scaled integer (D16). FLOAT-EXTENDED maps to double — no .NET quad (§13.18.60.4 GR13 subset nesting).</summary>
+    public bool IsFloat => Usage is Usage.Float or Usage.Double
+        or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended;
+
+    /// <summary>True for a SINGLE-precision float usage (COMP-1 / FLOAT-SHORT) — drives the <c>f</c> literal suffix
+    /// and the <c>(float)</c> store cast; every other float usage is double.</summary>
+    public bool IsSingle => Usage is Usage.Float or Usage.FloatShort;
 
     /// <summary>The default C# initializer for an item with no VALUE clause (COBOL initial state, ISO §13.18.63).</summary>
     public string DefaultInitializer => Category switch
@@ -267,8 +272,8 @@ public sealed record PicInfo(
         PicCategory.Boolean => $"new string('0', {Length})",
         PicCategory.Numeric => Usage switch
         {
-            Usage.Float => "0f",
-            Usage.Double => "0d",
+            Usage.Float or Usage.FloatShort => "0f",
+            Usage.Double or Usage.FloatLong or Usage.FloatExtended => "0d",
             _ => Digits > 18 ? "(Int128)0" : "0L",
         },
         _ => "default",
@@ -660,9 +665,15 @@ public sealed record PicInfo(
             case "BINARY-DOUBLE":
                 ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
                 return Usage.BinaryDouble;
-            case "FLOAT-SHORT": return SkeletonUsage(edition, "usage-float-short-2002", "Phase 6", where, out skeleton);
-            case "FLOAT-LONG": return SkeletonUsage(edition, "usage-float-long-2002", "Phase 6", where, out skeleton);
-            case "FLOAT-EXTENDED": return SkeletonUsage(edition, "usage-float-extended-2002", "Phase 6", where, out skeleton);
+            case "FLOAT-SHORT":   // the implementor-defined float trio (§13.18.60.4 GR13) — LIVE (Phase 6a, D16)
+                ConstructRegistry.Check(edition, "usage-float-short-2002", where);
+                return Usage.FloatShort;
+            case "FLOAT-LONG":
+                ConstructRegistry.Check(edition, "usage-float-long-2002", where);
+                return Usage.FloatLong;
+            case "FLOAT-EXTENDED":
+                ConstructRegistry.Check(edition, "usage-float-extended-2002", where);
+                return Usage.FloatExtended;
             case { } other:
                 // The grammar admits nothing else — reaching here is a compiler defect (a new grammar
                 // alternative without its ParseUsage arm). LOUD, never a silent Display misbind.
@@ -724,4 +735,11 @@ public sealed record PicInfo(
     /// elementary <c>long</c> holding an occurrence number. Digits/Scale are irrelevant — SET copies an index value
     /// UNCHANGED (§14.9.39 GR2b), never through a PICTURE store.</summary>
     public static PicInfo IndexItem { get; } = new(PicCategory.Numeric, Usage.Index, Length: 0, Digits: 0, Scale: 0, Signed: false);
+
+    /// <summary>The synthesized profile of a PICTURE-less floating-point item — COMP-1/COMP-2/FLOAT-SHORT/-LONG/
+    /// -EXTENDED (ISO §13.18.60.2: floating-point usages are picture-less). Category Numeric, SIGNED (§13.18.60.4
+    /// GR13 — "signed numeric data items"); <c>Digits</c>/<c>Scale</c> are inert (no PICTURE truncation, and the
+    /// §14.7 composite-digit rule excludes float operands). The value lives in a native <c>float</c>/<c>double</c>
+    /// field (D16), not the scaled-integer substrate; <c>IsWide</c> stays false (it already guards <c>!IsFloat</c>).</summary>
+    public static PicInfo FloatItem(Usage usage) => new(PicCategory.Numeric, usage, Length: 0, Digits: 0, Scale: 0, Signed: true);
 }

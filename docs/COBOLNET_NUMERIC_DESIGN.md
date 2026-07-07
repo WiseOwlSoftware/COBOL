@@ -120,6 +120,71 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 
 **Rejected alternatives.** (a) Force floats through the Int128 scaled path — REJECTED: float values aren't base-10 fixed-point; scaling them is meaningless and lossy. (b) Promote everything to decimal when a float is present — REJECTED: locked out + wrong (COBOL float arithmetic is IEEE binary, not decimal).
 
+### D16. The floating-point USAGE TRIO (FLOAT-SHORT / FLOAT-LONG / FLOAT-EXTENDED) extends D7 to the full implementor-defined float facility (Phase 6a); the pinned IEEE family (FLOAT-BINARY-*/FLOAT-DECIMAL-*) is a separate leg (Phase 6b, stays loud).
+
+*Decision-complete design — recon wf_9de26ab6-3a8 (2026-07-06); load-bearing spec (§13.18.60.4 GR13 :22824) + code
+seams (PicInfo SkeletonUsage gate :663-665, NumericRenderer `(long)` truncation stub :100, NumX carrier
+EmitCore.cs:81) verified by reading. IMPLEMENTED — see the increments/as-built below.*
+
+**Scope (6a, done completely).** `FLOAT-SHORT`→`System.Single`, `FLOAT-LONG`→`double`, `FLOAT-EXTENDED`→`double`
+(no .NET quad — conformant via the §13.18.60.4 GR13 **subset nesting** short⊆long⊆extended, :22824: every long value
+is expressible in extended, so equality satisfies it), and the vendor synonyms `COMP-1`=FLOAT-SHORT, `COMP-2`=FLOAT-LONG.
+GR13 (:22824, verified verbatim): the trio are *signed numeric data items in an implementor-defined floating-point
+format* — so representation/range are OUR choice (IEEE binary32/64), documented per conformance item 207. **COMP-1/2
+are already declared live (`Usage.Float`/`Double`) but every OPERATION over them is a stub** — arithmetic truncates a
+float operand to `(long)` at scale 0 (NumericRenderer.cs:100), DISPLAY is a placeholder `.ToString()` (OperandText.cs:99),
+MOVE has no float branch — so this leg ALSO fixes the pre-existing COMP-1/2 truncation bug. **6b (stays COBOLNET0899):**
+`FLOAT-BINARY-32/64/128` + `FLOAT-DECIMAL-16/34` (§13.18.60.4 GR14-GR20 :22826-22904) — a DISTINCT facility with pinned
+bit layouts, the endianness (GR19) + decimal-encoding (GR20) phrases, and (decimal64/128) a type .NET lacks; plus the
+external-float PICTURE `E`. Shipping the binary family without decimal/endianness would be the forbidden "broad
+half-done" — 6a is the complete implementor-defined facility, 6b the pinned one.
+
+**Representation.** A float elementary item is a NATIVE `float`/`double` field (never the scaled substrate, no
+NumProfile, no character image) — the loud Tier-C island in any group/REDEFINES/record (the `IsImageCapable`/
+`IsCharacterImage`/`StoreAsImage` guards already require `IsFloat:false`). PICTURE-less (§13.18.60.2 — a `PIC` with a
+float usage is a new **COBOLNET1521** reject; the 08xx declaration band is exhausted); a new `PicInfo.FloatItem(usage)` factory (mirrors `IndexItem`/
+`PointerItem`, `Digits:0/Scale:0` inert). `Usage.FloatShort/Long/Extended` fold into `IsFloat`; a new `IsSingle`
+predicate (Float/FloatShort) drives the `f` literal suffix + the `(float)` store cast. `ClrType` short→float,
+long/extended→double; init `0f`/`0d`.
+
+**Arithmetic (extends D7; NATIVE §8.8.1.3, the default).** Any expression with ≥1 float operand evaluates ENTIRELY in
+`double` (a single operand widens exactly; result category floating). Realized by adding a `bool Real` flag to the
+`NumX` carrier (parallel to `Dec`): a float leaf → `Real` NumX (`(double)(read)`, replaces the `(long)` truncation);
+`NumericRenderer.Real(x)` gains a `Real` pass-through arm (the ONE double-conversion helper for all three carrier
+kinds); `Combine` takes a **`Real`-first branch → `CombineReal`** (before the StandardDecimal path — COBOL float is
+IEEE binary, never decimal); `Negate`/`Power` get Real arms. **STANDARD-BINARY/DECIMAL × a float operand also
+evaluates native binary64** (documented residue — the SBIDI/SDIDI-of-float leg is 6b; STANDARD-BINARY is obsolete in
+2023 §8.8.1.4 NOTE :9086; the goldens use the default NATIVE mode). Store to a FIXED receiver lands via a new
+`CobolFloat.ToScaled(double,scale,mode)` (double→unscaled Int128, rounded; ±Inf/overflow saturate so the existing
+capacity check fires SIZE ERROR; NaN→0+latch EC-SIZE) then the EXISTING `CobolNum.Store`/`TryStore` funnel (ROUNDED +
+SIZE ERROR for free; MOVE truncates toward zero §14.6.8.2, COMPUTE uses the receiver ROUNDED mode). Store INTO a float
+receiver = a native cast to `ClrType` (holds the algebraic value §14.6.8.3 GR1; NO size error — IEEE overflow is Inf,
+a valid value; ROUNDED is a no-op).
+
+**MOVE/DISPLAY/compare.** literal→float = the fixed→float cast; float→fixed = `ToScaled`; float→float = a `ClrType`
+cast. DISPLAY = a new `CobolFloat.Display(float/double)` — invariant-culture shortest round-trip (§14.9.11 GR1
+implementor-defined; replaces the `.ToString()` placeholder; goldens use exact binary fractions for cross-platform
+stability). Compare = a NATIVE `double` comparison when either operand is `Real` (§8.8.4.2.4 algebraic-value; IEEE
+NaN-unordered / ±0-equal fall out of C# — spec-conformant, no epsilon). ONE new runtime file `CobolFloat.cs`.
+
+**Deferred sub-leg (documented; loud, not silent).** The floating-point LITERAL exponent form (`1.5E3`, §8.3.3.3.3)
+is a DISTINCT feature from the float USAGE and is NOT lexed yet — a `MOVE 1.5E3 TO f` is a loud parse error (COBOL0001
+"no viable alternative"), never a silent misparse. A float item holds a fixed-point literal directly (`MOVE 0.025`,
+`MOVE -1500`), which is the whole USAGE facility; exponent-form float literals land with a later frontend pass. (The
+recon's `float_neg_exp` golden was retargeted to `float_neg` using fixed-point literals.)
+
+**Edition gate.** The trio introduced 2002 → the `ConstructRegistry` introduction gate stands (COBOLNET0900 below
+2002, silent ≥2002; default `--std` 2023). COMP-1/2 accepted at ALL editions (universal vendor synonyms of the
+conformant usages — a documented asymmetry, matches the legacy oracle).
+
+**Increments (each build+battery+commit):** (1) declaration lights up (PicInfo state + FloatItem + un-gate ParseUsage
++ DataBinder synthesis + 0882 + ConstructDialectStatus PENDING→LIVE); (2) VALUE literals (`RawValueAsFloat`→
+`IsSingle`); (3) arithmetic (`NumX.Real` + Combine/Negate/Power/Real — also fixes the COMP-1/2 truncation bug); (4)
+stores (`CobolFloat.ToScaled` + ConvertSource/StoreArith branches); (5) DISPLAY + compare (`CobolFloat.Display` +
+ConditionRenderer Real compare); (6) goldens (un-gate `float_usage` PENDING→enabled, both legacy-shared with `comp1_comp2` since the legacy oracle
+also supports the trio + COMP-1/2; the raw-float-DISPLAY / rounding goldens float_move/float_neg/float_rounded/
+float_compare are GreenfieldOnly).
+
 ## C# mapping
 
 DATA-DIVISION → CLR storage type:
