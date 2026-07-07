@@ -27,7 +27,27 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 643, 2026-07-06 20:23 PDT): ⛔🎉 PHASE 5 INTRINSICS COMPLETE + the M2-OO-1h METHOD-SCOPE DATA
+> **STATE (DEVLOG 648, 2026-07-06 21:49 PDT): ⛔🎉 M2-OO-1i COMPLETE — the OBJECT/FACTORY ENVIRONMENT + FILE
+> division (files referenceable from methods).** The recon (wf_5d22beb6-140) RE-FRAMED the ticket, verified against
+> the spec: a method definition canNOT own an ENVIRONMENT DIVISION / FILE SECTION / WORKING-STORAGE (§12.4.3 SR1 /
+> §13.4.3 SR1 / §13.5.3 SR1 — factory/instance only; a method owns only LOCAL-STORAGE + LINKAGE). So the real leg is
+> the OBJECT/FACTORY paragraph's INPUT-OUTPUT + FILE division, referenceable from method bodies (§11.7.4 GR5). Landed
+> in 5 increments (DEVLOG 644-648): (1) method ENV/FILE/REPORT/SCREEN → hard **COBOLNET1519**; (2) **`FileKeyExpr`** —
+> the one canonical connector-key expression (byte-identical ~28-site sweep); (3) FACTORY files register in the class
+> singleton (+ a class-file `using CobolNet.Runtime.IO` root-cause fix — `anyFiles` now counts class files); (4) OBJECT
+> files are PER-OBJECT connectors (a minted `__fkey_X = MintInstanceKey("Class::INST::name")` + a §9.1.4
+> `~CobolObject()` finalizer, suppress-by-default/re-arm-for-file-owners); (5) EXTERNAL object/factory FD shares the
+> one run-unit connector + record area (`::EXT::` + `EmitExternalBackings` now emitted for classes). GLOBAL on a
+> class/method FD → **COBOLNET1520** (§13.18.27.3 SR4). 4 goldens (`oo_factory_file` / `oo_object_file` /
+> `oo_object_file_two_instances` / `oo_external_file_shared`, all GreenfieldOnly) + 3 OoSpineTests diagnostic facts.
+> **Battery: 1969 conformance · 216 unit · 128 corpus goldens · legacy integration 79 GREEN; greenfield-only, CI green
+> per commit.** Diagnostic-code map add: **1519 method-owns-section, 1520 GLOBAL-in-class/method.** ⛔ RESUME NEXT: the
+> low-severity **M2-PRE preprocessor follow-ups**; then **Phase 6 (OCCURS DYNAMIC, TYPEDEF, floats) / Phase 7 (2023
+> finalization)**. LESSON reinforced twice this leg: a class-emit path silently omits per-unit scaffolding
+> (`using`/external backings) that only an incremental compile-AND-RUN catches — the recon design won't flag it.
+>
+> **STATE (DEVLOG 643, 2026-07-06 20:23 PDT — SUPERSEDED by the 648 banner above; kept for the M2-OO-1h detail):
+> ⛔🎉 PHASE 5 INTRINSICS COMPLETE + the M2-OO-1h METHOD-SCOPE DATA
 > MODEL LANDED & REVIEW-HARDENED.** Since the 635 snapshot below: (a) the Phase-5 intrinsic families were
 > adversarially hardened (636, 6 fixes); (b) **M2-OO-1h — the method-scope data model — LANDED (DEVLOG 637–642):**
 > REDEFINES / ODO / RENAMES / INDEXED-SEARCH now work inside method WORKING-STORAGE / LOCAL-STORAGE / LINKAGE, via a

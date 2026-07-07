@@ -69,6 +69,7 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "oo_factory_file"),    // FACTORY-paragraph FILE-CONTROL + FILE SECTION (M2-OO-1i inc 3) — net-new (DEVLOG 646)
         ("2002", "oo_object_file"),     // OBJECT-paragraph per-object file connector (M2-OO-1i inc 4) — net-new (DEVLOG 647)
         ("2002", "oo_object_file_two_instances"),   // per-object connector independence (M2-OO-1i inc 4) — net-new (DEVLOG 647)
+        ("2002", "oo_external_file_shared"),   // EXTERNAL FD shared program<->object: one connector + record area (M2-OO-1i inc 5) — net-new (DEVLOG 648)
         ("2002", "oo_override_final"),  // METHOD-ID OVERRIDE/IS FINAL attributes (§11.7) — net-new (DEVLOG 605)
         // These three gained the SR4a-required OVERRIDE attribute (the strict §11.7 wave) — the frozen legacy
         // grammar cannot parse it; the greenfield CorpusRunnerTests byte-compares them:

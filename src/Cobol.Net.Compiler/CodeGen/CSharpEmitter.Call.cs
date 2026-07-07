@@ -556,9 +556,7 @@ public sealed partial class CSharpEmitter
                 };
                 w.Line($"private ref {type} {b.Field} => ref {b.Path};   // GLOBAL item of a containing program (ISO §13.18.27 GR2 — container storage, contained visibility)");
             }
-            foreach (var ext in data.CallExternalBackings)
-                w.Line($"private ref string {ext.BackingCsName} => ref ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
-                    + $"{CsLiteral(ext.InitImage)}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+            EmitExternalBackings(data, w);
             foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
             {
                 // The seed is the SAME VALUE-honoring image expression the Tier-B stored backing uses.

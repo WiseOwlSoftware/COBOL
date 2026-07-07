@@ -202,6 +202,19 @@ public sealed partial class CSharpEmitter
     /// per-object minted-key field. Zero host files ⇒ NO ctor emitted (byte-identical to a file-less class). The
     /// registration reuses <see cref="EmitFileRegistration"/> over <c>_ctx.Data</c> (set to this half's forest in
     /// <see cref="OoEmitTypeHalf"/>), each file addressed through <c>FileKeyExpr</c>.</summary>
+    /// <summary>Emit the EXTERNAL record-area backings for a data forest (ISO §13.18.22.4 GR4b / §8.6.7): each
+    /// <c>FD … IS EXTERNAL</c> record 01 re-bases onto a run-unit <c>ExternalStore</c> cell keyed by the FD name, so
+    /// every describer (a program AND an object/factory) sees ONE shared record area. Shared by the program emit path
+    /// (<see cref="CallEmitProgramClass"/>) and the OO type-half (M2-OO-1i inc 5) — a class EXTERNAL FD needs the same
+    /// backing property, and <c>CallBindExternalAndGlobal</c> already populates <c>CallExternalBackings</c> on the
+    /// class binder (it runs in <c>BindResolve</c>).</summary>
+    private void EmitExternalBackings(DataBinder data, CodeWriter w)
+    {
+        foreach (var ext in data.CallExternalBackings)
+            w.Line($"private ref string {ext.BackingCsName} => ref ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
+                + $"{CsLiteral(ext.InitImage)}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+    }
+
     private void OoEmitFileMembers(string csName, DataBinder data, CodeWriter w)
     {
         var host = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the in-memory sort store, never a host connector
@@ -301,6 +314,7 @@ public sealed partial class CSharpEmitter
                 w.Line(line);
             var fields = new FieldEmitter(_ctx);
             fields.Emit();   // WS → INSTANCE fields (D3/D11); method WS → statics; VALUE inits = field initializers (D4)
+            EmitExternalBackings(data, w);       // M2-OO-1i inc 5: a class EXTERNAL FD record → the shared run-unit cell
             OoEmitFileMembers(csName, data, w);   // M2-OO-1i: object/factory file connectors register in an emitted ctor
             if (bound.Paragraphs.Count > 0)
                 w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");

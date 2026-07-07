@@ -1642,7 +1642,28 @@ so the shape goldens target LOCAL-STORAGE/LINKAGE (2023-clean) + one method-WS g
 **Separate follow-ups (NOT this leg):** method own ENV/FILE/REPORT/SCREEN (`OoBindMethodData:92-101`) and
 EXTERNAL/GLOBAL on method WS (`:111-116`) — orthogonal subsystems, keep their loud gates → **M2-OO-1i**.
 
-### M2-OO-1i — the OBJECT/FACTORY ENVIRONMENT + FILE division (files referenceable from methods) — DECISION-COMPLETE
+### M2-OO-1i — the OBJECT/FACTORY ENVIRONMENT + FILE division (files referenceable from methods) — ⛔🎉 LANDED (DEVLOG 644-648)
+
+**AS-BUILT (all 5 increments landed exactly to the design below; DEVLOG 644-648).** (1) method ENV/FILE/REPORT/SCREEN
+→ hard COBOLNET1519 (a method may not own them, §12.4.3/§13.4.3 SR1). (2) `FileKeyExpr` — the one canonical
+connector-key expression (byte-identical sweep of ~28 sites). (3) FACTORY files register in the class singleton
+(`OoQualifyClassFiles` `Class::FACT::name` + `OoEmitFileMembers` ctor registration; COBOLNET1520 GLOBAL guard); a
+root-cause fix made the `using CobolNet.Runtime.IO` + entry-wrapper `CobolFile.Init/CloseAll` scaffolding count class
+files (`anyFiles`). (4) OBJECT files are PER-OBJECT connectors — a minted `__fkey_X = MintInstanceKey("Class::INST::name")`
+field, ctor registration + `__TrackInstanceFile`, and a §9.1.4 `~CobolObject()` finalizer refined to suppress-by-
+default / re-arm-only-for-file-owners. (5) EXTERNAL object/factory FD shares the one run-unit connector + record area
+(`::EXT::` key + the extracted `EmitExternalBackings` now emitted for classes too — `CallBindExternalAndGlobal`
+already ran on the class binder). Goldens: `oo_factory_file`, `oo_object_file`, `oo_object_file_two_instances`,
+`oo_external_file_shared` (all GreenfieldOnly) + the `FactoryFile_Global_1520` / `ObjectFile_Global_1520` /
+`MethodMayNotOwnEnvOrFileSection_1519` OoSpineTests facts. **Two AS-BUILT deviations from the recon's original framing,
+both spec-corrections:** the recon's "method-scoped file map + scope-aware resolver" was discarded (a method cannot
+own files at all — §13.4.3 SR1); and the `anyFiles`/`EmitExternalBackings` class-emit gaps (not in the recon) were
+caught by incremental compile-and-run, the standing lesson that emit only proves itself when you run it. Diagnostics:
+COBOLNET1519 (method placement), 1520 (GLOBAL in factory/instance/method). **Deferred (documented, out of scope):**
+REPORT/SCREEN sections + SORT/MERGE SD in an object/factory (their own legs); method-WS EXTERNAL/GLOBAL (keeps its
+0899); dynamic `ASSIGN TO data-name` resolving the field value (a pre-existing limitation surfaced here, not caused).
+
+### M2-OO-1i — the OBJECT/FACTORY ENVIRONMENT + FILE division (files referenceable from methods) — DECISION-COMPLETE DESIGN
 
 *Recon workflow wf_5d22beb6-140 (4 readers + xhigh synthesis, 2026-07-06). **All 7 load-bearing spec citations
 verified verbatim in-session** (§12.4.3 SR1 :14920 · §13.4.3 SR1 :16184 · §13.5.3 SR1 :16461 · §13.6.3 SR1 :16513 ·
