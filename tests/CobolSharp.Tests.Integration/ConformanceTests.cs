@@ -154,6 +154,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // M2-OO-1h step 2, DEVLOG 638: OCCURS … DEPENDING ON in a METHOD's LOCAL-STORAGE (method-scoped
         // data-name-1) — greenfield reclamation (was COBOLNET0899). Greenfield CorpusRunner byte-compares oo_method_odo.
         ("2002", "oo_method_odo"),
+        // M2-OO-1h step 3, DEVLOG 639: REDEFINES in METHOD data (scope-aware target; Tier-B string backing routed
+        // static/method-local) — greenfield reclamation (was COBOLNET0899). Greenfield CorpusRunner byte-compares both.
+        ("2002", "oo_method_redefines_local"),
+        ("2002", "oo_method_redefines_ws"),
         // Phase-4 track (d), DEVLOG 623: the file-sharing / record-locking subsystem (SHARING / LOCK MODE /
         // RETRY / WITH LOCK / IGNORING LOCK / UNLOCK — §14.9.27/.30/.47) is net-new in the greenfield; the
         // frozen legacy binder has only the by-name CLOSE-WITH-LOCK/38 primitive and cannot bind these clauses.

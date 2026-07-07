@@ -454,6 +454,16 @@ public sealed partial class CSharpEmitter
             // entries start at their initial state (§14.2.3 GR6 — callee-allocated).
             foreach (var root in m.LinkageRoots)
             {
+                // A method Tier-B REDEFINES canonical's storage is its string backing, not the root struct (M2-OO-1h
+                // step 3) — emit that as the local; a LINKAGE formal seeds it from the caller's image (the group
+                // param IS a character image), else from the initializer.
+                if (fields.MethodRedefinesBackingDecl(root) is { } bkl)
+                {
+                    var formalB = m.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
+                    w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : formalB.ParamName)};   "
+                        + $"// LINKAGE Tier-B REDEFINES backing for {root.CobolName}");
+                    continue;
+                }
                 var (type, init) = fields.RootDecl(root);
                 var formal = m.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
                 if (formal is null)
@@ -469,6 +479,11 @@ public sealed partial class CSharpEmitter
             }
             foreach (var root in m.LocalRoots)
             {
+                if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the string backing local (M2-OO-1h step 3)
+                {
+                    w.Line($"string {bkl.Name} = {bkl.Init};   // LOCAL-STORAGE Tier-B REDEFINES backing for {root.CobolName} (§14.5.3)");
+                    continue;
+                }
                 var (type, init) = fields.RootDecl(root);
                 w.Line($"{type} {root.CsName} = {init};   // LOCAL-STORAGE {root.CobolName} — re-initialized each activation (§14.5.3)");
             }

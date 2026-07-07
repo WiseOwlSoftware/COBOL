@@ -199,6 +199,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         InheritSignClauses();
         ResolveRedefines();
         ClassifyRedefinesClasses();
+        OoRouteMethodRedefinesBackings();   // M2-OO-1h step 3: route method Tier-B backings static/local
         OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
         ResolveFiles();
         GateNationalRecords();   // D-N2: the record codec is single-byte — national FD/SD leaves stage loud
@@ -1117,12 +1118,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// classification pass walks <see cref="DataItem.RedefinesTarget"/> transitively to the anchor (SR11).</summary>
     private void ResolveRedefines()
     {
+        static DataItem RootOf(DataItem d) { while (d.Parent is { } p) d = p; return d; }
         foreach (var item in AllItems())
             if (item.RedefinesTargetName is { } tname)
             {
-                IReadOnlyList<DataItem> scope = item.Parent?.Children ?? Roots;
+                // A subordinate (02+) redefiner scopes to its own siblings (correct in every scope). A top-level
+                // 01/77 method redefiner must scope to the OWNING METHOD's own roots (§13.18.44.3 SR — the target
+                // is a prior sibling in the same data description; a method may NOT redefine object/program data,
+                // §11.7.4), NEVER the cross-scope global `Roots` pool (M2-OO-1h step 3).
+                IReadOnlyList<DataItem> scope = item.Parent?.Children
+                    ?? (OoRootOwner.TryGetValue(RootOf(item), out var mm)
+                            ? mm.StaticRoots.Concat(mm.LocalRoots).Concat(mm.LinkageRoots).ToList()
+                            : Roots);
                 item.RedefinesTarget = scope.FirstOrDefault(s =>
                     !ReferenceEquals(s, item) && string.Equals(s.CobolName, tname, StringComparison.OrdinalIgnoreCase));
+                // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
+                // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
+                if (item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(RootOf(item)))
+                    Edition.Error("COBOLNET1518", $"REDEFINES target '{tname}' of method data item "
+                        + $"'{item.CobolName ?? "FILLER"}' is not a preceding item in the same method scope "
+                        + "(ISO §13.18.44.3 — a method item may not redefine object or program data)");
             }
 
         foreach (var root in Roots)

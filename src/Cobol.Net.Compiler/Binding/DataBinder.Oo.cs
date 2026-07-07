@@ -385,9 +385,9 @@ public sealed partial class DataBinder
     /// <summary>Stage the method-data shapes slice 2 does not carry yet — LOUD, naming the owning wave.</summary>
     private void OoGateUnsupportedShapes(DataItem item, string where)
     {
-        if (item.RedefinesTargetName is not null)
-            Edition.Error("COBOLNET0899", $"{where}: REDEFINES on the method data item "
-                + $"'{item.CobolName ?? "FILLER"}' is recognized but not yet implemented (Phase 3, OO port)");
+        // REDEFINES in method data is LIVE (M2-OO-1h step 3, DEVLOG 639): ResolveRedefines scopes a top-level
+        // method redefiner's target to the owning method's own roots (§13.18.44.3 SR / §11.7.4); the Tier-B
+        // string backing is routed static (method-WS) or method-local (LOCAL/LINKAGE) by OoRouteMethodRedefinesBackings.
         if (item.IndexNames.Count > 0)
             Edition.Error("COBOLNET0899", $"{where}: OCCURS … INDEXED BY on the method data item "
                 + $"'{item.CobolName ?? "FILLER"}' is recognized but not yet implemented (Phase 3, OO port)");
@@ -401,5 +401,22 @@ public sealed partial class DataBinder
         // Level-66s live OFF the children (Renames66) — without this walk the gate above is dead code and a
         // 66 in method data slips through unstaged (the 3a/3b review's dead-gate finding).
         foreach (var ren in item.Renames66) OoGateUnsupportedShapes(ren, where);
+    }
+
+    /// <summary>Route a method-scoped Tier-B REDEFINES class's ONE string backing to the right storage (M2-OO-1h
+    /// step 3): a method-WS canonical → STATIC (<see cref="OoStaticRootFields"/>, matching the static root); a
+    /// method LOCAL/LINKAGE canonical → a method LOCAL (suppressed from the class-level field loop via
+    /// <see cref="CallSuppressedRootFields"/>, emitted in <c>OoEmitMethod</c>). Runs after
+    /// <c>ClassifyRedefinesClasses</c>. A subordinate (02) canonical rides its root's composed initializer and
+    /// needs no routing (its backing is a member of the method-local root struct already).</summary>
+    internal void OoRouteMethodRedefinesBackings()
+    {
+        foreach (var root in OoMethodScopedRoots)
+            if (root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root)
+                && OoRootOwner.TryGetValue(root, out var m))
+            {
+                if (m.StaticRoots.Contains(root)) OoStaticRootFields.Add(cls.BackingCsName);   // method-WS → static
+                else CallSuppressedRootFields.Add(cls.BackingCsName);   // LOCAL/LINKAGE → emitted as a method local
+            }
     }
 }

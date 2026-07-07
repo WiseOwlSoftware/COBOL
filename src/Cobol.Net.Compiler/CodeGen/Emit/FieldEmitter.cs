@@ -49,6 +49,15 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     /// re-initializes on every activation — a C# local declaration does exactly that).</summary>
     internal (string Type, string Init) RootDecl(DataItem item) => (item.FieldType, FieldInit(item));
 
+    /// <summary>The (name, init) of a method-scoped Tier-B REDEFINES class's ONE string backing when
+    /// <paramref name="root"/> is that class's canonical (M2-OO-1h step 3). The class-level field loop suppresses
+    /// this backing (it is method-scoped), so <c>OoEmitMethod</c> emits it as a method LOCAL of type
+    /// <c>string</c> — the members are windows over it (via <see cref="RedefViewPlace"/>). Null otherwise.</summary>
+    internal (string Name, string Init)? MethodRedefinesBackingDecl(DataItem root) =>
+        root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root)
+            ? (cls.BackingCsName, $"CobolString.Store({ImageInitOf(root)}, {cls.Width})")
+            : null;
+
     /// <summary>A field that physically appears in the emitted C# — an item's own field, OR a REDEFINES class's single
     /// string backing (which replaces ALL the class's members). A REDEFINES <i>view</i> yields no physical field
     /// (ISO §13.18.44; COBOLNET_DESIGN §4.1 — never two stored fields per storage area).</summary>

@@ -1179,6 +1179,33 @@ public sealed class OoSpineTests
         Assert.Contains("T=XYZ", output);   // extent 3 (the object OCNT) — depending-name resolved via the fallback
     }
 
+    /// <summary>§13.18.44.3 SR (M2-OO-1h step 3) — a method 01 REDEFINES may only overlay a preceding item in the
+    /// SAME method scope; naming an OBJECT item is out of scope → COBOLNET1518, never a silent cross-scope bind
+    /// (the pre-fix behavior bound the method redefiner to the object item through the global Roots pool).</summary>
+    [Fact]
+    public void MethodRedefines_TargetInObjectScope_Rejected()
+    {
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSPR3", "OSPR3C", """
+                INVOKE OSPR3C "NEW" RETURNING T.
+            """, """
+            METHOD-ID. M.
+            DATA DIVISION.
+            LOCAL-STORAGE SECTION.
+            01 MREDEF REDEFINES OBJNUM PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY MREDEF.
+                GOBACK.
+            END METHOD M.
+            """).Replace("PROCEDURE DIVISION.\nMETHOD-ID. M.", """
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OBJNUM PIC 9(4) VALUE 1.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            """)), "COBOLNET1518");
+    }
+
     // ── The FACTORY slice (§11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────
 
     /// <summary>An instance method and a factory method may SHARE a name (§9.3.6 — two interfaces): INVOKE
