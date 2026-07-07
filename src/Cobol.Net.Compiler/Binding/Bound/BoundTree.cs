@@ -168,6 +168,10 @@ public sealed record BoundIntrinsicCall(
 
     /// <summary>CONVERT (§15.19.2): the HEX destination modifier (§15.19.4 r2/r4). False for every other function.</summary>
     public bool ConvertDestHex { get; init; }
+
+    /// <summary>MODULE-NAME (§15.65.2): the keyword selector — 0 = CURRENT (r7), 1 = ACTIVATING (r5/r6),
+    /// 2 = NESTED (r8), 3 = STACK (r9), 4 = TOP-LEVEL (r10). Zero for every other function.</summary>
+    public int ModuleNameKind { get; init; }
 }
 
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────

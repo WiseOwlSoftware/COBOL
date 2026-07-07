@@ -236,6 +236,8 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             "Convert" =>                                                       // §15.19 — repertoire / hex / byte conversion (2023)
                 $"CobolIntrinsics.Convert({StrStatic(ic.Args[0])}, {ic.ConvertSource}, {ic.ConvertDest}, "
                     + $"{(ic.ConvertDestHex ? "true" : "false")})",
+            "ModuleName" =>                                                    // §15.65 — the runtime module call-name stack (2023)
+                $"CobolModule.Name({ic.ModuleNameKind})",
             // The last-exception interrogation functions (§15.28/30/32/33 — the EC model): zero-argument reads
             // of the runtime register; the binder's EcNoteFunction flagged the group EC gate, so the generated
             // source carries the CobolNet.Runtime.Exceptions using.

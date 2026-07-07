@@ -174,7 +174,7 @@ public static class IntrinsicCatalog
         Add(new("CONCAT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, inf, "s", "Concat", IntrinsicBind.Runtime, false, 2023)); // §15.18
         Add(new("CONVERT", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 2, 4, "s", "Convert", IntrinsicBind.Runtime, false, 2023)); // §15.19 — arg-1 source-format destination-format (bespoke keyword bind; result category computed per §15.19.1)
         Add(new("FIND-STRING", IntrinsicType.Integer, IntrinsicArity.Variadic, 2, 3, "sssii", "FindString", IntrinsicBind.Runtime, false, 2023)); // §15.37 — arg-1 arg-2 [LAST] [[START AFTER] arg-3] [ANYCASE] (special bind path)
-        Add(new("MODULE-NAME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.65
+        Add(new("MODULE-NAME", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 1, 1, "s", "ModuleName", IntrinsicBind.Runtime, false, 2023)); // §15.65 — the ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL keyword (special bind path)
         Add(new("SMALLEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2023)); // §15.83
         Add(new("SUBSTITUTE", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 3, inf, "s", "Substitute", IntrinsicBind.Runtime, false, 2023)); // §15.87 — arg-1 + one-or-more [ANYCASE][FIRST|LAST] arg-2 arg-3 pairs (special bind path)
 

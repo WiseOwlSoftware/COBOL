@@ -26,6 +26,11 @@ public sealed partial class StatementBinder
     /// backend bakes into the generated source as a string constant.</summary>
     internal static Func<DateTimeOffset> CompileClock { get; set; } = () => DateTimeOffset.Now;
 
+    /// <summary>True when the unit being bound is a nested (contained) program — set from <c>CallUnit.Parent</c>
+    /// at binder construction. Gates FUNCTION MODULE-NAME NESTED (§15.65.3 argument rule 1 — NESTED shall be
+    /// specified only within a contained program).</summary>
+    public bool InNestedProgram { get; init; }
+
     /// <summary>FUNCTION call in an expression position (the <c>BindPrimary</c> hook).</summary>
     private BoundExpr BindIntrinsic(Core.FunctionCallContext fc)
     {
@@ -130,6 +135,10 @@ public sealed partial class StatementBinder
         // CONVERT (§15.19) — argument-1 source-format destination-format: two keyword groups after the operand,
         // bound apart from the generic argument path (the result category is computed per §15.19.1).
         if (sig.Name == "CONVERT") return BindConvert(sig, argTokens);
+
+        // MODULE-NAME (§15.65) — one mandatory keyword (ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL), resolved
+        // from the runtime module call-name stack; bound apart from the generic argument path.
+        if (sig.Name == "MODULE-NAME") return BindModuleName(sig, argTokens);
 
         var args = BindIntrinsicArgs(argTokens);
         if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
@@ -361,6 +370,42 @@ public sealed partial class StatementBinder
     /// <summary>The §15.19.2 CONVERT format words (reserved within the argument list, like TRIM's LEADING/TRAILING).</summary>
     private static bool IsConvertFormatWord(string w) =>
         w.ToUpperInvariant() is "ANY" or "ALPHANUMERIC" or "ANUM" or "HEX" or "NATIONAL" or "NAT" or "BYTE";
+
+    /// <summary>MODULE-NAME (§15.65) — one mandatory phrase keyword selecting a runtime element of the running
+    /// COBOL hierarchy (§15.65.2: ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL; <c>TOP-LEVEL</c> is one hyphenated
+    /// <c>SUB_IDENTIFIER</c> token). The selector rides on <see cref="BoundIntrinsicCall.ModuleNameKind"/>; the
+    /// value resolves at runtime from the module call-name stack (<c>CobolModule</c>). NESTED requires a contained
+    /// program (§15.65.3 argument rule 1) — a compile-time conformance check.</summary>
+    private BoundExpr BindModuleName(IntrinsicSig sig, List<IToken> argTokens)
+    {
+        int kind = -1;
+        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        {
+            if (seg.All(t => t.Type == Core.SUB_WS)) continue;
+            int k = seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } kw]
+                ? kw.Text.ToUpperInvariant() switch
+                    { "CURRENT" => 0, "ACTIVATING" => 1, "NESTED" => 2, "STACK" => 3, "TOP-LEVEL" => 4, _ => -1 }
+                : -1;
+            if (k < 0 || kind >= 0)
+            {
+                data.Edition.Error("COBOLNET1504", "FUNCTION MODULE-NAME takes exactly one keyword argument "
+                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §15.65.2), not '{SegText(seg)}'");
+                return new BoundExprError("FUNCTION MODULE-NAME");
+            }
+            kind = k;
+        }
+        if (kind < 0)
+        {
+            data.Edition.Error("COBOLNET1504", "FUNCTION MODULE-NAME requires one keyword argument "
+                + "(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §15.65.2)");
+            return new BoundExprError("FUNCTION MODULE-NAME");
+        }
+        // §15.65.3 argument rule 1 — NESTED only within a nested (contained) program.
+        if (kind == 2 && !InNestedProgram)
+            data.Edition.Error("COBOLNET1515", "FUNCTION MODULE-NAME NESTED shall be specified only within a "
+                + "nested program (ISO §15.65.3 argument rule 1) — this compilation unit is not contained");
+        return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { ModuleNameKind = kind };
+    }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string
     /// literal, an alphanumeric/edited/group item, or a nested alphanumeric-result intrinsic.</summary>

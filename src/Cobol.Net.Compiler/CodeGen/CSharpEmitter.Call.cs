@@ -384,6 +384,8 @@ public sealed partial class CSharpEmitter
             // §8.4.6.6 — inside a function definition its OWN name is a referable function-prototype-name
             // (self-recursion without a repository entry; §12.3.8 GR11 makes a present self-entry a no-op).
             UdfSelfName = unit.IsFunction ? unit.Name : null,
+            // §15.65.3 argument rule 1 — MODULE-NAME NESTED requires a contained program.
+            InNestedProgram = unit.Parent is not null,
         };
         binder.ConfigureEc(_turnState, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
         unit.Bound = binder.Bind(unit.Ctx);

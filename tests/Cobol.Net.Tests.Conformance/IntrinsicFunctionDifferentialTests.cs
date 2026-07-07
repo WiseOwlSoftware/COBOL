@@ -558,4 +558,65 @@ public sealed class IntrinsicFunctionDifferentialTests
         // EXCEPTION-STATUS is a fixed-width register; its trailing spaces are trimmed by Normalize.
         Assert.Equal("S=EC-DATA-CONVERSION", output);
     }
+
+    // ── MODULE-NAME (§15.65, Phase 5, DEVLOG 633): the runtime COBOL hierarchy; CURRENT/ACTIVATING/… keyword ──
+
+    [Theory]
+    [InlineData("CURRENT", "[MODNM   ]")]        // §15.65.4 r7 — the running compilation unit's outermost program
+    [InlineData("TOP-LEVEL", "[MODNM   ]")]      // r10 — the run-unit main
+    [InlineData("ACTIVATING", "[        ]")]     // r5 — a main program's activator is a single space
+    public void ModuleName_MainProgram_2023(string kw, string expected)
+        => AssertSpec(Program("01 N PIC X(8).",
+            $"    MOVE FUNCTION MODULE-NAME({kw}) TO N.\n    DISPLAY \"[\" N \"]\".", "MODNM"), expected, 2023);
+
+    [Fact]
+    public void ModuleName_ActivatingAcrossCall_2023()
+    {
+        // §15.65.4 r5 — in a CALLed program ACTIVATING is the caller's name; STACK (r9) is CURRENT;…;TOP-LEVEL;space.
+        var src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. DRVMOD.
+            PROCEDURE DIVISION.
+            MAIN.
+                CALL "HLPMOD".
+                STOP RUN.
+            END PROGRAM DRVMOD.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. HLPMOD.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 N PIC X(10).
+            01 S PIC X(20).
+            PROCEDURE DIVISION.
+            HP.
+                MOVE FUNCTION MODULE-NAME(ACTIVATING) TO N.
+                DISPLAY "A=[" N "]".
+                MOVE FUNCTION MODULE-NAME(STACK) TO S.
+                DISPLAY "S=[" S "]".
+                EXIT PROGRAM.
+            END PROGRAM HLPMOD.
+            """;
+        var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        Assert.Equal("A=[DRVMOD    ]\nS=[HLPMOD;DRVMOD;      ]", output);
+    }
+
+    [Fact]
+    public void ModuleName_GatedBelow2023_1502()
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 N PIC X(4).", "    MOVE FUNCTION MODULE-NAME(CURRENT) TO N.\n    DISPLAY N.", "MODNG"));
+        Assert.False(ok, "MODULE-NAME is 2023+; 2014 must reject");
+        Assert.Contains("COBOLNET1502", detail);
+    }
+
+    [Fact]
+    public void ModuleName_NestedOutsideNestedProgram_1515()
+    {
+        // §15.65.3 argument rule 1 — NESTED shall be specified only within a contained program.
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            Program("01 N PIC X(8).", "    MOVE FUNCTION MODULE-NAME(NESTED) TO N.\n    DISPLAY N.", "MODNN"));
+        Assert.False(ok, "MODULE-NAME NESTED requires a contained program");
+        Assert.Contains("COBOLNET1515", detail);
+    }
 }

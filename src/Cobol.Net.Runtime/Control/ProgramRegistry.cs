@@ -362,6 +362,7 @@ public static class ProgramRegistry
         Order.Clear();
         ProbedModules.Clear();
         ExternalStore.Reset();
+        CobolModule.Reset();   // the FUNCTION MODULE-NAME call-name stack (§15.65)
     }
 
     /// <summary>Register one program unit (emitted once per unit at run-unit start, containers before containees).</summary>
@@ -386,8 +387,9 @@ public static class ProgramRegistry
         var n = ByPath[path];
         var inst = n.Instance ??= n.Factory(null);
         n.Active++;
+        CobolModule.PushMain(n.Name);   // TOP-LEVEL / the run-unit main (§15.65.4 r5/r10)
         try { inst.Activate(); }
-        finally { n.Active--; }
+        finally { n.Active--; CobolModule.Pop(); }
         // A GOBACK … RAISING in the MAIN program stages a propagation whose "activator" is the run-unit
         // boundary itself — apply the activation-boundary default here (§14.9.18 GR; §14.6.13.1.3).
         ApplyPropagationDefault();
@@ -442,8 +444,9 @@ public static class ProgramRegistry
             inst = n.Instance ??= n.Factory(ParentInstance(n));   // cached singleton — last-used state (§14.6.2.3.3)
 
         n.Active++;
+        CobolModule.Push(n.Name, OutermostName(n), n.ParentPath is not null);   // §15.65.4 r7/r8 frame
         try { inst.Call(args, returning); }
-        finally { n.Active--; }
+        finally { n.Active--; CobolModule.Pop(); }
 
         if (n.Initial)
         {
@@ -578,6 +581,15 @@ public static class ProgramRegistry
 
     private static Node? ParentOf(Node n) =>
         n.ParentPath is not null && ByPath.TryGetValue(n.ParentPath, out var p) ? p : null;
+
+    /// <summary>The outermost (top-level) program-id name of a node's compilation-unit containment chain
+    /// (ISO §15.65.4 r7 — MODULE-NAME CURRENT). Equals the node's own name for a top-level program.</summary>
+    private static string OutermostName(Node n)
+    {
+        var top = n;
+        for (var p = ParentOf(top); p is not null; p = ParentOf(top)) top = p;
+        return top.Name;
+    }
 
     private static bool NameEquals(string a, string b) => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 }

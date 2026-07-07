@@ -9,6 +9,7 @@
     "intrinsics_string_2023",
     "intrinsics_trim",
     "logical_xor",
+    "module_name",
     "substitute"
   ],
   "pending": []

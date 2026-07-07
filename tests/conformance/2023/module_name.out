@@ -1,0 +1,8 @@
+M-CUR=[MAINMOD             ]
+M-ACT=[                    ]
+M-TOP=[MAINMOD             ]
+N-CUR=[MAINMOD             ]
+N-NST=[NESTPROG            ]
+N-ACT=[MAINMOD             ]
+S-ACT=[MAINMOD                                 ]
+S-STK=[SUBMOD;MAINMOD;                         ]
