@@ -329,6 +329,66 @@ goldens `dyn_nested_group_move`/`dyn_corr`; guard tests `GroupSubordinateValueWi
 greenfield-only (guard-fast; CI is the backstop). All 3 recon open questions resolved to their recommended defaults
 (VALUE-capacity staged; EC-FLOW-SEARCH in CORE; extend THIS doc).
 
+### D17. TYPEDEF + the TYPE clause (§13.18.58 / §13.18.57 / §13.16, COBOL-2002) — a template registry + a subtree clone spliced into the forest at declaration-bind; a FRONT-END + BINDER-ONLY feature (ZERO emitter change).
+
+*Decision-complete design — recon wf_5dd41937-6d8 (2026-07-07); load-bearing anchors verified. "D5" in the prompt was
+a MISNOMER (D5 here is REDEFINES) — there was NO prior TYPEDEF design at any altitude; this is net-new, allocated the
+next GLOBAL decision number (D16 = floats in the numeric doc is the tail).*
+
+**Key architectural fact.** A weak TYPE reference is pure MACRO-EXPANSION — the cloned subtree emits exactly as a
+hand-written group would (§8.5.3.2 NOTE); a STRONG type is stored IDENTICALLY and adds only COMPILE-TIME checks
+(§8.5.3.3). So the whole feature = grammar (one token + one clause) + a template registry + a subtree clone spliced
+into the forest during declaration binding + a same-type guard at MOVE/compare. **No `CSharpEmitter`/`FieldEmitter`
+change.**
+
+**CORE (ships whole, program/global scope).** (1) A **`TypeDecls`** registry (name → template subtree; case-insensitive,
+mirrors `ByName`). The TYPEDEF entry allocates NO storage (not in `Roots`) and its subordinate names are NOT globally
+referenceable (§13.18.58.4 GR2/GR1) — the template is built WITHOUT `RegisterName`. (2) **TYPE reference cloning**
+(`TYPE [IS] type-name`, the grammar ALREADY exists at `CobolData.g4:253`): a deep clone of the template subtree into
+the referencing entry (§13.18.57.4 GR1/GR2), handling elementary + group types, subject-owned OCCURS (array-of-type,
+§13.16 SR14) and subject VALUE override (GR3), GR1 exclusions (the type's level/name/GLOBAL/SELECT WHEN/TYPEDEF are
+not copied). (3) **STRONG typing** (§13.18.58.2): declaration SRs (§13.18.57.3 SR3/SR4/SR6) + same-type gating at MOVE
+(§8.8.4.1.1 item 12), comparison (§8.8.4.2.3 SR1), class-condition (§8.8.4.4.3 SR1); intra-element same-type =
+template identity (`TypeName` + relative path, §8.5.3 NOTE). (4) **level-88s inside a TYPEDEF** (GR1 — part of the
+type): cloned + re-registered. (5) recursion/placement guards. **This also fixes a current SILENT-DROP bug:** at 2002+
+`TYPE IS name` parses and is silently dropped (no `typeClause` binder branch) — CORE wires it (unresolved → 1530).
+
+**Mechanism.** `DataItem` gains `TypeName`/`StrongType`. A Pass-0 **`CollectTypeDecls`** (in `BindDeclarations`, before
+`BindEntries`) builds each TYPEDEF template (fresh `Uid`s, `Parent`/`Children`, but NO `Roots.Add`/`RegisterName`) and
+returns the consumed entries so the main pass SKIPS them. A recursive **`CloneSubtree`/`CloneItem`** (generalizes the
+flat `CreateCompilerTemp`, `DataBinder.Oo.cs:362`): a fresh `Uid` per node (CRITICAL — `StructName`/`ProfileName` ride
+on it), shares the immutable `Pic`, copies the description fields, re-uniquifies `CsName` in the NEW scope, and DOES
+`RegisterName` (clones ARE referenceable, unlike the template). **`ExpandType`** runs inside `BindEntries` right after
+an item is placed (so the clone is in the forest BEFORE `BindResolve` — every post-build pass sees it automatically,
+the same invariant `CreateCompilerTemp` relies on). STRONG equivalence: `StrongRootOf(item)` (walk to the outermost
+`StrongType`) + `SameType(a,b)` (equal strong-root `TypeName` + relative `CsName` path), checked in `BindMove`/
+`BindComparison`/the class-condition arm.
+
+**Grammar (ONE shared-.g4 change → FULL legacy guard).** The TYPE-reference rule already exists (`{is2002()}? TYPE
+IS? IDENTIFIER`). ADD only: a `STRONG` lexer token; `typedefClause : {is2002()}? IS? TYPEDEF STRONG? ;` on
+`dataDescriptionClause` (modeled on `externalClause`); an `EditionGateHints.TypedefClause` entry (pre-2002 probe →
+0900). **Do NOT add an `AS` token** — SAME AS is DEFERRED (a distinct feature; `AS` is a legacy-compat hazard as a
+common data-name; `CloneSubtree` is built generically so the later SAME AS slice reuses it with a different exclusion
+mask). `POINTER TO type-name` also stays out.
+
+**Diagnostics (15xx, continuing after 1528).** **1529** malformed TYPEDEF (SR15 level-1/named; SR1 STRONG-on-
+elementary; TYPEDEF × REDEFINES/BASED/CONSTANT RECORD/PROPERTY); **1530** TYPE unresolved/recursive; **1531** illegal
+TYPE-reference context (immediate subordinate/88; disallowed sibling clause; 77-of-group; type-with-INDEXED-BY used
+≥2×); **1532** STRONG declaration violation; **1533** STRONG use incompatibility (MOVE/compare non-same-type; strong
+group in a class condition); **1534** staged-loud EXTERNAL type declaration (2023 delta); **1535** staged-loud
+RENAMES-in-TYPEDEF / strong-group boolean-object non-equality compare.
+
+**Increments (each: build → greenfield battery → [legacy guard iff grammar] → DEVLOG + commit).** (1) grammar +
+weak-TYPE spine (`TypeName`/`StrongType`, `TypeDecls`, `CollectTypeDecls`, `CloneSubtree`, `ExpandType`, 1529/1530/
+1531) — **the ONLY grammar/legacy-guard slice** → goldens `typedef_weak_elem`/`typedef_weak_group`. (2) STRONG typing
+(1532/1533) → `typedef_strong_ok`/`typedef_strong_bad`. (3) level-88s in a TYPEDEF → `typedef_88`. (4) staged-loud
+residue (1534/1535) + the matrix behavior/continuity rows + DOC_INDEX / ISO2023_CONFORMANCE_PLAN M3-2 sync.
+
+**RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached
+resolved items); `INDEXED BY` in a TYPEDEF used ≥2× = a global index-name collision (staged loud 1531); method/OO-scope
+typedefs are program/global-scope-first (the `OoRootOwner` parallel forest → staged loud follow-up); STRONG group
+alignment (GR2d/§8.5.1.6.5) is D6/SYNC domain, out of scope.
+
 ## C# mapping
 
 CONCRETE COBOL→C# MAPPINGS:
