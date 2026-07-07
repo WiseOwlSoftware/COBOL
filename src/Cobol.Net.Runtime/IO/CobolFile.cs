@@ -15,16 +15,37 @@ public static partial class CobolFile
     private static readonly Dictionary<string, SequentialFile> Files = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> Locked = new(StringComparer.OrdinalIgnoreCase);
     private static int _instSeq;   // the per-object instance-file connector-key sequence (M2-OO-1i; reset in Init for determinism)
+    // The GC finalizer thread (~CobolObject) can request a per-object CLOSE at any moment, but the registries
+    // (Files/Locked/RelativeFiles/IndexedFiles/sharing) are single-thread structures — a mutation from the finalizer
+    // thread concurrent with a mutator-thread Open/Register/Read is a data race on a plain Dictionary (M2-OO-1i
+    // review). So the finalizer only ENQUEUES the key (thread-safe); the actual CloseAndDrop runs on the mutator
+    // thread when it next drains (Init / Open / CloseAll). §9.1.4's NOTE licenses this GC-deferred close.
+    private static readonly System.Collections.Concurrent.ConcurrentQueue<string> _pendingObjectClose = new();
 
     /// <summary>Reset the file registry (emitted once at program start).</summary>
     public static void Init()
     {
+        DrainPendingObjectCloses();
         foreach (var f in Files.Values) f.Close();
         Files.Clear();
         Locked.Clear();
         _instSeq = 0;
+        while (_pendingObjectClose.TryDequeue(out _)) { }   // a new run unit starts with a clean queue
         LocksInit();
         KeyedInit();
+    }
+
+    /// <summary>Request the §9.1.4 deletion-time CLOSE of a per-object connector FROM THE GC FINALIZER THREAD: only
+    /// enqueue the key (a lock-free <see cref="System.Collections.Concurrent.ConcurrentQueue{T}"/> op), never touch
+    /// the single-thread registries here. The mutator thread performs the real close in
+    /// <see cref="DrainPendingObjectCloses"/>.</summary>
+    internal static void EnqueueInstanceClose(string key) => _pendingObjectClose.Enqueue(key);
+
+    /// <summary>Perform any GC-requested per-object closes on the MUTATOR thread (called at the top of Init / Open /
+    /// CloseAll — safe points where no other registry mutation is in flight). Usually a no-op (empty queue).</summary>
+    private static void DrainPendingObjectCloses()
+    {
+        while (_pendingObjectClose.TryDequeue(out var k)) CloseAndDrop(k);
     }
 
     /// <summary>Mint a UNIQUE per-object connector key for an instance file (M2-OO-1i, ISO §9.1.4 — one connector
@@ -44,6 +65,7 @@ public static partial class CobolFile
     {
         Close(key);
         Files.Remove(key);
+        KeyedDrop(key);   // a RELATIVE/INDEXED per-object connector lives in the keyed registries, not Files
         Locked.Remove(key);
     }
 
@@ -72,6 +94,7 @@ public static partial class CobolFile
 
     private static void Open(string name, FileOpenMode mode)
     {
+        DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
         // A sharing-active connector (SHARING / LOCK MODE declared) routes through the physical-file registry
         // (Table-19 → 61); every other file keeps the legacy exclusive path byte-for-byte (ISO §14.9.27 GR23
         // implementor default — outside the sharing subsystem). Handles all three organizations via
@@ -160,7 +183,7 @@ public static partial class CobolFile
     public static bool Failed(string name) => Files.TryGetValue(name, out var f) && f.Status != FileStatusCode.Success;
 
     /// <summary>Close every open file (emitted at run-unit termination, ISO §14.6 — flushes print streams).</summary>
-    public static void CloseAll() { foreach (var f in Files.Values) f.Close(); KeyedCloseAll(); }
+    public static void CloseAll() { DrainPendingObjectCloses(); foreach (var f in Files.Values) f.Close(); KeyedCloseAll(); }
 
     /// <summary>Resolve an ASSIGN target to a host file path: a target that already looks like a path (has a
     /// directory separator or an extension) is used verbatim; otherwise it becomes <c>&lt;lowercased&gt;.txt</c> in the

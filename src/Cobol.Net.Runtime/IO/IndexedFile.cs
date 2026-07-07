@@ -517,16 +517,24 @@ public static partial class CobolFile
     /// <paramref name="varyMin"/>/<paramref name="varyMax"/> are the RECORD IS VARYING bounds (ISO §13.18.43
     /// GR9/GR10; -1,-1 = fixed-length).</summary>
     public static void RegisterRelative(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int relativeKeyDigits, int varyMin = -1, int varyMax = -1) =>
+        int accessMode, int relativeKeyDigits, int varyMin = -1, int varyMax = -1)
+    {
+        if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && RelativeFiles.ContainsKey(cobolName))
+            return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a — mirror the sequential guard)
         RelativeFiles[cobolName] = new RelativeFile(ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax) { IsOptional = optional };
+    }
 
     /// <summary>Register a SELECTed INDEXED file (emitted at program start) with its PRIME key's (offset, length)
     /// range of the record image (§12.4.5.12) and the RECORD IS VARYING bounds (-1,-1 = fixed-length).</summary>
     public static void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
-        int accessMode, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1) =>
+        int accessMode, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1)
+    {
+        if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && IndexedFiles.ContainsKey(cobolName))
+            return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a — mirror the sequential guard)
         IndexedFiles[cobolName] = new IndexedFile(ResolveHostPath(assignTarget), recordWidth,
             (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax) { IsOptional = optional };
+    }
 
     /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order.</summary>
     public static void AddAlternateKey(string name, int offset, int length, bool duplicates)
@@ -668,6 +676,15 @@ public static partial class CobolFile
     {
         if (RelativeFiles.TryGetValue(name, out var r)) r.Close();
         else if (IndexedFiles.TryGetValue(name, out var ix)) ix.Close();
+    }
+
+    /// <summary>Remove a keyed (relative/indexed) connector from its registry — the keyed half of
+    /// <see cref="CloseAndDrop"/> (M2-OO-1i §9.1.4: a per-object connector is dropped, not just closed, when the
+    /// owning object is deleted). No-op for a name that is not a keyed connector.</summary>
+    private static void KeyedDrop(string name)
+    {
+        RelativeFiles.Remove(name);
+        IndexedFiles.Remove(name);
     }
 
     private static int KeyedOpenModeOf(string name) =>

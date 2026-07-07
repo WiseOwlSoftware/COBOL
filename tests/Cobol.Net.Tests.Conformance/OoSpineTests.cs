@@ -448,6 +448,53 @@ public sealed class OoSpineTests
             END CLASS GOCLS.
             """).Replace("\r\n", "\n")), "COBOLNET1520");
 
+    /// <summary>M2-OO-1i review — §13.18.27.3 SR4 bars GLOBAL on a DATA item too (not just an FD) in a factory /
+    /// instance / method definition. A GLOBAL level-01 in an OBJECT WORKING-STORAGE is COBOLNET1520 (was silently
+    /// accepted — a false-negative diagnostic).</summary>
+    [Fact]
+    public void ObjectData_Global_1520()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOGD1.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS GDCLS.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM OOGD1.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. GDCLS.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 G PIC X IS GLOBAL.
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS GDCLS.
+            """).Replace("\r\n", "\n")), "COBOLNET1520");
+
+    /// <summary>M2-OO-1i review — a GLOBAL data item in a METHOD (here LINKAGE) is COBOLNET1520, superseding the
+    /// old mislabeled COBOLNET0899 "not yet implemented": §13.18.27.3 SR4 makes GLOBAL spec-FORBIDDEN in a method,
+    /// not merely unimplemented.</summary>
+    [Fact]
+    public void MethodData_Global_1520()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOGD2", "GDCL2", """
+                INVOKE GDCL2 "NEW" RETURNING T.
+            """, """
+            METHOD-ID. M.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-G PIC X IS GLOBAL.
+            PROCEDURE DIVISION.
+            MAIN.
+                CONTINUE.
+            END METHOD M.
+            """)), "COBOLNET1520");
+
     /// <summary>The staged boundaries stay LOUD (never a silent drop): INVOKE SELF (slice 3b) reaches the
     /// runtime not-implemented guard; an arity mismatch (slice 2 — trap #3: a dropped/extra argument would
     /// shift every following slot, the legacy DEVLOG-449 blocker) is a compile-time 0828.</summary>

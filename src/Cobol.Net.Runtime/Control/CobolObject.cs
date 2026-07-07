@@ -76,14 +76,15 @@ public abstract class CobolObject
         __instFiles.Add(key);
     }
 
-    /// <summary>The §9.1.4 implicit CLOSE at object deletion: close and drop every instance-file connector this
-    /// object owns. A finalizer (not IDisposable) matches the spec's GC-deferred timing (the §9.1.4 NOTE); the
-    /// run-unit <c>CobolFile.CloseAll()</c> is the backstop for objects not yet collected. Reached only for
-    /// file-owning objects (see the ctor's SuppressFinalize). CloseAndDrop is idempotent, so a program that
-    /// already CLOSEd its files finalizes harmlessly.</summary>
+    /// <summary>The §9.1.4 implicit CLOSE at object deletion: request close of every instance-file connector this
+    /// object owns. This runs on the GC finalizer THREAD, so it must NOT touch the single-thread file registries
+    /// directly — it only ENQUEUES each key (<see cref="CobolFile.EnqueueInstanceClose"/>, lock-free); the mutator
+    /// thread performs the actual close when it next drains (§9.1.4's NOTE licenses this GC-deferred timing; the
+    /// run-unit <c>CobolFile.CloseAll()</c> drains + is the backstop). Reached only for file-owning objects (see the
+    /// ctor's SuppressFinalize).</summary>
     ~CobolObject()
     {
         if (__instFiles is { } fs)
-            foreach (var k in fs) CobolFile.CloseAndDrop(k);
+            foreach (var k in fs) CobolFile.EnqueueInstanceClose(k);
     }
 }

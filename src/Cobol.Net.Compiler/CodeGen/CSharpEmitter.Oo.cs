@@ -84,13 +84,7 @@ public sealed partial class CSharpEmitter
         data.OoBindPropertyClauses(cls.Symbol,
             cls.Symbol.Ctx.objectParagraph()?.dataDivision()?.workingStorageSection(), factory: false);
         data.BindResolve(synthetic);
-        // An OBJECT (instance) file connector is legal (§12.4.3 SR1 / §13.4.3 SR1) and is per-object (§9.1.4, inc 4).
-        // GLOBAL on it is not: §13.18.27.3 SR4 bars the GLOBAL clause in a factory / instance / method definition.
-        foreach (var f in data.Files)
-            if (f.IsGlobal)
-                edition.Error("COBOLNET1520", $"class '{cls.Name}': OBJECT file '{f.CobolName}' specifies the "
-                    + "GLOBAL clause — GLOBAL shall not be specified in a factory, instance, or method definition "
-                    + "(ISO §13.18.27.3 SR4)");
+        OoGateClassGlobal(data, cls.Name, "OBJECT", edition);
         cls.Data = data;
         cls.Refs = new ReferenceResolver(data);
 
@@ -108,14 +102,7 @@ public sealed partial class CSharpEmitter
         fdata.OoBindPropertyClauses(cls.Symbol,
             cls.Symbol.Ctx.factoryParagraph()?.dataDivision()?.workingStorageSection(), factory: true);
         fdata.BindResolve(fsynthetic);
-        // A FACTORY file connector is legal (§12.4.3 SR1 / §13.4.3 SR1 admit the input-output + file sections in a
-        // factory definition) and registers in the singleton (inc 3). GLOBAL on it is not: §13.18.27.3 SR4 bars the
-        // GLOBAL clause in a factory / instance / method definition.
-        foreach (var f in fdata.Files)
-            if (f.IsGlobal)
-                edition.Error("COBOLNET1520", $"class '{cls.Name}': FACTORY file '{f.CobolName}' specifies the "
-                    + "GLOBAL clause — GLOBAL shall not be specified in a factory, instance, or method definition "
-                    + "(ISO §13.18.27.3 SR4)");
+        OoGateClassGlobal(fdata, cls.Name, "FACTORY", edition);
         cls.FactoryData = fdata;
         cls.FactoryRefs = new ReferenceResolver(fdata);
     }
@@ -170,6 +157,24 @@ public sealed partial class CSharpEmitter
         return unit;
     }
 
+    /// <summary>Enforce ISO §13.18.27.3 SR4 for an OBJECT/FACTORY definition: the GLOBAL clause shall not be
+    /// specified in a factory, instance, or method definition — on an FD (SR1 file-description entry) OR a level-01
+    /// data-description entry (SR1 file/WS/local-storage/linkage). GLOBAL is a nested-PROGRAM containment mechanism
+    /// (a class contains no programs); program↔class file sharing is EXTERNAL only (§9.1.5). Both → COBOLNET1520.</summary>
+    private static void OoGateClassGlobal(DataBinder data, string clsName, string half, EditionContext edition)
+    {
+        foreach (var f in data.Files)
+            if (f.IsGlobal)
+                edition.Error("COBOLNET1520", $"class '{clsName}': {half} file '{f.CobolName}' specifies the GLOBAL "
+                    + "clause — GLOBAL shall not be specified in a factory, instance, or method definition (ISO §13.18.27.3 SR4)");
+        // A GLOBAL level-01 DATA item (§13.18.27 SR1) — CallBindExternalAndGlobal collected it into CallGlobalRoots
+        // (meaningless in a class, which contains no programs). An FD-record GLOBAL is already covered by the file loop.
+        foreach (var g in data.CallGlobalRoots)
+            if (!data.Files.Any(f => f.Records.Contains(g)))
+                edition.Error("COBOLNET1520", $"class '{clsName}': {half} data item '{g.CobolName}' specifies the "
+                    + "GLOBAL clause — GLOBAL shall not be specified in a factory, instance, or method definition (ISO §13.18.27.3 SR4)");
+    }
+
     /// <summary>Qualify a class's OBJECT/FACTORY file connectors into the run-unit registry namespace (M2-OO-1i —
     /// the OO analogue of the per-program qualification in <see cref="CallEmitRunUnit"/>). A FACTORY file (the class
     /// singleton, §9.3.14.2) keys by class — <c>Class::FACT::name</c>; an EXTERNAL class file keys by its run-unit
@@ -184,6 +189,12 @@ public sealed partial class CSharpEmitter
         foreach (var f in cls.Data.Files)
             if (f is { IsExternal: true, ExternalName: { } ext })
                 f.CobolName = "::EXT::" + ext;
+            else if (f.IsSortMerge)
+                // An SD is NOT a host connector — its store is the name-keyed in-memory CobolSort (§13.4.6), and
+                // OoEmitFileMembers / EmitFileRegistration both skip SDs (host = !IsSortMerge). So it must keep a
+                // STATIC key (no InstanceKeyField), or FileKeyExpr would emit an undeclared this.__fkey_X for a
+                // SORT/MERGE/RELEASE/RETURN in a method (M2-OO-1i review). Class-qualified for cross-class uniqueness.
+                f.CobolName = cls.CsName + "::SORT::" + f.CobolName;
             else
             {
                 f.InstanceKeyField = "__fkey_" + DataItem.Sanitize(f.CobolName);
@@ -215,7 +226,7 @@ public sealed partial class CSharpEmitter
                 + $"{CsLiteral(ext.InitImage)}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
     }
 
-    private void OoEmitFileMembers(string csName, DataBinder data, CodeWriter w)
+    private void OoEmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)
     {
         var host = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the in-memory sort store, never a host connector
         if (host.Count == 0) return;
@@ -228,6 +239,10 @@ public sealed partial class CSharpEmitter
         using (w.Block($"public {csName}()"))
         {
             EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
+            // A REPORT SECTION in this object/factory (Report Writer is a complete subsystem — the class emit path
+            // just has to CALL it, the same class-emit-gap shape as inc 3/5): the engines construct AFTER their FDs
+            // register (COBOLNET_REPORT_WRITER_DESIGN §4). Early-returns when Reports.Count == 0.
+            RwEmitReportConstruction(bound, w);
             foreach (var f in host.Where(f => f.InstanceKeyField is not null))
                 w.Line($"__TrackInstanceFile({FileKeyExpr(f)});");   // closed + dropped when the object is deleted (§9.1.4)
         }
@@ -305,6 +320,7 @@ public sealed partial class CSharpEmitter
         _callSelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
         _callReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
         _ecUnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)
+        _useDecls = false;               // a class owns no USE declaratives — clear any bleed from a prior unit (M2-OO-1i review)
         _callOuterGlobalUse = false;
         _callInheritedStatusPlace.Clear();
 
@@ -315,7 +331,12 @@ public sealed partial class CSharpEmitter
             var fields = new FieldEmitter(_ctx);
             fields.Emit();   // WS → INSTANCE fields (D3/D11); method WS → statics; VALUE inits = field initializers (D4)
             EmitExternalBackings(data, w);       // M2-OO-1i inc 5: a class EXTERNAL FD record → the shared run-unit cell
-            OoEmitFileMembers(csName, data, w);   // M2-OO-1i: object/factory file connectors register in an emitted ctor
+            RwEmitReportMembers(w);              // M2-OO-1i review: a class REPORT SECTION's engine fields + compose methods (Report Writer is complete)
+            OoEmitFileMembers(csName, data, bound, w);   // M2-OO-1i: object/factory file connectors + report construction register in an emitted ctor
+            // A method file verb under >>TURN EC-I-O … CHECKING emits an __IoCheckEc call (§9.1.13.1 fatal-status
+            // default); the class type must declare it. A class has no USE declaratives (Declaratives == null), so
+            // EcEmitIoCheckEc reduces to the status→EC bridge — no __RunUse/__EcDispatch needed (M2-OO-1i review).
+            if (bound.Ec is { HasIoChecked: true }) EcEmitIoCheckEc(bound, w);
             if (bound.Paragraphs.Count > 0)
                 w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
             w.Line();

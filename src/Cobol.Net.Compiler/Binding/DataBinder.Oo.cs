@@ -155,44 +155,59 @@ public sealed partial class DataBinder
         if (dd is not null)
         {
             // FILE / REPORT / SCREEN sections may appear only in a factory or instance definition, never in a
-            // method (§13.4.3 SR1 / §13.9 / §13.10). One error class (COBOLNET1519, "section not permitted in a
-            // method"), split so the message names the offending section + its §. A method's own data division is
-            // limited to LOCAL-STORAGE (§13.6.3) and LINKAGE (§13.7.3), both handled below.
+            // method (§13.4.3 SR1 / §13.8.3 SR1 / §13.9.3 SR1). One error class (COBOLNET1519, "section not permitted
+            // in a method"), split so the message names the offending section + its §. A method's own data division
+            // is limited to LOCAL-STORAGE (§13.6.3) and LINKAGE (§13.7.3), both handled below.
             if (dd.fileSection() is not null)
                 Edition.Error("COBOLNET1519", $"{where}: a method definition shall not contain a FILE SECTION — it "
                     + "may appear only in a factory or instance definition (ISO §13.4.3 SR1)");
             if (dd.reportSection() is not null)
                 Edition.Error("COBOLNET1519", $"{where}: a method definition shall not contain a REPORT SECTION — it "
-                    + "may appear only in a factory or instance definition (ISO §13.9)");
+                    + "may appear only in a factory or instance definition (ISO §13.8.3 SR1)");
             if (dd.screenSection() is not null)
                 Edition.Error("COBOLNET1519", $"{where}: a method definition shall not contain a SCREEN SECTION — it "
-                    + "may appear only in a factory or instance definition (ISO §13.10)");
+                    + "may appear only in a factory or instance definition (ISO §13.9.3 SR1)");
+            // §13.18.27.3 SR4: the GLOBAL clause is barred in a method definition — on a level-01 item of ANY
+            // section a method may own (WS / LOCAL-STORAGE / LINKAGE). Spec-FORBIDDEN (COBOLNET1520), not merely
+            // unimplemented. (EXTERNAL is a separate deferred leg — WS only, below.)
+            void GateMethodGlobal(IEnumerable<Core.DataDescriptionEntryContext> entries)
+            {
+                foreach (var e in entries)
+                    if (e.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
+                            ?.Any(cl => cl.globalClause() is not null) == true)
+                        Edition.Error("COBOLNET1520", $"{where}: a data item specifies the GLOBAL clause — GLOBAL "
+                            + "shall not be specified in a factory, instance, or method definition (ISO §13.18.27.3 SR4)");
+            }
             if (dd.workingStorageSection() is { } ws)
             {
                 // D3: method WS → STATIC fields (per-class, shared, persistent — §11.7; the naive instance-field
                 // mapping silently miscompiles a method-WS counter). The 2023 §13.5.3 SR 1 ban is the
                 // EditionValidator's method-working-storage-window row — binding proceeds so `--permissive`
                 // keeps the pre-removal semantics (the §10 #1 migration contract).
+                GateMethodGlobal(ws.dataDescriptionEntry());
+                // EXTERNAL in method WS would silently miss CallBindExternalAndGlobal (it scans the synthetic unit's
+                // OBJECT section only) — gate loud rather than mis-scope run-unit storage.
                 foreach (var entry in ws.dataDescriptionEntry())
-                {
-                    var clauses = entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
-                    // EXTERNAL/GLOBAL in method WS would silently miss CallBindExternalAndGlobal (it scans the
-                    // synthetic unit's OBJECT section only) — gate loud rather than mis-scope run-unit storage.
-                    if (clauses is not null && clauses.Any(cl =>
-                            cl.externalClause() is not null || cl.globalClause() is not null))
-                        Edition.Error("COBOLNET0899", $"{where}: EXTERNAL/GLOBAL on a method WORKING-STORAGE "
-                            + "item is recognized but not yet implemented (Phase 3, OO port)");
-                }
+                    if (entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
+                            ?.Any(cl => cl.externalClause() is not null) == true)
+                        Edition.Error("COBOLNET0899", $"{where}: EXTERNAL on a method WORKING-STORAGE item is "
+                            + "recognized but not yet implemented (Phase 3, OO port)");
                 var roots = BindEntries(ws.dataDescriptionEntry(), _rootNames);
                 m.StaticRoots.AddRange(roots);
                 foreach (var r in roots) OoStaticRootFields.Add(r.CsName);
             }
             if (dd.localStorageSection() is { } ls)
+            {
+                GateMethodGlobal(ls.dataDescriptionEntry());
                 m.LocalRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), _rootNames));
+            }
             if (dd.linkageSection() is { } lk)
-                m.LinkageRoots.AddRange(BindEntries(
-                    lk.linkageEntry().Select(e => e.dataDescriptionEntry()).Where(e => e is not null).Select(e => e!),
-                    _rootNames));
+            {
+                var lkEntries = lk.linkageEntry().Select(e => e.dataDescriptionEntry())
+                    .Where(e => e is not null).Select(e => e!).ToList();
+                GateMethodGlobal(lkEntries);
+                m.LinkageRoots.AddRange(BindEntries(lkEntries, _rootNames));
+            }
         }
         _bindingMethodScope = null;
 
