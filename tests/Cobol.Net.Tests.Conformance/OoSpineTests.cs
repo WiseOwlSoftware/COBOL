@@ -1090,10 +1090,10 @@ public sealed class OoSpineTests
 
     /// <summary>§8.4.6.2.1 rule 3a — a METHOD-LOCAL declaration shadows the object level in EVERY lookup
     /// path: SEARCH's table resolution and the subscript index-name lookup must see the method's item, never
-    /// the object's same-named table/index (the review's scope-bypass findings); and the dead level-66 gate
-    /// now fires (a 66 in method data stages 0899, never a silent drop).</summary>
+    /// the object's same-named table/index (the review's scope-bypass findings). And level-66 RENAMES in method
+    /// data is now LIVE (M2-OO-1h step 1, DEVLOG 637 — the alias resolves structurally over the method record).</summary>
     [Fact]
-    public void MethodScope_SearchAndIndexLookups_And66Gate()
+    public void MethodScope_SearchAndIndexLookups_And66Renames()
     {
         // SEARCH of a method-local NON-table (shadowing an object-level TABLE of the same name) must bind
         // the METHOD-LOCAL item — the loud not-a-table guard fires, never a silent search of the object's
@@ -1122,21 +1122,27 @@ public sealed class OoSpineTests
             """));
         Assert.False(okShadow, "SEARCH must bind the METHOD-LOCAL TAB2 (not a table) — loud, never the object's table");
         Assert.Contains("TAB2", shadowDetail);
-        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP35", "OSPC35", """
+        // level-66 RENAMES in method LOCAL-STORAGE now compiles and runs — the alias reads the record span
+        // (§13.18.45 GR2), resolved structurally over the method's own record (M2-OO-1h step 1).
+        var (ok66, out66, detail66) = CompileAndRun(DriverAndClass("OOSP35", "OSPC35", """
                 INVOKE OSPC35 "NEW" RETURNING T.
+                INVOKE T "M".
             """, """
             METHOD-ID. M.
             DATA DIVISION.
             LOCAL-STORAGE SECTION.
             01 LS-REC.
-               05 LS-A PIC X(2).
-               05 LS-B PIC X(2).
+               05 LS-A PIC X(2) VALUE "PQ".
+               05 LS-B PIC X(2) VALUE "RS".
             66 LS-ALIAS RENAMES LS-A THRU LS-B.
             PROCEDURE DIVISION.
             MAIN.
-                DISPLAY LS-ALIAS.
+                DISPLAY "AL=" LS-ALIAS.
+                GOBACK.
             END METHOD M.
-            """)), "level-66");
+            """));
+        Assert.True(ok66, detail66);
+        Assert.Contains("AL=PQRS", out66);
     }
 
     // ── The FACTORY slice (§11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────

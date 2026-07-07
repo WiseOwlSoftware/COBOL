@@ -374,9 +374,9 @@ public sealed partial class DataBinder
         if (item.OccursSpec?.Depending is not null || item.OccursSpec?.DependingName is not null)
             Edition.Error("COBOLNET0899", $"{where}: OCCURS DEPENDING ON on the method data item "
                 + $"'{item.CobolName ?? "FILLER"}' is recognized but not yet implemented (Phase 3, OO port)");
-        if (item.Renames is not null)
-            Edition.Error("COBOLNET0899", $"{where}: a level-66 RENAMES entry in method data is recognized "
-                + "but not yet implemented (Phase 3, OO port)");
+        // level-66 RENAMES in method data is LIVE (M2-OO-1h step 1, DEVLOG 637): ResolveRedefines resolves the
+        // alias FROM/THRU structurally via FindDescendantOrSelf over the owning record (DataBinder.cs:1128-1152),
+        // so it is correct regardless of OoScopeSubtree's name re-homing — no gate needed.
         foreach (var child in item.Children) OoGateUnsupportedShapes(child, where);
         // Level-66s live OFF the children (Renames66) — without this walk the gate above is dead code and a
         // 66 in method data slips through unstaged (the 3a/3b review's dead-gate finding).

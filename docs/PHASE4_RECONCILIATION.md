@@ -1578,6 +1578,70 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 | M2-OO-1g | EC-OO-* model (RAISE id/EXCEPTION-OBJECT/USE F4/RAISING via INVOKE) | remain | LANDED | oo_ec_raise_object / oo_ec_goback_raising ENABLED; DEVLOG 609; conformance 1592/1592 | none | |
 | M2-OO-1h | OO residue (method own ENV/FILE/SCREEN, REDEFINES/ODO/RENAMES/INDEXED in method data, PROPAGATE ON, FACTORY-OF/ACTIVE-CLASS RAISING, object VIEWS, STOP…RAISING) | implied ◐ | STAGED-LOUD | DataBinder.Oo.cs:93-101/115-116/352-369 COBOLNET0899; DEVLOG 609 residue list | none (Phase 3 port residue) | Each fails loud naming owning phase. Some are 2014/2023 surface. |
 
+### M2-OO-1h data-model design (REDEFINES / ODO / INDEXED / RENAMES in METHOD scope) — DECISION-COMPLETE
+
+*Recon workflow wf_e97fb96d-65f (4 readers + synthesis); anchors verified by reading. Un-gates the four
+`COBOLNET0899` stages in `DataBinder.Oo.cs` `OoGateUnsupportedShapes` (~:366-384).*
+
+**The one architectural fact.** Method items ARE in the program-scope `Roots` (`BindEntries` does `Roots.Add`
+unconditionally, `DataBinder.cs:275`; the per-method lists hold a SECOND reference to the same objects). So the
+post-build passes (`ResolveIndexItems`, `ResolveRedefines`, `ClassifyRedefinesClasses`, `OdoResolve`) DO traverse
+method items. The fault is `OoScopeSubtree` (`DataBinder.Oo.cs:210-237`, run INSIDE `OoBindMethodData` BEFORE
+`BindResolve`): it moves each method item's NAME out of the class-global `ByName` into `m.DataScope.ByName`, but
+leaves structure (Parent/Children/RedefinesTarget/Renames66) and the flat global `IndexFields` untouched. **⇒
+every pass that resolves by STRUCTURE already works for method items; every pass that resolves a NAME through the
+global `ByName`/`IndexFields`/`Roots` is broken in method scope.** The fix adds NO cross-scope machinery — it
+makes the four steps consult the method's own scope, reusing the program-scope algorithms verbatim (§11.7.4 GR5:
+method-scope-first, then a visible-unshadowed global fallback).
+
+**Root cause per shape.**
+- **level-66 RENAMES** — NO real bug; gate over-conservative. `ResolveRedefines`'s RENAMES loop resolves FROM/THRU
+  via `FindDescendantOrSelf(root, …)` (structural, scoped to the owning record; `DataBinder.cs:1128-1152`). Verified.
+- **OCCURS DEPENDING ON** — BROKEN. `OdoResolve` resolves data-name-1 through the global `ByName` (`OdoModel.cs:239`);
+  the method-local name was moved out → false `COBOLNET0851` or a torn read of a same-named program item.
+- **REDEFINES** — subordinate (02+) OK (`item.Parent?.Children`); top-level 01/77 BROKEN (`item.Parent?.Children
+  ?? Roots` at `:1123` → a top-level method redefiner has Parent==null → global `Roots`, matches the wrong same-named
+  anchor). Plus emission: the Tier-B backing `cls.BackingCsName` isn't scope-routed for a method canonical root
+  (static-mismatch for method-WS; leaks as a class field for a method LOCAL/LINKAGE table).
+- **OCCURS INDEXED BY** — BROKEN. Index-names register into the flat global `IndexFields` with a de-dup guard
+  (`DataBinder.cs:946-951`), so two methods each `INDEXED BY IX` share one `_IX` cell (torn cross-method aliasing,
+  §11.7.4 GR5 violation); emission scope (static vs per-activation local) also wrong.
+
+**Shared infra (B.0).** Add `internal Dictionary<DataItem,OoMethodSymbol> OoRootOwner` (ReferenceEqualityComparer),
+populated in the `OoBindMethodData` root loop (`:130`). Add `LookupDataInScopeOf(anchorRoot, name)` = the owning
+method's `DataScope.ByName` first, then the globals (used by ODO + REDEFINES since `ActiveMethodScope` is null
+during `BindResolve`).
+
+**Per-shape fix.**
+- **RENAMES:** delete the gate (`:377-379`). No binder/emitter change.
+- **ODO:** `OdoResolve` — replace the raw `ByName` lookup with `LookupDataInScopeOf(RootOf(item), depName)`. Delete
+  gate (`:374-376`). A method table's data-name-1 legitimately resolving to a visible object item is LEGAL (GR5).
+- **REDEFINES:** `ResolveRedefines:1123` — top-level scope becomes the owning method's own roots
+  (`m.StaticRoots.Concat(LocalRoots).Concat(LinkageRoots)`) via `OoRootOwner`, else `Roots`. A method 01 REDEFINES
+  whose target isn't in the method's own roots → a new "target not in scope" diagnostic (a method may NOT redefine
+  object data, §13.18.44.3 SR). Backing scope: route `cls.BackingCsName` to `OoStaticRootFields` (method-WS static)
+  or emit as a method local beside the LOCAL/LINKAGE `RootDecl` loops (`CSharpEmitter.Oo.cs:455-474`). Delete gate
+  (`:368-370`).
+- **INDEXED BY:** new per-method index namespace — add `Dictionary<string,string> IndexFields` to
+  `OoMethodDataScope`; route registration via a `_bindingMethodScope` context field (always a FRESH cell for GR5
+  privacy); make `TryGetVisibleIndexField` + SEARCH (`StatementBinder.cs:962/969/1011/1020`) consult
+  `ActiveMethodScope?.IndexFields` first; emit the cell static (method-WS) or per-activation local (LOCAL/LINKAGE).
+  Delete gate (`:371-373`).
+
+**Gate-removal order (each ships green + golden + full legacy guard + DEVLOG, smallest blast radius first):**
+1. RENAMES (`oo_method_renames`) · 2. ODO (`oo_method_odo`, +B.0) · 3. REDEFINES (`oo_method_redefines_local` +
+`oo_method_redefines_ws` @`--std 85` + a scope-err unit) · 4. INDEXED (`oo_method_indexed_search` +
+`oo_method_indexed_two_methods` GR5 regression + a shadow unit).
+
+**Scope rules (§11.7.4 GR5; REDEFINES §13.18.44.3 SR2/4/6/7; RENAMES §13.18.45.3 SR2/3/4; OCCURS §13.18.38.3
+SR2/7/20):** a method's names are method-private (sibling-method invisibility); GR5 grants a method SHADOWING over
+same-spelled object names, not blanket object-data access — no facility for a method item to REDEFINES/RENAMES
+instance data. Method WS is §13.5.3-SR1-banned at 2023 (the EditionValidator `method-working-storage-window` row) —
+so the shape goldens target LOCAL-STORAGE/LINKAGE (2023-clean) + one method-WS golden pinned `--std 85`.
+
+**Separate follow-ups (NOT this leg):** method own ENV/FILE/REPORT/SCREEN (`OoBindMethodData:92-101`) and
+EXTERNAL/GLOBAL on method WS (`:111-116`) — orthogonal subsystems, keep their loud gates → **M2-OO-1i**.
+
 ## M3 — COBOL-2014
 
 | ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
