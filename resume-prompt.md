@@ -27,7 +27,30 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 650, 2026-07-06 23:38 PDT): ⛔🎉 PHASE 6 OPENED — floating-point USAGE (FLOAT-SHORT/LONG/EXTENDED
+> **STATE (DEVLOG 652–656, 2026-07-07 02:54 PDT): ⛔🎉 OCCURS DYNAMIC (data-model D9, §13.18.38 Format 4, COBOL-2014)
+> COMPLETE — dynamic-capacity tables across all 5 increments.** Built recon-first (wf_973560a9-bb6: 6 parallel readers →
+> an xhigh synthesis, 761k tok) then implemented + verify-by-running each leg. (1) **652** declaration + the out-of-line
+> growable `CobolNet.Runtime.CobolDynTable<T>` substrate + the `{is2014()}?` grammar (`CAPACITY` token, `OCCURS DYNAMIC
+> occursDynamicPhrase*`) + the edition gate (COBOLNET0900 below 2014) + the `occurs-dynamic-2014` matrix/registry row
+> (the ONLY grammar/legacy-guard slice — FULL legacy guard, NIST 353 MATCH). (2) **653** the CAPACITY register READ
+> (`CapacityRegisterPlace` over `{tbl}.Capacity`, synthesized in `DataBinder.DynamicResolve`, an early resolver hook +
+> `ReferenceResolver.TablePath`) + SET Format 14 (TO/UP BY/DOWN BY → `SetCapacity`/`CapacityUpBy`/`CapacityDownBy`,
+> reroute in `BindSetTo`/`BindSetUpDown`); 1523 (register-as-receiver, the `ResolveReceiving` chokepoint + SR30
+> collision) · 1524 (SET F14 mixed target). (3) **654** subscripted element access — the D9 `CobolTable.At(…,receiving)`
+> sketch was WRONG (a `MemberPlace` path can't carry read/write polarity); corrected to `AccessDir` + a `DynTablePlace`
+> whose `Read()`→`RefSending` / `Write()`→`RefReceiving` (grow-and-seed); arity via `IsTable`. (4) **655** SEARCH/SEARCH
+> ALL bound over `.Capacity` (`EnterSearch`/`ExitSearch` try/finally → EC-FLOW-SEARCH GR31) + INITIALIZE (a spec-checked
+> correction — §14.9.20 GR10 wants the CATEGORY DEFAULTS over 1‥Capacity, NOT the VALUE grow-seed → `InitializeDynLoop`
+> + `InitializeDynCursor`, not `InitializeAll`). (5) **656** staged-loud guards: 1522 (SR28 FROM/TO) · 1525 (REDEFINES
+> over a dynamic table, §13.18.44 SR5) · 1528 (VALUE on an elementary dynamic entry = VALUE-derived capacity, staged) ·
+> 1527 (variable-length-group ops). **1526 SKIPPED** — ref-mod of a dynamic element empirically works (over-restriction
+> avoided). **Battery: 1993 conformance · 213 unit GREEN** (greenfield-only; incs 2–5 no grammar → greenfield battery,
+> not the full legacy guard). Diagnostic band 15xx→1528. Two flagged follow-ons, both LOUD today (never silently wrong):
+> EC-BOUND-OVERFLOW (nonfatal/checking-gated) + full variable-length-group MOVE/COMPARE + FUNCTION LENGTH
+> (`DynWholeTablePlace` = `Capacity × elemWidth`). ⛔ RESUME NEXT (Phase 6): **TYPEDEF** (D5-adjacent); then the M2-OO-1i
+> method-own-FILE-SECTION residue / Phase 7 (2023 finalization).
+>
+> **STATE (DEVLOG 650, 2026-07-06 23:38 PDT — superseded by 652–656 above): ⛔🎉 PHASE 6 OPENED — floating-point USAGE (FLOAT-SHORT/LONG/EXTENDED
 > + COMP-1/2) LIVE (numeric design D16).** The readiest Phase-6 feature. Recon wf_9de26ab6-3a8; §13.18.60.4 GR13
 > verified verbatim (implementor-defined signed numerics; short⊆long⊆extended nesting → FLOAT-EXTENDED=double, no
 > .NET quad). Native float/double field (never the scaled-integer substrate); a `Real` flag on the NumX carrier → any

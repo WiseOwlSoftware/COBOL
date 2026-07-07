@@ -38,7 +38,7 @@
 |---|---|---|
 | `docs/COBOLNET_ARCHITECTURE.md` | DESIGN | Brief overview of the greenfield architecture (companion to the SSOT). |
 | `docs/COBOLNET_PIPELINE_DESIGN.md` | DESIGN | The compile pipeline: preprocess → ANTLR parse → bound tree (ALL semantics) → `ICodeGenBackend` (Roslyn C#-emit primary; CIL future-additive) — emitters only render. |
-| `docs/COBOLNET_DATA_MODEL_DESIGN.md` | DESIGN | Typed-native data model: groups→`record struct`, elementary→native fields, OCCURS→`T[]`, `Place`/`ReferenceResolver`. |
+| `docs/COBOLNET_DATA_MODEL_DESIGN.md` | DESIGN | Typed-native data model: groups→`record struct`, elementary→native fields, OCCURS→`T[]`, OCCURS DYNAMIC→out-of-line `CobolDynTable<T>` (D9), `Place`/`ReferenceResolver`. |
 | `docs/COBOLNET_NUMERIC_DESIGN.md` | DESIGN | Native scaled-integer numerics (`CobolNum`): scale/round, `TryStore`, ON SIZE ERROR, signed-DISPLAY. |
 | `docs/COBOLNET_CONTROL_FLOW_DESIGN.md` | DESIGN | The PC dispatcher (`__Dispatch`): GO TO / DEPENDING / PERFORM (THRU/TIMES/UNTIL) / EXIT. |
 | `docs/COBOLNET_REDEFINES_DESIGN.md` | DESIGN | REDEFINES/RENAMES — the 4-tier one-canonical-backing model. |

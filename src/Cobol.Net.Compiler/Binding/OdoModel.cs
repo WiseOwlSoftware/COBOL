@@ -383,8 +383,27 @@ public sealed partial class DataBinder
     {
         foreach (var item in AllItems())
         {
-            if (item.OccursSpec is not { IsDynamic: true, CapacityName: { } capName } spec) continue;
+            if (item.OccursSpec is not { IsDynamic: true } spec) continue;
             string subject = item.CobolName ?? item.CsName;
+
+            // SR28 (:19987): integer-4 (FROM) shall be nonnegative and integer-5 (TO), if both present, shall be
+            // GREATER THAN integer-4. (FROM<0 cannot be written — the grammar takes an unsigned integerLiteral.)
+            if (spec.InitialCap is { } from && spec.ExpectedMax is { } to && to <= from)
+                Edition.Error("COBOLNET1522", $"OCCURS DYNAMIC FROM {from} TO {to} on '{subject}': the expected "
+                    + $"capacity (TO integer-5) shall be greater than the minimum capacity (FROM integer-4) "
+                    + "(ISO §13.18.38 SR28)");
+
+            // §13.18.38 GR16 / §13.18.63 GR6 (:24102) — a dynamic table "defined by an ELEMENTARY entry with a
+            // VALUE clause" takes its initial capacity FROM THE VALUE (the VALUE-derived-capacity subrules), NOT the
+            // FROM phrase. That derivation is staged (data-model D9) — a VALUE on an elementary dynamic entry is
+            // LOUD rather than silently mis-seeded. (A VALUE on a SUBORDINATE of a GROUP dynamic table is the
+            // element's per-occurrence seed, capacity = FROM — that is supported and NOT caught here.)
+            if (item.IsElementary && item.RawValue is not null)
+                Edition.Error("COBOLNET1528", $"OCCURS DYNAMIC with a VALUE clause on the elementary entry "
+                    + $"'{subject}': a VALUE clause on an elementary dynamic-capacity entry derives the initial "
+                    + "capacity (ISO §13.18.38 GR16 / §13.18.63 GR6) — that derivation is not yet implemented");
+
+            if (spec.CapacityName is not { } capName) continue;
 
             // SR30 — data-name-3 is implicitly defined at the OCCURS entry, so it must not also be an explicit
             // data-name (a duplicate definition) nor the CAPACITY register of another dynamic table.

@@ -193,8 +193,9 @@ public sealed partial class StatementBinder
             // gives it COBOLNET1527). D9.
             if (child.IsDynamicTable)
             {
-                actions.Add(new InitializeErrorAction($"INITIALIZE of a group containing the dynamic-capacity table "
-                    + $"'{child.CobolName ?? "FILLER"}' — a variable-length group (staged loud, ISO §14.6.9)"));
+                actions.Add(new InitializeErrorAction($"COBOLNET1527: INITIALIZE of a group containing the "
+                    + $"dynamic-capacity table '{child.CobolName ?? "FILLER"}' — a variable-length group operation "
+                    + "(staged loud, ISO §14.6.9)"));
                 continue;
             }
             if (cur.Child(child) is not { } childCur)

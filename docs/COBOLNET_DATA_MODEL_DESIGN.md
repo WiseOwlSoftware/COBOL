@@ -295,7 +295,21 @@ re-seeds with the VALUE-inclusive image) is WRONG for a VALUE element. Implement
 {tablePath}.Capacity, body)` (a RUN-TIME-bounded loop, sibling of `InitializeLoop`) over an `InitializeDynCursor`
 that yields a `DynTablePlace` (writes via `RefReceiving`, within bounds so no growth). A group CONTAINING a dynamic
 table (the other GR10 case) is a variable-length group → staged LOUD (inc 5's §14.6.9 1527). → `dyn_search`/
-`dyn_initialize` (the matrix row was already active from inc 1); (5) the staged-loud guards (1525–1528) + doc/DOC_INDEX + negative goldens. Increments 2–5 are
+`dyn_initialize` (the matrix row was already active from inc 1); (5) **✅ LANDED (DEVLOG 656)** — the staged-loud
+guards. **1522** (`DynamicResolve`): SR28 (:19987) — TO ≤ FROM rejected. **1525** (`ClassifyRedefinesClasses`, via a
+`ContainsDynamicTable` subtree walk): §13.18.44 SR5 (:21497) — a dynamic table (out-of-line) shall be neither the
+subject nor object of a REDEFINES; the class is forced `Rejected`. **1528** (`DynamicResolve`): §13.18.38 GR16 /
+§13.18.63 GR6 (:24102) — a VALUE on an ELEMENTARY dynamic entry derives the initial capacity (staged); a VALUE on a
+GROUP dynamic table's SUBORDINATE is the element seed (capacity = FROM) and is NOT caught. **1527** (the containing-
+group INITIALIZE `InitializeErrorAction` message; the whole-dynamic-table value op stays a runtime `NotImplemented`
+loud from inc 2) — the §14.6.9 variable-length-group family. **1526 was found UNNECESSARY and SKIPPED (design
+refinement):** empirically reference modification of a dynamic-table element works correctly (a `RefModPlace` over the
+`DynTablePlace` — `WS-E(i)(1:2)` gives the right substring), and the cited "§13.7.1 SR6" restriction is actually the
+§8.4.3.11.4 ADDRESS-OF/bit-item SR6, not a general ref-mod prohibition — so a 1526 guard would over-restrict valid
+code. Negative tests: `OccursDynamicGuardTests` (1522/1525/1528 + the positive companions). **EC-BOUND-OVERFLOW**
+(nonfatal, checking-gated) and **FULL variable-length-group MOVE/COMPARE** (a bind-time 1527 + a `DynWholeTablePlace`
+carrying FUNCTION LENGTH = `Capacity × elemWidth`) remain the two flagged follow-ons (an EC-integration pass + a
+whole-dynamic-table-operations pass); today both are LOUD, never silently wrong. Increments 2–5 are
 greenfield-only (guard-fast; CI is the backstop). All 3 recon open questions resolved to their recommended defaults
 (VALUE-capacity staged; EC-FLOW-SEARCH in CORE; extend THIS doc).
 

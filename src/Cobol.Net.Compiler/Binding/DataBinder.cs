@@ -1255,6 +1255,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             cls.Tier = ComputeTier(cls, out string? reject);
             cls.RejectReason = reject;
+            // §13.18.44 SR5 (:21497): the redefined item shall not contain an OCCURS clause; and a dynamic-capacity
+            // table is OUT-OF-LINE storage (a CobolDynTable, data-model D9) that can neither overlay nor be
+            // overlaid. Reject a class whose canonical OR any redefining member is, or contains, a dynamic table.
+            if (cls.Members.Any(ContainsDynamicTable))
+            {
+                Edition.Error("COBOLNET1525", $"REDEFINES involving the dynamic-capacity table in "
+                    + $"'{cls.Canonical.CobolName ?? cls.Canonical.CsName}': a dynamic-capacity table is out-of-line "
+                    + "storage and shall be neither the subject nor the object of a REDEFINES (ISO §13.18.44 SR5)");
+                cls.Tier = RedefinesTier.Rejected;
+                cls.RejectReason ??= "REDEFINES of/over a dynamic-capacity table (§13.18.44 SR5, D9)";
+            }
             cls.Width = cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1));   // a member table's FULL extent (every occurrence)
             // Each top-level member overlays the area from its start (a REDEFINES begins at the target's first
             // position, SR10); a subordinate accumulates its window offset within the member. Subordinates of any
@@ -1313,6 +1324,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Assign a redefines class its tier (COBOLNET_DESIGN §4.2 cascade D &gt; C &gt; B &gt; A). Tier C (the
     /// confined byte[] codec for a genuine mixed-USAGE pun) is not yet implemented, so a class that would be Tier C is
     /// loudly rejected in the interim — a conformant diagnostic on a legal-but-unimplemented construct.</summary>
+    /// <summary>True if <paramref name="d"/> is, or has anywhere beneath it, an OCCURS DYNAMIC table (data-model
+    /// D9) — the REDEFINES 1525 guard (a dynamic table is out-of-line and cannot participate in a shared area).</summary>
+    private static bool ContainsDynamicTable(DataItem d) =>
+        d.IsDynamicTable || d.Children.Any(ContainsDynamicTable);
+
     private static RedefinesTier ComputeTier(RedefinesClass cls, out string? reject)
     {
         reject = null;
