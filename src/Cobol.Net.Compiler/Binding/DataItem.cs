@@ -164,6 +164,12 @@ public sealed class DataItem
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
     public List<DataItem> Children { get; } = [];
 
+    /// <summary>The level-88 condition-names whose conditional variable is THIS item (ISO §13.18.4). Normally these
+    /// also live in <c>DataBinder.Conditions</c> (the global by-name index), but a TYPEDEF template keeps them ONLY
+    /// here — its condition-names are not globally referenceable (§13.18.58.4 GR1) until a <c>TYPE</c> reference
+    /// clones the item, at which point the clone's copies ARE registered globally (data-model D17 inc 3).</summary>
+    public List<Condition88> Own88s { get; } = [];
+
     /// <summary>The raw REDEFINES target data-name as written (ISO §13.18.44), resolved post-build; null if none.</summary>
     public string? RedefinesTargetName { get; init; }
 

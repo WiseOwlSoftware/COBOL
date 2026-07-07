@@ -266,7 +266,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // A level-88 entry is a condition-name on the immediately superior item — not a node in the tree.
             if (lvl == 88)
             {
-                if (stack.Count > 0) BindCondition(entry, stack.Peek());
+                // A TYPEDEF template's condition-names are NOT globally referenceable (§13.18.58.4 GR1) — bind them
+                // onto the item (so CloneItem can carry them into each TYPE reference) but keep them off the global
+                // by-name index; a non-template 88 registers globally as usual (D17 inc 3).
+                if (stack.Count > 0) BindCondition(entry, stack.Peek(), registerGlobal: !rootIsTemplate);
                 continue;
             }
             // A level-66 RENAMES entry is a re-grouping alias on the owning record — not a node in the storage tree.
@@ -747,6 +750,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 item.Children.Add(CloneItem(child, item, expanding));
         else
             item.Pic ??= template.Pic;   // elementary type → item becomes this leaf (its own VALUE/OCCURS kept, GR3/SR14)
+        foreach (var c88 in template.Own88s) CloneConditionOnto(item, c88);   // the type's ROOT-level 88s (GR1; D17 inc 3)
         item.TypeName = typeName;
         item.StrongType = template.TypedefStrong;
         if (template.TypedefStrong)
@@ -798,10 +802,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         clone.Parent = newParent;
         foreach (var idx in src.IndexNames) clone.IndexNames.Add(idx);
         RegisterName(clone);
+        foreach (var c88 in src.Own88s) CloneConditionOnto(clone, c88);   // §13.18.58.4 GR1 — the 88s are part of the type (D17 inc 3)
         foreach (var child in src.Children)
             clone.Children.Add(CloneItem(child, clone, expanding));
         if (clone.TypeRefName is not null) ExpandType(clone, expanding);   // a nested TYPE reference inside the template
         return clone;
+    }
+
+    /// <summary>Clone one level-88 condition-name from a TYPEDEF template item onto its <paramref name="target"/> clone
+    /// (ISO §13.18.58.4 GR1 — the condition-names are part of the type): the clone's Parent is the target, its VALUE
+    /// set is copied, and — unlike the template's copy — it IS registered in the global by-name index (a clone's
+    /// condition-names ARE referenceable). D17 inc 3.</summary>
+    private void CloneConditionOnto(DataItem target, Condition88 src)
+    {
+        var c = new Condition88 { Name = src.Name, Parent = target };
+        c.Values.AddRange(src.Values);
+        target.Own88s.Add(c);
+        if (!Conditions.TryGetValue(c.Name, out var list)) Conditions[c.Name] = list = [];
+        list.Add(c);
     }
 
     /// <summary>Copy an <see cref="OccursSpec"/>'s DECLARED fields for a TYPEDEF clone (D17), leaving the post-build
@@ -876,7 +894,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Bind a level-88 condition-name on its conditional variable <paramref name="parent"/>, capturing the
     /// VALUE set (singletons + THRU ranges) as raw operand text (decoded at emit time).</summary>
-    private void BindCondition(Core.DataDescriptionEntryContext entry, DataItem parent)
+    private void BindCondition(Core.DataDescriptionEntryContext entry, DataItem parent, bool registerGlobal = true)
     {
         if (entry.dataName()?.GetText() is not { } name) return;
         var cond = new Condition88 { Name = name, Parent = parent };
@@ -923,8 +941,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             }
                     }
 
-        if (!Conditions.TryGetValue(name, out var list)) Conditions[name] = list = [];
-        list.Add(cond);
+        parent.Own88s.Add(cond);   // the item owns its 88s (source of truth; lets CloneItem carry a TYPEDEF's 88s)
+        if (registerGlobal)
+        {
+            if (!Conditions.TryGetValue(name, out var list)) Conditions[name] = list = [];
+            list.Add(cond);
+        }
     }
 
     /// <summary>Make <paramref name="name"/> unique within a C# name scope, appending <c>_2</c>, <c>_3</c>, … on collision.</summary>
