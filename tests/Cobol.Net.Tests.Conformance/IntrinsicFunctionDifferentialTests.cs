@@ -459,6 +459,14 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.Contains("COBOLNET1502", detail);
     }
 
+    [Theory]
+    [InlineData("FUNCTION FIND-STRING(H2 N2)", "1")]              // first of the OVERLAPPING matches
+    [InlineData("FUNCTION FIND-STRING(H2 N2 LAST)", "3")]         // §15.37.4 r1 — "aa" in "aaaa" matches at 1,2,3; LAST ⇒ 3
+    [InlineData("FUNCTION FIND-STRING(H2 N2 START AFTER 1)", "2")]// skip 1 overlapping match ⇒ 2
+    public void FindString_OverlappingOccurrences_2023(string call, string expected)
+        => AssertSpec(Program("01 H2 PIC X(4) VALUE \"aaaa\".\n           01 N2 PIC X(2) VALUE \"aa\".\n           01 P PIC 9.",
+            $"    MOVE {call} TO P.\n    DISPLAY P.", "IFFOV"), expected, 2023);
+
     // ── SUBSTITUTE (§15.87, Phase 5, DEVLOG 631): per-pair replacement; ANYCASE / FIRST / LAST; multi-pair ────
 
     [Theory]
@@ -534,6 +542,13 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.False(ok, "CONVERT is 2023+; 2014 must reject");
         Assert.Contains("COBOLNET1502", detail);
     }
+
+    [Fact]
+    public void Convert_AnyOverNational_ResolvesToNatStorage_2023()
+        // §15.19.3 SR7 — ANY takes the operand's RAW storage bits; a national item's are UTF-16BE (the NAT
+        // reduction), NOT Latin-1 with substitution. N"A" = U+0041 ⇒ "0041" (not "41").
+        => AssertSpec(Program("01 N PIC N VALUE N\"A\".\n           01 R PIC X(8).",
+            "    MOVE FUNCTION CONVERT(N ANY ANUM HEX) TO R.\n    DISPLAY R.", "IFCONVANY"), "0041", 2023);
 
     [Fact]
     public void Convert_UntranslatableSetsDataConversion_WhenChecked_2023()
@@ -622,6 +637,36 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.Contains("COBOLNET1515", detail);
     }
 
+    [Fact]
+    public void ModuleName_StackFromNestedProgram_2023()
+    {
+        // §15.65.4 r9 — a nested program shares its compilation unit's outermost id; STACK collapses same-unit
+        // frames to ONE runtime element (OUTERM), not the OUTERM;OUTERM duplicate a per-CALL-frame walk gives.
+        var src = """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OUTERM.
+            PROCEDURE DIVISION.
+            MP.
+                CALL "INNERM".
+                STOP RUN.
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. INNERM.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 S PIC X(20).
+            PROCEDURE DIVISION.
+            IP.
+                MOVE FUNCTION MODULE-NAME(STACK) TO S.
+                DISPLAY "K=" S.
+                EXIT PROGRAM.
+            END PROGRAM INNERM.
+            END PROGRAM OUTERM.
+            """;
+        var (ok, output, detail) = new CobolNetCompiler(2023).CompileAndRun(src);
+        Assert.True(ok, detail);
+        Assert.Equal("K=OUTERM;", output);   // the trailing operating-environment space is Normalize-trimmed
+    }
+
     // ── SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§15.83/§15.43/§15.58, Phase 5, DEVLOG 634): PICTURE-metadata folds ──
 
     [Theory]
@@ -684,6 +729,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [Theory]
     [InlineData("1.5E+3", "+1500.0000")]
     [InlineData("-2.5E-2", "-0000.0250")]
+    [InlineData("1E2", "+0000.0000")]   // §15.69.3 — a sign is REQUIRED after E; "1E2" is rejected ⇒ default 0
     public void NumvalF_Values_2014(string arg, string expected)
         => AssertSpec(Program("01 F PIC +9(4).9(4).",
             $"    COMPUTE F = FUNCTION NUMVAL-F(\"{arg}\").\n    DISPLAY F.", "NVF"), expected, 2014);
@@ -692,6 +738,7 @@ public sealed class IntrinsicFunctionDifferentialTests
     [InlineData("0 1E+2", "+000000003")]   // an embedded space ⇒ the first non-space after it (§15.95 r b.1)
     [InlineData(" +.", "+000000004")]       // no significand digit ⇒ LENGTH+1 (r c)
     [InlineData("1.5E+3", "+000000000")]    // valid ⇒ 0
+    [InlineData("1E2", "+000000003")]       // a sign is required after E (§15.69.3) — error at the '2' (position 3)
     public void TestNumvalF_Positions_2014(string data, string expected)
         => AssertSpec(Program("01 N PIC +9(9).",
             $"    MOVE FUNCTION TEST-NUMVAL-F(\"{data}\") TO N.\n    DISPLAY N.", "TNF"), expected, 2014);

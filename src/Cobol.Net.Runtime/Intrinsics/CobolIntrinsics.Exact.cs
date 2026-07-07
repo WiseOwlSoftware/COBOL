@@ -257,7 +257,10 @@ public static partial class CobolIntrinsics
         if (exps.Length > 0)
         {
             bool eneg = false;
-            if (exps.StartsWith('+')) exps = exps[1..]; else if (exps.StartsWith('-')) { eneg = true; exps = exps[1..]; }
+            // §15.69.3 makes the sign after E mandatory ({+|-}, not bracketed) — TEST-NUMVAL-F enforces it too.
+            if (exps.StartsWith('+')) exps = exps[1..];
+            else if (exps.StartsWith('-')) { eneg = true; exps = exps[1..]; }
+            else return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F exponent '{text}' lacks the required sign after 'E' (§15.69.3)");
             if (exps.Length is 0 or > 4 || !exps.All(char.IsAsciiDigit))
                 return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F exponent '{text}' is malformed (§15.69.3)");
             exp = int.Parse(exps) * (eneg ? -1 : 1);                   // 1..4 exponent digits (§15.69.3)

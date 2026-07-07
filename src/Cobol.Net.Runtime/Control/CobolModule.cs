@@ -56,11 +56,19 @@ public static class CobolModule
             case 2:   // NESTED — the most recently nested currently-running program (r8)
                 for (int i = s.Count - 1; i >= 0; i--) if (s[i].IsNested) return s[i].Name;
                 return top.Name;                             // arg-rule-1-violating build — implementor-defined (r3/r4)
-            case 3:   // STACK (r9): CURRENT ; <activator chain incl. TOP-LEVEL (penultimate)> ; <single space>
-            {
+            case 3:   // STACK (r9): CURRENT ; <activator chain, incl. TOP-LEVEL penultimate> ; <single space>.
+            {         // Entries are RUNTIME ELEMENTS (compilation units), emitted by their outermost program-id
+                      // (r7 CURRENT granularity) — a nested/contained program shares its unit's outermost id, so
+                      // consecutive same-unit frames collapse to ONE entry (no MAIN;MAIN duplicate).
                 var sb = new System.Text.StringBuilder();
-                sb.Append(top.Outermost);                    // first entry = CURRENT
-                for (int i = s.Count - 2; i >= 0; i--) { sb.Append(';'); sb.Append(s[i].Name); }
+                string? prev = null;
+                for (int i = s.Count - 1; i >= 0; i--)
+                {
+                    if (s[i].Outermost == prev) continue;    // same compilation unit as the frame above
+                    if (prev is not null) sb.Append(';');
+                    sb.Append(s[i].Outermost);
+                    prev = s[i].Outermost;
+                }
                 sb.Append("; ");                             // final entry = a single space (the operating environment)
                 return sb.ToString();
             }

@@ -50,7 +50,14 @@
 >   (one `Tokenize` → `EmitFormatted` + `Analyze`; ISO-week / UTC / offset / fractional seconds; §15.92.4 per-digit
 >   error positions) + NUMVAL-F/TEST-NUMVAL-F; non-literal-format gate 1517. Golden `formatted_datetime` (16 lines,
 >   every one spec-verified).
-> **Battery: 1941 conformance (+60 this session) · 216 unit · 117 corpus goldens GREEN; greenfield-only, CI green
+> **THEN adversarially hardened (DEVLOG 636):** a find→verify review workflow (wf_18f20f2b-d5e, one reviewer per
+> family) raised 7 findings, **6 confirmed + FIXED** — FIND-STRING overlapping occurrences (§15.37.4 r1, was
+> non-overlapping); SUBSTITUTE ANYCASE → the LOWER-CASE fold (§15.87.4 r5, was OrdinalIgnoreCase); CONVERT ANY over
+> a national item → its UTF-16BE storage bits (§15.19.3 SR7, was Latin-1+substitution); CONVERT malformed HEX →
+> fatal EC-ARGUMENT-FUNCTION not nonfatal EC-DATA-CONVERSION (SR4); MODULE-NAME STACK collapses same-unit frames
+> (§15.65.4 r9, was a MAIN;MAIN duplicate for nested); NUMVAL-F requires the sign after E (§15.69.3). +7 regression
+> tests; 1 finding refuted.
+> **Battery: 1948 conformance (+67 this session) · 216 unit · 117 corpus goldens GREEN; greenfield-only, CI green
 > per commit (the legacy job passes — every new golden is GreenfieldOnly).** Diagnostic-code map: 1514 CONVERT,
 > 1515 MODULE-NAME NESTED, 1516 ALGEBRAIC, 1517 non-literal-format. Still-Deferred §15 rows (loud, never wrong):
 > BYTE-LENGTH, DISPLAY-OF/NATIONAL-OF (residue #11 national data-class), the LOCALE-* / TEST-DATE / BOOLEAN-OF-*

@@ -184,14 +184,18 @@ public static partial class CobolIntrinsics
     private static byte[] HexDigitsToBytes(string s)
     {
         string t = s.Trim();                                         // the fixed-width image's surrounding spaces are not digits
+        // A malformed HEX source VIOLATES argument rule SR4 (§15.19.3) — that is a FATAL EC-ARGUMENT-FUNCTION
+        // (the §15.3 argument-rule default), NOT the nonfatal EC-DATA-CONVERSION (which is only for an untranslatable
+        // RESULT value, §15.19.4 r1/r3). ArgumentError throws when checking is on; else the implementor-defined
+        // pad/zero result stands.
         if ((t.Length & 1) != 0)                                     // SR4 — complete bytes ⇒ an even digit count
-        { Exceptions.ExceptionState.DataConversionError("CONVERT: HEX source is not a whole number of bytes (§15.19.3 SR4)"); t += "0"; }
+        { Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source is not a whole number of bytes (§15.19.3 SR4)"); t += "0"; }
         var b = new byte[t.Length / 2];
         for (int i = 0; i < b.Length; i++)
         {
             int hi = HexVal(t[2 * i]), lo = HexVal(t[2 * i + 1]);
             if (hi < 0 || lo < 0)
-            { Exceptions.ExceptionState.DataConversionError("CONVERT: HEX source has a non-hex digit (§15.19.3 SR4)"); hi = hi < 0 ? 0 : hi; lo = lo < 0 ? 0 : lo; }
+            { Exceptions.ExceptionState.ArgumentError("CONVERT: HEX source has a non-hex digit (§15.19.3 SR4)"); hi = hi < 0 ? 0 : hi; lo = lo < 0 ? 0 : lo; }
             b[i] = (byte)((hi << 4) | lo);
         }
         return b;
@@ -224,10 +228,15 @@ public static partial class CobolIntrinsics
             return "";
         }
         int k = froms.Length;
-        static bool MatchAt(string s, int i, string f, bool anycase) =>
+        // ANYCASE (rule 5) folds via LOWER-CASE (ToLowerInvariant — the implementor-defined §15.57 fold, matching
+        // FindString), NOT invariant upper-fold: length-preserving, so positions over the lowered images align.
+        string srcLower = source.ToLowerInvariant();
+        var fromsLower = new string[k];
+        for (int p = 0; p < k; p++) fromsLower[p] = froms[p].ToLowerInvariant();
+        static bool MatchAt(string s, string sLower, int i, string f, string fLower, bool anycase) =>
             i + f.Length <= s.Length
-            && string.Compare(s, i, f, 0, f.Length,
-                   anycase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) == 0;
+            && (anycase ? string.CompareOrdinal(sLower, i, fLower, 0, f.Length) == 0
+                        : string.CompareOrdinal(s, i, f, 0, f.Length) == 0);
         // The single designated position for a FIRST/LAST pair (rule 3.a/3.b), computed over the SOURCE
         // occurrences (non-overlapping); −1 means "every occurrence" (the default) or "no occurrence".
         var target = new int[k];
@@ -237,7 +246,7 @@ public static partial class CobolIntrinsics
             if ((modes[p] & 3) == 0) { target[p] = -1; continue; }               // ALL — no single target
             int first = -1, last = -1;
             for (int i = 0; i <= source.Length - froms[p].Length; )
-                if (MatchAt(source, i, froms[p], anycase))
+                if (MatchAt(source, srcLower, i, froms[p], fromsLower[p], anycase))
                 { if (first < 0) first = i; last = i; i += froms[p].Length; }
                 else i++;
             target[p] = (modes[p] & 1) != 0 ? first : last;                      // FIRST or LAST
@@ -247,7 +256,7 @@ public static partial class CobolIntrinsics
         {
             int hit = -1;
             for (int p = 0; p < k; p++)
-                if (MatchAt(source, i, froms[p], (modes[p] & 4) != 0)
+                if (MatchAt(source, srcLower, i, froms[p], fromsLower[p], (modes[p] & 4) != 0)
                     && (target[p] == -1 ? (modes[p] & 3) == 0 : target[p] == i)) // ALL, or the FIRST/LAST target
                 { hit = p; break; }
             if (hit >= 0) { sb.Append(tos[hit]); i += froms[hit].Length; }        // rule 3 — resume past the source match
@@ -261,16 +270,16 @@ public static partial class CobolIntrinsics
     /// (rule 1); <paramref name="skip"/> is argument-3 — the number of matches to ignore before determining the
     /// position returned (rule 2, counted from the first occurrence, or from the last when <paramref name="last"/>);
     /// <paramref name="anycase"/> folds case per LOWER-CASE without a locale (rule 4). A zero-length argument-1 or
-    /// argument-2 (rule 5), or no remaining match (rule 3), returns 0. Occurrences are counted NON-OVERLAPPING (a
-    /// match consumes argument-2's length — §15.37 is silent on overlap, so this follows the INSPECT "all
-    /// occurrences" reading §14.4.6; the canonical COBOL.NET refinement).</summary>
+    /// argument-2 (rule 5), or no remaining match (rule 3), returns 0. An OCCURRENCE is any character position at
+    /// which argument-2 matches a substring of argument-1 (§15.37.4 rule 1 — a plain substring match, OVERLAPPING
+    /// occurrences included; §15.37 defines no consumption/advance and never references INSPECT's scanning).</summary>
     public static long FindString(string hay, string needle, bool last, long skip, bool anycase)
     {
         if (hay.Length == 0 || needle.Length == 0) return 0;                     // §15.37.4 rule 5
         string h = anycase ? hay.ToLowerInvariant() : hay;                       // rule 4 — the LOWER-CASE fold
         string n = anycase ? needle.ToLowerInvariant() : needle;
         var positions = new List<int>();
-        for (int i = 0; (i = h.IndexOf(n, i, StringComparison.Ordinal)) >= 0; i += n.Length)
+        for (int i = 0; (i = h.IndexOf(n, i, StringComparison.Ordinal)) >= 0; i++)   // every match position (overlapping incl., rule 1)
             positions.Add(i + 1);                                                // 1-based character position
         if (positions.Count == 0) return 0;                                      // rule 3 — no match
         if (skip < 0) skip = 0;
