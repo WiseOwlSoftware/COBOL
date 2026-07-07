@@ -27,7 +27,28 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 635, 2026-07-06 20:05 PDT): ⛔🎉 PHASE 5 INTRINSICS COMPLETE — all six remaining §15 families
+> **STATE (DEVLOG 643, 2026-07-06 20:23 PDT): ⛔🎉 PHASE 5 INTRINSICS COMPLETE + the M2-OO-1h METHOD-SCOPE DATA
+> MODEL LANDED & REVIEW-HARDENED.** Since the 635 snapshot below: (a) the Phase-5 intrinsic families were
+> adversarially hardened (636, 6 fixes); (b) **M2-OO-1h — the method-scope data model — LANDED (DEVLOG 637–642):**
+> REDEFINES / ODO / RENAMES / INDEXED-SEARCH now work inside method WORKING-STORAGE / LOCAL-STORAGE / LINKAGE, via a
+> scope-aware name lookup (`OoRootOwner` + `LookupDataInScopeOf`, §11.7.4 GR5 method-first-then-global) and per-scope
+> emission (WS→static fields, LOCAL-STORAGE→re-init-per-activation C# locals §14.5.3, LINKAGE→ref params); 8 goldens
+> (`oo_method_{renames,odo,redefines_ws,redefines_local,redefines_linkage,indexed_search,indexed_two_methods}`); (c)
+> a find→verify review of 637–640 (wf_8b9a8453-7f8, 3 reviewers) raised 7 / confirmed 6 → **4 method-scope REDEFINES
+> defects FIXED (642)** [LINKAGE Tier-B USING/RETURNING copy-out named a suppressed root → CS0103; cross-section
+> REDEFINES wrongly accepted → COBOLNET1518; Tier-A view dead local; LINKAGE backing seed not width-normalized] +
+> **fix E (643):** `ImageInitOf` seeded a Tier-B-over-fixed-OCCURS-VALUE backing with ONE occurrence, not all
+> (§13.18.63 GR9) — fixed at the single image-building site via `CobolString.Repeat`, regression
+> `RedefinesTierBDifferentialTests.FixedOccursValue_SeedsEveryOccurrence`; the 7th finding refuted. **Battery: 1959
+> conformance · 216 unit · 124 corpus goldens GREEN; greenfield-only, CI green per commit.** Diagnostic-code map
+> add: **1518 cross-section method REDEFINES.** ⛔ RESUME NEXT (updated — the 635 "RESUME NEXT" M2-OO-1h data model
+> is now DONE): **M2-OO-1i — a method's OWN ENVIRONMENT DIVISION + FILE SECTION (§14.5) + method-level EXTERNAL/
+> GLOBAL** (recon-workflow → design-in-`PHASE4_RECONCILIATION.md` → implement → adversarial-review, the proven
+> cadence) **+ the low-severity M2-PRE preprocessor follow-ups; then Phase 6 (OCCURS DYNAMIC, TYPEDEF, floats) /
+> Phase 7 (2023 finalization).**
+>
+> **STATE (DEVLOG 635, 2026-07-06 20:05 PDT — SUPERSEDED by the 643 banner above; kept for the Phase-5 detail):
+> ⛔🎉 PHASE 5 INTRINSICS COMPLETE — all six remaining §15 families
 > LANDED IN FULL this session (DEVLOG 630–635), each done completely per the owner's *do every feature well*
 > directive.** The proven per-intrinsic cadence: a background RECON WORKFLOW (wf_840f8070-fdf) produced
 > decision-complete designs for the four research-heavy families (date/CONVERT/algebraic/MODULE-NAME) while
