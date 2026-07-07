@@ -1131,10 +1131,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // 01/77 method redefiner must scope to the OWNING METHOD's own roots (§13.18.44.3 SR — the target
                 // is a prior sibling in the same data description; a method may NOT redefine object/program data,
                 // §11.7.4), NEVER the cross-scope global `Roots` pool (M2-OO-1h step 3).
-                IReadOnlyList<DataItem> scope = item.Parent?.Children
-                    ?? (OoRootOwner.TryGetValue(RootOf(item), out var mm)
-                            ? mm.StaticRoots.Concat(mm.LocalRoots).Concat(mm.LinkageRoots).ToList()
-                            : Roots);
+                IReadOnlyList<DataItem> scope;
+                if (item.Parent is { } par)
+                    scope = par.Children;
+                else if (OoRootOwner.TryGetValue(RootOf(item), out var mm))
+                    // A top-level method redefiner scopes to its OWN section only (§13.18.44.3 SR — the target is a
+                    // preceding item in the SAME data description; cross-section WS↔LOCAL↔LINKAGE aliasing is illegal,
+                    // and their storage classes differ [static WS vs per-activation LOCAL] — review B). RootOf(item)
+                    // == item here (Parent is null).
+                    scope = mm.StaticRoots.Contains(item) ? mm.StaticRoots
+                          : mm.LocalRoots.Contains(item) ? mm.LocalRoots
+                          : mm.LinkageRoots;
+                else
+                    scope = Roots;
                 item.RedefinesTarget = scope.FirstOrDefault(s =>
                     !ReferenceEquals(s, item) && string.Equals(s.CobolName, tname, StringComparison.OrdinalIgnoreCase));
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a

@@ -454,13 +454,16 @@ public sealed partial class CSharpEmitter
             // entries start at their initial state (§14.2.3 GR6 — callee-allocated).
             foreach (var root in m.LinkageRoots)
             {
+                // A Tier-A (alias) view root forwards to its canonical's field — no local (symmetry with
+                // BuildPhysicals; COBOLNET_DESIGN §4.1; M2-OO-1h review C).
+                if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;
                 // A method Tier-B REDEFINES canonical's storage is its string backing, not the root struct (M2-OO-1h
-                // step 3) — emit that as the local; a LINKAGE formal seeds it from the caller's image (the group
-                // param IS a character image), else from the initializer.
+                // step 3) — emit that as the local; a LINKAGE formal seeds it from the caller's image, width-normalized
+                // to the class width (a wider redefiner needs the full backing — review D), else from the initializer.
                 if (fields.MethodRedefinesBackingDecl(root) is { } bkl)
                 {
                     var formalB = m.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
-                    w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : formalB.ParamName)};   "
+                    w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : $"CobolString.Store({formalB.ParamName}, {root.Class!.Width})")};   "
                         + $"// LINKAGE Tier-B REDEFINES backing for {root.CobolName}");
                     continue;
                 }
@@ -479,6 +482,7 @@ public sealed partial class CSharpEmitter
             }
             foreach (var root in m.LocalRoots)
             {
+                if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view → no local (review C)
                 if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the string backing local (M2-OO-1h step 3)
                 {
                     w.Line($"string {bkl.Name} = {bkl.Init};   // LOCAL-STORAGE Tier-B REDEFINES backing for {root.CobolName} (§14.5.3)");
@@ -504,14 +508,21 @@ public sealed partial class CSharpEmitter
                 w.Line($"try {{ __MDispatch({m.EntryPc}, {m.EndPc}); }} catch (MethodReturn) {{ }}   "
                     + "// GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
             }
+            // BY REFERENCE copy-out (§14.2.3 GR8) / RETURNING (§14.9.23.4 GR8). A Tier-B REDEFINES canonical's
+            // storage IS its string backing (a width-correct image), not the suppressed root struct — write that
+            // back / return that, else the generated C# names an undeclared local (review A/emission).
             foreach (var f in m.Formals)
-                w.Line(f.Item.IsGroup
-                    ? $"{f.ParamName} = {f.Item.CsName}.AsImage();   // BY REFERENCE copy-out (§14.2.3 GR8)"
-                    : $"{f.ParamName} = {f.Item.CsName};   // BY REFERENCE copy-out (§14.2.3 GR8)");
+            {
+                string src = fields.MethodRedefinesBackingDecl(f.Item) is { } bk ? bk.Name
+                    : f.Item.IsGroup ? $"{f.Item.CsName}.AsImage()" : f.Item.CsName;
+                w.Line($"{f.ParamName} = {src};   // BY REFERENCE copy-out (§14.2.3 GR8)");
+            }
             if (m.Returning is { } r)
-                w.Line(r.IsGroup
-                    ? $"return {r.CsName}.AsImage();   // the invocation result (§14.9.23.4 GR8)"
-                    : $"return {r.CsName};   // the invocation result (§14.9.23.4 GR8)");
+            {
+                string src = fields.MethodRedefinesBackingDecl(r) is { } bk ? bk.Name
+                    : r.IsGroup ? $"{r.CsName}.AsImage()" : r.CsName;
+                w.Line($"return {src};   // the invocation result (§14.9.23.4 GR8)");
+            }
         }
         w.Line();
     }

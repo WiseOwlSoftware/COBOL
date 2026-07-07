@@ -1209,6 +1209,29 @@ public sealed class OoSpineTests
             """)), "COBOLNET1518");
     }
 
+    /// <summary>§13.18.44.3 SR (M2-OO-1h review B) — a REDEFINES target must be in the SAME data description; a
+    /// LOCAL-STORAGE 01 may NOT redefine a method WORKING-STORAGE 01 (their storage classes differ — static WS vs
+    /// per-activation LOCAL). The scope is the redefiner's OWN section, so the cross-section target is not found → 1518.</summary>
+    [Fact]
+    public void MethodRedefines_CrossSection_Rejected()
+    {
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSPXS", "OSPXSC", """
+                INVOKE OSPXSC "NEW" RETURNING T.
+            """, """
+            METHOD-ID. M.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WNUM PIC 9(4) VALUE 1234.
+            LOCAL-STORAGE SECTION.
+            01 LVIEW REDEFINES WNUM PIC X(4).
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY LVIEW.
+                GOBACK.
+            END METHOD M.
+            """)), "COBOLNET1518");
+    }
+
     // ── The FACTORY slice (§11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────
 
     /// <summary>An instance method and a factory method may SHARE a name (§9.3.6 — two interfaces): INVOKE

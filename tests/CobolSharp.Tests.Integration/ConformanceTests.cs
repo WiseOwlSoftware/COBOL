@@ -156,6 +156,7 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "oo_method_odo"),
         // M2-OO-1h step 3, DEVLOG 639: REDEFINES in METHOD data (scope-aware target; Tier-B string backing routed
         // static/method-local) — greenfield reclamation (was COBOLNET0899). Greenfield CorpusRunner byte-compares both.
+        ("2002", "oo_method_redefines_linkage"),
         ("2002", "oo_method_redefines_local"),
         ("2002", "oo_method_redefines_ws"),
         // M2-OO-1h step 4, DEVLOG 640: OCCURS … INDEXED BY in METHOD data (per-method index namespace; §11.7.4 GR5

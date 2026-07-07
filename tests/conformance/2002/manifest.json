@@ -24,6 +24,7 @@
     "oo_method_indexed_two_methods",
     "oo_method_odo",
     "oo_method_perform",
+    "oo_method_redefines_linkage",
     "oo_method_redefines_local",
     "oo_method_redefines_ws",
     "oo_method_renames",
