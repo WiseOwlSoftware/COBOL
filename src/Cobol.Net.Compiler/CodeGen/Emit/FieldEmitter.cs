@@ -131,8 +131,16 @@ internal sealed class FieldEmitter(EmissionContext ctx)
 
     /// <summary>The C# string-expression for an item's INITIAL character image (used to seed a Tier-B backing from
     /// the canonical's VALUE): a group concatenates its leaves' images; an elementary item formats its VALUE (numeric
-    /// → <c>CobolNum.FormatDisplay</c>; alphanumeric/edited → the stored string; figurative/default per width).</summary>
+    /// → <c>CobolNum.FormatDisplay</c>; alphanumeric/edited → the stored string; figurative/default per width). A
+    /// fixed-OCCURS entry's image repeats <c>Occurs</c> times — every occurrence takes the VALUE (ISO §13.18.63 GR9;
+    /// the recursion runs through this wrapper, so nested OCCURS repeat too).</summary>
     internal string ImageInitOf(DataItem item)
+    {
+        string one = ImageInitOfOne(item);
+        return item.Occurs is { } n and > 1 ? $"CobolString.Repeat({one}, {n})" : one;
+    }
+
+    private string ImageInitOfOne(DataItem item)
     {
         if (item.IsGroup)
         {

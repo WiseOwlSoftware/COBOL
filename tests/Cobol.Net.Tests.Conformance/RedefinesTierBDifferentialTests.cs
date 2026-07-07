@@ -97,6 +97,14 @@ public sealed class RedefinesTierBDifferentialTests
             "    DISPLAY WS-A \"|\" WS-B."));   // SEEDED|SEE — only the original's VALUE inits (SR9)
 
     [Fact]
+    public void FixedOccursValue_SeedsEveryOccurrence()
+        // §13.18.63 GR9: every occurrence of a fixed-OCCURS entry takes the VALUE — the Tier-B backing seeds the
+        // WHOLE canonical image ("ABABAB"), not one occurrence padded ("AB    "). Regression for ImageInitOf.
+        => AssertSameAsLegacy(Program(
+            "01 WS-G.\n   05 WS-E PIC XX OCCURS 3 VALUE \"AB\".\n01 WS-V REDEFINES WS-G PIC X(6).",
+            "    DISPLAY WS-V."));   // ABABAB
+
+    [Fact]
     public void InGroup_ReadNestedCanonicalDirectly()
         // The CCVS BAIL-OUT shape: a nested Tier-B canonical referenced DIRECTLY from the PROCEDURE DIVISION (not via
         // the outer group's AsImage). The backing is a struct member, so its access must be qualified

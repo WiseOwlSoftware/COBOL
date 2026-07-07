@@ -30,6 +30,11 @@ public static class CobolString
         return value.Length > width ? value[..width] : value.PadRight(width, pad);
     }
 
+    /// <summary>The character image <paramref name="s"/> repeated <paramref name="n"/> times — used to seed a
+    /// Tier-B REDEFINES backing over a fixed-OCCURS entry, where every occurrence takes the VALUE (ISO §13.18.63
+    /// GR9). n ≤ 1 returns the image unchanged.</summary>
+    public static string Repeat(string s, int n) => n <= 1 ? s : string.Concat(Enumerable.Repeat(s, n));
+
     /// <summary>
     /// Reference modification read (ISO §8.4.2.4): the substring of <paramref name="s"/> beginning at 1-based
     /// <paramref name="leftmost"/> for <paramref name="length"/> characters (a negative length means "to the end").
