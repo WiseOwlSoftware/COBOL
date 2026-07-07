@@ -59,6 +59,7 @@ public static class EditionGateHints
     private static readonly Gate Retry = new("the RETRY phrase", 2002, "ISO §14.7.9", "retry-phrase-2002");
     private static readonly Gate Unlock = new("the UNLOCK statement", 2002, "ISO §14.9.47", "unlock-statement-2002");
     private static readonly Gate FunctionPrototype = new("a FUNCTION-ID … IS PROTOTYPE (function prototype)", 2002, "ISO §11.5 Format 2 / §10.6", "function-prototype-2002");
+    private static readonly Gate OccursDynamic = new("the OCCURS DYNAMIC clause (dynamic-capacity table)", 2014, "ISO §13.18.38 Format 4", "occurs-dynamic-2014");
 
     /// <summary>
     /// Recognize an edition-gated construct behind a generic parse error. Returns the COBOLNET0900-band
@@ -87,6 +88,11 @@ public static class EditionGateHints
         Gate? gate = token.Type switch
         {
             CobolLexer.DELETE when Next(stream, token, 1)?.Type == CobolLexer.FILE => DeleteFile,
+            // OCCURS DYNAMIC (Format 4, 2014): the error surfaces at OCCURS (its DYNAMIC alt is is2014()-gated) or at
+            // the CAPACITY token (which appears ONLY in this clause). DYNAMIC alone also means ACCESS MODE DYNAMIC —
+            // so gate on the OCCURS-then-DYNAMIC pair, not a bare DYNAMIC.
+            CobolLexer.OCCURS when Next(stream, token, 1)?.Type == CobolLexer.DYNAMIC => OccursDynamic,
+            CobolLexer.CAPACITY => OccursDynamic,
             CobolLexer.ALLOCATE => Allocate,
             CobolLexer.FREE => Free,
             CobolLexer.INVOKE => Invoke,

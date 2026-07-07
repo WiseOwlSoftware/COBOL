@@ -246,9 +246,18 @@ existing SET syntax, binder-rerouted). Diagnostics: **1522** (declaration/placem
 FROM/TO bounds, dup phrase), **1523** (CAPACITY register misuse SR30–32), **1524** (SET Format 14 misuse), 1525–1528
 (staged-loud). (08xx band exhausted; 15xx, last-used 1521.)
 
-**Increments (each: build → full greenfield battery → legacy guard → commit):** (1) grammar + `OccursSpec` dynamic
-fields + `DynamicResolve` + `DataItem.IsDynamicTable`/`IsTable` + `CobolDynTable<T>` + `FieldInit` dynamic branch +
-edition gate + matrix/VCR rows (the ONLY grammar/legacy-guard slice) → goldens `dyn_pre2014`(0900) + declare;
+**Increments (each: build → full greenfield battery → legacy guard → commit):** (1) **✅ LANDED (DEVLOG 652)** —
+grammar (`CAPACITY` token + the `OCCURS DYNAMIC occursDynamicPhrase* …` alt, `{is2014()}?`-gated) + `OccursSpec`
+dynamic fields + `DataItem.IsDynamicTable`/`IsTable`/`FieldType` (+ image-capable exclusions) + `CobolDynTable<T>` +
+`FieldInit` dynamic branch + `OdoBindOccursSpec` Format-4 branch + `EditionGateHints` gate + the matrix row
+(`occurs-dynamic-2014`, active) — the ONLY grammar/legacy-guard slice → golden `dyn_declare` (a group-element table,
+greenfield-only). **Two plan refinements recorded (process rule):** (a) NO VCR row — the VCR's own preamble (line 20)
+states 2002→2014 *introductions* are captured by the matrix `introducedIn` tag, not the VCR (which carries only
+2014→2023 Annex-E deltas + a few 2002→2014 behavior rows); the `constructs.json` + `ConstructDialectStatus` pair IS the
+canonical introduction record. (b) NO separate `dyn_pre2014` corpus golden — the corpus runner asserts compile+run
+SUCCESS only; the below-2014 **COBOLNET0900** rejection is asserted by the matrix row's `expectDiagnostic` at editions
+85/2002 (`VersionMatrixTests`), the one place negative gating belongs. `DynamicResolve` (CAPACITY-register/access
+resolution) moved to inc 2/3 where the register becomes a readable item;
 (2) CAPACITY read + SET Format 14 + capacity ECs → `dyn_declare_capacity`/`dyn_from_to`/`dyn_set_grow`/
 `dyn_set_up_down`/`dyn_bounds_overflow`; (3) subscripted element access (`AccessDir` in `AccessPath` +
 `CobolTable.At(CobolDynTable, occ, receiving)` + `RefSending`/`RefReceiving`/`GrowTo`) → `dyn_implicit_grow`/

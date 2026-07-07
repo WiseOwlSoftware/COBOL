@@ -2,6 +2,7 @@
   "_comment": "The 2014 positive corpus - SEEDED EMPTY (roadmap Phase 1: \"create tests/conformance/2014/ now so the directory gap stops being invisible\"). Phase 6 (M3: dynamic tables, DYNAMIC-LENGTH items, TYPEDEF, >>PROPAGATE, the M3-4 catchall) populates and enables it.",
   "enabled": [
     "corresponding_rounded_mode",
+    "dyn_declare",
     "formatted_datetime",
     "options_default_rounded",
     "options_paragraph",

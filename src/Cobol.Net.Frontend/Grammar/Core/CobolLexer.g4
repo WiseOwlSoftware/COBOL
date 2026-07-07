@@ -232,6 +232,7 @@ ADD         : 'ADD' ;
 ALTER       : 'ALTER' ;
 CALL        : 'CALL' ;
 CANCEL      : 'CANCEL' ;
+CAPACITY    : 'CAPACITY' ;   // OCCURS DYNAMIC … CAPACITY IN data-name (ISO §13.18.38 Format 4, COBOL-2014; D9)
 CLOSE       : 'CLOSE' ;
 COMPUTE     : 'COMPUTE' ;
 CONTINUE    : 'CONTINUE' ;

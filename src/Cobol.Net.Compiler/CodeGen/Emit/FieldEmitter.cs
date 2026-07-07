@@ -285,6 +285,16 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     /// none is left at <c>default</c>), a composed object-initializer for a group, else the elementary VALUE.</summary>
     private string FieldInit(DataItem item)
     {
+        // A DYNAMIC-capacity table (§13.18.38 Format 4, D9): an out-of-line CobolDynTable seeded per occurrence with
+        // the SAME one-occurrence initializer the fixed path repeats (heed DEVLOG 643 — seed EVERY occurrence). Opens
+        // at FROM (min); TO is the expected capacity; INITIALIZED is carried for the (always-on) new-occurrence seed.
+        if (item.IsDynamicTable)
+        {
+            string seed = item.IsGroup ? ComposedInit(item) : InitializerFor(item);
+            var s = item.OccursSpec!;
+            return $"new CobolDynTable<{item.ElementType}>(() => {seed}, {s.InitialCap ?? 0}, "
+                 + $"{(s.ExpectedMax is int e ? e.ToString() : "null")}, {(s.Initialized ? "true" : "false")})";
+        }
         if (item.Occurs is { } n)
         {
             string element = item.IsGroup ? ComposedInit(item) : InitializerFor(item);

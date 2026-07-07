@@ -40,6 +40,28 @@ public sealed class OccursSpec
 
     /// <summary>DESCENDING KEY data-names in declaration order (§13.18.38 GR3).</summary>
     public List<string> DescendingKeyNames { get; } = [];
+
+    // ── Format 4: DYNAMIC-capacity table (ISO §13.18.38 Format 4, COBOL-2014; data-model D9) ──────────────────
+
+    /// <summary>True for a Format-4 DYNAMIC-capacity table (§8.5.1.9) — its capacity varies at run time. Mutually
+    /// exclusive with the Format-2 DEPENDING form. A dynamic table has no fixed <see cref="DataItem.Occurs"/>.</summary>
+    public bool IsDynamic { get; init; }
+
+    /// <summary><c>CAPACITY IN data-name-3</c> — the current-capacity register name (§13.18.38 GR15), or null.</summary>
+    public string? CapacityName { get; init; }
+
+    /// <summary>The synthetic CAPACITY register item — a view over the table's Capacity, set by the post-build
+    /// <c>DataBinder.DynamicResolve</c> pass (data-name-3 is implicitly defined at the OCCURS entry, SR30).</summary>
+    public DataItem? CapacityRegister { get; set; }
+
+    /// <summary><c>FROM integer-4</c> — the minimum / initial current capacity (§13.18.38 GR16); null ⇒ 0.</summary>
+    public int? InitialCap { get; init; }
+
+    /// <summary><c>TO integer-5</c> — the expected capacity (§13.18.38 GR17); null ⇒ unlimited.</summary>
+    public int? ExpectedMax { get; init; }
+
+    /// <summary>The INITIALIZED phrase — seed each new/intermediate occurrence per §8.5.1.9.5.</summary>
+    public bool Initialized { get; init; }
 }
 
 /// <summary>
@@ -187,6 +209,30 @@ public sealed partial class DataBinder
         foreach (var kc in occ.occursKeyClause())
             foreach (var k in kc.dataReference())
                 (kc.DESCENDING() is not null ? desc : asc).Add(k.GetText());
+
+        // Format 4 — a DYNAMIC-capacity table (§13.18.38 Format 4, D9): capture CAPACITY IN / FROM / TO / INITIALIZED
+        // (phrases order-independent). ALWAYS returns a spec (a keyless dynamic table still needs IsDynamic recorded,
+        // unlike a keyless fixed table where DataItem.Occurs alone suffices). DataItem.Occurs stays null — a dynamic
+        // table has no fixed physical capacity; its storage is the out-of-line CobolDynTable.
+        if (occ.DYNAMIC() is not null)
+        {
+            string? capName = null; int? fromCap = null; int? toCap = null; bool initialized = false;
+            foreach (var ph in occ.occursDynamicPhrase())
+            {
+                if (ph.CAPACITY() is not null) capName = ph.dataReference()?.GetText();
+                else if (ph.INITIALIZED() is not null) initialized = true;
+                else if (ph.FROM() is not null && int.TryParse(ph.integerLiteral()?.GetText(), out int fv)) fromCap = fv;
+                else if (ph.TO() is not null && int.TryParse(ph.integerLiteral()?.GetText(), out int tv)) toCap = tv;
+            }
+            var dyn = new OccursSpec
+            {
+                Min = fromCap ?? 0, Max = 0, IsDynamic = true,
+                CapacityName = capName, InitialCap = fromCap, ExpectedMax = toCap, Initialized = initialized,
+            };
+            dyn.AscendingKeyNames.AddRange(asc);
+            dyn.DescendingKeyNames.AddRange(desc);
+            return dyn;
+        }
         if (!depending && asc.Count == 0 && desc.Count == 0) return null;
 
         var lits = occ.integerLiteral();

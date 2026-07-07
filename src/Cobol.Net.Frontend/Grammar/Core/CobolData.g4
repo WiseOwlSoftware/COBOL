@@ -332,6 +332,17 @@ occursClause
       (DEPENDING ON? dataReference)?
       occursKeyClause*
       (INDEXED BY? dataReferenceList)?
+    // Format 4 — a DYNAMIC-capacity table (ISO §13.18.38 Format 4, COBOL-2014; D9). LL-disjoint from Format 1/2
+    // on the token after OCCURS (DYNAMIC is not an integerLiteral). Phrases are order-independent (occursDynamicPhrase*);
+    // duplicate/SR28 checks are bind-time (COBOLNET1522). Edition-gated so a pre-2014 probe upgrades to COBOLNET0900.
+    | {is2014()}? OCCURS DYNAMIC occursDynamicPhrase* occursKeyClause* (INDEXED BY? dataReferenceList)?
+    ;
+
+occursDynamicPhrase
+    : CAPACITY IN? dataReference   // CAPACITY IN data-name-3 (the current-capacity register, §13.18.38 GR15)
+    | FROM integerLiteral         // integer-4 — the minimum / initial capacity (GR16)
+    | TO integerLiteral           // integer-5 — the expected capacity (GR17)
+    | INITIALIZED                 // seed new occurrences per §8.5.1.9.5
     ;
 
 occursKeyClause

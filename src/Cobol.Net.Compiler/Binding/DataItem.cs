@@ -57,6 +57,16 @@ public sealed class DataItem
     /// ASCENDING/DESCENDING KEY data-names.</summary>
     public OccursSpec? OccursSpec { get; init; }
 
+    /// <summary>True for a Format-4 DYNAMIC-capacity table (ISO §13.18.38, data-model D9): capacity varies at run
+    /// time; storage is the out-of-line <c>CobolDynTable&lt;T&gt;</c>, and <see cref="Occurs"/> (the fixed physical
+    /// capacity) is null.</summary>
+    public bool IsDynamicTable => OccursSpec is { IsDynamic: true };
+
+    /// <summary>True for ANY table — fixed (<see cref="Occurs"/>) OR dynamic (D9). Use at table-RECOGNITION sites
+    /// (subscript arity, SEARCH detection); keep <c>Occurs is not null</c> at fixed-capacity-ARITHMETIC sites
+    /// (static image width, fixed-array init) where a dynamic table must NOT be treated as a fixed run.</summary>
+    public bool IsTable => Occurs is not null || IsDynamicTable;
+
     /// <summary>The INDEXED BY index-names declared on this item's OCCURS clause (empty if none).</summary>
     public List<string> IndexNames { get; } = [];
 
@@ -140,13 +150,16 @@ public sealed class DataItem
     /// deferred.
     /// </summary>
     public bool IsCharacterImage =>
+        // A DYNAMIC-capacity table is out-of-line (non-contiguous, variable size — §8.5.1.9.1) so it has no static
+        // character image; a group CONTAINING one drops out via Children.All below (the Tier-C island, D9).
+        !IsDynamicTable && (
         IsElementary
             // National and boolean leaves are string-stored (D-N1/D-B1) and contribute their CHARACTER
             // positions to a group image (ImageWidth = Length — never byte-doubled for national; a byte
             // width, if ever needed, is a NEW member, not this one).
             ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean || StoreAsImage
-            : IsGroup && Children.All(c => c.IsCharacterImage);
+            : IsGroup && Children.All(c => c.IsCharacterImage));
 
     /// <summary>
     /// True if this item participates in the generated record-image codec (<c>AsImage()</c>/<c>FromImage()</c>,
@@ -162,10 +175,11 @@ public sealed class DataItem
     /// §13.18.52 SR2 — a binary item never carries a separate sign).
     /// </summary>
     public bool IsImageCapable =>
+        !IsDynamicTable && (   // out-of-line dynamic table — not in the static record codec (D9)
         IsElementary
             ? IsCharacterImage
                 || Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed }
-            : IsGroup && Children.All(c => c.IsImageCapable);
+            : IsGroup && Children.All(c => c.IsImageCapable));
 
     /// <summary>The character width of this item's image — meaningful for an <see cref="IsCharacterImage"/> item. For a
     /// group it is the sum of each child's TOTAL image contribution, i.e. the child's per-occurrence image width × its
@@ -196,8 +210,12 @@ public sealed class DataItem
     /// a <see cref="StoreAsImage"/> numeric leaf, else the PIC's CLR type).</summary>
     public string ElementType => IsGroup ? StructName : StoreAsImage ? "string" : Pic?.ClrType ?? "object";
 
-    /// <summary>The C# type name for this item's field — an array of <see cref="ElementType"/> for an OCCURS table.</summary>
-    public string FieldType => Occurs is not null ? ElementType + "[]" : ElementType;
+    /// <summary>The C# type name for this item's field — <c>CobolDynTable&lt;T&gt;</c> for a DYNAMIC table (D9), an
+    /// array of <see cref="ElementType"/> for a fixed OCCURS table, else the scalar <see cref="ElementType"/>.</summary>
+    public string FieldType =>
+        IsDynamicTable ? $"CobolDynTable<{ElementType}>"
+        : Occurs is not null ? ElementType + "[]"
+        : ElementType;
 
     /// <summary>Back-compat alias of <see cref="ElementType"/> (the per-occurrence type).</summary>
     public string ClrType => ElementType;

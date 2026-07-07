@@ -73,6 +73,7 @@ public static class ConstructRegistry
         new("options-arithmetic-native-2014", "OPTIONS paragraph / ARITHMETIC IS NATIVE", 2014, null, null, EditionCodes.Introduction, "ISO §11.9"),
         new("rounded-mode-is-2014", "ROUNDED MODE IS", 2014, null, null, EditionCodes.Introduction, "ISO §14.7.4"),
         new("arithmetic-standard-decimal-2014", "ARITHMETIC IS STANDARD-DECIMAL", 2014, null, null, EditionCodes.Introduction, "ISO §11.9.5 / §8.8.1.5"),
+        new("occurs-dynamic-2014", "OCCURS DYNAMIC (dynamic-capacity table)", 2014, null, null, EditionCodes.Introduction, "ISO §13.18.38 Format 4 / §8.5.1.9; data-model D9 — the CobolDynTable<T> growable substrate; CAPACITY register + SET Format 14 + SEARCH over current capacity"),
         new("type-clause-2002", "TYPE clause (TYPEDEF family)", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.58; PROVISIONAL 2002 edge (ISO-validation DEVLOG 582; decision-1 policy)"),
         new("usage-float-short-2002", "USAGE FLOAT-SHORT", 2002, null, null, EditionCodes.Introduction, "ISO §13.18.60.4 GR13; D16 (Phase 6a) — the implementor-defined float trio; LIVE"),
         new("usage-float-binary32-2014", "USAGE FLOAT-BINARY-32", 2014, null, null, EditionCodes.Introduction, "ISO §13.18.59; D16 split (provisional 2014); PENDING (Phase 6)"),

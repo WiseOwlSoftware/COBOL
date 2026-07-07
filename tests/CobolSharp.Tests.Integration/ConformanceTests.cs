@@ -184,6 +184,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         // frozen legacy binder has only the by-name CLOSE-WITH-LOCK/38 primitive and cannot bind these clauses.
         // The greenfield CorpusRunner byte-compares file_sharing (two connectors → 61/51/00 in one run unit).
         ("2002", "file_sharing"),
+        // Phase 6, OCCURS DYNAMIC increment 1 (data-model D9, §13.18.38 Format 4 / §8.5.1.9): the
+        // dynamic-capacity table declaration + the growable CobolDynTable<T> storage substrate. The frozen
+        // legacy binder/emitter has no dynamic-table model (it predates the D9 rewrite), so although the shared
+        // grammar now parses OCCURS DYNAMIC, the legacy engine cannot emit it — greenfield CorpusRunner only.
+        ("2014", "dyn_declare"),
     ];
 
     [Theory]
