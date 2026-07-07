@@ -275,12 +275,15 @@ runtime `_expected` enforcement + the `>>TURN … CHECKING ON` gate ride the EC-
 (`dyn_capacity_bounds` proves the checking-off continue). (b) **FUNCTION LENGTH over a dynamic table**
 (= `Capacity × elemWidth`) + the `DynWholeTablePlace` whole-table place + its value-funnel loud belong with the
 inc-5 §14.6.9 **1527** whole-/variable-length-group work (one home for whole-dynamic-table operations); inc 2 ships
-the clean whole-table loud guard as the interim. (3) subscripted element access — **⚠ the D9 sketch
-`CobolTable.At(CobolDynTable, occ, receiving)` is WRONG** (a single `MemberPlace` path cannot carry read-vs-write
-polarity; `ref T` covers the fixed case only). CORRECTED design: an `AccessDir { Sending, Receiving }` threaded
-through `AccessPath`, and a new `DynTablePlace(SendingPath, ReceivingPath, Item)` whose `Read()` emits
-`…RefSending(occ)` and `Write(rhs)` emits `…RefReceiving(occ) = rhs;` (the receiving side grows-and-seeds). Arity
-recognition switches to `IsTable` at the OCCURS-level count. → `dyn_implicit_grow`/`dyn_initialized`; (4) SEARCH over current capacity + EC-FLOW-SEARCH + `INITIALIZE` → `dyn_search`, flip the matrix
+the clean whole-table loud guard as the interim. (3) **✅ LANDED (DEVLOG 654)** — subscripted element access. **⚠ the original D9 sketch
+`CobolTable.At(CobolDynTable, occ, receiving)` was WRONG** (a single `MemberPlace` path cannot carry read-vs-write
+polarity; `ref T` covers the fixed case only). CORRECTED + implemented: an `AccessDir { Sending, Receiving }` threaded
+through `AccessPath`, and a `DynTablePlace(SendingPath, ReceivingPath, Item)` whose `Read()` emits `…RefSending(occ)`
+and `Write(rhs)` emits `…RefReceiving(occ) = rhs;` (the receiving side grows-and-seeds skipped intermediates). Arity
+recognition switched to `IsTable` at the OCCURS-level count; the dynamic segment renders the accessor and any group-
+field/fixed-OCCURS tail is appended after it (`{tbl}.RefSending(i).Field`). A sending OOB stays benign scratch;
+EC-BOUND-SUBSCRIPT-under-checking rides the general subscript-checking gate (a cross-cutting later increment, not
+dyn-specific). → `dyn_implicit_grow`/`dyn_initialized`; (4) SEARCH over current capacity + EC-FLOW-SEARCH + `INITIALIZE` → `dyn_search`, flip the matrix
 row active; (5) the staged-loud guards (1525–1528) + doc/DOC_INDEX + negative goldens. Increments 2–5 are
 greenfield-only (guard-fast; CI is the backstop). All 3 recon open questions resolved to their recommended defaults
 (VALUE-capacity staged; EC-FLOW-SEARCH in CORE; extend THIS doc).

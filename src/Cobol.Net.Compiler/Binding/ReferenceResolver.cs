@@ -8,6 +8,11 @@ namespace CobolNet.Binding;
 
 using Core = CobolParserCore;
 
+/// <summary>The access direction of a subscripted OCCURS DYNAMIC element (data-model D9): a SENDING read (benign
+/// scratch on out-of-range) vs a RECEIVING write (grows-and-seeds the table past its current capacity). A fixed
+/// table ignores this — its <c>CobolTable.At</c> <c>ref T</c> serves both directions.</summary>
+public enum AccessDir { Sending, Receiving }
+
 /// <summary>
 /// Resolves a <c>dataReference</c> parse node to a <see cref="Place"/> — the single entry point every verb uses to
 /// turn a COBOL operand into a typed C# lvalue (COBOLNET_DESIGN §3.4). Two phases:
@@ -285,6 +290,16 @@ public sealed class ReferenceResolver(DataBinder data)
             return null;
         DataItem accessItem = item.Class is { Tier: RedefinesTier.Alias } ac && !item.IsCanonical
             ? ac.Canonical : item;
+        // A subscripted element whose access path crosses an OCCURS DYNAMIC level (data-model D9): the sending and
+        // receiving accessors differ (RefSending vs RefReceiving — the latter grows-and-seeds), so build BOTH paths
+        // and return a direction-carrying DynTablePlace. (A dynamic element is never an ODO subject, and a group
+        // containing a dynamic table is not image-capable, so the ODO-wrap / whole-group paths below do not apply.)
+        for (DataItem? n = accessItem; n is not null; n = n.Parent)
+            if (n.IsDynamicTable)
+            {
+                if (AccessPath(accessItem, indexExprs, AccessDir.Sending) is not { } sp) return null;
+                return new DynTablePlace(sp, AccessPath(accessItem, indexExprs, AccessDir.Receiving)!, item);
+            }
         // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath null → loud.
         if (AccessPath(accessItem, indexExprs) is not { } path) return null;
         // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
@@ -441,13 +456,16 @@ public sealed class ReferenceResolver(DataBinder data)
         return string.Join(".", chain.Select(n => n.CsName));
     }
 
-    private static string? AccessPath(DataItem item, IReadOnlyList<string> indexExprs)
+    private static string? AccessPath(DataItem item, IReadOnlyList<string> indexExprs,
+        AccessDir dir = AccessDir.Sending)
     {
         var chain = new List<DataItem>();
         for (DataItem? n = item; n is not null; n = n.Parent) chain.Add(n);
         chain.Reverse();   // root-first
 
-        int occursLevels = chain.Count(n => n.Occurs is not null);
+        // Count ANY table level (fixed OR dynamic) — a dynamic table IS an OCCURS dimension though its Occurs is
+        // null (DataItem.IsTable guidance: use IsTable at subscript-arity sites).
+        int occursLevels = chain.Count(n => n.IsTable);
         if (occursLevels != indexExprs.Count) return null;   // wrong number of subscripts
 
         string path = "";
@@ -455,11 +473,15 @@ public sealed class ReferenceResolver(DataBinder data)
         foreach (var seg in chain)
         {
             path += path.Length == 0 ? seg.CsName : "." + seg.CsName;
-            // Every subscripted access routes through the ref-returning CobolTable.At (ISO §8.4.2.3.4 GR2):
-            // an out-of-range occurrence number continues benignly with subscript checking off (the COBOL-85
-            // semantics — conditions and FAIL paths legally evaluate one-past-the-end references, e.g. an
-            // induction variable after its UNTIL went true), instead of a raw CLR IndexOutOfRangeException.
+            // A FIXED OCCURS routes through the ref-returning CobolTable.At (ISO §8.4.2.3.4 GR2): an out-of-range
+            // occurrence continues benignly with subscript checking off (COBOL-85 semantics — conditions and FAIL
+            // paths legally evaluate one-past-the-end references), instead of a raw CLR IndexOutOfRangeException.
             if (seg.Occurs is not null) path = $"CobolTable.At({path}, {indexExprs[si++]})";
+            // A DYNAMIC OCCURS (§8.5.1.9.2/.9.3, D9) has direction-specific accessors: RefSending on a read (benign
+            // scratch on OOB), RefReceiving on a write (grows-and-seeds past the current capacity). The direction is
+            // fixed at build time and carried by the DynTablePlace's two paths.
+            else if (seg.IsDynamicTable)
+                path = $"{path}.{(dir == AccessDir.Sending ? "RefSending" : "RefReceiving")}({indexExprs[si++]})";
         }
         return path;
     }

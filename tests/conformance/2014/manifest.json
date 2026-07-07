@@ -6,6 +6,8 @@
     "dyn_capacity_read",
     "dyn_capacity_set",
     "dyn_declare",
+    "dyn_implicit_grow",
+    "dyn_initialized",
     "formatted_datetime",
     "options_default_rounded",
     "options_paragraph",

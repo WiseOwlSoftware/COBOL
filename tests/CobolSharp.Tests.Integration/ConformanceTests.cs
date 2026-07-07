@@ -195,6 +195,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2014", "dyn_capacity_read"),
         ("2014", "dyn_capacity_set"),
         ("2014", "dyn_capacity_bounds"),
+        // Phase 6, OCCURS DYNAMIC increment 3 (data-model D9, §8.5.1.9.2/.9.3): subscripted element access — a
+        // receiving subscript past capacity grows-and-seeds (RefReceiving), a sending OOB is benign (RefSending).
+        // Greenfield CorpusRunner only.
+        ("2014", "dyn_implicit_grow"),
+        ("2014", "dyn_initialized"),
     ];
 
     [Theory]

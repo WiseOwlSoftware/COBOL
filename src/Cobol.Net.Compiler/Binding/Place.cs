@@ -46,6 +46,31 @@ public sealed record MemberPlace(string Path, DataItem MemberItem) : Place
 }
 
 /// <summary>
+/// A subscripted OCCURS DYNAMIC element (ISO/IEC 1989:2023 §8.5.1.9.2/.9.3; data-model D9). Unlike a fixed table
+/// (whose <c>CobolTable.At</c> returns a <c>ref T</c> that serves BOTH directions), a dynamic table has two distinct
+/// runtime accessors: <c>RefSending(occ)</c> (a read — an out-of-range occurrence is benign scratch) and
+/// <c>RefReceiving(occ)</c> (a write — an occurrence past the current capacity GROWS the table, seeding the skipped
+/// intermediates). A single access-path string cannot carry that polarity, so this place holds BOTH pre-computed
+/// paths: <see cref="Read"/> emits the sending path, <see cref="Write"/> the receiving path (which grows on demand).
+/// A subordinate of a dynamic element (a group element's field, or a fixed OCCURS below the dynamic level) is the
+/// tail appended after the accessor in each path.
+/// </summary>
+public sealed record DynTablePlace(string SendingPath, string ReceivingPath, DataItem ElementItem) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => ElementItem.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => ElementItem;
+
+    /// <inheritdoc/>
+    public override string Read() => SendingPath;
+
+    /// <inheritdoc/>
+    public override string Write(string rhs) => $"{ReceivingPath} = {rhs};";
+}
+
+/// <summary>
 /// A Tier-B REDEFINES view (COBOLNET_DESIGN §4.2): a typed <c>(offset, width)</c> character window over the class's
 /// ONE <see cref="string"/> backing field. Reading yields the window's character image (a substring); writing splices
 /// a new image back into the backing, preserving its full width — so a write through any view is visible through every
