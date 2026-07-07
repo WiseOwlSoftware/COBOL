@@ -45,6 +45,28 @@ public sealed class DataItem
     /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.</summary>
     public string? RawValue { get; init; }
 
+    /// <summary>True when this entry carries a TYPEDEF clause — it is a TYPE DECLARATION (a named template; ISO
+    /// §13.18.58, data-model D17), allocating NO storage. Registered in <c>DataBinder.TypeDecls</c>, kept OFF
+    /// <c>Roots</c>/<c>ByName</c>; its subordinate names are not globally referenceable (GR1).</summary>
+    public bool IsTypedef { get; init; }
+
+    /// <summary>True when the TYPEDEF carries STRONG (ISO §13.18.58.2) — the declared type is strongly typed, so its
+    /// referencing items may interoperate only with the same type (the compile-time §8.5.3.3 checks).</summary>
+    public bool TypedefStrong { get; init; }
+
+    /// <summary>The type-name of a <c>TYPE IS type-name</c> reference (ISO §13.18.57), or null. The referencing entry
+    /// is CLONED from that type declaration's subtree by the post-build <c>DataBinder.ExpandTypes</c> pass (D17), which
+    /// clears this once expanded.</summary>
+    public string? TypeRefName { get; set; }
+
+    /// <summary>After <c>ExpandTypes</c>: the type-name this item (or its containing subtree root) was cloned from —
+    /// backs the §8.5.3.3 STRONG same-type check. Null for a non-typed item.</summary>
+    public string? TypeName { get; set; }
+
+    /// <summary>After <c>ExpandTypes</c>: true when this item is the subject of a TYPE clause referencing a STRONG
+    /// type declaration (an item is strongly typed if it or any ancestor has this set). Drives the §8.8.4 gates.</summary>
+    public bool StrongType { get; set; }
+
     /// <summary>The ALLOCATED occurrence count — the table's physical capacity — or <see langword="null"/> if the
     /// item is not a table. For a fixed (Format 1) table this is the OCCURS count; for an occurs-depending (Format 2)
     /// table it is the MAXIMUM, integer-2 (ISO §8.5.1.8 — "the physical capacity is fixed at compile time; the

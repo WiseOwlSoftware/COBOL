@@ -533,6 +533,7 @@ ROUNDED     : 'ROUNDED' ;
 RIGHT       : 'RIGHT' ;
 RUN         : 'RUN' ;
 SAME        : 'SAME' ;
+STRONG      : 'STRONG' ;   // TYPEDEF STRONG (ISO §13.18.58.2, COBOL-2002; data-model D17)
 SORT_MERGE  : 'SORT-MERGE' ;
 MULTIPLE    : 'MULTIPLE' ;
 TAPE        : 'TAPE' ;

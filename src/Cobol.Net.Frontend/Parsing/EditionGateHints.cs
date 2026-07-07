@@ -42,6 +42,7 @@ public static class EditionGateHints
     private static readonly Gate StartWithLength = new("the START KEY … WITH LENGTH phrase", 2002, "ISO §14.9.41", "start-with-length-2002");
     private static readonly Gate Based = new("the BASED clause", 2002, "ISO §13.18.5", "based-clause-2002");
     private static readonly Gate TypeClause = new("the TYPE clause (TYPEDEF family)", 2002, "ISO §13.18.58; provisional 2002 edge", "type-clause-2002");
+    private static readonly Gate TypedefClause = new("the TYPEDEF clause (a type declaration)", 2002, "ISO §13.18.58; data-model D17", "typedef-def-2002");
     private static readonly Gate UsageObject = new("USAGE OBJECT REFERENCE", 2002, "ISO §13.18.60 (OO)", "usage-object-reference-2002");
     private static readonly Gate RepositoryClass = new("the REPOSITORY CLASS entry", 2002, "ISO §12.3.8 (OO)", "repository-class-2002");
     private static readonly Gate SpecialNamesFor = new("the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)", 2002, "ISO §12.3.7", "special-names-for-national-2002");
@@ -108,6 +109,7 @@ public static class EditionGateHints
                 && (InRule(ruleStack, "startStatement") || PrevWithin(stream, token, 8, CobolLexer.START)) => StartWithLength,
             CobolLexer.BASED when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Based,
             CobolLexer.TYPE when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => TypeClause,
+            CobolLexer.TYPEDEF when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => TypedefClause,
             CobolLexer.OBJECT when Next(stream, token, 1)?.Type == CobolLexer.REFERENCE
                 && (InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") || Next(stream, token, -1)?.Type == CobolLexer.USAGE) => UsageObject,
             CobolLexer.CLASS when InRule(ruleStack, "repositoryParagraph") => RepositoryClass,

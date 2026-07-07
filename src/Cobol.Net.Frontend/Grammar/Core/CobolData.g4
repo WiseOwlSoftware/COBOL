@@ -222,6 +222,7 @@ dataDescriptionClause
     | externalClause
     | globalClause
     | typeClause
+    | typedefClause
     | basedClause
     | genericDataClause
     ;
@@ -252,6 +253,13 @@ globalClause
 // (roadmap decision 1 provisional policy; tests/version-matrix/constructs.json row type-clause-2002).
 typeClause
     : {is2002()}? TYPE IS? IDENTIFIER
+    ;
+
+// TYPEDEF clause (ISO §13.18.58, COBOL-2002; data-model D17) — marks this data description entry as a TYPE
+// DECLARATION (a named template; it allocates no storage). STRONG (§13.18.58.2) makes the type strongly-typed.
+// LL-disjoint from externalClause/globalClause (IS? EXTERNAL | GLOBAL): the keyword after the optional IS differs.
+typedefClause
+    : {is2002()}? IS? TYPEDEF STRONG?
     ;
 
 genericDataClause

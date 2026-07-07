@@ -54,6 +54,8 @@
     "repository_paragraph",
     "sort_table_format2",
     "table_value_occurs",
+    "typedef_weak_elem",
+    "typedef_weak_group",
     "udf_exit_function",
     "udf_inline_expression",
     "udf_invocation",

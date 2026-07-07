@@ -154,12 +154,21 @@
     },
     {
       "id": "type-clause-2002",
-      "description": "TYPE IS clause referencing a type declaration, ISO \u00a713.18.58 (TYPEDEF family) \u2014 PROVISIONAL 2002 edge (ISO-validation, DEVLOG 582: zero Annex E 2014\u21922023 rows \u21d2 predates 2023, so the old 2023 seed was provably wrong; the 2002-vs-2014 refinement is blocked on the older standards per decision 1)",
+      "description": "TYPE IS clause referencing a type declaration, ISO \u00a713.18.58 (TYPEDEF family) \u2014 PROVISIONAL 2002 edge (ISO-validation, DEVLOG 582: zero Annex E 2014\u21922023 rows \u21d2 predates 2023, so the old 2023 seed was provably wrong; the 2002-vs-2014 refinement is blocked on the older standards per decision 1). LIVE (data-model D17, weak-TYPE spine).",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "TYPEDEF family \u00a713.18.58; provisional per the decision-1 policy",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. TY.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W TYPE IS WTYPE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. TY.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WTYPE TYPEDEF PIC 9(4).\n01 W TYPE IS WTYPE.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY W.\n    STOP RUN.\n"
+    },
+    {
+      "id": "typedef-def-2002",
+      "description": "A TYPEDEF clause \u2014 a type-declaration entry (a named template; no storage), ISO \u00a713.18.58 (data-model D17). LIVE (weak-TYPE spine): compiles at 2002+, COBOLNET0900 below.",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "TYPEDEF definition \u00a713.18.58; provisional 2002 per decision-1",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. TD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 MYTYPE TYPEDEF PIC 9(3).\n01 V TYPE MYTYPE VALUE 42.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY V.\n    STOP RUN.\n"
     },
     {
       "id": "usage-float-short-2002",

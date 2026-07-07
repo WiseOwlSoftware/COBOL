@@ -47,6 +47,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// by the post-build <see cref="DynamicResolve"/> pass.</summary>
     public Dictionary<string, DataItem> CapacityRegisters { get; } = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO
+    /// §13.18.58; data-model D17). The template is built by <see cref="BindEntries"/> but kept OFF <see cref="Roots"/>
+    /// and <see cref="ByName"/> (it allocates no storage; its subordinate names are not globally referenceable,
+    /// GR1/GR2). A <c>TYPE IS type-name</c> reference clones this subtree into the referencing entry in the post-build
+    /// <see cref="ExpandTypes"/> pass — which runs before <see cref="BindResolve"/>, so every resolution pass sees the
+    /// clone (the invariant the OO compiler-temp clone already relies on).</summary>
+    public Dictionary<string, DataItem> TypeDecls { get; } = new(StringComparer.OrdinalIgnoreCase);
+
     /// <summary>
     /// Group items referenced as a whole (non-elementary) operand anywhere in the PROCEDURE DIVISION — recorded by
     /// <see cref="ReferenceResolver"/> as it resolves each reference. A group name can only be used as a whole (MOVE
@@ -201,6 +209,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // REDEFINES/RENAMES targets, group overlaid items into shared-storage classes and assign each a tier
         // (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4). This now covers the FILE SECTION records too (their
         // multi-01 area sharing is a synthesized REDEFINES). Finally resolve each file's FILE STATUS data item.
+        ExpandTypes();   // TYPE IS type-name → clone the TYPEDEF template into the referencing entry (D17), BEFORE the passes below
         ResolveIndexItems();
         InheritUsageClauses();
         InheritSignClauses();
@@ -249,6 +258,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         var newRoots = new List<DataItem>();
         var stack = new Stack<DataItem>();
+        bool rootIsTemplate = false;   // true while the current level-1 subtree is a TYPEDEF template (D17)
         foreach (var entry in entries)
         {
             int.TryParse(entry.levelNumber().GetText(), out int lvl);
@@ -277,16 +287,30 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
             if (stack.Count == 0)
             {
-                // A 01/77 emits as a Program-level static field — its C# name must be unique across every root
-                // (FILE SECTION records and WORKING-STORAGE alike), so record it in the shared scope.
-                item.CsName = Unique(item.CsName, rootNames);
-                rootNames.Add(item.CsName);
-                Roots.Add(item);
-                newRoots.Add(item);
-                _lastRoot = item;
+                // A TYPEDEF entry is a type DECLARATION (ISO §13.18.58; D17): a named level-01 template that
+                // allocates NO storage — registered in TypeDecls, kept OFF Roots (and, below, off ByName).
+                if (item.IsTypedef)
+                {
+                    rootIsTemplate = true;
+                    RegisterTypeDecl(item);
+                }
+                else
+                {
+                    rootIsTemplate = false;
+                    // A 01/77 emits as a Program-level static field — its C# name must be unique across every root
+                    // (FILE SECTION records and WORKING-STORAGE alike), so record it in the shared scope.
+                    item.CsName = Unique(item.CsName, rootNames);
+                    rootNames.Add(item.CsName);
+                    Roots.Add(item);
+                    newRoots.Add(item);
+                    _lastRoot = item;
+                }
             }
             else
             {
+                if (item.IsTypedef)   // §13.18.58 SR — a TYPEDEF is a level-01 entry only, never a subordinate.
+                    Edition.Error("COBOLNET1529", $"TYPEDEF on '{item.CobolName ?? "FILLER"}': the TYPEDEF clause "
+                        + "shall be specified only in a level-01 record-description entry (ISO §13.18.58)");
                 var parent = stack.Peek();
                 // A member name need only be unique within its containing struct (the parent's children).
                 item.CsName = Unique(item.CsName, parent.Children.Select(c => c.CsName));
@@ -294,9 +318,32 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 parent.Children.Add(item);
             }
             stack.Push(item);
-            RegisterName(item);
+            // A TYPEDEF template's items (root + subordinates) are NOT globally referenceable (ISO §13.18.58.4 GR1) —
+            // keep them off ByName; the clones ExpandTypes produces ARE registered.
+            if (!rootIsTemplate) RegisterName(item);
         }
         return newRoots;
+    }
+
+    /// <summary>Register a TYPEDEF type declaration (ISO §13.18.58; data-model D17): a named level-01 template.
+    /// SR checks (→ COBOLNET1529): the entry shall be level-01 and named (not FILLER), and the type-name unique.</summary>
+    private void RegisterTypeDecl(DataItem item)
+    {
+        if (item.Level != 1)
+            Edition.Error("COBOLNET1529", $"TYPEDEF '{item.CobolName ?? item.CsName}': a type declaration shall be a "
+                + "level-01 record-description entry (ISO §13.18.58 / §13.16)");
+        if (item.CobolName is null)
+        {
+            Edition.Error("COBOLNET1529", "a TYPEDEF entry shall be named (not FILLER) — it defines a type-name "
+                + "(ISO §13.18.58.4 GR2)");
+            return;
+        }
+        if (item.RedefinesTargetName is not null)
+            Edition.Error("COBOLNET1529", $"TYPEDEF '{item.CobolName}': the TYPEDEF and REDEFINES clauses are "
+                + "mutually exclusive (ISO §13.16)");
+        if (!TypeDecls.TryAdd(item.CobolName, item))
+            Edition.Error("COBOLNET1529", $"duplicate type-name '{item.CobolName}' — a type-name shall be unique "
+                + "(ISO §13.18.58)");
     }
 
     // ── FILE-CONTROL + FILE SECTION (ISO §12.4.5 / §13.18; COBOLNET_DESIGN §8) ─────────────────────────────────
@@ -660,6 +707,103 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         list.Add(item);
     }
 
+    // ── TYPEDEF / the TYPE clause (ISO §13.18.58 / §13.18.57; data-model D17) ──────────────────────────────────
+
+    /// <summary>Post-build TYPE-expansion pass: every <c>TYPE IS type-name</c> reference (a real item in the forest)
+    /// gets the referenced type declaration's subtree cloned in. Runs at the top of <see cref="BindResolve"/> — AFTER
+    /// all <see cref="BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="TypeDecls"/>) and
+    /// BEFORE the resolution passes (so the clone is a normal part of the forest they walk).</summary>
+    private void ExpandTypes()
+    {
+        foreach (var item in AllItems().Where(i => i.TypeRefName is not null).ToList())
+            ExpandType(item, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Clone the referenced TYPEDEF template into <paramref name="item"/> (ISO §13.18.57.4 GR1/GR2): an
+    /// ELEMENTARY type copies its PICTURE onto the item (a leaf); a GROUP type clones each subordinate under the item
+    /// (a group). The subject's OWN OCCURS (an array-of-type, §13.16 SR14) and VALUE (GR3) are already on the item and
+    /// preserved. <paramref name="expanding"/> is the set of type-names on the current expansion chain — a nested TYPE
+    /// reference back to one is a recursive type declaration (§13.18.58.3 SR2 → COBOLNET1530).</summary>
+    private void ExpandType(DataItem item, HashSet<string> expanding)
+    {
+        string typeName = item.TypeRefName!;
+        item.TypeRefName = null;   // mark expanded (idempotent; also stops a cloned nested ref being re-processed)
+        string subject = item.CobolName ?? item.CsName;
+        if (!TypeDecls.TryGetValue(typeName, out var template))
+        {
+            Edition.Error("COBOLNET1530", $"TYPE '{typeName}' on '{subject}': the type-name is not defined by any "
+                + "TYPEDEF entry (ISO §13.18.57 / §13.18.58)");
+            return;
+        }
+        if (!expanding.Add(typeName))
+        {
+            Edition.Error("COBOLNET1530", $"TYPE '{typeName}' on '{subject}': a type declaration shall not directly "
+                + "or indirectly reference itself (ISO §13.18.58.3 SR2)");
+            return;
+        }
+        if (template.IsGroup)
+            foreach (var child in template.Children)
+                item.Children.Add(CloneItem(child, item, expanding));
+        else
+            item.Pic ??= template.Pic;   // elementary type → item becomes this leaf (its own VALUE/OCCURS kept, GR3/SR14)
+        item.TypeName = typeName;
+        item.StrongType = template.TypedefStrong;
+        expanding.Remove(typeName);
+    }
+
+    /// <summary>Deep-clone one template node under <paramref name="newParent"/> (generalizes the flat OO compiler-temp
+    /// clone, <c>CreateCompilerTemp</c>): a FRESH <see cref="DataItem.Uid"/> (StructName/ProfileName ride on it, so a
+    /// shared Uid would collide the clone's emitted type/profile with the template's), the immutable
+    /// <see cref="DataItem.Pic"/> shared, the description fields copied, the <see cref="DataItem.CsName"/> re-uniquified
+    /// in the NEW scope, and — unlike the template — REGISTERED (clones ARE referenceable). A nested TYPE reference in
+    /// the template is expanded in place.</summary>
+    private DataItem CloneItem(DataItem src, DataItem newParent, HashSet<string> expanding)
+    {
+        var clone = new DataItem
+        {
+            Level = src.Level,
+            CobolName = src.CobolName,
+            CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
+            Pic = src.Pic,
+            OwnSign = src.OwnSign,
+            OwnUsage = src.OwnUsage,
+            RawValue = src.RawValue,
+            Occurs = src.Occurs,
+            // Clone the OccursSpec — never SHARE it: its Depending / CapacityRegister are RESOLVED per-clone by the
+            // post-build OdoResolve / DynamicResolve, so a shared object would let two clones of the same group type
+            // collide on those fields (D17 risk #1). Copy the declared fields; leave the resolved ones null.
+            OccursSpec = src.OccursSpec is { } os ? CloneOccursSpec(os) : null,
+            RedefinesTargetName = src.RedefinesTargetName,
+            Justified = src.Justified,
+            BlankWhenZero = src.BlankWhenZero,
+            TypeRefName = src.TypeRefName,
+        };
+        clone.Uid = _uidCounter++;
+        clone.Parent = newParent;
+        foreach (var idx in src.IndexNames) clone.IndexNames.Add(idx);
+        RegisterName(clone);
+        foreach (var child in src.Children)
+            clone.Children.Add(CloneItem(child, clone, expanding));
+        if (clone.TypeRefName is not null) ExpandType(clone, expanding);   // a nested TYPE reference inside the template
+        return clone;
+    }
+
+    /// <summary>Copy an <see cref="OccursSpec"/>'s DECLARED fields for a TYPEDEF clone (D17), leaving the post-build
+    /// RESOLVED fields (<c>Depending</c>/<c>CapacityRegister</c>) null so OdoResolve/DynamicResolve re-bind them in
+    /// the clone's OWN scope — a shared spec would let sibling clones of the same type collide on those.</summary>
+    private static OccursSpec CloneOccursSpec(OccursSpec s)
+    {
+        var c = new OccursSpec
+        {
+            Min = s.Min, Max = s.Max, DependingName = s.DependingName, IsDynamic = s.IsDynamic,
+            CapacityName = s.CapacityName, InitialCap = s.InitialCap, ExpectedMax = s.ExpectedMax,
+            Initialized = s.Initialized,
+        };
+        c.AscendingKeyNames.AddRange(s.AscendingKeyNames);
+        c.DescendingKeyNames.AddRange(s.DescendingKeyNames);
+        return c;
+    }
+
     /// <summary>Bind a level-66 RENAMES entry (ISO §13.18.45): a re-grouping alias <c>RENAMES from [THRU thru]</c>
     /// over a contiguous sibling run of the owning record. It adds no storage (SR2/SR3) — it is attached to the
     /// owning record's <see cref="DataItem.Renames66"/> list (not <see cref="DataItem.Children"/>) and registered for
@@ -775,6 +919,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
+        bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
+        string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
 
         if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
             foreach (var clause in clauses.dataDescriptionClause())
@@ -785,6 +931,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     isBased = true;   // validated below (§13.16 SR16 placement; the 0881 declaration band)
                 else if (clause.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
+                else if (clause.typedefClause() is { } td)
+                    { isTypedef = true; typedefStrong = td.STRONG() is not null; }   // §13.18.58; D17
+                else if (clause.typeClause() is { } tc)
+                    typeRefName = tc.IDENTIFIER().GetText();   // TYPE IS type-name — cloned in ExpandTypes (D17)
                 else if (clause.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
                 else if (clause.blankWhenZeroClause() is not null)
@@ -932,6 +1082,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             RedefinesTargetName = redefinesTargetName,
             Justified = justified,
             BlankWhenZero = blankWhenZero,
+            IsTypedef = isTypedef,
+            TypedefStrong = typedefStrong,
+            TypeRefName = typeRefName,
         };
 
         // BASED declaration validation (the 0881 declaration-entry band; Phase-4b increment 2): §13.16 SR16 —

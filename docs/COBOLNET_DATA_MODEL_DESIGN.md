@@ -378,9 +378,14 @@ TYPE-reference context (immediate subordinate/88; disallowed sibling clause; 77-
 group in a class condition); **1534** staged-loud EXTERNAL type declaration (2023 delta); **1535** staged-loud
 RENAMES-in-TYPEDEF / strong-group boolean-object non-equality compare.
 
-**Increments (each: build → greenfield battery → [legacy guard iff grammar] → DEVLOG + commit).** (1) grammar +
-weak-TYPE spine (`TypeName`/`StrongType`, `TypeDecls`, `CollectTypeDecls`, `CloneSubtree`, `ExpandType`, 1529/1530/
-1531) — **the ONLY grammar/legacy-guard slice** → goldens `typedef_weak_elem`/`typedef_weak_group`. (2) STRONG typing
+**Increments (each: build → greenfield battery → [legacy guard iff grammar] → DEVLOG + commit).** (1) **✅ LANDED
+(DEVLOG 659)** — grammar (`STRONG` token + `typedefClause`; `EditionGateHints.TypedefClause` → 0900; the
+`typedef-def-2002` matrix/registry row) + the weak-TYPE spine (`DataItem` `IsTypedef`/`TypedefStrong`/`TypeRefName`;
+`BindEntries` routes a TYPEDEF root to `TypeDecls`, off `Roots`/`ByName`; `RegisterTypeDecl` → **1529**; a post-build
+`ExpandTypes` at the top of `BindResolve` clones each `TYPE IS type-name` via `CloneItem` — fresh `Uid`/re-uniquified
+`CsName`/registered — elementary→copy PIC, group→clone children, forward refs OK; unresolved/recursive → **1530**).
+`TypeName`/`StrongType` are populated but UNCHECKED until inc 2. — **the ONLY grammar/legacy-guard slice** → goldens
+`typedef_weak_elem`/`typedef_weak_group`. (2) STRONG typing
 (1532/1533) → `typedef_strong_ok`/`typedef_strong_bad`. (3) level-88s in a TYPEDEF → `typedef_88`. (4) staged-loud
 residue (1534/1535) + the matrix behavior/continuity rows + DOC_INDEX / ISO2023_CONFORMANCE_PLAN M3-2 sync.
 
