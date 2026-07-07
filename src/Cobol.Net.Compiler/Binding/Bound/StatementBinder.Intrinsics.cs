@@ -153,6 +153,12 @@ public sealed partial class StatementBinder
         if (sig.Bind == IntrinsicBind.Fold && sig.Name == "LENGTH")
             return BindLengthFold(sig, args);
 
+        // SMALLEST/HIGHEST/LOWEST-ALGEBRAIC fold at compile time from the argument item's PICTURE metadata
+        // (§15.83/§15.43/§15.58; the same Fold discipline as LENGTH).
+        if (sig.Bind == IntrinsicBind.Fold
+                && sig.Name is "SMALLEST-ALGEBRAIC" or "HIGHEST-ALGEBRAIC" or "LOWEST-ALGEBRAIC")
+            return BindAlgebraicFold(sig, args);
+
         // NUMVAL-C with argument-2 omitted: there is exactly ONE currency string for the compilation unit — the
         // SPECIAL-NAMES CURRENCY string or the default sign (§15.68.3 rule 3). Injecting it at bind time keeps
         // the SPECIAL-NAMES config out of the backend (bound nodes carry complete semantics).
@@ -441,6 +447,100 @@ public sealed partial class StatementBinder
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),   // runtime .Length over the nested result image
         _ => new BoundExprError("FUNCTION LENGTH argument"),
     };
+
+    /// <summary>SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§15.83 / §15.43 / §15.58) — a compile-time PICTURE fold, like
+    /// LENGTH. Argument-1 must be a category-numeric DATA ITEM (SMALLEST §15.83.3 r1) or numeric/numeric-edited
+    /// DATA ITEM (HIGHEST/LOWEST §15.43.3/§15.58.3 r1) — never a literal, expression, group, ref-mod, or function.
+    /// SMALLEST = 10^(−scale) (the smallest positive increment, r2). HIGHEST/LOWEST = the greatest/lowest value the
+    /// PICTURE represents: all-nines (10^Digits−1) for a DigitCount item, the two's-complement container range for a
+    /// BinaryCapacity item (COMP-5 / BINARY-CHAR family), the mask capacity for a numeric-edited item; LOWEST is the
+    /// negated magnitude for a sign-representable item, else 0 (Annex D.32). The value returns as a numeric literal
+    /// at the correct scale (BoundNumLiteral — the LENGTH-fold precedent).</summary>
+    private BoundExpr BindAlgebraicFold(IntrinsicSig sig, List<BoundOperand> args)
+    {
+        if (args[0] is not BoundFieldOperand f || f.Place is RefModPlace || f.Place.Item.IsGroup
+            || f.Place.Item.Pic is not { } pic)
+            return AlgebraicArgError(sig);
+        // §15.83.3 r1: SMALLEST admits ONLY category numeric; HIGHEST/LOWEST also admit numeric-edited.
+        bool edited = pic.Category is PicCategory.NumericEdited;
+        if (pic.Category is not PicCategory.Numeric && !(edited && sig.Name != "SMALLEST-ALGEBRAIC"))
+            return AlgebraicArgError(sig);
+        if (pic.Usage is Usage.Index)   // class index — not category numeric (§13.18.60)
+            return AlgebraicArgError(sig);
+
+        // Float usage (COMP-1/COMP-2): under native arithmetic the restriction is implementor-defined (§15.83.3 r4 /
+        // §15.43.3 / §15.58.3), and COBOL.NET defines no PICTURE-based algebraic range for IEEE floats; under
+        // standard-decimal these are barred by rule 2. Loud, complete — never a wrong value.
+        if (pic.IsFloat)
+        {
+            data.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name} does not support a floating-point argument "
+                + "(USAGE COMP-1/COMP-2): the native-arithmetic usage restriction is implementor-defined and "
+                + "COBOL.NET does not define a PICTURE-based algebraic range for IEEE floats (ISO §15.83.3 r4 / "
+                + "§15.43.3 / §15.58.3); under STANDARD-DECIMAL it is barred by rule 2");
+            return new BoundExprError($"FUNCTION {sig.Name} float argument");
+        }
+
+        // SMALLEST — the smallest positive increment 10^(−scale), independent of digit count / sign / container.
+        if (sig.Name == "SMALLEST-ALGEBRAIC")
+            return new BoundNumLiteral(Decimalize(System.Numerics.BigInteger.One, pic.Scale, negative: false));
+
+        int scale; System.Numerics.BigInteger unscaled; bool signable;
+        if (edited)
+        {
+            var (cap, frac) = CobolNet.Runtime.CobolEdit.MaskCapacity(pic.EditMask!, data.CurrencyPicSymbol, data.DecimalPointIsComma);
+            scale = frac;
+            unscaled = Pow10(cap) - 1;   // all-nines over the mask's digit positions (§13.18.40.4)
+            signable = pic.EditMask!.IndexOf('+') >= 0 || pic.EditMask!.IndexOf('-') >= 0
+                       || pic.EditMask!.Contains("CR") || pic.EditMask!.Contains("DB");
+        }
+        else if (pic.Usage is Usage.Comp5 or Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble)
+        {
+            scale = pic.Scale;
+            int bits = 8 * pic.StorageWidth;   // container width (§13.18.60.4) — COMP-5 / BINARY-CHAR own the full range
+            unscaled = sig.Name == "HIGHEST-ALGEBRAIC"
+                ? (pic.Signed ? (System.Numerics.BigInteger.One << (bits - 1)) - 1 : (System.Numerics.BigInteger.One << bits) - 1)
+                : (pic.Signed ? -(System.Numerics.BigInteger.One << (bits - 1)) : System.Numerics.BigInteger.Zero);
+            return new BoundNumLiteral(Decimalize(unscaled, scale, unscaled.Sign < 0));
+        }
+        else
+        {
+            scale = pic.Scale;
+            unscaled = Pow10(pic.Digits) - 1;   // all-nines (DigitCount discipline)
+            signable = pic.Signed;
+        }
+
+        if (sig.Name == "HIGHEST-ALGEBRAIC")
+            return new BoundNumLiteral(Decimalize(unscaled, scale, negative: false));
+        // LOWEST: sign-representable → −magnitude; else 0 (§15.58.4 / Annex D.32).
+        return signable
+            ? new BoundNumLiteral(Decimalize(unscaled, scale, negative: true))
+            : new BoundNumLiteral("0");
+    }
+
+    private BoundExpr AlgebraicArgError(IntrinsicSig sig)
+    {
+        string cat = sig.Name == "SMALLEST-ALGEBRAIC" ? "category numeric" : "category numeric or numeric-edited";
+        string sec = sig.Name == "SMALLEST-ALGEBRAIC" ? "15.83.3" : sig.Name == "HIGHEST-ALGEBRAIC" ? "15.43.3" : "15.58.3";
+        data.Edition.Error("COBOLNET1516", $"FUNCTION {sig.Name} argument-1 shall be a {cat} DATA ITEM — not a "
+            + "literal, an arithmetic expression, a group item, a reference-modified item, an index, or another "
+            + $"function (ISO §{sec} rule 1)");
+        return new BoundExprError($"FUNCTION {sig.Name} argument");
+    }
+
+    private static System.Numerics.BigInteger Pow10(int n) => System.Numerics.BigInteger.Pow(10, Math.Max(0, n));
+
+    /// <summary>Render an unscaled BigInteger at <paramref name="scale"/> fractional digits as a decimal literal
+    /// string ('.' radix always — an internal C#-facing literal, never COBOL source, so DECIMAL-POINT IS COMMA
+    /// does not apply). A negative scale (trailing P) appends |scale| zeros; a positive scale inserts the point.</summary>
+    private static string Decimalize(System.Numerics.BigInteger unscaled, int scale, bool negative)
+    {
+        if (unscaled == 0) return "0";
+        string s = System.Numerics.BigInteger.Abs(unscaled).ToString();
+        string sign = negative ? "-" : "";
+        if (scale <= 0) return sign + s + new string('0', -scale);          // S9PP: 99 @ −2 → "9900"; 1 @ −2 → "100"
+        if (s.Length <= scale) s = s.PadLeft(scale + 1, '0');               // 1 @ 3 → "0001" → "0.001"
+        return sign + s[..^scale] + "." + s[^scale..];                      // 99999 @ 3 → "99.999"
+    }
 
     // ── Argument-list binding: split → ALL expansion → per-segment parse ───────────────────────────────────
 

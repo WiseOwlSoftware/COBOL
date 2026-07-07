@@ -276,8 +276,9 @@ public static class CobolEdit
 
     /// <summary>The mask's total digit-position capacity (9/Z/* plus floating-string members, less the ONE
     /// position the floating symbol itself occupies) and its fraction scale — the §14.7.5 size-error bound.
-    /// Mirrors <see cref="Format"/>'s prologue exactly.</summary>
-    private static (int Capacity, int FracDigits) MaskCapacity(string picture, char currency = '$', bool commaMode = false)
+    /// Mirrors <see cref="Format"/>'s prologue exactly. Public so the compiler can reuse the ONE canonical
+    /// edited digit-position count for the HIGHEST/LOWEST-ALGEBRAIC PICTURE fold (§15.43/§15.58; singular-pattern).</summary>
+    public static (int Capacity, int FracDigits) MaskCapacity(string picture, char currency = '$', bool commaMode = false)
     {
         if (commaMode) picture = SwapSeparators(picture);   // canonicalize (§13.18.40.2 SR13)
         string pattern = picture.Replace("V", "").Replace("P", "");   // V and P hold no output position (§13.18.40.3)

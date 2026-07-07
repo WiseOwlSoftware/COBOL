@@ -10,6 +10,7 @@
     "intrinsics_trim",
     "logical_xor",
     "module_name",
+    "smallest_algebraic",
     "substitute"
   ],
   "pending": []

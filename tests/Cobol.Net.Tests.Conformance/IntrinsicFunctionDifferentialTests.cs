@@ -619,4 +619,36 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.False(ok, "MODULE-NAME NESTED requires a contained program");
         Assert.Contains("COBOLNET1515", detail);
     }
+
+    // ── SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§15.83/§15.43/§15.58, Phase 5, DEVLOG 634): PICTURE-metadata folds ──
+
+    [Theory]
+    [InlineData("HIGHEST-ALGEBRAIC(X)", "01 X PIC S99.\n           01 R PIC +999.", "+099", 2002)]
+    [InlineData("LOWEST-ALGEBRAIC(X)",  "01 X PIC S99.\n           01 R PIC +999.", "-099", 2002)]
+    [InlineData("HIGHEST-ALGEBRAIC(X)", "01 X PIC S9(4).\n           01 R PIC +99999.", "+09999", 2002)]
+    [InlineData("LOWEST-ALGEBRAIC(X)",  "01 X PIC 99V9(3).\n           01 R PIC +99.999.", "+00.000", 2002)] // unsigned ⇒ 0
+    [InlineData("SMALLEST-ALGEBRAIC(X)","01 X PIC S9PP.\n           01 R PIC +9999.", "+0100", 2023)]        // scale −2
+    [InlineData("SMALLEST-ALGEBRAIC(X)","01 X PIC 99V9(3).\n           01 R PIC +9.999.", "+0.001", 2023)]
+    public void Algebraic_Fold(string call, string ws, string expected, int dialect)
+        => AssertSpec(Program(ws, $"    MOVE FUNCTION {call} TO R.\n    DISPLAY R.", "ALGB"), expected, dialect);
+
+    [Fact]
+    public void Algebraic_LiteralArgument_1516()
+    {
+        // §15.83.3 r1 — argument-1 shall be a data item, not a literal.
+        var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
+            Program("01 R PIC +999.", "    MOVE FUNCTION SMALLEST-ALGEBRAIC(5) TO R.\n    DISPLAY R."));
+        Assert.False(ok, "a literal argument violates §15.83.3 r1");
+        Assert.Contains("COBOLNET1516", detail);
+    }
+
+    [Fact]
+    public void Algebraic_SmallestGatedBelow2023_1502()
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 X PIC S999.\n           01 R PIC +999.",
+                "    MOVE FUNCTION SMALLEST-ALGEBRAIC(X) TO R.\n    DISPLAY R."));
+        Assert.False(ok, "SMALLEST-ALGEBRAIC is 2023+; 2014 must reject");
+        Assert.Contains("COBOLNET1502", detail);
+    }
 }
