@@ -1,0 +1,239 @@
+# COBOL.NET — Rearchitecture & 100%-ISO Master Roadmap
+
+> **STATUS BANNER (update this every session).** Plan authored 2026-07-07 by a multi-agent review
+> (workflow `wf_7720e6f8-fd6`, 46 agents; 6 survey/critique units + the dual-backend track backfilled separately).
+> **Execution NOT STARTED.** Current baseline: **2028 greenfield conformance + 213 unit GREEN; FULL legacy guard
+> NIST 353 MATCH.** RESUME AT: **Phase 00**. The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
+> the decision-complete designs in `docs/rearchitecture/DESIGN-*.md`; the as-is survey + critique in
+> `docs/rearchitecture/SURVEY-*.md` / `CRITIQUE-*.md`.
+
+## 0. How to use this document (the resume protocol)
+
+This is the **single resumable SSOT** for the compiler's rearchitecture-plus-ISO-completion effort. Any session, with
+no other context, should:
+
+1. Read this file's **status banner** (above) → find the current phase.
+2. Open that phase's `docs/rearchitecture/PHASE-NN-*.md` and read its own **STATUS line** (`NOT STARTED` /
+   `IN PROGRESS @ step N` / `DONE`) — that is where the previous session stopped.
+3. Execute the phase's numbered steps in order. Each step names the exact files to create/rename/move/edit, the target
+   code shape, the verify command + expected result, and its commit boundary.
+4. Keep the **FULL battery green at every commit boundary** (this is the prime directive — see §2). A phase is DONE only
+   when its exit criteria hold and the battery is green.
+5. On phase completion: tick the box in §4 below, update this file's status banner + the phase's STATUS line, add a
+   DEVLOG entry, and move to the next phase whose dependencies are all satisfied.
+
+**Editing discipline:** when a phase reveals the plan was wrong, fix the affected `PHASE-*.md` / `DESIGN-*.md` in the
+same change set and note why here (§7). The plan is living; keep it honest.
+
+## 1. North-star architecture (the end state)
+
+A single commercial-quality COBOL→C# compiler (`cobol.exe`) that translates COBOL into idiomatic, typed-native C#
+compiled by Roslyn, implementing full ISO/IEC 1989:2023 plus correct 85/2002/2014 as "four compilers in one." **FIVE
+assemblies with clean layering:**
+
+1. **`Cobol.Net.Editions`** — a new lowest leaf both Frontend and Compiler reference: an immutable `EditionInfo` (the
+   single `DialectLevel` source), a `constructs.json`-generated `ConstructRegistry` + `ReservedWords`, a first-class
+   `DiagnosticDescriptors` registry (every code = one rule, ISO §, severity, suppress-key), and one
+   `EditionSeverityPolicy` — the root fix for today's frontend/compiler edition-metadata duplication.
+2. **`Cobol.Net.Frontend`** — the sound single-ANTLR-grammar-with-`{isXXXX()}?` core kept, but with ONE generated
+   context-sensitive word set, forward gate-stamping (`EditionGateHints` deleted), no dead grammars / no JSON-XML, and
+   a typed `Cst` façade replacing ~336 `GetText()` walks.
+3. **`Cobol.Net.Compiler`** — a REAL Binder phase: a manifest-driven `IBindPass` pipeline whose `Requires`/`Produces`
+   DAG is asserted at startup, producing an immutable `BoundCompilation` over a pure `Model/` folder where storage
+   representation is one computed `StorageForm` discriminator (killing the 7-site mutable `StoreAsImage`) and name
+   lookup is one scope-aware `SymbolTable`; a source-generated exhaustive visitor over the sealed bound tree makes a
+   missing arm a COMPILE error; CodeGen decomposes into `ProgramEmitter` + per-verb emitters + renderers over an
+   immutable `EmitContext`, with a structural (non-string) `Place` rendered by a Roslyn-side `PlaceRenderer` behind an
+   **`ICodeGenBackend`** seam and a typed `RuntimeApi` façade.
+4. **`Cobol.Net.Runtime`** — the typed-native value library plus one `RunUnit` context owning all run-unit state and
+   one `FileConnector`/`FileRegistry` replacing the three duplicated file machines.
+5. **`Cobol.Net.Cli`**.
+
+The frozen legacy byte engine is deleted (Cut 2), its differential net first baked into committed greenfield goldens;
+a self-standing golden + 403-census + negative-corpus + version-matrix guard replaces `guard.sh`; and the full ISO
+§4.2.16 conformance documentation set is published. Hard invariants upheld throughout: typed-native data only (`byte[]`
+confined to the sanctioned Tier-C REDEFINES / file boundary), spec-first correctness, one canonical mechanism per job,
+no god classes, a **backend-neutral bound tree so a CIL backend is droppable in (§3)**, and a battery that is green at
+every phase boundary.
+
+## 2. Guiding principles (non-negotiable through the migration)
+
+1. **Green at every boundary; migrate by prove-then-delete.** Each phase is independently shippable to `main` and
+   leaves the FULL battery green (2028 conformance + 213 unit + NIST-353 legacy MATCH). For every mutable flag or
+   duplicated computation being retired, compute the new form first, cross-check it against the old across the whole
+   corpus, and only then delete the old — never on faith.
+2. **Typed-native data ONLY.** A COBOL record IS a C# record struct; an elementary item IS a native field. A `byte[]`
+   appears only at the genuine REDEFINES Tier-C codec or a file boundary. Never regress to a byte `ProgramState`.
+3. **Spec-first.** Behavior is defined by ISO/IEC 1989:2023 (`specs/ISO_COBOL.md`), derived and cited by § BEFORE
+   implementing. The legacy oracle + NIST goldens are regression nets with known holes, not authority. Implement each
+   feature COMPLETELY to the spec + its deep-dive; tests verify, never scope.
+4. **One canonical mechanism per job.** `StorageForm` (not scattered `Pic`/`StoreAsImage`/Tier inference), one
+   `RecordLayout` (not 4 offset/width copies), one `CobolLiteral.Decode`, one `PhraseBlocks`, one `SymbolTable`
+   lookup, one `IDiagnosticSink`, one `EditionSeverityPolicy`.
+5. **Make ordering and completeness STRUCTURAL, not conventional.** The bind pipeline is a manifest of named passes
+   with a `Requires`/`Produces` DAG asserted at construction; bound-tree dispatch is a source-generated exhaustive
+   visitor so a forgotten arm is a compile error, not a runtime `LoudStmt`.
+6. **No god classes.** Real collaborator classes over an injected context (`BinderContext`/`EmitContext`), not
+   size-driven `sealed partial class` slicing. Folder = sub-namespace; file = its single public type.
+7. **Ownership and immutability.** Passes mutate only through a write handle; downstream phases consume an immutable
+   `BoundCompilation` / read-only views. Eliminate every cross-layer write-back (**the emitter must never mutate the
+   binder's data model** — the current `MarkStoreAsImage` breach is the headline fix).
+8. **Backend-neutral bound tree (see §3).** No C# string, Roslyn `Syntax*`, mangled identifier, or format literal ever
+   enters a bound node or `Place`. Neutrality is *proven by a second backend*, not merely asserted.
+9. **Four editions in one, harness-validated.** Every construct's (edition × behavior) matrix is proven by fixtures;
+   VCR status is DERIVED from the harness, never hand-ticked; every gate ships a negative witness; a too-new or removed
+   construct fails LOUD with a named construct + edition, never a generic parse error.
+10. **Interleave; keep sequencing risk behind the safety net.** Stand up characterization/oracle-bake FIRST; land the
+    independent early feature track (version-gating) on the new editions framework; then the deep data-model/binder/
+    emitter rearchitecture; then the big feature waves (OO, national, M3, M4) ONLY on the rearchitected foundation.
+11. **Every post-85 feature ships in ONE change set** with its conformance golden, its reject-at-earlier-edition matrix
+    rows, and its negative case; the subsystem deep-dive + `DOC_INDEX` update in the same commit. Recognized-but-not-
+    implemented is a named diagnostic descriptor, never a silent wrong answer.
+
+## 3. First-class mandate: SELECTABLE CODE-GEN BACKENDS (Roslyn ↔ CIL)
+
+The compiler **must** support swapping the Roslyn/C# backend for a direct CIL/IL backend (owner goal
+`project_dual_backend_goal`), selected at will, **without touching the frontend, binder, or bound tree**. This is not
+aspirational — it is a scheduled deliverable and a *cross-cutting architectural driver*, not a late add-on:
+
+- The **bound tree is a backend-neutral IR** — a pure semantic model (resolved symbols, a *structural* `Place` lvalue,
+  categories, scaled-integer numeric facts). It must contain **no** C# strings/identifiers, Roslyn `Syntax*`, `using`
+  decisions, .NET type names, or format literals. Phases 05/06/07 must each enforce this (see
+  `DESIGN-backend-abstraction.md` for the exact contract + the "backend-neutrality" test).
+- Code generation is **one visitor per backend over that IR**, behind `ICodeGenBackend`; `RoslynBackend` and the future
+  `CilBackend` share the model walk, a neutral `RuntimeAbi` runtime-op vocabulary + a shared `NameMangler` (both call
+  the same `Cobol.Net.Runtime`), and the name-mangling rules. **Backend = Mono.Cecil** (chosen for real portable-PDB /
+  sequence-point support — Reflection.Emit lacks it — plus explicit metadata authoring for EXTERNAL/GLOBAL/cross-CALL
+  + OO hierarchies, MIT license, decades-mature; isolated in a leaf `Cobol.Net.Backend.Cil` assembly so the default
+  Roslyn path stays Cecil-free). Reflection.Emit is used ONLY for the throwaway seam-proof.
+- The **seam-proof lands as PHASE-07 Step 13** — a `NullBackend` + a tiny in-box Reflection.Emit `DisplayBackend` +
+  the executable backend-contract test — proving `ICodeGenBackend` is real and the IR carries no C# *by a second
+  consumer* before phases 08–15 can silently re-introduce C# into a node. **Phase 16** delivers the full `CilBackend`,
+  gated by a **backend-equivalence harness** (the golden corpus byte-identical across `--backend roslyn` and
+  `--backend cil`).
+- ⚠ **Neutrality is broader than `Place`.** The backfill review found the leak reaches into `BoundTree.cs` itself
+  (bound *statement* nodes carrying C# path/identifier strings — `BoundSearch.IndexField/DependCount/DynTable`,
+  `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`, `BoundMethod.CsName`)
+  and into the whole **program skeleton** (PC dispatcher, `ICobolProgram` ABI, USE/`__IoCheck`, GLOBAL bridges, entry
+  wrapper, file registration) — none of which the original P07 covered. `DESIGN-backend-abstraction.md` folds these
+  in as required PHASE-05/06/07 additions + a program-skeleton neutralization checklist (see §7).
+
+Full design: `docs/rearchitecture/DESIGN-backend-abstraction.md` + `DESIGN-codegen-backend.md`. Step-by-step:
+`docs/rearchitecture/PHASE-16-cil-backend.md`.
+
+## 4. Phase roadmap (dependency-ordered; tick on completion)
+
+Tracks: **F**=foundation · **R**=rearchitecture · **I**=feature/ISO · **C**=cleanup. Keep the battery green at every
+phase boundary.
+
+| ☐ | Phase | Trk | Risk | Deps | Title | Doc |
+|---|-------|-----|------|------|-------|-----|
+| ☐ | 00 | F | LOW | — | Migration safety net (characterization harness, oracle bake-out, corpus consolidation, ref caching) | [PHASE-00](rearchitecture/PHASE-00-migration-safety-net.md) |
+| ☐ | 01 | F | MED | 00 | Mechanical namespace rename + dead-grammar / JSON-XML removal | [PHASE-01](rearchitecture/PHASE-01-mechanical-rename-deadcode.md) |
+| ☐ | 02 | R | MED | 01 | `Cobol.Net.Editions` leaf assembly + first-class diagnostic registry | [PHASE-02](rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md) |
+| ☐ | 03 | I | HIGH | 02 | Version-gating framework (EditionValidator waves + harness-driven VCR audit) | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) |
+| ☐ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + typed `Cst` façade) | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
+| ☐ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
+| ☐ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
+| ☐ | 07 | R | HIGH | 06 | Exhaustive visitor dispatch + binder/emitter god-class decomposition | [PHASE-07](rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md) |
+| ☐ | 08 | R | MED | 00 | Runtime library reorg (`RunUnit`, `FileConnector`/`FileRegistry`, role-based folders) | [PHASE-08](rearchitecture/PHASE-08-runtime-library-reorg-rununit.md) |
+| ☐ | 09 | I | HIGH | 04,07 | M2 OO rearchitecture (`Oo/` + `OoDriver`) + mandatory 2002 OO completion | [PHASE-09](rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md) |
+| ☐ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) | [PHASE-10](rearchitecture/PHASE-10-m2-residual-catalog.md) |
+| ☐ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero + Tier-C REDEFINES confined-byte codec | [PHASE-11](rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md) |
+| ☐ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas (dynamic length, TYPEDEF edges, >>PROPAGATE, IEEE floats, function pointers) | [PHASE-12](rearchitecture/PHASE-12-m3-2014-deltas.md) |
+| ☐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + Table 1/5 behavior-row burn-down | [PHASE-13](rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md) |
+| ☐ | 14 | I | MED | 03,13 | Matrix closure + in-repo greenfield guard + one-time equivalence proof | [PHASE-14](rearchitecture/PHASE-14-matrix-closure-greenfield-guard-equivalence.md) |
+| ☐ | 15 | C | MED | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip | [PHASE-15](rearchitecture/PHASE-15-g8-legacy-retirement-conformance-doc.md) |
+| ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | [PHASE-16](rearchitecture/PHASE-16-cil-backend.md) |
+
+> **Phase 16 sequencing:** its cheap *seam-proof* milestone lands right after Phase 07 (proving `ICodeGenBackend` is
+> real and the IR carries no C#); the full `CilBackend` build-out proceeds in parallel with the feature track and must
+> be complete before/with Phase 15. See `PHASE-16` for the exact insertion.
+
+## 5. Document index
+
+**Designs** (`docs/rearchitecture/DESIGN-*.md`, 9): module-topology · frontend-grammar · binder-bound-tree ·
+data-model · codegen-backend · **backend-abstraction** (dual-backend) · runtime-library · edition-framework ·
+test-build-ci.
+
+**Phase step-by-steps** (`docs/rearchitecture/PHASE-00..16-*.md`, 17): the execution-grade instructions per §4.
+
+**As-is survey / critique** (`docs/rearchitecture/SURVEY-*.md` + `CRITIQUE-*.md`, 6 saved): the deepest/highest-risk
+units were saved as standalone artifacts — `SURVEY-xcut-data-model-coherence`, `SURVEY-codegen-emitter`,
+`SURVEY-frontend-plumbing`, `SURVEY-runtime-io-control`, `SURVEY-runtime-value`, `CRITIQUE-encapsulation` (each ends
+with a **ROADMAP GAP CHECK** — the basis for §7). The other ~15 survey/critique units (DataBinder, StatementBinder,
+OO, emitter-renderers, edition, grammar, driver, dispatch-trace; latent-bugs, efficiency, understandability,
+duplication, iso-pending) were consumed directly into the design docs above and the roadmap, not saved separately.
+
+## 6. Decisions needed from the owner
+
+These surfaced across the design docs as genuine forks; the plan proceeds on the **recommended** default but each
+deserves a yes/no. (CIL timing is now RESOLVED — active goal, scheduled as Phase 16.)
+
+| # | Decision | Recommended default | Status |
+|---|----------|---------------------|--------|
+| D1 | **Namespace rename timing** — pull `CobolSharp.Compiler.* → CobolNet.*` forward to Phase 01 (mechanical, reduces G8 to a deletion) vs the G8 big-bang the current SSOT specifies. | Pull forward (Phase 01). | open |
+| D2 | **`Cobol.Net.Editions` as a new lowest assembly** both Frontend + Compiler reference, vs keeping the registry in Compiler and injecting metadata into the frontend. | New leaf assembly. | open |
+| D3 | **JSON/XML disposition** — hard-delete the non-ISO grammar (0 spec occurrences) vs quarantine behind an off-by-default `--enable-vendor-json`. | Hard-delete. | open |
+| D4 | **CIL/Cecil backend** — active scheduled goal vs aspirational. | **RESOLVED: active — Phase 16 (Mono.Cecil).** | ✅ resolved (owner) |
+| D5 | **Structural `Place`** (item + `BoundExpr` segments, zero C# text) done in the IR-neutralization wave vs deferred. | **RESOLVED: mandatory & not deferrable** — the backend-neutrality contract (§3) requires it. | ✅ resolved (implied by D4) |
+| D6 | **Bind() output** — a fully read-only `BindModel` (passes mutate only via explicit write handles) vs init-only `DataItem` fields + a thin accessor. | Read-only `BindModel`. | open |
+| D7 | **Exhaustiveness mechanism** — approve a Roslyn source generator (NuGet analyzer; no new build prereq) for compile-time visitor exhaustiveness vs a hand-maintained `Accept` with a throwing default. | Source generator. | open |
+| D8 | **Tier-C confined-`byte[]` codec** (the one sanctioned `byte[]`) — implement during the data-model wave vs keep as a single documented rejection + a later increment. | Implement in Phase 11 (its own increment); single-source the rejection until then. | open |
+| D9 | **`Verbs/` split depth** — keep ~18 per-verb binder classes (cohesion) vs group file-I/O into a coarser `FileIoBinder`. | Keep per-verb. | open |
+| D10 | **SUBSCRIPT lexer-mode elimination** — fully remove the mode + the binder subscript re-parse (a larger grammar/data-model change) vs stays deferred (this plan only dedups the mode's token bodies). | Stays deferred. | open |
+| D11 | **`.g.cs` emission** — keep always-on (aids the loud-ICE culture) vs gate behind `--emit-source` once packaging splits. | Keep always-on. | open |
+| D12 | **national/boolean width** — confirm they stay CHARACTER-width in the unified model (D-N1: one UTF-16 char/position); a future 2-byte layout would be a NEW `StorageForm` case, not a mutation. | Confirm character-width. | open |
+
+## 7. Backfill findings & roadmap refinements
+
+Gaps surfaced by the re-run survey/critique units and the dual-backend track, folded back into the phase docs.
+
+Six survey/critique units + the dual-backend track were re-run after schema failures in the main workflow. Their
+verdict: **the 16-phase plan is sound and its diagnoses match the code almost line-for-line** — the refinements below
+are corrections/extensions, not missing pillars. **Each executing session MUST apply the refinements tagged to its
+phase** (detail + file:line in the cited `SURVEY-*.md` / `CRITIQUE-*.md` ROADMAP GAP CHECK sections).
+
+- **R1 — Backend-neutrality is broader than `Place`** *(→ PHASE-05/06/07, PHASE-16).* The C#-leak reaches into
+  `BoundTree.cs` itself (bound *statement* nodes carry C# path/identifier strings: `BoundSearch.IndexField/DependCount/
+  DynTable`, `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`,
+  `BoundMethod.CsName`) and into the whole **program skeleton** (PC dispatcher, `ICobolProgram` ABI, USE/`__IoCheck`,
+  GLOBAL bridges, entry wrapper, file registration) — none covered by the original P07. Fold in the exact PHASE-05/06/07
+  additions + the program-skeleton neutralization checklist in `DESIGN-backend-abstraction.md`; make `RuntimeApi` a
+  neutral `RuntimeAbi` op-vocabulary, not a Roslyn-only façade. *(SURVEY-codegen-emitter.md, DESIGN-backend-abstraction.md)*
+- **R2 — Frontend diagnostics stay stringly-typed** *(→ PHASE-02, PHASE-04).* PHASE-02's diagnostic registry is scoped
+  to the compiler side; the frontend preprocessor emits the `07xx/08xx/09xx` band as bare string literals with no
+  descriptor (`TurnDirectiveProcessor`/`ReferenceFormatProcessor`/`CopyProcessor`), so the "one diagnostic model" exit
+  criterion could be declared met while a second stringly-typed path survives. Also: `ConditionalCompilationProcessor`
+  (2002+ `>>DEFINE/IF`) is never edition-gated though its sibling is (correctness), and a `SourceLocation.Line`
+  0-vs-1-based off-by-one between parser and preprocessor. *(SURVEY-frontend-plumbing.md)*
+- **R3 — Run-unit statics under-scoped; the audit grep is blind** *(→ PHASE-08).* PHASE-08 limits Intrinsics to
+  "Pow10+clock," leaving `CobolIntrinsics._random`, `CobolSort.Files`, `ExternalSwitches.States`, and
+  `CobolTable.Scratch<T>.Slot` (a `ref`-returning process-global generic static) as un-homed run-unit state — so the
+  "ONE owner of run-unit state" exit criterion is NOT actually met and concurrent/repeat in-process run units collide
+  on RANDOM/SORT/switches. **The hidden-mutable-static CI grep is defeated by its own filter** (omits `Random`/
+  `ConcurrentDictionary`; its `readonly .* =` exclusion skips exactly the `static readonly Dictionary = new()` pattern,
+  and it cannot match a generic `static T`). Fix the grep and home ALL of them on `RunUnit`. *(SURVEY-runtime-io-control.md,
+  SURVEY-runtime-value.md)*
+- **R4 — Data-model: the OO cross-unit `StorageForm` harmonization is the real risk** *(→ PHASE-05).* The `StorageForm`
+  bet is validated (COMP-3 is the same `long` as DISPLAY; ~5 concurrent numeric representations reconciled today only
+  by mutating the public `StoreAsImage` from ~11 sites incl. `MarkStoreAsImage` write-back). But the OO override-
+  harmonize step (`CSharpEmitter.Oo.cs:694`) is a *pairwise cross-unit* reconciliation between two independently-bound
+  formals — the design assumes it collapses to "one declarative per-item rule" and under-specifies it; it is the hardest
+  parity risk. Also: the Tier-C `byte[]` codec (D8) stays unimplemented, so the "unified" model still cannot represent
+  common mixed-usage REDEFINES; and the `Place`-from-`StorageForm` mapping must distinguish *phantom* items (CAPACITY
+  register, RENAMES alias) from real stored ones. *(SURVEY-xcut-data-model-coherence.md)*
+- **R5 — Encapsulation: pillars adequate, 4 refinements** *(→ PHASE-06/07/09).* The plan's `BinderContext` +
+  `SymbolTable` + immutable `BoundCompilation` (deleting `MarkStoreAsImage`) fix all three worst offenders (emitter
+  mutating `DataItem`; the bind pipeline living inside `CSharpEmitter.CallEmitRunUnit`; the public-dictionary
+  blackboard). Refinements: (a) the P6 `OoBindCallbacks` seam temporarily re-introduces an emitter→binder callback —
+  add a P9 grep-gate to remove it; (b) the settable `DataBinder.OoClasses` handshake is a write channel not in the
+  Step-5 sealing list; (c) `WholeGroupReferenced` needs a named `UsageCollectionPass` owner, not the resolver's
+  incidental mid-resolve writes; (d) `ProcedureBindPass`/`StorageFormPass` must be *required* in the manifest (no "or
+  leave a TODO" escape) so the whole-group→storage-form ordering watermark actually holds. *(CRITIQUE-encapsulation.md)*
+- **R6 — Doc-drift + G8 flip under-scopes direct compile-time runtime calls** *(→ PHASE-08, PHASE-15).* `CobolNum`'s
+  class doc wrongly describes a native-`long` engine with an "Int128 escape hatch" that does not exist (computation is
+  Int128-uniform; `long` is storage-only) — correct it and name the `CobolNum.Store` funnel as the unifying invariant.
+  The G8 namespace flip is scoped to emitted `using`s, but the compiler makes **direct** compile-time calls into the
+  runtime (`CobolEdit.Format`/`MaskScale` for constant-VALUE folding) that the `RuntimeApi` façade must also cover.
+  *(SURVEY-runtime-value.md)*
