@@ -27,8 +27,27 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 649, 2026-07-06 22:29 PDT): ⛔🎉 M2-OO-1i COMPLETE & REVIEW-HARDENED — the OBJECT/FACTORY
-> ENVIRONMENT + FILE division (files referenceable from methods).** A find→verify review (wf_7355579f-e66) over the
+> **STATE (DEVLOG 650, 2026-07-06 23:38 PDT): ⛔🎉 PHASE 6 OPENED — floating-point USAGE (FLOAT-SHORT/LONG/EXTENDED
+> + COMP-1/2) LIVE (numeric design D16).** The readiest Phase-6 feature. Recon wf_9de26ab6-3a8; §13.18.60.4 GR13
+> verified verbatim (implementor-defined signed numerics; short⊆long⊆extended nesting → FLOAT-EXTENDED=double, no
+> .NET quad). Native float/double field (never the scaled-integer substrate); a `Real` flag on the NumX carrier → any
+> float-bearing expression evaluates in IEEE binary64; a float→fixed store lands via new `CobolFloat.ToScaled` then
+> the existing store funnel; DISPLAY=`CobolFloat.Display`; compare=native IEEE double. Un-gated `ParseUsage`;
+> picture-less `FloatItem` factory; PICTURE-with-float→**COBOLNET1521** (the 08xx band is exhausted). ALSO fixed a
+> pre-existing COMP-1/2 stub bug (pic=null NRE + a (long) fraction truncation). 6 goldens (float_usage+comp1_comp2
+> LEGACY-SHARED — the frozen oracle agrees byte-for-byte; float_move/neg/rounded/compare GreenfieldOnly). ⚠ DEFERRED
+> (documented, LOUD not silent): the float LITERAL exponent form (1.5E3, §8.3.3.3.3) is not lexed → a loud parse
+> error; the 6b IEEE family (FLOAT-BINARY/DECIMAL) + external-float PICTURE E stay loud. **FULLY COMPLETED (DEVLOG
+> 651, owner-directed):** floating-point LITERALS (`1.5E3`, §8.3.3.3.3 — a `FLOATLIT` lexer token, SHARED-grammar so
+> it passed the FULL legacy guard) + an adversarial review (wf_145d8cc9-0b6, **9 confirmed defects ALL FIXED**: float
+> →numeric-edited CS1503, NEAREST-TOWARD-ZERO truncation, fractional level-88-on-float, `10/3`-into-float-receiver via
+> a new `TargetReal` flag, PROHIBITED-inexact-float SIZE ERROR, transcendental-into-float full-precision, a NaN
+> comment). **Battery: 1977 conformance · 213 unit · FULL LEGACY GUARD (NIST 353 MATCH · 0 regressions · legacy unit
+> 1204 · integration 590) GREEN.** ⛔ RESUME NEXT (Phase 6): **OCCURS DYNAMIC**, then **TYPEDEF**; then the M2-PRE
+> residue / Phase 7 (2023 finalization) sweep.
+>
+> **STATE (DEVLOG 649, 2026-07-06 22:29 PDT — superseded by 650 above): ⛔🎉 M2-OO-1i COMPLETE & REVIEW-HARDENED — the
+> OBJECT/FACTORY ENVIRONMENT + FILE division (files referenceable from methods).** A find→verify review (wf_7355579f-e66) over the
 > 5 inc-commits found 8 confirmed defects, ALL FIXED (DEVLOG 649): the predicted THIRD class-emit gap — REPORT SECTION
 > in an object/factory → the complete Report Writer is now WIRED into the class path (golden `oo_object_report`; NOT
 > gated — an owner correction) — plus an OBJECT SD → CS0103 (golden `oo_method_sort`, SORT-in-object works), a method

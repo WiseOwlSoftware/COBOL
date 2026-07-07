@@ -139,7 +139,7 @@ internal sealed class NumericRenderer(EmissionContext ctx)
         // widens exactly) — BEFORE the StandardDecimal branch, because COBOL float arithmetic is IEEE binary, never
         // decimal. This holds regardless of the ARITHMETIC mode (the SBIDI/SDIDI-of-float conversion is Phase 6b;
         // STANDARD-BINARY is obsolete in 2023 §8.8.1.4 NOTE). +,-,*,/ are native double ops.
-        if (a.Real || b.Real) return new NumX($"({Real(a)} {op} {Real(b)})", 0, Real: true);
+        if (a.Real || b.Real || ctx.TargetReal) return new NumX($"({Real(a)} {op} {Real(b)})", 0, Real: true);
         // STANDARD-DECIMAL arithmetic (§8.8.1.5): every operation evaluates in SDIDI form (decimal128 semantics),
         // rounded per-op to 34 significant digits with the INTERMEDIATE ROUNDING mode (§11.9.11); the receiver's
         // ROUNDED applies only at the final transfer (§14.7 NOTE 1).
@@ -227,9 +227,9 @@ internal sealed class NumericRenderer(EmissionContext ctx)
     /// working scale (hazard H1 — TargetScale is stale in receiver-less contexts).</summary>
     private NumX Power(NumX b, NumX e)
     {
-        // D16: a float base or exponent keeps the result FLOATING (native double) — skip the FromDouble quantize-back
-        // that a pure fixed-point power needs, so a float ** stays in the float pipeline.
-        if (b.Real || e.Real)
+        // D16: a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip the
+        // FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
+        if (b.Real || e.Real || ctx.TargetReal)
             return new NumX($"System.Math.Pow({Real(b)}, {Real(e)})", 0, Real: true);
         int ws = Math.Max(ctx.TargetScale, 9);
         return new NumX($"CobolIntrinsics.FromDouble(System.Math.Pow({Real(b)}, {Real(e)}), {ws})", ws);

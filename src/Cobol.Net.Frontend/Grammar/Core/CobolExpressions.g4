@@ -303,7 +303,8 @@ signedNumericLiteral
 // DOT-as-decimal vs DOT-as-sentence-terminator unambiguously).
 // COMMA-based decimals for DECIMAL-POINT IS COMMA are assembled here in the parser.
 numericLiteralCore
-    : DECIMALLIT                           // 123.45 or .45 (dot decimal from lexer)
+    : FLOATLIT                             // 1.5E3, 2.5E-2 (floating-point literal, ISO §8.3.3.3.3 — D16)
+    | DECIMALLIT                           // 123.45 or .45 (dot decimal from lexer)
     | INTEGERLIT COMMA INTEGERLIT          // 123,45 (comma decimal — DECIMAL-POINT IS COMMA)
     | COMMA INTEGERLIT                     // ,45 (leading comma decimal)
     | INTEGERLIT                           // 123 (integer)

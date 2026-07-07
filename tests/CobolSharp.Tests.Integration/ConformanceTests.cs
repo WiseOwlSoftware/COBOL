@@ -78,6 +78,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "float_neg"),          // negative/fractional literal → float, raw-float DISPLAY (DEVLOG 650)
         ("2002", "float_rounded"),      // float→PIC 9(2) truncate vs ROUNDED (DEVLOG 650)
         ("2002", "float_compare"),      // float vs fixed/int comparison (DEVLOG 650)
+        ("2002", "float_literal"),      // floating-point exponent-form literals 1.5E3 (§8.3.3.3.3, DEVLOG 651)
+        ("2002", "float_edited"),       // float source → numeric-edited receiver (DEVLOG 651)
+        ("2002", "float_intrinsic"),    // SQRT/÷ into a float receiver, full binary64 precision (DEVLOG 651)
+        ("2002", "float_88"),           // fractional level-88 VALUE on a float item (DEVLOG 651)
         ("2002", "oo_override_final"),  // METHOD-ID OVERRIDE/IS FINAL attributes (§11.7) — net-new (DEVLOG 605)
         // These three gained the SR4a-required OVERRIDE attribute (the strict §11.7 wave) — the frozen legacy
         // grammar cannot parse it; the greenfield CorpusRunnerTests byte-compares them:

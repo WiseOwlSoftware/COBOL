@@ -184,7 +184,12 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             "Random" => $"CobolIntrinsics.Random({IntArg(ic, 0)})",
             _ => $"CobolIntrinsics.{sig.RuntimeMethod}({string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => Dbl(ic, i)))})",
         };
-        return new NumX($"CobolIntrinsics.FromDouble({call}, {ws})", ws);
+        // A float RECEIVER keeps the transcendental result in the binary64 pipeline (full precision — SQRT(2) into a
+        // COMP-2 is 1.4142135623730951, not the scale-9 1.414213562); a fixed receiver quantizes through FromDouble
+        // at the working scale (the established behavior the intrinsic goldens encode). (D16 review finding.)
+        return ctx.TargetReal
+            ? new NumX(call, 0, Real: true)
+            : new NumX($"CobolIntrinsics.FromDouble({call}, {ws})", ws);
     }
 
     // ── Argument rendering (instance — full NumericRenderer fidelity for the numeric channel) ───────────────

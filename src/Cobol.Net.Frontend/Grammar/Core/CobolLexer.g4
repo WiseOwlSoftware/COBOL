@@ -590,6 +590,12 @@ QUOTE_      : 'QUOTE' | 'QUOTES' ;
 // DOT-as-decimal vs DOT-as-sentence-terminator). COMMA-based decimals for
 // DECIMAL-POINT IS COMMA are handled in the parser via numericLiteralCore.
 
+// Floating-point numeric literal (ISO §8.3.3.3.3): a significand (which SHALL include a decimal point, 1-36 digits)
+// joined to an exponent (1-4 digits, optionally signed) by 'E', no intervening spaces — e.g. 1.5E3, 2.5E-2, .5E10.
+// MUST precede DECIMALLIT so maximal munch keeps "1.5E3" ONE token, not DECIMALLIT "1.5" + IDENTIFIER "E3" (the
+// old parse error). Additive: the no-space <decimal>E<digits> form was previously always a parse error. (D16.)
+FLOATLIT    : ( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+ ;
+
 DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 
 // ── IDENTIFIER (must come BEFORE INTEGERLIT) ──

@@ -730,7 +730,14 @@ public sealed partial class CSharpEmitter
             // (ISO §14.9.25.4 GR5 — alignment + editing); an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = _num.AsNum(source);
-                return $"CobolEdit.Format({e.Expr}, {e.Scale}, {CsLiteral(pic.EditMask!)}{BwzFlag(target)}{EditCfg()})";
+                // A float (Real) source lands into the edited receiver via CobolFloat.ToScaled at the MASK's fraction
+                // scale (MOVE truncates toward zero, §14.6.8.2) — CobolEdit.Format takes a scaled Int128, not a double
+                // (D16 review: the numeric-edited path was missed by the Real integration → CS1503). NB the mask scale
+                // is CobolEdit.MaskScale, NOT pic.Scale (a numeric-edited item's Scale is 0 — the point is in the mask).
+                int ems = CobolEdit.MaskScale(pic.EditMask!, _ctx.Data.CurrencyPicSymbol, _ctx.Data.DecimalPointIsComma);
+                string editVal = e.Real ? $"CobolFloat.ToScaled({e.Expr}, {ems}, CobolRounding.Truncation)" : e.Expr;
+                int editScale = e.Real ? ems : e.Scale;
+                return $"CobolEdit.Format({editVal}, {editScale}, {CsLiteral(pic.EditMask!)}{BwzFlag(target)}{EditCfg()})";
             // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
             // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
@@ -836,6 +843,7 @@ public sealed partial class CSharpEmitter
             // render at the widest receiver scale (the intermediate must not lose receiver-visible digits).
             _ctx.TargetScale = targets.Max(t => ScaleOf(t.Place));
             _ctx.TargetRounding = CobolRounding.Truncation;
+            _ctx.TargetReal = targets.All(t => t.Place.Item.Pic is { IsFloat: true });   // Real only when EVERY target is float (D16)
             NumX divisorX = _num.Render(divisor);
             NumX? dividendX = dividend is not null ? _num.Render(dividend) : null;
             if (targets.Count > 1)
@@ -919,6 +927,7 @@ public sealed partial class CSharpEmitter
                 // receiver may alias.
                 _ctx.TargetScale = c.Targets.Max(t => ScaleOf(t.Place));
                 _ctx.TargetRounding = CobolRounding.Truncation;
+                _ctx.TargetReal = c.Targets.All(t => t.Place.Item.Pic is { IsFloat: true });   // Real only when EVERY target is float (D16)
                 NumX v = Snapshot(_num.Render(c.Rhs));
                 foreach (var r in c.Targets)
                 {
@@ -935,7 +944,7 @@ public sealed partial class CSharpEmitter
         });
 
     /// <summary>Set the working scale + rounding mode for the receiver about to be rendered/stored.</summary>
-    private void SetTarget(Receiver r) { _ctx.TargetScale = ScaleOf(r.Place); _ctx.TargetRounding = r.Rounding; }
+    private void SetTarget(Receiver r) { _ctx.TargetScale = ScaleOf(r.Place); _ctx.TargetRounding = r.Rounding; _ctx.TargetReal = r.Place.Item.Pic is { IsFloat: true }; }
 
     /// <summary>The optional <c>blankWhenZero</c> argument text for a numeric-edited store when the receiver
     /// carries BLANK WHEN ZERO (ISO §13.18.8 — zero stores all spaces, MOVE and arithmetic alike).</summary>
@@ -1035,7 +1044,11 @@ public sealed partial class CSharpEmitter
             // plain Rescale (silent truncation) — the DEVLOG-610-audited PROHIBITED leak. Use RescaleChecked in
             // the checked branch so all three receiver categories agree; the unchecked branch stays silent
             // (matching the numeric Store path's no-phrase behavior).
-            string Aligned(bool checkedPath) => value.Dec ? $"({value.Expr}).ToUnscaled({ms}, CobolRounding.{mode})"
+            string Aligned(bool checkedPath) =>
+                // A float (Real) result lands at the mask scale via CobolFloat.ToScaled with the receiver's ROUNDED
+                // mode (D16 review: the edited-receiver arithmetic path was missed by the Real integration → CS1503).
+                value.Real ? $"CobolFloat.ToScaled({value.Expr}, {ms}, CobolRounding.{mode})"
+                : value.Dec ? $"({value.Expr}).ToUnscaled({ms}, CobolRounding.{mode})"
                 : value.Scale == ms ? value.Expr
                 : $"CobolNum.{(checkedPath ? "RescaleChecked" : "Rescale")}({value.Expr}, {value.Scale}, {ms}, CobolRounding.{mode})";
             // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule
@@ -1087,7 +1100,16 @@ public sealed partial class CSharpEmitter
             // Under EC-SIZE checking the receiver-capacity failure latches EC-SIZE-TRUNCATION (Table 13 —
             // "significant digits truncated in store"; the §14.7.5 size error on the final transfer).
             string onFail = _sizeErrEcVar is { } ecn2 ? $"{{ {flag} = true; {ecn2} = \"EC-SIZE-TRUNCATION\"; }}" : $"{flag} = true;";
-            w.Line($"if (!CobolNum.TryStore({args}, CobolRounding.{mode}, out var {tmp})) {onFail}");
+            // A float (Real) source under ROUNDED MODE PROHIBITED: an inexact transfer is a size error and leaves the
+            // receiver UNCHANGED (§14.7.5 r7). ToScaled already truncated the fraction, so the store's own PROHIBITED
+            // check cannot see it — gate on InexactAtScale first (D16 review finding).
+            if (value.Real && mode == CobolRounding.Prohibited)
+            {
+                w.Line($"if (CobolFloat.InexactAtScale({value.Expr}, {recvScale})) {onFail}");
+                w.Line($"else if (!CobolNum.TryStore({args}, CobolRounding.{mode}, out var {tmp})) {onFail}");
+            }
+            else
+                w.Line($"if (!CobolNum.TryStore({args}, CobolRounding.{mode}, out var {tmp})) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
             w.Line($"else {target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({tmp}, {profile})" : Narrow(tmp, target.Item))}");
             return;

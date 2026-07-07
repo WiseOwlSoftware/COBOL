@@ -13,8 +13,14 @@ namespace CobolNet.CodeGen.Emit;
 internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx)
 {
     /// <summary>Render a bound condition as a C# boolean expression.</summary>
-    public string Render(BoundCondition c) => c switch
+    public string Render(BoundCondition c)
     {
+        // A condition is a receiver-less numeric context: clear the float-receiver flag so a stale one from a prior
+        // arithmetic store cannot promote a fixed-operand comparison to IEEE double (the H1 staleness discipline, D16
+        // review). Idempotent under the recursive Render calls below.
+        ctx.TargetReal = false;
+        return c switch
+        {
         BoundRelational r => RenderRelational(r),
         // An EMPTY logical is the tautology (EVALUATE's ANY object composes as an AND over zero terms).
         BoundLogical { Operands.Count: 0 } => "true",
@@ -35,7 +41,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
             : $"CobolClass.IsInClass({OperandText.AsString(uc.Operand)}, {EmitText.CsLiteral(uc.Members)})",
         BoundConditionError e => EmitText.LoudValue("bool", e.Feature),
         _ => EmitText.LoudValue("bool", $"bound condition '{c.GetType().Name}'"),
-    };
+        };
+    }
 
     private string RenderRelational(BoundRelational r)
     {
@@ -259,11 +266,29 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
             if (high is null) return $"CobolString.Compare({read}, {lo}{pad}{collate}) == 0";
             return $"(CobolString.Compare({read}, {lo}{pad}{collate}) >= 0 && CobolString.Compare({read}, {EmitText.CsLiteral(StringMembershipValue(high, width))}{pad}{collate}) <= 0)";
         }
+        // A float (COMP-1/2/FLOAT-*) conditional variable: `read` is the native double `(double)(X)`, so the VALUE
+        // literal must render as a native double too — NOT scaled-integer at the float item's Scale 0, which would
+        // DROP the fraction (88 IS-HALF VALUE 0.5 became `== 0L`, the exact-inverse membership bug). (D16 review.)
+        if (parent.Pic is { IsFloat: true })
+        {
+            string loF = FloatMembershipValue(low);
+            if (high is null) return $"{read} == {loF}";
+            return $"({read} >= {loF} && {read} <= {FloatMembershipValue(high)})";
+        }
         int scale = parent.Pic?.Scale ?? 0;
         string loN = NumericMembershipValue(low, scale);
         if (high is null) return $"{read} == {loN}";
         return $"({read} >= {loN} && {read} <= {NumericMembershipValue(high, scale)})";
     }
+
+    /// <summary>A numeric level-88 VALUE operand on a FLOAT conditional variable → a native C# <c>double</c> literal
+    /// (D16). A figurative ZERO → <c>0.0</c>; a floating-point literal (1.5E3) is already valid C# double syntax;
+    /// otherwise the fixed-point literal takes the <c>d</c> suffix. Keeps both sides of the membership test IEEE
+    /// doubles (§8.8.4.2.4 algebraic compare), matching the direct relation-condition path.</summary>
+    private static string FloatMembershipValue(string raw) =>
+        raw.ToUpperInvariant() is "ZERO" or "ZEROS" or "ZEROES" ? "0.0"
+        : raw.IndexOf('E') >= 0 || raw.IndexOf('e') >= 0 ? raw.Trim().TrimStart('+')
+        : $"{raw.Trim().TrimStart('+')}d";
 
     /// <summary>A string level-88 VALUE operand's character value: a figurative <c>ALL "literal"</c> repeated to the
     /// conditional variable's <paramref name="width"/> (ISO §8.3.3.6.4 GR2), a bare figurative WORD (QUOTE / SPACE /

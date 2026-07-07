@@ -59,6 +59,13 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
     /// <summary>The current division working scale (the receiving item's scale).</summary>
     public int TargetScale { get; set; }
 
+    /// <summary>True when the current arithmetic receiver is a floating-point item (COMP-1/2/FLOAT-*, D16): the whole
+    /// RHS then evaluates in IEEE binary64 even when every OPERAND is fixed-point (so <c>COMPUTE f = 10 / 3</c> holds
+    /// 3.333…, not the fixed pipeline's scale-0 truncation to 3). Set alongside <see cref="TargetScale"/> before an
+    /// arithmetic RHS is rendered, and RESET to false at the condition-render entry (a receiver-less numeric render
+    /// must never inherit a stale float-receiver flag — the H1 staleness discipline).</summary>
+    public bool TargetReal { get; set; }
+
     /// <summary>The current receiver's ROUNDED mode (ISO §14.7.4). A division computed at the receiver scale
     /// (<see cref="TargetScale"/>) rounds with this mode in one exact step (<c>RoundDiv</c> uses the true integer
     /// remainder); a division forced to a higher intermediate scale truncates and the receiver store rounds. Set
@@ -167,6 +174,11 @@ internal static class EmitText
     public static NumX UnscaledLit(string text)
     {
         string t = text.Trim().TrimStart('+');
+        // A floating-point literal (ISO §8.3.3.3.3 — significand E exponent) is a floating-point operand: it
+        // evaluates in IEEE binary64 (D16). The COBOL form (1.5E3, -2.5E-2) is itself a valid C# double literal,
+        // so emit it directly as a Real NumX (never the scaled-integer parse below).
+        if (t.IndexOf('E') >= 0 || t.IndexOf('e') >= 0)
+            return new NumX(t, 0, Real: true);
         int dot = t.IndexOf('.');
         if (dot < 0) return new NumX(IntLiteral(t), 0);
         int scale = t.Length - dot - 1;

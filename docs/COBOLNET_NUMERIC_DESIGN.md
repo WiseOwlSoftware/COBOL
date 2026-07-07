@@ -167,11 +167,24 @@ implementor-defined; replaces the `.ToString()` placeholder; goldens use exact b
 stability). Compare = a NATIVE `double` comparison when either operand is `Real` (§8.8.4.2.4 algebraic-value; IEEE
 NaN-unordered / ±0-equal fall out of C# — spec-conformant, no epsilon). ONE new runtime file `CobolFloat.cs`.
 
-**Deferred sub-leg (documented; loud, not silent).** The floating-point LITERAL exponent form (`1.5E3`, §8.3.3.3.3)
-is a DISTINCT feature from the float USAGE and is NOT lexed yet — a `MOVE 1.5E3 TO f` is a loud parse error (COBOL0001
-"no viable alternative"), never a silent misparse. A float item holds a fixed-point literal directly (`MOVE 0.025`,
-`MOVE -1500`), which is the whole USAGE facility; exponent-form float literals land with a later frontend pass. (The
-recon's `float_neg_exp` golden was retargeted to `float_neg` using fixed-point literals.)
+**Floating-point LITERALS (§8.3.3.3.3) — DONE (DEVLOG 651, owner-directed full support).** A new `FLOATLIT` lexer
+token — `( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+` (significand SHALL include a decimal point, §8.3.3.3.3
+r2; 'E' not `[eE]` — the lexer is case-insensitive) placed BEFORE `DECIMALLIT` so maximal munch keeps `1.5E3` one
+token — plus a `FLOATLIT` alt in `numericLiteralCore`. `EmitText.UnscaledLit` detects the E and returns a `Real`
+NumX with the literal verbatim (a COBOL float literal is already valid C# `double` syntax). A float literal is a
+floating-point operand (§8.8.1) → any expression containing it evaluates in IEEE binary64. **The lexer/parser
+grammar is SHARED with the frozen legacy oracle, so this change ran the FULL legacy guard.**
+
+**Review-hardened (DEVLOG 651, wf_145d8cc9-0b6 — 9 confirmed).** The Phase-6a Real integration missed several paths,
+all fixed: a float source/result into a NUMERIC-EDITED receiver (MOVE + COMPUTE) landed a raw `double` into
+`CobolEdit.Format`/`Rescale` (Int128) → CS1503 — now lands via `ToScaled` at the MASK scale (`CobolEdit.MaskScale`,
+NOT `pic.Scale` which is 0 for an edited item); NEAREST-TOWARD-ZERO used `MidpointRounding.ToZero` (DIRECTED — truncates
+all values) → now an explicit nearest-tie-toward-zero; a fractional level-88 VALUE on a float truncated to scale 0
+(exact-inverse membership) → now a native-double membership branch; a fixed-only expression into a float receiver
+evaluated at receiver-scale 0 (`10/3`→3) → a `TargetReal` flag makes the whole RHS Real when every target is float
+(reset at the condition-render entry, the H1 staleness discipline); PROHIBITED on an inexact float silently truncated
+→ a `CobolFloat.InexactAtScale` gate raises SIZE ERROR + leaves the receiver unchanged (§14.7.5 r7); a transcendental
+intrinsic into a float receiver quantized to 9 digits → `RenderFloat` returns Real when `TargetReal` (full binary64).
 
 **Edition gate.** The trio introduced 2002 → the `ConstructRegistry` introduction gate stands (COBOLNET0900 below
 2002, silent ≥2002; default `--std` 2023). COMP-1/2 accepted at ALL editions (universal vendor synonyms of the
