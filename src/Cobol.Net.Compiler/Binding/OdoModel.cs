@@ -275,6 +275,16 @@ public sealed partial class DataBinder
             return d;
         }
 
+        // The first item named `name` within `root`'s subtree (the same record) — used to prefer a same-record
+        // counter over a globally-first same-named item (review DEVLOG 664 fix #4).
+        static DataItem? FindInSubtree(DataItem root, string name)
+        {
+            if (string.Equals(root.CobolName, name, StringComparison.OrdinalIgnoreCase)) return root;
+            foreach (var c in root.Children)
+                if (FindInSubtree(c, name) is { } hit) return hit;
+            return null;
+        }
+
         foreach (var item in AllItems())
         {
             if (item.OccursSpec is not { DependingName: { } depName } spec) continue;
@@ -285,17 +295,24 @@ public sealed partial class DataBinder
                 Edition.Error("COBOLNET0850", $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
                     + "be greater than or equal to zero and less than integer-2 (ISO §13.18.38 SR16)");
 
-            // data-name-1 resolution (first declaration wins; OF/IN-qualified data-name-1 is a later refinement).
-            // Scope-aware (M2-OO-1h): a method table's data-name-1 resolves in the owning method's scope first
-            // (§11.7.4 GR5), then a visible object/program item — never a same-named item in the wrong scope.
-            var cands = LookupDataInScopeOf(RootOf(item), depName);
-            if (cands is null || cands.Count == 0)
+            // data-name-1 resolution. PREFER a counter in the item's OWN record (same subtree) — critical for a
+            // TYPEDEF clone, whose internal DEPENDING must bind to the clone's OWN sibling, not a globally-first
+            // same-named item in a different record (review DEVLOG 664 fix #4; §13.18.57.4 GR1 — the type is coded in
+            // place — + §13.18.38 SR20, data-name-1 lies within the same record). Otherwise fall back to the
+            // scope-aware lookup (M2-OO-1h): a method table's data-name-1 resolves in the owning method's scope first
+            // (§11.7.4 GR5), then a visible object/program item.
+            DataItem? dep = FindInSubtree(RootOf(item), depName);
+            if (dep is null)
             {
-                Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
-                    + "is not defined (ISO §13.18.38 Format 2)");
-                continue;
+                var cands = LookupDataInScopeOf(RootOf(item), depName);
+                if (cands is null || cands.Count == 0)
+                {
+                    Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
+                        + "is not defined (ISO §13.18.38 Format 2)");
+                    continue;
+                }
+                dep = cands[0];
             }
-            DataItem dep = cands[0];
             spec.Depending = dep;
 
             // SR17: data-name-1 shall describe an integer (an index item is NOT an integer data item).

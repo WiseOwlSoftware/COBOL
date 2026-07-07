@@ -94,14 +94,29 @@ public sealed class DataItem
     /// any part of a strong item is prohibited).</summary>
     public bool IsStronglyTyped => StrongRoot is not null;
 
-    /// <summary>Two operands are of the SAME strong type (ISO §8.5.3 / §8.5.3.3) when their strong roots reference
+    /// <summary>The NEAREST enclosing item (this item or an ancestor) that directly carries a TYPE clause — the item
+    /// whose <see cref="TypeName"/> it acquired. This is the item's "type" for the §8.5.3 same-type test: a nested
+    /// <c>TYPE INNER-T</c> subgroup is anchored by INNER-T (itself), NOT by the outermost strong record. Null when the
+    /// item is not part of any typed subtree.</summary>
+    public DataItem? TypeAnchor
+    {
+        get
+        {
+            for (DataItem? cur = this; cur is not null; cur = cur.Parent)
+                if (cur.TypeName is not null) return cur;
+            return null;
+        }
+    }
+
+    /// <summary>Two operands are of the SAME type (ISO §8.5.3 / §8.5.3.3) when their NEAREST TYPE anchors reference
     /// equivalent type declarations — within one source element, identically-named ones (cross-program EXTERNAL
     /// equivalence is a follow-up) — and each operand occupies the identical relative position within that type
-    /// (the §8.5.3 "same subordinate item in equivalent type declarations" rule; both are clones of one template,
-    /// so corresponding items share a member-name path from the strong root down).</summary>
+    /// (the §8.5.3 "same subordinate item in equivalent type declarations" rule; both are clones of one template, so
+    /// corresponding items share a member-name path from the anchor down). Uses <see cref="TypeAnchor"/>, not
+    /// <see cref="StrongRoot"/>, so a nested strong subgroup is matched by ITS OWN type, not the enclosing record's.</summary>
     public static bool SameStrongType(DataItem a, DataItem b)
     {
-        if (a.StrongRoot is not { } ra || b.StrongRoot is not { } rb) return false;
+        if (a.TypeAnchor is not { } ra || b.TypeAnchor is not { } rb) return false;
         if (!string.Equals(ra.TypeName, rb.TypeName, StringComparison.OrdinalIgnoreCase)) return false;
         return RelativeMemberPath(a, ra).SequenceEqual(RelativeMemberPath(b, rb), StringComparer.Ordinal);
     }

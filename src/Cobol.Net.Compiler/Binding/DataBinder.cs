@@ -275,7 +275,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // A TYPEDEF template's condition-names are NOT globally referenceable (§13.18.58.4 GR1) — bind them
                 // onto the item (so CloneItem can carry them into each TYPE reference) but keep them off the global
                 // by-name index; a non-template 88 registers globally as usual (D17 inc 3).
-                if (stack.Count > 0) BindCondition(entry, stack.Peek(), registerGlobal: !rootIsTemplate);
+                if (stack.Count > 0)
+                {
+                    // §13.18.57.3 SR2 (review DEVLOG 664 fix #2): a TYPE-clause entry shall not be followed
+                    // immediately by a level-88 entry.
+                    if (stack.Peek().TypeRefName is not null)
+                        Edition.Error("COBOLNET1537", $"condition-name '{entry.dataName()?.GetText() ?? "?"}': a data "
+                            + "description entry that specifies a TYPE clause shall not be followed immediately by a "
+                            + "level-88 entry (ISO §13.18.57.3 SR2)");
+                    BindCondition(entry, stack.Peek(), registerGlobal: !rootIsTemplate);
+                }
                 continue;
             }
             // A level-66 RENAMES entry is a re-grouping alias on the owning record — not a node in the storage tree.
@@ -328,6 +337,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     Edition.Error("COBOLNET1529", $"TYPEDEF on '{item.CobolName ?? "FILLER"}': the TYPEDEF clause "
                         + "shall be specified only in a level-01 record-description entry (ISO §13.18.58)");
                 var parent = stack.Peek();
+                // §13.18.57.3 SR2 (review DEVLOG 664 fix #2): a TYPE-clause entry shall not be followed immediately by
+                // a subordinate entry — the entry IS the whole type (§13.18.57.4 GR1). Without this the explicit
+                // subordinate merges ahead of the cloned members (a silent-wrong record image for a group type; a
+                // member-on-a-string CS1061 leak for an elementary type).
+                if (parent.TypeRefName is not null)
+                    Edition.Error("COBOLNET1537", $"'{item.CobolName ?? "FILLER"}': a data description entry that "
+                        + "specifies a TYPE clause shall not be followed immediately by a subordinate entry "
+                        + "(ISO §13.18.57.3 SR2)");
                 // A member name need only be unique within its containing struct (the parent's children).
                 item.CsName = Unique(item.CsName, parent.Children.Select(c => c.CsName));
                 item.Parent = parent;
@@ -758,21 +775,34 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "or indirectly reference itself (ISO §13.18.58.3 SR2)");
             return;
         }
-        if (template.IsGroup)
-            foreach (var child in template.Children)
-                item.Children.Add(CloneItem(child, item, expanding));
-        else
-            item.Pic ??= template.Pic;   // elementary type → item becomes this leaf (its own VALUE/OCCURS kept, GR3/SR14)
-        foreach (var c88 in template.Own88s) CloneConditionOnto(item, c88);   // the type's ROOT-level 88s (GR1; D17 inc 3)
+        // Record the TYPE identity BEFORE cloning children (review DEVLOG 664 fix #5): a nested TYPE reference is
+        // expanded inside CloneItem, and its SR6 strong-placement check walks THIS item's ancestor chain — so the
+        // enclosing strong item's StrongType must already be set, else legal strong-in-strong nesting is falsely
+        // rejected. TypeName also anchors the §8.5.3 same-type test (see DataItem.TypeAnchor).
         item.TypeName = typeName;
         item.StrongType = template.TypedefStrong;
+
+        // §13.18.57.3 SR7 (review fix #1): a level-77 subject requires an ELEMENTARY type — a level-77 item is an
+        // independent elementary item (§13.18.38). Version- AND strength-invariant (this applies to WEAK types too;
+        // the old SR6 branch caught only the STRONG case).
+        if (item.Level == 77 && template.IsGroup)
+            Edition.Error("COBOLNET1536", $"'{subject}': a level-77 item referencing TYPE '{typeName}' requires an "
+                + "elementary type — a level-77 item is an independent elementary item (ISO §13.18.57.3 SR7)");
+
+        // §13.18.57.3 SR5 (review fix #3): no group SUPERORDINATE to a TYPE subject may carry a USAGE or SIGN clause —
+        // it would silently override the type declaration's fixed representation.
+        for (var p = item.Parent; p is not null; p = p.Parent)
+            if (p.OwnUsage is not null || p.OwnSign is not null)
+            {
+                Edition.Error("COBOLNET1538", $"'{subject}': a group to which a TYPE reference is subordinate shall "
+                    + "not carry a USAGE or SIGN clause (ISO §13.18.57.3 SR5)");
+                break;
+            }
+
+        // §13.18.57.3 SR6: a STRONG type may be referenced only at level 1 or by an item subordinate to another
+        // strongly-typed group — strong typing always covers a WHOLE record, never a lone field in an ordinary group.
         if (template.TypedefStrong)
         {
-            // §13.18.57.3 SR6: a STRONG type may be referenced only at level 1 or by an item subordinate to another
-            // strongly-typed group — strong typing always covers a WHOLE record, never a lone field in an ordinary
-            // group. (A nested TYPE ref inside a strong template already has a strong ancestor set here — ExpandType
-            // ran on the outer subject before CloneItem recursed into this reference. SR7's "level 77 → elementary
-            // type" is also caught: a 77 referencing a STRONG group is neither level 1 nor under a strong parent.)
             bool underStrong = false;
             for (var p = item.Parent; p is not null; p = p.Parent)
                 if (p.StrongType) { underStrong = true; break; }
@@ -781,6 +811,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "item shall be specified only at level 1 or subordinate to a strongly-typed group "
                     + "(ISO §13.18.57.3 SR6)");
         }
+
+        // Clone the template's structure in (children / PICTURE / the type's root-level 88s) AFTER the flags above.
+        if (template.IsGroup)
+            foreach (var child in template.Children)
+                item.Children.Add(CloneItem(child, item, expanding));
+        else
+            item.Pic ??= template.Pic;   // elementary type → item becomes this leaf (its own VALUE/OCCURS kept, GR3/SR14)
+        foreach (var c88 in template.Own88s) CloneConditionOnto(item, c88);   // the type's ROOT-level 88s (GR1; D17 inc 3)
         expanding.Remove(typeName);
     }
 

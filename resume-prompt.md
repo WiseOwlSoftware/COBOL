@@ -27,7 +27,36 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 657–659, 2026-07-07 11:23 PDT): ⛔ TYPEDEF / the TYPE clause (data-model D17, §13.18.58 /
+> **STATE (DEVLOG 661–664, 2026-07-07 14:38 PDT): ⛔🎉 TYPEDEF / the TYPE clause (data-model D17, §13.18.58 /
+> §13.18.57, COBOL-2002) is FEATURE-COMPLETE (all 4 increments) AND REVIEW-HARDENED — the adversarial find→verify
+> review (wf_7d3b1492-01a, 13 agents) raised 8 candidates → 7 CONFIRMED, all FIXED (DEVLOG 664).** Increments 2–4 were
+> all BINDER-ONLY (no grammar, no legacy guard). **inc 2 —
+> STRONG typing (661):** `DataItem.StrongRoot`/`IsStrongGroup`/`SameStrongType` (equal strong-root `TypeName` +
+> relative `CsName` path, §8.5.3); USE gates → **1533** (`CheckStrongMove` §14.9.25.3 SR2 · the same-type check in the
+> ONE `CheckedRelational` chokepoint §8.8.4.2.3 SR1 · `CheckClassConditionOperand` §8.8.4.4.3 SR1); DECL gates →
+> **1532** (SR6 in `ExpandType`; SR3/SR4 in `CheckStrongTypeDeclarations`). Golden `typedef_strong_ok` +
+> `TypedefStrongTests` ×8. **inc 3 — level-88s in a TYPEDEF (662):** `DataItem.Own88s`; a template's 88s kept OFF the
+> global by-name index (GR1), cloned per reference via `CloneConditionOnto`. Golden `typedef_88` +
+> `TypedefConditionTests` ×2. **inc 4 — staged-loud residue (663):** 1534 EXTERNAL type · 1535 RENAMES-in-TYPEDEF +
+> strong bool/object ordering compare (§8.8.4.2.3 SR4) · 1531 INDEXED-type ≥2× (a SINGLE ref WORKS — golden
+> `typedef_indexed`). `TypedefResidueTests` ×5. Matrix: STRONG rides the SAME `typedefClause` gate (no new row);
+> `ISO2023_CONFORMANCE_PLAN` M3-2 synced (TYPEDEF ◑ DONE; SAME AS / TYPE TO deferred). **Review fixes (664):** 2 HIGH
+> — the SR6 strong-in-strong false-positive (hoist `StrongType` before the clone loop in `ExpandType`) + a cloned
+> OCCURS DEPENDING binding data-name-1 globally (`OdoResolve` now subtree-first); 4 MED — `SameStrongType` now uses the
+> NEAREST `DataItem.TypeAnchor` not the outermost root (nested-strong same-type), + 3 newly-enforced §13.18.57.3 SRs:
+> **1536** SR7 (level-77→group), **1537** SR2 (subordinate/88 after a TYPE entry), **1538** SR5 (USAGE/SIGN
+> superordinate). 1 candidate REFUTED (a CAPACITY-register edge, mis-attributed — reproduces without TYPEDEF). 15xx
+> TYPEDEF band now 1529–1538; goldens `typedef_nested_strong`/`typedef_odo` + `TypedefReviewFixTests` ×5. **Battery:
+> 2028 conformance · 213 unit GREEN; greenfield-only (every typedef golden is GreenfieldOnly).**
+> ⛔🎯 **RESUME AT: pick the next ISO-scoped item.** ⚠ **JSON/XML (plan M3-3) is NON-ISO** — `specs/ISO_COBOL.md` has ZERO `JSON`/`XML`
+> occurrences (they are IBM-vendor extensions, deferred post-ISO per the roadmap-council scrub) — so it is NOT part of
+> "100% ISO." The next ISO-scoped items: **M3-4** (function/method pointers, conditional-expression enhancements,
+> IEEE-754 alignment, increased limits); **M4-2b/M4-3** (the remaining 2023 intrinsics + the per-edition
+> VERSION-GATING audit — the "N per-edition compilers" mission, `docs/VERSION_CHANGE_REFERENCE.md`); the flagged
+> **M2-OO method-scope typedefs** (the D17 follow-up) + the M2-OO-1i residue; and **SAME AS** (a distinct deferred
+> feature — `CloneItem` is built generically for its reuse). Reconfirm each against the spec before starting.
+>
+> **(superseded) STATE (DEVLOG 657–659, 2026-07-07 11:23 PDT): ⛔ TYPEDEF / the TYPE clause (data-model D17, §13.18.58 /
 > §13.18.57, COBOL-2002) — increment 1 (the weak-TYPE spine) LANDED; OCCURS DYNAMIC review-hardened.**
 > ⛔🎯 **RESUME AT: TYPEDEF increment 2 (STRONG typing) — all remaining incs (2–4) are BINDER-ONLY (no grammar, no
 > legacy guard; greenfield battery suffices).** Implement directly from the D17 section of `docs/COBOLNET_DATA_MODEL_DESIGN.md`

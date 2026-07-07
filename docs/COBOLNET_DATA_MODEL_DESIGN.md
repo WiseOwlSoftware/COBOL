@@ -410,6 +410,18 @@ ordering compare (§8.8.4.2.3 SR4, in `CheckedRelational`), **1531** an INDEXED-
 behavior variance), so no new matrix row is warranted; `ISO2023_CONFORMANCE_PLAN` M3-2 synced (TYPEDEF ◑ DONE; SAME AS
 / TYPE TO deferred).
 
+**REVIEW-HARDENED (DEVLOG 664 — wf_7d3b1492-01a, 7 confirmed defects fixed).** Two false positives cured: the SR6
+strong-in-strong rejection (`ExpandType` now sets `TypeName`/`StrongType` BEFORE cloning children, so a nested TYPE
+ref's SR6 ancestor walk sees the enclosing strong item) and the outermost-root same-type mis-identification (a new
+`DataItem.TypeAnchor` = the NEAREST TYPE-carrying ancestor now drives `SameStrongType`, so a nested `TYPE INNER-T`
+subgroup matches a standalone INNER-T item — §8.5.3 bullet 1). One HIGH silent-miscompile cured: a cloned OCCURS
+DEPENDING ON now resolves data-name-1 in the clone's OWN record subtree first (`OdoResolve` `FindInSubtree` before the
+global scope lookup — §13.18.57.4 GR1 / §13.18.38 SR20), not a globally-first same-named counter. Three previously
+unenforced §13.18.57.3 syntax rules added: **1536** SR7 (a level-77 subject needs an elementary type — weak-invariant,
+not just STRONG), **1537** SR2 (a TYPE entry not followed immediately by a subordinate or level-88 entry — was a silent
+member-merge / a CS1061 leak), **1538** SR5 (no USAGE/SIGN on a group superordinate to a TYPE subject). Goldens
+`typedef_nested_strong` / `typedef_odo`; `TypedefReviewFixTests` ×5. 15xx TYPEDEF band now **1529–1538**.
+
 **RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached
 resolved items); `INDEXED BY` in a TYPEDEF used ≥2× = a global index-name collision (staged loud 1531); method/OO-scope
 typedefs are program/global-scope-first (the `OoRootOwner` parallel forest → staged loud follow-up); STRONG group

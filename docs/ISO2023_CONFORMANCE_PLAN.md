@@ -609,9 +609,12 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `typedef_weak_elem`/`typedef_weak_group`/`typedef_strong_ok`/`typedef_88`/`typedef_indexed`). **DEFERRED:** `SAME AS`
   (a distinct feature — a hard `AS` keyword is a legacy-compat hazard; `CloneItem` is built generically for its reuse)
   and `TYPE TO` (the pointer-target form). Diagnostic band 15xx = 1529–1535.
-- ☐ **M3-3 — JSON & XML** `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` + special registers (XML-CODE/JSON-CODE/…).
-  *Large.* Greenfield: a version-gated grammar fragment in the `Cobol.Net.Frontend` parser (the legacy
-  `CobolParserJsonXml.g4` overlay is dead/unwired — do not build on it); needs binder/emit/runtime. §14.9.
+- ⛔ **M3-3 — JSON & XML** `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` + special registers (XML-CODE/JSON-CODE/…).
+  **NON-ISO — OUT OF THE ISO-CONFORMANCE SCOPE.** `specs/ISO_COBOL.md` (the ISO/IEC 1989:2023 text) has ZERO `JSON`/
+  `XML` occurrences — these are IBM Enterprise-COBOL vendor extensions, NOT part of the standard (confirmed 2026-07-07,
+  DEVLOG 664; consistent with the pre-P2.5 constructs.json scrub that moved JSON/XML to vendor-dialect post-G8). Do
+  NOT implement under the "100% ISO" mission; it belongs to a later vendor-dialect track. *Large* if/when done. The
+  legacy `CobolParserJsonXml.g4` overlay is dead/unwired.
 - ☐ **M3-4 — File sharing/locking finalization** (if not folded into M2-FILE-1), function/method pointers,
   IEEE-754 alignment, increased limits, conditional-expression enhancements.
 
