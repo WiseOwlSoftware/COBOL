@@ -126,6 +126,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // the greenfield CorpusRunner byte-compares them.
         ("2002", "highest_lowest_algebraic"),
         ("2023", "smallest_algebraic"),
+        // Phase 5 intrinsics, DEVLOG 635: the COBOL-2014 date/time + number family (FORMATTED-*/COMBINED-DATETIME/
+        // INTEGER-OF-FORMATTED-DATE/SECONDS-FROM-FORMATTED-TIME/TEST-FORMATTED-DATETIME/NUMVAL-F/TEST-NUMVAL-F,
+        // §15.17/38-41/48/69/79/92/95) — the frozen legacy oracle predates them; greenfield CorpusRunner byte-compares.
+        ("2014", "formatted_datetime"),
         // Phase-4 track (c), DEVLOG 615/616: the frozen legacy's partial UDF support runs the simple
         // invocation goldens but lacks EXIT FUNCTION's control transfer (§14.9.14 — it falls through to the
         // trailing MOVE, X=9999 not X=0014) and the nested-args legs (GR5a by-ref argument mutation /

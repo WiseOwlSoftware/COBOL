@@ -335,11 +335,13 @@ public sealed class IntrinsicFunctionDifferentialTests
     public void DeferredFunction_InWindow_FailsLoud_NeverWrong()
     {
         // A catalogued-but-deferred function INSIDE its window compiles and fails LOUD at run time naming the
-        // function (COBOLNET_DESIGN §1.4) — never a silent wrong value.
+        // function (COBOLNET_DESIGN §1.4) — never a silent wrong value. (BYTE-LENGTH §15.14 is still Deferred —
+        // the byte-size ≠ FUNCTION LENGTH; it awaits the USAGE-width model. Retargeted off FORMATTED-CURRENT-DATE,
+        // now implemented in DEVLOG 635.)
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
-            Program("01 T PIC X(21).", "    MOVE FUNCTION FORMATTED-CURRENT-DATE(\"YYYYMMDD\") TO T.\n    DISPLAY T."));
+            Program("01 T PIC 9(4).", "    MOVE FUNCTION BYTE-LENGTH(\"ABC\") TO T.\n    DISPLAY T."));
         Assert.False(ok);
-        Assert.Contains("FORMATTED-CURRENT-DATE", detail);
+        Assert.Contains("BYTE-LENGTH", detail);
     }
 
     [Fact]
@@ -650,5 +652,67 @@ public sealed class IntrinsicFunctionDifferentialTests
                 "    MOVE FUNCTION SMALLEST-ALGEBRAIC(X) TO R.\n    DISPLAY R."));
         Assert.False(ok, "SMALLEST-ALGEBRAIC is 2023+; 2014 must reject");
         Assert.Contains("COBOLNET1502", detail);
+    }
+
+    // ── The COBOL-2014 date/time + number family (§15.17/38-41/48/69/79/92/95, Phase 5, DEVLOG 635) ───────────
+
+    [Fact]
+    public void FormattedTime_UtcRollAcrossMidnight_2014()
+        // §15.41 r2 — a UTC format shows local − offset; 01:00 local at +2h ⇒ 23:00:00Z (the previous day).
+        => AssertSpec(Program("01 R PIC X(12).",
+            "    MOVE FUNCTION FORMATTED-TIME(\"hh:mm:ssZ\", 3600, 120) TO R.\n    DISPLAY R.", "FT1"), "23:00:00Z", 2014);
+
+    [Fact]
+    public void IntegerOfFormattedDate_Ordinal_2014()
+        => AssertSpec(Program("01 N PIC +9(9).",
+            "    MOVE FUNCTION INTEGER-OF-FORMATTED-DATE(\"YYYYDDD\", \"2021167\") TO N.\n    DISPLAY N.", "IOF"), "+000153569", 2014);
+
+    [Fact]
+    public void SecondsFromFormattedTime_Fractional_2014()
+        // The result scale comes from the format's fractional-second count (2 here) — §15.79.4.
+        => AssertSpec(Program("01 F PIC +9(5).99.",
+            "    MOVE FUNCTION SECONDS-FROM-FORMATTED-TIME(\"hh:mm:ss.ss\", \"12:34:56.50\") TO F.\n    DISPLAY F.", "SFT"), "+45296.50", 2014);
+
+    [Theory]
+    [InlineData("YYYYMMDD", "20051314", "+000000006")]     // month 13 becomes provable at digit 6 (§15.92 NOTE)
+    [InlineData("YYYYMMDD", "15990316", "+000000002")]     // year 15xx < 1601 provable at digit 2
+    [InlineData("YYYY-MM-DD", "2021-06-16", "+000000000")] // valid ⇒ 0
+    public void TestFormattedDatetime_ErrorPosition_2014(string fmt, string data, string expected)
+        => AssertSpec(Program("01 N PIC +9(9).",
+            $"    MOVE FUNCTION TEST-FORMATTED-DATETIME(\"{fmt}\", \"{data}\") TO N.\n    DISPLAY N.", "TFD"), expected, 2014);
+
+    [Theory]
+    [InlineData("1.5E+3", "+1500.0000")]
+    [InlineData("-2.5E-2", "-0000.0250")]
+    public void NumvalF_Values_2014(string arg, string expected)
+        => AssertSpec(Program("01 F PIC +9(4).9(4).",
+            $"    COMPUTE F = FUNCTION NUMVAL-F(\"{arg}\").\n    DISPLAY F.", "NVF"), expected, 2014);
+
+    [Theory]
+    [InlineData("0 1E+2", "+000000003")]   // an embedded space ⇒ the first non-space after it (§15.95 r b.1)
+    [InlineData(" +.", "+000000004")]       // no significand digit ⇒ LENGTH+1 (r c)
+    [InlineData("1.5E+3", "+000000000")]    // valid ⇒ 0
+    public void TestNumvalF_Positions_2014(string data, string expected)
+        => AssertSpec(Program("01 N PIC +9(9).",
+            $"    MOVE FUNCTION TEST-NUMVAL-F(\"{data}\") TO N.\n    DISPLAY N.", "TNF"), expected, 2014);
+
+    [Fact]
+    public void DateFamily_GatedBelow2014_1502()
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2002).CompileAndRun(
+            Program("01 R PIC X(10).", "    MOVE FUNCTION FORMATTED-DATE(\"YYYYMMDD\", 153569) TO R.\n    DISPLAY R."));
+        Assert.False(ok, "FORMATTED-DATE is 2014+; 2002 must reject");
+        Assert.Contains("COBOLNET1502", detail);
+    }
+
+    [Fact]
+    public void FormattedDate_NonLiteralFormat_1517()
+    {
+        // §15.39.3 r1 — the format shall be a literal (analyzed at compile time).
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 FMT PIC X(8) VALUE \"YYYYMMDD\".\n           01 R PIC X(10).",
+                "    MOVE FUNCTION FORMATTED-DATE(FMT, 153569) TO R.\n    DISPLAY R."));
+        Assert.False(ok, "a non-literal format violates §15.39.3 r1");
+        Assert.Contains("COBOLNET1517", detail);
     }
 }

@@ -227,6 +227,89 @@ public static partial class CobolIntrinsics
         return r > long.MaxValue ? long.MaxValue : r < long.MinValue ? long.MinValue : (long)r;
     }
 
+    /// <summary>NUMVAL-F (§15.69, COBOL-2014+): the floating NUMVAL — a signed mantissa (with an optional decimal
+    /// point) and an optional <c>E±exponent</c> (1..4 exponent digits). Parsed exactly to (unscaled, effective
+    /// scale) then rescaled to the emitter's working <paramref name="scale"/> (native arithmetic ⇒ the §15.69.4 r2
+    /// approximation license). Malformed content → the §15.3 default 0. Leading/trailing spaces (and, in the value
+    /// path, any interior space) are ignored (rule 5); TEST-NUMVAL-F enforces exact placement.</summary>
+    public static long NumvalF(string text, int scale, bool commaMode = false)
+    {
+        char dec = commaMode ? ',' : '.';
+        string s = text.Replace(" ", "");
+        if (s.Length == 0)
+            return Exceptions.ExceptionState.ArgumentError("NUMVAL-F argument is empty (§15.69.3)");
+        bool neg = false;
+        int ei = s.IndexOfAny(['E', 'e']);
+        string mant = ei < 0 ? s : s[..ei];
+        string exps = ei < 0 ? "" : s[(ei + 1)..];
+        if (mant.StartsWith('+')) mant = mant[1..];
+        else if (mant.StartsWith('-')) { neg = true; mant = mant[1..]; }
+        Int128 unscaled = 0; int frac = -1, digits = 0;
+        foreach (char c in mant)
+        {
+            if (char.IsAsciiDigit(c)) { unscaled = unscaled * 10 + (c - '0'); digits++; if (frac >= 0) frac++; continue; }
+            if (c == dec && frac < 0) { frac = 0; continue; }
+            return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F mantissa '{text}' is malformed (§15.69.3)");
+        }
+        if (digits == 0) return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F '{text}' has no significand digit (§15.69.3)");
+        if (frac < 0) frac = 0;
+        int exp = 0;
+        if (exps.Length > 0)
+        {
+            bool eneg = false;
+            if (exps.StartsWith('+')) exps = exps[1..]; else if (exps.StartsWith('-')) { eneg = true; exps = exps[1..]; }
+            if (exps.Length is 0 or > 4 || !exps.All(char.IsAsciiDigit))
+                return Exceptions.ExceptionState.ArgumentError($"NUMVAL-F exponent '{text}' is malformed (§15.69.3)");
+            exp = int.Parse(exps) * (eneg ? -1 : 1);                   // 1..4 exponent digits (§15.69.3)
+        }
+        int shift = scale + exp - frac;                               // the final decimal shift of the unscaled mantissa
+        Int128 r = shift >= 0 ? unscaled * Pow10I(shift) : unscaled / Pow10I(-shift);
+        if (neg) r = -r;
+        return r > long.MaxValue ? long.MaxValue : r < long.MinValue ? long.MinValue : (long)r;
+    }
+
+    /// <summary>TEST-NUMVAL-F (§15.95, COBOL-2014+): 0 if the string conforms to the NUMVAL-F format; else the
+    /// 1-based position of the first character in error (an embedded space inside the significand ⇒ the first
+    /// non-space after it, r b.1; a native significand longer than 31 digits ⇒ the 32nd significand digit, r b.2);
+    /// else (all spaces, empty, or a valid-but-incomplete string like <c>" +."</c>) LENGTH+1 (r c).</summary>
+    public static long TestNumvalF(string text, bool commaMode = false)
+    {
+        char dec = commaMode ? ',' : '.';
+        int n = text.Length, i = 0, sig = 0; bool anyDigit = false, sawDot = false, pendingSpace = false;
+        int Pos() => i + 1;
+        while (i < n && text[i] == ' ') i++;                          // leading spaces (r5)
+        if (i < n && (text[i] == '+' || text[i] == '-')) i++;
+        while (i < n && text[i] == ' ') i++;                          // spaces before the first digit (r5)
+        for (; i < n; i++)                                            // significand: { digit [ . [digit] ] | . digit }
+        {
+            char c = text[i];
+            if (char.IsAsciiDigit(c))
+            {
+                if (pendingSpace) return Pos();                       // r b.1 — first non-space after an interior space
+                anyDigit = true; if (++sig > 31) return Pos();        // r b.2 — the 32nd significand digit
+                continue;
+            }
+            if (c == dec && !sawDot) { if (pendingSpace) return Pos(); sawDot = true; continue; }
+            if (c == ' ') { pendingSpace = true; continue; }          // trailing/interior space — decided by what follows
+            break;                                                    // 'E' or a bad char — leave it to the exponent scan
+        }
+        if (!anyDigit) return n + 1;                                  // r c — no significand digit (incl. all-space / " +.")
+        pendingSpace = false;
+        if (i < n && (text[i] == 'E' || text[i] == 'e'))
+        {
+            i++;
+            while (i < n && text[i] == ' ') i++;
+            if (i >= n) return n + 1;                                 // r c — dangling E
+            if (text[i] == '+' || text[i] == '-') i++; else return Pos();   // a sign is required after E (§15.69.3)
+            while (i < n && text[i] == ' ') i++;
+            int ed = 0;
+            while (i < n && char.IsAsciiDigit(text[i])) { if (++ed > 4) return Pos(); i++; }   // n = 1..4 digits
+            if (ed == 0) return n + 1;                                // r c — E± with no exponent digit
+        }
+        while (i < n && text[i] == ' ') i++;                          // trailing spaces (r5)
+        return i == n ? 0 : Pos();                                    // any leftover char is in error
+    }
+
     /// <summary>
     /// NUMVAL-C (§15.68): like NUMVAL with a currency string and grouping separators. The currency string —
     /// argument-2, or the SPECIAL-NAMES / default currency the BINDER injected when argument-2 is omitted

@@ -149,6 +149,15 @@ public sealed partial class StatementBinder
             return new BoundExprError($"FUNCTION {sig.Name} arity");
         }
 
+        // §15.38–15.41 / §15.48 / §15.79 / §15.92 rule 1: the date/time FORMAT (argument-1) shall be a LITERAL —
+        // the format is analyzed/derived at compile time (SECONDS-FROM-FORMATTED-TIME needs the fraction scale).
+        if (args.Count > 0 && args[0] is not BoundStringLiteral
+            && sig.Name is "FORMATTED-CURRENT-DATE" or "FORMATTED-DATE" or "FORMATTED-DATETIME" or "FORMATTED-TIME"
+                or "INTEGER-OF-FORMATTED-DATE" or "SECONDS-FROM-FORMATTED-TIME" or "TEST-FORMATTED-DATETIME")
+            data.Edition.Error("COBOLNET1517", $"FUNCTION {sig.Name} argument-1 shall be a literal date/time format "
+                + "(ISO §15 — the FORMATTED-*/INTEGER-OF-FORMATTED-DATE/SECONDS-FROM-FORMATTED-TIME/"
+                + "TEST-FORMATTED-DATETIME format is a literal)");
+
         // FUNCTION LENGTH folds at compile time from PIC metadata (§15.50; deep-dive D7).
         if (sig.Bind == IntrinsicBind.Fold && sig.Name == "LENGTH")
             return BindLengthFold(sig, args);

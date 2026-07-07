@@ -140,6 +140,32 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             case "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay":
                 return new NumX($"CobolDate.{sig.RuntimeMethod}({IntArg(ic, 0)})", 0);
 
+            // ── The COBOL-2014 date/time + number family (§15.17/48/79/92; §15.69/95) ───────────────────────────
+            case "CombinedDatetime":                                            // §15.17 — a1 + a2/100000
+            {
+                NumX t = Arg(ic, 1);
+                return new NumX($"CobolDate.CombinedDatetime({IntArg(ic, 0)}, {t.Expr}, {t.Scale})", t.Scale + 5);
+            }
+            case "IntegerOfFormattedDate":                                       // §15.48 — analyze a2 per format a1 → integer date
+                return new NumX($"CobolDate.IntegerOfFormattedDate({Str(ic.Args[0])}, {Str(ic.Args[1])})", 0);
+            case "SecondsFromFormattedTime":                                    // §15.79 — result scale = the format's fractional-second count
+            {
+                if (ic.Args[0] is not BoundStringLiteral fmt)
+                    return new NumX(EmitText.LoudValue("long",
+                        "FUNCTION SECONDS-FROM-FORMATTED-TIME requires a literal time format (§15.79.3 r1)"), 0);
+                int fsc = CobolDate.FormatFractionDigits(fmt.Value);            // compile-time — the compiler links CobolNet.Runtime
+                return new NumX($"CobolDate.SecondsFromFormattedTime({Str(ic.Args[0])}, {Str(ic.Args[1])}, {fsc})", fsc);
+            }
+            case "TestFormattedDatetime":                                       // §15.92 — 0 (valid) or the 1-based error position
+                return new NumX($"CobolDate.TestFormattedDatetime({Str(ic.Args[0])}, {Str(ic.Args[1])})", 0);
+            case "NumvalF":                                                      // §15.69 — floating NUMVAL; ws floor 9 (H1 + float-family precedent)
+            {
+                int ws = Math.Max(ctx.TargetScale, 9);
+                return new NumX($"CobolIntrinsics.NumvalF({Str(ic.Args[0])}, {ws}{CommaFlag})", ws);
+            }
+            case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1
+                return new NumX($"CobolIntrinsics.TestNumvalF({Str(ic.Args[0])}{CommaFlag})", 0);
+
             default:
                 return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (no numeric render recipe)"), 0);
         }
@@ -238,6 +264,12 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
                     + $"{(ic.ConvertDestHex ? "true" : "false")})",
             "ModuleName" =>                                                    // §15.65 — the runtime module call-name stack (2023)
                 $"CobolModule.Name({ic.ModuleNameKind})",
+            "FormattedDate" =>                                                 // §15.39 — integer date per a date format (2014)
+                $"CobolDate.FormattedDate({StrStatic(ic.Args[0])}, {IntStatic(ic.Args[1])})",
+            "FormattedTime" => RenderFormattedTime(ic),                        // §15.41
+            "FormattedDatetime" => RenderFormattedDatetime(ic),               // §15.40
+            "FormattedCurrentDate" =>                                          // §15.38 — the runtime clock per a combined format
+                $"CobolDate.FormattedCurrentDate({StrStatic(ic.Args[0])})",
             // The last-exception interrogation functions (§15.28/30/32/33 — the EC model): zero-argument reads
             // of the runtime register; the binder's EcNoteFunction flagged the group EC gate, so the generated
             // source carries the CobolNet.Runtime.Exceptions using.
@@ -249,6 +281,26 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
                 : EmitText.LoudValue("string", "FUNCTION EXCEPTION-FILE(file-connector-name) (the 2023 optional-argument form — VCR row 68)"),
             _ => EmitText.LoudValue("string", $"FUNCTION {sig.Name} in a string context"),
         };
+    }
+
+    /// <summary>FORMATTED-TIME (§15.41): seconds as (unscaled long, scale) — NOT the truncating IntStatic, so the
+    /// fractional seconds survive — plus the optional offset-minutes (a3).</summary>
+    private static string RenderFormattedTime(BoundIntrinsicCall ic)
+    {
+        NumX sec = NumStatic(ic.Args[1]);
+        bool hasOff = ic.Args.Count > 2;
+        return $"CobolDate.FormattedTime({StrStatic(ic.Args[0])}, (long)({sec.Expr}), {sec.Scale}, "
+             + $"{(hasOff ? IntStatic(ic.Args[2]) : "0")}, {(hasOff ? "true" : "false")})";
+    }
+
+    /// <summary>FORMATTED-DATETIME (§15.40): integer date a2 + seconds a3 (unscaled/scale) + the optional
+    /// offset-minutes a4.</summary>
+    private static string RenderFormattedDatetime(BoundIntrinsicCall ic)
+    {
+        NumX sec = NumStatic(ic.Args[2]);
+        bool hasOff = ic.Args.Count > 3;
+        return $"CobolDate.FormattedDatetime({StrStatic(ic.Args[0])}, {IntStatic(ic.Args[1])}, "
+             + $"(long)({sec.Expr}), {sec.Scale}, {(hasOff ? IntStatic(ic.Args[3]) : "0")}, {(hasOff ? "true" : "false")})";
     }
 
     /// <summary>SUBSTITUTE (§15.87): the source (Args[0]) plus parallel from/to/mode arrays over the pair operands
