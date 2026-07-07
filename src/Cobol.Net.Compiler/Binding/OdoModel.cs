@@ -185,7 +185,11 @@ public static class OdoModel
     /// agnostic via <c>CobolTable.Occ</c>), or <see langword="null"/> for a fixed table — the caller then uses the
     /// compile-time maximum. data-name-1 is resolved post-build (it may be declared anywhere, SR20).</summary>
     public static string? SearchBound(DataItem table, ReferenceResolver refs) =>
-        table.OccursSpec is { Depending: { } dep } && refs.ResolveItem(dep) is { } dp
+        // An OCCURS DYNAMIC table scans over its CURRENT capacity (§8.5.1.9.1; data-model D9) — a runtime value,
+        // NOT a compile-time maximum (a dynamic table has none). Checked BEFORE the ODO branch (they are mutually
+        // exclusive constructs).
+        table.IsDynamicTable && refs.TablePath(table) is { } tp ? $"{tp}.Capacity"
+        : table.OccursSpec is { Depending: { } dep } && refs.ResolveItem(dep) is { } dp
             ? $"CobolTable.Occ({dp.Read()})" : null;
 }
 

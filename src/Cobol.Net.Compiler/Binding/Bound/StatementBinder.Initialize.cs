@@ -30,6 +30,14 @@ public sealed record InitializeLoop(string Var, int Count, IReadOnlyList<Initial
 /// guard (COBOLNET_DESIGN §1.4), never a silent skip.</summary>
 public sealed record InitializeErrorAction(string Feature) : InitializeAction;
 
+/// <summary>The per-occurrence expansion of an OCCURS DYNAMIC dimension (ISO §14.9.20 GR10 / §8.5.1.9.1; data-model
+/// D9): the body repeats for <paramref name="Var"/> = 1‥<paramref name="CapacityExpr"/> — the table's CURRENT
+/// capacity, a RUN-TIME value (unlike the fixed-count <see cref="InitializeLoop"/>). The elements are initialized by
+/// the INITIALIZE statement's own stores (the category defaults / REPLACING / VALUE-phrase senders — NOT the OCCURS
+/// grow-seed), the capacity left unchanged (GR10: "all the elements of the table up to current capacity … are
+/// initialized … the current capacity is left unchanged").</summary>
+public sealed record InitializeDynLoop(string Var, string CapacityExpr, IReadOnlyList<InitializeAction> Body) : InitializeAction;
+
 /// <summary>The INITIALIZE data categories (ISO §14.9.20.2 category-name, per §8.5.2 class/category) — the
 /// COBOL-85 five plus the Phase-4a BOOLEAN and NATIONAL members (binder-side classification + GR6c default
 /// fills; the REPLACING/VALUE <em>category words</em> BOOLEAN/NATIONAL — like NATIONAL-EDITED, the pointer
@@ -108,6 +116,21 @@ public sealed partial class StatementBinder
     /// REDEFINES (GR5a3's exclusion applies only BELOW it).</summary>
     private void BindInitializeTarget(Core.DataReferenceContext dref, in InitializeSpec spec, List<InitializeAction> actions)
     {
+        // INITIALIZE of a WHOLE OCCURS DYNAMIC table (ISO §14.9.20 GR10; data-model D9): the whole-table reference
+        // does not resolve to an element Place (it is guarded loud), so detect it by name and expand the element's
+        // stores under a RUN-TIME loop 1‥Capacity (RefReceiving within bounds does not grow). The stores are the
+        // INITIALIZE statement's own (category defaults / REPLACING / VALUE-phrase) — NOT the OCCURS grow-seed.
+        if (dref.dataReferenceSuffix().Length == 0
+            && data.LookupData(dref.cobolWord()?.GetText() ?? dref.GetText())?.FirstOrDefault(i => i.IsDynamicTable)
+                is { } dtbl && refs.TablePath(dtbl) is { } dtp)
+        {
+            string v = $"__ini{_initializeLoopVar++}";
+            var body = new List<InitializeAction>();
+            ExpandInitialize(new InitializeDynCursor($"{dtp}.RefSending({v})", $"{dtp}.RefReceiving({v})", dtbl),
+                spec, body, identifier1: true);
+            if (body.Count > 0) actions.Add(new InitializeDynLoop(v, $"{dtp}.Capacity", body));
+            return;
+        }
         if (refs.Resolve(dref) is not { } place)
         {
             // ISO §14.9.20.3 SR5: identifier-1 shall not have a RENAMES clause (a level-66 entry — NC401M territory).
@@ -163,6 +186,17 @@ public sealed partial class StatementBinder
         {
             if (!(child.IsGroup || child.IsElementary)) continue;                               // no storage
             if (child.RedefinesTargetName is not null || child.Renames is not null) continue;   // GR5a3
+            // A dynamic-capacity table nested inside identifier-1's group is a variable-length group member: its
+            // occurrence count is a run-time value, so it is NOT the fixed per-dimension InitializeLoop. INITIALIZE
+            // of the WHOLE dynamic table (identifier-1 = the table itself) is handled in BindInitializeTarget; a
+            // containing group's dynamic child is staged loud here (the §14.6.9 variable-length-group family — inc 5
+            // gives it COBOLNET1527). D9.
+            if (child.IsDynamicTable)
+            {
+                actions.Add(new InitializeErrorAction($"INITIALIZE of a group containing the dynamic-capacity table "
+                    + $"'{child.CobolName ?? "FILLER"}' — a variable-length group (staged loud, ISO §14.6.9)"));
+                continue;
+            }
             if (cur.Child(child) is not { } childCur)
             {
                 actions.Add(new InitializeErrorAction(
@@ -307,6 +341,25 @@ public sealed partial class StatementBinder
             this with { Path = $"CobolTable.At({Path}, {indexVar})" };
 
         public override Place ToPlace() => new MemberPlace(Path, Item);
+    }
+
+    /// <summary>A cursor at one occurrence of an OCCURS DYNAMIC table (data-model D9): entered at the element level
+    /// with the two direction-specific accessor paths already applied (<c>{tbl}.RefSending(v)</c> /
+    /// <c>{tbl}.RefReceiving(v)</c> for the loop variable <c>v</c>). Children append their <c>.CsName</c> to both;
+    /// a nested FIXED OCCURS below the element wraps both in <c>CobolTable.At</c>. Yields a <see cref="DynTablePlace"/>
+    /// so an INITIALIZE store writes through <c>RefReceiving</c> (within the 1‥Capacity bound, so no growth). A
+    /// REDEFINES view under the element is not wired here (null → loud; inc-5 territory).</summary>
+    private sealed record InitializeDynCursor(string SendPath, string RecvPath, DataItem Item) : InitializeCursor(Item)
+    {
+        public override InitializeCursor? Child(DataItem child) =>
+            child.Class is null
+                ? new InitializeDynCursor($"{SendPath}.{child.CsName}", $"{RecvPath}.{child.CsName}", child)
+                : null;
+
+        public override InitializeCursor Indexed(string indexVar) =>
+            this with { SendPath = $"CobolTable.At({SendPath}, {indexVar})", RecvPath = $"CobolTable.At({RecvPath}, {indexVar})" };
+
+        public override Place ToPlace() => new DynTablePlace(SendPath, RecvPath, Item);
     }
 
     /// <summary>A cursor inside a Tier-B REDEFINES class: every receiver is a (offset, width) character window over

@@ -1261,9 +1261,27 @@ public sealed partial class CSharpEmitter
         var w = _ctx.Writer;
         int id = _searchCounter++;
         if (s.FromStart) w.Line($"{s.IndexField} = 1;");   // SEARCH ALL ignores the initial setting (GR9)
+        // An OCCURS DYNAMIC table brackets the scan with EnterSearch/ExitSearch so a SET Format 14 on that same
+        // table WHILE searching raises EC-FLOW-SEARCH (ISO §14.9.39 GR31; data-model D9). A try/finally is required
+        // because the WHEN/AT-END arms `goto __searchEnd` OUT of the scan — ExitSearch must run on every exit path.
+        if (s.DynTable is { } dt)
+        {
+            w.Line($"{dt}.EnterSearch();");
+            using (w.Block("try")) EmitSearchScan(s, id);
+            w.Line($"finally {{ {dt}.ExitSearch(); }}");
+        }
+        else EmitSearchScan(s, id);
+    }
+
+    /// <summary>The serial-SEARCH scan loop (ISO §14.9.37.4): past-end → AT END; else each WHEN in order; none true →
+    /// advance the index (and the VARYING item) and loop. The AT-END bound is the table's MAXIMUM occurrence count —
+    /// or, for an occurs-depending table its CURRENT count, or (D9) a dynamic table's current <c>Capacity</c>
+    /// (GR4/GR9 → §13.18.38 GR7/§8.5.1.9.1). Extracted so a dynamic table can wrap it in an EnterSearch/ExitSearch
+    /// try/finally.</summary>
+    private void EmitSearchScan(BoundSearch s, int id)
+    {
+        var w = _ctx.Writer;
         w.Line($"__search{id}:");
-        // The AT-END bound is the table's MAXIMUM occurrence count — or, for an occurs-depending table, its CURRENT
-        // count (ISO §14.9.37.4 GR4/GR9 → §13.18.38 GR7: the OCCURS clause says the count IS data-name-1's value).
         using (w.Block($"if ({s.IndexField} > {s.DependCount ?? $"{s.Count}L"})"))
         {
             bool terminated = s.AtEnd is { } at && EmitStatementList(at);

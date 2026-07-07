@@ -984,7 +984,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var drefs = s.dataReference();
         string tableName = drefs[0].cobolWord()?.GetText() ?? drefs[0].GetText();
         if (data.LookupData(tableName) is not { } candidates
-            || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
+            || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
             return new BoundUnsupported($"SEARCH of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
             return new BoundUnsupported($"SEARCH table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
@@ -1012,8 +1012,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var whens = s.searchWhenClause()
             .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
             .ToList();
-        return new BoundSearch(searchIx, table.Occurs!.Value, also, atEnd, whens,
-            DependCount: OdoModel.SearchBound(table, refs));
+        return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
+            DependCount: OdoModel.SearchBound(table, refs),
+            DynTable: table.IsDynamicTable ? refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
     }
 
     /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the binary-search form). The initial index setting
@@ -1024,7 +1025,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         string tableName = s.dataReference().cobolWord()?.GetText() ?? s.dataReference().GetText();
         if (data.LookupData(tableName) is not { } candidates
-            || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
+            || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
             return new BoundUnsupported($"SEARCH ALL of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
             return new BoundUnsupported($"SEARCH ALL table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
@@ -1038,8 +1039,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var whens = s.searchAllWhenClause()
             .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
             .ToList();
-        return new BoundSearch(data.IndexFieldFor(table.IndexNames[0]), table.Occurs!.Value,
-            AlsoVaried: null, atEnd, whens, FromStart: true, DependCount: OdoModel.SearchBound(table, refs));
+        return new BoundSearch(data.IndexFieldFor(table.IndexNames[0]), table.Occurs ?? 0,
+            AlsoVaried: null, atEnd, whens, FromStart: true, DependCount: OdoModel.SearchBound(table, refs),
+            DynTable: table.IsDynamicTable ? refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
     }
 
     /// <summary>The C# <c>long</c> index field when <paramref name="dref"/> is a bare INDEXED BY index-name

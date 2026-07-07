@@ -283,8 +283,19 @@ and `Write(rhs)` emits `…RefReceiving(occ) = rhs;` (the receiving side grows-a
 recognition switched to `IsTable` at the OCCURS-level count; the dynamic segment renders the accessor and any group-
 field/fixed-OCCURS tail is appended after it (`{tbl}.RefSending(i).Field`). A sending OOB stays benign scratch;
 EC-BOUND-SUBSCRIPT-under-checking rides the general subscript-checking gate (a cross-cutting later increment, not
-dyn-specific). → `dyn_implicit_grow`/`dyn_initialized`; (4) SEARCH over current capacity + EC-FLOW-SEARCH + `INITIALIZE` → `dyn_search`, flip the matrix
-row active; (5) the staged-loud guards (1525–1528) + doc/DOC_INDEX + negative goldens. Increments 2–5 are
+dyn-specific). → `dyn_implicit_grow`/`dyn_initialized`; (4) **✅ LANDED (DEVLOG 655)** — SEARCH/SEARCH ALL over
+current capacity + INITIALIZE. SEARCH: the table guard accepts `IsTable` (dynamic too), `OdoModel.SearchBound` gains a
+dynamic branch returning `{tablePath}.Capacity` (a run-time bound, threaded via `BoundSearch.DependCount`), and
+`BoundSearch.DynTable` carries the table path so `EmitSearch` brackets the scan in
+`{tbl}.EnterSearch(); try { … } finally { {tbl}.ExitSearch(); }` — a SET Format 14 on that same table WHILE searching
+raises EC-FLOW-SEARCH (GR31). INITIALIZE: **⚠ spec-checked correction** — §14.9.20 GR10 (":28023") says all
+occurrences up to current capacity are initialized by the INITIALIZE statement's OWN stores (the CATEGORY DEFAULTS /
+REPLACING / VALUE-phrase), NOT the OCCURS grow-seed, capacity unchanged — so `CobolDynTable.InitializeAll` (which
+re-seeds with the VALUE-inclusive image) is WRONG for a VALUE element. Implemented as an `InitializeDynLoop(var,
+{tablePath}.Capacity, body)` (a RUN-TIME-bounded loop, sibling of `InitializeLoop`) over an `InitializeDynCursor`
+that yields a `DynTablePlace` (writes via `RefReceiving`, within bounds so no growth). A group CONTAINING a dynamic
+table (the other GR10 case) is a variable-length group → staged LOUD (inc 5's §14.6.9 1527). → `dyn_search`/
+`dyn_initialize` (the matrix row was already active from inc 1); (5) the staged-loud guards (1525–1528) + doc/DOC_INDEX + negative goldens. Increments 2–5 are
 greenfield-only (guard-fast; CI is the backstop). All 3 recon open questions resolved to their recommended defaults
 (VALUE-capacity staged; EC-FLOW-SEARCH in CORE; extend THIS doc).
 

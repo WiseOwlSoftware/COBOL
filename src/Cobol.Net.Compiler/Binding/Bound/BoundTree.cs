@@ -508,7 +508,7 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 public sealed record BoundSearch(
     string IndexField, long Count, BoundSetTarget? AlsoVaried,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
-    bool FromStart = false, string? DependCount = null) : BoundStatement;
+    bool FromStart = false, string? DependCount = null, string? DynTable = null) : BoundStatement;
 
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
 

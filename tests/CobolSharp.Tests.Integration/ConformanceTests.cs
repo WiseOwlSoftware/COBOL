@@ -200,6 +200,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         // Greenfield CorpusRunner only.
         ("2014", "dyn_implicit_grow"),
         ("2014", "dyn_initialized"),
+        // Phase 6, OCCURS DYNAMIC increment 4 (data-model D9, §14.9.37 / §14.9.20 GR10): SEARCH bounds over the
+        // table's current Capacity (EnterSearch/ExitSearch bracket → EC-FLOW-SEARCH); INITIALIZE re-initializes
+        // every occurrence up to Capacity with the statement's category defaults. Greenfield CorpusRunner only.
+        ("2014", "dyn_search"),
+        ("2014", "dyn_initialize"),
     ];
 
     [Theory]
