@@ -194,6 +194,69 @@ PIC 1(n)/fills/ref-mod need character semantics; a bool cannot carry them). (b) 
 national — rejected for forward-compat (the non-Latin-1/NX"/BYTE-LENGTH residue presumes 2-byte). (c) True
 bit-packing for USAGE BIT — optional forever under R14; revisit only with GROUP-USAGE BIT.
 
+### D9. OCCURS DYNAMIC (dynamic-capacity tables, §13.18.38 Format 4, COBOL-2014) — an out-of-line growable `CobolDynTable<T>`; sending/receiving direction carried by `Place`; a CORE ships whole, variable-length-group ops staged LOUD.
+
+*Decision-complete design — recon wf_32407556-b96 (2026-07-07). Load-bearing claims verified verbatim: §8.5.1.9.1
+:8189 (dynamic-capacity definition — physical=logical capacity, current capacity, non-contiguous implementor-defined
+allocation, FROM/VALUE initial, TO expected); §13.18.38 Format 4 :19858 (`OCCURS DYNAMIC [CAPACITY IN data-name-3]
+[FROM integer-4] [TO integer-5] [INITIALIZED]` + ASC/DESC KEY + INDEXED BY); the `occursClause` grammar has NO
+DYNAMIC form (CobolData.g4:330); `ExceptionCatalog` ALREADY registers EC-BOUND-OVERFLOW(nonfatal)/-TABLE-LIMIT(fatal)/
+EC-FLOW-SEARCH(fatal). Full design in the recon transcript; the decision + increments are here (SSOT).*
+
+**Storage (decided).** A dynamic table is NOT an inline record run (the spec permits non-contiguous occurrences and
+adjacent fixed record fields keep their positions, §8.5.1.9.1 :8197). A new runtime class
+**`CobolNet.Runtime.CobolDynTable<T>`** (out-of-line, referenced by a field on the owning `record struct`): a growable
+`T[] _store`, `int _count` (= current capacity, §8.5.1.9.1 :8189), a `Func<T> _seed`, immutable `_min`/`_expected`
+limits; it exposes `ref T` element access (rejected `List<T>` — its value-copy indexer breaks the `ref T` write
+contract; rejected `Array.Resize`+a loose counter — no home for the grow/EC/register/seed policy). `T` stays a value
+type (element `record struct`) or `string`. This is the singular home for grow-on-receiving, the capacity counter,
+the CAPACITY bridge, the SEARCH bound, and every capacity EC.
+
+**Growth (decided; §8.5.1.9.3/.9.4).** TWO paths, direction carried by `Place` (no new sender/receiver plumbing):
+`Read()`→sending, `Write(rhs)`→receiving. (1) IMPLICIT — a *receiving* subscript > current capacity grows to it (+
+seeds skipped intermediates), no CAPACITY phrase needed; a *sending* OOB subscript is EC-BOUND-SUBSCRIPT (fatal,
+§8.4.2.3). (2) EXPLICIT — SET Format 14 (`SET dn {TO|UP BY|DOWN BY} n`, syntactically the existing SET — the binder
+re-routes) only if CAPACITY present; may raise/lower. New occurrences seed with the one-occurrence element
+initializer (reuse `FieldEmitter.ComposedInit`/`InitializerFor`; heed the DEVLOG-643 seed-EVERY-occurrence lesson) —
+satisfies INITIALIZED exactly, and is crash-safe for the "undefined" (INITIALIZED-absent) case.
+
+**CAPACITY register (decided).** A view over `table.Capacity` (no own storage): the binder maps `name → owning
+dynamic-table DataItem` (`DataBinder._capacityRegisters`); resolution returns a `CapacityRegisterPlace(table)` whose
+`Read()` emits `{tablePath}.Capacity` (synthetic unsigned-integer PicInfo) and whose `Write()` is illegal except via
+SET Format 14 (SR30–32). Initial capacity = `FROM ?? 0` (§8.5.1.9.1 :8199). `FUNCTION LENGTH` over a dynamic
+table/containing group = `Capacity * elemWidth` (§15.50, not a static width).
+
+**Group image (decided).** A dynamic table is NOT image-capable (`IsCharacterImage`/`IsImageCapable` return false) —
+a containing group drops out of the static record codec exactly like the Tier-C float/COMP-5 island; the element
+`record struct` keeps its own AsImage/FromImage (single-element MOVE works). Whole-group ops on a containing group →
+staged LOUD.
+
+**CORE ships whole:** declaration (all phrases, order-independent) · out-of-line growable storage · CAPACITY
+read + SET Format 14 write · implicit + explicit growth · INITIALIZED seeding · bounds/capacity ECs
+(EC-BOUND-SUBSCRIPT/-OVERFLOW/-TABLE-LIMIT/-SET, EC-FLOW-SEARCH via a per-table `_inSearch` guard) · SEARCH/SEARCH
+ALL over current capacity · `INITIALIZE <dynamic-table>` · the 2014 edition gate + matrix/VCR rows. **Staged LOUD
+(diagnostic, not a silent wrong answer):** variable-length-group MOVE/COMPARE + whole-group image of a containing
+group (**COBOLNET1527**, §14.6.9) · VALUE-derived initial capacity (**1528**, §13.18.63 GR16) · ref-mod of a
+subordinate (**1526**, §13.7.1 SR6) · REDEFINES subject/object a dynamic table (**1525**, §13.18.44 SR17).
+
+**Grammar (SHARED .g4 → FULL legacy guard; additive).** A new `CAPACITY` lexer token; a `{is2014()}?`-gated DYNAMIC
+alt on `occursClause` (LL-disjoint — DYNAMIC is not an integerLiteral) with an order-independent `occursDynamicPhrase*`;
+`EditionGateHints` entry so a pre-2014 probe upgrades to **COBOLNET0900**. NO SET grammar change (Format 14 is the
+existing SET syntax, binder-rerouted). Diagnostics: **1522** (declaration/placement/SR28 — FILE SECTION, ODO-nesting,
+FROM/TO bounds, dup phrase), **1523** (CAPACITY register misuse SR30–32), **1524** (SET Format 14 misuse), 1525–1528
+(staged-loud). (08xx band exhausted; 15xx, last-used 1521.)
+
+**Increments (each: build → full greenfield battery → legacy guard → commit):** (1) grammar + `OccursSpec` dynamic
+fields + `DynamicResolve` + `DataItem.IsDynamicTable`/`IsTable` + `CobolDynTable<T>` + `FieldInit` dynamic branch +
+edition gate + matrix/VCR rows (the ONLY grammar/legacy-guard slice) → goldens `dyn_pre2014`(0900) + declare;
+(2) CAPACITY read + SET Format 14 + capacity ECs → `dyn_declare_capacity`/`dyn_from_to`/`dyn_set_grow`/
+`dyn_set_up_down`/`dyn_bounds_overflow`; (3) subscripted element access (`AccessDir` in `AccessPath` +
+`CobolTable.At(CobolDynTable, occ, receiving)` + `RefSending`/`RefReceiving`/`GrowTo`) → `dyn_implicit_grow`/
+`dyn_initialized`; (4) SEARCH over current capacity + EC-FLOW-SEARCH + `INITIALIZE` → `dyn_search`, flip the matrix
+row active; (5) the staged-loud guards (1525–1528) + doc/DOC_INDEX + negative goldens. Increments 2–5 are
+greenfield-only (guard-fast; CI is the backstop). All 3 recon open questions resolved to their recommended defaults
+(VALUE-capacity staged; EC-FLOW-SEARCH in CORE; extend THIS doc).
+
 ## C# mapping
 
 CONCRETE COBOL→C# MAPPINGS:
