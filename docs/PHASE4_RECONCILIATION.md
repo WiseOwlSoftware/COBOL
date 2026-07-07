@@ -1642,7 +1642,17 @@ so the shape goldens target LOCAL-STORAGE/LINKAGE (2023-clean) + one method-WS g
 **Separate follow-ups (NOT this leg):** method own ENV/FILE/REPORT/SCREEN (`OoBindMethodData:92-101`) and
 EXTERNAL/GLOBAL on method WS (`:111-116`) — orthogonal subsystems, keep their loud gates → **M2-OO-1i**.
 
-### M2-OO-1i — the OBJECT/FACTORY ENVIRONMENT + FILE division (files referenceable from methods) — ⛔🎉 LANDED (DEVLOG 644-648)
+### M2-OO-1i — the OBJECT/FACTORY ENVIRONMENT + FILE division (files referenceable from methods) — ⛔🎉 LANDED & REVIEW-HARDENED (DEVLOG 644-649)
+
+**REVIEW (DEVLOG 649, wf_7355579f-e66 — 4 reviewers → per-finding verify): 8 confirmed defects, ALL FIXED.** The
+review predicted a THIRD class-emit gap and found three: REPORT SECTION in an object/factory (the complete Report
+Writer is now WIRED into the class path via `RwEmitReportMembers`/`RwEmitReportConstruction` — golden `oo_object_report`;
+NOT gated, an owner correction), an OBJECT SD → CS0103 (SD keeps a static `Class::SORT::` key — golden `oo_method_sort`,
+SORT-in-object works), and a method EC-I-O `__IoCheckEc` gap. Runtime: a `~CobolObject` finalizer DATA RACE (mutated
+single-thread registries from the GC thread — now enqueue-on-finalizer / drain-on-mutator), the EXTERNAL keyed-register
+`::EXT::` idempotency guard, a keyed `CloseAndDrop` leak (`KeyedDrop`). Diagnostics: COBOLNET1519 REPORT/SCREEN §
+citations corrected (§13.8.3/§13.9.3), and GLOBAL-on-data-items → COBOLNET1520 (§13.18.27.3 SR4, was FD-only). Battery
+after review: 1973 conformance · 216 unit · legacy integration 81 GREEN.
 
 **AS-BUILT (all 5 increments landed exactly to the design below; DEVLOG 644-648).** (1) method ENV/FILE/REPORT/SCREEN
 → hard COBOLNET1519 (a method may not own them, §12.4.3/§13.4.3 SR1). (2) `FileKeyExpr` — the one canonical

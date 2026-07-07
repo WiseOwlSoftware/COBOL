@@ -27,8 +27,19 @@
 > both preinstalled on the GitHub runner images); a failed generation FAILS the build. There is no committed
 > parser to keep in sync anymore.**
 >
-> **STATE (DEVLOG 648, 2026-07-06 21:49 PDT): ⛔🎉 M2-OO-1i COMPLETE — the OBJECT/FACTORY ENVIRONMENT + FILE
-> division (files referenceable from methods).** The recon (wf_5d22beb6-140) RE-FRAMED the ticket, verified against
+> **STATE (DEVLOG 649, 2026-07-06 22:29 PDT): ⛔🎉 M2-OO-1i COMPLETE & REVIEW-HARDENED — the OBJECT/FACTORY
+> ENVIRONMENT + FILE division (files referenceable from methods).** A find→verify review (wf_7355579f-e66) over the
+> 5 inc-commits found 8 confirmed defects, ALL FIXED (DEVLOG 649): the predicted THIRD class-emit gap — REPORT SECTION
+> in an object/factory → the complete Report Writer is now WIRED into the class path (golden `oo_object_report`; NOT
+> gated — an owner correction) — plus an OBJECT SD → CS0103 (golden `oo_method_sort`, SORT-in-object works), a method
+> EC-I-O `__IoCheckEc` gap, a `~CobolObject` finalizer DATA RACE (now enqueue/drain), the EXTERNAL keyed-register
+> idempotency guard, a keyed `CloseAndDrop` leak, the COBOLNET1519 REPORT/SCREEN § citations (§13.8.3/§13.9.3), and
+> GLOBAL-on-data-items → COBOLNET1520 (§13.18.27.3 SR4, was FD-only). Battery now **1973 conformance · 216 unit ·
+> legacy integration 81 GREEN.** LESSON reinforced a THIRD time: a class-emit path silently omits per-unit scaffolding
+> (the `using`, the external backing, the report engine) that ONLY an incremental compile-AND-RUN catches.
+>
+> **STATE (DEVLOG 648, 2026-07-06 21:49 PDT — superseded by 649 above): ⛔🎉 M2-OO-1i COMPLETE — the OBJECT/FACTORY
+> ENVIRONMENT + FILE division (files referenceable from methods).** The recon (wf_5d22beb6-140) RE-FRAMED the ticket, verified against
 > the spec: a method definition canNOT own an ENVIRONMENT DIVISION / FILE SECTION / WORKING-STORAGE (§12.4.3 SR1 /
 > §13.4.3 SR1 / §13.5.3 SR1 — factory/instance only; a method owns only LOCAL-STORAGE + LINKAGE). So the real leg is
 > the OBJECT/FACTORY paragraph's INPUT-OUTPUT + FILE division, referenceable from method bodies (§11.7.4 GR5). Landed
