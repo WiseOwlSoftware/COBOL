@@ -84,10 +84,13 @@ public sealed partial class CSharpEmitter
         data.OoBindPropertyClauses(cls.Symbol,
             cls.Symbol.Ctx.objectParagraph()?.dataDivision()?.workingStorageSection(), factory: false);
         data.BindResolve(synthetic);
-        if (data.Files.Count > 0)
-            edition.Error("COBOLNET0899",
-                $"class '{cls.Name}': a FILE SECTION in the OBJECT paragraph is recognized but not yet "
-                + "implemented (owning roadmap phase: Phase 3, OO port)");
+        // An OBJECT (instance) file connector is legal (§12.4.3 SR1 / §13.4.3 SR1) and is per-object (§9.1.4, inc 4).
+        // GLOBAL on it is not: §13.18.27.3 SR4 bars the GLOBAL clause in a factory / instance / method definition.
+        foreach (var f in data.Files)
+            if (f.IsGlobal)
+                edition.Error("COBOLNET1520", $"class '{cls.Name}': OBJECT file '{f.CobolName}' specifies the "
+                    + "GLOBAL clause — GLOBAL shall not be specified in a factory, instance, or method definition "
+                    + "(ISO §13.18.27.3 SR4)");
         cls.Data = data;
         cls.Refs = new ReferenceResolver(data);
 
@@ -175,6 +178,18 @@ public sealed partial class CSharpEmitter
     /// resolution is done (bound nodes hold FileModel references), so this is a pure emit-side rename.</summary>
     private static void OoQualifyClassFiles(OoClassUnit cls)
     {
+        // OBJECT (instance) files: one connector per object (§9.1.4). A non-EXTERNAL file keeps a class-qualified
+        // BASE key (the seed MintInstanceKey suffixes with a per-object #N) and a minted-key FIELD; an EXTERNAL
+        // instance file keys by its run-unit external name like any describer (§13.18.22.4 GR4a — inc 5).
+        foreach (var f in cls.Data.Files)
+            if (f is { IsExternal: true, ExternalName: { } ext })
+                f.CobolName = "::EXT::" + ext;
+            else
+            {
+                f.InstanceKeyField = "__fkey_" + DataItem.Sanitize(f.CobolName);
+                f.CobolName = cls.CsName + "::INST::" + f.CobolName;
+            }
+        // FACTORY files: the class singleton (§9.3.14.2) — a static class-qualified key (no per-object field).
         foreach (var f in cls.FactoryData.Files)
             f.CobolName = f is { IsExternal: true, ExternalName: { } ext }
                 ? "::EXT::" + ext
@@ -189,10 +204,20 @@ public sealed partial class CSharpEmitter
     /// <see cref="OoEmitTypeHalf"/>), each file addressed through <c>FileKeyExpr</c>.</summary>
     private void OoEmitFileMembers(string csName, DataBinder data, CodeWriter w)
     {
-        if (!data.Files.Any(f => !f.IsSortMerge)) return;   // an SD is the in-memory sort store, never a host connector
+        var host = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the in-memory sort store, never a host connector
+        if (host.Count == 0) return;
         w.Line();
+        // A per-object minted-key field for each instance file (§9.1.4 — one connector per object): initialized once
+        // per object (field initializers run before the ctor body), so the ctor's Register/track see it live. A
+        // factory / EXTERNAL file has a static literal key (InstanceKeyField null) and emits no field.
+        foreach (var f in host.Where(f => f.InstanceKeyField is not null))
+            w.Line($"private readonly string {f.InstanceKeyField} = CobolFile.MintInstanceKey({CsLiteral(f.CobolName)});");
         using (w.Block($"public {csName}()"))
-            EmitFileRegistration(w);
+        {
+            EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
+            foreach (var f in host.Where(f => f.InstanceKeyField is not null))
+                w.Line($"__TrackInstanceFile({FileKeyExpr(f)});");   // closed + dropped when the object is deleted (§9.1.4)
+        }
         w.Line();
     }
 

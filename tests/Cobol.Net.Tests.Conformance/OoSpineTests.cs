@@ -414,6 +414,40 @@ public sealed class OoSpineTests
             END CLASS GFCLS.
             """).Replace("\r\n", "\n")), "COBOLNET1520");
 
+    /// <summary>M2-OO-1i — the GLOBAL clause is barred in an INSTANCE (object) definition too (ISO §13.18.27.3
+    /// SR4). An OBJECT <c>FD … IS GLOBAL</c> is COBOLNET1520. (The OBJECT file itself is legal — inc 4, a
+    /// per-object connector — only the GLOBAL clause on it is rejected.)</summary>
+    [Fact]
+    public void ObjectFile_Global_1520()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOGO1.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS GOCLS.
+            PROCEDURE DIVISION.
+            MAIN.
+                STOP RUN.
+            END PROGRAM OOGO1.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. GOCLS.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT GOF ASSIGN TO "g.dat".
+            DATA DIVISION.
+            FILE SECTION.
+            FD GOF IS GLOBAL.
+            01 GOF-REC PIC X(4).
+            PROCEDURE DIVISION.
+            END OBJECT.
+            END CLASS GOCLS.
+            """).Replace("\r\n", "\n")), "COBOLNET1520");
+
     /// <summary>The staged boundaries stay LOUD (never a silent drop): INVOKE SELF (slice 3b) reaches the
     /// runtime not-implemented guard; an arity mismatch (slice 2 — trap #3: a dropped/extra argument would
     /// shift every following slot, the legacy DEVLOG-449 blocker) is a compile-time 0828.</summary>

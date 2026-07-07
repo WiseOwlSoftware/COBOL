@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.Exceptions;
+using CobolNet.Runtime.IO;
 
 namespace CobolNet.Runtime;
 
@@ -47,4 +48,42 @@ public abstract class CobolObject
     public static T RequireNonNull<T>(T? receiver) where T : class =>
         receiver ?? throw new CobolFatalException("EC-OO-NULL",
             "INVOKE: the object reference used as the receiver is null (ISO §14.9.23.4 GR5)");
+
+    // ── Per-object instance-file connectors (M2-OO-1i, ISO §9.1.4) ──────────────────────────────────────────
+    // An OBJECT-paragraph (non-EXTERNAL) file connector belongs to the object instance: it is minted per object
+    // (CobolFile.MintInstanceKey), registered in the emitted ctor, tracked here, and implicitly CLOSED when the
+    // object is deleted (§9.1.4 — the runtime executes an implicit CLOSE "for file connectors in an object when
+    // the object is deleted"; the §9.1.4 NOTE licenses this happening during garbage collection). The run-unit
+    // CobolFile.CloseAll() at run-unit termination remains the backstop for objects not yet finalized.
+
+    /// <summary>The minted connector keys of this object's instance files (null until the emitted ctor tracks the
+    /// first one). Each class's ctor tracks its OWN files, so an inherited-plus-own object accumulates the whole
+    /// chain here (the finalizer closes them all).</summary>
+    private System.Collections.Generic.List<string>? __instFiles;
+
+    /// <summary>Every COBOL object suppresses finalization by default — the overwhelming common case owns no files,
+    /// and a finalizer on the universal object root would put EVERY object on the GC finalization queue. Only an
+    /// object that actually tracks an instance file re-registers (<see cref="__TrackInstanceFile"/>), so the §9.1.4
+    /// deletion-time CLOSE burdens the GC for exactly the objects that need it.</summary>
+    protected CobolObject() => System.GC.SuppressFinalize(this);
+
+    /// <summary>Record a per-object instance-file connector key for the deletion-time implicit CLOSE (§9.1.4).
+    /// Called from the emitted object constructor after the file registers; the FIRST tracked file re-arms the
+    /// finalizer this object suppressed at construction.</summary>
+    protected void __TrackInstanceFile(string key)
+    {
+        if (__instFiles is null) { __instFiles = new(); System.GC.ReRegisterForFinalize(this); }
+        __instFiles.Add(key);
+    }
+
+    /// <summary>The §9.1.4 implicit CLOSE at object deletion: close and drop every instance-file connector this
+    /// object owns. A finalizer (not IDisposable) matches the spec's GC-deferred timing (the §9.1.4 NOTE); the
+    /// run-unit <c>CobolFile.CloseAll()</c> is the backstop for objects not yet collected. Reached only for
+    /// file-owning objects (see the ctor's SuppressFinalize). CloseAndDrop is idempotent, so a program that
+    /// already CLOSEd its files finalizes harmlessly.</summary>
+    ~CobolObject()
+    {
+        if (__instFiles is { } fs)
+            foreach (var k in fs) CobolFile.CloseAndDrop(k);
+    }
 }

@@ -14,6 +14,7 @@ public static partial class CobolFile
 {
     private static readonly Dictionary<string, SequentialFile> Files = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> Locked = new(StringComparer.OrdinalIgnoreCase);
+    private static int _instSeq;   // the per-object instance-file connector-key sequence (M2-OO-1i; reset in Init for determinism)
 
     /// <summary>Reset the file registry (emitted once at program start).</summary>
     public static void Init()
@@ -21,8 +22,29 @@ public static partial class CobolFile
         foreach (var f in Files.Values) f.Close();
         Files.Clear();
         Locked.Clear();
+        _instSeq = 0;
         LocksInit();
         KeyedInit();
+    }
+
+    /// <summary>Mint a UNIQUE per-object connector key for an instance file (M2-OO-1i, ISO §9.1.4 — one connector
+    /// per object instance): <paramref name="baseKey"/> (the class-qualified <c>Class::INST::name</c>) suffixed
+    /// with a monotone <c>#N</c>. Called once per object from the emitted <c>__fkey</c> field initializer, so two
+    /// objects of the same class hold DISTINCT connectors that never clobber each other (the two-instances
+    /// golden). Deterministic within a run unit (the counter resets in <see cref="Init"/>).</summary>
+    public static string MintInstanceKey(string baseKey) =>
+        baseKey + "#" + System.Threading.Interlocked.Increment(ref _instSeq)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>Close and remove a per-object instance-file connector (M2-OO-1i, ISO §9.1.4 — the implicit CLOSE
+    /// executed when the owning object is deleted; the §9.1.4 NOTE licenses this happening during GC). Reuses
+    /// <see cref="Close"/> (sequential OR keyed) for the spec-required close, then drops the connector from the
+    /// registry. The run-unit <see cref="CloseAll"/> remains the backstop for objects not yet collected.</summary>
+    public static void CloseAndDrop(string key)
+    {
+        Close(key);
+        Files.Remove(key);
+        Locked.Remove(key);
     }
 
     /// <summary>Register a SELECTed sequential file (emitted at program start, one per SELECT). The host path is
