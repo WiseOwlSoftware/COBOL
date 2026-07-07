@@ -151,6 +151,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         // data-model reclamation (was staged COBOLNET0899); the frozen legacy predates it. Greenfield CorpusRunner
         // byte-compares oo_method_renames.
         ("2002", "oo_method_renames"),
+        // M2-OO-1h step 2, DEVLOG 638: OCCURS … DEPENDING ON in a METHOD's LOCAL-STORAGE (method-scoped
+        // data-name-1) — greenfield reclamation (was COBOLNET0899). Greenfield CorpusRunner byte-compares oo_method_odo.
+        ("2002", "oo_method_odo"),
         // Phase-4 track (d), DEVLOG 623: the file-sharing / record-locking subsystem (SHARING / LOCK MODE /
         // RETRY / WITH LOCK / IGNORING LOCK / UNLOCK — §14.9.27/.30/.47) is net-new in the greenfield; the
         // frozen legacy binder has only the by-name CLOSE-WITH-LOCK/38 primitive and cannot bind these clauses.

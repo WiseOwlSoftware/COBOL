@@ -1145,6 +1145,40 @@ public sealed class OoSpineTests
         Assert.Contains("AL=PQRS", out66);
     }
 
+    /// <summary>§11.7.4 GR5 (M2-OO-1h step 2) — a method table's OCCURS DEPENDING data-name-1 may resolve to a
+    /// VISIBLE, UNSHADOWED OBJECT item (the global fallback in LookupDataInScopeOf), not only a method-local name.
+    /// The gate is gone; a false COBOLNET0851 "not defined" must not fire on a method-scoped depending name.</summary>
+    [Fact]
+    public void MethodOdo_DependingOnVisibleObjectData()
+    {
+        var (ok, output, detail) = CompileAndRun(DriverAndClass("OOSPO2", "OSPO2C", """
+                INVOKE OSPO2C "NEW" RETURNING T.
+                INVOKE T "M".
+            """, """
+            METHOD-ID. M.
+            DATA DIVISION.
+            LOCAL-STORAGE SECTION.
+            01 TBL.
+               05 ELT PIC X OCCURS 1 TO 5 DEPENDING ON OCNT.
+            PROCEDURE DIVISION.
+            MAIN.
+                MOVE "X" TO ELT(1).
+                MOVE "Y" TO ELT(2).
+                MOVE "Z" TO ELT(3).
+                DISPLAY "T=" TBL.
+                GOBACK.
+            END METHOD M.
+            """).Replace("PROCEDURE DIVISION.\nMETHOD-ID. M.", """
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OCNT PIC 9 VALUE 3.
+            PROCEDURE DIVISION.
+            METHOD-ID. M.
+            """));
+        Assert.True(ok, detail);
+        Assert.Contains("T=XYZ", output);   // extent 3 (the object OCNT) — depending-name resolved via the fallback
+    }
+
     // ── The FACTORY slice (§11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────
 
     /// <summary>An instance method and a factory method may SHARE a name (§9.3.6 — two interfaces): INVOKE

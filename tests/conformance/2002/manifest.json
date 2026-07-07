@@ -20,6 +20,7 @@
     "oo_interface",
     "oo_interface_covariant",
     "oo_method_args",
+    "oo_method_odo",
     "oo_method_perform",
     "oo_method_renames",
     "oo_object_group",

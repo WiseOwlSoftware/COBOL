@@ -46,6 +46,12 @@ public sealed partial class DataBinder
     /// field with the <c>static</c> modifier.</summary>
     public HashSet<string> OoStaticRootFields { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>Method root (01/77) → its owning method symbol (M2-OO-1h). The post-build passes (OdoResolve,
+    /// ResolveRedefines) run AFTER <see cref="OoScopeSubtree"/> has moved method names out of the global maps, and
+    /// <see cref="ActiveMethodScope"/> is null then — so they resolve a method item's data-name-1 / REDEFINES
+    /// target through its OWNING method's scope (§11.7.4 GR5), keyed off the item's root, never the class globals.</summary>
+    internal Dictionary<DataItem, OoMethodSymbol> OoRootOwner { get; } = new(ReferenceEqualityComparer.Instance);
+
     /// <summary>The ONE scope-aware data-name lookup (§8.4.6.2.1 rule 3a — a method-local declaration
     /// REPLACES, never unions with, the object/program-level name): consumers that read <see cref="ByName"/>
     /// directly for a USER-WRITTEN name (SEARCH/SORT table resolution, INITIALIZE) route through this so a
@@ -55,6 +61,19 @@ public sealed partial class DataBinder
         if (ActiveMethodScope is { } m && m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
             return mlist;
         return ByName.TryGetValue(name, out var list) && list.Count > 0 ? list : null;
+    }
+
+    /// <summary>Resolve a data-name in the scope that OWNS <paramref name="anchorRoot"/> (M2-OO-1h): the owning
+    /// method's <see cref="OoMethodDataScope.ByName"/> first (§11.7.4 GR5 shadowing), then the class/program
+    /// globals (a method may reference a visible, unshadowed object/program name). A root that is not method-owned
+    /// resolves globally only — unchanged program behavior. Used by the post-build passes (OdoResolve /
+    /// ResolveRedefines), where <see cref="ActiveMethodScope"/> is null.</summary>
+    internal List<DataItem>? LookupDataInScopeOf(DataItem anchorRoot, string name)
+    {
+        if (OoRootOwner.TryGetValue(anchorRoot, out var m)
+            && m.DataScope.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
+            return mlist;
+        return ByName.TryGetValue(name, out var glist) && glist.Count > 0 ? glist : null;
     }
 
     /// <summary>Scope-aware INDEX-NAME lookup (§8.4.6.2.1 rule 3a / §8.4.6.2.3): a METHOD-LOCAL data-name
@@ -130,6 +149,7 @@ public sealed partial class DataBinder
         foreach (var root in m.StaticRoots.Concat(m.LocalRoots).Concat(m.LinkageRoots))
         {
             OoMethodScopedRoots.Add(root);
+            OoRootOwner[root] = m;   // M2-OO-1h: the post-build passes resolve names through the owning method
             OoGateUnsupportedShapes(root, where);
             OoScopeSubtree(root, m.DataScope);
         }
@@ -371,9 +391,9 @@ public sealed partial class DataBinder
         if (item.IndexNames.Count > 0)
             Edition.Error("COBOLNET0899", $"{where}: OCCURS … INDEXED BY on the method data item "
                 + $"'{item.CobolName ?? "FILLER"}' is recognized but not yet implemented (Phase 3, OO port)");
-        if (item.OccursSpec?.Depending is not null || item.OccursSpec?.DependingName is not null)
-            Edition.Error("COBOLNET0899", $"{where}: OCCURS DEPENDING ON on the method data item "
-                + $"'{item.CobolName ?? "FILLER"}' is recognized but not yet implemented (Phase 3, OO port)");
+        // OCCURS DEPENDING ON in method data is LIVE (M2-OO-1h step 2, DEVLOG 638): OdoResolve resolves
+        // data-name-1 through LookupDataInScopeOf(RootOf(item), …) — the method's own scope first (§11.7.4 GR5),
+        // then a visible object item — instead of the raw global ByName.
         // level-66 RENAMES in method data is LIVE (M2-OO-1h step 1, DEVLOG 637): ResolveRedefines resolves the
         // alias FROM/THRU structurally via FindDescendantOrSelf over the owning record (DataBinder.cs:1128-1152),
         // so it is correct regardless of OoScopeSubtree's name re-homing — no gate needed.

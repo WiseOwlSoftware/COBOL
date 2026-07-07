@@ -236,7 +236,10 @@ public sealed partial class DataBinder
                     + "be greater than or equal to zero and less than integer-2 (ISO §13.18.38 SR16)");
 
             // data-name-1 resolution (first declaration wins; OF/IN-qualified data-name-1 is a later refinement).
-            if (!ByName.TryGetValue(depName, out var cands) || cands.Count == 0)
+            // Scope-aware (M2-OO-1h): a method table's data-name-1 resolves in the owning method's scope first
+            // (§11.7.4 GR5), then a visible object/program item — never a same-named item in the wrong scope.
+            var cands = LookupDataInScopeOf(RootOf(item), depName);
+            if (cands is null || cands.Count == 0)
             {
                 Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
                     + "is not defined (ISO §13.18.38 Format 2)");
