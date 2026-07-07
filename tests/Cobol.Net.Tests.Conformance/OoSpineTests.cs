@@ -16,7 +16,10 @@ namespace CobolNet.Tests.Conformance;
 public sealed class OoSpineTests
 {
     /// <summary>A driver + one class with the given OBJECT-paragraph procedure division body.</summary>
-    private static string DriverAndClass(string pid, string cls, string driverBody, string classBody) => $$"""
+    // Raw-string source is CRLF on a Windows checkout (autocrlf) but LF on Linux — normalize to LF so the
+    // `.Replace("… \n …")` object-data injections used below match on BOTH CI platforms (the Windows job failed a
+    // load-bearing object-WS injection when this was CRLF; DEVLOG 641). The compiler reads LF source fine.
+    private static string DriverAndClass(string pid, string cls, string driverBody, string classBody) => ($$"""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. {{pid}}.
         ENVIRONMENT DIVISION.
@@ -40,7 +43,7 @@ public sealed class OoSpineTests
         {{classBody}}
         END OBJECT.
         END CLASS {{cls}}.
-        """;
+        """).Replace("\r\n", "\n");
 
     private static (bool Ok, string Stdout, string Detail) CompileAndRun(string source, int edition = 2002)
     {
