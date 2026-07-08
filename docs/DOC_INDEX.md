@@ -65,7 +65,7 @@
 
 | Doc | Type | Subject |
 |---|---|---|
-| `docs/VERSION_CHANGE_REFERENCE.md` | LEDGER | 130-row checklist of every edition-to-edition change documented in the 2023 spec (Annex E.2/E.3, Annex F, FLAG-02/14, NOTES) — drives version-gating. |
+| `docs/VERSION_CHANGE_REFERENCE.md` | LEDGER | Checklist of every edition-to-edition change documented in the 2023 spec (Annex E.2/E.3, Annex F, FLAG-02/14, NOTES) — drives version-gating. **Status is DERIVED (P3.6):** each row carries a `<!-- gate:id -->`/`ref-only`/`pin-to-spec`/`todo` anchor; the "Gating status index" is a GENERATED block (`pwsh scripts/gen-vcr.ps1`; `VcrDriftTests` guards it). Edit rows/prose by hand, never the generated block. |
 | `docs/VERSION_TEST_MATRIX_DESIGN.md` | DESIGN | Test the compiler as N per-edition compilers: the (construct × edition) matrix, the 3 invariants, the rollout (Phase 0 done). |
 
 ## Conformance feature catalog

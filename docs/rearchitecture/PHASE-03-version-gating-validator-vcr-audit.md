@@ -63,11 +63,19 @@ existing caveat).
    `expectDiagnosticBelow` already have it; pure-intro rows use the `expectDiagnostic` fallback (matrix line 97).
    The remaining Step-3 field is `variant` (Step 7 only).
 
-**Remaining Tier-1 build (next commits):** the VCR transform (drop the hand `Status` column; add
-`<!-- gate:id -->` / `<!-- ref-only -->` / `<!-- pin-to-spec -->` / `<!-- todo -->` anchors seeded from the
-current Status cells; insert `<!-- GEN:VCR-STATUS START/END -->` delimiters) → `gen-vcr.ps1` (render the compact
-status-index block from `constructs.json` status + the anchors) → `VcrDriftTests` (block-in-sync + forward
-coverage + citation-exists). Then the ultracode adversarial-verify pass over the built mechanization.
+**⛔ Step 6 DONE (DEVLOG 701).** The VCR transform landed: the hand `Status` column is removed from all 147
+change-table rows and replaced by a machine anchor in the gating cell (`<!-- gate:id -->` ×17 / `todo` ×103 /
+`ref-only` ×12 / `pin-to-spec` ×3, seeded from the old Status cells; per-table cell-count verified consistent).
+The generated "Gating status index" block (`<!-- GEN:VCR-STATUS START/END -->`, 15 anchored constructs) is
+rendered by `VcrDriftTests` (write mode via `scripts/gen-vcr.ps1` → `COBOLNET_WRITE_VCR=1`; the DIAGNOSTICS.md
+pattern). `VcrDriftTests` (3 facts, CI-gated): forward coverage (every `gate:id` → a real construct),
+citation-exists (every appendix specLines ref is within the spec), and index-in-sync. Tier-2 (the narrative
+audit) is DONE (DEVLOG 699). Battery: conformance 2058 · unit 227 · guard 353 MATCH.
+
+**RESUME AT: Step 5** (backfill 85→2002 / 2002→2014 rows — each new gated row adds a `<!-- gate:id -->` anchor +
+flips a `todo`, and flows into the generated index automatically) → Step 7 (behavior-variant matrix) → Step 8
+(in-process continuity + INV-1-strong gates) → Step 9 (discovery runners) → Step 10 (loud hole cataloguing) →
+Step 11 (close). **Also queued: the ultracode adversarial-verify pass over the built Step 2 + Step 6.**
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
