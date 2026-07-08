@@ -37,11 +37,18 @@ predicate stamping on `CobolParserCoreBase`; and route the five inline pre-band 
 ## Exit criteria (phase is DONE when ALL hold)
 
 1. Full battery green: greenfield conformance (2028+) + unit (213+) + the FULL legacy guard (NIST **353
-   MATCH**), zero regressions, diagnostic goldens byte-stable.
+   MATCH**), zero regressions, diagnostic goldens byte-stable. ✅ (conformance 2055 · unit 227 · guard 353 MATCH.)
 2. `Cobol.Net.Editions` exists and is referenced by **both** `Cobol.Net.Frontend` and `Cobol.Net.Compiler`
-   (verify: both `.csproj` have the `ProjectReference`).
-3. `EditionGateHints.cs` is **deleted**; there is no duplicate edition-diagnostic origin (the parse-layer
-   `COBOLNET0900` now comes from `ConstructRegistry.Check` via predicate stamping, not a signature table).
+   (verify: both `.csproj` have the `ProjectReference`). ✅
+3. There is no duplicate edition-diagnostic origin: the parse-layer `COBOLNET0900` is rendered through the ONE
+   `ConstructRegistry.Check` funnel. ✅ **RECONCILED to as-built (R1 supersession):** `EditionGateHints.cs` was
+   NOT deleted — forward predicate stamping was adversarially DISPROVED (risk R1, DEVLOG 679). Instead the
+   bind-time gating migration (DEVLOG 680–690) moved every HARD-reserved construct's introduction gate to a
+   bind-time `Check`, emptying the parse-layer recognizer of all but the irreducible reservation-word residue
+   (XOR / boolean ops / SHARING / RETRY / UNLOCK / PROPERTY — context-sensitive keywords whose parse predicate
+   is load-bearing), which was renamed `ReservedWordEditionHints` (DEVLOG 693). The duplicated
+   `(Display, IntroducedIn, Citation, RowId)` metadata IS deleted — the recognizer carries only a
+   signature→row-id map; all display/edition/citation come from the registry row via `Check`.
 4. `constructs.json`, `reserved-words.json`, and the diagnostic descriptors are bound to code by **drift
    tests** (`ConstructRegistryDriftTests`, `ReservedWordsDriftTests`, new `DiagnosticRegistryDriftTests`).
 5. The ~290 `EditionContext` call sites are green via the adapter (or migrated — the adapter may remain at
@@ -58,7 +65,10 @@ retiring the adapter across all 290 sites is *optional* here and may defer to P7
 
 ## STATUS
 
-`IN PROGRESS @ step 10` (started 2026-07-07; recon wf_9944fe61-fcc). Steps 1–7 DONE (8 commits, all pushed to main); step 8 SUPERSEDED by the bind-time gating migration (all 24 hard-reserved constructs now gate at bind time through `ConstructRegistry.Check`; `EditionGateHints` is down to its reservation-word residue — DEVLOG 680–690); **step 9 DONE** (P2.9, DEVLOG 692 — the frontend preprocessor gates consume the ONE `EditionSeverityPolicy`); steps 10–11 remain. Battery held green throughout: conformance 2055 · unit 224 · FULL legacy guard NIST 353 MATCH.
+**✅ DONE** (2026-07-08; started 2026-07-07, recon wf_9944fe61-fcc). All 7 exit criteria hold (see the reconciled
+list above). Steps 1–7 DONE; step 8 SUPERSEDED by the bind-time gating migration; steps 9–11 DONE. Battery at
+close: **greenfield conformance 2055 · unit 227 · characterization 32 · FULL legacy guard NIST 353 MATCH** (0
+regressions). Landing commits pushed to main: P2.1 `62e09db1` → P2.11 (this close).
 > **Landed (this session reordered the doc's steps 3↔4 — adapter first, then move):**
 > - P2.1 (62e09db1, DEVLOG 670) — the `Cobol.Net.Editions` leaf assembly + refs + `EditionInfo`.
 > - P2.2 (26edb4fa, DEVLOG 671) — `EditionSeverity` + `IDiagnosticSink`/`EditionDiagnostic`.
@@ -69,12 +79,29 @@ retiring the adapter across all 290 sites is *optional* here and may defer to P7
 > - P2.6b (3d707f24, DEVLOG 676) — folded the 5 inline gates into registry rows (0803/0810/0811/0882 active; 0816 END-ACCEPT folded-but-**pending** because the grammar has no `END_ACCEPT` — the gate is unreachable dead code, a documented discovery). 84 active / 11 pending constructs.json rows.
 > - **P2.7 (DEVLOG 679) — the parse-layer COBOLNET0900 flows through the ONE `ConstructRegistry.Check` funnel (forward stamping TRIED, adversarially DISPROVED, R1-mitigation LANDED).** `CobolParserCoreBase` single-sources the dialect year via `EditionInfo Edition` (`DialectLevel` is a shim; `is85/2002/2014/2023` delegate to `Edition.Has`) — P5. `EditionGateHints` is thinned to a pure signature→`Constructs.*` row-id recognizer (the hand-copied `Display`/`IntroducedIn`/`Citation` metadata DELETED — P1/P7); `CobolErrorStrategy` renders the 0900 message via `ConstructRegistry.Check(edition, sink, id, where)` (display/edition/citation are the registry row's), JSON/XML → `COBOL0313` directly.
 >
-> **⛔ RESUME AT step 9 — preprocessor edition gates → `EditionSeverityPolicy`** (see §"Step 9"). **Step 8 (delete `EditionGateHints`) is SUPERSEDED, NOT next:** the adversarial review (wf_b73eff97) disproved forward stamping — ANTLR evaluates hoisted `{Gate}?` predicates SPECULATIVELY at the stuck token, so typos (`IF W = .`, a stray `)`, `SUPPRESS`) got a confidently-wrong 0900 (this is risk R1; DEVLOG 679 has the repros). A forward stamp can't reliably mean "the user wrote this construct", so `EditionGateHints`'s SIGNATURE recognition is retained (it keys off the construct's own tokens being present → a typo matches nothing → neutral error). Deleting it needs the **bind-time gating** north-star below, not a stamp.
->
-> **Step-7 as-built notes:**
-> - **P1/P7 (metadata duplication) FIXED; P3 (eliminate the signatures via a forward gate) is NOT achievable** — R1 disproved it. `EditionGateHints` now carries ONLY the signature→row-id map; all display/edition/citation come from the registry row via `Check`. `EditionGateDiagnosticTests` stayed green unchanged (it asserts substrings the `Check` template also produces; `{where}` = `"near '<token>'"`).
-> - **DECADES NORTH-STAR — move edition gating to BIND time.** Parse the construct unconditionally; gate at the recognition point through the same `Check` funnel — exactly the pattern step 6 used for the five inline gates (ALTER/bare-GO-TO/…). That removes BOTH the parse-time rejection predicates AND the reverse signatures, leaving only a small "reservation-word" residue (context-sensitive keywords that are user words below their edition — XOR, the boolean operators, the SHARING/LOCK/RETRY family — whose parse predicate is load-bearing for tokenization). A deliberate follow-on track (P3/EditionValidator territory), NOT a hasty mid-step rewrite; also mirrored in `DESIGN-edition-framework.md`.
-> - **Why forward stamping failed (kept as a warning):** a hoisted predicate is evaluated during ANTLR prediction/recovery at the STUCK token, not only where the construct actually appears; `Consume()`-reset and a JSON/XML guard patched sub-cases but the general typo-at-the-stuck-token leak is intrinsic. Do not re-attempt stamp-as-identifier.
+> **Steps 8–11 as-built (the completion):**
+> - **Step 8 (delete `EditionGateHints`) SUPERSEDED by the bind-time gating migration (DEVLOG 680–690).** Forward
+>   `{Gate}?` predicate stamping was adversarially disproved (wf_b73eff97 — ANTLR evaluates hoisted predicates
+>   SPECULATIVELY at the stuck token, so typos like `IF W = .` / a stray `)` / `SUPPRESS` got a confidently-wrong
+>   0900; risk R1, DEVLOG 679). Rather than a stamp, the migration moved every HARD-reserved construct's
+>   introduction gate to a bind-time `ConstructRegistry.Check` at its recognition point (the step-6 pattern),
+>   removing both the parse predicates and the reverse signatures for those constructs. What remains is the
+>   irreducible reservation-word residue (XOR / boolean ops / SHARING / RETRY / UNLOCK / PROPERTY — user words
+>   below their edition, whose parse predicate is load-bearing), diagnosed by the thinned recognizer, renamed
+>   `ReservedWordEditionHints` (DEVLOG 693). The duplicated metadata is gone; the parse-layer 0900 renders through
+>   the ONE `ConstructRegistry.Check`. (This satisfies exit criterion 3's INTENT — reconciled above.)
+> - **Step 9 DONE (P2.9, DEVLOG 692):** the frontend preprocessor gates (`ReferenceFormatProcessor.EditionGates`,
+>   `CopyProcessor.OnNonPseudoTextOperand`) consume the ONE `EditionSeverityPolicy` — no local `if(permissive)`.
+> - **Step 10 DONE (P2.10a/b, DEVLOG 694–695):** the first-class `DiagnosticDescriptor` registry
+>   (`Cobol.Net.Editions/Diagnostics/DiagnosticCatalog`) — the edition band single-sourced from `EditionCodes`,
+>   the `COBOLNET0899` catch-all split into ~40 addressable per-feature/per-rule descriptors (deferrals vs
+>   validations, byte-stable code), the reused `COBOLNET1533` split into 3 by ISO §; generated `docs/DIAGNOSTICS.md`
+>   + `DiagnosticRegistryDriftTests` (unique Ids · no bare split-code literal · doc in-sync).
+> - **Step 11 DONE (P2.11, this close):** DOC_INDEX row, `DESIGN-edition-framework.md` banner + resolved Qs,
+>   `resume-prompt.md` STATE → P3, this STATUS → DONE.
+> - **P1/P7 (metadata duplication) FIXED; P3 (eliminate the signatures via a forward gate) is NOT achievable** — R1
+>   disproved it; the bind-time migration is the correct realization instead. Do not re-attempt stamp-as-identifier
+>   (kept as a warning).
 
 > The executing session MUST update this line as it works: `IN PROGRESS @ step N` while working, then
 > `DONE` when every exit criterion holds. Record the DEVLOG entry numbers you allocate next to each commit.

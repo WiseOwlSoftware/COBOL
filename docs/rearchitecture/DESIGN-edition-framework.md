@@ -1,6 +1,8 @@
 # DESIGN — Edition / Version-Correctness Framework ("N per-edition compilers")
 
-> Status: DESIGN (rearchitecture target). Owner-review pending on the Open Questions.
+> Status: DESIGN — **IMPLEMENTED by rearch PHASE 02 (P2.1–P2.11, DEVLOG 670–695; PHASE-02 doc = DONE).** The
+> Open Questions (§6) are resolved-by-implementation except Q4 (the behavior-variant matrix), an explicit P3
+> follow-on. R1 (forward predicate stamping) materialized and was superseded by the bind-time gating migration.
 > Scope: the four-compilers-in-one machinery — construct registry, reserved words, gating
 > (introduction / removal / obsolete / behavior-variant), `EditionContext` threading, the version
 > test matrix, and the version-gating audit. Upholds the HARD INVARIANTS (typed-native, spec-first,
@@ -383,10 +385,9 @@ behavior.
 
 ## 6. Open questions for the owner
 
-1. **Q1 — Registry generation mechanism:** Roslyn incremental source generator (cleaner, IDE-live)
-   vs. an MSBuild pre-build PowerShell script (mirrors the existing `gen-reserved-words.ps1` /
-   ANTLR-regen pattern the repo already trusts)? The design assumes the generator with the script as
-   fallback; confirm the preference.
+1. **Q1 — Registry generation mechanism? ✅ RESOLVED: committed PowerShell script.** `scripts/gen-constructs.ps1`
+   emits the committed `.g.cs` (mirroring `gen-reserved-words.ps1`), NOT a Roslyn source generator (P2.5); the
+   diagnostics doc uses the same discipline via `scripts/gen-diagnostics-doc.ps1` (the drift test renders it).
 2. **Q2 — Delete `EditionGateHints` outright, or keep a registry-driven thin recognizer? ✅ RESOLVED
    by implementation (R1 + the bind-time migration).** Forward predicate stamping was disproved (R1);
    the bind-time migration then emptied the recognizer of all hard-reserved constructs, leaving only the
@@ -394,20 +395,19 @@ behavior.
    recognizer is kept — renamed `ReservedWordEditionHints` to reflect its now-narrow, permanent role —
    with all metadata driven from the registry. Not a belt-and-suspenders fallback: it is the only place
    the context-sensitive-keyword ambiguity can be re-diagnosed.
-3. **Q3 — Assembly boundary:** should `Cobol.Net.Editions` be dependency-free (the parse-layer
-   `Check` overload takes primitives, and `GateId`→registry mapping lives in the frontend), or may it
-   reference the ANTLR runtime so the gate helper can live in one place? Dependency-free is cleaner
-   layering; the ANTLR reference is more convenient.
-4. **Q4 — Scope of the behavior-variant matrix (§2.10):** is running every construct under all four
-   `--std` values and diffing stdout in scope for this rearchitecture, or a follow-on track? It is the
-   weakest leg of "four compilers in one" but also the largest new test surface.
-5. **Q5 — `EditionContext` final name:** after the split, the compiler-side diagnostic collector needs
-   a name. `DiagnosticSink`? `CompileDiagnostics`? (It is no longer "edition"-specific — it collects
-   all bind/emit diagnostics, not just edition ones — which argues for unifying it with the broader
-   diagnostics dimension rather than keeping an edition-scoped sink.)
-6. **Q6 — Does the general diagnostic-descriptor registry (the understandability critique's 163-code
-   ask) belong to THIS dimension or a separate Diagnostics dimension?** `EditionDiagnostic` is
-   descriptor-shaped and could seed it, but the 0899 catch-all / 1533-reuse cleanup spans the whole
-   compiler. The design keeps the edition band (0900-0903 + pinned 08xx) here and defers the general
-   registry — confirm that split.
+3. **Q3 — Assembly boundary? ✅ RESOLVED: dependency-free.** `Cobol.Net.Editions` references no ANTLR runtime;
+   the parse-layer `Check` takes primitives (`EditionInfo` + `IDiagnosticSink`), and the `GateId`→construct-id
+   map lives in the frontend (`GateIds`). Cleaner layering, as recommended.
+4. **Q4 — Scope of the behavior-variant matrix (§2.10)? ⏭ DEFERRED to P3 (unchanged).** Running every construct
+   under all four `--std` values and diffing stdout is the P3 version-gating audit / `VersionBehaviorMatrixTests`,
+   explicitly out of P2 scope. This is the one open question P2 does NOT resolve.
+5. **Q5 — `EditionContext` final name? ✅ RESOLVED by implementation: kept `EditionContext` behind the adapter.**
+   P2 split it into `EditionInfo` + an `IDiagnosticSink` while keeping the public surface + name so the ~290
+   sites compile untouched (exit criterion 5). Renaming the collector to its final name (`DiagnosticSink` /
+   `CompileDiagnostics`) + retiring the adapter is the optional P7 churn (PHASE-02 §"Step 12").
+6. **Q6 — General diagnostic-descriptor registry here or a separate dimension? ✅ RESOLVED: seeded HERE, broader
+   registry deferred to P7.** The edition band + the `COBOLNET0899` split + the reused `COBOLNET1533` landed as
+   `Cobol.Net.Editions/Diagnostics/DiagnosticCatalog` (P2.10, `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`).
+   The full every-code→descriptor migration + folding the frontend's parse-layer descriptors / its 3-value
+   `DiagnosticSeverity` into this home is the P7 follow-on.
 ```
