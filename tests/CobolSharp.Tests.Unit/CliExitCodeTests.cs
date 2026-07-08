@@ -79,100 +79,15 @@ public class CliExitCodeTests
         Assert.Equal(1, exit); // a normal diagnosed failure, not 70 (the catch must not intercept it)
     }
 
-    // ── --standard reaches the parser DialectLevel (Phase A regression net) ──────────────────────
-    //
-    // The CLI maps --standard <ver> → Options.Dialect → Options.Config.ParserLevel → parser.DialectLevel
-    // (the same path the conformance harness drives). These end-to-end tests, through the real Program.Main,
-    // lock that plumbing so a version-gated grammar feature is accepted ONLY from the standard that introduced
-    // it — pinning each --standard to the correct parser level. They use grammar gates (parse-time {isYYYY()}?
-    // predicates), so the result is purely the dialect threshold, independent of semantics/codegen.
+    // ── (removed) --standard edition-gating CLI tests ────────────────────────────────────────────
+    // These end-to-end tests asserted the LEGACY CLI (cobolsharp.dll) REJECTS a too-new construct (GOBACK
+    // RETURNING @85, DELETE FILE @85/2002/2014) via the shared grammar's parse-time {isYYYY()}? predicates.
+    // The rearch bind-time gating migration (DEVLOG 680–690) moved edition INTRODUCTION-gating out of the shared
+    // grammar into the GREENFIELD binder's ConstructRegistry.Check funnel (parse-then-gate at the recognition
+    // point). The legacy compiler shares the (now-ungated) frontend grammar but NOT the greenfield's bind-time
+    // Checks, so it no longer parse-rejects these — hence these legacy-CLI gating assertions are OBSOLETE. The
+    // correct behavior is comprehensively verified against the authoritative greenfield compiler by
+    // Cobol.Net.Tests.Conformance's EditionGateDiagnosticTests + VersionMatrixTests (all green). The legacy-CLI
+    // mechanics tests below (valid-program exit 0, unknown-option exit 1) are unaffected and kept.
 
-    // GOBACK RETURNING (ISO §14.9.16) + PROCEDURE DIVISION RETURNING are gated {is2002()}?: rejected under
-    // cobol85, accepted from cobol2002 onward. (Two units so the RETURNING item lives in a LINKAGE SECTION.)
-    private const string Goback2002Source = @"
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. GBMAIN.
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01 R PIC 9(4).
-       PROCEDURE DIVISION.
-       MAIN.
-           CALL ""GBSUB"" USING R RETURNING R.
-           STOP RUN.
-       END PROGRAM GBMAIN.
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. GBSUB.
-       DATA DIVISION.
-       WORKING-STORAGE SECTION.
-       01 WS PIC 9(4) VALUE 7.
-       LINKAGE SECTION.
-       01 LK-A PIC 9(4).
-       01 LK-R PIC 9(4).
-       PROCEDURE DIVISION USING LK-A RETURNING LK-R.
-       P.
-           GOBACK RETURNING WS.
-       END PROGRAM GBSUB.
-";
-
-    // DELETE FILE (ISO §14.9.10) is gated {is2023()}?: rejected under cobol85/2002/2014, accepted from cobol2023.
-    private const string DeleteFile2023Source = @"
-       IDENTIFICATION DIVISION.
-       PROGRAM-ID. DELF.
-       ENVIRONMENT DIVISION.
-       INPUT-OUTPUT SECTION.
-       FILE-CONTROL.
-           SELECT F ASSIGN TO ""cli-dialect-x.dat""
-               ORGANIZATION IS SEQUENTIAL.
-       DATA DIVISION.
-       FILE SECTION.
-       FD F.
-       01 F-REC PIC X(10).
-       PROCEDURE DIVISION.
-       MAIN.
-           DELETE FILE F.
-           STOP RUN.
-       END PROGRAM DELF.
-";
-
-    [Theory]
-    // GOBACK RETURNING — the 2002 boundary.
-    [InlineData("cobol85", false)]
-    [InlineData("cobol2002", true)]
-    [InlineData("cobol2014", true)]
-    [InlineData("cobol2023", true)]
-    public void Cli_Standard_GatesGoback2002Feature(string standard, bool shouldCompile)
-        => AssertDialectGate(Goback2002Source, standard, shouldCompile);
-
-    [Theory]
-    // DELETE FILE — the 2023 boundary.
-    [InlineData("cobol85", false)]
-    [InlineData("cobol2002", false)]
-    [InlineData("cobol2014", false)]
-    [InlineData("cobol2023", true)]
-    public void Cli_Standard_GatesDeleteFile2023Feature(string standard, bool shouldCompile)
-        => AssertDialectGate(DeleteFile2023Source, standard, shouldCompile);
-
-    private static void AssertDialectGate(string source, string standard, bool shouldCompile)
-    {
-        string? cli = FindCliDll();
-        if (cli == null) return; // CLI not built in this run — skip
-        string tempDir = Path.Combine(Path.GetTempPath(), "cobolsharp_cli_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(tempDir);
-        try
-        {
-            string src = Path.Combine(tempDir, "DG.cob");
-            File.WriteAllText(src, source);
-            var (exit, stdout) = RunCli(cli, src, "-o", Path.Combine(tempDir, "DG.dll"), "--standard", standard);
-            if (shouldCompile)
-            {
-                Assert.Equal(0, exit);
-                Assert.Contains("Compiled successfully", stdout);
-            }
-            else
-            {
-                Assert.Equal(1, exit); // a normal diagnosed parse failure (the feature is not in this dialect)
-            }
-        }
-        finally { try { Directory.Delete(tempDir, true); } catch { } }
-    }
 }

@@ -1,4 +1,2 @@
 ok=false
-tests/characterization/negative/char_neg_occurs_dyn85.cob(7,28): error COBOL0001: no viable alternative at input 'OCCURS'
-tests/characterization/negative/char_neg_occurs_dyn85.cob(7,28): error COBOLNET0900: cannot parse construct near 'OCCURS'. the OCCURS DYNAMIC clause (dynamic-capacity table) requires COBOL-2014 (targeting COBOL-85) — ISO §13.18.38 Format 4 (constructs.json row occurs-dynamic-2014).
-tests/characterization/negative/char_neg_occurs_dyn85.cob(7,50): error COBOL0307: unexpected 'TO'. A period may be missing at the end of the previous sentence.
+error COBOLNET0900: OCCURS DYNAMIC (dynamic-capacity table) requires COBOL-2014 (targeting COBOL-85) — the OCCURS DYNAMIC clause (ISO §13.18.38 Format 4 / §8.5.1.9; data-model D9 — the CobolDynTable<T> growable substrate; CAPACITY register + SET Format 14 + SEARCH over current capacity)
