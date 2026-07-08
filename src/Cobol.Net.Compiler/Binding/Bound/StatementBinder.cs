@@ -3,7 +3,7 @@
 using Antlr4.Runtime.Tree;
 using CobolNet.Runtime;
 using CobolNet.Validation;
-using CobolSharp.Compiler.Generated;
+using CobolNet.Frontend.Generated;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace CobolNet.Binding.Bound;

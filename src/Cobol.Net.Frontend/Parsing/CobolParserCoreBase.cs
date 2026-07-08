@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 
-namespace CobolSharp.Compiler.Generated;
+namespace CobolNet.Frontend.Generated;
 
 /// <summary>
 /// Base class for the ANTLR-generated CobolParserCore.

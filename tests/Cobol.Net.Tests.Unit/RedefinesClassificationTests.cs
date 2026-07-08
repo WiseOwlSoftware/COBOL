@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
 using CobolSharp.Compiler.Diagnostics;
-using CobolSharp.Compiler.Generated;
+using CobolNet.Frontend.Generated;
 using Xunit;
 using CnFrontend = CobolNet.Frontend.Frontend;
 

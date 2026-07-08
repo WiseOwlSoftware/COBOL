@@ -3,7 +3,7 @@
 using Antlr4.Runtime.Tree;
 using CobolNet.Validation;
 using CobolSharp.Compiler.Diagnostics;
-using CobolSharp.Compiler.Generated;
+using CobolNet.Frontend.Generated;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;

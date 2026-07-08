@@ -4,7 +4,10 @@ using CobolSharp.Runtime;
 using Antlr4.Runtime;
 using CobolSharp.Compiler.CodeGen;
 using CobolSharp.Compiler.Diagnostics;
-using CobolSharp.Compiler.Generated;
+using CobolNet.Frontend.Generated;
+// Alias for the namespace-relative `Generated.` shorthand this file also uses (the parser moved to
+// CobolNet.Frontend.Generated at rearch P1; formerly reachable via the CobolSharp.Compiler root).
+using Generated = CobolNet.Frontend.Generated;
 
 namespace CobolSharp.Compiler.Semantics;
 

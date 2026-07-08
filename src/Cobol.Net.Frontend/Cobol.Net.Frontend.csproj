@@ -10,6 +10,9 @@
   <PropertyGroup>
     <RootNamespace>CobolNet.Frontend</RootNamespace>
     <AssemblyName>Cobol.Net.Frontend</AssemblyName>
+    <!-- Single source of the generated ANTLR parser namespace (rearch P1) — threaded into the generation Exec
+         below and matched by the hand-written superClass base Parsing/CobolParserCoreBase.cs. -->
+    <AntlrNamespace>CobolNet.Frontend.Generated</AntlrNamespace>
     <!-- Suppress CS3021 warnings from ANTLR-generated files -->
     <NoWarn>$(NoWarn);CS3021</NoWarn>
   </PropertyGroup>
@@ -54,7 +57,7 @@
 
     <!-- Run parser generation (outputs to temp, copies to Generated, skips CobolParserCoreBase.cs).
          A nonzero exit FAILS the build - GenerateIfNewer.ps1 propagates the generator's exit code. -->
-    <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)/GenerateIfNewer.ps1&quot;"
+    <Exec Command="pwsh -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)/GenerateIfNewer.ps1&quot; -PackageName $(AntlrNamespace)"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
 
     <!-- Add generated files to compilation in case they were missing during initial globbing -->

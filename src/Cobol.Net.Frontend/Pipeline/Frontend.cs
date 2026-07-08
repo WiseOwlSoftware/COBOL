@@ -3,7 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
 using CobolSharp.Compiler.Diagnostics;
-using CobolSharp.Compiler.Generated;
+using CobolNet.Frontend.Generated;
 using CobolSharp.Compiler.Parsing;
 using CobolSharp.Compiler.Preprocessor;
 

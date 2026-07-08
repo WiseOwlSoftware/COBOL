@@ -4,7 +4,7 @@ using CobolSharp.Runtime;
 using CobolSharp.Compiler.Common;
 using CobolSharp.Compiler.CodeGen.Lowering;
 using CobolSharp.Compiler.Diagnostics;
-using CobolSharp.Compiler.Generated;
+using CobolNet.Frontend.Generated;
 using CobolSharp.Compiler.IR;
 using CobolSharp.Compiler.Semantics;
 using CobolSharp.Compiler.Semantics.Bound;

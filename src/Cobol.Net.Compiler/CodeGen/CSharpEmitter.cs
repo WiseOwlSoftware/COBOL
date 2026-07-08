@@ -4,7 +4,7 @@ using CobolNet.Binding;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
 using CobolNet.Runtime;
-using CobolSharp.Compiler.Generated;
+using CobolNet.Frontend.Generated;
 
 namespace CobolNet.CodeGen;
 

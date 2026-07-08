@@ -3,7 +3,7 @@
 using System.Diagnostics;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using CobolSharp.Compiler.Generated;
+using CobolNet.Frontend.Generated;
 
 namespace CobolSharp.Compiler.Semantics;
 

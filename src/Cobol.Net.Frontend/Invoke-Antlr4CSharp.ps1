@@ -26,7 +26,7 @@ function Invoke-Antlr4CSharp {
     param(
         [string]$JarPath = (Join-Path $PSScriptRoot 'ANTLR4' 'antlr-4.13.2-complete.jar'),
         [string]$OutputDir = (Join-Path $PSScriptRoot 'Generated'),
-        [string]$PackageName = 'CobolSharp.Compiler.Generated'
+        [string]$PackageName = 'CobolNet.Frontend.Generated'
     )
 
     $grammarDir = Join-Path $PSScriptRoot 'Grammar'

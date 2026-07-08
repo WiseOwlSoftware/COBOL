@@ -9,6 +9,8 @@
   (DEVLOG 554) is not possible anymore.
 #>
 
+param([string]$PackageName = 'CobolNet.Frontend.Generated')   # single-sourced from the csproj <AntlrNamespace> (rearch P1)
+
 $GrammarDir = Join-Path $PSScriptRoot 'Grammar'
 $GeneratedDir = Join-Path $PSScriptRoot 'Generated'
 $LexerFile = Join-Path $GeneratedDir 'CobolLexer.cs'
@@ -42,7 +44,7 @@ if ($needsRegeneration) {
     # Import and run the ANTLR generation — and PROPAGATE failure to the caller (MSBuild Exec): a nonzero exit
     # here fails the build instead of compiling against stale or absent generated files.
     . (Join-Path $PSScriptRoot 'Invoke-Antlr4CSharp.ps1')
-    $result = Invoke-Antlr4CSharp
+    $result = Invoke-Antlr4CSharp -PackageName $PackageName
     if ($result -ne 0) {
         Write-Error "ANTLR generation FAILED - failing the build (no stale-parser fallback)."
         exit 1
