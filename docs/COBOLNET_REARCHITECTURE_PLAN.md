@@ -22,9 +22,16 @@
 > catch-all split into ~40 addressable descriptors + the reused `COBOLNET1533` split by ISO §, generated
 > `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`. Current baseline: **2055 greenfield conformance · 227 unit · 32
 > characterization GREEN; FULL legacy guard NIST 353 MATCH.**
-> **RESUME AT: PHASE 03** (`docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md`) — the version-gating
-> *behavior* audit + VCR generation + `VersionBehaviorMatrixTests` (the deferred Open-Question Q4). Read that phase doc's
-> STATUS line FIRST, then execute its numbered steps, battery-green at every commit boundary.
+> **PHASE 03 IN PROGRESS @ step 2** (`docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md` — the
+> version-gating validator on the editions framework + harness-driven VCR audit + behavior-variant matrix). ⚠ The
+> PHASE-03 doc was authored BEFORE P2 executed, so its **Step-0 AS-BUILT reconciliation** (now embedded in that doc's
+> STATUS block) is load-bearing: **Step 1 (P2 framework surface) ✅ and Step 4 (fold the 5 inline gates) ✅ are ALREADY
+> satisfied** (P2.1–P2.6b); **Steps 2 & 3 are PARTIAL** (the validator's `Check` calls are already sink-based but its
+> ctor still takes `EditionContext`; `constructs.json` lacks `expectDiagnostic`/`variant`); **Steps 5–10 are the
+> substantial NEW work** — VCR mechanization (117 hand-`TODO` rows → harness-derived status), the behavior-variant
+> matrix (INV-3), the in-process continuity + INV-1-strong-2023 gates, corpus discovery runners, and loud hole
+> cataloguing. RESUME AT step 2 (re-home `EditionValidator` onto `EditionInfo`+`IDiagnosticSink`). Read the PHASE-03
+> doc's STATUS block FIRST; execute its numbered steps, battery-green at every commit boundary.
 > ⚠ One owner override to carry forward — **D10: PHASE-04 must FULLY remove the lexer `SUBSCRIPT` mode + the binder
 > subscript re-parse** (a grammar-level `x(i)` rule), an expansion beyond that phase's originally-authored scope (§6). The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
 > the decision-complete designs in `docs/rearchitecture/DESIGN-*.md`; the as-is survey + critique in

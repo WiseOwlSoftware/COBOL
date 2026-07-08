@@ -39,11 +39,42 @@ OO, M3/M4 surface) is OUT of scope — this phase gates, skeletons, and audits o
 
 ## STATUS
 
-`NOT STARTED`
+`IN PROGRESS @ step 2` (Step 0 reconciliation done 2026-07-08; recon in this session after PHASE-02 close).
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
 > re-establish ground truth, then continue at the first step whose commit is not yet in `git log`.
+
+### Step-0 AS-BUILT reconciliation (2026-07-08 — ⚠ this phase doc was authored BEFORE P2 executed; P2 + the bind-time gating migration already landed several P3 steps)
+
+**Baseline (green, inherited from the PHASE-02 close, commit `61248d88`):** greenfield conformance **2055** ·
+unit **227** · characterization **32**; FULL legacy guard **NIST 353 MATCH**. `scripts/guard.sh`,
+`scripts/version-continuity-sweep.sh` present. `docs/VERSION_CHANGE_REFERENCE.md` carries **117 `TODO` rows**.
+
+| Step | AS-BUILT | Evidence | Remaining P3 action |
+|---|---|---|---|
+| **0** baseline + recon | ✅ done | this table | — |
+| **1** P2 framework surface | ✅ present | `EditionInfo` / `IDiagnosticSink` / `EditionSeverity(Policy)` / `EditionDiagnostic` / sink-based `ConstructRegistry.Check(EditionInfo, IDiagnosticSink, id, where)` / `Constructs.g.cs` all exist (P2.1–P2.6) | — |
+| **2** re-home `EditionValidator` → `EditionInfo`+`IDiagnosticSink` | ◑ **PARTIAL** | validator ctor is still `EditionValidator(EditionContext)` (`EditionValidator.cs:30`), BUT all its `ConstructRegistry.Check` calls already pass `_edition.Edition, _edition` (EditionInfo + the sink, since `EditionContext : IDiagnosticSink`), and the binder-side `Check` sites are already structured (P2.4). | ctor → `(EditionInfo, IDiagnosticSink)`; drop the `EditionContext` field; the **2 direct writes** in `VisitCobolWord` (`_edition.Error(DiagnosticCatalog.DebugRegisterFacility,…)` + `_edition.Removed(EditionCodes.ReservedWord,…)`) → `_sink.Report(new EditionDiagnostic(…))` via `EditionSeverityPolicy`; `_edition.DialectLevel`→`.Year`; driver hook `new EditionValidator(edition.Edition, edition)`. **← CURRENT STEP** |
+| **3** enrich `constructs.json` | ◑ **PARTIAL** | 95 rows carry `id/description/display/diagnosticCode/citation/introducedIn/removedIn/vcr/source/status`; **missing** `expectDiagnostic`(+`Below`) on most rows, **no `variant` blocks**, some rows `status:"?"` (unset). | add `expectDiagnostic`/`expectDiagnosticBelow` + `variant` + fill `status`. |
+| **4** fold the 5 inline gates | ✅ **DONE in P2.6b** | zero bare `Error("COBOLNET0816/0810/0811/0882/0803")` literals remain; all are registry rows (`0816 end-accept` folded-but-`pending` — grammar has no `END_ACCEPT`). | verify each still binds-after-permissive-warn + add negative witnesses only. |
+| **5** backfill 85→2002 / 2002→2014 rows | ❌ partial | — | add introduction rows from the grammar `{isXXXX()}?` gates + confirmed spec deltas (unconfirmed → `pending`). |
+| **6** mechanize the VCR audit | ❌ **NOT DONE** | 117 hand `TODO` rows; no `gen-vcr.ps1` / `VcrStatusEmitter` / `VcrDriftTests`. | build them (the headline leg). |
+| **7** behavior-variant matrix (INV-3) | ❌ **NOT DONE** | no `variant` blocks; no `VersionBehaviorMatrixTests`. | build as a loud discovery tool (candidates `pending`). |
+| **8** in-process continuity + INV-1-strong | ❌ **NOT DONE** (bash only) | `version-continuity-sweep.sh` exists; no `VersionContinuitySweepTests` / `Inv1StrongGoldenTests`. | build the in-process gates. |
+| **9** discovery runners + 2014 seeds | ❌ **NOT DONE** | no `NegativeCorpusDiscoveryTests` / `PerEditionPositiveCorpusTests`; `tests/conformance/2014/` exists. | build runners + seed positives. |
+| **10** catalogue holes LOUD | ❌ **NOT DONE** | witness: SYNCHRONIZED-on-group emits generic `COBOL0001`. | sweep + gate loud; verify the national/boolean skeleton. |
+| **11** phase close | ❌ | — | full battery + doc sweep + STATUS=DONE. |
+
+**Net:** Step 1 ✅ and Step 4 ✅ are already satisfied (P2/P2.6b); Steps 2 & 3 are PARTIAL; Steps 5–10 are the
+substantial NEW work (VCR mechanization + three new test surfaces + row backfill + hole cataloguing). Also note
+P2.10 already delivered the `DiagnosticCatalog` registry + `docs/DIAGNOSTICS.md`, which the Step-10 "loud, not
+generic" intent builds on, and `EditionGateHints` is now `ReservedWordEditionHints` (the reservation-word residue
+after the bind-time gating migration — DEVLOG 693). **Exit criterion 6 nuance:** P2 (owner decision Q5) KEPT
+`EditionContext` as the compiler-side collector behind the adapter; P3 satisfies "validator on `EditionInfo` +
+`IDiagnosticSink`" by making the validator depend only on those *types* (the concrete sink passed in may still be
+the `EditionContext` collector, which implements `IDiagnosticSink`) — the validator no longer calls any
+adapter-specific method (`.Error`/`.Removed`/`.DialectLevel`).
 
 ---
 
