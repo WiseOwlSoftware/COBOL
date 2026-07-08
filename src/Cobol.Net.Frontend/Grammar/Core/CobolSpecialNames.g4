@@ -57,7 +57,7 @@ decimalPointClause
 
 // CLASS name IS literal [THRU literal] [, literal [THRU literal]]... [FOR {ALPHANUMERIC|NATIONAL}] [IN alphabet-name]
 classDefinitionClause
-    : CLASS cobolWord IS? classValueSet ({is2002()}? FOR (ALPHANUMERIC | NATIONAL))? (IN cobolWord)?
+    : CLASS cobolWord IS? classValueSet (FOR (ALPHANUMERIC | NATIONAL))? (IN cobolWord)?
     ;
 
 classValueSet
@@ -72,7 +72,7 @@ classValueItem
 //   {name}... {IS|ARE} {integer}... [IN alphabet-name] ...
 // N:N positional mapping: first name ↔ first integer, etc. (§12.3.7)
 symbolicCharactersClause
-    : SYMBOLIC CHARACTERS ({is2002()}? FOR (ALPHANUMERIC | NATIONAL))?
+    : SYMBOLIC CHARACTERS (FOR (ALPHANUMERIC | NATIONAL))?
       symbolicCharacterEntry+ (IN cobolWord)?
     ;
 
@@ -82,7 +82,7 @@ symbolicCharacterEntry
 
 // ALPHABET name IS ... [FOR {ALPHANUMERIC|NATIONAL}]
 alphabetClause
-    : ALPHABET cobolWord IS alphabetDefinition ({is2002()}? FOR (ALPHANUMERIC | NATIONAL))?
+    : ALPHABET cobolWord IS alphabetDefinition (FOR (ALPHANUMERIC | NATIONAL))?
     ;
 
 // NATIVE, STANDARD-1, STANDARD-2 are dedicated lexer tokens.

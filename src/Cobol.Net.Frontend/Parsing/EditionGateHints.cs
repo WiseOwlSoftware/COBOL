@@ -76,12 +76,10 @@ public static class EditionGateHints
         // signature is the fallback the stack test cannot give. Each arm yields the constructs.json row id.
         string? id = token.Type switch
         {
-            CobolLexer.CLASS when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryClass2002,
             CobolLexer.INTERFACE when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryInterface2002,
             CobolLexer.PROPERTY when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryProperty2002,
             CobolLexer.PROPERTY when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription")
                 || InRule(ruleStack, "workingStorageSection") => Constructs.PropertyClause2002,
-            CobolLexer.FOR when InRule(ruleStack, "specialNamesParagraph") => Constructs.SpecialNamesForNational2002,
             // The XOR OPERATOR below 2023 (the W3 regating): a parse error AT the XOR/EXCLUSIVE-OR token is
             // the gated operator by construction — as a USER word the token parses through cobolWord and
             // never errors (the condition-rule stack has popped by report time, so no rule filter applies).

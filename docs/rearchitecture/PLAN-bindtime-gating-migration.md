@@ -39,11 +39,11 @@ reserved for genuinely cross-cutting per-edition rules (the G7 remit), not per-c
 
 ## STATUS
 
-`IN PROGRESS — Cluster 8b next (special-names FOR + repository-class).` Clusters completed: **1–7 (DEVLOG 680–686) +
-8a (687, set-object-ref)**. EditionGateHints removals: C1 −3 (+1 interim SET arm), C2 −2 (+ deleted `COBOLNET0883`),
-C3 −2, C4 −2, C5 −4, C6 −2, C7 −1, C8a −3 (set-obj-ref NULL/SELF + the interim SET arm now RETIRED). Bonus in C7:
-the DEVLOG-679 `SUPPRESS`@85 R1 false-positive is root-fixed. Battery green: conformance 2055 · unit 224 · FULL
-legacy guard 353 MATCH.
+`IN PROGRESS — Cluster 9 next (LOCK MODE).` Clusters completed: **1–7 (DEVLOG 680–686) + 8a (687) + 8b (688)**.
+EditionGateHints removals: C1 −3 (+1 interim SET arm), C2 −2 (+ deleted `COBOLNET0883`), C3 −2, C4 −2, C5 −4, C6 −2,
+C7 −1, C8a −3 (incl. interim SET arm retired), C8b −2 (special-names FOR + repository-CLASS). Bonus in C7: the
+DEVLOG-679 `SUPPRESS`@85 R1 false-positive is root-fixed. Battery green: conformance 2055 · unit 224 · FULL legacy
+guard 353 MATCH.
 
 ## MOVE_TO_BINDTIME (24) — ordered clusters (each = one commit: ungate + regen + Check + delete hints arm + below-edition test + FULL guard)
 
@@ -72,8 +72,9 @@ legacy guard 353 MATCH.
 - [x] **Cluster 7 — class + interface definitions (DO TOGETHER — shared hints arm) — DONE (DEVLOG 686).** Message now names the unit (`class definition 'X'`); the DEVLOG-679 `SUPPRESS`@85 R1 leak is root-fixed. `using CobolNet.Editions;` in `OoClassTable.cs`.
   - class-definition-2002 — ungate `CobolParserCore.g4:145` classDefinition alt; Check in OoClassTable.Build class loop after `name` (~`OoClassTable.cs:461`).
   - interface-definition-2002 — ungate `CobolParserCore.g4:145` interfaceDefinition alt; Check in the interface loop after `iname` (~`OoClassTable.cs:362`).
-- [~] **Cluster 8 — set-object-ref + special-names-FOR + repository-class (SPLIT 8a/8b).**
-  - [x] **8a set-object-reference-2002 — DONE (DEVLOG 687).** Ungated `CobolParserCore.g4:1083`; Check at top of `OoBindSetObjectRef`; retired 3 arms (incl. the Cluster-1 interim SET arm). AMBIGUITY cleared (guard byte-identical; valid SET forms parse).
+- [x] **Cluster 8 — set-object-ref + special-names-FOR + repository-class (SPLIT 8a/8b) — DONE.**
+  - [x] **8a set-object-reference-2002 (DEVLOG 687).** Ungated `CobolParserCore.g4:1083`; Check at top of `OoBindSetObjectRef`; retired 3 arms (incl. the Cluster-1 interim SET arm). AMBIGUITY cleared.
+  - [x] **8b special-names-FOR (3 sites) + repository-class (DEVLOG 688).** New `symbolicCharactersClause` binder branch (was unbound) + new `re.CLASS()` repository branch; `using CobolNet.Editions;` in `DataBinder.Switches.cs`.
   - special-names-for-national-2002 — ungate 3 sites (`CobolSpecialNames.g4:60,75,85`); **3 reads** — `AlphabetBind` (`Switches.cs:241`), `SwitchBindClass` (`Switches.cs:342`), and a NEW symbolicCharactersClause branch (~`Switches.cs:209`, otherwise unbound); delete arm. (Its own commit — more work.)
   - repository-class-2002 — ungate `CobolParserCore.g4:455`; NEW branch in the repository loop (~`DataBinder.cs:169`) `else if (re.CLASS() is not null …)`; delete arm.
 - [ ] **Cluster 9 — LOCK MODE.** lock-mode-clause-2002 — ungate `CobolIO.g4:69`; Check at the lockModeClause branch `DataBinder.cs:414`; delete the `LOCK when Next==MODE` arm. (LOCK+MODE hard-reserved; unique two-token lead.)

@@ -169,6 +169,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             if (re.PROPERTY() is not null && re.propertyName() is { } pn)
                 OoRepositoryProperties.Add(pn.GetText());
+            else if (re.CLASS() is not null && re.className() is { } cn)
+                ConstructRegistry.Check(Edition.Edition, Edition, Constructs.RepositoryClass2002, $"REPOSITORY CLASS '{cn.GetText()}'");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 8b)
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is { } fn)
                 UserFunctionNames.Add(fn.GetText());
             // FUNCTION … INTRINSIC (§12.3.8): `ALL` (GR14) or a named intrinsic — the §8.4.3.2 SR2 keyword-

@@ -452,7 +452,7 @@ repositoryParagraph
 repositoryEntry
     : FUNCTION ALL INTRINSIC
     | FUNCTION functionName INTRINSIC?
-    | {is2002()}? CLASS className   // OO (2002): CLASS class-name [AS literal] — declares a referenced class (className rule in Core/CobolOO.g4)
+    | CLASS className   // OO (2002): CLASS class-name [AS literal] — introduction-gated at BIND time (DataBinder repository loop → Check(RepositoryClass2002)); className rule in Core/CobolOO.g4
     | {is2002()}? INTERFACE interfaceName   // OO (2002): the interface specifier (§12.3.8; AS-literal tail deferred like CLASS's)
     | {is2002()}? PROPERTY propertyName     // OO (2002): the property specifier (§12.3.8 — required by §8.4.3.9.3 SR1 property references)
     ;
