@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text.Json;
 using CobolNet.Binding;
-using CobolNet.Validation;
+using CobolNet.Editions;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -55,23 +55,25 @@ public sealed class ConstructRegistryDriftTests
     [Fact]
     public void Check_RoutesVerdicts_OntoTheChannels()
     {
-        // NotYetIntroduced → error on BOTH axes (introduction gating is permissive-independent).
+        // NotYetIntroduced → error on BOTH axes (introduction gating is permissive-independent). The
+        // EditionContext IS the IDiagnosticSink; its EditionInfo is the targeted edition (P2.4 sink-based Check).
         foreach (bool permissive in new[] { false, true })
         {
             var ed = new EditionContext(85, permissive);
-            ConstructRegistry.Check(ed, "delete-file-2023", "statement in paragraph M");
+            ConstructRegistry.Check(ed.Edition, ed, "delete-file-2023", "statement in paragraph M");
             Assert.True(ed.HasErrors, $"introduction gate must fail (permissive={permissive})");
             Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2023"));
         }
 
         // Available → silent.
         var ok = new EditionContext(2023);
-        ConstructRegistry.Check(ok, "allocate-2002", "statement");
+        ConstructRegistry.Check(ok.Edition, ok, "allocate-2002", "statement");
         Assert.False(ok.HasErrors);
         Assert.Empty(ok.Warnings);
 
         // Unregistered id → programming error, loud.
-        Assert.Throws<ArgumentException>(() => ConstructRegistry.Check(new EditionContext(2023), "no-such-id", "x"));
+        var bad = new EditionContext(2023);
+        Assert.Throws<ArgumentException>(() => ConstructRegistry.Check(bad.Edition, bad, "no-such-id", "x"));
     }
 
     private static string RepoRoot()

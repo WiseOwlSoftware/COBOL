@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolNet.Validation;
+using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -77,7 +77,7 @@ public sealed partial class StatementBinder
         var nn = vo.nonNumericLiteral();
         if (nn?.BOOLLIT() is { } bl)
         {
-            ConstructRegistry.Check(data.Edition, "boolean-data-2002", "boolean literal B\"…\"");
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, "boolean-data-2002", "boolean literal B\"…\"");
             return new BoundBoolLiteral(DecodeCobolString(bl.GetText()));
         }
         if (nn?.figurativeConstant() is { } fig)

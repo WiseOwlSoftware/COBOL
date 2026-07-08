@@ -14,7 +14,7 @@
 #     word/edition reservation flags with provenance, enter this repo).
 #
 # Outputs (BOTH committed; ReservedWordsDriftTests asserts they agree):
-#   src/Cobol.Net.Compiler/Validation/ReservedWords.Table.cs
+#   src/Cobol.Net.Editions/ReservedWords.Table.cs
 #   tests/version-matrix/reserved-words.json
 #
 # Derivation: flags = set membership per source (85/2002/2014 = GnuCOBOL; 2023 = the ISO spec itself).
@@ -36,7 +36,7 @@ $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $specPath = Join-Path $repo 'specs/ISO_COBOL.md'
 $vcrPath  = Join-Path $repo 'docs/VERSION_CHANGE_REFERENCE.md'
-$csOut    = Join-Path $repo 'src/Cobol.Net.Compiler/Validation/ReservedWords.Table.cs'
+$csOut    = Join-Path $repo 'src/Cobol.Net.Editions/ReservedWords.Table.cs'
 $jsonOut  = Join-Path $repo 'tests/version-matrix/reserved-words.json'
 $cache    = Join-Path $repo '.cache/gnucobol-words'
 

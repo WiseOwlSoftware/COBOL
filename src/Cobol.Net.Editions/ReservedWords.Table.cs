@@ -4,7 +4,7 @@
 // GnuCOBOL per-standard word lists (85/2002/2014 flags; derived facts with provenance).
 // ReservedWordsDriftTests asserts this table equals tests/version-matrix/reserved-words.json.
 // </auto-generated>
-namespace CobolNet.Validation;
+namespace CobolNet.Editions;
 
 public static partial class ReservedWords
 {

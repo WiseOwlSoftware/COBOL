@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolNet.Validation;
+using CobolNet.Editions;
 
 namespace CobolNet.Binding;
 
@@ -421,7 +421,7 @@ public sealed record PicInfo(
                 // The introduction gate rides the PICTURE — EXCEPT when USAGE NATIONAL is explicit, where
                 // ParseUsage already fired it (avoid the duplicate COBOLNET0900 at <2002).
                 if (!(explicitUsage && usage is Usage.National))
-                    ConstructRegistry.Check(edition, "national-data-2002", where);
+                    ConstructRegistry.Check(edition.Edition, edition, "national-data-2002", where);
                 if (explicitUsage && usage is not Usage.National)
                     edition.Error("COBOLNET0881", $"{where}: a national PICTURE (symbol N) admits only USAGE "
                         + $"NATIONAL, not {usage} (ISO §13.18.60.3 SR20; SR13a implies NATIONAL when no USAGE "
@@ -447,7 +447,7 @@ public sealed record PicInfo(
             {
                 // As above: skip the gate when USAGE BIT/NATIONAL already fired it in ParseUsage.
                 if (!(explicitUsage && usage is Usage.Bit or Usage.National))
-                    ConstructRegistry.Check(edition, "boolean-data-2002", where);
+                    ConstructRegistry.Check(edition.Edition, edition, "boolean-data-2002", where);
                 switch (usage)
                 {
                     case Usage.Display or Usage.Bit:
@@ -633,46 +633,46 @@ public sealed record PicInfo(
             // the group-fixup pass (DataBinder.ResolveIndexItems — a group header legally sheds the usage to
             // its subordinates per §13.18.60.4 GR1).
             case "NATIONAL":
-                ConstructRegistry.Check(edition, "national-data-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "national-data-2002", where);
                 return Usage.National;
             case "BIT":
-                ConstructRegistry.Check(edition, "boolean-data-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "boolean-data-2002", where);
                 return Usage.Bit;
             // USAGE POINTER — LIVE (Phase-4b increment 1): only the introduction gate remains (0900 below
             // 2002; the registry row is silent at 2002+), like OBJECT REFERENCE. The caller synthesizes
             // PicInfo.PointerItem (PICTURE-less, the IndexItem pattern).
             case "POINTER":
-                ConstructRegistry.Check(edition, "usage-pointer-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-pointer-2002", where);
                 return Usage.Pointer;
             // LIVE as of the Phase-3 OO spine: only the introduction gate remains (0900 below 2002 — the
             // registry row is silent at 2002+); the caller synthesizes PicInfo.ObjectReferenceItem with the
             // declared class name (PICTURE-less per §13.18.60.4, the IndexItem pattern).
             case "OBJECT REFERENCE":
-                ConstructRegistry.Check(edition, "usage-object-reference-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-object-reference-2002", where);
                 return Usage.ObjectReference;
             // The fixed-width binary usages — LIVE (Phase 4 M2-DATA-1): only the introduction gate remains
             // (0900 below 2002; the registry row is silent at 2002+, like POINTER / OBJECT REFERENCE). The
             // caller synthesizes PicInfo.BinaryItem (PICTURE-less per §13.16.3 SR8; the IndexItem pattern).
             case "BINARY-CHAR":
-                ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-binary-char-family-2002", where);
                 return Usage.BinaryChar;
             case "BINARY-SHORT":
-                ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-binary-char-family-2002", where);
                 return Usage.BinaryShort;
             case "BINARY-LONG":
-                ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-binary-char-family-2002", where);
                 return Usage.BinaryLong;
             case "BINARY-DOUBLE":
-                ConstructRegistry.Check(edition, "usage-binary-char-family-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-binary-char-family-2002", where);
                 return Usage.BinaryDouble;
             case "FLOAT-SHORT":   // the implementor-defined float trio (§13.18.60.4 GR13) — LIVE (Phase 6a, D16)
-                ConstructRegistry.Check(edition, "usage-float-short-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-float-short-2002", where);
                 return Usage.FloatShort;
             case "FLOAT-LONG":
-                ConstructRegistry.Check(edition, "usage-float-long-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-float-long-2002", where);
                 return Usage.FloatLong;
             case "FLOAT-EXTENDED":
-                ConstructRegistry.Check(edition, "usage-float-extended-2002", where);
+                ConstructRegistry.Check(edition.Edition, edition, "usage-float-extended-2002", where);
                 return Usage.FloatExtended;
             case { } other:
                 // The grammar admits nothing else — reaching here is a compiler defect (a new grammar
@@ -725,7 +725,7 @@ public sealed record PicInfo(
     {
         var row = ConstructRegistry.Find(rowId)
             ?? throw new ArgumentException($"unregistered construct id '{rowId}'", nameof(rowId));
-        ConstructRegistry.Check(edition, rowId, where);
+        ConstructRegistry.Check(edition.Edition, edition, rowId, where);
         if (edition.DialectLevel >= row.IntroducedIn)
             edition.Error("COBOLNET0899", $"{row.Display} is recognized but not yet implemented (owning "
                 + $"roadmap phase: {phase}) — {where} ({row.Citation})");

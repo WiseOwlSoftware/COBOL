@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using CobolNet.Runtime;
-using CobolNet.Validation;
+using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -55,7 +55,7 @@ public sealed partial class StatementBinder
     private BoundExpr UdfBindCall(string name, List<IToken> argTokens)
     {
         // Introduction gate: user-defined functions are COBOL-2002+ (§9.4 / §12.3.8; 0900 below 2002).
-        ConstructRegistry.Check(data.Edition, "user-function-invocation-2002",
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, "user-function-invocation-2002",
             $"FUNCTION {name.ToUpperInvariant()}");
 
         if (UserFunctions is null || !UserFunctions.TryGetValue(name, out var fn))
