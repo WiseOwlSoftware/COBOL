@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
-using CobolSharp.Compiler.Common;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Diagnostics;
 
-namespace CobolSharp.Compiler.Parsing;
+namespace CobolNet.Frontend.Parsing;
 
 /// <summary>
 /// ANTLR4 error listener that feeds syntax errors into a <see cref="DiagnosticBag"/>.

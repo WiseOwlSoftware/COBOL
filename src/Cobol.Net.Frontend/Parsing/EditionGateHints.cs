@@ -3,7 +3,7 @@
 using Antlr4.Runtime;
 using CobolNet.Frontend.Generated;
 
-namespace CobolSharp.Compiler.Parsing;
+namespace CobolNet.Frontend.Parsing;
 
 /// <summary>
 /// The W1.5 edition-gate diagnostic mapping (VERSION_TEST_MATRIX_DESIGN P2.8 / roadmap Phase 2 W1.5): the

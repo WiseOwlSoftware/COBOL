@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
-using CobolSharp.Compiler.Common;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
-using CobolSharp.Compiler.Parsing;
-using CobolSharp.Compiler.Preprocessor;
+using CobolNet.Frontend.Parsing;
+using CobolNet.Frontend.Preprocessor;
 
 namespace CobolSharp.Compiler;
 

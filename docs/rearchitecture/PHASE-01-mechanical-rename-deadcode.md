@@ -8,7 +8,13 @@
   - `docs/rearchitecture/DESIGN-module-topology.md` — "Pull the `CobolSharp.Compiler.* → CobolNet.*` namespace rename FORWARD to Wave 0"; ANTLR package name single-sourced via an MSBuild property; delete 5 dead grammars + committed `.antlr` caches; strip non-ISO JSON/XML.
   - `docs/rearchitecture/DESIGN-frontend-grammar.md` — the frontend M-steps: generated-namespace rename via MSBuild property, delete the 5 unreferenced top-level grammars + `.antlr` caches, hard-delete JSON/XML rules and move `inlineMethodInvocationStatement` into `Core/CobolOO.g4`, fix the stale `Frontend.cs` banner, narrow the `catch(Exception)`.
   - `docs/COBOLNET_DESIGN.md` §1.4 (the "namespaces stay `CobolSharp.Compiler.*` until G8" banner this phase supersedes), §16 (G0–G8).
-- **STATUS:** IN PROGRESS @ step 5 — steps 0–4 DONE. Step 4: generated ANTLR package → `CobolNet.Frontend.Generated`
+- **STATUS:** IN PROGRESS @ step 6 — steps 0–5 DONE. Step 5: the four hand-written frontend sub-namespaces
+  `CobolSharp.Compiler.{Common,Diagnostics,Parsing,Preprocessor}` → `CobolNet.Frontend.*` (decls + all consumers,
+  greenfield + legacy imports; legacy keeps its own 76 namespaces). Beyond the recipe (fully-qualified sed couldn't see
+  them): 5 legacy semantic files aliased for a BARE `Common.` prefix (`using Common = CobolNet.Frontend.Common;`) + 2
+  legacy test files flipped for a PARTIAL `Compiler.Common.` ref. Battery: whole-sln 0-err; greenfield grep-clean of all
+  5 sub-namespaces = 0; conformance 2036/2036; FULL legacy guard NIST 353 MATCH (ALL GREEN, unit 1204 + integ 607). ⸻
+  Step 4: generated ANTLR package → `CobolNet.Frontend.Generated`
   via a csproj `<AntlrNamespace>` single-source (threaded into the `Exec` + both `.ps1` `-PackageName` params);
   repo-wide flip of `CobolSharp.Compiler.Generated` (59 files incl. `CobolParserCoreBase.cs` decl + legacy consumers).
   ⚠ Beyond the recipe: two legacy files (`GenericClauseNode.cs`, `SemanticBuilder.cs`) referenced the parser via a BARE

@@ -2,10 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
-using CobolSharp.Compiler.Parsing;
-using CobolSharp.Compiler.Preprocessor;
+using CobolNet.Frontend.Parsing;
+using CobolNet.Frontend.Preprocessor;
 
 namespace CobolNet.Frontend;
 

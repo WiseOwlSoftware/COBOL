@@ -2,7 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolSharp.Runtime;
 using CobolSharp.Compiler.CodeGen;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
+using Common = CobolNet.Frontend.Common;   // alias for the namespace-relative Common. shorthand (rearch P1 rename)
 
 namespace CobolSharp.Compiler.Semantics;
 

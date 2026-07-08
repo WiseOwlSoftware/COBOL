@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
 using CobolNet.Runtime.Exceptions;
-using CobolSharp.Compiler.Preprocessor;
+using CobolNet.Frontend.Preprocessor;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;

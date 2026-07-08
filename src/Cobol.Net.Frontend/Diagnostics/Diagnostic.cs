@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolSharp.Compiler.Common;
+using CobolNet.Frontend.Common;
 
-namespace CobolSharp.Compiler.Diagnostics;
+namespace CobolNet.Frontend.Diagnostics;
 
 /// <summary>
 /// A compiler diagnostic (error, warning, or informational message).

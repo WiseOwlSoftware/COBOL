@@ -60,7 +60,7 @@ public class BinderDecompositionTests
     [Theory]
     [InlineData("Semantic", typeof(CobolSharp.Compiler.Semantics.SemanticModel))]
     [InlineData("ValueFactory", typeof(IrValueFactory))]
-    [InlineData("Diagnostics", typeof(CobolSharp.Compiler.Diagnostics.DiagnosticBag))]
+    [InlineData("Diagnostics", typeof(CobolNet.Frontend.Diagnostics.DiagnosticBag))]
     [InlineData("Options", typeof(CobolSharp.Compiler.Semantics.CompilationOptions))]
     public void LoweringContext_has_service_property(string propName, Type expectedType)
     {
@@ -180,7 +180,7 @@ public class BinderDecompositionTests
         // Create a minimal Binder to verify wiring
         var prog = new CobolSharp.Compiler.Semantics.ProgramSymbol("TEST", 1);
         var symbols = new CobolSharp.Compiler.Semantics.SymbolTable("TEST", 1);
-        var diag = new CobolSharp.Compiler.Diagnostics.DiagnosticBag();
+        var diag = new CobolNet.Frontend.Diagnostics.DiagnosticBag();
         var model = new CobolSharp.Compiler.Semantics.SemanticModel(prog, symbols, diag);
         var binder = new CobolSharp.Compiler.CodeGen.Binder(model, diag);
 

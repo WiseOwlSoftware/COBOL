@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using CobolSharp.Compiler;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
 using Xunit;
 
 namespace CobolSharp.Tests.Integration;

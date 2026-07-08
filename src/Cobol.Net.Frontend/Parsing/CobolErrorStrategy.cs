@@ -3,7 +3,7 @@
 using Antlr4.Runtime;
 using CobolNet.Frontend.Generated;
 
-namespace CobolSharp.Compiler.Parsing;
+namespace CobolNet.Frontend.Parsing;
 
 /// <summary>
 /// COBOL-aware error strategy that replaces ANTLR's generic messages with

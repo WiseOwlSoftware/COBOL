@@ -1,10 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
-using CobolSharp.Compiler.Common;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Diagnostics;
 
-namespace CobolSharp.Compiler.Preprocessor;
+namespace CobolNet.Frontend.Preprocessor;
 
 /// <summary>
 /// Handles COPY statement preprocessing. COPY inserts the contents of a copybook

@@ -2,8 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using CobolSharp.Compiler.Common;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Common;
+using Common = CobolNet.Frontend.Common;   // alias for the namespace-relative Common. shorthand (rearch P1 rename)
+using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolSharp.Runtime;
 using CobolSharp.Compiler.Semantics.Bound.Binding;

@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolSharp.Compiler.Common;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Diagnostics;
 
-namespace CobolSharp.Compiler.Preprocessor;
+namespace CobolNet.Frontend.Preprocessor;
 
 /// <summary>One <c>&gt;&gt;TURN</c> directive event (ISO/IEC 1989:2023 §7.3.25), anchored to its 1-based line in
 /// the FINAL preprocessed text — directly comparable to an ANTLR token's <c>Start.Line</c>. The compile-time

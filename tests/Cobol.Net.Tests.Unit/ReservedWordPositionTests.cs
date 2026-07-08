@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
 using CobolNet.Validation;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using Xunit;
 

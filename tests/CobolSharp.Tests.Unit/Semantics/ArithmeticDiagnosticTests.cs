@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
 using CobolSharp.Compiler.Semantics;
 using CobolSharp.Compiler.Semantics.Bound;
 using CobolSharp.Runtime;
@@ -32,8 +32,8 @@ public class ArithmeticDiagnosticTests
             new[] { new BoundArithmeticTarget(numTarget, false) });
 
         var diags = new DiagnosticBag();
-        var loc = new Compiler.Common.SourceLocation("<source>", 0, 1, 0);
-        var span = new Compiler.Common.TextSpan(0, 0);
+        var loc = new CobolNet.Frontend.Common.SourceLocation("<source>", 0, 1, 0);
+        var span = new CobolNet.Frontend.Common.TextSpan(0, 0);
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, diags, loc, span);
 
         Assert.Contains(diags.Diagnostics, d => d.Code == "CBL2601");
@@ -51,8 +51,8 @@ public class ArithmeticDiagnosticTests
             new[] { new BoundArithmeticTarget(alphaTarget, false) });
 
         var diags = new DiagnosticBag();
-        var loc = new Compiler.Common.SourceLocation("<source>", 0, 1, 0);
-        var span = new Compiler.Common.TextSpan(0, 0);
+        var loc = new CobolNet.Frontend.Common.SourceLocation("<source>", 0, 1, 0);
+        var span = new CobolNet.Frontend.Common.TextSpan(0, 0);
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, diags, loc, span);
 
         Assert.Contains(diags.Diagnostics, d => d.Code == "CBL2602");
@@ -70,8 +70,8 @@ public class ArithmeticDiagnosticTests
             new[] { new BoundArithmeticTarget(numTarget, false) });
 
         var diags = new DiagnosticBag();
-        var loc = new Compiler.Common.SourceLocation("<source>", 0, 1, 0);
-        var span = new Compiler.Common.TextSpan(0, 0);
+        var loc = new CobolNet.Frontend.Common.SourceLocation("<source>", 0, 1, 0);
+        var span = new CobolNet.Frontend.Common.TextSpan(0, 0);
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, diags, loc, span);
 
         Assert.Empty(diags.Diagnostics);
@@ -95,8 +95,8 @@ public class ArithmeticDiagnosticTests
             new[] { new BoundArithmeticTarget(editTarget, false) });
 
         var diags = new DiagnosticBag();
-        var loc = new Compiler.Common.SourceLocation("<source>", 0, 1, 0);
-        var span = new Compiler.Common.TextSpan(0, 0);
+        var loc = new CobolNet.Frontend.Common.SourceLocation("<source>", 0, 1, 0);
+        var span = new CobolNet.Frontend.Common.TextSpan(0, 0);
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, diags, loc, span);
 
         Assert.Empty(diags.Diagnostics);

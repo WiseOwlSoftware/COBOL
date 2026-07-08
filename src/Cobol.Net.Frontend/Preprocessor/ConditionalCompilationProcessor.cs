@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
 
-namespace CobolSharp.Compiler.Preprocessor;
+namespace CobolNet.Frontend.Preprocessor;
 
 /// <summary>
 /// COBOL-2002 conditional compilation (ISO §7.3.11 DEFINE directive, §7.3.16 IF directive) — a text-manipulation

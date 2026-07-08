@@ -3,8 +3,8 @@
 
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
-using CobolSharp.Compiler.Common;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolSharp.Runtime;
 

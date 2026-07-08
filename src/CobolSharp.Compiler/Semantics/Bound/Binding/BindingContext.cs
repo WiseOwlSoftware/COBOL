@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolSharp.Compiler.Semantics.Bound.Binding;

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolSharp.Compiler.Common;
+using CobolNet.Frontend.Common;
 // The shared front-end's generated parser moved to CobolNet.Frontend.Generated at rearch P1; this alias preserves the
 // namespace-relative `Generated.` shorthand these legacy semantic files used (was reachable via the CobolSharp.Compiler root).
 using Generated = CobolNet.Frontend.Generated;

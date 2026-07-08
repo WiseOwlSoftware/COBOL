@@ -3,11 +3,12 @@
 using CobolSharp.Runtime;
 using Antlr4.Runtime;
 using CobolSharp.Compiler.CodeGen;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 // Alias for the namespace-relative `Generated.` shorthand this file also uses (the parser moved to
 // CobolNet.Frontend.Generated at rearch P1; formerly reachable via the CobolSharp.Compiler root).
 using Generated = CobolNet.Frontend.Generated;
+using Common = CobolNet.Frontend.Common;   // alias for the namespace-relative Common. shorthand (rearch P1 rename)
 
 namespace CobolSharp.Compiler.Semantics;
 

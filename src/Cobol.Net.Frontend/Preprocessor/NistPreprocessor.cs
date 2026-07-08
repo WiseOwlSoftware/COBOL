@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace CobolSharp.Compiler.Preprocessor;
+namespace CobolNet.Frontend.Preprocessor;
 
 /// <summary>
 /// Preprocessor for NIST COBOL-85 test suite programs.

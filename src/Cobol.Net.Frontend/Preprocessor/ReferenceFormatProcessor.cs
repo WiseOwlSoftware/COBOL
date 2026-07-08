@@ -2,9 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
 using System.Text.RegularExpressions;
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
 
-namespace CobolSharp.Compiler.Preprocessor;
+namespace CobolNet.Frontend.Preprocessor;
 
 /// <summary>
 /// Detects and converts fixed-form COBOL reference format to free-form.

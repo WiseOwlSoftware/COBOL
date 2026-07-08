@@ -59,7 +59,7 @@ public class BoundTreeBuilderDecompositionTests
 
     [Theory]
     [InlineData("Semantic", typeof(CobolSharp.Compiler.Semantics.SemanticModel))]
-    [InlineData("Diagnostics", typeof(CobolSharp.Compiler.Diagnostics.DiagnosticBag))]
+    [InlineData("Diagnostics", typeof(CobolNet.Frontend.Diagnostics.DiagnosticBag))]
     [InlineData("Options", typeof(CobolSharp.Compiler.Semantics.CompilationOptions))]
     public void BindingContext_has_state_property(string propName, Type expectedType)
     {

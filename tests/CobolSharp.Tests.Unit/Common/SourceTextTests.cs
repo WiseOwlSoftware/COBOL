@@ -1,4 +1,4 @@
-using CobolSharp.Compiler.Common;
+using CobolNet.Frontend.Common;
 using Xunit;
 
 namespace CobolSharp.Tests.Unit.Common;

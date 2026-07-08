@@ -36,7 +36,7 @@ public sealed partial class CSharpEmitter
     /// the GR1 default, EC-ALL CHECKING OFF. The body lives in <c>CSharpEmitter.Call.cs</c>
     /// (<see cref="CallEmitRunUnit"/>).</summary>
     public string Emit(Core.CompilationUnitContext tree, EditionContext? edition = null,
-        IReadOnlyList<CobolSharp.Compiler.Preprocessor.TurnEvent>? turnEvents = null)
+        IReadOnlyList<CobolNet.Frontend.Preprocessor.TurnEvent>? turnEvents = null)
         => CallEmitRunUnit(tree, edition ?? new EditionContext(2023), turnEvents);
 
     /// <summary>

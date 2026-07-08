@@ -1,4 +1,4 @@
-using CobolSharp.Compiler.Preprocessor;
+using CobolNet.Frontend.Preprocessor;
 using Xunit;
 
 namespace CobolSharp.Tests.Unit.Preprocessor;

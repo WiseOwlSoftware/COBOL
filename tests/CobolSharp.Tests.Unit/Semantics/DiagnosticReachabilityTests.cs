@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolSharp.Compiler.Diagnostics;
+using CobolNet.Frontend.Diagnostics;
 using CobolSharp.Compiler.Semantics;
 using CobolSharp.Compiler.Semantics.Bound;
 using CobolSharp.Runtime;
@@ -83,7 +83,7 @@ public class DiagnosticReachabilityTests
             new[] { new BoundArithmeticTarget(num, false) });
         var diags = new DiagnosticBag();
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, diags,
-            new Compiler.Common.SourceLocation("<t>", 0, 1, 0), new Compiler.Common.TextSpan(0, 0));
+            new CobolNet.Frontend.Common.SourceLocation("<t>", 0, 1, 0), new CobolNet.Frontend.Common.TextSpan(0, 0));
         Assert.Contains(diags.Diagnostics, d => d.Code == "CBL2601");
     }
 
@@ -98,7 +98,7 @@ public class DiagnosticReachabilityTests
             new[] { new BoundArithmeticTarget(alpha, false) });
         var diags = new DiagnosticBag();
         ArithmeticTypeSystem.ValidateArithmeticStatement(stmt, diags,
-            new Compiler.Common.SourceLocation("<t>", 0, 1, 0), new Compiler.Common.TextSpan(0, 0));
+            new CobolNet.Frontend.Common.SourceLocation("<t>", 0, 1, 0), new CobolNet.Frontend.Common.TextSpan(0, 0));
         Assert.Contains(diags.Diagnostics, d => d.Code == "CBL2602");
     }
 

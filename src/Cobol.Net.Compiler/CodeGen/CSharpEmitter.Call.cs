@@ -86,7 +86,7 @@ public sealed partial class CSharpEmitter
     /// implicit CLOSE at run-unit termination).
     /// </summary>
     internal string CallEmitRunUnit(Core.CompilationUnitContext tree, EditionContext edition,
-        IReadOnlyList<CobolSharp.Compiler.Preprocessor.TurnEvent>? turnEvents = null)
+        IReadOnlyList<CobolNet.Frontend.Preprocessor.TurnEvent>? turnEvents = null)
     {
         // The group's compile-time TurnState (ISO §7.3.25; deep-dive D10) — built BEFORE binding so every unit's
         // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
