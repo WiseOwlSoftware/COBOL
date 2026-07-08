@@ -25,6 +25,10 @@
     <!-- Front-end only: preprocessor + ANTLR lexer/parser + parse-tree (CobolParserCore) context types
          (extracted out of the legacy CobolSharp.Compiler at G0; namespaces renamed to CobolNet.Frontend.* at P1). -->
     <ProjectReference Include="..\Cobol.Net.Frontend\Cobol.Net.Frontend.csproj" />
+    <!-- The edition/diagnostics leaf (rearch PHASE 02): the ONE home for ConstructRegistry / ReservedWords /
+         EditionInfo / EditionSeverityPolicy / the diagnostic descriptors, referenced by both Frontend and
+         Compiler so edition metadata + the severity policy are single-sourced below the frontend. -->
+    <ProjectReference Include="..\Cobol.Net.Editions\Cobol.Net.Editions.csproj" />
     <!-- The runtime the GENERATED programs call: referenced so it is built + lands next to the compiler, where
          RoslynBackend deploys a copy beside each compiled program. -->
     <ProjectReference Include="..\Cobol.Net.Runtime\Cobol.Net.Runtime.csproj" />

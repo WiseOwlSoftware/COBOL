@@ -24,6 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The edition/diagnostics leaf (rearch PHASE 02): the frontend reads the ONE ConstructRegistry +
+         EditionInfo + EditionSeverityPolicy instead of re-encoding edition metadata (EditionGateHints).
+         Editions is BELOW Frontend — it references nothing here. -->
+    <ProjectReference Include="..\Cobol.Net.Editions\Cobol.Net.Editions.csproj" />
     <PackageReference Include="Antlr4.Runtime.Standard" />
   </ItemGroup>
 

@@ -58,7 +58,7 @@ retiring the adapter across all 290 sites is *optional* here and may defer to P7
 
 ## STATUS
 
-`NOT STARTED`
+`IN PROGRESS @ step 1` (started 2026-07-07; recon wf_9944fe61-fcc complete; baseline green: conformance 2036 · unit 213 · legacy guard NIST 353 MATCH).
 
 > The executing session MUST update this line as it works: `IN PROGRESS @ step N` while working, then
 > `DONE` when every exit criterion holds. Record the DEVLOG entry numbers you allocate next to each commit.
