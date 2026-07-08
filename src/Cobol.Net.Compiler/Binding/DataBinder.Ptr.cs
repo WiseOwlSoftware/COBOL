@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -49,7 +50,7 @@ public sealed partial class DataBinder
         if (OoIsClassUnit)
         {
             if (Roots.Any(r => r.IsBased) || PtrScanAddressOfTargets(program).Any())
-                Edition.Error("COBOLNET0899", "BASED data or ADDRESS OF in a class definition's data "
+                Edition.Error(DiagnosticCatalog.OoBasedInClass, "BASED data or ADDRESS OF in a class definition's data "
                     + "divisions is recognized but not yet implemented (the OO cell/bridge emission — a "
                     + "named Phase-4b residue; ISO §13.18.5 / §8.4.3.11)");
             return;

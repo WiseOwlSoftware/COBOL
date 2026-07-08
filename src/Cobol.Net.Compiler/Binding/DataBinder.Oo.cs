@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -190,7 +191,7 @@ public sealed partial class DataBinder
                 foreach (var entry in ws.dataDescriptionEntry())
                     if (entry.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
                             ?.Any(cl => cl.externalClause() is not null) == true)
-                        Edition.Error("COBOLNET0899", $"{where}: EXTERNAL on a method WORKING-STORAGE item is "
+                        Edition.Error(DiagnosticCatalog.OoExternalMethodWorkingStorage, $"{where}: EXTERNAL on a method WORKING-STORAGE item is "
                             + "recognized but not yet implemented (Phase 3, OO port)");
                 var roots = BindEntries(ws.dataDescriptionEntry(), _rootNames);
                 m.StaticRoots.AddRange(roots);

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -185,10 +186,10 @@ public sealed partial class DataBinder
         foreach (var clause in rd.reportDescriptionClause())
         {
             if (clause.reportGlobalClause() is not null)
-                Edition.Error("COBOLNET0899", $"RD '{model.Name}': the GLOBAL clause on a report description "
+                Edition.Error(DiagnosticCatalog.ReportGlobalClause, $"RD '{model.Name}': the GLOBAL clause on a report description "
                     + "(ISO §13.18.27) is not yet implemented — cross-program report visibility is staged");
             else if (clause.reportCodeClause() is not null)
-                Edition.Error("COBOLNET0899", $"RD '{model.Name}': the CODE clause (ISO §13.18.12) is not yet "
+                Edition.Error(DiagnosticCatalog.ReportCodeClause, $"RD '{model.Name}': the CODE clause (ISO §13.18.12) is not yet "
                     + "implemented");
             else if (clause.reportControlClause() is { } ctl)
             {
@@ -250,7 +251,7 @@ public sealed partial class DataBinder
             }
             if (group is null)
             {
-                Edition.Error("COBOLNET0899", $"RD '{model.Name}': report group entry before any 01-level entry");
+                Edition.Error(DiagnosticCatalog.ReportGroupBefore01, $"RD '{model.Name}': report group entry before any 01-level entry");
                 continue;
             }
 
@@ -270,7 +271,7 @@ public sealed partial class DataBinder
                 else if (clause.reportLineClause() is { } lc)
                 {
                     if (lc.NEXT() is not null)
-                        Edition.Error("COBOLNET0899", $"RD '{model.Name}': LINE … NEXT PAGE (ISO §13.18.35) is "
+                        Edition.Error(DiagnosticCatalog.ReportLineNextPage, $"RD '{model.Name}': LINE … NEXT PAGE (ISO §13.18.35) is "
                             + "not yet implemented");
                     else if (lc.PLUSWORD() is not null)
                         opened = new ReportLineModel(ReportLineKindModel.Relative, int.Parse(lc.integerLiteral().GetText()));
@@ -278,7 +279,7 @@ public sealed partial class DataBinder
                         opened = new ReportLineModel(ReportLineKindModel.Absolute, int.Parse(lc.integerLiteral().GetText()));
                 }
                 else if (clause.reportNextGroupClause() is not null)
-                    Edition.Error("COBOLNET0899", $"RD '{model.Name}': the NEXT GROUP clause (ISO §13.18.37) is "
+                    Edition.Error(DiagnosticCatalog.ReportNextGroupClause, $"RD '{model.Name}': the NEXT GROUP clause (ISO §13.18.37) is "
                         + "not yet implemented");
                 else if (clause.reportColumnClause() is { } cc)
                     column = int.Parse(cc.integerLiteral().GetText());
@@ -299,7 +300,7 @@ public sealed partial class DataBinder
                 else if (clause.blankWhenZeroClause() is not null)
                     blankWhenZero = true;
                 else if (clause.occursClause() is not null)
-                    Edition.Error("COBOLNET0899", $"RD '{model.Name}': OCCURS in a report group description "
+                    Edition.Error(DiagnosticCatalog.ReportOccursInGroup, $"RD '{model.Name}': OCCURS in a report group description "
                         + "(ISO §13.18.38 repeating entries) is not yet implemented");
                 else if (clause.valueClause() is { } value)
                     rawValue = ExtractValue(value);
@@ -316,7 +317,7 @@ public sealed partial class DataBinder
             {
                 if (line is null)
                 {
-                    Edition.Error("COBOLNET0899", $"RD '{model.Name}': a COLUMN clause with no LINE clause in "
+                    Edition.Error(DiagnosticCatalog.ReportColumnWithoutLine, $"RD '{model.Name}': a COLUMN clause with no LINE clause in "
                         + "effect (ISO §13.18.14 — a printable item belongs to a report line)");
                     continue;
                 }
@@ -330,12 +331,12 @@ public sealed partial class DataBinder
                     : null;
                 if (pic is null)
                 {
-                    Edition.Error("COBOLNET0899", $"RD '{model.Name}': printable item at COLUMN {col} has no "
+                    Edition.Error(DiagnosticCatalog.ReportItemMissingPicture, $"RD '{model.Name}': printable item at COLUMN {col} has no "
                         + "PICTURE clause (ISO §13.16 — an elementary printable item requires one)");
                     continue;
                 }
                 if (pic.Usage is not Usage.Display)
-                    Edition.Error("COBOLNET0899", $"RD '{model.Name}': a non-DISPLAY printable item at COLUMN "
+                    Edition.Error(DiagnosticCatalog.ReportNonDisplayItem, $"RD '{model.Name}': a non-DISPLAY printable item at COLUMN "
                         + $"{col} (ISO §13.15 — printable items are DISPLAY) is not supported");
                 var item = new DataItem
                 {
@@ -389,7 +390,7 @@ public sealed partial class DataBinder
         }
         // PH/PF require a PAGE clause (§13.18.57.3 SR12).
         if (group.Kind is ReportGroupKindModel.PageHeading or ReportGroupKindModel.PageFooting && !model.Paged)
-            Edition.Error("COBOLNET0899", $"RD '{model.Name}': TYPE {group.Kind} requires a PAGE clause that "
+            Edition.Error(DiagnosticCatalog.ReportPageTypeRequiresPage, $"RD '{model.Name}': TYPE {group.Kind} requires a PAGE clause that "
                 + "defines the page limit (ISO §13.18.57.3 SR12)");
     }
 
@@ -403,14 +404,14 @@ public sealed partial class DataBinder
         {
             // A report-name qualifier naming a DIFFERENT report's counter is legal (§8.4.3.15 SR2) — staged.
             if (dref.cobolWord() is { } q && !q.GetText().Equals(model.Name, StringComparison.OrdinalIgnoreCase))
-                Edition.Error("COBOLNET0899", $"RD '{model.Name}': SOURCE {dref.GetText()} — a counter of "
+                Edition.Error(DiagnosticCatalog.ReportSourceOtherReportCounter, $"RD '{model.Name}': SOURCE {dref.GetText()} — a counter of "
                     + "another report (ISO §8.4.3.15 SR2) is not yet implemented");
             return new FieldCounterSource(dref.PAGE_COUNTER() is not null);
         }
         foreach (var sfx in dref.dataReferenceSuffix())
             if (sfx.subscriptPart() is not null || sfx.refModPart() is not null)
             {
-                Edition.Error("COBOLNET0899", $"RD '{model.Name}': SOURCE {dref.GetText()} — a subscripted or "
+                Edition.Error(DiagnosticCatalog.ReportSourceSubscripted, $"RD '{model.Name}': SOURCE {dref.GetText()} — a subscripted or "
                     + "reference-modified SOURCE operand (ISO §13.18.53) is not yet implemented");
                 return null;
             }
@@ -439,7 +440,7 @@ public sealed partial class DataBinder
         foreach (var op in sm.sumOperand())
         {
             if (op.reportName() is not null)
-                Edition.Error("COBOLNET0899", $"RD '{model.Name}': SUM … OF report-name (a cross-report sum, "
+                Edition.Error(DiagnosticCatalog.ReportSumCrossReport, $"RD '{model.Name}': SUM … OF report-name (a cross-report sum, "
                     + "ISO §13.18.54.3 SR4g) is not yet implemented");
             var (b, q) = KeyReference(op.dataReference());
             sum.AddendNames.Add((b, q));
@@ -467,10 +468,10 @@ public sealed partial class DataBinder
             model.File = Files.FirstOrDefault(f =>
                 f.ReportNames.Any(rn => rn.Equals(model.Name, StringComparison.OrdinalIgnoreCase)));
             if (model.File is null)
-                Edition.Error("COBOLNET0899", $"RD '{model.Name}' is not named in any file description entry's "
+                Edition.Error(DiagnosticCatalog.ReportNotInFile, $"RD '{model.Name}' is not named in any file description entry's "
                     + "REPORT clause (ISO §13.18.46 / §13.14)");
             else if (model.File.ReportNames.Count > 1)
-                Edition.Error("COBOLNET0899", $"file '{model.File.CobolName}': multiple reports on one file "
+                Edition.Error(DiagnosticCatalog.ReportMultipleOnFile, $"file '{model.File.CobolName}': multiple reports on one file "
                     + "(REPORTS ARE …, ISO §13.18.46) are not yet implemented");
 
             foreach (var ctl in model.Controls)
@@ -478,7 +479,7 @@ public sealed partial class DataBinder
                 {
                     ctl.Item = LookupQualified(cn, ctl.Qualifiers);
                     if (ctl.Item is null)
-                        Edition.Error("COBOLNET0899", $"RD '{model.Name}': CONTROL operand '{cn}' does not "
+                        Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{cn}' does not "
                             + "resolve to a data item (ISO §13.18.16.3 SR3)");
                 }
 
@@ -494,7 +495,7 @@ public sealed partial class DataBinder
                             ? model.Controls.FindIndex(c => gcn.Equals(c.Name, StringComparison.OrdinalIgnoreCase))
                             : model.Controls.Count == 1 ? 0 : -1;
                     if (group.ControlLevel < 0)
-                        Edition.Error("COBOLNET0899", $"RD '{model.Name}': the TYPE C{(group.Kind == ReportGroupKindModel.ControlHeading ? "H" : "F")} operand "
+                        Edition.Error(DiagnosticCatalog.ReportControlTypeOperand, $"RD '{model.Name}': the TYPE C{(group.Kind == ReportGroupKindModel.ControlHeading ? "H" : "F")} operand "
                             + "shall be an operand of the CONTROL clause (ISO §13.18.57.3 SR10/SR11)");
                 }
                 foreach (var ln in group.Lines)
@@ -503,7 +504,7 @@ public sealed partial class DataBinder
                         {
                             ds.Item = LookupQualified(ds.Name, ds.Qualifiers);
                             if (ds.Item is null)
-                                Edition.Error("COBOLNET0899", $"RD '{model.Name}': SOURCE '{ds.Name}' does not "
+                                Edition.Error(DiagnosticCatalog.ReportSourceOperandUnresolved, $"RD '{model.Name}': SOURCE '{ds.Name}' does not "
                                     + "resolve to a data item (ISO §13.18.53.3 SR4)");
                         }
             }
@@ -515,12 +516,12 @@ public sealed partial class DataBinder
                     if (model.Sums.Any(s => s.Id.Equals(an, StringComparison.OrdinalIgnoreCase)))
                     {
                         // A report-section addend (a rolled total, §13.18.54.4 GR6) — staged loud.
-                        Edition.Error("COBOLNET0899", $"RD '{model.Name}': SUM addend '{an}' names another sum "
+                        Edition.Error(DiagnosticCatalog.ReportSumRolledTotal, $"RD '{model.Name}': SUM addend '{an}' names another sum "
                             + "counter (rolled totals, ISO §13.18.54.4 GR6) — not yet implemented");
                         continue;
                     }
                     if (LookupQualified(an, aq) is { } item) sum.Addends.Add(item);
-                    else Edition.Error("COBOLNET0899", $"RD '{model.Name}': SUM addend '{an}' does not resolve "
+                    else Edition.Error(DiagnosticCatalog.ReportSumAddendUnresolved, $"RD '{model.Name}': SUM addend '{an}' does not resolve "
                         + "to a data item outside the report section (ISO §13.18.54.3 SR5)");
                 }
                 if (sum.ResetFinal)
@@ -528,7 +529,7 @@ public sealed partial class DataBinder
                 else if (sum.ResetName is { } rn)
                     sum.ResetLevel = model.Controls.FindIndex(c => rn.Equals(c.Name, StringComparison.OrdinalIgnoreCase));
                 if ((sum.ResetFinal || sum.ResetName is not null) && sum.ResetLevel < 0)
-                    Edition.Error("COBOLNET0899", $"RD '{model.Name}': RESET ON '{sum.ResetName ?? "FINAL"}' is "
+                    Edition.Error(DiagnosticCatalog.ReportResetNotControlOperand, $"RD '{model.Name}': RESET ON '{sum.ResetName ?? "FINAL"}' is "
                         + "not an operand of the CONTROL clause (ISO §13.18.54.3 SR8)");
             }
 

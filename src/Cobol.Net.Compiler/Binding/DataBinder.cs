@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -986,7 +987,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 Edition.Error("COBOLNET0898", $"condition-name '{name}': THROUGH may not be "
                                     + "specified when the conditional variable is boolean (ISO §13.18.63 SR29)");
                             else if (parent.Pic is { Category: PicCategory.National })
-                                Edition.Error("COBOLNET0899", $"condition-name '{name}': a THROUGH range over "
+                                Edition.Error(DiagnosticCatalog.NationalThroughRange, $"condition-name '{name}': a THROUGH range over "
                                     + "a national conditional variable (ordered by the national collating "
                                     + "sequence) is recognized but not yet implemented (Phase 4a residue) — "
                                     + "(ISO §13.18.63 SR31)");
@@ -1093,7 +1094,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     if (oru?.FACTORY() is not null)
                         // OBJECT REFERENCE FACTORY OF class (§13.18.60 :22681) — the factory-object
                         // reference item awaits the universal-reference wave (§16.2.2 FactoryObject).
-                        Edition.Error("COBOLNET0899", "USAGE OBJECT REFERENCE FACTORY OF (a factory-object "
+                        Edition.Error(DiagnosticCatalog.OoFactoryObjectReference, "USAGE OBJECT REFERENCE FACTORY OF (a factory-object "
                             + "reference, ISO §13.18.60) is recognized but not yet implemented (the "
                             + "universal-reference wave)");
                     else
@@ -1350,7 +1351,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     item.Pic = null;
                     foreach (var l in Leaves(item))
                         if (l.Pic is { Category: PicCategory.Boolean or PicCategory.Numeric or PicCategory.NumericEdited })
-                            Edition.Error("COBOLNET0899", "national-form data (a boolean or numeric item "
+                            Edition.Error(DiagnosticCatalog.NationalData, "national-form data (a boolean or numeric item "
                                 + $"under a group USAGE NATIONAL) is recognized but not yet implemented "
                                 + $"(Phase 4a residue) — data item '{l.CobolName ?? "FILLER"}' "
                                 + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1)");
@@ -1686,7 +1687,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var rec in f.Records)
                 foreach (var leaf in LeavesOf(rec))
                     if (leaf.Pic is { Category: PicCategory.National })
-                        Edition.Error("COBOLNET0899", $"national data in a file record (data item "
+                        Edition.Error(DiagnosticCatalog.NationalData, $"national data in a file record (data item "
                             + $"'{leaf.CobolName ?? "FILLER"}' of record '{rec.CobolName}') is recognized but "
                             + "not yet implemented — the record codec is single-byte and the national "
                             + "character is two bytes (Phase 4a residue; ISO §8.1.2 / §13.18.60.4 GR8)");

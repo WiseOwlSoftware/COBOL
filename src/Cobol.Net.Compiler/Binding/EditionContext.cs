@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 
 namespace CobolNet.Binding;
 
@@ -68,6 +69,14 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
 
     /// <summary>Record an edition-gating error (fails the compile).</summary>
     public void Error(string code, string message) => Diagnostics.Add($"error {code}: {message}");
+
+    /// <summary>Record a diagnostic keyed by a catalogue <see cref="DiagnosticDescriptor"/> (P2.10 — the
+    /// first-class registry replacing bare <c>COBOLNETnnnn</c> string literals). Emits the descriptor's
+    /// <see cref="DiagnosticDescriptor.Code"/> with the site-composed <paramref name="message"/> — byte-identical
+    /// to the former bare-code call — while binding the site to a stable, documented, suppressible identity
+    /// (<see cref="DiagnosticDescriptor.Id"/>). All P2-catalogued descriptors reachable here are error-severity;
+    /// warning-severity descriptors route through <see cref="Warning"/> at their own sites.</summary>
+    public void Error(DiagnosticDescriptor descriptor, string message) => Error(descriptor.Code, message);
 
     /// <summary>Record a non-failing edition diagnostic (the 0903 obsolete/archaic flags; removed constructs
     /// under <see cref="Permissive"/> via <see cref="Removed"/>).</summary>

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -38,7 +39,7 @@ public sealed partial class StatementBinder
         if (RwFindReport(name) is { } summary)
         {
             if (summary.Controls.Count == 0)
-                data.Edition.Error("COBOLNET0899", $"GENERATE {name}: the report-name form requires a CONTROL "
+                data.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
                     + "clause in the report description entry (ISO §14.9.16.3 SR2)");
             return new BoundGenerate(summary, null);   // summary reporting (GR2)
         }
@@ -47,7 +48,7 @@ public sealed partial class StatementBinder
                     name.Equals(g.Name, StringComparison.OrdinalIgnoreCase)) is { } group)
             {
                 if (group.Kind != ReportGroupKindModel.Detail)
-                    data.Edition.Error("COBOLNET0899", $"GENERATE {name}: the named report group is not a "
+                    data.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"GENERATE {name}: the named report group is not a "
                         + "DETAIL group (ISO §14.9.16.3 SR1)");
                 return new BoundGenerate(r, group);
             }
@@ -83,12 +84,12 @@ public sealed partial class StatementBinder
         if (dref.cobolWord() is { } q)   // qualified: COUNTER OF/IN report-name
         {
             if (RwFindReport(q.GetText()) is { } named) return new BoundReportCounterRef(named, isPage);
-            data.Edition.Error("COBOLNET0899", $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
+            data.Edition.Error(DiagnosticCatalog.ReportCounterQualifierNotReport, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + "description entry (ISO §8.4.3.15 SR2 / §8.4.2.2)");
             return new BoundExprError($"{reg} reference '{dref.GetText()}'");
         }
         if (data.Reports.Count == 1) return new BoundReportCounterRef(data.Reports[0], isPage);
-        data.Edition.Error("COBOLNET0899", data.Reports.Count == 0
+        data.Edition.Error(DiagnosticCatalog.ReportCounterNoReport, data.Reports.Count == 0
             ? $"{reg} referenced, but the program has no report description entry (ISO §8.4.3.15.1 — the "
               + "counters are generated per report)"
             : $"unqualified {reg} with more than one report: qualify by report-name (ISO §8.4.3.15 SR2 / §8.4.2.2)");
@@ -105,13 +106,13 @@ public sealed partial class StatementBinder
     {
         if (dref.LINE_COUNTER() is not null)
         {
-            data.Edition.Error("COBOLNET0899",
+            data.Edition.Error(DiagnosticCatalog.ReportLineCounterReceiving,
                 "LINE-COUNTER shall not be referenced as a receiving operand (ISO §8.4.3.15.3 SR3)");
             return null;
         }
         if (dref.PAGE_COUNTER() is not null)
         {
-            data.Edition.Error("COBOLNET0899", "PAGE-COUNTER as a receiving operand (ISO §8.4.3.15 — legal; the "
+            data.Edition.Error(DiagnosticCatalog.ReportPageCounterReceiving, "PAGE-COUNTER as a receiving operand (ISO §8.4.3.15 — legal; the "
                 + "program assigns page numbers) is not yet implemented");
             return null;
         }

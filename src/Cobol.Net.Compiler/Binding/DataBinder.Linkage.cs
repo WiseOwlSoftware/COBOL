@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Runtime;
 using CobolNet.Frontend.Generated;
 
@@ -224,7 +225,7 @@ public sealed partial class DataBinder
             // The silent-skip left the record as ORDINARY storage — the program ran with its EXTERNAL
             // sharing semantics silently dropped (the W1-test finding, Phase 4a). Loud at bind: the
             // reason names the leaf (COMP/float/index Tier-C, or the RESIDUE-11 national/bit cell legs).
-            Edition.Error("COBOLNET0899", $"EXTERNAL record '{item.CobolName}' cannot be cell-backed — "
+            Edition.Error(DiagnosticCatalog.ExternalRecordNotCellBacked, $"EXTERNAL record '{item.CobolName}' cannot be cell-backed — "
                 + $"{item.Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented");
             return;
         }

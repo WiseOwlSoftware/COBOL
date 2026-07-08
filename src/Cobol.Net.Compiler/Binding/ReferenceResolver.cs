@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -76,7 +77,7 @@ public sealed class ReferenceResolver(DataBinder data)
         var model = get?.Returning ?? set!.Formals[0].Item;
         if (model.IsGroup)
         {
-            data.Edition.Error("COBOLNET0899",
+            data.Edition.Error(DiagnosticCatalog.OoGroupValuedProperty,
                 $"the object-property reference '{name}' OF '{recv}': a GROUP-valued property reference "
                 + "(the §8.4.3.9.4 temps over a group description) is a later refinement of the OO wave");
             return null;

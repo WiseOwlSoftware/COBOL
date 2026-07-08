@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -208,7 +209,7 @@ public sealed partial class StatementBinder
                 // comparator's collating leg for national is Phase-4a residue #5 (file-sort national keys are
                 // already blocked by the FD/SD record gate). Staged loud, never a wrong ordinal.
                 if (key.Pic is { Category: PicCategory.National })
-                    data.Edition.Error("COBOLNET0899", $"SORT with a national key ('{kn}') is recognized but "
+                    data.Edition.Error(DiagnosticCatalog.NationalData, $"SORT with a national key ('{kn}') is recognized but "
                         + "not yet implemented — national key collating (Phase 4a residue; ISO §14.9.40 GR5b)");
                 keys.Add(new BoundTableSortKey(desc, path, key));
             }

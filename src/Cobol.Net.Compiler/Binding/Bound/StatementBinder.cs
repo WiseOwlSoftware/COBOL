@@ -3,6 +3,7 @@
 using Antlr4.Runtime.Tree;
 using CobolNet.Runtime;
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -537,7 +538,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         {
             if (!r.Item.IsStrongGroup) continue;
             if (sender is null || !DataItem.SameStrongType(sender, r.Item))
-                data.Edition.Error("COBOLNET1533", "MOVE to strongly-typed group "
+                data.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
                     + $"'{r.Item.CobolName ?? r.Item.CsName}': the sending operand shall be a group item of the same "
                     + "type (ISO §14.9.25.3 SR2 / §8.5.3.3)");
         }
@@ -1493,7 +1494,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // its own unique class and category (the type-name), not one of the general classes a class condition tests.
         if (op is BoundFieldOperand fg && fg.Place.Item.IsStrongGroup)
         {
-            data.Edition.Error("COBOLNET1533", "a strongly-typed group item may not appear in a class condition — "
+            data.Edition.Error(DiagnosticCatalog.StrongClassCondition, "a strongly-typed group item may not appear in a class condition — "
                 + "it has its own unique class and category (ISO §8.8.4.4.3 SR1)");
             return;
         }
@@ -1688,7 +1689,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (sl?.IsStrongGroup == true || sr?.IsStrongGroup == true)
         {
             if (sl is null || sr is null || !DataItem.SameStrongType(sl, sr))
-                data.Edition.Error("COBOLNET1533", "a strongly-typed group may be compared only with a group of the "
+                data.Edition.Error(DiagnosticCatalog.StrongCompareMismatch, "a strongly-typed group may be compared only with a group of the "
                     + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
             // §8.8.4.2.3 SR4 (D17 inc 4, staged loud): a strong group whose elements include class boolean,
             // object-reference, or pointer may be compared only for equality — an ordering relation on such a group

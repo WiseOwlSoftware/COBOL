@@ -3,6 +3,7 @@
 using CobolNet.Binding;
 using CobolNet.Frontend.Generated;
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 
 namespace CobolNet.Validation;
 
@@ -333,7 +334,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
             // row 7.17; the switch-ABSENT case never gets here — comment treatment skips the section body).
             // Diagnose the truth (0899 not-implemented) instead of a false §8.9 violation.
             if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
-                _edition.Error("COBOLNET0899",
+                _edition.Error(DiagnosticCatalog.DebugRegisterFacility,
                     $"the X3.23-1985 debug register '{word}' is recognized, but the '85 debug facility "
                     + "(DEBUG-ITEM registers, debugging-section invocation) is not implemented — deferred "
                     + "with the golden-less DB series (VCR Table 7 row 7.17)");

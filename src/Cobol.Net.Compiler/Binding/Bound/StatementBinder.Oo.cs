@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -227,7 +228,7 @@ public sealed partial class StatementBinder
             if (m.Ctx.procedureDivision() is { } pd)
             {
                 if (pd.declarativePart().Length > 0)
-                    data.Edition.Error("COBOLNET0899",
+                    data.Edition.Error(DiagnosticCatalog.OoMethodDeclaratives,
                         $"class '{cls.Name}', method '{m.Name}': DECLARATIVES inside a method (ISO §14.2.1) "
                         + "are recognized but not yet implemented (owning roadmap phase: Phase 3, OO port)");
                 foreach (var unit in pd.procedureUnit())
@@ -1062,7 +1063,7 @@ public sealed partial class StatementBinder
         if (raising is null) return null;
         if (raising.LAST() is not null)
         {
-            data.Edition.Error("COBOLNET0899",
+            data.Edition.Error(DiagnosticCatalog.OoMethodRaisingLast,
                 $"{verb} RAISING LAST EXCEPTION inside a method: LAST is legal only within a declarative "
                 + "or a PERFORM WHEN (ISO §14.9.18.3 SR5) — method declaratives are a later refinement of "
                 + "the EC-OO wave");

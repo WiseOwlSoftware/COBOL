@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 
 namespace CobolNet.Binding;
 
@@ -455,7 +456,7 @@ public sealed record PicInfo(
                     case Usage.National:
                         // SR12 admits a boolean picture under USAGE NATIONAL — spec-legal, representation
                         // staged (one national char per boolean position; nothing constructs it yet).
-                        edition.Error("COBOLNET0899", $"national-form boolean data (PIC 1 with USAGE NATIONAL) "
+                        edition.Error(DiagnosticCatalog.NationalData, $"national-form boolean data (PIC 1 with USAGE NATIONAL) "
                             + $"is recognized but not yet implemented (Phase 4a residue) — {where} "
                             + "(ISO §13.18.60.3 SR12)");
                         usage = Usage.Display;
@@ -497,7 +498,7 @@ public sealed record PicInfo(
             }
             else
             {
-                edition.Error("COBOLNET0899", $"national-form numeric data (a numeric or numeric-edited "
+                edition.Error(DiagnosticCatalog.NationalData, $"national-form numeric data (a numeric or numeric-edited "
                     + $"PICTURE {picture} with USAGE NATIONAL — national digits) is recognized but not yet "
                     + $"implemented (Phase 4a residue) — {where} (ISO §13.18.60.3 SR12)");
             }
@@ -677,7 +678,7 @@ public sealed record PicInfo(
             case { } other:
                 // The grammar admits nothing else — reaching here is a compiler defect (a new grammar
                 // alternative without its ParseUsage arm). LOUD, never a silent Display misbind.
-                edition.Error("COBOLNET0899",
+                edition.Error(DiagnosticCatalog.UsageKeywordUnmappedInternal,
                     $"internal: unrecognized USAGE keyword '{other}' — {where} (ISO §13.18.60; every "
                     + "grammar-accepted usage keyword must have an explicit ParseUsage mapping)");
                 return Usage.Display;
@@ -727,7 +728,7 @@ public sealed record PicInfo(
             ?? throw new ArgumentException($"unregistered construct id '{rowId}'", nameof(rowId));
         ConstructRegistry.Check(edition.Edition, edition, rowId, where);
         if (edition.DialectLevel >= row.IntroducedIn)
-            edition.Error("COBOLNET0899", $"{row.Display} is recognized but not yet implemented (owning "
+            edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented, $"{row.Display} is recognized but not yet implemented (owning "
                 + $"roadmap phase: {phase}) — {where} ({row.Citation})");
     }
 

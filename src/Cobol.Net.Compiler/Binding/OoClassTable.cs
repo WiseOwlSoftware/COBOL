@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -404,7 +405,7 @@ public sealed class OoClassTable
                         + "a LINKAGE SECTION (ISO §10.6.2 SR4)");
                 if (m.methodPropertySelector() is not null)
                 {
-                    edition.Error("COBOLNET0899",
+                    edition.Error(DiagnosticCatalog.OoInterfacePropertyPrototype,
                         $"interface '{iname}': a GET/SET PROPERTY prototype is recognized but not yet "
                         + "implemented (the property-prototype leg — a later refinement)");
                     continue;

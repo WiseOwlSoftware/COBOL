@@ -511,8 +511,8 @@ public static partial class DiagnosticDescriptors
     // policy, two emit layers: a grammar-predicate rejection surfaces here (ReservedWordEditionHints), a bind-time
     // gate routes through ConstructRegistry.Check. Keep the code text identical.
     // ══════════════════════════════════════
-    public static readonly DiagnosticDescriptor COBOLNET0900 = new("COBOLNET0900", DiagnosticSeverity.Error,
-        "{0}");
+    public static readonly DiagnosticDescriptor COBOLNET0900 = new(CobolNet.Editions.EditionCodes.Introduction,
+        DiagnosticSeverity.Error, "{0}");
 
     // ══════════════════════════════════════
     // COBOL0400–0412: Bound tree builder
