@@ -53,6 +53,7 @@
 | `docs/COBOLNET_REPORT_WRITER_DESIGN.md` | DESIGN | Report Writer — the `CobolReport` RWCS engine, compose-at-presentation lines, counters, CONTROL/SUM, USE BEFORE REPORTING (closes the SSOT's RW seam flag). |
 | `docs/COBOLNET_PROJECT_ORG_DESIGN.md` | DESIGN | Project/folder organization + the Cobol.NET / `cobol.exe` naming (G0 executed; G8 namespace big-bang pending). |
 | `docs/COBOLNET_VALIDATION_DESIGN.md` | DESIGN | **Edition validation (AS-BUILT Wave 1, DEVLOG 583–590):** the EditionValidator pass, the strict/permissive channels + `Removed()` seam, the 0900–0903 band, the four-source reserved-word tables + the cobolWord funnel, the ConstructDialectStatus registry + drift disciplines, the corpus runner shells, and the measurable G7 exit criteria. |
+| `docs/DIAGNOSTICS.md` | LEDGER | **Generated — do not hand-edit.** The index of the first-class diagnostic descriptors (rearch P2.10): code · stable id · severity · ISO § · suppress key · title. Source of truth = `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs`; regen `pwsh scripts/gen-diagnostics-doc.ps1`; drift-guarded by `DiagnosticRegistryDriftTests`. |
 
 ## Version-correctness (multi-edition)
 
