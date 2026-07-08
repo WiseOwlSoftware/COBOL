@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
+using CobolNet.Editions;
 using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
 
@@ -25,7 +26,8 @@ public sealed class CopyProcessor(
     /// were REMOVED by ISO 2023 (Annex E.2 item 1 bullet 4 — "Removal of support for non-pseudo-text operands
     /// in the replacing phrase of the COPY statement"). Error strict / warning permissive at ≥2023, silent
     /// below (the ==pseudo-text== form is the only 2023-conforming shape); the pre-removal substitution
-    /// semantics are preserved either way.</summary>
+    /// semantics are preserved either way. The strict/permissive decision is the ONE
+    /// <see cref="EditionSeverityPolicy"/> (P2.9 — never a local <c>if(permissive)</c>).</summary>
     private void OnNonPseudoTextOperand(string text, int pos)
     {
         if (dialectLevel < 2023 || _nonPseudoTextFlagged || _diagnostics is null) return;
@@ -34,10 +36,11 @@ public sealed class CopyProcessor(
         const string msg = "a non-pseudo-text COPY REPLACING operand (identifier/literal/word) was removed in "
             + "COBOL-2023 (Annex E.2 item 1 bullet 4) — use ==pseudo-text==; first use at line ";
         var loc = new Common.SourceLocation(_sourceName, 0, line, 0);
-        if (permissive)
-            _diagnostics.ReportWarning("COBOLNET0902", msg + line, loc, default);
-        else
+        var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, EditionInfo.Of(dialectLevel, permissive));
+        if (severity == EditionSeverity.Error)
             _diagnostics.ReportError("COBOLNET0902", msg + line, loc, default);
+        else
+            _diagnostics.ReportWarning("COBOLNET0902", msg + line, loc, default);
     }
     /// <summary>Maximum COPY nesting depth to prevent infinite recursion.</summary>
     private const int MaxCopyDepth = 20;

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Text;
 using System.Text.RegularExpressions;
+using CobolNet.Editions;
 using CobolNet.Frontend.Diagnostics;
 
 namespace CobolNet.Frontend.Preprocessor;
@@ -114,8 +115,9 @@ public static class ReferenceFormatProcessor
     /// The per-compilation edition gates of the fixed-form continuation mechanism (registry rows
     /// <c>col7-continuation-obsolete-2023</c> / <c>fixed-form-word-continuation-removed-2023</c>; the emit
     /// sites live HERE because only the column-aware pass can see the indicator — the metadata stays
-    /// registry-canonical, and the severity policy mirrors <c>EditionContext</c>: removed = error strict /
-    /// warning permissive, obsolete = warning always. One diagnostic per file per gate.
+    /// registry-canonical, and the strict/permissive decision is the ONE <see cref="EditionSeverityPolicy"/>
+    /// (P2.9 — removed = error strict / warning permissive, obsolete = warning always; never a local
+    /// <c>if(permissive)</c>). One diagnostic per file per gate.
     /// </summary>
     private sealed class EditionGates(int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath)
     {
@@ -126,10 +128,11 @@ public static class ReferenceFormatProcessor
         {
             if (dialectLevel < 2023 || _col7Flagged) return;
             _col7Flagged = true;
-            diagnostics.ReportWarning("COBOLNET0903",
+            var severity = EditionSeverityPolicy.For(ConstructAvailability.Obsolete, EditionInfo.Of(dialectLevel, permissive));
+            Emit(severity, "COBOLNET0903",
                 "the fixed continuation indicator (hyphen in column 7) is obsolete as of COBOL-2023 "
                 + "(Annex F.2 item 4; use the floating continuation indicator) — first use at line " + line,
-                new Common.SourceLocation(sourcePath, 0, line, IndicatorColumn), default);
+                new Common.SourceLocation(sourcePath, 0, line, IndicatorColumn));
         }
 
         /// <summary>A continuation that SPLICES a COBOL word across lines — REMOVED at 2023
@@ -141,10 +144,17 @@ public static class ReferenceFormatProcessor
             const string msg = "continuation of a COBOL word in fixed-form reference format was removed in "
                 + "COBOL-2023 (Annex E.2 item 1 bullet 2) — first use at line ";
             var loc = new Common.SourceLocation(sourcePath, 0, line, IndicatorColumn);
-            if (permissive)
-                diagnostics.ReportWarning("COBOLNET0902", msg + line, loc, default);
+            var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, EditionInfo.Of(dialectLevel, permissive));
+            Emit(severity, "COBOLNET0902", msg + line, loc);
+        }
+
+        /// <summary>Emit through the <see cref="DiagnosticBag"/> at the ONE-policy-decided severity (P2.9).</summary>
+        private void Emit(EditionSeverity severity, string code, string message, Common.SourceLocation loc)
+        {
+            if (severity == EditionSeverity.Error)
+                diagnostics.ReportError(code, message, loc, default);
             else
-                diagnostics.ReportError("COBOLNET0902", msg + line, loc, default);
+                diagnostics.ReportWarning(code, message, loc, default);
         }
     }
 

@@ -58,7 +58,7 @@ retiring the adapter across all 290 sites is *optional* here and may defer to P7
 
 ## STATUS
 
-`IN PROGRESS @ step 9` (started 2026-07-07; recon wf_9944fe61-fcc). Steps 1–7 DONE (8 commits, all pushed to main); step 8 SUPERSEDED (see below); steps 9–11 remain. Battery held green throughout: conformance 2055 · unit 224 · FULL legacy guard NIST 353 MATCH.
+`IN PROGRESS @ step 10` (started 2026-07-07; recon wf_9944fe61-fcc). Steps 1–7 DONE (8 commits, all pushed to main); step 8 SUPERSEDED by the bind-time gating migration (all 24 hard-reserved constructs now gate at bind time through `ConstructRegistry.Check`; `EditionGateHints` is down to its reservation-word residue — DEVLOG 680–690); **step 9 DONE** (P2.9, DEVLOG 692 — the frontend preprocessor gates consume the ONE `EditionSeverityPolicy`); steps 10–11 remain. Battery held green throughout: conformance 2055 · unit 224 · FULL legacy guard NIST 353 MATCH.
 > **Landed (this session reordered the doc's steps 3↔4 — adapter first, then move):**
 > - P2.1 (62e09db1, DEVLOG 670) — the `Cobol.Net.Editions` leaf assembly + refs + `EditionInfo`.
 > - P2.2 (26edb4fa, DEVLOG 671) — `EditionSeverity` + `IDiagnosticSink`/`EditionDiagnostic`.
