@@ -25,7 +25,7 @@ public static partial class ConstructRegistry
         new("currency-picture-symbol-2002", "CURRENCY SIGN WITH PICTURE SYMBOL", 2002, null, null, "COBOLNET0893", "ISO §12.3.7; pinned pre-band code (VCR Table 7 row 7.3, DEVLOG 558 — in the roadmap traceability band); the W1.5 registry truth-fix (was mislabeled 0900)"),
         new("pic-wide-19-digits-2002", "fixed-point item wider than 18 digits", 2002, null, null, "COBOLNET0802", "ISO §8.3.1.2 / §13.18.40 (the LIVE digit-capacity gate)"),
         new("options-arithmetic-native-2014", "OPTIONS paragraph / ARITHMETIC IS NATIVE", 2014, null, null, "COBOLNET0900", "ISO §11.9"),
-        new("rounded-mode-is-2014", "ROUNDED MODE IS", 2014, null, null, "COBOLNET0900", "ISO §14.7.4"),
+        new("rounded-mode-is-2014", "ROUNDED MODE IS", 2014, null, null, "COBOLNET0803", "ISO §14.7.4"),
         new("arithmetic-standard-decimal-2014", "ARITHMETIC IS STANDARD-DECIMAL", 2014, null, null, "COBOLNET0900", "ISO §11.9.5 / §8.8.1.5"),
         new("occurs-dynamic-2014", "OCCURS DYNAMIC (dynamic-capacity table)", 2014, null, null, "COBOLNET0900", "ISO §13.18.38 Format 4 / §8.5.1.9; data-model D9 — the CobolDynTable<T> growable substrate; CAPACITY register + SET Format 14 + SEARCH over current capacity"),
         new("type-clause-2002", "TYPE clause (TYPEDEF family)", 2002, null, null, "COBOLNET0900", "ISO §13.18.58; PROVISIONAL 2002 edge (ISO-validation DEVLOG 582; decision-1 policy)"),
@@ -102,5 +102,9 @@ public static partial class ConstructRegistry
         new("unlock-statement-2002", "the UNLOCK statement", 2002, null, null, "COBOLNET0900", "ISO §14.9.47 (UNLOCK file [RECORD[S]]); LIVE (Phase 4d) — releases all this-connector record locks; 2002 introduction"),
         new("record-lock-phrase-2002", "a record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK / ADVANCING ON LOCK)", 2002, null, null, "COBOLNET0900", "ISO §14.9.30 / §14.9.51 / §14.9.35; LIVE (Phase 4d) — explicit MANUAL locking + IGNORING-LOCK bypass; 2002 introduction"),
         new("user-word-sharing-2002", "the word SHARING as a user-defined word", 85, 2002, null, "COBOLNET0901", "§8.9 interval encoding: user-definable at 85, reserved since 2002 (ReservedWords.Table covers SHARING/RETRY/UNLOCK; single representative — the user-word-raising-2002 precedent)"),
+        new("end-accept-2002", "END-ACCEPT (explicit scope terminator)", 2002, null, null, "COBOLNET0816", "ISO §14.9.1 (ACCEPT general formats)"),
+        new("alter-removed-2002", "the ALTER statement", 85, 2002, null, "COBOLNET0810", "ISO §14.9.17 (no altered GO TO); obsolete ’85 element deleted by ISO 2002"),
+        new("bare-goto-removed-2002", "GO TO without a procedure-name (the ALTER-dependent form)", 85, 2002, null, "COBOLNET0811", "ISO §14.9.17 (procedure-name-1 required); obsolete ’85 form deleted by ISO 2002"),
+        new("call-on-overflow-removed-2023", "CALL … ON OVERFLOW", 85, 2023, null, "COBOLNET0882", "ISO 2023 Annex E.2 item 1c (removed 2023; use ON EXCEPTION)"),
     ];
 }

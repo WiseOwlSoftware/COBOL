@@ -67,6 +67,7 @@ public enum GateId
     RetryPhrase2002,
     UnlockStatement2002,
     RecordLockPhrase2002,
+    EndAccept2002,
 }
 
 /// <summary>Maps a stamped <see cref="GateId"/> back to its constructs.json id (for
@@ -130,6 +131,7 @@ public static class GateIds
         GateId.RetryPhrase2002 => Constructs.RetryPhrase2002,
         GateId.UnlockStatement2002 => Constructs.UnlockStatement2002,
         GateId.RecordLockPhrase2002 => Constructs.RecordLockPhrase2002,
+        GateId.EndAccept2002 => Constructs.EndAccept2002,
         _ => throw new System.ArgumentOutOfRangeException(nameof(gate), gate, "no construct id for GateId.None"),
     };
 }

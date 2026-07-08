@@ -1225,10 +1225,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         {
             // The explicit MODE IS phrase (and the 8-mode set) is ISO 2014+ (§14.7.4); at 85/2002 a bare ROUNDED
             // means the single nearest-away-from-zero rounding and MODE IS is rejected.
-            if (data.Edition.DialectLevel < 2014)
-                data.Edition.Error("COBOLNET0803", "ROUNDED MODE IS — the explicit rounding-mode phrase was "
-                    + $"introduced by ISO/IEC 1989:2014 (§14.7.4); it requires --std 2014 or later "
-                    + $"(targeting COBOL-{data.Edition.DialectLevel})");
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.RoundedModeIs2014, "the ROUNDED MODE IS phrase");
             return RoundingModes.Map(mode);
         }
         return data.Options.DefaultRounding;

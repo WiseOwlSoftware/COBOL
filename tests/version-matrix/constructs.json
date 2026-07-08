@@ -173,7 +173,8 @@
       "id": "rounded-mode-is-2014",
       "description": "The ROUNDED MODE IS phrase (the 8-mode set) \u2014 ISO 2014+ (\u00a714.7.4); at 85/2002 bare ROUNDED is the single nearest-away-from-zero rounding",
       "display": "ROUNDED MODE IS",
-      "diagnosticCode": "COBOLNET0900",
+      "diagnosticCode": "COBOLNET0803",
+      "expectDiagnostic": "COBOLNET0803",
       "citation": "ISO \u00a714.7.4",
       "introducedIn": 2014,
       "removedIn": null,
@@ -1122,6 +1123,58 @@
       "expectDiagnostic": "COBOLNET0901",
       "vcr": "8.9 (2002 introduction); ReservedWords.Table SHARING/RETRY/UNLOCK rows",
       "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWUW.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 SHARING PIC X.\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+    },
+    {
+      "id": "end-accept-2002",
+      "description": "END-ACCEPT explicit scope terminator (ISO \u00a714.9.1) \u2014 introduced 2002. PENDING: the current acceptStatement grammar (ACCEPT dataReference (FROM acceptSource)?) has no END_ACCEPT, so the binder gate (COBOLNET0816, folded to ConstructRegistry.Check in P2.6b) is presently UNREACHABLE \u2014 the matrix SKIPS its compile assertion until END-ACCEPT parsing lands and this row flips active with a real fixture.",
+      "display": "END-ACCEPT (explicit scope terminator)",
+      "diagnosticCode": "COBOLNET0816",
+      "citation": "ISO \u00a714.9.1 (ACCEPT general formats)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "status": "pending",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    ACCEPT W END-ACCEPT.\n    STOP RUN.\n",
+      "expectDiagnostic": "COBOLNET0816"
+    },
+    {
+      "id": "alter-removed-2002",
+      "description": "the ALTER statement \u2014 an obsolete element of ANSI X3.23-1985, DELETED by ISO/IEC 1989:2002 (\u00a714.9.17; the 2023 standard has no ALTER and GO TO has no altered form). Folded from the inline COBOLNET0810 binder gate (P2.6b).",
+      "display": "the ALTER statement",
+      "diagnosticCode": "COBOLNET0810",
+      "citation": "ISO \u00a714.9.17 (no altered GO TO); obsolete \u201985 element deleted by ISO 2002",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "vcr": "VCR Table 7 (obsolete-85 element removed 2002)",
+      "status": "active",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMALT.\nPROCEDURE DIVISION.\nP1.\n    GO TO P2.\nP2.\n    ALTER P1 TO PROCEED TO P2.\n    STOP RUN.\n",
+      "expectDiagnostic": "COBOLNET0810"
+    },
+    {
+      "id": "bare-goto-removed-2002",
+      "description": "GO TO without a procedure-name (the ALTER-dependent form) \u2014 an obsolete element of ANSI X3.23-1985, DELETED by ISO/IEC 1989:2002 (\u00a714.9.17 requires procedure-name-1). Folded from the inline COBOLNET0811 binder gate (P2.6b).",
+      "display": "GO TO without a procedure-name (the ALTER-dependent form)",
+      "diagnosticCode": "COBOLNET0811",
+      "citation": "ISO \u00a714.9.17 (procedure-name-1 required); obsolete \u201985 form deleted by ISO 2002",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "vcr": "VCR Table 7 (obsolete-85 element removed 2002)",
+      "status": "active",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBGT.\nPROCEDURE DIVISION.\nP1.\n    GO TO.\n    STOP RUN.\n",
+      "expectDiagnostic": "COBOLNET0811"
+    },
+    {
+      "id": "call-on-overflow-removed-2023",
+      "description": "the CALL ... ON OVERFLOW phrase \u2014 the COBOL-74-carried synonym of ON EXCEPTION, valid 85\u20132014 and REMOVED at 2023 (Annex E.2 item 1c; use ON EXCEPTION). Folded from the inline COBOLNET0882 binder gate (P2.6b).",
+      "display": "CALL \u2026 ON OVERFLOW",
+      "diagnosticCode": "COBOLNET0882",
+      "citation": "ISO 2023 Annex E.2 item 1c (removed 2023; use ON EXCEPTION)",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "vcr": "VCR row 3 / Annex E.2 item 1c (removed 2023)",
+      "status": "active",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMCO.\nPROCEDURE DIVISION.\nMAIN.\n    CALL \"SUB\" ON OVERFLOW CONTINUE.\n    STOP RUN.\n",
+      "expectDiagnostic": "COBOLNET0882"
     }
   ]
 }

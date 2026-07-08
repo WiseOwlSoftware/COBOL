@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
 using CobolNet.Frontend.Generated;
+using CobolNet.Editions;
 
 namespace CobolNet.Binding.Bound;
 
@@ -115,10 +116,7 @@ public sealed partial class StatementBinder
     {
         if (g.dataReference() is not null)   // `GO TO DEPENDING ON x` with NO procedure-names is malformed, not bare
             return new BoundUnsupported("GO TO DEPENDING without procedure-names (ISO §14.9.17 Format 2)");
-        if (data.Edition.DialectLevel >= 2002)
-            data.Edition.Removed("COBOLNET0811", "GO TO without a procedure-name (the ALTER-dependent form) was an "
-                + "obsolete element of ANSI X3.23-1985 and was deleted by ISO/IEC 1989:2002 (§14.9.17 requires "
-                + $"procedure-name-1); it requires --std 85 or --permissive (targeting COBOL-{data.Edition.DialectLevel})");
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.BareGotoRemoved2002, "the GO TO statement");
         // At 85 the construct is an OBSOLETE element: accepted with no failing diagnostic (the obsolete-element
         // flag awaits the EditionContext warning channel — it must not fail the 85 compile).
         AlterEnsureScan();
@@ -133,10 +131,7 @@ public sealed partial class StatementBinder
     /// proc-2 (a section proc-2 transfers to its first paragraph, the §14.9.17 GR1 GO TO rule).</summary>
     private BoundStatement BindAlter(Core.AlterStatementContext al)
     {
-        if (data.Edition.DialectLevel >= 2002)
-            data.Edition.Removed("COBOLNET0810", "ALTER was an obsolete element of ANSI X3.23-1985 and was deleted "
-                + "by ISO/IEC 1989:2002 — the 2023 standard has no ALTER and GO TO has no altered form (§14.9.17); "
-                + $"it requires --std 85 or --permissive (targeting COBOL-{data.Edition.DialectLevel})");
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.AlterRemoved2002, "the ALTER statement");
         // At 85: obsolete element, accepted with no failing diagnostic (warning channel pending, as above).
         AlterEnsureScan();
         var entries = new List<BoundAlterEntry>();

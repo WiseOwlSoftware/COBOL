@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime;
 using CobolNet.Frontend.Generated;
+using CobolNet.Editions;
 
 namespace CobolNet.Binding.Bound;
 
@@ -172,10 +173,8 @@ public sealed partial class StatementBinder
     private void CallGateExceptionSpelling(bool isOverflow, bool negated)
     {
         _ = negated; // NOT ON EXCEPTION/OVERFLOW: same edition surface as the positive phrase (85+).
-        if (isOverflow && data.Edition.DialectLevel >= 2023)
-            data.Edition.Removed("COBOLNET0882",
-                "CALL … ON OVERFLOW was removed by ISO/IEC 1989:2023 (Annex E.2 item 1c) — use ON EXCEPTION, "
-                + "target --std 85/2002/2014, or --permissive");
+        if (isOverflow)
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.CallOnOverflowRemoved2023, "the CALL statement");
     }
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §14.9.5 — targets resolved like CALL's, §8.4.6.3).</summary>

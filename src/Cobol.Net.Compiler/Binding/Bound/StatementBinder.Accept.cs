@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime.Tree;
 using CobolNet.Frontend.Generated;
+using CobolNet.Editions;
 
 namespace CobolNet.Binding.Bound;
 
@@ -41,9 +42,8 @@ public sealed partial class StatementBinder
     {
         // END-ACCEPT: the explicit scope terminator was introduced by COBOL-2002 (ISO §14.9.1 general formats; the
         // 1985 ACCEPT has none). The superset grammar always parses it; the binder edition-gates it.
-        if (AcceptHasTerminator(ac) && data.Edition.DialectLevel < 2002)
-            data.Edition.Error("COBOLNET0816", "END-ACCEPT was introduced by ISO/IEC 1989:2002 (§14.9.1); it "
-                + $"requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
+        if (AcceptHasTerminator(ac))
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.EndAccept2002, "the ACCEPT statement");
 
         if (refs.Resolve(ac.dataReference()) is not { } target)
             return new BoundUnsupported($"ACCEPT receiver '{ac.dataReference().GetText()}'");
