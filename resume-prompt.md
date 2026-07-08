@@ -41,9 +41,12 @@
 > `docs/rearchitecture/` (9 `DESIGN-*.md`, 6 `SURVEY`/`CRITIQUE-*.md`, 17 `PHASE-00..16-*.md`). **EXECUTION IN PROGRESS:
 > PHASE 00 (migration safety net) ✅ DONE (2026-07-07, DEVLOG 667, commit `c65cfad`) — the characterization net (gates
 > 2+3), the `DifferentialGolden` oracle bake-out (360 committed goldens; the battery no longer runs the legacy engine),
-> the `tests/nist/corpus.tsv` fold, and the cached Roslyn ref-set all landed, full battery green. → NEXT: PHASE 01
-> (mechanical namespace rename `CobolSharp.Compiler.* → CobolNet.*` + dead-grammar / JSON-XML [non-ISO] removal) — read
-> `docs/rearchitecture/PHASE-01-mechanical-rename-deadcode.md`'s STATUS line first.** The dual-backend goal
+> the `tests/nist/corpus.tsv` fold, and the cached Roslyn ref-set. **PHASE 01 ✅ DONE (DEVLOG 668–669, `db6ae722`)**
+> pulled the `CobolSharp.Compiler.{Common,Diagnostics,Generated,Parsing,Preprocessor}` → `CobolNet.Frontend.*` rename
+> FORWARD from the G8 big-bang (G8 is now a pure deletion), deleted the 5 dead grammars + `.antlr` caches + the non-ISO
+> JSON/XML grammar, and narrowed the SLL-bail catch — behavior-neutral, PROVEN by the byte-identical characterization
+> gate. → NEXT: PHASE 02 (`Cobol.Net.Editions` leaf assembly + first-class diagnostic registry) — read
+> `docs/rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md`'s STATUS line first.** The dual-backend goal
 > (`project_dual_backend_goal`) is first-class (PHASE-16). Memory: `project_rearchitecture_plan`. **The §"NON-NEGOTIABLE
 > PROCESS RULES" block below stays in force.** The STATE banners below are PRE-REARCHITECTURE HISTORY — the
 > 2036/213-green baseline they describe is real and current, but the go-forward PLAN is the rearchitecture roadmap

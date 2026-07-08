@@ -2,16 +2,18 @@
 
 > **STATUS BANNER (update this every session).** Plan authored 2026-07-07 by a multi-agent review
 > (workflow `wf_7720e6f8-fd6`, 46 agents; 6 survey/critique units + the dual-backend track backfilled separately).
-> **PHASE 00 (migration safety net) — ✅ DONE (2026-07-07); PHASE 01 NEXT** (execution began + completed 2026-07-07;
-> §6 owner decisions ALL RESOLVED D1–D12). P0 delivered: the `Cobol.Net.Tests.Characterization` net (gates 2+3, 32
-> snapshots), the differential oracle bake-out (`DifferentialGolden` + 360 committed goldens under `tests/differential/`,
-> 42 funnels converted — the battery no longer runs the legacy engine; a nightly/opt-in `legacy-oracle` verify job keeps
-> cross-checking), the `tests/nist/corpus.tsv` fold (one green-NIST SSOT + drift guard; `NistDifferentialTests` on
-> `[MemberData]`), and the cached Roslyn ref-set (~40–55% faster). This master plan is the migration SSOT + roadmap
-> (its §0 resume protocol, §4 phase index, and per-phase exit criteria are the resumable record). Current baseline:
-> **2036 greenfield conformance + 213 unit + 32 characterization GREEN; FULL legacy guard NIST 353 MATCH.** RESUME AT:
-> **Phase 01** (mechanical namespace rename + dead-grammar / JSON-XML removal) — see
-> `docs/rearchitecture/PHASE-01-mechanical-rename-deadcode.md`'s STATUS line.
+> **PHASES 00–01 — ✅ DONE (2026-07-07); PHASE 02 NEXT** (execution began 2026-07-07; §6 owner decisions ALL RESOLVED
+> D1–D12). **P0** (migration safety net) delivered the `Cobol.Net.Tests.Characterization` net (gates 2+3, 32 snapshots),
+> the differential oracle bake-out (`DifferentialGolden` + 360 committed goldens; the battery no longer runs the legacy
+> engine; a nightly/opt-in `legacy-oracle` verify job cross-checks), the `tests/nist/corpus.tsv` fold, and the cached
+> Roslyn ref-set. **P1** (mechanical rename) pulled the `CobolSharp.Compiler.{Common,Diagnostics,Generated,Parsing,
+> Preprocessor}` → `CobolNet.Frontend.*` rename FORWARD from the G8 big-bang (so G8 is now a pure deletion), deleted the
+> 5 dead grammars + `.antlr` caches + the non-ISO JSON/XML grammar, and narrowed the SLL-bail catch — **behavior-neutral,
+> proven by the byte-identical characterization gate**. This master plan is the migration SSOT + roadmap (its §0 resume
+> protocol, §4 phase index, and per-phase exit criteria are the resumable record). Current baseline: **2036 greenfield
+> conformance + 213 unit + 32 characterization GREEN; FULL legacy guard NIST 353 MATCH.** RESUME AT: **Phase 02**
+> (`Cobol.Net.Editions` leaf assembly + first-class diagnostic registry) — see
+> `docs/rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md`'s STATUS line.
 > ⚠ One owner override to carry forward — **D10: PHASE-04 must FULLY remove the lexer `SUBSCRIPT` mode + the binder
 > subscript re-parse** (a grammar-level `x(i)` rule), an expansion beyond that phase's originally-authored scope (§6). The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
 > the decision-complete designs in `docs/rearchitecture/DESIGN-*.md`; the as-is survey + critique in
@@ -139,7 +141,7 @@ phase boundary.
 | ☐ | Phase | Trk | Risk | Deps | Title | Doc |
 |---|-------|-----|------|------|-------|-----|
 | ✅ | 00 | F | LOW | — | Migration safety net (characterization harness, oracle bake-out, corpus consolidation, ref caching) | [PHASE-00](rearchitecture/PHASE-00-migration-safety-net.md) |
-| ☐ | 01 | F | MED | 00 | Mechanical namespace rename + dead-grammar / JSON-XML removal | [PHASE-01](rearchitecture/PHASE-01-mechanical-rename-deadcode.md) |
+| ✅ | 01 | F | MED | 00 | Mechanical namespace rename + dead-grammar / JSON-XML removal | [PHASE-01](rearchitecture/PHASE-01-mechanical-rename-deadcode.md) |
 | ☐ | 02 | R | MED | 01 | `Cobol.Net.Editions` leaf assembly + first-class diagnostic registry | [PHASE-02](rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md) |
 | ☐ | 03 | I | HIGH | 02 | Version-gating framework (EditionValidator waves + harness-driven VCR audit) | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) |
 | ☐ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + typed `Cst` façade) | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
