@@ -76,13 +76,11 @@ public static class EditionGateHints
         // signature is the fallback the stack test cannot give. Each arm yields the constructs.json row id.
         string? id = token.Type switch
         {
-            CobolLexer.DELETE when Next(stream, token, 1)?.Type == CobolLexer.FILE => Constructs.DeleteFile2023,
             // OCCURS DYNAMIC (Format 4, 2014): the error surfaces at OCCURS (its DYNAMIC alt is is2014()-gated) or at
             // the CAPACITY token (which appears ONLY in this clause). DYNAMIC alone also means ACCESS MODE DYNAMIC —
             // so gate on the OCCURS-then-DYNAMIC pair, not a bare DYNAMIC.
             CobolLexer.OCCURS when Next(stream, token, 1)?.Type == CobolLexer.DYNAMIC => Constructs.OccursDynamic2014,
             CobolLexer.CAPACITY => Constructs.OccursDynamic2014,
-            CobolLexer.INVOKE => Constructs.Invoke2002,
             CobolLexer.RETURNING when InRule(ruleStack, "gobackStatement")
                 || Next(stream, token, -1)?.Type == CobolLexer.GOBACK => Constructs.GobackReturning2002,
             // The division-header RETURNING: inside procedureDivision but NOT inside any statement (the

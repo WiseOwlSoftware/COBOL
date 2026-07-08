@@ -676,7 +676,7 @@ statement
     | closeStatement
     | computeStatement
     | deleteStatement
-    | {is2023()}? deleteFileStatement
+    | deleteFileStatement   // introduction-gated at BIND time (StatementBinder.KeyedIo → Check(DeleteFile2023)); disjoint from deleteStatement above on the 2nd token (FILE ∉ cobolWord)
     | allocateStatement
     | freeStatement
     | {is2002()}? unlockStatement
@@ -713,7 +713,7 @@ statement
     | initiateStatement
     | generateStatement
     | terminateStatement
-    | {is2002()}? invokeStatement
+    | invokeStatement   // introduction-gated at BIND time (StatementBinder.Oo → Check(Invoke2002))
     | {is2023()}? inlineMethodInvocationStatement
     | continueStatement
     | nextSentenceStatement

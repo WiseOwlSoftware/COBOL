@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -278,6 +279,9 @@ public sealed partial class StatementBinder
     /// universal/dynamic dispatch (D10 wave) stage loud.</summary>
     private BoundStatement OoBindInvoke(Core.InvokeStatementContext inv)
     {
+        // INVOKE was introduced by ISO/IEC 1989:2002 (§14.9.23, OO). Bind-time introduction gate (rearch
+        // bind-time migration Cluster 3 — the parse-time {is2002()}? predicate is gone).
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Invoke2002, "the INVOKE statement");
         var target = inv.invokeTarget().objectReference();
 
         // The method selector: an alphanumeric/national literal binds statically (§14.9.23.3 SR2);

@@ -217,10 +217,12 @@ public sealed partial class StatementBinder
         return new BoundKeyedDelete(file, invalid);
     }
 
-    /// <summary>Bind <c>DELETE FILE file</c> (ISO §14.9.10 Format 2 — COBOL-2023; the grammar's <c>{is2023()}?</c>
-    /// predicate already rejects it below 2023, the four-compilers rule's parse-side gate).</summary>
+    /// <summary>Bind <c>DELETE FILE file</c> (ISO §14.9.10 Format 2 — COBOL-2023). Bind-time introduction gate
+    /// (rearch bind-time migration Cluster 3): the construct parses at every edition and is gated here through
+    /// the ONE <see cref="ConstructRegistry.Check"/> funnel (COBOLNET0900 below 2023).</summary>
     private BoundStatement KeyedBindDeleteFile(Core.DeleteFileStatementContext df)
     {
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.DeleteFile2023, "the DELETE FILE statement");
         string name = df.fileName().GetText();
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"DELETE FILE of undeclared file '{name}'");

@@ -39,10 +39,10 @@ reserved for genuinely cross-cutting per-edition rules (the G7 remit), not per-c
 
 ## STATUS
 
-`IN PROGRESS — Cluster 3 next.` Clusters completed: **1 (DEVLOG 680), 2 (DEVLOG 681)**. EditionGateHints started at
-~30 signature arms (target ≈ 8); Cluster 1 removed 3 + added 1 interim (`SET`-token arm, retired in Cluster 8);
-Cluster 2 removed 2 (CALL BY/VALUE) and deleted the manual `COBOLNET0883` gate. Battery green: conformance 2055 ·
-unit 224 · FULL legacy guard 353 MATCH.
+`IN PROGRESS — Cluster 4 next.` Clusters completed: **1 (DEVLOG 680), 2 (681), 3 (682)**. EditionGateHints started
+at ~30 signature arms (target ≈ 8); Cluster 1 removed 3 + added 1 interim (`SET`-token arm, retired in Cluster 8);
+Cluster 2 removed 2 + deleted the manual `COBOLNET0883` gate; Cluster 3 removed 2 (INVOKE/DELETE FILE). Battery
+green: conformance 2055 · unit 224 · FULL legacy guard 353 MATCH.
 
 ## MOVE_TO_BINDTIME (24) — ordered clusters (each = one commit: ungate + regen + Check + delete hints arm + below-edition test + FULL guard)
 
@@ -54,7 +54,7 @@ unit 224 · FULL legacy guard 353 MATCH.
   - free-2002 — ungate `CobolParserCore.g4:681`; Check ALREADY at `Ptr.cs:127`; delete FREE arm.
   - usage-object-reference-2002 — ungate `CobolData.g4:328` (last gated usageKeyword; NATIONAL/BIT/POINTER siblings already ungated); Check ALREADY at `PicInfo.cs:651`; delete OBJECT-REFERENCE arm.
 - [x] **Cluster 2 — call-by-value (dead manual-gate cleanup) — DONE (DEVLOG 681).** Ungated `CobolParserCore.g4:958`; replaced the manual `COBOLNET0883` gate with `Check(… Constructs.CallByValue2002, "the CALL … BY VALUE phrase")`; deleted the 2 BY/VALUE hints arms. 0883 fully removed (no test pinned it).
-- [ ] **Cluster 3 — invoke + delete-file (first NEW Checks).**
+- [x] **Cluster 3 — invoke + delete-file (first NEW Checks) — DONE (DEVLOG 682).** DELETE two-alt disambiguation verified (guard + `DELETE F1 RECORD`@85 clean); beyond-recipe: added `using CobolNet.Editions;` to `StatementBinder.Oo.cs`.
   - invoke-2002 — ungate `CobolParserCore.g4:716`; ADD Check first line of `OoBindInvoke` (`StatementBinder.Oo.cs:280`); delete INVOKE arm. (Leave the 2023 inline-method `x(...)` at :717 gated.)
   - delete-file-2023 — ungate `CobolParserCore.g4:679`; ADD Check first line of `KeyedBindDeleteFile` (`StatementBinder.KeyedIo.cs:223`); delete DELETE-FILE arm. **AMBIGUITY (resolved):** two DELETE-leading alts disjoin on the 2nd token (`FILE`∉cobolWord); keep `deleteStatement` first (:678); guard is the arbiter.
 - [ ] **Cluster 4 — start-with-length + stop-run-status.**
