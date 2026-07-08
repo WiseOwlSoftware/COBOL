@@ -9,7 +9,7 @@ namespace CobolNet.Editions;
 /// introducedIn>85): one member per gate, single-sourced from constructs.json + drift-guarded
 /// (ConstructRegistryDriftTests). NOTE (DEVLOG 679): the P2.7 forward <c>{Gate(edition, GateId.X)}?</c>
 /// stamping consumer was ABANDONED — ANTLR evaluates hoisted predicates speculatively, so a stamp
-/// mis-fires on typos; the parse layer diagnoses via ReservedWordEditionHints + ConstructRegistry.Check instead.
+/// mis-fires on typos; the parse layer diagnoses via EditionGateHints + ConstructRegistry.Check instead.
 /// Retained as the typed intro-gate set (drift guard + the bind-time gating north-star).</summary>
 public enum GateId
 {
@@ -70,6 +70,8 @@ public enum GateId
     UnlockStatement2002,
     RecordLockPhrase2002,
     EndAccept2002,
+    ProcedureRaising2002,
+    InlineMethodInvocation2023,
 }
 
 /// <summary>Maps a <see cref="GateId"/> to its constructs.json id (for
@@ -134,6 +136,8 @@ public static class GateIds
         GateId.UnlockStatement2002 => Constructs.UnlockStatement2002,
         GateId.RecordLockPhrase2002 => Constructs.RecordLockPhrase2002,
         GateId.EndAccept2002 => Constructs.EndAccept2002,
+        GateId.ProcedureRaising2002 => Constructs.ProcedureRaising2002,
+        GateId.InlineMethodInvocation2023 => Constructs.InlineMethodInvocation2023,
         _ => throw new System.ArgumentOutOfRangeException(nameof(gate), gate, "no construct id for GateId.None"),
     };
 }

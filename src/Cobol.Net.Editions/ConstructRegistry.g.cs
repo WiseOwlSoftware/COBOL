@@ -106,5 +106,7 @@ public static partial class ConstructRegistry
         new("alter-removed-2002", "the ALTER statement", 85, 2002, null, "COBOLNET0810", "ISO §14.9.17 (no altered GO TO); obsolete ’85 element deleted by ISO 2002"),
         new("bare-goto-removed-2002", "GO TO without a procedure-name (the ALTER-dependent form)", 85, 2002, null, "COBOLNET0811", "ISO §14.9.17 (procedure-name-1 required); obsolete ’85 form deleted by ISO 2002"),
         new("call-on-overflow-removed-2023", "CALL … ON OVERFLOW", 85, 2023, null, "COBOLNET0882", "ISO 2023 Annex E.2 item 1c (removed 2023; use ON EXCEPTION)"),
+        new("procedure-raising-2002", "PROCEDURE DIVISION RAISING", 2002, null, null, "COBOLNET0900", "ISO 14.2.2 (RAISING phrase, introduced 2002); grammar CobolParserCore.g4:487 {is2002()}? raisingClause"),
+        new("inline-method-invocation-2023", "in-line method invocation identifier(args)", 2023, null, null, "COBOLNET0900", "ISO 8.4.3 (in-line method invocation, introduced 2023); grammar CobolOO.g4 inlineMethodInvocationStatement"),
     ];
 }

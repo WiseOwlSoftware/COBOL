@@ -104,4 +104,6 @@ public static class Constructs
     public const string AlterRemoved2002 = "alter-removed-2002";
     public const string BareGotoRemoved2002 = "bare-goto-removed-2002";
     public const string CallOnOverflowRemoved2023 = "call-on-overflow-removed-2023";
+    public const string ProcedureRaising2002 = "procedure-raising-2002";
+    public const string InlineMethodInvocation2023 = "inline-method-invocation-2023";
 }

@@ -72,10 +72,19 @@ pattern). `VcrDriftTests` (3 facts, CI-gated): forward coverage (every `gate:id`
 citation-exists (every appendix specLines ref is within the spec), and index-in-sync. Tier-2 (the narrative
 audit) is DONE (DEVLOG 699). Battery: conformance 2058 · unit 227 · guard 353 MATCH.
 
-**RESUME AT: Step 5** (backfill 85→2002 / 2002→2014 rows — each new gated row adds a `<!-- gate:id -->` anchor +
-flips a `todo`, and flows into the generated index automatically) → Step 7 (behavior-variant matrix) → Step 8
-(in-process continuity + INV-1-strong gates) → Step 9 (discovery runners) → Step 10 (loud hole cataloguing) →
-Step 11 (close). **Also queued: the ultracode adversarial-verify pass over the built Step 2 + Step 6.**
+**⛔ Step 5 DONE (DEVLOG 702).** Recon found the matrix was already near-complete: all 69 binder-`Check` ids are
+`constructs.json` rows by construction, and the 34 grammar `{isXXXX()}?` predicates map to existing rows EXCEPT
+two residue introduction gates that lacked a row — added as `pending` (verify-by-running set the metadata):
+`procedure-raising-2002` (PROCEDURE DIVISION RAISING — binds at 2002+ / a level-3-EC-USER SR 0858, but below 2002
+yields a generic `COBOL0001`; the clean-0900 gate is Step-10 loud-hole work) and `inline-method-invocation-2023`
+(`identifier(args)` — no distinctive token, OO-wave-owned). Registry regenerated (97 rows / 57 GateId members).
+There are **zero `{is2014()}?` grammar gates** (2014 features are bind-gated with rows). The broad 85→2002 VCR
+*narrative* (Table 7) growth is blocked on the ISO-2002 standard (not in the repo; the VCR's own scope note) —
+left as incremental "grow as researched," NOT fabricated.
+
+**RESUME AT: Step 7** (behavior-variant matrix, INV-3) → Step 8 (in-process continuity + INV-1-strong gates) →
+Step 9 (discovery runners) → Step 10 (loud hole cataloguing — incl. making `procedure-raising-2002` etc. loud) →
+Step 11 (close). **Also queued: the ultracode adversarial-verify pass over Steps 2 + 6.**
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
