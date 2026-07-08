@@ -86,13 +86,15 @@ jobs:
       - name: Greenfield characterization snapshots (behavior-neutrality gate)
         run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build
 
-  # ── INV-1 continuity (VERSION_TEST_MATRIX_DESIGN §3): every 85-compiling NIST program must still compile at
-  # 2002/2014/2023 under --permissive — a permissive break is a regression. The sweep now runs `cobol check-batch`
-  # (DEVLOG 627): ONE warm process parse+bind-checks all ~350 programs × 4 editions IN PARALLEL with NO Roslyn
-  # emit (the compile VERDICT is settled pre-backend), collapsing the former ~29-min pole of ~1400 cold `dotnet`
-  # full compiles to well under a minute. Fails on any BREAKS line. ──
-  inv1-sweep:
-    name: INV-1 permissive continuity sweep
+  # ── INV-1-STRONG (VERSION_TEST_MATRIX_DESIGN §8; rearch P3 step 8): the full NIST golden battery must re-run
+  # BYTE-EXACT at the shipping default edition in migration mode (--std 2023 --permissive) — the roadmap's
+  # fatal-challenge criterion (a construct whose 2023 output differs from its 85 output is an un-gated behavior
+  # variant). This is the compile-AND-RUN golden re-match. INV-1 permissive CONTINUITY (compile-only, all four
+  # editions) is now an IN-PROCESS gate — VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition, run in the
+  # greenfield-tests job on every commit, cross-platform — so the former out-of-band bash sweep is retired from CI
+  # (scripts/version-continuity-sweep.sh remains as a local CLI convenience). ──
+  inv1-strong-2023:
+    name: INV-1-strong (golden battery byte-exact @ 2023 --permissive)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -108,12 +110,11 @@ jobs:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
           restore-keys: ${{ runner.os }}-nuget-
-      - name: Build greenfield CLI (Debug — the sweep drives cobol.dll)
-        run: dotnet build src/Cobol.Net.Cli/Cobol.Net.Cli.csproj
-      - name: INV-1 permissive continuity sweep (85-greens × 2002/2014/2023)
-        run: |
-          bash scripts/version-continuity-sweep.sh | tee sweep.log
-          ! grep -q "BREAKS" sweep.log
+      - name: NIST goldens byte-exact at --std 2023 --permissive (the existing NistDifferentialTests, re-editioned)
+        env:
+          COBOLNET_NIST_STD: "2023"
+          COBOLNET_NIST_PERMISSIVE: "1"
+        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --filter "FullyQualifiedName~NistDifferentialTests.NistProgram_MatchesGolden"
 
   # ── Cross-platform sanity: a clean Release build (TreatWarningsAsErrors — a new analyzer warning fails the
   # build) plus the legacy + greenfield suites on Windows. The NIST guard is Linux-only (bash), so this job gives

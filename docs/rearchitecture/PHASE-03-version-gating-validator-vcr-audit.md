@@ -82,9 +82,20 @@ There are **zero `{is2014()}?` grammar gates** (2014 features are bind-gated wit
 *narrative* (Table 7) growth is blocked on the ISO-2002 standard (not in the repo; the VCR's own scope note) —
 left as incremental "grow as researched," NOT fabricated.
 
-**RESUME AT: Step 7** (behavior-variant matrix, INV-3) → Step 8 (in-process continuity + INV-1-strong gates) →
-Step 9 (discovery runners) → Step 10 (loud hole cataloguing — incl. making `procedure-raising-2002` etc. loud) →
-Step 11 (close). **Also queued: the ultracode adversarial-verify pass over Steps 2 + 6.**
+**⛔ Step 8 DONE (DEVLOG 703).** INV-1 continuity is now a STANDING IN-PROCESS gate: extended the existing
+`VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition` from a 13-row `[InlineData]` seed to the FULL
+witness set via `[Theory][MemberData(ContinuityCells)]` (corpus green∪divergent × {2002,2014,2023}, **1047 cells**,
+CheckOnly + xUnit-parallel, ~24s) — permissive-compiles + strict-failures-carry-a-band-code, in the SAME mechanism
+as `NistProgram_MatchesGolden` (NOT a new `[Fact]`/`Parallel.ForEach` class — an initial such class was reverted,
+per an owner correction: integrate into the existing mechanism / migrate the seed, don't fork a parallel one).
+INV-1-strong (exit 4) is the EXISTING env-parameterized `NistDifferentialTests` (verified locally: **349/349
+byte-exact at `--std 2023 --permissive`**), now guarded per-CI by repurposing the `inv1-sweep` job →
+`inv1-strong-2023` (the redundant bash continuity CI step retired — the in-process test is authoritative;
+`version-continuity-sweep.sh` kept as a CLI convenience). Battery: conformance **3092** · unit 227 · guard 353 MATCH.
+
+**RESUME AT: Step 7** (behavior-variant matrix, INV-3) → Step 9 (discovery runners) → Step 10 (loud hole
+cataloguing — incl. making `procedure-raising-2002` etc. loud) → Step 11 (close). **Also queued: the ultracode
+adversarial-verify pass over Steps 2 + 6.**
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to

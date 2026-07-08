@@ -46,7 +46,8 @@ public static class EditionHarness
     /// <summary>Compile a NIST CCVS program (X-card preprocessing applied) targeting <paramref name="edition"/>,
     /// optionally on the permissive axis (the INV-1 continuity legs at ≥2002 run permissive — the §10 #1
     /// migration posture — once removal gating exists).</summary>
-    public static (bool Ok, IReadOnlyList<string> Diagnostics) CompileNist(string testName, int edition, bool permissive = false)
+    public static (bool Ok, IReadOnlyList<string> Diagnostics) CompileNist(
+        string testName, int edition, bool permissive = false, bool checkOnly = false)
     {
         string src = Path.Combine(RepoRoot(), "tests", "nist", "programs", testName + ".cob");
         Assert.True(File.Exists(src), $"NIST source not found: {src}");
@@ -54,9 +55,11 @@ public static class EditionHarness
         Directory.CreateDirectory(dir);
         try
         {
+            // checkOnly = parse + edition-validate + bind (NO Roslyn backend) — the compile VERDICT is settled
+            // pre-backend, so the INV-1 continuity sweep uses it (the ~29-min→<1-min speedup, DEVLOG 627).
             var r = CompilerDriver.Compile(new CompilerDriver.Options(
                 src, Path.Combine(dir, testName + ".dll"), NistTestName: testName, DialectLevel: edition,
-                Permissive: permissive));
+                Permissive: permissive, CheckOnly: checkOnly));
             return (r.Success, r.Success ? [] : [.. r.Errors.DefaultIfEmpty($"status {r.Status}")]);
         }
         finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }

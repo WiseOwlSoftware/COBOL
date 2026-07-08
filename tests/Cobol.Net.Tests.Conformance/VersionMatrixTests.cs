@@ -149,39 +149,46 @@ public sealed class VersionMatrixTests
             EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET0903");
     }
 
-    /// <summary>INV-1 (continuity), RESTATED at the P2.7 flip (the §10 #1 migration posture): a COBOL-85 NIST
-    /// program that compiles at 85 must still compile at every later edition **UNDER PERMISSIVE** — under
-    /// strict, later editions legitimately REJECT the removed '85 elements every NIST program carries (LABEL
-    /// RECORDS in every FD, first gate 2026-07-03), and every strict failure must trace to a recognized
-    /// edition-band code. Representative rows across the suite FAMILIES (NC nucleus, IF intrinsics, SM
-    /// source-manipulation, IC inter-program, SQ sequential-I-O, RL relative, IX indexed, ST sort) — the FULL
-    /// sweep is <c>scripts/version-continuity-sweep.sh</c> (flipped to permissive legs the same commit).</summary>
+    /// <summary>INV-1 (continuity), RESTATED at the P2.7 flip (the §10 #1 migration posture) and PROMOTED at rearch
+    /// P3 step 8 from a 13-row seed to the FULL in-process sweep — the authoritative gate, replacing the out-of-band
+    /// bash sweep (kept only as a CLI convenience). Runs over the corpus witness set (every green∪divergent program
+    /// compiles at 85 by definition) × {2002,2014,2023} via the SAME <c>[Theory][MemberData]</c> mechanism as
+    /// <see cref="NistProgram_MatchesGolden"/>. A program that compiles at 85 must STILL compile at each later
+    /// edition **UNDER PERMISSIVE** — a permissive break is a regression. Under STRICT a rejection is legitimate
+    /// (the removed '85 elements every NIST program carries — LABEL RECORDS in every FD, …) but must trace to a
+    /// recognized edition-band code (COBOLNET08xx/09xx), never a generic parse error. Uses <c>CheckOnly</c> (parse +
+    /// edition-validate + bind, no Roslyn backend — the verdict is settled pre-backend, DEVLOG 627); xUnit runs the
+    /// cells in parallel.</summary>
     [Theory]
-    [InlineData("NC101A", 2002)]
-    [InlineData("NC101A", 2014)]
-    [InlineData("NC101A", 2023)]
-    [InlineData("NC211A", 2023)]
-    [InlineData("NC136A", 2023)]
-    [InlineData("NC243A", 2023)]   // 7-dim tables + PERFORM VARYING
-    [InlineData("NC116A", 2023)]   // SIGN clause inheritance
-    [InlineData("IF101A", 2023)]
-    [InlineData("SM101A", 2023)]
-    [InlineData("IC101A", 2023)]
-    [InlineData("SQ101M", 2023)]
-    [InlineData("RL101A", 2023)]
-    [InlineData("IX101A", 2023)]
+    [MemberData(nameof(ContinuityCells))]
     public void Cobol85Program_StillCompilesAtLaterEdition(string testName, int edition)
     {
-        // Continuity is conditional on the program compiling at 85 at all (the greenfield doesn't bind every
-        // suite's features yet) — a program not yet compilable at 85 cannot witness an edition BREAK.
-        var (ok85, _) = EditionHarness.CompileNist(testName, 85);
-        if (!ok85) return;   // not yet in the 85-compiling set; the sweep re-checks as features land
+        // Permissive: the §10 #1 migration contract — a documented removal warns, never breaks.
+        var (permOk, permDiag) = EditionHarness.CompileNist(testName, edition, permissive: true, checkOnly: true);
+        Assert.True(permOk, $"[INV-1 continuity] {testName} (compiles at 85) failed PERMISSIVE at COBOL-{edition}; "
+            + $"permissive must accept documented removals with warnings (§10 #1) — this is a regression:\n"
+            + string.Join("\n", permDiag));
 
-        var (ok, diagnostics) = EditionHarness.CompileNist(testName, edition, permissive: true);
-        Assert.True(ok, $"[INV-1 continuity] {testName} (compiles at 85) failed PERMISSIVE at COBOL-{edition}; "
-            + $"permissive must accept documented removals with warnings (§10 #1), so this is a regression:\n"
-            + $"{string.Join("\n", diagnostics)}");
+        // Strict: a rejection is legitimate, but a rejection with NO edition-band code (a generic COBOL0001 / a
+        // non-edition bind error) is the co-equal-diagnostic violation.
+        var (strictOk, strictDiag) = EditionHarness.CompileNist(testName, edition, permissive: false, checkOnly: true);
+        if (!strictOk)
+            Assert.True(strictDiag.Any(d => EditionBandCode.IsMatch(d)),
+                $"[INV-1 diagnosis] {testName} strict@COBOL-{edition} was rejected WITHOUT a recognized edition-band "
+                + "code (COBOLNET08xx/09xx):\n" + string.Join("\n", strictDiag));
     }
+
+    /// <summary>The continuity witness set × later editions: every corpus green∪divergent program crossed with
+    /// 2002/2014/2023.</summary>
+    public static IEnumerable<object[]> ContinuityCells() =>
+        from name in CorpusManifest.Green().Select(r => r.Name)
+        from edition in new[] { 2002, 2014, 2023 }
+        select new object[] { name, edition };
+
+    /// <summary>A recognized edition diagnostic (the 0900–0903 band or any pinned 08xx gate) — as opposed to a
+    /// generic <c>COBOL0001</c> parse error. The point is "a COBOLNET code diagnosed the edition delta."</summary>
+    private static readonly System.Text.RegularExpressions.Regex EditionBandCode =
+        new(@"COBOLNET0[89]\d\d", System.Text.RegularExpressions.RegexOptions.Compiled);
     /// <summary>The ST representative is a DOCUMENTED removal, not a continuity witness: NIST programs carry
     /// obsolete '85 elements DELETED by ISO/IEC 1989:2002 — ST101A's FDs write LABEL RECORDS (0902, the
     /// validator's first gate, DEVLOG 588) and its SD writes DATA RECORDS (0873, still binder-side) — so it
