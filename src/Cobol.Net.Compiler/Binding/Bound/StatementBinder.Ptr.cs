@@ -88,7 +88,7 @@ public sealed partial class StatementBinder
     /// corpus has no consumer and the INITIALIZE lowering deserves its own witness.</summary>
     private BoundStatement PtrBindAllocate(Core.AllocateStatementContext al)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Allocate2002, "ALLOCATE (ISO §14.9.3)");
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Allocate2002, "the ALLOCATE statement");
         var drefs = al.dataReference();
         Place? returning = null;
         if (al.RETURNING() is not null)
@@ -124,7 +124,7 @@ public sealed partial class StatementBinder
     /// <c>FREE based-item</c> form is rejected, never silently mis-freed).</summary>
     private BoundStatement PtrBindFree(Core.FreeStatementContext fr)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Free2002, "FREE (ISO §14.9.15)");
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Free2002, "the FREE statement");
         var operands = new List<Place>();
         foreach (var dref in fr.dataReference())
         {

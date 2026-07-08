@@ -677,8 +677,8 @@ statement
     | computeStatement
     | deleteStatement
     | {is2023()}? deleteFileStatement
-    | {is2002()}? allocateStatement
-    | {is2002()}? freeStatement
+    | allocateStatement
+    | freeStatement
     | {is2002()}? unlockStatement
     | displayStatement
     | divideStatement

@@ -82,8 +82,6 @@ public static class EditionGateHints
             // so gate on the OCCURS-then-DYNAMIC pair, not a bare DYNAMIC.
             CobolLexer.OCCURS when Next(stream, token, 1)?.Type == CobolLexer.DYNAMIC => Constructs.OccursDynamic2014,
             CobolLexer.CAPACITY => Constructs.OccursDynamic2014,
-            CobolLexer.ALLOCATE => Constructs.Allocate2002,
-            CobolLexer.FREE => Constructs.Free2002,
             CobolLexer.INVOKE => Constructs.Invoke2002,
             CobolLexer.RETURNING when InRule(ruleStack, "gobackStatement")
                 || Next(stream, token, -1)?.Type == CobolLexer.GOBACK => Constructs.GobackReturning2002,
@@ -98,8 +96,6 @@ public static class EditionGateHints
             CobolLexer.BASED when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.BasedClause2002,
             CobolLexer.TYPE when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.TypeClause2002,
             CobolLexer.TYPEDEF when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.TypedefDef2002,
-            CobolLexer.OBJECT when Next(stream, token, 1)?.Type == CobolLexer.REFERENCE
-                && (InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") || Next(stream, token, -1)?.Type == CobolLexer.USAGE) => Constructs.UsageObjectReference2002,
             CobolLexer.CLASS when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryClass2002,
             CobolLexer.INTERFACE when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryInterface2002,
             CobolLexer.PROPERTY when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryProperty2002,
@@ -110,6 +106,12 @@ public static class EditionGateHints
             CobolLexer.NULL_ when InRule(ruleStack, "setStatement")
                 || Next(stream, token, -1)?.Type == CobolLexer.TO => Constructs.SetObjectReference2002,
             CobolLexer.SELF when InRule(ruleStack, "setStatement") => Constructs.SetObjectReference2002,
+            // With USAGE OBJECT REFERENCE now bind-gated (not parse-gated, rearch bind-time migration Cluster 1),
+            // `SET ref TO NULL/SELF/SUPER` reaches the statement decision and fails AT the SET token (the F5 alt is
+            // {is2002()}?-gated; no plain SET form takes an object-reference sender), so the error no longer lands
+            // on NULL/SELF. Recognize the SET-token surfacing by an object-reference sender ahead in the sentence.
+            // (Retired when set-object-reference moves to bind-time — migration Cluster 8.)
+            CobolLexer.SET when NextWithin(stream, token, 8, CobolLexer.NULL_, CobolLexer.SELF, CobolLexer.SUPER) => Constructs.SetObjectReference2002,
             CobolLexer.FOR when InRule(ruleStack, "specialNamesParagraph") => Constructs.SpecialNamesForNational2002,
             CobolLexer.BY when InRule(ruleStack, "callStatement") && Next(stream, token, 1)?.Type == CobolLexer.VALUE => Constructs.CallByValue2002,
             CobolLexer.VALUE when InRule(ruleStack, "callStatement") && Next(stream, token, -1)?.Type == CobolLexer.BY => Constructs.CallByValue2002,

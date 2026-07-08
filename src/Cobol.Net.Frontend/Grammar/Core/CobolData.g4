@@ -325,7 +325,7 @@ usageKeyword
     | NATIONAL
     | BIT
     | POINTER
-    | {is2002()}? objectReferenceUsage   // USAGE OBJECT REFERENCE [class] (OO/2002) — rule in Core/CobolOO.g4
+    | objectReferenceUsage   // USAGE OBJECT REFERENCE [class] (OO/2002) — introduction-gated at BIND time (PicInfo.ParseUsage → ConstructRegistry.Check), like NATIONAL/BIT/POINTER above
     ;
 
 // SIGNED (default) / UNSIGNED phrase on a fixed-width binary usage (ISO §13.18.60).

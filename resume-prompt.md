@@ -61,11 +61,18 @@
 > the dialect year via `EditionInfo Edition` (P5); `EditionGateHints` thinned to a signature→`Constructs.*` row-id
 > recognizer (hand-copied Display/IntroducedIn/Citation DELETED — P1/P7); `CobolErrorStrategy` renders the 0900 via
 > `Check` (JSON/XML → `COBOL0313`). Reliable because the signature keys off the construct's OWN tokens being present
-> (a typo matches nothing → neutral error). `EditionGateDiagnosticTests` stayed green unchanged. **⛔ RESUME AT step 9**
-> — preprocessor edition gates → `EditionSeverityPolicy`. **Step 8 (delete `EditionGateHints`) is SUPERSEDED:** the
-> signatures are retained (forward stamping can't replace them); deleting them needs the **decades north-star = BIND-TIME
-> gating** (parse unconditionally, gate at the recognition point through the same `Check` funnel — the step-6 pattern),
-> a deliberate follow-on track. **Read the step-7 as-built notes in
+> (a typo matches nothing → neutral error). `EditionGateDiagnosticTests` stayed green unchanged.
+> **⛔🏗 THE BIND-TIME GATING MIGRATION IS NOW THE ACTIVE WORK** (owner: "implement correctly regardless of rework cost",
+> DEVLOG 680) — the decades-correct realization of step 7/8: move edition introduction-gating from parse-time REJECTION
+> predicates to **bind-time `ConstructRegistry.Check`** at each construct's recognition point (the five-inline-gate
+> pattern), which deletes BOTH the parse predicates AND the reverse signatures. Recon `wf_9c48ce3f` mapped all 30 gated
+> constructs → **24 MOVE_TO_BINDTIME (10 clusters) + 6 KEEP_PARSE_GATED** reservation-word residue
+> (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY — user words below their edition; ungating would miscompile).
+> **Decision-complete resumable plan + per-cluster checkboxes: `docs/rearchitecture/PLAN-bindtime-gating-migration.md` (READ FIRST).**
+> **⛔ RESUME AT: Cluster 2** (call-by-value dead-manual-gate cleanup) — Cluster 1 (ALLOCATE/FREE/USAGE OBJECT REFERENCE,
+> dead-Check activation) DONE (DEVLOG 680). Each cluster = ungate grammar + regen + binder Check + delete the
+> EditionGateHints arm + a below-edition test + FULL legacy guard, committed green. Afterward: step 9 (preprocessor gates
+> → `EditionSeverityPolicy`) + step 10 (`DiagnosticDescriptors` / split `COBOLNET0899`). **Read the step-7 as-built notes in
 > `docs/rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md`'s STATUS block FIRST.** Battery held green
 > throughout: **2055 conformance · 224 unit · FULL legacy guard NIST 353 MATCH.** Steps 10–11: the `DiagnosticDescriptors`
 > registry + split the 44-site `COBOLNET0899` catch-all + `docs/DIAGNOSTICS.md`; docs sync + adversarial review + phase
