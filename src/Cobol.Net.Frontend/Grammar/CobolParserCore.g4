@@ -1080,7 +1080,7 @@ freeStatement
 // target is an object-reference item; only NULL/SELF/SUPER senders (no arithmeticExpression prefix) reach
 // THIS rule. SUPER is admitted syntactically and rejected at bind (SR9 - 0867) for the better diagnostic.
 setObjectReferenceStatement
-    : {is2002()}? SET dataReference+ TO objectReference
+    : SET dataReference+ TO objectReference   // introduction-gated at BIND time (StatementBinder.OoBindSetObjectRef → Check(SetObjectReference2002))
     ;
 
 objectReference

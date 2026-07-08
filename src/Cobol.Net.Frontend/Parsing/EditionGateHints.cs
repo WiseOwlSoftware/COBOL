@@ -81,17 +81,6 @@ public static class EditionGateHints
             CobolLexer.PROPERTY when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryProperty2002,
             CobolLexer.PROPERTY when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription")
                 || InRule(ruleStack, "workingStorageSection") => Constructs.PropertyClause2002,
-            // SET … TO NULL/SELF (F5): the NULL_/SELF token after TO inside a SET statement is the
-            // signature (a dataReference sender parses as the 85-legal Format-1 shape and never errors).
-            CobolLexer.NULL_ when InRule(ruleStack, "setStatement")
-                || Next(stream, token, -1)?.Type == CobolLexer.TO => Constructs.SetObjectReference2002,
-            CobolLexer.SELF when InRule(ruleStack, "setStatement") => Constructs.SetObjectReference2002,
-            // With USAGE OBJECT REFERENCE now bind-gated (not parse-gated, rearch bind-time migration Cluster 1),
-            // `SET ref TO NULL/SELF/SUPER` reaches the statement decision and fails AT the SET token (the F5 alt is
-            // {is2002()}?-gated; no plain SET form takes an object-reference sender), so the error no longer lands
-            // on NULL/SELF. Recognize the SET-token surfacing by an object-reference sender ahead in the sentence.
-            // (Retired when set-object-reference moves to bind-time — migration Cluster 8.)
-            CobolLexer.SET when NextWithin(stream, token, 8, CobolLexer.NULL_, CobolLexer.SELF, CobolLexer.SUPER) => Constructs.SetObjectReference2002,
             CobolLexer.FOR when InRule(ruleStack, "specialNamesParagraph") => Constructs.SpecialNamesForNational2002,
             // The XOR OPERATOR below 2023 (the W3 regating): a parse error AT the XOR/EXCLUSIVE-OR token is
             // the gated operator by construction — as a USER word the token parses through cobolWord and
