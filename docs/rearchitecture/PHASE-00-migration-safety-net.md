@@ -7,7 +7,7 @@
 - **Depends on:** none (this is the first rearchitecture phase; it de-risks every later one)
 
 ## STATUS
-`IN PROGRESS @ step 12` — steps 1–11 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Characterization
+`IN PROGRESS @ step 13` — steps 1–12 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Characterization
 net complete (gates 2+3, 32 tests). Step 7: `tests/nist/corpus.tsv` generated mechanically — 459 rows (338 green + 11
 divergent + 110 pending; folds `[InlineData]` 349 + `chains.tsv` + `LEGACY_DIVERGENT`) + `CorpusManifest` loader + a
 5-assertion drift guard (green∪divergent == the committed 349-name baseline; every green/divergent has a golden; every
@@ -22,7 +22,11 @@ errors) — 42 funnels routed through `DifferentialGolden.Assert` + 360 goldens 
 golden-mode 644/0 (no legacy). Step 11: `DifferentialGoldenDriftTests` (folder-level orphan guard — every converted
 class has a non-empty golden folder; every golden folder maps to a live converted class; 3/3 green) + completeness
 sweep: a fresh whole-suite re-bake left `git status tests/differential` CLEAN → the 360 goldens are complete and
-idempotent (byte-identical regen). `chains.tsv` KEPT (bash guard/sweep still read it). Step 2 ref-cache ~40–55% faster.
+idempotent (byte-identical regen). Step 12: CI wired (`build-and-test.yml`) — characterization compare-gate added to
+`greenfield-tests` + `windows-build-test` (CI never sets UPDATE_SNAPSHOTS); new opt-in `legacy-oracle` job runs
+differential `COBOLNET_DIFF_MODE=verify` (cobolnet==legacy==golden) NIGHTLY + on manual dispatch only (not every PR — the
+normal battery stays legacy-free); legacy `guard`/`inv1-sweep` untouched. Local CI-equivalents green: characterization
+32/32 compare, verify 644/0. `chains.tsv` KEPT (bash guard/sweep still read it). Step 2 ref-cache ~40–55% faster.
 Finding for PHASE-02: undefined-data-name + JUSTIFIED-on-numeric not caught at bind time.
 Step 1 (migration-SSOT banner) DONE: the migration SSOT is `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan —
 STATE banner + P0–P16 index + exit criteria + the resume-vs-migration pointer); its banner is flipped to "P0 IN

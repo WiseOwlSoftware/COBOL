@@ -5,6 +5,9 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:        # manual trigger — lets the opt-in legacy-oracle bake-verify cross-check be run on demand
+  schedule:
+    - cron: '0 6 * * *'     # nightly 06:00 UTC — runs the legacy-oracle cross-check without a legacy run on every PR
 
 # Cancel a superseded run on the same ref (a rapid second push) to save CI minutes.
 concurrency:
@@ -73,10 +76,15 @@ jobs:
         run: |
           dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
           dotnet build tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj
-      - name: Greenfield conformance tests (differential + NIST + matrix)
+          dotnet build tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj
+      - name: Greenfield conformance tests (differential vs baked goldens + NIST + matrix)
         run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build
       - name: Greenfield unit tests
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build
+      # Characterization gate (rearch P0): COMPARES the committed diagnostic + emitted-C# snapshots. CI must NEVER set
+      # COBOLNET_UPDATE_SNAPSHOTS (that would rewrite them); a real emit/diagnostic change re-seeds locally under review.
+      - name: Greenfield characterization snapshots (behavior-neutrality gate)
+        run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build
 
   # ── INV-1 continuity (VERSION_TEST_MATRIX_DESIGN §3): every 85-compiling NIST program must still compile at
   # 2002/2014/2023 under --permissive — a permissive break is a regression. The sweep now runs `cobol check-batch`
@@ -133,7 +141,43 @@ jobs:
         run: dotnet test tests/CobolSharp.Tests.Unit/CobolSharp.Tests.Unit.csproj --no-build --configuration Release
       - name: Integration tests
         run: dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --no-build --configuration Release
-      - name: Greenfield conformance tests (differential + NIST)
+      - name: Greenfield conformance tests (differential vs baked goldens + NIST)
         run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --configuration Release
       - name: Greenfield unit tests
         run: dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --no-build --configuration Release
+      - name: Greenfield characterization snapshots (behavior-neutrality gate)
+        run: dotnet test tests/Cobol.Net.Tests.Characterization/Cobol.Net.Tests.Characterization.csproj --no-build --configuration Release
+
+  # ── The opt-in legacy-oracle bake-verify cross-check (rearch P0). The normal battery now compares COBOL.NET to the
+  # COMMITTED goldens under tests/differential/ (COBOLNET_DIFF_MODE=golden, the default) and never runs the legacy
+  # engine — so the greenfield jobs above stay green after the G8 deletion of CobolSharp.Compiler. This job re-proves
+  # the goldens still equal a LIVE legacy run (COBOLNET_DIFF_MODE=verify asserts cobolnet == legacy AND cobolnet ==
+  # golden for every converted differential case), which is the whole point of keeping the legacy engine alive through
+  # the rearchitecture. It runs NIGHTLY + on manual dispatch (NOT on every PR — that would re-couple CI to the legacy
+  # engine, undoing this phase). DELETED at G8 together with the legacy projects, not now. ──
+  legacy-oracle:
+    name: Legacy-oracle bake-verify cross-check (opt-in — nightly / manual)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', 'Directory.Packages.props') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - name: Build the conformance project (drives both engines)
+        run: dotnet build tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj
+      # verify mode: each converted funnel asserts cobolnet == legacy AND cobolnet == golden — a live-legacy run must
+      # still match every baked golden. Nist* excluded (it compares to NIST goldens directly, not via DifferentialGolden).
+      - name: Differential verify (cobolnet == legacy == golden)
+        env:
+          COBOLNET_DIFF_MODE: verify
+        run: dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --no-build --filter "FullyQualifiedName~DifferentialTests&FullyQualifiedName!~NistDifferentialTests"
