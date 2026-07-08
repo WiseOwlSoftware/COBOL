@@ -7,11 +7,11 @@
 - **Depends on:** none (this is the first rearchitecture phase; it de-risks every later one)
 
 ## STATUS
-`IN PROGRESS @ step 6` — steps 1–5 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Step 5:
-characterization gate 2 (diagnostic snapshots) landed — 17 curated one-per-family programs (14 positive `ok=true` +
-3 negative with real COBOLNET diagnostics); path-normalized portable snapshots; compare-run green. Step 2 ref-cache
-~40–55% faster. Finding: undefined-data-name + JUSTIFIED-on-numeric are NOT caught at bind time (accepted under
-CheckOnly) — a diagnostics gap for PHASE-02 to close.
+`IN PROGRESS @ step 7` — steps 1–6 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Gate 2
+(diagnostic snapshots, 17 programs) + gate 3 (emitted-C# snapshots, 14 positive; portable, deterministic — no embedded
+paths) both landed; full characterization project 32 tests, compare-run green. Step 2 ref-cache ~40–55% faster.
+Finding: undefined-data-name + JUSTIFIED-on-numeric are NOT caught at bind time (accepted under CheckOnly) — a
+diagnostics gap for PHASE-02 to close.
 Step 1 (migration-SSOT banner) DONE: the migration SSOT is `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan —
 STATE banner + P0–P16 index + exit criteria + the resume-vs-migration pointer); its banner is flipped to "P0 IN
 PROGRESS" and `docs/DOC_INDEX.md` carries its row.
