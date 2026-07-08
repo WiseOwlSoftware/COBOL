@@ -456,7 +456,7 @@ startStatement
 // "START f KEY IS data-name". comparisonOperator absorbs its own leading IS, so a separate optional
 // IS handles the no-operator form.
 startKeyPhrase
-    : KEY IS? comparisonOperator? dataReference ({is2002()}? startWithLength)?
+    : KEY IS? comparisonOperator? dataReference (startWithLength)?   // WITH LENGTH introduction-gated at BIND time (StatementBinder.KeyedIo → Check(StartWithLength2002))
     ;
 
 startWithLength

@@ -69,8 +69,8 @@
 > constructs → **24 MOVE_TO_BINDTIME (10 clusters) + 6 KEEP_PARSE_GATED** reservation-word residue
 > (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY — user words below their edition; ungating would miscompile).
 > **Decision-complete resumable plan + per-cluster checkboxes: `docs/rearchitecture/PLAN-bindtime-gating-migration.md` (READ FIRST).**
-> **⛔ RESUME AT: Cluster 4** (START WITH LENGTH + STOP RUN STATUS) — Clusters 1 (ALLOCATE/FREE/USAGE OBJECT REFERENCE,
-> DEVLOG 680) + 2 (CALL BY VALUE, 681) + 3 (INVOKE + DELETE FILE, 682) DONE. Each cluster = ungate grammar + regen + binder Check + delete the
+> **⛔ RESUME AT: Cluster 5** (data-division clauses: BASED / TYPE / TYPEDEF / OCCURS DYNAMIC, all in `DataBinder.BindEntry`)
+> — Clusters 1 (DEVLOG 680) + 2 (681) + 3 (682) + 4 (START WITH LENGTH + STOP RUN STATUS, 683) DONE. Each cluster = ungate grammar + regen + binder Check + delete the
 > EditionGateHints arm + a below-edition test + FULL legacy guard, committed green. Afterward: step 9 (preprocessor gates
 > → `EditionSeverityPolicy`) + step 10 (`DiagnosticDescriptors` / split `COBOLNET0899`). **Read the step-7 as-built notes in
 > `docs/rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md`'s STATUS block FIRST.** Battery held green

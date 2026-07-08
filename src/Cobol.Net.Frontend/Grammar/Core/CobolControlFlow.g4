@@ -242,7 +242,7 @@ exitStatement
 // ==========================================
 
 stopStatement
-    : STOP RUN ({is2002()}? stopStatusPhrase)?
+    : STOP RUN (stopStatusPhrase)?   // status phrase introduction-gated at BIND time (StatementBinder.BindStop → Check(StopRunStatus2002))
     | STOP literal                     // STOP literal (Format 2, obsolete)
     ;
 

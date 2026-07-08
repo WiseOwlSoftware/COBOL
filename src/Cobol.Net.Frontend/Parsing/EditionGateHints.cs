@@ -87,10 +87,6 @@ public static class EditionGateHints
             // header parses before the first statement rule is entered). CALL … RETURNING is 85-legal and
             // parses through callReturningPhrase — its stack contains "statement", so it never lands here.
             CobolLexer.RETURNING when InRule(ruleStack, "procedureDivision") && !InRule(ruleStack, "statement") => Constructs.ProcedureReturning2002,
-            CobolLexer.WITH when InRule(ruleStack, "stopStatement")
-                || (Next(stream, token, -1)?.Type == CobolLexer.RUN && Next(stream, token, -2)?.Type == CobolLexer.STOP) => Constructs.StopRunStatus2002,
-            CobolLexer.WITH when Next(stream, token, 1)?.Type == CobolLexer.LENGTH
-                && (InRule(ruleStack, "startStatement") || PrevWithin(stream, token, 8, CobolLexer.START)) => Constructs.StartWithLength2002,
             CobolLexer.BASED when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.BasedClause2002,
             CobolLexer.TYPE when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.TypeClause2002,
             CobolLexer.TYPEDEF when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.TypedefDef2002,

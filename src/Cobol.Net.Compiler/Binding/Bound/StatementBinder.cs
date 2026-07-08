@@ -204,9 +204,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
         // the validator, its 85 semantics implemented via BoundStopLiteral).
-        _ when s.stopStatement() is { } stop => stop.literal() is { } slit
-            ? new BoundStopLiteral(DecodeCobolString(slit.GetText()))
-            : new BoundStop(),
+        _ when s.stopStatement() is { } stop => BindStop(stop),
         _ when s.gobackStatement() is { } gb => CallBindGoback(gb),   // §14.9.18 — called-program return; 2002+ gated
         _ when s.invokeStatement() is { } inv => OoBindInvoke(inv),   // §14.9.23 — OO method invocation (2002+ grammar-gated)
         _ when s.callStatement() is { } call => CallBindCall(call),
@@ -229,6 +227,19 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.freeStatement() is { } fr => PtrBindFree(fr),              // dynamic storage (ISO §14.9.15; Phase-4b inc 2)
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };
+
+    /// <summary>STOP RUN [WITH {NORMAL|ERROR} [STATUS …]] / STOP literal (ISO §14.9.42). The status phrase is a
+    /// COBOL-2002 introduction — bind-time introduction gate (rearch bind-time migration Cluster 4; the parse-time
+    /// {is2002()}? predicate is gone). The phrase has no runtime effect in this compiler, so the gate is its only
+    /// binder obligation.</summary>
+    private BoundStatement BindStop(Core.StopStatementContext stop)
+    {
+        if (stop.stopStatusPhrase() is not null)
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.StopRunStatus2002, "the STOP RUN … WITH NORMAL/ERROR STATUS phrase");
+        return stop.literal() is { } slit
+            ? new BoundStopLiteral(DecodeCobolString(slit.GetText()))
+            : new BoundStop();
+    }
 
     private BoundStatement BindGoTo(Core.GoToStatementContext g)
     {

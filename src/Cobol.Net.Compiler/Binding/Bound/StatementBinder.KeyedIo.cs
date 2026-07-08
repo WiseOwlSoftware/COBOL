@@ -280,7 +280,10 @@ public sealed partial class StatementBinder
         if (kp is not null && operand is null)
             return new BoundUnsupported($"START KEY operand '{kp.dataReference().GetText()}'");
 
-        // WITH LENGTH (2002+, grammar-gated {is2002()}?): the partial-key character count (§14.9.41 GR13–GR14).
+        // WITH LENGTH is a COBOL-2002 introduction (the partial-key character count, §14.9.41 GR13–GR14). Bind-time
+        // introduction gate (rearch bind-time migration Cluster 4 — the parse-time {is2002()}? predicate is gone).
+        if (kp?.startWithLength() is not null)
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.StartWithLength2002, "the START … WITH LENGTH phrase");
         BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? BindExpr(le) : null;
         if (length is not null && file.Organization != FileOrganization.Indexed)
             data.Edition.Error("COBOLNET0862", $"START … WITH LENGTH on '{name}': the LENGTH phrase requires "
