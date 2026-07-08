@@ -39,10 +39,35 @@ OO, M3/M4 surface) is OUT of scope — this phase gates, skeletons, and audits o
 
 ## STATUS
 
-`IN PROGRESS @ step 3` (Step 0 recon + Step 2 done 2026-07-08). Step 2 landed (DEVLOG 698): `EditionValidator`
-re-homed onto `EditionInfo` + `IDiagnosticSink` (ctor, the 2 `VisitCobolWord` direct writes → `sink.Report` via
-`EditionSeverityPolicy`, the driver hook); no `EditionContext` dependency on the edition path; byte-identical
-diagnostics (guard 353 MATCH; the edition/reserved-word/move corpora green). RESUME AT step 3.
+`IN PROGRESS @ step 6 (Tier-1)` (2026-07-08). Step 2 done (DEVLOG 698): `EditionValidator` re-homed onto
+`EditionInfo` + `IDiagnosticSink`. **Step 6 Tier-2 done (DEVLOG 699):** the VCR narrative was spec-audited by a
+13-agent workflow (`wf_acc42f62-8a4`) — 133 rows, **125 accurate / 3 divergent / 5 unverifiable**; the 3
+divergent (rows 54/68/69, all "Old"-behavior prose) fixed against quoted spec lines; the 5 unverifiable are the
+FLAG-02 rows whose flagging rule + § the audit confirmed (only the 2002 behavior is out-of-spec, matching their
+existing caveat).
+
+**⛔ Step 6 DESIGN REFINEMENTS (recorded from the build recon — supersede the Step 6 prose below where they conflict):**
+1. **Coverage is FORWARD only.** Recon found only **15 of 95 constructs are named in any VCR row** — the VCR
+   deliberately does not narrate most 85→2002 / 2002→2014 introductions (its own documented scope limit). So the
+   Tier-1 coverage check is: *every `<!-- gate:id -->` anchor resolves to a real construct* (forward). A "every
+   gated construct has a VCR row" biconditional is NOT achievable/desired today; it grows only as Step 5 backfills
+   rows. There is **no `vcrRow` field on `constructs.json`** — the link lives in the VCR anchor (VCR→construct).
+2. **No separate `VcrStatusEmitter` / `vcr-status.json`.** The plan's emitter would re-run the exact
+   (construct × edition) cells the matrix theories (`Construct_MatchesEditionExpectation` etc.) already gate — a
+   redundant ~380-compile path. The derived status is instead the `constructs.json` `status` flag
+   (`active`→"done" / `pending`→"pending"), which the matrix ALREADY makes fixture-verified (a row is `active`
+   only when its cells pass, CI-enforced). `gen-vcr.ps1` renders that flag; for a row anchoring multiple
+   constructs it ANDs them. This keeps the singular pattern (one accept/reject gate = the matrix) instead of a
+   parallel recompute engine.
+3. **Step 3 `expectDiagnostic` enrichment is already adequate** — the 3 dual-window rows that need
+   `expectDiagnosticBelow` already have it; pure-intro rows use the `expectDiagnostic` fallback (matrix line 97).
+   The remaining Step-3 field is `variant` (Step 7 only).
+
+**Remaining Tier-1 build (next commits):** the VCR transform (drop the hand `Status` column; add
+`<!-- gate:id -->` / `<!-- ref-only -->` / `<!-- pin-to-spec -->` / `<!-- todo -->` anchors seeded from the
+current Status cells; insert `<!-- GEN:VCR-STATUS START/END -->` delimiters) → `gen-vcr.ps1` (render the compact
+status-index block from `constructs.json` status + the anchors) → `VcrDriftTests` (block-in-sync + forward
+coverage + citation-exists). Then the ultracode adversarial-verify pass over the built mechanization.
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
