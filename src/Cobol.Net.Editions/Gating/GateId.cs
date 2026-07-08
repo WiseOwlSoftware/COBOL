@@ -9,7 +9,7 @@ namespace CobolNet.Editions;
 /// introducedIn>85): one member per gate, single-sourced from constructs.json + drift-guarded
 /// (ConstructRegistryDriftTests). NOTE (DEVLOG 679): the P2.7 forward <c>{Gate(edition, GateId.X)}?</c>
 /// stamping consumer was ABANDONED — ANTLR evaluates hoisted predicates speculatively, so a stamp
-/// mis-fires on typos; the parse layer diagnoses via EditionGateHints + ConstructRegistry.Check instead.
+/// mis-fires on typos; the parse layer diagnoses via ReservedWordEditionHints + ConstructRegistry.Check instead.
 /// Retained as the typed intro-gate set (drift guard + the bind-time gating north-star).</summary>
 public enum GateId
 {

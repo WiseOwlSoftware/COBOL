@@ -7,17 +7,30 @@ using CobolNet.Frontend.Generated;
 namespace CobolNet.Frontend.Parsing;
 
 /// <summary>
-/// The parse-layer edition-gate RECOGNIZER (VERSION_TEST_MATRIX_DESIGN P2.8; rearch PHASE 02): the grammar's
-/// introduction predicates (<c>{is2002()}?</c> …) reject a too-new construct during ANTLR adaptive prediction,
-/// so the failure surfaces as a GENERIC <c>NoViableAlternative</c> parse error — a co-equal-diagnostic
-/// violation (the reject is correct, the diagnosis is not). This table recognizes the characteristic
-/// (offending-token, rule-stack, lookahead) SIGNATURE of each gated construct and returns its
+/// The parse-layer RESERVATION-WORD edition-gate recognizer (rearch PHASE 02): a small, PERMANENT residue of
+/// edition-gated constructs whose introduction gate is enforced at PARSE time — because each is spelled with a
+/// §8.9 context-sensitive keyword that is a legal user-defined word below its edition (<c>XOR</c>/<c>EXCLUSIVE-OR</c>,
+/// the boolean operators <c>B-AND/B-OR/B-XOR/B-NOT</c>, <c>SHARING</c>, <c>RETRY</c>, <c>UNLOCK</c>,
+/// <c>PROPERTY</c>). Their grammar <c>{isYYYY()}?</c> predicate is LOAD-BEARING for tokenization and cannot be
+/// removed (ungating would let the word bind as a user name and miscompile). When such a construct appears below
+/// its edition the predicate rejects it during ANTLR prediction, so the failure surfaces as a GENERIC
+/// <c>NoViableAlternative</c> parse error — the reject is correct, the diagnosis is not. This recognizer matches
+/// the characteristic (offending-token, rule-stack, lookahead) SIGNATURE and returns the construct's
 /// <c>tests/version-matrix/constructs.json</c> row id; the caller (<see cref="CobolErrorStrategy"/>) then renders
 /// the COBOLNET0900 edition-naming message through the ONE <see cref="ConstructRegistry.Check"/> funnel, so the
-/// construct's display name / introduction edition / ISO citation are the registry row's — NOT hand-copied here
-/// (rearch PHASE 02 removed the duplicated metadata; this recognizer now carries only the signature → row-id map).
+/// display name / introduction edition / ISO citation are the registry row's — NOT hand-copied here. The vendor
+/// JSON/XML statements are a documented sub-case (hard-reserved lexer tokens, NOT ISO constructs) → COBOL0313.
 /// </summary>
 /// <remarks>
+/// <para>
+/// WHY THIS IS THE PERMANENT RESIDUE AND NOT A BIND-TIME GATE: rearch PHASE 02 moved edition
+/// introduction-gating for every HARD-reserved construct (ALLOCATE, INVOKE, CLASS-ID, DELETE FILE, GOBACK
+/// RETURNING, LOCK MODE, the record-lock phrases, …) OUT of the grammar to a bind-time
+/// <see cref="ConstructRegistry.Check"/> at each construct's recognition point (DEVLOG 680–690) — those parse
+/// unconditionally and are gated where they are bound, so they left this table entirely. What CANNOT move is the
+/// reservation-word set above: their tokens double as user-defined words below their edition, so the parse-time
+/// predicate is the only place the ambiguity can be resolved, and this recognizer is the reliable re-diagnosis.
+/// </para>
 /// <para>
 /// WHY A REVERSE SIGNATURE AND NOT A FORWARD PREDICATE STAMP: rearch P2.7 first tried stamping the rejected
 /// <c>GateId</c> on the parser base (a forward <c>{Gate(edition, GateId)}?</c> predicate) and reading it here.
@@ -26,23 +39,18 @@ namespace CobolNet.Frontend.Parsing;
 /// <c>)</c> in a data description, an unsupported statement like <c>SUPPRESS</c>) records a gate for a construct
 /// the program never used, and emits a confidently-wrong "requires COBOL-YYYY". A forward stamp cannot reliably
 /// mean "the user wrote this construct". The signature match below is reliable precisely because it keys off the
-/// construct's OWN tokens actually being present (a real ALLOCATE keyword, a real B_AND operator, a CLASS-ID),
-/// so a typo matches nothing and gets a neutral parse error. The decades-target is to move gating to BIND time
-/// (parse the construct unconditionally, gate at the recognition point through the same <c>Check</c> funnel — the
-/// pattern step 6 already used for the five inline gates); until then this recognizer is the reliable path.
+/// construct's OWN tokens actually being present (a real <c>B-AND</c> operator, a real <c>SHARING</c> keyword),
+/// so a typo matches nothing and gets a neutral parse error.
 /// </para>
 /// <para>
 /// Signatures were derived empirically (DEVLOG 594): every gated site probed below its edition reports
-/// <c>NoViableAlternative</c> with the construct's own keyword as (or adjacent to) the offending token.
-/// NOT mapped (documented residue): <c>inlineMethodInvocationStatement</c> (2023 — <c>x(…)</c> has no
-/// distinctive token; the OO wave owns it), <c>parameterDescription</c> (2002 — unreachable without a UDF
-/// prototype context), and <c>SET … TO objectReference</c> beyond the NULL_/SELF senders. JSON/XML are NOT ISO
-/// constructs (0 spec hits; owner decision 2, DEVLOG 581) — they map to the vendor-extension hint (COBOL0313),
-/// never to the 0900 band. Since <see cref="ConstructRegistry.Check"/> no-ops when the construct is available at
-/// the targeted edition, this recognizer need not itself gate on the introduction edition.
+/// <c>NoViableAlternative</c> with the construct's own keyword as (or adjacent to) the offending token. Since
+/// <see cref="ConstructRegistry.Check"/> no-ops when the construct is available at the targeted edition, this
+/// recognizer need not itself gate on the introduction edition. JSON/XML are NOT ISO constructs (0 spec hits;
+/// owner decision 2, DEVLOG 581) — they map to the vendor-extension hint (COBOL0313), never the 0900 band.
 /// </para>
 /// </remarks>
-public static class EditionGateHints
+public static class ReservedWordEditionHints
 {
     /// <summary>The disposition of a recognized parse-layer edition gate: EITHER an ISO construct id (whose
     /// COBOLNET0900 message, introduction edition, and ISO citation come from <see cref="ConstructRegistry.Check"/>)

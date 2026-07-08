@@ -659,7 +659,7 @@ public sealed class UdfInvocationTests
     }
 
     /// <summary>UDF-3: FUNCTION-ID … IS PROTOTYPE is a 2002 introduction — a prototype at 85 is rejected with the
-    /// edition-naming COBOLNET0900 (the W1.5 EditionGateHints mapping for the {is2002()}?-gated tail).</summary>
+    /// edition-naming COBOLNET0900 (the W1.5 ReservedWordEditionHints mapping for the {is2002()}?-gated tail).</summary>
     [Fact]
     public void PrototypeAt85_0900()
     {

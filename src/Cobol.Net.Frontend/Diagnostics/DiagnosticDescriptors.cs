@@ -508,7 +508,7 @@ public static partial class DiagnosticDescriptors
     // ══════════════════════════════════════
     // COBOLNET0900: the edition-gating band's INTRODUCTION code, emitted from the PARSE layer (W1.5).
     // The bind-layer twin lives in CobolNet.Validation.EditionCodes.Introduction — same code string, one
-    // policy, two emit layers: a grammar-predicate rejection surfaces here (EditionGateHints), a bind-time
+    // policy, two emit layers: a grammar-predicate rejection surfaces here (ReservedWordEditionHints), a bind-time
     // gate routes through ConstructRegistry.Check. Keep the code text identical.
     // ══════════════════════════════════════
     public static readonly DiagnosticDescriptor COBOLNET0900 = new("COBOLNET0900", DiagnosticSeverity.Error,

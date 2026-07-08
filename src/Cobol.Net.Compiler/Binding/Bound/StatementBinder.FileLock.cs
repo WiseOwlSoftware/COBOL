@@ -41,7 +41,7 @@ public sealed partial class StatementBinder
         if (lock_ is null) return BoundRecordLock.None;
         // The record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK) is a COBOL-2002 introduction — bind-time
         // gate at the ONE funnel all READ/WRITE/REWRITE verbs call (rearch migration Cluster 10; the parse-time
-        // {is2002()}? predicate is gone). Fixes a latent gap: EditionGateHints never had a record-lock signature.
+        // {is2002()}? predicate is gone). Fixes a latent gap: ReservedWordEditionHints never had a record-lock signature.
         ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.RecordLockPhrase2002, $"a record-lock phrase on {verb}");
         bool ignoring = lock_.IGNORING() is not null;
         bool noLock = lock_.NO() is not null;

@@ -349,14 +349,19 @@ behavior.
   the unsupported `SUPPRESS`) records a gate for a construct the program never used and emits a
   confidently-wrong "requires COBOL-YYYY". An adversarial review (wf_b73eff97) found it; it was
   reproduced on the CLI. **A forward stamp cannot reliably mean "the user WROTE this construct."**
-  *Resolution (the fallback this risk anticipated):* keep the **thin signature recognizer**
-  (`EditionGateHints` — its match keys off the construct's OWN tokens being present, so a typo matches
-  nothing → neutral error) but drive ALL metadata from the registry via `ConstructRegistry.Check` (P1/P7
-  duplication removed; P3 signature-elimination is NOT achievable). **Decades north-star:** move gating to
-  BIND time — parse the construct unconditionally, gate at the recognition point through the same `Check`
-  funnel (the step-6 five-inline-gates pattern) — which removes both the parse predicates and the
-  signatures, leaving only the context-sensitive reservation-word residue (XOR / boolean ops /
-  SHARING-LOCK-RETRY, whose parse predicate is load-bearing for tokenization). A deliberate follow-on track.
+  *Resolution (the fallback this risk anticipated), NOW FULLY REALIZED (DEVLOG 680–690):* the
+  **decades north-star was executed** — edition introduction-gating moved to BIND time for every
+  HARD-reserved construct (ALLOCATE, INVOKE, CLASS-ID, DELETE FILE, GOBACK RETURNING, LOCK MODE, the
+  record-lock phrases, … — 24 constructs / 11 clusters), each gated at its recognition point through the
+  ONE `ConstructRegistry.Check` funnel (the step-6 five-inline-gates pattern), which removed both the parse
+  predicates and the reverse signatures. What REMAINS at the parse layer is the irreducible
+  **reservation-word residue** — XOR/EXCLUSIVE-OR, the boolean operators, SHARING/RETRY/UNLOCK, PROPERTY —
+  whose `{isYYYY()}?` predicate is LOAD-BEARING for tokenization (each token is a legal user-defined word
+  below its edition; ungating would miscompile). That residue is diagnosed by the **thin signature
+  recognizer** `ReservedWordEditionHints` (renamed from `EditionGateHints`, DEVLOG 693 — its match keys off
+  the construct's OWN tokens being present, so a typo matches nothing → neutral error), with ALL metadata
+  driven from the registry via `ConstructRegistry.Check` (P1/P7 duplication removed; the JSON/XML vendor
+  branch → COBOL0313). The recognizer is therefore a PERMANENT fixture, not a transitional heuristic.
 - **R2 — 290-site `EditionContext` migration churn.** *Mitigation:* the adapter (step 1) lets the
   rename land with zero behavior risk; sites migrate in independently-testable slices; the adapter is
   deleted only when the last site is gone.
@@ -382,10 +387,13 @@ behavior.
    vs. an MSBuild pre-build PowerShell script (mirrors the existing `gen-reserved-words.ps1` /
    ANTLR-regen pattern the repo already trusts)? The design assumes the generator with the script as
    fallback; confirm the preference.
-2. **Q2 — Delete `EditionGateHints` outright, or keep a registry-driven thin recognizer?** Predicate
-   stamping is the singular design, but ANTLR speculative evaluation (R1) is a real risk. Acceptable
-   to gate the deletion on the parallel-corpus validation, or do you want the heuristic kept as a
-   belt-and-suspenders fallback permanently?
+2. **Q2 — Delete `EditionGateHints` outright, or keep a registry-driven thin recognizer? ✅ RESOLVED
+   by implementation (R1 + the bind-time migration).** Forward predicate stamping was disproved (R1);
+   the bind-time migration then emptied the recognizer of all hard-reserved constructs, leaving only the
+   reservation-word residue that CANNOT move to bind time (their tokens double as user words). So the
+   recognizer is kept — renamed `ReservedWordEditionHints` to reflect its now-narrow, permanent role —
+   with all metadata driven from the registry. Not a belt-and-suspenders fallback: it is the only place
+   the context-sensitive-keyword ambiguity can be re-diagnosed.
 3. **Q3 — Assembly boundary:** should `Cobol.Net.Editions` be dependency-free (the parse-layer
    `Check` overload takes primitives, and `GateId`→registry mapping lives in the frontend), or may it
    reference the ANTLR runtime so the gate helper can live in one place? Dependency-free is cleaner

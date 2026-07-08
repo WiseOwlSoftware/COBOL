@@ -107,13 +107,14 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var ruleStack = recognizer.GetRuleInvocationStack().ToArray();
         string tokenUpper = token.Text?.ToUpperInvariant() ?? "";
 
-        // 0. An edition-gated construct behind the generic error (VERSION_TEST_MATRIX_DESIGN P2.8; rearch
-        // PHASE 02): the grammar's {isYYYY()}? introduction predicates reject a too-new construct during
-        // prediction, so it surfaces as a generic parse error. EditionGateHints recognizes the construct's
-        // SIGNATURE and returns its constructs.json id; the COBOLNET0900 edition-naming message is rendered
-        // through the ONE ConstructRegistry.Check funnel — its display/edition/citation are the registry row's,
-        // not hand-copied (priority 0, so its code wins the message prefix). Vendor JSON/XML map to COBOL0313.
-        if (EditionGateHints.Recognize(recognizer, token, ruleStack) is { } gate)
+        // 0. A reservation-word edition gate behind the generic error (rearch PHASE 02): the load-bearing
+        // {isYYYY()}? predicate on a §8.9 context-sensitive keyword (XOR, the boolean operators, SHARING/RETRY/
+        // UNLOCK, PROPERTY) rejects a too-new construct during prediction, so it surfaces as a generic parse
+        // error. ReservedWordEditionHints recognizes the construct's SIGNATURE and returns its constructs.json id;
+        // the COBOLNET0900 edition-naming message is rendered through the ONE ConstructRegistry.Check funnel — its
+        // display/edition/citation are the registry row's, not hand-copied (priority 0, so its code wins the
+        // message prefix). Vendor JSON/XML map to COBOL0313. (Hard-reserved constructs gate at bind time now.)
+        if (ReservedWordEditionHints.Recognize(recognizer, token, ruleStack) is { } gate)
         {
             if (gate.ConstructId is { } id && recognizer is CobolParserCoreBase core)
             {
