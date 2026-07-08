@@ -29,21 +29,25 @@
 >
 > ⛔🏗 **GO-FORWARD SSOT (DEVLOG 665, 2026-07-07 — committed d455f56): the roadmap for ALL future work is now
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a COMPLETE, resumable, execution-grade **17-phase** plan taking the
-> compiler from its current state (2028 conformance · 213 unit GREEN) to **clean architecture + 100% ISO (all editions)
+> compiler from its current state (2036 conformance · 213 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
 > + a selectable Roslyn↔CIL backend**. It **SUBSUMES the prior feature/ISO drive**: the remaining ISO features (M2 OO
 > residue, national/boolean, M3-2014, M4-2023, EC remnants, the version-gating audit) are now its **phases 09–14**, to
 > be landed ON the rearchitected foundation — NOT bolted onto the current code. **A NEW SESSION:** (1) read that plan's
 > **§0 RESUME PROTOCOL**; (2) obey its status banner → the current `docs/rearchitecture/PHASE-NN-*.md`'s STATUS line →
-> execute its numbered steps, battery-green at every commit boundary; (3) if the **§6 OWNER DECISIONS** (~12; 2 already
-> resolved — CIL active = Mono.Cecil, structural `Place` mandatory) are not yet ratified, surface them to the owner
-> before diving into Phase 00 (the plan carries a recommended default for each). **Structure:** the master
+> execute its numbered steps, battery-green at every commit boundary; (3) the **§6 OWNER DECISIONS are ALL RESOLVED
+> (D1–D12)** — no ratification pending. **Structure:** the master
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md` (resume protocol · north-star 5-assembly architecture · 11 principles · the
 > dual-backend §3 mandate · the phase index + checkboxes · the owner-decisions table · §7 backfill refinements R1–R6) +
-> `docs/rearchitecture/` (9 `DESIGN-*.md`, 6 `SURVEY`/`CRITIQUE-*.md`, 17 `PHASE-00..16-*.md`). **EXECUTION NOT
-> STARTED → Phase 00 (migration safety net) is next.** The dual-backend goal (`project_dual_backend_goal`) is
-> first-class (PHASE-16). Memory: `project_rearchitecture_plan`. **The §"NON-NEGOTIABLE PROCESS RULES" block below
-> stays in force.** The STATE banners below are PRE-REARCHITECTURE HISTORY — the 2028/213-green baseline they describe
-> is real and current, but the go-forward PLAN is the rearchitecture roadmap above, not their per-feature RESUME AT.
+> `docs/rearchitecture/` (9 `DESIGN-*.md`, 6 `SURVEY`/`CRITIQUE-*.md`, 17 `PHASE-00..16-*.md`). **EXECUTION IN PROGRESS:
+> PHASE 00 (migration safety net) ✅ DONE (2026-07-07, DEVLOG 667, commit `c65cfad`) — the characterization net (gates
+> 2+3), the `DifferentialGolden` oracle bake-out (360 committed goldens; the battery no longer runs the legacy engine),
+> the `tests/nist/corpus.tsv` fold, and the cached Roslyn ref-set all landed, full battery green. → NEXT: PHASE 01
+> (mechanical namespace rename `CobolSharp.Compiler.* → CobolNet.*` + dead-grammar / JSON-XML [non-ISO] removal) — read
+> `docs/rearchitecture/PHASE-01-mechanical-rename-deadcode.md`'s STATUS line first.** The dual-backend goal
+> (`project_dual_backend_goal`) is first-class (PHASE-16). Memory: `project_rearchitecture_plan`. **The §"NON-NEGOTIABLE
+> PROCESS RULES" block below stays in force.** The STATE banners below are PRE-REARCHITECTURE HISTORY — the
+> 2036/213-green baseline they describe is real and current, but the go-forward PLAN is the rearchitecture roadmap
+> above, not their per-feature RESUME AT.
 >
 > **(pre-rearchitecture) STATE (DEVLOG 661–664, 2026-07-07 14:38 PDT): ⛔🎉 TYPEDEF / the TYPE clause (data-model D17, §13.18.58 /
 > §13.18.57, COBOL-2002) is FEATURE-COMPLETE (all 4 increments) AND REVIEW-HARDENED — the adversarial find→verify
