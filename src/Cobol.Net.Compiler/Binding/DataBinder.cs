@@ -168,7 +168,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                      ?.repositoryEntry() ?? [])
         {
             if (re.PROPERTY() is not null && re.propertyName() is { } pn)
+            {
+                ConstructRegistry.Check(Edition.Edition, Edition, Constructs.RepositoryProperty2002, $"REPOSITORY PROPERTY '{pn.GetText()}'");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 11 — position-safe reservation word)
                 OoRepositoryProperties.Add(pn.GetText());
+            }
+            else if (re.INTERFACE() is not null && re.interfaceName() is { } ifn)
+                ConstructRegistry.Check(Edition.Edition, Edition, Constructs.RepositoryInterface2002, $"REPOSITORY INTERFACE '{ifn.GetText()}'");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 11 — position-safe reservation word)
             else if (re.CLASS() is not null && re.className() is { } cn)
                 ConstructRegistry.Check(Edition.Edition, Edition, Constructs.RepositoryClass2002, $"REPOSITORY CLASS '{cn.GetText()}'");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 8b)
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is { } fn)

@@ -39,12 +39,15 @@ reserved for genuinely cross-cutting per-edition rules (the G7 remit), not per-c
 
 ## STATUS
 
-`IN PROGRESS — Cluster 11 next (position-safe reservation words).` Clusters completed: **1–7 (DEVLOG 680–686) + 8a
-(687) + 8b (688) + 9+10 (689, combined)**. EditionGateHints removals so far total 15 arms (−1 also-deleted manual
-`COBOLNET0883`). C9+10: LOCK MODE (−1 arm) + record-lock phrase (net-new below-2002 diagnostic — a latent gap closed).
-Remaining EditionGateHints: the 6-arm reservation-word residue (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY) + JSON/XML
-vendor. After Cluster 11 (guard-gated: repository-interface/property + function-prototype), the residue is final.
-Battery green: conformance 2055 · unit 224 · FULL legacy guard 353 MATCH.
+`ALL 11 CLUSTERS DONE — hard-reserved migration COMPLETE (DEVLOG 680–690).` All 24 MOVE_TO_BINDTIME constructs gate at
+their bind-time recognition point through the ONE `ConstructRegistry.Check` funnel. Cluster 11 (position-safe
+reservation words: repository-interface/property + function-prototype) shipped bind-time — position-safety proven
+(the words still parse as data-names at 85) AND the FULL guard byte-identical, so no KEEP_PARSE_GATED fallback needed.
+`EditionGateHints` is down to its irreducible residue: the 6 reservation-word arms (XOR / booleans [+ COMPUTE-F2
+lookahead] / SHARING / RETRY / UNLOCK / PROPERTY-in-dataDescription) + the JSON/XML vendor COBOL0313 branch. Battery
+green: conformance 2055 · unit 224 · FULL legacy guard 353 MATCH. **REMAINING: docs closeout** — rename/redocument
+`EditionGateHints` as the reserved-word introduction-hint table; sync `DESIGN-edition-framework.md` §5 R1 (north-star
+achieved for the hard-reserved set).
 
 ## MOVE_TO_BINDTIME (24) — ordered clusters (each = one commit: ungate + regen + Check + delete hints arm + below-edition test + FULL guard)
 
@@ -80,7 +83,7 @@ Battery green: conformance 2055 · unit 224 · FULL legacy guard 353 MATCH.
   - repository-class-2002 — ungate `CobolParserCore.g4:455`; NEW branch in the repository loop (~`DataBinder.cs:169`) `else if (re.CLASS() is not null …)`; delete arm.
 - [x] **Cluster 9 — LOCK MODE — DONE (DEVLOG 689, combined with 10).** Ungated `CobolIO.g4:69`; Check at the lockModeClause branch; deleted the `LOCK when Next==MODE` arm.
 - [x] **Cluster 10 — record-lock phrase (AMBIGUITY_RISK + fixes a latent gap) — DONE (DEVLOG 689, combined with 9).** Ungated `readAdvancingOnLock` + the 3 `recordLockPhrase` sites (LEFT `retryPhrase` gated); Check at `CheckRecordLockPhrase` (all verbs) + the READ ADVANCING-ON-LOCK leg. LATENT GAP CLOSED (net-new below-2002 diagnostic; the `record-lock-phrase-2002`@85 matrix row now asserts a real bind-time 0900, previously incidental via LOCK MODE). AMBIGUITY cleared by the FULL guard. `using CobolNet.Editions;` in `FileLock.cs`. **Combined with Cluster 9 because LOCK-MODE-alone removed the record-lock fixture's incidental 0900.**
-- [ ] **Cluster 11 — position-safe reservation words (guard-gated; KEEP_PARSE_GATED fallback).** These are `cobolWord`/`_dataNameTokens` members but position-disjoint (entry-leading keyword in a closed alt set / a dedicated `IS? PROTOTYPE` tail). **Ship each ONLY if the FULL guard is byte-identical; ANY diff ⇒ keep it parse-gated (retain its hints arm).** Do LAST so a fallback never blocks the hard-reserved wins.
+- [x] **Cluster 11 — position-safe reservation words (guard-gated) — DONE (DEVLOG 690).** repository-interface/property (DataBinder repository loop) + function-prototype (CSharpEmitter emit-time). Position-safety PROVEN (INTERFACE/PROPERTY/PROTOTYPE still parse as data-names at 85) + FULL guard byte-identical → shipped bind-time, NO fallback needed. `using CobolNet.Editions;` in `CSharpEmitter.Call.cs`. **ALL 24 MOVE_TO_BINDTIME constructs migrated.**
   - repository-interface-2002 — ungate `CobolParserCore.g4:456`; NEW `re.INTERFACE()` branch in the repository loop.
   - repository-property-2002 — ungate `CobolParserCore.g4:457`; Check alongside the existing `OoRepositoryProperties.Add` at `DataBinder.cs:169`.
   - function-prototype-2002 — ungate `CobolParserCore.g4:191`; Check at `CSharpEmitter.Call.cs:245` after `isPrototype` (EditionContext in scope), or a bind-side site at the FUNCTION-ID prototype partition (`StatementBinder.Udf.cs`).

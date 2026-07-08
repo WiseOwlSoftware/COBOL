@@ -69,10 +69,14 @@
 > constructs → **24 MOVE_TO_BINDTIME (10 clusters) + 6 KEEP_PARSE_GATED** reservation-word residue
 > (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY — user words below their edition; ungating would miscompile).
 > **Decision-complete resumable plan + per-cluster checkboxes: `docs/rearchitecture/PLAN-bindtime-gating-migration.md` (READ FIRST).**
-> **⛔ RESUME AT: Cluster 11** (position-safe reservation words — repository-interface/property + function-prototype;
-> GUARD-GATED, KEEP_PARSE_GATED fallback if the FULL guard is not byte-identical) — Clusters 1–10 DONE (DEVLOG 680–689;
-> 9+10 combined). After Cluster 11, ONLY the 6-arm reservation-word residue (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY)
-> + the JSON/XML vendor branch remain in `EditionGateHints` — then rename/redocument it as the reserved-word hint table. Each cluster = ungate grammar + regen + binder Check + delete the
+> **✅ BIND-TIME GATING MIGRATION COMPLETE — all 11 clusters / 24 constructs DONE (DEVLOG 680–690).** Edition
+> introduction-gating for every hard-reserved construct now fires at its bind-time recognition point through the ONE
+> `ConstructRegistry.Check` funnel; `EditionGateHints` is down to its irreducible residue (6 reservation-word arms —
+> XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY-in-dataDescription — that are user words below their edition and MUST stay
+> parse-gated, + the JSON/XML vendor branch). **⛔ RESUME AT: docs closeout** — rename/redocument `EditionGateHints` as
+> the reserved-word introduction-hint table + a brief `DESIGN-edition-framework.md` §5 note. Then the ORIGINAL PHASE-02
+> remaining steps: **step 9** (preprocessor gates → `EditionSeverityPolicy`) + **step 10** (`DiagnosticDescriptors`
+> registry / split the 44-site `COBOLNET0899`) + step 11 (phase close). Plan: `docs/rearchitecture/PLAN-bindtime-gating-migration.md`. Each cluster = ungate grammar + regen + binder Check + delete the
 > EditionGateHints arm + a below-edition test + FULL legacy guard, committed green. Afterward: step 9 (preprocessor gates
 > → `EditionSeverityPolicy`) + step 10 (`DiagnosticDescriptors` / split `COBOLNET0899`). **Read the step-7 as-built notes in
 > `docs/rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md`'s STATUS block FIRST.** Battery held green
