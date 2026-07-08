@@ -44,6 +44,9 @@ tests/nist/output/
 # never check in (DEVLOG 555/556)
 src/Cobol.Net.Frontend/Generated/
 
+# ANTLR IDE-plugin java-target caches — never source (build/IDE output; removed at rearch P1)
+**/.antlr/
+
 # gen-reserved-words.ps1 fetch cache (GnuCOBOL per-standard word lists — derived facts are committed, sources are not)
 .cache/
 

@@ -8,10 +8,12 @@
   - `docs/rearchitecture/DESIGN-module-topology.md` — "Pull the `CobolSharp.Compiler.* → CobolNet.*` namespace rename FORWARD to Wave 0"; ANTLR package name single-sourced via an MSBuild property; delete 5 dead grammars + committed `.antlr` caches; strip non-ISO JSON/XML.
   - `docs/rearchitecture/DESIGN-frontend-grammar.md` — the frontend M-steps: generated-namespace rename via MSBuild property, delete the 5 unreferenced top-level grammars + `.antlr` caches, hard-delete JSON/XML rules and move `inlineMethodInvocationStatement` into `Core/CobolOO.g4`, fix the stale `Frontend.cs` banner, narrow the `catch(Exception)`.
   - `docs/COBOLNET_DESIGN.md` §1.4 (the "namespaces stay `CobolSharp.Compiler.*` until G8" banner this phase supersedes), §16 (G0–G8).
-- **STATUS:** IN PROGRESS @ step 2 — steps 0–1 DONE. Baseline verified green at P0 close-out (sln build 0-err · 2036
+- **STATUS:** IN PROGRESS @ step 3 — steps 0–2 DONE. Baseline verified green at P0 close-out (sln build 0-err · 2036
   conformance · 213 unit · 32 characterization · guard NIST 353 MATCH). Step 1: the 5 dead top-level grammars
   (`CobolParserJsonXml`/`Generics`/`OO`/`Dialect`/`Preprocessor`.g4) `git rm`'d — verified unreferenced (only an inert
   comment in `CobolExtensionsJsonXml.g4`, itself deleted at step 3); forced clean ANTLR regen + frontend build 0-err.
+  Step 2: the 9 committed `.antlr` IDE caches (`Grammar/.antlr/` + `Grammar/Core/.antlr/`) `git rm -r`'d + `**/.antlr/`
+  gitignored; 0 tracked `.antlr` remain; frontend build 0-err (caches are IDE-only).
   *(The executing session updates this line: `NOT STARTED` → `IN PROGRESS @ step N` → `DONE`. Keep the battery green at every ★ COMMIT BOUNDARY.)*
 
 ---
