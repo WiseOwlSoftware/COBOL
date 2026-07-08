@@ -1,15 +1,20 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
+
 namespace CobolNet.Binding;
 
 /// <summary>
-/// The per-compilation EDITION context — the bind-side half of the four-compilers-in-one mission: the targeted
-/// ISO edition (85 / 2002 / 2014 / 2023, the CLI's <c>--std</c>), the strict/permissive severity axis (the CLI's
-/// <c>--permissive</c> — VERSION_TEST_MATRIX_DESIGN §10 #1: strict is the DEFAULT for every named edition;
-/// permissive is the documented migration mode), and the diagnostics that REJECT or FLAG a program whose
-/// constructs the targeted edition lacks (introduction gating, COBOLNET0900), forbids (capacity rules, 08xx),
-/// reserves (§8.9 word gating, 0901), removed (0902), or obsoleted (0903). This is the seam the EditionValidator
-/// and every edition-varying bind decision consult — never a global.
+/// The per-compilation EDITION context — the bind-side half of the four-compilers-in-one mission. As of
+/// rearchitecture PHASE 02 this is a thin ADAPTER over the two things it always really was: an immutable
+/// <see cref="Editions.EditionInfo"/> value (the SINGLE source of the targeted ISO edition — 85 / 2002 / 2014 /
+/// 2023, the CLI's <c>--std</c> — and the strict/permissive <c>--permissive</c> axis) plus a stringly-typed
+/// diagnostic sink (the <see cref="Diagnostics"/> / <see cref="Warnings"/> channels). Splitting the two ends the
+/// triple-sourcing of <c>DialectLevel</c> (P5) and lets the ONE <see cref="Editions.ConstructRegistry.Check"/>
+/// funnel — now living BELOW the frontend in <c>Cobol.Net.Editions</c> — report here through
+/// <see cref="IDiagnosticSink"/> without the frontend and the compiler each re-encoding the severity policy.
+/// The public surface is unchanged, so every existing call site compiles untouched (the ~290-site adapter
+/// guarantee; the actual retirement of this adapter is deferred to P7).
 /// </summary>
 /// <remarks>
 /// Two channels, one policy seam (VERSION_TEST_MATRIX_DESIGN "Phase-2 implementation plan" P2.1):
@@ -20,18 +25,30 @@ namespace CobolNet.Binding;
 /// permissive); <see cref="Warning"/> is its only writer. The driver surfaces it on every
 /// <see cref="CompilerDriver.Result"/>, success or not.</item>
 /// <item><see cref="Removed"/> is the ONE severity decision for removed-construct gating: error when strict,
-/// warning when permissive — one policy, several emit sites (feedback_singular_pattern).</item>
+/// warning when permissive — one policy, several emit sites (feedback_singular_pattern). The layer-neutral twin
+/// is <see cref="Editions.EditionSeverityPolicy"/>, which <see cref="Report"/> bridges back onto these channels.</item>
 /// </list>
 /// </remarks>
-public sealed class EditionContext(int dialectLevel, bool permissive = false)
+public sealed class EditionContext(int dialectLevel, bool permissive = false) : IDiagnosticSink
 {
-    /// <summary>The targeted ISO edition year (85 / 2002 / 2014 / 2023).</summary>
-    public int DialectLevel { get; } = dialectLevel;
+    /// <summary>The immutable edition value — the SINGLE source of the dialect year + the permissive axis (P5).
+    /// Constructed with the non-validating record ctor to preserve the historical tolerance of any
+    /// <paramref name="dialectLevel"/>; NEW code that needs the {85,2002,2014,2023} guard uses
+    /// <see cref="Editions.EditionInfo.Of(int, bool)"/>.</summary>
+    public EditionInfo Edition { get; } = new(dialectLevel, permissive);
+
+    /// <summary>This context AS the structured report channel handed to
+    /// <see cref="Editions.ConstructRegistry.Check"/> (it bridges to the legacy string channels via
+    /// <see cref="Report"/>).</summary>
+    public IDiagnosticSink Sink => this;
+
+    /// <summary>The targeted ISO edition year (85 / 2002 / 2014 / 2023) — delegated to <see cref="Edition"/>.</summary>
+    public int DialectLevel => Edition.Year;
 
     /// <summary>The severity axis (VERSION_TEST_MATRIX_DESIGN §10 #1): strict (default) rejects removed
     /// constructs; permissive accepts them with a warning and the pre-removal semantics (the migration mode).
     /// Introduction gating (a construct NEWER than the edition, 0900) is an error on BOTH axes.</summary>
-    public bool Permissive { get; } = permissive;
+    public bool Permissive => Edition.Permissive;
 
     /// <summary>Bind-time rejection diagnostics. Any entry fails the compilation (CompilerDriver → BindError).</summary>
     public List<string> Diagnostics { get; } = [];
@@ -45,8 +62,9 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false)
     public bool HasErrors => Diagnostics.Count > 0;
 
     /// <summary>The fixed-point digit capacity of the targeted edition: 18 at COBOL-85, 31 at 2002+ (ISO
-    /// §8.3.1.2 fixed-point literals 1–31 digits; the §14.7 composite-of-operands rules; PICTURE digit positions).</summary>
-    public int MaxDigits => DialectLevel < 2002 ? 18 : 31;
+    /// §8.3.1.2 fixed-point literals 1–31 digits; the §14.7 composite-of-operands rules; PICTURE digit
+    /// positions) — delegated to <see cref="Edition"/>.</summary>
+    public int MaxDigits => Edition.MaxDigits;
 
     /// <summary>Record an edition-gating error (fails the compile).</summary>
     public void Error(string code, string message) => Diagnostics.Add($"error {code}: {message}");
@@ -67,6 +85,17 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false)
     {
         if (Permissive) Warning(code, message);
         else Error(code, message);
+    }
+
+    /// <summary>The <see cref="IDiagnosticSink"/> bridge: render a structured <see cref="EditionDiagnostic"/>
+    /// back onto the legacy string channels with byte-identical text — an <see cref="EditionSeverity.Error"/>
+    /// goes to <see cref="Error"/> (fails the compile), a <see cref="EditionSeverity.Warning"/> to
+    /// <see cref="Warning"/>. This is how the layer-neutral <see cref="Editions.ConstructRegistry.Check"/>
+    /// produces exactly the diagnostics the old direct <c>edition.Error/Removed/Warning</c> calls did.</summary>
+    public void Report(in EditionDiagnostic d)
+    {
+        if (d.Severity == EditionSeverity.Error) Error(d.Code, d.Message);
+        else Warning(d.Code, d.Message);
     }
 
     /// <summary>Check a fixed-point digit-position count against the edition cap (ISO §8.3.1.2 / §13.18.40):
