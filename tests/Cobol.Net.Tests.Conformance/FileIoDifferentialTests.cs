@@ -13,17 +13,9 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class FileIoDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
 
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>A program with a single SELECTed file; <paramref name="select"/> is the SELECT clause body (after the
     /// file-name), <paramref name="fd"/> the FD record description(s), and <paramref name="proc"/> the procedure body.

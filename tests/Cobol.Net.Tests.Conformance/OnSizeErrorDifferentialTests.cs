@@ -14,7 +14,6 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class OnSizeErrorDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
 
     // ROUNDED MODE IS is an ISO-2014+ phrase (§14.7.4) — the PROHIBITED facts compile at 2014.
@@ -27,14 +26,7 @@ public sealed class OnSizeErrorDifferentialTests
         Assert.Equal(expected, outp);
     }
 
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     private static string Program(string ws, string proc) => $"""
         IDENTIFICATION DIVISION.

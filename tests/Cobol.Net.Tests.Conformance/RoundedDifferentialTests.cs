@@ -14,7 +14,6 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class RoundedDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler(dialectLevel: 2014);   // OPTIONS / ROUNDED MODE IS are ISO-2014+ features
 
     /// <summary>Compile+run with COBOL.NET and assert its stdout equals the hand-computed spec value.</summary>
@@ -26,14 +25,7 @@ public sealed class RoundedDifferentialTests
     }
 
     /// <summary>Assert COBOL.NET produces byte-identical stdout to the legacy oracle.</summary>
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source, 2014);
 
     private static string Program(string ws, string proc) => $"""
         IDENTIFICATION DIVISION.

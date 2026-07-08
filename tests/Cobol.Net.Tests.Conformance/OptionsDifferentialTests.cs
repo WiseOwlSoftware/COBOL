@@ -12,7 +12,6 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class OptionsDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler(dialectLevel: 2014);   // OPTIONS / ROUNDED MODE IS are ISO-2014+ features
 
     private static void AssertOutput(string source, string expected)
@@ -22,14 +21,7 @@ public sealed class OptionsDifferentialTests
         Assert.Equal(expected, outp);
     }
 
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source, 2014);
 
     /// <summary>A program whose IDENTIFICATION DIVISION carries an <paramref name="options"/> paragraph body.</summary>
     private static string Program(string options, string ws, string proc) => $"""

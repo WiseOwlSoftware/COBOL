@@ -17,14 +17,7 @@ public sealed class GroupDataDifferentialTests
     private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
 
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     private static void AssertSpec(string source, string expected)
     {

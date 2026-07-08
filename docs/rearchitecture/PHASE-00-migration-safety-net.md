@@ -7,7 +7,7 @@
 - **Depends on:** none (this is the first rearchitecture phase; it de-risks every later one)
 
 ## STATUS
-`IN PROGRESS @ step 10` — steps 1–9 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Characterization
+`IN PROGRESS @ step 11` — steps 1–10 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Characterization
 net complete (gates 2+3, 32 tests). Step 7: `tests/nist/corpus.tsv` generated mechanically — 459 rows (338 green + 11
 divergent + 110 pending; folds `[InlineData]` 349 + `chains.tsv` + `LEGACY_DIVERGENT`) + `CorpusManifest` loader + a
 5-assertion drift guard (green∪divergent == the committed 349-name baseline; every green/divergent has a golden; every
@@ -15,9 +15,12 @@ divergent cites §; no dupes; every on-disk program listed) — all green. Step 
 `[MemberData(CorpusManifest.GreenData)]` + `CorpusManifest.Chains` (487-line `[InlineData]` block + the private `Chains`
 lazy deleted) — **349/349 pass, verdict-equivalent**. Step 9: `DifferentialGolden` helper (bake/verify/golden modes;
 content-hash goldens under `tests/differential/<TestClass>/<hash>.out`; edition+source hash so many `[InlineData]`
-sources per funnel never collide) — builds clean, exercised in steps 10–11. `chains.tsv` KEPT (bash guard/sweep still
-read it). Step 2 ref-cache ~40–55% faster. Finding for PHASE-02: undefined-data-name + JUSTIFIED-on-numeric not caught
-at bind time.
+sources per funnel never collide) — builds clean. Step 10: 46-file conversion (parallel workflow, one agent/file, 0
+errors) — 42 funnels routed through `DifferentialGolden.Assert` + 360 goldens baked under `tests/differential/<Class>/`;
+4 files correctly untouched (MoveEdition/SignedAlphanumericMove/AllLiteral/AbbreviatedCondition — spec-pinned-only, no
+`lout==cout` funnel); fields kept where a spec-pinned funnel still uses them (ClassCondition/ControlFlow/…). Bake 644/0,
+golden-mode 644/0 (no legacy). `chains.tsv` KEPT (bash guard/sweep still read it). Step 2 ref-cache ~40–55% faster.
+Finding for PHASE-02: undefined-data-name + JUSTIFIED-on-numeric not caught at bind time.
 Step 1 (migration-SSOT banner) DONE: the migration SSOT is `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan —
 STATE banner + P0–P16 index + exit criteria + the resume-vs-migration pointer); its banner is flipped to "P0 IN
 PROGRESS" and `docs/DOC_INDEX.md` carries its row.

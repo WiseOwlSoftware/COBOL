@@ -25,20 +25,10 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class DataDisplayDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
 
     /// <summary>Compile + run <paramref name="source"/> on both engines; assert identical stdout (NIST basis).</summary>
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed to compile/run the fragment: {ldetail}");
-
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed to compile/run the fragment: {cdetail}");
-
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>
     /// Compile + run <paramref name="source"/> on COBOL.NET and assert its stdout equals the <b>spec-correct</b>

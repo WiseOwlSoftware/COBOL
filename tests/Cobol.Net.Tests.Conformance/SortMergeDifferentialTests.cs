@@ -14,7 +14,6 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class SortMergeDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
     private static readonly ICompilerUnderTest CobolNet2002 = new CobolNetCompiler(2002);
 
@@ -29,14 +28,7 @@ public sealed class SortMergeDifferentialTests
         Assert.Equal(expected, cout);
     }
 
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>A SORT program over one SD with an input and an output procedure (both SECTIONs — the procedure
     /// range is the WHOLE section, first paragraph through last, like PERFORM section). The output procedure

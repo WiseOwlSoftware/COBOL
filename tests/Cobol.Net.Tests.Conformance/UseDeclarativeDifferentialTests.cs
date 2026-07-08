@@ -14,17 +14,7 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class UseDeclarativeDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
-    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
-
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>§14.9.30 GR24d + §9.1.13.1: READ at end WITHOUT an AT END phrase invokes the file-scoped
     /// declarative — and the FILE STATUS item already holds "10" inside it (the status stores FIRST, GR6).</summary>

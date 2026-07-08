@@ -13,17 +13,7 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class AlterSwitchesDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
-    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
-
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>A program with the two-switch SPECIAL-NAMES surface NC174A/NC254A exercise: Option 1 with the
     /// STATUS keyword and Option 1 with the keyword-less <c>ON IS</c>/<c>OFF IS</c> shape (§12.3.7 — one format).</summary>

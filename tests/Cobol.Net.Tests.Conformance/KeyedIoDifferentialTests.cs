@@ -13,17 +13,7 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class KeyedIoDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
-    private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
-
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>§14.9.51 GR29a: sequential-access relative WRITE releases consecutive RRNs from 1 and MOVEs each
     /// into the RELATIVE KEY item; §14.9.30 GR25: each sequential READ MOVEs the RRN of the record made

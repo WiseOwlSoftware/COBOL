@@ -12,17 +12,9 @@ namespace CobolNet.Tests.Conformance;
 /// </summary>
 public sealed class ExpressionDifferentialTests
 {
-    private static readonly ICompilerUnderTest Legacy = new LegacyCompiler();
     private static readonly ICompilerUnderTest CobolNet = new CobolNetCompiler();
 
-    private static void AssertSameAsLegacy(string source)
-    {
-        var (lok, lout, ldetail) = Legacy.CompileAndRun(source);
-        Assert.True(lok, $"legacy oracle failed: {ldetail}");
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
-        Assert.True(cok, $"COBOL.NET failed: {cdetail}");
-        Assert.Equal(lout, cout);
-    }
+    private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
     /// <summary>Pin COBOL.NET output to the spec-correct value where the legacy is non-conforming (its DISPLAY
     /// trims an alphanumeric operand's trailing spaces, contra ISO §14.9.11.4 GR6).</summary>
