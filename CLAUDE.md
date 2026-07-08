@@ -15,12 +15,16 @@ These are the rules the owner most insists on (repeatedly corrected). Full text 
 **Live kickoff = `resume-prompt.md`** (read it FIRST; its top STATE banner + the §"NON-NEGOTIABLE PROCESS RULES" block
 are current). The COBOL.NET rewrite SSOT is `docs/COBOLNET_DESIGN.md` (the PIVOT below).
 
-## ⛔ TOP-LEVEL PLAN: read `resume-prompt.md` FIRST, then `docs/COBOLNET_DESIGN.md`
+## ⛔ TOP-LEVEL PLAN: `docs/COBOLNET_REARCHITECTURE_PLAN.md` is the go-forward roadmap (read `resume-prompt.md` FIRST → the plan → `docs/COBOLNET_DESIGN.md`)
 The North Star is a **commercial-quality, decades-sustainable, full ISO/IEC 1989:2023 COBOL compiler with correct
 support for all prior editions (1985 / 2002 / 2014)** — implemented with maximum autonomy + practical parallelism, no
-back-compat. The live plan is **`resume-prompt.md`** (its two-track RESUME AT: the version-correctness framework + the
-feature/NIST corpus drive) over the SSOT **`docs/COBOLNET_DESIGN.md`**, validated by the VERSION TEST MATRIX
-(`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist `docs/VERSION_CHANGE_REFERENCE.md`.
+back-compat. **The go-forward roadmap (DEVLOG 665) is `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a resumable,
+execution-grade **17-phase** rearchitecture + 100%-ISO plan (clean architecture · all editions · a selectable
+Roslyn↔CIL backend) that SUBSUMES the prior feature/NIST drive as its phases 09–14; `resume-prompt.md`'s top banner
+points to it + its §0 resume protocol. **EXECUTION NOT STARTED (Phase 00 next); ~12 owner decisions in its §6.** The
+SSOT for locked invariants / settled decisions remains **`docs/COBOLNET_DESIGN.md`**, and the four-editions mission is
+validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist
+`docs/VERSION_CHANGE_REFERENCE.md`.
 ⛔ The pre-PIVOT **byte-engine plan + architecture docs were DELETED** (DEVLOG 523, as obsolete/misleading):
 `PROJECT_PLAN.md`, `docs/MASTER_PLAN.md`, the `docs/DATA_MODEL_*` / `docs/RECORD_STRUCT_STORAGE_DESIGN.md` set, and the
 ~50 `docs/CobolSharp …` byte-engine architecture/guide docs. The greenfield design lives in the `docs/COBOLNET_*`
