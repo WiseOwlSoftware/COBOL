@@ -484,7 +484,7 @@ computerAttributes
 // ==========================================
 
 procedureDivision
-    : PROCEDURE DIVISION usingClause? ({is2002()}? returningClause)? ({is2002()}? raisingClause)? DOT
+    : PROCEDURE DIVISION usingClause? (returningClause)? ({is2002()}? raisingClause)? DOT   // returningClause introduction-gated at BIND time (DataBinder.Linkage → Check(ProcedureReturning2002)); raisingClause is gateless residue (no row)
       declarativePart*
       procedureUnit*
     ;
@@ -1137,7 +1137,7 @@ displayNoAdvancing
 // ==========================================
 
 gobackStatement
-    : GOBACK ({is2002()}? (RETURNING | GIVING) dataReference)? raisingPhrase?
+    : GOBACK ((RETURNING | GIVING) dataReference)? raisingPhrase?   // RETURNING introduction-gated at BIND time (CallBindGoback → Check(GobackReturning2002))
     ;
 
 // ==========================================

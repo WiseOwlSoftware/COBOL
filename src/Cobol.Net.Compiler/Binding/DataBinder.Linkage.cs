@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Runtime;
 using CobolNet.Frontend.Generated;
 
@@ -141,6 +142,8 @@ public sealed partial class DataBinder
             pos++;
         }
 
+        if (pd.returningClause() is not null)   // PROCEDURE DIVISION RETURNING — COBOL-2002 introduction, bind-time gate (rearch migration Cluster 6)
+            ConstructRegistry.Check(Edition.Edition, Edition, Constructs.ProcedureReturning2002, "the PROCEDURE DIVISION RETURNING phrase");
         if (pd.returningClause()?.dataReference() is { } rref)
         {
             // §14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an

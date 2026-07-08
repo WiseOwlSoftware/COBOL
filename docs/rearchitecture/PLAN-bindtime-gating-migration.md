@@ -39,10 +39,10 @@ reserved for genuinely cross-cutting per-edition rules (the G7 remit), not per-c
 
 ## STATUS
 
-`IN PROGRESS — Cluster 6 next.` Clusters completed: **1 (DEVLOG 680), 2 (681), 3 (682), 4 (683), 5 (684)**.
-EditionGateHints started at ~30 signature arms (target ≈ 8); running removals: C1 −3 (+1 interim SET arm, retired in
-C8), C2 −2 (+ deleted manual `COBOLNET0883`), C3 −2, C4 −2, C5 −4 (BASED/TYPE/TYPEDEF/OCCURS DYNAMIC). Battery green:
-conformance 2055 · unit 224 · FULL legacy guard 353 MATCH.
+`IN PROGRESS — Cluster 7 next.` Clusters completed: **1 (680), 2 (681), 3 (682), 4 (683), 5 (684), 6 (685)**.
+EditionGateHints removals: C1 −3 (+1 interim SET arm, retired in C8), C2 −2 (+ deleted manual `COBOLNET0883`), C3 −2,
+C4 −2, C5 −4, C6 −2 (GOBACK/PROCEDURE RETURNING; goback double-diag 0880-vs-0900 handled). Battery green: conformance
+2055 · unit 224 · FULL legacy guard 353 MATCH.
 
 ## MOVE_TO_BINDTIME (24) — ordered clusters (each = one commit: ungate + regen + Check + delete hints arm + below-edition test + FULL guard)
 
@@ -65,7 +65,7 @@ conformance 2055 · unit 224 · FULL legacy guard 353 MATCH.
   - type-clause-2002 — ungate `CobolData.g4:255`; Check at typeClause arm `DataBinder.cs:1059`; delete arm. (Report-Writer TYPE at `CobolReportWriter.g4:97` is a different rule — no conflict.)
   - typedef-def-2002 — ungate `CobolData.g4:262`; Check at typedefClause arm `DataBinder.cs:1057`; delete arm.
   - occurs-dynamic-2014 — ungate `CobolData.g4:346` (Format-4 `{is2014()}?`); Check inside `if (occ.DYNAMIC() is not null)` at `OdoModel.cs:221`; delete the OCCURS/DYNAMIC/CAPACITY arms.
-- [ ] **Cluster 6 — goback-returning + procedure-returning.**
+- [x] **Cluster 6 — goback-returning + procedure-returning — DONE (DEVLOG 685).** Double-diag handled (GOBACK 0880 vs RETURNING 0900 — 0900 subsumes when RETURNING present). Beyond-recipe: `using CobolNet.Editions;` in `DataBinder.Linkage.cs`.
   - goback-returning-2002 — ungate `CobolParserCore.g4:1140`; Check at the `g.dataReference()` branch `Call.cs:215`; delete arm. **DOUBLE-DIAG:** GOBACK itself is 2002+ (already emits `COBOLNET0880` at `Call.cs:210-213`) — suppress the RETURNING Check when the enclosing GOBACK already errored (preserve the precise message); assert exactly one 0900/0880.
   - procedure-returning-2002 — ungate the returningClause predicate at `CobolParserCore.g4:487` (LEAVE the sibling raisingClause predicate); Check at `DataBinder.Linkage.cs:144`; delete arm. (No transitive coverage — genuinely needs the Check.)
 - [ ] **Cluster 7 — class + interface definitions (DO TOGETHER — shared hints arm `EditionGateHints.cs:150-157`).**

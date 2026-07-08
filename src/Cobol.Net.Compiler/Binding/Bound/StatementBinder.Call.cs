@@ -206,7 +206,12 @@ public sealed partial class StatementBinder
     private BoundStatement CallBindGoback(Core.GobackStatementContext g)
     {
         if (InMethod) return OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
-        if (data.Edition.DialectLevel < 2002)
+        // GOBACK itself is a COBOL-2002 introduction (COBOLNET0880). The RETURNING phrase is separately gated
+        // (GobackReturning2002 → COBOLNET0900, bind-time migration Cluster 6); when it is present its more-specific
+        // 0900 subsumes the 0880, so a <2002 GOBACK RETURNING yields exactly one diagnostic naming the whole phrase.
+        if (g.dataReference() is not null)
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.GobackReturning2002, "GOBACK … RETURNING");
+        else if (data.Edition.DialectLevel < 2002)
             data.Edition.Error("COBOLNET0880",
                 "GOBACK was introduced by ISO/IEC 1989:2002 (§14.9.16 there; §14.9.18 in 2023) — COBOL-85 uses "
                 + $"STOP RUN / EXIT PROGRAM; requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");

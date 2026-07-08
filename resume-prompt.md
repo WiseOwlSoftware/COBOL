@@ -69,9 +69,9 @@
 > constructs → **24 MOVE_TO_BINDTIME (10 clusters) + 6 KEEP_PARSE_GATED** reservation-word residue
 > (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY — user words below their edition; ungating would miscompile).
 > **Decision-complete resumable plan + per-cluster checkboxes: `docs/rearchitecture/PLAN-bindtime-gating-migration.md` (READ FIRST).**
-> **⛔ RESUME AT: Cluster 6** (GOBACK RETURNING + PROCEDURE DIVISION RETURNING) — Clusters 1 (680) + 2 (681) + 3 (682)
-> + 4 (683) + 5 (data-division BASED/TYPE/TYPEDEF/OCCURS DYNAMIC, 684) DONE. NOTE the Cluster-6 goback double-diagnostic
-> caveat (GOBACK is itself 2002+, emits COBOLNET0880) — suppress the RETURNING Check when GOBACK already errored. Each cluster = ungate grammar + regen + binder Check + delete the
+> **⛔ RESUME AT: Cluster 7** (class + interface definitions — DO TOGETHER, shared EditionGateHints arm) — Clusters
+> 1–6 DONE (DEVLOG 680–685). Cluster 7 adds Checks in `OoClassTable.Build` (class + interface loops) and deletes the
+> ONE shared IDENTIFICATION/CLASS_ID/INTERFACE_ID lookahead arm; verify the compilationGroup ALL(*) disambiguation. Each cluster = ungate grammar + regen + binder Check + delete the
 > EditionGateHints arm + a below-edition test + FULL legacy guard, committed green. Afterward: step 9 (preprocessor gates
 > → `EditionSeverityPolicy`) + step 10 (`DiagnosticDescriptors` / split `COBOLNET0899`). **Read the step-7 as-built notes in
 > `docs/rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md`'s STATUS block FIRST.** Battery held green

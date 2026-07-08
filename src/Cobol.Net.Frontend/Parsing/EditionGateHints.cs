@@ -76,12 +76,6 @@ public static class EditionGateHints
         // signature is the fallback the stack test cannot give. Each arm yields the constructs.json row id.
         string? id = token.Type switch
         {
-            CobolLexer.RETURNING when InRule(ruleStack, "gobackStatement")
-                || Next(stream, token, -1)?.Type == CobolLexer.GOBACK => Constructs.GobackReturning2002,
-            // The division-header RETURNING: inside procedureDivision but NOT inside any statement (the
-            // header parses before the first statement rule is entered). CALL … RETURNING is 85-legal and
-            // parses through callReturningPhrase — its stack contains "statement", so it never lands here.
-            CobolLexer.RETURNING when InRule(ruleStack, "procedureDivision") && !InRule(ruleStack, "statement") => Constructs.ProcedureReturning2002,
             CobolLexer.CLASS when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryClass2002,
             CobolLexer.INTERFACE when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryInterface2002,
             CobolLexer.PROPERTY when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryProperty2002,
