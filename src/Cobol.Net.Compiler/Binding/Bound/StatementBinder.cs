@@ -1102,7 +1102,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// silent mojibake store.</summary>
     private BoundStringLiteral NationalLiteralOperand(string raw)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, "national-data-2002", "national literal N\"…\"");
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.NationalData2002, "national literal N\"…\"");
         string value = DecodeCobolString(raw);
         if (value.Length > 8191)
             data.Edition.Error("COBOLNET0814", $"national literal of {value.Length} positions exceeds the "
@@ -1118,7 +1118,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// positions; SR2 ('0'/'1' only) is lexer-enforced.</summary>
     private BoundStringLiteral BooleanLiteralOperand(string raw)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, "boolean-data-2002", "boolean literal B\"…\"");
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.BooleanData2002, "boolean literal B\"…\"");
         string value = DecodeCobolString(raw);
         if (value.Length > 8191)
             data.Edition.Error("COBOLNET0814", $"boolean literal of {value.Length} positions exceeds the "

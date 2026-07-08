@@ -55,7 +55,7 @@ public sealed partial class StatementBinder
     private BoundExpr UdfBindCall(string name, List<IToken> argTokens)
     {
         // Introduction gate: user-defined functions are COBOL-2002+ (§9.4 / §12.3.8; 0900 below 2002).
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, "user-function-invocation-2002",
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.UserFunctionInvocation2002,
             $"FUNCTION {name.ToUpperInvariant()}");
 
         if (UserFunctions is null || !UserFunctions.TryGetValue(name, out var fn))

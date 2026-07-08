@@ -115,7 +115,7 @@ public sealed partial class StatementBinder
         // registry (0900 band; W1.5): the former ad-hoc COBOLNET0860 collided with the WRITE END-OF-PAGE
         // diagnostic's 0860 and was not in the P2.3 pinned-code set.
         if (previous)
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, "read-previous-2002", "READ … PREVIOUS");
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.ReadPrevious2002, "READ … PREVIOUS");
 
         // §14.9.30 SR6 forbids NEXT/PREVIOUS/AT END under ACCESS RANDOM and the formats keep INVALID KEY off the
         // sequential read — but the CCVS-85 corpus is lenient about phrase placement (the L1–L3 leniency family),
@@ -260,7 +260,7 @@ public sealed partial class StatementBinder
             // START FIRST/LAST entered the standard with ISO/IEC 1989:2002 (§14.9.41 general format) —
             // routed through the registry (0900 band; W1.5): the former ad-hoc COBOLNET0861 collided with
             // the WRITE ADVANCING PAGE/END-OF-PAGE diagnostic's 0861 and was not in the P2.3 pinned set.
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, "start-first-last-2002",
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.StartFirstLast2002,
                 $"START {(st.LAST() is not null ? "LAST" : "FIRST")}");
             return new BoundKeyedStart(file, st.LAST() is not null ? KeyedStartMode.Last : KeyedStartMode.First,
                 "==", -1, null, null, invalid);

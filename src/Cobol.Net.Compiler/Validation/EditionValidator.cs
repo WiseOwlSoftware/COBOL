@@ -59,14 +59,14 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     /// (every NIST FD writes this clause — 243/459 programs).</summary>
     public override object? VisitLabelRecordsClause(CobolParserCore.LabelRecordsClauseContext ctx)
     {
-        ConstructRegistry.Check(_edition.Edition, _edition, "label-records-removed-2002", "the FD LABEL RECORDS clause");
+        ConstructRegistry.Check(_edition.Edition, _edition, Constructs.LabelRecordsRemoved2002, "the FD LABEL RECORDS clause");
         return base.VisitChildren(ctx);
     }
 
     /// <summary>VALUE OF (FD) — obsolete '85 label-field clause, deleted 2002 (P2.6).</summary>
     public override object? VisitValueOfClause(CobolParserCore.ValueOfClauseContext ctx)
     {
-        ConstructRegistry.Check(_edition.Edition, _edition, "value-of-removed-2002", "the FD VALUE OF clause");
+        ConstructRegistry.Check(_edition.Edition, _edition, Constructs.ValueOfRemoved2002, "the FD VALUE OF clause");
         return base.VisitChildren(ctx);
     }
 
@@ -74,14 +74,14 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     /// DataBinder SD-only 0873 gate MIGRATED here, P2.6/Table-7 row 7.1 follow-up). Keeps its pinned 0873.</summary>
     public override object? VisitDataRecordsClause(CobolParserCore.DataRecordsClauseContext ctx)
     {
-        ConstructRegistry.Check(_edition.Edition, _edition, "data-records-removed-2002", "the FD/SD DATA RECORDS clause");
+        ConstructRegistry.Check(_edition.Edition, _edition, Constructs.DataRecordsRemoved2002, "the FD/SD DATA RECORDS clause");
         return base.VisitChildren(ctx);
     }
 
     /// <summary>MULTIPLE FILE [TAPE] (I-O-CONTROL) — reel-sharing description, deleted 2002 (P2.6).</summary>
     public override object? VisitMultipleFileClause(CobolParserCore.MultipleFileClauseContext ctx)
     {
-        ConstructRegistry.Check(_edition.Edition, _edition, "multiple-file-tape-removed-2002", "the I-O-CONTROL MULTIPLE FILE clause");
+        ConstructRegistry.Check(_edition.Edition, _edition, Constructs.MultipleFileTapeRemoved2002, "the I-O-CONTROL MULTIPLE FILE clause");
         return base.VisitChildren(ctx);
     }
 
@@ -95,13 +95,13 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
             switch (ctx.GetChild(i).GetText().ToUpperInvariant())
             {
                 case "MEMORY":
-                    ConstructRegistry.Check(_edition.Edition, _edition, "memory-size-removed-2002", "the OBJECT-COMPUTER MEMORY SIZE clause");
+                    ConstructRegistry.Check(_edition.Edition, _edition, Constructs.MemorySizeRemoved2002, "the OBJECT-COMPUTER MEMORY SIZE clause");
                     break;
                 case "SEGMENT-LIMIT":
-                    ConstructRegistry.Check(_edition.Edition, _edition, "segment-limit-removed-2002", "the OBJECT-COMPUTER SEGMENT-LIMIT clause");
+                    ConstructRegistry.Check(_edition.Edition, _edition, Constructs.SegmentLimitRemoved2002, "the OBJECT-COMPUTER SEGMENT-LIMIT clause");
                     break;
                 case "DEBUGGING":
-                    ConstructRegistry.Check(_edition.Edition, _edition, "debugging-mode-removed-2002", "the SOURCE-COMPUTER WITH DEBUGGING MODE clause");
+                    ConstructRegistry.Check(_edition.Edition, _edition, Constructs.DebuggingModeRemoved2002, "the SOURCE-COMPUTER WITH DEBUGGING MODE clause");
                     // The switch also drives the USE FOR DEBUGGING posture (row 7.17): the configuration
                     // section precedes the procedure division in the walk, so the flag is set before any
                     // declarative section is visited.
@@ -115,27 +115,27 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     /// <summary>The five identification comment paragraphs — obsolete '85 elements deleted 2002 (P2.6; one
     /// registry row, the paragraph named per site).</summary>
     public override object? VisitAuthorParagraph(CobolParserCore.AuthorParagraphContext ctx)
-    { ConstructRegistry.Check(_edition.Edition, _edition, "identification-comments-removed-2002", "the AUTHOR paragraph"); return base.VisitChildren(ctx); }
+    { ConstructRegistry.Check(_edition.Edition, _edition, Constructs.IdentificationCommentsRemoved2002, "the AUTHOR paragraph"); return base.VisitChildren(ctx); }
     public override object? VisitInstallationParagraph(CobolParserCore.InstallationParagraphContext ctx)
-    { ConstructRegistry.Check(_edition.Edition, _edition, "identification-comments-removed-2002", "the INSTALLATION paragraph"); return base.VisitChildren(ctx); }
+    { ConstructRegistry.Check(_edition.Edition, _edition, Constructs.IdentificationCommentsRemoved2002, "the INSTALLATION paragraph"); return base.VisitChildren(ctx); }
     public override object? VisitDateWrittenParagraph(CobolParserCore.DateWrittenParagraphContext ctx)
-    { ConstructRegistry.Check(_edition.Edition, _edition, "identification-comments-removed-2002", "the DATE-WRITTEN paragraph"); return base.VisitChildren(ctx); }
+    { ConstructRegistry.Check(_edition.Edition, _edition, Constructs.IdentificationCommentsRemoved2002, "the DATE-WRITTEN paragraph"); return base.VisitChildren(ctx); }
     public override object? VisitDateCompiledParagraph(CobolParserCore.DateCompiledParagraphContext ctx)
-    { ConstructRegistry.Check(_edition.Edition, _edition, "identification-comments-removed-2002", "the DATE-COMPILED paragraph"); return base.VisitChildren(ctx); }
+    { ConstructRegistry.Check(_edition.Edition, _edition, Constructs.IdentificationCommentsRemoved2002, "the DATE-COMPILED paragraph"); return base.VisitChildren(ctx); }
     public override object? VisitSecurityParagraph(CobolParserCore.SecurityParagraphContext ctx)
-    { ConstructRegistry.Check(_edition.Edition, _edition, "identification-comments-removed-2002", "the SECURITY paragraph"); return base.VisitChildren(ctx); }
+    { ConstructRegistry.Check(_edition.Edition, _edition, Constructs.IdentificationCommentsRemoved2002, "the SECURITY paragraph"); return base.VisitChildren(ctx); }
 
     /// <summary>REMARKS — a '74 carryover the grammar accepts for CCVS; flagged ≥2002 ONLY (never at 85 —
     /// CCVS-85 programs write it; the 85 FIPS flagger is future strictness work, P2.6).</summary>
     public override object? VisitRemarksParagraph(CobolParserCore.RemarksParagraphContext ctx)
-    { ConstructRegistry.Check(_edition.Edition, _edition, "remarks-removed-2002", "the REMARKS paragraph"); return base.VisitChildren(ctx); }
+    { ConstructRegistry.Check(_edition.Edition, _edition, Constructs.RemarksRemoved2002, "the REMARKS paragraph"); return base.VisitChildren(ctx); }
 
     /// <summary>STOP literal (Format 2) — obsolete '85 element deleted 2002 (P2.6). Its 85 SEMANTICS are
     /// implemented binder-side this same change set (the silent bind-as-STOP-RUN mis-bind fixed).</summary>
     public override object? VisitStopStatement(CobolParserCore.StopStatementContext ctx)
     {
         if (ctx.literal() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "stop-literal-removed-2002", "the STOP literal statement");
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.StopLiteralRemoved2002, "the STOP literal statement");
         return base.VisitChildren(ctx);
     }
 
@@ -144,7 +144,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     public override object? VisitOpenFileSpec(CobolParserCore.OpenFileSpecContext ctx)
     {
         if (ctx.REVERSED() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "open-reversed-removed-2002", "the OPEN REVERSED phrase");
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.OpenReversedRemoved2002, "the OPEN REVERSED phrase");
         return base.VisitChildren(ctx);
     }
 
@@ -152,7 +152,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     public override object? VisitCloseOption(CobolParserCore.CloseOptionContext ctx)
     {
         if (ctx.LOCK() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "close-with-lock-removed-2023", "the CLOSE WITH LOCK phrase");
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.CloseWithLockRemoved2023, "the CLOSE WITH LOCK phrase");
         return base.VisitChildren(ctx);
     }
 
@@ -161,18 +161,18 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     public override object? VisitExitStatement(CobolParserCore.ExitStatementContext ctx)
     {
         if (ctx.METHOD() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "exit-method-window", "the EXIT METHOD statement");
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.ExitMethodWindow, "the EXIT METHOD statement");
         else if (ctx.FUNCTION() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "exit-function-window", "the EXIT FUNCTION statement");
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.ExitFunctionWindow, "the EXIT FUNCTION statement");
         else if (ctx.PROGRAM() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "exit-program-archaic-2023", "the EXIT PROGRAM statement");
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.ExitProgramArchaic2023, "the EXIT PROGRAM statement");
         return base.VisitChildren(ctx);
     }
 
     /// <summary>NEXT SENTENCE — ARCHAIC in 2023 (0903 warning; VCR 90; P2.6).</summary>
     public override object? VisitNextSentenceStatement(CobolParserCore.NextSentenceStatementContext ctx)
     {
-        ConstructRegistry.Check(_edition.Edition, _edition, "next-sentence-archaic-2023", "the NEXT SENTENCE phrase");
+        ConstructRegistry.Check(_edition.Edition, _edition, Constructs.NextSentenceArchaic2023, "the NEXT SENTENCE phrase");
         return base.VisitChildren(ctx);
     }
 
@@ -185,7 +185,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     public override object? VisitMethodDefinition(CobolParserCore.MethodDefinitionContext ctx)
     {
         if (ctx.dataDivision()?.workingStorageSection() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "method-working-storage-window",
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.MethodWorkingStorageWindow,
                 "a WORKING-STORAGE SECTION in a method definition");
         return base.VisitChildren(ctx);
     }
@@ -199,7 +199,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     /// 2023 text, §8.9 @10661–10662 included). Parsed-and-ignored at 85 (a null rerun facility is conforming).</summary>
     public override object? VisitRerunClause(CobolParserCore.RerunClauseContext ctx)
     {
-        ConstructRegistry.Check(_edition.Edition, _edition, "rerun-removed-2002", "the I-O-CONTROL RERUN clause");
+        ConstructRegistry.Check(_edition.Edition, _edition, Constructs.RerunRemoved2002, "the I-O-CONTROL RERUN clause");
         return base.VisitChildren(ctx);
     }
 
@@ -207,7 +207,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     /// @10459–10460 included). Comment-equivalent (BoundNop) at 85 — the conforming COBOL-only posture.</summary>
     public override object? VisitEnterStatement(CobolParserCore.EnterStatementContext ctx)
     {
-        ConstructRegistry.Check(_edition.Edition, _edition, "enter-removed-2002", "the ENTER statement");
+        ConstructRegistry.Check(_edition.Edition, _edition, Constructs.EnterRemoved2002, "the ENTER statement");
         return base.VisitChildren(ctx);
     }
 
@@ -217,7 +217,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     public override object? VisitUseStatement(CobolParserCore.UseStatementContext ctx)
     {
         if (ctx.DEBUGGING() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "use-for-debugging-removed-2002", "the USE FOR DEBUGGING declarative");
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.UseForDebuggingRemoved2002, "the USE FOR DEBUGGING declarative");
         return base.VisitChildren(ctx);
     }
 
@@ -227,7 +227,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     public override object? VisitSectionDefinition(CobolParserCore.SectionDefinitionContext ctx)
     {
         if (ctx.integerLiteral() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "segment-numbers-removed-2002",
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.SegmentNumbersRemoved2002,
                 $"the segment-number on section '{ctx.sectionName().GetText()}'");
         return base.VisitChildren(ctx);
     }
@@ -243,7 +243,7 @@ public sealed class EditionValidator(EditionContext edition) : CobolParserCoreBa
     public override object? VisitDeclarativeSection(CobolParserCore.DeclarativeSectionContext ctx)
     {
         if (ctx.integerLiteral() is not null)
-            ConstructRegistry.Check(_edition.Edition, _edition, "segment-numbers-removed-2002",
+            ConstructRegistry.Check(_edition.Edition, _edition, Constructs.SegmentNumbersRemoved2002,
                 $"the segment-number on declarative section '{ctx.sectionName().GetText()}'");
         if (!_debuggingModeDeclared
             && ctx.sentence() is { Length: > 0 } sentences

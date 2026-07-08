@@ -87,7 +87,7 @@ public sealed partial class StatementBinder
             if (all is { IsDigitOnly: true, Literal.Length: 1 } && integerReceiver)
             {
                 // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; VCR rows 92/128).
-                ConstructRegistry.Check(data.Edition.Edition, data.Edition, "move-all-digit-integer-obsolete-2023", where);
+                ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.MoveAllDigitIntegerObsolete2023, where);
                 continue;
             }
             // QUOTE is the ONE figurative the spec's own change annex tracks separately: QUOTE→numeric was
@@ -97,11 +97,11 @@ public sealed partial class StatementBinder
             // correction to VCR row 1's blanket "not even flagged obsolete in 2014" wording.
             if (source is BoundFigurative { Kind: 'Q' })
             {
-                ConstructRegistry.Check(data.Edition.Edition, data.Edition, "move-quote-numeric-obsolete-2014", where);
+                ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.MoveQuoteNumericObsolete2014, where);
             }
             else
                 // Every other shape: removed by ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
-                ConstructRegistry.Check(data.Edition.Edition, data.Edition, "move-alphanumeric-figurative-removed-2023", where);
+                ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.MoveAlphanumericFigurativeRemoved2023, where);
 
             // Pre-removal storage (reachable at --std 85/2002/2014 and at 2023 --permissive): a NON-digit fill
             // (SPACE/QUOTE/HIGH-VALUE/LOW-VALUE, or an ALL literal containing a non-digit) deposits the fill

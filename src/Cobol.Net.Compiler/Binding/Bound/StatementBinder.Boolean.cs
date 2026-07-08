@@ -77,7 +77,7 @@ public sealed partial class StatementBinder
         var nn = vo.nonNumericLiteral();
         if (nn?.BOOLLIT() is { } bl)
         {
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, "boolean-data-2002", "boolean literal B\"…\"");
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.BooleanData2002, "boolean literal B\"…\"");
             return new BoundBoolLiteral(DecodeCobolString(bl.GetText()));
         }
         if (nn?.figurativeConstant() is { } fig)
