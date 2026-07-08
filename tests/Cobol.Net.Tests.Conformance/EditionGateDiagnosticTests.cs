@@ -182,11 +182,12 @@ public sealed class EditionGateDiagnosticTests
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0861");
     }
 
-    /// <summary>JSON GENERATE is NOT ISO (0 spec hits; owner decision 2, DEVLOG 581) — where the grammar's
-    /// legacy <c>{is2014()}?</c> stub gate REJECTS it (&lt;2014) the diagnostic is the vendor hint
-    /// (COBOL0313), never the 0900 band (no ISO edition has the construct, so "requires COBOL-2014" would be
-    /// a lie); at ≥2014 the stub still parses and binds runtime-loud (the W3 grammar batch owns re-gating the
-    /// stub to the vendor axis).</summary>
+    /// <summary>JSON GENERATE is NOT ISO (0 spec hits; owner decision 2, DEVLOG 581). As of rearch P1 (the
+    /// non-ISO JSON/XML grammar was hard-deleted) it parse-errors at EVERY edition; the diagnostic is the vendor
+    /// hint (COBOL0313 — <c>EditionGateHints</c> keys off the hard-reserved <c>JSON</c>/<c>XML</c> token), never
+    /// the 0900 band (no ISO edition has the construct, so "requires COBOL-2014" would be a lie). This test pins
+    /// the &lt;2014 leg; the removal's behavioral change (≥2014 was formerly parse-then-runtime-loud) is intended
+    /// hardening.</summary>
     [Fact]
     public void JsonGenerate_Below2014_VendorDisposition_Not0900()
     {

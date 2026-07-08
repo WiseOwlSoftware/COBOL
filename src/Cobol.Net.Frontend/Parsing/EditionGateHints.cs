@@ -77,7 +77,13 @@ public static class EditionGateHints
 
         // The non-ISO vendor statements first — edition-independent (owner decision 2: vendor-dialect,
         // deferred post-G8; the 0900 band would be a lie, no ISO edition has them).
-        if (token.Type is CobolLexer.JSON or CobolLexer.XML && InRule(ruleStack, "procedureDivision"))
+        // JSON/XML are HARD-RESERVED lexer tokens (NOT in the cobolWord user-word set — only PARSE/PROCESSING
+        // are), so an offending JSON/XML token can only be a misplaced JSON/XML statement — the rule-stack is a
+        // sufficient-and-unnecessary guard. Since the non-ISO JSON/XML grammar was hard-deleted at rearch P1
+        // (step 3), the error now surfaces as an unexpected-token AFTER the statement/procedureDivision frames
+        // have unwound (previously it was a NoViableAlternative deep inside procedureDivision), so gating on
+        // `InRule(…, "procedureDivision")` here would MISS it — the token type alone is the signature.
+        if (token.Type is CobolLexer.JSON or CobolLexer.XML)
             return ("COBOL0313",
                 $"{(token.Type == CobolLexer.JSON ? "JSON" : "XML")} GENERATE/PARSE is not an ISO/IEC 1989 construct — "
                 + "vendor-dialect extension, deferred (owner decision 2, DEVLOG 581)");

@@ -13,7 +13,7 @@ options {
 // completely disjoint grammar rules — zero ambiguity.
 tokens { ZERO_ARITH }
 
-import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolExtensionsJsonXml, CobolOO, CobolScreen;
+import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen;
 
 // ==========================================
 // CONTEXT-SENSITIVE KEYWORDS
@@ -713,8 +713,6 @@ statement
     | initiateStatement
     | generateStatement
     | terminateStatement
-    | {is2014()}? jsonStatement
-    | {is2014()}? xmlStatement
     | {is2002()}? invokeStatement
     | {is2023()}? inlineMethodInvocationStatement
     | continueStatement

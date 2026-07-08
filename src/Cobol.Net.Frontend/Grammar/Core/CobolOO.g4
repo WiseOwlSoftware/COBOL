@@ -145,3 +145,11 @@ objectReferenceUsage
     | OBJECT REFERENCE className
     | OBJECT REFERENCE
     ;
+
+// ── INLINE METHOD INVOCATION (COBOL-2023, ISO §8.4.3 in-line method invocation) ──
+// Relocated from the deleted non-ISO JSON/XML fragment (rearch P1 step 3). `argumentList` is defined in
+// Core/CobolExpressions.g4 (already merged into the composite grammar). Dispatched from CobolParserCore.g4 under
+// {is2023()}?; this is the sole surviving rule of the former non-ISO JSON/XML fragment (deleted at P1 step 3).
+inlineMethodInvocationStatement
+    : dataReference LPAREN argumentList? RPAREN
+    ;

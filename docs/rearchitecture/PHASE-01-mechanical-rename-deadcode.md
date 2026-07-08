@@ -8,12 +8,18 @@
   - `docs/rearchitecture/DESIGN-module-topology.md` — "Pull the `CobolSharp.Compiler.* → CobolNet.*` namespace rename FORWARD to Wave 0"; ANTLR package name single-sourced via an MSBuild property; delete 5 dead grammars + committed `.antlr` caches; strip non-ISO JSON/XML.
   - `docs/rearchitecture/DESIGN-frontend-grammar.md` — the frontend M-steps: generated-namespace rename via MSBuild property, delete the 5 unreferenced top-level grammars + `.antlr` caches, hard-delete JSON/XML rules and move `inlineMethodInvocationStatement` into `Core/CobolOO.g4`, fix the stale `Frontend.cs` banner, narrow the `catch(Exception)`.
   - `docs/COBOLNET_DESIGN.md` §1.4 (the "namespaces stay `CobolSharp.Compiler.*` until G8" banner this phase supersedes), §16 (G0–G8).
-- **STATUS:** IN PROGRESS @ step 3 — steps 0–2 DONE. Baseline verified green at P0 close-out (sln build 0-err · 2036
+- **STATUS:** IN PROGRESS @ step 4 — steps 0–3 DONE. Baseline verified green at P0 close-out (sln build 0-err · 2036
   conformance · 213 unit · 32 characterization · guard NIST 353 MATCH). Step 1: the 5 dead top-level grammars
   (`CobolParserJsonXml`/`Generics`/`OO`/`Dialect`/`Preprocessor`.g4) `git rm`'d — verified unreferenced (only an inert
   comment in `CobolExtensionsJsonXml.g4`, itself deleted at step 3); forced clean ANTLR regen + frontend build 0-err.
   Step 2: the 9 committed `.antlr` IDE caches (`Grammar/.antlr/` + `Grammar/Core/.antlr/`) `git rm -r`'d + `**/.antlr/`
-  gitignored; 0 tracked `.antlr` remain; frontend build 0-err (caches are IDE-only).
+  gitignored; 0 tracked `.antlr` remain; frontend build 0-err (caches are IDE-only). Step 3: `Core/CobolExtensionsJsonXml.g4`
+  hard-deleted (JSON/XML non-ISO) — `jsonStatement`/`xmlStatement`/`jsonXmlExceptionPhrases` rules + the two `{is2014()}?`
+  dispatch arms + the import removed; the live 2023 `inlineMethodInvocationStatement` relocated into `Core/CobolOO.g4`.
+  ⚠ Required a fix beyond the plan: `EditionGateHints` dropped its `procedureDivision` rule-stack guard for the JSON/XML
+  branch (the rule removal unwinds the stack before the error surfaces — see the step-3 correction note; `JSON`/`XML` are
+  hard-reserved so the token alone is the signature). Battery: whole-sln build 0-err · conformance 2036/2036 · FULL
+  legacy guard NIST 353 MATCH (ALL GREEN); `EditionGateDiagnosticTests` 13/13.
   *(The executing session updates this line: `NOT STARTED` → `IN PROGRESS @ step N` → `DONE`. Keep the battery green at every ★ COMMIT BOUNDARY.)*
 
 ---
@@ -175,7 +181,16 @@ dotnet build src/Cobol.Net.Frontend/Cobol.Net.Frontend.csproj -c Debug     # ANT
 dotnet test tests/Cobol.Net.Tests.Conformance -c Debug \
   --filter "FullyQualifiedName~EditionGateDiagnosticTests.JsonGenerate_Below2014_VendorDisposition_Not0900"
 ```
-**Expected:** grep empty; regen succeeds; `JsonGenerate_Below2014_VendorDisposition_Not0900` **passes** (it routes through `EditionGateHints`, which is untouched and still keys off `CobolLexer.JSON`).
+**Expected:** grep empty; regen succeeds; `JsonGenerate_Below2014_VendorDisposition_Not0900` **passes**.
+> ⚠ **Correction to the original assumption (found in execution, DEVLOG 668).** This step's design claimed the test
+> passes because `EditionGateHints` is "untouched and still keys off `CobolLexer.JSON`". That was WRONG: deleting the
+> `jsonStatement` grammar arm changed the parse error from a `NoViableAlternative` reported DEEP inside
+> `procedureDivision` (where the old `EditionGateHints` guard `InRule(ruleStack, "procedureDivision")` matched) to an
+> unexpected-token reported AFTER those frames unwind — so the guard no longer matched and the message regressed to a
+> bare `COBOL0001: unexpected 'JSON'`. **Fix (same change set):** `EditionGateHints.Recognize` drops the
+> `procedureDivision` rule-stack guard for the JSON/XML branch — the `JSON`/`XML` tokens are HARD-RESERVED (absent from
+> the `cobolWord` user-word set; only `PARSE`/`PROCESSING` are user words), so an offending `JSON`/`XML` token is an
+> unambiguous JSON/XML-statement signature on its own. With the fix the test passes at every edition.
 **Matrix rows:** `tests/version-matrix/constructs.json` has **no** JSON/XML rows (already parked in `tests/version-matrix/vendor-constructs.json`, DEVLOG 586). So "drop the json/xml-generate matrix rows" is already satisfied — **no matrix edit needed**; leave `vendor-constructs.json` in place (it is a parked catalogue, not a live matrix input).
 **Commit:** `feat(cobolnet)!: P1 — hard-delete non-ISO JSON/XML grammar; move inlineMethodInvocation to CobolOO.g4`
 
