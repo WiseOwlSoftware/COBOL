@@ -153,6 +153,8 @@ public sealed partial class StatementBinder
             }
             else keyIndex = ki;
         }
+        if (r.readAdvancingOnLock() is not null)   // READ … ADVANCING ON LOCK — same COBOL-2002 record-lock-phrase row, bind-time gate (rearch migration Cluster 10)
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
         return new BoundKeyedRead(file, kind, keyIndex, into, atEnd, notAtEnd, invalid)
         {
             Lock = CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ"),

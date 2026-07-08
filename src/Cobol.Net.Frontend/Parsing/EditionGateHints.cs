@@ -97,7 +97,6 @@ public static class EditionGateHints
             // tokens IS the gated construct (the XOR argument). LOCK is continuous-since-85 (CLOSE … WITH
             // LOCK), so the LOCK-MODE clause needs the MODE lookahead to disjoin it from that legal 85 form.
             CobolLexer.SHARING => Constructs.FileSharingClause2002,
-            CobolLexer.LOCK when Next(stream, token, 1)?.Type == CobolLexer.MODE => Constructs.LockModeClause2002,
             CobolLexer.RETRY => Constructs.RetryPhrase2002,
             CobolLexer.UNLOCK => Constructs.UnlockStatement2002,
             // FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2): the {is2002()}?-gated tail is dead below 2002, so the

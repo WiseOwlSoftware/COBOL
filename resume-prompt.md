@@ -69,11 +69,10 @@
 > constructs → **24 MOVE_TO_BINDTIME (10 clusters) + 6 KEEP_PARSE_GATED** reservation-word residue
 > (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY — user words below their edition; ungating would miscompile).
 > **Decision-complete resumable plan + per-cluster checkboxes: `docs/rearchitecture/PLAN-bindtime-gating-migration.md` (READ FIRST).**
-> **⛔ RESUME AT: Cluster 9** (LOCK MODE clause — `CobolIO.g4:69` ungate + Check at `DataBinder` lockModeClause branch,
-> `DataBinder.cs:414`) — Clusters 1–8 DONE (DEVLOG 680–688). Then Cluster 10 (record-lock phrase — AMBIGUITY_RISK,
-> fixes a latent gap; do after LOCK MODE, same CobolIO.g4) + Cluster 11 (position-safe reservation words: repository-
-> interface/property + function-prototype — GUARD-GATED, KEEP_PARSE_GATED fallback). Then the 6-arm reservation-word
-> residue (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY) is all that remains in EditionGateHints. Each cluster = ungate grammar + regen + binder Check + delete the
+> **⛔ RESUME AT: Cluster 11** (position-safe reservation words — repository-interface/property + function-prototype;
+> GUARD-GATED, KEEP_PARSE_GATED fallback if the FULL guard is not byte-identical) — Clusters 1–10 DONE (DEVLOG 680–689;
+> 9+10 combined). After Cluster 11, ONLY the 6-arm reservation-word residue (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY)
+> + the JSON/XML vendor branch remain in `EditionGateHints` — then rename/redocument it as the reserved-word hint table. Each cluster = ungate grammar + regen + binder Check + delete the
 > EditionGateHints arm + a below-edition test + FULL legacy guard, committed green. Afterward: step 9 (preprocessor gates
 > → `EditionSeverityPolicy`) + step 10 (`DiagnosticDescriptors` / split `COBOLNET0899`). **Read the step-7 as-built notes in
 > `docs/rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md`'s STATUS block FIRST.** Battery held green

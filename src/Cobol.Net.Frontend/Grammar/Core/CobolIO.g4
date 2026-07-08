@@ -66,7 +66,7 @@ fileControlClauses
     // COBOL-2002 file sharing / record locking (ISO §12.4.5.15 / §12.4.5.9) — unique leading tokens
     // (SHARING / LOCK), {is2002()}?-gated, ADDITIVE (the DEVLOG 621/622 lesson).
     | {is2002()}? sharingClause
-    | {is2002()}? lockModeClause
+    | lockModeClause   // LOCK MODE (LOCK/MODE hard-reserved) introduction-gated at BIND time (DataBinder lockModeClause branch → Check(LockModeClause2002))
     | vendorFileControlClause
     ;
 
@@ -287,9 +287,9 @@ readStatement
       RECORD?
       readInto?
       readKey?
-      ({is2002()}? readAdvancingOnLock)?    // ADVANCING ON LOCK (ISO §14.9.30 fmt1)
+      (readAdvancingOnLock)?    // ADVANCING ON LOCK (ISO §14.9.30 fmt1) — introduction-gated at BIND time (KeyedBindRead → Check(RecordLockPhrase2002))
       ({is2002()}? retryPhrase)?
-      ({is2002()}? recordLockPhrase)?
+      (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
       readAtEnd?
       readInvalidKey?
       END_READ?
@@ -341,7 +341,7 @@ writeStatement
       writeFrom?
       writeBeforeAfter?
       ({is2002()}? retryPhrase)?
-      ({is2002()}? recordLockPhrase)?
+      (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
       writeAtEndOfPage?
       writeInvalidKey?
       END_WRITE?
@@ -382,7 +382,7 @@ rewriteStatement
     : REWRITE (recordName | FILE fileName)
       rewriteFrom?
       ({is2002()}? retryPhrase)?
-      ({is2002()}? recordLockPhrase)?
+      (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
       rewriteInvalidKeyPhrase?
       END_REWRITE?
 

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -38,6 +39,10 @@ public sealed partial class StatementBinder
     private BoundRecordLock CheckRecordLockPhrase(FileModel file, Core.RecordLockPhraseContext? lock_, string verb)
     {
         if (lock_ is null) return BoundRecordLock.None;
+        // The record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK) is a COBOL-2002 introduction — bind-time
+        // gate at the ONE funnel all READ/WRITE/REWRITE verbs call (rearch migration Cluster 10; the parse-time
+        // {is2002()}? predicate is gone). Fixes a latent gap: EditionGateHints never had a record-lock signature.
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.RecordLockPhrase2002, $"a record-lock phrase on {verb}");
         bool ignoring = lock_.IGNORING() is not null;
         bool noLock = lock_.NO() is not null;
         var kind = ignoring ? BoundRecordLock.IgnoringLock

@@ -414,7 +414,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                     file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13 SR3 — outside the record
                 else if (clauses.sharingClause() is { } sh) file.Sharing = MapSharing(sh.sharingMode());   // §12.4.5.15
-                else if (clauses.lockModeClause() is { } lm) file.LockMode = MapLockMode(lm);               // §12.4.5.9
+                else if (clauses.lockModeClause() is { } lm)                                                 // §12.4.5.9
+                {
+                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.LockModeClause2002, "the LOCK MODE clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 9)
+                    file.LockMode = MapLockMode(lm);
+                }
             }
             // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
             // or sequential-organization file.

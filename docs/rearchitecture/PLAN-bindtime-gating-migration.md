@@ -39,11 +39,12 @@ reserved for genuinely cross-cutting per-edition rules (the G7 remit), not per-c
 
 ## STATUS
 
-`IN PROGRESS — Cluster 9 next (LOCK MODE).` Clusters completed: **1–7 (DEVLOG 680–686) + 8a (687) + 8b (688)**.
-EditionGateHints removals: C1 −3 (+1 interim SET arm), C2 −2 (+ deleted `COBOLNET0883`), C3 −2, C4 −2, C5 −4, C6 −2,
-C7 −1, C8a −3 (incl. interim SET arm retired), C8b −2 (special-names FOR + repository-CLASS). Bonus in C7: the
-DEVLOG-679 `SUPPRESS`@85 R1 false-positive is root-fixed. Battery green: conformance 2055 · unit 224 · FULL legacy
-guard 353 MATCH.
+`IN PROGRESS — Cluster 11 next (position-safe reservation words).` Clusters completed: **1–7 (DEVLOG 680–686) + 8a
+(687) + 8b (688) + 9+10 (689, combined)**. EditionGateHints removals so far total 15 arms (−1 also-deleted manual
+`COBOLNET0883`). C9+10: LOCK MODE (−1 arm) + record-lock phrase (net-new below-2002 diagnostic — a latent gap closed).
+Remaining EditionGateHints: the 6-arm reservation-word residue (XOR/booleans/SHARING/RETRY/UNLOCK/PROPERTY) + JSON/XML
+vendor. After Cluster 11 (guard-gated: repository-interface/property + function-prototype), the residue is final.
+Battery green: conformance 2055 · unit 224 · FULL legacy guard 353 MATCH.
 
 ## MOVE_TO_BINDTIME (24) — ordered clusters (each = one commit: ungate + regen + Check + delete hints arm + below-edition test + FULL guard)
 
@@ -77,8 +78,8 @@ guard 353 MATCH.
   - [x] **8b special-names-FOR (3 sites) + repository-class (DEVLOG 688).** New `symbolicCharactersClause` binder branch (was unbound) + new `re.CLASS()` repository branch; `using CobolNet.Editions;` in `DataBinder.Switches.cs`.
   - special-names-for-national-2002 — ungate 3 sites (`CobolSpecialNames.g4:60,75,85`); **3 reads** — `AlphabetBind` (`Switches.cs:241`), `SwitchBindClass` (`Switches.cs:342`), and a NEW symbolicCharactersClause branch (~`Switches.cs:209`, otherwise unbound); delete arm. (Its own commit — more work.)
   - repository-class-2002 — ungate `CobolParserCore.g4:455`; NEW branch in the repository loop (~`DataBinder.cs:169`) `else if (re.CLASS() is not null …)`; delete arm.
-- [ ] **Cluster 9 — LOCK MODE.** lock-mode-clause-2002 — ungate `CobolIO.g4:69`; Check at the lockModeClause branch `DataBinder.cs:414`; delete the `LOCK when Next==MODE` arm. (LOCK+MODE hard-reserved; unique two-token lead.)
-- [ ] **Cluster 10 — record-lock phrase (AMBIGUITY_RISK + fixes a latent gap).** record-lock-phrase-2002 — ungate `CobolIO.g4` READ :290/:292, WRITE :344, REWRITE :385; Check at `CheckRecordLockPhrase` (`StatementBinder.FileLock.cs:38`) top + at the ADVANCING-ON-LOCK recognition (`KeyedIo.cs:160`). **Do AFTER Cluster 9** (same CobolIO.g4). Three co-located optional gated tails + ADVANCING shared with WRITE's BEFORE/AFTER — FULL guard is the tail-prediction arbiter. **LATENT GAP FIXED:** no EditionGateHints arm exists for this today (below-2002 `READ F WITH LOCK` → generic error); add a real below-2002 assertion for this id.
+- [x] **Cluster 9 — LOCK MODE — DONE (DEVLOG 689, combined with 10).** Ungated `CobolIO.g4:69`; Check at the lockModeClause branch; deleted the `LOCK when Next==MODE` arm.
+- [x] **Cluster 10 — record-lock phrase (AMBIGUITY_RISK + fixes a latent gap) — DONE (DEVLOG 689, combined with 9).** Ungated `readAdvancingOnLock` + the 3 `recordLockPhrase` sites (LEFT `retryPhrase` gated); Check at `CheckRecordLockPhrase` (all verbs) + the READ ADVANCING-ON-LOCK leg. LATENT GAP CLOSED (net-new below-2002 diagnostic; the `record-lock-phrase-2002`@85 matrix row now asserts a real bind-time 0900, previously incidental via LOCK MODE). AMBIGUITY cleared by the FULL guard. `using CobolNet.Editions;` in `FileLock.cs`. **Combined with Cluster 9 because LOCK-MODE-alone removed the record-lock fixture's incidental 0900.**
 - [ ] **Cluster 11 — position-safe reservation words (guard-gated; KEEP_PARSE_GATED fallback).** These are `cobolWord`/`_dataNameTokens` members but position-disjoint (entry-leading keyword in a closed alt set / a dedicated `IS? PROTOTYPE` tail). **Ship each ONLY if the FULL guard is byte-identical; ANY diff ⇒ keep it parse-gated (retain its hints arm).** Do LAST so a fallback never blocks the hard-reserved wins.
   - repository-interface-2002 — ungate `CobolParserCore.g4:456`; NEW `re.INTERFACE()` branch in the repository loop.
   - repository-property-2002 — ungate `CobolParserCore.g4:457`; Check alongside the existing `OoRepositoryProperties.Add` at `DataBinder.cs:169`.
