@@ -58,7 +58,12 @@ retiring the adapter across all 290 sites is *optional* here and may defer to P7
 
 ## STATUS
 
-`IN PROGRESS @ step 1` (started 2026-07-07; recon wf_9944fe61-fcc complete; baseline green: conformance 2036 · unit 213 · legacy guard NIST 353 MATCH).
+`IN PROGRESS @ step 3` (started 2026-07-07; recon wf_9944fe61-fcc complete; baseline green: conformance 2036 · unit 213 · legacy guard NIST 353 MATCH).
+> Landed: P2.1 (assembly + refs + EditionInfo, DEVLOG 670, 62e09db1) · P2.2 (EditionSeverity + IDiagnosticSink/EditionDiagnostic, DEVLOG 671).
+> NOTE — this session reorders the doc's steps 3↔4: the **EditionContext adapter (step 4) lands FIRST** (as commit "P2.3"),
+> then the **registry move + sink-based Check (step 3)** lands as commit "P2.4" — because once ConstructRegistry.Check moves
+> into Editions it can no longer take an EditionContext, so the 53 call sites can only change after the adapter exists (the
+> doc's own step-3 note). EditionSeverityPolicy lands in the move commit (beside the ConstructAvailability enum it switches on).
 
 > The executing session MUST update this line as it works: `IN PROGRESS @ step N` while working, then
 > `DONE` when every exit criterion holds. Record the DEVLOG entry numbers you allocate next to each commit.
