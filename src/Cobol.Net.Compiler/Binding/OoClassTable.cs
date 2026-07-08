@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -360,6 +361,7 @@ public sealed class OoClassTable
         foreach (var ictx in interfaces ?? [])
         {
             string iname = ictx.interfaceName(0).GetText();
+            ConstructRegistry.Check(edition.Edition, edition, Constructs.InterfaceDefinition2002, $"interface definition '{iname}' (INTERFACE-ID compilation unit)");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 7)
             string icsName = DataItem.Sanitize(iname).ToUpperInvariant();
             var isym = new OoInterfaceSymbol(iname, icsName, ictx);
             if (table._ifaceByName.ContainsKey(iname) || table._byName.ContainsKey(iname)
@@ -459,6 +461,7 @@ public sealed class OoClassTable
         {
             var id = ctx.classIdParagraph();
             string name = id.className(0).GetText();
+            ConstructRegistry.Check(edition.Edition, edition, Constructs.ClassDefinition2002, $"class definition '{name}' (CLASS-ID compilation unit)");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 7)
             string csName = DataItem.Sanitize(name).ToUpperInvariant();   // MUST match PicInfo.ClrType's mapping
             var sym = new OoClassSymbol(name, csName, ctx)
             {

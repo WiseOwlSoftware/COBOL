@@ -122,20 +122,6 @@ public static class EditionGateHints
             _ => null,
         };
 
-        // A classDefinition/interfaceDefinition rejected at the compilationGroup level reports the
-        // offending token at the unit start (empirically 'IDENTIFICATION'); the CLASS-ID/INTERFACE-ID token
-        // a few tokens ahead is the signature. (IMPLEMENTS and the METHOD-ID GET/SET PROPERTY selector are
-        // NOT mapped — they only occur INSIDE a class/interface unit, whose own gate fires first; same
-        // transitive-coverage argument as the remarks' residue list.)
-        if (id is null && token.Type is CobolLexer.IDENTIFICATION or CobolLexer.CLASS_ID or CobolLexer.INTERFACE_ID)
-            for (int i = 0; id is null && i <= 4; i++)
-                id = Next(stream, token, i)?.Type switch
-                {
-                    CobolLexer.CLASS_ID => Constructs.ClassDefinition2002,
-                    CobolLexer.INTERFACE_ID => Constructs.InterfaceDefinition2002,
-                    _ => null,
-                };
-
         return id is null ? null : new Hint(id, null, null);
     }
 
