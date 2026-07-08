@@ -35,7 +35,7 @@ speedup). No compiler behavior changes. The full battery stays green at every co
 3. `tests/differential/**/*.out` baked goldens are committed for every currently-GREEN differential case; the `*DifferentialTests` assert against goldens (legacy comparison retained only under an opt-in env/CI job).
 4. `tests/nist/corpus.tsv` exists (folds `chains.tsv` + the green/divergent/pending sets); `CorpusManifestTests` drift test is green; `NistDifferentialTests` is driven by `[MemberData]` over it (no hand-maintained `[InlineData]` green list).
 5. `RoslynBackend.ReferenceAssemblies()` is cached in a `static Lazy<ImmutableArray<MetadataReference>>`; a measurable battery speedup is observed and noted in the DEVLOG.
-6. `docs/rearchitecture/ROADMAP.md` landed as the resumable migration SSOT with a STATE banner; `docs/DOC_INDEX.md` has rows for it, this doc, and the sibling `DESIGN-*.md`.
+6. The resumable migration SSOT — `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan; NOT a separate `ROADMAP.md` — see step 1's reconciliation) — carries a STATE banner reflecting the current phase; `docs/DOC_INDEX.md` has its row and it indexes the sibling `DESIGN-*.md` / `PHASE-*.md` set.
 7. No behavior-changing production-source edit landed. The ONLY `src/` change is the ref-cache (perf-only, behavior-neutral, proven by the battery).
 
 ---
@@ -96,8 +96,9 @@ When P0 is DONE the repository contains:
 - `src/Cobol.Net.Compiler/CodeGen/RoslynBackend.cs` — `ReferenceAssemblies()` cached in a `static Lazy<ImmutableArray<MetadataReference>>`.
 
 **Docs / solution / CI:**
-- `docs/rearchitecture/ROADMAP.md` (new, with STATE banner).
-- `docs/DOC_INDEX.md` (rows added).
+- `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the migration SSOT / ROADMAP — ALREADY EXISTS; its STATE banner is flipped to
+  P0-IN-PROGRESS. NO separate `ROADMAP.md` is created — singular pattern; see step 1's reconciliation).
+- `docs/DOC_INDEX.md` (its row already exists).
 - `CobolSharp.sln` — the Characterization project added.
 - `.github/workflows/build-and-test.yml` — a `characterization` step added to the greenfield job; an opt-in `legacy-oracle` bake-verify job added (does not replace the existing `guard` job).
 
@@ -110,18 +111,16 @@ When P0 is DONE the repository contains:
 > BOUNDARY**. Commit messages end with the standard Co-Authored-By / Claude-Session trailers (see repo git config).
 > Each commit needs a DEVLOG entry (newest-first, real timestamp) per `feedback_devlog`.
 
-### Step 1 — Land the ROADMAP SSOT + DOC_INDEX rows (docs only)  ★ COMMIT BOUNDARY
-**Files:** create `docs/rearchitecture/ROADMAP.md`; edit `docs/DOC_INDEX.md`.
-**Change:** `ROADMAP.md` is the resumable migration SSOT. Include:
-- A top **STATE banner**: `PHASE: P0 (migration safety net) — IN PROGRESS`, last-green commit, and a one-line "resume here".
-- The ordered phase list P0–P15 (titles + track + one-line goal + `depends_on`), each with an **exit-criteria** line whose universal clause is: *"gates (1)+(2) green; gate (3) unchanged or reviewed-re-baselined in this change set."*
-- A pointer: `resume-prompt.md` = feature-drive state; `ROADMAP.md` = migration state; the per-phase execution docs are `docs/rearchitecture/PHASE-NN-*.md`.
-In `DOC_INDEX.md` add rows (Type `LIVE` for ROADMAP, `DESIGN` for the `DESIGN-*.md` and `PHASE-*.md` set) under a new
-"Rearchitecture" subsection.
-**Why:** gives the phase work a home and makes the migration resumable from step 1 (DESIGN §3.9).
-**Verify:** `test -f docs/rearchitecture/ROADMAP.md && grep -q "PHASE: P0" docs/rearchitecture/ROADMAP.md && echo OK`.
-No build impact.
-**Commit:** `docs(rearch): add ROADMAP.md migration SSOT + DOC_INDEX rows (P0 step 1)`.
+### Step 1 — Migration SSOT banner + DOC_INDEX rows (docs only)  ★ COMMIT BOUNDARY — ✅ DONE (reconciled)
+**RECONCILED (2026-07-07):** the "ROADMAP.md" this step originally called for ALREADY EXISTS as
+`docs/COBOLNET_REARCHITECTURE_PLAN.md` — the master plan, which carries the top STATE banner, the ordered P0–P16 phase
+index, per-phase exit criteria, the owner-decisions table, and the `resume-prompt.md` (feature-drive) vs migration-state
+pointer. Per the singular-pattern principle we do NOT fork a second `ROADMAP.md`; **the master plan IS the ROADMAP.**
+**Files:** `docs/COBOLNET_REARCHITECTURE_PLAN.md` (flip its STATE banner to `PHASE 00 — IN PROGRESS`); `docs/DOC_INDEX.md`
+(its LIVE row already exists and indexes the `docs/rearchitecture/` set). No new file is created.
+**Why:** gives the phase work a home and makes the migration resumable — satisfied by the existing master plan (DESIGN §3.9).
+**Verify:** `grep -q "PHASE 00 .*IN PROGRESS" docs/COBOLNET_REARCHITECTURE_PLAN.md && echo OK`. No build impact.
+**Commit:** folded into the P0 steps 1–2 commit (DEVLOG 666).
 
 ### Step 2 — Cache the Roslyn reference set (the one production edit)  ★ COMMIT BOUNDARY
 **File:** `src/Cobol.Net.Compiler/CodeGen/RoslynBackend.cs`.
@@ -389,8 +388,9 @@ COBOLNET_DIFF_MODE=verify dotnet test tests/Cobol.Net.Tests.Conformance --filter
 Both green.
 **Commit:** `ci(cobolnet): add characterization gate + opt-in legacy-oracle bake-verify job (P0 step 12)`.
 
-### Step 13 — Close-out: ROADMAP STATE + DEVLOG + DOC_INDEX  ★ COMMIT BOUNDARY
-**Files:** `docs/rearchitecture/ROADMAP.md` (flip STATE to `P0 — DONE`, name the next phase P1), `DEVLOG.md` (a phase
+### Step 13 — Close-out: master-plan STATE + DEVLOG + DOC_INDEX  ★ COMMIT BOUNDARY
+**Files:** `docs/COBOLNET_REARCHITECTURE_PLAN.md` (flip its STATE banner to `P0 — DONE`, name the next phase P1; tick P0 in
+the §4 phase-index checklist), `DEVLOG.md` (a phase
 summary entry with the measured battery speedup from step 2), this file's STATUS line → `DONE`.
 **Verify:** the full §5 battery green.
 **Commit:** `docs(rearch): close P0 migration safety net — battery green, net self-standing (P0 step 13)`.
@@ -441,7 +441,7 @@ bash scripts/guard-fast.sh
 ---
 
 ## 6. Rollback / resumability
-- **Resume point:** read the STATUS line at the top of this file + the ROADMAP STATE banner; the last green commit hash
+- **Resume point:** read the STATUS line at the top of this file + the master plan's (`docs/COBOLNET_REARCHITECTURE_PLAN.md`) STATE banner; the last green commit hash
   is recorded there. Every step is its own commit, so `git log --oneline` shows exactly how far P0 got.
 - **Mid-step interruption:** all steps except step 10 are single-commit and idempotent — re-run the step's verify
   command; if red, `git checkout -- <files>` and redo. Step 10 is batched: each batch's converted files + baked `.out`

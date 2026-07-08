@@ -270,15 +270,16 @@ identical on both OSes (NIST now runs in-process, closing smell #5). `Generated/
 checkout (a failed regen fails the build — keep).
 
 ### 3.9 Roadmap SSOT + DEVLOG discipline
-- **`docs/rearchitecture/ROADMAP.md`** — NEW, the resumable migration SSOT: an ordered phase list, each phase with
-  `{goal, touched-modules, exit-criteria, battery-gate}`. Exit-criteria for EVERY phase include: "gates (1) & (2)
-  green; gate (3) either unchanged or reviewed-re-baselined in this change set." A top STATE banner (mirroring
-  `resume-prompt.md`'s convention) names the current phase. This is what a future engineer resumes the REARCH from;
-  `resume-prompt.md` remains the feature-drive live state.
+- **`docs/COBOLNET_REARCHITECTURE_PLAN.md`** (the master plan) — the resumable migration SSOT / ROADMAP: an ordered
+  P0–P16 phase index, per-phase exit criteria (universal clause: "gates (1) & (2) green; gate (3) either unchanged or
+  reviewed-re-baselined in this change set"), a top STATE banner naming the current phase, and the owner-decisions
+  table. This is what a future engineer resumes the REARCH from; `resume-prompt.md` remains the feature-drive live
+  state and cross-links to it. **NOTE:** this role is filled by the master plan already in the repo — we do NOT fork a
+  separate `docs/rearchitecture/ROADMAP.md` (singular pattern).
 - **DEVLOG.md** — unchanged discipline (descending, real timestamp, one entry per commit) per the existing
   `feedback_devlog*` memories. Each rearch phase commit references its ROADMAP phase id.
-- **`docs/DOC_INDEX.md`** — add rows for `ROADMAP.md`, `DIAGNOSTICS.md`, this doc, and the sibling DESIGN-* docs;
-  keep the "one canonical doc per subsystem" rule.
+- **`docs/DOC_INDEX.md`** — add rows for `COBOLNET_REARCHITECTURE_PLAN.md` (the migration SSOT / ROADMAP),
+  `DIAGNOSTICS.md`, this doc, and the sibling `DESIGN-*` / `PHASE-*` docs; keep the "one canonical doc per subsystem" rule.
 
 ---
 
@@ -289,7 +290,7 @@ checkout (a failed regen fails the build — keep).
 | create | — | `tests/Cobol.Net.Tests.Characterization/` (+ `tests/characterization/`, `Snapshots/`) | The behavior-neutrality harness (gates 2 & 3) — the missing "prove I changed nothing" proof for every refactor phase. |
 | create | — | `tests/nist/corpus.tsv` | ONE source of truth for the green NIST set + chains; kills the 3-way triplication. |
 | create | — | `src/Cobol.Net.Compiler/Diagnostics/` (`DiagnosticDescriptor`, `Diag`, `Diagnostic`, `Severity`) | Registry so codes are addressable, snapshot-keyable, doc-generable, suppress-targetable. |
-| create | — | `docs/rearchitecture/ROADMAP.md` | Resumable migration SSOT with per-phase exit criteria = battery-green gate. |
+| (exists) | — | `docs/COBOLNET_REARCHITECTURE_PLAN.md` | Resumable migration SSOT / ROADMAP with per-phase exit criteria = battery-green gate. Fulfilled by the master plan already in the repo — NO separate `ROADMAP.md` (singular pattern). |
 | create | — | `docs/DIAGNOSTICS.md` (generated) | The single human-readable code table (understandability #1). |
 | create | — | `tools/DifferentialBakeTool` (or a skip-gated maintenance test) | One-time freeze of legacy output → committed goldens (the G8-survival bake). |
 | create | — | `scripts/guard.ps1` | Cross-platform authoritative guard (Windows parity for the regression). |
@@ -372,8 +373,8 @@ errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `Res
    keeping it through the rearch (cheap insurance), delete at true G8.
 4. **`--suppress` granularity:** per-code, per-family, or per-descriptor `SuppressKey`? Affects the registry shape;
    default proposed is per-code with an optional family key.
-5. **ROADMAP.md vs resume-prompt.md ownership:** should the rearch ROADMAP live inside `resume-prompt.md` as a
-   dedicated section (one file to resume from) or as the separate `docs/rearchitecture/ROADMAP.md` proposed here
-   (cleaner separation of "feature drive" vs "migration")? Recommend separate, cross-linked.
+5. **ROADMAP vs resume-prompt.md ownership — RESOLVED (2026-07-07):** the rearch ROADMAP is the standalone
+   `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan), cross-linked from `resume-prompt.md`'s top banner;
+   `resume-prompt.md` remains the feature-drive state. No separate `ROADMAP.md` file is created — singular pattern.
 6. **Do we snapshot the runtime deploy?** The runtime DLL is copied per emit; characterization ignores it. Confirm
    the runtime is out of the neutrality scope (it is typed-native and separately unit-tested) — assumed yes.

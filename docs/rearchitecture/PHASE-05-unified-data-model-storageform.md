@@ -264,7 +264,7 @@ DESIGN Phase **D4**. These are independent, each green-gated; split into sub-com
 - **Commit:** `test(cobolnet): P5.13 apostrophe-delimited VALUE conformance golden (§8.3.1.2) (DEVLOG NNN)`
 
 ### Step 14 — Docs sync + phase close — COMMIT BOUNDARY
-- **Do:** Update `DESIGN-data-model.md` status banner to reflect what actually landed vs the design (per the owner's "keep deep-dives current" rule); update `docs/DOC_INDEX.md` if new docs/rows are warranted; mark this phase DONE in the STATUS line + §7 ledger; if a `docs/rearchitecture/ROADMAP.md` exists (P0), tick P5. Add the closing DEVLOG entry.
+- **Do:** Update `DESIGN-data-model.md` status banner to reflect what actually landed vs the design (per the owner's "keep deep-dives current" rule); update `docs/DOC_INDEX.md` if new docs/rows are warranted; mark this phase DONE in the STATUS line + §7 ledger; tick P5 in `docs/COBOLNET_REARCHITECTURE_PLAN.md`'s §4 phase-index checklist (the migration SSOT / ROADMAP). Add the closing DEVLOG entry.
 - **Verify:** full battery + legacy guard + snapshots — the phase-end verification (§5).
 - **Commit:** `docs(cobolnet): P5 DONE — unified data model / StorageForm landed; DESIGN-data-model synced (DEVLOG NNN)`
 
