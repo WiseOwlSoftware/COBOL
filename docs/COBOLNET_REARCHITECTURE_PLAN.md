@@ -2,8 +2,10 @@
 
 > **STATUS BANNER (update this every session).** Plan authored 2026-07-07 by a multi-agent review
 > (workflow `wf_7720e6f8-fd6`, 46 agents; 6 survey/critique units + the dual-backend track backfilled separately).
-> **Execution NOT STARTED.** Current baseline: **2028 greenfield conformance + 213 unit GREEN; FULL legacy guard
-> NIST 353 MATCH.** RESUME AT: **Phase 00**. The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
+> **Execution NOT STARTED — but UNBLOCKED: the §6 owner decisions are ALL RESOLVED (D1–D12, 2026-07-07).** Current
+> baseline: **2028 greenfield conformance + 213 unit GREEN; FULL legacy guard NIST 353 MATCH.** RESUME AT: **Phase 00**.
+> ⚠ One owner override to carry forward — **D10: PHASE-04 must FULLY remove the lexer `SUBSCRIPT` mode + the binder
+> subscript re-parse** (a grammar-level `x(i)` rule), an expansion beyond that phase's originally-authored scope (§6). The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
 > the decision-complete designs in `docs/rearchitecture/DESIGN-*.md`; the as-is survey + critique in
 > `docs/rearchitecture/SURVEY-*.md` / `CRITIQUE-*.md`.
 
@@ -167,23 +169,30 @@ duplication, iso-pending) were consumed directly into the design docs above and 
 
 ## 6. Decisions needed from the owner
 
-These surfaced across the design docs as genuine forks; the plan proceeds on the **recommended** default but each
-deserves a yes/no. (CIL timing is now RESOLVED — active goal, scheduled as Phase 16.)
+**ALL RESOLVED by the owner (2026-07-07).** The rulings are recorded below. Where the ruling equals the recommended
+default the phase docs already assume it (no change needed); the ONE exception is **D10** — an owner override that
+EXPANDS PHASE-04 (see the note under the table).
 
-| # | Decision | Recommended default | Status |
-|---|----------|---------------------|--------|
-| D1 | **Namespace rename timing** — pull `CobolSharp.Compiler.* → CobolNet.*` forward to Phase 01 (mechanical, reduces G8 to a deletion) vs the G8 big-bang the current SSOT specifies. | Pull forward (Phase 01). | open |
-| D2 | **`Cobol.Net.Editions` as a new lowest assembly** both Frontend + Compiler reference, vs keeping the registry in Compiler and injecting metadata into the frontend. | New leaf assembly. | open |
-| D3 | **JSON/XML disposition** — hard-delete the non-ISO grammar (0 spec occurrences) vs quarantine behind an off-by-default `--enable-vendor-json`. | Hard-delete. | open |
-| D4 | **CIL/Cecil backend** — active scheduled goal vs aspirational. | **RESOLVED: active — Phase 16 (Mono.Cecil).** | ✅ resolved (owner) |
-| D5 | **Structural `Place`** (item + `BoundExpr` segments, zero C# text) done in the IR-neutralization wave vs deferred. | **RESOLVED: mandatory & not deferrable** — the backend-neutrality contract (§3) requires it. | ✅ resolved (implied by D4) |
-| D6 | **Bind() output** — a fully read-only `BindModel` (passes mutate only via explicit write handles) vs init-only `DataItem` fields + a thin accessor. | Read-only `BindModel`. | open |
-| D7 | **Exhaustiveness mechanism** — approve a Roslyn source generator (NuGet analyzer; no new build prereq) for compile-time visitor exhaustiveness vs a hand-maintained `Accept` with a throwing default. | Source generator. | open |
-| D8 | **Tier-C confined-`byte[]` codec** (the one sanctioned `byte[]`) — implement during the data-model wave vs keep as a single documented rejection + a later increment. | Implement in Phase 11 (its own increment); single-source the rejection until then. | open |
-| D9 | **`Verbs/` split depth** — keep ~18 per-verb binder classes (cohesion) vs group file-I/O into a coarser `FileIoBinder`. | Keep per-verb. | open |
-| D10 | **SUBSCRIPT lexer-mode elimination** — fully remove the mode + the binder subscript re-parse (a larger grammar/data-model change) vs stays deferred (this plan only dedups the mode's token bodies). | Stays deferred. | open |
-| D11 | **`.g.cs` emission** — keep always-on (aids the loud-ICE culture) vs gate behind `--emit-source` once packaging splits. | Keep always-on. | open |
-| D12 | **national/boolean width** — confirm they stay CHARACTER-width in the unified model (D-N1: one UTF-16 char/position); a future 2-byte layout would be a NEW `StorageForm` case, not a mutation. | Confirm character-width. | open |
+| # | Decision | Owner ruling |
+|---|----------|--------------|
+| D1 | Namespace rename timing (`CobolSharp.Compiler.* → CobolNet.*`). | ✅ **Pull forward to Phase 01** (mechanical; reduces G8 to a pure deletion). |
+| D2 | The edition/diagnostics home. | ✅ **New `Cobol.Net.Editions` leaf assembly** that both Frontend + Compiler reference. |
+| D3 | JSON/XML (non-ISO; 0 spec occurrences). | ✅ **Hard-delete now** (Phase 01). |
+| D4 | CIL/Cecil backend. | ✅ **Active — Phase 16 (Mono.Cecil).** |
+| D5 | Structural `Place` (backend-neutral IR). | ✅ **Mandatory & not deferrable** (the §3 neutrality contract). |
+| D6 | Binder output immutability. | ✅ **Fully read-only `BindModel`** — passes mutate only via explicit write handles; emit consumes read-only views. |
+| D7 | Bound-tree dispatch exhaustiveness. | ✅ **Roslyn source generator** (compile-time exhaustive visitor; a forgotten arm fails the build). |
+| D8 | Tier-C confined-`byte[]` codec. | ✅ **Implement in Phase 11 as its own increment**; single-source the loud rejection until then. |
+| D9 | Binder decomposition granularity. | ✅ **One class per verb (~18)** over an injected `BinderContext`. |
+| D10 | SUBSCRIPT lexer-mode. | ✅ **FULLY REMOVE** the lexer `SUBSCRIPT` mode + the binder subscript re-parse (a grammar-level `x(i)` rule) — the ambitious option, NOT the "defer" default. **Expands PHASE-04 (see note).** |
+| D11 | Emitted `.g.cs`. | ✅ **Keep always-on** (a Roslyn-backend debugging artifact; the CIL backend emits IL, not `.g.cs`). |
+| D12 | national (`PIC N`) / boolean (`PIC 1`) representation. | ✅ **Stay CHARACTER-width in the unified model** — one C# `char` per position, riding the shared `CobolString` substrate (the current D-N1/D-B1 model). |
+
+> **D10 scope expansion (owner override of the recommended "defer" default).** PHASE-04 (Frontend consolidation) must
+> now FULLY remove the lexer `SUBSCRIPT` mode AND the binder subscript re-parse, replacing them with a grammar-level
+> subscript (`x(i)`) rule — a larger change that reaches into the binder/data-model, not merely a token-body dedup.
+> Land it as an explicitly-sequenced sub-track of PHASE-04 (or a dependent follow-on) with its own before/after
+> characterization proof, without destabilizing Phase-04's exit criteria. Recorded in `PHASE-04-frontend-consolidation-cst-facade.md`.
 
 ## 7. Backfill findings & roadmap refinements
 

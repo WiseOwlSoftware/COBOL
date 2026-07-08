@@ -11,6 +11,15 @@
   context-sensitive word set), **§3.3b** (share SUBSCRIPT-mode literal/operator token fragment bodies), and
   **D6/M8** (the typed `Cst/` façade). It explicitly does NOT execute D3/D4/D5/D7/D8 (those are P1/P2/P3).
 
+> ⚠ **OWNER OVERRIDE — D10 (2026-07-07), SCOPE EXPANSION beyond this doc's original §3.3b.** This phase originally
+> only DEDUPED the lexer `SUBSCRIPT` mode's token fragment bodies. The owner ruled it must **FULLY REMOVE** the
+> `SUBSCRIPT` lexer mode AND the binder subscript re-parse, replacing them with a proper grammar-level subscript
+> (`x(i)`) rule — a larger change reaching into the binder/data-model, not just the frontend. Add it as an
+> explicitly-sequenced sub-track of this phase (or a dependent follow-on phase) with its OWN before/after
+> characterization proof (Phase 00 net), and do NOT let it destabilize this phase's other exit criteria. See the
+> master plan §6 (D10) + its status banner. This likely needs a fresh design note appended to
+> `DESIGN-frontend-grammar.md` (and possibly `DESIGN-binder-bound-tree.md`) before execution — author it then.
+
 ## STATUS
 `NOT STARTED`
 <!-- The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`.
