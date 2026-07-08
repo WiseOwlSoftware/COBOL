@@ -14,9 +14,10 @@
 # Outputs (ALL committed; ConstructRegistryDriftTests asserts they equal constructs.json):
 #   src/Cobol.Net.Editions/ConstructRegistry.g.cs  — the ConstructRegistry.Entries list (a partial).
 #   src/Cobol.Net.Editions/Constructs.g.cs         — one `public const string <PascalId> = "<id>";` per row.
-#   src/Cobol.Net.Editions/Gating/GateId.cs        — the introduction-gate identity enum (removedIn==null &&
-#                                                    introducedIn>85) + the GateId->construct-id map the parser
-#                                                    stamps (rearch P2.7 predicate stamping).
+#   src/Cobol.Net.Editions/Gating/GateId.cs        — the typed enumeration of introduction gates (removedIn==null
+#                                                    && introducedIn>85) + the GateId->construct-id map. The P2.7
+#                                                    forward-stamping consumer was abandoned (DEVLOG 679); kept as
+#                                                    the drift-guarded intro-gate set for the bind-time north-star.
 
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
@@ -97,20 +98,22 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine($hdr)
 [void]$sb.AppendLine('namespace CobolNet.Editions;')
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('/// <summary>The strongly-typed identity a failing introduction predicate stamps on the parser base')
-[void]$sb.AppendLine('/// (rearch P2.7): one member per introduction-gated construct (removedIn==null, introducedIn>85). The')
-[void]$sb.AppendLine('/// grammar''s <c>{Gate(edition, GateId.X)}?</c> predicate records this on rejection so the error strategy')
-[void]$sb.AppendLine('/// names the construct directly — replacing the EditionGateHints reverse-engineering table.</summary>')
+[void]$sb.AppendLine('/// <summary>The strongly-typed enumeration of the introduction-gated constructs (removedIn==null,')
+[void]$sb.AppendLine('/// introducedIn>85): one member per gate, single-sourced from constructs.json + drift-guarded')
+[void]$sb.AppendLine('/// (ConstructRegistryDriftTests). NOTE (DEVLOG 679): the P2.7 forward <c>{Gate(edition, GateId.X)}?</c>')
+[void]$sb.AppendLine('/// stamping consumer was ABANDONED — ANTLR evaluates hoisted predicates speculatively, so a stamp')
+[void]$sb.AppendLine('/// mis-fires on typos; the parse layer diagnoses via EditionGateHints + ConstructRegistry.Check instead.')
+[void]$sb.AppendLine('/// Retained as the typed intro-gate set (drift guard + the bind-time gating north-star).</summary>')
 [void]$sb.AppendLine('public enum GateId')
 [void]$sb.AppendLine('{')
-[void]$sb.AppendLine('    /// <summary>No gate stamped (the reset/default state).</summary>')
+[void]$sb.AppendLine('    /// <summary>The default/unused sentinel (no gate).</summary>')
 [void]$sb.AppendLine('    None = 0,')
 foreach ($r in $gates) {
     [void]$sb.AppendLine(('    {0},' -f (To-Pascal $r.id)))
 }
 [void]$sb.AppendLine('}')
 [void]$sb.AppendLine('')
-[void]$sb.AppendLine('/// <summary>Maps a stamped <see cref="GateId"/> back to its constructs.json id (for')
+[void]$sb.AppendLine('/// <summary>Maps a <see cref="GateId"/> to its constructs.json id (for')
 [void]$sb.AppendLine('/// <see cref="ConstructRegistry.Check"/> / <see cref="ConstructRegistry.Find"/>).</summary>')
 [void]$sb.AppendLine('public static class GateIds')
 [void]$sb.AppendLine('{')

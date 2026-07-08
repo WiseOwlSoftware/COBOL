@@ -340,12 +340,23 @@ behavior.
 
 ## 5. Risks
 
-- **R1 — ANTLR speculative predicate evaluation (§2.7 caveat).** Predicate stamping may record a gate
-  on an abandoned prediction path, producing a wrong construct name. *Mitigation:* furthest-token-wins
-  + reset-per-parse; run in parallel with the old table for one commit and diff the full
-  `EditionGateDiagnosticTests` corpus before deleting `EditionGateHints`. If it proves unreliable,
-  keep a *thin* signature table but drive its metadata from the registry (still deletes the
-  duplication, keeps the recognition heuristic).
+- **R1 — ANTLR speculative predicate evaluation (§2.7 caveat) — ⛔ MATERIALIZED; forward stamping
+  ABANDONED (DEVLOG 679, rearch P2.7).** Predicate stamping records a gate whenever ANTLR EVALUATES the
+  hoisted `{Gate}?` predicate — which happens SPECULATIVELY, at the stuck token, during a FAILING
+  prediction/recovery, not only where the construct actually appears. The planned mitigations
+  (furthest-token-wins + reset-per-parse, plus an added `Consume()`-reset and a JSON/XML guard) each
+  patched a sub-case but the general failure is intrinsic: an ordinary typo (`IF W = .`, a stray `)`,
+  the unsupported `SUPPRESS`) records a gate for a construct the program never used and emits a
+  confidently-wrong "requires COBOL-YYYY". An adversarial review (wf_b73eff97) found it; it was
+  reproduced on the CLI. **A forward stamp cannot reliably mean "the user WROTE this construct."**
+  *Resolution (the fallback this risk anticipated):* keep the **thin signature recognizer**
+  (`EditionGateHints` — its match keys off the construct's OWN tokens being present, so a typo matches
+  nothing → neutral error) but drive ALL metadata from the registry via `ConstructRegistry.Check` (P1/P7
+  duplication removed; P3 signature-elimination is NOT achievable). **Decades north-star:** move gating to
+  BIND time — parse the construct unconditionally, gate at the recognition point through the same `Check`
+  funnel (the step-6 five-inline-gates pattern) — which removes both the parse predicates and the
+  signatures, leaving only the context-sensitive reservation-word residue (XOR / boolean ops /
+  SHARING-LOCK-RETRY, whose parse predicate is load-bearing for tokenization). A deliberate follow-on track.
 - **R2 — 290-site `EditionContext` migration churn.** *Mitigation:* the adapter (step 1) lets the
   rename land with zero behavior risk; sites migrate in independently-testable slices; the adapter is
   deleted only when the last site is gone.

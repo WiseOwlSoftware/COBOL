@@ -5,13 +5,15 @@
 // </auto-generated>
 namespace CobolNet.Editions;
 
-/// <summary>The strongly-typed identity a failing introduction predicate stamps on the parser base
-/// (rearch P2.7): one member per introduction-gated construct (removedIn==null, introducedIn>85). The
-/// grammar's <c>{Gate(edition, GateId.X)}?</c> predicate records this on rejection so the error strategy
-/// names the construct directly — replacing the EditionGateHints reverse-engineering table.</summary>
+/// <summary>The strongly-typed enumeration of the introduction-gated constructs (removedIn==null,
+/// introducedIn>85): one member per gate, single-sourced from constructs.json + drift-guarded
+/// (ConstructRegistryDriftTests). NOTE (DEVLOG 679): the P2.7 forward <c>{Gate(edition, GateId.X)}?</c>
+/// stamping consumer was ABANDONED — ANTLR evaluates hoisted predicates speculatively, so a stamp
+/// mis-fires on typos; the parse layer diagnoses via EditionGateHints + ConstructRegistry.Check instead.
+/// Retained as the typed intro-gate set (drift guard + the bind-time gating north-star).</summary>
 public enum GateId
 {
-    /// <summary>No gate stamped (the reset/default state).</summary>
+    /// <summary>The default/unused sentinel (no gate).</summary>
     None = 0,
     ReadPrevious2002,
     StartFirstLast2002,
@@ -70,7 +72,7 @@ public enum GateId
     EndAccept2002,
 }
 
-/// <summary>Maps a stamped <see cref="GateId"/> back to its constructs.json id (for
+/// <summary>Maps a <see cref="GateId"/> to its constructs.json id (for
 /// <see cref="ConstructRegistry.Check"/> / <see cref="ConstructRegistry.Find"/>).</summary>
 public static class GateIds
 {

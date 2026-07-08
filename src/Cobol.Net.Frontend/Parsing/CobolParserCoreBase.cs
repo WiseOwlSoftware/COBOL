@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using CobolNet.Editions;
 
 namespace CobolNet.Frontend.Generated;
 
@@ -11,15 +12,28 @@ namespace CobolNet.Frontend.Generated;
 public abstract class CobolParserCoreBase : Parser
 {
     /// <summary>
-    /// Dialect level for gating non-COBOL-85 features.
-    /// Default is COBOL-85 (strict). Set higher to enable later standards.
+    /// The targeted edition (rearch P2.7): the SINGLE source of the dialect year the grammar's introduction
+    /// gates read (ending the pre-P2 triple-sourcing across the parser base, the frontend, and the compiler).
+    /// Defaults to COBOL-85 (strict) — the level the NIST CCVS corpus targets; the CLI/front-end sets it
+    /// explicitly (via <see cref="DialectLevel"/>) for every real parse.
     /// </summary>
-    public int DialectLevel { get; set; } = 85;
+    public EditionInfo Edition { get; set; } = EditionInfo.Of(85);
 
-    protected bool is85()   => DialectLevel >= 85;
-    protected bool is2002() => DialectLevel >= 2002;
-    protected bool is2014() => DialectLevel >= 2014;
-    protected bool is2023() => DialectLevel >= 2023;
+    /// <summary>
+    /// Dialect level (ISO year) for gating non-COBOL-85 features — a shim over <see cref="Edition"/>, the single
+    /// source. Kept for the <c>parser.DialectLevel = …</c> call sites (Frontend); the setter rebuilds
+    /// <see cref="Edition"/> preserving its permissive axis.
+    /// </summary>
+    public int DialectLevel
+    {
+        get => Edition.Year;
+        set => Edition = EditionInfo.Of(value, Edition.Permissive);
+    }
+
+    protected bool is85()   => Edition.Has(85);
+    protected bool is2002() => Edition.Has(2002);
+    protected bool is2014() => Edition.Has(2014);
+    protected bool is2023() => Edition.Has(2023);
 
     protected CobolParserCoreBase(ITokenStream input) : base(input) { }
     protected CobolParserCoreBase(ITokenStream input, TextWriter output, TextWriter errorOutput)

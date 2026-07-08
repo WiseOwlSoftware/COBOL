@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Frontend.Parsing;
@@ -106,15 +107,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var ruleStack = recognizer.GetRuleInvocationStack().ToArray();
         string tokenUpper = token.Text?.ToUpperInvariant() ?? "";
 
-        // 0. An edition-gated construct behind the generic error (W1.5, VERSION_TEST_MATRIX_DESIGN P2.8):
-        // the grammar's {isYYYY()}? introduction predicates reject during prediction, so a too-new construct
-        // surfaces as NoViableAlternative — map it to the COBOLNET0900 edition-naming diagnostic (priority 0,
-        // so its code wins the message prefix). Vendor JSON/XML map to COBOL0313 instead (not ISO).
+        // 0. An edition-gated construct behind the generic error (VERSION_TEST_MATRIX_DESIGN P2.8; rearch
+        // PHASE 02): the grammar's {isYYYY()}? introduction predicates reject a too-new construct during
+        // prediction, so it surfaces as a generic parse error. EditionGateHints recognizes the construct's
+        // SIGNATURE and returns its constructs.json id; the COBOLNET0900 edition-naming message is rendered
+        // through the ONE ConstructRegistry.Check funnel — its display/edition/citation are the registry row's,
+        // not hand-copied (priority 0, so its code wins the message prefix). Vendor JSON/XML map to COBOL0313.
         if (EditionGateHints.Recognize(recognizer, token, ruleStack) is { } gate)
-            hints.Add(new(
-                gate.Code == "COBOL0313" ? Diagnostics.DiagnosticDescriptors.COBOL0313
-                                         : Diagnostics.DiagnosticDescriptors.COBOLNET0900,
-                gate.Message + ".", 0));
+        {
+            if (gate.ConstructId is { } id && recognizer is CobolParserCoreBase core)
+            {
+                var sink = new CaptureSink();
+                ConstructRegistry.Check(core.Edition, sink, id, $"near '{Truncate(token.Text, 40)}'");
+                if (sink.Message is { } m)
+                    hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET0900, m + ".", 0));
+            }
+            else if (gate.VendorCode is not null)
+                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0313, gate.VendorMessage + ".", 0));
+        }
 
         // 1. Missing space before string literal
         if (token.Text?.StartsWith('"') == true && prev != null && IsIdentifier(prev))
@@ -208,6 +218,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 10));
 
         return hints;
+    }
+
+    // ── Parse-layer edition-gate rendering (rearch PHASE 02) ──
+
+    /// <summary>Captures the single <see cref="EditionDiagnostic"/> a one-shot <see cref="ConstructRegistry.Check"/>
+    /// reports, so the parse-layer error strategy can reuse the ONE funnel's exact COBOLNET0900 text (display /
+    /// introduction edition / ISO citation all sourced from the construct's registry row, not hand-copied).</summary>
+    private sealed class CaptureSink : IDiagnosticSink
+    {
+        public string? Message { get; private set; }
+        public void Report(in EditionDiagnostic d) => Message = d.Message;
     }
 
     // ── Helpers ──
