@@ -7,7 +7,10 @@
 - **Depends on:** none (this is the first rearchitecture phase; it de-risks every later one)
 
 ## STATUS
-`IN PROGRESS @ step 13` — steps 1–12 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Characterization
+`DONE` (2026-07-07) — all 13 steps complete. Full §5 battery GREEN: sln build 0-err (warnings-as-errors) · 2036
+greenfield conformance · 213 unit · 32 characterization · differential verify 644/0 (cobolnet==legacy==golden) · FULL
+legacy guard NIST 353 MATCH. NEXT: Phase 01 (mechanical namespace rename + dead-grammar/JSON-XML removal). Baseline
+green (2036 conformance · 213 unit · guard 353 MATCH). Characterization
 net complete (gates 2+3, 32 tests). Step 7: `tests/nist/corpus.tsv` generated mechanically — 459 rows (338 green + 11
 divergent + 110 pending; folds `[InlineData]` 349 + `chains.tsv` + `LEGACY_DIVERGENT`) + `CorpusManifest` loader + a
 5-assertion drift guard (green∪divergent == the committed 349-name baseline; every green/divergent has a golden; every
