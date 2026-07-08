@@ -3,8 +3,8 @@
 > **STATUS BANNER (update this every session).** Plan authored 2026-07-07 by a multi-agent review
 > (workflow `wf_7720e6f8-fd6`, 46 agents; 6 survey/critique units + the dual-backend track backfilled separately).
 > **PHASE 00 (migration safety net) — IN PROGRESS** (execution began 2026-07-07; §6 owner decisions ALL RESOLVED
-> D1–D12). This master plan IS the migration SSOT / "ROADMAP" that PHASE-00 step 1 refers to (no separate `ROADMAP.md`
-> — singular pattern). Current baseline: **2028 greenfield conformance + 213 unit GREEN; FULL legacy guard NIST 353
+> D1–D12). This master plan is the migration SSOT + roadmap (its §0 resume protocol, §4 phase index, and per-phase exit
+> criteria are the resumable record). Current baseline: **2028 greenfield conformance + 213 unit GREEN; FULL legacy guard NIST 353
 > MATCH.** RESUME AT: **Phase 00** — see `docs/rearchitecture/PHASE-00-migration-safety-net.md`'s STATUS line for the
 > exact in-progress step + last green commit.
 > ⚠ One owner override to carry forward — **D10: PHASE-04 must FULLY remove the lexer `SUBSCRIPT` mode + the binder
