@@ -76,20 +76,12 @@ public static class EditionGateHints
         // signature is the fallback the stack test cannot give. Each arm yields the constructs.json row id.
         string? id = token.Type switch
         {
-            // OCCURS DYNAMIC (Format 4, 2014): the error surfaces at OCCURS (its DYNAMIC alt is is2014()-gated) or at
-            // the CAPACITY token (which appears ONLY in this clause). DYNAMIC alone also means ACCESS MODE DYNAMIC —
-            // so gate on the OCCURS-then-DYNAMIC pair, not a bare DYNAMIC.
-            CobolLexer.OCCURS when Next(stream, token, 1)?.Type == CobolLexer.DYNAMIC => Constructs.OccursDynamic2014,
-            CobolLexer.CAPACITY => Constructs.OccursDynamic2014,
             CobolLexer.RETURNING when InRule(ruleStack, "gobackStatement")
                 || Next(stream, token, -1)?.Type == CobolLexer.GOBACK => Constructs.GobackReturning2002,
             // The division-header RETURNING: inside procedureDivision but NOT inside any statement (the
             // header parses before the first statement rule is entered). CALL … RETURNING is 85-legal and
             // parses through callReturningPhrase — its stack contains "statement", so it never lands here.
             CobolLexer.RETURNING when InRule(ruleStack, "procedureDivision") && !InRule(ruleStack, "statement") => Constructs.ProcedureReturning2002,
-            CobolLexer.BASED when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.BasedClause2002,
-            CobolLexer.TYPE when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.TypeClause2002,
-            CobolLexer.TYPEDEF when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription") => Constructs.TypedefDef2002,
             CobolLexer.CLASS when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryClass2002,
             CobolLexer.INTERFACE when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryInterface2002,
             CobolLexer.PROPERTY when InRule(ruleStack, "repositoryParagraph") => Constructs.RepositoryProperty2002,

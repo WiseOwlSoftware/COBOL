@@ -239,7 +239,7 @@ externalClause
 // BASED clause (COBOL-2002 §13.18.5) — level 01/77 only; the item is a template with an implicit
 // data-address pointer (initially NULL) and NO storage until SET ADDRESS OF / ALLOCATE gives it one.
 basedClause
-    : {is2002()}? BASED
+    : BASED   // introduction-gated at BIND time (DataBinder.BindEntry → Check(BasedClause2002))
     ;
 
 // GLOBAL clause (§13.18.27) — visible to contained programs
@@ -252,14 +252,14 @@ globalClause
 // 2014→2023 change rows ⇒ it predates 2023). The 2002-vs-2014 refinement is blocked on the older standards
 // (roadmap decision 1 provisional policy; tests/version-matrix/constructs.json row type-clause-2002).
 typeClause
-    : {is2002()}? TYPE IS? IDENTIFIER
+    : TYPE IS? IDENTIFIER   // introduction-gated at BIND time (DataBinder.BindEntry → Check(TypeClause2002))
     ;
 
 // TYPEDEF clause (ISO §13.18.58, COBOL-2002; data-model D17) — marks this data description entry as a TYPE
 // DECLARATION (a named template; it allocates no storage). STRONG (§13.18.58.2) makes the type strongly-typed.
 // LL-disjoint from externalClause/globalClause (IS? EXTERNAL | GLOBAL): the keyword after the optional IS differs.
 typedefClause
-    : {is2002()}? IS? TYPEDEF STRONG?
+    : IS? TYPEDEF STRONG?   // introduction-gated at BIND time (DataBinder.BindEntry → Check(TypedefDef2002))
     ;
 
 genericDataClause
@@ -343,7 +343,7 @@ occursClause
     // Format 4 — a DYNAMIC-capacity table (ISO §13.18.38 Format 4, COBOL-2014; D9). LL-disjoint from Format 1/2
     // on the token after OCCURS (DYNAMIC is not an integerLiteral). Phrases are order-independent (occursDynamicPhrase*);
     // duplicate/SR28 checks are bind-time (COBOLNET1522). Edition-gated so a pre-2014 probe upgrades to COBOLNET0900.
-    | {is2014()}? OCCURS DYNAMIC occursDynamicPhrase* occursKeyClause* (INDEXED BY? dataReferenceList)?
+    | OCCURS DYNAMIC occursDynamicPhrase* occursKeyClause* (INDEXED BY? dataReferenceList)?   // introduction-gated at BIND time (OdoModel.OdoBindOccursSpec → Check(OccursDynamic2014))
     ;
 
 occursDynamicPhrase

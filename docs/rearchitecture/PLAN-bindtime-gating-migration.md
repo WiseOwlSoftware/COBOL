@@ -39,10 +39,10 @@ reserved for genuinely cross-cutting per-edition rules (the G7 remit), not per-c
 
 ## STATUS
 
-`IN PROGRESS — Cluster 5 next.` Clusters completed: **1 (DEVLOG 680), 2 (681), 3 (682), 4 (683)**. EditionGateHints
-started at ~30 signature arms (target ≈ 8); running removals: C1 −3 (+1 interim SET arm, retired in C8), C2 −2
-(+ deleted manual `COBOLNET0883`), C3 −2 (INVOKE/DELETE FILE), C4 −2 (STOP-status/START-length; STOP-status now
-covers the no-`WITH` `STATUS` alt too). Battery green: conformance 2055 · unit 224 · FULL legacy guard 353 MATCH.
+`IN PROGRESS — Cluster 6 next.` Clusters completed: **1 (DEVLOG 680), 2 (681), 3 (682), 4 (683), 5 (684)**.
+EditionGateHints started at ~30 signature arms (target ≈ 8); running removals: C1 −3 (+1 interim SET arm, retired in
+C8), C2 −2 (+ deleted manual `COBOLNET0883`), C3 −2, C4 −2, C5 −4 (BASED/TYPE/TYPEDEF/OCCURS DYNAMIC). Battery green:
+conformance 2055 · unit 224 · FULL legacy guard 353 MATCH.
 
 ## MOVE_TO_BINDTIME (24) — ordered clusters (each = one commit: ungate + regen + Check + delete hints arm + below-edition test + FULL guard)
 
@@ -60,7 +60,7 @@ covers the no-`WITH` `STATUS` alt too). Battery green: conformance 2055 · unit 
 - [x] **Cluster 4 — start-with-length + stop-run-status — DONE (DEVLOG 683).** STOP-status recognition was parse-then-drop → extracted a `BindStop` helper; the no-`WITH` `STATUS` alt now covered too.
   - start-with-length-2002 — ungate `CobolIO.g4:459`; ADD Check `if (kp?.startWithLength() is not null)` at `KeyedIo.cs:282`; delete arm. (Sibling StartFirstLast already Checks in the same method.)
   - stop-run-status-2002 — ungate `CobolControlFlow.g4:245`; **ADD a phrase read** at `StatementBinder.cs:207` (currently parse-then-drop): `if (stop.stopStatusPhrase() is not null) Check(…)`; delete arm. BONUS: covers the no-`WITH` `STATUS …` alt (a pre-existing residue).
-- [ ] **Cluster 5 — data-division clauses (all in `DataBinder.BindEntry` / ODO).**
+- [x] **Cluster 5 — data-division clauses (all in `DataBinder.BindEntry` / ODO) — DONE (DEVLOG 684).** Beyond-recipe: added `using CobolNet.Editions;` to `DataBinder.cs` + `OdoModel.cs`.
   - based-clause-2002 — ungate `CobolData.g4:242`; Check at the basedClause arm `DataBinder.cs:1053`; delete arm.
   - type-clause-2002 — ungate `CobolData.g4:255`; Check at typeClause arm `DataBinder.cs:1059`; delete arm. (Report-Writer TYPE at `CobolReportWriter.g4:97` is a different rule — no conflict.)
   - typedef-def-2002 — ungate `CobolData.g4:262`; Check at typedefClause arm `DataBinder.cs:1057`; delete arm.

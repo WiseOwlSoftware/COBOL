@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -1050,13 +1051,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (clause.pictureClause()?.PIC_STRING() is { } picTok)
                     pictureText = picTok.GetText();
                 else if (clause.basedClause() is not null)
+                {
+                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.BasedClause2002, "the BASED clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 5)
                     isBased = true;   // validated below (§13.16 SR16 placement; the 0881 declaration band)
+                }
                 else if (clause.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                 else if (clause.typedefClause() is { } td)
-                    { isTypedef = true; typedefStrong = td.STRONG() is not null; }   // §13.18.58; D17
+                {
+                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.TypedefDef2002, "the TYPEDEF clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 5)
+                    isTypedef = true; typedefStrong = td.STRONG() is not null;   // §13.18.58; D17
+                }
                 else if (clause.typeClause() is { } tc)
+                {
+                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.TypeClause2002, "the TYPE clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 5)
                     typeRefName = tc.IDENTIFIER().GetText();   // TYPE IS type-name — cloned in ExpandTypes (D17)
+                }
                 else if (clause.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
                 else if (clause.blankWhenZeroClause() is not null)

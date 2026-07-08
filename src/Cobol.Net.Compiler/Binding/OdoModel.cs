@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -220,6 +221,7 @@ public sealed partial class DataBinder
         // table has no fixed physical capacity; its storage is the out-of-line CobolDynTable.
         if (occ.DYNAMIC() is not null)
         {
+            ConstructRegistry.Check(Edition.Edition, Edition, Constructs.OccursDynamic2014, "the OCCURS DYNAMIC clause");   // COBOL-2014 introduction, bind-time gate (rearch migration Cluster 5)
             string? capName = null; int? fromCap = null; int? toCap = null; bool initialized = false;
             foreach (var ph in occ.occursDynamicPhrase())
             {
