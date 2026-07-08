@@ -1,0 +1,2 @@
+ok=false
+error COBOLNET1529: TYPEDEF on 'SUB-T': the TYPEDEF clause shall be specified only in a level-01 record-description entry (ISO §13.18.58)

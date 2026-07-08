@@ -1,0 +1,20 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CHAR-STRING-OPS.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-TXT   PIC X(11) VALUE "HELLO WORLD".
+       01 WS-CNT   PIC 9(2) VALUE 0.
+       01 WS-OUT   PIC X(20) VALUE SPACES.
+       01 WS-P1    PIC X(5).
+       01 WS-P2    PIC X(5).
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           INSPECT WS-TXT TALLYING WS-CNT FOR ALL "O".
+           INSPECT WS-TXT REPLACING ALL "L" BY "*".
+           STRING "A" DELIMITED BY SIZE
+                  "-" DELIMITED BY SIZE
+                  INTO WS-OUT.
+           UNSTRING WS-TXT DELIMITED BY " "
+               INTO WS-P1 WS-P2.
+           DISPLAY WS-CNT WS-OUT WS-P1 WS-P2.
+           STOP RUN.

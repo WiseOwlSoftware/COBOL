@@ -1,0 +1,14 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CHAR-TYPEDEF.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 POINT-T TYPEDEF.
+          05 PX PIC 9(3).
+          05 PY PIC 9(3).
+       01 P1 TYPE POINT-T.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           MOVE 10 TO PX OF P1.
+           MOVE 20 TO PY OF P1.
+           DISPLAY PX OF P1 PY OF P1.
+           STOP RUN.

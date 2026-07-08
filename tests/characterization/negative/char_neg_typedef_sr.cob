@@ -1,0 +1,11 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CHAR-NEG-TDSR.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 REC.
+          05 SUB-T TYPEDEF.
+             10 F PIC X.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           DISPLAY "X".
+           STOP RUN.

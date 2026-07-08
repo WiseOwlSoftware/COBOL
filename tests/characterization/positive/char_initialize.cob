@@ -1,0 +1,12 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CHAR-INITIALIZE.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-REC.
+          05 WS-N PIC 9(3) VALUE 999.
+          05 WS-A PIC X(4) VALUE "ZZZZ".
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           INITIALIZE WS-REC.
+           DISPLAY WS-N WS-A.
+           STOP RUN.

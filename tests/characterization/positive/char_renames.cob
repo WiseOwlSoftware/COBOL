@@ -1,0 +1,14 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CHAR-RENAMES.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-REC.
+          05 WS-A PIC X(2).
+          05 WS-B PIC X(2).
+          05 WS-C PIC X(2).
+       66 WS-AB RENAMES WS-A THRU WS-B.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           MOVE "PQRSTU" TO WS-REC.
+           DISPLAY WS-AB.
+           STOP RUN.

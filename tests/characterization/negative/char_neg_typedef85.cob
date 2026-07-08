@@ -1,0 +1,11 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CHAR-NEG-TYPEDEF85.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 MY-T TYPEDEF.
+          05 F PIC X.
+       01 R TYPE MY-T.
+       PROCEDURE DIVISION.
+       MAIN-PARA.
+           DISPLAY "X".
+           STOP RUN.

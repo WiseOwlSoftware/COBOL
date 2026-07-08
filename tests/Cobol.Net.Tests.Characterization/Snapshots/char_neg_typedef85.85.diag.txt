@@ -1,0 +1,4 @@
+ok=false
+tests/characterization/negative/char_neg_typedef85.cob(6,16): error COBOL0001: no viable alternative at input 'TYPEDEF'
+tests/characterization/negative/char_neg_typedef85.cob(6,16): error COBOLNET0900: cannot parse construct near 'TYPEDEF'. the TYPEDEF clause (a type declaration) requires COBOL-2002 (targeting COBOL-85) — ISO §13.18.58; data-model D17 (constructs.json row typedef-def-2002).
+tests/characterization/negative/char_neg_typedef85.cob(8,13): error COBOLNET0900: cannot parse construct near 'TYPE'. the TYPE clause (TYPEDEF family) requires COBOL-2002 (targeting COBOL-85) — ISO §13.18.58; provisional 2002 edge (constructs.json row type-clause-2002).
