@@ -7,7 +7,7 @@
 - **Depends on:** none (this is the first rearchitecture phase; it de-risks every later one)
 
 ## STATUS
-`IN PROGRESS @ step 11` — steps 1–10 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Characterization
+`IN PROGRESS @ step 12` — steps 1–11 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Characterization
 net complete (gates 2+3, 32 tests). Step 7: `tests/nist/corpus.tsv` generated mechanically — 459 rows (338 green + 11
 divergent + 110 pending; folds `[InlineData]` 349 + `chains.tsv` + `LEGACY_DIVERGENT`) + `CorpusManifest` loader + a
 5-assertion drift guard (green∪divergent == the committed 349-name baseline; every green/divergent has a golden; every
@@ -19,7 +19,10 @@ sources per funnel never collide) — builds clean. Step 10: 46-file conversion 
 errors) — 42 funnels routed through `DifferentialGolden.Assert` + 360 goldens baked under `tests/differential/<Class>/`;
 4 files correctly untouched (MoveEdition/SignedAlphanumericMove/AllLiteral/AbbreviatedCondition — spec-pinned-only, no
 `lout==cout` funnel); fields kept where a spec-pinned funnel still uses them (ClassCondition/ControlFlow/…). Bake 644/0,
-golden-mode 644/0 (no legacy). `chains.tsv` KEPT (bash guard/sweep still read it). Step 2 ref-cache ~40–55% faster.
+golden-mode 644/0 (no legacy). Step 11: `DifferentialGoldenDriftTests` (folder-level orphan guard — every converted
+class has a non-empty golden folder; every golden folder maps to a live converted class; 3/3 green) + completeness
+sweep: a fresh whole-suite re-bake left `git status tests/differential` CLEAN → the 360 goldens are complete and
+idempotent (byte-identical regen). `chains.tsv` KEPT (bash guard/sweep still read it). Step 2 ref-cache ~40–55% faster.
 Finding for PHASE-02: undefined-data-name + JUSTIFIED-on-numeric not caught at bind time.
 Step 1 (migration-SSOT banner) DONE: the migration SSOT is `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan —
 STATE banner + P0–P16 index + exit criteria + the resume-vs-migration pointer); its banner is flipped to "P0 IN
