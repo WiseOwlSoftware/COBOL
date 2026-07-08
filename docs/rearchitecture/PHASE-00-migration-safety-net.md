@@ -7,7 +7,12 @@
 - **Depends on:** none (this is the first rearchitecture phase; it de-risks every later one)
 
 ## STATUS
-`NOT STARTED`
+`IN PROGRESS @ step 3` — steps 1–2 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Step 2 ref-cache
+measured: Conformance 2028 tests in 1m24s vs ~2m13–3m04s uncached (~40–55% faster), behavior-neutral.
+**RECONCILIATION (step 1):** the "ROADMAP.md migration SSOT" this step calls for ALREADY EXISTS as
+`docs/COBOLNET_REARCHITECTURE_PLAN.md` (STATE banner + P0–P16 index + exit criteria + the resume-vs-migration pointer).
+Per the singular-pattern principle we do NOT fork a second `ROADMAP.md`; the master plan IS the ROADMAP. Its status
+banner is flipped to "P0 IN PROGRESS" and DOC_INDEX already carries its row. Step 1 done via that reconciliation.
 <!-- The executing session updates this line: NOT STARTED  |  IN PROGRESS @ step N  |  DONE.
      Keep a one-line note of the last green commit hash when you pause. -->
 

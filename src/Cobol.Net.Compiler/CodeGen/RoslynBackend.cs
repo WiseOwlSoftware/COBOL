@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -68,9 +69,17 @@ public static class RoslynBackend
     /// <summary>
     /// The framework reference set: every assembly currently loaded as a trusted-platform assembly. This makes
     /// the generated program able to reference the same BCL the compiler itself runs on (System.Runtime,
-    /// System.Console, System.Linq, …) without bundling a reference pack.
+    /// System.Console, System.Linq, …) without bundling a reference pack. CACHED for the process lifetime — the
+    /// TPA set and the deployed runtime DLL are stable per process, and building the set does ~180
+    /// <see cref="MetadataReference.CreateFromFile(string)"/> calls; the in-process test battery compiles thousands
+    /// of times per run (rearchitecture P0 step 2 — behavior-neutral: an identical set, computed once).
     /// </summary>
-    private static IReadOnlyList<MetadataReference> ReferenceAssemblies()
+    private static readonly Lazy<ImmutableArray<MetadataReference>> _referenceAssemblies =
+        new(BuildReferenceAssemblies, LazyThreadSafetyMode.ExecutionAndPublication);
+
+    private static ImmutableArray<MetadataReference> ReferenceAssemblies() => _referenceAssemblies.Value;
+
+    private static ImmutableArray<MetadataReference> BuildReferenceAssemblies()
     {
         string tpa = (string)(AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") ?? "");
         var refs = tpa.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
@@ -79,7 +88,7 @@ public static class RoslynBackend
             .ToList();
         // The COBOL.NET runtime the generated program calls (CobolNum / CobolString).
         if (File.Exists(RuntimePath)) refs.Add(MetadataReference.CreateFromFile(RuntimePath));
-        return refs;
+        return [.. refs];
     }
 
     /// <summary>
