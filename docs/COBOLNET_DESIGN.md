@@ -10,7 +10,9 @@
 > **Project:** COBOL.NET — a greenfield compiler translating COBOL → idiomatic, typed-native **C# source**, compiled
 > by **Roslyn**. New compiler in `src/Cobol.Net.Compiler` + `src/Cobol.Net.Cli` (exe `cobol`) + `src/Cobol.Net.Runtime`;
 > the reused front-end (ANTLR lexer/parser/preprocessor) is extracted into `src/Cobol.Net.Frontend` (§17/G0 — DONE;
-> namespaces stay `CobolSharp.Compiler.*` until G8). The legacy byte-array implementation is rejected, kept
+> front-end namespaces renamed to `CobolNet.Frontend.*` at rearchitecture **P1** — the rename was pulled forward from
+> the former G8 big-bang, so G8 is now a pure *deletion* of the legacy tree, which keeps its own `CobolSharp.Compiler.*`
+> identity until then). The legacy byte-array implementation is rejected, kept
 > only as a differential **behavioral oracle** (it passes 364 NIST tests) until cut-over (G8).
 
 ---
@@ -1317,7 +1319,7 @@ The new `Cobol.Net.Frontend.csproj`:
 - Carries the ANTLR generation: copy `EnsureGeneratedFiles` + `CleanGenerated` targets and the `<None Include="Grammar\…">`/jar items verbatim from the legacy csproj; the `Inputs`/`Outputs` paths stay relative so they work post-move.
 - `<InternalsVisibleTo Include="Cobol.Net.Tests.Unit" />` (replaces the legacy one) if any internals need testing.
 
-**Namespaces stay `CobolSharp.Compiler.*` through G0–G7.** The moved files are not edited. Consumers reference the new *assembly*; the `using CobolSharp.Compiler.Parsing;` lines in `Frontend.cs` still resolve. The cosmetic rename `CobolSharp.Compiler.* → CobolNet.Frontend.*` is a single mechanical big-bang at **G8**, when the legacy engine is being deleted anyway — so only the new compiler's `using`s need updating, the smallest possible diff. (Doing it at G0 would force-touch all of legacy `Semantics`/`IR`/`CodeGen`, which we are about to delete — wasted churn.)
+**Namespaces (⛔ SUPERSEDED at rearchitecture P1 — this deferral was reversed).** The original plan kept the front-end under `CobolSharp.Compiler.*` through G0–G7 and did the `CobolSharp.Compiler.* → CobolNet.Frontend.*` rename as a single big-bang at G8. **Rearchitecture PHASE 01 pulled that rename FORWARD** (`docs/rearchitecture/PHASE-01-mechanical-rename-deadcode.md`): the five front-end sub-namespaces are now `CobolNet.Frontend.{Common,Diagnostics,Generated,Parsing,Preprocessor}`, flipped across greenfield src/tests AND the legacy tree's shared-front-end *imports*, so later phases edit final names and **G8 is a pure deletion**, not a rename-plus-deletion. The legacy tree keeps its OWN `CobolSharp.Compiler.*` identity (root + `.Semantics`/`.CodeGen`/`.IR`/`.FlowAnalysis`) until G8. (The original rationale below is retained for history: doing the rename at G0 would have force-touched all of legacy `Semantics`/`IR`/`CodeGen` — but P1 mitigated that with per-segment segment-literal seds + a handful of namespace-relative-shorthand aliases, keeping the diff mechanical and the full battery green.)
 
 ### 1.5 Ordered git-mv sequence (build + guard green per step)
 

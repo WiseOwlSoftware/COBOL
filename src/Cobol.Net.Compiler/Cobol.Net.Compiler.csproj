@@ -6,8 +6,8 @@
     is a .NET record, a COBOL elementary item is a native .NET field. See docs/COBOLNET_DESIGN.md.
 
     Split out of the old exe at G0 (§17): the CLI shell is now Cobol.Net.Cli (producing cobol.exe); this library
-    is what the CLI and the tests reference. RootNamespace stays the single token CobolNet through G0-G7; the
-    cosmetic namespace rename is the G8 big-bang.
+    is what the CLI and the tests reference. RootNamespace is the single token CobolNet; the shared front-end's
+    namespaces were renamed to CobolNet.Frontend.* at rearchitecture PHASE 01 (no longer a G8 big-bang).
 
     Transitional reuse (front-end only — NOT the byte engine): the proven preprocessor + ANTLR lexer/parser live
     in Cobol.Net.Frontend; we consume ONLY its public front-end (preprocessing + parse tree).
@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <!-- Front-end only: preprocessor + ANTLR lexer/parser + parse-tree (CobolParserCore) context types
-         (extracted out of the legacy CobolSharp.Compiler at G0; namespaces stay CobolSharp.Compiler.* until G8). -->
+         (extracted out of the legacy CobolSharp.Compiler at G0; namespaces renamed to CobolNet.Frontend.* at P1). -->
     <ProjectReference Include="..\Cobol.Net.Frontend\Cobol.Net.Frontend.csproj" />
     <!-- The runtime the GENERATED programs call: referenced so it is built + lands next to the compiler, where
          RoslynBackend deploys a copy beside each compiled program. -->

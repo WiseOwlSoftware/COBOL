@@ -8,7 +8,11 @@
   - `docs/rearchitecture/DESIGN-module-topology.md` — "Pull the `CobolSharp.Compiler.* → CobolNet.*` namespace rename FORWARD to Wave 0"; ANTLR package name single-sourced via an MSBuild property; delete 5 dead grammars + committed `.antlr` caches; strip non-ISO JSON/XML.
   - `docs/rearchitecture/DESIGN-frontend-grammar.md` — the frontend M-steps: generated-namespace rename via MSBuild property, delete the 5 unreferenced top-level grammars + `.antlr` caches, hard-delete JSON/XML rules and move `inlineMethodInvocationStatement` into `Core/CobolOO.g4`, fix the stale `Frontend.cs` banner, narrow the `catch(Exception)`.
   - `docs/COBOLNET_DESIGN.md` §1.4 (the "namespaces stay `CobolSharp.Compiler.*` until G8" banner this phase supersedes), §16 (G0–G8).
-- **STATUS:** IN PROGRESS @ step 7 — steps 0–6 DONE. Step 6: `Frontend.cs` banner corrected (it is `Cobol.Net.Frontend`,
+- **STATUS:** IN PROGRESS @ step 8 — steps 0–7 DONE. Step 7: corrected the stale "namespaces stay
+  `CobolSharp.Compiler.*` until G8 / big-bang" banners now that P1 landed the rename — `Cobol.Net.Frontend.csproj` +
+  `Cobol.Net.Compiler.csproj` header comments + `docs/COBOLNET_DESIGN.md` §1.4 banner + the §17 "Namespaces stay…"
+  paragraph (marked SUPERSEDED, history retained); `DOC_INDEX.md` has no namespace row (nothing to change). G8 is now
+  a pure deletion. Comment/doc-only; build 0-err. Step 6: `Frontend.cs` banner corrected (it is `Cobol.Net.Frontend`,
   not a legacy-assembly reuse) + the SLL-bail `catch (Exception)` narrowed to `when (e is ParseCanceledException or
   RecognitionException)` (+ `using Antlr4.Runtime.Misc`) — the one deliberate P1 behavior change (a non-parse
   internal bug now propagates instead of being silently retried under LL). Battery: whole-sln 0-err · conformance
