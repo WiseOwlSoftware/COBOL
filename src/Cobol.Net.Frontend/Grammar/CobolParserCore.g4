@@ -955,7 +955,7 @@ callByReference
     ;
 
 callByValue
-    : {is2002()}? BY VALUE arithmeticExpression
+    : BY VALUE arithmeticExpression   // introduction-gated at BIND time (StatementBinder.Call → ConstructRegistry.Check(CallByValue2002))
     ;
 
 callByContent

@@ -113,8 +113,6 @@ public static class EditionGateHints
             // (Retired when set-object-reference moves to bind-time — migration Cluster 8.)
             CobolLexer.SET when NextWithin(stream, token, 8, CobolLexer.NULL_, CobolLexer.SELF, CobolLexer.SUPER) => Constructs.SetObjectReference2002,
             CobolLexer.FOR when InRule(ruleStack, "specialNamesParagraph") => Constructs.SpecialNamesForNational2002,
-            CobolLexer.BY when InRule(ruleStack, "callStatement") && Next(stream, token, 1)?.Type == CobolLexer.VALUE => Constructs.CallByValue2002,
-            CobolLexer.VALUE when InRule(ruleStack, "callStatement") && Next(stream, token, -1)?.Type == CobolLexer.BY => Constructs.CallByValue2002,
             // The XOR OPERATOR below 2023 (the W3 regating): a parse error AT the XOR/EXCLUSIVE-OR token is
             // the gated operator by construction — as a USER word the token parses through cobolWord and
             // never errors (the condition-rule stack has popped by report time, so no rule filter applies).

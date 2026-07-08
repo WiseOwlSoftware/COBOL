@@ -13,6 +13,20 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 681 — 2026-07-08 02:58 PDT — Bind-time gating migration Cluster 2 — CALL … BY VALUE (dead manual-gate → the ONE Check funnel)
+
+Second cluster of the bind-time gating migration (plan: `docs/rearchitecture/PLAN-bindtime-gating-migration.md`).
+CALL … BY VALUE (ISO §14.9.4, introduced 2002) was gated in TWO redundant places: a parse-time `{is2002()}?`
+predicate on `callByValue` (which rejected below 2002) AND a manual `COBOLNET0883` edition gate in
+`StatementBinder.Call.cs` (dead code — unreachable below 2002 because the parser rejected first). Ungated the
+grammar (`CobolParserCore.g4:958`) and replaced the manual 0883 gate with
+`ConstructRegistry.Check(…, Constructs.CallByValue2002, "the CALL … BY VALUE phrase")` — one funnel, emitting
+`COBOLNET0900` below 2002 at the argument's recognition point. Retired the two `EditionGateHints` BY/VALUE signature
+arms. `COBOLNET0883` is fully removed (no test pinned it — the 0883 grep hits were NIST sequence numbers). BY/CONTENT
+and BY/REFERENCE are 85-legal and unaffected. Verified: `CALL "S" USING BY VALUE W` → `COBOLNET0900` at 85, compiles
+at 2002; `EditionGateDiagnosticTests.CallByValue_At85` green (substrings unchanged). Battery: conformance 2055 · unit
+224 · FULL legacy guard NIST 353 MATCH.
+
 ## Entry 680 — 2026-07-08 02:40 PDT — Bind-time edition-gating migration — plan + Cluster 1 (proof of pattern: ALLOCATE / FREE / USAGE OBJECT REFERENCE)
 
 Owner directive after DEVLOG 679: "implement correctly regardless of rework cost" — i.e. don't settle for the

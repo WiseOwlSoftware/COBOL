@@ -115,11 +115,10 @@ public sealed partial class StatementBinder
             }
             else if (a.callByValue() is { } byValue)
             {
-                // BY VALUE was introduced by ISO/IEC 1989:2002 (§14.9.4; deep-dive "Edition gating").
-                if (data.Edition.DialectLevel < 2002)
-                    data.Edition.Error("COBOLNET0883",
-                        "CALL … BY VALUE was introduced by ISO/IEC 1989:2002 (§14.9.4) — requires --std 2002 or "
-                        + $"later (targeting COBOL-{data.Edition.DialectLevel})");
+                // BY VALUE was introduced by ISO/IEC 1989:2002 (§14.9.4). Bind-time introduction gate (rearch
+                // bind-time migration Cluster 2): the parse-time {is2002()}? predicate is gone and the former
+                // manual COBOLNET0883 gate routes through the ONE registry funnel (emits COBOLNET0900 below 2002).
+                ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
                 mode = CobolPassMode.Value;
                 args.Add(new BoundCallArg(CobolPassMode.Value, null,
                     new BoundComputedOperand(BindExpr(byValue.arithmeticExpression()))));
