@@ -7,11 +7,13 @@
 - **Depends on:** none (this is the first rearchitecture phase; it de-risks every later one)
 
 ## STATUS
-`IN PROGRESS @ step 7` — steps 1–6 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Gate 2
-(diagnostic snapshots, 17 programs) + gate 3 (emitted-C# snapshots, 14 positive; portable, deterministic — no embedded
-paths) both landed; full characterization project 32 tests, compare-run green. Step 2 ref-cache ~40–55% faster.
-Finding: undefined-data-name + JUSTIFIED-on-numeric are NOT caught at bind time (accepted under CheckOnly) — a
-diagnostics gap for PHASE-02 to close.
+`IN PROGRESS @ step 8` — steps 1–7 DONE. Baseline green (2028 conformance · 213 unit · guard 353 MATCH). Characterization
+net complete (gates 2+3, 32 tests). Step 7: `tests/nist/corpus.tsv` generated mechanically — 459 rows (338 green + 11
+divergent + 110 pending; folds `[InlineData]` 349 + `chains.tsv` + `LEGACY_DIVERGENT`) + `CorpusManifest` loader + a
+5-assertion drift guard (green∪divergent == the committed 349-name baseline; every green/divergent has a golden; every
+divergent cites §; no dupes; every on-disk program listed) — all green. `chains.tsv` KEPT (bash guard/sweep still read
+it). Step 2 ref-cache ~40–55% faster. Finding for PHASE-02: undefined-data-name + JUSTIFIED-on-numeric not caught at
+bind time.
 Step 1 (migration-SSOT banner) DONE: the migration SSOT is `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan —
 STATE banner + P0–P16 index + exit criteria + the resume-vs-migration pointer); its banner is flipped to "P0 IN
 PROGRESS" and `docs/DOC_INDEX.md` carries its row.
