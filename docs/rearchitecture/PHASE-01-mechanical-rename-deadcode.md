@@ -8,7 +8,11 @@
   - `docs/rearchitecture/DESIGN-module-topology.md` — "Pull the `CobolSharp.Compiler.* → CobolNet.*` namespace rename FORWARD to Wave 0"; ANTLR package name single-sourced via an MSBuild property; delete 5 dead grammars + committed `.antlr` caches; strip non-ISO JSON/XML.
   - `docs/rearchitecture/DESIGN-frontend-grammar.md` — the frontend M-steps: generated-namespace rename via MSBuild property, delete the 5 unreferenced top-level grammars + `.antlr` caches, hard-delete JSON/XML rules and move `inlineMethodInvocationStatement` into `Core/CobolOO.g4`, fix the stale `Frontend.cs` banner, narrow the `catch(Exception)`.
   - `docs/COBOLNET_DESIGN.md` §1.4 (the "namespaces stay `CobolSharp.Compiler.*` until G8" banner this phase supersedes), §16 (G0–G8).
-- **STATUS:** IN PROGRESS @ step 6 — steps 0–5 DONE. Step 5: the four hand-written frontend sub-namespaces
+- **STATUS:** IN PROGRESS @ step 7 — steps 0–6 DONE. Step 6: `Frontend.cs` banner corrected (it is `Cobol.Net.Frontend`,
+  not a legacy-assembly reuse) + the SLL-bail `catch (Exception)` narrowed to `when (e is ParseCanceledException or
+  RecognitionException)` (+ `using Antlr4.Runtime.Misc`) — the one deliberate P1 behavior change (a non-parse
+  internal bug now propagates instead of being silently retried under LL). Battery: whole-sln 0-err · conformance
+  2036/2036 · FULL legacy guard NIST 353 MATCH (ALL GREEN). ⸻ Step 5: the four hand-written frontend sub-namespaces
   `CobolSharp.Compiler.{Common,Diagnostics,Parsing,Preprocessor}` → `CobolNet.Frontend.*` (decls + all consumers,
   greenfield + legacy imports; legacy keeps its own 76 namespaces). Beyond the recipe (fully-qualified sed couldn't see
   them): 5 legacy semantic files aliased for a BARE `Common.` prefix (`using Common = CobolNet.Frontend.Common;`) + 2

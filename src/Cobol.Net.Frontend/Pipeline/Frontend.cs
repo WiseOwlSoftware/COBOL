@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Atn;
+using Antlr4.Runtime.Misc;   // ParseCanceledException (thrown by BailErrorStrategy on the SLL pass)
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Frontend.Parsing;
@@ -13,12 +14,12 @@ namespace CobolNet.Frontend;
 /// The COBOL.NET front-end: source text → preprocessed free-form text → ANTLR parse tree.
 /// </summary>
 /// <remarks>
-/// This is the ONE place COBOL.NET reuses the legacy <c>CobolSharp.Compiler</c> assembly, and only its
-/// <i>front-end</i>: the source preprocessor (reference-format normalization, conditional compilation, COPY
-/// expansion, NIST placeholder substitution) and the ANTLR lexer/parser. The parse tree it returns
-/// (<see cref="CobolParserCore.CompilationUnitContext"/>) is a pure syntactic artifact — none of the legacy
-/// semantic analysis, byte-offset storage layout, or CIL emission is involved. Everything from the parse tree
-/// onward is COBOL.NET's own typed-native pipeline.
+/// This is the COBOL.NET front-end (assembly <c>Cobol.Net.Frontend</c>): the source preprocessor
+/// (reference-format normalization, conditional compilation, COPY expansion, NIST placeholder substitution) and
+/// the ANTLR lexer/parser. The parse tree it returns (<see cref="CobolParserCore.CompilationUnitContext"/>) is a
+/// pure syntactic artifact — no semantic analysis, storage layout, or emission is involved. It is shared,
+/// unchanged, by both the greenfield COBOL.NET pipeline and (until the G8 cut-over) the legacy differential
+/// oracle, which references this same assembly.
 /// <para>
 /// The pipeline mirrors the legacy <c>Compilation.Preprocess</c> + <c>Compilation.LexAndParse</c> exactly so
 /// the proven preprocessing (incl. the SLL→LL two-stage parse and the <c>ZERO</c>→<c>ZERO_ARITH</c> rewrite)
@@ -132,9 +133,12 @@ public sealed class Frontend
             parser.ErrorHandler = new BailErrorStrategy();
             tree = parser.compilationUnit();
         }
-        catch (Exception)
+        catch (Exception e) when (e is ParseCanceledException or RecognitionException)
         {
-            // SLL bailed — retry with full LL prediction and the diagnostic-collecting error strategy.
+            // SLL bailed on a genuine parse ambiguity/mismatch (BailErrorStrategy throws ParseCanceledException,
+            // wrapping a RecognitionException) — retry with full LL prediction and the diagnostic-collecting error
+            // strategy. A NON-parse exception (a predicate/lexer-action bug) now propagates instead of being
+            // silently retried under LL, where it would surface as a misleading generic syntax error. (Rearch P1.)
             tokens.Seek(0);
             parser.Reset();
             parser.Interpreter.PredictionMode = PredictionMode.LL;
