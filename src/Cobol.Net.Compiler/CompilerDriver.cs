@@ -104,7 +104,9 @@ public static class CompilerDriver
         // (P2.2) walks the raw tree FIRST, and its errors fail-fast BEFORE Emit — a removed or
         // not-yet-introduced construct may have no emit path at all.
         var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive);
-        new Validation.EditionValidator(edition).Validate(tree);
+        // P3 step 2: the validator runs on the P2 framework — the immutable EditionInfo + an IDiagnosticSink
+        // (the EditionContext collector implements IDiagnosticSink; the validator has no EditionContext dependency).
+        new Validation.EditionValidator(edition.Edition, edition).Validate(tree);
         if (edition.HasErrors)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
         // frontend.TurnEvents — the >>TURN directive events (ISO §7.3.25) — build the group's compile-time

@@ -39,7 +39,10 @@ OO, M3/M4 surface) is OUT of scope — this phase gates, skeletons, and audits o
 
 ## STATUS
 
-`IN PROGRESS @ step 2` (Step 0 reconciliation done 2026-07-08; recon in this session after PHASE-02 close).
+`IN PROGRESS @ step 3` (Step 0 recon + Step 2 done 2026-07-08). Step 2 landed (DEVLOG 698): `EditionValidator`
+re-homed onto `EditionInfo` + `IDiagnosticSink` (ctor, the 2 `VisitCobolWord` direct writes → `sink.Report` via
+`EditionSeverityPolicy`, the driver hook); no `EditionContext` dependency on the edition path; byte-identical
+diagnostics (guard 353 MATCH; the edition/reserved-word/move corpora green). RESUME AT step 3.
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
@@ -55,7 +58,7 @@ unit **227** · characterization **32**; FULL legacy guard **NIST 353 MATCH**. `
 |---|---|---|---|
 | **0** baseline + recon | ✅ done | this table | — |
 | **1** P2 framework surface | ✅ present | `EditionInfo` / `IDiagnosticSink` / `EditionSeverity(Policy)` / `EditionDiagnostic` / sink-based `ConstructRegistry.Check(EditionInfo, IDiagnosticSink, id, where)` / `Constructs.g.cs` all exist (P2.1–P2.6) | — |
-| **2** re-home `EditionValidator` → `EditionInfo`+`IDiagnosticSink` | ◑ **PARTIAL** | validator ctor is still `EditionValidator(EditionContext)` (`EditionValidator.cs:30`), BUT all its `ConstructRegistry.Check` calls already pass `_edition.Edition, _edition` (EditionInfo + the sink, since `EditionContext : IDiagnosticSink`), and the binder-side `Check` sites are already structured (P2.4). | ctor → `(EditionInfo, IDiagnosticSink)`; drop the `EditionContext` field; the **2 direct writes** in `VisitCobolWord` (`_edition.Error(DiagnosticCatalog.DebugRegisterFacility,…)` + `_edition.Removed(EditionCodes.ReservedWord,…)`) → `_sink.Report(new EditionDiagnostic(…))` via `EditionSeverityPolicy`; `_edition.DialectLevel`→`.Year`; driver hook `new EditionValidator(edition.Edition, edition)`. **← CURRENT STEP** |
+| **2** re-home `EditionValidator` → `EditionInfo`+`IDiagnosticSink` | ✅ **DONE** (DEVLOG 698) | ctor now `EditionValidator(EditionInfo, IDiagnosticSink)`; the 2 `VisitCobolWord` direct writes emit via `_sink.Report(new EditionDiagnostic(…))` through `EditionSeverityPolicy`; `_edition.Year`; driver hook `new EditionValidator(edition.Edition, edition)`; `using CobolNet.Binding` dropped. No `EditionContext` on the edition path (exit criterion 6). Byte-identical (guard 353 MATCH; edition/reserved-word/move corpora green). | — |
 | **3** enrich `constructs.json` | ◑ **PARTIAL** | 95 rows carry `id/description/display/diagnosticCode/citation/introducedIn/removedIn/vcr/source/status`; **missing** `expectDiagnostic`(+`Below`) on most rows, **no `variant` blocks**, some rows `status:"?"` (unset). | add `expectDiagnostic`/`expectDiagnosticBelow` + `variant` + fill `status`. |
 | **4** fold the 5 inline gates | ✅ **DONE in P2.6b** | zero bare `Error("COBOLNET0816/0810/0811/0882/0803")` literals remain; all are registry rows (`0816 end-accept` folded-but-`pending` — grammar has no `END_ACCEPT`). | verify each still binds-after-permissive-warn + add negative witnesses only. |
 | **5** backfill 85→2002 / 2002→2014 rows | ❌ partial | — | add introduction rows from the grammar `{isXXXX()}?` gates + confirmed spec deltas (unconfirmed → `pending`). |
