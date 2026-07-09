@@ -22,26 +22,17 @@
 > catch-all split into ~40 addressable descriptors + the reused `COBOLNET1533` split by ISO §, generated
 > `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`. Baseline at P2 close was 2055 greenfield conformance; at head (P3 residue migration 5/7) it is **3112 greenfield conformance · 227 unit · 32
 > characterization GREEN; FULL legacy guard NIST 353 MATCH.**
-> **PHASE 03 IN PROGRESS @ step 2** (`docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md` — the
-> version-gating validator on the editions framework + harness-driven VCR audit + behavior-variant matrix). ⚠ The
-> PHASE-03 doc was authored BEFORE P2 executed, so its **Step-0 AS-BUILT reconciliation** (now embedded in that doc's
-> STATUS block) is load-bearing: **Step 1 (P2 framework surface) ✅ and Step 4 (fold the 5 inline gates) ✅ are ALREADY
-> satisfied** (P2.1–P2.6b); **Steps 2 & 3 are PARTIAL** (the validator's `Check` calls are already sink-based but its
-> ctor still takes `EditionContext`; `constructs.json` lacks `expectDiagnostic`/`variant`); **Steps 5–10 are the
-> substantial NEW work** — VCR mechanization (117 hand-`TODO` rows → harness-derived status), the behavior-variant
-> matrix (INV-3), the in-process continuity + INV-1-strong-2023 gates, corpus discovery runners, and loud hole
-> cataloguing. Steps 0/2/5/6/7/8/9/10 landed. **⛔🔁 PHASE-03 IS NOW SUPERSEDED-IN-PART BY THE VERSION-CONFORMANCE PIPELINE
-> REDESIGN (2026-07-08, `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).** The closing ultracode
-> adversarial-verify pass proved the reverse-signature residue (`ReservedWordEditionHints`) is a heuristic that
-> mis-fires on legitimate §8.9 user words + garbled syntax (DEVLOG 708), and an owner architecture review surfaced that
-> version gating is smeared across **THREE** mechanisms (grammar `{isYYYY()}?` predicates + the post-hoc guesser + ~24
-> binder `Check` calls) and that **bind and emit are FUSED** (`CompilerDriver.cs:114` renders C# then discards it on
-> error — codegen runs on errored trees). The owner directed the formal fix: **superset parse (edition predicates
-> removed; a committed-match construct-id annotation LOCAL to each version-gated rule — version *numbers* stay in
-> `constructs.json`) → edition-AGNOSTIC bind → ONE `VersionConformancePass` over the bound tree → emit-only-if-clean →
-> Roslyn**, deleting `ReservedWordEditionHints`. Owner-chosen implementation order: **RESIDUE-FIRST** (fold the 7
-> residue gates into the single mechanism + delete the guesser), then the pass/phase-separation skeleton. Full design +
-> per-construct migration: `DESIGN-version-conformance-pipeline.md`. **RESIDUE MIGRATION 5 of 7 DONE (DEVLOG 709–713,
+> **PHASE 03 — VERSION-CONFORMANCE PIPELINE (in progress; step-by-step
+> `docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md`, design `DESIGN-version-conformance-pipeline.md`).**
+> P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
+> each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
+> `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /
+> accept-inert permissive) → **emit-only-if-clean** → Roslyn. Edition gating is one mechanism — a
+> `ConstructRegistry.Check` at the construct's recognition point — never a parse-time predicate, a post-hoc reverse-
+> signature guesser, and scattered binder checks; bind and emit are separate phases the driver gates, so codegen never
+> runs on an errored tree. Also delivered on the P2 editions framework: the harness-driven VCR audit, the
+> behavior-variant matrix (INV-3), and the in-process continuity + INV-1-strong-2023 gates. Built **RESIDUE-FIRST** —
+> the 7 reservation-word gates fold into the single mechanism one construct per commit. **RESIDUE MIGRATION 5 of 7 DONE (DEVLOG 709–713,
 > 2026-07-08, all green+pushed):** UNLOCK #5 (`2daec9cb`), PROPERTY #7 (`7311dfbd`), PD-RAISING #6 (`840b0abf` — the
 > DEVLOG-708 mis-fire eliminated), XOR #1 (`d3cdae6c`, **Batch A complete**), SHARING #3 (`1b74f739`, **Batch B** — the
 > OPEN name-list collision proven byte-safe). Each dropped the grammar `{isXXXX()}?`, added a bind-time
@@ -307,16 +298,3 @@ phase** (detail + file:line in the cited `SURVEY-*.md` / `CRITIQUE-*.md` ROADMAP
   The G8 namespace flip is scoped to emitted `using`s, but the compiler makes **direct** compile-time calls into the
   runtime (`CobolEdit.Format`/`MaskScale` for constant-VALUE folding) that the `RuntimeApi` façade must also cover.
   *(SURVEY-runtime-value.md)*
-- **R7 — Version conformance is ONE dedicated pass, not a three-mechanism smear** *(→ PHASE-03/04/06/07; IN PROGRESS,
-  added 2026-07-08 — post-authoring).* The closing PHASE-03 adversarial-verify pass + an owner architecture review
-  found version gating spread across THREE mechanisms — grammar `{isXXXX()}?` predicates, the post-hoc
-  `ReservedWordEditionHints` reverse-signature guesser (which mis-fired on legitimate §8.9 user words + garbled syntax,
-  DEVLOG 708), and ~24 binder `ConstructRegistry.Check` calls — while **bind+emit were FUSED** (`CompilerDriver` renders
-  C# then discards it on error, so codegen ran on errored trees). The refinement consolidates to ONE mechanism:
-  **superset parse** (edition predicates removed; a committed-match construct-id ANNOTATION local to each rule — an
-  action, not a speculative predicate; versions single-sourced in `constructs.json`) → **edition-AGNOSTIC bind** → **one
-  `VersionConformancePass` over the bound tree** (reject strict / accept-inert permissive) → **emit-if-clean**, deleting
-  the guesser. Implemented **RESIDUE-FIRST** (5 of 7 gates migrated: UNLOCK/PROPERTY/PD-RAISING/XOR/SHARING, DEVLOG
-  709–713; RETRY + boolean family remain). Reshapes the MECHANISM of P03 (residue migration + pass skeleton), P04
-  (superset grammar + annotation convention), P06 (edition-agnostic binder; relocate the 24 Checks into the pass), P07
-  (bind/emit phase split). *(DESIGN-version-conformance-pipeline.md — decision-complete design + per-construct plan.)*

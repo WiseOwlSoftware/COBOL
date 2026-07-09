@@ -82,14 +82,12 @@ source.cob
        └─ CIL (Cecil):      bound tree → typed-native CIL (its OWN internal structure→branch lowering) → assembly
 ```
 
-**Edition conformance is a single dedicated pass, not scattered gating (2026-07-08 owner redesign,
-`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).** Version gating had drifted across THREE mechanisms —
-grammar `{isXXXX()}?` predicates, a post-hoc reverse-signature guesser (`ReservedWordEditionHints`, which mis-fired on
-legitimate §8.9 user words), and ~24 binder-embedded `ConstructRegistry.Check` calls — and bind+emit were fused so
-codegen ran on errored trees. The redesign consolidates to ONE mechanism: the grammar declares construct *identity*
-(a committed-match annotation, local to each rule; version *numbers* stay in `constructs.json`), the binder is
-edition-agnostic, and the `VersionConformancePass` over the bound tree is the sole gate — rejecting strict / accepting-
-inert permissive, and HALTING before emit. `ReservedWordEditionHints` is deleted. Migration is **residue-first**.
+**Edition conformance is a single dedicated pass** (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
+Edition gating is ONE mechanism: the grammar declares construct *identity* (a committed-match annotation local to each
+version-gated rule; version *numbers* live only in `constructs.json`), the binder is edition-agnostic, and the
+`VersionConformancePass` over the bound tree is the sole gate — rejecting strict / accepting-inert permissive, and
+HALTING before emit so codegen never runs on an errored tree. There is no parse-time `{isXXXX()}?` edition predicate,
+no post-hoc reverse-signature recognizer, and no edition checks scattered through the binder.
 
 **Backend-neutral bound tree + a selectable codegen backend (owner-confirmed 2026-06-08).** The bound semantic tree
 is the single model that both backends consume; codegen is behind an **`ICodeGenBackend`** abstraction with two

@@ -76,15 +76,13 @@
 > per-feature/per-rule descriptors + the reused `COBOLNET1533` split by ISO §, generated `docs/DIAGNOSTICS.md` +
 > `DiagnosticRegistryDriftTests` (P2.10a/b); step 11 — this docs close. All 7 PHASE-02 exit criteria hold. Battery at
 > close: **2055 conformance · 227 unit · 32 characterization · FULL legacy guard NIST 353 MATCH** (0 regressions).
-> ◐ **PHASE 03 — VERSION-CONFORMANCE PIPELINE REDESIGN (2026-07-08).** Steps 0/2/5/6/7/8/9/10 of the original
-> version-gating-validator plan landed, but the closing ultracode adversarial-verify pass proved the reverse-signature
-> residue (`ReservedWordEditionHints`) mis-fires on legitimate §8.9 user words + garbled syntax (DEVLOG 708), and an
-> owner architecture review directed a formal redesign (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
-> **Target pipeline: superset parse (edition `{isXXXX()}?` gates removed; a committed-match construct-id annotation
-> LOCAL to each version-gated rule — version numbers stay in `constructs.json`) → edition-AGNOSTIC bind → ONE
-> `VersionConformancePass` over the bound tree (reject strict / accept-inert permissive) → emit-only-if-clean → backend**
-> — this kills the THREE-mechanism smear (grammar predicates + post-hoc guesser + ~24 binder `Check`s), deletes
-> `ReservedWordEditionHints`, and fixes the fused bind/emit (codegen no longer runs on errored trees).
+> ◐ **PHASE 03 — VERSION-CONFORMANCE PIPELINE (in progress).** P3 makes edition conformance a single coherent pipeline:
+> **superset parse** (all constructs parse at every `--std`; each version-gated grammar rule carries a committed-match
+> construct-id annotation — version numbers live only in `constructs.json`) → **edition-AGNOSTIC bind** → **ONE
+> `VersionConformancePass` over the bound tree** (reject strict / accept-inert permissive) → **emit-only-if-clean** →
+> backend. Edition gating is one mechanism — a `ConstructRegistry.Check` at the construct's recognition point — with no
+> parse-time predicate, no post-hoc guesser, no scattered binder checks, and no `ReservedWordEditionHints`; bind and
+> emit are separate driver-gated phases. Design: `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
 > **RESIDUE-FIRST migration progress (5 of 7 gates done, each a green+pushed commit; DEVLOG 709–713):** ✅ UNLOCK #5
 > (`2daec9cb`), ✅ PROPERTY #7 (`7311dfbd`), ✅ PD-RAISING #6 (`840b0abf` — the DEVLOG-708 mis-fire that started the
 > redesign is eliminated), ✅ XOR #1 (`d3cdae6c` — BATCH A complete), ✅ SHARING #3 (`1b74f739` — Batch B; OPEN
