@@ -55,3 +55,4 @@ tests/conformance/**/*.dll
 tests/conformance/**/*.g.cs
 tests/conformance/**/*.runtimeconfig.json
 tests/conformance/**/*.pdb
+.aider*
