@@ -106,11 +106,9 @@ public static class ReservedWordEditionHints
             // and is gated in BindUnlock, so the reverse-signature arm is deleted.)
             CobolLexer.SHARING => Constructs.FileSharingClause2002,
             CobolLexer.RETRY => Constructs.RetryPhrase2002,
-            // PROCEDURE DIVISION … RAISING (§14.2.2, introduced 2002): below 2002 the {is2002()}? raisingClause
-            // alt is dead, so the parser errors AT the RAISING token inside the procedureDivision rule (RAISING is
-            // a §8.9 user word below 2002). Without this arm it surfaced as a GENERIC COBOL0001 — the P3 step-10
-            // loud-hole fix: re-diagnose it as the COBOLNET0900 introduction gate.
-            CobolLexer.RAISING when InRule(ruleStack, "procedureDivision") => Constructs.ProcedureRaising2002,
+            // (PROCEDURE DIVISION … RAISING migrated to a bind-time Check — residue migration #6,
+            // DESIGN-version-conformance-pipeline.md — its {is2002()}? predicate is gone; RAISING parses at all editions
+            // and is gated in DataBinder.Linkage, so the mis-firing reverse-signature arm is deleted.)
             // FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2): the {is2002()}?-gated tail is dead below 2002, so the
             // error lands on the IS token (PROTOTYPE ahead) or on PROTOTYPE itself (IS omitted), inside the
             // functionIdParagraph. PROTOTYPE is a §8.9 user word below 2002, so an error AT it there IS the gate.

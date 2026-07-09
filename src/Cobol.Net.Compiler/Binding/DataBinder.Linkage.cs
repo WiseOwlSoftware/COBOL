@@ -145,6 +145,12 @@ public sealed partial class DataBinder
 
         if (pd.returningClause() is not null)   // PROCEDURE DIVISION RETURNING — COBOL-2002 introduction, bind-time gate (rearch migration Cluster 6)
             ConstructRegistry.Check(Edition.Edition, Edition, Constructs.ProcedureReturning2002, "the PROCEDURE DIVISION RETURNING phrase");
+        if (pd.raisingClause() is not null)   // PROCEDURE DIVISION RAISING (§14.2.2) — COBOL-2002 introduction, bind-time gate
+            // (residue migration #6, DESIGN-version-conformance-pipeline.md): the {is2002()}? predicate + the mis-firing
+            // reverse-signature RAISING arm are gone; RAISING parses at all editions (superset) and is gated HERE where
+            // its identity is known — an exact COBOLNET0900 below 2002, never a post-hoc guess (the RAISING clause's EC
+            // SEMANTICS are bound in StatementBinder.Exceptions).
+            ConstructRegistry.Check(Edition.Edition, Edition, Constructs.ProcedureRaising2002, "the PROCEDURE DIVISION RAISING phrase");
         if (pd.returningClause()?.dataReference() is { } rref)
         {
             // §14.2.3 GR6: the returning item's storage is allocated IN THE ACTIVATED element — it stays an

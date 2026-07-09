@@ -484,7 +484,7 @@ computerAttributes
 // ==========================================
 
 procedureDivision
-    : PROCEDURE DIVISION usingClause? (returningClause)? ({is2002()}? raisingClause)? DOT   // returningClause introduction-gated at BIND time (DataBinder.Linkage → Check(ProcedureReturning2002)); raisingClause is gateless residue (no row)
+    : PROCEDURE DIVISION usingClause? (returningClause)? (raisingClause)? DOT   // returningClause + raisingClause both introduction-gated at BIND time (DataBinder.Linkage → Check(ProcedureReturning2002 / ProcedureRaising2002)); raisingClause parses at all editions (superset) — residue migration #6, DESIGN-version-conformance-pipeline.md
       declarativePart*
       procedureUnit*
     ;
