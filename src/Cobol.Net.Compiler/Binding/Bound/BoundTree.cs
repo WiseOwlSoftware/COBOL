@@ -301,7 +301,14 @@ public abstract record BoundStatement;
 public sealed record BoundUnsupported(string Feature) : BoundStatement;
 
 /// <summary><c>STOP RUN</c> / <c>GOBACK</c> (this slice: both unwind the paragraph chain).</summary>
-public sealed record BoundStop : BoundStatement;
+public sealed record BoundStop : BoundStatement
+{
+    /// <summary>True when written as <c>STOP RUN … WITH NORMAL/ERROR STATUS</c> (ISO §14.9.42, COBOL-2002) — the
+    /// edition gate (StopRunStatus2002) reads this in the post-bind <see cref="Validation.VersionConformancePass"/>
+    /// (rearch PHASE-03 Step 14d). The status VALUE is not yet modeled (the §12 RETURN-CODE wiring is a later
+    /// slice), so only the phrase's presence is recorded here.</summary>
+    public bool HasStatusPhrase { get; init; }
+}
 
 /// <summary>STOP literal (X3.23-1985 §14 Format 2, deleted 2002; edition-gated ≥2002 by the validator): "the
 /// literal is communicated to the operator" and, on resume, "execution continues with the next executable

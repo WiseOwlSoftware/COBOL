@@ -235,11 +235,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// binder obligation.</summary>
     private BoundStatement BindStop(Core.StopStatementContext stop)
     {
-        if (stop.stopStatusPhrase() is not null)
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.StopRunStatus2002, "the STOP RUN … WITH NORMAL/ERROR STATUS phrase");
+        // STOP RUN … WITH STATUS (§14.9.42) is a COBOL-2002 introduction; the edition gate (StopRunStatus2002)
+        // moved to the post-bind VersionConformancePass (Step 14d), reading BoundStop.HasStatusPhrase.
         return stop.literal() is { } slit
             ? new BoundStopLiteral(DecodeCobolString(slit.GetText()))
-            : new BoundStop();
+            : new BoundStop { HasStatusPhrase = stop.stopStatusPhrase() is not null };
     }
 
     private BoundStatement BindGoTo(Core.GoToStatementContext g)

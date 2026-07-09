@@ -117,7 +117,13 @@ internal sealed class VersionConformancePass
                 // list Any-check — the tested single-argument case is diagnostically identical).
                 if (cp.Args.Any(a => a.Mode == CobolPassMode.Value))
                     Check(Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
+                // ON OVERFLOW spelling (the COBOL-74 synonym for ON EXCEPTION) — REMOVED at ISO 2023; gate AFTER
+                // BY VALUE (the binder's order: args bind before the exception phrases).
+                if (cp.UsedOverflowSpelling)
+                    Check(Constructs.CallOnOverflowRemoved2023, "the CALL statement");
                 break;
+            case BoundStop { HasStatusPhrase: true }:
+                Check(Constructs.StopRunStatus2002, "the STOP RUN … WITH NORMAL/ERROR STATUS phrase"); break;
             case BoundKeyedRead kr:
                 // Two independent 2002 phrases on one READ; both gate, in the binder's order (§14.9.30).
                 if (kr.Kind == KeyedReadKind.Previous)

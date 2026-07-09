@@ -33,6 +33,12 @@ public sealed record BoundCallProgram(
     /// miss stamps EC-FUNCTION-NOT-FOUND (Fatal, ISO §8.4.3.2.4 GR6b / Table 13) rather than the CALL's
     /// EC-PROGRAM-NOT-FOUND. Runtime dispatch is otherwise identical (the shared activation ABI).</summary>
     public bool IsFunction { get; init; }
+
+    /// <summary>True when this CALL was written with the archaic ON OVERFLOW spelling (in either the ON or the NOT
+    /// ON phrase) — the COBOL-74-carried synonym for ON EXCEPTION, REMOVED at ISO 2023 (Annex E.2 item 1c). The
+    /// edition gate reads this in <see cref="Validation.VersionConformancePass"/> (rearch PHASE-03 Step 14d); the
+    /// bound handlers are otherwise identical to the ON EXCEPTION form.</summary>
+    public bool UsedOverflowSpelling { get; init; }
 }
 
 /// <summary><c>CANCEL {literal|identifier}…</c> (ISO §14.9.5): each target's next CALL finds its initial state
@@ -149,29 +155,24 @@ public sealed partial class StatementBinder
         //    phrases — "'ON OVERFLOW' CAN BE USED IN PLACE OF 'ON EXCEPTION'"); ON OVERFLOW is the 74-carried
         //    synonym, accepted 85–2014 and REMOVED at 2023 (Annex E.2 item 1c). ──
         List<BoundStatement>? onExc = null, notOnExc = null;
+        bool usedOverflow = false;
         if (call.callOnExceptionPhrase() is { } onp)
         {
-            CallGateExceptionSpelling(isOverflow: onp.OVERFLOW() is not null, negated: false);
+            usedOverflow |= onp.OVERFLOW() is not null;
             onExc = BindBlocks([onp.statementBlock()]);
         }
         if (call.callNotOnExceptionPhrase() is { } notp)
         {
-            CallGateExceptionSpelling(isOverflow: notp.OVERFLOW() is not null, negated: true);
+            usedOverflow |= notp.OVERFLOW() is not null;
             notOnExc = BindBlocks([notp.statementBlock()]);
         }
 
-        return new BoundCallProgram(literalName, dynamicName, args, returning, onExc, notOnExc);
-    }
-
-    /// <summary>Edition-gate one CALL exception-phrase spelling. <c>[NOT] ON EXCEPTION</c> is ANSI X3.23-1985
-    /// surface (CALL Format 2 — CCVS-85 IC222A exercises both phrases; no VERSION_CHANGE_REFERENCE row records a
-    /// later introduction), so it is valid at EVERY edition. <c>ON OVERFLOW</c> is the COBOL-74-carried synonym,
-    /// valid 85–2014 and REMOVED at 2023 (VERSION_CHANGE_REFERENCE row 3 / ISO 2023 Annex E.2 item 1c).</summary>
-    private void CallGateExceptionSpelling(bool isOverflow, bool negated)
-    {
-        _ = negated; // NOT ON EXCEPTION/OVERFLOW: same edition surface as the positive phrase (85+).
-        if (isOverflow)
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.CallOnOverflowRemoved2023, "the CALL statement");
+        // ON OVERFLOW is the COBOL-74-carried synonym for ON EXCEPTION, REMOVED at ISO 2023; the edition gate
+        // (CallOnOverflowRemoved2023) moved to the post-bind VersionConformancePass (Step 14d), reading the flag.
+        return new BoundCallProgram(literalName, dynamicName, args, returning, onExc, notOnExc)
+        {
+            UsedOverflowSpelling = usedOverflow,
+        };
     }
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §14.9.5 — targets resolved like CALL's, §8.4.6.3).</summary>
