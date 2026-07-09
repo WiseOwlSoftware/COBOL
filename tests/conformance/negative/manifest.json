@@ -8,6 +8,7 @@
     "based-redefines-conflict",
     "bit-usage-numeric-pic",
     "boolean-ordering-relation",
+    "boolean_operators_below_2002",
     "class-alphabetic-on-boolean",
     "class-numeric-on-bit",
     "close-with-lock",

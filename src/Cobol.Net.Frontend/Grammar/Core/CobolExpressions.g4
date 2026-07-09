@@ -108,7 +108,7 @@ primaryCondition
     // a normal comparison returns false and falls to comparisonExpression UNCHANGED (the shared rule is
     // untouched — the DEVLOG-621 regression lesson). booleanExpression's leaf is valueOperand, so the binder
     // unwraps a B-op-free operand back to a normal operand (BindPrimaryBoolean).
-    : {is2002() && boolExprAhead()}? booleanExpression ( comparisonOperator booleanExpression )?
+    : {boolExprAhead()}? booleanExpression ( comparisonOperator booleanExpression )?
     | comparisonExpression
     | booleanLiteral
     | LPAREN condition RPAREN
@@ -125,13 +125,15 @@ comparisonOperand
 // ── COBOL-2002 boolean expressions (ISO §8.8.2; precedence B-NOT > B-AND > B-XOR > B-OR, rule 7b).
 // Permissive-superset doctrine: the operand SHAPES (a boolean item / boolean literal / figurative ZERO /
 // ALL B"…") are enforced at BIND (the boolean-expression constraint band); the tiers enforce the formation
-// rules 1–3 + Table 4 adjacency STRUCTURALLY. Every alternative involving a B-operator is {is2002()}?-gated
-// so prediction kills it instantly at 85/NIST (the words behave as user words there, exactly as before). ──
-booleanExpression : booleanXorTerm ( {is2002()}? B_OR booleanXorTerm )* ;
-booleanXorTerm    : booleanAndTerm ( {is2002()}? B_XOR booleanAndTerm )* ;
-booleanAndTerm    : booleanFactor  ( {is2002()}? B_AND booleanFactor )* ;
-booleanFactor     : {is2002()}? B_NOT booleanFactor
-                  | {is2002()}? LPAREN booleanExpression RPAREN
+// rules 1–3 + Table 4 adjacency STRUCTURALLY. The tiers are SUPERSET-parsed (no edition predicate); they are
+// reached ONLY through the boolExprAhead()-gated primaryCondition ENTRY (or COMPUTE F2), so a B-op-free condition
+// never enters them (the shared comparisonExpression rule is untouched — the DEVLOG-621 lesson). The COBOL-2002
+// introduction gate is bind-time: Check(BooleanOperators2002) in BindBoolExpr when HasBoolOp — residue migration #2. ──
+booleanExpression : booleanXorTerm ( B_OR booleanXorTerm )* ;
+booleanXorTerm    : booleanAndTerm ( B_XOR booleanAndTerm )* ;
+booleanAndTerm    : booleanFactor  ( B_AND booleanFactor )* ;
+booleanFactor     : B_NOT booleanFactor
+                  | LPAREN booleanExpression RPAREN
                   | valueOperand
                   ;
 

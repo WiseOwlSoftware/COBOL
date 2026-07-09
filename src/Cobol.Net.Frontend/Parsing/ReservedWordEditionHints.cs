@@ -90,18 +90,15 @@ public static class ReservedWordEditionHints
             // (XOR / EXCLUSIVE-OR migrated to a bind-time Check — residue migration #1,
             // DESIGN-version-conformance-pipeline.md — its {is2023()}? predicate is gone; the operator parses at all
             // editions and is gated in BindXorSequence when genuinely present, so the reverse-signature arm is deleted.)
-            // The boolean operators (2002): as user words they parse through cobolWord and never error, so an
-            // error AT one of these tokens is the {is2002()}?-gated operator meaning below 2002 (the XOR argument).
-            CobolLexer.B_AND or CobolLexer.B_OR or CobolLexer.B_XOR or CobolLexer.B_NOT => Constructs.BooleanOperators2002,
-            // A boolean COMPUTE (Format 2) below 2002: the {is2002()}?-gated F2 alt is dead, so the whole
-            // computeStatement fails to predict and the error surfaces AT the COMPUTE token (not the B-op).
-            // Recognize it by a B-operator ahead in the statement (before the sentence terminator).
-            CobolLexer.COMPUTE when NextWithin(stream, token, 24,
-                    CobolLexer.B_AND, CobolLexer.B_OR, CobolLexer.B_XOR, CobolLexer.B_NOT) => Constructs.BooleanOperators2002,
+            // (The boolean operators B-AND/B-OR/B-XOR/B-NOT + the boolean COMPUTE F2 migrated to bind-time Checks —
+            // residue migration #2, DESIGN-version-conformance-pipeline.md — their {is2002()}? predicates are gone;
+            // the tiers parse at all editions behind the boolExprAhead()-gated ENTRY and are gated in
+            // BindPrimaryBoolean / BindComputeBoolean, so their reverse-signature arms are deleted.)
             // (RETRY #4 migrated to a bind-time gate — DESIGN-version-conformance-pipeline.md — its {is2002()}?
             // predicates are gone; it parses at all editions (superset; the OPEN site via the retryPhraseAhead()
             // forward-detect) and is gated in the I/O statement binders via GateRetryIntro, so this arm is deleted.
-            // Only the boolean family (B-AND/B-OR/B-XOR/B-NOT + the boolean COMPUTE) remains — residue migration #2.)
+            // ALL 7 reservation-word residue gates are now migrated to the single bind-time mechanism; only the vendor
+            // JSON/XML COBOL0313 disposition above remains — Step 13 deletes this file entirely.)
             // (PROCEDURE DIVISION … RAISING migrated to a bind-time Check — residue migration #6,
             // DESIGN-version-conformance-pipeline.md — its {is2002()}? predicate is gone; RAISING parses at all editions
             // and is gated in DataBinder.Linkage, so the mis-firing reverse-signature arm is deleted.)

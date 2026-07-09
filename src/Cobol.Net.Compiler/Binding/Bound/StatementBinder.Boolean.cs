@@ -172,6 +172,11 @@ public sealed partial class StatementBinder
     private BoundCondition BindPrimaryBoolean(Core.BooleanExpressionContext[] be, Core.ComparisonOperatorContext? opCtx, AbbrevCarry carry)
     {
         carry.Reset();
+        // COBOL-2002 boolean-operator introduction gate (residue migration #2): fires ONCE per boolean condition that
+        // carries a B-operator. The boolExprAhead()-gated ENTRY (superset — no edition predicate) brought us here at
+        // any edition; below 2002 this is the exact COBOLNET0900. A B-op-free relation operand rides its own channel.
+        if (be.Any(HasBoolOp))
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
         if (opCtx is not null && be.Length >= 2)
         {
             BoundOperand left = BindBoolOrValueOperand(be[0]);

@@ -701,6 +701,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)
     {
+        // COBOL-2002 boolean-operator introduction gate on COMPUTE Format 2 (residue migration #2): superset-parsed
+        // (F1 arithmetic is tried first; only a genuine boolean RHS falls to F2), gated here when a B-operator is
+        // present. A bare boolean literal RHS (no B-op) is gated instead by BooleanData2002 in BindBoolExpr.
+        if (HasBoolOp(boolExpr))
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
         var rhs = BindBoolExpr(boolExpr);
         // SR3 (§14.9.8 :26575): the expression shall not consist solely of an ALL literal.
         if (rhs is BoundBoolAll)

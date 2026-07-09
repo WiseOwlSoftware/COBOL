@@ -82,16 +82,30 @@ public abstract class CobolParserCoreBase : Parser
     /// </summary>
     protected bool boolExprAhead()
     {
-        if (DialectLevel < 2002) return false;
+        // Fires at ALL editions (superset parse — residue migration #2): a below-2002 boolean condition must PARSE so
+        // the bind-time gate can name COBOLNET0900, rather than fail as a generic parse error. A B-op-free comparison
+        // still returns false and falls to comparisonExpression unchanged (the shared rule is untouched — DEVLOG 621).
+        int prev = 0;   // token immediately BEFORE position i (0 = condition start — a leading binary B-op has no left operand)
         for (int i = 1; i <= 96; i++)
         {
-            switch (TokenStream.LA(i))
+            int t = TokenStream.LA(i);
+            switch (t)
             {
+                // A BINARY boolean operator is genuine ONLY with a completed operand immediately before it. A leading /
+                // operand-less occurrence is a §8.9 user data-name below 2002 (IF B-AND = 5) — NOT the operator, so it
+                // must fall to the normal comparison unchanged (else a plain comparison mis-gates as boolean, and RETRY
+                // #4's sibling mis-fire class returns). Below 2002 B-AND/B-OR/B-XOR are legal user words; at ≥2002 the
+                // §8.9 funnel already reserves them, so a leading occurrence is a name-slot error either way — never here.
                 case CobolLexer.B_AND:
                 case CobolLexer.B_OR:
                 case CobolLexer.B_XOR:
+                    if (IsBoolOperandTerm(prev)) return true;
+                    break;
+                // UNARY prefix B-NOT is genuine when a boolean operand can immediately FOLLOW (IF B-NOT A), not when it
+                // heads a comparison as a user data-name (IF B-NOT = 5).
                 case CobolLexer.B_NOT:
-                    return true;
+                    if (IsBoolOperandStart(TokenStream.LA(i + 1))) return true;
+                    break;
                 // ── Condition boundaries: no B-operator can belong to THIS condition past here ──
                 case CobolLexer.DOT:
                 case CobolLexer.AND:
@@ -122,9 +136,25 @@ public abstract class CobolParserCoreBase : Parser
                 case CobolLexer.IF:
                     return false;
             }
+            prev = t;
         }
         return false;
     }
+
+    /// <summary>An operand-ENDING token — an operand can end with an identifier, a right paren, or a literal. Used by
+    /// <see cref="boolExprAhead"/> to confirm a binary B-operator has a genuine LEFT operand (so a §8.9 user data-name
+    /// spelled B-AND/B-OR/B-XOR heading a comparison below 2002 is not mistaken for the operator).</summary>
+    private static bool IsBoolOperandTerm(int t) => t is
+        CobolLexer.IDENTIFIER or CobolLexer.RPAREN or CobolLexer.SUB_RPAREN
+        or CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT or CobolLexer.FLOATLIT
+        or CobolLexer.STRINGLIT or CobolLexer.NATLIT or CobolLexer.HEXLIT or CobolLexer.BOOLLIT
+        or CobolLexer.SIGNED_INTEGERLIT or CobolLexer.SIGNED_DECIMALLIT;
+
+    /// <summary>An operand-STARTING token — a boolean operand can start with an identifier, '(', a nested B-NOT, a
+    /// boolean literal, or figurative ZERO. Used to confirm a prefix B-NOT is a genuine unary operator.</summary>
+    private static bool IsBoolOperandStart(int t) => t is
+        CobolLexer.IDENTIFIER or CobolLexer.LPAREN or CobolLexer.B_NOT
+        or CobolLexer.BOOLLIT or CobolLexer.ZERO;
 
     /// <summary>
     /// COBOL-2002 RETRY-phrase forward detector (ISO §14.7.9) for the OPEN clause, where the phrase sits inside the

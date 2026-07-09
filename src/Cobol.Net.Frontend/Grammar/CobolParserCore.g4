@@ -887,7 +887,7 @@ divideRemainderPhrase
 
 computeStatement
     : COMPUTE computeStore+ EQUALS arithmeticExpression computeOnSizeError? END_COMPUTE?          // F1 (§14.9.8)
-    | {is2002()}? COMPUTE computeStore+ EQUALS booleanExpression computeOnSizeError? END_COMPUTE?  // F2 boolean-compute (§14.9.8 Format 2)
+    | COMPUTE computeStore+ EQUALS booleanExpression computeOnSizeError? END_COMPUTE?  // F2 boolean-compute (§14.9.8 Format 2); superset-parsed (F1 arithmetic is tried first; only a genuine boolean RHS falls here), introduction-gated at BIND (BindBoolExpr → Check(BooleanOperators2002)) — residue migration #2
     ;
 
 computeStore
