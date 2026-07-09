@@ -65,7 +65,7 @@ fileControlClauses
     | paddingCharacterClause
     // COBOL-2002 file sharing / record locking (ISO §12.4.5.15 / §12.4.5.9) — unique leading tokens
     // (SHARING / LOCK), {is2002()}?-gated, ADDITIVE (the DEVLOG 621/622 lesson).
-    | {is2002()}? sharingClause
+    | sharingClause   // COBOL-2002; parses at all editions (superset), gated at BIND (DataBinder SELECT → Check(FileSharingClause2002)) — residue migration #3
     | lockModeClause   // LOCK MODE (LOCK/MODE hard-reserved) introduction-gated at BIND time (DataBinder lockModeClause branch → Check(LockModeClause2002))
     | vendorFileControlClause
     ;
@@ -229,7 +229,7 @@ openStatement
     ;
 
 openClause
-    : openMode ({is2002()}? sharingPhrase)? ({is2002()}? retryPhrase)? openFileSpec+
+    : openMode (sharingPhrase)? ({is2002()}? retryPhrase)? openFileSpec+   // sharingPhrase ungated (superset), gated at BIND (BindOpen → Check(FileSharingClause2002)) — residue migration #3; retryPhrase stays predicate-gated until migration #4
     ;
 
 // COBOL-2002 OPEN SHARING phrase (ISO §14.9.27) — overrides the file-control SHARING clause for this OPEN.

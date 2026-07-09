@@ -419,7 +419,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                     file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13 SR3 — outside the record
-                else if (clauses.sharingClause() is { } sh) file.Sharing = MapSharing(sh.sharingMode());   // §12.4.5.15
+                else if (clauses.sharingClause() is { } sh)   // §12.4.5.15 — COBOL-2002 introduction, bind-time gate (residue migration #3; the {is2002()}? predicate + reverse-signature arm are gone)
+                {
+                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.FileSharingClause2002, "the SHARING clause");
+                    file.Sharing = MapSharing(sh.sharingMode());
+                }
                 else if (clauses.lockModeClause() is { } lm)                                                 // §12.4.5.9
                 {
                     ConstructRegistry.Check(Edition.Edition, Edition, Constructs.LockModeClause2002, "the LOCK MODE clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 9)

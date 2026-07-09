@@ -98,12 +98,11 @@ public static class ReservedWordEditionHints
             // Recognize it by a B-operator ahead in the statement (before the sentence terminator).
             CobolLexer.COMPUTE when NextWithin(stream, token, 24,
                     CobolLexer.B_AND, CobolLexer.B_OR, CobolLexer.B_XOR, CobolLexer.B_NOT) => Constructs.BooleanOperators2002,
-            // The file-sharing family (2002). SHARING/RETRY are §8.9 reserved-since-2002 words: below 2002 they
-            // parse as user words through cobolWord and never error, so an error AT one of these tokens IS the
-            // gated construct (the XOR argument). (UNLOCK migrated to a bind-time Check — residue migration #5,
-            // DESIGN-version-conformance-pipeline.md — its {is2002()}? predicate is gone; it parses at all editions
-            // and is gated in BindUnlock, so the reverse-signature arm is deleted.)
-            CobolLexer.SHARING => Constructs.FileSharingClause2002,
+            // RETRY is a §8.9 reserved-since-2002 word: below 2002 it parses as a user word through cobolWord and
+            // never errors, so an error AT the RETRY token IS the gated construct (the XOR argument). (SHARING #3 +
+            // UNLOCK #5 migrated to bind-time Checks — DESIGN-version-conformance-pipeline.md — their {is2002()}?
+            // predicates are gone; they parse at all editions and are gated in BindOpen/DataBinder/BindUnlock, so
+            // their reverse-signature arms are deleted. RETRY #4 is the last file-family arm remaining.)
             CobolLexer.RETRY => Constructs.RetryPhrase2002,
             // (PROCEDURE DIVISION … RAISING migrated to a bind-time Check — residue migration #6,
             // DESIGN-version-conformance-pipeline.md — its {is2002()}? predicate is gone; RAISING parses at all editions
