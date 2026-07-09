@@ -115,6 +115,10 @@ public static class CompilerDriver
         // the >>TURN directive events (ISO §7.3.25) that build the group's compile-time TurnState (deep-dive D10).
         var emitter = new CSharpEmitter();
         var bound = emitter.Bind(tree, edition, frontend.TurnEvents);
+        // P3 step 14 — the ONE post-bind edition-conformance funnel over the bound tree (the sole gate; the binder
+        // is edition-agnostic). Runs for BOTH a full compile and a CheckOnly verdict — the edition band codes come
+        // from here, so a bind-only verdict would silently drop every edition diagnostic.
+        Validation.VersionConformancePass.Run(bound, edition.Edition, edition);
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
 

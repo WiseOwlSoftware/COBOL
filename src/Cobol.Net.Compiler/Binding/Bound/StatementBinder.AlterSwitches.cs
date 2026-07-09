@@ -131,8 +131,9 @@ public sealed partial class StatementBinder
     /// proc-2 (a section proc-2 transfers to its first paragraph, the §14.9.17 GR1 GO TO rule).</summary>
     private BoundStatement BindAlter(Core.AlterStatementContext al)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.AlterRemoved2002, "the ALTER statement");
-        // At 85: obsolete element, accepted with no failing diagnostic (warning channel pending, as above).
+        // ALTER was REMOVED by ISO 2002; the edition gate moved to the post-bind VersionConformancePass
+        // (PHASE-03 Step 14b), firing on the self-identifying BoundAlter node. At 85: obsolete element, accepted
+        // with no failing diagnostic (warning channel pending, as above).
         AlterEnsureScan();
         var entries = new List<BoundAlterEntry>();
         foreach (var entry in al.alterEntry())

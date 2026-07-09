@@ -878,10 +878,9 @@ public sealed partial class StatementBinder
         IReadOnlyList<Core.DataReferenceContext> targetRefs,
         Core.DataReferenceContext? senderRef, bool senderNull, bool senderSelf, bool senderSuper)
     {
-        // SET … TO object-reference (§14.9.39 Format 5) is a COBOL-2002 introduction — bind-time gate at the ONE
-        // convergence point for both the NULL/SELF/SUPER route (BindSet) and the data-sender re-route (BindSetTo);
-        // rearch bind-time migration Cluster 8a (the parse-time {is2002()}? predicate is gone).
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.SetObjectReference2002, "the SET … TO object-reference statement (Format 5)");
+        // SET … TO object-reference (§14.9.39 Format 5) is a COBOL-2002 introduction; the edition gate moved to the
+        // post-bind VersionConformancePass (PHASE-03 Step 14b) — it fires on the self-identifying BoundSetObjectRef
+        // node this convergence point (NULL/SELF/SUPER route + the data-sender re-route) produces.
         if (senderSuper)
         {
             data.Edition.Error("COBOLNET0867",

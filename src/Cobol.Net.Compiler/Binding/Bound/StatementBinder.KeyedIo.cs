@@ -220,13 +220,12 @@ public sealed partial class StatementBinder
         return new BoundKeyedDelete(file, invalid);
     }
 
-    /// <summary>Bind <c>DELETE FILE file</c> (ISO §14.9.10 Format 2 — COBOL-2023). Bind-time introduction gate
-    /// (rearch bind-time migration Cluster 3): the construct parses at every edition and is gated here through
-    /// the ONE <see cref="ConstructRegistry.Check"/> funnel (COBOLNET0900 below 2023).</summary>
+    /// <summary>Bind <c>DELETE FILE file</c> (ISO §14.9.10 Format 2 — COBOL-2023). The construct parses at every
+    /// edition; its introduction gate moved to the post-bind VersionConformancePass (rearch PHASE-03 Step 14b),
+    /// firing on the self-identifying <see cref="BoundKeyedDeleteFile"/> node (COBOLNET0900 below 2023).</summary>
     private BoundStatement KeyedBindDeleteFile(Core.DeleteFileStatementContext df)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.DeleteFile2023, "the DELETE FILE statement");
-        GateRetryIntro(df.retryPhrase());   // §14.7.9 introduction gate on DELETE FILE (residue migration #4)
+        GateRetryIntro(df.retryPhrase());   // §14.7.9 introduction gate on DELETE FILE (residue migration #4 — still bind-time, moves in 14c)
         string name = df.fileName().GetText();
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"DELETE FILE of undeclared file '{name}'");

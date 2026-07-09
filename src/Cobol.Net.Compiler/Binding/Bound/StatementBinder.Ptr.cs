@@ -23,7 +23,9 @@ public sealed partial class StatementBinder
     /// (sender form — routes into the ONE pointer-SET node with the ADDRESS OF source leg).</summary>
     private BoundStatement PtrBindSetAddress(Core.SetAddressStatementContext sa)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.SetAddress2002, "SET ADDRESS OF (ISO §14.9.39 Format 7)");
+        // SET ADDRESS OF (§14.9.39 Format 7) is a COBOL-2002 introduction; the edition gate moved to the post-bind
+        // VersionConformancePass (PHASE-03 Step 14b) — it fires on BoundSetAddressOfBased (receiver form) and
+        // BoundSetPointer{Address} (sender form).
         bool receiverForm = sa.GetChild(1) is Antlr4.Runtime.Tree.ITerminalNode { Symbol.Type: Core.ADDRESS };
 
         if (receiverForm)
@@ -88,7 +90,8 @@ public sealed partial class StatementBinder
     /// corpus has no consumer and the INITIALIZE lowering deserves its own witness.</summary>
     private BoundStatement PtrBindAllocate(Core.AllocateStatementContext al)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Allocate2002, "the ALLOCATE statement");
+        // ALLOCATE (§14.9.3) is a COBOL-2002 introduction; edition gate moved to VersionConformancePass (Step 14b),
+        // firing on the self-identifying BoundAllocate node.
         var drefs = al.dataReference();
         Place? returning = null;
         if (al.RETURNING() is not null)
@@ -124,7 +127,8 @@ public sealed partial class StatementBinder
     /// <c>FREE based-item</c> form is rejected, never silently mis-freed).</summary>
     private BoundStatement PtrBindFree(Core.FreeStatementContext fr)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Free2002, "the FREE statement");
+        // FREE (§14.9.15) is a COBOL-2002 introduction; edition gate moved to VersionConformancePass (Step 14b),
+        // firing on the self-identifying BoundFree node.
         var operands = new List<Place>();
         foreach (var dref in fr.dataReference())
         {
@@ -150,7 +154,8 @@ public sealed partial class StatementBinder
         if (refs.Resolve(drefs[0]) is not { } first || first.Item.Pic?.Category is not PicCategory.Pointer)
             return null;
 
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.PointerArithmetic2002, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)");
+        // SET pointer UP/DOWN BY (§14.9.39 Format 10) is a COBOL-2002 introduction; edition gate moved to
+        // VersionConformancePass (Step 14b), firing on the self-identifying BoundSetPointerUpDown node.
         var targets = new List<Place> { first };
         foreach (var dref in drefs.Skip(1))
         {
