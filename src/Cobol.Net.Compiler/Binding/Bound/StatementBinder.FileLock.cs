@@ -22,6 +22,12 @@ public sealed partial class StatementBinder
     /// file. SR1 — not a sort/merge file.</summary>
     private BoundStatement BindUnlock(Core.UnlockStatementContext ul)
     {
+        // UNLOCK is a COBOL-2002 introduction (§14.9.47). It now parses at ALL editions (the parse-time {is2002()}?
+        // predicate is gone — superset grammar); the introduction gate is enforced HERE, where the construct's
+        // identity is known, so a below-2002 UNLOCK yields an exact COBOLNET0900 instead of the deleted
+        // reverse-signature guess (residue migration #5, DESIGN-version-conformance-pipeline.md). Fires before the
+        // file-resolution check so the edition verdict precedes an undeclared-file error.
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.UnlockStatement2002, "the UNLOCK statement");
         string name = ul.fileName().GetText();
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"UNLOCK of undeclared file '{name}'");

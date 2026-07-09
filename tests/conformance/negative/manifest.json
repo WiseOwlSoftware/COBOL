@@ -41,6 +41,7 @@
     "sharing-all-no-lockmode",
     "stop-literal",
     "sync_group_below_2023",
+    "unlock_below_2002",
     "unlock-sort-file",
     "use-for-debugging",
     "user-word-commit",

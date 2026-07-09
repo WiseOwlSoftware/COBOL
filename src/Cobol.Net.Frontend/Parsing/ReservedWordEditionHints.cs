@@ -98,13 +98,13 @@ public static class ReservedWordEditionHints
             // Recognize it by a B-operator ahead in the statement (before the sentence terminator).
             CobolLexer.COMPUTE when NextWithin(stream, token, 24,
                     CobolLexer.B_AND, CobolLexer.B_OR, CobolLexer.B_XOR, CobolLexer.B_NOT) => Constructs.BooleanOperators2002,
-            // The file-sharing family (2002). SHARING/RETRY/UNLOCK are §8.9 reserved-since-2002 words: below
-            // 2002 they parse as user words through cobolWord and never error, so an error AT one of these
-            // tokens IS the gated construct (the XOR argument). LOCK is continuous-since-85 (CLOSE … WITH
-            // LOCK), so the LOCK-MODE clause needs the MODE lookahead to disjoin it from that legal 85 form.
+            // The file-sharing family (2002). SHARING/RETRY are §8.9 reserved-since-2002 words: below 2002 they
+            // parse as user words through cobolWord and never error, so an error AT one of these tokens IS the
+            // gated construct (the XOR argument). (UNLOCK migrated to a bind-time Check — residue migration #5,
+            // DESIGN-version-conformance-pipeline.md — its {is2002()}? predicate is gone; it parses at all editions
+            // and is gated in BindUnlock, so the reverse-signature arm is deleted.)
             CobolLexer.SHARING => Constructs.FileSharingClause2002,
             CobolLexer.RETRY => Constructs.RetryPhrase2002,
-            CobolLexer.UNLOCK => Constructs.UnlockStatement2002,
             // PROCEDURE DIVISION … RAISING (§14.2.2, introduced 2002): below 2002 the {is2002()}? raisingClause
             // alt is dead, so the parser errors AT the RAISING token inside the procedureDivision rule (RAISING is
             // a §8.9 user word below 2002). Without this arm it surfaced as a GENERIC COBOL0001 — the P3 step-10

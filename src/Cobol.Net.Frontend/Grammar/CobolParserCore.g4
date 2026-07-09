@@ -679,7 +679,7 @@ statement
     | deleteFileStatement   // introduction-gated at BIND time (StatementBinder.KeyedIo → Check(DeleteFile2023)); disjoint from deleteStatement above on the 2nd token (FILE ∉ cobolWord)
     | allocateStatement
     | freeStatement
-    | {is2002()}? unlockStatement
+    | unlockStatement   // COBOL-2002; parses at all editions (superset), introduction-gated at BIND (BindUnlock → Check(UnlockStatement2002)) — DESIGN-version-conformance-pipeline.md residue migration #5
     | displayStatement
     | divideStatement
     | evaluateStatement
