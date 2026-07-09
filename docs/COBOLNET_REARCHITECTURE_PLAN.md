@@ -20,7 +20,7 @@
 > leaving only the reservation-word residue in the renamed `ReservedWordEditionHints` (DEVLOG 693). **Step 10** stood up
 > the first-class `DiagnosticDescriptor` registry (`Cobol.Net.Editions/Diagnostics/DiagnosticCatalog`): the `COBOLNET0899`
 > catch-all split into ~40 addressable descriptors + the reused `COBOLNET1533` split by ISO §, generated
-> `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`. Current baseline: **2055 greenfield conformance · 227 unit · 32
+> `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`. Baseline at P2 close was 2055 greenfield conformance; at head (P3 residue migration 5/7) it is **3112 greenfield conformance · 227 unit · 32
 > characterization GREEN; FULL legacy guard NIST 353 MATCH.**
 > **PHASE 03 IN PROGRESS @ step 2** (`docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md` — the
 > version-gating validator on the editions framework + harness-driven VCR audit + behavior-variant matrix). ⚠ The
@@ -41,8 +41,16 @@
 > `constructs.json`) → edition-AGNOSTIC bind → ONE `VersionConformancePass` over the bound tree → emit-only-if-clean →
 > Roslyn**, deleting `ReservedWordEditionHints`. Owner-chosen implementation order: **RESIDUE-FIRST** (fold the 7
 > residue gates into the single mechanism + delete the guesser), then the pass/phase-separation skeleton. Full design +
-> per-construct migration: `DESIGN-version-conformance-pipeline.md`. Read the PHASE-03 doc's STATUS block for what
-> already landed; execute the redesign migration, battery-green at every commit boundary.
+> per-construct migration: `DESIGN-version-conformance-pipeline.md`. **RESIDUE MIGRATION 5 of 7 DONE (DEVLOG 709–713,
+> 2026-07-08, all green+pushed):** UNLOCK #5 (`2daec9cb`), PROPERTY #7 (`7311dfbd`), PD-RAISING #6 (`840b0abf` — the
+> DEVLOG-708 mis-fire eliminated), XOR #1 (`d3cdae6c`, **Batch A complete**), SHARING #3 (`1b74f739`, **Batch B** — the
+> OPEN name-list collision proven byte-safe). Each dropped the grammar `{isXXXX()}?`, added a bind-time
+> `ConstructRegistry.Check`, deleted the reverse-signature arm + a negative fixture; FULL legacy guard ALL GREEN each.
+> **RESUME AT: Batch C — the last 2 gates** — RETRY #4 (5 verb sites bind-time + a forward `retryPhraseAhead()` for the
+> OPEN site; `FOREVER` is user-legal so the lookahead needs care) and the boolean family #2 (operator tiers + COMPUTE
+> F2 pure-gating; the boolean-condition ENTRY via `boolExprAhead()`) — ⚠ HIGHEST SCRUTINY (the shared comparison DFA,
+> DEVLOG 621). Then delete `ReservedWordEditionHints` + the Stage-0 pass/phase-separation skeleton
+> (`DESIGN-version-conformance-pipeline.md` §4/§5). Battery-green at every commit boundary.
 > ⚠ One owner override to carry forward — **D10: PHASE-04 must FULLY remove the lexer `SUBSCRIPT` mode + the binder
 > subscript re-parse** (a grammar-level `x(i)` rule), an expansion beyond that phase's originally-authored scope (§6). The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
 > the decision-complete designs in `docs/rearchitecture/DESIGN-*.md`; the as-is survey + critique in
@@ -299,3 +307,16 @@ phase** (detail + file:line in the cited `SURVEY-*.md` / `CRITIQUE-*.md` ROADMAP
   The G8 namespace flip is scoped to emitted `using`s, but the compiler makes **direct** compile-time calls into the
   runtime (`CobolEdit.Format`/`MaskScale` for constant-VALUE folding) that the `RuntimeApi` façade must also cover.
   *(SURVEY-runtime-value.md)*
+- **R7 — Version conformance is ONE dedicated pass, not a three-mechanism smear** *(→ PHASE-03/04/06/07; IN PROGRESS,
+  added 2026-07-08 — post-authoring).* The closing PHASE-03 adversarial-verify pass + an owner architecture review
+  found version gating spread across THREE mechanisms — grammar `{isXXXX()}?` predicates, the post-hoc
+  `ReservedWordEditionHints` reverse-signature guesser (which mis-fired on legitimate §8.9 user words + garbled syntax,
+  DEVLOG 708), and ~24 binder `ConstructRegistry.Check` calls — while **bind+emit were FUSED** (`CompilerDriver` renders
+  C# then discards it on error, so codegen ran on errored trees). The refinement consolidates to ONE mechanism:
+  **superset parse** (edition predicates removed; a committed-match construct-id ANNOTATION local to each rule — an
+  action, not a speculative predicate; versions single-sourced in `constructs.json`) → **edition-AGNOSTIC bind** → **one
+  `VersionConformancePass` over the bound tree** (reject strict / accept-inert permissive) → **emit-if-clean**, deleting
+  the guesser. Implemented **RESIDUE-FIRST** (5 of 7 gates migrated: UNLOCK/PROPERTY/PD-RAISING/XOR/SHARING, DEVLOG
+  709–713; RETRY + boolean family remain). Reshapes the MECHANISM of P03 (residue migration + pass skeleton), P04
+  (superset grammar + annotation convention), P06 (edition-agnostic binder; relocate the 24 Checks into the pass), P07
+  (bind/emit phase split). *(DESIGN-version-conformance-pipeline.md — decision-complete design + per-construct plan.)*
