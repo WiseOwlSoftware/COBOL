@@ -14,7 +14,14 @@ using Core = CobolParserCore;
 /// with additional transfers requested / excess ignored by size (GR1–GR4 — explicitly NOT the MOVE rules). Every
 /// other kind is Format 2 — a temporal source read from the system clock as a conceptual UNSIGNED INTEGER USAGE
 /// DISPLAY item and transferred BY THE MOVE RULES (GR6), of conceptual width 6/8/5/7/8/1 (GR7–GR12).</summary>
-public sealed record BoundAccept(Place Target, AcceptKind Kind) : BoundStatement;
+public sealed record BoundAccept(Place Target, AcceptKind Kind) : BoundStatement
+{
+    /// <summary>True when the ACCEPT was written with the explicit END-ACCEPT scope terminator (ISO §14.9.1
+    /// general formats — COBOL-2002; the 1985 ACCEPT has none). The edition gate (EndAccept2002) reads this in the
+    /// post-bind <see cref="Validation.VersionConformancePass"/> (rearch PHASE-03 Step 14e); the terminator has no
+    /// semantic effect, so only its presence is recorded.</summary>
+    public bool HasEndTerminator { get; init; }
+}
 
 /// <summary>The data source of an ACCEPT (ISO §14.9.1): the Format 1 device, or one of the Format 2 temporal
 /// sources — DATE (YYMMDD, GR7), DATE YYYYMMDD (GR8, 2002+), DAY (YYDDD, GR9), DAY YYYYDDD (GR10, 2002+),
@@ -40,10 +47,10 @@ public sealed partial class StatementBinder
     /// nothing silently degrades. The receiver resolves like any other (qualified / subscripted / ref-modified).</summary>
     private BoundStatement BindAccept(Core.AcceptStatementContext ac)
     {
-        // END-ACCEPT: the explicit scope terminator was introduced by COBOL-2002 (ISO §14.9.1 general formats; the
-        // 1985 ACCEPT has none). The superset grammar always parses it; the binder edition-gates it.
-        if (AcceptHasTerminator(ac))
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.EndAccept2002, "the ACCEPT statement");
+        // END-ACCEPT: the explicit scope terminator is a COBOL-2002 introduction (ISO §14.9.1 general formats; the
+        // 1985 ACCEPT has none). The edition gate (EndAccept2002) moved to the post-bind VersionConformancePass
+        // (Step 14e), reading BoundAccept.HasEndTerminator — computed once here and stamped on each ACCEPT node.
+        bool endTerm = AcceptHasTerminator(ac);
 
         if (refs.Resolve(ac.dataReference()) is not { } target)
             return new BoundUnsupported($"ACCEPT receiver '{ac.dataReference().GetText()}'");
@@ -58,10 +65,13 @@ public sealed partial class StatementBinder
         }
 
         if (ac.acceptSource() is not { } src)
-            return new BoundAccept(target, AcceptKind.Device);   // GR5 — FROM omitted: the implementor default (stdin)
+            return new BoundAccept(target, AcceptKind.Device) { HasEndTerminator = endTerm };   // GR5 — FROM omitted: the implementor default (stdin)
 
         if (src.dataReference() is { } mnemonic)
-            return BindAcceptFromMnemonic(target, mnemonic);
+        {
+            var accepted = BindAcceptFromMnemonic(target, mnemonic);
+            return accepted is BoundAccept mba ? mba with { HasEndTerminator = endTerm } : accepted;
+        }
 
         // Format 2 — temporal. The four-digit-year phrases are COBOL-2002+ (the 1985 §14.9.1 formats list only the
         // bare DATE / DAY / DAY-OF-WEEK / TIME); reject below 2002, never silently accept-and-misbehave.
@@ -76,7 +86,7 @@ public sealed partial class StatementBinder
             : src.DAY_OF_WEEK() is not null ? AcceptKind.DayOfWeek
             : src.DAY() is not null ? (src.YYYYDDD() is not null ? AcceptKind.DayYYYYDDD : AcceptKind.Day)
             : AcceptKind.Device;   // unreachable by grammar; Device keeps the bind total
-        return new BoundAccept(target, kind);
+        return new BoundAccept(target, kind) { HasEndTerminator = endTerm };
     }
 
     /// <summary><c>ACCEPT … FROM mnemonic-name-1</c> (ISO §14.9.1 Format 1, SR2): the mnemonic shall be declared in

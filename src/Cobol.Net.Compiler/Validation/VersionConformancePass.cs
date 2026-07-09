@@ -124,6 +124,10 @@ internal sealed class VersionConformancePass
                 break;
             case BoundStop { HasStatusPhrase: true }:
                 Check(Constructs.StopRunStatus2002, "the STOP RUN … WITH NORMAL/ERROR STATUS phrase"); break;
+            case BoundInvoke or BoundInvokeUniversal:
+                Check(Constructs.Invoke2002, "the INVOKE statement"); break;
+            case BoundAccept { HasEndTerminator: true }:
+                Check(Constructs.EndAccept2002, "the ACCEPT statement"); break;
             case BoundKeyedRead kr:
                 // Two independent 2002 phrases on one READ; both gate, in the binder's order (§14.9.30).
                 if (kr.Kind == KeyedReadKind.Previous)

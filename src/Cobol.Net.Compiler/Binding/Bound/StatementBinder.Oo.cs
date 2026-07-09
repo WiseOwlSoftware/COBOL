@@ -280,9 +280,10 @@ public sealed partial class StatementBinder
     /// universal/dynamic dispatch (D10 wave) stage loud.</summary>
     private BoundStatement OoBindInvoke(Core.InvokeStatementContext inv)
     {
-        // INVOKE was introduced by ISO/IEC 1989:2002 (§14.9.23, OO). Bind-time introduction gate (rearch
-        // bind-time migration Cluster 3 — the parse-time {is2002()}? predicate is gone).
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Invoke2002, "the INVOKE statement");
+        // INVOKE (§14.9.23, OO) is a COBOL-2002 introduction; the edition gate moved to the post-bind
+        // VersionConformancePass (Step 14e), firing on the BoundInvoke / BoundInvokeUniversal node this explicit
+        // statement produces. (A synthesized property-op BoundInvoke also gates, but property use is itself 2002+,
+        // so a below-2002 program using it is already rejected — the over-fire is on an already-errored unit.)
         var target = inv.invokeTarget().objectReference();
 
         // The method selector: an alphanumeric/national literal binds statically (§14.9.23.3 SR2);

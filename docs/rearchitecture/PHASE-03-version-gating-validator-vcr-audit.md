@@ -56,7 +56,10 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14e (14a–14d DONE)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+`IN PROGRESS @ Step 14f (14a–14e DONE)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+**Step 14e DONE (DEVLOG 722):** END-ACCEPT (`BoundAccept.HasEndTerminator`) + INVOKE (`BoundInvoke`/`BoundInvokeUniversal`)
+relocated. Statement-gate relocation remaining: ROUNDED MODE IS, sequential record-lock, RETRY (14f) +
+boolean/XOR/national-boolean-literals/MOVE-category/bare-GOTO/UDF (14g).
 **Step 14c DONE (DEVLOG 720):** 7 attribute-conditioned statement gates relocated to the pass (OPEN SHARING, CALL BY
 VALUE, GOBACK RETURNING, READ PREVIOUS, READ ADVANCING-ON-LOCK, START FIRST/LAST, START WITH LENGTH). **Step 14d DONE
 (DEVLOG 721):** two flag-backed statement gates — CALL ON OVERFLOW (`BoundCallProgram.UsedOverflowSpelling`) + STOP…STATUS
