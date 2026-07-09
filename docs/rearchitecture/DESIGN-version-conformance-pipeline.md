@@ -93,16 +93,19 @@ steers the parse so the single pass can do the diagnosing. Contrast with the res
 *after* a failed parse; forward-detection *proves* identity *during* the parse, then defers the verdict to the one pass.
 
 The OPEN site's predicate is `{is2002() || retryPhraseAhead()}?`. **`retryPhraseAhead()` canonical spec:** true iff,
-with RETRY at the lookahead in the OPEN-clause position, the following tokens form a complete retry tail
-(arithmetic-expression `TIMES` | `FOR`? arithmetic-expression `SECONDS` | `FOREVER`) **AND** at least one further
-candidate file-name token remains before the sentence terminator (`openFileSpec+` must stay satisfiable).
-Consequences:
-- `OPEN INPUT RETRY FOREVER.` (no trailing name) stays a two-file-name list at 85;
-- `OPEN INPUT RETRY 5 TIMES F.` forward-detects (an integer can never be a file name);
-- the genuinely ambiguous `OPEN INPUT RETRY FOREVER F.` resolves to file names below 2002 (RETRY is a legal §8.9 user
-  word there) and to the phrase at ≥2002 (`is2002()` is true; the §8.9 funnel reserves RETRY).
+with RETRY at the lookahead in the OPEN-clause position, the tail after RETRY is an **UNAMBIGUOUS numeric** retry tail
+(`n TIMES` | `FOR`? `n SECONDS`, where `n` contains an integer literal — an integer can never be a file name, so RETRY
+must be the phrase keyword) **AND** at least one further candidate file-name token remains before the sentence
+terminator (`openFileSpec+` must stay satisfiable). A bare `RETRY FOREVER` (FOREVER is a §8.10 user-legal word) or a
+`RETRY <name>` count is *genuinely ambiguous* below 2002 and is EXCLUDED — those defer to `is2002()`. Consequences:
+- `OPEN INPUT RETRY FOREVER.` (no numeric tail, no trailing name) stays a two-file-name list at 85;
+- `OPEN INPUT RETRY 5 TIMES F.` forward-detects (the integer `5` disambiguates; `F` remains);
+- the genuinely ambiguous `OPEN INPUT RETRY FOREVER F.` resolves to file names below 2002 (RETRY/FOREVER are legal user
+  words there) and to the phrase at ≥2002 (`is2002()` is true; the §8.9 funnel reserves RETRY).
 
-Fail-safe: a missed real gate degrades to a neutral parse error, never a wrong edition claim.
+Fail-safe: a missed real gate (an ambiguous below-2002 tail) degrades to a neutral parse error, never a wrong edition
+claim. The other five RETRY sites name their file BEFORE the phrase, so they carry no ambiguity and are bind-gated
+directly (`GateRetryIntro` → `Check(RetryPhrase2002)`), no forward detect needed.
 
 ### 2.4 The VersionConformancePass
 - Input: the `BoundProgram` + the target `EditionInfo` + an `IDiagnosticSink`. Output: diagnostics; no tree mutation in

@@ -125,4 +125,50 @@ public abstract class CobolParserCoreBase : Parser
         }
         return false;
     }
+
+    /// <summary>
+    /// COBOL-2002 RETRY-phrase forward detector (ISO §14.7.9) for the OPEN clause, where the phrase sits inside the
+    /// <c>openFileSpec+</c> file-name list and <c>RETRY</c> is a legal §8.9 user-defined word below 2002. Returns
+    /// true only when the tail after RETRY is UNAMBIGUOUSLY a retry phrase — it contains a numeric count
+    /// (<c>n TIMES</c> | <c>FOR? n SECONDS</c>): an integer can never be a file name, so RETRY must be the phrase
+    /// keyword, AND at least one further file-name token remains before the sentence terminator (<c>openFileSpec+</c>
+    /// stays satisfiable). <c>RETRY FOREVER</c> (FOREVER is a §8.10 user-legal word) and a bare <c>RETRY name</c> are
+    /// genuinely ambiguous below 2002, so they return false and DEFER to <c>is2002()</c> — below 2002 they parse as
+    /// file names (INV-1 continuity), never a wrong edition claim (fail-safe: a missed gate degrades to a neutral
+    /// parse error). The other five RETRY sites name their file BEFORE the phrase, so they carry no ambiguity and
+    /// are bind-gated directly (no forward detect needed). Read-only over the token stream — safe for ANTLR's
+    /// repeated prediction calls.
+    /// </summary>
+    protected bool retryPhraseAhead()
+    {
+        if (TokenStream.LA(1) != CobolLexer.RETRY) return false;
+        bool sawNumber = false;
+        for (int i = 2; i <= 24; i++)
+        {
+            switch (TokenStream.LA(i))
+            {
+                // A numeric literal in the count position (n TIMES | FOR? n SECONDS) — the ambiguity-free signal.
+                case CobolLexer.INTEGERLIT:
+                case CobolLexer.DECIMALLIT:
+                case CobolLexer.FLOATLIT:
+                case CobolLexer.SIGNED_INTEGERLIT:
+                case CobolLexer.SIGNED_DECIMALLIT:
+                    sawNumber = true;
+                    break;
+                // The numeric retry tail closes here — it is the phrase ONLY if a count was seen and a further
+                // candidate file-name token still remains for openFileSpec+.
+                case CobolLexer.TIMES:
+                case CobolLexer.SECONDS:
+                    if (!sawNumber) return false;
+                    int next = TokenStream.LA(i + 1);
+                    return next != CobolLexer.DOT && next != TokenConstants.EOF;
+                // FOREVER is user-legal (ambiguous); a boundary means no numeric tail was found. Defer to is2002().
+                case CobolLexer.FOREVER:
+                case CobolLexer.DOT:
+                case TokenConstants.EOF:
+                    return false;
+            }
+        }
+        return false;
+    }
 }

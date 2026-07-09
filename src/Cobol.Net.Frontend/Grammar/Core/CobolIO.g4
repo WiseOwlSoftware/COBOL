@@ -229,7 +229,7 @@ openStatement
     ;
 
 openClause
-    : openMode (sharingPhrase)? ({is2002()}? retryPhrase)? openFileSpec+   // sharingPhrase ungated (superset), gated at BIND (BindOpen → Check(FileSharingClause2002)) — residue migration #3; retryPhrase stays predicate-gated until migration #4
+    : openMode (sharingPhrase)? ({is2002() || retryPhraseAhead()}? retryPhrase)? openFileSpec+   // both phrases superset-parsed, gated at BIND (BindOpen → Check(FileSharingClause2002) / GateRetryIntro → Check(RetryPhrase2002)). SHARING is unambiguous; RETRY sits in the openFileSpec+ name-list, so below 2002 (where RETRY is a legal §8.9 user word) the forward-detect retryPhraseAhead() only enters the phrase on an UNAMBIGUOUS numeric tail (n TIMES | FOR? n SECONDS — an integer can never be a file name) with a file name still to follow; RETRY FOREVER / bare RETRY stay file names (fail-safe).
     ;
 
 // COBOL-2002 OPEN SHARING phrase (ISO §14.9.27) — overrides the file-control SHARING clause for this OPEN.
@@ -288,7 +288,7 @@ readStatement
       readInto?
       readKey?
       (readAdvancingOnLock)?    // ADVANCING ON LOCK (ISO §14.9.30 fmt1) — introduction-gated at BIND time (KeyedBindRead → Check(RecordLockPhrase2002))
-      ({is2002()}? retryPhrase)?
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
       readAtEnd?
       readInvalidKey?
@@ -340,7 +340,7 @@ writeStatement
     : WRITE (recordName | FILE fileName)
       writeFrom?
       writeBeforeAfter?
-      ({is2002()}? retryPhrase)?
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
       writeAtEndOfPage?
       writeInvalidKey?
@@ -381,7 +381,7 @@ recordName
 rewriteStatement
     : REWRITE (recordName | FILE fileName)
       rewriteFrom?
-      ({is2002()}? retryPhrase)?
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       (recordLockPhrase)?   // introduction-gated at BIND time (CheckRecordLockPhrase → Check(RecordLockPhrase2002))
       rewriteInvalidKeyPhrase?
       END_REWRITE?
@@ -404,7 +404,7 @@ rewriteInvalidKeyPhrase
 
 deleteStatement
     : DELETE fileName RECORD?
-      ({is2002()}? retryPhrase)?
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       deleteInvalidKeyPhrase?
       END_DELETE?
 
@@ -422,7 +422,7 @@ deleteInvalidKeyPhrase
 
 deleteFileStatement
     : DELETE FILE fileName
-      ({is2002()}? retryPhrase)?
+      (retryPhrase)?   // COBOL-2002 (§14.7.9); superset-parsed, introduction-gated at BIND (GateRetryIntro → Check(RetryPhrase2002)) — residue migration #4. The file is already named before RETRY here, so no name-list ambiguity (unlike OPEN).
       deleteFileOnException?
       END_DELETE?
 

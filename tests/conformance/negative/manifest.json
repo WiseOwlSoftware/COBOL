@@ -36,6 +36,7 @@
     "read-auto-with-lock",
     "remarks-paragraph",
     "rerun",
+    "retry_below_2002",
     "segment-limit",
     "segment-numbers",
     "set-address-non-based",
