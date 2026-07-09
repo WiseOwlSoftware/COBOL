@@ -176,6 +176,11 @@ public sealed class DataItem
     /// every numeric-edited store (MOVE editing and arithmetic resultants alike).</summary>
     public bool BlankWhenZero { get; init; }
 
+    /// <summary>The entry carried a SYNCHRONIZED / SYNC clause (ISO §13.18.55). A no-op in the typed-native model
+    /// (no byte alignment), but recorded so the edition validator can gate SYNCHRONIZED on a GROUP item — a
+    /// COBOL-2023 introduction (Annex E.3.2 item 6) — below 2023 (P3 step 10). Not emitted.</summary>
+    public bool Synchronized { get; init; }
+
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
     public List<DataItem> Children { get; } = [];
 

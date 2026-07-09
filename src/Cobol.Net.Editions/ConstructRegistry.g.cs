@@ -109,5 +109,6 @@ public static partial class ConstructRegistry
         new("procedure-raising-2002", "PROCEDURE DIVISION RAISING", 2002, null, null, "COBOLNET0900", "ISO 14.2.2 (RAISING phrase, introduced 2002); grammar CobolParserCore.g4:487 {is2002()}? raisingClause"),
         new("inline-method-invocation-2023", "in-line method invocation identifier(args)", 2023, null, null, "COBOLNET0900", "ISO 8.4.3 (in-line method invocation, introduced 2023); grammar CobolOO.g4 inlineMethodInvocationStatement"),
         new("arithmetic-intermediate-precision-2023", "compile-time arithmetic / intermediate-result mode", 85, null, null, "n/a (behavior variant - not a syntax gate)", "ISO Annex E.2 item 6 / §8.8 (compile-time arithmetic implementor-defined at 2023); VCR row 12"),
+        new("sync-on-group-2023", "SYNCHRONIZED on a group item", 2023, null, null, "COBOLNET0900", "ISO Annex E.3.2 item 6 / VCR row 43 (SYNCHRONIZED permitted on a group item, introduced 2023); §13.18.55"),
     ];
 }

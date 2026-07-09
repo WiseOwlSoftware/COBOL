@@ -113,9 +113,22 @@ principle I reused it, not forked. Added the ONE named-but-missing 2014 seed —
 `.cob`+`.out`+manifest entry the runner auto-discovers (`CorpusRunnerTests` 157→158). Battery: conformance 3098 ·
 guard 353 MATCH.
 
-**RESUME AT: Step 10** (loud hole cataloguing — the constructs that emit a generic `COBOL0001` where a specific
-diagnostic is owed: `procedure-raising-2002` [DEVLOG 702], SYNCHRONIZED-on-group, …) → Step 11 (close). **Also
-queued: the ultracode adversarial-verify pass over Steps 2 + 6.**
+**⛔ Step 10 DONE (DEVLOG 706–707; owner chose FULL WIRING).** Swept for edition constructs emitting a generic
+`COBOL0001` / silently accepting a newer feature, and wired the two genuine holes loud:
+- **`procedure-raising-2002`** (DEVLOG 706) — RAISING@<2002 generic `COBOL0001` → `COBOLNET0900` via a
+  `ReservedWordEditionHints` arm; row flipped active + a negative fixture.
+- **`sync-on-group-2023`** (DEVLOG 707, owner-chosen disposition) — SYNCHRONIZED on a GROUP item (a 2023
+  introduction, Annex E.3.2 item 6) was silently ACCEPTED below 2023. Now gated in `DataBinder.ResolveIndexItems`
+  via a `DataItem.Synchronized` flag: **error strict / warning-permissive (accept-inert)** — the removed-severity
+  seam, which keeps INV-1 continuity (SYNC is a no-op). Row + negative fixture.
+
+The un-wireable residue is CATALOGUED (not silently absent): `inline-method-invocation-2023` (pending row, Step 5 —
+`identifier(args)` has no distinctive token, OO-wave-owned) and NO SIGN of PACKED-DECIMAL (a 2023 feature not in the
+grammar → a `COBOL0307`, needs grammar work to gate cleanly; noted for the M4/2023 feature wave). Battery:
+conformance 3108 · unit 227 · guard 353 MATCH.
+
+**RESUME AT: Step 11 (phase close)** — full battery + doc sync + STATUS→DONE + the exit-criteria checklist. **First:
+the ultracode adversarial-verify pass over the built phase (Steps 2/6/8/10).**
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to

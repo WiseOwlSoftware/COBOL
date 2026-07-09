@@ -107,4 +107,5 @@ public static class Constructs
     public const string ProcedureRaising2002 = "procedure-raising-2002";
     public const string InlineMethodInvocation2023 = "inline-method-invocation-2023";
     public const string ArithmeticIntermediatePrecision2023 = "arithmetic-intermediate-precision-2023";
+    public const string SyncOnGroup2023 = "sync-on-group-2023";
 }

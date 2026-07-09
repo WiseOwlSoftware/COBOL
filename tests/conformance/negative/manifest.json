@@ -40,6 +40,7 @@
     "set-address-non-based",
     "sharing-all-no-lockmode",
     "stop-literal",
+    "sync_group_below_2023",
     "unlock-sort-file",
     "use-for-debugging",
     "user-word-commit",

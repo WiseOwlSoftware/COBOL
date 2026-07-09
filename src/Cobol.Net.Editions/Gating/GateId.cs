@@ -72,6 +72,7 @@ public enum GateId
     EndAccept2002,
     ProcedureRaising2002,
     InlineMethodInvocation2023,
+    SyncOnGroup2023,
 }
 
 /// <summary>Maps a <see cref="GateId"/> to its constructs.json id (for
@@ -138,6 +139,7 @@ public static class GateIds
         GateId.EndAccept2002 => Constructs.EndAccept2002,
         GateId.ProcedureRaising2002 => Constructs.ProcedureRaising2002,
         GateId.InlineMethodInvocation2023 => Constructs.InlineMethodInvocation2023,
+        GateId.SyncOnGroup2023 => Constructs.SyncOnGroup2023,
         _ => throw new System.ArgumentOutOfRangeException(nameof(gate), gate, "no construct id for GateId.None"),
     };
 }

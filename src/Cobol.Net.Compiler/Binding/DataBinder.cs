@@ -1050,7 +1050,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         OccursSpec? occursSpec = null;
         var indexNames = new List<string>();
         SignSpec? ownSign = null;
-        bool justified = false, blankWhenZero = false;
+        bool justified = false, blankWhenZero = false, synchronized = false;
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
@@ -1083,6 +1083,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
                 else if (clause.blankWhenZeroClause() is not null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
+                else if (clause.syncClause() is not null)
+                    synchronized = true;   // SYNCHRONIZED/SYNC (ISO §13.18.55) — no-op here; gated on a GROUP <2023 (step 10)
                 else if (clause.usageClause() is { } usage)
                 {
                     usageText = UsageKeyword(usage);
@@ -1232,6 +1234,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             RedefinesTargetName = redefinesTargetName,
             Justified = justified,
             BlankWhenZero = blankWhenZero,
+            Synchronized = synchronized,
             IsTypedef = isTypedef,
             TypedefStrong = typedefStrong,
             TypeRefName = typeRefName,
@@ -1337,6 +1340,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             var objRef = item.Pic is { Category: PicCategory.ObjectReference } p ? p : inheritedObjRef;
             if (item.Children.Count > 0)
             {
+                // SYNCHRONIZED on a GROUP item is a COBOL-2023 introduction (Annex E.3.2 item 6; before 2023 SYNC
+                // is permitted only on elementary items). SYNC is a no-op in the typed-native model, so below 2023
+                // it is REJECTED under strict but ACCEPTED-INERT under --permissive — the removed-severity seam
+                // (Edition.Removed = error strict / warning permissive) gives exactly that, and keeps INV-1
+                // continuity intact for any program carrying it (P3 step 10; owner-chosen disposition).
+                if (item.Synchronized && Edition.DialectLevel < 2023)
+                    Edition.Removed(EditionCodes.Introduction,
+                        $"SYNCHRONIZED on a group item ('{item.CobolName ?? "FILLER"}') was introduced by ISO/IEC "
+                        + "1989:2023 (Annex E.3.2 item 6; before 2023 SYNCHRONIZED is permitted only on elementary "
+                        + $"items) - it requires --std 2023 or later (targeting COBOL-{Edition.DialectLevel})");
                 if (ReferenceEquals(item.Pic, PicInfo.IndexItem)) item.Pic = null;   // a group, not an elementary index
                 // A skeleton-usage RECOVERY shape on a GROUP header sheds the same way (the usage merely
                 // inherits per §13.18.60.4 GR1; a Pic'd "group" would stop grouping — DEVLOG 597).

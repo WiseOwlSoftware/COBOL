@@ -1218,6 +1218,19 @@
         "confirm": "Run source at 85/2002/2014/2023 and diff stdout. If identical -> version-INVARIANT: record the determination (DEVLOG) and drop the variant. If it differs -> gate the behavior by DialectLevel and populate outputs per edition. §8.8 / Annex E.2 item 6.",
         "outputs": {}
       }
+    },
+    {
+      "id": "sync-on-group-2023",
+      "status": "active",
+      "description": "SYNCHRONIZED clause on a GROUP item - a COBOL-2023 introduction (Annex E.3.2 item 6 / VCR row 43; before 2023 SYNCHRONIZED is permitted only on elementary items). SYNC is a no-op in the typed-native model, so below 2023 it is REJECTED under strict / ACCEPTED-INERT under --permissive (a manual Edition.Removed gate in ResolveIndexItems - error strict / warning permissive - which keeps INV-1 continuity). GATED P3 step 10 (owner-chosen disposition).",
+      "display": "SYNCHRONIZED on a group item",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO Annex E.3.2 item 6 / VCR row 43 (SYNCHRONIZED permitted on a group item, introduced 2023); §13.18.55",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 43 / Annex E.3.2 item 6 (2014->2023: SYNCHRONIZED on a group item)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 G SYNCHRONIZED.\n  05 A PIC X.\n  05 B PIC X.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     }
   ]
 }
