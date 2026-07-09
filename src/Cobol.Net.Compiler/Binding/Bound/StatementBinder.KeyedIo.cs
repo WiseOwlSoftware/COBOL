@@ -111,11 +111,8 @@ public sealed partial class StatementBinder
 
         bool next = r.readDirection()?.NEXT() is not null;
         bool previous = r.readDirection()?.PREVIOUS() is not null;
-        // READ PREVIOUS was introduced by ISO/IEC 1989:2002 (§14.9.30 Format 1) — routed through the
-        // registry (0900 band; W1.5): the former ad-hoc COBOLNET0860 collided with the WRITE END-OF-PAGE
-        // diagnostic's 0860 and was not in the P2.3 pinned-code set.
-        if (previous)
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.ReadPrevious2002, "READ … PREVIOUS");
+        // READ PREVIOUS (§14.9.30 Format 1) is a COBOL-2002 introduction; the edition gate moved to the post-bind
+        // VersionConformancePass (Step 14c), firing on BoundKeyedRead.Kind == Previous.
 
         // §14.9.30 SR6 forbids NEXT/PREVIOUS/AT END under ACCESS RANDOM and the formats keep INVALID KEY off the
         // sequential read — but the CCVS-85 corpus is lenient about phrase placement (the L1–L3 leniency family),
@@ -153,8 +150,8 @@ public sealed partial class StatementBinder
             }
             else keyIndex = ki;
         }
-        if (r.readAdvancingOnLock() is not null)   // READ … ADVANCING ON LOCK — same COBOL-2002 record-lock-phrase row, bind-time gate (rearch migration Cluster 10)
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
+        // READ … ADVANCING ON LOCK (§14.9.30 record-lock phrase, COBOL-2002); the edition gate moved to the
+        // post-bind VersionConformancePass (Step 14c), firing on BoundKeyedRead.AdvancingOnLock.
         return new BoundKeyedRead(file, kind, keyIndex, into, atEnd, notAtEnd, invalid)
         {
             Lock = CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ"),
@@ -262,11 +259,8 @@ public sealed partial class StatementBinder
 
         if (st.FIRST() is not null || st.LAST() is not null)
         {
-            // START FIRST/LAST entered the standard with ISO/IEC 1989:2002 (§14.9.41 general format) —
-            // routed through the registry (0900 band; W1.5): the former ad-hoc COBOLNET0861 collided with
-            // the WRITE ADVANCING PAGE/END-OF-PAGE diagnostic's 0861 and was not in the P2.3 pinned set.
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.StartFirstLast2002,
-                $"START {(st.LAST() is not null ? "LAST" : "FIRST")}");
+            // START FIRST/LAST (§14.9.41) is a COBOL-2002 introduction; the edition gate moved to the post-bind
+            // VersionConformancePass (Step 14c), firing on BoundKeyedStart.Mode ∈ {First, Last}.
             return new BoundKeyedStart(file, st.LAST() is not null ? KeyedStartMode.Last : KeyedStartMode.First,
                 "==", -1, null, null, invalid);
         }
@@ -283,10 +277,8 @@ public sealed partial class StatementBinder
         if (kp is not null && operand is null)
             return new BoundUnsupported($"START KEY operand '{kp.dataReference().GetText()}'");
 
-        // WITH LENGTH is a COBOL-2002 introduction (the partial-key character count, §14.9.41 GR13–GR14). Bind-time
-        // introduction gate (rearch bind-time migration Cluster 4 — the parse-time {is2002()}? predicate is gone).
-        if (kp?.startWithLength() is not null)
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.StartWithLength2002, "the START … WITH LENGTH phrase");
+        // WITH LENGTH (§14.9.41 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate moved
+        // to the post-bind VersionConformancePass (Step 14c), firing on BoundKeyedStart.Length != null.
         BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? BindExpr(le) : null;
         if (length is not null && file.Organization != FileOrganization.Indexed)
             data.Edition.Error("COBOLNET0862", $"START … WITH LENGTH on '{name}': the LENGTH phrase requires "

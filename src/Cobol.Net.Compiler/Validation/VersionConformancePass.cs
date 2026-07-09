@@ -3,6 +3,7 @@
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen;
 using CobolNet.Editions;
+using CobolNet.Runtime;   // CobolPassMode (CALL argument passing mode)
 
 namespace CobolNet.Validation;
 
@@ -104,6 +105,34 @@ internal sealed class VersionConformancePass
             case BoundSetAddressOfBased:
             case BoundSetPointer { Address: not null }:
                 Check(Constructs.SetAddress2002, "SET ADDRESS OF (ISO §14.9.39 Format 7)"); break;
+
+            // ── Step 14c: gates conditioned on a resolved node ATTRIBUTE the binder already recorded ──────────
+            case BoundOpen { SharingOverride: not null }:
+                Check(Constructs.FileSharingClause2002, "the OPEN SHARING phrase"); break;
+            case BoundGoback { ReturningSource: not null }:
+                Check(Constructs.GobackReturning2002, "GOBACK … RETURNING"); break;
+            case BoundCallProgram cp:
+                // CALL … BY VALUE (§14.9.4). The binder fired once per explicit BY VALUE argument; the bound node
+                // keeps each argument's pass mode, so gate once when the CALL uses value passing (the argument
+                // list Any-check — the tested single-argument case is diagnostically identical).
+                if (cp.Args.Any(a => a.Mode == CobolPassMode.Value))
+                    Check(Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
+                break;
+            case BoundKeyedRead kr:
+                // Two independent 2002 phrases on one READ; both gate, in the binder's order (§14.9.30).
+                if (kr.Kind == KeyedReadKind.Previous)
+                    Check(Constructs.ReadPrevious2002, "READ … PREVIOUS");
+                if (kr.AdvancingOnLock)
+                    Check(Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
+                break;
+            case BoundKeyedStart ks:
+                // START FIRST/LAST positioning (§14.9.41) and the WITH LENGTH partial-key phrase — two independent
+                // 2002 introductions; both gate, in the binder's order.
+                if (ks.Mode is KeyedStartMode.First or KeyedStartMode.Last)
+                    Check(Constructs.StartFirstLast2002, $"START {(ks.Mode == KeyedStartMode.Last ? "LAST" : "FIRST")}");
+                if (ks.Length is not null)
+                    Check(Constructs.StartWithLength2002, "the START … WITH LENGTH phrase");
+                break;
         }
     }
 

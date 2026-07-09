@@ -299,11 +299,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             BoundOpenMode mode = MapOpenMode(clause.openMode());
             // OPEN SHARING phrase (ISO §14.9.27) overrides the SELECT SHARING clause for this OPEN; the RETRY
             // phrase (ISO §14.7.9) governs a locked-file re-attempt. Both are per-statement.
-            if (clause.sharingPhrase() is { } sp)   // OPEN SHARING phrase (§14.9.27) — COBOL-2002, bind-time gate (residue migration #3; the {is2002()}? predicate + reverse-signature arm are gone)
-            {
-                ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.FileSharingClause2002, "the OPEN SHARING phrase");
-                if (sp.sharingMode() is { } sm) sharing = MapSharingMode(sm);
-            }
+            // OPEN SHARING phrase (§14.9.27) — COBOL-2002. The edition gate moved to the post-bind
+            // VersionConformancePass (Step 14c), firing on BoundOpen.SharingOverride; the binder just records it.
+            if (clause.sharingPhrase() is { } sp && sp.sharingMode() is { } sm)
+                sharing = MapSharingMode(sm);
             GateRetryIntro(clause.retryPhrase());   // §14.7.9 introduction gate (residue migration #4)
             if (clause.retryPhrase() is { } rp) retry = BindRetry(rp);
             foreach (var spec in clause.openFileSpec())

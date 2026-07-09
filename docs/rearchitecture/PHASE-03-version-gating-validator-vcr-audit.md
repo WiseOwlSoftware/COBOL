@@ -56,7 +56,10 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14c (14a+14b DONE)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+`IN PROGRESS @ Step 14d (14a–14c DONE)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+**Step 14c DONE (DEVLOG 720):** 7 attribute-conditioned statement gates relocated to the pass (OPEN SHARING, CALL BY
+VALUE, GOBACK RETURNING, READ PREVIOUS, READ ADVANCING-ON-LOCK, START FIRST/LAST, START WITH LENGTH); battery green,
+guard 353 MATCH.
 **Step 14 lands as ordered byte-identical sub-commits 14a–14f** (decision-complete recon `wf_edbcd62a-d8a`; the pass is a
 TWO-ARM pass — a bound-tree arm identifying gates by node-type/semantic-attribute + a retained parse-tree arm for the
 EditionValidator-origin syntactic + §8.9 gates; NO `.Syntax` back-ref added to any bound node — the `BoundTree.cs` invariant
