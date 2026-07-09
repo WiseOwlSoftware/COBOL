@@ -58,65 +58,27 @@ public sealed partial class StatementBinder
                     $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60 GR10) — "
                     + $"MOVE … TO {t.Item.CobolName}");
 
-        // Classify the SENDER. Only the SR5 alphanumeric figuratives participate: SPACE, QUOTE, HIGH-VALUE,
-        // LOW-VALUE, and ALL "literal". (ALL symbolic-character is in SR5's list too, but SYMBOLIC CHARACTERS
-        // is not yet bound — its gate rides the same rows when it lands. NULL is not a §8.3.3.6 figurative
-        // format and stays on its own path.)
-        BoundAllLiteral? all = source as BoundAllLiteral;
-        string figText = source switch
-        {
-            BoundFigurative { Kind: 'S' } => "SPACE",
-            BoundFigurative { Kind: 'Q' } => "QUOTE",
-            BoundFigurative { Kind: 'H' } => "HIGH-VALUE",
-            BoundFigurative { Kind: 'L' } => "LOW-VALUE",
-            BoundAllLiteral a => $"ALL \"{a.Literal}\"",
-            _ => string.Empty,
-        };
-        if (figText.Length == 0) return;
-
+        // Classify the SENDER (only the SR5 alphanumeric figuratives / ALL "literal" participate). The §14.9.25.3
+        // SR5 EDITION gates (MoveAllDigitIntegerObsolete2023 / MoveQuoteNumericObsolete2014 /
+        // MoveAlphanumericFigurativeRemoved2023) moved to the post-bind VersionConformancePass (Step 14f), which
+        // re-derives the SAME classification from the bound MOVE. The binder keeps ONLY the pre-removal STORAGE
+        // marking below (needed at 85/2002/2014 + 2023 --permissive regardless of the gate), with the same eligibility.
+        var all = source as BoundAllLiteral;
+        if (source is not (BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } or BoundAllLiteral)) return;
         foreach (var t in targets)
         {
-            if (t is RefModPlace || t.Item.IsGroup || t.Item.Pic is not { } pic) continue;   // exemptions above
+            if (t is RefModPlace || t.Item.IsGroup || t.Item.Pic is not { } pic) continue;   // SR5 exemptions
             if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)) continue;
-            if (pic.Usage is Usage.Index) continue;   // class index — SR1 errored above, never an SR5 row
+            if (pic.Usage is Usage.Index) continue;   // class index — SR1 errored above
 
-            string where = $"MOVE {figText} TO {t.Item.CobolName}";
-            // An INTEGER numeric item: fixed-point with no digit positions right of the decimal point (a
-            // trailing-P picture scales by tens and is still integer-valued; a leading-P fraction is not).
-            bool integerReceiver = pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 };
-            if (all is { IsDigitOnly: true, Literal.Length: 1 } && integerReceiver)
-            {
-                // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; VCR rows 92/128).
-                ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.MoveAllDigitIntegerObsolete2023, where);
-                continue;
-            }
-            // QUOTE is the ONE figurative the spec's own change annex tracks separately: QUOTE→numeric was
-            // designated OBSOLETE by ISO 2014 (Annex E.2 item 21 — "features that were classified as obsolete
-            // in the previous COBOL standard"), then removed with the rest at 2023. Its row therefore carries
-            // obsoleteIn 2014 (0903 warning at 2014) on top of the removal edge — the W2 adversarial review's
-            // correction to VCR row 1's blanket "not even flagged obsolete in 2014" wording.
-            if (source is BoundFigurative { Kind: 'Q' })
-            {
-                ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.MoveQuoteNumericObsolete2014, where);
-            }
-            else
-                // Every other shape: removed by ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
-                ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.MoveAlphanumericFigurativeRemoved2023, where);
-
-            // Pre-removal storage (reachable at --std 85/2002/2014 and at 2023 --permissive): a NON-digit fill
-            // (SPACE/QUOTE/HIGH-VALUE/LOW-VALUE, or an ALL literal containing a non-digit) deposits the fill
-            // CHARACTERS as the receiver's character image — provisional (ratified decision 1; the legacy
-            // oracle's byte fill: MOVE QUOTE TO PIC 9(3) leaves three quotation marks, IS NUMERIC is then
-            // false, and a later numeric read decodes deterministically per §14.6.13.2). Flag an eligible
-            // elementary numeric-DISPLAY receiver StoreAsImage — the SAME whole-group image substrate
-            // DataBinder.MarkImageLeaves / the emitter's MarkStoreAsImage pass use (§14.9 MOVE GR4), with the
-            // same eligibility rule; the storage-form bridge overloads (CobolNum.FormatDisplay/StoreDisplay —
-            // see NumericImagePlace) absorb places resolved before this flag flips. A Tier-B REDEFINES window
-            // needs no flag (its Write already takes the character image); a numeric-edited receiver is
-            // string-backed by nature; a digit-only ALL stores its numeric value natively (no image needed).
-            // An item in a REDEFINES shared-storage class keeps the flag its (already-run) tier classification
-            // assigned — flipping it post-classification would desync the class backing (an unflagged Tier-A
-            // alias receiver stays the emitter's narrow loud guard).
+            // Pre-removal storage (reachable at 85/2002/2014 + 2023 --permissive): a NON-digit fill
+            // (SPACE/QUOTE/HIGH-VALUE/LOW-VALUE, or an ALL literal with a non-digit) deposits the fill CHARACTERS as
+            // the receiver's character image (provisional; the legacy oracle's byte fill — MOVE QUOTE TO PIC 9(3)
+            // leaves three quotation marks, IS NUMERIC then false, a later read decodes deterministically per
+            // §14.6.13.2). Flag an eligible elementary numeric-DISPLAY receiver StoreAsImage — the SAME §14.9 MOVE
+            // GR4 whole-group image substrate; a digit-only ALL stores its numeric value natively (no image), a
+            // numeric-edited receiver is string-backed by nature, a Tier-B REDEFINES window / NumericImagePlace
+            // already writes its image, and a REDEFINES shared-storage alias keeps its (already-run) tier flag.
             if (all is not { IsDigitOnly: true } && t is not (RedefViewPlace or NumericImagePlace)
                 && t.Item.Class is null
                 && pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })

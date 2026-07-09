@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding;        // Place subtypes (RefModPlace, …), PicCategory, Usage
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen;
 using CobolNet.Editions;
@@ -112,6 +113,11 @@ internal sealed class VersionConformancePass
             case BoundGoback { ReturningSource: not null }:
                 Check(Constructs.GobackReturning2002, "GOBACK … RETURNING"); break;
             case BoundCallProgram cp:
+                // A user-defined FUNCTION reference lowers to a hoisted BoundCallProgram (IsFunction) carrying the
+                // function name in LiteralName (§9.4 / §12.3.8, COBOL-2002). A regular CALL has IsFunction=false and
+                // no function name, so these arms are mutually exclusive per node.
+                if (cp.IsFunction)
+                    Check(Constructs.UserFunctionInvocation2002, $"FUNCTION {cp.LiteralName?.ToUpperInvariant()}");
                 // CALL … BY VALUE (§14.9.4). The binder fired once per explicit BY VALUE argument; the bound node
                 // keeps each argument's pass mode, so gate once when the CALL uses value passing (the argument
                 // list Any-check — the tested single-argument case is diagnostically identical).
@@ -128,6 +134,8 @@ internal sealed class VersionConformancePass
                 Check(Constructs.Invoke2002, "the INVOKE statement"); break;
             case BoundAccept { HasEndTerminator: true }:
                 Check(Constructs.EndAccept2002, "the ACCEPT statement"); break;
+            case BoundMove mv:
+                GateMove(mv); break;
             case BoundKeyedRead kr:
                 // Two independent 2002 phrases on one READ; both gate, in the binder's order (§14.9.30).
                 if (kr.Kind == KeyedReadKind.Previous)
@@ -143,6 +151,46 @@ internal sealed class VersionConformancePass
                 if (ks.Length is not null)
                     Check(Constructs.StartWithLength2002, "the START … WITH LENGTH phrase");
                 break;
+        }
+    }
+
+    // ── MOVE figurative-constant category gates (ISO §14.9.25.3 SR5) ─────────────────────────────────────────
+    // Genuinely SEMANTIC: which of the three edition rows applies depends on the source figurative × each
+    // receiver's RESOLVED picture — re-derived here from the bound MOVE (Group B). Mirrors the binder's former
+    // MoveFigurativeEditionGates classification EXACTLY (same figText, same per-target exemptions, same
+    // integer/QUOTE/digit-only split, same where-string); the binder keeps only the SR1 class-index error (0809,
+    // version-invariant) and the pre-removal StoreAsImage marking.
+    private void GateMove(BoundMove m)
+    {
+        var all = m.Source as BoundAllLiteral;
+        string figText = m.Source switch
+        {
+            BoundFigurative { Kind: 'S' } => "SPACE",
+            BoundFigurative { Kind: 'Q' } => "QUOTE",
+            BoundFigurative { Kind: 'H' } => "HIGH-VALUE",
+            BoundFigurative { Kind: 'L' } => "LOW-VALUE",
+            BoundAllLiteral a => $"ALL \"{a.Literal}\"",
+            _ => string.Empty,
+        };
+        if (figText.Length == 0) return;   // not an alphanumeric-figurative / ALL source — SR5 does not reach it
+        foreach (var t in m.Targets)
+        {
+            // Exemptions (§14.9.25.3 SR5): a ref-mod receiver (unique elementary alphanumeric), a group receiver
+            // (a conversion-free character copy), a non-numeric receiver, or class index (SR1-errored in the binder).
+            if (t is RefModPlace || t.Item.IsGroup || t.Item.Pic is not { } pic) continue;
+            if (pic.Category is not (PicCategory.Numeric or PicCategory.NumericEdited)) continue;
+            if (pic.Usage is Usage.Index) continue;
+            string where = $"MOVE {figText} TO {t.Item.CobolName}";
+            bool integerReceiver = pic is { Category: PicCategory.Numeric, IsFloat: false, Scale: <= 0 };
+            if (all is { IsDigitOnly: true, Literal.Length: 1 } && integerReceiver)
+                // SR5's surviving exception — valid everywhere, obsolete at 2023 (0903; SR5 NOTE / Annex F.2).
+                Check(Constructs.MoveAllDigitIntegerObsolete2023, where);
+            else if (m.Source is BoundFigurative { Kind: 'Q' })
+                // QUOTE→numeric — obsolete 2014 (Annex E.2 item 21) then removed 2023 (dual-window row).
+                Check(Constructs.MoveQuoteNumericObsolete2014, where);
+            else
+                // Every other shape — REMOVED by ISO 2023 (Annex E.2 item 1 bullet 1; 0902 — VCR row 1).
+                Check(Constructs.MoveAlphanumericFigurativeRemoved2023, where);
         }
     }
 
