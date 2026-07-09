@@ -103,9 +103,19 @@ edition-variant behavior exists yet (DEVLOG 517; the one scaled-integer pipeline
 edition-invariant), so the matrix is a discovery surface, not a gate. Battery: conformance **3097** · unit 227 ·
 guard 353 MATCH.
 
-**RESUME AT: Step 9** (positive/negative corpus discovery runners) → Step 10 (loud hole cataloguing — incl.
-making `procedure-raising-2002` etc. loud) → Step 11 (close). **Also queued: the ultracode adversarial-verify pass
-over Steps 2 + 6.**
+**⛔ Step 9 DONE (DEVLOG 705).** Like Steps 1/4, already built by prior work: `CorpusRunnerTests` IS the discovery
+runner — `Manifest_CoversEveryProgram_NoOverlap` (integrity: nothing silently undiscovered),
+`EnabledProgram_CompilesStrict_AndMatchesOutIfPresent` (the per-edition positive runner), and
+`EnabledNegativeCase_RejectsWithItsDiagnostic` (the negative runner, `*> reject-at:` header). The corpus is fully
+enabled (2002: 78 · 2014: 17 · 2023: 11 positives · 46 negatives, 0 pending). Per the corrected singular-pattern
+principle I reused it, not forked. Added the ONE named-but-missing 2014 seed — `ARITHMETIC IS STANDARD-DECIMAL`
+(§8.8.1.4; verify-by-running: @2014 `W=2.00000` full-decimal-precision, @2002 rejected `COBOLNET0804`) — via a
+`.cob`+`.out`+manifest entry the runner auto-discovers (`CorpusRunnerTests` 157→158). Battery: conformance 3098 ·
+guard 353 MATCH.
+
+**RESUME AT: Step 10** (loud hole cataloguing — the constructs that emit a generic `COBOL0001` where a specific
+diagnostic is owed: `procedure-raising-2002` [DEVLOG 702], SYNCHRONIZED-on-group, …) → Step 11 (close). **Also
+queued: the ultracode adversarial-verify pass over Steps 2 + 6.**
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
