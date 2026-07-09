@@ -90,15 +90,24 @@
 > the operand-adjacency `boolExprAhead()` ENTRY; DEVLOG-621 surface intact) — **Batch C complete** — and ✅ **Step 13**:
 > `ReservedWordEditionHints` DELETED (vendor JSON/XML COBOL0313 relocated to `CobolErrorStrategy`). Each grammar change:
 > FULL legacy guard **353 MATCH, 0 regressions**. Battery at head: greenfield conformance **3114** · unit 227 ·
-> characterization 32 GREEN. **RESUME AT: PHASE-03 Step 14 — the pipeline skeleton** (`DESIGN-version-conformance-pipeline.md`
-> §5 Stage 3): build the `VersionConformancePass` over the bound tree; funnel ALL **88** compiler-embedded
-> `ConstructRegistry.Check` call sites (DataBinder*/StatementBinder*/OoClassTable/PicInfo/OdoModel + EditionValidator's
-> own + the one emitter-side site in `CSharpEmitter.Call.cs`) into it; absorb and DELETE `EditionValidator` (its §8.9
-> reserved-word funnel moves into the pass); make the binder edition-AGNOSTIC (zero Checks); ensure bound nodes carry
-> the `.Syntax` back-reference the pass reads; split bind/emit in `CompilerDriver` (bind → pass → HALT on errors →
-> emit); re-point CheckOnly / EditionHarness / the INV-1 continuity + INV-1-strong legs so their verdicts include pass
-> diagnostics. **Step 15** — phase close (exit criteria incl. 7 residue migrated + guesser deleted ✅; the pass is the
-> sole gate; emit unreachable with diagnostics). Also fold in Step 12(c) residual: refresh the migrated rows' stale
+> characterization 32 GREEN. **⛔ PHASE-03 Step 14 (the `VersionConformancePass`) IS IN PROGRESS — sub-steps 14a–14f DONE
+> + pushed (DEVLOG 718–723, commits `f987504e`→`9cdf86d6`); RESUME AT Step 14g.** Read the PHASE-03 doc's STATUS line
+> (`@ Step 14g`) for the precise sub-step state; a decision-complete recon (`wf_edbcd62a-d8a`) drives it. **DONE:** the
+> bind/emit split (14a — `CSharpEmitter.Bind()→BoundRunUnit` + `Emit(BoundRunUnit)`; driver `bind → pass → HALT → emit`;
+> codegen never on an errored tree) + the ENTIRE bound-arm STATEMENT-gate relocation (14b node-type · 14c attribute · 14d/14e
+> flag · 14f MOVE-category+UDF). **REFINED PLAN for the remainder (supersedes the literal "`.Syntax` back-reference"
+> below — NO `.Syntax`/raw parse context is added to any bound node; the `BoundTree.cs` invariant STANDS, within the
+> design's §2.2/§6 provisions, via a TWO-ARM pass): 14g = the DATA/PIC/OO gates (bound-arm, a new complete
+> DataItem+FileModel enumerator) — ⚠ mind the CONTEXT-DEPENDENT PicInfo USAGE `where`-strings (`data item 'name'` main /
+> `itemWhere` report / `method '…'` OO — DataBinder.cs:1139 vs Reports.cs:329 vs Oo.cs) + the ParseUsage/PIC-N dedup;
+> 14h = absorb `EditionValidator`'s 22 syntactic gates + the §8.9 funnel VERBATIM into the pass as the PARSE-tree arm over
+> `BoundRunUnit.Tree`, and ADD the remaining SYNTACTIC token/phrase statement gates there too (national/boolean literals,
+> boolean-ops, XOR, bare-GOTO, ROUNDED MODE IS, sequential record-lock, RETRY — cleaner than bound-node flags), DELETE
+> `EditionValidator.cs` + the driver's pre-bind fail-fast (single post-pass `HasErrors` gate; St101A then surfaces both
+> codes — intended); 14i = phase close.** Then re-point CheckOnly / EditionHarness / the INV-1 legs so their verdicts
+> include pass diagnostics (already true — all read the one sink; verify). **Step 15** — phase close (exit criteria incl.
+> 7 residue migrated + guesser deleted ✅; the pass is the sole gate; emit unreachable with diagnostics; grep-assert zero
+> `ConstructRegistry.Check` outside the pass). Also fold in Step 12(c) residual: refresh the migrated rows' stale
 > `constructs.json` citations + grammar comments. Read `DESIGN-version-conformance-pipeline.md` FIRST. The dual-backend goal
 > (`project_dual_backend_goal`) is first-class (PHASE-16). Memory: `project_rearchitecture_plan`. **The §"NON-NEGOTIABLE
 > PROCESS RULES" block below stays in force.** The STATE banners below are PRE-REARCHITECTURE HISTORY — the
