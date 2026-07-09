@@ -1426,7 +1426,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         Core.ConditionContext c => BindCondition(c.GetChild(0), carry),
         Core.LogicalOrExpressionContext orExpr => BindFlatSequence(orExpr, "||", carry),
-        Core.LogicalXorExpressionContext xorExpr => BindFlatSequence(xorExpr, "^", carry),
+        Core.LogicalXorExpressionContext xorExpr => BindXorSequence(xorExpr, carry),
         Core.LogicalAndExpressionContext andExpr => BindFlatSequence(andExpr, "&&", carry),
         Core.AbbreviatedAndChainContext chain => BindFlatSequence(chain, "&&", carry),
         Core.UnaryLogicalExpressionContext u => u.NOT() is not null
@@ -1453,6 +1453,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             if (parts.Count > 1) UdfGuardConditionalOperand(udfMark, op);
         }
         return parts.Count == 1 ? parts[0] : new BoundLogical(op, parts);
+    }
+
+    /// <summary>The logical XOR / EXCLUSIVE-OR operator (ISO §8.8.4.9) is a COBOL-2023 introduction. It parses at all
+    /// editions (superset — the <c>{is2023()}?</c> predicate is gone); the introduction gate fires HERE, only when the
+    /// operator is genuinely present (<c>ChildCount &gt; 1</c> ⇒ an <c>XOR</c>/<c>EXCLUSIVE_OR</c> terminal was matched
+    /// between two operands), so a bare below-2023 <c>logicalAndExpression</c> is untouched. Residue migration #1
+    /// (DESIGN-version-conformance-pipeline.md) — the reverse-signature arm is deleted.</summary>
+    private BoundCondition BindXorSequence(Core.LogicalXorExpressionContext xorExpr, AbbrevCarry carry)
+    {
+        if (xorExpr.ChildCount > 1)
+            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.LogicalXorOperator2023, "the logical XOR operator");
+        return BindFlatSequence(xorExpr, "^", carry);
     }
 
     private BoundCondition BindPrimary(Core.PrimaryConditionContext p, AbbrevCarry carry)

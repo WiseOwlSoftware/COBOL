@@ -87,10 +87,9 @@ public static class ReservedWordEditionHints
             // (PROPERTY migrated to a bind-time Check — residue migration #7, DESIGN-version-conformance-pipeline.md —
             // its {is2002()}? predicate is gone; the PROPERTY clause parses at all editions and is gated in the
             // DataBinder data-description clause loop, so the reverse-signature arm is deleted.)
-            // The XOR OPERATOR below 2023 (the W3 regating): a parse error AT the XOR/EXCLUSIVE-OR token is
-            // the gated operator by construction — as a USER word the token parses through cobolWord and
-            // never errors (the condition-rule stack has popped by report time, so no rule filter applies).
-            CobolLexer.XOR or CobolLexer.EXCLUSIVE_OR => Constructs.LogicalXorOperator2023,
+            // (XOR / EXCLUSIVE-OR migrated to a bind-time Check — residue migration #1,
+            // DESIGN-version-conformance-pipeline.md — its {is2023()}? predicate is gone; the operator parses at all
+            // editions and is gated in BindXorSequence when genuinely present, so the reverse-signature arm is deleted.)
             // The boolean operators (2002): as user words they parse through cobolWord and never error, so an
             // error AT one of these tokens is the {is2002()}?-gated operator meaning below 2002 (the XOR argument).
             CobolLexer.B_AND or CobolLexer.B_OR or CobolLexer.B_XOR or CobolLexer.B_NOT => Constructs.BooleanOperators2002,

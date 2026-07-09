@@ -70,7 +70,7 @@ logicalOrExpression
 // mislabel): gated {is2023()}?; below 2023 both words are USER-DEFINED words (cobolWord admits the tokens;
 // the §8.9 funnel + table enforce the 2023 reservation as 0901 in provable positions).
 logicalXorExpression
-    : logicalAndExpression ( {is2023()}? ( XOR | EXCLUSIVE_OR ) logicalAndExpression )*
+    : logicalAndExpression ( ( XOR | EXCLUSIVE_OR ) logicalAndExpression )*   // XOR/EXCLUSIVE-OR: COBOL-2023; parses at all editions (superset — a bare user-word XOR is never valid in this connective slot), gated at BIND when the operator is genuinely present (BindCondition XOR arm → Check(LogicalXorOperator2023)) — residue migration #1, DESIGN-version-conformance-pipeline.md
     ;
 
 logicalAndExpression

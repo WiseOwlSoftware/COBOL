@@ -31,6 +31,7 @@
     "open-reversed",
     "pic-n-usage-display",
     "pic-pointer-conflict",
+    "property_below_2002",
     "raising_below_2002",
     "read-auto-with-lock",
     "remarks-paragraph",
@@ -41,16 +42,16 @@
     "sharing-all-no-lockmode",
     "stop-literal",
     "sync_group_below_2023",
-    "property_below_2002",
-    "unlock_below_2002",
     "unlock-sort-file",
+    "unlock_below_2002",
     "use-for-debugging",
     "user-word-commit",
     "user-word-end-receive",
     "user-word-raising",
     "user-word-receive",
     "value-boolean-mismatch",
-    "value-of-fd"
+    "value-of-fd",
+    "xor_below_2023"
   ],
   "pending": []
 }
