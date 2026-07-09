@@ -20,10 +20,12 @@ that will be discarded.
 
 ## 1. NON-NEGOTIABLE GUARDRAILS
 
-1. **Work on a branch, never `main`.** First: `git checkout main && git pull && git checkout -b local-model-wip`
-   (if it already exists, `git checkout local-model-wip`). **Never commit to `main`. Never push to `main`.** You may
-   push the branch as a backup: `git push -u origin local-model-wip`. Claude reviews this branch on resume and merges
-   only what is correct — so `main` cannot be corrupted.
+1. **Work on a branch, never `main`.** The `local-model-wip` branch is **already created, pushed, and checked out for
+   you** (Claude set it up). Confirm before you start: `git branch --show-current` must print `local-model-wip`; if it
+   does not, run `git checkout local-model-wip`. **Never `git checkout main`, never commit to `main`, never push to
+   `main`.** All your commits stay on this branch, which Claude reviews on resume and merges only where correct — so
+   `main` cannot be corrupted. Aider (see the setup guide) commits automatically to whatever branch is checked out, so
+   staying on `local-model-wip` is all that keeps your work fenced.
 2. **Battery-green-or-revert.** Before EVERY commit, run the full verification in §5. If ANY step is red, revert
    (`git checkout -- .`) and journal it. **NEVER commit a red battery.** No exceptions, no "I'll fix it next commit."
 3. **One change per commit.** Small, single-purpose commits, each with a `LOCAL-MODEL-JOURNAL.md` entry (§6).
