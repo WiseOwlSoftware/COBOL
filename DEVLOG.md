@@ -34,9 +34,13 @@ the authoritative in-process test surface, and guarded INV-1-strong per CI.
 using `[Fact]` + a manual `Parallel.ForEach` loop — a THIRD ad-hoc test mechanism alongside the repo's
 `[Theory][MemberData]` convention, and it ignored that the continuity test ALREADY existed (the 13-row seed). The
 owner flagged it ("why a new mechanism instead of integrating / migrating?"). Reverted the class; extended the
-existing `[Theory]` to the full `[MemberData]` sweep instead. Lesson: extend/parameterize the existing mechanism,
-never fork a parallel one to dodge a cost the existing mechanism already handles (the suite runs thousands of
-`[Theory]` cells fine). [[feedback_singular_pattern]]
+existing `[Theory]` to the full `[MemberData]` sweep instead. **Lesson (owner-corrected):** the rule is NOT "never
+fork" — it is ONE mechanism per job, and it must be the BEST one: fork a new mechanism ONLY if it is genuinely
+better (more maintainable / understandable / a better implementation), and then MIGRATE ALL existing usages to it;
+if it is not better, use the existing one. Two coexisting mechanisms for one job is the anti-pattern. Here
+`[Fact]`+`Parallel.ForEach` was NOT better than the established `[Theory][MemberData]` (it loses per-cell
+granularity + reporting; the suite runs 3092 `[Theory]` cells fine), so the existing mechanism won — forking
+without that better-justification was the error. [[feedback_singular_pattern]]
 
 Test + CI only (no `src/` change; `EditionHarness.CompileNist` gained a `checkOnly` param). **Battery:**
 conformance **3092** (+1034 continuity cells) · unit 227 · characterization 32 GREEN; FULL legacy guard NIST
