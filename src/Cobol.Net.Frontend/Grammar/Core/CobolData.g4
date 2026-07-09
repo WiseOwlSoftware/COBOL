@@ -218,7 +218,7 @@ dataDescriptionClause
     | syncClause
     | justifiedClause
     | blankWhenZeroClause
-    | {is2002()}? propertyClause
+    | propertyClause   // COBOL-2002; parses at all editions (superset), introduction-gated at BIND (DataBinder clause loop → Check(PropertyClause2002)) — residue migration #7. (The VALUE-list PROPERTY guards below are KEPT — they are value-operand disambiguation, not an edition gate.)
     | externalClause
     | globalClause
     | typeClause

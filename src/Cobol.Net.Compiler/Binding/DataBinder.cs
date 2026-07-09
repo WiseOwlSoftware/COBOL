@@ -1085,6 +1085,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
                 else if (clause.syncClause() is not null)
                     synchronized = true;   // SYNCHRONIZED/SYNC (ISO §13.18.55) — no-op here; gated on a GROUP <2023 (step 10)
+                else if (clause.propertyClause() is not null)
+                    // PROPERTY clause (§13.18.42, COBOL-2002 OO). Parses at all editions (the {is2002()}? predicate is
+                    // gone — superset); introduction-gated HERE where its identity is known, so below 2002 it is an exact
+                    // COBOLNET0900 instead of the deleted reverse-signature guess (residue migration #7). The OO
+                    // property SEMANTICS remain in DataBinder.Oo.OoBindPropertyClauses — this branch only gates.
+                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.PropertyClause2002, "the PROPERTY clause");
                 else if (clause.usageClause() is { } usage)
                 {
                     usageText = UsageKeyword(usage);

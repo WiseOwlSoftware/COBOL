@@ -84,8 +84,9 @@ public static class ReservedWordEditionHints
         // signature is the fallback the stack test cannot give. Each arm yields the constructs.json row id.
         string? id = token.Type switch
         {
-            CobolLexer.PROPERTY when InRule(ruleStack, "dataDescriptionEntry") || InRule(ruleStack, "dataDescription")
-                || InRule(ruleStack, "workingStorageSection") => Constructs.PropertyClause2002,
+            // (PROPERTY migrated to a bind-time Check — residue migration #7, DESIGN-version-conformance-pipeline.md —
+            // its {is2002()}? predicate is gone; the PROPERTY clause parses at all editions and is gated in the
+            // DataBinder data-description clause loop, so the reverse-signature arm is deleted.)
             // The XOR OPERATOR below 2023 (the W3 regating): a parse error AT the XOR/EXCLUSIVE-OR token is
             // the gated operator by construction — as a USER word the token parses through cobolWord and
             // never errors (the condition-rule stack has popped by report time, so no rule filter applies).
