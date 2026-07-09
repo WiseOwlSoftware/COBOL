@@ -109,17 +109,22 @@ public static class CompilerDriver
         new Validation.EditionValidator(edition.Edition, edition).Validate(tree);
         if (edition.HasErrors)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
-        // frontend.TurnEvents — the >>TURN directive events (ISO §7.3.25) — build the group's compile-time
-        // TurnState (the EC model's checking decisions, conditions-exceptions deep-dive D10).
-        string csharp = new CSharpEmitter().Emit(tree, edition, frontend.TurnEvents);
+        // P3 step 14a — the bind/emit SPLIT: bind the whole run unit FIRST (every edition-gating diagnostic is
+        // produced during bind — the render half touches no EditionContext), gate the sink, and only THEN emit —
+        // so the Roslyn backend never runs on an errored tree (rearch exit criterion 9). frontend.TurnEvents are
+        // the >>TURN directive events (ISO §7.3.25) that build the group's compile-time TurnState (deep-dive D10).
+        var emitter = new CSharpEmitter();
+        var bound = emitter.Bind(tree, edition, frontend.TurnEvents);
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
 
-        // Check-only: every edition-gating diagnostic is now produced (parse + EditionValidator + the emit above),
-        // so the compile VERDICT is settled. Skip Phase 3 (the Roslyn C#→IL backend + the dll/g.cs writes) — the
-        // dominant cost — since no runnable assembly is wanted (the INV-1 continuity sweep / CLI `check-batch`).
+        // Check-only: every edition-gating diagnostic is now produced (parse + EditionValidator + bind above), so
+        // the compile VERDICT is settled. Skip emit AND Phase 3 (the Roslyn C#→IL backend + the dll/g.cs writes) —
+        // the dominant cost — since no runnable assembly is wanted (the INV-1 continuity sweep / CLI `check-batch`).
         if (options.CheckOnly)
             return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]);
+
+        string csharp = emitter.Emit(bound);
 
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         string outDir = Path.GetDirectoryName(Path.GetFullPath(outputDll)) is { Length: > 0 } d ? d : ".";

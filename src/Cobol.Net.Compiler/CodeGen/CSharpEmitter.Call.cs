@@ -28,7 +28,7 @@ public sealed partial class CSharpEmitter
 
     /// <summary>One program unit of the compilation group: its identity, containment, PROGRAM-ID attributes
     /// (ISO §11.10 / §8.6.6), bound model, and the GLOBAL bridges its class must emit (§13.18.27 GR2).</summary>
-    private sealed class CallUnit
+    internal sealed class CallUnit
     {
         public required string Name;
         public required string ClassName;
@@ -61,7 +61,19 @@ public sealed partial class CSharpEmitter
     /// containing instance's field (ISO §13.18.27 GR2 — the name is visible in every contained program; the
     /// STORAGE stays the container's). <paramref name="Kind"/>: "field" (a global root's typed field), "backing"
     /// (a Tier-B class's string backing), or "index" (an INDEXED BY <c>long</c> field of a global table).</summary>
-    private sealed record CallBridge(string Field, string Path, string Kind, DataItem? Item);
+    internal sealed record CallBridge(string Field, string Path, string Kind, DataItem? Item);
+
+    /// <summary>The BIND output of a run unit (rearch PHASE-03 Step 14a — the bind/emit split): the walkable bound
+    /// group the <see cref="Validation.VersionConformancePass"/> gates and <see cref="CallEmitRunUnit(BoundRunUnit)"/>
+    /// renders — the program units + class units (each carrying its <see cref="CallUnit.Bound"/> / <c>.Data</c>), the
+    /// OO symbol roster, and the parse-tree ROOT (the pass's parse-arm walks it for the syntactic obsolete-element +
+    /// §8.9 reserved-word gates that have no bound-node representation). Carrying the parse root on this GROUP record
+    /// does NOT put a parse context on any bound NODE — the <c>BoundTree.cs</c> "no raw parse context" invariant stands.</summary>
+    internal sealed record BoundRunUnit(
+        Core.CompilationUnitContext Tree,
+        List<CallUnit> Units,
+        List<OoClassUnit> Classes,
+        OoClassTable OoClasses);
 
     private string _callSelfPath = "";
     private Place? _callReturningPlace;
@@ -86,7 +98,11 @@ public sealed partial class CSharpEmitter
     /// run-unit entry wrapper (<c>Program.Main</c>: registry registration + main activation + the §14.6.11
     /// implicit CLOSE at run-unit termination).
     /// </summary>
-    internal string CallEmitRunUnit(Core.CompilationUnitContext tree, EditionContext edition,
+    /// <summary>The BIND half of run-unit compilation (rearch PHASE-03 Step 14a — the bind/emit split): binds every
+    /// program unit + class to a walkable <see cref="BoundRunUnit"/> WITHOUT emitting. Every edition-gating diagnostic
+    /// is produced here (the render half touches no <see cref="EditionContext"/>), so the driver gates on the sink
+    /// AFTER bind and never runs codegen on an errored tree (rearch exit criterion 9). Was the fused CallEmitRunUnit.</summary>
+    internal BoundRunUnit CallBindRunUnit(Core.CompilationUnitContext tree, EditionContext edition,
         IReadOnlyList<CobolNet.Frontend.Preprocessor.TurnEvent>? turnEvents = null)
     {
         // The group's compile-time TurnState (ISO §7.3.25; deep-dive D10) — built BEFORE binding so every unit's
@@ -126,6 +142,18 @@ public sealed partial class CSharpEmitter
         // pre-EC build (the zero-scaffolding invariant, SSOT §18.16).
         _ecActive = _turnState.AnyEnabled || units.Any(u => u.Bound.Ec is { Any: true })
             || classes.Any(c => c.Bound.Ec is { Any: true } || c.FactoryBound.Ec is { Any: true });
+
+        return new BoundRunUnit(tree, units, classes, _ooClasses);
+    }
+
+    /// <summary>The EMIT half (rearch PHASE-03 Step 14a): render the run unit's C# from an already-bound
+    /// <see cref="BoundRunUnit"/> — reached ONLY after the driver confirmed the edition sink is clean, so codegen
+    /// never runs on an errored tree (exit criterion 9). Call on the SAME emitter instance that produced
+    /// <paramref name="group"/> — its bind-populated fields <c>_turnState</c>/<c>_ooClasses</c>/<c>_ecActive</c> are live.</summary>
+    internal string CallEmitRunUnit(BoundRunUnit group)
+    {
+        var units = group.Units;
+        var classes = group.Classes;
 
         // Per-program file-connector namespace: the runtime file registry is run-unit-global, but a file
         // connector is INTERNAL to its program (ISO §8.6.3): two programs declaring the same file-name (the

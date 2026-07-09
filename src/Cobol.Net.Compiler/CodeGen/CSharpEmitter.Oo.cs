@@ -23,7 +23,7 @@ public sealed partial class CSharpEmitter
 {
     /// <summary>One CLASS-ID unit of the compilation group (the ClassUnit counterpart of <see cref="CallUnit"/>):
     /// its pass-1 symbol, its OBJECT-paragraph data model, and its bound method bodies.</summary>
-    private sealed class OoClassUnit
+    internal sealed class OoClassUnit
     {
         public required OoClassSymbol Symbol;
         public string Name => Symbol.Name;

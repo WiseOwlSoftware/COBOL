@@ -28,16 +28,22 @@ public sealed partial class CSharpEmitter
     private ConditionRenderer _cond = null!;
     private ReferenceResolver _refs = null!;
 
-    /// <summary>Emit C# source for the WHOLE compilation group in <paramref name="tree"/> (multi-unit run-unit
-    /// emission — interprogram design D3 / SSOT §18 #8), binding under the targeted EDITION
-    /// (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the driver fails the
-    /// compile when any exist). <paramref name="turnEvents"/> are the frontend's <c>&gt;&gt;TURN</c> directive
-    /// events (ISO §7.3.25) — they build the group's compile-time TurnState (deep-dive D10); null/empty means
-    /// the GR1 default, EC-ALL CHECKING OFF. The body lives in <c>CSharpEmitter.Call.cs</c>
-    /// (<see cref="CallEmitRunUnit"/>).</summary>
-    public string Emit(Core.CompilationUnitContext tree, EditionContext? edition = null,
+    /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to a walkable <see cref="BoundRunUnit"/>
+    /// (multi-unit run-unit binding — interprogram design D3 / SSOT §18 #8), under the targeted EDITION
+    /// (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the driver fails the compile
+    /// when any exist, BEFORE emit). <paramref name="turnEvents"/> are the frontend's <c>&gt;&gt;TURN</c> directive
+    /// events (ISO §7.3.25) — they build the group's compile-time TurnState (deep-dive D10); null/empty means the
+    /// GR1 default, EC-ALL CHECKING OFF. The body lives in <c>CSharpEmitter.Call.cs</c>
+    /// (<see cref="CallBindRunUnit"/>). The <see cref="Emit(BoundRunUnit)"/> half renders C# from the result — the
+    /// rearch PHASE-03 Step 14a bind/emit split (codegen never runs on an errored tree).</summary>
+    internal BoundRunUnit Bind(Core.CompilationUnitContext tree, EditionContext? edition = null,
         IReadOnlyList<CobolNet.Frontend.Preprocessor.TurnEvent>? turnEvents = null)
-        => CallEmitRunUnit(tree, edition ?? new EditionContext(2023), turnEvents);
+        => CallBindRunUnit(tree, edition ?? new EditionContext(2023), turnEvents);
+
+    /// <summary>Render typed-native C# from an already-bound <see cref="BoundRunUnit"/> (the emit half of the
+    /// Step-14a bind/emit split). Call on the SAME instance that produced <paramref name="group"/> via
+    /// <see cref="Bind"/> — the bind-populated instance fields are live.</summary>
+    internal string Emit(BoundRunUnit group) => CallEmitRunUnit(group);
 
     /// <summary>
     /// Whole-group analysis (ISO/IEC 1989:2023 §14.9 MOVE GR4 / COBOLNET_DESIGN §14.4): for every group used as a

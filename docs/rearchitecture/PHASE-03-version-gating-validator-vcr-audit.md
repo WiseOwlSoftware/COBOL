@@ -56,7 +56,14 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14 (the pipeline skeleton)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717). Step 2 done (DEVLOG 698): `EditionValidator` re-homed onto
+`IN PROGRESS @ Step 14b (14a DONE)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+**Step 14 lands as ordered byte-identical sub-commits 14a–14f** (decision-complete recon `wf_edbcd62a-d8a`; the pass is a
+TWO-ARM pass — a bound-tree arm identifying gates by node-type/semantic-attribute + a retained parse-tree arm for the
+EditionValidator-origin syntactic + §8.9 gates; NO `.Syntax` back-ref added to any bound node — the `BoundTree.cs` invariant
+stands, within the design's §2.2/§6 provisions). **Step 14a DONE (DEVLOG 718):** the bind/emit split — `CSharpEmitter.Emit`
+→ `Bind(tree,edition,turnEvents) → BoundRunUnit` + `Emit(BoundRunUnit)`; driver runs `bind → HasErrors gate → CheckOnly? :
+emit`; codegen never runs on an errored tree (exit 9, as a pure refactor). Battery: conformance 3114 · unit 227 ·
+characterization 32 · FULL legacy guard 353 MATCH. Step 2 done (DEVLOG 698): `EditionValidator` re-homed onto
 `EditionInfo` + `IDiagnosticSink`. **Step 6 Tier-2 done (DEVLOG 699):** the VCR narrative was spec-audited by a
 13-agent workflow (`wf_acc42f62-8a4`) — 133 rows, **125 accurate / 3 divergent / 5 unverifiable**; the 3
 divergent (rows 54/68/69, all "Old"-behavior prose) fixed against quoted spec lines; the 5 unverifiable are the
