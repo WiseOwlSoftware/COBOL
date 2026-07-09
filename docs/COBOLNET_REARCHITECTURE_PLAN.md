@@ -37,11 +37,16 @@
 > DEVLOG-708 mis-fire eliminated), XOR #1 (`d3cdae6c`, **Batch A complete**), SHARING #3 (`1b74f739`, **Batch B** — the
 > OPEN name-list collision proven byte-safe). Each dropped the grammar `{isXXXX()}?`, added a bind-time
 > `ConstructRegistry.Check`, deleted the reverse-signature arm + a negative fixture; FULL legacy guard ALL GREEN each.
-> **RESUME AT: Batch C — the last 2 gates** — RETRY #4 (5 verb sites bind-time + a forward `retryPhraseAhead()` for the
-> OPEN site; `FOREVER` is user-legal so the lookahead needs care) and the boolean family #2 (operator tiers + COMPUTE
-> F2 pure-gating; the boolean-condition ENTRY via `boolExprAhead()`) — ⚠ HIGHEST SCRUTINY (the shared comparison DFA,
-> DEVLOG 621). Then delete `ReservedWordEditionHints` + the Stage-0 pass/phase-separation skeleton
-> (`DESIGN-version-conformance-pipeline.md` §4/§5). Battery-green at every commit boundary.
+> **RESUME AT: PHASE-03 Steps 12–15.** **Step 12 — Batch C residue migration**: RETRY #4 — SIX grammar predicate
+> sites in `Core/CobolIO.g4` (openClause, readStatement, writeStatement, rewriteStatement, deleteStatement,
+> deleteFileStatement): the five statement sites drop their predicate and gate bind-time via `Check(RetryPhrase2002)`;
+> the OPEN site becomes `{is2002() || retryPhraseAhead()}?` (`FOREVER` is user-legal so the lookahead needs care) —
+> plus the boolean family #2 (operator tiers + COMPUTE F2 pure-gating; the boolean-condition ENTRY via
+> `boolExprAhead()`) — ⚠ HIGHEST SCRUTINY (the shared comparison DFA, DEVLOG 621). **Step 13** — delete
+> `ReservedWordEditionHints` entirely (the vendor JSON/XML COBOL0313 disposition relocates to `CobolErrorStrategy`).
+> **Step 14** — the pipeline skeleton: the `VersionConformancePass` + the bind/emit split
+> (`DESIGN-version-conformance-pipeline.md` §4/§5 Stage 3). **Step 15** — phase close. Battery-green at every commit
+> boundary.
 > ⚠ One owner override to carry forward — **D10: PHASE-04 must FULLY remove the lexer `SUBSCRIPT` mode + the binder
 > subscript re-parse** (a grammar-level `x(i)` rule), an expansion beyond that phase's originally-authored scope (§6). The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
 > the decision-complete designs in `docs/rearchitecture/DESIGN-*.md`; the as-is survey + critique in
@@ -105,7 +110,8 @@ every phase boundary.
 ## 2. Guiding principles (non-negotiable through the migration)
 
 1. **Green at every boundary; migrate by prove-then-delete.** Each phase is independently shippable to `main` and
-   leaves the FULL battery green (2028 conformance + 213 unit + NIST-353 legacy MATCH). For every mutable flag or
+   leaves the FULL battery green (greenfield conformance + unit + characterization + the NIST legacy guard — the
+   current counts live in the STATUS banner). For every mutable flag or
    duplicated computation being retired, compute the new form first, cross-check it against the old across the whole
    corpus, and only then delete the old — never on faith.
 2. **Typed-native data ONLY.** A COBOL record IS a C# record struct; an elementary item IS a native field. A `byte[]`
@@ -197,12 +203,28 @@ phase boundary.
 > be complete before/with Phase 15. See `PHASE-16` for the exact insertion.
 
 > **Version-conformance pipeline (cross-cutting driver, `DESIGN-version-conformance-pipeline.md`).** Like the
-> dual-backend mandate (§3), the version-conformance pipeline is realized across several phases rather than one:
-> **P03** does the residue-first migration (fold the 7 `ReservedWordEditionHints` gates into the single mechanism +
-> delete the guesser) and stands up the `VersionConformancePass` skeleton with the bind/emit phase split; **P04**
-> (frontend) removes the edition `{isXXXX()}?` predicates → superset parse + the construct-id annotation convention;
-> **P06** (real binder) makes the binder edition-AGNOSTIC and relocates the ~24 remaining binder `Check` calls into the
-> pass; **P07** finalizes the bind-vs-emit separation. Each affected phase's scope note points back to the design doc.
+> dual-backend mandate (§3), the pipeline touches several phases — but **P03 owns DELIVERY of the ENTIRE pipeline,
+> sequenced residue-first** (its Steps 12–15): Batch C (Step 12 — RETRY #4's six grammar predicate sites + the boolean
+> family #2) → delete `ReservedWordEditionHints` (Step 13; the vendor JSON/XML COBOL0313 disposition relocates to
+> `CobolErrorStrategy` as a token-keyed vendor hint) → the pipeline skeleton (Step 14, design §5 Stage 3): the
+> `VersionConformancePass` over the bound tree that funnels ALL 88 compiler-embedded `ConstructRegistry.Check` call
+> sites, absorbs and DELETES `EditionValidator` (its §8.9 reserved-word funnel moves into the pass), makes the binder
+> edition-agnostic (zero `Check`s; bound nodes carry the `.Syntax` back-reference the pass reads), splits bind/emit in
+> `CompilerDriver` (bind → pass → HALT on errors → emit), and re-points `CheckOnly` / `check-batch` / `EditionHarness`
+> / the INV-1 continuity + INV-1-strong legs so their verdicts include pass diagnostics. The later phases PRESERVE and
+> HARDEN it: **P04** (frontend) completes the superset grammar + the committed-match construct-id ANNOTATION convention
+> (grammar actions + side-table storage keyed by parse context) + the D10 owner override (SUBSCRIPT-mode removal) —
+> and re-introduces NO edition predicates; after P03 the only surviving predicates are the two load-bearing
+> forward-detects (the openClause `{is2002() || retryPhraseAhead()}?` and the `boolExprAhead()`-based condition ENTRY).
+> **P06** (real binder) makes the `VersionConformancePass` a NAMED pass in the `IBindPass` manifest — exit criterion:
+> zero `ConstructRegistry.Check` calls in any `IBindPass` other than the conformance pass; `CheckOnly` runs the
+> manifest through the conformance pass. **P07** preserves the bind-vs-emit separation through the emitter
+> decomposition — exit criterion: emitters contain no edition gating, and emit is unreachable with non-empty
+> diagnostics. **P13** (M4 wave): a NEW edition-gated construct = a `constructs.json` row + a superset grammar rule
+> (stamped with its construct-id annotation, or a self-identifying bound node) + a `VersionConformancePass` rule + a
+> negative fixture at EVERY earlier edition — NEVER a new parse-time edition predicate (unless a proven load-bearing
+> ambiguity needing a forward-detect) and NEVER a binder-embedded `Check`. **P14**'s matrix-closure gates reference
+> the `VersionConformancePass`, not `EditionValidator`. Each affected phase's scope note points back to the design doc.
 
 ## 5. Document index
 

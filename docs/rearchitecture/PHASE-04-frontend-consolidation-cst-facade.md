@@ -4,12 +4,18 @@
 - **Track:** rearchitecture
 - **Risk:** MEDIUM
 - **Depends on:** P2 (Cobol.Net.Editions leaf assembly). Transitively assumes P1 is done (mechanical namespace
-  rename `CobolSharp.Compiler.* → CobolNet.*`, dead-grammar deletion, JSON/XML removal). May run **parallel to
-  P3** (version-gating framework) — this phase does NOT touch edition gates, `EditionGateHints`, or
-  `ConstructId`, so there is no ordering constraint against P3.
+  rename `CobolSharp.Compiler.* → CobolNet.*`, dead-grammar deletion, JSON/XML removal). Groups A–C
+  (word set / fragments / façade) may run **parallel to P3** (the version-conformance pipeline); the
+  version-conformance leg (Group D) sequences AFTER P3's residue migration. After P3 the only surviving grammar
+  predicates are the two load-bearing forward-detects (the `openClause` `{is2002() || retryPhraseAhead()}?` and
+  the `boolExprAhead()`-based boolean-condition ENTRY) — this phase must **NOT re-introduce edition predicates**.
 - **Design source:** `docs/rearchitecture/DESIGN-frontend-grammar.md` — this phase executes **D2** (generate the
   context-sensitive word set), **§3.3b** (share SUBSCRIPT-mode literal/operator token fragment bodies), and
-  **D6/M8** (the typed `Cst/` façade). It explicitly does NOT execute D3/D4/D5/D7/D8 (those are P1/P2/P3).
+  **D6/M8** (the typed `Cst/` façade) — plus the version-conformance leg from
+  `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`: **superset-grammar completion** and the
+  **committed-match construct-id annotation convention** (grammar actions + side-table storage keyed by parse
+  context) that the `VersionConformancePass` reads. It explicitly does NOT execute D3/D4/D5/D7/D8 (those are
+  P1/P2/P3).
 
 > ⚠ **OWNER OVERRIDE — D10 (2026-07-07), SCOPE EXPANSION beyond this doc's original §3.3b.** This phase originally
 > only DEDUPED the lexer `SUBSCRIPT` mode's token fragment bodies. The owner ruled it must **FULLY REMOVE** the
@@ -26,8 +32,11 @@
      Keep a one-line note per completed commit boundary in the "Execution log" at the bottom. -->
 
 ### Goal (one paragraph)
-The frontend's single-grammar-with-edition-predicates core is sound; the problem is the **duplication around
-it**. This phase removes two duplications and installs one enabling façade: (1) the context-sensitive word set
+The frontend core is a single **superset grammar** — every edition's constructs parse unconditionally, and
+edition legality is decided at bind time by the `VersionConformancePass`
+(`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`); the problem is the **duplication around
+it**. This phase removes two duplications, installs one enabling façade, and completes the grammar side of the
+version-conformance pipeline: (1) the context-sensitive word set
 — the tokens that are keywords in context but legal user-defined words elsewhere — is today hand-synced across
 THREE physically separate places (the lexer `_dataNameTokens` HashSet, the parser `cobolWord` rule, and the
 compiler `ReservedWords` table) with a source comment literally instructing a maintainer to hand-mirror them;
@@ -38,7 +47,11 @@ we factor the shared bodies into `fragment` rules so each tokenization shape exi
 `Cst/` typed façade (thin, 1:1-with-grammar-rules wrappers over the generated ANTLR contexts) as the narrow
 cross-assembly surface the binder consumes, and migrate the two highest-churn anchor consumers off raw
 `GetText()` — making a grammar-rule rename a compile error in one file instead of a silent drift across ~339
-`GetText()` sites. **Every change is behavior-neutral; the full battery stays green at every commit boundary.**
+`GetText()` sites. (4) We complete the **superset grammar** and install the **committed-match construct-id
+annotation convention** — grammar actions that stamp each recognized edition-gated construct into side-table
+storage keyed by parse context, the grammar-side feed the `VersionConformancePass` reads (per
+`DESIGN-version-conformance-pipeline.md`). **Groups A–C are behavior-neutral; the full battery stays green at
+every commit boundary.**
 
 ### Exit criteria (all must hold at phase end)
 1. The context-sensitive word set is **single-sourced** from `tests/version-matrix/cobol-words.json`: the lexer
@@ -50,9 +63,14 @@ cross-assembly surface the binder consumes, and migrate the two highest-churn an
 3. A `Cst/` typed façade exists for the **highest-churn rules** (`dataReference`, `dataDescriptionEntry`,
    `cobolWord`, `integerLiteral`) and the two anchor consumers (`ReferenceResolver`, `DataBinder.BindEntry`)
    read the façade, not raw `GetText()`.
-4. **Full battery green + snapshots neutral:** 2028+ greenfield conformance + 213+ unit + the full legacy guard
-   (NIST 353 MATCH) + version-matrix accept/reject unchanged across all four `--std` values. The generated
-   `.g.cs` for a representative corpus is byte-identical to pre-phase (behavior neutrality).
+4. **Full battery green + snapshots neutral:** greenfield conformance + unit + characterization + the FULL NIST
+   legacy guard (ALL GREEN) + version-matrix accept/reject unchanged across all four `--std` values. The
+   generated `.g.cs` for a representative corpus is byte-identical to pre-phase (behavior neutrality).
+5. The **superset grammar is complete** and the **construct-id annotation convention** is installed (grammar
+   actions + side-table storage keyed by parse context) per `DESIGN-version-conformance-pipeline.md`; **no
+   edition predicate has been (re-)introduced** — the only grammar predicates are the two load-bearing
+   forward-detects (the `openClause` `{is2002() || retryPhraseAhead()}?` and the `boolExprAhead()`-based
+   boolean-condition ENTRY).
 
 ---
 
@@ -143,7 +161,10 @@ rule rename ripples into dozens of `GetText()` sites invisibly. A typed façade 
 ### 2.4 What this phase does NOT do (owned by other phases — do not re-author)
 - Dead-grammar deletion, JSON/XML removal, generated-namespace rename → **P1**.
 - `Cobol.Net.Editions` extraction, diagnostic-descriptor registry → **P2**.
-- `Intro(ConstructId)` self-identifying gates, `EditionGateHints` deletion, VCR audit → **P3**.
+- Edition-predicate residue migration to bind-time `Check`, `ReservedWordEditionHints` deletion, the
+  `VersionConformancePass` skeleton, VCR audit → **P3** (per `DESIGN-version-conformance-pipeline.md`). This
+  phase never adds an edition predicate; the only surviving grammar predicates after P3 are the two
+  load-bearing forward-detects.
 - Full elimination of the SUBSCRIPT lexer mode + the binder subscript re-parse (`ReferenceResolver`
   `SplitSubscriptTokens`) → deferred data-model change (DESIGN §8 open-question 5 / **P5–P7**).
 - The binder god-class split and full migration of all ~339 `GetText()` sites → **P7**. This phase installs the
@@ -177,8 +198,9 @@ Files that exist / are changed when this phase is DONE:
 - `src/Cobol.Net.Compiler/Binding/DataBinder.cs` (`BindEntry`) — reads `DataDescriptionCst`.
 
 **Unchanged (explicitly preserved):** the two-stage SLL→LL parse, `ZeroTokenRewriter`, the SUBSCRIPT mode
-existence + mode-switch strategy, `PreviousTokenCouldBeDataName()`, `boolExprAhead()`, `CobolParserCoreBase`'s
-`is85()/is2002()/is2014()/is2023()` predicates, the preprocessor, `CobolErrorStrategy`.
+existence + mode-switch strategy, `PreviousTokenCouldBeDataName()`, the two load-bearing forward-detect
+predicates — the `openClause` `{is2002() || retryPhraseAhead()}?` and the `boolExprAhead()`-based
+boolean-condition ENTRY, the ONLY grammar predicates that survive P3 — the preprocessor, `CobolErrorStrategy`.
 
 ---
 
@@ -186,9 +208,9 @@ existence + mode-switch strategy, `PreviousTokenCouldBeDataName()`, `boolExprAhe
 
 > Ordering rationale: Group A (word set) is the highest-value dedup and lands first, as a
 > parallel-SSOT-then-flip so each commit is provably neutral. Group B (fragment dedup) is an independent
-> low-risk lexer refactor. Group C (façade) is enabling infra and lands last (it is paced with, and hands off
-> to, P7). Each numbered step names files, the exact change, why, the verify command + expected result, and
-> whether it is a **COMMIT BOUNDARY**.
+> low-risk lexer refactor. Group C (façade) is enabling infra (it is paced with, and hands off to, P7).
+> Group D (the version-conformance leg) sequences after P3's residue migration. Each numbered step names files,
+> the exact change, why, the verify command + expected result, and whether it is a **COMMIT BOUNDARY**.
 
 ---
 
@@ -623,7 +645,7 @@ the one file every `dataReference` flows through. The `SplitSubscriptTokens` re-
 ```bash
 dotnet build CobolSharp.sln -c Debug
 dotnet test tests/Cobol.Net.Tests.Conformance     # GREEN — resolution output unchanged
-bash scripts/guard.sh                              # full legacy guard: NIST 353 MATCH (bound tree byte-neutral)
+bash scripts/guard.sh                              # FULL legacy guard ALL GREEN (bound tree byte-neutral)
 ```
 **Not a commit boundary yet.**
 
@@ -649,7 +671,7 @@ chase into the file/report/switch partials (P7). This bounds C3 to the DATA-DIVI
 dotnet build CobolSharp.sln -c Debug
 dotnet test tests/Cobol.Net.Tests.Conformance                       # GREEN
 dotnet test tests/Cobol.Net.Tests.Unit                              # GREEN
-bash scripts/guard.sh                                               # NIST 353 MATCH
+bash scripts/guard.sh                                               # FULL legacy guard ALL GREEN
 # Emitted-C# neutrality on the representative set (see §5):
 # regenerate .g.cs for each baseline program and diff against /tmp/p4-baseline/ — expect ZERO diffs.
 ```
@@ -662,11 +684,24 @@ is the narrow typed surface over the generated ANTLR contexts. ReferenceResolver
 dataReference funnel, 142 upstream sites) and DataBinder.BindEntry (the dataDescriptionEntry
 decoder) now read typed accessors instead of raw GetText(). Implicit conversions keep the
 142 call sites unchanged — full migration + context internalization is P7. Behavior-neutral:
-conformance + full legacy guard (NIST 353 MATCH) + emitted-.g.cs byte-identical.
+conformance + FULL legacy guard ALL GREEN + emitted-.g.cs byte-identical.
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_017kSL7aKj3FXensEvmEDfhs
 ```
+
+---
+
+### GROUP D — Version-conformance leg: superset-grammar completion + construct-id annotation
+
+> Executed FROM `docs/rearchitecture/DESIGN-version-conformance-pipeline.md` (the canonical design for this
+> leg), AFTER P3's residue migration has landed. Complete the superset grammar (every edition's constructs
+> parse unconditionally at all four `--std` values) and install the **committed-match construct-id annotation
+> convention**: grammar actions stamp each recognized edition-gated construct into side-table storage keyed by
+> parse context, which the `VersionConformancePass` reads. Do **NOT** introduce any edition predicate — the
+> only surviving grammar predicates are the two load-bearing forward-detects (§3). The executing session
+> authors the step-by-step from the design doc at execution time, with the same per-commit battery discipline
+> as Groups A–C.
 
 ---
 
@@ -681,11 +716,11 @@ cd E:/CobolSharp
 dotnet build CobolSharp.sln -c Debug
 
 # 2. Greenfield conformance + unit.
-dotnet test tests/Cobol.Net.Tests.Conformance        # 2028+ green
-dotnet test tests/Cobol.Net.Tests.Unit               # 213+ green, incl. CobolWordsDriftTests + ReservedWordsDriftTests
+dotnet test tests/Cobol.Net.Tests.Conformance        # ALL GREEN
+dotnet test tests/Cobol.Net.Tests.Unit               # ALL GREEN, incl. CobolWordsDriftTests + ReservedWordsDriftTests
 
 # 3. Full legacy differential guard (the byte-exact net).
-bash scripts/guard.sh                                # NIST 353 MATCH, 0 regressions
+bash scripts/guard.sh                                # FULL legacy guard ALL GREEN, 0 regressions
 
 # 4. Version-matrix accept/reject unchanged across editions (word set + fragments are edition-neutral).
 bash scripts/version-continuity-sweep.sh             # (or the P3 harness) — all four --std unchanged
@@ -700,7 +735,7 @@ diff /tmp/CobolLexer.tokens.baseline src/Cobol.Net.Frontend/Generated/CobolLexer
 ```
 
 **Neutrality contract:** this phase changes NO observable behavior. The proofs are: (a) `CobolLexer.tokens`
-byte-identical (token types unchanged), (b) full legacy guard NIST 353 MATCH (bound tree byte-neutral), (c)
+byte-identical (token types unchanged), (b) the FULL legacy guard ALL GREEN (bound tree byte-neutral), (c)
 emitted `.g.cs` byte-identical on the representative corpus (codegen neutral), (d) the drift test green (the
 generated word set equals the JSON equals the runtime lexer set). If any diff appears with no intended behavior
 change, it is a bug — bisect to the offending step.
@@ -714,8 +749,9 @@ fragments. Update `docs/DOC_INDEX.md` if you add the two generated artifacts as 
 ## 6. Rollback / resumability
 
 - **Resuming mid-phase:** the `STATUS` line + the Execution log (below) record the last completed commit
-  boundary. The three groups are independent and ordered A → B → C; within a group the commit boundaries are
-  A5, B1, C3. Re-establish the `/tmp` baselines (§1) before resuming a neutrality check.
+  boundary. Groups A–C are independent and ordered A → B → C (Group D sequences after P3's residue migration);
+  within a group the commit boundaries are A5, B1, C3. Re-establish the `/tmp` baselines (§1) before resuming
+  a neutrality check.
 - **A is parallel-SSOT-then-flip:** if A4/A5 shows a `.tokens` diff or a battery regression, the JSON extraction
   (A1) missed or mis-classified a word. Revert A4/A5 (the grammar files) — the JSON + script + drift test can
   stay; fix the JSON, regen, re-verify. The hand-written sources are the fallback until A5 lands.
@@ -776,5 +812,6 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
 <!--
 - A5 (word set single-sourced) — <date> — .tokens identical, battery green, commit <sha>
 - B1 (fragment dedup)          — <date> — .tokens identical, battery green, commit <sha>
-- C3 (Cst façade + anchors)    — <date> — guard 353 MATCH, .g.cs identical, commit <sha>
+- C3 (Cst façade + anchors)    — <date> — guard ALL GREEN, .g.cs identical, commit <sha>
+- D  (superset + construct-id annotation) — <date> — battery green, no edition predicates, commit <sha>
 -->

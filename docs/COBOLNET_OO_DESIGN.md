@@ -195,8 +195,9 @@ GR1–GR3 implicit-INVOKE desugar with BoundSequence + temps; detected at the Re
 resolution-failure chokepoint by the single-qualifier + roster-property shape) and GET/SET PROPERTY
 prototypes in interfaces. REGISTRY: interface-definition-2002, repository-interface-2002,
 repository-property-2002, implements-clause-2002, property-clause-2002, method-property-selector-2002
-(constructs.json rows for the four independently-reachable gates; W1.5 EditionGateHints for the
-INTERFACE-ID unit + both repository specifiers + the property clause). GOLDENS: oo_interface (two classes
+(constructs.json rows for the four independently-reachable gates; bind-time `ConstructRegistry.Check` gates —
+the INTERFACE-ID unit at `OoClassTable`, both repository specifiers in `DataBinder`, the PROPERTY clause in the
+`DataBinder` clause loop; the `VersionConformancePass` funnel at end state). GOLDENS: oo_interface (two classes
 implementing one interface, polymorphic dispatch through an interface-typed reference), oo_interface_covariant
 (the adapter, compile+run), oo_property, oo_property_methods.
 

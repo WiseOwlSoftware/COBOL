@@ -21,7 +21,9 @@ impossible. Fold the five surviving inline gates into registry rows, backfill th
 sets, add a behavior-variant matrix (the currently-absent INV-3 leg), promote the INV-1 continuity sweep to a
 standing in-process test that is green permissive at all four editions with every strict failure tracing to a
 recognized edition-band code, and pin every gate with a negative witness. **Feature *implementation* (national data,
-OO, M3/M4 surface) is OUT of scope — this phase gates, skeletons, and audits only.**
+OO, M3/M4 surface) is OUT of scope — this phase gates, skeletons, and audits only.** **Phase 03 owns delivery of
+the ENTIRE version-conformance pipeline, sequenced residue-first** (Steps 12–15): the Batch C residue migration,
+the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skeleton land here.
 
 ## Exit criteria (the phase is DONE when all hold)
 
@@ -36,6 +38,11 @@ OO, M3/M4 surface) is OUT of scope — this phase gates, skeletons, and audits o
 5. **Full legacy guard green** (NIST 353 MATCH) + the full greenfield battery (conformance + unit) green.
 6. The validator, registry `Check`, and all gate call-sites consume **`EditionInfo` + `IDiagnosticSink`** (the P2
    framework); the `EditionContext` adapter is not on the edition-gating path.
+7. **All 7 residue gates migrated** (grammar edition predicates dropped; bind-time `Check` at each recognition
+   point) **+ `ReservedWordEditionHints` deleted.**
+8. **The `VersionConformancePass` is the sole edition-gating funnel and the binder is edition-agnostic** (zero
+   `ConstructRegistry.Check` calls in the binder).
+9. **Emit is unreachable when any diagnostics exist** (no codegen on an errored tree).
 
 ## STATUS
 
@@ -46,9 +53,10 @@ OO, M3/M4 surface) is OUT of scope — this phase gates, skeletons, and audits o
 > `ConstructRegistry.Check` calls; bound nodes carry `.Syntax`) → **one `VersionConformancePass`** over the bound tree
 > as the sole gate → **emit-if-clean** (bind/emit split so codegen never runs on an errored tree); there is no
 > `ReservedWordEditionHints`. Built RESIDUE-FIRST. The step notes below cover the harness-driven VCR audit + the
-> editions-framework wiring on the P2 primitives.
+> editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
+> residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ step 6 (Tier-1)` (2026-07-08). Step 2 done (DEVLOG 698): `EditionValidator` re-homed onto
+`IN PROGRESS @ Step 12 (Batch C)` (2026-07-09). Step 2 done (DEVLOG 698): `EditionValidator` re-homed onto
 `EditionInfo` + `IDiagnosticSink`. **Step 6 Tier-2 done (DEVLOG 699):** the VCR narrative was spec-audited by a
 13-agent workflow (`wf_acc42f62-8a4`) — 133 rows, **125 accurate / 3 divergent / 5 unverifiable**; the 3
 divergent (rows 54/68/69, all "Old"-behavior prose) fixed against quoted spec lines; the 5 unverifiable are the
@@ -136,8 +144,17 @@ The un-wireable residue is CATALOGUED (not silently absent): `inline-method-invo
 grammar → a `COBOL0307`, needs grammar work to gate cleanly; noted for the M4/2023 feature wave). Battery:
 conformance 3108 · unit 227 · guard 353 MATCH.
 
-**RESUME AT: Step 11 (phase close)** — full battery + doc sync + STATUS→DONE + the exit-criteria checklist. **First:
-the ultracode adversarial-verify pass over the built phase (Steps 2/6/8/10).**
+**⛔ RESIDUE-FIRST MIGRATION 5 of 7 DONE (DEVLOG 709–713, 2026-07-08).** Five of the seven residue gates dropped
+their grammar edition predicate and now gate bind-time via `ConstructRegistry.Check`, with their
+`ReservedWordEditionHints` reverse-signature arms deleted: **UNLOCK #5** (`2daec9cb`) · **PROPERTY #7**
+(`7311dfbd`) · **PD-RAISING #6** (`840b0abf`) · **XOR #1** (`d3cdae6c`) · **SHARING #3** (`1b74f739` — SELECT +
+OPEN in ONE commit; the OPEN name-list collision proven byte-safe). REMAINING: **Batch C = RETRY #4 + the boolean
+family #2** (Step 12), then the recogniser deletion (Step 13) and the pipeline skeleton (Step 14). Battery at
+head: greenfield conformance **3112** · unit **227** · characterization **32** · FULL legacy guard **ALL GREEN**.
+
+**RESUME AT: Step 12 (Batch C residue migration)** — then Step 13 (delete `ReservedWordEditionHints`) → Step 14
+(the pipeline skeleton) → Step 15 (phase close; the former Step 11): full battery + doc sync + STATUS→DONE + the
+exit-criteria checklist (now items 1–9).
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
@@ -162,7 +179,7 @@ unit **227** · characterization **32**; FULL legacy guard **NIST 353 MATCH**. `
 | **8** in-process continuity + INV-1-strong | ❌ **NOT DONE** (bash only) | `version-continuity-sweep.sh` exists; no `VersionContinuitySweepTests` / `Inv1StrongGoldenTests`. | build the in-process gates. |
 | **9** discovery runners + 2014 seeds | ❌ **NOT DONE** | no `NegativeCorpusDiscoveryTests` / `PerEditionPositiveCorpusTests`; `tests/conformance/2014/` exists. | build runners + seed positives. |
 | **10** catalogue holes LOUD | ❌ **NOT DONE** | witness: SYNCHRONIZED-on-group emits generic `COBOL0001`. | sweep + gate loud; verify the national/boolean skeleton. |
-| **11** phase close | ❌ | — | full battery + doc sweep + STATUS=DONE. |
+| **15** phase close (formerly 11) | ❌ | — | after Steps 12–14 (pipeline delivery): full battery + doc sweep + STATUS=DONE. |
 
 **Net:** Step 1 ✅ and Step 4 ✅ are already satisfied (P2/P2.6b); Steps 2 & 3 are PARTIAL; Steps 5–10 are the
 substantial NEW work (VCR mechanization + three new test surfaces + row backfill + hole cataloguing). Also note
@@ -264,9 +281,10 @@ When P3 is DONE these exist and are green:
 
 > **Discipline for every step:** compile after every change; run the named verification; keep the battery green at
 > each **COMMIT BOUNDARY**. Grammar changes are pre-authorized (owner grant, memory `feedback_grammar_approval`) but
-> require the FULL legacy guard in the same change set — **this phase should need NO grammar change** (it gates +
-> audits; flag it loudly if a step tempts one). Commit messages end with the Co-Authored-By / Claude-Session
-> trailers per repo convention, and each commit gets a DEVLOG entry (newest-first, real timestamp).
+> require the FULL legacy guard in the same change set — **Steps 0–10 should need NO grammar change** (they gate +
+> audit; flag it loudly if a step tempts one); **Steps 12–14 deliberately change the grammar** (the residue
+> migration) and carry the FULL legacy guard in the same change set. Commit messages end with the Co-Authored-By /
+> Claude-Session trailers per repo convention, and each commit gets a DEVLOG entry (newest-first, real timestamp).
 
 ### Step 0 — Battery baseline + AS-BUILT reconciliation (NO code change; resumption anchor)
 
@@ -624,7 +642,88 @@ diagnostic.
 
 ---
 
-### Step 11 — Phase close: full battery + doc sync + STATUS=DONE
+### Step 12 — Batch C residue migration (RETRY #4 + the boolean family #2)
+
+**Why:** the last two residue gates still carry grammar edition predicates; migrating them completes the
+residue-first leg (exit criterion 7's first half). Design: `DESIGN-version-conformance-pipeline.md` §4/§5 Stage 1.
+Grammar changes here are in-scope (see the §4 discipline note): the FULL legacy guard lands in the same change set.
+
+**Do:**
+
+**(a) RETRY #4 — SIX grammar predicate sites** (`openClause`:232, `readStatement`:291, `writeStatement`:343,
+`rewriteStatement`:384, `deleteStatement`:407, `deleteFileStatement`:425 in `Core/CobolIO.g4`): the five statement
+sites drop their `{is2002()}?` predicate and gate bind-time via `Check(RetryPhrase2002)` at the retry-binding site;
+the OPEN site becomes `{is2002() || retryPhraseAhead()}?`. **`retryPhraseAhead()` canonical spec:** true iff, with
+RETRY at the lookahead in the OPEN-clause position, the following tokens form a complete retry tail
+(arithmetic-expression `TIMES` | `FOR`? arithmetic-expression `SECONDS` | `FOREVER`) AND at least one further
+candidate file-name token remains before the sentence terminator (`openFileSpec+` must stay satisfiable).
+Consequences: `OPEN INPUT RETRY FOREVER.` (no trailing name) stays a two-file-name list at 85;
+`OPEN INPUT RETRY 5 TIMES F.` forward-detects (an integer can never be a file name); the genuinely ambiguous
+`OPEN INPUT RETRY FOREVER F.` resolves to file names below 2002 (RETRY is a legal §8.9 user word there) and to the
+phrase at ≥2002 (`is2002()` is true; the §8.9 funnel reserves RETRY). Fail-safe: a missed real gate degrades to a
+neutral parse error, never a wrong edition claim.
+
+**(b) The boolean family #2** — **7a:** the operator tiers + COMPUTE F2 are pure gating — drop the predicates +
+ONE `Check(BooleanOperators2002)` in `BindBoolExpr` guarded by `HasBoolOp`; **7b:** the boolean-condition ENTRY
+generalizes `boolExprAhead()` to fire at all editions with operand-adjacency (highest scrutiny: the shared
+comparison DFA, DEVLOG 621).
+
+**(c) Code-side staleness that lands WITH these commits:**
+- refresh the `constructs.json` citation strings of the 5 already-migrated rows (they still describe deleted
+  `{isXXXX()}?` predicates; regen via `scripts/gen-constructs.ps1` + the drift test);
+- refresh the stale grammar comments (`CobolParserCore.g4` cobolWord notes, `CobolExpressions.g4`,
+  `CobolLexer.g4`);
+- refresh the `ReservedWordEditionHints` class doc-comment on next touch (it still enumerates migrated constructs
+  as parse-gated; Step 13 deletes the file, but any touch before then corrects it).
+
+**(d) ⚠ Treat `docs/rearchitecture/LOCAL-MODEL-ANALYSIS-batchC.md` (branch `local-model-wip` only) as UNVERIFIED
+input:** it omits the `deleteFileStatement` site, fabricates comment text inside its grammar quotes, and its line
+anchors are wrong — re-derive facts from the grammar.
+
+**Verify:** the FULL legacy guard (353 MATCH) + the full greenfield battery green in the same change set; the
+matrix cells for `retry-phrase-2002` + the boolean rows pass both directions; zero edition `{isXXXX()}?` predicates
+remain except the two load-bearing forward-detects (the OPEN `{is2002() || retryPhraseAhead()}?` and the
+`boolExprAhead()`-based condition ENTRY).
+**COMMIT BOUNDARY** (one commit per family, RETRY then boolean, each with its DEVLOG entry).
+
+---
+
+### Step 13 — Delete `ReservedWordEditionHints` entirely
+
+**Why:** with all 7 residue gates migrated, the reverse-signature recogniser has no remaining ISO consumer
+(exit criterion 7's second half). Design: `DESIGN-version-conformance-pipeline.md` §5 Stage 2.
+
+**Do:** delete `ReservedWordEditionHints` entirely. The vendor JSON/XML `COBOL0313` disposition relocates to
+`CobolErrorStrategy` as a token-keyed vendor hint (it is a parse-error re-diagnosis of hard-reserved tokens, not an
+ISO edition gate).
+
+**Verify:** build green; the reserved-word / edition-diagnostic corpora byte-identical; the JSON/XML vendor cases
+still produce `COBOL0313`.
+**COMMIT BOUNDARY.**
+
+---
+
+### Step 14 — The pipeline skeleton (`VersionConformancePass` + bind/emit split)
+
+**Why:** exit criteria 8 & 9 — ONE edition-gating funnel over the bound tree, and no codegen on an errored tree.
+Design: `DESIGN-version-conformance-pipeline.md` §5 Stage 3.
+
+**Do:** build the `VersionConformancePass` over the bound tree; funnel ALL **88** compiler-embedded
+`ConstructRegistry.Check` call sites into it (`DataBinder*`/`StatementBinder*`/`OoClassTable`/`PicInfo`/`OdoModel`
++ `EditionValidator`'s own + the one emitter-side site in `CSharpEmitter.Call.cs`); absorb and DELETE
+`EditionValidator` (its §8.9 reserved-word funnel moves into the pass); make the binder edition-agnostic (zero
+`Check`s); ensure bound nodes carry the `.Syntax` back-reference the pass reads; split bind/emit in
+`CompilerDriver` (bind → pass → HALT on errors → emit); re-point `CheckOnly` / `check-batch` / `EditionHarness` /
+the INV-1 continuity + INV-1-strong legs so their verdicts include pass diagnostics.
+
+**Verify:** full battery green; grep proves zero `ConstructRegistry.Check` calls outside the pass; a test asserts
+emit is never reached with non-empty diagnostics; the 1047-cell continuity matrix + INV-1-strong verdicts include
+pass diagnostics.
+**COMMIT BOUNDARY.**
+
+---
+
+### Step 15 — Phase close (the former Step 11): full battery + doc sync + STATUS=DONE
 
 **Why:** prove the exit criteria and leave the tree resumable.
 
@@ -632,12 +731,16 @@ diagnostic.
 1. Run the full verification battery (§5 below). All green.
 2. Regenerate the VCR (`pwsh scripts/gen-vcr.ps1`) and confirm `VcrDriftTests` green; confirm **zero hand `TODO`
    rows** remain in the generated block.
-3. Update `docs/COBOLNET_DESIGN.md` §16 (G7 status), `resume-prompt.md`'s top STATE banner, `docs/DOC_INDEX.md`,
+3. Walk the exit-criteria checklist (items 1–9), including the extensions: (7) all 7 residue gates migrated +
+   `ReservedWordEditionHints` deleted; (8) the `VersionConformancePass` is the sole edition-gating funnel and the
+   binder is edition-agnostic; (9) emit is unreachable when any diagnostics exist (no codegen on an errored tree).
+4. Update `docs/COBOLNET_DESIGN.md` §16 (G7 status), `resume-prompt.md`'s top STATE banner, `docs/DOC_INDEX.md`,
    and `docs/ISO2023_CONFORMANCE_PLAN.md` (the M4-2b/M4-3 per-edition version-gating audit line) to reflect P3 DONE.
-4. Update this file's **STATUS** to `DONE` with the final battery counts.
-5. DEVLOG entry (newest-first) summarizing the re-home + the audit mechanization + the new test surfaces.
+5. Update this file's **STATUS** to `DONE` with the final battery counts.
+6. DEVLOG entry (newest-first) summarizing the re-home + the audit mechanization + the new test surfaces + the
+   pipeline delivery (Steps 12–14).
 
-**COMMIT BOUNDARY.** `docs(cobolnet): P3 DONE — version-gating validator on the editions framework + harness-driven VCR; battery green`
+**COMMIT BOUNDARY.** `docs(cobolnet): P3 DONE — the version-conformance pipeline + harness-driven VCR; battery green`
 
 ---
 
@@ -664,6 +767,12 @@ pwsh scripts/gen-vcr.ps1 && dotnet test --filter "FullyQualifiedName~VcrDrift"  
 - (5) full legacy guard green → `guard.sh` 353 MATCH; conformance + unit green.
 - (6) validator on the new framework → `EditionValidator` ctor takes `EditionInfo`+`IDiagnosticSink`; no
   `EditionContext` field on the edition path (grep-verify).
+- (7) residue migrated + recogniser deleted → grep: zero edition `{isXXXX()}?` predicates except the two
+  load-bearing forward-detects; `ReservedWordEditionHints.cs` absent from the tree.
+- (8) one funnel, edition-agnostic binder → grep: zero `ConstructRegistry.Check` calls outside the
+  `VersionConformancePass`.
+- (9) emit-if-clean → the driver runs bind → pass → HALT on errors → emit; a test asserts codegen is never reached
+  on an errored tree.
 
 **Neutrality / byte-exact checks:** the guard's NIST 353 MATCH and `Inv1StrongGoldenTests` prove behavior is
 unchanged by the re-home. The diagnostic-text corpora (`EditionGateDiagnosticTests`, `ReservedWordPosition*`,
@@ -682,7 +791,8 @@ commit boundary that leaves the battery green, so a mid-phase checkout is always
 7, 9 are additive (new rows/tests/scripts) and cannot regress runtime behavior. Steps 2 and 4 touch the compile
 path — their neutrality is proven by the guard + the diagnostic-text corpora; if either shows a text diff, the fix
 is to restore byte-identical message strings (do NOT re-baseline goldens to a reworded diagnostic without a spec
-citation — memory `feedback_diff_is_a_bug`).
+citation — memory `feedback_diff_is_a_bug`). Steps 12–14 touch the grammar + the compile path; their neutrality
+gate is the FULL legacy guard + the byte-exact NIST battery in the same change set.
 
 **Risks & mitigations:**
 - **R1 — Step 2 changes diagnostic text.** The 290-site `EditionContext` migration or the `sink.Report` rewrite
@@ -697,8 +807,9 @@ citation — memory `feedback_diff_is_a_bug`).
   hand-written prose is outside it; `VcrDriftTests` guards the boundary.
 - **R5 — The behavior-variant matrix (Step 7) reveals many un-gated semantic deltas at once.** *Mitigation:* land
   candidates as `pending` (catalogued, loud); it is a discovery tool, not a gate on the phase; burn down in P12/P13.
-- **R6 — A step tempts a grammar change.** This phase gates + audits; it should need none. If one is unavoidable,
-  run the FULL legacy guard in the same commit (memory `feedback_autonomous_grammar_nist`) and flag it in the DEVLOG.
+- **R6 — A step outside 12–14 tempts a grammar change.** Steps 0–10 gate + audit and should need none; the grammar
+  work of this phase lives in Steps 12–14 (the residue migration). If one is unavoidable elsewhere, run the FULL
+  legacy guard in the same commit (memory `feedback_autonomous_grammar_nist`) and flag it in the DEVLOG.
 
 ---
 

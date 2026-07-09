@@ -1,8 +1,13 @@
-# COBOL.NET — Edition Validation (the EditionValidator subsystem)
+# COBOL.NET — Edition Validation (reserved words + edition diagnostics)
 
 > **Status: AS-BUILT (Wave 1 complete, 2026-07-03 — DEVLOG 583–590; the canonical PLAN it implements is
 > `docs/VERSION_TEST_MATRIX_DESIGN.md` "Phase-2 implementation plan" P2.1–P2.7 + the ratified roadmap
-> `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase-1/2 amendments).** This is the canonical deep-dive for the
+> `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase-1/2 amendments). EXECUTION TRUTH: `EditionValidator` is the
+> live carrier of this subsystem TODAY; its end state is the ONE `VersionConformancePass` over the bound
+> tree — the validator is absorbed and DELETED at PHASE-03 Step 14 (the pipeline skeleton), its §8.9
+> reserved-word funnel moves INTO the pass, and the reserved-word tables + both drift disciplines live on
+> unchanged as pass inputs. The canonical edition-gating mechanism doc is
+> `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.** This is the canonical deep-dive for the
 > validation subsystem (`src/Cobol.Net.Compiler/Validation/`). Wave 2–3 remainders are listed at the end.
 
 ## 1. What it is
@@ -24,7 +29,11 @@ semantics).
   `CobolParserCoreBaseVisitor<object?>` (no listener is generated), hooked in `CompilerDriver.Compile`
   between `EditionContext` construction and Emit, **fail-fast before Emit** (removed constructs may have no
   emit path). Syntax-only gating lives here; bind/type-dependent gating stays binder-side — but ALL severity
-  routes through `Removed()`/the registry.
+  routes through `Removed()`/the registry. **End state:** the subsystem's home is the ONE
+  `VersionConformancePass` over the BOUND tree — at PHASE-03 Step 14 `EditionValidator` is absorbed and
+  deleted (the `VisitCobolWord` §8.9 reserved-word funnel moves into the pass), the binder becomes
+  edition-agnostic, and `CompilerDriver` splits bind → pass → HALT on errors → emit
+  (see `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
 - **The band** (`Validation/EditionCodes.cs`, P2.3): 0900 introduction / 0901 reserved word / 0902 removed /
   0903 obsolete-archaic. Pinned pre-band codes kept: 0801/0802 (digit capacity), 0873 (DATA RECORDS),
   0810/0811 (ALTER / bare GO TO), 0882 (CALL ON OVERFLOW) — their sites migrated onto `Removed()` unrenumbered.
@@ -46,7 +55,9 @@ semantics).
   `tests/version-matrix/constructs.json`; `ConstructRegistry.Check(edition, id, where)` is THE gating entry
   point (introduction → error both axes; removal → `Removed()`; obsolete → 0903 warning; dual-obligation
   WINDOW rows use 0900 for the introduction edge and their code for the removal edge). The drift test makes a
-  gate unable to land without its matrix row and vice versa. `status: "pending"` rows are catalogued/frozen
+  gate unable to land without its matrix row and vice versa. At PHASE-03 Step 14 all 88 compiler-embedded
+  `ConstructRegistry.Check` call sites funnel into the `VersionConformancePass`; the registry + drift
+  discipline continue unchanged as the pass's data source. `status: "pending"` rows are catalogued/frozen
   but compile-asserted only when their owning roadmap phase lands (ONE pending mechanism, shared with the
   corpus manifests).
 - **Corpus runners** (`CorpusRunnerTests`, Phase-1 shells): per-edition `tests/conformance/<ed>/manifest.json`

@@ -3,7 +3,7 @@
 - **Phase:** P14
 - **Track:** feature-iso
 - **Risk:** MEDIUM
-- **Depends on:** P3 (version-gating framework — EditionValidator waves + harness-driven VCR audit) and P13 (M4/COBOL-2023 deltas + EC remnants + Table 1/5 behavior-row burn-down). Transitively consumes P0's migration safety net (`tests/nist/corpus.tsv`, the characterization harness, the cached Roslyn reference set, the oracle bake-out R1) and P2's first-class diagnostic-descriptor registry.
+- **Depends on:** P3 (the version-conformance pipeline — the `VersionConformancePass` as the sole edition-gating funnel + harness-driven VCR audit; see `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`) and P13 (M4/COBOL-2023 deltas + EC remnants + Table 1/5 behavior-row burn-down). Transitively consumes P0's migration safety net (`tests/nist/corpus.tsv`, the characterization harness, the cached Roslyn reference set, the oracle bake-out R1) and P2's first-class diagnostic-descriptor registry.
 - **Blocks:** P15 (G8 legacy retirement). **The equivalence proof in this phase is the single irreversible ordering constraint of the whole migration: no legacy deletion (P15) may begin until Step 9 of this phase has recorded a green verdict-diff against the still-running legacy oracle.**
 
 ## Goal
@@ -105,10 +105,10 @@ Confirm the P14 preconditions exist:
 
 ### Step 1 — Drive the VCR to zero-TODO (green/GATED or written disposition)
 
-**Files:** `docs/VERSION_CHANGE_REFERENCE.md`; per-row, whichever of `constructs.json` (`tests/version-matrix/constructs.json`), the `EditionValidator`/`ConstructRegistry` gates, or a binder gate the row needs; `tests/conformance/negative/<row>.{cob,err}` for each newly-gated row.
+**Files:** `docs/VERSION_CHANGE_REFERENCE.md`; per-row, a `constructs.json` row (`tests/version-matrix/constructs.json`) + its `VersionConformancePass` check (the ONE gating mechanism — never a binder-embedded `Check`; see `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`); `tests/conformance/negative/<row>.{cob,err}` for each newly-gated row.
 
 **Change:** enumerate the ~117 `TODO` rows (`grep -n '| TODO |' docs/VERSION_CHANGE_REFERENCE.md`). For each, ONE of:
-- **Gate it** (the row names a real, in-scope gating obligation whose feature is implemented by P13): add/confirm the `constructs.json` row + registry gate + a negative witness, run the row's matrix cell, then flip the status cell to `GATED (…, DEVLOG NNN)` with the code and site — mirroring the existing `GATED (W2: move-alphanumeric-figurative-removed-2023, 0902 …)` shape already in the file.
+- **Gate it** (the row names a real, in-scope gating obligation whose feature is implemented by P13): add/confirm the `constructs.json` row + its `VersionConformancePass` check + a negative witness, run the row's matrix cell, then flip the status cell to `GATED (…, DEVLOG NNN)` with the code and site — mirroring the existing `GATED (W2: move-alphanumeric-figurative-removed-2023, 0902 …)` shape already in the file.
 - **Disposition it** (the row is intentionally not gated — e.g. an Annex A.4 documented-non-support module per ratified decision #3, a behavior with no observable edition delta, or a spec-undefined choice): replace `TODO` with `DISPOSITION: <one line + ISO § + reason>`. Non-support dispositions must trace to a `COMPLETION_ROADMAP_COUNCIL.md` §5 decision (screen/MCS/commit-rollback/locale/extended-letters/A.4.8/A.4.13/VALIDATE) or the §4.2 conformance document plan.
 
 Work in row-family batches (do NOT try all 117 at once). Natural batches: Table 1 (2014→2023 E.2 substantive), Table 2/3 (new directives / reserved words), Table 5 (behavior rows), the archaic/obsolete flags (VCR 89/90/126/127), the 85→2002 interim rows. For each batch, cite the ISO § and the edition. This is a spec-first burn-down: derive the expected outcome from `specs/ISO_COBOL.md` and cite the § in the row and (for a gate) in the code (`feedback_use_the_spec`, `project_spec_to_code_traceability`).

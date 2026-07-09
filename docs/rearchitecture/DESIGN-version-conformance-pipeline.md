@@ -92,6 +92,18 @@ the **same** conformance pass emits the exact diagnostic. Forward-detection is n
 steers the parse so the single pass can do the diagnosing. Contrast with the residue: the guesser infers identity
 *after* a failed parse; forward-detection *proves* identity *during* the parse, then defers the verdict to the one pass.
 
+The OPEN site's predicate is `{is2002() || retryPhraseAhead()}?`. **`retryPhraseAhead()` canonical spec:** true iff,
+with RETRY at the lookahead in the OPEN-clause position, the following tokens form a complete retry tail
+(arithmetic-expression `TIMES` | `FOR`? arithmetic-expression `SECONDS` | `FOREVER`) **AND** at least one further
+candidate file-name token remains before the sentence terminator (`openFileSpec+` must stay satisfiable).
+Consequences:
+- `OPEN INPUT RETRY FOREVER.` (no trailing name) stays a two-file-name list at 85;
+- `OPEN INPUT RETRY 5 TIMES F.` forward-detects (an integer can never be a file name);
+- the genuinely ambiguous `OPEN INPUT RETRY FOREVER F.` resolves to file names below 2002 (RETRY is a legal §8.9 user
+  word there) and to the phrase at ≥2002 (`is2002()` is true; the §8.9 funnel reserves RETRY).
+
+Fail-safe: a missed real gate degrades to a neutral parse error, never a wrong edition claim.
+
 ### 2.4 The VersionConformancePass
 - Input: the `BoundProgram` + the target `EditionInfo` + an `IDiagnosticSink`. Output: diagnostics; no tree mutation in
   strict mode. In **permissive** mode it applies the accept-inert policy (warn, and where a removed construct has no emit
@@ -99,41 +111,56 @@ steers the parse so the single pass can do the diagnosing. Contrast with the res
 - For each visited bound node: if its `.Syntax` carries a stamped construct-id → `ConstructRegistry.Check(edition, sink,
   id, where)`. For the handful of semantically-conditioned gates → compute the resolved fact from the bound node and
   Check. Both funnel through the one `Check`.
-- Replaces both `EditionValidator` (absorbed) and the ~24 binder-embedded `Check` calls (relocated here).
+- Absorbs and DELETES `EditionValidator` (its §8.9 reserved-word funnel moves into the pass, §3) and funnels ALL 88
+  compiler-embedded `ConstructRegistry.Check` call sites into the pass: `DataBinder*` / `StatementBinder*` /
+  `OoClassTable` / `PicInfo` / `OdoModel` + `EditionValidator`'s own + the one emitter-side site in
+  `CSharpEmitter.Call.cs` (the anti-pattern-#4 emission-time gate, relocated here by name).
 
 ### 2.5 Bind/emit phase separation (the "no codegen on errors" fix)
 `CompilerDriver` runs `bind → conformance-pass → (halt if errors) → emit`. `CSharpEmitter` is split so that **binding**
 (producing the `BoundProgram`) and **emission** (rendering C# from a valid `BoundProgram`) are distinct, and the driver
 gates between them. Emission is never reached when parse, bind, or the conformance pass produced an error.
 
+**Verdict surfaces include the pass.** `CheckOnly` / `check-batch` = stop after bind **+ the conformance pass** — the
+pass is part of the verdict; only emit is skipped. `CheckOnly`, `check-batch`, `EditionHarness`, and the INV-1
+continuity + INV-1-strong legs are re-pointed so their verdicts include pass diagnostics (the strict edition band
+codes come from the pass, so a bind-only verdict would silently drop every edition diagnostic).
+
 ## 3. What this deletes / keeps
 
 **Deleted:** `ReservedWordEditionHints.cs` in full (all 7 reverse-signature arms + the heuristic helpers
-`PrecededByOperand` / `NextWithin` / `PrecededByAnyBeforeDot` / `InRule`) once every arm is migrated. The interim
-positional-signature patch from DEVLOG 708 (this session) is **superseded** and reverted — it was a heuristic on a
-heuristic.
+`PrecededByOperand` / `NextWithin` / `PrecededByAnyBeforeDot` / `InRule`) once every arm is migrated. No positional or
+signature heuristic survives it in any form.
+
+**Deleted:** `EditionValidator` — absorbed into the `VersionConformancePass` (§2.4); its §8.9 reserved-word funnel
+moves into the pass.
 
 **Kept (orthogonal — NOT introduction gates):**
-- The **§8.9 reserved-word funnel** (`EditionValidator`/its successor `CheckedTokenTypes`): rejects a *genuine user-word*
-  spelling at/above the edition where the word became reserved (`COBOLNET0901`). Inverse gate (word→reserved), unaffected.
+- The **§8.9 reserved-word funnel**: rejects a *genuine user-word* spelling at/above the edition where the word became
+  reserved (`COBOLNET0901`). Inverse gate (word→reserved), unchanged in behavior; it lives inside the
+  `VersionConformancePass` once `EditionValidator` is absorbed.
 - The **VALUE/PROPERTY boundary guards** (`CobolData.g4:382/389`): value-operand-loop disambiguation, not an edition gate.
-- The **vendor JSON/XML `COBOL0313` disposition**: a dialect/vendor-extension disposition, not an ISO edition gate.
+- The **vendor JSON/XML `COBOL0313` disposition**: a dialect/vendor-extension disposition, not an ISO edition gate. It
+  relocates to `CobolErrorStrategy` as a **token-keyed vendor hint** — it is a parse-error re-diagnosis of
+  hard-reserved tokens, not an ISO edition gate — in the same commit that deletes `ReservedWordEditionHints` (§5
+  Stage 2). No signature table is resurrected for it.
 
-## 4. Per-construct residue classification (feasibility analysis, this session)
+## 4. Per-construct residue classification (feasibility analysis)
 
 | # | Construct (id) | Predicate role | Mechanism | Recognition / detect point | Risk |
 | --- | --- | --- | --- | --- | --- |
 | 1 | `LogicalXorOperator2023` (XOR / EXCLUSIVE-OR) | gating-only | bind-time → pass | `LogicalXorExpressionContext` (guard `ChildCount>1`) | low |
 | 2 | `BooleanOperators2002` (B-AND/B-OR/B-XOR/B-NOT + condition ENTRY + COMPUTE F2) | **both** | hybrid: pass for operator tiers + COMPUTE F2; **forward-detect** `boolExprAhead()` for the condition ENTRY | `BindBoolExpr` (guard `HasBoolOp`) | medium |
 | 3 | `FileSharingClause2002` (SELECT + OPEN SHARING) | gating-only | bind-time → pass (both sites) | SELECT clause; OPEN phrase | medium (OPEN name-list collision) |
-| 4 | `RetryPhrase2002` (RETRY on OPEN/READ/WRITE/REWRITE/DELETE) | **both** | hybrid: pass for the 5 verb sites; **forward-detect** `retryPhraseAhead()` for OPEN | `BindRetry` | medium |
+| 4 | `RetryPhrase2002` (RETRY on OPEN/READ/WRITE/REWRITE/DELETE) | **both** | **6 predicate sites** (`openClause:232`, `readStatement:291`, `writeStatement:343`, `rewriteStatement:384`, `deleteStatement:407`, `deleteFileStatement:425` in `Core/CobolIO.g4`) — hybrid: bind-time → pass for the 5 statement sites; **forward-detect** `retryPhraseAhead()` (§2.3) for OPEN | `BindRetry` | medium |
 | 5 | `UnlockStatement2002` | gating-only | bind-time → pass | `BoundUnlockStatement` (own token) | low |
 | 6 | `ProcedureRaising2002` (PD … RAISING) | gating-only | bind-time → pass | PD linkage bind (`raisingClause() is not null`) | low |
 | 7 | `PropertyClause2002` (data-desc PROPERTY) | gating-only | bind-time → pass | data-description clause loop | low |
 
 No construct requires the guesser to survive. #2-ENTRY and #4-OPEN retain a *grammar* predicate, but forward and
 identity-carrying. Disambiguation counterexamples that make the two load-bearing: `IF B-AND = 5` with `01 B-AND PIC 9`
-at `--std 85` (#2); `OPEN INPUT RETRY FOREVER.` with a file named RETRY at `--std 85` (#4).
+at `--std 85` (#2); `OPEN INPUT RETRY FOREVER.` with files named RETRY and FOREVER at `--std 85` (#4 — stays a
+two-file-name list under the `retryPhraseAhead()` canonical spec, §2.3).
 
 ## 5. Migration plan (incremental, each step guardable)
 
@@ -141,21 +168,37 @@ Any `.g4` edit ⇒ ANTLR regen + the **FULL** legacy guard (not `guard-fast`). P
 unit, then the full legacy guard before commit. One construct/phase per commit, each with a DEVLOG entry + a
 version-matrix continuity/introduction check + negative fixtures.
 
-- **Stage 0 — skeleton (biggest architectural win, land first).** Split `CSharpEmitter` into bind vs. emit; introduce
-  `VersionConformancePass` over the bound tree; **relocate the existing ~24 binder `Check` calls into it**; make the
-  binder edition-agnostic; wire the driver `bind → pass → (halt) → emit`. No behavior change (same diagnostics, now
-  from one pass) — proven byte-identical by the full legacy guard + INV-1 sweep. Delivers "no codegen on errors" +
-  "dedicated pass" immediately, with the residue guesser still in place (unchanged).
-- **Stage 1 — fold the residue into the pass (Batch A→C, ascending risk).** Per §4: **A** (low) UNLOCK, PROPERTY,
-  PD-RAISING, XOR, SELECT-SHARING → remove the grammar predicate, stamp the construct-id / gate in the pass, delete the
-  arm. **B** (medium) OPEN-SHARING with adversarial characterization fixtures (byte-identical parse). **C** (medium)
-  RETRY (5 verb sites bind-gated + `retryPhraseAhead()` forward for OPEN) and the boolean family (7a pure-gating tiers +
-  COMPUTE F2; 7b the `boolExprAhead()` ENTRY generalization — highest scrutiny, it is the shared comparison DFA that
-  regressed in DEVLOG 621).
-- **Stage 2 — delete `ReservedWordEditionHints.cs`** and its helpers; grep-sweep lingering refs; update
-  `DESIGN-frontend-grammar.md`, `DOC_INDEX.md`, DEVLOG.
+The pipeline lands **residue-first**: the residue gates migrate onto bind-time `Check`s one construct per commit
+(each individually guardable), the recogniser then has nothing left to recognise and is deleted, and the skeleton
+finally funnels every bind-time `Check` into the one pass.
 
-RETRY has **no bind-time introduction gate today** (carried solely by grammar+guesser) — Stage 1-C is net-new
+- **Stage 1 — residue migration (batches, ascending risk).** Per §4: **A** (low) UNLOCK, PROPERTY, PD-RAISING, XOR →
+  remove the grammar predicate, gate bind-time via `ConstructRegistry.Check`, delete the recogniser arm. **B**
+  (medium) SHARING — the SELECT clause + OPEN phrase sites together (one construct, one commit), with adversarial
+  characterization fixtures for the OPEN name-list collision (byte-identical parse). **C** (medium) RETRY — the six
+  grammar predicate sites of §4 #4: the five statement sites drop their predicate and gate bind-time via
+  `Check(RetryPhrase2002)` at the retry-binding site; the OPEN site becomes `{is2002() || retryPhraseAhead()}?`
+  (§2.3) — and the boolean family (7a: the operator tiers + COMPUTE F2 are pure gating — drop the predicates + one
+  `Check(BooleanOperators2002)` in `BindBoolExpr` guarded by `HasBoolOp`; 7b: the boolean-condition ENTRY generalizes
+  `boolExprAhead()` to fire at all editions with operand-adjacency — highest scrutiny, it is the shared comparison
+  DFA that regressed in DEVLOG 621).
+  *Execution note:* **LANDED** (DEVLOG 709–713): UNLOCK #5, PROPERTY #7, PD-RAISING #6, XOR #1, SHARING #3 (SELECT +
+  OPEN in ONE commit; the OPEN name-list collision proven byte-safe). **REMAINING:** Batch C = RETRY #4 + the boolean
+  family #2.
+- **Stage 2 — delete `ReservedWordEditionHints.cs`** entirely, with its helpers; the vendor JSON/XML `COBOL0313`
+  disposition relocates to `CobolErrorStrategy` as a token-keyed vendor hint in the same commit (§3); grep-sweep
+  lingering refs; update `DESIGN-frontend-grammar.md`, `DOC_INDEX.md`, DEVLOG.
+- **Stage 3 — the pipeline skeleton.** Build the `VersionConformancePass` over the bound tree; funnel ALL 88
+  compiler-embedded `ConstructRegistry.Check` call sites into it (`DataBinder*` / `StatementBinder*` / `OoClassTable` /
+  `PicInfo` / `OdoModel` + `EditionValidator`'s own + the one emitter-side site in `CSharpEmitter.Call.cs`); absorb
+  and DELETE `EditionValidator` (its §8.9 reserved-word funnel moves into the pass); make the binder edition-agnostic
+  (zero `Check`s); ensure bound nodes carry the `.Syntax` back-reference the pass reads; split bind/emit in
+  `CompilerDriver` (bind → pass → HALT on errors → emit); re-point `CheckOnly` / `check-batch` / `EditionHarness` /
+  the INV-1 continuity + INV-1-strong legs so their verdicts include pass diagnostics (§2.5). No behavior change
+  (same diagnostics, now from one pass) — proven byte-identical by the full legacy guard + INV-1 sweep. Delivers
+  "no codegen on errors" + "dedicated pass".
+
+RETRY has **no bind-time introduction gate today** (carried solely by the grammar predicates) — Stage 1-C is net-new
 correctness coverage, to be called out in its DEVLOG entry.
 
 ## 6. Risks
@@ -163,15 +206,15 @@ correctness coverage, to be called out in its DEVLOG entry.
 - **ANTLR optional-block / DFA greediness** on the two OPEN name-list sites (SHARING, RETRY) and the shared comparison
   DFA (boolean ENTRY): the one place static reasoning cannot fully certify. Contained by sequencing these last, shipping
   the pre-specified adversarial characterization fixtures (byte-identical parse before/after), and the full legacy guard
-  after each regen. Pre-designed fallback for the OPEN sites: retain a forward `openSharingAhead()` / `retryPhraseAhead()`
-  — a config flip, not a redesign.
+  after each regen. The OPEN RETRY site keeps its forward `retryPhraseAhead()` by design (§2.3/§4); pre-designed
+  fallback for the OPEN SHARING site: retain an analogous forward `openSharingAhead()` — a config flip, not a redesign.
 - **Bound-node `.Syntax` back-reference** must exist for every version-gated node so the pass can read the annotation.
   Where a construct has no distinctive bound node *and* no `.Syntax` link, it stays a bound-node-type/semantic check.
 
 ## 7. SSOT / doc impact
 
-- `docs/COBOLNET_DESIGN.md` — record the pipeline as `parse → bind (edition-agnostic) → version-conformance pass →
-  emit`, and that edition gating is a single bound-tree pass (superseding "bind-time Check at recognition points").
+- `docs/COBOLNET_DESIGN.md` — records the pipeline as `parse → bind (edition-agnostic) → version-conformance pass →
+  emit`, and that edition gating is a single bound-tree pass.
 - `DESIGN-edition-framework.md` — add a pointer to this doc; note the pass is the single consumer of `ConstructRegistry`.
 - `DESIGN-frontend-grammar.md` — the superset-parse + construct-id-annotation convention (action-not-predicate).
 - `DESIGN-binder-bound-tree.md` — the binder is edition-agnostic; bound nodes carry `.Syntax`.

@@ -18,17 +18,22 @@
   ref-mod span) with a Roslyn-side `PlaceRenderer` owning all C# text, behind a materialized `ICodeGenBackend`
   seam. Break `StatementBinder` (21 partials) into real collaborators — `ProcedureTableBuilder`,
   `ExpressionBinder`, `ConditionBinder`, `PhraseBlocks`, and ~18 `Verbs/*Binder` classes over a `BinderContext` —
-  lifting inline SR/edition checks to `Validation/StatementValidation`; and break `CSharpEmitter` (15 partials)
-  into `ProgramEmitter`/`DispatchEmitter`/`StatementEmitter` + per-verb emitters + renderers over an **immutable**
-  `EmitContext` (replacing the mutable `TargetScale/TargetReal/TargetRounding/InSizeErrorContext` H1 hazard with a
-  `ReceiverContext` value parameter). Introduce a typed, `nameof`-anchored `RuntimeApi` façade over the ~60
-  emitted runtime members.
+  lifting inline edition-invariant SR (semantic) checks to `Validation/StatementValidation` (edition gating lives
+  ONLY in the `VersionConformancePass` — see `DESIGN-version-conformance-pipeline.md`); and break `CSharpEmitter`
+  (15 partials) into `ProgramEmitter`/`DispatchEmitter`/`StatementEmitter` + per-verb emitters + renderers over an
+  **immutable** `EmitContext` (replacing the mutable `TargetScale/TargetReal/TargetRounding/InSizeErrorContext` H1
+  hazard with a `ReceiverContext` value parameter). Introduce a typed, `nameof`-anchored `RuntimeApi` façade over
+  the ~60 emitted runtime members. Throughout, the phase **preserves the bind-vs-emit separation** of the
+  version-conformance pipeline (`DESIGN-version-conformance-pipeline.md`): the decomposed emitters contain no
+  edition gating, and emit stays unreachable when any diagnostics exist.
 - **Exit criteria:** A missing bound-node arm is a **compile error** (every loud `_ =>`/`default => LoudStmt`
   runtime default deleted); `EmitMove`/`ConvertSource` emit-time re-classification is gone (MOVE kind + storage
   form travel on the node); `Place` carries **structure, not C# strings** (no `Read()/Write()` on `Place`;
   `PlaceRenderer` owns rendering); `StatementBinder`/`CSharpEmitter` are thin dispatch + real collaborator
   classes; `RuntimeApi` is the single codegen↔runtime contract (grep-forbidden bare `Cobol*.` literals in
-  `CodeGen/`); the full battery is green and the emitted-C# snapshots are reviewed-neutral.
+  `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
+  edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
+  emitted-C# snapshots are reviewed-neutral.
 - **STATUS:** `NOT STARTED`
   > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
   > Keep a running note of the last green commit hash here so an interrupted session can resume precisely.
@@ -162,7 +167,9 @@ When P7 is DONE, these files/types exist with these responsibilities. (Folders u
 **Binder collaborators**
 - `Binding/Procedure/{StatementBinder(thin dispatch), BinderContext, ProcedureTableBuilder, ExpressionBinder, ConditionBinder, PhraseBlocks}.cs`.
 - `Binding/Procedure/Verbs/{MoveBinder, ArithmeticBinder, IfBinder, PerformBinder, KeyedIoBinder, SequentialIoBinder, SortBinder, StringBinder, InspectBinder, InitializeBinder, IntrinsicBinder, UdfBinder, ReportWriterBinder, CallBinder, SetBinder, OoBinder, EvaluateBinder, SearchBinder, AcceptDisplayBinder}.cs`.
-- `Binding/Validation/StatementValidation.cs` — the inline `data.Edition.Error(...)` SR/edition gates lifted out of the binder.
+- `Binding/Validation/StatementValidation.cs` — the inline edition-invariant SR (semantic) checks lifted out of the
+  binder. Edition gating does NOT live here: the `VersionConformancePass` is the sole edition-gating funnel
+  (`DESIGN-version-conformance-pipeline.md`); the binder stays edition-agnostic.
 
 **Deleted at this phase's end**
 - `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`), the `CompilerTempClones` re-sync (`CSharpEmitter.Call.cs:111-120`), the OO `StoreAsImage` re-sync (`CSharpEmitter.Oo.cs:694-697`) — folded into `StorageFormPass` (P5/P6) and read off the node.
@@ -376,7 +383,7 @@ Incremental — one verb group per sub-commit.
 - **COMMIT (per group):** `P7 step9X: extract <Verb>Emitter from CSharpEmitter over immutable EmitContext`
   and a final `P7 step9-final: CSharpEmitter is gone; ProgramEmitter/StatementEmitter + Verbs/* remain`.
 
-### Step 10 — Decompose `StatementBinder` into collaborators over `BinderContext`; lift SR/edition to `StatementValidation`
+### Step 10 — Decompose `StatementBinder` into collaborators over `BinderContext`; lift edition-invariant SR checks to `StatementValidation`
 
 Incremental — one collaborator/verb group per sub-commit.
 
@@ -389,17 +396,20 @@ Incremental — one collaborator/verb group per sub-commit.
   `ProcedureTableBuilder` (paragraphs/sections/declaratives/pc + `ResolveProcedure`), `ExpressionBinder`,
   `ConditionBinder` (incl. `AbbrevCarry`/`CheckedRelational`), and `Verbs/{Move,Arithmetic,If,Perform,KeyedIo,
   SequentialIo,Sort,String,Inspect,Initialize,Intrinsic,Udf,ReportWriter,Call,Set,Oo,Evaluate,Search,AcceptDisplay}Binder`.
-  Lift every inline `data.Edition.Error(...)` SR/edition gate (MOVE figurative/category gates, composite-of-operands,
+  Lift every inline edition-invariant SR (semantic) check (MOVE figurative/category rules, composite-of-operands,
   boolean/class/pointer relation rules) into `StatementValidation.Check*(...)` which reports to the
   `IDiagnosticSink` — the binder calls `validation.CheckMove(...)` and stays about *producing bound nodes*
-  (`feedback_binder_no_ir` spirit). Extract `PhraseBlocks.BuildPair(blocks, notFirst)` — the ON/NOT-ON extractor
+  (`feedback_binder_no_ir` spirit). **Edition gating is NOT lifted here**: the `VersionConformancePass` is the sole
+  edition-gating funnel and the binder is edition-agnostic (`DESIGN-version-conformance-pipeline.md`); if the
+  decomposition uncovers any residual inline edition gate, it relocates into the pass, never into
+  `StatementValidation`. Extract `PhraseBlocks.BuildPair(blocks, notFirst)` — the ON/NOT-ON extractor
   (~8 clones: `KeyedIo.cs:104,230,322`, `StringUnstring.cs:198`, `Sort.cs:330`, `Call.cs:154`,
   `StatementBinder.cs:364,400`) → ONE helper.
 - **Why:** Kill the second god class; one canonical phrase-block helper and one validation home (rationale #1/#4,
   `DESIGN-binder-bound-tree.md §3.5`). `BindStatementCore` shrinks to the parse-dispatch `switch` + shared helpers.
 - **Verify:** battery 1+2+4 green after each verb group. OO shadowing is the sensitive spot — do the `OoBinder` +
   scoped `EnterMethodScope` conversion LAST, behind the OO conformance goldens + method-scope unit tests (R1).
-- **COMMIT (per group):** `P7 step10X: extract <Verb>Binder from StatementBinder over BinderContext; lift SR gates to StatementValidation`.
+- **COMMIT (per group):** `P7 step10X: extract <Verb>Binder from StatementBinder over BinderContext; lift edition-invariant SR checks to StatementValidation`.
 
 ### Step 11 — Structural `Place` + `PlaceRenderer` (highest risk — subtype at a time)
 
@@ -451,7 +461,8 @@ subtype.
 - **Files:** edit `Grammar/Core/CobolExpressions.g4` (FUNCTION-arg rule) — a SHARED `.g4` change → **full legacy
   guard required**; edit `Binding/Procedure/Verbs/IntrinsicBinder.cs` (was `StatementBinder.Intrinsics.cs`); delete
   `IntrinsicRenderer`'s `NumStatic/NumStaticExpr/StaticAdditive/StaticMul` (`IntrinsicRenderer.cs:353-380`).
-- **Change:** Make FUNCTION arguments parse as real `arithmeticExpression`s (edition-gated fragment) so the
+- **Change:** Make FUNCTION arguments parse as real `arithmeticExpression`s (a superset-grammar rule — no
+  parse-time edition predicate) so the
   hand-rolled recursive-descent arg parser (`Intrinsics.cs:686-839` — `ParseAdditive/Multiplicative/Power/Unary/
   ArgPrimary`) is DELETED and args bind through the ONE `ExpressionBinder`/`BindExpr`. The `IntrinsicRenderer` then
   calls the ONE `ExpressionRenderer` via a default `ReceiverContext` (Step 3 enabled this) — delete the parallel
@@ -548,8 +559,10 @@ observable output, with these two explicitly-bounded exceptions:
    *represented internally* — the emitted C# and program output are unchanged (proven by the snapshot + differential
    nets). No new goldens are added by this phase except, if applicable, the P5 apostrophe set above.
 
-**Editions:** the four-editions-in-one matrix is unaffected — no `{isXXXX()}?` gate changes except Step 12's
-FUNCTION-arg rule, which is edition-invariant (arithmetic args are legal in every edition that has the function).
+**Editions:** the four-editions-in-one matrix is unaffected — the `VersionConformancePass` rules and the two
+load-bearing forward-detect predicates (the OPEN `retryPhraseAhead()` site and the boolean-condition entry) are
+untouched; Step 12's FUNCTION-arg rule is edition-invariant (arithmetic args are legal in every edition that has
+the function).
 Run the version-continuity sweep (`scripts/version-continuity-sweep.sh`) at phase end to confirm no per-edition
 regression.
 

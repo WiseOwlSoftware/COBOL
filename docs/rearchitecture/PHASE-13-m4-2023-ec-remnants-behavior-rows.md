@@ -19,6 +19,12 @@
 > one-pass A.3 processor-dependent disposition sweep with §4.2.6 warnings; burn down the ~44 Table 1/5 behavior
 > rows (I-O status semantics, VALUE clause conformance); and emit documented non-support diagnostics for the four
 > facilities the project does NOT implement (MCS asynchronous messaging, commit/rollback, VALIDATE, screen).
+>
+> **Gating mechanism (canonical — `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`):** a NEW
+> edition-gated construct = a `constructs.json` row + a superset grammar rule (stamped with its construct-id
+> annotation, or a self-identifying bound node) + a `VersionConformancePass` rule + a negative fixture at EVERY
+> earlier edition — NEVER a new parse-time edition predicate (unless a proven load-bearing ambiguity needing a
+> forward-detect) and NEVER a binder-embedded `Check`.
 
 ## EXIT CRITERIA (the bar for "DONE")
 1. **VCR Tables 2/3 rows dispositioned** — every 2014→2023 row in `docs/VERSION_CHANGE_REFERENCE.md` Tables 1/2/3
@@ -117,7 +123,9 @@ When this phase is DONE the following exist / hold:
   not just receiver-capacity, so ROUNDED MODE IS PROHIBITED latches EC-SIZE-TRUNCATION.
 - **`src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.cs` / `.Arith*` partials** — the `_sizeErrEcVar` latch is emitted
   at the PROHIBITED-inexact and receiver-capacity paths under `EC-SIZE` checking.
-- **Grammar** (`src/Cobol.Net.Frontend/Grammar/Core/*.g4`) — new `{is2023()}?`-gated alternatives for: boolean shift
+- **Grammar** (`src/Cobol.Net.Frontend/Grammar/Core/*.g4`) — new SUPERSET alternatives (each stamped with its
+  committed-match construct-id annotation, or reaching a self-identifying bound node — never a parse-time edition
+  predicate) for: boolean shift
   operators (`B-SHIFT-L/R/LC/RC`), group `SYNCHRONIZED`, `NO SIGN` on USAGE, `SET id TO LENGTH …` /
   `SET LENGTH OF id …` dynamic-length, `CONTINUE AFTER expr SECONDS`, the `EDITING` PICTURE phrase, `EXCEPTION-FILE`/
   `EXCEPTION-FILE-N` optional file-connector argument, `PERFORM … WHEN` exception-checking + `PERFORM … UNTIL EXIT`,
@@ -138,9 +146,11 @@ When this phase is DONE the following exist / hold:
   golden-less residue toward compiled-and-run where feasible.
 
 ### Diagnostics
-- New below-2023 introduction diagnostics use **`COBOLNET0900`** (Introduction) via `ConstructRegistry.Check` for
-  grammar-gated constructs, so they enter the version matrix automatically (per
-  `docs/rearchitecture/DESIGN-edition-framework.md` — route new gates through the registry, not inline `if`).
+- New below-2023 introduction diagnostics use **`COBOLNET0900`** (Introduction), raised by the construct's
+  **`VersionConformancePass`** rule (fed by the construct-id annotation the superset grammar rule stamps, or by a
+  self-identifying bound node), so they enter the version matrix automatically (per
+  `docs/rearchitecture/DESIGN-version-conformance-pipeline.md` — route new gates through the pass, never a
+  parse-time edition predicate, a binder-embedded `Check`, or an inline `if`).
 - Bind-dependent semantic rejections / staged-loud residue continue the **15xx feature band**. The band head is
   **1538** at phase start (`COBOLNET1538`); allocate **contiguously from 1539** as steps land (see the allocation
   table in §4). Record each in the diagnostic-code map (DEVLOG banner + `docs/COBOLNET_DESIGN.md`).
@@ -156,7 +166,8 @@ When this phase is DONE the following exist / hold:
 - Typed-native data only (no byte substrate; the only `byte[]` boundary is Tier-C REDEFINES / file records).
 - The full battery is green at every commit boundary (gates 1 & 2 hard).
 - Singular pattern: new EC gate flags follow the ONE `ExceptionState.XxxChecking` pattern; new edition gates route
-  through the ONE `ConstructRegistry.Check` funnel; no parallel mechanism.
+  through the ONE `VersionConformancePass` funnel (the grammar stays a superset; the binder stays edition-agnostic);
+  no parallel mechanism.
 
 ---
 
@@ -256,15 +267,20 @@ When this phase is DONE the following exist / hold:
 
 ---
 
-### WAVE C — 2023 new-feature constructs (each: grammar {is2023()}? + below-2023 COBOLNET0900 + conformance golden)
+### WAVE C — 2023 new-feature constructs (each: superset grammar rule + constructs.json row + VersionConformancePass rule → below-2023 COBOLNET0900 + conformance golden)
 
-> **Pattern for every step in this wave (do NOT deviate):**
-> 1. Add the `{is2023()}?`-gated grammar alternative in the appropriate `Core/*.g4` (or preprocessor for directives).
-> 2. Add a `constructs.json` row `introducedIn: 2023`, pinned code (0900 via the registry for the below-edition
->    reject; a 15xx code only for a bind-dependent semantic residue).
-> 3. Bind → bound node → emit → runtime; all semantics in the binder (memory `feedback_binder_no_ir`).
-> 4. Positive golden in `tests/conformance/2023/` (+ manifest entry) AND a below-2023 negative case proving the
->    COBOLNET0900 diagnostic naming the construct + "requires --std 2023".
+> **Pattern for every step in this wave (do NOT deviate — per `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`):**
+> 1. Add the SUPERSET grammar alternative in the appropriate `Core/*.g4` (or preprocessor for directives), stamped
+>    with its committed-match construct-id annotation (or reaching a self-identifying bound node) — NEVER a new
+>    parse-time edition predicate (unless a proven load-bearing ambiguity needing a forward-detect) and NEVER a
+>    binder-embedded `Check`.
+> 2. Add a `constructs.json` row `introducedIn: 2023`, pinned code (0900 raised by the construct's
+>    `VersionConformancePass` rule for the below-edition reject; a 15xx code only for a bind-dependent semantic
+>    residue).
+> 3. Bind → bound node → emit → runtime; all semantics in the binder (memory `feedback_binder_no_ir`); the binder
+>    stays edition-agnostic — the edition gate lives ONLY in the `VersionConformancePass` rule.
+> 4. Positive golden in `tests/conformance/2023/` (+ manifest entry) AND a negative fixture at EVERY earlier
+>    edition proving the COBOLNET0900 diagnostic naming the construct + "requires --std 2023".
 > 5. **FULL legacy guard** (shared `.g4` change) — must stay NIST 353 MATCH.
 
 ### STEP 4 — Boolean shift operators B-SHIFT-L / B-SHIFT-R / B-SHIFT-LC / B-SHIFT-RC
@@ -579,12 +595,13 @@ When this phase is DONE the following exist / hold:
 ## 4. Diagnostic-code allocation (suggested — pin contiguously as steps land)
 
 Band head at phase start: **`COBOLNET1538`** (15xx feature band). New introduction gates for grammar-gated
-constructs use **`COBOLNET0900`** via `ConstructRegistry.Check` (they enter the matrix); obsolete/archaic flags use
+constructs use **`COBOLNET0900`** raised by the construct's `VersionConformancePass` rule (they enter the matrix);
+obsolete/archaic flags use
 **`COBOLNET0903`**. The 15xx allocations below are for bind-dependent semantic residue / non-support:
 
 | Suggested code | Step | Purpose |
 |---|---|---|
-| (0900 via registry) | 4–15 | below-2023 introduction reject for each new construct |
+| (0900 via the pass) | 4–15 | below-2023 introduction reject for each new construct |
 | 1539 | 7 | CONTINUE AFTER precision-limit / EC-CONTINUE bind residue |
 | 1540 | 15 | EXTERNAL conformance semantic mismatch (bind-detectable) |
 | 1541 | 16 | USE FOR DEBUGGING residual-leniency staged note (replaces the 0899 staging) |
@@ -624,8 +641,8 @@ Run the FULL battery and the neutrality checks:
 - **Risks & mitigations:**
   - *Re-implementing landed work* → Step 1 audit is mandatory and gates all of Wave C.
   - *Shared-`.g4` change breaks the legacy corpus* → run `scripts/guard-fast.sh` after EVERY grammar edit; the
-    full `guard.sh` at the commit boundary. A `{is2023()}?` gate must be byte-invariant at 85 (the XOR/OCCURS-DYNAMIC
-    precedent — memory `project_greenfield_state`).
+    full `guard.sh` at the commit boundary. A new superset alternative must be byte-invariant at 85 (the
+    XOR/OCCURS-DYNAMIC precedent — memory `project_greenfield_state`).
   - *Silent EC non-raise (false-green)* → verify-by-RUNNING every EC golden (the OCCURS-DYNAMIC review lesson: test
     the actual behavior, not just that the guard is green).
   - *Below-edition gate false-rejects a legal pre-2023 use* → every new construct ships BOTH the positive 2023 golden

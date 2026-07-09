@@ -38,7 +38,7 @@
 > (D1–D12)** — no ratification pending. **Structure:** the master
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md` (resume protocol · north-star 5-assembly architecture · 11 principles · the
 > dual-backend §3 mandate · the phase index + checkboxes · the owner-decisions table · §7 backfill refinements R1–R6) +
-> `docs/rearchitecture/` (9 `DESIGN-*.md`, 6 `SURVEY`/`CRITIQUE-*.md`, 17 `PHASE-00..16-*.md`). **EXECUTION IN PROGRESS:
+> `docs/rearchitecture/` (10 `DESIGN-*.md`, 6 `SURVEY`/`CRITIQUE-*.md`, 17 `PHASE-00..16-*.md`). **EXECUTION IN PROGRESS:
 > PHASE 00 (migration safety net) ✅ DONE (2026-07-07, DEVLOG 667, commit `c65cfad`) — the characterization net (gates
 > 2+3), the `DifferentialGolden` oracle bake-out (360 committed goldens; the battery no longer runs the legacy engine),
 > the `tests/nist/corpus.tsv` fold, and the cached Roslyn ref-set. **PHASE 01 ✅ DONE (DEVLOG 668–669, `db6ae722`)**
@@ -84,21 +84,28 @@
 > parse-time predicate, no post-hoc guesser, no scattered binder checks, and no `ReservedWordEditionHints`; bind and
 > emit are separate driver-gated phases. Design: `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
 > **RESIDUE-FIRST migration progress (5 of 7 gates done, each a green+pushed commit; DEVLOG 709–713):** ✅ UNLOCK #5
-> (`2daec9cb`), ✅ PROPERTY #7 (`7311dfbd`), ✅ PD-RAISING #6 (`840b0abf` — the DEVLOG-708 mis-fire that started the
-> redesign is eliminated), ✅ XOR #1 (`d3cdae6c` — BATCH A complete), ✅ SHARING #3 (`1b74f739` — Batch B; OPEN
+> (`2daec9cb`), ✅ PROPERTY #7 (`7311dfbd`), ✅ PD-RAISING #6 (`840b0abf` — the DEVLOG-708 mis-fire is eliminated), ✅ XOR #1 (`d3cdae6c` — BATCH A complete), ✅ SHARING #3 (`1b74f739` — Batch B; OPEN
 > name-list collision proven byte-safe). Each: dropped the grammar `{isXXXX()}?`, added a bind-time
 > `ConstructRegistry.Check`, deleted the reverse-signature arm, added a negative fixture; FULL legacy guard ALL GREEN.
-> Battery at head: greenfield conformance **3112** · unit 227 · characterization 32 GREEN. **RESUME AT: Batch C — the
-> last 2 gates**, per `DESIGN-version-conformance-pipeline.md` §4/§5: (a) **RETRY #4** — 5 verb sites bind-time +
-> a forward `retryPhraseAhead()` for the OPEN name-list site (`CobolIO.g4` `openClause`; RETRY's predicate is the one
-> left gated by SHARING #3); (b) **the boolean family #2** — B-AND/B-OR/B-XOR/B-NOT operator tiers + COMPUTE F2 (pure
-> gating) and the boolean-condition ENTRY (generalize `boolExprAhead()`); ⚠ HIGHEST SCRUTINY — this is the shared
-> comparison DFA that regressed subscript/ref-mod comparisons in DEVLOG 621. Then delete `ReservedWordEditionHints`
-> (only the vendor JSON/XML COBOL0313 disposition relocates), and the Stage-0 skeleton (dedicated pass + bind/emit
-> split). Read `DESIGN-version-conformance-pipeline.md` FIRST. The dual-backend goal
+> Battery at head: greenfield conformance **3112** · unit 227 · characterization 32 GREEN. **RESUME AT: PHASE-03
+> Step 12 (Batch C residue migration)** — then Steps 13–15, per the PHASE-03 doc's numbered steps +
+> `DESIGN-version-conformance-pipeline.md` §5 (Stages 1–3): **Step 12** — (a) **RETRY #4** — SIX grammar predicate
+> sites in `Core/CobolIO.g4` (`openClause`:232, `readStatement`:291, `writeStatement`:343, `rewriteStatement`:384,
+> `deleteStatement`:407, `deleteFileStatement`:425): the five statement sites drop their predicate and gate bind-time
+> via `Check(RetryPhrase2002)` at the retry-binding site; the OPEN site becomes `{is2002() || retryPhraseAhead()}?`
+> (forward detect); (b) **the boolean family #2** — 7a: the B-AND/B-OR/B-XOR/B-NOT operator tiers + COMPUTE F2 (pure
+> gating — drop predicates + one `Check(BooleanOperators2002)` in `BindBoolExpr`); 7b: the boolean-condition ENTRY
+> (generalize `boolExprAhead()` to fire at all editions with operand-adjacency); ⚠ HIGHEST SCRUTINY — this is the
+> shared comparison DFA that regressed subscript/ref-mod comparisons in DEVLOG 621; (c) refresh the 5 already-migrated
+> rows' stale constructs.json citations + the stale grammar comments with these commits. **Step 13** — delete
+> `ReservedWordEditionHints` entirely (the vendor JSON/XML COBOL0313 disposition relocates to `CobolErrorStrategy`
+> as a token-keyed vendor hint). **Step 14** — the pipeline skeleton: the `VersionConformancePass` over the bound
+> tree; funnel ALL 88 compiler-embedded `ConstructRegistry.Check` call sites into it; absorb and DELETE
+> `EditionValidator`; make the binder edition-agnostic; split bind/emit in `CompilerDriver` (bind → pass → HALT on
+> errors → emit). **Step 15** — phase close. Read `DESIGN-version-conformance-pipeline.md` FIRST. The dual-backend goal
 > (`project_dual_backend_goal`) is first-class (PHASE-16). Memory: `project_rearchitecture_plan`. **The §"NON-NEGOTIABLE
 > PROCESS RULES" block below stays in force.** The STATE banners below are PRE-REARCHITECTURE HISTORY — the
-> 2036/213-green baseline they describe is superseded by the 2055/224 above; the go-forward PLAN is the rearchitecture
+> 2036/213-green baseline they describe is superseded by the current battery figures above; the go-forward PLAN is the rearchitecture
 > roadmap above, not their per-feature RESUME AT.
 >
 > **(pre-rearchitecture) STATE (DEVLOG 661–664, 2026-07-07 14:38 PDT): ⛔🎉 TYPEDEF / the TYPE clause (data-model D17, §13.18.58 /

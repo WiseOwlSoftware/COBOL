@@ -36,7 +36,7 @@ drifted** in five concrete, survey-confirmed ways:
    emit-form facts backward* into `DataBinder.Oo` fields. The Binding/CodeGen boundary is not clean in either direction.
 
 3. **The edition/version subsystem is fragmented across 3 namespaces / 2 assemblies with no home** — `EditionContext`,
-   `ConstructRegistry`, `ReservedWords` live in `Cobol.Net.Compiler`; `EditionGateHints` lives in the *legacy*
+   `ConstructRegistry`, `ReservedWords` live in `Cobol.Net.Compiler`; `ReservedWordEditionHints` lives in the *legacy*
    `CobolSharp.Compiler.Parsing` namespace inside `Cobol.Net.Frontend`; the preprocessor re-implements the strict/
    permissive severity policy twice. Because the canonical registry sits in Compiler (which Frontend cannot reference),
    the metadata is duplicated in the frontend — a topology defect, not a logic one.
@@ -113,6 +113,7 @@ Cobol.Net.Compiler/
 │    ├─ CompilationContext.cs                   (mutable carry: source→tree→bound→csharp→diagnostics)
 │    ├─ IPass.cs / PassManifest.cs              (named passes, Requires/Produces, startup graph assert)
 │    ├─ BindPhase.cs                            (runs the binder passes; produces BoundCompilation)
+│    ├─ VersionConformancePass.cs               (the ONE edition-gating funnel over the bound tree; on errors, emit is unreachable)
 │    ├─ EmitPhase.cs                            (BoundCompilation → C# text)
 │    └─ RoslynPhase.cs                          (C# → dll; see Backend/)
 │
@@ -175,8 +176,8 @@ Cobol.Net.Compiler/
 ├─ Editions/  →  MOVED OUT to the Cobol.Net.Editions assembly (see §2.11)
 │
 ├─ Validation/                               CobolNet.Compiler.Validation
-│    ├─ EditionValidator.cs                      (raw-tree removal-gate visitor — stays; consumes Editions registry)
-│    └─ StatementValidation.cs                   (NEW — the inline SR/edition checks lifted out of the binder; §2.4)
+│    └─ StatementValidation.cs                   (NEW — the inline SR checks lifted out of the binder; §2.4.
+│                                                 Edition legality is NOT here — Pipeline/VersionConformancePass is the sole gate)
 │
 ├─ CodeGen/                                  CobolNet.Compiler.CodeGen  (a PURE renderer over BoundCompilation)
 │    ├─ CSharpEmitter.cs                         (THIN dispatch table; run-unit orchestration REMOVED to Pipeline)
@@ -232,7 +233,7 @@ Cobol.Net.Compiler/
 | `AcceptDisplayBinder` | `.Accept` (RENAME — this is the ACCEPT verb) | |
 | `SetAlterBinder` | `.AlterSwitches` | |
 | `ExceptionBinder` | `.Exceptions` + `.Boolean` | |
-| `StatementValidation` | the inline `data.Edition.Error(...)` SR/edition checks | one home for "what is legal at which edition" |
+| `StatementValidation` | the inline `data.Edition.Error(...)` SR checks | non-edition statement legality only — "what is legal at which edition" is the `Pipeline/VersionConformancePass`; the binder is edition-agnostic (zero `ConstructRegistry.Check` calls) |
 
 A shared `PhraseBlocks.BuildPair(StatementBlockContext[], bool notFirst)` helper (in `Binding/Procedure/`) replaces the
 ~8 duplicated ON/NOT-ON extractors.
@@ -311,12 +312,13 @@ from CodeGen). Emit-form facts leave `DataBinder.Oo` for `OoClassLayout` (emit-s
 Move to the new leaf assembly (namespace `CobolNet.Editions`): `ConstructRegistry`/`ConstructDialectStatus`,
 `ReservedWords`(+`.Table`), `EditionCodes`, the diagnostic-code **`DiagnosticDescriptors` registry** (NEW — the ONE
 home for the 163 codes, generated consts + ISO §/severity/message-template/suppress-key), and a single
-`EditionSeverityPolicy.Removed(...)`. `EditionGateHints` moves here too (out of the legacy `CobolSharp.Compiler.Parsing`
-namespace) so Frontend and Compiler share ONE registry. `EditionContext` **splits**: an immutable `EditionInfo`
-(DialectLevel/Permissive/MaxDigits) stays in Editions; the diagnostic-sink half becomes `DiagnosticSink` (in
-`Frontend/Common` or Editions, `IReadOnlyList` views) — the 290 `data.Edition.Error(...)` sites retarget to the sink.
-`constructs.json`/`reserved-words.json` remain the canonical catalogue with drift tests, now also binding
-`EditionGateHints` rows.
+`EditionSeverityPolicy.Removed(...)`. There is NO reverse-signature recogniser in this topology — hard-reserved
+constructs gate at bind time through the `VersionConformancePass`, and the vendor JSON/XML COBOL0313 disposition lives
+in `CobolErrorStrategy` as a token-keyed vendor hint (a parse-error re-diagnosis, not an ISO edition gate).
+`EditionContext` **splits**: an immutable `EditionInfo` (DialectLevel/Permissive/MaxDigits) stays in Editions; the
+diagnostic-sink half becomes `DiagnosticSink` (in `Frontend/Common` or Editions, `IReadOnlyList` views) — the 290
+`data.Edition.Error(...)` sites retarget to the sink. `constructs.json`/`reserved-words.json` remain the canonical
+catalogue with drift tests.
 
 ### 2.12 CodeGen ↔ Runtime coupling
 
@@ -373,7 +375,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 | 4 | X | `Grammar/CobolParserJsonXml.g4`, `CobolParserGenerics.g4`, `CobolParserOO.g4`, `CobolDialect.g4`, `CobolPreprocessor.g4` | — | Dead: not generated, not referenced |
 | 5 | S/X | `Grammar/Core/CobolExtensionsJsonXml.g4` | JSON/XML stripped; `inlineMethodInvocationStatement`→`Core/CobolOO.g4`; file deleted | JSON/XML non-ISO (0 spec occ) |
 | 6 | X | `Grammar/.antlr`, `obj/antlr-lib/*.g4` caches | — (gitignore) | Build output in source tree |
-| 7 | M | `EditionGateHints.cs` (ns `CobolSharp.Compiler.Parsing`) | `Cobol.Net.Editions/EditionGateHints.cs` | Share ONE registry across Frontend/Compiler |
+| 7 | X | `ReservedWordEditionHints.cs` (ns `CobolSharp.Compiler.Parsing`) | — (vendor JSON/XML COBOL0313 hint → `CobolErrorStrategy`, token-keyed) | No reverse-signature recogniser; the `VersionConformancePass` is the sole edition gate |
 | 8 | edit | `Pipeline/Frontend.cs` stale banner | corrected banner | Understandability |
 
 ### DataBinder god-class → binders + model + passes
@@ -407,7 +409,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 | 26 | M/R | `StatementBinder.{KeyedIo,FileLock,Sort,StringUnstring,Inspect,Initialize,Call,Intrinsics,Udf,ReportWriter}.cs` | `Binding/Procedure/Verbs/{KeyedIo,FileLock,Sort,String,Inspect,Initialize,Call,Intrinsic,Udf,ReportWriter}Binder.cs` | One class per verb family |
 | 27 | R | `StatementBinder.Accept.cs` | `Binding/Procedure/Verbs/AcceptDisplayBinder.cs` | Kill misleading "Accept" name |
 | 28 | M | `StatementBinder.{Oo,MoveFigurative→Move,Evaluate→IfEvaluate,Corresponding,Boolean+Exceptions→Exception,AlterSwitches→SetAlter}.cs` | per §2.4 rows | Cohesion |
-| 29 | C | (inline `data.Edition.Error` SR/edition checks) | `Validation/StatementValidation.cs` | Validation layer, binder stays "no-IR" |
+| 29 | C | (inline `data.Edition.Error` SR checks) | `Validation/StatementValidation.cs` (edition legality → `Pipeline/VersionConformancePass.cs`) | Validation layer, binder stays "no-IR" and edition-agnostic |
 | 30 | C | (8 ON/NOT-ON extractors) | `Binding/Procedure/PhraseBlocks.cs` | ONE phrase-pair helper |
 | 31 | R | `Binding/Bound/BoundStores.cs` | `Binding/Bound/BoundStoreAnalysis.cs` | It is an analysis, not storage |
 | 32 | C | (BoundTree dispatch) | `Binding/Bound/BoundNode.Visitor.cs` + `IBoundError.cs` | Exhaustive compile-checked dispatch |
@@ -443,12 +445,12 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 | 46 | M/S | `Binding/EditionContext.cs` | `Cobol.Net.Editions/EditionInfo.cs` (immutable) + `DiagnosticSink.cs` | Split "edition" from "diagnostic sink" |
 | 47 | M | `Validation/{ReservedWords,ReservedWords.Table,EditionCodes}.cs`, `Validation/ConstructDialectStatus.cs` | `Cobol.Net.Editions/` | ONE catalogue home |
 | 48 | C | (163 bare code literals) | `Cobol.Net.Editions/DiagnosticDescriptors.cs` (+ `docs/DIAGNOSTICS.md` generated) | Central registry; matrix/--suppress targets |
-| 49 | keep | `Validation/EditionValidator.cs` | stays in Compiler (consumes Editions) | Needs the parse tree |
+| 49 | S/X | `Validation/EditionValidator.cs` | absorbed by `Pipeline/VersionConformancePass.cs` (its §8.9 reserved-word funnel moves into the pass) | ONE edition-gating funnel over the bound tree |
 
 ### CompilerDriver / Cli
 | # | Action | From | To | Why |
 |---|---|---|---|---|
-| 50 | refactor | `CompilerDriver.cs` | phase-delegate list over `Pipeline/CompilationContext`; top-level try/catch → `Outcome.InternalError` | Explicit ordered abortable pipeline; CheckOnly=stop after Bind |
+| 50 | refactor | `CompilerDriver.cs` | phase-delegate list over `Pipeline/CompilationContext`; top-level try/catch → `Outcome.InternalError` | Explicit ordered abortable pipeline: bind → `VersionConformancePass` → HALT on errors → emit; CheckOnly stops after the pass (verdicts include pass diagnostics) |
 | 51 | F | `Cli/CliOptions.cs` + `CompilerDriver.Options` | one `Options` | No silently-dropped field |
 
 ### Runtime (topology-light — mostly stays)
@@ -461,7 +463,8 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 
 ## 4. Migration notes — keeping the battery green throughout
 
-The battery (2028 conformance + 213 unit + legacy guard NIST 353 MATCH) must stay green at **every commit**. Sequence
+The battery (greenfield conformance + unit + characterization + the FULL NIST legacy guard — current counts live in the
+STATUS banners) must stay green at **every commit**. Sequence
 the topology work as **behavior-preserving mechanical steps**, each independently green:
 
 1. **Wave 0 — namespace rename (mechanical, zero behavior).** `sed` the greenfield tree `CobolSharp.Compiler.* →
@@ -512,8 +515,8 @@ guard; each extracted class ships with the header block; DEVLOG entry per commit
    currently-implicit shared-state reads. *Mitigation:* `BinderContext`/`EmitContext` carry the genuinely-shared state
    explicitly; anything else that surfaces is a latent coupling bug to fix, not to re-hide.
 4. **`Cobol.Net.Editions` reference direction.** If any edition type accidentally depends on a Frontend or Compiler type,
-   the leaf assembly won't build. *Mitigation:* the split is data+policy only; `EditionValidator` (needs the parse tree)
-   deliberately stays in Compiler.
+   the leaf assembly won't build. *Mitigation:* the split is data+policy only; the `VersionConformancePass` (needs the
+   bound tree) deliberately stays in Compiler.
 5. **Volume of mechanical renames** across ~150 files risks reference-drift in test projects and `InternalsVisibleTo`.
    *Mitigation:* Wave 0 is a single scripted commit; CI is the backstop.
 6. **Scope creep into sibling dimensions.** This doc fixes *topology*; the pass-DAG algorithm, the visitor codegen, and

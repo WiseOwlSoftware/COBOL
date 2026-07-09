@@ -151,7 +151,7 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
 - **Bound tree, not IR** (§1.1). The bound tree resolves qualified names (OF/IN), subscripts, ref-mod, and
   condition-names ONCE and stores them on the node — the single place to hang semantic diagnostics.
 - **Single PC dispatcher per program unit** (§5 has the full design). `int Dispatch(int startPc, int exitPc)`.
-- **Decomposed emitter over a shared `EmitContext`** (CodeWriter + bound model + `NameAllocator` + DialectMode +
+- **Decomposed emitter over a shared `EmitContext`** (CodeWriter + bound model + `NameAllocator` + EditionInfo +
   DiagnosticBag + EmitConfig): `CSharpEmitter` (orchestrator), `DataEmitter`, `DispatchEmitter`, `StatementEmitter`,
   `ExpressionEmitter`, `ConditionEmitter`, `ProgramEmitter`. Mirrors the legacy `Emission/` split (the legacy
   `CilEmitter` hit 2458 lines before it was split — direct evidence). *(Rejected: one growing `CSharpEmitter` god
@@ -168,8 +168,11 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
   and `CobolNetCompiler` impls; `DifferentialNistTests` asserts `CobolNet stdout == Legacy stdout == nist/valid/*.txt`.
   The legacy's 364 passing programs become an instant regression net; the `.txt` oracle backstops a shared bug. Reuse
   the proven `guard-fast` parallelism; run each program in an ISOLATED working dir (file producer/consumer chains).
-- **One typed `DialectMode` enum** (`Cobol85/2002/2014/2023`) threaded CLI → Frontend (grammar admit/reject via
-  `{isXXXX()}?` gates) → Binder (semantic gating AND flagging). Keep the legacy two-axis (version × strictness) model.
+- **One `EditionInfo`** (`Cobol85/2002/2014/2023`) threaded CLI → driver. The grammar parses the SUPERSET of all
+  editions and stamps each version-gated construct's construct-id; the binder is edition-AGNOSTIC; the
+  **`VersionConformancePass`** over the bound tree is the sole edition gate — reject strict / accept-inert permissive,
+  HALT before emit (§1.1; `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`). The two-axis
+  (version × strictness) model applies throughout.
   Default `--std` = COBOL-2023; `--nist` without an explicit `--std` targets 85. ⛔ Per-edition gating is a co-equal
   obligation: each construct must compile + behave per the spec in every edition that HAS it AND draw the correct
   diagnostic in every edition that LACKS it (not-yet-introduced or removed) — driven by
@@ -1022,7 +1025,8 @@ continuity with existing diagnostic-asserting tests is an owner question (§15) 
 
 ### 14.11 Dialect, EC-default, and the differential oracle are threaded consistently
 
-ONE `DialectMode` enum (§2) is the single dialect source for Frontend + Binder + Emit. EC checking is OFF by default
+ONE `EditionInfo` (§2) is the single edition/dialect source; its sole gating consumer is the `VersionConformancePass`
+(§1.1) — the binder is edition-agnostic and the emitters carry no edition gating. EC checking is OFF by default
 everywhere (§11.1); conditional phrases are always active. The differential harness (§2) uses the legacy as an oracle
 until G8 — keeping the legacy build in the test graph for the duration is an owner question (§15).
 

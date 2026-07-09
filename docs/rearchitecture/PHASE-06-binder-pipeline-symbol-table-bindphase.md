@@ -4,9 +4,11 @@
 - **Track:** rearchitecture
 - **Risk:** HIGH (the OO method-scope lookup collapse is the single most behavior-sensitive change in the phase)
 - **Depends on:** P5 (Unified data model — `StorageForm` discriminator, `Binding/Model/` folder, `RecordLayout`,
-  and the no-op pass scaffolding). Also assumes P0 (characterization harness + green baseline) and P2 (the
-  `Cobol.Net.Editions` leaf assembly + diagnostic registry) are landed, but P6 does not require P2 to *complete*
-  — where P6 touches diagnostics it keeps the current `EditionContext` sink and lets P2/P7 re-home it.
+  and the no-op pass scaffolding). Also assumes P0 (characterization harness + green baseline), P2 (the
+  `Cobol.Net.Editions` leaf assembly + diagnostic registry), and P3 (the version-conformance pipeline:
+  edition-agnostic binder, the `VersionConformancePass` as the sole edition gate, and the bind → pass → halt →
+  emit driver split — `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`) are landed. Where P6 touches
+  diagnostics it uses the P2/P3 surface: `EditionInfo` + `IDiagnosticSink`.
 - **Blocks:** P7 (binder/emitter collaborator split + exhaustive visitor) and P9 (OO subsystem move) both consume
   the `BoundCompilation` + `BindPipeline` this phase produces. Neither is in scope here.
 
@@ -18,12 +20,17 @@ runs ~15 post-build passes ordered only by call sequence + comments (`Binding/Da
 is buried inside the codegen class (`CodeGen/CSharpEmitter.Call.cs:88-194`, `CallEmitRunUnit`). This phase promotes
 the P5 no-op passes into real `IBindPass` classes over ONE canonical `BindManifest`; extracts the binder half of
 `CallEmitRunUnit` into a `BindPipeline`/`BinderDriver` returning an **immutable `BoundCompilation`** so the driver's
-Phase 2 is literally *Bind then Emit* and `CheckOnly`/`NoEmit` stops after Bind; introduces ONE scope-aware
+Phase 2 is literally *Bind → VersionConformancePass → Emit* and `CheckOnly`/`NoEmit` stops after the conformance
+pass (its verdict includes the pass's edition diagnostics); introduces ONE scope-aware
 `SymbolTable` that collapses the `LookupData` / `LookupDataInScopeOf` / `TryGetVisibleIndexField` / `IndexFieldFor`
 quadruple (`Binding/DataBinder.Oo.cs:76-121`) with §11.7 GR5 sibling-invisibility folded in; seals the ~30 public
 mutable dictionaries into read-only views; and adds a completion-phase watermark gate so "read a fact before its
-producing pass ran" becomes a loud, located compiler error rather than a silent miscompile. The exhaustive visitor,
-the god-class collaborator split, and the OO subsystem move are explicitly **out of scope** (P7 / P9).
+producing pass ran" becomes a loud, located compiler error rather than a silent miscompile. Edition gating is NOT re-delivered here —
+this phase **preserves and hardens** the version-conformance pipeline P3 delivered
+(`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`): the `VersionConformancePass` becomes a NAMED pass
+in the `IBindPass` manifest and remains the SOLE `ConstructRegistry.Check` caller; the binder passes stay
+edition-agnostic. The exhaustive visitor, the god-class collaborator split, and the OO subsystem move are
+explicitly **out of scope** (P7 / P9).
 
 ## EXIT CRITERIA (all must hold at phase end)
 
@@ -34,11 +41,17 @@ the god-class collaborator split, and the OO subsystem move are explicitly **out
 3. The lookup quadruple is collapsed to ONE scoped resolver (`SymbolTable.TryResolve` / `TryResolveCondition` /
    `TryResolveIndex`); `LookupData` / `LookupDataInScopeOf` / `TryGetVisibleIndexField` / `IndexFieldFor` are
    **deleted** (grep returns zero definitions and zero call sites).
-4. `CheckOnly` halts after Bind — it never constructs C# text (verified by a test that a construct which only fails
-   at emit/Roslyn still returns `Success` under `CheckOnly`, and by the absence of an `Emit` call on the
+4. `CheckOnly` runs the manifest through the `VersionConformancePass` and halts there — its verdict includes the
+   pass's edition diagnostics, and it never constructs C# text (verified by a test that a construct which only
+   fails at emit/Roslyn still returns `Success` under `CheckOnly`, by a test that an edition violation returns
+   `BindError` with the pass's band code under `CheckOnly`, and by the absence of an `Emit` call on the
    `CheckOnly` path).
-5. The full battery is green: 2028+ greenfield conformance + 213+ unit, the FULL legacy guard NIST **353 MATCH**,
-   and the OO method-scope goldens specifically. Emitted-C# snapshots (gate 3) are neutral or reviewed-re-baselined.
+5. The full battery is green — greenfield conformance + unit + characterization suites and the FULL legacy guard
+   (current counts live in the master plan's STATUS banner) — and the OO method-scope goldens specifically.
+   Emitted-C# snapshots (gate 3) are neutral or reviewed-re-baselined.
+6. The `VersionConformancePass` is a NAMED pass in the `BindManifest`, and zero `ConstructRegistry.Check` calls
+   exist in any `IBindPass` other than the conformance pass (grep proves it) — the binder passes are
+   edition-agnostic, per `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
 
 ## STATUS
 
@@ -84,14 +97,16 @@ Every item below is grounded in the as-built code and the rearchitecture survey 
    `StatementBinder.Intrinsics.cs:81,829`, `StatementBinder.Initialize.cs:124,138`, and
    `StatementBinder.cs:1006,1019,1026,1054,1072,1082,1162`.
 
-4. **`CheckOnly` is a misnomer.** `CompilerDriver.Compile` under `CheckOnly` still calls the full
-   `CSharpEmitter().Emit(...)` (`CompilerDriver.cs:112`) and only skips the Roslyn backend — it builds the entire
-   C# string it then throws away. With a real Bind phase, `CheckOnly` becomes "stop after `BindPipeline.Run`".
+4. **`CheckOnly` must keep its P3 semantics through the rebuild.** P3's driver split already made `CheckOnly` stop
+   after bind + the `VersionConformancePass` (no C# text). Re-basing Phase 2 on `BinderDriver`/`BoundCompilation`
+   must preserve that: `CheckOnly` becomes "stop after `BindPipeline.Run`" — where the manifest's terminal pass IS
+   the `VersionConformancePass`, so the verdict still carries every edition diagnostic.
 
 This phase makes the pipeline shape literal and matches the driver's phase names:
 
 ```
-Frontend (parse) ─► Binder (BindPipeline: N ordered passes) ─► BoundCompilation ─► Backend (emit) ─► Roslyn
+Frontend (parse) ─► Binder (BindPipeline: N ordered passes, terminal = VersionConformancePass) ─►
+BoundCompilation ─► (halt on diagnostics) ─► Backend (emit) ─► Roslyn
 ```
 
 ---
@@ -116,12 +131,13 @@ required here.)
   `UsageMarkerPass` (renamed from `ResolveIndexItems`), `UsageInheritancePass`, `SignInheritancePass`,
   `RedefinesResolvePass`, `RedefinesClassifyPass`, `StrongTypeCheckPass`, `OoRedefinesRoutePass`, `OdoResolvePass`,
   `DynamicResolvePass`, `FilesResolvePass`, `NationalGatePass`, `ReportsResolvePass`, `ExternalGlobalPass`,
-  `PointerBindPass`, `ProcedureBindPass`, `StorageFormPass`. (Several may be thin adapters delegating to existing
-  `DataBinder` method bodies in this phase — the *class boundary + Requires/Produces contract* is what matters
-  now; the internal body split into focused collaborators is P7.)
+  `PointerBindPass`, `ProcedureBindPass`, `StorageFormPass` — plus the existing `VersionConformancePass` (from P3)
+  wrapped as the manifest's NAMED terminal pass, the sole `ConstructRegistry.Check` caller. (Several may be thin
+  adapters delegating to existing `DataBinder` method bodies in this phase — the *class boundary +
+  Requires/Produces contract* is what matters now; the internal body split into focused collaborators is P7.)
 - `Binding/BinderDriver.cs` — the extracted binder half of `CallEmitRunUnit`. `public BoundCompilation
-  Bind(Core.CompilationUnitContext tree, EditionContext edition, IReadOnlyList<TurnEvent>? turnEvents,
-  OoBindCallbacks oo)`.
+  Bind(Core.CompilationUnitContext tree, EditionInfo edition, IDiagnosticSink diagnostics,
+  IReadOnlyList<TurnEvent>? turnEvents, OoBindCallbacks oo)`.
 - `Binding/Model/BoundCompilation.cs` — the immutable result: `record BoundCompilation(IReadOnlyList<BoundUnit>
   Units, OoClassTable Classes, SymbolTable Symbols, TurnState Turn, bool EcActive, bool AnyFiles,
   IReadOnlyList<string> Diagnostics)`.
@@ -144,8 +160,11 @@ required here.)
 
 ### Changed
 
-- `CompilerDriver.Compile` — Phase 2 is `var comp = BinderDriver.Bind(...); if (edition.HasErrors) return
-  BindError; if (options.CheckOnly) return Success; string cs = new CSharpEmitter().EmitBound(comp); …`.
+- `CompilerDriver.Compile` — Phase 2 preserves P3's bind → conformance-pass → halt → emit split, re-based on the
+  manifest: `var comp = BinderDriver.Bind(...);` (the manifest ends in the `VersionConformancePass`) `…if
+  (diagnostics.HasErrors) return BindError; if (options.CheckOnly) return Success /* verdict includes pass
+  diagnostics */; string cs = new CSharpEmitter().EmitBound(comp); …` — emit is unreachable when any diagnostics
+  exist.
 - `CSharpEmitter.Emit(tree, edition, turnEvents)` retained as a thin shim = `EmitBound(BinderDriver.Bind(...))`
   for any remaining direct callers; the emit-only entry point is `EmitBound(BoundCompilation)`.
 
@@ -194,7 +213,8 @@ zero behavior change — so it is the safe first move.
 1. Create `Binding/Pipeline/Capability.cs` with the closed enum (from `DESIGN-binder-bound-tree.md` §3.1):
    `EntryTree, TypesExpanded, UsageMarkersResolved, UsageInherited, SignInherited, RedefinesResolved,
    RedefinesClassified, StrongTypesChecked, OoRedefinesRouted, OdoResolved, DynamicResolved, FilesResolved,
-   NationalGated, ReportsResolved, ExternalGlobalBound, PointersBound, ProcedureBound, StorageFormComputed`.
+   NationalGated, ReportsResolved, ExternalGlobalBound, PointersBound, ProcedureBound, StorageFormComputed,
+   EditionConformanceChecked`.
 2. Create `Binding/Pipeline/IBindPass.cs`, `Binding/Pipeline/BindContext.cs`, `Binding/Pipeline/BindPipeline.cs`
    (with `ValidateDag()` accumulating the produced-set and asserting `Requires ⊆ produced-so-far` for each pass,
    throwing `CompilerConfigurationException` on violation), and `Binding/Pipeline/BindManifest.cs` with
@@ -339,7 +359,8 @@ into a Bind-phase pass that runs after procedure binding, where the `WholeGroupR
    CompilerTemp re-sync loop (`:115-118`), and the FILE whole-group loop in `DataBinder.BindResolve`
    (`:238-257`). `BinderDriver.Bind` now calls `ProcedureBindPass` then `StorageFormPass` (via the manifest or the
    explicit ordered calls) before returning `BoundCompilation`.
-4. Add `ProcedureBindPass` and `StorageFormPass` to `BindManifest.Standard()` as the final two entries.
+4. Add `ProcedureBindPass` and `StorageFormPass` to `BindManifest.Standard()` as the final two binder entries
+   (Step 4 appends the `VersionConformancePass` after them as the manifest's terminal pass).
 
 **Verify:**
 - `grep -rn "MarkStoreAsImage" src/Cobol.Net.Compiler/CodeGen` returns nothing.
@@ -353,42 +374,52 @@ into a Bind-phase pass that runs after procedure binding, where the `WholeGroupR
 
 ---
 
-### Step 4 — Driver: Phase 2 = Bind then Emit; `CheckOnly` halts after Bind
+### Step 4 — Driver: Phase 2 = Bind → VersionConformancePass → Emit; `CheckOnly` halts after the conformance pass
 
-**Why:** make the phase boundary real at the driver, and fix the `CheckOnly` misnomer (exit criterion #4).
+**Why:** make the phase boundary real at the driver while PRESERVING P3's bind → conformance-pass → halt → emit
+split (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`) — the pass becomes a NAMED manifest pass and
+`CheckOnly` verdicts keep every edition diagnostic (exit criteria #4/#6).
 
 **Do:**
-1. Edit `CompilerDriver.Compile` (`CompilerDriver.cs:101-120`). Replace the single `Emit(...)` with:
+1. Wrap the P3-delivered `VersionConformancePass` as a named `IBindPass` (`Requires StorageFormComputed`;
+   `Produces EditionConformanceChecked`) and append it to `BindManifest.Standard()` as the terminal pass. It stays
+   the SOLE `ConstructRegistry.Check` caller — no other `IBindPass` calls `Check` (grep proves it, exit
+   criterion #6). It reports through the `IDiagnosticSink` threaded on `BindContext`.
+2. Edit `CompilerDriver.Compile` (`CompilerDriver.cs:101-120`). Re-base Phase 2 on the manifest:
    ```csharp
-   var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive);
-   new Validation.EditionValidator(edition).Validate(tree);
-   if (edition.HasErrors) return new Result(Outcome.BindError, ...);
+   var comp = new Binding.BinderDriver().Bind(tree, edition, diagnostics, frontend.TurnEvents);
+       // Phase 2a — BIND: edition-agnostic binder passes, then the manifest's terminal
+       // VersionConformancePass (the sole edition gate)
+   if (diagnostics.HasErrors)
+       return new Result(Outcome.BindError, "", null, diagnostics.Errors, [.. feWarnings, .. diagnostics.Warnings]);
 
-   var comp = new Binding.BinderDriver().Bind(tree, edition, frontend.TurnEvents);   // Phase 2a — BIND
-   if (edition.HasErrors || edition.Diagnostics.Count > 0)
-       return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
-
-   if (options.CheckOnly)   // stop after Bind — no C# text is built
-       return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]);
+   if (options.CheckOnly)   // stop after Bind + the conformance pass — the verdict already
+       return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. diagnostics.Warnings]);
+                            // includes the pass's edition diagnostics; no C# text is built
 
    string csharp = new CodeGen.CSharpEmitter().EmitBound(comp);   // Phase 2b — EMIT
+       // unreachable when any diagnostics exist — no codegen on an errored tree
    ```
    (Give `BinderDriver.Bind` a driver-facing overload that constructs the `OoBindCallbacks` internally, or expose a
    small `Binder` façade so the driver need not know about the OO seam — keep the CLI/driver surface clean.)
-2. Update the XML doc on `Options.CheckOnly` to say "stop after Bind" (it currently says "bind/emit ONLY").
-3. Strengthen the existing `CheckOnlyCompileTests` (`tests/Cobol.Net.Tests.Unit`): add a case whose program BINDS
+3. Update the XML doc on `Options.CheckOnly` to say "stop after Bind + the VersionConformancePass" (it currently
+   says "bind/emit ONLY").
+4. Strengthen the existing `CheckOnlyCompileTests` (`tests/Cobol.Net.Tests.Unit`): add a case whose program BINDS
    clean but would fail only at emit/Roslyn (e.g. a construct that emits a `LoudStmt`/`NotImplemented` but binds),
-   and assert `CheckOnly` returns `Outcome.Success`. Add an assertion (a spy or an instrumentation flag) that
-   `EmitBound` is NOT invoked on the `CheckOnly` path.
+   and assert `CheckOnly` returns `Outcome.Success`. Add a case with an edition violation and assert `CheckOnly`
+   returns `Outcome.BindError` carrying the conformance pass's band code (the verdict includes pass diagnostics).
+   Add an assertion (a spy or an instrumentation flag) that `EmitBound` is NOT invoked on the `CheckOnly` path.
 
 **Verify:**
 - `dotnet test tests/Cobol.Net.Tests.Unit --filter CheckOnly` green.
-- The INV-1 continuity sweep still passes (it drives `check-batch`, which uses `CheckOnly`):
-  `scripts/version-continuity-sweep.sh` (or the in-process equivalent) — no `BREAKS`.
+- The INV-1 continuity sweep still passes (it drives `check-batch`, which uses `CheckOnly` — its verdicts must
+  still include the conformance pass's diagnostics): `scripts/version-continuity-sweep.sh` (or the in-process
+  equivalent) — no `BREAKS`.
+- `grep` proves zero `ConstructRegistry.Check` calls in any `IBindPass` other than the `VersionConformancePass`.
 - Full battery green.
 
 **Commit boundary: YES.**
-`feat(cobolnet): P6.4 — driver Phase 2 splits into Bind then Emit; CheckOnly halts after Bind (no wasted C# emission)`
+`feat(cobolnet): P6.4 — driver Phase 2 = Bind → VersionConformancePass → Emit over the manifest; CheckOnly halts after the conformance pass (no wasted C# emission)`
 
 ---
 
@@ -524,7 +555,7 @@ quadruple before any deletion.
 **Verify (the phase's most important gate):**
 - Full battery green, with **the OO method-scope goldens specifically green**: `OoSpineTests` (all shadowing
   cases), and the NIST OO/keyed-scope programs. Run the greenfield conformance suite in full, not a filter.
-- Legacy guard NIST **353 MATCH** unchanged.
+- FULL legacy guard unchanged (all MATCH).
 - Snapshots neutral (a shadowing regression shows as a changed `.g.cs` storage reference — a `.g.cs` diff here is a
   RED, investigate before re-baselining).
 
@@ -567,12 +598,12 @@ quadruple before any deletion.
 
 **Greenfield (Windows, `dotnet test`):**
 ```
-dotnet test E:/CobolSharp/tests/Cobol.Net.Tests.Conformance    # 2028+ conformance
-dotnet test E:/CobolSharp/tests/Cobol.Net.Tests.Unit           # 213+ unit
+dotnet test E:/CobolSharp/tests/Cobol.Net.Tests.Conformance    # greenfield conformance
+dotnet test E:/CobolSharp/tests/Cobol.Net.Tests.Unit           # unit
 ```
 **Legacy differential guard (WSL/Linux — the frozen oracle; see MEMORY reference_wsl_linux_repro):**
 ```
-bash E:/CobolSharp/scripts/guard-fast.sh                        # NIST 353 MATCH + golden-cleanliness
+bash E:/CobolSharp/scripts/guard-fast.sh                        # FULL legacy guard + golden-cleanliness
 ```
 **Version continuity (drives the greenfield CLI's check-batch — validates Step 4):**
 ```
@@ -588,7 +619,7 @@ dotnet test E:/CobolSharp/tests/Cobol.Net.Tests.Characterization
 - Steps 1, 2, 3, 5, 6 are refactors → conformance/NIST counts **identical** to the Step 0 baseline, and the
   emitted `.g.cs` for a representative corpus **byte-identical** (Step 2/3 are the storage-form-sensitive ones).
 - Step 7 is the behavior-sensitive one → run the FULL conformance suite (not a filter); the OO method-scope
-  goldens (`OoSpineTests`) and the keyed/SEARCH scope programs are the sentinels; NIST 353 MATCH unchanged.
+  goldens (`OoSpineTests`) and the keyed/SEARCH scope programs are the sentinels; the FULL legacy guard unchanged.
 - Exit-criterion greps: `MarkStoreAsImage` absent from `CodeGen/`; the four lookup methods absent from `src/`; no
   CodeGen write into `DataItem`/`DataBinder` collections.
 
@@ -642,9 +673,10 @@ required; the **new tests are structural**:
 - `WatermarkTests` — reading a not-yet-produced capability trips the gate (Debug).
 - `SymbolTableTests` — the five scope/shadowing cases enumerated in Step 7a, mirroring the existing
   `OoSpineTests` method-local-shadowing conformance cases (which remain the authoritative behavior net).
-- A `CheckOnly` test proving a bind-clean/emit-failing program returns `Success` under `CheckOnly` and that
-  `EmitBound` is not invoked.
+- A `CheckOnly` test proving a bind-clean/emit-failing program returns `Success` under `CheckOnly`, that an
+  edition violation returns `BindError` with the `VersionConformancePass`'s band code, and that `EmitBound` is
+  not invoked.
 
 The authoritative regression that P6 must keep green is the existing OO method-scope conformance corpus
-(`OoSpineTests`) plus the full NIST 353-MATCH legacy guard — those are the spec-behavior net for the one
+(`OoSpineTests`) plus the FULL NIST legacy guard — those are the spec-behavior net for the one
 semantics-sensitive change (the lookup collapse).

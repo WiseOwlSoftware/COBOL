@@ -239,9 +239,12 @@ ALL over current capacity · `INITIALIZE <dynamic-table>` · the 2014 edition ga
 group (**COBOLNET1527**, §14.6.9) · VALUE-derived initial capacity (**1528**, §13.18.63 GR16) · ref-mod of a
 subordinate (**1526**, §13.7.1 SR6) · REDEFINES subject/object a dynamic table (**1525**, §13.18.44 SR17).
 
-**Grammar (SHARED .g4 → FULL legacy guard; additive).** A new `CAPACITY` lexer token; a `{is2014()}?`-gated DYNAMIC
-alt on `occursClause` (LL-disjoint — DYNAMIC is not an integerLiteral) with an order-independent `occursDynamicPhrase*`;
-`EditionGateHints` entry so a pre-2014 probe upgrades to **COBOLNET0900**. NO SET grammar change (Format 14 is the
+**Grammar (SHARED .g4 → FULL legacy guard; additive).** A new `CAPACITY` lexer token; a DYNAMIC alt on
+`occursClause` (LL-disjoint — DYNAMIC is not an integerLiteral; superset parse — no edition predicate) with an
+order-independent `occursDynamicPhrase*`; the COBOL-2014 introduction gate is the bind-time
+`ConstructRegistry.Check(OccursDynamic2014)` at `OdoModel.OdoBindOccursSpec` → **COBOLNET0900** (the
+`VersionConformancePass` funnel at end state — `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
+NO SET grammar change (Format 14 is the
 existing SET syntax, binder-rerouted). Diagnostics: **1522** (declaration/placement/SR28 — FILE SECTION, ODO-nesting,
 FROM/TO bounds, dup phrase), **1523** (CAPACITY register misuse SR30–32), **1524** (SET Format 14 misuse), 1525–1528
 (staged-loud). (08xx band exhausted; 15xx, last-used 1521.)
@@ -366,10 +369,12 @@ to the outermost `StrongType` ancestor) + `SameStrongType(a,b)` (equal strong-ro
 path), checked in `BindMove` (`CheckStrongMove`) / `CheckedRelational` (the ONE relation chokepoint) / the
 class-condition arm (`CheckClassConditionOperand`).
 
-**Grammar (ONE shared-.g4 change → FULL legacy guard).** The TYPE-reference rule already exists (`{is2002()}? TYPE
-IS? IDENTIFIER`). ADD only: a `STRONG` lexer token; `typedefClause : {is2002()}? IS? TYPEDEF STRONG? ;` on
-`dataDescriptionClause` (modeled on `externalClause`); an `EditionGateHints.TypedefClause` entry (pre-2002 probe →
-0900). **Do NOT add an `AS` token** — SAME AS is DEFERRED (a distinct feature; `AS` is a legacy-compat hazard as a
+**Grammar (ONE shared-.g4 change → FULL legacy guard).** The TYPE-reference rule already exists. ADD only: a
+`STRONG` lexer token; `typedefClause : IS? TYPEDEF STRONG? ;` on `dataDescriptionClause` (modeled on
+`externalClause`; superset parse — no edition predicate); the COBOL-2002 introduction gates are the bind-time
+`ConstructRegistry.Check(TypedefDef2002)` / `Check(TypeClause2002)` in the `DataBinder` clause loop → **COBOLNET0900**
+(the `VersionConformancePass` funnel at end state).
+**Do NOT add an `AS` token** — SAME AS is DEFERRED (a distinct feature; `AS` is a legacy-compat hazard as a
 common data-name; `CloneSubtree` is built generically so the later SAME AS slice reuses it with a different exclusion
 mask). `POINTER TO type-name` also stays out.
 
