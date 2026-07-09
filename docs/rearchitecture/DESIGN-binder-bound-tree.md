@@ -12,17 +12,14 @@ order), §18 (settled decisions). This design **keeps** the owner-locked §1.1/�
 decision and works within it — see §3.3 for the precise distinction between the *rejected* CIL-shaped branch IR
 and the *adopted* semantic-normalization-on-the-bound-tree.
 
-> **INTEGRATION NOTE (2026-07-08, version-conformance pipeline redesign — canonical:
-> `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).** Version gating consolidates to ONE
-> mechanism, which reshapes this doc's binder contract in three ways: (1) the binder is **edition-AGNOSTIC** —
-> it makes ZERO `ConstructRegistry.Check` calls; all ~24 legacy binder Check sites move out to a single
-> `VersionConformancePass` over the bound tree (the SOLE syntactic+semantic gate). (2) Bound nodes MUST carry a
-> **`.Syntax` back-reference** so that pass can read the grammar-stamped construct-id (superset parse: edition
-> `{isXXXX()}?` gates removed; a committed-match construct-id ANNOTATION carries identity forward). (3) **Bind
-> and emit are SEPARATE driver-gated phases** — codegen runs emit-only-if-clean and NEVER on an errored tree,
-> retiring the bind+emit fusion where `CSharpEmitter.CallEmitRunUnit` renders C# then discards on error.
-> Pipeline: parse → bind (edition-agnostic) → VersionConformancePass → emit-if-clean → backend.
-> `ReservedWordEditionHints` is DELETED. See the canonical doc for the full design.
+> **The binder is edition-agnostic.** Version conformance is one mechanism, and this doc's binder contract reflects it
+> in three ways: (1) the binder makes ZERO `ConstructRegistry.Check` calls — edition gating is a single
+> `VersionConformancePass` over the bound tree (the sole syntactic+semantic gate). (2) Bound nodes carry a `.Syntax`
+> back-reference so the pass can read the grammar-stamped construct-id (superset parse — no edition `{isXXXX()}?` gates;
+> a committed-match construct-id annotation carries identity forward). (3) Bind and emit are separate driver-gated
+> phases — codegen runs emit-only-if-clean, never on an errored tree. Pipeline: parse → edition-agnostic bind →
+> VersionConformancePass → emit-if-clean → backend; there is no `ReservedWordEditionHints`. Full design:
+> `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
 
 ---
 

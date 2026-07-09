@@ -12,15 +12,13 @@ mechanism; this doc owns the *parse-time* half and defers the registry to that d
 rearchitecture docs (which own the parse-tree *consumption* side; this doc specifies the façade the binder
 consumes).
 
-> **INTEGRATION NOTE (2026-07-08, VERSION-CONFORMANCE PIPELINE REDESIGN — `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`):**
-> This is now a **SUPERSET grammar**. The edition `{isXXXX()}?` gates are **REMOVED** so every construct parses at
-> every `--std`; each version-gated rule instead carries a **committed-match construct-id ANNOTATION** (a parse
-> *action*, NOT a speculative gating predicate — avoids the DEVLOG-679 hoisted-predicate trap), while version NUMBERS
-> stay single-sourced in `constructs.json`. Gating moves entirely OUT of the grammar/binder into **one
-> `VersionConformancePass`** over the bound tree (parse → bind edition-agnostic → VersionConformancePass →
-> emit-if-clean → backend). **`ReservedWordEditionHints` is DELETED.** Where this doc below describes forward
-> gate-stamping / `EditionGateHints` / `{isXXXX()}?` edition gating as *the* design, treat it as **SUPERSEDED** by the
-> pipeline doc.
+> **This is a SUPERSET grammar.** It recognises the union of all editions — there are no edition `{isXXXX()}?` gates;
+> every construct parses at every `--std`. Each version-gated rule carries a committed-match construct-id ANNOTATION (a
+> parse *action*, not a speculative gating predicate — which would be evaluated speculatively during a failing parse),
+> while version NUMBERS stay single-sourced in `constructs.json`. Edition gating lives entirely in ONE
+> `VersionConformancePass` over the bound tree (parse → edition-agnostic bind → VersionConformancePass → emit-if-clean →
+> backend); there is no `ReservedWordEditionHints`. Full design:
+> `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
 
 ---
 
@@ -36,11 +34,10 @@ consumes).
    the sanctioned G8 namespace rename, which this design brings forward where it is free.
 4. **Singular pattern** — ONE source of truth for the context-sensitive word set (today triplicated), ONE
    edition-gating mechanism surfaced consistently at parse and bind time, ONE diagnostic type end-to-end.
-5. **Four editions in one** — one grammar with edition predicates, validated by the VERSION TEST MATRIX. The
-   design keeps the single-grammar approach (it is correct and cheap) and removes the *duplication* around it.
-   *(SUPERSEDED 2026-07-08 by `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`: still one grammar, but
-   the edition PREDICATES are removed → superset parse + committed-match construct-id annotations; gating is the
-   single `VersionConformancePass`, not parse-time predicates.)*
+5. **Four editions in one** — ONE superset grammar (no edition predicates; each version-gated rule carries a
+   committed-match construct-id annotation), validated by the VERSION TEST MATRIX. Edition gating is the single
+   `VersionConformancePass` over the bound tree, not parse-time predicates — the one-grammar approach kept (correct and
+   cheap), with both the duplication and the scattered gating removed. *(`DESIGN-version-conformance-pipeline.md`.)*
 6. **JSON/XML are non-ISO** — 0 spec occurrences; they are deleted from the live grammar (§4).
 
 ---

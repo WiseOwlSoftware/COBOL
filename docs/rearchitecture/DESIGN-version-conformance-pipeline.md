@@ -1,25 +1,29 @@
 # DESIGN — Version-Conformance Pipeline (superset parse · edition-agnostic bind · one gating pass)
 
-> **STATUS: DESIGN / PROPOSED (2026-07-08).** Owner-driven redesign of how COBOL.NET enforces edition (85 / 2002 /
-> 2014 / 2023) conformance. Decisions locked in this session: the gating pass runs **over the bound tree, post-bind**;
-> version *identity* is declared **local to the grammar** (construct-id annotation), version *numbers* stay
-> single-sourced in `constructs.json`. This doc is the canonical design for the pipeline redesign; the version-gating
+> **STATUS: DESIGN.** How COBOL.NET enforces edition (85 / 2002 / 2014 / 2023) conformance. The gating pass runs
+> **over the bound tree, post-bind**; version *identity* is declared **local to the grammar** (construct-id annotation),
+> version *numbers* stay single-sourced in `constructs.json`. This doc is the canonical design for the
+> version-conformance pipeline; the version-gating
 > *framework* primitives (`EditionInfo`, `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`) remain owned by
 > [`DESIGN-edition-framework.md`](DESIGN-edition-framework.md). Cross-refs: [`DESIGN-frontend-grammar.md`](DESIGN-frontend-grammar.md),
 > [`DESIGN-binder-bound-tree.md`](DESIGN-binder-bound-tree.md). SSOT for settled invariants stays `docs/COBOLNET_DESIGN.md`.
 
-## 0. Why (the four observations that motivated this)
+## 0. Design rationale
 
-The redesign was prompted by four owner critiques, which are one root cause:
+Edition conformance is **one concern with one owner** — so it is one mechanism with clean, error-gated phase
+boundaries, not logic spread across the grammar, the binder, and a post-hoc recogniser. Four fragmentation anti-patterns
+this design rules out, each a way version gating decays if it is *not* a single bound-tree pass:
 
-| Observation | Underlying defect |
+| Anti-pattern | Why it fails |
 | --- | --- |
-| "the error mechanism is ad hoc, not formally designed" | `ReservedWordEditionHints` *guesses* a construct's identity from a **failed** parse (token/rule/adjacency signatures) — inherently heuristic, and it mis-fires on legitimate §8.9 user words + garbled syntax (DEVLOG 708). |
-| "four grammars, or a better design?" | edition gating is scattered as `{isYYYY()}?` **grammar predicates** instead of one version table applied uniformly. Four physical grammars would be ~95% duplicated *and* still couldn't say "requires COBOL-2002" without cross-referencing a newer grammar. |
-| "why wait until binding? use a tree walker" | gating is **smeared through the binder** (`ConstructRegistry.Check` at ~24 sites) plus a half-pass (`EditionValidator`) — no single dedicated pass owns it. |
-| "no reason to generate code when there are compile errors" | **bind and emit are fused**: `CompilerDriver.cs:114` runs `CSharpEmitter.Emit` (which binds → `BoundProgram` → *renders C#*) and only at `:115` checks `edition.Diagnostics` and discards the output. Codegen runs on an errored tree. |
+| A post-hoc reverse-signature *recogniser* that re-diagnoses a failed parse | It *guesses* a construct's identity from token/rule/adjacency signatures — inherently heuristic; it mis-fires on legitimate §8.9 user words + garbled syntax. |
+| Edition `{isYYYY()}?` *predicates* scattered through the grammar | Gating logic duplicated per rule instead of one version table; and a bare predicate can only fail to a generic parse error, never name the required edition. (Four physical per-edition grammars are worse — ~95% duplicated and still unable to say "requires COBOL-2002" without cross-referencing a newer grammar.) |
+| `ConstructRegistry.Check` calls *embedded in the binder* | Couples version conformance to name/type binding; no single place owns the policy. |
+| Gating discovered *during* code emission (bind and emit fused) | Codegen runs on an errored tree and the output is discarded — wasted work and a phase-boundary violation. |
 
-**Root cause:** the pipeline has **no clean, error-gated phase boundaries**, and version conformance is split across **three** mechanisms (grammar predicates, the post-hoc guesser, and binder-embedded `Check` calls). This is the `feedback_singular_pattern` anti-pattern (multiple mechanisms for one job) plus a phase-separation failure.
+The single mechanism defined below — **superset parse + a construct-id annotation local to the grammar +
+edition-agnostic bind + one `VersionConformancePass` over the bound tree + emit-if-clean** — is the direct answer to
+all four (`feedback_singular_pattern`: one canonical mechanism per job, with error-gated phase boundaries).
 
 ## 1. Target architecture
 
