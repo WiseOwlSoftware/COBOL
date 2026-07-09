@@ -1201,6 +1201,23 @@
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "2014->2023 introduction (no distinctive token - OO-wave residue)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. IM.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 O USAGE OBJECT REFERENCE.\nPROCEDURE DIVISION.\nMAIN.\n    INVOKE O \"m\" RETURNING O.\n    STOP RUN.\n"
+    },
+    {
+      "id": "arithmetic-intermediate-precision-2023",
+      "status": "pending",
+      "description": "Compile-time arithmetic expression mode + intermediate-result handling became implementor-defined at COBOL-2023 (the Standard Arithmetic required pre-2023 was removed) - a candidate BEHAVIOR VARIANT (INV-3): the same COMPUTE with an intermediate division/rounding could in principle yield different output across editions. PENDING (INV-3 discovery candidate): UNCONFIRMED - COBOL.NET uses ONE scaled-integer numeric pipeline, so its arithmetic is believed edition-INVARIANT (cf. the DEVLOG-517 de-sign/DISPLAY findings, all version-invariant); confirm by running the case at 85/2002/2014/2023 and diffing stdout before activating a per-edition variant (see variant.confirm).",
+      "display": "compile-time arithmetic / intermediate-result mode",
+      "diagnosticCode": "n/a (behavior variant - not a syntax gate)",
+      "citation": "ISO Annex E.2 item 6 / §8.8 (compile-time arithmetic implementor-defined at 2023); VCR row 12",
+      "introducedIn": 85,
+      "removedIn": null,
+      "vcr": "VCR row 12 / Annex E.2 item 6 (2014->2023: arithmetic mode implementor-defined) - INV-3 discovery candidate",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. AV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 R PIC 9V9(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R = 2 / 3 * 3.\n    DISPLAY R.\n    STOP RUN.\n",
+      "variant": {
+        "confirmed": false,
+        "confirm": "Run source at 85/2002/2014/2023 and diff stdout. If identical -> version-INVARIANT: record the determination (DEVLOG) and drop the variant. If it differs -> gate the behavior by DialectLevel and populate outputs per edition. §8.8 / Annex E.2 item 6.",
+        "outputs": {}
+      }
     }
   ]
 }

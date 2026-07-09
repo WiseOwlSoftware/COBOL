@@ -93,9 +93,19 @@ byte-exact at `--std 2023 --permissive`**), now guarded per-CI by repurposing th
 `inv1-strong-2023` (the redundant bash continuity CI step retired — the in-process test is authoritative;
 `version-continuity-sweep.sh` kept as a CLI convenience). Battery: conformance **3092** · unit 227 · guard 353 MATCH.
 
-**RESUME AT: Step 7** (behavior-variant matrix, INV-3) → Step 9 (discovery runners) → Step 10 (loud hole
-cataloguing — incl. making `procedure-raising-2002` etc. loud) → Step 11 (close). **Also queued: the ultracode
-adversarial-verify pass over Steps 2 + 6.**
+**⛔ Step 7 DONE (DEVLOG 704).** The INV-3 behavior-variant matrix is stood up as a LOUD discovery tool:
+`VersionBehaviorMatrixTests` — `[Theory][MemberData]` over `constructs.json` rows carrying a `variant` block ×
+their valid editions (SAME mechanism + catalogue as `VersionMatrixTests`, per the corrected singular-pattern
+principle) — runs each case at every edition (must compile+run via the new `EditionHarness.CompileAndRun`),
+diffing stdout for `confirmed` variants and cataloguing `pending` candidates loud (a `confirm` note). Seeded ONE
+cited pending candidate (`arithmetic-intermediate-precision-2023`, E.2 item 6 / VCR row 12) — no confirmed
+edition-variant behavior exists yet (DEVLOG 517; the one scaled-integer pipeline makes arithmetic
+edition-invariant), so the matrix is a discovery surface, not a gate. Battery: conformance **3097** · unit 227 ·
+guard 353 MATCH.
+
+**RESUME AT: Step 9** (positive/negative corpus discovery runners) → Step 10 (loud hole cataloguing — incl.
+making `procedure-raising-2002` etc. loud) → Step 11 (close). **Also queued: the ultracode adversarial-verify pass
+over Steps 2 + 6.**
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to

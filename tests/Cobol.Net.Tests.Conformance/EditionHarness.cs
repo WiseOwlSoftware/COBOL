@@ -65,6 +65,25 @@ public static class EditionHarness
         finally { try { Directory.Delete(dir, recursive: true); } catch { /* best-effort */ } }
     }
 
+    /// <summary>Compile <paramref name="source"/> at <paramref name="edition"/> AND run it, returning the program's
+    /// stdout — the INV-3 behavior-variant path (does the SAME source produce different OUTPUT across editions?).
+    /// Uses the shared <see cref="CutRunner"/> (the golden-runner's execution path).</summary>
+    public static (bool Ok, string Stdout, string Detail) CompileAndRun(string source, int edition, bool permissive = false)
+    {
+        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Run_" + Guid.NewGuid().ToString("N")[..8]);
+        Directory.CreateDirectory(dir);
+        try
+        {
+            string src = Path.Combine(dir, "prog.cob");
+            File.WriteAllText(src, source);
+            string dll = Path.Combine(dir, "prog.dll");
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: edition, Permissive: permissive));
+            if (!r.Success) return (false, "", $"[compile] {r.Status}: {string.Join("\n", r.Errors)}");
+            return CutRunner.Run(dll, dir);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
     /// <summary>The diagnostics of compiling <paramref name="source"/> at <paramref name="edition"/> (empty when it
     /// compiles clean).</summary>
     public static IReadOnlyList<string> GetDiagnostics(string source, int edition) => Compile(source, edition).Diagnostics;
