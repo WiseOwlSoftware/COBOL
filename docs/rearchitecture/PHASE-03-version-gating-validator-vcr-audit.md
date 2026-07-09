@@ -56,7 +56,7 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 12 (Batch C)` (2026-07-09). Step 2 done (DEVLOG 698): `EditionValidator` re-homed onto
+`IN PROGRESS @ Step 14 (the pipeline skeleton)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717). Step 2 done (DEVLOG 698): `EditionValidator` re-homed onto
 `EditionInfo` + `IDiagnosticSink`. **Step 6 Tier-2 done (DEVLOG 699):** the VCR narrative was spec-audited by a
 13-agent workflow (`wf_acc42f62-8a4`) — 133 rows, **125 accurate / 3 divergent / 5 unverifiable**; the 3
 divergent (rows 54/68/69, all "Old"-behavior prose) fixed against quoted spec lines; the 5 unverifiable are the
@@ -144,17 +144,21 @@ The un-wireable residue is CATALOGUED (not silently absent): `inline-method-invo
 grammar → a `COBOL0307`, needs grammar work to gate cleanly; noted for the M4/2023 feature wave). Battery:
 conformance 3108 · unit 227 · guard 353 MATCH.
 
-**⛔ RESIDUE-FIRST MIGRATION 5 of 7 DONE (DEVLOG 709–713, 2026-07-08).** Five of the seven residue gates dropped
-their grammar edition predicate and now gate bind-time via `ConstructRegistry.Check`, with their
-`ReservedWordEditionHints` reverse-signature arms deleted: **UNLOCK #5** (`2daec9cb`) · **PROPERTY #7**
-(`7311dfbd`) · **PD-RAISING #6** (`840b0abf`) · **XOR #1** (`d3cdae6c`) · **SHARING #3** (`1b74f739` — SELECT +
-OPEN in ONE commit; the OPEN name-list collision proven byte-safe). REMAINING: **Batch C = RETRY #4 + the boolean
-family #2** (Step 12), then the recogniser deletion (Step 13) and the pipeline skeleton (Step 14). Battery at
-head: greenfield conformance **3112** · unit **227** · characterization **32** · FULL legacy guard **ALL GREEN**.
+**✅ RESIDUE-FIRST MIGRATION COMPLETE — all 7 gates migrated + the recogniser DELETED (DEVLOG 709–717).** Every
+residue gate dropped its grammar edition predicate and now gates bind-time via `ConstructRegistry.Check`:
+**UNLOCK #5** (`2daec9cb`) · **PROPERTY #7** (`7311dfbd`) · **PD-RAISING #6** (`840b0abf`) · **XOR #1** (`d3cdae6c`,
+Batch A) · **SHARING #3** (`1b74f739`, Batch B — OPEN collision byte-safe) · **RETRY #4** (`4efcca71` — 6 grammar
+sites, `retryPhraseAhead()` forward-detect for OPEN, closed a real 4-site bind gap) · **boolean #2** (`3d0ec86e` —
+operator tiers + COMPUTE F2 + the operand-adjacency `boolExprAhead()` ENTRY; DEVLOG-621 surface intact) — Batch C
+complete. **Step 13** (`<pending push>`): `ReservedWordEditionHints` DELETED, the vendor JSON/XML COBOL0313
+disposition relocated to `CobolErrorStrategy`. Each grammar change: FULL legacy guard **353 MATCH, 0 regressions**.
+Battery at head: greenfield conformance **3114** · unit **227** · characterization **32** GREEN.
 
-**RESUME AT: Step 12 (Batch C residue migration)** — then Step 13 (delete `ReservedWordEditionHints`) → Step 14
-(the pipeline skeleton) → Step 15 (phase close; the former Step 11): full battery + doc sync + STATUS→DONE + the
-exit-criteria checklist (now items 1–9).
+**RESUME AT: Step 14 — the pipeline skeleton** (build the `VersionConformancePass`; funnel ALL 88 compiler-embedded
+`ConstructRegistry.Check` sites into it; absorb + DELETE `EditionValidator`; edition-agnostic binder; `.Syntax`
+back-ref; split bind/emit in `CompilerDriver`; re-point CheckOnly/EditionHarness/INV-1 legs) → Step 15 (phase close;
+the former Step 11): full battery + doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9). Also fold in the
+Step-12(c) residual: refresh the migrated rows' stale `constructs.json` citations + grammar comments.
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to

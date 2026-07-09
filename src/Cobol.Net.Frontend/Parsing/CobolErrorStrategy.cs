@@ -107,25 +107,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var ruleStack = recognizer.GetRuleInvocationStack().ToArray();
         string tokenUpper = token.Text?.ToUpperInvariant() ?? "";
 
-        // 0. A reservation-word edition gate behind the generic error (rearch PHASE 02): the load-bearing
-        // {isYYYY()}? predicate on a §8.9 context-sensitive keyword (XOR, the boolean operators, SHARING/RETRY/
-        // UNLOCK, PROPERTY) rejects a too-new construct during prediction, so it surfaces as a generic parse
-        // error. ReservedWordEditionHints recognizes the construct's SIGNATURE and returns its constructs.json id;
-        // the COBOLNET0900 edition-naming message is rendered through the ONE ConstructRegistry.Check funnel — its
-        // display/edition/citation are the registry row's, not hand-copied (priority 0, so its code wins the
-        // message prefix). Vendor JSON/XML map to COBOL0313. (Hard-reserved constructs gate at bind time now.)
-        if (ReservedWordEditionHints.Recognize(recognizer, token, ruleStack) is { } gate)
-        {
-            if (gate.ConstructId is { } id && recognizer is CobolParserCoreBase core)
-            {
-                var sink = new CaptureSink();
-                ConstructRegistry.Check(core.Edition, sink, id, $"near '{Truncate(token.Text, 40)}'");
-                if (sink.Message is { } m)
-                    hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET0900, m + ".", 0));
-            }
-            else if (gate.VendorCode is not null)
-                hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0313, gate.VendorMessage + ".", 0));
-        }
+        // 0. Vendor JSON/XML statements are NOT ISO/IEC 1989 constructs (0 spec occurrences; owner decision 2,
+        // DEVLOG 581): the hard-reserved JSON/XML lexer tokens can only surface here as a misplaced vendor statement
+        // behind a generic parse error → the vendor-extension hint (COBOL0313, priority 0 so its code wins the prefix),
+        // never an edition gate. Every ISO reservation-word introduction gate now fires at BIND (superset parse +
+        // bind-time ConstructRegistry.Check → the VersionConformancePass), so the former ReservedWordEditionHints
+        // reverse-signature recogniser is gone (residue migration complete, DESIGN-version-conformance-pipeline.md).
+        if (token.Type is CobolLexer.JSON or CobolLexer.XML)
+            hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0313,
+                $"{(token.Type == CobolLexer.JSON ? "JSON" : "XML")} GENERATE/PARSE is not an ISO/IEC 1989 construct — "
+                + "vendor-dialect extension, deferred (owner decision 2, DEVLOG 581).", 0));
 
         // 1. Missing space before string literal
         if (token.Text?.StartsWith('"') == true && prev != null && IsIdentifier(prev))

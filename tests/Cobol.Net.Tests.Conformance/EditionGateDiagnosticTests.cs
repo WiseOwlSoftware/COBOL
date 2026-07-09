@@ -5,13 +5,12 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// W1.5 (roadmap Phase 2; VERSION_TEST_MATRIX_DESIGN P2.8): the grammar's introduction predicates reject a
-/// too-new construct as a GENERIC parse error — these facts pin the UPGRADED diagnostics: the parse-layer
-/// mapping (<c>ReservedWordEditionHints</c>) must name the required edition on the COBOLNET0900 band, with the same
-/// wording family as the bind-layer <c>ConstructRegistry.Check</c>. The matrix reject cells assert code
-/// PRESENCE per row (expectDiagnostic); these facts assert message QUALITY (edition-naming) for one
-/// representative site of each signature class, plus the vendor JSON/XML disposition and the 0860/0861
-/// collision migration. Sources mirror the constructs.json rows.
+/// Introduction-diagnostic QUALITY facts (VERSION_TEST_MATRIX_DESIGN P2.8): a too-new construct compiled below its
+/// edition must name the required edition on the COBOLNET0900 band through the ONE <c>ConstructRegistry.Check</c>
+/// funnel (superset parse + bind-time gate → the VersionConformancePass — every construct now gates at BIND). The
+/// matrix reject cells assert code PRESENCE per row (expectDiagnostic); these facts assert message QUALITY
+/// (edition-naming) for one representative construct of each class, plus the vendor JSON/XML disposition (COBOL0313
+/// via <c>CobolErrorStrategy</c>) and the 0860/0861 collision migration. Sources mirror the constructs.json rows.
 /// </summary>
 public sealed class EditionGateDiagnosticTests
 {
@@ -184,7 +183,7 @@ public sealed class EditionGateDiagnosticTests
 
     /// <summary>JSON GENERATE is NOT ISO (0 spec hits; owner decision 2, DEVLOG 581). As of rearch P1 (the
     /// non-ISO JSON/XML grammar was hard-deleted) it parse-errors at EVERY edition; the diagnostic is the vendor
-    /// hint (COBOL0313 — <c>ReservedWordEditionHints</c> keys off the hard-reserved <c>JSON</c>/<c>XML</c> token), never
+    /// hint (COBOL0313 — <c>CobolErrorStrategy</c> keys off the hard-reserved <c>JSON</c>/<c>XML</c> token), never
     /// the 0900 band (no ISO edition has the construct, so "requires COBOL-2014" would be a lie). This test pins
     /// the &lt;2014 leg; the removal's behavioral change (≥2014 was formerly parse-then-runtime-loud) is intended
     /// hardening.</summary>

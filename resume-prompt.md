@@ -83,26 +83,23 @@
 > backend. Edition gating is one mechanism — a `ConstructRegistry.Check` at the construct's recognition point — with no
 > parse-time predicate, no post-hoc guesser, no scattered binder checks, and no `ReservedWordEditionHints`; bind and
 > emit are separate driver-gated phases. Design: `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
-> **RESIDUE-FIRST migration progress (5 of 7 gates done, each a green+pushed commit; DEVLOG 709–713):** ✅ UNLOCK #5
-> (`2daec9cb`), ✅ PROPERTY #7 (`7311dfbd`), ✅ PD-RAISING #6 (`840b0abf` — the DEVLOG-708 mis-fire is eliminated), ✅ XOR #1 (`d3cdae6c` — BATCH A complete), ✅ SHARING #3 (`1b74f739` — Batch B; OPEN
-> name-list collision proven byte-safe). Each: dropped the grammar `{isXXXX()}?`, added a bind-time
-> `ConstructRegistry.Check`, deleted the reverse-signature arm, added a negative fixture; FULL legacy guard ALL GREEN.
-> Battery at head: greenfield conformance **3112** · unit 227 · characterization 32 GREEN. **RESUME AT: PHASE-03
-> Step 12 (Batch C residue migration)** — then Steps 13–15, per the PHASE-03 doc's numbered steps +
-> `DESIGN-version-conformance-pipeline.md` §5 (Stages 1–3): **Step 12** — (a) **RETRY #4** — SIX grammar predicate
-> sites in `Core/CobolIO.g4` (`openClause`:232, `readStatement`:291, `writeStatement`:343, `rewriteStatement`:384,
-> `deleteStatement`:407, `deleteFileStatement`:425): the five statement sites drop their predicate and gate bind-time
-> via `Check(RetryPhrase2002)` at the retry-binding site; the OPEN site becomes `{is2002() || retryPhraseAhead()}?`
-> (forward detect); (b) **the boolean family #2** — 7a: the B-AND/B-OR/B-XOR/B-NOT operator tiers + COMPUTE F2 (pure
-> gating — drop predicates + one `Check(BooleanOperators2002)` in `BindBoolExpr`); 7b: the boolean-condition ENTRY
-> (generalize `boolExprAhead()` to fire at all editions with operand-adjacency); ⚠ HIGHEST SCRUTINY — this is the
-> shared comparison DFA that regressed subscript/ref-mod comparisons in DEVLOG 621; (c) refresh the 5 already-migrated
-> rows' stale constructs.json citations + the stale grammar comments with these commits. **Step 13** — delete
-> `ReservedWordEditionHints` entirely (the vendor JSON/XML COBOL0313 disposition relocates to `CobolErrorStrategy`
-> as a token-keyed vendor hint). **Step 14** — the pipeline skeleton: the `VersionConformancePass` over the bound
-> tree; funnel ALL 88 compiler-embedded `ConstructRegistry.Check` call sites into it; absorb and DELETE
-> `EditionValidator`; make the binder edition-agnostic; split bind/emit in `CompilerDriver` (bind → pass → HALT on
-> errors → emit). **Step 15** — phase close. Read `DESIGN-version-conformance-pipeline.md` FIRST. The dual-backend goal
+> **RESIDUE-FIRST migration: ALL 7 gates DONE + the guesser DELETED** (each a green+pushed commit; DEVLOG 709–717):
+> ✅ UNLOCK #5 (`2daec9cb`), ✅ PROPERTY #7 (`7311dfbd`), ✅ PD-RAISING #6 (`840b0abf`), ✅ XOR #1 (`d3cdae6c` — Batch A),
+> ✅ SHARING #3 (`1b74f739` — Batch B, OPEN collision byte-safe), ✅ RETRY #4 (`4efcca71` — 6 grammar sites, forward-detect
+> `retryPhraseAhead()` for OPEN, closed a real 4-site bind gap), ✅ boolean #2 (`3d0ec86e` — operator tiers + COMPUTE F2 +
+> the operand-adjacency `boolExprAhead()` ENTRY; DEVLOG-621 surface intact) — **Batch C complete** — and ✅ **Step 13**:
+> `ReservedWordEditionHints` DELETED (vendor JSON/XML COBOL0313 relocated to `CobolErrorStrategy`). Each grammar change:
+> FULL legacy guard **353 MATCH, 0 regressions**. Battery at head: greenfield conformance **3114** · unit 227 ·
+> characterization 32 GREEN. **RESUME AT: PHASE-03 Step 14 — the pipeline skeleton** (`DESIGN-version-conformance-pipeline.md`
+> §5 Stage 3): build the `VersionConformancePass` over the bound tree; funnel ALL **88** compiler-embedded
+> `ConstructRegistry.Check` call sites (DataBinder*/StatementBinder*/OoClassTable/PicInfo/OdoModel + EditionValidator's
+> own + the one emitter-side site in `CSharpEmitter.Call.cs`) into it; absorb and DELETE `EditionValidator` (its §8.9
+> reserved-word funnel moves into the pass); make the binder edition-AGNOSTIC (zero Checks); ensure bound nodes carry
+> the `.Syntax` back-reference the pass reads; split bind/emit in `CompilerDriver` (bind → pass → HALT on errors →
+> emit); re-point CheckOnly / EditionHarness / the INV-1 continuity + INV-1-strong legs so their verdicts include pass
+> diagnostics. **Step 15** — phase close (exit criteria incl. 7 residue migrated + guesser deleted ✅; the pass is the
+> sole gate; emit unreachable with diagnostics). Also fold in Step 12(c) residual: refresh the migrated rows' stale
+> `constructs.json` citations + grammar comments. Read `DESIGN-version-conformance-pipeline.md` FIRST. The dual-backend goal
 > (`project_dual_backend_goal`) is first-class (PHASE-16). Memory: `project_rearchitecture_plan`. **The §"NON-NEGOTIABLE
 > PROCESS RULES" block below stays in force.** The STATE banners below are PRE-REARCHITECTURE HISTORY — the
 > 2036/213-green baseline they describe is superseded by the current battery figures above; the go-forward PLAN is the rearchitecture
