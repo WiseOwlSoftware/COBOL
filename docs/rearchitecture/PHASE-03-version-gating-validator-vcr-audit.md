@@ -39,6 +39,16 @@ OO, M3/M4 surface) is OUT of scope — this phase gates, skeletons, and audits o
 
 ## STATUS
 
+> **⛔ SUPERSEDED BY THE 2026-07-08 VERSION-CONFORMANCE PIPELINE REDESIGN — see
+> [`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`](DESIGN-version-conformance-pipeline.md).** The steps
+> below (0/2/5/6/7/8/9/10) landed, but the residue/`EditionValidator`/`ReservedWordEditionHints` approach they built on
+> is now the OLD design. The go-forward is the **RESIDUE-FIRST migration** to ONE gating mechanism: **superset parse**
+> (edition `{isXXXX()}?` gates removed; a committed-match construct-id annotation stamps identity, numbers stay in
+> `constructs.json`) → **edition-agnostic bind** (zero `ConstructRegistry.Check` calls; bound nodes carry `.Syntax`)
+> → **one `VersionConformancePass`** over the bound tree as the SOLE gate → **emit-if-clean** (bind/emit split so
+> codegen never runs on an errored tree). `ReservedWordEditionHints` is DELETED. Read the redesign doc before
+> continuing any step below.
+
 `IN PROGRESS @ step 6 (Tier-1)` (2026-07-08). Step 2 done (DEVLOG 698): `EditionValidator` re-homed onto
 `EditionInfo` + `IDiagnosticSink`. **Step 6 Tier-2 done (DEVLOG 699):** the VCR narrative was spec-audited by a
 13-agent workflow (`wf_acc42f62-8a4`) — 133 rows, **125 accurate / 3 divergent / 5 unverifiable**; the 3

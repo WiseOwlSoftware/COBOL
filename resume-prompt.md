@@ -76,14 +76,18 @@
 > per-feature/per-rule descriptors + the reused `COBOLNET1533` split by ISO §, generated `docs/DIAGNOSTICS.md` +
 > `DiagnosticRegistryDriftTests` (P2.10a/b); step 11 — this docs close. All 7 PHASE-02 exit criteria hold. Battery at
 > close: **2055 conformance · 227 unit · 32 characterization · FULL legacy guard NIST 353 MATCH** (0 regressions).
-> ⛔ **PHASE 03 IN PROGRESS @ step 2** (`docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md`). Its
-> Step-0 AS-BUILT reconciliation (embedded in that doc's STATUS block) is load-bearing — the phase doc predates P2, so
-> **Step 1 ✅ + Step 4 ✅ are already satisfied** (P2.1–P2.6b), **Steps 2 & 3 are PARTIAL**, and **Steps 5–10 are the
-> substantial NEW work** (harness-driven VCR replacing 117 hand-`TODO` rows · behavior-variant matrix INV-3 ·
-> in-process continuity + INV-1-strong-2023 gates · corpus discovery runners · loud hole cataloguing). **RESUME AT
-> step 2** — re-home `EditionValidator` onto `EditionInfo`+`IDiagnosticSink` (the validator's `Check` calls are already
-> sink-based; the ctor + 2 `VisitCobolWord` direct writes + the driver hook remain). Read the PHASE-03 STATUS block
-> FIRST. The dual-backend goal
+> ◐ **PHASE 03 — VERSION-CONFORMANCE PIPELINE REDESIGN (2026-07-08).** Steps 0/2/5/6/7/8/9/10 of the original
+> version-gating-validator plan landed, but the closing ultracode adversarial-verify pass proved the reverse-signature
+> residue (`ReservedWordEditionHints`) mis-fires on legitimate §8.9 user words + garbled syntax (DEVLOG 708), and an
+> owner architecture review directed a formal redesign (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
+> **Target pipeline: superset parse (edition `{isXXXX()}?` gates removed; a committed-match construct-id annotation
+> LOCAL to each version-gated rule — version numbers stay in `constructs.json`) → edition-AGNOSTIC bind → ONE
+> `VersionConformancePass` over the bound tree (reject strict / accept-inert permissive) → emit-only-if-clean → backend**
+> — this kills the THREE-mechanism smear (grammar predicates + post-hoc guesser + ~24 binder `Check`s), deletes
+> `ReservedWordEditionHints`, and fixes the fused bind/emit (codegen no longer runs on errored trees). **RESUME AT:
+> the RESIDUE-FIRST migration** (owner-chosen order) — fold the 7 residue gates into the single mechanism + delete the
+> guesser (per the design doc's §4 classification + §5 Batches A→C), then the pass/phase-separation skeleton. Read
+> `DESIGN-version-conformance-pipeline.md` FIRST. The dual-backend goal
 > (`project_dual_backend_goal`) is first-class (PHASE-16). Memory: `project_rearchitecture_plan`. **The §"NON-NEGOTIABLE
 > PROCESS RULES" block below stays in force.** The STATE banners below are PRE-REARCHITECTURE HISTORY — the
 > 2036/213-green baseline they describe is superseded by the 2055/224 above; the go-forward PLAN is the rearchitecture

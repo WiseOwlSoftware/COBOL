@@ -62,20 +62,34 @@ internal detail. Where a deep-dive conflicts with §1/§14/§18, the SSOT wins.
 
 ## 1. Architecture overview + locked invariants
 
-### 1.1 Pipeline (5 phases; a backend-neutral bound tree feeds a SELECTABLE backend)
+### 1.1 Pipeline (6 phases; edition gating is its OWN pass; a backend-neutral bound tree feeds a SELECTABLE backend)
 
 ```
 source.cob
-  → Frontend  (REUSED ANTLR: Preprocess[reference-format, >>directives, COPY, NIST placeholders] → Lex → Parse)
+  → Frontend  (REUSED ANTLR, SUPERSET grammar: Preprocess[reference-format, >>directives, COPY, NIST placeholders]
+               → Lex → Parse; edition {isXXXX()}? gates REMOVED so all constructs parse at every --std; each
+               version-gated rule stamps its construct-id — DESIGN-version-conformance-pipeline.md)
        → parse tree
-  → Bind      (resolve symbols + build a typed/categorized BOUND TREE that PRESERVES COBOL structure)
+  → Bind      (edition-AGNOSTIC: resolve symbols + build a typed/categorized BOUND TREE that PRESERVES COBOL structure;
+               ZERO edition Check calls)
        → BoundProgram
+  → VersionConformancePass  (the ONE edition gate: walk the bound tree, Check each stamped construct-id + the few
+               semantic gates vs --std; reject strict / accept-inert permissive)  → HALT if errors — no codegen on a bad tree
   → Desugar   (bound→bound passes: MOVE CORRESPONDING, PERFORM VARYING…AFTER, condition-name lowering)
        → BoundProgram (same tree type)
-  → Backend   (ICodeGenBackend, SELECTABLE via --backend):
+  → Backend   (ICodeGenBackend, SELECTABLE via --backend; reached ONLY on a clean tree):
        ├─ Roslyn (default): decomposed emitter → idiomatic C# (.g.cs) → CSharpCompilation → assembly + PDB
        └─ CIL (Cecil):      bound tree → typed-native CIL (its OWN internal structure→branch lowering) → assembly
 ```
+
+**Edition conformance is a single dedicated pass, not scattered gating (2026-07-08 owner redesign,
+`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).** Version gating had drifted across THREE mechanisms —
+grammar `{isXXXX()}?` predicates, a post-hoc reverse-signature guesser (`ReservedWordEditionHints`, which mis-fired on
+legitimate §8.9 user words), and ~24 binder-embedded `ConstructRegistry.Check` calls — and bind+emit were fused so
+codegen ran on errored trees. The redesign consolidates to ONE mechanism: the grammar declares construct *identity*
+(a committed-match annotation, local to each rule; version *numbers* stay in `constructs.json`), the binder is
+edition-agnostic, and the `VersionConformancePass` over the bound tree is the sole gate — rejecting strict / accepting-
+inert permissive, and HALTING before emit. `ReservedWordEditionHints` is deleted. Migration is **residue-first**.
 
 **Backend-neutral bound tree + a selectable codegen backend (owner-confirmed 2026-06-08).** The bound semantic tree
 is the single model that both backends consume; codegen is behind an **`ICodeGenBackend`** abstraction with two

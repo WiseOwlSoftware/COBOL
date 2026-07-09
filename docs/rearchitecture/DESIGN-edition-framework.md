@@ -10,7 +10,16 @@
 > SSOT cross-refs: `docs/COBOLNET_DESIGN.md` §16 (G0–G8), `docs/VERSION_TEST_MATRIX_DESIGN.md`,
 > `docs/VERSION_CHANGE_REFERENCE.md`.
 
----
+> **INTEGRATION NOTE (2026-07-08 — version-conformance pipeline redesign; canonical doc:
+> `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).** This doc owns the version-gating
+> FRAMEWORK PRIMITIVES (`EditionInfo`, `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`,
+> `EditionSeverityPolicy`); they are UNCHANGED and remain the single version table. What changes is
+> their SOLE CONSUMER: gating consolidates from three mechanisms (grammar `{isXXXX()}?` predicates,
+> the deleted `ReservedWordEditionHints` reverse-signature guesser, and ~24 scattered binder
+> `ConstructRegistry.Check` calls) to ONE `VersionConformancePass` over the bound tree — parse is now a
+> SUPERSET (edition gates removed; a committed-match construct-id annotation carries identity forward),
+> bind is edition-AGNOSTIC (zero `Check` calls; nodes carry a `.Syntax` back-ref), and emit runs only on
+> a clean tree. See the pipeline doc for the full parse → bind → VersionConformancePass → emit-if-clean flow.
 
 ## 1. The current problem (grounded in the AS-BUILT code)
 

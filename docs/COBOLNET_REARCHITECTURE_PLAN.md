@@ -30,8 +30,19 @@
 > ctor still takes `EditionContext`; `constructs.json` lacks `expectDiagnostic`/`variant`); **Steps 5–10 are the
 > substantial NEW work** — VCR mechanization (117 hand-`TODO` rows → harness-derived status), the behavior-variant
 > matrix (INV-3), the in-process continuity + INV-1-strong-2023 gates, corpus discovery runners, and loud hole
-> cataloguing. RESUME AT step 2 (re-home `EditionValidator` onto `EditionInfo`+`IDiagnosticSink`). Read the PHASE-03
-> doc's STATUS block FIRST; execute its numbered steps, battery-green at every commit boundary.
+> cataloguing. Steps 0/2/5/6/7/8/9/10 landed. **⛔🔁 PHASE-03 IS NOW SUPERSEDED-IN-PART BY THE VERSION-CONFORMANCE PIPELINE
+> REDESIGN (2026-07-08, `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).** The closing ultracode
+> adversarial-verify pass proved the reverse-signature residue (`ReservedWordEditionHints`) is a heuristic that
+> mis-fires on legitimate §8.9 user words + garbled syntax (DEVLOG 708), and an owner architecture review surfaced that
+> version gating is smeared across **THREE** mechanisms (grammar `{isYYYY()}?` predicates + the post-hoc guesser + ~24
+> binder `Check` calls) and that **bind and emit are FUSED** (`CompilerDriver.cs:114` renders C# then discards it on
+> error — codegen runs on errored trees). The owner directed the formal fix: **superset parse (edition predicates
+> removed; a committed-match construct-id annotation LOCAL to each version-gated rule — version *numbers* stay in
+> `constructs.json`) → edition-AGNOSTIC bind → ONE `VersionConformancePass` over the bound tree → emit-only-if-clean →
+> Roslyn**, deleting `ReservedWordEditionHints`. Owner-chosen implementation order: **RESIDUE-FIRST** (fold the 7
+> residue gates into the single mechanism + delete the guesser), then the pass/phase-separation skeleton. Full design +
+> per-construct migration: `DESIGN-version-conformance-pipeline.md`. Read the PHASE-03 doc's STATUS block for what
+> already landed; execute the redesign migration, battery-green at every commit boundary.
 > ⚠ One owner override to carry forward — **D10: PHASE-04 must FULLY remove the lexer `SUBSCRIPT` mode + the binder
 > subscript re-parse** (a grammar-level `x(i)` rule), an expansion beyond that phase's originally-authored scope (§6). The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
 > the decision-complete designs in `docs/rearchitecture/DESIGN-*.md`; the as-is survey + critique in
@@ -65,16 +76,22 @@ assemblies with clean layering:**
    single `DialectLevel` source), a `constructs.json`-generated `ConstructRegistry` + `ReservedWords`, a first-class
    `DiagnosticDescriptors` registry (every code = one rule, ISO §, severity, suppress-key), and one
    `EditionSeverityPolicy` — the root fix for today's frontend/compiler edition-metadata duplication.
-2. **`Cobol.Net.Frontend`** — the sound single-ANTLR-grammar-with-`{isXXXX()}?` core kept, but with ONE generated
-   context-sensitive word set, forward gate-stamping (`EditionGateHints` deleted), no dead grammars / no JSON-XML, and
-   a typed `Cst` façade replacing ~336 `GetText()` walks.
+2. **`Cobol.Net.Frontend`** — a **superset** single-ANTLR grammar: the edition `{isXXXX()}?` gates are REMOVED so
+   every construct parses at every `--std` (a committed-match construct-id **annotation** local to each version-gated
+   rule carries identity forward; a forward, identity-carrying lookahead survives ONLY where a construct is genuinely
+   ambiguous across editions), ONE generated context-sensitive word set, no dead grammars / no JSON-XML,
+   `ReservedWordEditionHints` **deleted**, and a typed `Cst` façade replacing ~336 `GetText()` walks. (See
+   `DESIGN-version-conformance-pipeline.md`.)
 3. **`Cobol.Net.Compiler`** — a REAL Binder phase: a manifest-driven `IBindPass` pipeline whose `Requires`/`Produces`
    DAG is asserted at startup, producing an immutable `BoundCompilation` over a pure `Model/` folder where storage
    representation is one computed `StorageForm` discriminator (killing the 7-site mutable `StoreAsImage`) and name
    lookup is one scope-aware `SymbolTable`; a source-generated exhaustive visitor over the sealed bound tree makes a
    missing arm a COMPILE error; CodeGen decomposes into `ProgramEmitter` + per-verb emitters + renderers over an
    immutable `EmitContext`, with a structural (non-string) `Place` rendered by a Roslyn-side `PlaceRenderer` behind an
-   **`ICodeGenBackend`** seam and a typed `RuntimeApi` façade.
+   **`ICodeGenBackend`** seam and a typed `RuntimeApi` façade. **The binder is edition-AGNOSTIC** (zero `Check` calls);
+   edition conformance is ONE `VersionConformancePass` over the bound tree, and **bind and emit are SEPARATE phases the
+   driver gates** so codegen never runs on an errored tree (`DESIGN-version-conformance-pipeline.md`). Pipeline:
+   `parse → bind (edition-agnostic) → VersionConformancePass → emit-if-clean → backend`.
 4. **`Cobol.Net.Runtime`** — the typed-native value library plus one `RunUnit` context owning all run-unit state and
    one `FileConnector`/`FileRegistry` replacing the three duplicated file machines.
 5. **`Cobol.Net.Cli`**.
@@ -161,7 +178,7 @@ phase boundary.
 | ✅ | 00 | F | LOW | — | Migration safety net (characterization harness, oracle bake-out, corpus consolidation, ref caching) | [PHASE-00](rearchitecture/PHASE-00-migration-safety-net.md) |
 | ✅ | 01 | F | MED | 00 | Mechanical namespace rename + dead-grammar / JSON-XML removal | [PHASE-01](rearchitecture/PHASE-01-mechanical-rename-deadcode.md) |
 | ✅ | 02 | R | MED | 01 | `Cobol.Net.Editions` leaf assembly + first-class diagnostic registry | [PHASE-02](rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md) |
-| ☐ | 03 | I | HIGH | 02 | Version-gating framework (EditionValidator waves + harness-driven VCR audit) | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) |
+| ◐ | 03 | I | HIGH | 02 | Version-**conformance pipeline** (superset parse + ONE bound-tree gating pass; **residue-first**) + harness-driven VCR audit | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) · [DESIGN](rearchitecture/DESIGN-version-conformance-pipeline.md) |
 | ☐ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + typed `Cst` façade) | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
 | ☐ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
 | ☐ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
@@ -180,11 +197,19 @@ phase boundary.
 > real and the IR carries no C#); the full `CilBackend` build-out proceeds in parallel with the feature track and must
 > be complete before/with Phase 15. See `PHASE-16` for the exact insertion.
 
+> **Version-conformance pipeline (cross-cutting driver, `DESIGN-version-conformance-pipeline.md`).** Like the
+> dual-backend mandate (§3), the version-conformance pipeline is realized across several phases rather than one:
+> **P03** does the residue-first migration (fold the 7 `ReservedWordEditionHints` gates into the single mechanism +
+> delete the guesser) and stands up the `VersionConformancePass` skeleton with the bind/emit phase split; **P04**
+> (frontend) removes the edition `{isXXXX()}?` predicates → superset parse + the construct-id annotation convention;
+> **P06** (real binder) makes the binder edition-AGNOSTIC and relocates the ~24 remaining binder `Check` calls into the
+> pass; **P07** finalizes the bind-vs-emit separation. Each affected phase's scope note points back to the design doc.
+
 ## 5. Document index
 
-**Designs** (`docs/rearchitecture/DESIGN-*.md`, 9): module-topology · frontend-grammar · binder-bound-tree ·
-data-model · codegen-backend · **backend-abstraction** (dual-backend) · runtime-library · edition-framework ·
-test-build-ci.
+**Designs** (`docs/rearchitecture/DESIGN-*.md`, 10): module-topology · frontend-grammar · binder-bound-tree ·
+data-model · codegen-backend · **backend-abstraction** (dual-backend) · **version-conformance-pipeline** (superset
+parse · edition-agnostic bind · one gating pass) · runtime-library · edition-framework · test-build-ci.
 
 **Phase step-by-steps** (`docs/rearchitecture/PHASE-00..16-*.md`, 17): the execution-grade instructions per §4.
 
