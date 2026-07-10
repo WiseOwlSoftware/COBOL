@@ -29,7 +29,7 @@
 >
 > ⛔🏗 **GO-FORWARD SSOT (DEVLOG 665, 2026-07-07 — committed d455f56): the roadmap for ALL future work is now
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a COMPLETE, resumable, execution-grade **17-phase** plan taking the
-> compiler from its authoring-time baseline (DEVLOG 665: 2036 conformance · 213 unit — SINCE advanced to 3147 conformance · 223 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
+> compiler from its authoring-time baseline (DEVLOG 665: 2036 conformance · 213 unit — SINCE advanced to 3149 conformance · 223 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
 > + a selectable Roslyn↔CIL backend**. It **SUBSUMES the prior feature/ISO drive**: the remaining ISO features (M2 OO
 > residue, national/boolean, M3-2014, M4-2023, EC remnants, the version-gating audit) are now its **phases 09–14**, to
 > be landed ON the rearchitected foundation — NOT bolted onto the current code. **A NEW SESSION:** (1) read that plan's
@@ -122,8 +122,12 @@
 > config/file-control/PD-header gates ALL parse-arm: SHARING/LOCK-MODE (reclassified bound→parse — same drop-proof
 > correction as TYPEDEF) + SPECIAL-NAMES FOR ×3 + PD RETURNING/RAISING (`InMethodDefinition`-guarded — procedureDivision
 > is SHARED with method PDs but CallBindLinkage gated program units only; the 14g.3 lesson applied in recon). Scope-union
-> verified. `ConfigPdEditionTests` 8 witnesses incl. `MethodReturning_At85_NotGated`. RESUME AT 14g.5 (FUNCTION-PROTOTYPE
-> → bound-arm; REPOSITORY + skeleton E/national-edited → parse-arm).** **The DATA/PIC/OO gates DECISION-COMPLETE
+> verified. `ConfigPdEditionTests` 10 witnesses. ⚠ the adversarial review (DEVLOG 738) found the CLASS-scope env-clause
+> count is now the SPEC-CORRECT 1× (was 2×/0× — the parse-arm is more correct, kept + pinned); it surfaced a FLAGGED
+> LATENT OO-env bind bug: `OoReparent{Class,Factory}Data` bind the class-level env 0/1/2× (singular accessor +
+> unconditional factory binder), mis-registering class-level CURRENCY/ALPHABET/SELECT — a dedicated OO-env fix needed
+> (bind class-level env ONCE, visible to both halves). RESUME AT 14g.5 (FUNCTION-PROTOTYPE → bound-arm; REPOSITORY +
+> skeleton E/national-edited → parse-arm).** **The DATA/PIC/OO gates DECISION-COMPLETE
 > PLAN is in the PHASE-03 doc's STATUS block (recon `wf_0d98d218-087`).** ⚠ KEY FINDING: only ~12 of the ~30 gates are resolved-fact
 > fits for a new BOUND-arm `DataItem`/`FileModel`/`CallUnit` enumerator (the 8 PicInfo USAGE gates + FILE
 > SHARING/LOCK-MODE + TYPEDEF + FUNCTION-PROTOTYPE); the other ~18 (BASED/TYPE/PROPERTY, class/interface defs,

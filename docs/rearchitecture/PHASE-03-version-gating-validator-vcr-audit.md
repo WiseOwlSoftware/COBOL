@@ -285,8 +285,13 @@ correction as TYPEDEF: a bound-arm FileModel gate drops the 0900 on a SELECT err
 (`VisitReturning/RaisingClause`, `InMethodDefinition`-guarded — the procedureDivision rule is SHARED with method PDs but
 `CallBindLinkage` gated program units only; the 14g.3 lesson applied in recon). Scope-union verified: every program
 (incl. nested), class, and factory has its own DataBinder whose BindDeclarations runs the three binders, so the
-whole-tree walk = the union. New `ConfigPdEditionTests` ×8 (incl. the load-bearing `MethodReturning_At85_NotGated`).
-Battery: conformance 3147 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
+whole-tree walk = the union. New `ConfigPdEditionTests` ×10 (incl. `MethodReturning_At85_NotGated`). ⚠ **REVIEW (DEVLOG
+738, adversarial `81dd6c37`):** the CLASS-scope env-clause gates now fire the SPEC-CORRECT 1× (the former bind-time
+gates fired 2×/0× — `OoReparent{Class,Factory}Data` bind the class-level env via the singular accessor 0/1/2×); the
+parse-arm is MORE correct (kept + 2 witnesses pinned); byte-neutral for program-unit scopes; verdict unchanged. **FLAGGED
+LATENT BUG for a dedicated OO-env fix:** that same double/zero-bind mis-registers class-level CURRENCY/ALPHABET/SELECT
+(shadow-0× SILENTLY IGNORES class-level config in valid 2002+ classes) — bind class-level env ONCE, visible to both
+halves. Battery: conformance 3149 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
 Remaining sub-commits: 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
 raw-picture scan) — then grep-assert binder Check-count == the single `StatementBinder.Udf.cs` line; 14g.6 snapshot
 re-baseline (only if a later sub-commit's diag surface changes — 14g.2 needed none) + close. Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization + INV-1 + FULL

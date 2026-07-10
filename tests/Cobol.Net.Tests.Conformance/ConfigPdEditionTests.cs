@@ -143,4 +143,59 @@ public sealed class ConfigPdEditionTests
     [Fact]
     public void MethodReturning_At85_NotGated()
         => Assert.Equal(0, Count0900(MethodReturning, 85, "the PROCEDURE DIVISION RETURNING phrase"));
+
+    // ── DEVLOG-738 (14g.4 review): class-level env-division clauses gate the SPEC-CORRECT ONCE ──────────────────
+    // A class's CLASS-LEVEL environment division is adopted by BOTH the object and factory reparent binders
+    // (OoReparent{Class,Factory}Data), and the binder's singular environmentDivision() accessor means it was bound
+    // twice (no object/factory env) or zero times (both shadowed) — so the former bind-time gate fired 2× or 0×. The
+    // parse-arm fires ONCE per clause node (the spec-correct count). These pin that; the underlying OO-env
+    // double/zero-BIND (which also mis-registers class-level CURRENCY/ALPHABET/SELECT) is a flagged latent bug.
+
+    private const string ClassLevelSpecialNames = """
+        IDENTIFICATION DIVISION.
+        CLASS-ID. CN.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            ALPHABET AL IS STANDARD-1 FOR ALPHANUMERIC.
+        OBJECT.
+        PROCEDURE DIVISION.
+        END OBJECT.
+        END CLASS CN.
+        """;
+
+    // The same class-level SPECIAL-NAMES, but with an OBJECT env AND a FACTORY env that both shadow it — the former
+    // gate fired ZERO times here; the parse-arm still fires exactly once (a spec-correct improvement).
+    private const string ClassLevelSpecialNamesShadowed = """
+        IDENTIFICATION DIVISION.
+        CLASS-ID. CN.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SPECIAL-NAMES.
+            ALPHABET AL IS STANDARD-1 FOR ALPHANUMERIC.
+        FACTORY.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SOURCE-COMPUTER. FOO.
+        END FACTORY.
+        OBJECT.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        SOURCE-COMPUTER. BAR.
+        PROCEDURE DIVISION.
+        END OBJECT.
+        END CLASS CN.
+        """;
+
+    /// <summary>A class-level SPECIAL-NAMES FOR phrase gates EXACTLY ONCE (the parse node), not twice — even though
+    /// both the object and factory reparent binders adopt the class-level env (the former gate fired 2×).</summary>
+    [Fact]
+    public void ClassLevelSpecialNamesFor_At85_GatesExactlyOnce()
+        => Assert.Equal(1, Count0900(ClassLevelSpecialNames, 85, "the FOR ALPHANUMERIC/NATIONAL phrase"));
+
+    /// <summary>The same, when the class-level env is SHADOWED by both an object and a factory env — the parse-arm
+    /// still fires once (the former gate fired zero times, silently missing the below-edition construct).</summary>
+    [Fact]
+    public void ClassLevelSpecialNamesFor_Shadowed_At85_GatesExactlyOnce()
+        => Assert.Equal(1, Count0900(ClassLevelSpecialNamesShadowed, 85, "the FOR ALPHANUMERIC/NATIONAL phrase"));
 }
