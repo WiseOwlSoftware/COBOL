@@ -6,7 +6,6 @@ using CobolNet.CodeGen;
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §8.9 funnel
 using CobolNet.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
-using CobolNet.Runtime;   // CobolPassMode (CALL argument passing mode)
 
 namespace CobolNet.Validation;
 
@@ -36,10 +35,10 @@ namespace CobolNet.Validation;
 /// The two arms are disjoint: a <c>Check</c> for any one construct fires from EXACTLY one arm, the losing site
 /// deleted as its twin lands. <b>Migration state (Step 14h in progress):</b> 14h.1 stood up the parse-arm
 /// (EditionValidator absorbed) + moved the driver's fail-fast post-bind; 14h.2 moved the SELF-IDENTIFYING
-/// statement gates (UNLOCK/FREE/ALTER/DELETE-FILE/SET-ADDRESS + ALLOCATE) to the parse-arm. STILL in the
-/// bound-arm pending migration: the phrase gates (OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/CALL-ON-OVERFLOW/
-/// STOP-STATUS/END-ACCEPT → 14h.3) and the bind-time expression/literal gates (boolean/XOR/national-literal/
-/// bare-GOTO/ROUNDED-MODE/record-lock/RETRY → 14h.4). The one principled exception is the UDF-invocation gate (an
+/// statement gates (UNLOCK/FREE/ALTER/DELETE-FILE/SET-ADDRESS + ALLOCATE); 14h.3 moved the PHRASE statement gates
+/// (OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/CALL-ON-OVERFLOW/STOP-STATUS/END-ACCEPT) to the parse-arm. STILL
+/// bind-time pending migration: the expression/literal gates (boolean/XOR/national-literal/bare-GOTO/ROUNDED-MODE/
+/// record-lock/RETRY → 14h.4). The one principled exception is the UDF-invocation gate (an
 /// intrinsic FUNCTION and a user-function call are syntactically identical — only the repository-resolved name
 /// set separates them), which stays BIND-TIME (<c>StatementBinder.Udf.cs</c>) where it already fires on
 /// recognition before operand binding.
@@ -121,31 +120,10 @@ internal sealed class VersionConformancePass
             case BoundSetPointerUpDown:
                 Check(Constructs.PointerArithmetic2002, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)"); break;
 
-            // ── Gates conditioned on a resolved node ATTRIBUTE the binder already recorded ──────────────────────
-            case BoundOpen { SharingOverride: not null }:
-                Check(Constructs.FileSharingClause2002, "the OPEN SHARING phrase"); break;
-            case BoundGoback { ReturningSource: not null }:
-                Check(Constructs.GobackReturning2002, "GOBACK … RETURNING"); break;
-            case BoundCallProgram cp:
-                // (UserFunctionInvocation2002 for a UDF reference is an INTRODUCTION gate that must fire on
-                // RECOGNITION even when the function is undefined — it stays BIND-TIME until Step 14h; see the
-                // ALLOCATE note above.)
-                // CALL … BY VALUE (§14.9.4). The binder fired once per explicit BY VALUE argument; the bound node
-                // keeps each argument's pass mode, so gate once when the CALL uses value passing (the argument
-                // list Any-check — the tested single-argument case is diagnostically identical).
-                if (cp.Args.Any(a => a.Mode == CobolPassMode.Value))
-                    Check(Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
-                // ON OVERFLOW spelling (the COBOL-74 synonym for ON EXCEPTION) — REMOVED at ISO 2023; gate AFTER
-                // BY VALUE (the binder's order: args bind before the exception phrases).
-                if (cp.UsedOverflowSpelling)
-                    Check(Constructs.CallOnOverflowRemoved2023, "the CALL statement");
-                break;
-            case BoundStop { HasStatusPhrase: true }:
-                Check(Constructs.StopRunStatus2002, "the STOP RUN … WITH NORMAL/ERROR STATUS phrase"); break;
+            // (OPEN-SHARING / GOBACK-RETURNING / CALL-BY-VALUE / CALL-ON-OVERFLOW / STOP-RUN-STATUS / END-ACCEPT —
+            // phrase gates whose presence is purely syntactic — migrated to the ParseArm in Step 14h.3.)
             case BoundInvoke or BoundInvokeUniversal:
                 Check(Constructs.Invoke2002, "the INVOKE statement"); break;
-            case BoundAccept { HasEndTerminator: true }:
-                Check(Constructs.EndAccept2002, "the ACCEPT statement"); break;
             case BoundMove mv:
                 GateMove(mv); break;
             case BoundKeyedRead kr:
@@ -421,6 +399,10 @@ internal sealed class VersionConformancePass
         {
             if (ctx.literal() is not null)
                 _p.Check(Constructs.StopLiteralRemoved2002, "the STOP literal statement");
+            // STOP RUN … WITH NORMAL/ERROR STATUS (Format 1) — a COBOL-2002 INTRODUCTION (14h.3), a disjoint
+            // alternative from the STOP literal (Format 2) removal above; both fire from this one override.
+            if (ctx.stopStatusPhrase() is not null)
+                _p.Check(Constructs.StopRunStatus2002, "the STOP RUN … WITH NORMAL/ERROR STATUS phrase");
             return base.VisitChildren(ctx);
         }
 
@@ -569,6 +551,75 @@ internal sealed class VersionConformancePass
         /// carried this — StatementBinder.Ptr.cs — is removed this commit, DEVLOG 724).</summary>
         public override object? VisitAllocateStatement(CobolParserCore.AllocateStatementContext ctx)
         { _p.Check(Constructs.Allocate2002, "the ALLOCATE statement"); return base.VisitChildren(ctx); }
+
+        // ── Step 14h.3: the PHRASE statement gates ───────────────────────────────────────────────────────────
+        // A phrase's presence within a statement rule is purely syntactic — detectable from the parse tree without
+        // any resolved fact. Each fires ONCE per statement (an Any-over-the-child-list where a statement can carry
+        // the phrase on several clauses, matching the binder which collapsed them to one bound attribute). The
+        // STOP RUN … STATUS gate rides the existing VisitStopStatement above.
+
+        /// <summary>OPEN … SHARING (ISO §14.9.27) — a COBOL-2002 introduction. Fires ONCE per OPEN even when several
+        /// openClauses carry SHARING (BindOpen collapses them to one BoundOpen.SharingOverride).</summary>
+        public override object? VisitOpenStatement(CobolParserCore.OpenStatementContext ctx)
+        {
+            if (ctx.openClause().Any(c => c.sharingPhrase() is not null))
+                _p.Check(Constructs.FileSharingClause2002, "the OPEN SHARING phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>GOBACK … RETURNING/GIVING (ISO §14.9.18) — a COBOL-2002 introduction. The RETURNING operand is
+        /// the ONLY direct <c>dataReference</c> child of <c>gobackStatement</c> (the RAISING tail nests its own), so
+        /// its presence ≡ the phrase. EXCLUDE a method context: inside a METHOD, GOBACK is a method-return
+        /// (<c>BoundMethodReturn</c>, ungated) — CallBindGoback short-circuits to OoBindMethodGoback when InMethod,
+        /// so the former bound-arm gate (keyed on BoundGoback.ReturningSource) never saw it. A UDF GOBACK is NOT
+        /// excluded (it binds through CallBindGoback like a program). Recognition-based so an undeclared RETURNING
+        /// operand (a BoundUnsupported before BoundGoback) still names its edition (DEVLOG 724).</summary>
+        public override object? VisitGobackStatement(CobolParserCore.GobackStatementContext ctx)
+        {
+            if (ctx.dataReference() is not null && !InMethodDefinition(ctx))
+                _p.Check(Constructs.GobackReturning2002, "GOBACK … RETURNING");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>CALL phrases: BY VALUE (§14.9.4, a 2002 introduction) then ON OVERFLOW (the COBOL-74 synonym for
+        /// ON EXCEPTION, REMOVED at 2023) — both from the one CALL statement, in the binder's order (arguments bind
+        /// before the exception phrases). BY VALUE fires ONCE per statement (Any over callArgument — the binder
+        /// collapsed the per-argument checks); OVERFLOW fires on either exception phrase using the spelling
+        /// (matching BoundCallProgram.UsedOverflowSpelling).</summary>
+        public override object? VisitCallStatement(CobolParserCore.CallStatementContext ctx)
+        {
+            if (ctx.callUsingPhrase()?.callArgument().Any(a => a.callByValue() is not null) == true)
+                _p.Check(Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
+            if (ctx.callOnExceptionPhrase()?.OVERFLOW() is not null
+                || ctx.callNotOnExceptionPhrase()?.OVERFLOW() is not null)
+                _p.Check(Constructs.CallOnOverflowRemoved2023, "the CALL statement");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>END-ACCEPT (ISO §14.9.1, a 2002 introduction). Mirrors the binder's <c>AcceptHasTerminator</c>
+        /// token scan EXACTLY. NOTE — a grammar gap: <c>acceptStatement</c> has no <c>END_ACCEPT</c> alternative, so
+        /// the scan finds nothing and this gate fires ZERO times today (as the bound-arm's
+        /// BoundAccept.HasEndTerminator did); kept in the correct home so it lights up if the grammar gains the
+        /// terminator.</summary>
+        public override object? VisitAcceptStatement(CobolParserCore.AcceptStatementContext ctx)
+        {
+            for (int i = 0; i < ctx.ChildCount; i++)
+                if (ctx.GetChild(i) is Antlr4.Runtime.Tree.ITerminalNode { Symbol.Type: CobolLexer.END_ACCEPT })
+                {
+                    _p.Check(Constructs.EndAccept2002, "the ACCEPT statement");
+                    break;
+                }
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>Whether <paramref name="ctx"/> is nested inside a METHOD definition (the parse-tree analogue of
+        /// the binder's <c>InMethod</c> flag) — the GOBACK-RETURNING exclusion.</summary>
+        private static bool InMethodDefinition(Antlr4.Runtime.RuleContext ctx)
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.MethodDefinitionContext) return true;
+            return false;
+        }
 
         // Which cobolWord token TYPES the funnel checks POSITION-BLIND (P2.4, refined — DEVLOG 585): IDENTIFIER
         // occurrences are ALWAYS genuine words (the lexer didn't tokenize them), and they carry the whole
