@@ -29,7 +29,7 @@
 >
 > ⛔🏗 **GO-FORWARD SSOT (DEVLOG 665, 2026-07-07 — committed d455f56): the roadmap for ALL future work is now
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a COMPLETE, resumable, execution-grade **17-phase** plan taking the
-> compiler from its current state (2036 conformance · 213 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
+> compiler from its authoring-time baseline (DEVLOG 665: 2036 conformance · 213 unit — SINCE advanced to 3114 conformance · 227 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
 > + a selectable Roslyn↔CIL backend**. It **SUBSUMES the prior feature/ISO drive**: the remaining ISO features (M2 OO
 > residue, national/boolean, M3-2014, M4-2023, EC remnants, the version-gating audit) are now its **phases 09–14**, to
 > be landed ON the rearchitected foundation — NOT bolted onto the current code. **A NEW SESSION:** (1) read that plan's

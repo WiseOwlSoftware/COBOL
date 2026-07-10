@@ -14,9 +14,11 @@ and the *adopted* semantic-normalization-on-the-bound-tree.
 
 > **The binder is edition-agnostic.** Version conformance is one mechanism, and this doc's binder contract reflects it
 > in three ways: (1) the binder makes ZERO `ConstructRegistry.Check` calls — edition gating is a single
-> `VersionConformancePass` over the bound tree (the sole syntactic+semantic gate). (2) Bound nodes carry a `.Syntax`
-> back-reference so the pass can read the grammar-stamped construct-id (superset parse — no edition `{isXXXX()}?` gates;
-> a committed-match construct-id annotation carries identity forward). (3) Bind and emit are separate driver-gated
+> `VersionConformancePass` over the bound tree (the sole syntactic+semantic gate). (2) ⚠ **AS-BUILT (DEVLOG 724): NO
+> `.Syntax` back-reference is added to any bound node — the `BoundTree.cs` invariant STANDS.** The pass identifies
+> syntactic introduction/removal/phrase gates via a PRESENCE-based parse-tree arm (over `BoundRunUnit.Tree`, running
+> after bind) — introduction gates must fire on the construct's RECOGNITION, not its bound node, which a below-edition +
+> semantically-invalid construct never produces; semantic gates use bound-node type/attribute. (3) Bind and emit are separate driver-gated
 > phases — codegen runs emit-only-if-clean, never on an errored tree. Pipeline: parse → edition-agnostic bind →
 > VersionConformancePass → emit-if-clean → backend; there is no `ReservedWordEditionHints`. Full design:
 > `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.

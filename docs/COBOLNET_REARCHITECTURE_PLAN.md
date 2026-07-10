@@ -20,7 +20,8 @@
 > leaving only the reservation-word residue in the renamed `ReservedWordEditionHints` (DEVLOG 693). **Step 10** stood up
 > the first-class `DiagnosticDescriptor` registry (`Cobol.Net.Editions/Diagnostics/DiagnosticCatalog`): the `COBOLNET0899`
 > catch-all split into ~40 addressable descriptors + the reused `COBOLNET1533` split by ISO §, generated
-> `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`. Baseline at P2 close was 2055 greenfield conformance; at head (P3 residue migration 5/7) it is **3112 greenfield conformance · 227 unit · 32
+> `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`. Baseline at P2 close was 2055 greenfield conformance; at head
+> (P3 Step 14 — the `VersionConformancePass`, sub-step 14h) it is **3114 greenfield conformance · 227 unit · 32
 > characterization GREEN; FULL legacy guard NIST 353 MATCH.**
 > **PHASE 03 — VERSION-CONFORMANCE PIPELINE (in progress; step-by-step
 > `docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md`, design `DESIGN-version-conformance-pipeline.md`).**
@@ -32,21 +33,23 @@
 > signature guesser, and scattered binder checks; bind and emit are separate phases the driver gates, so codegen never
 > runs on an errored tree. Also delivered on the P2 editions framework: the harness-driven VCR audit, the
 > behavior-variant matrix (INV-3), and the in-process continuity + INV-1-strong-2023 gates. Built **RESIDUE-FIRST** —
-> the 7 reservation-word gates fold into the single mechanism one construct per commit. **RESIDUE MIGRATION 5 of 7 DONE (DEVLOG 709–713,
-> 2026-07-08, all green+pushed):** UNLOCK #5 (`2daec9cb`), PROPERTY #7 (`7311dfbd`), PD-RAISING #6 (`840b0abf` — the
-> DEVLOG-708 mis-fire eliminated), XOR #1 (`d3cdae6c`, **Batch A complete**), SHARING #3 (`1b74f739`, **Batch B** — the
-> OPEN name-list collision proven byte-safe). Each dropped the grammar `{isXXXX()}?`, added a bind-time
-> `ConstructRegistry.Check`, deleted the reverse-signature arm + a negative fixture; FULL legacy guard ALL GREEN each.
-> **RESUME AT: PHASE-03 Steps 12–15.** **Step 12 — Batch C residue migration**: RETRY #4 — SIX grammar predicate
-> sites in `Core/CobolIO.g4` (openClause, readStatement, writeStatement, rewriteStatement, deleteStatement,
-> deleteFileStatement): the five statement sites drop their predicate and gate bind-time via `Check(RetryPhrase2002)`;
-> the OPEN site becomes `{is2002() || retryPhraseAhead()}?` (`FOREVER` is user-legal so the lookahead needs care) —
-> plus the boolean family #2 (operator tiers + COMPUTE F2 pure-gating; the boolean-condition ENTRY via
-> `boolExprAhead()`) — ⚠ HIGHEST SCRUTINY (the shared comparison DFA, DEVLOG 621). **Step 13** — delete
-> `ReservedWordEditionHints` entirely (the vendor JSON/XML COBOL0313 disposition relocates to `CobolErrorStrategy`).
-> **Step 14** — the pipeline skeleton: the `VersionConformancePass` + the bind/emit split
-> (`DESIGN-version-conformance-pipeline.md` §4/§5 Stage 3). **Step 15** — phase close. Battery-green at every commit
-> boundary.
+> the 7 reservation-word gates fold into the single mechanism one construct per commit. **RESIDUE MIGRATION 7 of 7 DONE
+> + the recogniser DELETED (Steps 12–13, DEVLOG 709–717, all green+pushed):** UNLOCK #5 (`2daec9cb`), PROPERTY #7
+> (`7311dfbd`), PD-RAISING #6 (`840b0abf`), XOR #1 (`d3cdae6c`, Batch A), SHARING #3 (`1b74f739`, Batch B), RETRY #4
+> (`4efcca71`, Batch C), boolean #2 (`3d0ec86e`, Batch C) — then `ReservedWordEditionHints` DELETED (`1ebced7a`; the
+> vendor JSON/XML COBOL0313 relocated to `CobolErrorStrategy`).
+> **RESUME AT: PHASE-03 Step 14 — the `VersionConformancePass` + the bind/emit split
+> (`DESIGN-version-conformance-pipeline.md` §5 Stage 3), landing as ordered byte-identical sub-commits 14a–14i (recon
+> `wf_edbcd62a-d8a`). DONE + pushed + CI-GREEN (DEVLOG 718–724, `f987504e`→`4bfa1418`):** 14a (bind/emit split:
+> `CSharpEmitter.Bind()→BoundRunUnit` + `Emit(BoundRunUnit)`; driver `bind → pass → HALT → emit`; no codegen on an
+> errored tree) + 14b–14f (the bound-arm STATEMENT-gate relocation) + a CI-red fix. **@ Step 14h (the PRIORITY).**
+> ⚠ CI-RED FINDING (DEVLOG 724): INTRODUCTION/removal gates fire on the construct's RECOGNITION, NOT its bound node — the
+> bound-arm silently DROPS the 0900 when a construct binds to `BoundUnsupported`/`BoundNop` on a semantic error (caught
+> ALLOCATE + UDF, reverted to bind-time). **14h ROOT CAUSE: move ALL syntactic intro/removal/phrase gates to a
+> presence-based POST-BIND PARSE-ARM** (absorb `EditionValidator` into the pass, running AFTER bind; delete the pre-bind
+> fail-fast); only genuinely-semantic gates (MOVE-category, data-attribute gates) stay bound-arm. Then 14g (data/pic/OO)
+> → 14i phase close. Battery-green + a FRESH `CobolSharp.sln` build before `dotnet test --no-build`
+> ([[feedback_fresh_build_before_no_build_test]]) at every commit boundary.
 > ⚠ One owner override to carry forward — **D10: PHASE-04 must FULLY remove the lexer `SUBSCRIPT` mode + the binder
 > subscript re-parse** (a grammar-level `x(i)` rule), an expansion beyond that phase's originally-authored scope (§6). The per-phase step-by-step lives in `docs/rearchitecture/PHASE-NN-*.md`;
 > the decision-complete designs in `docs/rearchitecture/DESIGN-*.md`; the as-is survey + critique in

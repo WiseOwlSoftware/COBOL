@@ -22,8 +22,9 @@ back-compat. **The go-forward roadmap (DEVLOG 665) is `docs/COBOLNET_REARCHITECT
 execution-grade **17-phase** rearchitecture + 100%-ISO plan (clean architecture · all editions · a selectable
 Roslyn↔CIL backend) that SUBSUMES the prior feature/NIST drive as its phases 09–14; `resume-prompt.md`'s top banner
 points to it + its §0 resume protocol. **EXECUTION IN PROGRESS — Phases 00–02 ✅ DONE; Phase 03 = the
-version-conformance pipeline (residue-first; 5/7 residue gates migrated); §6 owner decisions ALL RESOLVED (D1–D12);
-the live resume point is the plan's STATUS banner via `resume-prompt.md`.** The
+version-conformance pipeline (residue-first; ALL 7 residue gates migrated + the guesser deleted, Steps 1–13 DONE; IN
+PROGRESS at **Step 14** = the `VersionConformancePass`, sub-steps 14a–14f DONE + CI-green, RESUME AT 14h); §6 owner
+decisions ALL RESOLVED (D1–D12); the live resume point is the plan's STATUS banner via `resume-prompt.md`.** The
 SSOT for locked invariants / settled decisions remains **`docs/COBOLNET_DESIGN.md`**, and the four-editions mission is
 validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist
 `docs/VERSION_CHANGE_REFERENCE.md`.

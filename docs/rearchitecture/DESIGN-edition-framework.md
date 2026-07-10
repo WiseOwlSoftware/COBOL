@@ -13,8 +13,10 @@
 > **Consumer of these primitives.** This doc owns the version-gating FRAMEWORK PRIMITIVES (`EditionInfo`,
 > `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`, `EditionSeverityPolicy`) — the single version table. Their
 > sole consumer is ONE `VersionConformancePass` over the bound tree: parse is a SUPERSET (no edition predicates; each
-> version-gated rule carries a committed-match construct-id annotation), bind is edition-AGNOSTIC (zero `Check` calls;
-> nodes carry a `.Syntax` back-ref), the pass is the sole gate, and emit runs only on a clean tree. Full flow:
+> version-gated rule carries a committed-match construct-id annotation), bind is edition-AGNOSTIC (zero `Check` calls),
+> the pass is the sole gate, and emit runs only on a clean tree. ⚠ **AS-BUILT (DEVLOG 724): NO `.Syntax` back-ref on
+> bound nodes** — the pass is TWO-ARM (bound-node type/attribute + a presence-based parse-tree arm for syntactic
+> introduction/removal gates); see the AS-BUILT REFINEMENT banner in
 > `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
 
 ## 1. The current problem (grounded in the AS-BUILT code)

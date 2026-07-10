@@ -56,7 +56,7 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14g (14a–14f DONE; CI-red fix DEVLOG 724)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+`IN PROGRESS @ Step 14h (14a–14f DONE; CI-red fix DEVLOG 724; 14h REPRIORITIZED ahead of 14g)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
 **⚠ CI-RED FIX (DEVLOG 724) — a REAL FINDING that RESHAPES 14h: INTRODUCTION/removal gates fire on the construct's
 RECOGNITION (presence), NOT its bound node** — the bound-arm silently DROPS the 0900 whenever the construct binds to
 `BoundUnsupported`/`BoundNop` on a semantic error (below-edition + malformed). CI caught 2 (`ALLOCATE`, `UDF`); the same
@@ -185,11 +185,15 @@ complete. **Step 13** (`<pending push>`): `ReservedWordEditionHints` DELETED, th
 disposition relocated to `CobolErrorStrategy`. Each grammar change: FULL legacy guard **353 MATCH, 0 regressions**.
 Battery at head: greenfield conformance **3114** · unit **227** · characterization **32** GREEN.
 
-**RESUME AT: Step 14 — the pipeline skeleton** (build the `VersionConformancePass`; funnel ALL 88 compiler-embedded
-`ConstructRegistry.Check` sites into it; absorb + DELETE `EditionValidator`; edition-agnostic binder; `.Syntax`
-back-ref; split bind/emit in `CompilerDriver`; re-point CheckOnly/EditionHarness/INV-1 legs) → Step 15 (phase close;
-the former Step 11): full battery + doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9). Also fold in the
-Step-12(c) residual: refresh the migrated rows' stale `constructs.json` citations + grammar comments.
+**RESUME AT: Step 14h.** Sub-steps 14a–14f DONE + a CI-red fix (DEVLOG 718–724, pushed, CI-GREEN): 14a bind/emit split
+(`CSharpEmitter.Bind()→BoundRunUnit` + `Emit(BoundRunUnit)`; driver `bind → pass → HALT → emit`); 14b–14f the bound-arm
+STATEMENT-gate relocation. **14h (the priority per the DEVLOG-724 finding — introduction/removal gates fire on
+RECOGNITION, not the bound node) moves ALL syntactic introduction/removal/phrase gates to a presence-based POST-BIND
+PARSE-ARM** (absorb `EditionValidator` into the pass, running AFTER bind; DELETE the pre-bind fail-fast; **NO `.Syntax`
+back-ref is added — the `BoundTree.cs` invariant stands**, DEVLOG 724). Only genuinely-semantic gates (MOVE-category,
+data-attribute) stay bound-arm. Then Step 14g (data/pic/OO) → Step 15 (phase close; the former Step 11): full battery +
+doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9); re-point CheckOnly/EditionHarness/INV-1 legs. Also
+fold in the Step-12(c) residual: refresh the migrated rows' stale `constructs.json` citations + grammar comments.
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
