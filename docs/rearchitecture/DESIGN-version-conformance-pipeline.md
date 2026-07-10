@@ -1,6 +1,8 @@
 # DESIGN — Version-Conformance Pipeline (superset parse · edition-agnostic bind · one gating pass)
 
-> **STATUS: DESIGN.** How COBOL.NET enforces edition (85 / 2002 / 2014 / 2023) conformance. The gating pass runs
+> **STATUS: DESIGN — ✅ IMPLEMENTED at PHASE-03 close (2026-07-10).** The two-arm `VersionConformancePass` is the SOLE
+> edition gate; the binder is edition-agnostic save the ONE documented UDF exception; all 9 PHASE-03 exit criteria hold.
+> How COBOL.NET enforces edition (85 / 2002 / 2014 / 2023) conformance. The gating pass runs
 > **over the bound tree, post-bind**; version *identity* is declared **local to the grammar** (construct-id annotation),
 > version *numbers* stay single-sourced in `constructs.json`. This doc is the canonical design for the
 > version-conformance pipeline; the version-gating

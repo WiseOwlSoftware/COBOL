@@ -76,7 +76,14 @@
 > per-feature/per-rule descriptors + the reused `COBOLNET1533` split by ISO §, generated `docs/DIAGNOSTICS.md` +
 > `DiagnosticRegistryDriftTests` (P2.10a/b); step 11 — this docs close. All 7 PHASE-02 exit criteria hold. Battery at
 > close: **2055 conformance · 227 unit · 32 characterization · FULL legacy guard NIST 353 MATCH** (0 regressions).
-> ◐ **PHASE 03 — VERSION-CONFORMANCE PIPELINE (in progress).** P3 makes edition conformance a single coherent pipeline:
+> ✅ **PHASE 03 — VERSION-CONFORMANCE PIPELINE — DONE (2026-07-10).** All 15 steps complete; the two-arm
+> `VersionConformancePass` (parse-arm on recognition + bound-arm on resolved facts) is the SOLE edition gate; the binder
+> is edition-agnostic save the ONE documented UDF exception (`StatementBinder.Udf.cs`); all 9 exit criteria hold (see the
+> PHASE-03 doc STATUS reconciliation). Battery at close: greenfield conformance 3157 · unit 223 · characterization 32 ·
+> INV-1-strong 349/349 · FULL legacy guard NIST 353 MATCH. **⛔ NEXT: PHASE 04 — frontend consolidation** (generated
+> word-set + typed `Cst` façade; `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md`; deps: Phase 02).
+> Carried-forward (NOT a P3 blocker): the flagged latent OO-env double/zero-bind (DEVLOG 738 — a dedicated fix, likely in
+> PHASE 09). — P3 made edition conformance a single coherent pipeline:
 > **superset parse** (all constructs parse at every `--std`; each version-gated grammar rule carries a committed-match
 > construct-id annotation — version numbers live only in `constructs.json`) → **edition-AGNOSTIC bind** → **ONE
 > `VersionConformancePass` over the bound tree** (reject strict / accept-inert permissive) → **emit-only-if-clean** →

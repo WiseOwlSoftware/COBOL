@@ -20,11 +20,14 @@
 > leaving only the reservation-word residue in the renamed `ReservedWordEditionHints` (DEVLOG 693). **Step 10** stood up
 > the first-class `DiagnosticDescriptor` registry (`Cobol.Net.Editions/Diagnostics/DiagnosticCatalog`): the `COBOLNET0899`
 > catch-all split into ~40 addressable descriptors + the reused `COBOLNET1533` split by ISO §, generated
-> `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`. Baseline at P2 close was 2055 greenfield conformance; at head
-> (P3 Step 14 — the `VersionConformancePass`, sub-step 14h) it is **3114 greenfield conformance · 227 unit · 32
-> characterization GREEN; FULL legacy guard NIST 353 MATCH.**
-> **PHASE 03 — VERSION-CONFORMANCE PIPELINE (in progress; step-by-step
+> `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`. Baseline at P2 close was 2055 greenfield conformance; at
+> **PHASE 03 CLOSE** it is **3157 greenfield conformance · 223 unit · 32 characterization GREEN; INV-1-strong 349/349;
+> FULL legacy guard NIST 353 MATCH.**
+> **✅ PHASE 03 — VERSION-CONFORMANCE PIPELINE — DONE (2026-07-10; step-by-step
 > `docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md`, design `DESIGN-version-conformance-pipeline.md`).**
+> All 15 steps complete; the two-arm `VersionConformancePass` is the SOLE edition gate (parse-arm on recognition +
+> bound-arm on resolved facts), the binder is edition-agnostic save the ONE documented UDF exception, and all 9 exit
+> criteria hold. **NEXT: PHASE 04 — frontend consolidation.**
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /
@@ -186,7 +189,7 @@ phase boundary.
 | ✅ | 00 | F | LOW | — | Migration safety net (characterization harness, oracle bake-out, corpus consolidation, ref caching) | [PHASE-00](rearchitecture/PHASE-00-migration-safety-net.md) |
 | ✅ | 01 | F | MED | 00 | Mechanical namespace rename + dead-grammar / JSON-XML removal | [PHASE-01](rearchitecture/PHASE-01-mechanical-rename-deadcode.md) |
 | ✅ | 02 | R | MED | 01 | `Cobol.Net.Editions` leaf assembly + first-class diagnostic registry | [PHASE-02](rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md) |
-| ◐ | 03 | I | HIGH | 02 | Version-**conformance pipeline** (superset parse + ONE bound-tree gating pass; **residue-first**) + harness-driven VCR audit | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) · [DESIGN](rearchitecture/DESIGN-version-conformance-pipeline.md) |
+| ✅ | 03 | I | HIGH | 02 | Version-**conformance pipeline** (superset parse + ONE two-arm gating pass; **residue-first**) + harness-driven VCR audit — DONE 2026-07-10, all 9 exit criteria hold; binder edition-agnostic save the UDF exception | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) · [DESIGN](rearchitecture/DESIGN-version-conformance-pipeline.md) |
 | ☐ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + typed `Cst` façade) | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
 | ☐ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
 | ☐ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
