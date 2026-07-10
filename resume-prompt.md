@@ -91,11 +91,21 @@
 > `ReservedWordEditionHints` DELETED (vendor JSON/XML COBOL0313 relocated to `CobolErrorStrategy`). Each grammar change:
 > FULL legacy guard **353 MATCH, 0 regressions**. Battery at head: greenfield conformance **3114** · unit 227 ·
 > characterization 32 GREEN. **⛔ PHASE-03 Step 14 (the `VersionConformancePass`) IS IN PROGRESS — sub-steps 14a–14f DONE
-> + pushed (DEVLOG 718–723, commits `f987504e`→`9cdf86d6`); RESUME AT Step 14g.** Read the PHASE-03 doc's STATUS line
-> (`@ Step 14g`) for the precise sub-step state; a decision-complete recon (`wf_edbcd62a-d8a`) drives it. **DONE:** the
-> bind/emit split (14a — `CSharpEmitter.Bind()→BoundRunUnit` + `Emit(BoundRunUnit)`; driver `bind → pass → HALT → emit`;
-> codegen never on an errored tree) + the ENTIRE bound-arm STATEMENT-gate relocation (14b node-type · 14c attribute · 14d/14e
-> flag · 14f MOVE-category+UDF). **REFINED PLAN for the remainder (supersedes the literal "`.Syntax` back-reference"
+> + a CI-red fix, all pushed & CI-GREEN (DEVLOG 718–724, commits `f987504e`→`4bfa1418`); RESUME AT Step 14h (now the
+> PRIORITY — see the finding).** Read the PHASE-03 doc's STATUS line for the precise sub-step state + the CI-red-fix note;
+> a decision-complete recon (`wf_edbcd62a-d8a`) drives it. **DONE:** the bind/emit split (14a —
+> `CSharpEmitter.Bind()→BoundRunUnit` + `Emit(BoundRunUnit)`; driver `bind → pass → HALT → emit`; codegen never on an
+> errored tree) + the bound-arm STATEMENT-gate relocation (14b node-type · 14c attribute · 14d/14e flag · 14f
+> MOVE-category+UDF). **⚠ CI-RED FINDING (DEVLOG 724) — RESHAPES 14h: INTRODUCTION/removal gates fire on the construct's
+> RECOGNITION (presence), NOT its bound node** — the bound-arm silently DROPS the 0900 when a construct binds to
+> `BoundUnsupported`/`BoundNop` on a semantic error (below-edition + malformed). Caught 2 (`ALLOCATE`, `UDF`, reverted to
+> bind-time); the SAME latent flaw affects the other relocated intro/removal/phrase STATEMENT gates, untested. **14h ROOT
+> CAUSE = move ALL syntactic gates (introduction/removal/phrase — incl. what 14b–14e put in the bound-arm) to the
+> presence-based POST-BIND PARSE-ARM** (absorb `EditionValidator` into the pass, running AFTER bind so semantic errors
+> also accumulate; add the intro/phrase-statement gates there; delete the pre-bind fail-fast); ONLY genuinely-semantic
+> gates (MOVE-category; data-attribute gates) stay bound-arm. THEN 14g (data/pic/OO) → 14i close. **⚠ ALWAYS verify with a
+> FRESH `dotnet build CobolSharp.sln` before `dotnet test --no-build`** ([[feedback_fresh_build_before_no_build_test]] — a
+> stale test-bin compiler hid these regressions locally). **REFINED PLAN for the remainder (supersedes the literal "`.Syntax` back-reference"
 > below — NO `.Syntax`/raw parse context is added to any bound node; the `BoundTree.cs` invariant STANDS, within the
 > design's §2.2/§6 provisions, via a TWO-ARM pass): 14g = the DATA/PIC/OO gates (bound-arm, a new complete
 > DataItem+FileModel enumerator) — ⚠ mind the CONTEXT-DEPENDENT PicInfo USAGE `where`-strings (`data item 'name'` main /
