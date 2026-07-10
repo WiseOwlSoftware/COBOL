@@ -259,7 +259,7 @@ typeClause
 // DECLARATION (a named template; it allocates no storage). STRONG (§13.18.58.2) makes the type strongly-typed.
 // LL-disjoint from externalClause/globalClause (IS? EXTERNAL | GLOBAL): the keyword after the optional IS differs.
 typedefClause
-    : IS? TYPEDEF STRONG?   // introduction-gated post-bind by VersionConformancePass.GateData (bound-arm — init-only IsTypedef; rearch 14g.2)
+    : IS? TYPEDEF STRONG?   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitTypedefClause (recognition; rearch 14g.2, DEVLOG 734)
     ;
 
 genericDataClause

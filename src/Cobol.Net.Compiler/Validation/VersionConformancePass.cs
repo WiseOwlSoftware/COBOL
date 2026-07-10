@@ -37,9 +37,11 @@ namespace CobolNet.Validation;
 /// literal gate + the §8.9 funnel to the parse-arm (14h.1 foundation → 14h.4b), so the binder holds ZERO
 /// statement-level edition Checks. Step 14g is relocating the DATA/PICTURE/OO gates: <b>14g.1 (DONE)</b> moved the 8
 /// PicInfo USAGE / PICTURE-category gates to the bound-arm <see cref="GateData"/> enumerator over
-/// <c>DataBinder.ConformanceForest()</c>; <b>14g.2 (DONE)</b> moved the data-description-clause gates — TYPEDEF to the
-/// bound-arm <see cref="GateData"/> (init-only <c>IsTypedef</c> survives declaration errors) and BASED/TYPE/PROPERTY
-/// to the parse-arm (their carriers are cleared/nulled during bind, so recognition is the correct home). STILL
+/// <c>DataBinder.ConformanceForest()</c>; <b>14g.2 (DONE)</b> moved all four data-description-clause gates
+/// (BASED/TYPE/PROPERTY/TYPEDEF) to the parse-arm on RECOGNITION — none needs a resolved fact, and a bound-arm home
+/// drops the 0900 on a declaration-error path (the review correction, DEVLOG 734: even init-only <c>IsTypedef</c>
+/// fails, because the typedef ITEM is discarded from the forest when RegisterTypeDecl rejects it or it binds into
+/// method scope). STILL
 /// bind-time pending: OO class/interface + OCCURS-DYNAMIC (→ parse-arm), SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE
 /// (→ bound-arm) + PD RETURNING/RAISING (→ parse-arm), and FUNCTION-PROTOTYPE + REPOSITORY + skeleton E/national-edited
 /// (14g.3–14g.5; the plan is in the PHASE-03 doc). The one principled exception is the
@@ -257,16 +259,7 @@ internal sealed class VersionConformancePass
     private void GateData(DataBinder data)
     {
         foreach (var item in data.ConformanceForest())
-        {
-            // TYPEDEF [STRONG] — the COBOL-2002 type-DECLARATION entry (ISO §13.18.58; D17). Bound-arm (unlike its
-            // BASED/TYPE data-clause siblings, which recognize on the ParseArm) because DataItem.IsTypedef is an
-            // INIT-ONLY resolved fact that survives every declaration error: a level-01 template lands in TypeDecls,
-            // a misplaced subordinate typedef keeps the flag in its Roots subtree (and also earns COBOLNET1529) —
-            // ConformanceForest yields both, so this fires exactly once per source TYPEDEF, matching the former
-            // BindEntry clause-loop Check byte-for-byte (the constant where-string, never the per-item scope one).
-            if (item.IsTypedef) Check(Constructs.TypedefDef2002, "the TYPEDEF clause");
             GateDataItem(item, $"data item '{item.CobolName ?? "FILLER"}'");
-        }
         // Report printable items are SYNTHETIC DataItems in the RD model (off the forest) — their national/boolean
         // PICTURE gates fired in Analyze with the report where-string (DataBinder.Reports.cs); reproduce that here.
         foreach (var report in data.Reports)
@@ -584,34 +577,73 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        // ── Step 14g.2: the data-description-clause introduction gates (BASED / TYPE / PROPERTY) ───────────────
-        // COBOL-2002 introductions on a data-description entry. PARSE-arm (recognition) — NOT bound-arm — because
-        // each item's resolved carrier is cleared or nulled during bind, so a bound-arm gate would DROP the 0900
-        // (the DEVLOG-724 flaw): DataItem.IsBased is reset to false for a LINKAGE item (DataBinder.Linkage.cs),
-        // DataItem.TypeRefName is nulled by ExpandTypes the moment the clone is materialized, and the PROPERTY
-        // identity is consumed entirely by the OO property binder (no persisted DataItem flag). Each clause is a
-        // single dataDescriptionClause alternative → the parse node IS the identity; the gate fires once per
-        // occurrence with the former BindEntry site's exact constructId + where-string (byte-identical). The TYPEDEF
-        // sibling gates BOUND-arm instead — DataItem.IsTypedef is init-only and survives (see GateData).
+        // ── Step 14g.2: the data-description-clause introduction gates (BASED / TYPE / PROPERTY / TYPEDEF) ─────
+        // COBOL-2002 introductions on a data-description entry, ALL parse-arm (recognition). None needs a resolved
+        // fact — each is a single dataDescriptionClause alternative, so the parse node IS the identity — and a
+        // bound-arm home would DROP the 0900 on a declaration-error path (the DEVLOG-724 flaw): DataItem.IsBased is
+        // reset to false for a LINKAGE item (DataBinder.Linkage.cs); DataItem.TypeRefName is nulled by ExpandTypes
+        // the moment the clone is materialized; the PROPERTY identity is consumed entirely by the OO property binder;
+        // and — the 14g.2-review correction (DEVLOG 734) — although DataItem.IsTypedef is init-only, the typedef
+        // ITEM is discarded from ConformanceForest whenever RegisterTypeDecl rejects it (an unnamed/FILLER typedef, a
+        // duplicate type-name) or it binds into a method's LocalRoots/StaticRoots (off the forest), so a bound-arm
+        // TYPEDEF gate silently dropped the 0900 on exactly those paths. Recognition fixes all four uniformly: the
+        // parse node is always present, so each fires once per written clause with the former BindEntry site's exact
+        // constructId + where-string (byte-identical). A level-66/88 entry is intercepted by BindEntries BEFORE the
+        // storage-clause loop (the former gate site), so a clause mis-attached to one was never gated — the
+        // InConditionOrRenamesEntry guard reproduces that (the permissive grammar admits these clauses under a
+        // level-88 dataDescriptionClauses body, where they are malformed and the 0900 would be spurious).
 
         /// <summary>The BASED clause (ISO §13.18.5) — a COBOL-2002 introduction (a storage template with an implicit
-        /// data-address pointer). The level-01/77 placement SR (COBOLNET, "level-01 or level-77 entry") stays in the
-        /// binder; this arm only names the edition.</summary>
+        /// data-address pointer). The level-01/77 placement SR stays in the binder; this arm only names the edition.</summary>
         public override object? VisitBasedClause(CobolParserCore.BasedClauseContext ctx)
-        { _p.Check(Constructs.BasedClause2002, "the BASED clause"); return base.VisitChildren(ctx); }
+        {
+            if (!InConditionOrRenamesEntry(ctx)) _p.Check(Constructs.BasedClause2002, "the BASED clause");
+            return base.VisitChildren(ctx);
+        }
 
         /// <summary>The TYPE IS type-name clause (the TYPEDEF family, ISO §13.18.58; D17) — a COBOL-2002 introduction.
         /// Fires once per written <c>TYPE IS</c> occurrence: the ExpandTypes clones are DataItem objects, not parse
         /// nodes, so a TYPEDEF referenced N times yields exactly N typeClause nodes (matching the former per-entry
         /// binder Check). The §13.18.57.3 placement SRs stay bind-time.</summary>
         public override object? VisitTypeClause(CobolParserCore.TypeClauseContext ctx)
-        { _p.Check(Constructs.TypeClause2002, "the TYPE clause"); return base.VisitChildren(ctx); }
+        {
+            if (!InConditionOrRenamesEntry(ctx)) _p.Check(Constructs.TypeClause2002, "the TYPE clause");
+            return base.VisitChildren(ctx);
+        }
 
         /// <summary>The PROPERTY clause (ISO §13.18.42, OO) — a COBOL-2002 introduction. The OO property SEMANTICS
         /// are bound independently in <c>DataBinder.Oo.OoBindPropertyClauses</c> (which reads the propertyClause node
         /// directly), so the storage-clause loop no longer touches it; this arm only gates the edition.</summary>
         public override object? VisitPropertyClause(CobolParserCore.PropertyClauseContext ctx)
-        { _p.Check(Constructs.PropertyClause2002, "the PROPERTY clause"); return base.VisitChildren(ctx); }
+        {
+            if (!InConditionOrRenamesEntry(ctx)) _p.Check(Constructs.PropertyClause2002, "the PROPERTY clause");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The TYPEDEF [STRONG] clause (ISO §13.18.58; D17) — a COBOL-2002 introduction (a type DECLARATION).
+        /// Recognition-based (the 14g.2-review correction, DEVLOG 734), NOT bound-arm: the typedef ITEM is dropped
+        /// from ConformanceForest whenever RegisterTypeDecl rejects it (unnamed/FILLER, duplicate type-name) or it
+        /// binds into method LocalRoots/StaticRoots, so a bound-arm gate lost the 0900 on those declaration-error
+        /// paths. The parse node is always present — one Check per written TYPEDEF, matching the former binder site.</summary>
+        public override object? VisitTypedefClause(CobolParserCore.TypedefClauseContext ctx)
+        {
+            if (!InConditionOrRenamesEntry(ctx)) _p.Check(Constructs.TypedefDef2002, "the TYPEDEF clause");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>Whether <paramref name="ctx"/> (a data-description clause) sits inside a level-66 RENAMES or
+        /// level-88 condition-name entry — the two levels <c>BindEntries</c> intercepts BEFORE the storage-clause
+        /// loop (DataBinder.cs — <c>lvl is 66 or 88</c> → continue), so the former bind-time gate never ran for a
+        /// clause mis-attached to one. The permissive grammar still admits these clauses under a level-88
+        /// <c>dataDescriptionClauses</c> body, so the parse-arm skips them to stay byte-neutral. (Level-66 uses a
+        /// <c>renamesClause</c> body that cannot contain them — guarded for symmetry with the binder's skip.)</summary>
+        private static bool InConditionOrRenamesEntry(Antlr4.Runtime.RuleContext ctx)
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.DataDescriptionEntryContext e)
+                    return e.levelNumber()?.GetText() is "66" or "88";
+            return false;
+        }
 
         // ── Step 14h.2: the SELF-IDENTIFYING statement gates ─────────────────────────────────────────────────
         // Each construct is ONE dedicated grammar rule → the parse node IS the identity; the gate fires once per

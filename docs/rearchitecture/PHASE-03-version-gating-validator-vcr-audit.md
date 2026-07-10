@@ -225,11 +225,13 @@ enumerator; the rest are recognition/syntactic/unreachable → the **parse-arm**
 TYPEDEF-clone over-count, or "no bound carrier"). The split:
 
 - **BOUND-arm** (new `DataItem`/`FileModel`/`CallUnit` enumerator): the 8 PicInfo USAGE gates (National/Boolean/Pointer/
-  ObjRef/BinaryCharFamily/Float×3); `FileSharingClause2002` (SELECT clause), `LockModeClause2002`; `TypedefDef2002`;
+  ObjRef/BinaryCharFamily/Float×3); `FileSharingClause2002` (SELECT clause), `LockModeClause2002`;
   `FunctionPrototype2002` — all key on a resolved fact retained after declaration errors (`Pic.Category`/`Pic.Usage`/
-  `OwnUsage`, `FileModel.Sharing`/`LockMode`, `DataItem.IsTypedef`, `CallUnit.IsPrototype`).
-- **PARSE-arm** (recognition): `BasedClause2002`/`TypeClause2002`/`PropertyClause2002` (flags cleared/nulled on error →
-  724 drop); `ClassDefinition2002`/`InterfaceDefinition2002` (fire before the dedup `continue` → under-count + collision
+  `OwnUsage`, `FileModel.Sharing`/`LockMode`, `CallUnit.IsPrototype`). ⚠ `TypedefDef2002` was RECLASSIFIED to the
+  PARSE-arm (DEVLOG 734, 14g.2 review) — see below.
+- **PARSE-arm** (recognition): `BasedClause2002`/`TypeClause2002`/`PropertyClause2002`/`TypedefDef2002` (flags cleared/
+  nulled on error, or — for TYPEDEF — the item discarded from `ConformanceForest` by `RegisterTypeDecl`/method-scope →
+  724 drop; all guarded against a level-66/88 mis-attachment); `ClassDefinition2002`/`InterfaceDefinition2002` (fire before the dedup `continue` → under-count + collision
   drop); `OccursDynamic2014` (TYPEDEF clones over-count a per-item walk; one `occursClause` = one fire);
   `SpecialNamesForNational2002` ×3 (no bound carrier); `ProcedureReturning2002`/`ProcedureRaising2002` (null-ambiguous /
   no persisted fact); `RepositoryProperty/Interface/Class2002` (config specifiers, name-embedding where);
@@ -250,12 +252,18 @@ PicInfo USAGE gates; `LoudGuardTests` rewritten off its direct `PicInfo.ParseUsa
 `UsageDataEditionTests` exact-count witnesses (one 0900/item; two distinct pointers → two 0900s; TYPEDEF member
 referenced twice → gated once). Battery: conformance 3122 · unit 223 · characterization 32 · INV-1 349/349 · guard
 353 MATCH. (⚠ the conformance suite is contains-based, blind to over-count — hence the exact-count witnesses.)
-**14g.2 ✅ DONE (DEVLOG 733)** — the 4 data-description-clause gates: TYPEDEF → bound-arm `GateData` (init-only
-`IsTypedef` survives declaration errors + the misplaced-subordinate case); BASED/TYPE/PROPERTY → 3 `ParseArm` overrides
-(their carriers are cleared/nulled during bind — the 724 drop); the PROPERTY storage-loop branch deleted. New
-`DataClauseEditionTests` (6 exact-count witnesses); byte-neutral — the characterization diag surface is content-SORTED,
-so `char_neg_typedef85` stayed byte-identical (the predicted re-order was moot; NO 14g.6 re-baseline expected). Battery:
-conformance 3128 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
+**14g.2 ✅ DONE (DEVLOG 733–734)** — the 4 data-description-clause gates, ALL to the parse-arm (recognition): 4 `ParseArm`
+overrides (`VisitBasedClause`/`VisitTypeClause`/`VisitPropertyClause`/`VisitTypedefClause`), each guarded by
+`InConditionOrRenamesEntry` (skip level-66/88, mirroring the binder's pre-clause-loop skip); the PROPERTY storage-loop
+branch deleted; `GateData` stays USAGE-only. ⚠ **DESIGN CORRECTION (DEVLOG 734, adversarial review of `2efa4ea`):** the
+plan put TYPEDEF in the BOUND-arm ("init-only `IsTypedef` survives"), but the typedef ITEM is DISCARDED from
+`ConformanceForest` when `RegisterTypeDecl` rejects it (unnamed/FILLER `return`, duplicate-name `TryAdd` fail) or it
+binds into method `LocalRoots`/`StaticRoots` — so the bound-arm dropped the 0900 on those paths (the DEVLOG-724 class,
+3 confirmed defects: FILLER-typedef under-fire, duplicate-typedef under-fire, level-88-clause over-fire). TYPEDEF needs
+no resolved fact → recognition is the correct home; corrected + 3 regression witnesses. New `DataClauseEditionTests`
+(9 exact-count witnesses); byte-neutral (characterization 32 byte-exact — the content-SORTED diag surface is blind to
+the arm change; `char_neg_typedef85` unchanged, NO re-baseline). Battery: conformance 3131 · unit 223 ·
+characterization 32 · INV-1 349/349 · guard 353 MATCH. —
 Remaining sub-commits: 14g.3
 OO class/interface + OCCURS-DYNAMIC (parse); 14g.4 SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (bound) + PD
 RETURNING/RAISING (parse); 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse

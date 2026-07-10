@@ -7,14 +7,17 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// EXACT-COUNT witnesses for the Step-14g.2 data-description-clause introduction gates (BASED / TYPE / PROPERTY /
 /// TYPEDEF) — relocated from the bind-time <c>DataBinder.BindEntry</c> clause-loop Checks to the post-bind
-/// <c>VersionConformancePass</c>. Three go to the PARSE-arm on recognition (BASED / TYPE / PROPERTY — their bound
-/// carriers are cleared or nulled during bind, so a bound-arm gate would drop the 0900, the DEVLOG-724 flaw); TYPEDEF
-/// goes to the BOUND-arm <c>GateData</c> (the init-only <c>DataItem.IsTypedef</c> survives declaration errors). The
-/// version matrix + the contains-based conformance suite verify PRESENCE; these pin the FIRING COUNT — exactly ONE
-/// COBOLNET0900 per written clause — which a contains-based assertion cannot catch. The load-bearing case is a TYPEDEF
-/// referenced twice: the TYPEDEF intro must gate ONCE (on the template in <c>TypeDecls</c>, never on the two post-bind
-/// <c>TYPE</c> clone subtrees, which <c>ConformanceForest</c> excludes via <c>DataItem.TypeAnchor</c>) while the TYPE
-/// clause gates TWICE (one parse node per written reference).
+/// <c>VersionConformancePass</c>. ALL FOUR go to the PARSE-arm on recognition: none needs a resolved fact, and a
+/// bound-arm home would drop the 0900 on a declaration-error path (the DEVLOG-724 flaw) — the bound carriers of
+/// BASED/TYPE/PROPERTY are cleared or nulled during bind, and (the DEVLOG-734 review correction) even the init-only
+/// <c>DataItem.IsTypedef</c> is unreliable because the typedef ITEM is discarded from <c>ConformanceForest</c> when
+/// <c>RegisterTypeDecl</c> rejects it (unnamed/FILLER, duplicate type-name) or it binds into method scope. The version
+/// matrix + the contains-based conformance suite verify PRESENCE; these pin the FIRING COUNT — exactly ONE COBOLNET0900
+/// per written clause — which a contains-based assertion cannot catch. The load-bearing case is a TYPEDEF referenced
+/// twice: TYPEDEF gates ONCE (one <c>typedefClause</c> node) and TYPE TWICE (one <c>typeClause</c> node per written
+/// reference; the ExpandTypes clones are DataItem objects, not parse nodes). The three DEVLOG-734 regressions
+/// (FILLER typedef, duplicate type-name, level-88-mis-attached clause) pin the byte-neutral invariant the bound-arm
+/// TYPEDEF gate violated.
 /// </summary>
 public sealed class DataClauseEditionTests
 {
@@ -88,5 +91,41 @@ public sealed class DataClauseEditionTests
             """);
         Assert.Equal(1, Count0900(src, 85, "the TYPEDEF clause"));
         Assert.Equal(2, Count0900(src, 85, "the TYPE clause"));
+    }
+
+    // ── DEVLOG-734 regressions: the byte-neutral 0900 invariant the bound-arm TYPEDEF gate violated ─────────────
+    // A bound-arm gate over ConformanceForest dropped the 0900 whenever the typedef item failed to register; the
+    // parse-arm (recognition) fires on the always-present parse node instead.
+
+    /// <summary>A FILLER (nameless) level-01 TYPEDEF still names its edition at 85 — the parse node is present even
+    /// though <c>RegisterTypeDecl</c> discards the item (unnamed → COBOLNET1529, never added to <c>TypeDecls</c>). A
+    /// bound-arm gate saw nothing to fire (Defect 1).</summary>
+    [Fact]
+    public void FillerTypedef_At85_StillGatesOnce()
+        => Assert.Equal(1, Count0900(Prog("01 TYPEDEF PIC X."), 85, "the TYPEDEF clause"));
+
+    /// <summary>A DUPLICATE type-name gates TWICE at 85 — one 0900 per written TYPEDEF — even though the second
+    /// <c>TypeDecls.TryAdd</c> fails (COBOLNET1529, item discarded). A bound-arm gate collapsed the pair to one
+    /// (Defect 2).</summary>
+    [Fact]
+    public void DuplicateTypedefName_At85_GatesEach()
+        => Assert.Equal(2, Count0900(Prog("""
+            01 TDUP TYPEDEF.
+               05 A PIC X.
+            01 TDUP TYPEDEF.
+               05 B PIC X.
+            """), 85, "the TYPEDEF clause"));
+
+    /// <summary>A data-description clause MIS-ATTACHED to a level-88 condition-name entry (which the permissive grammar
+    /// admits) does NOT gate — <c>BindEntries</c> intercepts level-88 before the storage-clause loop, so the former
+    /// gate never ran; the parse-arm's <c>InConditionOrRenamesEntry</c> guard reproduces that (Defect 3, over-fire).</summary>
+    [Fact]
+    public void ClauseUnderLevel88_At85_DoesNotGate()
+    {
+        string src = Prog("""
+            01 W88 PIC X.
+               88 C88 TYPE IS FOO.
+            """);
+        Assert.Equal(0, Count0900(src, 85, "the TYPE clause"));
     }
 }

@@ -1074,8 +1074,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clause.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                 else if (clause.typedefClause() is { } td)
-                    // §13.18.58; D17. The COBOL-2002 introduction gate is VersionConformancePass.GateData (14g.2,
-                    // bound-arm — the init-only IsTypedef survives declaration errors, so a resolved fact is correct).
+                    // §13.18.58; D17. The COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitTypedefClause
+                    // (14g.2, recognition-based — the typedef item is discarded from ConformanceForest when it fails to
+                    // register (unnamed/duplicate) or binds into method scope, so a bound-arm gate would drop it; DEVLOG 734).
                     { isTypedef = true; typedefStrong = td.STRONG() is not null; }
                 else if (clause.typeClause() is { } tc)
                     // TYPE IS type-name — cloned in ExpandTypes (D17). The COBOL-2002 introduction gate is
