@@ -265,11 +265,17 @@ binds into method `LocalRoots`/`StaticRoots` — so the bound-arm dropped the 09
 no resolved fact → recognition is the correct home; corrected + 3 regression witnesses. New `DataClauseEditionTests`
 (9 exact-count witnesses); byte-neutral (characterization 32 byte-exact — the content-SORTED diag surface is blind to
 the arm change; `char_neg_typedef85` unchanged, NO re-baseline). Battery: conformance 3131 · unit 223 ·
-characterization 32 · INV-1 349/349 · guard 353 MATCH. **14g.3 ✅ DONE (DEVLOG 735)** — OO class/interface definition
-(`ParseArm.VisitClass/InterfaceDefinition`, name-embedding where-strings, `Build` called once → byte-exact count) +
-OCCURS DYNAMIC (`VisitOccursClause` on the DYNAMIC alternative, `InConditionOrRenamesEntry`-guarded), all parse-arm;
-new `OoOccursDynEditionTests` ×6 (incl. the over-count witness: OCCURS DYNAMIC in a TYPEDEF referenced twice → gated
-once). Battery: conformance 3137 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
+characterization 32 · INV-1 349/349 · guard 353 MATCH. **14g.3 ✅ DONE (DEVLOG 735–736)** — OO class/interface
+definition (`ParseArm.VisitClass/InterfaceDefinition`, name-embedding where-strings, `Build` called once → byte-exact
+count) + OCCURS DYNAMIC (`VisitOccursClause` on the DYNAMIC alternative), all parse-arm; new `OoOccursDynEditionTests`
+×8 (incl. the over-count witness + 2 review regressions). ⚠ **SHARED-RULE HAZARD (DEVLOG 736, adversarial review of
+`729b6c4f`):** `occursClause` is shared by data / report-writer / screen grammars, but the former `OdoBindOccursSpec`
+gate reached only data (`BindEntry`) — so a bare tree walk OVER-fired OCCURS DYNAMIC in report groups (extra 0900) and
+screen sections (compiles→rejects). The NEGATIVE level-66/88 guard fired-by-default with no enclosing entry; replaced
+by a POSITIVE `InGatedDataEntry` (fire only inside a non-66/88 `dataDescriptionEntry`) reused by all five data-clause
+gates. **Lesson for 14g.4/14g.5: before a parse-arm gate, check whether its grammar rule is SHARED across sections and
+scope the visitor to the binder's actual reach.** Battery: conformance 3139 · unit 223 · characterization 32 · INV-1
+349/349 · guard 353 MATCH. —
 Remaining sub-commits: 14g.4 SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (bound) + PD
 RETURNING/RAISING (parse); 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
 raw-picture scan) — then grep-assert binder Check-count == the single `StatementBinder.Udf.cs` line; 14g.6 snapshot

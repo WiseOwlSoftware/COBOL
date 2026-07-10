@@ -588,16 +588,16 @@ internal sealed class VersionConformancePass
         // duplicate type-name) or it binds into a method's LocalRoots/StaticRoots (off the forest), so a bound-arm
         // TYPEDEF gate silently dropped the 0900 on exactly those paths. Recognition fixes all four uniformly: the
         // parse node is always present, so each fires once per written clause with the former BindEntry site's exact
-        // constructId + where-string (byte-identical). A level-66/88 entry is intercepted by BindEntries BEFORE the
-        // storage-clause loop (the former gate site), so a clause mis-attached to one was never gated — the
-        // InConditionOrRenamesEntry guard reproduces that (the permissive grammar admits these clauses under a
-        // level-88 dataDescriptionClauses body, where they are malformed and the 0900 would be spurious).
+        // constructId + where-string (byte-identical). The InGatedDataEntry guard reproduces the binder's reach — it
+        // fires only inside a non-66/88 dataDescriptionEntry (BindEntries intercepts level-66/88 BEFORE the clause
+        // loop, and these four clauses never appear in a report/screen entry), so a clause mis-attached to a
+        // condition/renames entry, where the 0900 would be spurious, is skipped.
 
         /// <summary>The BASED clause (ISO §13.18.5) — a COBOL-2002 introduction (a storage template with an implicit
         /// data-address pointer). The level-01/77 placement SR stays in the binder; this arm only names the edition.</summary>
         public override object? VisitBasedClause(CobolParserCore.BasedClauseContext ctx)
         {
-            if (!InConditionOrRenamesEntry(ctx)) _p.Check(Constructs.BasedClause2002, "the BASED clause");
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.BasedClause2002, "the BASED clause");
             return base.VisitChildren(ctx);
         }
 
@@ -607,7 +607,7 @@ internal sealed class VersionConformancePass
         /// binder Check). The §13.18.57.3 placement SRs stay bind-time.</summary>
         public override object? VisitTypeClause(CobolParserCore.TypeClauseContext ctx)
         {
-            if (!InConditionOrRenamesEntry(ctx)) _p.Check(Constructs.TypeClause2002, "the TYPE clause");
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.TypeClause2002, "the TYPE clause");
             return base.VisitChildren(ctx);
         }
 
@@ -616,7 +616,7 @@ internal sealed class VersionConformancePass
         /// directly), so the storage-clause loop no longer touches it; this arm only gates the edition.</summary>
         public override object? VisitPropertyClause(CobolParserCore.PropertyClauseContext ctx)
         {
-            if (!InConditionOrRenamesEntry(ctx)) _p.Check(Constructs.PropertyClause2002, "the PROPERTY clause");
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.PropertyClause2002, "the PROPERTY clause");
             return base.VisitChildren(ctx);
         }
 
@@ -627,22 +627,27 @@ internal sealed class VersionConformancePass
         /// paths. The parse node is always present — one Check per written TYPEDEF, matching the former binder site.</summary>
         public override object? VisitTypedefClause(CobolParserCore.TypedefClauseContext ctx)
         {
-            if (!InConditionOrRenamesEntry(ctx)) _p.Check(Constructs.TypedefDef2002, "the TYPEDEF clause");
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.TypedefDef2002, "the TYPEDEF clause");
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>Whether <paramref name="ctx"/> (a data-description clause) sits inside a level-66 RENAMES or
-        /// level-88 condition-name entry — the two levels <c>BindEntries</c> intercepts BEFORE the storage-clause
-        /// loop (DataBinder.cs — <c>lvl is 66 or 88</c> → continue), so the former bind-time gate never ran for a
-        /// clause mis-attached to one. The permissive grammar still admits these clauses under a level-88
-        /// <c>dataDescriptionClauses</c> body, so the parse-arm skips them to stay byte-neutral. (Level-66 uses a
-        /// <c>renamesClause</c> body that cannot contain them — guarded for symmetry with the binder's skip.)</summary>
-        private static bool InConditionOrRenamesEntry(Antlr4.Runtime.RuleContext ctx)
+        /// <summary>Whether <paramref name="ctx"/> (a data-description clause) sits inside a real
+        /// <c>dataDescriptionEntry</c> whose level is NEITHER 66 nor 88 — i.e. exactly the entries the binder routes
+        /// through <c>DataBinder.BindEntry</c>'s storage-clause loop (the former gate site). It excludes two families:
+        /// (1) a level-66 RENAMES / level-88 condition-name entry, which <c>BindEntries</c> intercepts BEFORE the
+        /// clause loop (<c>lvl is 66 or 88</c> → continue), so a clause mis-attached to one was never gated; and
+        /// (2) — the 14g.3-review correction (DEVLOG 736) — a report-group or screen-section entry, which reuse the
+        /// SHARED <c>occursClause</c> rule (CobolReportWriter.g4 / CobolScreen.g4) but are bound by neither BindEntry
+        /// nor <c>OdoBindOccursSpec</c> (report groups → COBOLNET0899; screen sections are unbound), so a bare tree
+        /// walk over-fired OCCURS DYNAMIC there. A POSITIVE "inside a gated data entry" test reproduces the binder's
+        /// exact reach; the four data-only clauses (BASED/TYPE/PROPERTY/TYPEDEF, never shared with report/screen)
+        /// always satisfy it, so their behavior is unchanged.</summary>
+        private static bool InGatedDataEntry(Antlr4.Runtime.RuleContext ctx)
         {
             for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
                 if (a is CobolParserCore.DataDescriptionEntryContext e)
-                    return e.levelNumber()?.GetText() is "66" or "88";
-            return false;
+                    return e.levelNumber()?.GetText() is not ("66" or "88");
+            return false;   // no dataDescriptionEntry ancestor — a report-group / screen-section clause the binder never gated
         }
 
         // ── Step 14g.3: the OO class/interface definition + OCCURS DYNAMIC gates ───────────────────────────────
@@ -680,10 +685,13 @@ internal sealed class VersionConformancePass
         /// <summary>The OCCURS DYNAMIC clause (a dynamic-capacity table, ISO §13.18.38 Format 4; data-model D9) — a
         /// COBOL-2014 introduction. Gated on the DYNAMIC alternative of the shared <c>occursClause</c> rule (matching
         /// <c>OdoBindOccursSpec</c>'s <c>occ.DYNAMIC()</c> test), once per source clause; a fixed / Format-2 OCCURS is
-        /// untouched. The <see cref="InConditionOrRenamesEntry"/> guard reproduces the binder's level-66/88 skip.</summary>
+        /// untouched. The <see cref="InGatedDataEntry"/> guard restricts firing to a DATA-description entry — the sole
+        /// reach of the former <c>OdoBindOccursSpec</c> (called only from <c>BindEntry</c>): the same <c>occursClause</c>
+        /// rule ALSO appears in report-group and screen-section entries, which the binder never gated, so a bare tree
+        /// walk over-fired there (the 14g.3-review correction, DEVLOG 736).</summary>
         public override object? VisitOccursClause(CobolParserCore.OccursClauseContext ctx)
         {
-            if (ctx.DYNAMIC() is not null && !InConditionOrRenamesEntry(ctx))
+            if (ctx.DYNAMIC() is not null && InGatedDataEntry(ctx))
                 _p.Check(Constructs.OccursDynamic2014, "the OCCURS DYNAMIC clause");
             return base.VisitChildren(ctx);
         }

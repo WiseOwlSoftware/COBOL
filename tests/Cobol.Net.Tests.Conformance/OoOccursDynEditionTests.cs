@@ -64,6 +64,42 @@ public sealed class OoOccursDynEditionTests
         END INTERFACE MYIF.
         """;
 
+    // OCCURS DYNAMIC under a REPORT-group entry: the shared occursClause rule reaches report groups, but the binder
+    // routes report OCCURS to COBOLNET0899 (unimplemented), never through OdoBindOccursSpec — so the former gate did
+    // not fire here (DEVLOG-736 regression witness).
+    private const string ReportGroupDynamic = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. RPTDYN.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT RPT ASSIGN TO "r.dat".
+        DATA DIVISION.
+        FILE SECTION.
+        FD RPT REPORT IS R-1.
+        REPORT SECTION.
+        RD R-1.
+        01 DET-1 TYPE DE.
+           03 MYELEM PIC X(3) OCCURS DYNAMIC FROM 1 TO 5.
+        PROCEDURE DIVISION.
+        MAIN.
+            STOP RUN.
+        """;
+
+    // OCCURS DYNAMIC under a SCREEN-section entry: the screen section is parsed but unbound, so the former gate never
+    // reached it — the program compiled clean at 85 before this gate existed (DEVLOG-736 verdict-change witness).
+    private const string ScreenSectionDynamic = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. SCRDYN.
+        DATA DIVISION.
+        SCREEN SECTION.
+        01 SCR1.
+           05 SFLD PIC X(3) OCCURS DYNAMIC FROM 1 TO 5.
+        PROCEDURE DIVISION.
+        MAIN.
+            STOP RUN.
+        """;
+
     /// <summary>OCCURS DYNAMIC below its 2014 introduction produces EXACTLY ONE COBOLNET0900; none at 2014.</summary>
     [Fact]
     public void OccursDynamic_At85_ExactlyOne0900()
@@ -104,4 +140,21 @@ public sealed class OoOccursDynEditionTests
             01 A TYPE TDYN.
             01 B TYPE TDYN.
             """), 85, "the OCCURS DYNAMIC clause"));
+
+    // ── DEVLOG-736 regressions: OCCURS DYNAMIC over-fired in report-group / screen-section scopes ───────────────
+    // occursClause is a grammar rule SHARED by data-description, report-writer, and screen sections, but the former
+    // OdoBindOccursSpec gate was reached only from BindEntry (data). A bare parse-tree walk over-fired in the other
+    // two; InGatedDataEntry restricts firing to a real dataDescriptionEntry.
+
+    /// <summary>OCCURS DYNAMIC in a REPORT-group entry does NOT gate at 85 — report OCCURS is COBOLNET0899, never a
+    /// COBOLNET0900 (the binder never routed it through OdoBindOccursSpec).</summary>
+    [Fact]
+    public void OccursDynamicInReportGroup_At85_DoesNotGate()
+        => Assert.Equal(0, Count0900(ReportGroupDynamic, 85, "the OCCURS DYNAMIC clause"));
+
+    /// <summary>OCCURS DYNAMIC in a SCREEN-section entry does NOT gate at 85 — the screen section is unbound, so the
+    /// former gate never reached it; a bare walk turned a clean compile into a rejection.</summary>
+    [Fact]
+    public void OccursDynamicInScreenSection_At85_DoesNotGate()
+        => Assert.Equal(0, Count0900(ScreenSectionDynamic, 85, "the OCCURS DYNAMIC clause"));
 }
