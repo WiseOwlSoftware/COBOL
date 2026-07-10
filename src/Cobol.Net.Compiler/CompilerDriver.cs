@@ -26,9 +26,9 @@ public static class CompilerDriver
     /// <paramref name="DialectLevel"/>): permissive accepts constructs the targeted edition REMOVED, emitting a
     /// warning and the pre-removal semantics (the documented migration mode, VERSION_TEST_MATRIX_DESIGN §10 #1).
     /// Strict (the default for every named <c>--std</c>) rejects them. Introduction gating is unaffected.</param>
-    /// <param name="CheckOnly">Parse + edition-validate + bind/emit ONLY — do NOT run the Roslyn C#→IL backend
-    /// and write no <c>.dll</c>/<c>.g.cs</c>. Every edition-gating diagnostic (the "does this compile at edition
-    /// X" question the INV-1 continuity sweep asks) is produced in Phase 1/2, BEFORE the backend, so a check-only
+    /// <param name="CheckOnly">Parse + bind + the version-conformance pass ONLY — do NOT run the Roslyn C#→IL
+    /// backend and write no <c>.dll</c>/<c>.g.cs</c>. Every edition-gating diagnostic (the "does this compile at
+    /// edition X" question the INV-1 continuity sweep asks) is produced in Phase 1/2, BEFORE the backend, so a check-only
     /// compile is verdict-equivalent to a full one for that question while skipping the backend — the dominant
     /// cost. Backend (C#-type) errors are NOT surfaced (they are not an edition-continuity concern).</param>
     public sealed record Options(
@@ -98,32 +98,28 @@ public static class CompilerDriver
             return new Result(Outcome.FrontendError, "", null,
                 diagnostics.Diagnostics.Where(d => d.IsError).Select(d => d.ToString()!).ToList(), feWarnings);
 
-        // Phase 2 — validate + bind under the targeted EDITION, then emit typed-native C#. Edition-gating
-        // diagnostics (the four-compilers rule: a construct the targeted edition lacks or forbids REJECTS the
-        // program) fail the compile here — they are semantic errors, not runtime guards. The EditionValidator
-        // (P2.2) walks the raw tree FIRST, and its errors fail-fast BEFORE Emit — a removed or
-        // not-yet-introduced construct may have no emit path at all.
+        // Phase 2 — bind under the targeted EDITION, then run the ONE version-conformance pass, then emit
+        // typed-native C#. Edition-gating diagnostics (the four-compilers rule: a construct the targeted edition
+        // lacks or forbids REJECTS the program) are semantic errors, not runtime guards; they fail the compile
+        // here, BEFORE emit — a removed or not-yet-introduced construct may have no emit path at all.
         var edition = new Binding.EditionContext(options.DialectLevel, options.Permissive);
-        // P3 step 2: the validator runs on the P2 framework — the immutable EditionInfo + an IDiagnosticSink
-        // (the EditionContext collector implements IDiagnosticSink; the validator has no EditionContext dependency).
-        new Validation.EditionValidator(edition.Edition, edition).Validate(tree);
-        if (edition.HasErrors)
-            return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
-        // P3 step 14a — the bind/emit SPLIT: bind the whole run unit FIRST (every edition-gating diagnostic is
-        // produced during bind — the render half touches no EditionContext), gate the sink, and only THEN emit —
-        // so the Roslyn backend never runs on an errored tree (rearch exit criterion 9). frontend.TurnEvents are
-        // the >>TURN directive events (ISO §7.3.25) that build the group's compile-time TurnState (deep-dive D10).
+        // P3 step 14a — the bind/emit SPLIT: bind the whole run unit FIRST (the binder is edition-AGNOSTIC — it
+        // raises no edition diagnostic; the render half touches no EditionContext). frontend.TurnEvents are the
+        // >>TURN directive events (ISO §7.3.25) that build the group's compile-time TurnState (deep-dive D10).
         var emitter = new CSharpEmitter();
         var bound = emitter.Bind(tree, edition, frontend.TurnEvents);
-        // P3 step 14 — the ONE post-bind edition-conformance funnel over the bound tree (the sole gate; the binder
-        // is edition-agnostic). Runs for BOTH a full compile and a CheckOnly verdict — the edition band codes come
-        // from here, so a bind-only verdict would silently drop every edition diagnostic.
+        // P3 step 14 — the ONE post-bind edition-conformance funnel over the bound run unit (the SOLE gate): its
+        // parse-tree arm fires the syntactic introduction/removal/phrase gates + the §8.9 reserved-word funnel on
+        // RECOGNITION (it absorbed EditionValidator, step 14h — so a below-edition construct that ALSO fails to
+        // bind still names its edition), and its bound-tree arm fires the genuinely-semantic gates. Runs for BOTH
+        // a full compile and a CheckOnly verdict — the edition band codes come from here, so a bind-only verdict
+        // would silently drop every edition diagnostic. Codegen never runs on an errored tree (exit criterion 9).
         Validation.VersionConformancePass.Run(bound, edition.Edition, edition);
         if (edition.Diagnostics.Count > 0)
             return new Result(Outcome.BindError, "", null, edition.Diagnostics, [.. feWarnings, .. edition.Warnings]);
 
-        // Check-only: every edition-gating diagnostic is now produced (parse + EditionValidator + bind above), so
-        // the compile VERDICT is settled. Skip emit AND Phase 3 (the Roslyn C#→IL backend + the dll/g.cs writes) —
+        // Check-only: every edition-gating diagnostic is now produced (parse + bind + the conformance pass above),
+        // so the compile VERDICT is settled. Skip emit AND Phase 3 (the Roslyn C#→IL backend + the dll/g.cs writes) —
         // the dominant cost — since no runnable assembly is wanted (the INV-1 continuity sweep / CLI `check-batch`).
         if (options.CheckOnly)
             return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]);

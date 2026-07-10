@@ -10,7 +10,7 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// The P2.8/W2 position classifier behind the §8.9 reserved-word funnel
-/// (<c>EditionValidator.IsProvableUserWordPosition</c>): an allowlist-band context-keyword token rejects as a
+/// (<c>VersionConformancePass.IsProvableUserWordPosition</c>): an allowlist-band context-keyword token rejects as a
 /// reserved word (ISO §8.3.2.1 rule 1 / §8.3.2.4.1) ONLY when its <c>cobolWord</c> occurrence sits in a
 /// grammar position that is unambiguously a user-defined-word use (§8.3.2.2) — the data/parameter entry-name
 /// slot (§13.16), a paragraph/section definition (§14.4.2/§14.4.3), the SELECT file-name (§12.4.5.1), and the
@@ -63,7 +63,7 @@ public sealed class ReservedWordPositionTests : CobolNetTestBase
                 STOP RUN.
             """, "SCREEN");
         Assert.NotEmpty(hits);
-        Assert.Contains(hits, EditionValidator.IsProvableUserWordPosition);
+        Assert.Contains(hits, VersionConformancePass.IsProvableUserWordPosition);
     }
 
     [Fact]   // The RW104A hazard (§13.18.14): a report-group COLUMN clause KEYWORD either parses through the
@@ -99,7 +99,7 @@ public sealed class ReservedWordPositionTests : CobolNetTestBase
                 CLOSE RPT.
                 STOP RUN.
             """, "COLUMN");
-        Assert.DoesNotContain(hits, EditionValidator.IsProvableUserWordPosition);
+        Assert.DoesNotContain(hits, VersionConformancePass.IsProvableUserWordPosition);
     }
 
     [Fact]   // §14.4.3: the paragraph DEFINITION `COL.` classifies true; the `PERFORM COL` REFERENCE does not
@@ -117,8 +117,8 @@ public sealed class ReservedWordPositionTests : CobolNetTestBase
                 DISPLAY "C".
             """, "COL");
         Assert.Equal(2, hits.Count);
-        Assert.Equal(1, hits.Count(EditionValidator.IsProvableUserWordPosition));
-        Assert.True(EditionValidator.IsProvableUserWordPosition(
+        Assert.Equal(1, hits.Count(VersionConformancePass.IsProvableUserWordPosition));
+        Assert.True(VersionConformancePass.IsProvableUserWordPosition(
             hits.Single(h => h.Parent is CobolParserCore.ProcedureNameContext
                 { Parent: CobolParserCore.ParagraphNameContext })));
     }
@@ -135,7 +135,7 @@ public sealed class ReservedWordPositionTests : CobolNetTestBase
                 DISPLAY "S1".
                 STOP RUN.
             """, "BIT");
-        Assert.Contains(hits, EditionValidator.IsProvableUserWordPosition);
+        Assert.Contains(hits, VersionConformancePass.IsProvableUserWordPosition);
     }
 
     [Fact]   // §12.4.5.1: the SELECT file-name classifies true; the FD / OPEN / CLOSE REFERENCES of the same
@@ -162,8 +162,8 @@ public sealed class ReservedWordPositionTests : CobolNetTestBase
                 STOP RUN.
             """, "DEFAULT");
         Assert.True(hits.Count >= 2, "expected the SELECT occurrence plus at least one reference");
-        Assert.Equal(1, hits.Count(EditionValidator.IsProvableUserWordPosition));
-        Assert.True(EditionValidator.IsProvableUserWordPosition(
+        Assert.Equal(1, hits.Count(VersionConformancePass.IsProvableUserWordPosition));
+        Assert.True(VersionConformancePass.IsProvableUserWordPosition(
             hits.Single(h => h.Parent is CobolParserCore.FileNameContext
                 { Parent: CobolParserCore.FileControlClauseGroupContext })));
     }
@@ -183,6 +183,6 @@ public sealed class ReservedWordPositionTests : CobolNetTestBase
             END PROGRAM TDRWP6.
             """, "TDRWP6");
         Assert.Equal(2, hits.Count);
-        Assert.All(hits, h => Assert.True(EditionValidator.IsProvableUserWordPosition(h)));
+        Assert.All(hits, h => Assert.True(VersionConformancePass.IsProvableUserWordPosition(h)));
     }
 }
