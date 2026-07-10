@@ -1728,6 +1728,34 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return Roots.SelectMany(Walk);
     }
 
+    /// <summary>
+    /// Every SOURCE-DECLARED data item this unit binds, for the post-bind <c>VersionConformancePass</c> data-attribute
+    /// gates (Step 14g): the WS + FILE-record + OO-method forest (<see cref="Roots"/>), the LINKAGE forest
+    /// (<see cref="LinkageRoots"/>, kept OFF <c>Roots</c>), and the TYPEDEF templates (<see cref="TypeDecls"/>, also OFF
+    /// <c>Roots</c>) — pre-order DFS, declaration order. It EXCLUDES the products of post-bind expansion, which the binder
+    /// never re-analyzed and so never gated: a <c>TYPE IS type-name</c> clone subtree (its items carry a non-null
+    /// <see cref="DataItem.TypeAnchor"/>; the once-per-source gate fired on the TEMPLATE in <c>TypeDecls</c>) and the
+    /// OO/UDF compiler temps (recorded in <see cref="CompilerTempClones"/>; both share the source item's <c>PicInfo</c> by
+    /// reference — so they must NOT be dedup'd by <c>PicInfo</c> identity: two distinct source pointer items share the ONE
+    /// <c>PicInfo.PointerItem</c> singleton). The result is exactly the set of items the binder's per-entry
+    /// <c>PicInfo.ParseUsage</c>/<c>Analyze</c> gates fired for, once each.
+    /// </summary>
+    public IEnumerable<DataItem> ConformanceForest()
+    {
+        static IEnumerable<DataItem> Walk(DataItem d)
+        {
+            yield return d;
+            foreach (var c in d.Children)
+                foreach (var x in Walk(c)) yield return x;
+        }
+        var temps = CompilerTempClones.Count == 0 ? null
+            : new HashSet<DataItem>(CompilerTempClones.Select(t => t.Temp));
+        foreach (var item in Roots.Concat(LinkageRoots).SelectMany(Walk)
+                     .Concat(TypeDecls.Values.SelectMany(Walk)))
+            if (item.TypeAnchor is null && (temps is null || !temps.Contains(item)))
+                yield return item;
+    }
+
     /// <summary>The elementary leaves of an item (itself if elementary), in source order.</summary>
     private static IEnumerable<DataItem> LeavesOf(DataItem d)
     {

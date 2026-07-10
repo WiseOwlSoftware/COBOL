@@ -69,15 +69,21 @@ internal sealed class VersionConformancePass
         //    dropped (BoundUnsupported/BoundNop), but its parse node is always present (DEVLOG 724). ──
         new ParseArm(pass).Visit(group.Tree);
         // ── BOUND-tree arm: the genuinely-SEMANTIC gates (MOVE figurative-category; the file-org / USAGE /
-        //    pointer-category conditioned gates) that need a resolved bound fact, never mere presence. ──
+        //    pointer-category conditioned STATEMENT gates) + the DATA-attribute gates (Step 14g — every
+        //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
         foreach (var unit in group.Units)
+        {
             pass.WalkProgram(unit.Bound);
+            pass.GateData(unit.Data);
+        }
         foreach (var cls in group.Classes)
         {
             // A class body's OBJECT and FACTORY halves are two bound programs over one class; both carry statements
             // (each METHOD-ID is a pc slice of the ONE dispatch space, so walking Paragraphs covers every method).
             pass.WalkProgram(cls.Bound);
             pass.WalkProgram(cls.FactoryBound);
+            pass.GateData(cls.Data);
+            pass.GateData(cls.FactoryData);
         }
     }
 
@@ -239,6 +245,57 @@ internal sealed class VersionConformancePass
         if (p is null) return;
         WalkList(p.OnError);
         WalkList(p.NotOnError);
+    }
+
+    // ── Step 14g: the DATA-attribute (USAGE / PICTURE-category) edition gates ────────────────────────────────
+    // Genuinely SEMANTIC — identity is a RESOLVED DataItem attribute (its USAGE / PICTURE category), never parse
+    // presence, so a bound-arm walk is the correct home. Fires ONCE per SOURCE declaration: DataBinder's
+    // ConformanceForest excludes the post-bind TYPE-clones + compiler temps (which the binder never re-analyzed
+    // and so never gated), reproducing the former per-entry PicInfo.ParseUsage/Analyze gates byte-for-byte.
+    private void GateData(DataBinder data)
+    {
+        foreach (var item in data.ConformanceForest())
+            GateDataItem(item, $"data item '{item.CobolName ?? "FILLER"}'");
+        // Report printable items are SYNTHETIC DataItems in the RD model (off the forest) — their national/boolean
+        // PICTURE gates fired in Analyze with the report where-string (DataBinder.Reports.cs); reproduce that here.
+        foreach (var report in data.Reports)
+            foreach (var grp in report.Groups)
+                foreach (var line in grp.Lines)
+                    foreach (var field in line.Fields)
+                        GateDataItem(field.PrintItem,
+                            $"RD '{report.Name}' printable item '{field.PrintItem.CobolName ?? "FILLER"}'");
+    }
+
+    /// <summary>Gate one resolved DataItem's USAGE / PICTURE-category edition attribute. At most ONE gate fires
+    /// (the categories are mutually exclusive).</summary>
+    private void GateDataItem(DataItem item, string where)
+    {
+        if (UsageGateId(item) is { } id) Check(id, where);
+    }
+
+    /// <summary>The 2002-introduction USAGE / PICTURE-category of a resolved item, or null when version-invariant.
+    /// Keyed on the resolved <c>(OwnUsage, Pic.Category, Pic.Usage)</c>: <see cref="DataItem.OwnUsage"/> is mandatory
+    /// because a group-header USAGE sheds <c>Pic</c> to null (<c>DataBinder.ResolveIndexItems</c>), leaving only the
+    /// own keyword; the <c>Pic.Usage</c> member (never <c>IsFloat</c>/<c>ClrType</c>) carries the identity for the
+    /// picture-less usages — <c>FloatLong</c>/<c>FloatExtended</c> share a <c>double</c> ClrType with COMP-2.</summary>
+    private static string? UsageGateId(DataItem item)
+    {
+        var cat = item.Pic?.Category;
+        var pu = item.Pic?.Usage;
+        var ou = item.OwnUsage;
+        return
+            cat is PicCategory.National || ou is Usage.National ? Constructs.NationalData2002
+            : cat is PicCategory.Boolean || ou is Usage.Bit ? Constructs.BooleanData2002
+            : pu is Usage.Pointer || ou is Usage.Pointer ? Constructs.UsagePointer2002
+            : cat is PicCategory.ObjectReference || pu is Usage.ObjectReference || ou is Usage.ObjectReference
+                ? Constructs.UsageObjectReference2002
+            : pu is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
+              || ou is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
+                ? Constructs.UsageBinaryCharFamily2002
+            : pu is Usage.FloatShort || ou is Usage.FloatShort ? Constructs.UsageFloatShort2002
+            : pu is Usage.FloatLong || ou is Usage.FloatLong ? Constructs.UsageFloatLong2002
+            : pu is Usage.FloatExtended || ou is Usage.FloatExtended ? Constructs.UsageFloatExtended2002
+            : null;
     }
 
     /// <summary>

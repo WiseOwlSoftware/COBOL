@@ -10,8 +10,14 @@ namespace CobolNet.Tests.Unit;
 /// wrong-answer bug): <see cref="PicInfo.ParseUsage"/> recognizes EVERY grammar-accepted usage keyword explicitly
 /// (ISO §13.18.60 — the 2002 inventory previously fell through a catch-all to DISPLAY), and
 /// <see cref="PicInfo.Analyze"/> enforces the §13.18.40.3 SR2 PICTURE symbol whitelist (the 2002+ symbols
-/// N/1/E previously fell through to "pure numeric, zero digits"). The skeleton enum members themselves are
-/// guarded: any storage-mapping access throws rather than silently defaulting.
+/// N/1/E previously fell through to "pure numeric, zero digits").
+/// <para><b>Edition-gate note (Step 14g.1):</b> the USAGE / PICTURE-category INTRODUCTION gates (national /
+/// boolean / pointer / object-reference / binary-char-family / float-trio 2002 introductions) no longer fire at
+/// the parse layer — they moved to the post-bind <c>VersionConformancePass</c> data-attribute enumerator (keyed
+/// on the RESOLVED item), which fires on RECOGNITION once per source declaration. So the UNIT facts here assert
+/// only <c>ParseUsage</c>'s MAPPING + <c>Analyze</c>'s CLASSIFICATION; the below-2002 rejection is verified by
+/// the version matrix (usage-*-2002 rows) + the pipeline exact-count witnesses (<c>UsageDataEditionTests</c>).
+/// The E-symbol external-float PICTURE stays a parse-layer <c>NotImplementedSkeleton</c> gate (Phase 6 / 14g.5).</para>
 /// </summary>
 public sealed class LoudGuardTests
 {
@@ -41,88 +47,32 @@ public sealed class LoudGuardTests
         Assert.Empty(ed.Warnings);
     }
 
-    /// <summary>USAGE OBJECT REFERENCE went LIVE with the Phase-3 OO spine: only the introduction gate
-    /// remains — Usage.ObjectReference, silent at 2002+, COBOLNET0900 naming COBOL-2002 at 85 (the registry
-    /// row usage-object-reference-2002; ISO §13.18.60.4).</summary>
-    [Fact]
-    public void ParseUsage_ObjectReference_LiveAt2002_IntroductionGatedAt85()
-    {
-        var ok = Ed(2002);
-        Assert.Equal(Usage.ObjectReference, PicInfo.ParseUsage("OBJECT REFERENCE", ok, "data item 'T'"));
-        Assert.False(ok.HasErrors);
-        var ed85 = Ed(85);
-        Assert.Equal(Usage.ObjectReference, PicInfo.ParseUsage("OBJECT REFERENCE", ed85, "data item 'T'"));
-        Assert.True(ed85.HasErrors);
-        Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
-    }
-
-    /// <summary>The BINARY-CHAR family went LIVE with Phase 4 M2-DATA-1 (ISO §13.18.60.4 GR12): each keyword
-    /// maps to its OWN <see cref="Usage"/> member and binds silently at 2002+; below 2002 the introduction
-    /// gate names the edition (COBOLNET0900) — never the retired 0899 not-implemented posture.</summary>
+    /// <summary>Every 2002-introduced USAGE keyword maps to its OWN <see cref="Usage"/> member with NO parse-layer
+    /// diagnostic at ANY edition (the introduction gate moved to <c>VersionConformancePass</c>, Step 14g.1 — the
+    /// mapping itself is edition-invariant). OBJECT REFERENCE / the BINARY-CHAR family / the float trio /
+    /// NATIONAL / BIT / POINTER (ISO §13.18.60.4).</summary>
     [Theory]
+    [InlineData("OBJECT REFERENCE", Usage.ObjectReference)]
     [InlineData("BINARY-CHAR", Usage.BinaryChar)]
     [InlineData("BINARY-SHORT", Usage.BinaryShort)]
     [InlineData("BINARY-LONG", Usage.BinaryLong)]
     [InlineData("BINARY-DOUBLE", Usage.BinaryDouble)]
-    public void ParseUsage_BinaryCharFamily_LiveAt2002_IntroductionGatedAt85(string keyword, Usage expected)
-    {
-        var ok = Ed(2002);
-        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ok, "data item 'T'"));
-        Assert.False(ok.HasErrors, $"USAGE {keyword} must bind cleanly at 2002: {string.Join("; ", ok.Diagnostics)}");
-        var ed85 = Ed(85);
-        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed85, "data item 'T'"));
-        Assert.True(ed85.HasErrors, $"USAGE {keyword} is 2002+; 85 must reject");
-        Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
-    }
-
-    // ── ParseUsage: the 2002+ skeleton inventory is NEVER silent (ISO §13.18.60 general format) ────────────
-
-    [Theory]
-    [InlineData("NATIONAL")]
-    [InlineData("BIT")]
-    [InlineData("POINTER")]
-    public void ParseUsage_SkeletonKeyword_0900At85_NamingCobol2002(string keyword)
-    {
-        var ed = Ed(85);
-        PicInfo.ParseUsage(keyword, ed, "data item 'T'");
-        Assert.True(ed.HasErrors, $"USAGE {keyword} must be rejected at COBOL-85 (ISO §13.18.60 — a 2002 introduction)");
-        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
-    }
-
-    /// <summary>The float trio went LIVE at Phase 6a (D16, §13.18.60.4 GR13): FLOAT-SHORT→FloatShort,
-    /// FLOAT-LONG→FloatLong, FLOAT-EXTENDED→FloatExtended, each binding cleanly at 2002+ (no 0899), with the
-    /// introduction gate (COBOLNET0900) below 2002. The skeleton set that once held them is now empty.</summary>
-    [Theory]
     [InlineData("FLOAT-SHORT", Usage.FloatShort)]
     [InlineData("FLOAT-LONG", Usage.FloatLong)]
     [InlineData("FLOAT-EXTENDED", Usage.FloatExtended)]
-    public void ParseUsage_FloatTrio_LiveAt2002_IntroductionGatedAt85(string keyword, Usage expected)
-    {
-        var ok = Ed(2002);
-        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ok, "data item 'T'"));
-        Assert.False(ok.HasErrors, $"USAGE {keyword} must bind cleanly at 2002: {string.Join("; ", ok.Diagnostics)}");
-        var ed85 = Ed(85);
-        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed85, "data item 'T'"));
-        Assert.True(ed85.HasErrors, $"USAGE {keyword} is 2002+; 85 must reject");
-        Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
-    }
-
-    /// <summary>USAGE NATIONAL / BIT went LIVE at Phase 4a M2-DATA-3/4 (ISO §13.18.60.4 SR12/SR5): each maps
-    /// to its OWN <see cref="Usage"/> member silently at 2002+; below 2002 the introduction gate names the
-    /// edition (COBOLNET0900) — never the retired 0899 posture. (Picture conformance is Analyze's job; a
-    /// picture-LESS elementary entry is the group-fixup 0881.)</summary>
-    [Theory]
     [InlineData("NATIONAL", Usage.National)]
     [InlineData("BIT", Usage.Bit)]
-    public void ParseUsage_NationalBit_LiveAt2002_IntroductionGatedAt85(string keyword, Usage expected)
+    [InlineData("POINTER", Usage.Pointer)]
+    public void ParseUsage_Post85Keywords_MapCleanly_NoParseLayerGate(string keyword, Usage expected)
     {
-        var ok = Ed(2002);
-        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ok, "data item 'T'"));
-        Assert.False(ok.HasErrors, $"USAGE {keyword} must bind cleanly at 2002: {string.Join("; ", ok.Diagnostics)}");
-        var ed85 = Ed(85);
-        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed85, "data item 'T'"));
-        Assert.True(ed85.HasErrors, $"USAGE {keyword} is 2002+; 85 must reject");
-        Assert.Contains(ed85.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
+        foreach (int level in new[] { 85, 2002, 2014, 2023 })
+        {
+            var ed = Ed(level);
+            Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed, "data item 'T'"));
+            // NO parse-layer diagnostic at any edition — the below-2002 introduction gate is the pass's job now.
+            Assert.False(ed.HasErrors, $"USAGE {keyword} @ {level}: ParseUsage must be gate-free (14g.1): "
+                + string.Join("; ", ed.Diagnostics));
+        }
     }
 
     /// <summary>An unrecognized keyword (a compiler defect — the grammar admits nothing outside the map) is a
@@ -138,10 +88,14 @@ public sealed class LoudGuardTests
 
     // ── Analyze: the §13.18.40.3 SR2 whitelist — N / 1 / E gate loud; anything else is invalid ─────────────
 
+    /// <summary>The external-float PICTURE symbol E (ISO §13.18.40.4 GR13b) stays a PARSE-LAYER
+    /// <c>NotImplementedSkeleton</c> gate (Phase 6 / 14g.5) — its introduction gate (COBOLNET0900 at 85) still
+    /// fires from <c>Analyze</c>. The national (N) / boolean (1) category gates MOVED to the post-bind
+    /// <c>VersionConformancePass</c> data-attribute enumerator (Step 14g.1); they are verified there
+    /// (<c>UsageDataEditionTests</c>) + by the version matrix, and classify without a parse-layer diagnostic
+    /// (<see cref="Analyze_PicN_ClassifiesNational_UsageImplied"/> / <see cref="Analyze_Pic1_ClassifiesBoolean_UsageDisplay"/>).</summary>
     [Theory]
-    [InlineData("N(4)", "national")]     // category national, §8.5.2.10 / §13.18.40.4 GR9
-    [InlineData("1(8)", "boolean")]      // category boolean, §8.5.2.5 / §13.18.40.4 GR8
-    [InlineData("9V99E+99", "floating")] // external float, §13.18.40.4 GR13b
+    [InlineData("9V99E+99", "floating")] // external float, §13.18.40.4 GR13b — parse-layer skeleton gate
     public void Analyze_2002Symbol_0900At85_NamingCobol2002(string picture, string display)
     {
         var ed = Ed(85);

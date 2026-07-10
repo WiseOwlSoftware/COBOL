@@ -419,10 +419,8 @@ public sealed record PicInfo(
         {
             if (expanded.All(c => c is 'N'))
             {
-                // The introduction gate rides the PICTURE — EXCEPT when USAGE NATIONAL is explicit, where
-                // ParseUsage already fired it (avoid the duplicate COBOLNET0900 at <2002).
-                if (!(explicitUsage && usage is Usage.National))
-                    ConstructRegistry.Check(edition.Edition, edition, Constructs.NationalData2002, where);
+                // NationalData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
+                // GateData/GateReports enumerator (keyed on Pic.Category National); Step 14g.1.
                 if (explicitUsage && usage is not Usage.National)
                     edition.Error("COBOLNET0881", $"{where}: a national PICTURE (symbol N) admits only USAGE "
                         + $"NATIONAL, not {usage} (ISO §13.18.60.3 SR20; SR13a implies NATIONAL when no USAGE "
@@ -446,9 +444,8 @@ public sealed record PicInfo(
         {
             if (expanded.All(c => c is '1'))
             {
-                // As above: skip the gate when USAGE BIT/NATIONAL already fired it in ParseUsage.
-                if (!(explicitUsage && usage is Usage.Bit or Usage.National))
-                    ConstructRegistry.Check(edition.Edition, edition, Constructs.BooleanData2002, where);
+                // BooleanData2002 (the introduction gate) fires on the RESOLVED item in the VersionConformancePass
+                // GateData enumerator (keyed on Pic.Category Boolean); Step 14g.1.
                 switch (usage)
                 {
                     case Usage.Display or Usage.Bit:
@@ -634,46 +631,35 @@ public sealed record PicInfo(
             // the group-fixup pass (DataBinder.ResolveIndexItems — a group header legally sheds the usage to
             // its subordinates per §13.18.60.4 GR1).
             case "NATIONAL":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.NationalData2002, where);
                 return Usage.National;
             case "BIT":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.BooleanData2002, where);
                 return Usage.Bit;
             // USAGE POINTER — LIVE (Phase-4b increment 1): only the introduction gate remains (0900 below
             // 2002; the registry row is silent at 2002+), like OBJECT REFERENCE. The caller synthesizes
             // PicInfo.PointerItem (PICTURE-less, the IndexItem pattern).
             case "POINTER":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsagePointer2002, where);
                 return Usage.Pointer;
             // LIVE as of the Phase-3 OO spine: only the introduction gate remains (0900 below 2002 — the
             // registry row is silent at 2002+); the caller synthesizes PicInfo.ObjectReferenceItem with the
             // declared class name (PICTURE-less per §13.18.60.4, the IndexItem pattern).
             case "OBJECT REFERENCE":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsageObjectReference2002, where);
                 return Usage.ObjectReference;
             // The fixed-width binary usages — LIVE (Phase 4 M2-DATA-1): only the introduction gate remains
             // (0900 below 2002; the registry row is silent at 2002+, like POINTER / OBJECT REFERENCE). The
             // caller synthesizes PicInfo.BinaryItem (PICTURE-less per §13.16.3 SR8; the IndexItem pattern).
             case "BINARY-CHAR":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsageBinaryCharFamily2002, where);
                 return Usage.BinaryChar;
             case "BINARY-SHORT":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsageBinaryCharFamily2002, where);
                 return Usage.BinaryShort;
             case "BINARY-LONG":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsageBinaryCharFamily2002, where);
                 return Usage.BinaryLong;
             case "BINARY-DOUBLE":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsageBinaryCharFamily2002, where);
                 return Usage.BinaryDouble;
             case "FLOAT-SHORT":   // the implementor-defined float trio (§13.18.60.4 GR13) — LIVE (Phase 6a, D16)
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsageFloatShort2002, where);
                 return Usage.FloatShort;
             case "FLOAT-LONG":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsageFloatLong2002, where);
                 return Usage.FloatLong;
             case "FLOAT-EXTENDED":
-                ConstructRegistry.Check(edition.Edition, edition, Constructs.UsageFloatExtended2002, where);
                 return Usage.FloatExtended;
             case { } other:
                 // The grammar admits nothing else — reaching here is a compiler defect (a new grammar
