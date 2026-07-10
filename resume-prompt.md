@@ -29,7 +29,7 @@
 >
 > ⛔🏗 **GO-FORWARD SSOT (DEVLOG 665, 2026-07-07 — committed d455f56): the roadmap for ALL future work is now
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a COMPLETE, resumable, execution-grade **17-phase** plan taking the
-> compiler from its authoring-time baseline (DEVLOG 665: 2036 conformance · 213 unit — SINCE advanced to 3122 conformance · 223 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
+> compiler from its authoring-time baseline (DEVLOG 665: 2036 conformance · 213 unit — SINCE advanced to 3128 conformance · 223 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
 > + a selectable Roslyn↔CIL backend**. It **SUBSUMES the prior feature/ISO drive**: the remaining ISO features (M2 OO
 > residue, national/boolean, M3-2014, M4-2023, EC remnants, the version-gating audit) are now its **phases 09–14**, to
 > be landed ON the rearchitected foundation — NOT bolted onto the current code. **A NEW SESSION:** (1) read that plan's
@@ -92,7 +92,7 @@
 > FULL legacy guard **353 MATCH, 0 regressions**. Battery at head: greenfield conformance **3114** · unit 227 ·
 > characterization 32 GREEN. **⛔ PHASE-03 Step 14h DONE — the two-arm `VersionConformancePass` is BUILT and every
 > SYNTACTIC gate is migrated (14h.1–14h.5, DEVLOG 725–730, commits `b3f38cf6`→`6e9f3681`, all pushed + CI-green); Step
-> 14g.1 DONE (DEVLOG 732) — RESUME AT Step 14g.2.** Read the PHASE-03 doc's STATUS line for the full sub-step ledger; recon `wf_be806171-b25` drove
+> 14g.1 + 14g.2 DONE (DEVLOG 732–733) — RESUME AT Step 14g.3.** Read the PHASE-03 doc's STATUS line for the full sub-step ledger; recon `wf_be806171-b25` drove
 > 14h. **What 14h delivered:** 14a bind/emit split + the parse-arm foundation (14h.1 — `EditionValidator` ABSORBED into
 > `VersionConformancePass` as a nested `ParseArm` running POST-bind, the driver's pre-bind fail-fast DELETED,
 > `EditionValidator.cs` deleted) + the SYNTACTIC gate migration to the parse-arm on RECOGNITION (14h.2 self-identifying
@@ -107,7 +107,11 @@
 > `dotnet build CobolSharp.sln` before `dotnet test --no-build`** ([[feedback_fresh_build_before_no_build_test]] — a stale
 > test-bin compiler hid regressions locally). **✅ 14g.1 DONE (DEVLOG 732, `bf6fc5b5`) — the 8 PicInfo USAGE / PICTURE-
 > category gates moved to the bound-arm `GateData` enumerator over `DataBinder.ConformanceForest()` (dedup excludes
-> TYPE-clones + compiler temps; 8 exact-count witnesses). RESUME AT 14g.2.** **The DATA/PIC/OO gates DECISION-COMPLETE
+> TYPE-clones + compiler temps; 8 exact-count witnesses). ✅ 14g.2 DONE (DEVLOG 733) — the 4 data-description-clause
+> gates: TYPEDEF → bound-arm `GateData` (init-only `IsTypedef` survives declaration errors), BASED/TYPE/PROPERTY → 3
+> `ParseArm` overrides (carriers cleared/nulled during bind → the 724 drop); `DataClauseEditionTests` 6 witnesses;
+> byte-neutral (the sorted diag surface makes firing order moot — no snapshot re-baseline). RESUME AT 14g.3
+> (OO class/interface + OCCURS-DYNAMIC → parse-arm).** **The DATA/PIC/OO gates DECISION-COMPLETE
 > PLAN is in the PHASE-03 doc's STATUS block (recon `wf_0d98d218-087`).** ⚠ KEY FINDING: only ~12 of the ~30 gates are resolved-fact
 > fits for a new BOUND-arm `DataItem`/`FileModel`/`CallUnit` enumerator (the 8 PicInfo USAGE gates + FILE
 > SHARING/LOCK-MODE + TYPEDEF + FUNCTION-PROTOTYPE); the other ~18 (BASED/TYPE/PROPERTY, class/interface defs,

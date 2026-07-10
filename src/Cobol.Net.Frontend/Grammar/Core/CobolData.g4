@@ -218,7 +218,7 @@ dataDescriptionClause
     | syncClause
     | justifiedClause
     | blankWhenZeroClause
-    | propertyClause   // COBOL-2002; parses at all editions (superset), introduction-gated at BIND (DataBinder clause loop → Check(PropertyClause2002)) — residue migration #7. (The VALUE-list PROPERTY guards below are KEPT — they are value-operand disambiguation, not an edition gate.)
+    | propertyClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitPropertyClause (rearch 14g.2). (The VALUE-list PROPERTY guards below are KEPT — they are value-operand disambiguation, not an edition gate.)
     | externalClause
     | globalClause
     | typeClause
@@ -239,7 +239,7 @@ externalClause
 // BASED clause (COBOL-2002 §13.18.5) — level 01/77 only; the item is a template with an implicit
 // data-address pointer (initially NULL) and NO storage until SET ADDRESS OF / ALLOCATE gives it one.
 basedClause
-    : BASED   // introduction-gated at BIND time (DataBinder.BindEntry → Check(BasedClause2002))
+    : BASED   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitBasedClause (rearch 14g.2)
     ;
 
 // GLOBAL clause (§13.18.27) — visible to contained programs
@@ -252,14 +252,14 @@ globalClause
 // 2014→2023 change rows ⇒ it predates 2023). The 2002-vs-2014 refinement is blocked on the older standards
 // (roadmap decision 1 provisional policy; tests/version-matrix/constructs.json row type-clause-2002).
 typeClause
-    : TYPE IS? IDENTIFIER   // introduction-gated at BIND time (DataBinder.BindEntry → Check(TypeClause2002))
+    : TYPE IS? IDENTIFIER   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitTypeClause (rearch 14g.2)
     ;
 
 // TYPEDEF clause (ISO §13.18.58, COBOL-2002; data-model D17) — marks this data description entry as a TYPE
 // DECLARATION (a named template; it allocates no storage). STRONG (§13.18.58.2) makes the type strongly-typed.
 // LL-disjoint from externalClause/globalClause (IS? EXTERNAL | GLOBAL): the keyword after the optional IS differs.
 typedefClause
-    : IS? TYPEDEF STRONG?   // introduction-gated at BIND time (DataBinder.BindEntry → Check(TypedefDef2002))
+    : IS? TYPEDEF STRONG?   // introduction-gated post-bind by VersionConformancePass.GateData (bound-arm — init-only IsTypedef; rearch 14g.2)
     ;
 
 genericDataClause

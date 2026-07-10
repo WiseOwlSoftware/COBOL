@@ -1067,34 +1067,31 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (clause.pictureClause()?.PIC_STRING() is { } picTok)
                     pictureText = picTok.GetText();
                 else if (clause.basedClause() is not null)
-                {
-                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.BasedClause2002, "the BASED clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 5)
-                    isBased = true;   // validated below (§13.16 SR16 placement; the 0881 declaration band)
-                }
+                    // BASED (§13.18.5) validated below (§13.16 SR16 placement; the 0881 declaration band). The
+                    // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitBasedClause (14g.2,
+                    // recognition-based — IsBased is cleared for a LINKAGE item, so a bound-arm gate would drop it).
+                    isBased = true;
                 else if (clause.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                 else if (clause.typedefClause() is { } td)
-                {
-                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.TypedefDef2002, "the TYPEDEF clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 5)
-                    isTypedef = true; typedefStrong = td.STRONG() is not null;   // §13.18.58; D17
-                }
+                    // §13.18.58; D17. The COBOL-2002 introduction gate is VersionConformancePass.GateData (14g.2,
+                    // bound-arm — the init-only IsTypedef survives declaration errors, so a resolved fact is correct).
+                    { isTypedef = true; typedefStrong = td.STRONG() is not null; }
                 else if (clause.typeClause() is { } tc)
-                {
-                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.TypeClause2002, "the TYPE clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 5)
-                    typeRefName = tc.IDENTIFIER().GetText();   // TYPE IS type-name — cloned in ExpandTypes (D17)
-                }
+                    // TYPE IS type-name — cloned in ExpandTypes (D17). The COBOL-2002 introduction gate is
+                    // VersionConformancePass ParseArm.VisitTypeClause (14g.2, recognition-based — TypeRefName is
+                    // nulled by ExpandTypes during bind, so a bound-arm gate would drop it).
+                    typeRefName = tc.IDENTIFIER().GetText();
                 else if (clause.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
                 else if (clause.blankWhenZeroClause() is not null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
                 else if (clause.syncClause() is not null)
                     synchronized = true;   // SYNCHRONIZED/SYNC (ISO §13.18.55) — no-op here; gated on a GROUP <2023 (step 10)
-                else if (clause.propertyClause() is not null)
-                    // PROPERTY clause (§13.18.42, COBOL-2002 OO). Parses at all editions (the {is2002()}? predicate is
-                    // gone — superset); introduction-gated HERE where its identity is known, so below 2002 it is an exact
-                    // COBOLNET0900 instead of the deleted reverse-signature guess (residue migration #7). The OO
-                    // property SEMANTICS remain in DataBinder.Oo.OoBindPropertyClauses — this branch only gates.
-                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.PropertyClause2002, "the PROPERTY clause");
+                // PROPERTY clause (§13.18.42, COBOL-2002 OO): superset-parsed at every edition; its OO SEMANTICS bind
+                // independently in DataBinder.Oo.OoBindPropertyClauses (which reads the propertyClause node directly),
+                // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
+                // so the storage-clause loop needs no branch for it.
                 else if (clause.usageClause() is { } usage)
                 {
                     usageText = UsageKeyword(usage);

@@ -56,7 +56,7 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14g.2 (14a–14h DONE + 14g.1 DONE — the 8 PicInfo USAGE gates → the bound-arm GateData enumerator, DEVLOG 732 `bf6fc5b5`; RESUME AT 14g.2)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+`IN PROGRESS @ Step 14g.3 (14a–14h DONE + 14g.1 DONE + 14g.2 DONE — the 4 data-description-clause gates: TYPEDEF → bound-arm GateData, BASED/TYPE/PROPERTY → parse-arm, DEVLOG 733; RESUME AT 14g.3)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
 **⛔ Step 14h DONE (DEVLOG 725–729) — the parse-arm two-arm pass is built and every SYNTACTIC gate migrated.** The
 DEVLOG-724 root-cause fix landed as five byte-identical (well-formed) / strict-superset (malformed) sub-commits:
 **14h.1** (`b3f38cf6`, DEVLOG 725) — `EditionValidator` ABSORBED into `VersionConformancePass` as a nested `ParseArm`
@@ -202,14 +202,16 @@ complete. **Step 13** (`<pending push>`): `ReservedWordEditionHints` DELETED, th
 disposition relocated to `CobolErrorStrategy`. Each grammar change: FULL legacy guard **353 MATCH, 0 regressions**.
 Battery at head: greenfield conformance **3114** · unit **227** · characterization **32** GREEN.
 
-**RESUME AT: Step 14g — the DATA/PICTURE/OO gates.** ✅ **Step 14h is DONE** (14h.1–14h.4b, DEVLOG 725–729, pushed +
-CI-green): the two-arm `VersionConformancePass` is built — a PARSE-tree arm (`ParseArm`, the absorbed `EditionValidator`
-running post-bind) owns every SYNTACTIC introduction/removal/phrase/expression/literal gate + the §8.9 reserved-word
-funnel, firing on RECOGNITION (the DEVLOG-724 fix); the driver's pre-bind fail-fast is gone; `EditionValidator.cs` is
-deleted. **14g** moves the remaining ~30 bind-time DATA/PICTURE/OO gates into `VersionConformancePass` — but the recon
-(`wf_0d98d218-087`) proved only ~12 are resolved-fact fits for the BOUND-arm; ~18 must go to the PARSE-arm (see the
-DECISION-COMPLETE PLAN immediately below). Only UDF stays bind-time (documented exception). Then **Step 15 — phase
-close**: full battery + doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9); re-point
+**RESUME AT: Step 14g.3 — OO class/interface + OCCURS-DYNAMIC (→ parse-arm).** ✅ **Step 14h is DONE** (14h.1–14h.4b,
+DEVLOG 725–729, pushed + CI-green): the two-arm `VersionConformancePass` is built — a PARSE-tree arm (`ParseArm`, the
+absorbed `EditionValidator` running post-bind) owns every SYNTACTIC introduction/removal/phrase/expression/literal gate
++ the §8.9 reserved-word funnel, firing on RECOGNITION (the DEVLOG-724 fix); the driver's pre-bind fail-fast is gone;
+`EditionValidator.cs` is deleted. **14g** moves the remaining ~30 bind-time DATA/PICTURE/OO gates into
+`VersionConformancePass` — but the recon (`wf_0d98d218-087`) proved only ~12 are resolved-fact fits for the BOUND-arm;
+~18 must go to the PARSE-arm (see the DECISION-COMPLETE PLAN immediately below). ✅ **14g.1 DONE** (8 PicInfo USAGE gates
+→ bound-arm, DEVLOG 732). ✅ **14g.2 DONE** (the 4 data-description-clause gates: TYPEDEF → bound-arm `GateData`;
+BASED/TYPE/PROPERTY → parse-arm, DEVLOG 733; byte-neutral — the sorted diag surface makes firing order moot, no
+snapshot re-baseline). Only UDF stays bind-time (documented exception). Then **Step 15 — phase close**: full battery + doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9); re-point
 CheckOnly/EditionHarness/INV-1 legs (already true — all read the one sink; verify); grep-assert zero
 `ConstructRegistry.Check` outside the pass; fold in the Step-12(c) residual (refresh the migrated rows' stale
 `constructs.json` citations + grammar comments).
@@ -247,13 +249,18 @@ main `"data item '{CobolName ?? "FILLER"}'`" (hard-coded in `GateData`); report 
 PicInfo USAGE gates; `LoudGuardTests` rewritten off its direct `PicInfo.ParseUsage`/`Analyze` gate asserts; 8
 `UsageDataEditionTests` exact-count witnesses (one 0900/item; two distinct pointers → two 0900s; TYPEDEF member
 referenced twice → gated once). Battery: conformance 3122 · unit 223 · characterization 32 · INV-1 349/349 · guard
-353 MATCH. (⚠ the conformance suite is contains-based, blind to over-count — hence the exact-count witnesses.) —
-Remaining sub-commits: 14g.2 TYPEDEF (bound) + BASED/TYPE/PROPERTY (parse); 14g.3
+353 MATCH. (⚠ the conformance suite is contains-based, blind to over-count — hence the exact-count witnesses.)
+**14g.2 ✅ DONE (DEVLOG 733)** — the 4 data-description-clause gates: TYPEDEF → bound-arm `GateData` (init-only
+`IsTypedef` survives declaration errors + the misplaced-subordinate case); BASED/TYPE/PROPERTY → 3 `ParseArm` overrides
+(their carriers are cleared/nulled during bind — the 724 drop); the PROPERTY storage-loop branch deleted. New
+`DataClauseEditionTests` (6 exact-count witnesses); byte-neutral — the characterization diag surface is content-SORTED,
+so `char_neg_typedef85` stayed byte-identical (the predicted re-order was moot; NO 14g.6 re-baseline expected). Battery:
+conformance 3128 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
+Remaining sub-commits: 14g.3
 OO class/interface + OCCURS-DYNAMIC (parse); 14g.4 SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (bound) + PD
 RETURNING/RAISING (parse); 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
 raw-picture scan) — then grep-assert binder Check-count == the single `StatementBinder.Udf.cs` line; 14g.6 snapshot
-re-baseline (`char_neg_typedef85` re-orders — TypeClause parse-arm fires before TypedefDef bound-arm, intentional) +
-close. Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization + INV-1 + FULL
+re-baseline (only if a later sub-commit's diag surface changes — 14g.2 needed none) + close. Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization + INV-1 + FULL
 legacy guard. Full synthesis is in the recon transcript.
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
