@@ -56,7 +56,7 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14g (14a–14h DONE — the SYNTACTIC gate migration to the parse-arm is COMPLETE; RESUME AT 14g = the DATA/PIC/OO gates)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+`IN PROGRESS @ Step 14g.2 (14a–14h DONE + 14g.1 DONE — the 8 PicInfo USAGE gates → the bound-arm GateData enumerator, DEVLOG 732 `bf6fc5b5`; RESUME AT 14g.2)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
 **⛔ Step 14h DONE (DEVLOG 725–729) — the parse-arm two-arm pass is built and every SYNTACTIC gate migrated.** The
 DEVLOG-724 root-cause fix landed as five byte-identical (well-formed) / strict-superset (malformed) sub-commits:
 **14h.1** (`b3f38cf6`, DEVLOG 725) — `EditionValidator` ABSORBED into `VersionConformancePass` as a nested `ParseArm`

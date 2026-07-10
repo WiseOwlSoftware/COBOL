@@ -105,8 +105,10 @@
 > START-FIRST-LAST/START-WITH-LENGTH/READ-ADVANCING-ON-LOCK), and UDF stays a documented bind-time exception (intrinsic
 > vs user-function are syntactically identical — repository resolution required). **⚠ ALWAYS verify with a FRESH
 > `dotnet build CobolSharp.sln` before `dotnet test --no-build`** ([[feedback_fresh_build_before_no_build_test]] — a stale
-> test-bin compiler hid regressions locally). **RESUME AT 14g — the DATA/PIC/OO gates: a DECISION-COMPLETE PLAN is in the
-> PHASE-03 doc's STATUS block (recon `wf_0d98d218-087`).** ⚠ KEY FINDING: only ~12 of the ~30 gates are resolved-fact
+> test-bin compiler hid regressions locally). **✅ 14g.1 DONE (DEVLOG 732, `bf6fc5b5`) — the 8 PicInfo USAGE / PICTURE-
+> category gates moved to the bound-arm `GateData` enumerator over `DataBinder.ConformanceForest()` (dedup excludes
+> TYPE-clones + compiler temps; 8 exact-count witnesses). RESUME AT 14g.2.** **The DATA/PIC/OO gates DECISION-COMPLETE
+> PLAN is in the PHASE-03 doc's STATUS block (recon `wf_0d98d218-087`).** ⚠ KEY FINDING: only ~12 of the ~30 gates are resolved-fact
 > fits for a new BOUND-arm `DataItem`/`FileModel`/`CallUnit` enumerator (the 8 PicInfo USAGE gates + FILE
 > SHARING/LOCK-MODE + TYPEDEF + FUNCTION-PROTOTYPE); the other ~18 (BASED/TYPE/PROPERTY, class/interface defs,
 > OCCURS-DYNAMIC, SPECIAL-NAMES-FOR, PD RETURNING/RAISING, REPOSITORY, skeleton E/national-edited) must go to the

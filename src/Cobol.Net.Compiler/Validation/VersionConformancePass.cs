@@ -33,15 +33,15 @@ namespace CobolNet.Validation;
 /// these. No bound node carries a raw parse context — the <c>BoundTree.cs</c> invariant stands.</item>
 /// </list>
 /// The two arms are disjoint: a <c>Check</c> for any one construct fires from EXACTLY one arm, the losing site
-/// deleted as its twin lands. <b>Migration state (Step 14h in progress):</b> 14h.1 stood up the parse-arm
-/// (EditionValidator absorbed) + moved the driver's fail-fast post-bind; 14h.2 moved the SELF-IDENTIFYING
-/// statement gates (UNLOCK/FREE/ALTER/DELETE-FILE/SET-ADDRESS + ALLOCATE); 14h.3 moved the PHRASE statement gates
-/// (OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/CALL-ON-OVERFLOW/STOP-STATUS/END-ACCEPT); 14h.4a moved the clean
-/// expression/phrase gates (XOR/bare-GOTO/ROUNDED-MODE/RETRY/record-lock-verb); 14h.4b moved the boolean-operator +
-/// national/boolean LITERAL gates — COMPLETING the SYNTACTIC statement/expression migration, so the binder holds
-/// ZERO statement-level edition Checks. STILL bind-time pending migration: only the DATA / PICTURE / OO gates
-/// (DataBinder / PicInfo / OoClassTable / OdoModel → Step 14g, a bound-arm DataItem+FileModel enumerator). The one
-/// principled exception is the UDF-invocation gate (an intrinsic FUNCTION and a user-function call are
+/// deleted as its twin lands. <b>Migration state:</b> Step 14h (DONE) moved every SYNTACTIC statement/expression/
+/// literal gate + the §8.9 funnel to the parse-arm (14h.1 foundation → 14h.4b), so the binder holds ZERO
+/// statement-level edition Checks. Step 14g is relocating the DATA/PICTURE/OO gates: <b>14g.1 (DONE)</b> moved the 8
+/// PicInfo USAGE / PICTURE-category gates to the bound-arm <see cref="GateData"/> enumerator over
+/// <c>DataBinder.ConformanceForest()</c>. STILL bind-time pending: the data-description-clause gates (BASED/TYPE/
+/// PROPERTY → parse-arm), OO class/interface + OCCURS-DYNAMIC (→ parse-arm), SPECIAL-NAMES-FOR + file SHARING/
+/// LOCK-MODE (→ bound-arm) + PD RETURNING/RAISING (→ parse-arm), and FUNCTION-PROTOTYPE + REPOSITORY + skeleton
+/// E/national-edited (14g.2–14g.5; the plan is in the PHASE-03 doc). The one principled exception is the
+/// UDF-invocation gate (an intrinsic FUNCTION and a user-function call are
 /// syntactically identical — only the repository-resolved name set separates them), which stays BIND-TIME
 /// (<c>StatementBinder.Udf.cs</c>) where it already fires on recognition before operand binding.
 /// </remarks>
