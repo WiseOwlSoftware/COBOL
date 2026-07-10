@@ -88,8 +88,11 @@ internal sealed class VersionConformancePass
         {
             case BoundUnlock:
                 Check(Constructs.UnlockStatement2002, "the UNLOCK statement"); break;
-            case BoundAllocate:
-                Check(Constructs.Allocate2002, "the ALLOCATE statement"); break;
+            // NOTE: ALLOCATE (Allocate2002) is an INTRODUCTION gate that fires on the construct's RECOGNITION — it
+            // must fire even when binding errors before a BoundAllocate is produced (a below-2002 ALLOCATE with a
+            // bad RETURNING; EditionGateDiagnosticTests.Allocate_At85). A bound-arm node gate loses it on that error
+            // path, so it stays BIND-TIME (StatementBinder.Ptr.cs) until Step 14h moves ALL introduction gates to
+            // the presence-based post-bind PARSE-arm. Same for UDF (UserFunctionInvocation2002) below.
             case BoundFree:
                 Check(Constructs.Free2002, "the FREE statement"); break;
             case BoundSetObjectRef:
@@ -113,11 +116,9 @@ internal sealed class VersionConformancePass
             case BoundGoback { ReturningSource: not null }:
                 Check(Constructs.GobackReturning2002, "GOBACK … RETURNING"); break;
             case BoundCallProgram cp:
-                // A user-defined FUNCTION reference lowers to a hoisted BoundCallProgram (IsFunction) carrying the
-                // function name in LiteralName (§9.4 / §12.3.8, COBOL-2002). A regular CALL has IsFunction=false and
-                // no function name, so these arms are mutually exclusive per node.
-                if (cp.IsFunction)
-                    Check(Constructs.UserFunctionInvocation2002, $"FUNCTION {cp.LiteralName?.ToUpperInvariant()}");
+                // (UserFunctionInvocation2002 for a UDF reference is an INTRODUCTION gate that must fire on
+                // RECOGNITION even when the function is undefined — it stays BIND-TIME until Step 14h; see the
+                // ALLOCATE note above.)
                 // CALL … BY VALUE (§14.9.4). The binder fired once per explicit BY VALUE argument; the bound node
                 // keeps each argument's pass mode, so gate once when the CALL uses value passing (the argument
                 // list Any-check — the tested single-argument case is diagnostically identical).

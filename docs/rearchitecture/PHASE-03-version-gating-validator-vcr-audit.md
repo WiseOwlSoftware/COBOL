@@ -56,7 +56,17 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14g (14a–14f DONE)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+`IN PROGRESS @ Step 14g (14a–14f DONE; CI-red fix DEVLOG 724)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+**⚠ CI-RED FIX (DEVLOG 724) — a REAL FINDING that RESHAPES 14h: INTRODUCTION/removal gates fire on the construct's
+RECOGNITION (presence), NOT its bound node** — the bound-arm silently DROPS the 0900 whenever the construct binds to
+`BoundUnsupported`/`BoundNop` on a semantic error (below-edition + malformed). CI caught 2 (`ALLOCATE`, `UDF`); the same
+latent flaw affects the OTHER relocated intro/removal STATEMENT gates (UNLOCK-of-undeclared-file, OPEN-SHARING-of-undeclared,
+INVOKE, ALTER, DELETE FILE, SET-*, keyed-phrases, …), untested. **Immediate: `Allocate2002` + `UserFunctionInvocation2002`
+reverted to bind-time Check (byte-identical, CI green).** **14h ROOT-CAUSE FIX (revised): move ALL introduction/removal gates
+to the presence-based POST-BIND PARSE-ARM** (a parse-tree walk over `BoundRunUnit.Tree`, after bind — fires 0900 on syntactic
+presence, semantic errors also accumulate); only genuinely-semantic gates (MOVE-category, attribute phrases that ARE the
+construct) stay bound-arm. ALSO: **verify against a FRESH `dotnet build CobolSharp.sln` before `dotnet test --no-build`** —
+a stale test-bin compiler hid these locally.
 **Step 14e DONE (DEVLOG 722):** END-ACCEPT + INVOKE. **Step 14f DONE (DEVLOG 723):** MOVE-category (`GateMove`
 re-derives the SR5 classification) + UDF-invocation (hoisted `BoundCallProgram.IsFunction`) — the two genuinely-semantic
 statement gates; this completes the bound-arm STATEMENT-gate relocation. Remaining binder edition Checks: the DATA/PIC/OO

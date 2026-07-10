@@ -54,9 +54,15 @@ public sealed partial class StatementBinder
     /// result temporary, register the hoisted activation, and return the temp-reading expression.</summary>
     private BoundExpr UdfBindCall(string name, List<IToken> argTokens)
     {
-        // Introduction gate: user-defined functions are COBOL-2002+ (§9.4 / §12.3.8; 0900 below 2002). The gate
-        // moved to the post-bind VersionConformancePass (Step 14f), firing on the hoisted BoundCallProgram
-        // (IsFunction) this reference lowers to — its LiteralName carries the function name for the where-string.
+        // INTRODUCTION gate: user-defined functions are COBOL-2002+ (§9.4 / §12.3.8; 0900 below 2002). It fires on
+        // RECOGNITION — a below-2002 UDF reference is an edition violation independent of whether the function is
+        // DEFINED (a locate miss is 1505 / EC-FUNCTION-NOT-FOUND). A bound-arm gate on the hoisted BoundCallProgram
+        // loses it when the reference errors before the hoist (UdfInvocationTests.BinderGate_0900_At85), so it stays
+        // BIND-TIME here until Step 14h moves ALL introduction gates to the presence-based post-bind parse-arm
+        // (CI-red fix, 2026-07-09).
+        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.UserFunctionInvocation2002,
+            $"FUNCTION {name.ToUpperInvariant()}");
+
         if (UserFunctions is null || !UserFunctions.TryGetValue(name, out var fn))
         {
             data.Edition.Error("COBOLNET1505",
