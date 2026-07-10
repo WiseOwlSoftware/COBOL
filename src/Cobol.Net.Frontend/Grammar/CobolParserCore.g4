@@ -13,104 +13,18 @@ options {
 // completely disjoint grammar rules — zero ambiguity.
 tokens { ZERO_ARITH }
 
-import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen;
+import CobolExpressions, CobolData, CobolSpecialNames, CobolReportWriter, CobolIO, CobolControlFlow, CobolOO, CobolScreen, CobolWords;
 
 // ==========================================
 // CONTEXT-SENSITIVE KEYWORDS
 // ==========================================
-// Tokens that have special meaning in specific contexts but are NOT COBOL-85
-// reserved words, so they may also appear as user-defined names (data names,
-// file names, paragraph names, etc.). Any token promoted from IDENTIFIER to
-// a dedicated lexer token must be listed here to remain usable as a name.
-cobolWord
-    : IDENTIFIER
-    | LENGTH       // context: START WITH LENGTH, FUNCTION LENGTH
-    | NATIONAL     // context: FOR NATIONAL
-    | BIT          // context: USAGE BIT
-    | NORMAL       // context: STOP RUN WITH NORMAL
-    | PARSE        // context: JSON/XML PARSE (2014+); a legal user word everywhere else
-    | PROCESSING   // context: XML PARSE … PROCESSING PROCEDURE (2014+); a legal user word everywhere else
-    // EC exception-model words (2002+, ISO §14.6.13 family) — context-sensitive, legal user words at every
-    // edition (the version-matrix continuity invariant; each is mirrored in the lexer _dataNameTokens set):
-    | RAISE        // context: RAISE statement (§14.9.29)
-    | RAISING      // context: GOBACK/EXIT … RAISING, PD-header RAISING (§14.9.18 / §14.2)
-    | RESUME       // context: RESUME statement (§14.9.33)
-    | STATEMENT    // context: RESUME AT NEXT STATEMENT (§14.9.33)
-    | CONDITION    // context: USE AFTER EXCEPTION CONDITION (§14.9.49 F3)
-    | EC           // context: USE AFTER EC (§14.9.49.3 SR12)
-    | EO           // context: USE AFTER EO (§14.9.49.3 SR15; EC-OO wave) — a user word at every edition
-    // The 2023 logical-operator words (Annex E.2 item 25; VCR rows 32/41 — the W3 XOR regating): user-defined
-    // words below 2023 (the operator is {is2023()}?-gated in CobolExpressions.g4); the §8.9 funnel rejects
-    // them 0901 at 2023 (both are high-confidence table rows). Mirrored in the lexer _dataNameTokens set.
-    | XOR          // context: the logical exclusive-or operator (2023, §8.8.4.9)
-    | EXCLUSIVE_OR // context: = XOR (2023, §8.8.4.9)
-    // The 2002 BOOLEAN operators (ISO §8.7.2): user-defined words at 85, funnel-0901'd at ≥2002. Keyword
-    // occurrences parse ONLY through the {is2002()}?-gated booleanExpression tiers (CobolExpressions.g4),
-    // never a name slot — so they are position-safe in the §8.9 funnel (the XOR argument). Mirrored in
-    // the lexer _dataNameTokens set.
-    | B_AND        // context: boolean conjunction operator (2002, §8.7.2)
-    | B_OR         // context: boolean inclusive-or operator (2002, §8.7.2)
-    | B_XOR        // context: boolean exclusive-or operator (2002, §8.7.2)
-    | B_NOT        // context: boolean negation operator (2002, §8.7.2)
-    // The 2002 file-sharing / record-locking words: user words at 85, funnel-0901'd ≥2002 for the three §8.9
-    // words (SHARING/RETRY/UNLOCK); the six §8.10 words (MANUAL/AUTOMATIC/IGNORING/FOREVER/SECONDS/ONLY) stay
-    // user-legal at all editions. Keyword occurrences parse only through the {is2002()}?-gated sharing/lock
-    // rules (CobolIO.g4) — never a name slot.
-    | SHARING | RETRY | UNLOCK
-    | MANUAL | AUTOMATIC | IGNORING | FOREVER | SECONDS | ONLY
-    // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18 — the W3 batch): each
-    // parses through its own dedicated rule (rerunClause / enterStatement / the USE FOR DEBUGGING format /
-    // the section-header segment-number), never a name slot, so they are position-safe in the §8.9 funnel
-    // (CheckedTokenTypes). '85-reserved; user-defined words at the editions where the funnel frees them
-    // (RERUN/ENTER ≥2002, DEBUGGING ≥2014, the rest ≥2023 per ReservedWords.Table). Mirrored in the lexer
-    // _dataNameTokens set.
-    | OVERRIDE     // context: the METHOD-ID attribute slot (§11.7, 2002+; a direct token there, never a name slot — position-safe); '85 user word, 0901 >=2002 (ReservedWords.Table)
-    | GET          // context: METHOD-ID GET PROPERTY (§11.7, 2002+); '85 user word, 0901 >=2002
-    | PROPERTY     // context: the PROPERTY clause / selector / repository specifier (2002+); '85 user word, 0901 >=2002
-    | INTERFACE    // context: END INTERFACE / repository INTERFACE specifier (2002+); '85 user word, 0901 >=2002
-    | IMPLEMENTS   // context: the FACTORY/OBJECT IMPLEMENTS clause (§11.8) — §8.10 CONTEXT-SENSITIVE: a user word at EVERY edition (never funneled)
-    | FACTORY      // context: the FACTORY paragraph (§11.4, 2002+; keyword occurrences parse only via factoryParagraph/END FACTORY/FACTORY OF — position-safe in the funnel); '85 user word, 0901 >=2002 (ReservedWords.Table)
-    | PROTOTYPE    // context: FUNCTION-ID … IS PROTOTYPE (§11.5, 2002+; the keyword occurs only in the functionIdParagraph tail — position-safe in the funnel); '85 user word, 0901 >=2002 (ReservedWords.Table)
-    | RERUN        // context: the I-O-CONTROL RERUN clause ('85; row 7.15)
-    | ENTER        // context: the ENTER statement ('85; row 7.16)
-    | EVERY        // context: RERUN … EVERY ('85; row 7.15)
-    | CLOCK_UNITS  // context: RERUN … EVERY n CLOCK-UNITS ('85; row 7.15)
-    | DEBUGGING    // context: USE FOR DEBUGGING ('85; row 7.17)
-    | REFERENCES   // context: USE FOR DEBUGGING ON ALL REFERENCES OF ('85; row 7.17)
-    | PROCEDURES   // context: USE FOR DEBUGGING ON ALL PROCEDURES ('85; row 7.17)
-    // Screen-related tokens that may be used as data names in non-screen contexts
-    | AUTO
-    | BELL
-    | BLINK
-    | COL
-    | COLUMN
-    | EOL
-    | EOS
-    | ERASE
-    | FULL_
-    | HIGHLIGHT
-    | LOWLIGHT
-    | REQUIRED
-    | SCREEN
-    | SECURE
-    | UNDERLINE_
-    // OPTIONS-paragraph context-sensitive words (ISO §11.9): reserved only inside OPTIONS, legal data-names
-    // elsewhere. Each MUST also be mirrored in the lexer _dataNameTokens set (CobolLexer.g4) so a subscripted
-    // use triggers SUBSCRIPT mode.
-    | ARITHMETIC
-    | DEFAULT
-    | INTERMEDIATE
-    | ROUNDING
-    | STANDARD_BINARY
-    | STANDARD_DECIMAL
-    | ENTRY_CONVENTION
-    | FLOAT_BINARY
-    | FLOAT_DECIMAL
-    | HIGH_ORDER_LEFT
-    | HIGH_ORDER_RIGHT
-    | BINARY_ENCODING
-    | DECIMAL_ENCODING
-    ;
+// The cobolWord rule — tokens that have special meaning in specific contexts but are NOT COBOL-85 reserved
+// words, so they may also appear as user-defined names — is GENERATED into the imported grammar
+// Grammar/Core/CobolWords.g4 from tests/version-matrix/cobol-words.json (the nameSlot=true rows) by
+// scripts/gen-cobol-words.ps1 (rearchitecture PHASE 04, Group A). It is single-sourced with the lexer
+// subscript-trigger set (Parsing/CobolLexerWordSet.g.cs) and cross-checked by CobolWordsDriftTests, so the
+// three former hand-synced copies (this rule, the lexer _dataNameTokens set, and the §8.9 ReservedWords table)
+// can no longer silently desync. Do NOT re-add the rule here: edit cobol-words.json and re-run the generator.
 
 // ==========================================
 // ERROR RECOVERY

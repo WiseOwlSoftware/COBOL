@@ -13,63 +13,17 @@ options {
 
     // SUBSCRIPT MODE TRIGGER: whitelist approach.
     //
-    // In COBOL, '(' after a data-name means subscript/reference-modification.
-    // '(' after anything else means arithmetic grouping (e.g., IF (A + B) > C).
+    // In COBOL, '(' after a data-name means subscript/reference-modification; '(' after anything else means
+    // arithmetic grouping (e.g., IF (A + B) > C). The whitelist is IDENTIFIER plus every context-sensitive
+    // keyword that can appear as a user-defined data-name. Safe failure mode: a token missing from the set makes
+    // the parser see LPAREN/RPAREN (arithmetic) instead of SUBSCRIPT-mode tokens — a clear parse error on the
+    // first subscripted use.
     //
-    // This set contains IDENTIFIER plus every context-sensitive keyword that can
-    // appear as a user-defined data-name. It MUST mirror the parser's cobolWord
-    // rule in CobolParserCore.g4. When adding a token to cobolWord, add it here.
-    //
-    // Safe failure mode: if a token is missing from this set, the parser gets
-    // LPAREN/RPAREN (arithmetic) instead of SUBSCRIPT-mode tokens, producing a
-    // clear parse error on the first subscripted use. Easy to diagnose and fix.
-    //
-    // Why whitelist over blacklist: the data-name set is small (~20 tokens) and
-    // stable. The non-data-name set is large (~200 tokens) and any omission
-    // causes silent wrong behavior. Whitelist matches COBOL semantics exactly.
-    private static readonly System.Collections.Generic.HashSet<int> _dataNameTokens = new() {
-        IDENTIFIER,
-        // Context-sensitive keywords (mirrors cobolWord in CobolParserCore.g4):
-        LENGTH, NATIONAL, NORMAL, PARSE, PROCESSING,
-        // EC exception-model words (ISO §14.6.13 / §14.9.29 / §14.9.33 / §14.9.49 F3, 2002+) — context-sensitive,
-        // legal user words at every edition (the cobolWord continuity guarantee):
-        RAISE, RAISING, RESUME, STATEMENT, CONDITION, EC, EO,
-        // The 2023 logical-operator words (Annex E.2 item 25; the W3 XOR regating) — user words below 2023:
-        XOR, EXCLUSIVE_OR,
-        // The 2002 boolean operators (ISO §8.7.2) — user words below 2002; the operator meaning is gated in
-        // the expression tiers. Must be in the whitelist so `01 B-AND PIC 9.` triggers SUBSCRIPT mode at 85.
-        B_AND, B_OR, B_XOR, B_NOT,
-        // The 2002 file-sharing / record-locking words (ISO §12.4.5/§14.7.9/§14.9.x) — user words below 2002
-        // (SHARING/RETRY/UNLOCK) or at every edition (the §8.10 context-sensitive six); admitted so
-        // `01 SHARING PIC X.` / `01 MANUAL PIC 9.` trigger SUBSCRIPT mode.
-        SHARING, RETRY, UNLOCK, MANUAL, AUTOMATIC, IGNORING, FOREVER, SECONDS, ONLY,
-        // The X3.23-1985 notInGrammar 85-acceptance words (VCR Table 7 rows 7.15–7.18) — '85-reserved,
-        // user words at the editions where the §8.9 funnel frees them:
-        RERUN, ENTER, EVERY, CLOCK_UNITS, DEBUGGING, REFERENCES, PROCEDURES,
-        // FACTORY (ISO §11.4, reserved 2002+ per §8.9): a legal user data name at COBOL-85 — the funnel
-        // 0901s it at 2002+ (ReservedWords.Table row; the OO FACTORY slice, DEVLOG 604):
-        FACTORY,
-        // OVERRIDE (ISO §11.7 method attribute, reserved 2002+ per §8.9): user data name at 85 —
-        // the funnel 0901s it at 2002+ (the OVERRIDE/FINAL wave, DEVLOG 605):
-        OVERRIDE,
-        // PROTOTYPE (ISO §11.5 FUNCTION-ID … IS PROTOTYPE, reserved 2002+ per §8.9): user data name at 85 —
-        // the funnel 0901s it at 2002+ (the UDF-3 function-prototype wave):
-        PROTOTYPE,
-        // The INTERFACE/PROPERTY wave (DEVLOG 606): GET/PROPERTY/INTERFACE are §8.9-reserved 2002+ (user
-        // words at 85 — funnel rows exist); IMPLEMENTS is §8.10 CONTEXT-SENSITIVE (a user word at EVERY
-        // edition — cobolWord always, never CheckedTokenTypes):
-        GET, PROPERTY, INTERFACE, IMPLEMENTS,
-        // Intrinsic function names that collide with reserved words
-        // (mirrors functionName in CobolExpressions.g4):
-        DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM,
-        // Screen-related tokens usable as data names:
-        AUTO, BELL, BLINK, COL, COLUMN, EOL, EOS, ERASE,
-        FULL_, HIGHLIGHT, LOWLIGHT, REQUIRED, SCREEN, SECURE, UNDERLINE_,
-        // OPTIONS-paragraph context-sensitive words (ISO §11.9) — reserved only inside OPTIONS:
-        ARITHMETIC, DEFAULT, INTERMEDIATE, ROUNDING,
-        STANDARD_BINARY, STANDARD_DECIMAL, ENTRY_CONVENTION, FLOAT_BINARY, FLOAT_DECIMAL,
-        HIGH_ORDER_LEFT, HIGH_ORDER_RIGHT, BINARY_ENCODING, DECIMAL_ENCODING,
-    };
+    // The set (_dataNameTokens) is GENERATED into Parsing/CobolLexerWordSet.g.cs from
+    // tests/version-matrix/cobol-words.json (the subscriptTrigger=true rows) by scripts/gen-cobol-words.ps1
+    // (rearchitecture PHASE 04, Group A) — single-sourced with the parser cobolWord rule (Grammar/Core/CobolWords.g4)
+    // and cross-checked by CobolWordsDriftTests, retiring the by-hand "mirror cobolWord" discipline this comment
+    // used to instruct. Do NOT hand-add a token here: edit cobol-words.json and re-run the generator.
 
     private bool PreviousTokenCouldBeDataName()
         => _dataNameTokens.Contains(_lastNonWsTokenType);

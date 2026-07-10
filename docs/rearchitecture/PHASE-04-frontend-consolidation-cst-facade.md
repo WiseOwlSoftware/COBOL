@@ -27,11 +27,23 @@
 > `DESIGN-frontend-grammar.md` (and possibly `DESIGN-binder-bound-tree.md`) before execution — author it then.
 
 ## STATUS
-`IN PROGRESS @ GROUP A, Step A1 (recon done — the word-set extraction/reconciliation is complete; RESUME by authoring cobol-words.json)` (2026-07-10)
+`IN PROGRESS @ GROUP B (GROUP A DONE — A5 landed 2026-07-10, DEVLOG 743: word set single-sourced from cobol-words.json + drift-guarded, byte-neutral)` (2026-07-10)
 <!-- The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`.
      Keep a one-line note per completed commit boundary in the "Execution log" at the bottom. -->
 
-> **⛔ RESUME POINT (2026-07-10) — PRECONDITIONS + GROUP-A RECON DONE; execute A1→A5 next.** Depends: PHASE 03 ✅ CLOSED
+> **✅ GROUP A DONE (A5 landed 2026-07-10, DEVLOG 743).** The word set is single-sourced from
+> `tests/version-matrix/cobol-words.json` (77 rows) → `scripts/gen-cobol-words.ps1` emits `Grammar/Core/CobolWords.g4`
+> (the imported `cobolWord` fragment) + `Parsing/CobolLexerWordSet.g.cs` (the `_dataNameTokens` partial); the hand-written
+> `cobolWord` rule + the lexer `_dataNameTokens` HashSet are deleted; `CobolWordsDriftTests` (×4) binds parser rule +
+> runtime lexer set + reserved-words. Byte-neutral: `.tokens` byte-identical (incl. a cold clean+regen), generated sets ==
+> pre-flip sets (independent re-parse), conformance 3157 · unit 227 · characterization 32 byte-exact · legacy guard **353
+> MATCH / ALL GREEN / 0 regressions**. Adversarial review (wf_16cc83d1-1cc) found + FIXED a false-green drift-guard gap
+> (added the symmetric `subscriptTrigger`-only exact pin; mutation-proven). Reserved-words cross-check DEVIATION recorded
+> (Step A2 item 4). **⛔ RESUME AT: GROUP B** (share SUBSCRIPT/DEFAULT literal token bodies via `fragment` rules; commit
+> boundary B1) — then Group C (the `Cst/` façade), then re-assess Group D against the P3 two-arm pass. NEVER re-introduce
+> an edition predicate.
+>
+> **(historical — Group-A recon, now executed)** Depends: PHASE 03 ✅ CLOSED
 > (the version-conformance pipeline is LIVE; DEVLOG 741). §1 preconditions ALL PASS: P1 done (generated ns
 > `CobolNet.Frontend.Generated`, dead grammars + JSON/XML removed), P2 done (`Cobol.Net.Editions` present), the proven
 > `gen-reserved-words.ps1` + `ReservedWordsDriftTests` + `reserved-words.json` codegen pattern exists to EXTEND. Neutrality
@@ -322,10 +334,21 @@ It:
        };
    }
    ```
-4. **Cross-checks** against `tests/version-matrix/reserved-words.json`: for any word that is a lexer token AND
-   present in the reserved-words table, assert consistency of the intent (a `subscriptTrigger=true` word must be
-   a legitimate user-word at ≥1 edition per the reserved-words flags, else fail — mirrors the reserved-words
-   sanity gates). Fail-hard on any inconsistency (`$ErrorActionPreference='Stop'`, `throw`), never silently emit.
+4. **Reconciliation pins + reserved-words cross-check** against `tests/version-matrix/reserved-words.json`. Fail-hard
+   on any inconsistency (`$ErrorActionPreference='Stop'`, `throw`), never silently emit.
+   > **⚠ AS-BUILT DEVIATION (DEVLOG 743, recorded per process rule 4).** The originally-planned predicate here —
+   > *"a `subscriptTrigger=true` word must be a legitimate user-word at ≥1 edition, else fail"* — is **UNSOUND**
+   > against the actual data and was NOT implemented: (a) the six `subscriptTrigger`-only `functionName`-collision
+   > words (`DISPLAY/MERGE/RANDOM/SIGN/SORT/SUM`) are RESERVED keywords at every edition (not user words); and (b) two
+   > `nameSlot` words (`COLUMN`, `LENGTH`) — plus `SCREEN` — are §8.9-reserved at all four editions yet appear in
+   > `cobolWord` (syntactically admitted; the §8.9 funnel makes the semantic rejection). The generator + drift test
+   > instead enforce the SOUND checks that hold, made SYMMETRIC after the adversarial review (DEVLOG 743) flagged a
+   > false-green gap: **exact pins** on BOTH asymmetry sides (`nameSlot`-only == `{BIT}`; `subscriptTrigger`-only ==
+   > the six functionName collisions) so a one-sided flip of a currently-shared word is drift; plus **RW-1** (every
+   > `subscriptTrigger`-only word maps to a 2023-reserved entry). The `nameSlot`-only pin alone was insufficient —
+   > flipping a shared+reserved word (`COLUMN`/`LENGTH`/`SCREEN`) to `nameSlot=false` would drop its cobolWord
+   > admission yet pass RW-1 (still reserved); the `subscriptTrigger`-only pin closes it. Rationale in the
+   > `gen-cobol-words.ps1` header + the drift-test XML-doc.
 5. Reports **counts only** (respect the DEVLOG-578/585 content-filter rule — never print a word list into the
    conversation stream).
 
@@ -834,8 +857,12 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
 ---
 
 ## 8. Execution log (the executing session appends one line per commit boundary)
+- **A5 (word set single-sourced) — 2026-07-10 — DEVLOG 743.** `.tokens` byte-identical (incl. cold clean+regen);
+  generated `cobolWord`/`_dataNameTokens` sets == pre-flip (independent re-parse); conformance 3157 · unit 227 (+4 drift)
+  · characterization 32 byte-exact · legacy guard **353 MATCH / ALL GREEN / 0 regressions**. Adversarial review
+  (wf_16cc83d1-1cc) found + fixed a false-green drift-guard gap (symmetric `subscriptTrigger`-only pin, mutation-proven).
+  Reserved-words cross-check DEVIATION recorded (Step A2 item 4). FU-1 asymmetries captured AS-IS.
 <!--
-- A5 (word set single-sourced) — <date> — .tokens identical, battery green, commit <sha>
 - B1 (fragment dedup)          — <date> — .tokens identical, battery green, commit <sha>
 - C3 (Cst façade + anchors)    — <date> — guard ALL GREEN, .g.cs identical, commit <sha>
 - D  (superset + construct-id annotation) — <date> — battery green, no edition predicates, commit <sha>

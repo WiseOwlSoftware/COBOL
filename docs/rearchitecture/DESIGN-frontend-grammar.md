@@ -511,6 +511,16 @@ generated fragments into the lexer/parser, delete the hand-maintained HashSet + 
 full parse of the conformance corpus prove byte-identical tokenization. Highest-value dedup; medium risk
 (tokenization changes are wide) — land it alone, guard-fast + full guard.
 
+> **✅ AS-BUILT (PHASE-04 A5, 2026-07-10, DEVLOG 743).** Landed. Two deviations from the sketch above/§3.3a:
+> (1) the lexer subscript-trigger set is emitted as a committed **`Parsing/CobolLexerWordSet.g.cs`** (`partial class
+> CobolLexer`, NOT under `Generated/` so `dotnet clean` keeps it), NOT the proposed `Generated/CobolWords.lexerset.g4`
+> — ANTLR has no portable `@members` text-include and the set references token-type `int` constants on the generated
+> lexer, so a partial `.cs` is the minimal buildable form (rationale in the PHASE-04 doc's Step-A2 design note). The
+> parser `cobolWord` IS a generated imported fragment `Grammar/Core/CobolWords.g4`. (2) The reserved-words cross-check
+> is RW-1 (subscriptTrigger-only word ⇒ 2023-reserved) + exact reconciliation pins on BOTH asymmetry sides, NOT the
+> planned "user-legal at ≥1 edition" predicate (unsound — COLUMN/LENGTH/SCREEN are reserved yet name-slot-admitted).
+> Byte-neutral, `.tokens` byte-identical, full legacy guard 353 MATCH.
+
 **M6 — `Cobol.Net.Editions` extraction.** (Coordinated with DESIGN-edition-framework.md — that doc owns it; the
 frontend's part is to consume `EditionInfo`/`ConstructRegistry`/`EditionSeverityPolicy` and delete the
 preprocessor metadata/severity copies.) Verify: version-matrix accept/reject unchanged across all four

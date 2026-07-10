@@ -83,23 +83,26 @@
 > INV-1-strong 349/349 · FULL legacy guard NIST 353 MATCH. Carried-forward (NOT a P3 blocker): the flagged latent OO-env
 > double/zero-bind (DEVLOG 738 — a dedicated fix, likely in PHASE 09).
 >
-> ⛔🏗 **NOW EXECUTING: PHASE 04 — FRONTEND CONSOLIDATION (IN PROGRESS @ Group A, Step A1; DEVLOG 742).** Read the phase
-> doc `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md` — its STATUS block holds the RESUME POINT +
-> the completed Group-A recon. A byte-neutral refactor in 4 groups: **A** single-source the context-sensitive word set
-> (generate the lexer `_dataNameTokens` + parser `cobolWord` from `tests/version-matrix/cobol-words.json`, extending the
-> proven `gen-reserved-words.ps1`/`ReservedWordsDriftTests` pattern); **B** share SUBSCRIPT/DEFAULT literal token bodies
-> via `fragment` rules; **C** typed `Cst/` façade over the ANTLR contexts + migrate the 2 anchor consumers
-> (`ReferenceResolver`, `DataBinder.BindEntry`); **D** version-conformance leg (⚠ LIKELY SUPERSEDED by the P3 two-arm
-> pass — re-assess when reached). Plus the **D10 owner override**: FULLY REMOVE the SUBSCRIPT lexer mode + the binder
-> subscript re-parse (a sequenced sub-track with its own before/after characterization proof — likely needs a fresh
-> design note in `DESIGN-frontend-grammar.md` first). **DONE:** §1 preconditions verified (P1/P2 complete; proven codegen
-> pattern present), `.tokens` baseline at `/e/tmp/CobolLexer.tokens.baseline` (951 lines), and the **Group-A Step-A1
-> extraction/reconciliation** — the word set is **77 words** with the exact predicted asymmetries: `BIT` nameSlot-only,
-> `DISPLAY/MERGE/RANDOM/SIGN/SORT/SUM` subscriptTrigger-only, 70 in both (captured AS-IS; FU-1). **RESUME:** author
-> `cobol-words.json` (77 rows) → `gen-cobol-words.ps1` → `CobolWordsDriftTests` → flip lexer+parser → verify `.tokens`
-> byte-identical + FULL legacy guard + name-slot smoke probe → COMMIT A5. Groups A–C are behavior-neutral (full battery +
-> legacy guard green at every commit boundary); NEVER re-introduce an edition predicate (only the two P3 forward-detects
-> survive). Design source: `docs/rearchitecture/DESIGN-frontend-grammar.md`.
+> ⛔🏗 **NOW EXECUTING: PHASE 04 — FRONTEND CONSOLIDATION (IN PROGRESS @ Group B; Group A ✅ DONE — A5 landed 2026-07-10,
+> DEVLOG 743).** Read the phase doc `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md` — its STATUS block
+> holds the RESUME POINT. A byte-neutral refactor in 4 groups: **A** ✅ single-source the context-sensitive word set
+> (DONE); **B** share SUBSCRIPT/DEFAULT literal token bodies via `fragment` rules; **C** typed `Cst/` façade over the ANTLR
+> contexts + migrate the 2 anchor consumers (`ReferenceResolver`, `DataBinder.BindEntry`); **D** version-conformance leg
+> (⚠ LIKELY SUPERSEDED by the P3 two-arm pass — re-assess when reached). Plus the **D10 owner override**: FULLY REMOVE the
+> SUBSCRIPT lexer mode + the binder subscript re-parse (a sequenced sub-track with its own before/after characterization
+> proof — likely needs a fresh design note in `DESIGN-frontend-grammar.md` first). **✅ GROUP A DONE:** the word set is
+> single-sourced from `tests/version-matrix/cobol-words.json` (77 rows) → `scripts/gen-cobol-words.ps1` emits
+> `Grammar/Core/CobolWords.g4` (the imported `cobolWord` fragment) + `Parsing/CobolLexerWordSet.g.cs` (the `_dataNameTokens`
+> partial); the hand-written `cobolWord` rule + the lexer HashSet are deleted; `CobolWordsDriftTests` (×4) binds the three
+> consumers. Byte-neutral proven: `.tokens` byte-identical (incl. cold clean+regen); generated sets == pre-flip
+> (independent re-parse); conformance 3157 · unit 227 (+4 drift) · characterization 32 byte-exact · legacy guard **353
+> MATCH / ALL GREEN / 0 regressions**. Adversarial review (wf_16cc83d1-1cc) found + FIXED a false-green drift-guard gap
+> (symmetric `subscriptTrigger`-only exact pin, mutation-proven); reserved-words cross-check DEVIATION recorded (the
+> plan's "user-legal at ≥1 edition" predicate is unsound — COLUMN/LENGTH/SCREEN are reserved-yet-name-slot-admitted). FU-1
+> asymmetries (`BIT` nameSlot-only; `DISPLAY/MERGE/RANDOM/SIGN/SORT/SUM` subscriptTrigger-only) captured AS-IS + now pinned.
+> **⛔ RESUME AT: GROUP B** (Step B1 — the shared literal `fragment` rules `STR_BODY`/`NAT_BODY`/`BOOL_BODY`/`INT_BODY`/
+> `DEC_BODY`/`NAME_BODY`; `.tokens` byte-identity + FULL legacy guard, commit boundary B1). Groups A–C are behavior-neutral;
+> NEVER re-introduce an edition predicate (only the two P3 forward-detects survive). Design: `DESIGN-frontend-grammar.md`.
 >
 > — (Phase-03 background) P3 made edition conformance a single coherent pipeline:
 > **superset parse** (all constructs parse at every `--std`; each version-gated grammar rule carries a committed-match
