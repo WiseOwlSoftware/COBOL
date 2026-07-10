@@ -9,7 +9,8 @@
 > [`DESIGN-binder-bound-tree.md`](DESIGN-binder-bound-tree.md). SSOT for settled invariants stays `docs/COBOLNET_DESIGN.md`.
 
 > ⚠ **AS-BUILT REFINEMENT (2026-07-09, DEVLOG 718–729 — supersedes the `.Syntax`-back-reference mechanism below where
-> they conflict; Step 14h COMPLETE, 14h.1–14h.4b).** Execution abandoned the "bound nodes carry a
+> they conflict; Step 14h COMPLETE [14h.1–14h.5]; Step 14g IN PROGRESS [14g.1 DONE — the 8 PicInfo USAGE gates → the
+> bound-arm GateData enumerator]).** Execution abandoned the "bound nodes carry a
 > `.Syntax` back-reference" mechanism (§1 diagram, §2.2, §2.4, §5 Stage 3, §6): **NO `.Syntax`/raw parse context is
 > added to any bound node — the `BoundTree.cs` invariant STANDS.** The pass is **TWO-ARM** (built in `VersionConformancePass.cs`):
 > (1) a BOUND-tree arm that re-identifies gates by bound-node TYPE or a resolved semantic ATTRIBUTE (used for

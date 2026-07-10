@@ -243,9 +243,12 @@ EXCLUDING TYPE-expansion clones + compiler temps (they share the template `PicIn
 main `"data item '{CobolName ?? "FILLER"}'`" (hard-coded in `GateData`); report `"RD '{model.Name}' printable item
 '{…}'`" (`GateReports` over `unit.Data.Reports`); file/typedef/prototype constant.
 
-**Sub-commits:** 14g.1 enumerator skeleton + 8 PicInfo USAGE gates + **rewrite `LoudGuardTests`** (it calls
-`PicInfo.ParseUsage`/`Analyze` directly — drive `EditionHarness.CompileFull` instead) + exact-COUNT witnesses
-(conformance tests are contains-based, blind to over-count); 14g.2 TYPEDEF (bound) + BASED/TYPE/PROPERTY (parse); 14g.3
+**Sub-commits:** **14g.1 ✅ DONE (DEVLOG 732, `bf6fc5b5`)** — `DataBinder.ConformanceForest()` + `GateData` + the 8
+PicInfo USAGE gates; `LoudGuardTests` rewritten off its direct `PicInfo.ParseUsage`/`Analyze` gate asserts; 8
+`UsageDataEditionTests` exact-count witnesses (one 0900/item; two distinct pointers → two 0900s; TYPEDEF member
+referenced twice → gated once). Battery: conformance 3122 · unit 223 · characterization 32 · INV-1 349/349 · guard
+353 MATCH. (⚠ the conformance suite is contains-based, blind to over-count — hence the exact-count witnesses.) —
+Remaining sub-commits: 14g.2 TYPEDEF (bound) + BASED/TYPE/PROPERTY (parse); 14g.3
 OO class/interface + OCCURS-DYNAMIC (parse); 14g.4 SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (bound) + PD
 RETURNING/RAISING (parse); 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
 raw-picture scan) — then grep-assert binder Check-count == the single `StatementBinder.Udf.cs` line; 14g.6 snapshot
