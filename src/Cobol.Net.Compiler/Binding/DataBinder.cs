@@ -168,15 +168,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                      .Select(p => p.repositoryParagraph()).FirstOrDefault(r => r is not null)
                      ?.repositoryEntry() ?? [])
         {
+            // REPOSITORY PROPERTY/INTERFACE/CLASS (§12.3.8, OO): the COBOL-2002 introduction gates are now
+            // VersionConformancePass ParseArm.VisitRepositoryEntry (14g.5). The PROPERTY name still registers here for
+            // reference resolution; INTERFACE/CLASS names are declarative-only in this loop (the pass-1 table resolves
+            // them), so they no longer need a branch.
             if (re.PROPERTY() is not null && re.propertyName() is { } pn)
-            {
-                ConstructRegistry.Check(Edition.Edition, Edition, Constructs.RepositoryProperty2002, $"REPOSITORY PROPERTY '{pn.GetText()}'");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 11 — position-safe reservation word)
                 OoRepositoryProperties.Add(pn.GetText());
-            }
-            else if (re.INTERFACE() is not null && re.interfaceName() is { } ifn)
-                ConstructRegistry.Check(Edition.Edition, Edition, Constructs.RepositoryInterface2002, $"REPOSITORY INTERFACE '{ifn.GetText()}'");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 11 — position-safe reservation word)
-            else if (re.CLASS() is not null && re.className() is { } cn)
-                ConstructRegistry.Check(Edition.Edition, Edition, Constructs.RepositoryClass2002, $"REPOSITORY CLASS '{cn.GetText()}'");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 8b)
             else if (re.FUNCTION() is not null && re.INTRINSIC() is null && re.functionName() is { } fn)
                 UserFunctionNames.Add(fn.GetText());
             // FUNCTION … INTRINSIC (§12.3.8): `ALL` (GR14) or a named intrinsic — the §8.4.3.2 SR2 keyword-

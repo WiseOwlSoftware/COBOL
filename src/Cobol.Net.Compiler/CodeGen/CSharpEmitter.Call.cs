@@ -271,9 +271,9 @@ public sealed partial class CSharpEmitter
             ?? fid?.programName()?.GetText()
             ?? $"PROGRAM{index}";
         bool isFunction = pid is null && fid is not null;
-        bool isPrototype = fid?.PROTOTYPE() is not null;   // §11.5 Format 2 — a signature-only prototype unit (M2-UDF-3)
-        if (isPrototype)   // FUNCTION-ID … IS PROTOTYPE — COBOL-2002 introduction, bind-time gate (rearch migration Cluster 11; position-safe reservation word — the predicate gated only the dedicated tail)
-            ConstructRegistry.Check(edition.Edition, edition, Constructs.FunctionPrototype2002, "a FUNCTION-ID … IS PROTOTYPE (function prototype)");
+        // §11.5 Format 2 — a signature-only prototype unit (M2-UDF-3). The COBOL-2002 introduction gate is now
+        // VersionConformancePass.Run (14g.5, bound-arm over group.Units — CallUnit.IsPrototype is drop-proof).
+        bool isPrototype = fid?.PROTOTYPE() is not null;
         bool initial = false, common = false, recursive = false;
         foreach (var attr in pid?.programIdAttributes()?.programIdAttribute() ?? [])
         {

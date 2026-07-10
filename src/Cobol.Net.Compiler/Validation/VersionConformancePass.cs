@@ -41,10 +41,12 @@ namespace CobolNet.Validation;
 /// (BASED/TYPE/PROPERTY/TYPEDEF) to the parse-arm on RECOGNITION — none needs a resolved fact, and a bound-arm home
 /// drops the 0900 on a declaration-error path (the review correction, DEVLOG 734: even init-only <c>IsTypedef</c>
 /// fails, because the typedef ITEM is discarded from the forest when RegisterTypeDecl rejects it or it binds into
-/// method scope). STILL
-/// bind-time pending: OO class/interface + OCCURS-DYNAMIC (→ parse-arm), SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE
-/// (→ bound-arm) + PD RETURNING/RAISING (→ parse-arm), and FUNCTION-PROTOTYPE + REPOSITORY + skeleton E/national-edited
-/// (14g.3–14g.5; the plan is in the PHASE-03 doc). The one principled exception is the
+/// method scope). <b>14g.3–14g.5 (DONE)</b> completed the DATA/PIC/OO migration: OO class/interface + OCCURS DYNAMIC
+/// (14g.3, parse-arm); file SHARING/LOCK-MODE + SPECIAL-NAMES FOR + PD RETURNING/RAISING (14g.4, parse-arm — the recon's
+/// bound-arm SHARING/LOCK-MODE reclassified for the same drop-proof reason); FUNCTION-PROTOTYPE (14g.5, bound-arm over
+/// <c>CallUnit.IsPrototype</c>) + REPOSITORY CLASS/INTERFACE/PROPERTY (14g.5, parse-arm) + the external-float /
+/// national-edited PICTURE skeletons (14g.5, bound-arm via <c>PicInfo.SkeletonGate</c> — the recovered category erases
+/// the identity, so PicInfo's own exact detection carries the 0900 forward). The one principled exception is the
 /// UDF-invocation gate (an intrinsic FUNCTION and a user-function call are
 /// syntactically identical — only the repository-resolved name set separates them), which stays BIND-TIME
 /// (<c>StatementBinder.Udf.cs</c>) where it already fires on recognition before operand binding.
@@ -77,6 +79,11 @@ internal sealed class VersionConformancePass
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
         foreach (var unit in group.Units)
         {
+            // FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2) — a COBOL-2002 introduction. Bound-arm: CallUnit.IsPrototype
+            // is set at unit creation and every unit (top-level, nested, function) is a CallUnit in group.Units, so it
+            // is scope-exact + drop-proof, with the former CallMakeUnit Check's constant where-string (Step 14g.5).
+            if (unit.IsPrototype)
+                pass.Check(Constructs.FunctionPrototype2002, "a FUNCTION-ID … IS PROTOTYPE (function prototype)");
             pass.WalkProgram(unit.Bound);
             pass.GateData(unit.Data);
         }
@@ -275,6 +282,10 @@ internal sealed class VersionConformancePass
     private void GateDataItem(DataItem item, string where)
     {
         if (UsageGateId(item) is { } id) Check(id, where);
+        // The recognized-but-unimplemented PICTURE skeletons (external-float symbol E, national-edited) — their
+        // category was RECOVERED to Alphanumeric, so UsageGateId cannot see them; PicInfo.SkeletonGate carries the
+        // 0900 forward (Step 14g.5). Mutually exclusive with UsageGateId (a recovered item is never National/etc.).
+        if (item.Pic?.SkeletonGate is { } skeletonId) Check(skeletonId, where);
     }
 
     /// <summary>The 2002-introduction USAGE / PICTURE-category of a resolved item, or null when version-invariant.
@@ -762,6 +773,25 @@ internal sealed class VersionConformancePass
         {
             if (!InMethodDefinition(ctx))
                 _p.Check(Constructs.ProcedureRaising2002, "the PROCEDURE DIVISION RAISING phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        // ── Step 14g.5: the REPOSITORY OO-specifier gates ─────────────────────────────────────────────────────
+        /// <summary>A REPOSITORY CLASS / INTERFACE / PROPERTY specifier (ISO §12.3.8, OO) — a COBOL-2002 introduction.
+        /// Parse-arm (recognition): the entry is one <c>repositoryEntry</c> node, mirroring the binder's
+        /// PROPERTY→INTERFACE→CLASS <c>else if</c> order and its name-embedding where-strings. The FUNCTION-intrinsic
+        /// alternatives are version-invariant (ungated). ⚠ Like the SPECIAL-NAMES / file-control gates, REPOSITORY is
+        /// in the CONFIGURATION SECTION, so for a CLASS the former per-scope binder gated it 0/1/2× (the flagged
+        /// OO-env double/zero-bind, DEVLOG 738); the parse-arm fires the spec-correct ONCE. The property NAME still
+        /// registers for reference resolution in <c>DataBinder</c>.</summary>
+        public override object? VisitRepositoryEntry(CobolParserCore.RepositoryEntryContext ctx)
+        {
+            if (ctx.PROPERTY() is not null && ctx.propertyName() is { } pn)
+                _p.Check(Constructs.RepositoryProperty2002, $"REPOSITORY PROPERTY '{pn.GetText()}'");
+            else if (ctx.INTERFACE() is not null && ctx.interfaceName() is { } ifn)
+                _p.Check(Constructs.RepositoryInterface2002, $"REPOSITORY INTERFACE '{ifn.GetText()}'");
+            else if (ctx.CLASS() is not null && ctx.className() is { } cn)
+                _p.Check(Constructs.RepositoryClass2002, $"REPOSITORY CLASS '{cn.GetText()}'");
             return base.VisitChildren(ctx);
         }
 

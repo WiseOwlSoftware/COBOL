@@ -188,7 +188,7 @@ identificationBody
 // body, so a caller resolves a separately-compiled definition across the run unit (M2-UDF-3). The optional tail
 // is a unique-leading-token additive change on a LOCAL rule (never a shared core), gated 2002+.
 functionIdParagraph
-    : FUNCTION_ID DOT programName (IS? PROTOTYPE)? DOT   // IS PROTOTYPE introduction-gated at BIND time (CSharpEmitter.CallMakeUnit → Check(FunctionPrototype2002)); position-safe (dedicated tail, programName consumes a bare name)
+    : FUNCTION_ID DOT programName (IS? PROTOTYPE)? DOT   // IS PROTOTYPE introduction-gated post-bind by VersionConformancePass.Run (bound-arm over CallUnit.IsPrototype; rearch 14g.5); position-safe (dedicated tail, programName consumes a bare name)
     ;
 
 // ------------------------------------------
@@ -452,9 +452,9 @@ repositoryParagraph
 repositoryEntry
     : FUNCTION ALL INTRINSIC
     | FUNCTION functionName INTRINSIC?
-    | CLASS className   // OO (2002): CLASS class-name [AS literal] — introduction-gated at BIND time (DataBinder repository loop → Check(RepositoryClass2002)); className rule in Core/CobolOO.g4
-    | INTERFACE interfaceName   // OO (2002): the interface specifier — introduction-gated at BIND time (DataBinder repository loop → Check(RepositoryInterface2002)); position-safe (entry-leading keyword in a closed alt set)
-    | PROPERTY propertyName     // OO (2002): the property specifier — introduction-gated at BIND time (DataBinder repository loop → Check(RepositoryProperty2002)); position-safe (§8.4.3.9.3 SR1)
+    | CLASS className   // OO (2002): CLASS class-name [AS literal] — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); className rule in Core/CobolOO.g4
+    | INTERFACE interfaceName   // OO (2002): the interface specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (entry-leading keyword in a closed alt set)
+    | PROPERTY propertyName     // OO (2002): the property specifier — introduction-gated post-bind by VersionConformancePass ParseArm.VisitRepositoryEntry (rearch 14g.5); position-safe (§8.4.3.9.3 SR1)
     ;
 
 // SOURCE-COMPUTER.

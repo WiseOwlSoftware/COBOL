@@ -139,6 +139,15 @@ public sealed record PicInfo(
     /// </summary>
     public string SignKind { get; init; } = "TrailingOverpunch";
 
+    /// <summary>The COBOL-2002 introduction gate (a <c>Constructs.*</c> id) this item's PICTURE carries as a
+    /// recognized-but-unimplemented SKELETON — an external floating-point picture (symbol E, <c>PicExternalFloat2002</c>)
+    /// or national-edited data (<c>NationalEdited2002</c>) — after <see cref="Analyze"/> RECOVERED the category to
+    /// Alphanumeric so the doomed emit stays crash-free. Non-null only on those two skeleton paths; read by the
+    /// <c>VersionConformancePass</c> <c>GateData</c> enumerator (Step 14g.5), which fires the COBOLNET0900 below 2002.
+    /// The recovery ERASES the parse identity (category → Alphanumeric), so this preserves it for the bound-arm gate;
+    /// the ≥2002 not-implemented COBOLNET0899 stays inline in <see cref="Analyze"/> via <c>StagedNotImplemented</c>.</summary>
+    public string? SkeletonGate { get; init; }
+
     /// <summary>
     /// The runtime <c>NumericSign</c> member name a fixed-point leaf's sign takes inside a RECORD/GROUP CHARACTER
     /// IMAGE — the generated <c>AsImage()</c>/<c>FromImage()</c> facility and the SORT/MERGE key decode (the ONE
@@ -391,7 +400,7 @@ public sealed record PicInfo(
         }
         if (hasE || invalid is not null || (hasN && has1))
         {
-            if (hasE) NotImplementedSkeleton(edition, Constructs.PicExternalFloat2002, "Phase 6", where);
+            if (hasE) StagedNotImplemented(edition, Constructs.PicExternalFloat2002, "Phase 6", where);   // the 0900 is now GateData via SkeletonGate below (14g.5)
             if (invalid is { } bad)
                 // Wording is exact about what IS checked: symbol MEMBERSHIP in the SR2 inventory. The SR2/
                 // §13.18.40.6 precedence-rule validation (symbol ORDER/multiplicity — 'PIC 99.99.99' etc.)
@@ -404,9 +413,11 @@ public sealed record PicInfo(
                 edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
                     + "(ISO §13.18.40.6 Table 10: the 'N' and '1' picture symbols may not be combined)");
             // Recovery representation ONLY: the compile has already FAILED above — this shape merely keeps the
-            // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes).
+            // doomed emit pass crash-free (CompilerDriver reports bind diagnostics after Emit completes). An
+            // external-float picture carries its 0900 forward on SkeletonGate for the bound-arm gate (14g.5).
             return new PicInfo(PicCategory.Alphanumeric, Usage.Display,
-                Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false);
+                Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false)
+                { SkeletonGate = hasE ? Constructs.PicExternalFloat2002 : null };
         }
 
         // ── Category national (§8.5.2.10) / boolean (§8.5.2.5) — LIVE, Phase 4a track (a). The introduction
@@ -430,10 +441,12 @@ public sealed record PicInfo(
             }
             if (expanded.All(c => c is 'N' or 'B' or '0' or '/'))
             {
-                // NATIONAL-EDITED (§13.18.40.4 GR10 / §8.5.2.11) — recognized, edition-gated, STAGED.
-                NotImplementedSkeleton(edition, Constructs.NationalEdited2002, "Phase 4a residue", where);
+                // NATIONAL-EDITED (§13.18.40.4 GR10 / §8.5.2.11) — recognized, edition-gated, STAGED. The 0900 rides
+                // SkeletonGate to the bound-arm GateData (14g.5); the ≥2002 0899 stays inline.
+                StagedNotImplemented(edition, Constructs.NationalEdited2002, "Phase 4a residue", where);
                 return new PicInfo(PicCategory.Alphanumeric, Usage.Display,
-                    Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false);
+                    Length: Math.Max(1, expanded.Length), Digits: 0, Scale: 0, Signed: false)
+                    { SkeletonGate = Constructs.NationalEdited2002 };
             }
             edition.Error("COBOLNET0808", $"invalid PICTURE {picture} — {where} "
                 + "(ISO §13.18.40.6 Table 10: 'N' may be combined only with the insertion symbols B 0 /)");
@@ -691,28 +704,19 @@ public sealed record PicInfo(
     public static PicInfo BitUsagePending { get; } =
         new(PicCategory.Alphanumeric, Usage.Display, Length: 1, Digits: 0, Scale: 0, Signed: false);
 
-    /// <summary>The W2 skeleton gate for a recognized-but-unimplemented USAGE: fire the introduction gate +
-    /// the not-implemented error via <see cref="NotImplementedSkeleton"/>, then recover to
-    /// <see cref="Usage.Display"/> — the compile has already failed, so the skeleton <see cref="Usage"/> member
-    /// never enters the bound model (the storage-mapping switches throw if one ever does).</summary>
-    private static Usage SkeletonUsage(EditionContext edition, string rowId, string phase, string where, out bool skeleton)
-    {
-        NotImplementedSkeleton(edition, rowId, phase, where);
-        skeleton = true;
-        return Usage.Display;
-    }
-
-    /// <summary>THE loud gate for a construct that is recognized + registry-gated but not implemented (the W2
-    /// skeleton set): below the row's introducing edition <see cref="ConstructRegistry.Check"/> emits the
-    /// COBOLNET0900 introduction error (both axes); AT or ABOVE it — where Check is silent for an
-    /// introduction-only row — a COBOLNET0899 not-implemented error (the existing 08xx staging convention,
-    /// DataBinder.Reports.cs) naming the owning roadmap phase (COMPLETION_ROADMAP_COUNCIL). Either way the
-    /// compile FAILS — never a silent misbind.</summary>
-    private static void NotImplementedSkeleton(EditionContext edition, string rowId, string phase, string where)
+    /// <summary>The ≥edition half of the W2 skeleton gate for a recognized-but-unimplemented PICTURE construct
+    /// (external-float symbol E / national-edited): at or above the row's introducing edition — where the
+    /// introduction <c>Check</c> is silent — a COBOLNET0899 "recognized but not yet implemented" naming the owning
+    /// roadmap phase. Below the edition it is a NO-OP: the COBOLNET0900 introduction gate is fired instead by the
+    /// post-bind <c>VersionConformancePass</c> GateData enumerator over <c>PicInfo.SkeletonGate</c> (Step 14g.5 — the
+    /// category is recovered to Alphanumeric, erasing the parse identity, so the flag carries the gate forward). Either
+    /// way the compile FAILS below its edition (the 0900) or above (the 0899) — never a silent misbind. (The former
+    /// USAGE-skeleton path — SkeletonUsage/NotImplementedSkeleton — is deleted: every USAGE keyword is LIVE since the
+    /// 14g.1 introduction-gate migration, so nothing constructed a skeleton usage.)</summary>
+    private static void StagedNotImplemented(EditionContext edition, string rowId, string phase, string where)
     {
         var row = ConstructRegistry.Find(rowId)
             ?? throw new ArgumentException($"unregistered construct id '{rowId}'", nameof(rowId));
-        ConstructRegistry.Check(edition.Edition, edition, rowId, where);
         if (edition.DialectLevel >= row.IntroducedIn)
             edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented, $"{row.Display} is recognized but not yet implemented (owning "
                 + $"roadmap phase: {phase}) — {where} ({row.Citation})");

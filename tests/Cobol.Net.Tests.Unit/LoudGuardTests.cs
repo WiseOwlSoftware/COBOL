@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
+using CobolNet.Editions;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -17,7 +18,8 @@ namespace CobolNet.Tests.Unit;
 /// on the RESOLVED item), which fires on RECOGNITION once per source declaration. So the UNIT facts here assert
 /// only <c>ParseUsage</c>'s MAPPING + <c>Analyze</c>'s CLASSIFICATION; the below-2002 rejection is verified by
 /// the version matrix (usage-*-2002 rows) + the pipeline exact-count witnesses (<c>UsageDataEditionTests</c>).
-/// The E-symbol external-float PICTURE stays a parse-layer <c>NotImplementedSkeleton</c> gate (Phase 6 / 14g.5).</para>
+/// The E-symbol external-float + national-edited PICTURE skeletons likewise moved their 0900 to <c>GateData</c> at
+/// Step 14g.5 — carried on <c>PicInfo.SkeletonGate</c>; <c>Analyze</c> keeps only the ≥2002 not-implemented 0899.</para>
 /// </summary>
 public sealed class LoudGuardTests
 {
@@ -88,20 +90,19 @@ public sealed class LoudGuardTests
 
     // ── Analyze: the §13.18.40.3 SR2 whitelist — N / 1 / E gate loud; anything else is invalid ─────────────
 
-    /// <summary>The external-float PICTURE symbol E (ISO §13.18.40.4 GR13b) stays a PARSE-LAYER
-    /// <c>NotImplementedSkeleton</c> gate (Phase 6 / 14g.5) — its introduction gate (COBOLNET0900 at 85) still
-    /// fires from <c>Analyze</c>. The national (N) / boolean (1) category gates MOVED to the post-bind
-    /// <c>VersionConformancePass</c> data-attribute enumerator (Step 14g.1); they are verified there
-    /// (<c>UsageDataEditionTests</c>) + by the version matrix, and classify without a parse-layer diagnostic
-    /// (<see cref="Analyze_PicN_ClassifiesNational_UsageImplied"/> / <see cref="Analyze_Pic1_ClassifiesBoolean_UsageDisplay"/>).</summary>
-    [Theory]
-    [InlineData("9V99E+99", "floating")] // external float, §13.18.40.4 GR13b — parse-layer skeleton gate
-    public void Analyze_2002Symbol_0900At85_NamingCobol2002(string picture, string display)
+    /// <summary>The external-float PICTURE symbol E (ISO §13.18.40.4 GR13b) — its introduction gate (COBOLNET0900)
+    /// MOVED to the post-bind <c>VersionConformancePass</c> GateData enumerator (Step 14g.5), carried on the recovered
+    /// item's <c>PicInfo.SkeletonGate</c> (the category is recovered to Alphanumeric, erasing the parse identity). So
+    /// <c>Analyze</c> at 85 emits NO picture-layer diagnostic — it only STAMPS the gate; the 0900 firing is verified in
+    /// <c>RepositoryPrototypeEditionTests</c> + the version matrix. (The national/boolean category gates moved the same
+    /// way at 14g.1 — <c>UsageDataEditionTests</c>.)</summary>
+    [Fact]
+    public void Analyze_ExternalFloat_At85_CarriesSkeletonGate()
     {
         var ed = Ed(85);
-        PicInfo.Analyze(picture, Usage.Display, ed, "data item 'T'");
-        Assert.True(ed.HasErrors, $"PIC {picture} ({display}) must be rejected at COBOL-85 (§13.18.40)");
-        Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0900") && d.Contains("COBOL-2002"));
+        var pic = PicInfo.Analyze("9V99E+99", Usage.Display, ed, "data item 'T'");
+        Assert.False(ed.HasErrors, "the 0900 moved to GateData (14g.5) — Analyze is silent at the picture layer below 2002");
+        Assert.Equal(Constructs.PicExternalFloat2002, pic.SkeletonGate);
     }
 
     [Theory]

@@ -56,7 +56,7 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14g.5 (14a–14h DONE + 14g.1–14g.4 DONE; RESUME AT 14g.5)` (2026-07-10; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717). 14g.1 = 8 PicInfo USAGE gates → bound-arm (DEVLOG 732); 14g.2 = the 4 data-description-clause gates → parse-arm (TYPEDEF reclassified bound→parse by the adversarial review, DEVLOG 733–734); 14g.3 = OO class/interface + OCCURS DYNAMIC → parse-arm (+ report/screen shared-rule fix, DEVLOG 735–736); 14g.4 = file-control SHARING/LOCK-MODE + SPECIAL-NAMES FOR + PD RETURNING/RAISING → parse-arm (SHARING/LOCK-MODE reclassified bound→parse; PD RETURNING/RAISING InMethodDefinition-guarded per the shared-rule lesson, DEVLOG 737).
+`IN PROGRESS @ Step 15 — PHASE-03 CLOSE (14a–14h DONE + 14g.1–14g.5 DONE — the DATA/PIC/OO migration is COMPLETE; grep-assert PASSES: the only ConstructRegistry.Check outside the pass is the UDF exception)` (2026-07-10; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717). 14g.1 = 8 PicInfo USAGE gates → bound-arm (DEVLOG 732); 14g.2 = the 4 data-description-clause gates → parse-arm (TYPEDEF reclassified bound→parse by the adversarial review, DEVLOG 733–734); 14g.3 = OO class/interface + OCCURS DYNAMIC → parse-arm (+ report/screen shared-rule fix, DEVLOG 735–736); 14g.4 = file-control SHARING/LOCK-MODE + SPECIAL-NAMES FOR + PD RETURNING/RAISING → parse-arm (SHARING/LOCK-MODE reclassified bound→parse; PD RETURNING/RAISING InMethodDefinition-guarded, DEVLOG 737–738); 14g.5 = FUNCTION-PROTOTYPE → bound-arm + REPOSITORY → parse-arm + PICTURE skeletons (E/national-edited) → bound-arm via PicInfo.SkeletonGate + dead SkeletonUsage/NotImplementedSkeleton deleted (DEVLOG 739).
 **⛔ Step 14h DONE (DEVLOG 725–729) — the parse-arm two-arm pass is built and every SYNTACTIC gate migrated.** The
 DEVLOG-724 root-cause fix landed as five byte-identical (well-formed) / strict-superset (malformed) sub-commits:
 **14h.1** (`b3f38cf6`, DEVLOG 725) — `EditionValidator` ABSORBED into `VersionConformancePass` as a nested `ParseArm`
@@ -202,7 +202,7 @@ complete. **Step 13** (`<pending push>`): `ReservedWordEditionHints` DELETED, th
 disposition relocated to `CobolErrorStrategy`. Each grammar change: FULL legacy guard **353 MATCH, 0 regressions**.
 Battery at head: greenfield conformance **3114** · unit **227** · characterization **32** GREEN.
 
-**RESUME AT: Step 14g.5 — FUNCTION-PROTOTYPE (bound-arm) + REPOSITORY (parse) + skeleton E/national-edited (parse raw-picture scan).** ✅ **Step 14h is DONE** (14h.1–14h.4b,
+**RESUME AT: Step 15 — PHASE-03 CLOSE. ✅ 14g.5 DONE** (DEVLOG 739) — FUNCTION-PROTOTYPE → bound-arm; REPOSITORY → parse-arm; the E/national-edited PICTURE skeletons → bound-arm via `PicInfo.SkeletonGate` (NOT the recon's raw-picture scan — reusing PicInfo's exact detection + GateData's where-strings is drop-proof + covers report items); dead `SkeletonUsage`/`NotImplementedSkeleton` deleted. **The grep-assert PASSES: the sole `ConstructRegistry.Check` outside the pass is the one UDF exception (`StatementBinder.Udf.cs`).** Step 15 = walk the exit-criteria checklist (items 1–9), final doc sweep, STATUS→DONE (14g.6 snapshot re-baseline is a NO-OP — characterization stayed byte-exact throughout 14g). ✅ **Step 14h is DONE** (14h.1–14h.4b,
 DEVLOG 725–729, pushed + CI-green): the two-arm `VersionConformancePass` is built — a PARSE-tree arm (`ParseArm`, the
 absorbed `EditionValidator` running post-bind) owns every SYNTACTIC introduction/removal/phrase/expression/literal gate
 + the §8.9 reserved-word funnel, firing on RECOGNITION (the DEVLOG-724 fix); the driver's pre-bind fail-fast is gone;
@@ -226,9 +226,11 @@ PicInfo/OoClassTable/OdoModel/emitter except the ONE UDF exception* — satisfie
 enumerator; the rest are recognition/syntactic/unreachable → the **parse-arm** (else the DEVLOG-724 drop, a
 TYPEDEF-clone over-count, or "no bound carrier"). The split:
 
-- **BOUND-arm** (new `DataItem`/`CallUnit` enumerator): the 8 PicInfo USAGE gates (National/Boolean/Pointer/
-  ObjRef/BinaryCharFamily/Float×3) [14g.1 DONE]; `FunctionPrototype2002` [14g.5] — key on a resolved fact retained after
-  declaration errors (`Pic.Category`/`Pic.Usage`/`OwnUsage`, `CallUnit.IsPrototype`). ⚠ `TypedefDef2002` (DEVLOG 734,
+- **BOUND-arm** (`GateData` enumerator / `Run` unit loop): the 8 PicInfo USAGE gates (National/Boolean/Pointer/
+  ObjRef/BinaryCharFamily/Float×3) [14g.1 DONE]; `FunctionPrototype2002` (`Run` over `CallUnit.IsPrototype`) [14g.5 DONE];
+  `PicExternalFloat2002`/`NationalEdited2002` (via `PicInfo.SkeletonGate`, ⚠ RECLASSIFIED from the recon's parse-arm
+  raw-picture scan — the flag reuses PicInfo's exact detection + GateData's where-strings, drop-proof + covers report
+  items) [14g.5 DONE] — all key on a resolved fact retained after declaration errors. ⚠ `TypedefDef2002` (DEVLOG 734,
   14g.2) AND `FileSharingClause2002`/`LockModeClause2002` (DEVLOG 737, 14g.4) were RECLASSIFIED to the PARSE-arm — the
   same finding both times: a bound-arm gate keyed on the resolved fact DROPS the 0900 on a declaration error (the
   typedef item discarded from the forest; a file discarded on a SELECT error), whereas the binder fired on the clause's
@@ -239,8 +241,9 @@ TYPEDEF-clone over-count, or "no bound carrier"). The split:
   drop); `OccursDynamic2014` (TYPEDEF clones over-count a per-item walk; one `occursClause` = one fire);
   `SpecialNamesForNational2002` ×3 (FOR token) [14g.4]; `FileSharingClause2002`/`LockModeClause2002` (clause presence;
   reclassified from bound) [14g.4]; `ProcedureReturning2002`/`ProcedureRaising2002` (`InMethodDefinition`-guarded — the
-  procedureDivision rule is shared with method PDs) [14g.4]; `RepositoryProperty/Interface/Class2002` (config specifiers, name-embedding where) [14g.5];
-  `PicExternalFloat2002`/`NationalEdited2002` (identity erased by recovery-to-Alphanumeric → raw-picture scan).
+  procedureDivision rule is shared with method PDs) [14g.4]; `RepositoryProperty/Interface/Class2002` (config specifiers, name-embedding where) [14g.5 DONE].
+  (`PicExternalFloat2002`/`NationalEdited2002` were planned here as a raw-picture scan but RECLASSIFIED to the BOUND-arm
+  via `PicInfo.SkeletonGate` — see above; 14g.5 DONE.)
 
 **Enumerator:** add public `DataBinder.ConformanceForest()` = `Roots.Concat(LinkageRoots).SelectMany(Walk).Concat(
 TypeDecls.Values.SelectMany(Walk))` — ⚠ `LinkageRoots` + `TypeDecls` are OFF `Roots` (the existing private `AllItems()`
@@ -291,11 +294,18 @@ gates fired 2×/0× — `OoReparent{Class,Factory}Data` bind the class-level env
 parse-arm is MORE correct (kept + 2 witnesses pinned); byte-neutral for program-unit scopes; verdict unchanged. **FLAGGED
 LATENT BUG for a dedicated OO-env fix:** that same double/zero-bind mis-registers class-level CURRENCY/ALPHABET/SELECT
 (shadow-0× SILENTLY IGNORES class-level config in valid 2002+ classes) — bind class-level env ONCE, visible to both
-halves. Battery: conformance 3149 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
-Remaining sub-commits: 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
-raw-picture scan) — then grep-assert binder Check-count == the single `StatementBinder.Udf.cs` line; 14g.6 snapshot
-re-baseline (only if a later sub-commit's diag surface changes — 14g.2 needed none) + close. Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization + INV-1 + FULL
-legacy guard. Full synthesis is in the recon transcript.
+halves. Battery: conformance 3149 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. **14g.5 ✅ DONE
+(DEVLOG 739)** — FUNCTION-PROTOTYPE → BOUND-arm (`Run` over `CallUnit.IsPrototype`) + REPOSITORY CLASS/INTERFACE/PROPERTY
+→ parse-arm (`VisitRepositoryEntry`, name-embedding where) + the E/national-edited PICTURE skeletons → BOUND-arm via a
+new `PicInfo.SkeletonGate` flag (⚠ NOT the recon's parse-arm raw-picture scan — that would re-implement PicInfo's
+expansion + GateData's where-strings; the flag reuses both, drop-proof, covers report items). `NotImplementedSkeleton`
+split → `StagedNotImplemented` (0899); the dead `SkeletonUsage`/`NotImplementedSkeleton` DELETED (dead since 14g.1). New
+`RepositoryPrototypeEditionTests` ×7; `LoudGuardTests` external-float leg rewritten to the SkeletonGate carrier.
+**⛔ grep-assert PASSES: the sole `ConstructRegistry.Check` outside the pass is `StatementBinder.Udf.cs:63` (the UDF
+exception).** Battery: conformance 3156 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
+**RESUME AT Step 15 (phase close):** exit-criteria checklist 1–9; 14g.6 snapshot re-baseline is a NO-OP (characterization
+byte-exact throughout 14g). Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization
++ INV-1 + FULL legacy guard. Full synthesis is in the recon transcript.
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to

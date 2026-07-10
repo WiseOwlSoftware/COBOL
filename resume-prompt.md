@@ -29,7 +29,7 @@
 >
 > ⛔🏗 **GO-FORWARD SSOT (DEVLOG 665, 2026-07-07 — committed d455f56): the roadmap for ALL future work is now
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a COMPLETE, resumable, execution-grade **17-phase** plan taking the
-> compiler from its authoring-time baseline (DEVLOG 665: 2036 conformance · 213 unit — SINCE advanced to 3149 conformance · 223 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
+> compiler from its authoring-time baseline (DEVLOG 665: 2036 conformance · 213 unit — SINCE advanced to 3156 conformance · 223 unit · 32 characterization GREEN) to **clean architecture + 100% ISO (all editions)
 > + a selectable Roslyn↔CIL backend**. It **SUBSUMES the prior feature/ISO drive**: the remaining ISO features (M2 OO
 > residue, national/boolean, M3-2014, M4-2023, EC remnants, the version-gating audit) are now its **phases 09–14**, to
 > be landed ON the rearchitected foundation — NOT bolted onto the current code. **A NEW SESSION:** (1) read that plan's
@@ -92,7 +92,7 @@
 > FULL legacy guard **353 MATCH, 0 regressions**. Battery at head: greenfield conformance **3114** · unit 227 ·
 > characterization 32 GREEN. **⛔ PHASE-03 Step 14h DONE — the two-arm `VersionConformancePass` is BUILT and every
 > SYNTACTIC gate is migrated (14h.1–14h.5, DEVLOG 725–730, commits `b3f38cf6`→`6e9f3681`, all pushed + CI-green); Step
-> 14g.1–14g.4 DONE (DEVLOG 732–737) — RESUME AT Step 14g.5.** Read the PHASE-03 doc's STATUS line for the full sub-step ledger; recon `wf_be806171-b25` drove
+> 14g.1–14g.5 DONE (DEVLOG 732–739) — the DATA/PIC/OO migration is COMPLETE; RESUME AT Step 15 (PHASE-03 close).** Read the PHASE-03 doc's STATUS line for the full sub-step ledger; recon `wf_be806171-b25` drove
 > 14h. **What 14h delivered:** 14a bind/emit split + the parse-arm foundation (14h.1 — `EditionValidator` ABSORBED into
 > `VersionConformancePass` as a nested `ParseArm` running POST-bind, the driver's pre-bind fail-fast DELETED,
 > `EditionValidator.cs` deleted) + the SYNTACTIC gate migration to the parse-arm on RECOGNITION (14h.2 self-identifying
@@ -126,8 +126,13 @@
 > count is now the SPEC-CORRECT 1× (was 2×/0× — the parse-arm is more correct, kept + pinned); it surfaced a FLAGGED
 > LATENT OO-env bind bug: `OoReparent{Class,Factory}Data` bind the class-level env 0/1/2× (singular accessor +
 > unconditional factory binder), mis-registering class-level CURRENCY/ALPHABET/SELECT — a dedicated OO-env fix needed
-> (bind class-level env ONCE, visible to both halves). RESUME AT 14g.5 (FUNCTION-PROTOTYPE → bound-arm; REPOSITORY +
-> skeleton E/national-edited → parse-arm).** **The DATA/PIC/OO gates DECISION-COMPLETE
+> (bind class-level env ONCE, visible to both halves). ✅ 14g.5 DONE (DEVLOG 739) — FUNCTION-PROTOTYPE → bound-arm
+> (`Run` over `CallUnit.IsPrototype`) + REPOSITORY → parse-arm + E/national-edited PICTURE skeletons → bound-arm via a
+> new `PicInfo.SkeletonGate` flag (NOT the recon's raw-picture scan — reuses PicInfo's exact detection + GateData's
+> where-strings, drop-proof); dead `SkeletonUsage`/`NotImplementedSkeleton` deleted. **⛔ The 14g DATA/PIC/OO migration
+> is COMPLETE — grep-assert PASSES: the sole `ConstructRegistry.Check` outside the pass is the UDF exception
+> (`StatementBinder.Udf.cs`).** `RepositoryPrototypeEditionTests` ×7. RESUME AT Step 15 (PHASE-03 close): exit-criteria
+> checklist 1–9 + final doc sweep + STATUS→DONE (14g.6 re-baseline is a no-op — characterization byte-exact throughout).** **The DATA/PIC/OO gates DECISION-COMPLETE
 > PLAN is in the PHASE-03 doc's STATUS block (recon `wf_0d98d218-087`).** ⚠ KEY FINDING: only ~12 of the ~30 gates are resolved-fact
 > fits for a new BOUND-arm `DataItem`/`FileModel`/`CallUnit` enumerator (the 8 PicInfo USAGE gates + FILE
 > SHARING/LOCK-MODE + TYPEDEF + FUNCTION-PROTOTYPE); the other ~18 (BASED/TYPE/PROPERTY, class/interface defs,
