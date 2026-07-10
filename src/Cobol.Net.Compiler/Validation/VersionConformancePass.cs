@@ -34,13 +34,15 @@ namespace CobolNet.Validation;
 /// these. No bound node carries a raw parse context — the <c>BoundTree.cs</c> invariant stands.</item>
 /// </list>
 /// The two arms are disjoint: a <c>Check</c> for any one construct fires from EXACTLY one arm, the losing site
-/// deleted as its twin lands. <b>Migration state (Step 14h in progress):</b> 14h.1 stands up the parse-arm
-/// (EditionValidator absorbed) and moves the driver's fail-fast post-bind; the SYNTACTIC introduction/removal/
-/// phrase STATEMENT gates (UNLOCK/FREE/ALTER/DELETE-FILE/SET-ADDRESS; OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/
-/// CALL-ON-OVERFLOW/STOP-STATUS/END-ACCEPT) are STILL in the bound-arm here and migrate to the parse-arm in
-/// 14h.2–14h.4. The one principled exception is the UDF-invocation gate (an intrinsic FUNCTION and a
-/// user-function call are syntactically identical — only the repository-resolved name set separates them), which
-/// stays BIND-TIME (<c>StatementBinder.Udf.cs</c>) where it already fires on recognition before operand binding.
+/// deleted as its twin lands. <b>Migration state (Step 14h in progress):</b> 14h.1 stood up the parse-arm
+/// (EditionValidator absorbed) + moved the driver's fail-fast post-bind; 14h.2 moved the SELF-IDENTIFYING
+/// statement gates (UNLOCK/FREE/ALTER/DELETE-FILE/SET-ADDRESS + ALLOCATE) to the parse-arm. STILL in the
+/// bound-arm pending migration: the phrase gates (OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/CALL-ON-OVERFLOW/
+/// STOP-STATUS/END-ACCEPT → 14h.3) and the bind-time expression/literal gates (boolean/XOR/national-literal/
+/// bare-GOTO/ROUNDED-MODE/record-lock/RETRY → 14h.4). The one principled exception is the UDF-invocation gate (an
+/// intrinsic FUNCTION and a user-function call are syntactically identical — only the repository-resolved name
+/// set separates them), which stays BIND-TIME (<c>StatementBinder.Udf.cs</c>) where it already fires on
+/// recognition before operand binding.
 /// </remarks>
 internal sealed class VersionConformancePass
 {
@@ -111,29 +113,13 @@ internal sealed class VersionConformancePass
     {
         switch (s)
         {
-            case BoundUnlock:
-                Check(Constructs.UnlockStatement2002, "the UNLOCK statement"); break;
-            // NOTE: ALLOCATE (Allocate2002) is an INTRODUCTION gate that fires on the construct's RECOGNITION — it
-            // must fire even when binding errors before a BoundAllocate is produced (a below-2002 ALLOCATE with a
-            // bad RETURNING; EditionGateDiagnosticTests.Allocate_At85). A bound-arm node gate loses it on that error
-            // path, so it stays BIND-TIME (StatementBinder.Ptr.cs) until Step 14h moves ALL introduction gates to
-            // the presence-based post-bind PARSE-arm. Same for UDF (UserFunctionInvocation2002) below.
-            case BoundFree:
-                Check(Constructs.Free2002, "the FREE statement"); break;
+            // (UNLOCK / FREE / ALTER / DELETE FILE / SET ADDRESS / ALLOCATE — self-identifying statement gates —
+            // migrated to the ParseArm in Step 14h.2: they fire on RECOGNITION, so a below-edition occurrence
+            // names its edition even when the statement also fails to bind, DEVLOG 724.)
             case BoundSetObjectRef:
                 Check(Constructs.SetObjectReference2002, "the SET … TO object-reference statement (Format 5)"); break;
             case BoundSetPointerUpDown:
                 Check(Constructs.PointerArithmetic2002, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)"); break;
-            case BoundAlter:
-                Check(Constructs.AlterRemoved2002, "the ALTER statement"); break;
-            case BoundKeyedDeleteFile:
-                Check(Constructs.DeleteFile2023, "the DELETE FILE statement"); break;
-            // SET ADDRESS OF (§14.9.39 Format 7) has two bound shapes from the one PtrBindSetAddress site: the
-            // receiver form (SET ADDRESS OF x TO p) is a distinctive BoundSetAddressOfBased; the sender form
-            // (SET p TO ADDRESS OF x) is a BoundSetPointer carrying an ADDRESS-OF source. Both gate identically.
-            case BoundSetAddressOfBased:
-            case BoundSetPointer { Address: not null }:
-                Check(Constructs.SetAddress2002, "SET ADDRESS OF (ISO §14.9.39 Format 7)"); break;
 
             // ── Gates conditioned on a resolved node ATTRIBUTE the binder already recorded ──────────────────────
             case BoundOpen { SharingOverride: not null }:
@@ -545,6 +531,44 @@ internal sealed class VersionConformancePass
             }
             return base.VisitChildren(ctx);
         }
+
+        // ── Step 14h.2: the SELF-IDENTIFYING statement gates ─────────────────────────────────────────────────
+        // Each construct is ONE dedicated grammar rule → the parse node IS the identity; the gate fires once per
+        // statement on RECOGNITION (never per operand — a multi-operand FREE / a compound ALTER is ONE node), so a
+        // below-edition occurrence names its edition even when the statement ALSO fails to bind (DEVLOG 724 — the
+        // bound-arm dropped ALLOCATE's + DELETE FILE's 0900 on the BoundNop/BoundUnsupported error paths). Each
+        // keeps its former bound-arm/bind-time where-string verbatim.
+
+        /// <summary>UNLOCK (ISO §14.9.47) — a COBOL-2002 introduction.</summary>
+        public override object? VisitUnlockStatement(CobolParserCore.UnlockStatementContext ctx)
+        { _p.Check(Constructs.UnlockStatement2002, "the UNLOCK statement"); return base.VisitChildren(ctx); }
+
+        /// <summary>FREE (ISO §14.9.15) — a COBOL-2002 introduction (one Check for the whole pointer list).</summary>
+        public override object? VisitFreeStatement(CobolParserCore.FreeStatementContext ctx)
+        { _p.Check(Constructs.Free2002, "the FREE statement"); return base.VisitChildren(ctx); }
+
+        /// <summary>ALTER (ISO §14.9.2) — obsolete '85, REMOVED by 2002 (one Check for a compound ALTER).</summary>
+        public override object? VisitAlterStatement(CobolParserCore.AlterStatementContext ctx)
+        { _p.Check(Constructs.AlterRemoved2002, "the ALTER statement"); return base.VisitChildren(ctx); }
+
+        /// <summary>DELETE FILE (ISO 2023 §14.9.10 Format 2) — a COBOL-2023 introduction. Recognition-based so a
+        /// below-2023 DELETE FILE names its edition even when the file is undeclared (the binder returns a
+        /// BoundUnsupported before a BoundKeyedDeleteFile — the bound-arm dropped it, DEVLOG 724).</summary>
+        public override object? VisitDeleteFileStatement(CobolParserCore.DeleteFileStatementContext ctx)
+        { _p.Check(Constructs.DeleteFile2023, "the DELETE FILE statement"); return base.VisitChildren(ctx); }
+
+        /// <summary>SET ADDRESS OF (ISO §14.9.39 Format 7) — a COBOL-2002 introduction. The ONE
+        /// <c>setAddressStatement</c> rule carries BOTH forms (receiver <c>SET ADDRESS OF x TO p</c> + sender
+        /// <c>SET p TO ADDRESS OF x</c>), which the bound-arm identified as two node shapes; one parse override
+        /// unifies them (one Check per statement).</summary>
+        public override object? VisitSetAddressStatement(CobolParserCore.SetAddressStatementContext ctx)
+        { _p.Check(Constructs.SetAddress2002, "SET ADDRESS OF (ISO §14.9.39 Format 7)"); return base.VisitChildren(ctx); }
+
+        /// <summary>ALLOCATE (ISO §14.9.3) — a COBOL-2002 introduction. Recognition-based so a below-2002 ALLOCATE
+        /// names its edition even when its RETURNING fails to resolve (SR3/0869; the bind-time gate that formerly
+        /// carried this — StatementBinder.Ptr.cs — is removed this commit, DEVLOG 724).</summary>
+        public override object? VisitAllocateStatement(CobolParserCore.AllocateStatementContext ctx)
+        { _p.Check(Constructs.Allocate2002, "the ALLOCATE statement"); return base.VisitChildren(ctx); }
 
         // Which cobolWord token TYPES the funnel checks POSITION-BLIND (P2.4, refined — DEVLOG 585): IDENTIFIER
         // occurrences are ALWAYS genuine words (the lexer didn't tokenize them), and they carry the whole

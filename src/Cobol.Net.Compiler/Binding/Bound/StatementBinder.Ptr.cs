@@ -90,12 +90,10 @@ public sealed partial class StatementBinder
     /// corpus has no consumer and the INITIALIZE lowering deserves its own witness.</summary>
     private BoundStatement PtrBindAllocate(Core.AllocateStatementContext al)
     {
-        // ALLOCATE (§14.9.3) is a COBOL-2002 INTRODUCTION gate — it fires on RECOGNITION, so a below-2002 ALLOCATE is
-        // an edition violation independent of whether its RETURNING resolves (SR3/0869). A bound-arm gate loses it
-        // when binding errors to a BoundNop before a BoundAllocate is produced (EditionGateDiagnosticTests.
-        // Allocate_At85), so it stays BIND-TIME here until Step 14h moves ALL introduction gates to the
-        // presence-based post-bind parse-arm (CI-red fix, 2026-07-09).
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.Allocate2002, "the ALLOCATE statement");
+        // ALLOCATE (§14.9.3) is a COBOL-2002 INTRODUCTION gate, now gated on RECOGNITION by the
+        // VersionConformancePass parse-arm (VisitAllocateStatement, Step 14h.2) — so a below-2002 ALLOCATE is an
+        // edition violation even when its RETURNING fails to resolve (SR3/0869), which a bound-arm gate lost when
+        // binding errored to a BoundNop before a BoundAllocate was produced (the DEVLOG-724 CI-red finding).
         var drefs = al.dataReference();
         Place? returning = null;
         if (al.RETURNING() is not null)
