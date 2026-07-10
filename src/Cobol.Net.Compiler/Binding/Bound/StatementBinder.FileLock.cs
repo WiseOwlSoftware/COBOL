@@ -42,10 +42,10 @@ public sealed partial class StatementBinder
     private BoundRecordLock CheckRecordLockPhrase(FileModel file, Core.RecordLockPhraseContext? lock_, string verb)
     {
         if (lock_ is null) return BoundRecordLock.None;
-        // The record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK) is a COBOL-2002 introduction — bind-time
-        // gate at the ONE funnel all READ/WRITE/REWRITE verbs call (rearch migration Cluster 10; the parse-time
-        // {is2002()}? predicate is gone). Fixes a latent gap: ReservedWordEditionHints never had a record-lock signature.
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.RecordLockPhrase2002, $"a record-lock phrase on {verb}");
+        // The record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK) is a COBOL-2002 introduction; its edition
+        // gate (RecordLockPhrase2002) fires on RECOGNITION in the VersionConformancePass parse-arm
+        // (VisitRecordLockPhrase, the verb named from the parent statement type); Step 14h.4a. This method keeps only
+        // the §14.9.30/.51/.35 SR validation (IGNORING/WITH-LOCK exclusivity vs the effective LOCK MODE).
         bool ignoring = lock_.IGNORING() is not null;
         bool noLock = lock_.NO() is not null;
         var kind = ignoring ? BoundRecordLock.IgnoringLock

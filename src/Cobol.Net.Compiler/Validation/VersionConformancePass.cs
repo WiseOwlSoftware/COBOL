@@ -36,9 +36,10 @@ namespace CobolNet.Validation;
 /// deleted as its twin lands. <b>Migration state (Step 14h in progress):</b> 14h.1 stood up the parse-arm
 /// (EditionValidator absorbed) + moved the driver's fail-fast post-bind; 14h.2 moved the SELF-IDENTIFYING
 /// statement gates (UNLOCK/FREE/ALTER/DELETE-FILE/SET-ADDRESS + ALLOCATE); 14h.3 moved the PHRASE statement gates
-/// (OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/CALL-ON-OVERFLOW/STOP-STATUS/END-ACCEPT) to the parse-arm. STILL
-/// bind-time pending migration: the expression/literal gates (boolean/XOR/national-literal/bare-GOTO/ROUNDED-MODE/
-/// record-lock/RETRY → 14h.4). The one principled exception is the UDF-invocation gate (an
+/// (OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/CALL-ON-OVERFLOW/STOP-STATUS/END-ACCEPT); 14h.4a moved the clean
+/// expression/phrase gates (XOR/bare-GOTO/ROUNDED-MODE/RETRY/record-lock-verb) to the parse-arm. STILL bind-time
+/// pending migration: the boolean-operator + national/boolean LITERAL gates (14h.4b — the delicate scoping/nesting
+/// cases). The one principled exception is the UDF-invocation gate (an
 /// intrinsic FUNCTION and a user-function call are syntactically identical — only the repository-resolved name
 /// set separates them), which stays BIND-TIME (<c>StatementBinder.Udf.cs</c>) where it already fires on
 /// recognition before operand binding.
@@ -619,6 +620,67 @@ internal sealed class VersionConformancePass
             for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
                 if (a is CobolParserCore.MethodDefinitionContext) return true;
             return false;
+        }
+
+        // ── Step 14h.4a: the clean expression/phrase gates (one unambiguous detection point each) ─────────────
+
+        /// <summary>The logical XOR / EXCLUSIVE-OR operator (ISO §8.8.4.9) — a COBOL-2023 introduction. A
+        /// <c>ChildCount &gt; 1</c> means an XOR/EXCLUSIVE_OR terminal was matched between two
+        /// <c>logicalAndExpression</c> operands (a bare below-2023 <c>logicalAndExpression</c> is one child,
+        /// untouched — the same guard BindXorSequence used).</summary>
+        public override object? VisitLogicalXorExpression(CobolParserCore.LogicalXorExpressionContext ctx)
+        {
+            if (ctx.ChildCount > 1)
+                _p.Check(Constructs.LogicalXorOperator2023, "the logical XOR operator");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The target-less <c>GO TO.</c> (ISO §14.9.17; the ANSI-85 alterable GO TO, REMOVED by 2002) — no
+        /// procedure-name AND no DEPENDING operand, exactly the BindGoTo→AlterBindBareGoTo condition (a
+        /// <c>GO TO DEPENDING</c> with no names is malformed, not bare, and takes a different path).</summary>
+        public override object? VisitGoToStatement(CobolParserCore.GoToStatementContext ctx)
+        {
+            if (ctx.procedureName().Length == 0 && ctx.dataReference() is null)
+                _p.Check(Constructs.BareGotoRemoved2002, "the GO TO statement");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>ROUNDED MODE IS (ISO §14.7.4) — a COBOL-2014 introduction (the explicit MODE phrase + the 8-mode
+        /// set); a bare ROUNDED is version-invariant. One <c>roundedPhrase</c> per receiver → one node here,
+        /// matching the per-receiver RoundingOf gate.</summary>
+        public override object? VisitRoundedPhrase(CobolParserCore.RoundedPhraseContext ctx)
+        {
+            if (ctx.roundingModeName() is not null)
+                _p.Check(Constructs.RoundedModeIs2014, "the ROUNDED MODE IS phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The RETRY phrase (ISO §14.7.9) on OPEN/READ/WRITE/REWRITE/DELETE/DELETE-FILE — a COBOL-2002
+        /// introduction. ONE grammar rule at six sites → one override; the phrase's very EXISTENCE is already
+        /// governed by the grammar (the OPEN site's <c>{is2002()||retryPhraseAhead()}?</c> forward-detect only
+        /// enters the phrase on an unambiguous numeric tail), so presence IS the gate — matching the former
+        /// GateRetryIntro (once per phrase).</summary>
+        public override object? VisitRetryPhrase(CobolParserCore.RetryPhraseContext ctx)
+        {
+            _p.Check(Constructs.RetryPhrase2002, "the RETRY phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The verb record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK) on READ/WRITE/REWRITE
+        /// (ISO §14.9.30/.51/.35) — a COBOL-2002 introduction. The where-string names the verb from the parent
+        /// statement type (matching CheckRecordLockPhrase's <c>verb</c> argument). DISTINCT from the READ …
+        /// ADVANCING ON LOCK occurrence (same constructId, a different where-string) that STAYS bound-arm — both
+        /// can fire on one READ; they are not merged.</summary>
+        public override object? VisitRecordLockPhrase(CobolParserCore.RecordLockPhraseContext ctx)
+        {
+            string verb = ctx.Parent switch
+            {
+                CobolParserCore.WriteStatementContext => "WRITE",
+                CobolParserCore.RewriteStatementContext => "REWRITE",
+                _ => "READ",   // readStatement — the sequential (StatementBinder) and keyed (KeyedIo) READ both route here
+            };
+            _p.Check(Constructs.RecordLockPhrase2002, $"a record-lock phrase on {verb}");
+            return base.VisitChildren(ctx);
         }
 
         // Which cobolWord token TYPES the funnel checks POSITION-BLIND (P2.4, refined — DEVLOG 585): IDENTIFIER

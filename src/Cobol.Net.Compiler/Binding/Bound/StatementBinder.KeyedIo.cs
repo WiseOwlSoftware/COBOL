@@ -199,7 +199,6 @@ public sealed partial class StatementBinder
     /// — there is no key condition to raise).</summary>
     private BoundStatement KeyedBindDelete(Core.DeleteStatementContext del)
     {
-        GateRetryIntro(del.retryPhrase());   // §14.7.9 introduction gate (residue migration #4)
         string name = del.fileName().GetText();
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"DELETE of undeclared file '{name}'");
@@ -222,7 +221,6 @@ public sealed partial class StatementBinder
     /// firing on the self-identifying <see cref="BoundKeyedDeleteFile"/> node (COBOLNET0900 below 2023).</summary>
     private BoundStatement KeyedBindDeleteFile(Core.DeleteFileStatementContext df)
     {
-        GateRetryIntro(df.retryPhrase());   // §14.7.9 introduction gate on DELETE FILE (residue migration #4 — still bind-time, moves in 14c)
         string name = df.fileName().GetText();
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"DELETE FILE of undeclared file '{name}'");

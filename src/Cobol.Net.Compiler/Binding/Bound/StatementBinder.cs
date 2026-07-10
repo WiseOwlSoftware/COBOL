@@ -303,7 +303,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // VersionConformancePass (Step 14c), firing on BoundOpen.SharingOverride; the binder just records it.
             if (clause.sharingPhrase() is { } sp && sp.sharingMode() is { } sm)
                 sharing = MapSharingMode(sm);
-            GateRetryIntro(clause.retryPhrase());   // §14.7.9 introduction gate (residue migration #4)
             if (clause.retryPhrase() is { } rp) retry = BindRetry(rp);
             foreach (var spec in clause.openFileSpec())
             {
@@ -327,17 +326,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         m.READ() is not null ? SharingMode.ReadOnly
         : m.NO() is not null ? SharingMode.NoOther
         : SharingMode.AllOther;
-
-    /// <summary>The RETRY phrase (ISO §14.7.9) introduction gate — COBOL-2002, on OPEN/READ/WRITE/REWRITE/DELETE/
-    /// DELETE FILE. RETRY parses at all editions (superset — the parse-time <c>{is2002()}?</c> predicates are gone;
-    /// the OPEN site uses a forward-detect); the gate fires HERE, once per statement carrying the phrase, so a
-    /// below-2002 RETRY is an exact COBOLNET0900 (residue migration #4). Kept separate from <see cref="BindRetry"/>
-    /// because most verbs treat the phrase as a documented no-op residue and never bind it.</summary>
-    private void GateRetryIntro(Core.RetryPhraseContext? rp)
-    {
-        if (rp is not null)
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.RetryPhrase2002, "the RETRY phrase");
-    }
 
     /// <summary>Bind a RETRY phrase (ISO §14.7.9). The n-TIMES amount is a bounded re-attempt count; FOR n
     /// SECONDS / FOREVER are single-run-unit no-ops (no competing process releases — named residue).</summary>
@@ -366,7 +354,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindWrite(Core.WriteStatementContext w)
     {
-        GateRetryIntro(w.retryPhrase());   // §14.7.9 introduction gate — before the sequential/keyed split (residue migration #4)
         Place? record = null;
         FileModel? file = null;
         if (w.recordName()?.dataReference() is { } rn && refs.Resolve(rn) is { } place)
@@ -418,7 +405,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindRead(Core.ReadStatementContext r)
     {
-        GateRetryIntro(r.retryPhrase());   // §14.7.9 introduction gate — before the sequential/keyed split (residue migration #4)
         string name = r.fileName().GetText();
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"READ of undeclared file '{name}'");
@@ -437,7 +423,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindRewrite(Core.RewriteStatementContext rw)
     {
-        GateRetryIntro(rw.retryPhrase());   // §14.7.9 introduction gate — before the sequential/keyed split (residue migration #4)
         Place? record = rw.recordName()?.dataReference() is { } rn ? refs.Resolve(rn) : null;
         FileModel? file = record is not null ? FileOfRecord(record) : null;
         if (file is null || record is null)
@@ -1259,8 +1244,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (phrase.roundingModeName() is { } mode)
         {
             // The explicit MODE IS phrase (and the 8-mode set) is ISO 2014+ (§14.7.4); at 85/2002 a bare ROUNDED
-            // means the single nearest-away-from-zero rounding and MODE IS is rejected.
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.RoundedModeIs2014, "the ROUNDED MODE IS phrase");
+            // means the single nearest-away-from-zero rounding. The RoundedModeIs2014 introduction gate fires on
+            // RECOGNITION in the VersionConformancePass parse-arm (VisitRoundedPhrase, roundingModeName != null); 14h.4a.
             return RoundingModes.Map(mode);
         }
         return data.Options.DefaultRounding;
@@ -1484,11 +1469,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// between two operands), so a bare below-2023 <c>logicalAndExpression</c> is untouched. Residue migration #1
     /// (DESIGN-version-conformance-pipeline.md) — the reverse-signature arm is deleted.</summary>
     private BoundCondition BindXorSequence(Core.LogicalXorExpressionContext xorExpr, AbbrevCarry carry)
-    {
-        if (xorExpr.ChildCount > 1)
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.LogicalXorOperator2023, "the logical XOR operator");
-        return BindFlatSequence(xorExpr, "^", carry);
-    }
+        // The XOR-operator introduction gate (LogicalXorOperator2023) fires on RECOGNITION in the
+        // VersionConformancePass parse-arm (VisitLogicalXorExpression, ChildCount>1); Step 14h.4a.
+        => BindFlatSequence(xorExpr, "^", carry);
 
     private BoundCondition BindPrimary(Core.PrimaryConditionContext p, AbbrevCarry carry)
     {

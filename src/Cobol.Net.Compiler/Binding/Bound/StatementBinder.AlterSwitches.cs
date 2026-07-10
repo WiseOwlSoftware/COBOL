@@ -116,7 +116,8 @@ public sealed partial class StatementBinder
     {
         if (g.dataReference() is not null)   // `GO TO DEPENDING ON x` with NO procedure-names is malformed, not bare
             return new BoundUnsupported("GO TO DEPENDING without procedure-names (ISO §14.9.17 Format 2)");
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.BareGotoRemoved2002, "the GO TO statement");
+        // The bare-GO-TO removal gate (BareGotoRemoved2002) fires on RECOGNITION in the VersionConformancePass
+        // parse-arm (VisitGoToStatement, no procedure-name && no DEPENDING — this exact condition); Step 14h.4a.
         // At 85 the construct is an OBSOLETE element: accepted with no failing diagnostic (the obsolete-element
         // flag awaits the EditionContext warning channel — it must not fail the 85 compile).
         AlterEnsureScan();
