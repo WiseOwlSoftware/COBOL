@@ -80,10 +80,28 @@
 > `VersionConformancePass` (parse-arm on recognition + bound-arm on resolved facts) is the SOLE edition gate; the binder
 > is edition-agnostic save the ONE documented UDF exception (`StatementBinder.Udf.cs`); all 9 exit criteria hold (see the
 > PHASE-03 doc STATUS reconciliation). Battery at close: greenfield conformance 3157 · unit 223 · characterization 32 ·
-> INV-1-strong 349/349 · FULL legacy guard NIST 353 MATCH. **⛔ NEXT: PHASE 04 — frontend consolidation** (generated
-> word-set + typed `Cst` façade; `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md`; deps: Phase 02).
-> Carried-forward (NOT a P3 blocker): the flagged latent OO-env double/zero-bind (DEVLOG 738 — a dedicated fix, likely in
-> PHASE 09). — P3 made edition conformance a single coherent pipeline:
+> INV-1-strong 349/349 · FULL legacy guard NIST 353 MATCH. Carried-forward (NOT a P3 blocker): the flagged latent OO-env
+> double/zero-bind (DEVLOG 738 — a dedicated fix, likely in PHASE 09).
+>
+> ⛔🏗 **NOW EXECUTING: PHASE 04 — FRONTEND CONSOLIDATION (IN PROGRESS @ Group A, Step A1; DEVLOG 742).** Read the phase
+> doc `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md` — its STATUS block holds the RESUME POINT +
+> the completed Group-A recon. A byte-neutral refactor in 4 groups: **A** single-source the context-sensitive word set
+> (generate the lexer `_dataNameTokens` + parser `cobolWord` from `tests/version-matrix/cobol-words.json`, extending the
+> proven `gen-reserved-words.ps1`/`ReservedWordsDriftTests` pattern); **B** share SUBSCRIPT/DEFAULT literal token bodies
+> via `fragment` rules; **C** typed `Cst/` façade over the ANTLR contexts + migrate the 2 anchor consumers
+> (`ReferenceResolver`, `DataBinder.BindEntry`); **D** version-conformance leg (⚠ LIKELY SUPERSEDED by the P3 two-arm
+> pass — re-assess when reached). Plus the **D10 owner override**: FULLY REMOVE the SUBSCRIPT lexer mode + the binder
+> subscript re-parse (a sequenced sub-track with its own before/after characterization proof — likely needs a fresh
+> design note in `DESIGN-frontend-grammar.md` first). **DONE:** §1 preconditions verified (P1/P2 complete; proven codegen
+> pattern present), `.tokens` baseline at `/e/tmp/CobolLexer.tokens.baseline` (951 lines), and the **Group-A Step-A1
+> extraction/reconciliation** — the word set is **77 words** with the exact predicted asymmetries: `BIT` nameSlot-only,
+> `DISPLAY/MERGE/RANDOM/SIGN/SORT/SUM` subscriptTrigger-only, 70 in both (captured AS-IS; FU-1). **RESUME:** author
+> `cobol-words.json` (77 rows) → `gen-cobol-words.ps1` → `CobolWordsDriftTests` → flip lexer+parser → verify `.tokens`
+> byte-identical + FULL legacy guard + name-slot smoke probe → COMMIT A5. Groups A–C are behavior-neutral (full battery +
+> legacy guard green at every commit boundary); NEVER re-introduce an edition predicate (only the two P3 forward-detects
+> survive). Design source: `docs/rearchitecture/DESIGN-frontend-grammar.md`.
+>
+> — (Phase-03 background) P3 made edition conformance a single coherent pipeline:
 > **superset parse** (all constructs parse at every `--std`; each version-gated grammar rule carries a committed-match
 > construct-id annotation — version numbers live only in `constructs.json`) → **edition-AGNOSTIC bind** → **ONE
 > `VersionConformancePass` over the bound tree** (reject strict / accept-inert permissive) → **emit-only-if-clean** →

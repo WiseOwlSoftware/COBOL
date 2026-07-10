@@ -27,9 +27,34 @@
 > `DESIGN-frontend-grammar.md` (and possibly `DESIGN-binder-bound-tree.md`) before execution — author it then.
 
 ## STATUS
-`NOT STARTED`
+`IN PROGRESS @ GROUP A, Step A1 (recon done — the word-set extraction/reconciliation is complete; RESUME by authoring cobol-words.json)` (2026-07-10)
 <!-- The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`.
      Keep a one-line note per completed commit boundary in the "Execution log" at the bottom. -->
+
+> **⛔ RESUME POINT (2026-07-10) — PRECONDITIONS + GROUP-A RECON DONE; execute A1→A5 next.** Depends: PHASE 03 ✅ CLOSED
+> (the version-conformance pipeline is LIVE; DEVLOG 741). §1 preconditions ALL PASS: P1 done (generated ns
+> `CobolNet.Frontend.Generated`, dead grammars + JSON/XML removed), P2 done (`Cobol.Net.Editions` present), the proven
+> `gen-reserved-words.ps1` + `ReservedWordsDriftTests` + `reserved-words.json` codegen pattern exists to EXTEND. Neutrality
+> baseline captured: `.tokens` at `/e/tmp/CobolLexer.tokens.baseline` (951 lines). **⚠ Note on Group D:** PHASE 03 built
+> the two-arm `VersionConformancePass` (a parse-arm walking the RAW parse tree + a bound-arm over resolved facts), NOT the
+> design's grammar-action "construct-id annotation side-table" — so Group D's annotation convention is likely SUPERSEDED
+> (the parse-arm reads the tree directly) and the superset grammar is already complete (P3 dropped every edition
+> predicate save the two forward-detects). Re-assess Group D against the AS-BUILT pass when reached; it may reduce to a
+> reconciliation note. Groups A–C proceed as written.
+>
+> **⛔ GROUP-A STEP-A1 RECON RESULT (the deterministic extraction is DONE — do not re-eyeball; the tree may be re-grepped
+> to confirm):** the context-sensitive word set = **77 words** (union of the two current sources). Reconciliation of
+> `nameSlot` (the `cobolWord` rule, `CobolParserCore.g4:25-113`, 71 tokens incl. IDENTIFIER) △ `subscriptTrigger` (the
+> lexer `_dataNameTokens` set, `CobolLexer.g4:30-72`, 76 tokens incl. IDENTIFIER) confirms EXACTLY the doc's predicted
+> asymmetries (FU-1) — capture AS-IS, do NOT "fix" inside the neutral flip:
+> - **70 words in BOTH** → `nameSlot=true, subscriptTrigger=true`.
+> - **`BIT`** → `nameSlot=true, subscriptTrigger=false` (in `cobolWord`, NOT the lexer set — the latent under-trigger).
+> - **`DISPLAY, MERGE, RANDOM, SIGN, SORT, SUM`** → `nameSlot=false, subscriptTrigger=true` (in the lexer set for the
+>   `functionName` collision, NOT `cobolWord`).
+> The full membership is the two cited grammar spans; author `cobol-words.json` (77 rows, sorted by token, each with
+> `token`/`nameSlot`/`subscriptTrigger`/`note`) → `gen-cobol-words.ps1` → `CobolWordsDriftTests` → flip the lexer+parser →
+> verify `.tokens` byte-identical + FULL legacy guard + the name-slot smoke probe → COMMIT A5. (Battery at Phase-04 start:
+> greenfield conformance 3157 · unit 223 · characterization 32 · INV-1-strong 349/349 · legacy guard 353 MATCH.)
 
 ### Goal (one paragraph)
 The frontend core is a single **superset grammar** — every edition's constructs parse unconditionally, and

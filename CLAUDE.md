@@ -25,7 +25,9 @@ points to it + its §0 resume protocol. **EXECUTION IN PROGRESS — Phases 00–
 version-conformance pipeline) CLOSED 2026-07-10 — the two-arm `VersionConformancePass` (parse-arm on recognition +
 bound-arm on resolved facts) is the SOLE edition gate, the binder is edition-agnostic save the ONE documented UDF
 exception, all 15 steps + all 9 exit criteria hold (battery 3157 conformance · 223 unit · 32 characterization ·
-INV-1-strong 349/349 · legacy guard 353 MATCH). NEXT: PHASE 04 — frontend consolidation.** §6 owner
+INV-1-strong 349/349 · legacy guard 353 MATCH). ◐ NOW EXECUTING: PHASE 04 — frontend consolidation (byte-neutral;
+IN PROGRESS @ Group A — the word-set extraction/reconciliation recon is done; see `resume-prompt.md` + the PHASE-04
+doc STATUS).** §6 owner
 decisions ALL RESOLVED (D1–D12); the live resume point is the plan's STATUS banner via `resume-prompt.md`. The
 SSOT for locked invariants / settled decisions remains **`docs/COBOLNET_DESIGN.md`**, and the four-editions mission is
 validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist
