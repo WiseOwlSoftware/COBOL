@@ -383,7 +383,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         // CCVS leniency: an ALPHANUMERIC literal VALUE on a numeric DISPLAY item stores its CHARACTERS as the
         // item's content (ISO §13.18.63 SR2 wants a numeric literal; the 85 corpus writes `PIC 999 VALUE "000"`
         // — NC107A's DATA-P — and the legacy oracle accepts the character form). Strict rejection is a future
-        // EditionValidator row.
+        // version-conformance pass row.
         if (item.RawValue is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
             return item.StoreAsImage
                 ? $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(q))}, {pic.Length})"

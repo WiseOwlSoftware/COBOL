@@ -56,8 +56,25 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14h (14a–14f DONE; CI-red fix DEVLOG 724; 14h REPRIORITIZED ahead of 14g)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
-**⚠ CI-RED FIX (DEVLOG 724) — a REAL FINDING that RESHAPES 14h: INTRODUCTION/removal gates fire on the construct's
+`IN PROGRESS @ Step 14g (14a–14h DONE — the SYNTACTIC gate migration to the parse-arm is COMPLETE; RESUME AT 14g = the DATA/PIC/OO gates)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+**⛔ Step 14h DONE (DEVLOG 725–729) — the parse-arm two-arm pass is built and every SYNTACTIC gate migrated.** The
+DEVLOG-724 root-cause fix landed as five byte-identical (well-formed) / strict-superset (malformed) sub-commits:
+**14h.1** (`b3f38cf6`, DEVLOG 725) — `EditionValidator` ABSORBED into `VersionConformancePass` as a nested `ParseArm`
+visitor + run POST-bind + the driver's pre-bind fail-fast DELETED (single post-pass `HasErrors` gate) + `EditionValidator.cs`
+deleted; **14h.2** (`fca04674`, 726) — the 6 self-identifying statement gates (UNLOCK/FREE/ALTER/DELETE-FILE/SET-ADDRESS
++ ALLOCATE); **14h.3** (`8b8c7d54`, 727) — the 6 phrase gates (OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/
+CALL-ON-OVERFLOW/STOP-STATUS/END-ACCEPT); **14h.4a** (`6287791f`, 728) — the 5 clean expression/phrase gates (XOR/
+bare-GOTO/ROUNDED-MODE/RETRY/record-lock-verb); **14h.4b** (`dd227460`, 729) — the boolean-operator + national/boolean
+LITERAL gates (altitude detection + proc-div scoping). The binder now holds ZERO statement/expression edition Checks;
+7 gates that need a resolved semantic fact STAY bound-arm (SET-object-ref, SET-ptr-UP/DOWN, INVOKE, READ-PREVIOUS,
+START-FIRST/LAST, START-WITH-LENGTH, READ-ADVANCING-ON-LOCK), and UDF stays a documented bind-time exception (an
+intrinsic FUNCTION vs a user-function call are syntactically identical — repository resolution required). Battery at
+close: conformance **3114** · unit **227** · characterization **32** · INV-1-strong @ 2023 permissive **349/349** ·
+FULL legacy guard **353 MATCH / 0 regressions** · Release warnings-as-errors clean. Recon `wf_be806171-b25`. NO `.Syntax`
+back-ref was added — the `BoundTree.cs` invariant stands (the design's §2.2/§6 provisions realized as a two-arm pass).
+
+**(historical — the CI-RED FINDING that reshaped 14h; now RESOLVED by 14h.1–14h.4b above)
+⚠ CI-RED FIX (DEVLOG 724): INTRODUCTION/removal gates fire on the construct's
 RECOGNITION (presence), NOT its bound node** — the bound-arm silently DROPS the 0900 whenever the construct binds to
 `BoundUnsupported`/`BoundNop` on a semantic error (below-edition + malformed). CI caught 2 (`ALLOCATE`, `UDF`); the same
 latent flaw affects the OTHER relocated intro/removal STATEMENT gates (UNLOCK-of-undeclared-file, OPEN-SHARING-of-undeclared,
@@ -185,15 +202,19 @@ complete. **Step 13** (`<pending push>`): `ReservedWordEditionHints` DELETED, th
 disposition relocated to `CobolErrorStrategy`. Each grammar change: FULL legacy guard **353 MATCH, 0 regressions**.
 Battery at head: greenfield conformance **3114** · unit **227** · characterization **32** GREEN.
 
-**RESUME AT: Step 14h.** Sub-steps 14a–14f DONE + a CI-red fix (DEVLOG 718–724, pushed, CI-GREEN): 14a bind/emit split
-(`CSharpEmitter.Bind()→BoundRunUnit` + `Emit(BoundRunUnit)`; driver `bind → pass → HALT → emit`); 14b–14f the bound-arm
-STATEMENT-gate relocation. **14h (the priority per the DEVLOG-724 finding — introduction/removal gates fire on
-RECOGNITION, not the bound node) moves ALL syntactic introduction/removal/phrase gates to a presence-based POST-BIND
-PARSE-ARM** (absorb `EditionValidator` into the pass, running AFTER bind; DELETE the pre-bind fail-fast; **NO `.Syntax`
-back-ref is added — the `BoundTree.cs` invariant stands**, DEVLOG 724). Only genuinely-semantic gates (MOVE-category,
-data-attribute) stay bound-arm. Then Step 14g (data/pic/OO) → Step 15 (phase close; the former Step 11): full battery +
-doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9); re-point CheckOnly/EditionHarness/INV-1 legs. Also
-fold in the Step-12(c) residual: refresh the migrated rows' stale `constructs.json` citations + grammar comments.
+**RESUME AT: Step 14g — the DATA/PICTURE/OO gates.** ✅ **Step 14h is DONE** (14h.1–14h.4b, DEVLOG 725–729, pushed +
+CI-green): the two-arm `VersionConformancePass` is built — a PARSE-tree arm (`ParseArm`, the absorbed `EditionValidator`
+running post-bind) owns every SYNTACTIC introduction/removal/phrase/expression/literal gate + the §8.9 reserved-word
+funnel, firing on RECOGNITION (the DEVLOG-724 fix); the driver's pre-bind fail-fast is gone; `EditionValidator.cs` is
+deleted. **14g** moves the remaining bind-time DATA/PICTURE/OO gates (`DataBinder*` / `PicInfo` / `OoClassTable` /
+`OdoModel` — USAGE/PIC-national/boolean/pointer/float, BASED/TYPEDEF/TYPE/PROPERTY/LOCK-MODE/SHARING-clause,
+class/interface definitions, OCCURS-DYNAMIC, SPECIAL-NAMES FOR NATIONAL, PD RETURNING/RAISING, REPOSITORY, the emitter-side
+FUNCTION-PROTOTYPE) into the **bound-arm** via a new complete `DataItem`+`FileModel` enumerator — ⚠ mind the
+context-dependent `PicInfo` USAGE `where`-strings (main / report `itemWhere` / OO `method '…'`) + the ParseUsage/PIC-N
+dedup. Only UDF stays bind-time (documented exception). Then **Step 15 — phase close**: full battery + doc sync +
+STATUS→DONE + the exit-criteria checklist (items 1–9); re-point CheckOnly/EditionHarness/INV-1 legs (already true — all
+read the one sink; verify); grep-assert zero `ConstructRegistry.Check` outside the pass; fold in the Step-12(c) residual
+(refresh the migrated rows' stale `constructs.json` citations + grammar comments).
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to

@@ -28,7 +28,7 @@ public sealed class OoMethodDataScope
 /// (→ typed C# parameters via capturable locals), LOCAL-STORAGE SECTION (→ C# locals, re-initialized each
 /// activation, §14.5.3), and — in the editions that permit it — WORKING-STORAGE (→ STATIC fields, shared across
 /// instances and persistent across activations per §11.7; ILLEGAL in 2023 per §13.5.3 SR 1, gated by the
-/// EditionValidator's <c>method-working-storage-window</c> row). Items bind into the CLASS's one forest (so
+/// version-conformance pass's <c>method-working-storage-window</c> row). Items bind into the CLASS's one forest (so
 /// USAGE/SIGN inheritance, object-reference resolution, profiles, and struct types all apply unchanged) but
 /// their NAMES move into the method's own scope.
 /// </summary>
@@ -183,7 +183,7 @@ public sealed partial class DataBinder
             {
                 // D3: method WS → STATIC fields (per-class, shared, persistent — §11.7; the naive instance-field
                 // mapping silently miscompiles a method-WS counter). The 2023 §13.5.3 SR 1 ban is the
-                // EditionValidator's method-working-storage-window row — binding proceeds so `--permissive`
+                // version-conformance pass's method-working-storage-window row — binding proceeds so `--permissive`
                 // keeps the pre-removal semantics (the §10 #1 migration contract).
                 GateMethodGlobal(ws.dataDescriptionEntry());
                 // EXTERNAL in method WS would silently miss CallBindExternalAndGlobal (it scans the synthetic unit's

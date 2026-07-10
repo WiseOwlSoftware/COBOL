@@ -147,7 +147,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 + "(§8.8.1 defines NATIVE, STANDARD-BINARY, STANDARD-DECIMAL); use STANDARD-DECIMAL");
 
         // The '85 debug facility's compile-time switch (X3.23-1985 SOURCE-COMPUTER … WITH DEBUGGING MODE; the
-        // clause itself is 0902-gated ≥2002 by the EditionValidator): its presence decides whether a USE FOR
+        // clause itself is 0902-gated ≥2002 by the version-conformance pass): its presence decides whether a USE FOR
         // DEBUGGING declarative section is COMPILED (switch present — the object-time switch is permanently off
         // here, so it never triggers) or treated as comment lines (switch absent — the '85 rule). Token-text
         // scan of the computerAttributes sink, the VisitComputerAttributes pattern (VCR Table 7 rows 7.9/7.17).
@@ -542,7 +542,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 if (clause.recordClause() is { } rc)
                     BindRecordClause(rc, sdFile);
-                // (The SD DATA RECORDS 0873 gate MIGRATED to EditionValidator.VisitDataRecordsClause — one
+                // (The SD DATA RECORDS 0873 gate MIGRATED to the version-conformance pass parse-arm (VisitDataRecordsClause) — one
                 // enforcement site covering FD AND SD via the shared grammar rule; P2.6 / Table-7 row 7.1.)
             }
         }
@@ -602,10 +602,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// ALLOCATION plus open-mode constraints on the program, nothing a typed-native runtime must alias) — bound as
     /// conformant no-ops; MULTIPLE FILE TAPE is obsolete and parsed-and-ignored (grammar note), and so is the
     /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
-    /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the EditionValidator, VCR Table 7 row 7.15) —
+    /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) —
     /// both skip through the non-SAME `continue` below by design. The SR2–SR11 static
     /// legality checks (report/sort/file-area cross-membership consistency) are the diagnose-correctly track —
-    /// staged with the EditionValidator phase, not silently absent by oversight.</summary>
+    /// staged with the version-conformance pass phase, not silently absent by oversight.</summary>
     private void BindIoControl(Core.ProgramUnitContext program)
     {
         var io = program.environmentDivision()?.inputOutputSection()?.ioControlParagraph();

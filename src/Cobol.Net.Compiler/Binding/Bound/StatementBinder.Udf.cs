@@ -196,7 +196,7 @@ public sealed partial class StatementBinder
 
     /// <summary>EXIT FUNCTION (pre-2023 editions — introduced 2002 with user functions, REMOVED by 2023,
     /// Annex E.2 :49036; the <c>exit-function-window</c> registry row flags 0900/0902 at the window edges
-    /// via the EditionValidator, mirroring EXIT METHOD): inside a function definition it is the
+    /// via the version-conformance pass, mirroring EXIT METHOD): inside a function definition it is the
     /// function-return synonym — equivalent to GOBACK (the §14.9.18.4 GR5 semantics: the activation
     /// terminates and the RETURNING item's value becomes the function result); outside one it violates its
     /// placement rule (the 0827 EXIT-family placement band). The optional RAISING tail stages exactly like

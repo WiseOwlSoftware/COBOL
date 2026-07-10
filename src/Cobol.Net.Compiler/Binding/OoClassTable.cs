@@ -865,7 +865,7 @@ public sealed record OoMethodSymbol(
     public List<DataItem> LocalRoots { get; } = [];
 
     /// <summary>Method WORKING-STORAGE roots → STATIC fields (D3 — shared across instances, persistent across
-    /// activations, §11.7; ILLEGAL at 2023, §13.5.3 SR 1 — the EditionValidator window row).</summary>
+    /// activations, §11.7; ILLEGAL at 2023, §13.5.3 SR 1 — the version-conformance pass window row).</summary>
     public List<DataItem> StaticRoots { get; } = [];
 
     /// <summary>The method's own name scope (§11.7 GR5 shadowing; sibling invisibility — trap #6).</summary>

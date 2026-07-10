@@ -8,14 +8,15 @@
 > [`DESIGN-edition-framework.md`](DESIGN-edition-framework.md). Cross-refs: [`DESIGN-frontend-grammar.md`](DESIGN-frontend-grammar.md),
 > [`DESIGN-binder-bound-tree.md`](DESIGN-binder-bound-tree.md). SSOT for settled invariants stays `docs/COBOLNET_DESIGN.md`.
 
-> ⚠ **AS-BUILT REFINEMENT (2026-07-09, DEVLOG 718–724 — supersedes the `.Syntax`-back-reference mechanism below where
-> they conflict; the §-by-§ rewrite lands at PHASE-03 Step 14i).** Execution abandoned the "bound nodes carry a
+> ⚠ **AS-BUILT REFINEMENT (2026-07-09, DEVLOG 718–729 — supersedes the `.Syntax`-back-reference mechanism below where
+> they conflict; Step 14h COMPLETE, 14h.1–14h.4b).** Execution abandoned the "bound nodes carry a
 > `.Syntax` back-reference" mechanism (§1 diagram, §2.2, §2.4, §5 Stage 3, §6): **NO `.Syntax`/raw parse context is
-> added to any bound node — the `BoundTree.cs` invariant STANDS.** The pass is **TWO-ARM**: (1) a BOUND-tree arm that
-> re-identifies gates by bound-node TYPE or a resolved semantic ATTRIBUTE (used for genuinely-semantic gates —
-> MOVE-category, data-attribute gates); (2) a **presence-based PARSE-tree arm** over `BoundRunUnit.Tree` (running AFTER
-> bind so a construct's semantic errors also accumulate) for the SYNTACTIC introduction/removal/phrase gates + the §8.9
-> reserved-word funnel — which absorbs `EditionValidator` at Step 14h. **WHY (the load-bearing finding, DEVLOG 724):**
+> added to any bound node — the `BoundTree.cs` invariant STANDS.** The pass is **TWO-ARM** (built in `VersionConformancePass.cs`):
+> (1) a BOUND-tree arm that re-identifies gates by bound-node TYPE or a resolved semantic ATTRIBUTE (used for
+> genuinely-semantic gates — MOVE-category + the file-org/USAGE/pointer-conditioned gates; the DATA/PIC/OO gates join
+> it at Step 14g); (2) a **presence-based PARSE-tree arm** (`ParseArm`, over `BoundRunUnit.Tree`, running AFTER bind so
+> a construct's semantic errors also accumulate) for the SYNTACTIC introduction/removal/phrase/expression/literal gates
+> + the §8.9 reserved-word funnel — it ABSORBED `EditionValidator` (now deleted) at Step 14h. **WHY (the load-bearing finding, DEVLOG 724):**
 > INTRODUCTION/removal gates must fire on the construct's syntactic RECOGNITION, NOT its bound node — a bound-arm gate
 > silently DROPS the 0900 whenever a below-edition construct ALSO has a semantic error (it binds to
 > `BoundUnsupported`/`BoundNop`, so the distinctive node is never produced; caught by `Allocate_At85` + the UDF gate).
