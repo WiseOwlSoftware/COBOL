@@ -151,6 +151,15 @@ public sealed class ReportSumModel
     public int ResetLevel { get; set; } = -1;
     /// <summary>The group whose processing end resets the counter when no RESET phrase is given (GR2).</summary>
     public required ReportGroupModel PrintedIn { get; init; }
+    /// <summary>The COBOL-2002 PICTURE-skeleton introduction gate (a <c>Constructs.*</c> id) this counter's PICTURE
+    /// carries — an external-float / national-edited picture, from <see cref="PicInfo.SkeletonGate"/>. The SUM-counter
+    /// scale-derivation <c>Analyze</c> (GR1) is a DISTINCT call off <c>ConformanceForest</c>, so this preserves its
+    /// gate for the post-bind <c>VersionConformancePass</c> GateData report-Sums walk (DEVLOG 740; else the 0900 below
+    /// 2002 is dropped on this error path). Null when the picture is version-invariant (the normal numeric case).</summary>
+    public string? SkeletonGate { get; init; }
+    /// <summary>The exact where-string the SUM-counter <c>Analyze</c> used (<c>RD '…' SUM counter '…'</c>) — replayed
+    /// verbatim by GateData when <see cref="SkeletonGate"/> fires, so the 0900 is byte-identical to the former site.</summary>
+    public string SkeletonWhere { get; init; } = "";
 }
 
 public sealed partial class DataBinder
@@ -427,15 +436,19 @@ public sealed partial class DataBinder
     {
         // Scale-derivation analysis (GR1) — threads the edition + the program currency symbol like every other
         // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
+        string sumWhere = $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'";
         var pic = picText is not null
-            ? PicInfo.Analyze(picText, Usage.Display, Edition,
-                $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'", currency: CurrencyPicSymbol)
+            ? PicInfo.Analyze(picText, Usage.Display, Edition, sumWhere, currency: CurrencyPicSymbol)
             : null;
         var sum = new ReportSumModel
         {
             Id = entryName ?? $"__SUM{_sumCounterId++}",
             Scale = pic?.Scale ?? 0,
             PrintedIn = group,
+            // Preserve an external-float / national-edited SkeletonGate for the post-bind GateData report-Sums walk
+            // (this PicInfo is otherwise discarded — only Scale is used — so the 0900 would drop; DEVLOG 740).
+            SkeletonGate = pic?.SkeletonGate,
+            SkeletonWhere = sumWhere,
         };
         foreach (var op in sm.sumOperand())
         {

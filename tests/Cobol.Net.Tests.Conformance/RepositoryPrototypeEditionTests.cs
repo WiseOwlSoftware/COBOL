@@ -89,4 +89,38 @@ public sealed class RepositoryPrototypeEditionTests
     [Fact]
     public void NationalEditedPicture_At85_ExactlyOne0900()
         => Assert.Equal(1, Count0900(Prog("01 WS-M PIC NN0NN."), 85, "national-edited data"));
+
+    // A report with a NON-PRINTABLE SUM counter carrying an external-float picture. The SUM-counter scale-derivation
+    // Analyze is a DISTINCT call off the ConformanceForest AND the printable-item walk, so its 0900 must ride
+    // ReportSumModel.SkeletonGate through GateData's report-Sums walk (DEVLOG 740 — the 14g.5 review found it dropped).
+    private const string ReportSumExternalFloat = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. RSUM.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT RPT ASSIGN TO "RPTF".
+        DATA DIVISION.
+        FILE SECTION.
+        FD RPT REPORT IS R-1.
+        WORKING-STORAGE SECTION.
+        01 WS-KEY PIC 9 VALUE 1.
+        01 WS-AMT PIC 9 VALUE 1.
+        REPORT SECTION.
+        RD R-1 CONTROL IS WS-KEY.
+        01 DET-1 TYPE DE LINE PLUS 1.
+            03 COLUMN 1 PIC X(2) VALUE "DE".
+        01 CF-1 TYPE CF WS-KEY LINE PLUS 1.
+            03 TOT PIC 9V99E+99 SUM WS-AMT.
+        PROCEDURE DIVISION.
+        MAIN.
+            STOP RUN.
+        """;
+
+    /// <summary>DEVLOG-740 regression: an external-float PICTURE on a NON-printable report SUM counter still gates
+    /// EXACTLY ONCE at 85 — the SUM-counter Analyze PicInfo is discarded (only its scale is used), so the 0900 must be
+    /// carried on ReportSumModel.SkeletonGate and fired by GateData's report-Sums walk, else it is silently dropped.</summary>
+    [Fact]
+    public void ReportSumExternalFloat_At85_ExactlyOne0900()
+        => Assert.Equal(1, Count0900(ReportSumExternalFloat, 85, "external floating-point PICTURE"));
 }

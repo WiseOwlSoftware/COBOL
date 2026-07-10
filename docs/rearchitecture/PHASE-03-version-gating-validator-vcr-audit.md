@@ -302,7 +302,11 @@ expansion + GateData's where-strings; the flag reuses both, drop-proof, covers r
 split → `StagedNotImplemented` (0899); the dead `SkeletonUsage`/`NotImplementedSkeleton` DELETED (dead since 14g.1). New
 `RepositoryPrototypeEditionTests` ×7; `LoudGuardTests` external-float leg rewritten to the SkeletonGate carrier.
 **⛔ grep-assert PASSES: the sole `ConstructRegistry.Check` outside the pass is `StatementBinder.Udf.cs:63` (the UDF
-exception).** Battery: conformance 3156 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
+exception).** ⚠ REVIEW-FIX (DEVLOG 740, adversarial `6dd27247`): the report SUM-counter external-float/national-edited
+0900 was DROPPED below 2002 — the SUM-counter scale-derivation `Analyze` (a THIRD Analyze site) discards its PicInfo, off
+GateData's forest + printable-item walks. Fixed: `ReportSumModel.SkeletonGate`/`SkeletonWhere` + a GateData `report.Sums`
+walk (byte-exact to the two former inline sites); regression witness added. Battery: conformance 3157 · unit 223 ·
+characterization 32 · INV-1 349/349 · guard 353 MATCH. —
 **RESUME AT Step 15 (phase close):** exit-criteria checklist 1–9; 14g.6 snapshot re-baseline is a NO-OP (characterization
 byte-exact throughout 14g). Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization
 + INV-1 + FULL legacy guard. Full synthesis is in the recon transcript.

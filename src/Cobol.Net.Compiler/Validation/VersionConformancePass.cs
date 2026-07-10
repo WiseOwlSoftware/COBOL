@@ -270,11 +270,21 @@ internal sealed class VersionConformancePass
         // Report printable items are SYNTHETIC DataItems in the RD model (off the forest) — their national/boolean
         // PICTURE gates fired in Analyze with the report where-string (DataBinder.Reports.cs); reproduce that here.
         foreach (var report in data.Reports)
+        {
             foreach (var grp in report.Groups)
                 foreach (var line in grp.Lines)
                     foreach (var field in line.Fields)
                         GateDataItem(field.PrintItem,
                             $"RD '{report.Name}' printable item '{field.PrintItem.CobolName ?? "FILLER"}'");
+            // SUM counters (§13.18.54) analyze their PICTURE for the counter scale (GR1) in a DISTINCT Analyze call off
+            // both the forest AND the printable-item walk (DataBinder.Reports.cs:BindSumClause), so an external-float /
+            // national-edited SUM-counter picture carries its 0900 here on ReportSumModel.SkeletonGate (DEVLOG 740 —
+            // the 14g.5 review found the former inline gate was dropped). Fires once per SUM counter — so a NON-printable
+            // SUM gets its one 0900, and a PRINTABLE SUM (also a print item, gated above) gets both, exactly as the
+            // former two Analyze sites did.
+            foreach (var sum in report.Sums)
+                if (sum.SkeletonGate is { } sumSkeletonId) Check(sumSkeletonId, sum.SkeletonWhere);
+        }
     }
 
     /// <summary>Gate one resolved DataItem's USAGE / PICTURE-category edition attribute. At most ONE gate fires
