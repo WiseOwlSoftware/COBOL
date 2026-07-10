@@ -685,11 +685,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)
     {
-        // COBOL-2002 boolean-operator introduction gate on COMPUTE Format 2 (residue migration #2): superset-parsed
-        // (F1 arithmetic is tried first; only a genuine boolean RHS falls to F2), gated here when a B-operator is
-        // present. A bare boolean literal RHS (no B-op) is gated instead by BooleanData2002 in BindBoolExpr.
-        if (HasBoolOp(boolExpr))
-            ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
+        // The COBOL-2002 boolean-operator introduction gate on COMPUTE Format 2 (BooleanOperators2002) fires on
+        // RECOGNITION in the VersionConformancePass parse-arm (VisitComputeStatement, HasBoolOp on the F2
+        // booleanExpression); Step 14h.4b.
         var rhs = BindBoolExpr(boolExpr);
         // SR3 (§14.9.8 :26575): the expression shall not consist solely of an ALL literal.
         if (rhs is BoundBoolAll)
@@ -1122,7 +1120,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// silent mojibake store.</summary>
     private BoundStringLiteral NationalLiteralOperand(string raw)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.NationalData2002, "national literal N\"…\"");
+        // NationalData2002 (the N"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
+        // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
         string value = DecodeCobolString(raw);
         if (value.Length > 8191)
             data.Edition.Error("COBOLNET0814", $"national literal of {value.Length} positions exceeds the "
@@ -1138,7 +1137,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// positions; SR2 ('0'/'1' only) is lexer-enforced.</summary>
     private BoundStringLiteral BooleanLiteralOperand(string raw)
     {
-        ConstructRegistry.Check(data.Edition.Edition, data.Edition, Constructs.BooleanData2002, "boolean literal B\"…\"");
+        // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
+        // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
         string value = DecodeCobolString(raw);
         if (value.Length > 8191)
             data.Edition.Error("COBOLNET0814", $"boolean literal of {value.Length} positions exceeds the "

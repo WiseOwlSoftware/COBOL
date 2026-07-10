@@ -37,12 +37,13 @@ namespace CobolNet.Validation;
 /// (EditionValidator absorbed) + moved the driver's fail-fast post-bind; 14h.2 moved the SELF-IDENTIFYING
 /// statement gates (UNLOCK/FREE/ALTER/DELETE-FILE/SET-ADDRESS + ALLOCATE); 14h.3 moved the PHRASE statement gates
 /// (OPEN-SHARING/GOBACK-RETURNING/CALL-BY-VALUE/CALL-ON-OVERFLOW/STOP-STATUS/END-ACCEPT); 14h.4a moved the clean
-/// expression/phrase gates (XOR/bare-GOTO/ROUNDED-MODE/RETRY/record-lock-verb) to the parse-arm. STILL bind-time
-/// pending migration: the boolean-operator + national/boolean LITERAL gates (14h.4b — the delicate scoping/nesting
-/// cases). The one principled exception is the UDF-invocation gate (an
-/// intrinsic FUNCTION and a user-function call are syntactically identical — only the repository-resolved name
-/// set separates them), which stays BIND-TIME (<c>StatementBinder.Udf.cs</c>) where it already fires on
-/// recognition before operand binding.
+/// expression/phrase gates (XOR/bare-GOTO/ROUNDED-MODE/RETRY/record-lock-verb); 14h.4b moved the boolean-operator +
+/// national/boolean LITERAL gates — COMPLETING the SYNTACTIC statement/expression migration, so the binder holds
+/// ZERO statement-level edition Checks. STILL bind-time pending migration: only the DATA / PICTURE / OO gates
+/// (DataBinder / PicInfo / OoClassTable / OdoModel → Step 14g, a bound-arm DataItem+FileModel enumerator). The one
+/// principled exception is the UDF-invocation gate (an intrinsic FUNCTION and a user-function call are
+/// syntactically identical — only the repository-resolved name set separates them), which stays BIND-TIME
+/// (<c>StatementBinder.Udf.cs</c>) where it already fires on recognition before operand binding.
 /// </remarks>
 internal sealed class VersionConformancePass
 {
@@ -681,6 +682,70 @@ internal sealed class VersionConformancePass
             };
             _p.Check(Constructs.RecordLockPhrase2002, $"a record-lock phrase on {verb}");
             return base.VisitChildren(ctx);
+        }
+
+        // ── Step 14h.4b: the boolean-operator + national/boolean LITERAL gates (the delicate cases) ────────────
+        // (1) The boolean OPERATORS gate is detected at the primaryCondition / computeStatement ALTITUDE with a
+        //     whole-subtree HasBoolOp scan — never per booleanExpression node: the tiers nest via parentheses /
+        //     the relation form, so a per-node gate would over-count. (2) The national/boolean LITERAL gates fire
+        //     for a PROCEDURE-DIVISION statement operand only (a StatementContext ancestor); a data-division VALUE
+        //     literal is left to the data/PIC gate (its item's national/boolean USAGE, Step 14g) — firing here too
+        //     would double the below-2002 diagnostic.
+
+        /// <summary>The boolean operators B-AND/B-OR/B-XOR/B-NOT (ISO §8.7.2) in a CONDITION — a COBOL-2002
+        /// introduction. Fires ONCE per primaryCondition that carries a B-operator anywhere in its
+        /// booleanExpression operand(s) (matching BindPrimaryBoolean's <c>be.Any(HasBoolOp)</c>); a B-op-free
+        /// comparison uses the untouched shared comparison rule and never enters here.</summary>
+        public override object? VisitPrimaryCondition(CobolParserCore.PrimaryConditionContext ctx)
+        {
+            if (ctx.booleanExpression().Any(HasBoolOp))
+                _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The boolean operators in a COMPUTE Format 2 RHS (ISO §14.9.8) — the second BooleanOperators2002
+        /// site (matching BindComputeBoolean). The F1 arithmetic alternative has no <c>booleanExpression</c>.</summary>
+        public override object? VisitComputeStatement(CobolParserCore.ComputeStatementContext ctx)
+        {
+            if (ctx.booleanExpression() is { } be && HasBoolOp(be))
+                _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>National (<c>N"…"</c>) and boolean (<c>B"…"</c>) literals as a PROCEDURE-DIVISION statement
+        /// operand — COBOL-2002 introductions (ISO §8.3.3.5 / §8.3.3.4). Scoped to a StatementContext ancestor so a
+        /// DATA-division VALUE literal is left to the data/PIC gate (Step 14g) — firing here too would double the
+        /// below-2002 diagnostic. One Check per literal occurrence, matching the binder's NationalLiteralOperand /
+        /// BooleanLiteralOperand / boolean-expression-operand paths.</summary>
+        public override object? VisitNonNumericLiteral(CobolParserCore.NonNumericLiteralContext ctx)
+        {
+            bool nat = ctx.NATLIT() is not null;
+            if ((nat || ctx.BOOLLIT() is not null) && InStatement(ctx))
+                _p.Check(nat ? Constructs.NationalData2002 : Constructs.BooleanData2002,
+                    nat ? "national literal N\"…\"" : "boolean literal B\"…\"");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>Whether <paramref name="ctx"/> sits inside a procedure-division statement (a StatementContext
+        /// ancestor) — the scope that reaches the binder's literal-operand gates, excluding data-division VALUE.</summary>
+        private static bool InStatement(Antlr4.Runtime.RuleContext ctx)
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.StatementContext) return true;
+            return false;
+        }
+
+        /// <summary>Whether a boolean-expression subtree contains any B-operator terminal — the discriminator
+        /// between a genuine boolean expression and a bare operand parsed through the booleanExpression rule.
+        /// Mirrors the binder's <c>HasBoolOp</c> (StatementBinder.Boolean.cs), which stays there for its own
+        /// channel-routing use (a pure predicate, duplicated across the two layers it serves).</summary>
+        private static bool HasBoolOp(Antlr4.Runtime.Tree.IParseTree t)
+        {
+            if (t is Antlr4.Runtime.Tree.ITerminalNode term)
+                return term.Symbol.Type is CobolLexer.B_AND or CobolLexer.B_OR or CobolLexer.B_XOR or CobolLexer.B_NOT;
+            for (int i = 0; i < t.ChildCount; i++)
+                if (HasBoolOp(t.GetChild(i))) return true;
+            return false;
         }
 
         // Which cobolWord token TYPES the funnel checks POSITION-BLIND (P2.4, refined — DEVLOG 585): IDENTIFIER
