@@ -869,7 +869,7 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
   · characterization 32 byte-exact · legacy guard **353 MATCH / ALL GREEN / 0 regressions**. Adversarial review
   (wf_16cc83d1-1cc) found + fixed a false-green drift-guard gap (symmetric `subscriptTrigger`-only pin, mutation-proven).
   Reserved-words cross-check DEVIATION recorded (Step A2 item 4). FU-1 asymmetries captured AS-IS.
-- **B1 (fragment dedup) — 2026-07-10 — DEVLOG 744.** Six shared literal `fragment` bodies
+- **B1 (fragment dedup) — 2026-07-10 — commit `9b96bd1b`, DEVLOG 744.** Six shared literal `fragment` bodies
   (`STR_BODY`/`NAT_BODY`/`BOOL_BODY`/`INT_BODY`/`DEC_BODY`/`NAME_BODY`) replace the char-for-char DEFAULT/SUBSCRIPT
   duplication; `CobolLexer.tokens` byte-identical; conformance 3157 · unit 227 · characterization 32 byte-exact · legacy
   guard **353 MATCH / ALL GREEN / 0 regressions**; subscript-literal + single-quote (composed `NAT_BODY`) probes green.
