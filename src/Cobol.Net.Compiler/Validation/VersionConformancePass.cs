@@ -645,6 +645,49 @@ internal sealed class VersionConformancePass
             return false;
         }
 
+        // ── Step 14g.3: the OO class/interface definition + OCCURS DYNAMIC gates ───────────────────────────────
+        // Two OO-2002 introductions (a CLASS-ID / INTERFACE-ID compilation unit) + one 2014 introduction (OCCURS
+        // DYNAMIC). All parse-arm: a class/interface gate would UNDER-count from a bound-arm home — OoClassTable
+        // drops a duplicate/colliding definition with a `continue` BEFORE it enters the built table, yet the former
+        // gate fired for EVERY parse node (before that continue) — and the OCCURS DYNAMIC gate would OVER-count a
+        // per-DataItem bound-arm walk (a TYPEDEF template's dynamic table is cloned into each TYPE reference, but the
+        // former gate fired once per source occursClause). Recognition fires once per parse node — byte-identical to
+        // the former OoClassTable.Build / OdoBindOccursSpec Checks (same constructId + where-string, incl. the
+        // name-embedding class/interface where-strings). Class/interface definitions are top-level compilation units
+        // (not data-description entries), so they need no level-66/88 guard; OCCURS DYNAMIC does (the binder skipped
+        // those levels before OdoBindOccursSpec ran).
+
+        /// <summary>A class definition (CLASS-ID compilation unit, ISO §11.2/§11.3) — a COBOL-2002 introduction. The
+        /// where-string embeds the class-name exactly as the former OoClassTable.Build site (<c>className(0)</c> — the
+        /// class's own name, not an INHERITS base).</summary>
+        public override object? VisitClassDefinition(CobolParserCore.ClassDefinitionContext ctx)
+        {
+            _p.Check(Constructs.ClassDefinition2002,
+                $"class definition '{ctx.classIdParagraph().className(0).GetText()}' (CLASS-ID compilation unit)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>An interface definition (INTERFACE-ID compilation unit, ISO §11.5/§11.6) — a COBOL-2002
+        /// introduction. The where-string embeds <c>interfaceName(0)</c> (the interface's own name), matching the
+        /// former OoClassTable.Build site.</summary>
+        public override object? VisitInterfaceDefinition(CobolParserCore.InterfaceDefinitionContext ctx)
+        {
+            _p.Check(Constructs.InterfaceDefinition2002,
+                $"interface definition '{ctx.interfaceName(0).GetText()}' (INTERFACE-ID compilation unit)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The OCCURS DYNAMIC clause (a dynamic-capacity table, ISO §13.18.38 Format 4; data-model D9) — a
+        /// COBOL-2014 introduction. Gated on the DYNAMIC alternative of the shared <c>occursClause</c> rule (matching
+        /// <c>OdoBindOccursSpec</c>'s <c>occ.DYNAMIC()</c> test), once per source clause; a fixed / Format-2 OCCURS is
+        /// untouched. The <see cref="InConditionOrRenamesEntry"/> guard reproduces the binder's level-66/88 skip.</summary>
+        public override object? VisitOccursClause(CobolParserCore.OccursClauseContext ctx)
+        {
+            if (ctx.DYNAMIC() is not null && !InConditionOrRenamesEntry(ctx))
+                _p.Check(Constructs.OccursDynamic2014, "the OCCURS DYNAMIC clause");
+            return base.VisitChildren(ctx);
+        }
+
         // ── Step 14h.2: the SELF-IDENTIFYING statement gates ─────────────────────────────────────────────────
         // Each construct is ONE dedicated grammar rule → the parse node IS the identity; the gate fires once per
         // statement on RECOGNITION (never per operand — a multi-operand FREE / a compound ALTER is ONE node), so a

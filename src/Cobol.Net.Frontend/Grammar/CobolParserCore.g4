@@ -142,7 +142,7 @@ compilationUnit
     ;
 
 compilationGroup
-    : (programUnit | classDefinition | interfaceDefinition)+   // OO/2002 rules live in Core/CobolOO.g4; introduction-gated at BIND time (OoClassTable.Build → Check(Class/InterfaceDefinition2002))
+    : (programUnit | classDefinition | interfaceDefinition)+   // OO/2002 rules live in Core/CobolOO.g4; introduction-gated post-bind by VersionConformancePass ParseArm.VisitClass/InterfaceDefinition (rearch 14g.3)
     ;
 
 programUnit

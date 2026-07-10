@@ -362,7 +362,8 @@ public sealed class OoClassTable
         foreach (var ictx in interfaces ?? [])
         {
             string iname = ictx.interfaceName(0).GetText();
-            ConstructRegistry.Check(edition.Edition, edition, Constructs.InterfaceDefinition2002, $"interface definition '{iname}' (INTERFACE-ID compilation unit)");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 7)
+            // COBOL-2002 introduction gate: VersionConformancePass ParseArm.VisitInterfaceDefinition (rearch 14g.3,
+            // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             string icsName = DataItem.Sanitize(iname).ToUpperInvariant();
             var isym = new OoInterfaceSymbol(iname, icsName, ictx);
             if (table._ifaceByName.ContainsKey(iname) || table._byName.ContainsKey(iname)
@@ -462,7 +463,8 @@ public sealed class OoClassTable
         {
             var id = ctx.classIdParagraph();
             string name = id.className(0).GetText();
-            ConstructRegistry.Check(edition.Edition, edition, Constructs.ClassDefinition2002, $"class definition '{name}' (CLASS-ID compilation unit)");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 7)
+            // COBOL-2002 introduction gate: VersionConformancePass ParseArm.VisitClassDefinition (rearch 14g.3,
+            // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             string csName = DataItem.Sanitize(name).ToUpperInvariant();   // MUST match PicInfo.ClrType's mapping
             var sym = new OoClassSymbol(name, csName, ctx)
             {

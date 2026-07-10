@@ -221,7 +221,8 @@ public sealed partial class DataBinder
         // table has no fixed physical capacity; its storage is the out-of-line CobolDynTable.
         if (occ.DYNAMIC() is not null)
         {
-            ConstructRegistry.Check(Edition.Edition, Edition, Constructs.OccursDynamic2014, "the OCCURS DYNAMIC clause");   // COBOL-2014 introduction, bind-time gate (rearch migration Cluster 5)
+            // COBOL-2014 introduction gate: VersionConformancePass ParseArm.VisitOccursClause (rearch 14g.3,
+            // recognition — once per source occursClause; a per-DataItem bound-arm walk would over-count TYPE clones).
             string? capName = null; int? fromCap = null; int? toCap = null; bool initialized = false;
             foreach (var ph in occ.occursDynamicPhrase())
             {

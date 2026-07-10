@@ -56,7 +56,7 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14g.3 (14a–14h DONE + 14g.1 DONE + 14g.2 DONE — the 4 data-description-clause gates: TYPEDEF → bound-arm GateData, BASED/TYPE/PROPERTY → parse-arm, DEVLOG 733; RESUME AT 14g.3)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717).
+`IN PROGRESS @ Step 14g.4 (14a–14h DONE + 14g.1–14g.3 DONE; RESUME AT 14g.4)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717). 14g.1 = 8 PicInfo USAGE gates → bound-arm (DEVLOG 732); 14g.2 = the 4 data-description-clause gates → parse-arm (TYPEDEF reclassified bound→parse by the adversarial review, DEVLOG 733–734); 14g.3 = OO class/interface + OCCURS DYNAMIC → parse-arm (DEVLOG 735).
 **⛔ Step 14h DONE (DEVLOG 725–729) — the parse-arm two-arm pass is built and every SYNTACTIC gate migrated.** The
 DEVLOG-724 root-cause fix landed as five byte-identical (well-formed) / strict-superset (malformed) sub-commits:
 **14h.1** (`b3f38cf6`, DEVLOG 725) — `EditionValidator` ABSORBED into `VersionConformancePass` as a nested `ParseArm`
@@ -202,16 +202,18 @@ complete. **Step 13** (`<pending push>`): `ReservedWordEditionHints` DELETED, th
 disposition relocated to `CobolErrorStrategy`. Each grammar change: FULL legacy guard **353 MATCH, 0 regressions**.
 Battery at head: greenfield conformance **3114** · unit **227** · characterization **32** GREEN.
 
-**RESUME AT: Step 14g.3 — OO class/interface + OCCURS-DYNAMIC (→ parse-arm).** ✅ **Step 14h is DONE** (14h.1–14h.4b,
+**RESUME AT: Step 14g.4 — SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (→ bound-arm) + PD RETURNING/RAISING (→ parse-arm).** ✅ **Step 14h is DONE** (14h.1–14h.4b,
 DEVLOG 725–729, pushed + CI-green): the two-arm `VersionConformancePass` is built — a PARSE-tree arm (`ParseArm`, the
 absorbed `EditionValidator` running post-bind) owns every SYNTACTIC introduction/removal/phrase/expression/literal gate
 + the §8.9 reserved-word funnel, firing on RECOGNITION (the DEVLOG-724 fix); the driver's pre-bind fail-fast is gone;
 `EditionValidator.cs` is deleted. **14g** moves the remaining ~30 bind-time DATA/PICTURE/OO gates into
 `VersionConformancePass` — but the recon (`wf_0d98d218-087`) proved only ~12 are resolved-fact fits for the BOUND-arm;
-~18 must go to the PARSE-arm (see the DECISION-COMPLETE PLAN immediately below). ✅ **14g.1 DONE** (8 PicInfo USAGE gates
-→ bound-arm, DEVLOG 732). ✅ **14g.2 DONE** (the 4 data-description-clause gates: TYPEDEF → bound-arm `GateData`;
-BASED/TYPE/PROPERTY → parse-arm, DEVLOG 733; byte-neutral — the sorted diag surface makes firing order moot, no
-snapshot re-baseline). Only UDF stays bind-time (documented exception). Then **Step 15 — phase close**: full battery + doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9); re-point
+~19 must go to the PARSE-arm (see the DECISION-COMPLETE PLAN immediately below; refined by DEVLOG 734 — TYPEDEF moved
+bound→parse). ✅ **14g.1 DONE** (8 PicInfo USAGE gates → bound-arm, DEVLOG 732). ✅ **14g.2 DONE** (the 4
+data-description-clause gates → parse-arm — TYPEDEF reclassified bound→parse by the adversarial review, DEVLOG 733–734).
+✅ **14g.3 DONE** (OO class/interface definition + OCCURS DYNAMIC → parse-arm, DEVLOG 735; class/interface would
+under-count a bound-arm walk, OCCURS DYNAMIC would over-count TYPE clones — recognition is byte-exact). Only UDF stays
+bind-time (documented exception). Then **Step 15 — phase close**: full battery + doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9); re-point
 CheckOnly/EditionHarness/INV-1 legs (already true — all read the one sink; verify); grep-assert zero
 `ConstructRegistry.Check` outside the pass; fold in the Step-12(c) residual (refresh the migrated rows' stale
 `constructs.json` citations + grammar comments).
@@ -263,9 +265,12 @@ binds into method `LocalRoots`/`StaticRoots` — so the bound-arm dropped the 09
 no resolved fact → recognition is the correct home; corrected + 3 regression witnesses. New `DataClauseEditionTests`
 (9 exact-count witnesses); byte-neutral (characterization 32 byte-exact — the content-SORTED diag surface is blind to
 the arm change; `char_neg_typedef85` unchanged, NO re-baseline). Battery: conformance 3131 · unit 223 ·
-characterization 32 · INV-1 349/349 · guard 353 MATCH. —
-Remaining sub-commits: 14g.3
-OO class/interface + OCCURS-DYNAMIC (parse); 14g.4 SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (bound) + PD
+characterization 32 · INV-1 349/349 · guard 353 MATCH. **14g.3 ✅ DONE (DEVLOG 735)** — OO class/interface definition
+(`ParseArm.VisitClass/InterfaceDefinition`, name-embedding where-strings, `Build` called once → byte-exact count) +
+OCCURS DYNAMIC (`VisitOccursClause` on the DYNAMIC alternative, `InConditionOrRenamesEntry`-guarded), all parse-arm;
+new `OoOccursDynEditionTests` ×6 (incl. the over-count witness: OCCURS DYNAMIC in a TYPEDEF referenced twice → gated
+once). Battery: conformance 3137 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
+Remaining sub-commits: 14g.4 SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (bound) + PD
 RETURNING/RAISING (parse); 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
 raw-picture scan) — then grep-assert binder Check-count == the single `StatementBinder.Udf.cs` line; 14g.6 snapshot
 re-baseline (only if a later sub-commit's diag surface changes — 14g.2 needed none) + close. Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization + INV-1 + FULL
