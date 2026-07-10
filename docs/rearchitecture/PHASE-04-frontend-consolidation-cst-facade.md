@@ -857,7 +857,7 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
 ---
 
 ## 8. Execution log (the executing session appends one line per commit boundary)
-- **A5 (word set single-sourced) — 2026-07-10 — DEVLOG 743.** `.tokens` byte-identical (incl. cold clean+regen);
+- **A5 (word set single-sourced) — 2026-07-10 — commit `9d84ab45`, DEVLOG 743.** `.tokens` byte-identical (incl. cold clean+regen);
   generated `cobolWord`/`_dataNameTokens` sets == pre-flip (independent re-parse); conformance 3157 · unit 227 (+4 drift)
   · characterization 32 byte-exact · legacy guard **353 MATCH / ALL GREEN / 0 regressions**. Adversarial review
   (wf_16cc83d1-1cc) found + fixed a false-green drift-guard gap (symmetric `subscriptTrigger`-only pin, mutation-proven).
