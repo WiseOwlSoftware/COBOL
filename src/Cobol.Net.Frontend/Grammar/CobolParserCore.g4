@@ -484,7 +484,7 @@ computerAttributes
 // ==========================================
 
 procedureDivision
-    : PROCEDURE DIVISION usingClause? (returningClause)? (raisingClause)? DOT   // returningClause + raisingClause both introduction-gated at BIND time (DataBinder.Linkage → Check(ProcedureReturning2002 / ProcedureRaising2002)); raisingClause parses at all editions (superset) — residue migration #6, DESIGN-version-conformance-pipeline.md
+    : PROCEDURE DIVISION usingClause? (returningClause)? (raisingClause)? DOT   // returningClause + raisingClause introduction-gated post-bind by VersionConformancePass ParseArm.VisitReturning/RaisingClause (rearch 14g.4, InMethodDefinition-guarded — program-unit PDs only; this rule is SHARED with method PDs)
       declarativePart*
       procedureUnit*
     ;

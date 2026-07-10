@@ -56,7 +56,7 @@ the `ReservedWordEditionHints` deletion, and the `VersionConformancePass` skelet
 > editions-framework wiring on the P2 primitives; **Steps 12–15** carry the remaining pipeline delivery (Batch C
 > residue → recogniser deletion → pass skeleton → close).
 
-`IN PROGRESS @ Step 14g.4 (14a–14h DONE + 14g.1–14g.3 DONE; RESUME AT 14g.4)` (2026-07-09; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717). 14g.1 = 8 PicInfo USAGE gates → bound-arm (DEVLOG 732); 14g.2 = the 4 data-description-clause gates → parse-arm (TYPEDEF reclassified bound→parse by the adversarial review, DEVLOG 733–734); 14g.3 = OO class/interface + OCCURS DYNAMIC → parse-arm (DEVLOG 735).
+`IN PROGRESS @ Step 14g.5 (14a–14h DONE + 14g.1–14g.4 DONE; RESUME AT 14g.5)` (2026-07-10; Steps 12–13 DONE — Batch C migrated + the recogniser deleted, DEVLOG 715–717). 14g.1 = 8 PicInfo USAGE gates → bound-arm (DEVLOG 732); 14g.2 = the 4 data-description-clause gates → parse-arm (TYPEDEF reclassified bound→parse by the adversarial review, DEVLOG 733–734); 14g.3 = OO class/interface + OCCURS DYNAMIC → parse-arm (+ report/screen shared-rule fix, DEVLOG 735–736); 14g.4 = file-control SHARING/LOCK-MODE + SPECIAL-NAMES FOR + PD RETURNING/RAISING → parse-arm (SHARING/LOCK-MODE reclassified bound→parse; PD RETURNING/RAISING InMethodDefinition-guarded per the shared-rule lesson, DEVLOG 737).
 **⛔ Step 14h DONE (DEVLOG 725–729) — the parse-arm two-arm pass is built and every SYNTACTIC gate migrated.** The
 DEVLOG-724 root-cause fix landed as five byte-identical (well-formed) / strict-superset (malformed) sub-commits:
 **14h.1** (`b3f38cf6`, DEVLOG 725) — `EditionValidator` ABSORBED into `VersionConformancePass` as a nested `ParseArm`
@@ -202,7 +202,7 @@ complete. **Step 13** (`<pending push>`): `ReservedWordEditionHints` DELETED, th
 disposition relocated to `CobolErrorStrategy`. Each grammar change: FULL legacy guard **353 MATCH, 0 regressions**.
 Battery at head: greenfield conformance **3114** · unit **227** · characterization **32** GREEN.
 
-**RESUME AT: Step 14g.4 — SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (→ bound-arm) + PD RETURNING/RAISING (→ parse-arm).** ✅ **Step 14h is DONE** (14h.1–14h.4b,
+**RESUME AT: Step 14g.5 — FUNCTION-PROTOTYPE (bound-arm) + REPOSITORY (parse) + skeleton E/national-edited (parse raw-picture scan).** ✅ **Step 14h is DONE** (14h.1–14h.4b,
 DEVLOG 725–729, pushed + CI-green): the two-arm `VersionConformancePass` is built — a PARSE-tree arm (`ParseArm`, the
 absorbed `EditionValidator` running post-bind) owns every SYNTACTIC introduction/removal/phrase/expression/literal gate
 + the §8.9 reserved-word funnel, firing on RECOGNITION (the DEVLOG-724 fix); the driver's pre-bind fail-fast is gone;
@@ -226,17 +226,20 @@ PicInfo/OoClassTable/OdoModel/emitter except the ONE UDF exception* — satisfie
 enumerator; the rest are recognition/syntactic/unreachable → the **parse-arm** (else the DEVLOG-724 drop, a
 TYPEDEF-clone over-count, or "no bound carrier"). The split:
 
-- **BOUND-arm** (new `DataItem`/`FileModel`/`CallUnit` enumerator): the 8 PicInfo USAGE gates (National/Boolean/Pointer/
-  ObjRef/BinaryCharFamily/Float×3); `FileSharingClause2002` (SELECT clause), `LockModeClause2002`;
-  `FunctionPrototype2002` — all key on a resolved fact retained after declaration errors (`Pic.Category`/`Pic.Usage`/
-  `OwnUsage`, `FileModel.Sharing`/`LockMode`, `CallUnit.IsPrototype`). ⚠ `TypedefDef2002` was RECLASSIFIED to the
-  PARSE-arm (DEVLOG 734, 14g.2 review) — see below.
+- **BOUND-arm** (new `DataItem`/`CallUnit` enumerator): the 8 PicInfo USAGE gates (National/Boolean/Pointer/
+  ObjRef/BinaryCharFamily/Float×3) [14g.1 DONE]; `FunctionPrototype2002` [14g.5] — key on a resolved fact retained after
+  declaration errors (`Pic.Category`/`Pic.Usage`/`OwnUsage`, `CallUnit.IsPrototype`). ⚠ `TypedefDef2002` (DEVLOG 734,
+  14g.2) AND `FileSharingClause2002`/`LockModeClause2002` (DEVLOG 737, 14g.4) were RECLASSIFIED to the PARSE-arm — the
+  same finding both times: a bound-arm gate keyed on the resolved fact DROPS the 0900 on a declaration error (the
+  typedef item discarded from the forest; a file discarded on a SELECT error), whereas the binder fired on the clause's
+  PRESENCE. Recognition is drop-proof.
 - **PARSE-arm** (recognition): `BasedClause2002`/`TypeClause2002`/`PropertyClause2002`/`TypedefDef2002` (flags cleared/
   nulled on error, or — for TYPEDEF — the item discarded from `ConformanceForest` by `RegisterTypeDecl`/method-scope →
   724 drop; all guarded against a level-66/88 mis-attachment); `ClassDefinition2002`/`InterfaceDefinition2002` (fire before the dedup `continue` → under-count + collision
   drop); `OccursDynamic2014` (TYPEDEF clones over-count a per-item walk; one `occursClause` = one fire);
-  `SpecialNamesForNational2002` ×3 (no bound carrier); `ProcedureReturning2002`/`ProcedureRaising2002` (null-ambiguous /
-  no persisted fact); `RepositoryProperty/Interface/Class2002` (config specifiers, name-embedding where);
+  `SpecialNamesForNational2002` ×3 (FOR token) [14g.4]; `FileSharingClause2002`/`LockModeClause2002` (clause presence;
+  reclassified from bound) [14g.4]; `ProcedureReturning2002`/`ProcedureRaising2002` (`InMethodDefinition`-guarded — the
+  procedureDivision rule is shared with method PDs) [14g.4]; `RepositoryProperty/Interface/Class2002` (config specifiers, name-embedding where) [14g.5];
   `PicExternalFloat2002`/`NationalEdited2002` (identity erased by recovery-to-Alphanumeric → raw-picture scan).
 
 **Enumerator:** add public `DataBinder.ConformanceForest()` = `Roots.Concat(LinkageRoots).SelectMany(Walk).Concat(
@@ -275,9 +278,16 @@ screen sections (compiles→rejects). The NEGATIVE level-66/88 guard fired-by-de
 by a POSITIVE `InGatedDataEntry` (fire only inside a non-66/88 `dataDescriptionEntry`) reused by all five data-clause
 gates. **Lesson for 14g.4/14g.5: before a parse-arm gate, check whether its grammar rule is SHARED across sections and
 scope the visitor to the binder's actual reach.** Battery: conformance 3139 · unit 223 · characterization 32 · INV-1
-349/349 · guard 353 MATCH. —
-Remaining sub-commits: 14g.4 SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (bound) + PD
-RETURNING/RAISING (parse); 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
+349/349 · guard 353 MATCH. **14g.4 ✅ DONE (DEVLOG 737)** — the 7 config/file-control/PD-header gates, ALL parse-arm:
+`VisitSharingClause`/`VisitLockModeClause` (⚠ SHARING/LOCK-MODE reclassified bound→parse — the same inverted-rationale
+correction as TYPEDEF: a bound-arm FileModel gate drops the 0900 on a SELECT error; recognition is drop-proof) +
+3× SPECIAL-NAMES FOR (`VisitAlphabet/ClassDefinition/SymbolicCharactersClause`, on the `FOR` token) + PD RETURNING/RAISING
+(`VisitReturning/RaisingClause`, `InMethodDefinition`-guarded — the procedureDivision rule is SHARED with method PDs but
+`CallBindLinkage` gated program units only; the 14g.3 lesson applied in recon). Scope-union verified: every program
+(incl. nested), class, and factory has its own DataBinder whose BindDeclarations runs the three binders, so the
+whole-tree walk = the union. New `ConfigPdEditionTests` ×8 (incl. the load-bearing `MethodReturning_At85_NotGated`).
+Battery: conformance 3147 · unit 223 · characterization 32 · INV-1 349/349 · guard 353 MATCH. —
+Remaining sub-commits: 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
 raw-picture scan) — then grep-assert binder Check-count == the single `StatementBinder.Udf.cs` line; 14g.6 snapshot
 re-baseline (only if a later sub-commit's diag surface changes — 14g.2 needed none) + close. Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization + INV-1 + FULL
 legacy guard. Full synthesis is in the recon transcript.

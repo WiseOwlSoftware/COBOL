@@ -696,6 +696,75 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        // ── Step 14g.4: the file-control / SPECIAL-NAMES / PROCEDURE-DIVISION-header clause gates ───────────────
+        // Seven COBOL-2002 introductions on config/file-control/PD-header clauses, ALL parse-arm (recognition). None
+        // needs a resolved fact — each is a dedicated clause node with a constant where-string. SHARING/LOCK-MODE were
+        // recon-classified bound-arm ("key on FileModel.Sharing/LockMode"), but that is the SAME inverted rationale the
+        // 14g.2 review corrected for TYPEDEF: a bound-arm gate keyed on the resolved FileModel would DROP the 0900 if
+        // the file is discarded on a SELECT error, whereas the binder fired it on the clause's PRESENCE in the
+        // file-control loop — so recognition is byte-exact and drop-proof. The scope match holds because every program
+        // unit (top-level AND nested — CallCollectUnits recurses nestedProgram), every class, and every factory gets
+        // its OWN DataBinder whose BindDeclarations runs SwitchBindSpecialNames + BindFileControl + CallBindLinkage; the
+        // parse-arm's single whole-tree walk equals the UNION of those per-scope binder walks. The one scope asymmetry
+        // is PROCEDURE DIVISION RETURNING/RAISING: the procedureDivision rule is SHARED by program and method PDs, but
+        // CallBindLinkage gates PROGRAM units only (methods bind via OoBindMethodData) — so those two gates carry the
+        // InMethodDefinition guard (the 14g.3 shared-rule lesson).
+
+        /// <summary>The SELECT … SHARING clause (ISO §12.4.5.15) — a COBOL-2002 introduction. Its OPEN-statement twin
+        /// (same constructId, the "OPEN SHARING phrase" where-string) already gates from <see cref="VisitOpenStatement"/>;
+        /// both fire parse-arm.</summary>
+        public override object? VisitSharingClause(CobolParserCore.SharingClauseContext ctx)
+        { _p.Check(Constructs.FileSharingClause2002, "the SHARING clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>The SELECT … LOCK MODE clause (ISO §12.4.5.9) — a COBOL-2002 introduction. The §12.4.5.9 SR2
+        /// (WITH LOCK ON MULTIPLE RECORDS vs sequential) validation stays in the binder; this arm only names the edition.</summary>
+        public override object? VisitLockModeClause(CobolParserCore.LockModeClauseContext ctx)
+        { _p.Check(Constructs.LockModeClause2002, "the LOCK MODE clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>ALPHABET … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — a COBOL-2002 introduction; the base ALPHABET
+        /// clause is version-invariant. One of the three SPECIAL-NAMES FOR-phrase sites (all one constructId +
+        /// where-string), gated on the <c>FOR</c> token exactly as the former AlphabetBind Check.</summary>
+        public override object? VisitAlphabetClause(CobolParserCore.AlphabetClauseContext ctx)
+        {
+            if (ctx.FOR() is not null) _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>CLASS … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — the second SPECIAL-NAMES FOR-phrase site (matching
+        /// SwitchBindClass's <c>cd.FOR()</c>).</summary>
+        public override object? VisitClassDefinitionClause(CobolParserCore.ClassDefinitionClauseContext ctx)
+        {
+            if (ctx.FOR() is not null) _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>SYMBOLIC CHARACTERS … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — the third SPECIAL-NAMES FOR-phrase
+        /// site (matching the <c>sc.FOR()</c> check). The base SYMBOLIC CHARACTERS clause stays accepted-inert.</summary>
+        public override object? VisitSymbolicCharactersClause(CobolParserCore.SymbolicCharactersClauseContext ctx)
+        {
+            if (ctx.FOR() is not null) _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>PROCEDURE DIVISION … RETURNING (ISO §14.2) — a COBOL-2002 introduction. Gated only OUTSIDE a method
+        /// (the shared procedureDivision rule serves both, but CallBindLinkage — the former gate site — runs for program
+        /// units only; a method's RETURNING binds through OoBindMethodData, ungated). §14.2.3 GR6/SR1 stay bind-time.</summary>
+        public override object? VisitReturningClause(CobolParserCore.ReturningClauseContext ctx)
+        {
+            if (!InMethodDefinition(ctx))
+                _p.Check(Constructs.ProcedureReturning2002, "the PROCEDURE DIVISION RETURNING phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>PROCEDURE DIVISION … RAISING (ISO §14.2.2) — a COBOL-2002 introduction. Same program-only scope as
+        /// RETURNING; the RAISING clause's EC semantics stay in StatementBinder.Exceptions.</summary>
+        public override object? VisitRaisingClause(CobolParserCore.RaisingClauseContext ctx)
+        {
+            if (!InMethodDefinition(ctx))
+                _p.Check(Constructs.ProcedureRaising2002, "the PROCEDURE DIVISION RAISING phrase");
+            return base.VisitChildren(ctx);
+        }
+
         // ── Step 14h.2: the SELF-IDENTIFYING statement gates ─────────────────────────────────────────────────
         // Each construct is ONE dedicated grammar rule → the parse node IS the identity; the gate fires once per
         // statement on RECOGNITION (never per operand — a multi-operand FREE / a compound ALTER is ONE node), so a

@@ -419,16 +419,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                     file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13 SR3 — outside the record
-                else if (clauses.sharingClause() is { } sh)   // §12.4.5.15 — COBOL-2002 introduction, bind-time gate (residue migration #3; the {is2002()}? predicate + reverse-signature arm are gone)
-                {
-                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.FileSharingClause2002, "the SHARING clause");
+                else if (clauses.sharingClause() is { } sh)   // §12.4.5.15 — edition gate: VersionConformancePass ParseArm.VisitSharingClause (14g.4, recognition — fires on the clause's presence, drop-proof on a SELECT error)
                     file.Sharing = MapSharing(sh.sharingMode());
-                }
-                else if (clauses.lockModeClause() is { } lm)                                                 // §12.4.5.9
-                {
-                    ConstructRegistry.Check(Edition.Edition, Edition, Constructs.LockModeClause2002, "the LOCK MODE clause");   // COBOL-2002 introduction, bind-time gate (rearch migration Cluster 9)
+                else if (clauses.lockModeClause() is { } lm)   // §12.4.5.9 — edition gate: VersionConformancePass ParseArm.VisitLockModeClause (14g.4)
                     file.LockMode = MapLockMode(lm);
-                }
             }
             // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
             // or sequential-organization file.

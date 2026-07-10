@@ -210,11 +210,9 @@ public sealed partial class DataBinder
                 if (entry.classDefinitionClause() is { } cd) { SwitchBindClass(cd); continue; }
                 if (entry.symbolicCharactersClause() is { } sc)
                 {
-                    // SYMBOLIC CHARACTERS … FOR ALPHANUMERIC/NATIONAL — the FOR phrase is a COBOL-2002 introduction,
-                    // bind-time gate (rearch migration Cluster 8b). The base SYMBOLIC CHARACTERS clause stays
-                    // accepted-inert (unbound, as before this migration).
-                    if (sc.FOR() is not null)
-                        ConstructRegistry.Check(Edition.Edition, Edition, Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+                    // SYMBOLIC CHARACTERS … FOR ALPHANUMERIC/NATIONAL — the FOR phrase edition gate is now
+                    // VersionConformancePass ParseArm.VisitSymbolicCharactersClause (14g.4). The base SYMBOLIC
+                    // CHARACTERS clause stays accepted-inert (unbound).
                     continue;
                 }
                 if (entry.decimalPointClause() is { } dp) { SwitchBindDecimalPoint(dp); continue; }
@@ -250,8 +248,8 @@ public sealed partial class DataBinder
     /// (GR10 — the PCS re-derivation applies only outside SPECIAL-NAMES).</summary>
     private void AlphabetBind(Core.AlphabetClauseContext alpha)
     {
-        if (alpha.FOR() is not null)   // ALPHABET … FOR ALPHANUMERIC/NATIONAL — COBOL-2002 introduction, bind-time gate (rearch migration Cluster 8b)
-            ConstructRegistry.Check(Edition.Edition, Edition, Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+        // ALPHABET … FOR ALPHANUMERIC/NATIONAL — the FOR phrase edition gate is now VersionConformancePass
+        // ParseArm.VisitAlphabetClause (14g.4, recognition).
         string name = alpha.cobolWord().GetText();
         var def = alpha.alphabetDefinition();
         if (def.NATIVE() is not null || def.STANDARD_1() is not null || def.STANDARD_2() is not null)
@@ -353,8 +351,8 @@ public sealed partial class DataBinder
     /// clause's GR allows either order — NC174A's <c>"D" THROUGH "A"</c> equals <c>"A" THRU "D"</c>).</summary>
     private void SwitchBindClass(Core.ClassDefinitionClauseContext cd)
     {
-        if (cd.FOR() is not null)   // CLASS … FOR ALPHANUMERIC/NATIONAL — COBOL-2002 introduction, bind-time gate (rearch migration Cluster 8b)
-            ConstructRegistry.Check(Edition.Edition, Edition, Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+        // CLASS … FOR ALPHANUMERIC/NATIONAL — the FOR phrase edition gate is now VersionConformancePass
+        // ParseArm.VisitClassDefinitionClause (14g.4, recognition).
         string name = cd.cobolWord(0).GetText();
         var members = new System.Text.StringBuilder();
         foreach (var item in cd.classValueSet().classValueItem())
