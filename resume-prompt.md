@@ -105,12 +105,16 @@
 > START-FIRST-LAST/START-WITH-LENGTH/READ-ADVANCING-ON-LOCK), and UDF stays a documented bind-time exception (intrinsic
 > vs user-function are syntactically identical — repository resolution required). **⚠ ALWAYS verify with a FRESH
 > `dotnet build CobolSharp.sln` before `dotnet test --no-build`** ([[feedback_fresh_build_before_no_build_test]] — a stale
-> test-bin compiler hid regressions locally). **RESUME AT 14g = the DATA/PIC/OO gates → bound-arm** (a new complete
-> `DataItem`+`FileModel` enumerator: `DataBinder*`/`PicInfo`/`OoClassTable`/`OdoModel` + the emitter-side FUNCTION-PROTOTYPE
-> — USAGE/PIC-national/boolean/pointer/float, BASED/TYPEDEF/TYPE/PROPERTY/LOCK-MODE/SHARING-clause, class/interface
-> defs, OCCURS-DYNAMIC, SPECIAL-NAMES FOR NATIONAL, PD RETURNING/RAISING, REPOSITORY) — ⚠ mind the CONTEXT-DEPENDENT
-> `PicInfo` USAGE `where`-strings (`data item 'name'` main / `itemWhere` report / `method '…'` OO — DataBinder.cs vs
-> Reports.cs vs Oo.cs) + the ParseUsage/PIC-N dedup. **THEN Step 15 — phase close** (exit criteria 1–9: the pass is the
+> test-bin compiler hid regressions locally). **RESUME AT 14g — the DATA/PIC/OO gates: a DECISION-COMPLETE PLAN is in the
+> PHASE-03 doc's STATUS block (recon `wf_0d98d218-087`).** ⚠ KEY FINDING: only ~12 of the ~30 gates are resolved-fact
+> fits for a new BOUND-arm `DataItem`/`FileModel`/`CallUnit` enumerator (the 8 PicInfo USAGE gates + FILE
+> SHARING/LOCK-MODE + TYPEDEF + FUNCTION-PROTOTYPE); the other ~18 (BASED/TYPE/PROPERTY, class/interface defs,
+> OCCURS-DYNAMIC, SPECIAL-NAMES-FOR, PD RETURNING/RAISING, REPOSITORY, skeleton E/national-edited) must go to the
+> PARSE-arm (recognition) — a bound-arm home would hit the DEVLOG-724 drop / a TYPEDEF-clone over-count / "no bound
+> carrier". Enumerator = `DataBinder.ConformanceForest()` (⚠ `LinkageRoots`+`TypeDecls` are OFF `Roots`); dedup EXCLUDES
+> TYPE-clones+temps, keys USAGE on `(OwnUsage,Pic.Category,Pic.Usage)`; context-dependent `PicInfo` where-strings
+> (`data item 'name'` main / `RD '…' printable item` report). 6 sub-commits (14g.1–14g.6; 14g.1 also REWRITES
+> `LoudGuardTests` off the direct `PicInfo.ParseUsage`/`Analyze` calls). **THEN Step 15 — phase close** (exit criteria 1–9: the pass is the
 > SOLE gate; emit unreachable with diagnostics; grep-assert zero `ConstructRegistry.Check` outside the pass — after 14g
 > only the one UDF exception remains; re-point CheckOnly/EditionHarness/INV-1 legs [already true — all read the one sink;
 > verify]; fold in Step 12(c) residual: refresh the migrated rows' stale `constructs.json` citations + grammar comments).

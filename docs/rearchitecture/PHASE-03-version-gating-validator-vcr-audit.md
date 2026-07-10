@@ -206,15 +206,52 @@ Battery at head: greenfield conformance **3114** · unit **227** · characteriza
 CI-green): the two-arm `VersionConformancePass` is built — a PARSE-tree arm (`ParseArm`, the absorbed `EditionValidator`
 running post-bind) owns every SYNTACTIC introduction/removal/phrase/expression/literal gate + the §8.9 reserved-word
 funnel, firing on RECOGNITION (the DEVLOG-724 fix); the driver's pre-bind fail-fast is gone; `EditionValidator.cs` is
-deleted. **14g** moves the remaining bind-time DATA/PICTURE/OO gates (`DataBinder*` / `PicInfo` / `OoClassTable` /
-`OdoModel` — USAGE/PIC-national/boolean/pointer/float, BASED/TYPEDEF/TYPE/PROPERTY/LOCK-MODE/SHARING-clause,
-class/interface definitions, OCCURS-DYNAMIC, SPECIAL-NAMES FOR NATIONAL, PD RETURNING/RAISING, REPOSITORY, the emitter-side
-FUNCTION-PROTOTYPE) into the **bound-arm** via a new complete `DataItem`+`FileModel` enumerator — ⚠ mind the
-context-dependent `PicInfo` USAGE `where`-strings (main / report `itemWhere` / OO `method '…'`) + the ParseUsage/PIC-N
-dedup. Only UDF stays bind-time (documented exception). Then **Step 15 — phase close**: full battery + doc sync +
-STATUS→DONE + the exit-criteria checklist (items 1–9); re-point CheckOnly/EditionHarness/INV-1 legs (already true — all
-read the one sink; verify); grep-assert zero `ConstructRegistry.Check` outside the pass; fold in the Step-12(c) residual
-(refresh the migrated rows' stale `constructs.json` citations + grammar comments).
+deleted. **14g** moves the remaining ~30 bind-time DATA/PICTURE/OO gates into `VersionConformancePass` — but the recon
+(`wf_0d98d218-087`) proved only ~12 are resolved-fact fits for the BOUND-arm; ~18 must go to the PARSE-arm (see the
+DECISION-COMPLETE PLAN immediately below). Only UDF stays bind-time (documented exception). Then **Step 15 — phase
+close**: full battery + doc sync + STATUS→DONE + the exit-criteria checklist (items 1–9); re-point
+CheckOnly/EditionHarness/INV-1 legs (already true — all read the one sink; verify); grep-assert zero
+`ConstructRegistry.Check` outside the pass; fold in the Step-12(c) residual (refresh the migrated rows' stale
+`constructs.json` citations + grammar comments).
+
+#### Step 14g — DECISION-COMPLETE PLAN (recon `wf_0d98d218-087`, 2026-07-09)
+
+**⚠ RE-SCOPING FINDING (load-bearing):** the invariant to satisfy is *zero `ConstructRegistry.Check` in the binder/
+PicInfo/OoClassTable/OdoModel/emitter except the ONE UDF exception* — satisfied by moving a gate into
+`VersionConformancePass`, NOT necessarily its bound-tree arm. Only genuine **resolved-fact** gates fit the bound-arm
+enumerator; the rest are recognition/syntactic/unreachable → the **parse-arm** (else the DEVLOG-724 drop, a
+TYPEDEF-clone over-count, or "no bound carrier"). The split:
+
+- **BOUND-arm** (new `DataItem`/`FileModel`/`CallUnit` enumerator): the 8 PicInfo USAGE gates (National/Boolean/Pointer/
+  ObjRef/BinaryCharFamily/Float×3); `FileSharingClause2002` (SELECT clause), `LockModeClause2002`; `TypedefDef2002`;
+  `FunctionPrototype2002` — all key on a resolved fact retained after declaration errors (`Pic.Category`/`Pic.Usage`/
+  `OwnUsage`, `FileModel.Sharing`/`LockMode`, `DataItem.IsTypedef`, `CallUnit.IsPrototype`).
+- **PARSE-arm** (recognition): `BasedClause2002`/`TypeClause2002`/`PropertyClause2002` (flags cleared/nulled on error →
+  724 drop); `ClassDefinition2002`/`InterfaceDefinition2002` (fire before the dedup `continue` → under-count + collision
+  drop); `OccursDynamic2014` (TYPEDEF clones over-count a per-item walk; one `occursClause` = one fire);
+  `SpecialNamesForNational2002` ×3 (no bound carrier); `ProcedureReturning2002`/`ProcedureRaising2002` (null-ambiguous /
+  no persisted fact); `RepositoryProperty/Interface/Class2002` (config specifiers, name-embedding where);
+  `PicExternalFloat2002`/`NationalEdited2002` (identity erased by recovery-to-Alphanumeric → raw-picture scan).
+
+**Enumerator:** add public `DataBinder.ConformanceForest()` = `Roots.Concat(LinkageRoots).SelectMany(Walk).Concat(
+TypeDecls.Values.SelectMany(Walk))` — ⚠ `LinkageRoots` + `TypeDecls` are OFF `Roots` (the existing private `AllItems()`
+misses them). `Run` adds `GateData`/`GateFiles`/`GateReports` + `if (unit.IsPrototype) Check(FunctionPrototype2002,…)`
+inside the existing `group.Units`/`group.Classes` loop. **Dedup:** gate PER-DataItem on the resolved attribute,
+EXCLUDING TYPE-expansion clones + compiler temps (they share the template `PicInfo` by reference); NEVER dedup by
+`PicInfo` identity (`PicInfo.PointerItem` is a static singleton → would collapse all pointers to one fire). Key USAGE on
+`(OwnUsage, Pic.Category, Pic.Usage)` — `OwnUsage` mandatory (group headers shed `Pic`). **Where-strings scope-aware:**
+main `"data item '{CobolName ?? "FILLER"}'`" (hard-coded in `GateData`); report `"RD '{model.Name}' printable item
+'{…}'`" (`GateReports` over `unit.Data.Reports`); file/typedef/prototype constant.
+
+**Sub-commits:** 14g.1 enumerator skeleton + 8 PicInfo USAGE gates + **rewrite `LoudGuardTests`** (it calls
+`PicInfo.ParseUsage`/`Analyze` directly — drive `EditionHarness.CompileFull` instead) + exact-COUNT witnesses
+(conformance tests are contains-based, blind to over-count); 14g.2 TYPEDEF (bound) + BASED/TYPE/PROPERTY (parse); 14g.3
+OO class/interface + OCCURS-DYNAMIC (parse); 14g.4 SPECIAL-NAMES-FOR + file SHARING/LOCK-MODE (bound) + PD
+RETURNING/RAISING (parse); 14g.5 FUNCTION-PROTOTYPE (bound) + REPOSITORY (parse) + skeleton E/national-edited (parse
+raw-picture scan) — then grep-assert binder Check-count == the single `StatementBinder.Udf.cs` line; 14g.6 snapshot
+re-baseline (`char_neg_typedef85` re-orders — TypeClause parse-arm fires before TypedefDef bound-arm, intentional) +
+close. Guard per commit: fresh `CobolSharp.sln` build → greenfield conformance+unit+characterization + INV-1 + FULL
+legacy guard. Full synthesis is in the recon transcript.
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
 > Resumption protocol: read this STATUS line, run **Step 0** (battery baseline + AS-BUILT reconciliation) to
