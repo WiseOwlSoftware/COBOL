@@ -83,10 +83,10 @@
 > INV-1-strong 349/349 · FULL legacy guard NIST 353 MATCH. Carried-forward (NOT a P3 blocker): the flagged latent OO-env
 > double/zero-bind (DEVLOG 738 — a dedicated fix, likely in PHASE 09).
 >
-> ⛔🏗 **NOW EXECUTING: PHASE 04 — FRONTEND CONSOLIDATION (IN PROGRESS @ Group B; Group A ✅ DONE — A5 landed 2026-07-10,
-> DEVLOG 743).** Read the phase doc `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md` — its STATUS block
-> holds the RESUME POINT. A byte-neutral refactor in 4 groups: **A** ✅ single-source the context-sensitive word set
-> (DONE); **B** share SUBSCRIPT/DEFAULT literal token bodies via `fragment` rules; **C** typed `Cst/` façade over the ANTLR
+> ⛔🏗 **NOW EXECUTING: PHASE 04 — FRONTEND CONSOLIDATION (IN PROGRESS @ Group C; Groups A+B ✅ DONE — A5 DEVLOG 743, B1
+> DEVLOG 744, both 2026-07-10).** Read the phase doc `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md` —
+> its STATUS block holds the RESUME POINT. A byte-neutral refactor in 4 groups: **A** ✅ single-source the context-sensitive
+> word set (DONE); **B** ✅ share SUBSCRIPT/DEFAULT literal token bodies via `fragment` rules (DONE); **C** typed `Cst/` façade over the ANTLR
 > contexts + migrate the 2 anchor consumers (`ReferenceResolver`, `DataBinder.BindEntry`); **D** version-conformance leg
 > (⚠ LIKELY SUPERSEDED by the P3 two-arm pass — re-assess when reached). Plus the **D10 owner override**: FULLY REMOVE the
 > SUBSCRIPT lexer mode + the binder subscript re-parse (a sequenced sub-track with its own before/after characterization
@@ -100,8 +100,12 @@
 > (symmetric `subscriptTrigger`-only exact pin, mutation-proven); reserved-words cross-check DEVIATION recorded (the
 > plan's "user-legal at ≥1 edition" predicate is unsound — COLUMN/LENGTH/SCREEN are reserved-yet-name-slot-admitted). FU-1
 > asymmetries (`BIT` nameSlot-only; `DISPLAY/MERGE/RANDOM/SIGN/SORT/SUM` subscriptTrigger-only) captured AS-IS + now pinned.
-> **⛔ RESUME AT: GROUP B** (Step B1 — the shared literal `fragment` rules `STR_BODY`/`NAT_BODY`/`BOOL_BODY`/`INT_BODY`/
-> `DEC_BODY`/`NAME_BODY`; `.tokens` byte-identity + FULL legacy guard, commit boundary B1). Groups A–C are behavior-neutral;
+> **✅ GROUP B DONE (B1, DEVLOG 744):** the six DEFAULT/SUBSCRIPT literal token twins now share `fragment` bodies
+> (`STR_BODY`/`NAT_BODY`/`BOOL_BODY`/`INT_BODY`/`DEC_BODY`/`NAME_BODY`) — `.tokens` byte-identical, conformance 3157 · unit
+> 227 · characterization 32 byte-exact · legacy guard 353 MATCH / ALL GREEN; subscript-literal + single-quote probes green;
+> `SIGNED_*`/`HEXLIT`/`FLOATLIT` untouched. **⛔ RESUME AT: GROUP C** (Step C1 — the typed `Cst/` façade over the ANTLR
+> contexts: `SourceSpan`/`DataReferenceCst`/`DataDescriptionCst`/`CstExtensions`, then migrate the 2 anchor consumers
+> `ReferenceResolver` + `DataBinder.BindEntry` off raw `GetText()`; commit boundary C3). Groups A–C are behavior-neutral;
 > NEVER re-introduce an edition predicate (only the two P3 forward-detects survive). Design: `DESIGN-frontend-grammar.md`.
 >
 > — (Phase-03 background) P3 made edition conformance a single coherent pipeline:

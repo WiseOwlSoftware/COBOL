@@ -27,7 +27,7 @@
 > `DESIGN-frontend-grammar.md` (and possibly `DESIGN-binder-bound-tree.md`) before execution — author it then.
 
 ## STATUS
-`IN PROGRESS @ GROUP B (GROUP A DONE — A5 landed 2026-07-10, DEVLOG 743: word set single-sourced from cobol-words.json + drift-guarded, byte-neutral)` (2026-07-10)
+`IN PROGRESS @ GROUP C (GROUPS A+B DONE — A5 DEVLOG 743, B1 DEVLOG 744, both 2026-07-10: word set single-sourced + drift-guarded; SUBSCRIPT/DEFAULT literal bodies shared via fragments; both byte-neutral)` (2026-07-10)
 <!-- The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`.
      Keep a one-line note per completed commit boundary in the "Execution log" at the bottom. -->
 
@@ -42,6 +42,13 @@
 > (Step A2 item 4). **⛔ RESUME AT: GROUP B** (share SUBSCRIPT/DEFAULT literal token bodies via `fragment` rules; commit
 > boundary B1) — then Group C (the `Cst/` façade), then re-assess Group D against the P3 two-arm pass. NEVER re-introduce
 > an edition predicate.
+>
+> **✅ GROUP B DONE (B1 landed 2026-07-10, DEVLOG 744).** The six DEFAULT/SUBSCRIPT literal token twins now share
+> `fragment` bodies (`STR_BODY`/`NAT_BODY`/`BOOL_BODY`/`INT_BODY`/`DEC_BODY`/`NAME_BODY`) — one definition per shape,
+> referenced by both modes. Byte-neutral: `.tokens` byte-identical, conformance 3157 · unit 227 · characterization 32
+> byte-exact · legacy guard **353 MATCH / ALL GREEN / 0 regressions**; subscript-literal + single-quote probes green.
+> **⛔ RESUME AT: GROUP C** (Step C1 — the typed `Cst/` façade over the ANTLR contexts + migrate the two anchor consumers
+> `ReferenceResolver` and `DataBinder.BindEntry` off raw `GetText()`; commit boundary C3).
 >
 > **(historical — Group-A recon, now executed)** Depends: PHASE 03 ✅ CLOSED
 > (the version-conformance pipeline is LIVE; DEVLOG 741). §1 preconditions ALL PASS: P1 done (generated ns
@@ -862,8 +869,12 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
   · characterization 32 byte-exact · legacy guard **353 MATCH / ALL GREEN / 0 regressions**. Adversarial review
   (wf_16cc83d1-1cc) found + fixed a false-green drift-guard gap (symmetric `subscriptTrigger`-only pin, mutation-proven).
   Reserved-words cross-check DEVIATION recorded (Step A2 item 4). FU-1 asymmetries captured AS-IS.
+- **B1 (fragment dedup) — 2026-07-10 — DEVLOG 744.** Six shared literal `fragment` bodies
+  (`STR_BODY`/`NAT_BODY`/`BOOL_BODY`/`INT_BODY`/`DEC_BODY`/`NAME_BODY`) replace the char-for-char DEFAULT/SUBSCRIPT
+  duplication; `CobolLexer.tokens` byte-identical; conformance 3157 · unit 227 · characterization 32 byte-exact · legacy
+  guard **353 MATCH / ALL GREEN / 0 regressions**; subscript-literal + single-quote (composed `NAT_BODY`) probes green.
+  `SIGNED_*`/`HEXLIT`/`FLOATLIT` untouched (no DEFAULT/SUBSCRIPT twin); no token reordered.
 <!--
-- B1 (fragment dedup)          — <date> — .tokens identical, battery green, commit <sha>
 - C3 (Cst façade + anchors)    — <date> — guard ALL GREEN, .g.cs identical, commit <sha>
 - D  (superset + construct-id annotation) — <date> — battery green, no edition predicates, commit <sha>
 -->

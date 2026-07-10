@@ -552,7 +552,24 @@ QUOTE_      : 'QUOTE' | 'QUOTES' ;
 // old parse error). Additive: the no-space <decimal>E<digits> form was previously always a parse error. (D16.)
 FLOATLIT    : ( [0-9]+ '.' [0-9]* | '.' [0-9]+ ) 'E' [-+]? [0-9]+ ;
 
-DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
+// ── Shared literal fragment bodies (rearchitecture PHASE 04, Group B) ──
+// One definition per literal tokenization shape, referenced by BOTH the DEFAULT-mode literal tokens and their
+// SUBSCRIPT-mode SUB_* twins (fragments are mode-independent). The two modes previously re-declared each body
+// char-for-char; now a future string-escape / national-literal / data-name fix is applied ONCE and cannot diverge
+// between modes (DESIGN-frontend-grammar §3.3b). Bodies are byte-identical to the retired inline forms.
+fragment STR_BODY  : '"' (~["\r\n] | '""')* '"' | '\'' (~['\r\n] | '\'\'')* '\'' ;   // STRINGLIT / SUB_STRINGLIT
+fragment NAT_BODY  : 'N' STR_BODY ;                                                  // NATLIT / SUB_NATLIT (N + string)
+fragment BOOL_BODY : 'B' '"' [01]+ '"' | 'B' '\'' [01]+ '\'' ;                       // BOOLLIT / SUB_BOOLLIT
+fragment INT_BODY  : [0-9]+ ;                                                        // INTEGERLIT / SUB_INTEGERLIT
+fragment DEC_BODY  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;                                // DECIMALLIT / SUB_DECIMALLIT
+fragment NAME_BODY                                                                   // IDENTIFIER / SUB_IDENTIFIER
+    : [0-9]+ '-' [a-z0-9] [a-z0-9-]*   // digit-start with hyphen: 42-DATANAMES
+    | [0-9]+ [a-z] [a-z0-9-]*           // digit-start with letter: 11A, 25COUNT, 80PARTS
+    | [a-z] [a-z0-9-]* [a-z0-9]         // alpha-start: WRK-DS-01V00
+    | [a-z]                               // single letter: A
+    ;
+
+DECIMALLIT  : DEC_BODY ;
 
 // ── IDENTIFIER (must come BEFORE INTEGERLIT) ──
 // COBOL-85 user-defined words: 1-30 chars from {A-Z, a-z, 0-9, hyphen},
@@ -560,35 +577,24 @@ DECIMALLIT  : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
 // Digit-start forms: 42-DATANAMES (hyphen), 11A/25COUNT/80PARTS (letter).
 // Pure digits remain INTEGERLIT (level numbers, paragraph numbers, etc.).
 
-IDENTIFIER
-    : [0-9]+ '-' [a-z0-9] [a-z0-9-]*   // digit-start with hyphen: 42-DATANAMES
-    | [0-9]+ [a-z] [a-z0-9-]*           // digit-start with letter: 11A, 25COUNT, 80PARTS
-    | [a-z] [a-z0-9-]* [a-z0-9]         // alpha-start: WRK-DS-01V00
-    | [a-z]                               // single letter: A
-    ;
+IDENTIFIER  : NAME_BODY ;
 
-INTEGERLIT  : [0-9]+ ;
+INTEGERLIT  : INT_BODY ;
 
 // ── String literals ──
 
-STRINGLIT   : '"' (~["\r\n] | '""')* '"'
-            | '\'' (~['\r\n] | '\'\'')* '\''
-            ;
+STRINGLIT   : STR_BODY ;
 // National literal N"…" / N'…' (ISO §8.3.3.5, COBOL-2002). The leading N is part of the token so
 // ANTLR's maximal-munch prefers it over IDENTIFIER (a bare N) and over a plain STRINGLIT; an
 // identifier such as NAME is unaffected (it has no opening quote). NX"…" (hex national) is deferred.
-NATLIT      : 'N' '"' (~["\r\n] | '""')* '"'
-            | 'N' '\'' (~['\r\n] | '\'\'')* '\''
-            ;
+NATLIT      : NAT_BODY ;
 HEXLIT      : [x] '"' [0-9a-f]+ '"'
             | [x] '\'' [0-9a-f]+ '\''
             ;
 // Boolean literal B"0101" / B'0101' (binary digits only; ISO §8.3.3.4, COBOL-2002). The leading B is part
 // of the token so maximal-munch prefers it over IDENTIFIER (a bare B) and over a plain STRINGLIT ("B"…").
 // BX"…" (hex boolean) is deferred.
-BOOLLIT     : 'B' '"' [01]+ '"'
-            | 'B' '\'' [01]+ '\''
-            ;
+BOOLLIT     : BOOL_BODY ;
 
 // ── Operators (multi-char before single-char) ──
 
@@ -696,22 +702,22 @@ SIGNED_DECIMALLIT   : [+-] [0-9]+ '.' [0-9]+ | [+-] '.' [0-9]+ ;
 SIGNED_INTEGERLIT   : [+-] [0-9]+ ;
 
 // Numeric literals
-SUB_INTEGERLIT      : [0-9]+ ;
-SUB_DECIMALLIT      : [0-9]+ '.' [0-9]+ | '.' [0-9]+ ;
+SUB_INTEGERLIT      : INT_BODY ;
+SUB_DECIMALLIT      : DEC_BODY ;
 
 // Alphanumeric literal — needed for string-valued intrinsic-function arguments,
 // e.g. FUNCTION LOWER-CASE("ABC"), FUNCTION NUMVAL("12.3"). Mirrors STRINGLIT.
-SUB_STRINGLIT       : '"' (~["\r\n] | '""')* '"' | '\'' (~['\r\n] | '\'\'')* '\'' ;
+SUB_STRINGLIT       : STR_BODY ;
 
 // National/boolean literal arguments (N"…"/B"…", ISO §8.3.3.5/§8.3.3.4) — mirror NATLIT/BOOLLIT. MUST
 // precede SUB_IDENTIFIER (and win by longest match anyway) so the prefix letter is never orphaned as a
 // one-character data-name with the quoted body becoming a separate SUB_STRINGLIT — that shape silently
 // misbound FUNCTION LENGTH(N"AB") before these tokens existed (Phase 4a, the proper-token rule).
-SUB_NATLIT          : 'N' '"' (~["\r\n] | '""')* '"' | 'N' '\'' (~['\r\n] | '\'\'')* '\'' ;
-SUB_BOOLLIT         : 'B' '"' [01]+ '"' | 'B' '\'' [01]+ '\'' ;
+SUB_NATLIT          : NAT_BODY ;
+SUB_BOOLLIT         : BOOL_BODY ;
 
 // Data-name / index-name (must follow keywords to avoid capturing OF/IN/ALL)
-SUB_IDENTIFIER      : [0-9]+ '-' [a-z0-9] [a-z0-9-]* | [0-9]+ [a-z] [a-z0-9-]* | [a-z] [a-z0-9-]* [a-z0-9] | [a-z] ;
+SUB_IDENTIFIER      : NAME_BODY ;
 
 // Operators and punctuation. Arithmetic operators (*, /, **) are needed because
 // intrinsic-function arguments — captured in this mode to preserve comma/space
