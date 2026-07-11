@@ -456,29 +456,18 @@ internal sealed class FieldEmitter(EmitContext ctx)
         string key = raw.ToUpperInvariant();
         // ALL <figurative-word> (e.g. ALL ZEROS, ALL SPACES) is equivalent to the bare figurative (a single-character
         // figurative repeated to the width); strip the ALL prefix when the remainder is a figurative WORD. (ALL "literal"
-        // — repeating a multi-character literal — is a separate form left to the literal path.)
-        if (FillCharFor(key, pic.Category) is null && key.StartsWith("ALL") && key.Length > 3
-            && FillCharFor(key[3..], pic.Category) is not null)
+        // — repeating a multi-character literal — is a separate form left to the literal path. This site's strip
+        // predates upper-casing, so only the GLUED spelling reaches the retry — preserved verbatim, see the
+        // FigurativeConstants ALL-strip note.)
+        if (FigurativeConstants.KindOf(key, includeNull: true) is null && key.StartsWith("ALL") && key.Length > 3
+            && FigurativeConstants.KindOf(key[3..], includeNull: true) is not null)
             key = key[3..];
-        if (FillCharFor(key, pic.Category) is not { } fillChar) return null;
+        if (FigurativeConstants.KindOf(key, includeNull: true) is not { } k) return null;
+        string fillChar = FigurativeConstants.Fill(k, ctx.Data.Collating, pic.Category);
         return pic.Category is PicCategory.Numeric ? pic.DefaultInitializer : $"new string({fillChar}, {pic.Length})";
     }
 
-    /// <summary>The C# <c>char</c>-literal a figurative-constant word fills with, or null if the text is not a
-    /// figurative word (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9). The alphanumeric
-    /// program collating sequence governs HIGH/LOW-VALUE only for alphanumeric receivers — a national/boolean
-    /// item uses the D-N3 pin (its own sequence; §8.3.3.6 GR6/GR7).</summary>
-    private string? FillCharFor(string word, PicCategory cat) => word switch
-    {
-        "ZERO" or "ZEROS" or "ZEROES" => "'0'",
-        "SPACE" or "SPACES" => "' '",
-        // VALUE HIGH-/LOW-VALUE under a PROGRAM COLLATING SEQUENCE is the sequence's extreme character
-        // (ISO §8.3.3.6 GR7 — compile-time figurative; NC219A's NEW-LOW PIC X VALUE LOW-VALUE = 'F').
-        "HIGH-VALUE" or "HIGH-VALUES" => ctx.FigFill('H', cat),
-        "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => ctx.FigFill('L', cat),
-        "QUOTE" or "QUOTES" => "'\\\"'",
-        _ => null,
-    };
+    // FillCharFor lives in FigurativeConstants (KindOf + Fill) since P7 Step 4.
 
     /// <summary>A numeric VALUE literal as a C# float/double literal for a COMP-1/COMP-2 item.</summary>
     private static string RawValueAsFloat(string raw, PicInfo pic) =>

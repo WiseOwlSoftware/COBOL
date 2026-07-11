@@ -107,7 +107,7 @@ internal static class OperandText
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
         public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(n.Text);
         public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign);
-        public string Visit(BoundFigurative n) => $"new string({EmitText.FigurativeFill(n.Kind)}, 1)";   // DISPLAY shows one occurrence (GR3)
+        public string Visit(BoundFigurative n) => $"new string({FigurativeConstants.Fill(n.Kind, null)}, 1)";   // DISPLAY shows one occurrence (GR3)
         public string Visit(BoundAllLiteral n) => EmitText.CsLiteral(n.Literal);                          // length-unspecified: the literal once (GR3c)
         // An ALPHANUMERIC-result intrinsic (ISO §15.2 type 1 — a sending item of category alphanumeric): the one
         // case that lets MOVE-to-alphanumeric, string relational comparisons, and group moves take FUNCTION operands

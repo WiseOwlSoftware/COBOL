@@ -99,15 +99,9 @@ public sealed partial class CSharpEmitter
         if (CobolLiteral.IsStringLiteral(raw))   // both ISO §8.3.1.2 delimiters (apostrophe VALUE was silently miscompiled)
             return new BoundStringLiteral(CobolLiteral.Decode(raw));
         if (AllLiteralText(raw) is { } all) return new BoundAllLiteral(all);   // ALL "literal" (§8.3.3.6.4 F6)
-        return raw.ToUpperInvariant().TrimEnd('S') switch   // ZEROS/SPACES → ZERO/SPACE
-        {
-            "ZERO" or "ZEROE" => new BoundFigurative('Z'),
-            "SPACE" => new BoundFigurative('S'),
-            "QUOTE" => new BoundFigurative('Q'),
-            "HIGH-VALUE" => new BoundFigurative('H'),
-            "LOW-VALUE" => new BoundFigurative('L'),
-            _ => new BoundNumericLiteral(raw),
-        };
+        return FigurativeConstants.KindOf(raw) is { } k   // the ONE word-recognition table (P7 Step 4)
+            ? new BoundFigurative(k)
+            : new BoundNumericLiteral(raw);
     }
 
     /// <summary>Emit the per-instance report-engine construction (called inside <c>__Activate</c>'s

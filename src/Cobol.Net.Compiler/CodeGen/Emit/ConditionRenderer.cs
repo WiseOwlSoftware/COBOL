@@ -190,7 +190,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     {
         // PCS-aware for alphanumeric anchors: HIGH-/LOW-VALUE materialize as the program sequence's extreme
         // characters (§8.3.3.6 GR6/7); a national/boolean anchor uses the D-N3 pin (FigFill's category arm).
-        BoundFigurative f => $"new string({ctx.FigFill(f.Kind, anchorCat)}, {width})",
+        BoundFigurative f => $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating, anchorCat)}, {width})",
         BoundAllLiteral a => EmitText.CsLiteral(EmitText.RepeatToWidth(a.Literal, width)),   // ALL "literal" → repeated to width (GR2)
         _ => OperandText.AsString(op),
     };
@@ -303,21 +303,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
 
     /// <summary>The fill character of a bare figurative-constant word (with or without a leading <c>ALL</c> —
     /// the same figurative either way, ISO §8.3.1.2), or null when the text is not a figurative word. The fill
-    /// characters match <see cref="EmitText.FigurativeFill"/> (HIGH/LOW = U+00FF/U+0000, COBOLNET_DESIGN §14.9).</summary>
+    /// characters match <see cref="FigurativeConstants.FillChar"/> (HIGH/LOW = U+00FF/U+0000, COBOLNET_DESIGN §14.9).</summary>
     private char? FigurativeFillChar(string raw)
     {
         string t = raw.Trim();
         if (t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && t.Length > 3 && char.IsWhiteSpace(t[3]))
             t = t[3..].Trim();
-        return t.ToUpperInvariant() switch
-        {
-            "SPACE" or "SPACES" => ' ',
-            "QUOTE" or "QUOTES" => '"',
-            "HIGH-VALUE" or "HIGH-VALUES" => ctx.Data.Collating?.HighValue ?? 'ÿ',
-            "LOW-VALUE" or "LOW-VALUES" => ctx.Data.Collating?.LowValue ?? ' ',
-            "ZERO" or "ZEROS" or "ZEROES" => '0',
-            _ => null,
-        };
+        // The membership fill takes the RAW character (no category pin — this site's historical semantics;
+        // the pin question is the flagged §8.3.3.6 GR6/GR7 divergence in FigurativeConstants' doc), NULL not
+        // admitted here. ONE service (P7 Step 4).
+        return FigurativeConstants.KindOf(t) is { } k
+            ? FigurativeConstants.FillChar(k, ctx.Data.Collating) : null;
     }
 
     /// <summary>A numeric level-88 VALUE operand → its unscaled-<c>long</c> text. A figurative ZERO maps to <c>0</c>

@@ -531,7 +531,7 @@ public sealed partial class CSharpEmitter
             case BoundAllLiteral all:
                 return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell({CsLiteral(all.Literal)}), 0, 0)";
             case BoundFigurative fig:
-                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell(new string({_ctx.FigFill(fig.Kind)}, 1)), 0, 0)";
+                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell(new string({FigurativeConstants.Fill(fig.Kind, _ctx.Data.Collating)}, 1)), 0, 0)";
             default:
                 return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell("
                     + LoudValue("string", "CALL USING argument form") + "), 0, 0)";

@@ -39,26 +39,7 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data)
             ? $", currency: {SymbolDisplay.FormatLiteral(Data.CurrencyPicSymbol, quote: true)}" : "")
         + (Data.DecimalPointIsComma ? ", commaMode: true" : "");
 
-    /// <summary>The C# char-literal a figurative constant fills with, PCS-AWARE for HIGH-/LOW-VALUE: under a
-    /// program collating sequence they are the sequence's extremes (ISO §8.3.3.6 GR6/GR7 + §12.3.7 GR8/GR9 —
-    /// character IDENTITY, not just comparison weight); otherwise the native U+00FF/U+0000 (COBOLNET_DESIGN
-    /// §14.9). Other figuratives are sequence-independent.</summary>
-    public string FigFill(char kind) => kind switch
-    {
-        'H' when Data.Collating is { } hc => SymbolDisplay.FormatLiteral(hc.HighValue, quote: true),
-        'L' or 'N' when Data.Collating is { } lc => SymbolDisplay.FormatLiteral(lc.LowValue, quote: true),
-        _ => EmitText.FigurativeFill(kind),
-    };
-
-    /// <summary>The figurative fill char for a receiver/anchor of the given data <paramref name="cat"/>: the
-    /// ALPHANUMERIC program collating sequence governs HIGH-/LOW-VALUE ONLY for alphanumeric contexts. Category
-    /// national and boolean use their OWN sequence (D-N3: HIGH/LOW-VALUE = U+00FF/U+0000 — the alphanumeric PCS
-    /// never applies to national/boolean data, §8.3.3.6 GR6/GR7 over the NATIONAL sequence), so they take the
-    /// PCS-independent <see cref="EmitText.FigurativeFill"/> pins.</summary>
-    public string FigFill(char kind, Binding.Model.PicCategory? cat) =>
-        cat is Binding.Model.PicCategory.National or Binding.Model.PicCategory.Boolean
-            ? EmitText.FigurativeFill(kind)
-            : FigFill(kind);
+    // FigFill lives in FigurativeConstants since P7 Step 4 (the ONE figurative service).
 }
 
 /// <summary>
@@ -96,17 +77,7 @@ internal static class EmitText
     public static string FileKeyExpr(FileModel f) =>
         f.InstanceKeyField is { } fld ? $"this.{fld}" : CsLiteral(f.CobolName);
 
-    /// <summary>The C# <c>char</c>-literal a figurative constant fills with (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000
-    /// per COBOLNET_DESIGN §14.9): Z→<c>'0'</c>, S→space, H→U+00FF, L/N→U+0000, Q→quote.</summary>
-    public static string FigurativeFill(char kind) => kind switch
-    {
-        'Z' => "'0'",
-        'S' => "' '",
-        'H' => "'\\u00ff'",
-        'L' or 'N' => "'\\u0000'",
-        'Q' => "'\\\"'",
-        _ => "' '",
-    };
+    // FigurativeFill lives in FigurativeConstants.Fill(kind, null) since P7 Step 4.
 
     /// <summary>The character value of a figurative <c>ALL literal-1</c> in a WIDTH-SPECIFIED context (a VALUE clause /
     /// a fixed-length receiver / a compared-with operand; ISO §8.3.3.6.4 GR2): the literal is repeated character by

@@ -352,7 +352,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
                 // fixed-length item), not one character then space-pad; the fill char is category-aware
                 // (national/boolean HIGH/LOW-VALUE = the D-N3 pin, not the alphanumeric PCS extreme).
                 _ctx.Writer.Line(m.Source is BoundFigurative fig
-                    ? rmp.WriteFill(_ctx.FigFill(fig.Kind, rmp.Inner.Item.Pic?.Category))
+                    ? rmp.WriteFill(FigurativeConstants.Fill(fig.Kind, _ctx.Data.Collating, rmp.Inner.Item.Pic?.Category))
                     : rmp.Write(OperandText.AsString(m.Source)));
             else if (target.Item.IsGroup)
                 EmitGroupMove(target, m.Source);
@@ -387,7 +387,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         string? image = source switch
         {
             BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } f =>
-                $"new string({_ctx.FigFill(f.Kind)}, {target.Item.ImageWidth})",
+                $"new string({FigurativeConstants.Fill(f.Kind, _ctx.Data.Collating)}, {target.Item.ImageWidth})",
             BoundAllLiteral { IsDigitOnly: false } a =>
                 CsLiteral(EmitText.RepeatToWidth(a.Literal, target.Item.ImageWidth)),
             _ => null,
@@ -487,7 +487,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         // ALL "literal" repeats to the RECEIVER width (ISO §8.3.3.6.4 GR2) — space-padding it would fill the group's
         // tail leaves with blanks instead of the repeated pattern (NC243A's 7-dim table seed).
         string image = source is BoundFigurative f
-            ? $"new string({_ctx.FigFill(f.Kind)}, {width})"
+            ? $"new string({FigurativeConstants.Fill(f.Kind, _ctx.Data.Collating)}, {width})"
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
             : $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {width})";
@@ -589,7 +589,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
             && !(pic.Category is PicCategory.Alphanumeric && pic.EditMask is not null))
             // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE is the D-N3 pin, never the
             // ALPHANUMERIC program collating sequence's extreme (§8.3.3.6 GR6/GR7 over the national sequence).
-            return $"new string({_ctx.FigFill(f.Kind, pic.Category)}, {pic.Length})";
+            return $"new string({FigurativeConstants.Fill(f.Kind, _ctx.Data.Collating, pic.Category)}, {pic.Length})";
         // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2).
         if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric)
             return CsLiteral(EmitText.RepeatToWidth(a.Literal, pic.Length));
@@ -619,7 +619,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
                 // A figurative source supplies its fill for EVERY data position (§8.3.1.2 — repeated to width).
                 string aeSrc = source is BoundFigurative ff
-                    ? $"new string({_ctx.FigFill(ff.Kind)}, {pic.Length})"
+                    ? $"new string({FigurativeConstants.Fill(ff.Kind, _ctx.Data.Collating)}, {pic.Length})"
                     : OperandText.AsString(source, deSign: true);
                 return $"CobolEdit.FormatAlphanumeric({aeSrc}, {CsLiteral(amask)})";
             case PicCategory.Alphanumeric:
@@ -1297,15 +1297,8 @@ public sealed partial class CSharpEmitter : IOoBindHost
         if (w.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && w.Length > 3
             && (char.IsWhiteSpace(w[3]) || char.IsLetter(w[3])))
             w = w[3..].TrimStart();
-        return w.ToUpperInvariant() switch
-        {
-            "ZERO" or "ZEROS" or "ZEROES" => "'0'",
-            "SPACE" or "SPACES" => "' '",
-            "HIGH-VALUE" or "HIGH-VALUES" => _ctx.FigFill('H', cat),
-            "LOW-VALUE" or "LOW-VALUES" or "NULL" or "NULLS" => _ctx.FigFill('L', cat),
-            "QUOTE" or "QUOTES" => "'\\\"'",
-            _ => null,
-        };
+        return FigurativeConstants.KindOf(w, includeNull: true) is { } k
+            ? FigurativeConstants.Fill(k, _ctx.Data.Collating, cat) : null;   // the ONE service (P7 Step 4)
     }
 
     // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ─────────────────────────────────────────────────────────────
