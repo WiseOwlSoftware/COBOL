@@ -328,15 +328,8 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
     /// <summary>A string-kind argument, context-free: a literal, a field's display image (the static
     /// <see cref="OperandText.AsString"/> shapes), or a nested alphanumeric intrinsic. A NUMERIC-result operand
     /// in a string-argument position stays loud (H3 — the named uncovered channel).</summary>
-    private static string StrStatic(BoundOperand op) => op switch
-    {
-        BoundStringLiteral s => EmitText.CsLiteral(s.Value),
-        BoundFieldOperand => OperandText.AsString(op),
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } nested } =>
-            RenderString(nested),
-        BoundOperandError e => EmitText.LoudValue("string", e.Feature),
-        _ => EmitText.LoudValue("string", $"intrinsic string argument '{op.GetType().Name}'"),
-    };
+    private static readonly StrStaticVisitor _strStaticVisitor = new();
+    private static string StrStatic(BoundOperand op) => op.Accept(_strStaticVisitor);
 
     /// <summary>An integer-kind argument, context-free (the static CHAR channel): literals, plain field reads
     /// (through the ONE <see cref="NumericRenderer.FieldNumCore"/>), index-names, and the +/−/× integer
@@ -350,25 +343,11 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             : $"(long)(CobolNum.Rescale({a.Expr}, {a.Scale}, 0, CobolRounding.Truncation))";
     }
 
-    private static NumX NumStatic(BoundOperand op) => op switch
-    {
-        BoundNumericLiteral n => EmitText.UnscaledLit(n.Text),
-        BoundFieldOperand f => NumericRenderer.FieldNumCore(f.Place),
-        BoundComputedOperand c => NumStaticExpr(c.Expr),
-        BoundOperandError e => new NumX(EmitText.LoudValue("long", e.Feature), 0),
-        _ => new NumX(EmitText.LoudValue("long", $"intrinsic numeric argument '{op.GetType().Name}'"), 0),
-    };
+    private static readonly NumStaticVisitor _numStaticVisitor = new();
+    private static NumX NumStatic(BoundOperand op) => op.Accept(_numStaticVisitor);
 
-    private static NumX NumStaticExpr(BoundExpr e) => e switch
-    {
-        BoundNumLiteral l => EmitText.UnscaledLit(l.Text),
-        BoundNumRef r => NumericRenderer.FieldNumCore(r.Place),
-        BoundIndexRef ix => new NumX(ix.IndexField, 0),
-        BoundNegate n => NumStaticExpr(n.Operand) is var x ? new NumX($"(-({x.Expr}))", x.Scale) : default,
-        BoundBinary { Op: '+' or '-' } b => StaticAdditive(NumStaticExpr(b.Left), b.Op, NumStaticExpr(b.Right)),
-        BoundBinary { Op: '*' } b => StaticMul(NumStaticExpr(b.Left), NumStaticExpr(b.Right)),
-        _ => new NumX(EmitText.LoudValue("long", $"computed intrinsic argument '{e.GetType().Name}' in a string-context call"), 0),
-    };
+    private static readonly NumStaticExprVisitor _numStaticExprVisitor = new();
+    private static NumX NumStaticExpr(BoundExpr e) => e.Accept(_numStaticExprVisitor);
 
     private static NumX StaticAdditive(NumX a, char op, NumX b)
     {
@@ -378,4 +357,54 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
 
     private static NumX StaticMul(NumX a, NumX b) =>
         new($"((Int128)({a.Expr}) * ({b.Expr}))", a.Scale + b.Scale);
+
+    // The static-argument renderers, as the generated exhaustive visitors (PHASE-07 Step 6h). These channels are
+    // INTENTIONALLY PARTIAL — most operand/expr kinds are loud by design in a static/string-argument context (H3, the
+    // "named uncovered channel") — so the many loud arms are now EXPLICIT `Visit`s (byte-identical to the former
+    // `_ => LoudValue(… GetType().Name …)`), and a NEW leaf is a compile error until a decision is made for it.
+    private sealed class StrStaticVisitor : IBoundOperandVisitor<string>
+    {
+        private static string Loud(BoundOperand n) => EmitText.LoudValue("string", $"intrinsic string argument '{n.GetType().Name}'");
+        public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
+        public string Visit(BoundFieldOperand n) => OperandText.AsString(n);
+        public string Visit(BoundComputedOperand n) =>
+            n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } nested ? RenderString(nested) : Loud(n);
+        public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
+        public string Visit(BoundNumericLiteral n) => Loud(n);
+        public string Visit(BoundFigurative n) => Loud(n);
+        public string Visit(BoundAllLiteral n) => Loud(n);
+        public string Visit(BoundBoolOperand n) => Loud(n);
+    }
+
+    private sealed class NumStaticVisitor : IBoundOperandVisitor<NumX>
+    {
+        private static NumX Loud(BoundOperand n) => new(EmitText.LoudValue("long", $"intrinsic numeric argument '{n.GetType().Name}'"), 0);
+        public NumX Visit(BoundNumericLiteral n) => EmitText.UnscaledLit(n.Text);
+        public NumX Visit(BoundFieldOperand n) => NumericRenderer.FieldNumCore(n.Place);
+        public NumX Visit(BoundComputedOperand n) => NumStaticExpr(n.Expr);
+        public NumX Visit(BoundOperandError n) => new(EmitText.LoudValue("long", n.Feature), 0);
+        public NumX Visit(BoundStringLiteral n) => Loud(n);
+        public NumX Visit(BoundFigurative n) => Loud(n);
+        public NumX Visit(BoundAllLiteral n) => Loud(n);
+        public NumX Visit(BoundBoolOperand n) => Loud(n);
+    }
+
+    private sealed class NumStaticExprVisitor : IBoundExprVisitor<NumX>
+    {
+        private static NumX Loud(BoundExpr n) => new(EmitText.LoudValue("long", $"computed intrinsic argument '{n.GetType().Name}' in a string-context call"), 0);
+        public NumX Visit(BoundNumLiteral n) => EmitText.UnscaledLit(n.Text);
+        public NumX Visit(BoundNumRef n) => NumericRenderer.FieldNumCore(n.Place);
+        public NumX Visit(BoundIndexRef n) => new(n.IndexField, 0);
+        public NumX Visit(BoundNegate n) => NumStaticExpr(n.Operand) is var x ? new NumX($"(-({x.Expr}))", x.Scale) : default;
+        public NumX Visit(BoundBinary n) =>
+            n.Op is '+' or '-' ? StaticAdditive(NumStaticExpr(n.Left), n.Op, NumStaticExpr(n.Right))
+            : n.Op is '*' ? StaticMul(NumStaticExpr(n.Left), NumStaticExpr(n.Right))
+            : Loud(n);
+        public NumX Visit(BoundExprError n) => Loud(n);
+        public NumX Visit(BoundIntrinsicCall n) => Loud(n);
+        public NumX Visit(BoundLinageCounterRef n) => Loud(n);
+        public NumX Visit(BoundPower n) => Loud(n);
+        public NumX Visit(BoundReportCounterRef n) => Loud(n);
+        public NumX Visit(BoundReportSumRef n) => Loud(n);
+    }
 }

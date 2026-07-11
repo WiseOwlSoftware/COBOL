@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) as Exec Step A: 6a–6g DONE (DEVLOG 755–761) + BooleanRenderer (DEVLOG 762) — the Roslyn source generator (visitor interfaces + Accept + StatementChildren) and every consumer in the 6b–6f list are converted. ⚠ A completeness grep (DEVLOG 762) found bound-node dispatches OUTSIDE that list: a 6h SWEEP remains (IntrinsicRenderer's 3 partial static-arg renderers — the only remaining LOUD default; + the emitter's PerformControl/SetTarget switches + UsageCollectionPass's walker — non-loud, latent new-leaf risk). Steps 1–5,7–12 of P7 still DEPEND on P6 (Exec Step D). NEXT: finish 6h, then Exec Step B = P6.`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) as Exec Step A: 6a–6g + the 6h loud-default sweep DONE (DEVLOG 755–763). The Roslyn source generator (visitor interfaces + Accept + StatementChildren) + EVERY loud-default consumer are converted (emitter 6b, all 5 renderers 6d/6e/6f/BooleanRenderer/IntrinsicRenderer, StoreKindOf 6c, the analyses 6f) — ⛔ NO loud-default bound-node dispatch survives (grep-verified). REMAINING (non-loud): UsageCollectionPass's whole-tree walker (task #17, a focused pass) + the emitter's PerformControl/SetTarget switches (REASONED KEEP — void/closure over 4/2-leaf roots). Steps 1–5,7–12 of P7 DEPEND on P6 (Exec Step D). NEXT: UsageCollectionPass, then Exec Step B = P6.`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -350,16 +350,21 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
     - **✅ `BooleanRenderer.Render` (BoundBoolExpr) — DONE (DEVLOG 762).** A cached nested `IBoundBoolExprVisitor<string>`
       (static class, like OperandText); the loud `_ =>` deleted. This was the only remaining LOUD default over a whole
       root; byte-exact (32 char + 3158 conf).
-    - `IntrinsicRenderer.StrStatic`/`NumStatic` (BoundOperand) + `NumStaticExpr` (BoundExpr) — three INTENTIONALLY-PARTIAL
-      static-argument renderers whose `_ =>` is the H3 "named uncovered channel" (most operand/expr kinds are loud by
-      design in this narrow context). Convert to three cached nested visitors (`<string>` + `<NumX>` need SEPARATE
-      classes — same-param/different-return can't overload); the many loud arms become explicit `Visit`s.
-    - Emitter `PerformControl` switch (`CSharpEmitter.cs` ~1041, `default:` = `PerformOnce`) and the two `SetTarget`
-      switches (`StoreSetTarget`/`AugmentSetTarget`, no default) — void + closure state (`body`/`value`/`amount`), so a
-      visitor-with-state; NOT loud today but a new leaf would silently misroute (default) / no-op (fall-through).
-    - `UsageCollectionPass` (Step-5) — its own hand-written `Visitor` over the WHOLE tree (statements+exprs+operands+
-      conditions+places). The biggest remaining walker; the completeness-bug origin. Wants the generated statement
-      visitor + `StatementChildren` (and, for the non-statement roots, their generated visitors).
+    - **✅ `IntrinsicRenderer.StrStatic`/`NumStatic` (BoundOperand) + `NumStaticExpr` (BoundExpr) — DONE (DEVLOG 763).**
+      Three cached nested visitors (`StrStaticVisitor : IBoundOperandVisitor<string>`, `NumStaticVisitor :
+      IBoundOperandVisitor<NumX>` — separate classes, same-param/different-return can't overload — and
+      `NumStaticExprVisitor : IBoundExprVisitor<NumX>`); the deliberately-partial H3 loud arms are now EXPLICIT `Visit`s
+      (byte-identical `Loud(n)`). **This was the LAST loud-default bound-node dispatch — verified by re-running the
+      completeness grep, none survives.** Byte-exact (32 char + 3158 conf).
+    - **Emitter `PerformControl` switch (`default:` = `PerformOnce`) + `StoreSetTarget`/`AugmentSetTarget` (no default)
+      — REASONED KEEP (DEVLOG 763), not converted.** `void` + closure-heavy (`body`/`inline`/`value`/`amount`), so the
+      generic-return `IBound*Visitor<T>` would force a dummy `T` + a state-carrying per-call visitor — uglier than the
+      switch — over tiny closed roots (4/2 leaves) with NO loud default; a new leaf surfaces as a missed emit (caught in
+      test), not silent wrong output. Revisit IF a void-visitor generator variant lands.
+    - **`UsageCollectionPass` (Step-5) — the one remaining walker worth converting; deferred to a FOCUSED pass (task
+      #17).** Its own hand `Visitor` over the WHOLE tree (statements+exprs+operands+conditions+places) — the biggest
+      walker and the completeness-bug origin. Wants the generated statement visitor + `StatementChildren` (+ the
+      non-statement roots' generated visitors). Substantial; not byte-driven the way the renderers are.
   - **6d ✅ DONE (2026-07-11).** `NumericRenderer` implements `IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>`;
     `Render`/`AsNum` are thin `=> e.Accept(this)` dispatchers + 11 expr + 8 operand `Visit` methods. The `Render`
     `_ =>` was already dead (all 11 expr leaves covered); `AsNum`'s `_ =>` caught `BoundAllLiteral`/`BoundBoolOperand`,
