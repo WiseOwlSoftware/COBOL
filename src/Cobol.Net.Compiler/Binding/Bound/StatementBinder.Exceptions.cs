@@ -388,10 +388,18 @@ public sealed partial class StatementBinder
         return $"{_programName}; {proc}; {line}";
     }
 
-    /// <summary>Does a bound statement contain an intrinsic-function call (the EC-ARGUMENT-FUNCTION wrap test)?
-    /// Walks the operand/expression shapes of the value-bearing statements; containers recurse. A miss on an
-    /// exotic shape under-checks (no guard) — never mis-executes.</summary>
-    private static bool ContainsIntrinsic(BoundStatement s) => s switch
+    /// <summary>Does a bound statement (or a statement nested inside it) contain an intrinsic-function call — the
+    /// EC-ARGUMENT-FUNCTION wrap test? Checks THIS statement's own operand/expression shapes via <see cref="DirectIntrinsic"/>,
+    /// then recurses EVERY nested statement through the generated <see cref="BoundStatementTree.StatementChildren"/>
+    /// (PHASE-07 Step 6h) — so the walk is now TOTAL over containers (the former hand-list missed SEARCH/keyed/WRITE/…
+    /// phrase bodies). A wrap around a statement whose intrinsic argument is in fact valid is a no-op, so a wider walk
+    /// is conservative — never mis-executes.</summary>
+    private static bool ContainsIntrinsic(BoundStatement s) =>
+        DirectIntrinsic(s) || s.StatementChildren().Any(ContainsIntrinsic);
+
+    /// <summary>The intrinsic in THIS statement's OWN operands/expressions/conditions (not its nested statements —
+    /// those are the recursion's job via <see cref="BoundStatementTree.StatementChildren"/>).</summary>
+    private static bool DirectIntrinsic(BoundStatement s) => s switch
     {
         BoundDisplay d => d.Operands.Any(OpHasIntrinsic),
         BoundMove m => OpHasIntrinsic(m.Source),
@@ -406,11 +414,9 @@ public sealed partial class StatementBinder
         BoundDivideInto a => ExprHasIntrinsic(a.Divisor),
         BoundDivideGiving a => ExprHasIntrinsic(a.Dividend) || ExprHasIntrinsic(a.Divisor),
         BoundDivideRemainder a => ExprHasIntrinsic(a.Dividend) || ExprHasIntrinsic(a.Divisor),
-        BoundIf i => CondHasIntrinsic(i.Condition) || i.Then.Any(ContainsIntrinsic) || i.Else.Any(ContainsIntrinsic),
-        BoundInlinePerform p => p.Body.Any(ContainsIntrinsic),
+        BoundIf i => CondHasIntrinsic(i.Condition),   // Then/Else recursed by StatementChildren
         BoundSetTo st => ExprHasIntrinsic(st.Value),
-        BoundEvaluate ev => ev.Whens.Any(wn => CondHasIntrinsic(wn.Match) || wn.Statements.Any(ContainsIntrinsic))
-                            || (ev.Other?.Any(ContainsIntrinsic) ?? false),
+        BoundEvaluate ev => ev.Whens.Any(wn => CondHasIntrinsic(wn.Match)),   // when/Other statements recursed
         _ => false,
     };
 

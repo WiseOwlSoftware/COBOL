@@ -112,12 +112,6 @@ internal sealed class VersionConformancePass
         Recurse(s);
     }
 
-    private void WalkList(IReadOnlyList<BoundStatement>? list)
-    {
-        if (list is null) return;
-        foreach (var s in list) WalkStatement(s);
-    }
-
     private void Check(string constructId, string where)
         => ConstructRegistry.Check(_edition, _sink, constructId, where);
 
@@ -203,59 +197,15 @@ internal sealed class VersionConformancePass
         }
     }
 
-    // ── The complete nested-statement traversal ─────────────────────────────────────────────────────────────
-    // EVERY container that can hold a gated statement is descended, so a gate nested inside IF / EVALUATE / PERFORM
-    // / SEARCH / an ON-phrase escapes nothing. Cross-checked against the binder's own traversals
-    // (BoundStores.StoreKindOf + the phrase fields); a missed container would silently drop a nested gate. Leaves
-    // (the default arm) yield no children.
+    // ── The complete nested-statement traversal (PHASE-07 Step 6h) ────────────────────────────────────────────
+    // Descends EVERY container via the generated BoundStatementTree.StatementChildren — the ONE drift-proof source
+    // of the statement-tree shape — so a gate nested inside IF/EVALUATE/PERFORM/SEARCH/an ON-phrase escapes nothing,
+    // and a NEW container node is covered automatically (the former hand-listed switch was synced-by-prose against
+    // the binder's own traversals). Leaves yield no children.
     private void Recurse(BoundStatement s)
     {
-        switch (s)
-        {
-            case BoundSequence x: WalkList(x.Steps); break;
-            case BoundEcChecked x: WalkStatement(x.Inner); break;
-            case BoundIf x: WalkList(x.Then); WalkList(x.Else); break;
-            case BoundEvaluate x:
-                foreach (var w in x.Whens) WalkList(w.Statements);
-                WalkList(x.Other); break;
-            case BoundInlinePerform x: WalkList(x.Body); break;
-            case BoundAddTo x: WalkSizeErr(x.SizeError); break;
-            case BoundAddGiving x: WalkSizeErr(x.SizeError); break;
-            case BoundSubtractFrom x: WalkSizeErr(x.SizeError); break;
-            case BoundSubtractGiving x: WalkSizeErr(x.SizeError); break;
-            case BoundMultiplyBy x: WalkSizeErr(x.SizeError); break;
-            case BoundMultiplyGiving x: WalkSizeErr(x.SizeError); break;
-            case BoundDivideInto x: WalkSizeErr(x.SizeError); break;
-            case BoundDivideGiving x: WalkSizeErr(x.SizeError); break;
-            case BoundDivideRemainder x: WalkSizeErr(x.SizeError); break;
-            case BoundCompute x: WalkSizeErr(x.SizeError); break;
-            case BoundCorresponding x: WalkSizeErr(x.SizeError); break;
-            case BoundSearch x:
-                WalkList(x.AtEnd);
-                foreach (var w in x.Whens) WalkList(w.Statements); break;
-            case BoundStringStmt x: WalkList(x.OnOverflow); WalkList(x.NotOnOverflow); break;
-            case BoundUnstringStmt x: WalkList(x.OnOverflow); WalkList(x.NotOnOverflow); break;
-            case BoundWrite x: WalkList(x.AtEop); WalkList(x.NotAtEop); break;
-            case BoundRead x: WalkList(x.AtEnd); WalkList(x.NotAtEnd); break;
-            case BoundKeyedRead x:
-                WalkList(x.AtEnd); WalkList(x.NotAtEnd);
-                WalkList(x.InvalidKey?.Invalid); WalkList(x.InvalidKey?.NotInvalid); break;
-            case BoundKeyedWrite x: WalkList(x.InvalidKey?.Invalid); WalkList(x.InvalidKey?.NotInvalid); break;
-            case BoundKeyedRewrite x: WalkList(x.InvalidKey?.Invalid); WalkList(x.InvalidKey?.NotInvalid); break;
-            case BoundKeyedDelete x: WalkList(x.InvalidKey?.Invalid); WalkList(x.InvalidKey?.NotInvalid); break;
-            case BoundKeyedStart x: WalkList(x.InvalidKey?.Invalid); WalkList(x.InvalidKey?.NotInvalid); break;
-            case BoundKeyedDeleteFile x: WalkList(x.OnException); WalkList(x.NotOnException); break;
-            case BoundReturn x: WalkList(x.AtEnd); WalkList(x.NotAtEnd); break;
-            case BoundCallProgram x: WalkList(x.OnException); WalkList(x.NotOnException); break;
-            default: break;   // a leaf statement — no nested statements
-        }
-    }
-
-    private void WalkSizeErr(SizeErrorPhrase? p)
-    {
-        if (p is null) return;
-        WalkList(p.OnError);
-        WalkList(p.NotOnError);
+        foreach (var child in s.StatementChildren())
+            WalkStatement(child);
     }
 
     // ── Step 14g: the DATA-attribute (USAGE / PICTURE-category) edition gates ────────────────────────────────
