@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 PULLED FORWARD as Exec Step A · 6a,6b,6d,6e,6f(OperandText) DONE (DEVLOG 755–758) — all RENDERING/CLASSIFICATION consumers converted; the WALKER-style consumers remain: 6c StoreKindOf + 6f analyses (AlterCollectFields/ContainsNextSentence/KeyedHasNextSentence) — best served by a default-recurse walker generator variant (see 6c/6f bullets)`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 PULLED FORWARD as Exec Step A · 6a,6b,6d,6e,6f(OperandText) DONE + 6g StatementChildren PRIMITIVE DONE (DEVLOG 755–759). All rendering/classification consumers + the walker FOUNDATION are landed. REMAINS: convert the walker consumers onto StatementChildren — 6c StoreKindOf (per-node polarity, delicate) + 6f analyses (AlterCollectFields/ContainsNextSentence/KeyedHasNextSentence)`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -369,6 +369,49 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
   (rationale #1 / `DESIGN-codegen-backend.md §2.4`, `DESIGN-binder-bound-tree.md §3.3`). The parse→bound dispatch
   `BindStatementCore` **stays a `switch`** — it dispatches over ANTLR *parse* contexts, there is no bound node to
   `Accept` yet (OPEN Q5, confirmed correct).
+
+#### Step 6g — the WALKER variant: a generated `StatementChildren` primitive (✅ PRIMITIVE DONE 2026-07-11, DEVLOG 759; consumers next)
+
+The exhaustive no-default `IBoundStatementVisitor<T>` fixed the *dispatch* consumers (6b/6d/6e/6f-OperandText) but is
+the WRONG tool for the statement-tree WALKERS — `StoreKindOf` (6c) and the analyses `AlterCollectFields` /
+`ContainsNextSentence` / `KeyedHasNextSentence`. A walker recurses into nested statements; forcing a `Visit` per node
+does NOT stop it forgetting to RECURSE into a new node's children (the author writes `Visit(BoundNew) => false` just as
+easily as forgetting a switch arm) — the exact PHASE-05 `UsageCollectionPass` completeness bug. The fix must centralize
++ drift-proof the *"child statements of node X"* knowledge, with completeness **by construction**.
+
+**Child-statement taxonomy (verified 2026-07-11 — the FULL set; max containment depth = 1):**
+- *Direct* `BoundStatement` / `IReadOnlyList<BoundStatement>?` props: `BoundIf.{Then,Else}`, `BoundInlinePerform.Body`,
+  `BoundSequence.Steps`, `BoundEcChecked.Inner`, `BoundCallProgram.{OnException,NotOnException}`,
+  `BoundKeyedDeleteFile.{OnException,NotOnException}`, `BoundRead.{AtEnd,NotAtEnd}`, `BoundWrite.{AtEop,NotAtEop}`,
+  `BoundStringStmt.{OnOverflow,NotOnOverflow}`, `BoundUnstringStmt.{OnOverflow,NotOnOverflow}`,
+  `BoundReturn.{AtEnd,NotAtEnd}` (+ any future direct phrase).
+- *Single-depth helper records* (each holds `IReadOnlyList<BoundStatement>?` directly): `SizeErrorPhrase{OnError,NotOnError}`
+  (arithmetic verbs' `.SizeError`), `KeyedInvalidKey{Invalid,NotInvalid}` (keyed I/O `.InvalidKey`).
+- *Lists of helper records*: `BoundSearch.Whens` (`BoundSearchWhen.Statements`) + `BoundSearch.AtEnd`;
+  `BoundEvaluate.Whens` (`BoundEvaluateWhen.Statements`) + `BoundEvaluate.Other`.
+
+**Mechanism (BUILT): `BoundVisitorGenerator` emits `BoundStatementTree.StatementChildren(this BoundStatement) : IEnumerable<BoundStatement>`.**
+Completeness is BY CONSTRUCTION — it reads every property via the semantic model, so it cannot forget one. Per-property
+rule (recursive, `IsStatementLike` = IS-or-derives-`BoundStatement`; the list/child props are typed as the *root*
+`BoundStatement`, so equality — not just derivation — must count): a prop that IS a statement → `One(x.P)`;
+`IReadOnlyList<BoundStatement>` → `Nz(x.P)` (null→empty); a *statement-bearing record* → recurse its props (`x.P?.Q`);
+`IReadOnlyList<record>` → `(x.P ?? Empty).SelectMany(e => …)`. (A "statement-bearing record" = a non-Bound-root record
+in our assembly with ≥1 transitively-statement-yielding prop; a visited-set bounds the walk through cyclic data-model
+types like `DataItem.Children`; the four helper records SizeErrorPhrase/KeyedInvalidKey/BoundSearchWhen/BoundEvaluateWhen
+are picked up with NO hard-coding.) The emitted switch (28 container arms + `_ => []`) was verified to match the child
+taxonomy above AND `StoreKindOf`'s hand-listed `Kids` calls exactly. `BoundStatementChildrenTests` locks it:
+direct-children-returned, one-level-not-transitive, empty-leaf, and — the completeness/robustness guard — EVERY leaf
+called on an uninitialized node returns empty without throwing (exercises each arm's null guards). Additive /
+behavior-neutral (269 unit incl. 4 new + 32 char + 3158 conf; no consumer touched — like 6a). **NEXT: the consumers.**
+
+**Consumers on it:** `ContainsNextSentence`/`AlterCollectFields`/`KeyedHasNextSentence` become a generic recurse over
+`StatementChildren` + node-specific collection (a new node's children recurse automatically). `StoreKindOf` (6c) stays
+a per-node `StoreKindVisitor` (its polarity IS node-specific — see the 6c bullet), but its `Kids` recursion rides
+`StatementChildren`, so the RECURSION completeness is guaranteed and only the per-node polarity is hand-authored (the 9
+`_ => null` nodes stay `null`). **Rejected:** a `Bound{Root}Walker` base with fixed aggregation — the consumers
+aggregate differently (OR-short-circuit / first-hit / accumulate), so the flexible shared core is the `StatementChildren`
+*primitive*, not a fixed-fold base. **Rejected:** a hand-written single-source `StatementChildren` — loses
+completeness-by-construction (a reflection test can't verify a hand-written body without materializing instances).
 
 ### Step 7 — Semantic normalization: `MoveKind` + storage form onto `BoundMove`; delete `ConvertSource` re-classification
 
