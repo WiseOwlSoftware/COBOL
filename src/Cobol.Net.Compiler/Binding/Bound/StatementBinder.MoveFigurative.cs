@@ -82,7 +82,7 @@ public sealed partial class StatementBinder
             if (all is not { IsDigitOnly: true } && t is not (RedefViewPlace or NumericImagePlace)
                 && t.Item.Class is null
                 && pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                t.Item.StoreAsImage = true;
+                data.MarkImageForced(t.Item);   // the collected image fact
         }
     }
 
@@ -216,11 +216,11 @@ public sealed partial class StatementBinder
     /// window already writes character images; a REDEFINES-class member keeps its (already-run) tier
     /// classification — the emitter's narrow loud guard covers that residue.
     /// </summary>
-    private static void MarkRefModStoreImage(IReadOnlyList<Place> targets)
+    private void MarkRefModStoreImage(IReadOnlyList<Place> targets)
     {
         foreach (var t in targets)
             if (t is RefModPlace rm
                 && rm.Item is { Class: null, Pic: { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } } item)
-                item.StoreAsImage = true;
+                data.MarkImageForced(item);   // the collected image fact
     }
 }

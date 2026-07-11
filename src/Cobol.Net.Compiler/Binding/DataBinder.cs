@@ -92,6 +92,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// </summary>
     public HashSet<DataItem> WholeGroupReferenced { get; } = [];
 
+    /// <summary>The COLLECTED image-storage facts (PHASE-05 Step 7 — the flag-write sites become fact records):
+    /// every elementary item some bind-time rule forces to store its CHARACTER IMAGE, recorded at the exact
+    /// moment the legacy <c>StoreAsImage = true</c> writes fired — Tier-B/CALL-cell REDEFINES leaves (resolve),
+    /// FILE-record leaves (resolve), report print faces (resolve), figurative-fill and ref-mod-store receivers
+    /// (procedure bind). <see cref="Passes.StorageFormPass"/> unions this with the compiler-temp re-sync and the
+    /// whole-group promotion to compute <see cref="DataItem.Storage"/> WITHOUT reading the mutable flag; the
+    /// bind-time <c>NumericImagePlace</c> wrap decision reads it with the same mid-bind timing the flag had.</summary>
+    public IReadOnlySet<DataItem> ImageForcedItems => _imageForcedItems;
+    private readonly HashSet<DataItem> _imageForcedItems = [];
+
+    /// <summary>Record one image-storage fact (the ONE write channel for <see cref="ImageForcedItems"/>).</summary>
+    internal void MarkImageForced(DataItem item) => _imageForcedItems.Add(item);
+
+    /// <summary>The BIND-TIME image-storage query (P5.7): true when <paramref name="item"/> is already known —
+    /// at THIS point of binding — to store its character image. Reads the collected facts with EXACTLY the
+    /// mid-bind timing the deleted mutable flag had (a fact recorded by an earlier statement's bind is visible
+    /// to a later statement's; one recorded later is not — the pre-P5.7 order dependency, preserved verbatim
+    /// and noted for the P7 lazy-place redesign). Post-bind consumers read <see cref="DataItem.StoreAsImage"/>
+    /// (the Storage projection) instead.</summary>
+    internal bool IsImageBackedEarly(DataItem item) => _imageForcedItems.Contains(item);
+
     /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
     /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);
     /// the remaining clauses are captured for the features that will consume them. Defaults when no OPTIONS.</summary>
@@ -308,19 +329,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 if (rec.IsGroup)
                 {
                     WholeGroupReferenced.Add(rec);
-                    // Flag the leaves NOW (not at the emitter's whole-group pass): statement binding consults
-                    // IsCharacterImage — e.g. the SORT binder requires the SD record to be image-storable
-                    // (ST102A's all-DISPLAY S-RECORD must not read as a Tier-C island at bind time).
+                    // Flag the leaves NOW (not at the group-tail whole-group pass): the bind-time
+                    // NumericImagePlace wrap decision consults the early image facts (a ref-mod/RENAMES base
+                    // under a record area must route through its character image at resolve time; ST102A's
+                    // all-DISPLAY S-RECORD must not read as a Tier-C island at bind time).
                     MarkImageLeaves(rec);
                 }
 
-        static void MarkImageLeaves(DataItem item)
+        void MarkImageLeaves(DataItem item)
         {
             foreach (var child in item.Children)
             {
                 if (child.IsGroup) MarkImageLeaves(child);
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    child.StoreAsImage = true;   // same rule as the emitter's MarkStoreAsImage (§14.9 MOVE GR4)
+                    MarkImageForced(child);      // the collected image fact (same rule as the whole-group union, §14.9 MOVE GR4)
             }
         }
     }
@@ -1640,12 +1662,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var member in cls.Members)
                 AssignClassOffsets(member, 0, cls);
             // A Tier-B (string-canonical) numeric-DISPLAY view reads/writes its window through the character pipeline
-            // (CobolNum.ParseDisplay / FormatDisplay) — the same StoreAsImage path used for whole-group numeric leaves.
+            // (CobolNum.ParseDisplay / FormatDisplay) — the same image path used for whole-group numeric leaves.
             if (cls.Tier == RedefinesTier.StringCanonical)
                 foreach (var leaf in cls.Members.SelectMany(LeavesOf))
                 {
                     if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                        leaf.StoreAsImage = true;
+                        MarkImageForced(leaf);   // the collected image fact (a Ptr-FORCED StringCanonical class deliberately never records — its display leaves stay TierBWindow)
                     else if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Binary or Usage.Packed } bp)
                     {
                         // A fixed-point BINARY/PACKED leaf of a Tier-B class is image-stored too: its window over
@@ -1660,7 +1682,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         // conformant face of the GR4 license. The DigitCount truncation discipline is unchanged
                         // (BINARY truncates by digit count; PACKED's 2n−1 over-capacity digits cannot survive an
                         // image round trip — standard stores never create them without implementor permission).
-                        leaf.StoreAsImage = true;
+                        MarkImageForced(leaf);   // the collected image fact (the SignKind rewrite below is a Pic fact and stays)
                         leaf.Pic = bp with { SignKind = bp.ImageSignKind };
                     }
                 }

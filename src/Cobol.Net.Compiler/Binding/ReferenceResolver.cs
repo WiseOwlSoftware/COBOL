@@ -169,7 +169,7 @@ public sealed class ReferenceResolver(DataBinder data)
                 {
                     if (PlaceForItem(leaf, leaf.Occurs is null ? [] : [k.ToString()]) is not { } lpRaw) return null;
                     Place lp = lpRaw;
-                    bool stringValued = leaf.StoreAsImage || lp is RedefViewPlace
+                    bool stringValued = data.IsImageBackedEarly(leaf) || lp is RedefViewPlace
                         || leaf.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
                             or PicCategory.National or PicCategory.Boolean;
                     // A typed NUMERIC-DISPLAY leaf participates through its character image (the alias is an
@@ -195,7 +195,9 @@ public sealed class ReferenceResolver(DataBinder data)
         if (item.Pic?.Category is PicCategory.Numeric)
         {
             if (item.Pic is not { Usage: Usage.Display, IsFloat: false }) return null;
-            if (!item.StoreAsImage && inner is not RedefViewPlace) inner = new NumericImagePlace(inner);
+            // P5.7: the bind-time wrap decision reads the COLLECTED early facts (same mid-bind timing the
+            // deleted flag had — MarkRefModStoreImage records the SAME item during this statement's bind).
+            if (!data.IsImageBackedEarly(item) && inner is not RedefViewPlace) inner = new NumericImagePlace(inner);
         }
         // National/boolean items reference-modify in their OWN character positions (§8.4.3.3 GR1/GR5a — a
         // national position is one UTF-16 char, a bit position one '0'/'1' char, under D-N1/D-B1).

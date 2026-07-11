@@ -111,7 +111,10 @@ public sealed class RedefinesClassificationTests
         Assert.Equal(RedefinesTier.StringCanonical, cls.Tier);
         Assert.Equal(8, cls.Width);   // the binary view's image width is its DIGIT count (no separate-sign add)
         var b = Item(d, "WS-B");
-        Assert.True(b.StoreAsImage);
+        // P5.7: the classifier RECORDS the image fact (ImageForcedItems) instead of mutating a flag; the final
+        // StoreAsImage/Storage is computed once by the group-tail StorageFormPass, which this bare resolve-only
+        // harness never runs — so assert the resolve-time COLLECTED FACT, the exact thing the classifier owns.
+        Assert.Contains(b, d.ImageForcedItems);
         Assert.Equal("TrailingOverpunch", b.Pic!.SignKind);   // BinaryMinus would corrupt the fixed window (D10)
     }
 

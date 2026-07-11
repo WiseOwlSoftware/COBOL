@@ -158,15 +158,19 @@ public sealed class DataItem
     public List<string> IndexNames { get; } = [];
 
     /// <summary>
-    /// When true, this numeric USAGE-DISPLAY elementary item is stored as its CHARACTER IMAGE (a C# <see cref="string"/>
-    /// of zoned digits) rather than a native <see cref="long"/>. Set by the bind-time whole-group analysis for a
-    /// numeric-DISPLAY leaf that lives under a group used as a whole (non-elementary) operand: ISO/IEC 1989:2023 §14.9
-    /// MOVE GR4 fills such a group "without consideration for the individual elementary items", so the leaf may receive
-    /// non-numeric characters (e.g. spaces) that a native <c>long</c> cannot represent. Numeric <i>use</i> of the leaf
-    /// then goes through <c>CobolNum.ParseDisplay</c> (read) / <c>CobolNum.FormatDisplay</c> (write); the common case
-    /// (a numeric leaf never referenced as part of a whole group) stays a native <c>long</c> (locked invariant #2).
+    /// True when this numeric fixed-point elementary item is stored as its CHARACTER IMAGE (a C# <see cref="string"/>
+    /// of zoned digits) rather than a native <see cref="long"/> — a numeric-DISPLAY leaf under a group used as a
+    /// whole operand (ISO/IEC 1989:2023 §14.9 MOVE GR4 fills such a group "without consideration for the individual
+    /// elementary items", so the leaf may receive non-numeric characters a native <c>long</c> cannot represent), a
+    /// Tier-B REDEFINES window, a figurative-fill / ref-mod-store receiver, a FILE-record or report print face, or
+    /// an OO crossing-form flip. Numeric <i>use</i> then goes through <c>CobolNum.ParseDisplay</c> (read) /
+    /// <c>CobolNum.FormatDisplay</c> (write); the common case stays a native <c>long</c> (locked invariant #2).
+    /// <para>P5.7: a READ-ONLY projection of <see cref="Storage"/> — the mutable flag and its 9 cross-layer write
+    /// sites are deleted; <c>StorageFormPass</c> computes the decision ONCE from the collected facts. NULL-Storage
+    /// (i.e. pre-group-tail) reads answer <c>false</c>, exactly the flag's early value for every legal read (the
+    /// bind-time early consumers use <see cref="DataBinder.IsImageBackedEarly"/> instead).</para>
     /// </summary>
-    public bool StoreAsImage { get; set; }
+    public bool StoreAsImage => Storage is Model.StorageForm.CharImage { Category: PicCategory.Numeric };
 
     /// <summary>JUSTIFIED [RIGHT] (ISO §13.18.34): alphanumeric/alphabetic receives right-justify — space-fill on
     /// the LEFT when the sender is shorter, truncate from the LEFT when longer (§14.9.25.4 GR6c).</summary>
@@ -282,7 +286,12 @@ public sealed class DataItem
     public bool IsImageCapable =>
         !IsDynamicTable && (   // out-of-line dynamic table — not in the static record codec (D9)
         IsElementary
-            ? IsCharacterImage
+            // P5.7: the leaf arm is defined DIRECTLY on Pic (a pure declared-shape fact, phase-stable at every
+            // point of the pipeline — resolve, procedure bind, emit). Value-identical to the former
+            // IsCharacterImage delegation: every image-PROMOTED leaf is a fixed-point Display/Binary/Packed
+            // numeric, already true via the numeric arm — the promotion can never change this property.
+            ? Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+                or PicCategory.National or PicCategory.Boolean
                 || Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display or Usage.Binary or Usage.Packed }
             : IsGroup && Children.All(c => c.IsImageCapable));
 

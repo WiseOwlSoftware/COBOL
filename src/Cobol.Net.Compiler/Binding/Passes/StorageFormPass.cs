@@ -9,63 +9,79 @@ namespace CobolNet.Binding.Passes;
 
 /// <summary>
 /// The LAST data-model pass (rearchitecture PHASE 05 §2.5 step 10 / PHASE-06 Step 3): the manifest-ordered OWNER of
-/// the storage-form decision. <see cref="Run"/> settles every <c>StoreAsImage</c> flag (compiler-temp re-sync →
-/// whole-group numeric-DISPLAY image marking → the OO override-crossing harmonize via the P6→P9 seam), then computes
-/// the canonical <see cref="StorageForm"/> for every elementary item, ONCE. It replaces — in prove-then-delete
-/// stages — the late-mutated <c>StoreAsImage</c> flag + the recursive image-fact properties. (The FILE-record image
-/// leaves are marked EARLIER, by the <c>MarkFileRecordImageLeaves</c> resolve pass — statement binding consults
-/// <c>IsCharacterImage</c>, e.g. the SORT binder's SD record check, so that half cannot wait for this pass; the
-/// PHASE-06 doc's "fold the FILE loop here" is superseded by that P5 finding, recorded in its STATUS block.)
-/// <para><b>D0 is the PROVE half:</b> <see cref="Compute"/> runs AFTER every <c>StoreAsImage</c> write
-/// has fired, so the numeric-image promotion (<c>NativeInt → CharImage(Numeric)</c>) is read from the FINAL
-/// <c>StoreAsImage</c> — byte-exact by construction. The from-scratch whole-group union walk (reproducing
-/// <c>MarkStoreAsImage</c> + the 8 other write sites WITHOUT the flag) is the delete-phase work (Step 7). The value
-/// of D0 is <see cref="Verify"/>: the facts DERIVED from <see cref="StorageForm"/> (IsCharacterImage / ImageWidth /
-/// ElementType) equal the legacy recursive computations, corpus-wide — proving the model before any deletion.</para>
+/// the storage-form decision. <see cref="Run"/> computes the canonical <see cref="StorageForm"/> for every
+/// elementary item, ONCE, from the COLLECTED image facts (P5.7 — the mutable <c>StoreAsImage</c> flag and its 9
+/// cross-layer write sites are DELETED; <see cref="DataItem.StoreAsImage"/> is a read-only projection of the
+/// Storage computed here). Bind-time rules RECORD facts instead of mutating storage state:
+/// <see cref="DataBinder.ImageForcedItems"/> carries the Tier-B/CALL-cell/file-record/print-item/figurative/ref-mod
+/// records at the same instants the legacy writes fired, and the bind-time <c>NumericImagePlace</c> wrap decision
+/// reads it with identical mid-bind timing (<c>DataBinder.IsImageBackedEarly</c>).
+/// <para><b>Prove-then-delete lineage:</b> D0 classified FROM the final flag and <see cref="Verify"/> proved the
+/// derived facts equal corpus-wide; P5.7a re-derived the promotion from the collected facts IN PARALLEL with the
+/// flag and the same corpus gate proved the two equal (identity #1's one real run); P5.7b then deleted the flag
+/// writes (DEVLOG 777).</para>
 /// </summary>
 internal static class StorageFormPass
 {
-    /// <summary>The GROUP pass body (P6 Step 3 — <c>BindPipeline.GroupTail</c>, Requires <c>UsageCollected</c>,
-    /// Produces <c>StorageComputed</c>): settle every <c>StoreAsImage</c> flag, then classify. The four sub-steps in
-    /// the exact order the fused pipeline ran them (byte-neutral by the characterization snapshots):</summary>
+    /// <summary>The GROUP pass body (P6 Step 3 / P5 Step 7 — <c>BindPipeline.GroupTail</c>, Requires
+    /// <c>UsageCollected</c>, Produces <c>StorageComputed</c>): compute <see cref="DataItem.Storage"/> from the
+    /// collected facts, then settle the OO crossing forms at the Storage level.</summary>
     public static void Run(GroupBindContext ctx)
     {
-        // 1) Compiler-temp description re-sync: StoreAsImage is still mutable while procedure bodies bind
-        //    (a ref-mod store / figurative MOVE in the MODEL's own unit flips it after a temp cloned it — the
-        //    M2-UDF-1 review's unit-order desync; both sides of the activation boundary must agree on the
-        //    carrier form). Runs after ALL procedure binds, before the image marking reads the flags.
-        foreach (var d in AllBinders(ctx))
-            foreach (var (temp, model) in d.CompilerTempClones)
-                temp.StoreAsImage = model.StoreAsImage;
+        // 1) The promoted-leaf union from the COLLECTED facts, in the legacy write order (P5.7 — the mutable
+        //    flag is GONE; StoreAsImage is a read-only projection of the Storage computed here).
+        var promoted = ComputePromotedSet(ctx);
 
-        // 2) Whole-group image marking (§14.9 MOVE GR4) over the UsageCollectionPass-owned set.
-        foreach (var d in AllBinders(ctx))
-            MarkStoreAsImage(d);
+        // 2) Classify: the canonical StorageForm from (Pic, tier, dynamic) + the promoted union — over the group
+        //    forests AND the interface prototype forests (both sides of an implements pair need Storage before
+        //    the storage-level harmonize below).
+        foreach (var d in ctx.AllBindersAndInterfaces())
+            Compute(d, promoted);
 
-        // 3) OO override-crossing harmonize (it only mutates StoreAsImage): C# override signatures must agree
-        //    on the crossing form (the 3a/3b review's signature-desync finding).
-        HarmonizeOverrideCrossings(ctx.Session.OoClasses);
-
-        // 4) Classify: the canonical StorageForm, read from the now-FINAL StoreAsImage state.
-        foreach (var d in AllBinders(ctx))
-            Compute(d);
+        // 3) The STORAGE-level harmonize: the override/implements crossing-form fixed point, expressed as
+        //    NativeInt→CharImage Storage flips (proven equal to the legacy flag-level harmonize by the P5.7a
+        //    corpus parity gate before the flag was deleted).
+        HarmonizeStorageCrossings(ctx.Session.OoClasses);
     }
 
-    /// <summary>Unify the INVOKE-boundary CROSSING FORM across every override chain AND every
-    /// interface-implementation pair (the 3a/3b review's signature-desync finding + the P6 phase-review find,
-    /// DEVLOG 775): the image marking can flip ONE side's numeric-DISPLAY formal/RETURNING item to image storage
-    /// (its class whole-group-references it, or a figurative/ref-mod store flips it; the other side's doesn't),
-    /// which would emit `M(ref string)` on one side and `M(ref long)` on the other — a raw Roslyn CS0115 (override)
-    /// or CS0535/CS0738 (implicit interface implementation) on legal COBOL (the G4 violation). The
-    /// §14.8.2/§9.3.8.2/§9.3.8.2.3 checks already guarantee identical DESCRIPTIONS, so unioning to the image form
-    /// is semantics-preserving (the FormatDisplay/StoreDisplay storage-form bridges absorb either storage).
-    /// Iterates to a fixed point — a flip through one link can propagate down a chain, across sibling subclasses,
-    /// or between a prototype and its many implementors. An interface PROTOTYPE's formals never flip themselves
-    /// (a prototype has no body), so the propagation is impl→proto→sibling-impls. (Relocated from the emitter,
-    /// P6 Step 5; interface pairs added at phase review, DEVLOG 775. NOTE for EXEC STEP C: interface forests are
-    /// outside <see cref="GroupBindContext.AllBinders"/> — when readers flip from <c>StoreAsImage</c> to
-    /// <c>Storage</c>, the interface forests need <see cref="Compute"/> too.)</summary>
-    private static void HarmonizeOverrideCrossings(OoClassTable classes)
+    /// <summary>The P5.7 promoted-leaf union — every elementary item whose storage is its CHARACTER IMAGE,
+    /// derived from the COLLECTED facts in the exact legacy write order: (1) the bind-time
+    /// <see cref="DataBinder.ImageForcedItems"/> records (Tier-B/CALL-cell/file-record/print-item at resolve,
+    /// figurative-fill + ref-mod-store at procedure bind); (2) the compiler-temp re-sync (a temp mirrors its
+    /// model's PRE-whole-group state — the fused pipeline's re-sync ordering); (3) the whole-group promotion
+    /// (§14.9 MOVE GR4) over <see cref="DataBinder.WholeGroupReferenced"/>.</summary>
+    private static HashSet<DataItem> ComputePromotedSet(GroupBindContext ctx)
+    {
+        var promoted = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        foreach (var d in ctx.AllBindersAndInterfaces())
+            promoted.UnionWith(d.ImageForcedItems);
+        foreach (var d in ctx.AllBindersAndInterfaces())
+            foreach (var (temp, model) in d.CompilerTempClones)
+                if (promoted.Contains(model))
+                    promoted.Add(temp);
+        foreach (var d in ctx.AllBindersAndInterfaces())
+            foreach (var group in d.WholeGroupReferenced)
+                AddNumericDisplayLeaves(group, promoted);
+        return promoted;
+
+        static void AddNumericDisplayLeaves(DataItem item, HashSet<DataItem> promoted)
+        {
+            foreach (var child in item.Children)
+            {
+                // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS
+                // position); same recursion as the legacy MarkStoreAsImage.
+                if (child.IsGroup) AddNumericDisplayLeaves(child, promoted);
+                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                    promoted.Add(child);
+            }
+        }
+    }
+
+    /// <summary>The STORAGE-level twin of <see cref="HarmonizeOverrideCrossings"/> (P5.7): the identical
+    /// override-chain + implements-pair fixed point, deciding string-carriage off the just-classified
+    /// <see cref="DataItem.Storage"/> and flipping the native side's Storage to <c>CharImage(Numeric)</c>
+    /// directly. Runs AFTER <see cref="Compute"/> so interface prototypes carry Storage too.</summary>
+    private static void HarmonizeStorageCrossings(OoClassTable classes)
     {
         bool changed = true;
         while (changed)
@@ -73,17 +89,11 @@ internal static class StorageFormPass
             changed = false;
             foreach (var cls in classes.Classes)
             {
-                // Override chains (§9.3.8.2): subclass method ↔ the overridden base method.
                 foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
                 {
                     if (m.OverrideOf is not { } baseM) continue;
                     changed |= UnifyPair(m, baseM);
                 }
-                // Interface-implementation pairs (§9.3.11 via §9.3.8.2.3): the implementing method emits as the
-                // IMPLICIT C# implementation of the interface member OoSignatureOf(proto) renders — the two
-                // signatures must agree exactly, same as an override chain. Enumeration mirrors
-                // OoClassTable.ValidateImplements (closure + AllPrototypes + Find*Method), which has already
-                // reported any description mismatch — pairs here are description-identical by construction.
                 foreach (bool factory in (ReadOnlySpan<bool>)[false, true])
                     foreach (var iface in classes.ImplementsClosure(cls, factory))
                         foreach (var proto in iface.AllPrototypes())
@@ -102,73 +112,49 @@ internal static class StorageFormPass
             return changed;
         }
 
+        // Mirrors the legacy UnifyCrossing exactly, at the Storage level: string-carried = group or ANY
+        // CharImage form (string categories are CharImage(non-numeric); a promoted numeric is CharImage(Numeric)).
         static bool UnifyCrossing(DataItem a, DataItem b)
         {
-            if (OoClassTable.StringCarried(a) == OoClassTable.StringCarried(b)) return false;
-            var native = a.StoreAsImage ? b : a;
+            if (StringCarried(a) == StringCarried(b)) return false;
+            var native = a.Storage is StorageForm.CharImage { Category: PicCategory.Numeric } ? b : a;
             if (native.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                 return false;   // only the display-numeric pair can diverge; anything else conformance-blocked
-            native.StoreAsImage = true;
+            native.Storage = new StorageForm.CharImage(native.ImageWidth, PicCategory.Numeric);
             return true;
         }
+
+        static bool StringCarried(DataItem item) =>
+            item.IsGroup || item.Storage is StorageForm.CharImage;
     }
 
-    /// <summary>The one group-forest enumerator (see <see cref="GroupBindContext.AllBinders"/>).</summary>
-    private static IEnumerable<DataBinder> AllBinders(GroupBindContext ctx) => ctx.AllBinders();
-
-    /// <summary>
-    /// Whole-group analysis (ISO/IEC 1989:2023 §14.9 MOVE GR4 / COBOLNET_DESIGN §14.4): for every group used as a
-    /// whole operand, flag each numeric USAGE-DISPLAY descendant leaf to store its character image
-    /// (<see cref="DataItem.StoreAsImage"/>). A whole-group move fills the group "without consideration for the
-    /// individual elementary items", so such a leaf may receive non-numeric characters (e.g. spaces) that a native
-    /// <c>long</c> cannot represent. A COMP/COMP-3/COMP-5/float leaf is left native (its group is then a genuine
-    /// mixed-usage byte-island — Tier-C, deferred); numeric-edited / alphanumeric leaves are already string-stored.
-    /// </summary>
-    private static void MarkStoreAsImage(DataBinder data)
-    {
-        foreach (var group in data.WholeGroupReferenced)
-            MarkNumericDisplayLeaves(group);
-
-        static void MarkNumericDisplayLeaves(DataItem item)
-        {
-            foreach (var child in item.Children)
-            {
-                // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS position):
-                // a numeric-DISPLAY OCCURS leaf becomes string-stored (its array is string[]), so the §14.4 AsImage/
-                // FromImage facility distributes it with no special case, and its subscripted accesses go through the
-                // same StoreAsImage numeric pipeline (CobolNum.ParseDisplay/FormatDisplay).
-                if (child.IsGroup) MarkNumericDisplayLeaves(child);
-                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    child.StoreAsImage = true;
-            }
-        }
-    }
 
     /// <summary>Assign <see cref="DataItem.Storage"/> to every ELEMENTARY item reachable from the binder's roots +
     /// report print items (a group carries no Storage — it emits as a record struct and answers its image facts
-    /// recursively over children).</summary>
-    public static void Compute(DataBinder data)
+    /// recursively over children). <paramref name="promoted"/> is the P5.7 from-scratch promotion union — the
+    /// classification never reads the legacy flag.</summary>
+    private static void Compute(DataBinder data, HashSet<DataItem> promoted)
     {
         var visited = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        foreach (var root in data.Roots) Walk(root, visited);
-        // Report print items are synthetic DataItems OFF Roots (they carry StoreAsImage too — a Roots-only walk
-        // would miss them, a parity trap).
+        foreach (var root in data.Roots) Walk(root, visited, promoted);
+        // Report print items are synthetic DataItems OFF Roots (they carry image promotions too — a Roots-only
+        // walk would miss them, a parity trap).
         foreach (var report in data.Reports)
             foreach (var group in report.Groups)
                 foreach (var line in group.Lines)
                     foreach (var field in line.Fields)
-                    Walk(field.PrintItem, visited);
+                    Walk(field.PrintItem, visited, promoted);
     }
 
-    private static void Walk(DataItem item, HashSet<DataItem> visited)
+    private static void Walk(DataItem item, HashSet<DataItem> visited, HashSet<DataItem> promoted)
     {
         if (!visited.Add(item)) return;          // reference dedup — LINKAGE roots are already in Roots; temps share a Pic
-        if (item.IsElementary) item.Storage = Classify(item);
-        foreach (var c in item.Children) Walk(c, visited);
+        if (item.IsElementary) item.Storage = Classify(item, promoted);
+        foreach (var c in item.Children) Walk(c, visited, promoted);
     }
 
     /// <summary>The base + image-promoted <see cref="StorageForm"/> of one ELEMENTARY item.</summary>
-    private static StorageForm Classify(DataItem item)
+    private static StorageForm Classify(DataItem item, HashSet<DataItem> promoted)
     {
         // (1) OCCURS DYNAMIC — the out-of-line table wraps its element's own form (highest priority; §8.5.1.9.1, D9).
         if (item.IsDynamicTable) return new StorageForm.DynamicTable(BaseElementary(item));
@@ -177,19 +163,23 @@ internal static class StorageFormPass
         if (item.Class is { } cls && !item.IsCanonical)
         {
             if (cls.Tier == RedefinesTier.StringCanonical)
-                // A Tier-B numeric-DISPLAY / BINARY / PACKED leaf is image-stored (StoreAsImage) → CharImage(Numeric);
-                // a Tier-B group backing or non-numeric-display view → the typed (offset, width) window.
-                return item.StoreAsImage
+                // A Tier-B numeric-DISPLAY / BINARY / PACKED leaf is image-stored (the ClassifyRedefinesClasses
+                // fact record) → CharImage(Numeric); a Tier-B group backing or non-numeric-display view → the
+                // typed (offset, width) window. A Ptr-FORCED StringCanonical class records no facts — its
+                // display leaves stay windows, exactly like the legacy flag.
+                return promoted.Contains(item)
                     ? new StorageForm.CharImage(item.ImageWidth, PicCategory.Numeric)
                     : new StorageForm.TierBWindow(cls, item.ClassOffset, item.ImageWidth);
             if (cls.Tier == RedefinesTier.Alias)
-                return Classify(cls.Canonical);   // Tier-A: forward to the canonical's form
+                return Classify(cls.Canonical, promoted);   // Tier-A: forward to the canonical's form
             // ByteCanonical (Tier-C) / Rejected: unreachable corpus-wide today — fall through to base classify.
         }
 
-        // (3) Base classification, then the numeric-image promotion for a whole-group / figurative / OO-harmonize leaf.
+        // (3) Base classification, then the numeric-image promotion for a whole-group / figurative / ref-mod /
+        //     file-record / print-item leaf (the OO harmonize applies its flips AFTER classification, at the
+        //     Storage level).
         var form = BaseElementary(item);
-        if (item.StoreAsImage && form is StorageForm.NativeInt)
+        if (promoted.Contains(item) && form is StorageForm.NativeInt)
             return new StorageForm.CharImage(item.ImageWidth, PicCategory.Numeric);
         return form;
     }
@@ -263,9 +253,8 @@ internal static class StorageFormPass
             if (item.IsElementary)
             {
                 if (item.Storage is null) { d.Add($"NO-STORAGE: {Desc(item)}"); return; }
-                bool promoted = item.Storage is StorageForm.CharImage { Category: PicCategory.Numeric };
-                if (promoted != item.StoreAsImage)
-                    d.Add($"#1 StoreAsImage: {Desc(item)} form-numeric-image={promoted} flag={item.StoreAsImage}");
+                // (identity #1 — Storage-promotion == StoreAsImage — RETIRED at P5.7b: the flag is a projection
+                //  OF Storage now, so the comparison is tautological; its one real run was the P5.7a parity gate.)
                 if (ElementTypeOf(item) != item.ElementType)
                     d.Add($"#4 ElementType: {Desc(item)} derived={ElementTypeOf(item)} legacy={item.ElementType}");
             }

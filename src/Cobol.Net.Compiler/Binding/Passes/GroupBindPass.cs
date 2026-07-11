@@ -18,13 +18,19 @@ internal sealed record GroupBindContext(
     CobolParserCore.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,
     IReadOnlyList<OoClassUnit> Classes,
+    IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> InterfaceData,
     BindSession Session)
 {
     /// <summary>Every DataBinder of the group, in the fused pipeline's order: class OBJECT + FACTORY forests,
     /// then the program units. THE one group-forest enumerator — the pass bodies and the watermark
-    /// advance/require loops all ride it.</summary>
+    /// advance/require loops all ride it. (The INTERFACE forests are deliberately separate —
+    /// <see cref="InterfaceData"/> — they carry prototype formals only and joined the pass inputs at P5.7 so the
+    /// storage-level harmonize can classify both sides of an implements pair.)</summary>
     public IEnumerable<DataBinder> AllBinders() =>
         Classes.SelectMany(c => new[] { c.Data, c.FactoryData }).Concat(Units.Select(u => u.Data));
+
+    /// <summary>The group forests PLUS the interface prototype forests (the storage-form pass's full domain).</summary>
+    public IEnumerable<DataBinder> AllBindersAndInterfaces() => AllBinders().Concat(InterfaceData.Values);
 }
 
 /// <summary>

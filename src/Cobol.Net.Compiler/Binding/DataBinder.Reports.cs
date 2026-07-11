@@ -361,7 +361,7 @@ public sealed partial class DataBinder
                 };
                 item.Uid = _uidCounter++;
                 if (pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    item.StoreAsImage = true;   // compose wants the printable CHARACTER image
+                    MarkImageForced(item);      // the collected image fact — compose wants the printable CHARACTER image
                 ReportFieldSource src = sum is not null ? new FieldSumSource(sum.Id)
                     : source
                     ?? (rawValue is not null ? new FieldValueSource(rawValue)

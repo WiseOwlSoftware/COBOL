@@ -347,7 +347,8 @@ public sealed partial class DataBinder
             OwnSign = model.OwnSign,
             Justified = model.Justified,
             BlankWhenZero = model.BlankWhenZero,
-            StoreAsImage = model.StoreAsImage,
+            // (P5.7: the clone-time StoreAsImage seed is gone — StorageFormPass's promoted-set re-sync derives
+            //  the temp's storage from its model's PRE-whole-group facts, the fused pipeline's re-sync ordering.)
         };
         t.Uid = _uidCounter++;
         _roots.Add(t);

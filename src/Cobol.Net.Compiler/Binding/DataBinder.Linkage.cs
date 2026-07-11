@@ -280,10 +280,10 @@ public sealed partial class DataBinder
             member.IsCanonical = false;   // NO local stored field — the backing is the cell bridge
         }
         // A numeric-DISPLAY leaf windowed over a string backing decodes/encodes its zoned image (the same
-        // StoreAsImage pipeline Tier-B uses — ClassifyRedefinesClasses' rule, applied here for the synth class).
+        // image pipeline Tier-B uses — ClassifyRedefinesClasses' rule, applied here for the synth class).
         foreach (var leaf in leaves)
             if (leaf.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                leaf.StoreAsImage = true;
+                MarkImageForced(leaf);   // the collected image fact
         return cls;
     }
 
