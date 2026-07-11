@@ -472,7 +472,7 @@ public sealed partial class DataBinder
     /// <summary>Post-build resolution for every report (the <c>ResolveFiles</c> pattern — runs after the storage
     /// forest is complete): the owning FILE (§13.18.46), SOURCE / CONTROL / SUM-addend data items, CH/CF control
     /// levels (§13.18.57.3 SR10/SR11), RESET levels, and the report's line width.</summary>
-    private void ResolveReports()
+    internal void ResolveReports()
     {
         foreach (var model in Reports)
         {

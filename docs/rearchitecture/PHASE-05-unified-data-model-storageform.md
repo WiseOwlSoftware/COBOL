@@ -7,8 +7,17 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: IN PROGRESS @ Step 2 DONE — Step 3 (IBindPass scaffolding + ValidateDag) NEXT
-> Steps 0–2 landed 2026-07-10 (DEVLOG 747, 749). Step 2 (D0): `Binding/Model/StorageForm.cs` (9 cases) + `Binding/Passes/StorageFormPass.cs` compute `DataItem.Storage` in PARALLEL with the legacy `StoreAsImage`; `StorageFormEquivalenceTests` proves the derived facts (IsCharacterImage / ImageWidth / ElementType) EQUAL the legacy computation over the NIST corpus + crafted tricky paths (exit criterion 3 — nothing deleted yet). Battery at head: greenfield conformance **3157** · unit **254** (+6 StorageForm) · characterization **32** byte-exact · FULL legacy guard NIST **353 MATCH**. The executing session MUST update this line + the §7 Step ledger on each commit boundary and set `DONE` at phase end.
+> ## STATUS: IN PROGRESS @ Step 3 DONE — Step 4 (RecordLayout parallel + width assert) NEXT
+> Steps 0–3 landed 2026-07-10 (DEVLOG 747, 749, 750). Step 3 (DESIGN §2.5): the DECLARED bind pass pipeline —
+> `Binding/Passes/IBindPass.cs` (the `PassPhase` enum + `IBindPass` interface + `BindPass` record) +
+> `Binding/Passes/BindPipeline.cs` (`Build(program)` = the ONE ordered pass list [16 resolve passes in the EXACT
+> pre-change order + 3 middle-end tail markers for DAG completeness] + `ValidateDag` monotone-chain startup assert).
+> `BindResolve` now drives the pipeline (runs the `Produces <= FilesResolved` prefix; the tail is emitter-driven);
+> the inline FILE whole-group loop was extracted to `MarkFileRecordImageLeaves()`; 12 resolve methods widened
+> `private → internal`. NO-OP wrapper: ZERO reorder, ZERO behavior change (characterization **32 byte-exact**). Exit
+> criterion **#5 (pass DAG asserted at startup) SATISFIED.** Battery at head: greenfield conformance **3157** · unit
+> **258** (+4 BindPipelineTests) · characterization **32** byte-exact · FULL legacy guard NIST **353 MATCH**. The
+> executing session MUST update this line + the §7 Step ledger on each commit boundary and set `DONE` at phase end.
 
 ---
 
@@ -309,7 +318,7 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
 - [x] Step 0 — baseline captured (counts: 3157 conformance / 227 unit / NIST 353 MATCH) — DEVLOG 747
 - [x] Step 1 — CobolLiteral.Decode (both ISO delimiters; 3 twins + hard-coded '"' guards deleted; CobolLiteralTests ×21) — DEVLOG 747
 - [x] Step 2 — StorageForm (9 cases; DESIGN §2.1 amended: Width field) + StorageFormPass.Compute (parallel, D0) + StorageFormEquivalenceTests (NIST corpus + crafted, 0 divergences); conformance 3157 · unit 254 · characterization 32 byte-exact — DEVLOG 749
-- [ ] Step 3 — IBindPass scaffolding + ValidateDag
+- [x] Step 3 — IBindPass scaffolding + ValidateDag — `IBindPass.cs` (PassPhase enum + interface + BindPass record) + `BindPipeline.cs` (Build ordered list [16 resolve + 3 tail markers] + ValidateDag monotone assert); BindResolve pipeline-driven (Produces<=FilesResolved prefix); inline FILE loop → MarkFileRecordImageLeaves(); 12 methods private→internal; BindPipelineTests ×4; conformance 3157 · unit 258 · characterization 32 byte-exact; exit criterion #5 satisfied — DEVLOG 750
 - [ ] Step 4 — RecordLayout parallel + width assert
 - [ ] Step 5 — UsageCollectionPass parallel (D1 prove)
 - [ ] Step 6 — prove-then-delete GATE green

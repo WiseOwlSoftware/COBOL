@@ -270,7 +270,7 @@ public sealed partial class DataBinder
     /// explicit REDEFINES, SR22 trailing table, SR20 data-name-1 placement. Violations are bind-time rejections
     /// (<c>Edition.Error</c> fails the compile) — never a silently mis-sized table (SSOT §1.4).
     /// </summary>
-    private void OdoResolve()
+    internal void OdoResolve()
     {
         static DataItem RootOf(DataItem d)
         {
@@ -399,7 +399,7 @@ public sealed partial class DataBinder
     /// implicit-definition rule → COBOLNET1523. Placement/declaration guards: SR28 FROM ≤ TO (1522); the FILE
     /// SECTION prohibition §8.5.1.9.1 (1526); the VALUE-derived-capacity §13.18.63 GR16 staging (1528).
     /// </summary>
-    private void DynamicResolve()
+    internal void DynamicResolve()
     {
         // §8.5.1.9.1 item 3 (:8195) — the roots of every FILE SECTION record, so a dynamic table in one is rejected.
         var fileRecordRoots = new HashSet<DataItem>(Files.SelectMany(f => f.Records));

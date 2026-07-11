@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Passes;
 using CobolNet.Common;
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
@@ -214,35 +215,40 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// the top of <see cref="ExpandTypes"/> (per program unit).</summary>
     private readonly HashSet<string> _typedIndexNames = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>The resolution half of <see cref="Bind"/> — the post-build passes over the COMPLETE forest.</summary>
+    /// <summary>The resolution half of <see cref="Bind"/> — the post-build passes over the COMPLETE forest, driven by
+    /// the DECLARED <see cref="BindPipeline"/> (rearchitecture PHASE 05 Step 3; DESIGN-data-model §2.5). The order is
+    /// IDENTICAL to the former comment-ordered call sequence — now EXPLICIT and asserted at startup by
+    /// <see cref="BindPipeline.ValidateDag"/> (each pass declares Requires/Produces phases), which structurally kills
+    /// the implicit-pass-ordering smell with ZERO reorder / ZERO behavior change. Only the resolve-phase prefix
+    /// (<c>Produces &lt;= </c><see cref="BindPipeline.LastResolvePhase"/>) runs here; the middle-end tail (procedure
+    /// binding → UsageCollection → StorageForm) is driven from the emitter, which has the bound tree.
+    /// <para>Post-build the forest is complete: fix up USAGE INDEX entries (children weren't known at entry bind);
+    /// apply group-level SIGN clauses (must precede the REDEFINES classification — a SEPARATE sign adds a character
+    /// position to the item's image width, which feeds the class-max width); then resolve REDEFINES/RENAMES targets,
+    /// group overlaid items into shared-storage classes and assign each a tier (ISO §13.18.44/§13.18.45;
+    /// COBOLNET_DESIGN §4). This now covers the FILE SECTION records too (their multi-01 area sharing is a synthesized
+    /// REDEFINES). Finally resolve each file's FILE STATUS data item.</para></summary>
     internal void BindResolve(Core.ProgramUnitContext program)
     {
-        // Post-build (the forest is complete): fix up USAGE INDEX entries (children weren't known at entry bind);
-        // apply group-level SIGN clauses (must precede the REDEFINES classification — a SEPARATE sign adds a
-        // character position to the item's image width, which feeds the class-max width); then resolve
-        // REDEFINES/RENAMES targets, group overlaid items into shared-storage classes and assign each a tier
-        // (ISO §13.18.44/§13.18.45; COBOLNET_DESIGN §4). This now covers the FILE SECTION records too (their
-        // multi-01 area sharing is a synthesized REDEFINES). Finally resolve each file's FILE STATUS data item.
-        ExpandTypes();   // TYPE IS type-name → clone the TYPEDEF template into the referencing entry (D17), BEFORE the passes below
-        ResolveIndexItems();
-        InheritUsageClauses();
-        InheritSignClauses();
-        ResolveRedefines();
-        ClassifyRedefinesClasses();
-        CheckStrongTypeDeclarations();   // §13.18.57.3 SR3/SR4 — a strongly-typed item shall not be RENAMED/REDEFINED (D17 inc 2)
-        OoRouteMethodRedefinesBackings();   // M2-OO-1h step 3: route method Tier-B backings static/local
-        OdoResolve();   // resolve OCCURS DEPENDING ON data-name-1 + validate §13.18.38 structural rules
-        DynamicResolve();   // synthesize each OCCURS DYNAMIC table's CAPACITY register (ISO §13.18.38 Format 4; D9)
-        ResolveFiles();
-        GateNationalRecords();   // D-N2: the record codec is single-byte — national FD/SD leaves stage loud
-        ResolveReports();   // SOURCE/CONTROL/SUM items + owning files + line widths (ISO §13.18.46/.53/.16/.54)
-        CallBindExternalAndGlobal(program);   // EXTERNAL 01s → run-unit image backings; GLOBAL 01s collected (ISO §13.18.22 / §13.18.27)
-        PtrBindBasedAndAddressables(program); // BASED templates + ADDRESS-OF-taken items → cell backings (ISO §13.18.5 / §8.4.3.11; Phase-4b inc 2)
+        var pipeline = BindPipeline.Build(program);
+        if (!_dagValidated) { BindPipeline.ValidateDag(pipeline); _dagValidated = true; }
+        foreach (var pass in pipeline)
+            if (pass.Produces <= BindPipeline.LastResolvePhase)
+                pass.Run(this);
+    }
 
-        // Every FILE record area is filled WITHOUT conversion by READ/RETURN (ISO §9.1.2 — the record area is one
-        // character image), so its numeric-DISPLAY leaves store their images exactly like a whole-referenced
-        // group's — even when the PROCEDURE DIVISION never names the record as a whole (ST103A reads then tests
-        // only a child). MarkStoreAsImage consumes this set after binding.
+    /// <summary>One-time guard so the pipeline DAG assert (<see cref="BindPipeline.ValidateDag"/>) runs on the first
+    /// <c>BindResolve</c> of the process only — the pass-list shape is compile-time-fixed, so validating once suffices
+    /// ("startup assert"; a re-run would be a harmless no-op). A benign race merely re-validates.</summary>
+    private static bool _dagValidated;
+
+    /// <summary>The LAST resolve pass (<see cref="BindPipeline"/>): every FILE record area is filled WITHOUT conversion
+    /// by READ/RETURN (ISO §9.1.2 — the record area is one character image), so its numeric-DISPLAY leaves store their
+    /// images exactly like a whole-referenced group's — even when the PROCEDURE DIVISION never names the record as a
+    /// whole (ST103A reads then tests only a child). <c>MarkStoreAsImage</c> consumes <see cref="WholeGroupReferenced"/>
+    /// after binding.</summary>
+    internal void MarkFileRecordImageLeaves()
+    {
         foreach (var f in Files)
             foreach (var rec in f.Records)
                 if (rec.IsGroup)
@@ -619,7 +625,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     /// <summary>Resolve each file's FILE STATUS data-name to its item (post-build, once the forest is indexed).</summary>
-    private void ResolveFiles()
+    internal void ResolveFiles()
     {
         foreach (var file in Files)
         {
@@ -745,7 +751,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// gets the referenced type declaration's subtree cloned in. Runs at the top of <see cref="BindResolve"/> — AFTER
     /// all <see cref="BindEntries"/> (so forward references resolve; every TYPEDEF is in <see cref="TypeDecls"/>) and
     /// BEFORE the resolution passes (so the clone is a normal part of the forest they walk).</summary>
-    private void ExpandTypes()
+    internal void ExpandTypes()
     {
         _typedIndexNames.Clear();   // per-program: the ≥2×-INDEXED-type collision guard (D17 inc 4)
         foreach (var item in AllItems().Where(i => i.TypeRefName is not null).ToList())
@@ -903,7 +909,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// checked at clone time in <see cref="ExpandType"/>.) An INTERNAL redefine — a REDEFINES that is part of the same
     /// strong subtree, cloned in from the type template — is legitimate and NOT flagged (its subject and target share
     /// a strong root); only an EXTERNAL redefinition of a strong item is prohibited.</summary>
-    private void CheckStrongTypeDeclarations()
+    internal void CheckStrongTypeDeclarations()
     {
         foreach (var item in AllItems())
             if (item.RedefinesTarget is { IsStronglyTyped: true } tgt
@@ -1312,7 +1318,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// entry WITH subordinates is a GROUP whose USAGE INDEX merely inherits (GR1 — usage on a group applies to each
     /// elementary item under it): clear the synthesized profile; a PICTURE-less LEAF below it is an index data item
     /// even without its own USAGE clause.</summary>
-    private void ResolveIndexItems()
+    internal void ResolveIndexItems()
     {
         // Every elementary leaf under a group (for the NATIONAL/BIT group-usage conformance check below).
         static IEnumerable<DataItem> Leaves(DataItem g)
@@ -1410,7 +1416,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// with PICTUREd children has no NIST surface (left to the float slice). Runs BEFORE
     /// <see cref="InheritSignClauses"/> — a non-DISPLAY item takes the BinaryMinus sign form regardless of any
     /// inherited SIGN clause (§13.18.52 applies only to usage-display items).</summary>
-    private void InheritUsageClauses()
+    internal void InheritUsageClauses()
     {
         static void Walk(DataItem item, Usage? inherited)
         {
@@ -1433,7 +1439,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// precedence, and an item's OWN clause (already consumed by <see cref="PicInfo.Analyze"/> at entry bind) wins
     /// outright. Runs BEFORE the REDEFINES classification pass because a SEPARATE sign occupies its own character
     /// position (§13.18.52 GR6a) — it widens the item's image, which feeds the class-max width.</summary>
-    private void InheritSignClauses()
+    internal void InheritSignClauses()
     {
         static void Walk(DataItem item, SignSpec? inherited)
         {
@@ -1452,7 +1458,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// FROM/THRU operand to its item. A REDEFINES target is an unqualified prior entry in the same scope (SR1/SR6); a
     /// RENAMES range names items within the owning record (SR3). Target resolution does not chase chains — the
     /// classification pass walks <see cref="DataItem.RedefinesTarget"/> transitively to the anchor (SR11).</summary>
-    private void ResolveRedefines()
+    internal void ResolveRedefines()
     {
         static DataItem RootOf(DataItem d) { while (d.Parent is { } p) d = p; return d; }
         foreach (var item in AllItems())
@@ -1523,7 +1529,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="RedefinesClass"/>, mark the anchor canonical and every other member a view, then assign the class a
     /// tier (D &gt; C &gt; B &gt; A) and its class-max width, and propagate view-suppression to each view's
     /// subordinates (SR9 — no VALUE on a subordinate of a redefiner). (COBOLNET_DESIGN §4.2.)</summary>
-    private void ClassifyRedefinesClasses()
+    internal void ClassifyRedefinesClasses()
     {
         var byAnchor = new Dictionary<DataItem, RedefinesClass>();
         foreach (var item in AllItems())
@@ -1685,7 +1691,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// the documented D-N1 representation — a national leaf in an FD/SD record would silently halve its
     /// positions on disk. Recognized, staged loud (Phase 4a residue: the 2-byte national record layout).
     /// Boolean leaves flow — one '0'/'1' character IS one byte (D-B1).</summary>
-    private void GateNationalRecords()
+    internal void GateNationalRecords()
     {
         foreach (var f in Files)
             foreach (var rec in f.Records)
