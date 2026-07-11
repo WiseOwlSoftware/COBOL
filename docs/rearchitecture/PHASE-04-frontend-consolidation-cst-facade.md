@@ -27,7 +27,16 @@
 > `DESIGN-frontend-grammar.md` (and possibly `DESIGN-binder-bound-tree.md`) before execution — author it then.
 
 ## STATUS
-`IN PROGRESS @ GROUP D + D10 (GROUPS A+B+C DONE — A5 DEVLOG 743, B1 DEVLOG 744, C3 DEVLOG 745, all 2026-07-10: word set single-sourced; shared literal fragments; typed Cst/ façade + 2 anchors migrated; all byte-neutral)` (2026-07-10)
+`OPEN — Groups A–D DONE; D10 is the DEFERRED OPEN TAIL (owner decision 2026-07-10: keep PHASE 04 open until D10 is doable; move other phases forward around it)` (2026-07-10)
+
+> **⛔ PHASE-04 DISPOSITION (owner decision 2026-07-10, DEVLOG 746).** Groups A+B+C+D are DONE (A5 743 / B1 744 / C3 745 /
+> D reconciliation 746 — the byte-neutral consolidation core: word set single-sourced + drift-guarded; shared literal
+> fragments; typed `Cst/` façade + 2 anchors migrated; version-conformance leg reconciled). **D10** (the owner-override
+> SUBSCRIPT-mode removal) is the **OPEN TAIL** — it is DESIGNED (`DESIGN-frontend-grammar.md §9`) but BLOCKED on (a) the
+> frozen legacy compiler sharing `SUB_*`/`SubscriptEntryContext` until G8/Phase-15 and (b) the ISO §8.3.5 space-separator
+> constraint, and needs the §9.4 decision. The owner ruled: **keep PHASE 04 OPEN** (do NOT close it) and let other phases
+> (05+) proceed around it; D10 executes when doable (naturally at/with G8). So exit criteria 1–4 HOLD; exit criterion 5's
+> superset-grammar/predicate part HOLDS (reconciled) and the D10 SUBSCRIPT-mode-removal part stays OPEN.
 <!-- The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`.
      Keep a one-line note per completed commit boundary in the "Execution log" at the bottom. -->
 

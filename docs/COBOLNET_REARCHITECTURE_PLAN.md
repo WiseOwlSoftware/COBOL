@@ -27,9 +27,16 @@
 > `docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md`, design `DESIGN-version-conformance-pipeline.md`).**
 > All 15 steps complete; the two-arm `VersionConformancePass` is the SOLE edition gate (parse-arm on recognition +
 > bound-arm on resolved facts), the binder is edition-agnostic save the ONE documented UDF exception, and all 9 exit
-> criteria hold. **◐ NOW EXECUTING: PHASE 04 — frontend consolidation** (byte-neutral: single-source the
-> context-sensitive word set + share literal fragments + a typed `Cst/` façade; IN PROGRESS @ Group A, the Step-A1
-> word-set extraction/reconciliation done — 77 words; see the PHASE-04 doc STATUS for the resume point).
+> criteria hold. **◐ PHASE 04 — frontend consolidation — OPEN (Groups A–D DONE; D10 the deferred tail).** The
+> byte-neutral consolidation is done (DEVLOG 743–746, all pushed, legacy guard 353 MATCH each): **A** word set
+> single-sourced from `cobol-words.json` + drift-guarded; **B** shared DEFAULT/SUBSCRIPT literal `fragment` bodies;
+> **C** typed `Cst/` façade + `ReferenceResolver`/`DataBinder.BindEntry` migrated off raw `GetText()`; **D** version-
+> conformance leg reconciled (P3's two-arm pass SUPERSEDES the construct-id annotation side-table; exit-crit-5 corrected
+> — the surviving predicates are load-bearing cross-edition disambiguations, not only 2 forward-detects). **D10** (the
+> owner-override SUBSCRIPT-mode removal) is DESIGNED (`DESIGN-frontend-grammar.md §9`) but the **DEFERRED OPEN TAIL** —
+> BLOCKED on the frozen legacy compiler sharing `SUB_*`/`SubscriptEntryContext` until G8/Phase-15 + the ISO §8.3.5
+> space-separator constraint. **Owner decision 2026-07-10 (DEVLOG 746): keep PHASE 04 OPEN until D10 is doable; move
+> OTHER PHASES (05+) FORWARD around it** — so the go-forward active work is PHASE 05; D10 executes at/with G8.
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /
@@ -192,7 +199,7 @@ phase boundary.
 | ✅ | 01 | F | MED | 00 | Mechanical namespace rename + dead-grammar / JSON-XML removal | [PHASE-01](rearchitecture/PHASE-01-mechanical-rename-deadcode.md) |
 | ✅ | 02 | R | MED | 01 | `Cobol.Net.Editions` leaf assembly + first-class diagnostic registry | [PHASE-02](rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md) |
 | ✅ | 03 | I | HIGH | 02 | Version-**conformance pipeline** (superset parse + ONE two-arm gating pass; **residue-first**) + harness-driven VCR audit — DONE 2026-07-10, all 9 exit criteria hold; binder edition-agnostic save the UDF exception | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) · [DESIGN](rearchitecture/DESIGN-version-conformance-pipeline.md) |
-| ◐ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + typed `Cst` façade) — IN PROGRESS @ Group A (recon done: 77-word extraction/reconciliation) | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
+| ◐ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + shared literal fragments + typed `Cst` façade) — **OPEN: Groups A–D DONE (byte-neutral, DEVLOG 743–746); D10 (SUBSCRIPT-mode removal) the DEFERRED TAIL, blocked on G8 legacy entanglement + the ISO §8.3.5 WS constraint — owner: keep open, proceed to P05** | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
 | ☐ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
 | ☐ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
 | ☐ | 07 | R | HIGH | 06 | Exhaustive visitor dispatch + binder/emitter god-class decomposition | [PHASE-07](rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md) |

@@ -83,10 +83,13 @@
 > INV-1-strong 349/349 · FULL legacy guard NIST 353 MATCH. Carried-forward (NOT a P3 blocker): the flagged latent OO-env
 > double/zero-bind (DEVLOG 738 — a dedicated fix, likely in PHASE 09).
 >
-> ⛔🏗 **NOW EXECUTING: PHASE 04 — FRONTEND CONSOLIDATION (IN PROGRESS @ Group D + D10; Groups A+B+C ✅ DONE — A5 DEVLOG 743,
-> B1 DEVLOG 744, C3 DEVLOG 745, all 2026-07-10).** Read the phase doc `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md` —
-> its STATUS block holds the RESUME POINT. A byte-neutral refactor in 4 groups: **A** ✅ single-source the context-sensitive
-> word set (DONE); **B** ✅ share SUBSCRIPT/DEFAULT literal token bodies via `fragment` rules (DONE); **C** ✅ typed `Cst/` façade over the ANTLR
+> ⛔🏗 **PHASE 04 — FRONTEND CONSOLIDATION: OPEN (Groups A+B+C+D ✅ DONE; D10 = the DEFERRED OPEN TAIL). Owner decision
+> 2026-07-10 (DEVLOG 746): KEEP PHASE 04 OPEN until D10 is doable; move OTHER PHASES (05+) FORWARD AROUND IT.** So the
+> go-forward active work is **PHASE 05** (unified data model — the next phase whose deps are met), NOT more of Phase 04;
+> D10 executes when doable (at/with G8, per the entanglement below). Read the phase doc
+> `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md` STATUS block. A byte-neutral refactor in 4 groups:
+> **A** ✅ single-source the context-sensitive word set; **B** ✅ share SUBSCRIPT/DEFAULT literal token bodies via
+> `fragment` rules; **C** ✅ typed `Cst/` façade over the ANTLR
 > contexts + migrate the 2 anchor consumers (`ReferenceResolver`, `DataBinder.BindEntry`); **D** version-conformance leg
 > (⚠ LIKELY SUPERSEDED by the P3 two-arm pass — re-assess when reached). Plus the **D10 owner override**: FULLY REMOVE the
 > SUBSCRIPT lexer mode + the binder subscript re-parse (a sequenced sub-track with its own before/after characterization
@@ -105,20 +108,19 @@
 > 227 · characterization 32 byte-exact · legacy guard 353 MATCH / ALL GREEN; subscript-literal + single-quote probes green;
 > `SIGNED_*`/`HEXLIT`/`FLOATLIT` untouched. **✅ GROUP C DONE (C3, DEVLOG 745):** the typed `Cst/` façade
 > (`SourceSpan`/`DataReferenceCst`/`DataDescriptionCst`+`DataDescriptionClauseCst`/`CstExtensions`, FRONTEND-side) +
-> `ReferenceResolver` (3 GetText→0) + `DataBinder.BindEntry` (8 clusters) migrated; presence-only predicates +
-> `SubscriptOrRefMod` stay raw (D10/P7 seam); `UsageKeyword`/`ExtractValue` kept shared (singular-pattern). Byte-neutral:
-> characterization 32 byte-exact + legacy guard 353 MATCH. **⛔ RESUME AT: GROUP D + D10.** GROUP D = a RECONCILIATION
-> (the P3 as-built two-arm `VersionConformancePass` reads the raw parse tree, so the design's construct-id annotation
-> side-table is SUPERSEDED; the superset grammar is complete). ⚠ FINDING: the "only two forward-detects survive" claim
-> UNDERCOUNTS — the grammar also has load-bearing `{is2023()}?` inline-method-invocation (ambiguous with a subscript),
-> `{is2002()}?` procedure-parameter, and the VALUE/PROPERTY negative-lookahead; all are genuine cross-edition
-> DISAMBIGUATIONS (not rejection gates), so correct exit-criterion 5 to match. **D10 (owner override) = FULLY REMOVE the
-> SUBSCRIPT lexer mode + binder re-parse → grammar-level `x(i)` — a MAJOR multi-stage effort (D10.0 dead-rule delete →
-> design note → ref-mod converge → subscript grammar → the ~250-line Intrinsics recursive-descent parser rewrite →
-> mode delete) that needs an OWNER DESIGN DECISION FIRST: removing the mode collides with ISO §8.3.5 space-separated
-> subscript/arg lists (`X(I J)`, `MAX(A B)`) + sign-adjacency (`+1` vs `+ 1`) because DEFAULT mode skips WS — a scoped
-> WS-significance mechanism may be unavoidable, so "full removal" may reduce to "replace the flat SUB_* stream + C#
-> re-parse with interpreted grammar rules." Design: `DESIGN-frontend-grammar.md`.** Groups A–C behavior-neutral.
+> `ReferenceResolver` (3 GetText→0) + `DataBinder.BindEntry` (8 clusters) migrated; `UsageKeyword`/`ExtractValue` kept
+> shared (singular-pattern; characterization 32 byte-exact + legacy guard 353 MATCH); **D** ✅ version-conformance leg
+> RECONCILED (P3's as-built two-arm `VersionConformancePass` reads the raw parse tree, so the design's construct-id
+> annotation side-table is SUPERSEDED; superset grammar complete; exit-criterion 5 corrected — surviving predicates are
+> load-bearing cross-edition DISAMBIGUATIONS: 2 forward-detects + `{is2023()}?` inline-method-invocation + `{is2002()}?`
+> procedure-param + VALUE/PROPERTY neg-lookahead, none a rejection gate). **⛔ D10 = the DEFERRED OPEN TAIL** (owner:
+> keep Phase 04 open until doable). D10 = FULLY REMOVE the SUBSCRIPT lexer mode + the ~250-line binder re-parse; DESIGNED
+> in `DESIGN-frontend-grammar.md §9` but BLOCKED — (a) the FROZEN legacy compiler shares `SUB_*`/`SubscriptEntryContext`
+> until G8/Phase-15 (deleting the dead structured rules breaks the legacy build, CS0426 — so it can't leave the shared
+> grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
+> sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
+> flat SUB_* stream + the C# re-parsers with interpreted grammar rules." **RESUME AT: PHASE 05** (Phase 04's D10 is the
+> parked tail; execute it at/with G8). Groups A–D behavior-neutral. Design: `DESIGN-frontend-grammar.md §9`.
 >
 > — (Phase-03 background) P3 made edition conformance a single coherent pipeline:
 > **superset parse** (all constructs parse at every `--std`; each version-gated grammar rule carries a committed-match
