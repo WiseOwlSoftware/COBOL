@@ -94,19 +94,19 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundRewrite n) { EmitRewrite(n); return false; }
 
     // ── Keyed (relative/indexed) file I/O ────────────────────────────────────────────────────────────────────
-    public bool Visit(BoundKeyedRead n) { KeyedEmitRead(n); return false; }
-    public bool Visit(BoundKeyedWrite n) { KeyedEmitWrite(n); return false; }
-    public bool Visit(BoundKeyedRewrite n) { KeyedEmitRewrite(n); return false; }
-    public bool Visit(BoundKeyedDelete n) { KeyedEmitDelete(n); return false; }
-    public bool Visit(BoundKeyedStart n) { KeyedEmitStart(n); return false; }
-    public bool Visit(BoundKeyedDeleteFile n) { KeyedEmitDeleteFile(n); return false; }
+    public bool Visit(BoundKeyedRead n) { _keyedIo.EmitRead(n); return false; }
+    public bool Visit(BoundKeyedWrite n) { _keyedIo.EmitWrite(n); return false; }
+    public bool Visit(BoundKeyedRewrite n) { _keyedIo.EmitRewrite(n); return false; }
+    public bool Visit(BoundKeyedDelete n) { _keyedIo.EmitDelete(n); return false; }
+    public bool Visit(BoundKeyedStart n) { _keyedIo.EmitStart(n); return false; }
+    public bool Visit(BoundKeyedDeleteFile n) { _keyedIo.EmitDeleteFile(n); return false; }
 
     // ── SORT / MERGE / RELEASE / RETURN ──────────────────────────────────────────────────────────────────────
-    public bool Visit(BoundSort n) { EmitSort(n); return false; }
-    public bool Visit(BoundTableSort n) { EmitTableSort(n); return false; }
-    public bool Visit(BoundMerge n) { EmitMerge(n); return false; }
-    public bool Visit(BoundRelease n) { EmitRelease(n); return false; }
-    public bool Visit(BoundReturn n) { EmitReturn(n); return false; }
+    public bool Visit(BoundSort n) { _sort.EmitSort(n); return false; }
+    public bool Visit(BoundTableSort n) { _sort.EmitTableSort(n); return false; }
+    public bool Visit(BoundMerge n) { _sort.EmitMerge(n); return false; }
+    public bool Visit(BoundRelease n) { _sort.EmitRelease(n); return false; }
+    public bool Visit(BoundReturn n) { _sort.EmitReturn(n); return false; }
 
     // ── STRING / UNSTRING / ACCEPT / INITIALIZE ──────────────────────────────────────────────────────────────
     public bool Visit(BoundStringStmt n) { _strings.EmitString(n); return false; }

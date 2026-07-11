@@ -29,9 +29,11 @@ public sealed class RuntimeApiGuardTests
     {
         ["CSharpEmitter.cs"] = 98,
         ["Emit/IntrinsicRenderer.cs"] = 52,
-        ["CSharpEmitter.Sort.cs"] = 35,
         ["CSharpEmitter.Call.cs"] = 27,
-        ["CSharpEmitter.KeyedIo.cs"] = 25,
+        // CSharpEmitter.{Sort,KeyedIo}.cs (35+25) became Verbs/{Sort,KeyedIo}Emitter.cs at Step 9e —
+        // fragments RuntimeApi-routed; the residues are TYPED CobolRounding arguments (see the 9d note).
+        ["Verbs/KeyedIoEmitter.cs"] = 2,
+        ["Verbs/SortEmitter.cs"] = 1,
         ["Emit/NumericRenderer.cs"] = 25,
         ["Emit/FieldEmitter.cs"] = 24,
         ["Emit/ConditionRenderer.cs"] = 21,

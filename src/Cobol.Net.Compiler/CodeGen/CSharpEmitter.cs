@@ -50,6 +50,8 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private InspectEmitter _inspect = null!;
     private StringEmitter _strings = null!;
     private PtrEmitter _ptr = null!;
+    private KeyedIoEmitter _keyedIo = null!;
+    private SortEmitter _sort = null!;
 
     /// <summary>(Re)construct the per-unit collaborator emitters over the just-created context/renderers —
     /// called immediately after the <c>_ctx</c>/<c>_num</c>/<c>_cond</c> per-unit re-creation (program classes
@@ -64,6 +66,8 @@ public sealed partial class CSharpEmitter : IOoBindHost
         _inspect = new InspectEmitter(_ctx, _num, this);
         _strings = new StringEmitter(_ctx, _num, this);
         _ptr = new PtrEmitter(_ctx, _num, _ecState, this);
+        _keyedIo = new KeyedIoEmitter(_ctx, _num, _refs, this);
+        _sort = new SortEmitter(_ctx, _dispatchState, this);
     }
 
     /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
@@ -272,7 +276,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// ISO §7.3.25) calls the EC-aware <c>__IoCheckEc</c> variant instead — same F1 behavior plus the §9.1.13.1
     /// status→EC raise, F3 selection and fatal default, returning a RESUME transfer pc when a declarative's
     /// RESUME redirected control (§14.9.33). A no-op for a declarative-free, checking-off program.</summary>
-    private void EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false)
+    internal void EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false)
     {
         var w = _ctx.Writer;
         if (EcIoMaskFor(file) is not 0 and var mask)
@@ -1333,7 +1337,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         foreach (var file in _ctx.Data.Files)
         {
             if (file.IsSortMerge) continue;   // an SD is the in-memory sort store (ISO §13.4.6) — never a host file
-            if (!file.IsSequential) { KeyedEmitRegistration(w, file); EmitSharingRegistration(w, file); continue; }   // relative/indexed connectors
+            if (!file.IsSequential) { _keyedIo.EmitRegistration(w, file); EmitSharingRegistration(w, file); continue; }   // relative/indexed connectors
             if (file.Records.Count == 0)
             {
                 // A REPORT FILE legally has no record description (ISO §9.1.22 / §13.18.46) — it MUST still
@@ -1461,7 +1465,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// <summary>Render a bound RETRY phrase (ISO §14.7.9) to the runtime <c>(FileRetryKind, int amount)</c> pair —
     /// the amount is the n-TIMES count (rendered as a C# int); SECONDS/FOREVER pass 0 (their amount is a
     /// single-run-unit no-op, deadlock-bailing to status 52).</summary>
-    private (string Kind, string Amount) RenderRetry(RetrySpec? retry) => retry switch
+    internal (string Kind, string Amount) RenderRetry(RetrySpec? retry) => retry switch
     {
         null => ("FileRetryKind.None", "0"),
         { Kind: RetryKind.Forever } => ("FileRetryKind.Forever", "0"),
@@ -1473,7 +1477,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         amount is null ? "0" : $"(int)({NumericRenderer.Align(_num.Render(amount, ReceiverContext.None), 0)})";
 
     /// <summary>Map a bound record-lock phrase to the runtime <c>FileRecordLock</c> enum member (Phase 4d).</summary>
-    private static string RuntimeRecordLock(BoundRecordLock l) => l switch
+    internal static string RuntimeRecordLock(BoundRecordLock l) => l switch
     {
         BoundRecordLock.WithLock => "FileRecordLock.WithLock",
         BoundRecordLock.WithNoLock => "FileRecordLock.WithNoLock",
@@ -1548,14 +1552,14 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// §13.18.43 GR13a — the DEPENDING item's content names the record length), or null when the statement
     /// writes the record's own size (GR13b/c — on a varying file the runtime takes the image's length; on a
     /// fixed file it pads to the record width).</summary>
-    private string? VaryingLengthArg(FileModel file) =>
+    internal string? VaryingLengthArg(FileModel file) =>
         file is { Varying.DependingName: not null, VaryingDependingItem: { } d } && _refs.ResolveItem(d) is { } dep
             ? $"(int)CobolTable.Occ({dep.Read()})" : null;
 
     /// <summary>After a SUCCESSFUL read of a RECORD VARYING … DEPENDING file, store the just-read record's length
     /// into the DEPENDING item (ISO §13.18.43 GR15; GR12 — an unsuccessful READ leaves it unchanged, so the call
     /// site sits inside the success branch).</summary>
-    private void EmitReadLengthStore(FileModel file)
+    internal void EmitReadLengthStore(FileModel file)
     {
         if (file is not { Varying.DependingName: not null, VaryingDependingItem: { } d }
             || _refs.ResolveItem(d) is not { } dep) return;
@@ -1619,7 +1623,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
 
     /// <summary>Store a read record image into the FD record area: a character-image group distributes via FromImage;
     /// an elementary / view record takes the image padded to its width.</summary>
-    private void EmitImageInto(Place record, string imageExpr)
+    internal void EmitImageInto(Place record, string imageExpr)
     {
         var w = _ctx.Writer;
         // A character-image group record distributes the read image into its typed leaves via the generated FromImage.
@@ -1647,7 +1651,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
 
     /// <summary>After an I/O verb, store the file's two-character I-O status into its FILE STATUS item (ISO §9.1.13),
     /// when the SELECT declared one.</summary>
-    private void EmitStoreFileStatus(FileModel file)
+    internal void EmitStoreFileStatus(FileModel file)
     {
         // ISO §12.4.5.8 / §9.1.13.1 — the two-character status is stored into the FILE STATUS item as part of
         // the I/O statement's execution, BEFORE any exception processing.

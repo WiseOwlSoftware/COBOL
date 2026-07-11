@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime;
+using CobolNet.Runtime.IO;
 
 namespace CobolNet.CodeGen;
 
@@ -159,4 +160,148 @@ internal static class RuntimeApi
     /// <summary>FREE a pointer's cell — <c>CobolPtr.Free</c> (three-way per GR1; not-alloc out-flag).</summary>
     public static string PtrFree(string ptr, string notAllocVar) =>
         $"{nameof(CobolPtr)}.{nameof(CobolPtr.Free)}({ptr}, out {notAllocVar})";
+
+    // ── More strings / tables ──
+
+    /// <summary>A reference-modification slice — <c>CobolString.RefMod</c> (1-based start, length).</summary>
+    public static string StrRefMod(string s, string start, string len) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.RefMod)}({s}, {start}, {len})";
+
+    /// <summary>The three-way alphanumeric comparison — <c>CobolString.Compare</c>. <paramref name="weightsArg"/>
+    /// is the trailing collated-weights argument (", __COLLATE" / an inline table), possibly empty.</summary>
+    public static string StrCompare(string a, string b, string weightsArg) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.Compare)}({a}, {b}{weightsArg})";
+
+    /// <summary>An OCCURS-DEPENDING current count read — <c>CobolTable.Occ</c>.</summary>
+    public static string TableOcc(string expr) => $"{nameof(CobolTable)}.{nameof(CobolTable.Occ)}({expr})";
+
+    // ── Keyed file I/O (CobolFile; ISO §14.9.10/.30/.35/.41/.51) ──
+
+    /// <summary>Register a RELATIVE connector — <c>CobolFile.RegisterRelative</c>. <paramref name="varyArgs"/> is
+    /// the optional trailing ", min, max" record-bounds fragment (§13.18.43 GR9/GR10), possibly empty.</summary>
+    public static string FileRegisterRelative(string name, string assign, int width, string optional, int access, int keyDigits, string varyArgs) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterRelative)}({name}, {assign}, {width}, {optional}, {access}, {keyDigits}{varyArgs})";
+
+    /// <summary>Register an INDEXED connector — <c>CobolFile.RegisterIndexed</c> (prime-key window per §12.4.5.12).</summary>
+    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs})";
+
+    /// <summary>Register one ALTERNATE RECORD KEY window (§12.4.5.6) — <c>CobolFile.AddAlternateKey</c>.</summary>
+    public static string FileAddAlternateKey(string name, string offset, int width, string dups) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.AddAlternateKey)}({name}, {offset}, {width}, {dups})";
+
+    /// <summary>Position a relative connector to the RELATIVE KEY item's RRN — <c>CobolFile.SetRelativeKey</c>.</summary>
+    public static string FileSetRelativeKey(string name, string rrn) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.SetRelativeKey)}({name}, {rrn})";
+
+    /// <summary>Sequential-forward keyed READ — <c>CobolFile.ReadKeyedNext</c> (status result, out image).</summary>
+    public static string FileReadKeyedNext(string name, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyedNext)}({name}, out var {imgVar})";
+
+    /// <summary>READ PREVIOUS — <c>CobolFile.ReadKeyedPrevious</c>.</summary>
+    public static string FileReadKeyedPrevious(string name, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyedPrevious)}({name}, out var {imgVar})";
+
+    /// <summary>Random keyed READ by key-of-reference — <c>CobolFile.ReadKeyed</c>.</summary>
+    public static string FileReadKeyed(string name, int keyIndex, string keyImage, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyed)}({name}, {keyIndex}, {keyImage}, out var {imgVar})";
+
+    /// <summary>The §9.1.16 record-lock governance adjustment of a just-read status — <c>CobolFile.ReadLockGovern</c>.</summary>
+    public static string FileReadLockGovern(string name, string status, string lockRef, string retryKind, string retryAmount) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadLockGovern)}({name}, {status}, {lockRef}, {retryKind}, {retryAmount})";
+
+    /// <summary>The connector's current relative slot number — <c>CobolFile.RelativeSlot</c>.</summary>
+    public static string FileRelativeSlot(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RelativeSlot)}({name})";
+
+    /// <summary>Keyed WRITE — <c>CobolFile.WriteKeyed</c>; <paramref name="lenArg"/> = the optional §13.18.43
+    /// GR13a varying-length argument (null when fixed).</summary>
+    public static string FileWriteKeyed(string name, string image, string? lenArg = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteKeyed)}({name}, {image}{(lenArg is null ? "" : $", {lenArg}")})";
+
+    /// <summary>Keyed REWRITE — <c>CobolFile.RewriteKeyed</c>.</summary>
+    public static string FileRewriteKeyed(string name, string image, string? lenArg = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RewriteKeyed)}({name}, {image}{(lenArg is null ? "" : $", {lenArg}")})";
+
+    /// <summary>DELETE RECORD — <c>CobolFile.DeleteRecord</c> (key sliced from the record-area image, GR3/GR8).</summary>
+    public static string FileDeleteRecord(string name, string areaImage) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteRecord)}({name}, {areaImage})";
+
+    /// <summary>DELETE FILE (Format 2, every organization) — <c>CobolFile.DeleteFile</c>.</summary>
+    public static string FileDeleteFile(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteFile)}({name})";
+
+    /// <summary>START FIRST/LAST — <c>CobolFile.StartFirstLast</c>.</summary>
+    public static string FileStartFirstLast(string name, string last) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.StartFirstLast)}({name}, {last})";
+
+    /// <summary>START on a relative file (§14.9.41 GR9/GR10 — numeric RRN comparison) — <c>CobolFile.StartRelative</c>.</summary>
+    public static string FileStartRelative(string name, string opLiteral, string rrn) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.StartRelative)}({name}, {opLiteral}, {rrn})";
+
+    /// <summary>START on an indexed file (§14.9.41 GR17 — leftmost-LENGTH key comparison) — <c>CobolFile.StartIndexed</c>.</summary>
+    public static string FileStartIndexed(string name, int keyIndex, string opLiteral, string operandImage, string len) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.StartIndexed)}({name}, {keyIndex}, {opLiteral}, {operandImage}, {len})";
+
+    /// <summary>Implicit OPEN INPUT (SORT GR12a / MERGE GR7a) — <c>CobolFile.OpenInput</c>.</summary>
+    public static string FileOpenInput(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenInput)}({name})";
+
+    /// <summary>Implicit OPEN OUTPUT (SORT GR15a) — <c>CobolFile.OpenOutput</c>.</summary>
+    public static string FileOpenOutput(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenOutput)}({name})";
+
+    /// <summary>CLOSE a connector — <c>CobolFile.Close</c>.</summary>
+    public static string FileClose(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Close)}({name})";
+
+    /// <summary>Sequential READ into an out-image (the implicit USING loop shape) — <c>CobolFile.Read</c>.</summary>
+    public static string FileRead(string name, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Read)}({name}, out var {imgVar})";
+
+    /// <summary>Sequential WRITE without optional phrases (the implicit GIVING loop shape) — <c>CobolFile.Write</c>.</summary>
+    public static string FileWrite(string name, string image) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Write)}({name}, {image})";
+
+    /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
+    public static string FileLastReadLength(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.LastReadLength)}({name})";
+
+    // ── SORT / MERGE (CobolSort; ISO §14.9.40 / §14.9.24) ──
+
+    /// <summary>Initialize the per-SD image store — <c>CobolSort.Init</c>.</summary>
+    public static string SortInit(string sd) => $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd})";
+
+    /// <summary>RELEASE one record image — <c>CobolSort.Release</c>.</summary>
+    public static string SortRelease(string sd, string image) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image})";
+
+    /// <summary>The sequence phase — <c>CobolSort.Sort</c> (stable; GR8).</summary>
+    public static string SortSort(string sd, string keys, string weights, string dupsInOrder) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Sort)}({sd}, {keys}, {weights}, {dupsInOrder})";
+
+    /// <summary>The k-way merge — <c>CobolSort.Merge</c> (GR4 — file order breaks ties).</summary>
+    public static string SortMerge(string sd, string keys, string weights) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Merge)}({sd}, {keys}, {weights})";
+
+    /// <summary>Open a new pre-sorted USING stream — <c>CobolSort.NextInput</c>.</summary>
+    public static string SortNextInput(string sd) => $"{nameof(CobolSort)}.{nameof(CobolSort.NextInput)}({sd})";
+
+    /// <summary>Close the SD store — <c>CobolSort.Close</c>.</summary>
+    public static string SortClose(string sd) => $"{nameof(CobolSort)}.{nameof(CobolSort.Close)}({sd})";
+
+    /// <summary>Rewind the return cursor (each GIVING file gets the FULL result, GR15) — <c>CobolSort.Rewind</c>.</summary>
+    public static string SortRewind(string sd) => $"{nameof(CobolSort)}.{nameof(CobolSort.Rewind)}({sd})";
+
+    /// <summary>Pull the next record in key order — <c>CobolSort.Return</c> (bool, out image).</summary>
+    public static string SortReturn(string sd, string imgVar) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Return)}({sd}, out var {imgVar})";
+
+    /// <summary>The just-returned record's length (§13.18.43 GR15) — <c>CobolSort.LastReturnedLength</c>.</summary>
+    public static string SortLastReturnedLength(string sd) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.LastReturnedLength)}({sd})";
+
+    /// <summary>The <c>CobolSort.Key[]</c> array literal over per-key "new(…)" element fragments.</summary>
+    public static string SortKeyArray(IEnumerable<string> keyElements) =>
+        $"new {nameof(CobolSort)}.{nameof(CobolSort.Key)}[] {{ {string.Join(", ", keyElements)} }}";
 }
