@@ -115,9 +115,9 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundInitialize n) { _initialize.Emit(n); return false; }
 
     // ── Report Writer (ISO §14.9) ────────────────────────────────────────────────────────────────────────────
-    public bool Visit(BoundInitiate n) { RwEmitInitiate(n); return false; }     // §14.9.21
-    public bool Visit(BoundGenerate n) { RwEmitGenerate(n); return false; }     // §14.9.16
-    public bool Visit(BoundTerminate n) { RwEmitTerminate(n); return false; }   // §14.9.46
+    public bool Visit(BoundInitiate n) { _reportWriter.EmitInitiate(n); return false; }     // §14.9.21
+    public bool Visit(BoundGenerate n) { _reportWriter.EmitGenerate(n); return false; }     // §14.9.16
+    public bool Visit(BoundTerminate n) { _reportWriter.EmitTerminate(n); return false; }   // §14.9.46
 
     // ── Interprogram: CALL / CANCEL / EXIT PROGRAM / GOBACK ──────────────────────────────────────────────────
     public bool Visit(BoundCallProgram n) => CallEmitCall(n);

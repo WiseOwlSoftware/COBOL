@@ -304,4 +304,19 @@ internal static class RuntimeApi
     /// <summary>The <c>CobolSort.Key[]</c> array literal over per-key "new(…)" element fragments.</summary>
     public static string SortKeyArray(IEnumerable<string> keyElements) =>
         $"new {nameof(CobolSort)}.{nameof(CobolSort.Key)}[] {{ {string.Join(", ", keyElements)} }}";
+
+    // ── Report Writer (CobolReport; ISO §13.14–§13.18) ──
+
+    /// <summary>A space-filled report-line buffer — <c>CobolReport.NewLine</c>.</summary>
+    public static string ReportNewLine(int width) =>
+        $"{nameof(CobolReport)}.{nameof(CobolReport.NewLine)}({width})";
+
+    /// <summary>Place a printable item's image at its COLUMN (§13.18.14) — <c>CobolReport.Place</c>.</summary>
+    public static string ReportPlace(string lineVar, int column, string image) =>
+        $"{nameof(CobolReport)}.{nameof(CobolReport.Place)}({lineVar}, {column}, {image})";
+
+    /// <summary>Decode a DISPLAY image back into a native numeric leaf, preserving unset positions from the
+    /// current value — <c>CobolNum.StoreDisplay</c>.</summary>
+    public static string NumStoreDisplay(string image, string profile, string current) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.StoreDisplay)}({image}, {profile}, {current})";
 }

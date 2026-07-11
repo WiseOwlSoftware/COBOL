@@ -52,6 +52,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private PtrEmitter _ptr = null!;
     private KeyedIoEmitter _keyedIo = null!;
     private SortEmitter _sort = null!;
+    private ReportWriterEmitter _reportWriter = null!;
 
     /// <summary>(Re)construct the per-unit collaborator emitters over the just-created context/renderers —
     /// called immediately after the <c>_ctx</c>/<c>_num</c>/<c>_cond</c> per-unit re-creation (program classes
@@ -68,6 +69,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         _ptr = new PtrEmitter(_ctx, _num, _ecState, this);
         _keyedIo = new KeyedIoEmitter(_ctx, _num, _refs, this);
         _sort = new SortEmitter(_ctx, _dispatchState, this);
+        _reportWriter = new ReportWriterEmitter(_ctx, _num, _refs, this);
     }
 
     /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
@@ -127,7 +129,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
         w.Line($"private const int __N = {n};   // paragraph count");
         _alterSwitch.EmitFields(bound, w);   // the per-altered-paragraph mutable GO TO target fields (control-flow design D4)
-        RwEmitReportMembers(w);      // per-report engine fields + line compose methods (CSharpEmitter.ReportWriter.cs)
+        _reportWriter.EmitReportMembers(w);      // per-report engine fields + line compose methods (Verbs/ReportWriterEmitter.cs)
         w.Line();
         using (w.Block("public void __Activate()"))
         {
@@ -142,7 +144,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
                     EmitFileRegistration(w);
                     // Report engines construct WITH the connectors (hazard: the report FD must be registered
                     // before the engine's first write — COBOLNET_REPORT_WRITER_DESIGN §4).
-                    RwEmitReportConstruction(bound, w);
+                    _reportWriter.EmitReportConstruction(bound, w);
                 }
             }
             // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
@@ -605,7 +607,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     };
 
     /// <summary>The C# expression a MOVE source converts to when stored into <paramref name="target"/>.</summary>
-    private string ConvertSource(BoundOperand source, DataItem target)
+    internal string ConvertSource(BoundOperand source, DataItem target)
     {
         var pic = target.Pic!;
         // A figurative constant fills the receiver to its width (ISO §8.3.1.2 / §14.9.24) — EXCEPT figurative

@@ -45,8 +45,8 @@ public sealed class RuntimeApiGuardTests
         ["Verbs/InspectEmitter.cs"] = 1,
         ["Verbs/PtrEmitter.cs"] = 1,
         ["Emit/OperandText.cs"] = 9,
-        // Verbs/AcceptDisplayEmitter.cs reached 0 at Step 9c (RuntimeApi-routed; entry deleted per the plan).
-        ["CSharpEmitter.ReportWriter.cs"] = 5,
+        // Verbs/AcceptDisplayEmitter.cs reached 0 at Step 9c; CSharpEmitter.ReportWriter.cs became
+        // Verbs/ReportWriterEmitter.cs at 0 (Step 9f) — entries deleted per the plan.
         ["CSharpEmitter.Exceptions.cs"] = 2,
         // CSharpEmitter.Corresponding.cs became Verbs/CorrespondingEmitter.cs at 0 (Step 9c).
         ["Emit/EmitCore.cs"] = 1,

@@ -12,22 +12,23 @@ using static CobolNet.CodeGen.Emit.EmitText;
 
 /// <summary>
 /// The Report Writer half of the Roslyn backend (ISO/IEC 1989:2023 §13.14–§13.18 / §14.9.16/.21/.46;
-/// COBOLNET_REPORT_WRITER_DESIGN §4): per report an engine instance field (<c>__RPT_n</c>, a
-/// <c>CobolReport</c>), constructed in <c>__Activate</c> alongside the file registration; per report LINE one
-/// generated COMPOSE method invoked by the engine at presentation time. Every printable item renders through the
-/// orchestrator's ONE MOVE conversion (<see cref="CSharpEmitter.ConvertSource"/>) — which IS §13.18.53.4 GR1's
-/// "SOURCE specifies the sending operand of an implicit MOVE statement to the printable item" (PIC-governed
-/// alignment/editing; the legacy's byte-copy content bugs cannot recur by construction). No byte plans, no
-/// registration kinds — the typed-native singular pattern.
+/// COBOLNET_REPORT_WRITER_DESIGN §4; P7 Step 9f — a real collaborator over the per-unit
+/// <see cref="EmitContext"/>): per report an engine instance field (<c>__RPT_n</c>, a <c>CobolReport</c>),
+/// constructed in <c>__Activate</c> alongside the file registration; per report LINE one generated COMPOSE
+/// method invoked by the engine at presentation time. Every printable item renders through the orchestrator's
+/// ONE MOVE conversion (<c>ConvertSource</c>) — which IS §13.18.53.4 GR1's "SOURCE specifies the sending operand
+/// of an implicit MOVE statement to the printable item" (PIC-governed alignment/editing; the legacy's byte-copy
+/// content bugs cannot recur by construction). No byte plans, no registration kinds — the typed-native singular
+/// pattern.
 /// </summary>
-public sealed partial class CSharpEmitter
+internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs, CSharpEmitter host)
 {
     /// <summary>Emit the per-report class members: the engine field, the NumProfile statics of the numeric
     /// printable items (synthetic items live outside the storage forest, so <c>FieldEmitter.EmitProfiles</c>
     /// never sees them), and the per-line compose methods.</summary>
-    private void RwEmitReportMembers(CodeWriter w)
+    public void EmitReportMembers(CodeWriter w)
     {
-        var reports = _ctx.Data.Reports;
+        var reports = ctx.Data.Reports;
         if (reports.Count == 0) return;
         w.Line();
         foreach (var r in reports)
@@ -40,7 +41,7 @@ public sealed partial class CSharpEmitter
                     foreach (var f in line.Fields)
                         if (f.PrintItem.Pic is { Category: PicCategory.Numeric, IsFloat: false } pic)
                             w.Line($"private static readonly NumProfile {f.PrintItem.ProfileName} = {pic.ProfileInitializer};");
-                    RwEmitCompose(r, group, gi, line, li, w);
+                    EmitCompose(r, group, gi, line, li, w);
                 }
     }
 
@@ -48,13 +49,13 @@ public sealed partial class CSharpEmitter
     /// printable item placed at its COLUMN (§13.18.14) with the value the §13.18.53.4 GR1/GR3 implicit MOVE
     /// produces — evaluated when the ENGINE invokes the method, i.e. at presentation time, after LINE-COUNTER
     /// was set to this line's number (§13.18.35.4 GR6).</summary>
-    private void RwEmitCompose(ReportModel r, ReportGroupModel group, int gi, ReportLineModel line, int li, CodeWriter w)
+    private void EmitCompose(ReportModel r, ReportGroupModel group, int gi, ReportLineModel line, int li, CodeWriter w)
     {
         using (w.Block($"private string __RPT_C_{r.CsIndex}_{gi}_{li}()   // {r.Name} {group.Kind} line {li + 1}"))
         {
-            w.Line($"var __ln = CobolReport.NewLine({r.LineWidth});");
+            w.Line($"var __ln = {RuntimeApi.ReportNewLine(r.LineWidth)};");
             foreach (var f in line.Fields)
-                w.Line($"CobolReport.Place(__ln, {f.Column}, {RwFieldImage(r, f)});");
+                w.Line($"{RuntimeApi.ReportPlace("__ln", f.Column, FieldImage(r, f))};");
             w.Line("return new string(__ln);");
         }
     }
@@ -62,15 +63,15 @@ public sealed partial class CSharpEmitter
     /// <summary>The C# expression of one printable item's image — the result of the implicit MOVE of its source
     /// into the printable item (ISO §13.18.53.4 GR1; a VALUE item per §13.18.63), through the orchestrator's ONE
     /// MOVE conversion path. The synthetic print item is StoreAsImage for numerics, so <c>ConvertSource</c>
-    /// yields the printable CHARACTER image for every category (FormatDisplay / CobolEdit.Format /
-    /// CobolString.Store).</summary>
-    private string RwFieldImage(ReportModel r, ReportFieldModel f)
+    /// yields the printable CHARACTER image for every category (the display format / edit-mask / string-store
+    /// renders).</summary>
+    private string FieldImage(ReportModel r, ReportFieldModel f)
     {
         BoundOperand source;
         switch (f.Source)
         {
             case FieldValueSource v:
-                source = RwValueOperand(v.Raw);
+                source = ValueOperand(v.Raw);
                 break;
             case FieldCounterSource c:
                 // SOURCE LINE-COUNTER / PAGE-COUNTER (§8.4.3.15 SR1) — composed at presentation time, AFTER the
@@ -82,19 +83,19 @@ public sealed partial class CSharpEmitter
                 var sum = r.Sums.First(x => x.Id.Equals(s.CounterId, StringComparison.OrdinalIgnoreCase));
                 source = new BoundComputedOperand(new BoundReportSumRef(r, sum.Id, sum.Scale));
                 break;
-            case FieldDataSource d when d.Item is { } item && _refs.ResolveItem(item) is { } place:
+            case FieldDataSource d when d.Item is { } item && refs.ResolveItem(item) is { } place:
                 source = new BoundFieldOperand(place);
                 break;
             default:
                 return LoudValue("string",
                     $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §13.18.53.3 SR4)");
         }
-        return ConvertSource(source, f.PrintItem);
+        return host.ConvertSource(source, f.PrintItem);
     }
 
     /// <summary>A VALUE clause operand (raw text) as a bound operand: a quoted literal, a figurative word
     /// (ZERO/SPACE/QUOTE/HIGH-VALUE/LOW-VALUE — ISO §8.3.3.6), or a numeric literal.</summary>
-    private static BoundOperand RwValueOperand(string raw)
+    private static BoundOperand ValueOperand(string raw)
     {
         if (CobolLiteral.IsStringLiteral(raw))   // both ISO §8.3.1.2 delimiters (apostrophe VALUE was silently miscompiled)
             return new BoundStringLiteral(CobolLiteral.Decode(raw));
@@ -105,13 +106,13 @@ public sealed partial class CSharpEmitter
     }
 
     /// <summary>Emit the per-instance report-engine construction (called inside <c>__Activate</c>'s
-    /// once-per-instance block, right after <c>EmitFileRegistration</c> — hazard: the report FD must be
+    /// once-per-instance block, right after the file registration — hazard: the report FD must be
     /// registered BEFORE the engine's first write, COBOLNET_REPORT_WRITER_DESIGN §4): the engine with its
     /// §13.18.39.4 geometry, each group with its compose table, the CONTROL get/set delegates (§13.18.16), the
     /// SUM counters (§13.18.54), and the USE BEFORE REPORTING hooks (§14.9.49 Format 2 GR8).</summary>
-    private void RwEmitReportConstruction(BoundProgram bound, CodeWriter w)
+    public void EmitReportConstruction(BoundProgram bound, CodeWriter w)
     {
-        var reports = _ctx.Data.Reports;
+        var reports = ctx.Data.Reports;
         if (reports.Count == 0) return;
         foreach (var r in reports)
         {
@@ -143,7 +144,7 @@ public sealed partial class CSharpEmitter
                     w.Line($"__RPT_{r.CsIndex}.AddControl(true, static () => \"\", static __v => {{ }});   // FINAL (§13.18.16.4 GR2 — never breaks)");
                     continue;
                 }
-                if (ctl.Item is not { } item || _refs.ResolveItem(item) is not { } place
+                if (ctl.Item is not { } item || refs.ResolveItem(item) is not { } place
                     || place.Item.Pic is { IsFloat: true } or { Usage: Usage.Index })
                 {
                     w.Line(LoudStmt($"report {r.Name}: CONTROL operand '{ctl.Name}' not resolvable to "
@@ -154,18 +155,18 @@ public sealed partial class CSharpEmitter
                 // representation-faithful for every category): read via the one string-carrier read; the
                 // restore decodes through StoreDisplay for a native numeric leaf (the NumericImagePlace shape),
                 // or splices the image for string-carried storage.
-                string set = CallPlaceIsString(place)
-                    ? CallStringWrite(place, "__v")
-                    : place.Write($"CobolNum.StoreDisplay(__v, {place.Item.ProfileName}, {place.Read()})");
-                w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {CallStringRead(place)}, __v => {{ {set} }});");
+                string set = CSharpEmitter.CallPlaceIsString(place)
+                    ? CSharpEmitter.CallStringWrite(place, "__v")
+                    : place.Write(RuntimeApi.NumStoreDisplay("__v", place.Item.ProfileName, place.Read()));
+                w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {CSharpEmitter.CallStringRead(place)}, __v => {{ {set} }});");
             }
             // SUM counters (§13.18.54): the addend delegate yields the addends' total at the counter's scale
             // (GR3 — ADD-consistent accumulation; GR9 — multiple addends sum together).
             foreach (var sum in r.Sums)
             {
                 var terms = sum.Addends
-                    .Select(a => _refs.ResolveItem(a) is { } p
-                        ? "(" + NumericRenderer.Align(_num.FieldNum(p), sum.Scale) + ")"
+                    .Select(a => refs.ResolveItem(a) is { } p
+                        ? "(" + NumericRenderer.Align(num.FieldNum(p), sum.Scale) + ")"
                         : LoudValue("long", $"report {r.Name}: SUM addend not resolvable to storage (ISO §13.18.54.3 SR5)"))
                     .ToList();
                 string addend = terms.Count == 0 ? "0L" : string.Join(" + ", terms);
@@ -193,30 +194,30 @@ public sealed partial class CSharpEmitter
     // ── Verb emission (ISO §14.9.21 / §14.9.16 / §14.9.46) ───────────────────────────────────────────────────
 
     /// <summary>INITIATE: one engine call per report, in written order (§14.9.21.4 GR5).</summary>
-    private void RwEmitInitiate(BoundInitiate s)
+    public void EmitInitiate(BoundInitiate s)
     {
         foreach (var r in s.Reports)
-            _ctx.Writer.Line($"__RPT_{r.CsIndex}.Initiate();");
+            ctx.Writer.Line($"__RPT_{r.CsIndex}.Initiate();");
     }
 
     /// <summary>GENERATE: detail reporting names the detail group; summary reporting (the report-name form,
     /// §14.9.16.4 GR2) passes null.</summary>
-    private void RwEmitGenerate(BoundGenerate s)
+    public void EmitGenerate(BoundGenerate s)
     {
         if (s.Detail is { } det && det.Name is null)
         {
             // A GENERATE-able detail always has a data-name (§13.16.3 SR7) — unreachable unless the binder let
             // an unnamed group through; loud, never a silent wrong-group generate (§1.4).
-            _ctx.Writer.Line(LoudStmt($"GENERATE of an unnamed detail group of report {s.Report.Name}"));
+            ctx.Writer.Line(LoudStmt($"GENERATE of an unnamed detail group of report {s.Report.Name}"));
             return;
         }
-        _ctx.Writer.Line($"__RPT_{s.Report.CsIndex}.Generate({(s.Detail is { } d ? CsLiteral(d.Name!) : "null")});");
+        ctx.Writer.Line($"__RPT_{s.Report.CsIndex}.Generate({(s.Detail is { } d ? CsLiteral(d.Name!) : "null")});");
     }
 
     /// <summary>TERMINATE: one engine call per report, in written order (§14.9.46.4 GR4).</summary>
-    private void RwEmitTerminate(BoundTerminate s)
+    public void EmitTerminate(BoundTerminate s)
     {
         foreach (var r in s.Reports)
-            _ctx.Writer.Line($"__RPT_{r.CsIndex}.Terminate();");
+            ctx.Writer.Line($"__RPT_{r.CsIndex}.Terminate();");
     }
 }

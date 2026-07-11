@@ -542,7 +542,7 @@ public sealed partial class CSharpEmitter
     /// <summary>True when a place's storage crosses the CALL boundary as a character image (string carrier):
     /// groups, Tier-B windows, zoned-image leaves, alphanumeric / numeric-edited items. A native fixed-point
     /// leaf crosses as its <c>long</c> (fully typed — the common conforming case).</summary>
-    private static bool CallPlaceIsString(Place p) =>
+    internal static bool CallPlaceIsString(Place p) =>
         p is RedefViewPlace || p.Item.IsGroup || p.Item.StoreAsImage
         || p.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
             or PicCategory.National or PicCategory.Boolean   // string-stored (D-N1/D-B1): both ABI sides are C# strings, char-correct
@@ -556,11 +556,11 @@ public sealed partial class CSharpEmitter
     /// with DN3=3 must still carry all 15 character positions in, and carry the callee's full table back out).
     /// Every call site of this helper (the BY REFERENCE carrier, BY CONTENT snapshot, callee copy-out, and
     /// RETURNING delivery) is such a boundary.</summary>
-    private static string CallStringRead(Place p) => p is OdoGroupPlace odo
+    internal static string CallStringRead(Place p) => p is OdoGroupPlace odo
         ? $"{odo.Read()}.AsImage()"
         : OperandText.AsString(new BoundFieldOperand(p));
 
-    private static string CallStringWrite(Place p, string value) =>
+    internal static string CallStringWrite(Place p, string value) =>
         // The boundary WRITE half of the §14.2.3 GR8/GR9 full-allocation rule above: a group (including an
         // occurs-depending group — OdoGroupPlace.Write delegates to the full-width struct) distributes the whole
         // image through FromImage, never the GR8a current-extent splice.

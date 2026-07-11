@@ -196,7 +196,7 @@ public sealed partial class CSharpEmitter
             // A REPORT SECTION in this object/factory (Report Writer is a complete subsystem — the class emit path
             // just has to CALL it, the same class-emit-gap shape as inc 3/5): the engines construct AFTER their FDs
             // register (COBOLNET_REPORT_WRITER_DESIGN §4). Early-returns when Reports.Count == 0.
-            RwEmitReportConstruction(bound, w);
+            _reportWriter.EmitReportConstruction(bound, w);
             foreach (var f in host.Where(f => f.InstanceKeyField is not null))
                 w.Line($"__TrackInstanceFile({FileKeyExpr(f)});");   // closed + dropped when the object is deleted (§9.1.4)
         }
@@ -286,7 +286,7 @@ public sealed partial class CSharpEmitter
             var fields = new FieldEmitter(_ctx);
             fields.Emit();   // WS → INSTANCE fields (D3/D11); method WS → statics; VALUE inits = field initializers (D4)
             EmitExternalBackings(data, w);       // M2-OO-1i inc 5: a class EXTERNAL FD record → the shared run-unit cell
-            RwEmitReportMembers(w);              // M2-OO-1i review: a class REPORT SECTION's engine fields + compose methods (Report Writer is complete)
+            _reportWriter.EmitReportMembers(w);              // M2-OO-1i review: a class REPORT SECTION's engine fields + compose methods (Report Writer is complete)
             OoEmitFileMembers(csName, data, bound, w);   // M2-OO-1i: object/factory file connectors + report construction register in an emitted ctor
             // A method file verb under >>TURN EC-I-O … CHECKING emits an __IoCheckEc call (§9.1.13.1 fatal-status
             // default); the class type must declare it. A class has no USE declaratives (Declaratives == null), so
