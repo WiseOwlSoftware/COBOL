@@ -11,6 +11,11 @@
   diagnostics it uses the P2/P3 surface: `EditionInfo` + `IDiagnosticSink`.
 - **Blocks:** P7 (binder/emitter collaborator split + exhaustive visitor) and P9 (OO subsystem move) both consume
   the `BoundCompilation` + `BindPipeline` this phase produces. Neither is in scope here.
+- **STATUS:** `◐ NOW EXECUTING — EXEC STEP B (§4.1 resequence, 2026-07-11). Ready: P5 Steps 0–5 DONE (StorageForm +
+  Binding/Model/ + the IBindPass/BindPipeline no-op scaffolding stubbed at PHASE-05 Step 3); Exec Step A DONE (PHASE-07
+  Step 6 — the exhaustive visitor + StatementChildren, so this phase's traversals use the ONE shared visitor, never a
+  bespoke switch). P5's Steps 6–14 deletions run AFTER this as Exec Step C. Start at Step 1 below; battery-green +
+  pushed every commit boundary (3158 conf · 269 unit · 32 char at entry).`
 
 ## GOAL (one paragraph)
 

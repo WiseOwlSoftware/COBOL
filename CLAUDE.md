@@ -26,11 +26,14 @@ pipeline) CLOSED 2026-07-10 — the two-arm `VersionConformancePass` is the SOLE
 consolidation) CLOSED 2026-07-10 (DEVLOG 748)** — word set single-sourced + drift-guarded, shared DEFAULT/SUBSCRIPT
 literal fragments, typed `Cst/` façade + 2 anchors migrated, version-conf leg reconciled; **the D10 SUBSCRIPT-mode
 removal was RELOCATED → PHASE 15 §"CUT 2.5"** (blocked until the frozen-legacy `SUB_*`/`SubscriptEntryContext` consumer
-is deleted at P15 Cut 2). **◐ NOW EXECUTING: PHASE 05 — unified data model (`StorageForm`)** — Steps 0–2 DONE (DEVLOG
-747, 749: `Common/CobolLiteral.cs` apostrophe-VALUE fix; `StorageForm` + `StorageFormPass` parallel SSOT proven equal to
-the legacy `StoreAsImage` corpus-wide); RESUME at Step 3 (IBindPass scaffolding). Battery: 3157 conformance · 254 unit ·
-32 characterization byte-exact · legacy guard 353 MATCH. **Always read `resume-prompt.md`'s top banner for the live
-resume point, never this snapshot.** §6 owner
+is deleted at P15 Cut 2). **✅ EXEC STEP A — PHASE-07 Step 6 (source-generated exhaustive bound-tree visitor) — DONE
+incl. the 6h SYSTEMATIC AUDIT (2026-07-11, DEVLOG 755–766):** `Cobol.Net.Compiler.SourceGen` Roslyn generator emits the
+7 `IBound*Visitor` + `Accept` + `BoundStatementTree.StatementChildren`; every completeness-critical bound-node dispatch
+converted + the 5 statement walkers on `StatementChildren`; the audit grep-classified every switch, each ISO-§-grounded
+(validate against the SPEC, not prior impl). **◐ NOW EXECUTING: EXEC STEP B — P6 (Real Binder: `SymbolTable` +
+`BoundCompilation` + `BindPipeline`).** PHASE 05 Steps 0–5 DONE; its remainder (Steps 6–14) is EXEC STEP C, after P6.
+Battery: 3158 conformance · 269 unit · 32 characterization byte-exact · legacy guard 353 MATCH. **Always read
+`resume-prompt.md`'s top banner for the live resume point, never this snapshot.** §6 owner
 decisions ALL RESOLVED (D1–D12); the live resume point is the plan's STATUS banner via `resume-prompt.md`. The
 SSOT for locked invariants / settled decisions remains **`docs/COBOLNET_DESIGN.md`**, and the four-editions mission is
 validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist

@@ -36,11 +36,19 @@
 > owner-override (SUBSCRIPT-mode removal) was RELOCATED out of PHASE 04 → PHASE 15 §"CUT 2.5"** (2026-07-10, DEVLOG 748):
 > it is DESIGNED (`DESIGN-frontend-grammar.md §9`) but the frozen legacy compiler shares `SUB_*`/`SubscriptEntryContext`
 > until it is deleted at PHASE 15 Cut 2, so PHASE 15 (post-legacy-deletion) is the first place it is realistically
-> doable — the owner's "fully remove" ruling stands (§6 D10), only its schedule moved. **◐ NOW EXECUTING: PHASE 05
-> (unified data model — `StorageForm`)** — Steps 0–2 DONE (DEVLOG 747, 749: `Common/CobolLiteral.cs` apostrophe-VALUE
-> fix; `StorageForm` + `StorageFormPass` compute `DataItem.Storage` in parallel with the legacy `StoreAsImage`, proven
-> equal corpus-wide — prove-then-delete D0); battery 3157 conformance · 254 unit · 32 characterization byte-exact ·
-> legacy guard 353 MATCH. RESUME at Step 3 (IBindPass pipeline scaffolding + ValidateDag).
+> doable — the owner's "fully remove" ruling stands (§6 D10), only its schedule moved.
+> **✅ EXEC STEP A — PHASE-07 Step 6 (the source-generated exhaustive bound-tree visitor) — DONE incl. the 6h SYSTEMATIC
+> AUDIT (2026-07-11, DEVLOG 755–766; commits `405509e1`→`f19a7d6f`, all pushed).** The `Cobol.Net.Compiler.SourceGen`
+> Roslyn incremental generator emits the 7 `IBound*Visitor` + `Accept` + `BoundStatementTree.StatementChildren`; EVERY
+> completeness-critical bound-node dispatch is converted (emitter `EmitStatement`, all 5 renderers, `ArgExpr`,
+> `StoreKindOf`) and all FIVE statement walkers (`UsageCollectionPass`, `VersionConformancePass.Recurse`,
+> `ContainsNextSentence`, `AlterCollectFields`, `ContainsIntrinsic`) recurse via `StatementChildren`. The audit
+> grep-classified every bound-node switch, each keep/convert tied to an ISO § (owner directive: validate against the
+> SPEC, not the prior implementation/corpus); reasoned keeps documented. An interim regex pwsh generator was written +
+> REMOVED (owner-directed the canonical source generator). **◐ NOW EXECUTING: EXEC STEP B — P6 (the Real Binder:
+> `SymbolTable` + `BoundCompilation` + `BindPipeline`; `docs/rearchitecture/PHASE-06-*.md`).** PHASE 05 Steps 0–5 DONE
+> (DEVLOG 747–754); its remainder (Steps 6–14: delete `MarkStoreAsImage`, `StoreAsImage`→`Storage`) is EXEC STEP C, ON
+> the visitor + P6, AFTER P6. Battery 3158 conformance · 269 unit · 32 characterization byte-exact.
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /
@@ -261,8 +269,8 @@ it does NOT renumber the phases.
 
 | Exec | Was | Work | Why here |
 |------|-----|------|----------|
-| **A** | P7 Step 6 | **Source-generated exhaustive bound-tree visitor** (`BoundVisitorGenerator` + `[BoundNode]` + generated `Accept<T>`/`IBound*Visitor<T>`; a hand-written abstract-visitor is the same-guarantee fallback). Convert the ~5 bespoke walkers (emitter dispatch, `UsageCollectionPass`, `VersionConformancePass` arms, `BoundStores`, the renderers) onto it. | **Independent of P5-remainder/P6** (walks the EXISTING bound tree); HIGHEST value; directly the owner's concern. A missing arm becomes a COMPILE error — kills the completeness-bug class the ad-hoc walkers keep producing. Extract PHASE-07 Step 6 to run NOW. |
-| **B** | P6 | **`SymbolTable` + `BoundCompilation` + the `IBindPass` manifest** | The name-resolution foundation the binder decomposition + every feature phase needs; replaces the ad-hoc `ByName`/name-index dictionaries. |
+| **A ✅ DONE** | P7 Step 6 | **Source-generated exhaustive bound-tree visitor — DONE (DEVLOG 755–766).** `Cobol.Net.Compiler.SourceGen` Roslyn incremental generator (`BoundVisitorGenerator` + `[BoundNode]` + generated `Accept<T>`/`IBound*Visitor<T>` + `BoundStatementTree.StatementChildren`). All ~5 bespoke walkers + the emitter dispatch + the renderers + `StoreKindOf`/`ArgExpr` converted; the 5 statement walkers recurse via `StatementChildren`. 6h SYSTEMATIC AUDIT complete (every bound-node switch grep-classified, ISO-§-grounded). | **Independent of P5-remainder/P6** (walks the EXISTING bound tree); a missing arm is now a COMPILE error — killed the completeness-bug class. |
+| **◐ B (NOW)** | P6 | **`SymbolTable` + `BoundCompilation` + the `IBindPass`/`BindPipeline` manifest** | The name-resolution foundation the binder decomposition + every feature phase needs; replaces the ad-hoc `ByName`/name-index dictionaries. (`IBindPass`/`BindPipeline` scaffolding already stubbed at PHASE-05 Step 3.) |
 | **C** | P5 Steps 6–14 | **Finish the data-model migration** (delete `MarkStoreAsImage` + the emitter→binder write-back; `StoreAsImage` → projection of `Storage`; flip readers to `Storage`/`RecordLayout`; `Model/` move). P5 OWNS the `StoreAsImage` deletion — PHASE-07 Step 8 then merely CONSUMES `Storage` (the overlap is removed, not done twice). | Now built ON the visitor (reader-flips use it) + the symbol table. |
 | **D** | P7 Steps 1–5,7,9–12 | **Structural `Place` (no C# text in the bound tree) + binder/emitter god-class decomposition + `ICodeGenBackend` seam.** | Needs B (`BoundCompilation`) + A (visitor). |
 | **E** | (P2/P3 audit remediation, task #13) | **Fold the ~15 inline edition gates into the two-arm `VersionConformancePass`** + delete orphaned `GateId` scaffolding + correct the "edition-agnostic" over-claims. | Done ON the visitor + the now-clean pipeline; the gate walks reuse the shared visitor. |
