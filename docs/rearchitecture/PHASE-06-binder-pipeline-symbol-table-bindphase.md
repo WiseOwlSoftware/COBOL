@@ -95,11 +95,14 @@ BYTE-IDENTICAL / FULL legacy guard NIST 353 MATCH. Per-step ledger (each landed 
   the 14 CodeGen-read collections are IReadOnly views over private backings (cross-class write channel =
   DataBinder.SeedInheritedGlobalIndex). Element mutability + the ByName/Conditions maps: data-model-track /
   Step-7-builder scope, documented in the property docs.
-- Step 6 (commit c5521a63, DEVLOG 771): DataBinder.Watermark/MarkProduced/Require ([Conditional(DEBUG)],
-  THROWING); BindResolve + the BinderDriver group-tail loop Require-then-Mark per pass per binder; the
-  CapacityRegisters getter carries the flagged late-fact guard; Tier/ClassOffset/Storage item-level guards
-  deferred to P7 (no DataItem->binder backref) with pass-entry Requires covering the order; WatermarkTests x4;
-  the full DEBUG conformance run is the never-fires proof.
+- Step 6 (commit c5521a63, DEVLOG 771; CORRECTED per DEVLOG 774): DataBinder.Watermark/MarkProduced/Require
+  (THROWING, ALWAYS-ON — the first landing was [Conditional(DEBUG)] and CI's RELEASE test leg stripped the call
+  sites, failing the throw-expecting tests three pushes running; the fix keeps the guard in every configuration:
+  a mis-ordered pass in a production compiler is a silent miscompile, and the cost is integer compares);
+  BindResolve + the BinderDriver group-tail loop Require-then-Mark per pass per binder; the CapacityRegisters
+  getter carries the flagged late-fact guard; Tier/ClassOffset/Storage item-level guards deferred to P7 (no
+  DataItem->binder backref) with pass-entry Requires covering the order; WatermarkTests x4; the full conformance
+  run is the never-fires proof.
 - Step 7 (commits a69b6fd9 + 7b, DEVLOG 772/773): Binding/Model/SymbolTable.cs is THE one scope-aware resolver
   (TryResolve / TryResolveCondition / TryResolveIndex / IndexCellOf over an explicit Scope);
   DataBinder.Symbols per binder + ActiveScope/ScopeOf. 7a shimmed the quadruple byte-equivalently (full

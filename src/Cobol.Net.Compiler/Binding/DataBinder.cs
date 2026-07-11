@@ -66,8 +66,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// IMPLICITLY defined at the OCCURS entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults
     /// this map to build a <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated
     /// by the post-build <see cref="DynamicResolve"/> pass. (READ-ONLY view — P6 Step 5; the getter carries the
-    /// P6 Step-6 watermark gate — a read before <see cref="Passes.PassPhase.OccursResolved"/> is a loud DEBUG
-    /// error, the "read a null CapacityRegister" silent-miscompile class made structural.)</summary>
+    /// P6 Step-6 watermark gate — a read before <see cref="Passes.PassPhase.OccursResolved"/> throws loud, the
+    /// "read a null CapacityRegister" silent-miscompile class made structural.)</summary>
     public IReadOnlyDictionary<string, DataItem> CapacityRegisters
     {
         get { Require(PassPhase.OccursResolved, "CapacityRegisters"); return _capacityRegisters; }
@@ -260,7 +260,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         BindPipeline.ValidateFullChainOnce();
         foreach (var pass in BindPipeline.Build(program))
         {
-            Require(pass.Requires, pass.Name);   // DEBUG: the pass's declared prerequisite actually RAN (P6 Step 6)
+            Require(pass.Requires, pass.Name);   // watermark gate: the declared prerequisite actually RAN (P6 Step 6)
             pass.Run(this);
             MarkProduced(pass.Produces);
         }
@@ -282,11 +282,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (produced > Watermark) Watermark = produced;
     }
 
-    /// <summary>The DEBUG-only completion gate: assert <paramref name="required"/> has been produced on this
-    /// binder before <paramref name="fact"/> is read/run. Compiled OUT of Release builds (the always-on guard is
-    /// the construction-time DAG validation); throwing (not <c>Debug.Assert</c>) keeps the failure loud AND
-    /// testable under the unit harness.</summary>
-    [System.Diagnostics.Conditional("DEBUG")]
+    /// <summary>The ALWAYS-ON completion gate: assert <paramref name="required"/> has been produced on this
+    /// binder before <paramref name="fact"/> is read/run — a mis-ordered pass in a production compiler is a
+    /// silent miscompile, exactly when the loud throw matters most. Cost is a per-pass-entry integer compare
+    /// (immaterial). Was <c>[Conditional("DEBUG")]</c> at first landing — CI's RELEASE test leg stripped the
+    /// call sites and failed the throw-expecting WatermarkTests ("no exception was thrown"), proving the
+    /// Debug-only design created a whole Release-divergence class for zero real saving (DEVLOG 774).</summary>
     internal void Require(PassPhase required, string fact)
     {
         if (Watermark < required)

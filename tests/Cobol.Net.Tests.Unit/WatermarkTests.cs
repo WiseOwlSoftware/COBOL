@@ -12,8 +12,9 @@ namespace CobolNet.Tests.Unit;
 /// <summary>
 /// P6 Step 6 — the completion-phase WATERMARK gate: the construction-time DAG assert guards the declared pass
 /// LIST; the watermark guards what actually RAN on a binder — reading a fact before its producing pass is a loud,
-/// located error (DEBUG builds; the test project builds Debug, so the <c>[Conditional("DEBUG")]</c> gate is live)
-/// rather than a silent miscompile.
+/// located error rather than a silent miscompile. ALWAYS-ON (Debug AND Release): the gate was
+/// <c>[Conditional("DEBUG")]</c> at first landing and CI's RELEASE test leg stripped the call sites, failing the
+/// throw-expecting tests below — the fix keeps the guard in every configuration (DEVLOG 774).
 /// </summary>
 public sealed class WatermarkTests
 {

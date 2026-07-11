@@ -63,7 +63,7 @@ internal sealed class BinderDriver
         var ctx = new GroupBindContext(tree, units, classes, session);
         foreach (var pass in BindPipeline.GroupTail())
         {
-            RequireAll(ctx, pass);      // DEBUG watermark gate: the prerequisite RAN on every binder (P6 Step 6)
+            RequireAll(ctx, pass);      // watermark gate: the prerequisite RAN on every binder (P6 Step 6)
             pass.Run(ctx);
             foreach (var d in ctx.AllBinders()) d.MarkProduced(pass.Produces);
         }
@@ -295,10 +295,9 @@ internal sealed class BinderDriver
         unit.Refs = new ReferenceResolver(data);
     }
 
-    /// <summary>DEBUG-only (P6 Step 6): assert <paramref name="pass"/>'s declared prerequisite phase has been
-    /// PRODUCED on every binder of the group before it runs. Compiled out of Release (the whole call site
-    /// disappears — the always-on guard is the construction-time DAG validation).</summary>
-    [System.Diagnostics.Conditional("DEBUG")]
+    /// <summary>ALWAYS-ON (P6 Step 6): assert <paramref name="pass"/>'s declared prerequisite phase has been
+    /// PRODUCED on every binder of the group before it runs (a per-pass integer compare per binder — immaterial;
+    /// was Debug-only until CI's Release leg exposed the divergence, DEVLOG 774).</summary>
     private static void RequireAll(GroupBindContext ctx, GroupBindPass pass)
     {
         foreach (var d in ctx.AllBinders()) d.Require(pass.Requires, pass.Name);
