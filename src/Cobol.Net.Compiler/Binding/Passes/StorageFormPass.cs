@@ -51,15 +51,20 @@ internal static class StorageFormPass
             Compute(d);
     }
 
-    /// <summary>Unify the INVOKE-boundary CROSSING FORM across every override chain (the 3a/3b review's
-    /// signature-desync finding): the image marking can flip ONE side's numeric-DISPLAY formal/RETURNING item
-    /// to image storage (its class whole-group-references it; the other class's doesn't), which would emit
-    /// `M(ref string)` in the base and `override M(ref long)` in the subclass — a raw Roslyn CS0115 on legal
-    /// COBOL (the G4 violation). The §14.8.2/§9.3.8.2 checks already guarantee identical DESCRIPTIONS, so
-    /// unioning to the image form is semantics-preserving (the FormatDisplay/StoreDisplay storage-form
-    /// bridges absorb either storage). Iterates to a fixed point — a flip through one link can propagate
-    /// down a chain or across sibling subclasses. (Relocated from the emitter, P6 Step 5 — a Bind-phase
-    /// StoreAsImage settle-step, sequenced BETWEEN marking and classification.)</summary>
+    /// <summary>Unify the INVOKE-boundary CROSSING FORM across every override chain AND every
+    /// interface-implementation pair (the 3a/3b review's signature-desync finding + the P6 phase-review find,
+    /// DEVLOG 775): the image marking can flip ONE side's numeric-DISPLAY formal/RETURNING item to image storage
+    /// (its class whole-group-references it, or a figurative/ref-mod store flips it; the other side's doesn't),
+    /// which would emit `M(ref string)` on one side and `M(ref long)` on the other — a raw Roslyn CS0115 (override)
+    /// or CS0535/CS0738 (implicit interface implementation) on legal COBOL (the G4 violation). The
+    /// §14.8.2/§9.3.8.2/§9.3.8.2.3 checks already guarantee identical DESCRIPTIONS, so unioning to the image form
+    /// is semantics-preserving (the FormatDisplay/StoreDisplay storage-form bridges absorb either storage).
+    /// Iterates to a fixed point — a flip through one link can propagate down a chain, across sibling subclasses,
+    /// or between a prototype and its many implementors. An interface PROTOTYPE's formals never flip themselves
+    /// (a prototype has no body), so the propagation is impl→proto→sibling-impls. (Relocated from the emitter,
+    /// P6 Step 5; interface pairs added at phase review, DEVLOG 775. NOTE for EXEC STEP C: interface forests are
+    /// outside <see cref="GroupBindContext.AllBinders"/> — when readers flip from <c>StoreAsImage</c> to
+    /// <c>Storage</c>, the interface forests need <see cref="Compute"/> too.)</summary>
     private static void HarmonizeOverrideCrossings(OoClassTable classes)
     {
         bool changed = true;
@@ -67,14 +72,34 @@ internal static class StorageFormPass
         {
             changed = false;
             foreach (var cls in classes.Classes)
+            {
+                // Override chains (§9.3.8.2): subclass method ↔ the overridden base method.
                 foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
                 {
                     if (m.OverrideOf is not { } baseM) continue;
-                    for (int i = 0; i < Math.Min(m.Formals.Count, baseM.Formals.Count); i++)
-                        changed |= UnifyCrossing(m.Formals[i].Item, baseM.Formals[i].Item);
-                    if (m.Returning is { } r && baseM.Returning is { } br)
-                        changed |= UnifyCrossing(r, br);
+                    changed |= UnifyPair(m, baseM);
                 }
+                // Interface-implementation pairs (§9.3.11 via §9.3.8.2.3): the implementing method emits as the
+                // IMPLICIT C# implementation of the interface member OoSignatureOf(proto) renders — the two
+                // signatures must agree exactly, same as an override chain. Enumeration mirrors
+                // OoClassTable.ValidateImplements (closure + AllPrototypes + Find*Method), which has already
+                // reported any description mismatch — pairs here are description-identical by construction.
+                foreach (bool factory in (ReadOnlySpan<bool>)[false, true])
+                    foreach (var iface in classes.ImplementsClosure(cls, factory))
+                        foreach (var proto in iface.AllPrototypes())
+                            if ((factory ? cls.FindFactoryMethod(proto.Name) : cls.FindMethod(proto.Name)) is { } impl)
+                                changed |= UnifyPair(impl, proto);
+            }
+        }
+
+        static bool UnifyPair(OoMethodSymbol a, OoMethodSymbol b)
+        {
+            bool changed = false;
+            for (int i = 0; i < Math.Min(a.Formals.Count, b.Formals.Count); i++)
+                changed |= UnifyCrossing(a.Formals[i].Item, b.Formals[i].Item);
+            if (a.Returning is { } r && b.Returning is { } br)
+                changed |= UnifyCrossing(r, br);
+            return changed;
         }
 
         static bool UnifyCrossing(DataItem a, DataItem b)

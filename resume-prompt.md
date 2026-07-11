@@ -21,35 +21,42 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. Full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP B: P6 (the Real Binder)
-**Build `SymbolTable` + `BoundCompilation` + the `BindPipeline`/`IBindPass` manifest** (`docs/rearchitecture/PHASE-06-*.md`
-— read its STATUS line first). This is the name-resolution foundation the binder decomposition + every feature phase
-needs; it replaces the ad-hoc `ByName`/name-index dictionaries. The `IBindPass`/`BindPipeline` scaffolding was already
-stubbed at PHASE-05 Step 3.
+## ⛔🔀 RESUME AT — EXEC STEP C: finish PHASE-05 Steps 6–14 (the data-model prove-then-delete)
+**Delete the `StoreAsImage` FLAG → `StorageForm`/`Storage` projection; flip every reader to `Storage`/`RecordLayout`**
+(`docs/rearchitecture/PHASE-05-*.md` — read its STATUS line first; Steps 0–5 are DONE). The P6 head start: the whole
+StoreAsImage settle sequence (temp re-sync → `MarkStoreAsImage` → OO harmonize → `Compute`) already runs bind-side as
+ONE manifest pass (`StorageFormPass.Run`) and `StorageFormPass.Verify` holds the corpus-wide equivalence — Step C
+deletes the FLAG and flips the readers, ON the generated visitor + the P6 SymbolTable.
 
 **Execution order (§4.1, owner-directed TOOLING-FIRST, 2026-07-11):**
 - **A ✅ DONE** — the source-generated exhaustive bound-tree visitor (PHASE-07 Step 6 + the 6h SYSTEMATIC AUDIT; DEVLOG
-  755–766). `Cobol.Net.Compiler.SourceGen` (Roslyn incremental generator) emits the 7 `IBound*Visitor` + `Accept` +
-  `BoundStatementTree.StatementChildren`; EVERY completeness-critical bound-node dispatch is converted (emitter, all 5
-  renderers, `ArgExpr`, `StoreKindOf`) and all FIVE statement walkers (`UsageCollectionPass`,
-  `VersionConformancePass.Recurse`, `ContainsNextSentence`, `AlterCollectFields`, `ContainsIntrinsic`) recurse via
-  `StatementChildren`. The audit grep-classified every bound-node switch, each keep/convert tied to an ISO §.
-- **B ◐ (NOW)** — P6 the Real Binder (above).
-- **C** — finish PHASE-05 Steps 6–14: delete `MarkStoreAsImage` + the emitter→binder write-back; `StoreAsImage` →
-  projection of `Storage`; flip readers to `Storage`/`RecordLayout` — ON the visitor + P6.
+  755–766): the 7 generated `IBound*Visitor` + `Accept` + `BoundStatementTree.StatementChildren`; every
+  completeness-critical dispatch converted; every switch ISO-§-classified.
+- **B ✅ DONE** — P6 the Real Binder (DEVLOG 767–774, commits `8ac37480`→phase close, adversarially reviewed): a REAL
+  Binder phase — `Binding/BinderDriver.Bind` → immutable `Binding/Model/BoundCompilation` (bound model relocated:
+  `BoundUnit`/`OoClassUnit`); the middle-end is the DECLARED `BindPipeline.GroupTail` manifest (ProcedureBinding →
+  UsageCollectionPass → StorageFormPass → the `VersionConformancePass` as NAMED terminal pass), ONE validated DAG with
+  the resolve prefix + a DEBUG watermark gate (`DataBinder.Watermark`/`Require`); driver Phase 2 = Bind → gate →
+  CheckOnly → EmitBound; 14 CodeGen-read binder collections sealed `IReadOnly` (zero CodeGen writes, grep-proven); the
+  lookup QUADRUPLE deleted → the ONE scope-aware `SymbolTable` (`TryResolve`/`TryResolveIndex`/`IndexCellOf`, explicit
+  `Scope`, per binder). OO bind bodies stay on the emitter behind `IOoBindHost`+`BindSession` (the documented P6→P9
+  seam). Deviations recorded in the PHASE-06 STATUS ledger.
+- **C ◐ (NOW)** — finish PHASE-05 Steps 6–14 (above).
 - **D** — the rest of PHASE-07: structural `Place` (no C# text in the bound tree) + binder/emitter god-class
-  decomposition + the `ICodeGenBackend` seam.
+  decomposition + the `ICodeGenBackend` seam. (P7 pickups noted in DEVLOG 773: SymbolTableBuilder-owned storage;
+  route `ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup through the SymbolTable.)
 - **E** — P2/P3 edition-gate remediation (task #13): fold the ~15 inline gates into the two-arm `VersionConformancePass`,
   delete orphaned `GateId`, correct the "edition-agnostic" over-claims.
 - **F** — PHASE 08–16: runtime reorg, M2/M3/M4 feature waves, version-matrix closure, G8 legacy cut, CIL backend.
 
-**Done:** Phases 00–04 ✅ (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
-version-conformance pipeline [the two-arm `VersionConformancePass` is the SOLE edition gate] · frontend consolidation).
-PHASE 05 (unified data model — `StorageForm`) Steps 0–5 ✅; its remainder is EXEC STEP C. D10 SUBSCRIPT-mode removal was
-RELOCATED → PHASE 15 §"CUT 2.5". ⚠ Flagged latent (not blocking): `OoReparent{Class,Factory}Data` mis-bind the
-class-level env (CURRENCY/ALPHABET/SELECT) 0/1/2× — a dedicated fix ~PHASE 09 (DEVLOG 738).
+**Done:** Phases 00–04 ✅ + PHASE 06 ✅ (migration safety net · frontend rename · `Cobol.Net.Editions` leaf +
+diagnostic registry · version-conformance pipeline [the two-arm `VersionConformancePass` is the SOLE edition gate] ·
+frontend consolidation · the Real Binder). PHASE 05 Steps 0–5 ✅; its remainder is EXEC STEP C (NOW). D10
+SUBSCRIPT-mode removal was RELOCATED → PHASE 15 §"CUT 2.5". ⚠ Flagged latent (not blocking):
+`OoReparent{Class,Factory}Data` mis-bind the class-level env (CURRENCY/ALPHABET/SELECT) 0/1/2× — a dedicated fix
+~PHASE 09 (DEVLOG 738).
 
-**Battery (keep green + pushed at EVERY commit):** 3158 conformance · 269 unit · 32 characterization byte-exact · FULL
+**Battery (keep green + pushed at EVERY commit):** 3158 conformance · 281 unit · 32 characterization byte-exact · FULL
 legacy guard NIST 353 MATCH. ⚠ Build `CobolSharp.sln` before `dotnet test --no-build` — a stale test-bin compiler DLL
 hides greenfield regressions ([[feedback_fresh_build_before_no_build_test]]).
 

@@ -1746,6 +1746,61 @@ public sealed class OoSpineTests
             END CLASS CSPK51.
             """), "COBOLNET0841");
 
+    /// <summary>The P6 phase-review find (DEVLOG 775): the crossing-form harmonize must cover
+    /// interface-IMPLEMENTATION pairs, not just override chains. The implementing method's body flips its
+    /// numeric-DISPLAY formal to image storage (a ref-mod store — StoreAsImage), while the interface PROTOTYPE's
+    /// identical formal has no body and stays native: without the implements-pair unification the emitted C# is
+    /// interface member `M(ref long)` vs class method `M(ref string)` — Roslyn CS0535/CS0738 on legal COBOL
+    /// (§9.3.11 / §9.3.8.2.3: the descriptions ARE identical; the storage form is a compile-time decision the
+    /// harmonize must settle on BOTH sides).</summary>
+    [Fact]
+    public void Implements_RefModStoreInFormal_HarmonizesInterfaceCrossing()
+    {
+        var (ok, stdout, detail) = CompileAndRun($$"""
+            {{SpeakerInterface}}
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CSPK54.
+            IDENTIFICATION DIVISION.
+            OBJECT. IMPLEMENTS ISPK50.
+            PROCEDURE DIVISION.
+            METHOD-ID. SPEAK.
+            DATA DIVISION.
+            LINKAGE SECTION.
+            01 LK-N PIC 9(4).
+            PROCEDURE DIVISION USING LK-N.
+            M-1.
+                MOVE "7" TO LK-N (1:1).
+                DISPLAY "SPOKE " LK-N.
+            END METHOD SPEAK.
+            END OBJECT.
+            END CLASS CSPK54.
+
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. OOSP54.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS CSPK54
+                INTERFACE ISPK50.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 OBJ USAGE OBJECT REFERENCE CSPK54.
+            01 WS-N PIC 9(4) VALUE 1234.
+            PROCEDURE DIVISION.
+            MAIN.
+                INVOKE CSPK54 "NEW" RETURNING OBJ.
+                INVOKE OBJ "SPEAK" USING WS-N.
+                DISPLAY "AFTER " WS-N.
+                STOP RUN.
+            END PROGRAM OOSP54.
+            """);
+        Assert.True(ok, detail);
+        // The ref-mod store replaces position 1 of "1234" with '7'; BY REFERENCE makes it visible to the caller.
+        Assert.Contains("SPOKE 7234", stdout);
+        Assert.Contains("AFTER 7234", stdout);
+    }
+
     /// <summary>§10.7 — END INTERFACE names its interface (the 0840 structural family).</summary>
     [Fact]
     public void Interface_EndNameMismatch_0840()

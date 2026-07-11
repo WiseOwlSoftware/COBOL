@@ -398,6 +398,17 @@ service). These are cross-cutting with the emitter-renderer sibling design; the 
 
 ## 5. Migration notes — keeping the battery green throughout
 
+> **LANDED STATUS (P6 close, 2026-07-11 — DEVLOG 767–774).** Steps 1–3 below are DONE: (1) the pass framework +
+> `ValidateDag` landed at P5 Step 3 and P6 extended it to the whole chain (`BindPipeline.Build` prefix ++
+> `GroupTail` manifest, `ValidateFullChainOnce`, the DEBUG watermark gate); (2) the binder half of
+> `CallEmitRunUnit` is `Binding/BinderDriver.Bind` → immutable `BoundCompilation`, driver Phase 2 = Bind → gate →
+> CheckOnly → EmitBound; (3) the read-only views + the ONE scope-aware `SymbolTable` landed and the
+> `LookupData`/…/`IndexFieldFor` quadruple is DELETED (`SymbolTableBuilder`-owned storage deferred to P7 — the
+> table wraps the live maps; `ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup still
+> carry the same precedence inline, P7 candidates). Step 4 is HALF-done: `StorageFormPass.Run` owns the whole
+> StoreAsImage settle sequence bind-side and the emitter write-back is gone; the FLAG deletion + reader flips are
+> EXEC STEP C (P5 Steps 6–14). Steps 5–7 remain P7 scope; step 8 is G8.
+
 The migration is a sequence of behavior-preserving refactors; the 2028 conformance + 213 unit + NIST-353 legacy
 guard stays green at every commit. Order chosen so each step is independently shippable and reversible.
 

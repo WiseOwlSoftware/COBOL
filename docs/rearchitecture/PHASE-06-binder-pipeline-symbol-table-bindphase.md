@@ -60,9 +60,15 @@ explicitly **out of scope** (P7 / P9).
 
 ## STATUS
 
-`IN PROGRESS @ step 8 (2026-07-11) — Steps 0-7 ALL DONE; only the phase-end docs sweep (Step 8) remains. Battery
-at this point: 3158 conformance (incl. all OoSpineTests shadowing goldens) / 281 unit / 32 characterization
-BYTE-IDENTICAL / FULL legacy guard NIST 353 MATCH. Per-step ledger (each landed battery-green + pushed):
+`DONE (2026-07-11, DEVLOG 767-775) — all 6 exit criteria verified; final battery 3159 conformance (incl. all
+OoSpineTests shadowing goldens + the new interface-crossing test) / 281 unit / 32 characterization BYTE-IDENTICAL
+/ FULL legacy guard NIST 353 MATCH / CI GREEN in BOTH configurations. Step 8 extras: the manual CLI smokes ran
+with SPEC-CORRECT output (OO method-local shadowing per §8.4.6.2.1 r3a; ODO + whole-group image byte-exact); a
+9-agent ADVERSARIAL PHASE REVIEW (5 finders x 2 refuters) confirmed ONE pre-existing latent defect — the
+crossing-form harmonize missed interface-IMPLEMENTATION pairs (override chains only) — FIXED in the close commit
+with a proven-to-bite conformance test (DEVLOG 775); and the CI-red retrospective: the Step-6 watermark gate
+first landed [Conditional(DEBUG)], CI's RELEASE leg stripped it (3 red pushes) — now ALWAYS-ON (DEVLOG 774).
+Per-step ledger (each landed battery-green + pushed):
 
 - Step 0 (preflight): baseline recorded (3158/269/32 + guard 353 MATCH). AS-BUILT DEVIATIONS from this doc's
   snapshot, recorded per the design-currency rule: (a) the pass scaffolding lives in Binding/Passes/ (not
