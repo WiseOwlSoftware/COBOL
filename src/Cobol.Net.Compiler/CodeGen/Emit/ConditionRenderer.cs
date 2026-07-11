@@ -11,39 +11,40 @@ namespace CobolNet.CodeGen.Emit;
 /// comparisons (numeric scale-aligned, or alphanumeric via <c>CobolString.Compare</c>), logical AND/OR/XOR/NOT,
 /// level-88 membership over the conditional variable, and sign conditions. An unbound condition fails loud (§1.4).
 /// </summary>
-internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx)
+internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx) : IBoundConditionVisitor<string>
 {
-    /// <summary>Render a bound condition as a C# boolean expression.</summary>
+    /// <summary>Render a bound condition as a C# boolean expression. Dispatch is the generated exhaustive
+    /// <see cref="IBoundConditionVisitor{T}"/> (PHASE-07 Step 6e): every BoundCondition leaf has a Visit below, so a
+    /// new leaf is a COMPILE error — the former loud <c>_ =></c> default is gone.</summary>
     public string Render(BoundCondition c)
     {
         // A condition is a receiver-less numeric context: clear the float-receiver flag so a stale one from a prior
         // arithmetic store cannot promote a fixed-operand comparison to IEEE double (the H1 staleness discipline, D16
         // review). Idempotent under the recursive Render calls below.
         ctx.TargetReal = false;
-        return c switch
-        {
-        BoundRelational r => RenderRelational(r),
-        // An EMPTY logical is the tautology (EVALUATE's ANY object composes as an AND over zero terms).
-        BoundLogical { Operands.Count: 0 } => "true",
-        BoundLogical l => "(" + string.Join($" {l.Op} ", l.Operands.Select(Render)) + ")",
-        BoundNot n => $"!({Render(n.Operand)})",
-        BoundCondition88 c88 => RenderCondition88(c88),
-        // A switch-status condition (ISO §8.8.4.6 GR1): true when the external switch is at the posited position.
-        BoundSwitchCondition sw => sw.TestsOn
-            ? $"ExternalSwitches.Get({EmitText.CsLiteral(sw.ImplementorName)})"
-            : $"!ExternalSwitches.Get({EmitText.CsLiteral(sw.ImplementorName)})",
-        BoundSignCondition s => RenderSign(s),
-        // A simple boolean condition (ISO §8.8.4.3.4 GR1): true iff the boolean value is 1.
-        BoundBooleanCondition b => $"CobolBool.IsTrue({BooleanRenderer.Render(b.Expr)})",
-        BoundClassCondition cc => RenderClass(cc),
-        // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
-        BoundUserClassCondition uc => uc.Negated
-            ? $"!CobolClass.IsInClass({OperandText.AsString(uc.Operand)}, {EmitText.CsLiteral(uc.Members)})"
-            : $"CobolClass.IsInClass({OperandText.AsString(uc.Operand)}, {EmitText.CsLiteral(uc.Members)})",
-        BoundConditionError e => EmitText.LoudValue("bool", e.Feature),
-        _ => EmitText.LoudValue("bool", $"bound condition '{c.GetType().Name}'"),
-        };
+        return c.Accept(this);
     }
+
+    public string Visit(BoundRelational n) => RenderRelational(n);
+    // An EMPTY logical is the tautology (EVALUATE's ANY object composes as an AND over zero terms).
+    public string Visit(BoundLogical n) => n.Operands.Count == 0
+        ? "true"
+        : "(" + string.Join($" {n.Op} ", n.Operands.Select(Render)) + ")";
+    public string Visit(BoundNot n) => $"!({Render(n.Operand)})";
+    public string Visit(BoundCondition88 n) => RenderCondition88(n);
+    // A switch-status condition (ISO §8.8.4.6 GR1): true when the external switch is at the posited position.
+    public string Visit(BoundSwitchCondition n) => n.TestsOn
+        ? $"ExternalSwitches.Get({EmitText.CsLiteral(n.ImplementorName)})"
+        : $"!ExternalSwitches.Get({EmitText.CsLiteral(n.ImplementorName)})";
+    public string Visit(BoundSignCondition n) => RenderSign(n);
+    // A simple boolean condition (ISO §8.8.4.3.4 GR1): true iff the boolean value is 1.
+    public string Visit(BoundBooleanCondition n) => $"CobolBool.IsTrue({BooleanRenderer.Render(n.Expr)})";
+    public string Visit(BoundClassCondition n) => RenderClass(n);
+    // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
+    public string Visit(BoundUserClassCondition n) => n.Negated
+        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand)}, {EmitText.CsLiteral(n.Members)})"
+        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand)}, {EmitText.CsLiteral(n.Members)})";
+    public string Visit(BoundConditionError n) => EmitText.LoudValue("bool", n.Feature);
 
     private string RenderRelational(BoundRelational r)
     {

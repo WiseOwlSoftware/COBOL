@@ -13,57 +13,62 @@ namespace CobolNet.CodeGen.Emit;
 /// quotient at the working scale (<see cref="EmissionContext.TargetScale"/>) for ÷. The receiver's store
 /// (truncation / capacity) is applied later by <c>CobolNum.Store</c>.
 /// </summary>
-internal sealed class NumericRenderer(EmissionContext ctx)
+internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>
 {
     /// <summary>The intrinsic-function render dispatch (ISO §15; IntrinsicRenderer.cs) — created lazily because
     /// the two renderers are mutually recursive (an intrinsic renders its numeric arguments through THIS).</summary>
     internal IntrinsicRenderer Intrinsics => _intrinsics ??= new IntrinsicRenderer(ctx, this);
     private IntrinsicRenderer? _intrinsics;
 
+    // Render/AsNum dispatch through the generated exhaustive visitors (PHASE-07 Step 6d): every BoundExpr / BoundOperand
+    // leaf has a Visit below, so a new leaf is a COMPILE error here — the former loud `_ =>` defaults are gone.
+
     /// <summary>Render a bound numeric expression as a scaled long.</summary>
-    public NumX Render(BoundExpr e) => e switch
-    {
-        BoundNumLiteral l => EmitText.UnscaledLit(l.Text),
-        BoundNumRef r => FieldNum(r.Place),
-        BoundIndexRef ix => new NumX(ix.IndexField, 0),   // an index IS its 1-based occurrence number (§3.5)
-        // The LINAGE-COUNTER register (ISO §8.4.3.14 GR1): an unsigned INTEGER read from the file connector —
-        // runtime-sourced (only the I-O control system modifies it, §13.18.34 GR7b), scale 0.
-        BoundLinageCounterRef lc => new NumX($"CobolFile.LinageCounter({EmitText.FileKeyExpr(lc.File)})", 0),
-        // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15 GR1): unsigned integers read from the report's engine
-        // instance — runtime-sourced (only the RWCS maintains them), scale 0. This ONE case serves both the
-        // relation-condition and MOVE-source paths (both route through the renderer).
-        BoundReportCounterRef rc =>
-            new NumX($"__RPT_{rc.Report.CsIndex}.{(rc.IsPage ? "PageCounter" : "LineCounter")}", 0),
-        // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an
-        // unscaled integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
-        BoundReportSumRef rs =>
-            new NumX($"__RPT_{rs.Report.CsIndex}.SumValue({EmitText.CsLiteral(rs.Id)})", rs.Scale),
-        BoundBinary b => Combine(Render(b.Left), b.Op.ToString(), Render(b.Right)),
-        BoundNegate n => Negate(Render(n.Operand)),
-        BoundPower p => Power(Render(p.Base), Render(p.Exp)),
-        BoundIntrinsicCall ic => Intrinsics.RenderNum(ic),   // FUNCTION call (ISO §15)
-        BoundExprError err => new NumX(EmitText.LoudValue("long", err.Feature), 0),
-        _ => new NumX(EmitText.LoudValue("long", $"bound expression '{e.GetType().Name}'"), 0),
-    };
+    public NumX Render(BoundExpr e) => e.Accept(this);
 
     /// <summary>Render a bound operand as a scaled native-integer value.</summary>
-    public NumX AsNum(BoundOperand op) => op switch
-    {
-        BoundNumericLiteral n => EmitText.UnscaledLit(n.Text),
-        BoundFieldOperand f => FieldNum(f.Place),
-        BoundComputedOperand c => Render(c.Expr),
-        BoundFigurative { Kind: 'Z' } => EmitText.UnscaledLit("0"),   // ZERO in a numeric context
-        BoundFigurative f => new NumX(EmitText.LoudValue("long", $"figurative '{f.Kind}' in a numeric context"), 0),
-        // An alphanumeric literal in a numeric context is an UNSIGNED integer (§14.9.25.3 Table 16 — the
-        // alphanumeric→numeric move; NC105A's MOVE "12345" TO MOVE1), decoded exactly like an alphanumeric
-        // field. A NATIONAL literal decodes the same way (§14.9.25.4 GR6d3 — national→numeric as an unsigned
-        // integer under the Latin-1 identity); class BOOLEAN is not a numeric operand (§8.8.1) — loud.
-        BoundStringLiteral { Category: PicCategory.Boolean } =>
-            new NumX(EmitText.LoudValue("long", "boolean literal in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0),
-        BoundStringLiteral s => new NumX($"CobolNum.FromAlphanumeric({EmitText.CsLiteral(s.Value)})", 0),
-        BoundOperandError e => new NumX(EmitText.LoudValue("long", e.Feature), 0),
-        _ => new NumX(EmitText.LoudValue("long", $"bound operand '{op.GetType().Name}'"), 0),
-    };
+    public NumX AsNum(BoundOperand op) => op.Accept(this);
+
+    // ── IBoundExprVisitor<NumX> ──────────────────────────────────────────────────────────────────────────────
+    public NumX Visit(BoundNumLiteral n) => EmitText.UnscaledLit(n.Text);
+    public NumX Visit(BoundNumRef n) => FieldNum(n.Place);
+    public NumX Visit(BoundIndexRef n) => new(n.IndexField, 0);   // an index IS its 1-based occurrence number (§3.5)
+    // The LINAGE-COUNTER register (ISO §8.4.3.14 GR1): an unsigned INTEGER read from the file connector —
+    // runtime-sourced (only the I-O control system modifies it, §13.18.34 GR7b), scale 0.
+    public NumX Visit(BoundLinageCounterRef n) => new($"CobolFile.LinageCounter({EmitText.FileKeyExpr(n.File)})", 0);
+    // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15 GR1): unsigned integers read from the report's engine instance —
+    // runtime-sourced (only the RWCS maintains them), scale 0. This ONE case serves both the relation-condition and
+    // MOVE-source paths (both route through the renderer).
+    public NumX Visit(BoundReportCounterRef n) =>
+        new($"__RPT_{n.Report.CsIndex}.{(n.IsPage ? "PageCounter" : "LineCounter")}", 0);
+    // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an unscaled
+    // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
+    public NumX Visit(BoundReportSumRef n) => new($"__RPT_{n.Report.CsIndex}.SumValue({EmitText.CsLiteral(n.Id)})", n.Scale);
+    public NumX Visit(BoundBinary n) => Combine(Render(n.Left), n.Op.ToString(), Render(n.Right));
+    public NumX Visit(BoundNegate n) => Negate(Render(n.Operand));
+    public NumX Visit(BoundPower n) => Power(Render(n.Base), Render(n.Exp));
+    public NumX Visit(BoundIntrinsicCall n) => Intrinsics.RenderNum(n);   // FUNCTION call (ISO §15)
+    public NumX Visit(BoundExprError n) => new(EmitText.LoudValue("long", n.Feature), 0);
+
+    // ── IBoundOperandVisitor<NumX> ───────────────────────────────────────────────────────────────────────────
+    public NumX Visit(BoundNumericLiteral n) => EmitText.UnscaledLit(n.Text);
+    public NumX Visit(BoundFieldOperand n) => FieldNum(n.Place);
+    public NumX Visit(BoundComputedOperand n) => Render(n.Expr);
+    public NumX Visit(BoundFigurative n) => n.Kind == 'Z'
+        ? EmitText.UnscaledLit("0")   // ZERO in a numeric context
+        : new NumX(EmitText.LoudValue("long", $"figurative '{n.Kind}' in a numeric context"), 0);
+    // An alphanumeric literal in a numeric context is an UNSIGNED integer (§14.9.25.3 Table 16 — the
+    // alphanumeric→numeric move; NC105A's MOVE "12345" TO MOVE1), decoded exactly like an alphanumeric field. A
+    // NATIONAL literal decodes the same way (§14.9.25.4 GR6d3 — national→numeric as an unsigned integer under the
+    // Latin-1 identity); class BOOLEAN is not a numeric operand (§8.8.1) — loud.
+    public NumX Visit(BoundStringLiteral n) => n.Category == PicCategory.Boolean
+        ? new NumX(EmitText.LoudValue("long", "boolean literal in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0)
+        : new NumX($"CobolNum.FromAlphanumeric({EmitText.CsLiteral(n.Value)})", 0);
+    public NumX Visit(BoundOperandError n) => new(EmitText.LoudValue("long", n.Feature), 0);
+    // BoundAllLiteral (ALL "x" in a numeric context) and BoundBoolOperand (a class-boolean operand) are not numeric
+    // operands — the former loud `_ =>` default handled them; now explicit (byte-identical loud value; §8.8.1).
+    public NumX Visit(BoundAllLiteral n) => new(EmitText.LoudValue("long", $"bound operand '{nameof(BoundAllLiteral)}'"), 0);
+    public NumX Visit(BoundBoolOperand n) => new(EmitText.LoudValue("long", $"bound operand '{nameof(BoundBoolOperand)}'"), 0);
 
     /// <summary>The scaled value of a data item place (its unscaled <c>long</c> value + its scale). A float item is
     /// truncated to <c>long</c> for now (mixed float/fixed arithmetic is a later slice). A non-numeric place (a group

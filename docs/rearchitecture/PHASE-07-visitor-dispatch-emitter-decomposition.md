@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) PULLED FORWARD as Exec Step A · 6a+6b DONE (last green commit see git; DEVLOG 755–756), converting consumers 6c→6f next`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) PULLED FORWARD as Exec Step A · 6a,6b,6d,6e DONE (DEVLOG 755–757); 6c + 6f remain (6c is the delicate one — see its bullet)`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -329,10 +329,28 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
     the immutable `EmitContext`/`BinderContext`); pulling it out now would just fight the shared mutable emitter
     state. The five error nodes each get their own `Visit` (no `IBoundError` collapse — see §6a). Proven byte-exact:
     32 characterization snapshots + 3158 conformance unchanged.
-  - **6c** `BoundStores.StoreKindOf` → rename file/type to `BoundStoreAnalysis` and implement the relevant visitor
-    (`DESIGN-binder-bound-tree.md §4` rename row).
-  - **6d** `NumericRenderer.Render/AsNum` → `IBoundExprVisitor<NumX>` / operand visitor.
-  - **6e** `ConditionRenderer.Render` → `IBoundConditionVisitor<string>`.
+  - **6c ⏳ REMAINS — the DELICATE one; do it with care, NOT a rushed mechanical pass.** `BoundStores.StoreKindOf`
+    → a stateful `StoreKindVisitor : IBoundStatementVisitor<StoreKind?>` carrying the `DataItem item` (the current
+    local funcs `Hit`/`TargetHit`/`ReceiversHit`/`Kids`/`StoreOrKids` become instance methods; recursion
+    `StoreKindOf(child, item)` → `child.Accept(this)`), and `StoreKindOf(s, item) => s.Accept(new StoreKindVisitor(item))`.
+    Optionally rename file/type to `BoundStoreAnalysis` (`DESIGN-binder-bound-tree.md §4` rename row). **Analysis done
+    2026-07-11 (do not re-derive):** of the 79 BoundStatement leaves the switch classifies 70 explicitly; **9 fall to
+    the `_ => null` "stage LOUD, never guess" catch-all** — `BoundAllocate`, `BoundFree`, `BoundInvokeUniversal`,
+    `BoundRaiseObject`, `BoundSetAddressOfBased`, `BoundSetCapacity`, `BoundSetObjectRef`, `BoundSetPointer`,
+    `BoundSetPointerUpDown`. The exhaustive visitor forces an explicit `Visit` for each; to stay BEHAVIOR-NEUTRAL they
+    must return `null` (the identical stage-loud result), NOT `None` — even though several arguably never touch a
+    property temp (that reclassification is a separate reasoned change, not this conversion). ⚠ **Coverage caveat:**
+    unlike the emitter/renderers (6b/6d/6e), `StoreKindOf`'s polarities are NOT byte-exact-characterized — its client is
+    the OO property-ref RECEIVING/SENDING desugar (D-P2), and a mis-transcribed polarity yields a *silently* lost or
+    spurious SET (the file header's own warning), which conformance may not catch. So: transcribe each of the ~46
+    store-bearing arms VERBATIM, then diff the new `Visit` set against the old switch arm-by-arm before trusting green.
+  - **6d ✅ DONE (2026-07-11).** `NumericRenderer` implements `IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>`;
+    `Render`/`AsNum` are thin `=> e.Accept(this)` dispatchers + 11 expr + 8 operand `Visit` methods. The `Render`
+    `_ =>` was already dead (all 11 expr leaves covered); `AsNum`'s `_ =>` caught `BoundAllLiteral`/`BoundBoolOperand`,
+    now explicit loud `Visit`s (byte-identical loud value — `nameof` == the old `GetType().Name`). Byte-exact: 32 + 3158.
+  - **6e ✅ DONE (2026-07-11).** `ConditionRenderer : IBoundConditionVisitor<string>`; `Render` keeps its
+    `ctx.TargetReal = false` preamble then `=> c.Accept(this)` + 10 `Visit` methods (the two `BoundLogical` pattern
+    arms merged into one `Visit` with an `Operands.Count == 0` guard). `_ =>` was dead. Byte-exact: 32 + 3158.
   - **6f** `OperandText.AsString/IsString` → operand visitor; `AlterCollectFields`, `ContainsNextSentence`,
     `KeyedHasNextSentence` → the shared statement visitor.
   - Each sub-step: battery 1+2+4 green (mechanical relocation, identical output); COMMIT
