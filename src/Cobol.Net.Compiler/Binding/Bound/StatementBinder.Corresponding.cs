@@ -197,7 +197,7 @@ public sealed partial class StatementBinder
     /// NONINTEGER (fraction digits, or a float usage) → numeric / numeric-edited only; numeric-edited → alphanumeric
     /// always, numeric / numeric-edited only with DE-EDITING — an ISO-2002 introduction, so gated ≥ 2002 (at
     /// COBOL-85 the pair does not correspond). The model folds ALPHABETIC (PIC A) into alphanumeric
-    /// (<see cref="PicInfo.Analyze"/>), so Table 16's alphabetic-only prohibitions (numeric / numeric-edited /
+    /// (<see cref="PictureAnalyzer.Analyze"/>), so Table 16's alphabetic-only prohibitions (numeric / numeric-edited /
     /// boolean → alphabetic: No) are not separable here — those pairs are admitted under the alphanumeric column.
     /// </summary>
     private bool CorrMoveValid(DataItem src, DataItem dst)

@@ -216,7 +216,7 @@ internal sealed class VersionConformancePass
     // Genuinely SEMANTIC — identity is a RESOLVED DataItem attribute (its USAGE / PICTURE category), never parse
     // presence, so a bound-arm walk is the correct home. Fires ONCE per SOURCE declaration: DataBinder's
     // ConformanceForest excludes the post-bind TYPE-clones + compiler temps (which the binder never re-analyzed
-    // and so never gated), reproducing the former per-entry PicInfo.ParseUsage/Analyze gates byte-for-byte.
+    // and so never gated), reproducing the former per-entry PictureAnalyzer.ParseUsage/Analyze gates byte-for-byte.
     private void GateData(DataBinder data)
     {
         foreach (var item in data.ConformanceForest())

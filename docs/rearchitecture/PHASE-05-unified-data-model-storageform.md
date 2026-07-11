@@ -405,7 +405,13 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
   DEVIATION (in DESIGN §2.2): `RenamesPlace` stays direct — N spanned leaves, no single inner; its Pic/Item are
   the level-66 alias's own (§13.18.45) — deriving = overriding every forward.
   b DONE (DEVLOG 781): `StrongTypeModel` static helpers (`Model/StrongTypeModel.cs`); NO forwarding props — all
-  6 caller sites repointed; `DataItem` keeps only the stored `StrongType`/`TypeName` facts. c–e pending.
+  6 caller sites repointed; `DataItem` keeps only the stored `StrongType`/`TypeName` facts.
+  c DONE (DEVLOG 782): `PictureAnalyzer` extracted (`Analyze` + `ParseUsage` + helpers; PicInfo 736→~350 lines,
+  a pure value record + projections); dead skeleton scaffolding deleted (`IsUnimplementedSkeleton` const-false,
+  `SkeletonReached`, 4 guard arms, the constant-false `out bool skeleton` overload);
+  DEVIATION (in DESIGN §2.7): the sentinel replacement is `DataItem.Pending : PicPending` + the
+  `PicInfo.Recovery` factory, NOT an Analyze-result `PicAnalysis` — the pending sentinels never came from
+  Analyze (picture-less entries; the verdict needs the complete forest). d–e pending.
 - [x] Step 12 (DEVLOG 779) — identities #1/#5 retired with their subjects; #2/#3/#4 stay (#3 guards two live
   computations); the DAG was finalized at P6 (GroupTail + terminal conformance pass)
 - [x] Step 13 (DEVLOG 779) — ApostropheValueDifferentialTests ×3, PROVEN failing-first under a '"'-only

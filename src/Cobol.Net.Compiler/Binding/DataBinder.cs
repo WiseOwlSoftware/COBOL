@@ -919,6 +919,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CobolName = src.CobolName,
             CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
             Pic = src.Pic,
+            Pending = src.Pending,   // the deferred NATIONAL/BIT adjudication travels with the clone (P5.11c)
             OwnSign = src.OwnSign,
             OwnUsage = src.OwnUsage,
             RawValue = src.RawValue,
@@ -1203,7 +1204,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // Parse the usage keyword ONCE per entry — ParseUsage carries the W2 loud-guard gates (the 2002+
         // skeleton usages error, ISO §13.18.60), and a re-parse would duplicate their diagnostics.
         string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
-        Usage entryUsage = PicInfo.ParseUsage(usageText, Edition, entryWhere, out bool skeletonUsage);
+        Usage entryUsage = PictureAnalyzer.ParseUsage(usageText, Edition, entryWhere);
 
         // A PICTURE-less USAGE INDEX entry is an ELEMENTARY index data item (ISO §13.18.60 — class index, no
         // PICTURE allowed), not a group: synthesize its profile so it emits as a long occurrence-number field.
@@ -1264,7 +1265,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
 
         var pic = pictureText is not null
-            ? PicInfo.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol,
+            ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol,
                 blankWhenZero, explicitUsage: usageText is not null)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem
@@ -1275,12 +1276,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // its value is a native float/double, never scaled-integer (before this the chain fell to null → NRE).
             : entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
                 ? PicInfo.FloatItem(entryUsage)
-            // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to
-            // subordinates, §13.18.60.4 GR1) or an illegal picture-less elementary item (0881) — unknowable
-            // until the forest is complete: ResolveIndexItems adjudicates via these marker shapes.
-            : entryUsage is Usage.National ? PicInfo.NationalUsagePending
-            : entryUsage is Usage.Bit ? PicInfo.BitUsagePending
-            : skeletonUsage ? PicInfo.RecoveryItem : null;
+            : null;   // incl. a PICTURE-less USAGE NATIONAL/BIT entry — Pending (below) carries its adjudication
+
+        // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to subordinates,
+        // §13.18.60.4 GR1) or an illegal picture-less elementary item (0881) — unknowable until the forest is
+        // complete: ResolveIndexItems adjudicates via this EXPLICIT mark (P5.11c; formerly the reference-identity
+        // sentinel PicInfos NationalUsagePending/BitUsagePending).
+        var pending = pic is null && entryUsage is Usage.National ? PicPending.NationalUsage
+            : pic is null && entryUsage is Usage.Bit ? PicPending.BitUsage
+            : PicPending.None;
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.
@@ -1302,6 +1306,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CobolName = isFiller ? null : cobolName,
             CsName = csName,
             Pic = pic,
+            Pending = pending,
             OwnSign = ownSign,
             OwnUsage = usageText is not null ? entryUsage : null,
             RawValue = rawValue,
@@ -1427,17 +1432,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         + "1989:2023 (Annex E.3.2 item 6; before 2023 SYNCHRONIZED is permitted only on elementary "
                         + $"items) - it requires --std 2023 or later (targeting COBOL-{Edition.DialectLevel})");
                 if (ReferenceEquals(item.Pic, PicInfo.IndexItem)) item.Pic = null;   // a group, not an elementary index
-                // A skeleton-usage RECOVERY shape on a GROUP header sheds the same way (the usage merely
-                // inherits per §13.18.60.4 GR1; a Pic'd "group" would stop grouping — DEVLOG 597).
-                if (ReferenceEquals(item.Pic, PicInfo.RecoveryItem)) item.Pic = null;
                 // USAGE NATIONAL / BIT on a GROUP header sheds per §13.18.60.4 GR1 — with the SR12/SR5
                 // conformance check over the subordinate leaves (each leaf's own PICTURE has already
                 // classified it): under NATIONAL a leaf must be national (fine), boolean/numeric (spec-legal
                 // national FORMS — staged, the Analyze 0899 legs), never alphabetic/alphanumeric; under BIT
-                // every leaf must be boolean (SR5).
-                if (ReferenceEquals(item.Pic, PicInfo.NationalUsagePending))
+                // every leaf must be boolean (SR5). Adjudicated via the EXPLICIT Pending mark (P5.11c) — the
+                // item's Pic was never a sentinel shape and is already null.
+                if (item.Pending is PicPending.NationalUsage)
                 {
-                    item.Pic = null;
+                    item.Pending = PicPending.None;
                     foreach (var l in Leaves(item))
                         if (l.Pic is { Category: PicCategory.Boolean or PicCategory.Numeric or PicCategory.NumericEdited })
                             Edition.Error(DiagnosticCatalog.NationalData, "national-form data (a boolean or numeric item "
@@ -1450,9 +1453,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 + "national-edited, numeric, and numeric-edited pictures only "
                                 + "(ISO §13.18.60.3 SR12 / §13.18.60.4 GR1; §13.18.40.3 SR30)");
                 }
-                if (ReferenceEquals(item.Pic, PicInfo.BitUsagePending))
+                if (item.Pending is PicPending.BitUsage)
                 {
-                    item.Pic = null;
+                    item.Pending = PicPending.None;
                     foreach (var l in Leaves(item))
                         if (l.Pic is not null and not { Category: PicCategory.Boolean })
                             Edition.Error("COBOLNET0881", $"data item '{l.CobolName ?? "FILLER"}': USAGE BIT "
@@ -1468,16 +1471,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         or Usage.BinaryLong or Usage.BinaryDouble }) item.Pic = null;
                 foreach (var c in item.Children) Walk(c, isIndex, objRef);
             }
-            else if (ReferenceEquals(item.Pic, PicInfo.NationalUsagePending)
-                     || ReferenceEquals(item.Pic, PicInfo.BitUsagePending))
+            else if (item.Pending is not PicPending.None)
             {
                 // A PICTURE-less ELEMENTARY item may not carry USAGE NATIONAL/BIT — they are not among the
                 // picture-less usages (§13.18.60.4; contrast INDEX/POINTER/OBJECT REFERENCE/BINARY-x). The
                 // recovery shape keeps the doomed emit crash-free (the DEVLOG-597 pattern).
                 Edition.Error("COBOLNET0881", $"data item '{item.CobolName ?? "FILLER"}': an elementary item "
-                    + $"with USAGE {(ReferenceEquals(item.Pic, PicInfo.BitUsagePending) ? "BIT" : "NATIONAL")} "
+                    + $"with USAGE {(item.Pending is PicPending.BitUsage ? "BIT" : "NATIONAL")} "
                     + "requires a PICTURE clause (ISO §13.18.60.4 — not a picture-less usage)");
-                item.Pic = PicInfo.RecoveryItem;
+                item.Pic = PicInfo.Recovery();
+                item.Pending = PicPending.None;
             }
             else if (isIndex && item.Pic is null)
                 item.Pic = PicInfo.IndexItem;
@@ -1515,7 +1518,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     /// <summary>Apply group-level SIGN clauses to subordinate signed numeric DISPLAY items (ISO §13.18.52 GR1–3):
     /// a SIGN on a group applies to every signed numeric item subordinate to it, the NEAREST enclosing clause takes
-    /// precedence, and an item's OWN clause (already consumed by <see cref="PicInfo.Analyze"/> at entry bind) wins
+    /// precedence, and an item's OWN clause (already consumed by <see cref="PictureAnalyzer.Analyze"/> at entry bind) wins
     /// outright. Runs BEFORE the REDEFINES classification pass because a SEPARATE sign occupies its own character
     /// position (§13.18.52 GR6a) — it widens the item's image, which feeds the class-max width.</summary>
     internal void InheritSignClauses()
@@ -1817,7 +1820,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// OO/UDF compiler temps (recorded in <see cref="CompilerTempClones"/>; both share the source item's <c>PicInfo</c> by
     /// reference — so they must NOT be dedup'd by <c>PicInfo</c> identity: two distinct source pointer items share the ONE
     /// <c>PicInfo.PointerItem</c> singleton). The result is exactly the set of items the binder's per-entry
-    /// <c>PicInfo.ParseUsage</c>/<c>Analyze</c> gates fired for, once each.
+    /// <c>PictureAnalyzer.ParseUsage</c>/<c>Analyze</c> gates fired for, once each.
     /// </summary>
     public IEnumerable<DataItem> ConformanceForest()
     {

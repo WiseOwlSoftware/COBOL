@@ -4,6 +4,19 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace CobolNet.Binding.Model;
 
+/// <summary>The deferred declaration verdict <see cref="DataItem.Pending"/> carries between entry bind and the
+/// <c>DataBinder.ResolveIndexItems</c> adjudication (P5.11c — the explicit discriminant replacing the former
+/// reference-identity sentinel PicInfos <c>NationalUsagePending</c>/<c>BitUsagePending</c>/<c>RecoveryItem</c>).</summary>
+public enum PicPending
+{
+    /// <summary>No deferred adjudication.</summary>
+    None,
+    /// <summary>A PICTURE-less <c>USAGE NATIONAL</c> entry (ISO §13.18.60.3 SR12 / §13.18.60.4 GR1).</summary>
+    NationalUsage,
+    /// <summary>A PICTURE-less <c>USAGE BIT</c> entry (ISO §13.18.60.3 SR5 / §13.18.60.4 GR1).</summary>
+    BitUsage,
+}
+
 /// <summary>
 /// A bound DATA DIVISION item: a node in the record tree. Elementary items (<see cref="Pic"/> non-null) become
 /// native C# fields; group items (children, no PIC) become nested <c>record struct</c> types. There is no byte
@@ -30,6 +43,13 @@ public sealed class DataItem
 
     /// <summary>The analyzed PICTURE/USAGE for an elementary item; <see langword="null"/> for a group.</summary>
     public PicInfo? Pic { get; set; }
+
+    /// <summary>The DEFERRED adjudication mark of a PICTURE-less <c>USAGE NATIONAL</c>/<c>BIT</c> entry
+    /// (ISO §13.18.60.4): whether it is a legal GROUP header (the usage sheds to subordinates, GR1) or an illegal
+    /// picture-less elementary item (COBOLNET0881) is unknowable until the forest is complete —
+    /// <c>DataBinder.MakeItem</c> writes it, <c>DataBinder.ResolveIndexItems</c> adjudicates and CLEARS it
+    /// (P5.11c; <see cref="Pic"/> stays null meanwhile, never a sentinel shape).</summary>
+    public PicPending Pending { get; set; }
 
     /// <summary>This entry's OWN SIGN clause (ISO §13.18.52), or <see langword="null"/> when none — captured even on
     /// a group item: a group-level SIGN applies to every subordinate signed numeric DISPLAY item, nearest enclosing

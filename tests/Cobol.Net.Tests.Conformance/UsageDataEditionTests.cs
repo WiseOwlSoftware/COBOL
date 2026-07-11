@@ -6,7 +6,7 @@ namespace CobolNet.Tests.Conformance;
 
 /// <summary>
 /// EXACT-COUNT witnesses for the Step-14g.1 data-attribute USAGE / PICTURE-category introduction gates — relocated
-/// from the bind-time <c>PicInfo.ParseUsage</c>/<c>Analyze</c> Checks to the post-bind <c>VersionConformancePass</c>
+/// from the bind-time <c>PictureAnalyzer.ParseUsage</c>/<c>Analyze</c> Checks to the post-bind <c>VersionConformancePass</c>
 /// <c>GateData</c> enumerator (keyed on the RESOLVED item). The version matrix + the contains-based conformance suite
 /// verify PRESENCE; these pin the FIRING COUNT — exactly ONE COBOLNET0900 per SOURCE declaration — which a
 /// contains-based assertion cannot catch. They guard the three dedup hazards the recon flagged: (1) the dual

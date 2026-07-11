@@ -339,7 +339,7 @@ public sealed partial class DataBinder
                 // USAGE-DISPLAY elementary item; its numeric face stores its character IMAGE (StoreAsImage).
                 string itemWhere = $"RD '{model.Name}' printable item '{entryName ?? "FILLER"}'";
                 var pic = picText is not null
-                    ? PicInfo.Analyze(picText, PicInfo.ParseUsage(usageText, Edition, itemWhere), Edition,
+                    ? PictureAnalyzer.Analyze(picText, PictureAnalyzer.ParseUsage(usageText, Edition, itemWhere), Edition,
                         itemWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
                     : null;
                 if (pic is null)
@@ -442,7 +442,7 @@ public sealed partial class DataBinder
         // Analyze site (a custom §12.3.7 currency symbol in a SUM counter's PICTURE must classify, not error).
         string sumWhere = $"RD '{model.Name}' SUM counter '{entryName ?? "FILLER"}'";
         var pic = picText is not null
-            ? PicInfo.Analyze(picText, Usage.Display, Edition, sumWhere, currency: CurrencyPicSymbol)
+            ? PictureAnalyzer.Analyze(picText, Usage.Display, Edition, sumWhere, currency: CurrencyPicSymbol)
             : null;
         var sum = new ReportSumModel
         {

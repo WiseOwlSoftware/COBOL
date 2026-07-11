@@ -259,7 +259,14 @@ New `Binding/Model/RecordLayout.cs`: the single owner of character offset/width 
   (`PicInfo.cs:333-562`) into `Binding/PictureAnalyzer.cs` (`PicInfo Analyze(...)`). Delete the dead skeleton
   scaffolding (`IsUnimplementedSkeleton => false`, `SkeletonReached`, and the three `ReferenceEquals` sentinel
   singletons `NationalUsagePending`/`BitUsagePending`/`RecoveryItem` — replace with a proper `PicAnalysis` result
-  discriminant `Ok | GroupUsageShed | Recover`).
+  discriminant `Ok | GroupUsageShed | Recover`). *(AS LANDED, P5.11c — the discriminant lives on `DataItem`, not
+  on an Analyze result: the two Pending sentinels never came from `Analyze` (they arise for PICTURE-LESS entries,
+  where Analyze is not called), and the group-vs-elementary verdict is unknowable until the forest completes —
+  the state was always DataItem state encoded as Pic reference-identity. Landed as
+  `DataItem.Pending : PicPending {None, NationalUsage, BitUsage}` (MakeItem writes; CloneItem carries;
+  `ResolveIndexItems` adjudicates + clears), and `Recover` as the `PicInfo.Recovery(int)` factory — a plain
+  value shared by the analyzer's five inline recovery paths and the 0881 elementary arm. `ParseUsage` moved to
+  `PictureAnalyzer` too, its constant-false `out bool skeleton` overload deleted.)*
 - Rename `ResolveIndexItems` → fold into `UsageInheritancePass` (§2.5 step 2); it does USAGE-marker resolution, not
   index-only work.
 - `NumProfile` (runtime) stays the runtime projection of `PicInfo`. Today `PicInfo` re-materializes it as an

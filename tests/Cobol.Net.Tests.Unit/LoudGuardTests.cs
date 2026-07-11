@@ -9,9 +9,9 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// The W2 loud-guard sweep at the unit level (roadmap Phase 2; architecture rec 2 — every silent misbind is a
-/// wrong-answer bug): <see cref="PicInfo.ParseUsage"/> recognizes EVERY grammar-accepted usage keyword explicitly
+/// wrong-answer bug): <see cref="PictureAnalyzer.ParseUsage"/> recognizes EVERY grammar-accepted usage keyword explicitly
 /// (ISO §13.18.60 — the 2002 inventory previously fell through a catch-all to DISPLAY), and
-/// <see cref="PicInfo.Analyze"/> enforces the §13.18.40.3 SR2 PICTURE symbol whitelist (the 2002+ symbols
+/// <see cref="PictureAnalyzer.Analyze"/> enforces the §13.18.40.3 SR2 PICTURE symbol whitelist (the 2002+ symbols
 /// N/1/E previously fell through to "pure numeric, zero digits").
 /// <para><b>Edition-gate note (Step 14g.1):</b> the USAGE / PICTURE-category INTRODUCTION gates (national /
 /// boolean / pointer / object-reference / binary-char-family / float-trio 2002 introductions) no longer fire at
@@ -45,7 +45,7 @@ public sealed class LoudGuardTests
     public void ParseUsage_ImplementedKeywords_MapWithoutDiagnostics(string? keyword, Usage expected)
     {
         var ed = Ed(85);
-        Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed, "data item 'T'"));
+        Assert.Equal(expected, PictureAnalyzer.ParseUsage(keyword, ed, "data item 'T'"));
         Assert.False(ed.HasErrors);
         Assert.Empty(ed.Warnings);
     }
@@ -71,7 +71,7 @@ public sealed class LoudGuardTests
         foreach (int level in new[] { 85, 2002, 2014, 2023 })
         {
             var ed = Ed(level);
-            Assert.Equal(expected, PicInfo.ParseUsage(keyword, ed, "data item 'T'"));
+            Assert.Equal(expected, PictureAnalyzer.ParseUsage(keyword, ed, "data item 'T'"));
             // NO parse-layer diagnostic at any edition — the below-2002 introduction gate is the pass's job now.
             Assert.False(ed.HasErrors, $"USAGE {keyword} @ {level}: ParseUsage must be gate-free (14g.1): "
                 + string.Join("; ", ed.Diagnostics));
@@ -84,7 +84,7 @@ public sealed class LoudGuardTests
     public void ParseUsage_UnrecognizedKeyword_LoudInternalError()
     {
         var ed = Ed(2023);
-        PicInfo.ParseUsage("BINARY-CHARSIGNED", ed, "data item 'T'");   // the historical glued-text shape
+        PictureAnalyzer.ParseUsage("BINARY-CHARSIGNED", ed, "data item 'T'");   // the historical glued-text shape
         Assert.True(ed.HasErrors);
         Assert.Contains(ed.Diagnostics, d => d.Contains("unrecognized USAGE keyword"));
     }
@@ -101,7 +101,7 @@ public sealed class LoudGuardTests
     public void Analyze_ExternalFloat_At85_CarriesSkeletonGate()
     {
         var ed = Ed(85);
-        var pic = PicInfo.Analyze("9V99E+99", Usage.Display, ed, "data item 'T'");
+        var pic = PictureAnalyzer.Analyze("9V99E+99", Usage.Display, ed, "data item 'T'");
         Assert.False(ed.HasErrors, "the 0900 moved to GateData (14g.5) — Analyze is silent at the picture layer below 2002");
         Assert.Equal(Constructs.PicExternalFloat2002, pic.SkeletonGate);
     }
@@ -113,7 +113,7 @@ public sealed class LoudGuardTests
     public void Analyze_2002Symbol_NotImplementedErrorAt2023(string picture)
     {
         var ed = Ed(2023);
-        PicInfo.Analyze(picture, Usage.Display, ed, "data item 'T'");
+        PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
         Assert.True(ed.HasErrors, $"PIC {picture} must not classify silently (§13.18.40.4 — no implementation yet)");
         Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("not yet implemented"));
     }
@@ -124,7 +124,7 @@ public sealed class LoudGuardTests
     public void Analyze_PicN_ClassifiesNational_UsageImplied()
     {
         var ed = Ed(2002);
-        var pic = PicInfo.Analyze("N(4)", Usage.Display, ed, "data item 'T'");
+        var pic = PictureAnalyzer.Analyze("N(4)", Usage.Display, ed, "data item 'T'");
         Assert.False(ed.HasErrors, string.Join("; ", ed.Diagnostics));
         Assert.Equal(PicCategory.National, pic.Category);
         Assert.Equal(Usage.National, pic.Usage);
@@ -138,14 +138,14 @@ public sealed class LoudGuardTests
     public void Analyze_Pic1_ClassifiesBoolean_UsageDisplay()
     {
         var ed = Ed(2002);
-        var pic = PicInfo.Analyze("1(8)", Usage.Display, ed, "data item 'T'");
+        var pic = PictureAnalyzer.Analyze("1(8)", Usage.Display, ed, "data item 'T'");
         Assert.False(ed.HasErrors, string.Join("; ", ed.Diagnostics));
         Assert.Equal(PicCategory.Boolean, pic.Category);
         Assert.Equal(Usage.Display, pic.Usage);
         Assert.Equal(8, pic.Length);
 
         var edBit = Ed(2002);
-        var bit = PicInfo.Analyze("1(4)", Usage.Bit, edBit, "data item 'T'", explicitUsage: true);
+        var bit = PictureAnalyzer.Analyze("1(4)", Usage.Bit, edBit, "data item 'T'", explicitUsage: true);
         Assert.False(edBit.HasErrors, string.Join("; ", edBit.Diagnostics));
         Assert.Equal(PicCategory.Boolean, bit.Category);
         Assert.Equal(Usage.Bit, bit.Usage);
@@ -158,19 +158,19 @@ public sealed class LoudGuardTests
     public void Analyze_UsagePictureConformance_0881And0899Shapes()
     {
         var ed = Ed(2002);
-        PicInfo.Analyze("N(4)", Usage.Display, ed, "data item 'T'", explicitUsage: true);   // SR20
+        PictureAnalyzer.Analyze("N(4)", Usage.Display, ed, "data item 'T'", explicitUsage: true);   // SR20
         Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0881"));
 
         var ed2 = Ed(2002);
-        PicInfo.Analyze("X(4)", Usage.Bit, ed2, "data item 'T'", explicitUsage: true);      // SR5
+        PictureAnalyzer.Analyze("X(4)", Usage.Bit, ed2, "data item 'T'", explicitUsage: true);      // SR5
         Assert.Contains(ed2.Diagnostics, d => d.Contains("COBOLNET0881"));
 
         var ed3 = Ed(2002);
-        PicInfo.Analyze("9(4)", Usage.National, ed3, "data item 'T'", explicitUsage: true); // SR12 staged
+        PictureAnalyzer.Analyze("9(4)", Usage.National, ed3, "data item 'T'", explicitUsage: true); // SR12 staged
         Assert.Contains(ed3.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("national-form numeric"));
 
         var ed4 = Ed(2002);
-        PicInfo.Analyze("1(4)", Usage.National, ed4, "data item 'T'", explicitUsage: true); // SR12 staged
+        PictureAnalyzer.Analyze("1(4)", Usage.National, ed4, "data item 'T'", explicitUsage: true); // SR12 staged
         Assert.Contains(ed4.Diagnostics, d => d.Contains("COBOLNET0899") && d.Contains("national-form boolean"));
     }
 
@@ -185,7 +185,7 @@ public sealed class LoudGuardTests
         foreach (int level in new[] { 85, 2002, 2014, 2023 })
         {
             var ed = Ed(level);
-            PicInfo.Analyze(picture, Usage.Display, ed, "data item 'T'");
+            PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
             Assert.True(ed.HasErrors, $"PIC {picture} must be rejected at COBOL-{level} (§13.18.40.3 SR2)");
             Assert.Contains(ed.Diagnostics, d => d.Contains("COBOLNET0808") && d.Contains($"'{bad}'"));
         }
@@ -197,7 +197,7 @@ public sealed class LoudGuardTests
     public void Analyze_Alphanumeric_Unchanged()
     {
         var ed = Ed(85);
-        var pic = PicInfo.Analyze("X(4)", Usage.Display, ed, "data item 'T'");
+        var pic = PictureAnalyzer.Analyze("X(4)", Usage.Display, ed, "data item 'T'");
         Assert.False(ed.HasErrors);
         Assert.Equal(PicCategory.Alphanumeric, pic.Category);
         Assert.Equal(4, pic.Length);
@@ -207,7 +207,7 @@ public sealed class LoudGuardTests
     public void Analyze_SignedScaledNumeric_Unchanged()
     {
         var ed = Ed(85);
-        var pic = PicInfo.Analyze("S9(4)V99", Usage.Display, ed, "data item 'T'");
+        var pic = PictureAnalyzer.Analyze("S9(4)V99", Usage.Display, ed, "data item 'T'");
         Assert.False(ed.HasErrors);
         Assert.Equal(PicCategory.Numeric, pic.Category);
         Assert.Equal(6, pic.Digits);
@@ -223,7 +223,7 @@ public sealed class LoudGuardTests
     public void Analyze_CrDbPairs_StillNumericEdited(string picture)
     {
         var ed = Ed(85);
-        var pic = PicInfo.Analyze(picture, Usage.Display, ed, "data item 'T'");
+        var pic = PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
         Assert.False(ed.HasErrors);
         Assert.Equal(PicCategory.NumericEdited, pic.Category);
     }
@@ -236,7 +236,7 @@ public sealed class LoudGuardTests
     public void Analyze_CustomCurrencySymbol_StillNumericEdited(string picture, char currency)
     {
         var ed = Ed(85);
-        var pic = PicInfo.Analyze(picture, Usage.Display, ed, "data item 'T'", currency: currency);
+        var pic = PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'", currency: currency);
         Assert.False(ed.HasErrors);
         Assert.Equal(PicCategory.NumericEdited, pic.Category);
     }
@@ -253,7 +253,7 @@ public sealed class LoudGuardTests
     public void Analyze_85CorpusShapes_NoDiagnostics(string picture)
     {
         var ed = Ed(85);
-        PicInfo.Analyze(picture, Usage.Display, ed, "data item 'T'");
+        PictureAnalyzer.Analyze(picture, Usage.Display, ed, "data item 'T'");
         Assert.False(ed.HasErrors, string.Join("; ", ed.Diagnostics));
         Assert.Empty(ed.Warnings);
     }
