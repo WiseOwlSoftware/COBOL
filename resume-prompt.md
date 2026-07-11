@@ -121,14 +121,17 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔🔀 RESUME AT: EXEC STEP A step 6b — CONVERT THE FIRST CONSUMER onto the exhaustive visitor.**
+> §9.5). **⛔🔀 RESUME AT: EXEC STEP A step 6c — CONVERT THE NEXT CONSUMER onto the exhaustive visitor.**
 > **✅ 6a DONE (DEVLOG 755):** the `Cobol.Net.Compiler.SourceGen` Roslyn **incremental** source generator
-> (`BoundVisitorGenerator`, semantic-model-driven off `[BoundNode]` on all 7 roots) now emits the exhaustive
+> (`BoundVisitorGenerator`, semantic-model-driven off `[BoundNode]` on all 7 roots) emits the exhaustive
 > `I{Root}Visitor<T>` + `BoundVisitor.Accept<T>` (120 leaves / 7 roots), build-green + `BoundVisitorGeneratorTests`
 > (reflection correctness net; no drift test — a source generator can't drift). ⛔ **An interim regex pwsh generator
 > was written then REMOVED — the owner directed the canonical C#→C# tooling (a source generator), NOT a hand-rolled
-> script; commercial-quality, decades-maintainable.** RESUME: convert consumers 6b→6f ONE at a time (6b = `EmitStatement`
-> → `IBoundStatementVisitor<bool>`, delete the loud `default`; then the renderers/analyses), battery-green each. The
+> script; commercial-quality, decades-maintainable.** **✅ 6b DONE (DEVLOG 756):** `CSharpEmitter` now implements
+> `IBoundStatementVisitor<bool>` — the 79-arm `EmitStatement` switch + its loud `default` became 79 `Visit` methods
+> in `CodeGen/CSharpEmitter.Dispatch.cs` (`EmitStatement` = `s.Accept(this)`); proven byte-exact (32 characterization
+> + 3158 conformance). RESUME: convert the remaining consumers 6c→6f ONE at a time (6c `BoundStores.StoreKindOf` →
+> `IBound*Visitor`; 6d `NumericRenderer`; 6e `ConditionRenderer`; 6f `OperandText`/analyses), battery-green each. The
 > roadmap was RE-SEQUENCED tooling-first (2026-07-11, owner-directed —
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md §4.1`; eval `docs/rearchitecture/EVAL-antlr-leverage-and-traversal.md`;
 > [[project_path_a_leverage_tooling]]): front-load the two tooling foundations so every later phase LEVERAGES them

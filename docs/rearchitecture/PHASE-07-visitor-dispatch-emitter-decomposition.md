@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) PULLED FORWARD as Exec Step A · 6a DONE (last green commit 405509e1, DEVLOG 755), converting consumers 6b→6f next`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) PULLED FORWARD as Exec Step A · 6a+6b DONE (last green commit see git; DEVLOG 755–756), converting consumers 6c→6f next`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -320,11 +320,15 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
   - COMMIT: `P7 step6a: Roslyn BoundVisitorGenerator + [BoundNode] on 7 roots (exhaustive I{Root}Visitor/Accept; no consumers yet)`
 
 - **6b..6f — Convert consumers ONE at a time** (emitter first, then analyses, then renderers):
-  - **6b** `EmitStatement` (`CSharpEmitter.cs:349`) → `StatementEmitter : IBoundStatementVisitor<bool>` (bool =
-    "unconditionally transfers control", preserving today's contract). The 79 `case` arms become `Visit` overrides
-    (bodies UNCHANGED — just relocated); the `default: LoudStmt(...)` is DELETED. The five error nodes collapse to
-    one `Visit(IBoundError)`… — but a visitor interface can't dispatch on the marker, so give the generator an
-    option to route all `IBoundError` leaves to a single `VisitError(IBoundError n)` the visitor implements once.
+  - **6b ✅ DONE (2026-07-11, commit see STATUS).** `EmitStatement` → `CSharpEmitter : IBoundStatementVisitor<bool>`
+    (bool = "unconditionally transfers control", preserving today's contract). The 79 `case` arms became 79 `Visit`
+    methods in a NEW partial `CodeGen/CSharpEmitter.Dispatch.cs` (bodies verbatim — the arm's pattern var renamed to
+    `n`, `w` re-localized per method); `EmitStatement` is now `=> s.Accept(this)`; the `default: LoudStmt(...)` is
+    DELETED. **As-built refinement:** the emitter stays ONE class (the interface is added on the Dispatch partial) —
+    a separate `StatementEmitter` collaborator is the P6-dependent decomposition deferred to Exec Step D (it needs
+    the immutable `EmitContext`/`BinderContext`); pulling it out now would just fight the shared mutable emitter
+    state. The five error nodes each get their own `Visit` (no `IBoundError` collapse — see §6a). Proven byte-exact:
+    32 characterization snapshots + 3158 conformance unchanged.
   - **6c** `BoundStores.StoreKindOf` → rename file/type to `BoundStoreAnalysis` and implement the relevant visitor
     (`DESIGN-binder-bound-tree.md §4` rename row).
   - **6d** `NumericRenderer.Render/AsNum` → `IBoundExprVisitor<NumX>` / operand visitor.
