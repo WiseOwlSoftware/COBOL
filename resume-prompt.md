@@ -121,12 +121,15 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔🔀 RESUME AT: EXEC STEP A — the ONE last consumer, 6c `StoreKindOf` → `StoreKindVisitor :
-> IBoundStatementVisitor<StoreKind?>` (per-node polarity; KEEP each arm's node-specific `Kids(<lists>)` — do NOT ride
-> `StatementChildren` wholesale; resolve the FLAGGED `BoundKeyedDelete`-misses-`InvalidKey` latent bug per PHASE-07 §6c;
-> the 9 `_ => null` nodes stay `null`; NOT byte-exact-covered → diff arm-by-arm). DONE: every rendering/classification consumer
-> (6a,6b,6d,6e,6f-OperandText), the walker FOUNDATION (6g `BoundStatementTree.StatementChildren`), AND the two analysis
-> walkers (6f `ContainsNextSentence`/`AlterCollectFields`, DEVLOG 760). See PHASE-07 §6c/§6g.**
+> §9.5). **⛔🔀 RESUME AT: EXEC STEP B — P6 (the Real Binder phase: `SymbolTable` + `BoundCompilation` +
+> `BindPipeline`; `docs/rearchitecture/PHASE-06-*.md`). ✅ EXEC STEP A (PHASE-07 Step 6, the exhaustive visitor) is
+> COMPLETE (6a–6g, DEVLOG 755–761):** the Roslyn source generator emits the visitor interfaces + `Accept` +
+> `BoundStatementTree.StatementChildren`, and EVERY consumer is converted — emitter (6b), `NumericRenderer` (6d),
+> `ConditionRenderer` (6e), `OperandText` + `ContainsNextSentence`/`AlterCollectFields` (6f), `StoreKindOf` (6c). No
+> loud `_`/`default` dispatch arm survives; a missing arm is now a COMPILE error. (The `BoundKeyedDelete`-`InvalidKey`
+> flag was resolved a NON-bug — nested bodies are separately property-wrapped, so the handler recursion is defensively
+> redundant.) The rest of PHASE-07 (structural `Place`, god-class decomposition, `ICodeGenBackend`) is Exec Step D,
+> AFTER P6. See PHASE-07 §Step-6 + `COBOLNET_REARCHITECTURE_PLAN.md §4.1`.**
 > **✅ 6a DONE (DEVLOG 755):** the `Cobol.Net.Compiler.SourceGen` Roslyn **incremental** source generator
 > (`BoundVisitorGenerator`, semantic-model-driven off `[BoundNode]` on all 7 roots) emits the exhaustive
 > `I{Root}Visitor<T>` + `BoundVisitor.Accept<T>` (120 leaves / 7 roots), build-green + `BoundVisitorGeneratorTests`

@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 PULLED FORWARD as Exec Step A · 6a,6b,6d,6e,6f(OperandText+analyses) DONE + 6g StatementChildren DONE (DEVLOG 755–760). Every rendering/classification consumer + the ContainsNextSentence/AlterCollectFields walkers are converted; the walker FOUNDATION is landed. REMAINS: the ONE last walker — 6c StoreKindOf (per-node polarity, NOT byte-exact-covered, diff arm-by-arm)`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) COMPLETE as Exec Step A ✅ (6a–6g, DEVLOG 755–761): the Roslyn source generator (visitor interfaces + Accept + StatementChildren) + EVERY consumer converted (emitter 6b, renderers 6d/6e, OperandText+analyses 6f, StoreKindOf 6c) — no loud _/default arm survives, a missing arm is a compile error. Steps 1–5,7–12 of P7 (structural Place, god-class decomposition, ICodeGenBackend) still DEPEND on P6 and run at Exec Step D. NEXT overall: Exec Step B = P6 (SymbolTable/BoundCompilation/BindPipeline).`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -329,35 +329,22 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
     the immutable `EmitContext`/`BinderContext`); pulling it out now would just fight the shared mutable emitter
     state. The five error nodes each get their own `Visit` (no `IBoundError` collapse — see §6a). Proven byte-exact:
     32 characterization snapshots + 3158 conformance unchanged.
-  - **6c ⏳ REMAINS — the DELICATE one; do it with care, NOT a rushed mechanical pass.** `BoundStores.StoreKindOf`
-    → a stateful `StoreKindVisitor : IBoundStatementVisitor<StoreKind?>` carrying the `DataItem item` (the current
-    local funcs `Hit`/`TargetHit`/`ReceiversHit`/`Kids`/`StoreOrKids` become instance methods; recursion
-    `StoreKindOf(child, item)` → `child.Accept(this)`), and `StoreKindOf(s, item) => s.Accept(new StoreKindVisitor(item))`.
-    Optionally rename file/type to `BoundStoreAnalysis` (`DESIGN-binder-bound-tree.md §4` rename row). **Analysis done
-    2026-07-11 (do not re-derive):** of the 79 BoundStatement leaves the switch classifies 70 explicitly; **9 fall to
-    the `_ => null` "stage LOUD, never guess" catch-all** — `BoundAllocate`, `BoundFree`, `BoundInvokeUniversal`,
-    `BoundRaiseObject`, `BoundSetAddressOfBased`, `BoundSetCapacity`, `BoundSetObjectRef`, `BoundSetPointer`,
-    `BoundSetPointerUpDown`. The exhaustive visitor forces an explicit `Visit` for each; to stay BEHAVIOR-NEUTRAL they
-    must return `null` (the identical stage-loud result), NOT `None` — even though several arguably never touch a
-    property temp (that reclassification is a separate reasoned change, not this conversion). ⚠ **Coverage caveat:**
-    unlike the emitter/renderers (6b/6d/6e), `StoreKindOf`'s polarities are NOT byte-exact-characterized — its client is
-    the OO property-ref RECEIVING/SENDING desugar (D-P2), and a mis-transcribed polarity yields a *silently* lost or
-    spurious SET (the file header's own warning), which conformance may not catch. So: transcribe each of the ~46
-    store-bearing arms VERBATIM, then diff the new `Visit` set against the old switch arm-by-arm before trusting green.
-    - ⚠ **RECURSION IS NODE-SPECIFIC — do NOT blindly ride `StatementChildren` (revised 2026-07-11).** Unlike the two
-      analysis walkers (6f, now on `StatementChildren`), `StoreKindOf` combines a per-node *stored?* check with the
-      recursion, and its recursion set is NOT uniform: several arms recurse their phrase bodies (`StoreOrKids(stored,
-      kind, <the node's phrase lists>)`) while others deliberately return `None` without recursing. So the faithful
-      relocation keeps each arm's EXACT `Kids(<specific lists>)` call — do NOT replace them with `KidsOf(n) =
-      n.StatementChildren()` wholesale.
-    - ⚠ **FLAGGED LATENT BUG to resolve during 6c (found 2026-07-11):** `BoundKeyedDelete` is in the pure-`None` arm
-      list (line ~91) — it does NOT recurse its `InvalidKey` handler — yet the method header explicitly states the walk
-      recurses *every* conditional-phrase body "including INVALID KEY", and its siblings `BoundKeyedRewrite`/`Write`/
-      `Start` DO recurse their `InvalidKey`. Either `BoundKeyedDelete` is missing a recursion (a store to a property
-      temp inside `DELETE … INVALID KEY …` would be misclassified `None`) or the header over-states the intent. Decide
-      this against the property-ref desugar semantics (D-P2) BEFORE relocating — the `StatementChildren` container set
-      is the reference for "what a total recursion would cover" (it includes `BoundKeyedDelete.InvalidKey`). If it IS a
-      bug, fixing it is a behavior change in the uncovered property-ref path — do it as its own reasoned, tested step.
+  - **6c ✅ DONE (2026-07-11, DEVLOG 761).** `BoundStores.StoreKindOf` → `StoreKindVisitor :
+    IBoundStatementVisitor<StoreKind?>` carrying `DataItem item` (the local funcs `Hit`/`TargetHit`/`ReceiversHit`/
+    `Kids`/`StoreOrKids`/`InitStores` are now instance methods; recursion is `child.Accept(this)`); `StoreKindOf(s,
+    item) => s.Accept(new StoreKindVisitor(item))`. FAITHFUL, byte-neutral relocation — each of the 79 arms transcribed
+    VERBATIM (recursion kept node-specific, NOT swapped to `StatementChildren`), the compiler proving all 79 covered.
+    The 9 former `_ => null` catch-all nodes (`BoundAllocate`/`BoundFree`/`BoundInvokeUniversal`/`BoundRaiseObject`/
+    `BoundSetAddressOfBased`/`BoundSetCapacity`/`BoundSetObjectRef`/`BoundSetPointer`/`BoundSetPointerUpDown`) are now
+    explicit `=> null` Visits, so a NEW leaf can no longer silently fall into the stage-loud bucket — it is a compile
+    error until classified. 3158 conf + 32 char + 269 unit unchanged.
+    - **The flagged `BoundKeyedDelete`/`InvalidKey` "latent bug" was RESOLVED as a NON-bug.** `StatementBinder.BindStatement`
+      mark/drains property ops per-statement, and every nested body binds through its OWN `BindStatement` (via
+      `BindBlocks`/`Select(BindStatement)`), so a property temp lives ONLY in the carrying statement's direct
+      operands/condition — never in a separately-wrapped nested handler. The `Kids` recursion into handler bodies is
+      therefore DEFENSIVELY total (it never actually finds the temp there), which is exactly why `BoundKeyedDelete`
+      omitting it is equivalent, not a silent-lost-store. (Captured in the `BoundStores` `<remarks>`.) A future cleanup
+      could drop the redundant recursion, but that is a separate, non-byte-covered change — not done here.
   - **6d ✅ DONE (2026-07-11).** `NumericRenderer` implements `IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>`;
     `Render`/`AsNum` are thin `=> e.Accept(this)` dispatchers + 11 expr + 8 operand `Visit` methods. The `Render`
     `_ =>` was already dead (all 11 expr leaves covered); `AsNum`'s `_ =>` caught `BoundAllLiteral`/`BoundBoolOperand`,

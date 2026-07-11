@@ -13,22 +13,27 @@ namespace CobolNet.Binding.Bound;
 /// "sending" would skip a required SET (silently lost store), a misclassified "receiving" would run a
 /// side-effecting SET the spec says is not invoked — hence the walk is a TOTAL explicit taxonomy over every
 /// <c>BoundStatement</c> (the 2026-07-04 15-agent survey, scratchpad <c>bound_stores_classification.md</c>:
-/// 119 nodes, 46 store-bearing; every store field verified against the emitter), and an UNRECOGNIZED node
-/// returns <see langword="null"/> so the caller stages LOUD instead of guessing (§1.4 — never silent).
+/// 119 nodes, 46 store-bearing; every store field verified against the emitter). It is the exhaustive
+/// generated <see cref="IBoundStatementVisitor{T}"/> (PHASE-07 Step 6c), so a new bound-statement leaf is a
+/// COMPILE error here; the nine leaves outside the classified taxonomy return <see langword="null"/> so the
+/// caller stages LOUD instead of guessing (§1.4 — never silent).
 /// </summary>
 /// <remarks>
 /// Scope facts that keep this walk small and honest:
 /// - Only PLACE stores can hit a property temp. Non-Place stores (generated index/ALTER fields, external
 ///   switches, FILE STATUS via <c>FileModel</c>, report-engine counters, run-unit exception state,
 ///   <c>BoundTableSort.ArrayPath</c>) can never target the temp — a temp is a synthesized simple local
-///   (and a property subject cannot carry OCCURS, COBOLNET0842), so those arms are <c>false</c> here.
+///   (and a property subject cannot carry OCCURS, COBOLNET0842), so those arms are <c>None</c> here.
 /// - <see cref="Place.Item"/> is identity-compared: every Place wrapper (RefMod/alias/view) forwards
 ///   <c>Item</c> to the underlying item, so a windowed write through <c>RefModPlace</c> still classifies.
-/// - Child-statement recursion covers every conditional-phrase body (SIZE ERROR / AT END / INVALID KEY /
-///   ON EXCEPTION / ON OVERFLOW / AT EOP), IF/EVALUATE arms, inline-PERFORM bodies, SEARCH arms,
-///   <c>BoundEcChecked.Inner</c> and <c>BoundSequence.Steps</c>. Out-of-line PERFORM bodies are pc ranges
-///   (not nested statements) — a property temp is statement-local by construction, so a store to it can
-///   only occur in the statement that carries it.
+/// - The child-statement recursion (<c>Kids</c>) is DEFENSIVELY total over conditional-phrase bodies (SIZE
+///   ERROR / AT END / INVALID KEY / ON EXCEPTION / ON OVERFLOW / AT EOP), IF/EVALUATE arms, inline-PERFORM
+///   bodies, SEARCH arms, <c>BoundEcChecked.Inner</c> and <c>BoundSequence.Steps</c>. In practice a property
+///   temp is statement-local: every nested statement is bound through its OWN <c>BindStatement</c> and so
+///   drains its own property ops (<c>StatementBinder.BindStatement</c>), so the temp lives in the carrying
+///   statement's DIRECT operands/condition, never a separately-wrapped nested body — which is why arms that
+///   omit the recursion (e.g. <c>BoundKeyedDelete</c>) are equivalent, not buggy. Out-of-line PERFORM bodies
+///   are pc ranges (not nested statements), so they are never walked.
 /// </remarks>
 /// <summary>How a statement touches a given item through its STORE positions (the polarity that selects the
 /// §8.4.3.9.4 general rule): <see cref="None"/> → the occurrence is purely SENDING (GR1, get only);
@@ -41,23 +46,28 @@ public static class BoundStores
     /// <summary>The store polarity of <paramref name="item"/> in <paramref name="s"/> —
     /// <see cref="StoreKind.None"/> = provably never stored (a pure sending occurrence);
     /// <see cref="StoreKind.Write"/> / <see cref="StoreKind.ReadWrite"/> per the emitter-verified
-    /// classification; <see langword="null"/> = the walk met a statement type outside the classified
-    /// taxonomy (stage loud, never guess). A property temp occurs at exactly ONE Place in the tree, so the
-    /// first store found is total.</summary>
-    public static StoreKind? StoreKindOf(BoundStatement s, DataItem item)
+    /// classification; <see langword="null"/> = a statement type outside the classified taxonomy (stage
+    /// loud, never guess). A property temp occurs at exactly ONE Place in the tree, so the first store
+    /// found is total.</summary>
+    public static StoreKind? StoreKindOf(BoundStatement s, DataItem item) => s.Accept(new StoreKindVisitor(item));
+
+    /// <summary>The per-node store classification (the former <c>StoreKindOf</c> switch, one arm per leaf) —
+    /// the exhaustive <see cref="IBoundStatementVisitor{T}"/> over the bound statements, carrying the target
+    /// <paramref name="item"/> so recursion is <c>child.Accept(this)</c>.</summary>
+    private sealed class StoreKindVisitor(DataItem item) : IBoundStatementVisitor<StoreKind?>
     {
-        bool Hit(Place? p) => p is not null && ReferenceEquals(p.Item, item);
-        bool TargetHit(BoundSetTarget? t) => t is SetPlaceTarget sp && Hit(sp.Place);
-        bool ReceiversHit(IReadOnlyList<Receiver> rs) => rs.Any(r => Hit(r.Place));
+        private bool Hit(Place? p) => p is not null && ReferenceEquals(p.Item, item);
+        private bool TargetHit(BoundSetTarget? t) => t is SetPlaceTarget sp && Hit(sp.Place);
+        private bool ReceiversHit(IReadOnlyList<Receiver> rs) => rs.Any(r => Hit(r.Place));
 
         // Aggregate child-statement lists: a found store dominates (the temp occurs exactly once);
         // otherwise an unknown poisons the result.
-        StoreKind? Kids(params IEnumerable<BoundStatement>?[] lists)
+        private StoreKind? Kids(params IEnumerable<BoundStatement>?[] lists)
         {
             bool sawUnknown = false;
             foreach (var list in lists)
                 foreach (var child in list ?? [])
-                    switch (StoreKindOf(child, item))
+                    switch (child.Accept(this))
                     {
                         case StoreKind.Write: return StoreKind.Write;
                         case StoreKind.ReadWrite: return StoreKind.ReadWrite;
@@ -66,119 +76,146 @@ public static class BoundStores
             return sawUnknown ? null : StoreKind.None;
         }
 
-        StoreKind? StoreOrKids(bool stored, StoreKind kind, params IEnumerable<BoundStatement>?[] lists)
+        private StoreKind? StoreOrKids(bool stored, StoreKind kind, params IEnumerable<BoundStatement>?[] lists)
             => stored ? kind : Kids(lists);
 
-        static bool InitStores(IReadOnlyList<InitializeAction> actions, DataItem item)
+        private bool InitStores(IReadOnlyList<InitializeAction> actions)
         {
             foreach (var a in actions)
                 switch (a)
                 {
                     case InitializeStore st when st.Target.Item == item: return true;
-                    case InitializeLoop lp when InitStores(lp.Body, item): return true;
+                    case InitializeLoop lp when InitStores(lp.Body): return true;
                 }
             return false;
         }
 
-        return s switch
-        {
-            // ── Pure control / read-only / model-routed statements (survey "pure" list) ─────────────────
-            BoundUnsupported or BoundStop or BoundStopLiteral or BoundDisplay or BoundGoTo
-                or BoundGoToDepending or BoundExitParagraph or BoundExitPerform or BoundNop
-                or BoundNextSentence or BoundOpen or BoundClose or BoundInitiate or BoundGenerate
-                or BoundTerminate or BoundRaise or BoundResume or BoundSetLastException
-                or BoundGoToAlterable or BoundCancel or BoundExitProgram or BoundGoback
-                or BoundMethodReturn or BoundAlter or BoundSetSwitches or BoundKeyedDelete
-                or BoundSort or BoundMerge or BoundTableSort or BoundUnlock
-                => StoreKind.None,
+        // ── Pure control / read-only / model-routed statements (survey "pure" list) ─────────────────────
+        public StoreKind? Visit(BoundUnsupported n) => StoreKind.None;
+        public StoreKind? Visit(BoundStop n) => StoreKind.None;
+        public StoreKind? Visit(BoundStopLiteral n) => StoreKind.None;
+        public StoreKind? Visit(BoundDisplay n) => StoreKind.None;
+        public StoreKind? Visit(BoundGoTo n) => StoreKind.None;
+        public StoreKind? Visit(BoundGoToDepending n) => StoreKind.None;
+        public StoreKind? Visit(BoundExitParagraph n) => StoreKind.None;
+        public StoreKind? Visit(BoundExitPerform n) => StoreKind.None;
+        public StoreKind? Visit(BoundNop n) => StoreKind.None;
+        public StoreKind? Visit(BoundNextSentence n) => StoreKind.None;
+        public StoreKind? Visit(BoundOpen n) => StoreKind.None;
+        public StoreKind? Visit(BoundClose n) => StoreKind.None;
+        public StoreKind? Visit(BoundInitiate n) => StoreKind.None;
+        public StoreKind? Visit(BoundGenerate n) => StoreKind.None;
+        public StoreKind? Visit(BoundTerminate n) => StoreKind.None;
+        public StoreKind? Visit(BoundRaise n) => StoreKind.None;
+        public StoreKind? Visit(BoundResume n) => StoreKind.None;
+        public StoreKind? Visit(BoundSetLastException n) => StoreKind.None;
+        public StoreKind? Visit(BoundGoToAlterable n) => StoreKind.None;
+        public StoreKind? Visit(BoundCancel n) => StoreKind.None;
+        public StoreKind? Visit(BoundExitProgram n) => StoreKind.None;
+        public StoreKind? Visit(BoundGoback n) => StoreKind.None;
+        public StoreKind? Visit(BoundMethodReturn n) => StoreKind.None;
+        public StoreKind? Visit(BoundAlter n) => StoreKind.None;
+        public StoreKind? Visit(BoundSetSwitches n) => StoreKind.None;
+        public StoreKind? Visit(BoundKeyedDelete n) => StoreKind.None;   // no data receiver; its INVALID KEY body is separately wrapped
+        public StoreKind? Visit(BoundSort n) => StoreKind.None;
+        public StoreKind? Visit(BoundMerge n) => StoreKind.None;
+        public StoreKind? Visit(BoundTableSort n) => StoreKind.None;
+        public StoreKind? Visit(BoundUnlock n) => StoreKind.None;
 
-            // ── Wrappers / containers ───────────────────────────────────────────────────────────────────
-            BoundSequence seq => Kids(seq.Steps),
-            BoundEcChecked ec => StoreKindOf(ec.Inner, item),
-            BoundIf f => Kids(f.Then, f.Else),
-            BoundEvaluate ev => Kids([.. ev.Whens.SelectMany(w => w.Statements)], ev.Other),
-            BoundInlinePerform ip => StoreOrKids(
-                ip.Control is PerformVarying pv && pv.Levels.Any(l => TargetHit(l.Var)),
-                StoreKind.ReadWrite, ip.Body),   // induction var: init + augment (GR12/GR13)
-            BoundOutOfLinePerform op =>
-                op.Control is PerformVarying pv && pv.Levels.Any(l => TargetHit(l.Var))
-                    ? StoreKind.ReadWrite : StoreKind.None,
+        // ── Wrappers / containers ───────────────────────────────────────────────────────────────────────
+        public StoreKind? Visit(BoundSequence n) => Kids(n.Steps);
+        public StoreKind? Visit(BoundEcChecked n) => n.Inner.Accept(this);
+        public StoreKind? Visit(BoundIf n) => Kids(n.Then, n.Else);
+        public StoreKind? Visit(BoundEvaluate n) => Kids([.. n.Whens.SelectMany(w => w.Statements)], n.Other);
+        public StoreKind? Visit(BoundInlinePerform n) => StoreOrKids(
+            n.Control is PerformVarying pv && pv.Levels.Any(l => TargetHit(l.Var)),
+            StoreKind.ReadWrite, n.Body);   // induction var: init + augment (GR12/GR13)
+        public StoreKind? Visit(BoundOutOfLinePerform n) =>
+            n.Control is PerformVarying pv && pv.Levels.Any(l => TargetHit(l.Var))
+                ? StoreKind.ReadWrite : StoreKind.None;
 
-            // ── Data movement / arithmetic (polarity per the survey: in-place vs WRITE-only) ────────────
-            BoundMove mv => mv.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None,
-            BoundAddTo a => StoreOrKids(ReceiversHit(a.Targets), StoreKind.ReadWrite, a.SizeError?.OnError, a.SizeError?.NotOnError),
-            BoundAddGiving a => StoreOrKids(ReceiversHit(a.Targets), StoreKind.Write, a.SizeError?.OnError, a.SizeError?.NotOnError),
-            BoundSubtractFrom a => StoreOrKids(ReceiversHit(a.Targets), StoreKind.ReadWrite, a.SizeError?.OnError, a.SizeError?.NotOnError),
-            BoundSubtractGiving a => StoreOrKids(ReceiversHit(a.Targets), StoreKind.Write, a.SizeError?.OnError, a.SizeError?.NotOnError),
-            BoundMultiplyBy a => StoreOrKids(ReceiversHit(a.Targets), StoreKind.ReadWrite, a.SizeError?.OnError, a.SizeError?.NotOnError),
-            BoundMultiplyGiving a => StoreOrKids(ReceiversHit(a.Targets), StoreKind.Write, a.SizeError?.OnError, a.SizeError?.NotOnError),
-            BoundDivideInto a => StoreOrKids(ReceiversHit(a.Targets), StoreKind.ReadWrite, a.SizeError?.OnError, a.SizeError?.NotOnError),
-            BoundDivideGiving a => StoreOrKids(ReceiversHit(a.Targets), StoreKind.Write, a.SizeError?.OnError, a.SizeError?.NotOnError),
-            BoundDivideRemainder d => StoreOrKids(Hit(d.Quotient.Place) || Hit(d.Remainder), StoreKind.Write,
-                d.SizeError?.OnError, d.SizeError?.NotOnError),
-            BoundCompute c => StoreOrKids(ReceiversHit(c.Targets), StoreKind.Write, c.SizeError?.OnError, c.SizeError?.NotOnError),
-            BoundComputeBoolean cb => cb.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None,   // §14.9.8 F2 — no size-error phrase
-            BoundCorresponding co => StoreOrKids(co.Pairs.Any(p => Hit(p.Target)),
-                co.Verb == CorrVerb.Move ? StoreKind.Write : StoreKind.ReadWrite,
-                co.SizeError?.OnError, co.SizeError?.NotOnError),
-            BoundInitialize ini => InitStores(ini.Actions, item) ? StoreKind.Write : StoreKind.None,
+        // ── Data movement / arithmetic (polarity per the survey: in-place vs WRITE-only) ────────────────
+        public StoreKind? Visit(BoundMove n) => n.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None;
+        public StoreKind? Visit(BoundAddTo n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.ReadWrite, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundAddGiving n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundSubtractFrom n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.ReadWrite, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundSubtractGiving n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundMultiplyBy n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.ReadWrite, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundMultiplyGiving n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundDivideInto n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.ReadWrite, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundDivideGiving n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundDivideRemainder n) => StoreOrKids(Hit(n.Quotient.Place) || Hit(n.Remainder), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundCompute n) => StoreOrKids(ReceiversHit(n.Targets), StoreKind.Write, n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundComputeBoolean n) => n.Targets.Any(Hit) ? StoreKind.Write : StoreKind.None;   // §14.9.8 F2 — no size-error phrase
+        public StoreKind? Visit(BoundCorresponding n) => StoreOrKids(n.Pairs.Any(p => Hit(p.Target)),
+            n.Verb == CorrVerb.Move ? StoreKind.Write : StoreKind.ReadWrite,
+            n.SizeError?.OnError, n.SizeError?.NotOnError);
+        public StoreKind? Visit(BoundInitialize n) => InitStores(n.Actions) ? StoreKind.Write : StoreKind.None;
 
-            // ── SET family ──────────────────────────────────────────────────────────────────────────────
-            BoundSetConditions sc => sc.Sets.Any(x => Hit(x.Parent)) ? StoreKind.Write : StoreKind.None,
-            BoundSetTo st => st.Targets.Any(TargetHit) ? StoreKind.Write : StoreKind.None,
-            BoundSetUpDown su => su.Targets.Any(TargetHit) ? StoreKind.ReadWrite : StoreKind.None,
+        // ── SET family ──────────────────────────────────────────────────────────────────────────────────
+        public StoreKind? Visit(BoundSetConditions n) => n.Sets.Any(x => Hit(x.Parent)) ? StoreKind.Write : StoreKind.None;
+        public StoreKind? Visit(BoundSetTo n) => n.Targets.Any(TargetHit) ? StoreKind.Write : StoreKind.None;
+        public StoreKind? Visit(BoundSetUpDown n) => n.Targets.Any(TargetHit) ? StoreKind.ReadWrite : StoreKind.None;
 
-            // ── SEARCH ──────────────────────────────────────────────────────────────────────────────────
-            BoundSearch se => StoreOrKids(TargetHit(se.AlsoVaried), StoreKind.ReadWrite,
-                se.AtEnd, [.. se.Whens.SelectMany(w => w.Statements)]),
+        // ── SEARCH ──────────────────────────────────────────────────────────────────────────────────────
+        public StoreKind? Visit(BoundSearch n) => StoreOrKids(TargetHit(n.AlsoVaried), StoreKind.ReadWrite,
+            n.AtEnd, [.. n.Whens.SelectMany(w => w.Statements)]);
 
-            // ── ACCEPT / STRING / UNSTRING / INSPECT ────────────────────────────────────────────────────
-            BoundAccept ac => Hit(ac.Target) ? StoreKind.Write : StoreKind.None,
-            BoundStringStmt ss => StoreOrKids(Hit(ss.Into) || Hit(ss.Pointer),
-                StoreKind.ReadWrite,   // Into: GR7 read-modify-write; Pointer: GR4 read + GR8 writeback
-                ss.OnOverflow, ss.NotOnOverflow),
-            BoundUnstringStmt us =>
-                Hit(us.Pointer) || Hit(us.Tallying)
-                    ? StoreKind.ReadWrite                                   // GR11a/GR13 + GR14 read-then-add
-                    : StoreOrKids(us.Receivers.Any(r => Hit(r.Target) || Hit(r.DelimiterIn) || Hit(r.CountIn)),
-                        StoreKind.Write, us.OnOverflow, us.NotOnOverflow),  // GR11c/d/e pure stores
-            BoundInspect ins =>
-                (ins.Replacing.Count > 0 || ins.Converting is not null) && Hit(ins.Target)
-                    ? StoreKind.ReadWrite                                   // image read, modified, stored
-                    : ins.Tallying.Any(tl => Hit(tl.Counter))
-                        ? StoreKind.ReadWrite                               // GR11 counter accumulate
-                        : StoreKind.None,
+        // ── ACCEPT / STRING / UNSTRING / INSPECT ────────────────────────────────────────────────────────
+        public StoreKind? Visit(BoundAccept n) => Hit(n.Target) ? StoreKind.Write : StoreKind.None;
+        public StoreKind? Visit(BoundStringStmt n) => StoreOrKids(Hit(n.Into) || Hit(n.Pointer),
+            StoreKind.ReadWrite,   // Into: GR7 read-modify-write; Pointer: GR4 read + GR8 writeback
+            n.OnOverflow, n.NotOnOverflow);
+        public StoreKind? Visit(BoundUnstringStmt n) =>
+            Hit(n.Pointer) || Hit(n.Tallying)
+                ? StoreKind.ReadWrite                                   // GR11a/GR13 + GR14 read-then-add
+                : StoreOrKids(n.Receivers.Any(r => Hit(r.Target) || Hit(r.DelimiterIn) || Hit(r.CountIn)),
+                    StoreKind.Write, n.OnOverflow, n.NotOnOverflow);    // GR11c/d/e pure stores
+        public StoreKind? Visit(BoundInspect n) =>
+            (n.Replacing.Count > 0 || n.Converting is not null) && Hit(n.Target)
+                ? StoreKind.ReadWrite                                   // image read, modified, stored
+                : n.Tallying.Any(tl => Hit(tl.Counter))
+                    ? StoreKind.ReadWrite                               // GR11 counter accumulate
+                    : StoreKind.None;
 
-            // ── File I/O (FILE STATUS / record-area stores route through FileModel — never the temp) ────
-            BoundWrite wr => StoreOrKids(wr.From is not null && Hit(wr.Record),
-                StoreKind.ReadWrite, wr.AtEop, wr.NotAtEop),               // FROM-move then read as the image
-            BoundRead rd => StoreOrKids(Hit(rd.Into), StoreKind.Write, rd.AtEnd, rd.NotAtEnd),
-            BoundRewrite rw => rw.From is not null && Hit(rw.Record) ? StoreKind.ReadWrite : StoreKind.None,
-            BoundKeyedRead kr => StoreOrKids(Hit(kr.Into), StoreKind.Write,
-                kr.AtEnd, kr.NotAtEnd, kr.InvalidKey?.Invalid, kr.InvalidKey?.NotInvalid),
-            BoundKeyedWrite kw => StoreOrKids(kw.From is not null && Hit(kw.Record), StoreKind.ReadWrite,
-                kw.InvalidKey?.Invalid, kw.InvalidKey?.NotInvalid),
-            BoundKeyedRewrite krw => StoreOrKids(krw.From is not null && Hit(krw.Record), StoreKind.ReadWrite,
-                krw.InvalidKey?.Invalid, krw.InvalidKey?.NotInvalid),
-            BoundKeyedDeleteFile kdf => Kids(kdf.OnException, kdf.NotOnException),
-            BoundKeyedStart ks => Kids(ks.InvalidKey?.Invalid, ks.InvalidKey?.NotInvalid),
-            BoundRelease rl => rl.From is not null && Hit(rl.Record) ? StoreKind.ReadWrite : StoreKind.None,
-            BoundReturn rt => StoreOrKids(Hit(rt.RecordArea) || Hit(rt.Into) || Hit(rt.Varying?.Depending),
-                Hit(rt.RecordArea) ? StoreKind.ReadWrite : StoreKind.Write,  // area: stored then INTO-source
-                rt.AtEnd, rt.NotAtEnd),
+        // ── File I/O (FILE STATUS / record-area stores route through FileModel — never the temp) ─────────
+        public StoreKind? Visit(BoundWrite n) => StoreOrKids(n.From is not null && Hit(n.Record),
+            StoreKind.ReadWrite, n.AtEop, n.NotAtEop);                 // FROM-move then read as the image
+        public StoreKind? Visit(BoundRead n) => StoreOrKids(Hit(n.Into), StoreKind.Write, n.AtEnd, n.NotAtEnd);
+        public StoreKind? Visit(BoundRewrite n) => n.From is not null && Hit(n.Record) ? StoreKind.ReadWrite : StoreKind.None;
+        public StoreKind? Visit(BoundKeyedRead n) => StoreOrKids(Hit(n.Into), StoreKind.Write,
+            n.AtEnd, n.NotAtEnd, n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
+        public StoreKind? Visit(BoundKeyedWrite n) => StoreOrKids(n.From is not null && Hit(n.Record), StoreKind.ReadWrite,
+            n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
+        public StoreKind? Visit(BoundKeyedRewrite n) => StoreOrKids(n.From is not null && Hit(n.Record), StoreKind.ReadWrite,
+            n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
+        public StoreKind? Visit(BoundKeyedDeleteFile n) => Kids(n.OnException, n.NotOnException);
+        public StoreKind? Visit(BoundKeyedStart n) => Kids(n.InvalidKey?.Invalid, n.InvalidKey?.NotInvalid);
+        public StoreKind? Visit(BoundRelease n) => n.From is not null && Hit(n.Record) ? StoreKind.ReadWrite : StoreKind.None;
+        public StoreKind? Visit(BoundReturn n) => StoreOrKids(Hit(n.RecordArea) || Hit(n.Into) || Hit(n.Varying?.Depending),
+            Hit(n.RecordArea) ? StoreKind.ReadWrite : StoreKind.Write,  // area: stored then INTO-source
+            n.AtEnd, n.NotAtEnd);
 
-            // ── CALL / INVOKE (BY REFERENCE crossings: copy-in + writeback = ReadWrite) ─────────────────
-            BoundCallProgram cp =>
-                cp.Args.Any(a => a.Mode == CobolPassMode.Reference && Hit(a.Place))
-                    ? StoreKind.ReadWrite
-                    : StoreOrKids(Hit(cp.Returning), StoreKind.Write, cp.OnException, cp.NotOnException),
-            BoundInvoke inv =>
-                (inv.Args?.Any(a => a.WriteBack && Hit(a.Source)) ?? false) ? StoreKind.ReadWrite
-                : Hit(inv.Returning) ? StoreKind.Write
-                : StoreKind.None,
+        // ── CALL / INVOKE (BY REFERENCE crossings: copy-in + writeback = ReadWrite) ──────────────────────
+        public StoreKind? Visit(BoundCallProgram n) =>
+            n.Args.Any(a => a.Mode == CobolPassMode.Reference && Hit(a.Place))
+                ? StoreKind.ReadWrite
+                : StoreOrKids(Hit(n.Returning), StoreKind.Write, n.OnException, n.NotOnException);
+        public StoreKind? Visit(BoundInvoke n) =>
+            (n.Args?.Any(a => a.WriteBack && Hit(a.Source)) ?? false) ? StoreKind.ReadWrite
+            : Hit(n.Returning) ? StoreKind.Write
+            : StoreKind.None;
 
-            // Anything else: outside the classified taxonomy — the caller stages LOUD (never guess).
-            _ => null,
-        };
+        // ── Outside the classified taxonomy — return null so the caller stages LOUD (never guess). These
+        //    were the former `_ => null` catch-all; now explicit so a NEW leaf cannot silently join them. ─
+        public StoreKind? Visit(BoundAllocate n) => null;
+        public StoreKind? Visit(BoundFree n) => null;
+        public StoreKind? Visit(BoundInvokeUniversal n) => null;
+        public StoreKind? Visit(BoundRaiseObject n) => null;
+        public StoreKind? Visit(BoundSetAddressOfBased n) => null;
+        public StoreKind? Visit(BoundSetCapacity n) => null;
+        public StoreKind? Visit(BoundSetObjectRef n) => null;
+        public StoreKind? Visit(BoundSetPointer n) => null;
+        public StoreKind? Visit(BoundSetPointerUpDown n) => null;
     }
 }
