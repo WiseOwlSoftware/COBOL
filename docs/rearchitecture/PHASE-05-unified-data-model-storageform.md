@@ -7,7 +7,21 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: PAUSED @ Step 5 DONE — Steps 6–14 resequenced to Exec Step C (AFTER the visitor + P6)
+> ## STATUS: RESUMED @ Exec Step C (2026-07-11) — Step 6 GATE ✅ GREEN; executing Steps 7–14
+> **Step 6 (the prove-then-delete GATE) is GREEN** — recorded at the PHASE-06 close state: conformance **3159** ·
+> unit **281** (incl. `StorageFormEquivalenceTests` identities #1–#5 corpus-wide: Storage↔StoreAsImage,
+> IsCharacterImage, ImageWidth, ElementType, RecordLayout.PhysicalWidth↔OdoModel.PhysicalWidth) · characterization
+> **32 byte-exact** · FULL legacy guard NIST **353 MATCH** · CI green in BOTH configurations. Exit criterion #3
+> stands proven; deletions may begin.
+> **P6 RECONCILIATION (what Exec Step B already did to this phase's Step-7 surface):** `MarkStoreAsImage`, the
+> CompilerTemp re-sync, and the OO override harmonize no longer live in CodeGen — they are the sub-steps of
+> `StorageFormPass.Run` (the GROUP-TAIL manifest pass, P6 Step 3/5), and the harmonize now ALSO covers
+> interface-IMPLEMENTS pairs (P6 phase-review fix, DEVLOG 775). They still WRITE the `StoreAsImage` FLAG (D0);
+> this phase's remaining job is to make `Storage` computed from COLLECTED FACTS instead of the flag, flip the
+> readers, and delete the flag. The `ReferenceResolver` mid-resolve writes are already deleted (Step 5) and
+> `WholeGroupReferenced` is `UsageCollectionPass`-owned.
+>
+> ## (prior) STATUS: PAUSED @ Step 5 DONE — Steps 6–14 resequenced to Exec Step C (AFTER the visitor + P6)
 > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, [[project_path_a_leverage_tooling]]):**
 > Steps 1–5 are DONE; the REMAINING Steps 6–14 (delete `MarkStoreAsImage` + write-back; `StoreAsImage`→`Storage`
 > projection; flip readers; delete width copies; `Model/` move; apostrophe golden; close) are PAUSED and run at **Exec
@@ -368,7 +382,7 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
 - [x] Step 3 — IBindPass scaffolding + ValidateDag — `IBindPass.cs` (PassPhase enum + interface + BindPass record) + `BindPipeline.cs` (Build ordered list [16 resolve + 3 tail markers] + ValidateDag monotone assert); BindResolve pipeline-driven (Produces<=FilesResolved prefix); inline FILE loop → MarkFileRecordImageLeaves(); 12 methods private→internal; BindPipelineTests ×4; conformance 3157 · unit 258 · characterization 32 byte-exact; exit criterion #5 satisfied — DEVLOG 750
 - [x] Step 4 — RecordLayout parallel + width assert — `Binding/Model/RecordLayout.cs` (ImageWidth [reads StorageForm; ImageWidthOf consolidated onto it] + PhysicalWidth [tier-aware, mirrors OdoModel.PhysicalWidth]); Verify identity #5 (RecordLayout.PhysicalWidth == OdoModel.PhysicalWidth per group, corpus-wide) — §5.4 drift guard. ADDITIVE, test-path only. ⚠ SCOPING: OffsetOf/KeyIndexByPosition DEFERRED to Step 8 (Sort=PhysicalWidth vs Keyed=ImageWidth increment divergence — cannot pure-port-prove both). conformance 3157 · unit 258 · characterization 32 byte-exact — DEVLOG 751
 - [x] Step 5 — UsageCollectionPass owns WholeGroupReferenced (REDESIGNED per owner: the correct set from an explicit typed bound-tree walk, not legacy's over-inclusive mid-resolve mutation which is DELETED); DynTablePlace skipped (dynamic elements use the table codec); char_initialize snapshot re-baselined (output-neutral WS_N string→long); verified by OUTPUT (conformance 3157 runtime · characterization 32 · guard 353 MATCH) — DEVLOG 752/753
-- [ ] Step 6 — prove-then-delete GATE green
+- [x] Step 6 — prove-then-delete GATE green (Exec Step C entry, 2026-07-11: conformance 3159 · unit 281 w/ equivalence identities #1–#5 · characterization 32 byte-exact · NIST 353 MATCH · CI green both configs) — DEVLOG 776
 - [ ] Step 7 — delete MarkStoreAsImage + write-backs (D1 delete)
 - [ ] Step 8 — flip readers to Storage/RecordLayout (a…e)
 - [ ] Step 9 — delete 4 width copies

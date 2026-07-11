@@ -13,6 +13,23 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 776 — 2026-07-11 11:49 PDT — EXEC STEP C begins: the P5.6 prove-then-delete GATE recorded GREEN; the flag-topology audit fans out
+
+PHASE-05 resumes at its Step 6 gate — verification-only, and it is GREEN at the PHASE-06 close state: conformance
+3159 · unit 281 (the `StorageFormEquivalenceTests` identities #1–#5 hold corpus-wide — Storage↔StoreAsImage,
+IsCharacterImage, ImageWidth, ElementType, RecordLayout↔OdoModel physical width) · characterization 32 byte-exact ·
+NIST 353 MATCH · CI green in both configurations. Exit criterion #3 (prove-before-delete) stands; deletions begin.
+
+P6 reconciliation recorded in the P5 STATUS: `MarkStoreAsImage` + the temp re-sync + the OO harmonize (now incl.
+implements pairs) already live INSIDE `StorageFormPass.Run` as the group-tail manifest pass — but they still WRITE
+the flag (D0). The remaining Steps 7–10 shape: make the write sites record COLLECTED FACTS, compute `Storage` from
+the facts (not the flag), flip readers (emit-time → `Storage`; BIND-time → structural/early facts — the temporal
+crux: `Storage` is computed once post-bind, so resolve/procedure-bind readers can never consult it), then delete
+the flag + the width copies. To drive that safely a 4-agent topology audit is classifying EVERY
+StoreAsImage/IsCharacterImage/IsImageCapable/ImageWidth/ElementType read+write by execution time (resolve-pass /
+procedure-bind / group-tail / emit) with a per-site flip target, plus the NumericImagePlace decision mechanics and
+the 4 width-geometry copies' bases and callers.
+
 ## Entry 775 — 2026-07-11 11:45 PDT — PHASE 06 CLOSED: the adversarial phase review's ONE confirmed find fixed (interface-implementation crossing-form harmonize) + the full docs sweep
 
 **The phase review (9-agent workflow: 5 dimension-focused finders over the full P6 diff → 2 adversarial refuters
