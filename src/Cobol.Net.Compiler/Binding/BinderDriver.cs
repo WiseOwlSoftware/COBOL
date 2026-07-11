@@ -33,6 +33,8 @@ internal sealed class BinderDriver
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
         IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents, IOoBindHost oo)
     {
+        BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
+
         // The group's compile-time TurnState (ISO §7.3.25; deep-dive D10) — built BEFORE binding so every unit's
         // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
         // group). Name/edition validation happens here (SR2 + the 2023-only families).
@@ -47,46 +49,18 @@ internal sealed class BinderDriver
         table.ValidateImplements(edition);                    // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority)
         foreach (var cls in classes) oo.BindClassBody(cls);
         // TWO-PHASE program-unit binding (M2-UDF-1 key enabler): EVERY unit's DATA division binds before ANY
-        // unit's procedure body binds, so a function-identifier reference resolves the callee's RETURNING /
-        // USING signatures even when the FUNCTION-ID unit FOLLOWS the caller in the compilation group
-        // (§8.4.3.2.4 GR1 — the caller-side temporary takes the callee's RETURNING description; the same
-        // forward-reference discipline OoClassTable D1 gives typed object references).
+        // unit's procedure body binds (the ProcedureBinding group pass below), so a function-identifier reference
+        // resolves the callee's RETURNING / USING signatures even when the FUNCTION-ID unit FOLLOWS the caller in
+        // the compilation group (§8.4.3.2.4 GR1 — the caller-side temporary takes the callee's RETURNING
+        // description; the same forward-reference discipline OoClassTable D1 gives typed object references).
         foreach (var unit in units) BindUnitData(unit, session);
-        var userFunctions = BuildUserFunctionTable(units, edition);
-        foreach (var unit in units) BindUnitProcedure(unit, userFunctions, session);
-        // Compiler-temp description re-sync: StoreAsImage is still mutable while procedure bodies bind
-        // (a ref-mod store / figurative MOVE in the MODEL's own unit flips it after a temp cloned it — the
-        // M2-UDF-1 review's unit-order desync; both sides of the activation boundary must agree on the
-        // carrier form). Runs after ALL procedure binds, before the image-marking pass reads the flags.
-        foreach (var d in units.Select(u => u.Data)
-                     .Concat(classes.SelectMany(c => new[] { c.Data, c.FactoryData })))
-            foreach (var (temp, model) in d.CompilerTempClones)
-                temp.StoreAsImage = model.StoreAsImage;
-        // PHASE-05 Step 5 (DESIGN §2.5 step 9): collect WholeGroupReferenced from the BOUND tree (its whole-group
-        // operands) + the program/OO boundary formals — the CORRECT set. Replaces ReferenceResolver's over-inclusive
-        // mid-resolve mutation (deleted): the resolver added ANY resolved group (CORR operands, SEARCH tables,
-        // qualifier groups, IX keys) that is never a whole-image operand. Runs BEFORE MarkStoreAsImage, which flips
-        // each whole-referenced group's numeric-DISPLAY leaves to image storage (§14.9 MOVE GR4). (DEVLOG 752/753.)
-        foreach (var cls in classes)
-        {
-            UsageCollectionPass.Collect(cls.Data, [cls.Bound], OoFormalGroups(cls.Symbol.Methods));
-            UsageCollectionPass.Collect(cls.FactoryData, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
-        }
-        foreach (var unit in units) UsageCollectionPass.Collect(unit.Data, [unit.Bound]);
 
-        static IEnumerable<DataItem> OoFormalGroups(IEnumerable<OoMethodSymbol> methods) =>
-            methods.SelectMany(m => m.Formals.Select(f => f.Item).Concat(m.Returning is { } r ? [r] : Array.Empty<DataItem>()));
-
-        foreach (var cls in classes) { MarkStoreAsImage(cls.Data); MarkStoreAsImage(cls.FactoryData); }
-        foreach (var unit in units) MarkStoreAsImage(unit.Data);
-        oo.HarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
-
-        // PHASE-05 Step 2 (D0, prove-then-delete): compute the canonical StorageForm for every item ONCE, HERE —
-        // the FINAL post-procedure-bind, post-temp-resync, post-MarkStoreAsImage, post-OO-harmonize state where every
-        // StoreAsImage flag is settled. Nothing reads Storage yet; it runs in PARALLEL with the legacy flag and the
-        // corpus equivalence assert (StorageFormPass.Verify) proves them equal before any deletion.
-        foreach (var cls in classes) { StorageFormPass.Compute(cls.Data); StorageFormPass.Compute(cls.FactoryData); }
-        foreach (var unit in units) StorageFormPass.Compute(unit.Data);
+        // The whole-group middle-end (P6 Step 3): the DECLARED manifest — ProcedureBinding →
+        // UsageCollectionPass → StorageFormPass (each pass's doc lives with its body; the ORDER lives in
+        // BindPipeline.GroupTail, DAG-validated against the resolve prefix above).
+        var ctx = new GroupBindContext(units, classes, session, oo);
+        foreach (var pass in BindPipeline.GroupTail())
+            pass.Run(ctx);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
@@ -314,6 +288,15 @@ internal sealed class BinderDriver
         unit.Refs = new ReferenceResolver(data);
     }
 
+    /// <summary>The <c>ProcedureBinding</c> GROUP pass body (P6 Step 3 — <c>BindPipeline.GroupTail</c>, Requires
+    /// <c>FilesResolved</c>, Produces <c>ProcedureBound</c>): build the group's user-function signature table, then
+    /// bind every unit's PROCEDURE DIVISION.</summary>
+    internal static void BindProcedures(GroupBindContext ctx)
+    {
+        var userFunctions = BuildUserFunctionTable(ctx.Units, ctx.Session.Edition);
+        foreach (var unit in ctx.Units) BindUnitProcedure(unit, userFunctions, ctx.Session);
+    }
+
     /// <summary>The PROCEDURE half of unit binding (phase 2): every unit's DATA is already bound
     /// (<see cref="BindUnitData"/>) and the group's user-function signature table is built, so a
     /// <c>FUNCTION user-name(args)</c> reference resolves its callee's RETURNING/USING descriptions
@@ -348,7 +331,7 @@ internal sealed class BinderDriver
     /// definition" (:23666) is checked HERE, once per unit — even an uncalled function without RETURNING is
     /// ill-formed.</summary>
     private static Dictionary<string, UserFunctionSignature> BuildUserFunctionTable(
-        List<BoundUnit> units, EditionContext edition)
+        IReadOnlyList<BoundUnit> units, EditionContext edition)
     {
         // Partition the group's FUNCTION-ID units by name into DEFINITIONS (a real body) and PROTOTYPES
         // (signature-only, §11.5 Format 2). A prototype precedes all other units (§10.6.2 SR1), so a naive
@@ -390,35 +373,6 @@ internal sealed class BinderDriver
             table[name] = new UserFunctionSignature(name, p.Data.LinkageReturning, p.Data.LinkageFormals);
         }
         return table;
-    }
-
-    /// <summary>
-    /// Whole-group analysis (ISO/IEC 1989:2023 §14.9 MOVE GR4 / COBOLNET_DESIGN §14.4): for every group used as a
-    /// whole operand, flag each numeric USAGE-DISPLAY descendant leaf to store its character image
-    /// (<see cref="DataItem.StoreAsImage"/>). A whole-group move fills the group "without consideration for the
-    /// individual elementary items", so such a leaf may receive non-numeric characters (e.g. spaces) that a native
-    /// <c>long</c> cannot represent. A COMP/COMP-3/COMP-5/float leaf is left native (its group is then a genuine
-    /// mixed-usage byte-island — Tier-C, deferred); numeric-edited / alphanumeric leaves are already string-stored.
-    /// (Relocated from the emitter, P6 Step 2 — a Bind-phase decision; Step 3 folds it into StorageFormPass.)
-    /// </summary>
-    private static void MarkStoreAsImage(DataBinder data)
-    {
-        foreach (var group in data.WholeGroupReferenced)
-            MarkNumericDisplayLeaves(group);
-
-        static void MarkNumericDisplayLeaves(DataItem item)
-        {
-            foreach (var child in item.Children)
-            {
-                // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS position):
-                // a numeric-DISPLAY OCCURS leaf becomes string-stored (its array is string[]), so the §14.4 AsImage/
-                // FromImage facility distributes it with no special case, and its subscripted accesses go through the
-                // same StoreAsImage numeric pipeline (CobolNum.ParseDisplay/FormatDisplay).
-                if (child.IsGroup) MarkNumericDisplayLeaves(child);
-                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    child.StoreAsImage = true;
-            }
-        }
     }
 
     private static void RegisterSubtree(DataBinder data, DataItem item)

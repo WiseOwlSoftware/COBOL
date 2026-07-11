@@ -60,7 +60,16 @@ explicitly **out of scope** (P7 / P9).
 
 ## STATUS
 
-`IN PROGRESS @ step 1 (2026-07-11). Step 0 preflight DONE: baseline 3158 conformance · 269 unit · 32 characterization
+`IN PROGRESS @ step 4 (2026-07-11). Steps 0–3 DONE (commits 8ac37480 = Step 2, DEVLOG 767; Step 3 = DEVLOG 768):
+BinderDriver + immutable BoundCompilation landed (bound model in Binding/Model; IOoBindHost+BindSession = the P6→P9
+seam, an interface instead of the doc's OoBindCallbacks record); the middle-end tail is the DECLARED
+BindPipeline.GroupTail manifest (ProcedureBinding → UsageCollectionPass → StorageFormPass over GroupBindContext),
+ValidateFullChainOnce validates resolve-prefix ++ group-tail as ONE chain; StorageFormPass.Run owns temp-resync →
+MarkStoreAsImage → OO-harmonize → Compute (MarkStoreAsImage grep-clean from CodeGen/); the file-connector
+qualification + AnyFiles moved into Bind. FILE whole-group loop deviation: stays the MarkFileRecordImageLeaves
+RESOLVE pass (P5 finding — statement binding consults IsCharacterImage; supersedes this doc's Step-3 "fold the FILE
+loop"). NEXT: Step 4 (VersionConformancePass as the NAMED terminal group pass + driver rebase + CheckOnly tests).
+Earlier preflight record: baseline 3158 conformance · 269 unit · 32 characterization
 green; P5 deliverables confirmed — with AS-BUILT DEVIATIONS from this doc's snapshot (recorded per the design-currency
 rule): (a) the pass scaffolding lives in `Binding/Passes/` (not `Binding/Pipeline/`) as `IBindPass`/`BindPass` delegate
 records over a `PassPhase` watermark enum (not a `Capability` enum) with `BindPipeline.Build`+`ValidateDag` and

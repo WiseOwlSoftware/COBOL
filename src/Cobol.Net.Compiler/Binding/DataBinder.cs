@@ -217,12 +217,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private readonly HashSet<string> _typedIndexNames = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The resolution half of <see cref="Bind"/> — the post-build passes over the COMPLETE forest, driven by
-    /// the DECLARED <see cref="BindPipeline"/> (rearchitecture PHASE 05 Step 3; DESIGN-data-model §2.5). The order is
-    /// IDENTICAL to the former comment-ordered call sequence — now EXPLICIT and asserted at startup by
-    /// <see cref="BindPipeline.ValidateDag"/> (each pass declares Requires/Produces phases), which structurally kills
-    /// the implicit-pass-ordering smell with ZERO reorder / ZERO behavior change. Only the resolve-phase prefix
-    /// (<c>Produces &lt;= </c><see cref="BindPipeline.LastResolvePhase"/>) runs here; the middle-end tail (procedure
-    /// binding → UsageCollection → StorageForm) is driven from the emitter, which has the bound tree.
+    /// the DECLARED <see cref="BindPipeline"/> (rearchitecture PHASE 05 Step 3 / PHASE 06 Step 3; DESIGN-data-model
+    /// §2.5). The order is IDENTICAL to the former comment-ordered call sequence — now EXPLICIT and asserted at
+    /// startup by <see cref="BindPipeline.ValidateFullChainOnce"/> (each pass declares Requires/Produces phases),
+    /// which structurally kills the implicit-pass-ordering smell with ZERO reorder / ZERO behavior change.
+    /// <see cref="BindPipeline.Build"/> IS the per-unit resolve prefix; the whole-group middle-end tail (procedure
+    /// binding → UsageCollection → StorageForm) is <see cref="BindPipeline.GroupTail"/>, run by
+    /// <see cref="BinderDriver.Bind"/> once per compilation, and the two are validated as ONE chain.
     /// <para>Post-build the forest is complete: fix up USAGE INDEX entries (children weren't known at entry bind);
     /// apply group-level SIGN clauses (must precede the REDEFINES classification — a SEPARATE sign adds a character
     /// position to the item's image width, which feeds the class-max width); then resolve REDEFINES/RENAMES targets,
@@ -231,17 +232,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// REDEFINES). Finally resolve each file's FILE STATUS data item.</para></summary>
     internal void BindResolve(Core.ProgramUnitContext program)
     {
-        var pipeline = BindPipeline.Build(program);
-        if (!_dagValidated) { BindPipeline.ValidateDag(pipeline); _dagValidated = true; }
-        foreach (var pass in pipeline)
-            if (pass.Produces <= BindPipeline.LastResolvePhase)
-                pass.Run(this);
+        BindPipeline.ValidateFullChainOnce();
+        foreach (var pass in BindPipeline.Build(program))
+            pass.Run(this);
     }
-
-    /// <summary>One-time guard so the pipeline DAG assert (<see cref="BindPipeline.ValidateDag"/>) runs on the first
-    /// <c>BindResolve</c> of the process only — the pass-list shape is compile-time-fixed, so validating once suffices
-    /// ("startup assert"; a re-run would be a harmless no-op). A benign race merely re-validates.</summary>
-    private static bool _dagValidated;
 
     /// <summary>The LAST resolve pass (<see cref="BindPipeline"/>): every FILE record area is filled WITHOUT conversion
     /// by READ/RETURN (ISO §9.1.2 — the record area is one character image), so its numeric-DISPLAY leaves store their

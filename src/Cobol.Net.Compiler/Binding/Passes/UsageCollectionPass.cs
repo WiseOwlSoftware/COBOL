@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using CobolNet.Binding.Bound;
 
 namespace CobolNet.Binding.Passes;
@@ -32,6 +34,22 @@ namespace CobolNet.Binding.Passes;
 /// </summary>
 internal static class UsageCollectionPass
 {
+    /// <summary>The GROUP pass body (P6 Step 3 — <c>BindPipeline.GroupTail</c>, Requires <c>ProcedureBound</c>,
+    /// Produces <c>UsageCollected</c>): collect the whole-group set for every class forest (OBJECT + FACTORY halves,
+    /// with the method USING/RETURNING formals) and every program unit, in the fused pipeline's order.</summary>
+    public static void Run(GroupBindContext ctx)
+    {
+        foreach (var cls in ctx.Classes)
+        {
+            Collect(cls.Data, [cls.Bound], OoFormalGroups(cls.Symbol.Methods));
+            Collect(cls.FactoryData, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
+        }
+        foreach (var unit in ctx.Units) Collect(unit.Data, [unit.Bound]);
+
+        static IEnumerable<DataItem> OoFormalGroups(IEnumerable<OoMethodSymbol> methods) =>
+            methods.SelectMany(m => m.Formals.Select(f => f.Item).Concat(m.Returning is { } r ? [r] : Array.Empty<DataItem>()));
+    }
+
     /// <summary>Fill <paramref name="data"/>'s <see cref="DataBinder.WholeGroupReferenced"/> from the whole-group
     /// operands of the bound <paramref name="programs"/> + the boundary-copied program/OO formals
     /// (<paramref name="extraFormalGroups"/> is the OO method USING/RETURNING group items). FILE record areas are

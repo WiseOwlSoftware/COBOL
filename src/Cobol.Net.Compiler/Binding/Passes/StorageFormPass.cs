@@ -7,10 +7,15 @@ using CobolNet.Binding.Model;
 namespace CobolNet.Binding.Passes;
 
 /// <summary>
-/// The LAST data-model pass (rearchitecture PHASE 05; DESIGN-data-model §2.5 step 10): computes the canonical
-/// <see cref="StorageForm"/> for every elementary item, ONCE, after all facts are known. It replaces — in
-/// prove-then-delete stages — the late-mutated <c>StoreAsImage</c> flag + the recursive image-fact properties.
-/// <para><b>D0 (this step) is the PROVE half:</b> <see cref="Compute"/> runs AFTER every <c>StoreAsImage</c> write
+/// The LAST data-model pass (rearchitecture PHASE 05 §2.5 step 10 / PHASE-06 Step 3): the manifest-ordered OWNER of
+/// the storage-form decision. <see cref="Run"/> settles every <c>StoreAsImage</c> flag (compiler-temp re-sync →
+/// whole-group numeric-DISPLAY image marking → the OO override-crossing harmonize via the P6→P9 seam), then computes
+/// the canonical <see cref="StorageForm"/> for every elementary item, ONCE. It replaces — in prove-then-delete
+/// stages — the late-mutated <c>StoreAsImage</c> flag + the recursive image-fact properties. (The FILE-record image
+/// leaves are marked EARLIER, by the <c>MarkFileRecordImageLeaves</c> resolve pass — statement binding consults
+/// <c>IsCharacterImage</c>, e.g. the SORT binder's SD record check, so that half cannot wait for this pass; the
+/// PHASE-06 doc's "fold the FILE loop here" is superseded by that P5 finding, recorded in its STATUS block.)
+/// <para><b>D0 is the PROVE half:</b> <see cref="Compute"/> runs AFTER every <c>StoreAsImage</c> write
 /// has fired, so the numeric-image promotion (<c>NativeInt → CharImage(Numeric)</c>) is read from the FINAL
 /// <c>StoreAsImage</c> — byte-exact by construction. The from-scratch whole-group union walk (reproducing
 /// <c>MarkStoreAsImage</c> + the 8 other write sites WITHOUT the flag) is the delete-phase work (Step 7). The value
@@ -19,6 +24,65 @@ namespace CobolNet.Binding.Passes;
 /// </summary>
 internal static class StorageFormPass
 {
+    /// <summary>The GROUP pass body (P6 Step 3 — <c>BindPipeline.GroupTail</c>, Requires <c>UsageCollected</c>,
+    /// Produces <c>StorageComputed</c>): settle every <c>StoreAsImage</c> flag, then classify. The four sub-steps in
+    /// the exact order the fused pipeline ran them (byte-neutral by the characterization snapshots):</summary>
+    public static void Run(GroupBindContext ctx)
+    {
+        // 1) Compiler-temp description re-sync: StoreAsImage is still mutable while procedure bodies bind
+        //    (a ref-mod store / figurative MOVE in the MODEL's own unit flips it after a temp cloned it — the
+        //    M2-UDF-1 review's unit-order desync; both sides of the activation boundary must agree on the
+        //    carrier form). Runs after ALL procedure binds, before the image marking reads the flags.
+        foreach (var d in AllBinders(ctx))
+            foreach (var (temp, model) in d.CompilerTempClones)
+                temp.StoreAsImage = model.StoreAsImage;
+
+        // 2) Whole-group image marking (§14.9 MOVE GR4) over the UsageCollectionPass-owned set.
+        foreach (var d in AllBinders(ctx))
+            MarkStoreAsImage(d);
+
+        // 3) OO override-crossing harmonize (via the P6→P9 seam — it only mutates StoreAsImage): C# override
+        //    signatures must agree on the crossing form (the 3a/3b review's signature-desync finding).
+        ctx.Oo.HarmonizeOverrideCrossings();
+
+        // 4) Classify: the canonical StorageForm, read from the now-FINAL StoreAsImage state.
+        foreach (var d in AllBinders(ctx))
+            Compute(d);
+    }
+
+    /// <summary>Every DataBinder of the group, in the fused pipeline's order: class OBJECT + FACTORY forests, then
+    /// the program units.</summary>
+    private static IEnumerable<DataBinder> AllBinders(GroupBindContext ctx) =>
+        ctx.Classes.SelectMany(c => new[] { c.Data, c.FactoryData }).Concat(ctx.Units.Select(u => u.Data));
+
+    /// <summary>
+    /// Whole-group analysis (ISO/IEC 1989:2023 §14.9 MOVE GR4 / COBOLNET_DESIGN §14.4): for every group used as a
+    /// whole operand, flag each numeric USAGE-DISPLAY descendant leaf to store its character image
+    /// (<see cref="DataItem.StoreAsImage"/>). A whole-group move fills the group "without consideration for the
+    /// individual elementary items", so such a leaf may receive non-numeric characters (e.g. spaces) that a native
+    /// <c>long</c> cannot represent. A COMP/COMP-3/COMP-5/float leaf is left native (its group is then a genuine
+    /// mixed-usage byte-island — Tier-C, deferred); numeric-edited / alphanumeric leaves are already string-stored.
+    /// </summary>
+    private static void MarkStoreAsImage(DataBinder data)
+    {
+        foreach (var group in data.WholeGroupReferenced)
+            MarkNumericDisplayLeaves(group);
+
+        static void MarkNumericDisplayLeaves(DataItem item)
+        {
+            foreach (var child in item.Children)
+            {
+                // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS position):
+                // a numeric-DISPLAY OCCURS leaf becomes string-stored (its array is string[]), so the §14.4 AsImage/
+                // FromImage facility distributes it with no special case, and its subscripted accesses go through the
+                // same StoreAsImage numeric pipeline (CobolNum.ParseDisplay/FormatDisplay).
+                if (child.IsGroup) MarkNumericDisplayLeaves(child);
+                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                    child.StoreAsImage = true;
+            }
+        }
+    }
+
     /// <summary>Assign <see cref="DataItem.Storage"/> to every ELEMENTARY item reachable from the binder's roots +
     /// report print items (a group carries no Storage — it emits as a record struct and answers its image facts
     /// recursively over children).</summary>
