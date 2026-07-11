@@ -8,11 +8,42 @@ using Microsoft.CodeAnalysis.Emit;
 namespace CobolNet.CodeGen;
 
 /// <summary>
-/// Compiles COBOL.NET-generated C# source into a runnable .NET assembly using Roslyn, and writes the
+/// The C#-via-Roslyn backend (the primary <see cref="ICodeGenBackend"/>; P7 Step 1): renders the bound tree to
+/// typed-native C# (through the bind-hosting <see cref="CSharpEmitter"/> — the P6→P9 interim, see
+/// <see cref="BackendFactory.For"/>), compiles it into a runnable .NET assembly with Roslyn, and writes the
 /// accompanying <c>.runtimeconfig.json</c> so the result runs with <c>dotnet &lt;name&gt;.dll</c>.
 /// </summary>
-public static class RoslynBackend
+internal sealed class RoslynBackend : ICodeGenBackend
 {
+    private readonly CSharpEmitter _emitter;
+
+    internal RoslynBackend(CSharpEmitter bindHost) => _emitter = bindHost;
+
+    /// <inheritdoc/>
+    public BackendId Id => BackendId.Roslyn;
+
+    /// <inheritdoc/>
+    /// <remarks>Wraps the pre-seam pipeline VERBATIM (pure indirection, no output change): render C# from the
+    /// bound tree (<c>CSharpEmitter.EmitBound</c>), write the <c>.g.cs</c> (when <c>WriteSource</c> — before
+    /// compiling, so the debugging artifact survives a failed compile), then <see cref="Compile"/>.</remarks>
+    public BackendArtifact Emit(Binding.Model.BoundCompilation program, BackendOptions options)
+    {
+        string csharp = _emitter.EmitBound(program);
+
+        string outDir = Path.GetDirectoryName(Path.GetFullPath(options.OutputPath)) is { Length: > 0 } d ? d : ".";
+        Directory.CreateDirectory(outDir);
+        string? csPath = null;
+        if (options.WriteSource)
+        {
+            csPath = Path.ChangeExtension(options.OutputPath, ".g.cs");
+            File.WriteAllText(csPath, csharp);
+        }
+
+        var result = Compile(csharp, options.OutputPath, options.AssemblyName);
+        return new BackendArtifact(result.Success, result.Diagnostics, csPath,
+            result.Success ? options.OutputPath : null);
+    }
+
     /// <summary>The outcome of a backend compilation.</summary>
     /// <param name="Success">True if the assembly was produced.</param>
     /// <param name="Diagnostics">Roslyn diagnostics (errors + warnings) from compiling the generated C#.</param>

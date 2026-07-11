@@ -123,24 +123,21 @@ public static class CompilerDriver
         if (options.CheckOnly)
             return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]);
 
-        string csharp = emitter.EmitBound(bound);   // Phase 2b — EMIT (unreachable when any diagnostics exist)
-
+        // Phases 2b + 3 — the BACKEND (the ICodeGenBackend seam, P7 Step 1): render the bound tree and compile
+        // the result. Everything after Bind sits behind the seam so a second backend (direct CIL, PHASE 16) is a
+        // new implementation, not a pipeline fork. Emit is unreachable when any diagnostics exist (above).
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
-        string outDir = Path.GetDirectoryName(Path.GetFullPath(outputDll)) is { Length: > 0 } d ? d : ".";
-        Directory.CreateDirectory(outDir);
-        string csPath = Path.ChangeExtension(outputDll, ".g.cs");
-        File.WriteAllText(csPath, csharp);
-
-        // Phase 3 — compile the generated C# with Roslyn.
-        string assemblyName = Path.GetFileNameWithoutExtension(outputDll);
-        var backend = RoslynBackend.Compile(csharp, outputDll, assemblyName);
-        if (!backend.Success)
-            return new Result(Outcome.BackendError, outputDll, csPath,
-                backend.Diagnostics
+        var backend = BackendFactory.For(BackendId.Roslyn, emitter);   // the emitter = the P6→P9 bind host
+        var artifact = backend.Emit(bound, new BackendOptions(
+            outputDll, Path.GetFileNameWithoutExtension(outputDll), edition.Edition));
+        if (!artifact.Success)
+            return new Result(Outcome.BackendError, outputDll, artifact.GeneratedSourcePath,
+                artifact.Diagnostics
                     .Where(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                     .Select(d => d.ToString())
                     .ToList(), [.. feWarnings, .. edition.Warnings]);
 
-        return new Result(Outcome.Success, outputDll, csPath, [], [.. feWarnings, .. edition.Warnings]);
+        return new Result(Outcome.Success, outputDll, artifact.GeneratedSourcePath, [],
+            [.. feWarnings, .. edition.Warnings]);
     }
 }
