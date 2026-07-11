@@ -262,8 +262,11 @@ DESIGN Phase **D2**. Each file is its own commit + full battery run. Suggested o
 > `RecordLayout.OffsetOf` on the codec-correct `PhysicalWidth` basis, flip the Sort readers (8.6) to it FIRST (their
 > goldens gate it), then flip the Keyed readers — and if the `KeyedAreaOffset` `ImageWidth` basis was a latent under-count
 > for a wider-redefiner key layout, that is a real fix to make here (spec: ISO §12.4.5.12 GR4 / §14.9.40.3 SR6e — key
-> positions are the same byte positions in every record description, i.e. the PHYSICAL layout), verified by the Keyed
-> goldens.
+> positions are the same byte positions in every record description, i.e. the PHYSICAL layout).
+> **⛔ MANDATED FIRST ACTION OF STEP 8 (audit DEVLOG 754):** add a FAILING-FIRST conformance golden for the ONLY shape
+> that triggers the divergence — an INDEXED file whose ALTERNATE RECORD KEY sits AFTER a REDEFINES with a WIDER redefiner
+> (e.g. `05 A PIC X(3). 05 B REDEFINES A PIC X(5). 05 KEYITEM PIC X(2).`) — so "verified by the Keyed goldens" is a REAL
+> net, not a hollow claim. No existing golden covers this; without it the deferral is unbacked.
 
 1. `CodeGen/Emit/FieldEmitter.cs` — the width consumer; flip its width to `RecordLayout` and its `StoreAsImage`/`IsCharacterImage` reads to `Storage`. **First**, so `RecordLayout` becomes the sole width source at the highest-leverage site (DESIGN §5.4 mitigation).
 2. `CodeGen/Emit/NumericRenderer.cs:75,105` — `Storage is CharImage{Category:Numeric}` in place of `StoreAsImage`.

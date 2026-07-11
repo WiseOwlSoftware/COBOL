@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
+using CobolNet.Common;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -884,11 +885,9 @@ public sealed partial class StatementBinder
     }
 
     /// <summary>A COBOL string literal's character value from its SUB_STRINGLIT text (either quote character;
-    /// doubled quotes collapse — ISO §8.3.3.4).</summary>
-    private static string DecodeSubString(string raw) =>
-        raw.Length >= 2 && (raw[0] == '"' || raw[0] == '\'') && raw[^1] == raw[0]
-            ? raw[1..^1].Replace(new string(raw[0], 2), raw[0].ToString())
-            : raw;
+    /// doubled quotes collapse — ISO §8.3.3.4). The one codec (the frozen-legacy SUBSCRIPT token path itself is
+    /// deleted at PHASE 15; the decode delegates now so there is a SINGLE decoder — feedback_singular_pattern).</summary>
+    private static string DecodeSubString(string raw) => CobolLiteral.Decode(raw);
 
     private static string SegText(List<IToken> toks) => string.Concat(toks.Select(t => t.Text)).Trim();
 }

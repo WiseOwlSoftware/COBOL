@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
@@ -381,8 +382,8 @@ public sealed partial class DataBinder
     private static string LiteralChars(Core.LiteralContext lit)
     {
         string text = lit.GetText();
-        if (text.Length >= 2 && text[0] == '"' && text[^1] == '"')
-            return text[1..^1].Replace("\"\"", "\"");
+        if (CobolLiteral.IsStringLiteral(text))   // both ISO §8.3.1.2 delimiters (an apostrophe CLASS literal was miscompiled)
+            return CobolLiteral.Decode(text);
         return int.TryParse(text, out int ordinal) && ordinal >= 1 && ordinal <= 256
             ? ((char)(ordinal - 1)).ToString()
             : text;
