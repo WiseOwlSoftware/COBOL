@@ -122,8 +122,9 @@
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
 > §9.5). **⛔🔀 RESUME AT: EXEC STEP A — the ONE last consumer, 6c `StoreKindOf` → `StoreKindVisitor :
-> IBoundStatementVisitor<StoreKind?>` (per-node polarity; `Kids` recursion rides `StatementChildren`; the 9 `_ => null`
-> nodes stay `null`; NOT byte-exact-covered → diff arm-by-arm). DONE: every rendering/classification consumer
+> IBoundStatementVisitor<StoreKind?>` (per-node polarity; KEEP each arm's node-specific `Kids(<lists>)` — do NOT ride
+> `StatementChildren` wholesale; resolve the FLAGGED `BoundKeyedDelete`-misses-`InvalidKey` latent bug per PHASE-07 §6c;
+> the 9 `_ => null` nodes stay `null`; NOT byte-exact-covered → diff arm-by-arm). DONE: every rendering/classification consumer
 > (6a,6b,6d,6e,6f-OperandText), the walker FOUNDATION (6g `BoundStatementTree.StatementChildren`), AND the two analysis
 > walkers (6f `ContainsNextSentence`/`AlterCollectFields`, DEVLOG 760). See PHASE-07 §6c/§6g.**
 > **✅ 6a DONE (DEVLOG 755):** the `Cobol.Net.Compiler.SourceGen` Roslyn **incremental** source generator
@@ -140,11 +141,13 @@
 > dispatch through three cached nested `IBoundOperandVisitor` instances (byte-exact 32 + 3158). **✅ 6g DONE (DEVLOG
 > 759):** `BoundStatementTree.StatementChildren` — the generated, drift-proof child-enumeration (28 container arms,
 > semantic-model-derived, matches `StoreKindOf`'s hand-list exactly) + `BoundStatementChildrenTests` (incl. all-79-leaves
-> null-safety); additive/behavior-neutral. RESUME: wire the WALKER consumers to it — **6c** `BoundStores.StoreKindOf` →
-> a `StoreKindVisitor : IBoundStatementVisitor<StoreKind?>` whose `Kids` recursion rides `StatementChildren` (PHASE-07
-> §6c — the 9 `_ => null` nodes stay `null`; NOT byte-exact-covered, diff arm-by-arm) and the **6f** analyses
-> (`AlterCollectFields`/`ContainsNextSentence`/`KeyedHasNextSentence`) → a generic recurse over `StatementChildren` +
-> node-specific collection. The
+> null-safety); additive/behavior-neutral. **✅ 6f-analyses DONE (DEVLOG 760):** `ContainsNextSentence` +
+> `AlterCollectFields` collapsed onto `StatementChildren` (hand-walkers + `KeyedHasNextSentence`/`KeyedNs`/
+> `AlterCollectLists`/`AlterCollectPhrase`/`InSizeError` deleted; latent EVALUATE/CALL/WRITE gaps closed; byte-neutral).
+> RESUME: the ONE last consumer — **6c** `BoundStores.StoreKindOf` → a `StoreKindVisitor : IBoundStatementVisitor<StoreKind?>`
+> that KEEPS each arm's node-specific `Kids(<lists>)` (NOT a wholesale `StatementChildren` recurse — the recursion set
+> is deliberately non-uniform; resolve the flagged `BoundKeyedDelete`-misses-`InvalidKey` latent bug per PHASE-07 §6c;
+> the 9 `_ => null` nodes stay `null`; NOT byte-exact-covered, diff arm-by-arm). The
 > roadmap was RE-SEQUENCED tooling-first (2026-07-11, owner-directed —
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md §4.1`; eval `docs/rearchitecture/EVAL-antlr-leverage-and-traversal.md`;
 > [[project_path_a_leverage_tooling]]): front-load the two tooling foundations so every later phase LEVERAGES them

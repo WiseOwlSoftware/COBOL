@@ -344,6 +344,20 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
     the OO property-ref RECEIVING/SENDING desugar (D-P2), and a mis-transcribed polarity yields a *silently* lost or
     spurious SET (the file header's own warning), which conformance may not catch. So: transcribe each of the ~46
     store-bearing arms VERBATIM, then diff the new `Visit` set against the old switch arm-by-arm before trusting green.
+    - ⚠ **RECURSION IS NODE-SPECIFIC — do NOT blindly ride `StatementChildren` (revised 2026-07-11).** Unlike the two
+      analysis walkers (6f, now on `StatementChildren`), `StoreKindOf` combines a per-node *stored?* check with the
+      recursion, and its recursion set is NOT uniform: several arms recurse their phrase bodies (`StoreOrKids(stored,
+      kind, <the node's phrase lists>)`) while others deliberately return `None` without recursing. So the faithful
+      relocation keeps each arm's EXACT `Kids(<specific lists>)` call — do NOT replace them with `KidsOf(n) =
+      n.StatementChildren()` wholesale.
+    - ⚠ **FLAGGED LATENT BUG to resolve during 6c (found 2026-07-11):** `BoundKeyedDelete` is in the pure-`None` arm
+      list (line ~91) — it does NOT recurse its `InvalidKey` handler — yet the method header explicitly states the walk
+      recurses *every* conditional-phrase body "including INVALID KEY", and its siblings `BoundKeyedRewrite`/`Write`/
+      `Start` DO recurse their `InvalidKey`. Either `BoundKeyedDelete` is missing a recursion (a store to a property
+      temp inside `DELETE … INVALID KEY …` would be misclassified `None`) or the header over-states the intent. Decide
+      this against the property-ref desugar semantics (D-P2) BEFORE relocating — the `StatementChildren` container set
+      is the reference for "what a total recursion would cover" (it includes `BoundKeyedDelete.InvalidKey`). If it IS a
+      bug, fixing it is a behavior change in the uncovered property-ref path — do it as its own reasoned, tested step.
   - **6d ✅ DONE (2026-07-11).** `NumericRenderer` implements `IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>`;
     `Render`/`AsNum` are thin `=> e.Accept(this)` dispatchers + 11 expr + 8 operand `Visit` methods. The `Render`
     `_ =>` was already dead (all 11 expr leaves covered); `AsNum`'s `_ =>` caught `BoundAllLiteral`/`BoundBoolOperand`,
