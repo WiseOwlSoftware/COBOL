@@ -63,8 +63,6 @@ public sealed partial class CSharpEmitter : IOoBindHost
     void IOoBindHost.BindInterfaceData(OoInterfaceSymbol iface) => OoBindInterfaceData(iface, _bindSession!.Edition);
     void IOoBindHost.BindClassData(OoClassUnit cls) => OoBindClassData(cls, _bindSession!.Edition);
     void IOoBindHost.BindClassBody(OoClassUnit cls) => OoBindClassBody(cls);
-    void IOoBindHost.HarmonizeOverrideCrossings() => OoHarmonizeOverrideCrossings();
-    void IOoBindHost.QualifyClassFiles(OoClassUnit cls) => OoQualifyClassFiles(cls);
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> IOoBindHost.InterfaceData => _ooIfaceData;
 
     // ── The PC dispatcher (COBOLNET_DESIGN §5) ────────────────────────────────────────────────────────────

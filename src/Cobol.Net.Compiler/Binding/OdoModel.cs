@@ -464,7 +464,7 @@ public sealed partial class DataBinder
                 Uid = _uidCounter++,
             };
             spec.CapacityRegister = reg;
-            CapacityRegisters[capName] = item;
+            _capacityRegisters[capName] = item;
         }
     }
 }

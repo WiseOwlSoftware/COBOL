@@ -60,7 +60,7 @@ internal sealed class BinderDriver
         // edition gate; each pass's doc lives with its body; the ORDER lives in BindPipeline.GroupTail,
         // DAG-validated against the resolve prefix above). Once the tail completes, the edition sink carries
         // EVERY edition diagnostic — the driver's CheckOnly verdict needs nothing beyond this Bind.
-        var ctx = new GroupBindContext(tree, units, classes, session, oo);
+        var ctx = new GroupBindContext(tree, units, classes, session);
         foreach (var pass in BindPipeline.GroupTail())
             pass.Run(ctx);
 
@@ -87,9 +87,9 @@ internal sealed class BinderDriver
                     : unit.Path + "::" + file.CobolName;
         // The OO analogue (M2-OO-1i): an OBJECT/FACTORY file connector is scoped to its class, not a program unit,
         // so the program loop above never sees it. A factory file (singleton) keys by class; an instance file keys
-        // per object (a minted key held in a __fkey field — see OoQualifyClassFiles); an EXTERNAL class file keys
+        // per object (a minted key held in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys
         // by its run-unit external name, exactly like a program's.
-        foreach (var cls in classes) oo.QualifyClassFiles(cls);
+        foreach (var cls in classes) QualifyClassFiles(cls);
 
         // Declaratives emit the __IoCheck/__RunUse machinery, which reads CobolFile even when the unit declares
         // NO files (IC401M: mode-scoped USE procedures in a file-less flagging program) — the IO using must
@@ -224,12 +224,13 @@ internal sealed class BinderDriver
         // Pre-seed inherited GLOBAL-table index names BEFORE Bind: the child's own INDEXED BY registrations then
         // allocate from a later ordinal and can never collide with a bridged container index field. The seeded
         // fields are SUPPRESSED from this unit's field emission — a global index-name is SHARED storage
-        // (ISO §13.18.27 GR2), reached through the ref-bridge, never re-declared locally.
+        // (ISO §13.18.27 GR2), reached through the ref-bridge, never re-declared locally. (Writes through the
+        // ONE domain mutator — the collections are read-only views since P6 Step 5.)
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
             foreach (var g in anc.Data.CallGlobalRoots)
                 foreach (string idxName in IndexNamesUnder(g))
-                    if (anc.Data.IndexFields.TryGetValue(idxName, out string? field) && data.IndexFields.TryAdd(idxName, field))
-                        data.CallSuppressedRootFields.Add(field);
+                    if (anc.Data.IndexFields.TryGetValue(idxName, out string? field))
+                        data.SeedInheritedGlobalIndex(idxName, field);
 
         data.Bind(unit.Ctx);
         unit.Data = data;
@@ -375,6 +376,39 @@ internal sealed class BinderDriver
             table[name] = new UserFunctionSignature(name, p.Data.LinkageReturning, p.Data.LinkageFormals);
         }
         return table;
+    }
+
+    /// <summary>Qualify a class's OBJECT/FACTORY file connectors into the run-unit registry namespace (M2-OO-1i —
+    /// the OO analogue of the per-program qualification in <see cref="Bind"/>). A FACTORY file (the class
+    /// singleton, §9.3.14.2) keys by class — <c>Class::FACT::name</c>; an EXTERNAL class file keys by its run-unit
+    /// external name (§13.18.22.4 GR4a — one connector shared by every describer, inc 5). An OBJECT (instance) file
+    /// is per-object (inc 4): a class-qualified BASE key plus a minted per-object <c>__fkey</c> field. Name
+    /// resolution is done (bound nodes hold FileModel references), so this is a pure rename. (Relocated from the
+    /// emitter, P6 Step 5 — a Bind-phase FileModel mutation.)</summary>
+    private static void QualifyClassFiles(OoClassUnit cls)
+    {
+        // OBJECT (instance) files: one connector per object (§9.1.4). A non-EXTERNAL file keeps a class-qualified
+        // BASE key (the seed MintInstanceKey suffixes with a per-object #N) and a minted-key FIELD; an EXTERNAL
+        // instance file keys by its run-unit external name like any describer (§13.18.22.4 GR4a — inc 5).
+        foreach (var f in cls.Data.Files)
+            if (f is { IsExternal: true, ExternalName: { } ext })
+                f.CobolName = "::EXT::" + ext;
+            else if (f.IsSortMerge)
+                // An SD is NOT a host connector — its store is the name-keyed in-memory CobolSort (§13.4.6), and
+                // OoEmitFileMembers / EmitFileRegistration both skip SDs (host = !IsSortMerge). So it must keep a
+                // STATIC key (no InstanceKeyField), or FileKeyExpr would emit an undeclared this.__fkey_X for a
+                // SORT/MERGE/RELEASE/RETURN in a method (M2-OO-1i review). Class-qualified for cross-class uniqueness.
+                f.CobolName = cls.CsName + "::SORT::" + f.CobolName;
+            else
+            {
+                f.InstanceKeyField = "__fkey_" + DataItem.Sanitize(f.CobolName);
+                f.CobolName = cls.CsName + "::INST::" + f.CobolName;
+            }
+        // FACTORY files: the class singleton (§9.3.14.2) — a static class-qualified key (no per-object field).
+        foreach (var f in cls.FactoryData.Files)
+            f.CobolName = f is { IsExternal: true, ExternalName: { } ext }
+                ? "::EXT::" + ext
+                : cls.CsName + "::FACT::" + f.CobolName;
     }
 
     private static void RegisterSubtree(DataBinder data, DataItem item)

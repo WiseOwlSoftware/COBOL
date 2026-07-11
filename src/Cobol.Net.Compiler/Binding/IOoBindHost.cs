@@ -5,14 +5,16 @@ using CobolNet.Binding.Model;
 namespace CobolNet.Binding;
 
 /// <summary>
-/// The intentional P6→P9 seam (rearch PHASE-06 Step 2, the doc's "OO entanglement seam"): the OO orchestration
-/// bodies (<c>OoBindInterfaceData</c>, <c>OoBindClassData</c>, <c>OoBindClassBody</c>,
-/// <c>OoHarmonizeOverrideCrossings</c>, <c>OoQualifyClassFiles</c>) physically remain on <c>CSharpEmitter</c>
-/// partials until PHASE 09 moves the OO subsystem into <c>Oo/</c> — but they only MUTATE BINDER STATE (verified by
-/// the rearchitecture survey; they emit nothing), so <see cref="BinderDriver.Bind"/> reaches them through this
-/// interface and the Binding layer never references a CodeGen type. Realized as an interface rather than the
-/// design doc's <c>OoBindCallbacks</c> delegate record — the same seam, one named contract instead of a bundle of
-/// anonymous delegates (deviation recorded in PHASE-06 §STATUS).
+/// The intentional P6→P9 seam (rearch PHASE-06 Step 2, the doc's "OO entanglement seam"): the OO DATA/BODY bind
+/// orchestration (<c>OoBindInterfaceData</c>, <c>OoBindClassData</c>, <c>OoBindClassBody</c>) physically remains
+/// on <c>CSharpEmitter</c> partials until PHASE 09 moves the OO subsystem into <c>Oo/</c> — but it only MUTATES
+/// BINDER STATE (verified by the rearchitecture survey; it emits nothing), so <see cref="BinderDriver.Bind"/>
+/// reaches it through this interface and the Binding layer never references a CodeGen type. Realized as an
+/// interface rather than the design doc's <c>OoBindCallbacks</c> delegate record — the same seam, one named
+/// contract instead of a bundle of anonymous delegates (deviation recorded in PHASE-06 §STATUS). The doc's other
+/// two seam members were RELOCATED instead of bridged (P6 Step 5): the override-crossing harmonize lives in
+/// <c>StorageFormPass</c> (a StoreAsImage settle-step) and the class file-connector qualification in
+/// <c>BinderDriver.QualifyClassFiles</c> — both pure binder-model mutations with no emitter-state dependency.
 /// </summary>
 internal interface IOoBindHost
 {
@@ -29,14 +31,6 @@ internal interface IOoBindHost
 
     /// <summary>Phase B — the method BODIES bind into the class's one pc space (§11.7).</summary>
     void BindClassBody(OoClassUnit cls);
-
-    /// <summary>Unify the INVOKE-boundary crossing form across override chains (the 3a/3b review's
-    /// signature-desync finding) — mutates <c>DataItem.StoreAsImage</c> only.</summary>
-    void HarmonizeOverrideCrossings();
-
-    /// <summary>Qualify a class's OBJECT/FACTORY file connectors into the run-unit registry namespace
-    /// (M2-OO-1i) — mutates <c>FileModel.CobolName</c>/<c>InstanceKeyField</c> only.</summary>
-    void QualifyClassFiles(OoClassUnit cls);
 
     /// <summary>The per-interface DATA forests the host built in <see cref="BindInterfaceData"/> — carried onto
     /// <see cref="BoundCompilation.InterfaceData"/> for interface emission.</summary>

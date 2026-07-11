@@ -52,8 +52,9 @@ public sealed partial class DataBinder
     /// <summary>The LINKAGE SECTION's top-level (01/77) items, in source order (ISO §13.7).</summary>
     public List<DataItem> LinkageRoots { get; } = [];
 
-    /// <summary>The PROCEDURE DIVISION USING formals, positional (ISO §14.2.3 GR2).</summary>
-    public List<LinkageFormal> LinkageFormals { get; } = [];
+    /// <summary>The PROCEDURE DIVISION USING formals, positional (ISO §14.2.3 GR2). (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlyList<LinkageFormal> LinkageFormals => _linkageFormals;
+    private readonly List<LinkageFormal> _linkageFormals = [];
 
     /// <summary>The PROCEDURE DIVISION RETURNING item (a LINKAGE 01/77; ISO §14.2.3 GR6 — its storage is
     /// allocated in the activated element), or null. COBOL-2002+ (the grammar gates the clause).</summary>
@@ -63,17 +64,21 @@ public sealed partial class DataBinder
     /// mechanism provides the member: a carrier-resident LINKAGE formal's "field" IS the carrier accessor
     /// (<c>__lnkpN.Value</c> — the caller owns the storage, ISO §13.7.1 / §14.2.3 GR8), and an inherited
     /// GLOBAL table's index field is a <c>ref</c>-bridge to the containing instance (ISO §13.18.27 GR2 —
-    /// global index-names are shared, never duplicated).</summary>
-    public HashSet<string> CallSuppressedRootFields { get; } = new(StringComparer.Ordinal);
+    /// global index-names are shared, never duplicated). (READ-ONLY view — P6 Step 5; the inherited-index
+    /// suppression writes through <see cref="SeedInheritedGlobalIndex"/>.)</summary>
+    public IReadOnlySet<string> CallSuppressedRootFields => _callSuppressedRootFields;
+    private readonly HashSet<string> _callSuppressedRootFields = new(StringComparer.Ordinal);
 
     /// <summary>WORKING-STORAGE level-01/77 roots carrying the GLOBAL clause (ISO §13.18.27) — visible to every
     /// directly/indirectly contained program (GR1–2); the emitter injects them into contained units' binders and
-    /// bridges their fields into the nested classes.</summary>
-    public List<DataItem> CallGlobalRoots { get; } = [];
+    /// bridges their fields into the nested classes. (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlyList<DataItem> CallGlobalRoots => _callGlobalRoots;
+    private readonly List<DataItem> _callGlobalRoots = [];
 
     /// <summary>The EXTERNAL records' synthesized run-unit backings (ISO §13.18.22; emitted as
-    /// <c>ref</c>-properties over <c>ExternalStore</c>).</summary>
-    public List<CallExternalBacking> CallExternalBackings { get; } = [];
+    /// <c>ref</c>-properties over <c>ExternalStore</c>). (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlyList<CallExternalBacking> CallExternalBackings => _callExternalBackings;
+    private readonly List<CallExternalBacking> _callExternalBackings = [];
 
     /// <summary>
     /// Bind the LINKAGE SECTION and the PROCEDURE DIVISION header's USING/RETURNING operands. Runs inside
@@ -137,9 +142,9 @@ public sealed partial class DataBinder
                 // The item's C# "path" becomes the carrier's Value accessor: every Place built over it reads
                 // and writes the caller's storage directly (MemberPlace path text — no new Place subtype).
                 item.CsName = carrier + ".Value";
-                CallSuppressedRootFields.Add(item.CsName);
+                _callSuppressedRootFields.Add(item.CsName);
             }
-            LinkageFormals.Add(new LinkageFormal(item, pos, carrier, resident));
+            _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident));
             pos++;
         }
 
@@ -191,7 +196,7 @@ public sealed partial class DataBinder
                 var item = Roots.FirstOrDefault(r =>
                     r.Level == lvl && string.Equals(r.CobolName, name, StringComparison.OrdinalIgnoreCase));
                 if (item is null) continue;
-                if (global) CallGlobalRoots.Add(item);
+                if (global) _callGlobalRoots.Add(item);
                 if (external) CallMakeExternal(item);
             }
 
@@ -212,7 +217,7 @@ public sealed partial class DataBinder
             if (file.IsGlobal)
                 foreach (var rec in file.Records)
                     if (!CallGlobalRoots.Contains(rec))
-                        CallGlobalRoots.Add(rec);
+                        _callGlobalRoots.Add(rec);
     }
 
     /// <summary>Re-base one EXTERNAL record onto the run-unit external cell (see
@@ -231,7 +236,7 @@ public sealed partial class DataBinder
                 + $"{item.Class?.RejectReason ?? "unsupported leaf"} — recognized but not yet implemented");
             return;
         }
-        CallExternalBackings.Add(new CallExternalBacking(
+        _callExternalBackings.Add(new CallExternalBacking(
             cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width,
             CallInitialImage(item).PadRight(cls.Width)));
     }

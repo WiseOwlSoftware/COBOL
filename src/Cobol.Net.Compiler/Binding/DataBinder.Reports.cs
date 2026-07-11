@@ -164,8 +164,10 @@ public sealed class ReportSumModel
 
 public sealed partial class DataBinder
 {
-    /// <summary>The program unit's report description entries, in source order (ISO §13.6 REPORT SECTION).</summary>
-    public List<ReportModel> Reports { get; } = [];
+    /// <summary>The program unit's report description entries, in source order (ISO §13.6 REPORT SECTION).
+    /// (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlyList<ReportModel> Reports => _reports;
+    private readonly List<ReportModel> _reports = [];
 
     private int _sumCounterId;
 
@@ -183,7 +185,7 @@ public sealed partial class DataBinder
             var model = new ReportModel { Name = name, CsIndex = Reports.Count };
             BindReportDescriptionClauses(rd, model);
             BindReportGroups(rd, model);
-            Reports.Add(model);
+            _reports.Add(model);
         }
     }
 

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CobolNet.Binding.Model;
@@ -41,13 +42,50 @@ internal static class StorageFormPass
         foreach (var d in AllBinders(ctx))
             MarkStoreAsImage(d);
 
-        // 3) OO override-crossing harmonize (via the P6→P9 seam — it only mutates StoreAsImage): C# override
-        //    signatures must agree on the crossing form (the 3a/3b review's signature-desync finding).
-        ctx.Oo.HarmonizeOverrideCrossings();
+        // 3) OO override-crossing harmonize (it only mutates StoreAsImage): C# override signatures must agree
+        //    on the crossing form (the 3a/3b review's signature-desync finding).
+        HarmonizeOverrideCrossings(ctx.Session.OoClasses);
 
         // 4) Classify: the canonical StorageForm, read from the now-FINAL StoreAsImage state.
         foreach (var d in AllBinders(ctx))
             Compute(d);
+    }
+
+    /// <summary>Unify the INVOKE-boundary CROSSING FORM across every override chain (the 3a/3b review's
+    /// signature-desync finding): the image marking can flip ONE side's numeric-DISPLAY formal/RETURNING item
+    /// to image storage (its class whole-group-references it; the other class's doesn't), which would emit
+    /// `M(ref string)` in the base and `override M(ref long)` in the subclass — a raw Roslyn CS0115 on legal
+    /// COBOL (the G4 violation). The §14.8.2/§9.3.8.2 checks already guarantee identical DESCRIPTIONS, so
+    /// unioning to the image form is semantics-preserving (the FormatDisplay/StoreDisplay storage-form
+    /// bridges absorb either storage). Iterates to a fixed point — a flip through one link can propagate
+    /// down a chain or across sibling subclasses. (Relocated from the emitter, P6 Step 5 — a Bind-phase
+    /// StoreAsImage settle-step, sequenced BETWEEN marking and classification.)</summary>
+    private static void HarmonizeOverrideCrossings(OoClassTable classes)
+    {
+        bool changed = true;
+        while (changed)
+        {
+            changed = false;
+            foreach (var cls in classes.Classes)
+                foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
+                {
+                    if (m.OverrideOf is not { } baseM) continue;
+                    for (int i = 0; i < Math.Min(m.Formals.Count, baseM.Formals.Count); i++)
+                        changed |= UnifyCrossing(m.Formals[i].Item, baseM.Formals[i].Item);
+                    if (m.Returning is { } r && baseM.Returning is { } br)
+                        changed |= UnifyCrossing(r, br);
+                }
+        }
+
+        static bool UnifyCrossing(DataItem a, DataItem b)
+        {
+            if (OoClassTable.StringCarried(a) == OoClassTable.StringCarried(b)) return false;
+            var native = a.StoreAsImage ? b : a;
+            if (native.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
+                return false;   // only the display-numeric pair can diverge; anything else conformance-blocked
+            native.StoreAsImage = true;
+            return true;
+        }
     }
 
     /// <summary>Every DataBinder of the group, in the fused pipeline's order: class OBJECT + FACTORY forests, then

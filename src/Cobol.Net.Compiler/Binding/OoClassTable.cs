@@ -43,6 +43,17 @@ public sealed class OoClassTable
     /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive).</summary>
     public OoClassSymbol? Find(string name) => _byName.TryGetValue(name, out var c) ? c : null;
 
+    /// <summary>True when an item CROSSES the INVOKE boundary as a character string: groups (image crossing),
+    /// image-stored numerics, alphanumeric / numeric-edited items. Native numerics and object references cross
+    /// typed. The §14.8.2 strict-conformance bind rules guarantee both sides agree on the crossing form's
+    /// WIDTH/description — which is what keeps the marshaling free of cross-class numeric profiles.
+    /// (THE one definition — relocated from the emitter, P6 Step 5: the bind-phase harmonize below and the
+    /// emitter's signature/marshaling renders both consult it.)</summary>
+    public static bool StringCarried(DataItem item) =>
+        item.IsGroup || item.StoreAsImage
+        || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
+            or PicCategory.National or PicCategory.Boolean;   // string-stored (D-N1/D-B1) — char crossing
+
     /// <summary>Validate every override's SIGNATURE against the overridden method (§9.3.8.2 method-signature
     /// conformance: the same formal count with identical descriptions, and identical RETURNING items — via
     /// <see cref="DescriptionMismatch"/>, the ONE description-equality check shared with INVOKE argument

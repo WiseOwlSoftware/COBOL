@@ -49,8 +49,9 @@ public sealed partial class DataBinder
 
     /// <summary>Method WORKING-STORAGE roots (D3: STATIC fields — one copy per class, shared across instances,
     /// persistent across activations). Consumed by <see cref="CodeGen.Emit.FieldEmitter"/> to emit the root
-    /// field with the <c>static</c> modifier.</summary>
-    public HashSet<string> OoStaticRootFields { get; } = new(StringComparer.Ordinal);
+    /// field with the <c>static</c> modifier. (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlySet<string> OoStaticRootFields => _ooStaticRootFields;
+    private readonly HashSet<string> _ooStaticRootFields = new(StringComparer.Ordinal);
 
     /// <summary>Method root (01/77) → its owning method symbol (M2-OO-1h). The post-build passes (OdoResolve,
     /// ResolveRedefines) run AFTER <see cref="OoScopeSubtree"/> has moved method names out of the global maps, and
@@ -60,8 +61,10 @@ public sealed partial class DataBinder
 
     /// <summary>Method index cells (M2-OO-1h step 4) whose table is method WORKING-STORAGE — emitted as class-level
     /// STATIC <c>long</c> fields (persistent across activations, §11.7). A LOCAL/LINKAGE table's cell is instead a
-    /// per-activation method local (emitted in <c>OoEmitMethod</c>) and never appears here.</summary>
-    public HashSet<string> OoStaticIndexCells { get; } = new(StringComparer.Ordinal);
+    /// per-activation method local (emitted in <c>OoEmitMethod</c>) and never appears here. (READ-ONLY view —
+    /// P6 Step 5.)</summary>
+    public IReadOnlySet<string> OoStaticIndexCells => _ooStaticIndexCells;
+    private readonly HashSet<string> _ooStaticIndexCells = new(StringComparer.Ordinal);
 
     /// <summary>Every INDEX-NAME declared under a root (its subtree's <c>INDEXED BY</c> names).</summary>
     internal static IEnumerable<string> IndexNamesUnder(DataItem root)
@@ -195,7 +198,7 @@ public sealed partial class DataBinder
                             + "recognized but not yet implemented (Phase 3, OO port)");
                 var roots = BindEntries(ws.dataDescriptionEntry(), _rootNames);
                 m.StaticRoots.AddRange(roots);
-                foreach (var r in roots) OoStaticRootFields.Add(r.CsName);
+                foreach (var r in roots) _ooStaticRootFields.Add(r.CsName);
             }
             if (dd.localStorageSection() is { } ls)
             {
@@ -223,11 +226,11 @@ public sealed partial class DataBinder
         // cell is a per-activation method local (emitted in OoEmitMethod).
         foreach (var root in m.StaticRoots)
             foreach (var idx in IndexNamesUnder(root))
-                if (m.DataScope.IndexFields.TryGetValue(idx, out var cell)) OoStaticIndexCells.Add(cell);
+                if (m.DataScope.IndexFields.TryGetValue(idx, out var cell)) _ooStaticIndexCells.Add(cell);
         // LINKAGE + LOCAL-STORAGE roots are C# LOCALS of the emitted method (their struct types and numeric
         // profiles still emit at class level) — never instance fields. Method-WS roots DO emit (as statics).
         foreach (var root in m.LocalRoots.Concat(m.LinkageRoots))
-            CallSuppressedRootFields.Add(root.CsName);
+            _callSuppressedRootFields.Add(root.CsName);
 
         // The PD header formals (§14.2.2 SR1 — level-01/77 LINKAGE entries; correspondence is positional).
         // Every formal is BY REFERENCE (the header BY VALUE phrase is a grammar extension not yet parsed —
@@ -368,7 +371,7 @@ public sealed partial class DataBinder
             StoreAsImage = model.StoreAsImage,
         };
         t.Uid = _uidCounter++;
-        Roots.Add(t);
+        _roots.Add(t);
         CompilerTempClones.Add((t, model));
         return t;
     }
@@ -480,8 +483,8 @@ public sealed partial class DataBinder
             if (root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root)
                 && OoRootOwner.TryGetValue(root, out var m))
             {
-                if (m.StaticRoots.Contains(root)) OoStaticRootFields.Add(cls.BackingCsName);   // method-WS → static
-                else CallSuppressedRootFields.Add(cls.BackingCsName);   // LOCAL/LINKAGE → emitted as a method local
+                if (m.StaticRoots.Contains(root)) _ooStaticRootFields.Add(cls.BackingCsName);   // method-WS → static
+                else _callSuppressedRootFields.Add(cls.BackingCsName);   // LOCAL/LINKAGE → emitted as a method local
             }
     }
 }

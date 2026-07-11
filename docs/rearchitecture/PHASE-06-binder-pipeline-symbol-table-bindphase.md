@@ -60,13 +60,18 @@ explicitly **out of scope** (P7 / P9).
 
 ## STATUS
 
-`IN PROGRESS @ step 5 (2026-07-11). Steps 0–4 DONE (commits 8ac37480 = Step 2 / DEVLOG 767; 514d9c73 = Step 3 /
+`IN PROGRESS @ step 6 (2026-07-11). Steps 0–5 DONE (commits 8ac37480 = Step 2 / DEVLOG 767; 514d9c73 = Step 3 /
 DEVLOG 768; Step 4 = DEVLOG 769 — the VersionConformancePass is the NAMED terminal GroupTail pass producing the new
 PassPhase.EditionConformanceChecked, its Run takes the GroupBindContext [which now carries the parse Tree], the
 driver no longer references the pass: Phase 2 = Bind → gate-on-sink → CheckOnly → EmitBound; exit criteria #4/#6
 verified — the sole non-pass ConstructRegistry.Check is the documented UDF-recognition exception in
 StatementBinder.Udf.cs; CheckOnlyCompileTests strengthened with band-code + no-emit-artifact asserts; INV-1
-continuity sweep all-OK):
+continuity sweep all-OK). Step 5 = DEVLOG 770 — a 3-agent audit proved ZERO CodeGen/Validation writes into the
+binder model; the two misplaced bind-time bodies moved to Binding (harmonize → StorageFormPass.HarmonizeOverrideCrossings
+with OoClassTable.StringCarried as the ONE crossing-form predicate; OoQualifyClassFiles → BinderDriver.QualifyClassFiles),
+the IOoBindHost seam shrank to the 4 OO-bind members, and the 14 CodeGen-read collections are IReadOnly views over
+private backings (cross-class write channel = DataBinder.SeedInheritedGlobalIndex). Element mutability + the
+ByName/Conditions maps are Step-7/data-model-track scope (documented in the property docs):
 BinderDriver + immutable BoundCompilation landed (bound model in Binding/Model; IOoBindHost+BindSession = the P6→P9
 seam, an interface instead of the doc's OoBindCallbacks record); the middle-end tail is the DECLARED
 BindPipeline.GroupTail manifest (ProcedureBinding → UsageCollectionPass → StorageFormPass over GroupBindContext),

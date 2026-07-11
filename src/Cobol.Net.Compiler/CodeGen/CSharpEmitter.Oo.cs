@@ -158,37 +158,8 @@ public sealed partial class CSharpEmitter
                     + "GLOBAL clause — GLOBAL shall not be specified in a factory, instance, or method definition (ISO §13.18.27.3 SR4)");
     }
 
-    /// <summary>Qualify a class's OBJECT/FACTORY file connectors into the run-unit registry namespace (M2-OO-1i —
-    /// the OO analogue of the per-program qualification in <see cref="CallEmitRunUnit"/>). A FACTORY file (the class
-    /// singleton, §9.3.14.2) keys by class — <c>Class::FACT::name</c>; an EXTERNAL class file keys by its run-unit
-    /// external name (§13.18.22.4 GR4a — one connector shared by every describer, inc 5). An OBJECT (instance) file
-    /// is per-object (inc 4): a class-qualified BASE key plus a minted per-object <c>__fkey</c> field. Name
-    /// resolution is done (bound nodes hold FileModel references), so this is a pure emit-side rename.</summary>
-    private static void OoQualifyClassFiles(OoClassUnit cls)
-    {
-        // OBJECT (instance) files: one connector per object (§9.1.4). A non-EXTERNAL file keeps a class-qualified
-        // BASE key (the seed MintInstanceKey suffixes with a per-object #N) and a minted-key FIELD; an EXTERNAL
-        // instance file keys by its run-unit external name like any describer (§13.18.22.4 GR4a — inc 5).
-        foreach (var f in cls.Data.Files)
-            if (f is { IsExternal: true, ExternalName: { } ext })
-                f.CobolName = "::EXT::" + ext;
-            else if (f.IsSortMerge)
-                // An SD is NOT a host connector — its store is the name-keyed in-memory CobolSort (§13.4.6), and
-                // OoEmitFileMembers / EmitFileRegistration both skip SDs (host = !IsSortMerge). So it must keep a
-                // STATIC key (no InstanceKeyField), or FileKeyExpr would emit an undeclared this.__fkey_X for a
-                // SORT/MERGE/RELEASE/RETURN in a method (M2-OO-1i review). Class-qualified for cross-class uniqueness.
-                f.CobolName = cls.CsName + "::SORT::" + f.CobolName;
-            else
-            {
-                f.InstanceKeyField = "__fkey_" + DataItem.Sanitize(f.CobolName);
-                f.CobolName = cls.CsName + "::INST::" + f.CobolName;
-            }
-        // FACTORY files: the class singleton (§9.3.14.2) — a static class-qualified key (no per-object field).
-        foreach (var f in cls.FactoryData.Files)
-            f.CobolName = f is { IsExternal: true, ExternalName: { } ext }
-                ? "::EXT::" + ext
-                : cls.CsName + "::FACT::" + f.CobolName;
-    }
+    // OoQualifyClassFiles relocated to BinderDriver.QualifyClassFiles (P6 Step 5 — a Bind-phase FileModel
+    // mutation; no CodeGen write into the binding model remains).
 
     /// <summary>Emit the object/factory file-connector members (M2-OO-1i): each host file the class declares
     /// registers in an emitted parameterless constructor — a FACTORY file registers once in the class singleton's
@@ -637,50 +608,10 @@ public sealed partial class CSharpEmitter
         w.Line();
     }
 
-    /// <summary>True when an item CROSSES the INVOKE boundary as a character string: groups (image crossing),
-    /// image-stored numerics, alphanumeric / numeric-edited items. Native numerics and object references cross
-    /// typed. The §14.8.2 strict-conformance bind rules guarantee both sides agree on the crossing form's
-    /// WIDTH/description — which is what keeps the marshaling free of cross-class numeric profiles.</summary>
-    private static bool OoStringCarried(DataItem item) =>
-        item.IsGroup || item.StoreAsImage
-        || item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
-            or PicCategory.National or PicCategory.Boolean;   // string-stored (D-N1/D-B1) — char crossing
-
-    /// <summary>Unify the INVOKE-boundary CROSSING FORM across every override chain (the 3a/3b review's
-    /// signature-desync finding): MarkStoreAsImage can flip ONE side's numeric-DISPLAY formal/RETURNING item
-    /// to image storage (its class whole-group-references it; the other class's doesn't), which would emit
-    /// `M(ref string)` in the base and `override M(ref long)` in the subclass — a raw Roslyn CS0115 on legal
-    /// COBOL (the G4 violation). The §14.8.2/§9.3.8.2 checks already guarantee identical DESCRIPTIONS, so
-    /// unioning to the image form is semantics-preserving (the FormatDisplay/StoreDisplay storage-form
-    /// bridges absorb either storage). Iterates to a fixed point — a flip through one link can propagate
-    /// down a chain or across sibling subclasses.</summary>
-    private void OoHarmonizeOverrideCrossings()
-    {
-        bool changed = true;
-        while (changed)
-        {
-            changed = false;
-            foreach (var cls in _ooClasses.Classes)
-                foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
-                {
-                    if (m.OverrideOf is not { } baseM) continue;
-                    for (int i = 0; i < Math.Min(m.Formals.Count, baseM.Formals.Count); i++)
-                        changed |= OoUnifyCrossing(m.Formals[i].Item, baseM.Formals[i].Item);
-                    if (m.Returning is { } r && baseM.Returning is { } br)
-                        changed |= OoUnifyCrossing(r, br);
-                }
-        }
-
-        static bool OoUnifyCrossing(DataItem a, DataItem b)
-        {
-            if (OoStringCarried(a) == OoStringCarried(b)) return false;
-            var native = a.StoreAsImage ? b : a;
-            if (native.Pic is not { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                return false;   // only the display-numeric pair can diverge; anything else conformance-blocked
-            native.StoreAsImage = true;
-            return true;
-        }
-    }
+    /// <summary>Thin forward to THE one crossing-form predicate, <see cref="OoClassTable.StringCarried"/>
+    /// (relocated to Binding in P6 Step 5 — the bind-phase override harmonize in <c>StorageFormPass</c> and these
+    /// emit-side signature/marshaling renders must consult the SAME definition).</summary>
+    private static bool OoStringCarried(DataItem item) => OoClassTable.StringCarried(item);
 
     private int _ooInvokeCounter;
 

@@ -27,8 +27,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <c>--std</c>.</summary>
     public EditionContext Edition { get; } = edition ?? new EditionContext(2023);
 
-    /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order.</summary>
-    public List<DataItem> Roots { get; } = [];
+    /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order. (READ-ONLY view — P6 Step 5:
+    /// the emitter consumes the bound model without a write channel; the binder populates the private backing.)</summary>
+    public IReadOnlyList<DataItem> Roots => _roots;
+    private readonly List<DataItem> _roots = [];
 
     /// <summary>
     /// Every named item, keyed by COBOL name (case-insensitive) → the list of items with that name. COBOL permits
@@ -38,8 +40,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     public Dictionary<string, List<DataItem>> ByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>INDEXED BY index-names (case-insensitive) → the C# <c>long</c> field that holds the 1-based
-    /// occurrence number (COBOLNET_DESIGN §3.5). A subscript may name an index, so the resolver consults this.</summary>
-    public Dictionary<string, string> IndexFields { get; } = new(StringComparer.OrdinalIgnoreCase);
+    /// occurrence number (COBOLNET_DESIGN §3.5). A subscript may name an index, so the resolver consults this.
+    /// (READ-ONLY view — P6 Step 5; the GLOBAL-inheritance preseed writes through
+    /// <see cref="SeedInheritedGlobalIndex"/>.)</summary>
+    public IReadOnlyDictionary<string, string> IndexFields => _indexFields;
+    private readonly Dictionary<string, string> _indexFields = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Pre-seed one inherited GLOBAL-table index name BEFORE <see cref="Bind"/> (ISO §13.18.27 GR2 —
+    /// a global index-name is SHARED storage reached through the ref-bridge, never re-declared locally): registers
+    /// the CONTAINER's cell under the name and suppresses the field from this unit's emission. False when the
+    /// name is already taken (a nearer declaration shadows). The ONE write channel BinderDriver uses (P6 Step 5).</summary>
+    internal bool SeedInheritedGlobalIndex(string idxName, string field)
+    {
+        if (!_indexFields.TryAdd(idxName, field)) return false;
+        _callSuppressedRootFields.Add(field);
+        return true;
+    }
 
     /// <summary>Level-88 condition-names (case-insensitive) → the conditions with that name (a list, since names
     /// may be duplicated under different parents and disambiguated by qualification).</summary>
@@ -49,8 +65,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// dynamic-table <see cref="DataItem"/> (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9). The register is
     /// IMPLICITLY defined at the OCCURS entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults
     /// this map to build a <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated
-    /// by the post-build <see cref="DynamicResolve"/> pass.</summary>
-    public Dictionary<string, DataItem> CapacityRegisters { get; } = new(StringComparer.OrdinalIgnoreCase);
+    /// by the post-build <see cref="DynamicResolve"/> pass. (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlyDictionary<string, DataItem> CapacityRegisters => _capacityRegisters;
+    private readonly Dictionary<string, DataItem> _capacityRegisters = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO
     /// §13.18.58; data-model D17). The template is built by <see cref="BindEntries"/> but kept OFF <see cref="Roots"/>
@@ -75,8 +92,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// the remaining clauses are captured for the features that will consume them. Defaults when no OPTIONS.</summary>
     public OptionsModel Options { get; private set; } = OptionsModel.Default;
 
-    /// <summary>All SELECTed files (the SELECT clause joined with its FD records), in source order.</summary>
-    public List<FileModel> Files { get; } = [];
+    /// <summary>All SELECTed files (the SELECT clause joined with its FD records), in source order.
+    /// (READ-ONLY view — P6 Step 5. The bind-phase file-connector qualification mutates the FileModel ELEMENTS,
+    /// which a read-only list does not prevent — element immutability is a later data-model-track item.)</summary>
+    public IReadOnlyList<FileModel> Files => _files;
+    private readonly List<FileModel> _files = [];
 
     /// <summary>The files keyed by COBOL file-name (case-insensitive), for the binder to resolve OPEN/READ/CLOSE
     /// targets and to map a WRITE/REWRITE record-name back to its owning file.</summary>
@@ -335,7 +355,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // (FILE SECTION records and WORKING-STORAGE alike), so record it in the shared scope.
                     item.CsName = Unique(item.CsName, rootNames);
                     rootNames.Add(item.CsName);
-                    Roots.Add(item);
+                    _roots.Add(item);
                     newRoots.Add(item);
                     _lastRoot = item;
                 }
@@ -436,7 +456,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (file.Sharing == SharingMode.AllOther && file.LockMode is null)
                 Edition.Error("COBOLNET1512", $"file '{name}': SHARING WITH ALL OTHER requires the file to have a "
                     + "LOCK MODE clause (ISO §14.9.27 SR8)");
-            Files.Add(file);
+            _files.Add(file);
             FilesByName[name] = file;
         }
     }
@@ -482,7 +502,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 // An FD with no matching SELECT — keep a model so its records still resolve (it is never opened).
                 file = new FileModel { CobolName = name };
-                Files.Add(file);
+                _files.Add(file);
                 FilesByName[name] = file;
             }
             file.HasFd = true;
@@ -524,7 +544,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (!FilesByName.TryGetValue(sdName, out var sdFile))
             {
                 sdFile = new FileModel { CobolName = sdName };
-                Files.Add(sdFile);
+                _files.Add(sdFile);
                 FilesByName[sdName] = sdFile;
             }
             sdFile.HasFd = true;
@@ -1276,7 +1296,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             if (_bindingMethodScope is { } ms)
                 ms.IndexFields[idxName] = "_MIX_" + _ixSeq++;
             else if (!IndexFields.ContainsKey(idxName))
-                IndexFields[idxName] = "_IX_" + IndexFields.Count;
+                _indexFields[idxName] = "_IX_" + _indexFields.Count;
         }
         return item;
     }

@@ -23,18 +23,23 @@ public sealed partial class DataBinder
     /// <c>private readonly StorageCell {CellField} = new StorageCell {{ Ref = «ImageInitOf(Canonical)» }};</c> +
     /// <c>private ref string {Backing} =&gt; ref {CellField}.Ref;</c>. The seed honors the record's VALUE
     /// clauses exactly like the Tier-B stored-backing initializer (the emitter computes it via the ONE
-    /// <c>FieldEmitter.ImageInitOf</c> — the based_pointer first-run lesson: a default image loses VALUE).</summary>
-    internal List<(string Backing, string CellField, DataItem Canonical, int Width)> PtrAddressableBackings { get; } = [];
+    /// <c>FieldEmitter.ImageInitOf</c> — the based_pointer first-run lesson: a default image loses VALUE).
+    /// (READ-ONLY view — P6 Step 5.)</summary>
+    internal IReadOnlyList<(string Backing, string CellField, DataItem Canonical, int Width)> PtrAddressableBackings => _ptrAddressableBackings;
+    private readonly List<(string Backing, string CellField, DataItem Canonical, int Width)> _ptrAddressableBackings = [];
 
     /// <summary>The BASED bridges the emitter renders: the implicit data-address pointer field
     /// (<c>private ManagedPointer {AddrField} = ManagedPointer.Null;</c> — initially NULL, §13.18.5 GR2) +
     /// the deref bridge (<c>private ref string {Backing} =&gt; ref CobolPtr.Deref({AddrField}, {Width}).Ref;</c>
-    /// — GR3/GR4 loud at every reference).</summary>
-    internal List<(string Backing, string AddrField, int Width)> PtrBasedBridges { get; } = [];
+    /// — GR3/GR4 loud at every reference). (READ-ONLY view — P6 Step 5.)</summary>
+    internal IReadOnlyList<(string Backing, string AddrField, int Width)> PtrBasedBridges => _ptrBasedBridges;
+    private readonly List<(string Backing, string AddrField, int Width)> _ptrBasedBridges = [];
 
     /// <summary>ADDRESS-OF-forced classes → their cell FIELD name (the emitter's
-    /// <c>ManagedPointer.At({cell}, {offset})</c> source; bind-time validation checks membership).</summary>
-    internal Dictionary<RedefinesClass, string> PtrAddressableCellOf { get; } = [];
+    /// <c>ManagedPointer.At({cell}, {offset})</c> source; bind-time validation checks membership).
+    /// (READ-ONLY view — P6 Step 5.)</summary>
+    internal IReadOnlyDictionary<RedefinesClass, string> PtrAddressableCellOf => _ptrAddressableCellOf;
+    private readonly Dictionary<RedefinesClass, string> _ptrAddressableCellOf = [];
 
     /// <summary>The post-build data-pointer pass (runs beside <see cref="CallBindExternalAndGlobal"/> — the
     /// proven post-classification tier-overwrite seam): (1) every BASED root becomes a pointer-routed
@@ -62,7 +67,7 @@ public sealed partial class DataBinder
             if (ForceStringCanonical(root, "BASED item") is not { } cls) continue;
             string addr = "__addr_" + DataItem.Sanitize(root.CobolName ?? root.CsName).ToUpperInvariant();
             cls.BasedPointerField = addr;
-            PtrBasedBridges.Add((cls.BackingCsName, addr, cls.Width));
+            _ptrBasedBridges.Add((cls.BackingCsName, addr, cls.Width));
         }
 
         foreach (string name in PtrScanAddressOfTargets(program))
@@ -78,8 +83,8 @@ public sealed partial class DataBinder
                 continue;                               // EXTERNAL — already cell-backed (ExternalStore); At() takes it directly
             if (ForceStringCanonical(root, "ADDRESS OF target record") is not { } cls) continue;   // rejected → loud
             string cell = "_cell_" + DataItem.Sanitize(root.CobolName ?? root.CsName).ToUpperInvariant();
-            PtrAddressableCellOf[cls] = cell;
-            PtrAddressableBackings.Add((cls.BackingCsName, cell, cls.Canonical, cls.Width));
+            _ptrAddressableCellOf[cls] = cell;
+            _ptrAddressableBackings.Add((cls.BackingCsName, cell, cls.Canonical, cls.Width));
         }
     }
 
