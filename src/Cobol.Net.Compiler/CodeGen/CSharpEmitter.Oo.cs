@@ -271,12 +271,12 @@ public sealed partial class CSharpEmitter
         _ctx = new EmitContext(w, data, _names);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
-        _callSelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
-        _callReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
-        _ecUnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)
-        _useDecls = false;               // a class owns no USE declaratives — clear any bleed from a prior unit (M2-OO-1i review)
-        _callOuterGlobalUse = false;
-        _callInheritedStatusPlace.Clear();
+        _callState.SelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
+        _callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
+        _ecState.UnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)
+        _dispatchState.UseDecls = false;               // a class owns no USE declaratives — clear any bleed from a prior unit (M2-OO-1i review)
+        _dispatchState.OuterGlobalUse = false;
+        _callState.InheritedStatusPlace.Clear();
 
         using (w.Block($"public {(sealedType ? "sealed " : "")}class {csName} : {baseCsName}"))
         {
@@ -549,10 +549,10 @@ public sealed partial class CSharpEmitter
             {
                 // The method's slice of the class's one pc space, as a LOCAL FUNCTION (captures the locals
                 // above by reference — zero allocation for direct calls).
-                string saved = _dispatchName;
-                _dispatchName = "__MDispatch";
+                string saved = _dispatchState.DispatchName;
+                _dispatchState.DispatchName = "__MDispatch";
                 EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.EntryPc, m.EndPc);
-                _dispatchName = saved;
+                _dispatchState.DispatchName = saved;
                 w.Line($"try {{ __MDispatch({m.EntryPc}, {m.EndPc}); }} catch (MethodReturn) {{ }}   "
                     + "// GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
             }
@@ -782,7 +782,7 @@ public sealed partial class CSharpEmitter
     /// <summary>The INVOKE-site propagation pickup (D-EO6): a method GOBACK/EXIT … RAISING stages; the
     /// ACTIVATING site consumes — after the RETURNING delivery and copy-outs (GR1b ordering). Instance/
     /// Self/Super/Factory + UNIVERSAL dispatches all pick up; NEW needs none (the generated ctor runs no
-    /// user statements, D4). Gated on <c>_ecActive</c>, which spans class units.</summary>
+    /// user statements, D4). Gated on <c>EcState.Active</c>, which spans class units.</summary>
     private void OoEmitInvokePickup() => CallEmitPropagationPickup();
 
     private string OoStringReadOf(Place sp, BoundInvokeArg a)

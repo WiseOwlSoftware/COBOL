@@ -31,6 +31,13 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private ReferenceResolver _refs = null!;
     private NameAllocator _names = null!;   // RUN-UNIT scope (set by CallEmitRunUnit) — rides every per-unit _ctx as Names
 
+    // The emitter's mutable state model (Step 9b — EmitterState.cs): three cohesive per-scope objects the
+    // decomposed collaborator emitters receive explicitly. Instance lifetime = one compilation, exactly like
+    // the scattered fields they replace; the per-unit/per-statement mutation discipline is documented on each.
+    private readonly DispatchState _dispatchState = new();
+    private readonly EcState _ecState = new();
+    private readonly CallUnitState _callState = new();
+
     /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
     /// <see cref="BoundCompilation"/> (multi-unit run-unit binding — interprogram design D3 / SSOT §18 #8), under
     /// the targeted EDITION (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the
@@ -68,8 +75,6 @@ public sealed partial class CSharpEmitter : IOoBindHost
 
     // ── The PC dispatcher (COBOLNET_DESIGN §5) ────────────────────────────────────────────────────────────
 
-    private int _currentPc;     // the paragraph index being emitted (for EXIT PARAGRAPH / fall-through)
-    private string? _sizeErrVar; // the current __sizeErr flag while emitting a checked arithmetic body (else null)
 
     /// <summary>
     /// Emit the single program-counter dispatcher: each paragraph is a <c>case</c> in one <c>Dispatch</c> method;
@@ -77,8 +82,6 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// <c>Dispatch(start, end)</c>). STOP RUN unwinds all frames via <c>StopRun</c>, caught at <c>Main</c>. This
     /// realizes the legacy's proven return-address / exit-bounded dispatch (DEVLOG 259–260) in idiomatic C#.
     /// </summary>
-    private bool _useDecls;   // the program being emitted declares USE procedures (drives the __IoCheck hooks)
-    private bool _callOuterGlobalUse;   // a CONTAINING program has USE … GLOBAL declaratives (ISO §14.9.49.4 GR4b — the child's __IoCheck walks outward; set by CallEmitProgramClass)
 
     private void EmitDispatcher(BoundProgram bound, CodeWriter w)
     {
@@ -86,7 +89,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         // Hooks are needed for the program's OWN declaratives (GR4a) — or, with none, for the outward GR4b walk
         // to a containing program's GLOBAL declaratives (IC233A: the contained unit has no declaratives, yet its
         // failing OPEN must fire the outer's USE GLOBAL).
-        _useDecls = bound.Declaratives is { Count: > 0 } || _callOuterGlobalUse;
+        _dispatchState.UseDecls = bound.Declaratives is { Count: > 0 } || _dispatchState.OuterGlobalUse;
         w.Line();
         // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
@@ -118,16 +121,13 @@ public sealed partial class CSharpEmitter : IOoBindHost
         // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking
         // (__IoCheckEc needs no declaratives to bridge status→EC and apply the fatal default) — gated so an
         // EC-free program's source is unchanged.
-        if (_useDecls || bound.Ec is { HasIoChecked: true }) EmitUseMachinery(bound, w);
+        if (_dispatchState.UseDecls || bound.Ec is { HasIoChecked: true }) EmitUseMachinery(bound, w);
         EmitDispatchMethod(bound, w, "private int __Dispatch(int __startPc, int __exitPc)",
             0, bound.Paragraphs.Count - 1);
     }
 
-    /// <summary>The dispatch-method NAME the statement emitters call for a bounded range (out-of-line PERFORM,
-    /// SORT/MERGE procedures): <c>__Dispatch</c> for a program's instance method; <c>__MDispatch</c> while a
-    /// COBOL-class METHOD body emits — its dispatcher is a LOCAL FUNCTION of the emitted method, so the
-    /// method's LINKAGE/LOCAL-STORAGE locals are capturable (OO deep-dive D3/D6, slice 2).</summary>
-    private string _dispatchName = "__Dispatch";
+    // The dispatch-method NAME the statement emitters call for a bounded range is DispatchState.DispatchName
+    // (Step 9b — see EmitterState.cs for the __Dispatch / __MDispatch contract).
 
     /// <summary>Emit one dispatch-method body over the pc slice [<paramref name="fromPc"/>..<paramref name="toPc"/>]
     /// — SHARED by program classes (via <see cref="EmitDispatcher"/>: the full range as the instance
@@ -146,7 +146,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
                 {
                     for (int i = fromPc; i <= toPc; i++)
                     {
-                        _currentPc = i;
+                        _dispatchState.CurrentPc = i;
                         using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
                         {
                             if (!EmitParagraphBody(bound.Paragraphs[i], i))
@@ -177,7 +177,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         if (decls.Count > 0)
         {
             w.Line($"private readonly bool[] __useActive = new bool[{decls.Count}];   // §14.9.49.4 GR2 re-entrancy guards");
-            if (_ecActive)
+            if (_ecState.Active)
             {
                 // The EC-model form: __RunUse RETURNS the declarative's resume action (the dispatch result
                 // protocol — CSharpEmitter.Exceptions.cs): a RESUME statement unwinds via ResumeSignal
@@ -208,7 +208,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         if (decls.Any(d => d.EcEntries is not null)) EcEmitDispatchSelector(bound, w);
         if (decls.Any(d => d.EoClassCsName is not null)) EcEmitObjDispatchSelector(bound, w);   // F4 (EC-OO)
         if (bound.Ec is { HasIoChecked: true }) EcEmitIoCheckEc(bound, w);
-        if (!_useDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
+        if (!_dispatchState.UseDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
         using (w.Block("private void __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
             w.Line("string __st = CobolFile.Status(__f);");
@@ -233,7 +233,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
             // declarative (ISO §14.9.49.4 GR4b: "a qualifying declarative with the GLOBAL attribute in the next
             // inclusive directly containing source element", repeated outward). The declarative executes in the
             // DECLARING program's instance — its data (§8.4.6.2) — via the container's __RunGlobalUse.
-            if (_callOuterGlobalUse)
+            if (_dispatchState.OuterGlobalUse)
                 w.Line("__outer.__RunGlobalUse(__f);");
         }
         w.Line();
@@ -250,17 +250,16 @@ public sealed partial class CSharpEmitter : IOoBindHost
         if (EcIoMaskFor(file) is not 0 and var mask)
         {
             int id = _ctx.Names.NextEc();
-            var (stmt, loc) = EcStmtLoc(_ecInfo!);
+            var (stmt, loc) = EcStmtLoc(_ecState.Info!);
             w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
                 + $"{(invalidKeyHandled ? "true" : "false")}, {mask}, {stmt}, {loc});");
             w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
             return;
         }
-        if (!_useDecls) return;
+        if (!_dispatchState.UseDecls) return;
         w.Line($"__IoCheck({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, {(invalidKeyHandled ? "true" : "false")});");
     }
 
-    private string? _sentenceEndLabel;   // the goto target NEXT SENTENCE jumps to (null in the last sentence)
 
     /// <summary>Emit a paragraph body SENTENCE by sentence. When the paragraph contains a NEXT SENTENCE anywhere,
     /// each inter-sentence boundary gets a label (`__sentP_K:`) — the §14.9.19 GR6 implicit CONTINUE after the
@@ -275,14 +274,14 @@ public sealed partial class CSharpEmitter : IOoBindHost
         for (int k = 0; k < sentences.Count; k++)
         {
             bool last = k == sentences.Count - 1;
-            _sentenceEndLabel = needLabels && !last ? $"__sent{pc}_{k}" : null;
+            _dispatchState.SentenceEndLabel = needLabels && !last ? $"__sent{pc}_{k}" : null;
             // Unlike intra-sentence dead code, a LABELLED sentence boundary is reachable via NEXT SENTENCE even
             // after an unconditional transfer — so only skip remaining sentences when no labels exist.
             if (terminated && !needLabels) break;
             terminated = EmitStatementList(sentences[k]);
             if (needLabels && !last) w.Line($"__sent{pc}_{k}: ;");
         }
-        _sentenceEndLabel = null;
+        _dispatchState.SentenceEndLabel = null;
         return terminated;
     }
 
@@ -865,9 +864,9 @@ public sealed partial class CSharpEmitter : IOoBindHost
         {
             ecnVar = $"__sizeEc{_ctx.Names.NextEc()}";
             w.Line($"string {ecnVar} = \"\";");
-            _sizeErrEcVar = ecnVar;
+            _ecState.SizeErrEcVar = ecnVar;
         }
-        _sizeErrVar = flag;
+        _ecState.SizeErrVar = flag;
         using (w.Block("try")) emitStores(true);   // checked renders: DivideOrThrow / MulChecked (§14.7.5)
         // A zero divisor / PROHIBITED-inexact quotient raises CobolSizeError; an intermediate that overflows the
         // long engine raises OverflowException (the checked(...) the store wraps the value in). Both are the
@@ -884,8 +883,8 @@ public sealed partial class CSharpEmitter : IOoBindHost
             w.Line($"catch (CobolSizeError) {{ {flag} = true; }}");
             w.Line($"catch (System.OverflowException) {{ {flag} = true; }}");
         }
-        _sizeErrVar = null;
-        _sizeErrEcVar = null;
+        _ecState.SizeErrVar = null;
+        _ecState.SizeErrEcVar = null;
 
         if (ecnVar is not null)
             EcEmitSizeHandling(flag, ecnVar, ecSize, hasPhrase: sizeErr?.OnError is not null);
@@ -902,7 +901,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
 
     /// <summary>Store an arithmetic result into a numeric target place, rounding to the receiver scale with
     /// <paramref name="mode"/> (the receiver's ROUNDED phrase, ISO §14.7.4). Inside an ON SIZE ERROR statement
-    /// (<see cref="_sizeErrVar"/> set) it uses the checked <c>CobolNum.TryStore</c> — on overflow / PROHIBITED-inexact
+    /// (<see cref="EcState.SizeErrVar"/> set) it uses the checked <c>CobolNum.TryStore</c> — on overflow / PROHIBITED-inexact
     /// it sets the flag and leaves the receiver unchanged (§14.7.5); otherwise the plain <c>CobolNum.Store</c>.</summary>
     private void StoreArith(Place target, NumX value, CobolRounding mode)
     {
@@ -929,12 +928,12 @@ public sealed partial class CSharpEmitter : IOoBindHost
             // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule
             // 2): an aligned |value| exceeding the mask's digit positions sets the flag and leaves the receiver
             // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§14.9.25).
-            if (_sizeErrVar is { } eflag)
+            if (_ecState.SizeErrVar is { } eflag)
             {
                 string img = $"__sv{_ctx.Names.NextStoreTmp()}";
                 // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
                 // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
-                string onFail = _sizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
+                string onFail = _ecState.SizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
                 w.Line($"if (!CobolEdit.TryFormat({Aligned(true)}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)}{EditCfg()})) {onFail}");
                 w.Line($"else {target.Write(img)}");
                 return;
@@ -965,7 +964,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         string args = value.Dec ? $"{value.Expr}, {profile}"
             : value.Real ? $"{valExprA}, {recvScale}, {profile}"
             : $"{value.Expr}, {value.Scale}, {profile}";
-        if (_sizeErrVar is { } flag)
+        if (_ecState.SizeErrVar is { } flag)
         {
             string tmp = $"__sv{_ctx.Names.NextStoreTmp()}";
             // Intermediate long-engine overflow is detected upstream by the checked multiply the renderer emits in a
@@ -974,7 +973,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
             // COMPILE time (CS0220) and reject valid COBOL — the runtime helper avoids that by not constant-folding.
             // Under EC-SIZE checking the receiver-capacity failure latches EC-SIZE-TRUNCATION (Table 13 —
             // "significant digits truncated in store"; the §14.7.5 size error on the final transfer).
-            string onFail = _sizeErrEcVar is { } ecn2 ? $"{{ {flag} = true; {ecn2} = \"EC-SIZE-TRUNCATION\"; }}" : $"{flag} = true;";
+            string onFail = _ecState.SizeErrEcVar is { } ecn2 ? $"{{ {flag} = true; {ecn2} = \"EC-SIZE-TRUNCATION\"; }}" : $"{flag} = true;";
             // A float (Real) source under ROUNDED MODE PROHIBITED: an inexact transfer is a size error and leaves the
             // receiver UNCHANGED (§14.7.5 r7). ToScaled already truncated the fraction, so the store's own PROHIBITED
             // check cannot see it — gate on InexactAtScale first (D16 review finding).
@@ -1023,7 +1022,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
     /// (the C# call stack is the return-address stack, COBOLNET_DESIGN §5.4).</summary>
     private void EmitOutOfLinePerform(BoundOutOfLinePerform p) =>
-        EmitPerform(p.Control, () => _ctx.Writer.Line($"{_dispatchName}({p.StartPc}, {p.EndPc});"), inline: false);
+        EmitPerform(p.Control, () => _ctx.Writer.Line($"{_dispatchState.DispatchName}({p.StartPc}, {p.EndPc});"), inline: false);
 
 
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
@@ -1635,7 +1634,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         // An INHERITED GLOBAL file stores into the OWNER's status item through the __outer chain
         // (§12.4.5.8.4 GR1 NOTE 1 — the item is updated by contained-program references to the global
         // file-name even though it is a LOCAL name of the owner; map built per unit in CallEmitProgramClass).
-        Place? place = _callInheritedStatusPlace.TryGetValue(file, out var inherited)
+        Place? place = _callState.InheritedStatusPlace.TryGetValue(file, out var inherited)
             ? inherited
             : file.FileStatusItem is { } own ? _refs.ResolveItem(own) : null;
         if (file.FileStatusItem is not { } item || place is null)

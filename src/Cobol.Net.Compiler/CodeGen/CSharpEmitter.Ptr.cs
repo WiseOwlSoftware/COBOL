@@ -112,7 +112,7 @@ public sealed partial class CSharpEmitter
     private void PtrEmitFree(BoundFree s)
     {
         var w = _ctx.Writer;
-        bool checkNotAlloc = _ecInfo?.Enabled.Any(e => e.Ec == "EC-STORAGE-NOT-ALLOC") == true;
+        bool checkNotAlloc = _ecState.Info?.Enabled.Any(e => e.Ec == "EC-STORAGE-NOT-ALLOC") == true;
         foreach (var op in s.Operands)
         {
             string na = $"__notAlloc{_ctx.Names.NextPtr()}";
@@ -120,7 +120,7 @@ public sealed partial class CSharpEmitter
             w.Line(op.Write($"CobolPtr.Free({op.Read()}, out {na})") + "   // FREE (ISO §14.9.15 GR1)");
             if (checkNotAlloc)
             {
-                var (stmt, loc) = EcStmtLoc(_ecInfo!);
+                var (stmt, loc) = EcStmtLoc(_ecState.Info!);
                 using (w.Block($"if ({na})"))
                 {
                     w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-ALLOC\", false, {stmt}, {loc});   // GR1c — nonfatal (§14.6.13.1.1)");

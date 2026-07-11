@@ -39,7 +39,7 @@ public sealed partial class CSharpEmitter
             foreach (var input in so.Using)
                 SortEmitInputFile(input, sd, so.RecordWidth, so.Varying is not null);
         else if (so.InputProcedure is { } ip && ip.Start <= ip.End)
-            w.Line($"{_dispatchName}({ip.Start}, {ip.End});   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
+            w.Line($"{_dispatchState.DispatchName}({ip.Start}, {ip.End});   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
 
         // Phase b — sequence (GR9b).
         w.Line($"CobolSort.Sort({sd}, {SortKeysExpr(so.Keys)}, {SortWeightsExpr(so.Collating)}, "
@@ -50,7 +50,7 @@ public sealed partial class CSharpEmitter
             foreach (var output in so.Giving)
                 SortEmitGivingFile(output, sd);
         else if (so.OutputProcedure is { } op && op.Start <= op.End)
-            w.Line($"{_dispatchName}({op.Start}, {op.End});   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
+            w.Line($"{_dispatchState.DispatchName}({op.Start}, {op.End});   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
 
         w.Line($"CobolSort.Close({sd});");
     }
@@ -75,7 +75,7 @@ public sealed partial class CSharpEmitter
             foreach (var output in mg.Giving)
                 SortEmitGivingFile(output, sd);   // GR12 — each file-name-4 receives the WHOLE merged result
         else if (mg.OutputProcedure is { } op && op.Start <= op.End)
-            w.Line($"{_dispatchName}({op.Start}, {op.End});   // OUTPUT PROCEDURE (GR9)");
+            w.Line($"{_dispatchState.DispatchName}({op.Start}, {op.End});   // OUTPUT PROCEDURE (GR9)");
         w.Line($"CobolSort.Close({sd});");
     }
 

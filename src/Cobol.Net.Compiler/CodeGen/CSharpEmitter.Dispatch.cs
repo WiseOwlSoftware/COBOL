@@ -27,7 +27,7 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     }
 
     public bool Visit(BoundGoTo n) { var w = _ctx.Writer; w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
-    public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; w.Line($"__pc = {_currentPc + 1};"); w.Line("break;"); return true; }
+    public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
     public bool Visit(BoundExitPerform n) { _ctx.Writer.Line(n.Cycle ? "continue;" : "break;"); return false; }   // inline-PERFORM loop
     public bool Visit(BoundGoToDepending n) { EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
@@ -46,8 +46,8 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
         // §14.9.19 GR6: to the implicit CONTINUE after the current sentence; in the LAST sentence that is
         // the paragraph fall-through (pc+1 — the dispatcher's at-exit check then handles a PERFORM return).
         var w = _ctx.Writer;
-        if (_sentenceEndLabel is { } lbl) { w.Line($"goto {lbl};"); return true; }
-        w.Line($"__pc = {_currentPc + 1};");
+        if (_dispatchState.SentenceEndLabel is { } lbl) { w.Line($"goto {lbl};"); return true; }
+        w.Line($"__pc = {_dispatchState.CurrentPc + 1};");
         w.Line("break;");
         return true;
     }

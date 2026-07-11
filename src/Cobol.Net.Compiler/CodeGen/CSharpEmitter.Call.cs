@@ -27,16 +27,9 @@ public sealed partial class CSharpEmitter
     // ── The per-compilation unit model: Binding/Model/{BoundUnit,OoClassUnit,BoundCompilation}.cs (P6 Step 2 —
     //    the BINDER owns the bound model; this half renders it read-only). ───────────────────────────────────
 
-    private string _callSelfPath = "";
-    private Place? _callReturningPlace;
 
-    /// <summary>For each GLOBAL file INHERITED from a container (ISO §13.18.30), the place of the OWNER's FILE
-    /// STATUS item reached through the <c>__outer</c> instance chain. §12.4.5.8.4 GR1 NOTE 1: "In the case where
-    /// a file-name is global and data-name-1 is not, data-name-1 is updated by references to file-name in
-    /// contained programs even though data-name-1 is a local name" — the contained program's after-verb status
-    /// store must write the OWNER's storage although the NAME is not visible to it. Rebuilt per emitted unit
-    /// (nearest container first); consumed by <c>EmitStoreFileStatus</c>.</summary>
-    private readonly Dictionary<FileModel, Place> _callInheritedStatusPlace = [];
+    // The inter-program unit state (SelfPath / ReturningPlace / the inherited GLOBAL FILE STATUS routing) is
+    // CallUnitState (Step 9b — see EmitterState.cs for the ISO §13.18.30 / §12.4.5.8.4 GR1 NOTE 1 contract).
 
     // ── Run-unit emission (replaces the single-unit Emit body; design D3). The BIND half is
     //    Binding/BinderDriver.Bind (P6 Step 2 — was CallBindRunUnit here); the OO orchestration it reaches
@@ -53,7 +46,7 @@ public sealed partial class CSharpEmitter
         // The bind-populated emitter state, restored from the immutable compilation (never computed here).
         _turnState = comp.Turn;
         _ooClasses = comp.OoClasses;
-        _ecActive = comp.EcActive;
+        _ecState.Active = comp.EcActive;
         _names = new NameAllocator();   // ONE per run unit — every per-unit EmitContext threads this instance (Step 9a)
         var units = comp.Units;
         var classes = comp.ClassUnits;
@@ -69,7 +62,7 @@ public sealed partial class CSharpEmitter
         w.Line("using CobolNet.Runtime;          // CobolNum / CobolString substrates + the inter-program ABI (ManagedPointer / ICobolProgram / ProgramRegistry)");
         if (anyFiles)
             w.Line("using CobolNet.Runtime.IO;       // CobolFile — the sequential file-I/O facade (§8)");
-        if (_ecActive || classes.Count > 0)
+        if (_ecState.Active || classes.Count > 0)
             // The EC model, OR any class (D10): every class's generated __CobolInvoke switch raises
             // CobolFatalException (EC-OO-UNIVERSAL, GR7c). A class-less EC-free program keeps the
             // zero-scaffolding invariant byte-exact (SSOT §18.16 — the test greps the namespace).
@@ -109,26 +102,26 @@ public sealed partial class CSharpEmitter
         _ctx = new EmitContext(w, data, _names);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
-        _callSelfPath = unit.Path;
-        _callReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
-        _ecUnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
-        _ecUnitHasF4 = unit.Bound.Declaratives?.Any(d => d.EoClassCsName is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
+        _callState.SelfPath = unit.Path;
+        _callState.ReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
+        _ecState.UnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
+        _ecState.UnitHasF4 = unit.Bound.Declaratives?.Any(d => d.EoClassCsName is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
-        _callOuterGlobalUse = CallChainHasGlobalUse(unit.Parent);
+        _dispatchState.OuterGlobalUse = CallChainHasGlobalUse(unit.Parent);
 
         // Inherited GLOBAL files' FILE STATUS routing (§12.4.5.8.4 GR1 NOTE 1 — see the field doc): resolve each
         // ancestor's status item with the ANCESTOR's resolver, then re-anchor the place behind the __outer chain.
-        _callInheritedStatusPlace.Clear();
+        _callState.InheritedStatusPlace.Clear();
         int statusDepth = 0;
         for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
         {
             statusDepth++;
             string outerPrefix = string.Concat(Enumerable.Repeat("__outer.", statusDepth));
             foreach (var f in anc.Data.Files)
-                if (f.IsGlobal && f.FileStatusItem is { } si && !_callInheritedStatusPlace.ContainsKey(f)
+                if (f.IsGlobal && f.FileStatusItem is { } si && !_callState.InheritedStatusPlace.ContainsKey(f)
                     && anc.Refs.ResolveItem(si) is { } sp && CallPrefixPlace(sp, outerPrefix) is { } pp)
-                    _callInheritedStatusPlace[f] = pp;
+                    _callState.InheritedStatusPlace[f] = pp;
         }
 
         // Per-formal carrier shape, resolved once: a carrier-resident formal aliases per access; a group /
@@ -312,7 +305,7 @@ public sealed partial class CSharpEmitter
                         ? $"{f.CarrierField}.Value = {place.Read()};"
                         : $"{f.CarrierField}.Value = {CallStringRead(place)};");
             }
-            if (_callReturningPlace is { } ret)
+            if (_callState.ReturningPlace is { } ret)
                 w.Line(CallPlaceIsString(ret)
                     ? $"CobolArgAdapt.StoreReturn(__ret, {CallStringRead(ret)});"
                     : $"CobolArgAdapt.StoreReturn(__ret, {ret.Read()});");
@@ -356,7 +349,7 @@ public sealed partial class CSharpEmitter
             {
                 w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(mainUnit.Path)}); }}");
                 w.Line("catch (StopRun) { }");
-                if (_ecActive)
+                if (_ecState.Active)
                     // The fatal-EC default (ISO §14.6.13.1.3 #7 → §14.6.12 abnormal run-unit termination; the settled
                     // SSOT §18.16 implementor choice): diagnostic on stderr + NONZERO exit. The finally's CloseAll is
                     // the §14.6.11 attempt-normal-termination step.
@@ -387,8 +380,8 @@ public sealed partial class CSharpEmitter
         string ret = c.Returning is { } rp ? CallRefCarrier(rp) : "null";
         // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
         // runs the §14.9.49 F3 selection and honors RESUME); the registry's boundary default stands down.
-        string invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(_callSelfPath)}, {args}, {ret}"
-            + $"{(_ecActive ? ", siteHandlesPropagation: true" : "")}"
+        string invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(_callState.SelfPath)}, {args}, {ret}"
+            + $"{(_ecState.Active ? ", siteHandlesPropagation: true" : "")}"
             + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")});";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
 
         var ecProg = EcEnabledProgramNames();
@@ -421,7 +414,7 @@ public sealed partial class CSharpEmitter
 
     /// <summary>The enabled EC-PROGRAM-* names of the current statement (empty when none / no wrapper).</summary>
     private List<string> EcEnabledProgramNames() =>
-        _ecInfo?.Enabled.Where(p => p.Ec.StartsWith("EC-PROGRAM-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
+        _ecState.Info?.Enabled.Where(p => p.Ec.StartsWith("EC-PROGRAM-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
         ?? [];
 
     /// <summary>Emit the name-filtered <c>catch (CobolCallException)</c> arm of a CALL/CANCEL under enabled
@@ -436,7 +429,7 @@ public sealed partial class CSharpEmitter
         var w = _ctx.Writer;
         int id = _ctx.Names.NextEc();
         string nameTest = string.Join(" || ", ecProg.Select(n => $"__ce{id}.EcName == {CsLiteral(n)}"));
-        var (stmt, loc) = EcStmtLoc(_ecInfo!);
+        var (stmt, loc) = EcStmtLoc(_ecState.Info!);
         using (w.Block($"catch (CobolCallException __ce{id}) when ({nameTest})"))
         {
             w.Line($"ExceptionState.Set(__ce{id}.EcName, true, {stmt}, {loc});   // §14.6.13.1.1 — all EC-PROGRAM-* are fatal (Table 13)");
@@ -454,13 +447,13 @@ public sealed partial class CSharpEmitter
     /// <summary>Emit the activator-side pickup of a callee-staged <c>GOBACK / EXIT PROGRAM … RAISING</c>
     /// exception condition (ISO §14.9.18 GR — raised "as if a RAISE statement" at the end of the activating
     /// statement; §14.6.13.1.3 #6): run the §14.9.49 F3 selection over the DYNAMIC name, honor RESUME, and apply
-    /// the fatal default. Emitted only when the group uses the EC model (<c>_ecActive</c>) — the propagated name
+    /// the fatal default. Emitted only when the group uses the EC model (<c>EcState.Active</c>) — the propagated name
     /// is dynamic (RAISING LAST EXCEPTION), so the gate is the group's EC participation, not a per-name TURN
     /// fold (the documented refinement, recorded in the deep-dive; an EC-free caller gets the registry's
     /// boundary default instead).</summary>
     private void CallEmitPropagationPickup()
     {
-        if (!_ecActive) return;
+        if (!_ecState.Active) return;
         var w = _ctx.Writer;
         int id = _ctx.Names.NextEc();
         using (w.Block($"if (ExceptionState.TakePropagatedObject(out var __po{id}))   // §14.6.13.1.5 — an exception OBJECT propagated"))
@@ -584,7 +577,7 @@ public sealed partial class CSharpEmitter
         foreach (var (literal, dynamic) in c.Targets)
         {
             string nameExpr = literal is { } l ? CsLiteral(l) : $"({OperandText.AsString(dynamic!)}).Trim()";
-            string call = $"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(_callSelfPath)});";
+            string call = $"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(_callState.SelfPath)});";
             if (ecProg.Count == 0)
             {
                 w.Line(call);
@@ -606,7 +599,7 @@ public sealed partial class CSharpEmitter
         var w = _ctx.Writer;
         if (g.ReturningSource is { } src)
         {
-            if (_callReturningPlace is { } ret)
+            if (_callState.ReturningPlace is { } ret)
                 EmitMove(new BoundMove(new BoundFieldOperand(src), [ret]));
             else
                 w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));

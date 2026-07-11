@@ -26,21 +26,16 @@ using static CobolNet.CodeGen.Emit.EmitText;
 public sealed partial class CSharpEmitter
 {
     private TurnState _turnState = TurnState.Empty;
-    private bool _ecActive;            // group-level: ANY EC feature in use (gates every machinery emission)
-    private bool _ecUnitHasF3;         // the program class being emitted has F3 declaratives (→ __EcDispatch exists)
-    private bool _ecUnitHasF4;         // … has F4 (EXCEPTION OBJECT) declaratives (→ __EcObjDispatch exists)
-    private EcStatementInfo? _ecInfo;  // the wrapper context of the statement being emitted (else null)
-    private string? _sizeErrEcVar;     // the current EC-SIZE name local while emitting a checked arithmetic body
 
     /// <summary>The <c>__EcDispatch</c> invocation (or the no-declarative constant when this program has no F3
     /// declaratives — same protocol, zero machinery).</summary>
     private string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
-        _ecUnitHasF3 ? $"__EcDispatch({ecNameExpr}, {fileExpr})" : "-3";
+        _ecState.UnitHasF3 ? $"__EcDispatch({ecNameExpr}, {fileExpr})" : "-3";
 
     /// <summary>The <c>__EcObjDispatch</c> invocation (or the no-declarative constant when this unit has no
     /// Format-4 declaratives) — the §14.9.49.4 GR14 exception-OBJECT selector (the EC-OO wave).</summary>
     private string EcObjDispatchExpr(string objExpr) =>
-        _ecUnitHasF4 ? $"__EcObjDispatch({objExpr})" : "-3";
+        _ecState.UnitHasF4 ? $"__EcObjDispatch({objExpr})" : "-3";
 
     /// <summary>RAISE identifier-1 (ISO §14.9.29.4 GR2; §14.6.13.1.5): set EXCEPTION-OBJECT, run the F4
     /// declarative if one matches (GR14 — GR3: F4 REPLACES the F1/F3 tiers for object raises), and in EVERY
@@ -64,8 +59,8 @@ public sealed partial class CSharpEmitter
 
     private bool EcEmitChecked(BoundEcChecked ec)
     {
-        var prev = _ecInfo;
-        _ecInfo = ec.Info;
+        var prev = _ecState.Info;
+        _ecState.Info = ec.Info;
         bool terminated;
         // EC-DATA-CONVERSION (nonfatal, §15.19.4 r1/r3) rides an ambient per-statement gate — the nonfatal twin of
         // the EC-ARGUMENT-FUNCTION gate below: FUNCTION CONVERT's substitution site records the last exception
@@ -78,11 +73,11 @@ public sealed partial class CSharpEmitter
             using (w.Block("try"))
                 EcEmitArgOrPlain(ec);
             w.Line("finally { ExceptionState.DataConversionChecking = false; }");
-            _ecInfo = prev;
+            _ecState.Info = prev;
             return false;   // conservative: the inner dispatch may itself resume past a transfer
         }
         terminated = EcEmitArgOrPlain(ec);
-        _ecInfo = prev;
+        _ecState.Info = prev;
         return terminated;
     }
 
@@ -162,7 +157,7 @@ public sealed partial class CSharpEmitter
 
     /// <summary>The EC-SIZE-* names the current statement has enabled (empty list when none / no wrapper).</summary>
     private List<string> EcEnabledSizeNames() =>
-        _ecInfo?.Enabled.Where(p => p.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
+        _ecState.Info?.Enabled.Where(p => p.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
         ?? [];
 
     /// <summary>Emit the post-store EC-SIZE handling: when the latched size-error name is one of the ENABLED
@@ -174,7 +169,7 @@ public sealed partial class CSharpEmitter
         var w = _ctx.Writer;
         int id = _ctx.Names.NextEc();
         string nameTest = string.Join(" || ", enabled.Select(n => $"{ecnVar} == {CsLiteral(n)}"));
-        var (stmt, loc) = EcStmtLoc(_ecInfo!);
+        var (stmt, loc) = EcStmtLoc(_ecState.Info!);
         using (w.Block($"if ({flag} && ({nameTest}))"))
         {
             w.Line($"ExceptionState.Set({ecnVar}, true, {stmt}, {loc});   // §14.6.13.1.1 — the last exception status");
@@ -196,10 +191,10 @@ public sealed partial class CSharpEmitter
     /// continues either way, §14.6.13.1.4 #3/#4).</summary>
     private void EcEmitOverflow(string ovfFlag, string ecName, bool hasPhrase)
     {
-        if (_ecInfo is null || !_ecInfo.Enabled.Any(p => p.Ec == ecName)) return;
+        if (_ecState.Info is null || !_ecState.Info.Enabled.Any(p => p.Ec == ecName)) return;
         var w = _ctx.Writer;
         int id = _ctx.Names.NextEc();
-        var (stmt, loc) = EcStmtLoc(_ecInfo);
+        var (stmt, loc) = EcStmtLoc(_ecState.Info);
         using (w.Block($"if ({ovfFlag})"))
         {
             w.Line($"ExceptionState.Set({CsLiteral(ecName)}, false, {stmt}, {loc});");
@@ -217,9 +212,9 @@ public sealed partial class CSharpEmitter
     /// or 0 when none (the caller then emits the plain F1 hook).</summary>
     private int EcIoMaskFor(FileModel file)
     {
-        if (_ecInfo is null) return 0;
+        if (_ecState.Info is null) return 0;
         int mask = 0;
-        foreach (var (ec, f) in _ecInfo.Enabled)
+        foreach (var (ec, f) in _ecState.Info.Enabled)
             if (ReferenceEquals(f, file))
                 mask |= ExceptionCatalog.IoBit(ec);
         return mask;
@@ -330,7 +325,7 @@ public sealed partial class CSharpEmitter
                 }
             if (decls.Any(d => d.EcEntries is not null))
                 w.Line("if (__sel == -3 && __en) __sel = __EcDispatch(__ec!, __f);   // F3 tiers behind F1 (GR3c–g)");
-            if (_callOuterGlobalUse)
+            if (_dispatchState.OuterGlobalUse)
                 w.Line("if (__sel == -3 && __outer.__RunGlobalUse(__f)) __sel = -1;   // outward GLOBAL walk (GR4b)");
             w.Line("if (__sel >= 0 || __sel == -2) return __sel;   // RESUME redirected/suppressed (§14.9.33)");
             w.Line("if (__en && ExceptionCatalog.IsFatalIoStatus(__st))");
