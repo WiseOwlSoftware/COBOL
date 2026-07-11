@@ -990,8 +990,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     internal void CheckStrongTypeDeclarations()
     {
         foreach (var item in AllItems())
-            if (item.RedefinesTarget is { IsStronglyTyped: true } tgt
-                && !ReferenceEquals(item.StrongRoot, tgt.StrongRoot))
+            if (item.RedefinesTarget is { } tgt && StrongTypeModel.IsStronglyTyped(tgt)
+                && !ReferenceEquals(StrongTypeModel.StrongRoot(item), StrongTypeModel.StrongRoot(tgt)))
                 Edition.Error("COBOLNET1532", $"'{item.CobolName ?? item.CsName}' REDEFINES strongly-typed item "
                     + $"'{tgt.CobolName ?? tgt.CsName}': a strongly-typed item shall not be redefined in whole or in "
                     + "part (ISO §13.18.57.3 SR4)");
@@ -999,8 +999,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var owner in Roots)
             foreach (var ren66 in owner.Renames66)
                 if (ren66.Renames is { } ri
-                    && ((ri.From?.IsStronglyTyped ?? false) || (ri.Thru?.IsStronglyTyped ?? false)
-                        || ri.SpanLeaves.Any(l => l.IsStronglyTyped)))
+                    && ((ri.From is { } f && StrongTypeModel.IsStronglyTyped(f))
+                        || (ri.Thru is { } t && StrongTypeModel.IsStronglyTyped(t))
+                        || ri.SpanLeaves.Any(StrongTypeModel.IsStronglyTyped)))
                     Edition.Error("COBOLNET1532", $"RENAMES '{ren66.CobolName ?? ren66.CsName}' renames a "
                         + "strongly-typed item in whole or in part — prohibited (ISO §13.18.57.3 SR3)");
     }
@@ -1830,7 +1831,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : new HashSet<DataItem>(CompilerTempClones.Select(t => t.Temp));
         foreach (var item in Roots.Concat(LinkageRoots).SelectMany(Walk)
                      .Concat(TypeDecls.Values.SelectMany(Walk)))
-            if (item.TypeAnchor is null && (temps is null || !temps.Contains(item)))
+            if (StrongTypeModel.TypeAnchor(item) is null && (temps is null || !temps.Contains(item)))
                 yield return item;
     }
 

@@ -403,7 +403,9 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
   a pure model with a binder pass); `OdoGroupPlace` folded into `Place.cs`; `PlaceDecorator(Place Inner)` base
   forwards Pic/Item + default Read/Write; `NumericImagePlace`/`RefModPlace`/`OdoGroupPlace` derive.
   DEVIATION (in DESIGN §2.2): `RenamesPlace` stays direct — N spanned leaves, no single inner; its Pic/Item are
-  the level-66 alias's own (§13.18.45) — deriving = overriding every forward. b–e pending.
+  the level-66 alias's own (§13.18.45) — deriving = overriding every forward.
+  b DONE (DEVLOG 781): `StrongTypeModel` static helpers (`Model/StrongTypeModel.cs`); NO forwarding props — all
+  6 caller sites repointed; `DataItem` keeps only the stored `StrongType`/`TypeName` facts. c–e pending.
 - [x] Step 12 (DEVLOG 779) — identities #1/#5 retired with their subjects; #2/#3/#4 stay (#3 guards two live
   computations); the DAG was finalized at P6 (GroupTail + terminal conformance pass)
 - [x] Step 13 (DEVLOG 779) — ApostropheValueDifferentialTests ×3, PROVEN failing-first under a '"'-only

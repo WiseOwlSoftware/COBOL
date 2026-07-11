@@ -542,8 +542,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         DataItem? sender = source is BoundFieldOperand sf ? sf.Place.Item : null;
         foreach (var r in receivers)
         {
-            if (!r.Item.IsStrongGroup) continue;
-            if (sender is null || !DataItem.SameStrongType(sender, r.Item))
+            if (!StrongTypeModel.IsStrongGroup(r.Item)) continue;
+            if (sender is null || !StrongTypeModel.SameStrongType(sender, r.Item))
                 data.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
                     + $"'{r.Item.CobolName ?? r.Item.CsName}': the sending operand shall be a group item of the same "
                     + "type (ISO §14.9.25.3 SR2 / §8.5.3.3)");
@@ -1514,7 +1514,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         // §8.8.4.4.3 SR1 (data-model D17): a strongly-typed group item may not appear in a class condition — it has
         // its own unique class and category (the type-name), not one of the general classes a class condition tests.
-        if (op is BoundFieldOperand fg && fg.Place.Item.IsStrongGroup)
+        if (op is BoundFieldOperand fg && StrongTypeModel.IsStrongGroup(fg.Place.Item))
         {
             data.Edition.Error(DiagnosticCatalog.StrongClassCondition, "a strongly-typed group item may not appear in a class condition — "
                 + "it has its own unique class and category (ISO §8.8.4.4.3 SR1)");
@@ -1708,9 +1708,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // equality — is staged residue, inc 4.)
         DataItem? sl = left is BoundFieldOperand fl ? fl.Place.Item : null;
         DataItem? sr = right is BoundFieldOperand fr ? fr.Place.Item : null;
-        if (sl?.IsStrongGroup == true || sr?.IsStrongGroup == true)
+        if ((sl is { } && StrongTypeModel.IsStrongGroup(sl)) || (sr is { } && StrongTypeModel.IsStrongGroup(sr)))
         {
-            if (sl is null || sr is null || !DataItem.SameStrongType(sl, sr))
+            if (sl is null || sr is null || !StrongTypeModel.SameStrongType(sl, sr))
                 data.Edition.Error(DiagnosticCatalog.StrongCompareMismatch, "a strongly-typed group may be compared only with a group of the "
                     + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
             // §8.8.4.2.3 SR4 (D17 inc 4, staged loud): a strong group whose elements include class boolean,
