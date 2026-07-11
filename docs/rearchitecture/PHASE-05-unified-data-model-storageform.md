@@ -7,7 +7,19 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: IN PROGRESS @ Step 4 DONE — Step 5 (UsageCollectionPass parallel, D1 prove) NEXT
+> ## STATUS: IN PROGRESS @ Step 5 PROVE done (typed visitor validated) — Step 5 FLIP (wire + re-baseline) NEXT
+> Step 5 was REDESIGNED per the owner directive (never workaround — the earlier reflective-walk + keep-mid-resolve
+> attempts were rejected as shortcuts, DEVLOG 752). The correct design: an explicit TYPED `UsageCollectionPass` walk of
+> the (faithful) bound tree collects the group `Place.Item` at every whole-operand position. **Key finding
+> (`wf_fe251cf8-9d6`, compile-test-proven):** the bound tree is the CORRECT oracle; legacy's `ReferenceResolver`
+> mid-resolve set OVER-collected (CORR operands, SEARCH tables, qualifier groups, IX keys, ACCEPT-table — all
+> resolved-but-never-whole-image, output-neutral). The correct set flips a strict SUBSET of legacy's numeric-DISPLAY
+> leaves (**zero `v2-flips-not-legacy` corpus-wide**; the difference is confined to 3 output-neutral programs
+> NC202A/207A/208A). Verification is by OUTPUT, not legacy set-equality (the emitted C# changes for those 3 programs —
+> re-baselined at the flip with the runtime-golden proof). RESUME: the Step-5 FLIP — wire `UsageCollectionPass` →
+> `WholeGroupReferenced`, delete `ReferenceResolver.cs:277,300`, verify runtime goldens, re-baseline the 3 snapshots.
+>
+> ## (prior) STATUS @ Step 4 DONE
 > Steps 0–4 landed 2026-07-10 (DEVLOG 747, 749, 750, 751). Step 4 (DESIGN §2.6): `Binding/Model/RecordLayout.cs` — the
 > ONE width authority — `ImageWidth` (reads the Step-2 StorageForm; `StorageFormPass.ImageWidthOf` consolidated onto it)
 > + `PhysicalWidth` (tier-aware, mirrors `OdoModel.PhysicalWidth`). `StorageFormPass.Verify` gained identity **#5**

@@ -69,6 +69,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// </summary>
     public HashSet<DataItem> WholeGroupReferenced { get; } = [];
 
+    /// <summary>PHASE-05 Step 5 (DESIGN §2.5 step 9, D1 prove half): the PARALLEL whole-group set computed by
+    /// <see cref="Passes.UsageCollectionPass"/> from the BOUND tree (+ the structural FILE/OO sources) instead of by
+    /// <see cref="ReferenceResolver"/>'s mid-resolve mutation. Proven set-equal to <see cref="WholeGroupReferenced"/>
+    /// corpus-wide BEFORE Step 7 flips the owner and deletes the mid-resolve writes. Not consumed by anything yet.</summary>
+    public HashSet<DataItem> WholeGroupReferencedV2 { get; } = [];
+
     /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
     /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);
     /// the remaining clauses are captured for the features that will consume them. Defaults when no OPTIONS.</summary>

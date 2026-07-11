@@ -4,6 +4,7 @@ using CobolNet.Common;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using CobolNet.Binding;
+using CobolNet.Binding.Passes;
 using CobolNet.Editions;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
@@ -137,6 +138,19 @@ public sealed partial class CSharpEmitter
         foreach (var cls in classes) { MarkStoreAsImage(cls.Data); MarkStoreAsImage(cls.FactoryData); }
         foreach (var unit in units) MarkStoreAsImage(unit.Data);
         OoHarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
+
+        // PHASE-05 Step 5 (D1 prove): collect WholeGroupReferencedV2 from the bound tree + the structural FILE/formal
+        // sources, in PARALLEL with the legacy mid-resolve WholeGroupReferenced — UsageCollectionPass.Verify proves
+        // them set-equal corpus-wide before Step 7 flips the owner and deletes ReferenceResolver's mid-resolve writes.
+        foreach (var cls in classes)
+        {
+            UsageCollectionPass.Collect(cls.Data, [cls.Bound], OoFormalGroups(cls.Symbol.Methods));
+            UsageCollectionPass.Collect(cls.FactoryData, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
+        }
+        foreach (var unit in units) UsageCollectionPass.Collect(unit.Data, [unit.Bound]);
+
+        static IEnumerable<DataItem> OoFormalGroups(IEnumerable<OoMethodSymbol> methods) =>
+            methods.SelectMany(m => m.Formals.Select(f => f.Item).Concat(m.Returning is { } r ? [r] : Array.Empty<DataItem>()));
 
         // PHASE-05 Step 2 (D0, prove-then-delete): compute the canonical StorageForm for every item ONCE, HERE —
         // the FINAL post-procedure-bind, post-temp-resync, post-MarkStoreAsImage, post-OO-harmonize state where every
