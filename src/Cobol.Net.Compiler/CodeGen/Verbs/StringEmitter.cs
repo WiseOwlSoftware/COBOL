@@ -10,39 +10,41 @@ namespace CobolNet.CodeGen;
 
 using static CobolNet.CodeGen.Emit.EmitText;
 
-public sealed partial class CSharpEmitter
+/// <summary>The STRING / UNSTRING verb emitter (P7 Step 9d — a real collaborator over the per-unit
+/// <see cref="EmitContext"/>, extracted from the CSharpEmitter.StringUnstring partial). Every runtime-member
+/// fragment routes through <see cref="RuntimeApi"/>.</summary>
+internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, CSharpEmitter host)
 {
-
     /// <summary>STRING (ISO §14.9.43): the receiver's character image is materialized into ONE working local (its
     /// CURRENT content — GR7 preserves every position the transfer does not touch; there is no space filling), each
-    /// sending operand transfers into it via <c>CobolStringOps.StringTransfer</c> in statement order (GR3), and the
+    /// sending operand transfers into it via <c>StringTransfer</c> in statement order (GR3), and the
     /// final image stores back through the receiver's own store path. The pointer initializes from the POINTER item
     /// (GR4) or 1 (GR5), advances only with the per-character moves (GR6 — the runtime kernel), and writes back —
     /// before the overflow phrases run, which may inspect it — only when the phrase was written. The overflow flag
     /// is latched across sendings by the kernel (GR8a) and dispatches ON / NOT ON OVERFLOW per GR8c/GR8e/GR9 (the
     /// 2002+ EC-OVERFLOW-STRING name, GR8b, awaits the EC model; with no phrase the nonfatal condition continues
     /// execution, §14.6.13.1.4, so no code is needed).</summary>
-    private void EmitString(BoundStringStmt s)
+    public void EmitString(BoundStringStmt s)
     {
-        var w = _ctx.Writer;
-        int id = _ctx.Names.NextStrUnstr();
+        var w = ctx.Writer;
+        int id = ctx.Names.NextStrUnstr();
         string ptr = $"__strPtr{id}", ovf = $"__strOvf{id}", acc = $"__strInto{id}";
         w.Line(s.Pointer is { } p0
-            ? $"long {ptr} = (long)({_num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR4 — the user's initial value
+            ? $"long {ptr} = (long)({num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR4 — the user's initial value
             : $"long {ptr} = 1;");                                                    // GR5 — implicit pointer of 1
         w.Line($"bool {ovf} = false;");
-        w.Line($"string {acc} = {StrUnstrReadImage(s.Into)};");
+        w.Line($"string {acc} = {ReadImage(s.Into)};");
         foreach (var snd in s.Sendings)
         {
             // GR3a: the sender's CONTENT transfers per the alphanumeric-to-alphanumeric move mechanics — its raw
             // character image (a numeric sender contributes its sign-carrying zoned image), not a converted value.
             string src = OperandText.AsString(snd.Value);
             string delim = snd.BySize || snd.Delimiter is null ? "null" : OperandText.AsString(snd.Delimiter);
-            w.Line($"{acc} = CobolStringOps.StringTransfer({acc}, {src}, {delim}, ref {ptr}, ref {ovf});");
+            w.Line($"{acc} = {RuntimeApi.StrTransfer(acc, src, delim, ptr, ovf)};");
         }
-        StrUnstrWriteImage(s.Into, acc);
-        if (s.Pointer is { } p) StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
-        StrUnstrEmitOverflow(ovf, "EC-OVERFLOW-STRING", s.OnOverflow, s.NotOnOverflow);   // GR8b
+        WriteImage(s.Into, acc);
+        if (s.Pointer is { } p) host.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
+        EmitOverflow(ovf, "EC-OVERFLOW-STRING", s.OnOverflow, s.NotOnOverflow);   // GR8b
     }
 
     /// <summary>UNSTRING (ISO §14.9.48): the sender's image and the delimiter values are read ONCE at initiation
@@ -50,19 +52,19 @@ public sealed partial class CSharpEmitter
     /// tally from the TALLYING item's CURRENT value (GR14 — the statement ADDS to it). An initiation pointer
     /// outside [1, size(sender)] is the GR15a overflow and TERMINATES the operation before any transfer (GR16a — a
     /// check the legacy engine performed but did not honor with termination); otherwise each receiving area gets
-    /// one <c>CobolStringOps.UnstringExtract</c> (GR11b–f), its result stored per the MOVE rules (GR11c — so two
+    /// one <c>UnstringExtract</c> (GR11b–f), its result stored per the MOVE rules (GR11c — so two
     /// contiguous delimiters space-fill an alphanumeric receiver and ZERO-fill a numeric one, GR8), DELIMITER IN /
     /// COUNT IN stored per GR11d/e, and the tally bumped — all skipped when the sender was already exhausted
     /// (GR11g: that receiver is not acted upon; exhaustion is NOT overflow, GR15). After the receivers, unexamined
     /// sender characters with every receiver acted upon raise the GR15b overflow. Pointer/tally write back before
     /// the ON / NOT ON OVERFLOW dispatch (GR16c/GR16e/GR17; EC-OVERFLOW-UNSTRING, GR16b, awaits the EC model).</summary>
-    private void EmitUnstring(BoundUnstringStmt s)
+    public void EmitUnstring(BoundUnstringStmt s)
     {
-        var w = _ctx.Writer;
-        int id = _ctx.Names.NextStrUnstr();
+        var w = ctx.Writer;
+        int id = ctx.Names.NextStrUnstr();
         string src = $"__unsSrc{id}", dels = $"__unsDel{id}", alls = $"__unsAll{id}",
                ptr = $"__unsPtr{id}", tly = $"__unsTly{id}", ovf = $"__unsOvf{id}";
-        w.Line($"string {src} = {StrUnstrReadImage(s.Source)};");
+        w.Line($"string {src} = {ReadImage(s.Source)};");
         if (s.Delimiters.Count > 0)
         {
             // GR10: applied in statement order (the kernel's earliest-match-then-first-listed scan); a figurative
@@ -77,10 +79,10 @@ public sealed partial class CSharpEmitter
             w.Line($"bool[] {alls} = System.Array.Empty<bool>();");
         }
         w.Line(s.Pointer is { } p0
-            ? $"long {ptr} = (long)({_num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR11a / GR12 — user-initialized
+            ? $"long {ptr} = (long)({num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR11a / GR12 — user-initialized
             : $"long {ptr} = 1;");                                                    // GR11a — leftmost position
         w.Line(s.Tallying is { } t0
-            ? $"long {tly} = (long)({_num.AsNum(new BoundFieldOperand(t0), ReceiverContext.None).Expr});"   // GR14 — adds to the current value
+            ? $"long {tly} = (long)({num.AsNum(new BoundFieldOperand(t0), ReceiverContext.None).Expr});"   // GR14 — adds to the current value
             : $"long {tly} = 0;");
         w.Line($"bool {ovf} = false;");
         using (w.Block($"if ({ptr} < 1 || {ptr} > {src}.Length)"))
@@ -91,56 +93,55 @@ public sealed partial class CSharpEmitter
             {
                 var r = s.Receivers[k];
                 string cnt = $"__unsCnt{id}_{k}", fld = $"__unsFld{id}_{k}", dlm = $"__unsDlm{id}_{k}";
-                w.Line($"long {cnt} = CobolStringOps.UnstringExtract({src}, {dels}, {alls}, {r.NoDelimSize}, " +
-                       $"ref {ptr}, out var {fld}, out var {dlm});");
+                w.Line($"long {cnt} = {RuntimeApi.UnstringExtract(src, dels, alls, $"{r.NoDelimSize}", ptr, fld, dlm)};");
                 using (w.Block($"if ({cnt} >= 0)"))                                   // −1: not acted upon (GR11g)
                 {
-                    StrUnstrMoveString(r.Target, fld);                                // GR11c — per the MOVE rules
-                    if (r.DelimiterIn is { } di) StrUnstrMoveString(di, dlm);         // GR11d — "" ⇒ space fill via the move
-                    if (r.CountIn is { } ci) StoreArith(ci, new NumX(cnt, 0), CobolRounding.Truncation);   // GR11e
+                    MoveString(r.Target, fld);                                        // GR11c — per the MOVE rules
+                    if (r.DelimiterIn is { } di) MoveString(di, dlm);                 // GR11d — "" ⇒ space fill via the move
+                    if (r.CountIn is { } ci) host.StoreArith(ci, new NumX(cnt, 0), CobolRounding.Truncation);   // GR11e
                     w.Line($"{tly} += 1;");                                           // GR14 — per receiver acted upon
                 }
             }
             w.Line($"if ({ptr} <= {src}.Length) {ovf} = true;   // unexamined characters remain (ISO §14.9.48.4 GR15b)");
         }
-        if (s.Pointer is { } p) StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);     // GR13
-        if (s.Tallying is { } t) StoreArith(t, new NumX(tly, 0), CobolRounding.Truncation);    // GR14
-        StrUnstrEmitOverflow(ovf, "EC-OVERFLOW-UNSTRING", s.OnOverflow, s.NotOnOverflow);   // GR16b
+        if (s.Pointer is { } p) host.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);     // GR13
+        if (s.Tallying is { } t) host.StoreArith(t, new NumX(tly, 0), CobolRounding.Truncation);    // GR14
+        EmitOverflow(ovf, "EC-OVERFLOW-UNSTRING", s.OnOverflow, s.NotOnOverflow);   // GR16b
     }
 
     /// <summary>The shared ON / NOT ON OVERFLOW dispatch (STRING GR8c/8e/GR9; UNSTRING GR16c/16e/GR17): the ON
     /// imperative runs exactly when the flag is set, the NOT imperative exactly when it is not; with neither
     /// phrase the (nonfatal) condition lets execution continue, §14.6.13.1.4. Under enabled EC-OVERFLOW checking
     /// (>>TURN, §7.3.25) the raise (status + the no-phrase F3 selection) precedes the phrase branch — STRING
-    /// GR8b / UNSTRING GR16b via <see cref="EcEmitOverflow"/>.</summary>
-    private void StrUnstrEmitOverflow(
+    /// GR8b / UNSTRING GR16b via the host's EC overflow emission.</summary>
+    private void EmitOverflow(
         string flag, string ecName, IReadOnlyList<BoundStatement>? onOverflow, IReadOnlyList<BoundStatement>? notOnOverflow)
     {
-        var w = _ctx.Writer;
-        EcEmitOverflow(flag, ecName, hasPhrase: onOverflow is not null);
+        var w = ctx.Writer;
+        host.EcEmitOverflow(flag, ecName, hasPhrase: onOverflow is not null);
         if (onOverflow is { } on)
         {
-            using (w.Block($"if ({flag})")) EmitStatementList(on);
+            using (w.Block($"if ({flag})")) host.EmitStatementList(on);
             if (notOnOverflow is { } notAlso)
-                using (w.Block("else")) EmitStatementList(notAlso);
+                using (w.Block("else")) host.EmitStatementList(notAlso);
         }
         else if (notOnOverflow is { } notOnly)
-            using (w.Block($"if (!{flag})")) EmitStatementList(notOnly);
+            using (w.Block($"if (!{flag})")) host.EmitStatementList(notOnly);
     }
 
     /// <summary>The character image of a STRING/UNSTRING character-position operand — its raw content (a group's
     /// concatenated image, a numeric-DISPLAY item's sign-carrying zoned image): the verbs operate on character
     /// positions, never converted values (STRING GR3a / UNSTRING GR11).</summary>
-    private static string StrUnstrReadImage(Place p) => OperandText.AsString(new BoundFieldOperand(p));
+    private static string ReadImage(Place p) => OperandText.AsString(new BoundFieldOperand(p));
 
     /// <summary>Store a full-width character image back into the STRING receiver, preserving its storage shape
     /// (§14.9.43.4 GR7 — the image already carries the untouched positions): a character-image group distributes
     /// via <c>FromImage</c>; a Tier-B view / reference window splices through its own <c>Write</c>; a long-stored
     /// numeric-DISPLAY receiver (SR1 admits usage-display numeric) decodes the updated zoned image back to its
     /// value; an alphanumeric / image-stored receiver assigns the image directly (same width by construction).</summary>
-    private void StrUnstrWriteImage(Place p, string imageExpr)
+    private void WriteImage(Place p, string imageExpr)
     {
-        var w = _ctx.Writer;
+        var w = ctx.Writer;
         if (p.Item.IsGroup && p is not RedefViewPlace)
         {
             if (!p.Item.IsCharacterImage)
@@ -154,7 +155,7 @@ public sealed partial class CSharpEmitter
         if (p is not RedefViewPlace && !p.Item.StoreAsImage
             && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
         {
-            w.Line(p.Write(Narrow($"CobolNum.ParseDisplay({imageExpr}, {p.Item.ProfileName})", p.Item)));
+            w.Line(p.Write(CSharpEmitter.Narrow(RuntimeApi.NumParseDisplay(imageExpr, p.Item.ProfileName), p.Item)));
             return;
         }
         if (p is not RedefViewPlace && !p.Item.StoreAsImage
@@ -174,9 +175,9 @@ public sealed partial class CSharpEmitter
     /// alphanumeric-edited ⇒ the insertion mask; numeric / numeric-edited ⇒ the alphanumeric sender is an UNSIGNED
     /// integer (§14.9.25.4 GR6), so an empty extraction stores 0 — the GR8 zero-fill — through the receiver's
     /// PICTURE store (or its edit mask).</summary>
-    private void StrUnstrMoveString(Place target, string valueExpr)
+    private void MoveString(Place target, string valueExpr)
     {
-        var w = _ctx.Writer;
+        var w = ctx.Writer;
         if (target is RefModPlace)
         {
             // A reference-modified receiver: SpliceInto left-justifies, space-fills, and truncates to the slice.
@@ -190,27 +191,29 @@ public sealed partial class CSharpEmitter
                 w.Line(LoudStmt($"UNSTRING INTO mixed-usage group '{target.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
                 return;
             }
-            string image = $"CobolString.Store({valueExpr}, {target.Item.ImageWidth})";
+            string image = RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}");
             w.Line(target is RedefViewPlace ? target.Write(image) : $"{target.Read()}.FromImage({image});");
             return;
         }
         switch (target.Item.Pic)
         {
             case { Category: PicCategory.NumericEdited, EditMask: { } mask }:
-                w.Line(target.Write($"CobolEdit.Format(CobolNum.FromAlphanumeric({valueExpr}), 0, {CsLiteral(mask)}{EditCfg()})"));
+                w.Line(target.Write(RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", CsLiteral(mask), ctx.EditCfgArgs)));
                 return;
             case { Category: PicCategory.Alphanumeric, EditMask: { } amask }:
-                w.Line(target.Write($"CobolEdit.FormatAlphanumeric({valueExpr}, {CsLiteral(amask)})"));
+                w.Line(target.Write(RuntimeApi.EditFormatAlphanumeric(valueExpr, CsLiteral(amask))));
                 return;
             case { Category: PicCategory.Alphanumeric, Length: var len }:
                 // A JUSTIFIED receiver right-justifies — left space-fill / left truncation (§14.9.25.4 GR6c).
-                w.Line(target.Write($"CobolString.Store({valueExpr}, {len}{(target.Item.Justified ? ", justifiedRight: true" : "")})"));
+                w.Line(target.Write(target.Item.Justified
+                    ? RuntimeApi.StrStoreJustified(valueExpr, $"{len}")
+                    : RuntimeApi.StrStore(valueExpr, $"{len}")));
                 return;
             case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
-                string stored = $"CobolNum.Store(CobolNum.FromAlphanumeric({valueExpr}), 0, {target.Item.ProfileName})";
+                string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", target.Item.ProfileName);
                 w.Line(target.Write(target.Item.StoreAsImage
-                    ? $"CobolNum.FormatDisplay({stored}, {target.Item.ProfileName})"
-                    : Narrow(stored, target.Item)));
+                    ? RuntimeApi.NumFormatDisplay(stored, target.Item.ProfileName)
+                    : CSharpEmitter.Narrow(stored, target.Item)));
                 return;
             default:
                 w.Line(LoudStmt($"UNSTRING receiver '{target.Item.CobolName}' (usage display, category alphabetic/alphanumeric/numeric — ISO §14.9.48.3 SR4)"));

@@ -82,7 +82,7 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundSetCapacity n) { EmitSetCapacity(n); return false; }
     public bool Visit(BoundSearch n) { EmitSearch(n); return false; }
     public bool Visit(BoundEvaluate n) { _evaluate.Emit(n); return false; }
-    public bool Visit(BoundInspect n) { EmitInspect(n); return false; }
+    public bool Visit(BoundInspect n) { _inspect.Emit(n); return false; }
     public bool Visit(BoundCorresponding n) { _corresponding.Emit(n); return false; }
 
     // ── Sequential file I/O ──────────────────────────────────────────────────────────────────────────────────
@@ -109,8 +109,8 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundReturn n) { EmitReturn(n); return false; }
 
     // ── STRING / UNSTRING / ACCEPT / INITIALIZE ──────────────────────────────────────────────────────────────
-    public bool Visit(BoundStringStmt n) { EmitString(n); return false; }
-    public bool Visit(BoundUnstringStmt n) { EmitUnstring(n); return false; }
+    public bool Visit(BoundStringStmt n) { _strings.EmitString(n); return false; }
+    public bool Visit(BoundUnstringStmt n) { _strings.EmitUnstring(n); return false; }
     public bool Visit(BoundAccept n) { _acceptDisplay.EmitAccept(n); return false; }
     public bool Visit(BoundInitialize n) { _initialize.Emit(n); return false; }
 
@@ -132,10 +132,10 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
 
     // ── Pointers: SET / ALLOCATE / FREE (ISO §14.9.39/§14.9.3/§14.9.15; Phase-4b) ────────────────────────────
     public bool Visit(BoundSetPointer n) { EmitSetPointer(n); return false; }               // SET pointer F4
-    public bool Visit(BoundSetAddressOfBased n) { PtrEmitSetAddressOfBased(n); return false; }   // SET F7
-    public bool Visit(BoundSetPointerUpDown n) { PtrEmitSetPointerUpDown(n); return false; }     // SET F10
-    public bool Visit(BoundAllocate n) { PtrEmitAllocate(n); return false; }                     // ALLOCATE §14.9.3
-    public bool Visit(BoundFree n) { PtrEmitFree(n); return false; }                             // FREE §14.9.15
+    public bool Visit(BoundSetAddressOfBased n) { _ptr.EmitSetAddressOfBased(n); return false; }   // SET F7
+    public bool Visit(BoundSetPointerUpDown n) { _ptr.EmitSetPointerUpDown(n); return false; }     // SET F10
+    public bool Visit(BoundAllocate n) { _ptr.EmitAllocate(n); return false; }                     // ALLOCATE §14.9.3
+    public bool Visit(BoundFree n) { _ptr.EmitFree(n); return false; }                             // FREE §14.9.15
 
     public bool Visit(BoundMethodReturn n)
     {

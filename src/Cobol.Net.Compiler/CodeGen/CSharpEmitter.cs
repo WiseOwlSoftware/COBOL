@@ -47,6 +47,9 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private CorrespondingEmitter _corresponding = null!;
     private AlterSwitchEmitter _alterSwitch = null!;
     private AcceptDisplayEmitter _acceptDisplay = null!;
+    private InspectEmitter _inspect = null!;
+    private StringEmitter _strings = null!;
+    private PtrEmitter _ptr = null!;
 
     /// <summary>(Re)construct the per-unit collaborator emitters over the just-created context/renderers —
     /// called immediately after the <c>_ctx</c>/<c>_num</c>/<c>_cond</c> per-unit re-creation (program classes
@@ -58,6 +61,9 @@ public sealed partial class CSharpEmitter : IOoBindHost
         _corresponding = new CorrespondingEmitter(_ctx, _num, this);
         _alterSwitch = new AlterSwitchEmitter(_ctx);
         _acceptDisplay = new AcceptDisplayEmitter(_ctx);
+        _inspect = new InspectEmitter(_ctx, _num, this);
+        _strings = new StringEmitter(_ctx, _num, this);
+        _ptr = new PtrEmitter(_ctx, _num, _ecState, this);
     }
 
     /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
@@ -1202,7 +1208,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private void EmitSetPointer(BoundSetPointer s)
     {
         string src = s.ToNull ? "ManagedPointer.Null"
-            : s.Address is { } a ? PtrAddressOfText(a)   // ADDRESS OF sender (F7; Phase-4b inc 2)
+            : s.Address is { } a ? _ptr.AddressOfText(a)   // ADDRESS OF sender (F7; Phase-4b inc 2)
             : s.Source!.Read();
         foreach (var t in s.Targets)
             _ctx.Writer.Line(t.Write(src) + "   // SET pointer (ISO §14.9.39 Format 4/7)");

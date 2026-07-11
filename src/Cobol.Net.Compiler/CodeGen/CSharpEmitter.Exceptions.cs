@@ -29,7 +29,7 @@ public sealed partial class CSharpEmitter
 
     /// <summary>The <c>__EcDispatch</c> invocation (or the no-declarative constant when this program has no F3
     /// declaratives — same protocol, zero machinery).</summary>
-    private string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
+    internal string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
         _ecState.UnitHasF3 ? $"__EcDispatch({ecNameExpr}, {fileExpr})" : "-3";
 
     /// <summary>The <c>__EcObjDispatch</c> invocation (or the no-declarative constant when this unit has no
@@ -52,7 +52,7 @@ public sealed partial class CSharpEmitter
         return false;   // the continue-after-RAISE path IS the normal exit (GR2 — never fatal by itself)
     }
 
-    private (string Stmt, string Loc) EcStmtLoc(EcStatementInfo info) =>
+    internal (string Stmt, string Loc) EcStmtLoc(EcStatementInfo info) =>
         info.WithLocation ? (CsLiteral(info.StatementName), CsLiteral(info.Location)) : ("null", "null");
 
     // ── The BoundEcChecked wrapper (the statement EC context + the EC-ARGUMENT-FUNCTION ambient gate) ────────
@@ -189,7 +189,7 @@ public sealed partial class CSharpEmitter
     /// <summary>Emit the EC-OVERFLOW-STRING/-UNSTRING raise after the kernel latched <paramref name="ovfFlag"/>:
     /// set the last exception status; without an ON OVERFLOW phrase run the F3 selection (nonfatal — execution
     /// continues either way, §14.6.13.1.4 #3/#4).</summary>
-    private void EcEmitOverflow(string ovfFlag, string ecName, bool hasPhrase)
+    internal void EcEmitOverflow(string ovfFlag, string ecName, bool hasPhrase)
     {
         if (_ecState.Info is null || !_ecState.Info.Enabled.Any(p => p.Ec == ecName)) return;
         var w = _ctx.Writer;

@@ -77,4 +77,86 @@ internal static class RuntimeApi
     /// <c>CobolEdit.FormatAlphanumeric</c>.</summary>
     public static string EditFormatAlphanumeric(string value, string maskLiteral) =>
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatAlphanumeric)}({value}, {maskLiteral})";
+
+    /// <summary>Decode a digit image's magnitude (non-digits contribute no digit) — <c>CobolNum.FromAlphanumeric</c>.</summary>
+    public static string NumFromAlphanumeric(string image) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FromAlphanumeric)}({image})";
+
+    /// <summary>Rescale an unscaled value between fraction scales under a rounding mode — <c>CobolNum.Rescale</c>.</summary>
+    public static string NumRescale(string value, string fromScale, string toScale, CobolRounding mode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Rescale)}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
+
+    /// <summary>The emitted-text reference to a <see cref="CobolRounding"/> value — <c>nameof</c>-anchored so a
+    /// member rename breaks HERE, never the generated text.</summary>
+    public static string RoundingText(CobolRounding mode) => $"{nameof(CobolRounding)}.{mode}";
+
+    // ── INSPECT (CobolInspect; ISO §14.9.22) ──
+
+    /// <summary>The tallying pass — <c>CobolInspect.Tally</c>. Array-literal fragments are pre-rendered by the caller.</summary>
+    public static string InspectTally(string image, string kinds, string pats, string befs, string afts, string backward) =>
+        $"{nameof(CobolInspect)}.{nameof(CobolInspect.Tally)}({image}, new int[] {{ {kinds} }}, " +
+        $"new string?[] {{ {pats} }}, new string?[] {{ {befs} }}, new string?[] {{ {afts} }}, {backward})";
+
+    /// <summary>The replacing pass — <c>CobolInspect.Replace</c>.</summary>
+    public static string InspectReplace(string image, string kinds, string pats, string reps, string befs, string afts, string backward) =>
+        $"{nameof(CobolInspect)}.{nameof(CobolInspect.Replace)}({image}, new int[] {{ {kinds} }}, new string?[] {{ {pats} }}, " +
+        $"new string?[] {{ {reps} }}, new string?[] {{ {befs} }}, new string?[] {{ {afts} }}, {backward})";
+
+    /// <summary>CONVERTING — <c>CobolInspect.Convert</c>.</summary>
+    public static string InspectConvert(string image, string from, string to, string before, string after, string backward) =>
+        $"{nameof(CobolInspect)}.{nameof(CobolInspect.Convert)}({image}, {from}, {to}, {before}, {after}, {backward})";
+
+    /// <summary>Compile-time anchor for the tally-kind discriminators the emitter selects.</summary>
+    public static string InspectTallyKindText(Binding.Bound.InspectTallyKind k) => k switch
+    {
+        Binding.Bound.InspectTallyKind.All => $"{nameof(CobolInspect)}.{nameof(CobolInspect.TallyAll)}",
+        Binding.Bound.InspectTallyKind.Leading => $"{nameof(CobolInspect)}.{nameof(CobolInspect.TallyLeading)}",
+        _ => $"{nameof(CobolInspect)}.{nameof(CobolInspect.TallyCharacters)}",
+    };
+
+    /// <summary>Compile-time anchor for the replace-kind discriminators the emitter selects.</summary>
+    public static string InspectReplaceKindText(Binding.Bound.InspectReplaceKind k) => k switch
+    {
+        Binding.Bound.InspectReplaceKind.All => $"{nameof(CobolInspect)}.{nameof(CobolInspect.ReplaceAll)}",
+        Binding.Bound.InspectReplaceKind.First => $"{nameof(CobolInspect)}.{nameof(CobolInspect.ReplaceFirst)}",
+        Binding.Bound.InspectReplaceKind.Leading => $"{nameof(CobolInspect)}.{nameof(CobolInspect.ReplaceLeading)}",
+        _ => $"{nameof(CobolInspect)}.{nameof(CobolInspect.ReplaceCharacters)}",
+    };
+
+    // ── STRING / UNSTRING (CobolStringOps; ISO §14.9.43 / §14.9.48) ──
+
+    /// <summary>One sending operand's transfer into the STRING working image — <c>CobolStringOps.StringTransfer</c>
+    /// (advances the pointer, latches the overflow flag by ref).</summary>
+    public static string StrTransfer(string acc, string src, string delim, string ptrVar, string ovfVar) =>
+        $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.StringTransfer)}({acc}, {src}, {delim}, ref {ptrVar}, ref {ovfVar})";
+
+    /// <summary>One receiving area's extraction — <c>CobolStringOps.UnstringExtract</c> (out-vars for the examined
+    /// field and the matched delimiter; −1 = not acted upon).</summary>
+    public static string UnstringExtract(string src, string dels, string alls, string noDelimSize,
+        string ptrVar, string fldVar, string dlmVar) =>
+        $"{nameof(CobolStringOps)}.{nameof(CobolStringOps.UnstringExtract)}({src}, {dels}, {alls}, {noDelimSize}, " +
+        $"ref {ptrVar}, out var {fldVar}, out var {dlmVar})";
+
+    /// <summary>The JUSTIFIED-right alphanumeric store (§14.9.25.4 GR6c) — <c>CobolString.Store</c> with
+    /// <c>justifiedRight: true</c>.</summary>
+    public static string StrStoreJustified(string value, string width) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.Store)}({value}, {width}, justifiedRight: true)";
+
+    // ── Pointers (CobolPtr; ISO §14.9.39 F7/F10, §14.9.3, §14.9.15) ──
+
+    /// <summary>Displace a pointer by n character positions — <c>CobolPtr.UpBy</c> (GR18 null trap inside).</summary>
+    public static string PtrUpBy(string ptr, string amount) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpBy)}({ptr}, {amount})";
+
+    /// <summary>Displace by a SCALED amount — <c>CobolPtr.UpByScaled</c> (the GR19 divisibility test).</summary>
+    public static string PtrUpByScaled(string ptr, string amount, string scale) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.UpByScaled)}({ptr}, {amount}, {scale})";
+
+    /// <summary>ALLOCATE a fresh cell — <c>CobolPtr.Allocate</c> (GR1/GR2; GR6 zero fill).</summary>
+    public static string PtrAllocate(string size, bool zeroFill = false) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.Allocate)}({size}{(zeroFill ? ", zeroFill: true" : "")})";
+
+    /// <summary>FREE a pointer's cell — <c>CobolPtr.Free</c> (three-way per GR1; not-alloc out-flag).</summary>
+    public static string PtrFree(string ptr, string notAllocVar) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.Free)}({ptr}, out {notAllocVar})";
 }

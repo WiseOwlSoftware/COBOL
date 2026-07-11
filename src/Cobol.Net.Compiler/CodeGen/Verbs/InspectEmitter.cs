@@ -10,9 +10,11 @@ namespace CobolNet.CodeGen;
 
 using static CobolNet.CodeGen.Emit.EmitText;
 
-public sealed partial class CSharpEmitter
+/// <summary>The INSPECT verb emitter (P7 Step 9d — a real collaborator over the per-unit
+/// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name). Every
+/// runtime-member fragment routes through <see cref="RuntimeApi"/>.</summary>
+internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, CSharpEmitter host)
 {
-
     /// <summary>
     /// INSPECT (ISO §14.9.22) → one image snapshot + runtime cycle calls. Identifier-1's character image is read
     /// ONCE (GR6 item identification; GR4 — an edited/unsigned-numeric DISPLAY item inspects as its redefined
@@ -22,10 +24,10 @@ public sealed partial class CSharpEmitter
     /// REPLACING/CONVERTING result stores back through the target's <see cref="Place"/>, re-signing a signed
     /// numeric target with its retained original sign (GR4d).
     /// </summary>
-    private void EmitInspect(BoundInspect ins)
+    public void Emit(BoundInspect ins)
     {
-        var w = _ctx.Writer;
-        int id = _ctx.Names.NextInspectTmp();
+        var w = ctx.Writer;
+        int id = ctx.Names.NextInspectTmp();
         string img = $"__ins{id}";
         w.Line($"string {img} = {OperandText.AsString(new BoundFieldOperand(ins.Target), deSign: true)};");
         string back = ins.Backward ? "true" : "false";
@@ -33,17 +35,16 @@ public sealed partial class CSharpEmitter
         if (ins.Tallying.Count > 0)
         {
             var t = ins.Tallying;
-            string kinds = string.Join(", ", t.Select(x => InspectTallyKindRef(x.Kind)));
-            string pats = string.Join(", ", t.Select(x => InspectOperandText(x.Pattern)));
-            string befs = string.Join(", ", t.Select(x => InspectOperandText(x.Before)));
-            string afts = string.Join(", ", t.Select(x => InspectOperandText(x.After)));
-            w.Line($"long[] __cnt{id} = CobolInspect.Tally({img}, new int[] {{ {kinds} }}, " +
-                   $"new string?[] {{ {pats} }}, new string?[] {{ {befs} }}, new string?[] {{ {afts} }}, {back});");
+            string kinds = string.Join(", ", t.Select(x => RuntimeApi.InspectTallyKindText(x.Kind)));
+            string pats = string.Join(", ", t.Select(x => OperandTextOf(x.Pattern)));
+            string befs = string.Join(", ", t.Select(x => OperandTextOf(x.Before)));
+            string afts = string.Join(", ", t.Select(x => OperandTextOf(x.After)));
+            w.Line($"long[] __cnt{id} = {RuntimeApi.InspectTally(img, kinds, pats, befs, afts, back)};");
             // One add per operand, in source order — the same counter may appear under several operands and
             // accumulates each count (GR11 — INSPECT adds, it never initializes).
             for (int k = 0; k < t.Count; k++)
-                StoreArith(t[k].Counter,
-                    _num.Combine(_num.FieldNum(t[k].Counter), "+", new NumX($"__cnt{id}[{k}]", 0), ReceiverContext.None),
+                host.StoreArith(t[k].Counter,
+                    num.Combine(num.FieldNum(t[k].Counter), "+", new NumX($"__cnt{id}[{k}]", 0), ReceiverContext.None),
                     CobolRounding.Truncation);
         }
 
@@ -51,24 +52,22 @@ public sealed partial class CSharpEmitter
         if (ins.Replacing.Count > 0)
         {
             var r = ins.Replacing;
-            string kinds = string.Join(", ", r.Select(x => InspectReplaceKindRef(x.Kind)));
-            string pats = string.Join(", ", r.Select(x => InspectOperandText(x.Pattern)));
-            string reps = string.Join(", ", r.Select(x => InspectOperandText(x.Replacement)));
-            string befs = string.Join(", ", r.Select(x => InspectOperandText(x.Before)));
-            string afts = string.Join(", ", r.Select(x => InspectOperandText(x.After)));
-            w.Line($"{img} = CobolInspect.Replace({img}, new int[] {{ {kinds} }}, new string?[] {{ {pats} }}, " +
-                   $"new string?[] {{ {reps} }}, new string?[] {{ {befs} }}, new string?[] {{ {afts} }}, {back});");
+            string kinds = string.Join(", ", r.Select(x => RuntimeApi.InspectReplaceKindText(x.Kind)));
+            string pats = string.Join(", ", r.Select(x => OperandTextOf(x.Pattern)));
+            string reps = string.Join(", ", r.Select(x => OperandTextOf(x.Replacement)));
+            string befs = string.Join(", ", r.Select(x => OperandTextOf(x.Before)));
+            string afts = string.Join(", ", r.Select(x => OperandTextOf(x.After)));
+            w.Line($"{img} = {RuntimeApi.InspectReplace(img, kinds, pats, reps, befs, afts, back)};");
             mutated = true;
         }
 
         if (ins.Converting is { } cv)
         {
-            w.Line($"{img} = CobolInspect.Convert({img}, {InspectOperandText(cv.From)}, {InspectOperandText(cv.To)}, " +
-                   $"{InspectOperandText(cv.Before)}, {InspectOperandText(cv.After)}, {back});");
+            w.Line($"{img} = {RuntimeApi.InspectConvert(img, OperandTextOf(cv.From), OperandTextOf(cv.To), OperandTextOf(cv.Before), OperandTextOf(cv.After), back)};");
             mutated = true;
         }
 
-        if (mutated) InspectEmitStore(ins.Target, img);
+        if (mutated) EmitStore(ins.Target, img);
     }
 
     /// <summary>Store the replaced/converted image back into identifier-1 by its storage shape: a character-image
@@ -77,9 +76,9 @@ public sealed partial class CSharpEmitter
     /// item re-encodes the digit image — re-applying the RETAINED original sign for a signed item (§14.9.22.4
     /// GR4d). A replacement that left a non-digit in a numeric item decodes by digit positions only — deterministic
     /// where the spec leaves the result undefined (§14.6.13.2 incompatible data).</summary>
-    private void InspectEmitStore(Place p, string img)
+    private void EmitStore(Place p, string img)
     {
-        var w = _ctx.Writer;
+        var w = ctx.Writer;
         // ISO §13.18.38 GR7 + §14.6.4 step 6: an occurs-depending group is INSPECTed over its current-count extent;
         // the replaced image (already current-count, read via the GR8 sending slice) splices back over exactly that
         // extent, leaving positions past the count unmodified.
@@ -103,21 +102,22 @@ public sealed partial class CSharpEmitter
                 if (pic.Signed)
                 {
                     // GR4d: the original sign is retained — the (still-unmodified) field supplies it.
-                    string mag = $"__insMag{_ctx.Names.NextInspectTmp()}";
-                    w.Line($"var {mag} = {Narrow($"CobolNum.FromAlphanumeric({img})", p.Item)};");
+                    string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
+                    w.Line($"var {mag} = {CSharpEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)};");
                     w.Line(p.Write($"({p.Read()} < 0 ? -{mag} : {mag})"));
                 }
                 else
-                    w.Line(p.Write(Narrow($"CobolNum.FromAlphanumeric({img})", p.Item)));
+                    w.Line(p.Write(CSharpEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)));
                 return;
             }
             if (pic.Signed)
             {
                 // A string-stored signed zoned image (whole-group-aliased / Tier-B view): decode the original for
                 // its sign, re-encode the replaced magnitude with that sign in the item's sign convention (GR4d).
-                string mag = $"__insMag{_ctx.Names.NextInspectTmp()}";
-                w.Line($"Int128 {mag} = CobolNum.FromAlphanumeric({img});");
-                w.Line(p.Write($"CobolNum.FormatDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}) < 0 ? -{mag} : {mag}, {p.Item.ProfileName})"));
+                string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
+                w.Line($"Int128 {mag} = {RuntimeApi.NumFromAlphanumeric(img)};");
+                w.Line(p.Write(RuntimeApi.NumFormatDisplay(
+                    $"{RuntimeApi.NumParseDisplay(p.Read(), p.Item.ProfileName)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
                 return;
             }
         }
@@ -128,21 +128,6 @@ public sealed partial class CSharpEmitter
     /// pattern / an omitted delimiter). An identifier operand reads its FULL raw image at run time — current
     /// content, no trimming (GR5; a PIC X(2) holding "A " is the two-character pattern "A "); a signed numeric
     /// operand reads de-signed (GR4d).</summary>
-    private static string InspectOperandText(BoundOperand? op) =>
+    private static string OperandTextOf(BoundOperand? op) =>
         op is null ? "null" : OperandText.AsString(op, deSign: true);
-
-    private static string InspectTallyKindRef(InspectTallyKind k) => k switch
-    {
-        InspectTallyKind.All => "CobolInspect.TallyAll",
-        InspectTallyKind.Leading => "CobolInspect.TallyLeading",
-        _ => "CobolInspect.TallyCharacters",
-    };
-
-    private static string InspectReplaceKindRef(InspectReplaceKind k) => k switch
-    {
-        InspectReplaceKind.All => "CobolInspect.ReplaceAll",
-        InspectReplaceKind.First => "CobolInspect.ReplaceFirst",
-        InspectReplaceKind.Leading => "CobolInspect.ReplaceLeading",
-        _ => "CobolInspect.ReplaceCharacters",
-    };
 }
