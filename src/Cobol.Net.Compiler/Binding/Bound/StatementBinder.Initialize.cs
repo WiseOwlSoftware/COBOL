@@ -122,8 +122,8 @@ public sealed partial class StatementBinder
         // stores under a RUN-TIME loop 1‥Capacity (RefReceiving within bounds does not grow). The stores are the
         // INITIALIZE statement's own (category defaults / REPLACING / VALUE-phrase) — NOT the OCCURS grow-seed.
         if (dref.dataReferenceSuffix().Length == 0
-            && data.LookupData(dref.cobolWord()?.GetText() ?? dref.GetText())?.FirstOrDefault(i => i.IsDynamicTable)
-                is { } dtbl && refs.TablePath(dtbl) is { } dtp)
+            && data.Symbols.TryResolve(dref.cobolWord()?.GetText() ?? dref.GetText(), data.ActiveScope, out var dyns)
+            && dyns.FirstOrDefault(i => i.IsDynamicTable) is { } dtbl && refs.TablePath(dtbl) is { } dtp)
         {
             string v = $"__ini{_initializeLoopVar++}";
             var body = new List<InitializeAction>();
@@ -136,7 +136,7 @@ public sealed partial class StatementBinder
         {
             // ISO §14.9.20.3 SR5: identifier-1 shall not have a RENAMES clause (a level-66 entry — NC401M territory).
             string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-            if (data.LookupData(name) is { } named && named.Any(i => i.Renames is not null))
+            if (data.Symbols.TryResolve(name, data.ActiveScope, out var named) && named.Any(i => i.Renames is not null))
                 data.Edition.Error("COBOLNET0835",
                     $"INITIALIZE '{name}' — identifier-1 shall not have a RENAMES clause (ISO §14.9.20.3 SR5)");
             actions.Add(new InitializeErrorAction($"INITIALIZE target '{dref.GetText()}'"));

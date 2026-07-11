@@ -91,30 +91,9 @@ public sealed partial class DataBinder
     internal Model.Scope ScopeOf(DataItem anchorRoot) =>
         OoRootOwner.TryGetValue(anchorRoot, out var m) ? new Model.Scope(m.DataScope) : Model.Scope.Program;
 
-    /// <summary>The ONE scope-aware data-name lookup (§8.4.6.2.1 rule 3a — a method-local declaration
-    /// REPLACES, never unions with, the object/program-level name): consumers that read <see cref="ByName"/>
-    /// directly for a USER-WRITTEN name (SEARCH/SORT table resolution, INITIALIZE) route through this so a
-    /// method-local name shadows correctly. Mirrors ReferenceResolver.ResolveUnqualified.
-    /// (P6 Step 7a: a thin shim over <see cref="Symbols"/> — byte-equivalent; 7b migrates the call sites and
-    /// deletes this.)</summary>
-    public List<DataItem>? LookupData(string name) =>
-        Symbols.TryResolve(name, ActiveScope, out var items) ? items : null;
-
-    /// <summary>Resolve a data-name in the scope that OWNS <paramref name="anchorRoot"/> (M2-OO-1h): the owning
-    /// method's <see cref="OoMethodDataScope.ByName"/> first (§11.7.4 GR5 shadowing), then the class/program
-    /// globals (a method may reference a visible, unshadowed object/program name). A root that is not method-owned
-    /// resolves globally only — unchanged program behavior. Used by the post-build passes (OdoResolve /
-    /// ResolveRedefines), where <see cref="ActiveMethodScope"/> is null.
-    /// (P6 Step 7a: a thin shim over <see cref="Symbols"/>.)</summary>
-    internal List<DataItem>? LookupDataInScopeOf(DataItem anchorRoot, string name) =>
-        Symbols.TryResolve(name, ScopeOf(anchorRoot), out var items) ? items : null;
-
-    /// <summary>Scope-aware INDEX-NAME lookup (§8.4.6.2.1 rule 3a / §8.4.6.2.3): a METHOD-LOCAL data-name
-    /// SHADOWS an object-level index-name of the same spelling — without this, every IndexFields-first
-    /// consumer would silently bind the subscript/SET target to the OBJECT's index cell (a torn read/write
-    /// of the wrong storage). (P6 Step 7a: a thin shim over <see cref="Symbols"/>.)</summary>
-    public bool TryGetVisibleIndexField(string name, out string field) =>
-        Symbols.TryResolveIndex(name, ActiveScope, out field);
+    // The former LookupData / LookupDataInScopeOf / TryGetVisibleIndexField / IndexFieldFor quadruple is DELETED
+    // (P6 Step 7b) — every consumer resolves through Symbols.TryResolve/TryResolveIndex/IndexCellOf with an
+    // EXPLICIT Scope (ActiveScope at statement-bind sites; ScopeOf(anchorRoot) at post-build-pass sites).
 
     /// <summary>Set while binding a METHOD's data entries (M2-OO-1h step 4) so INDEXED BY index-names register into
     /// the method's own scope, never the global de-dup dict. Null at program/object scope.</summary>
@@ -123,11 +102,6 @@ public sealed partial class DataBinder
     /// <summary>Monotonic counter for method-local index cells — a distinct <c>_MIX_</c> prefix, so method and
     /// global cells never collide and every method IX gets a FRESH cell (§11.7.4 GR5 privacy).</summary>
     private int _ixSeq;
-
-    /// <summary>Scope-aware index-cell accessor (M2-OO-1h step 4): the ACTIVE method's cell first (§8.4.6.2.1
-    /// rule 3a / §11.7.4 GR5), then the global. Consumed by SEARCH, where the index-name is known to resolve.
-    /// (P6 Step 7a: a thin shim over <see cref="Symbols"/>.)</summary>
-    public string IndexFieldFor(string name) => Symbols.IndexCellOf(name, ActiveScope);
 
     /// <summary>True when <paramref name="item"/> is OBJECT data of a class unit (§14.9.23.3 SR 10): its 01/77
     /// root is not method-scoped. Always false outside a class unit.</summary>
@@ -463,10 +437,10 @@ public sealed partial class DataBinder
         // string backing is routed static (method-WS) or method-local (LOCAL/LINKAGE) by OoRouteMethodRedefinesBackings.
         // OCCURS … INDEXED BY in method data is LIVE (M2-OO-1h step 4, DEVLOG 640): index-names register into the
         // method's own scope with a FRESH cell (§11.7.4 GR5 privacy — no cross-method sharing), resolved via
-        // IndexFieldFor / TryGetVisibleIndexField and emitted static (method-WS) or per-activation local (LOCAL/LINKAGE).
+        // Symbols.IndexCellOf / TryResolveIndex and emitted static (method-WS) or per-activation local (LOCAL/LINKAGE).
         // OCCURS DEPENDING ON in method data is LIVE (M2-OO-1h step 2, DEVLOG 638): OdoResolve resolves
-        // data-name-1 through LookupDataInScopeOf(RootOf(item), …) — the method's own scope first (§11.7.4 GR5),
-        // then a visible object item — instead of the raw global ByName.
+        // data-name-1 through Symbols.TryResolve(…, ScopeOf(RootOf(item))) — the method's own scope first
+        // (§11.7.4 GR5), then a visible object item — instead of the raw global ByName.
         // level-66 RENAMES in method data is LIVE (M2-OO-1h step 1, DEVLOG 637): ResolveRedefines resolves the
         // alias FROM/THRU structurally via FindDescendantOrSelf over the owning record (DataBinder.cs:1128-1152),
         // so it is correct regardless of OoScopeSubtree's name re-homing — no gate needed.

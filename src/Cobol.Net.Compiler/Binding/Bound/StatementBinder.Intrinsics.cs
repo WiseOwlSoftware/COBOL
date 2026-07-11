@@ -79,7 +79,7 @@ public sealed partial class StatementBinder
             || ((data.RepositoryAllIntrinsic || data.RepositoryIntrinsics.Contains(name))
                 && IntrinsicCatalog.TryGet(name, out _));
         if (!isFn) return null;
-        if (data.LookupData(name) is { Count: > 0 }) return null;          // a declared data item wins — never a mis-routed subscript
+        if (data.Symbols.TryResolve(name, data.ActiveScope, out _)) return null;   // a declared data item wins — never a mis-routed subscript
         var tokens = new List<IToken>();
         if (sp.subscriptOrRefMod() is { } args) ReferenceResolver.CollectLeafTokens(args, tokens);
         return BindIntrinsicCore(name, tokens);
@@ -830,7 +830,7 @@ public sealed partial class StatementBinder
             }
 
             // A bare INDEXED BY index-name argument reads its occurrence number (ISO §13.18.38 / §3.5).
-            if (quals.Count == 0 && data.TryGetVisibleIndexField(name, out var ix))
+            if (quals.Count == 0 && data.Symbols.TryResolveIndex(name, data.ActiveScope, out var ix))
                 return new BoundComputedOperand(new BoundIndexRef(ix));
 
             return refs.ResolveByName(name, quals, []) is { } place

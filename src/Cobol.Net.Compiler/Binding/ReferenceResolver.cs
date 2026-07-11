@@ -51,7 +51,7 @@ public sealed class ReferenceResolver(DataBinder data)
         DataItem? recvItem = null;
         if (cls is null)
         {
-            recvItem = data.LookupData(recv)?.FirstOrDefault();
+            recvItem = data.Symbols.TryResolve(recv, data.ActiveScope, out var recvItems) ? recvItems[0] : null;
             if (recvItem?.Pic is not { Category: PicCategory.ObjectReference } rp) return null;
             if (rp.ObjectClassName is not { } cn)
             {
@@ -678,7 +678,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// decision NOT yet made when this bind-time text is produced) exactly as a native <c>long</c>.</summary>
     private string? ResolveSubscriptName(string name, List<string> qualifiers)
     {
-        if (qualifiers.Count == 0 && data.TryGetVisibleIndexField(name, out var field)) return field;
+        if (qualifiers.Count == 0 && data.Symbols.TryResolveIndex(name, data.ActiveScope, out var field)) return field;
         DataItem? item = qualifiers.Count == 0 ? ResolveUnqualified(name) : ResolveQualified(name, qualifiers);
         return item is not null && AccessPath(item, []) is { } path ? $"CobolTable.Occ({path})" : null;
     }

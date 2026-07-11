@@ -60,43 +60,57 @@ explicitly **out of scope** (P7 / P9).
 
 ## STATUS
 
-`IN PROGRESS @ step 7 (2026-07-11). Steps 0–6 DONE (Step 6 = DEVLOG 771 — DataBinder.Watermark/MarkProduced/Require
-[Conditional(DEBUG), throwing]; BindResolve + the BinderDriver group-tail loop Require-then-Mark per pass per
-binder; the CapacityRegisters getter carries the flagged late-fact guard; Tier/ClassOffset/Storage item-level
-guards deferred to P7 [no DataItem→binder backref] with pass-entry Requires covering them; WatermarkTests ×4; the
-full DEBUG conformance battery is the never-fires proof.) Steps 0–5 (commits 8ac37480 = Step 2 / DEVLOG 767; 514d9c73 = Step 3 /
-DEVLOG 768; Step 4 = DEVLOG 769 — the VersionConformancePass is the NAMED terminal GroupTail pass producing the new
-PassPhase.EditionConformanceChecked, its Run takes the GroupBindContext [which now carries the parse Tree], the
-driver no longer references the pass: Phase 2 = Bind → gate-on-sink → CheckOnly → EmitBound; exit criteria #4/#6
-verified — the sole non-pass ConstructRegistry.Check is the documented UDF-recognition exception in
-StatementBinder.Udf.cs; CheckOnlyCompileTests strengthened with band-code + no-emit-artifact asserts; INV-1
-continuity sweep all-OK). Step 5 = DEVLOG 770 — a 3-agent audit proved ZERO CodeGen/Validation writes into the
-binder model; the two misplaced bind-time bodies moved to Binding (harmonize → StorageFormPass.HarmonizeOverrideCrossings
-with OoClassTable.StringCarried as the ONE crossing-form predicate; OoQualifyClassFiles → BinderDriver.QualifyClassFiles),
-the IOoBindHost seam shrank to the 4 OO-bind members, and the 14 CodeGen-read collections are IReadOnly views over
-private backings (cross-class write channel = DataBinder.SeedInheritedGlobalIndex). Element mutability + the
-ByName/Conditions maps are Step-7/data-model-track scope (documented in the property docs):
-BinderDriver + immutable BoundCompilation landed (bound model in Binding/Model; IOoBindHost+BindSession = the P6→P9
-seam, an interface instead of the doc's OoBindCallbacks record); the middle-end tail is the DECLARED
-BindPipeline.GroupTail manifest (ProcedureBinding → UsageCollectionPass → StorageFormPass over GroupBindContext),
-ValidateFullChainOnce validates resolve-prefix ++ group-tail as ONE chain; StorageFormPass.Run owns temp-resync →
-MarkStoreAsImage → OO-harmonize → Compute (MarkStoreAsImage grep-clean from CodeGen/); the file-connector
-qualification + AnyFiles moved into Bind. FILE whole-group loop deviation: stays the MarkFileRecordImageLeaves
-RESOLVE pass (P5 finding — statement binding consults IsCharacterImage; supersedes this doc's Step-3 "fold the FILE
-loop"). NEXT: Step 4 (VersionConformancePass as the NAMED terminal group pass + driver rebase + CheckOnly tests).
-Earlier preflight record: baseline 3158 conformance · 269 unit · 32 characterization
-green; P5 deliverables confirmed — with AS-BUILT DEVIATIONS from this doc's snapshot (recorded per the design-currency
-rule): (a) the pass scaffolding lives in `Binding/Passes/` (not `Binding/Pipeline/`) as `IBindPass`/`BindPass` delegate
-records over a `PassPhase` watermark enum (not a `Capability` enum) with `BindPipeline.Build`+`ValidateDag` and
-`BindPipelineTests` ALREADY landed (P5 Step 3 delivered most of this phase's Step 1); (b) the P3 Step-14a bind/emit
-split ALREADY exists — `CSharpEmitter.CallBindRunUnit` (bind half) → `BoundRunUnit` → `CallEmitRunUnit(group)` (emit
-half), and the driver already does bind → `VersionConformancePass.Run` → halt → CheckOnly → emit; (c) the FILE
-whole-group loop is already a named resolve pass (`MarkFileRecordImageLeaves`, kept at resolve time because statement
-binding consults IsCharacterImage — ST102A); (d) `UsageCollectionPass` + `StorageFormPass.Compute` (D0 prove phase)
-already run in the bind half. REMAINING P6 WORK therefore: Step 2 relocate the bound model types
-(`CallUnit`→`Binding/Model/BoundUnit`, `OoClassUnit`, `BoundRunUnit`→`BoundCompilation`) + extract the group
-orchestration into `Binding/BinderDriver` behind the OO seam; Step 3 move `MarkStoreAsImage`+temp-resync into
-`StorageFormPass`; Step 4 name the conformance pass as the manifest terminal; Steps 5–7 as written.`
+`IN PROGRESS @ step 8 (2026-07-11) — Steps 0-7 ALL DONE; only the phase-end docs sweep (Step 8) remains. Battery
+at this point: 3158 conformance (incl. all OoSpineTests shadowing goldens) / 281 unit / 32 characterization
+BYTE-IDENTICAL / FULL legacy guard NIST 353 MATCH. Per-step ledger (each landed battery-green + pushed):
+
+- Step 0 (preflight): baseline recorded (3158/269/32 + guard 353 MATCH). AS-BUILT DEVIATIONS from this doc's
+  snapshot, recorded per the design-currency rule: (a) the pass scaffolding lives in Binding/Passes/ (not
+  Binding/Pipeline/) as IBindPass/BindPass delegate records over a PassPhase watermark enum (not a Capability
+  enum); (b) the P3 Step-14a bind/emit split ALREADY existed (CallBindRunUnit -> BoundRunUnit -> CallEmitRunUnit)
+  and the driver already gated between bind and emit; (c) the FILE whole-group loop was already the
+  MarkFileRecordImageLeaves RESOLVE pass (statement binding consults IsCharacterImage - ST102A - so it CANNOT
+  move to the group tail; supersedes this doc's Step-3 "fold the FILE loop into StorageFormPass"); (d)
+  UsageCollectionPass + StorageFormPass.Compute (D0 prove phase) already ran in the bind half.
+- Step 1: DELIVERED BY P5 Step 3 (manifest + ValidateDag + BindPipelineTests already existed) - no churn added.
+- Step 2 (commit 8ac37480, DEVLOG 767): BinderDriver extracted -> immutable BoundCompilation; bound model types
+  relocated to Binding/Model (CallUnit->BoundUnit + CallBridge, OoClassUnit, BoundRunUnit->BoundCompilation -
+  OoClassUnit moved DESPITE this doc's "keep it" so Binding never references a CodeGen type);
+  IOoBindHost + BindSession = the P6->P9 seam (an INTERFACE, not the doc's OoBindCallbacks delegate record);
+  file-connector qualification + AnyFiles moved into Bind; emitter = Bind shim + EmitBound(comp).
+- Step 3 (commit 514d9c73, DEVLOG 768): the middle-end tail is the DECLARED BindPipeline.GroupTail manifest
+  (ProcedureBinding -> UsageCollectionPass -> StorageFormPass over GroupBindContext);
+  ValidateFullChainOnce validates resolve-prefix ++ group-tail as ONE chain; StorageFormPass.Run owns
+  temp-resync -> MarkStoreAsImage -> OO-harmonize -> Compute.
+- Step 4 (commit 578ad5d1, DEVLOG 769): VersionConformancePass is the NAMED terminal GroupTail pass (new
+  PassPhase.EditionConformanceChecked; Run takes GroupBindContext, which carries the parse Tree); the driver no
+  longer references the pass - Phase 2 = Bind -> gate-on-sink -> CheckOnly -> EmitBound. Exit criteria #4/#6
+  verified (the sole non-pass ConstructRegistry.Check is the documented UDF-recognition exception,
+  StatementBinder.Udf.cs); CheckOnlyCompileTests strengthened (band-code + no-emit-artifact asserts); INV-1
+  continuity sweep all-OK.
+- Step 5 (commit 52d32ae6, DEVLOG 770): a 3-agent audit proved ZERO CodeGen/Validation writes into the binder
+  model; the two misplaced bind-time bodies moved to Binding (harmonize ->
+  StorageFormPass.HarmonizeOverrideCrossings with OoClassTable.StringCarried as the ONE crossing-form predicate;
+  OoQualifyClassFiles -> BinderDriver.QualifyClassFiles); the IOoBindHost seam shrank to the 4 OO-bind members;
+  the 14 CodeGen-read collections are IReadOnly views over private backings (cross-class write channel =
+  DataBinder.SeedInheritedGlobalIndex). Element mutability + the ByName/Conditions maps: data-model-track /
+  Step-7-builder scope, documented in the property docs.
+- Step 6 (commit c5521a63, DEVLOG 771): DataBinder.Watermark/MarkProduced/Require ([Conditional(DEBUG)],
+  THROWING); BindResolve + the BinderDriver group-tail loop Require-then-Mark per pass per binder; the
+  CapacityRegisters getter carries the flagged late-fact guard; Tier/ClassOffset/Storage item-level guards
+  deferred to P7 (no DataItem->binder backref) with pass-entry Requires covering the order; WatermarkTests x4;
+  the full DEBUG conformance run is the never-fires proof.
+- Step 7 (commits a69b6fd9 + 7b, DEVLOG 772/773): Binding/Model/SymbolTable.cs is THE one scope-aware resolver
+  (TryResolve / TryResolveCondition / TryResolveIndex / IndexCellOf over an explicit Scope);
+  DataBinder.Symbols per binder + ActiveScope/ScopeOf. 7a shimmed the quadruple byte-equivalently (full
+  battery); 7b migrated all ~16 sites and DELETED LookupData/LookupDataInScopeOf/TryGetVisibleIndexField/
+  IndexFieldFor (grep clean; OO shadowing goldens + byte-identical snapshots green). DEVIATIONS: ONE table PER
+  BINDER, not BoundCompilation.Symbols (COBOL name scopes are per-unit; the doc's single-table sketch presumed
+  a merged namespace that does not exist); IndexCellOf stays a SEPARATE shape beside TryResolveIndex
+  (IndexFieldFor's callers pass a table's DECLARED index-name, where the data-name-shadow check must NOT
+  apply). SymbolTableBuilder-owned storage deferred to P7 per this doc's own 7b.3 option;
+  ReferenceResolver.ResolveUnqualified + StatementBinder:1766 carry the same precedence inline - P7 candidates
+  (DEVLOG 773).`
 
 > The executing session MUST update this line as it goes: `IN PROGRESS @ step N` after each completed step, and
 > `DONE` once Verification (§5) passes. If resuming, read this line first, then re-run Step 0's battery to confirm

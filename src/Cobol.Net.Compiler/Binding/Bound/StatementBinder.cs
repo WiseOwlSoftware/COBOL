@@ -1022,7 +1022,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         var drefs = s.dataReference();
         string tableName = drefs[0].cobolWord()?.GetText() ?? drefs[0].GetText();
-        if (data.LookupData(tableName) is not { } candidates
+        if (!data.Symbols.TryResolve(tableName, data.ActiveScope, out var candidates)
             || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
             return new BoundUnsupported($"SEARCH of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
@@ -1035,14 +1035,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return new BoundUnsupported($"SEARCH of the dynamic-capacity table '{tableName}' nested under another "
                 + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
 
-        string searchIx = data.IndexFieldFor(table.IndexNames[0]);   // scope-aware (method cell first, M2-OO-1h step 4)
+        string searchIx = data.Symbols.IndexCellOf(table.IndexNames[0], data.ActiveScope);   // scope-aware (method cell first, M2-OO-1h step 4)
         BoundSetTarget? also = null;
         if (drefs.Length > 1)   // the VARYING phrase
         {
             var v = drefs[1];
             if (IndexFieldOf(v) is { } vix)
             {
-                if (table.IndexNames.Any(n => data.IndexFieldFor(n) == vix)) searchIx = vix;   // same table (GR8a)
+                if (table.IndexNames.Any(n => data.Symbols.IndexCellOf(n, data.ActiveScope) == vix)) searchIx = vix;   // same table (GR8a)
                 else also = new SetIndexTarget(vix);                                          // other table (GR8b)
             }
             else if (refs.Resolve(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR8c)
@@ -1070,7 +1070,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
     {
         string tableName = s.dataReference().cobolWord()?.GetText() ?? s.dataReference().GetText();
-        if (data.LookupData(tableName) is not { } candidates
+        if (!data.Symbols.TryResolve(tableName, data.ActiveScope, out var candidates)
             || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
             return new BoundUnsupported($"SEARCH ALL of non-table '{tableName}'");
         if (table.IndexNames.Count == 0)
@@ -1088,7 +1088,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var whens = s.searchAllWhenClause()
             .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
             .ToList();
-        return new BoundSearch(data.IndexFieldFor(table.IndexNames[0]), table.Occurs ?? 0,
+        return new BoundSearch(data.Symbols.IndexCellOf(table.IndexNames[0], data.ActiveScope), table.Occurs ?? 0,
             AlsoVaried: null, atEnd, whens, FromStart: true, DependCount: OdoModel.SearchBound(table, refs),
             DynTable: table.IsDynamicTable ? refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
     }
@@ -1098,7 +1098,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// not the data-item tree), else <see langword="null"/>.</summary>
     private string? IndexFieldOf(Core.DataReferenceContext dref) =>
         dref.dataReferenceSuffix().Length == 0 && dref.cobolWord()?.GetText() is { } w
-        && data.TryGetVisibleIndexField(w, out var f) ? f : null;
+        && data.Symbols.TryResolveIndex(w, data.ActiveScope, out var f) ? f : null;
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 
@@ -1180,10 +1180,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private string RefFailure(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-        string? reason = data.LookupData(name)
-            ?.Select(i => i.Class)
-            .FirstOrDefault(c => c is { Tier: RedefinesTier.Rejected, RejectReason: not null })
-            ?.RejectReason;
+        string? reason = data.Symbols.TryResolve(name, data.ActiveScope, out var named)
+            ? named.Select(i => i.Class)
+                .FirstOrDefault(c => c is { Tier: RedefinesTier.Rejected, RejectReason: not null })
+                ?.RejectReason
+            : null;
         return reason is null ? $"reference '{dref.GetText()}'" : $"reference '{dref.GetText()}' — {reason}";
     }
 

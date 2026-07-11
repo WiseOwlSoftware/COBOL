@@ -307,8 +307,7 @@ public sealed partial class DataBinder
             DataItem? dep = FindInSubtree(RootOf(item), depName);
             if (dep is null)
             {
-                var cands = LookupDataInScopeOf(RootOf(item), depName);
-                if (cands is null || cands.Count == 0)
+                if (!Symbols.TryResolve(depName, ScopeOf(RootOf(item)), out var cands))
                 {
                     Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
                         + "is not defined (ISO §13.18.38 Format 2)");
