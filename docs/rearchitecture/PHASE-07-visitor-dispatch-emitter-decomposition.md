@@ -34,9 +34,16 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `NOT STARTED`
-  > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end.
-  > Keep a running note of the last green commit hash here so an interrupted session can resume precisely.
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) PULLED FORWARD as Exec Step A`
+  > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
+  > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
+  > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
+  > and kills the completeness-bug class (the PHASE-05 `UsageCollectionPass` gaps). The REST of P7 (Steps 1–5, 7–12:
+  > structural `Place`, god-class decomposition, `ICodeGenBackend` seam) still DEPENDS on P6 and runs at Exec Step D,
+  > AFTER P6 + the P5-remainder. **Note the P5/P7 dedup:** PHASE-05 OWNS the `MarkStoreAsImage` deletion +
+  > `StoreAsImage`→`Storage` migration (its Steps 7/10); P7 Step 8 then merely CONSUMES `Storage` (do NOT re-delete).
+  > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep a
+  > running note of the last green commit hash here so an interrupted session can resume precisely.
 
 ---
 

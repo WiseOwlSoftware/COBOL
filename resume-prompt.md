@@ -121,10 +121,21 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔ RESUME AT: PHASE 05 Step 6/7** — Step 6 the prove-then-delete GATE (battery green = green light) → Step 7
-> (delete `MarkStoreAsImage` + the emitter→binder write-back; `StoreAsImage` → read-only projection of `Storage`).
-> ⚠ **OWNER STANDING RULE (2026-07-10, [[feedback_no_workarounds_root_cause]]): never workaround/hack — REDESIGN for the
-> best; AND retroactively audit prior work for similar shortcuts.** PHASE-05 progress:
+> §9.5). **⛔🔀 RESUME AT: EXEC STEP A — the SOURCE-GENERATED EXHAUSTIVE BOUND-TREE VISITOR (PHASE-07 Step 6, pulled
+> FORWARD).** The roadmap was RE-SEQUENCED tooling-first (2026-07-11, owner-directed —
+> `docs/COBOLNET_REARCHITECTURE_PLAN.md §4.1`; eval `docs/rearchitecture/EVAL-antlr-leverage-and-traversal.md`;
+> [[project_path_a_leverage_tooling]]): front-load the two tooling foundations so every later phase LEVERAGES them
+> instead of hand-rolling. **New exec order:** **A** source-generated bound-tree visitor (kills the 205-duplicated-arm /
+> completeness-bug class — the `UsageCollectionPass` gaps were the symptom; independent of P5-remainder/P6, walks the
+> existing bound tree) → **B** P6 `SymbolTable`/`BoundCompilation` → **C** finish P5 Steps 6–14 (delete
+> `MarkStoreAsImage`; `StoreAsImage`→`Storage` projection; `Model/` move) ON the visitor → **D** P7 structural `Place` +
+> binder/emitter decomposition → **E** the P2/P3 edition-gate remediation (fold ~15 inline gates into the two-arm pass;
+> delete orphaned `GateId`; correct the "edition-agnostic" over-claims) → **F** features/runtime/legacy-cut/CIL. Start A
+> per PHASE-07 Step 6 (§6a generator or the hand-written abstract-visitor fallback). ⚠ **OWNER STANDING RULES:** never
+> workaround/hack — REDESIGN for the best + retroactively audit prior work ([[feedback_no_workarounds_root_cause]]);
+> LEVERAGE THE TOOLING — any new tree walk uses the ONE generated/shared visitor (bound tree) or the ANTLR generated
+> visitor/listener (CST), never a fresh bespoke `switch` ([[project_path_a_leverage_tooling]], [[feedback_singular_pattern]]);
+> keep ALL docs accurate as work lands. PHASE-05 progress:
 > **Steps 0–4 + Step 5 DONE (DEVLOG 747–753)**. Step 5 was REDESIGNED per that rule (the reflective-walk + keep-mid-resolve
 > attempts were rejected as shortcuts): `UsageCollectionPass` — an explicit TYPED bound-tree walk (NO reflection) — now
 > OWNS `WholeGroupReferenced` with the CORRECT set (every true whole-image operand position); legacy's over-inclusive

@@ -7,7 +7,13 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: IN PROGRESS @ Step 5 DONE (whole-group collection REDESIGNED + flipped) — Step 6/7 NEXT
+> ## STATUS: PAUSED @ Step 5 DONE — Steps 6–14 resequenced to Exec Step C (AFTER the visitor + P6)
+> 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, [[project_path_a_leverage_tooling]]):**
+> Steps 1–5 are DONE; the REMAINING Steps 6–14 (delete `MarkStoreAsImage` + write-back; `StoreAsImage`→`Storage`
+> projection; flip readers; delete width copies; `Model/` move; apostrophe golden; close) are PAUSED and run at **Exec
+> Step C**, AFTER **Exec Step A** (the source-generated exhaustive visitor, PHASE-07 Step 6 pulled forward) and **Exec
+> Step B** (P6 `SymbolTable`) — so the reader-flips leverage the ONE shared visitor instead of hand-rolling. PHASE-05
+> OWNS the `MarkStoreAsImage` deletion (P7 Step 8 merely consumes `Storage`). Below is the Step-5 close state.
 > Step 5 was REDESIGNED per the owner directive (never workaround — the reflective-walk + keep-mid-resolve attempts were
 > rejected as shortcuts; DEVLOG 752/753). `UsageCollectionPass` (an explicit TYPED bound-tree walk, NO reflection) now
 > OWNS `WholeGroupReferenced`, collecting the group `Place.Item` at every true whole-image operand position; the

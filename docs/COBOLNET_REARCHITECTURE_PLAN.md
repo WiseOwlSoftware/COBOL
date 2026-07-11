@@ -245,6 +245,34 @@ phase boundary.
 > ambiguity needing a forward-detect) and NEVER a binder-embedded `Check`. **P14**'s matrix-closure gates reference
 > the `VersionConformancePass`, not `EditionValidator`. Each affected phase's scope note points back to the design doc.
 
+## 4.1 — Execution resequencing (2026-07-11, owner-directed: TOOLING-FIRST foundation)
+
+**Owner directive (2026-07-11, `[[project_path_a_leverage_tooling]]`; evaluation
+`docs/rearchitecture/EVAL-antlr-leverage-and-traversal.md`):** the §4 order is dependency-correct but **buries the two
+highest-leverage TOOLING foundations too late**, so every phase until then pays the ad-hoc-walker / no-symbol-table
+tax — the direct cause of the PHASE-05 `UsageCollectionPass` completeness bugs (6 missed statement types +
+`DynTablePlace`, DEVLOG 753). The bound tree has **no shared visitor** → **205 duplicated `case Bound` arms across ~5
+bespoke hand-walkers** synced by a prose comment; the binder hand-rolls a 50-arm dispatch + 334 `GetText()` pokes; **no
+`SymbolTable`**. **Resolution: front-load the tooling foundations; every later phase then LEVERAGES them instead of
+hand-rolling** (multiple passes where useful — but generated/shared, not bespoke). This RE-SEQUENCES *execution order*;
+it does NOT renumber the phases.
+
+**New execution order (supersedes the strict §4 left-to-right for the R/foundation track):**
+
+| Exec | Was | Work | Why here |
+|------|-----|------|----------|
+| **A** | P7 Step 6 | **Source-generated exhaustive bound-tree visitor** (`BoundVisitorGenerator` + `[BoundNode]` + generated `Accept<T>`/`IBound*Visitor<T>`; a hand-written abstract-visitor is the same-guarantee fallback). Convert the ~5 bespoke walkers (emitter dispatch, `UsageCollectionPass`, `VersionConformancePass` arms, `BoundStores`, the renderers) onto it. | **Independent of P5-remainder/P6** (walks the EXISTING bound tree); HIGHEST value; directly the owner's concern. A missing arm becomes a COMPILE error — kills the completeness-bug class the ad-hoc walkers keep producing. Extract PHASE-07 Step 6 to run NOW. |
+| **B** | P6 | **`SymbolTable` + `BoundCompilation` + the `IBindPass` manifest** | The name-resolution foundation the binder decomposition + every feature phase needs; replaces the ad-hoc `ByName`/name-index dictionaries. |
+| **C** | P5 Steps 6–14 | **Finish the data-model migration** (delete `MarkStoreAsImage` + the emitter→binder write-back; `StoreAsImage` → projection of `Storage`; flip readers to `Storage`/`RecordLayout`; `Model/` move). P5 OWNS the `StoreAsImage` deletion — PHASE-07 Step 8 then merely CONSUMES `Storage` (the overlap is removed, not done twice). | Now built ON the visitor (reader-flips use it) + the symbol table. |
+| **D** | P7 Steps 1–5,7,9–12 | **Structural `Place` (no C# text in the bound tree) + binder/emitter god-class decomposition + `ICodeGenBackend` seam.** | Needs B (`BoundCompilation`) + A (visitor). |
+| **E** | (P2/P3 audit remediation, task #13) | **Fold the ~15 inline edition gates into the two-arm `VersionConformancePass`** + delete orphaned `GateId` scaffolding + correct the "edition-agnostic" over-claims. | Done ON the visitor + the now-clean pipeline; the gate walks reuse the shared visitor. |
+| **F** | P08–P16 | Runtime reorg, feature waves (M2/M3/M4), matrix closure, G8 legacy cut, CIL backend. | On the fully tooling-leveraged foundation. |
+
+**Guiding rule going forward (`[[feedback_singular_pattern]]` + tooling):** any NEW tree traversal uses the ONE
+generated/shared visitor (bound tree) or the ANTLR generated visitor/listener (CST) — never a fresh bespoke `switch`.
+The PHASE-05 / PHASE-06 / PHASE-07 docs' STATUS lines carry the live resume point for A–D; `resume-prompt.md`'s banner
+points at the current exec step. Keep this table + those STATUS lines + the §4 ticks in sync as each exec step lands.
+
 ## 5. Document index
 
 **Designs** (`docs/rearchitecture/DESIGN-*.md`, 10): module-topology · frontend-grammar · binder-bound-tree ·
