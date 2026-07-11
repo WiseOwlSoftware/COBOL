@@ -34,8 +34,7 @@ internal static class BindPipeline
     {
         // ── The per-unit resolution passes, in the EXACT pre-P5 BindResolve order (DataBinder.cs). ──
         new BindPass("ExpandTypes", PassPhase.None, PassPhase.TypesExpanded, d => d.ExpandTypes()),
-        new BindPass("ResolveIndexItems", PassPhase.TypesExpanded, PassPhase.TypesExpanded, d => d.ResolveIndexItems()),
-        new BindPass("InheritUsageClauses", PassPhase.TypesExpanded, PassPhase.UsageResolved, d => d.InheritUsageClauses()),
+        new BindPass("UsageInheritancePass", PassPhase.TypesExpanded, PassPhase.UsageResolved, d => d.UsageInheritancePass()),
         new BindPass("InheritSignClauses", PassPhase.UsageResolved, PassPhase.SignResolved, d => d.InheritSignClauses()),
         new BindPass("ResolveRedefines", PassPhase.SignResolved, PassPhase.SignResolved, d => d.ResolveRedefines()),
         new BindPass("ClassifyRedefinesClasses", PassPhase.SignResolved, PassPhase.RedefinesClassified, d => d.ClassifyRedefinesClasses()),

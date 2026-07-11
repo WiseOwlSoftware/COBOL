@@ -398,7 +398,7 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
   writer (internal set; init-only inexpressible with pass assignment); StoreAsImage KEPT as the named projection
   (the one definition beats 35 pattern repetitions); the image-fact caching DEVIATED to P7 (the hazard died with
   the flag; the O(subtree) perf work belongs with the DataItem slimming)
-- [◐] Step 11 — a DONE (DEVLOG 780): 6 files git-mv'd to `Binding/Model/` (ns `CobolNet.Binding.Model`);
+- [x] Step 11 COMPLETE (a–e, DEVLOG 780–784) — a DONE (DEVLOG 780): 6 files git-mv'd to `Binding/Model/` (ns `CobolNet.Binding.Model`);
   `OdoModel.cs` SPLIT (model half → Model/, the DataBinder ODO partial → `DataBinder.Odo.cs` — the old file mixed
   a pure model with a binder pass); `OdoGroupPlace` folded into `Place.cs`; `PlaceDecorator(Place Inner)` base
   forwards Pic/Item + default Read/Write; `NumericImagePlace`/`RefModPlace`/`OdoGroupPlace` derive.
@@ -419,7 +419,8 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
   the doc's "~10 scattered Tier-C guards" don't exist as verdicts today (Phase 1E folded the island into
   `ComputeTier`; the emitter loud guards key off `IsImageCapable`, one definition); a `TierCWindow.Read/Write`
   backstop adds nothing (Rejected views already fail loud at resolve; `StorageForm.TierCWindow` = the P11 seam).
-  e pending.
+  e DONE (DEVLOG 784): ONE `UsageInheritancePass` manifest entry (TypesExpanded → UsageResolved); the two bodies
+  stay as private same-named halves (doc anchors intact), called in the original order.
 - [x] Step 12 (DEVLOG 779) — identities #1/#5 retired with their subjects; #2/#3/#4 stay (#3 guards two live
   computations); the DAG was finalized at P6 (GroupTail + terminal conformance pass)
 - [x] Step 13 (DEVLOG 779) — ApostropheValueDifferentialTests ×3, PROVEN failing-first under a '"'-only

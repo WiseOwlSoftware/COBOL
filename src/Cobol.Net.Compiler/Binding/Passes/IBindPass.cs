@@ -26,7 +26,8 @@ public enum PassPhase
     None,
     /// <summary>TYPEDEF/<c>TYPE IS</c> clones expanded into the forest (<c>ExpandTypes</c>).</summary>
     TypesExpanded,
-    /// <summary>USAGE markers + INDEX items resolved/inherited (<c>InheritUsageClauses</c>).</summary>
+    /// <summary>USAGE markers + INDEX items resolved/inherited (<c>UsageInheritancePass</c> — the merged
+    /// former <c>ResolveIndexItems</c> + <c>InheritUsageClauses</c> pair, P5.11e).</summary>
     UsageResolved,
     /// <summary>Group-level SIGN clauses inherited (<c>InheritSignClauses</c>).</summary>
     SignResolved,

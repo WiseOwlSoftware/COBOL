@@ -1397,12 +1397,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return item?.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
     }
 
+    /// <summary>THE usage-inheritance pass (P5.11e, DESIGN-data-model §2.7 — the former
+    /// <c>ResolveIndexItems</c> + <c>InheritUsageClauses</c> pipeline pair MERGED; both effects, same order): the
+    /// two halves are one §13.18.60 GR1 job — resolve the PICTURE-less usage MARKERS once the forest is complete
+    /// (index/object-reference shedding, the NATIONAL/BIT <see cref="DataItem.Pending"/> adjudication), then
+    /// apply group-level USAGE clauses to subordinate elementary items.</summary>
+    internal void UsageInheritancePass()
+    {
+        ResolveIndexItems();
+        InheritUsageClauses();
+    }
+
     /// <summary>Resolve PICTURE-less USAGE INDEX entries (ISO §13.18.60) once the forest is complete — entry bind
     /// synthesized an elementary index profile (<see cref="PicInfo.IndexItem"/>) before subordinates were known. An
     /// entry WITH subordinates is a GROUP whose USAGE INDEX merely inherits (GR1 — usage on a group applies to each
     /// elementary item under it): clear the synthesized profile; a PICTURE-less LEAF below it is an index data item
-    /// even without its own USAGE clause.</summary>
-    internal void ResolveIndexItems()
+    /// even without its own USAGE clause. (A half of <see cref="UsageInheritancePass"/>, P5.11e.)</summary>
+    private void ResolveIndexItems()
     {
         // Every elementary leaf under a group (for the NATIONAL/BIT group-usage conformance check below).
         static IEnumerable<DataItem> Leaves(DataItem g)
@@ -1497,8 +1508,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <see cref="ResolveIndexItems"/>'s special case (PICTURE-less index items), and a float usage on a group
     /// with PICTUREd children has no NIST surface (left to the float slice). Runs BEFORE
     /// <see cref="InheritSignClauses"/> — a non-DISPLAY item takes the BinaryMinus sign form regardless of any
-    /// inherited SIGN clause (§13.18.52 applies only to usage-display items).</summary>
-    internal void InheritUsageClauses()
+    /// inherited SIGN clause (§13.18.52 applies only to usage-display items). (A half of
+    /// <see cref="UsageInheritancePass"/>, P5.11e.)</summary>
+    private void InheritUsageClauses()
     {
         static void Walk(DataItem item, Usage? inherited)
         {
