@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
 using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.CodeGen.Emit;
 using CobolNet.Frontend.Generated;
 
@@ -14,31 +15,16 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// The OO half of the Roslyn backend (docs/COBOLNET_OO_DESIGN.md — the Phase-3 spine): one real C# class per
 /// CLASS-ID (<c>public class Foo : CobolObject</c>, deep-dive D1/D2), OBJECT-paragraph WORKING-STORAGE as
 /// INSTANCE fields (D3), each METHOD-ID as a real virtual C# method (D7) running its contiguous exit-bounded
-/// range of the class's ONE PC-dispatch space (the emit-into-a-type parameterization — the CallUnit machinery
+/// range of the class's ONE PC-dispatch space (the emit-into-a-type parameterization — the BoundUnit machinery
 /// IS the template: the same per-unit emitter-state switch, FieldEmitter, and __Dispatch body render a class
 /// exactly as they render a program class), and INVOKE as direct typed C# calls (D5) — the registry is
 /// bypassed entirely (typed calls need no name resolution ABI).
 /// </summary>
 public sealed partial class CSharpEmitter
 {
-    /// <summary>One CLASS-ID unit of the compilation group (the ClassUnit counterpart of <see cref="CallUnit"/>):
-    /// its pass-1 symbol, its OBJECT-paragraph data model, and its bound method bodies.</summary>
-    internal sealed class OoClassUnit
-    {
-        public required OoClassSymbol Symbol;
-        public string Name => Symbol.Name;
-        public string CsName => Symbol.CsName;
-        public DataBinder Data = null!;
-        public ReferenceResolver Refs = null!;
-        public BoundProgram Bound = null!;
-        // The FACTORY half (§11.4; brief D11 — a sibling singleton class): its OWN data forest (factory and
-        // instance data are separate source elements, §10.6 :12752-12770 — name separation is structural).
-        public DataBinder FactoryData = null!;
-        public ReferenceResolver FactoryRefs = null!;
-        public BoundProgram FactoryBound = null!;
-    }
+    // OoClassUnit relocated to Binding/Model/OoClassUnit.cs (P6 Step 2 — the binder owns the bound model).
 
-    /// <summary>The group's pass-1 class symbol table (deep-dive D1) — built by <c>CallCollectUnits</c> BEFORE
+    /// <summary>The group's pass-1 class symbol table (deep-dive D1) — built by <c>BinderDriver.CollectUnits</c> BEFORE
     /// any unit binds, so every DataBinder (typed object references) and StatementBinder (INVOKE) resolves
     /// classes defined anywhere in the file. Never null after collection (empty table when no classes).</summary>
     private OoClassTable _ooClasses = null!;
@@ -54,8 +40,7 @@ public sealed partial class CSharpEmitter
     private void OoBindInterfaceData(OoInterfaceSymbol iface, EditionContext edition)
     {
         var data = new DataBinder(edition) { OoClasses = _ooClasses, OoIsClassUnit = true };
-        data.CallSeedUids(_callUidBand);
-        _callUidBand += 100_000;
+        data.CallSeedUids(_bindSession!.TakeUidBand());
         var synthetic = new Core.ProgramUnitContext(null!, -1);
         if (iface.Ctx.environmentDivision() is { } env) synthetic.AddChild(env);
         data.BindDeclarations(synthetic);
@@ -75,8 +60,7 @@ public sealed partial class CSharpEmitter
     private void OoBindClassData(OoClassUnit cls, EditionContext edition)
     {
         var data = new DataBinder(edition) { OoClasses = _ooClasses, OoIsClassUnit = true };
-        data.CallSeedUids(_callUidBand);
-        _callUidBand += 100_000;
+        data.CallSeedUids(_bindSession!.TakeUidBand());
         var synthetic = OoReparentClassData(cls.Symbol.Ctx);
         data.BindDeclarations(synthetic);
         foreach (var m in cls.Symbol.Methods.ToList())   // snapshot — property synthesis appends accessors
@@ -93,8 +77,7 @@ public sealed partial class CSharpEmitter
         // like method scoping: a second binder, never a merged namespace. SR 10 (INVOKE-argument ban on
         // factory WS) works free: the factory binder's WS roots are not method-scoped → OoIsObjectData.
         var fdata = new DataBinder(edition) { OoClasses = _ooClasses, OoIsClassUnit = true };
-        fdata.CallSeedUids(_callUidBand);
-        _callUidBand += 100_000;
+        fdata.CallSeedUids(_bindSession!.TakeUidBand());
         var fsynthetic = OoReparentFactoryData(cls.Symbol.Ctx);
         fdata.BindDeclarations(fsynthetic);
         foreach (var m in cls.Symbol.FactoryMethods.ToList())

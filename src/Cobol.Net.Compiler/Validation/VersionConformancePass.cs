@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;        // Place subtypes (RefModPlace, …), PicCategory, Usage
 using CobolNet.Binding.Bound;
-using CobolNet.CodeGen;
+using CobolNet.Binding.Model;  // BoundCompilation / BoundUnit / OoClassUnit — the immutable Binder-phase result (P6)
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §8.9 funnel
 using CobolNet.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
@@ -44,7 +44,7 @@ namespace CobolNet.Validation;
 /// method scope). <b>14g.3–14g.5 (DONE)</b> completed the DATA/PIC/OO migration: OO class/interface + OCCURS DYNAMIC
 /// (14g.3, parse-arm); file SHARING/LOCK-MODE + SPECIAL-NAMES FOR + PD RETURNING/RAISING (14g.4, parse-arm — the recon's
 /// bound-arm SHARING/LOCK-MODE reclassified for the same drop-proof reason); FUNCTION-PROTOTYPE (14g.5, bound-arm over
-/// <c>CallUnit.IsPrototype</c>) + REPOSITORY CLASS/INTERFACE/PROPERTY (14g.5, parse-arm) + the external-float /
+/// <c>BoundUnit.IsPrototype</c>) + REPOSITORY CLASS/INTERFACE/PROPERTY (14g.5, parse-arm) + the external-float /
 /// national-edited PICTURE skeletons (14g.5, bound-arm via <c>PicInfo.SkeletonGate</c> — the recovered category erases
 /// the identity, so PicInfo's own exact detection carries the 0900 forward). The one principled exception is the
 /// UDF-invocation gate (an intrinsic FUNCTION and a user-function call are
@@ -65,7 +65,7 @@ internal sealed class VersionConformancePass
     /// <summary>Gate every version-gated construct in the bound <paramref name="group"/>, reporting to
     /// <paramref name="sink"/>. The driver runs this between bind and emit and HALTs before emit if the sink then
     /// carries errors (rearch exit criterion 9 — no codegen on an errored tree).</summary>
-    public static void Run(CSharpEmitter.BoundRunUnit group, EditionInfo edition, IDiagnosticSink sink)
+    public static void Run(BoundCompilation group, EditionInfo edition, IDiagnosticSink sink)
     {
         var pass = new VersionConformancePass(edition, sink);
         // ── PARSE-tree arm (Step 14h): ONE walk of the raw compilation unit, firing every SYNTACTIC
@@ -79,15 +79,15 @@ internal sealed class VersionConformancePass
         //    source-declared DataItem's resolved USAGE / PICTURE category), which need a resolved bound fact. ──
         foreach (var unit in group.Units)
         {
-            // FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2) — a COBOL-2002 introduction. Bound-arm: CallUnit.IsPrototype
-            // is set at unit creation and every unit (top-level, nested, function) is a CallUnit in group.Units, so it
-            // is scope-exact + drop-proof, with the former CallMakeUnit Check's constant where-string (Step 14g.5).
+            // FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2) — a COBOL-2002 introduction. Bound-arm: BoundUnit.IsPrototype
+            // is set at unit creation and every unit (top-level, nested, function) is a BoundUnit in group.Units, so it
+            // is scope-exact + drop-proof, with the former MakeUnit Check's constant where-string (Step 14g.5).
             if (unit.IsPrototype)
                 pass.Check(Constructs.FunctionPrototype2002, "a FUNCTION-ID … IS PROTOTYPE (function prototype)");
             pass.WalkProgram(unit.Bound);
             pass.GateData(unit.Data);
         }
-        foreach (var cls in group.Classes)
+        foreach (var cls in group.ClassUnits)
         {
             // A class body's OBJECT and FACTORY halves are two bound programs over one class; both carry statements
             // (each METHOD-ID is a pc slice of the ONE dispatch space, so walking Paragraphs covers every method).

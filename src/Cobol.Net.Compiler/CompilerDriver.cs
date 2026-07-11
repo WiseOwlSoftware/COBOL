@@ -124,7 +124,7 @@ public static class CompilerDriver
         if (options.CheckOnly)
             return new Result(Outcome.Success, "", null, [], [.. feWarnings, .. edition.Warnings]);
 
-        string csharp = emitter.Emit(bound);
+        string csharp = emitter.EmitBound(bound);
 
         string outputDll = options.OutputPath ?? Path.ChangeExtension(options.SourcePath, ".dll");
         string outDir = Path.GetDirectoryName(Path.GetFullPath(outputDll)) is { Length: > 0 } d ? d : ".";

@@ -52,7 +52,7 @@ public sealed class StorageFormEquivalenceTests
         var bound = emitter.Bind(tree, edition, frontend.TurnEvents);   // runs MarkStoreAsImage + OO harmonize + StorageFormPass.Compute
 
         var binders = bound.Units.Select(u => u.Data)
-            .Concat(bound.Classes.SelectMany(c => new[] { c.Data, c.FactoryData }));
+            .Concat(bound.ClassUnits.SelectMany(c => new[] { c.Data, c.FactoryData }));
         var divergences = new List<string>();
         foreach (var b in binders)
         {

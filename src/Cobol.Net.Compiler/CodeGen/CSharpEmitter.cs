@@ -3,6 +3,7 @@
 using CobolNet.Common;
 using CobolNet.Binding;
 using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.CodeGen.Emit;
 using CobolNet.Runtime;
 using CobolNet.Frontend.Generated;
@@ -22,57 +23,49 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// </summary>
 /// <remarks><b>Status — G2:</b> groups→record structs, OCCURS→arrays, qualified/subscripted refs, figurative +
 /// signed DISPLAY, level-88. Control flow is a sequential paragraph call-chain (the G4 PC dispatcher replaces it).</remarks>
-public sealed partial class CSharpEmitter
+public sealed partial class CSharpEmitter : IOoBindHost
 {
     private EmissionContext _ctx = null!;
     private NumericRenderer _num = null!;
     private ConditionRenderer _cond = null!;
     private ReferenceResolver _refs = null!;
 
-    /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to a walkable <see cref="BoundRunUnit"/>
-    /// (multi-unit run-unit binding — interprogram design D3 / SSOT §18 #8), under the targeted EDITION
-    /// (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the driver fails the compile
-    /// when any exist, BEFORE emit). <paramref name="turnEvents"/> are the frontend's <c>&gt;&gt;TURN</c> directive
-    /// events (ISO §7.3.25) — they build the group's compile-time TurnState (deep-dive D10); null/empty means the
-    /// GR1 default, EC-ALL CHECKING OFF. The body lives in <c>CSharpEmitter.Call.cs</c>
-    /// (<see cref="CallBindRunUnit"/>). The <see cref="Emit(BoundRunUnit)"/> half renders C# from the result — the
-    /// rearch PHASE-03 Step 14a bind/emit split (codegen never runs on an errored tree).</summary>
-    internal BoundRunUnit Bind(Core.CompilationUnitContext tree, EditionContext? edition = null,
+    /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
+    /// <see cref="BoundCompilation"/> (multi-unit run-unit binding — interprogram design D3 / SSOT §18 #8), under
+    /// the targeted EDITION (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the
+    /// driver fails the compile when any exist, BEFORE emit). A thin shim over
+    /// <see cref="BinderDriver.Bind"/> (rearch PHASE-06 Step 2 — the Binder phase owns the orchestration) with
+    /// THIS instance as the <see cref="IOoBindHost"/>: the OO bind bodies physically remain on this class's
+    /// partials until P9. <see cref="EmitBound"/> renders C# from the result — codegen never runs on an errored
+    /// tree.</summary>
+    internal BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext? edition = null,
         IReadOnlyList<CobolNet.Frontend.Preprocessor.TurnEvent>? turnEvents = null)
-        => CallBindRunUnit(tree, edition ?? new EditionContext(2023), turnEvents);
+        => new BinderDriver().Bind(tree, edition ?? new EditionContext(2023), turnEvents, this);
 
-    /// <summary>Render typed-native C# from an already-bound <see cref="BoundRunUnit"/> (the emit half of the
-    /// Step-14a bind/emit split). Call on the SAME instance that produced <paramref name="group"/> via
-    /// <see cref="Bind"/> — the bind-populated instance fields are live.</summary>
-    internal string Emit(BoundRunUnit group) => CallEmitRunUnit(group);
+    /// <summary>Render typed-native C# from an already-bound immutable <see cref="BoundCompilation"/> (the emit
+    /// half of the bind/emit split). Call on the SAME instance that hosted <see cref="Bind"/> — the interface
+    /// data forests are instance state until P9 (see <c>CallEmitRunUnit</c>).</summary>
+    internal string EmitBound(BoundCompilation comp) => CallEmitRunUnit(comp);
 
-    /// <summary>
-    /// Whole-group analysis (ISO/IEC 1989:2023 §14.9 MOVE GR4 / COBOLNET_DESIGN §14.4): for every group used as a
-    /// whole operand, flag each numeric USAGE-DISPLAY descendant leaf to store its character image
-    /// (<see cref="DataItem.StoreAsImage"/>). A whole-group move fills the group "without consideration for the
-    /// individual elementary items", so such a leaf may receive non-numeric characters (e.g. spaces) that a native
-    /// <c>long</c> cannot represent. A COMP/COMP-3/COMP-5/float leaf is left native (its group is then a genuine
-    /// mixed-usage byte-island — Tier-C, deferred); numeric-edited / alphanumeric leaves are already string-stored.
-    /// </summary>
-    private static void MarkStoreAsImage(DataBinder data)
+    // ── The IOoBindHost seam (P6→P9): BinderDriver reaches the emitter-hosted OO bind bodies through these;
+    //    they only mutate binder state (never emit). BeginBind restores the shared-session fields the OO
+    //    methods read (_turnState for ConfigureEc, _ooClasses for symbol resolution, the uid-band source). ──
+
+    private BindSession? _bindSession;
+
+    void IOoBindHost.BeginBind(BindSession session)
     {
-        foreach (var group in data.WholeGroupReferenced)
-            MarkNumericDisplayLeaves(group);
-
-        static void MarkNumericDisplayLeaves(DataItem item)
-        {
-            foreach (var child in item.Children)
-            {
-                // A fixed-OCCURS subordinate is part of the whole-group image too (ISO §14.9 — every OCCURS position):
-                // a numeric-DISPLAY OCCURS leaf becomes string-stored (its array is string[]), so the §14.4 AsImage/
-                // FromImage facility distributes it with no special case, and its subscripted accesses go through the
-                // same StoreAsImage numeric pipeline (CobolNum.ParseDisplay/FormatDisplay).
-                if (child.IsGroup) MarkNumericDisplayLeaves(child);
-                else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                    child.StoreAsImage = true;
-            }
-        }
+        _bindSession = session;
+        _turnState = session.Turn;
+        _ooClasses = session.OoClasses;
     }
+
+    void IOoBindHost.BindInterfaceData(OoInterfaceSymbol iface) => OoBindInterfaceData(iface, _bindSession!.Edition);
+    void IOoBindHost.BindClassData(OoClassUnit cls) => OoBindClassData(cls, _bindSession!.Edition);
+    void IOoBindHost.BindClassBody(OoClassUnit cls) => OoBindClassBody(cls);
+    void IOoBindHost.HarmonizeOverrideCrossings() => OoHarmonizeOverrideCrossings();
+    void IOoBindHost.QualifyClassFiles(OoClassUnit cls) => OoQualifyClassFiles(cls);
+    IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> IOoBindHost.InterfaceData => _ooIfaceData;
 
     // ── The PC dispatcher (COBOLNET_DESIGN §5) ────────────────────────────────────────────────────────────
 

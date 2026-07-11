@@ -1,10 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Common;
-using Antlr4.Runtime;
-using Antlr4.Runtime.Tree;
 using CobolNet.Binding;
-using CobolNet.Binding.Passes;
+using CobolNet.Binding.Model;
 using CobolNet.Editions;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
@@ -26,61 +24,12 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// </summary>
 public sealed partial class CSharpEmitter
 {
-    // ── The per-compilation unit model ──────────────────────────────────────────────────────────────────────
-
-    /// <summary>One program unit of the compilation group: its identity, containment, PROGRAM-ID attributes
-    /// (ISO §11.10 / §8.6.6), bound model, and the GLOBAL bridges its class must emit (§13.18.27 GR2).</summary>
-    internal sealed class CallUnit
-    {
-        public required string Name;
-        public required string ClassName;
-        public required Core.ProgramUnitContext Ctx;
-        public CallUnit? Parent;
-        public List<CallUnit> Children = [];
-        public bool Initial, Common, Recursive;
-        /// <summary>True for a FUNCTION-ID unit (ISO §9.4 — a user-defined function; program-shaped except it
-        /// RETURNs a value and always possesses the recursive attribute).</summary>
-        public bool IsFunction;
-        /// <summary>True for a FUNCTION-ID … IS PROTOTYPE unit (ISO §11.5 Format 2 / §10.6.2 SR4 — a
-        /// signature-only unit: LINKAGE-only data + a header-only procedure division). It contributes its
-        /// signature to the user-function table (M2-UDF-3) but emits NO body and does NOT register in the run
-        /// unit — the separately-compiled definition (in-group per GR11a, else a sibling assembly) is the
-        /// activation target. Always implies <see cref="IsFunction"/>.</summary>
-        public bool IsPrototype;
-        public DataBinder Data = null!;
-        public ReferenceResolver Refs = null!;
-        public BoundProgram Bound = null!;
-        public List<CallBridge> Bridges = [];
-
-        /// <summary>The run-unit-unique containment path id (registry key; §8.4.6.3 scoping).</summary>
-        public string Path => Parent is null ? Name : Parent.Path + "/" + Name;
-
-        /// <summary>The C# nested-type reference from the top-level scope (factory construction).</summary>
-        public string ClassRef => Parent is null ? ClassName : Parent.ClassRef + "." + ClassName;
-    }
-
-    /// <summary>One inherited-GLOBAL bridge a nested class emits: a <c>ref</c>-returning property aliasing the
-    /// containing instance's field (ISO §13.18.27 GR2 — the name is visible in every contained program; the
-    /// STORAGE stays the container's). <paramref name="Kind"/>: "field" (a global root's typed field), "backing"
-    /// (a Tier-B class's string backing), or "index" (an INDEXED BY <c>long</c> field of a global table).</summary>
-    internal sealed record CallBridge(string Field, string Path, string Kind, DataItem? Item);
-
-    /// <summary>The BIND output of a run unit (rearch PHASE-03 Step 14a — the bind/emit split): the walkable bound
-    /// group the <see cref="Validation.VersionConformancePass"/> gates and <see cref="CallEmitRunUnit(BoundRunUnit)"/>
-    /// renders — the program units + class units (each carrying its <see cref="CallUnit.Bound"/> / <c>.Data</c>), the
-    /// OO symbol roster, and the parse-tree ROOT (the pass's parse-arm walks it for the syntactic obsolete-element +
-    /// §8.9 reserved-word gates that have no bound-node representation). Carrying the parse root on this GROUP record
-    /// does NOT put a parse context on any bound NODE — the <c>BoundTree.cs</c> "no raw parse context" invariant stands.</summary>
-    internal sealed record BoundRunUnit(
-        Core.CompilationUnitContext Tree,
-        List<CallUnit> Units,
-        List<OoClassUnit> Classes,
-        OoClassTable OoClasses);
+    // ── The per-compilation unit model: Binding/Model/{BoundUnit,OoClassUnit,BoundCompilation}.cs (P6 Step 2 —
+    //    the BINDER owns the bound model; this half renders it read-only). ───────────────────────────────────
 
     private string _callSelfPath = "";
     private Place? _callReturningPlace;
     private int _callCounter;
-    private int _callUidBand;
 
     /// <summary>For each GLOBAL file INHERITED from a container (ISO §13.18.30), the place of the OWNER's FILE
     /// STATUS item reached through the <c>__outer</c> instance chain. §12.4.5.8.4 GR1 NOTE 1: "In the case where
@@ -90,123 +39,25 @@ public sealed partial class CSharpEmitter
     /// (nearest container first); consumed by <c>EmitStoreFileStatus</c>.</summary>
     private readonly Dictionary<FileModel, Place> _callInheritedStatusPlace = [];
 
-    // ── Run-unit emission (replaces the single-unit Emit body; design D3) ───────────────────────────────────
+    // ── Run-unit emission (replaces the single-unit Emit body; design D3). The BIND half is
+    //    Binding/BinderDriver.Bind (P6 Step 2 — was CallBindRunUnit here); the OO orchestration it reaches
+    //    through IOoBindHost still lives on this class's partials until P9. ─────────────────────────────────
 
-    /// <summary>
-    /// Emit the WHOLE compilation group: bind every program unit (containers first, so GLOBAL items inherit —
-    /// the legacy <c>CollectProgramContexts</c> shape re-derived from §8.4.6 scope rules), run the whole-group
-    /// image analysis over ALL units (shared <see cref="DataItem"/>s — a contained program's whole-group use of
-    /// an inherited GLOBAL item must flip the owner's leaf storage), then render one class per program plus the
-    /// run-unit entry wrapper (<c>Program.Main</c>: registry registration + main activation + the §14.6.11
-    /// implicit CLOSE at run-unit termination).
-    /// </summary>
-    /// <summary>The BIND half of run-unit compilation (rearch PHASE-03 Step 14a — the bind/emit split): binds every
-    /// program unit + class to a walkable <see cref="BoundRunUnit"/> WITHOUT emitting. Every edition-gating diagnostic
-    /// is produced here (the render half touches no <see cref="EditionContext"/>), so the driver gates on the sink
-    /// AFTER bind and never runs codegen on an errored tree (rearch exit criterion 9). Was the fused CallEmitRunUnit.</summary>
-    internal BoundRunUnit CallBindRunUnit(Core.CompilationUnitContext tree, EditionContext edition,
-        IReadOnlyList<CobolNet.Frontend.Preprocessor.TurnEvent>? turnEvents = null)
+    /// <summary>The EMIT half (rearch PHASE-03 Step 14a / PHASE-06 Step 2): render the run unit's C# from an
+    /// already-bound immutable <see cref="BoundCompilation"/> — reached ONLY after the driver confirmed the edition
+    /// sink is clean, so codegen never runs on an errored tree (exit criterion 9). Reads the compilation
+    /// READ-ONLY — the storage-form decision and the file-connector qualification already ran inside Bind. Call on
+    /// the SAME emitter instance that hosted the bind (the <c>_ooIfaceData</c> interface forests are instance
+    /// state until P9; <see cref="BoundCompilation.InterfaceData"/> carries the same map for the P9 cutover).</summary>
+    internal string CallEmitRunUnit(BoundCompilation comp)
     {
-        // The group's compile-time TurnState (ISO §7.3.25; deep-dive D10) — built BEFORE binding so every unit's
-        // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
-        // group). Name/edition validation happens here (SR2 + the 2023-only families).
-        _turnState = TurnState.Build(turnEvents, edition);
-
-        var (units, classes) = CallCollectUnits(tree, edition);
-        _callUidBand = 0;
-        foreach (var iface in _ooClasses.Interfaces) OoBindInterfaceData(iface, edition);   // prototype formals (§10.6.2 SR4)
-        foreach (var cls in classes) OoBindClassData(cls, edition);   // ALL signatures before ANY body (D1 pass-1)
-        _ooClasses.ValidateOverrideSignatures(edition);               // §9.3.8.2 — after all formals resolve (slice 3a)
-        _ooClasses.ValidateImplements(edition);                       // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority)
-        foreach (var cls in classes) OoBindClassBody(cls);
-        // TWO-PHASE program-unit binding (M2-UDF-1 key enabler): EVERY unit's DATA division binds before ANY
-        // unit's procedure body binds, so a function-identifier reference resolves the callee's RETURNING /
-        // USING signatures even when the FUNCTION-ID unit FOLLOWS the caller in the compilation group
-        // (§8.4.3.2.4 GR1 — the caller-side temporary takes the callee's RETURNING description; the same
-        // forward-reference discipline OoClassTable D1 gives typed object references).
-        foreach (var unit in units) CallBindUnitData(unit, edition);
-        var userFunctions = CallBuildUserFunctionTable(units, edition);
-        foreach (var unit in units) CallBindUnitProcedure(unit, userFunctions);
-        // Compiler-temp description re-sync: StoreAsImage is still mutable while procedure bodies bind
-        // (a ref-mod store / figurative MOVE in the MODEL's own unit flips it after a temp cloned it — the
-        // M2-UDF-1 review's unit-order desync; both sides of the activation boundary must agree on the
-        // carrier form). Runs after ALL procedure binds, before the image-marking pass reads the flags.
-        foreach (var d in units.Select(u => u.Data)
-                     .Concat(classes.SelectMany(c => new[] { c.Data, c.FactoryData })))
-            foreach (var (temp, model) in d.CompilerTempClones)
-                temp.StoreAsImage = model.StoreAsImage;
-        // PHASE-05 Step 5 (DESIGN §2.5 step 9): collect WholeGroupReferenced from the BOUND tree (its whole-group
-        // operands) + the program/OO boundary formals — the CORRECT set. Replaces ReferenceResolver's over-inclusive
-        // mid-resolve mutation (deleted): the resolver added ANY resolved group (CORR operands, SEARCH tables,
-        // qualifier groups, IX keys) that is never a whole-image operand. Runs BEFORE MarkStoreAsImage, which flips
-        // each whole-referenced group's numeric-DISPLAY leaves to image storage (§14.9 MOVE GR4). (DEVLOG 752/753.)
-        foreach (var cls in classes)
-        {
-            UsageCollectionPass.Collect(cls.Data, [cls.Bound], OoFormalGroups(cls.Symbol.Methods));
-            UsageCollectionPass.Collect(cls.FactoryData, [cls.FactoryBound], OoFormalGroups(cls.Symbol.FactoryMethods));
-        }
-        foreach (var unit in units) UsageCollectionPass.Collect(unit.Data, [unit.Bound]);
-
-        static IEnumerable<DataItem> OoFormalGroups(IEnumerable<OoMethodSymbol> methods) =>
-            methods.SelectMany(m => m.Formals.Select(f => f.Item).Concat(m.Returning is { } r ? [r] : Array.Empty<DataItem>()));
-
-        foreach (var cls in classes) { MarkStoreAsImage(cls.Data); MarkStoreAsImage(cls.FactoryData); }
-        foreach (var unit in units) MarkStoreAsImage(unit.Data);
-        OoHarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
-
-        // PHASE-05 Step 2 (D0, prove-then-delete): compute the canonical StorageForm for every item ONCE, HERE —
-        // the FINAL post-procedure-bind, post-temp-resync, post-MarkStoreAsImage, post-OO-harmonize state where every
-        // StoreAsImage flag is settled. Nothing reads Storage yet; it runs in PARALLEL with the legacy flag and the
-        // corpus equivalence assert (StorageFormPass.Verify) proves them equal before any deletion.
-        foreach (var cls in classes) { CobolNet.Binding.Passes.StorageFormPass.Compute(cls.Data); CobolNet.Binding.Passes.StorageFormPass.Compute(cls.FactoryData); }
-        foreach (var unit in units) CobolNet.Binding.Passes.StorageFormPass.Compute(unit.Data);
-
-        // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
-        // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
-        // pre-EC build (the zero-scaffolding invariant, SSOT §18.16).
-        _ecActive = _turnState.AnyEnabled || units.Any(u => u.Bound.Ec is { Any: true })
-            || classes.Any(c => c.Bound.Ec is { Any: true } || c.FactoryBound.Ec is { Any: true });
-
-        return new BoundRunUnit(tree, units, classes, _ooClasses);
-    }
-
-    /// <summary>The EMIT half (rearch PHASE-03 Step 14a): render the run unit's C# from an already-bound
-    /// <see cref="BoundRunUnit"/> — reached ONLY after the driver confirmed the edition sink is clean, so codegen
-    /// never runs on an errored tree (exit criterion 9). Call on the SAME emitter instance that produced
-    /// <paramref name="group"/> — its bind-populated fields <c>_turnState</c>/<c>_ooClasses</c>/<c>_ecActive</c> are live.</summary>
-    internal string CallEmitRunUnit(BoundRunUnit group)
-    {
-        var units = group.Units;
-        var classes = group.Classes;
-
-        // Per-program file-connector namespace: the runtime file registry is run-unit-global, but a file
-        // connector is INTERNAL to its program (ISO §8.6.3): two programs declaring the same file-name (the
-        // IC-suite PRINT-FILE pattern, e.g. IC101A's two units) must not clobber each other's connectors. Name
-        // resolution is done (bound nodes hold FileModel references), so qualifying the runtime key is purely an
-        // emit-side rename. An EXTERNAL FD instead keys by its run-unit EXTERNALIZED name (ISO §13.18.22.4 GR4a:
-        // ONE external file connector per run unit, shared by every describer — two units' FileModels with the
-        // same external name converge on ONE registry key, hence one connector; GR5: the name is the FD name).
-        // Each FileModel lives in exactly ONE unit's Files list (a fix-E GLOBAL merge shares references through
-        // FilesByName only), so no model is renamed twice.
-        foreach (var unit in units)
-            foreach (var file in unit.Data.Files)
-                file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
-                    ? "::EXT::" + ext
-                    : unit.Path + "::" + file.CobolName;
-        // The OO analogue (M2-OO-1i): an OBJECT/FACTORY file connector is scoped to its class, not a program unit,
-        // so the program loop above never sees it. A factory file (singleton) keys by class; an instance file keys
-        // per object (a minted key held in a __fkey field — see OoQualifyClassFiles); an EXTERNAL class file keys
-        // by its run-unit external name, exactly like a program's.
-        foreach (var cls in classes) OoQualifyClassFiles(cls);
-
-        // Declaratives emit the __IoCheck/__RunUse machinery, which reads CobolFile even when the unit declares
-        // NO files (IC401M: mode-scoped USE procedures in a file-less flagging program) — the IO using must
-        // cover both. A class-only file program (M2-OO-1i — an OBJECT/FACTORY file with no program-unit file)
-        // needs it too, or the generated <c>CobolFile.Register</c>/OPEN in the class body has no CobolNet.Runtime.IO
-        // import (CS0103).
-        bool anyFiles = units.Any(u => u.Data.Files.Count > 0)
-            || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
-            || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0);
+        // The bind-populated emitter state, restored from the immutable compilation (never computed here).
+        _turnState = comp.Turn;
+        _ooClasses = comp.OoClasses;
+        _ecActive = comp.EcActive;
+        var units = comp.Units;
+        var classes = comp.ClassUnits;
+        bool anyFiles = comp.AnyFiles;
 
         var w = new CodeWriter();
         w.Line("// <auto-generated>");
@@ -246,301 +97,12 @@ public sealed partial class CSharpEmitter
         return w.ToString();
     }
 
-    /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source
-    /// order, each followed by its contained programs (containers precede containees; load-bearing for GLOBAL
-    /// inheritance), plus the group's CLASS-ID units (the Phase-3 OO spine). The pass-1 class symbol table
-    /// (deep-dive D1) is built HERE — before ANY unit binds — so a driver's typed object references and INVOKEs
-    /// resolve classes defined later in the file. A contained <c>nestedProgram</c> parse context is re-shaped
-    /// into a synthetic <c>programUnit</c> context (identical child shape) so the per-unit binders consume one
-    /// context type.</summary>
-    private (List<CallUnit> Programs, List<OoClassUnit> Classes) CallCollectUnits(
-        Core.CompilationUnitContext tree, EditionContext edition)
-    {
-        var all = new List<CallUnit>();
-        var usedClassNames = new HashSet<string>(StringComparer.Ordinal);
-        var classDefs = new List<Core.ClassDefinitionContext>();
-        var ifaceDefs = new List<Core.InterfaceDefinitionContext>();
-
-        foreach (var group in tree.compilationGroup())
-        {
-            classDefs.AddRange(group.classDefinition());
-            ifaceDefs.AddRange(group.interfaceDefinition());   // §11.6 — collected, NEVER silently dropped (the W2 rule)
-            foreach (var pu in group.programUnit())
-                Collect(pu, null);
-        }
-        _ooClasses = OoClassTable.Build(classDefs, edition, ifaceDefs);
-        var classes = _ooClasses.Classes.Select(sym => new OoClassUnit { Symbol = sym }).ToList();
-        return (all, classes);
-
-        void Collect(Core.ProgramUnitContext ctx, CallUnit? parent)
-        {
-            var unit = CallMakeUnit(ctx, parent, all.Count, usedClassNames, edition);
-            all.Add(unit);
-            parent?.Children.Add(unit);
-            foreach (var nested in ctx.nestedProgram())
-                Collect(CallReparent(nested), unit);
-        }
-    }
-
-    /// <summary>Build one <see cref="CallUnit"/> from a program unit's IDENTIFICATION DIVISION: the program name
-    /// (PROGRAM-ID / FUNCTION-ID; the <c>AS literal</c> externalized name wins, ISO §11.10.4 GR1) and the
-    /// COMMON / INITIAL / RECURSIVE attributes with their per-edition + placement gates (§11.10.3 SR4–6).</summary>
-    private static CallUnit CallMakeUnit(
-        Core.ProgramUnitContext ctx, CallUnit? parent, int index, HashSet<string> usedClassNames, EditionContext edition)
-    {
-        var idBody = ctx.identificationDivision()?.identificationBody();
-        var pid = idBody?.programIdParagraph();
-        var fid = idBody?.functionIdParagraph();
-        string name = pid?.programName()?.GetText()
-            ?? fid?.programName()?.GetText()
-            ?? $"PROGRAM{index}";
-        bool isFunction = pid is null && fid is not null;
-        // §11.5 Format 2 — a signature-only prototype unit (M2-UDF-3). The COBOL-2002 introduction gate is now
-        // VersionConformancePass.Run (14g.5, bound-arm over group.Units — CallUnit.IsPrototype is drop-proof).
-        bool isPrototype = fid?.PROTOTYPE() is not null;
-        bool initial = false, common = false, recursive = false;
-        foreach (var attr in pid?.programIdAttributes()?.programIdAttribute() ?? [])
-        {
-            var cpa = attr.commonProgramAttribute();
-            if (cpa?.INITIAL_() is not null) initial = true;
-            else if (cpa?.COMMON() is not null) common = true;
-            else if (cpa?.RECURSIVE() is not null) recursive = true;
-            else if (attr.literalAttribute()?.STRINGLIT() is { } asLit
-                     && CobolLiteral.Decode(asLit.GetText()) is { Length: > 0 } asName)
-                name = asName;   // PROGRAM-ID name AS "literal" — the externalized name (ISO §11.10.4 GR1)
-        }
-
-        if (recursive && edition.DialectLevel < 2002)
-            edition.Error("COBOLNET0885",
-                "PROGRAM-ID … RECURSIVE was introduced by ISO/IEC 1989:2002 (§11.10) — requires --std 2002 or "
-                + $"later (targeting COBOL-{edition.DialectLevel})");
-        if (initial && recursive)
-            edition.Error("COBOLNET0886",
-                $"program '{name}': INITIAL and RECURSIVE are mutually exclusive (ISO §11.10.3 SR5–6)");
-        if (common && parent is null)
-            edition.Error("COBOLNET0887",
-                $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO §11.10.3 SR4)");
-
-        // §9.4 (:12529): "a user defined function always possesses the recursive attribute and may call
-        // itself" — implicit, never the explicit PROGRAM-ID attribute, so it rides AFTER the 0885/0886 gates.
-        if (isFunction) recursive = true;
-
-        string baseName = "_PRG_" + DataItem.Sanitize(name).ToUpperInvariant();
-        string className = baseName;
-        for (int n = 2; !usedClassNames.Add(className); n++) className = $"{baseName}_{n}";
-        return new CallUnit
-        {
-            Name = name, ClassName = className, Ctx = ctx,
-            Parent = parent, Initial = initial, Common = common, Recursive = recursive,
-            IsFunction = isFunction, IsPrototype = isPrototype,
-        };
-    }
-
-    /// <summary>Re-shape a <c>nestedProgram</c> context into a synthetic <c>programUnit</c> context by adopting
-    /// its children (the two rules have the identical child sequence — the generated <c>dataDivision()</c> /
-    /// <c>procedureDivision()</c> accessors scan DIRECT children only, so each unit binds exactly its own
-    /// subtree, never a containee's — the IC235A nested-scoping lesson).</summary>
-    private static Core.ProgramUnitContext CallReparent(Core.NestedProgramContext nested)
-    {
-        var unit = new Core.ProgramUnitContext(null!, -1);
-        for (int i = 0; i < nested.ChildCount; i++)
-            switch (nested.GetChild(i))
-            {
-                case ParserRuleContext rc: unit.AddChild(rc); break;
-                case ITerminalNode t: unit.AddChild(t); break;
-            }
-        return unit;
-    }
-
-    /// <summary>The DATA half of unit binding (phase 1 of the two-phase bind): the unit's DATA DIVISION on a
-    /// per-unit <see cref="DataBinder"/> with a disjoint uid band (so nested-class struct/profile names never
-    /// shadow a container's), then inject the containers' GLOBAL names (ISO §13.18.27 GR1–2 — nearest container
-    /// first, a local name shadows) and record the <c>ref</c>-bridges the nested class needs to reach the
-    /// container's storage. Every unit passes through here BEFORE any unit's procedure binds
-    /// (<see cref="CallBindUnitProcedure"/>) — the forward-reference enabler for user-function signatures.</summary>
-    private void CallBindUnitData(CallUnit unit, EditionContext edition)
-    {
-        var data = new DataBinder(edition) { OoClasses = _ooClasses };
-        data.CallSeedUids(_callUidBand);
-        _callUidBand += 100_000;
-
-        // Pre-seed inherited GLOBAL-table index names BEFORE Bind: the child's own INDEXED BY registrations then
-        // allocate from a later ordinal and can never collide with a bridged container index field. The seeded
-        // fields are SUPPRESSED from this unit's field emission — a global index-name is SHARED storage
-        // (ISO §13.18.27 GR2), reached through the ref-bridge, never re-declared locally.
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var g in anc.Data.CallGlobalRoots)
-                foreach (string idxName in CallIndexNamesUnder(g))
-                    if (anc.Data.IndexFields.TryGetValue(idxName, out string? field) && data.IndexFields.TryAdd(idxName, field))
-                        data.CallSuppressedRootFields.Add(field);
-
-        data.Bind(unit.Ctx);
-        unit.Data = data;
-
-        // GLOBAL FD inheritance (ISO §13.18.30: the file-name of a GLOBAL FD is a GLOBAL name, visible in every
-        // directly/indirectly contained program; §13.18.27 GR1–2 — nearest container first, a local declaration
-        // shadows, which TryAdd realizes since local files are already present). Merge into FilesByName ONLY —
-        // never Files: the child must not re-register, re-qualify, or CANCEL-close the owner's connector; its
-        // bound verbs hold the SHARED FileModel reference, so the owner's one-time PROG::FILE qualification
-        // automatically keys the child's verbs to the owner's connector. (EXTERNAL is NOT global — §13.18.22
-        // NOTE 1: an EXTERNAL non-GLOBAL FD's name is not visible in contained programs.) The record-name half
-        // of §13.18.30 rides the standard GLOBAL-root bridges (DataBinder.CallBindExternalAndGlobal adds a
-        // GLOBAL FD's records to CallGlobalRoots).
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-            foreach (var f in anc.Data.Files)
-                if (f.IsGlobal)
-                    data.FilesByName.TryAdd(f.CobolName, f);
-
-        // Configuration-section inheritance (ISO §12.3.4 GR1: "the entries explicitly or implicitly
-        // specified in the configuration section of a source unit that contains other source units apply to
-        // each directly or indirectly contained source unit"; §12.3.3 SR1 — a contained program cannot have
-        // its own): the containers' REPOSITORY user-function specifiers apply here, so a contained program's
-        // FUNCTION reference resolves (the M2-UDF-1 review finding).
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            data.UserFunctionNames.UnionWith(anc.Data.UserFunctionNames);
-            data.RepositoryIntrinsics.UnionWith(anc.Data.RepositoryIntrinsics);   // §12.3.4 GR1 — the intrinsic keyword-omission specifiers inherit too (M2-UDF-4)
-            if (anc.Data.RepositoryAllIntrinsic) data.RepositoryAllIntrinsic = true;
-        }
-
-        int depth = 0;
-        for (var anc = unit.Parent; anc is not null; anc = anc.Parent)
-        {
-            depth++;
-            string outer = string.Concat(Enumerable.Repeat("__outer.", depth));
-            foreach (var g in anc.Data.CallGlobalRoots)
-            {
-                if (g.CobolName is null) continue;
-                if (data.ByName.ContainsKey(g.CobolName)) continue;   // local (or nearer-container) name shadows (§13.18.27 GR2)
-                CallRegisterSubtree(data, g);
-                foreach (var (condName, conds) in anc.Data.Conditions)
-                    foreach (var cond in conds)
-                        if (CallIsUnder(cond.Parent, g))
-                        {
-                            if (!data.Conditions.TryGetValue(condName, out var list)) data.Conditions[condName] = list = [];
-                            list.Add(cond);
-                        }
-                if (g.Class is { Tier: RedefinesTier.StringCanonical } cls)
-                    unit.Bridges.Add(new CallBridge(cls.BackingCsName, outer + cls.BackingCsName, "backing", null));
-                else
-                    unit.Bridges.Add(new CallBridge(g.CsName, outer + g.CsName, "field", g));
-                foreach (string idxName in CallIndexNamesUnder(g))
-                    if (anc.Data.IndexFields.TryGetValue(idxName, out string? field))
-                        unit.Bridges.Add(new CallBridge(field, outer + field, "index", null));
-            }
-        }
-
-        unit.Refs = new ReferenceResolver(data);
-    }
-
-    /// <summary>The PROCEDURE half of unit binding (phase 2): every unit's DATA is already bound
-    /// (<see cref="CallBindUnitData"/>) and the group's user-function signature table is built, so a
-    /// <c>FUNCTION user-name(args)</c> reference resolves its callee's RETURNING/USING descriptions
-    /// regardless of unit order in the source (§8.4.3.2.4 GR1).</summary>
-    private void CallBindUnitProcedure(CallUnit unit, IReadOnlyDictionary<string, UserFunctionSignature> userFunctions)
-    {
-        var data = unit.Data;
-        var binder = new StatementBinder(data, unit.Refs)
-        {
-            OoClasses = _ooClasses,
-            UserFunctions = userFunctions,
-            // §8.4.6.6 — inside a function definition its OWN name is a referable function-prototype-name
-            // (self-recursion without a repository entry; §12.3.8 GR11 makes a present self-entry a no-op).
-            UdfSelfName = unit.IsFunction ? unit.Name : null,
-            // §15.65.3 argument rule 1 — MODULE-NAME NESTED requires a contained program.
-            InNestedProgram = unit.Parent is not null,
-        };
-        binder.ConfigureEc(_turnState, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
-        unit.Bound = binder.Bind(unit.Ctx);
-        // The boundary-copied GROUP formals + RETURNING item are registered whole-group-referenced (so MarkStoreAsImage
-        // flips their numeric-DISPLAY leaves to image storage, and the formal's FromImage/AsImage round trip
-        // type-checks — ISO §14.2.3 GR8 / §14.9 MOVE GR4) by the post-bind UsageCollectionPass, from data.LinkageFormals
-        // + data.LinkageReturning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
-        // ReferenceResolver no longer performs) — deleted, PHASE-05 Step 5.
-    }
-
-    /// <summary>Build the compilation group's user-function signature table (name → bound RETURNING item +
-    /// USING formals), between the DATA and PROCEDURE bind phases: FUNCTION-ID units only (ISO §9.4 — the
-    /// binder's function namespace never sees PROGRAM-ID units; §8.4.6.6 scope of function-prototype-names).
-    /// The §14.2 procedure-division-header rule "The RETURNING phrase shall be specified in a function
-    /// definition" (:23666) is checked HERE, once per unit — even an uncalled function without RETURNING is
-    /// ill-formed.</summary>
-    private static Dictionary<string, UserFunctionSignature> CallBuildUserFunctionTable(
-        List<CallUnit> units, EditionContext edition)
-    {
-        // Partition the group's FUNCTION-ID units by name into DEFINITIONS (a real body) and PROTOTYPES
-        // (signature-only, §11.5 Format 2). A prototype precedes all other units (§10.6.2 SR1), so a naive
-        // first-wins TryAdd would false-report the FOLLOWING same-name definition as a duplicate (1508) — the
-        // partition prevents that. Every function unit must carry a RETURNING (§14.2 :23666) — checked once here.
-        var defs = new Dictionary<string, CallUnit>(StringComparer.OrdinalIgnoreCase);
-        var protos = new Dictionary<string, CallUnit>(StringComparer.OrdinalIgnoreCase);
-        foreach (var u in units)
-        {
-            if (!u.IsFunction) continue;
-            if (u.Data.LinkageReturning is null)
-                edition.Error("COBOLNET1507",
-                    $"FUNCTION-ID '{u.Name}': the RETURNING phrase shall be specified in a function {(u.IsPrototype ? "prototype" : "definition")} "
-                    + "(ISO §14.2, procedure division header) — the function cannot deliver a result without it");
-            if (!(u.IsPrototype ? protos : defs).TryAdd(u.Name, u))
-                edition.Error("COBOLNET1508",
-                    $"duplicate FUNCTION-ID '{u.Name}' in the compilation group — two function {(u.IsPrototype ? "prototypes" : "definitions")} with "
-                    + "one name cannot both register in the run unit's activation namespace (ISO §8.4.6.6)");
-        }
-
-        // §12.3.8 GR11(a) — an in-group DEFINITION is authoritative over a same-name PROTOTYPE (:14871); a lone
-        // prototype supplies the signature for a separately-compiled target (:14875 / §8.4.3.2.4 GR6b :6997).
-        var table = new Dictionary<string, UserFunctionSignature>(StringComparer.OrdinalIgnoreCase);
-        foreach (var (name, u) in defs)
-            table[name] = new UserFunctionSignature(name, u.Data.LinkageReturning, u.Data.LinkageFormals);
-        foreach (var (name, p) in protos)
-        {
-            if (defs.TryGetValue(name, out var def))
-            {
-                // §10.6.2 SR3 — an in-group prototype+definition pair shall have the SAME signature. Light check
-                // (argument count; full §8.13 external-repository conformance is staged residue).
-                if (p.Data.LinkageFormals.Count != def.Data.LinkageFormals.Count)
-                    edition.Error("COBOLNET1513",
-                        $"FUNCTION '{name}': the IS PROTOTYPE signature declares {p.Data.LinkageFormals.Count} "
-                        + $"argument(s) but the in-group definition declares {def.Data.LinkageFormals.Count} — a "
-                        + "function prototype and a same-name definition shall have the same signature (ISO §10.6.2 SR3)");
-                continue;   // the definition's signature is authoritative (GR11a)
-            }
-            table[name] = new UserFunctionSignature(name, p.Data.LinkageReturning, p.Data.LinkageFormals);
-        }
-        return table;
-    }
-
-    private static void CallRegisterSubtree(DataBinder data, DataItem item)
-    {
-        if (item.CobolName is { } name)
-        {
-            if (!data.ByName.TryGetValue(name, out var list)) data.ByName[name] = list = [];
-            list.Add(item);
-        }
-        foreach (var child in item.Children) CallRegisterSubtree(data, child);
-        foreach (var ren in item.Renames66) CallRegisterSubtree(data, ren);
-    }
-
-    private static IEnumerable<string> CallIndexNamesUnder(DataItem root)
-    {
-        foreach (string n in root.IndexNames) yield return n;
-        foreach (var child in root.Children)
-            foreach (string n in CallIndexNamesUnder(child)) yield return n;
-    }
-
-    private static bool CallIsUnder(DataItem item, DataItem ancestor)
-    {
-        for (DataItem? n = item; n is not null; n = n.Parent)
-            if (ReferenceEquals(n, ancestor)) return true;
-        return false;
-    }
-
     // ── Program-class emission (design D3/D4) ───────────────────────────────────────────────────────────────
 
     /// <summary>Emit one program's instantiable class (design D3 — a static class cannot recurse or hold the
     /// per-activation copies INITIAL/RECURSIVE need; the registry's cached singleton realizes last-used state,
     /// §14.6.2.3.3), its <see cref="ICobolProgram"/> ABI surface, and its contained programs as nested classes.</summary>
-    private void CallEmitProgramClass(CallUnit unit, CodeWriter w)
+    private void CallEmitProgramClass(BoundUnit unit, CodeWriter w)
     {
         var data = unit.Data;
         _refs = unit.Refs;
@@ -664,7 +226,7 @@ public sealed partial class CSharpEmitter
 
     /// <summary>True when <paramref name="u"/> or any of its containers declares a <c>USE … GLOBAL</c>
     /// declarative (ISO §14.9.49.4 GR4b — the containment chain a contained program's I-O check walks outward).</summary>
-    private static bool CallChainHasGlobalUse(CallUnit? u)
+    private static bool CallChainHasGlobalUse(BoundUnit? u)
     {
         for (; u is not null; u = u.Parent)
             if (u.Bound.Declaratives is { } ds && ds.Any(d => d.Global)) return true;
@@ -679,7 +241,7 @@ public sealed partial class CSharpEmitter
     /// directly containing source element", GR4b) or stops false at the outermost. Emitted only on classes a
     /// contained program can actually reach (children exist + the chain has GLOBAL declaratives), so a
     /// declarative-free compilation group's generated source is unchanged.</summary>
-    private void CallEmitRunGlobalUse(CallUnit unit, CodeWriter w)
+    private void CallEmitRunGlobalUse(BoundUnit unit, CodeWriter w)
     {
         var decls = unit.Bound.Declaratives ?? [];
         using (w.Block("public bool __RunGlobalUse(string __f)"))
@@ -709,7 +271,7 @@ public sealed partial class CSharpEmitter
     /// <summary>Emit the opaque-ABI <c>Call</c> body: positional formal mapping (ISO §14.2.3 GR2), the
     /// activation, boundary copy-out for image formals, and RETURNING delivery (GR7).</summary>
     private void CallEmitCallMethod(
-        CallUnit unit, List<(LinkageFormal Formal, Place? Place, bool IsNum)> formals, CodeWriter w)
+        BoundUnit unit, List<(LinkageFormal Formal, Place? Place, bool IsNum)> formals, CodeWriter w)
     {
         using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
         {
@@ -765,7 +327,7 @@ public sealed partial class CSharpEmitter
     /// locate step; §14.6.1: a run unit contains one or more runtime modules). <c>Main</c> runs the first
     /// program as main and performs the §14.6.11 implicit CLOSE at run-unit termination; STOP RUN unwinds to
     /// here (§14.9.43); a main-program GOBACK already returned normally through its activation entry.</summary>
-    private void CallEmitEntryWrapper(IReadOnlyList<CallUnit> units, CodeWriter w, bool anyFiles)
+    private void CallEmitEntryWrapper(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles)
     {
         using (w.Block("public static class __CobolModule"))
         using (w.Block("public static void Register()"))

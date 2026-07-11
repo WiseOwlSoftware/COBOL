@@ -60,7 +60,19 @@ explicitly **out of scope** (P7 / P9).
 
 ## STATUS
 
-`NOT STARTED`
+`IN PROGRESS @ step 1 (2026-07-11). Step 0 preflight DONE: baseline 3158 conformance · 269 unit · 32 characterization
+green; P5 deliverables confirmed — with AS-BUILT DEVIATIONS from this doc's snapshot (recorded per the design-currency
+rule): (a) the pass scaffolding lives in `Binding/Passes/` (not `Binding/Pipeline/`) as `IBindPass`/`BindPass` delegate
+records over a `PassPhase` watermark enum (not a `Capability` enum) with `BindPipeline.Build`+`ValidateDag` and
+`BindPipelineTests` ALREADY landed (P5 Step 3 delivered most of this phase's Step 1); (b) the P3 Step-14a bind/emit
+split ALREADY exists — `CSharpEmitter.CallBindRunUnit` (bind half) → `BoundRunUnit` → `CallEmitRunUnit(group)` (emit
+half), and the driver already does bind → `VersionConformancePass.Run` → halt → CheckOnly → emit; (c) the FILE
+whole-group loop is already a named resolve pass (`MarkFileRecordImageLeaves`, kept at resolve time because statement
+binding consults IsCharacterImage — ST102A); (d) `UsageCollectionPass` + `StorageFormPass.Compute` (D0 prove phase)
+already run in the bind half. REMAINING P6 WORK therefore: Step 2 relocate the bound model types
+(`CallUnit`→`Binding/Model/BoundUnit`, `OoClassUnit`, `BoundRunUnit`→`BoundCompilation`) + extract the group
+orchestration into `Binding/BinderDriver` behind the OO seam; Step 3 move `MarkStoreAsImage`+temp-resync into
+`StorageFormPass`; Step 4 name the conformance pass as the manifest terminal; Steps 5–7 as written.`
 
 > The executing session MUST update this line as it goes: `IN PROGRESS @ step N` after each completed step, and
 > `DONE` once Verification (§5) passes. If resuming, read this line first, then re-run Step 0's battery to confirm

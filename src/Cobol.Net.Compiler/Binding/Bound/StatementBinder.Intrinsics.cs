@@ -27,7 +27,7 @@ public sealed partial class StatementBinder
     /// backend bakes into the generated source as a string constant.</summary>
     internal static Func<DateTimeOffset> CompileClock { get; set; } = () => DateTimeOffset.Now;
 
-    /// <summary>True when the unit being bound is a nested (contained) program — set from <c>CallUnit.Parent</c>
+    /// <summary>True when the unit being bound is a nested (contained) program — set from <c>BoundUnit.Parent</c>
     /// at binder construction. Gates FUNCTION MODULE-NAME NESTED (§15.65.3 argument rule 1 — NESTED shall be
     /// specified only within a contained program).</summary>
     public bool InNestedProgram { get; init; }
