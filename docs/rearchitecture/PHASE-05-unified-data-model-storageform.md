@@ -7,8 +7,21 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: IN PROGRESS @ Step 3 DONE — Step 4 (RecordLayout parallel + width assert) NEXT
-> Steps 0–3 landed 2026-07-10 (DEVLOG 747, 749, 750). Step 3 (DESIGN §2.5): the DECLARED bind pass pipeline —
+> ## STATUS: IN PROGRESS @ Step 4 DONE — Step 5 (UsageCollectionPass parallel, D1 prove) NEXT
+> Steps 0–4 landed 2026-07-10 (DEVLOG 747, 749, 750, 751). Step 4 (DESIGN §2.6): `Binding/Model/RecordLayout.cs` — the
+> ONE width authority — `ImageWidth` (reads the Step-2 StorageForm; `StorageFormPass.ImageWidthOf` consolidated onto it)
+> + `PhysicalWidth` (tier-aware, mirrors `OdoModel.PhysicalWidth`). `StorageFormPass.Verify` gained identity **#5**
+> (`RecordLayout.PhysicalWidth == OdoModel.PhysicalWidth` per group, corpus-wide) — the §5.4 drift guard. ADDITIVE +
+> test-path only (zero production wiring; readers flip Step 8). **Scoping refinement (deviation from Step 4.1, per rule
+> 4):** the OFFSET copies (Sort `SortOffsetInRecord`/`SortPlainOffset` + Keyed `KeyedAreaOffset`/`KeyedKeyIndex`) are
+> DEFERRED to Step 8 — the two legacy algorithms use different width bases for the increment (Sort=`PhysicalWidth`
+> class-max; Keyed=`ImageWidth`), so `RecordLayout.OffsetOf` cannot be proven byte-equal to BOTH as a pure port; the
+> unification onto the codec-correct `PhysicalWidth` basis folds in at Step 8 under the Sort/Keyed goldens. Battery at
+> head: greenfield conformance **3157** · unit **258** · characterization **32** byte-exact · FULL legacy guard NIST
+> **353 MATCH**. The executing session MUST update this line + the §7 Step ledger on each commit boundary and set `DONE`
+> at phase end.
+>
+> ## (prior) Step 3 DONE — DESIGN §2.5: the DECLARED bind pass pipeline —
 > `Binding/Passes/IBindPass.cs` (the `PassPhase` enum + `IBindPass` interface + `BindPass` record) +
 > `Binding/Passes/BindPipeline.cs` (`Build(program)` = the ONE ordered pass list [16 resolve passes in the EXACT
 > pre-change order + 3 middle-end tail markers for DAG completeness] + `ValidateDag` monotone-chain startup assert).
@@ -227,6 +240,17 @@ DESIGN Phase **D1**, delete half.
 ### Step 8 — Flip readers to `Storage` / `RecordLayout`, file-by-file — MULTIPLE COMMIT BOUNDARIES
 DESIGN Phase **D2**. Each file is its own commit + full battery run. Suggested order (leaf → up), matching DESIGN §4 D2:
 
+> **DEFERRED FROM STEP 4 (DEVLOG 751):** `RecordLayout.OffsetOf(root, leaf)` + `RecordLayout.KeyIndexByPosition(file, operand)`
+> are CREATED HERE (not in Step 4). Reason: the two legacy offset copies use DIFFERENT width bases for the running
+> increment — `SortPlainOffset` advances by `PhysicalWidth` (class-max, matching the emitted codec) while `KeyedAreaOffset`
+> advances by `ImageWidth` (the redefined item's own width). They agree only where no key/sort-key follows a redefines
+> whose redefiner is wider than its target, so `OffsetOf` cannot be proven byte-equal to BOTH as a pure port. Build
+> `RecordLayout.OffsetOf` on the codec-correct `PhysicalWidth` basis, flip the Sort readers (8.6) to it FIRST (their
+> goldens gate it), then flip the Keyed readers — and if the `KeyedAreaOffset` `ImageWidth` basis was a latent under-count
+> for a wider-redefiner key layout, that is a real fix to make here (spec: ISO §12.4.5.12 GR4 / §14.9.40.3 SR6e — key
+> positions are the same byte positions in every record description, i.e. the PHYSICAL layout), verified by the Keyed
+> goldens.
+
 1. `CodeGen/Emit/FieldEmitter.cs` — the width consumer; flip its width to `RecordLayout` and its `StoreAsImage`/`IsCharacterImage` reads to `Storage`. **First**, so `RecordLayout` becomes the sole width source at the highest-leverage site (DESIGN §5.4 mitigation).
 2. `CodeGen/Emit/NumericRenderer.cs:75,105` — `Storage is CharImage{Category:Numeric}` in place of `StoreAsImage`.
 3. `CodeGen/Emit/OperandText.cs:67,87` — same.
@@ -319,7 +343,7 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
 - [x] Step 1 — CobolLiteral.Decode (both ISO delimiters; 3 twins + hard-coded '"' guards deleted; CobolLiteralTests ×21) — DEVLOG 747
 - [x] Step 2 — StorageForm (9 cases; DESIGN §2.1 amended: Width field) + StorageFormPass.Compute (parallel, D0) + StorageFormEquivalenceTests (NIST corpus + crafted, 0 divergences); conformance 3157 · unit 254 · characterization 32 byte-exact — DEVLOG 749
 - [x] Step 3 — IBindPass scaffolding + ValidateDag — `IBindPass.cs` (PassPhase enum + interface + BindPass record) + `BindPipeline.cs` (Build ordered list [16 resolve + 3 tail markers] + ValidateDag monotone assert); BindResolve pipeline-driven (Produces<=FilesResolved prefix); inline FILE loop → MarkFileRecordImageLeaves(); 12 methods private→internal; BindPipelineTests ×4; conformance 3157 · unit 258 · characterization 32 byte-exact; exit criterion #5 satisfied — DEVLOG 750
-- [ ] Step 4 — RecordLayout parallel + width assert
+- [x] Step 4 — RecordLayout parallel + width assert — `Binding/Model/RecordLayout.cs` (ImageWidth [reads StorageForm; ImageWidthOf consolidated onto it] + PhysicalWidth [tier-aware, mirrors OdoModel.PhysicalWidth]); Verify identity #5 (RecordLayout.PhysicalWidth == OdoModel.PhysicalWidth per group, corpus-wide) — §5.4 drift guard. ADDITIVE, test-path only. ⚠ SCOPING: OffsetOf/KeyIndexByPosition DEFERRED to Step 8 (Sort=PhysicalWidth vs Keyed=ImageWidth increment divergence — cannot pure-port-prove both). conformance 3157 · unit 258 · characterization 32 byte-exact — DEVLOG 751
 - [ ] Step 5 — UsageCollectionPass parallel (D1 prove)
 - [ ] Step 6 — prove-then-delete GATE green
 - [ ] Step 7 — delete MarkStoreAsImage + write-backs (D1 delete)

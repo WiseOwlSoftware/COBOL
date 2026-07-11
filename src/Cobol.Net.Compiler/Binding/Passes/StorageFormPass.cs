@@ -96,11 +96,11 @@ internal static class StorageFormPass
             ? item.Storage!.IsCharacterImage
             : item.IsGroup && item.Children.All(IsCharacterImageOf));
 
-    /// <summary>Reproduces <c>DataItem.ImageWidth</c> off <see cref="StorageForm"/>. Leaf = its form's width; group =
-    /// the sum over NON-redefining children of (child image width × the child's own OCCURS count).</summary>
-    public static int ImageWidthOf(DataItem item) =>
-        item.IsElementary ? item.Storage!.ImageWidth
-        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => ImageWidthOf(c) * (c.Occurs ?? 1));
+    /// <summary>Reproduces <c>DataItem.ImageWidth</c> off <see cref="StorageForm"/> — single-sourced through the
+    /// PHASE-05 §2.6 width authority <see cref="RecordLayout.ImageWidth"/> (leaf = its form's width; group = the sum
+    /// over NON-redefining children of child image width × the child's own OCCURS count). The Step-2 corpus assert
+    /// (<see cref="Verify"/> identity #3) thus also proves <c>RecordLayout.ImageWidth == DataItem.ImageWidth</c>.</summary>
+    public static int ImageWidthOf(DataItem item) => RecordLayout.ImageWidth(item);
 
     /// <summary>Reproduces <c>DataItem.ElementType</c> off <see cref="StorageForm"/> (a group is its record-struct
     /// name; an elementary is its form's CLR type — a promoted numeric leaf is "string", not its Pic.ClrType).</summary>
@@ -121,11 +121,13 @@ internal static class StorageFormPass
         _ => "object",
     };
 
-    /// <summary>The corpus-wide PROVE assert (DESIGN Phase D0 / exit criterion 3): for every item under a binder,
-    /// the four identities between the new <see cref="StorageForm"/> and the legacy computation. Returns the list of
-    /// divergences (empty = proven equal). #1 is tautological in D0 (Storage is promoted FROM StoreAsImage) — it is
-    /// the guard for the later delete phase; the value here is #2/#3/#4 (the derived recursive facts still hold once
-    /// Storage, not the scattered flag, is the source).</summary>
+    /// <summary>The corpus-wide PROVE assert (DESIGN Phase D0 / exit criterion 3): for every item under a binder, the
+    /// StorageForm identities (#1–#4) between the new <see cref="StorageForm"/> and the legacy computation, PLUS the
+    /// PHASE-05 §2.6 <see cref="RecordLayout"/> physical-width identity (#5). Returns the list of divergences (empty =
+    /// proven equal). #1 is tautological in D0 (Storage is promoted FROM StoreAsImage) — it is the guard for the later
+    /// delete phase; the value here is #2/#3/#4 (the derived recursive facts still hold once Storage, not the scattered
+    /// flag, is the source) and #5 (the RecordLayout width authority reproduces the legacy tier-aware physical extent —
+    /// the Step-9 drift guard).</summary>
     public static List<string> Verify(DataBinder data)
     {
         var d = new List<string>();
@@ -146,6 +148,11 @@ internal static class StorageFormPass
                 d.Add($"#2 IsCharacterImage: {Desc(item)} derived={IsCharacterImageOf(item)} legacy={item.IsCharacterImage}");
             if (ImageWidthOf(item) != item.ImageWidth)
                 d.Add($"#3 ImageWidth: {Desc(item)} derived={ImageWidthOf(item)} legacy={item.ImageWidth}");
+            // #5 (PHASE-05 Step 4): the RecordLayout §2.6 width authority reproduces the legacy tier-aware physical
+            // extent (OdoModel.PhysicalWidth) for every group — the DESIGN §5.4 drift guard, held green until Step 9
+            // deletes the duplicate width copies.
+            if (item.IsGroup && RecordLayout.PhysicalWidth(item) != OdoModel.PhysicalWidth(item))
+                d.Add($"#5 PhysicalWidth: {Desc(item)} recordlayout={RecordLayout.PhysicalWidth(item)} legacy={OdoModel.PhysicalWidth(item)}");
             foreach (var c in item.Children) Check(c);
         }
         foreach (var root in data.Roots) Check(root);

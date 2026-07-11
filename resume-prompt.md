@@ -121,10 +121,15 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔ RESUME AT: PHASE 05 Step 4** — `RecordLayout` as a PARALLEL width authority + the corpus
-> width-equivalence assert (still additive/prove-then-delete; nothing deleted). PHASE-05 progress:
+> §9.5). **⛔ RESUME AT: PHASE 05 Step 5** — `UsageCollectionPass` owns `WholeGroupReferenced` (parallel, proven
+> set-equal; DESIGN Phase D1 prove half; still additive/prove-then-delete). PHASE-05 progress:
 > **Step 0 (baseline) + Step 1 (`CobolLiteral`, the apostrophe-`VALUE 'x'` miscompile fix, DEVLOG 747) + Step 2
-> (DEVLOG 749) + Step 3 DONE (DEVLOG 750)**. Step 2 — `Binding/Model/StorageForm.cs` (9 cases) +
+> (DEVLOG 749) + Step 3 (DEVLOG 750) + Step 4 DONE (DEVLOG 751)**. Step 4 — `Binding/Model/RecordLayout.cs`, the ONE
+> §2.6 width authority: `ImageWidth` (reads the Step-2 StorageForm; `StorageFormPass.ImageWidthOf` consolidated onto it)
+> + `PhysicalWidth` (tier-aware, mirrors `OdoModel.PhysicalWidth`); `StorageFormPass.Verify` gained identity **#5**
+> (`RecordLayout.PhysicalWidth == OdoModel.PhysicalWidth` per group, corpus-wide) — the §5.4 drift guard. ADDITIVE +
+> test-path only (readers flip Step 8). ⚠ SCOPING: `OffsetOf`/`KeyIndexByPosition` DEFERRED to Step 8 (the Sort=`PhysicalWidth`
+> vs Keyed=`ImageWidth` offset-increment divergence can't be pure-port-proven against both). Step 2 — `Binding/Model/StorageForm.cs` (9 cases) +
 > `Binding/Passes/StorageFormPass.Compute` compute `DataItem.Storage` in PARALLEL with the legacy `StoreAsImage`
 > (wired in `CallBindRunUnit` after OO-harmonize); `StorageFormEquivalenceTests` proves the derived
 > IsCharacterImage/ImageWidth/ElementType EQUAL the legacy computation over the NIST corpus + crafted paths
