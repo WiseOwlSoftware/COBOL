@@ -276,7 +276,9 @@ When P7 is DONE, these files/types exist with these responsibilities. (Folders u
   (content still a partial for now — real class split is Step 9); rename `CodeGen/CSharpEmitter.Accept.cs` →
   `CodeGen/Verbs/AcceptDisplayEmitter.cs` (partial for now). Update any doc-comment/xref.
 - **Change:** Pure file rename + the `partial` stays; NO code change. Do this BEFORE Step 6 so "Accept" unambiguously
-  means the visitor method.
+  means the visitor method. *(LANDED note: `AcceptDisplayBinder.cs` also carries the `BoundAccept` record +
+  `AcceptKind` enum — bound-NODE types that rode along in the pure rename; the Step 9/10 real split must relocate
+  them to the bound-tree home, not leave node definitions in a `Verbs/` file.)*
 - **Why:** `StatementBinder.Accept.cs` binds the ACCEPT *verb*; once `Accept<T>(visitor)` exists (Step 6) the name
   collides confusingly (`DESIGN-binder-bound-tree.md §4` rename row).
 - **Verify:** battery 1+2 green (compile-only rename).
@@ -479,7 +481,7 @@ completeness-by-construction (a reflection test can't verify a hand-written body
 ### Step 8 — Retire the remaining emitter reads of `DataItem.StoreAsImage`; delete `MarkStoreAsImage` (prove-then-delete)
 
 - **Files:** edit every `CodeGen/` reader of `StoreAsImage` (the ~20 sites from
-  `grep StoreAsImage src/Cobol.Net.Compiler/CodeGen`: `CSharpEmitter.Accept.cs:66,127`, `CSharpEmitter.cs:531,574,
+  `grep StoreAsImage src/Cobol.Net.Compiler/CodeGen`: `CodeGen/Verbs/AcceptDisplayEmitter.cs:67,128` (renamed at Step 5), `CSharpEmitter.cs:531,574,
   664,803,1119,1123`, `CSharpEmitter.Inspect.cs:100`, `CSharpEmitter.Oo.cs:662,821`, `CSharpEmitter.Call.cs:530,940`,
   `CSharpEmitter.ReportWriter.cs:62`, …); delete `MarkStoreAsImage` (`CSharpEmitter.cs:50-68`), the `CompilerTempClones`
   re-sync (`CSharpEmitter.Call.cs:111-120`), the OO re-sync (`CSharpEmitter.Oo.cs:694-697`).

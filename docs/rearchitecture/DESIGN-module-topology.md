@@ -407,7 +407,7 @@ Legend: **S**=split, **M**=move, **R**=rename, **X**=delete, **C**=create, **F**
 |---|---|---|---|---|
 | 25 | S | `Binding/Bound/StatementBinder.cs` (1833) | `Binding/Procedure/StatementBinder.cs` (thin) + `BinderContext.cs` + `ProcedureTableBuilder.cs` + `ExpressionBinder.cs` + `ConditionBinder.cs` + `Verbs/{Move,Arithmetic,IfEvaluate,SequentialIo,SetAlter}Binder.cs` | Real classes over injected context |
 | 26 | M/R | `StatementBinder.{KeyedIo,FileLock,Sort,StringUnstring,Inspect,Initialize,Call,Intrinsics,Udf,ReportWriter}.cs` | `Binding/Procedure/Verbs/{KeyedIo,FileLock,Sort,String,Inspect,Initialize,Call,Intrinsic,Udf,ReportWriter}Binder.cs` | One class per verb family |
-| 27 | R | `StatementBinder.Accept.cs` | `Binding/Procedure/Verbs/AcceptDisplayBinder.cs` | Kill misleading "Accept" name |
+| 27 | R | `StatementBinder.Accept.cs` | ✅ `Binding/Procedure/Verbs/AcceptDisplayBinder.cs` (LANDED, P7 Step 5) | Kill misleading "Accept" name |
 | 28 | M | `StatementBinder.{Oo,MoveFigurative→Move,Evaluate→IfEvaluate,Corresponding,Boolean+Exceptions→Exception,AlterSwitches→SetAlter}.cs` | per §2.4 rows | Cohesion |
 | 29 | C | (inline `data.Edition.Error` SR checks) | `Validation/StatementValidation.cs` (edition legality → `Pipeline/VersionConformancePass.cs`) | Validation layer, binder stays "no-IR" and edition-agnostic |
 | 30 | C | (8 ON/NOT-ON extractors) | `Binding/Procedure/PhraseBlocks.cs` | ONE phrase-pair helper |

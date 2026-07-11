@@ -546,7 +546,7 @@ dotnet src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.dll <a-CALL-fixture>.cob --std 
   the current `AcceptSource.DefaultNow` body, moved here. `public static readonly SystemClock Instance = new();`.
 - EDIT `Control/RunUnit.cs` — `public IClock Clock { get; set; } = SystemClock.Instance;`.
 - EDIT `IO/AcceptSource.cs` — KEEP the emitted static methods (`Date`/`DateYYYYMMDD`/`Day`/`DayYYYYDDD`/`Time`/
-  `DayOfWeek`/`Device`) — they are the emitted surface (`CSharpEmitter.Accept.cs:43,54,65,76,90-95`). Change their
+  `DayOfWeek`/`Device`) — they are the emitted surface (`CodeGen/Verbs/AcceptDisplayEmitter.cs:44,55,66,77,91-96` — renamed P7 Step 5). Change their
   internal `Now()` reads to `RunUnit.Current.Clock.Now()`. DELETE the `public static Func<DateTime> Now` seam.
 - Test seam: the conformance clock pin is the `COBOLNET_CLOCK` env var (`AcceptDifferentialTests.cs:15`) — cross
   process, unchanged (SystemClock still reads it). No in-process `AcceptSource.Now` assignment exists (grep confirmed

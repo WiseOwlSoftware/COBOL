@@ -388,7 +388,7 @@ service). These are cross-cutting with the emitter-renderer sibling design; the 
 | add | `BoundMove` (`BoundTree.cs:317`) et al. | `MoveKind` + `StorageForm` fields on the node | MOVE classification computed once in binder; `EmitMove`/`ConvertSource` become pure renderers |
 | create | — | `Binding/Pipeline/StorageFormPass.cs` | Single owner of the storage-form decision, after procedure binding |
 | delete | `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`), `CompilerTempClones` re-sync, FILE whole-group loop (`DataBinder.cs:238-257`) | folded into `StorageFormPass` | Remove the emitter→binder write-back; one StoreAsImage rule |
-| rename | `StatementBinder.Accept.cs`, `CSharpEmitter.Accept.cs` (the ACCEPT *verb*) | `*.AcceptStatement.cs` | End the Visitor-term collision once a real visitor exists |
+| rename | `StatementBinder.Accept.cs`, `CSharpEmitter.Accept.cs` (the ACCEPT *verb*) | ✅ LANDED (P7 Step 5) as `Binding/Procedure/Verbs/AcceptDisplayBinder.cs` + `CodeGen/Verbs/AcceptDisplayEmitter.cs` (the AcceptDisplay* names — reconciled with PHASE-07 Step 5 + DESIGN-module-topology row 27; this row's original `*.AcceptStatement.cs` target was superseded) | End the Visitor-term collision once a real visitor exists |
 | rename | `BoundStores` | `BoundStoreAnalysis` | It is an analysis, not storage |
 | create | — | `Common/CobolLiteral.cs` (Decode), `Binding/RecordLayout.cs`, `Binding/PhraseBlocks.cs`, `DataItem.Root` | One canonical helper per job (dedup) |
 | move | `ReferenceResolver` sub-parsers (`SplitSubscriptTokens`/`InterpretSubscripts`, `ReferenceResolver.cs:377-431`) | `SubscriptTokenParser` + `NameResolver` collaborators | Thin the resolver; it becomes an orchestrator over SymbolTable |

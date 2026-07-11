@@ -244,7 +244,7 @@ Grepped over `src/Cobol.Net.Compiler`:
     `CSharpEmitter.Oo.cs:697` (OO override-harmonize re-sync).
 - **Direct read sites (≈29):** `ReferenceResolver.cs:175,201`; `DataItem.cs:254,304`; `OperandText.cs:87`;
   `NumericRenderer.cs:75,105`; `FieldEmitter.cs:342,353,388,395`; `CSharpEmitter.cs:531,574,664,803,1119,1123`;
-  `CSharpEmitter.Accept.cs:66,127`; `CSharpEmitter.StringUnstring.cs:154,160,211`; `CSharpEmitter.Inspect.cs:100`;
+  `CodeGen/Verbs/AcceptDisplayEmitter.cs:67,128` (renamed P7 Step 5); `CSharpEmitter.StringUnstring.cs:154,160,211`; `CSharpEmitter.Inspect.cs:100`;
   `CSharpEmitter.Call.cs:530,940`; `CSharpEmitter.Oo.cs:662,821`; `CSharpEmitter.Sort.cs:225`.
 - **Transitive readers:** every consumer of the derived props it feeds — `IsCharacterImage` (`DataItem.cs:245`),
   `IsImageCapable` (`:270`), `ImageWidth` (`:283`), `ElementType`/`FieldType` (`:304–311`) — recomputed at ~119 sites

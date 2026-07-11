@@ -109,7 +109,7 @@ unimplemented**. `ComputeTier` (`DataBinder.cs:1613-1633`) maps it to `Rejected`
 sites re-check the same fact** and each emit their own loud guard (grep `Tier-C`):
 
 `DataBinder.cs:1631`, `DataBinder.Linkage.cs:215/223/259`, `OoClassTable.cs:229/231/250`, `CSharpEmitter.cs:565/615/1759/1794`,
-`CSharpEmitter.Accept.cs:51/112`, `CSharpEmitter.Call.cs:892`, `CSharpEmitter.Sort.cs:222`, `CSharpEmitter.Inspect.cs:92`,
+`CodeGen/Verbs/AcceptDisplayEmitter.cs:52/113`, `CSharpEmitter.Call.cs:892`, `CSharpEmitter.Sort.cs:222`, `CSharpEmitter.Inspect.cs:92`,
 `CSharpEmitter.StringUnstring.cs:148/190`, `StatementBinder.Sort.cs:116/239`, `StatementBinder.Oo.cs:747/788/829/851`,
 `OperandText.cs:84`, `NumericRenderer.cs:96`, `FieldEmitter.cs:202/341`.
 
@@ -489,7 +489,7 @@ alone satisfies exit criterion 2 (single-sourced rejection) and is the seam the 
    StorageForm.TierCWindow` (or the group's `!IsImageCapable`); pre-P5 it is `DataItem.IsImageCapable`. Route **all** ~10 inline
    guards through it, each emitting a message from the **one** reason table rather than a bespoke string:
    `DataBinder.Linkage.cs:215/223/259`, `OoClassTable.cs:229/231/250`, `CSharpEmitter.cs:565/615/1759/1794`,
-   `CSharpEmitter.Accept.cs:51/112`, `CSharpEmitter.Call.cs:892`, `CSharpEmitter.Sort.cs:222`, `CSharpEmitter.Inspect.cs:92`,
+   `CodeGen/Verbs/AcceptDisplayEmitter.cs:52/113`, `CSharpEmitter.Call.cs:892`, `CSharpEmitter.Sort.cs:222`, `CSharpEmitter.Inspect.cs:92`,
    `CSharpEmitter.StringUnstring.cs:148/190`, `StatementBinder.Sort.cs:116/239`, `StatementBinder.Oo.cs:747/788/829/851`,
    `OperandText.cs:84`, `NumericRenderer.cs:96`, `FieldEmitter.cs:202/341`. Keep each guard's *statement context* (the verb it
    guards) — only the *reason text* is centralized.
