@@ -102,6 +102,7 @@ public sealed partial class CSharpEmitter
         _ctx = new EmitContext(w, data, _names);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
+        NewUnitEmitters();
         _callState.SelfPath = unit.Path;
         _callState.ReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
         _ecState.UnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists

@@ -271,6 +271,7 @@ public sealed partial class CSharpEmitter
         _ctx = new EmitContext(w, data, _names);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
+        NewUnitEmitters();
         _callState.SelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
         _callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
         _ecState.UnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)

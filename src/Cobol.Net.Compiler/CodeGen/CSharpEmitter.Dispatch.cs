@@ -55,7 +55,7 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundUnsupported n) { _ctx.Writer.Line(LoudStmt(n.Feature)); return false; }
 
     // ── DISPLAY / MOVE / arithmetic ──────────────────────────────────────────────────────────────────────────
-    public bool Visit(BoundDisplay n) { EmitDisplay(n); return false; }
+    public bool Visit(BoundDisplay n) { _acceptDisplay.EmitDisplay(n); return false; }
     public bool Visit(BoundMove n) { EmitMove(n); return false; }
     public bool Visit(BoundAddTo n) { EmitInPlace(n.Targets, "+", n.Addends, n.SizeError); return false; }
     public bool Visit(BoundAddGiving n) { EmitGiving(n.Targets, rcv => _num.Fold(n.Addends, rcv), n.SizeError); return false; }
@@ -74,16 +74,16 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundInlinePerform n) { EmitInlinePerform(n); return false; }
     public bool Visit(BoundOutOfLinePerform n) { EmitOutOfLinePerform(n); return false; }
     public bool Visit(BoundSetConditions n) { EmitSet(n); return false; }
-    public bool Visit(BoundSetSwitches n) { SwitchEmitSet(n); return false; }
-    public bool Visit(BoundAlter n) { AlterEmitAlter(n); return false; }
-    public bool Visit(BoundGoToAlterable n) { AlterEmitGoTo(n); return true; }
+    public bool Visit(BoundSetSwitches n) { _alterSwitch.EmitSetSwitches(n); return false; }
+    public bool Visit(BoundAlter n) { _alterSwitch.EmitAlter(n); return false; }
+    public bool Visit(BoundGoToAlterable n) { _alterSwitch.EmitGoTo(n); return true; }
     public bool Visit(BoundSetTo n) { EmitSetTo(n); return false; }
     public bool Visit(BoundSetUpDown n) { EmitSetUpDown(n); return false; }
     public bool Visit(BoundSetCapacity n) { EmitSetCapacity(n); return false; }
     public bool Visit(BoundSearch n) { EmitSearch(n); return false; }
-    public bool Visit(BoundEvaluate n) { EmitEvaluate(n); return false; }
+    public bool Visit(BoundEvaluate n) { _evaluate.Emit(n); return false; }
     public bool Visit(BoundInspect n) { EmitInspect(n); return false; }
-    public bool Visit(BoundCorresponding n) { EmitCorresponding(n); return false; }
+    public bool Visit(BoundCorresponding n) { _corresponding.Emit(n); return false; }
 
     // ── Sequential file I/O ──────────────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundOpen n) { EmitOpen(n); return false; }
@@ -111,8 +111,8 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     // ── STRING / UNSTRING / ACCEPT / INITIALIZE ──────────────────────────────────────────────────────────────
     public bool Visit(BoundStringStmt n) { EmitString(n); return false; }
     public bool Visit(BoundUnstringStmt n) { EmitUnstring(n); return false; }
-    public bool Visit(BoundAccept n) { EmitAccept(n); return false; }
-    public bool Visit(BoundInitialize n) { EmitInitialize(n); return false; }
+    public bool Visit(BoundAccept n) { _acceptDisplay.EmitAccept(n); return false; }
+    public bool Visit(BoundInitialize n) { _initialize.Emit(n); return false; }
 
     // ── Report Writer (ISO §14.9) ────────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundInitiate n) { RwEmitInitiate(n); return false; }     // §14.9.21

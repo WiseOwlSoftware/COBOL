@@ -38,6 +38,28 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private readonly EcState _ecState = new();
     private readonly CallUnitState _callState = new();
 
+    // ── The per-unit collaborator emitters (Step 9c+): real classes over the fresh EmitContext/renderers,
+    //    (re)constructed by NewUnitEmitters at each statement-bearing unit's context creation. During the
+    //    incremental extraction they reach not-yet-extracted hub methods through THIS host (the phase doc's
+    //    migration-wiring note); 9n replaces the host edges with the UnitEmitters composition root. ──
+    private EvaluateEmitter _evaluate = null!;
+    private InitializeEmitter _initialize = null!;
+    private CorrespondingEmitter _corresponding = null!;
+    private AlterSwitchEmitter _alterSwitch = null!;
+    private AcceptDisplayEmitter _acceptDisplay = null!;
+
+    /// <summary>(Re)construct the per-unit collaborator emitters over the just-created context/renderers —
+    /// called immediately after the <c>_ctx</c>/<c>_num</c>/<c>_cond</c> per-unit re-creation (program classes
+    /// and OO class units; interface units emit no statements and need none).</summary>
+    private void NewUnitEmitters()
+    {
+        _evaluate = new EvaluateEmitter(_ctx, _cond, this);
+        _initialize = new InitializeEmitter(_ctx, this);
+        _corresponding = new CorrespondingEmitter(_ctx, _num, this);
+        _alterSwitch = new AlterSwitchEmitter(_ctx);
+        _acceptDisplay = new AcceptDisplayEmitter(_ctx);
+    }
+
     /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
     /// <see cref="BoundCompilation"/> (multi-unit run-unit binding — interprogram design D3 / SSOT §18 #8), under
     /// the targeted EDITION (<paramref name="edition"/> — bind-time rejection diagnostics accumulate there; the
@@ -94,7 +116,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
         w.Line($"private const int __N = {n};   // paragraph count");
-        AlterEmitFields(bound, w);   // the per-altered-paragraph mutable GO TO target fields (control-flow design D4)
+        _alterSwitch.EmitFields(bound, w);   // the per-altered-paragraph mutable GO TO target fields (control-flow design D4)
         RwEmitReportMembers(w);      // per-report engine fields + line compose methods (CSharpEmitter.ReportWriter.cs)
         w.Line();
         using (w.Block("public void __Activate()"))
@@ -298,7 +320,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
 
     /// <summary>Emit a statement list (a paragraph case, an IF branch, or an inline-PERFORM body), suppressing dead
     /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.</summary>
-    private bool EmitStatementList(IReadOnlyList<BoundStatement> stmts)
+    internal bool EmitStatementList(IReadOnlyList<BoundStatement> stmts)
     {
         bool terminated = false;
         foreach (var st in stmts)
@@ -328,20 +350,13 @@ public sealed partial class CSharpEmitter : IOoBindHost
         w.Line($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count}) break;   // in range → transfer (exit the dispatcher switch)");
     }
 
-    private void EmitDisplay(BoundDisplay d)
-    {
-        // DISPLAY shows the sign-aware image (deSign defaults false — the operational sign is part of the displayed
-        // zoned representation, unlike a move to an alphanumeric receiver).
-        var parts = d.Operands.Select(o => OperandText.AsString(o)).ToList();
-        string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);
-        _ctx.Writer.Line(d.NoAdvancing ? $"System.Console.Write({image});" : $"System.Console.WriteLine({image});");
-    }
+    // DISPLAY lives on AcceptDisplayEmitter since Step 9c (the ACCEPT/DISPLAY collaborator).
 
     /// <summary>Render one MOVE — a PURE per-kind renderer since P7 Step 7: the dispatch travels on the node
     /// (<see cref="BoundMove.Kinds"/>, classified once by <see cref="MoveClassifier"/> at construction — ISO
     /// §14.9.25.4 GR4's elementary-vs-group decision incl. the sender side, NC105A MOVE-TEST-F1-16/-17/-20/-36/-38);
     /// the emitter re-derives nothing.</summary>
-    private void EmitMove(BoundMove m)
+    internal void EmitMove(BoundMove m)
     {
         for (int i = 0; i < m.Targets.Count; i++)
         {
@@ -819,7 +834,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
 
     /// <summary>The <see cref="ReceiverContext"/> for receiver <paramref name="r"/> (P7 Step 3 — the pure
     /// factory replacing the mutable <c>SetTarget</c> context writes).</summary>
-    private ReceiverContext RcvFor(Receiver r, bool inSizeError) =>
+    internal ReceiverContext RcvFor(Receiver r, bool inSizeError) =>
         new(ScaleOf(r.Place), r.Place.Item.Pic is { IsFloat: true }, r.Rounding, inSizeError);
 
     /// <summary>The optional <c>blankWhenZero</c> argument text for a numeric-edited store when the receiver
@@ -847,7 +862,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// changes, rule 4); the ON / NOT ON SIZE ERROR imperative then runs once. With no phrase the stores run
     /// unchecked (the plain <c>CobolNum.Store</c> path) — behavior unchanged.
     /// </summary>
-    private void EmitArith(SizeErrorPhrase? sizeErr, Action<bool> emitStores)
+    internal void EmitArith(SizeErrorPhrase? sizeErr, Action<bool> emitStores)
     {
         var w = _ctx.Writer;
         // EC-SIZE checking (>>TURN … EC-SIZE … CHECKING ON, ISO §7.3.25): an ENABLED statement routes through
@@ -903,7 +918,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// <paramref name="mode"/> (the receiver's ROUNDED phrase, ISO §14.7.4). Inside an ON SIZE ERROR statement
     /// (<see cref="EcState.SizeErrVar"/> set) it uses the checked <c>CobolNum.TryStore</c> — on overflow / PROHIBITED-inexact
     /// it sets the flag and leaves the receiver unchanged (§14.7.5); otherwise the plain <c>CobolNum.Store</c>.</summary>
-    private void StoreArith(Place target, NumX value, CobolRounding mode)
+    internal void StoreArith(Place target, NumX value, CobolRounding mode)
     {
         var w = _ctx.Writer;
         // A numeric-edited receiver stores the EDITED image of the result (ISO §14.7.7 — arithmetic results store
@@ -997,7 +1012,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// <summary>Wrap a wide (Int128) stored value for assignment into a NARROW receiver field: a ≤18-digit item
     /// stores as native <c>long</c> (the value is already truncated/rounded to the receiver's digits, so the cast
     /// is exact); a 19+-digit item (the 2002+ wide tier) stores the Int128 directly.</summary>
-    private static string Narrow(string expr, DataItem item) =>
+    internal static string Narrow(string expr, DataItem item) =>
         item.Pic is { Digits: > 18 } ? expr : $"(long)({expr})";
 
     private int ScaleOf(Place p) =>

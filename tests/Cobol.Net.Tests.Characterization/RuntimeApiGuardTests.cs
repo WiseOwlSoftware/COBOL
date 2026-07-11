@@ -40,10 +40,10 @@ public sealed class RuntimeApiGuardTests
         ["CSharpEmitter.Inspect.cs"] = 16,
         ["CSharpEmitter.Ptr.cs"] = 9,
         ["Emit/OperandText.cs"] = 9,
-        ["Verbs/AcceptDisplayEmitter.cs"] = 9,
+        // Verbs/AcceptDisplayEmitter.cs reached 0 at Step 9c (RuntimeApi-routed; entry deleted per the plan).
         ["CSharpEmitter.ReportWriter.cs"] = 5,
         ["CSharpEmitter.Exceptions.cs"] = 2,
-        ["CSharpEmitter.Corresponding.cs"] = 1,
+        // CSharpEmitter.Corresponding.cs became Verbs/CorrespondingEmitter.cs at 0 (Step 9c).
         ["Emit/EmitCore.cs"] = 1,
         ["Roslyn/ReceiverContext.cs"] = 1,
     };

@@ -1,12 +1,15 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
+using CobolNet.CodeGen.Emit;
 
 namespace CobolNet.CodeGen;
 
 using static CobolNet.CodeGen.Emit.EmitText;
 
-public sealed partial class CSharpEmitter
+/// <summary>The INITIALIZE verb emitter (P7 Step 9c — a real collaborator over the per-unit
+/// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name).</summary>
+internal sealed class InitializeEmitter(EmitContext ctx, CSharpEmitter host)
 {
     /// <summary>INITIALIZE (ISO §14.9.20) — render the bind-time expansion: each <see cref="InitializeStore"/> IS
     /// the spec's implicit elementary MOVE (GR4), emitted through the ONE MOVE store path (<c>EmitMove</c> →
@@ -14,14 +17,14 @@ public sealed partial class CSharpEmitter
     /// truncation to an explicit MOVE; e.g. a numeric sender into a numeric-edited receiver edits, and the GR6c
     /// ZEROES default produces the EDITED zero, never spaces); each <see cref="InitializeLoop"/> is one OCCURS
     /// dimension (GR5b2 — every occurrence), nested outermost-first. Actions are already in GR3/GR8 order.</summary>
-    private void EmitInitialize(BoundInitialize ini)
+    public void Emit(BoundInitialize ini)
     {
-        foreach (var action in ini.Actions) EmitInitializeAction(action);
+        foreach (var action in ini.Actions) EmitAction(action);
     }
 
-    private void EmitInitializeAction(InitializeAction action)
+    private void EmitAction(InitializeAction action)
     {
-        var w = _ctx.Writer;
+        var w = ctx.Writer;
         switch (action)
         {
             case InitializeStore { Target.Item.Pic: { IsFloat: true } fp } s:
@@ -33,18 +36,18 @@ public sealed partial class CSharpEmitter
                                $"'{s.Target.Item.CobolName ?? s.Target.Read()}' (float MOVE path deferred)"));
                 break;
             case InitializeStore s:
-                EmitMove(new BoundMove(s.Source, [s.Target]));   // §14.9.20 GR4 — an implicit MOVE, one code path
+                host.EmitMove(new BoundMove(s.Source, [s.Target]));   // §14.9.20 GR4 — an implicit MOVE, one code path
                 break;
             case InitializeLoop l:
                 using (w.Block($"for (long {l.Var} = 1; {l.Var} <= {l.Count}; {l.Var}++)"))
                     foreach (var b in l.Body)
-                        EmitInitializeAction(b);
+                        EmitAction(b);
                 break;
             case InitializeDynLoop l:
                 // §14.9.20 GR10 (D9): initialize every occurrence 1‥current-capacity (a run-time bound) with the
                 // INITIALIZE statement's own stores; the capacity is unchanged (RefReceiving within bounds).
                 using (w.Block($"for (long {l.Var} = 1; {l.Var} <= {l.CapacityExpr}; {l.Var}++)"))
-                    foreach (var b in l.Body) EmitInitializeAction(b);
+                    foreach (var b in l.Body) EmitAction(b);
                 break;
             case InitializeErrorAction e:
                 w.Line(LoudStmt(e.Feature));

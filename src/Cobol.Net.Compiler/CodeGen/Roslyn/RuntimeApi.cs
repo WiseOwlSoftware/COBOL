@@ -39,4 +39,42 @@ internal static class RuntimeApi
         '^' => nameof(CobolBool.Xor),
         _ => nameof(CobolBool.And),   // '&' and the (unreachable) default — the pre-4b table's shape
     };
+
+    // ── Numeric (CobolNum) ──
+
+    /// <summary>Decode a zoned/separate-sign DISPLAY image per the receiver's profile — <c>CobolNum.ParseDisplay</c>.</summary>
+    public static string NumParseDisplay(string image, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.ParseDisplay)}({image}, {profile})";
+
+    /// <summary>An unsigned integer's DISPLAY image zero-padded to a fixed digit width —
+    /// <c>CobolNum.FormatUnsignedDisplay</c> (the ACCEPT temporal conceptual-item image, ISO §14.9.1.4 GR7–GR12).</summary>
+    public static string NumFormatUnsignedDisplay(string value, int digits) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatUnsignedDisplay)}({value}, {digits})";
+
+    /// <summary>The numeric MOVE-rules store (decimal alignment, truncation/zero-fill) — <c>CobolNum.Store</c>.</summary>
+    public static string NumStore(string value, string scale, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Store)}({value}, {scale}, {profile})";
+
+    /// <summary>Render an unscaled value as the receiver's DISPLAY image — <c>CobolNum.FormatDisplay</c>.</summary>
+    public static string NumFormatDisplay(string value, string profile) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.FormatDisplay)}({value}, {profile})";
+
+    // ── Strings (CobolString) ──
+
+    /// <summary>The alphanumeric MOVE-rules store (left-justify, right space-fill/truncate) —
+    /// <c>CobolString.Store</c>.</summary>
+    public static string StrStore(string value, string width) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.Store)}({value}, {width})";
+
+    // ── Editing (CobolEdit) ──
+
+    /// <summary>Edit a numeric value into a PICTURE mask — <c>CobolEdit.Format</c>. <paramref name="cfgArgs"/> is
+    /// the SPECIAL-NAMES suffix (<see cref="Emit.EmitContext.EditCfgArgs"/>), possibly empty.</summary>
+    public static string EditFormat(string value, string scale, string maskLiteral, string cfgArgs) =>
+        $"{nameof(CobolEdit)}.{nameof(CobolEdit.Format)}({value}, {scale}, {maskLiteral}{cfgArgs})";
+
+    /// <summary>Place sending characters into an alphanumeric-edited mask's positions (ISO §13.18.40 insertion) —
+    /// <c>CobolEdit.FormatAlphanumeric</c>.</summary>
+    public static string EditFormatAlphanumeric(string value, string maskLiteral) =>
+        $"{nameof(CobolEdit)}.{nameof(CobolEdit.FormatAlphanumeric)}({value}, {maskLiteral})";
 }
