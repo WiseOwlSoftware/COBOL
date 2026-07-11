@@ -16,7 +16,7 @@ namespace CobolNet.CodeGen.Emit;
 /// (field declarations, the AsImage/FromImage methods, a parent's width and composed initializer) reuses one computed
 /// list per node, so a deeply-nested group (a CCVS test nests ~49 levels) is O(total items), not the O(2^depth) the
 /// width-and-init-recompute-each-other recursion would otherwise cost.</remarks>
-internal sealed class FieldEmitter(EmissionContext ctx)
+internal sealed class FieldEmitter(EmitContext ctx)
 {
     /// <summary>Memoized physical-field list per group item — the cache that turns the otherwise-exponential
     /// nested-group emission (width and init recursively recomputing each other) into linear time. The root forest

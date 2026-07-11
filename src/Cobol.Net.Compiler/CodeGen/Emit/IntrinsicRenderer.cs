@@ -12,8 +12,8 @@ namespace CobolNet.CodeGen.Emit;
 /// catalog row. Three §15.2-type shapes (deep-dive D1):
 /// <list type="bullet">
 ///   <item><b>floating-math</b> (Float rows, §15.4.1 native-arithmetic license) — compute in double, quantize
-///         through the ONE <c>CobolIntrinsics.FromDouble</c> at working scale <c>max(TargetScale, 9)</c>: the
-///         scale FLOOR is hazard H1 — <c>TargetScale</c> is stale in receiver-less contexts (IF conditions /
+///         through the ONE <c>CobolIntrinsics.FromDouble</c> at working scale <c>max(Receiver.Scale, 9)</c>: the
+///         scale FLOOR covers receiver-less contexts, which render at scale 0 (P7.3 <c>ReceiverContext.None</c> — IF conditions /
 ///         EVALUATE subjects), and 9 fraction digits leave 9 integer digits in the long, ample for every
 ///         trig/financial value;</item>
 ///   <item><b>exact numeric / integer</b> — unscaled Int128 values at a known scale, aligned with the same
@@ -27,7 +27,7 @@ namespace CobolNet.CodeGen.Emit;
 /// A <see cref="IntrinsicBind.Deferred"/> row (catalogued later-edition function with no runtime yet) renders a
 /// loud not-implemented guard naming the function — never a wrong value.
 /// </summary>
-internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num)
+internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 {
     /// <summary>WHEN-COMPILED's compile-time constant (§15.99.3 r2 — the COMPILATION timestamp, baked into the
     /// generated source as a string literal; injectable via <see cref="StatementBinder.CompileClock"/>, D6).
@@ -98,12 +98,12 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             case "MeanScaled":                                                  // §15.60 — Σ/n with the ÷ discipline of §8.8.1
             {
                 var (argList, s) = AlignedArgs(ic);
-                // Quotient quantized at ws = max(TargetScale, s+1, 6): the receiver's scale when known, never
-                // below the sum's own resolution + 1, with a fraction floor against stale TargetScale (H1).
-                int ws = Math.Max(Math.Max(ctx.TargetScale, s + 1), 6);
+                // Quotient quantized at ws = max(Receiver.Scale, s+1, 6): the receiver's scale when known, never
+                // below the sum's own resolution + 1, with a fraction floor for receiver-less (scale-0) contexts.
+                int ws = Math.Max(Math.Max(num.Receiver.Scale, s + 1), 6);
                 // Same mode rule as NumericRenderer.Divide: AT the receiver scale the one exact RoundDiv applies
                 // the receiver's mode; above it, truncate and let the receiver store round once (§14.7.4).
-                CobolRounding mode = ws == ctx.TargetScale ? ctx.TargetRounding : CobolRounding.Truncation;
+                CobolRounding mode = ws == num.Receiver.Scale ? num.Receiver.Rounding : CobolRounding.Truncation;
                 return new NumX($"CobolNum.Divide(CobolIntrinsics.SumScaled({argList}), {s}, {ic.Args.Count}, 0, {ws}, CobolRounding.{mode})", ws);
             }
             case "OrdMax" or "OrdMin":                                          // §15.71/72 — 1-based ordinal, tie = first
@@ -115,16 +115,16 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
                 return new NumX($"CobolIntrinsics.{sig.RuntimeMethod}({StrArgList(ic)})", 0);
 
             // NUMVAL / NUMVAL-C (§15.67/§15.68): parse to (unscaled, actual scale), rescaled to the compile-time
-            // working scale ws = max(TargetScale, 6) — the ≥6 floor is hazard H1's NUMVAL rule (TargetScale is
+            // working scale ws = max(Receiver.Scale, 6) — the ≥6 floor is the NUMVAL rule (the receiver scale is
             // stale in IF conditions; the suite's deepest literal fraction is 5 digits, so 6 is lossless).
             case "Numval":
             {
-                int ws = Math.Max(ctx.TargetScale, 6);
+                int ws = Math.Max(num.Receiver.Scale, 6);
                 return new NumX($"CobolIntrinsics.Numval({Str(ic.Args[0])}, {ws}{CommaFlag})", ws);
             }
             case "NumvalC":
             {
-                int ws = Math.Max(ctx.TargetScale, 6);
+                int ws = Math.Max(num.Receiver.Scale, 6);
                 return new NumX($"CobolIntrinsics.NumvalC({Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag})", ws);
             }
 
@@ -159,9 +159,9 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
             }
             case "TestFormattedDatetime":                                       // §15.92 — 0 (valid) or the 1-based error position
                 return new NumX($"CobolDate.TestFormattedDatetime({Str(ic.Args[0])}, {Str(ic.Args[1])})", 0);
-            case "NumvalF":                                                      // §15.69 — floating NUMVAL; ws floor 9 (H1 + float-family precedent)
+            case "NumvalF":                                                      // §15.69 — floating NUMVAL; ws floor 9 (the float-family precedent)
             {
-                int ws = Math.Max(ctx.TargetScale, 9);
+                int ws = Math.Max(num.Receiver.Scale, 9);
                 return new NumX($"CobolIntrinsics.NumvalF({Str(ic.Args[0])}, {ws}{CommaFlag})", ws);
             }
             case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1
@@ -173,11 +173,11 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
     }
 
     /// <summary>The §15.4.1 floating-math family: arguments as doubles (through the one scaled→double
-    /// conversion), result quantized by the ONE FromDouble at <c>ws = max(TargetScale, 9)</c> (H1/H2).</summary>
+    /// conversion), result quantized by the ONE FromDouble at <c>ws = max(Receiver.Scale, 9)</c> (the ≥9 float floor).</summary>
     private NumX RenderFloat(BoundIntrinsicCall ic)
     {
         var sig = ic.Sig;
-        int ws = Math.Max(ctx.TargetScale, 9);
+        int ws = Math.Max(num.Receiver.Scale, 9);
         string call = sig.RuntimeMethod switch
         {
             // RANDOM (§15.75.3): the no-argument form continues the current sequence; the seeded form restarts it.
@@ -188,14 +188,14 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
         // A float RECEIVER keeps the transcendental result in the binary64 pipeline (full precision — SQRT(2) into a
         // COMP-2 is 1.4142135623730951, not the scale-9 1.414213562); a fixed receiver quantizes through FromDouble
         // at the working scale (the established behavior the intrinsic goldens encode). (D16 review finding.)
-        return ctx.TargetReal
+        return num.Receiver.Real
             ? new NumX(call, 0, Real: true)
             : new NumX($"CobolIntrinsics.FromDouble({call}, {ws})", ws);
     }
 
     // ── Argument rendering (instance — full NumericRenderer fidelity for the numeric channel) ───────────────
 
-    private NumX Arg(BoundIntrinsicCall ic, int i) => num.AsNum(ic.Args[i]);
+    private NumX Arg(BoundIntrinsicCall ic, int i) => num.AsNum(ic.Args[i], num.Receiver);
 
     /// <summary>A numeric argument as a C# double (the float family's §15.4.1 carrier).</summary>
     private string Dbl(BoundIntrinsicCall ic, int i) => NumericRenderer.Real(Arg(ic, i));
@@ -214,7 +214,7 @@ internal sealed class IntrinsicRenderer(EmissionContext ctx, NumericRenderer num
     /// comparison/arithmetic equal value comparison/arithmetic), as a C# argument list + that scale.</summary>
     private (string ArgList, int Scale) AlignedArgs(BoundIntrinsicCall ic)
     {
-        var xs = ic.Args.Select(num.AsNum).ToList();
+        var xs = ic.Args.Select(a => num.AsNum(a, num.Receiver)).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
         return (string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s))), s);
     }

@@ -106,7 +106,7 @@ public sealed partial class CSharpEmitter
     {
         var data = unit.Data;
         _refs = unit.Refs;
-        _ctx = new EmissionContext(w, data);
+        _ctx = new EmitContext(w, data);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
         _callSelfPath = unit.Path;
@@ -525,7 +525,7 @@ public sealed partial class CSharpEmitter
             }
             case BoundComputedOperand expr:
             {
-                NumX x = _num.Render(expr.Expr);   // BY VALUE — a converted value copy (§14.2.3 GR10)
+                NumX x = _num.Render(expr.Expr, ReceiverContext.None);   // BY VALUE — a converted value copy (§14.2.3 GR10)
                 return $"new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
             }
             case BoundAllLiteral all:

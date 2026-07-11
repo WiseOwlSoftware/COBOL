@@ -281,6 +281,18 @@ public readonly record struct ReceiverContext(int Scale, bool Real, CobolRoundin
 NumX ExpressionRenderer.Render(BoundExpr e, in ReceiverContext rcv);   // no ambient state, no reset dance
 ```
 
+*(AS LANDED, P7 Step 3 — DEVLOG 788: the sketch above predates the landed source-generated visitor. The
+generated single-arg `Visit`/`Accept<T>` cannot thread a parameter through the recursion, so the parameter is
+REQUIRED on every PUBLIC render entry (`Render`/`AsNum`/`Fold`/`Combine` all take `in ReceiverContext rcv`) and
+carried in ONE private renderer field the internal `Visit` recursion reads — freshly assigned at every entry, so
+no render can run under a stale receiver: the by-construction guarantee moves to the API boundary. One render
+tree serves exactly one receiver, so field-vs-parameter is semantically identical inside the recursion. The
+mutually-recursive `IntrinsicRenderer` reads the live receiver via `NumericRenderer.Receiver`. Also landed:
+`EmitArith` threads the size-error flag into its store closure as `Action<bool>` — `InSizeError` has TWO
+triggers, the phrase and `>>TURN EC-SIZE` checking — and receiver-less sites pass `ReceiverContext.None`, which
+the full battery proved byte-identical to the old ambient-state behavior: no stale-leak had ever materialized in
+emitted output.)*
+
 This closes the H1 staleness class by construction and makes `IntrinsicRenderer`'s "static channel" unnecessary: give
 the string channel a `ReceiverContext` (default) so it calls the **one** `ExpressionRenderer` — delete
 `NumStaticExpr/StaticAdditive/StaticMul`.

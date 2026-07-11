@@ -30,14 +30,15 @@ public sealed partial class CSharpEmitter
         // reduction to separate `SUBTRACT a FROM b` statements settles the operand order over the inverted-looking
         // standard-arithmetic print at GR3).
         string op = c.Verb is CorrVerb.Add ? "+" : "-";
-        EmitArith(c.SizeError, () =>
+        EmitArith(c.SizeError, ise =>
         {
             EmitCorrespondingHoists(c.Hoists);
             foreach (var p in c.Pairs)
             {
-                SetTarget(new Receiver(p.Target, c.Rounding));   // ONE rounded-phrase mode for every pair (§14.7.4)
+                // ONE rounded-phrase mode for every pair (§14.7.4).
+                var rcv = RcvFor(new Receiver(p.Target, c.Rounding), ise);
                 StoreArith(p.Target,
-                    _num.Combine(_num.FieldNum(p.Target), op, _num.FieldNum(p.Source)),
+                    _num.Combine(_num.FieldNum(p.Target), op, _num.FieldNum(p.Source), rcv),
                     c.Rounding);
             }
         });

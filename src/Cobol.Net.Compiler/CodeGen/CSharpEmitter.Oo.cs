@@ -268,7 +268,7 @@ public sealed partial class CSharpEmitter
         CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType = false)
     {
         _refs = refs;
-        _ctx = new EmissionContext(w, data);
+        _ctx = new EmitContext(w, data);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
         _callSelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
@@ -592,7 +592,7 @@ public sealed partial class CSharpEmitter
     private void OoEmitInterfaceUnit(OoInterfaceSymbol iface, CodeWriter w)
     {
         var data = _ooIfaceData[iface];
-        _ctx = new EmissionContext(w, data);
+        _ctx = new EmitContext(w, data);
         string bases = iface.Inherits.Count > 0
             ? " : " + string.Join(", ", iface.Inherits.Select(b => b.CsName))
             : "";
@@ -706,14 +706,14 @@ public sealed partial class CSharpEmitter
                 // scaled-integer path (the review's silent-truncation finding).
                 w.Line($"{a.Formal.ElementType} {tmp} = {a.Source!.Read()};");
             else if (a.ByContent && a.Source is { } cp
-                     && _num.AsNum(new BoundFieldOperand(cp)) is var cx
+                     && _num.AsNum(new BoundFieldOperand(cp), ReceiverContext.None) is var cx
                      && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale))
                 // CONTENT numeric conversion (COMPUTE rules, §14.8.2.3.3 2a): rescale + truncate into the
                 // formal's description through the OWNER's internal profile.
                 w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})CobolNum.Store({cx.Expr}, {cx.Scale}, {qualProfile});");
             else
                 w.Line(a.Source is { } np
-                    ? $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({_num.AsNum(new BoundFieldOperand(np)).Expr});"
+                    ? $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({_num.AsNum(new BoundFieldOperand(np), ReceiverContext.None).Expr});"
                     : $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})CobolNum.Store({UnscaledLit(a.NumericLiteral!).Expr}, {UnscaledLit(a.NumericLiteral!).Scale}, {qualProfile});");
             argExprs.Add($"ref {tmp}");
 

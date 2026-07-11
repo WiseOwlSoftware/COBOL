@@ -68,7 +68,7 @@ public sealed partial class CSharpEmitter
     private void PtrEmitSetPointerUpDown(BoundSetPointerUpDown s)
     {
         var w = _ctx.Writer;
-        NumX x = _num.Render(s.Amount);
+        NumX x = _num.Render(s.Amount, ReceiverContext.None);
         string tmp = $"__ptrBy{_ptrCounter++}";
         w.Line($"long {tmp} = (long)({x.Expr});");
         string call = x.Scale == 0
@@ -99,7 +99,7 @@ public sealed partial class CSharpEmitter
                 w.Line(ret2.Write(addr) + "   // GR4b — the RETURNING pointer also receives the address");
             return;
         }
-        NumX x = _num.Render(s.Chars!);
+        NumX x = _num.Render(s.Chars!, ReceiverContext.None);
         string size = x.Scale == 0
             ? $"(long)({x.Expr})"
             : $"(long)CobolNum.Rescale({x.Expr}, {x.Scale}, 0, CobolRounding.AwayFromZero)";   // GR1 — round UP

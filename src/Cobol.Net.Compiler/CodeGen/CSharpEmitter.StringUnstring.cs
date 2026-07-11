@@ -29,7 +29,7 @@ public sealed partial class CSharpEmitter
         int id = _strUnstrCounter++;
         string ptr = $"__strPtr{id}", ovf = $"__strOvf{id}", acc = $"__strInto{id}";
         w.Line(s.Pointer is { } p0
-            ? $"long {ptr} = (long)({_num.AsNum(new BoundFieldOperand(p0)).Expr});"   // GR4 — the user's initial value
+            ? $"long {ptr} = (long)({_num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR4 — the user's initial value
             : $"long {ptr} = 1;");                                                    // GR5 — implicit pointer of 1
         w.Line($"bool {ovf} = false;");
         w.Line($"string {acc} = {StrUnstrReadImage(s.Into)};");
@@ -78,10 +78,10 @@ public sealed partial class CSharpEmitter
             w.Line($"bool[] {alls} = System.Array.Empty<bool>();");
         }
         w.Line(s.Pointer is { } p0
-            ? $"long {ptr} = (long)({_num.AsNum(new BoundFieldOperand(p0)).Expr});"   // GR11a / GR12 — user-initialized
+            ? $"long {ptr} = (long)({_num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR11a / GR12 — user-initialized
             : $"long {ptr} = 1;");                                                    // GR11a — leftmost position
         w.Line(s.Tallying is { } t0
-            ? $"long {tly} = (long)({_num.AsNum(new BoundFieldOperand(t0)).Expr});"   // GR14 — adds to the current value
+            ? $"long {tly} = (long)({_num.AsNum(new BoundFieldOperand(t0), ReceiverContext.None).Expr});"   // GR14 — adds to the current value
             : $"long {tly} = 0;");
         w.Line($"bool {ovf} = false;");
         using (w.Block($"if ({ptr} < 1 || {ptr} > {src}.Length)"))

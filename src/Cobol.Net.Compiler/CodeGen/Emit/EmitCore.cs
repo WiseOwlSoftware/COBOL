@@ -9,11 +9,14 @@ namespace CobolNet.CodeGen.Emit;
 
 /// <summary>
 /// The shared spine the decomposed backend emitters/renderers cooperate over (COBOLNET_DESIGN §17 §2.1): the
-/// output <see cref="Writer"/>, the bound DATA DIVISION model (<see cref="Data"/>), and the mutable division working
-/// scale (<see cref="TargetScale"/> — the receiver's scale, set before an arithmetic RHS is rendered so a quotient
-/// is computed at the right precision). Emitters are stateless but for this context.
+/// output <see cref="Writer"/> and the bound DATA DIVISION model (<see cref="Data"/>), plus the derived
+/// SPECIAL-NAMES render config. IMMUTABLE since P7 Step 3 (renamed from <c>EmissionContext</c>, ending the
+/// legacy-tree name collision): the four mutable receiver fields (<c>TargetScale</c>/<c>TargetReal</c>/
+/// <c>TargetRounding</c>/<c>InSizeErrorContext</c>) and their manual set/reset discipline are DELETED — the
+/// receiver a numeric render is computed for now travels BY PARAMETER (<see cref="ReceiverContext"/>), killing
+/// the H1 staleness class by construction.
 /// </summary>
-internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
+internal sealed class EmitContext(CodeWriter writer, DataBinder data)
 {
     /// <summary>The C# output writer.</summary>
     public CodeWriter Writer { get; } = writer;
@@ -56,28 +59,6 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
         cat is Binding.Model.PicCategory.National or Binding.Model.PicCategory.Boolean
             ? EmitText.FigurativeFill(kind)
             : FigFill(kind);
-
-    /// <summary>The current division working scale (the receiving item's scale).</summary>
-    public int TargetScale { get; set; }
-
-    /// <summary>True when the current arithmetic receiver is a floating-point item (COMP-1/2/FLOAT-*, D16): the whole
-    /// RHS then evaluates in IEEE binary64 even when every OPERAND is fixed-point (so <c>COMPUTE f = 10 / 3</c> holds
-    /// 3.333…, not the fixed pipeline's scale-0 truncation to 3). Set alongside <see cref="TargetScale"/> before an
-    /// arithmetic RHS is rendered, and RESET to false at the condition-render entry (a receiver-less numeric render
-    /// must never inherit a stale float-receiver flag — the H1 staleness discipline).</summary>
-    public bool TargetReal { get; set; }
-
-    /// <summary>The current receiver's ROUNDED mode (ISO §14.7.4). A division computed at the receiver scale
-    /// (<see cref="TargetScale"/>) rounds with this mode in one exact step (<c>RoundDiv</c> uses the true integer
-    /// remainder); a division forced to a higher intermediate scale truncates and the receiver store rounds. Set
-    /// before an arithmetic RHS is rendered; defaults to TRUNCATION (the no-ROUNDED behavior).</summary>
-    public CobolRounding TargetRounding { get; set; } = CobolRounding.Truncation;
-
-    /// <summary>True while emitting the evaluation of an arithmetic statement that carries an ON SIZE ERROR phrase
-    /// (ISO §14.7.5). When set, a division renders the checked <c>CobolNum.DivideOrThrow</c> (which raises a
-    /// <c>CobolSizeError</c> on a zero divisor, caught by the statement's <c>try</c>) instead of <c>CobolNum.Divide</c>
-    /// — so a statement WITHOUT the phrase is byte-for-byte unchanged.</summary>
-    public bool InSizeErrorContext { get; set; }
 }
 
 /// <summary>

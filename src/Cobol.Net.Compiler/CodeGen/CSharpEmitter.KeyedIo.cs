@@ -298,7 +298,7 @@ public sealed partial class CSharpEmitter
             // The key comparison collates NATIVE at COBOL-85 (§12.4.5.7 file collating; the program collating
             // sequence does NOT silently apply to keys — brief risk note).
             string len = sta.Length is { } le
-                ? $"(int)({NumericRenderer.Align(_num.Render(le), 0)})"
+                ? $"(int)({NumericRenderer.Align(_num.Render(le, ReceiverContext.None), 0)})"
                 : sta.Operand!.Item.ImageWidth.ToString();
             w.Line($"var {st} = CobolFile.StartIndexed({name}, {sta.KeyIndex}, {CsLiteral(sta.Op)}, "
                 + $"{OperandText.AsString(new BoundFieldOperand(sta.Operand!))}, {len});");

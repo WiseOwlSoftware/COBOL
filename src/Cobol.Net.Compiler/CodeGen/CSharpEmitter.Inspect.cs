@@ -44,7 +44,7 @@ public sealed partial class CSharpEmitter
             // accumulates each count (GR11 — INSPECT adds, it never initializes).
             for (int k = 0; k < t.Count; k++)
                 StoreArith(t[k].Counter,
-                    _num.Combine(_num.FieldNum(t[k].Counter), "+", new NumX($"__cnt{id}[{k}]", 0)),
+                    _num.Combine(_num.FieldNum(t[k].Counter), "+", new NumX($"__cnt{id}[{k}]", 0), ReceiverContext.None),
                     CobolRounding.Truncation);
         }
 

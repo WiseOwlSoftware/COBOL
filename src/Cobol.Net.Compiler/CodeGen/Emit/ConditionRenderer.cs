@@ -12,7 +12,7 @@ namespace CobolNet.CodeGen.Emit;
 /// comparisons (numeric scale-aligned, or alphanumeric via <c>CobolString.Compare</c>), logical AND/OR/XOR/NOT,
 /// level-88 membership over the conditional variable, and sign conditions. An unbound condition fails loud (§1.4).
 /// </summary>
-internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx) : IBoundConditionVisitor<string>
+internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : IBoundConditionVisitor<string>
 {
     /// <summary>Render a bound condition as a C# boolean expression. Dispatch is the generated exhaustive
     /// <see cref="IBoundConditionVisitor{T}"/> (PHASE-07 Step 6e): every BoundCondition leaf has a Visit below, so a
@@ -22,7 +22,6 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         // A condition is a receiver-less numeric context: clear the float-receiver flag so a stale one from a prior
         // arithmetic store cannot promote a fixed-operand comparison to IEEE double (the H1 staleness discipline, D16
         // review). Idempotent under the recursive Render calls below.
-        ctx.TargetReal = false;
         return c.Accept(this);
     }
 
@@ -102,7 +101,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
             return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
-        NumX l = num.AsNum(r.Left), rr = num.AsNum(r.Right);
+        NumX l = num.AsNum(r.Left, ReceiverContext.None), rr = num.AsNum(r.Right, ReceiverContext.None);
         // A float operand (D16): compare the algebraic values natively in IEEE double (§8.8.4.2.4). IEEE
         // NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# — spec-conformant, no epsilon.
         if (l.Real || rr.Real)
@@ -200,12 +199,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
     {
         BoundFigurative { Kind: 'Z' } => EmitText.UnscaledLit("0"),
         BoundFigurative f => new NumX(EmitText.LoudValue("long", $"figurative '{f.Kind}' in a numeric comparison"), 0),
-        _ => num.AsNum(op),
+        _ => num.AsNum(op, ReceiverContext.None),
     };
 
     private string RenderSign(BoundSignCondition s)
     {
-        NumX v = num.Render(s.Expr);
+        NumX v = num.Render(s.Expr, ReceiverContext.None);
         string test = s.Kind switch { 'P' => $"{v.Expr} > 0", 'N' => $"{v.Expr} < 0", _ => $"{v.Expr} == 0" };
         return s.Negated ? $"!({test})" : $"({test})";
     }

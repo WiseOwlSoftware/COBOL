@@ -11,10 +11,11 @@ namespace CobolNet.CodeGen.Emit;
 /// Renders a bound numeric expression / operand to a scale-tracked native-integer C# expression (<see cref="NumX"/>).
 /// COBOL fixed-point arithmetic operates on the algebraic value regardless of representation (ISO §8.8.1): operands
 /// are unscaled longs carrying their scale, the renderer aligns scales for ±, adds them for ×, and computes a
-/// quotient at the working scale (<see cref="EmissionContext.TargetScale"/>) for ÷. The receiver's store
+/// quotient at the RECEIVER's working scale (<see cref="ReceiverContext.Scale"/> — P7 Step 3: the receiver
+/// travels by parameter into every public entry, never mutable context state) for ÷. The receiver's store
 /// (truncation / capacity) is applied later by <c>CobolNum.Store</c>.
 /// </summary>
-internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>
+internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>
 {
     /// <summary>The intrinsic-function render dispatch (ISO §15; IntrinsicRenderer.cs) — created lazily because
     /// the two renderers are mutually recursive (an intrinsic renders its numeric arguments through THIS).</summary>
@@ -24,11 +25,24 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
     // Render/AsNum dispatch through the generated exhaustive visitors (PHASE-07 Step 6d): every BoundExpr / BoundOperand
     // leaf has a Visit below, so a new leaf is a COMPILE error here — the former loud `_ =>` defaults are gone.
 
-    /// <summary>Render a bound numeric expression as a scaled long.</summary>
-    public NumX Render(BoundExpr e) => e.Accept(this);
+    // ── The receiver context (P7 Step 3). Every PUBLIC entry REQUIRES the caller's ReceiverContext and
+    // stores it here; the private Visit recursion reads the field. The generated single-arg visitors cannot
+    // thread a parameter (Accept<T> has no TArg), and one render tree serves exactly ONE receiver — the context
+    // is constant across the recursion — so a freshly-assigned-at-every-entry field is equivalent to a
+    // parameter: the H1 hazard (a render inheriting the PREVIOUS statement's receiver) is impossible because no
+    // entry exists that does not take the context. (DESIGN-codegen-backend §2.5, updated for the landed
+    // generated visitor.) ──
+    private ReceiverContext _rcv = ReceiverContext.None;
 
-    /// <summary>Render a bound operand as a scaled native-integer value.</summary>
-    public NumX AsNum(BoundOperand op) => op.Accept(this);
+    /// <summary>The receiver of the render currently in progress — read by the mutually-recursive
+    /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
+    internal ReceiverContext Receiver => _rcv;
+
+    /// <summary>Render a bound numeric expression as a scaled long, computed FOR <paramref name="rcv"/>.</summary>
+    public NumX Render(BoundExpr e, in ReceiverContext rcv) { _rcv = rcv; return e.Accept(this); }
+
+    /// <summary>Render a bound operand as a scaled native-integer value, computed FOR <paramref name="rcv"/>.</summary>
+    public NumX AsNum(BoundOperand op, in ReceiverContext rcv) { _rcv = rcv; return op.Accept(this); }
 
     // ── IBoundExprVisitor<NumX> ──────────────────────────────────────────────────────────────────────────────
     public NumX Visit(BoundNumLiteral n) => EmitText.UnscaledLit(n.Text);
@@ -45,16 +59,16 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
     // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an unscaled
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
     public NumX Visit(BoundReportSumRef n) => new($"__RPT_{n.Report.CsIndex}.SumValue({EmitText.CsLiteral(n.Id)})", n.Scale);
-    public NumX Visit(BoundBinary n) => Combine(Render(n.Left), n.Op.ToString(), Render(n.Right));
-    public NumX Visit(BoundNegate n) => Negate(Render(n.Operand));
-    public NumX Visit(BoundPower n) => Power(Render(n.Base), Render(n.Exp));
+    public NumX Visit(BoundBinary n) => CombineCore(n.Left.Accept(this), n.Op.ToString(), n.Right.Accept(this));
+    public NumX Visit(BoundNegate n) => Negate(n.Operand.Accept(this));
+    public NumX Visit(BoundPower n) => Power(n.Base.Accept(this), n.Exp.Accept(this));
     public NumX Visit(BoundIntrinsicCall n) => Intrinsics.RenderNum(n);   // FUNCTION call (ISO §15)
     public NumX Visit(BoundExprError n) => new(EmitText.LoudValue("long", n.Feature), 0);
 
     // ── IBoundOperandVisitor<NumX> ───────────────────────────────────────────────────────────────────────────
     public NumX Visit(BoundNumericLiteral n) => EmitText.UnscaledLit(n.Text);
     public NumX Visit(BoundFieldOperand n) => FieldNum(n.Place);
-    public NumX Visit(BoundComputedOperand n) => Render(n.Expr);
+    public NumX Visit(BoundComputedOperand n) => n.Expr.Accept(this);
     public NumX Visit(BoundFigurative n) => n.Kind == 'Z'
         ? EmitText.UnscaledLit("0")   // ZERO in a numeric context
         : new NumX(EmitText.LoudValue("long", $"figurative '{n.Kind}' in a numeric context"), 0);
@@ -126,11 +140,12 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
     };
 
     /// <summary>Left-fold a list of bound expressions with <c>+</c> (the addends of an ADD / minuends of a SUBTRACT).</summary>
-    public NumX Fold(IReadOnlyList<BoundExpr> xs)
+    public NumX Fold(IReadOnlyList<BoundExpr> xs, in ReceiverContext rcv)
     {
+        _rcv = rcv;
         if (xs.Count == 0) return new NumX("0L", 0);
-        NumX acc = Render(xs[0]);
-        for (int i = 1; i < xs.Count; i++) acc = Combine(acc, "+", Render(xs[i]));
+        NumX acc = xs[0].Accept(this);
+        for (int i = 1; i < xs.Count; i++) acc = CombineCore(acc, "+", xs[i].Accept(this));
         return acc;
     }
 
@@ -139,13 +154,19 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
     /// of two 18-digit operands is 36 digits and an aligned sum 19+, both past the long range MID-computation even
     /// when the final receiver fits. The leading <c>(Int128)</c> cast forces wide arithmetic whatever the leaf
     /// types; storage stays narrow (the store path truncates/rounds once, at the receiver).</summary>
-    public NumX Combine(NumX a, string op, NumX b)
+    public NumX Combine(NumX a, string op, NumX b, in ReceiverContext rcv)
+    {
+        _rcv = rcv;
+        return CombineCore(a, op, b);
+    }
+
+    private NumX CombineCore(NumX a, string op, NumX b)
     {
         // D16: any expression with ≥1 float operand evaluates ENTIRELY in IEEE binary64 (a single-precision operand
         // widens exactly) — BEFORE the StandardDecimal branch, because COBOL float arithmetic is IEEE binary, never
         // decimal. This holds regardless of the ARITHMETIC mode (the SBIDI/SDIDI-of-float conversion is Phase 6b;
         // STANDARD-BINARY is obsolete in 2023 §8.8.1.4 NOTE). +,-,*,/ are native double ops.
-        if (a.Real || b.Real || ctx.TargetReal) return new NumX($"({Real(a)} {op} {Real(b)})", 0, Real: true);
+        if (a.Real || b.Real || _rcv.Real) return new NumX($"({Real(a)} {op} {Real(b)})", 0, Real: true);
         // STANDARD-DECIMAL arithmetic (§8.8.1.5): every operation evaluates in SDIDI form (decimal128 semantics),
         // rounded per-op to 34 significant digits with the INTERMEDIATE ROUNDING mode (§11.9.11); the receiver's
         // ROUNDED applies only at the final transfer (§14.7 NOTE 1).
@@ -177,7 +198,7 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
         // Multiplication: scales add (exact). Under an ON SIZE ERROR phrase the product is overflow-checked at the
         // Int128 ESCAPE boundary (~38 digits, design D1) → OverflowException maps to the size error condition
         // (§14.7.5 case 5); without the phrase it is unchecked wide multiplication.
-        "*" => new NumX(ctx.InSizeErrorContext ? $"CobolNum.MulChecked({a.Expr}, {b.Expr})" : $"((Int128)({a.Expr}) * ({b.Expr}))", a.Scale + b.Scale),
+        "*" => new NumX(_rcv.InSizeError ? $"CobolNum.MulChecked({a.Expr}, {b.Expr})" : $"((Int128)({a.Expr}) * ({b.Expr}))", a.Scale + b.Scale),
         "/" => Divide(a, b),
         _ => a,
     };
@@ -189,7 +210,7 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
     private const int DivGuardDigits = 14;
 
     /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). When the working scale equals the receiver scale
-    /// (<see cref="EmissionContext.TargetScale"/> — the common outermost-division case), the quotient is computed
+    /// (<see cref="ReceiverContext.Scale"/> — the common outermost-division case), the quotient is computed
     /// directly at the receiver scale and rounded with the receiver's mode in ONE exact step (<c>CobolNum.Divide</c>
     /// → <c>RoundDiv</c> uses the true integer remainder, so no guard digits are needed). A division NESTED inside
     /// a larger expression computes at the D2 guard scale with TRUNCATION — clamped so the Int128 radix alignment
@@ -197,9 +218,9 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
     /// receiver store performs the rounding.</summary>
     private NumX Divide(NumX a, NumX b)
     {
-        int baseScale = Math.Max(ctx.TargetScale, Math.Max(a.Scale, b.Scale));
+        int baseScale = Math.Max(_rcv.Scale, Math.Max(a.Scale, b.Scale));
         int ds = baseScale;
-        if (baseScale != ctx.TargetScale || a.Scale > ctx.TargetScale || b.Scale > ctx.TargetScale)
+        if (baseScale != _rcv.Scale || a.Scale > _rcv.Scale || b.Scale > _rcv.Scale)
         {
             // Nested / higher-precision case: add guard digits, clamped to the wide engine's alignment headroom
             // (exponent = b.Scale + ds − a.Scale must keep dividend-digits + exponent ≤ 38; 18-digit operands ⇒
@@ -208,10 +229,10 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
             int guard = Math.Min(DivGuardDigits, maxExp - (b.Scale + baseScale - a.Scale));
             ds = baseScale + Math.Max(0, guard);
         }
-        CobolRounding mode = ds == ctx.TargetScale ? ctx.TargetRounding : CobolRounding.Truncation;
+        CobolRounding mode = ds == _rcv.Scale ? _rcv.Rounding : CobolRounding.Truncation;
         // Under an ON SIZE ERROR phrase, a zero divisor must raise the size error (ISO §14.7.5 case 2): the checked
         // DivideOrThrow signals it (caught by the statement's try); otherwise Divide returns 0 unchanged.
-        string fn = ctx.InSizeErrorContext ? "DivideOrThrow" : "Divide";
+        string fn = _rcv.InSizeError ? "DivideOrThrow" : "Divide";
         return new NumX($"CobolNum.{fn}({a.Expr}, {a.Scale}, {b.Expr}, {b.Scale}, {ds}, CobolRounding.{mode})", ds);
     }
 
@@ -227,17 +248,17 @@ internal sealed class NumericRenderer(EmissionContext ctx) : IBoundExprVisitor<N
 
     /// <summary>Exponentiation (ISO §8.8.1.2: a native-arithmetic exponentiation whose result has no exact
     /// representation is an IMPLEMENTOR-DEFINED approximation): computed in double, quantized through the ONE
-    /// <c>CobolIntrinsics.FromDouble</c> (rounding) at <c>max(TargetScale, 9)</c> fraction digits. The previous
+    /// <c>CobolIntrinsics.FromDouble</c> (rounding) at <c>max(Receiver.Scale, 9)</c> fraction digits. The previous
     /// scale-0 <c>(long)</c> truncation lost every fractional power result and turned the double artifact in
     /// <c>SQRT(10) ** 2</c> = 9.999999988 into 9 (IF136A F-SQRT-25); the 9-digit floor mirrors the float-intrinsic
-    /// working scale (hazard H1 — TargetScale is stale in receiver-less contexts).</summary>
+    /// working scale (a receiver-less context renders at scale 0 — the P7.3 <see cref="ReceiverContext.None"/>).</summary>
     private NumX Power(NumX b, NumX e)
     {
         // D16: a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip the
         // FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
-        if (b.Real || e.Real || ctx.TargetReal)
+        if (b.Real || e.Real || _rcv.Real)
             return new NumX($"System.Math.Pow({Real(b)}, {Real(e)})", 0, Real: true);
-        int ws = Math.Max(ctx.TargetScale, 9);
+        int ws = Math.Max(_rcv.Scale, 9);
         return new NumX($"CobolIntrinsics.FromDouble(System.Math.Pow({Real(b)}, {Real(e)}), {ws})", ws);
     }
 

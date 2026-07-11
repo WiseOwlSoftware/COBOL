@@ -58,11 +58,11 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundDisplay n) { EmitDisplay(n); return false; }
     public bool Visit(BoundMove n) { EmitMove(n); return false; }
     public bool Visit(BoundAddTo n) { EmitInPlace(n.Targets, "+", n.Addends, n.SizeError); return false; }
-    public bool Visit(BoundAddGiving n) { EmitGiving(n.Targets, () => _num.Fold(n.Addends), n.SizeError); return false; }
+    public bool Visit(BoundAddGiving n) { EmitGiving(n.Targets, rcv => _num.Fold(n.Addends, rcv), n.SizeError); return false; }
     public bool Visit(BoundSubtractFrom n) { EmitInPlace(n.Targets, "-", n.Minuends, n.SizeError); return false; }
-    public bool Visit(BoundSubtractGiving n) { EmitGiving(n.Targets, () => _num.Combine(_num.Render(n.From), "-", _num.Fold(n.Minuends)), n.SizeError); return false; }
+    public bool Visit(BoundSubtractGiving n) { EmitGiving(n.Targets, rcv => _num.Combine(_num.Render(n.From, rcv), "-", _num.Fold(n.Minuends, rcv), rcv), n.SizeError); return false; }
     public bool Visit(BoundMultiplyBy n) { EmitInPlace(n.Targets, "*", [n.A], n.SizeError); return false; }
-    public bool Visit(BoundMultiplyGiving n) { EmitGiving(n.Targets, () => _num.Combine(_num.Render(n.A), "*", _num.Render(n.B)), n.SizeError); return false; }
+    public bool Visit(BoundMultiplyGiving n) { EmitGiving(n.Targets, rcv => _num.Combine(_num.Render(n.A, rcv), "*", _num.Render(n.B, rcv), rcv), n.SizeError); return false; }
     public bool Visit(BoundDivideInto n) { EmitDivide(n.Targets, null, n.Divisor, n.SizeError); return false; }
     public bool Visit(BoundDivideGiving n) { EmitDivide(n.Targets, n.Dividend, n.Divisor, n.SizeError); return false; }
     public bool Visit(BoundDivideRemainder n) { EmitDivideRemainder(n); return false; }
