@@ -121,15 +121,16 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔🔀 RESUME AT: EXEC STEP B — P6 (the Real Binder phase: `SymbolTable` + `BoundCompilation` +
-> `BindPipeline`; `docs/rearchitecture/PHASE-06-*.md`). ✅ EXEC STEP A (PHASE-07 Step 6, the exhaustive visitor) is
-> COMPLETE (6a–6g, DEVLOG 755–761):** the Roslyn source generator emits the visitor interfaces + `Accept` +
-> `BoundStatementTree.StatementChildren`, and EVERY consumer is converted — emitter (6b), `NumericRenderer` (6d),
-> `ConditionRenderer` (6e), `OperandText` + `ContainsNextSentence`/`AlterCollectFields` (6f), `StoreKindOf` (6c). No
-> loud `_`/`default` dispatch arm survives; a missing arm is now a COMPILE error. (The `BoundKeyedDelete`-`InvalidKey`
-> flag was resolved a NON-bug — nested bodies are separately property-wrapped, so the handler recursion is defensively
-> redundant.) The rest of PHASE-07 (structural `Place`, god-class decomposition, `ICodeGenBackend`) is Exec Step D,
-> AFTER P6. See PHASE-07 §Step-6 + `COBOLNET_REARCHITECTURE_PLAN.md §4.1`.**
+> §9.5). **⛔🔀 RESUME AT: EXEC STEP A step 6h — the COMPLETENESS SWEEP (then Exec Step B = P6).** PHASE-07 Step 6
+> 6a–6g are DONE (DEVLOG 755–761) + `BooleanRenderer` (6h, DEVLOG 762): the Roslyn source generator emits the 7 visitor
+> interfaces + `Accept` + `BoundStatementTree.StatementChildren`, and every consumer in the 6b–6f list is converted —
+> emitter (6b), `NumericRenderer` (6d), `ConditionRenderer` (6e), `OperandText` + `ContainsNextSentence`/
+> `AlterCollectFields` (6f), `StoreKindOf` (6c). ⚠ **A post-6c grep found the 6b–6f list was NOT exhaustive** — remaining
+> bound-node dispatches (PHASE-07 §6h): `IntrinsicRenderer`'s 3 partial static-arg renderers (the last LOUD default),
+> the emitter's `PerformControl`/`SetTarget` switches, and `UsageCollectionPass`'s whole-tree walker. Finish 6h, THEN
+> **Exec Step B — P6 (Real Binder: `SymbolTable`/`BoundCompilation`/`BindPipeline`; `docs/rearchitecture/PHASE-06-*.md`)**.
+> (The `BoundKeyedDelete`-`InvalidKey` flag was resolved a NON-bug — nested bodies are separately property-wrapped.)
+> The rest of PHASE-07 (structural `Place`, god-class decomposition) is Exec Step D, after P6.**
 > **✅ 6a DONE (DEVLOG 755):** the `Cobol.Net.Compiler.SourceGen` Roslyn **incremental** source generator
 > (`BoundVisitorGenerator`, semantic-model-driven off `[BoundNode]` on all 7 roots) emits the exhaustive
 > `I{Root}Visitor<T>` + `BoundVisitor.Accept<T>` (120 leaves / 7 roots), build-green + `BoundVisitorGeneratorTests`

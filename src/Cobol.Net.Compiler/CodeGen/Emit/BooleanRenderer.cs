@@ -13,16 +13,21 @@ namespace CobolNet.CodeGen.Emit;
 /// </summary>
 internal static class BooleanRenderer
 {
-    public static string Render(BoundBoolExpr e) => e switch
+    // Dispatch through the generated exhaustive IBoundBoolExprVisitor (PHASE-07 Step 6): a cached instance renders
+    // with no per-call allocation, and a new BoundBoolExpr leaf is a COMPILE error here (the loud `_ =>` is gone).
+    private static readonly RenderVisitor _visitor = new();
+
+    public static string Render(BoundBoolExpr e) => e.Accept(_visitor);
+
+    private sealed class RenderVisitor : IBoundBoolExprVisitor<string>
     {
-        BoundBoolLiteral l => EmitText.CsLiteral(l.Bits),
-        BoundBoolRef r => r.Place.Read(),                       // a category-boolean item IS a '0'/'1' string
-        BoundBoolAll a => EmitText.CsLiteral(a.Bits),           // materialized at the combine site (…All forms)
-        BoundBoolNot n => RenderNot(n.Operand),
-        BoundBoolBinary b => RenderBinary(b),
-        BoundBoolError err => EmitText.LoudValue("string", err.Feature),
-        _ => EmitText.LoudValue("string", $"boolean expression '{e.GetType().Name}'"),
-    };
+        public string Visit(BoundBoolLiteral n) => EmitText.CsLiteral(n.Bits);
+        public string Visit(BoundBoolRef n) => n.Place.Read();                 // a category-boolean item IS a '0'/'1' string
+        public string Visit(BoundBoolAll n) => EmitText.CsLiteral(n.Bits);     // materialized at the combine site (…All forms)
+        public string Visit(BoundBoolNot n) => RenderNot(n.Operand);
+        public string Visit(BoundBoolBinary n) => RenderBinary(n);
+        public string Visit(BoundBoolError n) => EmitText.LoudValue("string", n.Feature);
+    }
 
     private static string RenderNot(BoundBoolExpr op) =>
         // A B-NOT ALL … already constant-folded at bind (BoundBoolAll); any other operand flips at runtime.

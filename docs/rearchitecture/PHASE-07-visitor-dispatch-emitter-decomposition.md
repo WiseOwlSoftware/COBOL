@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) COMPLETE as Exec Step A ✅ (6a–6g, DEVLOG 755–761): the Roslyn source generator (visitor interfaces + Accept + StatementChildren) + EVERY consumer converted (emitter 6b, renderers 6d/6e, OperandText+analyses 6f, StoreKindOf 6c) — no loud _/default arm survives, a missing arm is a compile error. Steps 1–5,7–12 of P7 (structural Place, god-class decomposition, ICodeGenBackend) still DEPEND on P6 and run at Exec Step D. NEXT overall: Exec Step B = P6 (SymbolTable/BoundCompilation/BindPipeline).`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) as Exec Step A: 6a–6g DONE (DEVLOG 755–761) + BooleanRenderer (DEVLOG 762) — the Roslyn source generator (visitor interfaces + Accept + StatementChildren) and every consumer in the 6b–6f list are converted. ⚠ A completeness grep (DEVLOG 762) found bound-node dispatches OUTSIDE that list: a 6h SWEEP remains (IntrinsicRenderer's 3 partial static-arg renderers — the only remaining LOUD default; + the emitter's PerformControl/SetTarget switches + UsageCollectionPass's walker — non-loud, latent new-leaf risk). Steps 1–5,7–12 of P7 still DEPEND on P6 (Exec Step D). NEXT: finish 6h, then Exec Step B = P6.`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -345,6 +345,21 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
       therefore DEFENSIVELY total (it never actually finds the temp there), which is exactly why `BoundKeyedDelete`
       omitting it is equivalent, not a silent-lost-store. (Captured in the `BoundStores` `<remarks>`.) A future cleanup
       could drop the redundant recursion, but that is a separate, non-byte-covered change — not done here.
+  - **6h ⏳ REMAINS — completeness sweep (the 6b–6f list was NOT exhaustive; found by a post-6c grep, DEVLOG 762).**
+    The generated visitor exists for all 7 roots, but these bound-node dispatches were outside the enumerated list:
+    - **✅ `BooleanRenderer.Render` (BoundBoolExpr) — DONE (DEVLOG 762).** A cached nested `IBoundBoolExprVisitor<string>`
+      (static class, like OperandText); the loud `_ =>` deleted. This was the only remaining LOUD default over a whole
+      root; byte-exact (32 char + 3158 conf).
+    - `IntrinsicRenderer.StrStatic`/`NumStatic` (BoundOperand) + `NumStaticExpr` (BoundExpr) — three INTENTIONALLY-PARTIAL
+      static-argument renderers whose `_ =>` is the H3 "named uncovered channel" (most operand/expr kinds are loud by
+      design in this narrow context). Convert to three cached nested visitors (`<string>` + `<NumX>` need SEPARATE
+      classes — same-param/different-return can't overload); the many loud arms become explicit `Visit`s.
+    - Emitter `PerformControl` switch (`CSharpEmitter.cs` ~1041, `default:` = `PerformOnce`) and the two `SetTarget`
+      switches (`StoreSetTarget`/`AugmentSetTarget`, no default) — void + closure state (`body`/`value`/`amount`), so a
+      visitor-with-state; NOT loud today but a new leaf would silently misroute (default) / no-op (fall-through).
+    - `UsageCollectionPass` (Step-5) — its own hand-written `Visitor` over the WHOLE tree (statements+exprs+operands+
+      conditions+places). The biggest remaining walker; the completeness-bug origin. Wants the generated statement
+      visitor + `StatementChildren` (and, for the non-statement roots, their generated visitors).
   - **6d ✅ DONE (2026-07-11).** `NumericRenderer` implements `IBoundExprVisitor<NumX>, IBoundOperandVisitor<NumX>`;
     `Render`/`AsNum` are thin `=> e.Accept(this)` dispatchers + 11 expr + 8 operand `Visit` methods. The `Render`
     `_ =>` was already dead (all 11 expr leaves covered); `AsNum`'s `_ =>` caught `BoundAllLiteral`/`BoundBoolOperand`,
