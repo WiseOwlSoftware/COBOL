@@ -110,11 +110,20 @@ every commit boundary.**
 4. **Full battery green + snapshots neutral:** greenfield conformance + unit + characterization + the FULL NIST
    legacy guard (ALL GREEN) + version-matrix accept/reject unchanged across all four `--std` values. The
    generated `.g.cs` for a representative corpus is byte-identical to pre-phase (behavior neutrality).
-5. The **superset grammar is complete** and the **construct-id annotation convention** is installed (grammar
-   actions + side-table storage keyed by parse context) per `DESIGN-version-conformance-pipeline.md`; **no
-   edition predicate has been (re-)introduced** — the only grammar predicates are the two load-bearing
-   forward-detects (the `openClause` `{is2002() || retryPhraseAhead()}?` and the `boolExprAhead()`-based
-   boolean-condition ENTRY).
+5. The **superset grammar is complete** for edition GATING — **no edition-REJECTION predicate survives** (every
+   edition-gated construct parses at every `--std`; legality is decided by the `VersionConformancePass`). ⚠
+   **RECONCILED (Group D, DEVLOG 746):** (a) the design's **construct-id annotation side-table** is **SUPERSEDED** —
+   P3 built the two-arm `VersionConformancePass` whose **ParseArm walks the RAW parse tree directly** (no grammar
+   actions, no keyed side-table), so no annotation convention is installed and none is needed. (b) The former claim
+   "the only grammar predicates are the two forward-detects" **UNDERCOUNTED**: the grammar retains a small set of
+   load-bearing **cross-edition DISAMBIGUATION** predicates (NOT rejection gates) — the two forward-detects (the
+   `openClause` `{is2002() || retryPhraseAhead()}?` and the `boolExprAhead()`-based boolean-condition ENTRY) **PLUS**
+   `{is2023()}? inlineMethodInvocationStatement` (`CobolParserCore.g4` — genuinely ambiguous with a subscripted
+   `x(args)` reference), `{is2002()}? linkageProcedureParameter` (`CobolData.g4` — the 2002 procedure-parameter form),
+   and the `{!(is2002() && LA(1)==PROPERTY)}?` VALUE-list negative lookahead (`CobolData.g4` — PROPERTY is a 2002
+   keyword that can follow a VALUE clause). Each resolves a genuine syntactic ambiguity across editions per the
+   design's own "a forward, identity-carrying lookahead survives ONLY where a construct is genuinely ambiguous across
+   editions" allowance; none REJECTS a below-edition construct. **This phase (re-)introduces NO new edition predicate.**
 
 ---
 
@@ -747,16 +756,37 @@ Claude-Session: https://claude.ai/code/session_017kSL7aKj3FXensEvmEDfhs
 
 ---
 
-### GROUP D — Version-conformance leg: superset-grammar completion + construct-id annotation
+### GROUP D — Version-conformance leg: RECONCILED to the P3 as-built pass (no code change)
+
+> ✅ **RECONCILED (DEVLOG 746) — Group D reduces to a reconciliation NOTE; no grammar/side-table work is done.**
+> The original plan (below) was written before P3 built the pipeline. As BUILT, P3's `VersionConformancePass` is a
+> **two-arm pass whose ParseArm walks the RAW parse tree directly** (`DESIGN-version-conformance-pipeline.md` — the
+> parse-arm reads the tree, the bound-arm reads resolved facts). It therefore does **NOT** read a "construct-id
+> annotation side-table," so the design's **committed-match annotation convention is SUPERSEDED** — there is nothing
+> to install, and installing grammar actions + keyed storage would be dead scaffolding the pass never consults. The
+> **superset grammar is already complete** (P3 dropped every edition-REJECTION predicate; residue migration 7/7 +
+> the recogniser deleted).
+>
+> ⚠ **Reconciliation of the "only two forward-detects" claim (exit criterion 5, corrected):** the grammar retains a
+> small set of load-bearing **cross-edition disambiguation** predicates, NOT only the two forward-detects — also
+> `{is2023()}? inlineMethodInvocationStatement` (`CobolParserCore.g4` — ambiguous with a subscripted `x(args)`
+> reference; the same ambiguity D10 must resolve), `{is2002()}? linkageProcedureParameter` (`CobolData.g4`), and the
+> `{!(is2002() && LA(1)==PROPERTY)}?` VALUE-list negative lookahead (`CobolData.g4`). Each disambiguates a genuine
+> cross-edition syntactic ambiguity (permitted by the design's own forward-lookahead allowance); NONE rejects a
+> below-edition construct. **This phase introduces no new edition predicate.** A refinement (convert the two hard
+> `{isXXXX()}?` gates to identity-carrying forward-detects) is possible but NOT required — they are load-bearing as
+> written — and is entangled with D10 (the inline-method-invocation gate + the subscript grammar are the same
+> ambiguity). Folded into the D10 sub-track's scope, not done here.
+
+<details><summary>ORIGINAL Group-D plan (superseded — kept for provenance)</summary>
 
 > Executed FROM `docs/rearchitecture/DESIGN-version-conformance-pipeline.md` (the canonical design for this
 > leg), AFTER P3's residue migration has landed. Complete the superset grammar (every edition's constructs
 > parse unconditionally at all four `--std` values) and install the **committed-match construct-id annotation
 > convention**: grammar actions stamp each recognized edition-gated construct into side-table storage keyed by
-> parse context, which the `VersionConformancePass` reads. Do **NOT** introduce any edition predicate — the
-> only surviving grammar predicates are the two load-bearing forward-detects (§3). The executing session
-> authors the step-by-step from the design doc at execution time, with the same per-commit battery discipline
-> as Groups A–C.
+> parse context, which the `VersionConformancePass` reads.
+
+</details>
 
 ---
 
@@ -880,6 +910,13 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
   `SubscriptOrRefMod` stay raw (D10/P7 seam). `UsageKeyword`/`ExtractValue` kept as shared helpers (2nd caller in
   Reports.cs — singular-pattern). Behavior-neutral: conformance 3157 · unit 227 · **characterization 32 byte-exact
   (Gate 3 emitted-C# identical)** · legacy guard **353 MATCH / ALL GREEN**.
-<!--
-- D  (superset + construct-id annotation) — <date> — battery green, no edition predicates, commit <sha>
--->
+- **D (version-conformance leg) — RECONCILED, no code — 2026-07-10 — DEVLOG 746.** The design's construct-id
+  annotation side-table is SUPERSEDED by P3's as-built two-arm `VersionConformancePass` (ParseArm walks the raw tree);
+  superset grammar already complete. Exit-criterion 5 corrected: the surviving predicates are load-bearing
+  cross-edition DISAMBIGUATIONS (2 forward-detects + `{is2023()}?` inline-method-invocation + `{is2002()}?`
+  procedure-param + VALUE/PROPERTY neg-lookahead), not only the two forward-detects; none is a rejection gate.
+- **D10 (SUBSCRIPT-mode removal) — DESIGNED, BLOCKED — 2026-07-10 — DEVLOG 746, `DESIGN-frontend-grammar.md §9`.**
+  ⛔ NOT completable in the byte-neutral window: (a) `SubscriptEntryContext`/`SUB_*` are consumed by the FROZEN legacy
+  compiler, so the machinery can't leave the shared grammar until G8/Phase-15 (D10.0 dead-rule delete breaks the legacy
+  build — verified `CS0426`, reverted); (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg
+  lists + sign-adjacency (DEFAULT mode skips WS) → needs a scoped WS mechanism. **Gated on ONE owner decision (§9.4).**

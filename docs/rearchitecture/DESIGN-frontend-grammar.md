@@ -616,6 +616,94 @@ regression bisects to one step.
    forward (it is free and deletes the `using Core =` aliases). Confirm this does not conflict with the
    planned G8 big-bang cut-over of the *legacy* `CobolSharp.Compiler` assembly (they are independent — this
    renames only the frontend's generated code — but the owner tracks G8 holistically).
-5. **SUBSCRIPT-mode elimination (out of scope here).** Fully removing the SUBSCRIPT mode + the binder's
-   subscript re-parse in favor of a grammar-level `x(i)` rule is a larger change owned by the binder/data-
-   model track. Confirm it stays deferred (this design only dedups the mode's token bodies).
+5. **SUBSCRIPT-mode elimination — OWNER RULED D10 = FULLY REMOVE (§9 below is the design).** The owner overrode
+   the "defer" default: PHASE-04 must remove the SUBSCRIPT mode + the binder subscript re-parse. Group B did the
+   token-body dedup; the removal itself is **§9**, which surfaces a genuine spec-vs-directive tension needing ONE
+   owner decision (the space-separator question, §9.4). Until that is answered the removal cannot proceed past the
+   design note.
+
+---
+
+## 9. D10 — SUBSCRIPT-mode removal (owner override): design + the one open decision
+
+> **Status: DESIGN — authored 2026-07-10 (DEVLOG 746) during PHASE 04, per the owner's D10 ruling. The core
+> implementation is BLOCKED on the §9.4 decision + is entangled with the frozen legacy compiler (§9.3). It is a
+> MAJOR multi-stage sub-track, NOT completable in the Group-A/B/C byte-neutral sitting.**
+
+### 9.1 Goal
+Replace the lexer **SUBSCRIPT mode** (`CobolLexer.g4` — entered via `LPAREN` after a data-name token, emits the
+`SUB_*` token family, popped by `SUB_RPAREN`) and the **flat uninterpreted stream** it feeds
+(`subscriptOrRefMod : subToken+`, `CobolParserCore.g4`) — which the binder RE-PARSES by hand
+(`ReferenceResolver.InterpretSubscripts` / `HasDepth0Colon` / `SplitSubscriptTokens` / `RenderSegment`, and the
+~250-line recursive-descent arithmetic parser over `SUB_*` in `StatementBinder.Intrinsics.cs`) — with **real
+grammar parse nodes**: a subscript list, a ref-mod, and a FUNCTION argument list parsed as `arithmeticExpression`
+/ the existing `argumentList`, so the binder walks bound nodes instead of re-lexing a token soup. This kills a
+whole hand-rolled parser (the biggest single simplification left in the frontend) and unifies the two arg-capture
+paths (`subscriptPart` vs `inlineMethodInvocationStatement`'s `argumentList`) into one (singular-pattern).
+
+### 9.2 Why the mode exists — the two hard constraints
+The mode is not gratuitous; it solves two problems a naïve DEFAULT-mode rule reintroduces:
+- **The LPAREN ambiguity.** `(` after a data-name is a subscript / ref-mod / function-argument opener; `(`
+  elsewhere is arithmetic grouping. The mode disambiguates by the *preceding* token
+  (`PreviousTokenCouldBeDataName` over the generated `_dataNameTokens` set). A grammar-level rule must recover this
+  another way (the same ambiguity the `{is2023()}? inlineMethodInvocationStatement` predicate already fights).
+- **⚠ Separator loss (the blocker).** DEFAULT mode `-> skip`s `WS` and `COMMA_SEP`. But ISO/IEC 1989:2023 §8.3.5
+  admits a **space** as a subscript / argument separator: `X (I J)` and `MAX (A B)` are legal, alongside the comma
+  forms `X (I, J)`. The SUBSCRIPT mode keeps `SUB_WS` a real token so `SplitSubscriptTokens` can split
+  space-separated operands. Once WS is skipped, `X(I J)` (two subscripts) and `X(I J)` is indistinguishable from a
+  malformed single expression, and — worse — there is no token boundary to split on. A pure comma-only grammar
+  rule cannot parse the space-separated forms.
+- **⚠ Sign adjacency.** `+1` / `-15.6` (a signed literal — `SIGNED_INTEGERLIT` / `SIGNED_DECIMALLIT`, sign
+  ADJACENT to the digits) vs `+ 1` / `- 1` (a *relative* subscript offset — `SUB_PLUS SUB_WS SUB_INTEGERLIT`) are
+  today distinguished LEXICALLY by the presence of `SUB_WS`. With WS skipped, `I+1`, `I + 1`, and `+1` all lex
+  identically, so the relative-offset-vs-signed-literal distinction and the `-15.6` fraction-drop hazard
+  (`CobolLexer.g4` SIGNED_DECIMALLIT must precede SIGNED_INTEGERLIT) can no longer be re-derived from tokens alone.
+
+### 9.3 ⚠ Entanglement with the frozen legacy compiler (discovered 2026-07-10)
+The old **structured** subscript rules `subscriptList / subscriptEntry / subscriptQualification / relativeOffset`
+(`CobolParserCore.g4`) are dead in the GRAMMAR (rooted at the unreferenced `subscriptList`) — BUT the generated
+`CobolParserCore.SubscriptEntryContext` type is still consumed by the **frozen legacy** compiler
+(`CobolSharp.Compiler/…/ExpressionBinder.cs:1306 BindSubscriptEntry`). So the planned "D10.0 delete the 4 dead
+rules, byte-neutral, land immediately" is **NOT byte-neutral** — it breaks the legacy build (verified: `CS0426`).
+The `SUB_*` tokens are likewise shared with the legacy path. **Consequence:** the SUBSCRIPT machinery cannot be
+fully removed from the SHARED grammar until the frozen legacy compiler is retired (**PHASE 15 / G8**), unless D10
+is willing to (a) modify the frozen oracle (against its "differential net until cut-over" purpose) or (b) fork the
+grammar so greenfield and legacy diverge (against singular-pattern). This re-sequences D10 to sit AFTER — or to
+land ON — the G8 cut, not inside PHASE 04's byte-neutral window.
+
+### 9.4 ⛔ THE OPEN DECISION (owner) — does COBOL.NET preserve ISO §8.3.5 space-separated lists?
+This is the gating question; §9.5's staging depends on the answer.
+- **Option A — spec-faithful (recommended): keep space-separated subscript/argument lists.** Then a **scoped
+  WS-significance mechanism is unavoidable** (an island-grammar region, or a `WS`-non-skipping lexer predicate
+  active only inside a data-name's `(...)` tail). "Full removal of the mode" then *reduces* to: **replace the flat
+  uninterpreted `SUB_*` stream + the hand-rolled C# re-parsers with INTERPRETED grammar rules**, while retaining a
+  minimal WS/`sign`-adjacency mechanism. This achieves the owner's REAL goal (real parse nodes, delete the ~250-line
+  re-parser, unify arg capture) — it does not achieve a literal "zero lexer mechanism," because the spec forbids it.
+- **Option B — narrow the language: require commas.** The mode can be fully removed, but `X(I J)` / `MAX(A B)`
+  become parse errors — a **spec violation** the NIST corpus + INV-1-strong would flag. Not recommended.
+- **Option C — interpret in-mode.** Keep the mode but give it real grammar rules (parse `SUB_*` structurally
+  instead of the flat `subToken+`), deleting only the C# re-parsers. Smaller, but leaves the mode.
+
+**Recommendation: Option A** — it honors the spec (hard-invariant 3) and still deletes the hand-rolled parsers,
+which is the substance of the owner's directive. Frame "fully remove" as "remove the uninterpreted flat-stream +
+C# re-parse," retaining the smallest possible lexer assist the spec compels.
+
+### 9.5 Staged plan (each stage: full legacy guard + INV-1-strong; author the step-by-step at execution)
+Sequenced because the LPAREN mode-entry is an all-or-nothing decision — the interpreted rules cannot coexist with
+the live mode, so the mode flips as the last grammar step, and (per §9.3) that flip waits on the legacy retirement
+or a G8-coordinated cut.
+- **D10.1** — this design note (done) + the §9.4 decision + a NEW characterization/conformance corpus exercising
+  every enumerated form (multi-subscript space/comma lists, relative offsets, signed literals, ref-mod, qualified
+  subscripts, nested FUNCTION args, string/national/boolean args, `table(ALL)`) captured BEFORE the change.
+- **D10.2** — converge ALL ref-mod onto the existing DEFAULT-mode `refModPart` path; delete the ref-mod branch of
+  `InterpretSubscripts`.
+- **D10.3** — introduce the interpreted subscript grammar rule (per §9.4's answer) + rewrite
+  `ReferenceResolver`'s subscript interpreters over real nodes.
+- **D10.4** (the big one) — reunify `functionCall` onto `argumentList` + **rewrite the `StatementBinder.Intrinsics.cs`
+  recursive-descent `SUB_*` parser** over real `argument`/`arithmeticExpression` nodes; migrate `Udf`/`Emitter`.
+- **D10.5** — delete the SUBSCRIPT-mode block + the `LPAREN` entry action + `PreviousTokenCouldBeDataName` +
+  reconcile the Group-A drift test (the `subscriptTrigger` column goes dead) — **gated on §9.3** (legacy retirement
+  / G8 coordination, since `SUB_*`/`SubscriptEntryContext` are legacy-shared).
+
+**Metric:** token equivalence is NOT the goal (tokens change by design) — prove OUTPUT/behavior equivalence via the
+D10.1 corpus + greenfield battery + FULL legacy guard 353 MATCH + INV-1-strong 349/349 at every stage.
