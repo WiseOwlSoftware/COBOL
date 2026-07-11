@@ -224,9 +224,11 @@ public sealed class DataItem
     /// <summary>The canonical storage representation of this ELEMENTARY item (null for a group — a group emits as a
     /// record struct and answers its image facts recursively over children). Computed ONCE by
     /// <see cref="Passes.StorageFormPass"/> after all facts are known (rearchitecture PHASE 05; DESIGN-data-model
-    /// §2.1). Mutable during the D0 parallel-SSOT phase; becomes init-only at Step 10 when <see cref="StoreAsImage"/>
-    /// and the recursive image-fact properties are deleted.</summary>
-    public Model.StorageForm? Storage { get; set; }
+    /// §2.1); the pass (classification + the crossing-form harmonize) is the SOLE writer — the internal setter
+    /// documents the single-writer discipline. (The design's init-only shape is not expressible with the
+    /// pass-assignment pattern; recorded as a P5.10 deviation. Reading before the group tail answers null — the
+    /// <see cref="StoreAsImage"/> projection then answers false, the flag's early value.)</summary>
+    public Model.StorageForm? Storage { get; internal set; }
 
     /// <summary>The level-66 RENAMES entries attached to this record (a 01/FD/SD owner). They are NOT storage
     /// children (they add no storage, ISO §13.18.45) — kept here so layout / struct emission ignores them while
@@ -333,9 +335,7 @@ public sealed class DataItem
         IsDynamicTable ? $"CobolDynTable<{ElementType}>"
         : Occurs is not null ? ElementType + "[]"
         : ElementType;
-
-    /// <summary>Back-compat alias of <see cref="ElementType"/> (the per-occurrence type).</summary>
-    public string ClrType => ElementType;
+    // (The ClrType back-compat alias is DELETED — P5.10: zero readers, grep-proven by the topology audit.)
 
     /// <summary>
     /// Convert a COBOL data-name to a valid, collision-safe C# identifier: hyphens → underscores, a leading digit

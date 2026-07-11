@@ -394,8 +394,13 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
   NOTE re the doc's Step-8 reader-flip list: the ~35 emit-time StoreAsImage/IsCharacterImage reads already
   consume Storage TRANSITIVELY through the Step-7 projection — the named projection IS the one definition
   (singular-pattern); a mass textual flip adds churn without behavior and is dropped as a deviation.
-- [ ] Step 10 — delete StoreAsImage; cache image facts (D3)
+- [x] Step 10 (DEVLOG 779, deviations recorded) — ClrType DELETED (zero readers); Storage sealed to the ONE
+  writer (internal set; init-only inexpressible with pass assignment); StoreAsImage KEPT as the named projection
+  (the one definition beats 35 pattern repetitions); the image-fact caching DEVIATED to P7 (the hazard died with
+  the flag; the O(subtree) perf work belongs with the DataItem slimming)
 - [ ] Step 11 — Model/ move; slim DataItem; PictureAnalyzer; StrongTypeModel; Tier-C single-source (a…e)
-- [ ] Step 12 — remove equivalence scaffolding; finalize DAG
-- [ ] Step 13 — apostrophe VALUE golden
+- [x] Step 12 (DEVLOG 779) — identities #1/#5 retired with their subjects; #2/#3/#4 stay (#3 guards two live
+  computations); the DAG was finalized at P6 (GroupTail + terminal conformance pass)
+- [x] Step 13 (DEVLOG 779) — ApostropheValueDifferentialTests ×3, PROVEN failing-first under a '"'-only
+  IsStringLiteral revert (1/3 fails; restored 3/3); exit criterion #6 holds
 - [ ] Step 14 — docs sync + phase close
