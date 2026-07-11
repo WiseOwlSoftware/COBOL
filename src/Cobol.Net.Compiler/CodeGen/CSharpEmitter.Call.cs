@@ -135,13 +135,11 @@ public sealed partial class CSharpEmitter
                      .Concat(classes.SelectMany(c => new[] { c.Data, c.FactoryData })))
             foreach (var (temp, model) in d.CompilerTempClones)
                 temp.StoreAsImage = model.StoreAsImage;
-        foreach (var cls in classes) { MarkStoreAsImage(cls.Data); MarkStoreAsImage(cls.FactoryData); }
-        foreach (var unit in units) MarkStoreAsImage(unit.Data);
-        OoHarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
-
-        // PHASE-05 Step 5 (D1 prove): collect WholeGroupReferencedV2 from the bound tree + the structural FILE/formal
-        // sources, in PARALLEL with the legacy mid-resolve WholeGroupReferenced — UsageCollectionPass.Verify proves
-        // them set-equal corpus-wide before Step 7 flips the owner and deletes ReferenceResolver's mid-resolve writes.
+        // PHASE-05 Step 5 (DESIGN §2.5 step 9): collect WholeGroupReferenced from the BOUND tree (its whole-group
+        // operands) + the program/OO boundary formals — the CORRECT set. Replaces ReferenceResolver's over-inclusive
+        // mid-resolve mutation (deleted): the resolver added ANY resolved group (CORR operands, SEARCH tables,
+        // qualifier groups, IX keys) that is never a whole-image operand. Runs BEFORE MarkStoreAsImage, which flips
+        // each whole-referenced group's numeric-DISPLAY leaves to image storage (§14.9 MOVE GR4). (DEVLOG 752/753.)
         foreach (var cls in classes)
         {
             UsageCollectionPass.Collect(cls.Data, [cls.Bound], OoFormalGroups(cls.Symbol.Methods));
@@ -151,6 +149,10 @@ public sealed partial class CSharpEmitter
 
         static IEnumerable<DataItem> OoFormalGroups(IEnumerable<OoMethodSymbol> methods) =>
             methods.SelectMany(m => m.Formals.Select(f => f.Item).Concat(m.Returning is { } r ? [r] : Array.Empty<DataItem>()));
+
+        foreach (var cls in classes) { MarkStoreAsImage(cls.Data); MarkStoreAsImage(cls.FactoryData); }
+        foreach (var unit in units) MarkStoreAsImage(unit.Data);
+        OoHarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
 
         // PHASE-05 Step 2 (D0, prove-then-delete): compute the canonical StorageForm for every item ONCE, HERE —
         // the FINAL post-procedure-bind, post-temp-resync, post-MarkStoreAsImage, post-OO-harmonize state where every
@@ -450,16 +452,11 @@ public sealed partial class CSharpEmitter
         };
         binder.ConfigureEc(_turnState, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
         unit.Bound = binder.Bind(unit.Ctx);
-
-        // Resolve every boundary-copied formal (and the RETURNING item) ONCE during the bind phase: resolving a
-        // GROUP registers it as whole-group-referenced, so the later MarkStoreAsImage pass flips its
-        // numeric-DISPLAY leaves to image storage BEFORE any field emission — the formal's FromImage/AsImage
-        // round trip then type-checks (ISO §14.9 MOVE GR4; COBOLNET_DESIGN §14.4).
-        foreach (var f in data.LinkageFormals)
-            if (!f.CarrierResident)
-                unit.Refs.ResolveItem(f.Item);
-        if (data.LinkageReturning is { } returning)
-            unit.Refs.ResolveItem(returning);
+        // The boundary-copied GROUP formals + RETURNING item are registered whole-group-referenced (so MarkStoreAsImage
+        // flips their numeric-DISPLAY leaves to image storage, and the formal's FromImage/AsImage round trip
+        // type-checks — ISO §14.2.3 GR8 / §14.9 MOVE GR4) by the post-bind UsageCollectionPass, from data.LinkageFormals
+        // + data.LinkageReturning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which
+        // ReferenceResolver no longer performs) — deleted, PHASE-05 Step 5.
     }
 
     /// <summary>Build the compilation group's user-function signature table (name → bound RETURNING item +

@@ -274,7 +274,7 @@ public sealed class ReferenceResolver(DataBinder data)
             // before the null-lenient OffsetOf.
             if (sc.BasedPointerField is { } addr)
                 offset = $"CobolPtr.OffsetOf({addr}) + {offset}";
-            if (item.IsGroup) data.WholeGroupReferenced.Add(item);
+            // (whole-group image analysis moved OUT of resolve to the post-bind UsageCollectionPass, PHASE-05 Step 5)
             return new RedefViewPlace(backing, offset, item.ImageWidth, item);
         }
         // A Tier-A view forwards to the canonical (a numeric view reinterprets the shared unscaled value via its own
@@ -295,9 +295,9 @@ public sealed class ReferenceResolver(DataBinder data)
             }
         // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath null → loud.
         if (AccessPath(accessItem, indexExprs) is not { } path) return null;
-        // A group name can only be used as a whole operand (MOVE/DISPLAY/compare) — record it so the whole-group
-        // analysis can decide which numeric-DISPLAY leaves must store their character image (§14.9 MOVE GR4).
-        if (item.IsGroup) data.WholeGroupReferenced.Add(item);
+        // (Resolving a group no longer mutates WholeGroupReferenced — the "which groups are whole-image operands"
+        // analysis is the post-bind UsageCollectionPass, which walks the BOUND tree and collects ONLY true
+        // whole-group operands, not every RESOLVED group. PHASE-05 Step 5, §14.9 MOVE GR4.)
         var member = new MemberPlace(path, item);
         // A group whose subtree contains an occurs-depending table is an ODO operand (ISO §13.18.38 GR8): wrap it so
         // the sending slice / receiving direction-split applies. data-name-1 is resolved post-build, declared anywhere

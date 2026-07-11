@@ -57,13 +57,6 @@ public sealed class StorageFormEquivalenceTests
         foreach (var b in binders)
         {
             divergences.AddRange(StorageFormPass.Verify(b));
-            // PHASE-05 Step 5 (D1 prove, owner-directed redesign): the correct bound-tree set (V2) flips a strict
-            // SUBSET of the legacy over-inclusive set's numeric-DISPLAY leaves — it NEVER adds spurious image storage
-            // and never misses a leaf legacy caught. So "v2-flips-not-legacy" MUST be empty (the strong invariant);
-            // "legacy-flips-not-v2" is EXPECTED (legacy over-flips CORR operands / qualifier / SEARCH-table leaves,
-            // output-neutral — verified by the greenfield runtime goldens at the Step-5 flip).
-            divergences.AddRange(UsageCollectionPass.EffectDiff(b).Where(d => d.StartsWith("v2-flips-not-legacy"))
-                .Select(d => "OVER-FLIP " + d));
         }
         return (divergences, true);
     }

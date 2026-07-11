@@ -121,10 +121,18 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔ RESUME AT: PHASE 05 Step 5** — `UsageCollectionPass` owns `WholeGroupReferenced` (parallel, proven
-> set-equal; DESIGN Phase D1 prove half; still additive/prove-then-delete). PHASE-05 progress:
-> **Step 0 (baseline) + Step 1 (`CobolLiteral`, the apostrophe-`VALUE 'x'` miscompile fix, DEVLOG 747) + Step 2
-> (DEVLOG 749) + Step 3 (DEVLOG 750) + Step 4 DONE (DEVLOG 751)**. Step 4 — `Binding/Model/RecordLayout.cs`, the ONE
+> §9.5). **⛔ RESUME AT: PHASE 05 Step 6/7** — Step 6 the prove-then-delete GATE (battery green = green light) → Step 7
+> (delete `MarkStoreAsImage` + the emitter→binder write-back; `StoreAsImage` → read-only projection of `Storage`).
+> ⚠ **OWNER STANDING RULE (2026-07-10, [[feedback_no_workarounds_root_cause]]): never workaround/hack — REDESIGN for the
+> best; AND retroactively audit prior work for similar shortcuts.** PHASE-05 progress:
+> **Steps 0–4 + Step 5 DONE (DEVLOG 747–753)**. Step 5 was REDESIGNED per that rule (the reflective-walk + keep-mid-resolve
+> attempts were rejected as shortcuts): `UsageCollectionPass` — an explicit TYPED bound-tree walk (NO reflection) — now
+> OWNS `WholeGroupReferenced` with the CORRECT set (every true whole-image operand position); legacy's over-inclusive
+> `ReferenceResolver` mid-resolve mutation is DELETED (it added every RESOLVED group — CORR operands, SEARCH/qualifier
+> groups, IX keys, INITIALIZE/ACCEPT — none whole-image). Verified by OUTPUT (the owner's directive), which caught a
+> visitor gap (`DynTablePlace`/OCCURS-DYNAMIC over-collect → fixed) + one output-neutral emit change (`char_initialize`
+> re-baselined). ⚠ **PENDING: audit ALL prior Phase-5 work (Steps 1–4) for similar workarounds — esp. Step 4's
+> `OffsetOf`/`KeyIndex` deferral.** Step 4 — `Binding/Model/RecordLayout.cs`, the ONE
 > §2.6 width authority: `ImageWidth` (reads the Step-2 StorageForm; `StorageFormPass.ImageWidthOf` consolidated onto it)
 > + `PhysicalWidth` (tier-aware, mirrors `OdoModel.PhysicalWidth`); `StorageFormPass.Verify` gained identity **#5**
 > (`RecordLayout.PhysicalWidth == OdoModel.PhysicalWidth` per group, corpus-wide) — the §5.4 drift guard. ADDITIVE +

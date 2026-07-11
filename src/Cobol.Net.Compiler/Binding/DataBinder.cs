@@ -61,19 +61,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     public Dictionary<string, DataItem> TypeDecls { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// Group items referenced as a whole (non-elementary) operand anywhere in the PROCEDURE DIVISION — recorded by
-    /// <see cref="ReferenceResolver"/> as it resolves each reference. A group name can only be used as a whole (MOVE
-    /// to/from it, DISPLAY it, compare it), so any resolved group reference is a whole-group operand. The bind-time
+    /// Group items used as a WHOLE character-image operand (MOVE/DISPLAY/compare/ACCEPT/record I-O/whole-group
+    /// CORRESPONDING pair/boundary formal) — collected AFTER binding by <see cref="Passes.UsageCollectionPass"/>'s
+    /// typed walk of the bound tree (+ the structural FILE-record and boundary-formal sources), NOT by
+    /// <see cref="ReferenceResolver"/> mid-resolve (which over-collected every RESOLVED group; PHASE-05 Step 5). The
     /// <c>MarkStoreAsImage</c> pass consults this to decide which numeric-DISPLAY leaves must store their character
     /// image (ISO §14.9 MOVE GR4 — a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).
     /// </summary>
     public HashSet<DataItem> WholeGroupReferenced { get; } = [];
-
-    /// <summary>PHASE-05 Step 5 (DESIGN §2.5 step 9, D1 prove half): the PARALLEL whole-group set computed by
-    /// <see cref="Passes.UsageCollectionPass"/> from the BOUND tree (+ the structural FILE/OO sources) instead of by
-    /// <see cref="ReferenceResolver"/>'s mid-resolve mutation. Proven set-equal to <see cref="WholeGroupReferenced"/>
-    /// corpus-wide BEFORE Step 7 flips the owner and deletes the mid-resolve writes. Not consumed by anything yet.</summary>
-    public HashSet<DataItem> WholeGroupReferencedV2 { get; } = [];
 
     /// <summary>The fully-parsed OPTIONS paragraph (ISO §11.9), program-level context for every later pass — the
     /// binder applies DEFAULT ROUNDED today (a bare ROUNDED phrase uses <see cref="OptionsModel.DefaultRounding"/>);

@@ -273,15 +273,9 @@ public sealed partial class DataBinder
                     + "or a class of the compilation group (ISO §14.2.2 SR7–SR9; interfaces are a later "
                     + "refinement)");
             }
-        // A GROUP formal/RETURNING item crosses the boundary as its character image (FromImage/AsImage) —
-        // register it whole-group-referenced NOW so MarkStoreAsImage flips its numeric-DISPLAY leaves to
-        // image storage and untouched caller bytes round-trip unchanged (§14.2.3 GR8; the review's
-        // spaces→zeros corruption finding). Mirrors the program-formal registration in CallBindUnit.
-        foreach (var f in m.Formals)
-            if (f.Item.IsGroup)
-                WholeGroupReferenced.Add(f.Item);
-        if (m.Returning is { IsGroup: true } retg)
-            WholeGroupReferenced.Add(retg);
+        // A GROUP formal/RETURNING item crosses the boundary as its character image (§14.2.3 GR8) and so must be
+        // whole-group-referenced (its numeric-DISPLAY leaves image-stored, untouched caller bytes round-tripping) —
+        // registered post-bind by UsageCollectionPass (PHASE-05 Step 5), which receives these formals from the emitter.
     }
 
     /// <summary>The C# parameter name for a formal: <c>__</c> + the sanitized COBOL name, uniquified within

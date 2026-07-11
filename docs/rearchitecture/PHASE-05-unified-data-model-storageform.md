@@ -7,17 +7,19 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: IN PROGRESS @ Step 5 PROVE done (typed visitor validated) — Step 5 FLIP (wire + re-baseline) NEXT
-> Step 5 was REDESIGNED per the owner directive (never workaround — the earlier reflective-walk + keep-mid-resolve
-> attempts were rejected as shortcuts, DEVLOG 752). The correct design: an explicit TYPED `UsageCollectionPass` walk of
-> the (faithful) bound tree collects the group `Place.Item` at every whole-operand position. **Key finding
-> (`wf_fe251cf8-9d6`, compile-test-proven):** the bound tree is the CORRECT oracle; legacy's `ReferenceResolver`
-> mid-resolve set OVER-collected (CORR operands, SEARCH tables, qualifier groups, IX keys, ACCEPT-table — all
-> resolved-but-never-whole-image, output-neutral). The correct set flips a strict SUBSET of legacy's numeric-DISPLAY
-> leaves (**zero `v2-flips-not-legacy` corpus-wide**; the difference is confined to 3 output-neutral programs
-> NC202A/207A/208A). Verification is by OUTPUT, not legacy set-equality (the emitted C# changes for those 3 programs —
-> re-baselined at the flip with the runtime-golden proof). RESUME: the Step-5 FLIP — wire `UsageCollectionPass` →
-> `WholeGroupReferenced`, delete `ReferenceResolver.cs:277,300`, verify runtime goldens, re-baseline the 3 snapshots.
+> ## STATUS: IN PROGRESS @ Step 5 DONE (whole-group collection REDESIGNED + flipped) — Step 6/7 NEXT
+> Step 5 was REDESIGNED per the owner directive (never workaround — the reflective-walk + keep-mid-resolve attempts were
+> rejected as shortcuts; DEVLOG 752/753). `UsageCollectionPass` (an explicit TYPED bound-tree walk, NO reflection) now
+> OWNS `WholeGroupReferenced`, collecting the group `Place.Item` at every true whole-image operand position; the
+> over-inclusive `ReferenceResolver` mid-resolve mutation is DELETED. **Key finding (`wf_fe251cf8-9d6`, compile-test):**
+> the bound tree is the CORRECT oracle; legacy over-collected every RESOLVED group (CORR operands, SEARCH/qualifier
+> groups, IX keys, INITIALIZE/ACCEPT — none whole-image). Verified by OUTPUT across the full battery, which CAUGHT a
+> real visitor gap (a `DynTablePlace` OCCURS-DYNAMIC element over-collected → `dyn_nested_group_move` regressed; fixed
+> by skipping `DynTablePlace` — a dynamic element is a typed `CobolDynTable<T>` handled by the table codec) and one
+> output-neutral emit change (`char_initialize` `WS_N` `string`→`long`, snapshot re-baselined with runtime proof).
+> Battery: conformance **3157** · unit **258** · characterization **32** · FULL legacy guard NIST 353 MATCH. RESUME: Step
+> 6 (the prove-then-delete GATE — battery green is the green light) → Step 7 (delete `MarkStoreAsImage` + the
+> emitter→binder write-back; `StoreAsImage` → read-only projection of `Storage`).
 >
 > ## (prior) STATUS @ Step 4 DONE
 > Steps 0–4 landed 2026-07-10 (DEVLOG 747, 749, 750, 751). Step 4 (DESIGN §2.6): `Binding/Model/RecordLayout.cs` — the
@@ -356,7 +358,7 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
 - [x] Step 2 — StorageForm (9 cases; DESIGN §2.1 amended: Width field) + StorageFormPass.Compute (parallel, D0) + StorageFormEquivalenceTests (NIST corpus + crafted, 0 divergences); conformance 3157 · unit 254 · characterization 32 byte-exact — DEVLOG 749
 - [x] Step 3 — IBindPass scaffolding + ValidateDag — `IBindPass.cs` (PassPhase enum + interface + BindPass record) + `BindPipeline.cs` (Build ordered list [16 resolve + 3 tail markers] + ValidateDag monotone assert); BindResolve pipeline-driven (Produces<=FilesResolved prefix); inline FILE loop → MarkFileRecordImageLeaves(); 12 methods private→internal; BindPipelineTests ×4; conformance 3157 · unit 258 · characterization 32 byte-exact; exit criterion #5 satisfied — DEVLOG 750
 - [x] Step 4 — RecordLayout parallel + width assert — `Binding/Model/RecordLayout.cs` (ImageWidth [reads StorageForm; ImageWidthOf consolidated onto it] + PhysicalWidth [tier-aware, mirrors OdoModel.PhysicalWidth]); Verify identity #5 (RecordLayout.PhysicalWidth == OdoModel.PhysicalWidth per group, corpus-wide) — §5.4 drift guard. ADDITIVE, test-path only. ⚠ SCOPING: OffsetOf/KeyIndexByPosition DEFERRED to Step 8 (Sort=PhysicalWidth vs Keyed=ImageWidth increment divergence — cannot pure-port-prove both). conformance 3157 · unit 258 · characterization 32 byte-exact — DEVLOG 751
-- [ ] Step 5 — UsageCollectionPass parallel (D1 prove)
+- [x] Step 5 — UsageCollectionPass owns WholeGroupReferenced (REDESIGNED per owner: the correct set from an explicit typed bound-tree walk, not legacy's over-inclusive mid-resolve mutation which is DELETED); DynTablePlace skipped (dynamic elements use the table codec); char_initialize snapshot re-baselined (output-neutral WS_N string→long); verified by OUTPUT (conformance 3157 runtime · characterization 32 · guard 353 MATCH) — DEVLOG 752/753
 - [ ] Step 6 — prove-then-delete GATE green
 - [ ] Step 7 — delete MarkStoreAsImage + write-backs (D1 delete)
 - [ ] Step 8 — flip readers to Storage/RecordLayout (a…e)

@@ -27,23 +27,26 @@ namespace CobolNet.Binding.Passes;
 /// </summary>
 internal static class UsageCollectionPass
 {
-    /// <summary>Fill <paramref name="data"/>'s <see cref="DataBinder.WholeGroupReferencedV2"/> from the structural
-    /// sources on <paramref name="data"/> (FILE record areas + non-carrier-resident program formals) +
-    /// <paramref name="extraFormalGroups"/> (the OO method USING/RETURNING group items) + the whole-group operands of
-    /// the bound <paramref name="programs"/>.</summary>
+    /// <summary>Fill <paramref name="data"/>'s <see cref="DataBinder.WholeGroupReferenced"/> from the whole-group
+    /// operands of the bound <paramref name="programs"/> + the boundary-copied program/OO formals
+    /// (<paramref name="extraFormalGroups"/> is the OO method USING/RETURNING group items). The FILE record areas are
+    /// added earlier, at bind time, by <c>DataBinder.MarkFileRecordImageLeaves</c> (the SORT binder needs their image
+    /// flags DURING binding), so they are NOT re-added here. Runs once per binder, after procedure binding, before
+    /// <c>MarkStoreAsImage</c> reads the set.</summary>
     public static void Collect(DataBinder data, IEnumerable<BoundProgram?> programs,
         IEnumerable<DataItem>? extraFormalGroups = null)
     {
-        var set = data.WholeGroupReferencedV2;
+        var set = data.WholeGroupReferenced;
 
-        // FILE record areas — whole-image-filled by READ/WRITE/RETURN (§9.1.2), even if never named as a whole.
-        foreach (var f in data.Files)
-            foreach (var rec in f.Records)
-                if (rec.IsGroup) set.Add(rec);
-
-        // Boundary-copied program formals — a group formal crosses as its character image (§14.2.3 GR8).
+        // Boundary-copied program formals — a group formal crosses as its character image (§14.2.3 GR8). Formerly
+        // registered by the pre-emit LinkageFormals resolve (through ReferenceResolver, now deleted).
         foreach (var lf in data.LinkageFormals)
             if (!lf.CarrierResident && lf.Item.IsGroup) set.Add(lf.Item);
+
+        // The program/function PROCEDURE DIVISION RETURNING group item crosses the activation boundary as its image
+        // too (its GOBACK-RETURNING / caller copy-out is a whole-group MOVE) — formerly registered by the pre-emit
+        // returning resolve (through ReferenceResolver, now deleted).
+        if (data.LinkageReturning is { IsGroup: true } ret) set.Add(ret);
 
         // OO method USING/RETURNING group items (supplied by the caller — not on data as LinkageFormals).
         if (extraFormalGroups is not null)
@@ -52,33 +55,6 @@ internal static class UsageCollectionPass
 
         var v = new Visitor(set);
         foreach (var prog in programs) v.Program(prog);
-    }
-
-    /// <summary>The EMIT-RELEVANT difference: the numeric-DISPLAY leaves the whole-group image promotion
-    /// (<c>MarkStoreAsImage</c>) flips under the legacy set vs the V2 set. A set divergence that touches NO
-    /// numeric-DISPLAY leaf (e.g. an all-alphanumeric group key) is emit-neutral and does not appear here. This is the
-    /// change that actually alters emitted C# (a leaf's field type string↔long).</summary>
-    public static List<string> EffectDiff(DataBinder data)
-    {
-        var legacy = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        foreach (var g in data.WholeGroupReferenced) MarkLeaves(g, legacy);
-        var v2 = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
-        foreach (var g in data.WholeGroupReferencedV2) MarkLeaves(g, v2);
-        var d = new List<string>();
-        foreach (var leaf in legacy)
-            if (!v2.Contains(leaf)) d.Add($"legacy-flips-not-v2: {leaf.CobolName ?? "FILLER"}#{leaf.Uid}");
-        foreach (var leaf in v2)
-            if (!legacy.Contains(leaf)) d.Add($"v2-flips-not-legacy: {leaf.CobolName ?? "FILLER"}#{leaf.Uid}");
-        return d;
-
-        static void MarkLeaves(DataItem item, HashSet<DataItem> acc)
-        {
-            foreach (var c in item.Children)
-            {
-                if (c.IsGroup) MarkLeaves(c, acc);
-                else if (c.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display }) acc.Add(c);
-            }
-        }
     }
 
     /// <summary>The typed bound-tree walk. Every container that can hold a whole-group operand OR a nested statement is
@@ -129,7 +105,11 @@ internal static class UsageCollectionPass
                     List(x.InvalidKey?.Invalid); List(x.InvalidKey?.NotInvalid); break;
                 case BoundKeyedWrite x: P(x.Record); Op(x.From); List(x.InvalidKey?.Invalid); List(x.InvalidKey?.NotInvalid); break;
                 case BoundKeyedRewrite x: P(x.Record); Op(x.From); List(x.InvalidKey?.Invalid); List(x.InvalidKey?.NotInvalid); break;
+                case BoundKeyedDelete x: List(x.InvalidKey?.Invalid); List(x.InvalidKey?.NotInvalid); break;
+                case BoundKeyedStart x: P(x.Operand); List(x.InvalidKey?.Invalid); List(x.InvalidKey?.NotInvalid); break;
+                case BoundKeyedDeleteFile x: List(x.OnException); List(x.NotOnException); break;
                 case BoundReturn x: P(x.RecordArea); P(x.Into); List(x.AtEnd); List(x.NotAtEnd); break;
+                case BoundRelease x: P(x.Record); Op(x.From); break;   // RELEASE record FROM x ≡ MOVE x TO record (§14.9.32 GR4)
                 case BoundInitialize x: foreach (var a in x.Actions) InitAct(a); break;
                 case BoundCorresponding x:
                     // ONLY the whole-moved group-side pairs (a group corresponding to a namesake) are whole-group
@@ -146,7 +126,11 @@ internal static class UsageCollectionPass
                 case BoundInvoke x:
                     P(x.Receiver); P(x.Returning);
                     if (x.Args is { } args) foreach (var a in args) P(a.Source); break;
+                case BoundInvokeUniversal x:
+                    P(x.Receiver); P(x.MethodSource); P(x.Returning);
+                    foreach (var a in x.Args) P(a.Source); break;
                 case BoundGoToDepending x: Op(x.Selector); break;
+                case BoundGoback x: P(x.ReturningSource); break;   // GOBACK RETURNING group ≡ a whole-group MOVE source
                 case BoundSetTo x: foreach (var t in x.Targets) SetT(t); break;
                 case BoundSetUpDown x: foreach (var t in x.Targets) SetT(t); break;
 
@@ -235,6 +219,12 @@ internal static class UsageCollectionPass
 
         private void P(Place? place)
         {
+            // An OCCURS DYNAMIC element access (data-model D9) stores the group as a typed element of a
+            // CobolDynTable<T> — a whole-group MOVE into it round-trips through the TABLE codec (FromImage/AsImage on
+            // the element struct), never the item-level character-image mechanism. So its numeric-DISPLAY leaves stay
+            // NATIVE and the element group is NOT whole-image-referenced (matching the legacy dynamic-resolution path,
+            // which never mutated WholeGroupReferenced for a dynamic element).
+            if (place is DynTablePlace) return;
             if (place?.Item is { IsGroup: true } g) set.Add(g);
         }
     }
