@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
@@ -715,7 +716,7 @@ public sealed partial class StatementBinder
         var lit = arg.literal();
         if (lit?.nonNumericLiteral()?.STRINGLIT() is { } sl)
         {
-            string txt = DecodeCobolString(sl.GetText());
+            string txt = CobolLiteral.Decode(sl.GetText());
             if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
                 return new BoundInvokeArg(formal, null, null, txt, WriteBack: false, ByContent: true);
             Err($"nonnumeric literal argument {sl.GetText()} for the non-alphanumeric formal "
@@ -999,11 +1000,11 @@ public sealed partial class StatementBinder
     {
         var nn = lit?.nonNumericLiteral();
         if (nn is null) return null;
-        if (nn.STRINGLIT() is { } sl) return DecodeCobolString(sl.GetText());
+        if (nn.STRINGLIT() is { } sl) return CobolLiteral.Decode(sl.GetText());
         if (nn.NATLIT() is { } nat)
         {
             string t = nat.GetText();
-            return t.Length >= 3 ? DecodeCobolString(t[1..]) : "";   // strip the N prefix, decode the body
+            return t.Length >= 3 ? CobolLiteral.Decode(t[1..]) : "";   // strip the N prefix, decode the body
         }
         if (nn.HEXLIT() is { } hex)
         {

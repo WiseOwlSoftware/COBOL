@@ -7,8 +7,8 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: NOT STARTED
-> The executing session MUST update this line to `IN PROGRESS @ step N` on each commit boundary and to `DONE` at phase end. Keep the per-step checkboxes (§7 "Step ledger") current so an interrupted session can resume.
+> ## STATUS: IN PROGRESS @ Step 1 DONE — Step 2 (StorageForm parallel SSOT, D0) NEXT
+> Step 0 (baseline) + Step 1 (`Common/CobolLiteral.cs`) landed 2026-07-10 (DEVLOG 747). Battery at head: greenfield conformance **3157** · unit **248** (+21 `CobolLiteralTests`) · characterization **32** byte-exact · FULL legacy guard NIST **353 MATCH**. The executing session MUST update this line + the §7 Step ledger on each commit boundary and set `DONE` at phase end.
 
 ---
 
@@ -306,8 +306,8 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
 
 ### Step ledger (executing session keeps this current)
 
-- [ ] Step 0 — baseline captured (counts: ____ conformance / ____ unit / NIST ____ MATCH)
-- [ ] Step 1 — CobolLiteral.Decode
+- [x] Step 0 — baseline captured (counts: 3157 conformance / 227 unit / NIST 353 MATCH) — DEVLOG 747
+- [x] Step 1 — CobolLiteral.Decode (both ISO delimiters; 3 twins + hard-coded '"' guards deleted; CobolLiteralTests ×21) — DEVLOG 747
 - [ ] Step 2 — StorageForm parallel + equivalence assert (D0)
 - [ ] Step 3 — IBindPass scaffolding + ValidateDag
 - [ ] Step 4 — RecordLayout parallel + width assert

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Binding;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
@@ -1418,9 +1419,9 @@ public sealed partial class CSharpEmitter
                 // National joins the character store (its 88-VALUE is the prefix-stripped N"…" text);
                 // a boolean parent stores its B"…" bits with the §14.6.8.6 zero pad.
                 PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
-                    $"CobolString.Store({CsLiteral(DecodeCobolString(low))}, {pic.Length})",
+                    $"CobolString.Store({CsLiteral(CobolLiteral.Decode(low))}, {pic.Length})",
                 PicCategory.Boolean =>
-                    $"CobolString.Store({CsLiteral(DecodeCobolString(low))}, {pic.Length}, justifiedRight: false, pad: '0')",
+                    $"CobolString.Store({CsLiteral(CobolLiteral.Decode(low))}, {pic.Length}, justifiedRight: false, pad: '0')",
                 PicCategory.Numeric =>
                     Narrow($"CobolNum.Store({UnscaledAtScale(low, pic.Scale)}, {pic.Scale}, {parent.Item.ProfileName})", parent.Item),
                 _ => LoudValue("string", $"SET condition '{cond.Name}' over a group parent"),

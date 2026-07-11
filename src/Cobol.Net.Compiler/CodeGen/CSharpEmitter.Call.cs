@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using CobolNet.Binding;
@@ -282,7 +283,7 @@ public sealed partial class CSharpEmitter
             else if (cpa?.COMMON() is not null) common = true;
             else if (cpa?.RECURSIVE() is not null) recursive = true;
             else if (attr.literalAttribute()?.STRINGLIT() is { } asLit
-                     && DecodeCobolString(asLit.GetText()) is { Length: > 0 } asName)
+                     && CobolLiteral.Decode(asLit.GetText()) is { Length: > 0 } asName)
                 name = asName;   // PROGRAM-ID name AS "literal" — the externalized name (ISO §11.10.4 GR1)
         }
 

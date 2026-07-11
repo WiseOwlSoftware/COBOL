@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Binding;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
@@ -95,7 +96,7 @@ public sealed partial class CSharpEmitter
     private static BoundOperand RwValueOperand(string raw)
     {
         if (raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"')
-            return new BoundStringLiteral(DecodeCobolString(raw));
+            return new BoundStringLiteral(CobolLiteral.Decode(raw));
         if (AllLiteralText(raw) is { } all) return new BoundAllLiteral(all);   // ALL "literal" (§8.3.3.6.4 F6)
         return raw.ToUpperInvariant().TrimEnd('S') switch   // ZEROS/SPACES → ZERO/SPACE
         {

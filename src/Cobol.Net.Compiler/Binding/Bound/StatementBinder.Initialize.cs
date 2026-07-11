@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -279,17 +280,17 @@ public sealed partial class StatementBinder
         if (t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase) && t.Length > 3)
         {
             string rest = t[3..].TrimStart();
-            // ALL "literal" repeats to the receiver width (§8.3.3.6.4 GR2); ALL <figurative-word> ≡ the bare word.
-            if (rest.Length >= 2 && rest[0] == '"' && rest[^1] == '"') return new BoundAllLiteral(DecodeCobolString(rest));
+            // ALL "literal" / ALL 'literal' repeats to the receiver width (§8.3.3.6.4 GR2); ALL <figurative-word> ≡ the bare word.
+            if (CobolLiteral.IsStringLiteral(rest)) return new BoundAllLiteral(CobolLiteral.Decode(rest));
             if (InitializeFigurativeKind(rest) is { } k) return new BoundFigurative(k);
         }
-        // N"…"/B"…" VALUE clauses re-produce their category-tagged literal (declaration-time validation —
-        // 0898/0900 — already ran in DataBinder; no re-gating here).
-        if (t.Length >= 3 && t[0] is 'N' or 'n' && t[1] is '"' && t[^1] == '"')
-            return new BoundStringLiteral(DecodeCobolString(t)) { Category = PicCategory.National };
-        if (t.Length >= 3 && t[0] is 'B' or 'b' && t[1] is '"' && t[^1] == '"')
-            return new BoundStringLiteral(DecodeCobolString(t)) { Category = PicCategory.Boolean };
-        if (t.Length >= 2 && t[0] == '"' && t[^1] == '"') return new BoundStringLiteral(DecodeCobolString(t));
+        // N"…"/B"…" (and the apostrophe forms) VALUE clauses re-produce their category-tagged literal (declaration-time
+        // validation — 0898/0900 — already ran in DataBinder; no re-gating here). Test the prefix letter, then the codec.
+        if (t.Length >= 3 && t[0] is 'N' or 'n' && CobolLiteral.IsStringLiteral(t))
+            return new BoundStringLiteral(CobolLiteral.Decode(t)) { Category = PicCategory.National };
+        if (t.Length >= 3 && t[0] is 'B' or 'b' && CobolLiteral.IsStringLiteral(t))
+            return new BoundStringLiteral(CobolLiteral.Decode(t)) { Category = PicCategory.Boolean };
+        if (CobolLiteral.IsStringLiteral(t)) return new BoundStringLiteral(CobolLiteral.Decode(t));
         return new BoundNumericLiteral(t);
     }
 

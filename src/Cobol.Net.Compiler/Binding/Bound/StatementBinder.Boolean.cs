@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
@@ -78,11 +79,11 @@ public sealed partial class StatementBinder
         if (nn?.BOOLLIT() is { } bl)
             // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
             // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
-            return new BoundBoolLiteral(DecodeCobolString(bl.GetText()));
+            return new BoundBoolLiteral(CobolLiteral.Decode(bl.GetText()));
         if (nn?.figurativeConstant() is { } fig)
         {
             if (fig.ZERO() is not null) return new BoundBoolAll("0");   // figurative ZERO — boolean zeros by context (§8.3.3.6.4 GR4)
-            if (fig.BOOLLIT() is { } allBl) return new BoundBoolAll(DecodeCobolString(allBl.GetText()));   // ALL B"…"
+            if (fig.BOOLLIT() is { } allBl) return new BoundBoolAll(CobolLiteral.Decode(allBl.GetText()));   // ALL B"…"
             return new BoundBoolError($"figurative constant '{fig.GetText()}' in a boolean expression "
                 + "(ISO §8.8.2 — only ZERO and ALL B\"…\" are boolean figuratives)");
         }

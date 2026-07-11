@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using Antlr4.Runtime.Tree;
 using CobolNet.Runtime;
 using CobolNet.Editions;
@@ -238,7 +239,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // STOP RUN … WITH STATUS (§14.9.42) is a COBOL-2002 introduction; the edition gate (StopRunStatus2002)
         // moved to the post-bind VersionConformancePass (Step 14d), reading BoundStop.HasStatusPhrase.
         return stop.literal() is { } slit
-            ? new BoundStopLiteral(DecodeCobolString(slit.GetText()))
+            ? new BoundStopLiteral(CobolLiteral.Decode(slit.GetText()))
             : new BoundStop { HasStatusPhrase = stop.stopStatusPhrase() is not null };
     }
 
@@ -1105,7 +1106,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         var nn = lit.nonNumericLiteral();
         if (nn?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
-        if (nn?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
+        if (nn?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
         // National N"…" (§8.3.3.5) / boolean B"…" (§8.3.3.4) literals — LIVE (Phase 4a): the introduction
         // gate rides every occurrence (0900 below 2002); content/size guards are the 0814 band. The lexer
         // already restricts a BOOLLIT's content to [01]+ (CobolLexer.g4).
@@ -1122,7 +1123,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         // NationalData2002 (the N"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
         // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
-        string value = DecodeCobolString(raw);
+        string value = CobolLiteral.Decode(raw);
         if (value.Length > 8191)
             data.Edition.Error("COBOLNET0814", $"national literal of {value.Length} positions exceeds the "
                 + "8,191-position maximum (ISO §8.3.3.5 SR1)");
@@ -1139,7 +1140,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
         // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
-        string value = DecodeCobolString(raw);
+        string value = CobolLiteral.Decode(raw);
         if (value.Length > 8191)
             data.Edition.Error("COBOLNET0814", $"boolean literal of {value.Length} positions exceeds the "
                 + "8,191-position maximum (ISO §8.3.3.4 SR1)");
@@ -1151,7 +1152,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// figurative repeated to width, identical to the bare word. (ALL HEXLIT / NULL stay a later slice.)</summary>
     private static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
     {
-        if (fig.STRINGLIT() is { } allLit) return new BoundAllLiteral(DecodeCobolString(allLit.GetText()));
+        if (fig.STRINGLIT() is { } allLit) return new BoundAllLiteral(CobolLiteral.Decode(allLit.GetText()));
         if (fig.ZERO() is not null) return new BoundFigurative('Z');
         if (fig.SPACE() is not null) return new BoundFigurative('S');
         if (fig.HIGH_VALUE() is not null) return new BoundFigurative('H');
@@ -1740,7 +1741,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundOperand ComparisonOperandOf(Core.ValueOperandContext? vo)
     {
         if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
-        if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(DecodeCobolString(s.GetText()));
+        if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
         if (vo?.nonNumericLiteral()?.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
         if (vo?.nonNumericLiteral()?.BOOLLIT() is { } bl) return BooleanLiteralOperand(bl.GetText());
         if (vo?.arithmeticExpression() is { } expr)
@@ -1833,21 +1834,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             if (child is Core.DataReferenceContext dref) yield return dref;
             else foreach (var inner in DataRefs(child)) yield return inner;
         }
-    }
-
-    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) — or a national/boolean
-    /// literal (<c>N"…"</c>/<c>B"…"</c>, ISO §8.3.3.5/§8.3.3.4: the prefix letter is part of the token) — to
-    /// its character value. One of THREE deliberate per-layer twins (DataBinder.DecodeString /
-    /// EmitText.DecodeCobolString — Binding must not depend on CodeGen.Emit); keep the three in sync.</summary>
-    private static string DecodeCobolString(string raw)
-    {
-        if (raw.Length >= 3 && raw[0] is 'N' or 'n' or 'B' or 'b' && raw[1] is '"' or '\'')
-            raw = raw[1..];
-        // Unwrap EITHER delimiter (ISO §8.3.1.2 — the apostrophe form is equal-standing; doubled opening
-        // quote = one embedded quote). Keep in sync with the EmitText/DataBinder twins.
-        return raw.Length >= 2 && raw[0] is '"' or '\'' && raw[^1] == raw[0]
-            ? raw[1..^1].Replace(new string(raw[0], 2), raw[0].ToString())
-            : raw;
     }
 
     private static IEnumerable<IParseTree> Children(IParseTree node)

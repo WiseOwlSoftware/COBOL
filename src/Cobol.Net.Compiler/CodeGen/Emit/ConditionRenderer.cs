@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Binding;
 using CobolNet.Binding.Bound;
 
@@ -297,7 +298,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmissionContext ctx
     private string StringMembershipValue(string raw, int width) =>
         EmitText.AllLiteralText(raw) is { } lit ? EmitText.RepeatToWidth(lit, width)
         : FigurativeFillChar(raw) is { } fill ? new string(fill, width)
-        : EmitText.DecodeCobolString(raw);
+        : CobolLiteral.Decode(raw);
 
     /// <summary>The fill character of a bare figurative-constant word (with or without a leading <c>ALL</c> —
     /// the same figurative either way, ISO §8.3.1.2), or null when the text is not a figurative word. The fill

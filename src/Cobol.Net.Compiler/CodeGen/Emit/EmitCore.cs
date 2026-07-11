@@ -126,21 +126,6 @@ internal static class EmitText
         _ => "' '",
     };
 
-    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) — or a national/boolean
-    /// literal (<c>N"…"</c>/<c>B"…"</c>, ISO §8.3.3.5/§8.3.3.4: the prefix letter is part of the token) — to its
-    /// character value. Safe unconditionally: no other raw operand shape starts with a letter immediately
-    /// followed by a quote.</summary>
-    public static string DecodeCobolString(string raw)
-    {
-        if (raw.Length >= 3 && raw[0] is 'N' or 'n' or 'B' or 'b' && raw[1] is '"' or '\'')
-            raw = raw[1..];
-        // Unwrap EITHER delimiter (ISO §8.3.1.2 — quotation-mark and apostrophe forms are equal-standing;
-        // the delimiters are not part of the value, and a doubled OPENING quote is one embedded quote).
-        return raw.Length >= 2 && raw[0] is '"' or '\'' && raw[^1] == raw[0]
-            ? raw[1..^1].Replace(new string(raw[0], 2), raw[0].ToString())
-            : raw;
-    }
-
     /// <summary>The character value of a figurative <c>ALL literal-1</c> in a WIDTH-SPECIFIED context (a VALUE clause /
     /// a fixed-length receiver / a compared-with operand; ISO §8.3.3.6.4 GR2): the literal is repeated character by
     /// character until its length is ≥ <paramref name="width"/>, then truncated from the right to <paramref
@@ -155,17 +140,9 @@ internal static class EmitText
         return sb.ToString()[..w];
     }
 
-    /// <summary>If <paramref name="raw"/> is the figurative <c>ALL "literal"</c> form (a VALUE / level-88 operand text),
-    /// the decoded literal; otherwise <see langword="null"/>. Tolerant of whether the front-end preserved the space
-    /// between <c>ALL</c> and the literal. Only the quoted-literal form matches — <c>ALL ZEROS</c> (a figurative word)
-    /// returns <see langword="null"/> and is handled by the figurative-word path.</summary>
-    public static string? AllLiteralText(string raw)
-    {
-        string t = raw.TrimStart();
-        if (t.Length < 3 || !t.StartsWith("ALL", StringComparison.OrdinalIgnoreCase)) return null;
-        string rest = t[3..].TrimStart();
-        return rest.Length >= 2 && rest[0] == '"' && rest[^1] == '"' ? DecodeCobolString(rest) : null;
-    }
+    /// <summary>Thin forward to the one codec — see <see cref="CobolNet.Common.CobolLiteral.AllLiteralText"/>
+    /// (delimiter-agnostic, ISO §8.3.1.2).</summary>
+    public static string? AllLiteralText(string raw) => CobolNet.Common.CobolLiteral.AllLiteralText(raw);
 
     /// <summary>Render a numeric literal as a scaled integer: its digits as the unscaled value, its fractional
     /// digit count as the scale (e.g. <c>"3.5"</c> → <c>(35L, 1)</c>, <c>"-12"</c> → <c>(-12L, 0)</c>). A literal

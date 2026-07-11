@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Runtime;
 using CobolNet.Frontend.Generated;
 using CobolNet.Editions;
@@ -79,7 +80,7 @@ public sealed partial class StatementBinder
         if (target.literal() is { } lit)
         {
             if (lit.nonNumericLiteral()?.STRINGLIT() is { } s)
-                literalName = DecodeCobolString(s.GetText());
+                literalName = CobolLiteral.Decode(s.GetText());
             else
                 return new BoundUnsupported(
                     $"CALL with a non-alphanumeric literal target '{lit.GetText()}' (ISO §14.9.4.3 SR2)");
@@ -184,7 +185,7 @@ public sealed partial class StatementBinder
             if (t.literal() is { } lit)
             {
                 if (lit.nonNumericLiteral()?.STRINGLIT() is { } s)
-                    targets.Add((DecodeCobolString(s.GetText()), null));
+                    targets.Add((CobolLiteral.Decode(s.GetText()), null));
                 else
                     return new BoundUnsupported($"CANCEL non-alphanumeric literal target '{lit.GetText()}' (ISO §14.9.5.2 SR1)");
             }

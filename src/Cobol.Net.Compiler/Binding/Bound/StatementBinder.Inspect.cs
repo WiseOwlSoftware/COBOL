@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Bound;
@@ -205,7 +206,7 @@ public sealed partial class StatementBinder
             return (new BoundStringLiteral(InspectFigurativeChar(fig).ToString()), true);
         }
         if (c.literal()?.nonNumericLiteral()?.STRINGLIT() is { } s)
-            return (new BoundStringLiteral(DecodeCobolString(s.GetText())), false);
+            return (new BoundStringLiteral(CobolLiteral.Decode(s.GetText())), false);
         // National/boolean literal operands decode char-correct (the class-mix SR validation across the
         // INSPECT operand set — §14.9.22.3 SR2/SR3's per-class forms — is named Phase-4a residue #12).
         if (c.literal()?.nonNumericLiteral()?.NATLIT() is { } nlit)

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Cst;
@@ -401,7 +402,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var clauses in grp.fileControlClauses())
             {
                 if (clauses.assignClause()?.assignTarget() is { } tgt)
-                    file.AssignTarget = tgt.STRINGLIT() is { } s ? DecodeString(s.GetText()) : tgt.GetText();
+                    file.AssignTarget = tgt.STRINGLIT() is { } s ? CobolLiteral.Decode(s.GetText()) : tgt.GetText();
                 else if (clauses.organizationClause() is { } org) file.Organization = MapOrganization(org);
                 else if (clauses.accessModeClause() is { } acc) file.AccessMode = MapAccessMode(acc);
                 // The BASE word only: an OF/IN-qualified status name (`SQ-FS4-STATUS OF STATUS-GROUP`, SQ133A)
@@ -702,7 +703,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE of a national data item shall be a national "
                     + "literal (N\"…\") or a figurative constant (ISO §13.18.63 SR5)");
                 break;
-            case PicCategory.National when isNatLit && DecodeString(raw).Length > pic.Length:
+            case PicCategory.National when isNatLit && CobolLiteral.Decode(raw).Length > pic.Length:
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE national literal exceeds the item's "
                     + $"{pic.Length} national positions (ISO §13.18.63 SR5)");
                 break;
@@ -712,7 +713,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE of a boolean data item shall be a boolean "
                     + "literal (B\"…\") or the figurative constant ZERO (ISO §13.18.63 SR10)");
                 break;
-            case PicCategory.Boolean when isBoolLit && DecodeString(raw).Length > pic.Length:
+            case PicCategory.Boolean when isBoolLit && CobolLiteral.Decode(raw).Length > pic.Length:
                 Edition.Error("COBOLNET0898", $"{where}: the VALUE boolean literal exceeds the item's "
                     + $"{pic.Length} boolean positions (ISO §13.18.63 SR10)");
                 break;
@@ -723,19 +724,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         }
     }
 
-    /// <summary>Decode a COBOL <c>STRINGLIT</c> (<c>"…"</c> with doubled <c>""</c>) — or a national/boolean
-    /// literal (<c>N"…"</c>/<c>B"…"</c>, ISO §8.3.3.5/§8.3.3.4: the prefix letter is part of the token) — to
-    /// its character value (the <c>EmitText.DecodeCobolString</c> twin).</summary>
-    private static string DecodeString(string raw)
-    {
-        if (raw.Length >= 3 && raw[0] is 'N' or 'n' or 'B' or 'b' && raw[1] is '"' or '\'')
-            raw = raw[1..];
-        // Unwrap EITHER delimiter (ISO §8.3.1.2 — the apostrophe form is equal-standing; doubled opening
-        // quote = one embedded quote). Keep in sync with the EmitText/StatementBinder twins.
-        return raw.Length >= 2 && raw[0] is '"' or '\'' && raw[^1] == raw[0]
-            ? raw[1..^1].Replace(new string(raw[0], 2), raw[0].ToString())
-            : raw;
-    }
+    // (The former private DecodeString twin is retired — all callers use CobolNet.Common.CobolLiteral.Decode,
+    // the one ISO §8.3.1.2 literal codec, PHASE-05 Step 1.)
 
     /// <summary>The most-recently-opened 01/77 record, so a following level-66 RENAMES attaches to its owner.</summary>
     private DataItem? _lastRoot;

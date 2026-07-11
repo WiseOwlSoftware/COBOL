@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Common;
 using CobolNet.Binding;
 
 namespace CobolNet.CodeGen.Emit;
@@ -161,7 +162,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
             // CCVS leniency (same as InitializerFor): an ALPHANUMERIC literal VALUE on a numeric DISPLAY item
             // contributes its CHARACTERS to the image (NC107A's `PIC 999 VALUE "000"` under a REDEFINES).
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && raw.StartsWith('"'))
-                return $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})";
+                return $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length})";
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && FigurativeInitializer(raw, pic) is null)
                 return $"CobolNum.FormatDisplay({EmitText.UnscaledAtScale(raw, pic.Scale)}, {item.ProfileName})";
             // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§13.18.63 GR6).
@@ -170,11 +171,11 @@ internal sealed class FieldEmitter(EmissionContext ctx)
                 return EmitText.CsLiteral(CobolNet.Runtime.CobolEdit.Format(uv, sc, pic.EditMask!,
                     item.BlankWhenZero, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma));
             if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
-                return $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})";
+                return $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length})";
             // Boolean members of a Tier-B class contribute their zero-padded VALUE image (national never
             // reaches a Tier-B backing — ComputeTier rejects the class; the arm is defensive).
             if (pic.Category is PicCategory.Boolean or PicCategory.National)
-                return $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length}"
+                return $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length}"
                     + $"{(pic.Category is PicCategory.Boolean ? ", justifiedRight: false, pad: '0'" : "")})";
         }
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
@@ -328,7 +329,7 @@ internal sealed class FieldEmitter(EmissionContext ctx)
     /// repeated to the group width (§8.3.3.6.4 GR2); null for any other operand form.</summary>
     private static string? GroupValueText(string raw, DataItem group) =>
         EmitText.AllLiteralText(raw) is { } al ? EmitText.RepeatToWidth(al, group.ImageWidth)
-        : raw.Length >= 2 && raw[0] == '"' && raw[^1] == '"' ? EmitText.DecodeCobolString(raw)
+        : CobolLiteral.IsStringLiteral(raw) ? CobolLiteral.Decode(raw)
         : null;
 
     private static bool DistributableSubtree(DataItem item) =>
@@ -386,8 +387,8 @@ internal sealed class FieldEmitter(EmissionContext ctx)
         // version-conformance pass row.
         if (item.RawValue is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
             return item.StoreAsImage
-                ? $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(q))}, {pic.Length})"
-                : EmitText.UnscaledAtScale(EmitText.DecodeCobolString(q), pic.Scale);
+                ? $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(q))}, {pic.Length})"
+                : EmitText.UnscaledAtScale(CobolLiteral.Decode(q), pic.Scale);
 
         // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): initialize to the formatted
         // image of its unscaled VALUE (a numeric/figurative VALUE → that value; no VALUE → 0). The _P_ profile is
@@ -420,9 +421,9 @@ internal sealed class FieldEmitter(EmissionContext ctx)
             // National VALUE stores like alphanumeric on the char substrate (§13.18.63 SR5 — the N"…" literal,
             // already prefix-stripped by DecodeCobolString); boolean VALUE zero-pads (SR10; §14.6.8.6).
             PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
-                $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length})",
+                $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length})",
             PicCategory.Boolean =>
-                $"CobolString.Store({EmitText.CsLiteral(EmitText.DecodeCobolString(raw))}, {pic.Length}, justifiedRight: false, pad: '0')",
+                $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length}, justifiedRight: false, pad: '0')",
             PicCategory.Numeric when pic.IsFloat => RawValueAsFloat(raw, pic),
             PicCategory.Numeric => EmitText.UnscaledAtScale(raw, pic.Scale),
             _ => pic.DefaultInitializer,
