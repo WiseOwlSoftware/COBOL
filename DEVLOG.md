@@ -13,7 +13,28 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
-## Entry 793 — 2026-07-11 15:23 PDT — P7 Steps 7+8: `MoveKind` travels on `BoundMove` (ONE classifier, EmitMove a pure per-kind renderer); Step 8 reconciled as P5-dead
+## Entry 794 — 2026-07-11 16:01 PDT — P7 Step 9 opened: the decision-complete decomposition plan (16-file coupling census) + 9a `NameAllocator`
+
+**Design first (the phase doc's Step 9 AS-BUILT PLAN block — recorded BEFORE code moved, per
+[[feedback_plans_in_repo]]).** A fresh 16-agent coupling census (`wf_d677d614-5fb`; the p7-audit anchors predate
+Steps 1–8) mapped every partial's instance-field reads/writes + cross-partial method edges. Load-bearing findings:
+the hub edges are `EmitMove`/`EmitStatementList`/`StoreArith`+`EmitArith`/`EmitUseHook`+`EmitStoreFileStatus`/
+`ConvertSource`; counters are file-local except `_storeTmpCounter` (core+Oo) and `_ecCounter` (core+EC+Call); the
+EC scratch trio (`_sizeErrVar`/`_sizeErrEcVar`/`_ecInfo`) interlocks the Exceptions partial with arithmetic; and
+the EC↔statement cycle (`EcEmitChecked` → `EmitStatement`; statements contain EC-checked children) proves NO pure
+bottom-up extraction order exists — a composition root must wire the cycle (during migration the host IS the
+root; at 9n a per-unit `UnitEmitters` root replaces it). Sub-commits 9a–9n sequenced in the phase doc; the
+audit-flagged risks each got an explicit answer there (host survival = `CSharpEmitter` stays the thin bind-host
+facade until P9; counters = ONE `NameAllocator`; dispatcher/EC/CALL state = three typed per-scope objects).
+
+**9a landed: `NameAllocator`.** The 15 run-unit unique-name counters scattered over 9 partials (the audit's
+byte-exactness risk: per-verb emitter instances would renumber every temp) collapse to the ONE allocator the
+DESIGN §2.5 collaborator table already planned — 15 distinct `Next*()` methods preserving each counter's own
+sequence; ONE instance per run unit (created in `CallEmitRunUnit`), threaded onto all three per-unit
+`EmitContext` constructions as `Names`. ~47 use sites re-pointed mechanically; the 15 fields deleted.
+
+**Verify.** Sln Debug clean; 281 unit · 33 characterization (32 snapshots byte-exact — the counter-sequence
+proof) · conformance verdict read before commit as a separate action (the 792 rule).
 
 **What (Step 7, adapted per the premise audit's findings — deviations recorded in the phase ledger).**
 - `Binding/Bound/MoveClassifier.cs` NEW: `enum MoveKind {RefModSlice, Group, GroupToElementary,

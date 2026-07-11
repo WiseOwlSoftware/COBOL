@@ -29,6 +29,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private NumericRenderer _num = null!;
     private ConditionRenderer _cond = null!;
     private ReferenceResolver _refs = null!;
+    private NameAllocator _names = null!;   // RUN-UNIT scope (set by CallEmitRunUnit) — rides every per-unit _ctx as Names
 
     /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
     /// <see cref="BoundCompilation"/> (multi-unit run-unit binding — interprogram design D3 / SSOT §18 #8), under
@@ -68,10 +69,6 @@ public sealed partial class CSharpEmitter : IOoBindHost
     // ── The PC dispatcher (COBOLNET_DESIGN §5) ────────────────────────────────────────────────────────────
 
     private int _currentPc;     // the paragraph index being emitted (for EXIT PARAGRAPH / fall-through)
-    private int _depCounter;    // unique-name counter for GO TO … DEPENDING selectors
-    private int _sizeErrCounter; // unique-name counter for ON SIZE ERROR flags
-    private int _storeTmpCounter; // unique-name counter for checked-store out-vars
-    private int _readCounter;    // unique-name counter for READ out-image temporaries
     private string? _sizeErrVar; // the current __sizeErr flag while emitting a checked arithmetic body (else null)
 
     /// <summary>
@@ -252,7 +249,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         var w = _ctx.Writer;
         if (EcIoMaskFor(file) is not 0 and var mask)
         {
-            int id = _ecCounter++;
+            int id = _ctx.Names.NextEc();
             var (stmt, loc) = EcStmtLoc(_ecInfo!);
             w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
                 + $"{(invalidKeyHandled ? "true" : "false")}, {mask}, {stmt}, {loc});");
@@ -324,7 +321,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private void EmitGoToDepending(BoundGoToDepending d)
     {
         var w = _ctx.Writer;
-        int id = _depCounter++;
+        int id = _ctx.Names.NextDep();
         w.Line($"int __dep{id} = (int)({_num.AsNum(d.Selector, ReceiverContext.None).Expr});");
         using (w.Block($"switch (__dep{id})"))
             for (int k = 0; k < d.Targets.Count; k++)
@@ -761,7 +758,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
             // a DIRECT kernel call at EXACTLY the receiver scale, not the renderer's working-scale promotion
             // (which yields the quotient at the dividend's higher scale and poisons the remainder multiply).
             string fn = ise ? "DivideOrThrow" : "Divide";
-            string qt = $"__q{_storeTmpCounter++}";
+            string qt = $"__q{_ctx.Names.NextStoreTmp()}";
             w.Line($"Int128 {qt} = CobolNum.{fn}({dividend.Expr}, {dividend.Scale}, {divisor.Expr}, {divisor.Scale}, {qs}, CobolRounding.Truncation);");
             var product = new NumX($"({qt} * {divisor.Expr})", qs + divisor.Scale);
             NumX remainder = _num.Combine(dividend, "-", product, rcv);   // GR7: dividend − subsidiaryQuotient × divisor
@@ -787,7 +784,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         // One evaluation for multiple receivers (a boolean expr can read an item a prior receiver aliases).
         if (cb.Targets.Count > 1)
         {
-            string tmp = $"__be{_storeTmpCounter++}";
+            string tmp = $"__be{_ctx.Names.NextStoreTmp()}";
             _ctx.Writer.Line($"string {tmp} = {value};");
             value = tmp;
         }
@@ -838,7 +835,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// into each receiver's store would re-read its fields after earlier receivers stored.</summary>
     private NumX Snapshot(NumX v)
     {
-        string t = $"__ie{_storeTmpCounter++}";
+        string t = $"__ie{_ctx.Names.NextStoreTmp()}";
         _ctx.Writer.Line(v.Dec ? $"CobolDec {t} = {v.Expr};" : $"Int128 {t} = {v.Expr};");
         return v with { Expr = t };
     }
@@ -861,12 +858,12 @@ public sealed partial class CSharpEmitter : IOoBindHost
         var ecSize = EcEnabledSizeNames();
         if (sizeErr is null && ecSize.Count == 0) { emitStores(false); return; }
 
-        string flag = $"__sizeErr{_sizeErrCounter++}";
+        string flag = $"__sizeErr{_ctx.Names.NextSizeErr()}";
         w.Line($"bool {flag} = false;");
         string? ecnVar = null;
         if (ecSize.Count > 0)
         {
-            ecnVar = $"__sizeEc{_ecCounter++}";
+            ecnVar = $"__sizeEc{_ctx.Names.NextEc()}";
             w.Line($"string {ecnVar} = \"\";");
             _sizeErrEcVar = ecnVar;
         }
@@ -878,7 +875,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         // overflow). >long-range overflow still needs the Int128 carrier (G3).
         if (ecnVar is not null)
         {
-            int cid = _ecCounter++;
+            int cid = _ctx.Names.NextEc();
             w.Line($"catch (CobolSizeError __cse{cid}) {{ {flag} = true; {ecnVar} = __cse{cid}.EcName; }}");
             w.Line($"catch (System.OverflowException) {{ {flag} = true; {ecnVar} = \"EC-SIZE-OVERFLOW\"; }}");
         }
@@ -934,7 +931,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
             // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§14.9.25).
             if (_sizeErrVar is { } eflag)
             {
-                string img = $"__sv{_storeTmpCounter++}";
+                string img = $"__sv{_ctx.Names.NextStoreTmp()}";
                 // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
                 // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
                 string onFail = _sizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
@@ -970,7 +967,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
             : $"{value.Expr}, {value.Scale}, {profile}";
         if (_sizeErrVar is { } flag)
         {
-            string tmp = $"__sv{_storeTmpCounter++}";
+            string tmp = $"__sv{_ctx.Names.NextStoreTmp()}";
             // Intermediate long-engine overflow is detected upstream by the checked multiply the renderer emits in a
             // size-error context (CobolNum.MulChecked → OverflowException, caught by the statement's try, §14.7.5
             // case 5). We do NOT wrap the value in checked(...) here: a constant subexpression would then overflow at
@@ -1028,7 +1025,6 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private void EmitOutOfLinePerform(BoundOutOfLinePerform p) =>
         EmitPerform(p.Control, () => _ctx.Writer.Line($"{_dispatchName}({p.StartPc}, {p.EndPc});"), inline: false);
 
-    private int _loopCounter;   // unique names for PERFORM TIMES loop locals (nested inline performs must not collide)
 
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
     {
@@ -1039,7 +1035,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
                 // The TIMES count is determined ONCE at the start of the PERFORM (ISO §14.9.28 GR7) — the body
                 // modifying the count item must not change the iteration count (NC102A PFM-TEST-F2-6); a zero or
                 // negative count runs the body zero times.
-                int id = _loopCounter++;
+                int id = _ctx.Names.NextLoop();
                 w.Line($"long __n{id} = {CountExpr(t.Count)};");
                 using (w.Block($"for (long __i{id} = 0; __i{id} < __n{id}; __i{id}++)")) body();
                 break;
@@ -1125,8 +1121,6 @@ public sealed partial class CSharpEmitter : IOoBindHost
         _ => "1",
     };
 
-    private int _setCounter;     // unique-name counter for SET sender temporaries
-    private int _searchCounter;  // unique-name counter for SEARCH loop labels
 
     /// <summary>Serial SEARCH (ISO §14.9.37.4 GR5–8): scan from the index's CURRENT setting; each pass tests
     /// past-end (→ AT END) then the WHEN conditions in order (first true wins); none true → the index (and the
@@ -1136,7 +1130,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private void EmitSearch(BoundSearch s)
     {
         var w = _ctx.Writer;
-        int id = _searchCounter++;
+        int id = _ctx.Names.NextSearch();
         if (s.FromStart) w.Line($"{s.IndexField} = 1;");   // SEARCH ALL ignores the initial setting (GR9)
         // An OCCURS DYNAMIC table brackets the scan with EnterSearch/ExitSearch so a SET Format 14 on that same
         // table WHILE searching raises EC-FLOW-SEARCH (ISO §14.9.39 GR31; data-model D9). A try/finally is required
@@ -1183,7 +1177,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// has no exception conditions, so the unchecked store IS the 85 semantics.</summary>
     private void EmitSetTo(BoundSetTo s)
     {
-        string tmp = $"__set{_setCounter++}";
+        string tmp = $"__set{_ctx.Names.NextSet()}";
         _ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(_num.Render(s.Value, ReceiverContext.None), 0)});");
         foreach (var t in s.Targets) StoreSetTarget(t, new NumX(tmp, 0));
     }
@@ -1204,7 +1198,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// (GR3), then each index is adjusted by it (GR4).</summary>
     private void EmitSetUpDown(BoundSetUpDown s)
     {
-        string tmp = $"__set{_setCounter++}";
+        string tmp = $"__set{_ctx.Names.NextSet()}";
         _ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(_num.Render(s.Amount, ReceiverContext.None), 0)});");
         foreach (var t in s.Targets) AugmentSetTarget(t, s.Down, new NumX(tmp, 0));
     }
@@ -1215,7 +1209,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// active (GR31). The register carries no storage; the operation is on the <c>CobolDynTable&lt;T&gt;</c> itself.</summary>
     private void EmitSetCapacity(BoundSetCapacity s)
     {
-        string tmp = $"__cap{_setCounter++}";
+        string tmp = $"__cap{_ctx.Names.NextSet()}";
         _ctx.Writer.Line($"long {tmp} = (long)({NumericRenderer.Align(_num.Render(s.Amount, ReceiverContext.None), 0)});");
         string call = s.Kind switch
         {
@@ -1561,7 +1555,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         var w = _ctx.Writer;
         if (rd.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         string name = FileKeyExpr(rd.File);
-        string tmp = $"__rd{_readCounter++}";
+        string tmp = $"__rd{_ctx.Names.NextRead()}";
         // The read record is made available in the WHOLE record area — store through the LARGEST record's view
         // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the splice (ST111A).
         Place? area = rd.File.AreaRecord is { } ar ? _refs.ResolveItem(ar) : null;

@@ -29,7 +29,6 @@ public sealed partial class CSharpEmitter
 
     private string _callSelfPath = "";
     private Place? _callReturningPlace;
-    private int _callCounter;
 
     /// <summary>For each GLOBAL file INHERITED from a container (ISO §13.18.30), the place of the OWNER's FILE
     /// STATUS item reached through the <c>__outer</c> instance chain. §12.4.5.8.4 GR1 NOTE 1: "In the case where
@@ -55,6 +54,7 @@ public sealed partial class CSharpEmitter
         _turnState = comp.Turn;
         _ooClasses = comp.OoClasses;
         _ecActive = comp.EcActive;
+        _names = new NameAllocator();   // ONE per run unit — every per-unit EmitContext threads this instance (Step 9a)
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -106,7 +106,7 @@ public sealed partial class CSharpEmitter
     {
         var data = unit.Data;
         _refs = unit.Refs;
-        _ctx = new EmitContext(w, data);
+        _ctx = new EmitContext(w, data, _names);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
         _callSelfPath = unit.Path;
@@ -399,7 +399,7 @@ public sealed partial class CSharpEmitter
             CallEmitPropagationPickup();
             return false;
         }
-        int id = _callCounter++;
+        int id = _ctx.Names.NextCall();
         if (hasPhrase) w.Line($"bool __callErr{id} = false;");
         using (w.Block("try"))
             w.Line(invocation);
@@ -434,7 +434,7 @@ public sealed partial class CSharpEmitter
     private void CallEmitProgramEcCatch(List<string> ecProg, bool hasPhrase, string? phraseFlag)
     {
         var w = _ctx.Writer;
-        int id = _ecCounter++;
+        int id = _ctx.Names.NextEc();
         string nameTest = string.Join(" || ", ecProg.Select(n => $"__ce{id}.EcName == {CsLiteral(n)}"));
         var (stmt, loc) = EcStmtLoc(_ecInfo!);
         using (w.Block($"catch (CobolCallException __ce{id}) when ({nameTest})"))
@@ -462,7 +462,7 @@ public sealed partial class CSharpEmitter
     {
         if (!_ecActive) return;
         var w = _ctx.Writer;
-        int id = _ecCounter++;
+        int id = _ctx.Names.NextEc();
         using (w.Block($"if (ExceptionState.TakePropagatedObject(out var __po{id}))   // §14.6.13.1.5 — an exception OBJECT propagated"))
         {
             w.Line($"ExceptionState.SetObject(__po{id});   // GR1b2 — the current exception object HERE (the activator)");

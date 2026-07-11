@@ -21,7 +21,6 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// </summary>
 public sealed partial class CSharpEmitter
 {
-    private int _sortCounter;   // unique-name counter for sort-family temporaries
 
     /// <summary>SORT Format 1 (ISO §14.9.40 GR9 — the three phases): (a) release — the USING files' records via
     /// implicit OPEN INPUT / READ / RELEASE / CLOSE (GR12), or the INPUT PROCEDURE as a bounded dispatch (GR11);
@@ -89,7 +88,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         string f = FileKeyExpr(input);
-        string tmp = $"__srt{_sortCounter++}";
+        string tmp = $"__srt{_ctx.Names.NextSort()}";
         w.Line($"CobolFile.OpenInput({f});   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
         EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
         using (w.Block($"while (CobolFile.Read({f}, out var {tmp}))"))
@@ -117,7 +116,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         string f = FileKeyExpr(output);
-        string tmp = $"__srt{_sortCounter++}";
+        string tmp = $"__srt{_ctx.Names.NextSort()}";
         w.Line($"CobolSort.Rewind({sdLit});   // each GIVING file receives the FULL result (GR15 / MERGE GR12)");
         w.Line($"CobolFile.OpenOutput({f});   // implicit OPEN OUTPUT (GR15a)");
         EmitUseHook(output);   // a failed implicit OPEN reaches a USE declarative (GR15a)
@@ -160,7 +159,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         string sd = FileKeyExpr(rt.File);
-        string tmp = $"__srt{_sortCounter++}";
+        string tmp = $"__srt{_ctx.Names.NextSort()}";
         using (w.Block($"if (CobolSort.Return({sd}, out var {tmp}))"))
         {
             EmitImageInto(rt.RecordArea, tmp);   // GR3 — made available in the record area
@@ -184,7 +183,7 @@ public sealed partial class CSharpEmitter
     private void EmitTableSort(BoundTableSort ts)
     {
         var w = _ctx.Writer;
-        int id = _sortCounter++;
+        int id = _ctx.Names.NextSort();
         // The element's STORAGE type is final only after the post-bind whole-group analysis (StoreAsImage) —
         // read it now, at emit time, never at bind time.
         string elem = ts.Table.ElementType;

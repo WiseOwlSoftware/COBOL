@@ -268,7 +268,7 @@ public sealed partial class CSharpEmitter
         CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType = false)
     {
         _refs = refs;
-        _ctx = new EmitContext(w, data);
+        _ctx = new EmitContext(w, data, _names);
         _num = new NumericRenderer(_ctx);
         _cond = new ConditionRenderer(_num, _ctx);
         _callSelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
@@ -392,7 +392,7 @@ public sealed partial class CSharpEmitter
     private void OoEmitUniversalInvoke(BoundInvokeUniversal u)
     {
         var w = _ctx.Writer;
-        int id = _storeTmpCounter++;
+        int id = _ctx.Names.NextStoreTmp();
         string boxes = string.Join(", ", u.Args.Select(a =>
             $"new CobolInvokeArg({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(a.Descriptor, quote: true)}, {OoUnivCallerRead(a.Source)})"));
         w.Line($"var __ua{id} = new CobolInvokeArg[] {{ {boxes} }};");
@@ -429,7 +429,7 @@ public sealed partial class CSharpEmitter
                     continue;
                 }
                 string clr = tp.Item.Pic!.ClrType.TrimEnd('?');
-                int id = _storeTmpCounter++;
+                int id = _ctx.Names.NextStoreTmp();
                 w.Line($"var __xo{id} = ExceptionState.ExceptionObject;");
                 w.Line($"if (__xo{id} is not null && __xo{id} is not {clr}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
                     + $"\"SET {tp.Item.CobolName} TO EXCEPTION-OBJECT: the current exception object is not a "
@@ -592,7 +592,7 @@ public sealed partial class CSharpEmitter
     private void OoEmitInterfaceUnit(OoInterfaceSymbol iface, CodeWriter w)
     {
         var data = _ooIfaceData[iface];
-        _ctx = new EmitContext(w, data);
+        _ctx = new EmitContext(w, data, _names);
         string bases = iface.Inherits.Count > 0
             ? " : " + string.Join(", ", iface.Inherits.Select(b => b.CsName))
             : "";
@@ -613,7 +613,6 @@ public sealed partial class CSharpEmitter
     /// emit-side signature/marshaling renders must consult the SAME definition).</summary>
     private static bool OoStringCarried(DataItem item) => OoClassTable.StringCarried(item);
 
-    private int _ooInvokeCounter;
 
     /// <summary>Emit one bound INVOKE (deep-dive D5/D6 — the binder already resolved the call form and
     /// validated §14.8.2 strict conformance; this renders the type-preserving marshaling).</summary>
@@ -657,7 +656,7 @@ public sealed partial class CSharpEmitter
     private void OoEmitInstanceInvoke(BoundInvoke inv)
     {
         var w = _ctx.Writer;
-        int id = _ooInvokeCounter++;
+        int id = _ctx.Names.NextOoInvoke();
         var argExprs = new List<string>();
         var post = new List<string>();
 

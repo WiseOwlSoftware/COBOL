@@ -21,7 +21,6 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// </summary>
 public sealed partial class CSharpEmitter
 {
-    private int _keyedSeq;   // unique-name counter for keyed status/image temporaries (__kstN / __kimN)
 
     // ── Registration (Main start) ──────────────────────────────────────────────────────────────────────────────
 
@@ -71,7 +70,7 @@ public sealed partial class CSharpEmitter
         var w = _ctx.Writer;
         FileModel file = rd.File;
         string name = FileKeyExpr(file);
-        int id = _keyedSeq++;
+        int id = _ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}", img = $"__kim{id}";
         // The RECORD AREA is the LARGEST record description (FileModel.AreaRecord, ISO §13.4.2 — multi-01 FDs
         // share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
@@ -171,7 +170,7 @@ public sealed partial class CSharpEmitter
             }
             w.Line($"CobolFile.SetRelativeKey({name}, {rrn});");
         }
-        int id = _keyedSeq++;
+        int id = _ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         string wimg = OperandText.AsString(new BoundFieldOperand(wr.Record));
         w.Line(VaryingLengthArg(file) is { } wlen
@@ -206,7 +205,7 @@ public sealed partial class CSharpEmitter
             }
             w.Line($"CobolFile.SetRelativeKey({name}, {rrn});");
         }
-        int id = _keyedSeq++;
+        int id = _ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         string rimg = OperandText.AsString(new BoundFieldOperand(rw.Record));
         w.Line(VaryingLengthArg(file) is { } rlen
@@ -241,7 +240,7 @@ public sealed partial class CSharpEmitter
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = file.AreaRecord is { } ar ? _refs.ResolveItem(ar) : null;
         string image = area is not null ? OperandText.AsString(new BoundFieldOperand(area)) : "\"\"";
-        int id = _keyedSeq++;
+        int id = _ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         w.Line($"var {st} = CobolFile.DeleteRecord({name}, {image});");
         EmitStoreFileStatus(file);
@@ -257,7 +256,7 @@ public sealed partial class CSharpEmitter
         // 612, Phase-4 track d). After a successful delete, the same name's next OPEN INPUT reports '35'
         // (file not available) — the golden's round-trip. (Multiple file-names, §14.9.10 GR — `DELETE FILE
         // f1 f2…` — need the fileName+ grammar; a documented follow-up.)
-        int id = _keyedSeq++;
+        int id = _ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         w.Line($"var {st} = CobolFile.DeleteFile({FileKeyExpr(df.File)});");
         EmitStoreFileStatus(df.File);
@@ -281,7 +280,7 @@ public sealed partial class CSharpEmitter
         var w = _ctx.Writer;
         FileModel file = sta.File;
         string name = FileKeyExpr(file);
-        int id = _keyedSeq++;
+        int id = _ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         if (sta.Mode != KeyedStartMode.Key)
             w.Line($"var {st} = CobolFile.StartFirstLast({name}, {(sta.Mode == KeyedStartMode.Last ? "true" : "false")});");

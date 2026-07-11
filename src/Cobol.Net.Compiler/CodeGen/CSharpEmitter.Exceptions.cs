@@ -30,7 +30,6 @@ public sealed partial class CSharpEmitter
     private bool _ecUnitHasF3;         // the program class being emitted has F3 declaratives (→ __EcDispatch exists)
     private bool _ecUnitHasF4;         // … has F4 (EXCEPTION OBJECT) declaratives (→ __EcObjDispatch exists)
     private EcStatementInfo? _ecInfo;  // the wrapper context of the statement being emitted (else null)
-    private int _ecCounter;            // unique-name counter for EC locals
     private string? _sizeErrEcVar;     // the current EC-SIZE name local while emitting a checked arithmetic body
 
     /// <summary>The <c>__EcDispatch</c> invocation (or the no-declarative constant when this program has no F3
@@ -50,7 +49,7 @@ public sealed partial class CSharpEmitter
     private bool EcEmitRaiseObject(BoundRaiseObject ro)
     {
         var w = _ctx.Writer;
-        int id = _ecCounter++;
+        int id = _ctx.Names.NextEc();
         w.Line($"ExceptionState.SetObject({ro.Source?.Read() ?? "this"});   // §14.6.13.1.5 (1)/(2) — EXCEPTION-OBJECT + the status sentinel");
         w.Line($"int __r{id} = {EcObjDispatchExpr($"ExceptionState.ExceptionObject")};");
         w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
@@ -100,7 +99,7 @@ public sealed partial class CSharpEmitter
             // the runtime domain-error sites consult the flag (ExceptionState.ArgumentError — §15.3's default
             // result 0 becomes the raise when checking is on; Table 13: Fatal).
             var w = _ctx.Writer;
-            int id = _ecCounter++;
+            int id = _ctx.Names.NextEc();
             var (stmt, loc) = EcStmtLoc(ec.Info);
             w.Line("ExceptionState.ArgumentFunctionChecking = true;");
             using (w.Block("try"))
@@ -141,7 +140,7 @@ public sealed partial class CSharpEmitter
                 + "(ISO 14.6.13.1.3 #8 - implementor-defined; this implementation terminates)\");");
             return true;
         }
-        int id = _ecCounter++;
+        int id = _ctx.Names.NextEc();
         string stmt = r.WithLocation ? "\"RAISE\"" : "null";
         string loc = r.WithLocation ? CsLiteral(r.Location) : "null";
         w.Line($"ExceptionState.Set({CsLiteral(r.EcName)}, {(r.Fatal ? "true" : "false")}, {stmt}, {loc});   // §14.9.29.4 GR1 — raise + EXCEPTION-OBJECT null");
@@ -173,7 +172,7 @@ public sealed partial class CSharpEmitter
     private void EcEmitSizeHandling(string flag, string ecnVar, List<string> enabled, bool hasPhrase)
     {
         var w = _ctx.Writer;
-        int id = _ecCounter++;
+        int id = _ctx.Names.NextEc();
         string nameTest = string.Join(" || ", enabled.Select(n => $"{ecnVar} == {CsLiteral(n)}"));
         var (stmt, loc) = EcStmtLoc(_ecInfo!);
         using (w.Block($"if ({flag} && ({nameTest}))"))
@@ -199,7 +198,7 @@ public sealed partial class CSharpEmitter
     {
         if (_ecInfo is null || !_ecInfo.Enabled.Any(p => p.Ec == ecName)) return;
         var w = _ctx.Writer;
-        int id = _ecCounter++;
+        int id = _ctx.Names.NextEc();
         var (stmt, loc) = EcStmtLoc(_ecInfo);
         using (w.Block($"if ({ovfFlag})"))
         {

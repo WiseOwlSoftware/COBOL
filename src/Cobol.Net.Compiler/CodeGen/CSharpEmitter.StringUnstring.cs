@@ -12,7 +12,6 @@ using static CobolNet.CodeGen.Emit.EmitText;
 
 public sealed partial class CSharpEmitter
 {
-    private int _strUnstrCounter;   // unique-name counter for STRING/UNSTRING locals
 
     /// <summary>STRING (ISO §14.9.43): the receiver's character image is materialized into ONE working local (its
     /// CURRENT content — GR7 preserves every position the transfer does not touch; there is no space filling), each
@@ -26,7 +25,7 @@ public sealed partial class CSharpEmitter
     private void EmitString(BoundStringStmt s)
     {
         var w = _ctx.Writer;
-        int id = _strUnstrCounter++;
+        int id = _ctx.Names.NextStrUnstr();
         string ptr = $"__strPtr{id}", ovf = $"__strOvf{id}", acc = $"__strInto{id}";
         w.Line(s.Pointer is { } p0
             ? $"long {ptr} = (long)({_num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None).Expr});"   // GR4 — the user's initial value
@@ -60,7 +59,7 @@ public sealed partial class CSharpEmitter
     private void EmitUnstring(BoundUnstringStmt s)
     {
         var w = _ctx.Writer;
-        int id = _strUnstrCounter++;
+        int id = _ctx.Names.NextStrUnstr();
         string src = $"__unsSrc{id}", dels = $"__unsDel{id}", alls = $"__unsAll{id}",
                ptr = $"__unsPtr{id}", tly = $"__unsTly{id}", ovf = $"__unsOvf{id}";
         w.Line($"string {src} = {StrUnstrReadImage(s.Source)};");

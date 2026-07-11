@@ -16,13 +16,17 @@ namespace CobolNet.CodeGen.Emit;
 /// receiver a numeric render is computed for now travels BY PARAMETER (<see cref="ReceiverContext"/>), killing
 /// the H1 staleness class by construction.
 /// </summary>
-internal sealed class EmitContext(CodeWriter writer, DataBinder data)
+internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAllocator names)
 {
     /// <summary>The C# output writer.</summary>
     public CodeWriter Writer { get; } = writer;
 
     /// <summary>The bound DATA DIVISION model.</summary>
     public DataBinder Data { get; } = data;
+
+    /// <summary>The RUN-UNIT-scoped unique-name allocator (P7 Step 9a) — the SAME instance rides every per-unit
+    /// context of one generated module, so minted temporaries never collide across units.</summary>
+    public NameAllocator Names { get; } = names;
 
     /// <summary>The trailing weights argument for collated comparison renders — <c>", __COLLATE"</c> when a
     /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else

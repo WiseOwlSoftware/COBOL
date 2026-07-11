@@ -17,7 +17,6 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// </summary>
 public sealed partial class CSharpEmitter
 {
-    private int _ptrCounter;
 
     /// <summary>The C# expression for an <c>ADDRESS OF identifier</c> value (ISO §8.4.3.11 GR1): a BASED
     /// item's value IS its implicit data-address pointer (§8.6.5 :8791); a cell-forced record renders a
@@ -69,7 +68,7 @@ public sealed partial class CSharpEmitter
     {
         var w = _ctx.Writer;
         NumX x = _num.Render(s.Amount, ReceiverContext.None);
-        string tmp = $"__ptrBy{_ptrCounter++}";
+        string tmp = $"__ptrBy{_ctx.Names.NextPtr()}";
         w.Line($"long {tmp} = (long)({x.Expr});");
         string call = x.Scale == 0
             ? $"CobolPtr.UpBy({{0}}, {(s.Down ? $"-{tmp}" : tmp)})"
@@ -116,7 +115,7 @@ public sealed partial class CSharpEmitter
         bool checkNotAlloc = _ecInfo?.Enabled.Any(e => e.Ec == "EC-STORAGE-NOT-ALLOC") == true;
         foreach (var op in s.Operands)
         {
-            string na = $"__notAlloc{_ptrCounter++}";
+            string na = $"__notAlloc{_ctx.Names.NextPtr()}";
             w.Line($"bool {na};");
             w.Line(op.Write($"CobolPtr.Free({op.Read()}, out {na})") + "   // FREE (ISO §14.9.15 GR1)");
             if (checkNotAlloc)
@@ -128,7 +127,7 @@ public sealed partial class CSharpEmitter
                     // §14.6.13.1.3 #5: the F3 selection runs; a nonfatal condition with no handler (or
                     // RESUME NEXT / a completed declarative) simply continues (the review finding — the
                     // status set alone never consulted the declarative model).
-                    int id = _ptrCounter++;
+                    int id = _ctx.Names.NextPtr();
                     w.Line($"int __fr{id} = {EcDispatchExpr("\"EC-STORAGE-NOT-ALLOC\"", "\"\"")};");
                     w.Line($"if (__fr{id} >= 0) {{ __pc = __fr{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
                 }

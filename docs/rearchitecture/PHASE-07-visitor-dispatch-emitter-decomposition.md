@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS: ◐ IN PROGRESS @ Exec Step D (2026-07-11) — Steps 1 ✅ (`a0f39ce5`, seam internal + bind-host factory deviations, DEVLOG 786) · 2 ✅ (`c8c40560`, packager split; ref cache was P0's, DEVLOG 787) · 3 ✅ (`1ed31fd3`, immutable EmitContext + ReceiverContext-by-parameter, field-carry decision in DESIGN §2.5, DEVLOG 788) · 5 ✅ (`439792c6`, ACCEPT renames + 6-doc xref sweep, DEVLOG 789). Step 4 ✅ (4a FigurativeConstants — six copies → ONE service, DEVLOG 790; 4b RuntimeApi façade seeded + the bare-Cobol*. RATCHET guard — 19 files/394 sites pinned, shrinking to zero through Step 9, DEVLOG 791). Steps 7+8 ✅ (DEVLOG 793: MoveKind per-target on BoundMove as a COMPUTED record property — one MoveClassifier, EmitMove a pure per-kind renderer, the 11 synthetic sites classify automatically; DEVIATIONS: no TargetForm on the node [Storage is null at bind time — emit reads the settled projection], ConvertSource's category switch stays as the Convert renderer [ReportWriter/INITIALIZE share it], GateMove not repointed [category-legality axis ≠ structural dispatch]. Step 8 = DONE-BY-P5 — the ~24 CodeGen StoreAsImage reads ARE the intended read-only-projection end-state; stale prose swept). NEXT: Step 9 (emitter decomposition, per-verb sub-commits) → 7+8 → 9 → 10 → 11 → 12. The 9-agent premise audit (`wf_8ace7f29-a1d`, scratchpad p7-audit.md) maps every step's current sites — REUSE it; anchors in this doc predate P5/P6.** Prior state:
+- **STATUS: ◐ IN PROGRESS @ Exec Step D (2026-07-11) — Steps 1 ✅ (`a0f39ce5`, seam internal + bind-host factory deviations, DEVLOG 786) · 2 ✅ (`c8c40560`, packager split; ref cache was P0's, DEVLOG 787) · 3 ✅ (`1ed31fd3`, immutable EmitContext + ReceiverContext-by-parameter, field-carry decision in DESIGN §2.5, DEVLOG 788) · 5 ✅ (`439792c6`, ACCEPT renames + 6-doc xref sweep, DEVLOG 789). Step 4 ✅ (4a FigurativeConstants — six copies → ONE service, DEVLOG 790; 4b RuntimeApi façade seeded + the bare-Cobol*. RATCHET guard — 19 files/394 sites pinned, shrinking to zero through Step 9, DEVLOG 791). Steps 7+8 ✅ (DEVLOG 793: MoveKind per-target on BoundMove as a COMPUTED record property — one MoveClassifier, EmitMove a pure per-kind renderer, the 11 synthetic sites classify automatically; DEVIATIONS: no TargetForm on the node [Storage is null at bind time — emit reads the settled projection], ConvertSource's category switch stays as the Convert renderer [ReportWriter/INITIALIZE share it], GateMove not repointed [category-legality axis ≠ structural dispatch]. Step 8 = DONE-BY-P5 — the ~24 CodeGen StoreAsImage reads ARE the intended read-only-projection end-state; stale prose swept). NEXT: Step 9 (emitter decomposition — the AS-BUILT PLAN block in §Step 9 below is decision-complete: sub-commits 9a–9n from the fresh 16-file coupling census `wf_d677d614-5fb`) → 10 → 11 → 12. The 9-agent premise audit (`wf_8ace7f29-a1d`, scratchpad p7-audit.md) maps every step's current sites — REUSE it; anchors in this doc predate P5/P6.** Prior state:
   `Step 6 (the exhaustive visitor) as Exec Step A — DONE incl. the 6h SYSTEMATIC AUDIT (DEVLOG 755–765). The generator emits the 7 IBound*Visitor + Accept + StatementChildren; every completeness-critical bound-node dispatch is converted (emitter 6b, all 5 renderers 6d/6e/6f, StoreKindOf 6c) and all five statement WALKERS (UsageCollectionPass, VersionConformancePass.Recurse, ContainsNextSentence, AlterCollectFields, ContainsIntrinsic) recurse via StatementChildren. The audit grep-classified every bound-node switch, each keep/convert tied to an ISO § (validate against SPEC, not prior impl); reasoned keeps = partial predicates / selective classifiers / spec-stable tiny-root emit-switches (each default correct per §). Battery 3158/269/32 green. Steps 1–5,7–12 of P7 (structural Place, god-class decomposition) DEPEND on P6 = Exec Step D. NEXT overall: Exec Step B = P6 (SymbolTable/BoundCompilation/BindPipeline).`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
@@ -507,6 +507,61 @@ completeness-by-construction (a reflection test can't verify a hand-written body
 ### Step 9 — Decompose `CSharpEmitter` into `ProgramEmitter` + `StatementEmitter` + per-verb emitters + `DataEmitter`
 
 Incremental — one verb group per sub-commit.
+
+> **AS-BUILT PLAN (Exec Step D, 2026-07-11 — decision-complete, from the fresh 16-file coupling census
+> `wf_d677d614-5fb`; supersedes the sketch below where noted).** The census established: the hub edges are
+> `EmitMove` (← Call/KeyedIo/Sort/Corresponding/Initialize), `EmitStatementList` (← Call/KeyedIo/Sort/String/
+> Evaluate/EC), `StoreArith`+`EmitArith` (← KeyedIo/Sort/String/Inspect/Corresponding), `EmitUseHook`/
+> `EmitStoreFileStatus`/`EmitImageInto` (← KeyedIo/Sort), `ConvertSource` (← ReportWriter); counters are file-local
+> except `_storeTmpCounter` (core+Oo) and `_ecCounter` (core+EC+Call); the EC scratch trio
+> (`_sizeErrVar`/`_sizeErrEcVar`/`_ecInfo`) interlocks the Exceptions partial with arithmetic; `Dispatch.cs` reads
+> only `_ctx`/`_num`/`_currentPc`/`_sentenceEndLabel`. The EC↔statement cycle (`EcEmitChecked` calls
+> `EmitStatement`; statements contain EC-checked children) means NO pure bottom-up extraction order exists — a
+> composition root must wire the cycle.
+>
+> **Sub-commit sequence** (each battery 1+2+4 green + the ratchet; the commit issued as a SEPARATE action after
+> reading the verdict line — the DEVLOG-792 rule):
+> - **9a `NameAllocator`** — the 15 run-unit unique-name counters move to the ONE allocator the DESIGN §2.5 table
+>   already plans (15 distinct `Next*()` methods — per-counter sequences preserved byte-exactly, the audit's
+>   counter risk). ONE instance per run unit, threaded onto every per-unit `EmitContext` as `Names` (the 3
+>   construction sites: Call.cs program-class, Oo.cs class-unit, Oo.cs interface-unit).
+> - **9b typed state objects** — the scattered cross-partial mutable fields become three per-scope objects (the
+>   audit's explicit-threading risk): `DispatchState` (per unit: `CurrentPc`, `SentenceEndLabel`, `DispatchName`,
+>   `UseDecls`, `OuterGlobalUse`), `EcState` (run-unit `EcActive`; per-unit `UnitHasF3/F4`; statement-scoped
+>   `Info`/`SizeErrEcVar`/`SizeErrVar` — the EC↔arith interlock travels as ONE object), `CallUnitState` (per unit:
+>   `SelfPath`, `ReturningPlace`, `InheritedStatusPlace`). These ARE the end-state (multiple readers each), not
+>   interim churn.
+> - **9c–9k per-verb extraction, low-coupling first**; each sub-commit ALSO migrates that file's bare-`Cobol*.`
+>   sites to `RuntimeApi` (its ratchet entry → 0, then deleted): 9c Evaluate+Initialize+Corresponding+AlterSwitch+
+>   AcceptDisplay (real class; `EmitDisplay` MOVES IN — the Step-5 filename becomes honest) · 9d Inspect+String+
+>   Ptr · 9e KeyedIo+Sort · 9f ReportWriter · 9g Move (MOVE family + `ConvertSource`, which STAYS the shared
+>   Convert renderer for RW/INITIALIZE per Step 7's deviation) · 9h Arithmetic (incl. the `EmitArith`/`StoreArith`
+>   service; the EC size-handling seam) · 9i ControlFlow (IF/PERFORM/SEARCH/GO TO DEPENDING) + Set (SET family) ·
+>   9j SequentialIo (registration, OPEN/CLOSE/UNLOCK/WRITE/READ/REWRITE, LINAGE, `EmitUseHook`/
+>   `EmitStoreFileStatus`/`EmitImageInto` — the file-I/O common service KeyedIo/Sort consume) · 9k Ec (the
+>   Exceptions partial; owns `EcState`) + Call (the CALL/CANCEL/GOBACK/EXIT PROGRAM verb half of Call.cs).
+> - **9l** FieldEmitter → `DataDivision/` split (the 4 named classes; its 5th concern — the physical-field
+>   model+memoization — gets its home decided at execution, recorded here).
+> - **9m** OoEmitter — the OO EMIT half ONLY; the bind half stays on `CSharpEmitter` (the P6→P9 `IOoBindHost` seam).
+> - **9n (final)** ProgramEmitter (module preamble + unit loop + program-class emission + entry wrapper) +
+>   DispatchEmitter (`__Dispatch`/pc cases/ALTER fields/USE machinery/paragraph-sentence bodies; parameterized over
+>   program AND class units — the `__MDispatch` swap rides `DispatchState.DispatchName`) + StatementEmitter (the
+>   79-Visit `IBoundStatementVisitor<bool>` + `EmitStatement`/`EmitStatementList`). **DEVIATION from this step's
+>   original "CSharpEmitter is gone" slogan: `CSharpEmitter` SURVIVES as the thin bind-host facade** — `Bind`/
+>   `EmitBound` entries + `IOoBindHost` + the OO bind bodies + the run-unit bind-session state
+>   (`_bindSession`/`_turnState`/`_ooClasses`/`_ooIfaceData`/`_ecActive`) — until P9 relocates the OO bind bodies
+>   into the binder (the audit's host-survival constraint); `BackendFactory`'s interim `(id, bindHost)` signature
+>   reconciles then, not before.
+>
+> **Migration wiring:** during 9c–9m each extracted emitter is constructed PER UNIT (at the 3 sites where the
+> `_ctx`/`_num`/`_cond`/`_refs` quadruple is re-newed) taking `(EmitContext, the renderers/state it needs,
+> CSharpEmitter host)` and reaches not-yet-extracted hub methods through the host (internal) — the host IS the
+> composition root while methods remain on it. At 9n the host edges retarget to the real collaborators, wired by
+> the per-unit composition root `UnitEmitters` (cyclic edges — StatementEmitter↔verbs↔EC — property-wired by the
+> root post-construction). The transitional host edge is this doc's own incremental-sub-commit ordering, not a
+> kept pattern — 9n deletes it. The renderers stay under `Emit/` this step (their `Roslyn/` relocation is the
+> Step 11 topology move); new emitter classes go to `CodeGen/Verbs/` (verbs) and `CodeGen/` root (spine), all in
+> the flat `CobolNet.CodeGen` namespace per the existing convention.
 
 - **Files:** create `CodeGen/ProgramEmitter.cs`, `CodeGen/DispatchEmitter.cs`, `CodeGen/StatementEmitter.cs`,
   `CodeGen/Verbs/*Emitter.cs`; split `CodeGen/Emit/FieldEmitter.cs` →

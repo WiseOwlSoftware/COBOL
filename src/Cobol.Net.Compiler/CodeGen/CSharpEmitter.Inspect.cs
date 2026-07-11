@@ -12,7 +12,6 @@ using static CobolNet.CodeGen.Emit.EmitText;
 
 public sealed partial class CSharpEmitter
 {
-    private int _inspectTmpCounter;   // unique-name counter for INSPECT image/count/magnitude locals
 
     /// <summary>
     /// INSPECT (ISO §14.9.22) → one image snapshot + runtime cycle calls. Identifier-1's character image is read
@@ -26,7 +25,7 @@ public sealed partial class CSharpEmitter
     private void EmitInspect(BoundInspect ins)
     {
         var w = _ctx.Writer;
-        int id = _inspectTmpCounter++;
+        int id = _ctx.Names.NextInspectTmp();
         string img = $"__ins{id}";
         w.Line($"string {img} = {OperandText.AsString(new BoundFieldOperand(ins.Target), deSign: true)};");
         string back = ins.Backward ? "true" : "false";
@@ -104,7 +103,7 @@ public sealed partial class CSharpEmitter
                 if (pic.Signed)
                 {
                     // GR4d: the original sign is retained — the (still-unmodified) field supplies it.
-                    string mag = $"__insMag{_inspectTmpCounter++}";
+                    string mag = $"__insMag{_ctx.Names.NextInspectTmp()}";
                     w.Line($"var {mag} = {Narrow($"CobolNum.FromAlphanumeric({img})", p.Item)};");
                     w.Line(p.Write($"({p.Read()} < 0 ? -{mag} : {mag})"));
                 }
@@ -116,7 +115,7 @@ public sealed partial class CSharpEmitter
             {
                 // A string-stored signed zoned image (whole-group-aliased / Tier-B view): decode the original for
                 // its sign, re-encode the replaced magnitude with that sign in the item's sign convention (GR4d).
-                string mag = $"__insMag{_inspectTmpCounter++}";
+                string mag = $"__insMag{_ctx.Names.NextInspectTmp()}";
                 w.Line($"Int128 {mag} = CobolNum.FromAlphanumeric({img});");
                 w.Line(p.Write($"CobolNum.FormatDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}) < 0 ? -{mag} : {mag}, {p.Item.ProfileName})"));
                 return;
