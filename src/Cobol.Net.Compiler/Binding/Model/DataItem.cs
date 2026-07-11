@@ -177,8 +177,10 @@ public sealed class DataItem
     public bool IsBased { get; set; }
 
     /// <summary>The start of this view's window within its class's concatenated image (0 for a whole-area redefiner;
-    /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.</summary>
-    public int ClassOffset { get; set; }
+    /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.
+    /// ONE writer: <c>DataBinder.AssignClassOffsets</c> — the classifier's offset walk, shared by the cell forcer
+    /// (P5.11d; init-only inexpressible, the walk runs after construction — the P5.10 <c>Storage</c> pattern).</summary>
+    public int ClassOffset { get; internal set; }
 
     /// <summary>The canonical storage representation of this ELEMENTARY item (null for a group — a group emits as a
     /// record struct and answers its image facts recursively over children). Computed ONCE by

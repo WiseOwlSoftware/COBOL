@@ -1661,8 +1661,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         foreach (var cls in byAnchor.Values)
         {
-            cls.Tier = ComputeTier(cls, out string? reject);
-            cls.RejectReason = reject;
+            var tier = ComputeTier(cls, out string? reject);
             // §13.18.44 SR5 (:21497): the redefined item shall not contain an OCCURS clause; and a dynamic-capacity
             // table is OUT-OF-LINE storage (a CobolDynTable, data-model D9) that can neither overlay nor be
             // overlaid. Reject a class whose canonical OR any redefining member is, or contains, a dynamic table.
@@ -1671,10 +1670,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error("COBOLNET1525", $"REDEFINES involving the dynamic-capacity table in "
                     + $"'{cls.Canonical.CobolName ?? cls.Canonical.CsName}': a dynamic-capacity table is out-of-line "
                     + "storage and shall be neither the subject nor the object of a REDEFINES (ISO §13.18.44 SR5)");
-                cls.Tier = RedefinesTier.Rejected;
-                cls.RejectReason ??= "REDEFINES of/over a dynamic-capacity table (§13.18.44 SR5, D9)";
+                tier = RedefinesTier.Rejected;
+                reject ??= "REDEFINES of/over a dynamic-capacity table (§13.18.44 SR5, D9)";
             }
-            cls.Width = cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1));   // a member table's FULL extent (every occurrence)
+            // The width is a member table's FULL extent (every occurrence). ONE verdict application (P5.11d).
+            cls.Classify(tier, cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1)), reject);
             // Each top-level member overlays the area from its start (a REDEFINES begins at the target's first
             // position, SR10); a subordinate accumulates its window offset within the member. Subordinates of any
             // member are themselves views (suppressed field, SR9).

@@ -263,19 +263,21 @@ public sealed partial class DataBinder
         var leaves = cls.Members.SelectMany(LeavesOf).ToList();
         if (leaves.Any(l => l.Pic is not { IsFloat: false, Usage: Usage.Display }))
         {
-            cls.Tier = RedefinesTier.Rejected;
             // The gate is usage-keyed, so it also refuses NATIONAL (two bytes per position — a byte-addressed
             // cell window over it would break ADDRESS-OF/BASED/F10 byte arithmetic, RESIDUE-11) and BIT
             // (kept out of cells until the packing residue closes — one leg, one posture). Display-form
             // BOOLEAN leaves PASS deliberately: one '0'/'1' char = one byte (D-B1), cell-safe.
-            cls.RejectReason = $"{what} '{item.CobolName}' has a COMP/float/index/national/bit leaf — the "
+            cls.Classify(RedefinesTier.Rejected, cls.Width,
+                $"{what} '{item.CobolName}' has a COMP/float/index/national/bit leaf — the "
                 + "shared single-byte character image cannot carry it (Tier-C byte island / the RESIDUE-11 "
-                + "2-byte national layout, deferred)";
+                + "2-byte national layout, deferred)");
             return null;
         }
 
-        cls.Tier = RedefinesTier.StringCanonical;
-        cls.Width = cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1));
+        // The sanctioned RE-classification (see RedefinesClass.Classify): the cell re-base overrides any prior
+        // stored-member verdict with the cell-backed Tier-B form (§13.18.22.4 GR5).
+        cls.Classify(RedefinesTier.StringCanonical, cls.Members.Max(m => m.ImageWidth * (m.Occurs ?? 1)),
+            rejectReason: null);
         foreach (var member in cls.Members)
         {
             AssignClassOffsets(member, 0, cls);

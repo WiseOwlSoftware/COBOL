@@ -411,7 +411,15 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
   `SkeletonReached`, 4 guard arms, the constant-false `out bool skeleton` overload);
   DEVIATION (in DESIGN §2.7): the sentinel replacement is `DataItem.Pending : PicPending` + the
   `PicInfo.Recovery` factory, NOT an Analyze-result `PicAnalysis` — the pending sentinels never came from
-  Analyze (picture-less entries; the verdict needs the complete forest). d–e pending.
+  Analyze (picture-less entries; the verdict needs the complete forest).
+  d DONE (DEVLOG 783): `Tier`/`Width`/`RejectReason` private-set behind the ONE named mutator
+  `RedefinesClass.Classify` (two documented callers: the classifier's §13.18.44 verdict; the cell forcer's
+  §13.18.22.4 GR5 re-base); `ClassOffset` internal-set (one writer: `AssignClassOffsets`).
+  DEVIATIONS: strict init-only UNIMPLEMENTABLE (the cell re-classification is a real second write by design);
+  the doc's "~10 scattered Tier-C guards" don't exist as verdicts today (Phase 1E folded the island into
+  `ComputeTier`; the emitter loud guards key off `IsImageCapable`, one definition); a `TierCWindow.Read/Write`
+  backstop adds nothing (Rejected views already fail loud at resolve; `StorageForm.TierCWindow` = the P11 seam).
+  e pending.
 - [x] Step 12 (DEVLOG 779) — identities #1/#5 retired with their subjects; #2/#3/#4 stay (#3 guards two live
   computations); the DAG was finalized at P6 (GroupTail + terminal conformance pass)
 - [x] Step 13 (DEVLOG 779) — ApostropheValueDifferentialTests ×3, PROVEN failing-first under a '"'-only

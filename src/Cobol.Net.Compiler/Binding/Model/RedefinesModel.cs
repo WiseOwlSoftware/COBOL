@@ -66,12 +66,14 @@ public sealed class RedefinesClass
     /// <summary>The class members (canonical + every redefiner), in source order.</summary>
     public List<DataItem> Members { get; } = [];
 
-    /// <summary>The overlay tier (decides the backing kind + the view accessors).</summary>
-    public RedefinesTier Tier { get; set; }
+    /// <summary>The overlay tier (decides the backing kind + the view accessors). Written ONLY through
+    /// <see cref="Classify"/> (P5.11d).</summary>
+    public RedefinesTier Tier { get; private set; }
 
     /// <summary>The class-max image width — characters for <see cref="RedefinesTier.StringCanonical"/>, bytes for
-    /// <see cref="RedefinesTier.ByteCanonical"/> (a level-01 non-EXTERNAL original may be redefined larger, SR8).</summary>
-    public int Width { get; set; }
+    /// <see cref="RedefinesTier.ByteCanonical"/> (a level-01 non-EXTERNAL original may be redefined larger, SR8).
+    /// Written ONLY through <see cref="Classify"/> (P5.11d).</summary>
+    public int Width { get; private set; }
 
     /// <summary>The C# name of the single stored backing field for a Tier-B/Tier-C class.</summary>
     public string BackingCsName => "_redef_" + Canonical.CsName;
@@ -83,6 +85,23 @@ public sealed class RedefinesClass
     /// for ordinary (stored / external-cell / addressable-cell) classes.</summary>
     public string? BasedPointerField { get; set; }
 
-    /// <summary>The loud-reject reason when <see cref="Tier"/> is <see cref="RedefinesTier.Rejected"/>, else null.</summary>
-    public string? RejectReason { get; set; }
+    /// <summary>The loud-reject reason when <see cref="Tier"/> is <see cref="RedefinesTier.Rejected"/>, else null.
+    /// Written ONLY through <see cref="Classify"/> (P5.11d).</summary>
+    public string? RejectReason { get; private set; }
+
+    /// <summary>THE one verdict-application site (P5.11d — single-source the tier verdict, DESIGN-data-model §2.3):
+    /// exactly two callers exist. <c>DataBinder.ClassifyRedefinesClasses</c> applies the §13.18.44 REDEFINES
+    /// verdict once per class (its <c>ComputeTier</c> reason table carries the ISO citations — the
+    /// float/COMP-5/BINARY-*/INDEX Tier-C island per §13.18.60, the 2-byte national overlay per D-N1/D-N2, the
+    /// dynamic-table reject per §13.18.44 SR5). <c>DataBinder.ForceStringCanonical</c> — the ONE cell-backing
+    /// forcer — may RE-classify an already-classified class: EXTERNAL/BASED/ADDRESS-OF re-basing deliberately
+    /// overrides the stored-member verdict with the cell-backed Tier-B form (§13.18.22.4 GR5), or rejects when a
+    /// leaf has no single-byte character image. No other writer exists; a new tier decision goes through one of
+    /// those two, never a scattered assignment.</summary>
+    internal void Classify(RedefinesTier tier, int width, string? rejectReason)
+    {
+        Tier = tier;
+        Width = width;
+        RejectReason = rejectReason;
+    }
 }
