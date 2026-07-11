@@ -217,6 +217,13 @@ public sealed class DataItem
     /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.</summary>
     public int ClassOffset { get; set; }
 
+    /// <summary>The canonical storage representation of this ELEMENTARY item (null for a group — a group emits as a
+    /// record struct and answers its image facts recursively over children). Computed ONCE by
+    /// <see cref="Passes.StorageFormPass"/> after all facts are known (rearchitecture PHASE 05; DESIGN-data-model
+    /// §2.1). Mutable during the D0 parallel-SSOT phase; becomes init-only at Step 10 when <see cref="StoreAsImage"/>
+    /// and the recursive image-fact properties are deleted.</summary>
+    public Model.StorageForm? Storage { get; set; }
+
     /// <summary>The level-66 RENAMES entries attached to this record (a 01/FD/SD owner). They are NOT storage
     /// children (they add no storage, ISO §13.18.45) — kept here so layout / struct emission ignores them while
     /// reference resolution can still find them.</summary>

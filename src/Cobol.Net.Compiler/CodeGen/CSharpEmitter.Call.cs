@@ -138,6 +138,13 @@ public sealed partial class CSharpEmitter
         foreach (var unit in units) MarkStoreAsImage(unit.Data);
         OoHarmonizeOverrideCrossings();   // C# override signatures must agree on the crossing form (review find)
 
+        // PHASE-05 Step 2 (D0, prove-then-delete): compute the canonical StorageForm for every item ONCE, HERE —
+        // the FINAL post-procedure-bind, post-temp-resync, post-MarkStoreAsImage, post-OO-harmonize state where every
+        // StoreAsImage flag is settled. Nothing reads Storage yet; it runs in PARALLEL with the legacy flag and the
+        // corpus equivalence assert (StorageFormPass.Verify) proves them equal before any deletion.
+        foreach (var cls in classes) { CobolNet.Binding.Passes.StorageFormPass.Compute(cls.Data); CobolNet.Binding.Passes.StorageFormPass.Compute(cls.FactoryData); }
+        foreach (var unit in units) CobolNet.Binding.Passes.StorageFormPass.Compute(unit.Data);
+
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
         // pre-EC build (the zero-scaffolding invariant, SSOT §18.16).

@@ -110,11 +110,16 @@ public abstract record StorageForm
     public abstract int ImageWidth { get; }
 
     // ── The cases ─────────────────────────────────────────────────────────────────────────────────────────
-    /// Native scaled integer: long (≤18 digits) or Int128 (19–38). NOT character-imageable as itself, but
-    /// IS image-CAPABLE (its zoned digit image is derived on demand — see IsImageCapable on the item).
-    public sealed record NativeInt(bool Wide, int Digits) : StorageForm { … }
+    // ⚠ AMENDED at execution (PHASE-05 Step 2, DEVLOG 749): NativeInt/NativeFloat/IndexCell carry a precomputed
+    // `Width` = ElementaryImageWidth(Pic) = Digits + (1 if SIGN IS SEPARATE, ISO §13.18.52). The D0-locked
+    // (Wide, Digits) shape could NOT reproduce the separate-sign +1 that DataItem.ElementaryImageWidth
+    // (DataItem.cs:301-302) adds — and that width is load-bearing even for a NON-promoted native leaf (a group's
+    // image sums its native children's widths), so the equivalence assert #3 fails without it.
+    /// Native scaled integer: long (≤18 digits) or Int128 (>18). NOT character-imageable as itself, but IS
+    /// image-CAPABLE (its zoned digit image is derived on demand). Width = digits + separate-sign.
+    public sealed record NativeInt(bool Wide, int Digits, int Width) : StorageForm { … }
     /// Native IEEE float (COMP-1/FLOAT-SHORT) or double. Never in a static record image (loud Tier-C island).
-    public sealed record NativeFloat(bool Single) : StorageForm { … }
+    public sealed record NativeFloat(bool Single, int Width) : StorageForm { … }
     /// A C# string of exactly Width characters: alphanumeric / numeric-edited / national / boolean, OR a
     /// numeric-DISPLAY leaf promoted to its zoned image because it is used under a whole-group operand (§14.9 GR4).
     /// Category is retained so the numeric pipeline decodes/encodes zoned images (ParseDisplay/FormatDisplay).
@@ -129,8 +134,9 @@ public abstract record StorageForm
     public sealed record ObjectRef(string? ClassName) : StorageForm { … }
     /// A data pointer (ManagedPointer). Zero character positions.
     public sealed record PointerRef : StorageForm { … }
-    /// A USAGE INDEX cell (long occurrence number). Zero character positions.
-    public sealed record IndexCell : StorageForm { … }
+    /// A USAGE INDEX cell (long occurrence number). Zero character positions. (Width is 0 — an index has no PIC
+    /// digits — but carried uniformly with the other native cases.)
+    public sealed record IndexCell(int Width) : StorageForm { … }
 }
 ```
 

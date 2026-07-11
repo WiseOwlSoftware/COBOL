@@ -7,8 +7,8 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: IN PROGRESS @ Step 1 DONE — Step 2 (StorageForm parallel SSOT, D0) NEXT
-> Step 0 (baseline) + Step 1 (`Common/CobolLiteral.cs`) landed 2026-07-10 (DEVLOG 747). Battery at head: greenfield conformance **3157** · unit **248** (+21 `CobolLiteralTests`) · characterization **32** byte-exact · FULL legacy guard NIST **353 MATCH**. The executing session MUST update this line + the §7 Step ledger on each commit boundary and set `DONE` at phase end.
+> ## STATUS: IN PROGRESS @ Step 2 DONE — Step 3 (IBindPass scaffolding + ValidateDag) NEXT
+> Steps 0–2 landed 2026-07-10 (DEVLOG 747, 749). Step 2 (D0): `Binding/Model/StorageForm.cs` (9 cases) + `Binding/Passes/StorageFormPass.cs` compute `DataItem.Storage` in PARALLEL with the legacy `StoreAsImage`; `StorageFormEquivalenceTests` proves the derived facts (IsCharacterImage / ImageWidth / ElementType) EQUAL the legacy computation over the NIST corpus + crafted tricky paths (exit criterion 3 — nothing deleted yet). Battery at head: greenfield conformance **3157** · unit **254** (+6 StorageForm) · characterization **32** byte-exact · FULL legacy guard NIST **353 MATCH**. The executing session MUST update this line + the §7 Step ledger on each commit boundary and set `DONE` at phase end.
 
 ---
 
@@ -308,7 +308,7 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
 
 - [x] Step 0 — baseline captured (counts: 3157 conformance / 227 unit / NIST 353 MATCH) — DEVLOG 747
 - [x] Step 1 — CobolLiteral.Decode (both ISO delimiters; 3 twins + hard-coded '"' guards deleted; CobolLiteralTests ×21) — DEVLOG 747
-- [ ] Step 2 — StorageForm parallel + equivalence assert (D0)
+- [x] Step 2 — StorageForm (9 cases; DESIGN §2.1 amended: Width field) + StorageFormPass.Compute (parallel, D0) + StorageFormEquivalenceTests (NIST corpus + crafted, 0 divergences); conformance 3157 · unit 254 · characterization 32 byte-exact — DEVLOG 749
 - [ ] Step 3 — IBindPass scaffolding + ValidateDag
 - [ ] Step 4 — RecordLayout parallel + width assert
 - [ ] Step 5 — UsageCollectionPass parallel (D1 prove)
