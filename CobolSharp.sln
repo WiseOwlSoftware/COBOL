@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobol.Net.Tests.Characteriz
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobol.Net.Editions", "src\Cobol.Net.Editions\Cobol.Net.Editions.csproj", "{8647D05D-59FA-4569-AF7A-019ED633F45E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobol.Net.Compiler.SourceGen", "src\Cobol.Net.Compiler.SourceGen\Cobol.Net.Compiler.SourceGen.csproj", "{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -199,6 +201,18 @@ Global
 		{8647D05D-59FA-4569-AF7A-019ED633F45E}.Release|x64.Build.0 = Release|Any CPU
 		{8647D05D-59FA-4569-AF7A-019ED633F45E}.Release|x86.ActiveCfg = Release|Any CPU
 		{8647D05D-59FA-4569-AF7A-019ED633F45E}.Release|x86.Build.0 = Release|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Debug|x64.Build.0 = Debug|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Debug|x86.Build.0 = Debug|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Release|x64.ActiveCfg = Release|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Release|x64.Build.0 = Release|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Release|x86.ActiveCfg = Release|Any CPU
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -217,5 +231,6 @@ Global
 		{F6CCF2DA-5E7D-4A12-A768-7ECC88932BFB} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{0FB9016D-B430-41BE-B535-807A4F55CA69} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{8647D05D-59FA-4569-AF7A-019ED633F45E} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{8121EA3E-13E9-40E0-AF7D-B73EC6D532A8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

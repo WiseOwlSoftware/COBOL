@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) PULLED FORWARD as Exec Step A`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) PULLED FORWARD as Exec Step A · 6a DONE (last green commit bc490ed7, DEVLOG 755), converting consumers 6b→6f next`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -152,10 +152,9 @@ When P7 is DONE, these files/types exist with these responsibilities. (Folders u
 - `CodeGen/AssemblyPackager.cs` — runtimeconfig write + runtime-dll deploy, split out of `RoslynBackend`; framework `MetadataReference` set cached in a `static readonly Lazy<ImmutableArray<MetadataReference>>`.
 - `Binding/Place.cs` — **structural** `Place`: `abstract record Place { DataItem Item; PicInfo? Pic; }` with NO `Read()/Write()`. Subtypes carry structure: `MemberPlace(AccessPath, DataItem)`, `RefModPlace(Place, BoundExpr Start, BoundExpr? Length)`, `RedefViewPlace(Place Backing, BoundExpr ZeroOffset, int Width, DataItem)`, `NumericImagePlace(Place Inner)`, `RenamesPlace(IReadOnlyList<Place>, DataItem)`, `CapacityRegisterPlace(Place Table, DataItem)`. New: `AccessPath(IReadOnlyList<AccessSegment>)`, `AccessSegment` (`RootFieldSegment`, `MemberSegment`, `IndexSegment(BoundExpr)`, `FixedTableSegment(BoundExpr, AccessDir)`, `DynTableSegment(BoundExpr, AccessDir)`).
 
-**Exhaustive dispatch**
-- `Binding/Bound/BoundTree.cs` — `[BoundNode]` on the sealed roots (`BoundStatement`, `BoundExpr`, `BoundCondition`, `BoundOperand`, `BoundBoolExpr`); `IBoundStatementVisitor<T>` + siblings; generated `Accept<T>` per record.
-- `Binding/Bound/IBoundError.cs` — marker on `BoundUnsupported`/`BoundOperandError`/`BoundExprError`/`BoundConditionError`/`BoundBoolError`.
-- `src/Cobol.Net.Compiler.SourceGen/BoundVisitorGenerator.cs` — Roslyn source generator (NuGet analyzer, no new java/pwsh prereq) emitting the `Accept` overrides + visitor interfaces from the `[BoundNode]` hierarchy. (Fallback: a hand-written `abstract` visitor base with no default methods — same exhaustiveness, more boilerplate; OPEN Q1.)
+**Exhaustive dispatch** (✅ 6a delivered — see Step 6 §6a for the as-built design)
+- `Binding/Bound/BoundTree.cs` — `[BoundNode]` on all **7** sealed roots (`BoundStatement`, `BoundExpr`, `BoundCondition`, `BoundOperand`, `BoundBoolExpr`, `BoundPerformControl`, `BoundSetTarget`). The `[BoundNode]` attribute + the generated `I{Root}Visitor<T>` interfaces + the `BoundVisitor.Accept<T>` extensions all arrive from the generator (post-init attribute source + `BoundVisitors.g.cs`); no hand-written types in the tree.
+- `src/Cobol.Net.Compiler.SourceGen/BoundVisitorGenerator.cs` — Roslyn **incremental** source generator (netstandard2.0 analyzer, `ReferenceOutputAssembly=false`; no new java/pwsh prereq) emitting the visitor interfaces + `Accept<T>` extension `switch` from the `[BoundNode]` hierarchy via the **semantic model** (`INamedTypeSymbol.BaseType`). Correctness net `tests/…Unit/BoundVisitorGeneratorTests.cs`; no drift test (generation is not a committed artifact). The error nodes (`BoundUnsupported`/`BoundOperandError`/`BoundExprError`/`BoundConditionError`/`BoundBoolError`) each get their own `Visit` — no `IBoundError` marker (OPEN Q1 resolved: source generator chosen; the hand-written-abstract-visitor fallback was not needed).
 
 **Semantic normalization on the node**
 - `Binding/Bound/BoundTree.cs` — `enum MoveKind { Group, ElementaryAlphanumeric, ElementaryNumeric, NumericEdited, AlphaEdited, FigurativeFill, FigurativeToNumericImage, RefModSlice }`; `BoundMove(IReadOnlyList<Place> Targets, BoundOperand Source, MoveKind Kind, StorageForm TargetForm)`. `ConvertSource`'s emit-time category switch is deleted.
@@ -286,22 +285,39 @@ When P7 is DONE, these files/types exist with these responsibilities. (Folders u
 
 This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit is battery-green.
 
-- **6a — Generator + interfaces + `IBoundError`.**
-  - Files: create project `src/Cobol.Net.Compiler.SourceGen/` (a `netstandard2.0` Roslyn analyzer/source-generator,
-    referenced by `Cobol.Net.Compiler.csproj` as an `Analyzer`); create `BoundVisitorGenerator.cs`; edit
-    `Binding/Bound/BoundTree.cs` to add `[BoundNode]` on the five sealed roots; create `Binding/Bound/IBoundError.cs`
-    and mark `BoundUnsupported`/`BoundOperandError`/`BoundExprError`/`BoundConditionError`/`BoundBoolError`.
-  - Change: the generator emits, per root, `public interface IBoundStatementVisitor<out T> { T Visit(BoundMove n); … one Visit per sealed leaf … }`
-    and a generated `public partial T <Node>.Accept<T>(IBoundStatementVisitor<T> v) => v switch { … exhaustive … };`
-    (same for `BoundExpr`/`BoundCondition`/`BoundOperand`/`BoundBoolExpr`). Adding a leaf without a `Visit` overload
-    is now a **compile error** in every visitor. NO consumer is converted yet — this sub-commit just introduces the
-    machinery; existing switches keep working.
-  - Verify: `dotnet build src/Cobol.Net.Compiler` succeeds (generator runs); battery 1+2+4 green.
-  - COMMIT: `P7 step6a: BoundVisitorGenerator + [BoundNode] + IBoundError marker (dispatch machinery, no consumers yet)`
-  - **Fallback (OPEN Q1):** if the source generator proves fiddly on both OSes, hand-write an
-    `abstract partial record BoundStatement { public abstract T Accept<T>(IBoundStatementVisitor<T> v); }` and one
-    `public override T Accept<T>(...) => v.Visit(this);` per leaf — same compile-time exhaustiveness, more
-    boilerplate, zero build machinery. Keep the generator's output shape identical so a later swap is mechanical.
+- **6a — Generator + interfaces. ✅ DONE (2026-07-11, commit see STATUS).**
+  - Files (as built): project `src/Cobol.Net.Compiler.SourceGen/` (a `netstandard2.0` Roslyn **incremental** source
+    generator, `IsRoslynComponent`, referenced by `Cobol.Net.Compiler.csproj` with
+    `OutputItemType="Analyzer" ReferenceOutputAssembly="false"`); `BoundVisitorGenerator.cs`; `[BoundNode]` marks all
+    **seven** roots in `Binding/Bound/BoundTree.cs` (`BoundStatement`/`BoundExpr`/`BoundCondition`/`BoundOperand`/
+    `BoundBoolExpr`/`BoundPerformControl`/`BoundSetTarget` — the design's "five" undercounted). The `[BoundNode]`
+    attribute is emitted into the compilation by the generator's `RegisterPostInitializationOutput` (self-contained;
+    no attributes assembly). Generated `BoundVisitors.g.cs` = 7 interfaces + 120 Visit overloads + a `BoundVisitor`
+    static class with 7 `Accept<T>` extensions (120 arms). Correctness net: `BoundVisitorGeneratorTests` (reflection —
+    each interface's Visit-params == the compiled non-abstract descendants of its root; **no drift test needed —
+    generation runs every build off the live type graph, so there is no committed artifact to drift**).
+  - How it discovers leaves: through the Roslyn **semantic model** (`INamedTypeSymbol.BaseType` chain), NOT a text
+    scan — a base-less helper record (e.g. `BoundCallArg`) can never be mis-bound to a following root, and the file
+    cannot drift. Adding a leaf without a `Visit` overload is a **compile error** in every implementing visitor. NO
+    consumer converted yet — the machinery is additive; existing switches keep working.
+  - **Design choices that refine the original sketch (kept CURRENT here per the owner doc-sync rule):**
+    - **Roslyn source generator, NOT a hand-rolled generator script.** An interim regex-based pwsh script
+      (`gen-constructs.ps1`-style, committed `.g.cs` + drift test) was written and then **removed** — parsing C# with
+      a regex is the hand-rolled-parser anti-pattern (it immediately mis-captured `BoundCallArg` across a `;`), and
+      the owner directed the canonical C#→C# tooling. The pwsh `gen-*` scripts remain correct for the *grammar/registry*
+      artifacts (they also emit **ANTLR `.g4`**, which a C# source generator cannot) — genuinely a different job, so
+      [[feedback_singular_pattern]] (best tool per job) is honored, not violated.
+    - **`Accept` is an extension-method `switch` with a `_ => throw`, not a `partial`-method-per-leaf.** The records
+      are not `partial`; the extension form needs zero edits to 120 declarations. The `_ => throw` satisfies CS8509
+      (C# does not prove closed-hierarchy exhaustiveness for class types) and is unreachable-by-construction — the
+      switch is regenerated from the live leaf set every build. The compile-time exhaustiveness guarantee lives in the
+      **interface** (a consumer must implement every `Visit`), which is the property that matters.
+    - **The five error nodes each get their own `Visit`** (no `IBoundError` marker / collapsed `VisitError`). Explicit
+      per-node Visits are strictly more exhaustive; a consumer that wants uniform error handling calls one shared
+      helper from each — no machinery, no lost guarantee. (Supersedes the 6b `IBoundError`-routing note below.)
+  - Verify (done): `dotnet build src/Cobol.Net.Compiler` succeeds, generator emits `BoundVisitors.g.cs`
+    (`-p:EmitCompilerGeneratedFiles=true` confirmed 120 leaves / 7 roots); unit battery green (266 + 7 new).
+  - COMMIT: `P7 step6a: Roslyn BoundVisitorGenerator + [BoundNode] on 7 roots (exhaustive I{Root}Visitor/Accept; no consumers yet)`
 
 - **6b..6f — Convert consumers ONE at a time** (emitter first, then analyses, then renderers):
   - **6b** `EmitStatement` (`CSharpEmitter.cs:349`) → `StatementEmitter : IBoundStatementVisitor<bool>` (bool =

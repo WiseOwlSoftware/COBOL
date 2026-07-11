@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Cobol.Net.Compiler.SourceGen — the Roslyn INCREMENTAL SOURCE GENERATOR that emits the exhaustive bound-tree
+    visitor dispatch (rearchitecture EXEC STEP A / PHASE-07 Step 6). It reads the compiler's own sealed Bound*
+    record hierarchy through the Roslyn SEMANTIC MODEL (INamedTypeSymbol.BaseType) — no text/regex scan — and emits,
+    per [BoundNode]-marked root, a typed I{Root}Visitor<T> + an exhaustive Accept<T>. A consumer that implements a
+    visitor interface MUST handle every leaf (a missing Visit is a compile error); a NEW leaf regenerates the
+    interface on the next build, so every implementing consumer re-fails until updated. Because generation runs
+    every build off the live type graph, there is NO committed artifact and NOTHING to drift.
+
+    This is an ANALYZER assembly: it is loaded by Roslyn at BUILD time and is never a runtime dependency of the
+    compiler (referenced with ReferenceOutputAssembly="false"). Analyzers load as netstandard2.0, so this project
+    overrides the repo-wide net10.0 from Directory.Build.props.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <!-- Roslyn's own DLLs are provided by the host compiler at analysis time; never ship or reference them. -->
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

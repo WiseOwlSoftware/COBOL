@@ -87,6 +87,7 @@ public sealed record BoundParagraph(string CobolName, IReadOnlyList<IReadOnlyLis
 // ── Numeric expressions (scale-tracked at render time by the backend) ──────────────────────────────────────────
 
 /// <summary>A bound numeric expression — a tree of resolved operands and operators (no parse context).</summary>
+[BoundNode]
 public abstract record BoundExpr;
 
 /// <summary>A numeric literal, kept as raw source text (e.g. <c>"3.5"</c>, <c>"-12"</c>); the backend scales it.</summary>
@@ -177,6 +178,7 @@ public sealed record BoundIntrinsicCall(
 // ── General operands (DISPLAY / MOVE source / comparison) — render as string or number per context ─────────────
 
 /// <summary>A bound operand usable where either a string image or a numeric value may be required.</summary>
+[BoundNode]
 public abstract record BoundOperand;
 
 /// <summary>A non-numeric literal, already decoded to its character value. <paramref name="Category"/> carries
@@ -229,6 +231,7 @@ public sealed record BoundOperandError(string Feature) : BoundOperand;
 //    channel (OperandText) — the emitter routes it through BooleanRenderer over the runtime CobolBool. ─────────
 
 /// <summary>A bound boolean expression (COBOLNET_DESIGN §11 / ISO §8.8.2).</summary>
+[BoundNode]
 public abstract record BoundBoolExpr;
 
 /// <summary>A boolean literal <c>B"1010"</c>, decoded to its '0'/'1' bit string.</summary>
@@ -260,6 +263,7 @@ public sealed record BoundBoolOperand(BoundBoolExpr Expr) : BoundOperand;
 // ── Conditions ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 /// <summary>A bound condition — a side-effect-free predicate tree (COBOLNET_DESIGN §11).</summary>
+[BoundNode]
 public abstract record BoundCondition;
 
 /// <summary>A relational comparison <c>left op right</c> (<paramref name="Op"/> is the mapped C# operator).</summary>
@@ -295,6 +299,7 @@ public sealed record BoundConditionError(string Feature) : BoundCondition;
 // ── Statements ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 /// <summary>A bound statement.</summary>
+[BoundNode]
 public abstract record BoundStatement;
 
 /// <summary>An unsupported / unresolved statement — the backend emits a loud runtime guard (§1.4).</summary>
@@ -379,6 +384,7 @@ public sealed record BoundIf(
     IReadOnlyList<BoundStatement> Else) : BoundStatement;
 
 /// <summary>How a PERFORM repeats its body.</summary>
+[BoundNode]
 public abstract record BoundPerformControl;
 /// <summary>Run the body once.</summary>
 public sealed record PerformOnce : BoundPerformControl;
@@ -473,6 +479,7 @@ public sealed record BoundFree(IReadOnlyList<Place> Operands) : BoundStatement;
 // ── SET index assignment / arithmetic (ISO §14.9.39 Formats 1–2; COBOLNET_DESIGN §3.5/§12.3) ──────────────────
 
 /// <summary>A SET receiving operand, dispatched by kind (the design's §12.3 rule).</summary>
+[BoundNode]
 public abstract record BoundSetTarget;
 /// <summary>An INDEXED BY index-name receiver — its C# <c>long</c> occurrence-number field.</summary>
 public sealed record SetIndexTarget(string IndexField) : BoundSetTarget;

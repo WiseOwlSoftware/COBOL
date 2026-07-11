@@ -36,4 +36,11 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Build-time source generator: emits the exhaustive I{Root}Visitor<T> + Accept<T> over the [BoundNode]
+         hierarchy (PHASE-07 Step 6). Analyzer-only — never a runtime dependency. -->
+    <ProjectReference Include="..\Cobol.Net.Compiler.SourceGen\Cobol.Net.Compiler.SourceGen.csproj"
+                      OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
 </Project>
