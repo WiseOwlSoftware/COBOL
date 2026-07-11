@@ -626,9 +626,12 @@ regression bisects to one step.
 
 ## 9. D10 — SUBSCRIPT-mode removal (owner override): design + the one open decision
 
-> **Status: DESIGN — authored 2026-07-10 (DEVLOG 746) during PHASE 04, per the owner's D10 ruling. The core
-> implementation is BLOCKED on the §9.4 decision + is entangled with the frozen legacy compiler (§9.3). It is a
-> MAJOR multi-stage sub-track, NOT completable in the Group-A/B/C byte-neutral sitting.**
+> **Status: DESIGN — authored 2026-07-10 (DEVLOG 746). ✅ SCHEDULED as PHASE 15 §"CUT 2.5" (DEVLOG 748), sequenced
+> immediately AFTER PHASE 15 Cut 2 deletes the legacy `src/CobolSharp.*` tree — the event that clears the §9.3
+> entanglement (the frozen legacy compiler is the sole remaining consumer of `SUB_*`/`SubscriptEntryContext`). The
+> executing session resolves the §9.4 decision FIRST, then runs the §9.5 D10.1–D10.5 stages. This is a MAJOR multi-stage
+> rearchitecture sub-track (a shared-grammar + ~250-line binder-parser rewrite) — it was originally scoped into PHASE 04
+> but relocated because it is not doable while the legacy compiler shares the grammar.**
 
 ### 9.1 Goal
 Replace the lexer **SUBSCRIPT mode** (`CobolLexer.g4` — entered via `LPAREN` after a data-name token, emits the
@@ -688,10 +691,12 @@ This is the gating question; §9.5's staging depends on the answer.
 which is the substance of the owner's directive. Frame "fully remove" as "remove the uninterpreted flat-stream +
 C# re-parse," retaining the smallest possible lexer assist the spec compels.
 
-### 9.5 Staged plan (each stage: full legacy guard + INV-1-strong; author the step-by-step at execution)
-Sequenced because the LPAREN mode-entry is an all-or-nothing decision — the interpreted rules cannot coexist with
-the live mode, so the mode flips as the last grammar step, and (per §9.3) that flip waits on the legacy retirement
-or a G8-coordinated cut.
+### 9.5 Staged plan — executed as PHASE 15 §"CUT 2.5", after Cut 2 (each stage: greenfield battery + `guard.ps1` + INV-1-strong)
+These D10.1–D10.5 stages ARE the PHASE-15 §"CUT 2.5" step list. Sequenced because the LPAREN mode-entry is an
+all-or-nothing decision — the interpreted rules cannot coexist with the live mode, so the mode flips as the last grammar
+step (D10.5), and (per §9.3) that flip requires the legacy tree already deleted — which is why the whole sub-track runs
+AFTER PHASE 15 Cut 2 (§9.3 resolved). By the time D10.5 runs, the legacy `guard.sh`/353-MATCH net is itself retired, so
+the verification metric is the greenfield `guard.ps1` + the D10.1 corpus + INV-1-strong.
 - **D10.1** — this design note (done) + the §9.4 decision + a NEW characterization/conformance corpus exercising
   every enumerated form (multi-subscript space/comma lists, relative offsets, signed literals, ref-mod, qualified
   subscripts, nested FUNCTION args, string/national/boolean args, `table(ALL)`) captured BEFORE the change.

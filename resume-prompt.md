@@ -83,11 +83,11 @@
 > INV-1-strong 349/349 · FULL legacy guard NIST 353 MATCH. Carried-forward (NOT a P3 blocker): the flagged latent OO-env
 > double/zero-bind (DEVLOG 738 — a dedicated fix, likely in PHASE 09).
 >
-> ⛔🏗 **PHASE 04 — FRONTEND CONSOLIDATION: OPEN (Groups A+B+C+D ✅ DONE; D10 = the DEFERRED OPEN TAIL). Owner decision
-> 2026-07-10 (DEVLOG 746): KEEP PHASE 04 OPEN until D10 is doable; move OTHER PHASES (05+) FORWARD AROUND IT.** So the
-> go-forward active work is **PHASE 05** (unified data model — the next phase whose deps are met), NOT more of Phase 04;
-> D10 executes when doable (at/with G8, per the entanglement below). Read the phase doc
-> `docs/rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md` STATUS block. A byte-neutral refactor in 4 groups:
+> ⛔🏗 **PHASE 04 — FRONTEND CONSOLIDATION: ✅ DONE (Groups A+B+C+D; all 5 exit criteria hold, DEVLOG 743–746). The D10
+> SUBSCRIPT-mode removal was RELOCATED out of Phase 04 → PHASE 15 §"CUT 2.5" (DEVLOG 748), because the frozen legacy
+> compiler shares `SUB_*`/`SubscriptEntryContext` until it is deleted at P15 Cut 2 (the ISO §8.3.5 space-separator
+> constraint also applies — `DESIGN-frontend-grammar.md §9`). NOW EXECUTING: PHASE 05 (unified data model —
+> `StorageForm`).** A byte-neutral refactor in 4 groups (DONE):
 > **A** ✅ single-source the context-sensitive word set; **B** ✅ share SUBSCRIPT/DEFAULT literal token bodies via
 > `fragment` rules; **C** ✅ typed `Cst/` façade over the ANTLR
 > contexts + migrate the 2 anchor consumers (`ReferenceResolver`, `DataBinder.BindEntry`); **D** version-conformance leg
@@ -113,14 +113,18 @@
 > RECONCILED (P3's as-built two-arm `VersionConformancePass` reads the raw parse tree, so the design's construct-id
 > annotation side-table is SUPERSEDED; superset grammar complete; exit-criterion 5 corrected — surviving predicates are
 > load-bearing cross-edition DISAMBIGUATIONS: 2 forward-detects + `{is2023()}?` inline-method-invocation + `{is2002()}?`
-> procedure-param + VALUE/PROPERTY neg-lookahead, none a rejection gate). **⛔ D10 = the DEFERRED OPEN TAIL** (owner:
-> keep Phase 04 open until doable). D10 = FULLY REMOVE the SUBSCRIPT lexer mode + the ~250-line binder re-parse; DESIGNED
+> procedure-param + VALUE/PROPERTY neg-lookahead, none a rejection gate). **✅ PHASE 04 CLOSED on Groups A–D (all 5 exit
+> criteria hold); NOW EXECUTING PHASE 05.** **D10 (SUBSCRIPT-mode removal) was RELOCATED → PHASE 15 §"CUT 2.5" (DEVLOG
+> 748).** D10 = FULLY REMOVE the SUBSCRIPT lexer mode + the ~250-line binder re-parse; DESIGNED
 > in `DESIGN-frontend-grammar.md §9` but BLOCKED — (a) the FROZEN legacy compiler shares `SUB_*`/`SubscriptEntryContext`
 > until G8/Phase-15 (deleting the dead structured rules breaks the legacy build, CS0426 — so it can't leave the shared
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
-> flat SUB_* stream + the C# re-parsers with interpreted grammar rules." **RESUME AT: PHASE 05** (Phase 04's D10 is the
-> parked tail; execute it at/with G8). Groups A–D behavior-neutral. Design: `DESIGN-frontend-grammar.md §9`.
+> flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
+> §9.5). **⛔ RESUME AT: PHASE 05 Step 2** (`StorageForm` PARALLEL SSOT + `StorageFormPass` + the corpus equivalence
+> assert, DESIGN Phase D0). Step 0 (baseline) + Step 1 (`CobolLiteral`, the apostrophe-`VALUE 'x'` miscompile fix; 3
+> decoder twins → one) DONE (DEVLOG 747; conformance 3157 · unit 248 · characterization 32 byte-exact · guard 353 MATCH).
+> Read `docs/rearchitecture/PHASE-05-…md` STATUS. Groups A–D behavior-neutral. Design: `DESIGN-frontend-grammar.md §9`.
 >
 > — (Phase-03 background) P3 made edition conformance a single coherent pipeline:
 > **superset parse** (all constructs parse at every `--std`; each version-gated grammar rule carries a committed-match

@@ -27,16 +27,18 @@
 > `docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md`, design `DESIGN-version-conformance-pipeline.md`).**
 > All 15 steps complete; the two-arm `VersionConformancePass` is the SOLE edition gate (parse-arm on recognition +
 > bound-arm on resolved facts), the binder is edition-agnostic save the ONE documented UDF exception, and all 9 exit
-> criteria hold. **◐ PHASE 04 — frontend consolidation — OPEN (Groups A–D DONE; D10 the deferred tail).** The
-> byte-neutral consolidation is done (DEVLOG 743–746, all pushed, legacy guard 353 MATCH each): **A** word set
+> criteria hold. **✅ PHASE 04 — frontend consolidation — DONE (2026-07-10; all 5 exit criteria hold).** The
+> byte-neutral consolidation landed (DEVLOG 743–746, all pushed, legacy guard 353 MATCH each): **A** word set
 > single-sourced from `cobol-words.json` + drift-guarded; **B** shared DEFAULT/SUBSCRIPT literal `fragment` bodies;
 > **C** typed `Cst/` façade + `ReferenceResolver`/`DataBinder.BindEntry` migrated off raw `GetText()`; **D** version-
 > conformance leg reconciled (P3's two-arm pass SUPERSEDES the construct-id annotation side-table; exit-crit-5 corrected
-> — the surviving predicates are load-bearing cross-edition disambiguations, not only 2 forward-detects). **D10** (the
-> owner-override SUBSCRIPT-mode removal) is DESIGNED (`DESIGN-frontend-grammar.md §9`) but the **DEFERRED OPEN TAIL** —
-> BLOCKED on the frozen legacy compiler sharing `SUB_*`/`SubscriptEntryContext` until G8/Phase-15 + the ISO §8.3.5
-> space-separator constraint. **Owner decision 2026-07-10 (DEVLOG 746): keep PHASE 04 OPEN until D10 is doable; move
-> OTHER PHASES (05+) FORWARD around it** — so the go-forward active work is PHASE 05; D10 executes at/with G8.
+> — the surviving predicates are load-bearing cross-edition disambiguations, not only 2 forward-detects). **The D10
+> owner-override (SUBSCRIPT-mode removal) was RELOCATED out of PHASE 04 → PHASE 15 §"CUT 2.5"** (2026-07-10, DEVLOG 748):
+> it is DESIGNED (`DESIGN-frontend-grammar.md §9`) but the frozen legacy compiler shares `SUB_*`/`SubscriptEntryContext`
+> until it is deleted at PHASE 15 Cut 2, so PHASE 15 (post-legacy-deletion) is the first place it is realistically
+> doable — the owner's "fully remove" ruling stands (§6 D10), only its schedule moved. **◐ NOW EXECUTING: PHASE 05
+> (unified data model — `StorageForm`)** — Step 0 (baseline) + Step 1 (`Common/CobolLiteral.cs`, the apostrophe-VALUE
+> miscompile fix) landed (DEVLOG 747); RESUME at Step 2 (StorageForm parallel SSOT, D0).
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /
@@ -199,8 +201,8 @@ phase boundary.
 | ✅ | 01 | F | MED | 00 | Mechanical namespace rename + dead-grammar / JSON-XML removal | [PHASE-01](rearchitecture/PHASE-01-mechanical-rename-deadcode.md) |
 | ✅ | 02 | R | MED | 01 | `Cobol.Net.Editions` leaf assembly + first-class diagnostic registry | [PHASE-02](rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md) |
 | ✅ | 03 | I | HIGH | 02 | Version-**conformance pipeline** (superset parse + ONE two-arm gating pass; **residue-first**) + harness-driven VCR audit — DONE 2026-07-10, all 9 exit criteria hold; binder edition-agnostic save the UDF exception | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) · [DESIGN](rearchitecture/DESIGN-version-conformance-pipeline.md) |
-| ◐ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + shared literal fragments + typed `Cst` façade) — **OPEN: Groups A–D DONE (byte-neutral, DEVLOG 743–746); D10 (SUBSCRIPT-mode removal) the DEFERRED TAIL, blocked on G8 legacy entanglement + the ISO §8.3.5 WS constraint — owner: keep open, proceed to P05** | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
-| ☐ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
+| ✅ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + shared literal fragments + typed `Cst` façade) — **DONE (byte-neutral, DEVLOG 743–746; all 5 exit criteria hold). D10 (SUBSCRIPT-mode removal) RELOCATED to PHASE 15 §"CUT 2.5"** (blocked until the legacy `SUB_*`/`SubscriptEntryContext` consumer is deleted at P15 Cut 2) | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
+| ◐ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) — **IN PROGRESS: Step 0 + Step 1 (`CobolLiteral`, apostrophe-VALUE fix) DONE (DEVLOG 747); resume at Step 2 (StorageForm parallel SSOT, D0)** | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
 | ☐ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
 | ☐ | 07 | R | HIGH | 06 | Exhaustive visitor dispatch + binder/emitter god-class decomposition | [PHASE-07](rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md) |
 | ☐ | 08 | R | MED | 00 | Runtime library reorg (`RunUnit`, `FileConnector`/`FileRegistry`, role-based folders) | [PHASE-08](rearchitecture/PHASE-08-runtime-library-reorg-rununit.md) |
@@ -210,7 +212,7 @@ phase boundary.
 | ☐ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas (dynamic length, TYPEDEF edges, >>PROPAGATE, IEEE floats, function pointers) | [PHASE-12](rearchitecture/PHASE-12-m3-2014-deltas.md) |
 | ☐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + Table 1/5 behavior-row burn-down | [PHASE-13](rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md) |
 | ☐ | 14 | I | MED | 03,13 | Matrix closure + in-repo greenfield guard + one-time equivalence proof | [PHASE-14](rearchitecture/PHASE-14-matrix-closure-greenfield-guard-equivalence.md) |
-| ☐ | 15 | C | MED | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip | [PHASE-15](rearchitecture/PHASE-15-g8-legacy-retirement-conformance-doc.md) |
+| ☐ | 15 | C | MED/HIGH | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | [PHASE-15](rearchitecture/PHASE-15-g8-legacy-retirement-conformance-doc.md) |
 | ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | [PHASE-16](rearchitecture/PHASE-16-cil-backend.md) |
 
 > **Phase 16 sequencing:** its cheap *seam-proof* milestone lands right after Phase 07 (proving `ICodeGenBackend` is
@@ -273,15 +275,18 @@ EXPANDS PHASE-04 (see the note under the table).
 | D7 | Bound-tree dispatch exhaustiveness. | ✅ **Roslyn source generator** (compile-time exhaustive visitor; a forgotten arm fails the build). |
 | D8 | Tier-C confined-`byte[]` codec. | ✅ **Implement in Phase 11 as its own increment**; single-source the loud rejection until then. |
 | D9 | Binder decomposition granularity. | ✅ **One class per verb (~18)** over an injected `BinderContext`. |
-| D10 | SUBSCRIPT lexer-mode. | ✅ **FULLY REMOVE** the lexer `SUBSCRIPT` mode + the binder subscript re-parse (a grammar-level `x(i)` rule) — the ambitious option, NOT the "defer" default. **Expands PHASE-04 (see note).** |
+| D10 | SUBSCRIPT lexer-mode. | ✅ **FULLY REMOVE** the lexer `SUBSCRIPT` mode + the binder subscript re-parse (a grammar-level `x(i)` rule) — the ambitious option, NOT the "defer" default. **Ruling stands; RELOCATED from PHASE 04 → PHASE 15 §"CUT 2.5"** (2026-07-10, DEVLOG 748): it is blocked by the frozen legacy compiler sharing `SUB_*`/`SubscriptEntryContext` until P15 Cut 2 deletes it. Designed in `DESIGN-frontend-grammar.md §9`. |
 | D11 | Emitted `.g.cs`. | ✅ **Keep always-on** (a Roslyn-backend debugging artifact; the CIL backend emits IL, not `.g.cs`). |
 | D12 | national (`PIC N`) / boolean (`PIC 1`) representation. | ✅ **Stay CHARACTER-width in the unified model** — one C# `char` per position, riding the shared `CobolString` substrate (the current D-N1/D-B1 model). |
 
-> **D10 scope expansion (owner override of the recommended "defer" default).** PHASE-04 (Frontend consolidation) must
-> now FULLY remove the lexer `SUBSCRIPT` mode AND the binder subscript re-parse, replacing them with a grammar-level
-> subscript (`x(i)`) rule — a larger change that reaches into the binder/data-model, not merely a token-body dedup.
-> Land it as an explicitly-sequenced sub-track of PHASE-04 (or a dependent follow-on) with its own before/after
-> characterization proof, without destabilizing Phase-04's exit criteria. Recorded in `PHASE-04-frontend-consolidation-cst-facade.md`.
+> **D10 scope expansion → RELOCATED to PHASE 15 (2026-07-10, DEVLOG 748).** The owner override stands: FULLY remove the
+> lexer `SUBSCRIPT` mode AND the binder subscript re-parse, replacing them with a grammar-level subscript (`x(i)`) rule
+> (retaining the minimal ISO §8.3.5-compelled WS mechanism per `DESIGN-frontend-grammar.md §9.4`). It was originally
+> scoped into PHASE 04, but the design work (§9) showed it CANNOT land there: the frozen legacy compiler consumes
+> `SUB_*`/`SubscriptEntryContext` (`ExpressionBinder.BindSubscriptEntry`), so the SUBSCRIPT machinery cannot leave the
+> SHARED grammar until the legacy tree is deleted — which is **PHASE 15 Cut 2**. So D10 now runs as PHASE 15's
+> **§"CUT 2.5"** sub-track (staged D10.1–D10.5, §9.5), immediately after Cut 2. PHASE 04 closed on Groups A–D. Recorded in
+> `PHASE-04-…md`, `PHASE-15-…md` §"CUT 2.5", and `DESIGN-frontend-grammar.md §9`.
 
 ## 7. Backfill findings & roadmap refinements
 

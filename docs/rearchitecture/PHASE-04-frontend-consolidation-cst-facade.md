@@ -17,29 +17,32 @@
   context) that the `VersionConformancePass` reads. It explicitly does NOT execute D3/D4/D5/D7/D8 (those are
   P1/P2/P3).
 
-> ⚠ **OWNER OVERRIDE — D10 (2026-07-07), SCOPE EXPANSION beyond this doc's original §3.3b.** This phase originally
-> only DEDUPED the lexer `SUBSCRIPT` mode's token fragment bodies. The owner ruled it must **FULLY REMOVE** the
-> `SUBSCRIPT` lexer mode AND the binder subscript re-parse, replacing them with a proper grammar-level subscript
-> (`x(i)`) rule — a larger change reaching into the binder/data-model, not just the frontend. Add it as an
-> explicitly-sequenced sub-track of this phase (or a dependent follow-on phase) with its OWN before/after
-> characterization proof (Phase 00 net), and do NOT let it destabilize this phase's other exit criteria. See the
-> master plan §6 (D10) + its status banner. This likely needs a fresh design note appended to
-> `DESIGN-frontend-grammar.md` (and possibly `DESIGN-binder-bound-tree.md`) before execution — author it then.
+> ⚠ **OWNER OVERRIDE — D10 (2026-07-07): FULLY REMOVE the SUBSCRIPT lexer mode + the binder subscript re-parse →
+> a grammar-level `x(i)` rule. ✅ RELOCATED OUT OF PHASE 04 → PHASE 15 (2026-07-10, DEVLOG 748).** The design work is
+> DONE (`DESIGN-frontend-grammar.md §9`), which surfaced why D10 cannot land inside this byte-neutral phase: the frozen
+> legacy compiler consumes `SUB_*`/`SubscriptEntryContext` until it is deleted at **PHASE 15 Cut 2**, and the ISO §8.3.5
+> space-separator constraint forces a residual WS mechanism (§9.4 decision). So D10 was moved to PHASE 15 (post-Cut-2,
+> where the entanglement clears) — see `PHASE-15-…md` §"CUT 2.5". The owner's "fully remove" ruling stands (master §6
+> D10); only the schedule changed. PHASE 04 closes on Groups A–D.
 
 ## STATUS
-`OPEN — Groups A–D DONE; D10 is the DEFERRED OPEN TAIL (owner decision 2026-07-10: keep PHASE 04 open until D10 is doable; move other phases forward around it)` (2026-07-10)
+`DONE (2026-07-10) — Groups A–D complete; all 5 exit criteria hold. The D10 SUBSCRIPT-mode removal was RELOCATED to PHASE 15 (post-G8), so it is no longer this phase's scope.`
 
-> **⛔ PHASE-04 DISPOSITION (owner decision 2026-07-10, DEVLOG 746).** Groups A+B+C+D are DONE (A5 743 / B1 744 / C3 745 /
-> D reconciliation 746 — the byte-neutral consolidation core: word set single-sourced + drift-guarded; shared literal
-> fragments; typed `Cst/` façade + 2 anchors migrated; version-conformance leg reconciled). **D10** (the owner-override
-> SUBSCRIPT-mode removal) is the **OPEN TAIL** — it is DESIGNED (`DESIGN-frontend-grammar.md §9`) but BLOCKED on (a) the
-> frozen legacy compiler sharing `SUB_*`/`SubscriptEntryContext` until G8/Phase-15 and (b) the ISO §8.3.5 space-separator
-> constraint, and needs the §9.4 decision. The owner ruled: **keep PHASE 04 OPEN** (do NOT close it) and let other phases
-> (05+) proceed around it; D10 executes when doable (naturally at/with G8). So exit criteria 1–4 HOLD; exit criterion 5's
-> superset-grammar/predicate part HOLDS (reconciled) and the D10 SUBSCRIPT-mode-removal part stays OPEN.
+> **✅ PHASE-04 CLOSED (2026-07-10, DEVLOG 748).** Groups A+B+C+D are DONE (A5 743 / B1 744 / C3 745 / D reconciliation 746
+> — the byte-neutral consolidation core: word set single-sourced + drift-guarded; shared DEFAULT/SUBSCRIPT literal
+> fragments; typed `Cst/` façade + 2 anchors migrated; version-conformance leg reconciled). All 5 exit criteria hold
+> (see the reconciled criterion 5). **The D10 owner-override (fully remove the SUBSCRIPT lexer mode + the binder
+> re-parse) has been REMOVED from PHASE 04's scope and RELOCATED to PHASE 15** (see `PHASE-15-…md` §"CUT 2.5") — it is
+> BLOCKED until the frozen legacy compiler (which shares `SUB_*`/`SubscriptEntryContext`) is deleted at PHASE 15 Cut 2,
+> so PHASE 15 (post-legacy-deletion) is the first place it is realistically doable. The D10 DESIGN stays in
+> `DESIGN-frontend-grammar.md §9`; the owner's "fully remove" ruling (master §6 D10) is unchanged — only its schedule
+> moved. This closes PHASE 04.
 <!-- The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`.
      Keep a one-line note per completed commit boundary in the "Execution log" at the bottom. -->
 
+> **(Historical group ledger — PHASE 04 is CLOSED per the STATUS/disposition above; the "RESUME AT" lines below are the
+> as-executed group-by-group progress record, not open work. D10 is now PHASE 15's, not this phase's.)**
+>
 > **✅ GROUP A DONE (A5 landed 2026-07-10, DEVLOG 743).** The word set is single-sourced from
 > `tests/version-matrix/cobol-words.json` (77 rows) → `scripts/gen-cobol-words.ps1` emits `Grammar/Core/CobolWords.g4`
 > (the imported `cobolWord` fragment) + `Parsing/CobolLexerWordSet.g.cs` (the `_dataNameTokens` partial); the hand-written
@@ -924,8 +927,9 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
   superset grammar already complete. Exit-criterion 5 corrected: the surviving predicates are load-bearing
   cross-edition DISAMBIGUATIONS (2 forward-detects + `{is2023()}?` inline-method-invocation + `{is2002()}?`
   procedure-param + VALUE/PROPERTY neg-lookahead), not only the two forward-detects; none is a rejection gate.
-- **D10 (SUBSCRIPT-mode removal) — DESIGNED, BLOCKED — 2026-07-10 — DEVLOG 746, `DESIGN-frontend-grammar.md §9`.**
-  ⛔ NOT completable in the byte-neutral window: (a) `SubscriptEntryContext`/`SUB_*` are consumed by the FROZEN legacy
-  compiler, so the machinery can't leave the shared grammar until G8/Phase-15 (D10.0 dead-rule delete breaks the legacy
-  build — verified `CS0426`, reverted); (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg
-  lists + sign-adjacency (DEFAULT mode skips WS) → needs a scoped WS mechanism. **Gated on ONE owner decision (§9.4).**
+- **D10 (SUBSCRIPT-mode removal) — DESIGNED, then RELOCATED to PHASE 15 — 2026-07-10 — DEVLOG 746+748,
+  `DESIGN-frontend-grammar.md §9`.** Not completable in this byte-neutral window: (a) `SubscriptEntryContext`/`SUB_*`
+  are consumed by the FROZEN legacy compiler, so the machinery can't leave the shared grammar until it is deleted at
+  PHASE 15 Cut 2 (D10.0 dead-rule delete breaks the legacy build — verified `CS0426`, reverted); (b) removing the mode
+  collides with ISO §8.3.5 space-separated subscript/arg lists + sign-adjacency → needs a scoped WS mechanism (§9.4
+  decision). **Owner relocated D10 out of PHASE 04 → PHASE 15 §"CUT 2.5"; PHASE 04 closes on Groups A–D.**

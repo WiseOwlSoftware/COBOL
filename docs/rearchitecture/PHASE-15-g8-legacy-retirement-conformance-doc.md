@@ -1,8 +1,10 @@
-# PHASE 15 — G8 legacy retirement (three cuts) + §4.2.16 conformance documentation + runtime namespace flip
+# PHASE 15 — G8 legacy retirement (three cuts) + §4.2.16 conformance documentation + runtime namespace flip + D10 SUBSCRIPT-mode removal
 
 - **Phase:** P15
-- **Track:** cleanup
-- **Risk:** MEDIUM (irreversible deletions; the byte engine and every guard script are removed for good)
+- **Track:** cleanup (+ the one relocated rearchitecture sub-track, D10)
+- **Risk:** MEDIUM for the cleanup cuts (irreversible deletions); **HIGH** for the D10 sub-track (a shared-grammar +
+  ~250-line binder-parser rewrite) — kept isolated as its own post-Cut-2 sub-track (§"CUT 2.5") so it cannot destabilize
+  the legacy-retirement cuts.
 - **Depends on:** P14 (matrix closure + in-repo greenfield guard + the one-time equivalence proof). Transitively also
   P0 (oracle bake-out → committed goldens; `corpus.tsv`; `DifferentialBakeTool`), P1 (mechanical namespace rename
   `CobolSharp.Compiler.* → CobolNet.*` already landed in the greenfield tree), P7/P8 (the `RuntimeApi` typed façade
@@ -23,7 +25,21 @@ words §4.2.10, archaic §4.2.12 and obsolete §4.2.13 identification, and the �
 deletions here are irreversible and are gated on the Phase-14 equivalence proof having been green; the legacy source
 is preserved at an annotated git tag with a WSL reproduction recipe before it is deleted.
 
+> **⛔ RELOCATED SUB-TRACK — D10 (SUBSCRIPT-mode removal), moved here from PHASE 04 (2026-07-10, DEVLOG 748).** The owner's
+> D10 ruling (master §6 D10) — FULLY REMOVE the lexer `SUBSCRIPT` mode + the binder subscript re-parse, replacing the
+> flat `SUB_*` stream + the ~250-line hand-rolled C# re-parsers with interpreted grammar rules — could not land inside
+> PHASE 04's byte-neutral window: the FROZEN legacy compiler consumes `SUB_*`/`SubscriptEntryContext` (`ExpressionBinder.
+> BindSubscriptEntry`), so the machinery cannot leave the SHARED grammar until the legacy tree is deleted. That deletion
+> is **PHASE 15 Cut 2** — so PHASE 15, immediately AFTER Cut 2, is the first place D10 is realistically doable. It runs as
+> the isolated **§"CUT 2.5"** sub-track (after the legacy delete, before the Cut-3 namespace flip). The decision-complete
+> DESIGN is `DESIGN-frontend-grammar.md §9` (incl. the §9.4 ISO §8.3.5 space-separator decision the executing session must
+> resolve first). This is a rearchitecture task riding the cleanup phase because that is where its blocker clears.
+
 ## EXIT CRITERIA (phase is DONE when ALL hold)
+0. **(D10 sub-track) The SUBSCRIPT lexer mode + the flat `SUB_*` stream + the hand-rolled C# subscript re-parsers are
+   REMOVED**, replaced by interpreted grammar rules per `DESIGN-frontend-grammar.md §9` (retaining only the minimal
+   spec-compelled WS mechanism per §9.4); the greenfield battery + `guard.ps1` stay green; a subscript/ref-mod/space-
+   separated-args/nested-FUNCTION corpus (the §9.5 D10.1 set) is green. (Sequenced after Cut 2; see §"CUT 2.5".)
 1. **Grep-clean of legacy references:** no `src/CobolSharp.*` project, no `ProjectReference` to a `CobolSharp.*`
    project anywhere, no `CobolSharp.Compiler`/`CobolSharp.Runtime` type reference in any `src/Cobol.Net.*` or
    `tests/Cobol.Net.*` file, no `CobolSharp.sln` entry for a legacy project, and no `scripts/guard*.sh` /
@@ -279,6 +295,33 @@ only remaining references are the legacy projects referencing each other, and th
     rewrite history; leaving past entries is correct).
   - **COMMIT BOUNDARY** (if any fixes were needed). Suggested message:
     `docs(cobolnet): P15 Cut 2c — scrub stale legacy-oracle references from banners/live docs`
+
+### CUT 2.5 — D10: SUBSCRIPT-mode removal (the relocated PHASE-04 owner-override sub-track)
+Sequenced HERE, after Cut 2, because Cut 2 deleted `src/CobolSharp.*` — so `SUB_*`/`CobolParserCore.SubscriptEntryContext`
+are no longer consumed by any legacy code and the SUBSCRIPT machinery can finally leave the SHARED grammar. This is a
+HIGH-risk rearchitecture task; keep it a self-contained sub-track that does not touch the Cut-1/2/3 cleanup work.
+Execute it FROM `docs/rearchitecture/DESIGN-frontend-grammar.md §9` (the decision-complete design), staged §9.5
+D10.1–D10.5, battery-green at every commit boundary.
+
+- [ ] **Step D10.1 — resolve §9.4 + land the before-corpus.** Answer the §9.4 space-separator decision (recommended
+  Option A — preserve ISO §8.3.5 space-separated subscript/argument lists via a scoped WS mechanism; Option B narrows the
+  language and is a spec violation). Add the NEW conformance/characterization corpus (§9.5 D10.1: multi-subscript
+  space/comma lists, relative offsets `I+1` vs `I + 1`, signed literals `+1`/`-15.6`/`-.5`, ref-mod `(a:b)`/`(a:)`,
+  qualified subscripts, nested FUNCTION args, string/national/boolean args, `table(ALL)`) captured GREEN first. **COMMIT.**
+- [ ] **Step D10.2 — converge ref-mod** onto the DEFAULT-mode `refModPart`; delete the ref-mod branch of the binder's
+  `InterpretSubscripts`. **COMMIT.**
+- [ ] **Step D10.3 — interpreted subscript grammar rule** (per §9.4's answer) + rewrite `ReferenceResolver`'s subscript
+  interpreters (`HasDepth0Colon`/`InterpretSubscripts`/`SplitSubscriptTokens`/`RenderSegment`/`ResolveSubscriptName`)
+  over real `arithmeticExpression`/`subscript` nodes. **COMMIT.**
+- [ ] **Step D10.4 — reunify `functionCall` onto `argumentList`** + rewrite the ~250-line `StatementBinder.Intrinsics.cs`
+  recursive-descent `SUB_*` parser over real `argument` nodes; migrate `Udf`/`Emitter` (`SplitSubscriptTokens` hand-offs).
+  The dominant-cost step. **COMMIT.**
+- [ ] **Step D10.5 — delete the SUBSCRIPT-mode block** + the `LPAREN` mode-entry action + `PreviousTokenCouldBeDataName`
+  + the now-dead structured `subscriptList/subscriptEntry/subscriptQualification/relativeOffset` rules (legacy is gone,
+  so their `SubscriptEntryContext` consumer is gone); reconcile the PHASE-04 Group-A `cobol-words.json` drift test (the
+  `subscriptTrigger` column goes dead — regenerate + adjust the drift assertion). **COMMIT.**
+- **Verify (each step):** greenfield battery + `guard.ps1` + INV-1-strong; the D10.1 corpus green; token equivalence is
+  NOT the metric (tokens change by design — prove OUTPUT/behavior equivalence). Exit criterion 0 holds when D10.5 lands.
 
 ### CUT 3 — Runtime namespace flip (`CobolNet.Runtime` → `Cobol.Net.Runtime`)
 This is the only step here that changes emitted code; it is a coordinated flip made trivial by the `RuntimeApi` façade.
