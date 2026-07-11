@@ -7,7 +7,20 @@
 - **SSOT design:** `docs/rearchitecture/DESIGN-data-model.md` (this phase EXECUTES that design's §2.1, §2.4–§2.8 and its migration §4 phases D0–D4). Read it first.
 - **Companion designs (context, owned elsewhere):** `DESIGN-binder-bound-tree.md` (pass pipeline, StatementBinder split — P6/P7), `DESIGN-codegen-backend.md` (Place structural segments, emitter split — P7), `DESIGN-module-topology.md`.
 
-> ## STATUS: RESUMED @ Exec Step C (2026-07-11) — Step 6 GATE ✅ GREEN; executing Steps 7–14
+> ## STATUS: ✅ DONE (2026-07-11, DEVLOG 776–785) — the unified data model is LANDED
+> All 14 steps complete (the §7 ledger has the per-step record + every deviation). The headline end-state:
+> `StoreAsImage` the MUTABLE FLAG is DEAD — `Storage` (the ONE `StorageForm` discriminator) is computed once by
+> the group-tail `StorageFormPass` from COLLECTED facts (`ImageForcedItems` + `UsageCollectionPass`-owned
+> `WholeGroupReferenced`), `StoreAsImage` surviving only as the named read-only projection; `RecordLayout` is the
+> ONE phase-free width/offset authority (6 divergent copies deleted; §13.18.44.3 SR8 now ENFORCED — COBOLNET1539);
+> the data model lives in `Binding/Model/` (`PlaceDecorator` base; `StrongTypeModel` + `PictureAnalyzer`
+> extracted; `PicInfo` a pure value record, the skeleton scaffolding + reference-identity sentinels deleted for
+> `DataItem.Pending` + `PicInfo.Recovery`); the tier verdict single-sourced through `RedefinesClass.Classify`;
+> ONE `UsageInheritancePass`; the apostrophe-VALUE goldens (§8.3.1.2) landed PROVEN failing-first. All 7 exit
+> criteria hold (annotated below). Battery at close: conformance **3166** · unit **281** · characterization
+> **32 byte-exact** · FULL legacy guard NIST **353 MATCH** · CI green both configs.
+>
+> ## (prior) STATUS: RESUMED @ Exec Step C (2026-07-11) — Step 6 GATE ✅ GREEN; executing Steps 7–14
 > **Step 6 (the prove-then-delete GATE) is GREEN** — recorded at the PHASE-06 close state: conformance **3159** ·
 > unit **281** (incl. `StorageFormEquivalenceTests` identities #1–#5 corpus-wide: Storage↔StoreAsImage,
 > IsCharacterImage, ImageWidth, ElementType, RecordLayout.PhysicalWidth↔OdoModel.PhysicalWidth) · characterization
@@ -72,15 +85,24 @@
 
 Replace the late-mutated, cross-layer `DataItem.StoreAsImage` boolean — written from **9 sites across three layers** (binder data pass, binder procedure pass, AND the CodeGen emitter writing back into the Binding data model) — with **one closed, computed `StorageForm` discriminator** decided **exactly once** by a `StorageFormPass` that runs after all facts (including PROCEDURE-DIVISION whole-group use) are collected, and stored **init-only** on `DataItem`. Extract the pure data model into a `Binding/Model/` folder, slim `DataItem`, extract `PictureAnalyzer` + `StrongTypeModel`, delete the `PicInfo` skeleton scaffolding, make `RedefinesClass.Tier/Width/ClassOffset` init-only, single-source the Tier-C rejection, introduce **one `RecordLayout`** physical-width authority, stand up the **`IBindPass` pipeline scaffolding** (as no-op wrappers with `Requires`/`Produces` + a startup DAG assert — zero behavior change), and land **`Common/CobolLiteral.Decode`** (recognizing BOTH ISO string delimiters) to fix the confirmed apostrophe-delimited-VALUE silent miscompile while deleting the three `DecodeCobolString` twins + the hard-coded double-quote guards. The battery stays green at **every** commit boundary.
 
-## Exit criteria (copied from the phase brief — all must hold at phase end)
+## Exit criteria (copied from the phase brief — all must hold at phase end) — ✅ ALL HOLD at close
 
-1. `StorageForm` is computed **exactly once** (in `StorageFormPass`); every reader consumes it, none re-infers.
-2. `CSharpEmitter.MarkStoreAsImage` and the emitter→binder write-back (`CSharpEmitter.Call.cs` re-sync, `CSharpEmitter.Oo.cs` harmonize re-sync) are **deleted**.
-3. The corpus-wide `StorageForm` cross-check is **proven equal** to the legacy `StoreAsImage`/image-fact computation **before** any deletion.
-4. `RecordLayout` is the **single** physical offset/width authority (the 4 divergent copies deleted).
-5. The pass DAG is **asserted at startup** (`BindPipeline.ValidateDag`).
-6. An **apostrophe-delimited VALUE** conformance golden is added and green.
-7. Full battery green + characterization snapshots neutral (or reviewed-re-baselined with a gate-1 proof).
+1. ✅ `StorageForm` is computed **exactly once** (in `StorageFormPass`); every reader consumes it, none re-infers.
+   *(The `StoreAsImage` PROJECTION reads `Storage` — readers consume it transitively; the one named definition
+   beats 35 pattern repetitions, the recorded Step-8/10 deviation.)*
+2. ✅ `CSharpEmitter.MarkStoreAsImage` and the emitter→binder write-back are **deleted** (the settle sequence became
+   the P6 group-tail `StorageFormPass.Run`; the flag writes fell at Steps 7/10).
+3. ✅ The corpus-wide `StorageForm` cross-check was **proven equal** BEFORE deletion (the Step-6 gate; identities
+   #1/#5 retired WITH their subjects at Step 12, #2/#3/#4 remain live guards).
+4. ✅ `RecordLayout` is the **single** physical offset/width authority — SIX copies deleted (the doc said 4; Sort
+   had 3 and the Keyed emitter twin made 6, DEVLOG 778), and the "divergence" premise DISSOLVED by §13.18.44.3
+   SR8, which the compiler now ENFORCES (COBOLNET1539, the failing-first `KeyedOffsetSpecTests`).
+5. ✅ The pass DAG is **asserted at startup** — `BindPipeline.ValidateFullChainOnce` over the resolve prefix + the
+   P6 `GroupTail` as ONE monotone chain.
+6. ✅ The **apostrophe-delimited VALUE** goldens are green (`ApostropheValueDifferentialTests` ×3, PROVEN
+   failing-first under a `"`-only revert; §8.3.1.2 equal-standing).
+7. ✅ Full battery green + snapshots neutral (the one re-baseline — `char_initialize` `WS_N` `string`→`long` at
+   Step 5 — carries its runtime output proof, DEVLOG 753).
 
 ## Scope
 

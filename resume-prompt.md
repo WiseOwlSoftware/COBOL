@@ -21,12 +21,12 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. Full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP C: finish PHASE-05 Steps 6–14 (the data-model prove-then-delete)
-**Delete the `StoreAsImage` FLAG → `StorageForm`/`Storage` projection; flip every reader to `Storage`/`RecordLayout`**
-(`docs/rearchitecture/PHASE-05-*.md` — read its STATUS line first; Steps 0–5 are DONE). The P6 head start: the whole
-StoreAsImage settle sequence (temp re-sync → `MarkStoreAsImage` → OO harmonize → `Compute`) already runs bind-side as
-ONE manifest pass (`StorageFormPass.Run`) and `StorageFormPass.Verify` holds the corpus-wide equivalence — Step C
-deletes the FLAG and flips the readers, ON the generated visitor + the P6 SymbolTable.
+## ⛔🔀 RESUME AT — EXEC STEP D: the rest of PHASE-07 (structural `Place` + god-class decomposition + the backend seam)
+**Structural `Place` (no C# text in the bound tree) + the binder/emitter god-class decomposition + the
+`ICodeGenBackend` seam** (`docs/rearchitecture/PHASE-07-*.md` — read its STATUS line first; its Step 6, the generated
+visitor, was pulled forward and is DONE). P7 pickups noted in DEVLOG 773: SymbolTableBuilder-owned storage; route
+`ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup through the SymbolTable; the image-fact
+caching (deferred from P5 Step 10 — the O(subtree) perf work belongs with the DataItem slimming).
 
 **Execution order (§4.1, owner-directed TOOLING-FIRST, 2026-07-11):**
 - **A ✅ DONE** — the source-generated exhaustive bound-tree visitor (PHASE-07 Step 6 + the 6h SYSTEMATIC AUDIT; DEVLOG
@@ -41,22 +41,28 @@ deletes the FLAG and flips the readers, ON the generated visitor + the P6 Symbol
   lookup QUADRUPLE deleted → the ONE scope-aware `SymbolTable` (`TryResolve`/`TryResolveIndex`/`IndexCellOf`, explicit
   `Scope`, per binder). OO bind bodies stay on the emitter behind `IOoBindHost`+`BindSession` (the documented P6→P9
   seam). Deviations recorded in the PHASE-06 STATUS ledger.
-- **C ◐ (NOW)** — finish PHASE-05 Steps 6–14 (above).
-- **D** — the rest of PHASE-07: structural `Place` (no C# text in the bound tree) + binder/emitter god-class
-  decomposition + the `ICodeGenBackend` seam. (P7 pickups noted in DEVLOG 773: SymbolTableBuilder-owned storage;
-  route `ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup through the SymbolTable.)
+- **C ✅ DONE** — PHASE 05 complete (DEVLOG 776–785, commits `7b22f10a`→ phase close, CI-green): the `StoreAsImage`
+  FLAG is DEAD — `Storage` (the ONE `StorageForm`) computed once by the group-tail `StorageFormPass` from COLLECTED
+  facts (`ImageForcedItems` + `WholeGroupReferenced`), the name kept only as the read-only projection; `RecordLayout`
+  = the ONE phase-free width/offset authority (6 geometry copies deleted; §13.18.44.3 SR8 now ENFORCED —
+  COBOLNET1539, failing-first `KeyedOffsetSpecTests`); the data model in `Binding/Model/` (`PlaceDecorator` base;
+  `StrongTypeModel` + `PictureAnalyzer` extracted — `PicInfo` a pure value record, the skeleton scaffolding +
+  reference-identity sentinels replaced by `DataItem.Pending` + `PicInfo.Recovery`); the tier verdict single-sourced
+  through `RedefinesClass.Classify`; ONE `UsageInheritancePass`; the §8.3.1.2 apostrophe-VALUE goldens PROVEN
+  failing-first. All 7 exit criteria hold; deviations in the PHASE-05 ledger.
+- **D ◐ (NOW)** — the rest of PHASE-07 (above).
 - **E** — P2/P3 edition-gate remediation (task #13): fold the ~15 inline gates into the two-arm `VersionConformancePass`,
   delete orphaned `GateId`, correct the "edition-agnostic" over-claims.
 - **F** — PHASE 08–16: runtime reorg, M2/M3/M4 feature waves, version-matrix closure, G8 legacy cut, CIL backend.
 
-**Done:** Phases 00–04 ✅ + PHASE 06 ✅ (migration safety net · frontend rename · `Cobol.Net.Editions` leaf +
+**Done:** Phases 00–06 ✅ (migration safety net · frontend rename · `Cobol.Net.Editions` leaf +
 diagnostic registry · version-conformance pipeline [the two-arm `VersionConformancePass` is the SOLE edition gate] ·
-frontend consolidation · the Real Binder). PHASE 05 Steps 0–5 ✅; its remainder is EXEC STEP C (NOW). D10
+frontend consolidation · the unified data model [closed 2026-07-11] · the Real Binder). D10
 SUBSCRIPT-mode removal was RELOCATED → PHASE 15 §"CUT 2.5". ⚠ Flagged latent (not blocking):
 `OoReparent{Class,Factory}Data` mis-bind the class-level env (CURRENCY/ALPHABET/SELECT) 0/1/2× — a dedicated fix
 ~PHASE 09 (DEVLOG 738).
 
-**Battery (keep green + pushed at EVERY commit):** 3158 conformance · 281 unit · 32 characterization byte-exact · FULL
+**Battery (keep green + pushed at EVERY commit):** 3166 conformance · 281 unit · 32 characterization byte-exact · FULL
 legacy guard NIST 353 MATCH. ⚠ Build `CobolSharp.sln` before `dotnet test --no-build` — a stale test-bin compiler DLL
 hides greenfield regressions ([[feedback_fresh_build_before_no_build_test]]).
 

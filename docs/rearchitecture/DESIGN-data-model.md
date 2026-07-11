@@ -1,7 +1,15 @@
 # DESIGN — Target Unified Data Model
 
-> **Status:** DESIGN (rearchitecture wave). Decision-complete target for the data-representation dimension.
-> **Owner sign-off required** on the open questions in the last section before execution.
+> **Status:** ✅ EXECUTED (PHASE 05 DONE 2026-07-11, DEVLOG 776–785; the phase doc
+> `PHASE-05-unified-data-model-storageform.md` §7 holds the per-step record). Landed AS DESIGNED except the
+> recorded in-place deviations: §2.2 item 1 (`RenamesPlace` stays direct — no single inner), §2.3 (strict
+> init-only → the ONE named `RedefinesClass.Classify` mutator; the cell forcer's re-classification is a real
+> second write by design; the "~10 scattered Tier-C guards" had already collapsed into `ComputeTier` +
+> `IsImageCapable` by Phase 1E), §2.7 (the sentinel discriminant lives on `DataItem.Pending`, not an Analyze
+> result — see the italic AS-LANDED note), plus: `StoreAsImage` KEPT as the named read-only projection of
+> `Storage` (one definition over 35 pattern repetitions); the §2.4 image-fact CACHING deferred to P7 (the hazard
+> died with the flag); the §2.2-item-4 structural Place segments are P7 scope. §2.5's pipeline landed at P5/P6
+> (`BindPipeline` + `GroupTail`, one validated DAG).
 > **Scope:** the typed-native storage model spanning `DataItem` / `PicInfo` / `Place` / `NumProfile`, from
 > bind → emit → runtime. Companion designs (pass-pipeline, emitter decomposition, diagnostics registry, editions)
 > are cross-referenced but owned elsewhere.
