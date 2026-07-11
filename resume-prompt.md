@@ -130,7 +130,7 @@
 > `AlterCollectFields`, `ContainsIntrinsic`) recurse via `StatementChildren`. The audit grep-classified every bound-node
 > switch, each keep/convert tied to an ISO § (⛔ **validate against the SPEC, not the prior implementation or a green
 > corpus** — owner directive, the #1 rule); reasoned keeps = partial predicates / selective classifiers / spec-stable
-> tiny-root emit-switches; a numeric-literal `FUNCTION LENGTH` gap (§15.50.4) was flagged in-code (feature backlog). The
+> tiny-root emit-switches (each default correct per §; a `FUNCTION LENGTH(numeric-literal)` "gap" was flagged then RETRACTED — §15.50.3 restricts a literal arg to alphanumeric/national/boolean, DEVLOG 766). The
 > rest of PHASE-07 (structural `Place`, god-class decomposition) is Exec Step D, AFTER P6. Battery 3158/269/32 green.**
 > **✅ 6a DONE (DEVLOG 755):** the `Cobol.Net.Compiler.SourceGen` Roslyn **incremental** source generator
 > (`BoundVisitorGenerator`, semantic-model-driven off `[BoundNode]` on all 7 roots) emits the exhaustive

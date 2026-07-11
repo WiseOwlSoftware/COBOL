@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `Step 6 (the exhaustive visitor) as Exec Step A — DONE incl. the 6h SYSTEMATIC AUDIT (DEVLOG 755–765). The generator emits the 7 IBound*Visitor + Accept + StatementChildren; every completeness-critical bound-node dispatch is converted (emitter 6b, all 5 renderers 6d/6e/6f, StoreKindOf 6c) and all five statement WALKERS (UsageCollectionPass, VersionConformancePass.Recurse, ContainsNextSentence, AlterCollectFields, ContainsIntrinsic) recurse via StatementChildren. The audit grep-classified every bound-node switch, each keep/convert tied to an ISO § (validate against SPEC, not prior impl); reasoned keeps = partial predicates / selective classifiers / spec-stable tiny-root emit-switches; a numeric-literal FUNCTION LENGTH spec gap (§15.50.4) was flagged (feature backlog). Battery 3158/269/32 green. Steps 1–5,7–12 of P7 (structural Place, god-class decomposition) DEPEND on P6 = Exec Step D. NEXT overall: Exec Step B = P6 (SymbolTable/BoundCompilation/BindPipeline).`
+- **STATUS:** `Step 6 (the exhaustive visitor) as Exec Step A — DONE incl. the 6h SYSTEMATIC AUDIT (DEVLOG 755–765). The generator emits the 7 IBound*Visitor + Accept + StatementChildren; every completeness-critical bound-node dispatch is converted (emitter 6b, all 5 renderers 6d/6e/6f, StoreKindOf 6c) and all five statement WALKERS (UsageCollectionPass, VersionConformancePass.Recurse, ContainsNextSentence, AlterCollectFields, ContainsIntrinsic) recurse via StatementChildren. The audit grep-classified every bound-node switch, each keep/convert tied to an ISO § (validate against SPEC, not prior impl); reasoned keeps = partial predicates / selective classifiers / spec-stable tiny-root emit-switches (each default correct per §). Battery 3158/269/32 green. Steps 1–5,7–12 of P7 (structural Place, god-class decomposition) DEPEND on P6 = Exec Step D. NEXT overall: Exec Step B = P6 (SymbolTable/BoundCompilation/BindPipeline).`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -368,9 +368,9 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
       §14.9.28 GR1; `Set*Target` §14.9.39), partial error-defaulted dispatches whose default is a spec-appropriate
       "unsupported form" diagnostic (CALL BY-CONTENT arg §14.9.6; `BindLengthFold` §15.50.4), and the intentional
       PARSE-context switches (`BindStatementCore`/`BindCondition`, OPEN Q5). Final grep pasted in DEVLOG 765: no
-      total-dispatch loud/error default remains. **Spec-validation surfaced a genuine conformance gap** — `BindLengthFold`
-      errors on a numeric-literal argument, but §15.50.1/§15.50.4 fold it to its character-position count; flagged in-code
-      + tracked (feature backlog), NOT preserved as correct.
+      total-dispatch loud/error default remains. (A `BindLengthFold` numeric-literal "gap" was flagged then RETRACTED —
+      §15.50.3 restricts a LITERAL argument to alphanumeric/national/boolean, so the error is spec-correct; DEVLOG 765→766
+      — a reminder to read the SPECIFIC governing rule, not the nearest general sentence.)
     - **Emitter `PerformControl` switch (`default:` = `PerformOnce`) + `StoreSetTarget`/`AugmentSetTarget` (no default)
       — REASONED KEEP (DEVLOG 763), not converted.** `void` + closure-heavy (`body`/`inline`/`value`/`amount`), so the
       generic-return `IBound*Visitor<T>` would force a dummy `T` + a state-carrying per-call visitor — uglier than the

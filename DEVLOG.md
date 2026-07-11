@@ -13,7 +13,23 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
-## Entry 765 — 2026-07-11 06:34 PDT — P7 §6h: the SYSTEMATIC AUDIT completed (grep-classified every bound-node switch), the completeness-critical dispatches converted, validated against ISO — plus a spec-gap the byte-neutral lens hid
+## Entry 766 — 2026-07-11 06:45 PDT — CORRECTION: the "FUNCTION LENGTH numeric-literal gap" (Entry 765) was a FALSE alarm — reading §15.50.3 shows the error is spec-correct
+
+Went to fix the LENGTH gap I flagged in Entry 765 and did the thing I keep having to relearn: read the ACTUAL governing
+§ FIRST. **ISO §15.50.3 (Argument rule) item 1: a LITERAL argument "shall be an alphanumeric, national, or boolean
+literal"** — a NUMERIC literal is NOT a valid FUNCTION LENGTH argument. (The `Num1` in the §15.34 function table means a
+numeric *data item*, which §15.50.3 admits as "a data item of any class or category" — that path IS handled, by the
+`BoundFieldOperand` arm → `ImageWidth`.) So `BindLengthFold` erroring on a numeric/figurative literal is SPEC-CORRECT,
+not a gap. My Entry-765 flag reasoned from §15.50.1 ("depending on the class of the argument") + the function-table row
+WITHOUT reading §15.50.3 — the exact "derive from the spec, don't assume" trap.
+
+Corrected: the in-code comment now cites §15.50.3 (the numeric/figurative-literal error is correct), the error message
+names the section, task #18 (the "fix") is closed as not-a-gap. Net: the §6h audit stands, and the one apparent spec
+gap it surfaced was a false alarm dissolved by reading the argument rule. Comment-only + message change; battery green.
+(The meta-lesson compounds: "validate against the spec" also means read the SPECIFIC governing rule, not the nearest
+general sentence — I flagged a false gap by stopping at §15.50.1.)
+
+## Entry 765 — 2026-07-11 06:34 PDT — P7 §6h: the SYSTEMATIC AUDIT completed (grep-classified every bound-node switch), the completeness-critical dispatches converted, validated against ISO — plus a spec-gap the byte-neutral lens hid (⚠ the "LENGTH gap" was a FALSE alarm — see Entry 766)
 
 Ran the audit properly this time: grepped EVERY `switch`/switch-expression with a bound-node arm across the compiler
 (11 files), classified each, converted the ones a spec-completeness argument demands, and — per the owner's correction
