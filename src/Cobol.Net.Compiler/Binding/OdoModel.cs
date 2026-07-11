@@ -442,7 +442,7 @@ public sealed partial class DataBinder
 
             // SR30 — data-name-3 is implicitly defined at the OCCURS entry, so it must not also be an explicit
             // data-name (a duplicate definition) nor the CAPACITY register of another dynamic table.
-            if (ByName.ContainsKey(capName) || CapacityRegisters.ContainsKey(capName))
+            if (ByName.ContainsKey(capName) || _capacityRegisters.ContainsKey(capName))
             {
                 Edition.Error("COBOLNET1523", $"CAPACITY IN '{capName}' on '{subject}': data-name-3 is implicitly "
                     + "defined by the OCCURS DYNAMIC entry and shall not duplicate another data-name or CAPACITY "

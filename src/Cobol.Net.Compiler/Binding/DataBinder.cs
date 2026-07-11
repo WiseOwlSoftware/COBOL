@@ -65,8 +65,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// dynamic-table <see cref="DataItem"/> (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9). The register is
     /// IMPLICITLY defined at the OCCURS entry (SR30) — it is NOT in <see cref="ByName"/>; the resolver consults
     /// this map to build a <see cref="CapacityRegisterPlace"/> (a view over the table's <c>Capacity</c>). Populated
-    /// by the post-build <see cref="DynamicResolve"/> pass. (READ-ONLY view — P6 Step 5.)</summary>
-    public IReadOnlyDictionary<string, DataItem> CapacityRegisters => _capacityRegisters;
+    /// by the post-build <see cref="DynamicResolve"/> pass. (READ-ONLY view — P6 Step 5; the getter carries the
+    /// P6 Step-6 watermark gate — a read before <see cref="Passes.PassPhase.OccursResolved"/> is a loud DEBUG
+    /// error, the "read a null CapacityRegister" silent-miscompile class made structural.)</summary>
+    public IReadOnlyDictionary<string, DataItem> CapacityRegisters
+    {
+        get { Require(PassPhase.OccursResolved, "CapacityRegisters"); return _capacityRegisters; }
+    }
     private readonly Dictionary<string, DataItem> _capacityRegisters = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>TYPEDEF type declarations (case-insensitive) → the template root <see cref="DataItem"/> (ISO
@@ -254,7 +259,40 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         BindPipeline.ValidateFullChainOnce();
         foreach (var pass in BindPipeline.Build(program))
+        {
+            Require(pass.Requires, pass.Name);   // DEBUG: the pass's declared prerequisite actually RAN (P6 Step 6)
             pass.Run(this);
+            MarkProduced(pass.Produces);
+        }
+    }
+
+    // ── The completion-phase WATERMARK gate (P6 Step 6). The construction-time DAG assert
+    //    (BindPipeline.ValidateFullChainOnce) guards the declared LIST order; the watermark guards what actually
+    //    RAN on THIS binder — "read a fact before its producing pass" becomes a loud, located error rather than
+    //    a silent miscompile (a null Tier / missing CapacityRegister / unset StorageForm). ──
+
+    /// <summary>The highest <see cref="PassPhase"/> whose producing pass has COMPLETED on this binder's forest.
+    /// Advanced by <see cref="BindResolve"/> (the per-unit prefix) and by <c>BinderDriver.Bind</c> (the group
+    /// tail, which marks every binder of the group after each group pass).</summary>
+    internal PassPhase Watermark { get; private set; }
+
+    /// <summary>Advance the watermark to <paramref name="produced"/> (never regresses).</summary>
+    internal void MarkProduced(PassPhase produced)
+    {
+        if (produced > Watermark) Watermark = produced;
+    }
+
+    /// <summary>The DEBUG-only completion gate: assert <paramref name="required"/> has been produced on this
+    /// binder before <paramref name="fact"/> is read/run. Compiled OUT of Release builds (the always-on guard is
+    /// the construction-time DAG validation); throwing (not <c>Debug.Assert</c>) keeps the failure loud AND
+    /// testable under the unit harness.</summary>
+    [System.Diagnostics.Conditional("DEBUG")]
+    internal void Require(PassPhase required, string fact)
+    {
+        if (Watermark < required)
+            throw new InvalidOperationException(
+                $"BindPipeline watermark violation: '{fact}' requires phase {required}, but this binder has only "
+                + $"reached {Watermark} — a consumer ran before the producing pass (P6 Step 6 gate).");
     }
 
     /// <summary>The LAST resolve pass (<see cref="BindPipeline"/>): every FILE record area is filled WITHOUT conversion

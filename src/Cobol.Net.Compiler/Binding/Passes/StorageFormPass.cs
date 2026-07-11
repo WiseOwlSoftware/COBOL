@@ -88,10 +88,8 @@ internal static class StorageFormPass
         }
     }
 
-    /// <summary>Every DataBinder of the group, in the fused pipeline's order: class OBJECT + FACTORY forests, then
-    /// the program units.</summary>
-    private static IEnumerable<DataBinder> AllBinders(GroupBindContext ctx) =>
-        ctx.Classes.SelectMany(c => new[] { c.Data, c.FactoryData }).Concat(ctx.Units.Select(u => u.Data));
+    /// <summary>The one group-forest enumerator (see <see cref="GroupBindContext.AllBinders"/>).</summary>
+    private static IEnumerable<DataBinder> AllBinders(GroupBindContext ctx) => ctx.AllBinders();
 
     /// <summary>
     /// Whole-group analysis (ISO/IEC 1989:2023 §14.9 MOVE GR4 / COBOLNET_DESIGN §14.4): for every group used as a

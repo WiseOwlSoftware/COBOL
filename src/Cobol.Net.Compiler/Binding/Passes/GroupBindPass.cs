@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
@@ -17,7 +18,14 @@ internal sealed record GroupBindContext(
     CobolParserCore.CompilationUnitContext Tree,
     IReadOnlyList<BoundUnit> Units,
     IReadOnlyList<OoClassUnit> Classes,
-    BindSession Session);
+    BindSession Session)
+{
+    /// <summary>Every DataBinder of the group, in the fused pipeline's order: class OBJECT + FACTORY forests,
+    /// then the program units. THE one group-forest enumerator — the pass bodies and the watermark
+    /// advance/require loops all ride it.</summary>
+    public IEnumerable<DataBinder> AllBinders() =>
+        Classes.SelectMany(c => new[] { c.Data, c.FactoryData }).Concat(Units.Select(u => u.Data));
+}
 
 /// <summary>
 /// One declared GROUP pass of the bind pipeline (P6 Step 3): the <see cref="IPassInfo"/> contract plus the work it

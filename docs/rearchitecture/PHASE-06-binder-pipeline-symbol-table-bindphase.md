@@ -60,7 +60,11 @@ explicitly **out of scope** (P7 / P9).
 
 ## STATUS
 
-`IN PROGRESS @ step 6 (2026-07-11). Steps 0–5 DONE (commits 8ac37480 = Step 2 / DEVLOG 767; 514d9c73 = Step 3 /
+`IN PROGRESS @ step 7 (2026-07-11). Steps 0–6 DONE (Step 6 = DEVLOG 771 — DataBinder.Watermark/MarkProduced/Require
+[Conditional(DEBUG), throwing]; BindResolve + the BinderDriver group-tail loop Require-then-Mark per pass per
+binder; the CapacityRegisters getter carries the flagged late-fact guard; Tier/ClassOffset/Storage item-level
+guards deferred to P7 [no DataItem→binder backref] with pass-entry Requires covering them; WatermarkTests ×4; the
+full DEBUG conformance battery is the never-fires proof.) Steps 0–5 (commits 8ac37480 = Step 2 / DEVLOG 767; 514d9c73 = Step 3 /
 DEVLOG 768; Step 4 = DEVLOG 769 — the VersionConformancePass is the NAMED terminal GroupTail pass producing the new
 PassPhase.EditionConformanceChecked, its Run takes the GroupBindContext [which now carries the parse Tree], the
 driver no longer references the pass: Phase 2 = Bind → gate-on-sink → CheckOnly → EmitBound; exit criteria #4/#6

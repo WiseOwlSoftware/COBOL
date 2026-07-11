@@ -62,7 +62,11 @@ internal sealed class BinderDriver
         // EVERY edition diagnostic — the driver's CheckOnly verdict needs nothing beyond this Bind.
         var ctx = new GroupBindContext(tree, units, classes, session);
         foreach (var pass in BindPipeline.GroupTail())
+        {
+            RequireAll(ctx, pass);      // DEBUG watermark gate: the prerequisite RAN on every binder (P6 Step 6)
             pass.Run(ctx);
+            foreach (var d in ctx.AllBinders()) d.MarkProduced(pass.Produces);
+        }
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a
@@ -289,6 +293,15 @@ internal sealed class BinderDriver
         }
 
         unit.Refs = new ReferenceResolver(data);
+    }
+
+    /// <summary>DEBUG-only (P6 Step 6): assert <paramref name="pass"/>'s declared prerequisite phase has been
+    /// PRODUCED on every binder of the group before it runs. Compiled out of Release (the whole call site
+    /// disappears — the always-on guard is the construction-time DAG validation).</summary>
+    [System.Diagnostics.Conditional("DEBUG")]
+    private static void RequireAll(GroupBindContext ctx, GroupBindPass pass)
+    {
+        foreach (var d in ctx.AllBinders()) d.Require(pass.Requires, pass.Name);
     }
 
     /// <summary>The <c>ProcedureBinding</c> GROUP pass body (P6 Step 3 — <c>BindPipeline.GroupTail</c>, Requires
