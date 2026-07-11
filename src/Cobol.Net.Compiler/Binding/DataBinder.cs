@@ -89,7 +89,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// CORRESPONDING pair/boundary formal) — collected AFTER binding by <see cref="Passes.UsageCollectionPass"/>'s
     /// typed walk of the bound tree (+ the structural FILE-record and boundary-formal sources), NOT by
     /// <see cref="ReferenceResolver"/> mid-resolve (which over-collected every RESOLVED group; PHASE-05 Step 5). The
-    /// <c>MarkStoreAsImage</c> pass consults this to decide which numeric-DISPLAY leaves must store their character
+    /// <c>StorageFormPass</c> consults this to decide which numeric-DISPLAY leaves must store their character
     /// image (ISO §14.9 MOVE GR4 — a whole-group move fills without conversion; see <see cref="DataItem.StoreAsImage"/>).
     /// </summary>
     public HashSet<DataItem> WholeGroupReferenced { get; } = [];
@@ -322,7 +322,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>The LAST resolve pass (<see cref="BindPipeline"/>): every FILE record area is filled WITHOUT conversion
     /// by READ/RETURN (ISO §9.1.2 — the record area is one character image), so its numeric-DISPLAY leaves store their
     /// images exactly like a whole-referenced group's — even when the PROCEDURE DIVISION never names the record as a
-    /// whole (ST103A reads then tests only a child). <c>MarkStoreAsImage</c> consumes <see cref="WholeGroupReferenced"/>
+    /// whole (ST103A reads then tests only a child). <c>StorageFormPass</c> consumes <see cref="WholeGroupReferenced"/>
     /// after binding.</summary>
     internal void MarkFileRecordImageLeaves()
     {

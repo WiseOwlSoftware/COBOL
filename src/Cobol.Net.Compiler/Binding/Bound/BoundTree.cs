@@ -328,7 +328,14 @@ public sealed record BoundStopLiteral(string Text) : BoundStatement;
 public sealed record BoundDisplay(IReadOnlyList<BoundOperand> Operands, bool NoAdvancing) : BoundStatement;
 
 /// <summary><c>MOVE source TO targets</c> (single sending operand).</summary>
-public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement;
+public sealed record BoundMove(BoundOperand Source, IReadOnlyList<Place> Targets) : BoundStatement
+{
+    /// <summary>Per-target dispatch kinds, classified ONCE at construction by the single authority
+    /// (<see cref="MoveClassifier"/>, P7 Step 7) — a computed record property, so EVERY construction (the
+    /// binder's real MOVE and the emitter's synthetic implicit MOVEs alike) carries them; the emitter renders
+    /// by kind and re-derives nothing.</summary>
+    public IReadOnlyList<MoveKind> Kinds { get; } = MoveClassifier.Classify(Source, Targets);
+}
 
 // The arithmetic verbs, each a small explicit node: the source operands are bound numeric expressions, the
 // receivers are resolved Places paired with a rounding mode (the ROUNDED phrase, ISO §14.7.4). The in-place forms

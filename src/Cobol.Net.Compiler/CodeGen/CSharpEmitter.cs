@@ -341,29 +341,42 @@ public sealed partial class CSharpEmitter : IOoBindHost
         _ctx.Writer.Line(d.NoAdvancing ? $"System.Console.Write({image});" : $"System.Console.WriteLine({image});");
     }
 
+    /// <summary>Render one MOVE — a PURE per-kind renderer since P7 Step 7: the dispatch travels on the node
+    /// (<see cref="BoundMove.Kinds"/>, classified once by <see cref="MoveClassifier"/> at construction — ISO
+    /// §14.9.25.4 GR4's elementary-vs-group decision incl. the sender side, NC105A MOVE-TEST-F1-16/-17/-20/-36/-38);
+    /// the emitter re-derives nothing.</summary>
     private void EmitMove(BoundMove m)
     {
-        foreach (var target in m.Targets)
-            if (target is RefModPlace rmp)
-                // A reference-modified receiver: the slice takes the source's characters (SpliceInto left-justifies,
-                // space-fills, and truncates to the slice length), so pass the raw image, not a full-width store.
-                // EXCEPT a figurative source, which fills EVERY position of the slice (ISO §8.3.3.6.4 GR2 —
-                // repeated to the associated fixed-length item; §8.4.3.3 GR5/GR6 make the slice a unique
-                // fixed-length item), not one character then space-pad; the fill char is category-aware
-                // (national/boolean HIGH/LOW-VALUE = the D-N3 pin, not the alphanumeric PCS extreme).
-                _ctx.Writer.Line(m.Source is BoundFigurative fig
-                    ? rmp.WriteFill(FigurativeConstants.Fill(fig.Kind, _ctx.Data.Collating, rmp.Inner.Item.Pic?.Category))
-                    : rmp.Write(OperandText.AsString(m.Source)));
-            else if (target.Item.IsGroup)
-                EmitGroupMove(target, m.Source);
-            else if (IsGroupSender(m.Source))
-                // ISO §14.9.25.4 GR4 decides elementary-vs-group FIRST: a move is elementary only when the sender
-                // is a literal or elementary item AND the receiver is elementary — a GROUP sender makes this a
-                // group move even into an elementary receiver, so it must never reach the receiver-category
-                // conversion/editing of ConvertSource (NC105A MOVE-TEST-F1-16/-17/-20/-36/-38).
-                EmitGroupToElementaryMove(target, m.Source);
-            else if (!TryEmitFigurativeToNumericImage(target, m.Source))
-                _ctx.Writer.Line(target.Write(ConvertSource(m.Source, target.Item)));
+        for (int i = 0; i < m.Targets.Count; i++)
+        {
+            var target = m.Targets[i];
+            switch (m.Kinds[i])
+            {
+                case MoveKind.RefModSlice:
+                    // The slice takes the source's characters (SpliceInto left-justifies, space-fills, and
+                    // truncates to the slice length), so pass the raw image, not a full-width store. EXCEPT a
+                    // figurative source, which fills EVERY position of the slice (ISO §8.3.3.6.4 GR2 — repeated
+                    // to the associated fixed-length item; §8.4.3.3 GR5/GR6 make the slice a unique fixed-length
+                    // item); the fill char is category-aware (national/boolean = the D-N3 pin, not the PCS extreme).
+                    var rmp = (RefModPlace)target;
+                    _ctx.Writer.Line(m.Source is BoundFigurative fig
+                        ? rmp.WriteFill(FigurativeConstants.Fill(fig.Kind, _ctx.Data.Collating, rmp.Inner.Item.Pic?.Category))
+                        : rmp.Write(OperandText.AsString(m.Source)));
+                    break;
+                case MoveKind.Group:
+                    EmitGroupMove(target, m.Source);
+                    break;
+                case MoveKind.GroupToElementary:
+                    EmitGroupToElementaryMove(target, m.Source);
+                    break;
+                case MoveKind.FigurativeToNumericImage:
+                    EmitFigurativeToNumericImage(target, m.Source);
+                    break;
+                case MoveKind.Convert:
+                    _ctx.Writer.Line(target.Write(ConvertSource(m.Source, target.Item)));
+                    break;
+            }
+        }
     }
 
     /// <summary>MOVE of an alphanumeric figurative constant (SPACE / QUOTE / HIGH-VALUE / LOW-VALUE) or an ALL
@@ -379,36 +392,31 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// §14.9 MOVE GR4 whole-group image substrate — never a parallel mechanism), so the store is a plain image
     /// write; a Tier-B REDEFINES window / NumericImagePlace writes its character image directly. Only a
     /// non-DISPLAY numeric receiver (BINARY / PACKED / COMP-5 / float — no character image in the typed-native
-    /// model) remains a NARROW loud guard (§1.4). Returns false when the move is not this shape (the caller falls
-    /// through to <see cref="ConvertSource"/> — figurative ZERO and digit-only ALL are VALUE moves, not fills).</summary>
-    private bool TryEmitFigurativeToNumericImage(Place target, BoundOperand source)
+    /// model) remains a NARROW loud guard (§1.4). Eligibility is the NODE's <see cref="MoveKind"/> (classified
+    /// once — figurative ZERO and digit-only ALL classify as Convert, VALUE moves not fills).</summary>
+    private void EmitFigurativeToNumericImage(Place target, BoundOperand source)
     {
-        if (target.Item.Pic is not { Category: PicCategory.Numeric }) return false;
-        string? image = source switch
+        // The KIND already decided eligibility (MoveClassifier — numeric receiver + S/Q/H/L figurative or
+        // non-digit ALL); an unmatched shape here is a classifier/renderer drift bug, not a fallthrough.
+        string image = source switch
         {
             BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } f =>
                 $"new string({FigurativeConstants.Fill(f.Kind, _ctx.Data.Collating)}, {target.Item.ImageWidth})",
             BoundAllLiteral { IsDigitOnly: false } a =>
                 CsLiteral(EmitText.RepeatToWidth(a.Literal, target.Item.ImageWidth)),
-            _ => null,
+            _ => throw new InvalidOperationException(
+                $"MoveKind.FigurativeToNumericImage with a non-fill source ({source.GetType().Name}) — "
+                + "MoveClassifier and this renderer have drifted"),
         };
-        if (image is null) return false;
         _ctx.Writer.Line(target.Item.StoreAsImage || target is RedefViewPlace or NumericImagePlace
             ? target.Write(image)
             : LoudStmt($"MOVE of an alphanumeric figurative constant into the numeric item "
                 + $"'{target.Item.CobolName}' without image-backed storage (a BINARY/PACKED/COMP-5/float or "
                 + "Tier-A shared-storage receiver has no character image to fill — narrow pre-2023 residue of "
                 + "the move ISO 2023 removed, §14.9.25.3 SR5 / Annex E.2 item 1)"));
-        return true;
     }
 
-    /// <summary>True when a MOVE source operand is a GROUP data item (ISO §14.9.25.4 GR4 sender-side test). A
-    /// reference-modified sender is excluded — its unique result is an elementary alphanumeric item whatever the
-    /// underlying item (§8.4.2.4) — and so is a RENAMES alias (the level-66 view is composed as ONE elementary
-    /// alphanumeric item, §13.18.45). A Tier-B REDEFINES group VIEW counts: GR4 classifies by the data item,
-    /// not its storage shape.</summary>
-    private static bool IsGroupSender(BoundOperand source) =>
-        source is BoundFieldOperand { Place: not (RefModPlace or RenamesPlace) } f && f.Place.Item.IsGroup;
+    // IsGroupSender lives on MoveClassifier since P7 Step 7 (the ONE GR4 sender-side test).
 
     /// <summary>MOVE from a GROUP sender into an ELEMENTARY receiver — a GROUP MOVE (ISO §14.9.25.4 GR4): treated
     /// "exactly as if it were an alphanumeric to alphanumeric elementary move, except that there is no conversion

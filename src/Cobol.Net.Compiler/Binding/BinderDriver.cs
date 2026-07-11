@@ -332,7 +332,7 @@ internal sealed class BinderDriver
         };
         binder.ConfigureEc(session.Turn, unit.Name);   // the EC bind context (TURN fold + §15.30 location element)
         unit.Bound = binder.Bind(unit.Ctx);
-        // The boundary-copied GROUP formals + RETURNING item are registered whole-group-referenced (so MarkStoreAsImage
+        // The boundary-copied GROUP formals + RETURNING item are registered whole-group-referenced (so StorageFormPass
         // flips their numeric-DISPLAY leaves to image storage, and the formal's FromImage/AsImage round trip
         // type-checks — ISO §14.2.3 GR8 / §14.9 MOVE GR4) by the post-bind UsageCollectionPass, from data.LinkageFormals
         // + data.LinkageReturning. The pre-flip early-resolve of every formal existed ONLY for that side effect (which

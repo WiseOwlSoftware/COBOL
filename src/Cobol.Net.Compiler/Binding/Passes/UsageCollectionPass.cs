@@ -56,7 +56,7 @@ internal static class UsageCollectionPass
     /// operands of the bound <paramref name="programs"/> + the boundary-copied program/OO formals
     /// (<paramref name="extraFormalGroups"/> is the OO method USING/RETURNING group items). FILE record areas are
     /// added earlier, at bind time, by <c>DataBinder.MarkFileRecordImageLeaves</c>. Runs once per binder, after
-    /// procedure binding, before <c>MarkStoreAsImage</c> reads the set.</summary>
+    /// procedure binding, before <c>StorageFormPass</c> reads the set.</summary>
     public static void Collect(DataBinder data, IEnumerable<BoundProgram?> programs,
         IEnumerable<DataItem>? extraFormalGroups = null)
     {

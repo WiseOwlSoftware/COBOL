@@ -311,7 +311,7 @@ public sealed partial class CSharpEmitter
     /// compile-time strict check), RETURNING presence BOTH directions — raising EC-OO-UNIVERSAL (Table 13,
     /// fatal; unconditionally — the EC-OO-NULL/METHOD precedent: proceeding with a nonconforming crossing
     /// in a typed-native model is never an option). Box forms are CANONICAL BY DESCRIPTOR (D-U6a — never
-    /// by either side's StoreAsImage, which MarkStoreAsImage flips per unit): S:* → string; N:Display:* →
+    /// by either side's StoreAsImage — the read-only projection of the Storage the group-tail StorageFormPass computes): S:* → string; N:Display:* →
     /// the display IMAGE string (bridged by the FormatDisplay/StoreDisplay overload pair); other N:* →
     /// the native value; O:* → the CobolObject reference. A type declaring zero non-override methods
     /// emits no override.</summary>
