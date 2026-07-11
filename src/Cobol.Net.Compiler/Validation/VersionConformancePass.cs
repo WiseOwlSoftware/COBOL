@@ -2,7 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;        // Place subtypes (RefModPlace, …), PicCategory, Usage
 using CobolNet.Binding.Bound;
-using CobolNet.Binding.Model;  // BoundCompilation / BoundUnit / OoClassUnit — the immutable Binder-phase result (P6)
+using CobolNet.Binding.Model;  // BoundUnit / OoClassUnit — the bound model (P6)
+using CobolNet.Binding.Passes; // GroupBindContext — this pass is the manifest's NAMED terminal pass (P6 Step 4)
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §8.9 funnel
 using CobolNet.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
@@ -63,9 +64,12 @@ internal sealed class VersionConformancePass
     }
 
     /// <summary>Gate every version-gated construct in the bound <paramref name="group"/>, reporting to
-    /// <paramref name="sink"/>. The driver runs this between bind and emit and HALTs before emit if the sink then
-    /// carries errors (rearch exit criterion 9 — no codegen on an errored tree).</summary>
-    public static void Run(BoundCompilation group, EditionInfo edition, IDiagnosticSink sink)
+    /// <paramref name="sink"/>. The manifest's NAMED TERMINAL pass (P6 Step 4 — <c>BindPipeline.GroupTail</c>,
+    /// Requires <c>StorageComputed</c>, Produces <c>EditionConformanceChecked</c>): it runs INSIDE
+    /// <c>BinderDriver.Bind</c> after every other pass, so the Bind result already carries every edition
+    /// diagnostic and the driver HALTs before emit if the sink then carries errors (rearch exit criterion 9 — no
+    /// codegen on an errored tree; a <c>CheckOnly</c> verdict is complete without emit).</summary>
+    public static void Run(GroupBindContext group, EditionInfo edition, IDiagnosticSink sink)
     {
         var pass = new VersionConformancePass(edition, sink);
         // ── PARSE-tree arm (Step 14h): ONE walk of the raw compilation unit, firing every SYNTACTIC
@@ -87,7 +91,7 @@ internal sealed class VersionConformancePass
             pass.WalkProgram(unit.Bound);
             pass.GateData(unit.Data);
         }
-        foreach (var cls in group.ClassUnits)
+        foreach (var cls in group.Classes)
         {
             // A class body's OBJECT and FACTORY halves are two bound programs over one class; both carry statements
             // (each METHOD-ID is a pc slice of the ONE dispatch space, so walking Paragraphs covers every method).

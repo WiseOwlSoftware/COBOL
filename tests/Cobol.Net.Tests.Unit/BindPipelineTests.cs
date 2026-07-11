@@ -25,7 +25,10 @@ public sealed class BindPipelineTests
     {
         IPassInfo[] chain = [.. BindPipeline.Build(program: null!), .. BindPipeline.GroupTail()];
         BindPipeline.ValidateDag(chain);   // must not throw
-        Assert.Equal(PassPhase.StorageComputed, chain[^1].Produces);   // the DAG runs all the way to the last phase
+        // The DAG runs all the way to the terminal phase, and the terminal pass IS the edition gate (P6 Step 4 /
+        // exit criterion #6 — the VersionConformancePass is a NAMED pass, the manifest's last entry).
+        Assert.Equal(PassPhase.EditionConformanceChecked, chain[^1].Produces);
+        Assert.Equal("VersionConformancePass", chain[^1].Name);
     }
 
     /// <summary>A hand-built canonical chain (each pass requires only what a prior pass produced) validates.</summary>

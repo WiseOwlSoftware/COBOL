@@ -89,4 +89,61 @@ public sealed class CheckOnlyCompileTests
         }
         finally { Directory.Delete(dir, recursive: true); }
     }
+
+    /// <summary>P6 Step 4 (exit criterion #4): an edition violation under CheckOnly returns <c>BindError</c>
+    /// CARRYING the VersionConformancePass's edition band code — the verdict includes the terminal manifest
+    /// pass's diagnostics, not just a boolean. (The pass runs INSIDE Bind since P6.4; a bind-only verdict
+    /// would silently drop every edition diagnostic.)</summary>
+    [Fact]
+    public void CheckOnly_EditionViolation_BindErrorCarriesTheBandCode()
+    {
+        string dir = Directory.CreateTempSubdirectory("chkband").FullName;
+        try
+        {
+            string src = WriteTemp(dir, "CHK23", EditionGated2023);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 85, CheckOnly: true));
+            Assert.Equal(CompilerDriver.Outcome.BindError, r.Status);
+            // The DELETE FILE introduction gate reports through the edition band (COBOLNET09xx).
+            Assert.Contains(r.Errors, e => e.Contains("COBOLNET09"));
+            // And nothing was emitted on the error path either.
+            Assert.Null(r.GeneratedCsPath);
+            Assert.Empty(Directory.GetFiles(dir, "*.g.cs"));
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
+
+    // Binds clean, but its emitted body contains a LOUD NotImplemented guard (ACCEPT into a COMP-1 receiver —
+    // device conversion deferred): the closest thing to an "emit-side failure" this compiler produces by design
+    // (bound errors surface as loud guards, never Roslyn breaks). CheckOnly must return Success — the CheckOnly
+    // verdict is settled by bind + the conformance pass, and no C# text is ever built (exit criterion #4).
+    private const string BindsCleanEmitsLoud = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. CHKLOUD.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 WS-F COMP-1.
+        PROCEDURE DIVISION.
+        MAIN.
+            ACCEPT WS-F.
+            DISPLAY WS-F.
+            STOP RUN.
+        """;
+
+    [Fact]
+    public void CheckOnly_BindCleanEmitLoudProgram_Succeeds()
+    {
+        string dir = Directory.CreateTempSubdirectory("chkloud").FullName;
+        try
+        {
+            string src = WriteTemp(dir, "CHKLOUD", BindsCleanEmitsLoud);
+            var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: 2023, CheckOnly: true));
+            Assert.True(r.Success, string.Join("\n", r.Errors));
+            // No emit artifacts: the CheckOnly path returns before EmitBound (GeneratedCsPath stays null and no
+            // .g.cs/.dll is written) — the observable "EmitBound is not invoked" contract.
+            Assert.Null(r.GeneratedCsPath);
+            Assert.Empty(Directory.GetFiles(dir, "*.g.cs"));
+            Assert.Empty(Directory.GetFiles(dir, "*.dll"));
+        }
+        finally { Directory.Delete(dir, recursive: true); }
+    }
 }

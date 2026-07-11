@@ -60,7 +60,13 @@ explicitly **out of scope** (P7 / P9).
 
 ## STATUS
 
-`IN PROGRESS @ step 4 (2026-07-11). Steps 0–3 DONE (commits 8ac37480 = Step 2, DEVLOG 767; Step 3 = DEVLOG 768):
+`IN PROGRESS @ step 5 (2026-07-11). Steps 0–4 DONE (commits 8ac37480 = Step 2 / DEVLOG 767; 514d9c73 = Step 3 /
+DEVLOG 768; Step 4 = DEVLOG 769 — the VersionConformancePass is the NAMED terminal GroupTail pass producing the new
+PassPhase.EditionConformanceChecked, its Run takes the GroupBindContext [which now carries the parse Tree], the
+driver no longer references the pass: Phase 2 = Bind → gate-on-sink → CheckOnly → EmitBound; exit criteria #4/#6
+verified — the sole non-pass ConstructRegistry.Check is the documented UDF-recognition exception in
+StatementBinder.Udf.cs; CheckOnlyCompileTests strengthened with band-code + no-emit-artifact asserts; INV-1
+continuity sweep all-OK):
 BinderDriver + immutable BoundCompilation landed (bound model in Binding/Model; IOoBindHost+BindSession = the P6→P9
 seam, an interface instead of the doc's OoBindCallbacks record); the middle-end tail is the DECLARED
 BindPipeline.GroupTail manifest (ProcedureBinding → UsageCollectionPass → StorageFormPass over GroupBindContext),

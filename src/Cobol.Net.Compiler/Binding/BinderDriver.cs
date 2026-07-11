@@ -55,10 +55,12 @@ internal sealed class BinderDriver
         // description; the same forward-reference discipline OoClassTable D1 gives typed object references).
         foreach (var unit in units) BindUnitData(unit, session);
 
-        // The whole-group middle-end (P6 Step 3): the DECLARED manifest — ProcedureBinding →
-        // UsageCollectionPass → StorageFormPass (each pass's doc lives with its body; the ORDER lives in
-        // BindPipeline.GroupTail, DAG-validated against the resolve prefix above).
-        var ctx = new GroupBindContext(units, classes, session, oo);
+        // The whole-group middle-end (P6 Steps 3–4): the DECLARED manifest — ProcedureBinding →
+        // UsageCollectionPass → StorageFormPass → VersionConformancePass (the NAMED terminal pass, the SOLE
+        // edition gate; each pass's doc lives with its body; the ORDER lives in BindPipeline.GroupTail,
+        // DAG-validated against the resolve prefix above). Once the tail completes, the edition sink carries
+        // EVERY edition diagnostic — the driver's CheckOnly verdict needs nothing beyond this Bind.
+        var ctx = new GroupBindContext(tree, units, classes, session, oo);
         foreach (var pass in BindPipeline.GroupTail())
             pass.Run(ctx);
 

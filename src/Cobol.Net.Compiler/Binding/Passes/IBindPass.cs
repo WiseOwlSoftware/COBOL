@@ -48,6 +48,11 @@ public enum PassPhase
     /// settled first (<c>StorageFormPass.Run</c>: compiler-temp re-sync → whole-group image marking → OO override
     /// harmonize → classify; PHASE-06 Step 3). A group pass.</summary>
     StorageComputed,
+    /// <summary>Every version-gated construct checked against the targeted edition (the
+    /// <c>VersionConformancePass</c> — the manifest's NAMED TERMINAL pass and the SOLE
+    /// <c>ConstructRegistry.Check</c> caller; PHASE-06 Step 4 / the P3 pipeline design). The driver's
+    /// <c>CheckOnly</c> verdict is settled once this phase is reached — emit never runs on an errored tree.</summary>
+    EditionConformanceChecked,
 }
 
 /// <summary>The declared metadata of one pipeline pass — the name + <see cref="Requires"/>/<see cref="Produces"/>

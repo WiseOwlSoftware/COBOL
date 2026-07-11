@@ -49,9 +49,12 @@ internal static class BindPipeline
         new BindPass("MarkFileRecordImageLeaves", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.MarkFileRecordImageLeaves()),
     };
 
-    /// <summary>The whole-GROUP middle-end manifest (P6 Step 3 — the formerly-hidden second pipeline, now declared):
-    /// run by <c>BinderDriver.Bind</c> once per compilation, in this order, after every unit/class DATA division is
-    /// bound. Each body needs every unit's BOUND tree or the settled whole-group facts.</summary>
+    /// <summary>The whole-GROUP middle-end manifest (P6 Steps 3–4 — the formerly-hidden second pipeline, now
+    /// declared): run by <c>BinderDriver.Bind</c> once per compilation, in this order, after every unit/class DATA
+    /// division is bound. Each body needs every unit's BOUND tree or the settled whole-group facts. The TERMINAL
+    /// pass is the <c>VersionConformancePass</c> — the SOLE edition gate (P3 pipeline design §2.4): a
+    /// <c>CheckOnly</c> compile's verdict is complete once Bind returns, and the driver halts before emit on any
+    /// diagnostics.</summary>
     public static IReadOnlyList<GroupBindPass> GroupTail() => new GroupBindPass[]
     {
         // Every unit's PROCEDURE DIVISION binds (user-function signature table first — §8.4.3.2.4 GR1 forward refs).
@@ -60,6 +63,12 @@ internal static class BindPipeline
         new("UsageCollectionPass", PassPhase.ProcedureBound, PassPhase.UsageCollected, UsageCollectionPass.Run),
         // Settle every StoreAsImage flag (temp re-sync → image marking → OO harmonize), then classify StorageForm.
         new("StorageFormPass", PassPhase.UsageCollected, PassPhase.StorageComputed, StorageFormPass.Run),
+        // THE edition gate (P3's two-arm pass, now the NAMED terminal pass — P6 Step 4): the parse-tree arm fires
+        // every syntactic introduction/removal/phrase gate on RECOGNITION; the bound-tree arm fires the
+        // genuinely-semantic gates. Reports through the session's edition sink, so the Bind result carries every
+        // edition diagnostic for BOTH a full compile and a CheckOnly verdict.
+        new("VersionConformancePass", PassPhase.StorageComputed, PassPhase.EditionConformanceChecked,
+            ctx => Validation.VersionConformancePass.Run(ctx, ctx.Session.Edition.Edition, ctx.Session.Edition)),
     };
 
     /// <summary>Assert the FULL declared chain (the per-unit resolve prefix + the group tail) is a monotone phase
