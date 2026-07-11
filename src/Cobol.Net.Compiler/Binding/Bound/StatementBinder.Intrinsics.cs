@@ -842,15 +842,22 @@ public sealed partial class StatementBinder
     /// <summary>A bound operand as a numeric expression node (the arithmetic combinators' conversion): a field
     /// reads its value, a literal its scaled text, a computed wrapper unwraps; an alphanumeric literal inside
     /// arithmetic is a loud named error (only NUMVAL converts strings to numbers, §15.67).</summary>
-    private static BoundExpr ArgExpr(BoundOperand op) => op switch
+    private static readonly ArgExprVisitor _argExprVisitor = new();
+    private static BoundExpr ArgExpr(BoundOperand op) => op.Accept(_argExprVisitor);
+
+    private sealed class ArgExprVisitor : IBoundOperandVisitor<BoundExpr>
     {
-        BoundComputedOperand c => c.Expr,
-        BoundFieldOperand f => new BoundNumRef(f.Place),
-        BoundNumericLiteral n => new BoundNumLiteral(n.Text),
-        BoundStringLiteral => new BoundExprError("alphanumeric literal in an arithmetic intrinsic argument"),
-        BoundOperandError e => new BoundExprError(e.Feature),
-        _ => new BoundExprError($"intrinsic argument '{op.GetType().Name}'"),
-    };
+        // The former `_ =>` — a figurative / ALL-literal / boolean operand is not an arithmetic-intrinsic argument.
+        private static BoundExpr Loud(BoundOperand n) => new BoundExprError($"intrinsic argument '{n.GetType().Name}'");
+        public BoundExpr Visit(BoundComputedOperand n) => n.Expr;
+        public BoundExpr Visit(BoundFieldOperand n) => new BoundNumRef(n.Place);
+        public BoundExpr Visit(BoundNumericLiteral n) => new BoundNumLiteral(n.Text);
+        public BoundExpr Visit(BoundStringLiteral n) => new BoundExprError("alphanumeric literal in an arithmetic intrinsic argument");
+        public BoundExpr Visit(BoundOperandError n) => new BoundExprError(n.Feature);
+        public BoundExpr Visit(BoundFigurative n) => Loud(n);
+        public BoundExpr Visit(BoundAllLiteral n) => Loud(n);
+        public BoundExpr Visit(BoundBoolOperand n) => Loud(n);
+    }
 
     // ── Token utilities ──────────────────────────────────────────────────────────────────────────────────────
 

@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) as Exec Step A: 6a–6g + the 6h loud-default sweep DONE (DEVLOG 755–763). The Roslyn source generator (visitor interfaces + Accept + StatementChildren) + EVERY loud-default consumer are converted (emitter 6b, all 5 renderers 6d/6e/6f/BooleanRenderer/IntrinsicRenderer, StoreKindOf 6c, the analyses 6f) — ⛔ NO loud-default bound-node dispatch survives (grep-verified). REMAINING (non-loud): UsageCollectionPass's whole-tree walker (task #17, a focused pass) + the emitter's PerformControl/SetTarget switches (REASONED KEEP — void/closure over 4/2-leaf roots). Steps 1–5,7–12 of P7 DEPEND on P6 (Exec Step D). NEXT: UsageCollectionPass, then Exec Step B = P6.`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) as Exec Step A: the SCOPED target DONE (6a–6g, DEVLOG 755–761) — generator (visitor interfaces + Accept + StatementChildren) + EmitStatement (6b), the main renderers (6d/6e/6f), StoreKindOf (6c), the analysis walkers (6f). 6h extras also converted: BooleanRenderer, IntrinsicRenderer static-arg, ArgExpr (DEVLOG 762–764). ⚠ NOT "every dispatch": a LONG TAIL of small partial bound-operand/expr switches remains (concentrated in StatementBinder.Intrinsics — LENGTH-arg etc.), + the emitter's void PerformControl/SetTarget switches (reasoned-keep), + UsageCollectionPass — a SYSTEMATIC AUDIT (grep every switch, classify bound-node vs the intentional parse-context switches), task #17, NOT claimed complete. Steps 1–5,7–12 of P7 DEPEND on P6 (Exec Step D). NEXT: the 6h audit + UsageCollectionPass, then Exec Step B = P6.`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -354,8 +354,13 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
       Three cached nested visitors (`StrStaticVisitor : IBoundOperandVisitor<string>`, `NumStaticVisitor :
       IBoundOperandVisitor<NumX>` — separate classes, same-param/different-return can't overload — and
       `NumStaticExprVisitor : IBoundExprVisitor<NumX>`); the deliberately-partial H3 loud arms are now EXPLICIT `Visit`s
-      (byte-identical `Loud(n)`). **This was the LAST loud-default bound-node dispatch — verified by re-running the
-      completeness grep, none survives.** Byte-exact (32 char + 3158 conf).
+      (byte-identical `Loud(n)`). Byte-exact (32 char + 3158 conf). ✅ `StatementBinder.Intrinsics.ArgExpr` (BoundOperand
+      → BoundExpr) also DONE (DEVLOG 764).
+    - ⚠ **LONG TAIL (DEVLOG 764) — NOT "the last one" (that was claimed twice, wrongly).** More small partial
+      bound-operand/expr dispatches remain, concentrated in `StatementBinder.Intrinsics` (e.g. the FUNCTION LENGTH
+      argument switch, `~:472`, and likely others). Finishing 6h means a SYSTEMATIC audit: grep every `switch`, classify
+      each as a bound-node dispatch vs an intentional PARSE-context switch (`BindStatementCore`/`BindCondition` stay —
+      OPEN Q5), and convert the bound-node ones. Do NOT declare 6h complete without pasting the final grep output.
     - **Emitter `PerformControl` switch (`default:` = `PerformOnce`) + `StoreSetTarget`/`AugmentSetTarget` (no default)
       — REASONED KEEP (DEVLOG 763), not converted.** `void` + closure-heavy (`body`/`inline`/`value`/`amount`), so the
       generic-return `IBound*Visitor<T>` would force a dummy `T` + a state-carrying per-call visitor — uglier than the

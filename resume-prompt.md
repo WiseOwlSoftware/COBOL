@@ -121,17 +121,18 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔🔀 RESUME AT: convert `UsageCollectionPass` onto the generated visitors (the last walker), then EXEC STEP B
-> = P6.** PHASE-07 Step 6 (the exhaustive visitor) is DONE incl. the 6h loud-default sweep (DEVLOG 755–763): the Roslyn
-> source generator emits the 7 visitor interfaces + `Accept` + `BoundStatementTree.StatementChildren`, and EVERY
-> loud-default consumer is converted — emitter (6b), all 5 renderers (`NumericRenderer` 6d, `ConditionRenderer` 6e,
-> `OperandText` 6f, `BooleanRenderer`, `IntrinsicRenderer`), `StoreKindOf` (6c), the analyses `ContainsNextSentence`/
-> `AlterCollectFields` (6f). ⛔ **NO loud-default bound-node dispatch survives (grep-verified).** REMAINING (non-loud):
-> **`UsageCollectionPass`** — its own whole-tree hand `Visitor` (the completeness-bug origin), a FOCUSED pass (task #17)
-> — and the emitter's `PerformControl`/`SetTarget` switches (REASONED KEEP — void/closure over 4/2-leaf roots; want a
-> void-visitor generator variant). THEN **Exec Step B — P6 (Real Binder: `SymbolTable`/`BoundCompilation`/`BindPipeline`;
-> `docs/rearchitecture/PHASE-06-*.md`)**. (`BoundKeyedDelete`-`InvalidKey` was resolved a NON-bug.) The rest of PHASE-07
-> (structural `Place`, god-class decomposition) is Exec Step D, after P6.**
+> §9.5). **⛔🔀 RESUME AT: finish the 6h SYSTEMATIC AUDIT (there is a long tail — do NOT trust "complete" without a fresh
+> grep), then EXEC STEP B = P6.** PHASE-07 Step 6's SCOPED target is DONE (6a–6g, DEVLOG 755–761): the Roslyn source
+> generator emits the 7 visitor interfaces + `Accept` + `BoundStatementTree.StatementChildren`; converted — emitter (6b),
+> the main renderers (`NumericRenderer` 6d, `ConditionRenderer` 6e, `OperandText` 6f), `StoreKindOf` (6c), the analyses
+> `ContainsNextSentence`/`AlterCollectFields` (6f). 6h extras converted: `BooleanRenderer`, `IntrinsicRenderer` static-arg,
+> `ArgExpr` (DEVLOG 762–764). ⚠ **NOT "every dispatch" — I claimed that twice, wrongly (DEVLOG 762, 764).** A LONG TAIL
+> of small partial bound-operand/expr switches remains (concentrated in `StatementBinder.Intrinsics` — LENGTH-arg etc.),
+> the emitter's void `PerformControl`/`SetTarget` switches (reasoned-keep), and `UsageCollectionPass` (task #17). 6h =
+> grep EVERY `switch`, classify bound-node vs the intentional parse-context switches (`BindStatementCore`/`BindCondition`
+> stay, OPEN Q5), convert the bound-node ones; paste the final grep before declaring done. THEN **Exec Step B — P6 (Real
+> Binder: `SymbolTable`/`BoundCompilation`/`BindPipeline`; `docs/rearchitecture/PHASE-06-*.md`)**. (`BoundKeyedDelete`-
+> `InvalidKey` was resolved a NON-bug.) The rest of PHASE-07 (structural `Place`, god-class decomposition) is Exec Step D.**
 > **✅ 6a DONE (DEVLOG 755):** the `Cobol.Net.Compiler.SourceGen` Roslyn **incremental** source generator
 > (`BoundVisitorGenerator`, semantic-model-driven off `[BoundNode]` on all 7 roots) emits the exhaustive
 > `I{Root}Visitor<T>` + `BoundVisitor.Accept<T>` (120 leaves / 7 roots), build-green + `BoundVisitorGeneratorTests`
