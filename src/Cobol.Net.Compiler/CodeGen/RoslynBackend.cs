@@ -40,6 +40,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
         }
 
         var result = Compile(csharp, options.OutputPath, options.AssemblyName);
+        if (result.Success) AssemblyPackager.Package(options.OutputPath);   // P7 Step 2 — packaging off Compile
         return new BackendArtifact(result.Success, result.Diagnostics, csPath,
             result.Success ? options.OutputPath : null);
     }
@@ -51,6 +52,9 @@ internal sealed class RoslynBackend : ICodeGenBackend
 
     /// <summary>
     /// Compile <paramref name="csharpSource"/> to a console assembly at <paramref name="outputDllPath"/>.
+    /// PURE C#→assembly since P7 Step 2: the packaging side effects (runtimeconfig + runtime deploy) live in
+    /// <see cref="AssemblyPackager"/>, invoked by <see cref="Emit"/> on success — the only writes here are the
+    /// assembly itself and the failed-emit cleanup.
     /// </summary>
     /// <param name="assemblyName">The emitted assembly's simple name (the COBOL PROGRAM-ID).</param>
     public static Result Compile(string csharpSource, string outputDllPath, string assemblyName)
@@ -69,12 +73,7 @@ internal sealed class RoslynBackend : ICodeGenBackend
                 nullableContextOptions: NullableContextOptions.Disable));
 
         EmitResult emit = compilation.Emit(outputDllPath);
-        if (emit.Success)
-        {
-            WriteRuntimeConfig(outputDllPath);
-            DeployRuntime(outputDllPath);
-        }
-        else
+        if (!emit.Success)
         {
             // A failed Emit leaves a partial/0-byte output file behind; running it dies with the misleading
             // "hostpolicy.dll required" error (the swept phantom-RUNERR class — ST133A/ST134A/SQ203A were
@@ -83,18 +82,6 @@ internal sealed class RoslynBackend : ICodeGenBackend
         }
 
         return new Result(emit.Success, emit.Diagnostics);
-    }
-
-    /// <summary>The COBOL.NET runtime assembly the generated program calls (alongside the compiler).</summary>
-    private static string RuntimePath =>
-        Path.Combine(AppContext.BaseDirectory, "Cobol.Net.Runtime.dll");
-
-    /// <summary>Copy <c>Cobol.Net.Runtime.dll</c> next to the compiled program so it resolves at run time.</summary>
-    private static void DeployRuntime(string outputDllPath)
-    {
-        string dest = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(outputDllPath))!, "Cobol.Net.Runtime.dll");
-        if (!string.Equals(RuntimePath, dest, StringComparison.OrdinalIgnoreCase) && File.Exists(RuntimePath))
-            File.Copy(RuntimePath, dest, overwrite: true);
     }
 
     /// <summary>
@@ -118,28 +105,8 @@ internal sealed class RoslynBackend : ICodeGenBackend
             .Select(static p => (MetadataReference)MetadataReference.CreateFromFile(p))
             .ToList();
         // The COBOL.NET runtime the generated program calls (CobolNum / CobolString).
-        if (File.Exists(RuntimePath)) refs.Add(MetadataReference.CreateFromFile(RuntimePath));
+        if (File.Exists(AssemblyPackager.RuntimePath))
+            refs.Add(MetadataReference.CreateFromFile(AssemblyPackager.RuntimePath));
         return [.. refs];
-    }
-
-    /// <summary>
-    /// Write the <c>.runtimeconfig.json</c> next to the emitted assembly so it is launchable via
-    /// <c>dotnet &lt;name&gt;.dll</c>, targeting the same shared framework the compiler is running on.
-    /// </summary>
-    private static void WriteRuntimeConfig(string outputDllPath)
-    {
-        var v = Environment.Version;
-        string json = $$"""
-        {
-          "runtimeOptions": {
-            "tfm": "net{{v.Major}}.{{v.Minor}}",
-            "framework": {
-              "name": "Microsoft.NETCore.App",
-              "version": "{{v.Major}}.{{v.Minor}}.0"
-            }
-          }
-        }
-        """;
-        File.WriteAllText(Path.ChangeExtension(outputDllPath, ".runtimeconfig.json"), json);
     }
 }
