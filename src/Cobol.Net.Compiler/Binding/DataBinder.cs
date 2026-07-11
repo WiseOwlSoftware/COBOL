@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
+using CobolNet.Frontend.Cst;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -1032,10 +1033,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Bind one data-description entry (skips level-66 RENAMES and level-88 condition names for now).</summary>
     private DataItem? BindEntry(Core.DataDescriptionEntryContext entry)
     {
-        if (!int.TryParse(entry.levelNumber().GetText(), out int level)) return null;
+        DataDescriptionCst e = entry;
+        if (e.Level is not { } level) return null;
         if (level is 66 or 88) return null; // RENAMES / condition-names: later slice.
 
-        string? cobolName = entry.dataName()?.GetText();
+        string? cobolName = e.Name;
         bool isFiller = cobolName is null || cobolName.Equals("FILLER", StringComparison.OrdinalIgnoreCase);
         string csName = isFiller ? $"_filler{_fillerCounter++}" : DataItem.Sanitize(cobolName!);
 
@@ -1052,39 +1054,39 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
 
-        if (entry.dataDescriptionBody().dataDescriptionClauses() is { } clauses)
-            foreach (var clause in clauses.dataDescriptionClause())
+        // The dataDescriptionClauses presence guard folds into e.Clauses (empty when the body has no clause list).
+            foreach (var clause in e.Clauses)
             {
-                if (clause.pictureClause()?.PIC_STRING() is { } picTok)
-                    pictureText = picTok.GetText();
-                else if (clause.basedClause() is not null)
+                if (clause.PictureText is { } picText)
+                    pictureText = picText;
+                else if (clause.Context.basedClause() is not null)
                     // BASED (§13.18.5) validated below (§13.16 SR16 placement; the 0881 declaration band). The
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitBasedClause (14g.2,
                     // recognition-based — IsBased is cleared for a LINKAGE item, so a bound-arm gate would drop it).
                     isBased = true;
-                else if (clause.externalClause() is not null)
+                else if (clause.Context.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
-                else if (clause.typedefClause() is { } td)
+                else if (clause.Context.typedefClause() is { } td)
                     // §13.18.58; D17. The COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitTypedefClause
                     // (14g.2, recognition-based — the typedef item is discarded from ConformanceForest when it fails to
                     // register (unnamed/duplicate) or binds into method scope, so a bound-arm gate would drop it; DEVLOG 734).
                     { isTypedef = true; typedefStrong = td.STRONG() is not null; }
-                else if (clause.typeClause() is { } tc)
+                else if (clause.TypeRefName is { } trn)
                     // TYPE IS type-name — cloned in ExpandTypes (D17). The COBOL-2002 introduction gate is
                     // VersionConformancePass ParseArm.VisitTypeClause (14g.2, recognition-based — TypeRefName is
                     // nulled by ExpandTypes during bind, so a bound-arm gate would drop it).
-                    typeRefName = tc.IDENTIFIER().GetText();
-                else if (clause.justifiedClause() is not null)
+                    typeRefName = trn;
+                else if (clause.Context.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
-                else if (clause.blankWhenZeroClause() is not null)
+                else if (clause.Context.blankWhenZeroClause() is not null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
-                else if (clause.syncClause() is not null)
+                else if (clause.Context.syncClause() is not null)
                     synchronized = true;   // SYNCHRONIZED/SYNC (ISO §13.18.55) — no-op here; gated on a GROUP <2023 (step 10)
                 // PROPERTY clause (§13.18.42, COBOL-2002 OO): superset-parsed at every edition; its OO SEMANTICS bind
                 // independently in DataBinder.Oo.OoBindPropertyClauses (which reads the propertyClause node directly),
                 // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
                 // so the storage-clause loop needs no branch for it.
-                else if (clause.usageClause() is { } usage)
+                else if (clause.Context.usageClause() is { } usage)
                 {
                     usageText = UsageKeyword(usage);
                     // SIGNED (default) / UNSIGNED on a fixed-width binary usage (ISO §13.18.60.4 GR12) — the
@@ -1099,27 +1101,27 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                             + "reference, ISO §13.18.60) is recognized but not yet implemented (the "
                             + "universal-reference wave)");
                     else
-                        objectClassName = oru?.className()?.GetText();
+                        objectClassName = clause.ObjectClassName;
                 }
-                else if (clause.redefinesClause() is { } redef)
+                else if (clause.RedefinesTargetName is { } redefTarget)
                     // Capture the target name only; resolution waits until the forest is built (the target is a
                     // prior sibling, but a chain A REDEFINES B REDEFINES C resolves in the post-build pass).
-                    redefinesTargetName = redef.dataReference().GetText();
-                else if (clause.valueClause() is { } value)
+                    redefinesTargetName = redefTarget;
+                else if (clause.Context.valueClause() is { } value)
                     rawValue = ExtractValue(value);
-                else if (clause.signClause() is { } sign)
+                else if (clause.Context.signClause() is { } sign)
                     ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
-                else if (clause.occursClause() is { } occ)
+                else if (clause.Context.occursClause() is { } occ)
                 {
                     // Allocate at the table's MAXIMUM occurrence count — the last integer literal (integer-2 for a
                     // Format-2 `n TO m` table, the sole literal for a fixed table) — per ISO §8.5.1.8 (physical
                     // capacity fixed at compile time). The min/DEPENDING/KEY surface is captured in the OccursSpec.
-                    if (occ.integerLiteral() is { Length: > 0 } lits && int.TryParse(lits[^1].GetText(), out int n))
+                    if (clause.OccursMax is { } n)
                         occurs = n;
                     occursSpec = OdoBindOccursSpec(occ);
-                    if (occ.INDEXED() is not null && occ.dataReferenceList() is { } idxList)
-                        foreach (var idx in idxList.dataReference())
-                            indexNames.Add(idx.GetText());
+                    if (occ.INDEXED() is not null)
+                        foreach (var idxName in clause.IndexNames)
+                            indexNames.Add(idxName);
                 }
             }
 

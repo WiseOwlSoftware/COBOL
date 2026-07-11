@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using CobolNet.Editions.Diagnostics;
+using CobolNet.Frontend.Cst;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding;
@@ -94,19 +95,14 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <summary>Resolve <paramref name="dref"/> to a <see cref="Place"/>, or <see langword="null"/> if unsupported here.</summary>
     public Place? Resolve(Core.DataReferenceContext dref)
     {
-        // LINAGE-COUNTER is the I-O control system's register (ISO §8.4.3.14) — runtime-sourced, never a storage
-        // Place; the binder routes it to BoundLinageCounterRef. The early return also covers the QUALIFIED form
-        // (`LINAGE-COUNTER OF file`), where dref.cobolWord() is the FILE-NAME qualifier and would otherwise
-        // mis-resolve here as a base data-name.
-        if (dref.LINAGE_COUNTER() is not null) return null;
-        // LINE-COUNTER / PAGE-COUNTER are the Report Writer Control System's registers (ISO §8.4.3.15) —
-        // runtime-sourced from the report engine, never a storage Place; the binder routes them to
-        // BoundReportCounterRef (StatementBinder.ReportWriter.cs). The early return is LOAD-BEARING for the
-        // QUALIFIED form (`LINE-COUNTER OF report`): there dref.cobolWord() is the REPORT-NAME qualifier and
-        // would otherwise mis-resolve as a base data-name (the LINAGE-COUNTER lesson above).
-        if (dref.LINE_COUNTER() is not null || dref.PAGE_COUNTER() is not null) return null;
-        if (dref.cobolWord() is not { } baseWord) return null;
-        string name = baseWord.GetText();
+        DataReferenceCst r = dref;
+        // A special register — LINAGE-COUNTER (I-O control system, ISO §8.4.3.14), LINE-/PAGE-COUNTER (Report
+        // Writer control system, ISO §8.4.3.15) — is runtime-sourced, never a storage Place; the binder routes it
+        // to BoundLinageCounterRef / BoundReportCounterRef (StatementBinder.ReportWriter.cs). The early return is
+        // LOAD-BEARING for the QUALIFIED form (`LINAGE-COUNTER OF file`, `LINE-COUNTER OF report`): there
+        // r.BaseName is the FILE-/REPORT-NAME qualifier and would otherwise mis-resolve here as a base data-name.
+        if (r.Register != SpecialRegister.None) return null;
+        if (r.BaseName is not { } name) return null;
 
         // The OCCURS DYNAMIC CAPACITY register (ISO §13.18.38 GR15 / §8.5.1.9.1; data-model D9): an implicitly-
         // defined VIEW over the owning dynamic table's current capacity — never a storage item, so it is not in
@@ -127,7 +123,7 @@ public sealed class ReferenceResolver(DataBinder data)
         {
             if (suffix.qualification() is { } q)
             {
-                qualifiers.Add(q.cobolWord().GetText());
+                qualifiers.Add(q.cobolWord().Name());
                 foreach (var sp in q.subscriptPart()) if (sp.subscriptOrRefMod() is { } qs) Classify(qs);
                 if (q.refModPart().Length > 0) cleanRef ??= q.refModPart()[0];
             }
@@ -458,12 +454,15 @@ public sealed class ReferenceResolver(DataBinder data)
     /// effects (unlike the full <see cref="Resolve"/> pipeline, which routes an unresolved qualified name through the
     /// property-reference hook and enqueues a pending op). The SET Format 14 reroute peek uses this so it never mints
     /// a spurious property temp/op for a non-capacity target (data-model D9; OCCURS DYNAMIC review #7).</summary>
-    internal CapacityRegisterPlace? CapacityRegisterFor(Core.DataReferenceContext dref) =>
-        dref.dataReferenceSuffix().Length == 0 && dref.cobolWord()?.GetText() is { } name
+    internal CapacityRegisterPlace? CapacityRegisterFor(Core.DataReferenceContext dref)
+    {
+        DataReferenceCst r = dref;
+        return r.HasNoSuffix && r.BaseName is { } name
             && data.CapacityRegisters.TryGetValue(name, out var capTable)
             && capTable.OccursSpec?.CapacityRegister is { } capReg
             && TablePath(capTable) is { } capPath
             ? new CapacityRegisterPlace(capPath, capReg) : null;
+    }
 
     private static string? AccessPath(DataItem item, IReadOnlyList<string> indexExprs,
         AccessDir dir = AccessDir.Sending)

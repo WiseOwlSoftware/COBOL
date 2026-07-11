@@ -27,7 +27,7 @@
 > `DESIGN-frontend-grammar.md` (and possibly `DESIGN-binder-bound-tree.md`) before execution — author it then.
 
 ## STATUS
-`IN PROGRESS @ GROUP C (GROUPS A+B DONE — A5 DEVLOG 743, B1 DEVLOG 744, both 2026-07-10: word set single-sourced + drift-guarded; SUBSCRIPT/DEFAULT literal bodies shared via fragments; both byte-neutral)` (2026-07-10)
+`IN PROGRESS @ GROUP D + D10 (GROUPS A+B+C DONE — A5 DEVLOG 743, B1 DEVLOG 744, C3 DEVLOG 745, all 2026-07-10: word set single-sourced; shared literal fragments; typed Cst/ façade + 2 anchors migrated; all byte-neutral)` (2026-07-10)
 <!-- The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`.
      Keep a one-line note per completed commit boundary in the "Execution log" at the bottom. -->
 
@@ -874,7 +874,12 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
   duplication; `CobolLexer.tokens` byte-identical; conformance 3157 · unit 227 · characterization 32 byte-exact · legacy
   guard **353 MATCH / ALL GREEN / 0 regressions**; subscript-literal + single-quote (composed `NAT_BODY`) probes green.
   `SIGNED_*`/`HEXLIT`/`FLOATLIT` untouched (no DEFAULT/SUBSCRIPT twin); no token reordered.
+- **C3 (Cst façade + 2 anchors) — 2026-07-10 — DEVLOG 745.** New `Cobol.Net.Frontend/Cst/` (`SourceSpan`,
+  `DataReferenceCst`, `DataDescriptionCst`+`DataDescriptionClauseCst`, `CstExtensions`); `ReferenceResolver` (3 GetText
+  →0) + `DataBinder.BindEntry` (8 GetText clusters migrated) read the façade; presence-only clause predicates +
+  `SubscriptOrRefMod` stay raw (D10/P7 seam). `UsageKeyword`/`ExtractValue` kept as shared helpers (2nd caller in
+  Reports.cs — singular-pattern). Behavior-neutral: conformance 3157 · unit 227 · **characterization 32 byte-exact
+  (Gate 3 emitted-C# identical)** · legacy guard **353 MATCH / ALL GREEN**.
 <!--
-- C3 (Cst façade + anchors)    — <date> — guard ALL GREEN, .g.cs identical, commit <sha>
 - D  (superset + construct-id annotation) — <date> — battery green, no edition predicates, commit <sha>
 -->
