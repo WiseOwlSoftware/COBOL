@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 PULLED FORWARD as Exec Step A · 6a,6b,6d,6e,6f(OperandText) DONE + 6g StatementChildren PRIMITIVE DONE (DEVLOG 755–759). All rendering/classification consumers + the walker FOUNDATION are landed. REMAINS: convert the walker consumers onto StatementChildren — 6c StoreKindOf (per-node polarity, delicate) + 6f analyses (AlterCollectFields/ContainsNextSentence/KeyedHasNextSentence)`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 PULLED FORWARD as Exec Step A · 6a,6b,6d,6e,6f(OperandText+analyses) DONE + 6g StatementChildren DONE (DEVLOG 755–760). Every rendering/classification consumer + the ContainsNextSentence/AlterCollectFields walkers are converted; the walker FOUNDATION is landed. REMAINS: the ONE last walker — 6c StoreKindOf (per-node polarity, NOT byte-exact-covered, diff arm-by-arm)`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -356,13 +356,15 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
     (`deSign` carried on the instance → zero per-call allocation), and `IsStringVisitor` — each
     `IBoundOperandVisitor<string/bool>`. `AsString`'s `_ =>` caught `BoundBoolOperand` (now explicit loud, byte-ident);
     `IsString`'s four `_ => false` leaves are now explicit. Byte-exact: 32 + 3158.
-  - **6f (statement analyses) ⏳ REMAINS — the WALKER group (do with 6c, same treatment).** `AlterCollectFields`,
-    `ContainsNextSentence`, `KeyedHasNextSentence` are statement-tree WALKERS (recurse into nested phrase bodies) —
-    the same shape as `StoreKindOf`. The simple `IBoundStatementVisitor<T>` (no default-recurse) forces all 79 `Visit`
-    methods for a ~5-arm analysis, so these want EITHER a careful per-node `Visit` set OR a future **default-recurse
-    walker** generator variant (emit a `Bound{Root}Walker` base whose default `Visit` recurses every child Bound node;
-    a consumer overrides only the nodes it collects at). That walker variant is the right long-term tool for
-    `StoreKindOf` + these three; scoping/design deferred (a `BoundVisitorGenerator` enhancement, not a consumer edit).
+  - **6f (statement analyses) ✅ DONE (2026-07-11, DEVLOG 760) — converted onto the 6g `StatementChildren`.**
+    `ContainsNextSentence` collapsed to `stmts.Any(HasNextSentence)` + `HasNextSentence(s) => s is BoundNextSentence ||
+    s.StatementChildren().Any(HasNextSentence)` (the 20-arm hand-walker + `InSizeError` + the whole
+    `KeyedHasNextSentence`/`KeyedNs` pair DELETED). `AlterCollectFields` collapsed to `if (s is BoundGoToAlterable g)
+    fields.TryAdd(…); foreach (child in s.StatementChildren()) recurse` (the 13-arm switch + `AlterCollectLists` +
+    `AlterCollectPhrase` DELETED). Both are now MORE complete than the hand-walkers (which missed EVALUATE/CALL/WRITE /
+    SEQUENCE/keyed/RETURN phrase bodies — a latent label-less-goto / undeclared-field loud-fail) yet byte-exact-neutral
+    on the corpus (32 char + 3158 conf + 269 unit unchanged — the corpus doesn't exercise the closed gaps). **REMAINS:
+    6c `StoreKindOf` — the last walker (per-node polarity; see its bullet).**
   - Each sub-step: battery 1+2+4 green (mechanical relocation, identical output); COMMIT
     `P7 step6X: convert <consumer> to exhaustive IBound*Visitor; delete loud default`.
 - **Why:** Kills the two god-switches + four renderer switches; a missing arm becomes a compile error

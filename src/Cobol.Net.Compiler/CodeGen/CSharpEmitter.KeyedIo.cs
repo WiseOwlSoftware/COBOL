@@ -364,21 +364,4 @@ public sealed partial class CSharpEmitter
         }
     }
 
-    /// <summary>NEXT SENTENCE detection inside keyed-I/O phrase bodies (AT END / NOT AT END / INVALID KEY /
-    /// NOT INVALID KEY / ON EXCEPTION) — the keyed arm of <c>ContainsNextSentence</c>, so every nesting container
-    /// the keyed binder produces is covered (a missed container would emit a label-less goto, loud at compile).</summary>
-    private static bool KeyedHasNextSentence(BoundStatement s) => s switch
-    {
-        BoundKeyedRead r => KeyedNs(r.AtEnd) || KeyedNs(r.NotAtEnd)
-                            || KeyedNs(r.InvalidKey?.Invalid) || KeyedNs(r.InvalidKey?.NotInvalid),
-        BoundKeyedWrite wr => KeyedNs(wr.InvalidKey?.Invalid) || KeyedNs(wr.InvalidKey?.NotInvalid),
-        BoundKeyedRewrite rw => KeyedNs(rw.InvalidKey?.Invalid) || KeyedNs(rw.InvalidKey?.NotInvalid),
-        BoundKeyedDelete d => KeyedNs(d.InvalidKey?.Invalid) || KeyedNs(d.InvalidKey?.NotInvalid),
-        BoundKeyedStart st => KeyedNs(st.InvalidKey?.Invalid) || KeyedNs(st.InvalidKey?.NotInvalid),
-        BoundKeyedDeleteFile df => KeyedNs(df.OnException) || KeyedNs(df.NotOnException),
-        _ => false,
-    };
-
-    private static bool KeyedNs(IReadOnlyList<BoundStatement>? list) =>
-        list is not null && ContainsNextSentence(list);
 }

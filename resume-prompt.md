@@ -121,10 +121,11 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔🔀 RESUME AT: EXEC STEP A — CONVERT the walker consumers onto the generated `StatementChildren` (6c
-> `StoreKindOf` + the 6f analyses). All RENDERING/CLASSIFICATION consumers (6a,6b,6d,6e,6f-OperandText) AND the walker
-> FOUNDATION (6g `BoundStatementTree.StatementChildren` — the generated, drift-proof child-enumeration) are DONE.
-> What remains is wiring the four walkers to recurse over `StatementChildren` — see PHASE-07 §6c/§6f/§6g.**
+> §9.5). **⛔🔀 RESUME AT: EXEC STEP A — the ONE last consumer, 6c `StoreKindOf` → `StoreKindVisitor :
+> IBoundStatementVisitor<StoreKind?>` (per-node polarity; `Kids` recursion rides `StatementChildren`; the 9 `_ => null`
+> nodes stay `null`; NOT byte-exact-covered → diff arm-by-arm). DONE: every rendering/classification consumer
+> (6a,6b,6d,6e,6f-OperandText), the walker FOUNDATION (6g `BoundStatementTree.StatementChildren`), AND the two analysis
+> walkers (6f `ContainsNextSentence`/`AlterCollectFields`, DEVLOG 760). See PHASE-07 §6c/§6g.**
 > **✅ 6a DONE (DEVLOG 755):** the `Cobol.Net.Compiler.SourceGen` Roslyn **incremental** source generator
 > (`BoundVisitorGenerator`, semantic-model-driven off `[BoundNode]` on all 7 roots) emits the exhaustive
 > `I{Root}Visitor<T>` + `BoundVisitor.Accept<T>` (120 leaves / 7 roots), build-green + `BoundVisitorGeneratorTests`

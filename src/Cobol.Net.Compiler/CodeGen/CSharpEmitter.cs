@@ -298,44 +298,16 @@ public sealed partial class CSharpEmitter
         return terminated;
     }
 
-    /// <summary>True when a statement list contains a <see cref="BoundNextSentence"/> anywhere — including inside
-    /// IF branches, inline-PERFORM bodies, SEARCH arms, READ phrases, and ON SIZE ERROR phrases (every nesting
-    /// container the binder produces). A missed container would emit a goto with NO label → a loud backend
-    /// compile failure, never a silent misjump.</summary>
-    private static bool ContainsNextSentence(IReadOnlyList<BoundStatement> stmts) => stmts.Any(s => s switch
-    {
-        BoundNextSentence => true,
-        BoundEcChecked ec => ContainsNextSentence([ec.Inner]),   // the EC wrapper is transparent
-        BoundSequence sq => ContainsNextSentence(sq.Steps),      // the hoist wrapper (UDF/property pre-ops) is transparent
-        BoundIf i => ContainsNextSentence(i.Then) || ContainsNextSentence(i.Else),
-        BoundInlinePerform p => ContainsNextSentence(p.Body),
-        BoundSearch se => (se.AtEnd is { } at && ContainsNextSentence(at))
-                          || se.Whens.Any(wn => ContainsNextSentence(wn.Statements)),
-        BoundRead r => (r.AtEnd is { } at && ContainsNextSentence(at))
-                       || (r.NotAtEnd is { } nat && ContainsNextSentence(nat)),
-        BoundKeyedRead or BoundKeyedWrite or BoundKeyedRewrite or BoundKeyedDelete or BoundKeyedStart
-            or BoundKeyedDeleteFile => KeyedHasNextSentence(s),
-        BoundReturn rt => (rt.AtEnd is { } rta && ContainsNextSentence(rta))
-                          || (rt.NotAtEnd is { } rtn && ContainsNextSentence(rtn)),
-        BoundAddTo a => InSizeError(a.SizeError),
-        BoundAddGiving a => InSizeError(a.SizeError),
-        BoundSubtractFrom a => InSizeError(a.SizeError),
-        BoundSubtractGiving a => InSizeError(a.SizeError),
-        BoundMultiplyBy a => InSizeError(a.SizeError),
-        BoundMultiplyGiving a => InSizeError(a.SizeError),
-        BoundDivideInto a => InSizeError(a.SizeError),
-        BoundDivideGiving a => InSizeError(a.SizeError),
-        BoundDivideRemainder a => InSizeError(a.SizeError),
-        BoundCompute c => InSizeError(c.SizeError),
-        BoundCorresponding cr => InSizeError(cr.SizeError),
-        BoundStringStmt sstr => (sstr.OnOverflow is { } son && ContainsNextSentence(son)) || (sstr.NotOnOverflow is { } snot && ContainsNextSentence(snot)),
-        BoundUnstringStmt suns => (suns.OnOverflow is { } uon && ContainsNextSentence(uon)) || (suns.NotOnOverflow is { } unot && ContainsNextSentence(unot)),
-        _ => false,
-    });
+    /// <summary>True when a statement list contains a <see cref="BoundNextSentence"/> anywhere — recursing over the
+    /// generated <see cref="BoundStatementTree.StatementChildren"/> (PHASE-07 Step 6g), which is the ONE drift-proof
+    /// enumeration of every nesting container the binder produces (IF/EVALUATE arms, inline-PERFORM & SEARCH bodies,
+    /// READ/keyed/WRITE/CALL/arithmetic phrases), so a new container node is covered automatically. A missed container
+    /// would emit a goto with NO label → a loud backend compile failure, never a silent misjump. (Replaces the former
+    /// hand-maintained walker, which had missed EVALUATE/CALL/WRITE phrase bodies.)</summary>
+    private static bool ContainsNextSentence(IReadOnlyList<BoundStatement> stmts) => stmts.Any(HasNextSentence);
 
-    private static bool InSizeError(SizeErrorPhrase? p) =>
-        p is not null && ((p.OnError is { } on && ContainsNextSentence(on))
-                          || (p.NotOnError is { } not && ContainsNextSentence(not)));
+    private static bool HasNextSentence(BoundStatement s) =>
+        s is BoundNextSentence || s.StatementChildren().Any(HasNextSentence);
 
     /// <summary>Emit a statement list (a paragraph case, an IF branch, or an inline-PERFORM body), suppressing dead
     /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.</summary>

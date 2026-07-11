@@ -26,54 +26,17 @@ public sealed partial class CSharpEmitter
             w.Line($"private int {field} = {defaultPc};   // ALTERable GO TO target pc (control-flow design D4; instance — ALTER state is per-program-instance, ISO §14.6.2.3.2 resets it via a fresh instance)");
     }
 
-    /// <summary>Collect alterable-GO-TO fields from a statement and every nested statement container the binder
-    /// produces (IF branches, inline-PERFORM bodies, SEARCH/EVALUATE arms, READ phrases, ON SIZE ERROR phrases) —
-    /// a missed container would reference an undeclared field and fail the generated-C# compile LOUDLY, never run
-    /// silently wrong.</summary>
+    /// <summary>Collect alterable-GO-TO fields from a statement and every nested statement — recursing over the
+    /// generated <see cref="BoundStatementTree.StatementChildren"/> (PHASE-07 Step 6g), the ONE drift-proof
+    /// enumeration of every nesting container the binder produces, so a new container node is covered automatically.
+    /// A missed container would reference an undeclared field and fail the generated-C# compile LOUDLY, never run
+    /// silently wrong. (Replaces the former hand-maintained walker, which had missed SEQUENCE/CALL/WRITE/keyed/RETURN
+    /// phrase bodies.)</summary>
     private static void AlterCollectFields(BoundStatement s, Dictionary<string, int> fields)
     {
-        switch (s)
-        {
-            case BoundEcChecked ec: AlterCollectFields(ec.Inner, fields); break;   // the EC wrapper is transparent
-            case BoundGoToAlterable g: fields.TryAdd(g.AlterField, g.DefaultPc); break;
-            case BoundIf i: AlterCollectLists(fields, i.Then, i.Else); break;
-            case BoundInlinePerform p: AlterCollectLists(fields, p.Body); break;
-            case BoundSearch se:
-                if (se.AtEnd is { } at) AlterCollectLists(fields, at);
-                foreach (var wn in se.Whens) AlterCollectLists(fields, wn.Statements);
-                break;
-            case BoundEvaluate ev:
-                foreach (var wn in ev.Whens) AlterCollectLists(fields, wn.Statements);
-                if (ev.Other is { } other) AlterCollectLists(fields, other);
-                break;
-            case BoundRead r:
-                if (r.AtEnd is { } rAt) AlterCollectLists(fields, rAt);
-                if (r.NotAtEnd is { } rNot) AlterCollectLists(fields, rNot);
-                break;
-            case BoundAddTo a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundAddGiving a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundSubtractFrom a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundSubtractGiving a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundMultiplyBy a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundMultiplyGiving a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundDivideInto a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundDivideGiving a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundDivideRemainder a: AlterCollectPhrase(a.SizeError, fields); break;
-            case BoundCompute c: AlterCollectPhrase(c.SizeError, fields); break;
-        }
-    }
-
-    private static void AlterCollectLists(Dictionary<string, int> fields, params IReadOnlyList<BoundStatement>[] lists)
-    {
-        foreach (var list in lists)
-            foreach (var s in list)
-                AlterCollectFields(s, fields);
-    }
-
-    private static void AlterCollectPhrase(SizeErrorPhrase? phrase, Dictionary<string, int> fields)
-    {
-        if (phrase?.OnError is { } on) AlterCollectLists(fields, on);
-        if (phrase?.NotOnError is { } not) AlterCollectLists(fields, not);
+        if (s is BoundGoToAlterable g) fields.TryAdd(g.AlterField, g.DefaultPc);
+        foreach (var child in s.StatementChildren())
+            AlterCollectFields(child, fields);
     }
 
     /// <summary>The alterable GO TO transfers to the CURRENT field value (D4: <c>__pc = _alter_X; break;</c>) —
