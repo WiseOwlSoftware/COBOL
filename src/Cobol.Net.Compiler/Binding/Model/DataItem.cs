@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace CobolNet.Binding;
+namespace CobolNet.Binding.Model;
 
 /// <summary>
 /// A bound DATA DIVISION item: a node in the record tree. Elementary items (<see cref="Pic"/> non-null) become

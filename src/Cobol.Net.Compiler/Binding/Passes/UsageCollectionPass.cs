@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using CobolNet.Binding.Bound;
 
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding.Passes;
 
 /// <summary>

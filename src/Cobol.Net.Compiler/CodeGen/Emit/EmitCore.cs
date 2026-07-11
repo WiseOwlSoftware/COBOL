@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
+using CobolNet.Binding.Model;
 using CobolNet.Runtime;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -51,8 +52,8 @@ internal sealed class EmissionContext(CodeWriter writer, DataBinder data)
     /// national and boolean use their OWN sequence (D-N3: HIGH/LOW-VALUE = U+00FF/U+0000 — the alphanumeric PCS
     /// never applies to national/boolean data, §8.3.3.6 GR6/GR7 over the NATIONAL sequence), so they take the
     /// PCS-independent <see cref="EmitText.FigurativeFill"/> pins.</summary>
-    public string FigFill(char kind, Binding.PicCategory? cat) =>
-        cat is Binding.PicCategory.National or Binding.PicCategory.Boolean
+    public string FigFill(char kind, Binding.Model.PicCategory? cat) =>
+        cat is Binding.Model.PicCategory.National or Binding.Model.PicCategory.Boolean
             ? EmitText.FigurativeFill(kind)
             : FigFill(kind);
 

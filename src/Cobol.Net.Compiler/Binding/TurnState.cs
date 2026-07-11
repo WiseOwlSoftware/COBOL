@@ -3,6 +3,8 @@
 using CobolNet.Runtime.Exceptions;
 using CobolNet.Frontend.Preprocessor;
 
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding;
 
 /// <summary>

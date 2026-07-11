@@ -3,6 +3,8 @@
 
 using CobolNet.Runtime;
 
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding.Bound;
 
 /// <summary>

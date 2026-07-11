@@ -3,6 +3,8 @@
 using CobolNet.Runtime.Exceptions;
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding.Bound;
 
 using Core = CobolParserCore;

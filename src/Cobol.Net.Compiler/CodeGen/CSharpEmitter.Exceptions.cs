@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
+using CobolNet.Binding.Model;
 using CobolNet.Binding.Bound;
 using CobolNet.Runtime.Exceptions;
 
@@ -238,7 +239,7 @@ public sealed partial class CSharpEmitter
         var decls = bound.Declaratives ?? [];
         using (w.Block("private int __EcDispatch(string __ec, string __f)"))
         {
-            void Tier(string comment, Func<string, Binding.FileModel?, int, string?> condition)
+            void Tier(string comment, Func<string, Binding.Model.FileModel?, int, string?> condition)
             {
                 bool any = false;
                 for (int i = 0; i < decls.Count; i++)

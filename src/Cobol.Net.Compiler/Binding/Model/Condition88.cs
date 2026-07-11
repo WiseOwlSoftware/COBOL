@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace CobolNet.Binding;
+namespace CobolNet.Binding.Model;
 
 /// <summary>
 /// A level-88 condition-name (ISO §13.18.4 / §8.8.4.1.2): a named boolean predicate over a conditional variable

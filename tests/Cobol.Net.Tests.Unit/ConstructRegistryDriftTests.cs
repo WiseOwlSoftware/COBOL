@@ -3,6 +3,7 @@
 using System.Reflection;
 using System.Text.Json;
 using CobolNet.Binding;
+using CobolNet.Binding.Model;
 using CobolNet.Editions;
 using Xunit;
 

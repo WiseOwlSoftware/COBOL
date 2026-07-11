@@ -3,6 +3,8 @@
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding;
 
 /// <summary>

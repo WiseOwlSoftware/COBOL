@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace CobolNet.Binding;
+namespace CobolNet.Binding.Model;
 
 /// <summary>The file organization (ISO/IEC 1989:2023 §12.4.5.10). This slice implements the two sequential shapes;
 /// relative/indexed are later G5 slices (registered loud).</summary>

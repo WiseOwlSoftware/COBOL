@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding;
+using CobolNet.Binding.Model;
 using CobolNet.Runtime.Exceptions;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;

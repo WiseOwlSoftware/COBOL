@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding;
 
 /// <summary>The ISO §15.2 function-type classification — THE return-type column of the catalog (deep-dive D1):

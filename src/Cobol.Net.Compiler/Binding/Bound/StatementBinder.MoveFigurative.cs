@@ -2,6 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Editions;
 
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding.Bound;
 
 /// <summary>

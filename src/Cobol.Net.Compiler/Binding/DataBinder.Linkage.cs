@@ -5,6 +5,8 @@ using CobolNet.Editions.Diagnostics;
 using CobolNet.Runtime;
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding;
 
 using Core = CobolParserCore;

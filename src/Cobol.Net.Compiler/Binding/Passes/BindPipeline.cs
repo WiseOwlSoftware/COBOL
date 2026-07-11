@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Binding.Model;
+
 namespace CobolNet.Binding.Passes;
 
 using Core = CobolParserCore;

@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Common;
 using CobolNet.Binding;
+using CobolNet.Binding.Model;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
 

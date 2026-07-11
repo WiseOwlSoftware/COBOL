@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-namespace CobolNet.Binding;
+namespace CobolNet.Binding.Model;
 
 /// <summary>
 /// The ONE typed-lvalue model (COBOLNET_DESIGN §3.3 / §14.1): a resolved reference to a storage location, built
@@ -23,6 +23,32 @@ public abstract record Place
 
     /// <summary>A C# statement (with trailing <c>;</c>) that stores <paramref name="rhs"/> into the location.</summary>
     public abstract string Write(string rhs);
+}
+
+/// <summary>
+/// The common base of the WRAPPING places (DESIGN-data-model §2.2 item 1): a decoration over one
+/// <see cref="Inner"/> place that keeps the inner item's identity (<see cref="Pic"/>/<see cref="Item"/> forward)
+/// and, by default, its plain access (<see cref="Read"/>/<see cref="Write"/> forward — <see cref="OdoGroupPlace"/>
+/// keeps them and adds the GR8 seams beside; the view wrappers <see cref="NumericImagePlace"/> and
+/// <see cref="RefModPlace"/> override them with their transformed access). Leaf places (<see cref="MemberPlace"/>,
+/// <see cref="DynTablePlace"/>, <see cref="RedefViewPlace"/>, <see cref="CapacityRegisterPlace"/>) derive from
+/// <see cref="Place"/> directly. <see cref="RenamesPlace"/> stays direct too — it composes N spanned leaves (no
+/// single inner) and its Pic/Item are the level-66 ALIAS's own, never a forward, so nothing here applies to it
+/// (the DESIGN §2.2 item-1 derive list was over-inclusive on that member).
+/// </summary>
+public abstract record PlaceDecorator(Place Inner) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => Inner.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => Inner.Item;
+
+    /// <inheritdoc/>
+    public override string Read() => Inner.Read();
+
+    /// <inheritdoc/>
+    public override string Write(string rhs) => Inner.Write(rhs);
 }
 
 /// <summary>
@@ -139,19 +165,60 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 }
 
 /// <summary>
+/// The <see cref="Place"/> of a GROUP operand whose subtree contains an occurs-depending table (ISO/IEC 1989:2023
+/// §13.18.38 Format 2). It decorates the plain member place — <see cref="PlaceDecorator.Read"/>/<see
+/// cref="PlaceDecorator.Write"/> are the struct lvalue unchanged (the inherited forwards), so every consumer that
+/// does not know about ODO behaves exactly as before — and the GR8 operand seams consult the decoration:
+/// <list type="bullet">
+///   <item><b>Sending</b> (the sending side of BOTH GR8 quadrants): "only that part of the table area that is
+///     specified by the value of [data-name-1] at the start of the operation will be used" — <see
+///     cref="SendingImage"/> is the group image truncated to the current extent. SR22 (the subject may be
+///     followed within its record only by entries subordinate to it) guarantees the table is the TRAILING
+///     storage, so the current extent is a character PREFIX of the maximum image; a zero count with no preceding
+///     fixed part is the zero-length item of §8.5.4 item 1.</item>
+///   <item><b>Receiving, data-name-1 outside the group</b> (GR8a): the same current extent — character positions
+///     past it are NOT modified; <see cref="ReceiveInto"/> splices the stored prefix over the live image.</item>
+///   <item><b>Receiving, data-name-1 inside the group</b> (GR8b): "the maximum length of the group will be used"
+///     — <see cref="DependingInside"/> lets each receiver keep the plain full-width <c>FromImage</c> store.</item>
+/// </list>
+/// The legacy engine proved exactly this direction split over the NIST-85 corpus (NC247A; its
+/// <c>LocationResolver.ResolveWholeItem(receiving)</c>); the greenfield twin computes the CHARACTER extent at the
+/// operand site — no runtime table state (COBOLNET_DESIGN §3.6 / §14.4 — ONE image facility, the GR8 slice is a
+/// view over it). The legacy's LINKAGE max-length shortcut is deliberately NOT ported: GR8 applies in any section.
+/// </summary>
+public sealed record OdoGroupPlace(
+    Place Inner, Place Depending, int FixedChars, int ElemChars, int MaxOccurs, bool DependingInside)
+    : PlaceDecorator(Inner)
+{
+    /// <summary>C# <c>int</c> expression: the operand's CURRENT character extent — the fixed prefix plus
+    /// data-name-1's value × the element width. The count is read at the operation site (GR8 — "at the start of
+    /// the operation") through <c>CobolTable.Occ</c> (storage-form-agnostic: native <c>long</c> or a
+    /// whole-group-aliased character image) and clamped benignly to [0, max]: a count outside
+    /// integer-1..integer-2 at reference time makes the excess content undefined (GR7) — EC-BOUND-ODO is the
+    /// 2002+ checked mode, the later EC slice (SSOT §11); COBOL-85 has no exception conditions.</summary>
+    public string LengthExpr =>
+        $"CobolTable.OdoExtent(CobolTable.Occ({Depending.Read()}), {MaxOccurs}, {FixedChars}, {ElemChars})";
+
+    /// <summary>The group's SENDING character image (ISO §13.18.38 GR8 — both quadrants send the current-count
+    /// part): the maximum image truncated to <see cref="LengthExpr"/> characters (a prefix, by SR22).</summary>
+    public string SendingImage() => $"{Inner.Read()}.AsImage().Substring(0, {LengthExpr})";
+
+    /// <summary>A complete receiving C# statement for the GR8a (depending-outside) quadrant: store
+    /// <paramref name="imageExpr"/> over the CURRENT extent only — splice it into the live image, leaving every
+    /// character position past the count unmodified (GR8a), then distribute back through the group's generated
+    /// <c>FromImage</c> (the §14.4 single image facility).</summary>
+    public string ReceiveInto(string imageExpr) =>
+        $"{Inner.Read()}.FromImage(CobolString.SpliceInto({Inner.Read()}.AsImage(), 1, {LengthExpr}, {imageExpr}));";
+}
+
+/// <summary>
 /// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.2.4 — the unique
 /// result is an elementary alphanumeric item over the operand's standard data format): reading formats the stored
 /// value's display image; writing decodes the spliced image back into the typed field (sign-aware both ways via
 /// the FormatDisplay/ParseDisplay pair).
 /// </summary>
-public sealed record NumericImagePlace(Place Inner) : Place
+public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner)
 {
-    /// <inheritdoc/>
-    public override PicInfo? Pic => Inner.Pic;
-
-    /// <inheritdoc/>
-    public override DataItem Item => Inner.Item;
-
     /// <inheritdoc/>
     /// <remarks>The FormatDisplay/StoreDisplay overload sets are the storage-form BRIDGE (the
     /// <c>CobolTable.Occ</c> pattern): whether the field is a native long/Int128 or an image-stored string is
@@ -199,17 +266,11 @@ public sealed record CapacityRegisterPlace(string TablePath, DataItem RegisterIt
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
 /// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.
 /// </summary>
-public sealed record RefModPlace(Place Inner, string Start, string? Length) : Place
+public sealed record RefModPlace(Place Inner, string Start, string? Length) : PlaceDecorator(Inner)
 {
     // The start/length operands may be `long` fields, but the runtime takes `int` positions — cast at the call site.
     private string Start32 => $"(int)({Start})";
     private string Len32 => Length is null ? "-1" : $"(int)({Length})";
-
-    /// <inheritdoc/>
-    public override PicInfo? Pic => Inner.Pic;
-
-    /// <inheritdoc/>
-    public override DataItem Item => Inner.Item;
 
     /// <inheritdoc/>
     public override string Read() => $"CobolString.RefMod({Inner.Read()}, {Start32}, {Len32})";

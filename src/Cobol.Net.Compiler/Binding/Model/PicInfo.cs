@@ -3,7 +3,7 @@
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 
-namespace CobolNet.Binding;
+namespace CobolNet.Binding.Model;
 
 /// <summary>The data category a PICTURE describes (ISO/IEC 1989:2023 §8.4.2).</summary>
 public enum PicCategory

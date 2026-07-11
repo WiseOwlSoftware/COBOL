@@ -157,9 +157,12 @@ The old boolean triad is replaced by pure functions on the item's form (or cache
 consolidation:
 
 1. **One file, one decorator base.** Move `OdoGroupPlace` (currently in `OdoModel.cs:89`) into `Place.cs`. Introduce
-   `abstract record PlaceDecorator(Place Inner) : Place` forwarding `Pic`/`Item`; make `NumericImagePlace`,
-   `RefModPlace`, `OdoGroupPlace`, `RenamesPlace` derive from it. Leaf places (`MemberPlace`, `DynTablePlace`,
-   `RedefViewPlace`, `CapacityRegisterPlace`) stay direct.
+   `abstract record PlaceDecorator(Place Inner) : Place` forwarding `Pic`/`Item` (and, as the default, `Read`/`Write`);
+   make `NumericImagePlace`, `RefModPlace`, `OdoGroupPlace` derive from it. Leaf places (`MemberPlace`, `DynTablePlace`,
+   `RedefViewPlace`, `CapacityRegisterPlace`) stay direct. *(AS LANDED, P5.11a: `RenamesPlace` — originally on this
+   derive list — stays direct too: it composes N spanned leaves with no single inner, and its `Pic`/`Item` are the
+   level-66 ALIAS's own (§13.18.45 — the alias is its own elementary view), so a forwarding base fits nothing it does;
+   deriving it would have meant overriding every forwarded member, i.e. inheritance without reuse.)*
 2. **`Place` is built from `StorageForm`, not re-inference.** `ReferenceResolver` selects the concrete place from the
    resolved item's `Storage`:
    - `NativeInt`/`NativeFloat`/`CharImage`(non-numeric) → `MemberPlace`
