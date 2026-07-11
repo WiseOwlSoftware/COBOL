@@ -31,18 +31,18 @@ internal static class BooleanRenderer
 
     private static string RenderNot(BoundBoolExpr op) =>
         // A B-NOT ALL … already constant-folded at bind (BoundBoolAll); any other operand flips at runtime.
-        op is BoundBoolAll a ? EmitText.CsLiteral(a.Bits) : $"CobolBool.Not({Render(op)})";
+        op is BoundBoolAll a ? EmitText.CsLiteral(a.Bits) : RuntimeApi.BoolNot(Render(op));
 
     private static string RenderBinary(BoundBoolBinary b)
     {
-        string method = b.Op switch { '&' => "And", '|' => "Or", '^' => "Xor", _ => "And" };
+        string method = RuntimeApi.BoolOpName(b.Op);   // nameof-anchored (P7 Step 4b)
         // Rule 4: at most one side is ALL. When one side is the positionless pattern, use the …All form so the
         // concrete side evaluates exactly once (an intrinsic/UDF operand must not double-render — future-proof).
         if (b.Left is BoundBoolAll la)
-            return $"CobolBool.{method}All({Render(b.Right)}, {EmitText.CsLiteral(la.Bits)})";
+            return RuntimeApi.BoolOpAll(method, Render(b.Right), EmitText.CsLiteral(la.Bits));
         if (b.Right is BoundBoolAll ra)
-            return $"CobolBool.{method}All({Render(b.Left)}, {EmitText.CsLiteral(ra.Bits)})";
-        return $"CobolBool.{method}({Render(b.Left)}, {Render(b.Right)})";
+            return RuntimeApi.BoolOpAll(method, Render(b.Left), EmitText.CsLiteral(ra.Bits));
+        return RuntimeApi.BoolOp(method, Render(b.Left), Render(b.Right));
     }
 
     /// <summary>A boolean value expression as read for a relation operand — the same '0'/'1' string form.</summary>
