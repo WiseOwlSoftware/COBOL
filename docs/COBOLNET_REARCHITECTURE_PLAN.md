@@ -37,8 +37,10 @@
 > it is DESIGNED (`DESIGN-frontend-grammar.md §9`) but the frozen legacy compiler shares `SUB_*`/`SubscriptEntryContext`
 > until it is deleted at PHASE 15 Cut 2, so PHASE 15 (post-legacy-deletion) is the first place it is realistically
 > doable — the owner's "fully remove" ruling stands (§6 D10), only its schedule moved. **◐ NOW EXECUTING: PHASE 05
-> (unified data model — `StorageForm`)** — Step 0 (baseline) + Step 1 (`Common/CobolLiteral.cs`, the apostrophe-VALUE
-> miscompile fix) landed (DEVLOG 747); RESUME at Step 2 (StorageForm parallel SSOT, D0).
+> (unified data model — `StorageForm`)** — Steps 0–2 DONE (DEVLOG 747, 749: `Common/CobolLiteral.cs` apostrophe-VALUE
+> fix; `StorageForm` + `StorageFormPass` compute `DataItem.Storage` in parallel with the legacy `StoreAsImage`, proven
+> equal corpus-wide — prove-then-delete D0); battery 3157 conformance · 254 unit · 32 characterization byte-exact ·
+> legacy guard 353 MATCH. RESUME at Step 3 (IBindPass pipeline scaffolding + ValidateDag).
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /
@@ -202,7 +204,7 @@ phase boundary.
 | ✅ | 02 | R | MED | 01 | `Cobol.Net.Editions` leaf assembly + first-class diagnostic registry | [PHASE-02](rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md) |
 | ✅ | 03 | I | HIGH | 02 | Version-**conformance pipeline** (superset parse + ONE two-arm gating pass; **residue-first**) + harness-driven VCR audit — DONE 2026-07-10, all 9 exit criteria hold; binder edition-agnostic save the UDF exception | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) · [DESIGN](rearchitecture/DESIGN-version-conformance-pipeline.md) |
 | ✅ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + shared literal fragments + typed `Cst` façade) — **DONE (byte-neutral, DEVLOG 743–746; all 5 exit criteria hold). D10 (SUBSCRIPT-mode removal) RELOCATED to PHASE 15 §"CUT 2.5"** (blocked until the legacy `SUB_*`/`SubscriptEntryContext` consumer is deleted at P15 Cut 2) | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
-| ◐ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) — **IN PROGRESS: Step 0 + Step 1 (`CobolLiteral`, apostrophe-VALUE fix) DONE (DEVLOG 747); resume at Step 2 (StorageForm parallel SSOT, D0)** | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
+| ◐ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) — **IN PROGRESS: Steps 0–2 DONE (DEVLOG 747, 749: `CobolLiteral` apostrophe fix; `StorageForm`+`StorageFormPass` parallel SSOT proven equal corpus-wide, D0); resume at Step 3 (IBindPass scaffolding + ValidateDag)** | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
 | ☐ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
 | ☐ | 07 | R | HIGH | 06 | Exhaustive visitor dispatch + binder/emitter god-class decomposition | [PHASE-07](rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md) |
 | ☐ | 08 | R | MED | 00 | Runtime library reorg (`RunUnit`, `FileConnector`/`FileRegistry`, role-based folders) | [PHASE-08](rearchitecture/PHASE-08-runtime-library-reorg-rununit.md) |

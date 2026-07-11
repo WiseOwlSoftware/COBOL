@@ -121,9 +121,15 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔ RESUME AT: PHASE 05 Step 2** (`StorageForm` PARALLEL SSOT + `StorageFormPass` + the corpus equivalence
-> assert, DESIGN Phase D0). Step 0 (baseline) + Step 1 (`CobolLiteral`, the apostrophe-`VALUE 'x'` miscompile fix; 3
-> decoder twins → one) DONE (DEVLOG 747; conformance 3157 · unit 248 · characterization 32 byte-exact · guard 353 MATCH).
+> §9.5). **⛔ RESUME AT: PHASE 05 Step 3** — the `IBindPass` pipeline scaffolding + `BindPipeline.ValidateDag` startup
+> assert (no-op wrappers over the existing `BindResolve` passes; zero reorder, zero behavior change). PHASE-05 progress:
+> **Step 0 (baseline) + Step 1 (`CobolLiteral`, the apostrophe-`VALUE 'x'` miscompile fix, DEVLOG 747) + Step 2 DONE**
+> (DEVLOG 749) — `Binding/Model/StorageForm.cs` (9 cases) + `Binding/Passes/StorageFormPass.Compute` compute
+> `DataItem.Storage` in PARALLEL with the legacy `StoreAsImage` (wired in `CallBindRunUnit` after OO-harmonize);
+> `StorageFormEquivalenceTests` proves the derived IsCharacterImage/ImageWidth/ElementType EQUAL the legacy computation
+> over the NIST corpus + crafted paths (prove-then-delete D0, exit criterion 3 — nothing deleted yet). Battery: conformance
+> 3157 · unit 254 · characterization 32 byte-exact · guard 353 MATCH. Read `docs/rearchitecture/PHASE-05-…md` STATUS +
+> the §7 Step ledger. The next deletions begin at Step 6/7 (the prove-then-delete boundary).
 > Read `docs/rearchitecture/PHASE-05-…md` STATUS. Groups A–D behavior-neutral. Design: `DESIGN-frontend-grammar.md §9`.
 >
 > — (Phase-03 background) P3 made edition conformance a single coherent pipeline:

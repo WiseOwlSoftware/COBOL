@@ -21,13 +21,16 @@ support for all prior editions (1985 / 2002 / 2014)** — implemented with maxim
 back-compat. **The go-forward roadmap (DEVLOG 665) is `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a resumable,
 execution-grade **17-phase** rearchitecture + 100%-ISO plan (clean architecture · all editions · a selectable
 Roslyn↔CIL backend) that SUBSUMES the prior feature/NIST drive as its phases 09–14; `resume-prompt.md`'s top banner
-points to it + its §0 resume protocol. **EXECUTION IN PROGRESS — Phases 00–03 ✅ DONE; Phase 03 (the
-version-conformance pipeline) CLOSED 2026-07-10 — the two-arm `VersionConformancePass` (parse-arm on recognition +
-bound-arm on resolved facts) is the SOLE edition gate, the binder is edition-agnostic save the ONE documented UDF
-exception, all 15 steps + all 9 exit criteria hold (battery 3157 conformance · 223 unit · 32 characterization ·
-INV-1-strong 349/349 · legacy guard 353 MATCH). ◐ NOW EXECUTING: PHASE 04 — frontend consolidation (byte-neutral;
-IN PROGRESS @ Group A — the word-set extraction/reconciliation recon is done; see `resume-prompt.md` + the PHASE-04
-doc STATUS).** §6 owner
+points to it + its §0 resume protocol. **EXECUTION IN PROGRESS — Phases 00–04 ✅ DONE.** Phase 03 (version-conformance
+pipeline) CLOSED 2026-07-10 — the two-arm `VersionConformancePass` is the SOLE edition gate. **Phase 04 (frontend
+consolidation) CLOSED 2026-07-10 (DEVLOG 748)** — word set single-sourced + drift-guarded, shared DEFAULT/SUBSCRIPT
+literal fragments, typed `Cst/` façade + 2 anchors migrated, version-conf leg reconciled; **the D10 SUBSCRIPT-mode
+removal was RELOCATED → PHASE 15 §"CUT 2.5"** (blocked until the frozen-legacy `SUB_*`/`SubscriptEntryContext` consumer
+is deleted at P15 Cut 2). **◐ NOW EXECUTING: PHASE 05 — unified data model (`StorageForm`)** — Steps 0–2 DONE (DEVLOG
+747, 749: `Common/CobolLiteral.cs` apostrophe-VALUE fix; `StorageForm` + `StorageFormPass` parallel SSOT proven equal to
+the legacy `StoreAsImage` corpus-wide); RESUME at Step 3 (IBindPass scaffolding). Battery: 3157 conformance · 254 unit ·
+32 characterization byte-exact · legacy guard 353 MATCH. **Always read `resume-prompt.md`'s top banner for the live
+resume point, never this snapshot.** §6 owner
 decisions ALL RESOLVED (D1–D12); the live resume point is the plan's STATUS banner via `resume-prompt.md`. The
 SSOT for locked invariants / settled decisions remains **`docs/COBOLNET_DESIGN.md`**, and the four-editions mission is
 validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist
