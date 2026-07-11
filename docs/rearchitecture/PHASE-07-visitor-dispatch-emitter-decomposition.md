@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) PULLED FORWARD as Exec Step A · 6a,6b,6d,6e DONE (DEVLOG 755–757); 6c + 6f remain (6c is the delicate one — see its bullet)`
+- **STATUS:** `PARTIALLY ACTIVE — Step 6 PULLED FORWARD as Exec Step A · 6a,6b,6d,6e,6f(OperandText) DONE (DEVLOG 755–758) — all RENDERING/CLASSIFICATION consumers converted; the WALKER-style consumers remain: 6c StoreKindOf + 6f analyses (AlterCollectFields/ContainsNextSentence/KeyedHasNextSentence) — best served by a default-recurse walker generator variant (see 6c/6f bullets)`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -351,8 +351,18 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
   - **6e ✅ DONE (2026-07-11).** `ConditionRenderer : IBoundConditionVisitor<string>`; `Render` keeps its
     `ctx.TargetReal = false` preamble then `=> c.Accept(this)` + 10 `Visit` methods (the two `BoundLogical` pattern
     arms merged into one `Visit` with an `Operands.Count == 0` guard). `_ =>` was dead. Byte-exact: 32 + 3158.
-  - **6f** `OperandText.AsString/IsString` → operand visitor; `AlterCollectFields`, `ContainsNextSentence`,
-    `KeyedHasNextSentence` → the shared statement visitor.
+  - **6f (OperandText) ✅ DONE (2026-07-11).** `OperandText.AsString/IsString` (a `static` class) now dispatch through
+    THREE cached private nested operand-visitors — `AsStringVisitor(deSign:false)`, `AsStringVisitor(deSign:true)`
+    (`deSign` carried on the instance → zero per-call allocation), and `IsStringVisitor` — each
+    `IBoundOperandVisitor<string/bool>`. `AsString`'s `_ =>` caught `BoundBoolOperand` (now explicit loud, byte-ident);
+    `IsString`'s four `_ => false` leaves are now explicit. Byte-exact: 32 + 3158.
+  - **6f (statement analyses) ⏳ REMAINS — the WALKER group (do with 6c, same treatment).** `AlterCollectFields`,
+    `ContainsNextSentence`, `KeyedHasNextSentence` are statement-tree WALKERS (recurse into nested phrase bodies) —
+    the same shape as `StoreKindOf`. The simple `IBoundStatementVisitor<T>` (no default-recurse) forces all 79 `Visit`
+    methods for a ~5-arm analysis, so these want EITHER a careful per-node `Visit` set OR a future **default-recurse
+    walker** generator variant (emit a `Bound{Root}Walker` base whose default `Visit` recurses every child Bound node;
+    a consumer overrides only the nodes it collects at). That walker variant is the right long-term tool for
+    `StoreKindOf` + these three; scoping/design deferred (a `BoundVisitorGenerator` enhancement, not a consumer edit).
   - Each sub-step: battery 1+2+4 green (mechanical relocation, identical output); COMMIT
     `P7 step6X: convert <consumer> to exhaustive IBound*Visitor; delete loud default`.
 - **Why:** Kills the two god-switches + four renderer switches; a missing arm becomes a compile error

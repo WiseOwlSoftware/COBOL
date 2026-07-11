@@ -121,7 +121,9 @@
 > grammar until G8), and (b) removing the mode collides with ISO §8.3.5 space-separated subscript/arg lists (`X(I J)`) +
 > sign-adjacency (DEFAULT mode skips WS → a scoped WS mechanism is needed), so "full removal" reduces to "replace the
 > flat SUB_* stream + the C# re-parsers with interpreted grammar rules" — and runs after P15 Cut 2 (staged D10.1–D10.5,
-> §9.5). **⛔🔀 RESUME AT: EXEC STEP A step 6c + 6f — the last two consumer conversions (6c is the DELICATE one).**
+> §9.5). **⛔🔀 RESUME AT: EXEC STEP A — the WALKER-style consumers (6c `StoreKindOf` + the 6f statement analyses).
+> All RENDERING/CLASSIFICATION consumers (6a,6b,6d,6e,6f-OperandText) are DONE; what remains are statement-tree
+> WALKERS best served by a default-recurse `Bound{Root}Walker` generator variant — see PHASE-07 §6c/§6f.**
 > **✅ 6a DONE (DEVLOG 755):** the `Cobol.Net.Compiler.SourceGen` Roslyn **incremental** source generator
 > (`BoundVisitorGenerator`, semantic-model-driven off `[BoundNode]` on all 7 roots) emits the exhaustive
 > `I{Root}Visitor<T>` + `BoundVisitor.Accept<T>` (120 leaves / 7 roots), build-green + `BoundVisitorGeneratorTests`
@@ -132,9 +134,12 @@
 > in `CodeGen/CSharpEmitter.Dispatch.cs` (`EmitStatement` = `s.Accept(this)`); proven byte-exact (32 characterization
 > + 3158 conformance). **✅ 6d + 6e DONE (DEVLOG 757):** `NumericRenderer` (`IBoundExprVisitor<NumX>` +
 > `IBoundOperandVisitor<NumX>`) and `ConditionRenderer` (`IBoundConditionVisitor<string>`) — thin `Accept` dispatchers,
-> loud `_ =>` defaults gone, byte-exact (32 + 3158). RESUME: **6c** `BoundStores.StoreKindOf` → a stateful
-> `StoreKindVisitor : IBoundStatementVisitor<StoreKind?>` (see PHASE-07 §6c — the 9 `_ => null` nodes stay `null`; NOT
-> byte-exact-covered, diff arm-by-arm) and **6f** `OperandText`/small statement analyses, battery-green each. The
+> loud `_ =>` defaults gone, byte-exact (32 + 3158). **✅ 6f-OperandText DONE (DEVLOG 758):** `AsString`/`IsString`
+> dispatch through three cached nested `IBoundOperandVisitor` instances (byte-exact 32 + 3158). RESUME: the WALKER
+> group — **6c** `BoundStores.StoreKindOf` → stateful `StoreKindVisitor : IBoundStatementVisitor<StoreKind?>` (PHASE-07
+> §6c — the 9 `_ => null` nodes stay `null`; NOT byte-exact-covered, diff arm-by-arm) and the **6f** analyses
+> (`AlterCollectFields`/`ContainsNextSentence`/`KeyedHasNextSentence`); consider first adding a default-recurse
+> `Bound{Root}Walker` generator variant (PHASE-07 §6c/§6f) as the right tool for all four. The
 > roadmap was RE-SEQUENCED tooling-first (2026-07-11, owner-directed —
 > `docs/COBOLNET_REARCHITECTURE_PLAN.md §4.1`; eval `docs/rearchitecture/EVAL-antlr-leverage-and-traversal.md`;
 > [[project_path_a_leverage_tooling]]): front-load the two tooling foundations so every later phase LEVERAGES them

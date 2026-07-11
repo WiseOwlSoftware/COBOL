@@ -14,40 +14,19 @@ internal static class OperandText
     /// <paramref name="deSign"/> is set, a SIGNED numeric operand drops its operational sign (ISO §14.9.25.4 GR6a /
     /// §8.8.4.2.5 — a signed numeric used as / compared against an alphanumeric operand moves the de-signed magnitude
     /// digits, not the zoned/overpunch image). DISPLAY leaves it unset (it shows the sign-aware image).</summary>
-    public static string AsString(BoundOperand op, bool deSign = false) => op switch
-    {
-        BoundStringLiteral s => EmitText.CsLiteral(s.Value),
-        BoundNumericLiteral n => EmitText.CsLiteral(n.Text),
-        BoundFieldOperand f => FieldAsString(f.Place, deSign),
-        BoundFigurative f => $"new string({EmitText.FigurativeFill(f.Kind)}, 1)",   // DISPLAY shows one occurrence (GR3)
-        BoundAllLiteral a => EmitText.CsLiteral(a.Literal),                          // length-unspecified: the literal once (GR3c)
-        // An ALPHANUMERIC-result intrinsic (ISO §15.2 type 1 — a sending item of category alphanumeric): the one
-        // case that lets MOVE-to-alphanumeric, string relational comparisons, and group moves take FUNCTION
-        // operands unmodified. deSign is a no-op (the result carries no operational sign). A NUMERIC intrinsic
-        // in a string context falls through to the loud computed-operand case (hazard H3 — by design).
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } ic } =>
-            IntrinsicRenderer.RenderString(ic),
-        BoundComputedOperand => EmitText.LoudValue("string", "computed expression in a string context"),
-        BoundOperandError e => EmitText.LoudValue("string", e.Feature),
-        _ => EmitText.LoudValue("string", $"bound operand '{op.GetType().Name}'"),
-    };
+    // Two cached operand-visitor instances (deSign on/off) render the image with zero per-call allocation; a single
+    // cached IsString visitor answers the text-comparison predicate. The generated IBoundOperandVisitor makes both
+    // exhaustive (PHASE-07 Step 6f) — a new BoundOperand leaf is a COMPILE error, the loud `_ =>` defaults are gone.
+    private static readonly AsStringVisitor _asStringPlain = new(deSign: false);
+    private static readonly AsStringVisitor _asStringDeSign = new(deSign: true);
+    private static readonly IsStringVisitor _isString = new();
+
+    public static string AsString(BoundOperand op, bool deSign = false) =>
+        op.Accept(deSign ? _asStringDeSign : _asStringPlain);
 
     /// <summary>True if an operand is compared as text (an alphanumeric literal, or an alphanumeric/edited/group
     /// field — a group compares as alphanumeric, ISO §8.8.4.1.1).</summary>
-    public static bool IsString(BoundOperand op) => op switch
-    {
-        BoundStringLiteral => true,
-        BoundAllLiteral => true,   // ALL "literal" is an alphanumeric figurative
-        BoundFieldOperand f => f.Place.Item.IsGroup || f.Place.Item.Pic?.Category
-            is PicCategory.Alphanumeric or PicCategory.NumericEdited
-            or PicCategory.National or PicCategory.Boolean,
-        // An intrinsic result compares by its §15.2 function type: alphanumeric functions are class/category
-        // alphanumeric (IF107A's `IF FUNCTION CURRENT-DATE >= TEMP1` is a STRING comparison); numeric/integer
-        // functions stay numeric operands.
-        BoundComputedOperand { Expr: BoundIntrinsicCall ic } =>
-            ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National,
-        _ => false,
-    };
+    public static bool IsString(BoundOperand op) => op.Accept(_isString);
 
     private static string FieldAsString(Place p, bool deSign = false)
     {
@@ -117,5 +96,48 @@ internal static class OperandText
         if (trailing > 0) return $"({digitsExpr} + \"{new string('0', trailing)}\")";
         if (leading > 0) return $"(\"{new string('0', leading)}\" + {digitsExpr})";
         return digitsExpr;
+    }
+
+    /// <summary>The operand→DISPLAY-image dispatch (PHASE-07 Step 6f). <paramref name="deSign"/> carried on the
+    /// instance so the two cached instances need no per-call allocation. Each Visit is the former <c>AsString</c>
+    /// switch arm verbatim.</summary>
+    private sealed class AsStringVisitor(bool deSign) : IBoundOperandVisitor<string>
+    {
+        public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
+        public string Visit(BoundNumericLiteral n) => EmitText.CsLiteral(n.Text);
+        public string Visit(BoundFieldOperand n) => FieldAsString(n.Place, deSign);
+        public string Visit(BoundFigurative n) => $"new string({EmitText.FigurativeFill(n.Kind)}, 1)";   // DISPLAY shows one occurrence (GR3)
+        public string Visit(BoundAllLiteral n) => EmitText.CsLiteral(n.Literal);                          // length-unspecified: the literal once (GR3c)
+        // An ALPHANUMERIC-result intrinsic (ISO §15.2 type 1 — a sending item of category alphanumeric): the one
+        // case that lets MOVE-to-alphanumeric, string relational comparisons, and group moves take FUNCTION operands
+        // unmodified. deSign is a no-op (the result carries no operational sign). A NUMERIC intrinsic in a string
+        // context stays the loud computed-operand case (hazard H3 — by design).
+        public string Visit(BoundComputedOperand n) =>
+            n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } ic
+                ? IntrinsicRenderer.RenderString(ic)
+                : EmitText.LoudValue("string", "computed expression in a string context");
+        public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
+        // A class-boolean operand has no alphanumeric image (the former loud `_ =>` default; byte-identical value).
+        public string Visit(BoundBoolOperand n) => EmitText.LoudValue("string", $"bound operand '{nameof(BoundBoolOperand)}'");
+    }
+
+    /// <summary>The "compared as text?" predicate (PHASE-07 Step 6f) — the former <c>IsString</c> switch, with the
+    /// four <c>_ => false</c> leaves now explicit.</summary>
+    private sealed class IsStringVisitor : IBoundOperandVisitor<bool>
+    {
+        public bool Visit(BoundStringLiteral n) => true;
+        public bool Visit(BoundAllLiteral n) => true;   // ALL "literal" is an alphanumeric figurative
+        public bool Visit(BoundFieldOperand n) => n.Place.Item.IsGroup || n.Place.Item.Pic?.Category
+            is PicCategory.Alphanumeric or PicCategory.NumericEdited
+            or PicCategory.National or PicCategory.Boolean;
+        // An intrinsic result compares by its §15.2 function type: alphanumeric functions are class/category
+        // alphanumeric (IF107A's `IF FUNCTION CURRENT-DATE >= TEMP1` is a STRING comparison); numeric/integer
+        // functions stay numeric operands. A computed operand that is NOT an intrinsic is not text.
+        public bool Visit(BoundComputedOperand n) =>
+            n.Expr is BoundIntrinsicCall ic && ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National;
+        public bool Visit(BoundFigurative n) => false;
+        public bool Visit(BoundNumericLiteral n) => false;
+        public bool Visit(BoundOperandError n) => false;
+        public bool Visit(BoundBoolOperand n) => false;
     }
 }
