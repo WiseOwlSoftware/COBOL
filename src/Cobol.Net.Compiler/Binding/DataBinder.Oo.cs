@@ -73,43 +73,48 @@ public sealed partial class DataBinder
         foreach (var c in root.Children) foreach (var n in IndexNamesUnder(c)) yield return n;
     }
 
+    /// <summary>THE scope-aware name resolver of this binder's forest (P6 Step 7 — <see cref="Model.SymbolTable"/>
+    /// collapses the former LookupData/LookupDataInScopeOf/TryGetVisibleIndexField/IndexFieldFor quadruple). One
+    /// table per binder: COBOL name scopes are per-unit. A 7a wrapper over the live maps; builder-owned storage
+    /// is P7.</summary>
+    public Model.SymbolTable Symbols => _symbols ??= new Model.SymbolTable(this);
+    private Model.SymbolTable? _symbols;
+
+    /// <summary>The ACTIVE lookup scope — the method whose statements are currently being bound, else program
+    /// scope (the scope <c>LookupData</c>/<c>TryGetVisibleIndexField</c>/<c>IndexFieldFor</c> implied).</summary>
+    internal Model.Scope ActiveScope => new(ActiveMethodScope);
+
+    /// <summary>The lookup scope that OWNS <paramref name="anchorRoot"/> (M2-OO-1h): the owning METHOD's scope
+    /// when the root is method-scoped (§11.7.4 GR5), else program scope. The post-build passes (OdoResolve /
+    /// ResolveRedefines) resolve through this — <see cref="ActiveMethodScope"/> is null there, which is exactly
+    /// why <c>LookupDataInScopeOf</c> existed.</summary>
+    internal Model.Scope ScopeOf(DataItem anchorRoot) =>
+        OoRootOwner.TryGetValue(anchorRoot, out var m) ? new Model.Scope(m.DataScope) : Model.Scope.Program;
+
     /// <summary>The ONE scope-aware data-name lookup (§8.4.6.2.1 rule 3a — a method-local declaration
     /// REPLACES, never unions with, the object/program-level name): consumers that read <see cref="ByName"/>
     /// directly for a USER-WRITTEN name (SEARCH/SORT table resolution, INITIALIZE) route through this so a
-    /// method-local name shadows correctly. Mirrors ReferenceResolver.ResolveUnqualified.</summary>
-    public List<DataItem>? LookupData(string name)
-    {
-        if (ActiveMethodScope is { } m && m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
-            return mlist;
-        return ByName.TryGetValue(name, out var list) && list.Count > 0 ? list : null;
-    }
+    /// method-local name shadows correctly. Mirrors ReferenceResolver.ResolveUnqualified.
+    /// (P6 Step 7a: a thin shim over <see cref="Symbols"/> — byte-equivalent; 7b migrates the call sites and
+    /// deletes this.)</summary>
+    public List<DataItem>? LookupData(string name) =>
+        Symbols.TryResolve(name, ActiveScope, out var items) ? items : null;
 
     /// <summary>Resolve a data-name in the scope that OWNS <paramref name="anchorRoot"/> (M2-OO-1h): the owning
     /// method's <see cref="OoMethodDataScope.ByName"/> first (§11.7.4 GR5 shadowing), then the class/program
     /// globals (a method may reference a visible, unshadowed object/program name). A root that is not method-owned
     /// resolves globally only — unchanged program behavior. Used by the post-build passes (OdoResolve /
-    /// ResolveRedefines), where <see cref="ActiveMethodScope"/> is null.</summary>
-    internal List<DataItem>? LookupDataInScopeOf(DataItem anchorRoot, string name)
-    {
-        if (OoRootOwner.TryGetValue(anchorRoot, out var m)
-            && m.DataScope.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
-            return mlist;
-        return ByName.TryGetValue(name, out var glist) && glist.Count > 0 ? glist : null;
-    }
+    /// ResolveRedefines), where <see cref="ActiveMethodScope"/> is null.
+    /// (P6 Step 7a: a thin shim over <see cref="Symbols"/>.)</summary>
+    internal List<DataItem>? LookupDataInScopeOf(DataItem anchorRoot, string name) =>
+        Symbols.TryResolve(name, ScopeOf(anchorRoot), out var items) ? items : null;
 
     /// <summary>Scope-aware INDEX-NAME lookup (§8.4.6.2.1 rule 3a / §8.4.6.2.3): a METHOD-LOCAL data-name
     /// SHADOWS an object-level index-name of the same spelling — without this, every IndexFields-first
     /// consumer would silently bind the subscript/SET target to the OBJECT's index cell (a torn read/write
-    /// of the wrong storage).</summary>
-    public bool TryGetVisibleIndexField(string name, out string field)
-    {
-        field = "";
-        if (ActiveMethodScope is { } m && m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
-            return false;   // the method-local data-name wins (§8.4.6.2.1 rule 3a)
-        // A method-local index-name (M2-OO-1h step 4) shadows an object index-name with its OWN cell (§11.7.4 GR5).
-        if (ActiveMethodScope is { } ms && ms.IndexFields.TryGetValue(name, out field!)) return true;
-        return IndexFields.TryGetValue(name, out field!);
-    }
+    /// of the wrong storage). (P6 Step 7a: a thin shim over <see cref="Symbols"/>.)</summary>
+    public bool TryGetVisibleIndexField(string name, out string field) =>
+        Symbols.TryResolveIndex(name, ActiveScope, out field);
 
     /// <summary>Set while binding a METHOD's data entries (M2-OO-1h step 4) so INDEXED BY index-names register into
     /// the method's own scope, never the global de-dup dict. Null at program/object scope.</summary>
@@ -120,9 +125,9 @@ public sealed partial class DataBinder
     private int _ixSeq;
 
     /// <summary>Scope-aware index-cell accessor (M2-OO-1h step 4): the ACTIVE method's cell first (§8.4.6.2.1
-    /// rule 3a / §11.7.4 GR5), then the global. Consumed by SEARCH, where the index-name is known to resolve.</summary>
-    public string IndexFieldFor(string name) =>
-        ActiveMethodScope is { } m && m.IndexFields.TryGetValue(name, out var cell) ? cell : IndexFields[name];
+    /// rule 3a / §11.7.4 GR5), then the global. Consumed by SEARCH, where the index-name is known to resolve.
+    /// (P6 Step 7a: a thin shim over <see cref="Symbols"/>.)</summary>
+    public string IndexFieldFor(string name) => Symbols.IndexCellOf(name, ActiveScope);
 
     /// <summary>True when <paramref name="item"/> is OBJECT data of a class unit (§14.9.23.3 SR 10): its 01/77
     /// root is not method-scoped. Always false outside a class unit.</summary>
