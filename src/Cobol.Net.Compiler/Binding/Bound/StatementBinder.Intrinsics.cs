@@ -469,6 +469,10 @@ public sealed partial class StatementBinder
         BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ImageWidth).ToString()),
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),   // runtime .Length over the nested result image
+        // ⚠ SPEC GAP (flagged 2026-07-11, DEVLOG 765): §15.50.1 admits a NUMERIC argument and §15.50.4 returns a
+        // literal's character-position count, so FUNCTION LENGTH(12345) should fold to 5 — but a BoundNumericLiteral
+        // (and other literal shapes) fall here to an error. Needs a spec-derived fold + a conformance test (feature
+        // backlog); left as the current behavior for now, NOT asserted correct.
         _ => new BoundExprError("FUNCTION LENGTH argument"),
     };
 

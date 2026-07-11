@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS:** `PARTIALLY ACTIVE — Step 6 (the exhaustive visitor) as Exec Step A: the SCOPED target DONE (6a–6g, DEVLOG 755–761) — generator (visitor interfaces + Accept + StatementChildren) + EmitStatement (6b), the main renderers (6d/6e/6f), StoreKindOf (6c), the analysis walkers (6f). 6h extras also converted: BooleanRenderer, IntrinsicRenderer static-arg, ArgExpr (DEVLOG 762–764). ⚠ NOT "every dispatch": a LONG TAIL of small partial bound-operand/expr switches remains (concentrated in StatementBinder.Intrinsics — LENGTH-arg etc.), + the emitter's void PerformControl/SetTarget switches (reasoned-keep), + UsageCollectionPass — a SYSTEMATIC AUDIT (grep every switch, classify bound-node vs the intentional parse-context switches), task #17, NOT claimed complete. Steps 1–5,7–12 of P7 DEPEND on P6 (Exec Step D). NEXT: the 6h audit + UsageCollectionPass, then Exec Step B = P6.`
+- **STATUS:** `Step 6 (the exhaustive visitor) as Exec Step A — DONE incl. the 6h SYSTEMATIC AUDIT (DEVLOG 755–765). The generator emits the 7 IBound*Visitor + Accept + StatementChildren; every completeness-critical bound-node dispatch is converted (emitter 6b, all 5 renderers 6d/6e/6f, StoreKindOf 6c) and all five statement WALKERS (UsageCollectionPass, VersionConformancePass.Recurse, ContainsNextSentence, AlterCollectFields, ContainsIntrinsic) recurse via StatementChildren. The audit grep-classified every bound-node switch, each keep/convert tied to an ISO § (validate against SPEC, not prior impl); reasoned keeps = partial predicates / selective classifiers / spec-stable tiny-root emit-switches; a numeric-literal FUNCTION LENGTH spec gap (§15.50.4) was flagged (feature backlog). Battery 3158/269/32 green. Steps 1–5,7–12 of P7 (structural Place, god-class decomposition) DEPEND on P6 = Exec Step D. NEXT overall: Exec Step B = P6 (SymbolTable/BoundCompilation/BindPipeline).`
   > 🔀 **RESEQUENCED (2026-07-11, owner-directed; `COBOLNET_REARCHITECTURE_PLAN.md §4.1`, `EVAL-antlr-leverage-and-traversal.md`,
   > [[project_path_a_leverage_tooling]]):** **Step 6 (source-generated exhaustive bound-tree visitor) runs NOW, ahead of
   > P6 and the rest of P7** — it is independent (walks the EXISTING bound tree), is the highest-leverage tooling move,
@@ -356,11 +356,21 @@ This is a MULTI-SUB-COMMIT step (one consumer per sub-commit); each sub-commit i
       `NumStaticExprVisitor : IBoundExprVisitor<NumX>`); the deliberately-partial H3 loud arms are now EXPLICIT `Visit`s
       (byte-identical `Loud(n)`). Byte-exact (32 char + 3158 conf). ✅ `StatementBinder.Intrinsics.ArgExpr` (BoundOperand
       → BoundExpr) also DONE (DEVLOG 764).
-    - ⚠ **LONG TAIL (DEVLOG 764) — NOT "the last one" (that was claimed twice, wrongly).** More small partial
-      bound-operand/expr dispatches remain, concentrated in `StatementBinder.Intrinsics` (e.g. the FUNCTION LENGTH
-      argument switch, `~:472`, and likely others). Finishing 6h means a SYSTEMATIC audit: grep every `switch`, classify
-      each as a bound-node dispatch vs an intentional PARSE-context switch (`BindStatementCore`/`BindCondition` stay —
-      OPEN Q5), and convert the bound-node ones. Do NOT declare 6h complete without pasting the final grep output.
+    - **✅ SYSTEMATIC AUDIT COMPLETE (DEVLOG 765) — grep-classified every bound-node switch across the 11 files, each
+      decision tied to an ISO § (per the owner's directive: validate against the SPEC, not the prior implementation or a
+      green corpus).** CONVERTED — the completeness-critical dispatches: the TOTAL result-dispatches (emitter, all 5
+      renderers, ArgExpr, StoreKindOf) and the five STATEMENT WALKERS (`UsageCollectionPass`, `VersionConformancePass.Recurse`,
+      `ContainsNextSentence`, `AlterCollectFields`, `ContainsIntrinsic`) — the last five now recurse via
+      `StatementChildren`, deleting the prose-synced hand-lists. KEPT (spec-grounded, a visitor would be gratuitous):
+      partial predicates whose default is a meaningful value correct for every unlisted leaf (`CountExpr`/`LinesExpr` §14.9.51,
+      the category/width predicates), selective classifiers (`GateStatement` — only later-edition constructs gate, the
+      SSOT is `constructs.json`), spec-stable emit-dispatches over tiny closed roots (`PerformControl` `default:`=once
+      §14.9.28 GR1; `Set*Target` §14.9.39), partial error-defaulted dispatches whose default is a spec-appropriate
+      "unsupported form" diagnostic (CALL BY-CONTENT arg §14.9.6; `BindLengthFold` §15.50.4), and the intentional
+      PARSE-context switches (`BindStatementCore`/`BindCondition`, OPEN Q5). Final grep pasted in DEVLOG 765: no
+      total-dispatch loud/error default remains. **Spec-validation surfaced a genuine conformance gap** — `BindLengthFold`
+      errors on a numeric-literal argument, but §15.50.1/§15.50.4 fold it to its character-position count; flagged in-code
+      + tracked (feature backlog), NOT preserved as correct.
     - **Emitter `PerformControl` switch (`default:` = `PerformOnce`) + `StoreSetTarget`/`AugmentSetTarget` (no default)
       — REASONED KEEP (DEVLOG 763), not converted.** `void` + closure-heavy (`body`/`inline`/`value`/`amount`), so the
       generic-return `IBound*Visitor<T>` would force a dummy `T` + a state-carrying per-call visitor — uglier than the
