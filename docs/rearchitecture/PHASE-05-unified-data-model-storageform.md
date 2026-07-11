@@ -384,8 +384,16 @@ Named probes: a whole-group MOVE program (numeric-DISPLAY leaf under a moved gro
 - [x] Step 5 — UsageCollectionPass owns WholeGroupReferenced (REDESIGNED per owner: the correct set from an explicit typed bound-tree walk, not legacy's over-inclusive mid-resolve mutation which is DELETED); DynTablePlace skipped (dynamic elements use the table codec); char_initialize snapshot re-baselined (output-neutral WS_N string→long); verified by OUTPUT (conformance 3157 runtime · characterization 32 · guard 353 MATCH) — DEVLOG 752/753
 - [x] Step 6 — prove-then-delete GATE green (Exec Step C entry, 2026-07-11: conformance 3159 · unit 281 w/ equivalence identities #1–#5 · characterization 32 byte-exact · NIST 353 MATCH · CI green both configs) — DEVLOG 776
 - [x] Step 7 — the FLAG IS DEAD (DEVLOG 777): 9 write sites → the ONE collected `DataBinder.ImageForcedItems` fact set (structural derivation REJECTED — Ptr-forced classes never flagged, the set reproduces truth exactly); `StorageFormPass.Run` = facts→resync→whole-group union → Classify (incl. INTERFACE forests) → `HarmonizeStorageCrossings` (Storage-level fixed point); `StoreAsImage` = read-only projection of `Storage`; the two bind-time `NumericImagePlace` wrap decisions read `IsImageBackedEarly` (identical mid-bind timing, order dependency preserved + noted for P7). 7a ran identity #1 REAL (set-derived vs flag, corpus green) BEFORE 7b deleted. Audit findings: `IsImageCapable` decision-independent (leaf arm now pure-Pic); `IsCharacterImage` readers all emit-time (the SORT-binder comment was stale — it reads IsImageCapable). Byte-exact: 3159 conf · 281 unit · 32 char · guard 353
-- [ ] Step 8 — flip readers to Storage/RecordLayout (a…e)
-- [ ] Step 9 — delete 4 width copies
+- [x] Step 8+9 (landed together, DEVLOG 778) — RecordLayout = THE single width/offset authority (OffsetOf /
+  OffsetInRecord / AreaWidth / KeyIndexByPosition; leaf widths DECLARED-shape ⇒ phase-free); all 6 geometry
+  copies DELETED (Sort ×3, Keyed binder ×2, emitter twin, OdoModel.PhysicalWidth); identity #5 retired.
+  ⚠ THE PREMISE DISSOLVED BY THE SPEC: the "wider-redefiner offset divergence" shape is ILLEGAL (§13.18.44.3
+  SR8 + SR3) — the fold is a PURE PORT on legal inputs; the REAL finds: SR8 was silently unenforced (now
+  COBOLNET1539), and the PhysicalWidth twins' class-skip needed MEMBERS-gating (a multi-record FD's record
+  width collapsed to 0; the canonical may itself be a redefiner). KeyedOffsetSpecTests ×4.
+  NOTE re the doc's Step-8 reader-flip list: the ~35 emit-time StoreAsImage/IsCharacterImage reads already
+  consume Storage TRANSITIVELY through the Step-7 projection — the named projection IS the one definition
+  (singular-pattern); a mass textual flip adds churn without behavior and is dropped as a deviation.
 - [ ] Step 10 — delete StoreAsImage; cache image facts (D3)
 - [ ] Step 11 — Model/ move; slim DataItem; PictureAnalyzer; StrongTypeModel; Tier-C single-source (a…e)
 - [ ] Step 12 — remove equivalence scaffolding; finalize DAG

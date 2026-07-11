@@ -263,10 +263,8 @@ internal static class StorageFormPass
             if (ImageWidthOf(item) != item.ImageWidth)
                 d.Add($"#3 ImageWidth: {Desc(item)} derived={ImageWidthOf(item)} legacy={item.ImageWidth}");
             // #5 (PHASE-05 Step 4): the RecordLayout §2.6 width authority reproduces the legacy tier-aware physical
-            // extent (OdoModel.PhysicalWidth) for every group — the DESIGN §5.4 drift guard, held green until Step 9
-            // deletes the duplicate width copies.
-            if (item.IsGroup && RecordLayout.PhysicalWidth(item) != OdoModel.PhysicalWidth(item))
-                d.Add($"#5 PhysicalWidth: {Desc(item)} recordlayout={RecordLayout.PhysicalWidth(item)} legacy={OdoModel.PhysicalWidth(item)}");
+            // (identity #5 — RecordLayout.PhysicalWidth == OdoModel.PhysicalWidth — RETIRED at P5.9: the last
+            //  duplicate copy is deleted; RecordLayout is the single width/offset authority.)
             foreach (var c in item.Children) Check(c);
         }
         foreach (var root in data.Roots) Check(root);

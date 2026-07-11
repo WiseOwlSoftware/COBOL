@@ -149,27 +149,6 @@ public static class OdoModel
         return false;
     }
 
-    /// <summary>The EMITTED character-image width of an item — mirrors <c>FieldEmitter</c>'s physical layout (a
-    /// Tier-B REDEFINES class contributes its single string backing once, its views nothing; a Tier-A view
-    /// forwards), so the GR8 extent arithmetic aligns with the generated <c>AsImage</c> exactly. For the common
-    /// class-free subtree this equals <see cref="DataItem.ImageWidth"/>.</summary>
-    public static int PhysicalWidth(DataItem item)
-    {
-        if (!item.IsGroup) return item.ImageWidth;
-        int w = 0;
-        foreach (var c in item.Children)
-        {
-            if (c.Class is { Tier: RedefinesTier.StringCanonical } cls)
-            {
-                if (c.IsCanonical) w += cls.Width;   // the ONE backing, counted once at the canonical
-                continue;
-            }
-            if (c.Class is { Tier: RedefinesTier.Alias } && !c.IsCanonical) continue;   // a forwarded view
-            w += (c.IsGroup ? PhysicalWidth(c) : c.ImageWidth) * (c.Occurs ?? 1);
-        }
-        return w;
-    }
-
     /// <summary>Wrap a resolved GROUP place whose subtree contains the occurs-depending <paramref name="table"/>
     /// (ISO §13.18.38 GR8). The fixed prefix is everything before the table in the group's emitted image — exact
     /// because the table is the record's trailing storage (SR22, enforced at bind).</summary>
@@ -177,7 +156,7 @@ public static class OdoModel
     {
         int elem = table.ImageWidth;                          // per-occurrence character width
         int max = table.Occurs ?? 1;                          // the allocated capacity = integer-2 (§8.5.1.8)
-        int fixedChars = PhysicalWidth(group) - elem * max;   // SR22 — the variable tail is trailing
+        int fixedChars = Model.RecordLayout.PhysicalWidth(group) - elem * max;   // SR22 — the variable tail is trailing
         return new OdoGroupPlace(inner, depending, fixedChars, elem, max, IsWithin(depending.Item, group));
     }
 

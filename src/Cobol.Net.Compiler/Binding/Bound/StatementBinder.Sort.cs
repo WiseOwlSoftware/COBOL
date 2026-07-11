@@ -115,7 +115,7 @@ public sealed partial class StatementBinder
         if (SortRecordOf(file) is not { } record)
             return new BoundUnsupported($"SORT '{file.CobolName}' without a usable SD record (a COMP/binary-leaf "
                 + "record is the Tier-C byte island, deferred — COBOLNET_DESIGN §4.2)");
-        int width = SortPhysicalWidth(record);
+        int width = Model.RecordLayout.AreaWidth(record);
 
         var keys = new List<BoundSortMergeKey>();
         foreach (var phrase in s.sortKeyPhrase())
@@ -238,7 +238,7 @@ public sealed partial class StatementBinder
                 + "(ISO §14.9.24.3 — file-name-1 shall be described in an SD)");
         if (SortRecordOf(file) is not { } record)
             return new BoundUnsupported($"MERGE '{file.CobolName}' without a usable SD record (Tier-C byte island, deferred)");
-        int width = SortPhysicalWidth(record);
+        int width = Model.RecordLayout.AreaWidth(record);
 
         var keys = new List<BoundSortMergeKey>();
         foreach (var phrase in m.mergeKeyPhrase())
@@ -300,7 +300,7 @@ public sealed partial class StatementBinder
         }
         // The released length is the NAMED record's own description size (a shorter secondary 01 of a multi-01 SD
         // releases at its own length; §14.9.40 GR7c space-fills a short record into a fixed-length sort file).
-        return new BoundRelease(file, record, SortPhysicalWidth(record.Item), from, SortVaryingOf(file));
+        return new BoundRelease(file, record, Model.RecordLayout.AreaWidth(record.Item), from, SortVaryingOf(file));
     }
 
     // ── RETURN (ISO §14.9.34) ──────────────────────────────────────────────────────────────────────────────
@@ -370,12 +370,12 @@ public sealed partial class StatementBinder
             if (!file.Records.Contains(root))
                 return $"SORT/MERGE key '{dref.GetText()}' is not described in a record of '{file.CobolName}' "
                     + "(ISO §14.9.40.3 SR6a)";
-            if (SortOffsetInRecord(root, item) is not { } off)
+            if (Model.RecordLayout.OffsetInRecord(root, item) is not { } off)
                 return $"SORT/MERGE key '{dref.GetText()}' — key data-names shall not be subject to any OCCURS "
                     + "clause (ISO §14.9.40.3 SR6b/SR6f)";
             var pic = item.Pic;
             bool numeric = pic is { Category: PicCategory.Numeric, IsFloat: false };
-            int len = item.IsGroup ? SortPhysicalWidth(item) : item.ImageWidth;
+            int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ImageWidth;
             if (len <= 0) return $"SORT/MERGE key '{dref.GetText()}' has no character image";
             // SR6g: with variable-length records every key must lie within the first min-record-size bytes.
             if (file.Varying is { Min: { } min } && off + len > min)
@@ -474,70 +474,6 @@ public sealed partial class StatementBinder
         DataItem root = item;
         while (root.Parent is { } p) root = p;
         return root;
-    }
-
-    /// <summary>The PHYSICAL character-image width of an item — the width its emitted image (<c>AsImage</c>/
-    /// <c>FromImage</c>) actually spans: redefining entries contribute NOTHING (they overlay their target's
-    /// storage, ISO §13.18.44 GR1) and a Tier-B REDEFINES class contributes its single backing width ONCE, at the
-    /// canonical (class-max, COBOLNET_DESIGN §4.2). Mirrors FieldEmitter's physical-field math — the raw
-    /// <see cref="DataItem.ImageWidth"/> over-counts a group containing a redefines class.</summary>
-    private static int SortPhysicalWidth(DataItem item)
-    {
-        if (item.Class is { Tier: RedefinesTier.StringCanonical } cls && item.IsCanonical) return cls.Width;
-        if (item.IsElementary) return item.ImageWidth;
-        int w = 0;
-        foreach (var c in item.Children)
-        {
-            if (c.RedefinesTarget is not null) continue;
-            w += SortPhysicalWidth(c) * (c.Occurs ?? 1);
-        }
-        return w;
-    }
-
-    /// <summary>The character offset of <paramref name="target"/> within <paramref name="root"/>'s PHYSICAL record
-    /// image — the compile-time key window (ISO §14.9.40.3 SR6e: the same byte positions are the key in every
-    /// record). An item inside a REDEFINES class sits at the class anchor's offset plus its
-    /// <see cref="DataItem.ClassOffset"/> (a redefinition begins at the redefined item's first position,
-    /// §13.18.44 GR1; covers keys under a redefining group — ST101A's RDF-KEYS — and keys in a secondary 01 of a
-    /// multi-01 SD, whose synthesized class anchors at the first record). When <paramref name="root"/> is ITSELF a
-    /// member of the target's class — a record of a multi-record SD/FD, where the records share one area
-    /// leftmost-aligned (ISO §9.1.2) — a key described in a sibling record description occupies the same byte
-    /// positions in every record (SR6e), so its window is its class offset relative to the root's. Null when the
-    /// target sits under an OCCURS (not a legal key, §14.9.40.3 SR6b/SR6f) or cannot be located.</summary>
-    private static int? SortOffsetInRecord(DataItem root, DataItem target)
-    {
-        if (target.Class is { } cls)
-        {
-            if (ReferenceEquals(cls.Canonical, root)) return target.ClassOffset;
-            if (ReferenceEquals(root.Class, cls)) return target.ClassOffset - root.ClassOffset;
-            return SortPlainOffset(root, cls.Canonical) is { } a ? a + target.ClassOffset : null;
-        }
-        return SortPlainOffset(root, target);
-    }
-
-    /// <summary>The physical offset of a NON-class item within its record: walk the parent chain root→target,
-    /// summing each level's preceding non-redefining siblings' physical extents. Null when the chain does not
-    /// reach <paramref name="root"/> or crosses an OCCURS (per-occurrence keys are not legal sort keys).</summary>
-    private static int? SortPlainOffset(DataItem root, DataItem target)
-    {
-        var chain = new List<DataItem>();
-        for (DataItem? n = target; n is not null; n = n.Parent) chain.Add(n);
-        if (!ReferenceEquals(chain[^1], root)) return null;
-        chain.Reverse();   // root first
-
-        int off = 0;
-        for (int level = 1; level < chain.Count; level++)
-        {
-            DataItem parent = chain[level - 1], child = chain[level];
-            if (child.Occurs is not null) return null;   // §14.9.40.3 SR6b — keys not subject to OCCURS
-            foreach (var sib in parent.Children)
-            {
-                if (ReferenceEquals(sib, child)) break;
-                if (sib.RedefinesTarget is not null) continue;   // overlays its target — no width of its own
-                off += SortPhysicalWidth(sib) * (sib.Occurs ?? 1);
-            }
-        }
-        return off;
     }
 
     /// <summary>The C# access path of a table's ARRAY field (no subscripting — the whole-array operand the

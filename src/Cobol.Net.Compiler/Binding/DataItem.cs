@@ -308,8 +308,11 @@ public sealed class DataItem
         : Children.Where(c => c.RedefinesTargetName is null).Sum(c => c.ImageWidth * (c.Occurs ?? 1));
 
     /// <summary>The character-image width of an elementary item (digit count + a separate-sign position when present
-    /// for a signed numeric; otherwise the PICTURE's character length).</summary>
-    private int ElementaryImageWidth
+    /// for a signed numeric; otherwise the PICTURE's character length). A pure DECLARED-shape fact (reads only
+    /// <see cref="Pic"/>) — internal so <see cref="Model.RecordLayout"/>'s leaf arm is PHASE-FREE (P5 Step 8:
+    /// callable at bind time, before <see cref="Storage"/> exists; the Storage width was built FROM this value and
+    /// identity #3 proved them equal corpus-wide).</summary>
+    internal int ElementaryImageWidth
     {
         get
         {

@@ -43,7 +43,7 @@ public sealed partial class CSharpEmitter
             w.Line($"CobolFile.RegisterRelative({name}, {assign}, {file.RecordWidth}, {opt}, {access}, {digits}{vary});");
             return;
         }
-        if (file.RecordKeyItem is not { } pk || KeyedImageOffset(pk) is not { } pkOff)
+        if (file.RecordKeyItem is not { } pk || Binding.Model.RecordLayout.OffsetOf(pk) is not { } pkOff)
         {
             w.Line(LoudStmt($"indexed file '{file.CobolName}': RECORD KEY missing or not locatable in the record "
                 + "image (ISO §12.4.5.12)"));
@@ -53,7 +53,7 @@ public sealed partial class CSharpEmitter
             + $"{pkOff}, {pk.ImageWidth}{vary});");
         foreach (var (alt, dups) in file.AlternateKeys)
         {
-            if (KeyedImageOffset(alt) is not { } aOff)
+            if (Binding.Model.RecordLayout.OffsetOf(alt) is not { } aOff)
             {
                 w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{alt.CobolName}' not "
                     + "locatable in the record image (ISO §12.4.5.6)"));
@@ -334,34 +334,4 @@ public sealed partial class CSharpEmitter
         if (file.RelativeKeyItem is not { } rk || _refs.ResolveItem(rk) is not { } place) return null;
         return $"(long)({NumericRenderer.Align(_num.FieldNum(place), 0)})";
     }
-
-    /// <summary>The item's character offset within the record AREA image (its own 01's image layout — secondary
-    /// 01s under an FD are synthesized REDEFINES of the first, so an in-root offset IS the area offset). Mirrors
-    /// the binder's <c>KeyedAreaOffset</c> and the generated codec's deterministic pre-order layout: each child
-    /// contributes ImageWidth × OCCURS, a REDEFINES child overlays its target's offset (ISO §13.18.44 GR1).</summary>
-    private static int? KeyedImageOffset(DataItem item)
-    {
-        DataItem root = item;
-        while (root.Parent is { } p) root = p;
-        int? found = null;
-        var offsets = new Dictionary<DataItem, int>();
-        Walk(root, 0);
-        return found;
-
-        void Walk(DataItem node, int off)
-        {
-            if (found is not null) return;
-            offsets[node] = off;
-            if (ReferenceEquals(node, item)) { found = off; return; }
-            int running = off;
-            foreach (var c in node.Children)
-            {
-                int cOff = c.RedefinesTarget is { } t && offsets.TryGetValue(t, out int tOff) ? tOff : running;
-                Walk(c, cOff);
-                if (found is not null) return;
-                if (c.RedefinesTarget is null) running += c.ImageWidth * (c.Occurs ?? 1);
-            }
-        }
-    }
-
 }

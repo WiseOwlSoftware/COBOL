@@ -170,8 +170,12 @@ public sealed class FileModel
         : item.Children.Where(c => c.RedefinesTargetName is null)
             .Sum(c => MinRecordSize(c) * (c.OccursSpec is { DependingName: not null } od ? od.Min : c.Occurs ?? 1));
 
-    /// <summary>The record area's character-image width (the max over the FD's records).</summary>
-    public int RecordWidth => Records.Count == 0 ? 0 : Records.Max(r => r.ImageWidth);
+    /// <summary>The record area's PHYSICAL (codec) width — the max over the FD's records of the extent the
+    /// emitted <c>AsImage()</c>/<c>FromImage()</c> spans. (P5.8: <c>ImageWidth</c> under-counted a record whose
+    /// REDEFINES redefiner is wider than its target — the codec spans the class-max backing, ISO §13.18.44 /
+    /// §13.4.2 — truncating written frames and mis-registering key windows; identical to the old value for every
+    /// equal-width record, i.e. the whole prior corpus.)</summary>
+    public int RecordWidth => Records.Count == 0 ? 0 : Records.Max(Model.RecordLayout.PhysicalWidth);
 
     /// <summary>The record description whose view spans the WHOLE record area — the largest one (ISO §13.4.2: the
     /// record area's size is that of the largest record description). Reading a record makes it available in the

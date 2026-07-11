@@ -1565,6 +1565,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     Edition.Error("COBOLNET1518", $"REDEFINES target '{tname}' of method data item "
                         + $"'{item.CobolName ?? "FILLER"}' is not a preceding item in the same method scope "
                         + "(ISO §13.18.44.3 — a method item may not redefine object or program data)");
+                // §13.18.44.3 SR8 (the P5.8 spec find): the SUBJECT's storage area shall not be larger than
+                // data-name-2's, unless data-name-2 is a level-1 item (without the EXTERNAL clause — that
+                // residue is unmodeled; a level-1 FILE SECTION entry cannot carry REDEFINES at all, SR3, so
+                // the exception is a WORKING-STORAGE/LOCAL/LINKAGE 01). Previously accepted SILENTLY — the
+                // classifier took the class-max width, giving the overlay byte-position semantics NO edition
+                // defines. The extent is the full OCCURS allocation (the "storage area required").
+                if (item.RedefinesTarget is { } tgt && tgt.Level != 1
+                    && item.ImageWidth * (item.Occurs ?? 1) > tgt.ImageWidth * (tgt.Occurs ?? 1))
+                    Edition.Error("COBOLNET1539", $"'{item.CobolName ?? "FILLER"}' REDEFINES "
+                        + $"'{tgt.CobolName ?? "FILLER"}': the redefining storage area "
+                        + $"({item.ImageWidth * (item.Occurs ?? 1)} characters) is larger than the redefined "
+                        + $"({tgt.ImageWidth * (tgt.Occurs ?? 1)}) — permitted only when the redefined item is "
+                        + "level 1 (ISO §13.18.44.3 SR8)");
             }
 
         foreach (var root in Roots)

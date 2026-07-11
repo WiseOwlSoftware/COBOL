@@ -142,7 +142,7 @@ public sealed partial class StatementBinder
             else if (kind != KeyedReadKind.Random)
                 data.Edition.Error("COBOLNET0864", $"READ … KEY on '{file.CobolName}' is a Format-2 phrase and "
                     + "cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)");
-            else if (refs.Resolve(keyRef) is not { } keyPlace || KeyedKeyIndex(file, keyPlace.Item) is not { } ki)
+            else if (refs.Resolve(keyRef) is not { } keyPlace || Model.RecordLayout.KeyIndexByPosition(file, keyPlace.Item) is not { } ki)
             {
                 data.Edition.Error("COBOLNET0864", $"READ … KEY IS {keyRef.GetText()} on '{file.CobolName}': the "
                     + "operand shall be the RECORD KEY or an ALTERNATE RECORD KEY of the file (ISO §14.9.30 SR11)");
@@ -296,7 +296,7 @@ public sealed partial class StatementBinder
         int keyIndex = -1;
         if (operand is not null)
         {
-            if (KeyedKeyIndex(file, operand.Item) is not { } ki)
+            if (Model.RecordLayout.KeyIndexByPosition(file, operand.Item) is not { } ki)
             {
                 data.Edition.Error("COBOLNET0862", $"START on '{name}': '{operand.Item.CobolName}' neither names "
                     + "a record key nor begins at the leftmost character position of one with a length not "
@@ -323,53 +323,6 @@ public sealed partial class StatementBinder
         var inv = blocks.Length >= 1 ? BindBlocks([blocks[0]]) : null;
         var not = blocks.Length >= 2 ? BindBlocks([blocks[1]]) : null;
         return new KeyedInvalidKey(inv, not);
-    }
-
-    /// <summary>Resolve a key-of-reference operand to its key index by STORAGE POSITION (−1 = prime, i = the i-th
-    /// alternate, null = no match): the operand qualifies when its leftmost character position within the record
-    /// area coincides with the key's leftmost position and it is no longer than the key (ISO §14.9.41 SR6 generic
-    /// keys; §14.9.30 SR11; §12.4.5.12 GR4 — key positions are implicitly keys in ALL record descriptions, so a
-    /// REDEFINES of the key or a same-named item in another 01 matches by position, never by name).</summary>
-    private static int? KeyedKeyIndex(FileModel file, DataItem operand)
-    {
-        if (KeyedAreaOffset(operand) is not { } off) return null;
-        if (file.RecordKeyItem is { } pk && KeyedAreaOffset(pk) == off && operand.ImageWidth <= pk.ImageWidth)
-            return -1;
-        for (int i = 0; i < file.AlternateKeys.Count; i++)
-        {
-            var alt = file.AlternateKeys[i].Item;
-            if (KeyedAreaOffset(alt) == off && operand.ImageWidth <= alt.ImageWidth) return i;
-        }
-        return null;
-    }
-
-    /// <summary>The item's character offset within its record AREA: the offset inside its own 01 root, which IS
-    /// the area offset because every secondary 01 under an FD is a synthesized REDEFINES of the first (starting at
-    /// position 0, ISO §13.18.44 GR1). A REDEFINES subordinate takes its target's offset and contributes no width
-    /// — mirroring the layout the generated record codec (and <c>DataBinder.AssignClassOffsets</c>) produces.</summary>
-    private static int? KeyedAreaOffset(DataItem item)
-    {
-        DataItem root = item;
-        while (root.Parent is { } p) root = p;
-        int? found = null;
-        var offsets = new Dictionary<DataItem, int>();
-        Walk(root, 0);
-        return found;
-
-        void Walk(DataItem node, int off)
-        {
-            if (found is not null) return;
-            offsets[node] = off;
-            if (ReferenceEquals(node, item)) { found = off; return; }
-            int running = off;
-            foreach (var c in node.Children)
-            {
-                int cOff = c.RedefinesTarget is { } t && offsets.TryGetValue(t, out int tOff) ? tOff : running;
-                Walk(c, cOff);
-                if (found is not null) return;
-                if (c.RedefinesTarget is null) running += c.ImageWidth * (c.Occurs ?? 1);
-            }
-        }
     }
 
     /// <summary>One-time semantic checks of a keyed file's control entry, run on its first keyed verb (the
