@@ -45,7 +45,7 @@ internal static class PlaceRenderer
         RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
-        _ => p.Read(),
+        _ => throw Unhandled(p),
     };
 
     /// <summary>A C# statement (with trailing <c>;</c>) that stores <paramref name="rhs"/> into <paramref name="p"/>.</summary>
@@ -71,8 +71,13 @@ internal static class PlaceRenderer
         CapacityRegisterPlace => throw new System.InvalidOperationException(
             "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38 SR30-32); a direct store must be "
             + "rejected COBOLNET1523 at bind time and never reach PlaceRenderer.Write"),
-        _ => p.Write(rhs),
+        _ => throw Unhandled(p),
     };
+
+    // Unreachable: every concrete Place subtype has an explicit arm above (there is no Place.Read()/Write() to fall
+    // back to since the structural-Place migration completed). A new subtype without an arm trips this at run time.
+    private static System.InvalidOperationException Unhandled(Place p) =>
+        new($"CodeGen.PlaceRenderer has no arm for Place subtype '{p.GetType().Name}'");
 
     /// <summary>Render an <see cref="AccessPath"/> to a C# lvalue expression — a static/instance root field, then
     /// <c>.Member</c> access, <c>CobolTable.At(path, index)</c> for a fixed OCCURS, and <c>RefSending</c>/

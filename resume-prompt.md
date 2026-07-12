@@ -21,21 +21,19 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP D: PHASE-07 **Step 11** (structural `Place`), then Step 12
+## ⛔🔀 RESUME AT — EXEC STEP D: PHASE-07 **Step 12** (FUNCTION-arg grammar)
 
-**Both god classes are dissolved.** PHASE-07 Steps 1–10 are COMPLETE — the EMITTER (Step 9) and the BINDER (Step 10)
-are decomposed. Read the PHASE-07 STATUS line first
+**Both god classes are dissolved AND `Place` is structural.** PHASE-07 Steps 1–11 are COMPLETE — the EMITTER (Step 9),
+the BINDER (Step 10), and the string-carrying `Place` (Step 11) are all decomposed: every `Place` subtype is now
+structural over an `AccessPath` (`Binding/Model/AccessPath.cs`), rendered by `CodeGen/Roslyn/PlaceRenderer.cs`;
+`Place.Read()/Write()` are deleted and `PlaceNeutralityTests` (R5) locks the backend-neutral bound tree (G4). ONE
+documented deferral: subscript / ref-mod / RedefView-offset INDEX expressions stay transitional STRINGS on the
+structural nodes, folding into the D10 SUBSCRIPT-mode removal (PHASE 15). Read the PHASE-07 STATUS line first
 (`docs/rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md`), then execute:
 
-- **Step 11 — structural `Place` + `PlaceRenderer` (highest risk; per-SUBTYPE battery gating).** Introduce the
-  structural `Place` shapes (`DESIGN-codegen-backend.md §2.3`) — `MemberPlace`/`RefModPlace`/`RedefViewPlace`/
-  `NumericImagePlace`/`RenamesPlace`/`CapacityRegisterPlace` over an `AccessPath` of `AccessSegment`s with `BoundExpr`
-  subscripts — and move the ENTIRE current `Place.cs` (`Binding/Model/Place.cs`) render logic into
-  `CodeGen/Roslyn/PlaceRenderer`; `Place` carries structure, not C# strings. Do it ONE subtype at a time behind the
-  P0 differential/snapshot harness (output MUST be byte-identical pre/post each subtype).
 - **Step 12 — FUNCTION args as real expressions** through the ONE `ExpressionBinder`/`BindExpr` (the lexer-mode
-  blocker + the space-separated-argument hazard; the `ArgPrimary` recursive-descent parser is DELETED; a shared
-  `.g4` change ⇒ FULL legacy guard).
+  blocker + the space-separated-argument hazard; the `ArgPrimary` recursive-descent parser is DELETED), and delete the
+  `IntrinsicRenderer` static channel. A shared `.g4` change ⇒ FULL legacy guard (NIST 353 MATCH must hold).
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's
 conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored); commits are
@@ -58,18 +56,19 @@ image-fact caching (the O(subtree) perf work).
   `RecordLayout` is the ONE phase-free width/offset authority (§13.18.44.3 SR8 enforced, COBOLNET1539); the data
   model in `Binding/Model/` (`PlaceDecorator` base; `StrongTypeModel` + `PictureAnalyzer`; sentinels → `DataItem.
   Pending`); the tier verdict single-sourced through `RedefinesClass.Classify`; ONE `UsageInheritancePass`.
-- **D ◐ (NOW)** — the rest of PHASE-07 (Steps 11–12 above).
+- **D ◐ (NOW)** — the rest of PHASE-07 (Step 12 above; Steps 1–11 done, incl. structural `Place`).
 - **E** — P2/P3 edition-gate remediation: fold the ~15 inline gates into the two-arm `VersionConformancePass`,
   delete orphaned `GateId`, correct the "edition-agnostic" over-claims.
 - **F** — PHASE 08–16: runtime reorg, M2/M3/M4 feature waves, version-matrix closure, G8 legacy cut, CIL backend.
 
 **Done:** Phases 00–06 (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
 version-conformance pipeline [the two-arm `VersionConformancePass` is the SOLE edition gate] · frontend consolidation
-· the unified data model · the Real Binder) and PHASE-07 Steps 1–10 (both god classes dissolved). D10 SUBSCRIPT-mode
+· the unified data model · the Real Binder) and PHASE-07 Steps 1–11 (both god classes dissolved + structural `Place`).
+D10 SUBSCRIPT-mode
 removal is RELOCATED → PHASE 15 §"CUT 2.5". ⚠ Flagged latent (not blocking): `OoReparent{Class,Factory}Data`
 mis-bind the class-level env (CURRENCY/ALPHABET/SELECT) — a dedicated fix ~PHASE 09.
 
-**Battery (keep green + pushed at EVERY commit):** 3166 conformance · 281 unit · 33 characterization (32 snapshots
+**Battery (keep green + pushed at EVERY commit):** 3166 conformance · 282 unit · 33 characterization (32 snapshots
 byte-exact + the RuntimeApi ratchet) · FULL legacy guard NIST 353 MATCH. ⚠ Build `CobolSharp.sln` before `dotnet
 test --no-build` — a stale test-bin compiler DLL hides greenfield regressions.
 

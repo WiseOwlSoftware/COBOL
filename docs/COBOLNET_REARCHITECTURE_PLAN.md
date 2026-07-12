@@ -70,7 +70,7 @@
 > collaborators reach siblings through the `BinderContext` spine (`host.<Accessor>.Foo`).
 > RESUME AT P7 **Step 11** (structural `Place`, per-subtype) → Step 12 (FUNCTION-arg grammar, full legacy guard) —
 > the live per-substep record is the PHASE-07 STATUS line. Battery 3166 conformance ·
-> 281 unit · 33 characterization (32 snapshots byte-exact + the RuntimeApi ratchet) · legacy guard 353 MATCH.
+> 282 unit · 33 characterization (32 snapshots byte-exact + the RuntimeApi ratchet) · legacy guard 353 MATCH.
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /

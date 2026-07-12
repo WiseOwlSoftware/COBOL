@@ -3,12 +3,12 @@
 namespace CobolNet.Binding.Model;
 
 /// <summary>
-/// The ONE typed-lvalue model (COBOLNET_DESIGN §3.3 / §14.1): a resolved reference to a storage location, built
-/// once by <see cref="ReferenceResolver"/> and consumed identically by every verb. <see cref="Read"/> yields a C#
-/// rvalue expression for the location's current value; <see cref="Write"/> yields a C# statement that stores into
-/// it. There is no second lvalue type — MOVE, arithmetic, INSPECT/STRING/UNSTRING, file READ INTO / WRITE FROM, and
-/// CALL-by-reference all go through this contract. (Reference-modification and level-88 add <c>Place</c> subtypes
-/// in later slices; this slice has the member-access form.)
+/// The ONE typed-lvalue model (COBOLNET_DESIGN §3.3 / §14.1): a resolved reference to a storage location, built once
+/// by <see cref="ReferenceResolver"/> and consumed identically by every verb — MOVE, arithmetic,
+/// INSPECT/STRING/UNSTRING, file READ INTO / WRITE FROM, and CALL-by-reference all go through this contract. A
+/// <c>Place</c> is a BACKEND-NEUTRAL structural value (the G4 invariant): it carries an <see cref="AccessPath"/>,
+/// resolved <see cref="DataItem"/>s, and (until PHASE 15's D10) transitional index/offset strings — never C# render
+/// text. The C# read/write text is produced by <c>CodeGen.PlaceRenderer</c> (P7 Step 11); the binder never renders.
 /// </summary>
 public abstract record Place
 {
@@ -17,32 +17,16 @@ public abstract record Place
 
     /// <summary>The underlying bound data item this place refers to (carries category, scale, and the profile name).</summary>
     public abstract DataItem Item { get; }
-
-    /// <summary>A C# expression that reads the location's current value.</summary>
-    public abstract string Read();
-
-    /// <summary>A C# statement (with trailing <c>;</c>) that stores <paramref name="rhs"/> into the location.</summary>
-    public abstract string Write(string rhs);
-
-    /// <summary>The tripwire a subtype whose rendering has moved to the backend's <c>CodeGen.PlaceRenderer</c>
-    /// (P7 Step 11 — structural <see cref="Place"/>) uses for its now-unreachable <see cref="Read"/>/<see cref="Write"/>:
-    /// every consumer renders through <c>PlaceRenderer</c>, so reaching a migrated subtype's own render method is an
-    /// internal error. These methods disappear entirely when the last subtype migrates (with the R5 neutrality test).</summary>
-    private protected static string RenderedElsewhere() =>
-        throw new InvalidOperationException(
-            "a structural Place is rendered by CodeGen.PlaceRenderer (P7 Step 11) — never Place.Read()/Write()");
 }
 
 /// <summary>
 /// The common base of the WRAPPING places (DESIGN-data-model §2.2 item 1): a decoration over one
-/// <see cref="Inner"/> place that keeps the inner item's identity (<see cref="Pic"/>/<see cref="Item"/> forward)
-/// and, by default, its plain access (<see cref="Read"/>/<see cref="Write"/> forward — <see cref="OdoGroupPlace"/>
-/// keeps them and adds the GR8 seams beside; the view wrappers <see cref="NumericImagePlace"/> and
-/// <see cref="RefModPlace"/> override them with their transformed access). Leaf places (<see cref="MemberPlace"/>,
-/// <see cref="DynTablePlace"/>, <see cref="RedefViewPlace"/>, <see cref="CapacityRegisterPlace"/>) derive from
-/// <see cref="Place"/> directly. <see cref="RenamesPlace"/> stays direct too — it composes N spanned leaves (no
-/// single inner) and its Pic/Item are the level-66 ALIAS's own, never a forward, so nothing here applies to it
-/// (the DESIGN §2.2 item-1 derive list was over-inclusive on that member).
+/// <see cref="Inner"/> place that keeps the inner item's identity (<see cref="Pic"/>/<see cref="Item"/> forward).
+/// Leaf places (<see cref="MemberPlace"/>, <see cref="DynTablePlace"/>, <see cref="RedefViewPlace"/>,
+/// <see cref="CapacityRegisterPlace"/>) derive from <see cref="Place"/> directly. <see cref="RenamesPlace"/> stays
+/// direct too — it composes N spanned leaves (no single inner) and its Pic/Item are the level-66 ALIAS's own, never a
+/// forward (the DESIGN §2.2 item-1 derive list was over-inclusive on that member). The backend
+/// <c>CodeGen.PlaceRenderer</c> renders each decorator's transformed access (a plain decorator renders as its inner).
 /// </summary>
 public abstract record PlaceDecorator(Place Inner) : Place
 {
@@ -51,12 +35,6 @@ public abstract record PlaceDecorator(Place Inner) : Place
 
     /// <inheritdoc/>
     public override DataItem Item => Inner.Item;
-
-    /// <inheritdoc/>
-    public override string Read() => Inner.Read();
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) => Inner.Write(rhs);
 }
 
 /// <summary>
@@ -74,12 +52,6 @@ public sealed record MemberPlace(AccessPath Path, DataItem MemberItem) : Place
 
     /// <inheritdoc/>
     public override DataItem Item => MemberItem;
-
-    /// <inheritdoc/>
-    public override string Read() => RenderedElsewhere();
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
@@ -87,10 +59,10 @@ public sealed record MemberPlace(AccessPath Path, DataItem MemberItem) : Place
 /// (whose <c>CobolTable.At</c> <c>ref T</c> serves BOTH directions), a dynamic table has direction-specific accessors:
 /// <c>RefSending(occ)</c> on a read (an out-of-range occurrence is benign scratch) and <c>RefReceiving(occ)</c> on a
 /// write (an occurrence past the current capacity GROWS the table). The <see cref="Path"/>'s trailing
-/// <see cref="DynTableSegment"/> renders that polarity at emit time (SENDING for <c>Read</c>, RECEIVING for
-/// <c>Write</c>) — one structural path replaces the former two precomputed strings. Rendered by
-/// <c>CodeGen.PlaceRenderer</c>. (Kept a distinct subtype rather than folded into <see cref="MemberPlace"/> to bound
-/// the Step 11 blast radius — <c>UsageCollectionPass</c>/<c>MoveEmitter</c> discriminate it by type.)
+/// <see cref="DynTableSegment"/> renders that polarity at emit time (SENDING for a read, RECEIVING for a write) — one
+/// structural path replaces the former two precomputed strings. Rendered by <c>CodeGen.PlaceRenderer</c>. (Kept a
+/// distinct subtype rather than folded into <see cref="MemberPlace"/> to bound the Step 11 blast radius —
+/// <c>UsageCollectionPass</c>/<c>MoveEmitter</c> discriminate it by type.)
 /// </summary>
 public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Place
 {
@@ -99,12 +71,6 @@ public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Plac
 
     /// <inheritdoc/>
     public override DataItem Item => ElementItem;
-
-    /// <inheritdoc/>
-    public override string Read() => RenderedElsewhere();
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
@@ -126,12 +92,6 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
 
     /// <inheritdoc/>
     public override DataItem Item => ViewItem;
-
-    /// <inheritdoc/>
-    public override string Read() => RenderedElsewhere();
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
@@ -139,7 +99,7 @@ public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int W
 /// leaves. Reading concatenates the leaves' character images (each leaf field invariantly holds exactly its image
 /// width); writing stores the value at the span's width and distributes the slices back into the leaves left to
 /// right — so a write through the alias is visible through every renamed item and vice versa (no second storage,
-/// SR/GR — RENAMES adds no data item).
+/// SR/GR — RENAMES adds no data item). Rendered by <c>CodeGen.PlaceRenderer</c>.
 /// </summary>
 public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasItem) : Place
 {
@@ -148,28 +108,21 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 
     /// <inheritdoc/>
     public override DataItem Item => AliasItem;
-
-    /// <inheritdoc/>
-    public override string Read() => RenderedElsewhere();
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
 /// The <see cref="Place"/> of a GROUP operand whose subtree contains an occurs-depending table (ISO/IEC 1989:2023
-/// §13.18.38 Format 2). It decorates the plain member place — <see cref="PlaceDecorator.Read"/>/<see
-/// cref="PlaceDecorator.Write"/> are the struct lvalue unchanged (the inherited forwards), so every consumer that
-/// does not know about ODO behaves exactly as before — and the GR8 operand seams consult the decoration:
+/// §13.18.38 Format 2). It decorates the plain member place — read/write render as the struct lvalue unchanged (the
+/// inherited inner access), so every consumer that does not know about ODO behaves exactly as before — and the GR8
+/// operand seams (rendered by <c>CodeGen.PlaceRenderer</c> over this record's structure) consult the decoration:
 /// <list type="bullet">
 ///   <item><b>Sending</b> (the sending side of BOTH GR8 quadrants): "only that part of the table area that is
-///     specified by the value of [data-name-1] at the start of the operation will be used" — <see
-///     cref="SendingImage"/> is the group image truncated to the current extent. SR22 (the subject may be
-///     followed within its record only by entries subordinate to it) guarantees the table is the TRAILING
-///     storage, so the current extent is a character PREFIX of the maximum image; a zero count with no preceding
-///     fixed part is the zero-length item of §8.5.4 item 1.</item>
+///     specified by the value of [data-name-1] at the start of the operation will be used" — the group image
+///     truncated to the current extent. SR22 (the subject may be followed within its record only by entries
+///     subordinate to it) guarantees the table is the TRAILING storage, so the current extent is a character PREFIX
+///     of the maximum image; a zero count with no preceding fixed part is the zero-length item of §8.5.4 item 1.</item>
 ///   <item><b>Receiving, data-name-1 outside the group</b> (GR8a): the same current extent — character positions
-///     past it are NOT modified; <see cref="ReceiveInto"/> splices the stored prefix over the live image.</item>
+///     past it are NOT modified; the stored prefix is spliced over the live image.</item>
 ///   <item><b>Receiving, data-name-1 inside the group</b> (GR8b): "the maximum length of the group will be used"
 ///     — <see cref="DependingInside"/> lets each receiver keep the plain full-width <c>FromImage</c> store.</item>
 /// </list>
@@ -180,40 +133,24 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
 /// </summary>
 public sealed record OdoGroupPlace(
     Place Inner, Place Depending, int FixedChars, int ElemChars, int MaxOccurs, bool DependingInside)
-    : PlaceDecorator(Inner)
-{
-    // The GR8 seams — the current character extent (LengthExpr), the sending-side prefix image (SendingImage), and
-    // the GR8a receiving splice (ReceiveInto) — are rendered by CodeGen.PlaceRenderer over this record's structure
-    // (Inner/Depending places + FixedChars/ElemChars/MaxOccurs). These stubs are unreachable (every consumer renders
-    // through PlaceRenderer) and disappear when structural Place is complete.
-    public string LengthExpr => RenderedElsewhere();
-    public string SendingImage() => RenderedElsewhere();
-    public string ReceiveInto(string imageExpr) => RenderedElsewhere();
-}
+    : PlaceDecorator(Inner);
 
 /// <summary>
 /// A NUMERIC-DISPLAY item viewed as its CHARACTER IMAGE for reference modification (ISO §8.4.2.4 — the unique
 /// result is an elementary alphanumeric item over the operand's standard data format): reading formats the stored
 /// value's display image; writing decodes the spliced image back into the typed field (sign-aware both ways via
-/// the FormatDisplay/ParseDisplay pair).
+/// the FormatDisplay/StoreDisplay pair). Rendered by <c>CodeGen.PlaceRenderer</c>.
 /// </summary>
-public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner)
-{
-    /// <inheritdoc/>
-    public override string Read() => RenderedElsewhere();
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) => RenderedElsewhere();
-}
+public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner);
 
 /// <summary>
 /// The CAPACITY register of an OCCURS DYNAMIC table (ISO/IEC 1989:2023 §13.18.38 GR15 / §8.5.1.9.1; data-model D9):
-/// a VIEW over the table's current capacity, NOT its own storage. Reading emits <c>{TablePath}.Capacity</c> — the
+/// a VIEW over the table's current capacity, NOT its own storage. Reading renders <c>{table-path}.Capacity</c> — the
 /// runtime <see cref="CobolNet.Runtime.CobolDynTable{T}.Capacity"/> (a native <c>long</c>, an unsigned integer per
 /// SR31), so <see cref="RegisterItem"/> carries a native-binary <see cref="PicInfo"/> (scale 0) and the numeric
 /// pipeline reads it as a scale-0 integer with no profile. The register is set ONLY by SET Format 14 (which emits
-/// <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> directly, never through <see cref="Write"/>); an
-/// ordinary store receiver is rejected COBOLNET1523 at bind time (SR30–32), so <see cref="Write"/> is unreachable.
+/// <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> directly); an ordinary store receiver is rejected
+/// COBOLNET1523 at bind time (SR30–32), so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop.
 /// </summary>
 public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterItem) : Place
 {
@@ -222,26 +159,14 @@ public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterIt
 
     /// <inheritdoc/>
     public override DataItem Item => RegisterItem;
-
-    /// <inheritdoc/>
-    public override string Read() => RenderedElsewhere();
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
 /// A reference-modified place <c>inner(start:length)</c> (COBOLNET_DESIGN §3.3 / §7.2): reading is a substring
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),
 /// preserving the inner's width. <paramref name="Length"/> is <see langword="null"/> for the "to the end" form.
+/// <paramref name="Start"/>/<paramref name="Length"/> stay the rendered index string (the D10 TRANSITIONAL carrier —
+/// they become <c>BoundExpr</c> when PHASE 15 removes the SUBSCRIPT lexer mode). Rendered by
+/// <c>CodeGen.PlaceRenderer</c>.
 /// </summary>
-public sealed record RefModPlace(Place Inner, string Start, string? Length) : PlaceDecorator(Inner)
-{
-    // Read/Write/WriteFill are rendered by CodeGen.PlaceRenderer over Inner + Start/Length. Start/Length stay the
-    // rendered index string (the D10 TRANSITIONAL carrier — they become BoundExpr when PHASE 15 removes the
-    // SUBSCRIPT lexer mode; see the PHASE-07 Step 11 plan). These stubs are unreachable (consumers route through
-    // PlaceRenderer) and disappear at the structural-Place delete.
-    public override string Read() => RenderedElsewhere();
-    public override string Write(string rhs) => RenderedElsewhere();
-    public string WriteFill(string fillChar) => RenderedElsewhere();
-}
+public sealed record RefModPlace(Place Inner, string Start, string? Length) : PlaceDecorator(Inner);

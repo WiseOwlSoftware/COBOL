@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS: ◐ IN PROGRESS @ Exec Step D — Steps 1–10 COMPLETE; RESUME AT Step 11.** In place: the exhaustive
+- **STATUS: ◐ IN PROGRESS @ Exec Step D — Steps 1–11 COMPLETE; RESUME AT Step 12.** In place: the exhaustive
   generated bound-tree visitor (Step 6), the `ICodeGenBackend` seam (Step 1), the `AssemblyPackager` split (Step 2),
   the immutable `EmitContext` + `ReceiverContext`-by-parameter (Step 3), the `RuntimeApi` façade + `FigurativeConstants`
   service (Step 4), the ACCEPT-verb renames (Step 5), and `MoveKind` on the bound node (Steps 7–8). **Step 9 dissolved
@@ -45,10 +45,13 @@
   dissolved the binder god class** — `StatementBinder` is now dispatch + the mark/drain wrap + the composition root
   over the `BinderContext` spine → `ProcedureTableBuilder` + `ExpressionBinder` + `ConditionBinder` + `EcBinder` +
   `OoBinder` + `PhraseBlocks` + 22 `Verbs/*Binder` + the edition-invariant SR band in `Validation/StatementValidation`;
-  collaborators reach siblings through the root's accessors. The remaining work is **Step 11 (structural `Place`)**
-  then **Step 12 (FUNCTION-arg grammar)**. The ~19 inline edition gates move VERBATIM with their verbs — the
-  pass-folding is Exec Step E's scope. The premise audit (scratchpad `p7-audit.md`) maps Steps 11–12's sites; its
-  file/line anchors predate the Step 9/10 decomposition, so confirm each against the current tree.
+  collaborators reach siblings through the root's accessors. **Step 11 dissolved the string-carrying `Place`** — all
+  eight subtypes are STRUCTURAL over an `AccessPath` (`Binding/Model/AccessPath.cs`), rendered by `CodeGen.Roslyn.
+  PlaceRenderer`; `Place.Read()/Write()` are DELETED and the R5 neutrality test (`PlaceNeutralityTests`) locks G4 (the
+  bound tree is backend-neutral). ONE documented deferral: subscript / ref-mod / RedefView-offset INDEX expressions
+  stay transitional STRINGS, folding into the D10 SUBSCRIPT-mode removal (PHASE 15). The remaining work is **Step 12
+  (FUNCTION-arg grammar + delete the `IntrinsicRenderer` static channel)**. The ~19 inline edition gates move VERBATIM
+  with their verbs — the pass-folding is Exec Step E's scope.
 
 ---
 
@@ -676,7 +679,20 @@ Incremental — one collaborator/verb group per sub-commit.
   scoped `EnterMethodScope` conversion LAST, behind the OO conformance goldens + method-scope unit tests (R1).
 - **COMMIT (per group):** `P7 step10X: extract <Verb>Binder from StatementBinder over BinderContext; lift edition-invariant SR checks to StatementValidation`.
 
-### Step 11 — Structural `Place` + `PlaceRenderer` (highest risk — subtype at a time)
+### Step 11 — Structural `Place` + `PlaceRenderer` (highest risk — subtype at a time) ✅ COMPLETE
+
+> ✅ **DONE (2026-07-12, DEVLOG 834–838).** All eight `Place` subtypes are structural over an `AccessPath`
+> (`Binding/Model/AccessPath.cs`), rendered by `CodeGen/Roslyn/PlaceRenderer.cs`; `Place.Read()/Write()` are deleted
+> and `PlaceNeutralityTests` (R5) locks G4. Landed 11a (seam + route ~124 consumers) · 11b (Renames/Odo) · 11c/d
+> (RefMod/NumericImage) · 11e (the leaf tier — Member/DynTable/RedefView/Capacity + the `AccessPath` builders +
+> `CorrespondingBinder`/`CorrespondingHoist`/`InitializeBinder`/`ProgramEmitter` construction sites, plus the forced
+> `BoundSetCapacity`/`BoundSearch` binder-side-leak fixes) · 11-final (delete + R5). Battery byte-neutral throughout
+> (char 33/33, unit 282/282, conf 3166/3166). **Deviations recorded:** `PlaceRenderer` is a STATIC class (not
+> `(EmitContext, RuntimeApi)` — rendering is context-free); `DynTablePlace` KEPT distinct (not folded into
+> `MemberPlace`) to bound blast radius; per-segment `AccessDir` DROPPED (polarity is a render-time choice); **the
+> subscript / ref-mod / offset index expressions stay transitional STRINGS, deferred to D10/PHASE 15 (owner decision,
+> DEVLOG 836)** — so the R5 test bans render METHODS, not the transitional string properties. The plan below is the
+> as-executed record.
 
 MULTI-SUB-COMMIT. This is the riskiest step; do it LAST, after the visitor + decomposition made consumers few and
 well-typed. The P0 differential/snapshot harness "earns its keep" here — output MUST be byte-identical pre/post each

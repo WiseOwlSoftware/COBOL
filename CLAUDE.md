@@ -22,9 +22,10 @@ support for all prior editions (1985 / 2002 / 2014)** — implemented with maxim
 back-compat. **The go-forward roadmap is `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a resumable, execution-grade
 **17-phase** rearchitecture + 100%-ISO plan (clean architecture · all editions · a selectable Roslyn↔CIL backend)
 that subsumes the feature/NIST drive as its phases 09–14; `resume-prompt.md`'s top banner points to it + its §0 resume
-protocol. **Phases 00–06 are DONE; PHASE-07 Steps 1–10 are DONE (both the emitter and the binder god classes are
-dissolved); RESUME AT Step 11 (structural `Place`) → Step 12 (FUNCTION-arg grammar).** §6 owner decisions D1–D12 are
-ALL resolved. Battery: 3166 conformance · 281 unit · 33 characterization (32 snapshots byte-exact + ratchet) · legacy
+protocol. **Phases 00–06 are DONE; PHASE-07 Steps 1–11 are DONE (both god classes dissolved + `Place` is structural,
+rendered by `CodeGen.PlaceRenderer`); RESUME AT Step 12 (FUNCTION-arg grammar + delete the `IntrinsicRenderer` static
+channel).** §6 owner decisions D1–D12 are
+ALL resolved. Battery: 3166 conformance · 282 unit · 33 characterization (32 snapshots byte-exact + ratchet) · legacy
 guard 353 MATCH. **Always read `resume-prompt.md`'s top banner for the live resume point, never this snapshot.** The
 SSOT for locked invariants / settled decisions is **`docs/COBOLNET_DESIGN.md`**; the four-editions mission is validated
 by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist
