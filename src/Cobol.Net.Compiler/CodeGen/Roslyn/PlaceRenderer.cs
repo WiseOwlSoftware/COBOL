@@ -27,6 +27,10 @@ internal static class PlaceRenderer
     /// <summary>A C# expression that reads <paramref name="p"/>'s current value.</summary>
     public static string Read(Place p) => p switch
     {
+        // A reference-modified slice inner(start:length) (ISO §8.4.2.4): a substring of the inner field's image.
+        RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r)),
+        // A NUMERIC-DISPLAY item viewed as its character image (ISO §8.4.2.4): format the stored value's display image.
+        NumericImagePlace n => RuntimeApi.NumFormatDisplay(Read(n.Inner), n.Inner.Item.ProfileName),
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' character images.
         RenamesPlace n => n.Leaves.Count == 1
             ? Read(n.Leaves[0])
@@ -40,10 +44,22 @@ internal static class PlaceRenderer
     /// <summary>A C# statement (with trailing <c>;</c>) that stores <paramref name="rhs"/> into <paramref name="p"/>.</summary>
     public static string Write(Place p, string rhs) => p switch
     {
+        // Splice the new slice back into the inner field, preserving its width. A BOOLEAN receiver pads with
+        // boolean-zero (§14.6.8.6; §8.4.3.3 GR5a); every other category keeps the space fill.
+        RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(Read(r.Inner), RmStart(r), RmLen(r), rhs,
+            r.Inner.Item.Pic is { Category: PicCategory.Boolean } ? "'0'" : null)),
+        // Decode the spliced image back into the typed field (sign-aware via the FormatDisplay/StoreDisplay pair).
+        NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreDisplay(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         RenamesPlace n => WriteRenames(n, rhs),
         OdoGroupPlace o => Write(o.Inner, rhs),
         _ => p.Write(rhs),
     };
+
+    // The reference-modification start/length are `long`-valued expressions but the runtime takes `int` positions —
+    // cast at the call site. Start/Length are the P5.11/D10 TRANSITIONAL string carrier (a rendered index expression);
+    // they become BoundExpr when D10 removes the SUBSCRIPT lexer mode (PHASE 15) — see the PHASE-07 Step 11 plan.
+    private static string RmStart(RefModPlace r) => $"(int)({r.Start})";
+    private static string RmLen(RefModPlace r) => r.Length is null ? "-1" : $"(int)({r.Length})";
 
     /// <summary>Store into a multi-leaf RENAMES alias (ISO §13.18.45): store the value at the span width, then
     /// distribute the slices back into the leaves left to right (a write through the alias shows through every
@@ -64,8 +80,10 @@ internal static class PlaceRenderer
         return sb.Append(" }").ToString();
     }
 
-    /// <summary>A figurative-constant store into a reference-modified slice (every targeted position takes the fill).</summary>
-    public static string WriteFill(RefModPlace p, string fillChar) => p.WriteFill(fillChar);
+    /// <summary>A figurative-constant store into a reference-modified slice: an EMPTY slice with the fill char as the
+    /// SpliceInto pad, so every targeted position takes the fill (ISO §8.3.3.6.4 GR2 / §8.4.3.3 GR5/GR6).</summary>
+    public static string WriteFill(RefModPlace p, string fillChar) =>
+        Write(p.Inner, RuntimeApi.StrSpliceInto(Read(p.Inner), RmStart(p), RmLen(p), "\"\"", pad: fillChar));
 
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>

@@ -201,16 +201,10 @@ public sealed record OdoGroupPlace(
 public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner)
 {
     /// <inheritdoc/>
-    /// <remarks>The FormatDisplay/StoreDisplay overload sets are the storage-form BRIDGE (the
-    /// <c>CobolTable.Occ</c> pattern): whether the field is a native long/Int128 or an image-stored string is
-    /// decided by the post-bind whole-group analysis, AFTER this expression text is produced — C# overload
-    /// resolution picks the right conversion at backend-compile time. (Still legacy: migrated with RefModPlace,
-    /// which wraps it — a thrown Read() would break the un-migrated RefModPlace's internal Inner.Read().)</remarks>
-    public override string Read() => $"CobolNum.FormatDisplay({Inner.Read()}, {Inner.Item.ProfileName})";
+    public override string Read() => RenderedElsewhere();
 
     /// <inheritdoc/>
-    public override string Write(string rhs) =>
-        Inner.Write($"CobolNum.StoreDisplay({rhs}, {Inner.Item.ProfileName}, {Inner.Read()})");
+    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
@@ -250,25 +244,11 @@ public sealed record CapacityRegisterPlace(string TablePath, DataItem RegisterIt
 /// </summary>
 public sealed record RefModPlace(Place Inner, string Start, string? Length) : PlaceDecorator(Inner)
 {
-    // The start/length operands may be `long` fields, but the runtime takes `int` positions — cast at the call site.
-    private string Start32 => $"(int)({Start})";
-    private string Len32 => Length is null ? "-1" : $"(int)({Length})";
-
-    /// <inheritdoc/>
-    public override string Read() => $"CobolString.RefMod({Inner.Read()}, {Start32}, {Len32})";
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) =>
-        // A boolean receiver splices with boolean-zero fill (§14.6.8.6; §8.4.3.3 GR5a — under D-B1 a bit
-        // position IS a char index); every other category keeps the space fill.
-        Inner.Write($"CobolString.SpliceInto({Inner.Read()}, {Start32}, {Len32}, {rhs}"
-            + $"{(Inner.Item.Pic is { Category: PicCategory.Boolean } ? ", pad: '0'" : "")})");
-
-    /// <summary>A figurative-constant store into the slice: the figurative fills EVERY position of the
-    /// reference-modified item (ISO §8.3.3.6.4 GR2 — repeated to the size of the associated fixed-length item;
-    /// §8.4.3.3 GR5/GR6 — the ref-mod result is a unique elementary item of the slice length). Realized by an
-    /// EMPTY slice with the fill char as the SpliceInto pad, so every targeted position takes the fill (works
-    /// for a runtime-length slice too). <paramref name="fillChar"/> is a C# <c>char</c>-literal expression.</summary>
-    public string WriteFill(string fillChar) =>
-        Inner.Write($"CobolString.SpliceInto({Inner.Read()}, {Start32}, {Len32}, \"\", pad: {fillChar})");
+    // Read/Write/WriteFill are rendered by CodeGen.PlaceRenderer over Inner + Start/Length. Start/Length stay the
+    // rendered index string (the D10 TRANSITIONAL carrier — they become BoundExpr when PHASE 15 removes the
+    // SUBSCRIPT lexer mode; see the PHASE-07 Step 11 plan). These stubs are unreachable (consumers route through
+    // PlaceRenderer) and disappear at the structural-Place delete.
+    public override string Read() => RenderedElsewhere();
+    public override string Write(string rhs) => RenderedElsewhere();
+    public string WriteFill(string fillChar) => RenderedElsewhere();
 }

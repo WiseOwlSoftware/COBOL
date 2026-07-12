@@ -703,19 +703,27 @@ subtype.
   migrated wrapper's `PlaceRenderer` arm routes its inner through `PlaceRenderer.Read`, so once every wrapper is
   migrated no `Inner.Read()` chain reaches a leaf, and the leaves can change fields + drop their legacy render.
 - **Sub-step order:** **11a ✅** route all CodeGen consumers → `PlaceRenderer`. **11b ✅** the two top-level subtypes
-  with no field change and no index need — `RenamesPlace` + `OdoGroupPlace` (throw their legacy render; arms in
-  `PlaceRenderer`). NEXT: the index infrastructure (the `AccessSegment`/`AccessPath` types + a token→`BoundExpr`
-  subscript builder in `ReferenceResolver` + a byte-exact **index renderer** in `PlaceRenderer`) → `RefModPlace`
-  (Start/Length → `BoundExpr`) → `NumericImagePlace` → the leaves `MemberPlace`/`DynTablePlace` (fold)/`RedefViewPlace`/
-  `CapacityRegisterPlace` (with their `ReferenceResolver`/`CorrespondingBinder`/`InitializeBinder` construction sites)
-  → the binder-side C#-string leaks (`BoundSearch.DependCount` via `OdoModel.SearchBound`; the `CorrespondingBinder`
-  `m.Path.Contains("CobolTable.At(")` string-sniff → a structural has-index-segment query) → delete `Place.Read()/
-  Write()` + the R5 neutrality test.
-- **Subscripts become `BoundExpr` rendered by a DEDICATED byte-exact index renderer** in `PlaceRenderer`, NOT the
-  general `NumericRenderer` (which emits `Int128` scale-tracked arithmetic — wrong for an integer index). The index
-  renderer reproduces `ReferenceResolver.RenderSegment` exactly: integer literals verbatim, `+ - * /` with its
-  spacing, `CobolTable.Occ(<place>)` for a data-item subscript, the `long` index field for an `INDEXED BY` name.
-  Byte-exactness is gated by the 32 snapshots.
+  with no field change and no index need — `RenamesPlace` + `OdoGroupPlace`. **11c ✅** `RefModPlace` (render moved to
+  `PlaceRenderer`; Start/Length kept as the D10 transitional string carrier). **11d ✅** `NumericImagePlace` (unblocked
+  once `RefMod`/`Renames`, its only wrappers, were migrated). ALL FOUR DECORATORS DONE. NEXT: the leaf subtypes —
+  `MemberPlace` (the `.`-joined access path + `CobolTable.At` table accessors move to `PlaceRenderer`; the field-name
+  chain becomes a structural `AccessPath` of segments, each table segment carrying its subscript as the transitional
+  string), `DynTablePlace` (fold into the path with render-time Sending/Receiving polarity), `RedefViewPlace` (backing
+  → a structural backing-field access; offset the transitional string), `CapacityRegisterPlace` (whole-table path,
+  no subscript → fully structural) — with their `ReferenceResolver`/`CorrespondingBinder`/`InitializeBinder`
+  construction sites. Then the binder-side C#-string leaks (`BoundSearch.DependCount` via `OdoModel.SearchBound`; the
+  `CorrespondingBinder` `m.Path.Contains("CobolTable.At(")` string-sniff → a structural has-index-segment query) →
+  delete `Place.Read()/Write()` + the R5 neutrality test.
+- **⛔ Subscript index expressions stay a TRANSITIONAL STRING carrier (owner decision) — deferred to D10/PHASE 15.**
+  A subscript / ref-mod position is a flat SUBSCRIPT-mode token stream `ReferenceResolver.RenderSegment` renders to a
+  C# `long` expression; there is NO `BoundExpr` path for it, and the mechanism that would give one (removing the
+  SUBSCRIPT lexer mode) is the D10 sub-track owned by PHASE 15 §"CUT 2.5" (blocked until the legacy cutover).
+  Producing a `BoundExpr` subscript now would mean HAND-ROLLING a subscript parser — the very anti-pattern D10/Step 12
+  remove. So Step 11 moves the runtime-call text (`SpliceInto`/`RefMod`/`FormatDisplay`/`CobolTable.At`) and the
+  access-path composition off the bound tree into `PlaceRenderer` NOW, while a subscript index stays the rendered
+  `string` it is today (a `Place`/segment field, byte-exact); the subscript→`BoundExpr` conversion FOLDS INTO D10
+  when the flat-token mechanism is actually deleted. The R5 neutrality test is therefore scoped to string-returning
+  RENDER METHODS (which are gone), not the deferred subscript-string fields. (See `project_phase04_d10_deferral`.)
 - **`FixedTableSegment`/`DynTableSegment` carry NO fixed `AccessDir`** (refines the sketch): direction is
   operation-driven at render time — `PlaceRenderer.Read` picks `CobolTable.At`/`RefSending`, `PlaceRenderer.Write`
   picks `CobolTable.At`/`RefReceiving`. `DynTablePlace`'s two precomputed paths fold into ONE structural path; a fixed
