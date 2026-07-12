@@ -23,6 +23,14 @@ public abstract record Place
 
     /// <summary>A C# statement (with trailing <c>;</c>) that stores <paramref name="rhs"/> into the location.</summary>
     public abstract string Write(string rhs);
+
+    /// <summary>The tripwire a subtype whose rendering has moved to the backend's <c>CodeGen.PlaceRenderer</c>
+    /// (P7 Step 11 — structural <see cref="Place"/>) uses for its now-unreachable <see cref="Read"/>/<see cref="Write"/>:
+    /// every consumer renders through <c>PlaceRenderer</c>, so reaching a migrated subtype's own render method is an
+    /// internal error. These methods disappear entirely when the last subtype migrates (with the R5 neutrality test).</summary>
+    private protected static string RenderedElsewhere() =>
+        throw new InvalidOperationException(
+            "a structural Place is rendered by CodeGen.PlaceRenderer (P7 Step 11) — never Place.Read()/Write()");
 }
 
 /// <summary>
@@ -143,25 +151,10 @@ public sealed record RenamesPlace(IReadOnlyList<Place> Leaves, DataItem AliasIte
     public override DataItem Item => AliasItem;
 
     /// <inheritdoc/>
-    public override string Read() =>
-        Leaves.Count == 1 ? Leaves[0].Read() : "(" + string.Join(" + ", Leaves.Select(l => l.Read())) + ")";
+    public override string Read() => RenderedElsewhere();
 
     /// <inheritdoc/>
-    public override string Write(string rhs)
-    {
-        if (Leaves.Count == 1) return Leaves[0].Write(rhs);
-        int width = Leaves.Sum(l => l.Item.ImageWidth);
-        var sb = new System.Text.StringBuilder();
-        sb.Append($"{{ string __ren = CobolString.Store({rhs}, {width});");
-        int off = 0;
-        foreach (var l in Leaves)
-        {
-            int w = l.Item.ImageWidth;
-            sb.Append(' ').Append(l.Write($"__ren.Substring({off}, {w})"));
-            off += w;
-        }
-        return sb.Append(" }").ToString();
-    }
+    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
@@ -190,25 +183,13 @@ public sealed record OdoGroupPlace(
     Place Inner, Place Depending, int FixedChars, int ElemChars, int MaxOccurs, bool DependingInside)
     : PlaceDecorator(Inner)
 {
-    /// <summary>C# <c>int</c> expression: the operand's CURRENT character extent — the fixed prefix plus
-    /// data-name-1's value × the element width. The count is read at the operation site (GR8 — "at the start of
-    /// the operation") through <c>CobolTable.Occ</c> (storage-form-agnostic: native <c>long</c> or a
-    /// whole-group-aliased character image) and clamped benignly to [0, max]: a count outside
-    /// integer-1..integer-2 at reference time makes the excess content undefined (GR7) — EC-BOUND-ODO is the
-    /// 2002+ checked mode, the later EC slice (SSOT §11); COBOL-85 has no exception conditions.</summary>
-    public string LengthExpr =>
-        $"CobolTable.OdoExtent(CobolTable.Occ({Depending.Read()}), {MaxOccurs}, {FixedChars}, {ElemChars})";
-
-    /// <summary>The group's SENDING character image (ISO §13.18.38 GR8 — both quadrants send the current-count
-    /// part): the maximum image truncated to <see cref="LengthExpr"/> characters (a prefix, by SR22).</summary>
-    public string SendingImage() => $"{Inner.Read()}.AsImage().Substring(0, {LengthExpr})";
-
-    /// <summary>A complete receiving C# statement for the GR8a (depending-outside) quadrant: store
-    /// <paramref name="imageExpr"/> over the CURRENT extent only — splice it into the live image, leaving every
-    /// character position past the count unmodified (GR8a), then distribute back through the group's generated
-    /// <c>FromImage</c> (the §14.4 single image facility).</summary>
-    public string ReceiveInto(string imageExpr) =>
-        $"{Inner.Read()}.FromImage(CobolString.SpliceInto({Inner.Read()}.AsImage(), 1, {LengthExpr}, {imageExpr}));";
+    // The GR8 seams — the current character extent (LengthExpr), the sending-side prefix image (SendingImage), and
+    // the GR8a receiving splice (ReceiveInto) — are rendered by CodeGen.PlaceRenderer over this record's structure
+    // (Inner/Depending places + FixedChars/ElemChars/MaxOccurs). These stubs are unreachable (every consumer renders
+    // through PlaceRenderer) and disappear when structural Place is complete.
+    public string LengthExpr => RenderedElsewhere();
+    public string SendingImage() => RenderedElsewhere();
+    public string ReceiveInto(string imageExpr) => RenderedElsewhere();
 }
 
 /// <summary>
@@ -223,7 +204,8 @@ public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner)
     /// <remarks>The FormatDisplay/StoreDisplay overload sets are the storage-form BRIDGE (the
     /// <c>CobolTable.Occ</c> pattern): whether the field is a native long/Int128 or an image-stored string is
     /// decided by the post-bind whole-group analysis, AFTER this expression text is produced — C# overload
-    /// resolution picks the right conversion at backend-compile time.</remarks>
+    /// resolution picks the right conversion at backend-compile time. (Still legacy: migrated with RefModPlace,
+    /// which wraps it — a thrown Read() would break the un-migrated RefModPlace's internal Inner.Read().)</remarks>
     public override string Read() => $"CobolNum.FormatDisplay({Inner.Read()}, {Inner.Item.ProfileName})";
 
     /// <inheritdoc/>

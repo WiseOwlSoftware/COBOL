@@ -212,6 +212,12 @@ internal static class RuntimeApi
     public static string StrRefMod(string s, string start, string len) =>
         $"{nameof(CobolString)}.{nameof(CobolString.RefMod)}({s}, {start}, {len})";
 
+    /// <summary>Splice <paramref name="rhs"/> into <paramref name="s"/> at a 1-based start/length, preserving the
+    /// rest of the width — <c>CobolString.SpliceInto</c>. <paramref name="pad"/> is the optional fill-char argument
+    /// (a C# <c>char</c> literal, e.g. boolean-zero <c>'0'</c>); null emits the default space fill.</summary>
+    public static string StrSpliceInto(string s, string start, string len, string rhs, string? pad = null) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.SpliceInto)}({s}, {start}, {len}, {rhs}{(pad is null ? "" : $", pad: {pad}")})";
+
     /// <summary>The three-way alphanumeric comparison — <c>CobolString.Compare</c>. <paramref name="weightsArg"/>
     /// is the trailing collated-weights argument (", __COLLATE" / an inline table), possibly empty.</summary>
     public static string StrCompare(string a, string b, string weightsArg) =>
@@ -219,6 +225,11 @@ internal static class RuntimeApi
 
     /// <summary>An OCCURS-DEPENDING current count read — <c>CobolTable.Occ</c>.</summary>
     public static string TableOcc(string expr) => $"{nameof(CobolTable)}.{nameof(CobolTable.Occ)}({expr})";
+
+    /// <summary>The current CHARACTER extent of an occurs-depending GROUP operand (ISO §13.18.38 GR8) — the fixed
+    /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>.</summary>
+    public static string TableOdoExtent(string occ, int maxOccurs, int fixedChars, int elemChars) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.OdoExtent)}({occ}, {maxOccurs}, {fixedChars}, {elemChars})";
 
     // ── Keyed file I/O (CobolFile; ISO §14.9.10/.30/.35/.41/.51) ──
 

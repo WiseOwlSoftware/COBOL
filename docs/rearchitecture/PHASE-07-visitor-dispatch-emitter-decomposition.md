@@ -693,13 +693,24 @@ subtype.
   FIRST (each routing is byte-identical); THEN each subtype is converted to structure one at a time (its fields + an
   explicit `PlaceRenderer` arm + its construction sites in `ReferenceResolver`/`CorrespondingBinder`/
   `InitializeBinder`/`OdoModel`); FINALLY `Place.Read()/Write()` are deleted and the R5 neutrality test lands.
-- **Sub-step order:** 11a route all ~120 CodeGen consumers → `PlaceRenderer` (done incrementally). Then the
-  no-subscript subtypes (`NumericImagePlace`, `RenamesPlace`, `OdoGroupPlace` — pure decorators/composites over inner
-  `Place`s). Then the index infrastructure: the `AccessSegment`/`AccessPath` types + a token→`BoundExpr` subscript
-  builder in `ReferenceResolver` + a byte-exact **index renderer** in `PlaceRenderer`. Then `RefModPlace`,
-  `MemberPlace`, `DynTablePlace` (fold), `RedefViewPlace`, `CapacityRegisterPlace`. Then the binder-side C#-string
-  leaks (`BoundSearch.DependCount`, the `CorrespondingBinder` `m.Path.Contains("CobolTable.At(")` string-sniff →
-  a structural has-index-segment query) + delete `Read()/Write()` + the neutrality test.
+- **⛔ TOP-DOWN migration order (a load-bearing constraint).** An UN-migrated wrapper subtype renders by calling its
+  inner's `Place.Read()/Write()` directly (it is in `Binding`, so it CANNOT route through `PlaceRenderer`). Therefore a
+  subtype may replace its legacy `Read()/Write()` with the throwing tripwire ONLY once **nothing un-migrated wraps
+  it** — else the un-migrated wrapper's internal `Inner.Read()` hits the throw (this bit as NC224A: a still-legacy
+  `RefModPlace` over a `NumericImagePlace`). So migrate OUTERMOST-first down the wraps-DAG: top-level results
+  (`RefModPlace`, `RenamesPlace`, `OdoGroupPlace` — none is ever an `Inner`) → `NumericImagePlace` (wrapped only by
+  `RefMod`/`Renames`) → the leaves (`MemberPlace`, `RedefViewPlace`, `DynTablePlace`, `CapacityRegisterPlace`). A
+  migrated wrapper's `PlaceRenderer` arm routes its inner through `PlaceRenderer.Read`, so once every wrapper is
+  migrated no `Inner.Read()` chain reaches a leaf, and the leaves can change fields + drop their legacy render.
+- **Sub-step order:** **11a ✅** route all CodeGen consumers → `PlaceRenderer`. **11b ✅** the two top-level subtypes
+  with no field change and no index need — `RenamesPlace` + `OdoGroupPlace` (throw their legacy render; arms in
+  `PlaceRenderer`). NEXT: the index infrastructure (the `AccessSegment`/`AccessPath` types + a token→`BoundExpr`
+  subscript builder in `ReferenceResolver` + a byte-exact **index renderer** in `PlaceRenderer`) → `RefModPlace`
+  (Start/Length → `BoundExpr`) → `NumericImagePlace` → the leaves `MemberPlace`/`DynTablePlace` (fold)/`RedefViewPlace`/
+  `CapacityRegisterPlace` (with their `ReferenceResolver`/`CorrespondingBinder`/`InitializeBinder` construction sites)
+  → the binder-side C#-string leaks (`BoundSearch.DependCount` via `OdoModel.SearchBound`; the `CorrespondingBinder`
+  `m.Path.Contains("CobolTable.At(")` string-sniff → a structural has-index-segment query) → delete `Place.Read()/
+  Write()` + the R5 neutrality test.
 - **Subscripts become `BoundExpr` rendered by a DEDICATED byte-exact index renderer** in `PlaceRenderer`, NOT the
   general `NumericRenderer` (which emits `Int128` scale-tracked arithmetic — wrong for an integer index). The index
   renderer reproduces `ReferenceResolver.RenderSegment` exactly: integer literals verbatim, `+ - * /` with its
