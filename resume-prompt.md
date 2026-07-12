@@ -56,13 +56,15 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   (`Verbs/{Intrinsic,Udf}Binder` — the GR12 pair; CompileClock → IntrinsicBinder; injection surface stays
   host-side; PendingCount mark/drain seam). 10l `c49e7ab7` (`Verbs/ControlFlowBinder` — ONE class,
   recorded deviation from the three-class sketch). 10m `394003ef` (`Verbs/{Set,Search}Binder`). 10n ✅ (`Verbs/SetAlterBinder` — the last plain
-  verb). **RESUME AT 10o** (ConditionBinder + the .Boolean partial in the SAME batch — AbbrevCarry hoists
-  out of the god class; CheckedRelational stays THE one BoundRelational checkpoint; the six 1511 checks +
-  the relation SR bodies lift as PURE StatementValidation checks) then 10p (Arithmetic) → 10q
-  (ExpressionBinder — the expression-spine flip) → 10r (EcBinder + EcBindState on ctx) → 10s (OoBinder
-  LAST, behind the OO goldens + method-scope tests) → 10t (FINAL wiring: ProcedureTableBuilder + thin
-  StatementBinder + host-edge deletion + the full doc sweep) per the PHASE-07 §Step 10 **AS-BUILT PLAN
-  block** (census `wf_b788936b-ca2`, scratchpad p7-step10-census.json, session 61dab794). Standing rules for
+  verb). 10o `a733bb30` (`Verbs/ConditionBinder` — the whole
+  channel merged; deviations recorded: host forwarders [one-shot flip at 10t]; SR pure-lift deferred to the
+  10t sweep). **RESUME AT 10p** (ArithmeticBinder — CORR entries retarget CorrespondingBinder;
+  BindSizeError/Receivers/RoundingOf host edges until 10q; BindBoolExpr/Gr3Width via the new host
+  forwarders) then 10q (ExpressionBinder — the expression-spine flip) → 10r (EcBinder + EcBindState on ctx)
+  → 10s (OoBinder LAST, behind the OO goldens + method-scope tests) → 10t (FINAL wiring:
+  ProcedureTableBuilder + thin StatementBinder + host-edge deletion + the full doc sweep incl. the deferred
+  SR pure-lifts and the 1523 catalog normalization) per the PHASE-07 §Step 10 **AS-BUILT PLAN block**
+  (census `wf_b788936b-ca2`, scratchpad p7-step10-census.json, session 61dab794). Standing rules for
   the batches: SR checks lift to `StatementValidation` as PURE checks only (error+placeholder control flow
   stays in the verb binder); the residual ~19 inline edition gates move VERBATIM (pass-folding = Exec Step
   E); ProcedureTableBuilder at the 10t FINAL wiring (the `OoMethodScope` entanglement); OO LAST (10s)
