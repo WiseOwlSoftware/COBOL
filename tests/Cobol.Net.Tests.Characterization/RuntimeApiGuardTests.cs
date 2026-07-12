@@ -28,7 +28,7 @@ public sealed class RuntimeApiGuardTests
     private static readonly Dictionary<string, int> Baseline = new(StringComparer.OrdinalIgnoreCase)
     {
         ["CSharpEmitter.cs"] = 34,   // 74 − the 40 that moved with arithmetic (9h1); shrinks via 9i–9j
-        ["Verbs/ArithmeticEmitter.cs"] = 40,   // 9h1 mechanical split; 9h2 routes these through RuntimeApi
+        ["Verbs/ArithmeticEmitter.cs"] = 10,   // 9h2: fragments routed; residue = compile-time MaskScale + typed CobolRounding uses
         ["Verbs/MoveEmitter.cs"] = 3,   // 9g2: fragments routed; residue = the compile-time MaskScale call + 2 typed CobolRounding args
         ["Emit/IntrinsicRenderer.cs"] = 52,
         ["CSharpEmitter.Call.cs"] = 27,

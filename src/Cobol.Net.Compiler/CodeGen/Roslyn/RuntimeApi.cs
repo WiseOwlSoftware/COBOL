@@ -83,9 +83,43 @@ internal static class RuntimeApi
     public static string NumFromAlphanumeric(string image) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.FromAlphanumeric)}({image})";
 
-    /// <summary>Rescale an unscaled value between fraction scales under a rounding mode — <c>CobolNum.Rescale</c>.</summary>
-    public static string NumRescale(string value, string fromScale, string toScale, CobolRounding mode) =>
-        $"{nameof(CobolNum)}.{nameof(CobolNum.Rescale)}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
+    /// <summary>Rescale an unscaled value between fraction scales under a rounding mode — <c>CobolNum.Rescale</c>,
+    /// or the size-error-latching <c>CobolNum.RescaleChecked</c> when <paramref name="checkedPath"/>.</summary>
+    public static string NumRescale(string value, string fromScale, string toScale, CobolRounding mode, bool checkedPath = false) =>
+        $"{nameof(CobolNum)}.{(checkedPath ? nameof(CobolNum.RescaleChecked) : nameof(CobolNum.Rescale))}({value}, {fromScale}, {toScale}, {RoundingText(mode)})";
+
+    /// <summary>The §14.9.12 GR6c/GR7 scaled division — <c>CobolNum.Divide</c>, or the size-error-throwing
+    /// <c>CobolNum.DivideOrThrow</c> under a checked context.</summary>
+    public static string NumDivide(bool orThrow, string a, string aScale, string b, string bScale, string resultScale, CobolRounding mode) =>
+        $"{nameof(CobolNum)}.{(orThrow ? nameof(CobolNum.DivideOrThrow) : nameof(CobolNum.Divide))}({a}, {aScale}, {b}, {bScale}, {resultScale}, {RoundingText(mode)})";
+
+    /// <summary>The checked numeric store — <c>CobolNum.TryStore</c> (false = capacity/PROHIBITED failure; the
+    /// receiver stays unchanged, §14.7.5). <paramref name="argsFragment"/> is the pre-shaped value/scale/profile
+    /// argument run (fixed, Real-landed, or SDIDI overload).</summary>
+    public static string NumTryStore(string argsFragment, CobolRounding mode, string outVar) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.TryStore)}({argsFragment}, {RoundingText(mode)}, out var {outVar})";
+
+    /// <summary>The unchecked rounded store — the <c>CobolNum.Store</c> overload taking a rounding mode.</summary>
+    public static string NumStoreRounded(string argsFragment, CobolRounding mode) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Store)}({argsFragment}, {RoundingText(mode)})";
+
+    /// <summary>An SDIDI intermediate landed to an unscaled value — the instance <c>CobolDec.ToUnscaled</c>.</summary>
+    public static string DecToUnscaled(string decExpr, string scale, CobolRounding mode) =>
+        $"({decExpr}).{nameof(CobolDec.ToUnscaled)}({scale}, {RoundingText(mode)})";
+
+    /// <summary>A float value's inexactness probe at a fraction scale (the ROUNDED PROHIBITED gate, §14.7.5 r7)
+    /// — <c>CobolFloat.InexactAtScale</c>.</summary>
+    public static string FloatInexactAtScale(string value, string scale) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.InexactAtScale)}({value}, {scale})";
+
+    /// <summary>The capacity-checked edited format — <c>CobolEdit.TryFormat</c> (false = the aligned value's
+    /// significant digits exceed the mask, §14.7.5 case 3).</summary>
+    public static string EditTryFormat(string value, string scale, string maskLiteral, string imgVar, string cfgArgs) =>
+        $"{nameof(CobolEdit)}.{nameof(CobolEdit.TryFormat)}({value}, {scale}, {maskLiteral}, out var {imgVar}{cfgArgs})";
+
+    /// <summary>Resize a boolean value to the receiver's GR3 width — <c>CobolBool.Resize</c>.</summary>
+    public static string BoolResize(string value, string width) =>
+        $"{nameof(CobolBool)}.{nameof(CobolBool.Resize)}({value}, {width})";
 
     /// <summary>The emitted-text reference to a <see cref="CobolRounding"/> value — <c>nameof</c>-anchored so a
     /// member rename breaks HERE, never the generated text.</summary>

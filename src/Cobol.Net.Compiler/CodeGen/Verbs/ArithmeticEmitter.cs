@@ -96,15 +96,14 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // The SUBSIDIARY quotient is truncated to the GIVING receiver's digits/scale (ISO §14.9.12 GR6c) —
             // a DIRECT kernel call at EXACTLY the receiver scale, not the renderer's working-scale promotion
             // (which yields the quotient at the dividend's higher scale and poisons the remainder multiply).
-            string fn = ise ? "DivideOrThrow" : "Divide";
             string qt = $"__q{ctx.Names.NextStoreTmp()}";
-            w.Line($"Int128 {qt} = CobolNum.{fn}({dividend.Expr}, {dividend.Scale}, {divisor.Expr}, {divisor.Scale}, {qs}, CobolRounding.Truncation);");
+            w.Line($"Int128 {qt} = {RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", CobolRounding.Truncation)};");
             var product = new NumX($"({qt} * {divisor.Expr})", qs + divisor.Scale);
             NumX remainder = num.Combine(dividend, "-", product, rcv);   // GR7: dividend − subsidiaryQuotient × divisor
             StoreArith(d.Quotient.Place,
                 d.Quotient.Rounding == CobolRounding.Truncation
                     ? new NumX(qt, qs)
-                    : new NumX($"CobolNum.{fn}({dividend.Expr}, {dividend.Scale}, {divisor.Expr}, {divisor.Scale}, {qs}, CobolRounding.{d.Quotient.Rounding})", qs),
+                    : new NumX(RuntimeApi.NumDivide(ise, dividend.Expr, $"{dividend.Scale}", divisor.Expr, $"{divisor.Scale}", $"{qs}", d.Quotient.Rounding), qs),
                 d.Quotient.Rounding);
             StoreArith(d.Remainder, remainder, CobolRounding.Truncation);   // REMAINDER has no ROUNDED phrase
         });
@@ -114,12 +113,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>COMPUTE Format 2 — boolean-compute (ISO §14.9.8): render the boolean RHS ONCE, resize to the
     /// GR3 width (the max static boolean-ITEM positions in the expression; 0 = all-literal, no intermediate
     /// resize — the per-receiver store fits it), then store into each elementary boolean receiver with the
-    /// §14.6.8.6 left-align / zero-fill / truncate discipline (CobolString.Store, pad '0'; JUSTIFIED honored).
+    /// §14.6.8.6 left-align / zero-fill / truncate discipline (the string store, pad '0'; JUSTIFIED honored).
     /// A multi-receiver COMPUTE materializes the value once (the §14.7.7-shaped once-evaluation).</summary>
     public void EmitComputeBoolean(BoundComputeBoolean cb)
     {
         string value = BooleanRenderer.Render(cb.Rhs);
-        if (cb.Gr3Width > 0) value = $"CobolBool.Resize({value}, {cb.Gr3Width})";
+        if (cb.Gr3Width > 0) value = RuntimeApi.BoolResize(value, $"{cb.Gr3Width}");
         // One evaluation for multiple receivers (a boolean expr can read an item a prior receiver aliases).
         if (cb.Targets.Count > 1)
         {
@@ -132,7 +131,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             int width = t is RefModPlace ? -1 : t.Item.Pic?.Length ?? 0;
             string store = width < 0
                 ? value   // a ref-mod boolean receiver — the slice write fits via SpliceInto (pad '0')
-                : $"CobolString.Store({value}, {width}, justifiedRight: {(t.Item.Justified ? "true" : "false")}, pad: '0')";
+                : RuntimeApi.StrStoreBoolean(value, $"{width}", t.Item.Justified);
             ctx.Writer.Line(t.Write(store));
         }
     }
@@ -185,7 +184,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// flag is set by any per-receiver overflow (<c>TryStore</c> false — phase b, the other receivers still store,
     /// rule 2) or by a <c>CobolSizeError</c> raised during evaluation (e.g. a zero divisor — phase a, no receiver
     /// changes, rule 4); the ON / NOT ON SIZE ERROR imperative then runs once. With no phrase the stores run
-    /// unchecked (the plain <c>CobolNum.Store</c> path) — behavior unchanged.
+    /// unchecked (the plain <c>Store</c> path) — behavior unchanged.
     /// </summary>
     public void EmitArith(SizeErrorPhrase? sizeErr, Action<bool> emitStores)
     {
@@ -241,8 +240,8 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
 
     /// <summary>Store an arithmetic result into a numeric target place, rounding to the receiver scale with
     /// <paramref name="mode"/> (the receiver's ROUNDED phrase, ISO §14.7.4). Inside an ON SIZE ERROR statement
-    /// (<see cref="EcState.SizeErrVar"/> set) it uses the checked <c>CobolNum.TryStore</c> — on overflow / PROHIBITED-inexact
-    /// it sets the flag and leaves the receiver unchanged (§14.7.5); otherwise the plain <c>CobolNum.Store</c>.</summary>
+    /// (<see cref="EcState.SizeErrVar"/> set) it uses the checked <c>TryStore</c> — on overflow / PROHIBITED-inexact
+    /// it sets the flag and leaves the receiver unchanged (§14.7.5); otherwise the plain <c>Store</c>.</summary>
     public void StoreArith(Place target, NumX value, CobolRounding mode)
     {
         var w = ctx.Writer;
@@ -259,12 +258,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // the checked branch so all three receiver categories agree; the unchecked branch stays silent
             // (matching the numeric Store path's no-phrase behavior).
             string Aligned(bool checkedPath) =>
-                // A float (Real) result lands at the mask scale via CobolFloat.ToScaled with the receiver's ROUNDED
+                // A float (Real) result lands at the mask scale via the runtime's ToScaled with the receiver's ROUNDED
                 // mode (D16 review: the edited-receiver arithmetic path was missed by the Real integration → CS1503).
-                value.Real ? $"CobolFloat.ToScaled({value.Expr}, {ms}, CobolRounding.{mode})"
-                : value.Dec ? $"({value.Expr}).ToUnscaled({ms}, CobolRounding.{mode})"
+                value.Real ? RuntimeApi.FloatToScaled(value.Expr, $"{ms}", mode)
+                : value.Dec ? RuntimeApi.DecToUnscaled(value.Expr, $"{ms}", mode)
                 : value.Scale == ms ? value.Expr
-                : $"CobolNum.{(checkedPath ? "RescaleChecked" : "Rescale")}({value.Expr}, {value.Scale}, {ms}, CobolRounding.{mode})";
+                : RuntimeApi.NumRescale(value.Expr, $"{value.Scale}", $"{ms}", mode, checkedPath);
             // Under ON SIZE ERROR an edited resultant is capacity-checked too (ISO §14.7.5 case 3 + storing rule
             // 2): an aligned |value| exceeding the mask's digit positions sets the flag and leaves the receiver
             // UNCHANGED — Format's silent high-order truncation is MOVE behavior only (§14.9.25).
@@ -274,11 +273,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // EC-SIZE checking latches the Table 13 condition: a store whose significant digits do not fit
                 // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
                 string onFail = ecState.SizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
-                w.Line($"if (!CobolEdit.TryFormat({Aligned(true)}, {ms}, {CsLiteral(mask)}, out var {img}{BwzFlag(target.Item)}{EditCfg()})) {onFail}");
+                w.Line($"if (!{RuntimeApi.EditTryFormat(Aligned(true), $"{ms}", CsLiteral(mask), img, BwzFlag(target.Item) + EditCfg())}) {onFail}");
                 w.Line($"else {target.Write(img)}");
                 return;
             }
-            w.Line(target.Write($"CobolEdit.Format({Aligned(false)}, {ms}, {CsLiteral(mask)}{BwzFlag(target.Item)}{EditCfg()})"));
+            w.Line(target.Write(RuntimeApi.EditFormat(Aligned(false), $"{ms}", CsLiteral(mask), BwzFlag(target.Item) + EditCfg())));
             return;
         }
         // A float RECEIVER (COMP-1/2/FLOAT-*, D16) takes the algebraic value as a native cast — no PICTURE, no
@@ -295,12 +294,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             return;
         }
         string profile = target.Item.ProfileName;
-        // A float (Real) arithmetic result lands into this FIXED receiver via CobolFloat.ToScaled at the receiver
+        // A float (Real) arithmetic result lands into this FIXED receiver via the runtime's ToScaled at the receiver
         // scale with the receiver's ROUNDED mode (D16), then flows through the ordinary store funnel (rescale
         // identity ⇒ no double-rounding; capacity + SIZE ERROR still apply). A STANDARD-DECIMAL intermediate stores
         // through the SDIDI overloads (the §14.7 final transfer).
         int recvScale = target.Item.Pic!.Scale;
-        string valExprA = value.Real ? $"CobolFloat.ToScaled({value.Expr}, {recvScale}, CobolRounding.{mode})" : value.Expr;
+        string valExprA = value.Real ? RuntimeApi.FloatToScaled(value.Expr, $"{recvScale}", mode) : value.Expr;
         string args = value.Dec ? $"{value.Expr}, {profile}"
             : value.Real ? $"{valExprA}, {recvScale}, {profile}"
             : $"{value.Expr}, {value.Scale}, {profile}";
@@ -308,7 +307,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         {
             string tmp = $"__sv{ctx.Names.NextStoreTmp()}";
             // Intermediate long-engine overflow is detected upstream by the checked multiply the renderer emits in a
-            // size-error context (CobolNum.MulChecked → OverflowException, caught by the statement's try, §14.7.5
+            // size-error context (the checked multiply → OverflowException, caught by the statement's try, §14.7.5
             // case 5). We do NOT wrap the value in checked(...) here: a constant subexpression would then overflow at
             // COMPILE time (CS0220) and reject valid COBOL — the runtime helper avoids that by not constant-folding.
             // Under EC-SIZE checking the receiver-capacity failure latches EC-SIZE-TRUNCATION (Table 13 —
@@ -319,17 +318,17 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             // check cannot see it — gate on InexactAtScale first (D16 review finding).
             if (value.Real && mode == CobolRounding.Prohibited)
             {
-                w.Line($"if (CobolFloat.InexactAtScale({value.Expr}, {recvScale})) {onFail}");
-                w.Line($"else if (!CobolNum.TryStore({args}, CobolRounding.{mode}, out var {tmp})) {onFail}");
+                w.Line($"if ({RuntimeApi.FloatInexactAtScale(value.Expr, $"{recvScale}")}) {onFail}");
+                w.Line($"else if (!{RuntimeApi.NumTryStore(args, mode, tmp)}) {onFail}");
             }
             else
-                w.Line($"if (!CobolNum.TryStore({args}, CobolRounding.{mode}, out var {tmp})) {onFail}");
+                w.Line($"if (!{RuntimeApi.NumTryStore(args, mode, tmp)}) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
-            w.Line($"else {target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({tmp}, {profile})" : Narrow(tmp, target.Item))}");
+            w.Line($"else {target.Write(target.Item.StoreAsImage ? RuntimeApi.NumFormatDisplay(tmp, profile) : Narrow(tmp, target.Item))}");
             return;
         }
-        string stored = $"CobolNum.Store({args}, CobolRounding.{mode})";
-        w.Line(target.Write(target.Item.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {profile})" : Narrow(stored, target.Item)));
+        string stored = RuntimeApi.NumStoreRounded(args, mode);
+        w.Line(target.Write(target.Item.StoreAsImage ? RuntimeApi.NumFormatDisplay(stored, profile) : Narrow(stored, target.Item)));
     }
 
     /// <summary>The receiver's working scale: an edited receiver's is its MASK's fraction scale (a `.`-pointed
