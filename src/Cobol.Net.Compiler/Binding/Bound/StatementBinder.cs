@@ -54,6 +54,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private AcceptDisplayBinder Accept => _acceptBinder ??= new AcceptDisplayBinder(Ctx, this);
     private SortBinder? _sortBinder;
     private SortBinder Sort => _sortBinder ??= new SortBinder(Ctx, this, SeqIo);
+    private CallBinder? _callBinder;
+    private CallBinder Call => _callBinder ??= new CallBinder(Ctx, this);
     private CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
     private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
@@ -245,10 +247,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
         // the validator, its 85 semantics implemented via BoundStopLiteral).
         _ when s.stopStatement() is { } stop => BindStop(stop),
-        _ when s.gobackStatement() is { } gb => CallBindGoback(gb),   // §14.9.18 — called-program return; 2002+ gated
+        _ when s.gobackStatement() is { } gb => Call.BindGoback(gb),   // §14.9.18 — called-program return; 2002+ gated
         _ when s.invokeStatement() is { } inv => OoBindInvoke(inv),   // §14.9.23 — OO method invocation (2002+ grammar-gated)
-        _ when s.callStatement() is { } call => CallBindCall(call),
-        _ when s.cancelStatement() is { } cancel => CallBindCancel(cancel),
+        _ when s.callStatement() is { } call => Call.BindCall(call),
+        _ when s.cancelStatement() is { } cancel => Call.BindCancel(cancel),
         _ when s.entryStatement() is not null => new BoundUnsupported("ENTRY (ISO/IEC 1989 defines no ENTRY statement — vendor extension; interprogram design)"),
         // ENTER language-name [routine-name] (X3.23-1985 Nucleus, deleted by ISO 2002 — 0902-gated ≥2002 by
         // the version-conformance pass, VCR Table 7 row 7.16): comment-equivalent when only COBOL is supported — the

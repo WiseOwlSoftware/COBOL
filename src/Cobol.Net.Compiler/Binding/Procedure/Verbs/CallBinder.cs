@@ -1,79 +1,30 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Common;
-using CobolNet.Runtime;
-using CobolNet.Frontend.Generated;
-using CobolNet.Editions;
-
+using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Frontend.Generated;
+using CobolNet.Runtime;
 
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
-
-// ── Bound nodes — CALL / CANCEL / EXIT PROGRAM / GOBACK (ISO §14.9.4 / §14.9.5 / §14.9.14 / §14.9.18;
-//    COBOLNET_INTERPROGRAM_DESIGN D1–D4) ────────────────────────────────────────────────────────────────────────
-
-/// <summary>One CALL USING argument: its resolved pass mode (the §14.9.4.4 GR5 transitivity already applied at
-/// bind time), and either a resolved <see cref="Place"/> (a data-reference argument) or a bound
-/// <see cref="Value"/> operand (a literal — inherently BY CONTENT — or a BY VALUE expression, §14.9.4.3 SR4).</summary>
-public sealed record BoundCallArg(CobolPassMode Mode, Place? Place, BoundOperand? Value);
-
-/// <summary><c>CALL {literal|identifier} [USING …] [RETURNING …] [ON …][NOT ON …]</c> (ISO §14.9.4 Format 1).
-/// <paramref name="LiteralName"/> is the static target (SR2 — a non-zero-length alphanumeric literal);
-/// <paramref name="DynamicName"/> the runtime-resolved identifier target (GR3b). The exception phrases carry
-/// the bound imperatives; the OVERFLOW-vs-EXCEPTION spelling is edition-gated at bind time and semantically
-/// identical here (at 85 the only exception condition IS the resolution failure the OVERFLOW phrase catches).</summary>
-public sealed record BoundCallProgram(
-    string? LiteralName,
-    BoundOperand? DynamicName,
-    IReadOnlyList<BoundCallArg> Args,
-    Place? Returning,
-    IReadOnlyList<BoundStatement>? OnException,
-    IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement
-{
-    /// <summary>True when this node is the lowering of a user-defined FUNCTION reference (M2-UDF): a locate
-    /// miss stamps EC-FUNCTION-NOT-FOUND (Fatal, ISO §8.4.3.2.4 GR6b / Table 13) rather than the CALL's
-    /// EC-PROGRAM-NOT-FOUND. Runtime dispatch is otherwise identical (the shared activation ABI).</summary>
-    public bool IsFunction { get; init; }
-
-    /// <summary>True when this CALL was written with the archaic ON OVERFLOW spelling (in either the ON or the NOT
-    /// ON phrase) — the COBOL-74-carried synonym for ON EXCEPTION, REMOVED at ISO 2023 (Annex E.2 item 1c). The
-    /// edition gate reads this in <see cref="Validation.VersionConformancePass"/> (rearch PHASE-03 Step 14d); the
-    /// bound handlers are otherwise identical to the ON EXCEPTION form.</summary>
-    public bool UsedOverflowSpelling { get; init; }
-}
-
-/// <summary><c>CANCEL {literal|identifier}…</c> (ISO §14.9.5): each target's next CALL finds its initial state
-/// (GR3); contained programs cascade in reverse source order (GR4); open files close implicitly (GR9).</summary>
-public sealed record BoundCancel(
-    IReadOnlyList<(string? LiteralName, BoundOperand? DynamicName)> Targets) : BoundStatement;
-
-/// <summary><c>EXIT PROGRAM [RAISING …]</c> (ISO §14.9.14 Format 2): in a program NOT under the control of a
-/// calling runtime element it is equivalent to CONTINUE (GR2 — "no exception condition is raised even if the
-/// RAISING phrase is specified"); in a called program it returns to the activator per the GOBACK rules (GR3),
-/// staging <paramref name="Raising"/> for re-raise in the activator. The distinction is a RUNTIME property of
-/// the activation, so the bound node is unconditional and the emitted code tests the activation flag.
-/// (Archaic at 2023 — Annex F.1; flagged, not rejected.)</summary>
-public sealed record BoundExitProgram(BoundRaising? Raising = null) : BoundStatement;
-
-/// <summary><c>GOBACK [RETURNING x] [RAISING …]</c> (ISO §14.9.18): terminates the executing program — return to
-/// the caller in a called program (GR2), STOP-equivalent in a main program (GR3). <paramref name="ReturningSource"/>
-/// moves into the procedure-division RETURNING item before return (the activation result, GR2);
-/// <paramref name="Raising"/> stages an exception condition for re-raise in the activator. COBOL-2002+.</summary>
-public sealed record BoundGoback(Place? ReturningSource, BoundRaising? Raising = null) : BoundStatement;
 
 /// <summary>
 /// The CALL / inter-program slice of the binder (ISO §14.9.4 / §14.9.5 / §14.9.18; deep-dive design
 /// COBOLNET_INTERPROGRAM_DESIGN). All semantic resolution happens here ONCE — target form, the GR5 transitive
 /// pass-mode threading, the receiving-operand checks, and the per-edition gates (the G1 four-compilers rule:
 /// the complete behavior where the edition HAS the construct, a targeted COBOLNET-08xx diagnostic where it
-/// lacks it — see the deep-dive "Edition gating" section).
-/// </summary>
-public sealed partial class StatementBinder
+/// lacks it — see the deep-dive "Edition gating" section). P7 Step 10j: a real collaborator over
+/// <see cref="BinderContext"/>; the two hooks that outlive the batch stay HOST edges — <c>InMethod</c>/
+/// <c>OoBindMethodGoback</c> (the OO half converts LAST, 10s) and <c>EcBindRaising</c> (EcBinder lands 10r).
+/// The 0884/0880 gates moved VERBATIM incl. the 0880 bare-GOBACK null-condition that encodes the
+/// 0900-subsumption contract with the VersionConformancePass. The five bound types stayed in
+/// <c>Binding/Bound/BoundCall.cs</c>.</summary>
+internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind <c>CALL</c> (ISO §14.9.4 Format 1; design D2 — the uniform opaque ABI call).</summary>
-    private BoundStatement CallBindCall(Core.CallStatementContext call)
+    public BoundStatement BindCall(Core.CallStatementContext call)
     {
         // ── Target: literal (static) or identifier (dynamic, resolved at run time — GR3b) ──
         string? literalName = null;
@@ -91,7 +42,7 @@ public sealed partial class StatementBinder
         }
         else if (target.dataReference() is { } dref)
         {
-            if (refs.Resolve(dref) is not { } place)
+            if (ctx.Refs.Resolve(dref) is not { } place)
                 return new BoundUnsupported($"CALL target '{dref.GetText()}'");
             dynamicName = new BoundFieldOperand(place);
         }
@@ -108,7 +59,7 @@ public sealed partial class StatementBinder
             if (a.callByReference() is { } byRef)
             {
                 mode = CobolPassMode.Reference;
-                if (refs.Resolve(byRef.dataReference()) is not { } p)
+                if (ctx.Refs.Resolve(byRef.dataReference()) is not { } p)
                     return new BoundUnsupported($"CALL USING argument '{byRef.dataReference().GetText()}'");
                 args.Add(new BoundCallArg(CobolPassMode.Reference, p, null));
             }
@@ -116,8 +67,8 @@ public sealed partial class StatementBinder
             {
                 mode = CobolPassMode.Content;
                 if (byContent.literal() is { } clit)
-                    args.Add(new BoundCallArg(CobolPassMode.Content, null, LiteralOperand(clit)));
-                else if (byContent.dataReference() is { } cdref && refs.Resolve(cdref) is { } cp)
+                    args.Add(new BoundCallArg(CobolPassMode.Content, null, host.LiteralOperand(clit)));
+                else if (byContent.dataReference() is { } cdref && ctx.Refs.Resolve(cdref) is { } cp)
                     args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));
                 else
                     return new BoundUnsupported($"CALL USING BY CONTENT argument '{byContent.GetText()}'");
@@ -128,12 +79,12 @@ public sealed partial class StatementBinder
                 // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
                 mode = CobolPassMode.Value;
                 args.Add(new BoundCallArg(CobolPassMode.Value, null,
-                    new BoundComputedOperand(BindExpr(byValue.arithmeticExpression()))));
+                    new BoundComputedOperand(host.BindExpr(byValue.arithmeticExpression()))));
             }
             else if (a.dataReference() is { } bare)
             {
                 // A bare argument takes the prevailing transitive mode (GR5).
-                if (refs.Resolve(bare) is not { } bp)
+                if (ctx.Refs.Resolve(bare) is not { } bp)
                     return new BoundUnsupported($"CALL USING argument '{bare.GetText()}'");
                 args.Add(new BoundCallArg(mode, bp, null));
             }
@@ -144,11 +95,11 @@ public sealed partial class StatementBinder
         Place? returning = null;
         if (call.callReturningPhrase() is { } rp)
         {
-            if (data.Edition.DialectLevel < 2002)
-                data.Edition.Error("COBOLNET0884",
+            if (ctx.Edition.DialectLevel < 2002)
+                ctx.Edition.Error("COBOLNET0884",
                     "CALL … RETURNING was introduced by ISO/IEC 1989:2002 (§14.9.4) — requires --std 2002 or "
-                    + $"later (targeting COBOL-{data.Edition.DialectLevel})");
-            if (refs.Resolve(rp.dataReference()) is not { } rpl)
+                    + $"later (targeting COBOL-{ctx.Edition.DialectLevel})");
+            if (ctx.Refs.Resolve(rp.dataReference()) is not { } rpl)
                 return new BoundUnsupported($"CALL RETURNING '{rp.dataReference().GetText()}'");
             returning = rpl;
         }
@@ -162,12 +113,12 @@ public sealed partial class StatementBinder
         if (call.callOnExceptionPhrase() is { } onp)
         {
             usedOverflow |= onp.OVERFLOW() is not null;
-            onExc = BindBlocks([onp.statementBlock()]);
+            onExc = host.BindBlocks([onp.statementBlock()]);
         }
         if (call.callNotOnExceptionPhrase() is { } notp)
         {
             usedOverflow |= notp.OVERFLOW() is not null;
-            notOnExc = BindBlocks([notp.statementBlock()]);
+            notOnExc = host.BindBlocks([notp.statementBlock()]);
         }
 
         // ON OVERFLOW is the COBOL-74-carried synonym for ON EXCEPTION, REMOVED at ISO 2023; the edition gate
@@ -179,7 +130,7 @@ public sealed partial class StatementBinder
     }
 
     /// <summary>Bind <c>CANCEL {literal|identifier}…</c> (ISO §14.9.5 — targets resolved like CALL's, §8.4.6.3).</summary>
-    private BoundStatement CallBindCancel(Core.CancelStatementContext cancel)
+    public BoundStatement BindCancel(Core.CancelStatementContext cancel)
     {
         var targets = new List<(string?, BoundOperand?)>();
         foreach (var t in cancel.cancelTarget())
@@ -193,7 +144,7 @@ public sealed partial class StatementBinder
             }
             else if (t.dataReference() is { } dref)
             {
-                if (refs.Resolve(dref) is not { } p)
+                if (ctx.Refs.Resolve(dref) is not { } p)
                     return new BoundUnsupported($"CANCEL target '{dref.GetText()}'");
                 targets.Add((null, new BoundFieldOperand(p)));
             }
@@ -205,29 +156,29 @@ public sealed partial class StatementBinder
     /// 1989:2002 — at <c>--std 85</c> it is rejected with a targeted diagnostic (the G1 lacks-it obligation;
     /// COBOL-85 programs use STOP RUN / EXIT PROGRAM). The 2023-only WITH ERROR/NORMAL STATUS phrase is not in
     /// the grammar yet (VERSION_CHANGE_REFERENCE row 75 — a later slice with the §12 RETURN-CODE wiring).</summary>
-    private BoundStatement CallBindGoback(Core.GobackStatementContext g)
+    public BoundStatement BindGoback(Core.GobackStatementContext g)
     {
-        if (InMethod) return OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
+        if (host.InMethod) return host.OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
         // GOBACK itself is a COBOL-2002 introduction (COBOLNET0880). The RETURNING phrase's edition gate moved to
         // the post-bind VersionConformancePass (Step 14c; GobackReturning2002 → COBOLNET0900 on
         // BoundGoback.ReturningSource); when RETURNING is present its more-specific 0900 subsumes the 0880 — so the
         // 0880 introduction gate below fires only for a BARE GOBACK below 2002 (a GOBACK RETURNING yields exactly
         // one diagnostic, the pass's 0900).
-        if (g.dataReference() is null && data.Edition.DialectLevel < 2002)
-            data.Edition.Error("COBOLNET0880",
+        if (g.dataReference() is null && ctx.Edition.DialectLevel < 2002)
+            ctx.Edition.Error("COBOLNET0880",
                 "GOBACK was introduced by ISO/IEC 1989:2002 (§14.9.16 there; §14.9.18 in 2023) — COBOL-85 uses "
-                + $"STOP RUN / EXIT PROGRAM; requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
+                + $"STOP RUN / EXIT PROGRAM; requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
         Place? source = null;
         if (g.dataReference() is { } dref)
         {
             // GOBACK RETURNING x ≡ move x into the procedure-division RETURNING item, then return (§14.9.18 GR2
             // — the activation result; the grammar already 2002-gates the phrase).
-            if (refs.Resolve(dref) is not { } p)
+            if (ctx.Refs.Resolve(dref) is not { } p)
                 return new BoundUnsupported($"GOBACK RETURNING '{dref.GetText()}'");
             source = p;
         }
         if (g.raisingPhrase() is { } raising)
-            return EcBindRaising(raising, g.Start.Line, "GOBACK") is { } r
+            return host.EcBindRaising(raising, g.Start.Line, "GOBACK") is { } r
                 ? new BoundGoback(source, r)
                 : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
         return new BoundGoback(source);

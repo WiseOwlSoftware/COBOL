@@ -180,7 +180,7 @@ public sealed partial class StatementBinder
 
     /// <summary>Bind a RAISING phrase. Returns null for the identifier (exception-object) form — the caller
     /// degrades to a loud placeholder until the OO wave.</summary>
-    private BoundRaising? EcBindRaising(Core.RaisingPhraseContext raising, int line, string verb)
+    internal BoundRaising? EcBindRaising(Core.RaisingPhraseContext raising, int line, string verb)
     {
         if (data.Edition.DialectLevel < 2002)
             data.Edition.Error("COBOLNET0879",

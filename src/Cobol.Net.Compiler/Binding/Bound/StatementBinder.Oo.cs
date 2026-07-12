@@ -128,7 +128,7 @@ public sealed partial class StatementBinder
 
     /// <summary>True while binding a statement inside a METHOD body — the D8 context switch (GOBACK →
     /// method return; EXIT PROGRAM → §14.9.14.3 SR7 violation).</summary>
-    private bool InMethod => _currentMethodScope is not null;
+    internal bool InMethod => _currentMethodScope is not null;
 
     /// <summary>Drain THIS statement's pending object-property ops (registered by the ReferenceResolver
     /// fallback while the statement bound) into the §8.4.3.9.4 GR1–GR3 desugar: classify each temp's store
@@ -1050,7 +1050,7 @@ public sealed partial class StatementBinder
     /// site. The RETURNING-item delivery is the method entry's job (slice 2 — no formals yet); GOBACK's own
     /// phrases in a method context stage loud (RAISING → the EC-OO slice; the RETURNING/GIVING and 2023
     /// status phrases are activation-result forms that do not apply to a method return).</summary>
-    private BoundStatement OoBindMethodGoback(Core.GobackStatementContext g)
+    internal BoundStatement OoBindMethodGoback(Core.GobackStatementContext g)
     {
         if (g.dataReference() is not null)
             return new BoundUnsupported("GOBACK with a RETURNING/GIVING phrase inside a method "

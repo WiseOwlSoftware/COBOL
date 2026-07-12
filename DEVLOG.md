@@ -13,6 +13,20 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 820 — 2026-07-11 20:21 PDT — P7 Step 10j: `Verbs/CallBinder`
+
+**What (the AS-BUILT PLAN's 10j batch).** CALL/CANCEL/GOBACK over `(ctx, host)`, with the two hooks that
+OUTLIVE the batch kept as host edges exactly as planned: `InMethod`/`OoBindMethodGoback` (the OO half
+converts LAST at 10s) and `EcBindRaising` (EcBinder lands at 10r) — all three made internal on their
+partials. The 0884 (CALL RETURNING <2002) and 0880 (bare GOBACK <2002) gates moved VERBATIM, including the
+0880 `dataReference() is null` condition that encodes the 0900-subsumption contract with the
+VersionConformancePass (a GOBACK RETURNING below 2002 yields exactly ONE diagnostic — the pass's). The five
+bound types (BoundCallArg/BoundCallProgram/BoundCancel/BoundExitProgram/BoundGoback) → records-only
+`BoundCall.cs` (Udf cross-constructs BoundCallProgram; the pass reads UsedOverflowSpelling).
+
+**Verify.** Sln Debug clean; 33 characterization (32 snapshots byte-exact) · 281 unit · 3166 conformance —
+verdicts read as separate actions.
+
 ## Entry 819 — 2026-07-11 20:16 PDT — P7 Step 10i: `Verbs/SortBinder`
 
 **What (the AS-BUILT PLAN's 10i batch).** SORT (file + table F2) / MERGE / RELEASE / RETURN as one class
