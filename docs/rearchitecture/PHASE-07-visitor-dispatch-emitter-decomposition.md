@@ -600,6 +600,53 @@ Incremental — one verb group per sub-commit.
 
 Incremental — one collaborator/verb group per sub-commit.
 
+> **AS-BUILT PLAN (Exec Step D, 2026-07-11 — decision-complete, from the fresh 20-file coupling census
+> `wf_b788936b-ca2`; the full per-file census is `p7-step10-census.json`, session 61dab794; supersedes the
+> sketch below where noted). Landed so far: 10a `34410d7f` (SymbolTable residuals) · 10b `a01b5c77`
+> (`PhraseBlocks`). Batch sequence (each battery-1+2+4-green + verdict-gated; Step-9-style transitional host
+> edges through `StatementBinder`, deleted at the final wiring):**
+> - **10c** `BinderContext` + `StatementValidation` scaffolds + `Verbs/InspectBinder` (the census's cleanest
+>   file proves the pattern; 0846/0847 error-halves lift as PURE checks; the 0845 BACKWARD gate moves
+>   VERBATIM). **10d** StringUnstring + Evaluate (pure leaves). **10e** Initialize + Move (absorbs
+>   .MoveFigurative — the `MarkImageForced` firing points move verbatim) + Corresponding (the ONE
+>   `_corrCounter` owner; its `:219` ≥2002 pair-selection window STAYS in-binder — BEHAVIORAL semantics, not
+>   a gate; documented as a sanctioned in-binder edition read). **10f** ReportWriter + the ResolveReceiving
+>   hoist. **10g** FileLock + Ptr (the raw `PtrResolveBased` ByName bypass stays byte-identical — the Symbols
+>   convergence is a FLAGGED follow-up, like DEVLOG 773). **10h** SequentialIo + KeyedIo as ONE batch (the
+>   emitter-mirror cycle) + the SPECIAL-NAMES mnemonic registry onto ctx + AcceptDisplayBinder detaches from
+>   the partial class. **10i** Sort. **10j** Call (Oo/Ec host hooks outlive the batch). **10k** Intrinsic +
+>   Udf together (bidirectional §12.3.8.2 GR12 coupling; the D8 catalog windows + the documented
+>   `ConstructRegistry.Check` exception move VERBATIM; `CompileClock` relocates with same-commit test
+>   updates; the recursive-descent arg parser stays one block for Step 12's deletion). **10l** Perform + If +
+>   ControlFlow (the audit-extension class mirroring `ControlFlowEmitter` — topology row added). **10m** Set +
+>   Search. **10n** SetAlter (the lazy ALTER prepass reads the procedure table via host edges until 10t).
+>   **10o** `ConditionBinder` + the .Boolean partial in the SAME batch (bidirectional; `AbbrevCarry` hoists;
+>   `CheckedRelational` stays THE one checkpoint; the 1511 checks + relation SR bodies lift as pure checks).
+>   **10p** Arithmetic. **10q** `ExpressionBinder` — the expression-spine flip (operand + receiving families;
+>   `CheckLiteral` carries its digit-cap window AS-IS — the sanctioned binder-side pattern). **10r** `EcBinder` +
+>   `EcBindState` on ctx (the 7 feature bits + PD-RAISING + `_declEcPairs`; `EcWrap` still invoked at the host
+>   BindStatement exit; the hand-rolled intrinsic-presence walks move verbatim, generated-visitor conversion
+>   FLAGGED as a behavior-sensitive follow-up). **10s** `OoBinder` LAST behind the OO goldens + method-scope
+>   tests: scoped `ctx.EnterMethodScope` replaces the ambient ordered quadruple mutation; the OO host state
+>   stays behind `IOoBindHost` until P9. **10t** FINAL WIRING — `ProcedureTableBuilder` (+ the .Declaratives
+>   half) as ONE table+cursor model (`SectionInfo` hoists; the `_paras ∥ _paraSection ∥ _paraMethod` lockstep
+>   preserved), thin StatementBinder = dispatch switch + mark/drain wrap protocol + composition root, ALL host
+>   edges deleted, full doc sweep (topology reconciliation per [[feedback_propagate_reconciliations]]:
+>   `.Boolean`→ConditionBinder and `.Exceptions`→EcBinder — the phase doc wins over the stale topology row;
+>   If/Evaluate stay SEPARATE).
+> **BinderContext as-built shape** (supersedes the sketch's `Parse`/`SymbolTableBuilder`/`IDiagnosticSink`
+> names): ONE per unit/class-roster; CORE = `Data` (DataBinder) · `Refs` · `Edition => Data.Edition` (the ONE
+> sink AND edition surface — EditionContext as-built) · `Symbols => Data.Symbols` · `ActiveScope`
+> (recomputed per read, never captured) · `Options => Data.Options` · `InNestedProgram`; PER-UNIT STATE =
+> `EcBindState` · `BindCursor` (CurrentBindPc/CurrentSection/CurrentMethodScope — one cursor model; scoped
+> EnterMethodScope at 10s; table ownership → ProcedureTableBuilder at 10t) · the OO host state behind
+> `IOoBindHost` · `MnemonicRegistry` (10h); SPINE SERVICES as transitional host delegates flipped per batch
+> (`Blocks`/`Expr`/`Cond`/`ResolveProcedure`/`EcWrap`); COLLABORATOR HANDLES registered as they land (ONE
+> instance each — counters/memos are per-unit lifetime). **StatementValidation convention (fixed at 10c):**
+> `Check*` methods report to `ctx.Edition` and return bool — the verb binder owns the error+placeholder
+> control flow (PURE checks only lift). **Residual edition gates move VERBATIM with their verbs — the
+> pass-folding is Exec Step E's scope (recorded; the census enumerates the ~19 sites).**
+
 - **Files:** create `Binding/Procedure/{BinderContext, ProcedureTableBuilder, ExpressionBinder, ConditionBinder, PhraseBlocks}.cs`,
   `Binding/Procedure/Verbs/*Binder.cs`, `Binding/Validation/StatementValidation.cs`; move the 21 `StatementBinder.*`
   partials into these classes.
