@@ -283,7 +283,7 @@ public sealed partial class CSharpEmitter
         {
             foreach (string line in headerExtras ?? [])
                 w.Line(line);
-            var fields = new FieldEmitter(_ctx);
+            var fields = new DataEmitter(_ctx);
             fields.Emit();   // WS → INSTANCE fields (D3/D11); method WS → statics; VALUE inits = field initializers (D4)
             EmitExternalBackings(data, w);       // M2-OO-1i inc 5: a class EXTERNAL FD record → the shared run-unit cell
             _reportWriter.EmitReportMembers(w);              // M2-OO-1i review: a class REPORT SECTION's engine fields + compose methods (Report Writer is complete)
@@ -469,7 +469,7 @@ public sealed partial class CSharpEmitter
     /// default. The exit-bounded slice is the trap-#4 guard; a group formal crosses as its character image
     /// (the CALL-boundary discipline — a caller's group struct TYPE differs from the method's).
     /// </summary>
-    private void OoEmitMethod(BoundProgram bound, OoMethodSymbol m, FieldEmitter fields, CodeWriter w)
+    private void OoEmitMethod(BoundProgram bound, OoMethodSymbol m, DataEmitter fields, CodeWriter w)
     {
         var (retType, sig) = OoSignatureOf(m);
         if (m.PropertySubject is { } subject)
@@ -599,7 +599,7 @@ public sealed partial class CSharpEmitter
             : "";
         using (w.Block($"public interface {iface.CsName}{bases}"))
         {
-            new FieldEmitter(_ctx).Emit();   // profiles + struct types only (LINKAGE roots are suppressed)
+            new DataEmitter(_ctx).Emit();   // profiles + struct types only (LINKAGE roots are suppressed)
             foreach (var proto in iface.Prototypes)
             {
                 var (retType, sig) = OoSignatureOf(proto);

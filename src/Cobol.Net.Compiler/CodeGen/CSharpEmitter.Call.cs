@@ -166,7 +166,7 @@ public sealed partial class CSharpEmitter
             foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
             {
                 // The seed is the SAME VALUE-honoring image expression the Tier-B stored backing uses.
-                string seed = $"CobolString.Store({new FieldEmitter(_ctx).ImageInitOf(canonical)}, {cellWidth})";
+                string seed = $"CobolString.Store({new DataEmitter(_ctx).ImageInitOf(canonical)}, {cellWidth})";
                 w.Line($"private readonly StorageCell {cellField} = new StorageCell {{ Ref = {seed} }};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
                 w.Line($"private ref string {backing} => ref {cellField}.Ref;");
             }
@@ -176,7 +176,7 @@ public sealed partial class CSharpEmitter
                 w.Line($"private ref string {backing} => ref CobolPtr.Deref({addrField}, {width}).Ref;   // BASED deref bridge (GR3/GR4 loud)");
             }
 
-            new FieldEmitter(_ctx).Emit();
+            new DataEmitter(_ctx).Emit();
 
             foreach (var (f, _, isNum) in formals)
             {

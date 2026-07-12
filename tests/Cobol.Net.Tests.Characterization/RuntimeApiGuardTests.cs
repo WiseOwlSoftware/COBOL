@@ -40,7 +40,13 @@ public sealed class RuntimeApiGuardTests
         ["Verbs/KeyedIoEmitter.cs"] = 2,
         ["Verbs/SortEmitter.cs"] = 1,
         ["Emit/NumericRenderer.cs"] = 25,
-        ["Emit/FieldEmitter.cs"] = 24,
+        // Emit/FieldEmitter.cs split 5-ways into DataDivision/ at Step 9l (24 redistributed exactly);
+        // the residual fragments route in the 9-final ratchet sweep.
+        ["DataDivision/GroupImageCodec.cs"] = 15,
+        ["DataDivision/ValueInitializer.cs"] = 5,
+        ["DataDivision/PhysicalModel.cs"] = 2,
+        ["DataDivision/RecordStructEmitter.cs"] = 1,
+        ["DataDivision/GroupValueSlicer.cs"] = 1,
         ["Emit/ConditionRenderer.cs"] = 21,
         ["CSharpEmitter.Oo.cs"] = 17,
         // The Step-9d extractions: fragments are RuntimeApi-routed; the residues below are TYPED compile-time
