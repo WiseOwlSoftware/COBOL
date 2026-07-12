@@ -286,7 +286,7 @@ public sealed partial class StatementBinder
     {
         if (rel.dataReference() is not { } rn || refs.Resolve(rn) is not { } record)
             return new BoundUnsupported($"RELEASE record '{rel.dataReference()?.GetText()}' (unresolvable record-name)");
-        if (FileOfRecord(record) is not { } file || !file.IsSortMerge)
+        if (SeqIo.FileOfRecord(record) is not { } file || !file.IsSortMerge)
             return new BoundUnsupported($"RELEASE record '{rn.GetText()}' is not a record of a sort-merge "
                 + "description entry (ISO §14.9.32.3 SR1)");
         BoundOperand? from = null;
@@ -299,7 +299,7 @@ public sealed partial class StatementBinder
                 data.Edition.Error("COBOLNET0871", "RELEASE … FROM literal-1 — ANSI X3.23-1985 allows only an "
                     + "identifier as the FROM operand (ISO/IEC 1989:2023 §14.9.32.2 adds the literal); it requires "
                     + $"--std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
-            from = WriteSource(rf.dataReference(), rf.literal());
+            from = SeqIo.WriteSource(rf.dataReference(), rf.literal());
         }
         // The released length is the NAMED record's own description size (a shorter secondary 01 of a multi-01 SD
         // releases at its own length; §14.9.40 GR7c space-fills a short record into a fixed-length sort file).

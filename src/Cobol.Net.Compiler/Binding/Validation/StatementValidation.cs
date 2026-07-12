@@ -162,4 +162,44 @@ internal sealed class StatementValidation(DataBinder data)
             $"INITIALIZE '{name}' — identifier-1 shall not have a RENAMES clause (ISO §14.9.20.3 SR5)");
         return false;
     }
+
+    // ── Sequential file I/O (ISO §14.9.27 / §14.9.51) — lifted at 10h ───────────────────────────────────────
+
+    /// <summary>§14.9.27 SR8 — OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.</summary>
+    public bool CheckOpenSharingAllOther(FileModel file, SharingMode? effectiveSharing)
+    {
+        if (!(effectiveSharing is SharingMode.AllOther && file.LockMode is null)) return true;
+        data.Edition.Error("COBOLNET1512", $"OPEN of file '{file.CobolName}' with SHARING WITH ALL OTHER "
+            + "requires the file to have a LOCK MODE clause (ISO §14.9.27 SR8)");
+        return false;
+    }
+
+    /// <summary>§14.9.51 SR19 (the silent-drop bug class) — the END-OF-PAGE / NOT END-OF-PAGE phrase requires
+    /// a LINAGE clause in the file's file description entry.</summary>
+    public bool CheckWriteEopLinage(FileModel file)
+    {
+        if (file.Linage is not null) return true;
+        data.Edition.Error("COBOLNET0860", $"WRITE … END-OF-PAGE on file '{file.CobolName}', whose file "
+            + "description entry has no LINAGE clause (ISO §14.9.51 SR19)");
+        return false;
+    }
+
+    /// <summary>§14.9.51 SR18 — ADVANCING PAGE and END-OF-PAGE shall not both be specified in one WRITE.</summary>
+    public bool CheckWriteEopAdvancingPage(bool advancingPage)
+    {
+        if (!advancingPage) return true;
+        data.Edition.Error("COBOLNET0861", "WRITE … ADVANCING PAGE with an END-OF-PAGE phrase: the two "
+            + "shall not both be specified in a single WRITE statement (ISO §14.9.51 SR18)");
+        return false;
+    }
+
+    /// <summary>§14.9.51 SR13 — with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES
+    /// mnemonic (the caller resolves the mnemonic test through the per-unit registry).</summary>
+    public bool CheckWriteAdvancingMnemonic(FileModel file, bool advancingNamesMnemonic)
+    {
+        if (!(file.Linage is not null && advancingNamesMnemonic)) return true;
+        data.Edition.Error("COBOLNET0862", $"WRITE … ADVANCING mnemonic-name on file '{file.CobolName}', whose "
+            + "file description entry contains a LINAGE clause (ISO §14.9.51 SR13)");
+        return false;
+    }
 }

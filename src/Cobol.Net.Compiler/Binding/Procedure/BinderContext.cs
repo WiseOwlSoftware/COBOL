@@ -44,4 +44,8 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// <see cref="Edition"/> and returns the verdict; the verb binder owns all error+placeholder control
     /// flow).</summary>
     public StatementValidation Validation { get; } = new(data);
+
+    /// <summary>The per-unit SPECIAL-NAMES mnemonic registry (10h — ACCEPT-FROM and the WRITE SR13 /
+    /// ADVANCING zero-advance legs share the ONE lazily built map).</summary>
+    public MnemonicRegistry Mnemonics { get; } = new();
 }

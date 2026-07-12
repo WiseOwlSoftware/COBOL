@@ -46,6 +46,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private FileLockBinder FileLock => _fileLockBinder ??= new FileLockBinder(Ctx, this);
     private PtrBinder? _ptrBinder;
     private PtrBinder Ptr => _ptrBinder ??= new PtrBinder(Ctx, this);
+    private KeyedIoBinder? _keyedIoBinder;
+    private KeyedIoBinder KeyedIo => _keyedIoBinder ??= new KeyedIoBinder(Ctx, this, FileLock);
+    private SequentialIoBinder? _seqIoBinder;
+    internal SequentialIoBinder SeqIo => _seqIoBinder ??= new SequentialIoBinder(Ctx, this, KeyedIo, FileLock);
+    private AcceptDisplayBinder? _acceptBinder;
+    private AcceptDisplayBinder Accept => _acceptBinder ??= new AcceptDisplayBinder(Ctx, this);
     private CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
     private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
@@ -201,7 +207,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {
-        _ when s.displayStatement() is { } d => BindDisplay(d),
+        _ when s.displayStatement() is { } d => Accept.BindDisplay(d),
         _ when s.moveStatement() is { } m => Move.Bind(m),
         _ when s.addStatement() is { } a => BindAdd(a),
         _ when s.subtractStatement() is { } sub => BindSubtract(sub),
@@ -218,18 +224,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.goToStatement() is { } g => BindGoTo(g),
         _ when s.alterStatement() is { } al => BindAlter(al),   // 85-only; rejected ≥2002 inside BindAlter (deleted by ISO/IEC 1989:2002)
         _ when s.exitStatement() is { } e => BindExit(e),
-        _ when s.openStatement() is { } o => BindOpen(o),
-        _ when s.closeStatement() is { } c => BindClose(c),
-        _ when s.writeStatement() is { } w => BindWrite(w),
-        _ when s.readStatement() is { } r => BindRead(r),
-        _ when s.rewriteStatement() is { } rw => BindRewrite(rw),
-        _ when s.startStatement() is { } st => KeyedBindStart(st),
-        _ when s.deleteStatement() is { } del => KeyedBindDelete(del),
-        _ when s.deleteFileStatement() is { } dfs => KeyedBindDeleteFile(dfs),
+        _ when s.openStatement() is { } o => SeqIo.BindOpen(o),
+        _ when s.closeStatement() is { } c => SeqIo.BindClose(c),
+        _ when s.writeStatement() is { } w => SeqIo.BindWrite(w),
+        _ when s.readStatement() is { } r => SeqIo.BindRead(r),
+        _ when s.rewriteStatement() is { } rw => SeqIo.BindRewrite(rw),
+        _ when s.startStatement() is { } st => KeyedIo.BindStart(st),
+        _ when s.deleteStatement() is { } del => KeyedIo.BindDelete(del),
+        _ when s.deleteFileStatement() is { } dfs => KeyedIo.BindDeleteFile(dfs),
         _ when s.unlockStatement() is { } ul => FileLock.BindUnlock(ul),
         _ when s.stringStatement() is { } sstr => Strings.BindString(sstr),
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
-        _ when s.acceptStatement() is { } ac => BindAccept(ac),
+        _ when s.acceptStatement() is { } ac => Accept.BindAccept(ac),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
         _ when s.continueStatement() is not null => new BoundNop(),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
@@ -320,214 +326,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────
 
-    private BoundStatement BindOpen(Core.OpenStatementContext o)
-    {
-        var opens = new List<(FileModel, BoundOpenMode, string?)>();
-        SharingMode? sharing = null;
-        RetrySpec? retry = null;
-        foreach (var clause in o.openClause())
-        {
-            BoundOpenMode mode = MapOpenMode(clause.openMode());
-            // OPEN SHARING phrase (ISO §14.9.27) overrides the SELECT SHARING clause for this OPEN; the RETRY
-            // phrase (ISO §14.7.9) governs a locked-file re-attempt. Both are per-statement.
-            // OPEN SHARING phrase (§14.9.27) — COBOL-2002. The edition gate moved to the post-bind
-            // VersionConformancePass (Step 14c), firing on BoundOpen.SharingOverride; the binder just records it.
-            if (clause.sharingPhrase() is { } sp && sp.sharingMode() is { } sm)
-                sharing = MapSharingMode(sm);
-            if (clause.retryPhrase() is { } rp) retry = BindRetry(rp);
-            foreach (var spec in clause.openFileSpec())
-            {
-                string name = spec.dataReference().GetText();
-                if (!data.FilesByName.TryGetValue(name, out var file))
-                    return new BoundUnsupported($"OPEN of undeclared file '{name}'");
-                // §14.9.27 SR8: OPEN … SHARING WITH ALL OTHER (clause or phrase) requires a LOCK MODE clause.
-                var effShare = sharing ?? file.Sharing;
-                if (effShare is SharingMode.AllOther && file.LockMode is null)
-                    data.Edition.Error("COBOLNET1512", $"OPEN of file '{name}' with SHARING WITH ALL OTHER "
-                        + "requires the file to have a LOCK MODE clause (ISO §14.9.27 SR8)");
-                opens.Add((file, mode, UnsupportedOrg(file, "OPEN")));
-            }
-        }
-        return new BoundOpen(opens) { SharingOverride = sharing, Retry = retry };
-    }
-
-    /// <summary>Map a SHARING mode context (ISO §12.4.5.15) at the binder layer (the DataBinder twin serves the
-    /// SELECT clause).</summary>
-    private static SharingMode MapSharingMode(Core.SharingModeContext m) =>
-        m.READ() is not null ? SharingMode.ReadOnly
-        : m.NO() is not null ? SharingMode.NoOther
-        : SharingMode.AllOther;
-
     /// <summary>Bind a RETRY phrase (ISO §14.7.9). The n-TIMES amount is a bounded re-attempt count; FOR n
     /// SECONDS / FOREVER are single-run-unit no-ops (no competing process releases — named residue).</summary>
     internal RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
         rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)
         : rp.SECONDS() is not null ? new RetrySpec(RetryKind.Seconds, BindExpr(rp.arithmeticExpression()))
         : new RetrySpec(RetryKind.Times, BindExpr(rp.arithmeticExpression()));
-
-    private BoundStatement BindClose(Core.CloseStatementContext c)
-    {
-        var closes = new List<(FileModel, BoundCloseKind)>();
-        foreach (var phrase in c.closeFilePhrase())
-        {
-            string name = phrase.fileName().GetText();
-            if (!data.FilesByName.TryGetValue(name, out var file))
-                return new BoundUnsupported($"CLOSE of undeclared file '{name}'");
-            BoundCloseKind kind = phrase.closeOption() is { } opt
-                ? opt.LOCK() is not null ? BoundCloseKind.WithLock
-                : opt.REEL() is not null || opt.UNIT() is not null ? BoundCloseKind.ReelUnit
-                : BoundCloseKind.Normal
-                : BoundCloseKind.Normal;
-            closes.Add((file, kind));
-        }
-        return new BoundClose(closes);
-    }
-
-    private BoundStatement BindWrite(Core.WriteStatementContext w)
-    {
-        Place? record = null;
-        FileModel? file = null;
-        if (w.recordName()?.dataReference() is { } rn && refs.Resolve(rn) is { } place)
-        {
-            record = place;
-            file = FileOfRecord(place);
-        }
-        else if (w.fileName() is { } fn && data.FilesByName.TryGetValue(fn.GetText(), out var f) && f.AreaRecord is { } far)
-        {
-            // The file-name fallback has no named record — write the WHOLE record area through the largest
-            // record's view (FileModel.AreaRecord, ISO §13.4.2).
-            file = f;
-            record = refs.ResolveItem(far);
-        }
-        if (file is null || record is null)
-            return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");
-        FileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
-        if (!file.IsSequential) return KeyedBindWrite(w, file, record);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
-
-        // END-OF-PAGE phrases (ISO §14.9.51 GR27b/GR28): blocks[0] = AT EOP, blocks[1] = NOT AT EOP — the grammar
-        // rule `writeAtEndOfPage : AT? (END_OF_PAGE|EOP) statementBlock (NOT AT? (END_OF_PAGE|EOP) statementBlock)?`
-        // fixes that order (the readAtEnd block shape).
-        List<BoundStatement>? atEop = null, notAtEop = null;
-        if (w.writeAtEndOfPage() is { } eop)
-        {
-            // SR19 (the silent-drop bug class): the END-OF-PAGE / NOT END-OF-PAGE phrase requires a LINAGE clause
-            // in the file's file description entry — a bind-time rejection, never a dropped branch.
-            if (file.Linage is null)
-                data.Edition.Error("COBOLNET0860", $"WRITE … END-OF-PAGE on file '{file.CobolName}', whose file "
-                    + "description entry has no LINAGE clause (ISO §14.9.51 SR19)");
-            // SR18: ADVANCING PAGE and END-OF-PAGE shall not both be specified in a single WRITE statement.
-            if (w.writeBeforeAfter()?.PAGE() is not null)
-                data.Edition.Error("COBOLNET0861", "WRITE … ADVANCING PAGE with an END-OF-PAGE phrase: the two "
-                    + "shall not both be specified in a single WRITE statement (ISO §14.9.51 SR18)");
-            (atEop, notAtEop) = PhraseBlocks.Split(eop.statementBlock(), PhraseBlocks.StartsWithNot(eop), b => BindBlocks([b]));
-        }
-        // SR13: with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES mnemonic (the
-        // implementor positioning rules and the logical-page model are mutually exclusive).
-        if (file.Linage is not null && w.writeBeforeAfter() is { } wba && wba.dataReference() is { } mref
-            && AcceptMnemonics(wba).ContainsKey(mref.GetText()))
-            data.Edition.Error("COBOLNET0862", $"WRITE … ADVANCING mnemonic-name on file '{file.CobolName}', whose "
-                + "file description entry contains a LINAGE clause (ISO §14.9.51 SR13)");
-
-        return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()),
-            BindAdvancing(w.writeBeforeAfter()), UnsupportedOrg(file, "WRITE"), atEop, notAtEop);
-    }
-
-    private BoundStatement BindRead(Core.ReadStatementContext r)
-    {
-        string name = r.fileName().GetText();
-        if (!data.FilesByName.TryGetValue(name, out var file))
-            return new BoundUnsupported($"READ of undeclared file '{name}'");
-        if (!file.IsSequential) return KeyedBindRead(r, file);   // relative/indexed READ F1/F2 (ISO 14.9.30; KeyedIo partial)
-        FileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR3/SR4 → COBOLNET1512 (sequential leg: SR-validated, effect residue)
-        Place? into = r.readInto()?.dataReference() is { } d ? refs.Resolve(d) : null;
-        List<BoundStatement>? atEnd = null, notAtEnd = null;
-        if (r.readAtEnd() is { } ae)
-            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => BindBlocks([b]));
-        return new BoundRead(file, into, atEnd, notAtEnd, UnsupportedOrg(file, "READ"));
-    }
-
-    private BoundStatement BindRewrite(Core.RewriteStatementContext rw)
-    {
-        Place? record = rw.recordName()?.dataReference() is { } rn ? refs.Resolve(rn) : null;
-        FileModel? file = record is not null ? FileOfRecord(record) : null;
-        if (file is null || record is null)
-            return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
-        FileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
-        if (!file.IsSequential) return KeyedBindRewrite(rw, file, record);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
-        return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()),
-            UnsupportedOrg(file, "REWRITE"));
-    }
-
-    /// <summary>The FROM operand of a WRITE/REWRITE (a data reference or a literal), or null when absent.</summary>
-    private BoundOperand? WriteSource(Core.DataReferenceContext? dref, Core.LiteralContext? lit) =>
-        lit is not null ? LiteralOperand(lit) : dref is not null ? FieldOperand(dref) : null;
-
-    /// <summary>Bind the <c>{BEFORE|AFTER} ADVANCING …</c> phrase (ISO §14.9.46), or null for a plain WRITE.
-    /// An ADVANCING operand naming a SPECIAL-NAMES mnemonic (<c>XXXXX073 IS MNEMONIC-NAME</c>, SQ207M) positions
-    /// per the IMPLEMENTOR's rules for the associated feature (§14.9.46 GR — mnemonic-name-1); this
-    /// implementation's rule, inherited from the legacy oracle and encoded by the NIST goldens, is a ZERO-line
-    /// advance (the write lands on the current line).</summary>
-    private BoundAdvancing? BindAdvancing(Core.WriteBeforeAfterContext? ctx)
-    {
-        if (ctx is null) return null;
-        bool before = ctx.BEFORE() is not null;
-        if (ctx.PAGE() is not null) return new BoundAdvancing(before, true, null);
-        BoundOperand lines =
-            ctx.integerLiteral() is { } il ? new BoundNumericLiteral(il.GetText())
-            : ctx.dataReference() is { } d ? AcceptMnemonics(ctx).ContainsKey(d.GetText())
-                ? new BoundNumericLiteral("0") : FieldOperand(d)
-            : ctx.literal() is { } lit ? LiteralOperand(lit)
-            : new BoundNumericLiteral("1");
-        return new BoundAdvancing(before, false, lines);
-    }
-
-    private static BoundOpenMode MapOpenMode(Core.OpenModeContext m) =>
-        m.OUTPUT() is not null ? BoundOpenMode.Output
-        : m.EXTEND() is not null ? BoundOpenMode.Extend
-        : m.I_O() is not null ? BoundOpenMode.IO
-        : BoundOpenMode.Input;
-
-    /// <summary>The owning <see cref="FileModel"/> of a record reference: the file whose records include the
-    /// reference's top-level (01) record. Null if the reference is not an FD record.</summary>
-    private FileModel? FileOfRecord(Place record)
-    {
-        DataItem root = record.Item;
-        while (root.Parent is { } p) root = p;
-        foreach (var f in data.Files)
-            if (f.Records.Contains(root)) return f;
-        // An inherited GLOBAL FD's record (ISO §13.18.30 — the record-names of a GLOBAL FD are GLOBAL names):
-        // the owning file is a CONTAINER's FileModel, present in this unit only through the FilesByName merge
-        // (CallBindUnit) — a contained program's WRITE/REWRITE of the owner's record resolves to the owner's
-        // ONE connector (IC233A's family; never a second mapping mechanism).
-        foreach (var f in data.FilesByName.Values)
-            if (f.Records.Contains(root)) return f;
-        return null;
-    }
-
-    /// <summary>A loud-reason string when <paramref name="file"/>'s organization is not yet implemented (relative /
-    /// indexed in the sequential slice), so the verb emits a runtime not-implemented guard; null when supported.</summary>
-    private static string? UnsupportedOrg(FileModel file, string verb) =>
-        // A sort-merge (SD) file may be referenced ONLY by SORT/MERGE/RELEASE/RETURN (ISO §13.4.6 SR3/SR4).
-        // Every ISO §12.4.5.10 organization (sequential, line sequential, relative, indexed) now has a dedicated
-        // bind/emit path — the relative/indexed verbs route through the KeyedIo partial and OPEN/CLOSE flow
-        // through the CobolFile facade's keyed registries. Retained as the single seam a future organization
-        // gates on (loud, never silent).
-        file.IsSortMerge ? $"{verb} on sort-merge file '{file.CobolName}' — an SD file-name may appear only in SORT/MERGE/RELEASE/RETURN (ISO §13.4.6 SR3/SR4)"
-        : null;
-
-    private BoundStatement BindDisplay(Core.DisplayStatementContext display)
-    {
-        var ops = new List<BoundOperand>();
-        foreach (IParseTree child in Children(display))
-            switch (child)
-            {
-                case Core.LiteralContext lit: ops.Add(LiteralOperand(lit)); break;
-                case Core.DataReferenceContext dref: ops.Add(FieldOperand(dref)); break;
-                // DISPLAY FUNCTION … (ISO §8.4.4.1 — an identifier includes a function-identifier; §14.9.11.2).
-                case Core.FunctionCallContext fc: ops.Add(IntrinsicOperand(fc)); break;
-            }
-        return new BoundDisplay(ops, display.displayNoAdvancing() is not null);
-    }
 
     private BoundStatement BindAdd(Core.AddStatementContext add)
     {
@@ -1754,7 +1558,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     // ── Operator mapping + helpers (ported from the former emitter) ──────────────────────────────────────────
 
-    private static string MapOperator(string raw)
+    internal static string MapOperator(string raw)
     {
         string t = raw.ToUpperInvariant().Replace("IS", "").Replace("THAN", "").Replace("TO", "");
         if (t.Contains("<>")) return "!=";
@@ -1802,7 +1606,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
     }
 
-    private static IEnumerable<IParseTree> Children(IParseTree node)
+    internal static IEnumerable<IParseTree> Children(IParseTree node)
     {
         for (int i = 0; i < node.ChildCount; i++) yield return node.GetChild(i);
     }
