@@ -1,11 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
@@ -13,18 +13,19 @@ using Core = CobolParserCore;
 /// The Report Writer half of the statement binder (ISO/IEC 1989:2023 §14.9.21 INITIATE / §14.9.16 GENERATE /
 /// §14.9.46 TERMINATE; COBOLNET_REPORT_WRITER_DESIGN §5): the three verb binders over the bound
 /// <see cref="ReportModel"/>s, the LINE-COUNTER / PAGE-COUNTER reference interception (§8.4.3.15 — the
-/// registers are RWCS state, never storage; the <c>BoundLinageCounterRef</c> precedent), and the receiving-side
-/// guard that keeps a counter from being SILENTLY dropped by the <c>.OfType&lt;Place&gt;()</c> receiver
-/// resolution (the loud-failure doctrine, §1.4).
+/// registers are RWCS state, never storage; the <c>BoundLinageCounterRef</c> precedent). P7 Step 10f: a real
+/// collaborator over <see cref="BinderContext"/> ONLY (the census: zero sibling-partial consumption). The
+/// receiving-side counter guard (<c>ResolveReceiving</c>) did NOT ride along — it is the shared receiving
+/// spine (5 host pipelines consume it) and hoisted to the core, final home <c>ExpressionBinder</c> at 10q.
 /// </summary>
-public sealed partial class StatementBinder
+internal sealed class ReportWriterBinder(BinderContext ctx)
 {
     /// <summary><c>INITIATE report-name…</c> (ISO §14.9.21): each name shall be an RD entry (SR1); a multi-name
     /// statement unrolls in written order (GR5).</summary>
-    private BoundStatement RwBindInitiate(Core.InitiateStatementContext ctx)
+    public BoundStatement BindInitiate(Core.InitiateStatementContext stmt)
     {
         var reports = new List<ReportModel>();
-        foreach (var rn in ctx.reportName())
+        foreach (var rn in stmt.reportName())
         {
             if (RwFindReport(rn.GetText()) is not { } r)
                 return new BoundUnsupported($"INITIATE '{rn.GetText()}' — not a report description entry (ISO §14.9.21 SR1)");
@@ -35,22 +36,22 @@ public sealed partial class StatementBinder
 
     /// <summary><c>GENERATE {data-name | report-name}</c> (ISO §14.9.16): a detail report group (SR1 — detail
     /// reporting) or a report-name whose RD has a CONTROL clause (SR2 — summary reporting, GR2).</summary>
-    private BoundStatement RwBindGenerate(Core.GenerateStatementContext ctx)
+    public BoundStatement BindGenerate(Core.GenerateStatementContext stmt)
     {
-        string name = ctx.reportName().GetText();
+        string name = stmt.reportName().GetText();
         if (RwFindReport(name) is { } summary)
         {
             if (summary.Controls.Count == 0)
-                data.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
+                ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNeedsControl, $"GENERATE {name}: the report-name form requires a CONTROL "
                     + "clause in the report description entry (ISO §14.9.16.3 SR2)");
             return new BoundGenerate(summary, null);   // summary reporting (GR2)
         }
-        foreach (var r in data.Reports)
+        foreach (var r in ctx.Data.Reports)
             if (r.Groups.FirstOrDefault(g =>
                     name.Equals(g.Name, StringComparison.OrdinalIgnoreCase)) is { } group)
             {
                 if (group.Kind != ReportGroupKindModel.Detail)
-                    data.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"GENERATE {name}: the named report group is not a "
+                    ctx.Edition.Error(DiagnosticCatalog.ReportGenerateNotDetail, $"GENERATE {name}: the named report group is not a "
                         + "DETAIL group (ISO §14.9.16.3 SR1)");
                 return new BoundGenerate(r, group);
             }
@@ -58,10 +59,10 @@ public sealed partial class StatementBinder
     }
 
     /// <summary><c>TERMINATE report-name…</c> (ISO §14.9.46 SR1/GR4).</summary>
-    private BoundStatement RwBindTerminate(Core.TerminateStatementContext ctx)
+    public BoundStatement BindTerminate(Core.TerminateStatementContext stmt)
     {
         var reports = new List<ReportModel>();
-        foreach (var rn in ctx.reportName())
+        foreach (var rn in stmt.reportName())
         {
             if (RwFindReport(rn.GetText()) is not { } r)
                 return new BoundUnsupported($"TERMINATE '{rn.GetText()}' — not a report description entry (ISO §14.9.46 SR1)");
@@ -71,14 +72,14 @@ public sealed partial class StatementBinder
     }
 
     private ReportModel? RwFindReport(string name) =>
-        data.Reports.FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        ctx.Data.Reports.FirstOrDefault(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>Intercept a LINE-COUNTER / PAGE-COUNTER data reference (ISO §8.4.3.15) ahead of normal name
     /// resolution (the LINAGE-COUNTER idiom in <c>FieldOperand</c>/<c>RefExpr</c>). Returns null when the
     /// reference is NOT a counter; a <see cref="BoundReportCounterRef"/> when it resolves (the OF/IN
     /// <c>cobolWord</c> is the report-name qualifier, SR2/§8.4.2.2 — unqualified resolves only against a sole
     /// report); a <see cref="BoundExprError"/> (with a bind diagnostic) for a counter that cannot resolve.</summary>
-    private BoundExpr? RwCounterExpr(Core.DataReferenceContext dref)
+    public BoundExpr? CounterExpr(Core.DataReferenceContext dref)
     {
         bool isPage = dref.PAGE_COUNTER() is not null;
         if (!isPage && dref.LINE_COUNTER() is null) return null;
@@ -86,48 +87,15 @@ public sealed partial class StatementBinder
         if (dref.cobolWord() is { } q)   // qualified: COUNTER OF/IN report-name
         {
             if (RwFindReport(q.GetText()) is { } named) return new BoundReportCounterRef(named, isPage);
-            data.Edition.Error(DiagnosticCatalog.ReportCounterQualifierNotReport, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
+            ctx.Edition.Error(DiagnosticCatalog.ReportCounterQualifierNotReport, $"{reg} OF '{q.GetText()}': the qualifier shall name a report "
                 + "description entry (ISO §8.4.3.15 SR2 / §8.4.2.2)");
             return new BoundExprError($"{reg} reference '{dref.GetText()}'");
         }
-        if (data.Reports.Count == 1) return new BoundReportCounterRef(data.Reports[0], isPage);
-        data.Edition.Error(DiagnosticCatalog.ReportCounterNoReport, data.Reports.Count == 0
+        if (ctx.Data.Reports.Count == 1) return new BoundReportCounterRef(ctx.Data.Reports[0], isPage);
+        ctx.Edition.Error(DiagnosticCatalog.ReportCounterNoReport, ctx.Data.Reports.Count == 0
             ? $"{reg} referenced, but the program has no report description entry (ISO §8.4.3.15.1 — the "
               + "counters are generated per report)"
             : $"unqualified {reg} with more than one report: qualify by report-name (ISO §8.4.3.15 SR2 / §8.4.2.2)");
         return new BoundExprError($"{reg} reference");
-    }
-
-    /// <summary>Resolve a RECEIVING data reference to its <see cref="Place"/> — the ONE receiving-side
-    /// chokepoint (MOVE targets, arithmetic resultants, SET receivers). A report counter here is rejected at
-    /// bind time: LINE-COUNTER shall not be a receiving operand (ISO §8.4.3.15 SR3 — illegal); PAGE-COUNTER as a
-    /// receiver is legal but not yet implemented (staged loud). Without this guard the
-    /// <c>.OfType&lt;Place&gt;()</c> receiver pipelines would DROP the counter silently — a silent-miscompile
-    /// hazard (§1.4).</summary>
-    private Place? ResolveReceiving(Core.DataReferenceContext dref)
-    {
-        if (dref.LINE_COUNTER() is not null)
-        {
-            data.Edition.Error(DiagnosticCatalog.ReportLineCounterReceiving,
-                "LINE-COUNTER shall not be referenced as a receiving operand (ISO §8.4.3.15.3 SR3)");
-            return null;
-        }
-        if (dref.PAGE_COUNTER() is not null)
-        {
-            data.Edition.Error(DiagnosticCatalog.ReportPageCounterReceiving, "PAGE-COUNTER as a receiving operand (ISO §8.4.3.15 — legal; the "
-                + "program assigns page numbers) is not yet implemented");
-            return null;
-        }
-        var place = refs.Resolve(dref);
-        // The OCCURS DYNAMIC CAPACITY register (§13.18.38 SR30–32; D9) is set ONLY by a SET Format 14 statement
-        // (which reroutes BEFORE this chokepoint). Any other receiving use — MOVE/arithmetic resultant/ordinary SET
-        // receiver — is illegal; reject it here rather than reach CapacityRegisterPlace.Write (an internal throw).
-        if (place is CapacityRegisterPlace cap)
-        {
-            data.Edition.Error("COBOLNET1523", $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
-                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38 SR30–32)");
-            return null;
-        }
-        return place;
     }
 }

@@ -40,6 +40,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private EvaluateBinder Evaluate => _evaluateBinder ??= new EvaluateBinder(Ctx, this);
     private StringUnstringBinder Strings => _stringUnstringBinder ??= new StringUnstringBinder(Ctx, this);
     private MoveBinder Move => _moveBinder ??= new MoveBinder(Ctx, this, Corr);
+    private ReportWriterBinder? _rwBinder;
+    private ReportWriterBinder Rw => _rwBinder ??= new ReportWriterBinder(Ctx);
     private CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
     private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
@@ -244,9 +246,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.mergeStatement() is { } mrg => BindMerge(mrg),
         _ when s.releaseStatement() is { } rls => BindRelease(rls),
         _ when s.returnStatement() is { } ret => BindReturn(ret),
-        _ when s.initiateStatement() is { } rwi => RwBindInitiate(rwi),     // Report Writer (ISO §14.9.21)
-        _ when s.generateStatement() is { } rwg => RwBindGenerate(rwg),     // Report Writer (ISO §14.9.16)
-        _ when s.terminateStatement() is { } rwt => RwBindTerminate(rwt),   // Report Writer (ISO §14.9.46)
+        _ when s.initiateStatement() is { } rwi => Rw.BindInitiate(rwi),     // Report Writer (ISO §14.9.21)
+        _ when s.generateStatement() is { } rwg => Rw.BindGenerate(rwg),     // Report Writer (ISO §14.9.16)
+        _ when s.terminateStatement() is { } rwt => Rw.BindTerminate(rwt),   // Report Writer (ISO §14.9.46)
         _ when s.raiseStatement() is { } ra => BindRaise(ra),               // EC model (ISO §14.9.29; 2002+ gated)
         _ when s.resumeStatement() is { } rs => BindResume(rs),             // EC model (ISO §14.9.33; 2002+ gated)
         _ when s.allocateStatement() is { } al => PtrBindAllocate(al),      // dynamic storage (ISO §14.9.3; Phase-4b inc 2)
@@ -1138,7 +1140,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 : new BoundOperandError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15) — RWCS registers, intercepted ahead of name resolution
         // (the LINAGE-COUNTER idiom); a BoundExprError inside the computed wrapper stays loud (§1.4).
-        : RwCounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
+        : Rw.CounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
         : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
         : refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError(RefFailure(dref));
 
@@ -1168,7 +1170,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 : new BoundExprError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
         // LINE-COUNTER / PAGE-COUNTER (ISO §8.4.3.15): in the PROCEDURE DIVISION the registers may appear
         // wherever an integer item may (SR1) — read from the report's engine instance, never storage.
-        : RwCounterExpr(dref) is { } rcx ? rcx
+        : Rw.CounterExpr(dref) is { } rcx ? rcx
         : IndexFieldOf(dref) is { } ix ? new BoundIndexRef(ix)
         : refs.Resolve(dref) is { } p ? new BoundNumRef(p)
         : new BoundExprError(RefFailure(dref));
@@ -1220,6 +1222,42 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return RoundingModes.Map(mode);
         }
         return data.Options.DefaultRounding;
+    }
+
+    // ── The RECEIVING chokepoint (hoisted from the ReportWriter partial at 10f — the shared receiving
+    //    spine 5 pipelines consume; final home ExpressionBinder at 10q). ──
+
+    /// <summary>Resolve a RECEIVING data reference to its <see cref="Place"/> — the ONE receiving-side
+    /// chokepoint (MOVE targets, arithmetic resultants, SET receivers). A report counter here is rejected at
+    /// bind time: LINE-COUNTER shall not be a receiving operand (ISO §8.4.3.15 SR3 — illegal); PAGE-COUNTER as a
+    /// receiver is legal but not yet implemented (staged loud). Without this guard the
+    /// <c>.OfType&lt;Place&gt;()</c> receiver pipelines would DROP the counter silently — a silent-miscompile
+    /// hazard (§1.4).</summary>
+    private Place? ResolveReceiving(Core.DataReferenceContext dref)
+    {
+        if (dref.LINE_COUNTER() is not null)
+        {
+            data.Edition.Error(DiagnosticCatalog.ReportLineCounterReceiving,
+                "LINE-COUNTER shall not be referenced as a receiving operand (ISO §8.4.3.15.3 SR3)");
+            return null;
+        }
+        if (dref.PAGE_COUNTER() is not null)
+        {
+            data.Edition.Error(DiagnosticCatalog.ReportPageCounterReceiving, "PAGE-COUNTER as a receiving operand (ISO §8.4.3.15 — legal; the "
+                + "program assigns page numbers) is not yet implemented");
+            return null;
+        }
+        var place = refs.Resolve(dref);
+        // The OCCURS DYNAMIC CAPACITY register (§13.18.38 SR30–32; D9) is set ONLY by a SET Format 14 statement
+        // (which reroutes BEFORE this chokepoint). Any other receiving use — MOVE/arithmetic resultant/ordinary SET
+        // receiver — is illegal; reject it here rather than reach CapacityRegisterPlace.Write (an internal throw).
+        if (place is CapacityRegisterPlace cap)
+        {
+            data.Edition.Error("COBOLNET1523", $"the CAPACITY register '{cap.RegisterItem.CobolName}' shall not be a "
+                + "receiving operand except in a SET statement Format 14 (ISO §13.18.38 SR30–32)");
+            return null;
+        }
+        return place;
     }
 
     /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to
