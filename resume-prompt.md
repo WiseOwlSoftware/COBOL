@@ -21,10 +21,11 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. Full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP D: PHASE-07 **Step 10** (binder decomposition), then 11 → 12
+## ⛔🔀 RESUME AT — EXEC STEP D: PHASE-07 **Step 11** (structural `Place`), then 12
 **Read the PHASE-07 STATUS line first** (`docs/rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md`)
-— it carries the per-substep hashes and the AS-BUILT PLAN + 9n as-landed notes in its §Step 9. State as of
-2026-07-11 (DEVLOG 786–810, tree `72ec6633`, battery green):
+— it carries the per-substep hashes and the AS-BUILT PLAN + as-landed notes. State as of
+2026-07-11 (DEVLOG 786–832, tip `87d097e1`, battery green): **Steps 1–10 ✅ COMPLETE — BOTH god classes are
+dissolved** (the EMITTER at Step 9, the BINDER at Step 10). RESUME AT Step 11 (structural `Place`).
 - **P7 Steps 1–8 ✅** (ICodeGenBackend seam · AssemblyPackager · immutable `EmitContext`+`ReceiverContext` ·
   `RuntimeApi`+`FigurativeConstants` + the bare-`Cobol*.` RATCHET (`RuntimeApiGuardTests`) · ACCEPT renames ·
   generated visitor (pulled forward) · `MoveKind` on `BoundMove` · Step 8 = done-by-P5).
@@ -41,7 +42,27 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   OperandText 7 — they route at Steps 11/12); recorded counting refinement: comment lines stripped,
   `CobolRounding.`/`CobolPassMode.` typed-enum accesses excluded (emitted forms route via
   `RoundingText`/`PassModeText`).
-- **Step 10 ◐ IN PROGRESS — batches 10a–10e ✅ (DEVLOG 811–815):** 10a `34410d7f` (SymbolTable residuals) ·
+- **Step 10 ✅ COMPLETE — the `StatementBinder` god class is DISSOLVED (10a–10t, DEVLOG 811–832).** The bound
+  binder is now `StatementBinder` (dispatch switch + the mark/drain wrap protocol + the composition root, 365
+  lines) → `BinderContext` (the per-unit shared spine: Data/Refs/Edition/Symbols/ActiveScope/Options/
+  Validation/Mnemonics/EcState/BindCursor/CurrentSection/CurrentMethodScope/Table + scoped `EnterMethodScope`)
+  → `ProcedureTableBuilder` (the pc space + declaratives + `ResolveProcedure`) + `ExpressionBinder` +
+  `ConditionBinder` + `EcBinder` + `OoBinder` + `PhraseBlocks` + 18 `Verbs/*Binder`, with the edition-invariant
+  SR band in `Validation/StatementValidation`. Collaborators reach siblings directly through the root's
+  accessors (`host.Expr.BindExpr`, …) — ZERO transitional forwarders remain (only `ConfigureEc` survives, the
+  binder's genuine public API). **10t FINAL WIRING landed as three verdict-gated sub-batches:** 10t/1 `00536256`
+  (ProcedureTableBuilder — table + declaratives hoisted; SetAlterBinder ctx-only), 10t/2 `a3f1f31e` (the ~40
+  host forwarders DELETED, 19 collaborators re-pointed to `host.<Accessor>.Foo`), 10t/3 `87d097e1` (the
+  relational-SR pure-lift to `StatementValidation.CheckRelationalOperands` — the 10o dev-(b) discharged).
+  **Two 10t deferrals RESOLVED as documented decisions, not skips:** (a) the woven COBOLNET1511 boolean-operand
+  checks STAY in ConditionBinder — control-flow-woven (return placeholders), which the "PURE checks only lift"
+  convention excludes; (b) the COBOLNET1523 raw-code → catalog-descriptor normalization folds into the
+  catalog's OWN tracked raw-code migration (188 raw `Edition.Error("COBOLNETnnnn",…)` sites remain; a one-off
+  for just 1523 would be an inconsistent partial migration — the DiagnosticCatalog doc scopes the full
+  migration as a P7-follow-on). **RESUME AT Step 11.** Full per-batch record below (kept for the forensic
+  hashes):
+  <details><summary>10a–10s as-landed</summary>
+  10a `34410d7f` (SymbolTable residuals) ·
   10b `a01b5c77` (`PhraseBlocks`) · 10c `2f4acded` (`BinderContext` + `StatementValidation` [Check*
   convention] + `Verbs/InspectBinder`) · 10d `706ac699` (`Verbs/{Evaluate,StringUnstring}Binder`) · 10e
   `1980f941` (the MOVE-family tier: `Verbs/{Move,Corresponding,Initialize}Binder` — MoveBinder absorbs
@@ -66,23 +87,18 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   (`Verbs/OoBinder` — the OO half LAST; ride-alongs → records-only `Bound/BoundOo.cs`;
   `SectionInfo`/`OoMethodScope` promoted top-level; the ambient quadruple REPLACED by the scoped
   `ctx.EnterMethodScope` token in both bind loops; BindMethodRoster + emitter-set OO props +
-  InMethod/OoScopeHint/_paraMethod stay HOST until 10t/P9). **RESUME AT 10t** (FINAL WIRING —
-  ProcedureTableBuilder [+ the Declaratives half] · thin StatementBinder · ALL host edges/forwarders
-  deleted + collaborator re-points [BinderDriver/CSharpEmitter.Oo ConfigureEc] · the deferred 1511/
-  relational-SR pure-lifts (10o dev-b) · the 1523 catalog-descriptor normalization · the FULL doc sweep:
-  topology reconciliation [.Boolean→ConditionBinder at Verbs/, .Exceptions→EcBinder, ControlFlowBinder
-  ONE-class deviation, ExpressionBinder at Procedure/ root], stale clone/pin rows, DOC_INDEX, memory)
-  → 10s (OoBinder LAST, behind the OO goldens + method-scope tests) → 10t (FINAL wiring:
-  ProcedureTableBuilder + thin StatementBinder + host-edge deletion + the full doc sweep incl. the deferred
-  SR pure-lifts and the 1523 catalog normalization) per the PHASE-07 §Step 10 **AS-BUILT PLAN block**
-  (census `wf_b788936b-ca2`, scratchpad p7-step10-census.json, session 61dab794). Standing rules for
-  the batches: SR checks lift to `StatementValidation` as PURE checks only (error+placeholder control flow
-  stays in the verb binder); the residual ~19 inline edition gates move VERBATIM (pass-folding = Exec Step
-  E); ProcedureTableBuilder at the 10t FINAL wiring (the `OoMethodScope` entanglement); OO LAST (10s)
-  behind the method-scope tests (R1). Then **Step 11** (structural `Place` — per-SUBTYPE battery gating) ·
-  **Step 12** (FUNCTION args as real expressions — the lexer-mode blocker + space-separated-argument
-  hazard; FULL legacy guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad p7-audit.md, session
-  3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 10–12's sites.
+  InMethod/OoScopeHint/_paraMethod stay HOST until 10t/P9) · 10p `5034a3c2` · 10q `b7dfe0b4` · 10r
+  `140d2e86` · 10t/1 `00536256` · 10t/2 `a3f1f31e` · 10t/3 `87d097e1`.
+  </details>
+- **RESUME AT Step 11 — structural `Place` + `PlaceRenderer` (highest risk; per-SUBTYPE battery gating).**
+  Introduce the structural `Place` shapes (`DESIGN-codegen-backend.md §2.3`) — `MemberPlace`/`RefModPlace`/
+  `RedefViewPlace`/`NumericImagePlace`/`RenamesPlace`/`CapacityRegisterPlace` over an `AccessPath` — and move
+  the ENTIRE current `Place.cs` render logic into `CodeGen/Roslyn/PlaceRenderer`; `Place` carries structure,
+  not C# strings. Do it ONE subtype at a time behind the P0 differential/snapshot harness (output MUST be
+  byte-identical pre/post each subtype). Then **Step 12** (FUNCTION args as real expressions through the ONE
+  `ExpressionBinder`/`BindExpr` — the lexer-mode blocker + space-separated-argument hazard; the `ArgPrimary`
+  recursive-descent parser DELETED; FULL legacy guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad
+  p7-audit.md, session 3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 11–12's sites.
 **Working discipline in force (DEVLOG 803/807):** BATCHED cycles (multiple sub-steps per battery run) with
 PIPELINING (batch N's conformance runs on the prebuilt binaries in the background while batch N+1's edits are
 authored); commits verdict-gated as separate actions (never `&&`-chained — the 783/792 lesson); ratchet
