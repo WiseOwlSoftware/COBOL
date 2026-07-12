@@ -60,12 +60,14 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   channel merged; deviations recorded: host forwarders [one-shot flip at 10t]; SR pure-lift deferred to the
   10t sweep) · 10p `5034a3c2` (`Verbs/ArithmeticBinder` — the five arithmetic verbs; BindSizeError stays a
   HOST phrase family past 10q) · 10q `b7dfe0b4` (`Binding/Procedure/ExpressionBinder` — the expression-spine
-  flip; 15 host forwarders; core 405 lines). **RESUME AT 10r** (EcBinder at Verbs/ + `EcBindState` on ctx
-  [Turn/ProgramName/PdRaising/PdRaisingClasses/DeclEcPairs + the 7 feature bits] + `ctx.BindCursor` replacing
-  `_currentBindPc` [core + Oo-partial writes]; EcWrap still invoked at the host BindStatement exit;
-  Declaratives partial re-points _ecF3/_declEcPairs to ctx.EcState and gains EntryPc/Declaratives internal
-  accessors; ConfigureEc stays a host PUBLIC forwarder until 10t; intrinsic-presence walks move VERBATIM —
-  generated-visitor conversion stays FLAGGED)
+  flip; 15 host forwarders; core 405 lines) · 10r `140d2e86` (`Verbs/EcBinder` + `EcBindState` on ctx +
+  `ctx.BindCursor`; the Exceptions partial DELETED; ConfigureEc a host PUBLIC forwarder until 10t;
+  intrinsic-presence walks VERBATIM — generated-visitor conversion FLAGGED). **RESUME AT 10s** (OoBinder
+  LAST behind the OO goldens + method-scope tests — scoped `ctx.EnterMethodScope` replaces the ambient
+  ordered quadruple mutation [_currentSection/_currentMethodScope/data.ActiveMethodScope/ctx.BindCursor];
+  OO host state stays behind `IOoBindHost` until P9; BoundSetObjectRef/BoundMethodReturn ride-along records
+  STAY in `Binding.Bound`; note OoMethodScope/_paraMethod are procedure-TABLE state — coordinate the carve
+  with the 10t ProcedureTableBuilder hoist)
   → 10s (OoBinder LAST, behind the OO goldens + method-scope tests) → 10t (FINAL wiring:
   ProcedureTableBuilder + thin StatementBinder + host-edge deletion + the full doc sweep incl. the deferred
   SR pure-lifts and the 1523 catalog normalization) per the PHASE-07 §Step 10 **AS-BUILT PLAN block**
