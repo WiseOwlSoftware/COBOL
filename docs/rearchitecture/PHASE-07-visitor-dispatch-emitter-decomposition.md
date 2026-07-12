@@ -693,6 +693,22 @@ subtype.
   FIRST (each routing is byte-identical); THEN each subtype is converted to structure one at a time (its fields + an
   explicit `PlaceRenderer` arm + its construction sites in `ReferenceResolver`/`CorrespondingBinder`/
   `InitializeBinder`/`OdoModel`); FINALLY `Place.Read()/Write()` are deleted and the R5 neutrality test lands.
+- **⛔ LEAF-TIER COUPLING (scouted 2026-07-12 — the leaf subtypes are ONE atomic commit, not four).** `MemberPlace`,
+  `DynTablePlace` (eliminated — folded into `MemberPlace` with a `DynTableSegment` + render-time Sending/Receiving
+  polarity), and `RedefViewPlace` must migrate TOGETHER because three binder-side path-rendering sites consume all
+  three by string: (1) **`CorrespondingBinder`** — `CorrAccess` builds child `MemberPlace`/`RedefViewPlace` by string
+  concatenation and the anchor hoist is `CorrespondingHoist(string Local, string Init, bool IsRef)` — a BOUND-NODE
+  (`Bound/BoundCorresponding.cs`) whose `Init` C# string (`m.Path` / the view offset) `CorrespondingEmitter` emits as
+  `ref var {Local} = ref {Init};`; migrating `MemberPlace` requires `CorrespondingHoist.Init` to carry structure
+  (a `Place`/`AccessPath`, rendered at emit) + the emitter change, AND the `m.Path.Contains("CobolTable.At(")` sniff →
+  `m.Path.Segments.Any(s => s is FixedTableSegment or DynTableSegment)`. (2) **`InitializeBinder`** — the
+  `Initialize{Member,Dyn,View}Cursor` records accumulate string paths (`"{Path}.{child}"`, `CobolTable.At({Path},…)`)
+  and `ToPlace()` builds the three subtypes → the cursors must accumulate `AccessPath` segments. (3)
+  **`ProgramEmitter.CallPrefixPlace`** re-roots a `MemberPlace`/`RedefViewPlace` by `prefix + m.Path` → structural
+  segment-prepend. Plus the two binder-side C#-string LEAKS (`OdoModel.SearchBound`'s `dp.Read()` +
+  `TablePath`-string; the sniff). `CapacityRegisterPlace` (whole-table path, no subscript) can ride the same
+  `AccessPath` build. NET: the leaf tier is a single ~10-file atomic change with byte-exact CORRESPONDING/INITIALIZE
+  emit — a dedicated focused effort, not a quick sub-step.
 - **⛔ TOP-DOWN migration order (a load-bearing constraint).** An UN-migrated wrapper subtype renders by calling its
   inner's `Place.Read()/Write()` directly (it is in `Binding`, so it CANNOT route through `PlaceRenderer`). Therefore a
   subtype may replace its legacy `Read()/Write()` with the throwing tripwire ONLY once **nothing un-migrated wraps
