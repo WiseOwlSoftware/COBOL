@@ -16,7 +16,8 @@ using Core = CobolParserCore;
 /// THE Binder phase (rearch PHASE-06 Step 2): binds a whole compilation group to an immutable
 /// <see cref="BoundCompilation"/>, so the driver's Phase 2 is literally <c>Bind → VersionConformancePass → Emit</c>
 /// and the emitter consumes the bound result instead of orchestrating binding. This class owns the formerly-hidden
-/// second pass pipeline (the binder half of the fused <c>CallEmitRunUnit</c>): TurnState → unit/class collection →
+/// second pass pipeline (the binder half of the once-fused bind+emit run-unit entry; the emit half is
+/// <c>ProgramEmitter.Emit</c> since P7 Step 9n): TurnState → unit/class collection →
 /// OO data/body binding → two-phase per-unit binding (ALL data before ANY procedure — the M2-UDF-1
 /// forward-reference enabler) → the middle-end data-model passes (compiler-temp re-sync → UsageCollection →
 /// image marking → OO harmonize → StorageForm) → the EC gate → file-connector registry-key qualification.

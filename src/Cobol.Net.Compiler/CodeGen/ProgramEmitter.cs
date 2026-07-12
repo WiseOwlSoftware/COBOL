@@ -3,52 +3,58 @@
 using CobolNet.Common;
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
-using CobolNet.Editions;
 using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
 using CobolNet.Runtime;
-using CobolNet.Frontend.Generated;
 
 namespace CobolNet.CodeGen;
 
-using Core = CobolParserCore;
 using static CobolNet.CodeGen.Emit.EmitText;
 
 /// <summary>
-/// The inter-program half of the Roslyn backend (COBOLNET_INTERPROGRAM_DESIGN D1–D5; ISO §14.9.4 / §14.9.5 /
-/// §14.2 / §8.4.6.3): the MULTI-UNIT run-unit emission (every top-level program unit and every contained program
-/// compiles — one instantiable C# class per program, nested programs as nested classes, ONE <c>.g.cs</c> / ONE
-/// assembly, the first unit as entry — design D3, SSOT §18 #8), the program-class plumbing (the
-/// <see cref="ICobolProgram"/> ABI, LINKAGE carrier mapping, GLOBAL bridges, EXTERNAL backings), and the
-/// CALL / CANCEL / EXIT PROGRAM / GOBACK statement emitters.
+/// The RUN-UNIT emission orchestrator (P7 Step 9n — the inter-program half formerly on the
+/// <c>CSharpEmitter.Call</c> partial; COBOLNET_INTERPROGRAM_DESIGN D1–D5; ISO §14.9.4 / §14.9.5 / §14.2 /
+/// §8.4.6.3): the module preamble, the MULTI-UNIT unit loop (every top-level program unit and every contained
+/// program compiles — one instantiable C# class per program, nested programs as nested classes, ONE
+/// <c>.g.cs</c> / ONE assembly, the first unit as entry — design D3, SSOT §18 #8), the program-class plumbing
+/// (the <see cref="ICobolProgram"/> ABI, LINKAGE carrier mapping, GLOBAL bridges, EXTERNAL backings), and the
+/// run-unit entry wrapper. One instance per <c>EmitBound</c>; owns the run-unit-scoped emitter state (the
+/// <see cref="NameAllocator"/> + the three Step-9b state objects) and the CURRENT per-unit composition root:
+/// <see cref="BeginUnit"/> re-creates <see cref="Current"/> at every unit switch (program class, OO class
+/// half, interface unit) — consumers that span switches (OoEmitter) read through <see cref="Current"/> LIVE,
+/// never a captured copy (the Step-9m hazard).
 /// </summary>
-public sealed partial class CSharpEmitter
+internal sealed class ProgramEmitter
 {
-    // ── The per-compilation unit model: Binding/Model/{BoundUnit,OoClassUnit,BoundCompilation}.cs (P6 Step 2 —
-    //    the BINDER owns the bound model; this half renders it read-only). ───────────────────────────────────
+    // The run-unit-scoped emitter state (Step 9b — EmitterState.cs): three cohesive per-scope objects the
+    // collaborator emitters receive explicitly. The per-unit/per-statement mutation discipline is documented
+    // on each; NameAllocator is ONE per run unit so unique-name sequences span units (Step 9a).
+    private readonly NameAllocator _names = new();
+    private readonly DispatchState _dispatchState = new();
+    private readonly EcState _ecState = new();
+    private readonly CallUnitState _callState = new();
+    private OoEmitter _oo = null!;
 
+    /// <summary>The CURRENT unit's collaborator set — re-created by <see cref="BeginUnit"/> at each unit
+    /// switch (the ONE unit-switch entry all three unit kinds share, Step 9m/9n).</summary>
+    internal UnitEmitters Current { get; private set; } = null!;
 
-    // The inter-program unit state (SelfPath / ReturningPlace / the inherited GLOBAL FILE STATUS routing) is
-    // CallUnitState (Step 9b — see EmitterState.cs for the ISO §13.18.30 / §12.4.5.8.4 GR1 NOTE 1 contract).
-
-    // ── Run-unit emission (replaces the single-unit Emit body; design D3). The BIND half is
-    //    Binding/BinderDriver.Bind (P6 Step 2 — was CallBindRunUnit here); the OO orchestration it reaches
-    //    through IOoBindHost still lives on this class's partials until P9. ─────────────────────────────────
+    /// <summary>Begin one emitted unit: re-create the per-unit context/renderer quadruple and every
+    /// collaborator emitter over the fresh writer/data/resolver (the <see cref="UnitEmitters"/> ctor wires
+    /// the cycles).</summary>
+    internal void BeginUnit(CodeWriter w, DataBinder data, ReferenceResolver refs)
+        => Current = new UnitEmitters(w, data, refs, _names, _dispatchState, _ecState, _callState, _oo);
 
     /// <summary>The EMIT half (rearch PHASE-03 Step 14a / PHASE-06 Step 2): render the run unit's C# from an
     /// already-bound immutable <see cref="BoundCompilation"/> — reached ONLY after the driver confirmed the edition
     /// sink is clean, so codegen never runs on an errored tree (exit criterion 9). Reads the compilation
-    /// READ-ONLY — the storage-form decision and the file-connector qualification already ran inside Bind. Call on
-    /// the SAME emitter instance that hosted the bind (the <c>_ooIfaceData</c> interface forests are instance
-    /// state until P9; <see cref="BoundCompilation.InterfaceData"/> carries the same map for the P9 cutover).</summary>
-    internal string CallEmitRunUnit(BoundCompilation comp)
+    /// READ-ONLY — the storage-form decision and the file-connector qualification already ran inside Bind; the
+    /// OO class table and interface-data forests arrive ON the compilation (P6 Step 2), so emission no longer
+    /// touches the bind host's session state.</summary>
+    internal string Emit(BoundCompilation comp)
     {
-        // The bind-populated emitter state, restored from the immutable compilation (never computed here).
-        _turnState = comp.Turn;
-        _ooClasses = comp.OoClasses;
         _ecState.Active = comp.EcActive;
-        _names = new NameAllocator();   // ONE per run unit — every per-unit EmitContext threads this instance (Step 9a)
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this);   // run-unit scope — reads the live per-unit context (Step 9m)
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.OoClasses, comp.InterfaceData);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -73,7 +79,7 @@ public sealed partial class CSharpEmitter
         // Interfaces first (readability only — Roslyn needs no ordering), then classes (source order), then
         // the program classes and the run-unit entry wrapper. A class-only/interface-only compilation unit is
         // legal (§10.6) — its module emits the types and an empty Main.
-        foreach (var iface in _ooClasses.Interfaces)
+        foreach (var iface in comp.OoClasses.Interfaces)
             _oo.EmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
             _oo.EmitClassUnit(cls, w);
@@ -86,8 +92,8 @@ public sealed partial class CSharpEmitter
 
         foreach (var unit in units)
             if (unit.Parent is null && !unit.IsPrototype)   // a prototype has no body (§10.6.2 SR4f) — no class
-                CallEmitProgramClass(unit, w);
-        CallEmitEntryWrapper(units, w, anyFiles);
+                EmitProgramClass(unit, w);
+        EmitEntryWrapper(units, w, anyFiles);
         return w.ToString();
     }
 
@@ -96,17 +102,18 @@ public sealed partial class CSharpEmitter
     /// <summary>Emit one program's instantiable class (design D3 — a static class cannot recurse or hold the
     /// per-activation copies INITIAL/RECURSIVE need; the registry's cached singleton realizes last-used state,
     /// §14.6.2.3.3), its <see cref="ICobolProgram"/> ABI surface, and its contained programs as nested classes.</summary>
-    private void CallEmitProgramClass(BoundUnit unit, CodeWriter w)
+    private void EmitProgramClass(BoundUnit unit, CodeWriter w)
     {
         var data = unit.Data;
         BeginUnit(w, data, unit.Refs);
+        var refs = Current.Refs;
         _callState.SelfPath = unit.Path;
-        _callState.ReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
+        _callState.ReturningPlace = data.LinkageReturning is { } ret ? refs.ResolveItem(ret) : null;
         _ecState.UnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
         _ecState.UnitHasF4 = unit.Bound.Declaratives?.Any(d => d.EoClassCsName is not null) ?? false;   // → __EcObjDispatch exists (EC-OO F4)
         // A containing program with USE … GLOBAL declaratives makes this unit's I-O hooks walk outward on a
         // no-local-match (ISO §14.9.49.4 GR4b) — consumed by EmitDispatcher/EmitUseMachinery.
-        _dispatchState.OuterGlobalUse = CallChainHasGlobalUse(unit.Parent);
+        _dispatchState.OuterGlobalUse = ChainHasGlobalUse(unit.Parent);
 
         // Inherited GLOBAL files' FILE STATUS routing (§12.4.5.8.4 GR1 NOTE 1 — see the field doc): resolve each
         // ancestor's status item with the ANCESTOR's resolver, then re-anchor the place behind the __outer chain.
@@ -118,7 +125,7 @@ public sealed partial class CSharpEmitter
             string outerPrefix = string.Concat(Enumerable.Repeat("__outer.", statusDepth));
             foreach (var f in anc.Data.Files)
                 if (f.IsGlobal && f.FileStatusItem is { } si && !_callState.InheritedStatusPlace.ContainsKey(f)
-                    && anc.Refs.ResolveItem(si) is { } sp && CallPrefixPlace(sp, outerPrefix) is { } pp)
+                    && anc.Refs.ResolveItem(si) is { } sp && PrefixPlace(sp, outerPrefix) is { } pp)
                     _callState.InheritedStatusPlace[f] = pp;
         }
 
@@ -128,7 +135,7 @@ public sealed partial class CSharpEmitter
         var formals = data.LinkageFormals
             .Select(f =>
             {
-                Place? place = f.CarrierResident ? null : _refs.ResolveItem(f.Item);
+                Place? place = f.CarrierResident ? null : refs.ResolveItem(f.Item);
                 bool isNum = f.CarrierResident
                     ? f.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } && !f.Item.StoreAsImage
                     : place is not null && !CallEmitter.CallPlaceIsString(place);
@@ -163,7 +170,7 @@ public sealed partial class CSharpEmitter
             foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
             {
                 // The seed is the SAME VALUE-honoring image expression the Tier-B stored backing uses.
-                string seed = $"CobolString.Store({new DataEmitter(_ctx).ImageInitOf(canonical)}, {cellWidth})";
+                string seed = $"CobolString.Store({new DataEmitter(Current.Ctx).ImageInitOf(canonical)}, {cellWidth})";
                 w.Line($"private readonly StorageCell {cellField} = new StorageCell {{ Ref = {seed} }};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
                 w.Line($"private ref string {backing} => ref {cellField}.Ref;");
             }
@@ -173,7 +180,7 @@ public sealed partial class CSharpEmitter
                 w.Line($"private ref string {backing} => ref CobolPtr.Deref({addrField}, {width}).Ref;   // BASED deref bridge (GR3/GR4 loud)");
             }
 
-            new DataEmitter(_ctx).Emit();
+            new DataEmitter(Current.Ctx).Emit();
 
             foreach (var (f, _, isNum) in formals)
             {
@@ -184,23 +191,23 @@ public sealed partial class CSharpEmitter
             }
             w.Line();
 
-            CallEmitCallMethod(unit, formals, w);
+            EmitCallMethod(unit, formals, w);
             w.Line("void ICobolProgram.Activate() => __Activate();");
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files)
                     if (!file.IsExternal)   // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists (GR8 / §13.18.22.4 GR4a)
                         w.Line($"CobolFile.Close({FileKeyExpr(file)});");
-            if (unit.Children.Count > 0 && CallChainHasGlobalUse(unit))
-                CallEmitRunGlobalUse(unit, w);
+            if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
+                EmitRunGlobalUse(unit, w);
             w.Line();
 
             if (unit.Bound.Paragraphs.Count > 0)
-                EmitDispatcher(unit.Bound, w);
+                Current.Dispatch.EmitDispatcher(unit.Bound, w);
             else
                 using (w.Block("public void __Activate()")) { }
 
             foreach (var child in unit.Children)
-                CallEmitProgramClass(child, w);
+                EmitProgramClass(child, w);
         }
     }
 
@@ -208,7 +215,7 @@ public sealed partial class CSharpEmitter
     /// (the §12.4.5.8.4 GR1 NOTE 1 status routing). A FILE STATUS item is never subscripted (§12.4.5.8 SR1 — no
     /// OCCURS), so its member path / Tier-B backing prefix textually. An unexpected place shape returns null —
     /// the caller then falls back to the loud-guard path, never a silent wrong-storage store (§1.4).</summary>
-    private static Place? CallPrefixPlace(Place p, string prefix) => p switch
+    private static Place? PrefixPlace(Place p, string prefix) => p switch
     {
         MemberPlace m => new MemberPlace(prefix + m.Path, m.MemberItem),
         RedefViewPlace r => new RedefViewPlace(prefix + r.Backing, r.OffsetExpr, r.Width, r.ViewItem),
@@ -217,7 +224,7 @@ public sealed partial class CSharpEmitter
 
     /// <summary>True when <paramref name="u"/> or any of its containers declares a <c>USE … GLOBAL</c>
     /// declarative (ISO §14.9.49.4 GR4b — the containment chain a contained program's I-O check walks outward).</summary>
-    private static bool CallChainHasGlobalUse(BoundUnit? u)
+    private static bool ChainHasGlobalUse(BoundUnit? u)
     {
         for (; u is not null; u = u.Parent)
             if (u.Bound.Declaratives is { } ds && ds.Any(d => d.Global)) return true;
@@ -232,7 +239,7 @@ public sealed partial class CSharpEmitter
     /// directly containing source element", GR4b) or stops false at the outermost. Emitted only on classes a
     /// contained program can actually reach (children exist + the chain has GLOBAL declaratives), so a
     /// declarative-free compilation group's generated source is unchanged.</summary>
-    private void CallEmitRunGlobalUse(BoundUnit unit, CodeWriter w)
+    private void EmitRunGlobalUse(BoundUnit unit, CodeWriter w)
     {
         var decls = unit.Bound.Declaratives ?? [];
         using (w.Block("public bool __RunGlobalUse(string __f)"))
@@ -252,7 +259,7 @@ public sealed partial class CSharpEmitter
                         if (decls[i].Global && decls[i].ModeIndex is { } m)
                             w.Line($"case {m}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;");
                 }
-            w.Line(unit.Parent is { } p && CallChainHasGlobalUse(p)
+            w.Line(unit.Parent is { } p && ChainHasGlobalUse(p)
                 ? "return __outer.__RunGlobalUse(__f);   // continue outward (§14.9.49.4 GR4b)"
                 : "return false;   // outermost source element reached — no qualifying GLOBAL declarative (GR4b)");
         }
@@ -261,7 +268,7 @@ public sealed partial class CSharpEmitter
 
     /// <summary>Emit the opaque-ABI <c>Call</c> body: positional formal mapping (ISO §14.2.3 GR2), the
     /// activation, boundary copy-out for image formals, and RETURNING delivery (GR7).</summary>
-    private void CallEmitCallMethod(
+    private void EmitCallMethod(
         BoundUnit unit, List<(LinkageFormal Formal, Place? Place, bool IsNum)> formals, CodeWriter w)
     {
         using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
@@ -318,7 +325,7 @@ public sealed partial class CSharpEmitter
     /// locate step; §14.6.1: a run unit contains one or more runtime modules). <c>Main</c> runs the first
     /// program as main and performs the §14.6.11 implicit CLOSE at run-unit termination; STOP RUN unwinds to
     /// here (§14.9.43); a main-program GOBACK already returned normally through its activation entry.</summary>
-    private void CallEmitEntryWrapper(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles)
+    private void EmitEntryWrapper(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles)
     {
         using (w.Block("public static class __CobolModule"))
         using (w.Block("public static void Register()"))
@@ -357,7 +364,4 @@ public sealed partial class CSharpEmitter
             }
         }
     }
-
-    // The CALL/CANCEL/GOBACK/EXIT-PROGRAM verb emitters live on Verbs/CallEmitter.cs since Step 9m
-    // (BATCH-3a); this partial keeps the run-unit / program-class emission until 9n's ProgramEmitter.
 }

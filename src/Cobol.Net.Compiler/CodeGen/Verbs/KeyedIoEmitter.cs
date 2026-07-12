@@ -20,8 +20,18 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// (<c>'0'</c>, §9.1.14 final rule). OPEN/CLOSE flow through the existing <c>BoundOpen</c>/<c>BoundClose</c>
 /// emission — the runtime file facade dispatches to the keyed connectors.
 /// </summary>
-internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs, CSharpEmitter host)
+internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs,
+    ArithmeticEmitter arith, MoveEmitter move)
 {
+    /// <summary>The file-I/O common services (status store, USE hooks, image splice, RETRY renders) and the
+    /// statement dispatcher — property-wired by <see cref="UnitEmitters"/>: SequentialIo's ctor already takes
+    /// THIS emitter for the shared READ/REWRITE bodies, so the reverse edge cannot be a ctor argument.</summary>
+    internal SequentialIoEmitter SeqIo { get; set; } = null!;
+
+    /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the AT END /
+    /// INVALID KEY / ON EXCEPTION phrase bodies nest arbitrary statement lists).</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     // ── Registration (Main start) ──────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Register a relative/indexed connector (called from the core file registration): the host path,
@@ -110,21 +120,21 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         if (file.Sharing != SharingMode.None || file.LockMode is not null
             || rd.Lock != BoundRecordLock.None || rd.Retry is not null)
         {
-            var (retryKind, retryAmount) = host.RenderRetry(rd.Retry);
+            var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
             w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), retryKind, retryAmount)};");
         }
         using (w.Block($"if ({st}[0] == '0')"))
         {
-            if (area is not null) host.EmitImageInto(area, img);
-            host.EmitReadLengthStore(file);   // §13.18.43 GR15 — the just-read length into DEPENDING
+            if (area is not null) SeqIo.EmitImageInto(area, img);
+            SeqIo.EmitReadLengthStore(file);   // §13.18.43 GR15 — the just-read length into DEPENDING
             // §14.9.30 GR25 — a sequential READ of a relative file MOVEs the RRN of the record made available
             // into the RELATIVE KEY data item (MOVE rules — the canonical numeric store path).
             if (rd.Kind != KeyedReadKind.Random && file.Organization == FileOrganization.Relative
                 && file.RelativeKeyItem is { } rk && refs.ResolveItem(rk) is { } rkPlace)
-                host.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
+                arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
         }
-        host.EmitStoreFileStatus(file);
-        host.EmitUseHook(file, atEndHandled: rd.AtEnd is not null, invalidKeyHandled: rd.InvalidKey?.Invalid is not null);
+        SeqIo.EmitStoreFileStatus(file);
+        SeqIo.EmitUseHook(file, atEndHandled: rd.AtEnd is not null, invalidKeyHandled: rd.InvalidKey?.Invalid is not null);
 
         // The §9.1.14 / §14.9.30 GR24 transfer-of-control branches, uniform across the read kinds (a phrase
         // whose status family cannot arise for this kind — e.g. INVALID KEY on a sequential read — is simply
@@ -136,17 +146,17 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         bool hasInv = rd.InvalidKey?.Invalid is not null;
         if (hasInv)
             using (w.Block($"if ({st}[0] == '2')"))
-                host.EmitStatementList(rd.InvalidKey!.Invalid!);
+                Statements.EmitStatementList(rd.InvalidKey!.Invalid!);
         if (into || rd.NotAtEnd is not null || rd.InvalidKey?.NotInvalid is not null)
             using (w.Block($"{(hasInv ? "else " : "")}if ({st}[0] == '0')"))
             {
-                if (into) host.EmitMove(new BoundMove(new BoundFieldOperand(area!), [rd.Into!]));   // GR4 — READ INTO is READ then MOVE
-                if (rd.NotAtEnd is { } nae) host.EmitStatementList(nae);                  // §14.9.30 — NOT AT END on success
-                if (rd.InvalidKey?.NotInvalid is { } nik) host.EmitStatementList(nik);    // §9.1.14 — success only
+                if (into) move.Emit(new BoundMove(new BoundFieldOperand(area!), [rd.Into!]));   // GR4 — READ INTO is READ then MOVE
+                if (rd.NotAtEnd is { } nae) Statements.EmitStatementList(nae);                  // §14.9.30 — NOT AT END on success
+                if (rd.InvalidKey?.NotInvalid is { } nik) Statements.EmitStatementList(nik);    // §9.1.14 — success only
             }
         if (rd.AtEnd is { } at)
             using (w.Block($"if ({st}[0] == '1')"))
-                host.EmitStatementList(at);                                                // §14.9.30 GR24c
+                Statements.EmitStatementList(at);                                                // §14.9.30 GR24c
     }
 
     // ── WRITE (ISO §14.9.51) ───────────────────────────────────────────────────────────────────────────────────
@@ -156,7 +166,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         var w = ctx.Writer;
         FileModel file = wr.File;
         string name = FileKeyExpr(file);
-        if (wr.From is { } from) host.EmitMove(new BoundMove(from, [wr.Record]));   // FROM is an implicit MOVE (GR4)
+        if (wr.From is { } from) move.Emit(new BoundMove(from, [wr.Record]));   // FROM is an implicit MOVE (GR4)
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.51 GR29b/GR32 — random/dynamic: the runtime element pre-set the RELATIVE KEY item with the
@@ -171,15 +181,15 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         string wimg = OperandText.AsString(new BoundFieldOperand(wr.Record));
-        w.Line($"var {st} = {RuntimeApi.FileWriteKeyed(name, wimg, host.VaryingLengthArg(file))};");   // §13.18.43 GR13a when varying
+        w.Line($"var {st} = {RuntimeApi.FileWriteKeyed(name, wimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a when varying
         // §14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
         // item during execution of the WRITE.
         if (file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential
             && file.RelativeKeyItem is { } rk && refs.ResolveItem(rk) is { } rkPlace)
             using (w.Block($"if ({st}[0] == '0')"))
-                host.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
-        host.EmitStoreFileStatus(file);
-        host.EmitUseHook(file, invalidKeyHandled: wr.InvalidKey?.Invalid is not null);
+                arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
+        SeqIo.EmitStoreFileStatus(file);
+        SeqIo.EmitUseHook(file, invalidKeyHandled: wr.InvalidKey?.Invalid is not null);
         EmitInvalid(st, wr.InvalidKey);
     }
 
@@ -190,7 +200,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         var w = ctx.Writer;
         FileModel file = rw.File;
         string name = FileKeyExpr(file);
-        if (rw.From is { } from) host.EmitMove(new BoundMove(from, [rw.Record]));
+        if (rw.From is { } from) move.Emit(new BoundMove(from, [rw.Record]));
         if (file.Organization == FileOrganization.Relative && file.AccessMode != FileAccessMode.Sequential)
         {
             // §14.9.35 GR21 — random/dynamic: the slot to replace is named by the RELATIVE KEY item.
@@ -204,9 +214,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         string rimg = OperandText.AsString(new BoundFieldOperand(rw.Record));
-        w.Line($"var {st} = {RuntimeApi.FileRewriteKeyed(name, rimg, host.VaryingLengthArg(file))};");   // §13.18.43 GR13a / §14.9.35 GR20
-        host.EmitStoreFileStatus(file);
-        host.EmitUseHook(file, invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
+        w.Line($"var {st} = {RuntimeApi.FileRewriteKeyed(name, rimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a / §14.9.35 GR20
+        SeqIo.EmitStoreFileStatus(file);
+        SeqIo.EmitUseHook(file, invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
         EmitInvalid(st, rw.InvalidKey);
     }
 
@@ -237,8 +247,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         w.Line($"var {st} = {RuntimeApi.FileDeleteRecord(name, image)};");
-        host.EmitStoreFileStatus(file);
-        host.EmitUseHook(file, invalidKeyHandled: del.InvalidKey?.Invalid is not null);
+        SeqIo.EmitStoreFileStatus(file);
+        SeqIo.EmitUseHook(file, invalidKeyHandled: del.InvalidKey?.Invalid is not null);
         EmitInvalid(st, del.InvalidKey);
     }
 
@@ -253,18 +263,18 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File))};");
-        host.EmitStoreFileStatus(df.File);
-        if (df.OnException is null) host.EmitUseHook(df.File);   // the ON EXCEPTION phrase suppresses the declarative entirely (§9.1.13.1)
+        SeqIo.EmitStoreFileStatus(df.File);
+        if (df.OnException is null) SeqIo.EmitUseHook(df.File);   // the ON EXCEPTION phrase suppresses the declarative entirely (§9.1.13.1)
         // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
         // completion (GR14) and takes the NOT ON EXCEPTION path.
         if (df.OnException is { } on)
         {
-            using (w.Block($"if ({st}[0] != '0')")) host.EmitStatementList(on);
+            using (w.Block($"if ({st}[0] != '0')")) Statements.EmitStatementList(on);
             if (df.NotOnException is { } not)
-                using (w.Block("else")) host.EmitStatementList(not);
+                using (w.Block("else")) Statements.EmitStatementList(not);
         }
         else if (df.NotOnException is { } not)
-            using (w.Block($"if ({st}[0] == '0')")) host.EmitStatementList(not);
+            using (w.Block($"if ({st}[0] == '0')")) Statements.EmitStatementList(not);
     }
 
     // ── START (ISO §14.9.41) ───────────────────────────────────────────────────────────────────────────────────
@@ -295,8 +305,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 : sta.Operand!.Item.ImageWidth.ToString();
             w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), OperandText.AsString(new BoundFieldOperand(sta.Operand!)), len)};");
         }
-        host.EmitStoreFileStatus(file);
-        host.EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
+        SeqIo.EmitStoreFileStatus(file);
+        SeqIo.EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
         EmitInvalid(st, sta.InvalidKey);   // §14.9.41 GR6 — transfer per §9.1.14
     }
 
@@ -312,12 +322,12 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         var w = ctx.Writer;
         if (ik.Invalid is { } inv)
         {
-            using (w.Block($"if ({st}[0] == '2')")) host.EmitStatementList(inv);
+            using (w.Block($"if ({st}[0] == '2')")) Statements.EmitStatementList(inv);
             if (ik.NotInvalid is { } not)
-                using (w.Block($"else if ({st}[0] == '0')")) host.EmitStatementList(not);
+                using (w.Block($"else if ({st}[0] == '0')")) Statements.EmitStatementList(not);
         }
         else if (ik.NotInvalid is { } not)
-            using (w.Block($"if ({st}[0] == '0')")) host.EmitStatementList(not);
+            using (w.Block($"if ({st}[0] == '0')")) Statements.EmitStatementList(not);
     }
 
     /// <summary>The C# <c>long</c> expression reading the file's RELATIVE KEY item (the RRN travels through the

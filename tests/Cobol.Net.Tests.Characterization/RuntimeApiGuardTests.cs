@@ -34,7 +34,7 @@ public sealed class RuntimeApiGuardTests
         ["Verbs/ArithmeticEmitter.cs"] = 10,   // 9h2: fragments routed; residue = compile-time MaskScale + typed CobolRounding uses
         ["Verbs/MoveEmitter.cs"] = 3,   // 9g2: fragments routed; residue = the compile-time MaskScale call + 2 typed CobolRounding args
         ["Emit/IntrinsicRenderer.cs"] = 52,
-        ["CSharpEmitter.Call.cs"] = 14,      // 27 − the 13 that moved with the CALL verbs (9m/BATCH-3a)
+        ["ProgramEmitter.cs"] = 14,      // was CSharpEmitter.Call.cs (27 − the 13 that moved at 9m); relocated VERBATIM at 9n — routes in the 9-final ratchet sweep
         ["Verbs/CallEmitter.cs"] = 13,       // routes in the 9-final ratchet sweep
         // CSharpEmitter.{Sort,KeyedIo}.cs (35+25) became Verbs/{Sort,KeyedIo}Emitter.cs at Step 9e —
         // fragments RuntimeApi-routed; the residues are TYPED CobolRounding arguments (see the 9d note).

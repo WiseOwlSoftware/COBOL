@@ -29,7 +29,8 @@ public sealed partial class StatementBinder
     // EcFeatures accumulators (the emitter's gating summary — BoundProgram.Ec).
     private bool _ecChecked, _ecIoChecked, _ecRaise, _ecResume, _ecF3, _ecFunctions, _ecRaising;
 
-    /// <summary>Configure the EC bind context (called by the emitter's per-unit bind, CSharpEmitter.Call.cs):
+    /// <summary>Configure the EC bind context (called per bound unit — <see cref="BinderDriver"/> for program
+    /// units, the OO bind half for class rosters):
     /// the compilation group's TurnState and this unit's PROGRAM-ID name (the §15.30.3 r2 location element).</summary>
     public void ConfigureEc(TurnState turn, string programName)
     {

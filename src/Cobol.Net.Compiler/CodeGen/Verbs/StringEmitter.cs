@@ -13,8 +13,12 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// <summary>The STRING / UNSTRING verb emitter (P7 Step 9d — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter.StringUnstring partial). Every runtime-member
 /// fragment routes through <see cref="RuntimeApi"/>.</summary>
-internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, CSharpEmitter host)
+internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith, EcEmitter ec)
 {
+    /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the ON/NOT-ON
+    /// OVERFLOW phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     /// <summary>STRING (ISO §14.9.43): the receiver's character image is materialized into ONE working local (its
     /// CURRENT content — GR7 preserves every position the transfer does not touch; there is no space filling), each
     /// sending operand transfers into it via <c>StringTransfer</c> in statement order (GR3), and the
@@ -43,7 +47,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, CSharp
             w.Line($"{acc} = {RuntimeApi.StrTransfer(acc, src, delim, ptr, ovf)};");
         }
         WriteImage(s.Into, acc);
-        if (s.Pointer is { } p) host.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
+        if (s.Pointer is { } p) arith.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
         EmitOverflow(ovf, "EC-OVERFLOW-STRING", s.OnOverflow, s.NotOnOverflow);   // GR8b
     }
 
@@ -98,14 +102,14 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, CSharp
                 {
                     MoveString(r.Target, fld);                                        // GR11c — per the MOVE rules
                     if (r.DelimiterIn is { } di) MoveString(di, dlm);                 // GR11d — "" ⇒ space fill via the move
-                    if (r.CountIn is { } ci) host.StoreArith(ci, new NumX(cnt, 0), CobolRounding.Truncation);   // GR11e
+                    if (r.CountIn is { } ci) arith.StoreArith(ci, new NumX(cnt, 0), CobolRounding.Truncation);   // GR11e
                     w.Line($"{tly} += 1;");                                           // GR14 — per receiver acted upon
                 }
             }
             w.Line($"if ({ptr} <= {src}.Length) {ovf} = true;   // unexamined characters remain (ISO §14.9.48.4 GR15b)");
         }
-        if (s.Pointer is { } p) host.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);     // GR13
-        if (s.Tallying is { } t) host.StoreArith(t, new NumX(tly, 0), CobolRounding.Truncation);    // GR14
+        if (s.Pointer is { } p) arith.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);     // GR13
+        if (s.Tallying is { } t) arith.StoreArith(t, new NumX(tly, 0), CobolRounding.Truncation);    // GR14
         EmitOverflow(ovf, "EC-OVERFLOW-UNSTRING", s.OnOverflow, s.NotOnOverflow);   // GR16b
     }
 
@@ -113,20 +117,20 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, CSharp
     /// imperative runs exactly when the flag is set, the NOT imperative exactly when it is not; with neither
     /// phrase the (nonfatal) condition lets execution continue, §14.6.13.1.4. Under enabled EC-OVERFLOW checking
     /// (>>TURN, §7.3.25) the raise (status + the no-phrase F3 selection) precedes the phrase branch — STRING
-    /// GR8b / UNSTRING GR16b via the host's EC overflow emission.</summary>
+    /// GR8b / UNSTRING GR16b via the <see cref="EcEmitter"/> overflow emission.</summary>
     private void EmitOverflow(
         string flag, string ecName, IReadOnlyList<BoundStatement>? onOverflow, IReadOnlyList<BoundStatement>? notOnOverflow)
     {
         var w = ctx.Writer;
-        host.EcEmitOverflow(flag, ecName, hasPhrase: onOverflow is not null);
+        ec.EmitOverflow(flag, ecName, hasPhrase: onOverflow is not null);
         if (onOverflow is { } on)
         {
-            using (w.Block($"if ({flag})")) host.EmitStatementList(on);
+            using (w.Block($"if ({flag})")) Statements.EmitStatementList(on);
             if (notOnOverflow is { } notAlso)
-                using (w.Block("else")) host.EmitStatementList(notAlso);
+                using (w.Block("else")) Statements.EmitStatementList(notAlso);
         }
         else if (notOnOverflow is { } notOnly)
-            using (w.Block($"if (!{flag})")) host.EmitStatementList(notOnly);
+            using (w.Block($"if (!{flag})")) Statements.EmitStatementList(notOnly);
     }
 
     /// <summary>The character image of a STRING/UNSTRING character-position operand — its raw content (a group's

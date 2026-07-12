@@ -16,7 +16,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// carrier; every runtime rule lives in <c>CobolPtr</c> (Deref/UpBy/Allocate/Free) — the emitters only wire
 /// places to helpers, through the <see cref="RuntimeApi"/> façade.
 /// </summary>
-internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, CSharpEmitter host)
+internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec)
 {
     /// <summary>The C# expression for an <c>ADDRESS OF identifier</c> value (ISO §8.4.3.11 GR1): a BASED
     /// item's value IS its implicit data-address pointer (§8.6.5 :8791); a cell-forced record renders a
@@ -120,7 +120,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             w.Line(op.Write(RuntimeApi.PtrFree(op.Read(), na)) + "   // FREE (ISO §14.9.15 GR1)");
             if (checkNotAlloc)
             {
-                var (stmt, loc) = host.EcStmtLoc(ecState.Info!);
+                var (stmt, loc) = ec.EcStmtLoc(ecState.Info!);
                 using (w.Block($"if ({na})"))
                 {
                     w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-ALLOC\", false, {stmt}, {loc});   // GR1c — nonfatal (§14.6.13.1.1)");
@@ -128,7 +128,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                     // RESUME NEXT / a completed declarative) simply continues (the review finding — the
                     // status set alone never consulted the declarative model).
                     int id = ctx.Names.NextPtr();
-                    w.Line($"int __fr{id} = {host.EcDispatchExpr("\"EC-STORAGE-NOT-ALLOC\"", "\"\"")};");
+                    w.Line($"int __fr{id} = {ec.EcDispatchExpr("\"EC-STORAGE-NOT-ALLOC\"", "\"\"")};");
                     w.Line($"if (__fr{id} >= 0) {{ __pc = __fr{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
                 }
             }

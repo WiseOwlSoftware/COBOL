@@ -13,7 +13,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// <summary>The INSPECT verb emitter (P7 Step 9d — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name). Every
 /// runtime-member fragment routes through <see cref="RuntimeApi"/>.</summary>
-internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, CSharpEmitter host)
+internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, ArithmeticEmitter arith)
 {
     /// <summary>
     /// INSPECT (ISO §14.9.22) → one image snapshot + runtime cycle calls. Identifier-1's character image is read
@@ -43,7 +43,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, CShar
             // One add per operand, in source order — the same counter may appear under several operands and
             // accumulates each count (GR11 — INSPECT adds, it never initializes).
             for (int k = 0; k < t.Count; k++)
-                host.StoreArith(t[k].Counter,
+                arith.StoreArith(t[k].Counter,
                     num.Combine(num.FieldNum(t[k].Counter), "+", new NumX($"__cnt{id}[{k}]", 0), ReceiverContext.None),
                     CobolRounding.Truncation);
         }

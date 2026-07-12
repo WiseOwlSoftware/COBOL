@@ -7,7 +7,7 @@ namespace CobolNet.CodeGen;
 
 /// <summary>The MOVE/ADD/SUBTRACT CORRESPONDING emitter (P7 Step 9c — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name).</summary>
-internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num, CSharpEmitter host)
+internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num, MoveEmitter move, ArithmeticEmitter arith)
 {
     /// <summary>
     /// MOVE/ADD/SUBTRACT CORRESPONDING (ISO §14.7.6): render the bind-time-expanded pairs as the per-pair implied
@@ -24,7 +24,7 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
         {
             EmitHoists(c.Hoists);
             foreach (var p in c.Pairs)
-                host.EmitMove(new BoundMove(new BoundFieldOperand(p.Source), [p.Target]));
+                move.Emit(new BoundMove(new BoundFieldOperand(p.Source), [p.Target]));
             return;
         }
         // ADD GR3 (§14.9.2.4): target ← target + source. SUBTRACT GR3 (§14.9.44.4): "data items in identifier-4
@@ -32,14 +32,14 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
         // reduction to separate `SUBTRACT a FROM b` statements settles the operand order over the inverted-looking
         // standard-arithmetic print at GR3).
         string op = c.Verb is CorrVerb.Add ? "+" : "-";
-        host.EmitArith(c.SizeError, ise =>
+        arith.EmitArith(c.SizeError, ise =>
         {
             EmitHoists(c.Hoists);
             foreach (var p in c.Pairs)
             {
                 // ONE rounded-phrase mode for every pair (§14.7.4).
-                var rcv = host.RcvFor(new Receiver(p.Target, c.Rounding), ise);
-                host.StoreArith(p.Target,
+                var rcv = arith.RcvFor(new Receiver(p.Target, c.Rounding), ise);
+                arith.StoreArith(p.Target,
                     num.Combine(num.FieldNum(p.Target), op, num.FieldNum(p.Source), rcv),
                     c.Rounding);
             }

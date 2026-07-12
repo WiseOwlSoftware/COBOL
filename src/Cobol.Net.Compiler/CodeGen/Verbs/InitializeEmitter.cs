@@ -9,7 +9,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 
 /// <summary>The INITIALIZE verb emitter (P7 Step 9c — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>, extracted from the CSharpEmitter partial of the same name).</summary>
-internal sealed class InitializeEmitter(EmitContext ctx, CSharpEmitter host)
+internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
 {
     /// <summary>INITIALIZE (ISO §14.9.20) — render the bind-time expansion: each <see cref="InitializeStore"/> IS
     /// the spec's implicit elementary MOVE (GR4), emitted through the ONE MOVE store path (<c>EmitMove</c> →
@@ -36,7 +36,7 @@ internal sealed class InitializeEmitter(EmitContext ctx, CSharpEmitter host)
                                $"'{s.Target.Item.CobolName ?? s.Target.Read()}' (float MOVE path deferred)"));
                 break;
             case InitializeStore s:
-                host.EmitMove(new BoundMove(s.Source, [s.Target]));   // §14.9.20 GR4 — an implicit MOVE, one code path
+                move.Emit(new BoundMove(s.Source, [s.Target]));   // §14.9.20 GR4 — an implicit MOVE, one code path
                 break;
             case InitializeLoop l:
                 using (w.Block($"for (long {l.Var} = 1; {l.Var} <= {l.Count}; {l.Var}++)"))

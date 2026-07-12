@@ -21,7 +21,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// content bugs cannot recur by construction). No byte plans, no registration kinds — the typed-native singular
 /// pattern.
 /// </summary>
-internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs, CSharpEmitter host)
+internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move)
 {
     /// <summary>Emit the per-report class members: the engine field, the NumProfile statics of the numeric
     /// printable items (synthetic items live outside the storage forest, so <c>FieldEmitter.EmitProfiles</c>
@@ -90,7 +90,7 @@ internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, 
                 return LoudValue("string",
                     $"report {r.Name}: SOURCE operand not resolvable to storage (ISO §13.18.53.3 SR4)");
         }
-        return host.ConvertSource(source, f.PrintItem);
+        return move.ConvertSource(source, f.PrintItem);
     }
 
     /// <summary>A VALUE clause operand (raw text) as a bound operand: a quoted literal, a figurative word

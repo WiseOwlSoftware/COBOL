@@ -1,21 +1,92 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
+using CobolNet.CodeGen.Emit;
 
 namespace CobolNet.CodeGen;
 
 using static CobolNet.CodeGen.Emit.EmitText;
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
-//  The PROCEDURE-DIVISION statement dispatch (PHASE-07 Step 6b). This partial makes CSharpEmitter the ONE
-//  IBoundStatementVisitor<bool> — the exhaustive generated interface (Cobol.Net.Compiler.SourceGen). Every bound
-//  statement leaf has a Visit below (bool = "unconditionally transfers control out of the paragraph case"); the
-//  hand-maintained 79-arm switch + its loud `default` are GONE, so a NEW BoundStatement leaf is a COMPILE error
-//  here (a missing Visit), never a silent runtime LoudStmt. Each Visit is the former switch arm verbatim.
+//  The PROCEDURE-DIVISION statement dispatch (PHASE-07 Step 6b; a real collaborator since Step 9n). This class
+//  is the ONE IBoundStatementVisitor<bool> — the exhaustive generated interface (Cobol.Net.Compiler.SourceGen).
+//  Every bound statement leaf has a Visit below (bool = "unconditionally transfers control out of the paragraph
+//  case"); the hand-maintained 79-arm switch + its loud `default` are GONE, so a NEW BoundStatement leaf is a
+//  COMPILE error here (a missing Visit), never a silent runtime LoudStmt. Constructed per unit by UnitEmitters
+//  with DIRECT collaborator references (the former CSharpEmitter host shims are deleted); the ctor copies the
+//  refs out of the root — every referenced collaborator is already constructed when the root news this class.
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
+internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
 {
+    private readonly EmitContext _ctx;
+    private readonly NumericRenderer _num;
+    private readonly DispatchState _dispatchState;
+    private readonly MoveEmitter _move;
+    private readonly ArithmeticEmitter _arith;
+    private readonly AlterSwitchEmitter _alterSwitch;
+    private readonly AcceptDisplayEmitter _acceptDisplay;
+    private readonly EvaluateEmitter _evaluate;
+    private readonly InitializeEmitter _initialize;
+    private readonly CorrespondingEmitter _corresponding;
+    private readonly InspectEmitter _inspect;
+    private readonly StringEmitter _strings;
+    private readonly PtrEmitter _ptr;
+    private readonly SetEmitter _set;
+    private readonly KeyedIoEmitter _keyedIo;
+    private readonly SequentialIoEmitter _seqIo;
+    private readonly SortEmitter _sort;
+    private readonly ReportWriterEmitter _reportWriter;
+    private readonly ControlFlowEmitter _controlFlow;
+    private readonly CallEmitter _call;
+    private readonly EcEmitter _ecEmit;
+    private readonly OoEmitter _oo;
+
+    public StatementEmitter(UnitEmitters u, OoEmitter oo, DispatchState dispatchState)
+    {
+        _ctx = u.Ctx;
+        _num = u.Num;
+        _dispatchState = dispatchState;
+        _move = u.Move;
+        _arith = u.Arith;
+        _alterSwitch = u.AlterSwitch;
+        _acceptDisplay = u.AcceptDisplay;
+        _evaluate = u.Evaluate;
+        _initialize = u.Initialize;
+        _corresponding = u.Corresponding;
+        _inspect = u.Inspect;
+        _strings = u.Strings;
+        _ptr = u.Ptr;
+        _set = u.Set;
+        _keyedIo = u.KeyedIo;
+        _seqIo = u.SeqIo;
+        _sort = u.Sort;
+        _reportWriter = u.ReportWriter;
+        _controlFlow = u.ControlFlow;
+        _call = u.Call;
+        _ecEmit = u.Ec;
+        _oo = oo;
+    }
+
+    /// <summary>Emit a statement list (a paragraph case, an IF branch, or an inline-PERFORM body), suppressing dead
+    /// code after an unconditional transfer; returns whether the list ends by transferring control out of the case.</summary>
+    internal bool EmitStatementList(IReadOnlyList<BoundStatement> stmts)
+    {
+        bool terminated = false;
+        foreach (var st in stmts)
+        {
+            if (terminated) break;   // unreachable after an unconditional GO TO / STOP / EXIT PARAGRAPH
+            terminated = EmitStatement(st);
+        }
+        return terminated;
+    }
+
+    /// <summary>Emit one statement; returns true if it unconditionally transfers control out of the paragraph case.
+    /// Dispatch is the generated exhaustive <see cref="IBoundStatementVisitor{T}"/> (PHASE-07 Step 6b): every bound
+    /// statement leaf has a <c>Visit</c> below, so a missing arm is a COMPILE error — the former 79-arm switch and
+    /// its loud <c>default</c> are gone.</summary>
+    internal bool EmitStatement(BoundStatement s) => s.Accept(this);
+
     // ── Control flow / no-op ─────────────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundStop n) { _ctx.Writer.Line("throw new StopRun();"); return true; }
 
@@ -56,7 +127,7 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
 
     // ── DISPLAY / MOVE / arithmetic ──────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundDisplay n) { _acceptDisplay.EmitDisplay(n); return false; }
-    public bool Visit(BoundMove n) { EmitMove(n); return false; }
+    public bool Visit(BoundMove n) { _move.Emit(n); return false; }
     public bool Visit(BoundAddTo n) { _arith.EmitInPlace(n.Targets, "+", n.Addends, n.SizeError); return false; }
     public bool Visit(BoundAddGiving n) { _arith.EmitGiving(n.Targets, rcv => _num.Fold(n.Addends, rcv), n.SizeError); return false; }
     public bool Visit(BoundSubtractFrom n) { _arith.EmitInPlace(n.Targets, "-", n.Minuends, n.SizeError); return false; }

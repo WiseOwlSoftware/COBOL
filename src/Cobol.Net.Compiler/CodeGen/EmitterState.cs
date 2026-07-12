@@ -9,7 +9,7 @@ namespace CobolNet.CodeGen;
 //  The emitter's mutable state model (P7 Step 9b; the phase doc's AS-BUILT PLAN). The cross-partial mutable
 //  fields formerly scattered over the CSharpEmitter partials become three cohesive per-scope objects so the
 //  Step-9 collaborator emitters receive their shared state EXPLICITLY (ctor-threaded), never through a god
-//  class's private fields. All three are RUN-UNIT lifetime (created once per CallEmitRunUnit, like
+//  class's private fields. All three are RUN-UNIT lifetime (fields of ProgramEmitter since Step 9n, like
 //  NameAllocator); the "per unit" / "per statement" designations below document the MUTATION discipline —
 //  which emitter writes the field, and when — preserved exactly from the pre-split partials (byte-exactness
 //  gate: the 32 characterization snapshots).

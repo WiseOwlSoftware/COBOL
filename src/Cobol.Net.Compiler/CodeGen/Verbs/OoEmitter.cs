@@ -11,22 +11,27 @@ namespace CobolNet.CodeGen;
 
 using static CobolNet.CodeGen.Emit.EmitText;
 
-/// <summary>The OO EMIT half (P7 Step 9m, BATCH-3b — extracted from the CSharpEmitter.Oo partial; the BIND
-/// half stays on the host behind the P6→P9 <c>IOoBindHost</c> seam): class/factory/interface unit emission,
-/// INVOKE (typed · instance · D10 universal), SET object-ref, and the per-method LOCAL dispatcher. Reads the
-/// per-unit context/renderers through LIVE host accessors — class-unit emission RE-CREATES the quadruple
-/// mid-run (<c>host.BeginUnit</c>), so captured copies would go stale (the coupling-census hazard).</summary>
-internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUnitState callState, CSharpEmitter host)
+/// <summary>The OO EMIT half (P7 Step 9m, BATCH-3b; direct-wired at 9n — the BIND half stays on the
+/// CSharpEmitter bind-host facade behind the P6→P9 <c>IOoBindHost</c> seam): class/factory/interface unit
+/// emission, INVOKE (typed · instance · D10 universal), SET object-ref, and the per-method LOCAL dispatcher.
+/// RUN-UNIT scope — reads the per-unit collaborators through the LIVE <see cref="ProgramEmitter.Current"/>
+/// root: class-unit emission RE-CREATES the whole per-unit set mid-run (<see cref="ProgramEmitter.BeginUnit"/>),
+/// so captured copies would go stale (the coupling-census hazard). The class table and interface-data forests
+/// arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state).</summary>
+internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUnitState callState,
+    ProgramEmitter program, OoClassTable classes,
+    IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData)
 {
-    private EmitContext Ctx => host.Ctx;
-    private NumericRenderer Num => host.Num;
-    private ConditionRenderer Cond => host.Cond;
-    private ReferenceResolver Refs => host.Refs;
+    private UnitEmitters U => program.Current;
+    private EmitContext Ctx => U.Ctx;
+    private NumericRenderer Num => U.Num;
+    private ConditionRenderer Cond => U.Cond;
+    private ReferenceResolver Refs => U.Refs;
 
     /// <summary>Emit the EXTERNAL record-area backings for a data forest (ISO §13.18.22.4 GR4b / §8.6.7): each
     /// <c>FD … IS EXTERNAL</c> record 01 re-bases onto a run-unit <c>ExternalStore</c> cell keyed by the FD name, so
     /// every describer (a program AND an object/factory) sees ONE shared record area. Shared by the program emit path
-    /// (<see cref="CallEmitProgramClass"/>) and the OO type-half (M2-OO-1i inc 5) — a class EXTERNAL FD needs the same
+    /// (<c>ProgramEmitter.EmitProgramClass</c>) and the OO type-half (M2-OO-1i inc 5) — a class EXTERNAL FD needs the same
     /// backing property, and <c>CallBindExternalAndGlobal</c> already populates <c>CallExternalBackings</c> on the
     /// class binder (it runs in <c>BindResolve</c>).</summary>
     public void EmitExternalBackings(DataBinder data, CodeWriter w)
@@ -48,11 +53,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line($"private readonly string {f.InstanceKeyField} = CobolFile.MintInstanceKey({CsLiteral(f.CobolName)});");
         using (w.Block($"public {csName}()"))
         {
-            host.EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
+            U.SeqIo.EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
             // A REPORT SECTION in this object/factory (Report Writer is a complete subsystem — the class emit path
             // just has to CALL it, the same class-emit-gap shape as inc 3/5): the engines construct AFTER their FDs
             // register (COBOLNET_REPORT_WRITER_DESIGN §4). Early-returns when Reports.Count == 0.
-            host.ReportWriter.EmitReportConstruction(bound, w);
+            U.ReportWriter.EmitReportConstruction(bound, w);
             foreach (var f in hostFiles.Where(f => f.InstanceKeyField is not null))
                 w.Line($"__TrackInstanceFile({FileKeyExpr(f)});");   // closed + dropped when the object is deleted (§9.1.4)
         }
@@ -66,7 +71,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// order), one <c>public virtual</c> method per METHOD-ID whose body runs its exit-bounded pc range, and
     /// ONE <c>__Dispatch</c> over the class's whole method-paragraph space (the same dispatcher body a program
     /// class gets — the emit-into-a-type reuse). Runs on the SAME per-unit emitter-state switch as
-    /// <see cref="CallEmitProgramClass"/>.
+    /// <c>ProgramEmitter.EmitProgramClass</c>.
     /// </summary>
     public void EmitClassUnit(OoClassUnit cls, CodeWriter w)
     {
@@ -77,7 +82,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // C# forbids covariant interface implementations that §9.3.8.2.3 5a/5c2 permit).
         string instBase = string.Join(", ", new[] { cls.Symbol.Base?.CsName ?? "CobolObject" }
             .Concat(cls.Symbol.Implements.Select(i => i.CsName)));
-        var instExtras = host._ooClasses.AdapterPairs
+        var instExtras = classes.AdapterPairs
             .Where(a => !a.Factory && ReferenceEquals(a.Impl.Owner, cls.Symbol))
             .Select(a =>
             {
@@ -123,7 +128,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         DataBinder data, ReferenceResolver refs, BoundProgram bound, IReadOnlyList<OoMethodSymbol> roster,
         CodeWriter w, IReadOnlyList<string>? headerExtras, bool sealedType = false)
     {
-        host.BeginUnit(w, data, refs);
+        program.BeginUnit(w, data, refs);
         callState.SelfPath = cobolName;       // a CALL from a method names the class as its calling path (§8.4.6.3)
         callState.ReturningPlace = null;      // methods deliver results via slice-2 RETURNING, never the program ABI
         ecState.UnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)
@@ -138,12 +143,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             var fields = new DataEmitter(Ctx);
             fields.Emit();   // WS → INSTANCE fields (D3/D11); method WS → statics; VALUE inits = field initializers (D4)
             EmitExternalBackings(data, w);       // M2-OO-1i inc 5: a class EXTERNAL FD record → the shared run-unit cell
-            host.ReportWriter.EmitReportMembers(w);              // M2-OO-1i review: a class REPORT SECTION's engine fields + compose methods (Report Writer is complete)
+            U.ReportWriter.EmitReportMembers(w);              // M2-OO-1i review: a class REPORT SECTION's engine fields + compose methods (Report Writer is complete)
             EmitFileMembers(csName, data, bound, w);   // M2-OO-1i: object/factory file connectors + report construction register in an emitted ctor
             // A method file verb under >>TURN EC-I-O … CHECKING emits an __IoCheckEc call (§9.1.13.1 fatal-status
             // default); the class type must declare it. A class has no USE declaratives (Declaratives == null), so
             // EcEmitIoCheckEc reduces to the status→EC bridge — no __RunUse/__EcDispatch needed (M2-OO-1i review).
-            if (bound.Ec is { HasIoChecked: true }) host.EcEmitIoCheckEc(bound, w);
+            if (bound.Ec is { HasIoChecked: true }) U.Ec.EmitIoCheckEc(bound, w);
             if (bound.Paragraphs.Count > 0)
                 w.Line($"private const int __N = {bound.Paragraphs.Count};   // paragraph count (all methods — one pc space)");
             w.Line();
@@ -404,7 +409,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // above by reference — zero allocation for direct calls).
                 string saved = dispatch.DispatchName;
                 dispatch.DispatchName = "__MDispatch";
-                host.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.EntryPc, m.EndPc);
+                U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.EntryPc, m.EndPc);
                 dispatch.DispatchName = saved;
                 w.Line($"try {{ __MDispatch({m.EntryPc}, {m.EndPc}); }} catch (MethodReturn) {{ }}   "
                     + "// GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
@@ -444,8 +449,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// interface STATICS (C# 8+) so cross-unit CONTENT conversions can qualify them.</summary>
     public void EmitInterfaceUnit(OoInterfaceSymbol iface, CodeWriter w)
     {
-        var data = host._ooIfaceData[iface];
-        host.BeginUnit(w, data, Refs);   // interface units emit no statements; the fresh renderers are unused but harmless
+        var data = ifaceData[iface];
+        // Interface units emit no statements, so the per-unit resolver is never consulted — and none can
+        // exist: interfaces emit FIRST, before any program/class unit begins (the pre-9n code passed the
+        // host's null-or-stale _refs field here, equally unread). The fresh renderers are unused but harmless.
+        program.BeginUnit(w, data, null!);
         string bases = iface.Inherits.Count > 0
             ? " : " + string.Join(", ", iface.Inherits.Select(b => b.CsName))
             : "";
@@ -636,7 +644,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// ACTIVATING site consumes — after the RETURNING delivery and copy-outs (GR1b ordering). Instance/
     /// Self/Super/Factory + UNIVERSAL dispatches all pick up; NEW needs none (the generated ctor runs no
     /// user statements, D4). Gated on <c>EcState.Active</c>, which spans class units.</summary>
-    private void EmitInvokePickup() => host.Call.EmitPropagationPickup();
+    private void EmitInvokePickup() => U.Call.EmitPropagationPickup();
 
     private string OoStringReadOf(Place sp, BoundInvokeArg a)
     {

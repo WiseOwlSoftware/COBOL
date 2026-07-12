@@ -20,8 +20,13 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// IS the GR11/GR14 compiler-inserted return mechanism. Format 2 sorts the typed element array in place with a
 /// typed comparer (COBOLNET_DESIGN §8.2).
 /// </summary>
-internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch, CSharpEmitter host)
+internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch, SequentialIoEmitter seqIo,
+    MoveEmitter move, ArithmeticEmitter arith)
 {
+    /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the RETURN AT END /
+    /// NOT AT END phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     /// <summary>SORT Format 1 (ISO §14.9.40 GR9 — the three phases): (a) release — the USING files' records via
     /// implicit OPEN INPUT / READ / RELEASE / CLOSE (GR12), or the INPUT PROCEDURE as a bounded dispatch (GR11);
     /// (b) sequence — one stable key sort (GR8; stability = the GR3 DUPLICATES IN ORDER order, safe without the
@@ -89,7 +94,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch, CShar
         string f = FileKeyExpr(input);
         string tmp = $"__srt{ctx.Names.NextSort()}";
         w.Line($"{RuntimeApi.FileOpenInput(f)};   // implicit OPEN INPUT (ISO §14.9.40 GR12a / §14.9.24 GR7a)");
-        host.EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
+        seqIo.EmitUseHook(input);   // a failed implicit OPEN reaches a USE declarative (GR12a)
         using (w.Block($"while ({RuntimeApi.FileRead(f, tmp)})"))
         {
             // GR12b: a record larger/smaller than the SD's record range ⇒ EC-SORT-MERGE-RELEASE (checking OFF,
@@ -101,10 +106,10 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch, CShar
                 : RuntimeApi.StrStore(tmp, $"{sdWidth}"))};");
         }
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR12c / GR7c)");
-        host.EmitStoreFileStatus(input);
+        seqIo.EmitStoreFileStatus(input);
         // GR12b: the implicit READ is "as if with the AT END phrase" - at-end never fires a declarative; any
         // OTHER read/close failure still does.
-        host.EmitUseHook(input, atEndHandled: true);
+        seqIo.EmitUseHook(input, atEndHandled: true);
     }
 
     /// <summary>The implicit GIVING transfer for one output file (SORT GR15 / MERGE GR12): REWIND the return
@@ -118,12 +123,12 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch, CShar
         string tmp = $"__srt{ctx.Names.NextSort()}";
         w.Line($"{RuntimeApi.SortRewind(sdLit)};   // each GIVING file receives the FULL result (GR15 / MERGE GR12)");
         w.Line($"{RuntimeApi.FileOpenOutput(f)};   // implicit OPEN OUTPUT (GR15a)");
-        host.EmitUseHook(output);   // a failed implicit OPEN reaches a USE declarative (GR15a)
+        seqIo.EmitUseHook(output);   // a failed implicit OPEN reaches a USE declarative (GR15a)
         using (w.Block($"while ({RuntimeApi.SortReturn(sdLit, tmp)})"))
             w.Line($"{RuntimeApi.FileWrite(f, tmp)};   // implicit WRITE without optional phrases (GR15b)");
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR15c)");
-        host.EmitStoreFileStatus(output);
-        host.EmitUseHook(output);
+        seqIo.EmitStoreFileStatus(output);
+        seqIo.EmitUseHook(output);
     }
 
     /// <summary>RELEASE (ISO §14.9.32): FROM first MOVEs into the record (GR4 — identical to the explicit MOVE),
@@ -134,7 +139,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch, CShar
     public void EmitRelease(BoundRelease rl)
     {
         var w = ctx.Writer;
-        if (rl.From is { } from) host.EmitMove(new BoundMove(from, [rl.Record]));   // GR4a: MOVE x TO record-name-1
+        if (rl.From is { } from) move.Emit(new BoundMove(from, [rl.Record]));   // GR4a: MOVE x TO record-name-1
         string sd = FileKeyExpr(rl.File);
         string image = OperandText.AsString(new BoundFieldOperand(rl.Record));
         if (rl.Varying is { Depending: { } dep })
@@ -161,16 +166,16 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch, CShar
         string tmp = $"__srt{ctx.Names.NextSort()}";
         using (w.Block($"if ({RuntimeApi.SortReturn(sd, tmp)})"))
         {
-            host.EmitImageInto(rt.RecordArea, tmp);   // GR3 — made available in the record area
+            seqIo.EmitImageInto(rt.RecordArea, tmp);   // GR3 — made available in the record area
             if (rt.Varying is { Depending: { } dep })   // §13.18.43 GR15 — the length restored into DEPENDING
-                host.StoreArith(dep, new NumX(RuntimeApi.SortLastReturnedLength(sd), 0), CobolRounding.Truncation);
+                arith.StoreArith(dep, new NumX(RuntimeApi.SortLastReturnedLength(sd), 0), CobolRounding.Truncation);
             if (rt.Into is { } into)             // GR5 — RETURN then MOVE record-area → identifier-1
-                host.EmitMove(new BoundMove(new BoundFieldOperand(rt.RecordArea), [into]));
-            if (rt.NotAtEnd is { } not) host.EmitStatementList(not);
+                move.Emit(new BoundMove(new BoundFieldOperand(rt.RecordArea), [into]));
+            if (rt.NotAtEnd is { } not) Statements.EmitStatementList(not);
         }
         using (w.Block("else"))
         {
-            if (rt.AtEnd is { } at) host.EmitStatementList(at);
+            if (rt.AtEnd is { } at) Statements.EmitStatementList(at);
         }
     }
 

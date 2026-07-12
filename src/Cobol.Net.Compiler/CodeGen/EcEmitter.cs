@@ -24,8 +24,13 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// §14.6.13.1.3 #5 NOTE 2); <c>-3</c> = no qualifying declarative; <c>≥0</c> = RESUME AT procedure-name's pc
 /// (≡ GO TO, GR3).</para>
 /// </summary>
-internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState dispatch, CSharpEmitter host)
+internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState dispatch)
 {
+    /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/>: the EC↔statement
+    /// cycle (<c>EmitChecked</c> re-enters <c>EmitStatement</c>; statements contain EC-checked children) is
+    /// the edge the coupling census proved no ctor order can satisfy.</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     /// <summary>The <c>__EcDispatch</c> invocation (or the no-declarative constant when this program has no F3
     /// declaratives — same protocol, zero machinery).</summary>
     public string EcDispatchExpr(string ecNameExpr, string fileExpr) =>
@@ -97,7 +102,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             var (stmt, loc) = EcStmtLoc(ec.Info);
             w.Line("ExceptionState.ArgumentFunctionChecking = true;");
             using (w.Block("try"))
-                host.EmitStatement(ec.Inner);
+                Statements.EmitStatement(ec.Inner);
             using (w.Block($"catch (CobolFatalException __af{id}) when (__af{id}.EcName == \"EC-ARGUMENT-FUNCTION\")"))
             {
                 if (ec.Info.WithLocation)
@@ -110,7 +115,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
             terminated = false;   // conservative: the catch can resume past an inner transfer
         }
         else
-            terminated = host.EmitStatement(ec.Inner);
+            terminated = Statements.EmitStatement(ec.Inner);
         return terminated;
     }
 

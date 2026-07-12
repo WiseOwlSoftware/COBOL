@@ -15,8 +15,12 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// bodies plus the shared services every numeric-storing verb consumes — the <c>EmitArith</c> ON SIZE ERROR /
 /// EC-SIZE two-phase wrapper (writes the <see cref="EcState"/> statement scratch the checked stores read — the
 /// EC↔arithmetic interlock) and the <c>StoreArith</c> store funnel.</summary>
-internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, CSharpEmitter host)
+internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec)
 {
+    /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the phrase bodies
+    /// nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     /// <summary>In-place arithmetic (ADD TO / SUBTRACT FROM / MULTIPLY BY): each receiver ← receiver op Σoperands,
     /// rounded by the receiver's ROUNDED mode (ISO §14.7.4), under the statement's ON SIZE ERROR phrase if any.</summary>
     public void EmitInPlace(IReadOnlyList<Receiver> targets, string op, IReadOnlyList<BoundExpr> operands, SizeErrorPhrase? sizeErr)
@@ -193,7 +197,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // the same two-phase TryStore/try-catch shape even WITHOUT the phrase, latching WHICH Table 13 condition
         // occurred so the §14.9.49 F3 selection and the fatal default see the precise level-3 name. Checking off
         // + no phrase = the unchecked fast path, byte-identical (deep-dive D10 / SSOT §18.16).
-        var ecSize = host.EcEnabledSizeNames();
+        var ecSize = ec.EnabledSizeNames();
         if (sizeErr is null && ecSize.Count == 0) { emitStores(false); return; }
 
         string flag = $"__sizeErr{ctx.Names.NextSizeErr()}";
@@ -226,16 +230,16 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         ecState.SizeErrEcVar = null;
 
         if (ecnVar is not null)
-            host.EcEmitSizeHandling(flag, ecnVar, ecSize, hasPhrase: sizeErr?.OnError is not null);
+            ec.EmitSizeHandling(flag, ecnVar, ecSize, hasPhrase: sizeErr?.OnError is not null);
 
         if (sizeErr?.OnError is { } on)
         {
-            using (w.Block($"if ({flag})")) host.EmitStatementList(on);
+            using (w.Block($"if ({flag})")) Statements.EmitStatementList(on);
             if (sizeErr.NotOnError is { } notAlso)
-                using (w.Block("else")) host.EmitStatementList(notAlso);
+                using (w.Block("else")) Statements.EmitStatementList(notAlso);
         }
         else if (sizeErr?.NotOnError is { } not)
-            using (w.Block($"if (!{flag})")) host.EmitStatementList(not);
+            using (w.Block($"if (!{flag})")) Statements.EmitStatementList(not);
     }
 
     /// <summary>Store an arithmetic result into a numeric target place, rounding to the receiver scale with

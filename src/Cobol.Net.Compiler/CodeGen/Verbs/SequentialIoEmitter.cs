@@ -18,8 +18,12 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// record-area image splice, and the RETRY/lock renders KeyedIo consumes.</summary>
 internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs,
     DispatchState dispatch, EcState ecState, CallUnitState callState, KeyedIoEmitter keyedIo,
-    ArithmeticEmitter arith, CSharpEmitter host)
+    ArithmeticEmitter arith, EcEmitter ec, MoveEmitter move)
 {
+    /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the AT END / AT EOP /
+    /// NOT-ON phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     /// <summary>The declarative hook after a verb's FILE STATUS store (GR6 — after the standard status routine,
     /// BEFORE the statement's phrase branches). A statement with ENABLED EC-I-O checking for this file (>>TURN,
     /// ISO §7.3.25) calls the EC-aware <c>__IoCheckEc</c> variant instead — same F1 behavior plus the §9.1.13.1
@@ -28,10 +32,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitUseHook(FileModel file, bool atEndHandled = false, bool invalidKeyHandled = false)
     {
         var w = ctx.Writer;
-        if (host.EcIoMaskFor(file) is not 0 and var mask)
+        if (ec.IoMaskFor(file) is not 0 and var mask)
         {
             int id = ctx.Names.NextEc();
-            var (stmt, loc) = host.EcStmtLoc(ecState.Info!);
+            var (stmt, loc) = ec.EcStmtLoc(ecState.Info!);
             w.Line($"int __ior{id} = __IoCheckEc({FileKeyExpr(file)}, {(atEndHandled ? "true" : "false")}, "
                 + $"{(invalidKeyHandled ? "true" : "false")}, {mask}, {stmt}, {loc});");
             w.Line($"if (__ior{id} >= 0) {{ __pc = __ior{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
@@ -215,7 +219,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         var w = ctx.Writer;
         if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
-        if (wr.From is { } from) host.EmitMove(new BoundMove(from, [wr.Record]));
+        if (wr.From is { } from) move.Emit(new BoundMove(from, [wr.Record]));
         string name = FileKeyExpr(wr.File);
         string image = OperandText.AsString(new BoundFieldOperand(wr.Record));
         if (wr.Advancing is { } adv)
@@ -235,11 +239,11 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         {
             using (w.Block($"if ({RuntimeApi.FileEndOfPage(name)})"))
             {
-                if (wr.AtEop is { } at) host.EmitStatementList(at);
+                if (wr.AtEop is { } at) Statements.EmitStatementList(at);
             }
             if (wr.NotAtEop is { } not)
                 using (w.Block("else"))
-                    host.EmitStatementList(not);
+                    Statements.EmitStatementList(not);
         }
     }
 
@@ -288,8 +292,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // here: Read space-fills the area beyond the record, and the implicit MOVE of the category-
             // alphanumeric area space-fills the receiver the same way.
             if (rd.Into is { } into && area is not null)
-                host.EmitMove(new BoundMove(new BoundFieldOperand(area), [into]));
-            if (rd.NotAtEnd is { } not) host.EmitStatementList(not);
+                move.Emit(new BoundMove(new BoundFieldOperand(area), [into]));
+            if (rd.NotAtEnd is { } not) Statements.EmitStatementList(not);
         }
         using (w.Block("else"))
         {
@@ -299,7 +303,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // a 3x/4x failure is NOT an at-end condition; it reaches a USE declarative instead).
             if (rd.AtEnd is { } at)
                 using (w.Block($"if ({RuntimeApi.FileStatus(name)}[0] == '1')"))
-                    host.EmitStatementList(at);
+                    Statements.EmitStatementList(at);
         }
     }
 
@@ -307,7 +311,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         var w = ctx.Writer;
         if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
-        if (rw.From is { } from) host.EmitMove(new BoundMove(from, [rw.Record]));
+        if (rw.From is { } from) move.Emit(new BoundMove(from, [rw.Record]));
         string image = OperandText.AsString(new BoundFieldOperand(rw.Record));
         w.Line($"{RuntimeApi.FileRewrite(FileKeyExpr(rw.File), image, VaryingLengthArg(rw.File))};");
         EmitStoreFileStatus(rw.File);
@@ -351,7 +355,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (file.FileStatusName is null) return;   // no FILE STATUS clause — nothing to store
         // An INHERITED GLOBAL file stores into the OWNER's status item through the __outer chain
         // (§12.4.5.8.4 GR1 NOTE 1 — the item is updated by contained-program references to the global
-        // file-name even though it is a LOCAL name of the owner; map built per unit in CallEmitProgramClass).
+        // file-name even though it is a LOCAL name of the owner; map built per unit in ProgramEmitter.EmitProgramClass).
         Place? place = callState.InheritedStatusPlace.TryGetValue(file, out var inherited)
             ? inherited
             : file.FileStatusItem is { } own ? refs.ResolveItem(own) : null;

@@ -17,8 +17,12 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// the ONE CALL-boundary string-carrier trio (<see cref="CallPlaceIsString"/>/<see cref="CallStringRead"/>/
 /// <see cref="CallStringWrite"/>) Report Writer and the program-class emission reuse.</summary>
 internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, CallUnitState callState,
-    EcEmitter ec, CSharpEmitter host)
+    EcEmitter ec, MoveEmitter move)
 {
+    /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the ON/NOT-ON
+    /// EXCEPTION phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     internal static string CallBool(bool b) => b ? "true" : "false";
 
     // ── Statement emitters: CALL / CANCEL / GOBACK ──────────────────────────────────────────────────────────
@@ -61,12 +65,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line($"catch (CobolCallException) {{ __callErr{id} = true; }}   // CALL exception condition → the ON phrase (ISO §14.9.4.4 GR3h)");
         if (c.OnException is { } on)
         {
-            using (w.Block($"if (__callErr{id})")) host.EmitStatementList(on);
+            using (w.Block($"if (__callErr{id})")) Statements.EmitStatementList(on);
             if (c.NotOnException is { } notAlso)
-                using (w.Block("else")) host.EmitStatementList(notAlso);
+                using (w.Block("else")) Statements.EmitStatementList(notAlso);
         }
         else if (c.NotOnException is { } not)
-            using (w.Block($"if (!__callErr{id})")) host.EmitStatementList(not);   // GR3i — only on a non-exception return
+            using (w.Block($"if (!__callErr{id})")) Statements.EmitStatementList(not);   // GR3i — only on a non-exception return
         EmitPropagationPickup();
         return false;
     }
@@ -259,7 +263,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         if (g.ReturningSource is { } src)
         {
             if (callState.ReturningPlace is { } ret)
-                host.EmitMove(new BoundMove(new BoundFieldOperand(src), [ret]));
+                move.Emit(new BoundMove(new BoundFieldOperand(src), [ret]));
             else
                 w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));
         }

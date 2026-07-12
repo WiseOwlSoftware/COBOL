@@ -15,8 +15,13 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// GO TO … DEPENDING. The out-of-line PERFORM's bounded dispatch reads <see cref="DispatchState.DispatchName"/>;
 /// VARYING/SEARCH index advances ride the ONE SET-target store pair on <see cref="SetEmitter"/>.</summary>
 internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, ConditionRenderer cond,
-    DispatchState dispatch, SetEmitter set, CSharpEmitter host)
+    DispatchState dispatch, SetEmitter set)
 {
+    /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (IF branches,
+    /// inline-PERFORM bodies, and SEARCH arms nest arbitrary statement lists — a cyclic edge no ctor order
+    /// can satisfy).</summary>
+    internal StatementEmitter Statements { get; set; } = null!;
+
     /// <summary>Emit <c>GO TO … DEPENDING ON sel</c> (ISO §14.9.20 Format 2): a 1-based selector picks a pc; an
     /// out-of-range value transfers nowhere and falls through to the next statement.</summary>
     public void EmitGoToDepending(BoundGoToDepending d)
@@ -37,13 +42,13 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     {
         var w = ctx.Writer;
         using (w.Block($"if ({cond.Render(iff.Condition)})"))
-            host.EmitStatementList(iff.Then);
+            Statements.EmitStatementList(iff.Then);
         if (iff.Else.Count > 0)
             using (w.Block("else"))
-                host.EmitStatementList(iff.Else);
+                Statements.EmitStatementList(iff.Else);
     }
 
-    public void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () => host.EmitStatementList(p.Body), inline: true);
+    public void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () => Statements.EmitStatementList(p.Body), inline: true);
 
     /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
     /// (the C# call stack is the return-address stack, COBOLNET_DESIGN §5.4).</summary>
@@ -180,13 +185,13 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         w.Line($"__search{id}:");
         using (w.Block($"if ({s.IndexField} > {s.DependCount ?? $"{s.Count}L"})"))
         {
-            bool terminated = s.AtEnd is { } at && host.EmitStatementList(at);
+            bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
             if (!terminated) w.Line($"goto __searchEnd{id};");
         }
         foreach (var when in s.Whens)
             using (w.Block($"if ({cond.Render(when.Condition)})"))
             {
-                if (!host.EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
+                if (!Statements.EmitStatementList(when.Statements)) w.Line($"goto __searchEnd{id};");
             }
         w.Line($"{s.IndexField} += 1;");
         if (s.AlsoVaried is { } also) set.AugmentSetTarget(also, down: false, new NumX("1", 0));
