@@ -1,61 +1,31 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Common;
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
-/// <summary>An INSPECT TALLYING operand-kind (ISO §14.9.22.2 Format 1: ALL / LEADING / CHARACTERS). The ordinals
-/// match the runtime <c>CobolInspect.Tally*</c> constants — the emitter passes them straight through.</summary>
-public enum InspectTallyKind { All = 0, Leading = 1, Characters = 2 }
-
-/// <summary>An INSPECT REPLACING operand-kind (ISO §14.9.22.2 Format 2: ALL / FIRST / LEADING / CHARACTERS).
-/// Ordinals match the runtime <c>CobolInspect.Replace*</c> constants.</summary>
-public enum InspectReplaceKind { All = 0, First = 1, Leading = 2, Characters = 3 }
-
-/// <summary>One flattened TALLYING operand: its counter (identifier-2 — counts ADD into it, §14.9.22.4 GR11),
-/// kind, pattern (null for CHARACTERS, whose implied 1-character operand always matches — GR8e), and per-operand
-/// BEFORE/AFTER delimiters (GR9). The flattening order across ALL counters of the statement IS the GR8a shared
-/// comparison-cycle order.</summary>
-public sealed record BoundInspectTally(
-    Place Counter, InspectTallyKind Kind, BoundOperand? Pattern, BoundOperand? Before, BoundOperand? After);
-
-/// <summary>One flattened REPLACING operand: kind, pattern (null for CHARACTERS), equal-length replacement
-/// (§14.9.22.4 GR14 — a figurative replacement was already expanded to the pattern size at bind time, SR6), and
-/// per-operand BEFORE/AFTER delimiters (GR9). Source order = the GR8a shared-cycle order.</summary>
-public sealed record BoundInspectReplace(
-    InspectReplaceKind Kind, BoundOperand? Pattern, BoundOperand Replacement, BoundOperand? Before, BoundOperand? After);
-
-/// <summary>The CONVERTING phrase (ISO §14.9.22.2 Format 4): the positional from→to character maps (GR20) and the
-/// single BEFORE/AFTER region. A figurative <paramref name="To"/> was expanded to <paramref name="From"/>'s size
-/// at bind time (SR9/GR22).</summary>
-public sealed record BoundInspectConvert(BoundOperand From, BoundOperand To, BoundOperand? Before, BoundOperand? After);
-
-/// <summary>INSPECT (ISO §14.9.22). Formats 1–3 carry the flattened tallying/replacing operand lists; format 4
-/// carries <see cref="Converting"/>. A format 3 executes as two successive statements — tallying then replacing —
-/// over the same identifier-1 (GR19). <see cref="Backward"/> reverses the scan direction (2023-only, gated at
-/// bind time).</summary>
-public sealed record BoundInspect(
-    Place Target,
-    IReadOnlyList<BoundInspectTally> Tallying,
-    IReadOnlyList<BoundInspectReplace> Replacing,
-    BoundInspectConvert? Converting,
-    bool Backward) : BoundStatement;
-
-public sealed partial class StatementBinder
+/// <summary>The INSPECT verb binder (P7 Step 10c — the FIRST real binder collaborator over
+/// <see cref="BinderContext"/>, extracted from the <c>StatementBinder.Inspect</c> partial; the census's
+/// cleanest file proves the Step-9-style pattern: ctx + transitional host edges for the shared operand
+/// spine). The edition-invariant SR error-halves live in <c>StatementValidation</c> (pure checks — the
+/// SR6/SR9 figurative-expansion operand REWRITE is bind logic and stays here); the 0845 BACKWARD gate moved
+/// VERBATIM (the pass-folding is Exec Step E's scope). The <c>BoundInspect*</c> records/enums stayed in
+/// <c>Binding/Bound/BoundInspect.cs</c> — the Tally/Replace enum ordinals are runtime ABI.</summary>
+internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind INSPECT (ISO §14.9.22): resolve identifier-1 (SR1 — an alphanumeric group or an elementary
     /// usage-DISPLAY item), flatten the TALLYING/REPLACING operands across all counters in SOURCE order (the GR8a
     /// shared-cycle order), and bind CONVERTING to its from/to maps (GR20). BACKWARD is 2023-only
     /// (VERSION_CHANGE_REFERENCE row 77 / E.3.3 item 34); TRAILING and tallying FIRST are not in any ISO format —
     /// both fail loud rather than silently aliasing to ALL.</summary>
-    private BoundStatement BindInspect(Core.InspectStatementContext ins)
+    public BoundStatement Bind(Core.InspectStatementContext ins)
     {
-        if (refs.Resolve(ins.dataReference()) is not { } target)
+        if (ctx.Refs.Resolve(ins.dataReference()) is not { } target)
             return new BoundUnsupported($"INSPECT of unresolvable item '{ins.dataReference().GetText()}'");
         // SR1: identifier-1 is an alphanumeric/national group or an elementary usage DISPLAY/NATIONAL item — a
         // binary/packed/float/index elementary item has no character image to inspect. USAGE NATIONAL joined
@@ -67,19 +37,17 @@ public sealed partial class StatementBinder
                 $"INSPECT identifier-1 '{target.Item.CobolName}' of USAGE {tp.Usage} (ISO §14.9.22.3 SR1 — usage display or national only)");
 
         bool backward = ins.BACKWARD() is not null;
-        if (backward && data.Edition.DialectLevel < 2023)
-            data.Edition.Error("COBOLNET0845", "INSPECT BACKWARD was introduced by ISO/IEC 1989:2023 (§14.9.22.2; "
-                + $"version-change reference row 77); it requires --std 2023 (targeting COBOL-{data.Edition.DialectLevel})");
+        if (backward && ctx.Edition.DialectLevel < 2023)
+            ctx.Edition.Error("COBOLNET0845", "INSPECT BACKWARD was introduced by ISO/IEC 1989:2023 (§14.9.22.2; "
+                + $"version-change reference row 77); it requires --std 2023 (targeting COBOL-{ctx.Edition.DialectLevel})");
 
         var tallying = new List<BoundInspectTally>();
         if (ins.inspectTallyingPhrase() is { } tallyPhrase)
             foreach (var item in tallyPhrase.inspectTallyingItem())
             {
-                if (refs.Resolve(item.dataReference()) is not { } counter)
+                if (ctx.Refs.Resolve(item.dataReference()) is not { } counter)
                     return new BoundUnsupported($"INSPECT TALLYING counter '{item.dataReference().GetText()}'");
-                if (counter.Item.Pic is not { Category: PicCategory.Numeric })
-                    data.Edition.Error("COBOLNET0847", $"INSPECT TALLYING counter '{counter.Item.CobolName}' shall "
-                        + "be an elementary numeric data item (ISO §14.9.22.3 SR5)");
+                ctx.Validation.CheckInspectTallyCounter(counter);   // SR5 — pure check; binding continues
                 foreach (var fc in item.inspectForClause())
                 {
                     // GR10: ALL and LEADING are transitive across the bare operands that follow them until the
@@ -118,11 +86,7 @@ public sealed partial class StatementBinder
                 if (item.CHARACTERS() is not null)
                 {
                     var (rep, _) = InspectCharOperand(item.inspectChar(0));
-                    // SR7: with CHARACTERS, literal-3 shall be ONE character (an identifier-5 of another size is
-                    // the runtime GR15 case — the runtime uses its first character, deterministic).
-                    if (rep is BoundStringLiteral { Value.Length: not 1 } bad)
-                        data.Edition.Error("COBOLNET0846", $"INSPECT REPLACING CHARACTERS BY a {bad.Value.Length}-"
-                            + "character literal — literal-3 shall be one character in length (ISO §14.9.22.3 SR7)");
+                    ctx.Validation.CheckInspectCharactersReplacement(rep);   // SR7 — pure check
                     replacing.Add(new BoundInspectReplace(InspectReplaceKind.Characters, null, rep, before, after));
                     continue;
                 }
@@ -140,12 +104,8 @@ public sealed partial class StatementBinder
                     // SR6 / GR14: a figurative literal-3 is expanded (or contracted) to the size of literal-1 /
                     // identifier-3 — e.g. ALL "AB" BY SPACES replaces with "  ". (The legacy skipped the operand.)
                     rep2 = new BoundStringLiteral(new string(f.Value[0], wp));
-                else if (pat is BoundStringLiteral lp && rep2 is BoundStringLiteral lr && !figurative
-                         && lp.Value.Length != lr.Value.Length)
-                    // SR6: non-figurative literal-1 / literal-3 of unequal size is illegal — statically known, so
-                    // diagnosed at compile time (the identifier-size mismatch is the runtime GR14 EC case).
-                    data.Edition.Error("COBOLNET0846", $"INSPECT REPLACING: literal '{lp.Value}' and replacement "
-                        + $"'{lr.Value}' differ in size (ISO §14.9.22.3 SR6 — equal size unless the replacement is figurative)");
+                else
+                    ctx.Validation.CheckInspectReplacingSize(pat, rep2, figurative);   // SR6 — pure check
                 replacing.Add(new BoundInspectReplace(kind, pat, rep2, before, after));
             }
         }
@@ -157,10 +117,8 @@ public sealed partial class StatementBinder
             var (to, figurative) = InspectCharOperand(conv.inspectChar(1));
             if (figurative && to is BoundStringLiteral f && InspectStaticWidth(from) is { } wf && wf != f.Value.Length)
                 to = new BoundStringLiteral(new string(f.Value[0], wf));   // SR9/GR22 — figurative literal-5 takes literal-4's size
-            else if (from is BoundStringLiteral lf && to is BoundStringLiteral lt && !figurative
-                     && lf.Value.Length != lt.Value.Length)
-                data.Edition.Error("COBOLNET0846", $"INSPECT CONVERTING: '{lf.Value}' and '{lt.Value}' differ in "
-                    + "size (ISO §14.9.22.3 SR9 — equal size unless literal-5 is figurative)");
+            else
+                ctx.Validation.CheckInspectConvertingSize(from, to, figurative);   // SR9 — pure check
             BoundOperand? before = null, after = null;
             foreach (var ba in conv.inspectBeforeAfterPhrase())
             {
@@ -177,18 +135,18 @@ public sealed partial class StatementBinder
     /// <summary>Bind a per-operand BEFORE/AFTER delimiter pair (ISO §14.9.22.2 after-before-phrase; both may
     /// appear on one operand, in either order — disambiguated by token index, since the grammar's two alternatives
     /// share the merged BEFORE/AFTER accessors). INITIAL is a noise word.</summary>
-    private (BoundOperand? Before, BoundOperand? After) InspectDelimiters(Core.InspectDelimitersContext? ctx)
+    private (BoundOperand? Before, BoundOperand? After) InspectDelimiters(Core.InspectDelimitersContext? c)
     {
-        if (ctx is null) return (null, null);
-        var chars = ctx.inspectChar();
-        if (ctx.BEFORE() is { } b && ctx.AFTER() is { } a)
+        if (c is null) return (null, null);
+        var chars = c.inspectChar();
+        if (c.BEFORE() is { } b && c.AFTER() is { } a)
         {
             var first = InspectCharOperand(chars[0]).Op;
             var second = InspectCharOperand(chars[1]).Op;
             return b.Symbol.TokenIndex < a.Symbol.TokenIndex ? (first, second) : (second, first);
         }
-        if (ctx.BEFORE() is not null) return (InspectCharOperand(chars[0]).Op, null);
-        if (ctx.AFTER() is not null) return (null, InspectCharOperand(chars[0]).Op);
+        if (c.BEFORE() is not null) return (InspectCharOperand(chars[0]).Op, null);
+        if (c.AFTER() is not null) return (null, InspectCharOperand(chars[0]).Op);
         return (null, null);
     }
 
@@ -212,16 +170,14 @@ public sealed partial class StatementBinder
         // National/boolean literal operands decode char-correct (the class-mix SR validation across the
         // INSPECT operand set — §14.9.22.3 SR2/SR3's per-class forms — is named Phase-4a residue #12).
         if (c.literal()?.nonNumericLiteral()?.NATLIT() is { } nlit)
-            return (NationalLiteralOperand(nlit.GetText()), false);
+            return (host.NationalLiteralOperand(nlit.GetText()), false);
         if (c.literal()?.nonNumericLiteral()?.BOOLLIT() is { } blit)
-            return (BooleanLiteralOperand(blit.GetText()), false);
+            return (host.BooleanLiteralOperand(blit.GetText()), false);
         if (c.dataReference() is { } dref)
         {
-            if (refs.Resolve(dref) is not { } p)
+            if (ctx.Refs.Resolve(dref) is not { } p)
                 return (new BoundOperandError($"INSPECT operand '{dref.GetText()}'"), false);
-            if (p.Item.IsGroup || p.Item.Pic is { Usage: not Usage.Display })
-                data.Edition.Error("COBOLNET0847", $"INSPECT operand '{dref.GetText()}' shall be an elementary "
-                    + "usage-display item (ISO §14.9.22.3 SR2)");
+            ctx.Validation.CheckInspectOperandUsage(p, dref.GetText());   // SR2 — pure check
             return (new BoundFieldOperand(p), false);
         }
         // The grammar admits a numeric literal here; SR3 does not (alphanumeric/boolean/national literals only).

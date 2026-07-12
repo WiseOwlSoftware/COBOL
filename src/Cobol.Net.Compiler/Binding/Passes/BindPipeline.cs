@@ -69,7 +69,9 @@ internal static class BindPipeline
         // genuinely-semantic gates. Reports through the session's edition sink, so the Bind result carries every
         // edition diagnostic for BOTH a full compile and a CheckOnly verdict.
         new("VersionConformancePass", PassPhase.StorageComputed, PassPhase.EditionConformanceChecked,
-            ctx => Validation.VersionConformancePass.Run(ctx, ctx.Session.Edition.Edition, ctx.Session.Edition)),
+            // Fully qualified: CobolNet.Binding.Validation (StatementValidation, P7 Step 10c) shadows the
+            // relative `Validation.` lookup from inside CobolNet.Binding.*.
+            ctx => CobolNet.Validation.VersionConformancePass.Run(ctx, ctx.Session.Edition.Edition, ctx.Session.Edition)),
     };
 
     /// <summary>Assert the FULL declared chain (the per-unit resolve prefix + the group tail) is a monotone phase

@@ -22,6 +22,17 @@ using Core = CobolParserCore;
 /// </summary>
 public sealed partial class StatementBinder(DataBinder data, ReferenceResolver refs)
 {
+    // ── The Step-10 collaborator seam (P7; the phase doc's §Step 10 AS-BUILT PLAN): ONE BinderContext per
+    //    binder instance (= per unit / class roster) and ONE instance of each verb collaborator (their
+    //    counters/memos are per-unit lifetime). Lazy — the primary-ctor fields are captured, not fields, so
+    //    eager initializers cannot reference them. During the incremental extraction the collaborators reach
+    //    not-yet-extracted spine members through THIS host (the Step-9 migration-wiring precedent); the 10t
+    //    final wiring retargets them and thins this class to dispatch + the composition root. ──
+    private BinderContext? _binderCtx;
+    private InspectBinder? _inspectBinder;
+    private BinderContext Ctx => _binderCtx ??= new BinderContext(data, refs);
+    private InspectBinder Inspect => _inspectBinder ??= new InspectBinder(Ctx, this);
+
     private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
     private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, SectionInfo> _sections = new(StringComparer.OrdinalIgnoreCase);
@@ -186,7 +197,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.setStatement() is { } set => BindSet(set),
         _ when s.searchStatement() is { } se => BindSearch(se),
         _ when s.evaluateStatement() is { } ev => BindEvaluate(ev),
-        _ when s.inspectStatement() is { } ins => BindInspect(ins),
+        _ when s.inspectStatement() is { } ins => Inspect.Bind(ins),
         _ when s.searchAllStatement() is { } sa => BindSearchAll(sa),
         _ when s.goToStatement() is { } g => BindGoTo(g),
         _ when s.alterStatement() is { } al => BindAlter(al),   // 85-only; rejected ≥2002 inside BindAlter (deleted by ISO/IEC 1989:2002)
@@ -1110,7 +1121,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// positions; the track-(a) repertoire is Latin-1 (chars ≤ U+00FF, D-N4) — a wider character needs the
     /// staged alphanumeric↔national correspondence (§8.3.3.5 SR2/GR3 + §8.1.2) and errors 0814, never a
     /// silent mojibake store.</summary>
-    private BoundStringLiteral NationalLiteralOperand(string raw)
+    internal BoundStringLiteral NationalLiteralOperand(string raw)
     {
         // NationalData2002 (the N"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
         // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
@@ -1127,7 +1138,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>Bind a <c>B"…"</c> boolean literal (ISO §8.3.3.4): SR1 caps the length at 8,191 boolean
     /// positions; SR2 ('0'/'1' only) is lexer-enforced.</summary>
-    private BoundStringLiteral BooleanLiteralOperand(string raw)
+    internal BoundStringLiteral BooleanLiteralOperand(string raw)
     {
         // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
         // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
