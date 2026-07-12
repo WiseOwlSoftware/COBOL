@@ -30,11 +30,11 @@ namespace CobolNet.CodeGen.Emit;
 internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 {
     /// <summary>WHEN-COMPILED's compile-time constant (§15.99.3 r2 — the COMPILATION timestamp, baked into the
-    /// generated source as a string literal; injectable via <see cref="StatementBinder.CompileClock"/>, D6).
+    /// generated source as a string literal; injectable via <see cref="Binding.Procedure.IntrinsicBinder.CompileClock"/>, D6).
     /// One capture per process: every unit of a compilation run shares one stamp (§15.99.3 r2's "associated
     /// with the compilation unit").</summary>
     private static readonly Lazy<string> WhenCompiledStamp =
-        new(() => CobolDate.Format21(StatementBinder.CompileClock()));
+        new(() => CobolDate.Format21(Binding.Procedure.IntrinsicBinder.CompileClock()));
 
     // ── The numeric channel (COMPUTE / arithmetic / numeric comparisons / MOVE-to-numeric) ──────────────────
 

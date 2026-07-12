@@ -43,7 +43,7 @@ public sealed partial class StatementBinder
 
     /// <summary>Record a FUNCTION EXCEPTION-* binding (sets the group EC gate so the generated source carries
     /// the runtime using; called from the intrinsic bind when the catalog row is an Ec* runtime method).</summary>
-    private void EcNoteFunction() => _ecFunctions = true;
+    internal void EcNoteFunction() => _ecFunctions = true;
 
     // ── RAISE (§14.9.29) ─────────────────────────────────────────────────────────────────────────────────────
 

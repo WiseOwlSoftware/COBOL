@@ -56,6 +56,32 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private SortBinder Sort => _sortBinder ??= new SortBinder(Ctx, this, SeqIo);
     private CallBinder? _callBinder;
     private CallBinder Call => _callBinder ??= new CallBinder(Ctx, this);
+    private UdfBinder? _udfBinder;
+    internal UdfBinder Udf => _udfBinder ??= new UdfBinder(Ctx, this);
+    private IntrinsicBinder? _intrinsicBinder;
+    internal IntrinsicBinder Intrinsic => _intrinsicBinder ??= new IntrinsicBinder(Ctx, this);
+
+    /// <summary>Host forwarder for the collaborator callers (MoveBinder / AcceptDisplayBinder) — flips to a
+    /// direct ctor ref at the 10t final wiring.</summary>
+    internal BoundOperand IntrinsicOperand(Core.FunctionCallContext fc) => Intrinsic.IntrinsicOperand(fc);
+
+    /// <summary>The compilation group's user-function signature table (FUNCTION-ID name → RETURNING +
+    /// USING descriptions), built by the run-unit emitter between the DATA and PROCEDURE bind phases.
+    /// Null in unit-test direct construction and in class-unit binders — every user-function reference
+    /// there fails loud (COBOLNET1505).</summary>
+    public IReadOnlyDictionary<string, UserFunctionSignature>? UserFunctions { get; set; }
+
+    /// <summary>The containing FUNCTION-ID unit's own function name, when this binder binds a function
+    /// definition's body — §8.4.6.6: a referenced function-prototype-name shall be "the user-function-name
+    /// of the containing function definition OR a function-prototype-name declared in the REPOSITORY
+    /// paragraph", so self-recursion needs NO repository entry (a present self-entry is ignored per
+    /// §12.3.8 GR11 — same resolution either way). Null in program units.</summary>
+    public string? UdfSelfName { get; set; }
+
+    /// <summary>True when the unit being bound is a nested (contained) program — set from <c>BoundUnit.Parent</c>
+    /// at binder construction. Gates FUNCTION MODULE-NAME NESTED (§15.65.3 argument rule 1 — NESTED shall be
+    /// specified only within a contained program).</summary>
+    public bool InNestedProgram { get; init; }
     private CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
     private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
@@ -201,10 +227,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // that statement's own BindStatement. The UDF wrap is the INNER sequence (function activations are
         // always pre-ops, §8.4.3.2.3 SR1), so a property argument's GET — a pre-op of the OUTER property
         // wrap — still runs before the activation that consumes its temp.
-        int udfMark = _udfPendingCalls.Count;
+        int udfMark = Udf.PendingCount;
         int mark = data.OoPendingPropertyOps.Count;
         var core = BindStatementCore(s);
-        core = UdfWrapCalls(core, udfMark);
+        core = Udf.UdfWrapCalls(core, udfMark);
         core = OoWrapPropertyOps(core, mark);
         return EcWrap(s, core);
     }
@@ -324,7 +350,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
         if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
         if (e.METHOD() is not null) return OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
-        if (e.FUNCTION() is not null) return UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
+        if (e.FUNCTION() is not null) return Udf.UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
         return new BoundNop();   // bare EXIT
     }
 
@@ -946,7 +972,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     }
 
     internal BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
-        KeywordOmittedFunction(dref) is { } kof ? OperandOf(kof)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
+        Intrinsic.KeywordOmittedFunction(dref) is { } kof ? IntrinsicBinder.OperandOf(kof)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
                 : new BoundOperandError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
@@ -976,7 +1002,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// file's runtime counter (ISO §8.4.3.14 GR1 — an unsigned integer); otherwise the resolved item's value.
     /// The ONE dataReference→<see cref="BoundExpr"/> mapping, used by every expression path.</summary>
     private BoundExpr RefExpr(Core.DataReferenceContext dref) =>
-        KeywordOmittedFunction(dref) is { } kof ? kof   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
+        Intrinsic.KeywordOmittedFunction(dref) is { } kof ? kof   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundLinageCounterRef(lcf)
                 : new BoundExprError($"LINAGE-COUNTER reference '{dref.GetText()}' (ISO §8.4.3.14)")
@@ -1161,7 +1187,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (pe.dataReference() is { } dref) return RefExpr(dref);
         if (pe.arithmeticExpression() is { } paren) return BindExpr(paren);
         // FUNCTION call (ISO §15; the 1989 Intrinsic Function Module) — StatementBinder.Intrinsics.cs.
-        if (pe.functionCall() is { } fc) return BindIntrinsic(fc);
+        if (pe.functionCall() is { } fc) return Intrinsic.BindIntrinsic(fc);
         return new BoundExprError("primary-expression operand");
     }
 
@@ -1233,9 +1259,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         {
             var ch = ctx.GetChild(i);
             if (ch is ITerminalNode) continue;   // the AND / OR / XOR / EXCLUSIVE-OR connective tokens
-            int udfMark = _udfPendingCalls.Count;
+            int udfMark = Udf.PendingCount;
             parts.Add(BindCondition(ch, carry));
-            if (parts.Count > 1) UdfGuardConditionalOperand(udfMark, op);
+            if (parts.Count > 1) Udf.UdfGuardConditionalOperand(udfMark, op);
         }
         return parts.Count == 1 ? parts[0] : new BoundLogical(op, parts);
     }
