@@ -58,9 +58,12 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   recorded deviation from the three-class sketch). 10m `394003ef` (`Verbs/{Set,Search}Binder`). 10n ✅ (`Verbs/SetAlterBinder` — the last plain
   verb). 10o `a733bb30` (`Verbs/ConditionBinder` — the whole
   channel merged; deviations recorded: host forwarders [one-shot flip at 10t]; SR pure-lift deferred to the
-  10t sweep). **RESUME AT 10p** (ArithmeticBinder — CORR entries retarget CorrespondingBinder;
-  BindSizeError/Receivers/RoundingOf host edges until 10q; BindBoolExpr/Gr3Width via the new host
-  forwarders) then 10q (ExpressionBinder — the expression-spine flip) → 10r (EcBinder + EcBindState on ctx)
+  10t sweep) · 10p `5034a3c2` (`Verbs/ArithmeticBinder` — the five arithmetic verbs; BindSizeError stays a
+  HOST phrase family past 10q). **RESUME AT 10q** (ExpressionBinder — the expression-spine flip: operand +
+  reference [RefExpr/RefFailure/LinageFileOf/IndexFieldOf] + receiving [ResolveTargets/ResolveReceiving/
+  RoundingOf/Receivers×3] families + the BindExpr spine [BindChain/BindPower/BindPrimary/BindOperandExpr/
+  NumLiteral] + CheckLiteral AS-IS; DataRefs/Children generic tree statics STAY on host) → 10r (EcBinder +
+  EcBindState on ctx)
   → 10s (OoBinder LAST, behind the OO goldens + method-scope tests) → 10t (FINAL wiring:
   ProcedureTableBuilder + thin StatementBinder + host-edge deletion + the full doc sweep incl. the deferred
   SR pure-lifts and the 1523 catalog normalization) per the PHASE-07 §Step 10 **AS-BUILT PLAN block**
