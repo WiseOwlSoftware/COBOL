@@ -58,6 +58,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private SetEmitter _set = null!;
     private ControlFlowEmitter _controlFlow = null!;
     private SequentialIoEmitter _seqIo = null!;
+    private EcEmitter _ecEmit = null!;
 
     /// <summary>(Re)construct the per-unit collaborator emitters over the just-created context/renderers —
     /// called immediately after the <c>_ctx</c>/<c>_num</c>/<c>_cond</c> per-unit re-creation (program classes
@@ -80,6 +81,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         _set = new SetEmitter(_ctx, _num, _arith, _ptr);
         _controlFlow = new ControlFlowEmitter(_ctx, _num, _cond, _dispatchState, _set, this);
         _seqIo = new SequentialIoEmitter(_ctx, _num, _refs, _dispatchState, _ecState, _callState, _keyedIo, _arith, this);
+        _ecEmit = new EcEmitter(_ctx, _ecState, _dispatchState, this);
     }
 
     /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
@@ -249,9 +251,9 @@ public sealed partial class CSharpEmitter : IOoBindHost
             }
             w.Line();
         }
-        if (decls.Any(d => d.EcEntries is not null)) EcEmitDispatchSelector(bound, w);
-        if (decls.Any(d => d.EoClassCsName is not null)) EcEmitObjDispatchSelector(bound, w);   // F4 (EC-OO)
-        if (bound.Ec is { HasIoChecked: true }) EcEmitIoCheckEc(bound, w);
+        if (decls.Any(d => d.EcEntries is not null)) _ecEmit.EmitDispatchSelector(bound, w);
+        if (decls.Any(d => d.EoClassCsName is not null)) _ecEmit.EmitObjDispatchSelector(bound, w);   // F4 (EC-OO)
+        if (bound.Ec is { HasIoChecked: true }) _ecEmit.EmitIoCheckEc(bound, w);
         if (!_dispatchState.UseDecls) return;   // an EC-only program (no F1/F2 declaratives) needs no plain __IoCheck hooks
         using (w.Block("private void __IoCheck(string __f, bool __atEnd, bool __invKey)"))
         {
@@ -335,7 +337,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// Dispatch is the generated exhaustive <see cref="IBoundStatementVisitor{T}"/> (PHASE-07 Step 6b): every bound
     /// statement leaf has a <c>Visit</c> in <c>CSharpEmitter.Dispatch.cs</c>, so a missing arm is a COMPILE error —
     /// the former 79-arm switch and its loud <c>default</c> are gone.</summary>
-    private bool EmitStatement(BoundStatement s) => s.Accept(this);
+    internal bool EmitStatement(BoundStatement s) => s.Accept(this);
 
     // ── MOVE (Verbs/MoveEmitter.cs since Step 9g) ── the forwarding shims keep the six collaborator
     //    callers + the Dispatch visit untouched during the incremental extraction; 9n retargets them. ──
