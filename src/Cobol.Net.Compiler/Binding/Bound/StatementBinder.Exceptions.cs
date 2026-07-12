@@ -166,7 +166,7 @@ public sealed partial class StatementBinder
 
     // ── SET LAST EXCEPTION TO OFF (§14.9.39 Format 13) ───────────────────────────────────────────────────────
 
-    private BoundStatement BindSetLastException()
+    internal BoundStatement BindSetLastException()
     {
         if (data.Edition.DialectLevel < 2002)
             data.Edition.Error("COBOLNET0879",

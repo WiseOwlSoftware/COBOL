@@ -185,7 +185,7 @@ public sealed partial class StatementBinder
     /// whose stop precedes a TO belong to that TO's group, and the group's position is the ON or OFF token between
     /// this TO and the next. Every receiver must name a settable external switch's mnemonic (SR5) — an unresolvable
     /// name fails loud, never a silent skip.</summary>
-    private BoundStatement SwitchBindSet(Core.SetSwitchStatementContext sw)
+    internal BoundStatement SwitchBindSet(Core.SetSwitchStatementContext sw)
     {
         var drefs = sw.dataReference();
         var tos = sw.TO();

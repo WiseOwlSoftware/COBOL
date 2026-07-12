@@ -45,7 +45,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private FileLockBinder? _fileLockBinder;
     private FileLockBinder FileLock => _fileLockBinder ??= new FileLockBinder(Ctx, this);
     private PtrBinder? _ptrBinder;
-    private PtrBinder Ptr => _ptrBinder ??= new PtrBinder(Ctx, this);
+    internal PtrBinder Ptr => _ptrBinder ??= new PtrBinder(Ctx, this);
     private KeyedIoBinder? _keyedIoBinder;
     private KeyedIoBinder KeyedIo => _keyedIoBinder ??= new KeyedIoBinder(Ctx, this, FileLock);
     private SequentialIoBinder? _seqIoBinder;
@@ -62,6 +62,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal IntrinsicBinder Intrinsic => _intrinsicBinder ??= new IntrinsicBinder(Ctx, this);
     private ControlFlowBinder? _controlFlowBinder;
     private ControlFlowBinder ControlFlow => _controlFlowBinder ??= new ControlFlowBinder(Ctx, this);
+    private SetBinder? _setBinder;
+    private SetBinder Set => _setBinder ??= new SetBinder(Ctx, this);
+    private SearchBinder? _searchBinder;
+    private SearchBinder Search => _searchBinder ??= new SearchBinder(Ctx, this);
+
+    /// <summary>Host forwarder (ControlFlowBinder's VARYING induction targets) — flips at 10t.</summary>
+    internal BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) => Set.SetTargetOf(dref);
 
     /// <summary>Host forwarder for the collaborator callers (MoveBinder / AcceptDisplayBinder) — flips to a
     /// direct ctor ref at the 10t final wiring.</summary>
@@ -248,11 +255,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.computeStatement() is { } c => BindCompute(c),
         _ when s.ifStatement() is { } iff => ControlFlow.BindIf(iff),
         _ when s.performStatement() is { } p => ControlFlow.BindPerform(p),
-        _ when s.setStatement() is { } set => BindSet(set),
-        _ when s.searchStatement() is { } se => BindSearch(se),
+        _ when s.setStatement() is { } set => Set.BindSet(set),
+        _ when s.searchStatement() is { } se => Search.BindSearch(se),
         _ when s.evaluateStatement() is { } ev => Evaluate.Bind(ev),
         _ when s.inspectStatement() is { } ins => Inspect.Bind(ins),
-        _ when s.searchAllStatement() is { } sa => BindSearchAll(sa),
+        _ when s.searchAllStatement() is { } sa => Search.BindSearchAll(sa),
         _ when s.goToStatement() is { } g => ControlFlow.BindGoTo(g),
         _ when s.alterStatement() is { } al => BindAlter(al),   // 85-only; rejected ≥2002 inside BindAlter (deleted by ISO/IEC 1989:2002)
         _ when s.exitStatement() is { } e => ControlFlow.BindExit(e),
@@ -506,260 +513,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new SizeErrorPhrase(onErr, notErr);
     }
 
-    /// <summary>Bind a SET statement, dispatching by format (ISO §14.9.39; COBOLNET_DESIGN §12.3). The COBOL-85
-    /// surface — Format 1 index/value assignment, Format 2 UP/DOWN BY, Format 4 condition-name TO TRUE — binds here;
-    /// the later-edition formats (switches need SPECIAL-NAMES, pointers/objects their 2002 subsystems, TO FALSE the
-    /// 2002 FALSE phrase) fail loud by NAME until their subsystem lands.</summary>
-    private BoundStatement BindSet(Core.SetStatementContext set)
-    {
-        if (set.setLastExceptionStatement() is not null) return BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
-        if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
-        if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
-        if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
-        if (set.setSwitchStatement() is { } sw) return SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
-        if (set.setAddressStatement() is { } sa)
-            return Ptr.BindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
-        if (set.setObjectReferenceStatement() is { } sor)
-        {
-            // A POINTER target (§14.9.39 Format 4 — SET pointer TO NULL/pointer) is bound BEFORE the
-            // object-reference Format 5: both share the `SET dataRef+ TO objectReference` shape.
-            if (sor.dataReference().Length > 0 && refs.Resolve(sor.dataReference(0))?.Item.Pic?.Category
-                    is PicCategory.Pointer)
-                return BindSetPointer(sor.dataReference(),
-                    sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
-                    sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
-            return OoBindSetObjectRef(sor.dataReference(),
-                senderRef: sor.objectReference().dataReference(),
-                senderNull: sor.objectReference().NULL_() is not null,
-                senderSelf: sor.objectReference().SELF() is not null,
-                senderSuper: sor.objectReference().SUPER() is not null);
-        }
-        return new BoundUnsupported($"SET form '{set.GetText()}'");
-    }
-
-    /// <summary><c>SET receivers… TO value</c> (ISO §14.9.39 Format 1). Receivers may mix index-names and data
-    /// items; the sender is any integer-valued operand (an index-name sender reads its occurrence number, §3.5).</summary>
-    /// <summary>SET data-pointer assignment (§14.9.39 Format 4; Phase-4b increment 1): every target shall
-    /// be USAGE POINTER (COBOLNET0869 otherwise); the sender is the NULL figurative or another data pointer
-    /// (SELF/SUPER are object-only — 0869). ADDRESS OF senders/receivers are increment 2 (staged loud).</summary>
-    private BoundStatement BindSetPointer(
-        IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
-        bool toNull, bool senderIsSelfSuper)
-    {
-        if (senderIsSelfSuper)
-        {
-            data.Edition.Error("COBOLNET0869",
-                "SET … TO SELF/SUPER: SELF and SUPER are object references, not data pointers "
-                + "(ISO §14.9.39 Format 4/5 — the sender of a pointer SET is NULL or another pointer)");
-            return new BoundNop();
-        }
-        var targets = new List<Place>(targetRefs.Count);
-        foreach (var t in targetRefs)
-        {
-            if (refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.Pointer)
-            {
-                data.Edition.Error("COBOLNET0869",
-                    $"SET '{t.GetText()}': the receiving operand of a data-pointer SET shall be USAGE POINTER "
-                    + "(ISO §14.9.39 Format 4)");
-                return new BoundNop();
-            }
-            targets.Add(tp);
-        }
-        Place? source = null;
-        if (!toNull)
-        {
-            if (senderRef is null) return new BoundUnsupported("SET pointer — sender shape");
-            if (refs.Resolve(senderRef) is not { } sp || sp.Item.Pic?.Category is not PicCategory.Pointer)
-            {
-                data.Edition.Error("COBOLNET0869",
-                    $"SET … TO '{senderRef?.GetText()}': a data-pointer sender shall be NULL or another "
-                    + "USAGE POINTER item (ISO §14.9.39 Format 4; ADDRESS OF senders are a later increment)");
-                return new BoundNop();
-            }
-            source = sp;
-        }
-        return new BoundSetPointer(targets, source, toNull);
-    }
-
-    private BoundStatement BindSetTo(Core.SetToValueStatementContext tv)
-    {
-        // SET Format 14 (ISO §14.9.39; the OCCURS DYNAMIC feature, data-model D9): a CAPACITY-register target
-        // reroutes to a capacity change. It runs BEFORE the F4/F5 pointer/object reroutes — a register is numeric,
-        // so it would otherwise fall through to the Format-1 store and throw at CapacityRegisterPlace.Write.
-        if (DynTryBindSetCapacity(tv.dataReference(), tv.arithmeticExpression(), SetCapacityKind.To) is { } dcap)
-            return dcap;
-        // The Format-5 SEMANTIC re-route (D-U7): `SET U TO A` parses HERE (alternative order — a
-        // dataReference sender is an arithmeticExpression prefix), but an object-reference TARGET selects
-        // §14.9.39 Format 5. Detect on the FIRST target; mixed target categories then fail SR8 inside.
-        if (tv.dataReference() is { Length: > 0 } tds
-            && OoExtractBareReference(tv.arithmeticExpression()) is { } senderDref)
-        {
-            var t0 = refs.Resolve(tds[0])?.Item.Pic?.Category;
-            var s0 = refs.Resolve(senderDref)?.Item.Pic?.Category;
-            // A POINTER on either side selects Format 4 (SET pointer TO pointer) — the Format-1 numeric
-            // path cannot carry a ManagedPointer.
-            if (t0 is PicCategory.Pointer || s0 is PicCategory.Pointer)
-                return BindSetPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
-            // Either side being an object reference selects Format 5 (§14.9.39 F5; D-U7).
-            if (t0 is PicCategory.ObjectReference || s0 is PicCategory.ObjectReference)
-                return OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);
-        }
-        var targets = new List<BoundSetTarget>();
-        foreach (var dref in tv.dataReference())
-        {
-            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
-            targets.Add(t);
-        }
-        return new BoundSetTo(targets, BindExpr(tv.arithmeticExpression()));
-    }
-
-    /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2) — with the Format-10
-    /// data-pointer re-route on the FIRST target's category (the D-U7 semantic-re-route pattern; the two
-    /// formats share one grammar shape).</summary>
-    private BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
-    {
-        if (Ptr.TryBindSetUpDown(ud) is { } ptr) return ptr;   // F10 — pointer arithmetic (Phase-4b inc 2)
-        if (DynTryBindSetCapacity(ud.dataReference(), ud.arithmeticExpression(),
-                ud.DOWN() is not null ? SetCapacityKind.DownBy : SetCapacityKind.UpBy) is { } dcap)
-            return dcap;   // F14 — dynamic-capacity change (OCCURS DYNAMIC, D9)
-        var targets = new List<BoundSetTarget>();
-        foreach (var dref in ud.dataReference())
-        {
-            if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
-            targets.Add(t);
-        }
-        return new BoundSetUpDown(targets, BindExpr(ud.arithmeticExpression()), ud.DOWN() is not null);
-    }
-
-    /// <summary>SET Format 14 (ISO §14.9.39; OCCURS DYNAMIC, data-model D9): reroute when the FIRST target resolves
-    /// to a dynamic-table CAPACITY register — <c>SET reg {TO | UP BY | DOWN BY} n</c> changes the table's current
-    /// capacity. A non-register first target returns <see langword="null"/> so the normal Format-1/2 path continues
-    /// (the non-consuming peek idiom, mirroring <c>PtrTryBindSetUpDown</c>). The register is the SOLE receiver of a
-    /// capacity SET (one capacity per statement); a second/mixed target is COBOLNET1524.</summary>
-    private BoundStatement? DynTryBindSetCapacity(
-        IReadOnlyList<Core.DataReferenceContext> targets, Core.ArithmeticExpressionContext amount, SetCapacityKind kind)
-    {
-        // A PURE capacity-register peek (NOT refs.Resolve, which would route an OO `prop OF obj` first target through
-        // the property hook and enqueue a spurious pending op — OCCURS DYNAMIC review #7).
-        if (targets.Count == 0 || refs.CapacityRegisterFor(targets[0]) is not { } cap) return null;
-        if (targets.Count > 1)
-        {
-            data.Edition.Error("COBOLNET1524",
-                $"SET '{cap.RegisterItem.CobolName}' {SetCapacityKindText(kind)}: a dynamic-table CAPACITY register "
-                + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
-            return new BoundNop();
-        }
-        return new BoundSetCapacity(cap.TablePath, BindExpr(amount), kind);
-    }
-
-    private static string SetCapacityKindText(SetCapacityKind kind) =>
-        kind switch { SetCapacityKind.To => "TO", SetCapacityKind.UpBy => "UP BY", _ => "DOWN BY" };
-
-    /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item
-    /// (an index data item or an integer item — the emitter dispatches on its usage).</summary>
-    internal BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
-        IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
-        : ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand
-        : null;
-
-    /// <summary><c>SET condition-name+ TO TRUE</c> (ISO §14.9.39 Format 4). TO FALSE needs the 2002 <c>WHEN SET TO
-    /// FALSE</c> VALUE phrase (SR7) — loud until the 88 model captures it.</summary>
-    private BoundStatement BindSetCondition(Core.SetBooleanStatementContext b)
-    {
-        if (b.TRUE_() is null)
-            return new BoundUnsupported("SET condition-name TO FALSE (the VALUE … WHEN SET TO FALSE phrase, COBOL-2002+, ISO §14.9.39 SR7)");
-        var sets = new List<(Place, Condition88)>();
-        foreach (var dref in b.dataReference())
-        {
-            if (ConditionOf(dref) is not { } cond) return new BoundUnsupported($"SET '{dref.GetText()}' TO TRUE (not a condition-name)");
-            // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
-            if (refs.ResolveForItem(dref, cond.Parent) is not { } parent)
-                return new BoundUnsupported($"SET condition '{cond.Name}' (unresolvable conditional variable)");
-            sets.Add((parent, cond));
-        }
-        return new BoundSetConditions(sets);
-    }
-
-    /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). The searched operand names a table with INDEXED BY
-    /// (SR1); the scan uses the table's FIRST index — unless VARYING names another index OF THE SAME TABLE, which
-    /// then IS the search index (GR8a); VARYING a different table's index or a data item increments that item in
-    /// step with the search index (GR8b/c). SEARCH ALL (Format 2) is the binary-search wave (needs OCCURS KEY
-    /// capture); NOT AT END is a non-ISO extension — both fail loud by name.</summary>
-    private BoundStatement BindSearch(Core.SearchStatementContext s)
-    {
-        var drefs = s.dataReference();
-        string tableName = drefs[0].cobolWord()?.GetText() ?? drefs[0].GetText();
-        if (!data.Symbols.TryResolve(tableName, data.ActiveScope, out var candidates)
-            || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
-            return new BoundUnsupported($"SEARCH of non-table '{tableName}'");
-        if (table.IndexNames.Count == 0)
-            return new BoundUnsupported($"SEARCH table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
-        // A dynamic table NESTED under another table has no whole-table path (TablePath null), so the AT-END bound
-        // (§8.5.1.9.1 current capacity) and the EnterSearch/ExitSearch bracket cannot be addressed by name — a
-        // subscripted capacity path over the enclosing indices is a later increment. Reject rather than let
-        // SearchBound fall back to Count=0 and silently scan ZERO occurrences (OCCURS DYNAMIC review #5; D9).
-        if (table.IsDynamicTable && refs.TablePath(table) is null)
-            return new BoundUnsupported($"SEARCH of the dynamic-capacity table '{tableName}' nested under another "
-                + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
-
-        string searchIx = data.Symbols.IndexCellOf(table.IndexNames[0], data.ActiveScope);   // scope-aware (method cell first, M2-OO-1h step 4)
-        BoundSetTarget? also = null;
-        if (drefs.Length > 1)   // the VARYING phrase
-        {
-            var v = drefs[1];
-            if (IndexFieldOf(v) is { } vix)
-            {
-                if (table.IndexNames.Any(n => data.Symbols.IndexCellOf(n, data.ActiveScope) == vix)) searchIx = vix;   // same table (GR8a)
-                else also = new SetIndexTarget(vix);                                          // other table (GR8b)
-            }
-            else if (refs.Resolve(v) is { } p) also = new SetPlaceTarget(p);                  // data item (GR8c)
-            else return new BoundUnsupported($"SEARCH VARYING '{v.GetText()}'");
-        }
-
-        List<BoundStatement>? atEnd = null;
-        if (s.searchAtEndClause() is { } ae)
-        {
-            if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
-            atEnd = BindBlocks(ae.statementBlock());
-        }
-        var whens = s.searchWhenClause()
-            .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
-            .ToList();
-        return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
-            DependCount: OdoModel.SearchBound(table, refs),
-            DynTable: table.IsDynamicTable ? refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
-    }
-
-    /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the binary-search form). The initial index setting
-    /// is ignored (GR9) and the technique is implementor-specified: this implementation scans from occurrence 1,
-    /// conformant since Format 2 requires the table ordered by its OCCURS KEYs (SR7) and the WHEN tests key
-    /// equality. Bound onto the same <see cref="BoundSearch"/> machinery with <c>FromStart</c>.</summary>
-    private BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
-    {
-        string tableName = s.dataReference().cobolWord()?.GetText() ?? s.dataReference().GetText();
-        if (!data.Symbols.TryResolve(tableName, data.ActiveScope, out var candidates)
-            || candidates.FirstOrDefault(i => i.IsTable) is not { } table)   // fixed OR dynamic (D9)
-            return new BoundUnsupported($"SEARCH ALL of non-table '{tableName}'");
-        if (table.IndexNames.Count == 0)
-            return new BoundUnsupported($"SEARCH ALL table '{tableName}' without INDEXED BY (ISO §14.9.37 SR1)");
-        if (table.IsDynamicTable && refs.TablePath(table) is null)   // nested dynamic — see BindSearch (review #5, D9)
-            return new BoundUnsupported($"SEARCH ALL of the dynamic-capacity table '{tableName}' nested under another "
-                + "table (the scan bound over its current capacity needs a subscripted access path — a later increment)");
-
-        List<BoundStatement>? atEnd = null;
-        if (s.searchAtEndClause() is { } ae)
-        {
-            if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
-            atEnd = BindBlocks(ae.statementBlock());
-        }
-        var whens = s.searchAllWhenClause()
-            .Select(wc => new BoundSearchWhen(BindCondition(wc.condition()), BindBlocks(wc.statementBlock())))
-            .ToList();
-        return new BoundSearch(data.Symbols.IndexCellOf(table.IndexNames[0], data.ActiveScope), table.Occurs ?? 0,
-            AlsoVaried: null, atEnd, whens, FromStart: true, DependCount: OdoModel.SearchBound(table, refs),
-            DynTable: table.IsDynamicTable ? refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
-    }
-
     /// <summary>The C# <c>long</c> index field when <paramref name="dref"/> is a bare INDEXED BY index-name
     /// (ISO §13.18.38 — index-names are a separate name class living in <see cref="DataBinder.IndexFields"/>,
     /// not the data-item tree), else <see langword="null"/>.</summary>
@@ -929,7 +682,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// receiver is legal but not yet implemented (staged loud). Without this guard the
     /// <c>.OfType&lt;Place&gt;()</c> receiver pipelines would DROP the counter silently — a silent-miscompile
     /// hazard (§1.4).</summary>
-    private Place? ResolveReceiving(Core.DataReferenceContext dref)
+    internal Place? ResolveReceiving(Core.DataReferenceContext dref)
     {
         if (dref.LINE_COUNTER() is not null)
         {

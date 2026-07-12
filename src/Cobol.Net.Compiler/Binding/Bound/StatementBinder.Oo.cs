@@ -979,7 +979,7 @@ public sealed partial class StatementBinder
 
     /// <summary>True when an arithmetic expression is EXACTLY one bare data reference (the Format-5
     /// re-route's sender shape) — its single dataReference descendant spans the whole expression text.</summary>
-    private static Core.DataReferenceContext? OoExtractBareReference(Core.ArithmeticExpressionContext e)
+    internal static Core.DataReferenceContext? OoExtractBareReference(Core.ArithmeticExpressionContext e)
     {
         Core.DataReferenceContext? only = null;
         var stack = new Stack<Antlr4.Runtime.Tree.IParseTree>();
