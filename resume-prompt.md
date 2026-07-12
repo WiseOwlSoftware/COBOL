@@ -21,12 +21,48 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. Full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP D: the rest of PHASE-07 (structural `Place` + god-class decomposition + the backend seam)
-**Structural `Place` (no C# text in the bound tree) + the binder/emitter god-class decomposition + the
-`ICodeGenBackend` seam** (`docs/rearchitecture/PHASE-07-*.md` — read its STATUS line first; its Step 6, the generated
-visitor, was pulled forward and is DONE). P7 pickups noted in DEVLOG 773: SymbolTableBuilder-owned storage; route
-`ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup through the SymbolTable; the image-fact
-caching (deferred from P5 Step 10 — the O(subtree) perf work belongs with the DataItem slimming).
+## ⛔🔀 RESUME AT — EXEC STEP D: PHASE-07 **Step 9n** (the emitter decomposition's FINAL WIRING), then Steps 10 → 11 → 12
+**Read the PHASE-07 STATUS line first** (`docs/rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md`)
+— it carries the per-substep hashes and the decision-complete **AS-BUILT PLAN block in its §Step 9**. State as of
+2026-07-11 (DEVLOG 786–808, tree `fb8ff5bc`, CI green):
+- **P7 Steps 1–8 ✅** (ICodeGenBackend seam · AssemblyPackager · immutable `EmitContext`+`ReceiverContext` ·
+  `RuntimeApi`+`FigurativeConstants` + the bare-`Cobol*.` RATCHET (`RuntimeApiGuardTests`, full-text census,
+  shrinking whitelist) · ACCEPT renames · generated visitor (pulled forward) · `MoveKind` on `BoundMove` ·
+  Step 8 = done-by-P5).
+- **Step 9 sub-steps 9a–9m ✅** — the god-class dissolution in all but the final wiring: `NameAllocator` (9a,
+  the 15 run-unit counters, per-counter sequences byte-exact) · `DispatchState`/`EcState`/`CallUnitState` (9b,
+  EmitterState.cs) · 18 `Verbs/*Emitter` collaborators (9c–9j, 9m: Evaluate/Initialize/Corresponding/AlterSwitch/
+  AcceptDisplay/Inspect/String/Ptr/KeyedIo/Sort/ReportWriter/Move/Arithmetic/ControlFlow/Set/SequentialIo/Call/Oo)
+  · `EcEmitter` (9k — cross-cutting, CodeGen/ root; the Exceptions partial = the bind-session `TurnState` + shim
+  sheet) · FieldEmitter → `DataDivision/{PhysicalModel,RecordStructEmitter,GroupImageCodec,GroupValueSlicer,
+  ValueInitializer}` behind the `DataEmitter` facade (9l — the five are mutually recursive BY DESIGN; the facade
+  property-wires the cycle) · `host.BeginUnit(w, data, refs)` = the ONE unit-switch entry (9m — OoEmitter reads
+  the per-unit quadruple through LIVE host accessors because class-unit emission re-news it MID-RUN; captured
+  copies would go stale). `RuntimeApi` ≈100 `nameof`-anchored members; the orchestrator core (`CSharpEmitter.cs`),
+  Exceptions, and Oo partials are at ZERO bare runtime fragments; every mechanical split was proven by the
+  ratchet's EXACT-SUM accounting (98=74+24 · 74=34+40 · 27=14+13 · 17=0+17 · the FieldEmitter 24 redistributed).
+- **9n (NEXT):** extract ProgramEmitter (the Call partial's run-unit/program-class half) + DispatchEmitter
+  (EmitDispatcher/EmitDispatchMethod/EmitUseMachinery/EmitParagraphBody) + StatementEmitter (the Dispatch
+  partial's 79 Visits + EmitStatement/EmitStatementList); introduce the `UnitEmitters` per-unit composition root
+  (`BeginUnit` becomes its ctor; the verbs↔statements↔EC cycles property-wired there); retarget EVERY host shim
+  to direct collaborator refs. **DEVIATION (recorded): `CSharpEmitter` SURVIVES as the thin bind-host facade**
+  (Bind/EmitBound + `IOoBindHost` + the OO BIND half + `_bindSession`/`_turnState`/`_ooClasses`/`_ooIfaceData`)
+  until P9. Then the phase-§5 verification incl. the ratchet sweep of the remaining pinned fragments (OoEmitter
+  17 · CallEmitter 13 · Call partial 14 · DataDivision 24 · renderers — the §5 empty-whitelist criterion needs
+  either those routed or a recorded regex refinement for typed compile-time uses) and the FULL doc sweep
+  (module-topology rows, DESIGN-codegen-backend §2.5/M5, DOC_INDEX).
+- **Then Step 10** (StatementBinder → BinderContext + Verbs/*Binder + StatementValidation; OO LAST behind the
+  method-scope tests) · **Step 11** (structural `Place` — per-SUBTYPE battery gating, the doc mandates it) ·
+  **Step 12** (FUNCTION args as real expressions — the lexer-mode blocker + space-separated-argument hazard in
+  the premise audit; FULL legacy guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad p7-audit.md, session
+  dir 3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 10–12's sites; the Step-9 coupling census was
+  `wf_d677d614-5fb`.
+**Working discipline in force (DEVLOG 803/807):** BATCHED cycles (multiple sub-steps per battery run) with
+PIPELINING (batch N's conformance runs on the prebuilt binaries in the background while batch N+1's edits are
+authored); commits verdict-gated as separate actions (never `&&`-chained — the 783/792 lesson); ratchet
+exact-sum accounting per mechanical split. P7 pickups still queued (DEVLOG 773): SymbolTableBuilder-owned
+storage; route `ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup through the
+SymbolTable; the image-fact caching (the O(subtree) perf work).
 
 **Execution order (§4.1, owner-directed TOOLING-FIRST, 2026-07-11):**
 - **A ✅ DONE** — the source-generated exhaustive bound-tree visitor (PHASE-07 Step 6 + the 6h SYSTEMATIC AUDIT; DEVLOG
@@ -62,7 +98,7 @@ SUBSCRIPT-mode removal was RELOCATED → PHASE 15 §"CUT 2.5". ⚠ Flagged laten
 `OoReparent{Class,Factory}Data` mis-bind the class-level env (CURRENCY/ALPHABET/SELECT) 0/1/2× — a dedicated fix
 ~PHASE 09 (DEVLOG 738).
 
-**Battery (keep green + pushed at EVERY commit):** 3166 conformance · 281 unit · 32 characterization byte-exact · FULL
+**Battery (keep green + pushed at EVERY commit):** 3166 conformance · 281 unit · 33 characterization (32 snapshots byte-exact + the RuntimeApi ratchet) · FULL
 legacy guard NIST 353 MATCH. ⚠ Build `CobolSharp.sln` before `dotnet test --no-build` — a stale test-bin compiler DLL
 hides greenfield regressions ([[feedback_fresh_build_before_no_build_test]]).
 

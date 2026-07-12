@@ -67,8 +67,17 @@
 > `PicInfo.Recovery`); the tier verdict single-sourced (`RedefinesClass.Classify`); ONE `UsageInheritancePass`;
 > the §8.3.1.2 apostrophe-VALUE goldens PROVEN failing-first. All 7 exit criteria hold; deviations in the
 > PHASE-05 ledger. **◐ NOW EXECUTING: EXEC STEP D — the rest of PHASE-07 (structural `Place`, binder/emitter
-> god-class decomposition, the `ICodeGenBackend` seam; pickups in DEVLOG 773).** Battery 3166 conformance ·
-> 281 unit · 32 characterization byte-exact · legacy guard 353 MATCH.
+> god-class decomposition, the `ICodeGenBackend` seam; pickups in DEVLOG 773). P7 Steps 1–8 ✅ + Step 9
+> sub-steps 9a–9m ✅ (2026-07-11, DEVLOG 786–808): the EMITTER decomposition is landed in all but the final
+> wiring — 18 `Verbs/*Emitter` collaborators + `EcEmitter` + the `DataDivision/` five behind the `DataEmitter`
+> facade + `NameAllocator` + the `DispatchState`/`EcState`/`CallUnitState` model + `host.BeginUnit`; the
+> `RuntimeApi` façade at ~100 `nameof`-anchored members with the shrinking ratchet
+> (`RuntimeApiGuardTests`); the orchestrator core / Exceptions / Oo partials at ZERO bare runtime fragments.
+> RESUME AT P7 **Step 9n** (ProgramEmitter + DispatchEmitter + StatementEmitter + the `UnitEmitters`
+> composition root + shim retarget + phase-§5 verification) → Step 10 (binder decomposition) → Step 11
+> (structural `Place`, per-subtype) → Step 12 (FUNCTION-arg grammar, full legacy guard) — the live per-substep
+> record is the PHASE-07 STATUS line.** Battery 3166 conformance ·
+> 281 unit · 33 characterization (32 snapshots byte-exact + the RuntimeApi ratchet) · legacy guard 353 MATCH.
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /

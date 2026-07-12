@@ -30,9 +30,13 @@ is deleted at P15 Cut 2). **✅ EXEC STEP A — PHASE-07 Step 6 (source-generate
 incl. the 6h SYSTEMATIC AUDIT (2026-07-11, DEVLOG 755–766):** `Cobol.Net.Compiler.SourceGen` Roslyn generator emits the
 7 `IBound*Visitor` + `Accept` + `BoundStatementTree.StatementChildren`; every completeness-critical bound-node dispatch
 converted + the 5 statement walkers on `StatementChildren`; the audit grep-classified every switch, each ISO-§-grounded
-(validate against the SPEC, not prior impl). **◐ NOW EXECUTING: EXEC STEP B — P6 (Real Binder: `SymbolTable` +
-`BoundCompilation` + `BindPipeline`).** PHASE 05 Steps 0–5 DONE; its remainder (Steps 6–14) is EXEC STEP C, after P6.
-Battery: 3158 conformance · 269 unit · 32 characterization byte-exact · legacy guard 353 MATCH. **Always read
+(validate against the SPEC, not prior impl). **✅ EXEC STEPS B (P6 Real Binder) + C (P5 unified data model) DONE
+(2026-07-11). ◐ NOW EXECUTING: EXEC STEP D — PHASE-07: Steps 1–8 ✅ + Step 9 sub-steps 9a–9m ✅ (DEVLOG 786–808 —
+the EMITTER god class is dissolved into 18 `Verbs/*Emitter` collaborators + `EcEmitter` + the `DataDivision/` five
+behind `DataEmitter` + `NameAllocator`/state model, all over the ~100-member `nameof`-anchored `RuntimeApi` with
+its shrinking ratchet); RESUME AT P7 Step 9n (ProgramEmitter/DispatchEmitter/StatementEmitter + the `UnitEmitters`
+composition root) → Step 10 (binder decomposition) → 11 (structural `Place`) → 12 (FUNCTION-arg grammar).**
+Battery: 3166 conformance · 281 unit · 33 characterization (32 snapshots byte-exact + ratchet) · legacy guard 353 MATCH. **Always read
 `resume-prompt.md`'s top banner for the live resume point, never this snapshot.** §6 owner
 decisions ALL RESOLVED (D1–D12); the live resume point is the plan's STATUS banner via `resume-prompt.md`. The
 SSOT for locked invariants / settled decisions remains **`docs/COBOLNET_DESIGN.md`**, and the four-editions mission is

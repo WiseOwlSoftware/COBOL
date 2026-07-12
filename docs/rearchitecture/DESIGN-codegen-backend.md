@@ -406,6 +406,15 @@ smallest-blast-radius first; each step is behavior-neutral and independently com
 - **M5 — decompose the emitter.** Split the 15 partials into `ProgramEmitter` + per-verb emitter classes over
   `EmitContext`. Move `FieldEmitter`→`CodeGen/DataDivision/*`; unify `FigurativeConstants`. Purely structural; guard
   green after each verb group.
+  *(AS LANDED, P7 Step 9a–9m — DEVLOG 794–808: 18 `Verbs/*Emitter` collaborators + `EcEmitter` (cross-cutting,
+  CodeGen/ root) + `NameAllocator` (the §2.5 table's allocator — 15 per-counter sequences preserved byte-exactly)
+  + the `DispatchState`/`EcState`/`CallUnitState` typed state model (EmitterState.cs). `FieldEmitter` split
+  five ways — the physical-field model proved a distinct 5th concern and became `DataDivision/PhysicalModel`;
+  the five are mutually recursive by design, wired by the `DataEmitter` facade. `host.BeginUnit` is the ONE
+  per-unit context-switch entry; `OoEmitter` reads the quadruple through LIVE host accessors because class-unit
+  emission re-creates it mid-run. REMAINING at 9n: `ProgramEmitter`/`DispatchEmitter`/`StatementEmitter` + the
+  `UnitEmitters` composition root replacing the transitional host shims; `CSharpEmitter` survives as the thin
+  bind-host facade until P9 — the recorded deviation from this doc's "CSharpEmitter is gone" end-state.)*
 - **M6 — extract `BindPipeline` (cross-dimension).** Move `CallEmitRunUnit`'s bind orchestration into the binder's
   pipeline returning `BoundCompilation`; `RoslynBackend.Emit` consumes it. Coordinated with the driver/binder
   dimensions — the highest-coordination step; land after those dimensions' pipeline extraction. Guard green.
