@@ -41,15 +41,18 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   OperandText 7 — they route at Steps 11/12); recorded counting refinement: comment lines stripped,
   `CobolRounding.`/`CobolPassMode.` typed-enum accesses excluded (emitted forms route via
   `RoundingText`/`PassModeText`).
-- **Step 10 (NEXT):** StatementBinder (21 partials) → `BinderContext` + `ProcedureTableBuilder`/
-  `ExpressionBinder`/`ConditionBinder`/`PhraseBlocks` + `Verbs/*Binder`; lift edition-invariant SR checks to
-  `Validation/StatementValidation` (edition gating stays ONLY in the `VersionConformancePass`); the ON/NOT-ON
-  extractor `PhraseBlocks.BuildPair` replaces the ~8 clones; OO LAST behind the method-scope tests (R1).
-  Then **Step 11** (structural `Place` — per-SUBTYPE battery gating) · **Step 12** (FUNCTION args as real
-  expressions — the lexer-mode blocker + space-separated-argument hazard in the premise audit; FULL legacy
-  guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad p7-audit.md, session dir
-  3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 10–12's sites; the Step-9 coupling census was
-  `wf_d677d614-5fb`.
+- **Step 10 ◐ IN PROGRESS:** 10a ✅ `34410d7f` (the DEVLOG-773 pickups — the last two SymbolTable-bypassing
+  lookups routed through `data.Symbols`) · 10b ✅ `a01b5c77` (`Binding/Procedure/PhraseBlocks` — the ONE
+  two-branch phrase extractor; the 8 clones + RETURN's reversed pair collapse into `Split`'s total positional
+  swap). NEXT **10c+**: Verbs/*Binder extraction over `BinderContext` (Step-9-style incremental host edges →
+  final wiring; ProcedureTableBuilder at the FINAL wiring — the `OoMethodScope` entanglement); the fresh
+  coupling census is `wf_b788936b-ca2` (session 61dab794); SR checks lift to
+  `Validation/StatementValidation` (PURE checks only — error+placeholder control flow stays in the verb
+  binder); the residual ~19 inline edition gates move VERBATIM with their verbs (the pass-folding is Exec
+  Step E — recorded); OO LAST behind the method-scope tests (R1). Then **Step 11** (structural `Place` —
+  per-SUBTYPE battery gating) · **Step 12** (FUNCTION args as real expressions — the lexer-mode blocker +
+  space-separated-argument hazard; FULL legacy guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad
+  p7-audit.md, session dir 3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 10–12's sites.
 **Working discipline in force (DEVLOG 803/807):** BATCHED cycles (multiple sub-steps per battery run) with
 PIPELINING (batch N's conformance runs on the prebuilt binaries in the background while batch N+1's edits are
 authored); commits verdict-gated as separate actions (never `&&`-chained — the 783/792 lesson); ratchet
