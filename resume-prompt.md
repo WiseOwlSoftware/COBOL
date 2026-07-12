@@ -41,18 +41,21 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   OperandText 7 — they route at Steps 11/12); recorded counting refinement: comment lines stripped,
   `CobolRounding.`/`CobolPassMode.` typed-enum accesses excluded (emitted forms route via
   `RoundingText`/`PassModeText`).
-- **Step 10 ◐ IN PROGRESS:** 10a ✅ `34410d7f` (the DEVLOG-773 pickups — the last two SymbolTable-bypassing
-  lookups routed through `data.Symbols`) · 10b ✅ `a01b5c77` (`Binding/Procedure/PhraseBlocks` — the ONE
-  two-branch phrase extractor; the 8 clones + RETURN's reversed pair collapse into `Split`'s total positional
-  swap). NEXT **10c+**: Verbs/*Binder extraction over `BinderContext` (Step-9-style incremental host edges →
-  final wiring; ProcedureTableBuilder at the FINAL wiring — the `OoMethodScope` entanglement); the fresh
-  coupling census is `wf_b788936b-ca2` (session 61dab794); SR checks lift to
-  `Validation/StatementValidation` (PURE checks only — error+placeholder control flow stays in the verb
-  binder); the residual ~19 inline edition gates move VERBATIM with their verbs (the pass-folding is Exec
-  Step E — recorded); OO LAST behind the method-scope tests (R1). Then **Step 11** (structural `Place` —
-  per-SUBTYPE battery gating) · **Step 12** (FUNCTION args as real expressions — the lexer-mode blocker +
-  space-separated-argument hazard; FULL legacy guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad
-  p7-audit.md, session dir 3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 10–12's sites.
+- **Step 10 ◐ IN PROGRESS — batches 10a–10d ✅ (DEVLOG 811–814):** 10a `34410d7f` (SymbolTable residuals) ·
+  10b `a01b5c77` (`PhraseBlocks` — the 8 clones + RETURN's reversal collapse into `Split`) · 10c `2f4acded`
+  (`BinderContext` + `StatementValidation` [Check* convention fixed] + `Verbs/InspectBinder` — pattern
+  proven) · 10d `706ac699` (`Verbs/{Evaluate,StringUnstring}Binder`; 11 spine members internal on the host;
+  ride-along records → records-only `Bound*.cs` files). **RESUME AT 10e** (Initialize + Move[absorbs
+  .MoveFigurative — the MarkImageForced choreography moves verbatim] + Corresponding) then 10f…10t per the
+  PHASE-07 §Step 10 **AS-BUILT PLAN block** (the decision-complete batch recipe + BinderContext as-built
+  shape; census `wf_b788936b-ca2`, scratchpad p7-step10-census.json, session 61dab794). Standing rules for
+  the batches: SR checks lift to `StatementValidation` as PURE checks only (error+placeholder control flow
+  stays in the verb binder); the residual ~19 inline edition gates move VERBATIM (pass-folding = Exec Step
+  E); ProcedureTableBuilder at the 10t FINAL wiring (the `OoMethodScope` entanglement); OO LAST (10s)
+  behind the method-scope tests (R1). Then **Step 11** (structural `Place` — per-SUBTYPE battery gating) ·
+  **Step 12** (FUNCTION args as real expressions — the lexer-mode blocker + space-separated-argument
+  hazard; FULL legacy guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad p7-audit.md, session
+  3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 10–12's sites.
 **Working discipline in force (DEVLOG 803/807):** BATCHED cycles (multiple sub-steps per battery run) with
 PIPELINING (batch N's conformance runs on the prebuilt binaries in the background while batch N+1's edits are
 authored); commits verdict-gated as separate actions (never `&&`-chained — the 783/792 lesson); ratchet
