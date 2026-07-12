@@ -91,6 +91,17 @@ internal static class RuntimeApi
     /// member rename breaks HERE, never the generated text.</summary>
     public static string RoundingText(CobolRounding mode) => $"{nameof(CobolRounding)}.{mode}";
 
+    /// <summary>A floating-point intermediate landed to a scaled integer at a target fraction scale —
+    /// <c>CobolFloat.ToScaled</c> (MOVE truncates toward zero, §14.6.8.2).</summary>
+    public static string FloatToScaled(string value, string scale, CobolRounding mode) =>
+        $"{nameof(CobolFloat)}.{nameof(CobolFloat.ToScaled)}({value}, {scale}, {RoundingText(mode)})";
+
+    /// <summary>The BOOLEAN-receiver store (§14.6.8.6 — boolean-ZERO pad, explicit justification) —
+    /// <c>CobolString.Store</c> with <c>pad: '0'</c>.</summary>
+    public static string StrStoreBoolean(string value, string width, bool justifiedRight) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.Store)}({value}, {width}, " +
+        $"justifiedRight: {(justifiedRight ? "true" : "false")}, pad: '0')";
+
     // ── INSPECT (CobolInspect; ISO §14.9.22) ──
 
     /// <summary>The tallying pass — <c>CobolInspect.Tally</c>. Array-literal fragments are pre-rendered by the caller.</summary>

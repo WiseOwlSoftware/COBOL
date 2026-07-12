@@ -102,7 +102,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// right truncation — and the receiver's JUSTIFIED still applies ("exactly as if … elementary move";
     /// §13.18.34 attaches to the receiver). The raw image is then deposited by the receiver's STORAGE shape:
     /// string-backed receivers store the width-fitted image directly; a native typed numeric receiver deposits
-    /// then decodes through the ONE storage-form bridge (<c>CobolNum.StoreDisplay</c> — the deterministic zoned
+    /// then decodes through the ONE storage-form bridge (<c>StoreDisplay</c> — the deterministic zoned
     /// decode of possibly-incompatible content that §14.6.13.2 permits; EC-DATA-INCOMPATIBLE is a later EC
     /// slice). A float receiver has no character image — loud (§1.4, the Tier-C island rule).</summary>
     private void EmitGroupToElementaryMove(Place target, BoundOperand source)
@@ -115,14 +115,16 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         }
         // The width-fitted image (§14.6.8): receiver character-position count via the ONE canonical ImageWidth
         // (V occupies no position; SIGN SEPARATE adds one; P adds none — §13.18.40). deSign is moot for a group.
-        string image = $"CobolString.Store({OperandText.AsString(source)}, {item.ImageWidth}{(item.Justified ? ", justifiedRight: true" : "")})";
+        string image = item.Justified
+            ? RuntimeApi.StrStoreJustified(OperandText.AsString(source), $"{item.ImageWidth}")
+            : RuntimeApi.StrStore(OperandText.AsString(source), $"{item.ImageWidth}");
         // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
         // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
         // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.
         bool nativeNumeric = item.Pic is { Category: PicCategory.Numeric } && !item.StoreAsImage
             && target is not RedefViewPlace and not NumericImagePlace;
         ctx.Writer.Line(nativeNumeric
-            ? target.Write($"CobolNum.StoreDisplay({image}, {item.ProfileName}, {target.Read()})")
+            ? target.Write(RuntimeApi.NumStoreDisplay(image, item.ProfileName, target.Read()))
             : target.Write(image));
     }
 
@@ -173,7 +175,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             ? $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating)}, {width})"
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
-            : $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {width})";
+            : RuntimeApi.StrStore(OperandText.AsString(source, deSign: true), $"{width}");
         // ISO §13.18.38 GR8: an occurs-depending group RECEIVER with data-name-1 OUTSIDE the group uses only the
         // CURRENT-count part (positions past the count are not modified, GR8a); with data-name-1 INSIDE, the MAXIMUM
         // length is used (GR8b — the normal full-width FromImage). A Tier-B REDEFINES group view's image IS its
@@ -237,14 +239,14 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// (ISO §8.3.3.6.4 GR2 repetition + §14.9.25.4 GR6d3b — the digit string spans the receiver's digit positions,
     /// fraction digits included, so the unscaled value IS the repeated digit run at the receiver's scale). ≤18
     /// digit positions fold to a native <c>long</c> literal; a WIDE receiver (19–31 digits, COBOL-2002+ — ISO
-    /// §8.3.1.2) decodes its digit run through the ONE deterministic digit decode (<c>CobolNum.FromAlphanumeric</c>,
+    /// §8.3.1.2) decodes its digit run through the ONE deterministic digit decode (<c>FromAlphanumeric</c>,
     /// Int128 — numeric design D1).</summary>
     private static NumX AllDigitFill(string literal, PicInfo pic)
     {
         string digits = EmitText.RepeatToWidth(literal, Math.Max(pic.Digits, 1));
         return digits.Length <= 18
             ? new NumX($"{long.Parse(digits, System.Globalization.CultureInfo.InvariantCulture)}L", pic.Scale)
-            : new NumX($"CobolNum.FromAlphanumeric({CsLiteral(digits)})", pic.Scale);
+            : new NumX(RuntimeApi.NumFromAlphanumeric(CsLiteral(digits)), pic.Scale);
     }
 
     /// <summary>True when a MOVE source is a NUMERIC operand (a numeric literal/expression, figurative ZERO, or a
@@ -283,20 +285,20 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // (ISO §14.9.25.4 GR5 — alignment + editing); an alphanumeric source stays a plain character move.
             case PicCategory.NumericEdited when IsNumericOperand(source):
                 NumX e = num.AsNum(source, ReceiverContext.None);
-                // A float (Real) source lands into the edited receiver via CobolFloat.ToScaled at the MASK's fraction
-                // scale (MOVE truncates toward zero, §14.6.8.2) — CobolEdit.Format takes a scaled Int128, not a double
+                // A float (Real) source lands into the edited receiver via the runtime's ToScaled at the MASK's fraction
+                // scale (MOVE truncates toward zero, §14.6.8.2) — the edit Format takes a scaled Int128, not a double
                 // (D16 review: the numeric-edited path was missed by the Real integration → CS1503). NB the mask scale
-                // is CobolEdit.MaskScale, NOT pic.Scale (a numeric-edited item's Scale is 0 — the point is in the mask).
+                // is the runtime's MaskScale, NOT pic.Scale (a numeric-edited item's Scale is 0 — the point is in the mask).
                 int ems = CobolEdit.MaskScale(pic.EditMask!, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma);
-                string editVal = e.Real ? $"CobolFloat.ToScaled({e.Expr}, {ems}, CobolRounding.Truncation)" : e.Expr;
+                string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation) : e.Expr;
                 int editScale = e.Real ? ems : e.Scale;
-                return $"CobolEdit.Format({editVal}, {editScale}, {CsLiteral(pic.EditMask!)}{CSharpEmitter.BwzFlag(target)}{ctx.EditCfgArgs})";
+                return RuntimeApi.EditFormat(editVal, $"{editScale}", CsLiteral(pic.EditMask!), CSharpEmitter.BwzFlag(target) + ctx.EditCfgArgs);
             // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
             // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
             // (A GROUP sender never reaches here — GR4 makes that a group move, no editing: EmitGroupToElementaryMove.)
             case PicCategory.NumericEdited:
-                return $"CobolEdit.Format(CobolNum.FromAlphanumeric({OperandText.AsString(source, deSign: true)}), 0, {CsLiteral(pic.EditMask!)}{CSharpEmitter.BwzFlag(target)}{ctx.EditCfgArgs})";
+                return RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, deSign: true)), "0", CsLiteral(pic.EditMask!), CSharpEmitter.BwzFlag(target) + ctx.EditCfgArgs);
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
@@ -304,23 +306,26 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 string aeSrc = source is BoundFigurative ff
                     ? $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Collating)}, {pic.Length})"
                     : OperandText.AsString(source, deSign: true);
-                return $"CobolEdit.FormatAlphanumeric({aeSrc}, {CsLiteral(amask)})";
+                return RuntimeApi.EditFormatAlphanumeric(aeSrc, CsLiteral(amask));
             case PicCategory.Alphanumeric:
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).
-                return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}{(target.Justified ? ", justifiedRight: true" : "")})";
+                return target.Justified
+                    ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, deSign: true), $"{pic.Length}")
+                    : RuntimeApi.StrStore(OperandText.AsString(source, deSign: true), $"{pic.Length}");
             // A NATIONAL receiver stores exactly like alphanumeric on the character substrate (§14.6.8.5 —
             // left-justify, national-space pad, right truncation; JUSTIFIED per §13.18.32): A→N widening,
             // N→N, 9→N digit imaging, and boolean→N all ride AsString under the D-N4 Latin-1 identity
             // correspondence (§14.9.25.4 GR6/GR6a).
             case PicCategory.National:
-                return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}{(target.Justified ? ", justifiedRight: true" : "")})";
+                return target.Justified
+                    ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, deSign: true), $"{pic.Length}")
+                    : RuntimeApi.StrStore(OperandText.AsString(source, deSign: true), $"{pic.Length}");
             // A BOOLEAN receiver pads/left-fills with boolean ZEROS (§14.6.8.6; JUSTIFIED §13.18.32 GR2).
             // Figurative ZERO already early-returned above as a '0' fill; the SR7-illegal figurative shapes
             // never reach emit (bind-rejected, MoveCategoryLegality).
             case PicCategory.Boolean:
-                return $"CobolString.Store({OperandText.AsString(source, deSign: true)}, {pic.Length}, "
-                    + $"justifiedRight: {(target.Justified ? "true" : "false")}, pad: '0')";
+                return RuntimeApi.StrStoreBoolean(OperandText.AsString(source, deSign: true), $"{pic.Length}", target.Justified);
             case PicCategory.Numeric:
                 // A digit-only ALL "literal" repeats across the RECEIVER's digit positions (ISO §8.3.3.6.4 GR2 —
                 // repetition to the associated item's size, truncated from the right; §14.9.25.4 GR6d3b — a
@@ -340,15 +345,15 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 NumX n = source is BoundAllLiteral { IsDigitOnly: true } allDigit
                     ? AllDigitFill(allDigit.Literal, pic)
                     : num.AsNum(source, ReceiverContext.None);
-                // A float SOURCE lands into the fixed receiver via CobolFloat.ToScaled at the receiver scale (MOVE
+                // A float SOURCE lands into the fixed receiver via the runtime's ToScaled at the receiver scale (MOVE
                 // truncates toward zero — §14.6.8.2 GR2/GR4 implementor-defined) then the ordinary store funnel
                 // (rescale identity ⇒ no double-rounding; the digit-capacity + SIZE ERROR check still applies).
                 int recvScaleM = target.Pic!.Scale;
-                string nExpr = n.Real ? $"CobolFloat.ToScaled({n.Expr}, {recvScaleM}, CobolRounding.Truncation)" : n.Expr;
+                string nExpr = n.Real ? RuntimeApi.FloatToScaled(n.Expr, $"{recvScaleM}", CobolRounding.Truncation) : n.Expr;
                 int nScale = n.Real ? recvScaleM : n.Scale;
-                string stored = CSharpEmitter.Narrow($"CobolNum.Store({nExpr}, {nScale}, {target.ProfileName})", target);
+                string stored = CSharpEmitter.Narrow(RuntimeApi.NumStore(nExpr, $"{nScale}", target.ProfileName), target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
-                return target.StoreAsImage ? $"CobolNum.FormatDisplay({stored}, {target.ProfileName})" : stored;
+                return target.StoreAsImage ? RuntimeApi.NumFormatDisplay(stored, target.ProfileName) : stored;
             default:
                 return "default";
         }
