@@ -155,10 +155,10 @@ internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, 
                 // representation-faithful for every category): read via the one string-carrier read; the
                 // restore decodes through StoreDisplay for a native numeric leaf (the NumericImagePlace shape),
                 // or splices the image for string-carried storage.
-                string set = CSharpEmitter.CallPlaceIsString(place)
-                    ? CSharpEmitter.CallStringWrite(place, "__v")
+                string set = CallEmitter.CallPlaceIsString(place)
+                    ? CallEmitter.CallStringWrite(place, "__v")
                     : place.Write(RuntimeApi.NumStoreDisplay("__v", place.Item.ProfileName, place.Read()));
-                w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {CSharpEmitter.CallStringRead(place)}, __v => {{ {set} }});");
+                w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {CallEmitter.CallStringRead(place)}, __v => {{ {set} }});");
             }
             // SUM counters (§13.18.54): the addend delegate yields the addends' total at the counter's scale
             // (GR3 — ADD-consistent accumulation; GR9 — multiple addends sum together).

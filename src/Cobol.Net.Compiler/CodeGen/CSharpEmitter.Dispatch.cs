@@ -120,10 +120,10 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundTerminate n) { _reportWriter.EmitTerminate(n); return false; }   // §14.9.46
 
     // ── Interprogram: CALL / CANCEL / EXIT PROGRAM / GOBACK ──────────────────────────────────────────────────
-    public bool Visit(BoundCallProgram n) => CallEmitCall(n);
-    public bool Visit(BoundCancel n) { CallEmitCancel(n); return false; }
-    public bool Visit(BoundExitProgram n) { CallEmitExitProgram(n); return false; }
-    public bool Visit(BoundGoback n) => CallEmitGoback(n);
+    public bool Visit(BoundCallProgram n) => _call.EmitCall(n);
+    public bool Visit(BoundCancel n) { _call.EmitCancel(n); return false; }
+    public bool Visit(BoundExitProgram n) { _call.EmitExitProgram(n); return false; }
+    public bool Visit(BoundGoback n) => _call.EmitGoback(n);
 
     // ── OO: INVOKE / SET object ref (ISO §14.9.23/§14.9.39; deep-dive D5/D8/D10) ─────────────────────────────
     public bool Visit(BoundInvoke n) { OoEmitInvoke(n); return false; }                 // §14.9.23
@@ -142,7 +142,7 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
         // method GOBACK/EXIT METHOD (D8). GR1b (§14.9.18.4): the RAISING stages BEFORE the throw; the entry's
         // catch(MethodReturn) still delivers the RETURNING local + copy-outs, so the INVOKE-site pickup sees the
         // exception only AFTER the result — the result-before-exception ordering for free (D-EO6).
-        if (n.Raising is { } mrr) CallEmitRaisingStage(mrr, "GOBACK");
+        if (n.Raising is { } mrr) _call.EmitRaisingStage(mrr, "GOBACK");
         _ctx.Writer.Line("throw new MethodReturn();   // terminate the METHOD only — caught at the method entry (ISO §14.9.18.4 GR4)");
         return true;
     }

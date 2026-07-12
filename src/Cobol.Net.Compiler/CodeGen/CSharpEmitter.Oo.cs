@@ -688,7 +688,7 @@ public sealed partial class CSharpEmitter
                 // the argument): pass the leading formal-width characters; the write-back below splices the
                 // prefix back, preserving the argument's tail. CONTENT pads/truncates per MOVE.
                 int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
-                string read = a.Source is { } gsp ? CallStringRead(gsp) : CsLiteral(a.StringLiteral ?? "");
+                string read = a.Source is { } gsp ? CallEmitter.CallStringRead(gsp) : CsLiteral(a.StringLiteral ?? "");
                 w.Line($"string {tmp} = CobolString.Store({read}, {fw});");
             }
             else if (stringCarried)
@@ -724,8 +724,8 @@ public sealed partial class CSharpEmitter
                 int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
                 // The §14.8.2.2 rule-1 prefix: splice the formal's characters back over the argument's
                 // LEADING positions, preserving the tail beyond the formal's width.
-                post.Add(CallStringWrite(src,
-                    $"{tmp} + CobolString.RefMod({CallStringRead(src)}, {fw + 1}, -1)"));
+                post.Add(CallEmitter.CallStringWrite(src,
+                    $"{tmp} + CobolString.RefMod({CallEmitter.CallStringRead(src)}, {fw + 1}, -1)"));
             }
             else if (src is RefModPlace)
                 post.Add(src.Write(tmp));   // RefModPlace.Write splices the window (§8.4.2.4)
@@ -758,7 +758,7 @@ public sealed partial class CSharpEmitter
             w.Line($"var {tmp} = {call};   // INVOKE (§14.9.23; null receiver → EC-OO-NULL, GR5)");
             foreach (var pLine in post) w.Line(pLine);
             if (rs.IsGroup || recv.Item.IsGroup)
-                w.Line(CallStringWrite(inv.Returning, tmp));
+                w.Line(CallEmitter.CallStringWrite(inv.Returning, tmp));
             else if (recv is RefModPlace)
                 w.Line(recv.Write(tmp));
             else if (retString == OoStringCarried(recv.Item))
@@ -784,7 +784,7 @@ public sealed partial class CSharpEmitter
     /// ACTIVATING site consumes — after the RETURNING delivery and copy-outs (GR1b ordering). Instance/
     /// Self/Super/Factory + UNIVERSAL dispatches all pick up; NEW needs none (the generated ctor runs no
     /// user statements, D4). Gated on <c>EcState.Active</c>, which spans class units.</summary>
-    private void OoEmitInvokePickup() => CallEmitPropagationPickup();
+    private void OoEmitInvokePickup() => _call.EmitPropagationPickup();
 
     private string OoStringReadOf(Place sp, BoundInvokeArg a)
     {

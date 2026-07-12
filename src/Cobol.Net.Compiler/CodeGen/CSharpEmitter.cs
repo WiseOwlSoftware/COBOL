@@ -59,6 +59,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private ControlFlowEmitter _controlFlow = null!;
     private SequentialIoEmitter _seqIo = null!;
     private EcEmitter _ecEmit = null!;
+    private CallEmitter _call = null!;
 
     /// <summary>(Re)construct the per-unit collaborator emitters over the just-created context/renderers —
     /// called immediately after the <c>_ctx</c>/<c>_num</c>/<c>_cond</c> per-unit re-creation (program classes
@@ -82,6 +83,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
         _controlFlow = new ControlFlowEmitter(_ctx, _num, _cond, _dispatchState, _set, this);
         _seqIo = new SequentialIoEmitter(_ctx, _num, _refs, _dispatchState, _ecState, _callState, _keyedIo, _arith, this);
         _ecEmit = new EcEmitter(_ctx, _ecState, _dispatchState, this);
+        _call = new CallEmitter(_ctx, _num, _ecState, _callState, _ecEmit, this);
     }
 
     /// <summary>BIND the WHOLE compilation group in <paramref name="tree"/> to an immutable
