@@ -59,11 +59,13 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   verb). 10o `a733bb30` (`Verbs/ConditionBinder` — the whole
   channel merged; deviations recorded: host forwarders [one-shot flip at 10t]; SR pure-lift deferred to the
   10t sweep) · 10p `5034a3c2` (`Verbs/ArithmeticBinder` — the five arithmetic verbs; BindSizeError stays a
-  HOST phrase family past 10q). **RESUME AT 10q** (ExpressionBinder — the expression-spine flip: operand +
-  reference [RefExpr/RefFailure/LinageFileOf/IndexFieldOf] + receiving [ResolveTargets/ResolveReceiving/
-  RoundingOf/Receivers×3] families + the BindExpr spine [BindChain/BindPower/BindPrimary/BindOperandExpr/
-  NumLiteral] + CheckLiteral AS-IS; DataRefs/Children generic tree statics STAY on host) → 10r (EcBinder +
-  EcBindState on ctx)
+  HOST phrase family past 10q) · 10q `b7dfe0b4` (`Binding/Procedure/ExpressionBinder` — the expression-spine
+  flip; 15 host forwarders; core 405 lines). **RESUME AT 10r** (EcBinder at Verbs/ + `EcBindState` on ctx
+  [Turn/ProgramName/PdRaising/PdRaisingClasses/DeclEcPairs + the 7 feature bits] + `ctx.BindCursor` replacing
+  `_currentBindPc` [core + Oo-partial writes]; EcWrap still invoked at the host BindStatement exit;
+  Declaratives partial re-points _ecF3/_declEcPairs to ctx.EcState and gains EntryPc/Declaratives internal
+  accessors; ConfigureEc stays a host PUBLIC forwarder until 10t; intrinsic-presence walks move VERBATIM —
+  generated-visitor conversion stays FLAGGED)
   → 10s (OoBinder LAST, behind the OO goldens + method-scope tests) → 10t (FINAL wiring:
   ProcedureTableBuilder + thin StatementBinder + host-edge deletion + the full doc sweep incl. the deferred
   SR pure-lifts and the 1523 catalog normalization) per the PHASE-07 §Step 10 **AS-BUILT PLAN block**
