@@ -111,7 +111,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             || rd.Lock != BoundRecordLock.None || rd.Retry is not null)
         {
             var (retryKind, retryAmount) = host.RenderRetry(rd.Retry);
-            w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, CSharpEmitter.RuntimeRecordLock(rd.Lock), retryKind, retryAmount)};");
+            w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), retryKind, retryAmount)};");
         }
         using (w.Block($"if ({st}[0] == '0')"))
         {

@@ -27,7 +27,10 @@ public sealed class RuntimeApiGuardTests
     /// re-counted at commit time). A file NOT listed here must have ZERO bare accesses.</summary>
     private static readonly Dictionary<string, int> Baseline = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["CSharpEmitter.cs"] = 34,   // 74 − the 40 that moved with arithmetic (9h1); shrinks via 9i–9j
+        // CSharpEmitter.cs reached ZERO at Step 9i/9j (BATCH-1) — the orchestrator core emits no bare
+        // runtime fragment; the remaining pins below are typed compile-time uses or pre-Step-11/12 files.
+        ["Verbs/SetEmitter.cs"] = 2,          // typed CobolRounding args to StoreArith
+        ["Verbs/SequentialIoEmitter.cs"] = 3, // typed CobolRounding args (NumRescale/StoreArith)
         ["Verbs/ArithmeticEmitter.cs"] = 10,   // 9h2: fragments routed; residue = compile-time MaskScale + typed CobolRounding uses
         ["Verbs/MoveEmitter.cs"] = 3,   // 9g2: fragments routed; residue = the compile-time MaskScale call + 2 typed CobolRounding args
         ["Emit/IntrinsicRenderer.cs"] = 52,

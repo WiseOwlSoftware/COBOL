@@ -305,8 +305,68 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.Read)}({name}, out var {imgVar})";
 
     /// <summary>Sequential WRITE without optional phrases (the implicit GIVING loop shape) — <c>CobolFile.Write</c>.</summary>
-    public static string FileWrite(string name, string image) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Write)}({name}, {image})";
+    public static string FileWrite(string name, string image, string? lenArg = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Write)}({name}, {image}{(lenArg is null ? "" : $", {lenArg}")})";
+
+    /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
+    /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment.</summary>
+    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, string varyArgs = "") =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs})";
+
+    /// <summary>Register a LINAGE file's logical-page evaluator closure (§13.18.34 GR6) — <c>CobolFile.SetLinage</c>.</summary>
+    public static string FileSetLinage(string name, string closure) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.SetLinage)}({name}, {closure})";
+
+    /// <summary>Mark a connector sharing-active (Phase 4d M2-FILE-1) — <c>CobolFile.RegisterSharing</c>.</summary>
+    public static string FileRegisterSharing(string name, string argsFragment) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterSharing)}({name}, {argsFragment})";
+
+    /// <summary>The sharing-governed OPEN (Table 19 → status 61) — <c>CobolFile.OpenShared</c>.</summary>
+    public static string FileOpenShared(string name, string argsFragment) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenShared)}({name}, {argsFragment})";
+
+    /// <summary>The mode-specific plain OPEN — anchored over <c>CobolFile.Open{Input,Output,Extend,IO}</c>.</summary>
+    public static string FileOpen(string name, Binding.Bound.BoundOpenMode mode) =>
+        $"{nameof(CobolFile)}.{mode switch
+        {
+            Binding.Bound.BoundOpenMode.Output => nameof(CobolFile.OpenOutput),
+            Binding.Bound.BoundOpenMode.Extend => nameof(CobolFile.OpenExtend),
+            Binding.Bound.BoundOpenMode.IO => nameof(CobolFile.OpenIO),
+            _ => nameof(CobolFile.OpenInput),
+        }}({name})";
+
+    /// <summary>The kind-specific CLOSE — anchored over <c>CobolFile.Close{,WithLock,ReelUnit}</c>.</summary>
+    public static string FileClose(string name, Binding.Bound.BoundCloseKind kind) =>
+        $"{nameof(CobolFile)}.{kind switch
+        {
+            Binding.Bound.BoundCloseKind.WithLock => nameof(CobolFile.CloseWithLock),
+            Binding.Bound.BoundCloseKind.ReelUnit => nameof(CobolFile.CloseReelUnit),
+            _ => nameof(CobolFile.Close),
+        }}({name})";
+
+    /// <summary>UNLOCK — <c>CobolFile.Unlock</c> (records flag = UNLOCK RECORDS).</summary>
+    public static string FileUnlock(string name, string records) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Unlock)}({name}, {records})";
+
+    /// <summary>WRITE … ADVANCING — <c>CobolFile.WriteAdvancing</c>.</summary>
+    public static string FileWriteAdvancing(string name, string image, string lines, string before) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteAdvancing)}({name}, {image}, {lines}, {before})";
+
+    /// <summary>The LINAGE end-of-page probe (§13.18.34) — <c>CobolFile.EndOfPage</c>.</summary>
+    public static string FileEndOfPage(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.EndOfPage)}({name})";
+
+    /// <summary>The connector's two-character I-O status — <c>CobolFile.Status</c>.</summary>
+    public static string FileStatus(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Status)}({name})";
+
+    /// <summary>The open-mode ordinal of a connector (the USE mode-scope switch) — <c>CobolFile.OpenModeOf</c>.</summary>
+    public static string FileOpenModeOf(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.OpenModeOf)}({name})";
+
+    /// <summary>Sequential REWRITE — <c>CobolFile.Rewrite</c> (optional varying-length argument).</summary>
+    public static string FileRewrite(string name, string image, string? lenArg = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Rewrite)}({name}, {image}{(lenArg is null ? "" : $", {lenArg}")})";
 
     /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
     public static string FileLastReadLength(string name) =>

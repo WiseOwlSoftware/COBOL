@@ -210,7 +210,7 @@ public sealed partial class CSharpEmitter
 
     /// <summary>The enabled EC-I-O (name → mask bit) pairs of the current statement for <paramref name="file"/>,
     /// or 0 when none (the caller then emits the plain F1 hook).</summary>
-    private int EcIoMaskFor(FileModel file)
+    internal int EcIoMaskFor(FileModel file)
     {
         if (_ecState.Info is null) return 0;
         int mask = 0;

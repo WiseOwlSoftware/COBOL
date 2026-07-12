@@ -29,7 +29,7 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundGoTo n) { var w = _ctx.Writer; w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
     public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
     public bool Visit(BoundExitPerform n) { _ctx.Writer.Line(n.Cycle ? "continue;" : "break;"); return false; }   // inline-PERFORM loop
-    public bool Visit(BoundGoToDepending n) { EmitGoToDepending(n); return false; }
+    public bool Visit(BoundGoToDepending n) { _controlFlow.EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
 
     public bool Visit(BoundSequence n)
@@ -70,28 +70,28 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundComputeBoolean n) { _arith.EmitComputeBoolean(n); return false; }
 
     // ── Conditionals / loops / SEARCH / EVALUATE ─────────────────────────────────────────────────────────────
-    public bool Visit(BoundIf n) { EmitIf(n); return false; }
-    public bool Visit(BoundInlinePerform n) { EmitInlinePerform(n); return false; }
-    public bool Visit(BoundOutOfLinePerform n) { EmitOutOfLinePerform(n); return false; }
-    public bool Visit(BoundSetConditions n) { EmitSet(n); return false; }
+    public bool Visit(BoundIf n) { _controlFlow.EmitIf(n); return false; }
+    public bool Visit(BoundInlinePerform n) { _controlFlow.EmitInlinePerform(n); return false; }
+    public bool Visit(BoundOutOfLinePerform n) { _controlFlow.EmitOutOfLinePerform(n); return false; }
+    public bool Visit(BoundSetConditions n) { _set.EmitSet(n); return false; }
     public bool Visit(BoundSetSwitches n) { _alterSwitch.EmitSetSwitches(n); return false; }
     public bool Visit(BoundAlter n) { _alterSwitch.EmitAlter(n); return false; }
     public bool Visit(BoundGoToAlterable n) { _alterSwitch.EmitGoTo(n); return true; }
-    public bool Visit(BoundSetTo n) { EmitSetTo(n); return false; }
-    public bool Visit(BoundSetUpDown n) { EmitSetUpDown(n); return false; }
-    public bool Visit(BoundSetCapacity n) { EmitSetCapacity(n); return false; }
-    public bool Visit(BoundSearch n) { EmitSearch(n); return false; }
+    public bool Visit(BoundSetTo n) { _set.EmitSetTo(n); return false; }
+    public bool Visit(BoundSetUpDown n) { _set.EmitSetUpDown(n); return false; }
+    public bool Visit(BoundSetCapacity n) { _set.EmitSetCapacity(n); return false; }
+    public bool Visit(BoundSearch n) { _controlFlow.EmitSearch(n); return false; }
     public bool Visit(BoundEvaluate n) { _evaluate.Emit(n); return false; }
     public bool Visit(BoundInspect n) { _inspect.Emit(n); return false; }
     public bool Visit(BoundCorresponding n) { _corresponding.Emit(n); return false; }
 
     // ── Sequential file I/O ──────────────────────────────────────────────────────────────────────────────────
-    public bool Visit(BoundOpen n) { EmitOpen(n); return false; }
-    public bool Visit(BoundClose n) { EmitClose(n); return false; }
-    public bool Visit(BoundUnlock n) { EmitUnlock(n); return false; }
-    public bool Visit(BoundWrite n) { EmitWrite(n); return false; }
-    public bool Visit(BoundRead n) { EmitRead(n); return false; }
-    public bool Visit(BoundRewrite n) { EmitRewrite(n); return false; }
+    public bool Visit(BoundOpen n) { _seqIo.EmitOpen(n); return false; }
+    public bool Visit(BoundClose n) { _seqIo.EmitClose(n); return false; }
+    public bool Visit(BoundUnlock n) { _seqIo.EmitUnlock(n); return false; }
+    public bool Visit(BoundWrite n) { _seqIo.EmitWrite(n); return false; }
+    public bool Visit(BoundRead n) { _seqIo.EmitRead(n); return false; }
+    public bool Visit(BoundRewrite n) { _seqIo.EmitRewrite(n); return false; }
 
     // ── Keyed (relative/indexed) file I/O ────────────────────────────────────────────────────────────────────
     public bool Visit(BoundKeyedRead n) { _keyedIo.EmitRead(n); return false; }
@@ -131,7 +131,7 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundSetObjectRef n) { OoEmitSetObjectRef(n); return false; }      // SET F5 (§14.9.39; D-U7)
 
     // ── Pointers: SET / ALLOCATE / FREE (ISO §14.9.39/§14.9.3/§14.9.15; Phase-4b) ────────────────────────────
-    public bool Visit(BoundSetPointer n) { EmitSetPointer(n); return false; }               // SET pointer F4
+    public bool Visit(BoundSetPointer n) { _set.EmitSetPointer(n); return false; }               // SET pointer F4
     public bool Visit(BoundSetAddressOfBased n) { _ptr.EmitSetAddressOfBased(n); return false; }   // SET F7
     public bool Visit(BoundSetPointerUpDown n) { _ptr.EmitSetPointerUpDown(n); return false; }     // SET F10
     public bool Visit(BoundAllocate n) { _ptr.EmitAllocate(n); return false; }                     // ALLOCATE §14.9.3
