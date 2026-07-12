@@ -60,6 +60,29 @@ public sealed partial class CSharpEmitter : IOoBindHost
     private SequentialIoEmitter _seqIo = null!;
     private EcEmitter _ecEmit = null!;
     private CallEmitter _call = null!;
+    private OoEmitter _oo = null!;
+
+    // Live accessors for the collaborators that must track the PER-UNIT context re-creation (OoEmitter —
+    // class-unit emission re-news the quadruple mid-run; captured copies would go stale).
+    internal EmitContext Ctx => _ctx;
+    internal NumericRenderer Num => _num;
+    internal ConditionRenderer Cond => _cond;
+    internal ReferenceResolver Refs => _refs;
+    internal TurnState Turn => _turnState;
+    internal CallEmitter Call => _call;
+    internal ReportWriterEmitter ReportWriter => _reportWriter;
+
+    /// <summary>Begin one emitted unit: re-create the per-unit context/renderer quadruple over the fresh
+    /// writer/data/resolver and re-wire the per-unit collaborators (Step 9m — the ONE unit-switch entry the
+    /// program-class, OO class-unit, and interface-unit emissions share).</summary>
+    internal void BeginUnit(CodeWriter w, DataBinder data, ReferenceResolver refs)
+    {
+        _refs = refs;
+        _ctx = new EmitContext(w, data, _names);
+        _num = new NumericRenderer(_ctx);
+        _cond = new ConditionRenderer(_num, _ctx);
+        NewUnitEmitters();
+    }
 
     /// <summary>(Re)construct the per-unit collaborator emitters over the just-created context/renderers —
     /// called immediately after the <c>_ctx</c>/<c>_num</c>/<c>_cond</c> per-unit re-creation (program classes
@@ -182,7 +205,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// <c>__Dispatch</c>) and COBOL classes (<c>OoEmitMethod</c>: each METHOD-ID's contiguous slice of the
     /// class's ONE pc space as a local function; a pc outside the slice hits <c>default:</c> and exits — the
     /// emit-into-a-type parameterization of the OO deep-dive).</summary>
-    private void EmitDispatchMethod(BoundProgram bound, CodeWriter w, string header, int fromPc, int toPc)
+    internal void EmitDispatchMethod(BoundProgram bound, CodeWriter w, string header, int fromPc, int toPc)
     {
         using (w.Block(header))
         {
@@ -291,7 +314,7 @@ public sealed partial class CSharpEmitter : IOoBindHost
     /// each inter-sentence boundary gets a label (`__sentP_K:`) — the §14.9.19 GR6 implicit CONTINUE after the
     /// separator period; NEXT SENTENCE in the LAST sentence is the paragraph fall-through. Returns whether the
     /// body ends by transferring control out of the case.</summary>
-    private bool EmitParagraphBody(BoundParagraph para, int pc)
+    internal bool EmitParagraphBody(BoundParagraph para, int pc)
     {
         var w = _ctx.Writer;
         var sentences = para.Sentences;

@@ -48,6 +48,7 @@ public sealed partial class CSharpEmitter
         _ooClasses = comp.OoClasses;
         _ecState.Active = comp.EcActive;
         _names = new NameAllocator();   // ONE per run unit — every per-unit EmitContext threads this instance (Step 9a)
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this);   // run-unit scope — reads the live per-unit context (Step 9m)
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
@@ -73,9 +74,9 @@ public sealed partial class CSharpEmitter
         // the program classes and the run-unit entry wrapper. A class-only/interface-only compilation unit is
         // legal (§10.6) — its module emits the types and an empty Main.
         foreach (var iface in _ooClasses.Interfaces)
-            OoEmitInterfaceUnit(iface, w);
+            _oo.EmitInterfaceUnit(iface, w);
         foreach (var cls in classes)
-            OoEmitClassUnit(cls, w);
+            _oo.EmitClassUnit(cls, w);
         if (units.Count == 0)
         {
             using (w.Block("internal static class Program"))
@@ -98,11 +99,7 @@ public sealed partial class CSharpEmitter
     private void CallEmitProgramClass(BoundUnit unit, CodeWriter w)
     {
         var data = unit.Data;
-        _refs = unit.Refs;
-        _ctx = new EmitContext(w, data, _names);
-        _num = new NumericRenderer(_ctx);
-        _cond = new ConditionRenderer(_num, _ctx);
-        NewUnitEmitters();
+        BeginUnit(w, data, unit.Refs);
         _callState.SelfPath = unit.Path;
         _callState.ReturningPlace = data.LinkageReturning is { } ret ? _refs.ResolveItem(ret) : null;
         _ecState.UnitHasF3 = unit.Bound.Declaratives?.Any(d => d.EcEntries is not null) ?? false;   // → __EcDispatch exists
@@ -162,7 +159,7 @@ public sealed partial class CSharpEmitter
                 };
                 w.Line($"private ref {type} {b.Field} => ref {b.Path};   // GLOBAL item of a containing program (ISO §13.18.27 GR2 — container storage, contained visibility)");
             }
-            EmitExternalBackings(data, w);
+            _oo.EmitExternalBackings(data, w);
             foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
             {
                 // The seed is the SAME VALUE-honoring image expression the Tier-B stored backing uses.

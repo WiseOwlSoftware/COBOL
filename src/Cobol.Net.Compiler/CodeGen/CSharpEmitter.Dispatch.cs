@@ -126,9 +126,9 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundGoback n) => _call.EmitGoback(n);
 
     // ── OO: INVOKE / SET object ref (ISO §14.9.23/§14.9.39; deep-dive D5/D8/D10) ─────────────────────────────
-    public bool Visit(BoundInvoke n) { OoEmitInvoke(n); return false; }                 // §14.9.23
-    public bool Visit(BoundInvokeUniversal n) { OoEmitUniversalInvoke(n); return false; }   // D10 universal dispatch (GR7c)
-    public bool Visit(BoundSetObjectRef n) { OoEmitSetObjectRef(n); return false; }      // SET F5 (§14.9.39; D-U7)
+    public bool Visit(BoundInvoke n) { _oo.EmitInvoke(n); return false; }                 // §14.9.23
+    public bool Visit(BoundInvokeUniversal n) { _oo.EmitUniversalInvoke(n); return false; }   // D10 universal dispatch (GR7c)
+    public bool Visit(BoundSetObjectRef n) { _oo.EmitSetObjectRef(n); return false; }      // SET F5 (§14.9.39; D-U7)
 
     // ── Pointers: SET / ALLOCATE / FREE (ISO §14.9.39/§14.9.3/§14.9.15; Phase-4b) ────────────────────────────
     public bool Visit(BoundSetPointer n) { _set.EmitSetPointer(n); return false; }               // SET pointer F4

@@ -49,7 +49,8 @@ public sealed class RuntimeApiGuardTests
         ["DataDivision/RecordStructEmitter.cs"] = 1,
         ["DataDivision/GroupValueSlicer.cs"] = 1,
         ["Emit/ConditionRenderer.cs"] = 21,
-        ["CSharpEmitter.Oo.cs"] = 17,
+        // CSharpEmitter.Oo.cs reached 0 at Step 9m/BATCH-3b (the bind half emits nothing); the emit half:
+        ["Verbs/OoEmitter.cs"] = 17,             // routes in the 9-final ratchet sweep
         // The Step-9d extractions: fragments are RuntimeApi-routed; the residues below are TYPED compile-time
         // enum arguments (CobolRounding passed to StoreArith / the RuntimeApi rounding parameter), not emitted
         // text — the ratchet's regex is over-broad for them; 9-final decides the regex refinement.
