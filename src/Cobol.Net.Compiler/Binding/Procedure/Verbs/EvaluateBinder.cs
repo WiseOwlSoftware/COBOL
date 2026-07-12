@@ -1,32 +1,26 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Common;
+using CobolNet.Binding.Bound;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
-/// <summary><c>EVALUATE</c> (ISO §14.9.13), bound at COMPILE time to a chained selection (COBOLNET_DESIGN §5.3):
-/// each WHEN's match is ONE <see cref="BoundCondition"/> — the AND over its subject↔object pairs, with
-/// consecutive WHEN phrases OR-ed over a shared body (§14.9.13 GR — multiple WHEN phrases preceding one
-/// imperative). The first true arm's statements run; WHEN OTHER is the else tail.</summary>
-public sealed record BoundEvaluate(
-    IReadOnlyList<BoundEvaluateWhen> Whens, IReadOnlyList<BoundStatement>? Other) : BoundStatement;
-
-/// <summary>One selectable EVALUATE arm: its composed match condition and its statements.</summary>
-public sealed record BoundEvaluateWhen(BoundCondition Match, IReadOnlyList<BoundStatement> Statements);
-
-public sealed partial class StatementBinder
+/// <summary>The EVALUATE verb binder (P7 Step 10d — a real collaborator over <see cref="BinderContext"/>,
+/// extracted from the <c>StatementBinder.Evaluate</c> partial; the condition/relation/expression spine is
+/// reached through transitional host edges until batches 10o/10q). The <c>BoundEvaluate</c>/
+/// <c>BoundEvaluateWhen</c> records stayed in <c>Binding/Bound/BoundEvaluate.cs</c> — the generated visitor
+/// and <c>StatementChildren</c> key on them.</summary>
+internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind EVALUATE (ISO §14.9.13). Subjects: TRUE/FALSE, an identifier/literal, an arithmetic
     /// expression, or an operand-with-class-test; objects per WHEN: ANY, [NOT] operand [THRU operand], or a
     /// condition (against a TRUE/FALSE subject). The subject↔object pairing is positional across ALSO (SR
     /// — the object count must equal the subject count); each pair lowers to an equality / range / condition
     /// term and the WHEN's terms AND together.</summary>
-    private BoundStatement BindEvaluate(Core.EvaluateStatementContext ev)
+    public BoundStatement Bind(Core.EvaluateStatementContext ev)
     {
         var subjects = ev.evaluateSubject();
         var whens = new List<BoundEvaluateWhen>();
@@ -34,7 +28,7 @@ public sealed partial class StatementBinder
 
         foreach (var clause in ev.evaluateWhenClause())
         {
-            var body = BindBlocks(clause.statementBlock());
+            var body = host.BindBlocks(clause.statementBlock());
             if (clause.OTHER() is not null)
             {
                 other = body;   // WHEN OTHER — the else tail (SR: it must be last; later clauses would be dead)
@@ -95,7 +89,7 @@ public sealed partial class StatementBinder
 
         if (item.condition() is { } cond)
         {
-            var bound = BindCondition(cond);
+            var bound = host.BindCondition(cond);
             return subjFalse ? new BoundNot(bound) : bound;   // EVALUATE TRUE/FALSE WHEN <condition>
         }
 
@@ -109,10 +103,10 @@ public sealed partial class StatementBinder
             var lo = BindValueOperand(range.valueOperand(0));
             var hi = BindValueOperand(range.valueOperand(1));
             return new BoundLogical("&&",
-                [CheckedRelational(left, ">=", lo), CheckedRelational(left, "<=", hi)]);
+                [host.CheckedRelational(left, ">=", lo), host.CheckedRelational(left, "<=", hi)]);
         }
         if (item.valueOperand() is { } v)
-            return CheckedRelational(left, "==", BindValueOperand(v));
+            return host.CheckedRelational(left, "==", BindValueOperand(v));
         return new BoundConditionError($"EVALUATE WHEN object '{item.GetText()}'");
     }
 
@@ -126,9 +120,9 @@ public sealed partial class StatementBinder
         {
             // A sole data-reference that names a level-88 IS the condition (§8.8.4.1.2); the reference's
             // subscripts identify the conditional variable's occurrence (§8.4.2.3 Format 2).
-            if (vo.arithmeticExpression() is not { } expr || SoleDataRef(expr) is not { } dref
-                || ConditionOf(dref) is not { } cond) return null;
-            return refs.ResolveForItem(dref, cond.Parent) is { } parent
+            if (vo.arithmeticExpression() is not { } expr || StatementBinder.SoleDataRef(expr) is not { } dref
+                || host.ConditionOf(dref) is not { } cond) return null;
+            return ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
                 ? new BoundCondition88(parent, cond)
                 : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
         }
@@ -139,7 +133,7 @@ public sealed partial class StatementBinder
             : null;
         if (kind is not { } k) return new BoundConditionError($"class condition '{cls.GetText()}'");
         var opnd = BindValueOperand(vo);
-        CheckClassConditionOperand(opnd, k);   // §8.8.4.4.3 SR8/SR4 — boolean-operand guard
+        host.CheckClassConditionOperand(opnd, k);   // §8.8.4.4.3 SR8/SR4 — boolean-operand guard
         return new BoundClassCondition(opnd, k, Negated: subject.NOT() is not null);
     }
 
@@ -159,14 +153,14 @@ public sealed partial class StatementBinder
     /// operand — the same shapes <see cref="ComparisonOperand"/> produces.</summary>
     private BoundOperand BindValueOperand(Core.ValueOperandContext vo)
     {
-        if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
+        if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return StatementBinder.FigurativeOperand(fig);
         if (vo.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
-        if (vo.nonNumericLiteral()?.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
-        if (vo.nonNumericLiteral()?.BOOLLIT() is { } bl) return BooleanLiteralOperand(bl.GetText());
+        if (vo.nonNumericLiteral()?.NATLIT() is { } nat) return host.NationalLiteralOperand(nat.GetText());
+        if (vo.nonNumericLiteral()?.BOOLLIT() is { } bl) return host.BooleanLiteralOperand(bl.GetText());
         if (vo.arithmeticExpression() is { } expr)
-            return SoleDataRef(expr) is { } dref ? FieldOperand(dref)
-                : SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(CheckLiteral(lit))
-                : new BoundComputedOperand(BindExpr(expr));
+            return StatementBinder.SoleDataRef(expr) is { } dref ? host.FieldOperand(dref)
+                : StatementBinder.SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(host.CheckLiteral(lit))
+                : new BoundComputedOperand(host.BindExpr(expr));
         return new BoundOperandError("EVALUATE operand");
     }
 }

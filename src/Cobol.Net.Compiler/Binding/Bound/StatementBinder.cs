@@ -30,8 +30,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     //    final wiring retargets them and thins this class to dispatch + the composition root. ──
     private BinderContext? _binderCtx;
     private InspectBinder? _inspectBinder;
+    private EvaluateBinder? _evaluateBinder;
+    private StringUnstringBinder? _stringUnstringBinder;
     private BinderContext Ctx => _binderCtx ??= new BinderContext(data, refs);
     private InspectBinder Inspect => _inspectBinder ??= new InspectBinder(Ctx, this);
+    private EvaluateBinder Evaluate => _evaluateBinder ??= new EvaluateBinder(Ctx, this);
+    private StringUnstringBinder Strings => _stringUnstringBinder ??= new StringUnstringBinder(Ctx, this);
 
     private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
     private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
@@ -196,7 +200,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.performStatement() is { } p => BindPerform(p),
         _ when s.setStatement() is { } set => BindSet(set),
         _ when s.searchStatement() is { } se => BindSearch(se),
-        _ when s.evaluateStatement() is { } ev => BindEvaluate(ev),
+        _ when s.evaluateStatement() is { } ev => Evaluate.Bind(ev),
         _ when s.inspectStatement() is { } ins => Inspect.Bind(ins),
         _ when s.searchAllStatement() is { } sa => BindSearchAll(sa),
         _ when s.goToStatement() is { } g => BindGoTo(g),
@@ -211,8 +215,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.deleteStatement() is { } del => KeyedBindDelete(del),
         _ when s.deleteFileStatement() is { } dfs => KeyedBindDeleteFile(dfs),
         _ when s.unlockStatement() is { } ul => BindUnlock(ul),
-        _ when s.stringStatement() is { } sstr => BindString(sstr),
-        _ when s.unstringStatement() is { } suns => BindUnstring(suns),
+        _ when s.stringStatement() is { } sstr => Strings.BindString(sstr),
+        _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => BindAccept(ac),
         _ when s.initializeStatement() is { } ini => BindInitialize(ini),
         _ when s.continueStatement() is not null => new BoundNop(),
@@ -745,7 +749,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundIf(BindCondition(iff.condition()), BindBlocks(thenBlocks), BindBlocks(elseBlocks));
     }
 
-    private List<BoundStatement> BindBlocks(IEnumerable<Core.StatementBlockContext> blocks) =>
+    internal List<BoundStatement> BindBlocks(IEnumerable<Core.StatementBlockContext> blocks) =>
         blocks.SelectMany(b => b.statement()).Select(BindStatement).ToList();
 
     // ── ON SIZE ERROR phrase (ISO §14.7.5) ───────────────────────────────────────────────────────────────────
@@ -1104,7 +1108,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     // ── Operands & expressions ─────────────────────────────────────────────────────────────────────────────
 
-    private BoundOperand LiteralOperand(Core.LiteralContext lit)
+    internal BoundOperand LiteralOperand(Core.LiteralContext lit)
     {
         var nn = lit.nonNumericLiteral();
         if (nn?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
@@ -1152,7 +1156,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Bind a figurative constant to a bound operand. <c>ALL "literal"</c> (a multi-character figurative,
     /// ISO §8.3.3.6.4 Format 6) → <see cref="BoundAllLiteral"/>; <c>ALL ZEROS</c> etc. are the single-character
     /// figurative repeated to width, identical to the bare word. (ALL HEXLIT / NULL stay a later slice.)</summary>
-    private static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
+    internal static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig)
     {
         if (fig.STRINGLIT() is { } allLit) return new BoundAllLiteral(CobolLiteral.Decode(allLit.GetText()));
         if (fig.ZERO() is not null) return new BoundFigurative('Z');
@@ -1164,7 +1168,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundOperandError($"figurative constant '{fig.GetText()}'");
     }
 
-    private BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
+    internal BoundOperand FieldOperand(Core.DataReferenceContext dref) =>
         KeywordOmittedFunction(dref) is { } kof ? OperandOf(kof)   // §8.4.3.2 SR2 — a repository intrinsic/function name + (args) without FUNCTION
         : dref.LINAGE_COUNTER() is not null
             ? LinageFileOf(dref) is { } lcf ? new BoundComputedOperand(new BoundLinageCounterRef(lcf))
@@ -1318,7 +1322,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
               .OfType<Receiver>().ToList();
 
     /// <summary>Bind any numeric node (expression, operand wrapper, literal, or data reference) to a bound expression.</summary>
-    private BoundExpr BindExpr(IParseTree node) => node switch
+    internal BoundExpr BindExpr(IParseTree node) => node switch
     {
         Core.ArithmeticExpressionContext a => BindExpr(a.GetChild(0)),
         Core.AdditiveExpressionContext or Core.MultiplicativeExpressionContext => BindChain(node),
@@ -1353,7 +1357,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Normalize the decimal separator (DECIMAL-POINT IS COMMA, ISO §12.3.7 GR14a — the comma form
     /// canonicalizes to dot-decimal so every emit-side decoder sees one shape) and edition-gate the digit count
     /// (ISO §8.3.1.2 — 1..18 at COBOL-85, 1..31 at 2002+). The ONE literal chokepoint for the expression paths.</summary>
-    private string CheckLiteral(string text)
+    internal string CheckLiteral(string text)
     {
         text = data.NormalizeNumericLiteral(text);
         int digits = text.Count(char.IsAsciiDigit);
@@ -1432,7 +1436,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         public void Reset() { Subject = null; Op = null; }
     }
 
-    private BoundCondition BindCondition(IParseTree node) => BindCondition(node, new AbbrevCarry());
+    internal BoundCondition BindCondition(IParseTree node) => BindCondition(node, new AbbrevCarry());
 
     private BoundCondition BindCondition(IParseTree node, AbbrevCarry carry) => node switch
     {
@@ -1510,7 +1514,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// or whose category is numeric, so a USAGE BIT boolean is rejected (a DISPLAY-form boolean is admitted);
     /// SR4 — ALPHABETIC / ALPHABETIC-LOWER / ALPHABETIC-UPPER / class-name (<paramref name="kind"/> 'A'/'U'/
     /// 'L'/'C') shall not be specified for a boolean operand at all. Both → COBOLNET0844.</summary>
-    private void CheckClassConditionOperand(BoundOperand op, char kind)
+    internal void CheckClassConditionOperand(BoundOperand op, char kind)
     {
         // §8.8.4.4.3 SR1 (data-model D17): a strongly-typed group item may not appear in a class condition — it has
         // its own unique class and category (the type-name), not one of the general classes a class condition tests.
@@ -1760,7 +1764,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Resolve a condition-name reference, honoring OF/IN qualifiers (ISO §8.4.2.2 Format 2: a
     /// condition-name qualifies by its conditional variable and/or the variable's containing groups, innermost
     /// first) — duplicate 88 names across tables select by the qualifier chain.</summary>
-    private Condition88? ConditionOf(Core.DataReferenceContext dref)
+    internal Condition88? ConditionOf(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
         // §11.7 GR5 — a method-local 88 shadows object data; the overlay-first precedence lives in the ONE
@@ -1803,7 +1807,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return baseOp switch { ">" => "<=", ">=" => "<", "<" => ">=", "<=" => ">", "==" => "!=", _ => "==" };
     }
 
-    private static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr)
+    internal static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr)
     {
         IParseTree n = expr;
         while (n is not Core.PrimaryExpressionContext)
@@ -1815,7 +1819,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     }
 
     /// <summary>The raw text of an arithmetic expression that is a SOLE numeric literal, else null.</summary>
-    private static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr)
+    internal static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr)
     {
         IParseTree n = expr;
         while (n is not Core.PrimaryExpressionContext)

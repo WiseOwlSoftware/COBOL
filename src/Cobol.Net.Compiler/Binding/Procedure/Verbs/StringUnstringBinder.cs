@@ -1,11 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-using CobolNet.Binding.Procedure;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
@@ -15,37 +14,12 @@ using Core = CobolParserCore;
 // the current data model cannot describe, and the EC-OVERFLOW-STRING / EC-OVERFLOW-UNSTRING names (2002+, GR8b /
 // GR16b) await the EC model; the ON/NOT ON OVERFLOW control flow itself is edition-invariant.
 
-/// <summary>One STRING sending operand with its governing delimiter (ISO §14.9.43.2): the DELIMITED phrase
-/// written after a run of senders governs every sender of that run, so the binder back-propagates it
-/// (<see cref="StatementBinder.BindString"/>); a run with no following phrase is DELIMITED BY SIZE (SR9).
-/// <paramref name="BySize"/> and a non-null <paramref name="Delimiter"/> are mutually exclusive.</summary>
-public sealed record BoundStringSending(BoundOperand Value, BoundOperand? Delimiter, bool BySize);
-
-/// <summary><c>STRING sendings… INTO into [WITH POINTER ptr] [ON/NOT ON OVERFLOW …]</c> (ISO §14.9.43): each
-/// sending transfers character by character at the pointer position into the receiver — whose untouched portions
-/// are PRESERVED (GR7, never space-filled) — under the GR8 per-character range check.</summary>
-public sealed record BoundStringStmt(
-    IReadOnlyList<BoundStringSending> Sendings, Place Into, Place? Pointer,
-    IReadOnlyList<BoundStatement>? OnOverflow, IReadOnlyList<BoundStatement>? NotOnOverflow) : BoundStatement;
-
-/// <summary>One UNSTRING delimiter (ISO §14.9.48.2): its value (a literal, a figurative — a single character per
-/// GR7 — or a field read at execution) and whether the ALL phrase collapses contiguous occurrences (GR7).</summary>
-public sealed record BoundUnstringDelimiter(BoundOperand Value, bool All);
-
-/// <summary>One UNSTRING receiving area with its optional DELIMITER IN / COUNT IN companions (§14.9.48.2).
-/// <paramref name="NoDelimSize"/> is the GR11b examination size used when no DELIMITED phrase governs: the
-/// receiver's size in character positions, one less when its sign occupies a separate character position
-/// (−1 marks a reference-modified receiver whose size is not static).</summary>
-public sealed record BoundUnstringReceiver(Place Target, Place? DelimiterIn, Place? CountIn, int NoDelimSize);
-
-/// <summary><c>UNSTRING source [DELIMITED BY …] INTO receivers… [WITH POINTER ptr] [TALLYING IN tly]
-/// [ON/NOT ON OVERFLOW …]</c> (ISO §14.9.48).</summary>
-public sealed record BoundUnstringStmt(
-    Place Source, IReadOnlyList<BoundUnstringDelimiter> Delimiters, IReadOnlyList<BoundUnstringReceiver> Receivers,
-    Place? Pointer, Place? Tallying,
-    IReadOnlyList<BoundStatement>? OnOverflow, IReadOnlyList<BoundStatement>? NotOnOverflow) : BoundStatement;
-
-public sealed partial class StatementBinder
+/// <summary>The STRING/UNSTRING verb binder (P7 Step 10d — a real collaborator over
+/// <see cref="BinderContext"/>, extracted from the <c>StatementBinder.StringUnstring</c> partial; the
+/// operand spine is reached through transitional host edges until 10q). The SR rejections here are
+/// CONTROL FLOW (each aborts the statement with a placeholder), so none lift to StatementValidation.
+/// The five bound records stayed in <c>Binding/Bound/BoundStringUnstring.cs</c>.</summary>
+internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind STRING (ISO §14.9.43). Each <c>stringSendingPhrase</c> carries ONE sender and optionally the
     /// DELIMITED phrase that closes its run; the phrase governs every phraseless sender back to the previous
@@ -53,7 +27,7 @@ public sealed partial class StatementBinder
     /// immediately preceding INTO — is DELIMITED BY SIZE (SR9). The receiver is screened per SR4 (not
     /// reference-modified) and SR5 (not edited, no JUSTIFIED — JUSTIFIED is not yet modeled, so only the edited
     /// arm is checkable); the pointer per SR7 (elementary integer, no P — a non-zero scale covers both V and P).</summary>
-    private BoundStatement BindString(Core.StringStatementContext st)
+    public BoundStatement BindString(Core.StringStatementContext st)
     {
         var phrases = st.stringSendingPhrase();
         int n = phrases.Length;
@@ -84,7 +58,7 @@ public sealed partial class StatementBinder
         for (int i = 0; i < n; i++)
             sendings.Add(new BoundStringSending(values[i], delims[i], bySize[i] || delims[i] is null));
 
-        if (refs.Resolve(st.stringIntoPhrase().dataReference()) is not { } into)
+        if (ctx.Refs.Resolve(st.stringIntoPhrase().dataReference()) is not { } into)
             return new BoundUnsupported($"STRING INTO '{st.stringIntoPhrase().dataReference().GetText()}'");
         if (into is RefModPlace)
             return new BoundUnsupported("STRING INTO a reference-modified receiver (ISO §14.9.43.3 SR4)");
@@ -95,7 +69,7 @@ public sealed partial class StatementBinder
         Place? pointer = null;
         if (st.stringWithPointer()?.dataReference() is { } pd)
         {
-            if (refs.Resolve(pd) is not { } pp || !StrUnstrIsInteger(pp))
+            if (ctx.Refs.Resolve(pd) is not { } pp || !StrUnstrIsInteger(pp))
                 return new BoundUnsupported(
                     $"STRING WITH POINTER '{pd.GetText()}' (an elementary numeric integer item without P, ISO §14.9.43.3 SR7)");
             pointer = pp;
@@ -103,7 +77,7 @@ public sealed partial class StatementBinder
 
         List<BoundStatement>? onOvf = null, notOvf = null;
         if (st.stringOnOverflow() is { } ov)
-            (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => BindBlocks([b]));
+            (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => host.BindBlocks([b]));
         return new BoundStringStmt(sendings, into, pointer, onOvf, notOvf);
     }
 
@@ -113,9 +87,9 @@ public sealed partial class StatementBinder
     /// DELIMITED phrase (SR7); COUNT IN / TALLYING are integer items (SR5) and the pointer per SR6. The grammar's
     /// ambiguous <c>DELIMITED ALL "0"</c> may parse as the figurative ALL-literal — SR1 forbids that figurative
     /// here, so the binder reads it as the UNSTRING ALL phrase over the plain literal.</summary>
-    private BoundStatement BindUnstring(Core.UnstringStatementContext un)
+    public BoundStatement BindUnstring(Core.UnstringStatementContext un)
     {
-        if (refs.Resolve(un.dataReference()) is not { } source)
+        if (ctx.Refs.Resolve(un.dataReference()) is not { } source)
             return new BoundUnsupported($"UNSTRING source '{un.dataReference().GetText()}'");
         if (source.Item.Pic is { Category: PicCategory.Numeric, Usage: not Usage.Display })
             return new BoundUnsupported(
@@ -136,7 +110,7 @@ public sealed partial class StatementBinder
             foreach (var t in ip.unstringIntoTarget())
             {
                 var drefs = t.dataReference();
-                if (refs.Resolve(drefs[0]) is not { } target)
+                if (ctx.Refs.Resolve(drefs[0]) is not { } target)
                     return new BoundUnsupported($"UNSTRING INTO '{drefs[0].GetText()}'");
                 bool hasDelim = t.DELIMITER() is not null, hasCount = t.COUNT() is not null;
                 if ((hasDelim || hasCount) && un.unstringDelimiterPhrase() is null)
@@ -145,14 +119,14 @@ public sealed partial class StatementBinder
                 Place? delimIn = null, countIn = null;
                 if (hasDelim)
                 {
-                    if (refs.Resolve(drefs[next]) is not { } d5)
+                    if (ctx.Refs.Resolve(drefs[next]) is not { } d5)
                         return new BoundUnsupported($"UNSTRING DELIMITER IN '{drefs[next].GetText()}'");
                     delimIn = d5;
                     next++;
                 }
                 if (hasCount)
                 {
-                    if (refs.Resolve(drefs[next]) is not { } c6 || !StrUnstrIsInteger(c6))
+                    if (ctx.Refs.Resolve(drefs[next]) is not { } c6 || !StrUnstrIsInteger(c6))
                         return new BoundUnsupported(
                             $"UNSTRING COUNT IN '{drefs[next].GetText()}' (an integer item without P, ISO §14.9.48.3 SR5)");
                     countIn = c6;
@@ -166,7 +140,7 @@ public sealed partial class StatementBinder
         Place? pointer = null;
         if (un.unstringWithPointer()?.dataReference() is { } pd)
         {
-            if (refs.Resolve(pd) is not { } pp || !StrUnstrIsInteger(pp))
+            if (ctx.Refs.Resolve(pd) is not { } pp || !StrUnstrIsInteger(pp))
                 return new BoundUnsupported(
                     $"UNSTRING WITH POINTER '{pd.GetText()}' (an elementary numeric integer item without P, ISO §14.9.48.3 SR6)");
             pointer = pp;
@@ -174,7 +148,7 @@ public sealed partial class StatementBinder
         Place? tallying = null;
         if (un.unstringTallying()?.dataReference() is { } td)
         {
-            if (refs.Resolve(td) is not { } tp || !StrUnstrIsInteger(tp))
+            if (ctx.Refs.Resolve(td) is not { } tp || !StrUnstrIsInteger(tp))
                 return new BoundUnsupported(
                     $"UNSTRING TALLYING IN '{td.GetText()}' (an integer item without P, ISO §14.9.48.3 SR5)");
             tallying = tp;
@@ -182,7 +156,7 @@ public sealed partial class StatementBinder
 
         List<BoundStatement>? onOvf = null, notOvf = null;
         if (un.unstringOnOverflow() is { } ov)
-            (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => BindBlocks([b]));
+            (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => host.BindBlocks([b]));
         return new BoundUnstringStmt(source, delims, receivers, pointer, tallying, onOvf, notOvf);
     }
 
@@ -191,9 +165,9 @@ public sealed partial class StatementBinder
     /// UNSTRING GR7); the callers screen the ALL-literal figurative per their SRs.</summary>
     private BoundOperand StrUnstrOperand(
         Core.DataReferenceContext? dref, Core.LiteralContext? lit, Core.FigurativeConstantContext? fig, string role)
-        => dref is not null ? FieldOperand(dref)
-        : lit is not null ? LiteralOperand(lit)
-        : fig is not null ? FigurativeOperand(fig)
+        => dref is not null ? host.FieldOperand(dref)
+        : lit is not null ? host.LiteralOperand(lit)
+        : fig is not null ? StatementBinder.FigurativeOperand(fig)
         : new BoundOperandError(role);
 
     /// <summary>True for an elementary fixed-point INTEGER item with no P scaling — the shape STRING SR7 /
