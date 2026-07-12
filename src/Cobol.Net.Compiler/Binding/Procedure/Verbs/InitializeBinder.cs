@@ -90,7 +90,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         {
             string v = $"__ini{_initializeLoopVar++}";
             var body = new List<InitializeAction>();
-            ExpandInitialize(new InitializeDynCursor($"{dtp}.RefSending({v})", $"{dtp}.RefReceiving({v})", dtbl),
+            ExpandInitialize(new InitializeDynCursor(ReferenceResolver.BuildTablePath(dtbl)!.Add(new DynTableSegment(v)), dtbl),
                 spec, body, identifier1: true);
             if (body.Count > 0) actions.Add(new InitializeDynLoop(v, $"{dtp}.Capacity", body));
             return;
@@ -287,22 +287,22 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// subscripting, ISO §8.4.2.3.4 GR2). Entering a Tier-B (string-canonical) REDEFINES class — whose ONE stored
     /// string backing lives in the containing struct (COBOLNET_DESIGN §4.2) — switches to a
     /// <see cref="InitializeViewCursor"/>; an unwired Tier-C / Rejected class yields null (loud).</summary>
-    private sealed record InitializeMemberCursor(string Path, DataItem Item) : InitializeCursor(Item)
+    private sealed record InitializeMemberCursor(AccessPath Path, DataItem Item) : InitializeCursor(Item)
     {
         public override InitializeCursor? Child(DataItem child)
         {
             if (child.Class is { } cls)
             {
                 if (cls.Tier == RedefinesTier.StringCanonical && child.IsCanonical)
-                    return new InitializeViewCursor($"{Path}.{cls.BackingCsName}",
+                    return new InitializeViewCursor(Path.Add(new MemberSegment(cls.BackingCsName)),
                         child.ClassOffset.ToString(), child.ClassOffset, child, "");
                 if (cls.Tier != RedefinesTier.Alias || !child.IsCanonical) return null;
             }
-            return new InitializeMemberCursor($"{Path}.{child.CsName}", child);
+            return new InitializeMemberCursor(Path.Add(new MemberSegment(child.CsName)), child);
         }
 
         public override InitializeCursor Indexed(string indexVar) =>
-            this with { Path = $"CobolTable.At({Path}, {indexVar})" };
+            this with { Path = Path.Add(new FixedTableSegment(indexVar)) };
 
         public override Place ToPlace() => new MemberPlace(Path, Item);
     }
@@ -313,17 +313,17 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// a nested FIXED OCCURS below the element wraps both in <c>CobolTable.At</c>. Yields a <see cref="DynTablePlace"/>
     /// so an INITIALIZE store writes through <c>RefReceiving</c> (within the 1‥Capacity bound, so no growth). A
     /// REDEFINES view under the element is not wired here (null → loud; inc-5 territory).</summary>
-    private sealed record InitializeDynCursor(string SendPath, string RecvPath, DataItem Item) : InitializeCursor(Item)
+    private sealed record InitializeDynCursor(AccessPath Path, DataItem Item) : InitializeCursor(Item)
     {
         public override InitializeCursor? Child(DataItem child) =>
             child.Class is null
-                ? new InitializeDynCursor($"{SendPath}.{child.CsName}", $"{RecvPath}.{child.CsName}", child)
+                ? new InitializeDynCursor(Path.Add(new MemberSegment(child.CsName)), child)
                 : null;
 
         public override InitializeCursor Indexed(string indexVar) =>
-            this with { SendPath = $"CobolTable.At({SendPath}, {indexVar})", RecvPath = $"CobolTable.At({RecvPath}, {indexVar})" };
+            this with { Path = Path.Add(new FixedTableSegment(indexVar)) };
 
-        public override Place ToPlace() => new DynTablePlace(SendPath, RecvPath, Item);
+        public override Place ToPlace() => new DynTablePlace(Path, Item);
     }
 
     /// <summary>A cursor inside a Tier-B REDEFINES class: every receiver is a (offset, width) character window over
@@ -332,7 +332,7 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// (ISO §13.18.44 — a redefined table lays its occurrences end-to-end in the one backing; the same arithmetic
     /// as <c>ReferenceResolver.PlaceForItem</c>).</summary>
     private sealed record InitializeViewCursor(
-        string Backing, string BaseExpr, int BaseOffset, DataItem Item, string OccursTerms) : InitializeCursor(Item)
+        AccessPath Backing, string BaseExpr, int BaseOffset, DataItem Item, string OccursTerms) : InitializeCursor(Item)
     {
         public override InitializeCursor? Child(DataItem child) =>
             ReferenceEquals(child.Class, Item.Class) ? this with { Item = child } : null;

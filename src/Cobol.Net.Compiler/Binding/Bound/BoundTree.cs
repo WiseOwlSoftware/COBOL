@@ -510,10 +510,10 @@ public enum SetCapacityKind { To, UpBy, DownBy }
 
 /// <summary><c>SET dynamic-capacity-register {TO | UP BY | DOWN BY} amount</c> (ISO §14.9.39 SET Format 14; the
 /// COBOL-2014 OCCURS DYNAMIC feature, data-model D9). The register is a VIEW over its owning table, so the emitter
-/// calls the table's <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> (via <paramref name="TablePath"/>)
-/// — raising or lowering the current capacity, seeding new occurrences (§8.5.1.9.5), clamped to the minimum, and
-/// raising EC-FLOW-SEARCH if a SEARCH of that same table is active (GR31).</summary>
-public sealed record BoundSetCapacity(string TablePath, BoundExpr Amount, SetCapacityKind Kind) : BoundStatement;
+/// calls the table's <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> (via <paramref name="Table"/>, the
+/// whole-table access path) — raising or lowering the current capacity, seeding new occurrences (§8.5.1.9.5), clamped
+/// to the minimum, and raising EC-FLOW-SEARCH if a SEARCH of that same table is active (GR31).</summary>
+public sealed record BoundSetCapacity(AccessPath Table, BoundExpr Amount, SetCapacityKind Kind) : BoundStatement;
 
 // ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
 
@@ -531,7 +531,7 @@ public sealed record BoundSearchWhen(BoundCondition Condition, IReadOnlyList<Bou
 public sealed record BoundSearch(
     string IndexField, long Count, BoundSetTarget? AlsoVaried,
     IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundSearchWhen> Whens,
-    bool FromStart = false, string? DependCount = null, string? DynTable = null) : BoundStatement;
+    bool FromStart = false, Place? DependItem = null, string? DynTable = null) : BoundStatement;
 
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
 

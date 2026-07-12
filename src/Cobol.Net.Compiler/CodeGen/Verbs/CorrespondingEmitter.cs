@@ -54,6 +54,8 @@ internal sealed class CorrespondingEmitter(EmitContext ctx, NumericRenderer num,
     private void EmitHoists(IReadOnlyList<CorrespondingHoist> hoists)
     {
         foreach (var h in hoists)
-            ctx.Writer.Line(h.IsRef ? $"ref var {h.Local} = ref {h.Init};" : $"long {h.Local} = {h.Init};");
+            ctx.Writer.Line(h.RefGroup is { } g
+                ? $"ref var {h.Local} = ref {PlaceRenderer.Read(g)};"
+                : $"long {h.Local} = {h.LongInit};");
     }
 }

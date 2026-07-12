@@ -209,18 +209,19 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     {
         private readonly List<CorrespondingHoist> _hoists;
         private readonly string _local;
-        private readonly string _init;        // the member path, or the view's window-offset expression
-        private readonly bool _isMember;      // MemberPlace group vs Tier-B RedefViewPlace group
-        private readonly bool _subscripted;   // the member path evaluates a subscript (a CobolTable.At call)
-        private readonly string _backing;
+        private readonly Place? _group;        // the member group's anchor Place (the `ref var` hoist target)
+        private readonly string _offsetInit;   // the view group's window-offset expression (the `long` hoist init)
+        private readonly bool _isMember;       // MemberPlace group vs Tier-B RedefViewPlace group
+        private readonly bool _subscripted;    // the member path evaluates a subscript (a table access)
+        private readonly AccessPath? _backing; // the view group's backing path
         private readonly DataItem _groupItem;
         private readonly ReferenceResolver _refs;
         private bool _hoisted;
 
-        private CorrAccess(List<CorrespondingHoist> hoists, string local, string init, bool isMember,
-            bool subscripted, string backing, DataItem groupItem, ReferenceResolver refs)
+        private CorrAccess(List<CorrespondingHoist> hoists, string local, Place? group, string offsetInit,
+            bool isMember, bool subscripted, AccessPath? backing, DataItem groupItem, ReferenceResolver refs)
         {
-            _hoists = hoists; _local = local; _init = init; _isMember = isMember;
+            _hoists = hoists; _local = local; _group = group; _offsetInit = offsetInit; _isMember = isMember;
             _subscripted = subscripted; _backing = backing; _groupItem = groupItem; _refs = refs;
         }
 
@@ -230,9 +231,9 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         public static CorrAccess? Create(Place group, string local, List<CorrespondingHoist> hoists, ReferenceResolver refs)
             => group switch
             {
-                MemberPlace m => new CorrAccess(hoists, local, m.Path, isMember: true,
-                    subscripted: m.Path.Contains("CobolTable.At(", StringComparison.Ordinal), backing: "", m.Item, refs),
-                RedefViewPlace v => new CorrAccess(hoists, local, v.OffsetExpr, isMember: false,
+                MemberPlace m => new CorrAccess(hoists, local, group: m, offsetInit: "", isMember: true,
+                    subscripted: m.Path.HasIndex, backing: null, m.Item, refs),
+                RedefViewPlace v => new CorrAccess(hoists, local, group: null, offsetInit: v.OffsetExpr, isMember: false,
                     subscripted: false, v.Backing, v.Item, refs),
                 _ => null,
             };
@@ -245,7 +246,13 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             if (_isMember)
             {
                 if (chain.All(CorrPlainMember))
-                    return new MemberPlace($"{Hoist(isRef: true)}.{string.Join('.', chain.Select(c => c.CsName))}", leaf);
+                {
+                    // The child is a dotted path off the anchor local: RootFieldSegment(anchor) + one MemberSegment
+                    // per chain step (byte-identical to the former "{local}.{c1}.{c2}" string).
+                    var segs = new List<AccessSegment> { new RootFieldSegment(Hoist(isRef: true)) };
+                    segs.AddRange(chain.Select(c => new MemberSegment(c.CsName)));
+                    return new MemberPlace(new AccessPath(segs), leaf);
+                }
                 // A chain member inside a non-alias REDEFINES class stores in the class BACKING, not as a struct
                 // member — reachable absolutely (from the root) only when the group reference has no subscript.
                 return _subscripted ? null : _refs.ResolveItem(leaf);
@@ -254,7 +261,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
             // offset; the group's subscript displacement (already inside the hoisted value) applies to both
             // identically (ISO §13.18.44 — a redefined table lays its occurrences end-to-end in the one backing).
             if (!ReferenceEquals(leaf.Class, _groupItem.Class)) return null;
-            return new RedefViewPlace(_backing,
+            return new RedefViewPlace(_backing!,
                 $"{Hoist(isRef: false)} - {_groupItem.ClassOffset} + {leaf.ClassOffset}", leaf.ImageWidth, leaf);
         }
 
@@ -263,7 +270,9 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
         {
             if (!_hoisted)
             {
-                _hoists.Add(new CorrespondingHoist(_local, isRef ? _init : $"(long)({_init})", isRef));
+                _hoists.Add(isRef
+                    ? new CorrespondingHoist(_local, RefGroup: _group, LongInit: null)
+                    : new CorrespondingHoist(_local, RefGroup: null, LongInit: $"(long)({_offsetInit})"));
                 _hoisted = true;
             }
             return _local;

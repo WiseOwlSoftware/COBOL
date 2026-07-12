@@ -537,7 +537,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     : !OoStringCarried(mp.Item))
                 && !a.Formal.IsGroup && !mp.Item.IsGroup)
             {
-                argExprs.Add($"ref {mp.Path}");
+                argExprs.Add($"ref {PlaceRenderer.Read(mp)}");
                 continue;
             }
 

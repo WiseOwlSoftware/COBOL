@@ -187,7 +187,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // A group receiver nested under an OCCURS DYNAMIC level (data-model D9): distribute the image through the
             // RECEIVING accessor (RefReceiving grows-and-seeds past the current capacity, §8.5.1.9.3), NOT target.Read()
             // (=RefSending, which drops an out-of-capacity write into benign scratch — silent data loss).
-            DynTablePlace dyn => $"{dyn.ReceivingPath}.FromImage({image});",
+            DynTablePlace dyn => $"{PlaceRenderer.RenderPath(dyn.Path, AccessDir.Receiving)}.FromImage({image});",
             _ => $"{PlaceRenderer.Read(target)}.FromImage({image});",
         });
     }

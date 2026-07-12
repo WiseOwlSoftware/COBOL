@@ -37,7 +37,14 @@ internal static class PlaceRenderer
             : "(" + string.Join(" + ", n.Leaves.Select(Read)) + ")",
         // An ODO group operand read plainly (not as a GR8 slice) is the struct lvalue — the inner member place.
         OdoGroupPlace o => Read(o.Inner),
-        // (more structural arms accrete here as subtypes migrate; the default is the temporary legacy shim)
+        // A direct member/fixed-table access — the structural path rendered as a C# lvalue.
+        MemberPlace m => RenderPath(m.Path, AccessDir.Sending),
+        // A subscripted OCCURS DYNAMIC element read — the trailing DynTableSegment renders RefSending (§8.5.1.9.2).
+        DynTablePlace d => RenderPath(d.Path, AccessDir.Sending),
+        // A Tier-B REDEFINES view (§13.18.44): the (offset, width) character window over the class's ONE backing.
+        RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
+        // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
+        CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
         _ => p.Read(),
     };
 
@@ -52,8 +59,42 @@ internal static class PlaceRenderer
         NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreDisplay(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         RenamesPlace n => WriteRenames(n, rhs),
         OdoGroupPlace o => Write(o.Inner, rhs),
+        // A member/fixed-table store — the structural path as an assignment target.
+        MemberPlace m => $"{RenderPath(m.Path, AccessDir.Sending)} = {rhs};",
+        // A dynamic-table store uses RefReceiving, which grows-and-seeds past the current capacity (§8.5.1.9.3).
+        DynTablePlace d => $"{RenderPath(d.Path, AccessDir.Receiving)} = {rhs};",
+        // Splice the new image back into the class's ONE backing, preserving its full width (§13.18.44).
+        RedefViewPlace v => $"{RenderPath(v.Backing, AccessDir.Sending)} = " +
+            $"{RuntimeApi.StrSpliceInto(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString(), rhs)};",
+        // Unreachable: SET Format 14 routes to BoundSetCapacity, and any other store into the CAPACITY register is
+        // rejected COBOLNET1523 at bind time (§13.18.38 SR30–32). The backstop for a receiver path that forgot the gate.
+        CapacityRegisterPlace => throw new System.InvalidOperationException(
+            "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38 SR30-32); a direct store must be "
+            + "rejected COBOLNET1523 at bind time and never reach PlaceRenderer.Write"),
         _ => p.Write(rhs),
     };
+
+    /// <summary>Render an <see cref="AccessPath"/> to a C# lvalue expression — a static/instance root field, then
+    /// <c>.Member</c> access, <c>CobolTable.At(path, index)</c> for a fixed OCCURS, and <c>RefSending</c>/
+    /// <c>RefReceiving</c> for an OCCURS DYNAMIC level (the accessor chosen from <paramref name="dir"/>: a read
+    /// sends, a write receives). A subscript INDEX is the D10 transitional string carried on the table segment.</summary>
+    public static string RenderPath(AccessPath ap, AccessDir dir)
+    {
+        string path = "";
+        foreach (var seg in ap.Segments)
+            path = seg switch
+            {
+                RootFieldSegment r => r.CsField,
+                MemberSegment m => path + "." + m.CsMember,
+                FixedTableSegment f => RuntimeApi.TableAt(path, f.OneBasedIndex),
+                DynTableSegment d => $"{path}.{(dir == AccessDir.Sending ? "RefSending" : "RefReceiving")}({d.OneBasedIndex})",
+                _ => path,
+            };
+        return path;
+    }
+
+    // A Tier-B view's 1-based window start = the 0-based offset expression + 1 (OffsetExpr is the D10 transitional string).
+    private static string RvOffset(RedefViewPlace v) => $"(int)({v.OffsetExpr} + 1)";
 
     // The reference-modification start/length are `long`-valued expressions but the runtime takes `int` positions —
     // cast at the call site. Start/Length are the P5.11/D10 TRANSITIONAL string carrier (a rendered index expression);

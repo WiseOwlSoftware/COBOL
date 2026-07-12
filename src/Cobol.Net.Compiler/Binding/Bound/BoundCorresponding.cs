@@ -16,10 +16,11 @@ public enum CorrVerb { Move, Add, Subtract }
 
 /// <summary>One hoisted group-operand anchor, emitted ONCE before the first implied statement — §14.7.6: all item
 /// identification for the pairs (including any subscript on the group operands) is done at the START of the
-/// statement, never per implied statement. <paramref name="IsRef"/> selects the C# form: a <c>ref var</c> local
-/// aliasing a member-path group (its <c>CobolTable.At</c> subscripts evaluate exactly once), or a <c>long</c> local
-/// pinning a Tier-B REDEFINES view group's computed window offset.</summary>
-public sealed record CorrespondingHoist(string Local, string Init, bool IsRef);
+/// statement, never per implied statement. Exactly one field is set: <paramref name="RefGroup"/> is a member-path
+/// group anchored by a <c>ref var</c> local (its table subscripts evaluate exactly once — the backend renders the
+/// group place), or <paramref name="LongInit"/> is a Tier-B REDEFINES view group's computed window offset pinned by a
+/// <c>long</c> local.</summary>
+public sealed record CorrespondingHoist(string Local, Place? RefGroup, string? LongInit);
 
 /// <summary>One corresponding pair (§14.7.6): the resolved sending and receiving <see cref="Place"/>s of an
 /// implied per-pair statement. Both are anchored on the statement's hoisted group locals where applicable.</summary>

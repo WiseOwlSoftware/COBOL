@@ -226,6 +226,11 @@ internal static class RuntimeApi
     /// <summary>An OCCURS-DEPENDING current count read — <c>CobolTable.Occ</c>.</summary>
     public static string TableOcc(string expr) => $"{nameof(CobolTable)}.{nameof(CobolTable.Occ)}({expr})";
 
+    /// <summary>A FIXED OCCURS element access — the ref-returning <c>CobolTable.At(path, oneBasedIndex)</c>
+    /// (ISO §8.4.2.3.4 GR2 — a benign out-of-range occurrence, subscript-checking off in COBOL-85).</summary>
+    public static string TableAt(string path, string oneBasedIndex) =>
+        $"{nameof(CobolTable)}.{nameof(CobolTable.At)}({path}, {oneBasedIndex})";
+
     /// <summary>The current CHARACTER extent of an occurs-depending GROUP operand (ISO §13.18.38 GR8) — the fixed
     /// prefix plus data-name-1's clamped value × the element width — <c>CobolTable.OdoExtent</c>.</summary>
     public static string TableOdoExtent(string occ, int maxOccurs, int fixedChars, int elemChars) =>

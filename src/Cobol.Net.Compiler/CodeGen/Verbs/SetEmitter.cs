@@ -64,7 +64,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             SetCapacityKind.UpBy => "CapacityUpBy",
             _ => "CapacityDownBy",
         };
-        ctx.Writer.Line($"{s.TablePath}.{call}({tmp});");
+        ctx.Writer.Line($"{PlaceRenderer.RenderPath(s.Table, AccessDir.Sending)}.{call}({tmp});");
     }
 
     /// <summary>THE store into a SET-style target (shared by SET TO and PERFORM VARYING initialization): an

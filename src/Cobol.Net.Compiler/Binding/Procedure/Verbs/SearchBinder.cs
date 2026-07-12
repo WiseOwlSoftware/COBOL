@@ -59,7 +59,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             .Select(wc => new BoundSearchWhen(host.Cond.BindCondition(wc.condition()), host.BindBlocks(wc.statementBlock())))
             .ToList();
         return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
-            DependCount: OdoModel.SearchBound(table, ctx.Refs),
+            DependItem: OdoModel.SearchDepending(table, ctx.Refs),
             DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
     }
 
@@ -89,7 +89,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             .Select(wc => new BoundSearchWhen(host.Cond.BindCondition(wc.condition()), host.BindBlocks(wc.statementBlock())))
             .ToList();
         return new BoundSearch(ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope), table.Occurs ?? 0,
-            AlsoVaried: null, atEnd, whens, FromStart: true, DependCount: OdoModel.SearchBound(table, ctx.Refs),
+            AlsoVaried: null, atEnd, whens, FromStart: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
             DynTable: table.IsDynamicTable ? ctx.Refs.TablePath(table) : null);   // EC-FLOW-SEARCH bracket (GR31, D9)
     }
 }

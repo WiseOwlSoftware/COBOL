@@ -183,7 +183,12 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     {
         var w = ctx.Writer;
         w.Line($"__search{id}:");
-        using (w.Block($"if ({s.IndexField} > {s.DependCount ?? $"{s.Count}L"})"))
+        // The AT-END bound: a dynamic table's current Capacity, an occurs-depending table's current count
+        // (CobolTable.Occ over data-name-1's place), else the compile-time maximum.
+        string bound = s.DynTable is { } dt ? $"{dt}.Capacity"
+            : s.DependItem is { } dp ? RuntimeApi.TableOcc(PlaceRenderer.Read(dp))
+            : $"{s.Count}L";
+        using (w.Block($"if ({s.IndexField} > {bound})"))
         {
             bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
             if (!terminated) w.Line($"goto __searchEnd{id};");

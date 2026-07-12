@@ -217,8 +217,8 @@ internal sealed class ProgramEmitter
     /// the caller then falls back to the loud-guard path, never a silent wrong-storage store (§1.4).</summary>
     private static Place? PrefixPlace(Place p, string prefix) => p switch
     {
-        MemberPlace m => new MemberPlace(prefix + m.Path, m.MemberItem),
-        RedefViewPlace r => new RedefViewPlace(prefix + r.Backing, r.OffsetExpr, r.Width, r.ViewItem),
+        MemberPlace m => new MemberPlace(m.Path.Reroot(prefix), m.MemberItem),
+        RedefViewPlace r => new RedefViewPlace(r.Backing.Reroot(prefix), r.OffsetExpr, r.Width, r.ViewItem),
         _ => null,
     };
 

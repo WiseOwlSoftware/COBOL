@@ -158,7 +158,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
             return new BoundNop();
         }
-        return new BoundSetCapacity(cap.TablePath, host.Expr.BindExpr(amount), kind);
+        return new BoundSetCapacity(cap.Table, host.Expr.BindExpr(amount), kind);
     }
 
     private static string SetCapacityKindText(SetCapacityKind kind) =>

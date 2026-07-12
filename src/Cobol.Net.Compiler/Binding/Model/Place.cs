@@ -61,10 +61,13 @@ public abstract record PlaceDecorator(Place Inner) : Place
 
 /// <summary>
 /// A direct member-access place: a static field or a (possibly nested, possibly subscripted) member of a
-/// <c>record struct</c> — e.g. <c>WS_N</c>, <c>WS_REC.WS_NAME</c>, <c>TBL.ROWS[i - 1].VAL</c>. The access
-/// <paramref name="Path"/> is a plain C# lvalue, so reading is the path itself and writing is an assignment.
+/// <c>record struct</c> — e.g. <c>WS_N</c>, <c>WS_REC.WS_NAME</c>, <c>CobolTable.At(TBL.ROWS, i).VAL</c>. The access
+/// <paramref name="Path"/> is a structural <see cref="AccessPath"/> (a field chain + fixed-table accessors + the D10
+/// transitional subscript strings), rendered by <c>CodeGen.PlaceRenderer</c>. A fixed-table member is a plain lvalue,
+/// so its read and write render the same path (a subscripted OCCURS DYNAMIC element is the sibling
+/// <see cref="DynTablePlace"/>, whose accessor is direction-specific).
 /// </summary>
-public sealed record MemberPlace(string Path, DataItem MemberItem) : Place
+public sealed record MemberPlace(AccessPath Path, DataItem MemberItem) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => MemberItem.Pic;
@@ -73,23 +76,23 @@ public sealed record MemberPlace(string Path, DataItem MemberItem) : Place
     public override DataItem Item => MemberItem;
 
     /// <inheritdoc/>
-    public override string Read() => Path;
+    public override string Read() => RenderedElsewhere();
 
     /// <inheritdoc/>
-    public override string Write(string rhs) => $"{Path} = {rhs};";
+    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
 /// A subscripted OCCURS DYNAMIC element (ISO/IEC 1989:2023 §8.5.1.9.2/.9.3; data-model D9). Unlike a fixed table
-/// (whose <c>CobolTable.At</c> returns a <c>ref T</c> that serves BOTH directions), a dynamic table has two distinct
-/// runtime accessors: <c>RefSending(occ)</c> (a read — an out-of-range occurrence is benign scratch) and
-/// <c>RefReceiving(occ)</c> (a write — an occurrence past the current capacity GROWS the table, seeding the skipped
-/// intermediates). A single access-path string cannot carry that polarity, so this place holds BOTH pre-computed
-/// paths: <see cref="Read"/> emits the sending path, <see cref="Write"/> the receiving path (which grows on demand).
-/// A subordinate of a dynamic element (a group element's field, or a fixed OCCURS below the dynamic level) is the
-/// tail appended after the accessor in each path.
+/// (whose <c>CobolTable.At</c> <c>ref T</c> serves BOTH directions), a dynamic table has direction-specific accessors:
+/// <c>RefSending(occ)</c> on a read (an out-of-range occurrence is benign scratch) and <c>RefReceiving(occ)</c> on a
+/// write (an occurrence past the current capacity GROWS the table). The <see cref="Path"/>'s trailing
+/// <see cref="DynTableSegment"/> renders that polarity at emit time (SENDING for <c>Read</c>, RECEIVING for
+/// <c>Write</c>) — one structural path replaces the former two precomputed strings. Rendered by
+/// <c>CodeGen.PlaceRenderer</c>. (Kept a distinct subtype rather than folded into <see cref="MemberPlace"/> to bound
+/// the Step 11 blast radius — <c>UsageCollectionPass</c>/<c>MoveEmitter</c> discriminate it by type.)
 /// </summary>
-public sealed record DynTablePlace(string SendingPath, string ReceivingPath, DataItem ElementItem) : Place
+public sealed record DynTablePlace(AccessPath Path, DataItem ElementItem) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => ElementItem.Pic;
@@ -98,10 +101,10 @@ public sealed record DynTablePlace(string SendingPath, string ReceivingPath, Dat
     public override DataItem Item => ElementItem;
 
     /// <inheritdoc/>
-    public override string Read() => SendingPath;
+    public override string Read() => RenderedElsewhere();
 
     /// <inheritdoc/>
-    public override string Write(string rhs) => $"{ReceivingPath} = {rhs};";
+    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
@@ -110,10 +113,13 @@ public sealed record DynTablePlace(string SendingPath, string ReceivingPath, Dat
 /// a new image back into the backing, preserving its full width — so a write through any view is visible through every
 /// other view of the class (one stored backing, ISO §13.18.44). The window carries the VIEW's <see cref="DataItem"/>,
 /// so its category/scale/profile drive interpretation: a numeric-DISPLAY view is flagged
-/// <see cref="DataItem.StoreAsImage"/>, so the numeric pipeline decodes/encodes the window via
-/// <c>CobolNum.ParseDisplay</c>/<c>FormatDisplay</c> exactly as for a whole-group numeric leaf (no new emitter path).
+/// <see cref="DataItem.StoreAsImage"/>, so the numeric pipeline decodes/encodes the window exactly as for a
+/// whole-group numeric leaf. <paramref name="Backing"/> is the structural path to the class's stored backing field;
+/// <paramref name="OffsetExpr"/> is the 0-based window offset — the D10 transitional string (a constant, or the
+/// <c>classOffset + Σ (idx − 1) × stride</c> arithmetic for a view inside an OCCURS, ISO §13.18.44). Rendered by
+/// <c>CodeGen.PlaceRenderer</c>.
 /// </summary>
-public sealed record RedefViewPlace(string Backing, string OffsetExpr, int Width, DataItem ViewItem) : Place
+public sealed record RedefViewPlace(AccessPath Backing, string OffsetExpr, int Width, DataItem ViewItem) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => ViewItem.Pic;
@@ -121,18 +127,11 @@ public sealed record RedefViewPlace(string Backing, string OffsetExpr, int Width
     /// <inheritdoc/>
     public override DataItem Item => ViewItem;
 
-    /// <summary>The character window this view occupies (1-based leftmost position; <c>CobolString.RefMod</c>).
-    /// <see cref="OffsetExpr"/> is a 0-based C# <c>long</c> expression — a constant for an unsubscripted view, or
-    /// the computed <c>classOffset + Σ (idx − 1) × stride</c> for a view inside an OCCURS (ISO §13.18.44 — a
-    /// redefined table lays its occurrences end-to-end in the ONE backing).</summary>
-    private string Window => $"CobolString.RefMod({Backing}, (int)({OffsetExpr} + 1), {Width})";
+    /// <inheritdoc/>
+    public override string Read() => RenderedElsewhere();
 
     /// <inheritdoc/>
-    public override string Read() => Window;
-
-    /// <inheritdoc/>
-    public override string Write(string rhs) =>
-        $"{Backing} = CobolString.SpliceInto({Backing}, (int)({OffsetExpr} + 1), {Width}, {rhs});";
+    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>
@@ -216,7 +215,7 @@ public sealed record NumericImagePlace(Place Inner) : PlaceDecorator(Inner)
 /// <c>SetCapacity</c>/<c>CapacityUpBy</c>/<c>CapacityDownBy</c> directly, never through <see cref="Write"/>); an
 /// ordinary store receiver is rejected COBOLNET1523 at bind time (SR30–32), so <see cref="Write"/> is unreachable.
 /// </summary>
-public sealed record CapacityRegisterPlace(string TablePath, DataItem RegisterItem) : Place
+public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterItem) : Place
 {
     /// <inheritdoc/>
     public override PicInfo? Pic => RegisterItem.Pic;
@@ -225,16 +224,10 @@ public sealed record CapacityRegisterPlace(string TablePath, DataItem RegisterIt
     public override DataItem Item => RegisterItem;
 
     /// <inheritdoc/>
-    public override string Read() => $"{TablePath}.Capacity";
+    public override string Read() => RenderedElsewhere();
 
     /// <inheritdoc/>
-    public override string Write(string rhs) =>
-        // Unreachable: SET Format 14 routes to BoundSetCapacity (SetCapacity/CapacityUpBy/CapacityDownBy), and any
-        // other store into the register is rejected COBOLNET1523 before a receiving Place.Write is emitted (§13.18.38
-        // SR30–32). This throw is the internal-error backstop if a new receiver path forgets that bind-time gate.
-        throw new InvalidOperationException(
-            "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38 SR30-32); a direct store must be "
-            + "rejected COBOLNET1523 at bind time and never reach Place.Write");
+    public override string Write(string rhs) => RenderedElsewhere();
 }
 
 /// <summary>

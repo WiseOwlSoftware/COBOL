@@ -12,11 +12,6 @@ namespace CobolNet.Binding;
 
 using Core = CobolParserCore;
 
-/// <summary>The access direction of a subscripted OCCURS DYNAMIC element (data-model D9): a SENDING read (benign
-/// scratch on out-of-range) vs a RECEIVING write (grows-and-seeds the table past its current capacity). A fixed
-/// table ignores this — its <c>CobolTable.At</c> <c>ref T</c> serves both directions.</summary>
-public enum AccessDir { Sending, Receiving }
-
 /// <summary>
 /// Resolves a <c>dataReference</c> parse node to a <see cref="Place"/> — the single entry point every verb uses to
 /// turn a COBOL operand into a typed C# lvalue (COBOLNET_DESIGN §3.4). Two phases:
@@ -259,7 +254,7 @@ public sealed class ReferenceResolver(DataBinder data)
             // class's backing must be reached through that struct's access path — a bare `_redef_X` resolves only for a
             // top-level (static-field) class. Fail loud if the parent path is unavailable (e.g. it is itself within an
             // OCCURS), rather than emit an unqualified reference that does not exist in scope.
-            if (BackingPath(sc) is not { } backing) return null;
+            if (BuildBackingPath(sc) is not { } backing) return null;
             // A SUBSCRIPTED view: each OCCURS level on the item's path WITHIN the class displaces the window by
             // (occurrence − 1) × that level's per-occurrence width — the redefined table lays its occurrences
             // end-to-end in the ONE backing (ISO §13.18.44). ClassOffset is the occurrence-1 position; subscripts
@@ -294,11 +289,11 @@ public sealed class ReferenceResolver(DataBinder data)
         for (DataItem? n = accessItem; n is not null; n = n.Parent)
             if (n.IsDynamicTable)
             {
-                if (AccessPath(accessItem, indexExprs, AccessDir.Sending) is not { } sp) return null;
-                return new DynTablePlace(sp, AccessPath(accessItem, indexExprs, AccessDir.Receiving)!, item);
+                if (BuildAccessPath(accessItem, indexExprs) is not { } dynPath) return null;
+                return new DynTablePlace(dynPath, item);
             }
         // An unsubscripted reference to an OCCURS table (whole-table op) is a later slice → AccessPath null → loud.
-        if (AccessPath(accessItem, indexExprs) is not { } path) return null;
+        if (BuildAccessPath(accessItem, indexExprs) is not { } path) return null;
         // (Resolving a group no longer mutates WholeGroupReferenced — the "which groups are whole-image operands"
         // analysis is the post-bind UsageCollectionPass, which walks the BOUND tree and collects ONLY true
         // whole-group operands, not every RESOLVED group. PHASE-05 Step 5, §14.9 MOVE GR4.)
@@ -363,14 +358,15 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <see cref="RenderSegment"/>), or null when the segment uses an unhandled form (caller fails loud).</summary>
     internal string? RenderIndexSegment(List<IToken> tokens) => RenderSegment(tokens);
 
-    /// <summary>The qualified C# access path to a Tier-B/Tier-C class's single stored backing field. The backing is
-    /// emitted in the canonical's containing struct, so a NESTED class reaches it through that struct's path
+    /// <summary>The STRUCTURAL access path to a Tier-B/Tier-C class's single stored backing field (the
+    /// <see cref="RedefViewPlace"/> twin of the old string <c>BackingPath</c>). The backing is emitted in the
+    /// canonical's containing struct, so a NESTED class reaches it through that struct's path
     /// (<c>OUTER.GROUP._redef_X</c>); a top-level class's backing is the bare static field (<c>_redef_X</c>). Returns
     /// <see langword="null"/> when the containing path is unavailable (the canonical is within an OCCURS table).</summary>
-    private static string? BackingPath(RedefinesClass cls) =>
-        cls.Canonical.Parent is not { } parent ? cls.BackingCsName
-        : AccessPath(parent, []) is { } parentPath ? parentPath + "." + cls.BackingCsName
-        : null;
+    private static AccessPath? BuildBackingPath(RedefinesClass cls) =>
+        cls.Canonical.Parent is not { } parent
+            ? new AccessPath([new RootFieldSegment(cls.BackingCsName)])
+            : BuildAccessPath(parent, []) is { } parentPath ? parentPath.Add(new MemberSegment(cls.BackingCsName)) : null;
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
@@ -461,8 +457,46 @@ public sealed class ReferenceResolver(DataBinder data)
         return r.HasNoSuffix && r.BaseName is { } name
             && data.CapacityRegisters.TryGetValue(name, out var capTable)
             && capTable.OccursSpec?.CapacityRegister is { } capReg
-            && TablePath(capTable) is { } capPath
+            && BuildTablePath(capTable) is { } capPath
             ? new CapacityRegisterPlace(capPath, capReg) : null;
+    }
+
+    /// <summary>The STRUCTURAL access path for an item — the <see cref="MemberPlace"/>/<see cref="DynTablePlace"/>
+    /// twin of the string <see cref="AccessPath"/>: each chain node is a field segment, each OCCURS level a fixed or
+    /// dynamic table segment carrying its (D10 transitional) index string. Null on a subscript-count mismatch.</summary>
+    private static AccessPath? BuildAccessPath(DataItem item, IReadOnlyList<string> indexExprs)
+    {
+        var chain = new List<DataItem>();
+        for (DataItem? n = item; n is not null; n = n.Parent) chain.Add(n);
+        chain.Reverse();
+        if (chain.Count(n => n.IsTable) != indexExprs.Count) return null;   // wrong number of subscripts
+        var segs = new List<AccessSegment>();
+        int si = 0;
+        bool first = true;
+        foreach (var seg in chain)
+        {
+            segs.Add(first ? new RootFieldSegment(seg.CsName) : new MemberSegment(seg.CsName));
+            first = false;
+            if (seg.Occurs is not null) segs.Add(new FixedTableSegment(indexExprs[si++]));       // fixed OCCURS → CobolTable.At
+            else if (seg.IsDynamicTable) segs.Add(new DynTableSegment(indexExprs[si++]));         // dynamic OCCURS → RefSending/RefReceiving
+        }
+        return new AccessPath(segs);
+    }
+
+    /// <summary>The STRUCTURAL whole-table path (no subscript wraps) — the <see cref="CapacityRegisterPlace"/> twin of
+    /// the string <see cref="TablePath"/> (also the base of a whole-dynamic-table INITIALIZE element path). Null when
+    /// an ancestor is itself a table (an ambiguous whole-table reference).</summary>
+    internal static AccessPath? BuildTablePath(DataItem table)
+    {
+        var chain = new List<DataItem>();
+        for (DataItem? n = table; n is not null; n = n.Parent) chain.Add(n);
+        chain.Reverse();
+        for (int i = 0; i < chain.Count - 1; i++)
+            if (chain[i].IsTable) return null;
+        var segs = new List<AccessSegment>();
+        bool first = true;
+        foreach (var n in chain) { segs.Add(first ? new RootFieldSegment(n.CsName) : new MemberSegment(n.CsName)); first = false; }
+        return new AccessPath(segs);
     }
 
     private static string? AccessPath(DataItem item, IReadOnlyList<string> indexExprs,
