@@ -19,6 +19,11 @@ public sealed partial class StatementBinder
 {
     private int _entryPc;
     private readonly List<BoundDeclarative> _declaratives = [];
+
+    /// <summary>The narrow declarative surface EcBinder's RESUME SR1–SR3 checks read (10r; hoists to
+    /// ProcedureTableBuilder at 10t and these host edges delete).</summary>
+    internal int EntryPc => _entryPc;
+    internal IReadOnlyList<BoundDeclarative> Declaratives => _declaratives;
     private readonly HashSet<string> _declScopedFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<int> _declScopedModes = [];
     private readonly HashSet<ReportGroupModel> _declReportGroups = [];   // §14.9.49 SR9 — one Format-2 USE per group
@@ -98,7 +103,7 @@ public sealed partial class StatementBinder
                 data.Edition.Error("COBOLNET0876",
                     "USE AFTER EXCEPTION OBJECT is the COBOL-2002+ exception-object declarative "
                     + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
-            _ecF3 = true;   // the ONE "EC declaratives present" feature bit — F4 rides the same group gate
+            Ctx.EcState.F3 = true;   // the ONE "EC declaratives present" feature bit — F4 rides the same group gate
             string cname = use.cobolWord().GetText();
             if (OoClasses?.Find(cname) is not { } cls)
             {
@@ -187,7 +192,7 @@ public sealed partial class StatementBinder
             data.Edition.Error("COBOLNET0877",
                 "USE AFTER EXCEPTION CONDITION (Format 3) is the COBOL-2002+ exception-condition declarative "
                 + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
-        _ecF3 = true;
+        Ctx.EcState.F3 = true;
         var pairs = new List<(string Ec, FileModel? File)>();
         foreach (var entry in entries)
         {
@@ -241,7 +246,7 @@ public sealed partial class StatementBinder
         {
             // SR14: the same (exception-name, file-name) pair shall not appear in more than one USE statement
             // within the same procedure division (the set spans sections — _declEcPairs is per division).
-            if (!_declEcPairs.Add(ec + "|" + (file?.CobolName ?? "")))
+            if (!Ctx.EcState.DeclEcPairs.Add(ec + "|" + (file?.CobolName ?? "")))
                 data.Edition.Error("COBOLNET0716", $"declarative section '{sectionName}': the exception-name/"
                     + $"file pair '{ec}{(file is null ? "" : " FILE " + file.CobolName)}' is already specified in "
                     + "another USE statement of this procedure division (ISO §14.9.49.3 SR14)");

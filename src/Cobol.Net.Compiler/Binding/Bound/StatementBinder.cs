@@ -78,6 +78,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private ExpressionBinder? _exprBinder;
     internal ExpressionBinder Expr => _exprBinder ??= new ExpressionBinder(Ctx, this);
 
+    private EcBinder? _ecBinder;
+    internal EcBinder Ec => _ecBinder ??= new EcBinder(Ctx, this);
+
     // Host forwarders for the collaborator callers + the remaining core spine sites — flip at 10t.
     internal BoundCondition BindCondition(IParseTree node) => Cond.BindCondition(node);
     internal BoundRelational CheckedRelational(BoundOperand left, string op, BoundOperand right) => Cond.CheckedRelational(left, op, right);
@@ -88,6 +91,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr) => ConditionBinder.SoleNumLiteral(expr);
     internal BoundBoolExpr BindBoolExpr(Core.BooleanExpressionContext bctx) => Cond.BindBoolExpr(bctx);
     internal static int Gr3Width(BoundBoolExpr e) => ConditionBinder.Gr3Width(e);
+    /// <summary>PUBLIC forwarder (BinderDriver / the OO bind half configure the EC context per unit) —
+    /// re-points to the collaborator at the 10t final wiring like every other host edge.</summary>
+    public void ConfigureEc(TurnState turn, string programName) => Ec.ConfigureEc(turn, programName);
+    internal EcFeatures BuildEcFeatures() => Ctx.EcState.BuildFeatures();
+    internal void EcNoteFunction() => Ec.EcNoteFunction();
+    internal BoundStatement BindSetLastException() => Ec.BindSetLastException();
+    internal BoundRaising? EcBindRaising(Core.RaisingPhraseContext raising, int line, string verb) => Ec.EcBindRaising(raising, line, verb);
+    internal void EcLoadPdRaising(IReadOnlyList<string> ecNames, IReadOnlyList<string> classes) => Ec.EcLoadPdRaising(ecNames, classes);
     internal BoundExpr BindExpr(IParseTree node) => Expr.BindExpr(node);
     internal BoundExpr BindOperandExpr(IParseTree node) => Expr.BindOperandExpr(node);
     internal BoundOperand LiteralOperand(Core.LiteralContext lit) => Expr.LiteralOperand(lit);
@@ -156,21 +167,21 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     public BoundProgram Bind(Core.ProgramUnitContext program)
     {
         if (program.procedureDivision() is not { } pd) return new BoundProgram([]);
-        EcCollectPdRaising(pd);   // the PD-header RAISING list (§14.2.1) — consumed by the GOBACK/EXIT SR2 check
+        Ec.EcCollectPdRaising(pd);   // the PD-header RAISING list (§14.2.1) — consumed by the GOBACK/EXIT SR2 check
         CollectParagraphs(pd);
 
         var bound = new List<BoundParagraph>(_paras.Count);
         for (int i = 0; i < _paras.Count; i++)
         {
             _currentSection = _paraSection[i];   // ISO §8.4.2.2 — unqualified names resolve in-section first
-            _currentBindPc = i;                  // RESUME SR1/SR2 declarative context + §15.30 location anchoring
+            Ctx.BindCursor = i;                  // RESUME SR1/SR2 declarative context + §15.30 location anchoring
             var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in _paras[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
             bound.Add(new BoundParagraph(_paras[i].Cobol, sentences));
         }
         _currentSection = null;
-        _currentBindPc = -1;
+        Ctx.BindCursor = -1;
         return new BoundProgram(bound, _entryPc, _declaratives, BuildEcFeatures());
     }
 
@@ -287,7 +298,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var core = BindStatementCore(s);
         core = Udf.UdfWrapCalls(core, udfMark);
         core = OoWrapPropertyOps(core, mark);
-        return EcWrap(s, core);
+        return Ec.EcWrap(s, core);
     }
 
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
@@ -344,8 +355,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.initiateStatement() is { } rwi => Rw.BindInitiate(rwi),     // Report Writer (ISO §14.9.21)
         _ when s.generateStatement() is { } rwg => Rw.BindGenerate(rwg),     // Report Writer (ISO §14.9.16)
         _ when s.terminateStatement() is { } rwt => Rw.BindTerminate(rwt),   // Report Writer (ISO §14.9.46)
-        _ when s.raiseStatement() is { } ra => BindRaise(ra),               // EC model (ISO §14.9.29; 2002+ gated)
-        _ when s.resumeStatement() is { } rs => BindResume(rs),             // EC model (ISO §14.9.33; 2002+ gated)
+        _ when s.raiseStatement() is { } ra => Ec.BindRaise(ra),               // EC model (ISO §14.9.29; 2002+ gated)
+        _ when s.resumeStatement() is { } rs => Ec.BindResume(rs),             // EC model (ISO §14.9.33; 2002+ gated)
         _ when s.allocateStatement() is { } al => Ptr.BindAllocate(al),      // dynamic storage (ISO §14.9.3; Phase-4b inc 2)
         _ when s.freeStatement() is { } fr => Ptr.BindFree(fr),              // dynamic storage (ISO §14.9.15; Phase-4b inc 2)
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),

@@ -261,7 +261,7 @@ public sealed partial class StatementBinder
             _currentSection = _paraSection[i];        // in-section resolution first (§8.4.2.2)
             _currentMethodScope = _paraMethod[i];     // then the OWNING METHOD's scope — never a sibling's
             data.ActiveMethodScope = _currentMethodScope?.Data;   // §11.7 GR5 data shadowing (slice 2)
-            _currentBindPc = i;
+            Ctx.BindCursor = i;
             var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in _paras[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
@@ -270,7 +270,7 @@ public sealed partial class StatementBinder
         _currentSection = null;
         _currentMethodScope = null;
         data.ActiveMethodScope = null;
-        _currentBindPc = -1;
+        Ctx.BindCursor = -1;
         return new BoundProgram(bound, 0, null, BuildEcFeatures(), methods);
     }
 

@@ -48,4 +48,12 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// <summary>The per-unit SPECIAL-NAMES mnemonic registry (10h — ACCEPT-FROM and the WRITE SR13 /
     /// ADVANCING zero-advance legs share the ONE lazily built map).</summary>
     public MnemonicRegistry Mnemonics { get; } = new();
+
+    /// <summary>The EC bind state (10r — the TurnState + PD-RAISING sets + USE-F3 cross-USE pairs + the seven
+    /// EcFeatures accumulator bits), shared by <c>EcBinder</c> and the Declaratives half.</summary>
+    public EcBindState EcState { get; } = new();
+
+    /// <summary>The pc whose sentences are being bound (RESUME SR1/SR2 declarative context + the §15.30.3 r2
+    /// location anchoring; 10r — the host's <c>_currentBindPc</c> relocated). −1 outside the bind loop.</summary>
+    public int BindCursor { get; set; } = -1;
 }
