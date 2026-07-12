@@ -11,11 +11,12 @@ using Core = CobolParserCore;
 /// <summary>The ALTER + SPECIAL-NAMES-switch binder (P7 Step 10n — the LAST plain verb, exactly ONE
 /// instance per unit: the lazy whole-program ALTER prepass latches <c>_alterSwFields</c> against the
 /// COMPLETE procedure table, which it reads through host edges (Paragraphs/ParaSections/CurrentSection —
-/// the §8.4.2.2 in-section-first save/mutate/restore preserved verbatim; the table hoists to
-/// ProcedureTableBuilder at 10t). <c>SwitchCondOf</c> keeps the level-88-first caller contract (NC211A).
-/// The five bound types stayed in <c>Binding/Bound/BoundAlterSwitches.cs</c> — BoundAlter/
-/// BoundGoToAlterable are VersionConformancePass gate anchors.</summary>
-internal sealed class SetAlterBinder(BinderContext ctx, StatementBinder host)
+/// the §8.4.2.2 in-section-first save/mutate/restore preserved verbatim; the ALTER prepass reads the table
+/// through <c>ctx.Table</c> since the 10t ProcedureTableBuilder hoist). <c>SwitchCondOf</c> keeps the
+/// level-88-first caller contract (NC211A). The five bound types stayed in
+/// <c>Binding/Bound/BoundAlterSwitches.cs</c> — BoundAlter/BoundGoToAlterable are VersionConformancePass
+/// gate anchors.</summary>
+internal sealed class SetAlterBinder(BinderContext ctx)
 {
     // ── ALTER + the 85-only target-less GO TO (ANSI X3.23-1985; deleted by ISO/IEC 1989:2002) ────────────────
 
@@ -36,24 +37,24 @@ internal sealed class SetAlterBinder(BinderContext ctx, StatementBinder host)
         if (_alterSwFields is not null) return;
         _alterSwFields = new Dictionary<int, string>();
         _alterSwParaPc = new Dictionary<Core.SentenceContext, int>();
-        for (int i = 0; i < host.Paragraphs.Count; i++)
-            foreach (var sent in host.Paragraphs[i].Sentences) _alterSwParaPc[sent] = i;
+        for (int i = 0; i < ctx.Table.Paragraphs.Count; i++)
+            foreach (var sent in ctx.Table.Paragraphs[i].Sentences) _alterSwParaPc[sent] = i;
 
-        var saved = host.CurrentSection;
-        for (int i = 0; i < host.Paragraphs.Count; i++)
-            foreach (var al in host.Paragraphs[i].Sentences.SelectMany(AlterStatementsIn))
+        var saved = ctx.CurrentSection;
+        for (int i = 0; i < ctx.Table.Paragraphs.Count; i++)
+            foreach (var al in ctx.Table.Paragraphs[i].Sentences.SelectMany(AlterStatementsIn))
                 foreach (var entry in al.alterEntry())
                 {
                     if (entry.procedureName() is not { Length: >= 2 } names) continue;
-                    host.CurrentSection = host.ParaSections[i];
+                    ctx.CurrentSection = ctx.Table.ParaSections[i];
                     // proc-1 names a PARAGRAPH (a section resolves to a multi-pc range and is excluded; the
                     // sole-GO-TO shape check happens at the ALTER's own bind, where it can fail loud).
-                    if (host.ResolveProcedure(names[0]) is { } t && t.Start == t.End)
+                    if (ctx.Table.ResolveProcedure(names[0]) is { } t && t.Start == t.End)
                         // Method "P_<name>" → field "_alter_<name>" (D4); COBOL names cannot start with '_',
                         // so the field can never collide with a data item's emitted field.
-                        _alterSwFields.TryAdd(t.Start, "_alter_" + host.Paragraphs[t.Start].Method[2..]);
+                        _alterSwFields.TryAdd(t.Start, "_alter_" + ctx.Table.Paragraphs[t.Start].Method[2..]);
                 }
-        host.CurrentSection = saved;
+        ctx.CurrentSection = saved;
     }
 
     /// <summary>Every <c>alterStatement</c> context under <paramref name="node"/> (ALTER is an imperative
@@ -121,12 +122,12 @@ internal sealed class SetAlterBinder(BinderContext ctx, StatementBinder host)
         {
             if (entry.procedureName() is not { Length: >= 2 } names)
                 return new BoundUnsupported($"ALTER entry '{entry.GetText()}' (malformed)");
-            if (host.ResolveProcedure(names[0]) is not { } target || target.Start != target.End)
+            if (ctx.Table.ResolveProcedure(names[0]) is not { } target || target.Start != target.End)
                 return new BoundUnsupported($"ALTER target '{names[0].GetText()}' (not a known paragraph)");
             if (!AlterIsSoleGoToParagraph(target.Start))
                 return new BoundUnsupported($"ALTER target '{names[0].GetText()}' is not a paragraph consisting "
                     + "of a single GO TO sentence (ANSI X3.23-1985 ALTER syntax rule)");
-            if (host.ResolveProcedure(names[1]) is not { } dest)
+            if (ctx.Table.ResolveProcedure(names[1]) is not { } dest)
                 return new BoundUnsupported($"ALTER new destination '{names[1].GetText()}' (unknown procedure)");
             entries.Add(new BoundAlterEntry(_alterSwFields![target.Start], dest.Start));
         }
@@ -137,7 +138,7 @@ internal sealed class SetAlterBinder(BinderContext ctx, StatementBinder host)
     /// GO TO Format 1 — written target or target-less, never DEPENDING (the ANSI-85 ALTER shape requirement).</summary>
     private bool AlterIsSoleGoToParagraph(int pc)
     {
-        var sentences = host.Paragraphs[pc].Sentences;
+        var sentences = ctx.Table.Paragraphs[pc].Sentences;
         if (sentences.Length != 1) return false;
         var stmts = sentences[0].statement();
         return stmts.Length == 1 && stmts[0].goToStatement() is { } g

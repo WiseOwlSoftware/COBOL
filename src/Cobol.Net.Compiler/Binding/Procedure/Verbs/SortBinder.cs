@@ -381,11 +381,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     /// procedure's end). Resolved by the ONE procedure resolver, so section/qualified semantics match PERFORM.</summary>
     private (int Start, int End)? SortRange(Core.ProcedureNameContext[] names)
     {
-        if (names.Length == 0 || host.ResolveProcedure(names[0]) is not { } first) return null;
+        if (names.Length == 0 || ctx.Table.ResolveProcedure(names[0]) is not { } first) return null;
         (int start, int end) = first;
         if (names.Length >= 2)
         {
-            if (host.ResolveProcedure(names[1]) is not { } thru) return null;
+            if (ctx.Table.ResolveProcedure(names[1]) is not { } thru) return null;
             end = thru.End;
         }
         return (start, end);

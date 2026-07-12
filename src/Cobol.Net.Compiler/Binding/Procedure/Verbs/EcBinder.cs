@@ -127,8 +127,8 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
                 + $"or later (targeting COBOL-{ctx.Edition.DialectLevel})");
         // SR1 — only in a declarative (the exception-checking PERFORM WHEN form is 2023, a later wave). The
         // declarative sections occupy the pcs below EntryPc (StatementBinder.Declaratives.cs).
-        var decl = host.Declaratives.FirstOrDefault(d => ctx.BindCursor >= d.StartPc && ctx.BindCursor <= d.EndPc);
-        if (ctx.BindCursor >= host.EntryPc || decl is null)
+        var decl = ctx.Table.Declaratives.FirstOrDefault(d => ctx.BindCursor >= d.StartPc && ctx.BindCursor <= d.EndPc);
+        if (ctx.BindCursor >= ctx.Table.EntryPc || decl is null)
         {
             ctx.Edition.Error("COBOLNET0712", "RESUME may be specified only in a declarative (ISO §14.9.33.3 SR1)");
             return new BoundNop();
@@ -146,9 +146,9 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
 
         // SR3 — procedure-name-1 shall be in the NONdeclarative portion.
         var pn = r.procedureName()!;
-        if (host.ResolveProcedure(pn) is not { } target)
+        if (ctx.Table.ResolveProcedure(pn) is not { } target)
             return new BoundUnsupported($"RESUME AT unknown procedure '{pn.GetText()}'");
-        if (target.Start < host.EntryPc)
+        if (target.Start < ctx.Table.EntryPc)
         {
             ctx.Edition.Error("COBOLNET0714", $"RESUME AT '{pn.GetText()}': the procedure shall be in the "
                 + "nondeclarative portion of the program (ISO §14.9.33.3 SR3)");
@@ -376,8 +376,8 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
     /// number — the implementor-defined identifier of the source line).</summary>
     private string EcLocation(int line)
     {
-        string para = ctx.BindCursor >= 0 && ctx.BindCursor < host.Paragraphs.Count ? host.Paragraphs[ctx.BindCursor].Cobol : "";
-        string? sec = ctx.BindCursor >= 0 && ctx.BindCursor < host.ParaSections.Count ? host.ParaSections[ctx.BindCursor]?.Name : null;
+        string para = ctx.BindCursor >= 0 && ctx.BindCursor < ctx.Table.Paragraphs.Count ? ctx.Table.Paragraphs[ctx.BindCursor].Cobol : "";
+        string? sec = ctx.BindCursor >= 0 && ctx.BindCursor < ctx.Table.ParaSections.Count ? ctx.Table.ParaSections[ctx.BindCursor]?.Name : null;
         string proc = sec is not null && para.Equals(sec, StringComparison.OrdinalIgnoreCase)
             ? sec
             : para + (sec is not null ? " OF " + sec : "");

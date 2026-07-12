@@ -67,7 +67,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private SearchBinder? _searchBinder;
     private SearchBinder Search => _searchBinder ??= new SearchBinder(Ctx, this);
     private SetAlterBinder? _setAlterBinder;
-    internal SetAlterBinder Alter => _setAlterBinder ??= new SetAlterBinder(Ctx, this);
+    internal SetAlterBinder Alter => _setAlterBinder ??= new SetAlterBinder(Ctx);
 
     private ConditionBinder? _conditionBinder;
     internal ConditionBinder Cond => _conditionBinder ??= new ConditionBinder(Ctx, this);
@@ -154,12 +154,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
     private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
-    private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
-    private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, SectionInfo> _sections = new(StringComparer.OrdinalIgnoreCase);
-    private readonly List<SectionInfo?> _paraSection = [];   // per-pc owning section (parallel to _paras;
-                                                              // the ambient CURRENT section lives on Ctx — 10s)
-
     /// <summary>The group's pass-1 class symbol table (deep-dive D1) — set by the run-unit emitter before
     /// binding so INVOKE resolves classes/methods defined anywhere in the group. Null ⇔ empty group.</summary>
     public OoClassTable? OoClasses { get; set; }
@@ -173,8 +167,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// (§14.9.23.3 SR4f/h) and SELF|SUPER "NEW" binds the ACTIVE-CLASS creation form (§16.2.1).</summary>
     public bool OoInFactory { get; set; }
 
-    private readonly List<OoMethodScope?> _paraMethod = [];   // per-pc owning method (parallel to _paras; the
-                                                              // ambient CURRENT scope lives on Ctx — 10s)
 
     /// <summary>True while binding a statement inside a METHOD body — the D8 context switch (GOBACK →
     /// method return; EXIT PROGRAM → §14.9.14.3 SR7 violation).</summary>
@@ -185,116 +177,22 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         if (program.procedureDivision() is not { } pd) return new BoundProgram([]);
         Ec.EcCollectPdRaising(pd);   // the PD-header RAISING list (§14.2.1) — consumed by the GOBACK/EXIT SR2 check
-        CollectParagraphs(pd);
+        var table = Ctx.Table;
+        table.CollectParagraphs(pd);
 
-        var bound = new List<BoundParagraph>(_paras.Count);
-        for (int i = 0; i < _paras.Count; i++)
+        var bound = new List<BoundParagraph>(table.Paragraphs.Count);
+        for (int i = 0; i < table.Paragraphs.Count; i++)
         {
             // Section + cursor as ONE scoped bind position (10s; no method overlay in a program unit) —
             // §8.4.2.2 in-section resolution + the RESUME SR1/SR2 / §15.30 location anchoring.
-            using var _ = Ctx.EnterMethodScope(_paraSection[i], null, i);
+            using var _ = Ctx.EnterMethodScope(table.ParaSections[i], null, i);
             var sentences = new List<IReadOnlyList<BoundStatement>>();
-            foreach (var sentence in _paras[i].Sentences)
+            foreach (var sentence in table.Paragraphs[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
-            bound.Add(new BoundParagraph(_paras[i].Cobol, sentences));
+            bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
         }
-        return new BoundProgram(bound, _entryPc, _declaratives, BuildEcFeatures());
+        return new BoundProgram(bound, table.EntryPc, table.Declaratives, BuildEcFeatures());
     }
-
-    // ── Procedure table (paragraphs + sections, ISO §14.4.3 / §8.4.2.2) ─────────────────────────────────────
-
-    /// <summary>Register one paragraph (name + uniquified method key + its sentences) at the next pc. Inside a
-    /// METHOD body (<see cref="_currentMethodScope"/> set — the class-body collection) the name declares
-    /// METHOD-LOCALLY (ISO §11.7 — sibling methods may reuse names; cross-method resolution must FAIL), so it
-    /// registers in the method's own map, never the program-global fallback.</summary>
-    private void AddParagraph(string name, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
-    {
-        string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
-        string method = baseName;
-        for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
-        if (Ctx.CurrentMethodScope is { } ms)
-            ms.Paras.TryAdd(name, _paras.Count);   // method-local declaration (§11.7)
-        else
-            _paraIndex.TryAdd(name, _paras.Count); // first definition wins for the global fallback
-        section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
-        _paraSection.Add(section);
-        _paraMethod.Add(Ctx.CurrentMethodScope);
-        _paras.Add((name, method, sentences));
-    }
-
-    private void CollectParagraphs(Core.ProcedureDivisionContext pd)
-    {
-        var used = new HashSet<string>(StringComparer.Ordinal);
-
-        // DECLARATIVES first (ISO §14.2.3 GR1 — execution begins with the first NONdeclarative procedure; the
-        // declarative sections share the ONE pc space, entered only via the USE dispatch or an explicit
-        // PERFORM/GO TO — SR4). The walk records the BoundDeclarative scopes (StatementBinder.Declaratives.cs).
-        foreach (var dp in pd.declarativePart())
-            foreach (var sec in dp.declarativeSection())
-                DeclCollectSection(sec, used);
-        _entryPc = _paras.Count;
-
-        foreach (var unit in pd.procedureUnit())
-        {
-            if (unit.paragraphDefinition() is { } para)
-                AddParagraph(para.paragraphName().GetText(), para.sentence(), null, used);
-            else if (unit.sectionDefinition() is { } section)
-            {
-                // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
-                // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
-                // statement of its first paragraph through last statement of its last (ISO §14.9.28).
-                var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
-                foreach (var p in section.paragraphDefinition())
-                    AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
-                info.EndPc = _paras.Count - 1;
-                _sections.TryAdd(info.Name, info);
-            }
-        }
-    }
-
-    /// <summary>Resolve a procedure-name reference to its inclusive pc range (ISO §8.4.2.2): a section name is its
-    /// paragraph range; a paragraph is (pc, pc). The head/qualifier are taken from the context's CHILDREN — never
-    /// <c>GetText()</c> of the whole context, which concatenates <c>PAR-1A OF SEC-1</c> into an unmatchable key.
-    /// Resolution order: explicit <c>OF/IN section</c> qualifier → the named section's own map; unqualified → a
-    /// paragraph of the CURRENT section (implicit qualification of duplicated names), then the global first-defined
-    /// paragraph, then a section name. Null when unknown (the caller fails loud).</summary>
-    internal (int Start, int End)? ResolveProcedure(Core.ProcedureNameContext ctx)
-    {
-        string head = ctx.GetChild(0).GetText();
-        string? qualifier = ctx.ChildCount >= 3 ? ctx.GetChild(2).GetText() : null;
-        // Inside a METHOD body resolution is CONFINED to the method's own maps (ISO §11.7 — method-local
-        // procedure names; a cross-method PERFORM/GO TO resolves to nothing and the caller fails loud, the
-        // legacy trap-#10 rule made structural).
-        if (Ctx.CurrentMethodScope is { } m)
-        {
-            if (qualifier is not null)
-                return m.Sections.TryGetValue(qualifier, out var mq) && mq.Paras.TryGetValue(head, out int mqpc)
-                    ? (mqpc, mqpc) : null;
-            if (Ctx.CurrentSection is { } mcur && mcur.Paras.TryGetValue(head, out int mlocal)) return (mlocal, mlocal);
-            if (m.Paras.TryGetValue(head, out int mpc)) return (mpc, mpc);
-            if (m.Sections.TryGetValue(head, out var msec)) return (msec.StartPc, msec.EndPc);
-            return null;
-        }
-        if (qualifier is not null)
-            return _sections.TryGetValue(qualifier, out var q) && q.Paras.TryGetValue(head, out int qpc)
-                ? (qpc, qpc) : null;
-        if (Ctx.CurrentSection is { } cur && cur.Paras.TryGetValue(head, out int local)) return (local, local);
-        if (_paraIndex.TryGetValue(head, out int pc)) return (pc, pc);
-        if (_sections.TryGetValue(head, out var sec)) return (sec.StartPc, sec.EndPc);
-        return null;
-    }
-
-    /// <summary>The emitted paragraphs (name + method + sentences), exposed for the backend's method loop.</summary>
-    public IReadOnlyList<(string Cobol, string Method, Core.SentenceContext[] Sentences)> Paragraphs => _paras;
-
-    /// <summary>The per-pc owning-section list + the ambient in-section cursor — the NARROW procedure-table
-    /// surface SetAlterBinder's prepass reads/saves/restores (P7 Step 10n; the table hoists to
-    /// ProcedureTableBuilder at 10t and these host edges delete).</summary>
-    internal IReadOnlyList<SectionInfo?> ParaSections => _paraSection;
-    internal SectionInfo? CurrentSection { get => Ctx.CurrentSection; set => Ctx.CurrentSection = value; }
-
-    private string MethodOf(string cobolName) =>
-        _paraIndex.TryGetValue(cobolName, out int i) ? _paras[i].Method : "P_" + cobolName.Replace('-', '_');
 
     /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY
     /// (§11.7), so a reference to a sibling method's paragraph fails HERE by design (the legacy trap-#10
@@ -313,6 +211,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         var used = new HashSet<string>(StringComparer.Ordinal);
         var methods = new List<BoundMethod>(roster.Count);
+        var table = Ctx.Table;
 
         foreach (var m in roster)
         {
@@ -321,8 +220,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 // A PROPERTY-clause-SYNTHESIZED accessor: no COBOL body exists — the emitter renders the
                 // direct field read/write (D-P1; observably identical to the §13.18.42 GR1/GR2 implicit
                 // MOVE methods). It still occupies a roster slot (override/implements machinery applies).
-                m.EntryPc = _paras.Count;
-                m.EndPc = _paras.Count - 1;   // empty body by construction
+                m.EntryPc = table.Paragraphs.Count;
+                m.EndPc = table.Paragraphs.Count - 1;   // empty body by construction
                 methods.Add(new BoundMethod(m.Name, m.CsName, m.EntryPc, m.EndPc));
                 continue;
             }
@@ -334,7 +233,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
             var scope = new OoMethodScope { Data = m.DataScope };
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
-            m.EntryPc = _paras.Count;
+            m.EntryPc = table.Paragraphs.Count;
             if (m.Ctx.procedureDivision() is { } pd)
             {
                 if (pd.declarativePart().Length > 0)
@@ -344,34 +243,34 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 foreach (var unit in pd.procedureUnit())
                 {
                     if (unit.paragraphDefinition() is { } para)
-                        AddParagraph(para.paragraphName().GetText(), para.sentence(), null, used);
+                        table.AddParagraph(para.paragraphName().GetText(), para.sentence(), null, used);
                     else if (unit.sectionDefinition() is { } section)
                     {
                         // A section inside a method is a method-local pc range (the legacy COBOL0116 reject is
                         // superseded: with per-method scopes the range cannot truncate or leak — trap #5).
-                        var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
+                        var info = new SectionInfo(section.sectionName().GetText(), table.Paragraphs.Count);
                         foreach (var p in section.paragraphDefinition())
-                            AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
-                        info.EndPc = _paras.Count - 1;
+                            table.AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
+                        info.EndPc = table.Paragraphs.Count - 1;
                         scope.Sections.TryAdd(info.Name, info);
                     }
                 }
             }
-            m.EndPc = _paras.Count - 1;
+            m.EndPc = table.Paragraphs.Count - 1;
             methods.Add(new BoundMethod(m.Name, m.CsName, m.EntryPc, m.EndPc));
         }
         Ctx.CurrentMethodScope = null;
 
-        var bound = new List<BoundParagraph>(_paras.Count);
-        for (int i = 0; i < _paras.Count; i++)
+        var bound = new List<BoundParagraph>(table.Paragraphs.Count);
+        for (int i = 0; i < table.Paragraphs.Count; i++)
         {
             // The ordered quadruple (section → method scope → §11.7 GR5 data shadowing → cursor) is ONE
             // scoped operation (10s) — set coherently, restored coherently on dispose.
-            using var _ = Ctx.EnterMethodScope(_paraSection[i], _paraMethod[i], i);
+            using var _ = Ctx.EnterMethodScope(table.ParaSections[i], table.ParaMethods[i], i);
             var sentences = new List<IReadOnlyList<BoundStatement>>();
-            foreach (var sentence in _paras[i].Sentences)
+            foreach (var sentence in table.Paragraphs[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
-            bound.Add(new BoundParagraph(_paras[i].Cobol, sentences));
+            bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
         }
         return new BoundProgram(bound, 0, null, BuildEcFeatures(), methods);
     }

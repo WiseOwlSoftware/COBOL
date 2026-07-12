@@ -67,6 +67,11 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// while a method's paragraphs register. Null outside a method.</summary>
     public OoMethodScope? CurrentMethodScope { get; set; }
 
+    /// <summary>The per-unit procedure table (paragraphs ∥ sections ∥ method scopes ∥ declaratives — ONE
+    /// pc space) and its §8.4.2.2 resolver (10t — table ownership relocated per the AS-BUILT plan).</summary>
+    private ProcedureTableBuilder? _table;
+    public ProcedureTableBuilder Table => _table ??= new(this);
+
     /// <summary>Enter a per-pc bind position as ONE scoped operation (10s — replaces the ambient ordered
     /// quadruple mutation): section → method scope → the §11.7 GR5 data shadowing
     /// (<c>Data.ActiveMethodScope</c>) → cursor, set coherently and restored together on dispose.</summary>

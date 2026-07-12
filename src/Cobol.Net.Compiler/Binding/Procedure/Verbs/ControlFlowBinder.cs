@@ -37,13 +37,13 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
             foreach (var n in names)
             {
                 // A section target transfers to its first paragraph (ISO §14.9.17 GR1).
-                if (host.ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{host.OoScopeHint}");
+                if (ctx.Table.ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{host.OoScopeHint}");
                 targets.Add(range.Start);
             }
             return new BoundGoToDepending(host.FieldOperand(sel), targets);
         }
         if (names.Length == 0) return host.AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
-        if (host.ResolveProcedure(names[0]) is not { } target)
+        if (ctx.Table.ResolveProcedure(names[0]) is not { } target)
             return new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'{host.OoScopeHint}");
         return host.AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
     }
@@ -97,12 +97,12 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         // Out-of-line: the resolved pc range [start, end] — a paragraph (start==end), a SECTION (its whole
         // paragraph range, ISO §14.9.28 — first statement of its first paragraph through last of its last), or
         // the THRU composition (first procedure's start through the last procedure's end).
-        if (host.ResolveProcedure(names[0]) is not { } first)
+        if (ctx.Table.ResolveProcedure(names[0]) is not { } first)
             return new BoundUnsupported($"PERFORM unknown procedure '{names[0].GetText()}'{host.OoScopeHint}");
         (int start, int end) = first;
         if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
         {
-            if (host.ResolveProcedure(names[1]) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown procedure '{names[1].GetText()}'{host.OoScopeHint}");
+            if (ctx.Table.ResolveProcedure(names[1]) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown procedure '{names[1].GetText()}'{host.OoScopeHint}");
             // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — NC102A
             // PFM-TEST-F1-10) is legal: the dispatcher returns when the exit procedure completes, wherever it is.
             end = thru.End;

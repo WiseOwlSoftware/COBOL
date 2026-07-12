@@ -1,30 +1,133 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-using CobolNet.Binding.Procedure;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
 /// <summary>
-/// The DECLARATIVES half of the binder (ISO §14.2.4 / §14.9.49 USE): each declarative section joins the ONE pc
-/// space (COBOLNET_DESIGN §14.5 — qualified-name resolution and SR4's explicit PERFORM into a declarative
-/// paragraph then work unchanged), its USE sentence binds into a <see cref="BoundDeclarative"/> scope (never a
-/// bound statement — USE is declaration, SR1), and the §14.9.49.4 GR7 handler exit pc is computed here (with the
-/// CCVS termination-tail accommodation, see <see cref="DeclHandlerEndPc"/>).
+/// The ONE procedure table + its builders (P7 Step 10t — the plan's `ProcedureTableBuilder`, per-unit on
+/// <see cref="BinderContext.Table"/>): the pc space (`_paras ∥ _paraSection ∥ _paraMethod` in LOCKSTEP —
+/// every AddParagraph appends to all three), the section map (ISO §14.4.3), the method-local scope maps
+/// (§11.7 — registered through the ambient <see cref="BinderContext.CurrentMethodScope"/> collection
+/// cursor), <see cref="ResolveProcedure"/> (§8.4.2.2 — explicit OF/IN → in-section → global → section-name,
+/// method-confined inside a method), and the DECLARATIVES half (ISO §14.2.4 / §14.9.49 USE — each
+/// declarative section joins the same pc space; the USE sentence binds into a <see cref="BoundDeclarative"/>
+/// scope, never a bound statement; the §14.9.49.4 GR7 handler exit pc is computed here with the CCVS
+/// termination-tail accommodation, see <see cref="DeclHandlerEndPc"/>).
 /// </summary>
-public sealed partial class StatementBinder
+internal sealed class ProcedureTableBuilder(BinderContext ctx)
 {
+    private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
+    private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, SectionInfo> _sections = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<SectionInfo?> _paraSection = [];   // per-pc owning section (parallel to _paras;
+                                                              // the ambient CURRENT section lives on Ctx — 10s)
+
+
+    private readonly List<OoMethodScope?> _paraMethod = [];   // per-pc owning method (parallel to _paras; the
+                                                              // ambient CURRENT scope lives on Ctx — 10s)
+
+    // ── Procedure table (paragraphs + sections, ISO §14.4.3 / §8.4.2.2) ─────────────────────────────────────
+
+    /// <summary>Register one paragraph (name + uniquified method key + its sentences) at the next pc. Inside a
+    /// METHOD body (<see cref="_currentMethodScope"/> set — the class-body collection) the name declares
+    /// METHOD-LOCALLY (ISO §11.7 — sibling methods may reuse names; cross-method resolution must FAIL), so it
+    /// registers in the method's own map, never the program-global fallback.</summary>
+    public void AddParagraph(string name, Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
+    {
+        string baseName = "P_" + name.Replace('-', '_').Replace('.', '_');
+        string method = baseName;
+        for (int n = 2; !used.Add(method); n++) method = $"{baseName}_{n}";
+        if (ctx.CurrentMethodScope is { } ms)
+            ms.Paras.TryAdd(name, _paras.Count);   // method-local declaration (§11.7)
+        else
+            _paraIndex.TryAdd(name, _paras.Count); // first definition wins for the global fallback
+        section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
+        _paraSection.Add(section);
+        _paraMethod.Add(ctx.CurrentMethodScope);
+        _paras.Add((name, method, sentences));
+    }
+
+    public void CollectParagraphs(Core.ProcedureDivisionContext pd)
+    {
+        var used = new HashSet<string>(StringComparer.Ordinal);
+
+        // DECLARATIVES first (ISO §14.2.3 GR1 — execution begins with the first NONdeclarative procedure; the
+        // declarative sections share the ONE pc space, entered only via the USE dispatch or an explicit
+        // PERFORM/GO TO — SR4). The walk records the BoundDeclarative scopes (StatementBinder.Declaratives.cs).
+        foreach (var dp in pd.declarativePart())
+            foreach (var sec in dp.declarativeSection())
+                DeclCollectSection(sec, used);
+        _entryPc = _paras.Count;
+
+        foreach (var unit in pd.procedureUnit())
+        {
+            if (unit.paragraphDefinition() is { } para)
+                AddParagraph(para.paragraphName().GetText(), para.sentence(), null, used);
+            else if (unit.sectionDefinition() is { } section)
+            {
+                // A section's paragraphs are contiguous in the pc sequence, so the section IS a pc range:
+                // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
+                // statement of its first paragraph through last statement of its last (ISO §14.9.28).
+                var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
+                foreach (var p in section.paragraphDefinition())
+                    AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
+                info.EndPc = _paras.Count - 1;
+                _sections.TryAdd(info.Name, info);
+            }
+        }
+    }
+
+    /// <summary>Resolve a procedure-name reference to its inclusive pc range (ISO §8.4.2.2): a section name is its
+    /// paragraph range; a paragraph is (pc, pc). The head/qualifier are taken from the context's CHILDREN — never
+    /// <c>GetText()</c> of the whole context, which concatenates <c>PAR-1A OF SEC-1</c> into an unmatchable key.
+    /// Resolution order: explicit <c>OF/IN section</c> qualifier → the named section's own map; unqualified → a
+    /// paragraph of the CURRENT section (implicit qualification of duplicated names), then the global first-defined
+    /// paragraph, then a section name. Null when unknown (the caller fails loud).</summary>
+    public (int Start, int End)? ResolveProcedure(Core.ProcedureNameContext pn)
+    {
+        string head = pn.GetChild(0).GetText();
+        string? qualifier = pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null;
+        // Inside a METHOD body resolution is CONFINED to the method's own maps (ISO §11.7 — method-local
+        // procedure names; a cross-method PERFORM/GO TO resolves to nothing and the caller fails loud, the
+        // legacy trap-#10 rule made structural).
+        if (ctx.CurrentMethodScope is { } m)
+        {
+            if (qualifier is not null)
+                return m.Sections.TryGetValue(qualifier, out var mq) && mq.Paras.TryGetValue(head, out int mqpc)
+                    ? (mqpc, mqpc) : null;
+            if (ctx.CurrentSection is { } mcur && mcur.Paras.TryGetValue(head, out int mlocal)) return (mlocal, mlocal);
+            if (m.Paras.TryGetValue(head, out int mpc)) return (mpc, mpc);
+            if (m.Sections.TryGetValue(head, out var msec)) return (msec.StartPc, msec.EndPc);
+            return null;
+        }
+        if (qualifier is not null)
+            return _sections.TryGetValue(qualifier, out var q) && q.Paras.TryGetValue(head, out int qpc)
+                ? (qpc, qpc) : null;
+        if (ctx.CurrentSection is { } cur && cur.Paras.TryGetValue(head, out int local)) return (local, local);
+        if (_paraIndex.TryGetValue(head, out int pc)) return (pc, pc);
+        if (_sections.TryGetValue(head, out var sec)) return (sec.StartPc, sec.EndPc);
+        return null;
+    }
+
+    /// <summary>The pc space (name + uniquified method key + sentences) — the bind loops walk it; parallel
+    /// in LOCKSTEP to <see cref="ParaSections"/> (owning section) and <see cref="ParaMethods"/> (owning
+    /// method scope). Every <see cref="AddParagraph"/> appends to all three.</summary>
+    public IReadOnlyList<(string Cobol, string Method, Core.SentenceContext[] Sentences)> Paragraphs => _paras;
+    public IReadOnlyList<SectionInfo?> ParaSections => _paraSection;
+    public IReadOnlyList<OoMethodScope?> ParaMethods => _paraMethod;
+
     private int _entryPc;
     private readonly List<BoundDeclarative> _declaratives = [];
 
     /// <summary>The narrow declarative surface EcBinder's RESUME SR1–SR3 checks read (10r; hoists to
     /// ProcedureTableBuilder at 10t and these host edges delete).</summary>
-    internal int EntryPc => _entryPc;
-    internal IReadOnlyList<BoundDeclarative> Declaratives => _declaratives;
+    public int EntryPc => _entryPc;
+    public IReadOnlyList<BoundDeclarative> Declaratives => _declaratives;
     private readonly HashSet<string> _declScopedFiles = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<int> _declScopedModes = [];
     private readonly HashSet<ReportGroupModel> _declReportGroups = [];   // §14.9.49 SR9 — one Format-2 USE per group
@@ -43,7 +146,7 @@ public sealed partial class StatementBinder
         if (leading.Length == 0
             || leading[0].statement() is not { Length: 1 } first
             || first[0].useStatement() is not { } use)
-            data.Edition.Error("COBOLNET0897", $"declarative section '{name}': the first sentence shall consist "
+            ctx.Edition.Error("COBOLNET0897", $"declarative section '{name}': the first sentence shall consist "
                 + "of a single USE statement (ISO §14.2.4 / §14.9.49 SR1)");
         else if (use.DEBUGGING() is not null)
         {
@@ -54,7 +157,7 @@ public sealed partial class StatementBinder
             // section IS compiled, but the object-time debug switch (implementor-defined) is permanently OFF
             // here, so no trigger ever fires (scope stays null — no BoundDeclarative). The DEBUG-ITEM register
             // family is not implemented (the full debug facility is deferred with the golden-less DB series).
-            if (!data.DebuggingModeDeclared) return;
+            if (!ctx.Data.DebuggingModeDeclared) return;
         }
         else
             scope = DeclBindUse(use, name);
@@ -100,15 +203,15 @@ public sealed partial class StatementBinder
         {
             // Format 4 (§14.9.49.2 — ONE class/interface operand; SR15 EO ≡ EXCEPTION OBJECT). GR3: for an
             // OBJECT raise, F4 selection REPLACES the F1/F3 tiers (the generated __EcObjDispatch, D-EO7).
-            if (data.Edition.DialectLevel < 2002)
-                data.Edition.Error("COBOLNET0876",
+            if (ctx.Edition.DialectLevel < 2002)
+                ctx.Edition.Error("COBOLNET0876",
                     "USE AFTER EXCEPTION OBJECT is the COBOL-2002+ exception-object declarative "
-                    + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
-            Ctx.EcState.F3 = true;   // the ONE "EC declaratives present" feature bit — F4 rides the same group gate
+                    + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+            ctx.EcState.F3 = true;   // the ONE "EC declaratives present" feature bit — F4 rides the same group gate
             string cname = use.cobolWord().GetText();
-            if (OoClasses?.Find(cname) is not { } cls)
+            if (ctx.Data.OoClasses?.Find(cname) is not { } cls)
             {
-                data.Edition.Error("COBOLNET0859",
+                ctx.Edition.Error("COBOLNET0859",
                     $"declarative section '{sectionName}': USE AFTER EXCEPTION OBJECT '{cname}' does not "
                     + "name a class of the compilation group (ISO §14.9.49.3 SR16; interface entries are "
                     + "the interface-RAISING refinement)");
@@ -123,7 +226,7 @@ public sealed partial class StatementBinder
             var pn = use.procedureName();
             string head = pn.GetChild(0).GetText();
             string? qualifier = pn.ChildCount >= 3 ? pn.GetChild(2).GetText() : null;
-            foreach (var report in data.Reports)
+            foreach (var report in ctx.Data.Reports)
             {
                 if (qualifier is not null && !report.Name.Equals(qualifier, StringComparison.OrdinalIgnoreCase))
                     continue;
@@ -131,12 +234,12 @@ public sealed partial class StatementBinder
                         head.Equals(g.Name, StringComparison.OrdinalIgnoreCase)) is { } group)
                 {
                     if (!_declReportGroups.Add(group))
-                        data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': report group "
+                        ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': report group "
                             + $"'{head}' already has a USE BEFORE REPORTING procedure (ISO §14.9.49 SR9)");
                     return new DeclScope([], null, global, group);
                 }
             }
-            data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
+            ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE BEFORE REPORTING "
                 + $"'{head}' does not name a report group (ISO §14.9.49 SR9)");
             return null;
         }
@@ -153,7 +256,7 @@ public sealed partial class StatementBinder
         if (mode is { } m)
         {
             if (!_declScopedModes.Add(m))
-                data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': this open mode already "
+                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': this open mode already "
                     + "has a USE procedure in this source element (ISO §14.9.49 SR7)");
             return new DeclScope([], m, global, null);
         }
@@ -162,20 +265,20 @@ public sealed partial class StatementBinder
         foreach (var fn in target.fileName())
         {
             string fname = fn.GetText();
-            if (!data.FilesByName.TryGetValue(fname, out var file))
+            if (!ctx.Data.FilesByName.TryGetValue(fname, out var file))
             {
-                data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE names unknown "
+                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE names unknown "
                     + $"file '{fname}' (ISO §14.9.49)");
                 continue;
             }
             if (file.IsSortMerge)
             {
-                data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE may not name the "
+                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE may not name the "
                     + $"sort/merge file '{fname}' (ISO §14.9.49 SR2)");
                 continue;
             }
             if (!_declScopedFiles.Add(fname))
-                data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': file '{fname}' already "
+                ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': file '{fname}' already "
                     + "has a USE procedure in this source element (ISO §14.9.49 SR8)");
             files.Add(file);
         }
@@ -189,32 +292,32 @@ public sealed partial class StatementBinder
     /// division), and the per-name edition window. The whole format is 2002+ (the EC model's introduction).</summary>
     private DeclScope? DeclBindUseF3(Core.UseEcEntryContext[] entries, string sectionName)
     {
-        if (data.Edition.DialectLevel < 2002)
-            data.Edition.Error("COBOLNET0877",
+        if (ctx.Edition.DialectLevel < 2002)
+            ctx.Edition.Error("COBOLNET0877",
                 "USE AFTER EXCEPTION CONDITION (Format 3) is the COBOL-2002+ exception-condition declarative "
-                + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
-        Ctx.EcState.F3 = true;
+                + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        ctx.EcState.F3 = true;
         var pairs = new List<(string Ec, FileModel? File)>();
         foreach (var entry in entries)
         {
             string raw = entry.cobolWord().GetText();
             if (!Runtime.Exceptions.ExceptionCatalog.TryGet(raw, out var info))
             {
-                data.Edition.Error("COBOLNET0711", $"declarative section '{sectionName}': '{raw}' is not an "
+                ctx.Edition.Error("COBOLNET0711", $"declarative section '{sectionName}': '{raw}' is not an "
                     + "exception-name of ISO/IEC 1989 §14.6.13.1 (and not a valid EC-USER-/EC-IMP- name)");
                 continue;
             }
-            if (info.Level == 3 && info.IntroducedIn > data.Edition.DialectLevel)
+            if (info.Level == 3 && info.IntroducedIn > ctx.Edition.DialectLevel)
             {
-                data.Edition.Error("COBOLNET0878", $"exception-name {info.Name} was introduced by ISO/IEC "
+                ctx.Edition.Error("COBOLNET0878", $"exception-name {info.Name} was introduced by ISO/IEC "
                     + $"1989:{info.IntroducedIn} — it requires --std {info.IntroducedIn} or later "
-                    + $"(targeting COBOL-{data.Edition.DialectLevel})");
+                    + $"(targeting COBOL-{ctx.Edition.DialectLevel})");
                 continue;
             }
             var fileNames = entry.fileName();
             if (fileNames.Length > 0 && !Runtime.Exceptions.ExceptionCatalog.IsIoName(info.Name))
             {
-                data.Edition.Error("COBOLNET0715", $"declarative section '{sectionName}': FILE may be specified "
+                ctx.Edition.Error("COBOLNET0715", $"declarative section '{sectionName}': FILE may be specified "
                     + $"only with an exception-name beginning 'EC-I-O' — '{info.Name}' does not (ISO §14.9.49.3 SR13)");
                 continue;
             }
@@ -226,15 +329,15 @@ public sealed partial class StatementBinder
             foreach (var fn in fileNames)
             {
                 string fname = fn.GetText();
-                if (!data.FilesByName.TryGetValue(fname, out var file))
+                if (!ctx.Data.FilesByName.TryGetValue(fname, out var file))
                 {
-                    data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE names unknown "
+                    ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE names unknown "
                         + $"file '{fname}' (ISO §14.9.49)");
                     continue;
                 }
                 if (file.IsSortMerge)
                 {
-                    data.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE may not name "
+                    ctx.Edition.Error("COBOLNET0897", $"declarative section '{sectionName}': USE may not name "
                         + $"the sort/merge file '{fname}' (ISO §14.9.49.3 SR2)");
                     continue;
                 }
@@ -247,8 +350,8 @@ public sealed partial class StatementBinder
         {
             // SR14: the same (exception-name, file-name) pair shall not appear in more than one USE statement
             // within the same procedure division (the set spans sections — _declEcPairs is per division).
-            if (!Ctx.EcState.DeclEcPairs.Add(ec + "|" + (file?.CobolName ?? "")))
-                data.Edition.Error("COBOLNET0716", $"declarative section '{sectionName}': the exception-name/"
+            if (!ctx.EcState.DeclEcPairs.Add(ec + "|" + (file?.CobolName ?? "")))
+                ctx.Edition.Error("COBOLNET0716", $"declarative section '{sectionName}': the exception-name/"
                     + $"file pair '{ec}{(file is null ? "" : " FILE " + file.CobolName)}' is already specified in "
                     + "another USE statement of this procedure division (ISO §14.9.49.3 SR14)");
             else
