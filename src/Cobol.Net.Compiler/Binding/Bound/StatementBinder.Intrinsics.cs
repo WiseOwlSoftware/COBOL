@@ -47,7 +47,7 @@ public sealed partial class StatementBinder
     /// <summary>FUNCTION call as a MOVE sending operand (the <c>BindMove</c> hook) — and the operand shape every
     /// general-operand channel shares: the bound expression wrapped as a <see cref="BoundComputedOperand"/> (a
     /// LENGTH fold surfaces as its literal; an error stays a loud named operand).</summary>
-    private BoundOperand IntrinsicOperand(Core.FunctionCallContext fc) => OperandOf(BindIntrinsic(fc));
+    internal BoundOperand IntrinsicOperand(Core.FunctionCallContext fc) => OperandOf(BindIntrinsic(fc));
 
     private static BoundOperand OperandOf(BoundExpr e) => e switch
     {

@@ -32,10 +32,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private InspectBinder? _inspectBinder;
     private EvaluateBinder? _evaluateBinder;
     private StringUnstringBinder? _stringUnstringBinder;
+    private MoveBinder? _moveBinder;
+    private CorrespondingBinder? _corrBinder;
+    private InitializeBinder? _initializeBinder;
     private BinderContext Ctx => _binderCtx ??= new BinderContext(data, refs);
     private InspectBinder Inspect => _inspectBinder ??= new InspectBinder(Ctx, this);
     private EvaluateBinder Evaluate => _evaluateBinder ??= new EvaluateBinder(Ctx, this);
     private StringUnstringBinder Strings => _stringUnstringBinder ??= new StringUnstringBinder(Ctx, this);
+    private MoveBinder Move => _moveBinder ??= new MoveBinder(Ctx, this, Corr);
+    private CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
+    private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
     private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
     private readonly Dictionary<string, int> _paraIndex = new(StringComparer.OrdinalIgnoreCase);
@@ -190,7 +196,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private BoundStatement BindStatementCore(Core.StatementContext s) => s switch
     {
         _ when s.displayStatement() is { } d => BindDisplay(d),
-        _ when s.moveStatement() is { } m => BindMove(m),
+        _ when s.moveStatement() is { } m => Move.Bind(m),
         _ when s.addStatement() is { } a => BindAdd(a),
         _ when s.subtractStatement() is { } sub => BindSubtract(sub),
         _ when s.multiplyStatement() is { } mul => BindMultiply(mul),
@@ -218,7 +224,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.stringStatement() is { } sstr => Strings.BindString(sstr),
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => BindAccept(ac),
-        _ when s.initializeStatement() is { } ini => BindInitialize(ini),
+        _ when s.initializeStatement() is { } ini => Init.Bind(ini),
         _ when s.continueStatement() is not null => new BoundNop(),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
@@ -517,52 +523,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundDisplay(ops, display.displayNoAdvancing() is not null);
     }
 
-    private BoundStatement BindMove(Core.MoveStatementContext move)
-    {
-        if (move.CORRESPONDING() is not null || move.CORR() is not null)   // Format 2 — BOTH tokens (§14.9.25.3 SR11)
-            return BindCorresponding(CorrVerb.Move, move.dataReference(), CobolRounding.Truncation, null);
-        if (move.moveSendingOperand() is not { } send || move.moveReceivingPhrase()?.dataReferenceList() is not { } targets)
-            return new BoundUnsupported("MOVE CORRESPONDING / unsupported MOVE form");
-        BoundOperand source = send.literal() is { } lit ? LiteralOperand(lit)
-            : send.dataReference() is { } dref ? FieldOperand(dref)
-            // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).
-            : send.functionCall() is { } sfc ? IntrinsicOperand(sfc)
-            : new BoundOperandError("MOVE source");
-        var resolved = ResolveTargets(targets.dataReference());
-        // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128) + the SR1 class-index check: an
-        // alphanumeric figurative or ALL "literal" moving to a numeric / numeric-edited receiver — 0902
-        // removed at 2023 except the digit-only-ALL-to-integer case, which is 0903 obsolete
-        // (StatementBinder.MoveFigurative.cs).
-        MoveFigurativeEditionGates(source, resolved);
-        // The Table 16 boolean/national legality arms + SR7 (Phase 4a — StatementBinder.MoveFigurative.cs).
-        MoveCategoryLegality(source, resolved);
-        // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.2.4;
-        // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
-        MarkRefModStoreImage(resolved);
-        CheckStrongMove(source, resolved);   // §14.9.25.3 SR2 — a strongly-typed group receiver wants a same-type sender (D17 inc 2)
-        return new BoundMove(source, resolved);
-    }
-
-    /// <summary>ISO §14.9.25.3 SR2 (data-model D17): if a receiving operand is a strongly-typed group, the sending
-    /// operand shall be a group item of the SAME type (§8.5.3.3 — a strong record accepts only a same-type whole-record
-    /// source; its individual fields are still set by ordinary field MOVEs, and a strong-type SENDER to a non-strong
-    /// receiver is permitted per Table 16). A mismatch → COBOLNET1533.</summary>
-    private void CheckStrongMove(BoundOperand source, IReadOnlyList<Place> receivers)
-    {
-        DataItem? sender = source is BoundFieldOperand sf ? sf.Place.Item : null;
-        foreach (var r in receivers)
-        {
-            if (!StrongTypeModel.IsStrongGroup(r.Item)) continue;
-            if (sender is null || !StrongTypeModel.SameStrongType(sender, r.Item))
-                data.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
-                    + $"'{r.Item.CobolName ?? r.Item.CsName}': the sending operand shall be a group item of the same "
-                    + "type (ISO §14.9.25.3 SR2 / §8.5.3.3)");
-        }
-    }
-
     private BoundStatement BindAdd(Core.AddStatementContext add)
     {
-        if (add.addOperandList() is not { } operands) return BindAddCorresponding(add);   // Format 3 (§14.9.2.2)
+        if (add.addOperandList() is not { } operands) return Corr.BindAddCorresponding(add);   // Format 3 (§14.9.2.2)
         var addends = operands.addOperand().Select(BindExpr).ToList();
         var sizeErr = BindSizeError(add.arithmeticOnSizeError());
         if (add.addGivingPhrase() is { } giving)
@@ -572,13 +535,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             if (add.addToPhrase() is { } toAddend)
                 addends.AddRange(DataRefs(toAddend).Select(BindExpr));
             var givingRecv = Receivers(giving.receivingArithmeticOperand());
-            CheckComposite("ADD", addends, givingRecv);
+            Ctx.Validation.CheckComposite("ADD", addends, givingRecv);
             return new BoundAddGiving(addends, givingRecv, sizeErr);
         }
         if (add.addToPhrase() is { } to)
         {
             var recv = Receivers(to.receivingArithmeticOperand());
-            CheckComposite("ADD", addends, recv);
+            Ctx.Validation.CheckComposite("ADD", addends, recv);
             return new BoundAddTo(addends, recv, sizeErr);
         }
         return new BoundUnsupported("ADD form");
@@ -586,20 +549,20 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private BoundStatement BindSubtract(Core.SubtractStatementContext sub)
     {
-        if (sub.subtractOperandList() is not { } operands) return BindSubtractCorresponding(sub);   // Format 3 (§14.9.44.2)
+        if (sub.subtractOperandList() is not { } operands) return Corr.BindSubtractCorresponding(sub);   // Format 3 (§14.9.44.2)
         var minuends = operands.subtractOperand().Select(BindExpr).ToList();
         var sizeErr = BindSizeError(sub.arithmeticOnSizeError());
         if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
         {
             var fromX = BindExpr(from);
             var recv = Receivers(giving.receivingArithmeticOperand());
-            CheckComposite("SUBTRACT", [.. minuends, fromX], recv);
+            Ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], recv);
             return new BoundSubtractGiving(minuends, fromX, recv, sizeErr);
         }
         if (sub.subtractFromPhrase()?.subtractFromOperand() is { } targets)
         {
             var recv = Receivers(targets.receivingArithmeticOperand());
-            CheckComposite("SUBTRACT", minuends, recv);
+            Ctx.Validation.CheckComposite("SUBTRACT", minuends, recv);
             return new BoundSubtractFrom(minuends, recv, sizeErr);
         }
         return new BoundUnsupported("SUBTRACT form");
@@ -615,12 +578,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         {
             var b = BindExpr(byOps[0]);
             var recv = Receivers(giving.receivingArithmeticOperand());
-            CheckComposite("MULTIPLY", [a, b], recv);
+            Ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv);
             return new BoundMultiplyGiving(a, b, recv, sizeErr);
         }
         // In-place: each BY operand is itself the receiver (target ← target × a).
         var byRecv = Receivers(byOps);
-        CheckComposite("MULTIPLY", [a], byRecv);
+        Ctx.Validation.CheckComposite("MULTIPLY", [a], byRecv);
         return new BoundMultiplyBy(a, byRecv, sizeErr);
     }
 
@@ -644,7 +607,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             BoundExpr divisor = div.divideIntoPhrase() is not null ? a
                 : div.divideByPhrase() is { } b ? BindExpr(b.divideOperand())
                 : a;
-            CheckComposite("DIVIDE", [dividend, divisor], quotients);
+            Ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients);
             return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
         }
 
@@ -654,18 +617,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             {
                 var dividendX = BindExpr(into.divideIntoOperand());
                 var recv = Receivers(giving.receivingArithmeticOperand());
-                CheckComposite("DIVIDE", [dividendX, a], recv);
+                Ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv);
                 return new BoundDivideGiving(dividendX, a, recv, sizeErr);
             }
             var intoRecv = Receivers(into.divideIntoOperand().receivingArithmeticOperand());
-            CheckComposite("DIVIDE", [a], intoRecv);
+            Ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv);
             return new BoundDivideInto(a, intoRecv, sizeErr);   // target ← target ÷ a
         }
         if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } gv)
         {
             var divisorX = BindExpr(byPhrase.divideOperand());
             var recv = Receivers(gv.receivingArithmeticOperand());
-            CheckComposite("DIVIDE", [a, divisorX], recv);
+            Ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv);
             return new BoundDivideGiving(a, divisorX, recv, sizeErr);
         }
         return new BoundUnsupported("DIVIDE form");
@@ -754,10 +717,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     // ── ON SIZE ERROR phrase (ISO §14.7.5) ───────────────────────────────────────────────────────────────────
 
-    private SizeErrorPhrase? BindSizeError(Core.ArithmeticOnSizeErrorContext? ctx) =>
+    internal SizeErrorPhrase? BindSizeError(Core.ArithmeticOnSizeErrorContext? ctx) =>
         ctx is null ? null : BuildSizeError(ctx.statementBlock(), PhraseBlocks.StartsWithNot(ctx));
 
-    private SizeErrorPhrase? BindSizeError(Core.ComputeOnSizeErrorContext? ctx) =>
+    internal SizeErrorPhrase? BindSizeError(Core.ComputeOnSizeErrorContext? ctx) =>
         ctx is null ? null : BuildSizeError(ctx.statementBlock(), PhraseBlocks.StartsWithNot(ctx));
 
     /// <summary>Build the phrase from the (1 or 2) statement blocks — the shared two-branch shape via the ONE
@@ -1237,7 +1200,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     // Receiving references resolve through ResolveReceiving (StatementBinder.ReportWriter.cs) — the ONE
     // receiving-side chokepoint: a report counter receiver is rejected at bind (LINE-COUNTER illegal per ISO
     // §8.4.3.15 SR3; PAGE-COUNTER staged loud) instead of being SILENTLY dropped by .OfType<Place>() (§1.4).
-    private List<Place> ResolveTargets(IEnumerable<Core.DataReferenceContext> targets) =>
+    internal List<Place> ResolveTargets(IEnumerable<Core.DataReferenceContext> targets) =>
         targets.Select(ResolveReceiving).OfType<Place>().ToList();
 
     // ── ROUNDED phrase → rounding mode + receiver resolution (ISO §14.7.4) ───────────────────────────────────
@@ -1246,7 +1209,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// (rule 2); a bare <c>ROUNDED</c> → the program's DEFAULT ROUNDED mode (rule 1 / §11.9.6 — the OPTIONS
     /// <c>DEFAULT ROUNDED MODE IS x</c> clause, defaulting to NEAREST-AWAY-FROM-ZERO when absent); an explicit
     /// <c>MODE IS x</c> → the named mode (via the shared <see cref="RoundingModes"/> mapping).</summary>
-    private CobolRounding RoundingOf(Core.RoundedPhraseContext? phrase)
+    internal CobolRounding RoundingOf(Core.RoundedPhraseContext? phrase)
     {
         if (phrase is null) return CobolRounding.Truncation;
         if (phrase.roundingModeName() is { } mode)
@@ -1257,50 +1220,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             return RoundingModes.Map(mode);
         }
         return data.Options.DefaultRounding;
-    }
-
-    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §14.7 rule 2, NATIVE arithmetic, the four
-    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §8.8.1.2 r7): the hypothetical item
-    /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
-    /// edition's digit cap (18 at COBOL-85; the 2023 text says 31). Float/binary-native operands are excluded
-    /// (rule 2b — the composite is then over the remaining operands).</summary>
-    private void CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
-    {
-        if (data.Options.Arithmetic != ArithmeticMode.Native) return;   // §14.7 r2 applies to native only
-        int maxInt = 0, maxFrac = 0;
-        void Shape(int digits, int scale)
-        {
-            maxInt = Math.Max(maxInt, digits - scale);   // a negative (P-scaled) scale ADDS integer positions
-            maxFrac = Math.Max(maxFrac, Math.Max(0, scale));
-        }
-        void OfExpr(BoundExpr e)
-        {
-            switch (e)
-            {
-                case BoundNumRef { Place.Item.Pic: { Category: PicCategory.Numeric, IsFloat: false } p }:
-                    Shape(p.Digits, p.Scale);
-                    break;
-                case BoundNumLiteral lit:
-                    string t = lit.Text.TrimStart('+', '-');
-                    int dot = t.IndexOf('.');
-                    Shape(t.Count(char.IsAsciiDigit), dot < 0 ? 0 : t.Length - dot - 1);
-                    break;
-            }
-        }
-        foreach (var e in operands) OfExpr(e);
-        foreach (var r in receivers)
-            if (r.Place.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } rp)
-                Shape(rp.Digits, rp.Scale);
-
-        // The cap is 31 at EVERY edition (ISO §14.7 rule 2a — the 2023 text). A COBOL-85-specific tightening to
-        // 18 was considered and REFUTED by the conformance corpus itself: CCVS-85 NC101A multiplies 9(3)V9(3) by
-        // 9(18) (composite 21) as a deliberate SIZE ERROR test, and every conforming '85 implementation accepts
-        // it — so the 18-digit figure does not govern the composite (it caps '85 PICTURE/literal capacity only).
-        int composite = maxInt + maxFrac;
-        if (composite <= 31) return;
-        data.Edition.Error("COBOLNET0805",
-            $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
-            + "ISO/IEC 1989 caps the composite of operands at 31 digits (§14.7 rule 2)");
     }
 
     /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to

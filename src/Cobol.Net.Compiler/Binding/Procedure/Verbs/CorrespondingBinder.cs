@@ -1,64 +1,39 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolNet.Runtime;
-using CobolNet.Frontend.Generated;
-
+using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Frontend.Generated;
+using CobolNet.Runtime;
 
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
-/// <summary>The verb a CORRESPONDING statement expands into per-pair implied statements
-/// (ISO §14.9.25.2 MOVE Format 2 / §14.9.2.2 ADD Format 3 / §14.9.44.2 SUBTRACT Format 3).</summary>
-public enum CorrVerb { Move, Add, Subtract }
-
-/// <summary>One hoisted group-operand anchor, emitted ONCE before the first implied statement — §14.7.6: all item
-/// identification for the pairs (including any subscript on the group operands) is done at the START of the
-/// statement, never per implied statement. <paramref name="IsRef"/> selects the C# form: a <c>ref var</c> local
-/// aliasing a member-path group (its <c>CobolTable.At</c> subscripts evaluate exactly once), or a <c>long</c> local
-/// pinning a Tier-B REDEFINES view group's computed window offset.</summary>
-public sealed record CorrespondingHoist(string Local, string Init, bool IsRef);
-
-/// <summary>One corresponding pair (§14.7.6): the resolved sending and receiving <see cref="Place"/>s of an
-/// implied per-pair statement. Both are anchored on the statement's hoisted group locals where applicable.</summary>
-public sealed record CorrespondingPair(Place Source, Place Target);
-
-/// <summary>A MOVE/ADD/SUBTRACT CORRESPONDING statement, expanded at BIND time into its corresponding pairs in D1
-/// declaration order (§14.7.6 — "the order in which the elements in the group data item immediately following
-/// CORRESPONDING are specified"). <paramref name="Rounding"/> is the statement's ONE rounded-phrase mode, applied
-/// to EVERY pair store (§14.9.2.2/§14.9.44.2 — a single rounded-phrase after the receiving group); MOVE carries
-/// <see cref="CobolRounding.Truncation"/>. <paramref name="SizeError"/> is STATEMENT-level (§14.7.6): one latching
-/// flag across all checked pair stores, ONE phrase dispatch after every pair completes, the NOT branch suppressed
-/// when any pair erred — never a per-pair phrase.</summary>
-public sealed record BoundCorresponding(
-    CorrVerb Verb,
-    IReadOnlyList<CorrespondingHoist> Hoists,
-    IReadOnlyList<CorrespondingPair> Pairs,
-    CobolRounding Rounding,
-    SizeErrorPhrase? SizeError) : BoundStatement;
-
-public sealed partial class StatementBinder
+/// <summary>The MOVE/ADD/SUBTRACT CORRESPONDING binder (P7 Step 10e — a real collaborator over
+/// <see cref="BinderContext"/>): the ONE <c>_corrCounter</c> owner — hoist-local numbering spans all three
+/// verbs' statements of the unit, so exactly ONE instance exists per unit (the byte-exact-snapshot hazard
+/// the census flagged). The four bound types stayed in <c>Binding/Bound/BoundCorresponding.cs</c>.</summary>
+internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder host)
 {
     private int _corrCounter;   // unique hoist-local ids (__corrNs / __corrNt) across the program unit
 
     /// <summary>Bind <c>ADD {CORRESPONDING|CORR} id-4 TO id-5 [ROUNDED] [ON SIZE ERROR …] [END-ADD]</c>
     /// (ISO §14.9.2.2 Format 3; SR5 — CORR and CORRESPONDING are equivalent, BOTH tokens tested). The one
     /// rounded-phrase follows the receiving group and applies to every implied statement; <c>ROUNDED MODE IS</c>
-    /// is edition-gated inside <see cref="RoundingOf"/> (2014+, §14.7.4). Reached from <see cref="BindAdd"/> when
+    /// is edition-gated inside <c>RoundingOf</c> (2014+, §14.7.4). Reached from <c>StatementBinder.BindAdd</c> when
     /// the operand-list alternative is absent — i.e. exactly the Format-3 parse.</summary>
-    private BoundStatement BindAddCorresponding(Core.AddStatementContext add) =>
+    public BoundStatement BindAddCorresponding(Core.AddStatementContext add) =>
         add.CORRESPONDING() is not null || add.CORR() is not null
-            ? BindCorresponding(CorrVerb.Add, add.dataReference(), RoundingOf(add.roundedPhrase()),
-                BindSizeError(add.arithmeticOnSizeError()))
+            ? Bind(CorrVerb.Add, add.dataReference(), host.RoundingOf(add.roundedPhrase()),
+                host.BindSizeError(add.arithmeticOnSizeError()))
             : new BoundUnsupported("ADD statement form");
 
     /// <summary>Bind <c>SUBTRACT {CORRESPONDING|CORR} id-4 FROM id-5 [ROUNDED] [ON SIZE ERROR …] [END-SUBTRACT]</c>
     /// (ISO §14.9.44.2 Format 3; SR5 — CORR ≡ CORRESPONDING).</summary>
-    private BoundStatement BindSubtractCorresponding(Core.SubtractStatementContext sub) =>
+    public BoundStatement BindSubtractCorresponding(Core.SubtractStatementContext sub) =>
         sub.CORRESPONDING() is not null || sub.CORR() is not null
-            ? BindCorresponding(CorrVerb.Subtract, sub.dataReference(), RoundingOf(sub.roundedPhrase()),
-                BindSizeError(sub.arithmeticOnSizeError()))
+            ? Bind(CorrVerb.Subtract, sub.dataReference(), host.RoundingOf(sub.roundedPhrase()),
+                host.BindSizeError(sub.arithmeticOnSizeError()))
             : new BoundUnsupported("SUBTRACT statement form");
 
     /// <summary>
@@ -71,15 +46,15 @@ public sealed partial class StatementBinder
     /// groups) and the rule-4 object/pointer/message-tag exclusion classes have no representation in this data
     /// model yet — this binder is the seam that gates them when those usages bind.
     /// </summary>
-    private BoundStatement BindCorresponding(
+    public BoundStatement Bind(
         CorrVerb verb, Core.DataReferenceContext[] groups, CobolRounding rounding, SizeErrorPhrase? sizeErr)
     {
         string verbName = verb switch { CorrVerb.Move => "MOVE", CorrVerb.Add => "ADD", _ => "SUBTRACT" };
         if (groups.Length < 2)
             return new BoundUnsupported($"{verbName} CORRESPONDING operand shape");
-        if (refs.Resolve(groups[0]) is not { } src)
+        if (ctx.Refs.Resolve(groups[0]) is not { } src)
             return new BoundUnsupported($"{verbName} CORRESPONDING source group '{groups[0].GetText()}'");
-        if (refs.Resolve(groups[1]) is not { } dst)
+        if (ctx.Refs.Resolve(groups[1]) is not { } dst)
             return new BoundUnsupported($"{verbName} CORRESPONDING receiving group '{groups[1].GetText()}'");
         // Both operands shall be GROUP items (MOVE §14.9.25.3 SR12; ADD §14.9.2.3 SR6; SUBTRACT §14.9.44.3 SR6).
         // SR12's "not reference-modified" and SR6's "not level-66" hold structurally here: reference modification
@@ -92,8 +67,8 @@ public sealed partial class StatementBinder
 
         int id = _corrCounter++;
         var hoists = new List<CorrespondingHoist>();
-        if (CorrAccess.Create(src, $"__corr{id}s", hoists, refs) is not { } srcAcc
-            || CorrAccess.Create(dst, $"__corr{id}t", hoists, refs) is not { } dstAcc)
+        if (CorrAccess.Create(src, $"__corr{id}s", hoists, ctx.Refs) is not { } srcAcc
+            || CorrAccess.Create(dst, $"__corr{id}t", hoists, ctx.Refs) is not { } dstAcc)
             return new BoundUnsupported($"{verbName} CORRESPONDING group operand storage shape "
                 + $"('{src.Item.CobolName}' / '{dst.Item.CobolName}' is neither a member path nor a REDEFINES view)");
 
@@ -169,7 +144,7 @@ public sealed partial class StatementBinder
             // The per-edition composite of operands is per PAIR — §14.9.2.3 SR1c / §14.9.44.3 SR1c: "the two
             // corresponding operands for each separate pair".
             if (verb is not CorrVerb.Move)
-                CheckComposite(verbName, [new BoundNumRef(sp)], [new Receiver(dp, rounding)]);
+                ctx.Validation.CheckComposite(verbName, [new BoundNumRef(sp)], [new Receiver(dp, rounding)]);
             pairs.Add(new CorrespondingPair(sp, dp));
         }
         return null;
@@ -216,7 +191,7 @@ public sealed partial class StatementBinder
             PicCategory.Numeric when !sp.IsFloat && sp.Scale <= 0 => true,   // integer row: all modeled Yes
             PicCategory.Numeric => !dstIsAlphanumeric,                       // noninteger row: AN is No
             PicCategory.NumericEdited =>                                     // NE row: AN Yes; N/NE = de-editing
-                dstIsAlphanumeric || data.Edition.DialectLevel >= 2002,      // (ISO-2002 introduction)
+                dstIsAlphanumeric || ctx.Edition.DialectLevel >= 2002,      // (ISO-2002 introduction)
             _ => false,
         };
     }

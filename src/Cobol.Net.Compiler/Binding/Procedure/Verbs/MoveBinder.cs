@@ -1,10 +1,13 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolNet.Editions;
-
+using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Frontend.Generated;
+using CobolNet.Runtime;
 
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
+
+using Core = CobolParserCore;
 
 /// <summary>
 /// The MOVE figurative-constant edition gates (ISO/IEC 1989:2023 §14.9.25.3 SR5; roadmap Phase 2 W2 track A —
@@ -18,8 +21,39 @@ namespace CobolNet.Binding.Bound;
 /// case is itself obsolete at 2023 (the SR5 NOTE; Annex F.2 item 2) — row "move-all-digit-integer-obsolete-2023",
 /// a 0903 warning at ≥2023 and silent below.
 /// </summary>
-public sealed partial class StatementBinder
+/// <summary>The MOVE verb binder (P7 Step 10e — a real collaborator over <see cref="BinderContext"/>;
+/// absorbs the former <c>StatementBinder.MoveFigurative</c> partial WHOLE: the SR1 class-index errors, the
+/// SR5 pre-removal <c>MarkImageForced</c> storage marking, the Table-16 legality arms, and the W2 ref-mod
+/// image marking fire at the SAME per-statement points — the collected-fact choreography the
+/// <c>StorageFormPass</c> and <c>VersionConformancePass.GateMove</c> depend on is byte-preserved).</summary>
+internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, CorrespondingBinder corr)
 {
+    public BoundStatement Bind(Core.MoveStatementContext move)
+    {
+        if (move.CORRESPONDING() is not null || move.CORR() is not null)   // Format 2 — BOTH tokens (§14.9.25.3 SR11)
+            return corr.Bind(CorrVerb.Move, move.dataReference(), CobolRounding.Truncation, null);
+        if (move.moveSendingOperand() is not { } send || move.moveReceivingPhrase()?.dataReferenceList() is not { } targets)
+            return new BoundUnsupported("MOVE CORRESPONDING / unsupported MOVE form");
+        BoundOperand source = send.literal() is { } lit ? host.LiteralOperand(lit)
+            : send.dataReference() is { } dref ? host.FieldOperand(dref)
+            // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).
+            : send.functionCall() is { } sfc ? host.IntrinsicOperand(sfc)
+            : new BoundOperandError("MOVE source");
+        var resolved = host.ResolveTargets(targets.dataReference());
+        // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128) + the SR1 class-index check: an
+        // alphanumeric figurative or ALL "literal" moving to a numeric / numeric-edited receiver — 0902
+        // removed at 2023 except the digit-only-ALL-to-integer case, which is 0903 obsolete
+        // (StatementBinder.MoveFigurative.cs).
+        MoveFigurativeEditionGates(source, resolved);
+        // The Table 16 boolean/national legality arms + SR7 (Phase 4a — StatementBinder.MoveFigurative.cs).
+        MoveCategoryLegality(source, resolved);
+        // A ref-mod slice store on a numeric-DISPLAY receiver needs image backing for ANY sender (§8.4.2.4;
+        // the W2 adversarial-review round-trip-loss fix — see MarkRefModStoreImage).
+        MarkRefModStoreImage(resolved);
+        ctx.Validation.CheckStrongMove(source, resolved);   // §14.9.25.3 SR2 — pure check (D17 inc 2)
+        return new BoundMove(source, resolved);
+    }
+
     /// <summary>
     /// Apply the §14.9.25.3 SR5 gates to one bound MOVE (Format 1) and flag the pre-removal receivers'
     /// storage. Exemptions honored:
@@ -51,12 +85,12 @@ public sealed partial class StatementBinder
         // Message-tag/object/pointer classes cannot reach a bound MOVE yet (their usages are compile-gated
         // skeletons, W2 track B) — this check gains those arms when their phases land.
         if (source is BoundFieldOperand { Place.Item.Pic.Usage: Usage.Index } sIdx)
-            data.Edition.Error("COBOLNET0809",
+            ctx.Edition.Error("COBOLNET0809",
                 $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60 GR10 — only SET, "
                 + $"SEARCH, and relation conditions may reference an index data item) — MOVE {sIdx.Place.Item.CobolName}");
         foreach (var t in targets)
             if (t.Item.Pic is { Usage: Usage.Index })
-                data.Edition.Error("COBOLNET0809",
+                ctx.Edition.Error("COBOLNET0809",
                     $"a MOVE operand shall not be of class index (ISO §14.9.25.3 SR1; §13.18.60 GR10) — "
                     + $"MOVE … TO {t.Item.CobolName}");
 
@@ -84,7 +118,7 @@ public sealed partial class StatementBinder
             if (all is not { IsDigitOnly: true } && t is not (RedefViewPlace or NumericImagePlace)
                 && t.Item.Class is null
                 && pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
-                data.MarkImageForced(t.Item);   // the collected image fact
+                ctx.Data.MarkImageForced(t.Item);   // the collected image fact
         }
     }
 
@@ -152,7 +186,7 @@ public sealed partial class StatementBinder
 
             if (senderBinaryFamily && recvCat is not (PicCategory.Numeric or PicCategory.NumericEdited))
             {
-                data.Edition.Error("COBOLNET0819", $"{where}: a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending "
+                ctx.Edition.Error("COBOLNET0819", $"{where}: a BINARY-CHAR/-SHORT/-LONG/-DOUBLE sending "
                     + "operand shall reference only a numeric or numeric-edited receiver (ISO §14.9.25.3 SR8)");
                 continue;
             }
@@ -163,16 +197,16 @@ public sealed partial class StatementBinder
                 // boolean item; ZERO is boolean zeros by context (§8.3.3.6.4 GR4). Table 16 Boolean column:
                 // senders alphabetic / alphanumeric-edited / numeric / numeric-edited are "No".
                 if (source is BoundFigurative { Kind: not 'Z' })
-                    data.Edition.Error("COBOLNET0819", $"{where}: a figurative constant whose characters are "
+                    ctx.Edition.Error("COBOLNET0819", $"{where}: a figurative constant whose characters are "
                         + "not boolean characters shall not be moved to a boolean data item "
                         + "(ISO §14.9.25.3 SR7)");
                 else if (source is BoundAllLiteral bal && (bal.Literal.Length == 0
                              || !bal.Literal.All(c => c is '0' or '1')))
-                    data.Edition.Error("COBOLNET0819", $"{where}: ALL \"{bal.Literal}\" contains non-boolean "
+                    ctx.Edition.Error("COBOLNET0819", $"{where}: ALL \"{bal.Literal}\" contains non-boolean "
                         + "characters and shall not be moved to a boolean data item (ISO §14.9.25.3 SR7)");
                 else if (senderIsAlphabetic || senderIsAnEdited
                          || senderCat is PicCategory.Numeric or PicCategory.NumericEdited)
-                    data.Edition.Error("COBOLNET0819", $"{where}: MOVE of an alphabetic, alphanumeric-edited, "
+                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE of an alphabetic, alphanumeric-edited, "
                         + "numeric, or numeric-edited operand to a boolean data item is invalid "
                         + "(ISO §14.9.25.3 SR10, Table 16)");
             }
@@ -180,7 +214,7 @@ public sealed partial class StatementBinder
             {
                 // Table 16 National column: only a NON-integer numeric sender is "No".
                 if (senderNonInteger)
-                    data.Edition.Error("COBOLNET0819", $"{where}: MOVE of a non-integer numeric operand to a "
+                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE of a non-integer numeric operand to a "
                         + "national data item is invalid (ISO §14.9.25.3 SR10, Table 16)");
             }
             else if (senderCat is PicCategory.National)
@@ -188,7 +222,7 @@ public sealed partial class StatementBinder
                 // Table 16 National row: alphabetic / alphanumeric / alphanumeric-edited receivers are "No"
                 // (FUNCTION DISPLAY-OF §15.26 is the sanctioned national→alphanumeric narrowing — residue).
                 if (recvCat is PicCategory.Alphanumeric)
-                    data.Edition.Error("COBOLNET0819", $"{where}: MOVE of a national sending operand to an "
+                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE of a national sending operand to an "
                         + "alphabetic, alphanumeric, or alphanumeric-edited receiver is invalid (ISO "
                         + "§14.9.25.3 SR10, Table 16; FUNCTION DISPLAY-OF is the sanctioned conversion)");
             }
@@ -198,7 +232,7 @@ public sealed partial class StatementBinder
                 // (boolean → plain alphanumeric is "Yes").
                 if (t.Item.Pic is { IsAlphabetic: true }
                     || recvCat is PicCategory.Numeric or PicCategory.NumericEdited)
-                    data.Edition.Error("COBOLNET0819", $"{where}: MOVE of a boolean sending operand to an "
+                    ctx.Edition.Error("COBOLNET0819", $"{where}: MOVE of a boolean sending operand to an "
                         + "alphabetic, numeric, or numeric-edited receiver is invalid "
                         + "(ISO §14.9.25.3 SR10, Table 16)");
             }
@@ -223,6 +257,6 @@ public sealed partial class StatementBinder
         foreach (var t in targets)
             if (t is RefModPlace rm
                 && rm.Item is { Class: null, Pic: { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } } item)
-                data.MarkImageForced(item);   // the collected image fact
+                ctx.Data.MarkImageForced(item);   // the collected image fact
     }
 }

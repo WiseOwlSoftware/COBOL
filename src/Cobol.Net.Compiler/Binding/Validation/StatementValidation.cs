@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions.Diagnostics;
 
 namespace CobolNet.Binding.Validation;
 
@@ -66,6 +67,99 @@ internal sealed class StatementValidation(DataBinder data)
         if (!(p.Item.IsGroup || p.Item.Pic is { Usage: not Usage.Display })) return true;
         data.Edition.Error("COBOLNET0847", $"INSPECT operand '{refText}' shall be an elementary "
             + "usage-display item (ISO §14.9.22.3 SR2)");
+        return false;
+    }
+
+    // ── MOVE (ISO §14.9.25.3) — lifted at 10e ────────────────────────────────────────────────────────────────
+
+    /// <summary>ISO §14.9.25.3 SR2 (data-model D17): if a receiving operand is a strongly-typed group, the sending
+    /// operand shall be a group item of the SAME type (§8.5.3.3 — a strong record accepts only a same-type whole-record
+    /// source; its individual fields are still set by ordinary field MOVEs, and a strong-type SENDER to a non-strong
+    /// receiver is permitted per Table 16). A mismatch → COBOLNET1533.</summary>
+    public bool CheckStrongMove(BoundOperand source, IReadOnlyList<Place> receivers)
+    {
+        bool ok = true;
+        DataItem? sender = source is BoundFieldOperand sf ? sf.Place.Item : null;
+        foreach (var r in receivers)
+        {
+            if (!StrongTypeModel.IsStrongGroup(r.Item)) continue;
+            if (sender is null || !StrongTypeModel.SameStrongType(sender, r.Item))
+            {
+                ok = false;
+                data.Edition.Error(DiagnosticCatalog.StrongMoveMismatch, "MOVE to strongly-typed group "
+                    + $"'{r.Item.CobolName ?? r.Item.CsName}': the sending operand shall be a group item of the same "
+                    + "type (ISO §14.9.25.3 SR2 / §8.5.3.3)");
+            }
+        }
+        return ok;
+    }
+
+
+    // ── Arithmetic composite of operands (ISO §14.7 rule 2) — lifted at 10e ──────────────────────────────────
+
+    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §14.7 rule 2, NATIVE arithmetic, the four
+    /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §8.8.1.2 r7): the hypothetical item
+    /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
+    /// edition's digit cap (18 at COBOL-85; the 2023 text says 31). Float/binary-native operands are excluded
+    /// (rule 2b — the composite is then over the remaining operands).</summary>
+    public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
+    {
+        if (data.Options.Arithmetic != ArithmeticMode.Native) return true;   // §14.7 r2 applies to native only
+        int maxInt = 0, maxFrac = 0;
+        void Shape(int digits, int scale)
+        {
+            maxInt = Math.Max(maxInt, digits - scale);   // a negative (P-scaled) scale ADDS integer positions
+            maxFrac = Math.Max(maxFrac, Math.Max(0, scale));
+        }
+        void OfExpr(BoundExpr e)
+        {
+            switch (e)
+            {
+                case BoundNumRef { Place.Item.Pic: { Category: PicCategory.Numeric, IsFloat: false } p }:
+                    Shape(p.Digits, p.Scale);
+                    break;
+                case BoundNumLiteral lit:
+                    string t = lit.Text.TrimStart('+', '-');
+                    int dot = t.IndexOf('.');
+                    Shape(t.Count(char.IsAsciiDigit), dot < 0 ? 0 : t.Length - dot - 1);
+                    break;
+            }
+        }
+        foreach (var e in operands) OfExpr(e);
+        foreach (var r in receivers)
+            if (r.Place.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } rp)
+                Shape(rp.Digits, rp.Scale);
+
+        // The cap is 31 at EVERY edition (ISO §14.7 rule 2a — the 2023 text). A COBOL-85-specific tightening to
+        // 18 was considered and REFUTED by the conformance corpus itself: CCVS-85 NC101A multiplies 9(3)V9(3) by
+        // 9(18) (composite 21) as a deliberate SIZE ERROR test, and every conforming '85 implementation accepts
+        // it — so the 18-digit figure does not govern the composite (it caps '85 PICTURE/literal capacity only).
+        int composite = maxInt + maxFrac;
+        if (composite <= 31) return true;
+        data.Edition.Error("COBOLNET0805",
+            $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
+            + "ISO/IEC 1989 caps the composite of operands at 31 digits (§14.7 rule 2)");
+        return false;
+    }
+
+    // ── INITIALIZE (ISO §14.9.20.3) — lifted at 10e ──────────────────────────────────────────────────────────
+
+    /// <summary>SR6 — the same category shall not be repeated in a REPLACING phrase.</summary>
+    public bool CheckInitializeReplacingUnique(
+        IReadOnlyList<(InitializeCategory Cat, BoundOperand Value)> existing, InitializeCategory cat)
+    {
+        if (!existing.Any(r => r.Cat == cat)) return true;
+        data.Edition.Error("COBOLNET0834",
+            $"INITIALIZE REPLACING repeats category {cat} (ISO §14.9.20.3 SR6 — each category at most once)");
+        return false;
+    }
+
+    /// <summary>SR5 — identifier-1 shall not have a RENAMES clause (a level-66 entry).</summary>
+    public bool CheckInitializeTargetRenames(string name, IReadOnlyList<DataItem> named)
+    {
+        if (!named.Any(i => i.Renames is not null)) return true;
+        data.Edition.Error("COBOLNET0835",
+            $"INITIALIZE '{name}' — identifier-1 shall not have a RENAMES clause (ISO §14.9.20.3 SR5)");
         return false;
     }
 }

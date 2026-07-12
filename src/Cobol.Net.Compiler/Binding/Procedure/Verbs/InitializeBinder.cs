@@ -1,54 +1,20 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Common;
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
-/// <summary><c>INITIALIZE</c> (ISO §14.9.20), expanded at BIND time into the spec's series of implicit elementary
-/// MOVEs (§14.9.20 GR4) — there is no runtime INITIALIZE: each action is one per-elementary store (the full MOVE
-/// conversion/editing/padding/truncation rules apply at emit, through the ONE MOVE path) or a per-occurrence loop
-/// over a table dimension (GR5b2 — every occurrence of a table element is a possible receiving operand). Multiple
-/// identifier-1 expand in source order as separate statements (GR3); elementary receivers within a group appear in
-/// definition order (GR8).</summary>
-public sealed record BoundInitialize(IReadOnlyList<InitializeAction> Actions) : BoundStatement;
-
-/// <summary>One step of an expanded INITIALIZE.</summary>
-public abstract record InitializeAction;
-
-/// <summary>One implicit elementary MOVE (ISO §14.9.20 GR4): <paramref name="Source"/> stores into
-/// <paramref name="Target"/> under the MOVE rules (§14.9.25 — conversion, editing, JUSTIFIED/padding, truncation).</summary>
-public sealed record InitializeStore(Place Target, BoundOperand Source) : InitializeAction;
-
-/// <summary>The per-occurrence expansion of ONE OCCURS dimension (ISO §14.9.20 GR5b2): the body repeats for
-/// <paramref name="Var"/> = 1‥<paramref name="Count"/>; nested dimensions nest loops, outermost first (the loop
-/// variable is spliced into each body place's subscript position).</summary>
-public sealed record InitializeLoop(string Var, int Count, IReadOnlyList<InitializeAction> Body) : InitializeAction;
-
-/// <summary>A receiver the binder could not materialize as a typed place — the backend emits a loud runtime
-/// guard (COBOLNET_DESIGN §1.4), never a silent skip.</summary>
-public sealed record InitializeErrorAction(string Feature) : InitializeAction;
-
-/// <summary>The per-occurrence expansion of an OCCURS DYNAMIC dimension (ISO §14.9.20 GR10 / §8.5.1.9.1; data-model
-/// D9): the body repeats for <paramref name="Var"/> = 1‥<paramref name="CapacityExpr"/> — the table's CURRENT
-/// capacity, a RUN-TIME value (unlike the fixed-count <see cref="InitializeLoop"/>). The elements are initialized by
-/// the INITIALIZE statement's own stores (the category defaults / REPLACING / VALUE-phrase senders — NOT the OCCURS
-/// grow-seed), the capacity left unchanged (GR10: "all the elements of the table up to current capacity … are
-/// initialized … the current capacity is left unchanged").</summary>
-public sealed record InitializeDynLoop(string Var, string CapacityExpr, IReadOnlyList<InitializeAction> Body) : InitializeAction;
-
-/// <summary>The INITIALIZE data categories (ISO §14.9.20.2 category-name, per §8.5.2 class/category) — the
-/// COBOL-85 five plus the Phase-4a BOOLEAN and NATIONAL members (binder-side classification + GR6c default
-/// fills; the REPLACING/VALUE <em>category words</em> BOOLEAN/NATIONAL — like NATIONAL-EDITED, the pointer
-/// categories, and OBJECT-REFERENCE — are still absent from the initializeCategory grammar rule and arrive
-/// with their lexer tokens in the edition-gated grammar fragments, a parse error today = loud).</summary>
-public enum InitializeCategory { Alphabetic, Alphanumeric, AlphanumericEdited, Numeric, NumericEdited, Boolean, National }
-
-public sealed partial class StatementBinder
+/// <summary>The INITIALIZE verb binder (P7 Step 10e — a real collaborator over <see cref="BinderContext"/>):
+/// the ONE <c>_initializeLoopVar</c> owner (program-unique <c>__iniN</c> loop variables — one instance per
+/// unit or the emitted locals renumber/redeclare); <c>ActiveScope</c> is read through ctx PER CALL, never
+/// captured (the OO roster mutates it). The bound records stayed in <c>Binding/Bound/BoundInitialize.cs</c>;
+/// the 0830–0833 2002-surface gate block moved VERBATIM (Exec Step E folds it).</summary>
+internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
 {
     private int _initializeLoopVar;   // program-unique loop-variable counter (__iniN — `__` cannot occur in COBOL names)
 
@@ -65,25 +31,25 @@ public sealed partial class StatementBinder
     /// [ALL | category] TO VALUE, the THEN connective, THEN TO DEFAULT — Annex E additions) are edition-gated and
     /// bind for 2002+ targets. The whole receiver expansion happens here; the emitter renders each store through
     /// the canonical MOVE path.</summary>
-    private BoundStatement BindInitialize(Core.InitializeStatementContext ini)
+    public BoundStatement Bind(Core.InitializeStatementContext ini)
     {
         bool withFiller = ini.FILLER() is not null;
         var toValue = ini.initializeCategoryToValue();
         var replacing = ini.initializeReplacingPhrase();
         bool toDefault = ini.initializeDefaultPhrase() is not null;
 
-        if (data.Edition.DialectLevel < 2002)
+        if (ctx.Edition.DialectLevel < 2002)
         {
             // The post-85 surface was introduced by ISO/IEC 1989:2002 (§14.9.20 / Annex E) — rejected at --std 85.
-            string need = $"it requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})";
+            string need = $"it requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})";
             if (withFiller)
-                data.Edition.Error("COBOLNET0830", $"INITIALIZE … WITH FILLER — the FILLER phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
+                ctx.Edition.Error("COBOLNET0830", $"INITIALIZE … WITH FILLER — the FILLER phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
             if (toValue is not null)
-                data.Edition.Error("COBOLNET0831", $"INITIALIZE … TO VALUE — the VALUE phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
+                ctx.Edition.Error("COBOLNET0831", $"INITIALIZE … TO VALUE — the VALUE phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
             if (toDefault)
-                data.Edition.Error("COBOLNET0832", $"INITIALIZE … TO DEFAULT — the DEFAULT phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
+                ctx.Edition.Error("COBOLNET0832", $"INITIALIZE … TO DEFAULT — the DEFAULT phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
             if (replacing?.THEN() is not null)
-                data.Edition.Error("COBOLNET0833", $"INITIALIZE … THEN REPLACING — the THEN connective was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
+                ctx.Edition.Error("COBOLNET0833", $"INITIALIZE … THEN REPLACING — the THEN connective was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
         }
 
         var replacements = new List<(InitializeCategory Cat, BoundOperand Value)>();
@@ -91,15 +57,10 @@ public sealed partial class StatementBinder
             foreach (var item in replacing.initializeReplacingItem())
             {
                 InitializeCategory cat = InitializeCategoryOf(item.initializeCategory());
-                if (replacements.Any(r => r.Cat == cat))
-                {
-                    // ISO §14.9.20.3 SR6: the same category shall not be repeated in a REPLACING phrase.
-                    data.Edition.Error("COBOLNET0834",
-                        $"INITIALIZE REPLACING repeats category {cat} (ISO §14.9.20.3 SR6 — each category at most once)");
-                    continue;
-                }
-                BoundOperand value = item.literal() is { } lit ? LiteralOperand(lit)
-                    : item.dataReference() is { } sref ? FieldOperand(sref)
+                if (!ctx.Validation.CheckInitializeReplacingUnique(replacements, cat))
+                    continue;   // ISO §14.9.20.3 SR6 — reported by the pure check; the skip stays here
+                BoundOperand value = item.literal() is { } lit ? host.LiteralOperand(lit)
+                    : item.dataReference() is { } sref ? host.FieldOperand(sref)
                     : new BoundOperandError("INITIALIZE REPLACING sending operand");
                 replacements.Add((cat, value));
             }
@@ -124,8 +85,8 @@ public sealed partial class StatementBinder
         // stores under a RUN-TIME loop 1‥Capacity (RefReceiving within bounds does not grow). The stores are the
         // INITIALIZE statement's own (category defaults / REPLACING / VALUE-phrase) — NOT the OCCURS grow-seed.
         if (dref.dataReferenceSuffix().Length == 0
-            && data.Symbols.TryResolve(dref.cobolWord()?.GetText() ?? dref.GetText(), data.ActiveScope, out var dyns)
-            && dyns.FirstOrDefault(i => i.IsDynamicTable) is { } dtbl && refs.TablePath(dtbl) is { } dtp)
+            && ctx.Symbols.TryResolve(dref.cobolWord()?.GetText() ?? dref.GetText(), ctx.ActiveScope, out var dyns)
+            && dyns.FirstOrDefault(i => i.IsDynamicTable) is { } dtbl && ctx.Refs.TablePath(dtbl) is { } dtp)
         {
             string v = $"__ini{_initializeLoopVar++}";
             var body = new List<InitializeAction>();
@@ -134,13 +95,12 @@ public sealed partial class StatementBinder
             if (body.Count > 0) actions.Add(new InitializeDynLoop(v, $"{dtp}.Capacity", body));
             return;
         }
-        if (refs.Resolve(dref) is not { } place)
+        if (ctx.Refs.Resolve(dref) is not { } place)
         {
             // ISO §14.9.20.3 SR5: identifier-1 shall not have a RENAMES clause (a level-66 entry — NC401M territory).
             string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-            if (data.Symbols.TryResolve(name, data.ActiveScope, out var named) && named.Any(i => i.Renames is not null))
-                data.Edition.Error("COBOLNET0835",
-                    $"INITIALIZE '{name}' — identifier-1 shall not have a RENAMES clause (ISO §14.9.20.3 SR5)");
+            if (ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var named))
+                ctx.Validation.CheckInitializeTargetRenames(name, named);   // §14.9.20.3 SR5 — pure check
             actions.Add(new InitializeErrorAction($"INITIALIZE target '{dref.GetText()}'"));
             return;
         }
