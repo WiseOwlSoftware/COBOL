@@ -414,7 +414,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         {
             carry.Reset();
             char kind = cmp.POSITIVE() is not null ? 'P' : cmp.NEGATIVE() is not null ? 'N' : 'Z';
-            return new BoundSignCondition(host.BindOperandExpr(operands[0]), kind, not);
+            return new BoundSignCondition(host.Expr.BindOperandExpr(operands[0]), kind, not);
         }
 
 
@@ -587,17 +587,17 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// and the boolean-alt unwrap path — feedback_singular_pattern).</summary>
     private BoundOperand ComparisonOperandOf(Core.ValueOperandContext? vo)
     {
-        if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return StatementBinder.FigurativeOperand(fig);
+        if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
         if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
-        if (vo?.nonNumericLiteral()?.NATLIT() is { } nat) return host.NationalLiteralOperand(nat.GetText());
-        if (vo?.nonNumericLiteral()?.BOOLLIT() is { } bl) return host.BooleanLiteralOperand(bl.GetText());
+        if (vo?.nonNumericLiteral()?.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());
+        if (vo?.nonNumericLiteral()?.BOOLLIT() is { } bl) return host.Expr.BooleanLiteralOperand(bl.GetText());
         if (vo?.arithmeticExpression() is { } expr)
-            return SoleDataRef(expr) is { } dref ? host.FieldOperand(dref)
+            return SoleDataRef(expr) is { } dref ? host.Expr.FieldOperand(dref)
                 // A sole numeric LITERAL stays a literal operand — against an alphanumeric/group operand it
                 // participates as its WRITTEN character form, leading zeros intact (ISO §8.8.4.2.1), which a
                 // computed wrapper would lose.
-                : SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(host.CheckLiteral(lit))
-                : new BoundComputedOperand(host.BindExpr(expr));
+                : SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(host.Expr.CheckLiteral(lit))
+                : new BoundComputedOperand(host.Expr.BindExpr(expr));
         return new BoundOperandError("comparison operand");
     }
 

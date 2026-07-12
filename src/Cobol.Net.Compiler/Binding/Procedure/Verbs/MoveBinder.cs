@@ -34,12 +34,12 @@ internal sealed class MoveBinder(BinderContext ctx, StatementBinder host, Corres
             return corr.Bind(CorrVerb.Move, move.dataReference(), CobolRounding.Truncation, null);
         if (move.moveSendingOperand() is not { } send || move.moveReceivingPhrase()?.dataReferenceList() is not { } targets)
             return new BoundUnsupported("MOVE CORRESPONDING / unsupported MOVE form");
-        BoundOperand source = send.literal() is { } lit ? host.LiteralOperand(lit)
-            : send.dataReference() is { } dref ? host.FieldOperand(dref)
+        BoundOperand source = send.literal() is { } lit ? host.Expr.LiteralOperand(lit)
+            : send.dataReference() is { } dref ? host.Expr.FieldOperand(dref)
             // MOVE FUNCTION … TO targets (ISO §14.9.25 + §15.2 — a function is a sending item of its category).
-            : send.functionCall() is { } sfc ? host.IntrinsicOperand(sfc)
+            : send.functionCall() is { } sfc ? host.Intrinsic.IntrinsicOperand(sfc)
             : new BoundOperandError("MOVE source");
-        var resolved = host.ResolveTargets(targets.dataReference());
+        var resolved = host.Expr.ResolveTargets(targets.dataReference());
         // The §14.9.25.3 SR5 edition gates (VCR rows 1 / 92 / 128) + the SR1 class-index check: an
         // alphanumeric figurative or ALL "literal" moving to a numeric / numeric-edited receiver — 0902
         // removed at 2023 except the digit-only-ALL-to-integer case, which is 0903 obsolete

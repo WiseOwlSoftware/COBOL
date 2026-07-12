@@ -24,7 +24,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// the operand-list alternative is absent — i.e. exactly the Format-3 parse.</summary>
     public BoundStatement BindAddCorresponding(Core.AddStatementContext add) =>
         add.CORRESPONDING() is not null || add.CORR() is not null
-            ? Bind(CorrVerb.Add, add.dataReference(), host.RoundingOf(add.roundedPhrase()),
+            ? Bind(CorrVerb.Add, add.dataReference(), host.Expr.RoundingOf(add.roundedPhrase()),
                 host.BindSizeError(add.arithmeticOnSizeError()))
             : new BoundUnsupported("ADD statement form");
 
@@ -32,7 +32,7 @@ internal sealed class CorrespondingBinder(BinderContext ctx, StatementBinder hos
     /// (ISO §14.9.44.2 Format 3; SR5 — CORR ≡ CORRESPONDING).</summary>
     public BoundStatement BindSubtractCorresponding(Core.SubtractStatementContext sub) =>
         sub.CORRESPONDING() is not null || sub.CORR() is not null
-            ? Bind(CorrVerb.Subtract, sub.dataReference(), host.RoundingOf(sub.roundedPhrase()),
+            ? Bind(CorrVerb.Subtract, sub.dataReference(), host.Expr.RoundingOf(sub.roundedPhrase()),
                 host.BindSizeError(sub.arithmeticOnSizeError()))
             : new BoundUnsupported("SUBTRACT statement form");
 

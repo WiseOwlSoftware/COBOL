@@ -141,7 +141,7 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
 
     /// <summary>The FROM operand of a WRITE/REWRITE (a data reference or a literal), or null when absent.</summary>
     public BoundOperand? WriteSource(Core.DataReferenceContext? dref, Core.LiteralContext? lit) =>
-        lit is not null ? host.LiteralOperand(lit) : dref is not null ? host.FieldOperand(dref) : null;
+        lit is not null ? host.Expr.LiteralOperand(lit) : dref is not null ? host.Expr.FieldOperand(dref) : null;
 
     /// <summary>Bind the <c>{BEFORE|AFTER} ADVANCING …</c> phrase (ISO §14.9.46), or null for a plain WRITE.
     /// An ADVANCING operand naming a SPECIAL-NAMES mnemonic (<c>XXXXX073 IS MNEMONIC-NAME</c>, SQ207M) positions
@@ -156,8 +156,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         BoundOperand lines =
             wba.integerLiteral() is { } il ? new BoundNumericLiteral(il.GetText())
             : wba.dataReference() is { } d ? ctx.Mnemonics.Of(wba).ContainsKey(d.GetText())
-                ? new BoundNumericLiteral("0") : host.FieldOperand(d)
-            : wba.literal() is { } lit ? host.LiteralOperand(lit)
+                ? new BoundNumericLiteral("0") : host.Expr.FieldOperand(d)
+            : wba.literal() is { } lit ? host.Expr.LiteralOperand(lit)
             : new BoundNumericLiteral("1");
         return new BoundAdvancing(before, false, lines);
     }

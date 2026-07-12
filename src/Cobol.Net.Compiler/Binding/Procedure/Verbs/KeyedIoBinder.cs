@@ -193,7 +193,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         }
 
         var kp = st.startKeyPhrase();
-        string op = kp?.comparisonOperator() is { } oc ? StatementBinder.MapOperator(oc.GetText()) : "==";   // GR8/GR15 — EQUAL
+        string op = kp?.comparisonOperator() is { } oc ? ConditionBinder.MapOperator(oc.GetText()) : "==";   // GR8/GR15 — EQUAL
         if (op == "!=")
         {
             ctx.Edition.Error("COBOLNET0862", $"START on '{name}': the relational operator shall not be "
@@ -206,7 +206,7 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
         // WITH LENGTH (§14.9.41 GR13–GR14 partial-key count) is a COBOL-2002 introduction; the edition gate moved
         // to the post-bind VersionConformancePass (Step 14c), firing on BoundKeyedStart.Length != null.
-        BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? host.BindExpr(le) : null;
+        BoundExpr? length = kp?.startWithLength()?.arithmeticExpression() is { } le ? host.Expr.BindExpr(le) : null;
         if (length is not null && file.Organization != FileOrganization.Indexed)
             ctx.Edition.Error("COBOLNET0862", $"START … WITH LENGTH on '{name}': the LENGTH phrase requires "
                 + "indexed organization (ISO §14.9.41 SR8)");

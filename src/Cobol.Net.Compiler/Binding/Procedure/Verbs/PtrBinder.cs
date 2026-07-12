@@ -118,7 +118,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                     + "item there is no other way to address the storage)");
                 return new BoundNop();
             }
-            return new BoundAllocate(null, host.BindExpr(al.arithmeticExpression()), al.INITIALIZED() is not null, returning);
+            return new BoundAllocate(null, host.Expr.BindExpr(al.arithmeticExpression()), al.INITIALIZED() is not null, returning);
         }
 
         // Form 2: ALLOCATE based-item [INITIALIZED] [RETURNING pointer].
@@ -157,7 +157,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         if (drefs.Length == 0) return null;
         // Peek the FIRST target's category without consuming diagnostics: an index-name or non-pointer item
         // belongs to the Format-2 index path.
-        if (host.IndexFieldOf(drefs[0]) is not null) return null;
+        if (host.Expr.IndexFieldOf(drefs[0]) is not null) return null;
         if (ctx.Refs.Resolve(drefs[0]) is not { } first || first.Item.Pic?.Category is not PicCategory.Pointer)
             return null;
 
@@ -170,7 +170,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 return new BoundNop();
             targets.Add(p);
         }
-        var amount = host.BindExpr(ud.arithmeticExpression());
+        var amount = host.Expr.BindExpr(ud.arithmeticExpression());
         return new BoundSetPointerUpDown(targets, amount, ud.DOWN() is not null);
     }
 

@@ -21,11 +21,11 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// 2002 FALSE phrase) fail loud by NAME until their subsystem lands.</summary>
     public BoundStatement BindSet(Core.SetStatementContext set)
     {
-        if (set.setLastExceptionStatement() is not null) return host.BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
+        if (set.setLastExceptionStatement() is not null) return host.Ec.BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
         if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
-        if (set.setSwitchStatement() is { } sw) return host.SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
+        if (set.setSwitchStatement() is { } sw) return host.Alter.SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
         if (set.setAddressStatement() is { } sa)
             return host.Ptr.BindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
         if (set.setObjectReferenceStatement() is { } sor)
@@ -37,7 +37,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return BindSetPointer(sor.dataReference(),
                     sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
                     sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
-            return host.OoBindSetObjectRef(sor.dataReference(),
+            return host.Oo.OoBindSetObjectRef(sor.dataReference(),
                 senderRef: sor.objectReference().dataReference(),
                 senderNull: sor.objectReference().NULL_() is not null,
                 senderSelf: sor.objectReference().SELF() is not null,
@@ -101,7 +101,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // dataReference sender is an arithmeticExpression prefix), but an object-reference TARGET selects
         // §14.9.39 Format 5. Detect on the FIRST target; mixed target categories then fail SR8 inside.
         if (tv.dataReference() is { Length: > 0 } tds
-            && StatementBinder.OoExtractBareReference(tv.arithmeticExpression()) is { } senderDref)
+            && OoBinder.OoExtractBareReference(tv.arithmeticExpression()) is { } senderDref)
         {
             var t0 = ctx.Refs.Resolve(tds[0])?.Item.Pic?.Category;
             var s0 = ctx.Refs.Resolve(senderDref)?.Item.Pic?.Category;
@@ -111,7 +111,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 return BindSetPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
             // Either side being an object reference selects Format 5 (§14.9.39 F5; D-U7).
             if (t0 is PicCategory.ObjectReference || s0 is PicCategory.ObjectReference)
-                return host.OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);
+                return host.Oo.OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);
         }
         var targets = new List<BoundSetTarget>();
         foreach (var dref in tv.dataReference())
@@ -119,7 +119,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
             targets.Add(t);
         }
-        return new BoundSetTo(targets, host.BindExpr(tv.arithmeticExpression()));
+        return new BoundSetTo(targets, host.Expr.BindExpr(tv.arithmeticExpression()));
     }
 
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2) — with the Format-10
@@ -137,7 +137,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (SetTargetOf(dref) is not { } t) return new BoundUnsupported($"SET receiver '{dref.GetText()}'");
             targets.Add(t);
         }
-        return new BoundSetUpDown(targets, host.BindExpr(ud.arithmeticExpression()), ud.DOWN() is not null);
+        return new BoundSetUpDown(targets, host.Expr.BindExpr(ud.arithmeticExpression()), ud.DOWN() is not null);
     }
 
     /// <summary>SET Format 14 (ISO §14.9.39; OCCURS DYNAMIC, data-model D9): reroute when the FIRST target resolves
@@ -158,7 +158,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                 + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
             return new BoundNop();
         }
-        return new BoundSetCapacity(cap.TablePath, host.BindExpr(amount), kind);
+        return new BoundSetCapacity(cap.TablePath, host.Expr.BindExpr(amount), kind);
     }
 
     private static string SetCapacityKindText(SetCapacityKind kind) =>
@@ -167,8 +167,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item
     /// (an index data item or an integer item — the emitter dispatches on its usage).</summary>
     public BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
-        host.IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
-        : host.ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand
+        host.Expr.IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
+        : host.Expr.ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand
         : null;
 
     /// <summary><c>SET condition-name+ TO TRUE</c> (ISO §14.9.39 Format 4). TO FALSE needs the 2002 <c>WHEN SET TO
@@ -180,7 +180,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         var sets = new List<(Place, Condition88)>();
         foreach (var dref in b.dataReference())
         {
-            if (host.ConditionOf(dref) is not { } cond) return new BoundUnsupported($"SET '{dref.GetText()}' TO TRUE (not a condition-name)");
+            if (host.Cond.ConditionOf(dref) is not { } cond) return new BoundUnsupported($"SET '{dref.GetText()}' TO TRUE (not a condition-name)");
             // The reference's subscripts identify the CONDITIONAL VARIABLE's occurrence (§8.4.2.3 Format 2).
             if (ctx.Refs.ResolveForItem(dref, cond.Parent) is not { } parent)
                 return new BoundUnsupported($"SET condition '{cond.Name}' (unresolvable conditional variable)");

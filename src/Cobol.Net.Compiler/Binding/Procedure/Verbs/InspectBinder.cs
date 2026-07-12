@@ -170,9 +170,9 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
         // National/boolean literal operands decode char-correct (the class-mix SR validation across the
         // INSPECT operand set — §14.9.22.3 SR2/SR3's per-class forms — is named Phase-4a residue #12).
         if (c.literal()?.nonNumericLiteral()?.NATLIT() is { } nlit)
-            return (host.NationalLiteralOperand(nlit.GetText()), false);
+            return (host.Expr.NationalLiteralOperand(nlit.GetText()), false);
         if (c.literal()?.nonNumericLiteral()?.BOOLLIT() is { } blit)
-            return (host.BooleanLiteralOperand(blit.GetText()), false);
+            return (host.Expr.BooleanLiteralOperand(blit.GetText()), false);
         if (c.dataReference() is { } dref)
         {
             if (ctx.Refs.Resolve(dref) is not { } p)

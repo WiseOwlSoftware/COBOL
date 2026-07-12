@@ -40,12 +40,12 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                 if (ctx.Table.ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{host.OoScopeHint}");
                 targets.Add(range.Start);
             }
-            return new BoundGoToDepending(host.FieldOperand(sel), targets);
+            return new BoundGoToDepending(host.Expr.FieldOperand(sel), targets);
         }
-        if (names.Length == 0) return host.AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
+        if (names.Length == 0) return host.Alter.AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
         if (ctx.Table.ResolveProcedure(names[0]) is not { } target)
             return new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'{host.OoScopeHint}");
-        return host.AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
+        return host.Alter.AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
     }
 
     public BoundStatement BindExit(Core.ExitStatementContext e)
@@ -62,13 +62,13 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                 return new BoundNop();
             }
             if (e.raisingPhrase() is { } raising)   // Format 2's RAISING tail (§14.9.14.2) — re-raise in the activator
-                return host.EcBindRaising(raising, e.Start.Line, "EXIT PROGRAM") is { } r
+                return host.Ec.EcBindRaising(raising, e.Start.Line, "EXIT PROGRAM") is { } r
                     ? new BoundExitProgram(r)
                     : new BoundUnsupported("EXIT PROGRAM RAISING identifier (exception object — the OO wave; ISO §14.9.14.3)");
             return new BoundExitProgram();
         }
         if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
-        if (e.METHOD() is not null) return host.OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
+        if (e.METHOD() is not null) return host.Oo.OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
         if (e.FUNCTION() is not null) return host.Udf.UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
         return new BoundNop();   // bare EXIT
     }
@@ -84,7 +84,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
             if (child is ITerminalNode t && t.Symbol.Type == CobolLexer.ELSE) seenElse = true;
             else if (child is Core.StatementBlockContext sb) (seenElse ? elseBlocks : thenBlocks).Add(sb);
         }
-        return new BoundIf(host.BindCondition(iff.condition()), host.BindBlocks(thenBlocks), host.BindBlocks(elseBlocks));
+        return new BoundIf(host.Cond.BindCondition(iff.condition()), host.BindBlocks(thenBlocks), host.BindBlocks(elseBlocks));
     }
 
 
@@ -124,7 +124,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     {
         var opt = p.performOptions().FirstOrDefault();
         if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
-        if ((p.performUntil() ?? opt?.performUntil()) is { } u) return new PerformUntil(host.BindCondition(u.condition()), u.AFTER() is not null);
+        if ((p.performUntil() ?? opt?.performUntil()) is { } u) return new PerformUntil(host.Cond.BindCondition(u.condition()), u.AFTER() is not null);
         if ((p.performVarying() ?? opt?.performVarying()) is { } v) return BindVarying(v);
         return new PerformOnce();
     }
@@ -152,16 +152,16 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     private VaryingLevel? BindVaryingLevel(
         Core.DataReferenceContext dref, Core.ArithmeticExpressionContext[] exprs, Core.ConditionContext cond)
     {
-        if (host.SetTargetOf(dref) is not { } var) return null;
-        BoundExpr from = host.BindExpr(exprs[0]);
-        BoundExpr by = exprs.Length > 1 ? host.BindExpr(exprs[1]) : new BoundNumLiteral("1");
-        return new VaryingLevel(var, from, by, host.BindCondition(cond));
+        if (host.Set.SetTargetOf(dref) is not { } var) return null;
+        BoundExpr from = host.Expr.BindExpr(exprs[0]);
+        BoundExpr by = exprs.Length > 1 ? host.Expr.BindExpr(exprs[1]) : new BoundNumLiteral("1");
+        return new VaryingLevel(var, from, by, host.Cond.BindCondition(cond));
     }
 
     private static BoundPerformControl Unsupported(string feature) => new PerformTimes(new BoundOperandError(feature));
 
     private BoundOperand CountOperand(Core.PerformTimesContext t) =>
         t.integerLiteral() is { } lit ? new BoundNumericLiteral(lit.GetText())
-        : t.dataReference() is { } d ? host.FieldOperand(d)
+        : t.dataReference() is { } d ? host.Expr.FieldOperand(d)
         : new BoundNumericLiteral("1");
 }

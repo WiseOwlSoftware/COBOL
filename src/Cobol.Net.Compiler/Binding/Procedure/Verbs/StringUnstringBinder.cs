@@ -165,9 +165,9 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// UNSTRING GR7); the callers screen the ALL-literal figurative per their SRs.</summary>
     private BoundOperand StrUnstrOperand(
         Core.DataReferenceContext? dref, Core.LiteralContext? lit, Core.FigurativeConstantContext? fig, string role)
-        => dref is not null ? host.FieldOperand(dref)
-        : lit is not null ? host.LiteralOperand(lit)
-        : fig is not null ? StatementBinder.FigurativeOperand(fig)
+        => dref is not null ? host.Expr.FieldOperand(dref)
+        : lit is not null ? host.Expr.LiteralOperand(lit)
+        : fig is not null ? ExpressionBinder.FigurativeOperand(fig)
         : new BoundOperandError(role);
 
     /// <summary>True for an elementary fixed-point INTEGER item with no P scaling — the shape STRING SR7 /

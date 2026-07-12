@@ -67,7 +67,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             {
                 mode = CobolPassMode.Content;
                 if (byContent.literal() is { } clit)
-                    args.Add(new BoundCallArg(CobolPassMode.Content, null, host.LiteralOperand(clit)));
+                    args.Add(new BoundCallArg(CobolPassMode.Content, null, host.Expr.LiteralOperand(clit)));
                 else if (byContent.dataReference() is { } cdref && ctx.Refs.Resolve(cdref) is { } cp)
                     args.Add(new BoundCallArg(CobolPassMode.Content, cp, null));
                 else
@@ -79,7 +79,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // VersionConformancePass (Step 14c), firing on a BoundCallProgram whose args use value passing.
                 mode = CobolPassMode.Value;
                 args.Add(new BoundCallArg(CobolPassMode.Value, null,
-                    new BoundComputedOperand(host.BindExpr(byValue.arithmeticExpression()))));
+                    new BoundComputedOperand(host.Expr.BindExpr(byValue.arithmeticExpression()))));
             }
             else if (a.dataReference() is { } bare)
             {
@@ -158,7 +158,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     /// the grammar yet (VERSION_CHANGE_REFERENCE row 75 — a later slice with the §12 RETURN-CODE wiring).</summary>
     public BoundStatement BindGoback(Core.GobackStatementContext g)
     {
-        if (host.InMethod) return host.OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
+        if (host.InMethod) return host.Oo.OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
         // GOBACK itself is a COBOL-2002 introduction (COBOLNET0880). The RETURNING phrase's edition gate moved to
         // the post-bind VersionConformancePass (Step 14c; GobackReturning2002 → COBOLNET0900 on
         // BoundGoback.ReturningSource); when RETURNING is present its more-specific 0900 subsumes the 0880 — so the
@@ -178,7 +178,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             source = p;
         }
         if (g.raisingPhrase() is { } raising)
-            return host.EcBindRaising(raising, g.Start.Line, "GOBACK") is { } r
+            return host.Ec.EcBindRaising(raising, g.Start.Line, "GOBACK") is { } r
                 ? new BoundGoback(source, r)
                 : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
         return new BoundGoback(source);

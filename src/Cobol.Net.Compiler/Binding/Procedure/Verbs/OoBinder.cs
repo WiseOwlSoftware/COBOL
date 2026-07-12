@@ -884,7 +884,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 + "the EC-OO wave");
             return null;
         }
-        return host.EcBindRaising(raising, raising.Start.Line, verb);
+        return host.Ec.EcBindRaising(raising, raising.Start.Line, verb);
     }
 
     /// <summary>EXIT METHOD (pre-2023 editions — REMOVED by 2023, Annex E.2; the <c>exit-method-window</c>

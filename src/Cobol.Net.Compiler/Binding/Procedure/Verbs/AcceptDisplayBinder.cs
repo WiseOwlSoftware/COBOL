@@ -111,10 +111,10 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
         foreach (IParseTree child in StatementBinder.Children(display))
             switch (child)
             {
-                case Core.LiteralContext lit: ops.Add(host.LiteralOperand(lit)); break;
-                case Core.DataReferenceContext dref: ops.Add(host.FieldOperand(dref)); break;
+                case Core.LiteralContext lit: ops.Add(host.Expr.LiteralOperand(lit)); break;
+                case Core.DataReferenceContext dref: ops.Add(host.Expr.FieldOperand(dref)); break;
                 // DISPLAY FUNCTION … (ISO §8.4.4.1 — an identifier includes a function-identifier; §14.9.11.2).
-                case Core.FunctionCallContext fc: ops.Add(host.IntrinsicOperand(fc)); break;
+                case Core.FunctionCallContext fc: ops.Add(host.Intrinsic.IntrinsicOperand(fc)); break;
             }
         return new BoundDisplay(ops, display.displayNoAdvancing() is not null);
     }

@@ -89,7 +89,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 
         if (item.condition() is { } cond)
         {
-            var bound = host.BindCondition(cond);
+            var bound = host.Cond.BindCondition(cond);
             return subjFalse ? new BoundNot(bound) : bound;   // EVALUATE TRUE/FALSE WHEN <condition>
         }
 
@@ -103,10 +103,10 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             var lo = BindValueOperand(range.valueOperand(0));
             var hi = BindValueOperand(range.valueOperand(1));
             return new BoundLogical("&&",
-                [host.CheckedRelational(left, ">=", lo), host.CheckedRelational(left, "<=", hi)]);
+                [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]);
         }
         if (item.valueOperand() is { } v)
-            return host.CheckedRelational(left, "==", BindValueOperand(v));
+            return host.Cond.CheckedRelational(left, "==", BindValueOperand(v));
         return new BoundConditionError($"EVALUATE WHEN object '{item.GetText()}'");
     }
 
@@ -120,8 +120,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         {
             // A sole data-reference that names a level-88 IS the condition (§8.8.4.1.2); the reference's
             // subscripts identify the conditional variable's occurrence (§8.4.2.3 Format 2).
-            if (vo.arithmeticExpression() is not { } expr || StatementBinder.SoleDataRef(expr) is not { } dref
-                || host.ConditionOf(dref) is not { } cond) return null;
+            if (vo.arithmeticExpression() is not { } expr || ConditionBinder.SoleDataRef(expr) is not { } dref
+                || host.Cond.ConditionOf(dref) is not { } cond) return null;
             return ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
                 ? new BoundCondition88(parent, cond)
                 : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)");
@@ -133,7 +133,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             : null;
         if (kind is not { } k) return new BoundConditionError($"class condition '{cls.GetText()}'");
         var opnd = BindValueOperand(vo);
-        host.CheckClassConditionOperand(opnd, k);   // §8.8.4.4.3 SR8/SR4 — boolean-operand guard
+        host.Cond.CheckClassConditionOperand(opnd, k);   // §8.8.4.4.3 SR8/SR4 — boolean-operand guard
         return new BoundClassCondition(opnd, k, Negated: subject.NOT() is not null);
     }
 
@@ -153,14 +153,14 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// operand — the same shapes <see cref="ComparisonOperand"/> produces.</summary>
     private BoundOperand BindValueOperand(Core.ValueOperandContext vo)
     {
-        if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return StatementBinder.FigurativeOperand(fig);
+        if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
         if (vo.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
-        if (vo.nonNumericLiteral()?.NATLIT() is { } nat) return host.NationalLiteralOperand(nat.GetText());
-        if (vo.nonNumericLiteral()?.BOOLLIT() is { } bl) return host.BooleanLiteralOperand(bl.GetText());
+        if (vo.nonNumericLiteral()?.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());
+        if (vo.nonNumericLiteral()?.BOOLLIT() is { } bl) return host.Expr.BooleanLiteralOperand(bl.GetText());
         if (vo.arithmeticExpression() is { } expr)
-            return StatementBinder.SoleDataRef(expr) is { } dref ? host.FieldOperand(dref)
-                : StatementBinder.SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(host.CheckLiteral(lit))
-                : new BoundComputedOperand(host.BindExpr(expr));
+            return ConditionBinder.SoleDataRef(expr) is { } dref ? host.Expr.FieldOperand(dref)
+                : ConditionBinder.SoleNumLiteral(expr) is { } lit ? new BoundNumericLiteral(host.Expr.CheckLiteral(lit))
+                : new BoundComputedOperand(host.Expr.BindExpr(expr));
         return new BoundOperandError("EVALUATE operand");
     }
 }

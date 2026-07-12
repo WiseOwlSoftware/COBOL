@@ -26,8 +26,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     //    binder instance (= per unit / class roster) and ONE instance of each verb collaborator (their
     //    counters/memos are per-unit lifetime). Lazy — the primary-ctor fields are captured, not fields, so
     //    eager initializers cannot reference them. During the incremental extraction the collaborators reach
-    //    not-yet-extracted spine members through THIS host (the Step-9 migration-wiring precedent); the 10t
-    //    final wiring retargets them and thins this class to dispatch + the composition root. ──
+    //    sibling collaborators directly through THIS host's accessors (e.g. host.Expr.BindExpr) — the 10t
+    //    final wiring: this class is now dispatch + the mark/drain wrap protocol + the composition root. ──
     private BinderContext? _binderCtx;
     private InspectBinder? _inspectBinder;
     private EvaluateBinder? _evaluateBinder;
@@ -63,7 +63,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private ControlFlowBinder? _controlFlowBinder;
     private ControlFlowBinder ControlFlow => _controlFlowBinder ??= new ControlFlowBinder(Ctx, this);
     private SetBinder? _setBinder;
-    private SetBinder Set => _setBinder ??= new SetBinder(Ctx, this);
+    internal SetBinder Set => _setBinder ??= new SetBinder(Ctx, this);
     private SearchBinder? _searchBinder;
     private SearchBinder Search => _searchBinder ??= new SearchBinder(Ctx, this);
     private SetAlterBinder? _setAlterBinder;
@@ -84,55 +84,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private OoBinder? _ooBinder;
     internal OoBinder Oo => _ooBinder ??= new OoBinder(Ctx, this);
 
-    // Host forwarders for the collaborator callers + the remaining core spine sites — flip at 10t.
-    internal BoundCondition BindCondition(IParseTree node) => Cond.BindCondition(node);
-    internal BoundRelational CheckedRelational(BoundOperand left, string op, BoundOperand right) => Cond.CheckedRelational(left, op, right);
-    internal Condition88? ConditionOf(Core.DataReferenceContext dref) => Cond.ConditionOf(dref);
-    internal void CheckClassConditionOperand(BoundOperand op, char kind) => Cond.CheckClassConditionOperand(op, kind);
-    internal static string MapOperator(string raw) => ConditionBinder.MapOperator(raw);
-    internal static Core.DataReferenceContext? SoleDataRef(Core.ArithmeticExpressionContext expr) => ConditionBinder.SoleDataRef(expr);
-    internal static string? SoleNumLiteral(Core.ArithmeticExpressionContext expr) => ConditionBinder.SoleNumLiteral(expr);
-    internal BoundBoolExpr BindBoolExpr(Core.BooleanExpressionContext bctx) => Cond.BindBoolExpr(bctx);
-    internal static int Gr3Width(BoundBoolExpr e) => ConditionBinder.Gr3Width(e);
-    /// <summary>PUBLIC forwarder (BinderDriver / the OO bind half configure the EC context per unit) —
-    /// re-points to the collaborator at the 10t final wiring like every other host edge.</summary>
+    /// <summary>The binder's public EC entry point (BinderDriver / the OO bind half configure the compilation
+    /// group's TurnState + this unit's PROGRAM-ID per bound unit); the state lands on <c>ctx.EcState</c>.</summary>
     public void ConfigureEc(TurnState turn, string programName) => Ec.ConfigureEc(turn, programName);
-    internal EcFeatures BuildEcFeatures() => Ctx.EcState.BuildFeatures();
-    internal void EcNoteFunction() => Ec.EcNoteFunction();
-    internal BoundStatement BindSetLastException() => Ec.BindSetLastException();
-    internal BoundRaising? EcBindRaising(Core.RaisingPhraseContext raising, int line, string verb) => Ec.EcBindRaising(raising, line, verb);
-    internal void EcLoadPdRaising(IReadOnlyList<string> ecNames, IReadOnlyList<string> classes) => Ec.EcLoadPdRaising(ecNames, classes);
-    internal BoundExpr BindExpr(IParseTree node) => Expr.BindExpr(node);
-    internal BoundExpr BindOperandExpr(IParseTree node) => Expr.BindOperandExpr(node);
-    internal BoundOperand LiteralOperand(Core.LiteralContext lit) => Expr.LiteralOperand(lit);
-    internal BoundOperand FieldOperand(Core.DataReferenceContext dref) => Expr.FieldOperand(dref);
-    internal BoundStringLiteral NationalLiteralOperand(string raw) => Expr.NationalLiteralOperand(raw);
-    internal BoundStringLiteral BooleanLiteralOperand(string raw) => Expr.BooleanLiteralOperand(raw);
-    internal static BoundOperand FigurativeOperand(Core.FigurativeConstantContext fig) => ExpressionBinder.FigurativeOperand(fig);
-    internal string CheckLiteral(string text) => Expr.CheckLiteral(text);
-    internal string? IndexFieldOf(Core.DataReferenceContext dref) => Expr.IndexFieldOf(dref);
-    internal List<Place> ResolveTargets(IEnumerable<Core.DataReferenceContext> targets) => Expr.ResolveTargets(targets);
-    internal Place? ResolveReceiving(Core.DataReferenceContext dref) => Expr.ResolveReceiving(dref);
-    internal List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops) => Expr.Receivers(ops);
-    internal List<Receiver> Receivers(IEnumerable<Core.MultiplyByOperandContext> ops) => Expr.Receivers(ops);
-    internal List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) => Expr.Receivers(stores);
-    internal CobolRounding RoundingOf(Core.RoundedPhraseContext? phrase) => Expr.RoundingOf(phrase);
-    internal BoundStatement OoBindSetObjectRef(IReadOnlyList<Core.DataReferenceContext> targetRefs,
-        Core.DataReferenceContext? senderRef, bool senderNull, bool senderSelf, bool senderSuper)
-        => Oo.OoBindSetObjectRef(targetRefs, senderRef, senderNull, senderSelf, senderSuper);
-    internal static Core.DataReferenceContext? OoExtractBareReference(Core.ArithmeticExpressionContext e) => OoBinder.OoExtractBareReference(e);
-    internal BoundStatement OoBindMethodGoback(Core.GobackStatementContext g) => Oo.OoBindMethodGoback(g);
-    internal BoundStatement OoBindExitMethod(Core.ExitStatementContext e) => Oo.OoBindExitMethod(e);
-    internal BoundStatement SwitchBindSet(Core.SetSwitchStatementContext sw) => Alter.SwitchBindSet(sw);
-    internal BoundStatement AlterGoTo(Core.GoToStatementContext g, int writtenTarget) => Alter.AlterGoTo(g, writtenTarget);
-    internal BoundStatement AlterBindBareGoTo(Core.GoToStatementContext g) => Alter.AlterBindBareGoTo(g);
-
-    /// <summary>Host forwarder (ControlFlowBinder's VARYING induction targets) — flips at 10t.</summary>
-    internal BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) => Set.SetTargetOf(dref);
-
-    /// <summary>Host forwarder for the collaborator callers (MoveBinder / AcceptDisplayBinder) — flips to a
-    /// direct ctor ref at the 10t final wiring.</summary>
-    internal BoundOperand IntrinsicOperand(Core.FunctionCallContext fc) => Intrinsic.IntrinsicOperand(fc);
 
     /// <summary>The compilation group's user-function signature table (FUNCTION-ID name → RETURNING +
     /// USING descriptions), built by the run-unit emitter between the DATA and PROCEDURE bind phases.
@@ -191,7 +145,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
             bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
         }
-        return new BoundProgram(bound, table.EntryPc, table.Declaratives, BuildEcFeatures());
+        return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures());
     }
 
     /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY
@@ -227,7 +181,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             }
             // A method IS a source element (§14.9.18.3 SR2/SR4a): its OWN PD-header RAISING partition
             // (D-EO8) becomes the binder's per-element sets while its body binds.
-            EcLoadPdRaising(m.RaisingEcNames, m.RaisingClasses);
+            Ec.EcLoadPdRaising(m.RaisingEcNames, m.RaisingClasses);
             // The method's DATA (LINKAGE → params-as-locals, LOCAL-STORAGE → locals, method-WS → statics) was
             // bound by DataBinder.OoBindMethodData before any body binds; here we link its name scope so the
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
@@ -272,7 +226,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
             bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
         }
-        return new BoundProgram(bound, 0, null, BuildEcFeatures(), methods);
+        return new BoundProgram(bound, 0, null, Ctx.EcState.BuildFeatures(), methods);
     }
 
     // ── Statements ─────────────────────────────────────────────────────────────────────────────────────────
@@ -367,8 +321,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// SECONDS / FOREVER are single-run-unit no-ops (no competing process releases — named residue).</summary>
     internal RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
         rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)
-        : rp.SECONDS() is not null ? new RetrySpec(RetryKind.Seconds, BindExpr(rp.arithmeticExpression()))
-        : new RetrySpec(RetryKind.Times, BindExpr(rp.arithmeticExpression()));
+        : rp.SECONDS() is not null ? new RetrySpec(RetryKind.Seconds, Expr.BindExpr(rp.arithmeticExpression()))
+        : new RetrySpec(RetryKind.Times, Expr.BindExpr(rp.arithmeticExpression()));
 
     internal List<BoundStatement> BindBlocks(IEnumerable<Core.StatementBlockContext> blocks) =>
         blocks.SelectMany(b => b.statement()).Select(BindStatement).ToList();

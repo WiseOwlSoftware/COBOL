@@ -40,7 +40,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         if (drefs.Length > 1)   // the VARYING phrase
         {
             var v = drefs[1];
-            if (host.IndexFieldOf(v) is { } vix)
+            if (host.Expr.IndexFieldOf(v) is { } vix)
             {
                 if (table.IndexNames.Any(n => ctx.Symbols.IndexCellOf(n, ctx.ActiveScope) == vix)) searchIx = vix;   // same table (GR8a)
                 else also = new SetIndexTarget(vix);                                          // other table (GR8b)
@@ -56,7 +56,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             atEnd = host.BindBlocks(ae.statementBlock());
         }
         var whens = s.searchWhenClause()
-            .Select(wc => new BoundSearchWhen(host.BindCondition(wc.condition()), host.BindBlocks(wc.statementBlock())))
+            .Select(wc => new BoundSearchWhen(host.Cond.BindCondition(wc.condition()), host.BindBlocks(wc.statementBlock())))
             .ToList();
         return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
             DependCount: OdoModel.SearchBound(table, ctx.Refs),
@@ -86,7 +86,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             atEnd = host.BindBlocks(ae.statementBlock());
         }
         var whens = s.searchAllWhenClause()
-            .Select(wc => new BoundSearchWhen(host.BindCondition(wc.condition()), host.BindBlocks(wc.statementBlock())))
+            .Select(wc => new BoundSearchWhen(host.Cond.BindCondition(wc.condition()), host.BindBlocks(wc.statementBlock())))
             .ToList();
         return new BoundSearch(ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope), table.Occurs ?? 0,
             AlsoVaried: null, atEnd, whens, FromStart: true, DependCount: OdoModel.SearchBound(table, ctx.Refs),

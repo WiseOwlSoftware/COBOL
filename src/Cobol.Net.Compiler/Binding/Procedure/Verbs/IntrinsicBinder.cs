@@ -217,7 +217,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // A FUNCTION EXCEPTION-* reference reads the runtime last-exception register (§15.28–15.33) — flag the
         // program's EC usage so the generated source carries the Exceptions using (the group EC gate).
-        if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.EcNoteFunction();
+        if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();
 
         return new BoundIntrinsicCall(resolved, args, category, collate);
     }
@@ -762,7 +762,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT)
         {
             pos++;
-            return new BoundNumericLiteral(host.CheckLiteral(tok.Text));   // the one literal chokepoint (digit cap + comma mode)
+            return new BoundNumericLiteral(host.Expr.CheckLiteral(tok.Text));   // the one literal chokepoint (digit cap + comma mode)
         }
 
         if (tok.Type == Core.SUB_STRINGLIT)
@@ -777,12 +777,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (tok.Type == Core.SUB_NATLIT)
         {
             pos++;
-            return host.NationalLiteralOperand(tok.Text);
+            return host.Expr.NationalLiteralOperand(tok.Text);
         }
         if (tok.Type == Core.SUB_BOOLLIT)
         {
             pos++;
-            return host.BooleanLiteralOperand(tok.Text);
+            return host.Expr.BooleanLiteralOperand(tok.Text);
         }
 
         if (tok.Type == Core.SUB_IDENTIFIER)

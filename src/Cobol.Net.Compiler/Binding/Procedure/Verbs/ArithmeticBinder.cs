@@ -24,21 +24,21 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindAdd(Core.AddStatementContext add)
     {
         if (add.addOperandList() is not { } operands) return host.Corr.BindAddCorresponding(add);   // Format 3 (§14.9.2.2)
-        var addends = operands.addOperand().Select(host.BindExpr).ToList();
+        var addends = operands.addOperand().Select(host.Expr.BindExpr).ToList();
         var sizeErr = host.BindSizeError(add.arithmeticOnSizeError());
         if (add.addGivingPhrase() is { } giving)
         {
             // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §14.9.1 Format 3: the TO operand is an addend, NOT a
             // receiver; only the GIVING operands receive). Previously the TO operand was dropped from the sum.
             if (add.addToPhrase() is { } toAddend)
-                addends.AddRange(StatementBinder.DataRefs(toAddend).Select(host.BindExpr));
-            var givingRecv = host.Receivers(giving.receivingArithmeticOperand());
+                addends.AddRange(StatementBinder.DataRefs(toAddend).Select(host.Expr.BindExpr));
+            var givingRecv = host.Expr.Receivers(giving.receivingArithmeticOperand());
             ctx.Validation.CheckComposite("ADD", addends, givingRecv);
             return new BoundAddGiving(addends, givingRecv, sizeErr);
         }
         if (add.addToPhrase() is { } to)
         {
-            var recv = host.Receivers(to.receivingArithmeticOperand());
+            var recv = host.Expr.Receivers(to.receivingArithmeticOperand());
             ctx.Validation.CheckComposite("ADD", addends, recv);
             return new BoundAddTo(addends, recv, sizeErr);
         }
@@ -48,18 +48,18 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindSubtract(Core.SubtractStatementContext sub)
     {
         if (sub.subtractOperandList() is not { } operands) return host.Corr.BindSubtractCorresponding(sub);   // Format 3 (§14.9.44.2)
-        var minuends = operands.subtractOperand().Select(host.BindExpr).ToList();
+        var minuends = operands.subtractOperand().Select(host.Expr.BindExpr).ToList();
         var sizeErr = host.BindSizeError(sub.arithmeticOnSizeError());
         if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
         {
-            var fromX = host.BindExpr(from);
-            var recv = host.Receivers(giving.receivingArithmeticOperand());
+            var fromX = host.Expr.BindExpr(from);
+            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand());
             ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], recv);
             return new BoundSubtractGiving(minuends, fromX, recv, sizeErr);
         }
         if (sub.subtractFromPhrase()?.subtractFromOperand() is { } targets)
         {
-            var recv = host.Receivers(targets.receivingArithmeticOperand());
+            var recv = host.Expr.Receivers(targets.receivingArithmeticOperand());
             ctx.Validation.CheckComposite("SUBTRACT", minuends, recv);
             return new BoundSubtractFrom(minuends, recv, sizeErr);
         }
@@ -69,18 +69,18 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindMultiply(Core.MultiplyStatementContext mul)
     {
         if (mul.multiplyOperand() is not { } aCtx) return new BoundUnsupported("MULTIPLY form");
-        var a = host.BindExpr(aCtx);
+        var a = host.Expr.BindExpr(aCtx);
         var byOps = mul.multiplyByOperand();
         var sizeErr = host.BindSizeError(mul.arithmeticOnSizeError());
         if (mul.multiplyGivingPhrase() is { } giving && byOps.Length > 0)
         {
-            var b = host.BindExpr(byOps[0]);
-            var recv = host.Receivers(giving.receivingArithmeticOperand());
+            var b = host.Expr.BindExpr(byOps[0]);
+            var recv = host.Expr.Receivers(giving.receivingArithmeticOperand());
             ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv);
             return new BoundMultiplyGiving(a, b, recv, sizeErr);
         }
         // In-place: each BY operand is itself the receiver (target ← target × a).
-        var byRecv = host.Receivers(byOps);
+        var byRecv = host.Expr.Receivers(byOps);
         ctx.Validation.CheckComposite("MULTIPLY", [a], byRecv);
         return new BoundMultiplyBy(a, byRecv, sizeErr);
     }
@@ -88,22 +88,22 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindDivide(Core.DivideStatementContext div)
     {
         if (div.divideOperand() is not { } aCtx) return new BoundUnsupported("DIVIDE form");
-        var a = host.BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
+        var a = host.Expr.BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
         var sizeErr = host.BindSizeError(div.arithmeticOnSizeError());
 
         // DIVIDE … GIVING q REMAINDER r (ISO §14.9.12 Formats 4–5): exactly one GIVING receiver (SR6).
         if (div.divideRemainderPhrase() is { } rem)
         {
             if (div.divideGivingPhrase() is not { } g) return new BoundUnsupported("DIVIDE REMAINDER without GIVING");
-            var quotients = host.Receivers(g.receivingArithmeticOperand());
+            var quotients = host.Expr.Receivers(g.receivingArithmeticOperand());
             if (quotients.Count != 1) return new BoundUnsupported("DIVIDE REMAINDER quotient receiver");
             if (ctx.Refs.Resolve(rem.dataReference()) is not { } r)
                 return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.dataReference().GetText()}'");
-            BoundExpr dividend = div.divideIntoPhrase() is { } i ? host.BindExpr(i.divideIntoOperand())
+            BoundExpr dividend = div.divideIntoPhrase() is { } i ? host.Expr.BindExpr(i.divideIntoOperand())
                 : div.divideByPhrase() is not null ? a
                 : a;
             BoundExpr divisor = div.divideIntoPhrase() is not null ? a
-                : div.divideByPhrase() is { } b ? host.BindExpr(b.divideOperand())
+                : div.divideByPhrase() is { } b ? host.Expr.BindExpr(b.divideOperand())
                 : a;
             ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients);
             return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
@@ -113,19 +113,19 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         {
             if (div.divideGivingPhrase() is { } giving)
             {
-                var dividendX = host.BindExpr(into.divideIntoOperand());
-                var recv = host.Receivers(giving.receivingArithmeticOperand());
+                var dividendX = host.Expr.BindExpr(into.divideIntoOperand());
+                var recv = host.Expr.Receivers(giving.receivingArithmeticOperand());
                 ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv);
                 return new BoundDivideGiving(dividendX, a, recv, sizeErr);
             }
-            var intoRecv = host.Receivers(into.divideIntoOperand().receivingArithmeticOperand());
+            var intoRecv = host.Expr.Receivers(into.divideIntoOperand().receivingArithmeticOperand());
             ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv);
             return new BoundDivideInto(a, intoRecv, sizeErr);   // target ← target ÷ a
         }
         if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } gv)
         {
-            var divisorX = host.BindExpr(byPhrase.divideOperand());
-            var recv = host.Receivers(gv.receivingArithmeticOperand());
+            var divisorX = host.Expr.BindExpr(byPhrase.divideOperand());
+            var recv = host.Expr.Receivers(gv.receivingArithmeticOperand());
             ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv);
             return new BoundDivideGiving(a, divisorX, recv, sizeErr);
         }
@@ -153,8 +153,8 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
                     + "(ISO §14.9.8 Format 2)");
             return BuildComputeBoolean(compute, rerouted);
         }
-        var rhs = host.BindExpr(expr);
-        return new BoundCompute(rhs, host.Receivers(compute.computeStore()), host.BindSizeError(compute.computeOnSizeError()));
+        var rhs = host.Expr.BindExpr(expr);
+        return new BoundCompute(rhs, host.Expr.Receivers(compute.computeStore()), host.BindSizeError(compute.computeOnSizeError()));
     }
 
     private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)
@@ -162,7 +162,7 @@ internal sealed class ArithmeticBinder(BinderContext ctx, StatementBinder host)
         // The COBOL-2002 boolean-operator introduction gate on COMPUTE Format 2 (BooleanOperators2002) fires on
         // RECOGNITION in the VersionConformancePass parse-arm (VisitComputeStatement, HasBoolOp on the F2
         // booleanExpression); Step 14h.4b.
-        var rhs = host.BindBoolExpr(boolExpr);
+        var rhs = host.Cond.BindBoolExpr(boolExpr);
         // SR3 (§14.9.8 :26575): the expression shall not consist solely of an ALL literal.
         if (rhs is BoundBoolAll)
             ctx.Edition.Error("COBOLNET1511", "a boolean COMPUTE expression shall not consist solely of an ALL "

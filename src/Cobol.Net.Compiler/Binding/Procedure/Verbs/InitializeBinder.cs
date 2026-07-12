@@ -59,8 +59,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
                 InitializeCategory cat = InitializeCategoryOf(item.initializeCategory());
                 if (!ctx.Validation.CheckInitializeReplacingUnique(replacements, cat))
                     continue;   // ISO §14.9.20.3 SR6 — reported by the pure check; the skip stays here
-                BoundOperand value = item.literal() is { } lit ? host.LiteralOperand(lit)
-                    : item.dataReference() is { } sref ? host.FieldOperand(sref)
+                BoundOperand value = item.literal() is { } lit ? host.Expr.LiteralOperand(lit)
+                    : item.dataReference() is { } sref ? host.Expr.FieldOperand(sref)
                     : new BoundOperandError("INITIALIZE REPLACING sending operand");
                 replacements.Add((cat, value));
             }
