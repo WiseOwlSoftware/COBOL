@@ -103,11 +103,11 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, CShar
                 {
                     // GR4d: the original sign is retained — the (still-unmodified) field supplies it.
                     string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
-                    w.Line($"var {mag} = {CSharpEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)};");
+                    w.Line($"var {mag} = {ArithmeticEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)};");
                     w.Line(p.Write($"({p.Read()} < 0 ? -{mag} : {mag})"));
                 }
                 else
-                    w.Line(p.Write(CSharpEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)));
+                    w.Line(p.Write(ArithmeticEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)));
                 return;
             }
             if (pic.Signed)

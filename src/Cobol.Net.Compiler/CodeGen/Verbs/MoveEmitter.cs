@@ -292,13 +292,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 int ems = CobolEdit.MaskScale(pic.EditMask!, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma);
                 string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation) : e.Expr;
                 int editScale = e.Real ? ems : e.Scale;
-                return RuntimeApi.EditFormat(editVal, $"{editScale}", CsLiteral(pic.EditMask!), CSharpEmitter.BwzFlag(target) + ctx.EditCfgArgs);
+                return RuntimeApi.EditFormat(editVal, $"{editScale}", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfgArgs);
             // An ELEMENTARY ALPHANUMERIC source into a numeric-edited receiver IS a legal move (§14.9.25.3
             // Table 16): the sending characters are treated as an unsigned integer and EDITED into the mask
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
             // (A GROUP sender never reaches here — GR4 makes that a group move, no editing: EmitGroupToElementaryMove.)
             case PicCategory.NumericEdited:
-                return RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, deSign: true)), "0", CsLiteral(pic.EditMask!), CSharpEmitter.BwzFlag(target) + ctx.EditCfgArgs);
+                return RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, deSign: true)), "0", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfgArgs);
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
@@ -351,7 +351,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 int recvScaleM = target.Pic!.Scale;
                 string nExpr = n.Real ? RuntimeApi.FloatToScaled(n.Expr, $"{recvScaleM}", CobolRounding.Truncation) : n.Expr;
                 int nScale = n.Real ? recvScaleM : n.Scale;
-                string stored = CSharpEmitter.Narrow(RuntimeApi.NumStore(nExpr, $"{nScale}", target.ProfileName), target);
+                string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(nExpr, $"{nScale}", target.ProfileName), target);
                 // A whole-group-aliased numeric-DISPLAY receiver stores its character image, not the raw long.
                 return target.StoreAsImage ? RuntimeApi.NumFormatDisplay(stored, target.ProfileName) : stored;
             default:

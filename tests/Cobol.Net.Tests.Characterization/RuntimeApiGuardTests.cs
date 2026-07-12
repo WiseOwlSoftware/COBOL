@@ -27,7 +27,8 @@ public sealed class RuntimeApiGuardTests
     /// re-counted at commit time). A file NOT listed here must have ZERO bare accesses.</summary>
     private static readonly Dictionary<string, int> Baseline = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["CSharpEmitter.cs"] = 74,   // 98 − the 24 that moved with the MOVE family (9g1); shrinks via 9h–9j
+        ["CSharpEmitter.cs"] = 34,   // 74 − the 40 that moved with arithmetic (9h1); shrinks via 9i–9j
+        ["Verbs/ArithmeticEmitter.cs"] = 40,   // 9h1 mechanical split; 9h2 routes these through RuntimeApi
         ["Verbs/MoveEmitter.cs"] = 3,   // 9g2: fragments routed; residue = the compile-time MaskScale call + 2 typed CobolRounding args
         ["Emit/IntrinsicRenderer.cs"] = 52,
         ["CSharpEmitter.Call.cs"] = 27,

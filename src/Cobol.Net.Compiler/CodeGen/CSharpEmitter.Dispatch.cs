@@ -57,17 +57,17 @@ public sealed partial class CSharpEmitter : IBoundStatementVisitor<bool>
     // ── DISPLAY / MOVE / arithmetic ──────────────────────────────────────────────────────────────────────────
     public bool Visit(BoundDisplay n) { _acceptDisplay.EmitDisplay(n); return false; }
     public bool Visit(BoundMove n) { EmitMove(n); return false; }
-    public bool Visit(BoundAddTo n) { EmitInPlace(n.Targets, "+", n.Addends, n.SizeError); return false; }
-    public bool Visit(BoundAddGiving n) { EmitGiving(n.Targets, rcv => _num.Fold(n.Addends, rcv), n.SizeError); return false; }
-    public bool Visit(BoundSubtractFrom n) { EmitInPlace(n.Targets, "-", n.Minuends, n.SizeError); return false; }
-    public bool Visit(BoundSubtractGiving n) { EmitGiving(n.Targets, rcv => _num.Combine(_num.Render(n.From, rcv), "-", _num.Fold(n.Minuends, rcv), rcv), n.SizeError); return false; }
-    public bool Visit(BoundMultiplyBy n) { EmitInPlace(n.Targets, "*", [n.A], n.SizeError); return false; }
-    public bool Visit(BoundMultiplyGiving n) { EmitGiving(n.Targets, rcv => _num.Combine(_num.Render(n.A, rcv), "*", _num.Render(n.B, rcv), rcv), n.SizeError); return false; }
-    public bool Visit(BoundDivideInto n) { EmitDivide(n.Targets, null, n.Divisor, n.SizeError); return false; }
-    public bool Visit(BoundDivideGiving n) { EmitDivide(n.Targets, n.Dividend, n.Divisor, n.SizeError); return false; }
-    public bool Visit(BoundDivideRemainder n) { EmitDivideRemainder(n); return false; }
-    public bool Visit(BoundCompute n) { EmitCompute(n); return false; }
-    public bool Visit(BoundComputeBoolean n) { EmitComputeBoolean(n); return false; }
+    public bool Visit(BoundAddTo n) { _arith.EmitInPlace(n.Targets, "+", n.Addends, n.SizeError); return false; }
+    public bool Visit(BoundAddGiving n) { _arith.EmitGiving(n.Targets, rcv => _num.Fold(n.Addends, rcv), n.SizeError); return false; }
+    public bool Visit(BoundSubtractFrom n) { _arith.EmitInPlace(n.Targets, "-", n.Minuends, n.SizeError); return false; }
+    public bool Visit(BoundSubtractGiving n) { _arith.EmitGiving(n.Targets, rcv => _num.Combine(_num.Render(n.From, rcv), "-", _num.Fold(n.Minuends, rcv), rcv), n.SizeError); return false; }
+    public bool Visit(BoundMultiplyBy n) { _arith.EmitInPlace(n.Targets, "*", [n.A], n.SizeError); return false; }
+    public bool Visit(BoundMultiplyGiving n) { _arith.EmitGiving(n.Targets, rcv => _num.Combine(_num.Render(n.A, rcv), "*", _num.Render(n.B, rcv), rcv), n.SizeError); return false; }
+    public bool Visit(BoundDivideInto n) { _arith.EmitDivide(n.Targets, null, n.Divisor, n.SizeError); return false; }
+    public bool Visit(BoundDivideGiving n) { _arith.EmitDivide(n.Targets, n.Dividend, n.Divisor, n.SizeError); return false; }
+    public bool Visit(BoundDivideRemainder n) { _arith.EmitDivideRemainder(n); return false; }
+    public bool Visit(BoundCompute n) { _arith.EmitCompute(n); return false; }
+    public bool Visit(BoundComputeBoolean n) { _arith.EmitComputeBoolean(n); return false; }
 
     // ── Conditionals / loops / SEARCH / EVALUATE ─────────────────────────────────────────────────────────────
     public bool Visit(BoundIf n) { EmitIf(n); return false; }

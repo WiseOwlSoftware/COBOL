@@ -155,7 +155,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, CSharp
         if (p is not RedefViewPlace && !p.Item.StoreAsImage
             && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
         {
-            w.Line(p.Write(CSharpEmitter.Narrow(RuntimeApi.NumParseDisplay(imageExpr, p.Item.ProfileName), p.Item)));
+            w.Line(p.Write(ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(imageExpr, p.Item.ProfileName), p.Item)));
             return;
         }
         if (p is not RedefViewPlace && !p.Item.StoreAsImage
@@ -213,7 +213,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, CSharp
                 string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", target.Item.ProfileName);
                 w.Line(target.Write(target.Item.StoreAsImage
                     ? RuntimeApi.NumFormatDisplay(stored, target.Item.ProfileName)
-                    : CSharpEmitter.Narrow(stored, target.Item)));
+                    : ArithmeticEmitter.Narrow(stored, target.Item)));
                 return;
             default:
                 w.Line(LoudStmt($"UNSTRING receiver '{target.Item.CobolName}' (usage display, category alphabetic/alphanumeric/numeric — ISO §14.9.48.3 SR4)"));

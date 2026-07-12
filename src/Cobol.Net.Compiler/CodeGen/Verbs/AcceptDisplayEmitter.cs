@@ -79,7 +79,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
                 string image = $"AcceptSource.Device({item.ImageWidth})";
                 w.Line(item.StoreAsImage || target is RedefViewPlace
                     ? target.Write(image)   // image-stored zoned field / Tier-B window: the characters ARE the storage
-                    : target.Write(CSharpEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item)));
+                    : target.Write(ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item)));
                 return;
             case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2
                 w.Line(LoudStmt($"ACCEPT into floating-point receiver '{item.CobolName}' (COMP-1/COMP-2 device conversion, deferred)"));
@@ -137,7 +137,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
             case { Category: PicCategory.Numeric, IsFloat: false }:
                 // Numeric MOVE: decimal-point alignment with high-order truncation / zero fill (§14.9.25.4 GR6 —
                 // the integer sender is at scale 0; the receiver keeps its LOW-order digits when smaller).
-                string stored = CSharpEmitter.Narrow(RuntimeApi.NumStore(call, "0", item.ProfileName), item);
+                string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(call, "0", item.ProfileName), item);
                 w.Line(target.Write(item.StoreAsImage
                     ? RuntimeApi.NumFormatDisplay(stored, item.ProfileName)
                     : stored));

@@ -156,7 +156,7 @@ public sealed partial class CSharpEmitter
     // ── The EC-SIZE family over the checked-arithmetic shape (§14.7.5 ↔ Table 13) ───────────────────────────
 
     /// <summary>The EC-SIZE-* names the current statement has enabled (empty list when none / no wrapper).</summary>
-    private List<string> EcEnabledSizeNames() =>
+    internal List<string> EcEnabledSizeNames() =>
         _ecState.Info?.Enabled.Where(p => p.Ec.StartsWith("EC-SIZE-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
         ?? [];
 
@@ -164,7 +164,7 @@ public sealed partial class CSharpEmitter
     /// names, set the last exception status and — unless the statement's own ON SIZE ERROR phrase takes
     /// precedence (§14.6.13.1.3 #1 / §14.6.13.1.4 #1) — run the §14.9.49 F3 selection and the fatal default
     /// (every EC-SIZE-* is fatal, Table 13).</summary>
-    private void EcEmitSizeHandling(string flag, string ecnVar, List<string> enabled, bool hasPhrase)
+    internal void EcEmitSizeHandling(string flag, string ecnVar, List<string> enabled, bool hasPhrase)
     {
         var w = _ctx.Writer;
         int id = _ctx.Names.NextEc();
