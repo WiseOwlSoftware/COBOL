@@ -1,8 +1,8 @@
 # DESIGN — Edition / Version-Correctness Framework ("N per-edition compilers")
 
-> Status: DESIGN — **IMPLEMENTED by rearch PHASE 02 (P2.1–P2.11, DEVLOG 670–695; PHASE-02 doc = DONE).** The
+> Status: DESIGN — **IMPLEMENTED by rearch PHASE 02.** The
 > Open Questions (§6) are resolved-by-implementation except Q4 (the behavior-variant matrix), an explicit P3
-> follow-on. R1 (forward predicate stamping) materialized and was superseded by the bind-time gating migration.
+> follow-on.
 > Scope: the four-compilers-in-one machinery — construct registry, reserved words, gating
 > (introduction / removal / obsolete / behavior-variant), `EditionContext` threading, the version
 > test matrix, and the version-gating audit. Upholds the HARD INVARIANTS (typed-native, spec-first,
@@ -14,9 +14,9 @@
 > `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`, `EditionSeverityPolicy`) — the single version table. Their
 > sole consumer is ONE `VersionConformancePass` over the bound tree: parse is a SUPERSET (no edition predicates; each
 > version-gated rule carries a committed-match construct-id annotation), bind is edition-AGNOSTIC (zero `Check` calls),
-> the pass is the sole gate, and emit runs only on a clean tree. ⚠ **AS-BUILT (DEVLOG 724): NO `.Syntax` back-ref on
+> the pass is the sole gate, and emit runs only on a clean tree. ⚠ **NO `.Syntax` back-ref on
 > bound nodes** — the pass is TWO-ARM (bound-node type/attribute + a presence-based parse-tree arm for syntactic
-> introduction/removal gates); see the AS-BUILT REFINEMENT banner in
+> introduction/removal gates); see
 > `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`.
 
 ## 1. The current problem (grounded in the AS-BUILT code)
@@ -34,7 +34,7 @@ frontend physically cannot see it. Every duplication below is a symptom of that 
 |---|---------|----------|
 | P1 | **Registry invisible to the frontend** → the parse-layer re-encodes the same edition metadata. `EditionGateHints` (Frontend, `namespace CobolSharp.Compiler.Parsing`) hand-copies `(Display, IntroducedIn, Citation, RowId)` for ~30 constructs into `Gate` records that already exist as `ConstructDialectStatus` rows. | `src/Cobol.Net.Frontend/Parsing/EditionGateHints.cs:35-63`; the same rows in `Validation/ConstructDialectStatus.cs:60-168` |
 | P2 | **Severity policy reimplemented twice more in the frontend.** `ReferenceFormatProcessor.EditionGates` and `CopyProcessor` each inline `if (permissive) ReportWarning else ReportError` instead of the one `EditionContext.Removed` seam. | `ReferenceFormatProcessor.cs:120-148`; `CopyProcessor` (COPY REPLACING gate) |
-| P3 | **`EditionGateHints` reverse-engineers what the `{isXXXX()}?` gate already knew.** ~30 signatures pattern-match `(offending token, rule-stack, lookahead windows)` to recover the construct identity that the failing predicate discarded. Brittle (empirically derived, DEVLOG 594), and a documented residue of un-mappable cases (`inlineMethodInvocationStatement`, `SET…TO objref`). | `EditionGateHints.cs:72-175` |
+| P3 | **`EditionGateHints` reverse-engineers what the `{isXXXX()}?` gate already knew.** ~30 signatures pattern-match `(offending token, rule-stack, lookahead windows)` to recover the construct identity that the failing predicate discarded. Brittle (empirically derived), and a documented residue of un-mappable cases (`inlineMethodInvocationStatement`, `SET…TO objref`). | `EditionGateHints.cs:72-175` |
 | P4 | **Two parallel mechanisms for removed / introduction gating** (singular-pattern violation). Most gates route through `ConstructRegistry.Check`, but a handful stay inline with pinned codes: `0816` END-ACCEPT (intro), `0803` ROUNDED MODE (intro), `0810` ALTER / `0811` bare GO TO / `0882` CALL ON OVERFLOW (removed). None are registry rows, so **none enter the version matrix**. | `StatementBinder.Accept.cs:45`, `StatementBinder.cs:1229`, `StatementBinder.AlterSwitches.cs:119,137`, `StatementBinder.Call.cs:176` |
 | P5 | **`DialectLevel` is double-sourced.** `CobolParserCoreBase.DialectLevel` (Frontend, `{ get; set; } = 85`), `Frontend.DialectLevel` (init = 85), and `EditionContext.DialectLevel` (Compiler) are three independent stores set from `Options.DialectLevel` by hand; a fourth default (`Options` = 2023, CLI `--std` = 2023-or-85). Four defaults that must be kept equal by convention. | `CobolParserCoreBase.cs:17`, `Frontend.cs:45`, `EditionContext.cs:29`, `CompilerDriver.cs:38` |
 | P6 | **`EditionContext` is an overloaded "edition" object that is really `EditionInfo + DiagnosticSink`.** It carries the immutable edition facts (DialectLevel/Permissive/MaxDigits) *and* two `public List<string>` accumulators (`Diagnostics`, `Warnings`) that are stringly-typed (`$"error {code}: {message}"`) and mutable-exposed. 290 call sites. The "edition" name mislabels a diagnostic sink. | `EditionContext.cs:37-56` |
@@ -207,8 +207,7 @@ it *parses*, and the construct is diagnosed by the ONE `VersionConformancePass` 
 (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md` §2):
 
 - Each version-gated rule carries a **committed-match construct-id annotation** (a grammar action +
-  side-table storage keyed by parse context — the annotation convention delivered by rearch
-  PHASE-04). Identity flows *forward* from the rule that owns it, never *backward* from a
+  side-table storage keyed by parse context). Identity flows *forward* from the rule that owns it, never *backward* from a
   token-window heuristic, and it is recorded only on a COMMITTED match — never inside speculative
   prediction.
 - The only surviving predicates are the two **load-bearing forward-detects**, where a construct's
@@ -232,14 +231,13 @@ The five inline gates (`0816`, `0803`, `0810`, `0811`, `0882`) become `construct
 their **pinned codes kept** (`DiagnosticCode` field), and their call sites become
 `ConstructRegistry.Check(ed, sink, Constructs.EndAccept2002, where)` etc. They then automatically
 enter the version matrix (positive+negative fixtures required by the drift discipline). ALL `Check`
-call sites funnel into the ONE `VersionConformancePass` over the bound tree (rearch PHASE-03
-Step 14); the binder itself is edition-AGNOSTIC (zero `Check` calls) — the funnel runs after bind,
-before emit.
+call sites funnel into the ONE `VersionConformancePass` over the bound tree; the binder itself is
+edition-AGNOSTIC (zero `Check` calls) — the funnel runs after bind, before emit.
 
 ### 2.9 `EditionValidator` is absorbed by the `VersionConformancePass` (P9)
 
-The raw-parse-tree removal gate + §8.9 reserved-word funnel live in the ONE `VersionConformancePass`
-(rearch PHASE-03 Step 14 absorbs and deletes `EditionValidator`):
+The raw-parse-tree removal gate + §8.9 reserved-word funnel live in the ONE `VersionConformancePass`,
+which absorbs and replaces `EditionValidator`:
 
 - The §8.9 reserved-word funnel moves into the pass; `CheckedTokenTypes` and
   `IsProvableUserWordPosition` remain grammar-coupled (legitimate for a syntax-facing check) but
@@ -282,7 +280,7 @@ The raw-parse-tree removal gate + §8.9 reserved-word funnel live in the ONE `Ve
 | refactor | `Frontend/Parsing/CobolParserCoreBase.cs` | add `EditionInfo Edition`; `is85/2002/2014/2023` delegate to `Edition.Has` (used only by the two load-bearing forward-detects) | Single DialectLevel source (P5). |
 | refactor | `Frontend/Preprocessor/ReferenceFormatProcessor.cs` (`EditionGates` inner class) & `CopyProcessor` | consume `EditionSeverityPolicy` + `ConstructRegistry.Check` over a shared sink; delete the inline `if(permissive)` | One severity policy (P2). |
 | refactor (×5) | inline gates `StatementBinder.Accept.cs:45` (0816), `StatementBinder.cs:1229` (0803), `AlterSwitches.cs:119/137` (0811/0810), `Call.cs:176` (0882) | `constructs.json` rows (pinned codes) + `ConstructRegistry.Check` call sites | Kill the parallel gating mechanism; put them in the matrix (P4). |
-| absorb + delete | `Validation/EditionValidator.cs` | the `VersionConformancePass` (its §8.9 reserved-word funnel moves into the pass; rearch PHASE-03 Step 14) | One edition-gating funnel; shared metadata + sink (P9). |
+| absorb + delete | `Validation/EditionValidator.cs` | the `VersionConformancePass` (its §8.9 reserved-word funnel moves into the pass) | One edition-gating funnel; shared metadata + sink (P9). |
 | rename | generated ns `CobolSharp.Compiler.Generated` (in assembly `Cobol.Net.Frontend`) | `CobolNet.Frontend.Generated` (one MSBuild property in `Invoke-Antlr4CSharp.ps1`) | Remove the stale legacy namespace/alias (adjacent cleanup; enables clean `Editions`/`Frontend` refs). |
 | create | — | `scripts/gen-vcr.ps1` + `VersionBehaviorMatrixTests` | Harness-driven VCR status + behavior-variant gating (P8). |
 | update | `docs/VERSION_CHANGE_REFERENCE.md` | generated output; `docs/DOC_INDEX.md` row | Ledger can no longer go stale (P7/P8). |
@@ -341,16 +339,16 @@ behavior.
 ## 5. Risks
 
 - **R1 — ANTLR speculative predicate evaluation — ⛔ MATERIALIZED; forward stamping
-  ABANDONED (DEVLOG 679, rearch P2.7).** Predicate stamping records a gate whenever ANTLR EVALUATES a
+  ABANDONED.** Predicate stamping records a gate whenever ANTLR EVALUATES a
   hoisted `{Gate}?` predicate — which happens SPECULATIVELY, at the stuck token, during a FAILING
   prediction/recovery, not only where the construct actually appears. The attempted mitigations
   (furthest-token-wins + reset-per-parse, plus an added `Consume()`-reset and a JSON/XML guard) each
   patched a sub-case but the general failure is intrinsic: an ordinary typo (`IF W = .`, a stray `)`,
   the unsupported `SUPPRESS`) records a gate for a construct the program never used and emits a
-  confidently-wrong "requires COBOL-YYYY". An adversarial review (wf_b73eff97) found it; it was
+  confidently-wrong "requires COBOL-YYYY". An adversarial review found it; it was
   reproduced on the CLI. **A forward stamp cannot reliably mean "the user WROTE this construct."**
   This is why the construct-id annotation records identity only on a COMMITTED match (§2.7).
-  *Resolution — the bind-time gating migration (DEVLOG 680–690, 709–713):* edition
+  *Resolution — the bind-time gating migration:* edition
   introduction-gating moved to BIND time construct by construct — first every HARD-reserved
   construct (ALLOCATE, INVOKE, CLASS-ID, DELETE FILE, GOBACK RETURNING, LOCK MODE, the record-lock
   phrases, … — 24 constructs / 11 clusters), then the **reservation-word residue** (XOR/EXCLUSIVE-OR,
@@ -359,11 +357,10 @@ behavior.
   `ConstructRegistry.Check` funnel, removing both the parse predicates and the reverse signatures.
   Only the two load-bearing forward-detects (`retryPhraseAhead()` on the OPEN clause,
   `boolExprAhead()` on the boolean-condition ENTRY) survive, for tokenization only. The transitional
-  recognizer `ReservedWordEditionHints` (renamed from `EditionGateHints`, DEVLOG 693; metadata
-  registry-driven, so P1/P7 duplication is gone) covers the not-yet-migrated residue and is then
-  DELETED (rearch PHASE-03 Step 13); its vendor JSON/XML `COBOL0313` branch relocates to
-  `CobolErrorStrategy` as a token-keyed vendor hint. All edition diagnosis funnels into the ONE
-  `VersionConformancePass` — the recognizer does not exist in the end state.
+  recognizer `ReservedWordEditionHints` (metadata registry-driven, so P1/P7 duplication is gone)
+  covered the not-yet-migrated residue and is then DELETED; its vendor JSON/XML `COBOL0313` branch
+  relocates to `CobolErrorStrategy` as a token-keyed vendor hint. All edition diagnosis funnels into
+  the ONE `VersionConformancePass` — the recognizer does not exist in the end state.
 - **R2 — 290-site `EditionContext` migration churn.** *Mitigation:* the adapter (step 1) lets the
   rename land with zero behavior risk; sites migrate in independently-testable slices; the adapter is
   deleted only when the last site is gone.
@@ -386,7 +383,7 @@ behavior.
 ## 6. Open questions for the owner
 
 1. **Q1 — Registry generation mechanism? ✅ RESOLVED: committed PowerShell script.** `scripts/gen-constructs.ps1`
-   emits the committed `.g.cs` (mirroring `gen-reserved-words.ps1`), NOT a Roslyn source generator (P2.5); the
+   emits the committed `.g.cs` (mirroring `gen-reserved-words.ps1`), NOT a Roslyn source generator; the
    diagnostics doc uses the same discipline via `scripts/gen-diagnostics-doc.ps1` (the drift test renders it).
 2. **Q2 — Delete `EditionGateHints` outright, or keep a registry-driven thin recognizer? ✅ RESOLVED:
    deleted — the recognizer does not exist in the end state.** Forward predicate stamping was disproved
@@ -394,21 +391,21 @@ behavior.
    reservation-word residue whose tokens double as §8.9 user words (the lexical ambiguity is resolved by
    the two load-bearing forward-detects `retryPhraseAhead()`/`boolExprAhead()`) — into bind-time
    `ConstructRegistry.Check` funnelled through the ONE `VersionConformancePass`. The transitional
-   `ReservedWordEditionHints` recognizer (metadata registry-driven) covers the residue only until its
-   batch lands, then is deleted (rearch PHASE-03 Step 13); the vendor JSON/XML `COBOL0313` disposition
+   `ReservedWordEditionHints` recognizer (metadata registry-driven) covered the residue only until its
+   batch landed, then is deleted; the vendor JSON/XML `COBOL0313` disposition
    relocates to `CobolErrorStrategy` as a token-keyed vendor hint.
 3. **Q3 — Assembly boundary? ✅ RESOLVED: dependency-free.** `Cobol.Net.Editions` references no ANTLR runtime;
    `Check` takes primitives (`EditionInfo` + `IDiagnosticSink`), and any parse-context mapping stays in the
    frontend. Cleaner layering, as recommended.
-4. **Q4 — Scope of the behavior-variant matrix (§2.10)? ⏭ DEFERRED to P3 (unchanged).** Running every construct
+4. **Q4 — Scope of the behavior-variant matrix (§2.10)? ⏭ DEFERRED to P3.** Running every construct
    under all four `--std` values and diffing stdout is the P3 version-gating audit / `VersionBehaviorMatrixTests`,
    explicitly out of P2 scope. This is the one open question P2 does NOT resolve.
 5. **Q5 — `EditionContext` final name? ✅ RESOLVED by implementation: kept `EditionContext` behind the adapter.**
-   P2 split it into `EditionInfo` + an `IDiagnosticSink` while keeping the public surface + name so the ~290
-   sites compile untouched (exit criterion 5). Renaming the collector to its final name (`DiagnosticSink` /
-   `CompileDiagnostics`) + retiring the adapter is the optional P7 churn (PHASE-02 §"Step 12").
+   It is split into `EditionInfo` + an `IDiagnosticSink` while keeping the public surface + name so the ~290
+   sites compile untouched. Renaming the collector to its final name (`DiagnosticSink` /
+   `CompileDiagnostics`) + retiring the adapter is the optional P7 churn.
 6. **Q6 — General diagnostic-descriptor registry here or a separate dimension? ✅ RESOLVED: seeded HERE, broader
-   registry deferred to P7.** The edition band + the `COBOLNET0899` split + the reused `COBOLNET1533` landed as
-   `Cobol.Net.Editions/Diagnostics/DiagnosticCatalog` (P2.10, `docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`).
+   registry deferred to P7.** The edition band + the `COBOLNET0899` split + the reused `COBOLNET1533` live in
+   `Cobol.Net.Editions/Diagnostics/DiagnosticCatalog` (`docs/DIAGNOSTICS.md` + `DiagnosticRegistryDriftTests`).
    The full every-code→descriptor migration + folding the frontend's parse-layer descriptors / its 3-value
    `DiagnosticSeverity` into this home is the P7 follow-on.

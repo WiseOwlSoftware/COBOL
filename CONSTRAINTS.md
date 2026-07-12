@@ -1,7 +1,7 @@
-# CobolSharp Modernization — Constraints and Anti-Pattern Catalog
+# COBOL.NET — Constraints and Anti-Pattern Catalog
 
-This document captures the full set of anti-patterns, migration phases, process rituals,
-and behavioral constraints governing the modernization effort. Referenced from PROMPT.md.
+This document captures the anti-patterns, engineering phases, process rituals, and behavioral
+constraints governing the COBOL.NET compiler's development. Referenced from PROMPT.md.
 
 ---
 
@@ -18,7 +18,7 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 
 - **Leaky abstractions and cross-layer reach-through** `[LayerViolation]`
   Lower layers depending on higher layers (e.g., runtime knowing about parser internals).
-  Action: Enforce strict layering (Lexer -> Parser -> Semantic Model -> IR -> Codegen -> Runtime).
+  Action: Enforce strict layering (Lexer -> Parser -> Bound Tree -> Codegen -> Runtime).
 
 - **Hidden global state / singletons / static mutable state** `[GlobalState]`
   Static mutable fields, implicit global configuration, or shared mutable caches.
@@ -101,10 +101,11 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 - Remove global state and implicit context
 - Make semantic invariants explicit and testable
 
-### Phase 5: IR and Lowering
-- Define a clear IR model
-- Centralize lowering patterns (control flow, arithmetic, PIC handling)
-- Remove duplication and scattered lowering logic
+### Phase 5: Bound Tree and Semantic Normalization
+- Resolve every reference/expression/condition to a bound node ONCE (the bound tree is the single
+  semantic model — there is NO separate lowered IR)
+- Centralize normalization on the bound node (control flow, arithmetic, PIC handling)
+- Remove duplication and scattered re-derivation of semantics at emit time
 
 ### Phase 6: Code Generation and Runtime
 - Cleanly separate codegen from runtime
@@ -124,7 +125,7 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 ### Phase 9: Final Consolidation and Cleanup
 - Sweep for remaining anti-patterns
 - Normalize naming, documentation, and structure
-- Ensure the Migration Ledger reflects a stable, long-term architecture
+- Ensure the docs (DEVLOG.md, resume-prompt.md, the design corpus) reflect a stable, long-term architecture
 
 ---
 
@@ -132,17 +133,17 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 
 ### Session-Start Ritual
 At the start of every session:
-1. Load and summarize the Migration Ledger
+1. Load and summarize the current state from resume-prompt.md + recent DEVLOG.md entries
 2. Identify: current phase, last session's focus, outstanding TODOs, known regressions
 3. Produce a brief summary: current phase/status, key decisions, top 3-5 TODOs
 4. Confirm scope with user (phase, files/modules, constraints)
-5. Restate goals and commit to maintaining test passing status and updating the ledger
+5. Restate goals and commit to maintaining test passing status and updating DEVLOG.md
 
 ### Session-End Ritual
 At the end of every session:
 1. Summarize changes: files touched, anti-patterns addressed, key refactors, new invariants
 2. Report test status: which tests ran, pass/fail, regressions and handling
-3. Update the Migration Ledger: append session log, update phase status, update TODOs
+3. Update DEVLOG.md: append the session log, update phase status, update TODOs
 4. Propose next steps: prioritized list tied to current phase and remaining anti-patterns
 
 ---

@@ -7,25 +7,23 @@
 
 ## Summary
 
-COBOL.NET stores a datum as its VALUE (PIC 9(4)→a long holding unscaled 1234; PIC X(4)→a 4-char string). REDEFINES (ISO 13.18.44) and RENAMES/level-66 (13.18.45) are byte-image REINTERPRETATION: a second, differently-typed VIEW over the same storage. Value model and byte image coincide only for trivial same-USAGE/same-layout puns; every hard case is hard because they diverge (a PIC 9(4) COMP punned as PIC XX is the two binary bytes, unrelated to the long's value; PIC X(20) punned as -9(9).9(9) reinterprets 20 char positions under an edit template). With NO shared byte[], two typed reps cannot both be live, stored, and coherent. THE ONE CORRECT COHERENCE ANSWER: they do not both exist. A "redefines class" (entries sharing a storage area) has exactly ONE stored backing — the canonical — and EVERY other view is a computed accessor over it (backend-neutral; the primary Roslyn backend renders it as a C# property, a CIL backend as get/set method pairs). Never two stored fields per storage area (the incoherence trap; violates feedback_singular_pattern). RECOMMENDED HYBRID = 4 tiers, one per class, priority cascade D>C>B>A: A-Alias (as built — every member elementary with the SAME CLR storage type AND image width: identical PIC+USAGE, or numeric-over-numeric of equal width where each view reinterprets the shared unscaled value via its own scale/NumProfile; plus RENAMES-without-THRU): one typed field, other names are pass-through accessors. B-StringCanonical (whole class is USAGE DISPLAY — alphanumeric/DISPLAY-numeric/edited/alphabetic): canonical = ONE string of class-max width (a DISPLAY item's byte image IS its characters); each view = typed accessor (substring / parse-digits→long / format) over it; NO bytes; this is the dominant real case and covers the ENTIRE near-term NIST path (corpus check: immediate REDEFINES classes are DISPLAY-homogeneous). C-ByteCanonical (mixed-USAGE puns observing COMP/COMP-1/2/3/5/INDEX cross-view): canonical = ONE class-scoped byte[] of class-max width, SYNC-aware offsets; each leaf = typed get/set accessor over (offset,length,usage) via a small RedefCodec runtime helper (mine legacy PicRuntime/PicDescriptor); byte image confined to the class, never the record, never persisted beyond it. D-Reject loud (spec-forbidden/unmodelable: object/pointer/message-tag/strongly-typed rules 12/14; OCCURS DEPENDING ON / variable-length / dynamic-length rules 5/17): a diagnostic, which is conformant since these are already illegal. RENAMES folds into the same tiers as a COMPOSED view over EXISTING fields (it adds no storage; GR1 no-THRU = attribute inheritance = Tier A; GR2 THRU = alphanumeric group view = Tier B composition over the spanned leaves' display images). Tier classification reuses the legacy RecordClassificationPass closure shape (byte propagates across the REDEFINES class + to all subordinates, monotone, terminating), re-verdicted to the lattice A⊑B⊑C⊑D (join=max tier). Status (IMPLEMENTED): the model is live — `src/Cobol.Net.Compiler/Binding/RedefinesModel.cs` (RenamesInfo / RedefinesTier / RedefinesClass) + `DataItem` (RedefinesTargetName / RedefinesTarget / Renames / Class / IsCanonical / Renames66); `DataBinder` binds level 66, resolves targets post-build, and classifies via `ComputeTier` — Tiers A+B emit today; a would-be Tier-C class is interim loud-rejected pending the RedefCodec. Owner fork RESOLVED (`COBOLNET_DESIGN.md` §18 #1, owner-confirmed 2026-06-08): Tier C's persistent class-scoped byte[] IS the accepted "bytes only at a boundary" realization (Tiers A/B stay 100% typed; collapse-C-into-D remains owner-vetoable but is NOT the plan). Implementation note: the Tier-C codec is not yet built — `DataBinder.ComputeTier` interim-rejects would-be Tier-C classes with a loud diagnostic until it lands.
+COBOL.NET stores a datum as its VALUE (PIC 9(4)→a long holding unscaled 1234; PIC X(4)→a 4-char string). REDEFINES (ISO 13.18.44) and RENAMES/level-66 (13.18.45) are byte-image REINTERPRETATION: a second, differently-typed VIEW over the same storage. Value model and byte image coincide only for trivial same-USAGE/same-layout puns; every hard case is hard because they diverge (a PIC 9(4) COMP punned as PIC XX is the two binary bytes, unrelated to the long's value; PIC X(20) punned as -9(9).9(9) reinterprets 20 char positions under an edit template). With NO shared byte[], two typed reps cannot both be live, stored, and coherent. THE ONE CORRECT COHERENCE ANSWER: they do not both exist. A "redefines class" (entries sharing a storage area) has exactly ONE stored backing — the canonical — and EVERY other view is a computed accessor over it (backend-neutral; the primary Roslyn backend renders it as a C# property, a CIL backend as get/set method pairs). Never two stored fields per storage area (the incoherence trap; violates feedback_singular_pattern). RECOMMENDED HYBRID = 4 tiers, one per class, priority cascade D>C>B>A: A-Alias (every member elementary with the SAME CLR storage type AND image width: identical PIC+USAGE, or numeric-over-numeric of equal width where each view reinterprets the shared unscaled value via its own scale/NumProfile; plus RENAMES-without-THRU): one typed field, other names are pass-through accessors. B-StringCanonical (whole class images to characters — USAGE DISPLAY alphanumeric/DISPLAY-numeric/edited/alphabetic, plus fixed-point BINARY [COMP/COMP-4] and PACKED [COMP-3] leaves whose window is their zoned digit image per §13.18.60 GR4): canonical = ONE string of class-max width (a DISPLAY item's byte image IS its characters); each view = typed accessor (substring / parse-digits→long / format) over it; NO bytes; this is the dominant real case and covers the ENTIRE near-term NIST path (corpus check: immediate REDEFINES classes are DISPLAY-homogeneous). C-ByteCanonical (a genuine mixed-USAGE pun over a usage with NO fixed character-digit image — float [COMP-1/2], COMP-5, INDEX): canonical = ONE class-scoped byte[] of class-max width, SYNC-aware offsets; each leaf = typed get/set accessor over (offset,length,usage) via a small RedefCodec runtime helper (mine legacy PicRuntime/PicDescriptor); byte image confined to the class, never the record, never persisted beyond it. D-Reject loud (spec-forbidden/unmodelable: object/pointer/message-tag/strongly-typed rules 12/14; OCCURS DEPENDING ON / variable-length / dynamic-length rules 5/17): a diagnostic, which is conformant since these are already illegal. RENAMES folds into the same tiers as a COMPOSED view over EXISTING fields (it adds no storage; GR1 no-THRU = attribute inheritance = Tier A; GR2 THRU = alphanumeric group view = Tier B composition over the spanned leaves' display images). Tier classification reuses the legacy RecordClassificationPass closure shape (byte propagates across the REDEFINES class + to all subordinates, monotone, terminating), re-verdicted to the lattice A⊑B⊑C⊑D (join=max tier). Status (IMPLEMENTED): the model is live — `src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs` (RenamesInfo / RedefinesTier / RedefinesClass) + `DataItem` (RedefinesTargetName / RedefinesTarget / Renames / Class / IsCanonical / Renames66); `DataBinder` binds level 66, resolves targets post-build, and classifies via `ComputeTier` — Tiers A+B emit; a would-be Tier-C class is interim loud-rejected pending the RedefCodec. Owner fork RESOLVED (`COBOLNET_DESIGN.md` §18 #1): Tier C's persistent class-scoped byte[] IS the accepted "bytes only at a boundary" realization (Tiers A/B stay 100% typed; collapse-C-into-D remains owner-vetoable but is NOT the plan). Implementation note: the Tier-C codec is not yet built — `DataBinder.ComputeTier` interim-rejects would-be Tier-C classes with a loud diagnostic until the RedefCodec is built.
 
-> **AMENDMENT (2026-06-10, Phase 1E — the tier boundary moved; see D10):** the Tier-B/Tier-C boundary above is
-> superseded. Tier B (StringCanonical) now admits **fixed-point BINARY (COMP/COMP-4) and PACKED (COMP-3) leaves**,
-> whose window over the one string backing is their zoned digit image (ISO §13.18.60 USAGE GR4 — the representation,
-> including the sign, is implementor-defined; `COBOLNET_DESIGN.md` §14.4's total digit-image rule). Tier C narrows to
-> the usages with NO fixed character-digit image: **float (COMP-1/2), COMP-5 (BinaryCapacity stores values beyond the
-> PICTURE digit count), and INDEX** — still interim loud-rejected pending the RedefCodec. Why the original wasn't
-> followed: the original boundary predates the §14.4 digit-image representation decision; once a binary leaf's
-> character image is DEFINED (fixed width = `Pic.Digits`, trailing-overpunch sign), a Display+Binary+Packed class is
-> exactly the proven Tier-B machinery — one window per view — and building a byte[] codec for it would create a
-> second representation for the same concept (the §4.1 incoherence trap). Drove ST134A's SAME-RECORD-AREA class
-> (a COMP leaf) green; conformance: `MixedUsageRecordImageDifferentialTests.SameRecordArea_WithCompLeaf_*`.
+> **Tier-B/Tier-C boundary — the digit-image rule (see D10).** Tier B (StringCanonical) admits **fixed-point BINARY
+> (COMP/COMP-4) and PACKED (COMP-3) leaves**, whose window over the one string backing is their zoned digit image
+> (ISO §13.18.60 USAGE GR4 — the representation, including the sign, is implementor-defined; `COBOLNET_DESIGN.md`
+> §14.4's total digit-image rule). Tier C is exactly the usages with NO fixed character-digit image: **float
+> (COMP-1/2), COMP-5 (BinaryCapacity stores values beyond the PICTURE digit count), and INDEX** — still interim
+> loud-rejected pending the RedefCodec. Rationale: once a binary leaf's character image is DEFINED (fixed width =
+> `Pic.Digits`, trailing-overpunch sign), a Display+Binary+Packed class is exactly the Tier-B machinery — one window
+> per view — and building a byte[] codec for it would create a second representation for the same concept (the §4.1
+> incoherence trap). Conformance: `MixedUsageRecordImageDifferentialTests.SameRecordArea_WithCompLeaf_*`.
 
 ## Decisions
 
 ### D1. One canonical stored backing per redefines class + every other view is a computed C# accessor (property) over it — the spine.
 
-**Rationale.** The only way two typed reps over one storage stay coherent WITHOUT a shared byte[] is for one to be stored and the others derived on access. This is the direct fix for the bug that triggered the greenfield pivot (DEVLOG 457: typed writes invisible through another view).
+**Rationale.** The only way two typed reps over one storage stay coherent WITHOUT a shared byte[] is for one to be stored and the others derived on access. This is the direct fix for the bug that triggered the greenfield pivot: typed writes were invisible through another view.
 
 **Rejected alternatives.** Materialize-on-demand for BOTH views (no single owner of truth → ambiguous which write wins). Keep a byte[] per RECORD (the legacy byte engine — the rejected substrate).
 
@@ -61,7 +59,7 @@ COBOL.NET stores a datum as its VALUE (PIC 9(4)→a long holding unscaled 1234; 
 
 ### D7. Tier selection reuses the legacy RecordClassificationPass transitive-closure shape, re-verdicted to the lattice A⊑B⊑C⊑D (join = max tier).
 
-> **As-built note (`DataBinder.ComputeTier`):** the shipped classifier is a direct leaf-scan over the class members — sufficient for the Tier-A/B + interim-reject cases now live. The legacy closure's subordinate-propagation shape becomes load-bearing when Tier C and nested-REDEFINES chains land; either port it then per this decision, or record here why the leaf-scan provably suffices.
+> **Implementation note (`DataBinder.ComputeTier`):** the classifier is a direct leaf-scan over the class members — sufficient for the Tier-A/B + interim-reject cases. The legacy closure's subordinate-propagation shape becomes load-bearing when Tier C and deeper nested-REDEFINES chains are implemented; either port it then per this decision, or record here why the leaf-scan provably suffices.
 
 **Rationale.** That fixpoint (byte propagates across the REDEFINES class + to all subordinates; monotone; terminating) IS the class-membership + tier-propagation algorithm; do not re-derive (feedback_singular_pattern, feedback_production_quality_always).
 
@@ -79,9 +77,9 @@ COBOL.NET stores a datum as its VALUE (PIC 9(4)→a long holding unscaled 1234; 
 
 **Rejected alternatives.** "Views emit nothing" (too absolute — breaks the emitter contract on the first numeric view targeted by arithmetic).
 
-### D10 (Phase 1E). A fixed-point BINARY/PACKED leaf in a Tier-B class is image-stored with its `Pic.SignKind` REWRITTEN to `TrailingOverpunch` at classification.
+### D10. A fixed-point BINARY/PACKED leaf in a Tier-B class is image-stored with its `Pic.SignKind` REWRITTEN to `TrailingOverpunch` at classification.
 
-**Rationale.** Under the §14.4 digit-image representation the leaf's window over the string backing IS its zoned digit image, so the class is Tier B (`DataBinder.ComputeTier` narrows the reject test to float/COMP-5/INDEX). The leaf is flagged `StoreAsImage` like a numeric-DISPLAY view, AND its profile must describe the zoned storage: every accessor (EmitArithAssign stores, NumericRenderer reads, the window splice) threads `_P_<leaf>`, and the leaf's declared `BinaryMinus` form is VARIABLE width (a leading `-` only when negative) — `FormatDisplay(BinaryMinus)` would write a Digits+1 image into the Digits-wide window and corrupt the value plus every following leaf. The rewrite is `leaf.Pic = pic with { SignKind = pic.ImageSignKind }` (the ONE image-sign mapping, `PicInfo.ImageSignKind`). Observable consequence (accepted, the conformant face of the §13.18.60 GR4 license): DISPLAY of such a leaf shows the zoned overpunch image, not the `-100` binary-minus form. CONVERSELY a NATIVE (non-class) binary leaf's profile is never rewritten — its DISPLAY-statement output (leading minus) is locked golden behavior; only the generated image arms `with`-override the sign locally (FieldEmitter.ImageProfileOf).
+**Rationale.** Under the §14.4 digit-image representation the leaf's window over the string backing IS its zoned digit image, so the class is Tier B (`DataBinder.ComputeTier` narrows the reject test to float/COMP-5/INDEX). The leaf is flagged `StoreAsImage` like a numeric-DISPLAY view, AND its profile must describe the zoned storage: every accessor (EmitArithAssign stores, NumericRenderer reads, the window splice) threads `_P_<leaf>`, and the leaf's declared `BinaryMinus` form is VARIABLE width (a leading `-` only when negative) — `FormatDisplay(BinaryMinus)` would write a Digits+1 image into the Digits-wide window and corrupt the value plus every following leaf. The rewrite is `leaf.Pic = pic with { SignKind = pic.ImageSignKind }` (the ONE image-sign mapping, `PicInfo.ImageSignKind`). Observable consequence (accepted, the conformant face of the §13.18.60 GR4 license): DISPLAY of such a leaf shows the zoned overpunch image, not the `-100` binary-minus form. CONVERSELY a NATIVE (non-class) binary leaf's profile is never rewritten — its DISPLAY-statement output (leading minus) is locked golden behavior; only the generated image arms `with`-override the sign locally (GroupImageCodec.ImageProfileOf).
 
 **Rejected alternatives.** Keeping `BinaryMinus` in the window (corrupts, above). A parallel "image profile" field beside `Pic` (two profiles for one storage — the leaf's storage IS zoned now, so the rewrite is the truth, not a transformation).
 
@@ -110,30 +108,30 @@ TIER B (string canonical — IC101A CCVS pattern): 03 COMPUTED-A PIC X(20) VALUE
   // Alphanumeric/edited view (off,len): get=backing.Substring(off,len); set=StorePunch(backing, off, len, CobolString.Store(value,len)).
   // DISPLAY-numeric view (off,len,scale,signed): get-as-number = CobolNum.ParseDisplay(backing.Substring(off,len), _P_view) → scaled long;
   //   set-from-number = StorePunch(backing, off, len, CobolNum.FormatDisplaySigned(value, scale, _P_view)).
-  // IMPORTANT (advisor #2): a view SUPPRESSES only its stored VALUE field; a NUMERIC view STILL EMITS its NumProfile (_P_<view>) —
+  // IMPORTANT: a view SUPPRESSES only its stored VALUE field; a NUMERIC view STILL EMITS its NumProfile (_P_<view>) —
   //   the accessor needs it, and EmitArithAssign already references _P_<CsName>. Each view's C# surface type = its PICTURE's natural type
   //   (numeric→long, Int128 above 18 digits, alphanumeric/edited→string) so the existing FieldNum/ReadAsString/Store/Compare paths work unchanged.
   private static readonly NumProfile _P_COMPUTED_18V0 = new NumProfile { Digits=18, FractionDigits=0, Signed=true, ... };
 
 RENAMES THRU (GR2 — NC252A: 66 RENAME1 RENAMES NAME1 THRU NAME3): composed accessor over EXISTING fields, NOT a new backing.
-  Express composition via each leaf's existing read/write (advisor #2 — so HETEROGENEOUS spans work):
+  Express composition via each leaf's existing read/write (so HETEROGENEOUS spans work):
   private static string RENAME1 {
     get => ReadImage(NAME1A) + ReadImage(NAME1B) + ReadImage(NAME2) + ReadImage(NAME3A) + ReadImage(NAME3B); // each leaf's DISPLAY image
     set { /* distribute value left-to-right back into the spanned fields by width via each leaf's MOVE-into path */ } }
   (all-PIC X span → plain string concat; a numeric leaf in the span → CobolNum.FormatDisplay on get, the numeric MOVE path on set.)
 
-TIER C (scoped byte[] — mixed-USAGE pun): 01 PUN. / 05 AS-TEXT PIC X(4). / 05 AS-NUM REDEFINES AS-TEXT PIC 9(8) COMP. →
+TIER C (scoped byte[] — mixed-USAGE pun): 01 PUN. / 05 AS-TEXT PIC X(4). / 05 AS-NUM REDEFINES AS-TEXT PIC 9(8) COMP-5. →
   private static byte[] _redef_AS_TEXT = new byte[4];   // ONE stored backing, class width 4 (persistent, NOT materialize-on-demand).
   private static string AS_TEXT { get => RedefCodec.GetText(_redef_AS_TEXT,0,4); set => RedefCodec.PutText(_redef_AS_TEXT,0,4,value); }
   private static long AS_NUM { get => RedefCodec.GetBinary(_redef_AS_TEXT,0,4,signed:false); set => RedefCodec.PutBinary(_redef_AS_TEXT,0,4,value,signed:false); }
   RedefCodec (the ONLY byte surface this subsystem adds): GetText/PutText (Latin-1 lossless), GetBinary/PutBinary (COMP/COMP-5 width+endian+wrap),
   GetPacked/PutPacked (COMP-3 nibbles+sign), GetDisplay/PutDisplay (DISPLAY digits incl. overpunch) — mine legacy PicRuntime/PicDescriptor/PackedDecimal.
 
-MODEL (IMPLEMENTED — `src/Cobol.Net.Compiler/Binding/RedefinesModel.cs` + `DataItem.cs`): DataItem carries string? RedefinesTargetName; DataItem? RedefinesTarget; RenamesInfo? Renames; RedefinesClass? Class; bool IsCanonical; and List<DataItem> Renames66 on the owning record.
-  class RenamesInfo { required string FromName; string? ThruName; DataItem? From; DataItem? Thru; List<DataItem> SpanLeaves; bool IsAlias => ThruName is null; }   // as built
+MODEL (IMPLEMENTED — `src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs` + `src/Cobol.Net.Compiler/Binding/Model/DataItem.cs`): DataItem carries string? RedefinesTargetName; DataItem? RedefinesTarget; RenamesInfo? Renames; RedefinesClass? Class; bool IsCanonical; and List<DataItem> Renames66 on the owning record.
+  class RenamesInfo { required string FromName; string? ThruName; DataItem? From; DataItem? Thru; List<DataItem> SpanLeaves; bool IsAlias => ThruName is null; }
   enum RedefinesTier { Alias, StringCanonical, ByteCanonical, Rejected }
-  class RedefinesClass { required DataItem Canonical; List<DataItem> Members; RedefinesTier Tier; int Width; string BackingCsName => "_redef_"+Canonical.CsName; string? RejectReason; }   // as built
-  DataBinder (as built): binds the REDEFINES clause to RedefinesTargetName (resolved after the forest is built); binds level 66 via BindRenames —
+  class RedefinesClass { required DataItem Canonical; List<DataItem> Members; RedefinesTier Tier; int Width; string BackingCsName => "_redef_"+Canonical.CsName; string? RejectReason; }
+  DataBinder: binds the REDEFINES clause to RedefinesTargetName (resolved after the forest is built); binds level 66 via BindRenames —
   attached to the owning record's Renames66 list, NOT the storage tree; a post-build pass resolves REDEFINES/RENAMES targets, groups overlaid
   entries into RedefinesClasses, and runs ComputeTier (cascade D > C > B > A; a would-be Tier-C class currently verdicts Rejected with a loud
   interim diagnostic until the RedefCodec lands).
@@ -156,13 +154,13 @@ Class width = MAX storage width across all views (RedefinesClass.Width); the can
 
 Model every leaf as a window (offset,length[,usage]) over the concatenated image — the Tier B/C accessor model. A naive field↔field map cannot express it; offset/length accessors can.
 
-### Mixed-USAGE pun (PIC X over COMP) — no character string can represent a binary field's bytes.
+### Mixed-USAGE pun (PIC X over COMP-5/float) — no character string can represent a full-binary field's bytes.
 
 Tier C: ONE class-scoped byte[] canonical; each leaf is a typed accessor over (offset,length,usage) via RedefCodec (Latin-1 text, binary endian/width, packed nibbles, DISPLAY+overpunch) — mined from legacy PicRuntime/PackedDecimal. Confined to the class, never persisted further.
 
 ### Numeric view as an arithmetic target needs its NumProfile, but a view's stored field is suppressed.
 
-Suppress only the stored VALUE field; STILL emit the view's NumProfile (_P_<view>) and give the view its PICTURE's natural surface type so EmitArithAssign / FieldNum / Store work unchanged on a view (advisor correction).
+Suppress only the stored VALUE field; STILL emit the view's NumProfile (_P_<view>) and give the view its PICTURE's natural surface type so EmitArithAssign / FieldNum / Store work unchanged on a view.
 
 ### RENAMES THRU over a heterogeneous span (a numeric leaf inside an alphanumeric group view).
 
@@ -170,7 +168,7 @@ Compose via each leaf's EXISTING read/write: get = concat each leaf's DISPLAY im
 
 ### Signed-DISPLAY overpunch: the byte image of S9(n) carries the sign as an overpunch on a digit, so a numeric view's encode/decode is not plain ASCII digits.
 
-Dependency: overpunch in CobolNum.FormatDisplaySigned / ParseDisplay (encode+decode incl. overpunch + leading/trailing separate sign). **RESOLVED (DEVLOG 493):** `CobolNum` now ships `FormatDisplaySigned` (overpunch + leading/trailing separate + binary-minus) and `ParseDisplay` (full inverse incl. overpunch decode), so Tier-B numeric-view accessors are exact today — no sequencing dependency remains. (A Tier-B numeric view rides the `StoreAsImage` path: its `Read()` is the character window, decoded by `CobolNum.ParseDisplay` in the numeric pipeline.)
+A numeric view's encode/decode is not plain ASCII digits — the sign rides as an overpunch on a digit. `CobolNum` provides `FormatDisplaySigned` (overpunch + leading/trailing separate + binary-minus) and `ParseDisplay` (its full inverse incl. overpunch decode), so Tier-B numeric-view accessors are exact. (A Tier-B numeric view rides the `StoreAsImage` path: its `Read()` is the character window, decoded by `CobolNum.ParseDisplay` in the numeric pipeline.)
 
 ### Lossless byte↔char carrier for alphanumeric content that holds binary (0x00–0xFF).
 
@@ -190,7 +188,7 @@ The overlay is PER ELEMENT: the array element type (the record struct for the OC
 - Larger level-01 redefiner (SR8 exception): class width = max across views, not the original's width.
 - Partial cross-field overlap: leaves are (offset,length) windows over the concatenated image.
 - REDEFINES inside OCCURS (SR5): overlay is per array element; element type carries canonical+accessors.
-- Signed-DISPLAY overpunch (SR-numeric): numeric view encode/decode is not plain ASCII digits; handled by `CobolNum.FormatDisplaySigned`/`ParseDisplay` (implemented — DEVLOG 493).
+- Signed-DISPLAY overpunch (SR-numeric): numeric view encode/decode is not plain ASCII digits; handled by `CobolNum.FormatDisplaySigned`/`ParseDisplay`.
 - Alphanumeric view over binary content: needs a lossless 8-bit (Latin-1) carrier — shared with whole-group-alphanumeric + file I/O.
 - Multiple redefinitions of one area (SR7): all redefiners name the original → one class, one canonical, anchored via RedefinesTarget closure.
 - Group redefiner over an elementary target and vice-versa: width/offsets over leaves; tier decided by the union of all leaves' usages.
@@ -198,7 +196,7 @@ The overlay is PER ELEMENT: the array element type (the record struct for the OC
 - RENAMES single-group (NC252A RENAME3 RENAMES NAME2) → Tier A forwarding to the group's composite read.
 - RENAMES sub-span (RENAME2 RENAMES NAME1A THRU NAME1B) → Tier B composition over just the spanned leaves; data-name-3 not subordinate to / not before data-name-2 (SR11) — binder validates a forward sibling range.
 - RENAMES must immediately follow the record's last entry (SR2), qualified only by 01/FD/SD (SR3): attach 66 entries to the owning record, not into the storage tree.
-- Group MOVE/compare of a redefines original: read = the canonical (field/string/materialized byte image), write normalizes through the canonical's set; a group comparison/CORR lowers field-wise and never RAISES the tier (rule inherited from the deleted pre-PIVOT ADR §3.4 — this doc is now the rule's home).
+- Group MOVE/compare of a redefines original: read = the canonical (field/string/materialized byte image), write normalizes through the canonical's set; a group comparison/CORR lowers field-wise and never RAISES the tier.
 - EXTERNAL/GLOBAL with REDEFINES (GLOBAL GR3: only the subject is global): cross-program identity deferred to the LINKAGE/EXTERNAL subsystem; the redefines canonical = the externalized member.
 - Numeric view wider than 18 digits: parses to Int128 (the numeric subsystem's escape hatch), not long.
 - Reference modification of a view: composes with the accessor's own offset (Tier B = substring of substring; Tier C numeric = ref-mod over the materialized image, shared with whole-group-alphanumeric).
@@ -241,9 +239,9 @@ Every edition-varying construct carries TWO co-equal obligations: (1) the comple
 
 ## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
 
-- OWNER FORK — RESOLVED (owner-confirmed 2026-06-08, `COBOLNET_DESIGN.md` §18 #1): Tier C's PERSISTENT class-scoped byte[] canonical IS the accepted realization of "bytes only at a boundary" (Tiers A/B stay 100% typed incl. the entire near-term DISPLAY-homogeneous NIST path). The alternative (collapse C into D for zero-byte purity) remains owner-VETOABLE per §18 #1 but is not the plan. Implementation status: the RedefCodec is not yet built — `ComputeTier` interim-rejects would-be Tier-C classes loudly.
+- OWNER FORK — RESOLVED (`COBOLNET_DESIGN.md` §18 #1): Tier C's PERSISTENT class-scoped byte[] canonical IS the accepted realization of "bytes only at a boundary" (Tiers A/B stay 100% typed incl. the entire near-term DISPLAY-homogeneous NIST path). The alternative (collapse C into D for zero-byte purity) remains owner-VETOABLE per §18 #1 but is not the plan. Implementation status: the RedefCodec is not yet built — `ComputeTier` interim-rejects would-be Tier-C classes loudly.
 - Latin-1 lossless 8-bit carrier: **SETTLED** (`COBOLNET_DESIGN.md` §14.9 + §18 #13) — `Encoding.Latin1` is the ONE byte↔char boundary codepage constant in `CobolNet.Runtime`, shared by file serialization, REDEFINES Tier-C, and the whole-group image.
-- Signed-DISPLAY overpunch: **RESOLVED (DEVLOG 493)** — `CobolNum.FormatDisplaySigned`/`ParseDisplay` (overpunch + leading/trailing separate sign) are implemented; Tier-B numeric-view accessors are exact. The sequencing dependency is discharged.
+- Signed-DISPLAY overpunch: **SETTLED** — `CobolNum.FormatDisplaySigned`/`ParseDisplay` (overpunch + leading/trailing separate sign) implement the exact encode/decode; Tier-B numeric-view accessors are exact.
 - EXTERNAL/GLOBAL redefines identity: defer cross-program canonical-member selection to the LINKAGE/EXTERNAL subsystem.
 - Int128 views (>18 digits): align numeric-view parsing with the numeric subsystem's Int128 escape hatch.
 - Tier C distinction from materialize-on-demand: **SETTLED** (`COBOLNET_DESIGN.md` §14.4) — they ARE separate mechanisms: Tier C's byte[] is PERSISTENT (the only storage for a mixed-usage class); the whole-group `AsImage()`/`FromImage()` image is transient, built on demand, never persisted.

@@ -55,8 +55,8 @@ grep -rln "class RuntimeAbi"               src/Cobol.Net.Compiler           # ne
 grep -rln "class NameMangler"              src/Cobol.Net.Compiler/Model     # shared naming service (§2.4)
 # The bound tree must be neutral: these must return NOTHING (L3/L4 de-C#'d in P6):
 grep -rn  "string TablePath\|string IndexField\|string CsName\|string SendingPath" \
-          src/Cobol.Net.Compiler/Binding/Bound src/Cobol.Net.Compiler/Binding/Place.cs
-grep -rn  "Read()\|Write(" src/Cobol.Net.Compiler/Binding/Place.cs         # must be gone (P7 Step 11)
+          src/Cobol.Net.Compiler/Binding/Bound src/Cobol.Net.Compiler/Binding/Model/Place.cs
+grep -rn  "Read()\|Write(" src/Cobol.Net.Compiler/Binding/Model/Place.cs         # must be gone (P7 Step 11)
 ```
 
 If the seam or the structural `Place` is missing, STOP and finish P6/P7 first. If the last two greps return hits, the
@@ -100,8 +100,8 @@ open:
 
 1. **The seam is untested by a real consumer.** `ICodeGenBackend` with one implementation is an interface, not a
    proven abstraction — nothing forces the tree to be genuinely neutral. A single C# string can creep back into a
-   node (as `BoundSetCapacity.TablePath` `BoundTree.cs:493` and `BoundSearch` `BoundTree.cs:508-511` show it already
-   did) and nothing fails until someone tries to write the second backend, years later.
+   node (as `BoundSetCapacity.TablePath` `BoundTree.cs:516` and `BoundSearch` `BoundTree.cs:531` show today) and
+   nothing fails until someone tries to write the second backend, years later.
 2. **The owner-emphasized goal has no delivery vehicle.** `project_dual_backend_goal` is a durable directive ("a
    direct CIL/IL backend must be droppable in later WITHOUT touching the frontend, binder, or bound tree"). The plan
    must contain the phase that delivers it and the milestone that proves it early.
@@ -134,7 +134,7 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
 - `CilBackend.cs` — `CilBackend : ICodeGenBackend`; drives `CilProgramEmitter` per unit; writes the PE + portable PDB
   + `.runtimeconfig.json`.
 - `CilProgramEmitter.cs` — one program/class/interface unit → its `TypeDefinition` + the `__Dispatch` method + entry
-  wrapper (the same shape `CSharpEmitter` emits, in IL).
+  wrapper (the same shape the Roslyn `ProgramEmitter`/`DispatchEmitter` emit, in IL).
 - `CilStatementEmitter : IBoundStatementVisitor<CilFlow>`, `CilExpressionEmitter : IBoundExprVisitor<CilVal>`,
   `CilConditionEmitter : IBoundConditionVisitor<CilBranch>`, `CilBoolEmitter`, `CilPlaceLower` (structural `Place` →
   ldfld/stfld/ldelema/call), `CilDispatcher` (the PC `while(true)switch` lowered to a branch table),
@@ -207,8 +207,8 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
   `Cobol.Net.Runtime`, `Mono.Cecil` NuGet); `CilBackend.cs`; add the project to the solution and to the CLI's plug
   wiring (`BackendFactory.For(BackendId.Cil, new CilBackend())`).
 - **Change:** `CilBackend : ICodeGenBackend` with a `ModuleDefinition` targeting `net10.0`, a `Program`
-  `TypeDefinition`, an empty `Main`; writes the PE + a portable PDB + `.runtimeconfig.json` (reuse the Roslyn
-  `WriteRuntimeConfig` JSON shape `RoslynBackend.cs:89-104`, factored into a shared helper). No statements yet — a
+  `TypeDefinition`, an empty `Main`; writes the PE + a portable PDB + `.runtimeconfig.json` (reuse the shared
+  `AssemblyPackager.WriteRuntimeConfig` JSON shape, `AssemblyPackager.cs:40-54`). No statements yet — a
   non-DISPLAY program lowers to a loud `NotSupported`.
 - **Why:** stands up the isolated Cecil assembly (default path stays Cecil-free, `DESIGN-backend-abstraction.md §3.2`)
   and the PE/PDB writer.
@@ -264,8 +264,8 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
 - **Files:** create `CilDispatcher.cs`; extend `CilStatementEmitter` (`BoundIf`, `BoundInlinePerform`,
   `BoundOutOfLinePerform`, `BoundGoTo`, `BoundGoToDepending`, `BoundExitParagraph`/`Perform`, `BoundEvaluate`,
   `BoundNextSentence`, `BoundSearch`, SET index/capacity, ALTER).
-- **Change:** lower the single PC dispatcher (SSOT §1.2 #3; the Roslyn `while(true)switch`
-  `CSharpEmitter.cs:88-120`) to an **IL branch table** — this is the CIL backend's **private** structure→branch
+- **Change:** lower the single PC dispatcher (SSOT §1.2 #3; the Roslyn `while`/`switch(__pc)` dispatcher
+  `DispatchEmitter.cs:76-104`) to an **IL branch table** — this is the CIL backend's **private** structure→branch
   lowering (SSOT §1.1: NOT a shared phase). `GO TO` sets `__pc` + branches to the dispatch head; an out-of-line
   PERFORM is a recursive bounded `__Dispatch(start,end)` IL call; inline PERFORM/EVALUATE lower to loops/branch
   chains. `BoundSearch`/`BoundSetCapacity` consume the **symbol/`Place`** the node now carries (P6 L3 de-C#-ing),
@@ -281,7 +281,7 @@ When P16 is DONE, these exist with these responsibilities (grounded in `DESIGN-b
 - **Files:** extend `CilStatementEmitter` (`BoundOpen`/`Close`/`Read`/`Write`/`Rewrite`, keyed I/O, SORT/MERGE,
   Report Writer verbs, `BoundUnlock`), reusing the SAME `Cobol.Net.Runtime.IO` façade the Roslyn backend calls (via
   `CilRuntimeApi` over `RuntimeAbi`). File-connector keys come from the neutral `FileModel` (the emit-side
-  qualification `CSharpEmitter.Call.cs:138-147` is a P6/driver concern, not a node string).
+  qualification in `Verbs/CallEmitter.cs` is a P6/driver concern, not a node string).
 - **Change:** lower OPEN/READ/WRITE/CLOSE + FILE STATUS + USE declaratives to IL calls into the runtime file system;
   no new runtime code (the runtime is shared). Grow the manifest with the SQ/RL/IX corpus families.
 - **Verify:** equivalence harness green over the file-I/O subset (compare stdout AND any produced data files
@@ -384,12 +384,12 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 
 | Concern | AS-IS location |
 |---|---|
-| Seam absent — `RoslynBackend` static string→dll | `CodeGen/RoslynBackend.cs:13,24`; uncached refs `:73-83` |
-| Binding fused into codegen (must be P6-extracted) | `CodeGen/CSharpEmitter.cs:38-40` → `CallEmitRunUnit` `CSharpEmitter.Call.cs:88-147` |
-| `Place.Read()/Write()` C# strings (P7 Step 11 removes) | `Binding/Place.cs:22-25` + every subtype |
-| C#-path node fields (P6 L3/L4 de-C#, `DESIGN-backend-abstraction §1.3`) | `BoundTree.cs:32` (`BoundMethod.CsName`), `:109` (`BoundIndexRef.IndexField`), `:471` (`SetIndexTarget.IndexField`), `:493` (`BoundSetCapacity.TablePath`), `:508-511` (`BoundSearch`), `Place.cs:58,176` |
-| Roslyn `WriteRuntimeConfig` JSON (share with CIL) | `CodeGen/RoslynBackend.cs:89-104` |
-| The PC dispatcher (Roslyn `while(true)switch` → CIL branch table) | `CodeGen/CSharpEmitter.cs:88-120` |
+| The `ICodeGenBackend` seam (CIL adds a sibling impl) | `CodeGen/ICodeGenBackend.cs`; `CodeGen/RoslynBackend.cs:16` (`RoslynBackend : ICodeGenBackend`; refs cached `:95-98`) |
+| Bind/emit split (P6-extracted) | `Binding/BinderDriver.cs` → `BoundCompilation`; `CodeGen/CSharpEmitter.cs:31,39` = the `Bind`/`EmitBound` bind-host facade (emit lives in `ProgramEmitter`/`DispatchEmitter`/`Verbs/*Emitter`) |
+| `Place.Read()/Write()` C# strings (P7 Step 11 removes) | `Binding/Model/Place.cs:22-25` + every subtype |
+| C#-path node fields (P6 L3/L4 de-C#, `DESIGN-backend-abstraction §1.3`) | `Binding/Bound/BoundTree.cs:34` (`BoundMethod.CsName`), `:112` (`BoundIndexRef.IndexField`), `:494` (`SetIndexTarget.IndexField`), `:516` (`BoundSetCapacity.TablePath`), `:531` (`BoundSearch`), `Binding/Model/Place.cs:59,176` |
+| Shared `WriteRuntimeConfig` JSON (share with CIL) | `CodeGen/AssemblyPackager.cs:40-54` |
+| The PC dispatcher (Roslyn `while`/`switch(__pc)` → CIL branch table) | `CodeGen/DispatchEmitter.cs:76-104` |
 | Exhaustive visitor interfaces (CIL visitors inherit exhaustiveness) | P7 Step 6 (`Binding/Bound/BoundTree.cs` `[BoundNode]`) |
-| `RuntimeAbi` catalogue / `RoslynRuntimeApi` (CIL adds `CilRuntimeApi`) | `DESIGN-backend-abstraction.md §2.3`; runtime members `grep -hoE "Cobol[A-Za-z]+\." src/Cobol.Net.Compiler/CodeGen` |
+| `RuntimeAbi` catalogue (planned) / the current `RuntimeApi` static class (CIL adds `CilRuntimeApi`) | `DESIGN-backend-abstraction.md §2.3`; `CodeGen/Roslyn/RuntimeApi.cs`; runtime members `grep -hoE "Cobol[A-Za-z]+\." src/Cobol.Net.Compiler/CodeGen` |
 | CLI options (add `--backend`) | `Cli/CliOptions.cs`, `Cli/Program.cs`, `CompilerDriver.Options` `CompilerDriver.cs:34` |

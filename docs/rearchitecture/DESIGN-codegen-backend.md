@@ -4,7 +4,12 @@
 future Cecil/CIL backend; killing the binder↔emitter per-verb duplication; renderer decomposition; the `CodeWriter`;
 how `CSharpEmitter` stops being a god class.
 
-**Status:** DESIGN (rearchitecture target). Author: codegen-backend review agent. Date: 2026-07-07.
+**Status:** DESIGN (rearchitecture target) — PARTIALLY REALIZED. Author: codegen-backend review agent. Date: 2026-07-07.
+IMPLEMENTED in the tree: the `ICodeGenBackend`/`RoslynBackend` seam, the source-generated exhaustive bound-tree
+visitor, the immutable `EmitContext` + `ReceiverContext` parameter, the typed `RuntimeApi` façade, cached framework
+references, and the `AssemblyPackager` split; the emitter god class is dissolved (`CSharpEmitter` is now a thin
+bind-host facade). OUTSTANDING: the backend-neutral **structural `Place`** (§2.3 — `Place` still returns C# strings)
+and the future **`CilBackend`**.
 
 **Upholds the four owner-locked invariants** (COBOLNET_DESIGN §1.2): typed-native data only; native numerics;
 single PC dispatcher; idiomatic/readable C# where the construct allows. **Upholds the dual-backend goal**
@@ -42,11 +47,13 @@ single PC dispatcher; idiomatic/readable C# where the construct allows. **Uphold
 
 ## 1. Current problems (grounded in the survey + critique + code)
 
-### 1.1 The seam is declared but not materialized
-`docs/COBOLNET_DESIGN.md` §1.1 and §18 #23 promise `ICodeGenBackend` with `--backend roslyn|cil`. **No such interface
-exists** (`grep interface ICodeGenBackend` → 0 hits). The compile path is `CompilerDriver.Compile` →
-`CSharpEmitter.Emit(tree,…)` → `RoslynBackend.Compile(csharp,…)`. `RoslynBackend` is a static string→dll compiler;
-`CSharpEmitter` is the real code generator. There is no backend-neutral boundary a second backend could plug into.
+### 1.1 The seam is materialized
+`docs/COBOLNET_DESIGN.md` §1.1 and §18 #23 promise `ICodeGenBackend` with `--backend roslyn|cil`. The interface is
+materialized (`CodeGen/ICodeGenBackend.cs`); `RoslynBackend : ICodeGenBackend` is the default backend and the only
+owner of C# syntax knowledge, selected via `BackendFactory.For`. The compile path binds the whole compilation group
+to an immutable `BoundCompilation` (`BinderDriver.Bind`) and then renders it (`RoslynBackend.Emit` → `ProgramEmitter`).
+The one thing still standing between this and a fully backend-neutral boundary is the string-carrying `Place` (§1.2):
+until it is structural, a second backend could not yet consume the bound tree.
 
 ### 1.2 Bound tree and `Place` carry C# text (the blocking violation)
 The G4 invariant (SSOT §3.3): *"bound nodes carry no pre-rendered C#-specific fragments; the CIL backend lowers the
@@ -61,28 +68,31 @@ same structure."* Reality:
 A CIL backend cannot consume any of this — it re-imposes C# syntax on a supposedly neutral tree. **This is the single
 largest structural blocker for the dimension** and the root of the "smart-emitter/leaky-binder" duplication.
 
-### 1.3 Two hand-maintained god-switches, non-exhaustive
-`StatementBinder.BindStatementCore` (`StatementBinder.cs:170`, ~55 arms) and `CSharpEmitter.EmitStatement`
-(`CSharpEmitter.cs:347`, 79 `case` arms) are kept in lockstep **by convention**. Both end in a fall-through default
-that defers an unhandled node to a **runtime** `LoudStmt` (`CSharpEmitter.cs:453`) — a missing arm is not a compile
-error. The same sealed bound hierarchy is walked by ≥4 more independent type-switches: `BoundStores.StoreKindOf`,
-`NumericRenderer.Render/AsNum`, `OperandText.AsString/IsString`, `ConditionRenderer.Render`. Adding a bound node is
-shotgun surgery across 6+ switches with no compiler enforcement of completeness.
+### 1.3 Dispatch — source-generated and exhaustive
+The emit and analysis walks over the sealed bound hierarchy are a **source-generated exhaustive visitor**
+(`Cobol.Net.Compiler.SourceGen` emits the `IBound*Visitor` interfaces + `Accept`): `StatementEmitter :
+IBoundStatementVisitor<bool>`, `NumericRenderer : IBoundExprVisitor<NumX>`/`IBoundOperandVisitor<NumX>`, and
+`ConditionRenderer` each implement their visitor once. **Adding a bound leaf without a visitor arm is a compile
+error**, not a runtime `LoudStmt` fall-through. The binder's statement dispatch works over *parse* contexts (not the
+bound tree), so it stays a switch — but it is no longer kept in lockstep with an emit god-switch, which was the
+actual hazard.
 
-### 1.4 `CSharpEmitter` is a god class that also *orchestrates binding*
-`CSharpEmitter` is one `sealed partial class` across **15 files** with ~12 mutable fields (`_ctx,_num,_cond,_refs,
-_turnState,_ooClasses,_currentPc,_ecActive,_useDecls,_dispatchName,…`). Worse, the **real middle-end orchestrator**
-(`CallEmitRunUnit`, `CSharpEmitter.Call.cs:88`) runs ~12 implicit binder passes (collect units, bind interface/class/
-program data, validate overrides, bind bodies, build the UDF table, bind procedures, re-sync `StoreAsImage`,
-`MarkStoreAsImage`, compute the EC gate, qualify file connectors) **inside the codegen class**, then emits. There is
-no Bind phase boundary; "how binding is ordered" is hidden one layer below the driver's own phase comments.
+### 1.4 The emitter god class is dissolved
+`CSharpEmitter` no longer generates code: emission lives on real collaborators — `ProgramEmitter` (run-unit
+orchestration) → `UnitEmitters` (the per-unit composition root) → `DispatchEmitter`/`StatementEmitter` + the
+`Verbs/*Emitter` set + `EcEmitter` + the `DataDivision/` emitters — over an immutable `EmitContext`. Binding is a
+real phase boundary: `BinderDriver.Bind` runs the bind passes (collect units, bind interface/class/program data,
+validate overrides, bind bodies, build the UDF table, bind procedures, compute the EC gate, qualify file connectors)
+and returns an immutable `BoundCompilation`; the codegen layer performs no binding. `CSharpEmitter` survives only as a
+thin **bind-host facade** (`Bind`/`EmitBound` + the `IOoBindHost` seam and the OO bind bodies) until P9 relocates the
+OO bind bodies into the binder; it emits nothing.
 
-### 1.5 Mutable per-emit state — the H1 staleness hazard
-`EmissionContext` exposes public get/set `TargetScale`, `TargetReal`, `TargetRounding`, `InSizeErrorContext`
-(`EmitCore.cs:60-79`). These are written by `CSharpEmitter` before an RHS render and read deep in three renderers; a
-missed reset silently mis-scales or float-promotes. The comments literally document a "H1 staleness discipline" of
-manual resets (`EmitCore.cs:66`). This is shared-mutable-state coupling that a scoped parameter removes by
-construction.
+### 1.5 Per-emit receiver state — the H1 staleness hazard, closed
+`EmitContext` (renamed from `EmissionContext`, `EmitCore.cs`) is immutable: the four mutable receiver fields
+(`TargetScale`/`TargetReal`/`TargetRounding`/`InSizeErrorContext`) and their manual set/reset discipline are gone.
+The receiver travels as a `ReceiverContext` value (§2.5) — required on every public render entry and read from one
+private renderer field the visitor recursion assigns at entry — so a render can never run under a stale receiver: the
+H1 staleness class is closed by construction rather than by discipline.
 
 ### 1.6 Renderer smells (from the Emit-renderers survey)
 - **Untyped runtime coupling:** ~60 runtime members (`CobolNum.*`, `CobolString.*`, `CobolDec.*`, `CobolFloat.*`,
@@ -103,10 +113,12 @@ construction.
 - **Naming collision:** a second unrelated `EmissionContext` exists in the legacy tree
   (`src/CobolSharp.Compiler/CodeGen/Emission/EmissionContext.cs`).
 
-### 1.7 `RoslynBackend` throughput + packaging (efficiency critique, HIGH)
-`ReferenceAssemblies()` rebuilds ~180 framework `MetadataReference` objects **uncached on every compile**
-(`RoslynBackend.cs:73-83`), dominating the in-process test/batch cost. It also mixes pure compilation with
-side-effecting filesystem deploy (`DeployRuntime` `File.Copy`, `WriteRuntimeConfig`) on every emit.
+### 1.7 `RoslynBackend` throughput + packaging
+The framework `MetadataReference` set is built once and cached (`static readonly Lazy<ImmutableArray<MetadataReference>>`
+in `RoslynBackend.cs`) instead of rebuilt per compile — the in-process test/batch cost that once dominated is gone.
+Packaging (runtimeconfig + runtime-dll deploy) is split out of the compile path into `AssemblyPackager`, so the
+`RoslynBackend.Compile` step is pure compilation with no packaging/deploy side effects — its only writes are the
+emitted assembly itself and the failed-emit cleanup of that partial output.
 
 ---
 
@@ -181,16 +193,15 @@ public sealed record BackendArtifact(
 - The driver selects by `--backend` (default Roslyn): `ICodeGenBackend backend = BackendFactory.For(options.Backend);`
 
 **Hard boundary:** the backend's `Emit` receives a `BoundCompilation` and produces an artifact. It performs **no
-binding**. The ~12-pass orchestration now inside `CallEmitRunUnit` moves into a `BindPipeline` that returns
-`BoundCompilation` — owned by the **binder/driver dimensions**; this dimension **depends on** that extraction (see
-Depends-on + Open Question 1).
+binding**. The bind orchestration lives in the binder phase (`BinderDriver.Bind` → `BoundCompilation`), owned by the
+**binder/driver dimensions**; this dimension **consumes** that immutable tree (see Depends-on + Open Question 1).
 
 ### 2.3 Decision C — backend-neutral `Place` (structural)
 
 `Place` loses `Read()/Write()`. It becomes a pure structural value the backend renders.
 
 ```csharp
-namespace CobolNet.Binding;
+namespace CobolNet.Binding.Model;
 
 public abstract record Place { public abstract DataItem Item { get; } public abstract PicInfo? Pic { get; } }
 
@@ -281,17 +292,14 @@ public readonly record struct ReceiverContext(int Scale, bool Real, CobolRoundin
 NumX ExpressionRenderer.Render(BoundExpr e, in ReceiverContext rcv);   // no ambient state, no reset dance
 ```
 
-*(AS LANDED, P7 Step 3 — DEVLOG 788: the sketch above predates the landed source-generated visitor. The
-generated single-arg `Visit`/`Accept<T>` cannot thread a parameter through the recursion, so the parameter is
-REQUIRED on every PUBLIC render entry (`Render`/`AsNum`/`Fold`/`Combine` all take `in ReceiverContext rcv`) and
-carried in ONE private renderer field the internal `Visit` recursion reads — freshly assigned at every entry, so
-no render can run under a stale receiver: the by-construction guarantee moves to the API boundary. One render
-tree serves exactly one receiver, so field-vs-parameter is semantically identical inside the recursion. The
-mutually-recursive `IntrinsicRenderer` reads the live receiver via `NumericRenderer.Receiver`. Also landed:
-`EmitArith` threads the size-error flag into its store closure as `Action<bool>` — `InSizeError` has TWO
-triggers, the phrase and `>>TURN EC-SIZE` checking — and receiver-less sites pass `ReceiverContext.None`, which
-the full battery proved byte-identical to the old ambient-state behavior: no stale-leak had ever materialized in
-emitted output.)*
+*(Because the render dispatch is the source-generated single-arg `Visit`/`Accept<T>`, it cannot thread a parameter
+through the recursion. So `ReceiverContext` is REQUIRED on every PUBLIC render entry (`Render`/`AsNum`/`Fold`/`Combine`
+all take `in ReceiverContext rcv`) and carried in ONE private renderer field the internal `Visit` recursion reads —
+freshly assigned at every entry, so no render can run under a stale receiver: the by-construction guarantee lives at
+the API boundary. One render tree serves exactly one receiver, so field-vs-parameter is semantically identical inside
+the recursion. The mutually-recursive `IntrinsicRenderer` reads the live receiver via `NumericRenderer.Receiver`.
+`EmitArith` threads the size-error flag into its store closure as `Action<bool>` — `InSizeError` has TWO triggers,
+the phrase and `>>TURN EC-SIZE` checking — and receiver-less sites pass `ReceiverContext.None`.)*
 
 This closes the H1 staleness class by construction and makes `IntrinsicRenderer`'s "static channel" unnecessary: give
 the string channel a `ReceiverContext` (default) so it calls the **one** `ExpressionRenderer` — delete
@@ -303,7 +311,7 @@ the string channel a `ReceiverContext` (default) so it calls the **one** `Expres
 |---|---|
 | `RoslynBackend` | `ICodeGenBackend` impl: drives `ProgramEmitter` per unit, packaging, `.g.cs` write |
 | `ProgramEmitter` | one program/class/interface unit → its C# type + `__Dispatch` + entry wrapper |
-| `DataEmitter` | DATA DIVISION: record structs, `NumProfile` decls, fields, initializers, group image codec (was `FieldEmitter`, moved to `CodeGen/DataDivision/`, split into `RecordStructEmitter`/`GroupImageCodec`/`GroupValueSlicer`/`ValueInitializer`) |
+| `DataEmitter` | DATA DIVISION facade in `CodeGen/DataDivision/`: record structs, `NumProfile` decls, fields, initializers, group image codec — over `RecordStructEmitter`/`GroupImageCodec`/`GroupValueSlicer`/`PhysicalModel`/`ValueInitializer` |
 | `DispatchEmitter` | the PC dispatcher (`__Dispatch`, pc cases, ALTER fields) |
 | `StatementEmitter` | the `IBoundStatementVisitor<bool>` core + shared helpers |
 | per-verb emitters | `KeyedIoEmitter`, `SortEmitter`, `StringEmitter`, `InspectEmitter`, `ReportWriterEmitter`, `CallEmitter`, `OoEmitter`, … — real classes over `EmitContext`, invoked by `StatementEmitter` |
@@ -367,7 +375,7 @@ single-file ABI contract — the best of both without SyntaxFactory's verbosity.
 | refactor | `RoslynBackend` (static string→dll) → `RoslynBackend : ICodeGenBackend` | The default backend behind the seam; owns all C# syntax |
 | move/split | `CSharpEmitter.*` (15 partials, one god class) → `ProgramEmitter` + `StatementEmitter` + per-verb emitter classes + `DispatchEmitter` over `EmitContext` | Kill the god class; real class boundaries (understandability HIGH) |
 | move | `CallEmitRunUnit` bind orchestration (`CSharpEmitter.Call.cs`) → `Binding/BindPipeline` returning `BoundCompilation` | No binding in the codegen layer; a real Bind phase (driver dim dependency) |
-| refactor | `Binding/Place.cs` `Read()/Write()` strings → structural `Place` + `AccessSegment`/`AccessPath` | Backend-neutral bound tree (G4); the blocking enabler for CIL |
+| refactor | `Binding/Model/Place.cs` `Read()/Write()` strings → structural `Place` + `AccessSegment`/`AccessPath` | Backend-neutral bound tree (G4); the blocking enabler for CIL |
 | create | `CodeGen/Roslyn/PlaceRenderer.cs` | Sole owner of Place→C# rendering (moved out of `Place`) |
 | rename | `EmissionContext` → `EmitContext`; drop `TargetScale/TargetReal/TargetRounding/InSizeErrorContext` | End name collision (SSOT §17); kill H1 mutable state |
 | create | `CodeGen/Roslyn/ReceiverContext.cs` (readonly record struct) | Replace ambient receiver state with a parameter |
@@ -386,7 +394,7 @@ single-file ABI contract — the best of both without SyntaxFactory's verbosity.
 
 ## 5. Migration — keeping the battery green throughout
 
-The battery (2028 conformance + 213 unit + legacy guard NIST 353 MATCH) must stay green at **every** step. Sequence
+The battery (3166 conformance + 281 unit + 33 characterization + legacy guard NIST 353 MATCH) must stay green at **every** step. Sequence
 smallest-blast-radius first; each step is behavior-neutral and independently committable.
 
 - **M0 — `ICodeGenBackend` wrap (no behavior change).** Introduce the interface; make the current `CSharpEmitter`+
@@ -406,25 +414,20 @@ smallest-blast-radius first; each step is behavior-neutral and independently com
 - **M5 — decompose the emitter.** Split the 15 partials into `ProgramEmitter` + per-verb emitter classes over
   `EmitContext`. Move `FieldEmitter`→`CodeGen/DataDivision/*`; unify `FigurativeConstants`. Purely structural; guard
   green after each verb group.
-  *(AS LANDED, P7 Step 9a–9m — DEVLOG 794–808: 18 `Verbs/*Emitter` collaborators + `EcEmitter` (cross-cutting,
-  CodeGen/ root) + `NameAllocator` (the §2.5 table's allocator — 15 per-counter sequences preserved byte-exactly)
-  + the `DispatchState`/`EcState`/`CallUnitState` typed state model (EmitterState.cs). `FieldEmitter` split
-  five ways — the physical-field model proved a distinct 5th concern and became `DataDivision/PhysicalModel`;
-  the five are mutually recursive by design, wired by the `DataEmitter` facade. `host.BeginUnit` is the ONE
-  per-unit context-switch entry; `OoEmitter` reads the quadruple through LIVE host accessors because class-unit
-  emission re-creates it mid-run. 9n (DEVLOG 809) COMPLETED the split: `ProgramEmitter` (run-unit orchestration;
-  owns the run-unit state + the LIVE `Current` root; `BeginUnit` re-creates it per unit switch) ·
-  `DispatchEmitter` · `StatementEmitter` (the 79-Visit `IBoundStatementVisitor<bool>`) · the `UnitEmitters`
-  PER-UNIT composition root (all collaborators constructed in acyclic ctor order; the census's cyclic edges —
-  verbs↔Statements↔Ec, KeyedIo↔SeqIo — property-wired); every transitional host shim retargeted to direct
-  collaborator refs, and emission reads ZERO bind-host session state (`OoEmitter` takes
-  `comp.OoClasses`/`comp.InterfaceData` off the immutable compilation, reading the per-unit set through
-  `ProgramEmitter.Current` live). `CSharpEmitter` survives as the thin bind-host facade until P9 — the recorded
-  deviation from this doc's "CSharpEmitter is gone" end-state. The Step-9-final ratchet sweep (DEVLOG 810)
-  drove every Step-9 emitter to ZERO bare fragments; the §3 guard's whitelist = the four pre-Step-11/12
-  renderers only, with the recorded counting-rule refinement (comment lines stripped; the
-  `CobolRounding.`/`CobolPassMode.` typed-enum accesses excluded — their emitted forms route exclusively via
-  the `RoundingText`/`PassModeText` anchors).)*
+  *(Resulting structure: 18 `Verbs/*Emitter` collaborators + `EcEmitter` (cross-cutting, `CodeGen/` root) +
+  `NameAllocator` (the §2.5 table's allocator — 15 per-counter sequences) + the `DispatchState`/`EcState`/
+  `CallUnitState` typed state model (`EmitterState.cs`). `FieldEmitter` is split five ways — the physical-field
+  model is a distinct 5th concern (`DataDivision/PhysicalModel`); the five are mutually recursive by design, wired
+  by the `DataEmitter` facade. `ProgramEmitter` owns run-unit orchestration + the LIVE `Current` root and re-creates
+  it per unit switch (`BeginUnit`); `DispatchEmitter`; `StatementEmitter` (the `IBoundStatementVisitor<bool>`); the
+  `UnitEmitters` PER-UNIT composition root constructs all collaborators in acyclic ctor order and property-wires the
+  cyclic edges (verbs↔Statements↔Ec, KeyedIo↔SeqIo). Emission reads ZERO bind-host session state — `OoEmitter` takes
+  `comp.OoClasses`/`comp.InterfaceData` off the immutable compilation and reads the per-unit set through
+  `ProgramEmitter.Current`. `CSharpEmitter` survives as the thin bind-host facade until P9 — a deviation from this
+  doc's "CSharpEmitter is gone" end-state. The §3 guard's whitelist is the four pre-Step-11/12
+  renderers (`IntrinsicRenderer`, `NumericRenderer`, `ConditionRenderer`, `OperandText`) that route at Steps 11/12
+  (the `CobolRounding.`/`CobolPassMode.` typed-enum accesses are excluded — their emitted forms route
+  exclusively via the `RoundingText`/`PassModeText` anchors).)*
 - **M6 — extract `BindPipeline` (cross-dimension).** Move `CallEmitRunUnit`'s bind orchestration into the binder's
   pipeline returning `BoundCompilation`; `RoslynBackend.Emit` consumes it. Coordinated with the driver/binder
   dimensions — the highest-coordination step; land after those dimensions' pipeline extraction. Guard green.

@@ -1,15 +1,14 @@
 # DESIGN — Target Unified Data Model
 
-> **Status:** ✅ EXECUTED (PHASE 05 DONE 2026-07-11, DEVLOG 776–785; the phase doc
-> `PHASE-05-unified-data-model-storageform.md` §7 holds the per-step record). Landed AS DESIGNED except the
-> recorded in-place deviations: §2.2 item 1 (`RenamesPlace` stays direct — no single inner), §2.3 (strict
-> init-only → the ONE named `RedefinesClass.Classify` mutator; the cell forcer's re-classification is a real
-> second write by design; the "~10 scattered Tier-C guards" had already collapsed into `ComputeTier` +
-> `IsImageCapable` by Phase 1E), §2.7 (the sentinel discriminant lives on `DataItem.Pending`, not an Analyze
-> result — see the italic AS-LANDED note), plus: `StoreAsImage` KEPT as the named read-only projection of
-> `Storage` (one definition over 35 pattern repetitions); the §2.4 image-fact CACHING deferred to P7 (the hazard
-> died with the flag); the §2.2-item-4 structural Place segments are P7 scope. §2.5's pipeline landed at P5/P6
-> (`BindPipeline` + `GroupTail`, one validated DAG).
+> **Status:** ✅ IMPLEMENTED — the unified `StorageForm` data model is in the tree; the one outstanding piece is
+> the structural `Place` segments (§2.2 item 4), scheduled next. Where the implemented design differs from the
+> sketch below, stated as the current design: §2.2 item 1 (`RenamesPlace` stays direct — no single inner); §2.3
+> (the REDEFINES facts are written once through the ONE named `RedefinesClass.Classify` mutator; the cell
+> forcer's re-classification is a real second write by design; the Tier-C guards collapse into `ComputeTier` +
+> `IsImageCapable`); §2.7 (the sentinel discriminant lives on `DataItem.Pending`, not on an Analyze result — see
+> the italic note); `StoreAsImage` is retained as the named read-only projection of `Storage` (one definition
+> over its pattern repetitions); the §2.4 image-fact caching is not yet materialized (the ordering hazard died
+> with the mutable flag); and §2.5's pipeline is realized as `BindPipeline` + `GroupTail`, one validated DAG.
 > **Scope:** the typed-native storage model spanning `DataItem` / `PicInfo` / `Place` / `NumProfile`, from
 > bind → emit → runtime. Companion designs (pass-pipeline, emitter decomposition, diagnostics registry, editions)
 > are cross-referenced but owned elsewhere.
@@ -21,7 +20,7 @@
 
 ## 1. The current problem (grounded in the code)
 
-The compiler has **one canonical lvalue contract** (`Place`, `Binding/Place.cs:13`) but **no canonical value
+The compiler has **one canonical lvalue contract** (`Place`, `Binding/Model/Place.cs`) but **no canonical value
 representation**. A single COBOL value can be stored five structurally different ways, and *which one* is decided by
 facts scattered across three layers and, for the pivotal case, **mutated late**:
 
@@ -118,11 +117,10 @@ public abstract record StorageForm
     public abstract int ImageWidth { get; }
 
     // ── The cases ─────────────────────────────────────────────────────────────────────────────────────────
-    // ⚠ AMENDED at execution (PHASE-05 Step 2, DEVLOG 749): NativeInt/NativeFloat/IndexCell carry a precomputed
-    // `Width` = ElementaryImageWidth(Pic) = Digits + (1 if SIGN IS SEPARATE, ISO §13.18.52). The D0-locked
-    // (Wide, Digits) shape could NOT reproduce the separate-sign +1 that DataItem.ElementaryImageWidth
-    // (DataItem.cs:301-302) adds — and that width is load-bearing even for a NON-promoted native leaf (a group's
-    // image sums its native children's widths), so the equivalence assert #3 fails without it.
+    // NativeInt/NativeFloat/IndexCell carry a precomputed `Width` = ElementaryImageWidth(Pic)
+    // = Digits + (1 if SIGN IS SEPARATE, ISO §13.18.52). A bare (Wide, Digits) shape cannot reproduce the
+    // separate-sign +1, and that width is load-bearing even for a NON-promoted native leaf (a group's image
+    // sums its native children's widths), so the width is carried explicitly on each native case.
     /// Native scaled integer: long (≤18 digits) or Int128 (>18). NOT character-imageable as itself, but IS
     /// image-CAPABLE (its zoned digit image is derived on demand). Width = digits + separate-sign.
     public sealed record NativeInt(bool Wide, int Digits, int Width) : StorageForm { … }
@@ -167,10 +165,10 @@ consolidation:
 1. **One file, one decorator base.** Move `OdoGroupPlace` (currently in `OdoModel.cs:89`) into `Place.cs`. Introduce
    `abstract record PlaceDecorator(Place Inner) : Place` forwarding `Pic`/`Item` (and, as the default, `Read`/`Write`);
    make `NumericImagePlace`, `RefModPlace`, `OdoGroupPlace` derive from it. Leaf places (`MemberPlace`, `DynTablePlace`,
-   `RedefViewPlace`, `CapacityRegisterPlace`) stay direct. *(AS LANDED, P5.11a: `RenamesPlace` — originally on this
-   derive list — stays direct too: it composes N spanned leaves with no single inner, and its `Pic`/`Item` are the
-   level-66 ALIAS's own (§13.18.45 — the alias is its own elementary view), so a forwarding base fits nothing it does;
-   deriving it would have meant overriding every forwarded member, i.e. inheritance without reuse.)*
+   `RedefViewPlace`, `CapacityRegisterPlace`) stay direct. *(`RenamesPlace` stays direct too: it composes N spanned
+   leaves with no single inner, and its `Pic`/`Item` are the level-66 ALIAS's own (§13.18.45 — the alias is its own
+   elementary view), so a forwarding base fits nothing it does; deriving it would have meant overriding every
+   forwarded member, i.e. inheritance without reuse.)*
 2. **`Place` is built from `StorageForm`, not re-inference.** `ReferenceResolver` selects the concrete place from the
    resolved item's `Storage`:
    - `NativeInt`/`NativeFloat`/`CharImage`(non-numeric) → `MemberPlace`
@@ -267,14 +265,14 @@ New `Binding/Model/RecordLayout.cs`: the single owner of character offset/width 
   (`PicInfo.cs:333-562`) into `Binding/PictureAnalyzer.cs` (`PicInfo Analyze(...)`). Delete the dead skeleton
   scaffolding (`IsUnimplementedSkeleton => false`, `SkeletonReached`, and the three `ReferenceEquals` sentinel
   singletons `NationalUsagePending`/`BitUsagePending`/`RecoveryItem` — replace with a proper `PicAnalysis` result
-  discriminant `Ok | GroupUsageShed | Recover`). *(AS LANDED, P5.11c — the discriminant lives on `DataItem`, not
-  on an Analyze result: the two Pending sentinels never came from `Analyze` (they arise for PICTURE-LESS entries,
-  where Analyze is not called), and the group-vs-elementary verdict is unknowable until the forest completes —
-  the state was always DataItem state encoded as Pic reference-identity. Landed as
-  `DataItem.Pending : PicPending {None, NationalUsage, BitUsage}` (MakeItem writes; CloneItem carries;
-  `ResolveIndexItems` adjudicates + clears), and `Recover` as the `PicInfo.Recovery(int)` factory — a plain
-  value shared by the analyzer's five inline recovery paths and the 0881 elementary arm. `ParseUsage` moved to
-  `PictureAnalyzer` too, its constant-false `out bool skeleton` overload deleted.)*
+  discriminant `Ok | GroupUsageShed | Recover`). *(The discriminant lives on `DataItem`, not on an Analyze
+  result: the two Pending sentinels never come from `Analyze` (they arise for PICTURE-LESS entries, where Analyze
+  is not called), and the group-vs-elementary verdict is unknowable until the forest completes — the state is
+  DataItem state encoded as Pic reference-identity. It is `DataItem.Pending : PicPending {None, NationalUsage,
+  BitUsage}` (MakeItem writes; CloneItem carries; `ResolveIndexItems` adjudicates + clears), and `Recover` is the
+  `PicInfo.Recovery(int)` factory — a plain value shared by the analyzer's five inline recovery paths and the 0881
+  elementary arm. `ParseUsage` lives in `PictureAnalyzer` too, its constant-false `out bool skeleton` overload
+  deleted.)*
 - Rename `ResolveIndexItems` → fold into `UsageInheritancePass` (§2.5 step 2); it does USAGE-marker resolution, not
   index-only work.
 - `NumProfile` (runtime) stays the runtime projection of `PicInfo`. Today `PicInfo` re-materializes it as an
@@ -324,7 +322,7 @@ elementary / group / `ALL 'x'` / Report-Writer SOURCE VALUEs. This closes the co
 
 ## 4. Migration — keeping the battery green throughout
 
-The battery (2028 greenfield conformance + 213 unit + legacy guard NIST 353 MATCH) must stay green **every phase**.
+The battery (3166 conformance + 281 unit + 33 characterization + legacy guard NIST 353 MATCH) must stay green **every phase**.
 Strategy: introduce the new SSOT **in parallel**, prove byte-equivalence, then flip readers and delete the old fact.
 
 **Phase D0 — Parallel `StorageForm` (no behavior change).**

@@ -94,7 +94,7 @@ droppable in without touching the frontend/binder/bound tree, every fact a backe
   `CapacityRegisterPlace.TablePath` (`Place.cs:176`), `RedefViewPlace.Backing` (`Place.cs:82`). An identifier is a
   **target-naming decision** owned by the shared `NameMangler` (§2.4), resolved from a symbol at render time.
 - **Roslyn `Syntax*` nodes or `using` decisions** — the `using CobolNet.Runtime;` / `using CobolNet.Runtime.IO;`
-  choices (`CSharpEmitter.Call.cs:164-167`) are a C#-source concern; a CIL backend has no `using`s. These live in
+  choices (`ProgramEmitter.cs`) are a C#-source concern; a CIL backend has no `using`s. These live in
   the Roslyn backend, keyed off which `RuntimeAbi` members were referenced.
 - **Format literals of the target language** — no C# escape/`SymbolDisplay.FormatLiteral` output stored on a node
   (that is a Roslyn-render step over a decoded value).
@@ -107,11 +107,11 @@ droppable in without touching the frontend/binder/bound tree, every fact a backe
 | L2 | **`DynTablePlace(string SendingPath, string ReceivingPath, …)`** — `Place.cs:58,67,70`: TWO pre-rendered C# path strings encoding OCCURS DYNAMIC read/write polarity. | Two C# strings; polarity baked as text. | Replace with a `DynTableSegment(BoundExpr OneBased, AccessDir Dir)` in the `AccessPath`; polarity is a render-time choice from `AccessDir` + operation (P7 Step 11 already sketches `AccessDir`). |
 | L3 | **Bound STATEMENT nodes carrying C# access-path strings** — `CapacityRegisterPlace.TablePath` `Place.cs:176`; `BoundSetCapacity.TablePath` `BoundTree.cs:493`; `BoundSearch.IndexField / DependCount / DynTable` `BoundTree.cs:508-511`. | The *bound tree itself* (not just `Place`) presupposes a C# path — the leak `DESIGN-binder-bound-tree.md` does not guard. | Carry the **table `Place`/symbol** (a `CapacityRegisterPlace` holding a `Place Table`, per `DESIGN-codegen-backend.md §2.3`) and an index **symbol**; the backend renders `.Capacity`/the field. `BoundSetCapacity(Place Table, …)`; `BoundSearch(DataItem Index, …, Place? DynTable)`. **(Addition to P6 — §5.)** |
 | L4 | **C#-identifier fields on bound nodes** — `BoundIndexRef.IndexField` `BoundTree.cs:109`; `SetIndexTarget.IndexField` `BoundTree.cs:471`; `BoundMethod.CsName` `BoundTree.cs:32`. | A mangled C# name is a target-naming decision frozen into the neutral tree. | Store the **index `DataItem`** (SSOT §3.5: an index IS its 1-based occurrence field — the symbol suffices) and the **method `OoMethodSymbol`**; the shared `NameMangler` (§2.4) forms the identifier per backend. **(Addition to P6 — §5.)** |
-| L5 | **No seam at all** — `RoslynBackend` is a `static class` taking a C# **source string** (`RoslynBackend.cs:13,24`); `CSharpEmitter.Emit` takes the **parse tree** and binds inside codegen (`CSharpEmitter.cs:38-40` → `CallEmitRunUnit` `CSharpEmitter.Call.cs:88`). No `BoundCompilation` ever crosses a backend boundary. | There is nothing for a second backend to implement; binding and emission are fused. | **P6** extracts binding into `BindPipeline` → `BoundCompilation`; **P7 Step 1** materializes `ICodeGenBackend` so the driver hands `BoundCompilation` to a selected backend. |
+| L5 | **The backend seam — IN PLACE.** `ICodeGenBackend` (`CodeGen/ICodeGenBackend.cs`) is the ONE seam; `RoslynBackend : ICodeGenBackend` consumes the immutable `BoundCompilation` and performs no binding; `BinderDriver` produces the tree; `CSharpEmitter` is now only the bind-host facade whose `EmitBound` renders C# from the bound tree. | (Resolved — a second backend now has a defined `ICodeGenBackend` to implement against `BoundCompilation`.) | **DONE**: binding is extracted into the Binder phase (`BinderDriver` → `BoundCompilation`); `ICodeGenBackend` is materialized so the driver hands `BoundCompilation` to a selected backend. |
 
 L1/L2 are already scheduled by `DESIGN-codegen-backend.md §2.3` + PHASE-07 Step 11. **L3/L4 are NOT** — they live in
 `BoundTree.cs` records the bound-tree design treats as neutral but which still carry C# path/identifier strings. §5
-adds them to PHASE-06 explicitly. L5 is the P6→P7 seam extraction.
+adds them to PHASE-06 explicitly. L5 (the P6→P7 seam extraction) is **DONE** — `ICodeGenBackend` is in place and a `BoundCompilation` crosses the backend boundary.
 
 ---
 
@@ -154,17 +154,17 @@ public static class BackendFactory
 ```
 
 - **Consumes:** the immutable `BoundCompilation` (P6 result) — units, the OO class model, the `SymbolTable`, and
-  structural `Place`s — plus `BackendOptions`. **Performs no binding** (the ~12-pass `CallEmitRunUnit` orchestration
-  `CSharpEmitter.Call.cs:88-147` moves into `BindPipeline`, per `DESIGN-binder-bound-tree.md §3.1`).
+  structural `Place`s — plus `BackendOptions`. **Performs no binding** (binding is the Binder phase's job —
+  `BinderDriver` produces the `BoundCompilation`, per `DESIGN-binder-bound-tree.md §3.1`).
 - **Produces:** a `BackendArtifact` (success + diagnostics + optional `.g.cs` path + assembly path). Roslyn writes a
-  `.dll` + `.runtimeconfig.json` (today `RoslynBackend.cs:39-43,89-104`); Cil writes a `.dll` + `.runtimeconfig.json`
+  `.dll` + `.runtimeconfig.json` (via `AssemblyPackager`); Cil writes a `.dll` + `.runtimeconfig.json`
   + `.pdb` via Cecil.
 
 ### 2.2 Shared visitor vs per-backend visitor
 
-**Decision: the visitor *interface* is shared; the *implementation* is per-backend.** P7 Step 6 makes the exhaustive
-`IBoundStatementVisitor<T>` / `IBoundExprVisitor<T>` / `IBoundConditionVisitor<T>` / operand + bool visitors
-(source-generated from `[BoundNode]`). Those interfaces + the generated `Accept<T>` + the sealed hierarchy are the
+**Decision: the visitor *interface* is shared; the *implementation* is per-backend.** The exhaustive
+`IBoundStatementVisitor<T>` / `IBoundExprVisitor<T>` / `IBoundConditionVisitor<T>` / operand + bool visitors are
+source-generated from `[BoundNode]`. Those interfaces + the generated `Accept<T>` + the sealed hierarchy are the
 **shared model walk**. Each backend implements them once:
 
 | Concern | Roslyn (P7) | Cil (PHASE-16) |
@@ -216,7 +216,7 @@ own resolver for free.
 ### 2.4 The shared `NameMangler`
 
 The COBOL-name → target-identifier mapping (today scattered as pre-baked strings in nodes — L4 — and as ad-hoc
-`CsName`/`__` conventions in the emitter, e.g. `CSharpEmitter.cs:97-98`) becomes **one shared service** owned by P5/P6
+`CsName`/`__` conventions in the emitter) becomes **one shared service** owned by P5/P6
 (`Model/NameMangler.cs`, per topology §2.10's `NamingConvention` for OO; generalized to all identifiers). Both
 backends call it: Roslyn to spell a C# field/method name; Cil to name a `FieldDefinition`/`MethodDefinition`. It is
 **deterministic** (same COBOL name → same identifier) so the equivalence harness (PHASE-16) can even cross-check
@@ -232,7 +232,7 @@ the mangler is applied at render time.
 Unchanged from `DESIGN-codegen-backend.md`: **string emit stays; SyntaxFactory rejected** (§2.1 there) — readable
 `.g.cs` is owner-locked (SSOT §1.2 #4). `RoslynBackend : ICodeGenBackend` drives `ProgramEmitter` per unit over an
 immutable `EmitContext`, renders via `PlaceRenderer`/`ExpressionRenderer`/`ConditionRenderer`/`RoslynRuntimeApi` to a
-`CodeWriter` text sink, compiles with `CSharpCompilation` (cached framework refs — `RoslynBackend.cs:73-83` fix), and
+`CodeWriter` text sink, compiles with `CSharpCompilation` (cached framework refs), and
 hands packaging to `AssemblyPackager`. It is the **only** owner of C# syntax knowledge. This document changes nothing
 about it except: its runtime-call rendering routes through `RoslynRuntimeApi` **over `RuntimeAbi`** (§2.3).
 
@@ -288,10 +288,10 @@ what P7 already lists.
 | Action | From → To | Why |
 |---|---|---|
 | create | `CodeGen/ICodeGenBackend.cs` (`ICodeGenBackend`, `BackendId`, `BackendOptions`, `BackendArtifact`, `BackendFactory`) | The seam (also in P7 Step 1 / `DESIGN-codegen-backend.md §2.2`). |
-| refactor | `RoslynBackend` (static string→dll, `RoslynBackend.cs:13`) → `RoslynBackend : ICodeGenBackend` consuming `BoundCompilation` | The default backend behind the seam; owns all C# syntax. |
+| refactor | `RoslynBackend` → `RoslynBackend : ICodeGenBackend` consuming `BoundCompilation` | The default backend behind the seam; owns all C# syntax. |
 | create | `Model/RuntimeAbi.cs` (neutral catalogue) + `CodeGen/Roslyn/RoslynRuntimeApi.cs` (was `RuntimeApi`) | ONE runtime ABI for BOTH backends (§2.3); generalizes `DESIGN-codegen-backend.md §3`. |
 | create | `Model/NameMangler.cs` (COBOL-name → target identifier) | ONE naming service; removes L4 baked identifiers (§2.4). |
-| refactor | `Binding/Place.cs` `Read()/Write()` strings → structural `Place` + `AccessSegment` | L1/L2 removal (also P7 Step 11 / `DESIGN-codegen-backend.md §2.3`). |
+| refactor | `Binding/Model/Place.cs` `Read()/Write()` strings → structural `Place` + `AccessSegment` | L1/L2 removal (also P7 Step 11 / `DESIGN-codegen-backend.md §2.3`). |
 | refactor | `BoundTree.cs` C#-string node fields (`BoundSetCapacity.TablePath` :493; `BoundSearch.IndexField/DependCount/DynTable` :508-511; `BoundIndexRef.IndexField` :109; `SetIndexTarget.IndexField` :471; `BoundMethod.CsName` :32; `CapacityRegisterPlace.TablePath` `Place.cs:176`) → symbol/`Place` references | **L3/L4 removal — NEW; not in P7.** (§5, addition to P6.) |
 | create | `CodeGen/BackendContractTest` fixture (reflection + `CodeGen/**` analyzer scan) | Enforce §1: no `string`-returning render member / no raw-C#-identifier field on any `Place`/`Bound*` (§6). Generalizes `DESIGN-codegen-backend.md §6 R5`. |
 | create *(PHASE-16)* | assembly `Cobol.Net.Backend.Cil/` (`CilBackend`, `CilStatementEmitter`, `CilExpressionEmitter`, `CilConditionEmitter`, `CilPlaceLower`, `CilRuntimeApi`, `CilDispatcher`) | The second backend, Cecil, isolated (§3.2). Answers topology Open Q4. |
@@ -325,7 +325,7 @@ splice into the named phase file (fuller bullets follow).
 
   Fuller: P6 already builds `BoundCompilation` and the `SymbolTable`; it must additionally **de-C#** the L3/L4 node
   fields (they are produced by the binder — `BoundSearch`/`BoundSetCapacity` are built in
-  `StatementBinder.KeyedIo.cs`/`.Sort.cs`/SET-capacity binders) so the bound tree that crosses the seam is neutral.
+  the SEARCH/SET binders `Binding/Procedure/Verbs/SearchBinder.cs` / `SetBinder.cs`) so the bound tree that crosses the seam is neutral.
   The `BackendNeutral` capability makes "the tree is neutral" a declared, asserted pipeline fact (§3.1 there).
 
 - **PHASE-07 (`PHASE-07-visitor-dispatch-emitter-decomposition.md`) — one-line addition:**

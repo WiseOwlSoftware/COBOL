@@ -1,7 +1,7 @@
 # PHASE 15 — G8 legacy retirement (three cuts) + §4.2.16 conformance documentation + runtime namespace flip + D10 SUBSCRIPT-mode removal
 
 - **Phase:** P15
-- **Track:** cleanup (+ the one relocated rearchitecture sub-track, D10)
+- **Track:** cleanup (+ the one rearchitecture sub-track, D10)
 - **Risk:** MEDIUM for the cleanup cuts (irreversible deletions); **HIGH** for the D10 sub-track (a shared-grammar +
   ~250-line binder-parser rewrite) — kept isolated as its own post-Cut-2 sub-track (§"CUT 2.5") so it cannot destabilize
   the legacy-retirement cuts.
@@ -25,7 +25,7 @@ words §4.2.10, archaic §4.2.12 and obsolete §4.2.13 identification, and the �
 deletions here are irreversible and are gated on the Phase-14 equivalence proof having been green; the legacy source
 is preserved at an annotated git tag with a WSL reproduction recipe before it is deleted.
 
-> **⛔ RELOCATED SUB-TRACK — D10 (SUBSCRIPT-mode removal), moved here from PHASE 04 (2026-07-10, DEVLOG 748).** The owner's
+> **⛔ SUB-TRACK — D10 (SUBSCRIPT-mode removal).** The owner's
 > D10 ruling (master §6 D10) — FULLY REMOVE the lexer `SUBSCRIPT` mode + the binder subscript re-parse, replacing the
 > flat `SUB_*` stream + the ~250-line hand-rolled C# re-parsers with interpreted grammar rules — could not land inside
 > PHASE 04's byte-neutral window: the FROZEN legacy compiler consumes `SUB_*`/`SubscriptEntryContext` (`ExpressionBinder.
@@ -296,7 +296,7 @@ only remaining references are the legacy projects referencing each other, and th
   - **COMMIT BOUNDARY** (if any fixes were needed). Suggested message:
     `docs(cobolnet): P15 Cut 2c — scrub stale legacy-oracle references from banners/live docs`
 
-### CUT 2.5 — D10: SUBSCRIPT-mode removal (the relocated PHASE-04 owner-override sub-track)
+### CUT 2.5 — D10: SUBSCRIPT-mode removal (the owner-override sub-track)
 Sequenced HERE, after Cut 2, because Cut 2 deleted `src/CobolSharp.*` — so `SUB_*`/`CobolParserCore.SubscriptEntryContext`
 are no longer consumed by any legacy code and the SUBSCRIPT machinery can finally leave the SHARED grammar. This is a
 HIGH-risk rearchitecture task; keep it a self-contained sub-track that does not touch the Cut-1/2/3 cleanup work.
@@ -313,8 +313,9 @@ D10.1–D10.5, battery-green at every commit boundary.
 - [ ] **Step D10.3 — interpreted subscript grammar rule** (per §9.4's answer) + rewrite `ReferenceResolver`'s subscript
   interpreters (`HasDepth0Colon`/`InterpretSubscripts`/`SplitSubscriptTokens`/`RenderSegment`/`ResolveSubscriptName`)
   over real `arithmeticExpression`/`subscript` nodes. **COMMIT.**
-- [ ] **Step D10.4 — reunify `functionCall` onto `argumentList`** + rewrite the ~250-line `StatementBinder.Intrinsics.cs`
-  recursive-descent `SUB_*` parser over real `argument` nodes; migrate `Udf`/`Emitter` (`SplitSubscriptTokens` hand-offs).
+- [ ] **Step D10.4 — reunify `functionCall` onto `argumentList`** + rewrite the ~250-line recursive-descent `SUB_*`
+  parser in `Binding/Procedure/Verbs/IntrinsicBinder.cs` over real `argument` nodes; migrate `Udf`/`Emitter`
+  (`SplitSubscriptTokens` hand-offs).
   The dominant-cost step. **COMMIT.**
 - [ ] **Step D10.5 — delete the SUBSCRIPT-mode block** + the `LPAREN` mode-entry action + `PreviousTokenCouldBeDataName`
   + the now-dead structured `subscriptList/subscriptEntry/subscriptQualification/relativeOffset` rules (legacy is gone,

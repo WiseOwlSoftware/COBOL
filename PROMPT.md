@@ -263,4 +263,4 @@ Do not deviate from it.
 Read CONSTRAINTS.md for the full anti-pattern catalog (with labels), session rituals (start and end), and
 behavioral constraints.
 For the current state, plan, and session history, read `resume-prompt.md` (the live kickoff) + `DEVLOG.md`
-(the narrative log). (The old `MIGRATION_LEDGER.md` was deleted with the byte-engine docs, DEVLOG 524.)
+(the narrative log).

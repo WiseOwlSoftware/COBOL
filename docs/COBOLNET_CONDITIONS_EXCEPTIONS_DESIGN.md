@@ -5,13 +5,13 @@
 > `docs/COBOLNET_DESIGN.md` §11; THIS is the full design (decisions + rationale + C# mapping + hard
 > problems + edge cases). The locked invariants and cross-cutting consistency live in the SSOT.
 
-## AS BUILT — the EC-OO slice (DEVLOG 609): the exception-OBJECT channel
+## The EC-OO slice: the exception-OBJECT channel
 
 The OO exception-object model (ISO §14.6.13.1.5; the OO deep-dive slice 6, brief D-EO1–D-EO10 in
-`docs/COBOLNET_OO_SLICE_BRIEFS.md`) is LANDED over this engine with ONE signal architecture — no parallel
+`docs/COBOLNET_OO_SLICE_BRIEFS.md`) rides this engine with ONE signal architecture — no parallel
 OO mechanism (feedback_singular_pattern):
 
-- **ExceptionState** gained: `CobolObject? ExceptionObject` (the §8.4.3.6 register — ONE per run unit,
+- **ExceptionState** carries: `CobolObject? ExceptionObject` (the §8.4.3.6 register — ONE per run unit,
   GR2; typed per the OO D-U1 universal model), the `"EXCEPTION-OBJECT"` **LastName sentinel** (§15.33.3
   r1's literal EXCEPTION-STATUS value — the EXCEPTION-* functions needed ZERO changes; the sentinel is NOT
   a catalog name and `ExceptionCatalog.TryGet` fails on it by design), `SetObject`,
@@ -30,12 +30,12 @@ OO mechanism (feedback_singular_pattern):
   chain) = 0849 at COMPILE time — which statically discharges the activated-side rule-1 check in v1
   (D-EO5; revisit when FACTORY OF / interface RAISING legs land). The stage
   (`ExceptionState.SetPropagatingObject`) has no Enabled/Fatal logic — objects are not TURN-gated.
-- **The pickup** (`CallEmitPropagationPickup`) grew the object branch FIRST (slots exclusive): GR1b2
+- **The pickup** (`CallEmitter.EmitPropagationPickup`) has an object branch (slots exclusive): GR1b2
   re-registers in the activator → F4 dispatch (rule 2) → on −3, the rule-4 conversion:
   `Set("EC-OO-EXCEPTION", true)` → the F3 tiers (EC-OO-EXCEPTION/EC-OO/EC-ALL match) → unresumed ⇒
   `CobolFatalException` (fatal per Table 13 — surviving needs RESUME AT NEXT STATEMENT, the standard
   fatal-EC protocol). The SAME pickup runs after every CALL and every Instance/Self/Super/Factory INVOKE
-  and every UNIVERSAL dispatch (`OoEmitInvokePickup`); NEW needs none (the ctor runs no user statements).
+  and every UNIVERSAL dispatch (`OoEmitter.EmitInvokePickup`); NEW needs none (the ctor runs no user statements).
   GR1b's result-before-exception ordering falls out of stage-then-`throw MethodReturn` + the entry catch
   delivering RETURNING/copy-outs before the site's pickup.
 - **Headers**: PD-header RAISING partitions into level-3 EC-USER names (SR7; else 0858) + classes of the
@@ -54,31 +54,31 @@ Two C# code shapes — both are the Roslyn backend's rendering of the ONE backen
 
 Correct behavior is defined by the ISO spec (specs/ISO_COBOL.md — cite the §); the legacy CobolSharp.Compiler/CodeGen/Lowering/ConditionLowerer.cs and CobolSharp.Runtime/PicRuntime.cs (364 NIST green) are a differential regression net and reference ONLY, never authority; the byte IMPLEMENTATION is rejected and re-derived over native string/long(/Int128)/bool — the numeric design's scaled integers; System.Decimal is rejected (docs/COBOLNET_NUMERIC_DESIGN.md). THIS document is that full prose (condensed view: docs/COBOLNET_DESIGN.md §11; brief overview: docs/COBOLNET_ARCHITECTURE.md). New diagnostics occupy a COBOLNET07xx band. New runtime classes: CobolClass (class-condition predicates over UTF-16 chars), ExceptionCatalog (generated from ISO Table 13: level-3→level-2→EC-ALL hierarchy + fatality), ExceptionState (last-exception register, EXCEPTION-OBJECT, file/location/statement), CobolException/CobolFatalException, ExceptionDispatch (declarative registry). Implementation is mechanical from here.
 
-## As built (2026-06-11, DEVLOG 577) — the EC model landed; deviations from the sketch recorded
+## The EC model — file map and engine specifics
 
-The conditions half (D1–D8) landed across G2–G6 as designed. The EC half (D9–D12) is now BUILT; the file map and
-every place the as-built design refined the original sketch:
+The conditions half (D1–D8) is implemented as designed. The EC half (D9–D12) is implemented; the file map and
+the engine's design specifics:
 
 **File map.** Frontend: `Preprocessor/TurnDirectiveProcessor.cs` (the `>>TURN` stage — runs LAST, after COPY/NIST,
 on the FINAL text so `TurnEvent.Line` is directly comparable to token `Start.Line`; line-count preserving, asserted
 by `Frontend.Parse`; an emitting-branch TURN survives `ConditionalCompilationProcessor` via `leaveTurnDirectives` —
 the legacy pipeline keeps consuming TURN there). Compiler: `Binding/TurnState.cs` (the compile-time §7.3.25.4 fold),
-`Binding/Bound/StatementBinder.Exceptions.cs` (RAISE/RESUME/SET LAST EXCEPTION/RAISING binds + the per-statement
-`EcWrap` fold → `BoundEcChecked`), `CodeGen/CSharpEmitter.Exceptions.cs` (guards + the generated `__EcDispatch` /
-`__IoCheckEc`), `CodeGen/CSharpEmitter.Call.cs` (RAISING staging, the CALL-site propagation pickup, the EC-PROGRAM
+`Binding/Procedure/Verbs/EcBinder.cs` (RAISE/RESUME/SET LAST EXCEPTION/RAISING binds + the per-statement
+`EcWrap` fold → `BoundEcChecked`), `CodeGen/EcEmitter.cs` (guards + the generated `__EcDispatch` /
+`__IoCheckEc`), `CodeGen/Verbs/CallEmitter.cs` (RAISING staging, the CALL-site propagation pickup, the EC-PROGRAM
 catch). Runtime: `Runtime/Exceptions/` — `ExceptionCatalog` (Table 13), `ExceptionState` (last-exception register +
 propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.28/30/32/33), `CobolFatalException`,
-`ResumeSignal`. `CompilerDriver` hands `Frontend.TurnEvents` to `CSharpEmitter.Emit`.
+`ResumeSignal`. `CompilerDriver` hands `Frontend.TurnEvents` to `CSharpEmitter.Bind`; `EmitBound` renders the bound tree via `ProgramEmitter`.
 
-**Refinements vs the sketch (why the original was not followed verbatim):**
-- **D11's "declarative methods return a ResumeAction enum" → the dispatch-result protocol.** Declaratives are pc
+**EC engine specifics:**
+- **The declarative dispatch-result protocol.** Declaratives are pc
   RANGES run by the bounded `__Dispatch`, not C# methods — so RESUME throws the runtime `ResumeSignal`, the
   int-returning `__RunUse` (emitted only when the group is EC-active; the void form stays byte-identical otherwise)
   catches it, and every raise site speaks ONE protocol: `-1` normal completion (§14.6.13.1.2), `-2` RESUME AT NEXT
   STATEMENT (suppresses a fatal — §14.6.13.1.3 #5 NOTE 2), `-3` no qualifying declarative, `≥0` RESUME AT
   procedure-name's pc (≡ GO TO, §14.9.33.4 GR3). There is no `ExceptionDispatch` registry class: the F3 selector is
   the GENERATED `__EcDispatch` (source-ordered GR3c–g tiers over the program's own declaratives).
-- **The TURN fold runs at BIND time, not emit time** (D10 refined): bound nodes carry no parse context, so the
+- **The TURN fold runs at BIND time, not emit time:** bound nodes carry no parse context, so the
   binder (which has the statement's line) queries the TurnState and wraps the statement in `BoundEcChecked`
   carrying the decision (`EcStatementInfo`: enabled (name, file) pairs, WITH LOCATION, statement name, the §15.30.3
   r2 location string). Checking-off binds the bare node — zero scaffolding by construction.
@@ -121,7 +121,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   information — EXCEPTION-LOCATION returns one space, EXCEPTION-STATEMENT 63 spaces; with it, the bind-time
   pre-rendered "element; paragraph[ OF section]; line" string and the uppercase statement name are recorded at the
   raise site.
-- **The catalog is NAME-keyed, not a C# enum** (the sketch's `enum ExceptionCondition`): EC-USER-* / EC-IMP-* are
+- **The catalog is NAME-keyed, not a C# enum:** EC-USER-* / EC-IMP-* are
   OPEN families (§14.6.13.1.1 — user-defined by mention, always nonfatal ¶24505), so the canonical identity is the
   NAME; an enum would need a parallel name channel (two representations — the singular-pattern rule).
 - **Grammar continuity:** RAISE/RAISING/RESUME/STATEMENT/CONDITION/EC are context-sensitive tokens mirrored in
@@ -129,7 +129,7 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   RAISE/RESUME statement alternatives are UNgated so `--std 85` gets the targeted COBOLNET0876 diagnostic, not a
   nameless parse error. `displayStatement` gained the `functionCall` operand alternative (§8.4.4.1 — an identifier
   includes a function-identifier; `DISPLAY FUNCTION EXCEPTION-STATUS` is the canonical interrogation shape).
-- **Diagnostics band as built:** COBOLNET0710 (RAISE of a non-level-3), 0711 (unknown exception-name), 0712/0713/
+- **Diagnostics band:** COBOLNET0710 (RAISE of a non-level-3), 0711 (unknown exception-name), 0712/0713/
   0714 (RESUME SR1/SR2/SR3), 0715/0716 (USE F3 SR13/SR14), 0717 (RAISING SR2 ¶27403), 0718/0719 (TURN SR3/SR1+SR4),
   0875–0879 (the 2002+ edition gates: TURN / RAISE+RESUME / USE F3 / per-name edition window / SET LAST EXCEPTION+
   RAISING).
@@ -141,14 +141,14 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   fatalities, the §9.1.13.1 status map). The legacy oracle has NO EC model — every expected value derives from the
   cited §.
 
-**Still later waves (unchanged):** the exception-checking PERFORM WHEN + `>>PROPAGATE` (2023 — VCR row 79/§4808),
+**Still later waves:** the exception-checking PERFORM WHEN + `>>PROPAGATE` (2023 — VCR row 79/§4808),
 RAISE/RAISING identifier (exception OBJECTS — the OO wave; the `ExceptionState.ExceptionObject` slot exists),
 EXCEPTION-FILE's 2023 file-connector argument (loud by name), the national `-N` twins (no national runtime — loud),
 GLOBAL-walkable F3 declaratives, VALIDATE/EC-VALIDATE (§18.17).
 
 ## Decisions
 
-### D1. Conditions are bound to backend-neutral BoundCondition nodes (BoundRelational/BoundLogical/BoundNot/BoundCondition88/BoundSignCondition/BoundClassCondition); the Roslyn backend's ConditionRenderer.Render(BoundCondition)→string emits them as pure, side-effect-free C# boolean expressions. The grammar's rule cascade (logicalOr→logicalXor→logicalAnd→unaryLogical→primaryCondition) fixes precedence at parse/bind time. (As built: src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs.)
+### D1. Conditions are bound to backend-neutral BoundCondition nodes (BoundRelational/BoundLogical/BoundNot/BoundCondition88/BoundSignCondition/BoundClassCondition); the Roslyn backend's ConditionRenderer.Render(BoundCondition)→string emits them as pure, side-effect-free C# boolean expressions. The grammar's rule cascade (logicalOr→logicalXor→logicalAnd→unaryLogical→primaryCondition) fixes precedence at parse/bind time. (src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs.)
 
 **Rationale.** COBOL condition precedence NOT>AND>XOR>OR is already encoded by the grammar's rule cascade, so precedence is preserved by construction without us re-grouping. Pure expressions compose into if/while(!(…))/?:/EVALUATE arms/level-88 properties — one translator serves every consumer.
 
@@ -246,7 +246,7 @@ private static bool ACTIVE  => WS_STATE == 1L;
 private static bool PENDING => WS_STATE >= 2L && WS_STATE <= 4L;
 private static bool DONE    => WS_STATE == 5L || WS_STATE == 9L;
 ```
-Single value→`==`; THRU→`>= from && <= to`; multiple→OR; alpha values space-extended to parent width, ALL literal repeated to width. Subscripted cond-name→method `bool COND(long i)=>parent[i-1]==v;` (tables have LANDED — fixed OCCURS→T[]; implement the parameterized-method form, keeping COBOLNET0704 only while it remains unimplemented). SET ACTIVE TO TRUE→`WS_STATE = CobolNum.Store(1L,0,_P_WS_STATE);`. SET DONE TO FALSE→`WS_STATE = CobolNum.Store(0L,0,_P_WS_STATE);`.
+Single value→`==`; THRU→`>= from && <= to`; multiple→OR; alpha values space-extended to parent width, ALL literal repeated to width. Subscripted cond-name→method `bool COND(long i)=>parent[i-1]==v;` (tables are supported — OCCURS→T[]). SET ACTIVE TO TRUE→`WS_STATE = CobolNum.Store(1L,0,_P_WS_STATE);`. SET DONE TO FALSE→`WS_STATE = CobolNum.Store(0L,0,_P_WS_STATE);`.
 DataItem gains `List<ConditionName> ConditionNames`; `record ConditionName(string CobolName, string CsName, IReadOnlyList<CondValue> TrueValues, CondValue? FalseValue)`; `readonly record struct CondValue(string FromLiteral, string? ThruLiteral, bool IsAll)`.
 
 EVALUATE: hoist subjects → chained if/else-if/else. One WHEN clause's match = OR over its WHEN phrases ( AND over ALSO subjects ( per-subject match ) ). Per-subject: ANY→true; value→`==` (scaled/collating); range v1 THRU v2→`>=v1 && <=v2`; partial-expr (item starts with relop/class/sign)→prepend subject; TRUE/FALSE↔condition subject→`_eK == true/false`; group NOT→negate the group's conjunction. WHEN OTHER→final else.
@@ -256,7 +256,7 @@ var _e0 = WS_DAY; var _e1 = true;
 if (((_e0>=1L && _e0<=5L) && (WS_OPEN==_e1))) {…} else if (((_e0==6L||_e0==7L) && true)) {…} else {…}
 ```
 
-ON SIZE ERROR (ISO §14.7.5): the checked store is **`CobolNum.TryStore`** — REVISED 2026-06-08 (SSOT §14.7): the numeric design's `TryStore` and this section's original `StoreChecked` are the SAME operation (store + capacity/inexact check, receiver unchanged on overflow), settled on the single name **`CobolNum.TryStore`** (returns `bool`; `false` = ON SIZE ERROR). It rounds to scale FIRST, then tests integer-part capacity; division-by-zero / exponentiation-rule → size error. On error the receiver is LEFT UNCHANGED, so stage the value and assign conditionally. Multiple receivers: OR the per-receiver flags; non-overflowing receivers ARE updated. (Signature: `bool TryStore(CobolInt value, in NumProfile receiver, CobolRounding mode, out long stored)`.)
+ON SIZE ERROR (ISO §14.7.5): the checked store is **`CobolNum.TryStore`** (SSOT §14.7) — one operation that stores plus runs the capacity/inexact check, leaving the receiver unchanged on overflow (returns `bool`; `false` = ON SIZE ERROR). It rounds to scale FIRST, then tests integer-part capacity; division-by-zero / exponentiation-rule → size error. On error the receiver is LEFT UNCHANGED, so stage the value and assign conditionally. Multiple receivers: OR the per-receiver flags; non-overflowing receivers ARE updated. (Signature: `bool TryStore(CobolInt value, in NumProfile receiver, CobolRounding mode, out long stored)`.)
 ```
 bool _se=false; { var _v = new CobolInt(…, _s); if (CobolNum.TryStore(_v, _P_B, _mode, out long _r)) B = _r; else _se = true; }
 if (_se) { <ON SIZE ERROR> } else { <NOT ON SIZE ERROR> }
@@ -284,7 +284,7 @@ Binder detects the partial form (leftmost token is a relop/class-name-without-id
 
 ### ON SIZE ERROR leaving the receiver unchanged + multiple receivers + rounding interaction (ISO §14.7.5).
 
-CobolNum.TryStore (the single settled name — see the REVISED note in the C# mapping) computes the candidate, rounds to scale FIRST, then tests integer-part capacity; writes the field only if no overflow (or no SIZE ERROR phrase present). Each receiver tested independently; non-overflowing receivers updated; the phrase fires if ANY overflowed (OR of per-receiver flags). Division-by-zero and exponentiation-rule violations route to the same size-error path (EC-SIZE-ZERO-DIVIDE / EC-SIZE-EXPONENTIATION).
+CobolNum.TryStore (the single settled name — see the C# mapping) computes the candidate, rounds to scale FIRST, then tests integer-part capacity; writes the field only if no overflow (or no SIZE ERROR phrase present). Each receiver tested independently; non-overflowing receivers updated; the phrase fires if ANY overflowed (OR of per-receiver flags). Division-by-zero and exponentiation-rule violations route to the same size-error path (EC-SIZE-ZERO-DIVIDE / EC-SIZE-EXPONENTIATION).
 
 ### RESUME control flow (NEXT STATEMENT vs procedure-name vs GLOBAL-declarative≡CONTINUE) requires a declarative to redirect the caller's control after it returns (ISO §14.9.33).
 
@@ -296,7 +296,7 @@ A compile-time TurnState walks the procedure division in source order maintainin
 
 ### Whole-group comparison (IF GROUP-A = GROUP-B, or group vs literal) compares the group as one alphanumeric value, but a group is a record struct in the typed model (no character buffer).
 
-RESOLVED — the whole-group character-image facility LANDED (G6-core): every group record struct emits AsImage()/FromImage() (FieldEmitter), and a character-image group operand routes through .AsImage() into CobolString.Compare (OperandText). COBOLNET0708 is retired. This is the one IF/EVALUATE operand kind that native field comparison cannot do alone.
+The whole-group character-image facility: every group record struct emits AsImage()/FromImage() (GroupImageCodec), and a character-image group operand routes through .AsImage() into CobolString.Compare (OperandText). COBOLNET0708 is retired. This is the one IF/EVALUATE operand kind that native field comparison cannot do alone.
 
 ### Distinguishing a bare data-name operand in a condition: level-88 condition-name vs boolean PIC 1 vs mnemonic switch vs numeric-implicit-≠0 vs alphanumeric truthiness.
 
@@ -307,7 +307,7 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - NEXT SENTENCE (obsolete) is NOT CONTINUE: it jumps past the next period, so it lowers via a labeled sentence block + goto, unlike a plain if-fall-through (COBOLNET0701).
 - ALPHABETIC is the closed set {A-Z,a-z,space} only (ISO §8.8.4.4) — must NOT use char.IsLetter (rejects accented/Unicode letters); legacy comment line 2436.
 - IS NUMERIC on a signed numeric-DISPLAY item accepts the overpunch sign ({,A-I positive; },J-R negative) or separate sign (+/-) at the sign position; spaces are NOT digits so a field with embedded/trailing spaces is NOT NUMERIC.
-- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOLNET0706) — the REDEFINES/overlay revisit has FIRED (Tier A+B landed): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime CobolClass check (CobolClass.IsNumeric, §8.8.4.4 GR1/GR2).
+- IS NUMERIC on a pure native long/Int128 item folds to constant true (COBOLNET0706): the fold applies ONLY to a numeric item with no REDEFINES/overlay view; an aliased item routes through the runtime CobolClass check (CobolClass.IsNumeric, §8.8.4.4 GR1/GR2).
 - NOT POSITIVE means ≤ 0 (includes zero), which is NOT the same as NEGATIVE — the !(>0) wrap gets it right.
 - Figurative ZERO compared with a numeric value is the numeric 0 (ISO §8.3.1.2), not the character '0'.
 - Literal-vs-literal comparisons constant-fold at emit time to true/false (clean output, matches mainstream compilers).
@@ -321,9 +321,9 @@ Binder resolves the name's category: 88→condition-name bool property; PIC 1/bo
 - AT END/INVALID KEY phrase, when present and the condition exists, suppresses all OTHER applicable exception processing (ISO §11409) — the phrase wins over declaratives.
 - Pointer relations support only = / NOT = (ISO §8.8.4.1.4) → ReferenceEquals / is null on ManagedPointer.
 - EC-I-O-WARNING can only be turned on/off explicitly in a >>TURN or PERFORM WHEN (§5006); EC-ALL does not include it.
-- Whole-group comparison routes through the record struct's AsImage() character image (landed, G6-core) into CobolString.Compare.
+- Whole-group comparison routes through the record struct's AsImage() character image into CobolString.Compare.
 - User-defined exceptions EC-USER-<suffix> are always nonfatal (ISO §24505) and only raisable by RAISE / EXIT…RAISING / GOBACK RAISING.
-- A condition-name may be qualified/subscripted (cond-name OF grp (i)) → emit a parameterized bool method, not a property (tables have landed; COBOLNET0704 only while the method form remains unimplemented).
+- A condition-name may be qualified/subscripted (cond-name OF grp (i)) → emit a parameterized bool method, not a property (tables are supported).
 
 ## Per-edition gating (G1 — one `cobol.exe`, four ISO editions via `--std`)
 

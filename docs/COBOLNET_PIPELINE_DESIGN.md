@@ -13,7 +13,7 @@ TWO MAKE-OR-BREAK DECISIONS (both validated against owner-locked constraints):
 
 1) NO lowered IR. Emit C# DIRECTLY from a bound semantic tree. Rationale: a basic-block/SSA IR exists in the legacy ONLY because it targets CIL (which lacks if/while/switch/try/GC/exceptions); C# has all of them, so lowering to branches and reconstructing structure both wastes work AND destroys the idiomatic readable output the owner requires. Reject the current direct parse-tree walk (CSharpEmitter is already failing: Resolve handles only unqualified refs, RenderCondition falls back to "false", scale/category re-derived per call-site). The bound tree is THE single model (feedback_singular_pattern); DataBinder/DataItem is already its data half.
 
-2) Control flow = a SINGLE program-counter DISPATCHER per program/method (owner-locked: "paragraphs/sections are LABELS (PC cases) in one flow, NOT separate methods"). Realize as (REVISED shape — see SSOT §5.1/§14.6): `int pc = startPc; while ((uint)pc < (uint)N) { bool atExit = pc==exitPc; switch (pc) { case 0: ...; pc = 1; break; } if (atExit && pc == exitPc+1) return pc; }`. Fall-through = `pc = i+1; break;` GO TO = `pc = target; break;` PERFORM range = a RECURSIVE bounded `Dispatch(start,exit)`; STOP RUN throws `StopRun` (unwinds ALL Dispatch frames in ALL programs, caught at run-unit `Main`); GOBACK/EXIT PROGRAM throws a DISTINCT `ProgramReturn` (caught at the program's `Entry`). This ports the legacy's PROVEN return-address dispatch SEMANTICS (DEVLOG 259-260) but in the single-dispatcher SHAPE, not the legacy methods-returning-PC shape. Critical synergy: paragraphs become pc INDICES, not C# identifiers — an entire identifier-collision class disappears.
+2) Control flow = a SINGLE program-counter DISPATCHER per program/method (owner-locked: "paragraphs/sections are LABELS (PC cases) in one flow, NOT separate methods"). Realize as (see SSOT §5.1/§14.6): `int pc = startPc; while ((uint)pc < (uint)N) { bool atExit = pc==exitPc; switch (pc) { case 0: ...; pc = 1; break; } if (atExit && pc == exitPc+1) return pc; }`. Fall-through = `pc = i+1; break;` GO TO = `pc = target; break;` PERFORM range = a RECURSIVE bounded `Dispatch(start,exit)`; STOP RUN throws `StopRun` (unwinds ALL Dispatch frames in ALL programs, caught at run-unit `Main`); GOBACK/EXIT PROGRAM throws a DISTINCT `ProgramReturn` (caught at the program's `Entry`). This ports the legacy's PROVEN return-address dispatch SEMANTICS (DEVLOG 259-260) but in the single-dispatcher SHAPE, not the legacy methods-returning-PC shape. Critical synergy: paragraphs become pc INDICES, not C# identifiers — an entire identifier-collision class disappears.
 
 Plus: a decomposed emitter (mirror the legacy CilArithmetic/Comparison/ControlFlow/Data/Expression/String split, shared EmitContext) so it never becomes a god class; a name-allocator that segregates namespaces by prefix (COBOL data d_, temporaries __t, generated names can NEVER collide); a binder scope-tree for multiple/nested/contained programs (GLOBAL/COMMON/EXTERNAL); a DIFFERENTIAL conformance harness (run legacy + CobolNet on each NIST program, assert identical stdout — turns 364 passing legacy tests into an instant regression net); ONE typed edition carrier (EditionInfo) threaded from CLI to the driver — the grammar parses the superset, the binder is edition-agnostic, and ALL edition gating + flagging lives in the single VersionConformancePass; and the loud-failure invariant: bind success ⇒ emit MUST produce compilable C#; any Roslyn error on generated code is an ICE, never silent.
 
@@ -27,20 +27,17 @@ Plus: a decomposed emitter (mirror the legacy CilArithmetic/Comparison/ControlFl
 
 **Dual-backend note (SSOT §18 decision 23).** 'NO lowered IR' means no SHARED lowered-IR pipeline phase: the backend-neutral bound tree is the single model behind `ICodeGenBackend` (`--backend roslyn|cil`, default roslyn). The future-additive CilBackend performs its OWN private structure→branch lowering INSIDE the backend — an implementation detail of that one backend, never a phase the RoslynBackend consumes.
 
-### D2. Realize ALL control flow as a single program-counter dispatcher per program/method (the dispatcher IDEA is owner-locked; the concrete SHAPE below is REVISED 2026-06-08 — canonical: SSOT §5.1/§14.6 + `COBOLNET_CONTROL_FLOW_DESIGN.md`).
+### D2. Realize ALL control flow as a single program-counter dispatcher per program/method (the dispatcher IDEA is owner-locked; the concrete SHAPE is below — canonical: SSOT §5.1/§14.6 + `COBOLNET_CONTROL_FLOW_DESIGN.md`).
 
-> ⚠ **SHAPE SUPERSEDED.** The original `while (true) switch { … goto case N+1; … if(pc==exitPc) return; }` shape is
-> replaced by the **`pc`-variable + bounded `while` loop with a PRE-body `atExit` check** (SSOT §14.6): `int pc =
-> startPc; while ((uint)pc < (uint)N) { bool atExit = pc==exitPc; switch (pc) { … pc = next; break; } if (atExit &&
-> pc == exitPc+1) return pc; } return pc;`. **Why `goto case` was dropped:** it cannot express PERFORM-THRU exit
+> **The dispatcher SHAPE** is a **`pc`-variable + bounded `while` loop with a PRE-body `atExit` check** (SSOT §14.6):
+> `int pc = startPc; while ((uint)pc < (uint)N) { bool atExit = pc==exitPc; switch (pc) { … pc = next; break; } if
+> (atExit && pc == exitPc+1) return pc; } return pc;`. **Why not `goto case`:** it cannot express PERFORM-THRU exit
 > detection (no clean named-exit boundary — the `atExit`-captured-before-the-body check is needed because the body
 > overwrites `pc`), and C# forbids `goto` *into* another switch section. **GOBACK is NOT "return the current Dispatch
 > level"** (SSOT §14.5): a C# `return` exits only the innermost recursive `Dispatch`, so a GOBACK nested inside a
 > PERFORM would resume the PERFORM caller, not the program's caller — GOBACK/EXIT PROGRAM throw a distinct
 > `ProgramReturn` caught at the program `Entry`; STOP RUN throws `StopRun` caught at run-unit `Main`. This shape is
-> implemented today in `CSharpEmitter.EmitDispatcher` (G4 ✅).
-
-Original (superseded) text: a `Dispatch(int startPc, int exitPc)` method containing `int pc = startPc; while (true) switch (pc) { case 0: <para0 body>; if (0 == exitPc) return; goto case 1; ... }`. Fall-through = `goto case N+1`; GO TO = `pc = T; continue;`; GO TO DEPENDING = computed `pc =`; PERFORM single = recursive `Dispatch(t,t)`; PERFORM A THRU B = recursive `Dispatch(idxA, idxB)`; STOP RUN throws StopRun (unwinds every nested Dispatch); GOBACK returns the current Dispatch level.
+> implemented in `DispatchEmitter.EmitDispatcher` (G4 ✅).
 
 **Rationale.** This is OWNER-LOCKED ('paragraphs/sections are LABELS (PC cases) in one flow, NOT separate methods. GO TO sets the PC; fall-through is PC++; PERFORM range is a recursive bounded dispatch'). It is the ONLY shape that correctly expresses GO TO, ALTER, and PERFORM THRU-with-an-internal-GO-TO. It ports the legacy's PROVEN return-address dispatch SEMANTICS (DEVLOG 260: a return-address model, not a physical-range model; follows each paragraph's next-pc anywhere, returns only when the exit paragraph falls off its end — handles inverted/non-contiguous THRU ranges per ISO 14.9.30) without re-deriving them. ALTER is the tie-breaker FOR switch-on-pc over goto/labels: ALTER mutates a GO-TO target at runtime, trivial when the target is a real `pc` variable, awkward in pure labels. Bonus: paragraphs become pc indices/enum constants, so paragraph names NEVER become C# identifiers — a whole collision class vanishes.
 
@@ -107,7 +104,7 @@ COBOL:
   B. IF X = 1 GO TO D.
   C. DISPLAY "C".
   D. DISPLAY "D". STOP RUN.
-C# (the REVISED pc-variable + bounded-while shape — as implemented in CSharpEmitter.EmitDispatcher, G4 ✅):
+C# (the pc-variable + bounded-while shape — as implemented in DispatchEmitter.EmitDispatcher, G4 ✅):
   static void Main(){ try { __Dispatch(0, -1); } catch (StopRun) { } }
   const int __N = 4;
   static int __Dispatch(int __startPc, int __exitPc){

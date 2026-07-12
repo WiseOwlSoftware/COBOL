@@ -34,15 +34,15 @@ Close the version-correctness program to zero open work and make the greenfield 
 
 This phase is the load-bearing hinge between "the compiler works" and "we can safely delete the oracle." The survey/critique findings it closes:
 
-- **The net evaporates at G8 unless a faithful replacement is proven first** (`DESIGN-test-build-ci.md` §1.2, §3.4, §6 risk 4; `COMPLETION_ROADMAP_COUNCIL.md` §4 risk 4). The authoritative NIST regression today is `scripts/guard.sh`, which compiles+runs ~353 programs **through the frozen legacy `cobolsharp.dll`** and diffs `tests/nist/valid/*.txt`. The greenfield NIST coverage is only the 318 golden-bearing `[InlineData]` rows in `NistDifferentialTests.cs` — it does **not** exercise the golden-less census residue (459 census programs − 364 goldens), the run-only programs, or the compile+run health of the full corpus the way `guard.sh` does. When P15 deletes `guard.sh` and the legacy engine, that census coverage is gone unless P14 rebuilds it greenfield **and proves the rebuild matches**, program-by-program, while the oracle is still runnable. Once legacy is deleted the proof is impossible forever (`COMPLETION_ROADMAP_COUNCIL.md` risk 4: "the G8 equivalence window closes unproven").
+- **The net evaporates at G8 unless a faithful replacement is proven first** (`DESIGN-test-build-ci.md` §1.2, §3.4, §6 risk 4; `COMPLETION_ROADMAP_COUNCIL.md` §4 risk 4). The authoritative NIST regression today is `scripts/guard.sh`, which compiles+runs ~353 programs **through the frozen legacy `cobolsharp.dll`** and diffs `tests/nist/valid/*.txt`. The greenfield NIST coverage is only the 318 golden-bearing rows driven by `NistDifferentialTests.cs` — it does **not** exercise the golden-less census residue (459 census programs − 364 goldens), the run-only programs, or the compile+run health of the full corpus the way `guard.sh` does. When P15 deletes `guard.sh` and the legacy engine, that census coverage is gone unless P14 rebuilds it greenfield **and proves the rebuild matches**, program-by-program, while the oracle is still runnable. Once legacy is deleted the proof is impossible forever (`COMPLETION_ROADMAP_COUNCIL.md` risk 4: "the G8 equivalence window closes unproven").
 
 - **Version-gating is unaudited and the VCR ledger is stale** (`DESIGN-edition-framework.md` P7/P8; `VERSION_CHANGE_REFERENCE.md` — `grep -c TODO` = 117 rows still open, 6 done/GATED as of this writing). The "four compilers in one" mission (`docs/VERSION_TEST_MATRIX_DESIGN.md`) is only validated at its deltas/boundaries; a `TODO` row is an un-proven claim. P3 made the audit harness-driven (`scripts/gen-vcr.ps1` + `--emit-status`); P14 is where the burn-down actually reaches zero and the ledger becomes structurally incapable of drifting.
 
-- **The default shipping edition (2023) is never behaviorally executed before G8** — the critics' one *fatal* challenge (`COMPLETION_ROADMAP_COUNCIL.md` §2 Phase 1, decision #10). `NistDifferentialTests` hard-compiles at `DialectLevel 85` (`CompilerUnderTest.cs`: `CobolNetCompiler(int dialectLevel = 85)`); the INV-1 sweep only asks "does it *compile*" via `check-batch` (`scripts/version-continuity-sweep.sh`), never runs. The `COBOLNET_NIST_STD` / `COBOLNET_NIST_PERMISSIVE` env override (`NistDifferentialTests.cs:533-536`) was seeded at the P2.7 flip precisely so the whole golden run can be re-targeted to `--std 2023 --permissive` and asserted byte-identical; P14 promotes that seeded leg to a hard, always-on G7 exit criterion.
+- **The default shipping edition (2023) is never behaviorally executed before G8** — the critics' one *fatal* challenge (`COMPLETION_ROADMAP_COUNCIL.md` §2 Phase 1, decision #10). `NistDifferentialTests` hard-compiles at `DialectLevel 85` (`CompilerUnderTest.cs`: `CobolNetCompiler(int dialectLevel = 85)`); the INV-1 sweep only asks "does it *compile*" via `check-batch` (`scripts/version-continuity-sweep.sh`), never runs. The `COBOLNET_NIST_STD` / `COBOLNET_NIST_PERMISSIVE` env override (`NistDifferentialTests.cs`) exists precisely so the whole golden run can be re-targeted to `--std 2023 --permissive` and asserted byte-identical; P14 promotes that leg to a hard, always-on G7 exit criterion.
 
 - **Diagnostics are unaddressable without a coverage floor** (`DESIGN-test-build-ci.md` §1.6, §3.5). P2 built the first-class descriptor registry; P14 is where "every rule has a test" becomes an enforced invariant (`DiagnosticRegistryCoverageTests`), so a registered code with no negative-corpus case is a red — closing the false-green class the 0899 catch-all and the `1533`-style code reuse used to hide.
 
-- **The three-way "which programs are green" triplication** (`DESIGN-test-build-ci.md` §1.2, smell #3): `guard.sh` `NIST_TESTS`, `NistDifferentialTests` `[InlineData]`, and `tests/nist/chains.tsv`. P0 introduces `tests/nist/corpus.tsv` as the single source; P14's greenfield guard consumes it (not a fourth copy), and the equivalence proof confirms the manifest-driven run reproduces the legacy verdict list before the old sources are deleted (`DESIGN-test-build-ci.md` §6 risk 4 mitigation).
+- **The three-way "which programs are green" triplication** (`DESIGN-test-build-ci.md` §1.2, smell #3): `guard.sh` `NIST_TESTS`, the `NistDifferentialTests` golden list, and `tests/nist/chains.tsv`. P0 introduces `tests/nist/corpus.tsv` as the single source; P14's greenfield guard consumes it (not a fourth copy), and the equivalence proof confirms the manifest-driven run reproduces the legacy verdict list before the old sources are deleted (`DESIGN-test-build-ci.md` §6 risk 4 mitigation).
 
 ---
 
@@ -62,7 +62,7 @@ Files created / changed by P14 (real paths):
 **Tests**
 - `tests/Cobol.Net.Tests.Conformance/VersionMatrixTests.cs` — (from P0/P3) extended: INV-1 strict+permissive rows over `corpus.tsv`; the `expectDiagnostic` assertions cover every folded-in VCR row.
 - `tests/Cobol.Net.Tests.Conformance/VersionBehaviorMatrixTests.cs` — (from P3) INV-3: every `variant`-tagged construct row runs under each `--std` and its stdout is diffed against the per-edition expectation.
-- `tests/Cobol.Net.Tests.Conformance/Inv1StrongGoldenTests.cs` — NEW: the always-on INV-1-strong leg — compiles AND runs the full golden set at `--std 2023 --permissive` and asserts byte-identical output (the seeded `COBOLNET_NIST_STD`/`COBOLNET_NIST_PERMISSIVE` path promoted from an env-gated leg to a first-class `[Theory]`).
+- `tests/Cobol.Net.Tests.Conformance/Inv1StrongGoldenTests.cs` — NEW: the always-on INV-1-strong leg — compiles AND runs the full golden set at `--std 2023 --permissive` and asserts byte-identical output (the `COBOLNET_NIST_STD`/`COBOLNET_NIST_PERMISSIVE` path promoted from an env-gated leg to a first-class `[Theory]`).
 - `tests/Cobol.Net.Tests.Unit/DiagnosticRegistryCoverageTests.cs` — NEW: asserts every `DiagnosticDescriptor` in the P2 registry is (a) unique-coded and (b) exercised by ≥1 negative-corpus `.err` case (or an inline diagnostic-snapshot case). A registered-but-untested code is a red.
 - `tests/conformance/**/manifest.json` + `tests/conformance/negative/*.{cob,err}` — completed so every registered descriptor and every folded-in VCR gate has a witness; `CorpusRunnerTests.Manifest_CoversEveryProgram_NoOverlap` stays green.
 
@@ -84,7 +84,7 @@ Files created / changed by P14 (real paths):
 
 ### Precheck (no commit) — reproduce the baseline green
 
-Before touching anything, prove the battery is green from a clean build (the DEVLOG-577 incremental-build-masking lesson):
+Before touching anything, prove the battery is green from a clean build (incremental builds can mask a regression):
 
 ```
 dotnet build CobolSharp.sln -c Debug
@@ -99,7 +99,7 @@ Expected: conformance + unit green; `guard-fast.sh` prints `=== ALL GREEN ===`; 
 
 Confirm the P14 preconditions exist:
 - `tests/nist/corpus.tsv` exists (P0). If not present, P0's manifest step was skipped — create it first (fold `NistDifferentialTests` `[InlineData]` ∪ `guard.sh` `NIST_TESTS` ∪ `chains.tsv` into the schema in `DESIGN-test-build-ci.md` §3.2, guarded by `CorpusManifestTests`). This is a P0 deliverable; do it here only if missing.
-- The P2 diagnostic-descriptor registry exists (`src/Cobol.Net.Compiler/Diagnostics/` with `DiagnosticDescriptor`/`Diag`). If absent, Step 4's coverage test cannot be authored — escalate; it is a P2 deliverable.
+- The P2 diagnostic-descriptor registry exists (`src/Cobol.Net.Editions/Diagnostics/` with `DiagnosticDescriptor`/`DiagnosticCatalog`). If absent, Step 4's coverage test cannot be authored — escalate; it is a P2 deliverable.
 
 ---
 
@@ -148,9 +148,9 @@ Expected: no drift; test green.
 
 **Files:** `tests/Cobol.Net.Tests.Conformance/Inv1StrongGoldenTests.cs` (NEW); reuses `NistDifferentialTests.RunNist` / `Normalize` / `Chains` (make them `internal static` shared helpers or lift into a `NistRunner` helper class so both test classes call one implementation — `feedback_singular_pattern`).
 
-**Change:** author a `[Theory]` that, for every golden-bearing program in `corpus.tsv` (status `green`), compiles AND runs it at `DialectLevel: 2023, Permissive: true` and asserts byte-identical normalized output vs `tests/nist/valid/<name>.txt`. This is the seeded `COBOLNET_NIST_STD=2023 COBOLNET_NIST_PERMISSIVE=1` path (`NistDifferentialTests.cs:528-536`) promoted from an env-gated manual leg to a first-class always-run test. Keep the env override too (for ad-hoc runs at 2002/2014), but 2023-permissive now runs unconditionally in `dotnet test`.
+**Change:** author a `[Theory]` that, for every golden-bearing program in `corpus.tsv` (status `green`), compiles AND runs it at `DialectLevel: 2023, Permissive: true` and asserts byte-identical normalized output vs `tests/nist/valid/<name>.txt`. This is the `COBOLNET_NIST_STD=2023 COBOLNET_NIST_PERMISSIVE=1` env path (`NistDifferentialTests.cs`) promoted from an env-gated manual leg to a first-class always-run test. Keep the env override too (for ad-hoc runs at 2002/2014), but 2023-permissive now runs unconditionally in `dotnet test`.
 
-If any program diffs at 2023-permissive, it is a real bug in a version-gating behavior (not the test): triage against a VCR behavior row; fix the gate; re-run. This is exactly the fatal-challenge triage the P2.7 flip attached (`COMPLETION_ROADMAP_COUNCIL.md` §2 Phase 1: "re-run the 318 goldens at --std 2023 permissive and triage every diff against VCR behavior rows").
+If any program diffs at 2023-permissive, it is a real bug in a version-gating behavior (not the test): triage against a VCR behavior row; fix the gate; re-run. This is exactly the fatal-challenge triage (`COMPLETION_ROADMAP_COUNCIL.md` §2 Phase 1: "re-run the 318 goldens at --std 2023 permissive and triage every diff against VCR behavior rows").
 
 **Why:** decision #10 (RATIFIED) — INV-1-strong at the default edition is a G7 exit criterion; the shipping default must be behaviorally executed before G8.
 

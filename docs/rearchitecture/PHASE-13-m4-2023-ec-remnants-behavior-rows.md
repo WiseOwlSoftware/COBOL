@@ -63,11 +63,11 @@ landed most of the 2002/2014 feature catalog, but three classes of work were lef
    diagnostic naming the construct + the introducing edition (VCR "How to use" step 3).
 
 2. **EC remnants no wave installed.** The EC engine (`>>TURN`, RAISE/RESUME, USE F3, RAISING propagation, the
-   status→EC bridge, EXCEPTION-* functions) is DONE (DEVLOG 577) and the catalog is complete
+   status→EC bridge, EXCEPTION-* functions) is DONE and the catalog is complete
    (`src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs` — all 2002/2014/2023 names, IntroducedIn-tagged), but
    several conditions are catalogued yet never RAISED by the code that should raise them:
-   - **EC-SIZE-TRUNCATION** is wired only for the *receiver-capacity* store in `CSharpEmitter.cs:1066/1105` behind
-     `_sizeErrEcVar`; the scope note says it must be "wired into arithmetic stores" so ROUNDED MODE IS PROHIBITED
+   - **EC-SIZE-TRUNCATION** is wired only for the *receiver-capacity* store in `CodeGen/Verbs/ArithmeticEmitter.cs` behind
+     `ecState.SizeErrEcVar`; the scope note says it must be "wired into arithmetic stores" so ROUNDED MODE IS PROHIBITED
      raises it (today PROHIBITED fires ON SIZE ERROR at the observable level only — ISO2023 plan §M2-ARITH-1
      follow-up #2). VCR row 53 (§14.7.5) clarifies EC-SIZE-TRUNCATION is raised by rounding *only* under
      DEFAULT/statement ROUNDED MODE IS PROHIBITED.
@@ -88,15 +88,15 @@ landed most of the 2002/2014 feature catalog, but three classes of work were lef
 
 **Design note — much of this scope is ALREADY BUILT; audit first.** Several named scope items landed in earlier
 waves and only need *verification + a matrix/VCR status flip*, NOT re-implementation:
-- **DELETE FILE** — DONE: `BoundKeyedDeleteFile` (`StatementBinder.KeyedIo.cs:70`, §14.9.10 Format 2), goldens
+- **DELETE FILE** — DONE: `BoundKeyedDeleteFile` (`Binding/Procedure/Verbs/KeyedIoBinder.cs:155`, §14.9.10 Format 2), goldens
   `tests/conformance/2023/delete_file{,_absent}.{cob,out}`. Its **5 new I-O statuses** ('05','37','39','41','62',
   VCR row 78) are the residual runtime work.
-- **INSPECT BACKWARD** — DONE: `StatementBinder.Inspect.cs:66` (COBOLNET0845 below 2023), golden
+- **INSPECT BACKWARD** — DONE: `Binding/Procedure/Verbs/InspectBinder.cs:41` (COBOLNET0845 below 2023), golden
   `tests/conformance/2023/inspect_backward`. (Confirm the CONVERTING-with-BACKWARD residue.)
-- **Logical XOR / EXCLUSIVE-OR** (VCR 41) — GATED (DEVLOG 596), golden `logical_xor`.
+- **Logical XOR / EXCLUSIVE-OR** (VCR 41) — GATED, golden `logical_xor`.
 - **The 2023 intrinsics** CONCAT/BASECONVERT/CONVERT/FIND-STRING/MODULE-NAME/SMALLEST-ALGEBRAIC/SUBSTITUTE/TRIM
-  (VCR 65–74) — DONE (DEVLOG 628–636), goldens present.
-- **GOBACK RETURNING** — DONE at 2002 (DEVLOG 387). The 2023 **status phrase** (`GOBACK … WITH … STOP`, VCR 75) is
+  (VCR 65–74) — DONE, goldens present.
+- **GOBACK RETURNING** — DONE at 2002. The 2023 **status phrase** (`GOBACK … WITH … STOP`, VCR 75) is
   the residual delta — verify whether P9 covered it; if not it is in this phase's scope.
 - **EXIT METHOD/FUNCTION windows, EXIT PROGRAM/NEXT SENTENCE archaic, MOVE-alphanumeric-figurative, method-WS
   window** (VCR 5/6/74/89/90/1/130e) — GATED already.
@@ -118,10 +118,10 @@ When this phase is DONE the following exist / hold:
   `BoundRefModChecking`, `ContinueChecking`, `ExternalChecking` nonfatal-gate flags mirroring the existing
   `ArgumentFunctionChecking`/`DataConversionChecking` pattern, plus a `RaiseSizeTruncation()`,
   `RaiseBoundOverflow()`, `RaiseBoundRefMod()`, `RaiseContinueLessThanZero()` set of `Set(...)`-delegating helpers.
-- **`src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.Exceptions.cs`** — the arithmetic-store EC wrap
-  (`ArithEcNames`) is honored at the store site for **every** arithmetic verb (ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE),
+- **`src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs`** — the arithmetic-store EC wrap
+  (`SizeNames`) is honored at the store site for **every** arithmetic verb (ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE),
   not just receiver-capacity, so ROUNDED MODE IS PROHIBITED latches EC-SIZE-TRUNCATION.
-- **`src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.cs` / `.Arith*` partials** — the `_sizeErrEcVar` latch is emitted
+- **`src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs`** — the `SizeErrEcVar` latch is emitted
   at the PROHIBITED-inexact and receiver-capacity paths under `EC-SIZE` checking.
 - **Grammar** (`src/Cobol.Net.Frontend/Grammar/Core/*.g4`) — new SUPERSET alternatives (each stamped with its
   committed-match construct-id annotation, or reaching a self-identifying bound node — never a parse-time edition
@@ -229,11 +229,11 @@ When this phase is DONE the following exist / hold:
 - **Files:**
   - `src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs` — add `public static bool SizeTruncationChecking { get; set; }`
     + `public static void RaiseSizeTruncation(...)` (mirror `ArgumentError` at lines ~177–207).
-  - `src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.Exceptions.cs` — the `ArithEcNames` set (line ~279 already
+  - `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs` — the `SizeNames` set (line ~275 already
     lists EC-SIZE-TRUNCATION) must be honored at the arithmetic-store bind site for ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE
     receivers, not only receiver-capacity.
-  - `src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.cs` (~1066/1105, the `_sizeErrEcVar` onFail latch) + the arithmetic
-    emit partials — emit `ExceptionState.LastName = "EC-SIZE-TRUNCATION"` (via `_sizeErrEcVar`) when a PROHIBITED store
+  - `src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs` (the `SizeErrEcVar` onFail latch)
+    — emit `ExceptionState.LastName = "EC-SIZE-TRUNCATION"` (via `SizeErrEcVar`) when a PROHIBITED store
     is inexact AND `EC-SIZE` checking is on.
 - **Change shape:** when the receiver's ROUNDED MODE resolves to PROHIBITED and the scaled result is inexact, the
   store latches EC-SIZE-TRUNCATION (fatal unless TURNed) in addition to the existing ON SIZE ERROR observable. Gate
@@ -337,7 +337,7 @@ When this phase is DONE the following exist / hold:
 
 ### STEP 9 — EXCEPTION-FILE / EXCEPTION-FILE-N optional file-connector argument (VCR 68/69)
 - **Spec:** §15.29 EXCEPTION-FILE, EXCEPTION-FILE-N — the optional file-connector argument (E.3.3 items 25/26). 2023.
-- **Files:** the intrinsic binder (`StatementBinder.Intrinsics.cs`) + `IntrinsicCatalog` (add the optional arg),
+- **Files:** the intrinsic binder (`Binding/Procedure/Verbs/IntrinsicBinder.cs`) + `IntrinsicCatalog` (add the optional arg),
   `EcFunctions`/`ExceptionState.LastFile` runtime. When the argument is omitted, behavior is unchanged (last-referenced
   connector); when present, report on the named connector.
 - **Verify:** golden `exception_file_arg.cob` (two files, force an exception on one, query EXCEPTION-FILE with the
@@ -348,7 +348,7 @@ When this phase is DONE the following exist / hold:
 ### STEP 10 — PERFORM … WHEN exception-checking + PERFORM … UNTIL EXIT (VCR 79/80)
 - **Spec:** §14.9.31 PERFORM — the exception-checking WHEN variant (E.3.3 item 36; ties to Table 1 items 19a/19b —
   declaratives now executed) and the `UNTIL EXIT` infinite-loop phrase (E.3.3 item 37). Note
-  `StatementBinder.Exceptions.cs:132` already says the WHEN form "is 2023, a later wave" — this is that wave.
+  `Binding/Procedure/Verbs/EcBinder.cs:128` already says the WHEN form "is 2023, a later wave" — this is that wave.
 - **Files:** `Core/CobolControlFlow.g4:18` `performStatement` / `performOptions` (add `WHEN condition` +
   `UNTIL EXIT`); the PERFORM binder; the EC engine hook so a matching exception inside the range triggers the WHEN
   imperative (§14.9.31 GR). Below-2023 → COBOLNET0900.
@@ -358,7 +358,7 @@ When this phase is DONE the following exist / hold:
 
 ### STEP 11 — GOBACK status phrase (VCR 75) — only if not covered by P9
 - **Spec:** §14.9.16 GOBACK (`GOBACK … WITH … STOP`-style status phrase, effective only in a main program, E.3.3
-  item 32). Verify P9 (OO) did not already land it (GOBACK RETURNING is separate, DEVLOG 387).
+  item 32). Verify P9 (OO) did not already land it (GOBACK RETURNING is separate).
 - **Files:** `Core/CobolControlFlow.g4` GOBACK; the GOBACK binder; the run-unit termination path
   (`src/Cobol.Net.Runtime/Control/`). Below-2023 → COBOLNET0900.
 - **Verify:** golden `goback_status.cob` (main-program GOBACK with a status → process exit code). Below-2023 negative.
@@ -438,7 +438,7 @@ When this phase is DONE the following exist / hold:
   DEBUG-NAME, DEBUG-SUB-1/2/3, DEBUG-CONTENTS). Removed by 2002 — the gate `use-for-debugging-removed-2002` /
   COBOLNET0902 is already in place (VCR 7.17). Editions: implemented + active only at `--std 85` with the object-time
   debug switch; below the switch the debugging section compiles as comment lines (already the case).
-- **Files:** the declaratives binder (`StatementBinder` Declaratives), a `DEBUG-ITEM` special-register data model, the
+- **Files:** the declaratives binder (`Binding/Procedure/ProcedureTableBuilder.cs`), a `DEBUG-ITEM` special-register data model, the
   PROCEDURE-DIVISION trigger points (paragraph/section entry, statement execution) — emit DEBUG-ITEM population + the
   USE FOR DEBUGGING declarative invocation when the compile-time WITH DEBUGGING MODE switch is on. Today these stage
   COBOLNET0899 (VCR 7.17: "a DEBUG-* register reference under the switch diagnoses 0899 not-implemented").
@@ -464,7 +464,7 @@ When this phase is DONE the following exist / hold:
   93/116 (STANDARD-BINARY / SBIDI obsolete); the four archaic VCR rows 89/90/126/127 already GATED (verify) — "the
   four archaic VCR rows get their own 0903 sub-code" means give each a distinct `constructs.json` row id under
   COBOLNET0903.
-- **Files:** the CALL binder (`StatementBinder.Call.cs` — ON OVERFLOW arm; accept pre-2023, COBOLNET0902 at 2023);
+- **Files:** the CALL binder (`Binding/Procedure/Verbs/CallBinder.cs` — ON OVERFLOW arm; accept pre-2023, COBOLNET0902 at 2023);
   the OPTIONS/ARITHMETIC binder (`OptionsBinder`) for STANDARD-BINARY (0903 obsolete flag); `constructs.json` rows.
 - **Verify:** negatives/goldens: `call_on_overflow_2023_removed.cob` (0902 at 2023, accepted at 2014);
   `standard_binary_obsolete.cob` (0903 warning). Flip VCR rows 3/28/93/116 status.
@@ -529,8 +529,8 @@ When this phase is DONE the following exist / hold:
 - **Spec:** the residual "Affects existing? = Yes" Table 1 rows not covered above. For each: gate the 2014→2023
   behavior by DialectLevel, or (for "Affects existing? = No" clarification rows) pin-to-spec with a recorded
   determination.
-- **Files:** per-row — MERGE binder (`StatementBinder.Sort.cs`, prohibit MERGE in a MERGE output / file-SORT proc at
-  2023), the procedure-table transfer-of-control check (`StatementBinder` ProcedureTable — include sections, row 33),
+- **Files:** per-row — MERGE binder (`Binding/Procedure/Verbs/SortBinder.cs`, prohibit MERGE in a MERGE output / file-SORT proc at
+  2023), the procedure-table transfer-of-control check (`Binding/Procedure/ProcedureTableBuilder.cs` — include sections, row 33),
   WRITE binder (END-OF-PAGE fallthrough, row 37), the `>>EVALUATE` directive (row 14), figurative-ALL length
   (row 17), UPPER-/LOWER-CASE case mappings (rows 20/49 — `CobolIntrinsics.Text`), leap-year (row 13 — no gating
   needed).

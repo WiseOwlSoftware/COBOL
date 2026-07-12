@@ -10,9 +10,8 @@
 > **Project:** COBOL.NET — a greenfield compiler translating COBOL → idiomatic, typed-native **C# source**, compiled
 > by **Roslyn**. New compiler in `src/Cobol.Net.Compiler` + `src/Cobol.Net.Cli` (exe `cobol`) + `src/Cobol.Net.Runtime`;
 > the reused front-end (ANTLR lexer/parser/preprocessor) is extracted into `src/Cobol.Net.Frontend` (§17/G0 — DONE;
-> front-end namespaces renamed to `CobolNet.Frontend.*` at rearchitecture **P1** — the rename was pulled forward from
-> the former G8 big-bang, so G8 is now a pure *deletion* of the legacy tree, which keeps its own `CobolSharp.Compiler.*`
-> identity until then). The legacy byte-array implementation is rejected, kept
+> front-end namespaces are `CobolNet.Frontend.*`; the legacy tree keeps its own `CobolSharp.Compiler.*`
+> identity until G8, which is a pure *deletion* of that tree). The legacy byte-array implementation is rejected, kept
 > only as a differential **behavioral oracle** (it passes 364 NIST tests) until cut-over (G8).
 
 ---
@@ -102,8 +101,8 @@ implementations, chosen by `--backend roslyn|cil` (default **roslyn**):
 
 **There is NO *shared* lowered IR.** The legacy basic-block IR existed only because its sole target was CIL; here the
 backend-neutral bound tree replaces it, and each backend lowers only as far as its target needs (Roslyn: none —
-structure is preserved; CIL: branch-level, internally). *(Rejected: the current direct parse-tree walk —
-`CSharpEmitter.Resolve` handles only unqualified refs, `RenderCondition` falls back to `"false"`, scale/category
+structure is preserved; CIL: branch-level, internally). *(Rejected: a direct parse-tree walk —
+resolving only unqualified refs, conditions falling back to `"false"`, scale/category
 re-derived per call-site; and a shared branch IR — it would re-impose the CIL-shaped lowering on the C# path and
 destroy its readable output.)* Bonus: the differential harness (§2) can cross-check the two backends against each
 other, not just against the legacy oracle.
@@ -151,15 +150,14 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
 - **Bound tree, not IR** (§1.1). The bound tree resolves qualified names (OF/IN), subscripts, ref-mod, and
   condition-names ONCE and stores them on the node — the single place to hang semantic diagnostics.
 - **Single PC dispatcher per program unit** (§5 has the full design). `int Dispatch(int startPc, int exitPc)`.
-- **Decomposed emitter over a shared `EmitContext`** (CodeWriter + bound model + `NameAllocator` + EditionInfo +
-  DiagnosticBag + EmitConfig): `CSharpEmitter` (orchestrator), `DataEmitter`, `DispatchEmitter`, `StatementEmitter`,
-  `ExpressionEmitter`, `ConditionEmitter`, `ProgramEmitter`. Mirrors the legacy `Emission/` split (the legacy
-  `CilEmitter` hit 2458 lines before it was split — direct evidence). *(Rejected: one growing `CSharpEmitter` god
-  class; visitor double-dispatch — heavier than a switch-on-bound-node-type with per-category collaborators.)*
-  *(AS LANDED — P7 Step 9, DEVLOG 794–810: realized as `ProgramEmitter` (run-unit) → the `UnitEmitters` per-unit
-  composition root → `DispatchEmitter`/`StatementEmitter` (the generated exhaustive `IBoundStatementVisitor` —
-  P7 Step 6 superseded the switch-over-visitor rejection) + 18 `Verbs/*Emitter` + `EcEmitter` + the
-  `DataDivision/` five behind `DataEmitter`; `CSharpEmitter` = the bind-host facade only until P9.)*
+- **Decomposed emitter over an immutable `EmitContext`** (CodeWriter + bound model + `NameAllocator` + EditionInfo +
+  DiagnosticBag + EmitConfig; the receiver travels via a `ReceiverContext` parameter, not mutable `Target*` fields):
+  `ProgramEmitter` (run-unit) → the `UnitEmitters` per-unit composition root → `DispatchEmitter`/`StatementEmitter`
+  (the generated exhaustive `IBoundStatementVisitor<bool>`) + 18 `Verbs/*Emitter` + `EcEmitter` + the `DataDivision/`
+  emitters behind `DataEmitter`, plus the `Emit/` renderers (`NumericRenderer`/`ConditionRenderer`/`BooleanRenderer`/
+  `IntrinsicRenderer`/`OperandText`/`EmitCore`); `CSharpEmitter` is the bind-host facade only until P9. Mirrors the
+  legacy `Emission/` split (the legacy `CilEmitter` hit 2458 lines before it was split — direct evidence).
+  *(Rejected: one growing `CSharpEmitter` god class.)*
 - **One `NameAllocator`** owns C#-identifier generation: case-insensitive normalization (COBOL `FOO`==`foo`);
   namespace segregation by prefix (COBOL data `d_`; temporaries `__t`; dispatcher locals a fixed reserved set
   `{pc, startPc, exitPc, Main, Dispatch}`); **paragraphs get no identifier — they are pc indices**, so an entire
@@ -167,7 +165,7 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
   *(Rejected: the current per-call `Sanitize` — not collision-safe: hyphen non-injective `A-B`/`A_B`, case-sensitive,
   no dedup; hash-suffixing — destroys readability.)*
 - **Binder scope tree** for multiple/nested/contained programs (GLOBAL/COMMON/EXTERNAL are lexical-nesting
-  questions). The emitter walks ALL program units, not `FirstOrDefault()` (the current bug).
+  questions). The emitter walks ALL program units, not `FirstOrDefault()`.
 - **Differential conformance harness:** `ICompilerUnderTest { Compile+Run(src, dialect, nist?) }` with `LegacyCompiler`
   and `CobolNetCompiler` impls; `DifferentialNistTests` asserts `CobolNet stdout == Legacy stdout == nist/valid/*.txt`.
   The legacy's 364 passing programs become an instant regression net; the `.txt` oracle backstops a shared bug. Reuse
@@ -291,7 +289,7 @@ The grammar gives `dataReference : cobolWord dataReferenceSuffix*`, and subscrip
 
 > **Conflict resolved (named loser): data-model §8's "independent typed fields, a write to one is not visible in the
 > other" is SUPERSEDED.** That phrasing is the *incoherence trap* — it reproduces the exact silent-stale-read that
-> triggered the DEVLOG 457 pivot. The authoritative model is the 4-tier **one-canonical-backing** model below. (See
+> triggered the blank-slate pivot. The authoritative model is the 4-tier **one-canonical-backing** model below. (See
 > §14.3.)
 
 ### 4.1 The spine
@@ -320,9 +318,8 @@ and EVERY other view is a **computed accessor (a C# property)** over it. Never t
   (SYNC-aware offsets, from a ported `StorageLayoutComputer`); each leaf = a typed get/set accessor over
   `(offset,length,usage)` via a small `RedefCodec` runtime helper. Byte image confined to the class, never the
   record, never persisted further. The byte[] is the PERSISTENT canonical (not materialize-on-demand — distinct from
-  §14.4's transient whole-group image). NOT YET IMPLEMENTED — verdicts Rejected (loud) in the interim; the Phase-1E
-  narrowing moved the decimal-digit usages (BINARY/PACKED) out of this tier into B, where they have an exact
-  character representation.
+  §14.4's transient whole-group image). This tier is not yet realized — its puns draw a loud Rejected verdict; the
+  decimal-digit usages (BINARY/PACKED) live in Tier B, where they have an exact character representation.
 - **D — Reject loud** (spec-forbidden/unmodelable: object/pointer/message-tag/strongly-typed SR12/14; OCCURS
   DEPENDING ON / variable-length / dynamic-length SR5/17): a diagnostic — conformant, since these are already illegal.
 
@@ -383,7 +380,7 @@ private static int Dispatch(int startPc, int exitPc) {
 internal static void Main() { try { Dispatch(/*EntryParagraphIndex*/0, -1); } catch (StopRun) { } }
 ```
 
-This realizes the legacy's PROVEN **return-address / exit-bounded** dispatch (DEVLOG 259–260) in idiomatic C#.
+This realizes the legacy's PROVEN **return-address / exit-bounded** dispatch in idiomatic C#.
 Control is followed by **pc value, never by physical block extent** — which is why inverted THRU ranges and
 GO-TO-out-of-and-back-into a PERFORM range are correct *for free*.
 
@@ -620,7 +617,7 @@ value of the typed RECORD KEY / RELATIVE KEY field.
 
 Variable-length REWRITE must equal the replaced length (status 44; remember last-read length); the read-position
 state machine (READ NEXT after AT END = 46; sequential REWRITE/DELETE without a preceding READ = 43; START =
-inclusive FPI); EXTERNAL FDs — **IMPLEMENTED (Phase 1F, IC227A; §13.18.22.4 GR4a/GR4b/GR5)**: the connector keys
+inclusive FPI); EXTERNAL FDs — **IMPLEMENTED (IC227A; §13.18.22.4 GR4a/GR4b/GR5)**: the connector keys
 the run-unit registry by `"::EXT::" + externalized-name` (= the FD name, GR5) instead of the per-program
 `PROG::FILE` qualification, so every describer's verbs converge on ONE connector (`CobolFile.Register` keeps an
 existing `::EXT::` key — a later describer's activation never clobbers the live connector; CANCEL's `CloseFiles`
@@ -628,7 +625,7 @@ skips external connectors, §14.9.5 GR8/GR9), and the record area re-bases onto 
 keyed `"FD::" + externalized-name` via the same Tier-B string-canonical machinery WS EXTERNAL 01s use
 (`DataBinder.Linkage.cs::CallBindExternalAndGlobal`); FILE STATUS items stay per-program; the GR6 same-byte-count
 cross-describer check is §14.8.4 EC-band work (documented-deferred). GLOBAL FD inheritance — **IMPLEMENTED
-(Phase 1F, IC233A/IC234A; §13.18.30)**: ancestors' GLOBAL FileModels merge into a contained unit's `FilesByName`
+(IC233A/IC234A; §13.18.30)**: ancestors' GLOBAL FileModels merge into a contained unit's `FilesByName`
 ONLY (never `Files` — no re-registration/re-qualification/CANCEL-close; the shared FileModel reference keys the
 child's verbs to the owner's connector), the GLOBAL FD's records join `CallGlobalRoots` (record-names are global
 names → the standard `__outer` ref-bridges), `FileOfRecord` resolves a contained WRITE/REWRITE of the owner's
@@ -657,13 +654,13 @@ ManagedRef<long>.Cell(5L)
 ManagedRef<long>.Null
 ```
 
-> **AS BUILT (Phase-4b increment 2, DEVLOG 617 — supersedes `Cell(T)` as the ALLOCATE backing):** DATA-POINTER
+> **DATA-POINTER carrier (the ALLOCATE backing).** DATA-POINTER
 > VALUES are a third concrete carrier, `CellPointer(StorageCell, byteOffset)` — a window position inside ONE
 > shared character-storage cell (`StorageCell` = the Tier-B string backing lifted onto the heap; EXTERNAL
 > records, ADDRESS-OF-taken items, and ALLOCATEd areas all use it). WHY not the closures: an accessor pair has
 > no address identity for §8.8.4.2 STRUCTURAL pointer equality (two independent `ADDRESS OF X` must compare
 > EQUAL) and no byte offset for §14.9.39 Format-10 arithmetic. `OverField`/`Cell` stay exactly what they are —
-> the CALL-ABI carriers. The full design + as-built: PHASE4_RECONCILIATION "M2-DATA-5 / M2-PROC-5 — increment 2".
+> the CALL-ABI carriers.
 
 Crucially the carrier does NOT box WORKING-STORAGE: an ordinary `01 WS-X PIC 9(4)` stays a native `long`; a carrier
 is built ONLY at a call site as an accessor over the caller's native field, so DISPLAY/MOVE/arithmetic keep zero
@@ -745,8 +742,8 @@ OPTIONAL feature, §12063; no corpus use; `PIC 9(4)`/`PIC 9(8)` both map to `lon
 
 ### 10.4 The correctness blocker (resolved)
 
-**GOBACK in a method ≠ STOP RUN.** The current emitter throws `StopRun` for BOTH (CSharpEmitter ~204-205); inside a
-method that unwinds past the INVOKE caller and drops the RETURNING value. Resolution = the §5.3/§14.5 model: GOBACK/
+**GOBACK in a method ≠ STOP RUN.** Throwing `StopRun` for BOTH — inside a method — would unwind past the INVOKE
+caller and drop the RETURNING value. Resolution = the §5.3/§14.5 model: GOBACK/
 EXIT METHOD → **throw `ProgramReturn` (carrying the RETURNING value), caught at the method's entry wrapper** (the same
 signal/catch a called program uses, §14.5); STOP RUN keeps throwing the run-unit `StopRun`. A bare C# `return` is
 WRONG here for the identical reason it is wrong at program level (§14.5): a method has its own `Dispatch` loop and
@@ -855,7 +852,7 @@ the process exit code — a cross-subsystem contract (§14, §15).
   compile-time).
 - **SCREEN SECTION, JSON/XML GENERATE/PARSE** are scope-flagged big subsystems — designed only to the
   seam (reserve their register names, one-paragraph deferral each). Their scope is an owner question (§15).
-  **REPORT WRITER is IMPLEMENTED** (the Phase-1C NIST drive brought it forward from the M3 ordering): the deep-dive
+  **REPORT WRITER is IMPLEMENTED**: the deep-dive
   is `docs/COBOLNET_REPORT_WRITER_DESIGN.md` — the `CobolReport` engine, compose-at-presentation lines, the
   LINE-/PAGE-COUNTER registers, CONTROL/SUM, USE BEFORE REPORTING; RW101A–RW104A byte-match.
 
@@ -913,7 +910,7 @@ REDEFINES is reconciled to §4's **one-canonical-backing** model. The redefining
 the canonical backing, so MOVE/arithmetic/files/CALL touch them through the SAME `Read()`/`Write()` contract. **Named
 loser (the single most important reconciliation):** data-model §8's "separate typed fields; a write to one is not
 visible in the other" is SUPERSEDED by redefines/renames' 4-tier model, because separate fields reproduce the exact
-silent-stale-read that triggered the DEVLOG 457 rewrite. (A write through a view IS visible through every other view of
+silent-stale-read that triggered the blank-slate rewrite. (A write through a view IS visible through every other view of
 the same class — Tier A/B accessors share the canonical; Tier C shares the class `byte[]`.)
 
 ### 14.4 ONE whole-group / materialize-to-image facility (G6)
@@ -924,11 +921,11 @@ UNSTRING of a group/numeric operand (§7.4), (c) ref-mod of a numeric receiver, 
 heterogeneous span (§4.3). **Named loser:** the three names (`AsImage` / `GroupImage` / "materialize") are ONE thing
 — canonical name `AsImage()`/`FromImage()`. It uses the Latin-1 carrier (§14.9). This is **transient** (built on
 demand, never persisted) and is DISTINCT from REDEFINES Tier-C's PERSISTENT class-scoped `byte[]` (which would be the
-only storage for a float/COMP-5/INDEX pun class). SETTLED (Phase 1E): `AsImage` IS the permanent mechanism for
+only storage for a float/COMP-5/INDEX pun class). `AsImage` IS the permanent mechanism for
 mixed-usage (DISPLAY+BINARY+PACKED) groups — the byte path remains only for the genuinely non-character-imageable
 usages (see the total rule below).
 
-**Mixed-usage (COMP-leaf) groups — the settled TOTAL rule (Phase 1E; supersedes the DEVLOG 558 interim).** The
+**Mixed-usage (COMP-leaf) groups — the TOTAL rule.** The
 standard leaves a binary item's representation to the implementor (§13.18.60 USAGE GR4 — "Each implementor specifies
 the precise effect of the USAGE BINARY clause upon the … representation of the data item …, including the
 representation of any algebraic sign"; §8.8.4.1.1 — a group operand is alphanumeric over the items'
@@ -939,7 +936,7 @@ as a TRAILING OVERPUNCH on the last digit** (`PicInfo.ImageSignKind`, the ONE im
 MOVE/compare/DISPLAY senders, WRITE/RELEASE, READ/RETURN distribution, SORT/MERGE key decode — via
 `CobolNum.FormatDisplay`/`ParseDisplay` with the leaf's `_P_` profile `with`-overridden to the image sign (the
 leaf's OWN profile keeps `BinaryMinus`, so DISPLAY-statement output of a native leaf is unchanged). **Named losers:**
-(a) `OperandText.MixedGroupImage` (the DEVLOG 558 inline concat) — RETIRED: it formatted a signed leaf with its own
+(a) `OperandText.MixedGroupImage` (an inline concat) — RETIRED: it formatted a signed leaf with its own
 `BinaryMinus` profile, a latent VARIABLE-WIDTH bug that would shift every following leaf for a negative value, and
 it bailed on fixed-OCCURS children the generated codec handles; (b) leading-separate-sign images (would change
 `ImageWidth` and every offset computation, buying only debuggability); (c) raw big-endian bytes as Latin-1 chars
@@ -947,7 +944,7 @@ it bailed on fixed-OCCURS children the generated codec handles; (b) leading-sepa
 file compatibility is not required. Excluded — kept loud: float (no fixed decimal width), COMP-5 (`BinaryCapacity`
 stores values beyond the PICTURE digit count), INDEX. A whole-group **MOVE between two mixed groups with
 positionally IDENTICAL leaf layouts** (same usage/digits/scale/sign leaf-by-leaf) is still emitted as a **memberwise
-leaf copy** (`CSharpEmitter.AlignedLeafPairs`, tried FIRST) — for identical layouts the §14.9.25.4 GR4
+leaf copy** (`MoveEmitter.AlignedLeafPairs`, tried FIRST) — for identical layouts the §14.9.25.4 GR4
 representation copy and the memberwise copy are indistinguishable, and the memberwise path skips the encode/decode
 round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-aligned receivers fall through to
 `FromImage` (ST127A's 10→11-leaf MOVE; ST134A's class-view→SD MOVE). Conformance:
@@ -965,7 +962,7 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   (so every pc value agrees), `Main` starts at `EntryParagraphIndex`; a USE handler runs via `Dispatch(declStart,
   declEnd)` from the runtime I/O/error path and returns a `ResumeAction` (§11.2). This is the same `ResumeAction`
   used by RESUME — one mechanism.
-  **IMPLEMENTED (DEVLOG 559) with two refinements:** the handler invocation is the generated `__RunUse(id, start,
+  **IMPLEMENTED with two refinements:** the handler invocation is the generated `__RunUse(id, start,
   handlerEnd)` (a GR2 re-entrancy-guarded bounded `__Dispatch`) called from the generated `__IoCheck` selector
   emitted after every FILE STATUS store — selection is COMPILE-TIME knowledge (the program's USE set), so there is
   no runtime registry for local dispatch and the return is VOID (continue after the failing statement, GR7b; the
@@ -974,8 +971,8 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   `HandlerEndPc` at the exit paragraph (the SQ212A golden's shape; ISO leaves fatal-path behavior implementor-
   specific, §14.6.3); (b) a successful CLOSE resets the connector's open-mode view to none (§9.1.4) — a failed
   OPEN records the ATTEMPTED mode for GR6b "being opened" scoping. **Cross-program GLOBAL dispatch (GR4b) is
-  IMPLEMENTED (Phase 1F, IC233A/IC234A)** as a compile-time `__outer` instance-chain walk — no runtime registry
-  (the §5.6 registry sketch predates the instance-chain emission; ONE pattern): `__IoCheck`'s fallthrough (no
+  IMPLEMENTED (IC233A/IC234A)** as a compile-time `__outer` instance-chain walk — no runtime registry
+  (local dispatch uses no runtime registry; ONE pattern): `__IoCheck`'s fallthrough (no
   local match, GR4a) calls `__outer.__RunGlobalUse(fileKey)`, which examines that container's `USE … GLOBAL`
   declaratives (file scope before mode scope, GR5), on a match runs the handler via its own `__RunUse` — in the
   DECLARING program's instance, its data (§8.4.6.2) — else forwards to ITS `__outer` ("repeated with the next
@@ -983,7 +980,7 @@ round trip (the locked NC107A shape: `MOVE U5 TO U9`, `IF U22 > U12`). Non-align
   declaratives still emits `__IoCheck` + hooks when an ancestor has GLOBAL ones. The §12.4.5.8.4 GR1 NOTE-1
   corollary is implemented with it: a contained program's I-O on an inherited GLOBAL file stores the I-O status
   into the OWNER's (local-name) FILE STATUS item through the `__outer` chain
-  (`CSharpEmitter.Call.cs::_callInheritedStatusPlace`).
+  (`EmitterState.InheritedStatusPlace`).
 - **EXIT family is pure pc moves** (§5.2): EXIT PARAGRAPH/SECTION set pc; EXIT PERFORM/CYCLE map to break/continue in
   the inline-PERFORM loop; bare EXIT/CONTINUE are no-ops. They never touch the termination exceptions.
 
@@ -1079,7 +1076,7 @@ until G8 — keeping the legacy build in the test graph for the duration is an o
 7. **Managed-pointer naming.** Confirm the carrier may be the typed-native `ManagedRef<T>` (NOT the legacy
    `(byte[],offset,length)` `ManagedPointer`). Keep the PUBLIC name `ManagedPointer` over the typed carrier (the
    owner's prior choice), or rename to `ManagedRef`? The `feedback_managed_pointers` memory text still describes the
-   byte form (the abandoned byte-substrate era, pre-DEVLOG 457).
+   byte form (the abandoned byte-substrate era).
 
 8. **Multiple class inheritance (OO).** v1 restricts to single inheritance (sufficient for the whole corpus) and
    rejects 2+ `INHERITS FROM` bases loudly. When a multi-base program appears: (a) linearize to one C# base + extract
@@ -1124,10 +1121,10 @@ until G8 — keeping the legacy build in the test graph for the duration is an o
 Threads the existing G1–G8 spine; each step ends at a checkpoint testable against the differential harness (§2). The
 cross-design prerequisites the subsystem designs flagged are surfaced inline.
 
-**STATUS (2026-06-10, DEVLOG 520+):** G0 ✅ · G1 ✅ · G2 ✅ · G3-core ✅ · G4 ✅ · G5 sequential file I/O ✅
-(sequential file I/O done; SET/index machinery + sections landed; relative/indexed/SORT pending) · G6-core ✅
-(REDEFINES Tier A+B, AsImage, ON SIZE ERROR, PICTURE P). 33 NC programs byte-match the golden; 348 conformance + 15
-unit tests green; default `--std` = COBOL-2023.
+**STATUS:** G0 ✅ · G1 ✅ · G2 ✅ · G3 ✅ · G4 ✅ · G5 ✅ (files / interprogram / SORT) · G6 ✅
+(REDEFINES/RENAMES 4-tier, AsImage, ON SIZE ERROR, PICTURE P). G7 (per-edition correctness) is IN PROGRESS; G8
+(cut-over) pending. The rearchitecture roadmap (`docs/COBOLNET_REARCHITECTURE_PLAN.md`) is the go-forward plan and
+carries the live resume point (via `resume-prompt.md`); default `--std` = COBOL-2023.
 
 ### G1 — Bootstrap ✅ (done)
 HELLO end-to-end (preprocess→parse→emit C#→Roslyn→run); DISPLAY of literals; STOP RUN.
@@ -1144,7 +1141,7 @@ HELLO end-to-end (preprocess→parse→emit C#→Roslyn→run); DISPLAY of liter
   + INDEXED-BY index-names; add the deferred-resolution pass for REDEFINES/RENAMES/DEPENDING-ON targets.
 - **`NumProfile` gains `SignKind`** (§6.4) and `CobolNum` gains `FormatDisplaySigned`/`ParseDisplay` — needed by
   DISPLAY of signed items AND by §4 numeric views.
-- Emit nested `record struct` types + composed VALUE initializers + arrays (replace DEVLOG 458's flatten-to-leaves
+- Emit nested `record struct` types + composed VALUE initializers + arrays (replacing the flatten-to-leaves
   stopgap). **Correct the architecture-doc §3 `decimal` rows** (§3.1) in this same change set.
 **Checkpoint:** a program with groups/tables/signed-DISPLAY/88s binds and DISPLAYs its data byte-identically to the
 legacy (a slice of NC).
@@ -1165,7 +1162,7 @@ legacy (a slice of NC).
   GOBACK is never miscompiled.
 **Checkpoint:** the GO TO/ALTER/PERFORM-THRU/inverted-range NIST programs (NC102A, NC208A, etc.) green.
 
-### G5 — Drive the NIST corpus to green (NC → SM/IC/IF → SQ/RL/IX/ST) ✅ COMPLETE (DEVLOG 575, 2026-06-11)
+### G5 — Drive the NIST corpus to green (NC → SM/IC/IF → SQ/RL/IX/ST) ✅ COMPLETE
 - Files subsystem (§8): `FileConnector`/`IRecordCodec`/`CobolKey`; sequential → relative → indexed; FILE STATUS,
   AT END/INVALID KEY, USE declaratives (dispatched via §14.5); SORT/MERGE.
 - Interprogram (§9): the opaque ABI + typed fast path; LINKAGE/USING/RETURNING; CALL/CANCEL; EXTERNAL/GLOBAL/COMMON;
@@ -1177,7 +1174,7 @@ golden-less by NIST design). Includes the intrinsic catalog (§12.1), COPY/SM, L
 (`COBOLNET_REPORT_WRITER_DESIGN.md`). Goldens that fossilized verified legacy holes were re-baselined to the
 ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` carries the list + citations).
 
-### G6 — Deferred data cases (the byte-boundary islands) ✅ COMPLETE (DEVLOG 572/563)
+### G6 — Deferred data cases (the byte-boundary islands) ✅ COMPLETE
 - REDEFINES/RENAMES 4-tier model (§4) — Tiers A/B (no bytes) first; Tier C resolved as the ZONED DIGIT-IMAGE
   codec (§4.2 — no `RedefCodec` byte plan needed; ISO §13.18.60 GR4 implementor latitude; Q1 thereby settled:
   the island narrowed to float/COMP-5 puns, which stay loud).
@@ -1195,7 +1192,7 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 > edition-change checklist) and validated by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md` — test
 > the compiler as N per-edition compilers; Phase 0 done). NIST-85 is the 85 positive corpus; the negative
 > (rejected-construct) corpus is NEW.
-> ✔ Reconciled (ALTER family, DEVLOG 543): ALTER + the target-less GO TO are 85-only — REJECTED at
+> ✔ Reconciled (ALTER family): ALTER + the target-less GO TO are 85-only — REJECTED at
 > `--std 2002|2014|2023` as deleted elements (COBOLNET0810/0811, matching the ISO history and the legacy
 > CBL3601/3605); §18 #10 and the control-flow deep-dive edition table updated in the same change set.
 
@@ -1204,13 +1201,13 @@ ISO-conforming output under the `LEGACY_DIVERGENT` protocol (`scripts/guard.sh` 
 - Full intrinsic catalog (§12.1); EC exception model (§11: `>>TURN`, RAISE/RESUME, USE…EXCEPTION, PERFORM…WHEN);
   national/boolean; UDF; per the `docs/ISO2023_CONFORMANCE_PLAN.md` §3 catalog. Resolve **Q5** scope for SCREEN/RW/
   JSON-XML.
-> ✔ **G7 execution detail is now `docs/COMPLETION_ROADMAP_COUNCIL.md` (RATIFIED 2026-07-03, DEVLOG 581;
-> ISO-VALIDATED against the spec DEVLOG 582 — 0 refuted claims; its Appendix carries the audit + the
-> DEVLOG-582 amendments: boolean operations, `&`-concatenation, CONSTANT entries, DYNAMIC-LENGTH items,
+> ✔ **G7 execution detail is now `docs/COMPLETION_ROADMAP_COUNCIL.md` (RATIFIED 2026-07-03;
+> ISO-VALIDATED against the spec — 0 refuted claims; its Appendix carries the audit + the
+> amendments: boolean operations, `&`-concatenation, CONSTANT entries, DYNAMIC-LENGTH items,
 > the §4.2.16 full conformance-documentation set, >>PROPAGATE re-editioned ≤2014)** —
 > Phases 0–8 with exit criteria. Ratified amendments to THIS section: **JSON/XML is removed from the ISO
 > catalog** (zero hits in the 2023 spec — re-tagged vendor-dialect, deferred post-G8; the Q5 JSON-XML leg is
-> thereby resolved, SCREEN = documented non-support per the A.4 line, RW stays as-built); a behavioral leg at
+> thereby resolved, SCREEN = documented non-support per the A.4 line, RW stays as implemented); a behavioral leg at
 > `--std 2023` (318-golden re-run) attaches to the validator's permissive flip and INV-1-strong at the default
 > edition joins the G7 exit criteria; new named workstreams (W1.5 gate-diagnostic upgrades, the silent-misbind
 > loud-guard sweep, the 43-row intrinsics backlog, the ~44 VCR Table-1/5 behavior-row wave, discovery runners,
@@ -1502,10 +1499,10 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     promote to BY CONTENT (lenient default), diagnosable under a strict dialect.
 12. **Pointer carrier.** A typed `ManagedRef<T>` (managed reference; NOT the abandoned `byte[]`+offset+length form);
     keep the public name **`ManagedPointer`** (owner preference). The `feedback_managed_pointers` memory note
-    describes the abandoned byte form (pre-DEVLOG-457) and is updated.
+    describes the abandoned byte form (pre-rewrite) and is updated.
 13. **Boundary codec.** `System.Text.Encoding.Latin1` (lossless 8-bit) is the ONE shared boundary codepage constant
     — used by file serialization, REDEFINES Tier C, and the whole-group image. Settled once in `CobolNet.Runtime`.
-14. **Figurative HIGH/LOW-VALUE + collating (SHIPPED, DEVLOG 546).** No PCS ⇒ alphanumeric `HIGH-VALUE`=U+00FF /
+14. **Figurative HIGH/LOW-VALUE + collating.** No PCS ⇒ alphanumeric `HIGH-VALUE`=U+00FF /
     `LOW-VALUE`=U+0000 (national U+FFFF / U+0000). With a PROGRAM COLLATING SEQUENCE they are the sequence's
     EXTREME characters (ISO §8.3.3.6 GR6/7 + §12.3.7 GR8/9 — character identity, ties: highest→last-specified,
     lowest→first-specified). The custom-`ALPHABET` subsystem is LIVE: `CollatingTable` (256-entry position table,
@@ -1528,7 +1525,7 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
 21. **Whole-group-as-alphanumeric.** A generated `string AsImage()` / `FromImage()` per record struct is the
     PERMANENT typed-native mechanism for whole-group MOVE/compare of **DISPLAY-homogeneous** groups; a group with a
     COMP/COMP-3/COMP-5/float (non-character) leaf is the genuine mixed-USAGE byte-island routed to the Tier-C/file
-    codec (#1). **Numeric-DISPLAY leaves are INCLUDED in the AsImage path (DEVLOG 490, spec-grounded):** ISO §14.9
+    codec (#1). **Numeric-DISPLAY leaves are INCLUDED in the AsImage path (spec-grounded):** ISO §14.9
     MOVE GR4 fills a group with no conversion (a numeric-DISPLAY subordinate may legitimately hold spaces — using it
     numerically is then incompatible data, §14.6.13.2), so a numeric-DISPLAY leaf *under a whole-referenced group* is
     stored as its character image (`DataItem.StoreAsImage`; numeric use via `CobolNum.ParseDisplay`/`FormatDisplay`) —

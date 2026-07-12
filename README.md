@@ -1,7 +1,8 @@
 # CobolSharp
 
-A COBOL-85 compiler targeting .NET, built from the ISO/IEC 1989:1985 specification.
-Compiles standard COBOL source to .NET assemblies via CIL emission.
+COBOL.NET — a COBOL compiler targeting .NET, built from the ISO/IEC 1989:2023 specification
+with correct support for all prior editions (1985, 2002, 2014). It translates standard COBOL
+source to idiomatic, typed-native C#, which Roslyn compiles into a .NET assembly.
 
 ## Quick Start
 
@@ -11,8 +12,8 @@ git clone https://github.com/BrentRector/CobolSharp.git
 cd CobolSharp
 dotnet build
 
-# Compile a COBOL program
-dotnet run --project src/CobolSharp.CLI -- compile hello.cob -o hello.dll
+# Compile a COBOL program (the source is a positional argument; the produced exe is `cobol`)
+dotnet run --project src/Cobol.Net.Cli -- hello.cob -o hello.dll
 
 # Run the compiled program
 dotnet hello.dll
@@ -20,10 +21,10 @@ dotnet hello.dll
 
 ## Current Status
 
-- **216 unit tests**, **183 integration tests** passing
-- **60 NIST CCVS85 Nucleus tests** at 100% (of 95 total programs)
-- COBOL-85 Nucleus module substantially complete
-- Active development targeting remaining NIST compliance gaps
+- **3166 conformance tests**, **281 unit tests**, **33 characterization tests** passing
+- Differential legacy-oracle guard: **353 NIST programs MATCH** byte-for-byte
+- COBOL-85 corpus complete; full ISO-2023 plus per-edition (1985/2002/2014) conformance is the standing mission
+- Clean-architecture rearchitecture in progress (a selectable Roslyn / direct-CIL backend over one bound tree)
 
 ## Implemented Features
 
@@ -56,20 +57,21 @@ dotnet hello.dll
 - ~70 functions: math (SQRT, LOG, MOD, FACTORIAL, etc.), string (LENGTH, REVERSE, UPPER-CASE, LOWER-CASE, TRIM, etc.), date/time (CURRENT-DATE, INTEGER-OF-DATE, etc.), financial (ANNUITY, PRESENT-VALUE), aggregates (MAX, MIN, SUM, MEAN, etc.)
 
 ### Compiler Infrastructure
-- **Parser**: ANTLR4 lexer + parser with grammar split across 7 imported fragments
-- **SUBSCRIPT lexer mode**: dedicated ANTLR4 mode preserving sign adjacency for spec-true COBOL-85 subscript parsing (&#167;5.3)
+- **Parser**: ANTLR4 lexer + parser with a modular grammar split across 9 imported per-subsystem fragments (data, expressions, control flow, I/O, OO, report writer, screen, special-names, words) over a dedicated lexer
+- **SUBSCRIPT lexer mode**: dedicated ANTLR4 mode preserving sign adjacency for spec-true subscript parsing (&#167;5.3)
 - **Preprocessor**: reference-format normalization, COPY with REPLACING, REPLACE, NIST test fixups
-- **Semantic analysis**: symbol table, type system, storage layout computation, category compatibility
-- **Bound tree**: typed expression tree with abbreviated condition expansion
-- **IR**: basic block SSA-style intermediate representation
-- **CIL emission**: Mono.Cecil-based .NET assembly generation
-- **Diagnostics**: 175+ diagnostic descriptors (COBOL0001-COBOL0600, CBL0601-CBL3606) with file/line/column positions
-- **Validation**: flow-sensitive file state analysis (CBL0702), FILE STATUS checking (CBL3206), 7 wired semantic validators
-- **Runtime**: byte-array storage model with PIC-driven encode/decode, decimal arithmetic, sequential + indexed file handlers
+- **Binder**: scope-aware symbol table, type system, storage-form and record-layout computation, category compatibility
+- **Bound tree**: typed expression/statement tree with abbreviated condition expansion, walked by a source-generated exhaustive visitor (no lowered IR)
+- **C# emission**: the bound tree is rendered to idiomatic, typed-native C# source and compiled by Roslyn (the primary backend); a direct-CIL backend is a future phase
+- **Edition conformance**: a two-arm version-conformance pass gates each construct against the targeted ISO edition
+- **Diagnostics**: descriptor-based diagnostics with file/line/column positions
+- **Validation**: flow-sensitive file-state analysis, FILE STATUS checking, and wired semantic validators
+- **Runtime**: typed-native runtime library — native scaled-integer numerics, strings, tables, and sequential/indexed/relative file handlers (no byte-array State)
 
 ### Version Targeting
-- **COBOL-85**: full support (primary target)
-- **COBOL-2002**: ALTER statement produces error (removed from standard); BY VALUE parameters accepted
+- **Editions**: full support for COBOL-85, COBOL-2002, COBOL-2014, and COBOL-2023, selected with `--std 85|2002|2014|2023`
+- **Default**: COBOL-2023 (or COBOL-85 under `--nist`)
+- **Edition gating**: a construct the targeted edition removed (e.g. ALTER) is rejected; `--permissive` downgrades such rejections to warnings for migration
 
 ## Architecture
 
@@ -77,12 +79,12 @@ dotnet hello.dll
 COBOL Source
   -> Preprocessor (reference-format, COPY/REPLACE, NIST fixups)
   -> Lexer (ANTLR4, with SUBSCRIPT mode for data-name parentheses)
-  -> Parser (ANTLR4, 7 imported grammar fragments)
-  -> Semantic Analysis (symbol table, type resolution, storage layout)
-  -> Bound Tree (expression binding, abbreviated condition expansion)
-  -> IR Lowering (basic blocks, SSA values, control flow)
-  -> CIL Emission (Mono.Cecil -> .NET assembly)
-  -> Runtime (CobolProgram base, byte[] storage, PicRuntime, file handlers)
+  -> Parser (ANTLR4, 9 imported grammar fragments)
+  -> Binder (symbol table, type resolution, storage-form + record layout)
+  -> Bound Tree (expression/statement binding, abbreviated condition expansion)
+  -> C# Emission (idiomatic, typed-native C# source)
+  -> Roslyn (-> .NET assembly)
+  -> Runtime (typed-native numerics, strings, tables, file handlers)
 ```
 
 ### Solution Structure
@@ -90,15 +92,21 @@ COBOL Source
 ```
 CobolSharp.sln
   src/
-    CobolSharp.CLI/              Command-line driver
-    CobolSharp.Compiler/         All compiler phases (lexer through emitter)
-    CobolSharp.Runtime/          Runtime library linked into compiled programs
+    Cobol.Net.Cli/                    Command-line driver (produces the `cobol` executable)
+    Cobol.Net.Frontend/               Preprocessor + ANTLR4 grammar, lexer, and parser
+    Cobol.Net.Compiler/               Binder, bound tree, C# emitter, Roslyn backend
+    Cobol.Net.Compiler.SourceGen/     Roslyn source generator (exhaustive bound-tree visitor)
+    Cobol.Net.Editions/               Per-edition construct registry + version-conformance gating
+    Cobol.Net.Runtime/                Typed-native runtime library linked into compiled programs
+    CobolSharp.CLI/, .Compiler/, .Runtime/  Legacy byte-engine compiler, retained only as a differential oracle (until the G8 cut-over)
   tests/
-    CobolSharp.Tests.Unit/       216 unit tests
-    CobolSharp.Tests.Integration/ 184 integration tests (183 pass, 1 skip)
-    nist/                        NIST CCVS85 test programs + expected output
+    Cobol.Net.Tests.Unit/             281 unit tests
+    Cobol.Net.Tests.Conformance/      3166 conformance tests
+    Cobol.Net.Tests.Characterization/ 33 byte-exact snapshot tests
+    nist/                             NIST CCVS test programs + expected output
   scripts/
-    guard.sh                     Regression gate (unit + integration + 60 NIST)
+    guard.sh                          Full regression gate
+    guard-fast.sh                     Parallel fast regression gate
 ```
 
 ## Building
@@ -107,7 +115,7 @@ Requires .NET 10.0 SDK and Java (for ANTLR4 parser generation).
 
 ```bash
 dotnet build                    # Build all projects
-dotnet test                     # Run unit + integration tests
+dotnet test                     # Run unit + conformance + characterization tests
 bash scripts/guard.sh           # Full regression gate including NIST
 ```
 
@@ -115,11 +123,8 @@ After `dotnet clean`, the build automatically regenerates ANTLR4 parser files fr
 
 ## Known Gaps
 
-- **SORT/MERGE**: parsed but not lowered to IR
-- **Report Writer**: parsed but not implemented
-- **Collating sequence**: ALPHABET clause parsed but not applied to runtime comparisons
-- **OCCURS DEPENDING ON**: parsed and stored but runtime truncation not enforced
-- **Recursive CALL**: not supported (COBOL-85 does not require it)
+- **Direct-CIL backend**: the Roslyn C#-source backend is the sole implemented backend; a selectable direct-CIL (Mono.Cecil) backend is a planned future phase
+- **Rearchitecture in progress**: a clean-architecture refactor is underway — a fully structural `Place` lvalue model and a complete FUNCTION-argument grammar are the current work items
 
 ## License
 

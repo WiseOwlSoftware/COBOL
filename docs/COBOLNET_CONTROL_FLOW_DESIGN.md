@@ -4,7 +4,7 @@
 > typed-native C# via Roslyn; no byte substrate). The condensed cross-referenced view is
 > `docs/COBOLNET_DESIGN.md` §5; THIS is the full design (decisions + rationale + C# mapping + hard
 > problems + edge cases). The locked invariants and cross-cutting consistency live in the SSOT.
-> **IMPLEMENTED** (G4, DEVLOG 485) as `__Dispatch` in `src/Cobol.Net.Compiler/CodeGen/CSharpEmitter.cs` — emitted names
+> **IMPLEMENTED** as `__Dispatch` in `src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs` — emitted names
 > are `__`-prefixed (`__Dispatch`/`__pc`/`__startPc`/`__exitPc`/`__atExit`/`__N`) to avoid collision with translated
 > COBOL names; this doc's unprefixed `Dispatch`/`pc` sketches denote the same shapes.
 
@@ -29,7 +29,7 @@ markers) — never pre-rendered C#-specific fragments (SSOT §18 #23).
 
 **Rationale.** Owner-LOCKED: 'paragraphs/sections are LABELS (PC cases) in one flow, NOT separate methods. GO TO sets the PC; fall-through is PC++; PERFORM range is a recursive bounded dispatch.' The legacy semantics (return-address model, exit-bounded Dispatch) are proven (364 NIST) and port directly; only the realization changes from CIL-with-method-per-paragraph to one C# switch. The exit-bounded full switch handles arbitrary GO TO and inverted THRU ranges by construction (follow pc, not physical extent).
 
-**Rejected alternatives.** (1) Paragraph-per-method + a dispatcher that CALLS them returning next-pc (the legacy CIL realization, CilEmitter.EmitDispatchHelper, and the pre-G4 entry-463 sequential-call-chain stopgap, retired by the G4 PC dispatcher at DEVLOG 485) — rejected: owner locked NOT-separate-methods; and the call-chain cannot express GO TO out of a range, ALTER, or VARYING. (2) Structured-only reconstruction (relooper/Stackifier producing pure if/while/goto-free C#) — rejected for v1: arbitrary COBOL GO TO/ALTER is irreducible; task says correctness over prettiness for irregular flow. Recorded as a deferred open question (well-behaved paragraph → real C# method).
+**Rejected alternatives.** (1) Paragraph-per-method + a dispatcher that CALLS them returning next-pc (the legacy CIL realization, CilEmitter.EmitDispatchHelper, and a sequential-call-chain approach) — rejected: owner locked NOT-separate-methods; and the call-chain cannot express GO TO out of a range, ALTER, or VARYING. (2) Structured-only reconstruction (relooper/Stackifier producing pure if/while/goto-free C#) — rejected for v1: arbitrary COBOL GO TO/ALTER is irreducible; task says correctness over prettiness for irregular flow. Recorded as a deferred open question (well-behaved paragraph → real C# method).
 
 ### D2. Sequential fall-through emits `pc = i+1; break;` as the LAST statement of each non-terminating case; a paragraph that ends by reaching the next paragraph just advances the PC.
 
@@ -53,7 +53,7 @@ markers) — never pre-rendered C#-specific fragments (SSOT §18 #23).
 
 **Rationale.** ISO §14.9.28: PERFORM transfers control to a procedure and returns implicitly when it completes. Recursive Dispatch with exitPc=idxQ is the legacy's proven mechanism (EmitPerformThru → Dispatch(start,end)): it follows control flow ANYWHERE within/leaving/re-entering the range and returns only when paragraph idxQ falls through (pc becomes idxQ+1) — handling inverted ranges (idxQ<idxP) and GO-TO-out for free. Recursion (a real C# call stack) gives correct nesting of overlapping/recursive PERFORM ranges automatically.
 
-**Rejected alternatives.** Inlining the THRU range's paragraph bodies into the call site (the pre-G4 stopgap formerly in CSharpEmitter.EmitPerform, retired at DEVLOG 485) — rejected: cannot express a GO TO that leaves and re-enters the range, breaks on inverted ranges, and duplicates code. A return-address stack data structure managed by hand — rejected: the C# call stack already IS the return-address stack; recursion is simpler and re-entrant.
+**Rejected alternatives.** Inlining the THRU range's paragraph bodies into the call site — rejected: cannot express a GO TO that leaves and re-enters the range, breaks on inverted ranges, and duplicates code. A return-address stack data structure managed by hand — rejected: the C# call stack already IS the return-address stack; recursion is simpler and re-entrant.
 
 ### D6. Inline PERFORM (... END-PERFORM, no procedure-name) → REAL idiomatic C# loop INSIDE the case, never a Dispatch call: PERFORM TIMES→`for`, PERFORM UNTIL TEST BEFORE→`while(!(cond))`, TEST AFTER→`do{...}while(!(cond))`, PERFORM VARYING→`for`-style with COBOL FROM/BY/UNTIL, PERFORM (once)→`do{...}while(false)`. EXIT PERFORM→`break;`, EXIT PERFORM CYCLE→`continue;` (for VARYING/UNTIL-with-increment, continue must hit the increment — emit via a labeled-continue or a do/while-with-increment-at-bottom).
 
@@ -81,7 +81,7 @@ markers) — never pre-rendered C#-specific fragments (SSOT §18 #23).
 
 ### D10. DECLARATIVES + USE procedures: declarative sections occupy PC indices [0..declEnd); `EntryParagraphIndex` = first NON-declarative paragraph, so normal flow starts AFTER declaratives (the main Dispatch call uses startPc=EntryParagraphIndex, exitPc=-1). A USE procedure is invoked from the runtime I/O/error path as its own `Dispatch(useStart, useEnd)` call, then control returns to the statement after the triggering I/O (ISO §14.3, §14.6.13).
 
-**Rationale.** Port of legacy ir.EntryParagraphIndex (CilEmitter.EmitEntryMethodBody:723) which skips the declaratives region, and the GlobalUse declarative dispatch (CilEmitter EmitDispatchGlobalUse). Declaratives must never run by fall-through, only by event. Sketched now; full USE-from-runtime wiring is G5/G7 but the PC layout (declaratives first, EntryParagraphIndex marker) must be designed in from the start so it is not a retrofit.
+**Rationale.** Port of legacy ir.EntryParagraphIndex (CilEmitter.EmitEntryMethodBody:723) which skips the declaratives region, and the GlobalUse declarative dispatch (CilEmitter EmitDispatchGlobalUse). Declaratives must never run by fall-through, only by event. The USE-from-runtime wiring is realized by the emitted `__RunUse`/`__IoCheck` machinery (DispatchEmitter.EmitUseMachinery); the PC layout (declaratives first, EntryParagraphIndex marker) is fundamental — designed in from the start so it is not a retrofit.
 
 **Rejected alternatives.** Emitting declaratives as a separate dispatch space/method — viable but inconsistent with the single-Dispatch model; keeping them as low PC indices reuses the one switch and one set of paragraph labels.
 
@@ -222,7 +222,7 @@ Forward C# goto to a `__sent_<n>` label emitted at each sentence boundary within
 
 ### DECLARATIVES must never execute by fall-through; only via the runtime error/I-O event path.
 
-Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagraphIndex = first non-declarative paragraph so the main Dispatch(start=EntryParagraphIndex) skips them. A USE procedure runs as its own Dispatch(useStart,useEnd) invoked from the runtime I/O path, returning to the statement after the triggering operation. Designed in now (PC layout) even though full USE wiring is G5/G7.
+Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagraphIndex = first non-declarative paragraph so the main Dispatch(start=EntryParagraphIndex) skips them. A USE procedure runs as its own Dispatch(useStart,useEnd) invoked from the runtime I/O path, returning to the statement after the triggering operation. The PC layout (declaratives first) is designed in from the start; the USE wiring is realized by the emitted `__RunUse`/`__IoCheck` machinery.
 
 ## Edge cases
 

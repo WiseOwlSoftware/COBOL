@@ -4,13 +4,13 @@
 > model, numeric, control-flow PC-dispatcher, REDEFINES, strings, files, interprogram, OO, conditions/exceptions,
 > intrinsics, project reorg/rename, no-god-class structure, C# 14 usage, the §18 settled decisions, and the G0–G8
 > build order). This file remains the brief overview; where it conflicts, `COBOLNET_DESIGN.md` wins — notably the
-> §3 numeric table below, corrected to native `long`/`Int128`-unscaled (NO `decimal`).
+> §3 numeric table below, which uses native `long`/`Int128`-unscaled (NO `decimal`).
 
 > **Status: LIVE — brief overview (companion to the SSOT `docs/COBOLNET_DESIGN.md`).** The overview of the blank-slate rewrite
 > directed by the owner on 2026-06-08: *"Move entirely to .NET representations for COBOL objects … totally
 > rewrite it … the best possible COBOL to .NET implementation."* It supersedes the byte-substrate compiler in
 > `src/CobolSharp.Compiler` (the *legacy* engine, kept only as a differential oracle until cut-over, task G8) and the
-> pre-PIVOT byte-engine "data-model migration" plan (those docs were deleted 2026-06-09, DEVLOG 523 — the greenfield is
+> pre-PIVOT byte-engine "data-model migration" plan (the greenfield is
 > born typed-native, no migration). See memory `feedback_complete_dotnet_migration_no_byte`.
 
 ## 1. North Star
@@ -42,8 +42,8 @@ rewrite anything necessary.
 
 ```
 source.cob
-  → Front-end (src/Cobol.Net.Frontend — the greenfield front-end project, extracted at G0; entry type
-        CobolNet.Frontend.Frontend; internal namespaces remain CobolSharp.Compiler.* until the G8 namespace big-bang):
+  → Front-end (src/Cobol.Net.Frontend — the greenfield front-end project; entry type
+        CobolNet.Frontend.Frontend; internal namespaces are CobolNet.Frontend.*):
         Preprocess (reference-format, >>directives, COPY, NIST placeholders) → Lex → Parse → parse tree
   → Bind: typed semantic model — every data item gets a .NET type (no byte offsets)        [task G2]
   → Render: the selected ICodeGenBackend (--backend roslyn|cil) renders the backend-NEUTRAL bound tree —
@@ -55,8 +55,8 @@ Runtime: CobolNet.Runtime — CobolNum (numeric), CobolString (character), Manag
 ```
 
 **Reuse line (deliberate, audited):** only the ANTLR grammar + lexer/parser/preprocessor (a declarative,
-ISO-derived *spec* artifact) and the clean typed runtime substrates were carried over — now owned by the greenfield
-`src/Cobol.Net.Frontend` / `src/Cobol.Net.Runtime` projects (G0). Nothing from the legacy byte
+ISO-derived *spec* artifact) and the clean typed runtime substrates were carried over — owned by the greenfield
+`src/Cobol.Net.Frontend` / `src/Cobol.Net.Runtime` projects. Nothing from the legacy byte
 engine — `ProgramState`, `StorageHelpers`, `StorageLayoutComputer`, `PicRuntime`'s byte-window APIs, the byte
 `IrLocation`/emit spine — is used. The conformance corpus (`tests/nist/`, `tests/conformance/`) and
 `specs/ISO_COBOL.md` are the target + oracle.
@@ -80,7 +80,7 @@ Numeric correctness backbone: PIC metadata (digits / scale / sign / usage) is th
 operation, which applies COBOL truncation, the eight `ROUNDED` modes, and `ON SIZE ERROR` on native
 native `long`/`Int128` unscaled values. (`CobolNum`/`CobolString` are oracle-verified against the legacy codec.)
 
-**Deferred unbounded cases** (task G6 — designed to need no persistent byte State): `REDEFINES`/`RENAMES`
+**Unbounded cases** (designed to need no persistent byte State): `REDEFINES`/`RENAMES`
 storage overlay, whole-group-as-alphanumeric (materialize struct → fresh scratch at the byte-API boundary), and
 file-record serialization (typed record ↔ bytes only on the external medium).
 
@@ -88,7 +88,7 @@ file-record serialization (typed record ↔ bytes only on the external medium).
 
 The make-or-break design. COBOL control flow (`PERFORM`/`PERFORM THRU`/`VARYING`/`TIMES`/`UNTIL`, `GO TO`,
 `ALTER`, paragraph/section fall-through, `GOBACK`/`STOP RUN`, DECLARATIVES) is **ported from the legacy
-compiler's proven PC/dispatch design** (DEVLOG 259–260: return-address `PERFORM…THRU`, symbol-based control
+compiler's proven PC/dispatch design** (return-address `PERFORM…THRU`, symbol-based control
 transfer, exit-bounded `Dispatch(entry,last)`, DECLARATIVES handling) — a design that is *orthogonal* to the byte
 data model. Paragraphs/sections become labeled regions driven by a program-counter loop (C# `goto`/labels handle
 arbitrary transfers); `PERFORM` ranges use the exit-bounded dispatch. **Correctness over idiomatic for v1**:
@@ -98,7 +98,7 @@ subsets. (Task G4.)
 ## 5. Project layout
 
 - `src/Cobol.Net.Frontend/` — preprocessor + ANTLR lexer/parser + parse tree + diagnostics (entry type
-  `CobolNet.Frontend.Frontend`; internal namespaces remain `CobolSharp.Compiler.*` until the G8 namespace big-bang).
+  `CobolNet.Frontend.Frontend`; internal namespaces are `CobolNet.Frontend.*`).
 - `src/Cobol.Net.Compiler/` — bind → bound tree → `CodeGen/` (`CSharpEmitter`, `CodeWriter`, `RoslynBackend`) behind
   `ICodeGenBackend`.
 - `src/Cobol.Net.Runtime/` — the runtime the generated C# calls (`CobolNum`, string ops, file connectors).
@@ -114,18 +114,19 @@ subsets. (Task G4.)
 - **G2 ✅** Data division → typed C# (elementary fields, groups→record struct, tables→arrays; VALUE init).
 - **G3 ✅ (core)** Core verbs (`MOVE`, arithmetic, `IF`/`EVALUATE`, `DISPLAY`/`ACCEPT`, `PERFORM` inline) on typed values.
 - **G4 ✅** Control-flow engine (port the PC/dispatch design) — `PERFORM THRU`, `GO TO`, `ALTER`, fall-through.
-- **G5 ✅ (DEVLOG 575, 2026-06-11)** The NIST corpus drive is COMPLETE: every golden-bearing program locked
+- **G5 ✅** The NIST corpus drive is COMPLETE: every golden-bearing program locked
   byte-exact (318 across NC/ST/RL/IX/IC/SQ/IF/SM/RW/OBSQ — incl. the full §15 intrinsic catalog, COPY/SM,
   LINAGE, Report Writer, EXTERNAL/GLOBAL FDs, cross-assembly CALL); final census 357/403 GREEN, zero diffs.
 - **G6 ✅** Deferred data cases: the full `REDEFINES`/`RENAMES` tier model — Tier C resolved as the zoned
   digit-image codec (§13.18.60 GR4); whole-group `AsImage`/`FromImage` incl. fixed-point BINARY/PACKED leaves;
   variable-length records (§13.18.43) end-to-end.
-- **G7 (next, after the §11 EC model)** Post-85 features (OO→.NET classes, UDF, pointers, national/boolean,
+- **G7 (next)** Post-85 features (OO→.NET classes, UDF, pointers, national/boolean,
   JSON/XML, post-85 intrinsics) gated per `--std` — each with BOTH the per-edition spec behavior AND the
   correct rejection diagnostic in every edition that lacks it
   (`docs/VERSION_CHANGE_REFERENCE.md`, `docs/VERSION_TEST_MATRIX_DESIGN.md`).
-- **G8** Cut over: delete the legacy `src/CobolSharp.*` oracle, finish the cosmetic namespace rename, final
-  architecture/doc pass. (Projects already live as `Cobol.Net.*`; the exe is already `cobol`.)
+- **G8** Cut over: delete the legacy `src/CobolSharp.*` oracle, final
+  architecture/doc pass. (Projects already live as `Cobol.Net.*`; internal namespaces are already `CobolNet.*`;
+  the exe is already `cobol`.)
 
 ## 7. Conventions
 

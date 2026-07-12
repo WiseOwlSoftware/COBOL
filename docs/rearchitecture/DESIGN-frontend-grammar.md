@@ -1,6 +1,10 @@
 # DESIGN — Target Frontend & Grammar Architecture
 
-Status: DESIGN (rearchitecture dimension). Owner-review required for the open questions in §8.
+Status: DESIGN — substantially implemented. The dead-grammar/JSON-XML deletions, the single-sourced
+context-sensitive word set, the shared-lowest `Cobol.Net.Editions` registry, and the one `VersionConformancePass`
+edition gate are all in the tree; the §8 questions are resolved as decided. Remaining frontend work: completing the
+`Cst/` typed-façade migration (§3.7, paced by the binder track), the D10 SUBSCRIPT-mode removal (§9, scheduled for
+PHASE 15), and the residual preprocessor namespace / `using Core =` alias cleanup.
 Scope: `src/Cobol.Net.Frontend/**` — the ANTLR lexer/parser grammars (`Grammar/**/*.g4`), the hand-written
 preprocessor (`Preprocessor/`), the parse-stage machinery (`Parsing/`), the diagnostics model
 (`Diagnostics/`), the generated-parser build (`GenerateIfNewer.ps1` + `Invoke-Antlr4CSharp.ps1` + csproj
@@ -46,7 +50,7 @@ consumes).
 
 ## 1. Current problems (grounded in the survey + code)
 
-Evidence is cited to file:line as verified in the AS-BUILT tree.
+Evidence is cited to file:line as verified in the tree.
 
 ### 1.1 Dead and mislabeled grammar files
 Five top-level `.g4` files are **neither generated nor referenced** by any C#, csproj, or build script
@@ -84,7 +88,7 @@ lack already exists and is proven. The fix is to extend that generator, not inve
 When an introduction predicate rejects a too-new construct, ANTLR reports a generic `NoViableAlternative`.
 `Parsing/EditionGateHints.cs` (207 loc, `Recognize`) then **reverse-engineers** which gated construct was
 rejected, via a 29-entry table of `(offending-token, rule-stack, lookahead-window)` signatures
-(`EditionGateHints.cs:35-169`). The signatures were "derived empirically" (its own remark, DEVLOG 594) and
+(`EditionGateHints.cs:35-169`). The signatures were "derived empirically" (its own remark) and
 are inherently brittle: several arms carry dual-path token-adjacency fallbacks because the rule can pop off
 the stack before the error is reported (`:85-88`, `:100-131`). This is a whole subsystem whose only job is
 to recover an identity the gate *had at reject time and threw away*. The dossier reproduced a duplicate
@@ -148,7 +152,7 @@ binder:
 ┌───────────────┴───────────────────────────┐   ┌───────────────┴──────────────┐
 │  Cobol.Net.Frontend                        │   │  Cobol.Net.Compiler          │
 │   Preprocessor/   (ns → CobolNet.Frontend) │   │   Binding/ (via façade only) │
-│   Grammar/        (2 generated units)      │   │   Pipeline/VersionConformance│
+│   Grammar/        (2 generated units)      │   │ Validation/VersionConformance│
 │   Generated/      (ns → CobolNet.Frontend. │──▶│     Pass (sole edition gate) │
 │                    Generated)              │   │   … consumes Cst façade,     │
 │                                            │   │      not raw contexts        │
@@ -273,8 +277,8 @@ are *disambiguation* devices (choosing between two parses that are each legal so
    word there) and to the phrase at ≥2002 (`is2002()` is true; the §8.9 funnel reserves RETRY). Fail-safe: a
    missed real gate degrades to a neutral parse error, never a wrong edition claim.
 2. **The boolean-condition ENTRY — `boolExprAhead()`** (`CobolParserCoreBase.cs:69`), generalized to fire at
-   all editions using operand-adjacency (the highest-scrutiny site: it shares the comparison DFA, DEVLOG
-   621). Legality of the boolean operators themselves is decided by the pass
+   all editions using operand-adjacency (the highest-scrutiny site: it shares the comparison DFA).
+   Legality of the boolean operators themselves is decided by the pass
    (`Check(BooleanOperators2002)`).
 
 No other `is85()/is2002()/is2014()/is2023()` predicate survives in the grammar.
@@ -292,11 +296,15 @@ context-sensitive word with the facts all three consumers need:
 
 `scripts/gen-cobol-words.ps1` (extends the proven `gen-reserved-words.ps1` pattern) generates THREE outputs
 from it:
-1. `Generated/CobolWords.lexerset.g4` — a lexer fragment defining the `_dataNameTokens` HashSet contents,
-   `@include`d into `CobolLexer.g4`'s `@members` (or emitted as a partial-class member — see migration).
-2. `Generated/CobolWords.cobolword.g4` — the `cobolWord` alternative list, imported by `CobolParserCore.g4`.
-3. It cross-checks against `reserved-words.json` so a word that is "user-legal at edition E" in one file and
-   "reserved at E" in the other fails generation (fail-hard, like the existing drift test).
+1. `Parsing/CobolLexerWordSet.g.cs` — a committed `partial class CobolLexer` (NOT under `Generated/`, so
+   `dotnet clean` keeps it) carrying the subscript-trigger set; a partial `.cs` is the minimal buildable form
+   because ANTLR has no portable `@members` text-include and the set references token-type `int` constants on
+   the generated lexer.
+2. `Grammar/Core/CobolWords.g4` — a generated parser fragment holding the `cobolWord` alternative list,
+   imported by `CobolParserCore.g4`.
+3. It cross-checks against `reserved-words.json` (RW-1: a subscript-trigger-only word must be 2023-reserved,
+   with exact reconciliation pins on both asymmetry sides) so the two sources cannot silently disagree; a
+   violation fails generation (fail-hard, like the existing drift test).
 
 A `CobolWordsDriftTests` unit test asserts the generated grammar fragments match the JSON (parallel to the
 existing `ReservedWordsDriftTests`). Result: adding a context-sensitive keyword is a **one-line JSON edit**;
@@ -334,7 +342,7 @@ No change to mode semantics; only the shared-fragment factoring in 3.3b.
 - **Frozen-oracle caveat:** the legacy `CobolSharp.Compiler` differential oracle also parses via this
   frontend. Confirm no legacy test asserts a JSON/XML *parse success*; the dossier states the JSON/XML binder
   path is loud-fail-by-name already, and the version-matrix `json-generate-2014` row exists only to prove the
-  seam — that row is retired with the grammar (recorded as an owner-decision-2 consequence, DEVLOG 581).
+  seam — that row is retired with the grammar.
 
 ### 3.5 Generated-parser build (D7 + D8)
 
@@ -457,11 +465,11 @@ target:
 | delete | `jsonStatement`/`xmlStatement` + arms in `CobolParserCore.g4:716-717` | — | non-ISO, 0 spec hits (hard invariant 6) |
 | create | — | `tests/version-matrix/cobol-words.json` | single declarative source for context-sensitive words (§3.3a) |
 | create | — | `scripts/gen-cobol-words.ps1` | generate lexer HashSet + `cobolWord` + drift-check vs reserved-words.json (§3.3a) |
-| create | — | `Generated/CobolWords.lexerset.g4`, `Generated/CobolWords.cobolword.g4` | generated word-set outputs (§3.3a) |
+| create | — | `Grammar/Core/CobolWords.g4` (parser fragment), `Parsing/CobolLexerWordSet.g.cs` (lexer partial class) | generated word-set outputs (§3.3a) |
 | refactor | `Core/CobolLexer.g4:30-72` `_dataNameTokens` | consume generated word-set | delete the hand-synced HashSet (§3.3a) |
 | refactor | `CobolParserCore.g4:26-73` `cobolWord` | import generated alternative list | delete the hand-synced rule (§3.3a) |
 | refactor | `Core/CobolLexer.g4:726-776` SUBSCRIPT `SUB_*` | shared `fragment` bodies with DEFAULT tokens | one tokenization rule per literal shape (§3.3b) |
-| delete | `Parsing/EditionGateHints.cs` (207 loc; renamed `ReservedWordEditionHints` in the interim) | — | no recogniser exists: identity is carried by the committed-match annotation; gating in the `VersionConformancePass` (§3.2) |
+| delete | `Parsing/EditionGateHints.cs` (207 loc) | — | no recogniser exists: identity is carried by the committed-match annotation; gating in the `VersionConformancePass` (§3.2) |
 | refactor | `Parsing/CobolParserCoreBase.cs` | add the committed-match `Construct(ConstructId)` action + `ConstructIds` side table; keep only the two forward-detects (`retryPhraseAhead()`, `boolExprAhead()`) | constructs name themselves on match; delete signature table + double-sourced dialect (§3.2, §1.5) |
 | refactor | grammar `{isXXXX()}?` edition predicates | dropped — superset parse + `{Construct(ConstructId.X);}` annotation actions | every construct parses at every `--std`; the pass gates (§3.2) |
 | refactor | `Parsing/CobolErrorStrategy.cs:113` | drop the recogniser call; emit structured `Diagnostic`; host the token-keyed vendor JSON/XML→COBOL0313 hint | edition diagnosis moves to the `VersionConformancePass`; keep structure (§3.2, §3.4, §3.8) |
@@ -499,7 +507,7 @@ guard green. This is the hard-invariant-6 close.
 **M3 — build hygiene.** Package name → MSBuild property (performs the `Generated` namespace rename); narrow
 the `Frontend.cs` catch; fix the stale banner + the line-count `throw`→diagnostic. The namespace rename
 touches every `using Core =` consumer — a mechanical, compiler-verified sweep. Verify: clean build on
-Windows AND WSL/Linux (portability is the DEVLOG-554 risk area); battery green.
+Windows AND WSL/Linux (portability is the known risk area); battery green.
 
 **M4 — namespace cleanup (preprocessor + parsing).** Rename the `CobolSharp.Compiler.*` namespaces on the
 already-moved frontend files to `CobolNet.Frontend.*`. Pure rename; compiler-verified. Do M3+M4 together if
@@ -511,15 +519,10 @@ generated fragments into the lexer/parser, delete the hand-maintained HashSet + 
 full parse of the conformance corpus prove byte-identical tokenization. Highest-value dedup; medium risk
 (tokenization changes are wide) — land it alone, guard-fast + full guard.
 
-> **✅ AS-BUILT (PHASE-04 A5, 2026-07-10, DEVLOG 743).** Landed. Two deviations from the sketch above/§3.3a:
-> (1) the lexer subscript-trigger set is emitted as a committed **`Parsing/CobolLexerWordSet.g.cs`** (`partial class
-> CobolLexer`, NOT under `Generated/` so `dotnet clean` keeps it), NOT the proposed `Generated/CobolWords.lexerset.g4`
-> — ANTLR has no portable `@members` text-include and the set references token-type `int` constants on the generated
-> lexer, so a partial `.cs` is the minimal buildable form (rationale in the PHASE-04 doc's Step-A2 design note). The
-> parser `cobolWord` IS a generated imported fragment `Grammar/Core/CobolWords.g4`. (2) The reserved-words cross-check
-> is RW-1 (subscriptTrigger-only word ⇒ 2023-reserved) + exact reconciliation pins on BOTH asymmetry sides, NOT the
-> planned "user-legal at ≥1 edition" predicate (unsound — COLUMN/LENGTH/SCREEN are reserved yet name-slot-admitted).
-> Byte-neutral, `.tokens` byte-identical, full legacy guard 353 MATCH.
+> The word set is single-sourced per §3.3a: `tests/version-matrix/cobol-words.json` → `scripts/gen-cobol-words.ps1`
+> → the `Grammar/Core/CobolWords.g4` parser fragment (the imported `cobolWord`) + the committed
+> `Parsing/CobolLexerWordSet.g.cs` lexer partial (the subscript-trigger set), cross-checked by RW-1 and guarded by
+> `CobolWordsDriftTests`. `.tokens` output is byte-identical to the retired hand-synced sources.
 
 **M6 — `Cobol.Net.Editions` extraction.** (Coordinated with DESIGN-edition-framework.md — that doc owns it; the
 frontend's part is to consume `EditionInfo`/`ConstructRegistry`/`EditionSeverityPolicy` and delete the
@@ -559,7 +562,7 @@ regression bisects to one step.
   Mitigation: the extraction script diffs the two current sources and fails on asymmetry, forcing the owner
   to resolve it as a real spec question before generation; the drift test + full-corpus parse are the net.
 - **R2 (M7, correctness):** dropping a predicate changes the parse space, and the two surviving
-  forward-detects are the delicate sites — `boolExprAhead()` shares the comparison DFA (DEVLOG 621), and
+  forward-detects are the delicate sites — `boolExprAhead()` shares the comparison DFA, and
   `retryPhraseAhead()` must resolve the OPEN name-list collision exactly per §3.2 (a missed real gate must
   degrade to a neutral parse error, never a wrong edition claim). Mitigation: one batch per commit with the
   FULL legacy guard; the version-matrix negative fixtures (every gated construct probed below its edition)
@@ -567,9 +570,9 @@ regression bisects to one step.
   mis-name a construct.
 - **R3 (M2, oracle):** the frozen legacy oracle parses via this frontend; deleting JSON/XML could break a
   legacy test that parsed (even if it loud-failed to bind). Mitigation: grep the legacy + conformance corpus
-  for JSON/XML source before M2; the dossier + DEVLOG 581 indicate the seam was never a passing feature.
+  for JSON/XML source before M2; the dossier indicates the seam was never a passing feature.
 - **R4 (M3, portability):** the package-name property + regen must work identically on Windows and Linux
-  (the DEVLOG-554 flat-output hazard). Mitigation: the existing portable-regen logic is untouched; only the
+  (the flat-output hazard). Mitigation: the existing portable-regen logic is untouched; only the
   `-package` argument value changes; verify on WSL per `reference_wsl_linux_repro.md`.
 - **R5 (M8, scope creep):** the `Cst/` façade could balloon into a second data model. Mitigation: façade
   types are strictly 1:1 with grammar rules and hold the context (no computed/semantic state) — enforced by
@@ -599,7 +602,7 @@ regression bisects to one step.
 ## 8. Open questions for the owner
 
 1. **JSON/XML final disposition (M2).** Confirm hard-delete of the JSON/XML grammar + the `json-generate-2014`
-   version-matrix row now (this design's assumption per hard-invariant 6 + owner-decision-2/DEVLOG 581),
+   version-matrix row now (this design's assumption per hard-invariant 6),
    versus keeping the dead rules quarantined behind a permanent `--enable-vendor-json` flag for a possible
    future vendor-dialect mode. Recommendation: hard-delete; re-add as a real subsystem if ever scoped.
 2. **`Cobol.Net.Editions` assembly boundary (M6).** This design assumes a new lowest assembly both Frontend
@@ -616,22 +619,22 @@ regression bisects to one step.
    forward (it is free and deletes the `using Core =` aliases). Confirm this does not conflict with the
    planned G8 big-bang cut-over of the *legacy* `CobolSharp.Compiler` assembly (they are independent — this
    renames only the frontend's generated code — but the owner tracks G8 holistically).
-5. **SUBSCRIPT-mode elimination — OWNER RULED D10 = FULLY REMOVE (§9 below is the design).** The owner overrode
-   the "defer" default: PHASE-04 must remove the SUBSCRIPT mode + the binder subscript re-parse. Group B did the
-   token-body dedup; the removal itself is **§9**, which surfaces a genuine spec-vs-directive tension needing ONE
-   owner decision (the space-separator question, §9.4). Until that is answered the removal cannot proceed past the
-   design note.
+5. **SUBSCRIPT-mode elimination — D10 = FULLY REMOVE (§9 below is the design).** The owner ruled the SUBSCRIPT
+   mode + the binder subscript re-parse are removed rather than deferred; the token-body dedup (§3.3b) is in the
+   tree, and the removal itself (**§9**) is scheduled for PHASE 15 §"CUT 2.5" (it cannot land while the frozen
+   legacy compiler shares the `SUB_*` grammar — §9.3). It still needs ONE owner decision — the space-separator
+   question (§9.4) — resolved before the §9.5 stages run.
 
 ---
 
 ## 9. D10 — SUBSCRIPT-mode removal (owner override): design + the one open decision
 
-> **Status: DESIGN — authored 2026-07-10 (DEVLOG 746). ✅ SCHEDULED as PHASE 15 §"CUT 2.5" (DEVLOG 748), sequenced
-> immediately AFTER PHASE 15 Cut 2 deletes the legacy `src/CobolSharp.*` tree — the event that clears the §9.3
-> entanglement (the frozen legacy compiler is the sole remaining consumer of `SUB_*`/`SubscriptEntryContext`). The
-> executing session resolves the §9.4 decision FIRST, then runs the §9.5 D10.1–D10.5 stages. This is a MAJOR multi-stage
-> rearchitecture sub-track (a shared-grammar + ~250-line binder-parser rewrite) — it was originally scoped into PHASE 04
-> but relocated because it is not doable while the legacy compiler shares the grammar.**
+> **Status: DESIGN — scheduled for PHASE 15 §"CUT 2.5", sequenced immediately AFTER PHASE 15 Cut 2 deletes the
+> legacy `src/CobolSharp.*` tree — the event that clears the §9.3 entanglement (the frozen legacy compiler is the
+> sole remaining consumer of `SUB_*`/`SubscriptEntryContext`). The executing session resolves the §9.4 decision
+> FIRST, then runs the §9.5 D10.1–D10.5 stages. This is a MAJOR multi-stage rearchitecture sub-track (a
+> shared-grammar + ~250-line binder-parser rewrite); it is not doable while the legacy compiler shares the
+> grammar, which is why it lands at PHASE 15 rather than earlier.**
 
 ### 9.1 Goal
 Replace the lexer **SUBSCRIPT mode** (`CobolLexer.g4` — entered via `LPAREN` after a data-name token, emits the
@@ -662,7 +665,7 @@ The mode is not gratuitous; it solves two problems a naïve DEFAULT-mode rule re
   identically, so the relative-offset-vs-signed-literal distinction and the `-15.6` fraction-drop hazard
   (`CobolLexer.g4` SIGNED_DECIMALLIT must precede SIGNED_INTEGERLIT) can no longer be re-derived from tokens alone.
 
-### 9.3 ⚠ Entanglement with the frozen legacy compiler (discovered 2026-07-10)
+### 9.3 ⚠ Entanglement with the frozen legacy compiler
 The old **structured** subscript rules `subscriptList / subscriptEntry / subscriptQualification / relativeOffset`
 (`CobolParserCore.g4`) are dead in the GRAMMAR (rooted at the unreferenced `subscriptList`) — BUT the generated
 `CobolParserCore.SubscriptEntryContext` type is still consumed by the **frozen legacy** compiler

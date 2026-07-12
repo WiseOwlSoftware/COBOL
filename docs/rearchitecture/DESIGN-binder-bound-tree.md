@@ -1,6 +1,11 @@
 # DESIGN — Target Binder Pipeline & Bound-Tree / IR
 
-Status: DESIGN (rearchitecture target). Owner-review required on the OPEN QUESTIONS before execution.
+Status: IMPLEMENTED (rearchitecture — PHASE-07 Steps 1–10). The binder decomposition in this design is built in the
+tree: the DAG-validated pass framework, the immutable `BoundCompilation` + the ONE scoped `SymbolTable`, the
+source-generated exhaustive bound-tree visitor, the god-class dissolution into `BinderContext`-threaded per-verb
+collaborators, and the `StorageFormPass` are all in place. Remaining: the structural (non-string) `Place` (Step 11)
+and the FUNCTION-argument grammar (Step 12). The §7 open questions were resolved during execution (the source
+generator was adopted).
 Scope: the binding middle-end of the greenfield compiler (`src/Cobol.Net.Compiler/Binding/**`) and the
 bound-tree contract it produces (`Binding/Bound/BoundTree.cs`). Dimension: **Target binder pipeline &
 bound-tree/IR design**. Sibling design docs own the data model (`DataItem`/`PicInfo`/`Place`/`StorageForm`),
@@ -14,9 +19,9 @@ and the *adopted* semantic-normalization-on-the-bound-tree.
 
 > **The binder is edition-agnostic.** Version conformance is one mechanism, and this doc's binder contract reflects it
 > in three ways: (1) the binder makes ZERO `ConstructRegistry.Check` calls — edition gating is a single
-> `VersionConformancePass` over the bound tree (the sole syntactic+semantic gate). (2) ⚠ **AS-BUILT (DEVLOG 724): NO
-> `.Syntax` back-reference is added to any bound node — the `BoundTree.cs` invariant STANDS.** The pass identifies
-> syntactic introduction/removal/phrase gates via a PRESENCE-based parse-tree arm (over `BoundRunUnit.Tree`, running
+> `VersionConformancePass` over the bound tree (the sole syntactic+semantic gate). (2) NO
+> `.Syntax` back-reference is added to any bound node — the `BoundTree.cs` invariant stands. The pass identifies
+> syntactic introduction/removal/phrase gates via a PRESENCE-based parse-tree arm (over `GroupBindContext.Tree`, running
 > after bind) — introduction gates must fire on the construct's RECOGNITION, not its bound node, which a below-edition +
 > semantically-invalid construct never produces; semantic gates use bound-node type/attribute. (3) Bind and emit are separate driver-gated
 > phases — codegen runs emit-only-if-clean, never on an errored tree. Pipeline: parse → edition-agnostic bind →
@@ -284,7 +289,7 @@ public enum MoveKind { Group, ElementaryAlphanumeric, ElementaryNumeric, Numeric
                        AlphaEdited, FigurativeFill, FigurativeToNumericImage, RefModSlice }
 public sealed record BoundMove(Place Target, BoundOperand Source, MoveKind Kind, StorageForm TargetForm) : BoundStatement;
 
-// Table access polarity travels on the Place, not re-decided at emit (D9 correction already learned this).
+// Table access polarity travels on the Place, not re-decided at emit.
 // Storage form (§3.4) travels on the Place/operand, not read off a mutated DataItem flag.
 ```
 
@@ -388,7 +393,7 @@ service). These are cross-cutting with the emitter-renderer sibling design; the 
 | add | `BoundMove` (`BoundTree.cs:317`) et al. | `MoveKind` + `StorageForm` fields on the node | MOVE classification computed once in binder; `EmitMove`/`ConvertSource` become pure renderers |
 | create | — | `Binding/Pipeline/StorageFormPass.cs` | Single owner of the storage-form decision, after procedure binding |
 | delete | `CSharpEmitter.MarkStoreAsImage` (`CSharpEmitter.cs:50-68`), `CompilerTempClones` re-sync, FILE whole-group loop (`DataBinder.cs:238-257`) | folded into `StorageFormPass` | Remove the emitter→binder write-back; one StoreAsImage rule |
-| rename | `StatementBinder.Accept.cs`, `CSharpEmitter.Accept.cs` (the ACCEPT *verb*) | ✅ LANDED (P7 Step 5) as `Binding/Procedure/Verbs/AcceptDisplayBinder.cs` + `CodeGen/Verbs/AcceptDisplayEmitter.cs` (the AcceptDisplay* names — reconciled with PHASE-07 Step 5 + DESIGN-module-topology row 27; this row's original `*.AcceptStatement.cs` target was superseded) | End the Visitor-term collision once a real visitor exists |
+| rename | `StatementBinder.Accept.cs`, `CSharpEmitter.Accept.cs` (the ACCEPT *verb*) | `Binding/Procedure/Verbs/AcceptDisplayBinder.cs` + `CodeGen/Verbs/AcceptDisplayEmitter.cs` (the AcceptDisplay* names) | End the Visitor-term collision once a real visitor exists |
 | rename | `BoundStores` | `BoundStoreAnalysis` | It is an analysis, not storage |
 | create | — | `Common/CobolLiteral.cs` (Decode), `Binding/RecordLayout.cs`, `Binding/PhraseBlocks.cs`, `DataItem.Root` | One canonical helper per job (dedup) |
 | move | `ReferenceResolver` sub-parsers (`SplitSubscriptTokens`/`InterpretSubscripts`, `ReferenceResolver.cs:377-431`) | `SubscriptTokenParser` + `NameResolver` collaborators | Thin the resolver; it becomes an orchestrator over SymbolTable |
@@ -397,17 +402,6 @@ service). These are cross-cutting with the emitter-renderer sibling design; the 
 ---
 
 ## 5. Migration notes — keeping the battery green throughout
-
-> **LANDED STATUS (P6 close, 2026-07-11 — DEVLOG 767–774).** Steps 1–3 below are DONE: (1) the pass framework +
-> `ValidateDag` landed at P5 Step 3 and P6 extended it to the whole chain (`BindPipeline.Build` prefix ++
-> `GroupTail` manifest, `ValidateFullChainOnce`, the DEBUG watermark gate); (2) the binder half of
-> `CallEmitRunUnit` is `Binding/BinderDriver.Bind` → immutable `BoundCompilation`, driver Phase 2 = Bind → gate →
-> CheckOnly → EmitBound; (3) the read-only views + the ONE scope-aware `SymbolTable` landed and the
-> `LookupData`/…/`IndexFieldFor` quadruple is DELETED (`SymbolTableBuilder`-owned storage deferred to P7 — the
-> table wraps the live maps; `ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup still
-> carry the same precedence inline, P7 candidates). Step 4 is HALF-done: `StorageFormPass.Run` owns the whole
-> StoreAsImage settle sequence bind-side and the emitter write-back is gone; the FLAG deletion + reader flips are
-> EXEC STEP C (P5 Steps 6–14). Steps 5–7 remain P7 scope; step 8 is G8.
 
 The migration is a sequence of behavior-preserving refactors; the 2028 conformance + 213 unit + NIST-353 legacy
 guard stays green at every commit. Order chosen so each step is independently shippable and reversible.

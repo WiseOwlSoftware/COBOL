@@ -22,7 +22,7 @@ language element in 2023 (A.4.11). Its 2002 status is NOT derivable from the 202
 ## 1. Architecture (ONE mechanism — compose-at-presentation)
 
 ```
-DataBinder.Reports.cs            StatementBinder.ReportWriter.cs      CSharpEmitter.ReportWriter.cs
+DataBinder.Reports.cs            ReportWriterBinder.cs                ReportWriterEmitter.cs
 RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine field __RPT_n + per-line
   geometry (§13.18.39 GR3        BoundInitiate/Generate/Terminate;    compose methods; construction in
   defaults), CONTROL list,       LINE-/PAGE-COUNTER →                 __Activate beside the file
@@ -43,11 +43,11 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
   §13.18.53 content bugs. The greenfield has no registration kinds, no byte buffers, no storage offsets.
 - **Printable items are SYNTHETIC `DataItem`s** (PicInfo + JUSTIFIED/BLANK WHEN ZERO flags, never added to
   the storage forest — report groups are not storage, §13.6). The emitter renders every field through the
-  orchestrator's ONE MOVE conversion (`CSharpEmitter.ConvertSource`), so a numeric SOURCE edits through the
+  orchestrator's ONE MOVE conversion (`MoveEmitter.ConvertSource`), so a numeric SOURCE edits through the
   printable PICTURE exactly like `MOVE src TO item` (alignment, truncation, editing, BLANK WHEN ZERO) —
   §13.18.53.4 GR1 verbatim. Numeric printable items are `StoreAsImage`, so the conversion yields the
-  printable CHARACTER image directly; their `NumProfile` statics are emitted by the RW partial (the field
-  emitter only walks the storage forest).
+  printable CHARACTER image directly; their `NumProfile` statics are emitted by the RW emitter
+  (`ReportWriterEmitter`) — the field emitter only walks the storage forest.
 - **Physical output** goes through the report file's ordinary connector (`CobolFile.WriteAdvancing` — the
   print-control stream). The engine tracks `_physLine` (physical position) separately from LINE-COUNTER so
   a future NEXT GROUP (which moves LINE-COUNTER, §8.4.3.15.4 GR4) cannot corrupt positioning.
@@ -90,7 +90,7 @@ off-by-one through every later counter check.
   captures the fixed Format-1 RECORD CONTAINS for the line width; otherwise the width is the widest field
   extent (column + image width − 1) — the §13.18.39.4 GR5 page-width default 999 is a maximum, not a record
   length, and the legacy's hardcoded 132 was arbitrary.
-- **Counters in the PD** (§8.4.3.15): `RwCounterExpr` intercepts LINE-/PAGE-COUNTER in `FieldOperand`/`RefExpr`
+- **Counters in the PD** (§8.4.3.15): `ReportWriterBinder.CounterExpr` intercepts LINE-/PAGE-COUNTER in `FieldOperand`/`RefExpr`
   ahead of name resolution (the LINAGE-COUNTER idiom); the OF/IN `cobolWord` is the report-name qualifier;
   unqualified resolves only against a sole report (SR2/§8.4.2.2). `ReferenceResolver.Resolve` early-returns
   for the counter tokens — LOAD-BEARING for the qualified form, where `cobolWord()` is the qualifier and
@@ -100,7 +100,7 @@ off-by-one through every later counter check.
   per §8.4.3.15.3 SR3; PAGE-COUNTER legal-but-staged) instead of being silently dropped by
   `.OfType<Place>()` (the silent-miscompile hazard).
 
-## 4. Emission (`CSharpEmitter.ReportWriter.cs`)
+## 4. Emission (`CodeGen/Verbs/ReportWriterEmitter.cs`)
 
 - Per report: `private CobolReport __RPT_n` + construction inside `__Activate`'s `if (!__filesRegistered)`
   block, **after** `EmitFileRegistration` — the registration order is load-bearing (§7 hazard 1). Report FDs
@@ -133,12 +133,11 @@ and LAST CONTROL HEADING have no grammar surface (the GR3c default applies); **S
 grammar rule** — it cannot parse (a frontend change, which this wave may not make: shared-frontend guard).
 EC-REPORT-* checking is default-off (SSOT §18.16) — cited seam comments at every raise point.
 
-## 6. Why the original SSOT seam was superseded
+## 6. Design authority (this doc + the cited GRs, not the legacy)
 
-The SSOT (§14 verb table, §15.5) scoped RW to "designed only to the seam (registers reserved)" pending an
-owner ordering decision, expecting an M3-era implementation. The Phase-1C NIST drive (RW101A–104A) brought
-it forward; the implementation follows THIS doc + the cited GRs rather than a §-by-§ port of the legacy
-(whose report-file content is wrong — §7). The SSOT's §0.5 deep-dive table now points here.
+The implementation follows THIS doc + the cited GRs rather than a §-by-§ port of the legacy (whose
+report-file content is wrong — §7). The SSOT (§14 verb table, §15.5) records RW's locked scope and its §0.5
+deep-dive table points here.
 
 ## 7. Hazards & oracle holes (validated)
 

@@ -59,7 +59,7 @@ dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --verbosity q
 bash scripts/guard-fast.sh
 ```
 
-Record the baseline pass counts (expected ≈ **2028 conformance + 213 unit + NIST 353 MATCH**; exact numbers may have
+Record the baseline pass counts (expected ≈ **3166 conformance + 281 unit + NIST 353 MATCH**; exact numbers may have
 advanced — read `resume-prompt.md`). If any is red BEFORE you start, STOP and reconcile — do not begin P8 on a red
 battery.
 
@@ -69,7 +69,7 @@ commit, and continue from the next step. No step leaves the tree un-buildable if
 
 ---
 
-## 2. Rationale — the problems this phase fixes (grounded in the survey + as-built code)
+## 2. Rationale — the problems this phase fixes (grounded in the survey + current code)
 
 ### 2.1 Run-unit state is five process-global stores with an INCONSISTENT threading model (prime smell)
 Run-unit-lifetime state is scattered with no single reset owner and a split threading model:
@@ -107,7 +107,7 @@ That is a SECOND dispatch mechanism layered on the type split — a singular-pat
 - `CobolFloat.Pow10(int)` double (CobolFloat.cs:83)
 
 Every one is a `for` loop recomputing a compile-time-constant table on each numeric store/rescale/format. (The
-DESIGN says "four" — the as-built count is six once `CobolNum.Pow10` and `CobolFloat.Pow10` are included. Dedup all
+DESIGN says "four" — the actual count is six once `CobolNum.Pow10` and `CobolFloat.Pow10` are included. Dedup all
 six.)
 
 ### 2.4 Value-library folder taxonomy is word-based, not role-based
@@ -505,7 +505,7 @@ Promote the registry to an instance and make `RunUnit.Run` the ONE lifecycle bou
 - `IO/CobolFile.cs` — flip its `private static readonly FileRegistry _reg` (Step 5) to forward to
   `RunUnit.Current.Files` instead, so the file registry is the run-unit's. `Init()` → `RunUnit.Current.Files.Reset()`.
 
-**Emitted-surface decision (byte-stability):** the generated `Program.Main` (emitter `CSharpEmitter.Call.cs:740-753`)
+**Emitted-surface decision (byte-stability):** the generated `Program.Main` (emitter `CodeGen/ProgramEmitter.cs`)
 today emits `ProgramRegistry.Reset(); CobolFile.Init(); __CobolModule.Register(); try { ProgramRegistry.RunMain(...);
 } catch(StopRun){} ... finally { CobolFile.CloseAll(); }`. Two options — pick DEFAULT unless the owner wants the
 cleaner form:
@@ -546,7 +546,7 @@ dotnet src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.dll <a-CALL-fixture>.cob --std 
   the current `AcceptSource.DefaultNow` body, moved here. `public static readonly SystemClock Instance = new();`.
 - EDIT `Control/RunUnit.cs` — `public IClock Clock { get; set; } = SystemClock.Instance;`.
 - EDIT `IO/AcceptSource.cs` — KEEP the emitted static methods (`Date`/`DateYYYYMMDD`/`Day`/`DayYYYYDDD`/`Time`/
-  `DayOfWeek`/`Device`) — they are the emitted surface (`CodeGen/Verbs/AcceptDisplayEmitter.cs:44,55,66,77,91-96` — renamed P7 Step 5). Change their
+  `DayOfWeek`/`Device`) — they are the emitted surface (`CodeGen/Verbs/AcceptDisplayEmitter.cs:57,68,79,90,104-109`). Change their
   internal `Now()` reads to `RunUnit.Current.Clock.Now()`. DELETE the `public static Func<DateTime> Now` seam.
 - Test seam: the conformance clock pin is the `COBOLNET_CLOCK` env var (`AcceptDifferentialTests.cs:15`) — cross
   process, unchanged (SystemClock still reads it). No in-process `AcceptSource.Now` assignment exists (grep confirmed
@@ -584,8 +584,8 @@ Run the FULL battery from a clean build and confirm baseline-or-better counts + 
 ```bash
 dotnet clean CobolSharp.sln
 dotnet build CobolSharp.sln -v quiet
-dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --verbosity quiet   # ≈2028
-dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --verbosity quiet                 # ≈213
+dotnet test tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj --verbosity quiet   # ≈3166
+dotnet test tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj --verbosity quiet                 # ≈281
 bash scripts/guard-fast.sh                                                                            # NIST 353 MATCH
 ```
 

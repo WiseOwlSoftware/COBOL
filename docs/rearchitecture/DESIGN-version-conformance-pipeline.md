@@ -1,36 +1,35 @@
 # DESIGN — Version-Conformance Pipeline (superset parse · edition-agnostic bind · one gating pass)
 
-> **STATUS: DESIGN — ✅ IMPLEMENTED at PHASE-03 close (2026-07-10).** The two-arm `VersionConformancePass` is the SOLE
+> **STATUS: DESIGN — ✅ IMPLEMENTED (PHASE-03).** The two-arm `VersionConformancePass` is the SOLE
 > edition gate; the binder is edition-agnostic save the ONE documented UDF exception; all 9 PHASE-03 exit criteria hold.
-> How COBOL.NET enforces edition (85 / 2002 / 2014 / 2023) conformance. The gating pass runs
-> **over the bound tree, post-bind**; version *identity* is declared **local to the grammar** (construct-id annotation),
-> version *numbers* stay single-sourced in `constructs.json`. This doc is the canonical design for the
+> How COBOL.NET enforces edition (85 / 2002 / 2014 / 2023) conformance. The gating pass runs **post-bind** as a
+> two-arm walk — one arm over the bound tree (semantic gates), one over the raw parse tree (syntactic gates + the
+> §8.9 reserved-word funnel); version *identity* is recovered by the pass itself (bound-node type/attribute or
+> parse-tree re-recognition — no `.Syntax` back-reference, no grammar annotation), while version *numbers* stay
+> single-sourced in `constructs.json`. This doc is the canonical design for the
 > version-conformance pipeline; the version-gating
 > *framework* primitives (`EditionInfo`, `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`) remain owned by
 > [`DESIGN-edition-framework.md`](DESIGN-edition-framework.md). Cross-refs: [`DESIGN-frontend-grammar.md`](DESIGN-frontend-grammar.md),
 > [`DESIGN-binder-bound-tree.md`](DESIGN-binder-bound-tree.md). SSOT for settled invariants stays `docs/COBOLNET_DESIGN.md`.
 
-> ⚠ **AS-BUILT REFINEMENT (2026-07-09, DEVLOG 718–729 — supersedes the `.Syntax`-back-reference mechanism below where
-> they conflict; Step 14h COMPLETE [14h.1–14h.5]; Step 14g IN PROGRESS [14g.1 DONE — the 8 PicInfo USAGE gates → the
-> bound-arm GateData enumerator]).** Execution abandoned the "bound nodes carry a
-> `.Syntax` back-reference" mechanism (§1 diagram, §2.2, §2.4, §5 Stage 3, §6): **NO `.Syntax`/raw parse context is
-> added to any bound node — the `BoundTree.cs` invariant STANDS.** The pass is **TWO-ARM** (built in `VersionConformancePass.cs`):
-> (1) a BOUND-tree arm that re-identifies gates by bound-node TYPE or a resolved semantic ATTRIBUTE (used for
-> genuinely-semantic gates — MOVE-category + the file-org/USAGE/pointer-conditioned gates; the DATA/PIC/OO gates join
-> it at Step 14g); (2) a **presence-based PARSE-tree arm** (`ParseArm`, over `BoundRunUnit.Tree`, running AFTER bind so
-> a construct's semantic errors also accumulate) for the SYNTACTIC introduction/removal/phrase/expression/literal gates
-> + the §8.9 reserved-word funnel — it ABSORBED `EditionValidator` (now deleted) at Step 14h. **WHY (the load-bearing finding, DEVLOG 724):**
-> INTRODUCTION/removal gates must fire on the construct's syntactic RECOGNITION, NOT its bound node — a bound-arm gate
-> silently DROPS the 0900 whenever a below-edition construct ALSO has a semantic error (it binds to
-> `BoundUnsupported`/`BoundNop`, so the distinctive node is never produced; caught by `Allocate_At85` + the UDF gate).
-> The pipeline's end-state goals (superset parse · edition-agnostic bind · ONE pass · emit-if-clean · no
-> `ReservedWordEditionHints`) are UNCHANGED.
+> **TWO-ARM ARCHITECTURE (the load-bearing invariant).** NO `.Syntax`/raw parse context is added to any bound node
+> — the `BoundTree.cs` invariant STANDS. The pass (`VersionConformancePass.cs`) is **TWO-ARM**:
+> (1) a BOUND-tree arm that re-identifies gates by bound-node TYPE or a resolved semantic ATTRIBUTE (the
+> genuinely-semantic gates — MOVE-category, the file-org/USAGE/pointer-conditioned statement gates, and the
+> DATA/PICTURE/OO attribute gates over every source-declared item); (2) a **presence-based PARSE-tree arm**
+> (`ParseArm`, over `GroupBindContext.Tree`, running AFTER bind so a construct's semantic errors also accumulate) for
+> the SYNTACTIC introduction/removal/phrase/expression/literal gates + the §8.9 reserved-word funnel — it ABSORBED
+> the former `EditionValidator`. **WHY the split:** an INTRODUCTION/removal gate must fire on the construct's
+> syntactic RECOGNITION, NOT its bound node — a bound-arm gate silently DROPS the 0900 whenever a below-edition
+> construct ALSO has a semantic error (it binds to `BoundUnsupported`/`BoundNop`, so the distinctive node is never
+> produced). The pipeline's end-state goals (superset parse · edition-agnostic bind · ONE pass · emit-if-clean · no
+> `ReservedWordEditionHints`) hold.
 
 ## 0. Design rationale
 
 Edition conformance is **one concern with one owner** — so it is one mechanism with clean, error-gated phase
 boundaries, not logic spread across the grammar, the binder, and a post-hoc recogniser. Four fragmentation anti-patterns
-this design rules out, each a way version gating decays if it is *not* a single bound-tree pass:
+this design rules out, each a way version gating decays if it is *not* a single post-bind pass:
 
 | Anti-pattern | Why it fails |
 | --- | --- |
@@ -39,8 +38,8 @@ this design rules out, each a way version gating decays if it is *not* a single 
 | `ConstructRegistry.Check` calls *embedded in the binder* | Couples version conformance to name/type binding; no single place owns the policy. |
 | Gating discovered *during* code emission (bind and emit fused) | Codegen runs on an errored tree and the output is discarded — wasted work and a phase-boundary violation. |
 
-The single mechanism defined below — **superset parse + a construct-id annotation local to the grammar +
-edition-agnostic bind + one `VersionConformancePass` over the bound tree + emit-if-clean** — is the direct answer to
+The single mechanism defined below — **superset parse + construct identity recovered by the pass +
+edition-agnostic bind + one two-arm `VersionConformancePass` (post-bind) + emit-if-clean** — is the direct answer to
 all four (`feedback_singular_pattern`: one canonical mechanism per job, with error-gated phase boundaries).
 
 ## 1. Target architecture
@@ -49,14 +48,15 @@ all four (`feedback_singular_pattern`: one canonical mechanism per job, with err
   superset parse        grammar recognizes the UNION of all editions; NO edition {isYYYY()}? gates
         │               (a forward, identity-carrying lookahead survives ONLY where a construct is
         │                genuinely ambiguous across editions — the 2 load-bearing cases in §4).
-        │               each version-gated rule STAMPS its construct-id onto the parse node (§2.2).
+        │               construct IDENTITY is recovered later, by the pass's parse-tree arm (§2.2).
         ▼
      Bind               edition-AGNOSTIC. Produces the BoundProgram. Never sees an EditionInfo; contains
-        │               ZERO ConstructRegistry.Check calls. Bound nodes carry a `.Syntax` back-reference.
+        │               ZERO ConstructRegistry.Check calls save the ONE documented UDF exception. NO bound node
+        │               carries a `.Syntax`/parse back-reference (the BoundTree invariant).
         │               ── HALT if bind produced errors ──
         ▼
-  VersionConformancePass   ONE dedicated walk over the bound tree. The SINGLE owner of all edition gating:
-        │                  · syntactic gates → read the grammar-stamped construct-id (via `.Syntax`) → Check
+  VersionConformancePass   ONE dedicated post-bind pass, in TWO arms. The SINGLE owner of all edition gating:
+        │                  · syntactic gates → the parse-tree arm re-recognizes the construct → Check
         │                  · semantic gates  → inspect the resolved bound fact (is-group, operand-shape) → Check
         │                  strict: reject (COBOLNET0900/0902/0903).  permissive: accept-inert / warn.
         │               ── HALT if the pass produced errors ──   ← "no codegen on compile errors"
@@ -77,23 +77,26 @@ disambiguation and keep a predicate — but **forward** (§2.3), not a reverse g
 model (Roslyn `LanguageVersion`, Clang/GCC `-std=`): parse a permissive superset, enforce the language level in a
 later phase.
 
-### 2.2 Grammar construct-id annotation (identity, local to the grammar)
-So the pass need not re-recognize constructs via a node-type switch, each version-gated rule declares its own identity
-**where the construct is defined**:
+### 2.2 Construct identity (recovered by the pass, not stamped in the grammar)
+So the pass can gate without the grammar carrying any edition facts, it recovers each construct's identity itself,
+after parsing — never by a grammar action or a side table keyed on the parse node:
 
-- **Mechanism = a committed-match ACTION, never a gating predicate.** A hoisted `{…}?` predicate is evaluated
-  *speculatively* by ANTLR during failing prediction — the exact trap that killed the earlier forward-stamp attempt
-  (DEVLOG 679). A rule-body **action** `{ MarkConstruct(Constructs.RaisingClause2002); }` runs *only* when the rule is
-  actually matched. Superset parsing (§2.1) is what makes this reliable: with the alternative no longer edition-gated,
-  the rule is matched **deterministically**, so the action fires exactly when the construct is genuinely present.
-- **Annotate the construct-ID, not the version number.** The grammar declares only *"this node is
+- **Syntactic gates → the parse-tree arm re-recognizes the construct.** The `ParseArm` visitor descends the raw
+  compilation unit and, at each version-gated grammar rule, recognizes the construct from its OWN parse context (its
+  rule type and tokens) and routes it through the one `Check`. Superset parsing (§2.1) is what makes this reliable:
+  with the alternative no longer edition-gated, the rule is matched **deterministically**, so the parse node is
+  present exactly when the construct is genuinely present. No hoisted `{…}?` gating predicate is needed — such a
+  predicate is evaluated *speculatively* by ANTLR during failing prediction (the trap that killed the earlier
+  forward-stamp attempt); recognition here happens post-parse over a fully-built tree.
+- **The pass names the construct-ID, the table owns the version number.** A gate says only *"this node is
   `RaisingClause2002`"*; `constructs.json`/`ConstructRegistry` remains the sole owner of *"that construct requires 2002 /
-  was removed at 2023."* No version facts in two places → no drift. Grammar says *what*, the table says *which edition*.
-- **Storage:** a side table keyed by `ParserRuleContext` (or a custom context field), read by the pass through the
-  bound node's `.Syntax` back-reference.
-- **Scope:** this is for *syntactic* gates where identity is knowable at parse. It is optional per construct — where a
-  bound-node *type* is already self-identifying (e.g. a distinct `BoundUnlockStatement`), the pass may switch on the
-  type instead. Use the annotation where the construct does **not** surface as its own distinctive bound node.
+  was removed at 2023."* No version facts in two places → no drift. The parse (or bound) shape says *what*, the table
+  says *which edition*.
+- **Semantic gates → the bound-tree arm keys on the resolved fact.** Where a bound-node *type* is already
+  self-identifying (e.g. a distinct `BoundUnlockStatement`), or the identity is a RESOLVED bound attribute (a MOVE's
+  source × receiver picture, an item's USAGE / PICTURE category, a file-org/pointer condition) rather than mere
+  presence, the bound-tree arm switches on the bound node instead. Use the bound arm where the construct's identity
+  is a semantic fact; use the parse arm where it is the construct's syntactic recognition.
 
 ### 2.3 Forward-detection (only where disambiguation is load-bearing)
 Two constructs cannot be ungated outright without mis-parsing a valid below-edition program (§4 #2, #4). They keep a
@@ -105,7 +108,7 @@ existing `boolExprAhead()` precedent (`CobolParserCoreBase.cs:83`):
 ```
 
 `<construct>Ahead()` returns true **at all editions** iff the tokens genuinely form the construct in operator/phrase
-position. When it fires below edition E, the construct is *recognized* (not mis-parsed as user names) and stamped, so
+position. When it fires below edition E, the construct is *recognized* (not mis-parsed as user names), so
 the **same** conformance pass emits the exact diagnostic. Forward-detection is not a parallel diagnostic path — it only
 steers the parse so the single pass can do the diagnosing. Contrast with the residue: the guesser infers identity
 *after* a failed parse; forward-detection *proves* identity *during* the parse, then defers the verdict to the one pass.
@@ -122,49 +125,52 @@ terminator (`openFileSpec+` must stay satisfiable). A bare `RETRY FOREVER` (FORE
   words there) and to the phrase at ≥2002 (`is2002()` is true; the §8.9 funnel reserves RETRY).
 
 Fail-safe: a missed real gate (an ambiguous below-2002 tail) degrades to a neutral parse error, never a wrong edition
-claim. The other five RETRY sites name their file BEFORE the phrase, so they carry no ambiguity and are bind-gated
-directly (`GateRetryIntro` → `Check(RetryPhrase2002)`), no forward detect needed.
+claim. The other five RETRY sites name their file BEFORE the phrase, so they carry no ambiguity and are gated by the
+parse-tree arm on the RETRY phrase's recognition (`VisitRetryPhrase` → `Check(RetryPhrase2002)`), no forward detect needed.
 
 ### 2.4 The VersionConformancePass
-- Input: the `BoundProgram` + the target `EditionInfo` + an `IDiagnosticSink`. Output: diagnostics; no tree mutation in
-  strict mode. In **permissive** mode it applies the accept-inert policy (warn, and where a removed construct has no emit
-  path, elide it) — the natural home for the migration-mode "filtering."
-- For each visited bound node: if its `.Syntax` carries a stamped construct-id → `ConstructRegistry.Check(edition, sink,
-  id, where)`. For the handful of semantically-conditioned gates → compute the resolved fact from the bound node and
-  Check. Both funnel through the one `Check`.
-- Absorbs and DELETES `EditionValidator` (its §8.9 reserved-word funnel moves into the pass, §3) and funnels ALL 88
-  compiler-embedded `ConstructRegistry.Check` call sites into the pass: `DataBinder*` / `StatementBinder*` /
-  `OoClassTable` / `PicInfo` / `OdoModel` + `EditionValidator`'s own + the one emitter-side site in
-  `CSharpEmitter.Call.cs` (the anti-pattern-#4 emission-time gate, relocated here by name).
+- Input: the bound run unit (`GroupBindContext` — the bound programs + their raw parse `Tree`) + the target
+  `EditionInfo` + an `IDiagnosticSink`. Output: diagnostics; no tree mutation in strict mode. In **permissive** mode
+  it applies the accept-inert policy (warn, and where a removed construct has no emit path, elide it) — the natural
+  home for the migration-mode "filtering."
+- The parse-tree arm re-recognizes each syntactic construct and calls `ConstructRegistry.Check(edition, sink, id,
+  where)`; the bound-tree arm computes the resolved fact from the bound node for the semantically-conditioned gates
+  and Checks. Both funnel through the one `Check`.
+- Absorbs the former `EditionValidator` (its §8.9 reserved-word funnel is the parse arm's `VisitCobolWord`, §3) and is
+  the SINGLE home for every edition `Check`: the binder is edition-agnostic (the former `DataBinder*` /
+  `StatementBinder*` / `OoClassTable` / `PicInfo` / `OdoModel` sites now fire from one of the pass's two arms), and the
+  former emission-time gate (the anti-pattern #4) is gone. The ONE surviving bind-time `Check` is the documented
+  UDF-invocation exception (`UdfBinder.cs`): an intrinsic FUNCTION and a user-function call are syntactically
+  identical — only the repository-resolved name set separates them — so it fires at bind, on recognition, before
+  operand binding.
 
 ### 2.5 Bind/emit phase separation (the "no codegen on errors" fix)
-`CompilerDriver` runs `bind → conformance-pass → (halt if errors) → emit`. `CSharpEmitter` is split so that **binding**
-(producing the `BoundProgram`) and **emission** (rendering C# from a valid `BoundProgram`) are distinct, and the driver
-gates between them. Emission is never reached when parse, bind, or the conformance pass produced an error.
+`CompilerDriver` runs `bind → conformance-pass → (halt if errors) → emit`. **Binding** (producing the `BoundProgram`)
+and **emission** (rendering C# from a valid `BoundProgram`) are distinct phases and the driver gates between them.
+Emission is never reached when parse, bind, or the conformance pass produced an error.
 
 **Verdict surfaces include the pass.** `CheckOnly` / `check-batch` = stop after bind **+ the conformance pass** — the
 pass is part of the verdict; only emit is skipped. `CheckOnly`, `check-batch`, `EditionHarness`, and the INV-1
-continuity + INV-1-strong legs are re-pointed so their verdicts include pass diagnostics (the strict edition band
+continuity + INV-1-strong legs include pass diagnostics in their verdicts (the strict edition band
 codes come from the pass, so a bind-only verdict would silently drop every edition diagnostic).
 
 ## 3. What this deletes / keeps
 
 **Deleted:** `ReservedWordEditionHints.cs` in full (all 7 reverse-signature arms + the heuristic helpers
-`PrecededByOperand` / `NextWithin` / `PrecededByAnyBeforeDot` / `InRule`) once every arm is migrated. No positional or
+`PrecededByOperand` / `NextWithin` / `PrecededByAnyBeforeDot` / `InRule`). No positional or
 signature heuristic survives it in any form.
 
-**Deleted:** `EditionValidator` — absorbed into the `VersionConformancePass` (§2.4); its §8.9 reserved-word funnel
-moves into the pass.
+**Deleted:** `EditionValidator` — absorbed into the `VersionConformancePass` (§2.4); its §8.9 reserved-word funnel is
+the pass's parse-tree arm (`VisitCobolWord`).
 
 **Kept (orthogonal — NOT introduction gates):**
 - The **§8.9 reserved-word funnel**: rejects a *genuine user-word* spelling at/above the edition where the word became
   reserved (`COBOLNET0901`). Inverse gate (word→reserved), unchanged in behavior; it lives inside the
-  `VersionConformancePass` once `EditionValidator` is absorbed.
+  `VersionConformancePass` (the parse-tree arm's `VisitCobolWord`).
 - The **VALUE/PROPERTY boundary guards** (`CobolData.g4:382/389`): value-operand-loop disambiguation, not an edition gate.
 - The **vendor JSON/XML `COBOL0313` disposition**: a dialect/vendor-extension disposition, not an ISO edition gate. It
-  relocates to `CobolErrorStrategy` as a **token-keyed vendor hint** — it is a parse-error re-diagnosis of
-  hard-reserved tokens, not an ISO edition gate — in the same commit that deletes `ReservedWordEditionHints` (§5
-  Stage 2). No signature table is resurrected for it.
+  lives in `CobolErrorStrategy` as a **token-keyed vendor hint** — a parse-error re-diagnosis of
+  hard-reserved tokens, not an ISO edition gate. No signature table is resurrected for it.
 
 ## 4. Per-construct residue classification (feasibility analysis)
 
@@ -202,25 +208,20 @@ finally funnels every bind-time `Check` into the one pass.
   (§2.3) — and the boolean family (7a: the operator tiers + COMPUTE F2 are pure gating — drop the predicates + one
   `Check(BooleanOperators2002)` in `BindBoolExpr` guarded by `HasBoolOp`; 7b: the boolean-condition ENTRY generalizes
   `boolExprAhead()` to fire at all editions with operand-adjacency — highest scrutiny, it is the shared comparison
-  DFA that regressed in DEVLOG 621).
-  *Execution note:* **LANDED** (DEVLOG 709–713): UNLOCK #5, PROPERTY #7, PD-RAISING #6, XOR #1, SHARING #3 (SELECT +
-  OPEN in ONE commit; the OPEN name-list collision proven byte-safe). **REMAINING:** Batch C = RETRY #4 + the boolean
-  family #2.
+  DFA most prone to regression).
 - **Stage 2 — delete `ReservedWordEditionHints.cs`** entirely, with its helpers; the vendor JSON/XML `COBOL0313`
   disposition relocates to `CobolErrorStrategy` as a token-keyed vendor hint in the same commit (§3); grep-sweep
   lingering refs; update `DESIGN-frontend-grammar.md`, `DOC_INDEX.md`, DEVLOG.
-- **Stage 3 — the pipeline skeleton.** Build the `VersionConformancePass` over the bound tree; funnel ALL 88
-  compiler-embedded `ConstructRegistry.Check` call sites into it (`DataBinder*` / `StatementBinder*` / `OoClassTable` /
-  `PicInfo` / `OdoModel` + `EditionValidator`'s own + the one emitter-side site in `CSharpEmitter.Call.cs`); absorb
-  and DELETE `EditionValidator` (its §8.9 reserved-word funnel moves into the pass); make the binder edition-agnostic
-  (zero `Check`s); ensure bound nodes carry the `.Syntax` back-reference the pass reads; split bind/emit in
-  `CompilerDriver` (bind → pass → HALT on errors → emit); re-point `CheckOnly` / `check-batch` / `EditionHarness` /
+- **Stage 3 — the pipeline skeleton.** Build the two-arm `VersionConformancePass`; funnel every
+  compiler-embedded `ConstructRegistry.Check` call site into it (`DataBinder*` / `StatementBinder*` / `OoClassTable` /
+  `PicInfo` / `OdoModel` + `EditionValidator`'s own + the former emitter-side gate); absorb
+  and DELETE `EditionValidator` (its §8.9 reserved-word funnel becomes the parse arm's `VisitCobolWord`); make the
+  binder edition-agnostic (zero `Check`s save the documented UDF exception); no `.Syntax` back-reference is added to
+  any bound node (the parse-tree arm re-recognizes the syntactic gates instead); split bind/emit in
+  `CompilerDriver` (bind → pass → HALT on errors → emit); point `CheckOnly` / `check-batch` / `EditionHarness` /
   the INV-1 continuity + INV-1-strong legs so their verdicts include pass diagnostics (§2.5). No behavior change
   (same diagnostics, now from one pass) — proven byte-identical by the full legacy guard + INV-1 sweep. Delivers
   "no codegen on errors" + "dedicated pass".
-
-RETRY has **no bind-time introduction gate today** (carried solely by the grammar predicates) — Stage 1-C is net-new
-correctness coverage, to be called out in its DEVLOG entry.
 
 ## 6. Risks
 
@@ -229,8 +230,11 @@ correctness coverage, to be called out in its DEVLOG entry.
   the pre-specified adversarial characterization fixtures (byte-identical parse before/after), and the full legacy guard
   after each regen. The OPEN RETRY site keeps its forward `retryPhraseAhead()` by design (§2.3/§4); pre-designed
   fallback for the OPEN SHARING site: retain an analogous forward `openSharingAhead()` — a config flip, not a redesign.
-- **Bound-node `.Syntax` back-reference** must exist for every version-gated node so the pass can read the annotation.
-  Where a construct has no distinctive bound node *and* no `.Syntax` link, it stays a bound-node-type/semantic check.
+- **Parse-arm ↔ bound-arm assignment** must be correct for every version-gated construct: an introduction/removal or
+  otherwise purely-syntactic gate belongs on the parse-tree arm (so it fires on recognition even when the construct
+  also fails to bind), and only a genuinely-semantic gate (identity = a resolved bound attribute) belongs on the
+  bound-tree arm. No `.Syntax`/parse back-reference is added to a bound node to bridge the two (the BoundTree
+  invariant); a misassigned syntactic gate would silently drop its diagnostic on a semantic-error path.
 
 ## 7. SSOT / doc impact
 
@@ -238,5 +242,5 @@ correctness coverage, to be called out in its DEVLOG entry.
   emit`, and that edition gating is a single bound-tree pass.
 - `DESIGN-edition-framework.md` — add a pointer to this doc; note the pass is the single consumer of `ConstructRegistry`.
 - `DESIGN-frontend-grammar.md` — the superset-parse + construct-id-annotation convention (action-not-predicate).
-- `DESIGN-binder-bound-tree.md` — the binder is edition-agnostic; bound nodes carry `.Syntax`.
+- `DESIGN-binder-bound-tree.md` — the binder is edition-agnostic; no bound node carries a `.Syntax`/parse back-reference.
 - `DOC_INDEX.md` + `docs/COBOLNET_REARCHITECTURE_PLAN.md` — index this doc; slot the migration as a phase.

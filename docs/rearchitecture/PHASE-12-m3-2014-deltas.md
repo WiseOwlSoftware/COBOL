@@ -4,7 +4,7 @@
 - **Title:** M3 (COBOL-2014) deltas — dynamic length, TYPEDEF edges, `>>PROPAGATE`, IEEE floats, function pointers
 - **Track:** feature-iso
 - **Risk:** MEDIUM
-- **Depends on:** P10 (M2 residual catalog: national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) must be DONE. P3 (version-gating framework: EditionValidator waves + the harness-driven VCR audit + the "loud-guard" skeletons for float/E-symbol usages) must be DONE. The unified data model (P5/P6/P7 — `StorageForm`, the declared `IBindPass` pipeline, `RecordLayout`) is the substrate this phase layers onto; if the rearchitecture waves have NOT landed yet at execution time, see **§6 "Executing before the rearchitecture"** for the fallback mapping onto the current god-class binder — the feature work and its tests are identical either way.
+- **Depends on:** P10 (M2 residual catalog: national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) must be DONE. P3 (version-gating framework: EditionValidator waves + the harness-driven VCR audit + the "loud-guard" skeletons for float/E-symbol usages) must be DONE. The unified data model (P5/P6/P7 — `StorageForm`, the declared `IBindPass` pipeline, `RecordLayout`) is the substrate this phase layers onto.
 
 ### Goal (one paragraph)
 
@@ -14,7 +14,7 @@ Land the remaining COBOL-2014 *surface* deltas on the (rearchitected) data model
 
 1. The `tests/conformance/2014/` corpus is non-empty **and** every on-disk `.cob` is discovered by `CorpusRunnerTests` (the manifest-coverage integrity test is green).
 2. The **dynamic-table** (`occurs-dynamic-2014`) and **dynamic-length** (`dynamic-length-item-2014`) version-matrix rows are `active` and **green at all four editions** (compile at 2014/2023, `COBOLNET0900` at 1985/2002).
-3. The **full battery** is green: greenfield conformance (currently 2028) + unit (currently 213) + the FULL legacy guard (NIST 353 MATCH), with **zero regressions**, at every commit boundary.
+3. The **full battery** is green: greenfield conformance (currently 3166) + unit (currently 281) + the FULL legacy guard (NIST 353 MATCH), with **zero regressions**, at every commit boundary.
 
 ### STATUS
 
@@ -50,13 +50,13 @@ Before touching code, in a fresh session:
 
 ## 2. Rationale — what this phase fixes (with as-built citations)
 
-The Phase-3 version-gating framework deliberately left a set of 2014 constructs as **loud skeletons**: they parse (or their reserved words exist) and immediately raise a not-implemented/introduction diagnostic instead of silently mis-binding. Those `status:"pending"` rows in `tests/version-matrix/constructs.json` and the `pending`/skeleton notes in `src/Cobol.Net.Compiler/Binding/PicInfo.cs` are the debt this phase clears. Specifically:
+The Phase-3 version-gating framework deliberately left a set of 2014 constructs as **loud skeletons**: they parse (or their reserved words exist) and immediately raise a not-implemented/introduction diagnostic instead of silently mis-binding. Those `status:"pending"` rows in `tests/version-matrix/constructs.json` and the `pending`/skeleton notes in `src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs` are the debt this phase clears. Specifically:
 
-- **Floats half-implemented, matrix rows stale.** The `FLOAT-SHORT/LONG/EXTENDED` trio is already LIVE end-to-end (`PicInfo.cs:93-97,244-276,668-676` map the `Usage.FloatShort/FloatLong/FloatExtended` members to `float`/`double`; `DataBinder.cs:1158,1176` route them; the runtime `CobolFloat` carrier and the `NumX.Real` flag render them — Phase 6a, DEVLOG 650-651). BUT their version-matrix rows are still `status:"pending"` (`constructs.json` `usage-float-short-2002` line ~174, `usage-float-long-2002` ~496, `usage-float-extended-2002` ~506), so the matrix does **not** yet assert "compiles at 2002+, `COBOLNET0900` below." And the **2014 half of the D16 float split — `FLOAT-BINARY-32/64/128` and `FLOAT-DECIMAL-16/34` — is not wired at all**: the lexer has bare `FLOAT_BINARY`/`FLOAT_DECIMAL` tokens (`CobolLexer.g4:190-191`) but the `usageKeyword` rule (`CobolData.g4:302-329`) omits them, so `USAGE FLOAT-BINARY-32` does not parse. Row `usage-float-binary32-2014` is `pending`. The external-float `E`-symbol PICTURE (`pic-external-float-2002`, `constructs.json` ~457) "silent-misbinds in `PicInfo.Analyze`" per its own description.
+- **Floats half-implemented, matrix rows stale.** The `FLOAT-SHORT/LONG/EXTENDED` trio is already LIVE end-to-end (`PicInfo.cs:93-97,244-276,668-676` map the `Usage.FloatShort/FloatLong/FloatExtended` members to `float`/`double`; `DataBinder.cs:1158,1176` route them; the runtime `CobolFloat` carrier and the `NumX.Real` flag render them). BUT their version-matrix rows are still `status:"pending"` (`constructs.json` `usage-float-short-2002` line ~174, `usage-float-long-2002` ~496, `usage-float-extended-2002` ~506), so the matrix does **not** yet assert "compiles at 2002+, `COBOLNET0900` below." And the **2014 half of the D16 float split — `FLOAT-BINARY-32/64/128` and `FLOAT-DECIMAL-16/34` — is not wired at all**: the lexer has bare `FLOAT_BINARY`/`FLOAT_DECIMAL` tokens (`CobolLexer.g4:190-191`) but the `usageKeyword` rule (`CobolData.g4:302-329`) omits them, so `USAGE FLOAT-BINARY-32` does not parse. Row `usage-float-binary32-2014` is `pending`. The external-float `E`-symbol PICTURE (`pic-external-float-2002`, `constructs.json` ~457) "silent-misbinds in `PicInfo.Analyze`" per its own description.
 - **DYNAMIC LENGTH elementary items entirely absent.** §8.5.1.10 / §13.18.19 (a min-length-zero variable-length `PIC X`/`N` string) has no grammar, no binding, no runtime. It is distinct from OCCURS DYNAMIC (a growable *table*), which is complete. The 2014-introduced clause is `DYNAMIC LENGTH [dynamic-length-structure-name-1] [LIMIT IS integer-1]`; the 2023 spec's only 2014→2023 delta for it is VCR row 60 ("SET enhanced to set its length" — E.3.3 item 17), which this phase explicitly DEFERS to Phase 13.
 - **FUNCTION-POINTER / PROGRAM-POINTER data absent.** The grammar comment at `CobolData.g4:447-448` admits "BOOLEAN, DATA-POINTER, FUNCTION-POINTER, PROGRAM-POINTER … require lexer tokens not yet defined." §8.5.2.7 (function-pointer category) / §8.5.2.15 (program-pointer category) are unimplemented. `POINTER` (data-pointer) already exists.
 - **`>>PROPAGATE` recognized but not re-editioned.** `ConditionalCompilationProcessor.cs:36` lists `PROPAGATE` among compilation-variable names, but the §7.3.21 `>>PROPAGATE` directive (which turns on automatic EC propagation across the run unit) is not gated to its correct edition span (≤2014).
-- **TYPEDEF edges nearly done.** TYPEDEF + the `TYPE` clause are FEATURE-COMPLETE and review-hardened (DEVLOG 659-664; matrix rows `typedef-def-2002`, `type-clause-2002` already `active`). `SAME AS` and `TYPE TO` are deferred (DEVLOG 664 / conformance-plan M3-2). This phase only confirms those edges and, if `SAME AS` is scheduled here, implements it via the already-generic `CloneItem`.
+- **TYPEDEF edges nearly done.** TYPEDEF + the `TYPE` clause are FEATURE-COMPLETE and review-hardened (matrix rows `typedef-def-2002`, `type-clause-2002` already `active`). `SAME AS` and `TYPE TO` are deferred (conformance-plan M3-2). This phase only confirms those edges and, if `SAME AS` is scheduled here, implements it via the already-generic `CloneItem`.
 
 The net effect: after P12 the 2014 introduction surface is either implemented-and-matrix-locked or explicitly deferred-with-a-cited-row — no silent mis-binds, no stale `pending` rows for shipped features.
 
@@ -70,14 +70,14 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 - New lexer tokens as needed: `PROGRAM_POINTER : 'PROGRAM-POINTER'`, `FUNCTION_POINTER : 'FUNCTION-POINTER'` (only if a hyphenated single token is chosen; otherwise reuse `FUNCTION`/`POINTER` — see Step 8). `FLOAT_BINARY`/`FLOAT_DECIMAL`/`DYNAMIC`/`LENGTH`/`LIMIT` tokens already exist.
 
 **Compiler:**
-- `PicInfo.Usage` gains `FloatBinary32/64/128`, `FloatDecimal16/34`, `ProgramPointer`, `FunctionPointer` members; `PicInfo.ParseUsage` (`PicInfo.cs` ~655-690) maps every new grammar-accepted usage keyword to a real member (no `COBOLNET0899` reachable for a shipped keyword). The float family maps to `float`/`double`/`decimal` (or `System.Decimal`-backed `CobolDec` for FLOAT-DECIMAL) native types.
-- `DataItem` carries a `DynamicLength` fact (min-0 variable string) computed once — on the rearchitected model this is a new `StorageForm` case `DynamicString` (`Binding/Model/StorageForm.cs`) selected by `StorageFormPass`; on the current model it is an init-only `DataItem.IsDynamicLength` + limit fields.
-- External-float `E`-symbol PICTURE recognized in `PictureAnalyzer` (rearch) / `PicInfo.Analyze` (current) → `Usage.Display` external-float category rendered through `CobolFloat` string↔double.
+- `PicInfo.Usage` gains `FloatBinary32/64/128`, `FloatDecimal16/34`, `ProgramPointer`, `FunctionPointer` members; `PictureAnalyzer.ParseUsage` maps every new grammar-accepted usage keyword to a real member (no `COBOLNET0899` reachable for a shipped keyword). The float family maps to `float`/`double`/`decimal` (or `System.Decimal`-backed `CobolDec` for FLOAT-DECIMAL) native types.
+- `DataItem` carries a `DynamicLength` fact (min-0 variable string) computed once — a new `StorageForm` case `DynamicString` (`Binding/Model/StorageForm.cs`) selected by `StorageFormPass`, with the limit/structure-name carried as init-only `DataItem` fields.
+- External-float `E`-symbol PICTURE recognized in `PictureAnalyzer.Analyze` → `Usage.Display` external-float category rendered through `CobolFloat` string↔double.
 - `>>PROPAGATE` gated in the preprocessor / turn-collection so it is accepted ≤2014 and drives EC propagation (or is a documented no-op-with-warning if EC-propagation semantics are Phase-13 scope — see Step 9).
 - Diagnostic band **1540-1559** allocated to P12 (1538 is the current TYPEDEF high-water mark): 1540-1544 DYNAMIC LENGTH; 1545-1549 float family + E-symbol; 1550-1554 function/program pointers; 1555-1559 conditional-expression / `>>PROPAGATE`. Register each in the diagnostic registry (`Cobol.Net.Compiler/Diagnostics/` after the P-test rewrite; `EditionCodes`/bare-string today).
 
 **Runtime (`src/Cobol.Net.Runtime`):**
-- A `CobolDynString` (variable-length, min-0) value type under `Values/Text/` (rearch) or `Text/` (current), backing DYNAMIC LENGTH items. Reuses `CobolString` semantics where possible.
+- A `CobolDynString` (variable-length, min-0) value type under `Text/`, backing DYNAMIC LENGTH items. Reuses `CobolString` semantics where possible.
 - `CobolFloat` extended for binary32/64/128 + decimal16/34 formats (128-bit / decimal use `System.Decimal` or a documented widened carrier; see Step 6 for the IEEE-754 fidelity note).
 - `CobolPtr` (or `ManagedPointer`) extended (or a sibling `CobolFunctionPtr`/`CobolProgramPtr`) for program-/function-pointer values, per the single-managed-pointer-carrier rule (memory `feedback_managed_pointers`).
 
@@ -108,7 +108,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
      dotnet .../cobol.dll tests/conformance/2014/dyn_declare.cob --std 2014 -o /tmp/x.dll --run   # expect the .out
      ```
   2. Confirm the `occurs-dynamic-2014` row is `active` (no `status:"pending"`) so `VersionMatrixTests.ActiveConstruct_CompilesIffEditionAllows` asserts it both ways. If it is `pending`, flip it to `active`.
-- **Why:** Exit criterion 2 requires the dynamic-table row green at all four editions. OCCURS DYNAMIC is already implemented (DEVLOG 652-657); this step only proves + locks the matrix contract, catching any regression from the intervening rearchitecture waves.
+- **Why:** Exit criterion 2 requires the dynamic-table row green at all four editions. OCCURS DYNAMIC is already implemented; this step only proves + locks the matrix contract, catching any regression from the rearchitecture waves.
 - **Verify:**
   ```
   dotnet test tests/Cobol.Net.Tests.Conformance -c Debug --filter "VersionMatrixTests|OccursDynamicGuardTests|OccursDifferentialTests|OdoDifferentialTests|CorpusRunnerTests"
@@ -119,7 +119,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 ### [ ] Step 2 — Flip the live float trio matrix rows `pending`→`active` (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (rows `usage-float-short-2002`, `usage-float-long-2002`, `usage-float-extended-2002`).
-- **Do:** Remove `"status": "pending"` (defaults to `active`) from the three trio rows — the feature is already live (`PicInfo.cs:668-676`, DEVLOG 650-651). Update each row's `description` to drop the "PENDING … Phase 6 implements" clause and state "LIVE (Phase 6a / P12 step 2)". Keep `introducedIn: 2002`, `expectDiagnostic: "COBOLNET0900"`.
+- **Do:** Remove `"status": "pending"` (defaults to `active`) from the three trio rows — the feature is already live (`PictureAnalyzer.ParseUsage`). Update each row's `description` to drop the "PENDING … Phase 6 implements" clause and state "LIVE (P12 step 2)". Keep `introducedIn: 2002`, `expectDiagnostic: "COBOLNET0900"`.
 - **Why:** The rows lag the code; the matrix must assert what ships (`VersionMatrixTests` only asserts `active` rows). Fixes the stale-metadata smell.
 - **Verify:**
   ```
@@ -144,9 +144,9 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 ### [ ] Step 4 — DYNAMIC LENGTH: runtime carrier + data model (COMMIT BOUNDARY)
 
 - **Files:**
-  - create `src/Cobol.Net.Runtime/Values/Text/CobolDynString.cs` (rearch path) or `src/Cobol.Net.Runtime/Text/CobolDynString.cs` (current). A variable-length, min-0 string over `CobolString` semantics: a `string Value` with a `Limit` (max chars; `int.MaxValue`/`-1` if implementor-default per §13.18.19.4 GR2) and `Class` (Alphanumeric for `X`, National for `N`, §13.18.19.4 GR1). Constructor, `Length`, MOVE-in truncation-to-limit, `ToString`.
-  - `src/Cobol.Net.Compiler/Binding/Model/StorageForm.cs` (rearch): add `DynamicString` case. Or `DataItem.cs`: add init-only `bool IsDynamicLength`, `int DynLengthLimit`, `string? DynLengthStructureName`.
-- **Do:** Model the value only (no grammar yet). On the rearchitected model, `StorageFormPass` selects `DynamicString` when the entry has the DYNAMIC LENGTH fact; `RecordLayout` treats its physical width as variable (limit-bounded). On the current model, add the init-only fields and a single computation point.
+  - create `src/Cobol.Net.Runtime/Text/CobolDynString.cs`. A variable-length, min-0 string over `CobolString` semantics: a `string Value` with a `Limit` (max chars; `int.MaxValue`/`-1` if implementor-default per §13.18.19.4 GR2) and `Class` (Alphanumeric for `X`, National for `N`, §13.18.19.4 GR1). Constructor, `Length`, MOVE-in truncation-to-limit, `ToString`.
+  - `src/Cobol.Net.Compiler/Binding/Model/StorageForm.cs`: add a `DynamicString` case; add the limit/structure-name as init-only `DataItem` fields `int DynLengthLimit`, `string? DynLengthStructureName`.
+- **Do:** Model the value only (no grammar yet). `StorageFormPass` selects `DynamicString` when the entry has the DYNAMIC LENGTH fact; `RecordLayout` treats its physical width as variable (limit-bounded).
 - **Why:** Establish the storage representation ONCE before the emitter/binder consume it (invariant 1 — typed-native, no byte substrate; the string is a native `CobolDynString` field, never a byte window). Keeps the "one storage-form decision" discipline (DESIGN-data-model.md).
 - **Verify:** `dotnet build src/Cobol.Net.Runtime` and `src/Cobol.Net.Compiler` succeed; add a `CobolDynString` unit test (round-trip, truncation-to-limit, min-0). `dotnet test tests/Cobol.Net.Tests.Unit --filter CobolDynString`.
 - **Commit:** `feat(cobolnet): P12 — CobolDynString runtime carrier + DynamicString storage form (DEVLOG NNN)`.
@@ -155,8 +155,8 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 
 - **Files:**
   - `src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4`: add `dynamicLengthClause : {is2014()}? DYNAMIC LENGTH dataName? (LIMIT IS? integerLiteral)?` and wire it into the data-description-entry clause alternation (beside `occursClause`). Tokens `DYNAMIC`/`LENGTH`/`LIMIT` already exist (`CobolLexer.g4:366,444,410`) — no lexer change, so this is LL-safe: `DYNAMIC LENGTH` is disjoint from `OCCURS DYNAMIC` (different leading token).
-  - `src/Cobol.Net.Compiler/Binding/DataBinder.cs` (`BindEntry`): decode the clause. Enforce §13.18.19.3 SR1 (PICTURE must be exactly one `N` or one `X`) → **COBOLNET1540** on violation; SR4 (LIMIT ≤ structure max when a structure-name is given — if structures are unimplemented, reject a structure-name with **COBOLNET1541** "DYNAMIC LENGTH STRUCTURE not supported", a staged-loud guard); set the `IsDynamicLength`/`StorageForm.DynamicString` fact.
-  - Emitter (`FieldEmitter`/`RecordStructEmitter`): emit a `CobolDynString` field initialized to empty (min length 0, §13.18.19.4 GR1). MOVE into it truncates to limit; reference/DISPLAY reads current length.
+  - `src/Cobol.Net.Compiler/Binding/DataBinder.cs` (`BindEntry`): decode the clause. Enforce §13.18.19.3 SR1 (PICTURE must be exactly one `N` or one `X`) → **COBOLNET1540** on violation; SR4 (LIMIT ≤ structure max when a structure-name is given — if structures are unimplemented, reject a structure-name with **COBOLNET1541** "DYNAMIC LENGTH STRUCTURE not supported", a staged-loud guard); set the `StorageForm.DynamicString` fact.
+  - Emitter (`RecordStructEmitter`): emit a `CobolDynString` field initialized to empty (min length 0, §13.18.19.4 GR1). MOVE into it truncates to limit; reference/DISPLAY reads current length.
   - create `tests/conformance/2014/dynamic_length_item.cob` + `.out` and `tests/conformance/2014/dynamic_length_limit.cob` + `.out`; add both to `manifest.json` `enabled`.
 - **Do:** Implement the min-0 variable string. A `MOVE "ABC" TO DL-ITEM` sets length 3; `MOVE SPACES`/`MOVE ""`... `FUNCTION LENGTH(DL-ITEM)` returns the current length; overflow past LIMIT truncates (§13.18.19.4 GR2). **Do NOT** implement `SET DL-ITEM LENGTH …` — that is the 2023 delta (VCR row 60, Phase 13); if encountered, it should be a clean unimplemented diagnostic, not a silent accept.
 - **Why:** §8.5.1.10 / §13.18.19 is a core 2014 introduction. Implement COMPLETELY to the spec (memory `feedback_spec_scopes_not_tests`) minus the explicitly-deferred 2023 SET-length enhancement.
@@ -182,8 +182,8 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 
 - **Files:**
   - `src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4` `usageKeyword`: add `| {is2014()}? floatBinaryUsage | {is2014()}? floatDecimalUsage`, with `floatBinaryUsage : FLOAT_BINARY (integerLiteral)?` (accept the `-32/-64/-128` suffix; the token is `FLOAT-BINARY`, the numeric part follows) and `floatDecimalUsage : FLOAT_DECIMAL (integerLiteral)?`. Confirm the lexer splits `FLOAT-BINARY-32` as `FLOAT_BINARY` + `-32` or a single token; if the hyphen-number is lexed together, add explicit tokens `FLOAT_BINARY_32/64/128`, `FLOAT_DECIMAL_16/34` in `CobolLexer.g4` (reproduce a quick `dotnet .../cobol.dll` probe to see how `FLOAT-BINARY-32` tokenizes before choosing).
-  - `src/Cobol.Net.Compiler/Binding/PicInfo.cs`: add `Usage.FloatBinary32/64/128`, `Usage.FloatDecimal16/34`; extend `ParseUsage` (the `switch` ~655-690) with an arm per keyword, each calling `ConstructRegistry.Check(edition, "usage-float-binary32-2014", where)` etc. Map binary32→`float`, binary64→`double`, binary128→`decimal` (or a documented widened `double` with a fidelity note), decimal16→`decimal`, decimal34→`decimal`. Extend the `IsFloat`/`IsSingle`/`CsTypeName`/`ZeroLiteral` switches (`PicInfo.cs:244-276`) for every new member — **exhaustively** (memory `feedback_scan_all_similar`; a missed arm is a silent mis-type).
-  - External-float `E` symbol: in `PictureAnalyzer` (rearch) / `PicInfo.Analyze` (current), recognize the `E` picture symbol (§13.18.40 external floating-point) → a `Usage.Display` external-float category; render through `CobolFloat` string↔double. Add **COBOLNET1545** for an ill-formed external-float picture (mantissa/exponent SR violations, §13.18.40.3).
+  - `src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs`: add `Usage.FloatBinary32/64/128`, `Usage.FloatDecimal16/34`; extend `PictureAnalyzer.ParseUsage` with an arm per keyword, each calling `ConstructRegistry.Check(edition, "usage-float-binary32-2014", where)` etc. Map binary32→`float`, binary64→`double`, binary128→`decimal` (or a documented widened `double` with a fidelity note), decimal16→`decimal`, decimal34→`decimal`. Extend the `IsFloat`/`IsSingle`/`CsTypeName`/`ZeroLiteral` switches (`PicInfo.cs:244-276`) for every new member — **exhaustively** (memory `feedback_scan_all_similar`; a missed arm is a silent mis-type).
+  - External-float `E` symbol: in `PictureAnalyzer.Analyze`, recognize the `E` picture symbol (§13.18.40 external floating-point) → a `Usage.Display` external-float category; render through `CobolFloat` string↔double. Add **COBOLNET1545** for an ill-formed external-float picture (mantissa/exponent SR violations, §13.18.40.3).
   - `src/Cobol.Net.Runtime` `CobolFloat`: add binary128 / decimal16 / decimal34 format handling (see fidelity note below).
   - create `tests/conformance/2014/float_binary.cob`+`.out`, `float_decimal.cob`+`.out`, `tests/conformance/2002/external_float_pic.cob`+`.out`; manifest entries.
 - **IEEE-754 fidelity note (cite in the DEVLOG + a code comment):** .NET has no native binary128 or IEEE decimal128/decimal64. Per §4.2.15 (limits/precision implementor-defined) and §13.18.60.4 GR13 (float representations implementor-defined), backing FLOAT-BINARY-128 by `double` and FLOAT-DECIMAL-16/34 by `System.Decimal` is a **conforming implementor choice** — document it as such (`feedback_bare_end`: no unsourced conformance claim; cite §4.2.15 + §13.18.60.4). Do NOT silently pretend full 128-bit precision.
@@ -204,7 +204,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 - **Files:**
   - `CobolLexer.g4`: add `PROGRAM_POINTER : 'PROGRAM-POINTER'`; for FUNCTION-POINTER prefer reusing `FUNCTION`+`POINTER` context or add `FUNCTION_POINTER : 'FUNCTION-POINTER'` (decide by a tokenization probe — hyphenated words are single tokens here, so a dedicated token is cleanest).
   - `CobolData.g4` `usageKeyword`: add `| {is2014()}? PROGRAM_POINTER | {is2014()}? functionPointerUsage`, with `functionPointerUsage : FUNCTION_POINTER (TO functionPrototypeName)?` (§8.5.2.7 — the prototype-dependent form). Update the stale comment at `CobolData.g4:447-448`.
-  - `PicInfo.ParseUsage` + `Usage` enum: `Usage.ProgramPointer`, `Usage.FunctionPointer`; map to the runtime pointer carrier.
+  - `PictureAnalyzer.ParseUsage` + the `Usage` enum (`Binding/Model/PicInfo.cs`): `Usage.ProgramPointer`, `Usage.FunctionPointer`; map to the runtime pointer carrier.
   - Runtime: extend the single `ManagedPointer`/`CobolPtr` carrier (memory `feedback_managed_pointers` — ONE managed-ref carrier, never a parallel registry) to hold a program/function reference, or add `CobolFunctionPtr`/`CobolProgramPtr` value types under `Control/` following the singular-pattern rule.
   - `SET` binding: SET a program-pointer from `ENTRY`/a program-name; SET a function-pointer from a function-prototype (§8.5.2.7 / §14.9.31 SET formats). Gate any not-yet-supported SET format loudly (**COBOLNET1550/1551**).
   - create `tests/conformance/2014/program_pointer.cob`+`.out`; `function_pointer.cob`+`.out` (prototype-dependent — if function prototypes are not yet bindable from P10, land PROGRAM-POINTER fully and stage FUNCTION-POINTER loud with **COBOLNET1552** "FUNCTION-POINTER requires a function prototype (M3-4 follow-up)", and record it as a `pending` matrix row + a `pending` manifest entry so it is catalogued, not silently missing).
@@ -238,7 +238,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 ### [ ] Step 10 — TYPEDEF / `SAME AS` / `TYPE TO` edges: confirm + (optional) `SAME AS` (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (rows `typedef-def-2002`, `type-clause-2002` — confirm `active`); if `SAME AS` is scheduled here (owner decision — see §7 note): `CobolData.g4` (`SAME AS` clause), `DataBinder.cs` (reuse the generic `CloneItem` / `ExpandType`), a `2014/same_as.cob`+`.out`, a new `same-as-2014` matrix row.
-- **Do:** TYPEDEF + `TYPE` are DONE (DEVLOG 659-664) — verify their matrix rows are `active` and their goldens (`typedef_*`) green; no code change expected. **`SAME AS`** and **`TYPE TO`** are DEFERRED per DEVLOG 664 / conformance-plan M3-2 ("`AS` is a legacy-compat hazard"; `TYPE TO` is the pointer-target form). Default: leave both deferred, and record the deferral as `pending` matrix rows (`same-as-2014`, `type-to-2014`) with a cited owning-follow-up so the matrix catalogues them (never a silent gap — `VersionMatrixTests.PendingRow_HasActivationContract` requires a vcr + source). If the owner scheduled `SAME AS` into P12, implement it via `CloneItem` and flip its row `active`.
+- **Do:** TYPEDEF + `TYPE` are DONE — verify their matrix rows are `active` and their goldens (`typedef_*`) green; no code change expected. **`SAME AS`** and **`TYPE TO`** are DEFERRED per conformance-plan M3-2 ("`AS` is a legacy-compat hazard"; `TYPE TO` is the pointer-target form). Default: leave both deferred, and record the deferral as `pending` matrix rows (`same-as-2014`, `type-to-2014`) with a cited owning-follow-up so the matrix catalogues them (never a silent gap — `VersionMatrixTests.PendingRow_HasActivationContract` requires a vcr + source). If the owner scheduled `SAME AS` into P12, implement it via `CloneItem` and flip its row `active`.
 - **Why:** Scope item "TYPEDEF / SAME AS / TYPE TO edges (provisional 2002/2014 per Phase 3)". The edges must be either asserted (`active`) or catalogued-deferred (`pending`), not stale.
 - **Verify:** `dotnet test tests/Cobol.Net.Tests.Conformance --filter "TypedefStrongTests|TypedefConditionTests|TypedefResidueTests|TypedefReviewFixTests|VersionMatrixTests"` green.
 - **Commit:** `test(cobolnet): P12 — confirm TYPEDEF/TYPE matrix edges; catalogue SAME AS / TYPE TO as pending (DEVLOG NNN)` (or a `feat` if SAME AS implemented).
@@ -252,7 +252,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 
 ### [ ] Step 12 — Adversarial find→verify review of P12 (COMMIT BOUNDARY)
 
-- **Do:** Every prior feature's post-implementation adversarial review found real defects (DEVLOG 657 OCCURS DYNAMIC: 7 confirmed; DEVLOG 664 TYPEDEF: 7 confirmed). Run a find→verify sweep over the P12 code: float exhaustiveness (every `Usage.*` member handled in every `switch`), DYNAMIC LENGTH edge cases (empty MOVE → length 0; overflow truncation; `FUNCTION LENGTH`; REDEFINES/OCCURS interaction — reject if illegal per §13.18.19.3), pointer SET formats, and the edition gates at all four `--std`. Fix each confirmed defect; add a golden/guard per fix (memory `feedback_scan_all_similar`).
+- **Do:** Every prior feature's post-implementation adversarial review found real defects (OCCURS DYNAMIC: 7 confirmed; TYPEDEF: 7 confirmed). Run a find→verify sweep over the P12 code: float exhaustiveness (every `Usage.*` member handled in every `switch`), DYNAMIC LENGTH edge cases (empty MOVE → length 0; overflow truncation; `FUNCTION LENGTH`; REDEFINES/OCCURS interaction — reject if illegal per §13.18.19.3), pointer SET formats, and the edition gates at all four `--std`. Fix each confirmed defect; add a golden/guard per fix (memory `feedback_scan_all_similar`).
 - **Verify:** the full battery (see §5). Add the review's new tests.
 - **Commit:** `fix(cobolnet): P12 adversarial review — N confirmed defects, all fixed (DEVLOG NNN)`.
 
@@ -267,10 +267,10 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 Full battery — all must be green with **zero regressions** vs the Step-0 baseline:
 
 ```
-# Greenfield conformance (target: ≥2028 + the P12 additions, all green)
+# Greenfield conformance (target: ≥3166 + the P12 additions, all green)
 dotnet test E:/CobolSharp/tests/Cobol.Net.Tests.Conformance/Cobol.Net.Tests.Conformance.csproj -c Debug
 
-# Unit (target: ≥213 + P12 additions)
+# Unit (target: ≥281 + P12 additions)
 dotnet test E:/CobolSharp/tests/Cobol.Net.Tests.Unit/Cobol.Net.Tests.Unit.csproj -c Debug
 
 # FULL LEGACY GUARD — NIST differential; expect 353 MATCH (+ the known LEGACY_DIVERGENT set unchanged)
@@ -291,14 +291,6 @@ Byte-exact / behavior-neutrality checks:
 **Resume mid-phase:** each step is atomic and its "verify" command tells you whether the last commit is sound. `git log --oneline` shows which step-commits landed; re-run §5 to locate the frontier. The STATUS line + the §4 checkboxes are the ledger — trust them over memory.
 
 **Rollback a bad step:** `git revert <commit>` a single step (they are independent except: Step 6 depends on Step 5's grammar; Step 7's matrix rows depend on Step 7's code). No step deletes another's work.
-
-**Executing before the rearchitecture (fallback mapping).** If P5/P6/P7 have NOT landed when P12 runs, the target files shift but the work is identical:
-- `Binding/Model/StorageForm.cs` → an init-only `DataItem.IsDynamicLength`/`DynLengthLimit` on the current `DataItem.cs`.
-- `PictureAnalyzer` → the inline `PicInfo.Analyze` scanner (`PicInfo.cs`).
-- `RecordStructEmitter` → the current `FieldEmitter.cs`.
-- `Diagnostics/` registry → bare `EditionContext.Error("COBOLNET154x", …)` strings (still allocate the 1540-1559 band; migrate to the registry when P-test lands).
-- The declared `IBindPass` pipeline → the comment-ordered `BindResolve` call sequence in `DataBinder.cs`; add the DYNAMIC LENGTH fact computation at the existing `MarkImageLeaves`/storage-decision point so it is computed once.
-The tests, spec citations, grammar, and matrix rows are unchanged.
 
 **Risks & mitigations:**
 - *Grammar perturbs NIST.* Mitigation: each grammar step runs the FULL legacy guard before commit; `{is2014()}?`-gate every new alternative so a pre-2014 parse is unaffected (memory `feedback_grammar_version_factoring`). `DYNAMIC LENGTH` is LL-disjoint from `OCCURS DYNAMIC` (different leading token); the float/pointer usages are new alternatives in `usageKeyword`, added incrementally.

@@ -6,21 +6,22 @@ files) that COBOL.NET-generated C# programs call. Upholds the HARD INVARIANTS (t
 green throughout; singular pattern; four-editions-in-one; JSON/XML out of scope). This document is decision-complete:
 a future engineer can execute it.
 
-Cross-dimension dependency: the *compiler-side* references to this runtime (~60 members named by raw string in
-`CodeGen/Emit/*`) should be funnelled through ONE typed `RuntimeApi` façade in the emitter (recommended by the
-Emit-renderers survey). Several renames/namespace moves below are cheap *iff* that façade exists; where it does not
-yet, the migration keeps the emitted surface byte-stable (see Migration).
+Cross-dimension dependency: the *compiler-side* references to this runtime (~60 runtime members) are funnelled
+through ONE typed `RuntimeApi` façade in the emitter (`CodeGen/Roslyn/RuntimeApi.cs`, a `nameof`-anchored static
+class); the raw-string references still in `CodeGen/Emit/*` migrate onto it incrementally. Several renames/namespace
+moves below are cheap because that façade exists; where a reference has not yet migrated onto it, the migration keeps
+the emitted surface byte-stable (see Migration).
 
 ---
 
-## 1. Current problem (grounded in the survey + as-built code)
+## 1. Current problem (grounded in the survey + the current code)
 
 The runtime is a flat collection of **static facade classes** whose organization has drifted along three axes:
 
 ### 1.1 Run-unit state is process-global ambient statics with an INCONSISTENT threading model (the prime smell)
 Run-unit-lifetime state is spread across five unrelated static classes, each with its *own* threading assumption:
 
-| State | Home | Threading model (as-built) |
+| State | Home | Threading model (current) |
 |---|---|---|
 | Program registry (names, instances, containment) | `Control/ProgramRegistry.cs` (static `Dictionary`/`List`) | plain process-global, "single-threaded in-process" assumed |
 | Last-exception status, propagation slots, EC ambient gates | `Exceptions/ExceptionState.cs` (all `static … { get; private set; }`) | plain process-global |
@@ -265,7 +266,7 @@ unchanged) to keep the emitted surface byte-stable.
 
 ---
 
-## 4. Migration (keeping the 2028 conformance + 213 unit + NIST-353 battery green)
+## 4. Migration (keeping the 3166 conformance + 281 unit + NIST-353 battery green)
 
 Order the work so each step is independently green and the emitted-code surface is byte-stable until G8.
 
@@ -332,7 +333,7 @@ Each step is a commit with its own DEVLOG entry and a guard-fast/greenfield-suit
    `RunUnit.Current.X` instance calls (requires an emitter change but removes the shim layer)?
 4. **Namespace granularity.** Flat `Cobol.Net.Runtime` (fewest emitted `using`s) vs the sub-namespaced
    `.Values/.IO/.Control/.Exceptions/.Intrinsics/.Verbs` layout above (clearer, more `using`s). This is cheap either
-   way *if* the `RuntimeApi` façade lands; without it, flat is materially cheaper.
+   way now that the `RuntimeApi` façade has landed; without it, flat would be materially cheaper.
 5. **`Values/` vs keeping `Numeric/`+`Text/`+`Tables/` at top level.** The role grouping is cleaner but deepens paths.
    Accept `Values/Numeric/…` nesting, or keep the three top-level folders and only fix the `Strings/`→`Verbs/`
    mislabel?

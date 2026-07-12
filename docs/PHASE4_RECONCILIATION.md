@@ -1,6 +1,6 @@
 # Phase 4 Greenfield-vs-Catalog Reconciliation
 
-> **STATUS: the AUTHORITATIVE greenfield-truth view of the M2/M3/M4 catalog** (DEVLOG 610, the ratified
+> **STATUS: the AUTHORITATIVE greenfield-truth view of the M2/M3/M4 catalog** (the ratified
 > Phase-4 entry audit — `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase 4). The catalog
 > `docs/ISO2023_CONFORMANCE_PLAN.md` §3 carries LEGACY-era ☑/◐ marks; THIS table supersedes them with the
 > per-item greenfield status verified against `src/Cobol.Net.*` by a 10-agent audit (no LANDED/NOT-STARTED
@@ -22,7 +22,7 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
 
 | ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
 |---|---|---|---|---|---|---|
-| M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | **LANDED (DEVLOG 615)** | StatementBinder.Udf.cs (bind → hoisted CALL…RETURNING over a §8.4.3.2.4 GR1 result temp); 5 udf_* goldens ENABLED byte-exact (invocation, inline_expression, value_args, recursion, nested_args); UdfInvocationTests ×26; user-function-invocation-2002 registry+matrix row | none | As-built + adversarial-review notes below (the two-phase bind was REALIZED, not found). |
+| M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | **LANDED** | UdfBinder.cs (Binding/Procedure/Verbs/; bind → hoisted CALL…RETURNING over a §8.4.3.2.4 GR1 result temp); 5 udf_* goldens ENABLED byte-exact (invocation, inline_expression, value_args, recursion, nested_args); UdfInvocationTests ×26; user-function-invocation-2002 registry+matrix row | none | As-built + adversarial-review notes below (the two-phase bind was REALIZED, not found). |
 | M2-UDF-2 | Literal/arith args to a UDF | done | **LANDED (DEVLOG 615)** | §8.4.3.2.4 GR5b private-copy cells conformed by CobolArgAdapt; udf_value_args ENABLED byte-exact (LIT/ARI) | none | Folded into M2-UDF-1 as designed. |
 | M2-UDF-3 | Separate-compilation function prototypes (§8.13 / §11.5 Format 2) | open | **LANDED (DEVLOG 624)** | `FUNCTION-ID … IS PROTOTYPE` parses (PROTOTYPE token, `functionIdParagraph` tail, 0900 at 85); a prototype registers a signature but emits no runtime module (CallUnit.IsPrototype filters CallEmitProgramClass/Register); cross-assembly resolution reuses the sibling probe (§12.3.8 GR11c); EC-FUNCTION-NOT-FOUND (Fatal) on a locate miss. Golden `udf_prototype` (P=000049, GreenfieldOnly) + 2 cross-assembly tests + 5 UdfInvocationTests | (c) | AS-BUILT below. Runtime half was free (D1). |
 | M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | **LANDED (DEVLOG 626)** | `FUNCTION ALL INTRINSIC` (GR14) + `FUNCTION name INTRINSIC` now BIND (DataBinder.RepositoryAllIntrinsic / RepositoryIntrinsics, inherited into contained programs); the §8.4.3.2 SR2 **FUNCTION-keyword-omitted** reference form is LIVE bind-side (D2 — the ONE dataReference→Bound* chokepoints RefExpr/FieldOperand re-route `name(args)` to BindIntrinsicCore when the head is a repository intrinsic/ALL/user-function, SR6; data-item-wins guard). Gated ≥2002. Golden `udf_keyword_omitted` (MAX/MIN/MOD without FUNCTION, GreenfieldOnly) + 5 UdfInvocationTests | (c) | AS-BUILT below. GR12 named-specifier leg landed with UDF-1. |
@@ -1427,12 +1427,12 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 
 | ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
 |---|---|---|---|---|---|---|
-| M2-PROC-1 | INITIALIZE …TO VALUE/DEFAULT/WITH FILLER | done | LANDED | **Verified:** StatementBinder.Initialize.cs + CSharpEmitter.Initialize.cs; initialize_phrases.cob ENABLED | none | Re-implemented greenfield; pre-85 phrases gated 0830-0835. |
-| M2-PROC-2 | INSPECT …BACKWARD | done | LANDED | **Verified:** StatementBinder.Inspect.cs:63-65 Backward flag, gated 2023 via COBOLNET0845; inspect_backward.cob ENABLED (2023 manifest) | none | Gated 2023 (not 2002); ISO annex E.3.3 #34. |
+| M2-PROC-1 | INITIALIZE …TO VALUE/DEFAULT/WITH FILLER | done | LANDED | **Verified:** InitializeBinder.cs (Binding/Procedure/Verbs/) + InitializeEmitter.cs (CodeGen/Verbs/); initialize_phrases.cob ENABLED | none | Re-implemented greenfield; pre-85 phrases gated 0830-0835. |
+| M2-PROC-2 | INSPECT …BACKWARD | done | LANDED | **Verified:** InspectBinder.cs (Binding/Procedure/Verbs/) Backward flag, gated 2023 via COBOLNET0845; inspect_backward.cob ENABLED (2023 manifest) | none | Gated 2023 (not 2002); ISO annex E.3.3 #34. |
 | M2-PROC-3 | VALIDATE statement + validation clauses | open | OBSOLETE | **Verified:** zero VALIDATE grammar hits; council decision-3 = documented non-support is conformance-legal (F.2 #5 obsolete) | phase 7 | By design. Residual = a flag-obsolete WARNING row (Phase 7). Currently bare parse error. |
-| M2-PROC-4 | Exception handling (RAISE/EC/>>TURN/RESUME/USE AFTER EXCEPTION) | open | LANDED | **Verified:** StatementBinder.Exceptions.cs, TurnState.cs, CSharpEmitter.Exceptions.cs; oo_ec_* ENABLED; DEVLOG 577 | none | Catalog stale-open; landed post-catalog. -N EC twins ride Phase 4(a). |
+| M2-PROC-4 | Exception handling (RAISE/EC/>>TURN/RESUME/USE AFTER EXCEPTION) | open | LANDED | **Verified:** EcBinder.cs (Binding/Procedure/Verbs/), TurnState.cs (Binding/), EcEmitter.cs (CodeGen/); oo_ec_* ENABLED | none | Catalog stale-open; landed post-catalog. -N EC twins ride Phase 4(a). |
 | M2-PROC-5 | ALLOCATE / FREE (based storage) | open | **LANDED (DEVLOG 617)** | Both ALLOCATE formats (GR1 round-up / GR2 ≤0→NULL / GR6 zero-fill / GR3-GR4 based) + FREE's GR1 three-way (nonfatal EC-STORAGE-NOT-ALLOC through the TurnState-gated block; dangling aliases loud at Deref); pointer_alloc ENABLED byte-exact; allocate-2002/free-2002 matrix rows flipped ACTIVE | none | The based INITIALIZED GR7 INITIALIZE lowering is a named staged residue. |
-| M2-PROC-6 | GOBACK RETURNING (done); EXIT variants; CONTINUE AFTER (deferred) | partial | LANDED (+ EXIT FUNCTION, DEVLOG 616) | **Verified:** BoundGoback ReturningSource+Raising (StatementBinder.Call.cs), CallEmitGoback; goback_returning.cob ENABLED. **EXIT FUNCTION leg LANDED (Phase 4c):** UdfBindExitFunction → BoundGoback (the §14.9.18.4 GR5 function-return synonym; RAISING tail rides GOBACK's), 0827 placement band, the exit-function-window matrix row flipped ACTIVE with a conforming FUNCTION-ID witness (expectDiagnosticBelow 0900 / 0902 at 2023); udf_exit_function golden proves the early return (X=0014) | phase 7 residue | EXIT SECTION → BoundUnsupported. CONTINUE AFTER not in grammar → Phase 7. |
+| M2-PROC-6 | GOBACK RETURNING (done); EXIT variants; CONTINUE AFTER (deferred) | partial | LANDED (+ EXIT FUNCTION) | **Verified:** BoundGoback ReturningSource+Raising (CallBinder.cs, Binding/Procedure/Verbs/), CallEmitGoback; goback_returning.cob ENABLED. **EXIT FUNCTION leg LANDED (Phase 4c):** UdfBindExitFunction → BoundGoback (the §14.9.18.4 GR5 function-return synonym; RAISING tail rides GOBACK's), 0827 placement band, the exit-function-window matrix row flipped ACTIVE with a conforming FUNCTION-ID witness (expectDiagnosticBelow 0900 / 0902 at 2023); udf_exit_function golden proves the early return (X=0014) | phase 7 residue | EXIT SECTION → BoundUnsupported. CONTINUE AFTER not in grammar → Phase 7. |
 
 ## M2-PRE — preprocessor
 
@@ -1819,7 +1819,7 @@ Excludes 13 LANDED and 1 OBSOLETE-by-design (M2-PROC-3, warning-row only). 24 ro
    oo_*.out files and 24 distinct oo_* names in the 2002 manifest. Sub-feature evidence (1a-1g) is
    otherwise accurate. Correction is cosmetic — does not change the LANDED verdict for any sub-item.
 2. **M2-PROC-2 diagnostic code named.** Audit left the code unstated; the greenfield gate is
-   `COBOLNET0845` (StatementBinder.Inspect.cs:65), gated to 2023 (not 2002). Confirms the row's own
+   `COBOLNET0845` (InspectBinder.cs), gated to 2023 (not 2002). Confirms the row's own
    2023-framing note over the catalog's 2002 framing. No status change.
 3. **No status marks overturned.** All 8 spot-checked LANDED (INITIALIZE, INSPECT BACKWARD, Exception
    handling, GOBACK RETURNING, line-sequential, OO-1a/e/g representative, XOR) verified genuinely

@@ -586,7 +586,7 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   REFERENCE class` → a `_OBJ_` managed reference, and PERFORM inside an OBJECT method. Conformance
   `tests/conformance/2002/oo_hello` + `oo_method_perform`. Adversarial-reviewed (non-OO corpus byte-identical; 2
   latent landmines fixed: instance-State LOCAL-STORAGE load + receiver-less PERFORM). Turnkey map +
-  per-slice scope in `docs/OO_IMPLEMENTATION_DESIGN.md` (§5 slices, §6.6). **Slice 2 (DEVLOG 448): `INVOKE …
+  per-slice scope in `docs/COBOLNET_OO_DESIGN.md`. **Slice 2 (DEVLOG 448): `INVOKE …
   USING/RETURNING`** — OO methods take USING args + a RETURNING value via the CALL ManagedPointer[] ABI (an OO method
   is an instance "Entry"); per-instance state proven (`oo_method_args`: two objects accumulate independently).
   **Slice 3a (DEVLOG 450): `INHERITS FROM` + virtual methods + polymorphism** — a subclass extends a base (`class

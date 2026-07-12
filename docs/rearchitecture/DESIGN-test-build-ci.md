@@ -176,7 +176,7 @@ public sealed record ProbeResult(
   is behavior-preserving. Never run in CI; CI always compares.
 
 The characterization corpus is seeded ONCE, at the START of the rearchitecture, from the current (pre-refactor)
-emitter, so the first snapshot is "how the god-class emits today." Every subsequent phase must match it (or
+emitter, so the first snapshot is "how the emitter emits today." Every subsequent phase must match it (or
 review-re-baseline). This is the missing "prove I changed nothing" gate.
 
 ### 3.4 Oracle bake-out: converting the differential net to goldens (the G8-survival migration)
@@ -234,8 +234,8 @@ rule.
 
 ### 3.6 Build & driver seams the harness depends on
 Two build-side changes this dimension REQUIRES (owned by the driver/emitter dimensions but gated here):
-- **Real Bind phase boundary.** Extract `CSharpEmitter.CallEmitRunUnit`'s binder passes into
-  `Binding.BindPipeline.Bind(tree, edition) → BoundCompilation`. Then: `CheckOnly`/`--check-batch` stop after Bind
+- **Real Bind phase boundary.** Extract the binder passes — reached today through the `CSharpEmitter.Bind` host
+  facade — into a standalone `Binding.BindPipeline.Bind(tree, edition) → BoundCompilation`. Then: `CheckOnly`/`--check-batch` stop after Bind
   (fast verdict, no Emit); `ICompilerProbe.Probe(emit:false)` returns diagnostics from Bind only; the
   characterization emitter snapshot is a pure `Emit(BoundCompilation)`.
 - **Cache the Roslyn reference set.** `RoslynBackend.ReferenceAssemblies()` →
@@ -300,7 +300,7 @@ checkout (a failed regen fails the build — keep).
 | split | `COBOLNET0899` (~47 sites) | distinct unimplemented-feature descriptors behind a tracked list | One code = one rule; snapshot precision. |
 | move | `CompilerUnderTest.LegacyCompiler` / `ICompilerUnderTest` | DELETE after the bake | Legacy oracle gone once goldens are baked. |
 | refactor | `RoslynBackend.ReferenceAssemblies()` (uncached) | `static Lazy<ImmutableArray<MetadataReference>>` | Battery throughput (thousands of rebuilds → one). |
-| refactor | `CSharpEmitter.CallEmitRunUnit` (binder passes inside codegen) | `Binding.BindPipeline → BoundCompilation` | Bind phase boundary: fast `CheckOnly`, probe-able bound tree, clean Emit snapshot. |
+| refactor | binder passes behind the `CSharpEmitter.Bind` host facade | `Binding.BindPipeline → BoundCompilation` (standalone) | Bind phase boundary: fast `CheckOnly`, probe-able bound tree, clean Emit snapshot. |
 | rewrite | `.github/workflows/build-and-test.yml` (4 jobs, legacy-authoritative) | OS-matrix `build-test` + `version-sweep` + temporary `legacy-oracle` | Greenfield-authoritative, cross-platform NIST, characterization gated. |
 | delete (G8) | `tests/CobolSharp.Tests.Unit`, `tests/CobolSharp.Tests.Integration` | — | Frozen legacy retired after the bake. |
 | delete (G8) | `scripts/guard.sh`, `guard-fast.sh`, `guard-run-group.sh`, `guard-verify.sh`, `compliance.sh`, `nist-batch.sh`, `run-suite.sh` | — | All exist to run/parallelize the legacy NIST loop or legacy dashboards — dead once NIST runs in-process. |

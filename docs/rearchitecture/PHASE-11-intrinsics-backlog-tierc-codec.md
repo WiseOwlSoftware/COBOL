@@ -68,16 +68,16 @@ invariant permits. The full battery stays green at every commit boundary.
 **edition gating and arity checks apply**, but rows with `IntrinsicBind.Deferred` have no runtime body and no renderer recipe.
 At emit time they degrade to a **loud not-implemented guard**:
 
-- `IntrinsicRenderer.RenderNum` (`.../CodeGen/Emit/IntrinsicRenderer.cs:44`):
+- `IntrinsicRenderer.RenderNum` (`.../CodeGen/Emit/IntrinsicRenderer.cs:45`):
   `if (sig.Bind == IntrinsicBind.Deferred …) return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (catalogued, not yet implemented)"), 0);`
-- `IntrinsicRenderer.RenderString` (`.../IntrinsicRenderer.cs:244`): the string-channel twin.
+- `IntrinsicRenderer.RenderString` (`.../IntrinsicRenderer.cs:245`): the string-channel twin.
 
 Loud is correct (never a wrong value — COBOLNET_DESIGN §1.4), but a `Deferred` row means a **conformant program fails at run
 time**. The roadmap (`docs/COMPLETION_ROADMAP_COUNCIL.md` Phase 5, lines 67-69) requires each row **implemented or
 dispositioned** with a **non-provisional or explicitly-blocked** window, and **window-enforcement negative rows** (the critics'
 "dangling gap": a later-edition function silently accepted under an earlier `--std`).
 
-> **NOTE — the "43" figure is stale.** The roadmap and the phase brief say "43 Deferred". As-built, several 2002/2014 rows have
+> **NOTE — the "43" figure is stale.** The roadmap and the phase brief say "43 Deferred". Several 2002/2014 rows have
 > already been promoted (ABS, SIGN, E/PI/EXP/EXP10, FRACTION-PART, the FORMATTED-* family, NUMVAL-F, the EXCEPTION-* alphanumeric
 > quartet, etc.). **The executing session MUST re-enumerate the actual Deferred set first** (step 1). At the time of writing the
 > live set is the **22 rows** listed in §3.1. Work the *actual* set, not the number.
@@ -85,7 +85,7 @@ dispositioned** with a **non-provisional or explicitly-blocked** window, and **w
 ### 2.2 The window-enforcement mechanism already exists — the gap is test coverage
 
 `BindIntrinsicCore` already enforces the edition window generically:
-`IntrinsicCatalog.cs` rows carry `IntroducedIn`/`RemovedIn`, and `StatementBinder.Intrinsics.cs:116-121` emits **COBOLNET1502**
+`IntrinsicCatalog.cs` rows carry `IntroducedIn`/`RemovedIn`, and `Binding/Procedure/Verbs/IntrinsicBinder.cs:122-125` emits **COBOLNET1502**
 (introduced-later) / **COBOLNET1503** (removed) by name+edition. So "window-enforcement negative rows" are **conformance test
 cases**, not new binder code — each promoted function needs a `--std <earlier>` fixture asserting the 1502/1503 diagnostic. Some
 `IntroducedIn` values are **provisional** (the catalog comment, `IntrinsicCatalog.cs:50-52`); firming them is part of each
@@ -103,15 +103,16 @@ implemented today **without** locale support and currently reject a `LOCALE` phr
 
 ### 2.4 Tier-C REDEFINES is a declared-but-unimplemented tier scattered across ~10 guards
 
-`RedefinesTier.ByteCanonical` (`src/Cobol.Net.Compiler/Binding/RedefinesModel.cs:49`) — a genuine mixed-USAGE pun (a
+`RedefinesTier.ByteCanonical` (`src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs:49`) — a genuine mixed-USAGE pun (a
 COMP/COMP-1/2/3/5/INDEX leaf observed cross-view) whose shared area is one class-scoped `byte[]` — is **declared but
-unimplemented**. `ComputeTier` (`DataBinder.cs:1613-1633`) maps it to `Rejected` with a loud reason, and **~10 downstream call
+unimplemented**. `ComputeTier` (`DataBinder.cs:1752`) maps it to `Rejected` with a loud reason, and **the downstream call
 sites re-check the same fact** and each emit their own loud guard (grep `Tier-C`):
 
-`DataBinder.cs:1631`, `DataBinder.Linkage.cs:215/223/259`, `OoClassTable.cs:229/231/250`, `CSharpEmitter.cs:565/615/1759/1794`,
-`CodeGen/Verbs/AcceptDisplayEmitter.cs:52/113`, `CSharpEmitter.Call.cs:892`, `CSharpEmitter.Sort.cs:222`, `CSharpEmitter.Inspect.cs:92`,
-`CSharpEmitter.StringUnstring.cs:148/190`, `StatementBinder.Sort.cs:116/239`, `StatementBinder.Oo.cs:747/788/829/851`,
-`OperandText.cs:84`, `NumericRenderer.cs:96`, `FieldEmitter.cs:202/341`.
+`DataBinder.cs`, `DataBinder.Linkage.cs`, `OoClassTable.cs`, `ReferenceResolver.cs`, `Binding/Procedure/ExpressionBinder.cs`,
+`Binding/Procedure/Verbs/InitializeBinder.cs`, `Binding/Procedure/Verbs/OoBinder.cs`, `Binding/Procedure/Verbs/SortBinder.cs`,
+`CodeGen/DataDivision/GroupValueSlicer.cs`, `CodeGen/DataDivision/RecordStructEmitter.cs`, `CodeGen/Emit/OperandText.cs`,
+`CodeGen/Emit/NumericRenderer.cs`, `CodeGen/Verbs/AcceptDisplayEmitter.cs`, `CodeGen/Verbs/CallEmitter.cs`, `CodeGen/Verbs/InspectEmitter.cs`,
+`CodeGen/Verbs/MoveEmitter.cs`, `CodeGen/Verbs/SequentialIoEmitter.cs`, `CodeGen/Verbs/SortEmitter.cs`, `CodeGen/Verbs/StringEmitter.cs`.
 
 They are all keyed off one predicate (`DataItem.IsImageCapable` / the `Rejected` verdict). The data-model design
 (`docs/rearchitecture/DESIGN-data-model.md` §2.3) recommends **single-source the rejection now, implement the codec later**; the
@@ -125,7 +126,7 @@ additive, fully-specified increment** (step group D — recommended).
 
 ### 3.1 The live Deferred set (re-verify with step 1) and its disposition
 
-| # | Function | § | Row (as-built) | Disposition | New `RuntimeMethod` / verdict |
+| # | Function | § | Row (catalog line) | Disposition | New `RuntimeMethod` / verdict |
 |---|---|---|---|---|---|
 | 1 | `BOOLEAN-OF-INTEGER` | §15.13 | `:124` | implement | `BooleanOfInteger` |
 | 2 | `INTEGER-OF-BOOLEAN` | §15.45 | `:143` | implement | `IntegerOfBoolean` |
@@ -164,7 +165,7 @@ the A.4.9 disposition bind path.
 - `src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs` — no row is `IntrinsicBind.Deferred`. A **new** `IntrinsicBind` case
   `Unsupported` (or a `Module` tag field) carries the A.4.9 rows. `RuntimeMethod` filled for every implemented row; windows
   firmed (provisional→attributed where §7 gives authority, else explicitly annotated blocked).
-- `src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.Intrinsics.cs` — a new bind arm mapping `Bind == Unsupported` to the
+- `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs` — a new bind arm mapping `Bind == Unsupported` to the
   A.4.9 diagnostic **COBOLNET1518**; the `LOCALE`-phrase detection for `LOWER-CASE`/`UPPER-CASE`/`TEST-NUMVAL-C`; `BYTE-LENGTH`
   folds through the `Fold` path (a `BindByteLengthFold` beside `BindLengthFold`); category resolution for national-result rows.
 
@@ -182,7 +183,7 @@ the A.4.9 disposition bind path.
   `Location()`).
 
 **Tier-C (Compiler):**
-- `src/Cobol.Net.Compiler/Binding/RedefinesModel.cs` + a `RedefinesClassifier` (in P5's pass folder or `DataBinder`): one
+- `src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs` + a `RedefinesClassifier` (in the `Binding/Passes/` pass folder or `DataBinder`): one
   `RejectTierC(class, reason)` verdict owning the reason table; **all** ~10 inline guards route through the single predicate
   (`Storage is StorageForm.TierCWindow` / `!item.IsImageCapable`).
 - **If the codec is implemented (step group D):** `src/Cobol.Net.Compiler/Binding/Model/StorageForm.cs` — `TierCWindow.Read/
@@ -316,11 +317,11 @@ the default code page — **but** derive the actual conversion rule from §15.26
 code-page is given and unsupported, emit the loud path (or a bind-time non-support if you choose to gate code-page names — cite
 the § and keep it loud, never wrong).
 
-**Binder** (`StatementBinder.Intrinsics.cs`): result categories — `NATIONAL-OF`/`CHAR-NATIONAL` → `IntrinsicType.National`
+**Binder** (`Binding/Procedure/Verbs/IntrinsicBinder.cs`): result categories — `NATIONAL-OF`/`CHAR-NATIONAL` → `IntrinsicType.National`
 (category `National`); `DISPLAY-OF` → `Alphanumeric`. National-result rows render through the same string channel (a .NET string
 carries the national image; the bound node's category drives downstream MOVE/DISPLAY, already handled by P10's national paths).
-Remove the P10-era `COBOLNET0844` "CHAR-NATIONAL not yet implemented (Phase 4a residue)" guard at `StatementBinder.Intrinsics.cs:
-209-211` for the CHAR-NATIONAL leg (keep the ORD-over-national guard until/unless you implement it — cite the §).
+Remove the `COBOLNET0844` guard (national forms — CHAR-NATIONAL §15.16 / ORD over national — "not yet implemented") at
+`Binding/Procedure/Verbs/IntrinsicBinder.cs:214` for the CHAR-NATIONAL leg (keep the ORD-over-national guard until/unless you implement it — cite the §).
 
 **Renderer** (`IntrinsicRenderer.cs` `RenderString`): arms for `DisplayOf`, `NationalOf`, `CharNational`.
 
@@ -347,7 +348,7 @@ The catalog comment (`IntrinsicCatalog.cs:134-136`) deferred these because "no n
 (same value, national category — the runtime string is the national image).
 
 **Binder/renderer:** rows → `Runtime` with `RuntimeMethod` `EcFileN`/`EcLocationN`, category `National`; `RenderString` arms;
-keep the `EcNoteFunction()` EC-gate flag (the `RuntimeMethod.StartsWith("Ec")` check at `StatementBinder.Intrinsics.cs:215`
+keep the `EcNoteFunction()` EC-gate flag (the `RuntimeMethod.StartsWith("Ec")` check at `Binding/Procedure/Verbs/IntrinsicBinder.cs:220`
 already covers `EcFileN`/`EcLocationN`).
 
 **Note:** there is **no** `-N` twin for `EXCEPTION-STATEMENT`/`-STATUS` in ISO §15 — do not invent rows. The only `-N` EC twins
@@ -397,7 +398,7 @@ commaMode)`, `CobolIntrinsics.TestNumvalC(string, string currency, bool commaMod
 Derive the verdict codes from §15.93.4 / §15.94.4 (they are specific, not just 0/nonzero).
 
 **Renderer** (`RenderNum`): integer-result arms; `TestNumvalC` injects the default currency exactly like `NumvalC`
-(`IntrinsicRenderer.cs:124-128` + the bind-time default-currency injection at `StatementBinder.Intrinsics.cs:174-175` — extend
+(`IntrinsicRenderer.cs:124-128` + the bind-time default-currency injection at `Binding/Procedure/Verbs/IntrinsicBinder.cs:179` — extend
 the `args.Count == 1` injection to `TEST-NUMVAL-C`).
 
 **Catalog:** rows → `Runtime`. **Windows (§7):** `TEST-DATE-YYYYMMDD`/`TEST-DAY-YYYYDDD` carry **direct in-spec 2002 attribution**
@@ -419,8 +420,8 @@ generic window gate already emits **COBOLNET1503** at `--std 2023` (removed) and
 
 **`BYTE-LENGTH` (§15.14):** the number of *bytes* the argument occupies — **≠** `FUNCTION LENGTH` (character positions), the D7
 distinction. It is a **compile-time fold** (like LENGTH): a national leaf is 2 bytes/position (D-N1), DISPLAY is 1, COMP/COMP-3/
-binary use their storage width. Add `BindByteLengthFold` beside `BindLengthFold` (`StatementBinder.Intrinsics.cs:460`) folding
-from `RecordLayout`/`PicInfo.StorageWidth` byte geometry (P5's `RecordLayout` if present, else `DataItem`/`PicInfo` storage
+binary use their storage width. Add `BindByteLengthFold` beside `BindLengthFold` (`Binding/Procedure/Verbs/IntrinsicBinder.cs:465`) folding
+from `RecordLayout`/`PicInfo.StorageWidth` byte geometry (the `RecordLayout` width/offset authority, else `DataItem`/`PicInfo` storage
 width). Keep the row `Fold`, flip out of `Deferred` (set a sentinel `RuntimeMethod` or route by name like LENGTH). Runtime-length
 arguments (ref-mod / ODO) stay loud by name (same discipline as LENGTH, §15.14.4).
 
@@ -441,7 +442,7 @@ prove ≠ LENGTH), `.../2023/intrinsics_smallest_algebraic.cob`. **Negative rows
 five locale functions and closes the locale keyword variants.
 
 **Do:**
-1. `StatementBinder.Intrinsics.cs` `BindIntrinsicCore` — after the window gate, before the special-bind dispatch, add:
+1. `Binding/Procedure/Verbs/IntrinsicBinder.cs` `BindIntrinsicCore` — after the window gate, before the special-bind dispatch, add:
    ```csharp
    if (sig.Bind == IntrinsicBind.Unsupported)
    {
@@ -456,11 +457,11 @@ five locale functions and closes the locale keyword variants.
    `Deferred` runtime fallback is reached.
 2. **LOCALE keyword variants** of `LOWER-CASE` (§15.57), `UPPER-CASE` (§15.97), `TEST-NUMVAL-C` (§15.94): these functions are
    implemented *without* locale support. Detect a `LOCALE` phrase in the argument list (a bare `SUB_IDENTIFIER` segment
-   `LOCALE`, like TRIM's `LEADING`/`TRAILING` detection at `StatementBinder.Intrinsics.cs:233`) and, when present, emit
+   `LOCALE`, like TRIM's `LEADING`/`TRAILING` detection at `Binding/Procedure/Verbs/IntrinsicBinder.cs:237`) and, when present, emit
    COBOLNET1518 naming A.4.9 (the LOCALE *phrase*, not the whole function). Absent the phrase, bind exactly as today (zero
    regression to the existing goldens).
 3. Confirm `IntrinsicRenderer` never renders an `Unsupported` row (the binder returned an error) — the existing `Deferred` arms
-   at `IntrinsicRenderer.cs:44/244` are the only backstop and are now unreachable for these rows.
+   at `IntrinsicRenderer.cs:45/245` are the only backstop and are now unreachable for these rows.
 
 **Goldens** `tests/conformance/negative/locale-compare-a49.cob`, `.../locale-date-a49.cob`, `.../standard-compare-a49.cob`,
 `.../lower-case-locale-a49.cob` (the keyword variant), each `--std 2023` asserting **COBOLNET1518** + the "Annex A.4.9" /
@@ -481,17 +482,18 @@ five locale functions and closes the locale keyword variants.
 alone satisfies exit criterion 2 (single-sourced rejection) and is the seam the optional codec (step group D) plugs into.
 
 **Do:**
-1. Introduce (or, if P5 landed it, adopt) `RedefinesClassifier.RejectTierC(RedefinesClass cls, string reason)` as the ONE site
+1. Introduce `RedefinesClassifier.RejectTierC(RedefinesClass cls, string reason)` as the ONE site
    that stamps `cls.Tier = Rejected` / `cls.RejectReason` with a **reason table** keyed by the offending leaf kind (float,
-   COMP-5, BINARY-*, INDEX, national). Move the reason strings from `ComputeTier` (`DataBinder.cs:1627-1644`) into that table,
+   COMP-5, BINARY-*, INDEX, national). Move the reason strings from `ComputeTier` (`DataBinder.cs:1752`) into that table,
    preserving each ISO citation (risk #3 mitigation — keep every guard's citation).
-2. Make **one predicate** the single query every downstream site uses. In P5's model that is `item.Storage is
-   StorageForm.TierCWindow` (or the group's `!IsImageCapable`); pre-P5 it is `DataItem.IsImageCapable`. Route **all** ~10 inline
+2. Make **one predicate** the single query every downstream site uses: `item.Storage is
+   StorageForm.TierCWindow` (or the group's `!IsImageCapable` / the `Rejected` verdict). Route **all** the inline
    guards through it, each emitting a message from the **one** reason table rather than a bespoke string:
-   `DataBinder.Linkage.cs:215/223/259`, `OoClassTable.cs:229/231/250`, `CSharpEmitter.cs:565/615/1759/1794`,
-   `CodeGen/Verbs/AcceptDisplayEmitter.cs:52/113`, `CSharpEmitter.Call.cs:892`, `CSharpEmitter.Sort.cs:222`, `CSharpEmitter.Inspect.cs:92`,
-   `CSharpEmitter.StringUnstring.cs:148/190`, `StatementBinder.Sort.cs:116/239`, `StatementBinder.Oo.cs:747/788/829/851`,
-   `OperandText.cs:84`, `NumericRenderer.cs:96`, `FieldEmitter.cs:202/341`. Keep each guard's *statement context* (the verb it
+   `DataBinder.cs`, `DataBinder.Linkage.cs`, `OoClassTable.cs`, `ReferenceResolver.cs`, `Binding/Procedure/ExpressionBinder.cs`,
+   `Binding/Procedure/Verbs/InitializeBinder.cs`, `Binding/Procedure/Verbs/OoBinder.cs`, `Binding/Procedure/Verbs/SortBinder.cs`,
+   `CodeGen/DataDivision/GroupValueSlicer.cs`, `CodeGen/DataDivision/RecordStructEmitter.cs`, `CodeGen/Emit/OperandText.cs`,
+   `CodeGen/Emit/NumericRenderer.cs`, `CodeGen/Verbs/AcceptDisplayEmitter.cs`, `CodeGen/Verbs/CallEmitter.cs`, `CodeGen/Verbs/InspectEmitter.cs`,
+   `CodeGen/Verbs/MoveEmitter.cs`, `CodeGen/Verbs/SequentialIoEmitter.cs`, `CodeGen/Verbs/SortEmitter.cs`, `CodeGen/Verbs/StringEmitter.cs`. Keep each guard's *statement context* (the verb it
    guards) — only the *reason text* is centralized.
 3. **Do not change behavior** — every program that was loud-rejected before is loud-rejected now, with the same or better
    message. Add a `TierCRejectionTests` fact set: one program per previously-guarded shape (a COMP-5 REDEFINES of a DISPLAY area
@@ -511,7 +513,7 @@ the FULL guard, not just fast (`feedback_legacy_suite_on_shared_corpus`). No gol
 
 **Why:** Tier-C is *legal* COBOL (a COMP/binary/packed/index leaf type-punning a DISPLAY area via REDEFINES). A commercial-quality
 compiler supports it. This is the **one** sanctioned `byte[]` boundary of hard-invariant #1 (`DESIGN-data-model.md` §2.3 /
-`RedefinesModel.cs:47-49`). It is additive: the single seam from step group C is where `TierCWindow` becomes real.
+`Binding/Model/RedefinesModel.cs:47-49`). It is additive: the single seam from step group C is where `TierCWindow` becomes real.
 
 > **Decision gate:** if the executing session is time-boxed or P12 is racing, **stop after step group C** (exit met) and record
 > the codec as a scheduled increment in `DESIGN-data-model.md` §2.3 + a DEVLOG note. If proceeding, do the sub-steps below, each
@@ -528,9 +530,9 @@ representation and cite it) + the packed/binary byte layouts. Unit tests in `Cob
 leaf's usage. `ComputeTier`/`RedefinesClassifier` now classify a genuine mixed-usage pun as **`ByteCanonical`** (not `Rejected`):
 one class-scoped `byte[]` canonical (`RedefinesClass.Width` in bytes; the backing `_redef_X` becomes `byte[]`).
 
-**D.3 — `GroupImageCodec` byte path (COMMIT).** In `src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs` (P5/P7's
-split of `FieldEmitter`'s `AsImage`/`FromImage`), add the `byte[]` framing: a Tier-C class emits a `byte[]` backing + `AsImage`/
-`FromImage` that marshal through `CobolByteImage`, parallel to the existing Tier-B string codec (`FieldEmitter.cs:196-259`).
+**D.3 — `GroupImageCodec` byte path (COMMIT).** In `src/Cobol.Net.Compiler/CodeGen/DataDivision/GroupImageCodec.cs` (the
+split-out group image codec that owns `AsImage`/`FromImage`), add the `byte[]` framing: a Tier-C class emits a `byte[]` backing + `AsImage`/
+`FromImage` that marshal through `CobolByteImage`, parallel to the existing Tier-B string codec in `GroupImageCodec.cs`.
 
 **D.4 — Remove the reject, keep the verdict for the truly-unmodelable (COMMIT).** `RejectTierC` now fires only for **Tier-D**
 (spec-forbidden: object/pointer/strongly-typed SR12/14; ODO/variable-length SR5/17). The ~10 guards now permit a Tier-C class and
@@ -637,7 +639,7 @@ comment and the test:
 
 **Tier-C spec basis:** ISO §13.18.44 (REDEFINES shared area), §13.18.60 USAGE GR4 (representation implementor-defined),
 §12.4.6.4.4 SAME RECORD AREA GR2 ("equivalent to an implicit redefinition … aligned on the leftmost byte position") — the
-citation for the Tier-C byte model (`DataBinder.cs:1622-1624`, `RedefinesModel.cs:47-49`).
+citation for the Tier-C byte model (`DataBinder.cs`, `Binding/Model/RedefinesModel.cs:47-49`).
 
 **Conformance goldens to add (one value case per function/family + one window-enforcement negative per function):**
 - `tests/conformance/2002/`: `intrinsics_boolean_conv`, `intrinsics_national_conv`, `intrinsics_ec_national`,

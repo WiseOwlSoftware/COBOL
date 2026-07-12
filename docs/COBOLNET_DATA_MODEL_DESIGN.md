@@ -48,22 +48,19 @@ A typed substring over the item's CHARACTER image. DECISION: ref-mod always oper
   • ZERO-LENGTH ref-mod (l=0) is EDITION-VARYING (`VERSION_CHANGE_REFERENCE.md` #30): pre-2023 the result is undefined; at `--std 2023` it is allowed (yields "") ONLY when the REF-MOD-ZERO-LENGTH directive (§7.3.23) is in effect — otherwise EC-BOUND-REF-MOD is raised; FLAG-14 flags the ambiguous case (spec line 4523). Gate the emit by edition + directive state.
 
 == 6. NATIVE NUMERIC MODEL (owner-locked, reaffirm) ==
-Fixed-point = native `long` holding the UNSCALED value; scale is compile-time metadata on PicInfo (already implemented). 19-38 digit pictures → `Int128` (PicInfo gains a `WidePrecision` flag selecting Int128 vs long for ClrType + the runtime overloads; CobolNum must gain Int128 overloads — currently long-only). COMP-1/2 → float/double; COMP-5 → native int by width with binary wrap (PicInfo.StorageWidth already computes the byte width; runtime needs the wrap path, deferred). decimal/BigInteger essentially unused. This is settled (DEVLOG 462); the data-model design only needs to thread `WidePrecision` into ClrType, DefaultInitializer, ProfileInitializer, and the NumX scale-tracking expression type so wide items pick Int128 literals (`123` not `123L`).
+Fixed-point = native `long` holding the UNSCALED value; scale is compile-time metadata on PicInfo (already implemented). 19-38 digit pictures → `Int128` (PicInfo gains a `WidePrecision` flag selecting Int128 vs long for ClrType + the runtime overloads; CobolNum must gain Int128 overloads — currently long-only). COMP-1/2 → float/double; COMP-5 → native int by width with binary wrap (PicInfo.StorageWidth already computes the byte width; runtime needs the wrap path, deferred). decimal/BigInteger essentially unused. This is settled; the data-model design only needs to thread `WidePrecision` into ClrType, DefaultInitializer, ProfileInitializer, and the NumX scale-tracking expression type so wide items pick Int128 literals (`123` not `123L`).
 
 == 7. LEVELS 66 (RENAMES) and 88 (condition-names) ==
   • 88 condition-name: NOT a storage item — a named boolean predicate over its parent (the conditional variable). DECISION: emit each 88 as a C# `static bool` PROPERTY (or a method) over the parent Place: `private static bool LvlOk => CobolCond.In(Parent.Read(), <value-or-range-set>);` where the value set comes from the (possibly multi-valued, THRU-ranged) VALUE clause. SET cond TO TRUE → assign the parent its first/low value (ISO §14.9.34). The binder captures 88 entries as `Condition88` records on their conditional variable (IMPLEMENTED — `DataBinder.Conditions` multimap); ensure the captured VALUE list covers THRU ranges + multiple literals.
   • 66 RENAMES: a re-grouping alias over a contiguous run FROM..THRU of sibling elementary items. DECISION: model as a Place that is an ALIAS — for the common case (RENAMES of a single elementary, or a whole-group read/write) emit a computed property that concatenates/splits the underlying members' char images. The general overlapping-bytes RENAMES is a storage-overlay case → defer to G6 (the byte-image fallback) and flag loud. Capture RenamesInfo (FROM/THRU + qualifiers) now; resolution is deferred-pass like legacy.
 
 == 8. REDEFINES — the storage-overlay boundary ==
-> ⚠ **SUPERSEDED (2026-06-08).** This section's original DECISION ("the redefining item and the redefined item are
-> SEPARATE typed fields; a write to one is NOT auto-visible in the other") is **rejected**. SSOT
-> `COBOLNET_DESIGN.md` §14.3 names it the loser: **separate fields reproduce the exact silent-stale-read that
-> triggered the whole no-byte-substrate pivot** (a write through one view must be visible through every other view of
-> the same storage; two independent fields cannot guarantee that). The **canonical REDEFINES design is the 4-tier
-> one-canonical-backing model** in `COBOLNET_DESIGN.md` §4 and the deep-dive `COBOLNET_REDEFINES_DESIGN.md` — follow
-> those, not the paragraph below.
+> **Canonical REDEFINES design.** The 4-tier one-canonical-backing model below is the design; the SSOT is
+> `COBOLNET_DESIGN.md` §4 and the deep-dive `COBOLNET_REDEFINES_DESIGN.md`. A write through one view must be visible
+> through every other view of the same storage — two independent typed fields cannot guarantee that, which is why a
+> single stored canonical + computed accessors (not separate fields) is used.
 
-REDEFINES makes two differently-typed views share storage. **Current model (4 tiers; priority cascade D>C>B>A — see
+REDEFINES makes two differently-typed views share storage. **Model (4 tiers; priority cascade D>C>B>A — see
 `COBOLNET_REDEFINES_DESIGN.md`):** a "redefines class" (all entries over one storage area) has exactly ONE *stored*
 backing — the **canonical** — and EVERY other view is a **computed accessor (a C# property/`Place`)** over it; never
 two stored fields per area, so a write through any view is coherent across all.
@@ -77,14 +74,13 @@ two stored fields per area, so a write through any view is coherent across all.
   • **D — Reject loud** (object/pointer/strongly-typed/variable-length puns — already spec-illegal): a diagnostic.
 The redefining view emits NO stored VALUE field (init only from the original, REDEFINES SR9); a numeric view still
 emits its `_P_` NumProfile (an arithmetic target must compile). FILLER under a REDEFINES needs no field. Tier selection
-reuses the legacy `RecordClassificationPass` transitive-closure shape, re-verdicted to the A⊑B⊑C⊑D lattice (join = max
-tier). **Why the original "separate fields" plan was dropped:** it silently corrupts on any cross-type pun and re-opens
-the DEVLOG-457 failure mode; the one-canonical-backing model keeps Tiers A/B 100% typed (no `byte[]`) while staying
-coherent, and confines bytes to genuine mixed-USAGE puns only.
+(`DataBinder.ClassifyRedefinesClasses` → `ComputeTier`) runs a transitive-closure over each redefines class, verdicted
+to the A⊑B⊑C⊑D lattice (join = max tier). The one-canonical-backing model keeps Tiers A/B 100% typed (no `byte[]`)
+while staying coherent, and confines bytes to genuine mixed-USAGE puns only.
 
 == 9. CLAUSES: SYNCHRONIZED / JUSTIFIED / BLANK WHEN ZERO ==
   • SYNCHRONIZED: alignment is a BYTE-LAYOUT concept. In a typed-native model there are no byte boundaries to align to (a `long` field is naturally aligned by the CLR). DECISION: SYNC is a NO-OP for in-memory typed data; it only matters at the file/byte serialization boundary (G6), where the record-image builder honors it. Capture IsSynchronized for that future use. (Rationale: the only observable effect of SYNC absent byte access is on REDEFINES-overlay size, which is already the G6 byte path.)
-  • JUSTIFIED RIGHT: already threaded — CobolString.Store(value,width,justifiedRight) pads/truncates on the left. PicInfo/DataItem must carry IsJustifiedRight (currently not captured); the Place's WriteStmt for an alphanumeric receiver passes it.
+  • JUSTIFIED RIGHT: already threaded — CobolString.Store(value,width,justifiedRight) pads/truncates on the left. `DataItem.Justified` carries the flag; the Place's WriteStmt for an alphanumeric receiver passes it.
   • BLANK WHEN ZERO: an OUTPUT/edit-time rule (ISO §13.18.6) — a numeric/numeric-edited item displays as all spaces when its value is zero. DECISION: a property of the item's display rendering, applied in CobolNum.FormatDisplay / the numeric-edited formatter: if value==0 emit spaces of the picture width. Capture BlankWhenZero on PicInfo.
 
 == 10. VALUE INITIALIZATION incl. TABLES, ISO §13.18.63 / §14.9.4 ==
@@ -92,7 +88,7 @@ Default (no VALUE): alphanumeric→spaces, numeric→0 (unscaled), index→1, po
   • Group with VALUE: initialize every subordinate per the group literal spread across the group's char positions (rare; the common form is per-elementary VALUE). 
   • OCCURS with VALUE: ISO permits VALUE on a table item → every element initialized to that value. Emit a collection-expression / array initializer: `Items = [.. Enumerable.Repeat(elemInit, n)]` or an explicit `new _T_Item[]{ init, init, … }`. Multi-literal table VALUE (one literal per element, COBOL-2002) → positional initializer list, padded with the last/default.
   • Figurative constants (ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/ALL "x"): map to the typed default of the right width — ZERO→0L or "0000", SPACE→new string(' ',w), ALL "AB"→repeat to width. Capture FigurativeInit + AllLiteralPattern (legacy already models these; port).
-  The whole 01 field's initializer is a single C# object-initializer expression composed recursively from the leaves — emitted in the static field declaration (program) or the instance ctor (OO), matching DEVLOG 456's per-instance init.
+  The whole 01 field's initializer is a single C# object-initializer expression composed recursively from the leaves — emitted in the static field declaration (program) or the instance ctor (OO), one initializer per instance.
 
 == 11. THE PLACE MODEL — concrete C# emission contract ==
 `abstract record Place { abstract string Read(); abstract string Write(string rhs); PicInfo Pic; bool IsNumeric/IsAlpha; }`
@@ -111,11 +107,11 @@ Concrete kinds:
 Every verb emitter (MOVE/ADD/COMPUTE/file READ INTO/WRITE FROM/CALL USING) takes Places and never touches layout — the unification the task demands. CALL BY REFERENCE passes the receiver Place's address: since a `record struct` member or array element is a C# variable, emit `ref` (e.g. `Sub(ref WsRec.Count)`) for BY REFERENCE; BY CONTENT copies the Read(). (A ref-mod or 88 receiver cannot be passed by ref → diagnose or pass by content per ISO.)
 
 == 12. SUMMARY OF REQUIRED CHANGES TO EXISTING CODE ==
-> **Status (2026-06-10):** this was the original G2 worklist; much has LANDED in `src/Cobol.Net.Compiler`
-> (`Place`/`ReferenceResolver`, nested record-struct emission, the `ByName` multimap, `Condition88` capture,
-> `WidePrecision`/Int128). Treat the list below as the design inventory; the live remaining-work tracker is
-> `resume-prompt.md`, not this section.
-DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Redefines, RenamesInfo, OccursInfo (min/max/dependingOn/indexNames/keys), IsGroup-aware ClrType using `_T_` struct names + array `[]`, Level-88 ValueSet, FigurativeInit/AllLiteralPattern, WidePrecision. DataBinder: stop skipping 66/88; capture all clauses; build a name MULTIMAP; collect OCCURS dims + INDEXED BY index-names as their own entities; deferred-resolution pass for REDEFINES/RENAMES/DEPENDING-ON targets. PicInfo: WidePrecision (Int128), BlankWhenZero, IsJustifiedRight; ParseUsage already covers usages. New `ReferenceResolver`(→Place) + the suffix flattener (port legacy SUB_* interpretation). CSharpEmitter: stop flattening groups to leaves (DEVLOG 458's stopgap) — emit nested record-struct TYPES + composed initializers; route every operand through Place. Runtime: CobolString.RefMod/SpliceInto, CobolCond.In, Int128 overloads of CobolNum, COMP-5 wrap.
+> **Note.** The list below is the DATA DIVISION design inventory; most of it is implemented in
+> `src/Cobol.Net.Compiler` (`Place`/`ReferenceResolver`, nested record-struct emission, the `ByName` multimap,
+> `Condition88` capture, `WidePrecision`/Int128). The live remaining-work tracker is `resume-prompt.md`, not this
+> section.
+DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Redefines, RenamesInfo, OccursInfo (min/max/dependingOn/indexNames/keys), IsGroup-aware ClrType using `_T_` struct names + array `[]`, Level-88 ValueSet, FigurativeInit/AllLiteralPattern, WidePrecision. DataBinder: stop skipping 66/88; capture all clauses; build a name MULTIMAP; collect OCCURS dims + INDEXED BY index-names as their own entities; deferred-resolution pass for REDEFINES/RENAMES/DEPENDING-ON targets. PicInfo: WidePrecision (Int128), BlankWhenZero, IsJustifiedRight; ParseUsage already covers usages. New `ReferenceResolver`(→Place) + the suffix flattener (port legacy SUB_* interpretation). Emitter (`CodeGen/DataDivision/{DataEmitter,RecordStructEmitter}`): emit nested record-struct TYPES + composed initializers rather than flattening groups to leaves; route every operand through Place. Runtime: CobolString.RefMod/SpliceInto, CobolCond.In, Int128 overloads of CobolNum, COMP-5 wrap.
 
 ## Decisions
 
@@ -143,11 +139,11 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 **Rejected alternatives.** Materializing 88s as stored booleans kept in sync on every parent write — rejected: redundant state, sync bugs, non-idiomatic.
 
-### D5. REDEFINES uses the 4-tier ONE-canonical-backing model (A Alias / B StringCanonical / C class-scoped ByteCanonical / D reject-loud); every non-canonical view is a computed `Place` accessor over the single backing — never two stored fields per storage area. [REVISED 2026-06-08; canonical: `COBOLNET_DESIGN.md` §4 + `COBOLNET_REDEFINES_DESIGN.md`]
+### D5. REDEFINES uses the 4-tier ONE-canonical-backing model (A Alias / B StringCanonical / C class-scoped ByteCanonical / D reject-loud); every non-canonical view is a computed `Place` accessor over the single backing — never two stored fields per storage area. [Canonical: `COBOLNET_DESIGN.md` §4 + `COBOLNET_REDEFINES_DESIGN.md`]
 
 **Rationale.** A write through any view must be visible through every other view of the same area (ISO §13.18.42 "same storage area"). One stored canonical + computed accessors guarantees that coherence with NO byte substrate for the dominant DISPLAY-homogeneous case (Tiers A/B — the entire near-term NIST path), and confines `byte[]` to genuine mixed-USAGE puns only (Tier C, owner decision §18 #1).
 
-**Rejected alternatives.** (a) **The original D5 "separate independent typed fields"** — rejected (SSOT §14.3 names it the loser): two independent fields cannot stay coherent under a cross-type pun, reproducing the silent-stale-read that triggered the DEVLOG 457 pivot — even a loud cross-type-read guard only *detects* it, it does not make the program correct. (b) Global `byte[]` for all REDEFINES — rejected: the abolished substrate. (c) `[StructLayout(Explicit)]`/`[FieldOffset]` overlay — rejected: cannot overlay a `string` on a `long`, which is the dominant pun.
+**Rejected alternatives.** (a) **Separate independent typed fields** — rejected: two independent fields cannot stay coherent under a cross-type pun, reproducing the silent-stale-read the no-byte-substrate model exists to prevent — even a loud cross-type-read guard only *detects* it, it does not make the program correct. (b) Global `byte[]` for all REDEFINES — rejected: the abolished substrate. (c) `[StructLayout(Explicit)]`/`[FieldOffset]` overlay — rejected: cannot overlay a `string` on a `long`, which is the dominant pun.
 
 ### D6. SYNCHRONIZED is a no-op for in-memory typed data; honored only at the file/byte-serialization boundary (G6). BLANK WHEN ZERO and JUSTIFIED are display/store-time rules on PicInfo.
 
@@ -157,18 +153,18 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 
 ### D7. Fixed-point stays native long (unscaled, compile-time scale); 19-38 digits → Int128 via a WidePrecision flag; no decimal/BigInteger.
 
-> **✅ SHIPPED (DEVLOG 540), refinement:** the wide selector landed as the DERIVED property `PicInfo.IsWide`
+> **Refinement.** The wide selector is the DERIVED property `PicInfo.IsWide`
 > (`Numeric && !IsFloat && Digits > 18`) driving `ClrType`/`DefaultInitializer` — not a stored flag (`Digits` is
 > already on PicInfo; a parallel flag could drift from it). Literals wider than long emit `Int128.Parse("…")`
-> (`EmitText.IntLiteral` — C# has no Int128 literal form); the store boundary narrows via the width-aware
-> `CSharpEmitter.Narrow`. The SURFACE cap is per-edition (18 at `--std 85`, 31 at 2002+, >31 rejected everywhere —
+> (`EmitCore.IntLiteral` — C# has no Int128 literal form); the store boundary narrows via the width-aware
+> `ArithmeticEmitter.Narrow`. The SURFACE cap is per-edition (18 at `--std 85`, 31 at 2002+, >31 rejected everywhere —
 > `EditionContext.CheckDigitCapacity`, COBOLNET0801/0802); Int128's 38 digits are substrate headroom only.
 
-**Rationale.** Owner-locked (DEVLOG 462): hardware-native, exact, DISPLAY image falls out for free; Int128 is a fixed-size value type far cheaper than BigInteger.
+**Rationale.** Owner-locked: hardware-native, exact, DISPLAY image falls out for free; Int128 is a fixed-size value type far cheaper than BigInteger.
 
 **Rejected alternatives.** decimal (software, not hardware-native) and BigInteger (heap-allocating) — both rejected by the owner.
 
-### D8. National and boolean data ride the fixed-width STRING substrate (Phase 4a, 2026-07-05 — the M2-DATA-3/4 design in `PHASE4_RECONCILIATION.md` carries the full decision set D-N1..D-N4/D-B1).
+### D8. National and boolean data ride the fixed-width STRING substrate (the full decision set D-N1..D-N4/D-B1 lives in `PHASE4_RECONCILIATION.md`).
 
 - **D-N1 national**: an elementary national item is a plain C# `string` of `Length` characters — .NET strings are
   natively UTF-16, so "two bytes per character position" is the documented implementor choice (§13.18.60.4 GR8 +
@@ -189,19 +185,17 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 the alternatives (a 1-byte national size, C# bool for PIC 1, bit-packing) each break a spec surface —
 see the reconciliation design's F4 and the residue ledger.
 
-**Rejected alternatives.** (a) The C# mapping sketch's original `PIC 1 → bool` — superseded (multi-position
+**Rejected alternatives.** (a) `PIC 1 → bool` — rejected (multi-position
 PIC 1(n)/fills/ref-mod need character semantics; a bool cannot carry them). (b) GR8's size-equal-alphanumeric
 national — rejected for forward-compat (the non-Latin-1/NX"/BYTE-LENGTH residue presumes 2-byte). (c) True
 bit-packing for USAGE BIT — optional forever under R14; revisit only with GROUP-USAGE BIT.
 
 ### D9. OCCURS DYNAMIC (dynamic-capacity tables, §13.18.38 Format 4, COBOL-2014) — an out-of-line growable `CobolDynTable<T>`; sending/receiving direction carried by `Place`; a CORE ships whole, variable-length-group ops staged LOUD.
 
-*Decision-complete design — recon wf_32407556-b96 (2026-07-07). Load-bearing claims verified verbatim: §8.5.1.9.1
-:8189 (dynamic-capacity definition — physical=logical capacity, current capacity, non-contiguous implementor-defined
-allocation, FROM/VALUE initial, TO expected); §13.18.38 Format 4 :19858 (`OCCURS DYNAMIC [CAPACITY IN data-name-3]
-[FROM integer-4] [TO integer-5] [INITIALIZED]` + ASC/DESC KEY + INDEXED BY); the `occursClause` grammar has NO
-DYNAMIC form (CobolData.g4:330); `ExceptionCatalog` ALREADY registers EC-BOUND-OVERFLOW(nonfatal)/-TABLE-LIMIT(fatal)/
-EC-FLOW-SEARCH(fatal). Full design in the recon transcript; the decision + increments are here (SSOT).*
+*Load-bearing spec anchors: §8.5.1.9.1 :8189 (dynamic-capacity definition — physical=logical capacity, current
+capacity, non-contiguous implementor-defined allocation, FROM/VALUE initial, TO expected); §13.18.38 Format 4 :19858
+(`OCCURS DYNAMIC [CAPACITY IN data-name-3] [FROM integer-4] [TO integer-5] [INITIALIZED]` + ASC/DESC KEY + INDEXED
+BY); `ExceptionCatalog` registers EC-BOUND-OVERFLOW(nonfatal)/-TABLE-LIMIT(fatal)/EC-FLOW-SEARCH(fatal).*
 
 **Storage (decided).** A dynamic table is NOT an inline record run (the spec permits non-contiguous occurrences and
 adjacent fixed record fields keep their positions, §8.5.1.9.1 :8197). A new runtime class
@@ -217,7 +211,7 @@ the CAPACITY bridge, the SEARCH bound, and every capacity EC.
 seeds skipped intermediates), no CAPACITY phrase needed; a *sending* OOB subscript is EC-BOUND-SUBSCRIPT (fatal,
 §8.4.2.3). (2) EXPLICIT — SET Format 14 (`SET dn {TO|UP BY|DOWN BY} n`, syntactically the existing SET — the binder
 re-routes) only if CAPACITY present; may raise/lower. New occurrences seed with the one-occurrence element
-initializer (reuse `FieldEmitter.ComposedInit`/`InitializerFor`; heed the DEVLOG-643 seed-EVERY-occurrence lesson) —
+initializer (reuse `GroupValueSlicer.ComposedInit`/`ValueInitializer.InitializerFor`; EVERY occurrence — including skipped intermediates — must be seeded) —
 satisfies INITIALIZED exactly, and is crash-safe for the "undefined" (INITIALIZED-absent) case.
 
 **CAPACITY register (decided).** A view over `table.Capacity` (no own storage): the binder maps `name → owning
@@ -249,19 +243,19 @@ existing SET syntax, binder-rerouted). Diagnostics: **1522** (declaration/placem
 FROM/TO bounds, dup phrase), **1523** (CAPACITY register misuse SR30–32), **1524** (SET Format 14 misuse), 1525–1528
 (staged-loud). (08xx band exhausted; 15xx, last-used 1521.)
 
-**Increments (each: build → full greenfield battery → legacy guard → commit):** (1) **✅ LANDED (DEVLOG 652)** —
+**Implemented (the CORE increments):** (1)
 grammar (`CAPACITY` token + the `OCCURS DYNAMIC occursDynamicPhrase* …` alt, `{is2014()}?`-gated) + `OccursSpec`
 dynamic fields + `DataItem.IsDynamicTable`/`IsTable`/`FieldType` (+ image-capable exclusions) + `CobolDynTable<T>` +
 `FieldInit` dynamic branch + `OdoBindOccursSpec` Format-4 branch + `EditionGateHints` gate + the matrix row
 (`occurs-dynamic-2014`, active) — the ONLY grammar/legacy-guard slice → golden `dyn_declare` (a group-element table,
-greenfield-only). **Two plan refinements recorded (process rule):** (a) NO VCR row — the VCR's own preamble (line 20)
+greenfield-only). **Two plan refinements:** (a) NO VCR row — the VCR's own preamble (line 20)
 states 2002→2014 *introductions* are captured by the matrix `introducedIn` tag, not the VCR (which carries only
 2014→2023 Annex-E deltas + a few 2002→2014 behavior rows); the `constructs.json` + `ConstructDialectStatus` pair IS the
 canonical introduction record. (b) NO separate `dyn_pre2014` corpus golden — the corpus runner asserts compile+run
 SUCCESS only; the below-2014 **COBOLNET0900** rejection is asserted by the matrix row's `expectDiagnostic` at editions
 85/2002 (`VersionMatrixTests`), the one place negative gating belongs. `DynamicResolve` (CAPACITY-register/access
-resolution) moved to inc 2/3 where the register becomes a readable item;
-(2) **✅ LANDED (DEVLOG 653)** — CAPACITY register read + SET Format 14. The register is a `CapacityRegisterPlace`
+resolution) belongs with increments 2/3 where the register becomes a readable item;
+(2) CAPACITY register read + SET Format 14. The register is a `CapacityRegisterPlace`
 (a VIEW over `{tablePath}.Capacity`, synthesized in a `DataBinder.DynamicResolve` post-build pass, indexed by
 `DataBinder.CapacityRegisters`, resolved via an early `ReferenceResolver.Resolve` hook + the new
 `ReferenceResolver.TablePath` whole-table-path helper); an unsigned-integer native-binary `PicInfo` so numeric reads
@@ -269,44 +263,42 @@ hit the plain scale-0 branch, its `NumProfile` emitted (not a field) for the DIS
 14 (TO/UP BY/DOWN BY) reroutes in `BindSetTo`/`BindSetUpDown` on a `CapacityRegisterPlace` first target →
 `BoundSetCapacity` → `SetCapacity`/`CapacityUpBy`/`CapacityDownBy`. Diagnostics: **1523** (register as an ordinary
 receiver — the `ResolveReceiving` chokepoint; and the SR30 implicit-definition name collision in `DynamicResolve`),
-**1524** (SET F14 with a second/mixed target). A whole (unsubscripted) dynamic-table reference now fails LOUD (a
-`PlaceForItem` guard) instead of emitting a bare `CobolDynTable<T>` object. Goldens `dyn_capacity_read`/
-`dyn_capacity_set`/`dyn_capacity_bounds` (greenfield-only). **Deferred with rationale (recorded here per the process
-rule):** (a) **EC-BOUND-OVERFLOW** on exceeding the TO/expected capacity is NONFATAL and checking-gated — with
-runtime checking off (the default) the operation continues either way (identical observable behavior), so the
-runtime `_expected` enforcement + the `>>TURN … CHECKING ON` gate ride the EC-integration pass, not inc 2
-(`dyn_capacity_bounds` proves the checking-off continue). (b) **FUNCTION LENGTH over a dynamic table**
-(= `Capacity × elemWidth`) + the `DynWholeTablePlace` whole-table place + its value-funnel loud belong with the
-inc-5 §14.6.9 **1527** whole-/variable-length-group work (one home for whole-dynamic-table operations); inc 2 ships
-the clean whole-table loud guard as the interim. (3) **✅ LANDED (DEVLOG 654)** — subscripted element access. **⚠ the original D9 sketch
-`CobolTable.At(CobolDynTable, occ, receiving)` was WRONG** (a single `MemberPlace` path cannot carry read-vs-write
-polarity; `ref T` covers the fixed case only). CORRECTED + implemented: an `AccessDir { Sending, Receiving }` threaded
+**1524** (SET F14 with a second/mixed target). A whole (unsubscripted) dynamic-table reference fails LOUD (a
+`PlaceForItem` guard) rather than emitting a bare `CobolDynTable<T>` object. Goldens `dyn_capacity_read`/
+`dyn_capacity_set`/`dyn_capacity_bounds` (greenfield-only). **Deferred:** (a) **EC-BOUND-OVERFLOW** on exceeding the
+TO/expected capacity is NONFATAL and checking-gated — with runtime checking off (the default) the operation continues
+either way (identical observable behavior), so the runtime `_expected` enforcement + the `>>TURN … CHECKING ON` gate
+ride the EC-integration pass (`dyn_capacity_bounds` proves the checking-off continue). (b) **FUNCTION LENGTH over a
+dynamic table** (= `Capacity × elemWidth`) + the `DynWholeTablePlace` whole-table place + its value-funnel loud belong
+with the §14.6.9 **1527** whole-/variable-length-group work (one home for whole-dynamic-table operations); the clean
+whole-table loud guard is the interim. (3) subscripted element access. A single `MemberPlace` path cannot carry
+read-vs-write polarity (`ref T` covers the fixed case only), so an `AccessDir { Sending, Receiving }` is threaded
 through `AccessPath`, and a `DynTablePlace(SendingPath, ReceivingPath, Item)` whose `Read()` emits `…RefSending(occ)`
 and `Write(rhs)` emits `…RefReceiving(occ) = rhs;` (the receiving side grows-and-seeds skipped intermediates). Arity
-recognition switched to `IsTable` at the OCCURS-level count; the dynamic segment renders the accessor and any group-
+recognition uses `IsTable` at the OCCURS-level count; the dynamic segment renders the accessor and any group-
 field/fixed-OCCURS tail is appended after it (`{tbl}.RefSending(i).Field`). A sending OOB stays benign scratch;
 EC-BOUND-SUBSCRIPT-under-checking rides the general subscript-checking gate (a cross-cutting later increment, not
-dyn-specific). → `dyn_implicit_grow`/`dyn_initialized`; (4) **✅ LANDED (DEVLOG 655)** — SEARCH/SEARCH ALL over
+dyn-specific). → `dyn_implicit_grow`/`dyn_initialized`; (4) SEARCH/SEARCH ALL over
 current capacity + INITIALIZE. SEARCH: the table guard accepts `IsTable` (dynamic too), `OdoModel.SearchBound` gains a
 dynamic branch returning `{tablePath}.Capacity` (a run-time bound, threaded via `BoundSearch.DependCount`), and
 `BoundSearch.DynTable` carries the table path so `EmitSearch` brackets the scan in
 `{tbl}.EnterSearch(); try { … } finally { {tbl}.ExitSearch(); }` — a SET Format 14 on that same table WHILE searching
-raises EC-FLOW-SEARCH (GR31). INITIALIZE: **⚠ spec-checked correction** — §14.9.20 GR10 (":28023") says all
+raises EC-FLOW-SEARCH (GR31). INITIALIZE: per §14.9.20 GR10 (":28023") all
 occurrences up to current capacity are initialized by the INITIALIZE statement's OWN stores (the CATEGORY DEFAULTS /
-REPLACING / VALUE-phrase), NOT the OCCURS grow-seed, capacity unchanged — so `CobolDynTable.InitializeAll` (which
-re-seeds with the VALUE-inclusive image) is WRONG for a VALUE element. Implemented as an `InitializeDynLoop(var,
+REPLACING / VALUE-phrase), NOT the OCCURS grow-seed, capacity unchanged (a naive re-seed with the VALUE-inclusive
+image would be WRONG for a VALUE element). Implemented as an `InitializeDynLoop(var,
 {tablePath}.Capacity, body)` (a RUN-TIME-bounded loop, sibling of `InitializeLoop`) over an `InitializeDynCursor`
 that yields a `DynTablePlace` (writes via `RefReceiving`, within bounds so no growth). A group CONTAINING a dynamic
-table (the other GR10 case) is a variable-length group → staged LOUD (inc 5's §14.6.9 1527). → `dyn_search`/
-`dyn_initialize` (the matrix row was already active from inc 1); (5) **✅ LANDED (DEVLOG 656)** — the staged-loud
+table (the other GR10 case) is a variable-length group → staged LOUD (the §14.6.9 1527 family). → `dyn_search`/
+`dyn_initialize`; (5) the staged-loud
 guards. **1522** (`DynamicResolve`): SR28 (:19987) — TO ≤ FROM rejected. **1525** (`ClassifyRedefinesClasses`, via a
 `ContainsDynamicTable` subtree walk): §13.18.44 SR5 (:21497) — a dynamic table (out-of-line) shall be neither the
 subject nor object of a REDEFINES; the class is forced `Rejected`. **1528** (`DynamicResolve`): §13.18.38 GR16 /
 §13.18.63 GR6 (:24102) — a VALUE on an ELEMENTARY dynamic entry derives the initial capacity (staged); a VALUE on a
 GROUP dynamic table's SUBORDINATE is the element seed (capacity = FROM) and is NOT caught. **1527** (the containing-
 group INITIALIZE `InitializeErrorAction` message; the whole-dynamic-table value op stays a runtime `NotImplemented`
-loud from inc 2) — the §14.6.9 variable-length-group family. **1526 was found UNNECESSARY and SKIPPED (design
-refinement):** empirically reference modification of a dynamic-table element works correctly (a `RefModPlace` over the
+loud) — the §14.6.9 variable-length-group family. **1526 is unnecessary and omitted:** reference modification of a
+dynamic-table element works correctly (a `RefModPlace` over the
 `DynTablePlace` — `WS-E(i)(1:2)` gives the right substring), and the cited "§13.7.1 SR6" restriction is actually the
 §8.4.3.11.4 ADDRESS-OF/bit-item SR6, not a general ref-mod prohibition — so a 1526 guard would over-restrict valid
 code. Negative tests: `OccursDynamicGuardTests` (1522/1525/1528 + the positive companions). **EC-BOUND-OVERFLOW**
@@ -314,35 +306,25 @@ code. Negative tests: `OccursDynamicGuardTests` (1522/1525/1528 + the positive c
 carrying FUNCTION LENGTH = `Capacity × elemWidth`) remain the two flagged follow-ons (an EC-integration pass + a
 whole-dynamic-table-operations pass); today both are LOUD, never silently wrong.
 
-**Adversarial review (wf_3f05d472-ad8; DEVLOG 657) — 7 confirmed / 10 candidates, all fixed.** [HIGH] a whole-GROUP
-receiving MOVE into a group nested BELOW the dynamic level used `RefSending` (no growth → out-of-capacity write
-silently lost); fixed with a `DynTablePlace` arm in `EmitGroupMove` routing to `ReceivingPath` (`RefReceiving`).
-[MED] `CorrEligible` gated on `Occurs is null` not `!IsTable` → CORRESPONDING mis-emitted member access on a
-`CobolDynTable<T>` field (CS1061); §14.7.6 rule 4. [MED] SEARCH of a dynamic table nested under a fixed OCCURS
-(`TablePath` null) silently scanned ZERO occurrences → now fails LOUD (a subscripted-capacity path is a later
-increment). [MED] OCCURS DYNAMIC in the FILE SECTION was silently accepted → **COBOLNET1526** (§8.5.1.9.1 item 3 —
-"any place OTHER THAN the file section"; 1526 was free — the ref-mod guard was skipped). [MED] the SET Format 14
-capacity peek used `refs.Resolve` (routing an OO `prop OF obj` first target through the property hook, enqueuing a
-spurious pending op) → a PURE `ReferenceResolver.CapacityRegisterFor` peek. [LOW] the **1528** guard now also covers
-a GROUP dynamic table with a subordinate VALUE AND a TO (the §13.18.63 GR16 superordinate-scope derivation; a
-subordinate VALUE with NO TO stays supported = capacity FROM). [LOW] the `CobolDynTable.GrowTo` docstring no longer
-falsely claims EC-BOUND-OVERFLOW/EC-BOUND-SET are wired (both remain the flagged nonfatal follow-on). Regression
-goldens `dyn_nested_group_move`/`dyn_corr`; guard tests `GroupSubordinateValueWithTo_Rejected1528`/
-`FileSectionDynamicTable_Rejected1526`. Increments 2–5 are
-greenfield-only (guard-fast; CI is the backstop). All 3 recon open questions resolved to their recommended defaults
-(VALUE-capacity staged; EC-FLOW-SEARCH in CORE; extend THIS doc).
+**Hardening (current invariants).** A whole-GROUP receiving MOVE into a group nested BELOW the dynamic level routes
+through `ReceivingPath` (`RefReceiving`) via a `DynTablePlace` arm in `EmitGroupMove`, so it grows rather than
+silently losing an out-of-capacity write. `CorrEligible` gates on `!IsTable` (not `Occurs is null`) so CORRESPONDING
+never emits member access on a `CobolDynTable<T>` field (§14.7.6 rule 4). SEARCH of a dynamic table nested under a
+fixed OCCURS (`TablePath` null) fails LOUD rather than scanning ZERO occurrences (a subscripted-capacity path is a
+later increment). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOLNET1526** (§8.5.1.9.1 item 3 — "any place
+OTHER THAN the file section"). The SET Format 14 capacity peek uses a PURE `ReferenceResolver.CapacityRegisterFor`
+(never `refs.Resolve`, which would route an OO `prop OF obj` first target through the property hook and enqueue a
+spurious pending op). The **1528** guard also covers a GROUP dynamic table with a subordinate VALUE AND a TO (the
+§13.18.63 GR16 superordinate-scope derivation; a subordinate VALUE with NO TO stays supported = capacity FROM).
+`CobolDynTable.GrowTo` does NOT wire EC-BOUND-OVERFLOW/EC-BOUND-SET (both remain the flagged nonfatal follow-on).
+Resolved open questions: VALUE-capacity staged; EC-FLOW-SEARCH in CORE.
 
 ### D17. TYPEDEF + the TYPE clause (§13.18.58 / §13.18.57 / §13.16, COBOL-2002) — a template registry + a subtree clone spliced into the forest at declaration-bind; a FRONT-END + BINDER-ONLY feature (ZERO emitter change).
-
-*Decision-complete design — recon wf_5dd41937-6d8 (2026-07-07); load-bearing anchors verified. "D5" in the prompt was
-a MISNOMER (D5 here is REDEFINES) — there was NO prior TYPEDEF design at any altitude; this is net-new, allocated the
-next GLOBAL decision number (D16 = floats in the numeric doc is the tail).*
 
 **Key architectural fact.** A weak TYPE reference is pure MACRO-EXPANSION — the cloned subtree emits exactly as a
 hand-written group would (§8.5.3.2 NOTE); a STRONG type is stored IDENTICALLY and adds only COMPILE-TIME checks
 (§8.5.3.3). So the whole feature = grammar (one token + one clause) + a template registry + a subtree clone spliced
-into the forest during declaration binding + a same-type guard at MOVE/compare. **No `CSharpEmitter`/`FieldEmitter`
-change.**
+into the forest during declaration binding + a same-type guard at MOVE/compare. **No emitter change.**
 
 **CORE (ships whole, program/global scope).** (1) A **`TypeDecls`** registry (name → template subtree; case-insensitive,
 mirrors `ByName`). The TYPEDEF entry allocates NO storage (not in `Roots`) and its subordinate names are NOT globally
@@ -351,8 +333,8 @@ referenceable (§13.18.58.4 GR2/GR1) — the template is built WITHOUT `Register
 the referencing entry (§13.18.57.4 GR1/GR2), handling elementary + group types, subject-owned OCCURS (array-of-type,
 §13.16 SR14) and subject VALUE override (GR3), GR1 exclusions (the type's level/name/GLOBAL/SELECT WHEN/TYPEDEF are
 not copied). (3) **STRONG typing** (§13.18.58.2): declaration SRs (§13.18.57.3 SR3/SR4/SR6) + same-type gating at MOVE
-(§14.9.25.3 SR2 — a strongly-typed group RECEIVER wants a same-type sender; the design's earlier "§8.8.4.1.1 item 12"
-cite was the COMPARISON list, corrected inc 2), comparison (§8.8.4.2.3 SR1), class-condition (§8.8.4.4.3 SR1);
+(§14.9.25.3 SR2 — a strongly-typed group RECEIVER wants a same-type sender), comparison (§8.8.4.2.3 SR1),
+class-condition (§8.8.4.4.3 SR1);
 intra-element same-type = template identity (`TypeName` + relative path, §8.5.3 NOTE). (4) **level-88s inside a TYPEDEF** (GR1 — part of the
 type): cloned + re-registered. (5) recursion/placement guards. **This also fixes a current SILENT-DROP bug:** at 2002+
 `TYPE IS name` parses and is silently dropped (no `typeClause` binder branch) — CORE wires it (unresolved → 1530).
@@ -364,7 +346,7 @@ flat `CreateCompilerTemp`, `DataBinder.Oo.cs:362`): a fresh `Uid` per node (CRIT
 on it), shares the immutable `Pic`, copies the description fields, re-uniquifies `CsName` in the NEW scope, and DOES
 `RegisterName` (clones ARE referenceable, unlike the template). **`ExpandType`** runs inside `BindEntries` right after
 an item is placed (so the clone is in the forest BEFORE `BindResolve` — every post-build pass sees it automatically,
-the same invariant `CreateCompilerTemp` relies on). STRONG equivalence (as built, inc 2): `DataItem.StrongRoot` (walk
+the same invariant `CreateCompilerTemp` relies on). STRONG equivalence: `DataItem.StrongRoot` (walk
 to the outermost `StrongType` ancestor) + `SameStrongType(a,b)` (equal strong-root `TypeName` + relative `CsName`
 path), checked in `BindMove` (`CheckStrongMove`) / `CheckedRelational` (the ONE relation chokepoint) / the
 class-condition arm (`CheckClassConditionOperand`).
@@ -385,14 +367,14 @@ TYPE-reference context (immediate subordinate/88; disallowed sibling clause; 77-
 group in a class condition); **1534** staged-loud EXTERNAL type declaration (2023 delta); **1535** staged-loud
 RENAMES-in-TYPEDEF / strong-group boolean-object non-equality compare.
 
-**Increments (each: build → greenfield battery → [legacy guard iff grammar] → DEVLOG + commit).** (1) **✅ LANDED
-(DEVLOG 659)** — grammar (`STRONG` token + `typedefClause`; `EditionGateHints.TypedefClause` → 0900; the
+**Implemented (the CORE increments).** (1)
+grammar (`STRONG` token + `typedefClause`; `EditionGateHints.TypedefClause` → 0900; the
 `typedef-def-2002` matrix/registry row) + the weak-TYPE spine (`DataItem` `IsTypedef`/`TypedefStrong`/`TypeRefName`;
 `BindEntries` routes a TYPEDEF root to `TypeDecls`, off `Roots`/`ByName`; `RegisterTypeDecl` → **1529**; a post-build
 `ExpandTypes` at the top of `BindResolve` clones each `TYPE IS type-name` via `CloneItem` — fresh `Uid`/re-uniquified
 `CsName`/registered — elementary→copy PIC, group→clone children, forward refs OK; unresolved/recursive → **1530**).
-`TypeName`/`StrongType` are populated but UNCHECKED until inc 2. — **the ONLY grammar/legacy-guard slice** → goldens
-`typedef_weak_elem`/`typedef_weak_group`. (2) **✅ LANDED (DEVLOG 661)** — STRONG typing (all BINDER-ONLY): the
+`TypeName`/`StrongType` are populated here (the STRONG checks are increment (2)). — **the ONLY grammar/legacy-guard slice** → goldens
+`typedef_weak_elem`/`typedef_weak_group`. (2) STRONG typing (all BINDER-ONLY): the
 `DataItem.StrongRoot` walk (outermost `StrongType` ancestor — §8.5.3.1, a group SUBORDINATE to a strong group is
 itself strongly typed) + `IsStrongGroup`/`IsStronglyTyped` + the static `SameStrongType(a,b)` (equal strong-root
 `TypeName` + equal relative member-name path). USE gates → **1533**: `CheckStrongMove` in `BindMove` (§14.9.25.3 SR2),
@@ -402,30 +384,28 @@ EVALUATE/PERFORM UNTIL/SEARCH WHEN), a strong-group guard in `CheckClassConditio
 post-resolution `CheckStrongTypeDeclarations` pass (a RENAMES/REDEFINES over any part of a strong subtree, INTERNAL
 template redefines excluded via the shared-strong-root test). Golden `typedef_strong_ok` (same-type whole-record
 MOVE+compare byte-verified) + `TypedefStrongTests` ×8 negatives (SR2/SR1/class-cond/SR6/SR4/SR3/relative-path + a
-clean companion). (3) **✅ LANDED (DEVLOG 662)** — level-88 condition-names inside a TYPEDEF (§13.18.58.4 GR1):
+clean companion). (3) level-88 condition-names inside a TYPEDEF (§13.18.58.4 GR1):
 `DataItem.Own88s` (the item's own 88s), `BindCondition(…, registerGlobal: !rootIsTemplate)` keeps a template's 88s OFF
 the global by-name index (GR1), and `ExpandType`/`CloneItem` call `CloneConditionOnto` to clone them onto each
 reference (registered globally — clones ARE referenceable). Golden `typedef_88` + `TypedefConditionTests` ×2.
-(4) **✅ LANDED (DEVLOG 663)** — staged-loud residue: **1534** EXTERNAL type declaration (`BindEntry`), **1535**
+(4) staged-loud residue: **1534** EXTERNAL type declaration (`BindEntry`), **1535**
 RENAMES-in-TYPEDEF (the in-template level-66 guard in `BindEntries`) + a strong-group-with-boolean/object/pointer
 ordering compare (§8.8.4.2.3 SR4, in `CheckedRelational`), **1531** an INDEXED-BY type referenced ≥2× (the
 `_typedIndexNames` collision set in `CloneItem`). Golden `typedef_indexed` (a single INDEXED-type reference works) +
 `TypedefResidueTests` ×5. **Matrix note:** the STRONG phrase rides the SAME `typedefClause` gate as `typedef-def-2002`
 (introduction gating already covered) and 1531–1535 are edition-INVARIANT compile-time diagnostics (no cross-edition
-behavior variance), so no new matrix row is warranted; `ISO2023_CONFORMANCE_PLAN` M3-2 synced (TYPEDEF ◑ DONE; SAME AS
+behavior variance), so no new matrix row is warranted (`ISO2023_CONFORMANCE_PLAN` M3-2: TYPEDEF ◑ DONE; SAME AS
 / TYPE TO deferred).
 
-**REVIEW-HARDENED (DEVLOG 664 — wf_7d3b1492-01a, 7 confirmed defects fixed).** Two false positives cured: the SR6
-strong-in-strong rejection (`ExpandType` now sets `TypeName`/`StrongType` BEFORE cloning children, so a nested TYPE
-ref's SR6 ancestor walk sees the enclosing strong item) and the outermost-root same-type mis-identification (a new
-`DataItem.TypeAnchor` = the NEAREST TYPE-carrying ancestor now drives `SameStrongType`, so a nested `TYPE INNER-T`
-subgroup matches a standalone INNER-T item — §8.5.3 bullet 1). One HIGH silent-miscompile cured: a cloned OCCURS
-DEPENDING ON now resolves data-name-1 in the clone's OWN record subtree first (`OdoResolve` `FindInSubtree` before the
-global scope lookup — §13.18.57.4 GR1 / §13.18.38 SR20), not a globally-first same-named counter. Three previously
-unenforced §13.18.57.3 syntax rules added: **1536** SR7 (a level-77 subject needs an elementary type — weak-invariant,
-not just STRONG), **1537** SR2 (a TYPE entry not followed immediately by a subordinate or level-88 entry — was a silent
-member-merge / a CS1061 leak), **1538** SR5 (no USAGE/SIGN on a group superordinate to a TYPE subject). Goldens
-`typedef_nested_strong` / `typedef_odo`; `TypedefReviewFixTests` ×5. 15xx TYPEDEF band now **1529–1538**.
+**Additional hardening (current invariants).** `ExpandType` sets `TypeName`/`StrongType` BEFORE cloning children, so a
+nested TYPE ref's SR6 ancestor walk sees the enclosing strong item (no false SR6 strong-in-strong rejection).
+`DataItem.TypeAnchor` (the NEAREST TYPE-carrying ancestor) drives `SameStrongType`, so a nested `TYPE INNER-T` subgroup
+matches a standalone INNER-T item (§8.5.3 bullet 1). A cloned OCCURS DEPENDING ON resolves data-name-1 in the clone's
+OWN record subtree first (`OdoResolve` `FindInSubtree` before the global-scope lookup — §13.18.57.4 GR1 / §13.18.38
+SR20), not a globally-first same-named counter. Three §13.18.57.3 syntax rules are enforced: **1536** SR7 (a level-77
+subject needs an elementary type — weak-invariant, not just STRONG), **1537** SR2 (a TYPE entry must be followed
+immediately by a subordinate or level-88 entry, else a silent member-merge / CS1061 leak), **1538** SR5 (no USAGE/SIGN
+on a group superordinate to a TYPE subject). The 15xx TYPEDEF band spans **1529–1538**.
 
 **RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached
 resolved items); `INDEXED BY` in a TYPEDEF used ≥2× = a global index-name collision (staged loud 1531); method/OO-scope
@@ -442,7 +422,7 @@ CONCRETE COBOL→C# MAPPINGS:
   05 AMT   PIC S9(5)V99 COMP-3.           →  public long Amt; // unscaled (7 digits), scale=2; profile threads truncation=Packed
   05 BIG   PIC 9(30).                     →  public Int128 Big;  // WidePrecision → Int128
   05 RATE  COMP-2.                        →  public double Rate;
-  05 FLAG  PIC 1(4).                      →  public string Flag; // boolean: one '0'/'1' CHAR per position (D8) — NOT a C# bool (superseded 2026-07-05: the original bool sketch predated multi-position PIC 1(n), MOVE fills, and ref-mod; §13.18.40.4 GR14 R14 licenses the character representation). 2002+ — 0900 at --std 85.
+  05 FLAG  PIC 1(4).                      →  public string Flag; // boolean: one '0'/'1' CHAR per position (D8) — NOT a C# bool (multi-position PIC 1(n), MOVE fills, and ref-mod need character semantics; §13.18.40.4 GR14 R14 licenses the character representation). 2002+ — 0900 at --std 85.
   05 NNAME PIC N(4).                      →  public string Nname; // national: one UTF-16 char per national position (D8); usage NATIONAL implied (§13.18.60.4 SR13a). 2002+ — 0900 at --std 85.
 
 — Group → nested record struct —
@@ -507,7 +487,7 @@ Port the legacy ExpressionBinder's SUB_* token interpreter verbatim (it is prove
 
 ### REDEFINES is a byte-level storage overlay with no clean typed-native equivalent: two differently-typed C# fields cannot share memory, so a write through one view is invisible to the other.
 
-**Resolution (REVISED — 4-tier one-canonical-backing; see `COBOLNET_REDEFINES_DESIGN.md`).** One STORED canonical per redefines class + every other view a computed `Place` accessor. **Tier A** (identical PIC/USAGE) = pass-through accessor; **Tier B** (whole class USAGE DISPLAY — the corpus majority) = a single `string` canonical with substring/`ParseDisplay`/`FormatDisplay` accessors (NO bytes); **Tier C** (genuine mixed-USAGE pun) = one class-scoped `byte[]` canonical with per-leaf typed codecs, confined to the class and never persisted; **Tier D** (unmodelable) = reject loud. The earlier "independent typed fields + a loud cross-type-read guard" plan is SUPERSEDED (SSOT §14.3): independent fields cannot stay coherent under a pun, so detection alone never makes the program correct — only the single shared canonical does.
+**Resolution (4-tier one-canonical-backing; see `COBOLNET_REDEFINES_DESIGN.md`).** One STORED canonical per redefines class + every other view a computed `Place` accessor. **Tier A** (identical PIC/USAGE) = pass-through accessor; **Tier B** (whole class USAGE DISPLAY — the corpus majority) = a single `string` canonical with substring/`ParseDisplay`/`FormatDisplay` accessors (NO bytes); **Tier C** (genuine mixed-USAGE pun) = one class-scoped `byte[]` canonical with per-leaf typed codecs, confined to the class and never persisted; **Tier D** (unmodelable) = reject loud. Independent typed fields + a loud cross-type-read guard (SSOT §14.3) cannot stay coherent under a pun, so detection alone never makes the program correct — only the single shared canonical does.
 
 ### Reference modification as a RECEIVER: C# strings are immutable, so `NAME(3:2) = x` cannot splice in place.
 
@@ -515,7 +495,7 @@ Place.Write for a RefModPlace rebuilds the whole string: `field = field[..(s-1)]
 
 ### OCCURS DEPENDING ON: the array size varies at runtime, but a C# array has a fixed allocated length; and ISO OCCURS GR7 mandates that a RECEIVING whole-group operand uses the MAXIMUM length while a SENDING operand uses the CURRENT (DEPENDING-ON) length.
 
-Allocate the array at MAX occurrences once; the length variable (DEPENDING ON item) bounds the LIVE range. Element access `Itm[K-1]` is unaffected. Whole-group operations branch on direction: sending → slice [0..N); receiving → full MAX (matches legacy IrOdoGroupLocation receiving:true logic, DEVLOG 290). When the DEPENDING-ON var is INSIDE the group, a receiving op still uses MAX (legacy dependOnInside rule). Bounds-check K vs N only when the EC-bound checking class is enabled (later).
+Allocate the array at MAX occurrences once; the length variable (DEPENDING ON item) bounds the LIVE range. Element access `Itm[K-1]` is unaffected. Whole-group operations branch on direction: sending → slice [0..N); receiving → full MAX (matches the legacy IrOdoGroupLocation receiving:true logic). When the DEPENDING-ON var is INSIDE the group, a receiving op still uses MAX (the legacy dependOnInside rule). Bounds-check K vs N only when the EC-bound checking class is enabled (later).
 
 ### Duplicate data-names disambiguated only by qualification — a single-value name index would silently overwrite and resolve the WRONG item. (IMPLEMENTED: `DataBinder.ByName` is the multimap described below.)
 
@@ -532,14 +512,14 @@ Model an index-name as a C# `long` holding a 1-BASED OCCURRENCE NUMBER, not a di
 ## Edge cases
 
 - FILLER: no C# member name needed when it carries no VALUE and is never referenced; but a FILLER WITH a VALUE must still initialize its position (matters for whole-group reads and the G6 byte image). Generate a synthetic _fillerN member only when it has a VALUE or affects group serialization.
-- Group item used as an alphanumeric operand (MOVE WS-REC TO X, or IF WS-REC = SPACES): a group has no scalar field — its char image is the left-to-right concatenation of all leaf display images. A generated `string AsImage()`/`FromImage()` per struct concatenates/distributes members; whole-group MOVE/compare uses it (IMPLEMENTED — DEVLOG 488 for all-string leaves; DEVLOG 490 for numeric-DISPLAY leaves). **Numeric-DISPLAY leaf refinement (IMPLEMENTED, DEVLOG 490 — spec-grounded):** ISO §14.9 MOVE GR4 fills a group "without consideration for the individual elementary items" with **no conversion**, so a numeric-DISPLAY subordinate can receive non-numeric characters (e.g. spaces). A native `long` cannot hold that, so a numeric-DISPLAY leaf **under a group used as a whole operand** is stored as its CHARACTER IMAGE (a `string`; `DataItem.StoreAsImage`, set by the bind-time whole-group pass), making `AsImage`/`FromImage` byte-faithful with NO byte[]. Numeric use of such a leaf decodes via `CobolNum.ParseDisplay` / formats via `FormatDisplay`. A leaf never referenced as part of a whole group stays a native `long` (locked invariant #2). A group with a COMP/COMP-3/COMP-5/float leaf is the genuine mixed-usage byte-island (Tier-C), still deferred/loud.
+- Group item used as an alphanumeric operand (MOVE WS-REC TO X, or IF WS-REC = SPACES): a group has no scalar field — its char image is the left-to-right concatenation of all leaf display images. A generated `string AsImage()`/`FromImage()` per struct concatenates/distributes members; whole-group MOVE/compare uses it (all-string leaves and numeric-DISPLAY leaves alike). **Numeric-DISPLAY leaf refinement:** ISO §14.9 MOVE GR4 fills a group "without consideration for the individual elementary items" with **no conversion**, so a numeric-DISPLAY subordinate can receive non-numeric characters (e.g. spaces). A native `long` cannot hold that, so a numeric-DISPLAY leaf **under a group used as a whole operand** is stored as its CHARACTER IMAGE (a `string`); `DataItem.StoreAsImage` — a read-only projection of the item's computed `Storage` form, settled once by `StorageFormPass` — reports it, making `AsImage`/`FromImage` byte-faithful with NO byte[]. Numeric use of such a leaf decodes via `CobolNum.ParseDisplay` / formats via `FormatDisplay`. A leaf never referenced as part of a whole group stays a native `long` (locked invariant #2). A group with a COMP/COMP-3/COMP-5/float leaf is the genuine mixed-usage byte-island (Tier-C), still deferred/loud.
 - Numeric item under reference modification (ISO §8.4.2.4 rule 2): operate as if redefined alphanumeric of the same size — render the raw zoned/digit display image, ref-mod that, and (if receiving) re-parse back. Defer receiving-numeric-refmod to byte fallback, flag loud.
 - Subscript/position single-evaluation (ISO): `TBL(F(X)) (G(Y):H(Z))` — F,G,H must each evaluate exactly once. Emit temps for every non-trivial subscript and ref-mod position before composing the Place.
 - Relative subscript `idx - 1` where idx is at occurrence 1 → index 0-1 = -1: a runtime bounds violation (EC-BOUND-SUBSCRIPT). Honor with a checked path when EC enabled; otherwise undefined (matches no-EC corpus behavior).
 - Level-88 VALUE with multiple literals AND THRU ranges mixed (VALUE 0 5 THRU 9 12): the condition is an OR over each literal/range — `St==0 || (St>=5&&St<=9) || St==12`. Capture the full value-item list, not just the first (DataBinder.ExtractValue currently grabs only FirstOrDefault — a bug for 88s and for multi-literal table VALUEs).
 - SET cond-name TO TRUE picks the FIRST value of a THRU range (the low bound) or the first literal (ISO §14.9.34); SET TO FALSE uses the WHEN SET TO FALSE literal if present (grammar valueClause supports it).
 - JUSTIFIED RIGHT interacts with ref-mod and with numeric MOVE: JUST only applies to alphanumeric/alphabetic receivers (ISO §13.18.30) — diagnose/ignore on numeric. Already plumbed in CobolString.Store(justifiedRight).
-- COMP-5 / BINARY-* with no PIC: width-bounded native int with TWO'S-COMPLEMENT WRAP on overflow (not digit truncation) — PicInfo.StorageWidth picks the byte width. **IMPLEMENTED (DEVLOG 614, M2-DATA-1):** `CobolNum.Store` WRAPs and `TryStore` range-checks by `NumProfile.StorageLength` (`WrapBinary`/`InBinaryRange`, branching signed vs unsigned; §14.9.25 GR8 magnitude for unsigned). The BINARY-CHAR family synthesizes via `PicInfo.BinaryItem` (PICTURE-less, §13.16.3 SR8 prohibits a picture → COBOLNET0870). The former `%= Pow10(Digits)` stub is retired.
+- COMP-5 / BINARY-* with no PIC: width-bounded native int with TWO'S-COMPLEMENT WRAP on overflow (not digit truncation) — PicInfo.StorageWidth picks the byte width. `CobolNum.Store` WRAPs and `TryStore` range-checks by `NumProfile.StorageLength` (`WrapBinary`/`InBinaryRange`, branching signed vs unsigned; §14.9.25 GR8 magnitude for unsigned). The BINARY-CHAR family synthesizes via `PicInfo.BinaryItem` (PICTURE-less, §13.16.3 SR8 prohibits a picture → COBOLNET0870).
 - 19-38 digit pictures overflow `long` (max 18 digits) → Int128. PicInfo.ClrType/DefaultInitializer/ProfileInitializer and the NumX literal renderer must branch on WidePrecision; CobolNum needs Int128 overloads. Pictures >38 (NATIONAL/2014) are out of scope for v1.
 - REDEFINES of a table or by a table; REDEFINES chains (A redefines B redefines C): resolve the ultimate base; the whole chain is ONE redefines class with ONE canonical backing per the 4-tier verdict (A alias / B string canonical / C class-scoped byte canonical / D reject loud — `COBOLNET_REDEFINES_DESIGN.md`); never independent stored fields per view.
 - Qualification of an index-name or a LINAGE-COUNTER by file/report name (grammar dataReference alts): index-name qualification is by table name (ISO §8.4.2.2 rule 6) — resolve via the owning table; LINAGE-COUNTER/LINE-COUNTER/PAGE-COUNTER are special registers, not data items — they get dedicated Places.
@@ -588,7 +568,7 @@ editions that have it, rejected-with-the-right-diagnostic below its intro editio
 ## Open questions (resolved in `COBOLNET_DESIGN.md` §18)
 
 - Int128 substrate timing — **RESOLVED:** the value engine is Int128-monomorphic (SSOT: the `CobolInt(Int128,scale)` carrier) and `CobolNum`/the numeric renderer carry Int128 support; `WidePrecision` selects the stored type. The SURFACE digit cap stays per-edition (18 at `--std 85`, 31 at 2002+ — see the per-edition gating section); Int128's 38 digits are substrate headroom only.
-- COMP-5 / BINARY-* two's-complement WRAP semantics — **RESOLVED + SHIPPED (SSOT numeric model; §6 above; DEVLOG 462 → 614):** true binary-width wrap by storage width (PIC S9(4) COMP-5 wraps at ±32768), NOT digit-count truncation. The wrap path is LANDED in `CobolNum.Store` (`WrapBinary`) and `CobolNum.TryStore` (`InBinaryRange` → SIZE ERROR), keyed off `NumProfile.StorageLength`, signed vs unsigned (DEVLOG 614, M2-DATA-1); the `BINARY-CHAR…DOUBLE` family rides it. Note `BINARY-CHAR…DOUBLE` are 2002+ (per-edition gating section); `COMP-5` is a dialect extension.
-- Whole-group-as-alphanumeric — **RESOLVED (SSOT §18 #21; DEVLOG 488/490):** the generated `string AsImage()`/`FromImage()` per struct IS the permanent typed-native mechanism for whole-group MOVE/compare of **DISPLAY-homogeneous** groups, INCLUDING numeric-DISPLAY leaves (those store their character image via `StoreAsImage` when whole-referenced — see the edge case above). Only groups with a COMP/COMP-3/COMP-5/float (non-character) leaf are the genuine mixed-usage byte-island routed to the Tier-C codec (§4); national-member groups use the same `AsImage` over UTF-16. No byte[] for any DISPLAY-homogeneous group.
-- REDEFINES cross-type-read detection — **SUPERSEDED (the 4-tier model, SSOT §14.3):** with ONE canonical backing per redefines class every write is visible through every view, so no cross-type-read guard exists or is needed; genuine mixed-USAGE puns are Tier C (class-scoped byte canonical) and unmodelable puns are Tier D (reject loud). See `COBOLNET_REDEFINES_DESIGN.md`.
+- COMP-5 / BINARY-* two's-complement WRAP semantics — **RESOLVED (SSOT numeric model; §6 above):** true binary-width wrap by storage width (PIC S9(4) COMP-5 wraps at ±32768), NOT digit-count truncation. The wrap path is in `CobolNum.Store` (`WrapBinary`) and `CobolNum.TryStore` (`InBinaryRange` → SIZE ERROR), keyed off `NumProfile.StorageLength`, signed vs unsigned; the `BINARY-CHAR…DOUBLE` family rides it. Note `BINARY-CHAR…DOUBLE` are 2002+ (per-edition gating section); `COMP-5` is a dialect extension.
+- Whole-group-as-alphanumeric — **RESOLVED (SSOT §18 #21):** the generated `string AsImage()`/`FromImage()` per struct IS the permanent typed-native mechanism for whole-group MOVE/compare of **DISPLAY-homogeneous** groups, INCLUDING numeric-DISPLAY leaves (those store their character image via `StoreAsImage` when whole-referenced — see the edge case above). Only groups with a COMP/COMP-3/COMP-5/float (non-character) leaf are the genuine mixed-usage byte-island routed to the Tier-C codec (§4); national-member groups use the same `AsImage` over UTF-16. No byte[] for any DISPLAY-homogeneous group.
+- REDEFINES cross-type-read detection — **RESOLVED (the 4-tier model, SSOT §14.3):** with ONE canonical backing per redefines class every write is visible through every view, so no cross-type-read guard exists or is needed; genuine mixed-USAGE puns are Tier C (class-scoped byte canonical) and unmodelable puns are Tier D (reject loud). See `COBOLNET_REDEFINES_DESIGN.md`.
 - Passing a ref-modded or subscripted-with-variable receiver as CALL BY REFERENCE: C# `ref` to an array element is legal but `ref` to a ref-mod splice is not. Confirm the policy — diagnose (strict) vs silently promote to BY CONTENT (lenient) — and whether it should be dialect-gated.
