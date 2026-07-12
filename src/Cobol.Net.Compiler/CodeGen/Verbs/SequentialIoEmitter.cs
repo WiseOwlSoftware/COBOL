@@ -108,8 +108,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             _ => "FileLockMode.None",
         };
         bool multiple = file.LockMode?.Multiple ?? false;
-        w.Line($"{nameof(Runtime.IO.CobolFile)}.{nameof(Runtime.IO.CobolFile.RegisterSharing)}({FileKeyExpr(file)}, {sharing}, {lockMode}, "
-            + $"{(multiple ? "true" : "false")});");
+        w.Line($"{RuntimeApi.FileRegisterSharing(FileKeyExpr(file), $"{sharing}, {lockMode}, {(multiple ? "true" : "false")}")};");
     }
 
     /// <summary>The C# <c>int</c> expression for one LINAGE clause operand (ISO §13.18.34 GR6): the fixed literal

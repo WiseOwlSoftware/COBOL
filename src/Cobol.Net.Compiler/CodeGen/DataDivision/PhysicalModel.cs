@@ -65,7 +65,7 @@ internal sealed class PhysicalModel(EmitContext ctx)
                 // is a window over it. A non-canonical Tier-B member yields no field.
                 if (c.IsCanonical)
                     yield return new Physical(cls.BackingCsName, "string", cls.Width, false,
-                        $"CobolString.Store({Codec.ImageInitOf(c)}, {cls.Width})", $"REDEFINES backing for {c.CobolName}");
+                        RuntimeApi.StrStore(Codec.ImageInitOf(c), $"{cls.Width}"), $"REDEFINES backing for {c.CobolName}");
                 continue;
             }
             if (c.Class is { Tier: RedefinesTier.Alias } && !c.IsCanonical)

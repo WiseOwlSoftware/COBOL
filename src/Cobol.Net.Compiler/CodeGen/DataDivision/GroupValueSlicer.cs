@@ -56,7 +56,7 @@ internal sealed class GroupValueSlicer(PhysicalModel phys)
         // (alphanumeric / edited / StoreAsImage) keep the characters.
         if (!item.IsGroup && !item.StoreAsImage
             && item.Pic is { Category: PicCategory.Numeric, Usage: Usage.Display, IsFloat: false })
-            return $"({item.ElementType})CobolNum.ParseDisplay({EmitText.CsLiteral(slice)}, {item.ProfileName})";
+            return $"({item.ElementType}){RuntimeApi.NumParseDisplay(EmitText.CsLiteral(slice), item.ProfileName)}";
         if (!item.IsGroup) return EmitText.CsLiteral(slice);
         var parts = new List<string>();
         int off = 0;

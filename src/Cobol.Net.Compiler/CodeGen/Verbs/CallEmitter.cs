@@ -156,40 +156,40 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             string digits = (p.Pic?.Digits ?? 0).ToString();
             string scale = (p.Pic?.Scale ?? 0).ToString();
             if (p.Item.IsGroup && !p.Item.IsCharacterImage && p is not RedefViewPlace)
-                return $"new CobolArg(CobolPassMode.{a.Mode}, ManagedPointer<string>.Cell("
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                     + LoudValue("string", $"CALL USING mixed-usage group '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte island, deferred)")
                     + "), 0, 0)";
             if (a.Mode == CobolPassMode.Reference)
-                return $"new CobolArg(CobolPassMode.Reference, {RefCarrier(p)}, {digits}, {scale})";
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, {RefCarrier(p)}, {digits}, {scale})";
             // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9): a value snapshot.
             return CallPlaceIsString(p)
-                ? $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
-                : $"new CobolArg(CobolPassMode.Content, ManagedPointer<long>.Cell({p.Read()}), {digits}, {scale})";
+                ? $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
+                : $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<long>.Cell({p.Read()}), {digits}, {scale})";
         }
         switch (a.Value)
         {
             case BoundStringLiteral s:
-                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), 0, 0)";
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), 0, 0)";
             case BoundNumericLiteral n:
             {
                 var lit = UnscaledLit(n.Text);
                 int digits = n.Text.Count(char.IsAsciiDigit);
                 if (digits > 18)
-                    return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell("
+                    return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell("
                         + LoudValue("string", $"CALL USING wide numeric literal '{n.Text}' (19+ digits — the Int128 carrier tier)") + "), 0, 0)";
-                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<long>.Cell({lit.Expr}), {digits}, {lit.Scale})";
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<long>.Cell({lit.Expr}), {digits}, {lit.Scale})";
             }
             case BoundComputedOperand expr:
             {
                 NumX x = num.Render(expr.Expr, ReceiverContext.None);   // BY VALUE — a converted value copy (§14.2.3 GR10)
-                return $"new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Value)}, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
             }
             case BoundAllLiteral all:
-                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell({CsLiteral(all.Literal)}), 0, 0)";
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CsLiteral(all.Literal)}), 0, 0)";
             case BoundFigurative fig:
-                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell(new string({FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating)}, 1)), 0, 0)";
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell(new string({FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating)}, 1)), 0, 0)";
             default:
-                return $"new CobolArg(CobolPassMode.Content, ManagedPointer<string>.Cell("
+                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell("
                     + LoudValue("string", "CALL USING argument form") + "), 0, 0)";
         }
     }

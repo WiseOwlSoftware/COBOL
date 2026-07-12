@@ -424,4 +424,69 @@ internal static class RuntimeApi
     /// current value — <c>CobolNum.StoreDisplay</c>.</summary>
     public static string NumStoreDisplay(string image, string profile, string current) =>
         $"{nameof(CobolNum)}.{nameof(CobolNum.StoreDisplay)}({image}, {profile}, {current})";
+
+    // ── Inter-program ABI (CobolArgAdapt / CobolPassMode; interprogram design D1/D2) — Step 9-final sweep ──
+
+    /// <summary>A LINKAGE formal's numeric carrier adoption — <c>CobolArgAdapt.Num</c>.</summary>
+    public static string ArgAdaptNum(string args, int position, string profile, string scale) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Num)}({args}, {position}, {profile}, {scale})";
+
+    /// <summary>A LINKAGE formal's text carrier adoption — <c>CobolArgAdapt.Text</c>.</summary>
+    public static string ArgAdaptText(string args, int position, string width) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Text)}({args}, {position}, {width})";
+
+    /// <summary>The argument-present probe (OMITTED handling, §14.2.3) — <c>CobolArgAdapt.Present</c>.</summary>
+    public static string ArgAdaptPresent(string args, int position) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Present)}({args}, {position})";
+
+    /// <summary>RETURNING delivery into the caller's cell (§14.2.3 GR7) — <c>CobolArgAdapt.StoreReturn</c>.</summary>
+    public static string ArgAdaptStoreReturn(string ret, string value) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturn)}({ret}, {value})";
+
+    /// <summary>The emitted-text reference to a <see cref="CobolPassMode"/> value — <c>nameof</c>-anchored like
+    /// <see cref="RoundingText"/>, so a member rename breaks HERE, never the generated text.</summary>
+    public static string PassModeText(CobolPassMode mode) => $"{nameof(CobolPassMode)}.{mode}";
+
+    // ── Run-unit lifecycle (CobolFile) ──
+
+    /// <summary>Run-unit file-subsystem init (the entry wrapper's Main) — <c>CobolFile.Init</c>.</summary>
+    public static string FileInit() => $"{nameof(CobolFile)}.{nameof(CobolFile.Init)}()";
+
+    /// <summary>The §14.6.11 run-unit-termination implicit CLOSE — <c>CobolFile.CloseAll</c>.</summary>
+    public static string FileCloseAll() => $"{nameof(CobolFile)}.{nameof(CobolFile.CloseAll)}()";
+
+    /// <summary>Mint a per-object instance-file connector key (§9.1.4) — <c>CobolFile.MintInstanceKey</c>.</summary>
+    public static string FileMintInstanceKey(string baseKeyLiteral) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.MintInstanceKey)}({baseKeyLiteral})";
+
+    // ── Pointers / objects ──
+
+    /// <summary>Dereference a data-address pointer to its storage cell (GR3/GR4 loud) — <c>CobolPtr.Deref</c>.</summary>
+    public static string PtrDeref(string ptr, string classWidth) =>
+        $"{nameof(CobolPtr)}.{nameof(CobolPtr.Deref)}({ptr}, {classWidth})";
+
+    /// <summary>The INVOKE null-receiver guard (EC-OO-NULL, §14.9.23.4 GR5) — <c>CobolObject.RequireNonNull</c>.</summary>
+    public static string ObjRequireNonNull(string receiver) =>
+        $"{nameof(CobolObject)}.{nameof(CobolObject.RequireNonNull)}({receiver})";
+
+    /// <summary>Normalize a runtime method-name value for universal dispatch (D-U6) —
+    /// <c>CobolObject.NormalizeMethodName</c>.</summary>
+    public static string ObjNormalizeMethodName(string nameExpr) =>
+        $"{nameof(CobolObject)}.{nameof(CobolObject.NormalizeMethodName)}({nameExpr})";
+
+    /// <summary>Repeat an element image for a table initializer — <c>CobolString.Repeat</c>.</summary>
+    public static string StrRepeat(string s, string n) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.Repeat)}({s}, {n})";
+
+    /// <summary>The COMPILE-TIME mask-scale computation (a typed passthrough, not a fragment): the emitters
+    /// compute a numeric-edited receiver's fraction scale from its edit mask at compile time with the SAME
+    /// runtime routine the generated code uses — one definition, anchored here.</summary>
+    public static int MaskScale(string picture, char currency, bool commaMode) =>
+        CobolEdit.MaskScale(picture, currency, commaMode);
+
+    /// <summary>The COMPILE-TIME edited-image composition (a typed passthrough): a numeric literal VALUE on a
+    /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63 GR6) with the SAME runtime
+    /// editor the generated code calls.</summary>
+    public static string EditCompose(Int128 value, int valueScale, string picture, bool blankWhenZero, char currency, bool commaMode) =>
+        CobolEdit.Format(value, valueScale, picture, blankWhenZero, currency, commaMode);
 }

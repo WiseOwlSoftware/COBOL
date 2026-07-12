@@ -50,7 +50,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // per object (field initializers run before the ctor body), so the ctor's Register/track see it live. A
         // factory / EXTERNAL file has a static literal key (InstanceKeyField null) and emits no field.
         foreach (var f in hostFiles.Where(f => f.InstanceKeyField is not null))
-            w.Line($"private readonly string {f.InstanceKeyField} = CobolFile.MintInstanceKey({CsLiteral(f.CobolName)});");
+            w.Line($"private readonly string {f.InstanceKeyField} = {RuntimeApi.FileMintInstanceKey(CsLiteral(f.CobolName))};");
         using (w.Block($"public {csName}()"))
         {
             U.SeqIo.EmitFileRegistration(w);   // each file registers under FileKeyExpr(f): a factory literal, or this.__fkey_X
@@ -234,13 +234,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// <summary>The callee-side unbox: box value → a local in the FORMAL's own crossing form.</summary>
     private static string OoUnivUnbox(DataItem item, string box) =>
         OoStringCarried(item) ? $"(string){box}!"
-        : OoUnivImageBridged(item) ? $"CobolNum.StoreDisplay((string){box}!, {item.ProfileName}, ({item.ElementType})0)"
+        : OoUnivImageBridged(item) ? RuntimeApi.NumStoreDisplay($"(string){box}!", item.ProfileName, $"({item.ElementType})0")
         : item.Pic is { Category: PicCategory.ObjectReference } p ? $"({p.ClrType}){box}"
         : $"({item.ElementType}){box}!";
 
     /// <summary>The callee-side re-box: a local in the formal's crossing form → the canonical box form.</summary>
     private static string OoUnivRebox(DataItem item, string local) =>
-        OoUnivImageBridged(item) ? $"CobolNum.FormatDisplay({local}, {item.ProfileName})" : $"(object?){local}";
+        OoUnivImageBridged(item) ? RuntimeApi.NumFormatDisplay(local, item.ProfileName) : $"(object?){local}";
 
     /// <summary>Caller-side universal dispatch (D-U6): box every argument per ITS OWN descriptor's canonical
     /// form, dispatch through the GR5 null guard with the bind-normalized literal or the runtime-normalized
@@ -259,8 +259,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : $"CobolInvokeArg? __ur{id} = null;");
         string selector = u.MethodLiteral is { } lit
             ? Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(lit, quote: true)
-            : $"CobolObject.NormalizeMethodName({u.MethodSource!.Read()})";
-        w.Line($"CobolObject.RequireNonNull({u.Receiver.Read()}).__CobolInvoke({selector}, __ua{id}, __ur{id});");
+            : RuntimeApi.ObjNormalizeMethodName(u.MethodSource!.Read());
+        w.Line($"{RuntimeApi.ObjRequireNonNull(u.Receiver.Read())}.__CobolInvoke({selector}, __ua{id}, __ur{id});");
         for (int i = 0; i < u.Args.Count; i++)
             w.Line(OoUnivCallerWrite(u.Args[i].Source, $"__ua{id}[{i}].Value") + "   // BY REFERENCE copy-out (SR6)");
         if (u.Returning is { } ret)
@@ -369,7 +369,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 if (fields.MethodRedefinesBackingDecl(root) is { } bkl)
                 {
                     var formalB = m.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
-                    w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : $"CobolString.Store({formalB.ParamName}, {root.Class!.Width})")};   "
+                    w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : RuntimeApi.StrStore(formalB.ParamName, $"{root.Class!.Width}"))};   "
                         + $"// LINKAGE Tier-B REDEFINES backing for {root.CobolName}");
                     continue;
                 }
@@ -549,16 +549,16 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // prefix back, preserving the argument's tail. CONTENT pads/truncates per MOVE.
                 int fw = a.Formal.IsGroup ? a.Formal.ImageWidth : Math.Max(1, a.Formal.Pic!.Length);
                 string read = a.Source is { } gsp ? CallEmitter.CallStringRead(gsp) : CsLiteral(a.StringLiteral ?? "");
-                w.Line($"string {tmp} = CobolString.Store({read}, {fw});");
+                w.Line($"string {tmp} = {RuntimeApi.StrStore(read, $"{fw}")};");
             }
             else if (stringCarried)
                 w.Line(a.Source is { } sp
                     ? $"string {tmp} = {OoStringReadOf(sp, a)};"
                     : a.StringLiteral is { } slit
-                    ? $"string {tmp} = CobolString.Store({CsLiteral(slit)}, {Math.Max(1, a.Formal.Pic!.Length)});"
+                    ? $"string {tmp} = {RuntimeApi.StrStore(CsLiteral(slit), $"{Math.Max(1, a.Formal.Pic!.Length)}")};"
                     // A numeric literal into an image-stored numeric formal: compose the zoned image through
                     // the OWNER's internal profile (the review's cross-class rule — qualified, never bare).
-                    : $"string {tmp} = CobolNum.FormatDisplay({EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale)}, {qualProfile});");
+                    : $"string {tmp} = {RuntimeApi.NumFormatDisplay(EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale), qualProfile)};");
             else if (a.Formal.Pic is { Category: PicCategory.ObjectReference })
                 w.Line($"{a.Formal.ElementType} {tmp} = {a.Source!.Read()};");
             else if (a.Formal.Pic is { IsFloat: true })
@@ -570,11 +570,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                      && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale))
                 // CONTENT numeric conversion (COMPUTE rules, §14.8.2.3.3 2a): rescale + truncate into the
                 // formal's description through the OWNER's internal profile.
-                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})CobolNum.Store({cx.Expr}, {cx.Scale}, {qualProfile});");
+                w.Line($"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){RuntimeApi.NumStore(cx.Expr, $"{cx.Scale}", qualProfile)};");
             else
                 w.Line(a.Source is { } np
                     ? $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})({Num.AsNum(new BoundFieldOperand(np), ReceiverContext.None).Expr});"
-                    : $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType})CobolNum.Store({UnscaledLit(a.NumericLiteral!).Expr}, {UnscaledLit(a.NumericLiteral!).Scale}, {qualProfile});");
+                    : $"{a.Formal.ElementType} {tmp} = ({a.Formal.ElementType}){RuntimeApi.NumStore(UnscaledLit(a.NumericLiteral!).Expr, $"{UnscaledLit(a.NumericLiteral!).Scale}", qualProfile)};");
             argExprs.Add($"ref {tmp}");
 
             if (!a.WriteBack || a.Source is not { } src) continue;
@@ -585,7 +585,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // The §14.8.2.2 rule-1 prefix: splice the formal's characters back over the argument's
                 // LEADING positions, preserving the tail beyond the formal's width.
                 post.Add(CallEmitter.CallStringWrite(src,
-                    $"{tmp} + CobolString.RefMod({CallEmitter.CallStringRead(src)}, {fw + 1}, -1)"));
+                    $"{tmp} + {RuntimeApi.StrRefMod(CallEmitter.CallStringRead(src), $"{fw + 1}", "-1")}"));
             }
             else if (src is RefModPlace)
                 post.Add(src.Write(tmp));   // RefModPlace.Write splices the window (§8.4.2.4)
@@ -593,7 +593,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 post.Add(OoStringCarried(src.Item) ? src.Write(tmp) : new NumericImagePlace(src).Write(tmp));
             else
                 post.Add(src.Item.StoreAsImage
-                    ? src.Write($"CobolNum.FormatDisplay({tmp}, {src.Item.ProfileName})")
+                    ? src.Write(RuntimeApi.NumFormatDisplay(tmp, src.Item.ProfileName))
                     : src.Write(tmp));
         }
 
@@ -604,7 +604,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // The factory singleton is never null — no GR5 guard (brief D11); virtual dispatch through the
             // factory hierarchy realizes §9.3.6 factory resolution.
             InvokeForm.Factory => $"{inv.ClassCsName}__FACTORY.__Instance",
-            _ => $"CobolObject.RequireNonNull({inv.Receiver!.Read()})",
+            _ => RuntimeApi.ObjRequireNonNull(inv.Receiver!.Read()),
         };
         string call = $"{target}.{inv.MethodCsName}(" + string.Join(", ", argExprs) + ")";
 
@@ -624,9 +624,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             else if (retString == OoStringCarried(recv.Item))
                 w.Line(recv.Write(tmp));
             else if (retString)   // string-carried result into native-numeric storage
-                w.Line(recv.Write($"({recv.Item.ElementType})CobolNum.ParseDisplay({tmp}, {recv.Item.ProfileName})"));
+                w.Line(recv.Write($"({recv.Item.ElementType}){RuntimeApi.NumParseDisplay(tmp, recv.Item.ProfileName)}"));
             else                  // native result into image-stored numeric storage
-                w.Line(recv.Write($"CobolNum.FormatDisplay({tmp}, {recv.Item.ProfileName})"));
+                w.Line(recv.Write(RuntimeApi.NumFormatDisplay(tmp, recv.Item.ProfileName)));
         }
         else
         {
@@ -652,7 +652,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : OoStringCarried(sp.Item) ? sp.Read()
             : new NumericImagePlace(sp).Read();
         return a.ByContent && a.Formal.Pic is { } fp && fp.Category is PicCategory.Alphanumeric
-            ? $"CobolString.Store({read}, {Math.Max(1, fp.Length)})"
+            ? RuntimeApi.StrStore(read, $"{Math.Max(1, fp.Length)}")
             : read;
     }
 

@@ -48,7 +48,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
         // version-conformance pass row.
         if (item.RawValue is { } q && q.StartsWith('"') && pic.Category is PicCategory.Numeric && !pic.IsFloat)
             return item.StoreAsImage
-                ? $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(q))}, {pic.Length})"
+                ? RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(q)), $"{pic.Length}")
                 : EmitText.UnscaledAtScale(CobolLiteral.Decode(q), pic.Scale);
 
         // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): initialize to the formatted
@@ -59,7 +59,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             string unscaled = item.RawValue is { } rv && FigurativeInitializer(rv, pic) is null
                 ? EmitText.UnscaledAtScale(rv, pic.Scale)
                 : "0L";
-            return $"CobolNum.FormatDisplay({unscaled}, {item.ProfileName})";
+            return RuntimeApi.NumFormatDisplay(unscaled, item.ProfileName);
         }
 
         if (item.RawValue is not { } raw) return pic.DefaultInitializer;
@@ -77,14 +77,14 @@ internal sealed class ValueInitializer(EmitContext ctx)
             // (ISO §13.18.63 GR6) — the edited image is a compile-time constant, baked here. (An alphanumeric
             // literal stores verbatim — NOTE 3: the programmer supplies the edited form.)
             PicCategory.NumericEdited when !raw.StartsWith('"') && TryParseNumeric(raw, out var uv, out int sc) =>
-                EmitText.CsLiteral(CobolNet.Runtime.CobolEdit.Format(uv, sc, pic.EditMask!, item.BlankWhenZero,
+                EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!, item.BlankWhenZero,
                     ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma)),
             // National VALUE stores like alphanumeric on the char substrate (§13.18.63 SR5 — the N"…" literal,
             // already prefix-stripped by DecodeCobolString); boolean VALUE zero-pads (SR10; §14.6.8.6).
             PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National =>
-                $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length})",
+                RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}"),
             PicCategory.Boolean =>
-                $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length}, justifiedRight: false, pad: '0')",
+                RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}", justifiedRight: false),
             PicCategory.Numeric when pic.IsFloat => RawValueAsFloat(raw, pic),
             PicCategory.Numeric => EmitText.UnscaledAtScale(raw, pic.Scale),
             _ => pic.DefaultInitializer,

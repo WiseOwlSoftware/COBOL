@@ -170,14 +170,14 @@ internal sealed class ProgramEmitter
             foreach (var (backing, cellField, canonical, cellWidth) in data.PtrAddressableBackings)
             {
                 // The seed is the SAME VALUE-honoring image expression the Tier-B stored backing uses.
-                string seed = $"CobolString.Store({new DataEmitter(Current.Ctx).ImageInitOf(canonical)}, {cellWidth})";
+                string seed = RuntimeApi.StrStore(new DataEmitter(Current.Ctx).ImageInitOf(canonical), $"{cellWidth}");
                 w.Line($"private readonly StorageCell {cellField} = new StorageCell {{ Ref = {seed} }};   // ADDRESS-OF-taken record — cell storage (ISO §8.4.3.11; Phase-4b inc 2)");
                 w.Line($"private ref string {backing} => ref {cellField}.Ref;");
             }
             foreach (var (backing, addrField, width) in data.PtrBasedBridges)
             {
                 w.Line($"private ManagedPointer {addrField} = ManagedPointer.Null;   // implicit data-address pointer (ISO §13.18.5 GR2 — initially NULL)");
-                w.Line($"private ref string {backing} => ref CobolPtr.Deref({addrField}, {width}).Ref;   // BASED deref bridge (GR3/GR4 loud)");
+                w.Line($"private ref string {backing} => ref {RuntimeApi.PtrDeref(addrField, $"{width}")}.Ref;   // BASED deref bridge (GR3/GR4 loud)");
             }
 
             new DataEmitter(Current.Ctx).Emit();
@@ -196,7 +196,7 @@ internal sealed class ProgramEmitter
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files)
                     if (!file.IsExternal)   // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists (GR8 / §13.18.22.4 GR4a)
-                        w.Line($"CobolFile.Close({FileKeyExpr(file)});");
+                        w.Line($"{RuntimeApi.FileClose(FileKeyExpr(file))};");
             if (unit.Children.Count > 0 && ChainHasGlobalUse(unit))
                 EmitRunGlobalUse(unit, w);
             w.Line();
@@ -253,7 +253,7 @@ internal sealed class ProgramEmitter
                                 w.Line($"case {FileKeyExpr(f)}: __RunUse({i}, {decls[i].StartPc}, {decls[i].HandlerEndPc}); return true;");
                 }
             if (decls.Any(d => d.Global && d.ModeIndex is not null))
-                using (w.Block("switch (CobolFile.OpenModeOf(__f))"))   // GLOBAL open-mode scope (GR3b/GR6b–e)
+                using (w.Block($"switch ({RuntimeApi.FileOpenModeOf("__f")})"))   // GLOBAL open-mode scope (GR3b/GR6b–e)
                 {
                     for (int i = 0; i < decls.Count; i++)
                         if (decls[i].Global && decls[i].ModeIndex is { } m)
@@ -280,15 +280,15 @@ internal sealed class ProgramEmitter
                     // Per-access aliasing of the caller's storage (§14.2.3 GR8): every reference to the formal
                     // reads/writes through this carrier (its CsName IS `__lnkpN.Value`).
                     w.Line(isNum
-                        ? $"{f.CarrierField} = CobolArgAdapt.Num(__args, {f.Position}, {f.Item.ProfileName}, {f.Item.Pic!.Scale});"
-                        : $"{f.CarrierField} = CobolArgAdapt.Text(__args, {f.Position}, {Math.Max(1, f.Item.Pic!.Length)});");
+                        ? $"{f.CarrierField} = {RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")};"
+                        : $"{f.CarrierField} = {RuntimeApi.ArgAdaptText("__args", f.Position, $"{Math.Max(1, f.Item.Pic!.Length)}")};");
                     continue;
                 }
                 // Boundary round-trip formal (group / redefined): adopt the carrier, copy the caller's image in.
                 w.Line(isNum
-                    ? $"{f.CarrierField} = CobolArgAdapt.Num(__args, {f.Position}, {f.Item.ProfileName}, {f.Item.Pic!.Scale});"
-                    : $"{f.CarrierField} = CobolArgAdapt.Text(__args, {f.Position}, {Math.Max(1, f.Item.ImageWidth)});");
-                using (w.Block($"if (CobolArgAdapt.Present(__args, {f.Position}))"))
+                    ? $"{f.CarrierField} = {RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")};"
+                    : $"{f.CarrierField} = {RuntimeApi.ArgAdaptText("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}")};");
+                using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
                 {
                     if (place is null)
                         w.Line(LoudStmt($"LINKAGE formal '{f.Item.CobolName}' is not resolvable to storage"));
@@ -305,15 +305,15 @@ internal sealed class ProgramEmitter
                 if (f.CarrierResident || place is null) continue;
                 // Copy the (possibly mutated) formal back to the caller's storage — the BY REFERENCE result
                 // becomes visible at activation end (§14.2.3 GR8/GR9; a BY CONTENT cell absorbs it invisibly).
-                using (w.Block($"if (CobolArgAdapt.Present(__args, {f.Position}))"))
+                using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
                     w.Line(isNum
                         ? $"{f.CarrierField}.Value = {place.Read()};"
                         : $"{f.CarrierField}.Value = {CallEmitter.CallStringRead(place)};");
             }
             if (_callState.ReturningPlace is { } ret)
                 w.Line(CallEmitter.CallPlaceIsString(ret)
-                    ? $"CobolArgAdapt.StoreReturn(__ret, {CallEmitter.CallStringRead(ret)});"
-                    : $"CobolArgAdapt.StoreReturn(__ret, {ret.Read()});");
+                    ? $"{RuntimeApi.ArgAdaptStoreReturn("__ret", CallEmitter.CallStringRead(ret))};"
+                    : $"{RuntimeApi.ArgAdaptStoreReturn("__ret", ret.Read())};");
         }
     }
 
@@ -348,7 +348,7 @@ internal sealed class ProgramEmitter
         using (w.Block("private static void Main()"))
         {
             w.Line("ProgramRegistry.Reset();");
-            if (anyFiles) w.Line("CobolFile.Init();");
+            if (anyFiles) w.Line($"{RuntimeApi.FileInit()};");
             w.Line("__CobolModule.Register();");
             if (mainUnit is not null)
             {
@@ -360,7 +360,7 @@ internal sealed class ProgramEmitter
                     // the §14.6.11 attempt-normal-termination step.
                     w.Line("catch (CobolFatalException __fx) { Console.Error.WriteLine(\"abnormal run-unit termination: \" + __fx.Message); Environment.ExitCode = 1; }");
                 if (anyFiles)
-                    w.Line("finally { CobolFile.CloseAll(); }   // run-unit termination implicit CLOSE (ISO §14.6.11)");
+                    w.Line($"finally {{ {RuntimeApi.FileCloseAll()}; }}   // run-unit termination implicit CLOSE (ISO §14.6.11)");
             }
         }
     }

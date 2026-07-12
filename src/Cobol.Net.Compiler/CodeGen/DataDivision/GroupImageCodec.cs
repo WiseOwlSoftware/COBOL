@@ -21,7 +21,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     public string ImageInitOf(DataItem item)
     {
         string one = ImageInitOfOne(item);
-        return item.Occurs is { } n and > 1 ? $"CobolString.Repeat({one}, {n})" : one;
+        return item.Occurs is { } n and > 1 ? RuntimeApi.StrRepeat(one, $"{n}") : one;
     }
 
     private string ImageInitOfOne(DataItem item)
@@ -40,24 +40,25 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             // CCVS leniency (same as InitializerFor): an ALPHANUMERIC literal VALUE on a numeric DISPLAY item
             // contributes its CHARACTERS to the image (NC107A's `PIC 999 VALUE "000"` under a REDEFINES).
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && raw.StartsWith('"'))
-                return $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length})";
+                return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
             if (pic.Category is PicCategory.Numeric && !pic.IsFloat && vals.FigurativeInitializer(raw, pic) is null)
-                return $"CobolNum.FormatDisplay({EmitText.UnscaledAtScale(raw, pic.Scale)}, {item.ProfileName})";
+                return RuntimeApi.NumFormatDisplay(EmitText.UnscaledAtScale(raw, pic.Scale), item.ProfileName);
             // A NUMERIC literal VALUE on a numeric-edited member contributes its EDITED image (§13.18.63 GR6).
             if (pic.Category is PicCategory.NumericEdited && !raw.StartsWith('"')
                 && ValueInitializer.TryParseNumeric(raw, out var uv, out int sc))
-                return EmitText.CsLiteral(CobolNet.Runtime.CobolEdit.Format(uv, sc, pic.EditMask!,
+                return EmitText.CsLiteral(RuntimeApi.EditCompose(uv, sc, pic.EditMask!,
                     item.BlankWhenZero, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma));
             if (pic.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited)
-                return $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length})";
+                return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
             // Boolean members of a Tier-B class contribute their zero-padded VALUE image (national never
             // reaches a Tier-B backing — ComputeTier rejects the class; the arm is defensive).
-            if (pic.Category is PicCategory.Boolean or PicCategory.National)
-                return $"CobolString.Store({EmitText.CsLiteral(CobolLiteral.Decode(raw))}, {pic.Length}"
-                    + $"{(pic.Category is PicCategory.Boolean ? ", justifiedRight: false, pad: '0'" : "")})";
+            if (pic.Category is PicCategory.Boolean)
+                return RuntimeApi.StrStoreBoolean(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}", justifiedRight: false);
+            if (pic.Category is PicCategory.National)
+                return RuntimeApi.StrStore(EmitText.CsLiteral(CobolLiteral.Decode(raw)), $"{pic.Length}");
         }
         return pic.Category is PicCategory.Numeric && !pic.IsFloat
-            ? $"CobolNum.FormatDisplay(0L, {item.ProfileName})"
+            ? RuntimeApi.NumFormatDisplay("0L", item.ProfileName)
             : pic.Category is PicCategory.Boolean
                 ? $"new string('0', {pic.Length})"   // boolean initial state — zeros (§13.18.63)
                 : $"new string(' ', {pic.Length})";
@@ -69,7 +70,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         w.Line($"public readonly string AsImage() => {(members.Count > 0 ? string.Join(" + ", members.Select(AsImageOf)) : "\"\"")};");
         using (w.Block("public void FromImage(string __s)"))
         {
-            w.Line($"__s = CobolString.Store(__s, {members.Sum(f => f.Width)});");   // pad/truncate to the image width
+            w.Line($"__s = {RuntimeApi.StrStore("__s", $"{members.Sum(f => f.Width)}")};");   // pad/truncate to the image width
             int off = 0;
             foreach (var f in members)
             {
@@ -87,10 +88,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     private static string AsImageOf(PhysicalModel.Physical f) =>
         f.Occurs == 0
             ? (f.IsGroupStruct ? $"{f.Name}.AsImage()"
-               : f.NumLeaf is { } leaf ? $"CobolNum.FormatDisplay({f.Name}, {ImageProfileOf(leaf)})"
+               : f.NumLeaf is { } leaf ? RuntimeApi.NumFormatDisplay(f.Name, ImageProfileOf(leaf))
                : f.Name)
         : f.IsGroupStruct ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => __e.AsImage()))"
-        : f.NumLeaf is { } l ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => CobolNum.FormatDisplay(__e, {ImageProfileOf(l)})))"
+        : f.NumLeaf is { } l ? $"string.Concat(System.Array.ConvertAll({f.Name}, __e => {RuntimeApi.NumFormatDisplay("__e", ImageProfileOf(l))}))"
         : $"string.Concat({f.Name})";
 
     /// <summary>Distribute the slice of the image at <paramref name="off"/> into one member: a scalar string field
@@ -106,7 +107,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}.FromImage(__s.Substring({off}, {f.Width}));"
                 : f.NumLeaf is { } leaf
-                ? $"{f.Name} = ({leaf.Pic!.ClrType})CobolNum.ParseDisplay(__s.Substring({off}, {f.Width}), {ImageProfileOf(leaf)});"
+                ? $"{f.Name} = ({leaf.Pic!.ClrType}){RuntimeApi.NumParseDisplay($"__s.Substring({off}, {f.Width})", ImageProfileOf(leaf))};"
                 : $"{f.Name} = __s.Substring({off}, {f.Width});");
             return;
         }
@@ -115,7 +116,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             w.Line(f.IsGroupStruct
                 ? $"{f.Name}[__i].FromImage(__s.Substring({off} + __i * {elem}, {elem}));"
                 : f.NumLeaf is { } l
-                ? $"{f.Name}[__i] = ({l.Pic!.ClrType})CobolNum.ParseDisplay(__s.Substring({off} + __i * {elem}, {elem}), {ImageProfileOf(l)});"
+                ? $"{f.Name}[__i] = ({l.Pic!.ClrType}){RuntimeApi.NumParseDisplay($"__s.Substring({off} + __i * {elem}, {elem})", ImageProfileOf(l))};"
                 : $"{f.Name}[__i] = __s.Substring({off} + __i * {elem}, {elem});");
     }
 

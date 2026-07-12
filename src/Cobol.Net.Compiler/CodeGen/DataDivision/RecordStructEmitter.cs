@@ -55,7 +55,7 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     /// <c>string</c> — the members are windows over it (via <see cref="RedefViewPlace"/>). Null otherwise.</summary>
     public (string Name, string Init)? MethodRedefinesBackingDecl(DataItem root) =>
         root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root)
-            ? (cls.BackingCsName, $"CobolString.Store({codec.ImageInitOf(root)}, {cls.Width})")
+            ? (cls.BackingCsName, RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}"))
             : null;
 
     private void EmitStructTypeDecls(DataItem item, CodeWriter w)

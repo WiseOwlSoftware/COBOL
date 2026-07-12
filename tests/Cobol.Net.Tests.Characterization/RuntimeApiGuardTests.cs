@@ -8,62 +8,36 @@ namespace CobolNet.Tests.Characterization;
 /// <summary>
 /// The P7 Step 4b RATCHET (DESIGN-codegen-backend §3): every C# fragment naming a runtime member must route
 /// through the <c>nameof</c>-anchored <c>RuntimeApi</c> façade, so a runtime rename breaks ONE file at compile
-/// time. Migration is incremental (the phase doc's shrinking-whitelist plan): this test pins each CodeGen
-/// file's count of bare <c>Cobol*.</c> member-accesses and FAILS on any INCREASE — new emission goes through
-/// <c>RuntimeApi</c>, and Step 9's per-verb rewrites drive the baselines to zero (delete a file's entry once it
-/// reaches 0; when the table empties, rewrite this test to forbid-all). Reads files with
-/// <c>File.ReadAllText</c>, NOT a grep subprocess — <c>ConditionRenderer.cs</c> historically carried a literal
-/// NUL that made it invisible to ripgrep (DEVLOG 788/790).
+/// time. The Step-9-final sweep (DEVLOG 810) drove every Step-9 emitter to ZERO; the only remaining baselines
+/// are the four pre-Step-11/12 renderers, whose fragments route when Step 11 (structural Place — the renderers
+/// relocate to <c>Roslyn/</c>) and Step 12 (the IntrinsicRenderer static-channel deletion) restructure them.
+/// A file NOT listed must have ZERO bare accesses; a listed file's count may only SHRINK (update the entry
+/// downward, delete it at 0; when the table empties, flip this test to forbid-all).
+/// <para><b>Counting rule (the Step-9-final recorded refinement):</b> comment lines (<c>//</c>-led) are
+/// stripped before matching — a comment can never mis-emit text, and doc-comment <c>cref</c>s are already
+/// compile-validated. <c>CobolRounding.</c> and <c>CobolPassMode.</c> member accesses are excluded — in
+/// CodeGen those are always TYPED enum arguments (compile-checked); their EMITTED-text forms render
+/// exclusively through the façade's <c>RoundingText</c>/<c>PassModeText</c> anchors, so a rename still breaks
+/// <c>RuntimeApi.cs</c> at compile time. Reads files with <c>File.ReadAllText</c>, NOT a grep subprocess —
+/// <c>ConditionRenderer.cs</c> historically carried a literal NUL that made it invisible to ripgrep
+/// (DEVLOG 788/790).</para>
 /// </summary>
 public sealed class RuntimeApiGuardTests
 {
     /// <summary>Matches a bare runtime member-access fragment. Excluded by construction: the <c>CobolNet.</c>
-    /// namespace and the compiler-internal <c>CobolLiteral.</c> codec (not runtime types). Typed compile-time
-    /// uses (e.g. <c>CobolRounding</c> enum values) still count — the ratchet tolerates them inside a file's
-    /// baseline; the migration decides per file whether they become façade passthroughs.</summary>
-    private static readonly Regex Bare = new(@"\bCobol(?!Net\.|Literal\.)[A-Za-z0-9]+\.", RegexOptions.Compiled);
+    /// namespace, the compiler-internal <c>CobolLiteral.</c> codec (not a runtime type), and the two typed-enum
+    /// runtime types (<c>CobolRounding.</c>/<c>CobolPassMode.</c> — see the counting rule above).</summary>
+    private static readonly Regex Bare = new(@"\bCobol(?!Net\.|Literal\.|Rounding\.|PassMode\.)[A-Za-z0-9]+\.", RegexOptions.Compiled);
 
-    /// <summary>The baseline: bare-count per CodeGen file at the Step-4b landing (audit census wf_8ace7f29-a1d,
-    /// re-counted at commit time). A file NOT listed here must have ZERO bare accesses.</summary>
+    /// <summary>The baseline: bare-count per CodeGen file. Post-Step-9-final, ONLY the four pre-Step-11/12
+    /// renderers remain (they restructure at Steps 11/12, where their fragments route); every other CodeGen
+    /// file is at ZERO and stays there.</summary>
     private static readonly Dictionary<string, int> Baseline = new(StringComparer.OrdinalIgnoreCase)
     {
-        // CSharpEmitter.cs reached ZERO at Step 9i/9j (BATCH-1) — the orchestrator core emits no bare
-        // runtime fragment; the remaining pins below are typed compile-time uses or pre-Step-11/12 files.
-        ["Verbs/SetEmitter.cs"] = 2,          // typed CobolRounding args to StoreArith
-        ["Verbs/SequentialIoEmitter.cs"] = 3, // typed CobolRounding args (NumRescale/StoreArith)
-        ["Verbs/ArithmeticEmitter.cs"] = 10,   // 9h2: fragments routed; residue = compile-time MaskScale + typed CobolRounding uses
-        ["Verbs/MoveEmitter.cs"] = 3,   // 9g2: fragments routed; residue = the compile-time MaskScale call + 2 typed CobolRounding args
-        ["Emit/IntrinsicRenderer.cs"] = 52,
-        ["ProgramEmitter.cs"] = 14,      // was CSharpEmitter.Call.cs (27 − the 13 that moved at 9m); relocated VERBATIM at 9n — routes in the 9-final ratchet sweep
-        ["Verbs/CallEmitter.cs"] = 13,       // routes in the 9-final ratchet sweep
-        // CSharpEmitter.{Sort,KeyedIo}.cs (35+25) became Verbs/{Sort,KeyedIo}Emitter.cs at Step 9e —
-        // fragments RuntimeApi-routed; the residues are TYPED CobolRounding arguments (see the 9d note).
-        ["Verbs/KeyedIoEmitter.cs"] = 2,
-        ["Verbs/SortEmitter.cs"] = 1,
-        ["Emit/NumericRenderer.cs"] = 25,
-        // Emit/FieldEmitter.cs split 5-ways into DataDivision/ at Step 9l (24 redistributed exactly);
-        // the residual fragments route in the 9-final ratchet sweep.
-        ["DataDivision/GroupImageCodec.cs"] = 15,
-        ["DataDivision/ValueInitializer.cs"] = 5,
-        ["DataDivision/PhysicalModel.cs"] = 2,
-        ["DataDivision/RecordStructEmitter.cs"] = 1,
-        ["DataDivision/GroupValueSlicer.cs"] = 1,
-        ["Emit/ConditionRenderer.cs"] = 21,
-        // CSharpEmitter.Oo.cs reached 0 at Step 9m/BATCH-3b (the bind half emits nothing); the emit half:
-        ["Verbs/OoEmitter.cs"] = 17,             // routes in the 9-final ratchet sweep
-        // The Step-9d extractions: fragments are RuntimeApi-routed; the residues below are TYPED compile-time
-        // enum arguments (CobolRounding passed to StoreArith / the RuntimeApi rounding parameter), not emitted
-        // text — the ratchet's regex is over-broad for them; 9-final decides the regex refinement.
-        ["Verbs/StringEmitter.cs"] = 4,
-        ["Verbs/InspectEmitter.cs"] = 1,
-        ["Verbs/PtrEmitter.cs"] = 1,
-        ["Emit/OperandText.cs"] = 9,
-        // Verbs/AcceptDisplayEmitter.cs reached 0 at Step 9c; CSharpEmitter.ReportWriter.cs became
-        // Verbs/ReportWriterEmitter.cs at 0 (Step 9f) — entries deleted per the plan.
-        // CSharpEmitter.Exceptions.cs became EcEmitter.cs at 0 (Step 9k) — entry deleted.
-        // CSharpEmitter.Corresponding.cs became Verbs/CorrespondingEmitter.cs at 0 (Step 9c).
-        ["Emit/EmitCore.cs"] = 1,
-        ["Roslyn/ReceiverContext.cs"] = 1,
+        ["Emit/IntrinsicRenderer.cs"] = 47,   // routes at Step 12 (the static-channel deletion) + Step 11 relocation
+        ["Emit/NumericRenderer.cs"] = 17,     // routes at Step 11 (ExpressionRenderer under Roslyn/)
+        ["Emit/ConditionRenderer.cs"] = 17,   // routes at Step 11
+        ["Emit/OperandText.cs"] = 7,          // routes at Step 11
     };
 
     [Fact]
@@ -76,7 +50,9 @@ public sealed class RuntimeApiGuardTests
         {
             string name = Path.GetRelativePath(codeGen, file).Replace('\\', '/');
             if (name is "Roslyn/RuntimeApi.cs") continue;   // the façade itself
-            int count = Bare.Matches(File.ReadAllText(file)).Count;
+            string code = string.Join("\n",
+                File.ReadAllLines(file).Where(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)));
+            int count = Bare.Matches(code).Count;
             int allowed = Baseline.GetValueOrDefault(name, 0);
             if (count > allowed)
                 over.Add($"{name}: {count} bare Cobol*. accesses (baseline {allowed}) — route new emission through RuntimeApi");

@@ -289,7 +289,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 // scale (MOVE truncates toward zero, §14.6.8.2) — the edit Format takes a scaled Int128, not a double
                 // (D16 review: the numeric-edited path was missed by the Real integration → CS1503). NB the mask scale
                 // is the runtime's MaskScale, NOT pic.Scale (a numeric-edited item's Scale is 0 — the point is in the mask).
-                int ems = CobolEdit.MaskScale(pic.EditMask!, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma);
+                int ems = RuntimeApi.MaskScale(pic.EditMask!, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma);
                 string editVal = e.Real ? RuntimeApi.FloatToScaled(e.Expr, $"{ems}", CobolRounding.Truncation) : e.Expr;
                 int editScale = e.Real ? ems : e.Scale;
                 return RuntimeApi.EditFormat(editVal, $"{editScale}", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfgArgs);
