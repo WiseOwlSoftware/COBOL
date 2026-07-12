@@ -41,14 +41,16 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   OperandText 7 — they route at Steps 11/12); recorded counting refinement: comment lines stripped,
   `CobolRounding.`/`CobolPassMode.` typed-enum accesses excluded (emitted forms route via
   `RoundingText`/`PassModeText`).
-- **Step 10 ◐ IN PROGRESS — batches 10a–10d ✅ (DEVLOG 811–814):** 10a `34410d7f` (SymbolTable residuals) ·
-  10b `a01b5c77` (`PhraseBlocks` — the 8 clones + RETURN's reversal collapse into `Split`) · 10c `2f4acded`
-  (`BinderContext` + `StatementValidation` [Check* convention fixed] + `Verbs/InspectBinder` — pattern
-  proven) · 10d `706ac699` (`Verbs/{Evaluate,StringUnstring}Binder`; 11 spine members internal on the host;
-  ride-along records → records-only `Bound*.cs` files). **RESUME AT 10e** (Initialize + Move[absorbs
-  .MoveFigurative — the MarkImageForced choreography moves verbatim] + Corresponding) then 10f…10t per the
-  PHASE-07 §Step 10 **AS-BUILT PLAN block** (the decision-complete batch recipe + BinderContext as-built
-  shape; census `wf_b788936b-ca2`, scratchpad p7-step10-census.json, session 61dab794). Standing rules for
+- **Step 10 ◐ IN PROGRESS — batches 10a–10e ✅ (DEVLOG 811–815):** 10a `34410d7f` (SymbolTable residuals) ·
+  10b `a01b5c77` (`PhraseBlocks`) · 10c `2f4acded` (`BinderContext` + `StatementValidation` [Check*
+  convention] + `Verbs/InspectBinder`) · 10d `706ac699` (`Verbs/{Evaluate,StringUnstring}Binder`) · 10e
+  `1980f941` (the MOVE-family tier: `Verbs/{Move,Corresponding,Initialize}Binder` — MoveBinder absorbs
+  .MoveFigurative with the MarkImageForced choreography byte-preserved; the ONE `_corrCounter` /
+  `_initializeLoopVar` owners; CheckStrongMove/CheckComposite/INITIALIZE lifts; the `:219` ≥2002 window =
+  the sanctioned in-binder BEHAVIORAL edition read). **RESUME AT 10f** (ReportWriter + the ResolveReceiving
+  hoist) then 10g…10t per the PHASE-07 §Step 10 **AS-BUILT PLAN block** (the decision-complete batch recipe
+  + BinderContext as-built shape; census `wf_b788936b-ca2`, scratchpad p7-step10-census.json, session
+  61dab794). Standing rules for
   the batches: SR checks lift to `StatementValidation` as PURE checks only (error+placeholder control flow
   stays in the verb binder); the residual ~19 inline edition gates move VERBATIM (pass-folding = Exec Step
   E); ProcedureTableBuilder at the 10t FINAL wiring (the `OoMethodScope` entanglement); OO LAST (10s)
