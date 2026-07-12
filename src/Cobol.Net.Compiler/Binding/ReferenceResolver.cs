@@ -374,15 +374,12 @@ public sealed class ReferenceResolver(DataBinder data)
 
     // ── Name resolution ──────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The item an unqualified name resolves to (first match; COBOL requires qualification to disambiguate).</summary>
-    private DataItem? ResolveUnqualified(string name)
-    {
-        // §11.7 GR5 — inside a METHOD body a method-local name (LINKAGE / LOCAL-STORAGE / method WS) SHADOWS
-        // the same name in object data; sibling methods' names are invisible (each method has its own scope).
-        if (data.ActiveMethodScope is { } m && m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
-            return mlist[0];
-        return data.ByName.TryGetValue(name, out var list) && list.Count > 0 ? list[0] : null;
-    }
+    /// <summary>The item an unqualified name resolves to (first match; COBOL requires qualification to
+    /// disambiguate) — through the ONE scope-aware <see cref="Model.SymbolTable"/> (P7 Step 10a, the DEVLOG-773
+    /// pickup): the §11.7 GR5 method-overlay-first precedence (a method-local name shadows object data; sibling
+    /// methods' names are invisible) lives in <c>TryResolve</c>, no longer duplicated here.</summary>
+    private DataItem? ResolveUnqualified(string name) =>
+        data.Symbols.TryResolve(name, data.ActiveScope, out var list) ? list[0] : null;
 
     /// <summary>
     /// Resolve a qualified reference <c>name OF q[0] OF q[1] …</c> by right-to-left narrowing: resolve the

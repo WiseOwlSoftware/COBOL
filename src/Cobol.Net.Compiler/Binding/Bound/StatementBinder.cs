@@ -1763,11 +1763,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private Condition88? ConditionOf(Core.DataReferenceContext dref)
     {
         string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-        // §11.7 GR5 — a method-local 88 (under LINKAGE / LOCAL-STORAGE / method-WS data) shadows object data;
-        // see ReferenceResolver.ResolveUnqualified for the data-name half of the rule.
-        List<Condition88>? list;
-        if (data.ActiveMethodScope is { } ms && ms.Conditions.TryGetValue(name, out list) && list.Count > 0) { }
-        else if (!data.Conditions.TryGetValue(name, out list) || list.Count == 0) return null;
+        // §11.7 GR5 — a method-local 88 shadows object data; the overlay-first precedence lives in the ONE
+        // scope-aware SymbolTable (P7 Step 10a, the DEVLOG-773 pickup), no longer duplicated inline here.
+        if (!data.Symbols.TryResolveCondition(name, data.ActiveScope, out var list)) return null;
         var qualifiers = dref.dataReferenceSuffix()
             .Select(sfx => sfx.qualification()?.cobolWord().GetText())
             .OfType<string>().ToList();
