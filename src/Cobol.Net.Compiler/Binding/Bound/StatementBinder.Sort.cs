@@ -4,6 +4,7 @@ using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
+using CobolNet.Binding.Procedure;
 
 namespace CobolNet.Binding.Bound;
 
@@ -332,12 +333,9 @@ public sealed partial class StatementBinder
         }
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.returnAtEndPhrase() is { } ae)
-        {
-            var blocks = ae.statementBlock();
-            bool notFirst = StartsWithNot(ae);   // §14.9.34.3 SR4 — the phrases may be written in reversed order
-            if (blocks.Length >= 1) { if (notFirst) notAtEnd = BindBlocks([blocks[0]]); else atEnd = BindBlocks([blocks[0]]); }
-            if (blocks.Length >= 2) { if (notFirst) atEnd = BindBlocks([blocks[1]]); else notAtEnd = BindBlocks([blocks[1]]); }
-        }
+            // §14.9.34.3 SR4 — the phrases may be written in reversed order; Split's positional swap covers
+            // BOTH the NOT-only form and the full reversed pair (P7 Step 10b).
+            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => BindBlocks([b]));
         return new BoundReturn(file, area, into, atEnd, notAtEnd, SortVaryingOf(file));
     }
 

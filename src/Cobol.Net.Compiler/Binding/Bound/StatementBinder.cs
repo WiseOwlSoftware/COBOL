@@ -9,6 +9,7 @@ using CobolNet.Frontend.Generated;
 using Microsoft.CodeAnalysis.CSharp;
 
 using CobolNet.Binding.Model;
+using CobolNet.Binding.Procedure;
 
 namespace CobolNet.Binding.Bound;
 
@@ -391,9 +392,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             if (w.writeBeforeAfter()?.PAGE() is not null)
                 data.Edition.Error("COBOLNET0861", "WRITE … ADVANCING PAGE with an END-OF-PAGE phrase: the two "
                     + "shall not both be specified in a single WRITE statement (ISO §14.9.51 SR18)");
-            var blocks = eop.statementBlock();
-            if (blocks.Length >= 1) atEop = BindBlocks([blocks[0]]);
-            if (blocks.Length >= 2) notAtEop = BindBlocks([blocks[1]]);
+            (atEop, notAtEop) = PhraseBlocks.Split(eop.statementBlock(), PhraseBlocks.StartsWithNot(eop), b => BindBlocks([b]));
         }
         // SR13: with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES mnemonic (the
         // implementor positioning rules and the logical-page model are mutually exclusive).
@@ -416,11 +415,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         Place? into = r.readInto()?.dataReference() is { } d ? refs.Resolve(d) : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
-        {
-            var blocks = ae.statementBlock();
-            if (blocks.Length >= 1) atEnd = BindBlocks([blocks[0]]);
-            if (blocks.Length >= 2) notAtEnd = BindBlocks([blocks[1]]);
-        }
+            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => BindBlocks([b]));
         return new BoundRead(file, into, atEnd, notAtEnd, UnsupportedOrg(file, "READ"));
     }
 
@@ -745,24 +740,18 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     // ── ON SIZE ERROR phrase (ISO §14.7.5) ───────────────────────────────────────────────────────────────────
 
     private SizeErrorPhrase? BindSizeError(Core.ArithmeticOnSizeErrorContext? ctx) =>
-        ctx is null ? null : BuildSizeError(ctx.statementBlock(), StartsWithNot(ctx));
+        ctx is null ? null : BuildSizeError(ctx.statementBlock(), PhraseBlocks.StartsWithNot(ctx));
 
     private SizeErrorPhrase? BindSizeError(Core.ComputeOnSizeErrorContext? ctx) =>
-        ctx is null ? null : BuildSizeError(ctx.statementBlock(), StartsWithNot(ctx));
+        ctx is null ? null : BuildSizeError(ctx.statementBlock(), PhraseBlocks.StartsWithNot(ctx));
 
-    /// <summary>Build the phrase from the (1 or 2) statement blocks. Both <c>arithmeticOnSizeError</c> and
-    /// <c>computeOnSizeError</c> have the shape <c>ON SIZE ERROR b1 (NOT ON SIZE ERROR b2)? | NOT ON SIZE ERROR b1</c>;
-    /// the NOT-only alternative is detected by its leading <c>NOT</c> token.</summary>
-    private SizeErrorPhrase BuildSizeError(Core.StatementBlockContext[] blocks, bool notOnly)
+    /// <summary>Build the phrase from the (1 or 2) statement blocks — the shared two-branch shape via the ONE
+    /// <see cref="PhraseBlocks.Split"/> extractor (P7 Step 10b).</summary>
+    private SizeErrorPhrase BuildSizeError(Core.StatementBlockContext[] blocks, bool notFirst)
     {
-        if (notOnly) return new SizeErrorPhrase(null, BindBlocks([blocks[0]]));
-        var onErr = blocks.Length >= 1 ? BindBlocks([blocks[0]]) : null;
-        var notErr = blocks.Length >= 2 ? BindBlocks([blocks[1]]) : null;
+        var (onErr, notErr) = PhraseBlocks.Split(blocks, notFirst, b => BindBlocks([b]));
         return new SizeErrorPhrase(onErr, notErr);
     }
-
-    private static bool StartsWithNot(IParseTree ctx) =>
-        ctx.ChildCount > 0 && ctx.GetChild(0) is ITerminalNode t && t.Symbol.Type == CobolLexer.NOT;
 
     private BoundStatement BindPerform(Core.PerformStatementContext p)
     {

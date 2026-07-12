@@ -4,6 +4,7 @@ using CobolNet.Editions;
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
+using CobolNet.Binding.Procedure;
 
 namespace CobolNet.Binding.Bound;
 
@@ -103,13 +104,9 @@ public sealed partial class StatementBinder
         Place? into = r.readInto()?.dataReference() is { } d ? refs.Resolve(d) : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
-        {
-            var blocks = ae.statementBlock();
-            if (blocks.Length >= 1) atEnd = BindBlocks([blocks[0]]);
-            if (blocks.Length >= 2) notAtEnd = BindBlocks([blocks[1]]);
-        }
+            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => BindBlocks([b]));
         KeyedInvalidKey? invalid =
-            r.readInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), StartsWithNot(ik)) : null;
+            r.readInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
 
         bool next = r.readDirection()?.NEXT() is not null;
         bool previous = r.readDirection()?.PREVIOUS() is not null;
@@ -174,7 +171,7 @@ public sealed partial class StatementBinder
             return new BoundUnsupported($"WRITE ADVANCING / END-OF-PAGE on {file.Organization} file "
                 + $"'{file.CobolName}' (ISO §14.9.51 — print-control phrases are for sequential print files)");
         KeyedInvalidKey? invalid =
-            w.writeInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), StartsWithNot(ik)) : null;
+            w.writeInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
         return new BoundKeyedWrite(file, record,
             WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()), invalid);
     }
@@ -189,7 +186,7 @@ public sealed partial class StatementBinder
         // (CCVS-lenient) mode like the L1 leniency that parsed it: a sequential-access relative REWRITE can only
         // raise 4x statuses, so the bound phrase is dead in the status-first branches, never silently rerouted.
         KeyedInvalidKey? invalid =
-            rw.rewriteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), StartsWithNot(ik)) : null;
+            rw.rewriteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
         return new BoundKeyedRewrite(file, record,
             WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()), invalid);
     }
@@ -214,7 +211,7 @@ public sealed partial class StatementBinder
         // §14.9.10 SR2 forbids INVALID KEY in sequential access mode — tolerated in the default (CCVS-lenient)
         // mode: a sequential-access DELETE raises only 4x statuses, so the phrase is dead, never misrouted.
         KeyedInvalidKey? invalid =
-            del.deleteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), StartsWithNot(ik)) : null;
+            del.deleteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
         return new BoundKeyedDelete(file, invalid);
     }
 
@@ -228,11 +225,7 @@ public sealed partial class StatementBinder
             return new BoundUnsupported($"DELETE FILE of undeclared file '{name}'");
         List<BoundStatement>? on = null, notOn = null;
         if (df.deleteFileOnException() is { } ex)
-        {
-            var blocks = ex.statementBlock();
-            if (blocks.Length >= 1) on = BindBlocks([blocks[0]]);
-            if (blocks.Length >= 2) notOn = BindBlocks([blocks[1]]);
-        }
+            (on, notOn) = PhraseBlocks.Split(ex.statementBlock(), PhraseBlocks.StartsWithNot(ex), b => BindBlocks([b]));
         return new BoundKeyedDeleteFile(file, on, notOn);
     }
 
@@ -255,7 +248,7 @@ public sealed partial class StatementBinder
             data.Edition.Error("COBOLNET0862", $"START on '{name}': the access mode shall be sequential or "
                 + "dynamic (ISO §14.9.41 SR1)");
         KeyedInvalidKey? invalid =
-            st.startInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), StartsWithNot(ik)) : null;
+            st.startInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
 
         if (st.FIRST() is not null || st.LAST() is not null)
         {
@@ -316,14 +309,11 @@ public sealed partial class StatementBinder
 
     // ── Shared keyed-I/O helpers ───────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Build the INVALID/NOT INVALID pair from the phrase's statement blocks. All five phrases share the
-    /// grammar shape <c>INVALID KEY? b1 (NOT INVALID KEY? b2)? | NOT INVALID KEY? b1</c>; the NOT-only alternative
-    /// is detected by its leading NOT token (the same discriminator the ON SIZE ERROR binder uses).</summary>
-    private KeyedInvalidKey KeyedInvalidPhrase(Core.StatementBlockContext[] blocks, bool notOnly)
+    /// <summary>Build the INVALID/NOT INVALID pair from the phrase's statement blocks — the shared two-branch
+    /// shape via the ONE <see cref="PhraseBlocks.Split"/> extractor (P7 Step 10b).</summary>
+    private KeyedInvalidKey KeyedInvalidPhrase(Core.StatementBlockContext[] blocks, bool notFirst)
     {
-        if (notOnly) return new KeyedInvalidKey(null, BindBlocks([blocks[0]]));
-        var inv = blocks.Length >= 1 ? BindBlocks([blocks[0]]) : null;
-        var not = blocks.Length >= 2 ? BindBlocks([blocks[1]]) : null;
+        var (inv, not) = PhraseBlocks.Split(blocks, notFirst, b => BindBlocks([b]));
         return new KeyedInvalidKey(inv, not);
     }
 

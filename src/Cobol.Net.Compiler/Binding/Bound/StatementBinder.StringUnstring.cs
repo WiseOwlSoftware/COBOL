@@ -3,6 +3,7 @@
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
+using CobolNet.Binding.Procedure;
 
 namespace CobolNet.Binding.Bound;
 
@@ -102,7 +103,7 @@ public sealed partial class StatementBinder
 
         List<BoundStatement>? onOvf = null, notOvf = null;
         if (st.stringOnOverflow() is { } ov)
-            (onOvf, notOvf) = StrUnstrOverflow(ov.statementBlock(), StartsWithNot(ov));
+            (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => BindBlocks([b]));
         return new BoundStringStmt(sendings, into, pointer, onOvf, notOvf);
     }
 
@@ -181,7 +182,7 @@ public sealed partial class StatementBinder
 
         List<BoundStatement>? onOvf = null, notOvf = null;
         if (un.unstringOnOverflow() is { } ov)
-            (onOvf, notOvf) = StrUnstrOverflow(ov.statementBlock(), StartsWithNot(ov));
+            (onOvf, notOvf) = PhraseBlocks.Split(ov.statementBlock(), PhraseBlocks.StartsWithNot(ov), b => BindBlocks([b]));
         return new BoundUnstringStmt(source, delims, receivers, pointer, tallying, onOvf, notOvf);
     }
 
@@ -194,17 +195,6 @@ public sealed partial class StatementBinder
         : lit is not null ? LiteralOperand(lit)
         : fig is not null ? FigurativeOperand(fig)
         : new BoundOperandError(role);
-
-    /// <summary>The shared ON/NOT ON OVERFLOW phrase shape (ISO §14.9.43.2 / §14.9.48.2 — identical to the ON SIZE
-    /// ERROR shape): blocks[0]=ON and blocks[1]=NOT when both present; a leading NOT means a NOT-only phrase.</summary>
-    private (List<BoundStatement>? On, List<BoundStatement>? NotOn) StrUnstrOverflow(
-        Core.StatementBlockContext[] blocks, bool notOnly)
-    {
-        if (notOnly) return (null, BindBlocks([blocks[0]]));
-        var on = blocks.Length >= 1 ? BindBlocks([blocks[0]]) : null;
-        var notOn = blocks.Length >= 2 ? BindBlocks([blocks[1]]) : null;
-        return (on, notOn);
-    }
 
     /// <summary>True for an elementary fixed-point INTEGER item with no P scaling — the shape STRING SR7 /
     /// UNSTRING SR5–SR6 require of the POINTER / COUNT IN / TALLYING items (a V or P picture yields a non-zero
