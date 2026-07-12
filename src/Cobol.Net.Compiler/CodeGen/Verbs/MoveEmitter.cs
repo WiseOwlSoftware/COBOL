@@ -35,8 +35,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     // item); the fill char is category-aware (national/boolean = the D-N3 pin, not the PCS extreme).
                     var rmp = (RefModPlace)target;
                     ctx.Writer.Line(m.Source is BoundFigurative fig
-                        ? rmp.WriteFill(FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.Pic?.Category))
-                        : rmp.Write(OperandText.AsString(m.Source)));
+                        ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.Pic?.Category))
+                        : PlaceRenderer.Write(rmp, OperandText.AsString(m.Source)));
                     break;
                 case MoveKind.Group:
                     EmitGroupMove(target, m.Source);
@@ -48,7 +48,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     EmitFigurativeToNumericImage(target, m.Source);
                     break;
                 case MoveKind.Convert:
-                    ctx.Writer.Line(target.Write(ConvertSource(m.Source, target.Item)));
+                    ctx.Writer.Line(PlaceRenderer.Write(target, ConvertSource(m.Source, target.Item)));
                     break;
             }
         }
@@ -84,7 +84,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 + "MoveClassifier and this renderer have drifted"),
         };
         ctx.Writer.Line(target.Item.StoreAsImage || target is RedefViewPlace or NumericImagePlace
-            ? target.Write(image)
+            ? PlaceRenderer.Write(target, image)
             : LoudStmt($"MOVE of an alphanumeric figurative constant into the numeric item "
                 + $"'{target.Item.CobolName}' without image-backed storage (a BINARY/PACKED/COMP-5/float or "
                 + "Tier-A shared-storage receiver has no character image to fill — narrow pre-2023 residue of "
@@ -124,8 +124,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         bool nativeNumeric = item.Pic is { Category: PicCategory.Numeric } && !item.StoreAsImage
             && target is not RedefViewPlace and not NumericImagePlace;
         ctx.Writer.Line(nativeNumeric
-            ? target.Write(RuntimeApi.NumStoreDisplay(image, item.ProfileName, target.Read()))
-            : target.Write(image));
+            ? PlaceRenderer.Write(target, RuntimeApi.NumStoreDisplay(image, item.ProfileName, PlaceRenderer.Read(target)))
+            : PlaceRenderer.Write(target, image));
     }
 
     /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9 MOVE GR4 — no conversion, filled without
@@ -151,7 +151,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     is { } resolved && resolved.All(r => r.S is not null && r.T is not null))
             {
                 foreach (var (s, t) in resolved)
-                    ctx.Writer.Line(t!.Write(s!.Read()));
+                    ctx.Writer.Line(PlaceRenderer.Write(t!, PlaceRenderer.Read(s!)));
                 return;
             }
             // Non-aligned layouts (ST127A's 10-leaf WS twin → 11-leaf SD record) and class-view sources
@@ -182,13 +182,13 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // character window. A normal record-struct group distributes the image into its typed leaves via FromImage.
         ctx.Writer.Line(target switch
         {
-            OdoGroupPlace { DependingInside: false } odo => odo.ReceiveInto(image),
-            RedefViewPlace => target.Write(image),
+            OdoGroupPlace { DependingInside: false } odo => PlaceRenderer.ReceiveInto(odo, image),
+            RedefViewPlace => PlaceRenderer.Write(target, image),
             // A group receiver nested under an OCCURS DYNAMIC level (data-model D9): distribute the image through the
             // RECEIVING accessor (RefReceiving grows-and-seeds past the current capacity, §8.5.1.9.3), NOT target.Read()
             // (=RefSending, which drops an out-of-capacity write into benign scratch — silent data loss).
             DynTablePlace dyn => $"{dyn.ReceivingPath}.FromImage({image});",
-            _ => $"{target.Read()}.FromImage({image});",
+            _ => $"{PlaceRenderer.Read(target)}.FromImage({image});",
         });
     }
 

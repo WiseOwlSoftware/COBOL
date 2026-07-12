@@ -36,9 +36,9 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     {
         string src = s.ToNull ? "ManagedPointer.Null"
             : s.Address is { } a ? ptr.AddressOfText(a)   // ADDRESS OF sender (F7; Phase-4b inc 2)
-            : s.Source!.Read();
+            : PlaceRenderer.Read(s.Source!);
         foreach (var t in s.Targets)
-            ctx.Writer.Line(t.Write(src) + "   // SET pointer (ISO §14.9.39 Format 4/7)");
+            ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET pointer (ISO §14.9.39 Format 4/7)");
     }
 
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE
@@ -78,7 +78,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
                 ctx.Writer.Line($"{ix.IndexField} = (long)({NumericRenderer.Align(value, 0)});");
                 break;
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
-                ctx.Writer.Line(p.Write($"(long)({NumericRenderer.Align(value, 0)})"));
+                ctx.Writer.Line(PlaceRenderer.Write(p, $"(long)({NumericRenderer.Align(value, 0)})"));
                 break;
             case SetPlaceTarget { Place: var p }:
                 arith.StoreArith(p, value, CobolRounding.Truncation);
@@ -99,7 +99,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
                 ctx.Writer.Line($"{ix.IndexField} {op}= (long)({NumericRenderer.Align(amount, 0)});");
                 break;
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
-                ctx.Writer.Line(p.Write($"(long)({p.Read()} {op} {NumericRenderer.Align(amount, 0)})"));
+                ctx.Writer.Line(PlaceRenderer.Write(p, $"(long)({PlaceRenderer.Read(p)} {op} {NumericRenderer.Align(amount, 0)})"));
                 break;
             case SetPlaceTarget { Place: var p }:
                 arith.StoreArith(p, num.Combine(num.FieldNum(p), op, amount, ReceiverContext.None), CobolRounding.Truncation);
@@ -133,7 +133,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
                     ArithmeticEmitter.Narrow(RuntimeApi.NumStore(UnscaledAtScale(low, pic.Scale), $"{pic.Scale}", parent.Item.ProfileName), parent.Item),
                 _ => LoudValue("string", $"SET condition '{cond.Name}' over a group parent"),
             };
-            ctx.Writer.Line(parent.Write(rhs));
+            ctx.Writer.Line(PlaceRenderer.Write(parent, rhs));
         }
     }
 

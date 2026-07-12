@@ -157,7 +157,7 @@ internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, 
                 // or splices the image for string-carried storage.
                 string set = CallEmitter.CallPlaceIsString(place)
                     ? CallEmitter.CallStringWrite(place, "__v")
-                    : place.Write(RuntimeApi.NumStoreDisplay("__v", place.Item.ProfileName, place.Read()));
+                    : PlaceRenderer.Write(place, RuntimeApi.NumStoreDisplay("__v", place.Item.ProfileName, PlaceRenderer.Read(place)));
                 w.Line($"__RPT_{r.CsIndex}.AddControl(false, () => {CallEmitter.CallStringRead(place)}, __v => {{ {set} }});");
             }
             // SUM counters (§13.18.54): the addend delegate yields the addends' total at the counter's scale

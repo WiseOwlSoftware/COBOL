@@ -54,7 +54,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
             string len = rm.Length is { } l
                 ? $"(int)({l})"
                 : $"{rm.Inner.Item.Pic?.Length ?? rm.Inner.Item.ImageWidth} - (int)({rm.Start}) + 1";
-            w.Line(target.Write($"AcceptSource.Device({len})"));
+            w.Line(PlaceRenderer.Write(target, $"AcceptSource.Device({len})"));
             return;
         }
 
@@ -67,7 +67,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
             }
             string img = $"AcceptSource.Device({item.ImageWidth})";
             // A Tier-B view group's image IS its character window; a record-struct group distributes via FromImage.
-            w.Line(target is RedefViewPlace ? target.Write(img) : $"{target.Read()}.FromImage({img});");
+            w.Line(target is RedefViewPlace ? PlaceRenderer.Write(target, img) : $"{PlaceRenderer.Read(target)}.FromImage({img});");
             return;
         }
 
@@ -78,8 +78,8 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
                 // ImageWidth = digit count + a SIGN SEPARATE character position (ISO §13.18.52 GR6a).
                 string image = $"AcceptSource.Device({item.ImageWidth})";
                 w.Line(item.StoreAsImage || target is RedefViewPlace
-                    ? target.Write(image)   // image-stored zoned field / Tier-B window: the characters ARE the storage
-                    : target.Write(ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item)));
+                    ? PlaceRenderer.Write(target, image)   // image-stored zoned field / Tier-B window: the characters ARE the storage
+                    : PlaceRenderer.Write(target, ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(image, item.ProfileName), item)));
                 return;
             case { Category: PicCategory.Numeric }:   // COMP-1/COMP-2
                 w.Line(LoudStmt($"ACCEPT into floating-point receiver '{item.CobolName}' (COMP-1/COMP-2 device conversion, deferred)"));
@@ -87,7 +87,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
             default:
                 // Alphanumeric / alphabetic / edited: the characters store as-is (GR3/GR4 — no editing, no
                 // conversion; an edited PICTURE's Length counts every mask position).
-                w.Line(target.Write($"AcceptSource.Device({pic.Length})"));
+                w.Line(PlaceRenderer.Write(target, $"AcceptSource.Device({pic.Length})"));
                 return;
         }
     }
@@ -115,7 +115,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
         // the slice — §14.9.25.4 alphanumeric move into the §8.4.2.4 slice).
         if (target is RefModPlace)
         {
-            w.Line(target.Write(sendImage));
+            w.Line(PlaceRenderer.Write(target, sendImage));
             return;
         }
 
@@ -128,7 +128,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
             }
             // A group receiver is an alphanumeric-category move (§14.9.25.4 GR4 — filled without conversion).
             string img = RuntimeApi.StrStore(sendImage, $"{item.ImageWidth}");
-            w.Line(target is RedefViewPlace ? target.Write(img) : $"{target.Read()}.FromImage({img});");
+            w.Line(target is RedefViewPlace ? PlaceRenderer.Write(target, img) : $"{PlaceRenderer.Read(target)}.FromImage({img});");
             return;
         }
 
@@ -138,7 +138,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
                 // Numeric MOVE: decimal-point alignment with high-order truncation / zero fill (§14.9.25.4 GR6 —
                 // the integer sender is at scale 0; the receiver keeps its LOW-order digits when smaller).
                 string stored = ArithmeticEmitter.Narrow(RuntimeApi.NumStore(call, "0", item.ProfileName), item);
-                w.Line(target.Write(item.StoreAsImage
+                w.Line(PlaceRenderer.Write(target, item.StoreAsImage
                     ? RuntimeApi.NumFormatDisplay(stored, item.ProfileName)
                     : stored));
                 return;
@@ -147,15 +147,15 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx)
                 return;
             case { Category: PicCategory.NumericEdited, EditMask: { } mask }:
                 // A numeric sender into a numeric-edited receiver is EDITED into the mask (§14.9.25.4 GR5).
-                w.Line(target.Write(RuntimeApi.EditFormat(call, "0", CsLiteral(mask), ctx.EditCfgArgs)));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(call, "0", CsLiteral(mask), ctx.EditCfgArgs)));
                 return;
             case { Category: PicCategory.Alphanumeric, EditMask: { } amask }:
                 // Alphanumeric-edited: the sending characters place into the mask positions (§13.18.40 insertion).
-                w.Line(target.Write(RuntimeApi.EditFormatAlphanumeric(sendImage, CsLiteral(amask))));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatAlphanumeric(sendImage, CsLiteral(amask))));
                 return;
             case { Category: PicCategory.Alphanumeric } anPic:
                 // Alphanumeric MOVE: left-justified, right space-fill / right truncation (§14.9.25.4 GR6).
-                w.Line(target.Write(RuntimeApi.StrStore(sendImage, $"{anPic.Length}")));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.StrStore(sendImage, $"{anPic.Length}")));
                 return;
             default:
                 w.Line(LoudStmt($"ACCEPT temporal into receiver '{item.CobolName}' of unsupported category"));

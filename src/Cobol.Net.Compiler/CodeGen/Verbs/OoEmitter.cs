@@ -259,8 +259,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : $"CobolInvokeArg? __ur{id} = null;");
         string selector = u.MethodLiteral is { } lit
             ? Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(lit, quote: true)
-            : RuntimeApi.ObjNormalizeMethodName(u.MethodSource!.Read());
-        w.Line($"{RuntimeApi.ObjRequireNonNull(u.Receiver.Read())}.__CobolInvoke({selector}, __ua{id}, __ur{id});");
+            : RuntimeApi.ObjNormalizeMethodName(PlaceRenderer.Read(u.MethodSource!));
+        w.Line($"{RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(u.Receiver))}.__CobolInvoke({selector}, __ua{id}, __ur{id});");
         for (int i = 0; i < u.Args.Count; i++)
             w.Line(OoUnivCallerWrite(u.Args[i].Source, $"__ua{id}[{i}].Value") + "   // BY REFERENCE copy-out (SR6)");
         if (u.Returning is { } ret)
@@ -283,7 +283,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             {
                 if (tp.Item.Pic!.ObjectClassName is null)
                 {
-                    w.Line(tp.Write("ExceptionState.ExceptionObject") + "   // SET universal TO EXCEPTION-OBJECT (§8.4.3.6)");
+                    w.Line(PlaceRenderer.Write(tp, "ExceptionState.ExceptionObject") + "   // SET universal TO EXCEPTION-OBJECT (§8.4.3.6)");
                     continue;
                 }
                 string clr = tp.Item.Pic!.ClrType.TrimEnd('?');
@@ -292,29 +292,29 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line($"if (__xo{id} is not null && __xo{id} is not {clr}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
                     + $"\"SET {tp.Item.CobolName} TO EXCEPTION-OBJECT: the current exception object is not a "
                     + $"{tp.Item.Pic!.ObjectClassName} (ISO 9.3.8.2 runtime conformance; Table 13)\");");
-                w.Line(tp.Write($"({clr}?)__xo{id}") + "   // SET typed TO EXCEPTION-OBJECT (runtime-narrowed)");
+                w.Line(PlaceRenderer.Write(tp, $"({clr}?)__xo{id}") + "   // SET typed TO EXCEPTION-OBJECT (runtime-narrowed)");
             }
             return;
         }
         string src = s.SourceIsNull ? "null"
             : s.SourceIsSelf ? "this"
             : s.SourceFactoryCs is { } fac ? $"{fac}.__Instance"
-            : s.Source!.Read();
+            : PlaceRenderer.Read(s.Source!);
         foreach (var tp in s.Targets)
-            w.Line(tp.Write($"({tp.Item.Pic!.ClrType})({src})") + "   // SET F5 (ISO §14.9.39 GR9 — reference copy)");
+            w.Line(PlaceRenderer.Write(tp, $"({tp.Item.Pic!.ClrType})({src})") + "   // SET F5 (ISO §14.9.39 GR9 — reference copy)");
     }
 
     private static string OoUnivCallerRead(Place p) =>
-        p is RefModPlace ? p.Read()
-        : OoUnivImageBridged(p.Item) ? new NumericImagePlace(p).Read()
-        : p.Read();
+        p is RefModPlace ? PlaceRenderer.Read(p)
+        : OoUnivImageBridged(p.Item) ? PlaceRenderer.Read(new NumericImagePlace(p))
+        : PlaceRenderer.Read(p);
 
     private static string OoUnivCallerWrite(Place p, string box) =>
-        p is RefModPlace ? p.Write($"(string){box}!")
-        : OoStringCarried(p.Item) ? p.Write($"(string){box}!")
-        : OoUnivImageBridged(p.Item) ? new NumericImagePlace(p).Write($"(string){box}!")
-        : p.Item.Pic is { Category: PicCategory.ObjectReference } pic ? p.Write($"({pic.ClrType}){box}")
-        : p.Write($"({p.Item.ElementType}){box}!");
+        p is RefModPlace ? PlaceRenderer.Write(p, $"(string){box}!")
+        : OoStringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
+        : OoUnivImageBridged(p.Item) ? PlaceRenderer.Write(new NumericImagePlace(p), $"(string){box}!")
+        : p.Item.Pic is { Category: PicCategory.ObjectReference } pic ? PlaceRenderer.Write(p, $"({pic.ClrType}){box}")
+        : PlaceRenderer.Write(p, $"({p.Item.ElementType}){box}!");
 
     /// <summary>
     /// Emit one METHOD-ID as a real typed C# method (slice 2 — deep-dive D3/D6/D7/D8): BY REFERENCE formals as
@@ -485,13 +485,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             case InvokeForm.New:
                 // §16.2.1 — the predefined NEW: the generated ctor allocates + VALUE-initializes (D4); the
                 // reference is delivered through RETURNING (§14.9.23.4 GR8).
-                w.Line(inv.Returning!.Write($"new {inv.ClassCsName}()") + "   // INVOKE … \"NEW\" RETURNING (§16.2.1)");
+                w.Line(PlaceRenderer.Write(inv.Returning!, $"new {inv.ClassCsName}()") + "   // INVOKE … \"NEW\" RETURNING (§16.2.1)");
                 return;
             case InvokeForm.NewSelf:
                 // §16.2.1 GR1 — ACTIVE-CLASS creation in a factory method: the covariant __New override on
                 // the RUNTIME factory creates the runtime class (SUPER "NEW" deliberately identical — the
                 // restricted search finds the same predefined New, GR3/GR1).
-                w.Line(inv.Returning!.Write("this.__New()")
+                w.Line(PlaceRenderer.Write(inv.Returning!, "this.__New()")
                     + "   // INVOKE SELF|SUPER \"NEW\" (§16.2.1 — active-class creation via the covariant __New)");
                 return;
             case InvokeForm.Instance:
@@ -560,11 +560,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     // the OWNER's internal profile (the review's cross-class rule — qualified, never bare).
                     : $"string {tmp} = {RuntimeApi.NumFormatDisplay(EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale), qualProfile)};");
             else if (a.Formal.Pic is { Category: PicCategory.ObjectReference })
-                w.Line($"{a.Formal.ElementType} {tmp} = {a.Source!.Read()};");
+                w.Line($"{a.Formal.ElementType} {tmp} = {PlaceRenderer.Read(a.Source!)};");
             else if (a.Formal.Pic is { IsFloat: true })
                 // Same-usage float (bind-enforced): read the float value directly — never through the
                 // scaled-integer path (the review's silent-truncation finding).
-                w.Line($"{a.Formal.ElementType} {tmp} = {a.Source!.Read()};");
+                w.Line($"{a.Formal.ElementType} {tmp} = {PlaceRenderer.Read(a.Source!)};");
             else if (a.ByContent && a.Source is { } cp
                      && Num.AsNum(new BoundFieldOperand(cp), ReceiverContext.None) is var cx
                      && (cp.Item.Pic?.Digits != a.Formal.Pic!.Digits || cp.Item.Pic?.Scale != a.Formal.Pic.Scale))
@@ -588,13 +588,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     $"{tmp} + {RuntimeApi.StrRefMod(CallEmitter.CallStringRead(src), $"{fw + 1}", "-1")}"));
             }
             else if (src is RefModPlace)
-                post.Add(src.Write(tmp));   // RefModPlace.Write splices the window (§8.4.2.4)
+                post.Add(PlaceRenderer.Write(src, tmp));   // RefModPlace.Write splices the window (§8.4.2.4)
             else if (stringCarried)
-                post.Add(OoStringCarried(src.Item) ? src.Write(tmp) : new NumericImagePlace(src).Write(tmp));
+                post.Add(OoStringCarried(src.Item) ? PlaceRenderer.Write(src, tmp) : PlaceRenderer.Write(new NumericImagePlace(src), tmp));
             else
                 post.Add(src.Item.StoreAsImage
-                    ? src.Write(RuntimeApi.NumFormatDisplay(tmp, src.Item.ProfileName))
-                    : src.Write(tmp));
+                    ? PlaceRenderer.Write(src, RuntimeApi.NumFormatDisplay(tmp, src.Item.ProfileName))
+                    : PlaceRenderer.Write(src, tmp));
         }
 
         string target = inv.Form switch
@@ -604,7 +604,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // The factory singleton is never null — no GR5 guard (brief D11); virtual dispatch through the
             // factory hierarchy realizes §9.3.6 factory resolution.
             InvokeForm.Factory => $"{inv.ClassCsName}__FACTORY.__Instance",
-            _ => RuntimeApi.ObjRequireNonNull(inv.Receiver!.Read()),
+            _ => RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(inv.Receiver!)),
         };
         string call = $"{target}.{inv.MethodCsName}(" + string.Join(", ", argExprs) + ")";
 
@@ -620,13 +620,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             if (rs.IsGroup || recv.Item.IsGroup)
                 w.Line(CallEmitter.CallStringWrite(inv.Returning, tmp));
             else if (recv is RefModPlace)
-                w.Line(recv.Write(tmp));
+                w.Line(PlaceRenderer.Write(recv, tmp));
             else if (retString == OoStringCarried(recv.Item))
-                w.Line(recv.Write(tmp));
+                w.Line(PlaceRenderer.Write(recv, tmp));
             else if (retString)   // string-carried result into native-numeric storage
-                w.Line(recv.Write($"({recv.Item.ElementType}){RuntimeApi.NumParseDisplay(tmp, recv.Item.ProfileName)}"));
+                w.Line(PlaceRenderer.Write(recv, $"({recv.Item.ElementType}){RuntimeApi.NumParseDisplay(tmp, recv.Item.ProfileName)}"));
             else                  // native result into image-stored numeric storage
-                w.Line(recv.Write(RuntimeApi.NumFormatDisplay(tmp, recv.Item.ProfileName)));
+                w.Line(PlaceRenderer.Write(recv, RuntimeApi.NumFormatDisplay(tmp, recv.Item.ProfileName)));
         }
         else
         {
@@ -648,9 +648,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     private string OoStringReadOf(Place sp, BoundInvokeArg a)
     {
-        string read = sp is RefModPlace ? sp.Read()
-            : OoStringCarried(sp.Item) ? sp.Read()
-            : new NumericImagePlace(sp).Read();
+        string read = sp is RefModPlace ? PlaceRenderer.Read(sp)
+            : OoStringCarried(sp.Item) ? PlaceRenderer.Read(sp)
+            : PlaceRenderer.Read(new NumericImagePlace(sp));
         return a.ByContent && a.Formal.Pic is { } fp && fp.Category is PicCategory.Alphanumeric
             ? RuntimeApi.StrStore(read, $"{Math.Max(1, fp.Length)}")
             : read;

@@ -49,7 +49,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     {
         var w = ctx.Writer;
         int id = ctx.Names.NextEc();
-        w.Line($"ExceptionState.SetObject({ro.Source?.Read() ?? "this"});   // §14.6.13.1.5 (1)/(2) — EXCEPTION-OBJECT + the status sentinel");
+        w.Line($"ExceptionState.SetObject({(ro.Source is { } roSrc ? PlaceRenderer.Read(roSrc) : "this")});   // §14.6.13.1.5 (1)/(2) — EXCEPTION-OBJECT + the status sentinel");
         w.Line($"int __r{id} = {ObjDispatchExpr($"ExceptionState.ExceptionObject")};");
         w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
         w.Line($"// -1/-2/-3: declarative completed / RESUME NEXT / no match — continue after RAISE (§14.9.29.4 GR2)");

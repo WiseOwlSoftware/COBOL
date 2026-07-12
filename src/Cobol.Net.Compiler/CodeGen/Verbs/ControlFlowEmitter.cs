@@ -146,7 +146,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     private static string CountExpr(BoundOperand count) => count switch
     {
         BoundNumericLiteral n => n.Text,
-        BoundFieldOperand f => f.Place.Read(),
+        BoundFieldOperand f => PlaceRenderer.Read(f.Place),
         BoundOperandError e => LoudValue("long", e.Feature),
         _ => "1",
     };

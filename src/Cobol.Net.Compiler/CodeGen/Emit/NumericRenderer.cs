@@ -96,7 +96,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
             // A numeric-edited sender DE-EDITS to its numeric value at the mask's scale (ISO §14.9.25.4 GR5 — the
             // COBOL-85 de-editing move; the runtime walks the image against the mask's digit positions).
             && p.Item.Pic is { Category: PicCategory.NumericEdited, EditMask: { } dem }
-        ? new NumX($"CobolEdit.DeEdit({p.Read()}, {EmitText.CsLiteral(dem)}{ctx.EditCfgArgs})",
+        ? new NumX($"CobolEdit.DeEdit({PlaceRenderer.Read(p)}, {EmitText.CsLiteral(dem)}{ctx.EditCfgArgs})",
             CobolNet.Runtime.CobolEdit.MaskScale(dem, ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma))
         : FieldNumCore(p);
 
@@ -105,7 +105,7 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     internal static NumX FieldNumCore(Place p) => p is RefModPlace
         // A reference-modified result is ALPHANUMERIC (ISO §8.4.2.4) — in a numeric context it decodes as an
         // unsigned integer exactly like an alphanumeric field (§14.9.25.3 Table 16).
-        ? new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0)
+        ? new NumX($"CobolNum.FromAlphanumeric({PlaceRenderer.Read(p)})", 0)
         : p.Item.Pic switch
     {
         // A GROUP operand in a remaining numeric context (an arithmetic operand, a subscript…) decodes its
@@ -115,28 +115,28 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
         // at EmitMove → EmitGroupToElementaryMove), never a numeric decode of the image (the pre-fix NC105A
         // MOVE MOVE43 TO MOVE3 mis-derivation). A mixed-usage (COMP-leaf) group stays loud (Tier-C).
         null when p.Item.IsCharacterImage =>
-            new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? p.Read() : $"{p.Read()}.AsImage()")})", 0),
-        null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? p.Read()}'"), 0),
+            new NumX($"CobolNum.FromAlphanumeric({(p is RedefViewPlace ? PlaceRenderer.Read(p) : $"{PlaceRenderer.Read(p)}.AsImage()")})", 0),
+        null => new NumX(EmitText.LoudValue("long", $"numeric use of group item '{p.Item.CobolName ?? PlaceRenderer.Read(p)}'"), 0),
         // A float leaf (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, D16) enters the arithmetic pipeline as a native
         // IEEE double — NOT truncated to (long) at scale 0 (the pre-D16 stub that silently dropped the fraction).
-        { IsFloat: true } => new NumX($"(double)({p.Read()})", 0, Real: true),
+        { IsFloat: true } => new NumX($"(double)({PlaceRenderer.Read(p)})", 0, Real: true),
         // A numeric-DISPLAY leaf stored as its character image (whole-group-aliased): decode the zoned image to its
         // unscaled value for numeric use (ISO §14.6.13.2 — incompatible content decodes deterministically).
         { } pic when p.Item.StoreAsImage =>
-            new NumX($"CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName})", pic.Scale),
+            new NumX($"CobolNum.ParseDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName})", pic.Scale),
         // An alphanumeric operand in a numeric context is an UNSIGNED integer (ISO §14.9.25.4 GR6) — never the raw
         // string read (which would emit uncompilable C#, the bind-success ⇒ compilable invariant). A NATIONAL
         // operand decodes identically (GR6d3 — its digit characters are the Latin-1 digits under D-N4);
         // class BOOLEAN is not a numeric operand (§8.8.1; Table 16 Boolean→Numeric = No) — loud.
         { Category: PicCategory.Alphanumeric or PicCategory.National } =>
-            new NumX($"CobolNum.FromAlphanumeric({p.Read()})", 0),
+            new NumX($"CobolNum.FromAlphanumeric({PlaceRenderer.Read(p)})", 0),
         { Category: PicCategory.Boolean } =>
             new NumX(EmitText.LoudValue("long", $"boolean operand '{p.Item.CobolName}' in a numeric context (ISO §8.8.1 — class boolean is not a numeric operand)"), 0),
         // The numeric-edited de-edit lives on the INSTANCE entry (it needs the SPECIAL-NAMES config); a static
         // caller (the string-channel intrinsic renderer) reaching one is a staged-out shape — loud (§1.4).
         { Category: PicCategory.NumericEdited } =>
             new NumX(EmitText.LoudValue("long", $"numeric-edited operand '{p.Item.CobolName}' in a context-free numeric read"), 0),
-        { } pic => new NumX(p.Read(), pic.Scale),
+        { } pic => new NumX(PlaceRenderer.Read(p), pic.Scale),
     };
 
     /// <summary>Left-fold a list of bound expressions with <c>+</c> (the addends of an ADD / minuends of a SUBTRACT).</summary>

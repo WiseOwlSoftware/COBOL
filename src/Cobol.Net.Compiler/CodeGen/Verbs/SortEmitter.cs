@@ -146,7 +146,7 @@ internal sealed class SortEmitter(EmitContext ctx, DispatchState dispatch, Seque
         {
             // §13.18.43 GR13a: the released record's length = the RECORD VARYING DEPENDING ON item's current value.
             // Out-of-range lengths are EC-SORT-MERGE-RELEASE (GR14b; checking OFF, §18.16).
-            w.Line($"{RuntimeApi.SortRelease(sd, RuntimeApi.StrRefMod(image, "1", $"(int){RuntimeApi.TableOcc(dep.Read())}"))};");
+            w.Line($"{RuntimeApi.SortRelease(sd, RuntimeApi.StrRefMod(image, "1", $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}"))};");
             return;
         }
         // GR13b/c (no DEPENDING — incl. a varying m-TO-n SD): the named record's own size; the image renders at

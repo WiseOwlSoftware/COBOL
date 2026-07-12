@@ -252,7 +252,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// fixed file it pads to the record width).</summary>
     public string? VaryingLengthArg(FileModel file) =>
         file is { Varying.DependingName: not null, VaryingDependingItem: { } d } && refs.ResolveItem(d) is { } dep
-            ? $"(int){RuntimeApi.TableOcc(dep.Read())}" : null;
+            ? $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}" : null;
 
     /// <summary>After a SUCCESSFUL read of a RECORD VARYING … DEPENDING file, store the just-read record's length
     /// into the DEPENDING item (ISO §13.18.43 GR15; GR12 — an unsuccessful READ leaves it unchanged, so the call
@@ -339,10 +339,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                     + "Tier-C byte island (COBOLNET_DESIGN §4.2), deferred"));
                 return;
             }
-            w.Line($"{record.Read()}.FromImage({RuntimeApi.StrStore(imageExpr, $"{record.Item.ImageWidth}")});");
+            w.Line($"{PlaceRenderer.Read(record)}.FromImage({RuntimeApi.StrStore(imageExpr, $"{record.Item.ImageWidth}")});");
             return;
         }
-        w.Line(record.Write(RuntimeApi.StrStore(imageExpr, $"{record.Item.Pic?.Length ?? record.Item.ImageWidth}")));
+        w.Line(PlaceRenderer.Write(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.Pic?.Length ?? record.Item.ImageWidth}")));
     }
 
     /// <summary>After an I/O verb, store the file's two-character I-O status into its FILE STATUS item (ISO §9.1.13),
@@ -377,10 +377,10 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // A GROUP status item fills without conversion through the image facility (§14.9.25.4 GR4 — the
             // CCVS shape `01 SQ-FS2-STATUS. 03 KEY-1 PIC X. 03 KEY-2 PIC X.`); a struct field cannot take the
             // raw string write.
-            ctx.Writer.Line($"{place.Read()}.FromImage({status});");
+            ctx.Writer.Line($"{PlaceRenderer.Read(place)}.FromImage({status});");
             return;
         }
-        ctx.Writer.Line(place.Write(status));
+        ctx.Writer.Line(PlaceRenderer.Write(place, status));
     }
 
     /// <summary>The C# <c>int</c> expression for an ADVANCING line count (a literal or a numeric data-name).</summary>

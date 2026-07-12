@@ -56,7 +56,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 + $"({s.Based.Class?.RejectReason ?? "unclassified"})"));
             return;
         }
-        ctx.Writer.Line($"{addr} = {s.Source.Read()};   // SET ADDRESS OF (ISO §14.9.39 F7 GR12-13 — a snapshot)");
+        ctx.Writer.Line($"{addr} = {PlaceRenderer.Read(s.Source)};   // SET ADDRESS OF (ISO §14.9.39 F7 GR12-13 — a snapshot)");
     }
 
     /// <summary><c>SET pointer… {UP|DOWN} BY n</c> (ISO §14.9.39 Format 10): the amount evaluates ONCE, then
@@ -72,9 +72,9 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         w.Line($"long {tmp} = (long)({x.Expr});");
         string amount = s.Down ? $"-{tmp}" : tmp;
         foreach (var t in s.Targets)
-            w.Line(t.Write(x.Scale == 0
-                    ? RuntimeApi.PtrUpBy(t.Read(), amount)
-                    : RuntimeApi.PtrUpByScaled(t.Read(), amount, $"{x.Scale}"))
+            w.Line(PlaceRenderer.Write(t, x.Scale == 0
+                    ? RuntimeApi.PtrUpBy(PlaceRenderer.Read(t), amount)
+                    : RuntimeApi.PtrUpByScaled(PlaceRenderer.Read(t), amount, $"{x.Scale}"))
                 + "   // SET pointer UP/DOWN BY (ISO §14.9.39 F10 GR19/GR20)");
     }
 
@@ -95,14 +95,14 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             }
             w.Line($"{addr} = {RuntimeApi.PtrAllocate($"{cls.Width}")};   // ALLOCATE based-item (ISO §14.9.3 GR3/GR4a)");
             if (s.Returning is { } ret2)
-                w.Line(ret2.Write(addr) + "   // GR4b — the RETURNING pointer also receives the address");
+                w.Line(PlaceRenderer.Write(ret2, addr) + "   // GR4b — the RETURNING pointer also receives the address");
             return;
         }
         NumX x = num.Render(s.Chars!, ReceiverContext.None);
         string size = x.Scale == 0
             ? $"(long)({x.Expr})"
             : $"(long){RuntimeApi.NumRescale(x.Expr, $"{x.Scale}", "0", Runtime.CobolRounding.AwayFromZero)}";   // GR1 — round UP
-        w.Line(s.Returning!.Write(RuntimeApi.PtrAllocate(size, zeroFill: s.Initialized))
+        w.Line(PlaceRenderer.Write(s.Returning!, RuntimeApi.PtrAllocate(size, zeroFill: s.Initialized))
             + "   // ALLOCATE n CHARACTERS (ISO §14.9.3 GR1/GR2" + (s.Initialized ? "/GR6" : "") + ")");
     }
 
@@ -117,7 +117,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         {
             string na = $"__notAlloc{ctx.Names.NextPtr()}";
             w.Line($"bool {na};");
-            w.Line(op.Write(RuntimeApi.PtrFree(op.Read(), na)) + "   // FREE (ISO §14.9.15 GR1)");
+            w.Line(PlaceRenderer.Write(op, RuntimeApi.PtrFree(PlaceRenderer.Read(op), na)) + "   // FREE (ISO §14.9.15 GR1)");
             if (checkNotAlloc)
             {
                 var (stmt, loc) = ec.EcStmtLoc(ecState.Info!);

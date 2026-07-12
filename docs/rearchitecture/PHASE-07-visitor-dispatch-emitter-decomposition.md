@@ -682,6 +682,37 @@ MULTI-SUB-COMMIT. This is the riskiest step; do it LAST, after the visitor + dec
 well-typed. The P0 differential/snapshot harness "earns its keep" here — output MUST be byte-identical pre/post each
 subtype.
 
+**Execution plan (decided; refines the sketch below on two points).**
+- **`PlaceRenderer` is a STATIC class** (`CodeGen/Roslyn/PlaceRenderer.cs`), NOT `PlaceRenderer(EmitContext ctx,
+  RuntimeApi rt)`. Every current `Place.Read()/Write()` is context-free (self-contained on the `Place`'s own fields),
+  and `RuntimeApi` is static, so no `EmitContext` is threaded. It lives in `CodeGen`; the binder NEVER references it
+  (a `Binding → CodeGen` call would invert the layering the seam enforces).
+- **Migration = route consumers FIRST, then migrate subtypes.** Because `Place` is in `Binding` and `PlaceRenderer`
+  in `CodeGen`, `Place.Read()` cannot delegate to `PlaceRenderer` (layer inversion). So the shim lives INSIDE
+  `PlaceRenderer` (default arm → the legacy `p.Read()`), and consumers are routed `p.Read()` → `PlaceRenderer.Read(p)`
+  FIRST (each routing is byte-identical); THEN each subtype is converted to structure one at a time (its fields + an
+  explicit `PlaceRenderer` arm + its construction sites in `ReferenceResolver`/`CorrespondingBinder`/
+  `InitializeBinder`/`OdoModel`); FINALLY `Place.Read()/Write()` are deleted and the R5 neutrality test lands.
+- **Sub-step order:** 11a route all ~120 CodeGen consumers → `PlaceRenderer` (done incrementally). Then the
+  no-subscript subtypes (`NumericImagePlace`, `RenamesPlace`, `OdoGroupPlace` — pure decorators/composites over inner
+  `Place`s). Then the index infrastructure: the `AccessSegment`/`AccessPath` types + a token→`BoundExpr` subscript
+  builder in `ReferenceResolver` + a byte-exact **index renderer** in `PlaceRenderer`. Then `RefModPlace`,
+  `MemberPlace`, `DynTablePlace` (fold), `RedefViewPlace`, `CapacityRegisterPlace`. Then the binder-side C#-string
+  leaks (`BoundSearch.DependCount`, the `CorrespondingBinder` `m.Path.Contains("CobolTable.At(")` string-sniff →
+  a structural has-index-segment query) + delete `Read()/Write()` + the neutrality test.
+- **Subscripts become `BoundExpr` rendered by a DEDICATED byte-exact index renderer** in `PlaceRenderer`, NOT the
+  general `NumericRenderer` (which emits `Int128` scale-tracked arithmetic — wrong for an integer index). The index
+  renderer reproduces `ReferenceResolver.RenderSegment` exactly: integer literals verbatim, `+ - * /` with its
+  spacing, `CobolTable.Occ(<place>)` for a data-item subscript, the `long` index field for an `INDEXED BY` name.
+  Byte-exactness is gated by the 32 snapshots.
+- **`FixedTableSegment`/`DynTableSegment` carry NO fixed `AccessDir`** (refines the sketch): direction is
+  operation-driven at render time — `PlaceRenderer.Read` picks `CobolTable.At`/`RefSending`, `PlaceRenderer.Write`
+  picks `CobolTable.At`/`RefReceiving`. `DynTablePlace`'s two precomputed paths fold into ONE structural path; a fixed
+  per-segment `Dir` would mis-handle a receiver that is also read (e.g. `ADD 1 TO A(I)` over a dynamic table).
+- **`RedefViewPlace`'s backing** is a synthesized backing-field access (the `_redef_X` class member has NO `DataItem`,
+  reached via `ReferenceResolver.BackingPath`, optionally displaced by `CobolPtr.OffsetOf` for a BASED class), so the
+  sketch's `Place Backing` is realized as a backing-field segment, not a full `Place`.
+
 - **Files:** edit `Binding/Model/Place.cs`; create `CodeGen/Roslyn/PlaceRenderer.cs`; edit every `Verbs/*Emitter` +
   `ExpressionRenderer`/`ConditionRenderer` reader of `place.Read()/Write()`.
 - **Change:** Introduce the structural shapes (`DESIGN-codegen-backend.md §2.3`, `DESIGN-data-model.md`):

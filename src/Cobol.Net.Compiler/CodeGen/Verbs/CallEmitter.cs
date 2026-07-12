@@ -164,7 +164,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9): a value snapshot.
             return CallPlaceIsString(p)
                 ? $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
-                : $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<long>.Cell({p.Read()}), {digits}, {scale})";
+                : $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<long>.Cell({PlaceRenderer.Read(p)}), {digits}, {scale})";
         }
         switch (a.Value)
         {
@@ -199,7 +199,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// through <c>FromImage</c> — the deep-dive group round-trip).</summary>
     public string RefCarrier(Place p) => CallPlaceIsString(p)
         ? $"ManagedPointer<string>.OverField(() => {CallStringRead(p)}, __v => {{ {CallStringWrite(p, "__v")} }})"
-        : $"ManagedPointer<long>.OverField(() => {p.Read()}, __v => {{ {p.Write("__v")} }})";
+        : $"ManagedPointer<long>.OverField(() => {PlaceRenderer.Read(p)}, __v => {{ {PlaceRenderer.Write(p, "__v")} }})";
 
     /// <summary>True when a place's storage crosses the CALL boundary as a character image (string carrier):
     /// groups, Tier-B windows, zoned-image leaves, alphanumeric / numeric-edited items. A native fixed-point
@@ -219,7 +219,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// Every call site of this helper (the BY REFERENCE carrier, BY CONTENT snapshot, callee copy-out, and
     /// RETURNING delivery) is such a boundary.</summary>
     internal static string CallStringRead(Place p) => p is OdoGroupPlace odo
-        ? $"{odo.Read()}.AsImage()"
+        ? $"{PlaceRenderer.Read(odo)}.AsImage()"
         : OperandText.AsString(new BoundFieldOperand(p));
 
     internal static string CallStringWrite(Place p, string value) =>
@@ -227,8 +227,8 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // occurs-depending group — OdoGroupPlace.Write delegates to the full-width struct) distributes the whole
         // image through FromImage, never the GR8a current-extent splice.
         p.Item.IsGroup && p is not RedefViewPlace && p.Item.IsCharacterImage
-            ? $"{p.Read()}.FromImage({value});"
-            : p.Write(value);
+            ? $"{PlaceRenderer.Read(p)}.FromImage({value});"
+            : PlaceRenderer.Write(p, value);
 
     /// <summary>Emit CANCEL (ISO §14.9.5): one registry call per target, left to right (GR2). Under enabled
     /// EC-PROGRAM checking (>>TURN, §7.3.25) each target's <see cref="CobolCallException"/> runs the
@@ -304,7 +304,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         {
             // The exception-OBJECT leg (§14.9.18.4 GR1b; the EC-OO wave): no Enabled/Fatal logic — objects
             // are not TURN-gated (§7.3.25 takes names only); the activator's §14.6.13.1.5 rules decide.
-            w.Line($"ExceptionState.SetPropagatingObject({os.Read()});   // {verb} RAISING identifier-1 — staged for the activator");
+            w.Line($"ExceptionState.SetPropagatingObject({PlaceRenderer.Read(os)});   // {verb} RAISING identifier-1 — staged for the activator");
             return;
         }
         if (r.IsLast)

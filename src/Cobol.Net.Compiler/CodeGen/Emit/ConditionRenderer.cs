@@ -56,7 +56,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ObjectReference;
         if (IsObj(r.Left) || IsObj(r.Right))
         {
-            static string ObjRead(BoundOperand o) => o is BoundFieldOperand f ? f.Place.Read() : "null";
+            static string ObjRead(BoundOperand o) => o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "null";
             string core = $"object.ReferenceEquals({ObjRead(r.Left)}, {ObjRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
@@ -67,7 +67,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.Pointer;
         if (IsPtr(r.Left) || IsPtr(r.Right))
         {
-            static string PtrRead(BoundOperand o) => o is BoundFieldOperand f ? f.Place.Read() : "null";
+            static string PtrRead(BoundOperand o) => o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "null";
             string core = $"ManagedPointer.SameTarget({PtrRead(r.Left)}, {PtrRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
@@ -172,7 +172,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     private static string BoolRead(BoundOperand o) => o switch
     {
         BoundBoolOperand b => BooleanRenderer.Render(b.Expr),
-        BoundFieldOperand f => f.Place.Read(),
+        BoundFieldOperand f => PlaceRenderer.Read(f.Place),
         BoundStringLiteral { Category: PicCategory.Boolean } s => EmitText.CsLiteral(s.Value),
         BoundFigurative { Kind: 'Z' } => "\"0\"",
         _ => EmitText.LoudValue("string", $"boolean relation operand '{o.GetType().Name}'"),

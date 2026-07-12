@@ -136,7 +136,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             string store = width < 0
                 ? value   // a ref-mod boolean receiver — the slice write fits via SpliceInto (pad '0')
                 : RuntimeApi.StrStoreBoolean(value, $"{width}", t.Item.Justified);
-            ctx.Writer.Line(t.Write(store));
+            ctx.Writer.Line(PlaceRenderer.Write(t, store));
         }
     }
 
@@ -278,10 +278,10 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
                 // the receiver is EC-SIZE-TRUNCATION ("significant digits truncated in store").
                 string onFail = ecState.SizeErrEcVar is { } ecn1 ? $"{{ {eflag} = true; {ecn1} = \"EC-SIZE-TRUNCATION\"; }}" : $"{eflag} = true;";
                 w.Line($"if (!{RuntimeApi.EditTryFormat(Aligned(true), $"{ms}", CsLiteral(mask), img, BwzFlag(target.Item) + EditCfg())}) {onFail}");
-                w.Line($"else {target.Write(img)}");
+                w.Line($"else {PlaceRenderer.Write(target, img)}");
                 return;
             }
-            w.Line(target.Write(RuntimeApi.EditFormat(Aligned(false), $"{ms}", CsLiteral(mask), BwzFlag(target.Item) + EditCfg())));
+            w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(Aligned(false), $"{ms}", CsLiteral(mask), BwzFlag(target.Item) + EditCfg())));
             return;
         }
         // A float RECEIVER (COMP-1/2/FLOAT-*, D16) takes the algebraic value as a native cast — no PICTURE, no
@@ -289,12 +289,12 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
         // (the receiver holds the exact algebraic value). BEFORE the fixed-point guard below.
         if (target.Item.Pic is { IsFloat: true })
         {
-            w.Line(target.Write($"({target.Item.Pic.ClrType})({NumericRenderer.Real(value)})"));
+            w.Line(PlaceRenderer.Write(target, $"({target.Item.Pic.ClrType})({NumericRenderer.Real(value)})"));
             return;
         }
         if (target.Item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
         {
-            w.Line(LoudStmt($"arithmetic into a non-fixed-point target '{target.Item.CobolName ?? target.Read()}'"));
+            w.Line(LoudStmt($"arithmetic into a non-fixed-point target '{target.Item.CobolName ?? PlaceRenderer.Read(target)}'"));
             return;
         }
         string profile = target.Item.ProfileName;
@@ -328,11 +328,11 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
             else
                 w.Line($"if (!{RuntimeApi.NumTryStore(args, mode, tmp)}) {onFail}");
             // On success store the value (a whole-group-aliased numeric-DISPLAY receiver stores its character image).
-            w.Line($"else {target.Write(target.Item.StoreAsImage ? RuntimeApi.NumFormatDisplay(tmp, profile) : Narrow(tmp, target.Item))}");
+            w.Line($"else {PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatDisplay(tmp, profile) : Narrow(tmp, target.Item))}");
             return;
         }
         string stored = RuntimeApi.NumStoreRounded(args, mode);
-        w.Line(target.Write(target.Item.StoreAsImage ? RuntimeApi.NumFormatDisplay(stored, profile) : Narrow(stored, target.Item)));
+        w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage ? RuntimeApi.NumFormatDisplay(stored, profile) : Narrow(stored, target.Item)));
     }
 
     /// <summary>The receiver's working scale: an edited receiver's is its MASK's fraction scale (a `.`-pointed

@@ -31,9 +31,9 @@ internal sealed class InitializeEmitter(EmitContext ctx, MoveEmitter move)
                 // A COMP-1/COMP-2 receiver: the GR6c ZEROES default is the IEEE zero (its declared default
                 // initializer); the float MOVE path (REPLACING/VALUE senders) is deferred backend-wide → loud.
                 w.Line(s.Source is BoundFigurative { Kind: 'Z' }
-                    ? s.Target.Write(fp.DefaultInitializer)
+                    ? PlaceRenderer.Write(s.Target, fp.DefaultInitializer)
                     : LoudStmt($"INITIALIZE REPLACING/VALUE into floating-point item " +
-                               $"'{s.Target.Item.CobolName ?? s.Target.Read()}' (float MOVE path deferred)"));
+                               $"'{s.Target.Item.CobolName ?? PlaceRenderer.Read(s.Target)}' (float MOVE path deferred)"));
                 break;
             case InitializeStore s:
                 move.Emit(new BoundMove(s.Source, [s.Target]));   // §14.9.20 GR4 — an implicit MOVE, one code path

@@ -153,13 +153,13 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 w.Line(LoudStmt($"STRING INTO mixed-usage group '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
                 return;
             }
-            w.Line($"{p.Read()}.FromImage({imageExpr});");
+            w.Line($"{PlaceRenderer.Read(p)}.FromImage({imageExpr});");
             return;
         }
         if (p is not RedefViewPlace && !p.Item.StoreAsImage
             && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
         {
-            w.Line(p.Write(ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(imageExpr, p.Item.ProfileName), p.Item)));
+            w.Line(PlaceRenderer.Write(p, ArithmeticEmitter.Narrow(RuntimeApi.NumParseDisplay(imageExpr, p.Item.ProfileName), p.Item)));
             return;
         }
         if (p is not RedefViewPlace && !p.Item.StoreAsImage
@@ -168,7 +168,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             w.Line(LoudStmt($"STRING INTO receiver '{p.Item.CobolName}' (usage display required, ISO §14.9.43.3 SR1)"));
             return;
         }
-        w.Line(p.Write(imageExpr));
+        w.Line(PlaceRenderer.Write(p, imageExpr));
     }
 
     /// <summary>Store a run-time string (the UNSTRING examined characters / matched delimiter) into a receiver
@@ -185,7 +185,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         if (target is RefModPlace)
         {
             // A reference-modified receiver: SpliceInto left-justifies, space-fills, and truncates to the slice.
-            w.Line(target.Write(valueExpr));
+            w.Line(PlaceRenderer.Write(target, valueExpr));
             return;
         }
         if (target.Item.IsGroup)
@@ -196,26 +196,26 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 return;
             }
             string image = RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}");
-            w.Line(target is RedefViewPlace ? target.Write(image) : $"{target.Read()}.FromImage({image});");
+            w.Line(target is RedefViewPlace ? PlaceRenderer.Write(target, image) : $"{PlaceRenderer.Read(target)}.FromImage({image});");
             return;
         }
         switch (target.Item.Pic)
         {
             case { Category: PicCategory.NumericEdited, EditMask: { } mask }:
-                w.Line(target.Write(RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", CsLiteral(mask), ctx.EditCfgArgs)));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", CsLiteral(mask), ctx.EditCfgArgs)));
                 return;
             case { Category: PicCategory.Alphanumeric, EditMask: { } amask }:
-                w.Line(target.Write(RuntimeApi.EditFormatAlphanumeric(valueExpr, CsLiteral(amask))));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatAlphanumeric(valueExpr, CsLiteral(amask))));
                 return;
             case { Category: PicCategory.Alphanumeric, Length: var len }:
                 // A JUSTIFIED receiver right-justifies — left space-fill / left truncation (§14.9.25.4 GR6c).
-                w.Line(target.Write(target.Item.Justified
+                w.Line(PlaceRenderer.Write(target, target.Item.Justified
                     ? RuntimeApi.StrStoreJustified(valueExpr, $"{len}")
                     : RuntimeApi.StrStore(valueExpr, $"{len}")));
                 return;
             case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
                 string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", target.Item.ProfileName);
-                w.Line(target.Write(target.Item.StoreAsImage
+                w.Line(PlaceRenderer.Write(target, target.Item.StoreAsImage
                     ? RuntimeApi.NumFormatDisplay(stored, target.Item.ProfileName)
                     : ArithmeticEmitter.Narrow(stored, target.Item)));
                 return;

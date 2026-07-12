@@ -82,16 +82,16 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         // ISO §13.18.38 GR7 + §14.6.4 step 6: an occurs-depending group is INSPECTed over its current-count extent;
         // the replaced image (already current-count, read via the GR8 sending slice) splices back over exactly that
         // extent, leaving positions past the count unmodified.
-        if (p is OdoGroupPlace odo) { w.Line(odo.ReceiveInto(img)); return; }
+        if (p is OdoGroupPlace odo) { w.Line(PlaceRenderer.ReceiveInto(odo, img)); return; }
         if (p.Item.IsGroup)
         {
-            if (p is RedefViewPlace) { w.Line(p.Write(img)); return; }
+            if (p is RedefViewPlace) { w.Line(PlaceRenderer.Write(p, img)); return; }
             if (!p.Item.IsCharacterImage)
             {
                 w.Line(LoudStmt($"INSPECT REPLACING/CONVERTING into mixed-usage group '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
                 return;
             }
-            w.Line($"{p.Read()}.FromImage({img});");
+            w.Line($"{PlaceRenderer.Read(p)}.FromImage({img});");
             return;
         }
         if (p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false } pic)
@@ -104,10 +104,10 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                     // GR4d: the original sign is retained — the (still-unmodified) field supplies it.
                     string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
                     w.Line($"var {mag} = {ArithmeticEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)};");
-                    w.Line(p.Write($"({p.Read()} < 0 ? -{mag} : {mag})"));
+                    w.Line(PlaceRenderer.Write(p, $"({PlaceRenderer.Read(p)} < 0 ? -{mag} : {mag})"));
                 }
                 else
-                    w.Line(p.Write(ArithmeticEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)));
+                    w.Line(PlaceRenderer.Write(p, ArithmeticEmitter.Narrow(RuntimeApi.NumFromAlphanumeric(img), p.Item)));
                 return;
             }
             if (pic.Signed)
@@ -116,12 +116,12 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
                 // its sign, re-encode the replaced magnitude with that sign in the item's sign convention (GR4d).
                 string mag = $"__insMag{ctx.Names.NextInspectTmp()}";
                 w.Line($"Int128 {mag} = {RuntimeApi.NumFromAlphanumeric(img)};");
-                w.Line(p.Write(RuntimeApi.NumFormatDisplay(
-                    $"{RuntimeApi.NumParseDisplay(p.Read(), p.Item.ProfileName)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
+                w.Line(PlaceRenderer.Write(p, RuntimeApi.NumFormatDisplay(
+                    $"{RuntimeApi.NumParseDisplay(PlaceRenderer.Read(p), p.Item.ProfileName)} < 0 ? -{mag} : {mag}", p.Item.ProfileName)));
                 return;
             }
         }
-        w.Line(p.Write(img));   // string-stored: alphanumeric, numeric-edited, unsigned zoned image, ref-mod slice
+        w.Line(PlaceRenderer.Write(p, img));   // string-stored: alphanumeric, numeric-edited, unsigned zoned image, ref-mod slice
     }
 
     /// <summary>An INSPECT operand as the runtime's C# string argument, or <c>null</c> when absent (a CHARACTERS

@@ -295,7 +295,7 @@ internal sealed class ProgramEmitter
                     else if (!isNum)
                         w.Line(CallEmitter.CallStringWrite(place, $"{f.CarrierField}.Value"));
                     else
-                        w.Line(place.Write($"{f.CarrierField}.Value"));
+                        w.Line(PlaceRenderer.Write(place, $"{f.CarrierField}.Value"));
                 }
             }
             w.Line("__asCalled = true;");
@@ -307,13 +307,13 @@ internal sealed class ProgramEmitter
                 // becomes visible at activation end (§14.2.3 GR8/GR9; a BY CONTENT cell absorbs it invisibly).
                 using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
                     w.Line(isNum
-                        ? $"{f.CarrierField}.Value = {place.Read()};"
+                        ? $"{f.CarrierField}.Value = {PlaceRenderer.Read(place)};"
                         : $"{f.CarrierField}.Value = {CallEmitter.CallStringRead(place)};");
             }
             if (_callState.ReturningPlace is { } ret)
                 w.Line(CallEmitter.CallPlaceIsString(ret)
                     ? $"{RuntimeApi.ArgAdaptStoreReturn("__ret", CallEmitter.CallStringRead(ret))};"
-                    : $"{RuntimeApi.ArgAdaptStoreReturn("__ret", ret.Read())};");
+                    : $"{RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.Read(ret))};");
         }
     }
 

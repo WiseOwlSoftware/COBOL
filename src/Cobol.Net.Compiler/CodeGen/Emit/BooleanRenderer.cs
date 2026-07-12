@@ -22,7 +22,7 @@ internal static class BooleanRenderer
     private sealed class RenderVisitor : IBoundBoolExprVisitor<string>
     {
         public string Visit(BoundBoolLiteral n) => EmitText.CsLiteral(n.Bits);
-        public string Visit(BoundBoolRef n) => n.Place.Read();                 // a category-boolean item IS a '0'/'1' string
+        public string Visit(BoundBoolRef n) => PlaceRenderer.Read(n.Place);     // a category-boolean item IS a '0'/'1' string
         public string Visit(BoundBoolAll n) => EmitText.CsLiteral(n.Bits);     // materialized at the combine site (…All forms)
         public string Visit(BoundBoolNot n) => RenderNot(n.Operand);
         public string Visit(BoundBoolBinary n) => RenderBinary(n);

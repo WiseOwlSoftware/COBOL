@@ -34,12 +34,12 @@ internal static class OperandText
         // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
         // category (ISO §8.4.2.4) — its Read() is already the character slice (a numeric inner goes through
         // NumericImagePlace), never the numeric format path.
-        if (p is RefModPlace) return p.Read();
+        if (p is RefModPlace) return PlaceRenderer.Read(p);
         // An occurs-depending GROUP operand SENDS only the current-count part (ISO §13.18.38 GR8 — "that part of the
         // table area specified by data-name-1 at the start of the operation"); a zero count with no fixed prefix is
         // the zero-length item of §8.5.4. This is the read side of every quadrant (MOVE/compare/INSPECT/STRING/
         // UNSTRING source); the receiving direction split lives at the store sites.
-        if (p is OdoGroupPlace odo) return odo.SendingImage();
+        if (p is OdoGroupPlace odo) return PlaceRenderer.SendingImage(odo);
         // A Tier-B REDEFINES view's Read() is already its character-image window (a string), for a group or an
         // elementary view alike — use it directly (no .AsImage(), no FormatDisplay). EXCEPT when this signed-numeric
         // view is the de-signed source of an alphanumeric move/compare: its window holds the sign-aware image
@@ -47,8 +47,8 @@ internal static class OperandText
         // as the StoreAsImage branch below does — the same de-sign rule, just a different storage shape.
         if (p is RedefViewPlace)
             return deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
-                ? PExpand($"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}), {rvp.Digits})", rvp)
-                : p.Read();
+                ? PExpand($"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName}), {rvp.Digits})", rvp)
+                : PlaceRenderer.Read(p);
         // A group operand's character image is the generated AsImage(): each string-stored leaf contributes its
         // characters, each NATIVE fixed-point leaf (DISPLAY/BINARY/PACKED) its zoned decimal digit image —
         // implementor-defined territory (ISO §8.8.4.1.1: a group operand is alphanumeric over the item's
@@ -60,29 +60,29 @@ internal static class OperandText
         // island. This is the WRITE / RELEASE / DISPLAY / compare sender path.
         if (p.Item.IsGroup)
             return p.Item.IsImageCapable
-                ? $"{p.Read()}.AsImage()"
+                ? $"{PlaceRenderer.Read(p)}.AsImage()"
                 : EmitText.LoudValue("string", $"whole-group image of '{p.Item.CobolName}' with a float/COMP-5/INDEX leaf (Tier-C byte island, deferred — COBOLNET_DESIGN §4.2)");
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)
             return deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
-                ? PExpand($"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({p.Read()}, {p.Item.ProfileName}), {sip.Digits})", sip)
-                : p.Read();
+                ? PExpand($"CobolNum.FormatUnsignedDisplay(CobolNum.ParseDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName}), {sip.Digits})", sip)
+                : PlaceRenderer.Read(p);
         return p.Item.Pic switch
         {
             // ISO §14.9.25.4 GR6a: a signed numeric moved to / compared as an alphanumeric item drops its operational
             // sign — the de-signed magnitude digits (FormatUnsignedDisplay), not the zoned/overpunch image. FormatDisplay
             // already yields these for an unsigned item, so deSign on an unsigned numeric is a no-op.
             { Category: PicCategory.Numeric, IsFloat: false } pic => deSign
-                ? PExpand($"CobolNum.FormatUnsignedDisplay({p.Read()}, {pic.Digits})", pic)
-                : $"CobolNum.FormatDisplay({p.Read()}, {p.Item.ProfileName})",
+                ? PExpand($"CobolNum.FormatUnsignedDisplay({PlaceRenderer.Read(p)}, {pic.Digits})", pic)
+                : $"CobolNum.FormatDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName})",
             // A float item (COMP-1/2/FLOAT-*, D16): DISPLAY renders the algebraic value via CobolFloat.Display
             // (invariant-culture shortest round-trip, §14.9.11 GR1 implementor-defined) — never a bare .ToString().
-            { Category: PicCategory.Numeric } => $"CobolFloat.Display({p.Read()})",
+            { Category: PicCategory.Numeric } => $"CobolFloat.Display({PlaceRenderer.Read(p)})",
             // National and boolean items are string-stored (D-N1/D-B1) — the value IS the character image.
             { Category: PicCategory.Alphanumeric or PicCategory.NumericEdited
-                or PicCategory.National or PicCategory.Boolean } => p.Read(),
-            _ => $"{p.Read()}.ToString()",
+                or PicCategory.National or PicCategory.Boolean } => PlaceRenderer.Read(p),
+            _ => $"{PlaceRenderer.Read(p)}.ToString()",
         };
     }
 
