@@ -153,8 +153,8 @@ public sealed partial class StatementBinder
         // post-bind VersionConformancePass (Step 14c), firing on BoundKeyedRead.AdvancingOnLock.
         return new BoundKeyedRead(file, kind, keyIndex, into, atEnd, notAtEnd, invalid)
         {
-            Lock = CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ"),
-            Retry = BindVerbRetry(r.retryPhrase()),
+            Lock = FileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ"),
+            Retry = FileLock.BindVerbRetry(r.retryPhrase()),
             AdvancingOnLock = r.readAdvancingOnLock() is not null,
         };
     }

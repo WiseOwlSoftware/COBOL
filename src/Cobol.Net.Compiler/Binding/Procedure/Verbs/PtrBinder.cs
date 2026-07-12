@@ -1,11 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolNet.Editions;
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
@@ -16,14 +15,18 @@ using Core = CobolParserCore;
 /// rule (SR18), edition gates via the registry (binder-side — a grammar predicate would fall through to the
 /// OTHER SET alternatives and mis-diagnose), and the staged-loud residue (qualified/subscripted ADDRESS OF
 /// operands, INITIALIZED on the based form's INITIALIZE lowering when its shape is exotic).
-/// </summary>
-public sealed partial class StatementBinder
+/// P7 Step 10g: a real collaborator over <see cref="BinderContext"/> — the tri-state
+/// <see cref="TryBindSetUpDown"/> contract (null = fall through to the index path · BoundNop = error
+/// consumed · node = bound) and the non-consuming first-target peek move VERBATIM, as does the raw
+/// <c>ctx.Data.ByName</c> lookup in <c>PtrResolveBased</c> (the documented SymbolTable bypass — the
+/// convergence is a flagged behavior-sensitive follow-up, per the §Step 10 plan block).</summary>
+internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind SET Format 7 — both grammar alternatives of <c>setAddressStatement</c>:
     /// <c>SET ADDRESS OF based TO pointer</c> (receiver form; SR18 :31399 — the receiver SHALL be BASED, the
     /// IBM non-BASED-LINKAGE idiom is a rejected non-ISO extension) and <c>SET pointer TO ADDRESS OF x</c>
     /// (sender form — routes into the ONE pointer-SET node with the ADDRESS OF source leg).</summary>
-    private BoundStatement PtrBindSetAddress(Core.SetAddressStatementContext sa)
+    public BoundStatement BindSetAddress(Core.SetAddressStatementContext sa)
     {
         // SET ADDRESS OF (§14.9.39 Format 7) is a COBOL-2002 introduction; the edition gate moved to the post-bind
         // VersionConformancePass (PHASE-03 Step 14b) — it fires on BoundSetAddressOfBased (receiver form) and
@@ -59,14 +62,14 @@ public sealed partial class StatementBinder
     {
         if (addrRef.ChildCount != 1)
         {
-            data.Edition.Error("COBOLNET0869",
+            ctx.Edition.Error("COBOLNET0869",
                 $"ADDRESS OF '{addrRef.GetText()}': qualified or subscripted ADDRESS OF operands are a named "
                 + "increment residue (ISO §8.4.3.11) — take the address of the containing record");
             return null;
         }
-        if (refs.Resolve(addrRef) is not { } place)
+        if (ctx.Refs.Resolve(addrRef) is not { } place)
         {
-            data.Edition.Error("COBOLNET0869", $"ADDRESS OF '{addrRef.GetText()}': unresolvable operand");
+            ctx.Edition.Error("COBOLNET0869", $"ADDRESS OF '{addrRef.GetText()}': unresolvable operand");
             return null;
         }
         var item = place.Item;
@@ -74,11 +77,11 @@ public sealed partial class StatementBinder
         while (root.Parent is { } p) root = p;
         bool cellBacked = root.Class is { Tier: RedefinesTier.StringCanonical } cls
             && (cls.BasedPointerField is not null
-                || data.PtrAddressableCellOf.ContainsKey(cls)
-                || data.CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName));
+                || ctx.Data.PtrAddressableCellOf.ContainsKey(cls)
+                || ctx.Data.CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName));
         if (!cellBacked)
         {
-            data.Edition.Error("COBOLNET0869",
+            ctx.Edition.Error("COBOLNET0869",
                 $"ADDRESS OF '{addrRef.GetText()}': the operand's record could not be placed on addressable "
                 + "cell storage (a COMP/float/index leaf, an OCCURS-resident anchor, or a carrier-resident "
                 + "LINKAGE formal — named increment residue; ISO §8.4.3.11)");
@@ -90,7 +93,7 @@ public sealed partial class StatementBinder
     /// <summary>Bind ALLOCATE (ISO §14.9.3, both formats). The INITIALIZED based form's GR7
     /// (<c>INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT</c>) is staged loud this increment — the
     /// corpus has no consumer and the INITIALIZE lowering deserves its own witness.</summary>
-    private BoundStatement PtrBindAllocate(Core.AllocateStatementContext al)
+    public BoundStatement BindAllocate(Core.AllocateStatementContext al)
     {
         // ALLOCATE (§14.9.3) is a COBOL-2002 INTRODUCTION gate, now gated on RECOGNITION by the
         // VersionConformancePass parse-arm (VisitAllocateStatement, Step 14h.2) — so a below-2002 ALLOCATE is an
@@ -110,12 +113,12 @@ public sealed partial class StatementBinder
             // Form 1: ALLOCATE arithmetic-expression CHARACTERS [INITIALIZED] RETURNING pointer.
             if (returning is null)
             {
-                data.Edition.Error("COBOLNET0869",
+                ctx.Edition.Error("COBOLNET0869",
                     "ALLOCATE … CHARACTERS requires the RETURNING phrase (ISO §14.9.3 SR2 — without a based "
                     + "item there is no other way to address the storage)");
                 return new BoundNop();
             }
-            return new BoundAllocate(null, BindExpr(al.arithmeticExpression()), al.INITIALIZED() is not null, returning);
+            return new BoundAllocate(null, host.BindExpr(al.arithmeticExpression()), al.INITIALIZED() is not null, returning);
         }
 
         // Form 2: ALLOCATE based-item [INITIALIZED] [RETURNING pointer].
@@ -129,7 +132,7 @@ public sealed partial class StatementBinder
 
     /// <summary>Bind FREE (ISO §14.9.15 SR1 — every operand shall be category data-pointer; the vendor
     /// <c>FREE based-item</c> form is rejected, never silently mis-freed).</summary>
-    private BoundStatement PtrBindFree(Core.FreeStatementContext fr)
+    public BoundStatement BindFree(Core.FreeStatementContext fr)
     {
         // FREE (§14.9.15) is a COBOL-2002 introduction; edition gate moved to VersionConformancePass (Step 14b),
         // firing on the self-identifying BoundFree node.
@@ -148,14 +151,14 @@ public sealed partial class StatementBinder
     /// data-pointers (SR23). GR19's non-integer-amount rule is a VALUE rule, realized EXACTLY at runtime
     /// (<c>CobolPtr.UpByScaled</c> → EC-SIZE-ADDRESS fatal; 2.0 moves by 2). Returns null when the first
     /// target is NOT a pointer — the caller proceeds with the index binding.</summary>
-    private BoundStatement? PtrTryBindSetUpDown(Core.SetIndexStatementContext ud)
+    public BoundStatement? TryBindSetUpDown(Core.SetIndexStatementContext ud)
     {
         var drefs = ud.dataReference();
         if (drefs.Length == 0) return null;
         // Peek the FIRST target's category without consuming diagnostics: an index-name or non-pointer item
         // belongs to the Format-2 index path.
-        if (IndexFieldOf(drefs[0]) is not null) return null;
-        if (refs.Resolve(drefs[0]) is not { } first || first.Item.Pic?.Category is not PicCategory.Pointer)
+        if (host.IndexFieldOf(drefs[0]) is not null) return null;
+        if (ctx.Refs.Resolve(drefs[0]) is not { } first || first.Item.Pic?.Category is not PicCategory.Pointer)
             return null;
 
         // SET pointer UP/DOWN BY (§14.9.39 Format 10) is a COBOL-2002 introduction; edition gate moved to
@@ -167,15 +170,15 @@ public sealed partial class StatementBinder
                 return new BoundNop();
             targets.Add(p);
         }
-        var amount = BindExpr(ud.arithmeticExpression());
+        var amount = host.BindExpr(ud.arithmeticExpression());
         return new BoundSetPointerUpDown(targets, amount, ud.DOWN() is not null);
     }
 
     /// <summary>Resolve a reference that must be a USAGE POINTER item (the 0869 pointer band).</summary>
     private Place? PtrResolvePointer(Core.DataReferenceContext dref, string what)
     {
-        if (refs.Resolve(dref) is { } p && p.Item.Pic?.Category is PicCategory.Pointer) return p;
-        data.Edition.Error("COBOLNET0869",
+        if (ctx.Refs.Resolve(dref) is { } p && p.Item.Pic?.Category is PicCategory.Pointer) return p;
+        ctx.Edition.Error("COBOLNET0869",
             $"'{dref.GetText()}': {what} shall be a USAGE POINTER data item");
         return null;
     }
@@ -183,10 +186,10 @@ public sealed partial class StatementBinder
     /// <summary>Resolve a reference that must be a BASED 01/77 item (SR18 / §14.9.3 SR1).</summary>
     private DataItem? PtrResolveBased(Core.DataReferenceContext dref)
     {
-        DataItem? item = dref.ChildCount == 1 && data.ByName.TryGetValue(dref.GetText(), out var list) && list.Count > 0
+        DataItem? item = dref.ChildCount == 1 && ctx.Data.ByName.TryGetValue(dref.GetText(), out var list) && list.Count > 0
             ? list[0] : null;
         if (item is { IsBased: true }) return item;
-        data.Edition.Error("COBOLNET0869",
+        ctx.Edition.Error("COBOLNET0869",
             $"'{dref.GetText()}': the operand shall be a BASED level-01/77 item (ISO §14.9.39 SR18 / "
             + "§14.9.3 SR1 — rebasing or allocating a non-BASED item is not ISO COBOL)");
         return null;

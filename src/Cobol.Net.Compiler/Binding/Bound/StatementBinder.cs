@@ -42,6 +42,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private MoveBinder Move => _moveBinder ??= new MoveBinder(Ctx, this, Corr);
     private ReportWriterBinder? _rwBinder;
     private ReportWriterBinder Rw => _rwBinder ??= new ReportWriterBinder(Ctx);
+    private FileLockBinder? _fileLockBinder;
+    private FileLockBinder FileLock => _fileLockBinder ??= new FileLockBinder(Ctx, this);
+    private PtrBinder? _ptrBinder;
+    private PtrBinder Ptr => _ptrBinder ??= new PtrBinder(Ctx, this);
     private CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
     private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
@@ -222,7 +226,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.startStatement() is { } st => KeyedBindStart(st),
         _ when s.deleteStatement() is { } del => KeyedBindDelete(del),
         _ when s.deleteFileStatement() is { } dfs => KeyedBindDeleteFile(dfs),
-        _ when s.unlockStatement() is { } ul => BindUnlock(ul),
+        _ when s.unlockStatement() is { } ul => FileLock.BindUnlock(ul),
         _ when s.stringStatement() is { } sstr => Strings.BindString(sstr),
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => BindAccept(ac),
@@ -251,8 +255,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.terminateStatement() is { } rwt => Rw.BindTerminate(rwt),   // Report Writer (ISO §14.9.46)
         _ when s.raiseStatement() is { } ra => BindRaise(ra),               // EC model (ISO §14.9.29; 2002+ gated)
         _ when s.resumeStatement() is { } rs => BindResume(rs),             // EC model (ISO §14.9.33; 2002+ gated)
-        _ when s.allocateStatement() is { } al => PtrBindAllocate(al),      // dynamic storage (ISO §14.9.3; Phase-4b inc 2)
-        _ when s.freeStatement() is { } fr => PtrBindFree(fr),              // dynamic storage (ISO §14.9.15; Phase-4b inc 2)
+        _ when s.allocateStatement() is { } al => Ptr.BindAllocate(al),      // dynamic storage (ISO §14.9.3; Phase-4b inc 2)
+        _ when s.freeStatement() is { } fr => Ptr.BindFree(fr),              // dynamic storage (ISO §14.9.15; Phase-4b inc 2)
         _ => new BoundUnsupported($"statement '{FirstToken(s)}'"),
     };
 
@@ -356,7 +360,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>Bind a RETRY phrase (ISO §14.7.9). The n-TIMES amount is a bounded re-attempt count; FOR n
     /// SECONDS / FOREVER are single-run-unit no-ops (no competing process releases — named residue).</summary>
-    private RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
+    internal RetrySpec BindRetry(Core.RetryPhraseContext rp) =>
         rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)
         : rp.SECONDS() is not null ? new RetrySpec(RetryKind.Seconds, BindExpr(rp.arithmeticExpression()))
         : new RetrySpec(RetryKind.Times, BindExpr(rp.arithmeticExpression()));
@@ -397,7 +401,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
         if (file is null || record is null)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");
-        CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
+        FileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
         if (!file.IsSequential) return KeyedBindWrite(w, file, record);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
         // END-OF-PAGE phrases (ISO §14.9.51 GR27b/GR28): blocks[0] = AT EOP, blocks[1] = NOT AT EOP — the grammar
@@ -434,7 +438,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (!data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"READ of undeclared file '{name}'");
         if (!file.IsSequential) return KeyedBindRead(r, file);   // relative/indexed READ F1/F2 (ISO 14.9.30; KeyedIo partial)
-        CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR3/SR4 → COBOLNET1512 (sequential leg: SR-validated, effect residue)
+        FileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR3/SR4 → COBOLNET1512 (sequential leg: SR-validated, effect residue)
         Place? into = r.readInto()?.dataReference() is { } d ? refs.Resolve(d) : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
@@ -448,7 +452,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         FileModel? file = record is not null ? FileOfRecord(record) : null;
         if (file is null || record is null)
             return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
-        CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
+        FileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
         if (!file.IsSequential) return KeyedBindRewrite(rw, file, record);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
         return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()),
             UnsupportedOrg(file, "REWRITE"));
@@ -822,7 +826,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
         if (set.setSwitchStatement() is { } sw) return SwitchBindSet(sw);   // Format 3 — external switches (ISO §14.9.39)
         if (set.setAddressStatement() is { } sa)
-            return PtrBindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
+            return Ptr.BindSetAddress(sa);   // F7 both directions + ADDRESS OF senders (Phase-4b inc 2)
         if (set.setObjectReferenceStatement() is { } sor)
         {
             // A POINTER target (§14.9.39 Format 4 — SET pointer TO NULL/pointer) is bound BEFORE the
@@ -922,7 +926,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// formats share one grammar shape).</summary>
     private BoundStatement BindSetUpDown(Core.SetIndexStatementContext ud)
     {
-        if (PtrTryBindSetUpDown(ud) is { } ptr) return ptr;   // F10 — pointer arithmetic (Phase-4b inc 2)
+        if (Ptr.TryBindSetUpDown(ud) is { } ptr) return ptr;   // F10 — pointer arithmetic (Phase-4b inc 2)
         if (DynTryBindSetCapacity(ud.dataReference(), ud.arithmeticExpression(),
                 ud.DOWN() is not null ? SetCapacityKind.DownBy : SetCapacityKind.UpBy) is { } dcap)
             return dcap;   // F14 — dynamic-capacity change (OCCURS DYNAMIC, D9)
@@ -1067,7 +1071,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>The C# <c>long</c> index field when <paramref name="dref"/> is a bare INDEXED BY index-name
     /// (ISO §13.18.38 — index-names are a separate name class living in <see cref="DataBinder.IndexFields"/>,
     /// not the data-item tree), else <see langword="null"/>.</summary>
-    private string? IndexFieldOf(Core.DataReferenceContext dref) =>
+    internal string? IndexFieldOf(Core.DataReferenceContext dref) =>
         dref.dataReferenceSuffix().Length == 0 && dref.cobolWord()?.GetText() is { } w
         && data.Symbols.TryResolveIndex(w, data.ActiveScope, out var f) ? f : null;
 

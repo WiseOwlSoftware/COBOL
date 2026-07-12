@@ -1,11 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolNet.Editions;
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
@@ -16,22 +15,25 @@ using Core = CobolParserCore;
 /// binds UNLOCK and validates the per-verb lock-phrase syntax rules (COBOLNET1512). In the single-run-unit model
 /// the record-lock EFFECT of READ/WRITE/REWRITE is a documented no-op (named residue) — only the SR validation
 /// and UNLOCK/OPEN-SHARING legs are observable — so the lock phrases are validated but not threaded into the
-/// verbs' bound nodes.
+/// verbs' bound nodes. P7 Step 10g: a real collaborator over <see cref="BinderContext"/>; the two lock/RETRY
+/// services stay PUBLIC — the sequential legs (host, until 10h) and KeyedIo consume them (the census's
+/// inverted-dependency hazard); <c>BindRetry</c> stays a shared spine member on the host (OPEN consumes it
+/// directly).
 /// </summary>
-public sealed partial class StatementBinder
+internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>Bind <c>UNLOCK file [RECORD[S]]</c> (ISO §14.9.47): release this connector's record locks on the
     /// file. SR1 — not a sort/merge file.</summary>
-    private BoundStatement BindUnlock(Core.UnlockStatementContext ul)
+    public BoundStatement BindUnlock(Core.UnlockStatementContext ul)
     {
         // UNLOCK is a COBOL-2002 introduction (§14.9.47), parsed at ALL editions (superset grammar). The edition
         // gate moved to the post-bind VersionConformancePass (rearch PHASE-03 Step 14b) — it fires on the
         // self-identifying BoundUnlock node this method produces, so the binder is edition-agnostic here.
         string name = ul.fileName().GetText();
-        if (!data.FilesByName.TryGetValue(name, out var file))
+        if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"UNLOCK of undeclared file '{name}'");
         if (file.IsSortMerge)
-            data.Edition.Error("COBOLNET1512", $"UNLOCK may not name the sort/merge file '{name}' "
+            ctx.Edition.Error("COBOLNET1512", $"UNLOCK may not name the sort/merge file '{name}' "
                 + "(ISO §14.9.47 SR1)");
         return new BoundUnlock(file, ul.RECORDS() is not null || ul.RECORD() is not null);
     }
@@ -41,7 +43,7 @@ public sealed partial class StatementBinder
     /// explicit lock phrase is permitted when the effective LOCK MODE is AUTOMATIC (the lock is implicit). Called
     /// from the READ/WRITE/REWRITE binders. Returns the <see cref="BoundRecordLock"/> for documentation (the
     /// runtime effect is a single-run-unit no-op — named residue).</summary>
-    private BoundRecordLock CheckRecordLockPhrase(FileModel file, Core.RecordLockPhraseContext? lock_, string verb)
+    public BoundRecordLock CheckRecordLockPhrase(FileModel file, Core.RecordLockPhraseContext? lock_, string verb)
     {
         if (lock_ is null) return BoundRecordLock.None;
         // The record-lock phrase (WITH LOCK / WITH NO LOCK / IGNORING LOCK) is a COBOL-2002 introduction; its edition
@@ -54,7 +56,7 @@ public sealed partial class StatementBinder
             : noLock ? BoundRecordLock.WithNoLock
             : BoundRecordLock.WithLock;
         if (file.LockMode is { Kind: LockKind.Automatic })
-            data.Edition.Error("COBOLNET1512", $"{verb} on file '{file.CobolName}': an explicit record-lock "
+            ctx.Edition.Error("COBOLNET1512", $"{verb} on file '{file.CobolName}': an explicit record-lock "
                 + "phrase (IGNORING LOCK / WITH LOCK / WITH NO LOCK) may not be specified when the file's LOCK "
                 + "MODE is AUTOMATIC (ISO §14.9.30 SR4 / §14.9.51 SR22 / §14.9.35 SR4)");
         return kind;
@@ -62,5 +64,5 @@ public sealed partial class StatementBinder
 
     /// <summary>Bind a RETRY phrase on a verb (READ/WRITE/REWRITE/DELETE) — the same shape as OPEN's; the count
     /// bounds a re-attempt, SECONDS/FOREVER are single-run-unit no-ops (residue). Returns null when absent.</summary>
-    private RetrySpec? BindVerbRetry(Core.RetryPhraseContext? rp) => rp is null ? null : BindRetry(rp);
+    public RetrySpec? BindVerbRetry(Core.RetryPhraseContext? rp) => rp is null ? null : host.BindRetry(rp);
 }
