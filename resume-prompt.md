@@ -62,12 +62,16 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   HOST phrase family past 10q) · 10q `b7dfe0b4` (`Binding/Procedure/ExpressionBinder` — the expression-spine
   flip; 15 host forwarders; core 405 lines) · 10r `140d2e86` (`Verbs/EcBinder` + `EcBindState` on ctx +
   `ctx.BindCursor`; the Exceptions partial DELETED; ConfigureEc a host PUBLIC forwarder until 10t;
-  intrinsic-presence walks VERBATIM — generated-visitor conversion FLAGGED). **RESUME AT 10s** (OoBinder
-  LAST behind the OO goldens + method-scope tests — scoped `ctx.EnterMethodScope` replaces the ambient
-  ordered quadruple mutation [_currentSection/_currentMethodScope/data.ActiveMethodScope/ctx.BindCursor];
-  OO host state stays behind `IOoBindHost` until P9; BoundSetObjectRef/BoundMethodReturn ride-along records
-  STAY in `Binding.Bound`; note OoMethodScope/_paraMethod are procedure-TABLE state — coordinate the carve
-  with the 10t ProcedureTableBuilder hoist)
+  intrinsic-presence walks VERBATIM — generated-visitor conversion FLAGGED) · 10s `de9901cc`
+  (`Verbs/OoBinder` — the OO half LAST; ride-alongs → records-only `Bound/BoundOo.cs`;
+  `SectionInfo`/`OoMethodScope` promoted top-level; the ambient quadruple REPLACED by the scoped
+  `ctx.EnterMethodScope` token in both bind loops; BindMethodRoster + emitter-set OO props +
+  InMethod/OoScopeHint/_paraMethod stay HOST until 10t/P9). **RESUME AT 10t** (FINAL WIRING —
+  ProcedureTableBuilder [+ the Declaratives half] · thin StatementBinder · ALL host edges/forwarders
+  deleted + collaborator re-points [BinderDriver/CSharpEmitter.Oo ConfigureEc] · the deferred 1511/
+  relational-SR pure-lifts (10o dev-b) · the 1523 catalog-descriptor normalization · the FULL doc sweep:
+  topology reconciliation [.Boolean→ConditionBinder at Verbs/, .Exceptions→EcBinder, ControlFlowBinder
+  ONE-class deviation, ExpressionBinder at Procedure/ root], stale clone/pin rows, DOC_INDEX, memory)
   → 10s (OoBinder LAST, behind the OO goldens + method-scope tests) → 10t (FINAL wiring:
   ProcedureTableBuilder + thin StatementBinder + host-edge deletion + the full doc sweep incl. the deferred
   SR pure-lifts and the 1523 catalog normalization) per the PHASE-07 §Step 10 **AS-BUILT PLAN block**
