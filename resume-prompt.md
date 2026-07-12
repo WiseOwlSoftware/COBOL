@@ -54,10 +54,10 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   DETACH incl. BindDisplay; OPEN SR8 + WRITE SR19/18/13 lifts). 10i `0bae9f55` (`Verbs/SortBinder`) · 10j `4a4091ee`
   (`Verbs/CallBinder` — Oo/Ec host hooks outlive per plan). 10k `924e5978`
   (`Verbs/{Intrinsic,Udf}Binder` — the GR12 pair; CompileClock → IntrinsicBinder; injection surface stays
-  host-side; PendingCount mark/drain seam). **RESUME AT 10l** (Perform + If + ControlFlow — the
-  audit-extension class mirroring `ControlFlowEmitter`; topology row added same-commit) then 10m…10t per
-  the PHASE-07 §Step 10 **AS-BUILT PLAN block** (census `wf_b788936b-ca2`, scratchpad
-  p7-step10-census.json, session 61dab794). Standing rules for
+  host-side; PendingCount mark/drain seam). 10l `c49e7ab7` (`Verbs/ControlFlowBinder` — ONE class,
+  recorded deviation from the three-class sketch). **RESUME AT 10m** (Set + Search) then 10n…10t per the
+  PHASE-07 §Step 10 **AS-BUILT PLAN block** (census `wf_b788936b-ca2`, scratchpad p7-step10-census.json,
+  session 61dab794). Standing rules for
   the batches: SR checks lift to `StatementValidation` as PURE checks only (error+placeholder control flow
   stays in the verb binder); the residual ~19 inline edition gates move VERBATIM (pass-folding = Exec Step
   E); ProcedureTableBuilder at the 10t FINAL wiring (the `OoMethodScope` entanglement); OO LAST (10s)
