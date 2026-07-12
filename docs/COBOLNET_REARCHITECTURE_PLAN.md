@@ -67,14 +67,16 @@
 > `PicInfo.Recovery`); the tier verdict single-sourced (`RedefinesClass.Classify`); ONE `UsageInheritancePass`;
 > the §8.3.1.2 apostrophe-VALUE goldens PROVEN failing-first. All 7 exit criteria hold; deviations in the
 > PHASE-05 ledger. **◐ NOW EXECUTING: EXEC STEP D — the rest of PHASE-07 (structural `Place`, binder/emitter
-> god-class decomposition, the `ICodeGenBackend` seam; pickups in DEVLOG 773). P7 Steps 1–8 ✅ + Step 9
-> sub-steps 9a–9m ✅ (2026-07-11, DEVLOG 786–808): the EMITTER decomposition is landed in all but the final
-> wiring — 18 `Verbs/*Emitter` collaborators + `EcEmitter` + the `DataDivision/` five behind the `DataEmitter`
-> facade + `NameAllocator` + the `DispatchState`/`EcState`/`CallUnitState` model + `host.BeginUnit`; the
-> `RuntimeApi` façade at ~100 `nameof`-anchored members with the shrinking ratchet
-> (`RuntimeApiGuardTests`); the orchestrator core / Exceptions / Oo partials at ZERO bare runtime fragments.
-> RESUME AT P7 **Step 9n** (ProgramEmitter + DispatchEmitter + StatementEmitter + the `UnitEmitters`
-> composition root + shim retarget + phase-§5 verification) → Step 10 (binder decomposition) → Step 11
+> god-class decomposition, the `ICodeGenBackend` seam; pickups in DEVLOG 773). P7 Steps 1–8 ✅ + **Step 9 ✅
+> COMPLETE (9a–9n + the ratchet sweep; 2026-07-11, DEVLOG 786–810, commits →`72ec6633`): the EMITTER god class
+> is DISSOLVED** — `ProgramEmitter` (run-unit orchestration; the run-unit state + the LIVE `Current` root) →
+> the `UnitEmitters` PER-UNIT composition root (cyclic edges property-wired) → `DispatchEmitter` +
+> `StatementEmitter` (the 79-Visit generated visitor) + 18 `Verbs/*Emitter` + `EcEmitter` + the `DataDivision/`
+> five behind `DataEmitter`; emission reads ZERO bind-host session state; `CSharpEmitter` = the thin bind-host
+> facade only (the recorded deviation, until P9); the `RuntimeApi` ratchet whitelist is down to the FOUR
+> pre-Step-11/12 renderers (recorded counting refinement: comment-strip + the typed-enum
+> `CobolRounding.`/`CobolPassMode.` exclusion).
+> RESUME AT P7 **Step 10** (binder decomposition; OO LAST behind the method-scope tests) → Step 11
 > (structural `Place`, per-subtype) → Step 12 (FUNCTION-arg grammar, full legacy guard) — the live per-substep
 > record is the PHASE-07 STATUS line.** Battery 3166 conformance ·
 > 281 unit · 33 characterization (32 snapshots byte-exact + the RuntimeApi ratchet) · legacy guard 353 MATCH.

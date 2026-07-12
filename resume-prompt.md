@@ -21,41 +21,34 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. Full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP D: PHASE-07 **Step 9n** (the emitter decomposition's FINAL WIRING), then Steps 10 → 11 → 12
+## ⛔🔀 RESUME AT — EXEC STEP D: PHASE-07 **Step 10** (binder decomposition), then 11 → 12
 **Read the PHASE-07 STATUS line first** (`docs/rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md`)
-— it carries the per-substep hashes and the decision-complete **AS-BUILT PLAN block in its §Step 9**. State as of
-2026-07-11 (DEVLOG 786–808, tree `fb8ff5bc`, CI green):
+— it carries the per-substep hashes and the AS-BUILT PLAN + 9n as-landed notes in its §Step 9. State as of
+2026-07-11 (DEVLOG 786–810, tree `72ec6633`, battery green):
 - **P7 Steps 1–8 ✅** (ICodeGenBackend seam · AssemblyPackager · immutable `EmitContext`+`ReceiverContext` ·
-  `RuntimeApi`+`FigurativeConstants` + the bare-`Cobol*.` RATCHET (`RuntimeApiGuardTests`, full-text census,
-  shrinking whitelist) · ACCEPT renames · generated visitor (pulled forward) · `MoveKind` on `BoundMove` ·
-  Step 8 = done-by-P5).
-- **Step 9 sub-steps 9a–9m ✅** — the god-class dissolution in all but the final wiring: `NameAllocator` (9a,
-  the 15 run-unit counters, per-counter sequences byte-exact) · `DispatchState`/`EcState`/`CallUnitState` (9b,
-  EmitterState.cs) · 18 `Verbs/*Emitter` collaborators (9c–9j, 9m: Evaluate/Initialize/Corresponding/AlterSwitch/
-  AcceptDisplay/Inspect/String/Ptr/KeyedIo/Sort/ReportWriter/Move/Arithmetic/ControlFlow/Set/SequentialIo/Call/Oo)
-  · `EcEmitter` (9k — cross-cutting, CodeGen/ root; the Exceptions partial = the bind-session `TurnState` + shim
-  sheet) · FieldEmitter → `DataDivision/{PhysicalModel,RecordStructEmitter,GroupImageCodec,GroupValueSlicer,
-  ValueInitializer}` behind the `DataEmitter` facade (9l — the five are mutually recursive BY DESIGN; the facade
-  property-wires the cycle) · `host.BeginUnit(w, data, refs)` = the ONE unit-switch entry (9m — OoEmitter reads
-  the per-unit quadruple through LIVE host accessors because class-unit emission re-news it MID-RUN; captured
-  copies would go stale). `RuntimeApi` ≈100 `nameof`-anchored members; the orchestrator core (`CSharpEmitter.cs`),
-  Exceptions, and Oo partials are at ZERO bare runtime fragments; every mechanical split was proven by the
-  ratchet's EXACT-SUM accounting (98=74+24 · 74=34+40 · 27=14+13 · 17=0+17 · the FieldEmitter 24 redistributed).
-- **9n (NEXT):** extract ProgramEmitter (the Call partial's run-unit/program-class half) + DispatchEmitter
-  (EmitDispatcher/EmitDispatchMethod/EmitUseMachinery/EmitParagraphBody) + StatementEmitter (the Dispatch
-  partial's 79 Visits + EmitStatement/EmitStatementList); introduce the `UnitEmitters` per-unit composition root
-  (`BeginUnit` becomes its ctor; the verbs↔statements↔EC cycles property-wired there); retarget EVERY host shim
-  to direct collaborator refs. **DEVIATION (recorded): `CSharpEmitter` SURVIVES as the thin bind-host facade**
-  (Bind/EmitBound + `IOoBindHost` + the OO BIND half + `_bindSession`/`_turnState`/`_ooClasses`/`_ooIfaceData`)
-  until P9. Then the phase-§5 verification incl. the ratchet sweep of the remaining pinned fragments (OoEmitter
-  17 · CallEmitter 13 · Call partial 14 · DataDivision 24 · renderers — the §5 empty-whitelist criterion needs
-  either those routed or a recorded regex refinement for typed compile-time uses) and the FULL doc sweep
-  (module-topology rows, DESIGN-codegen-backend §2.5/M5, DOC_INDEX).
-- **Then Step 10** (StatementBinder → BinderContext + Verbs/*Binder + StatementValidation; OO LAST behind the
-  method-scope tests) · **Step 11** (structural `Place` — per-SUBTYPE battery gating, the doc mandates it) ·
-  **Step 12** (FUNCTION args as real expressions — the lexer-mode blocker + space-separated-argument hazard in
-  the premise audit; FULL legacy guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad p7-audit.md, session
-  dir 3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 10–12's sites; the Step-9 coupling census was
+  `RuntimeApi`+`FigurativeConstants` + the bare-`Cobol*.` RATCHET (`RuntimeApiGuardTests`) · ACCEPT renames ·
+  generated visitor (pulled forward) · `MoveKind` on `BoundMove` · Step 8 = done-by-P5).
+- **Step 9 ✅ COMPLETE (9a–9n + the 9-final ratchet sweep; DEVLOG 794–810)** — the emitter god class is
+  DISSOLVED: `ProgramEmitter` (run-unit orchestration; owns `NameAllocator` + the `DispatchState`/`EcState`/
+  `CallUnitState` state model + the LIVE `Current` root) → `UnitEmitters` (the PER-UNIT composition root —
+  acyclic ctor order, the cyclic edges verbs↔`StatementEmitter`↔`EcEmitter` + KeyedIo↔SeqIo property-wired) →
+  `DispatchEmitter` + `StatementEmitter` (the 79-Visit generated `IBoundStatementVisitor<bool>`) + 18
+  `Verbs/*Emitter` + `EcEmitter` + the `DataDivision/` five behind `DataEmitter`. Emission reads ZERO bind-host
+  session state (OoEmitter takes `comp.OoClasses`/`comp.InterfaceData`, reads the per-unit set via `Current`
+  LIVE — class units re-new it mid-run). **`CSharpEmitter` = the thin bind-host facade ONLY** (Bind/EmitBound +
+  `IOoBindHost` + the OO BIND half — the recorded deviation, until P9). The ratchet whitelist is down to the
+  FOUR pre-Step-11/12 renderers (IntrinsicRenderer 47 · NumericRenderer 17 · ConditionRenderer 17 ·
+  OperandText 7 — they route at Steps 11/12); recorded counting refinement: comment lines stripped,
+  `CobolRounding.`/`CobolPassMode.` typed-enum accesses excluded (emitted forms route via
+  `RoundingText`/`PassModeText`).
+- **Step 10 (NEXT):** StatementBinder (21 partials) → `BinderContext` + `ProcedureTableBuilder`/
+  `ExpressionBinder`/`ConditionBinder`/`PhraseBlocks` + `Verbs/*Binder`; lift edition-invariant SR checks to
+  `Validation/StatementValidation` (edition gating stays ONLY in the `VersionConformancePass`); the ON/NOT-ON
+  extractor `PhraseBlocks.BuildPair` replaces the ~8 clones; OO LAST behind the method-scope tests (R1).
+  Then **Step 11** (structural `Place` — per-SUBTYPE battery gating) · **Step 12** (FUNCTION args as real
+  expressions — the lexer-mode blocker + space-separated-argument hazard in the premise audit; FULL legacy
+  guard). The premise audit (`wf_8ace7f29-a1d`, scratchpad p7-audit.md, session dir
+  3fbfd282-efa2-47fa-924c-31094eb1ed46) maps Steps 10–12's sites; the Step-9 coupling census was
   `wf_d677d614-5fb`.
 **Working discipline in force (DEVLOG 803/807):** BATCHED cycles (multiple sub-steps per battery run) with
 PIPELINING (batch N's conformance runs on the prebuilt binaries in the background while batch N+1's edits are

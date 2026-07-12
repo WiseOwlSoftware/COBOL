@@ -156,6 +156,10 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
   `ExpressionEmitter`, `ConditionEmitter`, `ProgramEmitter`. Mirrors the legacy `Emission/` split (the legacy
   `CilEmitter` hit 2458 lines before it was split — direct evidence). *(Rejected: one growing `CSharpEmitter` god
   class; visitor double-dispatch — heavier than a switch-on-bound-node-type with per-category collaborators.)*
+  *(AS LANDED — P7 Step 9, DEVLOG 794–810: realized as `ProgramEmitter` (run-unit) → the `UnitEmitters` per-unit
+  composition root → `DispatchEmitter`/`StatementEmitter` (the generated exhaustive `IBoundStatementVisitor` —
+  P7 Step 6 superseded the switch-over-visitor rejection) + 18 `Verbs/*Emitter` + `EcEmitter` + the
+  `DataDivision/` five behind `DataEmitter`; `CSharpEmitter` = the bind-host facade only until P9.)*
 - **One `NameAllocator`** owns C#-identifier generation: case-insensitive normalization (COBOL `FOO`==`foo`);
   namespace segregation by prefix (COBOL data `d_`; temporaries `__t`; dispatcher locals a fixed reserved set
   `{pc, startPc, exitPc, Main, Dispatch}`); **paragraphs get no identifier — they are pc indices**, so an entire

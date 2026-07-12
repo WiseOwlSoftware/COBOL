@@ -412,9 +412,19 @@ smallest-blast-radius first; each step is behavior-neutral and independently com
   five ways — the physical-field model proved a distinct 5th concern and became `DataDivision/PhysicalModel`;
   the five are mutually recursive by design, wired by the `DataEmitter` facade. `host.BeginUnit` is the ONE
   per-unit context-switch entry; `OoEmitter` reads the quadruple through LIVE host accessors because class-unit
-  emission re-creates it mid-run. REMAINING at 9n: `ProgramEmitter`/`DispatchEmitter`/`StatementEmitter` + the
-  `UnitEmitters` composition root replacing the transitional host shims; `CSharpEmitter` survives as the thin
-  bind-host facade until P9 — the recorded deviation from this doc's "CSharpEmitter is gone" end-state.)*
+  emission re-creates it mid-run. 9n (DEVLOG 809) COMPLETED the split: `ProgramEmitter` (run-unit orchestration;
+  owns the run-unit state + the LIVE `Current` root; `BeginUnit` re-creates it per unit switch) ·
+  `DispatchEmitter` · `StatementEmitter` (the 79-Visit `IBoundStatementVisitor<bool>`) · the `UnitEmitters`
+  PER-UNIT composition root (all collaborators constructed in acyclic ctor order; the census's cyclic edges —
+  verbs↔Statements↔Ec, KeyedIo↔SeqIo — property-wired); every transitional host shim retargeted to direct
+  collaborator refs, and emission reads ZERO bind-host session state (`OoEmitter` takes
+  `comp.OoClasses`/`comp.InterfaceData` off the immutable compilation, reading the per-unit set through
+  `ProgramEmitter.Current` live). `CSharpEmitter` survives as the thin bind-host facade until P9 — the recorded
+  deviation from this doc's "CSharpEmitter is gone" end-state. The Step-9-final ratchet sweep (DEVLOG 810)
+  drove every Step-9 emitter to ZERO bare fragments; the §3 guard's whitelist = the four pre-Step-11/12
+  renderers only, with the recorded counting-rule refinement (comment lines stripped; the
+  `CobolRounding.`/`CobolPassMode.` typed-enum accesses excluded — their emitted forms route exclusively via
+  the `RoundingText`/`PassModeText` anchors).)*
 - **M6 — extract `BindPipeline` (cross-dimension).** Move `CallEmitRunUnit`'s bind orchestration into the binder's
   pipeline returning `BoundCompilation`; `RoslynBackend.Emit` consumes it. Coordinated with the driver/binder
   dimensions — the highest-coordination step; land after those dimensions' pipeline extraction. Guard green.
