@@ -516,67 +516,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// against a boolean operand is non-boolean.</summary>
     public BoundRelational CheckedRelational(BoundOperand left, string op, BoundOperand right)
     {
-        static bool IsBoolOperand(BoundOperand o) => o switch
-        {
-            BoundBoolOperand => true,   // a boolean EXPRESSION (B-op tier, increment 2)
-            BoundStringLiteral { Category: PicCategory.Boolean } => true,
-            BoundAllLiteral { Category: PicCategory.Boolean } => true,
-            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
-            BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
-            _ => false,
-        };
-        bool lb = IsBoolOperand(left), rb = IsBoolOperand(right);
-        if (lb || rb)
-        {
-            static bool BoolCompatible(BoundOperand o) =>
-                o is BoundFigurative { Kind: 'Z' } || o switch
-                {
-                    BoundBoolOperand => true,
-                    BoundStringLiteral { Category: PicCategory.Boolean } => true,
-                    BoundAllLiteral { Category: PicCategory.Boolean } => true,
-                    BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
-                    BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
-                    _ => false,
-                };
-            if (!(BoolCompatible(left) && BoolCompatible(right)))
-                ctx.Edition.Error("COBOLNET0844", "a boolean operand may be compared only with another "
-                    + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.1 F1 "
-                    + "SR2/SR3 exclude class boolean from the general relation)");
-            else if (op is not ("==" or "!="))
-                ctx.Edition.Error("COBOLNET0844", "boolean operands compare for equality only — an ordering "
-                    + "relation is not defined for class boolean (ISO §8.8.4.2.2 Format 2)");
-        }
-        // §8.8.4.2.3 SR1 (data-model D17): if either operand is a strongly-typed group, both shall be of the same
-        // type (§8.5.3.3). This is the ONE relation checkpoint, so it also covers EVALUATE pairings/ranges,
-        // PERFORM UNTIL, and SEARCH WHEN. (SR4 — a strong group with boolean/object/pointer elements admits only
-        // equality — is staged residue, inc 4.)
-        DataItem? sl = left is BoundFieldOperand fl ? fl.Place.Item : null;
-        DataItem? sr = right is BoundFieldOperand fr ? fr.Place.Item : null;
-        if ((sl is { } && StrongTypeModel.IsStrongGroup(sl)) || (sr is { } && StrongTypeModel.IsStrongGroup(sr)))
-        {
-            if (sl is null || sr is null || !StrongTypeModel.SameStrongType(sl, sr))
-                ctx.Edition.Error(DiagnosticCatalog.StrongCompareMismatch, "a strongly-typed group may be compared only with a group of the "
-                    + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
-            // §8.8.4.2.3 SR4 (D17 inc 4, staged loud): a strong group whose elements include class boolean,
-            // object-reference, or pointer may be compared only for equality — an ordering relation on such a group
-            // is not defined/implemented.
-            else if (op is not ("==" or "!=") && (ContainsNonOrderableLeaf(sl) || ContainsNonOrderableLeaf(sr)))
-                ctx.Edition.Error("COBOLNET1535", "a strongly-typed group containing a boolean, object-reference, "
-                    + "or pointer element may be compared only for equality (ISO §8.8.4.2.3 SR4) — an ordering "
-                    + "relation is not implemented (data-model D17 residue)");
-        }
+        // The edition-invariant §8.8.4.2.2 / §8.8.4.2.3 SR band (class-boolean comparability + the
+        // strongly-typed-group rules) is the ONE StatementValidation home (10t/3 — the 10o deviation-(b)
+        // pure-lift discharged); the node is always built (a PURE emission check, no verdict).
+        ctx.Validation.CheckRelationalOperands(left, op, right);
         return new BoundRelational(left, op, right);
-    }
-
-    /// <summary>True when a group (or elementary) item has any leaf of class boolean / object-reference / pointer —
-    /// the categories that make a strongly-typed group comparable only for equality (ISO §8.8.4.2.3 SR4).</summary>
-    private static bool ContainsNonOrderableLeaf(DataItem item)
-    {
-        if (item.IsElementary)
-            return item.Pic?.Category is PicCategory.Boolean or PicCategory.ObjectReference or PicCategory.Pointer;
-        foreach (var c in item.Children)
-            if (ContainsNonOrderableLeaf(c)) return true;
-        return false;
     }
 
     /// <summary>Bind a comparison operand: a non-numeric literal, a sole data reference, or a numeric expression.</summary>

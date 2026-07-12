@@ -202,4 +202,78 @@ internal sealed class StatementValidation(DataBinder data)
             + "file description entry contains a LINAGE clause (ISO §14.9.51 SR13)");
         return false;
     }
+
+    // ── The relational-operand SR checkpoint (ISO §8.8.4.2.2 / §8.8.4.2.3; lifted from ConditionBinder's
+    //    CheckedRelational at P7 Step 10t/3 — the 10o deviation-(b) pure-lift discharged). ────────────────────
+
+    /// <summary>The edition-invariant SR checks that ride the ONE <c>BoundRelational</c> checkpoint — reached
+    /// by every relation (IF, EVALUATE pairings/ranges, PERFORM UNTIL, SEARCH WHEN, sole-operand conditions).
+    /// A PURE emission check (no verdict — the caller always builds the node; the checks are side-effect
+    /// diagnostics): class-boolean comparability (§8.8.4.2.2 Format 2 — boolean operands compare only with a
+    /// boolean or the figurative ZERO, equality only — COBOLNET0844), and the strongly-typed-group rule
+    /// (§8.8.4.2.3 SR1: same type both sides; SR4: a strong group with a boolean/object/pointer leaf is
+    /// equality-only — COBOLNET1535, data-model D17 residue).</summary>
+    public void CheckRelationalOperands(BoundOperand left, string op, BoundOperand right)
+    {
+        static bool IsBoolOperand(BoundOperand o) => o switch
+        {
+            BoundBoolOperand => true,   // a boolean EXPRESSION (B-op tier, increment 2)
+            BoundStringLiteral { Category: PicCategory.Boolean } => true,
+            BoundAllLiteral { Category: PicCategory.Boolean } => true,
+            BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
+            BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
+            _ => false,
+        };
+        bool lb = IsBoolOperand(left), rb = IsBoolOperand(right);
+        if (lb || rb)
+        {
+            static bool BoolCompatible(BoundOperand o) =>
+                o is BoundFigurative { Kind: 'Z' } || o switch
+                {
+                    BoundBoolOperand => true,
+                    BoundStringLiteral { Category: PicCategory.Boolean } => true,
+                    BoundAllLiteral { Category: PicCategory.Boolean } => true,
+                    BoundFieldOperand { Place: RefModPlace rm } => rm.Inner.Item.Pic?.Category is PicCategory.Boolean,
+                    BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Boolean,
+                    _ => false,
+                };
+            if (!(BoolCompatible(left) && BoolCompatible(right)))
+                data.Edition.Error("COBOLNET0844", "a boolean operand may be compared only with another "
+                    + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.1 F1 "
+                    + "SR2/SR3 exclude class boolean from the general relation)");
+            else if (op is not ("==" or "!="))
+                data.Edition.Error("COBOLNET0844", "boolean operands compare for equality only — an ordering "
+                    + "relation is not defined for class boolean (ISO §8.8.4.2.2 Format 2)");
+        }
+        // §8.8.4.2.3 SR1 (data-model D17): if either operand is a strongly-typed group, both shall be of the same
+        // type (§8.5.3.3). This is the ONE relation checkpoint, so it also covers EVALUATE pairings/ranges,
+        // PERFORM UNTIL, and SEARCH WHEN. (SR4 — a strong group with boolean/object/pointer elements admits only
+        // equality — is staged residue, inc 4.)
+        DataItem? sl = left is BoundFieldOperand fl ? fl.Place.Item : null;
+        DataItem? sr = right is BoundFieldOperand fr ? fr.Place.Item : null;
+        if ((sl is { } && StrongTypeModel.IsStrongGroup(sl)) || (sr is { } && StrongTypeModel.IsStrongGroup(sr)))
+        {
+            if (sl is null || sr is null || !StrongTypeModel.SameStrongType(sl, sr))
+                data.Edition.Error(DiagnosticCatalog.StrongCompareMismatch, "a strongly-typed group may be compared only with a group of the "
+                    + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
+            // §8.8.4.2.3 SR4 (D17 inc 4, staged loud): a strong group whose elements include class boolean,
+            // object-reference, or pointer may be compared only for equality — an ordering relation on such a group
+            // is not defined/implemented.
+            else if (op is not ("==" or "!=") && (ContainsNonOrderableLeaf(sl) || ContainsNonOrderableLeaf(sr)))
+                data.Edition.Error("COBOLNET1535", "a strongly-typed group containing a boolean, object-reference, "
+                    + "or pointer element may be compared only for equality (ISO §8.8.4.2.3 SR4) — an ordering "
+                    + "relation is not implemented (data-model D17 residue)");
+        }
+    }
+
+    /// <summary>True when a group (or elementary) item has any leaf of class boolean / object-reference / pointer —
+    /// the categories that make a strongly-typed group comparable only for equality (ISO §8.8.4.2.3 SR4).</summary>
+    private static bool ContainsNonOrderableLeaf(DataItem item)
+    {
+        if (item.IsElementary)
+            return item.Pic?.Category is PicCategory.Boolean or PicCategory.ObjectReference or PicCategory.Pointer;
+        foreach (var c in item.Children)
+            if (ContainsNonOrderableLeaf(c)) return true;
+        return false;
+    }
 }
