@@ -72,6 +72,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private ConditionBinder? _conditionBinder;
     internal ConditionBinder Cond => _conditionBinder ??= new ConditionBinder(Ctx, this);
 
+    private ArithmeticBinder? _arithmeticBinder;
+    internal ArithmeticBinder Arith => _arithmeticBinder ??= new ArithmeticBinder(Ctx, this);
+
     // Host forwarders for the collaborator callers + the remaining core spine sites — flip at 10t.
     internal BoundCondition BindCondition(IParseTree node) => Cond.BindCondition(node);
     internal BoundRelational CheckedRelational(BoundOperand left, string op, BoundOperand right) => Cond.CheckedRelational(left, op, right);
@@ -110,7 +113,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// at binder construction. Gates FUNCTION MODULE-NAME NESTED (§15.65.3 argument rule 1 — NESTED shall be
     /// specified only within a contained program).</summary>
     public bool InNestedProgram { get; init; }
-    private CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
+    internal CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
     private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
     private readonly List<(string Cobol, string Method, Core.SentenceContext[] Sentences)> _paras = [];
@@ -273,11 +276,11 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     {
         _ when s.displayStatement() is { } d => Accept.BindDisplay(d),
         _ when s.moveStatement() is { } m => Move.Bind(m),
-        _ when s.addStatement() is { } a => BindAdd(a),
-        _ when s.subtractStatement() is { } sub => BindSubtract(sub),
-        _ when s.multiplyStatement() is { } mul => BindMultiply(mul),
-        _ when s.divideStatement() is { } div => BindDivide(div),
-        _ when s.computeStatement() is { } c => BindCompute(c),
+        _ when s.addStatement() is { } a => Arith.BindAdd(a),
+        _ when s.subtractStatement() is { } sub => Arith.BindSubtract(sub),
+        _ when s.multiplyStatement() is { } mul => Arith.BindMultiply(mul),
+        _ when s.divideStatement() is { } div => Arith.BindDivide(div),
+        _ when s.computeStatement() is { } c => Arith.BindCompute(c),
         _ when s.ifStatement() is { } iff => ControlFlow.BindIf(iff),
         _ when s.performStatement() is { } p => ControlFlow.BindPerform(p),
         _ when s.setStatement() is { } set => Set.BindSet(set),
@@ -342,182 +345,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         rp.FOREVER() is not null ? new RetrySpec(RetryKind.Forever, null)
         : rp.SECONDS() is not null ? new RetrySpec(RetryKind.Seconds, BindExpr(rp.arithmeticExpression()))
         : new RetrySpec(RetryKind.Times, BindExpr(rp.arithmeticExpression()));
-
-    private BoundStatement BindAdd(Core.AddStatementContext add)
-    {
-        if (add.addOperandList() is not { } operands) return Corr.BindAddCorresponding(add);   // Format 3 (§14.9.2.2)
-        var addends = operands.addOperand().Select(BindExpr).ToList();
-        var sizeErr = BindSizeError(add.arithmeticOnSizeError());
-        if (add.addGivingPhrase() is { } giving)
-        {
-            // ADD a… [TO b] GIVING c…  →  c = (b +) Σa  (ISO §14.9.1 Format 3: the TO operand is an addend, NOT a
-            // receiver; only the GIVING operands receive). Previously the TO operand was dropped from the sum.
-            if (add.addToPhrase() is { } toAddend)
-                addends.AddRange(DataRefs(toAddend).Select(BindExpr));
-            var givingRecv = Receivers(giving.receivingArithmeticOperand());
-            Ctx.Validation.CheckComposite("ADD", addends, givingRecv);
-            return new BoundAddGiving(addends, givingRecv, sizeErr);
-        }
-        if (add.addToPhrase() is { } to)
-        {
-            var recv = Receivers(to.receivingArithmeticOperand());
-            Ctx.Validation.CheckComposite("ADD", addends, recv);
-            return new BoundAddTo(addends, recv, sizeErr);
-        }
-        return new BoundUnsupported("ADD form");
-    }
-
-    private BoundStatement BindSubtract(Core.SubtractStatementContext sub)
-    {
-        if (sub.subtractOperandList() is not { } operands) return Corr.BindSubtractCorresponding(sub);   // Format 3 (§14.9.44.2)
-        var minuends = operands.subtractOperand().Select(BindExpr).ToList();
-        var sizeErr = BindSizeError(sub.arithmeticOnSizeError());
-        if (sub.subtractGivingPhrase() is { } giving && sub.subtractFromPhrase()?.subtractFromOperand() is { } from)
-        {
-            var fromX = BindExpr(from);
-            var recv = Receivers(giving.receivingArithmeticOperand());
-            Ctx.Validation.CheckComposite("SUBTRACT", [.. minuends, fromX], recv);
-            return new BoundSubtractGiving(minuends, fromX, recv, sizeErr);
-        }
-        if (sub.subtractFromPhrase()?.subtractFromOperand() is { } targets)
-        {
-            var recv = Receivers(targets.receivingArithmeticOperand());
-            Ctx.Validation.CheckComposite("SUBTRACT", minuends, recv);
-            return new BoundSubtractFrom(minuends, recv, sizeErr);
-        }
-        return new BoundUnsupported("SUBTRACT form");
-    }
-
-    private BoundStatement BindMultiply(Core.MultiplyStatementContext mul)
-    {
-        if (mul.multiplyOperand() is not { } aCtx) return new BoundUnsupported("MULTIPLY form");
-        var a = BindExpr(aCtx);
-        var byOps = mul.multiplyByOperand();
-        var sizeErr = BindSizeError(mul.arithmeticOnSizeError());
-        if (mul.multiplyGivingPhrase() is { } giving && byOps.Length > 0)
-        {
-            var b = BindExpr(byOps[0]);
-            var recv = Receivers(giving.receivingArithmeticOperand());
-            Ctx.Validation.CheckComposite("MULTIPLY", [a, b], recv);
-            return new BoundMultiplyGiving(a, b, recv, sizeErr);
-        }
-        // In-place: each BY operand is itself the receiver (target ← target × a).
-        var byRecv = Receivers(byOps);
-        Ctx.Validation.CheckComposite("MULTIPLY", [a], byRecv);
-        return new BoundMultiplyBy(a, byRecv, sizeErr);
-    }
-
-    private BoundStatement BindDivide(Core.DivideStatementContext div)
-    {
-        if (div.divideOperand() is not { } aCtx) return new BoundUnsupported("DIVIDE form");
-        var a = BindExpr(aCtx);   // INTO: the divisor; BY: the dividend
-        var sizeErr = BindSizeError(div.arithmeticOnSizeError());
-
-        // DIVIDE … GIVING q REMAINDER r (ISO §14.9.12 Formats 4–5): exactly one GIVING receiver (SR6).
-        if (div.divideRemainderPhrase() is { } rem)
-        {
-            if (div.divideGivingPhrase() is not { } g) return new BoundUnsupported("DIVIDE REMAINDER without GIVING");
-            var quotients = Receivers(g.receivingArithmeticOperand());
-            if (quotients.Count != 1) return new BoundUnsupported("DIVIDE REMAINDER quotient receiver");
-            if (refs.Resolve(rem.dataReference()) is not { } r)
-                return new BoundUnsupported($"DIVIDE REMAINDER receiver '{rem.dataReference().GetText()}'");
-            BoundExpr dividend = div.divideIntoPhrase() is { } i ? BindExpr(i.divideIntoOperand())
-                : div.divideByPhrase() is not null ? a
-                : a;
-            BoundExpr divisor = div.divideIntoPhrase() is not null ? a
-                : div.divideByPhrase() is { } b ? BindExpr(b.divideOperand())
-                : a;
-            Ctx.Validation.CheckComposite("DIVIDE", [dividend, divisor], quotients);
-            return new BoundDivideRemainder(dividend, divisor, quotients[0], r, sizeErr);
-        }
-
-        if (div.divideIntoPhrase() is { } into)
-        {
-            if (div.divideGivingPhrase() is { } giving)
-            {
-                var dividendX = BindExpr(into.divideIntoOperand());
-                var recv = Receivers(giving.receivingArithmeticOperand());
-                Ctx.Validation.CheckComposite("DIVIDE", [dividendX, a], recv);
-                return new BoundDivideGiving(dividendX, a, recv, sizeErr);
-            }
-            var intoRecv = Receivers(into.divideIntoOperand().receivingArithmeticOperand());
-            Ctx.Validation.CheckComposite("DIVIDE", [a], intoRecv);
-            return new BoundDivideInto(a, intoRecv, sizeErr);   // target ← target ÷ a
-        }
-        if (div.divideByPhrase() is { } byPhrase && div.divideGivingPhrase() is { } gv)
-        {
-            var divisorX = BindExpr(byPhrase.divideOperand());
-            var recv = Receivers(gv.receivingArithmeticOperand());
-            Ctx.Validation.CheckComposite("DIVIDE", [a, divisorX], recv);
-            return new BoundDivideGiving(a, divisorX, recv, sizeErr);
-        }
-        return new BoundUnsupported("DIVIDE form");
-    }
-
-    private BoundStatement BindCompute(Core.ComputeStatementContext compute)
-    {
-        // COMPUTE Format 2 — boolean-compute (ISO §14.9.8; the {is2002()}? grammar alternative).
-        if (compute.booleanExpression() is { } boolExpr) return BindComputeBoolean(compute, boolExpr);
-        if (compute.arithmeticExpression() is not { } expr) return new BoundUnsupported("COMPUTE without an expression");
-        // F1 → F2 re-route: `COMPUTE bool-item = bool-item` parses as Format 1 (a sole-identifier RHS predicts
-        // the arithmetic alt), so a boolean receiver or a sole boolean-category RHS re-routes to the boolean
-        // bind (the "ANTLR alternative-order reality" precedent). A boolean RHS/receiver never reaches the
-        // numeric channel.
-        bool receiverBoolean = compute.computeStore().Length > 0
-            && refs.Resolve(compute.computeStore(0).dataReference()) is { Item.Pic.Category: PicCategory.Boolean };
-        bool rhsBoolean = SoleDataRef(expr) is { } d && refs.Resolve(d) is { Item.Pic.Category: PicCategory.Boolean };
-        if (receiverBoolean || rhsBoolean)
-        {
-            BoundBoolExpr rerouted = SoleDataRef(expr) is { } sd && refs.Resolve(sd) is { } sp
-                    && (sp is RefModPlace rm2 ? rm2.Inner.Item.Pic?.Category : sp.Item.Pic?.Category) is PicCategory.Boolean
-                ? new BoundBoolRef(sp)
-                : new BoundBoolError($"COMPUTE boolean receiver takes a boolean expression, not '{expr.GetText()}' "
-                    + "(ISO §14.9.8 Format 2)");
-            return BuildComputeBoolean(compute, rerouted);
-        }
-        var rhs = BindExpr(expr);
-        return new BoundCompute(rhs, Receivers(compute.computeStore()), BindSizeError(compute.computeOnSizeError()));
-    }
-
-    private BoundStatement BindComputeBoolean(Core.ComputeStatementContext compute, Core.BooleanExpressionContext boolExpr)
-    {
-        // The COBOL-2002 boolean-operator introduction gate on COMPUTE Format 2 (BooleanOperators2002) fires on
-        // RECOGNITION in the VersionConformancePass parse-arm (VisitComputeStatement, HasBoolOp on the F2
-        // booleanExpression); Step 14h.4b.
-        var rhs = BindBoolExpr(boolExpr);
-        // SR3 (§14.9.8 :26575): the expression shall not consist solely of an ALL literal.
-        if (rhs is BoundBoolAll)
-            data.Edition.Error("COBOLNET1511", "a boolean COMPUTE expression shall not consist solely of an ALL "
-                + "literal (ISO §14.9.8 Format 2 SR3)");
-        return BuildComputeBoolean(compute, rhs);
-    }
-
-    /// <summary>Shared tail for both the direct Format-2 bind and the F1→F2 re-route: receiver conformance
-    /// (SR2 — elementary boolean), the ROUNDED / SIZE-ERROR prohibition (F2 has neither), the GR3 store width.</summary>
-    private BoundStatement BuildComputeBoolean(Core.ComputeStatementContext compute, BoundBoolExpr rhs)
-    {
-        if (compute.computeOnSizeError() is not null)
-            data.Edition.Error("COBOLNET1511", "ON SIZE ERROR may not be specified on a boolean COMPUTE "
-                + "(ISO §14.9.8 Format 2 — no size-error phrase)");
-        var targets = new List<Place>();
-        foreach (var store in compute.computeStore())
-        {
-            if (store.roundedPhrase() is not null)
-                data.Edition.Error("COBOLNET1511", "ROUNDED may not be specified on a boolean COMPUTE "
-                    + "(ISO §14.9.8 Format 2)");
-            if (refs.Resolve(store.dataReference()) is not { } p)
-            {
-                data.Edition.Error("COBOLNET1511", $"COMPUTE receiver '{store.dataReference().GetText()}' is unresolvable");
-                continue;
-            }
-            var cat = p is RefModPlace rm ? rm.Inner.Item.Pic?.Category : p.Item.Pic?.Category;
-            if (cat is not PicCategory.Boolean)
-                data.Edition.Error("COBOLNET1511", $"the receiver '{store.dataReference().GetText()}' of a boolean "
-                    + "COMPUTE shall be an elementary boolean item (ISO §14.9.8 Format 2 SR2)");
-            targets.Add(p);
-        }
-        return new BoundComputeBoolean(rhs, targets, Gr3Width(rhs));
-    }
 
     internal List<BoundStatement> BindBlocks(IEnumerable<Core.StatementBlockContext> blocks) =>
         blocks.SelectMany(b => b.statement()).Select(BindStatement).ToList();
@@ -736,19 +563,19 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>Resolve <c>receivingArithmeticOperand</c>s (the GIVING / TO / FROM / INTO resultants) to
     /// <see cref="Receiver"/>s, each carrying its own ROUNDED mode; an unresolvable reference is dropped.</summary>
-    private List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops) =>
+    internal List<Receiver> Receivers(IEnumerable<Core.ReceivingArithmeticOperandContext> ops) =>
         ops.Select(o => ResolveReceiving(o.dataReference()) is { } p ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
            .OfType<Receiver>().ToList();
 
     /// <summary>Resolve the in-place <c>MULTIPLY … BY</c> receivers (<c>multiplyByOperand</c> = receiving operand +
     /// optional ROUNDED), each carrying its own mode; a literal BY operand (only valid in a GIVING form) is dropped.</summary>
-    private List<Receiver> Receivers(IEnumerable<Core.MultiplyByOperandContext> ops) =>
+    internal List<Receiver> Receivers(IEnumerable<Core.MultiplyByOperandContext> ops) =>
         ops.Select(o => o.receivingOperand()?.dataReference() is { } d && ResolveReceiving(d) is { } p
                 ? new Receiver(p, RoundingOf(o.roundedPhrase())) : null)
            .OfType<Receiver>().ToList();
 
     /// <summary>Resolve the <c>COMPUTE</c> resultants (<c>computeStore</c> = data reference + optional ROUNDED).</summary>
-    private List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) =>
+    internal List<Receiver> Receivers(IEnumerable<Core.ComputeStoreContext> stores) =>
         stores.Select(s => ResolveReceiving(s.dataReference()) is { } p ? new Receiver(p, RoundingOf(s.roundedPhrase())) : null)
               .OfType<Receiver>().ToList();
 
@@ -853,7 +680,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     // ── Conditions ─────────────────────────────────────────────────────────────────────────────────────────
 
-    private static IEnumerable<Core.DataReferenceContext> DataRefs(IParseTree node)
+    internal static IEnumerable<Core.DataReferenceContext> DataRefs(IParseTree node)
     {
         for (int i = 0; i < node.ChildCount; i++)
         {
