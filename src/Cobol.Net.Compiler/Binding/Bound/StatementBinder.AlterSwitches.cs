@@ -101,7 +101,7 @@ public sealed partial class StatementBinder
     /// <summary>Bind a resolved single-target GO TO: in an ALTER-target paragraph it transfers to the CURRENT
     /// altered target with the WRITTEN target as the field's initial value (ANSI-85 ALTER GR — until an ALTER
     /// executes, the written GO TO governs); otherwise it is the plain §14.9.17 Format 1 transfer.</summary>
-    private BoundStatement AlterGoTo(Core.GoToStatementContext g, int writtenTarget)
+    internal BoundStatement AlterGoTo(Core.GoToStatementContext g, int writtenTarget)
     {
         AlterEnsureScan();
         return AlterOwningPc(g) is { } pc && _alterSwFields!.TryGetValue(pc, out var field)
@@ -114,7 +114,7 @@ public sealed partial class StatementBinder
     /// paragraph referenced by an ALTER and must be ALTERed before execution, else execution is UNDEFINED — bound
     /// as the alterable transfer with default −1 (dispatcher exit) when ALTERed somewhere, or a constant −1
     /// transfer when no ALTER ever names the paragraph (the legacy's NIST-proven realization of "undefined").</summary>
-    private BoundStatement AlterBindBareGoTo(Core.GoToStatementContext g)
+    internal BoundStatement AlterBindBareGoTo(Core.GoToStatementContext g)
     {
         if (g.dataReference() is not null)   // `GO TO DEPENDING ON x` with NO procedure-names is malformed, not bare
             return new BoundUnsupported("GO TO DEPENDING without procedure-names (ISO §14.9.17 Format 2)");

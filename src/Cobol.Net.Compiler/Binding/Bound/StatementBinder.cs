@@ -60,6 +60,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal UdfBinder Udf => _udfBinder ??= new UdfBinder(Ctx, this);
     private IntrinsicBinder? _intrinsicBinder;
     internal IntrinsicBinder Intrinsic => _intrinsicBinder ??= new IntrinsicBinder(Ctx, this);
+    private ControlFlowBinder? _controlFlowBinder;
+    private ControlFlowBinder ControlFlow => _controlFlowBinder ??= new ControlFlowBinder(Ctx, this);
 
     /// <summary>Host forwarder for the collaborator callers (MoveBinder / AcceptDisplayBinder) — flips to a
     /// direct ctor ref at the 10t final wiring.</summary>
@@ -244,16 +246,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.multiplyStatement() is { } mul => BindMultiply(mul),
         _ when s.divideStatement() is { } div => BindDivide(div),
         _ when s.computeStatement() is { } c => BindCompute(c),
-        _ when s.ifStatement() is { } iff => BindIf(iff),
-        _ when s.performStatement() is { } p => BindPerform(p),
+        _ when s.ifStatement() is { } iff => ControlFlow.BindIf(iff),
+        _ when s.performStatement() is { } p => ControlFlow.BindPerform(p),
         _ when s.setStatement() is { } set => BindSet(set),
         _ when s.searchStatement() is { } se => BindSearch(se),
         _ when s.evaluateStatement() is { } ev => Evaluate.Bind(ev),
         _ when s.inspectStatement() is { } ins => Inspect.Bind(ins),
         _ when s.searchAllStatement() is { } sa => BindSearchAll(sa),
-        _ when s.goToStatement() is { } g => BindGoTo(g),
+        _ when s.goToStatement() is { } g => ControlFlow.BindGoTo(g),
         _ when s.alterStatement() is { } al => BindAlter(al),   // 85-only; rejected ≥2002 inside BindAlter (deleted by ISO/IEC 1989:2002)
-        _ when s.exitStatement() is { } e => BindExit(e),
+        _ when s.exitStatement() is { } e => ControlFlow.BindExit(e),
         _ when s.openStatement() is { } o => SeqIo.BindOpen(o),
         _ when s.closeStatement() is { } c => SeqIo.BindClose(c),
         _ when s.writeStatement() is { } w => SeqIo.BindWrite(w),
@@ -272,7 +274,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
         // the validator, its 85 semantics implemented via BoundStopLiteral).
-        _ when s.stopStatement() is { } stop => BindStop(stop),
+        _ when s.stopStatement() is { } stop => ControlFlow.BindStop(stop),
         _ when s.gobackStatement() is { } gb => Call.BindGoback(gb),   // §14.9.18 — called-program return; 2002+ gated
         _ when s.invokeStatement() is { } inv => OoBindInvoke(inv),   // §14.9.23 — OO method invocation (2002+ grammar-gated)
         _ when s.callStatement() is { } call => Call.BindCall(call),
@@ -300,60 +302,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// COBOL-2002 introduction — bind-time introduction gate (rearch bind-time migration Cluster 4; the parse-time
     /// {is2002()}? predicate is gone). The phrase has no runtime effect in this compiler, so the gate is its only
     /// binder obligation.</summary>
-    private BoundStatement BindStop(Core.StopStatementContext stop)
-    {
-        // STOP RUN … WITH STATUS (§14.9.42) is a COBOL-2002 introduction; the edition gate (StopRunStatus2002)
-        // moved to the post-bind VersionConformancePass (Step 14d), reading BoundStop.HasStatusPhrase.
-        return stop.literal() is { } slit
-            ? new BoundStopLiteral(CobolLiteral.Decode(slit.GetText()))
-            : new BoundStop { HasStatusPhrase = stop.stopStatusPhrase() is not null };
-    }
-
-    private BoundStatement BindGoTo(Core.GoToStatementContext g)
-    {
-        var names = g.procedureName();
-        if (g.dataReference() is { } sel && names.Length >= 1)   // GO TO p1 p2 … DEPENDING ON sel
-        {
-            var targets = new List<int>();
-            foreach (var n in names)
-            {
-                // A section target transfers to its first paragraph (ISO §14.9.17 GR1).
-                if (ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{OoScopeHint}");
-                targets.Add(range.Start);
-            }
-            return new BoundGoToDepending(FieldOperand(sel), targets);
-        }
-        if (names.Length == 0) return AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
-        if (ResolveProcedure(names[0]) is not { } target)
-            return new BoundUnsupported($"GO TO unknown procedure '{names[0].GetText()}'{OoScopeHint}");
-        return AlterGoTo(g, target.Start);   // alterable when the owning paragraph is an ALTER target, else plain GO TO
-    }
-
-    private BoundStatement BindExit(Core.ExitStatementContext e)
-    {
-        if (e.PARAGRAPH() is not null) return new BoundExitParagraph();
-        if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
-        if (e.PROGRAM() is not null)   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
-        {
-            if (InMethod)   // §14.9.14.3 SR7: EXIT PROGRAM only in a PROGRAM procedure division
-            {
-                data.Edition.Error("COBOLNET0827",
-                    "EXIT PROGRAM may be specified only in a program procedure division, not in a method "
-                    + "(ISO §14.9.14.3 SR7 — a method returns via GOBACK)");
-                return new BoundNop();
-            }
-            if (e.raisingPhrase() is { } raising)   // Format 2's RAISING tail (§14.9.14.2) — re-raise in the activator
-                return EcBindRaising(raising, e.Start.Line, "EXIT PROGRAM") is { } r
-                    ? new BoundExitProgram(r)
-                    : new BoundUnsupported("EXIT PROGRAM RAISING identifier (exception object — the OO wave; ISO §14.9.14.3)");
-            return new BoundExitProgram();
-        }
-        if (e.SECTION() is not null) return new BoundUnsupported("EXIT SECTION");        // needs section bounds — later
-        if (e.METHOD() is not null) return OoBindExitMethod(e);   // method-return synonym ≤2014; 0902 at 2023 (validator)
-        if (e.FUNCTION() is not null) return Udf.UdfBindExitFunction(e);   // function-return synonym ≤2014; 0900/0902 window (validator)
-        return new BoundNop();   // bare EXIT
-    }
-
     // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────
 
     /// <summary>Bind a RETRY phrase (ISO §14.7.9). The n-TIMES amount is a bounded re-attempt count; FOR n
@@ -539,19 +487,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         return new BoundComputeBoolean(rhs, targets, Gr3Width(rhs));
     }
 
-    private BoundStatement BindIf(Core.IfStatementContext iff)
-    {
-        var thenBlocks = new List<Core.StatementBlockContext>();
-        var elseBlocks = new List<Core.StatementBlockContext>();
-        bool seenElse = false;
-        foreach (var child in Children(iff))
-        {
-            if (child is ITerminalNode t && t.Symbol.Type == CobolLexer.ELSE) seenElse = true;
-            else if (child is Core.StatementBlockContext sb) (seenElse ? elseBlocks : thenBlocks).Add(sb);
-        }
-        return new BoundIf(BindCondition(iff.condition()), BindBlocks(thenBlocks), BindBlocks(elseBlocks));
-    }
-
     internal List<BoundStatement> BindBlocks(IEnumerable<Core.StatementBlockContext> blocks) =>
         blocks.SelectMany(b => b.statement()).Select(BindStatement).ToList();
 
@@ -570,83 +505,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         var (onErr, notErr) = PhraseBlocks.Split(blocks, notFirst, b => BindBlocks([b]));
         return new SizeErrorPhrase(onErr, notErr);
     }
-
-    private BoundStatement BindPerform(Core.PerformStatementContext p)
-    {
-        var names = p.procedureName();
-        if (names.Length == 0)
-            return new BoundInlinePerform(BindPerformControl(p), BindBlocks(p.statementBlock()));
-
-        // Out-of-line: the resolved pc range [start, end] — a paragraph (start==end), a SECTION (its whole
-        // paragraph range, ISO §14.9.28 — first statement of its first paragraph through last of its last), or
-        // the THRU composition (first procedure's start through the last procedure's end).
-        if (ResolveProcedure(names[0]) is not { } first)
-            return new BoundUnsupported($"PERFORM unknown procedure '{names[0].GetText()}'{OoScopeHint}");
-        (int start, int end) = first;
-        if ((p.THRU() is not null || p.THROUGH() is not null) && names.Length >= 2)
-        {
-            if (ResolveProcedure(names[1]) is not { } thru) return new BoundUnsupported($"PERFORM THRU unknown procedure '{names[1].GetText()}'{OoScopeHint}");
-            // An INVERTED range (the THRU procedure physically precedes the first, reached by GO TO — NC102A
-            // PFM-TEST-F1-10) is legal: the dispatcher returns when the exit procedure completes, wherever it is.
-            end = thru.End;
-        }
-        else if (start > end)
-            return new BoundNop();   // PERFORM of an EMPTY section runs nothing (no first statement, ISO §14.9.28)
-
-        return new BoundOutOfLinePerform(start, end, BindPerformControl(p));
-    }
-
-    /// <summary>Bind the OPTIONAL control phrase (TIMES / UNTIL / VARYING) of a PERFORM. Per ISO §14.9.28 the phrase
-    /// is independent of the THRU range (general format: <c>PERFORM proc-1 [THRU proc-2] [times|until|varying]</c>),
-    /// but the grammar exposes it in two shapes: a direct child (<c>PERFORM proc TIMES</c>, alternatives without
-    /// THRU) or wrapped in <c>performOptions</c> (the <c>PERFORM proc THRU proc [performOptions]</c> alternative and
-    /// the inline <c>performOptions+</c> form). Resolving only the direct child dropped the count/condition on a THRU
-    /// range, silently running the range once instead of N times (§14.9.28 GR9) — the NC106A/NC176A defect
-    /// (DEVLOG 514). This one resolver handles every shape for both inline and out-of-line PERFORM.</summary>
-    private BoundPerformControl BindPerformControl(Core.PerformStatementContext p)
-    {
-        var opt = p.performOptions().FirstOrDefault();
-        if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
-        if ((p.performUntil() ?? opt?.performUntil()) is { } u) return new PerformUntil(BindCondition(u.condition()), u.AFTER() is not null);
-        if ((p.performVarying() ?? opt?.performVarying()) is { } v) return BindVarying(v);
-        return new PerformOnce();
-    }
-
-    /// <summary>Bind a VARYING phrase (ISO §14.9.28 Format 4) into its ordered induction levels — the VARYING
-    /// level first, then each AFTER level left-to-right. TEST AFTER is the phrase's own <c>TEST AFTER</c> (the
-    /// AFTER tokens of the after-levels live in their sub-contexts, not here).</summary>
-    private BoundPerformControl BindVarying(Core.PerformVaryingContext v)
-    {
-        var levels = new List<VaryingLevel>();
-        if (BindVaryingLevel(v.dataReference(), v.arithmeticExpression(), v.condition()) is not { } head)
-            return Unsupported($"PERFORM VARYING induction variable '{v.dataReference().GetText()}'");
-        levels.Add(head);
-        foreach (var a in v.performVaryingAfter())
-        {
-            if (BindVaryingLevel(a.dataReference(), a.arithmeticExpression(), a.condition()) is not { } level)
-                return Unsupported($"PERFORM VARYING AFTER induction variable '{a.dataReference().GetText()}'");
-            levels.Add(level);
-        }
-        return new PerformVarying(levels, v.TEST() is not null && v.AFTER() is not null);
-    }
-
-    /// <summary>One induction level: the variable is a SET-style target (index-name or data item); the expression
-    /// array is [FROM] or [FROM, BY] (BY omitted ⇒ augment 1, GR12).</summary>
-    private VaryingLevel? BindVaryingLevel(
-        Core.DataReferenceContext dref, Core.ArithmeticExpressionContext[] exprs, Core.ConditionContext cond)
-    {
-        if (SetTargetOf(dref) is not { } var) return null;
-        BoundExpr from = BindExpr(exprs[0]);
-        BoundExpr by = exprs.Length > 1 ? BindExpr(exprs[1]) : new BoundNumLiteral("1");
-        return new VaryingLevel(var, from, by, BindCondition(cond));
-    }
-
-    private static BoundPerformControl Unsupported(string feature) => new PerformTimes(new BoundOperandError(feature));
-
-    private BoundOperand CountOperand(Core.PerformTimesContext t) =>
-        t.integerLiteral() is { } lit ? new BoundNumericLiteral(lit.GetText())
-        : t.dataReference() is { } d ? FieldOperand(d)
-        : new BoundNumericLiteral("1");
 
     /// <summary>Bind a SET statement, dispatching by format (ISO §14.9.39; COBOLNET_DESIGN §12.3). The COBOL-85
     /// surface — Format 1 index/value assignment, Format 2 UP/DOWN BY, Format 4 condition-name TO TRUE — binds here;
@@ -799,7 +657,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item
     /// (an index data item or an integer item — the emitter dispatches on its usage).</summary>
-    private BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
+    internal BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) =>
         IndexFieldOf(dref) is { } ix ? new SetIndexTarget(ix)
         : ResolveReceiving(dref) is { } p ? new SetPlaceTarget(p)   // a SET receiver IS a receiving operand
         : null;

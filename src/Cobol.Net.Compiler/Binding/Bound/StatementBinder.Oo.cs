@@ -192,7 +192,7 @@ public sealed partial class StatementBinder
     /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY
     /// (§11.7), so a reference to a sibling method's paragraph fails HERE by design (the legacy trap-#10
     /// cross-method reject) — the hint tells the reader why the name a human can see is "unknown".</summary>
-    private string OoScopeHint => InMethod
+    internal string OoScopeHint => InMethod
         ? " (method-local resolution, ISO §11.7 — paragraphs of sibling methods and of the driver program are not visible in a method)"
         : "";
 
@@ -1078,7 +1078,7 @@ public sealed partial class StatementBinder
     /// <summary>EXIT METHOD (pre-2023 editions — REMOVED by 2023, Annex E.2; the <c>exit-method-window</c>
     /// registry row already flags 0900/0902 at the window edges): inside a method it is the method-return
     /// synonym (≡ the §14.9.18.4 GR4 GOBACK); outside one it violates its placement rule.</summary>
-    private BoundStatement OoBindExitMethod(Core.ExitStatementContext e)
+    internal BoundStatement OoBindExitMethod(Core.ExitStatementContext e)
     {
         if (!InMethod)
         {
