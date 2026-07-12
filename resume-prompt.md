@@ -49,11 +49,11 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   `_initializeLoopVar` owners; CheckStrongMove/CheckComposite/INITIALIZE lifts; the `:219` ≥2002 window =
   the sanctioned in-binder BEHAVIORAL edition read). 10f `bf98ba2d` (`Verbs/ReportWriterBinder` ctx-only; `ResolveReceiving` hoisted to
   the core receiving spine; the 1523 catalog normalization deferred to 10t) · 10g `9c0f257a`
-  (`Verbs/FileLockBinder` + `Verbs/PtrBinder` — tri-state/peek/ByName-bypass verbatim). **RESUME AT 10h**
-  (SequentialIo + KeyedIo as ONE batch + the SPECIAL-NAMES mnemonic registry onto ctx + AcceptDisplayBinder
-  detaches from the partial class) then 10i…10t per the PHASE-07 §Step 10 **AS-BUILT PLAN block** (the
-  decision-complete batch recipe + BinderContext as-built shape; census `wf_b788936b-ca2`, scratchpad
-  p7-step10-census.json, session 61dab794). Standing rules for
+  (`Verbs/FileLockBinder` + `Verbs/PtrBinder` — tri-state/peek/ByName-bypass verbatim). 10h `b28907b7`
+  (the I/O cycle: `Verbs/{SequentialIo,KeyedIo}Binder` + `MnemonicRegistry` on ctx + the AcceptDisplayBinder
+  DETACH incl. BindDisplay; OPEN SR8 + WRITE SR19/18/13 lifts). **RESUME AT 10i** (SortBinder) then 10j…10t
+  per the PHASE-07 §Step 10 **AS-BUILT PLAN block** (the decision-complete batch recipe + BinderContext
+  as-built shape; census `wf_b788936b-ca2`, scratchpad p7-step10-census.json, session 61dab794). Standing rules for
   the batches: SR checks lift to `StatementValidation` as PURE checks only (error+placeholder control flow
   stays in the verb binder); the residual ~19 inline edition gates move VERBATIM (pass-folding = Exec Step
   E); ProcedureTableBuilder at the 10t FINAL wiring (the `OoMethodScope` entanglement); OO LAST (10s)
