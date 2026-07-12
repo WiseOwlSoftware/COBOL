@@ -1,12 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding.Bound;
+using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
-using CobolNet.Binding.Model;
-using CobolNet.Binding.Procedure;
-
-namespace CobolNet.Binding.Bound;
+namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
 
@@ -18,91 +17,25 @@ using Core = CobolParserCore;
 //  (COBOLNET_DESIGN §8.2 — typed key descriptors over serialized images, offsets computed at compile time).
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-/// <summary>One sort/merge key (ISO §14.9.40 GR1/GR2 — significance is statement order, direction is the nearest
-/// preceding ASCENDING/DESCENDING word): its character window within the SD record image (<paramref name="Offset"/>,
-/// <paramref name="Length"/> — compile-time, §14.9.40.3 SR6a/SR6e: the same byte positions are the key in EVERY
-/// record of the file) and its comparison kind — a NUMERIC key compares algebraically by decoded value (GR8 /
-/// §8.8.4.2 — never through a collating sequence; <paramref name="Signed"/>/<paramref name="SignKind"/> are the
-/// runtime <c>NumericSign</c> decode of the zoned/separate operational sign), an alphanumeric/group key compares as
-/// characters under the statement's resolved collating sequence (GR5).</summary>
-public sealed record BoundSortMergeKey(
-    bool Descending, int Offset, int Length, bool Numeric, bool Signed, string SignKind);
-
-/// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
-/// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
-/// length into it (GR15) — and the min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §14.9.40 GR12b;
-/// EC checking is OFF by default per COBOLNET_DESIGN §18.16, the bounds are carried for the seam).
-/// <paramref name="Depending"/> is null for a variable-length SD/FD with no DEPENDING phrase (RECORD m TO n —
-/// GR13b/c: each record then releases/writes at its own size; there is no length register to restore).</summary>
-public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);
-
-/// <summary><c>SORT file-name-1 …</c> (ISO §14.9.40 Format 1): the three-phase file sort (GR9 — release, sequence,
-/// return). <paramref name="Using"/>/<paramref name="InputProcedure"/> is the release phase (GR11/GR12),
-/// <paramref name="Giving"/>/<paramref name="OutputProcedure"/> the return phase (GR14/GR15); a procedure is the
-/// resolved inclusive pc range run as a bounded dispatch — the PC dispatcher's return IS the GR11/GR14
-/// compiler-inserted return mechanism. <paramref name="Collating"/> is the GR5-resolved alphanumeric sequence
-/// (statement alphabet first, else the program collating sequence, else null = native).
-/// <paramref name="RecordWidth"/> is the SD record area's physical character-image width.</summary>
-public sealed record BoundSort(
-    FileModel File, int RecordWidth,
-    IReadOnlyList<BoundSortMergeKey> Keys, bool DuplicatesInOrder, CollatingTable? Collating,
-    IReadOnlyList<FileModel> Using, (int Start, int End)? InputProcedure,
-    IReadOnlyList<FileModel> Giving, (int Start, int End)? OutputProcedure,
-    SortVaryingInfo? Varying) : BoundStatement;
-
-/// <summary><c>SORT data-name-2 …</c> (ISO §14.9.40 Format 2, COBOL-2002+): the in-place table sort over the typed
-/// element array (COBOLNET_DESIGN §8.2 — the one sanctioned divergence from the image store: Format 2 operates on
-/// the typed array directly with a typed comparer). <paramref name="Keys"/> are element-relative member paths; an
-/// empty path is the table element itself (GR23). The whole fixed-OCCURS extent sorts (GR20/GR24).
-/// <paramref name="Table"/> is carried (not its type name) because the element's storage type is finalized by the
-/// POST-bind whole-group analysis (StoreAsImage) — the emitter reads <c>Table.ElementType</c> then.</summary>
-public sealed record BoundTableSort(
-    string ArrayPath, DataItem Table,
-    IReadOnlyList<BoundTableSortKey> Keys, bool DuplicatesInOrder, CollatingTable? Collating) : BoundStatement;
-
-/// <summary>One Format-2 table-sort key: the C# member path RELATIVE to an element variable (empty = the element
-/// itself, ISO §14.9.40 GR23) and the key's <see cref="DataItem"/> (category/profile drive the typed compare).</summary>
-public sealed record BoundTableSortKey(bool Descending, string MemberPath, DataItem Key);
-
-/// <summary><c>MERGE file-name-1 …</c> (ISO §14.9.24): a k-way merge of the pre-sorted <paramref name="Using"/>
-/// streams — equal keys keep USING-file order, all of one file's records before the next file's (GR4a/GR4b) —
-/// written to every <paramref name="Giving"/> file (GR12 — each receives the FULL merged result) or pulled by
-/// RETURN in the <paramref name="OutputProcedure"/> (GR8/GR9). Collating per GR5 (identical to SORT GR5).</summary>
-public sealed record BoundMerge(
-    FileModel File, int RecordWidth,
-    IReadOnlyList<BoundSortMergeKey> Keys, CollatingTable? Collating,
-    IReadOnlyList<FileModel> Using,
-    IReadOnlyList<FileModel> Giving, (int Start, int End)? OutputProcedure,
-    SortVaryingInfo? Varying) : BoundStatement;
-
-/// <summary><c>RELEASE record-name-1 [FROM x]</c> (ISO §14.9.32): release the SD record's image to the initial
-/// phase of the active sort (GR2). FROM ≡ <c>MOVE x TO record-name-1</c> then the same RELEASE (GR4). A varying SD
-/// releases at the length the RECORD VARYING DEPENDING ON item holds (§13.18.43 GR13); a fixed SD at the record
-/// area width (short images space-fill — §14.9.40 GR7c).</summary>
-public sealed record BoundRelease(
-    FileModel File, Place Record, int RecordWidth, BoundOperand? From, SortVaryingInfo? Varying) : BoundStatement;
-
-/// <summary><c>RETURN file-name-1 RECORD [INTO x] AT END … [NOT AT END …]</c> (ISO §14.9.34): make the next record
-/// (in key order) available in the SD record area (GR3); INTO ≡ RETURN then MOVE record-area → x (GR5, skipped at
-/// end); at end → <paramref name="AtEnd"/>, else <paramref name="NotAtEnd"/> (GR3/GR4). A varying SD restores the
-/// returned record's length into the DEPENDING item (§13.18.43 GR15).</summary>
-public sealed record BoundReturn(
-    FileModel File, Place RecordArea, Place? Into,
-    IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd,
-    SortVaryingInfo? Varying) : BoundStatement;
-
-public sealed partial class StatementBinder
+/// <summary>The SORT/MERGE/RELEASE/RETURN verb binder (P7 Step 10i — a real collaborator over
+/// <see cref="BinderContext"/>): <c>ResolveProcedure</c> stays a HOST edge called at the SAME bind point
+/// (INPUT/OUTPUT PROCEDURE resolution is position-dependent — never snapshot early); WriteSource/
+/// FileOfRecord flip to the ctor-injected <see cref="SequentialIoBinder"/>. The 0870/0871/0872 gates moved
+/// VERBATIM with their exact control flow (report-and-continue at the table-SORT/RELEASE sites vs
+/// report+BoundUnsupported at alphabet-name-2 — Exec Step E folds them). The 8 bound types stayed in
+/// <c>Binding/Bound/BoundSort.cs</c>.</summary>
+internal sealed class SortBinder(BinderContext ctx, StatementBinder host, SequentialIoBinder seqIo)
 {
     // ── SORT (ISO §14.9.40) ────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Bind SORT, splitting Format 1 (file sort) from Format 2 (table sort) by resolving the operand:
     /// a name declared in FILE-CONTROL/an SD is the file format; otherwise a table data item (ISO §14.9.40 —
     /// the formats share one general shape; the grammar defers the split to this semantic layer).</summary>
-    private BoundStatement BindSort(Core.SortStatementContext s)
+    public BoundStatement BindSort(Core.SortStatementContext s)
     {
         var operand = s.sortFileName().dataReference();
         string name = operand.cobolWord()?.GetText() ?? operand.GetText();
-        return data.FilesByName.TryGetValue(name, out var file)
+        return ctx.Data.FilesByName.TryGetValue(name, out var file)
             ? SortBindFile(s, file)
             : SortBindTable(s, name);
     }
@@ -163,10 +96,10 @@ public sealed partial class StatementBinder
     /// docs/ISO2023_CONFORMANCE_PLAN.md) — rejected below <c>--std 2002</c>.</summary>
     private BoundStatement SortBindTable(Core.SortStatementContext s, string name)
     {
-        if (data.Edition.DialectLevel < 2002)
-            data.Edition.Error("COBOLNET0870", "SORT of a table (Format 2, ISO §14.9.40) was introduced by "
+        if (ctx.Edition.DialectLevel < 2002)
+            ctx.Edition.Error("COBOLNET0870", "SORT of a table (Format 2, ISO §14.9.40) was introduced by "
                 + "ISO/IEC 1989:2002 — COBOL-85 SORT operates on sort-merge files only; it requires --std 2002 "
-                + $"or later (targeting COBOL-{data.Edition.DialectLevel})");
+                + $"or later (targeting COBOL-{ctx.Edition.DialectLevel})");
 
         // Format 2 has NO USING/GIVING/procedure phrases (ISO §14.9.40.2 — the in-place table sort).
         if (s.sortUsingPhrase() is not null || s.sortGivingPhrase() is not null
@@ -175,7 +108,7 @@ public sealed partial class StatementBinder
                 + "sort-merge FILE operand (ISO §14.9.40.2 — Format 2 sorts the table in place)");
 
         // SR13: data-name-2 shall have an OCCURS clause. Resolve like SEARCH does: the named table item.
-        if (!data.Symbols.TryResolve(name, data.ActiveScope, out var candidates)
+        if (!ctx.Symbols.TryResolve(name, ctx.ActiveScope, out var candidates)
             || candidates.FirstOrDefault(i => i.Occurs is not null) is not { } table)
             return new BoundUnsupported($"SORT of '{name}' — neither a SELECTed/SD file nor an OCCURS table "
                 + "(ISO §14.9.40.3 SR4/SR13)");
@@ -212,7 +145,7 @@ public sealed partial class StatementBinder
                 // comparator's collating leg for national is Phase-4a residue #5 (file-sort national keys are
                 // already blocked by the FD/SD record gate). Staged loud, never a wrong ordinal.
                 if (key.Pic is { Category: PicCategory.National })
-                    data.Edition.Error(DiagnosticCatalog.NationalData, $"SORT with a national key ('{kn}') is recognized but "
+                    ctx.Edition.Error(DiagnosticCatalog.NationalData, $"SORT with a national key ('{kn}') is recognized but "
                         + "not yet implemented — national key collating (Phase 4a residue; ISO §14.9.40 GR5b)");
                 keys.Add(new BoundTableSortKey(desc, path, key));
             }
@@ -232,11 +165,11 @@ public sealed partial class StatementBinder
     /// (GR3 — required; transitive ASC/DESC, statement-order significance), COLLATING (GR5 ≡ SORT GR5), the
     /// REQUIRED ≥2-file USING (the general format), and GIVING / OUTPUT PROCEDURE (GR8/GR12). INPUT PROCEDURE
     /// does not exist for MERGE (general format — the grammar has no such phrase).</summary>
-    private BoundStatement BindMerge(Core.MergeStatementContext m)
+    public BoundStatement BindMerge(Core.MergeStatementContext m)
     {
         var operand = m.mergeFileName().dataReference();
         string name = operand.cobolWord()?.GetText() ?? operand.GetText();
-        if (!data.FilesByName.TryGetValue(name, out var file) || !file.IsSortMerge)
+        if (!ctx.Data.FilesByName.TryGetValue(name, out var file) || !file.IsSortMerge)
             return new BoundUnsupported($"MERGE file '{name}' is not described in a sort-merge description entry "
                 + "(ISO §14.9.24.3 — file-name-1 shall be described in an SD)");
         if (SortRecordOf(file) is not { } record)
@@ -282,11 +215,11 @@ public sealed partial class StatementBinder
     /// <summary>Bind RELEASE (ISO §14.9.32): record-name-1 shall name a logical record of an SD entry and may be
     /// qualified (SR1); FROM ≡ MOVE then RELEASE (GR4). The EC-FLOW-RELEASE legality check (GR1 — only inside the
     /// active SORT's input procedure) is a runtime seam in CobolSort (EC checking OFF, COBOLNET_DESIGN §18.16).</summary>
-    private BoundStatement BindRelease(Core.ReleaseStatementContext rel)
+    public BoundStatement BindRelease(Core.ReleaseStatementContext rel)
     {
-        if (rel.dataReference() is not { } rn || refs.Resolve(rn) is not { } record)
+        if (rel.dataReference() is not { } rn || ctx.Refs.Resolve(rn) is not { } record)
             return new BoundUnsupported($"RELEASE record '{rel.dataReference()?.GetText()}' (unresolvable record-name)");
-        if (SeqIo.FileOfRecord(record) is not { } file || !file.IsSortMerge)
+        if (seqIo.FileOfRecord(record) is not { } file || !file.IsSortMerge)
             return new BoundUnsupported($"RELEASE record '{rn.GetText()}' is not a record of a sort-merge "
                 + "description entry (ISO §14.9.32.3 SR1)");
         BoundOperand? from = null;
@@ -295,11 +228,11 @@ public sealed partial class StatementBinder
             // RELEASE … FROM literal-1: ANSI X3.23-1985 admits only identifier-1 in the FROM phrase; the literal
             // operand is a later-standard extension of the format (present in ISO/IEC 1989:2023 §14.9.32.2;
             // VERSION_CHANGE_REFERENCE ledger instructs gating pending verification against the 2002/2014 texts).
-            if (rf.literal() is not null && data.Edition.DialectLevel < 2002)
-                data.Edition.Error("COBOLNET0871", "RELEASE … FROM literal-1 — ANSI X3.23-1985 allows only an "
+            if (rf.literal() is not null && ctx.Edition.DialectLevel < 2002)
+                ctx.Edition.Error("COBOLNET0871", "RELEASE … FROM literal-1 — ANSI X3.23-1985 allows only an "
                     + "identifier as the FROM operand (ISO/IEC 1989:2023 §14.9.32.2 adds the literal); it requires "
-                    + $"--std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
-            from = SeqIo.WriteSource(rf.dataReference(), rf.literal());
+                    + $"--std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+            from = seqIo.WriteSource(rf.dataReference(), rf.literal());
         }
         // The released length is the NAMED record's own description size (a shorter secondary 01 of a multi-01 SD
         // releases at its own length; §14.9.40 GR7c space-fills a short record into a fixed-length sort file).
@@ -312,22 +245,22 @@ public sealed partial class StatementBinder
     /// MOVE record-area → identifier-1 (GR5); the AT END and NOT AT END phrases may be written in REVERSED order
     /// (SR4 — detected by the phrase's leading NOT). The EC-FLOW-RETURN / EC-SORT-MERGE-RETURN legality checks
     /// (GR1/GR3) are runtime seams in CobolSort (EC checking OFF, COBOLNET_DESIGN §18.16).</summary>
-    private BoundStatement BindReturn(Core.ReturnStatementContext r)
+    public BoundStatement BindReturn(Core.ReturnStatementContext r)
     {
         string name = r.fileName().GetText();
-        if (!data.FilesByName.TryGetValue(name, out var file) || !file.IsSortMerge)
+        if (!ctx.Data.FilesByName.TryGetValue(name, out var file) || !file.IsSortMerge)
             return new BoundUnsupported($"RETURN file '{name}' is not described by a sort-merge description entry "
                 + "(ISO §14.9.34.3 SR1)");
         // GR3 makes the record available in the WHOLE record area — resolve it through the LARGEST record's view
         // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the store (ST111A's
         // 50/75/100 SD). SortRecordOf stays the usability gate (the Tier-C byte-island fence).
         if (SortRecordOf(file) is null || file.AreaRecord is not { } areaRecord
-            || refs.ResolveItem(areaRecord) is not { } area)
+            || ctx.Refs.ResolveItem(areaRecord) is not { } area)
             return new BoundUnsupported($"RETURN '{name}' without a usable SD record area");
         Place? into = null;
         if (r.INTO() is not null)
         {
-            if (r.dataReference() is not { } d || refs.Resolve(d) is not { } ip)
+            if (r.dataReference() is not { } d || ctx.Refs.Resolve(d) is not { } ip)
                 return new BoundUnsupported($"RETURN INTO '{r.dataReference()?.GetText()}' (unresolvable receiver)");
             into = ip;
         }
@@ -335,7 +268,7 @@ public sealed partial class StatementBinder
         if (r.returnAtEndPhrase() is { } ae)
             // §14.9.34.3 SR4 — the phrases may be written in reversed order; Split's positional swap covers
             // BOTH the NOT-only form and the full reversed pair (P7 Step 10b).
-            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => BindBlocks([b]));
+            (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
         return new BoundReturn(file, area, into, atEnd, notAtEnd, SortVaryingOf(file));
     }
 
@@ -364,7 +297,7 @@ public sealed partial class StatementBinder
         foreach (var dref in drefs)
         {
             // Qualification supported (e.g. ST139A's `KEY-1 OF DATA-NAME-1`) via the one reference resolver.
-            if (refs.Resolve(dref) is not { } kp) return $"unresolvable SORT/MERGE key '{dref.GetText()}'";
+            if (ctx.Refs.Resolve(dref) is not { } kp) return $"unresolvable SORT/MERGE key '{dref.GetText()}'";
             DataItem item = kp.Item;
             DataItem root = SortRootOf(item);
             if (!file.Records.Contains(root))
@@ -379,7 +312,7 @@ public sealed partial class StatementBinder
             if (len <= 0) return $"SORT/MERGE key '{dref.GetText()}' has no character image";
             // SR6g: with variable-length records every key must lie within the first min-record-size bytes.
             if (file.Varying is { Min: { } min } && off + len > min)
-                data.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{dref.GetText()}' occupies character positions "
+                ctx.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{dref.GetText()}' occupies character positions "
                     + $"{off + 1}..{off + len} of the record, but '{file.CobolName}' describes variable-length records "
                     + $"with minimum size {min} — all key data items shall be contained within the first {min} bytes "
                     + "(ISO §14.9.40.3 SR6g)");
@@ -404,20 +337,20 @@ public sealed partial class StatementBinder
     /// slice (the FOR forms are not yet in the grammar; edition-gated fragments per the grammar-factoring rule).</summary>
     private (CollatingTable? Table, BoundStatement? Error) SortBindCollating(Core.SortCollatingPhraseContext? c)
     {
-        if (c is null) return (data.Collating, null);   // GR5b — the program collating sequence (null ⇒ native)
+        if (c is null) return (ctx.Data.Collating, null);   // GR5b — the program collating sequence (null ⇒ native)
         var words = c.cobolWord();
         if (words.Length > 1)
         {
             // Alphabet-name-2 orders NATIONAL keys (ISO §14.9.40.3 SR2) — a COBOL-2002+ class.
-            if (data.Edition.DialectLevel < 2002)
-                data.Edition.Error("COBOLNET0872", "COLLATING SEQUENCE alphabet-name-2 (the national collating "
+            if (ctx.Edition.DialectLevel < 2002)
+                ctx.Edition.Error("COBOLNET0872", "COLLATING SEQUENCE alphabet-name-2 (the national collating "
                     + "sequence, ISO §14.9.40.3 SR2) — the national class was introduced by ISO/IEC 1989:2002; it "
-                    + $"requires --std 2002 or later (targeting COBOL-{data.Edition.DialectLevel})");
+                    + $"requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
             return (null, new BoundUnsupported("SORT/MERGE COLLATING SEQUENCE alphabet-name-2 (national keys — "
                 + "the national class is a later slice)"));
         }
         string alphabet = words[0].GetText();
-        if (!data.Alphabets.TryGetValue(alphabet, out var table))
+        if (!ctx.Data.Alphabets.TryGetValue(alphabet, out var table))
             return (null, new BoundUnsupported($"SORT/MERGE COLLATING SEQUENCE '{alphabet}' is not an alphabet-name "
                 + "declared in SPECIAL-NAMES (ISO §14.9.40.3 SR1 / §12.3.7)"));
         return (table, null);   // GR5a — the statement's own sequence (a native alphabet stored null ⇒ native)
@@ -431,7 +364,7 @@ public sealed partial class StatementBinder
         foreach (var dref in list?.dataReference() ?? [])
         {
             string name = dref.cobolWord()?.GetText() ?? dref.GetText();
-            if (!data.FilesByName.TryGetValue(name, out var f))
+            if (!ctx.Data.FilesByName.TryGetValue(name, out var f))
                 return $"SORT/MERGE USING/GIVING file '{name}' is not declared";
             if (f.IsSortMerge)
                 return $"SORT/MERGE USING/GIVING file '{name}' shall not be a sort-merge file (ISO §14.9.40.3 SR8)";
@@ -448,11 +381,11 @@ public sealed partial class StatementBinder
     /// procedure's end). Resolved by the ONE procedure resolver, so section/qualified semantics match PERFORM.</summary>
     private (int Start, int End)? SortRange(Core.ProcedureNameContext[] names)
     {
-        if (names.Length == 0 || ResolveProcedure(names[0]) is not { } first) return null;
+        if (names.Length == 0 || host.ResolveProcedure(names[0]) is not { } first) return null;
         (int start, int end) = first;
         if (names.Length >= 2)
         {
-            if (ResolveProcedure(names[1]) is not { } thru) return null;
+            if (host.ResolveProcedure(names[1]) is not { } thru) return null;
             end = thru.End;
         }
         return (start, end);
@@ -464,7 +397,7 @@ public sealed partial class StatementBinder
     private SortVaryingInfo? SortVaryingOf(FileModel file)
     {
         if (file.Varying is null) return null;
-        Place? dep = file.VaryingDependingItem is { } d ? refs.ResolveItem(d) : null;
+        Place? dep = file.VaryingDependingItem is { } d ? ctx.Refs.ResolveItem(d) : null;
         return new SortVaryingInfo(dep, file.VaryMin, file.VaryMax);
     }
 

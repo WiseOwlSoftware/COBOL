@@ -52,6 +52,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     internal SequentialIoBinder SeqIo => _seqIoBinder ??= new SequentialIoBinder(Ctx, this, KeyedIo, FileLock);
     private AcceptDisplayBinder? _acceptBinder;
     private AcceptDisplayBinder Accept => _acceptBinder ??= new AcceptDisplayBinder(Ctx, this);
+    private SortBinder? _sortBinder;
+    private SortBinder Sort => _sortBinder ??= new SortBinder(Ctx, this, SeqIo);
     private CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
     private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
@@ -152,7 +154,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// Resolution order: explicit <c>OF/IN section</c> qualifier → the named section's own map; unqualified → a
     /// paragraph of the CURRENT section (implicit qualification of duplicated names), then the global first-defined
     /// paragraph, then a section name. Null when unknown (the caller fails loud).</summary>
-    private (int Start, int End)? ResolveProcedure(Core.ProcedureNameContext ctx)
+    internal (int Start, int End)? ResolveProcedure(Core.ProcedureNameContext ctx)
     {
         string head = ctx.GetChild(0).GetText();
         string? qualifier = ctx.ChildCount >= 3 ? ctx.GetChild(2).GetText() : null;
@@ -252,10 +254,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         // the version-conformance pass, VCR Table 7 row 7.16): comment-equivalent when only COBOL is supported — the
         // conforming '85 posture; accepted-inert as a no-op.
         _ when s.enterStatement() is not null => new BoundNop(),
-        _ when s.sortStatement() is { } srt => BindSort(srt),
-        _ when s.mergeStatement() is { } mrg => BindMerge(mrg),
-        _ when s.releaseStatement() is { } rls => BindRelease(rls),
-        _ when s.returnStatement() is { } ret => BindReturn(ret),
+        _ when s.sortStatement() is { } srt => Sort.BindSort(srt),
+        _ when s.mergeStatement() is { } mrg => Sort.BindMerge(mrg),
+        _ when s.releaseStatement() is { } rls => Sort.BindRelease(rls),
+        _ when s.returnStatement() is { } ret => Sort.BindReturn(ret),
         _ when s.initiateStatement() is { } rwi => Rw.BindInitiate(rwi),     // Report Writer (ISO §14.9.21)
         _ when s.generateStatement() is { } rwg => Rw.BindGenerate(rwg),     // Report Writer (ISO §14.9.16)
         _ when s.terminateStatement() is { } rwt => Rw.BindTerminate(rwt),   // Report Writer (ISO §14.9.46)
