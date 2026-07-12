@@ -494,6 +494,35 @@ internal static class RuntimeApi
     public static string StrRepeat(string s, string n) =>
         $"{nameof(CobolString)}.{nameof(CobolString.Repeat)}({s}, {n})";
 
+    // ── Intrinsic functions (CobolIntrinsics / CobolDate / EcFunctions / CobolModule; ISO §15 — P7 Step 12) ──
+
+    /// <summary>A <c>CobolIntrinsics</c> call. <paramref name="method"/> is normally the catalog row's
+    /// <c>RuntimeMethod</c> name — <c>IntrinsicCatalog</c> is the single name source, exercised end-to-end by
+    /// the intrinsic conformance suite; the TYPE anchor breaks here on a rename.</summary>
+    public static string Intrinsic(string method, string args) =>
+        $"{nameof(CobolIntrinsics)}.{method}({args})";
+
+    /// <summary>A <c>CobolDate</c> call (the §15 date/time family — same catalog-name discipline).</summary>
+    public static string DateFn(string method, string args) =>
+        $"{nameof(CobolDate)}.{method}({args})";
+
+    /// <summary>A last-exception interrogation read (§15.28–15.33) — <c>EcFunctions.{method}(args)</c>.</summary>
+    public static string EcFn(string method, string args = "") =>
+        $"{nameof(Runtime.Exceptions.EcFunctions)}.{method}({args})";
+
+    /// <summary>FUNCTION MODULE-NAME's runtime read (§15.65) — <c>CobolModule.Name(kind)</c>.</summary>
+    public static string ModuleNameFn(int kind) =>
+        $"{nameof(CobolModule)}.{nameof(CobolModule.Name)}({kind})";
+
+    /// <summary>The COMPILE-TIME WHEN-COMPILED stamp format (a typed passthrough like <see cref="MaskScale"/>):
+    /// the §15.99.3 r2 compilation timestamp is baked as a constant with the SAME runtime formatter the
+    /// generated CURRENT-DATE call uses.</summary>
+    public static string DateFormat21(DateTimeOffset t) => CobolDate.Format21(t);
+
+    /// <summary>The COMPILE-TIME fractional-second count of a literal time format (§15.79 — the result scale
+    /// is format-derived at compile time), through the ONE runtime format analyzer.</summary>
+    public static int DateFormatFractionDigits(string format) => CobolDate.FormatFractionDigits(format);
+
     /// <summary>The COMPILE-TIME mask-scale computation (a typed passthrough, not a fragment): the emitters
     /// compute a numeric-edited receiver's fraction scale from its edit mask at compile time with the SAME
     /// runtime routine the generated code uses — one definition, anchored here.</summary>

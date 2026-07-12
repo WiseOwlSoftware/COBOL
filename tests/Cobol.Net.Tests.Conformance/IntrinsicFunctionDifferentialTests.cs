@@ -754,4 +754,98 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.False(ok, "a non-literal format violates §15.39.3 r1");
         Assert.Contains("COBOLNET1517", detail);
     }
+
+    // ── P7 Step 12: FUNCTION arguments as real arithmetic expressions (§8.4.3.2 SR8) ────────────────────────
+
+    [Theory]
+    [InlineData("COMPUTE R = FUNCTION MAX(A / B, C).")]                     // division in an argument — the Step-12 probe
+    [InlineData("COMPUTE R = FUNCTION MAX(A * B, (C + 1) / 2, 3 + 4).")]    // the IF119A compound shape
+    [InlineData("COMPUTE R = FUNCTION MIN(A * B, (3 + 1) / 2, 3 + 4).")]    // the IF123A paren-arg-after-separator shape
+    [InlineData("COMPUTE R = FUNCTION SQRT(FUNCTION MAX(A / B, 4)).")]      // nested FUNCTION with a compound inner arg
+    public void CompoundArgs_MatchLegacy(string stmt) =>
+        AssertSameAsLegacy(Program(
+            "01 A PIC 9(3) VALUE 12.\n01 B PIC 9(3) VALUE 4.\n01 C PIC 9(3) VALUE 5.\n01 R PIC S9(5)V9(4).",
+            $"    {stmt}\n    DISPLAY R."));
+
+    // SPEC-PINNED: the space-vs-adjacent sign discrimination. §8.7.1 requires an arithmetic operator to be
+    // preceded AND followed by a space; §8.3.3.3.2 r2 makes a literal's sign its leftmost CHARACTER — so
+    // `MAX(A -4)` is TWO arguments (A and the literal −4) while `MAX(A - 4)` is ONE subtraction.
+    [Theory]
+    [InlineData("COMPUTE R = FUNCTION MAX(A -4).", "010")]      // two args: MAX(10, −4) = 10
+    [InlineData("COMPUTE R = FUNCTION MAX(A - 4).", "006")]     // one arg: MAX(10 − 4) = 6
+    [InlineData("COMPUTE R = FUNCTION MAX(-4 7).", "007")]      // space-separated signed literals: two args
+    [InlineData("COMPUTE R = FUNCTION MAX(ZERO, 5).", "005")]   // figurative ZERO is a numeric operand (§8.8.1.1)
+    public void SignAdjacency_SplitsArguments(string stmt, string expected) =>
+        AssertSpec(Program("01 A PIC 9(3) VALUE 10.\n01 R PIC 9(3).", $"    {stmt}\n    DISPLAY R."),
+            expected);
+
+    [Fact]
+    public void Exponentiation_InArgument_IsLeftAssociative() =>
+        // §8.8.1.2 r3: consecutive operations of the SAME hierarchical level execute LEFT TO RIGHT — including
+        // ** (the deleted hand parser folded ** right-associatively, a latent divergence; the ONE BindExpr
+        // channel folds left): 2 ** 3 ** 2 = (2³)² = 64, not 2⁹ = 512.
+        AssertSpec(Program("01 R PIC 9(3).", "    COMPUTE R = FUNCTION MAX(2 ** 3 ** 2, 1).\n    DISPLAY R."),
+            "064");
+
+    [Fact]
+    public void StringChannel_CompoundNumericArg_Renders() =>
+        // The former static string channel was division-incapable (hazard H3): CHAR's argument now renders
+        // through the ONE expression renderer under the default receiver — ORD∘CHAR round-trips the ordinal
+        // (§15.15.4/§15.70.4) without charset assumptions.
+        AssertSpec(Program("01 R PIC 9(3).",
+            "    COMPUTE R = FUNCTION ORD(FUNCTION CHAR(66 / 2 + 1)).\n    DISPLAY R."), "034");
+
+    [Fact]
+    public void StringChannel_NumericEditedArg_DeEdits() =>
+        // A numeric-edited argument inside the string channel DE-EDITS to its value (§14.9.25.4 GR5) — the
+        // former context-free channel stayed loud on numeric-edited operands.
+        AssertSpec(Program("01 WS-ED PIC Z9 VALUE 34.\n01 R PIC 9(3).",
+            "    COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED)).\n    DISPLAY R."), "034");
+
+    [Fact]
+    public void RefModArgument_Renders() =>
+        // A reference-modified argument is an alphanumeric operand (§8.4.2.4) — live through the ONE
+        // dataReference resolution (the hand parser rejected ref-mod arguments loud).
+        AssertSpec(Program("01 WS-IN PIC X(8) VALUE \"abcdEFGH\".\n01 T PIC X(8).",
+            "    MOVE FUNCTION UPPER-CASE(WS-IN(1:4)) TO T.\n    DISPLAY \"[\" T \"]\"."),
+            "[ABCD    ]");
+
+    [Fact]
+    public void EmptyParens_NoArgFunction_2014() =>
+        // FUNCTION PI () — the §8.4.3.2 SR6 NOTE's empty-argument-list shape.
+        AssertSpec(Program("01 R PIC 9.9(5).", "    COMPUTE R = FUNCTION PI ().\n    DISPLAY R."),
+            "3.14159", 2014);
+
+    [Fact]
+    public void KeywordOmitted_ExpressionArgs_2002() =>
+        // The §8.4.3.2 SR2 keyword-omitted form with COMPOUND arguments: the captured argument text re-parses
+        // through the ONE functionArgList grammar (the D2 fragment re-parse), so expressions bind identically
+        // to the FUNCTION-keyword form.
+        AssertSpec("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. IFKWOM2.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                FUNCTION ALL INTRINSIC.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 A PIC 9(3) VALUE 10.
+            01 R PIC 9(3).
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                COMPUTE R = MAX(A + 1, A - 4, 7).
+                DISPLAY R.
+                STOP RUN.
+            """, "011", 2002);
+
+    [Fact]
+    public void OmittedArgument_ToIntrinsic_1544()
+    {
+        // §8.4.3.2 SR7 — OMITTED shall not be specified for an intrinsic function.
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 R PIC 9(3).", "    COMPUTE R = FUNCTION MAX(OMITTED, 4).\n    DISPLAY R."));
+        Assert.False(ok, "OMITTED violates §8.4.3.2 SR7 for an intrinsic");
+        Assert.Contains("COBOLNET1544", detail);
+    }
 }

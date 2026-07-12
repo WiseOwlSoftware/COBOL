@@ -57,7 +57,7 @@ internal sealed class UnitEmitters
         Ec = new EcEmitter(Ctx, ecState, dispatchState);
         Arith = new ArithmeticEmitter(Ctx, Num, ecState, Ec);
         AlterSwitch = new AlterSwitchEmitter(Ctx);
-        AcceptDisplay = new AcceptDisplayEmitter(Ctx);
+        AcceptDisplay = new AcceptDisplayEmitter(Ctx, Num);
         Evaluate = new EvaluateEmitter(Ctx, Cond);
         Initialize = new InitializeEmitter(Ctx, Move);
         Corresponding = new CorrespondingEmitter(Ctx, Num, Move, Arith);
@@ -67,7 +67,7 @@ internal sealed class UnitEmitters
         Set = new SetEmitter(Ctx, Num, Arith, Ptr);
         KeyedIo = new KeyedIoEmitter(Ctx, Num, Refs, Arith, Move);
         SeqIo = new SequentialIoEmitter(Ctx, Num, Refs, dispatchState, ecState, callState, KeyedIo, Arith, Ec, Move);
-        Sort = new SortEmitter(Ctx, dispatchState, SeqIo, Move, Arith);
+        Sort = new SortEmitter(Ctx, Num, dispatchState, SeqIo, Move, Arith);
         ReportWriter = new ReportWriterEmitter(Ctx, Num, Refs, Move);
         ControlFlow = new ControlFlowEmitter(Ctx, Num, Cond, dispatchState, Set);
         Call = new CallEmitter(Ctx, Num, ecState, callState, Ec, Move);

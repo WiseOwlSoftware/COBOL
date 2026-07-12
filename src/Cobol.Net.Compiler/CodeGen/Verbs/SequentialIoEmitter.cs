@@ -220,7 +220,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (wr.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         if (wr.From is { } from) move.Emit(new BoundMove(from, [wr.Record]));
         string name = FileKeyExpr(wr.File);
-        string image = OperandText.AsString(new BoundFieldOperand(wr.Record));
+        string image = OperandText.AsString(new BoundFieldOperand(wr.Record), num);
         if (wr.Advancing is { } adv)
         {
             string lines = adv.Page ? "-1" : LinesExpr(adv.Lines!);
@@ -311,7 +311,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         var w = ctx.Writer;
         if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         if (rw.From is { } from) move.Emit(new BoundMove(from, [rw.Record]));
-        string image = OperandText.AsString(new BoundFieldOperand(rw.Record));
+        string image = OperandText.AsString(new BoundFieldOperand(rw.Record), num);
         w.Line($"{RuntimeApi.FileRewrite(FileKeyExpr(rw.File), image, VaryingLengthArg(rw.File))};");
         EmitStoreFileStatus(rw.File);
         EmitUseHook(rw.File);

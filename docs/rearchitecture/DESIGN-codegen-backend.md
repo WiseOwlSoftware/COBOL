@@ -4,12 +4,15 @@
 future Cecil/CIL backend; killing the binder↔emitter per-verb duplication; renderer decomposition; the `CodeWriter`;
 how `CSharpEmitter` stops being a god class.
 
-**Status:** DESIGN (rearchitecture target) — PARTIALLY REALIZED. Author: codegen-backend review agent. Date: 2026-07-07.
-IMPLEMENTED in the tree: the `ICodeGenBackend`/`RoslynBackend` seam, the source-generated exhaustive bound-tree
-visitor, the immutable `EmitContext` + `ReceiverContext` parameter, the typed `RuntimeApi` façade, cached framework
-references, and the `AssemblyPackager` split; the emitter god class is dissolved (`CSharpEmitter` is now a thin
-bind-host facade). OUTSTANDING: the backend-neutral **structural `Place`** (§2.3 — `Place` still returns C# strings)
-and the future **`CilBackend`**.
+**Status:** DESIGN (rearchitecture target) — REALIZED through PHASE-07 (Steps 1–12). IMPLEMENTED in the tree: the
+`ICodeGenBackend`/`RoslynBackend` seam, the source-generated exhaustive bound-tree visitor, the immutable
+`EmitContext` + `ReceiverContext` parameter (save/restore re-entrant public render entries), the typed `RuntimeApi`
+façade, cached framework references, the `AssemblyPackager` split, the dissolved emitter god class (`CSharpEmitter`
+is a thin bind-host facade until P9), the backend-neutral **structural `Place`** (§2.3 — rendered by
+`CodeGen/Roslyn/PlaceRenderer`; `PlaceNeutralityTests` = the §6 R5 net), and the SINGLE-channel `IntrinsicRenderer`
+(§2.5 — the static evaluator is deleted; FUNCTION args parse as real expressions and render through the ONE
+expression renderer). OUTSTANDING: the `Emit/`→`Roslyn/` renderer consolidation + the `NumericRenderer`→
+`ExpressionRenderer` rename (ride P9), and the future **`CilBackend`**.
 
 **Upholds the four owner-locked invariants** (COBOLNET_DESIGN §1.2): typed-native data only; native numerics;
 single PC dispatcher; idiomatic/readable C# where the construct allows. **Upholds the dual-backend goal**
@@ -52,12 +55,13 @@ single PC dispatcher; idiomatic/readable C# where the construct allows. **Uphold
 materialized (`CodeGen/ICodeGenBackend.cs`); `RoslynBackend : ICodeGenBackend` is the default backend and the only
 owner of C# syntax knowledge, selected via `BackendFactory.For`. The compile path binds the whole compilation group
 to an immutable `BoundCompilation` (`BinderDriver.Bind`) and then renders it (`RoslynBackend.Emit` → `ProgramEmitter`).
-The one thing still standing between this and a fully backend-neutral boundary is the string-carrying `Place` (§1.2):
-until it is structural, a second backend could not yet consume the bound tree.
+The string-carrying `Place` (§1.2) that stood between this and a fully backend-neutral boundary is RESOLVED —
+`Place` is structural (P7 Step 11) and the last parallel evaluator is gone (P7 Step 12).
 
-### 1.2 Bound tree and `Place` carry C# text (the blocking violation)
+### 1.2 Bound tree and `Place` carried C# text (RESOLVED at P7 Step 11)
 The G4 invariant (SSOT §3.3): *"bound nodes carry no pre-rendered C#-specific fragments; the CIL backend lowers the
-same structure."* Reality:
+same structure."* The pre-Step-11 reality this section recorded (now historical — every item below is fixed;
+`PlaceNeutralityTests` enforces the invariant):
 - `Place.Read()/Write(rhs)` return **C# strings** (`Place.cs:22-25`). Every subtype hard-codes runtime call text:
   `MemberPlace` → `"{Path} = {rhs};"`; `RedefViewPlace` → `"CobolString.SpliceInto(...)"` (`Place.cs:94-101`);
   `NumericImagePlace` → `"CobolNum.FormatDisplay(...)"` (`Place.cs:160-164`); `RefModPlace`, `RenamesPlace`,
@@ -98,10 +102,10 @@ H1 staleness class is closed by construction rather than by discipline.
 - **Untyped runtime coupling:** ~60 runtime members (`CobolNum.*`, `CobolString.*`, `CobolDec.*`, `CobolFloat.*`,
   `CobolBool.*`, `EcFunctions.*`, `ManagedPointer.*`, …) named **by string**. A runtime rename is invisible until the
   *generated* C# fails to Roslyn-compile at run time.
-- **Parallel numeric evaluators (×3):** `IntrinsicRenderer`'s static string channel (`NumStatic/StaticAdditive/
-  StaticMul`, `IntrinsicRenderer.cs:353-380`) re-implements a division/float-*incapable* subset of
-  `NumericRenderer` because it lacks an `EmissionContext`; plus the hand-rolled intrinsic-arg parser in
-  `Intrinsics.cs`.
+- **Parallel numeric evaluators (×3) — DELETED at P7 Step 12:** `IntrinsicRenderer`'s static string channel
+  (`NumStatic/StaticAdditive/StaticMul`) re-implemented a division/float-*incapable* subset of `NumericRenderer`;
+  the hand-rolled intrinsic-arg parser in the binder was its twin. Both are gone: FUNCTION arguments parse as real
+  `arithmeticExpression`s and render through the ONE renderer under `ReceiverContext.None`.
 - **Figurative-fill quadruplicated** with divergent return types (`EmitText.FigurativeFill`,
   `FieldEmitter.FillCharFor`, `ConditionRenderer.FigurativeFillChar`, `EmissionContext.FigFill`) — a real HIGH/LOW-VALUE
   divergence risk.
@@ -301,9 +305,10 @@ the recursion. The mutually-recursive `IntrinsicRenderer` reads the live receive
 `EmitArith` threads the size-error flag into its store closure as `Action<bool>` — `InSizeError` has TWO triggers,
 the phrase and `>>TURN EC-SIZE` checking — and receiver-less sites pass `ReceiverContext.None`.)*
 
-This closes the H1 staleness class by construction and makes `IntrinsicRenderer`'s "static channel" unnecessary: give
-the string channel a `ReceiverContext` (default) so it calls the **one** `ExpressionRenderer` — delete
-`NumStaticExpr/StaticAdditive/StaticMul`.
+This closes the H1 staleness class by construction and made `IntrinsicRenderer`'s "static channel" unnecessary —
+DONE at P7 Step 12: the string channel is INSTANCE, renders numeric arguments through the **one** expression
+renderer under `ReceiverContext.None` (the public render entries save/restore, so the mid-render default-receiver
+call is re-entrant), and `NumStatic/NumStaticExpr/StaticAdditive/StaticMul` are deleted.
 
 **Collaborator structure** (real classes, not partials of one god class), matching SSOT §2:
 
@@ -384,7 +389,7 @@ single-file ABI contract — the best of both without SyntaxFactory's verbosity.
 | rename/move | `Emit/NumericRenderer` → `ExpressionRenderer`; `Emit/*` → `CodeGen/Roslyn/*` | Names match role; folder matches layer |
 | move/split | `Emit/FieldEmitter.cs` → `CodeGen/DataDivision/{RecordStructEmitter,GroupImageCodec,GroupValueSlicer,ValueInitializer}` | Miscategorized 484-LOC DATA emitter; 4 concerns |
 | create | source generator `CodeGen/BoundVisitorGenerator` + `[BoundNode]` on the sealed roots | Exhaustive dispatch; missing arm = compile error |
-| delete | `IntrinsicRenderer` static channel (`NumStatic/NumStaticExpr/StaticAdditive/StaticMul`) | Duplicate evaluator; use the one `ExpressionRenderer` via `ReceiverContext` |
+| delete ✅ P7.12 | `IntrinsicRenderer` static channel (`NumStatic/NumStaticExpr/StaticAdditive/StaticMul`) | Duplicate evaluator; routes through the one expression renderer via `ReceiverContext.None` |
 | merge | `EmitText`/`CsLiteral`/`DecodeCobolString`/`AllLiteralText` → one `CsLiteralCodec` recognizing both delimiters | Fix apostrophe-VALUE miscompile; singular pattern |
 | split | `RoslynBackend` compile vs packaging → `AssemblyPackager` (runtimeconfig + runtime-dll deploy) | Pure compile; packaging side-effects isolated |
 | refactor | `RoslynBackend.ReferenceAssemblies()` → `static readonly Lazy<ImmutableArray<MetadataReference>>` | Cache framework refs (efficiency HIGH) |
@@ -424,8 +429,9 @@ smallest-blast-radius first; each step is behavior-neutral and independently com
   cyclic edges (verbs↔Statements↔Ec, KeyedIo↔SeqIo). Emission reads ZERO bind-host session state — `OoEmitter` takes
   `comp.OoClasses`/`comp.InterfaceData` off the immutable compilation and reads the per-unit set through
   `ProgramEmitter.Current`. `CSharpEmitter` survives as the thin bind-host facade until P9 — a deviation from this
-  doc's "CSharpEmitter is gone" end-state. The §3 guard's whitelist is the four pre-Step-11/12
-  renderers (`IntrinsicRenderer`, `NumericRenderer`, `ConditionRenderer`, `OperandText`) that route at Steps 11/12
+  doc's "CSharpEmitter is gone" end-state. The §3 guard's whitelist is the three remaining
+  expression/condition renderers (`NumericRenderer`, `ConditionRenderer`, `OperandText`), which route at the P9
+  `Roslyn/` consolidation; `IntrinsicRenderer` routed at Step 12 and left the whitelist
   (the `CobolRounding.`/`CobolPassMode.` typed-enum accesses are excluded — their emitted forms route
   exclusively via the `RoundingText`/`PassModeText` anchors).)*
 - **M6 — extract `BindPipeline` (cross-dimension).** Move `CallEmitRunUnit`'s bind orchestration into the binder's

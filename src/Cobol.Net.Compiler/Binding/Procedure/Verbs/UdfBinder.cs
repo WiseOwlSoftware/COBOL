@@ -31,7 +31,7 @@ using Core = CobolParserCore;
 /// <c>CallEmitCall</c> → <c>ProgramRegistry.CallProgram</c>; FUNCTION-ID units already emit as callable
 /// program classes with the RETURNING carrier.
 /// P7 Step 10k: a real collaborator over <see cref="BinderContext"/>, landed TOGETHER with
-/// <see cref="IntrinsicBinder"/> (the argument parse reaches back into its <c>ParseArgSegment</c>). The
+/// <see cref="IntrinsicBinder"/> (the argument bind reaches back into its <c>BindArgOperand</c>). The
 /// host.UserFunctions/host.UdfSelfName injection surface STAYS on the StatementBinder host (BinderDriver's
 /// object-initializer contract — re-homed at 10t); the statement-scoped <c>_udfPendingCalls</c> mark/drain
 /// suffix protocol is exposed through <see cref="PendingCount"/> for the host's BindStatement /
@@ -50,7 +50,7 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// REPOSITORY-declared name, which per §12.3.8.2 GR12 refers to the user function and never a same-named
     /// intrinsic): resolve the signature, bind the arguments in the §8.4.3.2.4 GR5 manner, synthesize the
     /// result temporary, register the hoisted activation, and return the temp-reading expression.</summary>
-    internal BoundExpr UdfBindCall(string name, List<IToken> argTokens)
+    internal BoundExpr UdfBindCall(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         // INTRODUCTION gate: user-defined functions are COBOL-2002+ (§9.4 / §12.3.8; 0900 below 2002). It fires on
         // RECOGNITION — a below-2002 UDF reference is an edition violation independent of whether the function is
@@ -90,15 +90,23 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             return new BoundExprError($"FUNCTION {name} RETURNING category");
         }
 
-        // Arguments: split the flat token stream on depth-0 separators (the ONE splitter intrinsics and
-        // subscripts share) and parse each segment. NO table(ALL) expansion here — §9.4 (:12529):
-        // "arguments and returned values for user-defined functions may not use the word ALL as a
-        // subscript" (an ALL token reaches ParseArgSegment and fails as a loud named operand).
+        // Arguments: one typed operand per argument parse tree, through the SAME BindArgOperand the intrinsic
+        // path uses (the ONE argument pipeline). NO table(ALL) expansion here — §9.4 (:12529): "arguments and
+        // returned values for user-defined functions may not use the word ALL as a subscript" (an ALL subscript
+        // fails resolution and stays a loud named operand). OMITTED arguments (§14.8.2 OPTIONAL formals) are
+        // not modeled for functions — a staged loud stop, never a silent skip (§1.4).
         var operands = new List<BoundOperand>();
-        foreach (var segment in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        foreach (var a in argCtxs)
         {
-            if (segment.All(t => t.Type == Core.SUB_WS)) continue;
-            operands.Add(host.Intrinsic.ParseArgSegment(segment));
+            if (a.OMITTED() is not null)
+            {
+                ctx.Edition.Error("COBOLNET1506",
+                    $"FUNCTION {name.ToUpperInvariant()}: an OMITTED argument requires an OPTIONAL formal "
+                    + "parameter (ISO §14.8.2) — OPTIONAL/OMITTED formals are not modeled for user-defined "
+                    + "function activation (M2-UDF follow-up)");
+                return new BoundExprError($"FUNCTION {name} OMITTED argument");
+            }
+            operands.Add(host.Intrinsic.BindArgOperand(a));
         }
 
         // Positional correspondence (§14.8.2): one argument per USING formal. OPTIONAL/OMITTED formals are

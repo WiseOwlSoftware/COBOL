@@ -42,8 +42,8 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     public string Visit(BoundClassCondition n) => RenderClass(n);
     // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
-        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand)}, {EmitText.CsLiteral(n.Members)})"
-        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand)}, {EmitText.CsLiteral(n.Members)})";
+        ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num)}, {EmitText.CsLiteral(n.Members)})"
+        : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num)}, {EmitText.CsLiteral(n.Members)})";
     public string Visit(BoundConditionError n) => EmitText.LoudValue("bool", n.Feature);
 
     private string RenderRelational(BoundRelational r)
@@ -90,17 +90,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // shorter operand right-extended with boolean ZEROS — never the alphanumeric program collating
         // sequence (equality-only + class purity are bind-enforced, 0844).
         if (StringCategoryOf(r.Left) is PicCategory.Boolean || StringCategoryOf(r.Right) is PicCategory.Boolean)
-            return $"CobolString.Compare({OperandText.AsString(r.Left)}, {OperandText.AsString(r.Right)}, pad: '0') {r.Op} 0";
+            return $"CobolString.Compare({OperandText.AsString(r.Left, num)}, {OperandText.AsString(r.Right, num)}, pad: '0') {r.Op} 0";
         // NATIONAL relations (§8.8.4.2.9/.10): full ordering under the NATIONAL collating sequence — D-N3
         // pins the default to the UTF-16 ordinal, and the ALPHANUMERIC program collating sequence never
         // applies (so ctx.CollateArg — whose 256-entry weight table would alias national chars through
         // `& 0xFF` — is deliberately absent). A mixed alphanumeric operand converts to national by the
         // D-N4 Latin-1 identity (§8.8.4.2.6), which is exactly the ordinal compare.
         if (StringCategoryOf(r.Left) is PicCategory.National || StringCategoryOf(r.Right) is PicCategory.National)
-            return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}) {r.Op} 0";
+            return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}) {r.Op} 0";
         if (OperandText.IsString(r.Left) || OperandText.IsString(r.Right))
             // A signed numeric compared against an alphanumeric operand drops its sign (ISO §8.8.4.2.5 → §14.9.25.4 GR6a).
-            return $"CobolString.Compare({OperandText.AsString(r.Left, deSign: true)}, {OperandText.AsString(r.Right, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
+            return $"CobolString.Compare({OperandText.AsString(r.Left, num, deSign: true)}, {OperandText.AsString(r.Right, num, deSign: true)}{ctx.CollateArg}) {r.Op} 0";
         NumX l = num.AsNum(r.Left, ReceiverContext.None), rr = num.AsNum(r.Right, ReceiverContext.None);
         // A float operand (D16): compare the algebraic values natively in IEEE double (§8.8.4.2.4). IEEE
         // NaN-unordered (every relation but != is false) and +0.0 == -0.0 fall out of C# — spec-conformant, no epsilon.
@@ -192,7 +192,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // characters (§8.3.3.6 GR6/7); a national/boolean anchor uses the D-N3 pin (FigFill's category arm).
         BoundFigurative f => $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating, anchorCat)}, {width})",
         BoundAllLiteral a => EmitText.CsLiteral(EmitText.RepeatToWidth(a.Literal, width)),   // ALL "literal" → repeated to width (GR2)
-        _ => OperandText.AsString(op),
+        _ => OperandText.AsString(op, num),
     };
 
     private NumX FigOrNum(BoundOperand op) => op switch
@@ -219,7 +219,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         var fld = c.Operand as BoundFieldOperand;
         bool numericCategory = fld?.Place.Item.Pic?.Category is PicCategory.Numeric;
         bool numericField = numericCategory && fld!.Place is not RedefViewPlace && !fld.Place.Item.StoreAsImage;
-        string arg = OperandText.AsString(c.Operand);
+        string arg = OperandText.AsString(c.Operand, num);
         string numericTest = numericCategory && fld!.Place.Item.Pic is { Signed: true } sp
             ? $"CobolClass.IsNumericZoned({arg}, {(sp.SignKind.Contains("Separate") ? "2" : "1")}, leading: {(sp.SignKind.Contains("Leading") ? "true" : "false")})"
             : $"CobolClass.IsNumeric({arg})";
@@ -246,7 +246,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         // A NUMERIC conditional variable goes through the ONE numeric read path (NumericRenderer.FieldNum) — a
         // whole-group-aliased / Tier-B-view leaf is string-STORED (StoreAsImage) and must decode via ParseDisplay,
         // never compare its raw image to an unscaled long (diagnosis B3).
-        string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent)) : num.FieldNum(c.Parent).Expr;
+        string read = isString ? OperandText.AsString(new BoundFieldOperand(c.Parent), num) : num.FieldNum(c.Parent).Expr;
         var tests = c.Condition.Values.Select(v => RenderMembershipTest(read, c.Parent.Item, isString, v.Low, v.High));
         return "(" + string.Join(" || ", tests) + ")";
     }

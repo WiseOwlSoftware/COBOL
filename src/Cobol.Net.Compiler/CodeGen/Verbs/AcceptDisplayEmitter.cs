@@ -12,13 +12,13 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// <summary>The ACCEPT / DISPLAY verb emitter (P7 Step 9c — a real collaborator over the per-unit
 /// <see cref="EmitContext"/>; the DISPLAY half moved in from the orchestrator partial, making the Step-5
 /// filename honest). Every runtime-member fragment routes through <see cref="RuntimeApi"/>.</summary>
-internal sealed class AcceptDisplayEmitter(EmitContext ctx)
+internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
 {
     /// <summary>DISPLAY (ISO §14.9.8): shows the sign-aware image (deSign defaults false — the operational sign is
     /// part of the displayed zoned representation, unlike a move to an alphanumeric receiver).</summary>
     public void EmitDisplay(BoundDisplay d)
     {
-        var parts = d.Operands.Select(o => OperandText.AsString(o)).ToList();
+        var parts = d.Operands.Select(o => OperandText.AsString(o, num)).ToList();
         string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);
         ctx.Writer.Line(d.NoAdvancing ? $"System.Console.Write({image});" : $"System.Console.WriteLine({image});");
     }

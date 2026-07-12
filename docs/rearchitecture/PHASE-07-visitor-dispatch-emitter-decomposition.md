@@ -34,7 +34,7 @@
   `CodeGen/`); bind-vs-emit separation is preserved (`DESIGN-version-conformance-pipeline.md`) — emitters contain **no
   edition gating**, and emit is **unreachable with non-empty diagnostics**; the full battery is green and the
   emitted-C# snapshots are reviewed-neutral.
-- **STATUS: ◐ IN PROGRESS @ Exec Step D — Steps 1–11 COMPLETE; RESUME AT Step 12.** In place: the exhaustive
+- **STATUS: ✅ DONE — Steps 1–12 ALL COMPLETE (PHASE-07 CLOSED).** In place: the exhaustive
   generated bound-tree visitor (Step 6), the `ICodeGenBackend` seam (Step 1), the `AssemblyPackager` split (Step 2),
   the immutable `EmitContext` + `ReceiverContext`-by-parameter (Step 3), the `RuntimeApi` façade + `FigurativeConstants`
   service (Step 4), the ACCEPT-verb renames (Step 5), and `MoveKind` on the bound node (Steps 7–8). **Step 9 dissolved
@@ -49,8 +49,24 @@
   eight subtypes are STRUCTURAL over an `AccessPath` (`Binding/Model/AccessPath.cs`), rendered by `CodeGen.Roslyn.
   PlaceRenderer`; `Place.Read()/Write()` are DELETED and the R5 neutrality test (`PlaceNeutralityTests`) locks G4 (the
   bound tree is backend-neutral). ONE documented deferral: subscript / ref-mod / RedefView-offset INDEX expressions
-  stay transitional STRINGS, folding into the D10 SUBSCRIPT-mode removal (PHASE 15). The remaining work is **Step 12
-  (FUNCTION-arg grammar + delete the `IntrinsicRenderer` static channel)**. The ~19 inline edition gates move VERBATIM
+  stay transitional STRINGS, folding into the D10 SUBSCRIPT-mode removal (PHASE 15). **Step 12 landed the
+  FUNCTION-arg grammar (the grammar route, as preferred)** — `functionCall : FUNCTION functionName (LPAREN
+  functionArgList? RPAREN)?` with each `functionArgument` a REAL parse tree (§8.4.3.2 SR8: phrase word / OMITTED /
+  non-numeric literal / arithmeticExpression), enabled by the lexer's FUNCTION two-token-lookbehind SUBSCRIPT-push
+  suppression + the argument-region-gated `SIGNED_*` twins (§8.7.1 operator spacing / §8.3.3.3.2 sign adjacency:
+  `MAX(A -4)` = two args) + the `FNARG_SEPARATOR` token (§8.3.5 — the argument boundary survives so `MAX(A * B,
+  (C + 1) / 2, …)` never mis-lexes the group as a subscript of B); the hand-rolled recursive-descent arg parser is
+  DELETED OUTRIGHT — the D2 keyword-omitted form re-parses its captured argument text through the SAME
+  `functionArgList` rule (`FunctionArgFragment` + `CobolLexer.PrimeFunctionArgs`), and `UdfBinder` binds through the
+  same `BindArgOperand`; the `IntrinsicRenderer` STATIC channel is DELETED (single instance channel over the ONE
+  `NumericRenderer` under `ReceiverContext.None`; `OperandText.AsString` takes the per-unit renderer; the public
+  render entries are save/restore RE-ENTRANT so the mid-render default-receiver call cannot go stale; the file is
+  fully `RuntimeApi`-routed and OFF the ratchet whitelist). As-landed deviations: the renderer STAYS in
+  `CodeGen/Emit/` (the `Roslyn/` consolidation rides P9 with `ExpressionRenderer`); the §8.9 funnel skips a BARE
+  function-argument word (a §15 phrase-word position is not provable); `**` in arguments now folds LEFT-associative
+  per §8.8.1.2 r3 (the hand parser's right-assoc was a latent spec bug; corpus had zero `**` args); the frozen
+  legacy oracle adapts via `MapFunctionArgTokens` (per-argument CST leaves → SUB-token twins → its proven
+  `BindSubscriptSegment`), proven by the full NIST net. The ~19 inline edition gates moved VERBATIM
   with their verbs — the pass-folding is Exec Step E's scope.
 
 ---
@@ -824,6 +840,15 @@ subtype.
   dotnet src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.dll tests/conformance/func_expr_arg.cob --std 2014 -o /tmp/f.dll --run
   ```
 - **COMMIT:** `P7 step12: FUNCTION args parse as arithmeticExpression; delete IntrinsicRenderer static channel (full legacy guard)`
+- **AS LANDED (2026-07-12):** the grammar route, in full — see the STATUS banner for the complete as-landed
+  design (lexer suppression + `SIGNED_*` twins + `FNARG_SEPARATOR`; the D2 keyword-omitted fragment re-parse
+  through the ONE `functionArgList` rule; the outright deletion of the hand parser incl. the UdfBinder token
+  path; the instance single-channel renderer + `RuntimeApi` routing + re-entrant render entries; the §8.9
+  funnel's bare-argument-word skip; the `MapFunctionArgTokens` legacy shim; the §8.8.1.2 r3 left-associative
+  `**` correction). New nets: the Step-12 section of `IntrinsicFunctionDifferentialTests` (compound/division
+  args, sign-adjacency discrimination, `**` associativity, string-channel division + numeric-edited de-edit,
+  ref-mod args, empty parens, keyword-omitted expression args, OMITTED→COBOLNET1544) and the
+  `tests/conformance/2014/func_expr_arg.cob` probe.
 
 ---
 
@@ -917,10 +942,10 @@ regression.
 
 ## Appendix A — file/line anchors (the phase-START tree, before Steps 1–10)
 
-> ⚠ These anchors describe the pre-decomposition tree this phase began from. Steps 9/10 dissolved both god classes, so
-> the emit dispatch, `MarkStoreAsImage`, `EmissionContext.Target*`, and the `CSharpEmitter`/`StatementBinder` partials
-> named below **no longer exist at these locations** — see the STATUS line for the current layout and `p7-audit.md`
-> for the Step 11–12 site map against the current tree.
+> ⚠ These anchors describe the pre-decomposition tree this phase began from. Steps 9–12 dissolved both god classes
+> and restructured the renderers, so the emit dispatch, `MarkStoreAsImage`, `EmissionContext.Target*`, and the
+> `CSharpEmitter`/`StatementBinder` partials named below **no longer exist at these locations** — the STATUS line
+> describes the as-landed layout (the phase is complete; no separate site map exists).
 
 | Concern | phase-start location |
 |---|---|

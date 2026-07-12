@@ -127,24 +127,23 @@ internal sealed class ExpressionBinder
 
     internal BoundExpression BindFunctionCall(CobolParserCore.FunctionCallContext ctx)
     {
-        // FUNCTION functionName subscriptPart? — the function name comes from the
+        // FUNCTION functionName (LPAREN functionArgList? RPAREN)? — the function name comes from the
         // functionName rule (IDENTIFIER or a reserved-word alternative like SIGN/SUM/RANDOM).
-        // Arguments (if any) are captured as SUBSCRIPT-mode tokens; InterpretSubscriptTokens
-        // splits them on the COBOL comma/space separators and binds each as an arithmetic
-        // expression (ISO §15).
+        // P7 Step 12 reshaped the SHARED grammar: arguments now parse as DEFAULT-mode functionArgument
+        // trees (one per argument — the grammar already did the comma/space separator split the old
+        // SUBSCRIPT-mode capture left to InterpretSubscriptTokens). This frozen oracle keeps its proven
+        // SUB-token segment binder by down-converting each argument subtree's leaf tokens to their
+        // SUBSCRIPT-mode twins (MapFunctionArgTokens) — behavior-identical, guarded by the full NIST net.
         var funcName = ctx.functionName()?.GetText() ?? "UNKNOWN";
 
         var args = new List<BoundExpression>();
-        var subPart = ctx.subscriptPart();
-        if (subPart != null)
-        {
-            var subOrRefMod = subPart.subscriptOrRefMod();
-            if (subOrRefMod != null)
+        if (ctx.functionArgList() is { } argList)
+            foreach (var argCtx in argList.functionArgument())
             {
-                var (subExprs, _) = InterpretSubscriptTokens(subOrRefMod);
-                args.AddRange(subExprs);
+                var toks = new List<IToken>();
+                CollectLeafTokens(argCtx, toks);
+                args.Add(BindSubscriptSegment(MapFunctionArgTokens(toks)));
             }
-        }
 
         // Expand the ALL subscript (ISO §15.4): FUNCTION f(table(ALL)) passes every occurrence
         // of the table as a separate argument. Replace each table(ALL) reference in-place with
@@ -815,6 +814,66 @@ internal sealed class ExpressionBinder
     /// Returns (expressions, isRefMod). If SUB_COLON is present, it's ref-mod
     /// and expressions[0] = start, expressions[1] = length. Otherwise it's subscripts.
     /// </summary>
+    /// <summary>P7 Step 12 down-conversion for the frozen oracle: one FUNCTION argument subtree's DEFAULT-mode
+    /// leaf tokens re-typed to the SUBSCRIPT-mode twins the segment binder has always consumed. Tokens from a
+    /// nested subscript group inside the argument arrive as genuine SUB_*/SIGNED_* types and pass through
+    /// unchanged; a word-shaped keyword token (FUNCTION itself, a phrase word like LEADING, figurative ZERO)
+    /// maps to SUB_IDENTIFIER with its text — exactly what SUBSCRIPT mode lexed before the reshape.</summary>
+    private static List<IToken> MapFunctionArgTokens(List<IToken> toks)
+    {
+        var mapped = new List<IToken>(toks.Count);
+        foreach (var t in toks)
+        {
+            int nt = t.Type switch
+            {
+                CobolParserCore.IDENTIFIER or CobolParserCore.FUNCTION => CobolParserCore.SUB_IDENTIFIER,
+                CobolParserCore.INTEGERLIT => CobolParserCore.SUB_INTEGERLIT,
+                CobolParserCore.DECIMALLIT => CobolParserCore.SUB_DECIMALLIT,
+                CobolParserCore.STRINGLIT => CobolParserCore.SUB_STRINGLIT,
+                CobolParserCore.NATLIT => CobolParserCore.SUB_NATLIT,
+                CobolParserCore.BOOLLIT => CobolParserCore.SUB_BOOLLIT,
+                CobolParserCore.PLUS => CobolParserCore.SUB_PLUS,
+                CobolParserCore.MINUS => CobolParserCore.SUB_MINUS,
+                CobolParserCore.STAR => CobolParserCore.SUB_STAR,
+                CobolParserCore.SLASH => CobolParserCore.SUB_SLASH,
+                CobolParserCore.POWER => CobolParserCore.SUB_POWER,
+                CobolParserCore.LPAREN => CobolParserCore.SUB_LPAREN,
+                CobolParserCore.RPAREN => CobolParserCore.SUB_RPAREN,
+                CobolParserCore.COMMA => CobolParserCore.SUB_COMMA,
+                // A NESTED call's argument separator inside this argument's subtree (the outer grammar consumed
+                // the outer-level ones): the SUB twin keeps the inner argument split alive in the segment binder.
+                CobolParserCore.FNARG_SEPARATOR => t.Text.StartsWith(';')
+                    ? CobolParserCore.SUB_SEMICOLON : CobolParserCore.SUB_COMMA,
+                CobolParserCore.OF => CobolParserCore.SUB_OF,
+                CobolParserCore.IN => CobolParserCore.SUB_IN,
+                var other => other,
+            };
+            if (nt != t.Type)
+            {
+                mapped.Add(new CommonToken(t) { Type = nt });
+                continue;
+            }
+            // Already a SUBSCRIPT-mode / signed token (a nested subscript group) — pass through.
+            if (t.Type is CobolParserCore.SUB_WS or CobolParserCore.SUB_OF or CobolParserCore.SUB_IN
+                or CobolParserCore.SUB_ALL or CobolParserCore.SIGNED_DECIMALLIT or CobolParserCore.SIGNED_INTEGERLIT
+                or CobolParserCore.SUB_INTEGERLIT or CobolParserCore.SUB_DECIMALLIT or CobolParserCore.SUB_STRINGLIT
+                or CobolParserCore.SUB_NATLIT or CobolParserCore.SUB_BOOLLIT or CobolParserCore.SUB_IDENTIFIER
+                or CobolParserCore.SUB_PLUS or CobolParserCore.SUB_MINUS or CobolParserCore.SUB_POWER
+                or CobolParserCore.SUB_STAR or CobolParserCore.SUB_SLASH or CobolParserCore.SUB_COMMA
+                or CobolParserCore.SUB_SEMICOLON or CobolParserCore.SUB_COLON or CobolParserCore.SUB_LPAREN
+                or CobolParserCore.SUB_RPAREN)
+            {
+                mapped.Add(t);
+                continue;
+            }
+            // Any other word-shaped keyword token (phrase words, figuratives) lexed SUB_IDENTIFIER before.
+            mapped.Add(t.Text.Length > 0 && t.Text.All(c => char.IsLetterOrDigit(c) || c == '-')
+                ? new CommonToken(t) { Type = CobolParserCore.SUB_IDENTIFIER }
+                : t);
+        }
+        return mapped;
+    }
+
     internal (List<BoundExpression> Exprs, bool IsRefMod) InterpretSubscriptTokens(
         CobolParserCore.SubscriptOrRefModContext ctx)
     {

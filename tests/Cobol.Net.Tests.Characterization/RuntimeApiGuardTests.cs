@@ -8,9 +8,10 @@ namespace CobolNet.Tests.Characterization;
 /// <summary>
 /// The P7 Step 4b RATCHET (DESIGN-codegen-backend §3): every C# fragment naming a runtime member must route
 /// through the <c>nameof</c>-anchored <c>RuntimeApi</c> façade, so a runtime rename breaks ONE file at compile
-/// time. The Step-9-final sweep (DEVLOG 810) drove every Step-9 emitter to ZERO; the only remaining baselines
-/// are the four pre-Step-11/12 renderers, whose fragments route when Step 11 (structural Place — the renderers
-/// relocate to <c>Roslyn/</c>) and Step 12 (the IntrinsicRenderer static-channel deletion) restructure them.
+/// time. The Step-9-final sweep (DEVLOG 810) drove every Step-9 emitter to ZERO; Step 12 routed
+/// <c>IntrinsicRenderer</c> (the static-channel deletion) and deleted its entry. The remaining baselines are
+/// the three expression/condition renderers, whose fragments route when the P9 <c>Roslyn/</c> consolidation
+/// (ExpressionRenderer) restructures them.
 /// A file NOT listed must have ZERO bare accesses; a listed file's count may only SHRINK (update the entry
 /// downward, delete it at 0; when the table empties, flip this test to forbid-all).
 /// <para><b>Counting rule (the Step-9-final recorded refinement):</b> comment lines (<c>//</c>-led) are
@@ -29,15 +30,14 @@ public sealed class RuntimeApiGuardTests
     /// runtime types (<c>CobolRounding.</c>/<c>CobolPassMode.</c> — see the counting rule above).</summary>
     private static readonly Regex Bare = new(@"\bCobol(?!Net\.|Literal\.|Rounding\.|PassMode\.)[A-Za-z0-9]+\.", RegexOptions.Compiled);
 
-    /// <summary>The baseline: bare-count per CodeGen file. Post-Step-9-final, ONLY the four pre-Step-11/12
-    /// renderers remain (they restructure at Steps 11/12, where their fragments route); every other CodeGen
-    /// file is at ZERO and stays there.</summary>
+    /// <summary>The baseline: bare-count per CodeGen file. Post-Step-12 (IntrinsicRenderer routed → entry
+    /// deleted), ONLY the three expression/condition renderers remain (they route at the P9 Roslyn/
+    /// consolidation); every other CodeGen file is at ZERO and stays there.</summary>
     private static readonly Dictionary<string, int> Baseline = new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Emit/IntrinsicRenderer.cs"] = 47,   // routes at Step 12 (the static-channel deletion) + Step 11 relocation
-        ["Emit/NumericRenderer.cs"] = 17,     // routes at Step 11 (ExpressionRenderer under Roslyn/)
-        ["Emit/ConditionRenderer.cs"] = 17,   // routes at Step 11
-        ["Emit/OperandText.cs"] = 7,          // routes at Step 11
+        ["Emit/NumericRenderer.cs"] = 17,     // routes at P9 (ExpressionRenderer under Roslyn/)
+        ["Emit/ConditionRenderer.cs"] = 17,   // routes at P9
+        ["Emit/OperandText.cs"] = 7,          // routes at P9
     };
 
     [Fact]

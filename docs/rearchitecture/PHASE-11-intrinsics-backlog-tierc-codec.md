@@ -456,8 +456,9 @@ five locale functions and closes the locale keyword variants.
    COBOLNET1518 is a **bind-time compile error** (loud, addressable, documented) — not a runtime guard. It renders no C#, so no
    `Deferred` runtime fallback is reached.
 2. **LOCALE keyword variants** of `LOWER-CASE` (§15.57), `UPPER-CASE` (§15.97), `TEST-NUMVAL-C` (§15.94): these functions are
-   implemented *without* locale support. Detect a `LOCALE` phrase in the argument list (a bare `SUB_IDENTIFIER` segment
-   `LOCALE`, like TRIM's `LEADING`/`TRAILING` detection at `Binding/Procedure/Verbs/IntrinsicBinder.cs:237`) and, when present, emit
+   implemented *without* locale support. Detect a `LOCALE` phrase in the argument list (a bare-word argument via
+   `IntrinsicBinder.KeywordWordOf`, like TRIM's `LEADING`/`TRAILING` detection — P7 Step 12 made arguments real parse
+   trees) and, when present, emit
    COBOLNET1518 naming A.4.9 (the LOCALE *phrase*, not the whole function). Absent the phrase, bind exactly as today (zero
    regression to the existing goldens).
 3. Confirm `IntrinsicRenderer` never renders an `Unsupported` row (the binder returned an error) — the existing `Deferred` arms

@@ -155,7 +155,9 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
   `ProgramEmitter` (run-unit) → the `UnitEmitters` per-unit composition root → `DispatchEmitter`/`StatementEmitter`
   (the generated exhaustive `IBoundStatementVisitor<bool>`) + 18 `Verbs/*Emitter` + `EcEmitter` + the `DataDivision/`
   emitters behind `DataEmitter`, plus the `Emit/` renderers (`NumericRenderer`/`ConditionRenderer`/`BooleanRenderer`/
-  `IntrinsicRenderer`/`OperandText`/`EmitCore`); `CSharpEmitter` is the bind-host facade only until P9. Mirrors the
+  `IntrinsicRenderer` [single channel since P7 Step 12 — the static string twin is deleted; instance renders via the
+  ONE `NumericRenderer` under `ReceiverContext.None`]/`OperandText`/`EmitCore`); `CSharpEmitter` is the bind-host
+  facade only until P9. Mirrors the
   legacy `Emission/` split (the legacy `CilEmitter` hit 2458 lines before it was split — direct evidence).
   *(Rejected: one growing `CSharpEmitter` god class.)*
 - **One `NameAllocator`** owns C#-identifier generation: case-insensitive normalization (COBOL `FOO`==`foo`);

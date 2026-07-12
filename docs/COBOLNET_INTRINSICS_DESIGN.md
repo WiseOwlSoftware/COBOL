@@ -7,9 +7,13 @@
 >
 > **SPINE 1 — IMPLEMENTED.** `IntrinsicCatalog` (the complete §15 2023 table, ~94 rows with D8
 > windows — later-edition rows bind `Deferred` = loud until their wave), `BoundIntrinsicCall`,
-> `Binding/Procedure/Verbs/IntrinsicBinder.cs` (SUB-token argument mini-parser, table(ALL) expansion, MAX/MIN
-> resolution, LENGTH fold, the §15.68.3 r3 currency injection), `IntrinsicRenderer` (instance numeric channel +
-> STATIC string channel), runtime `CobolIntrinsics`/`CobolDate`. The 1989 Intrinsic Function Module (42
+> `Binding/Procedure/Verbs/IntrinsicBinder.cs` (P7 Step 12: FUNCTION arguments are REAL parse trees —
+> `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?`, each argument a §8.4.3.2 SR8 shape
+> bound through the ONE `ExpressionBinder.BindExpr`; the keyword-omitted form re-parses its captured text through
+> the SAME `functionArgList` rule via `FunctionArgFragment`; table(ALL) expansion, MAX/MIN resolution, LENGTH
+> fold, the §15.68.3 r3 currency injection), `IntrinsicRenderer` (ONE instance channel — numeric + string; the
+> static twin is deleted; arguments render through the ONE `NumericRenderer`, `ReceiverContext.None` in the
+> string channel), runtime `CobolIntrinsics`/`CobolDate`. The 1989 Intrinsic Function Module (42
 > functions) is fully implemented — all 42 NIST IF programs byte-match. **Two design points worth flagging:**
 > (1) `BoundIntrinsicCall.Args` is `IReadOnlyList<BoundOperand>`, NOT `BoundExpr` — the string-argument
 > functions (NUMVAL, ORD, LOWER-CASE …) take alphanumeric operands the numeric expression tree cannot represent;
@@ -206,9 +210,22 @@ The SET dispatch slots (index→long, cond-name→store the 88's first VALUE int
 
 Resolve MAX/MIN result category at the call site from the bound argument categories (port the legacy rule: all-non-numeric → alphanumeric result, else numeric); ORD-MAX/ORD-MIN always return a numeric ordinal. The catalog row marks them category-polymorphic and the binder resolves the result category from the bound argument categories at bind time.
 
-### FUNCTION argument shapes: table(ALL) expansion, optional trailing args (e.g. RANDOM seed), and variadic statistical functions, parsed via the SUBSCRIPT-mode subscriptPart token stream.
+### FUNCTION argument shapes: table(ALL) expansion, optional trailing args (e.g. RANDOM seed), and variadic statistical functions — REAL argument parse trees (P7 Step 12).
 
-Port the legacy InterpretSubscriptTokens split + table(ALL)→per-occurrence expansion into a BindIntrinsicArgs helper driven by the catalog's arity model (Fixed/OptionalTrailing/Variadic); variadic families emit a C# params array of typed (long,scale) pairs or doubles or strings per the per-arg category.
+FUNCTION arguments parse through the grammar (`functionArgList` — the lexer suppresses the SUBSCRIPT push after
+`FUNCTION functionName`, keeps the §8.3.5 comma/semicolon separator as `FNARG_SEPARATOR`, and lexes
+sign-adjacent-after-separator literals as `SIGNED_*` per §8.7.1/§8.3.3.3.2, so `MAX(A -4)` is two arguments and
+`MAX(A - 4)` one). Each argument binds via `BindArgOperand` — non-numeric literals stay categorized literal
+operands, a sole data reference stays a `BoundFieldOperand`, anything arithmetic goes through the ONE
+`ExpressionBinder.BindExpr` and wraps as `BoundComputedOperand` — with `TryExpandAll` expanding a table(ALL)
+argument (its subscript capture is still SUBSCRIPT-mode tokens — the D10/PHASE-15 deferral) to per-occurrence
+operands, driven by the catalog's arity model (Fixed/OptionalTrailing/Variadic). The five phrase-keyword functions
+(TRIM/FIND-STRING/SUBSTITUTE/CONVERT/MODULE-NAME) classify bare-word arguments by name (`KeywordWordOf`); the §8.9
+reserved-word funnel skips a BARE argument word (a §15 phrase-word position is not a provable user-word slot).
+The keyword-omitted reference form (D2 — no grammar alternative) re-parses its captured argument text through the
+SAME `functionArgList` rule (`Frontend.Parsing.FunctionArgFragment`, lexer primed via `PrimeFunctionArgs`), and
+`UdfBinder.UdfBindCall` binds its arguments through the same `BindArgOperand` — ONE argument pipeline; the former
+hand-rolled per-segment recursive-descent parser is deleted.
 
 ## Edge cases
 
@@ -225,7 +242,7 @@ Port the legacy InterpretSubscriptTokens split + table(ALL)→per-occurrence exp
 - DAY-OF-WEEK ordinal: COBOL is 1=Monday..7=Sunday, .NET DayOfWeek is 0=Sunday — the (+6)%7+1 remap is easy to get wrong.
 - HIGH-VALUE used in a comparison vs in a MOVE: as a MOVE source it fills the receiver width with U+00FF; in a comparison it must compare as the highest ordinal — both fall out of the U+00FF mapping + ordinal Compare, but a national receiver needs U+FFFF.
 - INITIALIZE skips FILLER by default but INITIALIZE … REPLACING / WITH FILLER changes that; REDEFINES subordinates and items with the wrong category for the REPLACING clause are skipped (§14.9.21).
-- Nested intrinsic calls as arguments (e.g. ACOS(FUNCTION ACOS(D/D))) — the argument binder must recurse through FUNCTION inside SUBSCRIPT-mode tokens (legacy handles this; preserve it).
+- Nested intrinsic calls as arguments (e.g. ACOS(FUNCTION ACOS(D/D))) — natural grammar recursion since P7 Step 12 (`functionCall` is a `primaryExpression` alternative inside the argument's `arithmeticExpression`).
 
 ## ISO citations
 

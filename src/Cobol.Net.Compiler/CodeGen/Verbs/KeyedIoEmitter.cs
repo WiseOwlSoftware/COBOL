@@ -109,7 +109,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             default:
                 // Indexed Format 2: the key VALUE is the key field's current content in the record area
                 // (§14.9.30 GR32) — pass the area image; the connector slices the key-of-reference range.
-                string keyImage = area is not null ? OperandText.AsString(new BoundFieldOperand(area)) : "\"\"";
+                string keyImage = area is not null ? OperandText.AsString(new BoundFieldOperand(area), num) : "\"\"";
                 w.Line($"var {st} = {RuntimeApi.FileReadKeyed(name, rd.KeyIndex, keyImage, img)};");
                 break;
         }
@@ -180,7 +180,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
-        string wimg = OperandText.AsString(new BoundFieldOperand(wr.Record));
+        string wimg = OperandText.AsString(new BoundFieldOperand(wr.Record), num);
         w.Line($"var {st} = {RuntimeApi.FileWriteKeyed(name, wimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a when varying
         // §14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
         // item during execution of the WRITE.
@@ -213,7 +213,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
-        string rimg = OperandText.AsString(new BoundFieldOperand(rw.Record));
+        string rimg = OperandText.AsString(new BoundFieldOperand(rw.Record), num);
         w.Line($"var {st} = {RuntimeApi.FileRewriteKeyed(name, rimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a / §14.9.35 GR20
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
@@ -243,7 +243,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // share one area; a READ makes the record available in the WHOLE area, so a shorter Records[0] must not
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = file.AreaRecord is { } ar ? refs.ResolveItem(ar) : null;
-        string image = area is not null ? OperandText.AsString(new BoundFieldOperand(area)) : "\"\"";
+        string image = area is not null ? OperandText.AsString(new BoundFieldOperand(area), num) : "\"\"";
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         w.Line($"var {st} = {RuntimeApi.FileDeleteRecord(name, image)};");
@@ -303,7 +303,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             string len = sta.Length is { } le
                 ? $"(int)({NumericRenderer.Align(num.Render(le, ReceiverContext.None), 0)})"
                 : sta.Operand!.Item.ImageWidth.ToString();
-            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), OperandText.AsString(new BoundFieldOperand(sta.Operand!)), len)};");
+            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), OperandText.AsString(new BoundFieldOperand(sta.Operand!), num), len)};");
         }
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);

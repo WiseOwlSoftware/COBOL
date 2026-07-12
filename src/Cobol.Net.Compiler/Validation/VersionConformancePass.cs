@@ -1038,11 +1038,41 @@ internal sealed class VersionConformancePass
         /// (<see cref="ReservedWordSet.RejectsAt"/> — the conservative policy); severity routes through
         /// <see cref="EditionSeverityPolicy"/> (error strict / warning permissive, the 0901 band row).
         /// </summary>
+        /// <summary>True when <paramref name="ctx"/> is the SOLE word of a bare (unsuffixed, operator-free)
+        /// function argument — the shape a §15 phrase word occupies. The walk ascends the sole-child
+        /// expression spine (primary → unary → power → multiplicative → additive → arithmeticExpression);
+        /// any operator, suffix, or extra operand makes the word a provable operand.</summary>
+        private static bool IsBareFunctionArgumentWord(CobolParserCore.CobolWordContext ctx)
+        {
+            if (ctx.Parent is not CobolParserCore.DataReferenceContext dref
+                || dref.dataReferenceSuffix().Length != 0)
+                return false;
+            Antlr4.Runtime.RuleContext? n = dref.Parent;
+            while (n is CobolParserCore.PrimaryExpressionContext or CobolParserCore.UnaryExpressionContext
+                or CobolParserCore.PowerExpressionContext or CobolParserCore.MultiplicativeExpressionContext
+                or CobolParserCore.AdditiveExpressionContext or CobolParserCore.ArithmeticExpressionContext)
+            {
+                if (n.ChildCount != 1) return false;   // an operator / second operand — provably an operand
+                n = n.Parent;
+            }
+            return n is CobolParserCore.FunctionArgumentContext;
+        }
+
         public override object? VisitCobolWord(CobolParserCore.CobolWordContext ctx)
         {
             if (!CheckedTokenTypes.Contains(ctx.Start.Type) && !IsProvableUserWordPosition(ctx))
                 return base.VisitChildren(ctx);
             string word = ctx.Start.Text.ToUpperInvariant();
+            // A BARE word argument of a function reference may be a §15 PHRASE WORD (FIND-STRING ANYCASE,
+            // CONVERT HEX/NAT/ANUM/BYTE, MODULE-NAME CURRENT/ACTIVATING/NESTED/STACK/TOP-LEVEL, …) — a use OF
+            // the reserved word, not a user-defined-word use (§8.4.3.2 SR8 + the per-function §15 argument
+            // rules; the EXCEPTION-OBJECT precedent below). The position is NOT provable: only the sole-word
+            // shape skips — a subscripted/qualified/compound argument is provably an operand and stays
+            // funneled, and a genuine data-item collision is still caught at its DECLARATION slot. (P7
+            // Step 12: arguments parse as real trees, so phrase words reach cobolWord — the former SUB-token
+            // capture never surfaced them here.)
+            if (IsBareFunctionArgumentWord(ctx))
+                return base.VisitChildren(ctx);
             // EXCEPTION-OBJECT inside an objectReference operand (SET sender, RAISE operand) is a reference to
             // the PREDEFINED register (§8.4.3.6 — the EC-OO wave), not a user-defined word: the reservation
             // (§8.9, 2002+) is exactly what makes the reference unambiguous. Any other position (declarations,

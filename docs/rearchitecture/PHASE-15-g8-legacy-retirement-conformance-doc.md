@@ -313,10 +313,12 @@ D10.1–D10.5, battery-green at every commit boundary.
 - [ ] **Step D10.3 — interpreted subscript grammar rule** (per §9.4's answer) + rewrite `ReferenceResolver`'s subscript
   interpreters (`HasDepth0Colon`/`InterpretSubscripts`/`SplitSubscriptTokens`/`RenderSegment`/`ResolveSubscriptName`)
   over real `arithmeticExpression`/`subscript` nodes. **COMMIT.**
-- [ ] **Step D10.4 — reunify `functionCall` onto `argumentList`** + rewrite the ~250-line recursive-descent `SUB_*`
-  parser in `Binding/Procedure/Verbs/IntrinsicBinder.cs` over real `argument` nodes; migrate `Udf`/`Emitter`
-  (`SplitSubscriptTokens` hand-offs).
-  The dominant-cost step. **COMMIT.**
+- [ ] **Step D10.4 — REDUCED by P7 Step 12** (which already parses FUNCTION arguments as real trees through
+  `functionArgList`, deleted the recursive-descent `SUB_*` parser, and routes UdfBinder/keyword-omitted through the
+  ONE `BindArgOperand`). Residual scope: reunify `functionArgList` with `inlineMethodInvocationStatement`'s
+  `argumentList` (one argument rule), and convert the keyword-omitted D2 channel from the `FunctionArgFragment`
+  text re-parse to the interpreted-subscript grammar (falls out of D10.3, which makes a dataReference's captured
+  subscripts real nodes). **COMMIT.**
 - [ ] **Step D10.5 — delete the SUBSCRIPT-mode block** + the `LPAREN` mode-entry action + `PreviousTokenCouldBeDataName`
   + the now-dead structured `subscriptList/subscriptEntry/subscriptQualification/relativeOffset` rules (legacy is gone,
   so their `SubscriptEntryContext` consumer is gone); reconcile the PHASE-04 Group-A `cobol-words.json` drift test (the

@@ -14,6 +14,7 @@
     "dyn_nested_group_move",
     "dyn_search",
     "formatted_datetime",
+    "func_expr_arg",
     "options_default_rounded",
     "options_paragraph",
     "rounded_mode_prohibited",

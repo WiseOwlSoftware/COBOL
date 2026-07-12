@@ -11,24 +11,27 @@ namespace CobolNet.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// Intrinsic-function binding (ISO §15; COBOLNET_INTRINSICS_DESIGN spine 1). The grammar captures FUNCTION
-/// arguments as a flat SUBSCRIPT-mode token stream (<c>functionCall : FUNCTION functionName subscriptPart?</c> —
-/// the COBOL comma/space argument separators survive only as tokens), so binding is: flatten → split on depth-0
-/// separators (the ONE splitter <see cref="ReferenceResolver.SplitSubscriptTokens"/> shares with subscripts) →
-/// a small recursive-descent parse of each segment to a typed <see cref="BoundOperand"/> (the proven legacy
-/// <c>ParseSubPrimary</c> shape): literals, OF/IN-qualified identifiers with nested subscripts, the COBOL
-/// operators with §8.8.1 precedence, parentheses, and nested <c>FUNCTION</c> calls. <c>table(ALL)</c> arguments
-/// expand at bind time to one operand per occurrence (§15.3). ALL semantics — D8 edition gating, §15.3 arity,
-/// MAX/MIN category resolution, the §15.68.3 r3 default-currency injection, the D7 LENGTH fold — happen HERE;
-/// backends only render the resulting <see cref="BoundIntrinsicCall"/>.
+/// Intrinsic-function binding (ISO §15; COBOLNET_INTRINSICS_DESIGN spine 1). P7 Step 12: FUNCTION arguments
+/// are REAL parse trees — <c>functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?</c>, each
+/// <c>functionArgument</c> one of the §8.4.3.2 SR8 shapes (phrase word / OMITTED / non-numeric literal /
+/// arithmetic expression) — and every arithmetic argument binds through the ONE
+/// <see cref="ExpressionBinder.BindExpr"/> (nested <c>FUNCTION</c> calls recurse naturally through
+/// <c>BindPrimary</c>). The keyword-omitted form <c>name(args)</c> (§8.4.3.2 SR2) still arrives as a
+/// SUBSCRIPT-mode capture on a <c>dataReference</c> (D2 — a grammar alternative is an irreducible ambiguity);
+/// <see cref="KeywordOmittedFunction"/> re-parses that captured text through the SAME <c>functionArgList</c>
+/// rule (<c>FunctionArgFragment</c>), so both reference forms bind through one argument pipeline and the former
+/// per-segment recursive-descent parser is DELETED. <c>table(ALL)</c> arguments expand at bind time to one
+/// operand per occurrence (§15.3), detected from the argument's sole data reference whose subscript capture
+/// (still SUBSCRIPT-mode — the D10/PHASE-15 deferral) holds a depth-0 ALL. ALL semantics — D8 edition gating,
+/// §15.3 arity, MAX/MIN category resolution, the §15.68.3 r3 default-currency injection, the D7 LENGTH fold —
+/// happen HERE; backends only render the resulting <see cref="BoundIntrinsicCall"/>.
 /// P7 Step 10k: a real collaborator over <see cref="BinderContext"/>, landed TOGETHER with
 /// <see cref="UdfBinder"/> (the bidirectional §12.3.8.2 GR12 pair: the user-function dispatch here PRECEDES
-/// the catalog lookup and reaches <c>host.Udf</c>; UdfBinder's argument parse reaches BACK into
-/// <see cref="ParseArgSegment"/>). The D8 IntroducedIn/RemovedIn windows, the &lt;2002 keyword-omitted
+/// the catalog lookup and reaches <c>host.Udf</c>; UdfBinder's argument bind reaches BACK into
+/// <see cref="BindArgOperand"/>). The D8 IntroducedIn/RemovedIn windows, the &lt;2002 keyword-omitted
 /// routing gate, and TRIM-arg2 moved VERBATIM (Exec Step E folds the diagnostics; the &lt;2002 routing gate
 /// at the top of <see cref="KeywordOmittedFunction"/> is PARSE-ROUTING behavior and stays a binder switch by
-/// design — the premise audit's finding). The recursive-descent arg parser stays ONE cohesive block for
-/// Step 12's deletion. <c>CompileClock</c> relocated HERE (IntrinsicRenderer re-pointed same-commit).</summary>
+/// design — the premise audit's finding). <c>CompileClock</c> lives HERE (IntrinsicRenderer reads it).</summary>
 internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>The injectable compile-time clock for WHEN-COMPILED (§15.99.3 r2 — the COMPILATION timestamp;
@@ -37,14 +40,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     internal static Func<DateTimeOffset> CompileClock { get; set; } = () => DateTimeOffset.Now;
 
     /// <summary>FUNCTION call in an expression position (the <c>BindPrimary</c> hook).</summary>
-    public BoundExpr BindIntrinsic(Core.FunctionCallContext fc)
-    {
-        string name = fc.functionName().GetText();
-        var tokens = new List<IToken>();
-        if (fc.subscriptPart()?.subscriptOrRefMod() is { } args)
-            ReferenceResolver.CollectLeafTokens(args, tokens);
-        return BindIntrinsicCore(name, tokens);
-    }
+    public BoundExpr BindIntrinsic(Core.FunctionCallContext fc) =>
+        BindIntrinsicCore(fc.functionName().GetText(), ArgsOf(fc.functionArgList()));
+
+    private static IReadOnlyList<Core.FunctionArgumentContext> ArgsOf(Core.FunctionArgListContext? list) =>
+        list?.functionArgument() ?? [];
 
     /// <summary>FUNCTION call as a MOVE sending operand (the <c>BindMove</c> hook) — and the operand shape every
     /// general-operand channel shares: the bound expression wrapped as a <see cref="BoundComputedOperand"/> (a
@@ -84,14 +84,31 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 && IntrinsicCatalog.TryGet(name, out _));
         if (!isFn) return null;
         if (ctx.Symbols.TryResolve(name, ctx.ActiveScope, out _)) return null;   // a declared data item wins — never a mis-routed subscript
-        var tokens = new List<IToken>();
-        if (sp.subscriptOrRefMod() is { } args) ReferenceResolver.CollectLeafTokens(args, tokens);
-        return BindIntrinsicCore(name, tokens);
+        return ReparseArgs(sp) is { } args
+            ? BindIntrinsicCore(name, args)
+            : new BoundExprError($"FUNCTION {name} arguments");
     }
 
-    /// <summary>Bind one FUNCTION reference from its name + flat argument tokens (shared by the parse-context
-    /// entries above and the nested-FUNCTION recursion inside argument segments).</summary>
-    private BoundExpr BindIntrinsicCore(string name, List<IToken> argTokens)
+    /// <summary>The D2 keyword-omitted argument re-parse: the SUBSCRIPT-mode captured argument text (verbatim
+    /// from the source char stream, spacing intact) re-parses through the ONE <c>functionArgList</c> grammar
+    /// rule via <see cref="FunctionArgFragment"/> — the same tokens, rule, and binding path as the
+    /// FUNCTION-keyword form. Null (after a COBOLNET1543 diagnostic) on a malformed argument list.</summary>
+    private IReadOnlyList<Core.FunctionArgumentContext>? ReparseArgs(Core.SubscriptPartContext sp)
+    {
+        if (sp.subscriptOrRefMod() is not { } som) return [];
+        string text = som.Start.InputStream.GetText(
+            new Antlr4.Runtime.Misc.Interval(som.Start.StartIndex, som.Stop.StopIndex));
+        if (Frontend.Parsing.FunctionArgFragment.Parse(text, ctx.Edition.Edition) is { } frag)
+            return ArgsOf(frag.functionArgList());
+        ctx.Edition.Error("COBOLNET1543", $"malformed function-argument list '({text})' — an argument is an "
+            + "identifier, a literal, a boolean expression, or an arithmetic expression (ISO §8.4.3.2 SR8)");
+        return null;
+    }
+
+    /// <summary>Bind one FUNCTION reference from its name + argument parse trees (shared by the FUNCTION-keyword
+    /// entry, the keyword-omitted re-parse, and — through <c>BindExpr</c>'s <c>BindPrimary</c> — every nested
+    /// FUNCTION recursion).</summary>
+    private BoundExpr BindIntrinsicCore(string name, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         // §12.3.8.2 GR12 (:14885): within the environment division's scope, a REPOSITORY-declared
         // function-prototype-name refers to the USER-DEFINED function "and not to an intrinsic function of
@@ -100,7 +117,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // no repository declaration (self-recursion; a present self-entry is ignored, §12.3.8 GR11).
         if (ctx.Data.UserFunctionNames.Contains(name)
             || name.Equals(host.UdfSelfName, StringComparison.OrdinalIgnoreCase))
-            return host.Udf.UdfBindCall(name, argTokens);
+            return host.Udf.UdfBindCall(name, argCtxs);
 
         if (!IntrinsicCatalog.TryGet(name, out var sig))
         {
@@ -127,25 +144,25 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
         // TRIM (§15.96) — the one §15 function whose argument list carries a phrase keyword (LEADING/TRAILING);
         // its bespoke shape is bound apart from the generic comma/space-split argument path.
-        if (sig.Name == "TRIM") return BindTrim(sig, argTokens);
+        if (sig.Name == "TRIM") return BindTrim(sig, argCtxs);
 
         // FIND-STRING (§15.37) — argument-1 argument-2 [LAST] [[START AFTER] argument-3] [ANYCASE]: phrase
         // keywords interleaved with operands, bound apart from the generic argument path.
-        if (sig.Name == "FIND-STRING") return BindFindString(sig, argTokens);
+        if (sig.Name == "FIND-STRING") return BindFindString(sig, argCtxs);
 
         // SUBSTITUTE (§15.87) — argument-1 { [ANYCASE] [FIRST|LAST] argument-2 argument-3 } …: per-pair phrase
         // keywords ahead of each replacement pair, bound apart from the generic argument path.
-        if (sig.Name == "SUBSTITUTE") return BindSubstitute(sig, argTokens);
+        if (sig.Name == "SUBSTITUTE") return BindSubstitute(sig, argCtxs);
 
         // CONVERT (§15.19) — argument-1 source-format destination-format: two keyword groups after the operand,
         // bound apart from the generic argument path (the result category is computed per §15.19.1).
-        if (sig.Name == "CONVERT") return BindConvert(sig, argTokens);
+        if (sig.Name == "CONVERT") return BindConvert(sig, argCtxs);
 
         // MODULE-NAME (§15.65) — one mandatory keyword (ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL), resolved
         // from the runtime module call-name stack; bound apart from the generic argument path.
-        if (sig.Name == "MODULE-NAME") return BindModuleName(sig, argTokens);
+        if (sig.Name == "MODULE-NAME") return BindModuleName(sig, argCtxs);
 
-        var args = BindIntrinsicArgs(argTokens);
+        var args = BindIntrinsicArgs(argCtxs);
         if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
         {
             ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes "
@@ -222,25 +239,24 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         return new BoundIntrinsicCall(resolved, args, category, collate);
     }
 
-    /// <summary>TRIM (§15.96) — the ONE §15 function with a phrase keyword in its argument list
-    /// (<c>[LEADING|TRAILING]</c>, §15.96.2). The keyword is a bare <c>SUB_IDENTIFIER</c> segment (space- or
-    /// comma-separated), extracted here so the remaining segments bind as ordinary operands: argument-1 (the
-    /// string, required) followed by zero-or-more single-character argument-2 trim characters (§15.96.3 rule 2 —
-    /// the default when none is given is a space, rule 3.a). The LEADING/TRAILING mode rides on the bound node's
-    /// <see cref="BoundIntrinsicCall.TrimMode"/> (0 = both, rule 3).</summary>
-    private BoundExpr BindTrim(IntrinsicSig sig, List<IToken> argTokens)
+    /// <summary>TRIM (§15.96) — a phrase keyword in the argument list (<c>[LEADING|TRAILING]</c>, §15.96.2),
+    /// extracted here (the <see cref="KeywordWordOf"/> bare-word view) so the remaining arguments bind as
+    /// ordinary operands: argument-1 (the string, required) followed by zero-or-more single-character
+    /// argument-2 trim characters (§15.96.3 rule 2 — the default when none is given is a space, rule 3.a).
+    /// The LEADING/TRAILING mode rides on the bound node's <see cref="BoundIntrinsicCall.TrimMode"/>
+    /// (0 = both, rule 3).</summary>
+    private BoundExpr BindTrim(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         int mode = 0;   // 0 = both leading+trailing (r3), 1 = LEADING (r1), 2 = TRAILING (r2)
         var operands = new List<BoundOperand>();
-        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        foreach (var a in argCtxs)
         {
-            // A lone LEADING / TRAILING word (a bare SUB_IDENTIFIER segment) is the phrase keyword, not an operand.
-            if (seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } kw])
+            switch (KeywordWordOf(a))
             {
-                if (kw.Text.Equals("LEADING", StringComparison.OrdinalIgnoreCase)) { mode = 1; continue; }
-                if (kw.Text.Equals("TRAILING", StringComparison.OrdinalIgnoreCase)) { mode = 2; continue; }
+                case "LEADING": mode = 1; continue;
+                case "TRAILING": mode = 2; continue;
             }
-            operands.Add(ParseArgSegment(seg));
+            operands.Add(BindArgOperand(a));
         }
         if (operands.Count == 0)
         {
@@ -258,27 +274,26 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>FIND-STRING (§15.37) — <c>argument-1 argument-2 [LAST] [[START AFTER] argument-3] [ANYCASE]</c>
-    /// (§15.37.2). The phrase words arrive as lone <c>SUB_IDENTIFIER</c> segments (the whitespace splitter isolates
-    /// each): LAST selects the last occurrence (rule 1); ANYCASE folds case (rule 4); START/AFTER are the optional
-    /// argument-3 introducer (noise — argument-3's mere presence selects the skip form, rule 2). The operand
-    /// segments are argument-1 (the haystack), argument-2 (the needle), and the optional integer argument-3 (the
-    /// number of matches to ignore). The two flags ride on <see cref="BoundIntrinsicCall.FindLast"/> /
+    /// (§15.37.2). The phrase words arrive as bare-word arguments (<see cref="KeywordWordOf"/>): LAST selects the
+    /// last occurrence (rule 1); ANYCASE folds case (rule 4); START/AFTER are the optional argument-3 introducer
+    /// (noise — argument-3's mere presence selects the skip form, rule 2). The operand arguments are argument-1
+    /// (the haystack), argument-2 (the needle), and the optional integer argument-3 (the number of matches to
+    /// ignore). The two flags ride on <see cref="BoundIntrinsicCall.FindLast"/> /
     /// <see cref="BoundIntrinsicCall.FindAnycase"/>; argument-3 (if given) is the third operand.</summary>
-    private BoundExpr BindFindString(IntrinsicSig sig, List<IToken> argTokens)
+    private BoundExpr BindFindString(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         bool last = false, anycase = false;
         var operands = new List<BoundOperand>();
-        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        foreach (var a in argCtxs)
         {
-            if (seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } kw])
+            switch (KeywordWordOf(a))
             {
-                if (kw.Text.Equals("LAST", StringComparison.OrdinalIgnoreCase)) { last = true; continue; }
-                if (kw.Text.Equals("ANYCASE", StringComparison.OrdinalIgnoreCase)) { anycase = true; continue; }
+                case "LAST": last = true; continue;
+                case "ANYCASE": anycase = true; continue;
                 // START AFTER — the argument-3 introducer words (§15.37.2); the integer that follows is argument-3.
-                if (kw.Text.Equals("START", StringComparison.OrdinalIgnoreCase)
-                    || kw.Text.Equals("AFTER", StringComparison.OrdinalIgnoreCase)) continue;
+                case "START" or "AFTER": continue;
             }
-            operands.Add(ParseArgSegment(seg));
+            operands.Add(BindArgOperand(a));
         }
         if (operands.Count is < 2 or > 3)
         {
@@ -293,10 +308,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// (§15.87.2). argument-1 is the source; each following group is a replacement PAIR (argument-2 matched,
     /// argument-3 substituted) preceded by its own optional phrase keywords: ANYCASE (case fold, rule 5),
     /// FIRST (first occurrence only, rule 3.a) or LAST (last only, rule 3.b) — default replaces ALL occurrences.
-    /// The keyword words arrive as lone <c>SUB_IDENTIFIER</c> segments; each pair's mode (bits 0=FIRST/1=LAST/
-    /// 2=ANYCASE) rides on <see cref="BoundIntrinsicCall.SubstituteModes"/>, and <see cref="BoundIntrinsicCall.Args"/>
-    /// carries [source, from₁, to₁, from₂, to₂, …].</summary>
-    private BoundExpr BindSubstitute(IntrinsicSig sig, List<IToken> argTokens)
+    /// The keyword words arrive as bare-word arguments (<see cref="KeywordWordOf"/>); each pair's mode (bits
+    /// 0=FIRST/1=LAST/2=ANYCASE) rides on <see cref="BoundIntrinsicCall.SubstituteModes"/>, and
+    /// <see cref="BoundIntrinsicCall.Args"/> carries [source, from₁, to₁, from₂, to₂, …].</summary>
+    private BoundExpr BindSubstitute(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         var operands = new List<BoundOperand>();   // [source, from₁, to₁, from₂, to₂, …]
         var modes = new List<int>();               // one mode per completed pair
@@ -306,15 +321,15 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundExpr Malformed() { ctx.Edition.Error("COBOLNET1504", "FUNCTION SUBSTITUTE takes argument-1 and one "
             + "or more [ANYCASE][FIRST|LAST] argument-2 argument-3 pairs (ISO §15.87.2)"); return new BoundExprError("FUNCTION SUBSTITUTE"); }
 
-        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        foreach (var a in argCtxs)
         {
-            if (seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } kw])
+            switch (KeywordWordOf(a))
             {
-                if (kw.Text.Equals("ANYCASE", StringComparison.OrdinalIgnoreCase)) { pending |= 4; continue; }
-                if (kw.Text.Equals("FIRST", StringComparison.OrdinalIgnoreCase)) { pending |= 1; continue; }
-                if (kw.Text.Equals("LAST", StringComparison.OrdinalIgnoreCase)) { pending |= 2; continue; }
+                case "ANYCASE": pending |= 4; continue;
+                case "FIRST": pending |= 1; continue;
+                case "LAST": pending |= 2; continue;
             }
-            var op = ParseArgSegment(seg);
+            var op = BindArgOperand(a);
             if (!haveSource) { operands.Add(op); haveSource = true; continue; }
             operands.Add(op);
             if (++pairOperands == 2)   // argument-2 then argument-3 complete a pair
@@ -333,19 +348,18 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>CONVERT (§15.19) — data-representation conversion (2023). Argument-1 is followed by two phrase
     /// keyword groups: source-format (ANY | ANUM | HEX | NAT) and destination-format (ANUM | NAT [HEX] | BYTE),
-    /// each a bare <c>SUB_IDENTIFIER</c> segment (§15.19.2). The operand binds ordinarily; the format words ride
-    /// the node's <c>Convert*</c> init-properties. The argument/SR rules (§15.19.3) are enforced here
-    /// (COBOLNET1514); the result category (§15.19.1) is National for a NAT destination, Alphanumeric otherwise.</summary>
-    private BoundExpr BindConvert(IntrinsicSig sig, List<IToken> argTokens)
+    /// each a bare-word argument (§15.19.2; <see cref="KeywordWordOf"/> — ANY/ALPHANUMERIC/NATIONAL are reserved
+    /// words, the rest arrive as bare names). The operand binds ordinarily; the format words ride the node's
+    /// <c>Convert*</c> init-properties. The argument/SR rules (§15.19.3) are enforced here (COBOLNET1514); the
+    /// result category (§15.19.1) is National for a NAT destination, Alphanumeric otherwise.</summary>
+    private BoundExpr BindConvert(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         var kws = new List<string>();
         var operands = new List<BoundOperand>();
-        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        foreach (var a in argCtxs)
         {
-            if (seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } w]
-                && IsConvertFormatWord(w.Text))
-            { kws.Add(w.Text.ToUpperInvariant()); continue; }
-            operands.Add(ParseArgSegment(seg));
+            if (KeywordWordOf(a) is { } w && IsConvertFormatWord(w)) { kws.Add(w); continue; }
+            operands.Add(BindArgOperand(a));
         }
         if (operands.Count != 1 || kws.Count < 2)
         {
@@ -407,23 +421,20 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>MODULE-NAME (§15.65) — one mandatory phrase keyword selecting a runtime element of the running
     /// COBOL hierarchy (§15.65.2: ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL; <c>TOP-LEVEL</c> is one hyphenated
-    /// <c>SUB_IDENTIFIER</c> token). The selector rides on <see cref="BoundIntrinsicCall.ModuleNameKind"/>; the
-    /// value resolves at runtime from the module call-name stack (<c>CobolModule</c>). NESTED requires a contained
-    /// program (§15.65.3 argument rule 1) — a compile-time conformance check.</summary>
-    private BoundExpr BindModuleName(IntrinsicSig sig, List<IToken> argTokens)
+    /// word). The selector rides on <see cref="BoundIntrinsicCall.ModuleNameKind"/>; the value resolves at
+    /// runtime from the module call-name stack (<c>CobolModule</c>). NESTED requires a contained program
+    /// (§15.65.3 argument rule 1) — a compile-time conformance check.</summary>
+    private BoundExpr BindModuleName(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         int kind = -1;
-        foreach (var seg in ReferenceResolver.SplitSubscriptTokens(argTokens))
+        foreach (var a in argCtxs)
         {
-            if (seg.All(t => t.Type == Core.SUB_WS)) continue;
-            int k = seg.Where(t => t.Type != Core.SUB_WS).ToList() is [{ Type: Core.SUB_IDENTIFIER } kw]
-                ? kw.Text.ToUpperInvariant() switch
-                    { "CURRENT" => 0, "ACTIVATING" => 1, "NESTED" => 2, "STACK" => 3, "TOP-LEVEL" => 4, _ => -1 }
-                : -1;
+            int k = KeywordWordOf(a) switch
+                { "CURRENT" => 0, "ACTIVATING" => 1, "NESTED" => 2, "STACK" => 3, "TOP-LEVEL" => 4, _ => -1 };
             if (k < 0 || kind >= 0)
             {
                 ctx.Edition.Error("COBOLNET1504", "FUNCTION MODULE-NAME takes exactly one keyword argument "
-                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §15.65.2), not '{SegText(seg)}'");
+                    + $"(ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL) (ISO §15.65.2), not '{a.GetText()}'");
                 return new BoundExprError("FUNCTION MODULE-NAME");
             }
             kind = k;
@@ -575,47 +586,105 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
 
     // ── Argument-list binding: split → ALL expansion → per-segment parse ───────────────────────────────────
 
-    private List<BoundOperand> BindIntrinsicArgs(List<IToken> tokens)
+    /// <summary>The generic (non-phrase-keyword) argument bind: table(ALL) expansion first (§15.3), then one
+    /// typed operand per argument through <see cref="BindArgOperand"/>.</summary>
+    private List<BoundOperand> BindIntrinsicArgs(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         var args = new List<BoundOperand>();
-        if (tokens.Count == 0) return args;
-        foreach (var segment in ReferenceResolver.SplitSubscriptTokens(tokens))
+        foreach (var a in argCtxs)
         {
-            if (segment.All(t => t.Type == Core.SUB_WS)) continue;
-            if (TryExpandAll(segment, args)) continue;
-            args.Add(ParseArgSegment(segment));
+            if (TryExpandAll(a, args)) continue;
+            args.Add(BindArgOperand(a));
         }
         return args;
+    }
+
+    /// <summary>Bind one function argument to a typed operand (the §8.4.3.2 SR8 shapes): a non-numeric literal
+    /// stays a categorized literal operand; a sole data reference stays a field operand through the ONE
+    /// <c>BindExpr</c>→<c>RefExpr</c> mapping (its category decides string-vs-numeric rendering; a bare
+    /// index-name reads its occurrence number, §13.18.38); anything arithmetic binds through <c>BindExpr</c>
+    /// and wraps as a computed operand (<see cref="OperandOf"/>). OMITTED is barred for an intrinsic argument
+    /// (§8.4.3.2 SR7); an unconsumed phrase word is a loud named operand — never a silent skip (§1.4).</summary>
+    internal BoundOperand BindArgOperand(Core.FunctionArgumentContext a)
+    {
+        if (a.OMITTED() is not null)
+        {
+            ctx.Edition.Error("COBOLNET1544", "OMITTED shall not be specified as an intrinsic-function argument "
+                + "(ISO §8.4.3.2 SR7 — OMITTED applies to user-defined function parameters declared OPTIONAL)");
+            return new BoundOperandError("OMITTED intrinsic argument");
+        }
+        if (a.fnArgPhraseWord() is { } kw)
+            return new BoundOperandError($"intrinsic argument '{kw.GetText()}'");   // a phrase word this function does not take
+        if (a.nonNumericLiteral() is { } nn) return NonNumericOperand(nn);
+        return OperandOf(host.Expr.BindExpr(a.arithmeticExpression()));
+    }
+
+    /// <summary>A non-numeric-literal argument as a categorized operand (§8.3.3.4/.5/.6.4 — the same decode +
+    /// introduction-gate helpers every literal channel uses). HEXLIT stays loud (no §15 consumer).</summary>
+    private BoundOperand NonNumericOperand(Core.NonNumericLiteralContext nn)
+    {
+        if (nn.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
+        if (nn.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
+        if (nn.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());
+        if (nn.BOOLLIT() is { } b) return host.Expr.BooleanLiteralOperand(b.GetText());
+        return new BoundOperandError($"literal argument '{nn.GetText()}'");
+    }
+
+    /// <summary>The bare-word view of an argument for the §15 phrase-keyword functions: a reserved phrase word
+    /// (<c>fnArgPhraseWord</c>) or a bare unqualified, unsubscripted name (the IDENTIFIER-shaped phrase words —
+    /// ANYCASE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL). Uppercase; null when the
+    /// argument is not a bare word. A word that matches no phrase keyword falls back to the ordinary operand
+    /// bind, so a data-name argument is never swallowed.</summary>
+    private static string? KeywordWordOf(Core.FunctionArgumentContext a)
+    {
+        if (a.fnArgPhraseWord() is { } kw) return kw.GetText().ToUpperInvariant();
+        return SoleDataReference(a) is { } d && d.dataReferenceSuffix().Length == 0
+            && d.cobolWord() is { } cw ? cw.GetText().ToUpperInvariant() : null;
+    }
+
+    /// <summary>The argument's sole data reference — non-null when the arithmetic-expression alternative is
+    /// exactly one <c>dataReference</c> primary with no operators, unary signs, or parentheses around it.</summary>
+    private static Core.DataReferenceContext? SoleDataReference(Core.FunctionArgumentContext a)
+    {
+        if (a.arithmeticExpression()?.additiveExpression() is not { } add) return null;
+        if (add.multiplicativeExpression() is not [{ } mul]) return null;
+        if (mul.powerExpression() is not [{ } pow]) return null;
+        if (pow.unaryExpression() is not [{ } un]) return null;
+        return un.primaryExpression()?.dataReference();
     }
 
     /// <summary>
     /// <c>table(… ALL …)</c> argument expansion (ISO §15.3): when a variadic function references a table with the
     /// ALL subscript, the effect is as if each table element were specified — left to right, the RIGHTMOST ALL
-    /// subscript varying fastest, each through 1..its OCCURS count. Returns true when the segment IS such a
-    /// reference (consuming it — including loud error operands for unresolvable shapes); false hands the segment
-    /// to the ordinary expression parse. An ALL subscript over an OCCURS DEPENDING table takes the CURRENT count
-    /// (§15.3) — a runtime quantity this bind-time expansion cannot produce; staged loud by name (§1.4).
+    /// subscript varying fastest, each through 1..its OCCURS count. Detected from an argument that is a sole data
+    /// reference whose one subscript capture (SUBSCRIPT-mode tokens — the D10/PHASE-15 deferral) holds a depth-0
+    /// ALL. Returns true when the argument IS such a reference (consuming it — including loud error operands for
+    /// unresolvable shapes); false hands the argument to the ordinary operand bind. An ALL subscript over an
+    /// OCCURS DEPENDING table takes the CURRENT count (§15.3) — a runtime quantity this bind-time expansion
+    /// cannot produce; staged loud by name (§1.4).
     /// </summary>
-    private bool TryExpandAll(List<IToken> seg, List<BoundOperand> args)
+    private bool TryExpandAll(Core.FunctionArgumentContext a, List<BoundOperand> args)
     {
-        int pos = SkipWs(seg, 0);
-        if (pos >= seg.Count || seg[pos].Type != Core.SUB_IDENTIFIER) return false;
-        string name = seg[pos].Text;
-        if (name.Equals("FUNCTION", StringComparison.OrdinalIgnoreCase)) return false;
-        pos++;
-        var quals = new List<string>();
-        while (PeekType(seg, pos) is Core.SUB_OF or Core.SUB_IN)
-        {
-            pos = SkipWs(seg, pos) + 1;
-            pos = SkipWs(seg, pos);
-            if (pos >= seg.Count || seg[pos].Type != Core.SUB_IDENTIFIER) return false;
-            quals.Add(seg[pos++].Text);
-        }
-        if (PeekType(seg, pos) != Core.SUB_LPAREN) return false;
-        pos = SkipWs(seg, pos);
-        var inner = CollectBalanced(seg, ref pos);
-        if (SkipWs(seg, pos) < seg.Count) return false;   // trailing tokens — not a bare table(ALL) argument
+        if (SoleDataReference(a) is not { } dref || dref.cobolWord() is not { } cw) return false;
+        string name = cw.GetText();
 
+        // Collect OF/IN qualifiers and the ONE trailing subscript group — which the grammar hangs off the LAST
+        // qualification when qualifiers are present (qualification : (OF|IN) cobolWord (subscriptPart|refModPart)*).
+        var quals = new List<string>();
+        Core.SubscriptPartContext? sp = null;
+        foreach (var suffix in dref.dataReferenceSuffix())
+        {
+            if (sp is not null) return false;                    // anything after the subscript group — not the shape
+            if (suffix.subscriptPart() is { } direct) { sp = direct; continue; }
+            if (suffix.qualification() is not { } q || q.cobolWord() is not { } qw) return false;   // ref-mod tail
+            quals.Add(qw.GetText());
+            if (q.refModPart().Length > 0 || q.subscriptPart().Length > 1) return false;
+            if (q.subscriptPart() is [{ } trailing]) sp = trailing;
+        }
+        if (sp?.subscriptOrRefMod() is not { } som) return false;
+
+        var inner = new List<IToken>();
+        ReferenceResolver.CollectLeafTokens(som, inner);
         var innerSegs = ReferenceResolver.SplitSubscriptTokens(inner);
         if (!innerSegs.Any(IsAllSegment)) return false;
 
@@ -676,232 +745,4 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     private static bool IsAllSegment(List<IToken> seg) =>
         seg.Count(t => t.Type != Core.SUB_WS) == 1 && seg.Any(t => t.Type == Core.SUB_ALL);
 
-    // ── The per-segment recursive-descent parse (the legacy ParseSubAdditive…ParseSubPrimary shape) ─────────
-
-    /// <summary>Parse one argument segment to a typed operand: a sole string literal stays alphanumeric; a sole
-    /// data reference stays a field operand (its category decides string-vs-numeric rendering); anything with
-    /// operators becomes a computed numeric expression. Unconsumed trailing tokens are a loud named operand —
-    /// never a silent partial parse (§1.4).</summary>
-    internal BoundOperand ParseArgSegment(List<IToken> toks)
-    {
-        int pos = 0;
-        BoundOperand op = ParseAdditive(toks, ref pos);
-        if (SkipWs(toks, pos) < toks.Count)
-            return new BoundOperandError($"intrinsic argument '{SegText(toks)}'");
-        return op;
-    }
-
-    private BoundOperand ParseAdditive(List<IToken> toks, ref int pos)
-    {
-        BoundOperand left = ParseMultiplicative(toks, ref pos);
-        while (PeekType(toks, pos) is Core.SUB_PLUS or Core.SUB_MINUS)
-        {
-            pos = SkipWs(toks, pos);
-            char op = toks[pos].Type == Core.SUB_PLUS ? '+' : '-';
-            pos++;
-            BoundOperand right = ParseMultiplicative(toks, ref pos);
-            left = new BoundComputedOperand(new BoundBinary(ArgExpr(left), op, ArgExpr(right)));
-        }
-        return left;
-    }
-
-    private BoundOperand ParseMultiplicative(List<IToken> toks, ref int pos)
-    {
-        BoundOperand left = ParsePower(toks, ref pos);
-        while (PeekType(toks, pos) is Core.SUB_STAR or Core.SUB_SLASH)
-        {
-            pos = SkipWs(toks, pos);
-            char op = toks[pos].Type == Core.SUB_STAR ? '*' : '/';
-            pos++;
-            BoundOperand right = ParsePower(toks, ref pos);
-            left = new BoundComputedOperand(new BoundBinary(ArgExpr(left), op, ArgExpr(right)));
-        }
-        return left;
-    }
-
-    private BoundOperand ParsePower(List<IToken> toks, ref int pos)
-    {
-        BoundOperand left = ParseUnary(toks, ref pos);
-        if (PeekType(toks, pos) == Core.SUB_POWER)
-        {
-            pos = SkipWs(toks, pos) + 1;
-            BoundOperand right = ParsePower(toks, ref pos);   // ** is right-associative (ISO §8.8.1)
-            return new BoundComputedOperand(new BoundPower(ArgExpr(left), ArgExpr(right)));
-        }
-        return left;
-    }
-
-    private BoundOperand ParseUnary(List<IToken> toks, ref int pos)
-    {
-        int t = PeekType(toks, pos);
-        if (t is Core.SUB_PLUS or Core.SUB_MINUS)
-        {
-            pos = SkipWs(toks, pos) + 1;
-            BoundOperand operand = ParseUnary(toks, ref pos);
-            return t == Core.SUB_PLUS ? operand : new BoundComputedOperand(new BoundNegate(ArgExpr(operand)));
-        }
-        return ParseArgPrimary(toks, ref pos);
-    }
-
-    private BoundOperand ParseArgPrimary(List<IToken> toks, ref int pos)
-    {
-        pos = SkipWs(toks, pos);
-        if (pos >= toks.Count) return new BoundOperandError("empty intrinsic argument");
-        var tok = toks[pos];
-
-        if (tok.Type == Core.SUB_LPAREN)   // parenthesized sub-expression
-        {
-            pos++;
-            BoundOperand inner = ParseAdditive(toks, ref pos);
-            pos = SkipWs(toks, pos);
-            if (pos < toks.Count && toks[pos].Type == Core.SUB_RPAREN) pos++;
-            return inner;
-        }
-
-        if (tok.Type is Core.SUB_INTEGERLIT or Core.SUB_DECIMALLIT
-            or Core.SIGNED_INTEGERLIT or Core.SIGNED_DECIMALLIT)
-        {
-            pos++;
-            return new BoundNumericLiteral(host.Expr.CheckLiteral(tok.Text));   // the one literal chokepoint (digit cap + comma mode)
-        }
-
-        if (tok.Type == Core.SUB_STRINGLIT)
-        {
-            pos++;
-            return new BoundStringLiteral(DecodeSubString(tok.Text));
-        }
-
-        // National/boolean literal arguments decode char-correct with their category tags (the introduction
-        // gates + 0814 guards ride the shared helpers); per-function class conformance is the intrinsic
-        // catalog's binding job (the -N function family is Phase-4a residue #11).
-        if (tok.Type == Core.SUB_NATLIT)
-        {
-            pos++;
-            return host.Expr.NationalLiteralOperand(tok.Text);
-        }
-        if (tok.Type == Core.SUB_BOOLLIT)
-        {
-            pos++;
-            return host.Expr.BooleanLiteralOperand(tok.Text);
-        }
-
-        if (tok.Type == Core.SUB_IDENTIFIER)
-        {
-            // Nested FUNCTION call: in SUBSCRIPT mode the keyword and the function name are plain identifiers —
-            // recognize "FUNCTION name [( args )]" and recurse (e.g. ORD(FUNCTION CHAR(4)), MOD(C, FUNCTION MOD(C, B))).
-            if (tok.Text.Equals("FUNCTION", StringComparison.OrdinalIgnoreCase))
-            {
-                pos = SkipWs(toks, pos + 1);
-                if (pos >= toks.Count || toks[pos].Type != Core.SUB_IDENTIFIER)
-                    return new BoundOperandError("nested FUNCTION without a function name");
-                string fname = toks[pos++].Text;
-                List<IToken> inner = [];
-                if (PeekType(toks, pos) == Core.SUB_LPAREN)
-                {
-                    pos = SkipWs(toks, pos);
-                    inner = CollectBalanced(toks, ref pos);
-                }
-                return OperandOf(BindIntrinsicCore(fname, inner));
-            }
-
-            pos++;
-            string name = tok.Text;
-            var quals = new List<string>();
-            while (PeekType(toks, pos) is Core.SUB_OF or Core.SUB_IN)   // OF/IN qualification (§8.4.2.3.2)
-            {
-                pos = SkipWs(toks, pos) + 1;
-                pos = SkipWs(toks, pos);
-                if (pos >= toks.Count || toks[pos].Type != Core.SUB_IDENTIFIER) break;
-                quals.Add(toks[pos++].Text);
-            }
-
-            if (PeekType(toks, pos) == Core.SUB_LPAREN)   // nested subscripts (or ref-mod — staged loud)
-            {
-                pos = SkipWs(toks, pos);
-                var inner = CollectBalanced(toks, ref pos);
-                if (inner.Any(t => t.Type == Core.SUB_COLON))
-                    return new BoundOperandError($"reference-modified intrinsic argument '{name}(…:…)'");
-                var rendered = new List<string>();
-                foreach (var s in ReferenceResolver.SplitSubscriptTokens(inner))
-                {
-                    if (ctx.Refs.RenderIndexSegment(s) is not { } e)
-                        return new BoundOperandError($"subscript of intrinsic argument '{name}'");
-                    rendered.Add(e);
-                }
-                return ctx.Refs.ResolveByName(name, quals, rendered) is { } sp
-                    ? new BoundFieldOperand(sp)
-                    : new BoundOperandError($"intrinsic argument '{name}'");
-            }
-
-            // A bare INDEXED BY index-name argument reads its occurrence number (ISO §13.18.38 / §3.5).
-            if (quals.Count == 0 && ctx.Symbols.TryResolveIndex(name, ctx.ActiveScope, out var ix))
-                return new BoundComputedOperand(new BoundIndexRef(ix));
-
-            return ctx.Refs.ResolveByName(name, quals, []) is { } place
-                ? new BoundFieldOperand(place)
-                : new BoundOperandError($"intrinsic argument '{name}'");
-        }
-
-        pos++;   // consume — the segment-level trailing-token check reports it
-        return new BoundOperandError($"intrinsic argument token '{tok.Text}'");
-    }
-
-    /// <summary>A bound operand as a numeric expression node (the arithmetic combinators' conversion): a field
-    /// reads its value, a literal its scaled text, a computed wrapper unwraps; an alphanumeric literal inside
-    /// arithmetic is a loud named error (only NUMVAL converts strings to numbers, §15.67).</summary>
-    private static readonly ArgExprVisitor _argExprVisitor = new();
-    private static BoundExpr ArgExpr(BoundOperand op) => op.Accept(_argExprVisitor);
-
-    private sealed class ArgExprVisitor : IBoundOperandVisitor<BoundExpr>
-    {
-        // The former `_ =>` — a figurative / ALL-literal / boolean operand is not an arithmetic-intrinsic argument.
-        private static BoundExpr Loud(BoundOperand n) => new BoundExprError($"intrinsic argument '{n.GetType().Name}'");
-        public BoundExpr Visit(BoundComputedOperand n) => n.Expr;
-        public BoundExpr Visit(BoundFieldOperand n) => new BoundNumRef(n.Place);
-        public BoundExpr Visit(BoundNumericLiteral n) => new BoundNumLiteral(n.Text);
-        public BoundExpr Visit(BoundStringLiteral n) => new BoundExprError("alphanumeric literal in an arithmetic intrinsic argument");
-        public BoundExpr Visit(BoundOperandError n) => new BoundExprError(n.Feature);
-        public BoundExpr Visit(BoundFigurative n) => Loud(n);
-        public BoundExpr Visit(BoundAllLiteral n) => Loud(n);
-        public BoundExpr Visit(BoundBoolOperand n) => Loud(n);
-    }
-
-    // ── Token utilities ──────────────────────────────────────────────────────────────────────────────────────
-
-    private static int SkipWs(List<IToken> toks, int pos)
-    {
-        while (pos < toks.Count && toks[pos].Type == Core.SUB_WS) pos++;
-        return pos;
-    }
-
-    private static int PeekType(List<IToken> toks, int pos)
-    {
-        pos = SkipWs(toks, pos);
-        return pos < toks.Count ? toks[pos].Type : -1;
-    }
-
-    /// <summary>Collect the tokens inside a balanced <c>( … )</c> starting at <paramref name="pos"/> (which must
-    /// sit on the SUB_LPAREN), excluding the outer parens; <paramref name="pos"/> lands past the close.</summary>
-    private static List<IToken> CollectBalanced(List<IToken> toks, ref int pos)
-    {
-        var inner = new List<IToken>();
-        if (pos >= toks.Count || toks[pos].Type != Core.SUB_LPAREN) return inner;
-        pos++;
-        int depth = 1;
-        while (pos < toks.Count)
-        {
-            int t = toks[pos].Type;
-            if (t == Core.SUB_LPAREN) depth++;
-            else if (t == Core.SUB_RPAREN && --depth == 0) { pos++; break; }
-            inner.Add(toks[pos++]);
-        }
-        return inner;
-    }
-
-    /// <summary>A COBOL string literal's character value from its SUB_STRINGLIT text (either quote character;
-    /// doubled quotes collapse — ISO §8.3.3.4). The one codec (the frozen-legacy SUBSCRIPT token path itself is
-    /// deleted at PHASE 15; the decode delegates now so there is a SINGLE decoder — feedback_singular_pattern).</summary>
-    private static string DecodeSubString(string raw) => CobolLiteral.Decode(raw);
-
-    private static string SegText(List<IToken> toks) => string.Concat(toks.Select(t => t.Text)).Trim();
 }

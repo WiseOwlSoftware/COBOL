@@ -707,8 +707,11 @@ the verification metric is the greenfield `guard.ps1` + the D10.1 corpus + INV-1
   `InterpretSubscripts`.
 - **D10.3** — introduce the interpreted subscript grammar rule (per §9.4's answer) + rewrite
   `ReferenceResolver`'s subscript interpreters over real nodes.
-- **D10.4** (the big one) — reunify `functionCall` onto `argumentList` + **rewrite the `StatementBinder.Intrinsics.cs`
-  recursive-descent `SUB_*` parser** over real `argument`/`arithmeticExpression` nodes; migrate `Udf`/`Emitter`.
+- **D10.4** — MOSTLY PRE-EMPTED by P7 Step 12 (FUNCTION arguments already parse as real trees via
+  `functionArgList` + the lexer's FUNCTION suppression / `SIGNED_*` twins / `FNARG_SEPARATOR`; the recursive-descent
+  `SUB_*` parser is deleted; Udf/keyword-omitted route through ONE `BindArgOperand`). Residual: reunify
+  `functionArgList` with `argumentList`, and re-home the keyword-omitted D2 fragment re-parse onto D10.3's
+  interpreted subscripts.
 - **D10.5** — delete the SUBSCRIPT-mode block + the `LPAREN` entry action + `PreviousTokenCouldBeDataName` +
   reconcile the Group-A drift test (the `subscriptTrigger` column goes dead) — **gated on §9.3** (legacy retirement
   / G8 coordination, since `SUB_*`/`SubscriptEntryContext` are legacy-shared).

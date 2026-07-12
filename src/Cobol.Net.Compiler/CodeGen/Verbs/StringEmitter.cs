@@ -42,8 +42,8 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         {
             // GR3a: the sender's CONTENT transfers per the alphanumeric-to-alphanumeric move mechanics — its raw
             // character image (a numeric sender contributes its sign-carrying zoned image), not a converted value.
-            string src = OperandText.AsString(snd.Value);
-            string delim = snd.BySize || snd.Delimiter is null ? "null" : OperandText.AsString(snd.Delimiter);
+            string src = OperandText.AsString(snd.Value, num);
+            string delim = snd.BySize || snd.Delimiter is null ? "null" : OperandText.AsString(snd.Delimiter, num);
             w.Line($"{acc} = {RuntimeApi.StrTransfer(acc, src, delim, ptr, ovf)};");
         }
         WriteImage(s.Into, acc);
@@ -74,7 +74,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             // GR10: applied in statement order (the kernel's earliest-match-then-first-listed scan); a figurative
             // is its single character (GR7); a field delimiter is its FULL content — trailing spaces included
             // (GR9: the delimiter is the content of the item; the legacy's TrimEnd was a deviation).
-            w.Line($"string[] {dels} = {{ {string.Join(", ", s.Delimiters.Select(d => OperandText.AsString(d.Value)))} }};");
+            w.Line($"string[] {dels} = {{ {string.Join(", ", s.Delimiters.Select(d => OperandText.AsString(d.Value, num)))} }};");
             w.Line($"bool[] {alls} = {{ {string.Join(", ", s.Delimiters.Select(d => d.All ? "true" : "false"))} }};");
         }
         else
@@ -136,7 +136,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     /// <summary>The character image of a STRING/UNSTRING character-position operand — its raw content (a group's
     /// concatenated image, a numeric-DISPLAY item's sign-carrying zoned image): the verbs operate on character
     /// positions, never converted values (STRING GR3a / UNSTRING GR11).</summary>
-    private static string ReadImage(Place p) => OperandText.AsString(new BoundFieldOperand(p));
+    private string ReadImage(Place p) => OperandText.AsString(new BoundFieldOperand(p), num);
 
     /// <summary>Store a full-width character image back into the STRING receiver, preserving its storage shape
     /// (§14.9.43.4 GR7 — the image already carries the untouched positions): a character-image group distributes

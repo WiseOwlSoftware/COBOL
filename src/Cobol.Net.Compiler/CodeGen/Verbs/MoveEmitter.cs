@@ -36,7 +36,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     var rmp = (RefModPlace)target;
                     ctx.Writer.Line(m.Source is BoundFigurative fig
                         ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.Pic?.Category))
-                        : PlaceRenderer.Write(rmp, OperandText.AsString(m.Source)));
+                        : PlaceRenderer.Write(rmp, OperandText.AsString(m.Source, num)));
                     break;
                 case MoveKind.Group:
                     EmitGroupMove(target, m.Source);
@@ -116,8 +116,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // The width-fitted image (§14.6.8): receiver character-position count via the ONE canonical ImageWidth
         // (V occupies no position; SIGN SEPARATE adds one; P adds none — §13.18.40). deSign is moot for a group.
         string image = item.Justified
-            ? RuntimeApi.StrStoreJustified(OperandText.AsString(source), $"{item.ImageWidth}")
-            : RuntimeApi.StrStore(OperandText.AsString(source), $"{item.ImageWidth}");
+            ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, num), $"{item.ImageWidth}")
+            : RuntimeApi.StrStore(OperandText.AsString(source, num), $"{item.ImageWidth}");
         // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge; every
         // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
         // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.
@@ -175,7 +175,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             ? $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating)}, {width})"
             : source is BoundAllLiteral all
             ? CsLiteral(EmitText.RepeatToWidth(all.Literal, width))
-            : RuntimeApi.StrStore(OperandText.AsString(source, deSign: true), $"{width}");
+            : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: true), $"{width}");
         // ISO §13.18.38 GR8: an occurs-depending group RECEIVER with data-name-1 OUTSIDE the group uses only the
         // CURRENT-count part (positions past the count are not modified, GR8a); with data-name-1 INSIDE, the MAXIMUM
         // length is used (GR8b — the normal full-width FromImage). A Tier-B REDEFINES group view's image IS its
@@ -298,34 +298,34 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // (§14.9.25.4 GR5 — NC104A MOVE-TEST-F1-39: "12345" → $12,345.00), never a plain character copy.
             // (A GROUP sender never reaches here — GR4 makes that a group move, no editing: EmitGroupToElementaryMove.)
             case PicCategory.NumericEdited:
-                return RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, deSign: true)), "0", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfgArgs);
+                return RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(OperandText.AsString(source, num, deSign: true)), "0", CsLiteral(pic.EditMask!), ArithmeticEmitter.BwzFlag(target) + ctx.EditCfgArgs);
             // An ALPHANUMERIC-EDITED receiver places the source's characters into its X/A/9 positions with B 0 /
             // insertion (ISO §14.9.25.4 GR5 — alignment + editing; §13.18.40 simple insertion).
             case PicCategory.Alphanumeric when pic.EditMask is { } amask:
                 // A figurative source supplies its fill for EVERY data position (§8.3.1.2 — repeated to width).
                 string aeSrc = source is BoundFigurative ff
                     ? $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Collating)}, {pic.Length})"
-                    : OperandText.AsString(source, deSign: true);
+                    : OperandText.AsString(source, num, deSign: true);
                 return RuntimeApi.EditFormatAlphanumeric(aeSrc, CsLiteral(amask));
             case PicCategory.Alphanumeric:
                 // A signed numeric source drops its operational sign into an alphanumeric receiver (ISO §14.9.25.4 GR6a);
                 // a JUSTIFIED receiver right-justifies (left space-fill / left truncation, §14.9.25.4 GR6c).
                 return target.Justified
-                    ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, deSign: true), $"{pic.Length}")
-                    : RuntimeApi.StrStore(OperandText.AsString(source, deSign: true), $"{pic.Length}");
+                    ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, num, deSign: true), $"{pic.Length}")
+                    : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: true), $"{pic.Length}");
             // A NATIONAL receiver stores exactly like alphanumeric on the character substrate (§14.6.8.5 —
             // left-justify, national-space pad, right truncation; JUSTIFIED per §13.18.32): A→N widening,
             // N→N, 9→N digit imaging, and boolean→N all ride AsString under the D-N4 Latin-1 identity
             // correspondence (§14.9.25.4 GR6/GR6a).
             case PicCategory.National:
                 return target.Justified
-                    ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, deSign: true), $"{pic.Length}")
-                    : RuntimeApi.StrStore(OperandText.AsString(source, deSign: true), $"{pic.Length}");
+                    ? RuntimeApi.StrStoreJustified(OperandText.AsString(source, num, deSign: true), $"{pic.Length}")
+                    : RuntimeApi.StrStore(OperandText.AsString(source, num, deSign: true), $"{pic.Length}");
             // A BOOLEAN receiver pads/left-fills with boolean ZEROS (§14.6.8.6; JUSTIFIED §13.18.32 GR2).
             // Figurative ZERO already early-returned above as a '0' fill; the SR7-illegal figurative shapes
             // never reach emit (bind-rejected, MoveCategoryLegality).
             case PicCategory.Boolean:
-                return RuntimeApi.StrStoreBoolean(OperandText.AsString(source, deSign: true), $"{pic.Length}", target.Justified);
+                return RuntimeApi.StrStoreBoolean(OperandText.AsString(source, num, deSign: true), $"{pic.Length}", target.Justified);
             case PicCategory.Numeric:
                 // A digit-only ALL "literal" repeats across the RECEIVER's digit positions (ISO §8.3.3.6.4 GR2 —
                 // repetition to the associated item's size, truncated from the right; §14.9.25.4 GR6d3b — a

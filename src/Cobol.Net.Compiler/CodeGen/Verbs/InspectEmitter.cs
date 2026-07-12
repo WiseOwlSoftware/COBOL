@@ -29,7 +29,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
         var w = ctx.Writer;
         int id = ctx.Names.NextInspectTmp();
         string img = $"__ins{id}";
-        w.Line($"string {img} = {OperandText.AsString(new BoundFieldOperand(ins.Target), deSign: true)};");
+        w.Line($"string {img} = {OperandText.AsString(new BoundFieldOperand(ins.Target), num, deSign: true)};");
         string back = ins.Backward ? "true" : "false";
 
         if (ins.Tallying.Count > 0)
@@ -128,6 +128,6 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
     /// pattern / an omitted delimiter). An identifier operand reads its FULL raw image at run time — current
     /// content, no trimming (GR5; a PIC X(2) holding "A " is the two-character pattern "A "); a signed numeric
     /// operand reads de-signed (GR4d).</summary>
-    private static string OperandTextOf(BoundOperand? op) =>
-        op is null ? "null" : OperandText.AsString(op, deSign: true);
+    private string OperandTextOf(BoundOperand? op) =>
+        op is null ? "null" : OperandText.AsString(op, num, deSign: true);
 }

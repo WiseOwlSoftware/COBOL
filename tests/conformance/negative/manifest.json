@@ -20,6 +20,7 @@
     "exit-method",
     "fixed-form-word-continuation",
     "free-non-pointer",
+    "func-omitted-arg",
     "label-records-fd",
     "level88-alnum-value-boolean",
     "level88-boolean-value-alnum",

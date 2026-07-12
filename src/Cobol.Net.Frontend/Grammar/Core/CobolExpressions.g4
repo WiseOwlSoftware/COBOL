@@ -239,14 +239,61 @@ primaryExpression
     | LPAREN arithmeticExpression RPAREN
     ;
 
-// FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions, ISO §15).
-// Arguments (if any) are captured in SUBSCRIPT lexer mode (like subscripts) so the COBOL
-// comma/space separators that delimit arguments are preserved — e.g. MAX(-4, 7, 3, -8) must
-// stay four arguments, not be re-read as "3 - 8". The binder then parses each comma/space-
-// delimited segment as a full arithmetic expression (ISO §15 allows arithmetic-expression
-// arguments). No-arg functions (e.g. FUNCTION PI) have no subscriptPart.
+// FUNCTION calls (1989 Amendment to COBOL-85 — intrinsic functions, ISO §15; function-identifier §8.4.3.2).
+// P7 Step 12: the argument-list '(' after "FUNCTION functionName" stays in DEFAULT lexer mode (the lexer's
+// FUNCTION suppression — §8.4.3.2 SR6: that '(' is ALWAYS the argument list), so each argument parses as a real
+// arithmeticExpression through the ONE expression grammar (SR8: an argument is an identifier, literal, boolean
+// expression, or arithmetic expression). Arguments are separated by separators only (§8.3.5: space, or
+// comma/semicolon followed by space — both skipped by the lexer), so the list is plain juxtaposition; the
+// space-vs-adjacent sign distinction (MAX(A -4) = two args, MAX(A - 4) = one subtraction; §8.7.1 operator
+// spacing + §8.3.3.3.2 literal-sign adjacency) is preserved by the lexer's argument-region SIGNED_* twins.
+// A nested data-reference subscript inside an argument still lexes in SUBSCRIPT mode (the D10/PHASE-15
+// deferral is untouched). The empty-parens form (FUNCTION RANDOM ()) is the §8.4.3.2 SR6 NOTE's shape.
+// The keyword-omitted form name(args) (§8.4.3.2 SR2) has NO grammar alternative (D2 — irreducible ambiguity
+// with a subscripted dataReference); the binder re-parses its captured argument text through
+// functionArgListFragment below.
 functionCall
-    : FUNCTION functionName subscriptPart?
+    : FUNCTION functionName (LPAREN functionArgList? RPAREN)?
+    ;
+
+// Arguments separate by space (no token — plain juxtaposition) or by the §8.3.5 comma/semicolon-plus-space
+// separator, which inside an argument region survives as FNARG_SEPARATOR so a following '(' reads as a
+// parenthesized ARGUMENT, never as a subscript of the previous argument's data-name.
+functionArgList
+    : functionArgument (FNARG_SEPARATOR? functionArgument)*
+    ;
+
+// One function argument (§8.4.3.2 SR8 + the §15 per-function phrase words). The phrase-keyword alternative
+// admits the RESERVED words that appear inside §15 argument lists (TRIM LEADING/TRAILING §15.96; FIND-STRING
+// LAST/START/AFTER §15.37; SUBSTITUTE FIRST/LAST §15.87; CONVERT ANY/ALPHANUMERIC/NATIONAL §15.19) — words that
+// are plain IDENTIFIERs (ANYCASE, HEX, NAT, ANUM, BYTE, CURRENT, ACTIVATING, NESTED, STACK, TOP-LEVEL) arrive
+// through dataReference inside arithmeticExpression and are classified by name in the binder. OMITTED is the
+// §8.4.3.2.2 format's argument alternative (SR7 bars it for intrinsics — a bind-time diagnostic, not a parse
+// error). A superset rule: which words a given function admits is the binder's §15 job.
+functionArgument
+    : fnArgPhraseWord
+    | OMITTED
+    | nonNumericLiteral
+    | arithmeticExpression
+    ;
+
+fnArgPhraseWord
+    : LEADING
+    | TRAILING
+    | LAST
+    | FIRST
+    | ANY
+    | START
+    | AFTER
+    | ALPHANUMERIC
+    | NATIONAL
+    ;
+
+// The D2 keyword-omitted re-parse entry (binder-invoked only): the argument text captured by a dataReference's
+// subscriptPart, re-lexed with the lexer primed as a function-argument region (PrimeFunctionArgs), parses
+// through the SAME functionArgList rule — ONE argument grammar for both reference forms.
+functionArgListFragment
+    : functionArgList? EOF
     ;
 
 // Function names are normally IDENTIFIERs, but several intrinsic function names
@@ -307,6 +354,8 @@ signedNumericLiteral
 numericLiteralCore
     : FLOATLIT                             // 1.5E3, 2.5E-2 (floating-point literal, ISO §8.3.3.3.3 — D16)
     | DECIMALLIT                           // 123.45 or .45 (dot decimal from lexer)
+    | SIGNED_DECIMALLIT                    // -15.6 (sign-adjacent literal — FUNCTION-argument regions only, P7 Step 12)
+    | SIGNED_INTEGERLIT                    // -4 (sign-adjacent literal — FUNCTION-argument regions only)
     | INTEGERLIT COMMA INTEGERLIT          // 123,45 (comma decimal — DECIMAL-POINT IS COMMA)
     | COMMA INTEGERLIT                     // ,45 (leading comma decimal)
     | INTEGERLIT                           // 123 (integer)

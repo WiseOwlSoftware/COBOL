@@ -21,19 +21,26 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP D: PHASE-07 **Step 12** (FUNCTION-arg grammar)
+## ⛔🔀 RESUME AT — EXEC STEP E: P2/P3 edition-gate remediation
 
-**Both god classes are dissolved AND `Place` is structural.** PHASE-07 Steps 1–11 are COMPLETE — the EMITTER (Step 9),
-the BINDER (Step 10), and the string-carrying `Place` (Step 11) are all decomposed: every `Place` subtype is now
-structural over an `AccessPath` (`Binding/Model/AccessPath.cs`), rendered by `CodeGen/Roslyn/PlaceRenderer.cs`;
-`Place.Read()/Write()` are deleted and `PlaceNeutralityTests` (R5) locks the backend-neutral bound tree (G4). ONE
-documented deferral: subscript / ref-mod / RedefView-offset INDEX expressions stay transitional STRINGS on the
-structural nodes, folding into the D10 SUBSCRIPT-mode removal (PHASE 15). Read the PHASE-07 STATUS line first
-(`docs/rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md`), then execute:
+**PHASE-07 IS COMPLETE (Steps 1–12).** Both god classes are dissolved; `Place` is structural (Step 11 —
+`AccessPath` + `CodeGen/Roslyn/PlaceRenderer`, `PlaceNeutralityTests` locks G4); and **Step 12 landed the
+FUNCTION-arg grammar**: `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?` — arguments are
+REAL `arithmeticExpression` trees through the ONE `ExpressionBinder.BindExpr` (lexer FUNCTION suppression +
+argument-region `SIGNED_*` twins per §8.7.1/§8.3.3.3.2 + the `FNARG_SEPARATOR` §8.3.5 separator token); the
+hand-rolled recursive-descent arg parser is DELETED outright (the keyword-omitted D2 form re-parses its captured
+text through the SAME `functionArgList` rule via `Frontend.Parsing.FunctionArgFragment`; `UdfBinder` binds through
+the same `BindArgOperand`); the `IntrinsicRenderer` STATIC channel is DELETED (one instance channel over the ONE
+`NumericRenderer` under `ReceiverContext.None`, `RuntimeApi`-routed, off the ratchet whitelist; the public render
+entries are save/restore re-entrant). The legacy oracle consumes the reshaped CST via the thin
+`MapFunctionArgTokens` shim (behavior-identical, NIST-proven). ONE documented deferral stands: subscript / ref-mod
+/ RedefView-offset INDEX expressions stay transitional STRINGS, folding into D10 (PHASE 15; D10.4 is now mostly
+pre-empted — residual scope recorded in `DESIGN-frontend-grammar.md §9.5` + PHASE-15 CUT 2.5). Read the PHASE-07
+STATUS banner for the full as-landed record, then execute:
 
-- **Step 12 — FUNCTION args as real expressions** through the ONE `ExpressionBinder`/`BindExpr` (the lexer-mode
-  blocker + the space-separated-argument hazard; the `ArgPrimary` recursive-descent parser is DELETED), and delete the
-  `IntrinsicRenderer` static channel. A shared `.g4` change ⇒ FULL legacy guard (NIST 353 MATCH must hold).
+- **Exec Step E — edition-gate remediation (plan §4.1 / task #13):** fold the ~15 inline binder edition gates into
+  the two-arm `VersionConformancePass`, delete the orphaned `GateId` scaffolding, and correct the
+  "edition-agnostic" over-claims in the P2/P3 docs.
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's
 conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored); commits are
@@ -56,17 +63,19 @@ image-fact caching (the O(subtree) perf work).
   `RecordLayout` is the ONE phase-free width/offset authority (§13.18.44.3 SR8 enforced, COBOLNET1539); the data
   model in `Binding/Model/` (`PlaceDecorator` base; `StrongTypeModel` + `PictureAnalyzer`; sentinels → `DataItem.
   Pending`); the tier verdict single-sourced through `RedefinesClass.Classify`; ONE `UsageInheritancePass`.
-- **D ◐ (NOW)** — the rest of PHASE-07 (Step 12 above; Steps 1–11 done, incl. structural `Place`).
-- **E** — P2/P3 edition-gate remediation: fold the ~15 inline gates into the two-arm `VersionConformancePass`,
-  delete orphaned `GateId`, correct the "edition-agnostic" over-claims.
+- **D ✅** — PHASE-07 complete (Steps 1–12: both god classes dissolved; structural `Place`; FUNCTION-arg grammar +
+  the `IntrinsicRenderer` static-channel deletion).
+- **E ◐ (NOW)** — P2/P3 edition-gate remediation: fold the ~15 inline gates into the two-arm
+  `VersionConformancePass`, delete orphaned `GateId`, correct the "edition-agnostic" over-claims.
 - **F** — PHASE 08–16: runtime reorg, M2/M3/M4 feature waves, version-matrix closure, G8 legacy cut, CIL backend.
 
-**Done:** Phases 00–06 (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
+**Done:** Phases 00–07 (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
 version-conformance pipeline [the two-arm `VersionConformancePass` is the SOLE edition gate] · frontend consolidation
-· the unified data model · the Real Binder) and PHASE-07 Steps 1–11 (both god classes dissolved + structural `Place`).
+· the unified data model · the Real Binder · the visitor/god-class/`Place`/FUNCTION-arg decomposition).
 D10 SUBSCRIPT-mode
-removal is RELOCATED → PHASE 15 §"CUT 2.5". ⚠ Flagged latent (not blocking): `OoReparent{Class,Factory}Data`
-mis-bind the class-level env (CURRENCY/ALPHABET/SELECT) — a dedicated fix ~PHASE 09.
+removal is RELOCATED → PHASE 15 §"CUT 2.5" (D10.4 mostly pre-empted by P7 Step 12). ⚠ Flagged latent (not
+blocking): `OoReparent{Class,Factory}Data` mis-bind the class-level env (CURRENCY/ALPHABET/SELECT) — a dedicated
+fix ~PHASE 09.
 
 **Battery (keep green + pushed at EVERY commit):** 3166 conformance · 282 unit · 33 characterization (32 snapshots
 byte-exact + the RuntimeApi ratchet) · FULL legacy guard NIST 353 MATCH. ⚠ Build `CobolSharp.sln` before `dotnet

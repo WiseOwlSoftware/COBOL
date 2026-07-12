@@ -36,7 +36,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         var w = ctx.Writer;
         string nameExpr = c.LiteralName is { } literal
             ? CsLiteral(literal)
-            : $"({OperandText.AsString(c.DynamicName!)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
+            : $"({OperandText.AsString(c.DynamicName!, num)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
         string args = c.Args.Count == 0
             ? "System.Array.Empty<CobolArg>()"
             : $"new CobolArg[] {{ {string.Join(", ", c.Args.Select(ArgText))} }}";
@@ -220,7 +220,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     /// RETURNING delivery) is such a boundary.</summary>
     internal static string CallStringRead(Place p) => p is OdoGroupPlace odo
         ? $"{PlaceRenderer.Read(odo)}.AsImage()"
-        : OperandText.AsString(new BoundFieldOperand(p));
+        : OperandText.FieldImage(p);
 
     internal static string CallStringWrite(Place p, string value) =>
         // The boundary WRITE half of the §14.2.3 GR8/GR9 full-allocation rule above: a group (including an
@@ -239,7 +239,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         var ecProg = EnabledProgramNames();
         foreach (var (literal, dynamic) in c.Targets)
         {
-            string nameExpr = literal is { } l ? CsLiteral(l) : $"({OperandText.AsString(dynamic!)}).Trim()";
+            string nameExpr = literal is { } l ? CsLiteral(l) : $"({OperandText.AsString(dynamic!, num)}).Trim()";
             string call = $"ProgramRegistry.Cancel({nameExpr}, {CsLiteral(callState.SelfPath)});";
             if (ecProg.Count == 0)
             {

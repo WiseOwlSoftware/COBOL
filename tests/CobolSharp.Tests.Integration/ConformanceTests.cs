@@ -109,6 +109,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // DECIMAL intermediate (§8.8.1.2/§8.8.1.4 — 2/7*7 = 2.00000); the FROZEN legacy engine does not
         // implement that routing (it gives the native-clipped 1.99997), so this is greenfield-only.
         ("2014", "options_paragraph"),
+        // P7 Step 12 (FUNCTION-arg grammar): the golden pins §8.8.1.2 r3 — consecutive same-level operations
+        // execute LEFT to right, INCLUDING ** (2 ** 3 ** 2 = 64). The frozen legacy's arithmetic parser folds
+        // ** right-associatively (512) — a known legacy non-conformance; greenfield-only.
+        ("2014", "func_expr_arg"),
         // Same family (P3 step 9): ARITHMETIC IS STANDARD-DECIMAL routes the fixed-point intermediate through the
         // standard DECIMAL data item (§8.8.1.4 — 2/7*7 = 2.00000); the frozen legacy engine doesn't implement it.
         ("2014", "arithmetic_standard_decimal"),

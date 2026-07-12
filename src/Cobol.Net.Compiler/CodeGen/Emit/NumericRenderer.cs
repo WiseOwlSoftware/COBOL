@@ -38,11 +38,27 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// <see cref="IntrinsicRenderer"/> (an intrinsic's working scale/mode derive from the SAME receiver).</summary>
     internal ReceiverContext Receiver => _rcv;
 
-    /// <summary>Render a bound numeric expression as a scaled long, computed FOR <paramref name="rcv"/>.</summary>
-    public NumX Render(BoundExpr e, in ReceiverContext rcv) { _rcv = rcv; return e.Accept(this); }
+    /// <summary>Render a bound numeric expression as a scaled long, computed FOR <paramref name="rcv"/>.
+    /// Save/restore makes every public entry RE-ENTRANT (P7 Step 12): the instance string channel renders an
+    /// intrinsic's numeric arguments under <see cref="ReceiverContext.None"/> MID-render, and the outer render
+    /// must resume under its own receiver — the H1 staleness class stays closed by construction.</summary>
+    public NumX Render(BoundExpr e, in ReceiverContext rcv)
+    {
+        var saved = _rcv;
+        _rcv = rcv;
+        try { return e.Accept(this); }
+        finally { _rcv = saved; }
+    }
 
-    /// <summary>Render a bound operand as a scaled native-integer value, computed FOR <paramref name="rcv"/>.</summary>
-    public NumX AsNum(BoundOperand op, in ReceiverContext rcv) { _rcv = rcv; return op.Accept(this); }
+    /// <summary>Render a bound operand as a scaled native-integer value, computed FOR <paramref name="rcv"/>
+    /// (re-entrant — see <see cref="Render"/>).</summary>
+    public NumX AsNum(BoundOperand op, in ReceiverContext rcv)
+    {
+        var saved = _rcv;
+        _rcv = rcv;
+        try { return op.Accept(this); }
+        finally { _rcv = saved; }
+    }
 
     // ── IBoundExprVisitor<NumX> ──────────────────────────────────────────────────────────────────────────────
     public NumX Visit(BoundNumLiteral n) => EmitText.UnscaledLit(n.Text);

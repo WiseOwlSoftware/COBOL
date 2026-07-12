@@ -1,11 +1,12 @@
 # DESIGN — Target Binder Pipeline & Bound-Tree / IR
 
-Status: IMPLEMENTED (rearchitecture — PHASE-07 Steps 1–10). The binder decomposition in this design is built in the
-tree: the DAG-validated pass framework, the immutable `BoundCompilation` + the ONE scoped `SymbolTable`, the
-source-generated exhaustive bound-tree visitor, the god-class dissolution into `BinderContext`-threaded per-verb
-collaborators, and the `StorageFormPass` are all in place. Remaining: the structural (non-string) `Place` (Step 11)
-and the FUNCTION-argument grammar (Step 12). The §7 open questions were resolved during execution (the source
-generator was adopted).
+Status: IMPLEMENTED (rearchitecture — PHASE-07 Steps 1–12, phase complete). The binder decomposition in this design
+is built in the tree: the DAG-validated pass framework, the immutable `BoundCompilation` + the ONE scoped
+`SymbolTable`, the source-generated exhaustive bound-tree visitor, the god-class dissolution into
+`BinderContext`-threaded per-verb collaborators, the `StorageFormPass`, the structural (non-string) `Place`
+(Step 11), and the FUNCTION-argument grammar (Step 12 — arguments bind through the ONE `ExpressionBinder.BindExpr`;
+the hand-rolled intrinsic argument parser is deleted). The §7 open questions were resolved during execution (the
+source generator was adopted).
 Scope: the binding middle-end of the greenfield compiler (`src/Cobol.Net.Compiler/Binding/**`) and the
 bound-tree contract it produces (`Binding/Bound/BoundTree.cs`). Dimension: **Target binder pipeline &
 bound-tree/IR design**. Sibling design docs own the data model (`DataItem`/`PicInfo`/`Place`/`StorageForm`),

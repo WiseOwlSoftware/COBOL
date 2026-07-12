@@ -8,8 +8,11 @@ options {
 }
 
 @members {
-    // Track the type of the last non-WS token emitted, for subscript mode detection.
+    // Track the types of the last TWO non-WS tokens emitted: one for subscript-mode detection, two for the
+    // FUNCTION-argument suppression (P7 Step 12 — '(' after "FUNCTION name" opens an ARGUMENT list, ISO
+    // §8.4.3.2 SR6, lexed in DEFAULT mode so arguments parse as real arithmeticExpressions).
     private int _lastNonWsTokenType = -1;
+    private int _prevNonWsTokenType = -1;
 
     // SUBSCRIPT MODE TRIGGER: whitelist approach.
     //
@@ -28,11 +31,61 @@ options {
     private bool PreviousTokenCouldBeDataName()
         => _dataNameTokens.Contains(_lastNonWsTokenType);
 
+    // FUNCTION-ARGUMENT REGION (P7 Step 12). '(' after "FUNCTION functionName" is the function's argument-list
+    // paren (ISO §8.4.3.2 SR6) — it stays in DEFAULT mode so the arguments parse through the ONE
+    // arithmeticExpression grammar. The keyword-omitted form name(args) (§8.4.3.2 SR2, D2) has no FUNCTION
+    // token before the name, so it still pushes SUBSCRIPT and stays token-captured. Inside an argument region a
+    // '(' after a data-name still pushes SUBSCRIPT (nested subscripts/ref-mod are untouched — the D10/PHASE-15
+    // deferral). The paren stack tracks which OPEN DEFAULT-mode parens are function-argument regions so the
+    // sign-adjacent literal twins below fire only there.
+    private bool PreviousIsFunctionName() => _prevNonWsTokenType == FUNCTION;
+
+    private readonly System.Collections.Generic.List<bool> _fnParenStack = new();
+    private bool _primeFunctionArgs;
+
+    private bool InFunctionArgs() => _primeFunctionArgs || _fnParenStack.Contains(true);
+
+    // Fragment re-parse hook (the D2 keyword-omitted argument re-parse): treat the WHOLE input as one
+    // function-argument region (the fragment is the text inside the argument parens).
+    public void PrimeFunctionArgs() => _primeFunctionArgs = true;
+
+    private void OnDefaultLParen()
+    {
+        if (PreviousTokenCouldBeDataName() && !PreviousIsFunctionName())
+        {
+            PushMode(SUBSCRIPT);   // subscript / ref-mod capture — the matching ')' is SUB_RPAREN (popMode)
+            return;
+        }
+        // Staying DEFAULT: record whether this paren opens a FUNCTION argument region.
+        _fnParenStack.Add(PreviousIsFunctionName() && PreviousTokenCouldBeDataName());
+    }
+
+    private void OnDefaultRParen()
+    {
+        if (_fnParenStack.Count > 0) _fnParenStack.RemoveAt(_fnParenStack.Count - 1);
+    }
+
+    // A signed numeric literal's sign is the leftmost CHARACTER of the literal (ISO §8.3.3.3.2 r2) and an
+    // arithmetic operator shall be preceded AND followed by a space (§8.7.1) — so inside a function-argument
+    // region a [+-] that follows a separator and touches its digits starts a NEW argument (a signed literal),
+    // never a binary operator: MAX(A -4) is two arguments, MAX(A - 4) is one subtraction.
+    private bool SignedLiteralCanStart()
+    {
+        if (!InFunctionArgs()) return false;
+        if (InputStream.Index == 0) return true;   // fragment start (the D2 re-parse) — a separator by definition
+        int la = InputStream.LA(-1);
+        return la == ' ' || la == '\t' || la == '\r' || la == '\n' || la == ',' || la == ';' || la == '('
+            || la == Antlr4.Runtime.IntStreamConstants.EOF;
+    }
+
     public override Antlr4.Runtime.IToken NextToken()
     {
         var token = base.NextToken();
-        if (token.Type != WS && token.Type != Antlr4.Runtime.TokenConstants.EOF)
+        if (token.Type != WS && token.Type != SUB_WS && token.Type != Antlr4.Runtime.TokenConstants.EOF)
+        {
+            _prevNonWsTokenType = _lastNonWsTokenType;
             _lastNonWsTokenType = token.Type;
+        }
         return token;
     }
 }
@@ -569,6 +622,16 @@ fragment NAME_BODY                                                              
     | [a-z]                               // single letter: A
     ;
 
+// ── Function-argument signed literals (P7 Step 12) ──
+// Inside a FUNCTION argument region (and only there — the predicate), a sign that follows a separator and
+// touches its digits is the leftmost CHARACTER of a numeric literal (ISO §8.3.3.3.2 r2); a binary operator is
+// space-surrounded (§8.7.1). These twins re-type to the SUBSCRIPT-mode SIGNED_* token types so the parser sees
+// one vocabulary: MAX(A -4) lexes A SIGNED_INTEGERLIT(-4) = two arguments; MAX(A - 4) lexes A MINUS 4 = one
+// subtraction. Outside argument regions the predicate is false and [+-] lexes PLUS/MINUS exactly as before.
+// The decimal twin MUST precede the integer twin (the SUBSCRIPT-mode ordering note: else -15.6 orphans ".6").
+FN_SIGNED_DECIMALLIT : {SignedLiteralCanStart()}? [+-] DEC_BODY -> type(SIGNED_DECIMALLIT) ;
+FN_SIGNED_INTEGERLIT : {SignedLiteralCanStart()}? [+-] INT_BODY -> type(SIGNED_INTEGERLIT) ;
+
 DECIMALLIT  : DEC_BODY ;
 
 // ── IDENTIFIER (must come BEFORE INTEGERLIT) ──
@@ -604,12 +667,19 @@ GTEQUAL     : '>=' ;
 NOTEQUAL    : '<>' ;
 
 DOT         : '.' ;
+// P7 Step 12: inside a FUNCTION-argument region the ','/';'-plus-space separator (§8.3.5 rules 1/2) is a REAL
+// token — the argument boundary must survive to the parser: a '(' right after it opens a PARENTHESIZED
+// ARGUMENT, and the LPAREN whitelist action sees the separator (not the previous argument's data-name) as the
+// previous token, so `MAX(A * B, (C + 1) / 2, …)` (IF119A/IF123A) does not mis-lex the group as a subscript
+// of B. Outside argument regions both separators stay skipped exactly as before. MUST precede COMMA_SEP
+// (equal-length match — first rule wins when the predicate holds).
+FNARG_SEPARATOR : {InFunctionArgs()}? [,;] [ \t\r\n]+ ;
 // §8.3.5: comma followed by whitespace is a separator (equivalent to space).
 // Comma NOT followed by whitespace is preserved for DECIMAL-POINT IS COMMA.
 COMMA_SEP   : ',' [ \t\r\n]+ -> skip ;
 COMMA       : ',' ;
-LPAREN      : '(' { if (PreviousTokenCouldBeDataName()) PushMode(SUBSCRIPT); } ;
-RPAREN      : ')' ;
+LPAREN      : '(' { OnDefaultLParen(); } ;
+RPAREN      : ')' { OnDefaultRParen(); } ;
 LT          : '<' ;
 GT          : '>' ;
 EQUALS      : '=' ;
