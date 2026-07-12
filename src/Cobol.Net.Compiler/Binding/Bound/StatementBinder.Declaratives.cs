@@ -3,6 +3,7 @@
 using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
+using CobolNet.Binding.Procedure;
 
 namespace CobolNet.Binding.Bound;
 

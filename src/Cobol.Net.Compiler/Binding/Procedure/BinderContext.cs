@@ -56,4 +56,41 @@ internal sealed class BinderContext(DataBinder data, ReferenceResolver refs)
     /// <summary>The pc whose sentences are being bound (RESUME SR1/SR2 declarative context + the §15.30.3 r2
     /// location anchoring; 10r — the host's <c>_currentBindPc</c> relocated). −1 outside the bind loop.</summary>
     public int BindCursor { get; set; } = -1;
+
+    /// <summary>The section whose paragraph is being bound (ISO §8.4.2.2 — unqualified procedure names
+    /// resolve in-section first; 10s — the host's <c>_currentSection</c> relocated). Set through
+    /// <see cref="EnterMethodScope"/> during the bind loops; the SetAlter prepass saves/restores it.</summary>
+    public SectionInfo? CurrentSection { get; set; }
+
+    /// <summary>The OWNING method's paragraph/data scope while its statements bind (ISO §11.7 — method-local
+    /// procedure names; 10s — the host's <c>_currentMethodScope</c> relocated). Also the COLLECTION cursor
+    /// while a method's paragraphs register. Null outside a method.</summary>
+    public OoMethodScope? CurrentMethodScope { get; set; }
+
+    /// <summary>Enter a per-pc bind position as ONE scoped operation (10s — replaces the ambient ordered
+    /// quadruple mutation): section → method scope → the §11.7 GR5 data shadowing
+    /// (<c>Data.ActiveMethodScope</c>) → cursor, set coherently and restored together on dispose.</summary>
+    public BindPositionScope EnterMethodScope(SectionInfo? section, OoMethodScope? scope, int pc)
+    {
+        var token = new BindPositionScope(this, CurrentSection, CurrentMethodScope, Data.ActiveMethodScope, BindCursor);
+        CurrentSection = section;
+        CurrentMethodScope = scope;
+        Data.ActiveMethodScope = scope?.Data;
+        BindCursor = pc;
+        return token;
+    }
+
+    /// <summary>The restore token of <see cref="EnterMethodScope"/> — disposing re-establishes the PRIOR
+    /// quadruple (so sequential per-iteration scopes leave the pre-loop state at loop exit).</summary>
+    public readonly struct BindPositionScope(
+        BinderContext ctx, SectionInfo? section, OoMethodScope? scope, OoMethodDataScope? dataScope, int pc) : IDisposable
+    {
+        public void Dispose()
+        {
+            ctx.CurrentSection = section;
+            ctx.CurrentMethodScope = scope;
+            ctx.Data.ActiveMethodScope = dataScope;
+            ctx.BindCursor = pc;
+        }
+    }
 }
