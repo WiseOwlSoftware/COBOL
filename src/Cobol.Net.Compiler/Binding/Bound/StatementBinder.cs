@@ -66,6 +66,13 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private SetBinder Set => _setBinder ??= new SetBinder(Ctx, this);
     private SearchBinder? _searchBinder;
     private SearchBinder Search => _searchBinder ??= new SearchBinder(Ctx, this);
+    private SetAlterBinder? _setAlterBinder;
+    private SetAlterBinder Alter => _setAlterBinder ??= new SetAlterBinder(Ctx, this);
+
+    // Host forwarders for the collaborator callers (SetBinder / ControlFlowBinder) — flip at 10t.
+    internal BoundStatement SwitchBindSet(Core.SetSwitchStatementContext sw) => Alter.SwitchBindSet(sw);
+    internal BoundStatement AlterGoTo(Core.GoToStatementContext g, int writtenTarget) => Alter.AlterGoTo(g, writtenTarget);
+    internal BoundStatement AlterBindBareGoTo(Core.GoToStatementContext g) => Alter.AlterBindBareGoTo(g);
 
     /// <summary>Host forwarder (ControlFlowBinder's VARYING induction targets) — flips at 10t.</summary>
     internal BoundSetTarget? SetTargetOf(Core.DataReferenceContext dref) => Set.SetTargetOf(dref);
@@ -104,7 +111,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// into the one pc sequence in source order, so a section IS the inclusive range [StartPc, EndPc] (empty section
     /// ⇒ StartPc &gt; EndPc) — and its own paragraph map for qualified procedure-name resolution (ISO §8.4.2.2:
     /// <c>para OF section</c>, and the same-section implicit resolution of duplicated paragraph names).</summary>
-    private sealed class SectionInfo(string name, int startPc)
+    internal sealed class SectionInfo(string name, int startPc)
     {
         public string Name { get; } = name;
         public int StartPc { get; } = startPc;
@@ -220,6 +227,12 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>The emitted paragraphs (name + method + sentences), exposed for the backend's method loop.</summary>
     public IReadOnlyList<(string Cobol, string Method, Core.SentenceContext[] Sentences)> Paragraphs => _paras;
 
+    /// <summary>The per-pc owning-section list + the ambient in-section cursor — the NARROW procedure-table
+    /// surface SetAlterBinder's prepass reads/saves/restores (P7 Step 10n; the table hoists to
+    /// ProcedureTableBuilder at 10t and these host edges delete).</summary>
+    internal IReadOnlyList<SectionInfo?> ParaSections => _paraSection;
+    internal SectionInfo? CurrentSection { get => _currentSection; set => _currentSection = value; }
+
     private string MethodOf(string cobolName) =>
         _paraIndex.TryGetValue(cobolName, out int i) ? _paras[i].Method : "P_" + cobolName.Replace('-', '_');
 
@@ -261,7 +274,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.inspectStatement() is { } ins => Inspect.Bind(ins),
         _ when s.searchAllStatement() is { } sa => Search.BindSearchAll(sa),
         _ when s.goToStatement() is { } g => ControlFlow.BindGoTo(g),
-        _ when s.alterStatement() is { } al => BindAlter(al),   // 85-only; rejected ≥2002 inside BindAlter (deleted by ISO/IEC 1989:2002)
+        _ when s.alterStatement() is { } al => Alter.BindAlter(al),   // 85-only; rejected ≥2002 inside the pass gate (deleted by ISO/IEC 1989:2002)
         _ when s.exitStatement() is { } e => ControlFlow.BindExit(e),
         _ when s.openStatement() is { } o => SeqIo.BindOpen(o),
         _ when s.closeStatement() is { } c => SeqIo.BindClose(c),
@@ -1057,7 +1070,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         }
         // A switch-status condition-name — resolved AFTER level-88 (NC211A: a name defined as both → the 88
         // wins), BEFORE the abbreviated-carry fallback.
-        if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && SwitchCondOf(swr) is { } swCond)
+        if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && Alter.SwitchCondOf(swr) is { } swCond)
         {
             carry.Reset();
             return swCond;
