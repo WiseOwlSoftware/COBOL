@@ -10,10 +10,12 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// The P2.5 drift check: <c>tests/version-matrix/constructs.json</c> is THE single source, and the three
-/// generated build-outputs (<c>ConstructRegistry.g.cs</c> / <c>Constructs.g.cs</c> / <c>Gating/GateId.cs</c>,
-/// emitted by <c>scripts/gen-constructs.ps1</c>) must be IN SYNC with it — so an edit to the json without a
-/// regen is a CI failure, never a silent stale build. This mirrors the ReservedWordsDriftTests discipline.
+/// The P2.5 drift check: <c>tests/version-matrix/constructs.json</c> is THE single source, and the two
+/// generated build-outputs (<c>ConstructRegistry.g.cs</c> / <c>Constructs.g.cs</c>, emitted by
+/// <c>scripts/gen-constructs.ps1</c>) must be IN SYNC with it — so an edit to the json without a regen is a
+/// CI failure, never a silent stale build. This mirrors the ReservedWordsDriftTests discipline. (The former
+/// third output — the <c>GateId</c> intro-gate enum — was DELETED at Exec Step E: its P2.7 forward-stamping
+/// consumer was abandoned, DEVLOG 679, and nothing in production consumed it.)
 /// </summary>
 public sealed class ConstructRegistryDriftTests
 {
@@ -82,25 +84,6 @@ public sealed class ConstructRegistryDriftTests
                 $"Constructs.{p} missing/wrong for '{e.Id}' — regenerate scripts/gen-constructs.ps1");
         }
         Assert.Equal(ConstructRegistry.Entries.Count, consts.Count);   // no orphan consts
-    }
-
-    [Fact]
-    public void GateId_Covers_ExactlyTheIntroductionGates()
-    {
-        var expected = ConstructRegistry.Entries
-            .Where(e => e.RemovedIn is null && e.IntroducedIn > 85)
-            .Select(e => Pascal(e.Id)).ToHashSet(StringComparer.Ordinal);
-        var members = Enum.GetNames<GateId>().Where(n => n != nameof(GateId.None)).ToHashSet(StringComparer.Ordinal);
-        Assert.True(expected.SetEquals(members),
-            $"GateId drift: missing [{string.Join(", ", expected.Except(members))}] "
-            + $"extra [{string.Join(", ", members.Except(expected))}] — regenerate scripts/gen-constructs.ps1");
-        // The GateId → construct-id map resolves every member back to a registered id.
-        foreach (var g in Enum.GetValues<GateId>().Where(g => g != GateId.None))
-        {
-            string id = GateIds.ConstructId(g);
-            Assert.Equal(Enum.GetName(g), Pascal(id));
-            Assert.NotNull(ConstructRegistry.Find(id));
-        }
     }
 
     [Fact]

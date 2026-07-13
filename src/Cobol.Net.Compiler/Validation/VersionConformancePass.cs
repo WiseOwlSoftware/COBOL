@@ -245,10 +245,10 @@ internal sealed class VersionConformancePass
     /// (the categories are mutually exclusive).</summary>
     private void GateDataItem(DataItem item, string where)
     {
-        if (UsageGateId(item) is { } id) Check(id, where);
+        if (UsageConstructId(item) is { } id) Check(id, where);
         // The recognized-but-unimplemented PICTURE skeletons (external-float symbol E, national-edited) — their
-        // category was RECOVERED to Alphanumeric, so UsageGateId cannot see them; PicInfo.SkeletonGate carries the
-        // 0900 forward (Step 14g.5). Mutually exclusive with UsageGateId (a recovered item is never National/etc.).
+        // category was RECOVERED to Alphanumeric, so UsageConstructId cannot see them; PicInfo.SkeletonGate carries the
+        // 0900 forward (Step 14g.5). Mutually exclusive with UsageConstructId (a recovered item is never National/etc.).
         if (item.Pic?.SkeletonGate is { } skeletonId) Check(skeletonId, where);
     }
 
@@ -257,7 +257,7 @@ internal sealed class VersionConformancePass
     /// because a group-header USAGE sheds <c>Pic</c> to null (<c>DataBinder.ResolveIndexItems</c>), leaving only the
     /// own keyword; the <c>Pic.Usage</c> member (never <c>IsFloat</c>/<c>ClrType</c>) carries the identity for the
     /// picture-less usages — <c>FloatLong</c>/<c>FloatExtended</c> share a <c>double</c> ClrType with COMP-2.</summary>
-    private static string? UsageGateId(DataItem item)
+    private static string? UsageConstructId(DataItem item)
     {
         var cat = item.Pic?.Category;
         var pu = item.Pic?.Usage;
@@ -518,6 +518,14 @@ internal sealed class VersionConformancePass
         {
             if (ctx.DEBUGGING() is not null)
                 _p.Check(Constructs.UseForDebuggingRemoved2002, "the USE FOR DEBUGGING declarative");
+            // The EC-model declarative formats (Exec Step E — folded from the ProcedureTableBuilder inline
+            // gates): F4 = USE AFTER {EXCEPTION OBJECT | EO} (§14.9.49.2, the EC-OO selector); F3 = USE AFTER
+            // {EXCEPTION CONDITION | EC} (§14.9.49.2). Both are 2002 introductions, recognized from the
+            // alternative's own tokens (DEVLOG 724 — recognition-based, never a bound-arm drop).
+            if (ctx.OBJECT() is not null || ctx.EO() is not null)
+                _p.Check(Constructs.UseAfterExceptionObject2002, "USE AFTER EXCEPTION OBJECT (Format 4)");
+            else if (ctx.CONDITION() is not null || ctx.EC() is not null)
+                _p.Check(Constructs.UseAfterExceptionCondition2002, "USE AFTER EXCEPTION CONDITION (Format 3)");
             return base.VisitChildren(ctx);
         }
 
@@ -823,6 +831,12 @@ internal sealed class VersionConformancePass
         {
             if (ctx.dataReference() is not null && !InMethodDefinition(ctx))
                 _p.Check(Constructs.GobackReturning2002, "GOBACK … RETURNING");
+            // GOBACK itself is a 2002 introduction (§14.9.18; §14.9.16 in 2002 — Exec Step E, folded from the
+            // CallBinder gate). Fires only for a BARE GOBACK: when RETURNING is present its more-specific 0900
+            // (above) subsumes the 0880, and a METHOD GOBACK is a method return, never an activation return
+            // (§14.9.18.4 GR4 — the same InMethodDefinition exclusion the binder's InMethod short-circuit gave).
+            else if (ctx.dataReference() is null && !InMethodDefinition(ctx))
+                _p.Check(Constructs.GobackBare2002, "the GOBACK statement");
             return base.VisitChildren(ctx);
         }
 
@@ -838,6 +852,9 @@ internal sealed class VersionConformancePass
             if (ctx.callOnExceptionPhrase()?.OVERFLOW() is not null
                 || ctx.callNotOnExceptionPhrase()?.OVERFLOW() is not null)
                 _p.Check(Constructs.CallOnOverflowRemoved2023, "the CALL statement");
+            // CALL … RETURNING (§14.9.4) — a 2002 introduction (Exec Step E — folded from the CallBinder gate).
+            if (ctx.callReturningPhrase() is not null)
+                _p.Check(Constructs.CallReturning2002, "CALL … RETURNING");
             return base.VisitChildren(ctx);
         }
 
@@ -854,6 +871,132 @@ internal sealed class VersionConformancePass
                     _p.Check(Constructs.EndAccept2002, "the ACCEPT statement");
                     break;
                 }
+            // The four-digit-year temporal phrases (§14.9.1 — the 1985 formats list only bare DATE / DAY /
+            // DAY-OF-WEEK / TIME): a 2002 introduction (Exec Step E — folded from the AcceptDisplayBinder gate).
+            if (ctx.acceptSource() is { } src && (src.YYYYMMDD() ?? src.YYYYDDD()) is not null)
+                _p.Check(Constructs.AcceptFourDigitYear2002,
+                    src.DATE() is not null ? "ACCEPT FROM DATE YYYYMMDD" : "ACCEPT FROM DAY YYYYDDD");
+            return base.VisitChildren(ctx);
+        }
+
+        // ── Exec Step E: the folded binder-inline gates (plan §4.1 task #13) ────────────────────────────────
+        // Each was an inline `DialectLevel` gate that moved VERBATIM with its verb at P7 Step 10; folded here so
+        // the two-arm pass is the ONE gating funnel and every gate enters the version matrix (its registry row
+        // carries the negative witness). Recognition-based (DEVLOG 724): a below-edition construct names its
+        // edition even when it ALSO fails to bind. The catalog-driven per-NAME windows (the D8 intrinsic windows,
+        // the ExceptionCatalog EC-name windows, the PictureAnalyzer symbol rows, the digit caps) STAY binder-side
+        // by design — their version facts live in their own tables, not in constructs.json — as do the two
+        // sanctioned BEHAVIORAL edition reads (the <2002 keyword-omitted FUNCTION routing, the ≥2002 MOVE CORR
+        // pair-selection window) and the owner-disposition SYNCHRONIZED-on-group site (sync-on-group-2023).
+
+        /// <summary>INSPECT BACKWARD (ISO §14.9.22.2; VCR row 77) — a COBOL-2023 introduction.</summary>
+        public override object? VisitInspectStatement(CobolParserCore.InspectStatementContext ctx)
+        {
+            if (ctx.BACKWARD() is not null)
+                _p.Check(Constructs.InspectBackward2023, "INSPECT BACKWARD");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The INITIALIZE post-85 surface (ISO §14.9.20) — WITH FILLER / TO VALUE / TO DEFAULT / the
+        /// THEN connective, each a 2002 introduction with its own pinned code (REPLACING itself is COBOL-85).</summary>
+        public override object? VisitInitializeStatement(CobolParserCore.InitializeStatementContext ctx)
+        {
+            if (ctx.FILLER() is not null)
+                _p.Check(Constructs.InitializeFiller2002, "INITIALIZE … WITH FILLER");
+            if (ctx.initializeCategoryToValue() is not null)
+                _p.Check(Constructs.InitializeToValue2002, "INITIALIZE … TO VALUE");
+            if (ctx.initializeDefaultPhrase() is not null)
+                _p.Check(Constructs.InitializeToDefault2002, "INITIALIZE … TO DEFAULT");
+            if (ctx.initializeReplacingPhrase()?.THEN() is not null)
+                _p.Check(Constructs.InitializeThenReplacing2002, "INITIALIZE … THEN REPLACING");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>RELEASE … FROM literal-1 (ISO §14.9.32.2) — X3.23-1985 allows only an identifier as the
+        /// FROM operand; the literal form is 2002+.</summary>
+        public override object? VisitReleaseFrom(CobolParserCore.ReleaseFromContext ctx)
+        {
+            if (ctx.literal() is not null)
+                _p.Check(Constructs.ReleaseFromLiteral2002, "RELEASE … FROM literal-1");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The Format-2 in-place table SORT (ISO §14.9.40) — a 2002 introduction. The F2 shape is
+        /// syntactic: a SORT with neither USING/GIVING nor INPUT/OUTPUT procedures (F1 requires an input AND an
+        /// output leg, §14.9.40.2), so recognition never needs the operand's resolved name class.</summary>
+        public override object? VisitSortStatement(CobolParserCore.SortStatementContext ctx)
+        {
+            if (ctx.sortUsingPhrase() is null && ctx.sortInputProcedurePhrase() is null
+                && ctx.sortGivingPhrase() is null && ctx.sortOutputProcedurePhrase() is null)
+                _p.Check(Constructs.TableSort2002, "SORT of a table (Format 2, ISO §14.9.40)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>SORT/MERGE COLLATING SEQUENCE alphabet-name-2 (ISO §14.9.40.3 SR2 — the national collating
+        /// sequence): the second alphabet word is a 2002 introduction (the national class).</summary>
+        public override object? VisitSortCollatingPhrase(CobolParserCore.SortCollatingPhraseContext ctx)
+        {
+            if (ctx.cobolWord().Length > 1)
+                _p.Check(Constructs.SortCollatingNational2002, "COLLATING SEQUENCE alphabet-name-2");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>RAISE (ISO §14.9.29) — the 2002+ exception-condition statement.</summary>
+        public override object? VisitRaiseStatement(CobolParserCore.RaiseStatementContext ctx)
+        { _p.Check(Constructs.RaiseStatement2002, "the RAISE statement"); return base.VisitChildren(ctx); }
+
+        /// <summary>RESUME (ISO §14.9.33) — the 2002+ exception-recovery statement.</summary>
+        public override object? VisitResumeStatement(CobolParserCore.ResumeStatementContext ctx)
+        { _p.Check(Constructs.ResumeStatement2002, "the RESUME statement"); return base.VisitChildren(ctx); }
+
+        /// <summary>SET LAST EXCEPTION TO OFF (ISO §14.9.39 Format 13) — the 2002+ saved-exception form.</summary>
+        public override object? VisitSetLastExceptionStatement(CobolParserCore.SetLastExceptionStatementContext ctx)
+        { _p.Check(Constructs.SetLastException2002, "SET LAST EXCEPTION TO OFF"); return base.VisitChildren(ctx); }
+
+        /// <summary>The statement-level RAISING phrase (ISO §14.9.18.2 / §14.9.14.2 F2 — the ONE rule GOBACK and
+        /// the EXIT forms share) — 2002+ exception propagation. Distinct from the PROCEDURE DIVISION header
+        /// RAISING clause (<c>raisingClause</c> → procedure-raising-2002).</summary>
+        public override object? VisitRaisingPhrase(CobolParserCore.RaisingPhraseContext ctx)
+        { _p.Check(Constructs.StatementRaising2002, "the GOBACK / EXIT … RAISING phrase"); return base.VisitChildren(ctx); }
+
+        /// <summary>PROGRAM-ID … RECURSIVE (ISO §11.10) — a 2002 introduction. Recognized by TOKEN TYPE within
+        /// the attribute list (the END-ACCEPT scan idiom), never by word text — an AS-literal cannot collide.</summary>
+        public override object? VisitProgramIdAttributes(CobolParserCore.ProgramIdAttributesContext ctx)
+        {
+            if (FindsToken(ctx, CobolLexer.RECURSIVE))
+                _p.Check(Constructs.ProgramIdRecursive2002, "PROGRAM-ID … RECURSIVE");
+            return base.VisitChildren(ctx);
+        }
+
+        private static bool FindsToken(Antlr4.Runtime.Tree.IParseTree node, int tokenType)
+        {
+            if (node is Antlr4.Runtime.Tree.ITerminalNode t) return t.Symbol.Type == tokenType;
+            for (int i = 0; i < node.ChildCount; i++)
+                if (FindsToken(node.GetChild(i), tokenType)) return true;
+            return false;
+        }
+
+        /// <summary>The OPTIONS paragraph (ISO §11.9) — a 2014 introduction. The binder still returns
+        /// <c>OptionsModel.Default</c> below 2014 (silent routing — this arm owns the diagnostic).</summary>
+        public override object? VisitOptionsParagraph(CobolParserCore.OptionsParagraphContext ctx)
+        { _p.Check(Constructs.OptionsParagraph2014, "the OPTIONS paragraph"); return base.VisitChildren(ctx); }
+
+        /// <summary>ARITHMETIC IS STANDARD (ISO §8.8.1 / 2014 §11.9.5) — a dual-window row: introduced 2014,
+        /// DROPPED by 2023 (use STANDARD-DECIMAL). The Removed verdict is error-strict / warning-permissive —
+        /// the removed-construct posture (a permissive 2023 compile continues under standard arithmetic).</summary>
+        public override object? VisitArithmeticMethod(CobolParserCore.ArithmeticMethodContext ctx)
+        {
+            if (ctx.STANDARD() is not null)
+                _p.Check(Constructs.ArithmeticStandard2014, "ARITHMETIC IS STANDARD");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>CURRENCY SIGN … WITH PICTURE SYMBOL (ISO §12.3.7) — the 1985 clause had only the
+        /// single-character literal form; the PICTURE SYMBOL form is 2002+.</summary>
+        public override object? VisitCurrencySignClause(CobolParserCore.CurrencySignClauseContext ctx)
+        {
+            if (ctx.PIC() is not null)
+                _p.Check(Constructs.CurrencyPictureSymbol2002, "CURRENCY SIGN … WITH PICTURE SYMBOL");
             return base.VisitChildren(ctx);
         }
 

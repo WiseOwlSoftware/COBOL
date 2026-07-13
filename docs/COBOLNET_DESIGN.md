@@ -69,7 +69,7 @@ source.cob
                → Lex → Parse; edition {isXXXX()}? gates REMOVED so all constructs parse at every --std; each
                version-gated rule stamps its construct-id — DESIGN-version-conformance-pipeline.md)
        → parse tree
-  → Bind      (edition-AGNOSTIC: resolve symbols + build a typed/categorized BOUND TREE that PRESERVES COBOL structure;
+  → Bind      (edition-AGNOSTIC (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1): resolve symbols + build a typed/categorized BOUND TREE that PRESERVES COBOL structure;
                ZERO edition Check calls)
        → BoundProgram
   → VersionConformancePass  (the ONE edition gate: walk the bound tree, Check each stamped construct-id + the few
@@ -83,7 +83,7 @@ source.cob
 
 **Edition conformance is a single dedicated pass** (`docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).
 Edition gating is ONE mechanism: the grammar declares construct *identity* (a committed-match annotation local to each
-version-gated rule; version *numbers* live only in `constructs.json`), the binder is edition-agnostic, and the
+version-gated rule; version *numbers* live only in `constructs.json`), the binder is edition-agnostic (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1), and the
 `VersionConformancePass` over the bound tree is the sole gate — rejecting strict / accepting-inert permissive, and
 HALTING before emit so codegen never runs on an errored tree. There is no parse-time `{isXXXX()}?` edition predicate,
 no post-hoc reverse-signature recognizer, and no edition checks scattered through the binder.
@@ -173,7 +173,7 @@ error. This is the structural enforcement of the project's "fail LOUD" culture.
   The legacy's 364 passing programs become an instant regression net; the `.txt` oracle backstops a shared bug. Reuse
   the proven `guard-fast` parallelism; run each program in an ISOLATED working dir (file producer/consumer chains).
 - **One `EditionInfo`** (`Cobol85/2002/2014/2023`) threaded CLI → driver. The grammar parses the SUPERSET of all
-  editions and stamps each version-gated construct's construct-id; the binder is edition-AGNOSTIC; the
+  editions and stamps each version-gated construct's construct-id; the binder is edition-AGNOSTIC (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1); the
   **`VersionConformancePass`** over the bound tree is the sole edition gate — reject strict / accept-inert permissive,
   HALT before emit (§1.1; `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`). The two-axis
   (version × strictness) model applies throughout.
@@ -1029,7 +1029,7 @@ continuity with existing diagnostic-asserting tests is an owner question (§15) 
 ### 14.11 Dialect, EC-default, and the differential oracle are threaded consistently
 
 ONE `EditionInfo` (§2) is the single edition/dialect source; its sole gating consumer is the `VersionConformancePass`
-(§1.1) — the binder is edition-agnostic and the emitters carry no edition gating. EC checking is OFF by default
+(§1.1) — the binder is edition-agnostic save the documented exception ledger (DESIGN-version-conformance-pipeline §1.1) and the emitters carry no edition gating. EC checking is OFF by default
 everywhere (§11.1); conditional phrases are always active. The differential harness (§2) uses the legacy as an oracle
 until G8 — keeping the legacy build in the test graph for the duration is an owner question (§15).
 

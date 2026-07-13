@@ -3,28 +3,23 @@
 #
 # gen-constructs.ps1 — generate the construct registry from THE canonical catalogue
 # (rearchitecture PHASE 02, P2.5). tests/version-matrix/constructs.json is the SINGLE hand-authored source;
-# this script renders it into three committed C# build-outputs, mirroring the gen-reserved-words.ps1 discipline
+# this script renders it into two committed C# build-outputs, mirroring the gen-reserved-words.ps1 discipline
 # (manual regen + committed .g.cs + a drift test — ConstructRegistryDriftTests — asserts they agree; there is no
 # MSBuild build hook, so a stale .g.cs is caught by CI, not a silent wrong build).
 #
 # Input:
-#   tests/version-matrix/constructs.json  — 91 rows: id / display / introducedIn / removedIn / obsoleteIn /
+#   tests/version-matrix/constructs.json  — the canonical rows: id / display / introducedIn / removedIn / obsoleteIn /
 #                                           diagnosticCode / citation (+ description / vcr / source / status /
 #                                           expectDiagnostic used by the version-matrix tests, not the registry).
 # Outputs (ALL committed; ConstructRegistryDriftTests asserts they equal constructs.json):
 #   src/Cobol.Net.Editions/ConstructRegistry.g.cs  — the ConstructRegistry.Entries list (a partial).
 #   src/Cobol.Net.Editions/Constructs.g.cs         — one `public const string <PascalId> = "<id>";` per row.
-#   src/Cobol.Net.Editions/Gating/GateId.cs        — the typed enumeration of introduction gates (removedIn==null
-#                                                    && introducedIn>85) + the GateId->construct-id map. The P2.7
-#                                                    forward-stamping consumer was abandoned (DEVLOG 679); kept as
-#                                                    the drift-guarded intro-gate set for the bind-time north-star.
 
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $jsonIn   = Join-Path $repo 'tests/version-matrix/constructs.json'
 $regOut   = Join-Path $repo 'src/Cobol.Net.Editions/ConstructRegistry.g.cs'
 $idsOut   = Join-Path $repo 'src/Cobol.Net.Editions/Constructs.g.cs'
-$gateOut  = Join-Path $repo 'src/Cobol.Net.Editions/Gating/GateId.cs'
 
 function To-Pascal([string]$id) {
     (($id -split '-') | ForEach-Object {
@@ -92,41 +87,8 @@ foreach ($r in $rows) {
 [void]$sb.AppendLine('}')
 Set-Content -LiteralPath $idsOut -Value ($sb.ToString().TrimEnd() + "`n") -NoNewline -Encoding utf8
 
-# ---- 3. Gating/GateId.cs (introduction-gate identity enum + construct-id map) ----
-$gates = @($rows | Where-Object { $null -eq $_.removedIn -and [int]$_.introducedIn -gt 85 })
-$sb = [System.Text.StringBuilder]::new()
-[void]$sb.AppendLine($hdr)
-[void]$sb.AppendLine('namespace CobolNet.Editions;')
-[void]$sb.AppendLine('')
-[void]$sb.AppendLine('/// <summary>The strongly-typed enumeration of the introduction-gated constructs (removedIn==null,')
-[void]$sb.AppendLine('/// introducedIn>85): one member per gate, single-sourced from constructs.json + drift-guarded')
-[void]$sb.AppendLine('/// (ConstructRegistryDriftTests). NOTE (DEVLOG 679): the P2.7 forward <c>{Gate(edition, GateId.X)}?</c>')
-[void]$sb.AppendLine('/// stamping consumer was ABANDONED — ANTLR evaluates hoisted predicates speculatively, so a stamp')
-[void]$sb.AppendLine('/// mis-fires on typos; the parse layer diagnoses via EditionGateHints + ConstructRegistry.Check instead.')
-[void]$sb.AppendLine('/// Retained as the typed intro-gate set (drift guard + the bind-time gating north-star).</summary>')
-[void]$sb.AppendLine('public enum GateId')
-[void]$sb.AppendLine('{')
-[void]$sb.AppendLine('    /// <summary>The default/unused sentinel (no gate).</summary>')
-[void]$sb.AppendLine('    None = 0,')
-foreach ($r in $gates) {
-    [void]$sb.AppendLine(('    {0},' -f (To-Pascal $r.id)))
-}
-[void]$sb.AppendLine('}')
-[void]$sb.AppendLine('')
-[void]$sb.AppendLine('/// <summary>Maps a <see cref="GateId"/> to its constructs.json id (for')
-[void]$sb.AppendLine('/// <see cref="ConstructRegistry.Check"/> / <see cref="ConstructRegistry.Find"/>).</summary>')
-[void]$sb.AppendLine('public static class GateIds')
-[void]$sb.AppendLine('{')
-[void]$sb.AppendLine('    /// <summary>The constructs.json id the gate guards; throws on <see cref="GateId.None"/>.</summary>')
-[void]$sb.AppendLine('    public static string ConstructId(GateId gate) => gate switch')
-[void]$sb.AppendLine('    {')
-foreach ($r in $gates) {
-    [void]$sb.AppendLine(('        GateId.{0} => Constructs.{0},' -f (To-Pascal $r.id)))
-}
-[void]$sb.AppendLine('        _ => throw new System.ArgumentOutOfRangeException(nameof(gate), gate, "no construct id for GateId.None"),')
-[void]$sb.AppendLine('    };')
-[void]$sb.AppendLine('}')
-New-Item -ItemType Directory -Force (Split-Path -Parent $gateOut) | Out-Null
-Set-Content -LiteralPath $gateOut -Value ($sb.ToString().TrimEnd() + "`n") -NoNewline -Encoding utf8
+# (The former section 3 — Gating/GateId.cs — was DELETED at Exec Step E: the P2.7 forward-stamping
+# consumer was abandoned (DEVLOG 679) and the enum had ZERO production consumers; the registry rows +
+# Constructs consts are the live outputs.)
 
-Write-Host ("gen-constructs: {0} rows -> Entries; {0} ids; {1} GateId members" -f $rows.Count, $gates.Count)
+Write-Host ("gen-constructs: {0} rows -> Entries; {0} ids" -f $rows.Count)

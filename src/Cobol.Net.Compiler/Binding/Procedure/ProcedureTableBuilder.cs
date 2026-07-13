@@ -203,10 +203,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         {
             // Format 4 (§14.9.49.2 — ONE class/interface operand; SR15 EO ≡ EXCEPTION OBJECT). GR3: for an
             // OBJECT raise, F4 selection REPLACES the F1/F3 tiers (the generated __EcObjDispatch, D-EO7).
-            if (ctx.Edition.DialectLevel < 2002)
-                ctx.Edition.Error("COBOLNET0876",
-                    "USE AFTER EXCEPTION OBJECT is the COBOL-2002+ exception-object declarative "
-                    + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+            // use-after-exception-object-2002: the pass owns the edition gate (Exec Step E).
             ctx.EcState.F3 = true;   // the ONE "EC declaratives present" feature bit — F4 rides the same group gate
             string cname = use.cobolWord().GetText();
             if (ctx.Data.OoClasses?.Find(cname) is not { } cls)
@@ -292,10 +289,7 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     /// division), and the per-name edition window. The whole format is 2002+ (the EC model's introduction).</summary>
     private DeclScope? DeclBindUseF3(Core.UseEcEntryContext[] entries, string sectionName)
     {
-        if (ctx.Edition.DialectLevel < 2002)
-            ctx.Edition.Error("COBOLNET0877",
-                "USE AFTER EXCEPTION CONDITION (Format 3) is the COBOL-2002+ exception-condition declarative "
-                + $"(ISO §14.9.49) — it requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        // use-after-exception-condition-2002: the pass owns the edition gate (Exec Step E).
         ctx.EcState.F3 = true;
         var pairs = new List<(string Ec, FileModel? File)>();
         foreach (var entry in entries)

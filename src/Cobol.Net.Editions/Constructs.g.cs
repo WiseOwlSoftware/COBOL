@@ -108,4 +108,24 @@ public static class Constructs
     public const string InlineMethodInvocation2023 = "inline-method-invocation-2023";
     public const string ArithmeticIntermediatePrecision2023 = "arithmetic-intermediate-precision-2023";
     public const string SyncOnGroup2023 = "sync-on-group-2023";
+    public const string CallReturning2002 = "call-returning-2002";
+    public const string GobackBare2002 = "goback-bare-2002";
+    public const string InspectBackward2023 = "inspect-backward-2023";
+    public const string InitializeFiller2002 = "initialize-filler-2002";
+    public const string InitializeToValue2002 = "initialize-to-value-2002";
+    public const string InitializeToDefault2002 = "initialize-to-default-2002";
+    public const string InitializeThenReplacing2002 = "initialize-then-replacing-2002";
+    public const string ReleaseFromLiteral2002 = "release-from-literal-2002";
+    public const string SortCollatingNational2002 = "sort-collating-national-2002";
+    public const string TableSort2002 = "table-sort-2002";
+    public const string RaiseStatement2002 = "raise-statement-2002";
+    public const string ResumeStatement2002 = "resume-statement-2002";
+    public const string SetLastException2002 = "set-last-exception-2002";
+    public const string StatementRaising2002 = "statement-raising-2002";
+    public const string UseAfterExceptionObject2002 = "use-after-exception-object-2002";
+    public const string UseAfterExceptionCondition2002 = "use-after-exception-condition-2002";
+    public const string AcceptFourDigitYear2002 = "accept-four-digit-year-2002";
+    public const string ProgramIdRecursive2002 = "program-id-recursive-2002";
+    public const string OptionsParagraph2014 = "options-paragraph-2014";
+    public const string ArithmeticStandard2014 = "arithmetic-standard-2014";
 }

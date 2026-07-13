@@ -869,7 +869,7 @@ Design: `DESIGN-version-conformance-pipeline.md` §5 Stage 3.
 `ConstructRegistry.Check` call sites into it (`DataBinder*`/`StatementBinder*`/`OoClassTable`/`PicInfo`/`OdoModel`
 + `EditionValidator`'s own + the one emitter-side site in `CSharpEmitter.Call.cs`); absorb and DELETE
 `EditionValidator` (its §8.9 reserved-word funnel moves into the pass); make the binder edition-agnostic (zero
-`Check`s); ensure bound nodes carry the `.Syntax` back-reference the pass reads; split bind/emit in
+`Check`s); ensure the pass's parse arm walks the RAW tree (no `.Syntax` back-reference on bound nodes — the as-built two-arm design); split bind/emit in
 `CompilerDriver` (bind → pass → HALT on errors → emit); re-point `CheckOnly` / `check-batch` / `EditionHarness` /
 the INV-1 continuity + INV-1-strong legs so their verdicts include pass diagnostics.
 

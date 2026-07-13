@@ -13,7 +13,7 @@
 > **Consumer of these primitives.** This doc owns the version-gating FRAMEWORK PRIMITIVES (`EditionInfo`,
 > `IDiagnosticSink`, `ConstructRegistry`, `constructs.json`, `EditionSeverityPolicy`) — the single version table. Their
 > sole consumer is ONE `VersionConformancePass` over the bound tree: parse is a SUPERSET (no edition predicates; each
-> version-gated rule carries a committed-match construct-id annotation), bind is edition-AGNOSTIC (zero `Check` calls),
+> version-gated rule carries a committed-match construct-id annotation), bind is edition-AGNOSTIC (zero `Check` calls save the UDF exception; DESIGN-version-conformance-pipeline §1.1 is the complete exception ledger),
 > the pass is the sole gate, and emit runs only on a clean tree. ⚠ **NO `.Syntax` back-ref on
 > bound nodes** — the pass is TWO-ARM (bound-node type/attribute + a presence-based parse-tree arm for syntactic
 > introduction/removal gates); see
@@ -232,7 +232,7 @@ their **pinned codes kept** (`DiagnosticCode` field), and their call sites becom
 `ConstructRegistry.Check(ed, sink, Constructs.EndAccept2002, where)` etc. They then automatically
 enter the version matrix (positive+negative fixtures required by the drift discipline). ALL `Check`
 call sites funnel into the ONE `VersionConformancePass` over the bound tree; the binder itself is
-edition-AGNOSTIC (zero `Check` calls) — the funnel runs after bind, before emit.
+edition-AGNOSTIC (zero `Check` calls save the UDF exception; the §1.1 ledger is the complete remainder) — the funnel runs after bind, before emit.
 
 ### 2.9 `EditionValidator` is absorbed by the `VersionConformancePass` (P9)
 

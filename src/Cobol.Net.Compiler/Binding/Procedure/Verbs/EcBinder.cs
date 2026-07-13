@@ -42,10 +42,7 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindRaise(Core.RaiseStatementContext r)
     {
-        if (ctx.Edition.DialectLevel < 2002)
-            ctx.Edition.Error("COBOLNET0876",
-                "RAISE is the COBOL-2002+ exception-condition statement (ISO §14.9.29) — it requires --std 2002 "
-                + $"or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        // raise-statement-2002: the pass owns the edition gate (Exec Step E).
         if (r.cobolWord() is not { } ecWord)
         {
             // RAISE identifier-1 — an exception OBJECT (§14.9.29.3 SR2/SR3; §14.6.13.1.5). NOT TURN-gated
@@ -121,10 +118,7 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindResume(Core.ResumeStatementContext r)
     {
-        if (ctx.Edition.DialectLevel < 2002)
-            ctx.Edition.Error("COBOLNET0876",
-                "RESUME is the COBOL-2002+ exception-recovery statement (ISO §14.9.33) — it requires --std 2002 "
-                + $"or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        // resume-statement-2002: the pass owns the edition gate (Exec Step E).
         // SR1 — only in a declarative (the exception-checking PERFORM WHEN form is 2023, a later wave). The
         // declarative sections occupy the pcs below EntryPc (StatementBinder.Declaratives.cs).
         var decl = ctx.Table.Declaratives.FirstOrDefault(d => ctx.BindCursor >= d.StartPc && ctx.BindCursor <= d.EndPc);
@@ -161,10 +155,7 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindSetLastException()
     {
-        if (ctx.Edition.DialectLevel < 2002)
-            ctx.Edition.Error("COBOLNET0879",
-                "SET LAST EXCEPTION TO OFF is the COBOL-2002+ saved-exception form (ISO §14.9.39 Format 13) — it "
-                + $"requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        // set-last-exception-2002: the pass owns the edition gate (Exec Step E).
         ctx.EcState.Functions = true;   // touches the runtime last-exception register — the group EC gate
         return new BoundSetLastException();
     }
@@ -175,10 +166,7 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
     /// degrades to a loud placeholder until the OO wave.</summary>
     public BoundRaising? EcBindRaising(Core.RaisingPhraseContext raising, int line, string verb)
     {
-        if (ctx.Edition.DialectLevel < 2002)
-            ctx.Edition.Error("COBOLNET0879",
-                $"{verb} … RAISING is the COBOL-2002+ exception-propagation phrase (ISO §14.9.18 / §14.9.14) — it "
-                + $"requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        // statement-raising-2002: the pass owns the edition gate (Exec Step E).
         ctx.EcState.Raising = true;
         if (raising.LAST() is not null) return new BoundRaising(null, IsLast: true, Fatal: false, Enabled: true);
         if (raising.cobolWord() is not { } ecWord)

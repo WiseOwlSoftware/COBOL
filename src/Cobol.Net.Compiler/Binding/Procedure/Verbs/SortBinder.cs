@@ -96,10 +96,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     /// docs/ISO2023_CONFORMANCE_PLAN.md) — rejected below <c>--std 2002</c>.</summary>
     private BoundStatement SortBindTable(Core.SortStatementContext s, string name)
     {
-        if (ctx.Edition.DialectLevel < 2002)
-            ctx.Edition.Error("COBOLNET0870", "SORT of a table (Format 2, ISO §14.9.40) was introduced by "
-                + "ISO/IEC 1989:2002 — COBOL-85 SORT operates on sort-merge files only; it requires --std 2002 "
-                + $"or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        // table-sort-2002: the pass owns the edition gate (Exec Step E — the F2 shape is syntactic).
 
         // Format 2 has NO USING/GIVING/procedure phrases (ISO §14.9.40.2 — the in-place table sort).
         if (s.sortUsingPhrase() is not null || s.sortGivingPhrase() is not null
@@ -228,10 +225,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
             // RELEASE … FROM literal-1: ANSI X3.23-1985 admits only identifier-1 in the FROM phrase; the literal
             // operand is a later-standard extension of the format (present in ISO/IEC 1989:2023 §14.9.32.2;
             // VERSION_CHANGE_REFERENCE ledger instructs gating pending verification against the 2002/2014 texts).
-            if (rf.literal() is not null && ctx.Edition.DialectLevel < 2002)
-                ctx.Edition.Error("COBOLNET0871", "RELEASE … FROM literal-1 — ANSI X3.23-1985 allows only an "
-                    + "identifier as the FROM operand (ISO/IEC 1989:2023 §14.9.32.2 adds the literal); it requires "
-                    + $"--std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+            // release-from-literal-2002: the pass owns the edition gate (Exec Step E).
             from = seqIo.WriteSource(rf.dataReference(), rf.literal());
         }
         // The released length is the NAMED record's own description size (a shorter secondary 01 of a multi-01 SD
@@ -341,11 +335,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         var words = c.cobolWord();
         if (words.Length > 1)
         {
-            // Alphabet-name-2 orders NATIONAL keys (ISO §14.9.40.3 SR2) — a COBOL-2002+ class.
-            if (ctx.Edition.DialectLevel < 2002)
-                ctx.Edition.Error("COBOLNET0872", "COLLATING SEQUENCE alphabet-name-2 (the national collating "
-                    + "sequence, ISO §14.9.40.3 SR2) — the national class was introduced by ISO/IEC 1989:2002; it "
-                    + $"requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+            // Alphabet-name-2 orders NATIONAL keys (ISO §14.9.40.3 SR2) — a COBOL-2002+ class;
+            // sort-collating-national-2002: the pass owns the edition gate (Exec Step E).
             return (null, new BoundUnsupported("SORT/MERGE COLLATING SEQUENCE alphabet-name-2 (national keys — "
                 + "the national class is a later slice)"));
         }

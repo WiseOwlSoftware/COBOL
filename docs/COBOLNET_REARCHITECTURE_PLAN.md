@@ -21,7 +21,7 @@
 > **✅ PHASE 03 — VERSION-CONFORMANCE PIPELINE — DONE (2026-07-10; step-by-step
 > `docs/rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md`, design `DESIGN-version-conformance-pipeline.md`).**
 > All 15 steps complete; the two-arm `VersionConformancePass` is the SOLE edition gate (parse-arm on recognition +
-> bound-arm on resolved facts), the binder is edition-agnostic save the ONE documented UDF exception, and all 9 exit
+> bound-arm on resolved facts), the binder is edition-agnostic save the documented exception ledger (DESIGN-version-conformance-pipeline §1.1), and all 9 exit
 > criteria hold. **✅ PHASE 04 — frontend consolidation — DONE (2026-07-10; all 5 exit criteria hold).** The
 > byte-neutral consolidation delivered: **A** word set
 > single-sourced from `cobol-words.json` + drift-guarded; **B** shared DEFAULT/SUBSCRIPT literal `fragment` bodies;
@@ -134,7 +134,7 @@ assemblies with clean layering:**
    lookup is one scope-aware `SymbolTable`; a source-generated exhaustive visitor over the sealed bound tree makes a
    missing arm a COMPILE error; CodeGen decomposes into `ProgramEmitter` + per-verb emitters + renderers over an
    immutable `EmitContext`, with a structural (non-string) `Place` rendered by a Roslyn-side `PlaceRenderer` behind an
-   **`ICodeGenBackend`** seam and a typed `RuntimeApi` façade. **The binder is edition-AGNOSTIC** (zero `Check` calls);
+   **`ICodeGenBackend`** seam and a typed `RuntimeApi` façade. **The binder is edition-AGNOSTIC** (zero `Check` calls save the UDF exception; the complete remainder is the DESIGN-version-conformance-pipeline §1.1 ledger);
    edition conformance is ONE `VersionConformancePass` over the bound tree, and **bind and emit are SEPARATE phases the
    driver gates** so codegen never runs on an errored tree (`DESIGN-version-conformance-pipeline.md`). Pipeline:
    `parse → bind (edition-agnostic) → VersionConformancePass → emit-if-clean → backend`.
@@ -225,7 +225,7 @@ phase boundary.
 | ✅ | 00 | F | LOW | — | Migration safety net (characterization harness, oracle bake-out, corpus consolidation, ref caching) | [PHASE-00](rearchitecture/PHASE-00-migration-safety-net.md) |
 | ✅ | 01 | F | MED | 00 | Mechanical namespace rename + dead-grammar / JSON-XML removal | [PHASE-01](rearchitecture/PHASE-01-mechanical-rename-deadcode.md) |
 | ✅ | 02 | R | MED | 01 | `Cobol.Net.Editions` leaf assembly + first-class diagnostic registry | [PHASE-02](rearchitecture/PHASE-02-editions-assembly-diagnostic-registry.md) |
-| ✅ | 03 | I | HIGH | 02 | Version-**conformance pipeline** (superset parse + ONE two-arm gating pass; **residue-first**) + harness-driven VCR audit — DONE 2026-07-10, all 9 exit criteria hold; binder edition-agnostic save the UDF exception | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) · [DESIGN](rearchitecture/DESIGN-version-conformance-pipeline.md) |
+| ✅ | 03 | I | HIGH | 02 | Version-**conformance pipeline** (superset parse + ONE two-arm gating pass; **residue-first**) + harness-driven VCR audit — DONE 2026-07-10, all 9 exit criteria hold; binder edition-agnostic save the §1.1 exception ledger (completed by Exec Step E) | [PHASE-03](rearchitecture/PHASE-03-version-gating-validator-vcr-audit.md) · [DESIGN](rearchitecture/DESIGN-version-conformance-pipeline.md) |
 | ✅ | 04 | R | MED | 02 | Frontend consolidation (generated word-set + shared literal fragments + typed `Cst` façade) — **DONE (byte-neutral; all 5 exit criteria hold). D10 (SUBSCRIPT-mode removal) RELOCATED to PHASE 15 §"CUT 2.5"** (blocked until the legacy `SUB_*`/`SubscriptEntryContext` consumer is deleted at P15 Cut 2) | [PHASE-04](rearchitecture/PHASE-04-frontend-consolidation-cst-facade.md) |
 | ✅ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) — **DONE (all 7 exit criteria hold; deviations in the PHASE-05 ledger). The `StoreAsImage` FLAG is gone (`Storage` computed once, the name = the read-only projection); `RecordLayout` the ONE width/offset authority (§13.18.44.3 SR8 ENFORCED — COBOLNET1539); `Binding/Model/` + `PictureAnalyzer`/`StrongTypeModel`; sentinels → `DataItem.Pending`; `RedefinesClass.Classify`; apostrophe goldens covered** | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
 | ✅ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) — **DONE (all 6 exit criteria hold; deviations in the PHASE-06 STATUS ledger)** | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
@@ -251,7 +251,7 @@ phase boundary.
 > `CobolErrorStrategy` as a token-keyed vendor hint) → the pipeline skeleton (Step 14, design §5 Stage 3): the
 > `VersionConformancePass` over the bound tree that funnels ALL 88 compiler-embedded `ConstructRegistry.Check` call
 > sites, absorbs and DELETES `EditionValidator` (its §8.9 reserved-word funnel moves into the pass), makes the binder
-> edition-agnostic (zero `Check`s; bound nodes carry the `.Syntax` back-reference the pass reads), splits bind/emit in
+> edition-agnostic (zero `Check`s save the §1.1 ledger; the pass's parse arm walks the RAW tree — NO bound node carries a `.Syntax` back-reference, the BoundTree invariant), splits bind/emit in
 > `CompilerDriver` (bind → pass → HALT on errors → emit), and re-points `CheckOnly` / `check-batch` / `EditionHarness`
 > / the INV-1 continuity + INV-1-strong legs so their verdicts include pass diagnostics. The later phases PRESERVE and
 > HARDEN it: **P04** (frontend) completes the superset grammar + the committed-match construct-id ANNOTATION convention
@@ -288,8 +288,8 @@ it does NOT renumber the phases.
 | **B ✅ DONE** | P6 | **PHASE 06 complete: `BinderDriver` → immutable `BoundCompilation`; the declared `GroupTail` manifest with the `VersionConformancePass` as NAMED terminal pass; one DAG + DEBUG watermark gate; 14 binder collections sealed `IReadOnly`; the lookup quadruple DELETED → the ONE scope-aware `SymbolTable` (`TryResolve`/`TryResolveIndex`/`IndexCellOf` over explicit `Scope`, per binder); `IOoBindHost`+`BindSession` = the P6→P9 seam.** All 6 exit criteria hold; deviations in the PHASE-06 STATUS ledger. | The name-resolution foundation the binder decomposition + every feature phase needs; replaces the ad-hoc quadruple over the `ByName`/name-index dictionaries. |
 | **C ✅ DONE** | P5 Steps 6–14 | **PHASE 05 complete: the `StoreAsImage` FLAG deleted (collected facts → `StorageFormPass`; the name = the read-only projection of `Storage`); readers on `Storage`/`RecordLayout` (geometry copies collapsed; SR8 enforced COBOLNET1539); `Binding/Model/` move + `PlaceDecorator` + `StrongTypeModel` + `PictureAnalyzer` (PicInfo a pure value record; sentinels → `DataItem.Pending`); `RedefinesClass.Classify` the ONE tier-verdict mutator; ONE `UsageInheritancePass`; apostrophe goldens.** All 7 exit criteria hold; deviations in the PHASE-05 ledger. | Finishes the data-model migration ON the visitor + symbol table. |
 | **D ✅ DONE** | P7 Steps 1–12 | **PHASE-07 complete: both god classes dissolved; structural `Place` (Step 11); FUNCTION-arg grammar + IntrinsicRenderer static-channel deletion (Step 12).** | Needed B (`BoundCompilation`) + A (visitor). |
-| **◐ E (NOW)** | (P2/P3 audit remediation, task #13) | **Fold the ~15 inline edition gates into the two-arm `VersionConformancePass`** + delete orphaned `GateId` scaffolding + correct the "edition-agnostic" over-claims. | Done ON the visitor + the now-clean pipeline; the gate walks reuse the shared visitor. |
-| **F** | P08–P16 | Runtime reorg, feature waves (M2/M3/M4), matrix closure, G8 legacy cut, CIL backend. | On the fully tooling-leveraged foundation. |
+| **E ✅ DONE** | (P2/P3 audit remediation, task #13) | **The ~19 inline edition gates FOLDED into the two-arm `VersionConformancePass`** (20 new registry rows, each in the version matrix); orphaned `GateId` scaffolding DELETED; the "edition-agnostic" over-claims corrected (the canonical §1.1 gating-exception ledger, DESIGN-version-conformance-pipeline). | Done ON the visitor + the now-clean pipeline. |
+| **◐ F (NOW)** | P08–P16 | Runtime reorg, feature waves (M2/M3/M4), matrix closure, G8 legacy cut, CIL backend. | On the fully tooling-leveraged foundation. |
 
 **Guiding rule going forward (`[[feedback_singular_pattern]]` + tooling):** any NEW tree traversal uses the ONE
 generated/shared visitor (bound tree) or the ANTLR generated visitor/listener (CST) — never a fresh bespoke `switch`.

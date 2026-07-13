@@ -58,12 +58,7 @@ internal sealed class AcceptDisplayBinder(BinderContext ctx, StatementBinder hos
             return accepted is BoundAccept mba ? mba with { HasEndTerminator = endTerm } : accepted;
         }
 
-        // Format 2 — temporal. The four-digit-year phrases are COBOL-2002+ (the 1985 §14.9.1 formats list only the
-        // bare DATE / DAY / DAY-OF-WEEK / TIME); reject below 2002, never silently accept-and-misbehave.
-        if ((src.YYYYMMDD() ?? src.YYYYDDD()) is { } phrase && ctx.Edition.DialectLevel < 2002)
-            ctx.Edition.Error("COBOLNET0815", $"ACCEPT FROM {(src.DATE() is not null ? "DATE YYYYMMDD" : "DAY YYYYDDD")} "
-                + $"— the {phrase.GetText()} (four-digit-year) phrase was introduced by ISO/IEC 1989:2002 (§14.9.1); "
-                + $"it requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        // Format 2 — temporal. accept-four-digit-year-2002: the pass owns the edition gate (Exec Step E).
 
         AcceptKind kind =
             src.DATE() is not null ? (src.YYYYMMDD() is not null ? AcceptKind.DateYYYYMMDD : AcceptKind.Date)

@@ -125,11 +125,7 @@ public sealed partial class DataBinder
         string currencyString;
         if (cur.PIC() is not null)
         {
-            // WITH PICTURE SYMBOL — introduced by ISO/IEC 1989:2002 §12.3.7 (the 1985 CURRENCY SIGN clause had
-            // only the single-character literal form); VERSION_CHANGE_REFERENCE Table 7.
-            if (Edition.DialectLevel < 2002)
-                Edition.Error("COBOLNET0893", "CURRENCY SIGN … WITH PICTURE SYMBOL was introduced by ISO/IEC "
-                    + $"1989:2002 (§12.3.7) — requires --std 2002 or later (targeting COBOL-{Edition.DialectLevel})");
+            // currency-picture-symbol-2002 (§12.3.7): the pass owns the edition gate (Exec Step E).
             // PICMODE exploit: the word between PICTURE and literal-8 arrives as a PIC_STRING token — it must be
             // the keyword SYMBOL (the grammar cannot distinguish; semantic check per the grammar's own note).
             if (cur.PIC_STRING()?.GetText() is { } sym && !sym.Equals("SYMBOL", StringComparison.OrdinalIgnoreCase))

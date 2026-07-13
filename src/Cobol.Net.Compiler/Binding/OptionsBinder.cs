@@ -28,13 +28,10 @@ internal static class OptionsBinder
         var options = paragraphs.Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null);
         if (options is null) return OptionsModel.Default;
 
+        // options-paragraph-2014: the pass owns the edition gate (Exec Step E); below 2014 the paragraph is
+        // routed INERT (Default) — the strict compile fails on the pass's diagnostic before the model matters.
         if (edition is { DialectLevel: < 2014 })
-        {
-            edition.Error("COBOLNET0804", "the OPTIONS paragraph (ARITHMETIC / DEFAULT ROUNDED / INTERMEDIATE "
-                + $"ROUNDING …) was introduced by ISO/IEC 1989:2014 (§11.9) — it requires --std 2014 or later "
-                + $"(targeting COBOL-{edition.DialectLevel})");
             return OptionsModel.Default;
-        }
 
         var model = OptionsModel.Default;
         foreach (var clause in options.optionsClause())

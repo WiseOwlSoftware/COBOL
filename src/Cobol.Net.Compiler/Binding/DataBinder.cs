@@ -194,9 +194,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (Options.Arithmetic == ArithmeticMode.StandardBinary)
             Edition.Error("COBOLNET0806", "ARITHMETIC IS STANDARD-BINARY is an obsolete feature (ISO §8.8.1.4.1 "
                 + "NOTE 1 / Annex F) and is not supported; use NATIVE or STANDARD-DECIMAL");
-        else if (Options.Arithmetic == ArithmeticMode.Standard && Edition.DialectLevel >= 2023)
-            Edition.Error("COBOLNET0807", "ARITHMETIC IS STANDARD was dropped by ISO/IEC 1989:2023 "
-                + "(§8.8.1 defines NATIVE, STANDARD-BINARY, STANDARD-DECIMAL); use STANDARD-DECIMAL");
+        // arithmetic-standard-2014 (dual-window; dropped 2023): the pass owns the edition gate (Exec Step E).
 
         // The '85 debug facility's compile-time switch (X3.23-1985 SOURCE-COMPUTER … WITH DEBUGGING MODE; the
         // clause itself is 0902-gated ≥2002 by the version-conformance pass): its presence decides whether a USE FOR

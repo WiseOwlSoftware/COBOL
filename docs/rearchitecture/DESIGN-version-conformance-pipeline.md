@@ -1,7 +1,10 @@
 # DESIGN — Version-Conformance Pipeline (superset parse · edition-agnostic bind · one gating pass)
 
-> **STATUS: DESIGN — ✅ IMPLEMENTED (PHASE-03).** The two-arm `VersionConformancePass` is the SOLE
-> edition gate; the binder is edition-agnostic save the ONE documented UDF exception; all 9 PHASE-03 exit criteria hold.
+> **STATUS: DESIGN — ✅ IMPLEMENTED (PHASE-03; completed by Exec Step E).** The two-arm
+> `VersionConformancePass` is the SOLE edition gate; the binder is edition-agnostic save the documented
+> exception ledger (§1.1 — the UDF Check, the catalog-driven per-name windows, the two behavioral reads, the
+> owner-disposition SYNC-on-group site). Exec Step E folded the last ~19 inline binder gates into the pass;
+> all 9 PHASE-03 exit criteria hold.
 > How COBOL.NET enforces edition (85 / 2002 / 2014 / 2023) conformance. The gating pass runs **post-bind** as a
 > two-arm walk — one arm over the bound tree (semantic gates), one over the raw parse tree (syntactic gates + the
 > §8.9 reserved-word funnel); version *identity* is recovered by the pass itself (bound-node type/attribute or
@@ -50,10 +53,12 @@ all four (`feedback_singular_pattern`: one canonical mechanism per job, with err
         │                genuinely ambiguous across editions — the 2 load-bearing cases in §4).
         │               construct IDENTITY is recovered later, by the pass's parse-tree arm (§2.2).
         ▼
-     Bind               edition-AGNOSTIC. Produces the BoundProgram. Never sees an EditionInfo; contains
-        │               ZERO ConstructRegistry.Check calls save the ONE documented UDF exception. NO bound node
-        │               carries a `.Syntax`/parse back-reference (the BoundTree invariant).
-        │               ── HALT if bind produced errors ──
+     Bind               edition-AGNOSTIC (the §1.1 exception ledger is the complete remainder). Produces the
+        │               BoundProgram; ZERO ConstructRegistry.Check calls save the ONE documented UDF exception.
+        │               NO bound node carries a `.Syntax`/parse back-reference (the BoundTree invariant).
+        │               (No separate bind halt: the driver's ONE post-pass HasErrors gate covers both phases —
+        │                bind + pass diagnostics ACCUMULATE, so a below-edition construct with a semantic error
+        │                surfaces both; DEVLOG 14h.1.)
         ▼
   VersionConformancePass   ONE dedicated post-bind pass, in TWO arms. The SINGLE owner of all edition gating:
         │                  · syntactic gates → the parse-tree arm re-recognizes the construct → Check
@@ -67,6 +72,32 @@ all four (`feedback_singular_pattern`: one canonical mechanism per job, with err
 ```
 
 The pass is **table-driven** from `constructs.json`/`ConstructRegistry` (already the single version table) and is trivially testable in isolation: feed it a bound tree + an `EditionInfo`, assert the diagnostics — no binder, no emitter.
+
+### 1.1 The gating-exception ledger (the COMPLETE list — everything else is pass-owned)
+
+"Edition-agnostic bind" means: the binder makes NO hardcoded-year gating decision of its own. Exec Step E folded
+the last ~19 inline `DialectLevel` diagnostic gates into the pass (each now a `constructs.json` row firing from
+the correct arm, entering the version matrix with its negative witness). What legitimately REMAINS binder-side
+is this closed, documented set:
+
+1. **The ONE bind-time `Check`** — `UdfBinder` (UserFunctionInvocation2002): an intrinsic FUNCTION and a
+   user-function call are syntactically identical, only the repository-resolved name set separates them, so the
+   gate fires at bind on recognition (§2.4).
+2. **Catalog-driven per-NAME windows** — version facts that live in their OWN tables, not constructs.json: the
+   D8 intrinsic IntroducedIn/RemovedIn windows (`IntrinsicCatalog`, COBOLNET1502/1503, + the bespoke TRIM
+   argument-2 window riding BindTrim), the `ExceptionCatalog` EC-name windows (COBOLNET0878 — EcBinder, the USE
+   F3 name loop, `>>TURN`), the `PictureAnalyzer` picture-symbol rows (the ≥edition 0899 half of the W2 skeleton
+   gate), and the §8.3.1.2 digit caps (`EditionContext.CheckDigitCapacity`, 0801/0802 — `EditionInfo.MaxDigits`
+   is the table).
+3. **The two sanctioned BEHAVIORAL edition reads** (they select semantics for VALID programs, no diagnostic):
+   the <2002 keyword-omitted FUNCTION routing gate (`IntrinsicBinder` — §8.4.3.2 SR2 routing is inert below
+   2002) and the ≥2002 MOVE CORRESPONDING pair-selection window (`CorrespondingBinder` — the Table-16 NE row).
+4. **The owner-disposition SYNCHRONIZED-on-group site** (`DataBinder`, row sync-on-group-2023): deliberately a
+   manual `Edition.Removed`-severity emission (error strict / WARNING permissive) because the `Check`
+   introduction verdict errors on BOTH axes — the owner chose accept-inert continuity (P3 step 10; the row's
+   description records it).
+
+Any OTHER `DialectLevel` comparison appearing in `Binding/**` is a defect: relocate it into the pass.
 
 ## 2. Mechanisms
 

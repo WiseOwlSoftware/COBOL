@@ -172,10 +172,7 @@ internal sealed class BinderDriver
                 name = asName;   // PROGRAM-ID name AS "literal" — the externalized name (ISO §11.10.4 GR1)
         }
 
-        if (recursive && edition.DialectLevel < 2002)
-            edition.Error("COBOLNET0885",
-                "PROGRAM-ID … RECURSIVE was introduced by ISO/IEC 1989:2002 (§11.10) — requires --std 2002 or "
-                + $"later (targeting COBOL-{edition.DialectLevel})");
+        // program-id-recursive-2002: the pass owns the edition gate (Exec Step E).
         if (initial && recursive)
             edition.Error("COBOLNET0886",
                 $"program '{name}': INITIAL and RECURSIVE are mutually exclusive (ISO §11.10.3 SR5–6)");

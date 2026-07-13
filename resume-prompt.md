@@ -21,7 +21,20 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP E: P2/P3 edition-gate remediation
+## ⛔🔀 RESUME AT — EXEC STEP F: PHASE-08 (runtime library reorg)
+
+**EXEC STEP E IS COMPLETE (2026-07-12).** The ~19 inline edition gates are FOLDED into the two-arm
+`VersionConformancePass` — 20 new `constructs.json` rows (0804/0807/0815/0830–33/0845/0870–72/0876/0877/0879/
+0880/0884/0885 + the dual-window arithmetic-standard-2014), each with a version-matrix fixture; the orphaned
+`GateId` scaffolding is DELETED (generator section 3 + drift fact; `UsageGateId`→`UsageConstructId` rename);
+the "edition-agnostic" claims are reconciled onto the ONE canonical **§1.1 gating-exception ledger**
+(`DESIGN-version-conformance-pipeline.md`): the UDF Check + the catalog-driven per-name windows (D8 intrinsics,
+EC names, PICTURE symbol rows, digit caps) + the two behavioral reads (keyword-omitted FUNCTION routing, MOVE
+CORR pair window) + the owner-disposition SYNC-on-group site. Any OTHER `DialectLevel` comparison in
+`Binding/**` is a defect — relocate it into the pass. Next: **Exec Step F = PHASE 08–16** (start at
+`docs/rearchitecture/PHASE-08-runtime-library-reorg-rununit.md` — read its STATUS line first).
+
+## (completed) EXEC STEP E: P2/P3 edition-gate remediation
 
 **PHASE-07 IS COMPLETE (Steps 1–12).** Both god classes are dissolved; `Place` is structural (Step 11 —
 `AccessPath` + `CodeGen/Roslyn/PlaceRenderer`, `PlaceNeutralityTests` locks G4); and **Step 12 landed the
@@ -65,9 +78,10 @@ image-fact caching (the O(subtree) perf work).
   Pending`); the tier verdict single-sourced through `RedefinesClass.Classify`; ONE `UsageInheritancePass`.
 - **D ✅** — PHASE-07 complete (Steps 1–12: both god classes dissolved; structural `Place`; FUNCTION-arg grammar +
   the `IntrinsicRenderer` static-channel deletion).
-- **E ◐ (NOW)** — P2/P3 edition-gate remediation: fold the ~15 inline gates into the two-arm
-  `VersionConformancePass`, delete orphaned `GateId`, correct the "edition-agnostic" over-claims.
-- **F** — PHASE 08–16: runtime reorg, M2/M3/M4 feature waves, version-matrix closure, G8 legacy cut, CIL backend.
+- **E ✅** — edition-gate remediation complete: the ~19 inline gates folded into the two-arm
+  `VersionConformancePass` (20 registry rows, all in the matrix); `GateId` deleted; claims reconciled onto the
+  §1.1 gating-exception ledger.
+- **F ◐ (NOW)** — PHASE 08–16: runtime reorg, M2/M3/M4 feature waves, version-matrix closure, G8 legacy cut, CIL backend.
 
 **Done:** Phases 00–07 (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
 version-conformance pipeline [the two-arm `VersionConformancePass` is the SOLE edition gate] · frontend consolidation

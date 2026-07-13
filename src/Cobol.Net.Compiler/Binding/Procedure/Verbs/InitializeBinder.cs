@@ -38,19 +38,8 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         var replacing = ini.initializeReplacingPhrase();
         bool toDefault = ini.initializeDefaultPhrase() is not null;
 
-        if (ctx.Edition.DialectLevel < 2002)
-        {
-            // The post-85 surface was introduced by ISO/IEC 1989:2002 (§14.9.20 / Annex E) — rejected at --std 85.
-            string need = $"it requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})";
-            if (withFiller)
-                ctx.Edition.Error("COBOLNET0830", $"INITIALIZE … WITH FILLER — the FILLER phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
-            if (toValue is not null)
-                ctx.Edition.Error("COBOLNET0831", $"INITIALIZE … TO VALUE — the VALUE phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
-            if (toDefault)
-                ctx.Edition.Error("COBOLNET0832", $"INITIALIZE … TO DEFAULT — the DEFAULT phrase was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
-            if (replacing?.THEN() is not null)
-                ctx.Edition.Error("COBOLNET0833", $"INITIALIZE … THEN REPLACING — the THEN connective was introduced by ISO/IEC 1989:2002 (§14.9.20); {need}");
-        }
+        // initialize-{filler,to-value,to-default,then-replacing}-2002 (§14.9.20): the pass owns the four
+        // post-85-surface edition gates (Exec Step E).
 
         var replacements = new List<(InitializeCategory Cat, BoundOperand Value)>();
         if (replacing is not null)

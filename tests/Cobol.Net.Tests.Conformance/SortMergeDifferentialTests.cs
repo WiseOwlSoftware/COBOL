@@ -474,7 +474,7 @@ public sealed class SortMergeDifferentialTests
     {
         var (ok, diagnostics) = EditionHarness.Compile(TableSortSource, 85);
         Assert.False(ok, "table SORT (Format 2) must be rejected at --std 85");
-        EditionHarness.AssertHasDiagnostic(diagnostics, "requires --std 2002");
+        EditionHarness.AssertHasDiagnostic(diagnostics, "requires COBOL-2002");   // the pass band text (Exec Step E fold)
     }
 
     /// <summary>GR18/GR24 at --std 2002: the table sorts IN PLACE on the typed element array; GR19a ascending by

@@ -3,7 +3,7 @@
 > **Status: LIVE. The ONE `VersionConformancePass`
 > (`src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs`) is the SOLE edition gate — a TWO-ARM pass
 > (parse-tree arm + bound-tree arm) over the bound run unit that runs after bind and before emit, so the binder
-> is edition-AGNOSTIC. It owns the §8.9 reserved-word funnel and routes every version-gated construct through the
+> is edition-AGNOSTIC (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1). It owns the §8.9 reserved-word funnel and routes every version-gated construct through the
 > ONE `ConstructRegistry.Check`; the reserved-word tables + both drift disciplines are its inputs. The plan it
 > implements is `docs/VERSION_TEST_MATRIX_DESIGN.md` "Phase-2 implementation plan" P2.1–P2.7 + the roadmap
 > `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase-1/2 amendments; the canonical edition-gating mechanism doc is
@@ -37,7 +37,7 @@ semantics).
   plus the gates conditioned on file-organization / access-mode / USAGE / pointer-category). Recognition-based
   syntactic gating is required so an introduction gate names its edition even when the below-edition construct
   ALSO fails to bind: the bound node it would have produced is dropped (`BoundUnsupported`/`BoundNop`), but its
-  PARSE node is always present. The binder is edition-AGNOSTIC (zero `Check` calls of its own; the one principled
+  PARSE node is always present. The binder is edition-AGNOSTIC (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1) (zero `Check` calls of its own; the one principled
   exception is the UDF-invocation gate, which stays bind-time because an intrinsic FUNCTION and a user-function
   call are syntactically identical). ALL severity routes through `Removed()`/the registry
   (see `docs/rearchitecture/DESIGN-version-conformance-pipeline.md`).

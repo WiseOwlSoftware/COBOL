@@ -24,7 +24,7 @@ back-compat. **The go-forward roadmap is `docs/COBOLNET_REARCHITECTURE_PLAN.md`*
 that subsumes the feature/NIST drive as its phases 09–14; `resume-prompt.md`'s top banner points to it + its §0 resume
 protocol. **Phases 00–07 are DONE (PHASE-07 closed: both god classes dissolved; `Place` structural via
 `CodeGen.Roslyn.PlaceRenderer`; FUNCTION args parse as real `arithmeticExpression`s and the `IntrinsicRenderer`
-static channel is deleted); RESUME AT Exec Step E (edition-gate remediation).** §6 owner decisions D1–D12 are
+static channel is deleted); Exec Step E (edition-gate remediation) is DONE — the two-arm `VersionConformancePass` is the ONE gating funnel with the §1.1 exception ledger; RESUME AT Exec Step F (PHASE-08 runtime reorg).** §6 owner decisions D1–D12 are
 ALL resolved. Battery: 3166+ conformance · 282 unit · 33 characterization (32 snapshots byte-exact + ratchet) · legacy
 guard 353 MATCH. **Always read `resume-prompt.md`'s top banner for the live resume point, never this snapshot.** The
 SSOT for locked invariants / settled decisions is **`docs/COBOLNET_DESIGN.md`**; the four-editions mission is validated

@@ -36,10 +36,7 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
             return new BoundUnsupported(
                 $"INSPECT identifier-1 '{target.Item.CobolName}' of USAGE {tp.Usage} (ISO §14.9.22.3 SR1 — usage display or national only)");
 
-        bool backward = ins.BACKWARD() is not null;
-        if (backward && ctx.Edition.DialectLevel < 2023)
-            ctx.Edition.Error("COBOLNET0845", "INSPECT BACKWARD was introduced by ISO/IEC 1989:2023 (§14.9.22.2; "
-                + $"version-change reference row 77); it requires --std 2023 (targeting COBOL-{ctx.Edition.DialectLevel})");
+        bool backward = ins.BACKWARD() is not null;   // inspect-backward-2023: the pass owns the edition gate (Exec Step E)
 
         var tallying = new List<BoundInspectTally>();
         if (ins.inspectTallyingPhrase() is { } tallyPhrase)

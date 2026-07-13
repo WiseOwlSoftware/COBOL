@@ -18,7 +18,7 @@ order), §18 (settled decisions). This design **keeps** the owner-locked §1.1/�
 decision and works within it — see §3.3 for the precise distinction between the *rejected* CIL-shaped branch IR
 and the *adopted* semantic-normalization-on-the-bound-tree.
 
-> **The binder is edition-agnostic.** Version conformance is one mechanism, and this doc's binder contract reflects it
+> **The binder is edition-agnostic (save the documented exception ledger, DESIGN-version-conformance-pipeline §1.1).** Version conformance is one mechanism, and this doc's binder contract reflects it
 > in three ways: (1) the binder makes ZERO `ConstructRegistry.Check` calls — edition gating is a single
 > `VersionConformancePass` over the bound tree (the sole syntactic+semantic gate). (2) NO
 > `.Syntax` back-reference is added to any bound node — the `BoundTree.cs` invariant stands. The pass identifies

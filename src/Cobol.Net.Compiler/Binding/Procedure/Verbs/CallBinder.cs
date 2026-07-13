@@ -95,10 +95,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         Place? returning = null;
         if (call.callReturningPhrase() is { } rp)
         {
-            if (ctx.Edition.DialectLevel < 2002)
-                ctx.Edition.Error("COBOLNET0884",
-                    "CALL … RETURNING was introduced by ISO/IEC 1989:2002 (§14.9.4) — requires --std 2002 or "
-                    + $"later (targeting COBOL-{ctx.Edition.DialectLevel})");
+            // call-returning-2002: the VersionConformancePass owns the edition gate (Exec Step E).
             if (ctx.Refs.Resolve(rp.dataReference()) is not { } rpl)
                 return new BoundUnsupported($"CALL RETURNING '{rp.dataReference().GetText()}'");
             returning = rpl;
@@ -159,15 +156,8 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindGoback(Core.GobackStatementContext g)
     {
         if (host.InMethod) return host.Oo.OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
-        // GOBACK itself is a COBOL-2002 introduction (COBOLNET0880). The RETURNING phrase's edition gate moved to
-        // the post-bind VersionConformancePass (Step 14c; GobackReturning2002 → COBOLNET0900 on
-        // BoundGoback.ReturningSource); when RETURNING is present its more-specific 0900 subsumes the 0880 — so the
-        // 0880 introduction gate below fires only for a BARE GOBACK below 2002 (a GOBACK RETURNING yields exactly
-        // one diagnostic, the pass's 0900).
-        if (g.dataReference() is null && ctx.Edition.DialectLevel < 2002)
-            ctx.Edition.Error("COBOLNET0880",
-                "GOBACK was introduced by ISO/IEC 1989:2002 (§14.9.16 there; §14.9.18 in 2023) — COBOL-85 uses "
-                + $"STOP RUN / EXIT PROGRAM; requires --std 2002 or later (targeting COBOL-{ctx.Edition.DialectLevel})");
+        // goback-bare-2002 / goback-returning-2002: the VersionConformancePass owns both edition gates
+        // (Exec Step E folded the bare-GOBACK 0880; the RETURNING 0900 subsumption lives in its parse arm).
         Place? source = null;
         if (g.dataReference() is { } dref)
         {
