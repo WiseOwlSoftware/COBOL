@@ -481,6 +481,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundFieldOperand f when f.Place.Item.IsGroup
                 && OdoModel.TableUnder(f.Place.Item) is { OccursSpec.Depending: not null } =>
             new BoundExprError("FUNCTION LENGTH of a variable-length (OCCURS DEPENDING) group (runtime length, §15.50.4 r7)"),
+        // An ANY LENGTH item's length exists only at RUNTIME (ISO §13.18.2 GR1 — n = the length of the
+        // corresponding argument): never the compile-time fold, always the runtime .Length over the carrier
+        // (the same BoundIntrinsicCall channel a nested string-function argument uses).
+        BoundFieldOperand { Place.Item.IsAnyLength: true } =>
+            new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
         BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ImageWidth).ToString()),
         BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),   // runtime .Length over the nested result image

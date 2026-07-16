@@ -586,6 +586,17 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The ANY LENGTH clause (ISO §13.18.2) — a COBOL-2002 introduction (a LINKAGE item whose length
+        /// tracks the corresponding argument at runtime, GR1). Parse-arm (recognition) like the BASED gate:
+        /// <c>DataItem.IsAnyLength</c> is cleared by the binder on every SR1/SR2/SR3/SR4 shape violation, so a
+        /// bound-arm home would drop the 0900 on exactly the declaration-error paths. The §13.18.2 placement SRs
+        /// stay bind-time (DataBinder.BindEntry + the unit/method sweeps).</summary>
+        public override object? VisitAnyLengthClause(CobolParserCore.AnyLengthClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.AnyLengthClause2002, "the ANY LENGTH clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The TYPE IS type-name clause (the TYPEDEF family, ISO §13.18.58; D17) — a COBOL-2002 introduction.
         /// Fires once per written <c>TYPE IS</c> occurrence: the ExpandTypes clones are DataItem objects, not parse
         /// nodes, so a TYPEDEF referenced N times yields exactly N typeClause nodes (matching the former per-entry

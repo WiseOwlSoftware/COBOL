@@ -176,6 +176,14 @@ public sealed class DataItem
     /// post-build pass routes every reference through the pointer (Phase-4b increment 2).</summary>
     public bool IsBased { get; set; }
 
+    /// <summary>True for an ANY LENGTH elementary level-1 LINKAGE entry (ISO §13.18.2 — the item's length varies
+    /// at runtime and is the length of the corresponding argument of the activating element, GR1; PICTURE is
+    /// exactly one 'X', 'N', or '1', SR1). Set by <c>DataBinder.BindEntry</c> after the SR1/§13.16.3-SR17 shape
+    /// checks; CLEARED by the placement sweeps (<c>CallBindLinkage</c> / <c>OoBindMethodData</c>) on an SR2/SR3/SR4
+    /// violation so the item binds as ordinary storage under an already-failed compile (the IsBased pattern).
+    /// Emit-side: every width-sensitive render of the item uses the CARRIER's runtime length, never Pic.Length.</summary>
+    public bool IsAnyLength { get; set; }
+
     /// <summary>The start of this view's window within its class's concatenated image (0 for a whole-area redefiner;
     /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.
     /// ONE writer: <c>DataBinder.AssignClassOffsets</c> — the classifier's offset walk, shared by the cell forcer

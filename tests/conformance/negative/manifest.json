@@ -3,6 +3,9 @@
   "enabled": [
     "allocate-chars-no-returning",
     "allocate-non-based",
+    "any-length-at-85",
+    "any-length-bad-picture",
+    "any-length-outermost",
     "author-paragraph",
     "based-level-05",
     "based-redefines-conflict",

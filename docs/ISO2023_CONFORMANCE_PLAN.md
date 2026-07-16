@@ -644,6 +644,18 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
 
 ---
 
+### Recorded deferral — GOBACK status-phrase (2023; §14.9.18.2) → PHASE-13
+
+`GOBACK [WITH {ERROR|NORMAL} STATUS [identifier|literal]]` is a COBOL-2023 addition (the STOP RUN twin is
+LANDED — the `stop-run-status` construct row). As of P9 Step 14 (2026-07-16) the grammar's `gobackStatement`
+carries no status alternative — DEFERRED to **PHASE-13 (M4 2023 EC remnants + behavior rows)**, where it lands
+with: the grammar alternative (superset parse), a `goback-status-2023` constructs row (introduced 2023 — note
+the asymmetry with `stop-run-status`'s 2002 introduction; derive both edges from the editions), the binder
+lowering onto the same status machinery STOP RUN WITH STATUS uses (singular pattern), and a 2014-vs-2023
+continuity matrix row. The D8 GOBACK/STOP-RUN SPLIT itself is verified LANDED: a method-context GOBACK binds
+`BoundMethodReturn` (OoBinder), a program GOBACK `BoundGoback`, STOP RUN `BoundStop` — distinct signals, the
+OO "only correctness blocker" closed.
+
 ## 4. Execution order (waves) — implement top-down
 
 **Wave 1 — UDF correctness + cheap high-value (start here):**

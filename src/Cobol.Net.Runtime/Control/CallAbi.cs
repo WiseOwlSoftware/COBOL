@@ -89,18 +89,28 @@ public static class CobolArgAdapt
     /// A character carrier gets a width-window view: reads are the first <paramref name="width"/> positions
     /// (space-padded when the caller's storage is shorter); writes SPLICE into the caller's storage, preserving
     /// the caller's own width invariant (§14.2.3 GR8 — the callee touches only its formal's character positions).
-    /// A native-<c>long</c> carrier gets a digit-image view via the caller's digit meta (D5 boundary).</summary>
+    /// A native-<c>long</c> carrier gets a digit-image view via the caller's digit meta (D5 boundary).
+    /// <para><paramref name="width"/> = <c>-1</c> is the ANY LENGTH mode (ISO §13.18.2 GR1): the formal's length
+    /// IS the caller's argument length, so the callee sees the caller's FULL string (a zero-length argument
+    /// yields the zero-length item, GR1a) and every write re-fits to the argument's CURRENT length (GR1b — the
+    /// item behaves as n repetitions of its picture symbol, n fixed by the activation).</para></summary>
     public static ManagedPointer<string> Text(CobolArg[] args, int i, int width)
     {
         if (!Present(args, i)) return Omitted<string>(i);
         switch (args[i].Carrier)
         {
+            case ManagedPointer<string> sp when width < 0:   // ANY LENGTH (§13.18.2 GR1) — the full-string view
+                return ManagedPointer<string>.OverField(
+                    () => sp.Value ?? "",
+                    v => sp.Value = CobolString.Store(v, sp.Value?.Length ?? 0));
             case ManagedPointer<string> sp:
                 return ManagedPointer<string>.OverField(
                     () => CobolString.Store(sp.Value, width),
                     v => sp.Value = CobolString.SpliceInto(sp.Value, 1, Math.Min(width, sp.Value?.Length ?? width), v));
             case ManagedPointer<long> lp:
-                int digits = args[i].Digits > 0 ? args[i].Digits : width;
+                // ANY LENGTH (width -1): the view width is the caller's digit-image width — n follows the
+                // ARGUMENT's description (§13.18.2 GR1), never the formal's one-symbol picture.
+                int digits = args[i].Digits > 0 ? args[i].Digits : Math.Max(1, width);
                 var prof = new NumProfile
                 {
                     Digits = digits,
@@ -108,8 +118,9 @@ public static class CobolArgAdapt
                     Signed = false,
                     Truncation = NumericTruncation.DigitCount,
                 };
+                int viewWidth = width < 0 ? digits : width;   // ANY LENGTH: the argument's own image width (§13.18.2 GR1)
                 return ManagedPointer<string>.OverField(
-                    () => CobolString.Store(CobolNum.FormatDisplay(lp.Value, prof), width),
+                    () => CobolString.Store(CobolNum.FormatDisplay(lp.Value, prof), viewWidth),
                     v => lp.Value = (long)CobolNum.ParseDisplay(v, prof));
             default:
                 return Omitted<string>(i);

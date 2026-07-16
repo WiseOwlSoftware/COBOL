@@ -278,10 +278,12 @@ internal sealed class ProgramEmitter
                 if (f.CarrierResident)
                 {
                     // Per-access aliasing of the caller's storage (§14.2.3 GR8): every reference to the formal
-                    // reads/writes through this carrier (its CsName IS `__lnkpN.Value`).
+                    // reads/writes through this carrier (its CsName IS `__lnkpN.Value`). An ANY LENGTH formal
+                    // (ISO §13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
+                    // view (the width -1 sentinel), never a Pic.Length=1 window that would truncate the caller.
                     w.Line(isNum
                         ? $"{f.CarrierField} = {RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")};"
-                        : $"{f.CarrierField} = {RuntimeApi.ArgAdaptText("__args", f.Position, $"{Math.Max(1, f.Item.Pic!.Length)}")};");
+                        : $"{f.CarrierField} = {RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{Math.Max(1, f.Item.Pic!.Length)}")};");
                     continue;
                 }
                 // Boundary round-trip formal (group / redefined): adopt the carrier, copy the caller's image in.

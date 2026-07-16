@@ -209,9 +209,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 return;
             case { Category: PicCategory.Alphanumeric, Length: var len }:
                 // A JUSTIFIED receiver right-justifies — left space-fill / left truncation (§14.9.25.4 GR6c).
+                // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — n is fixed
+                // by the activation's argument), never its one-symbol Pic.Length.
+                string wS = target.Item.IsAnyLength ? $"{PlaceRenderer.Read(target)}.Length" : $"{len}";
                 w.Line(PlaceRenderer.Write(target, target.Item.Justified
-                    ? RuntimeApi.StrStoreJustified(valueExpr, $"{len}")
-                    : RuntimeApi.StrStore(valueExpr, $"{len}")));
+                    ? RuntimeApi.StrStoreJustified(valueExpr, wS)
+                    : RuntimeApi.StrStore(valueExpr, wS)));
                 return;
             case { Category: PicCategory.Numeric, IsFloat: false, Usage: not Usage.Index }:
                 string stored = RuntimeApi.NumStore(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", target.Item.ProfileName);

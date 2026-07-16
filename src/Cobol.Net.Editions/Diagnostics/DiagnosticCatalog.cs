@@ -213,6 +213,11 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor OoGroupValuedProperty = new(
         NotImplemented, "oo-group-valued-property", EditionSeverity.Error,
         "A group-valued object-property reference is not yet implemented.", "ISO §8.4.3.9.4", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor AnyLengthReturning = new(
+        NotImplemented, "any-length-returning", EditionSeverity.Error,
+        "ANY LENGTH on a RETURNING item (legal per §13.18.2.3 SR3b) is recognized but not yet implemented — the "
+        + "return crossing cannot carry the activator's receiver length yet (the ANY LENGTH formal-parameter leg "
+        + "is fully implemented).", "ISO §13.18.2.3 SR3b / §13.18.2.4 GR1", RecognizedNotImplemented);
 
     // ── COBOLNET0899 — miscellaneous deferrals ───────────────────────────────────────────────────────
     public static readonly DiagnosticDescriptor ExternalRecordNotCellBacked = new(

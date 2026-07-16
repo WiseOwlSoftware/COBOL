@@ -54,6 +54,14 @@ public sealed partial class DataBinder
     /// <summary>The LINKAGE SECTION's top-level (01/77) items, in source order (ISO §13.7).</summary>
     public List<DataItem> LinkageRoots { get; } = [];
 
+    /// <summary>True when this binder binds a CONTAINED program unit (ISO §13.18.2.3 SR2/SR3 — the ANY LENGTH
+    /// placement rules differ per unit kind). Set by <c>BinderDriver.BindUnitData</c> from the unit's Parent.</summary>
+    public bool UnitIsContained { get; init; }
+
+    /// <summary>True when this binder binds a FUNCTION-ID unit (ISO §13.18.2.3 SR2/SR4). Set by
+    /// <c>BinderDriver.BindUnitData</c> from <c>BoundUnit.IsFunction</c>.</summary>
+    public bool UnitIsFunction { get; init; }
+
     /// <summary>The PROCEDURE DIVISION USING formals, positional (ISO §14.2.3 GR2). (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlyList<LinkageFormal> LinkageFormals => _linkageFormals;
     private readonly List<LinkageFormal> _linkageFormals = [];
@@ -98,7 +106,7 @@ public sealed partial class DataBinder
             LinkageRoots.AddRange(BindEntries(entries, rootNames));
         }
 
-        if (program.procedureDivision() is not { } pd) return;
+        if (program.procedureDivision() is not { } pd) { AnyLengthValidateUnit(); return; }
 
         int pos = 0;
         foreach (var dref in pd.usingClause()?.dataReferenceList()?.dataReference() ?? [])
@@ -163,6 +171,66 @@ public sealed partial class DataBinder
                 Edition.Error("COBOLNET0888",
                     $"PROCEDURE DIVISION RETURNING item '{rref.GetText()}' is not a level-01/77 LINKAGE SECTION "
                     + "item (ISO §14.2.2 SR1)");
+        }
+
+        AnyLengthValidateUnit();
+    }
+
+    /// <summary>The ANY LENGTH placement sweep of this unit's forest (ISO §13.18.2.3 SR2/SR3/SR4) — runs at the
+    /// end of <see cref="CallBindLinkage"/>, when the unit's sections AND its PD-header formals are bound but no
+    /// method data has (methods sweep in <c>OoBindMethodData</c>). SR2: an elementary level-1 LINKAGE entry of a
+    /// FUNCTION or a CONTAINED program — never an outermost program (the §13.18.2.3 NOTE: a prototype-less CALL
+    /// cannot associate arguments with an ANY LENGTH formal) and never the object/factory paragraph of a class.
+    /// SR3 (contained program): referenced in the PD header as a formal (every header formal is BY REFERENCE
+    /// today — the header BY VALUE phrase is not yet parsed, so SR3a's phrase requirement is structural) or as
+    /// the RETURNING item. SR4 (function): as a formal only — a function's ANY LENGTH RETURNING is illegal.
+    /// A violation clears <see cref="DataItem.IsAnyLength"/> (the IsBased discipline: the item binds as its
+    /// ordinary one-character shape under an already-failed compile — never a half-varying state).</summary>
+    private void AnyLengthValidateUnit()
+    {
+        foreach (var root in Roots)
+        {
+            if (!root.IsAnyLength) continue;
+            string where = $"data item '{root.CobolName ?? "FILLER"}'";
+            if (!LinkageRoots.Contains(root))
+                Edition.Error("COBOLNET1542", $"{where}: the ANY LENGTH clause may be specified only in an "
+                    + "elementary level 1 entry in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
+            else if (root.IsGroup)
+                Edition.Error("COBOLNET1542", $"{where}: the subject of an ANY LENGTH clause shall be "
+                    + "ELEMENTARY — this entry has subordinate items (ISO §13.18.2.3 SR2)");
+            else if (OoIsClassUnit)
+                // This binder's own LINKAGE is the OBJECT/FACTORY paragraph's, never a method's (method
+                // linkage binds via OoBindMethodData into OoMethodBinding.LinkageRoots, swept there).
+                Edition.Error("COBOLNET1542", $"{where}: the ANY LENGTH clause may be specified only in the "
+                    + "linkage section of a function, a contained program, or a method that is not a property "
+                    + "method — not in a factory or instance definition (ISO §13.18.2.3 SR2)");
+            else if (!UnitIsContained && !UnitIsFunction)
+                Edition.Error("COBOLNET1542", $"{where}: the ANY LENGTH clause may not be specified in an "
+                    + "OUTERMOST program — only in a function, a contained program, or a method "
+                    + "(ISO §13.18.2.3 SR2 and its NOTE)");
+            else
+            {
+                bool formal = LinkageFormals.Any(f => ReferenceEquals(f.Item, root));
+                bool returning = ReferenceEquals(LinkageReturning, root);
+                if (UnitIsFunction ? !formal : !(formal || returning))
+                    Edition.Error("COBOLNET1542", UnitIsFunction
+                        ? $"{where}: in a FUNCTION the subject of an ANY LENGTH clause shall be referenced in "
+                          + "the procedure division header as a formal parameter with the BY REFERENCE phrase "
+                          + "(ISO §13.18.2.3 SR4)"
+                        : $"{where}: in a contained program the subject of an ANY LENGTH clause shall be "
+                          + "referenced in the procedure division header as a BY REFERENCE formal parameter or "
+                          + "as the RETURNING item (ISO §13.18.2.3 SR3)");
+                else if (returning && !formal)
+                    // SR3b-legal, staged LOUD (never a silently-wrong length): the return crossing delivers a
+                    // VALUE — it cannot carry the ACTIVATOR's receiver length that GR1 fixes n from. Deferred
+                    // with the ANY-LENGTH-RETURNING wave; the formal-parameter leg is fully implemented.
+                    Edition.Error(DiagnosticCatalog.AnyLengthReturning, $"{where}: ANY LENGTH on the PROCEDURE "
+                        + "DIVISION RETURNING item is recognized (ISO §13.18.2.3 SR3b) but not yet implemented "
+                        + "(the ANY-LENGTH-RETURNING wave); ANY LENGTH formal parameters are fully supported");
+                else
+                    continue;   // conformant — keep the flag
+            }
+            root.IsAnyLength = false;
         }
     }
 

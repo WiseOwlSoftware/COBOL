@@ -42,6 +42,15 @@
   become `init`-only properties (compiler-enforced immutability — STRONGER than scoped push/pop; criterion 3's
   intent: no mutable ambient flags, reset guaranteed structurally). `ActiveMethodScope` already push/pops via
   `BinderContext.EnterMethodScope` (P7).)
+  **Step 14 — VERIFIED (2026-07-16):** the D8 GOBACK/STOP-RUN split is LANDED as-built — a method-context
+  GOBACK/EXIT METHOD binds `BoundMethodReturn` (`OoBinder.cs:872/:904`), distinct from the program `BoundGoback`
+  and the run-unit `BoundStop`; 13 OoSpineTests references exercise the method-return paths. The 2023 GOBACK
+  status-phrase (§14.9.18.2 `WITH ERROR|NORMAL STATUS`) is NOT implemented (the `gobackStatement` grammar rule
+  carries no status alternative) — DEFERRED to PHASE-13 with the full landing recipe RECORDED in
+  `docs/ISO2023_CONFORMANCE_PLAN.md` §"Recorded deferral — GOBACK status-phrase".
+  **Step 13 scouting note:** `oo_ec_raise_object`/`oo_ec_goback_raising` cover the F4 exception-object
+  declarative + activator pickup, but NO golden exercises a GLOBAL exception-object declarative reached from a
+  CONTAINED program — `oo_ec_global_f3` is the gap to close (blocked on the Step-11 agent's manifest lock).
   > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the DEVLOG entry-per-commit discipline (`DEVLOG.md`, newest-first) and push every commit boundary (`feedback_fully_autonomous_push`).
   >
   > ⚠ **AS-BUILT DRIFT LEDGER (scouted 2026-07-15 — adapt every step to these seams, not the doc's stale anchors):**

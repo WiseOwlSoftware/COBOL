@@ -222,7 +222,14 @@ internal sealed class BinderDriver
     private static void BindUnitData(BoundUnit unit, BindSession session)
     {
         var edition = session.Edition;
-        var data = new DataBinder(edition) { OoClasses = session.OoClasses };
+        var data = new DataBinder(edition)
+        {
+            OoClasses = session.OoClasses,
+            // The ANY LENGTH placement facts (ISO §13.18.2.3 SR2–SR4 — the rules differ for a contained
+            // program, a function, and an outermost program): the unit kind is known only here.
+            UnitIsContained = unit.Parent is not null,
+            UnitIsFunction = unit.IsFunction,
+        };
         data.CallSeedUids(session.TakeUidBand());
 
         // Pre-seed inherited GLOBAL-table index names BEFORE Bind: the child's own INDEXED BY registrations then

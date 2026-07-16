@@ -224,6 +224,7 @@ dataDescriptionClause
     | typeClause
     | typedefClause
     | basedClause
+    | anyLengthClause
     | genericDataClause
     ;
 
@@ -240,6 +241,13 @@ externalClause
 // data-address pointer (initially NULL) and NO storage until SET ADDRESS OF / ALLOCATE gives it one.
 basedClause
     : BASED   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitBasedClause (rearch 14g.2)
+    ;
+
+// ANY LENGTH clause (COBOL-2002 §13.18.2) — the length of a LINKAGE item varies at runtime with the length
+// of the corresponding argument (GR1). UNGATED superset parse (the basedClause pattern); the SR1–SR4 shape
+// rules bind-check in DataBinder and the placement sweeps.
+anyLengthClause
+    : ANY LENGTH   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitAnyLengthClause
     ;
 
 // GLOBAL clause (§13.18.27) — visible to contained programs

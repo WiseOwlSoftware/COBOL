@@ -101,6 +101,19 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             returning = rpl;
         }
 
+        // §14.9.4.3 SR11/SR18 — a CALL argument (BY REFERENCE or BY CONTENT) and the CALL RETURNING item shall
+        // not be described with the ANY LENGTH clause: without a program-prototype the activated program's
+        // formal cannot be proven ANY LENGTH (the §13.18.2.3 SR2 NOTE), so passing a runtime-length item onward
+        // through CALL is banned outright (INVOKE permits it — §14.8.2.3.2 rule e pairs it with an ANY LENGTH
+        // method formal).
+        foreach (var a in args)
+            if (a.Place is { Item.IsAnyLength: true } ap)
+                ctx.Edition.Error("COBOLNET1542", $"CALL USING argument '{ap.Item.CobolName}' is described "
+                    + "with the ANY LENGTH clause (ISO §14.9.4.3 SR11 — a CALL argument shall not be ANY LENGTH)");
+        if (returning is { Item.IsAnyLength: true } anyRet)
+            ctx.Edition.Error("COBOLNET1542", $"CALL RETURNING item '{anyRet.Item.CobolName}' is described "
+                + "with the ANY LENGTH clause (ISO §14.9.4.3 SR18)");
+
         // ── Exception phrases — edition-gated spellings (deep-dive "Edition gating"; VERSION_CHANGE_REFERENCE
         //    row 3): [NOT] ON EXCEPTION is ANSI X3.23-1985 surface (CALL Format 2; CCVS-85 IC222A tests both
         //    phrases — "'ON OVERFLOW' CAN BE USED IN PLACE OF 'ON EXCEPTION'"); ON OVERFLOW is the 74-carried

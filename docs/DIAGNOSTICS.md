@@ -14,6 +14,7 @@ split + the reused `COBOLNET1533`; the broader every-code→descriptor migration
 | --- | --- | --- | --- | --- | --- |
 | COBOLNET0801 | digit-capacity-over-31 | Error | ISO §8.3.1.2 | COBOLNET0801 | A fixed-point item/literal exceeds the 31-digit ISO limit. |
 | COBOLNET0802 | digit-capacity-over-18-pre-2002 | Error | ISO §8.3.1.2 | COBOLNET0802 | A fixed-point item/literal exceeds the 18-digit COBOL-85 limit (19–31 need --std 2002+). |
+| COBOLNET0899 | any-length-returning | Error | ISO §13.18.2.3 SR3b / §13.18.2.4 GR1 | recognized-not-implemented | ANY LENGTH on a RETURNING item (legal per §13.18.2.3 SR3b) is recognized but not yet implemented — the return crossing cannot carry the activator's receiver length yet (the ANY LENGTH formal-parameter leg is fully implemented). |
 | COBOLNET0899 | construct-staged-not-implemented | Error | COMPLETION_ROADMAP_COUNCIL | recognized-not-implemented | A registry-recognized construct is available at this edition but not yet implemented (staged loud). |
 | COBOLNET0899 | debug-register-facility | Error | VCR Table 7 row 7.17 | recognized-not-implemented | The X3.23-1985 debug facility (DEBUG-ITEM registers, debugging-section invocation) is not implemented. |
 | COBOLNET0899 | external-record-not-cell-backed | Error | ISO §13.18.24 | recognized-not-implemented | An EXTERNAL record cannot be cell-backed (a restriction of the current EXTERNAL model). |

@@ -1126,6 +1126,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool justified = false, blankWhenZero = false, synchronized = false;
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
+        bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
@@ -1140,6 +1141,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitBasedClause (14g.2,
                     // recognition-based — IsBased is cleared for a LINKAGE item, so a bound-arm gate would drop it).
                     isBased = true;
+                else if (clause.Context.anyLengthClause() is not null)
+                    // ANY LENGTH (§13.18.2) — SR1 + the §13.16.3 SR17 clause-exclusion validated below; the
+                    // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitAnyLengthClause
+                    // (recognition-based — IsAnyLength is cleared on every SR violation, so a bound-arm gate
+                    // would drop the 0900 on exactly those paths; the BASED pattern).
+                    isAnyLength = true;
                 else if (clause.Context.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                 else if (clause.Context.typedefClause() is { } td)
@@ -1354,6 +1361,45 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // space-filled cell is conformant — the clause simply has no stored field to seed here.
         }
         item.IsBased = isBased;
+
+        // ANY LENGTH declaration-shape validation (ISO §13.18.2; the COBOLNET1542 SR band — the 08xx declaration
+        // band is exhausted, the 1521 precedent). Violations clear the flag so the item binds as ordinary storage
+        // under an already-failed compile (the IsBased discipline). The SR2/SR3/SR4 PLACEMENT rules (linkage-only,
+        // elementary, unit kind, formal/RETURNING reference) need unit-level facts and live in the post-bind
+        // sweeps: AnyLengthValidateUnit (program/function/object paths) and OoBindMethodData (methods).
+        if (isAnyLength)
+        {
+            // §13.18.2.3 SR1: a PICTURE clause shall be specified, and its character-string shall be ONE
+            // instance of the picture symbol 'N', 'X', or '1' (a "(1)" repetition count writes the same one
+            // instance). Checked on the WRITTEN character-string — category+length cannot distinguish 'A'.
+            string norm = pictureText?.Trim().ToUpperInvariant() ?? "";
+            if (norm is not ("X" or "N" or "1" or "X(1)" or "N(1)" or "1(1)"))
+            {
+                Edition.Error("COBOLNET1542", $"{entryWhere}: the ANY LENGTH clause requires a PICTURE whose "
+                    + "character-string is exactly one instance of the picture symbol 'N', 'X', or '1' "
+                    + $"(ISO §13.18.2.3 SR1{(pictureText is null ? "; no PICTURE clause is specified" : $"; PICTURE {pictureText}")})");
+                isAnyLength = false;
+            }
+            // §13.16.3 SR17: with ANY LENGTH the only other clauses permitted are level-number, entry-name,
+            // PICTURE, USAGE, and VALUE — reject every other decoded clause loud, never a half-shaped item.
+            else if (occursSpec is not null || occurs is not null || redefinesTargetName is not null || isBased
+                || hasExternal || justified || blankWhenZero || synchronized || ownSign is not null
+                || isTypedef || typeRefName is not null)
+            {
+                Edition.Error("COBOLNET1542", $"{entryWhere}: with the ANY LENGTH clause the only other clauses "
+                    + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR17)");
+                isAnyLength = false;
+            }
+            // §13.18.2.3 SR2 (the level half — checkable right here): an elementary LEVEL 1 entry only
+            // (a 77 item is not a level-1 entry; the elementary/section/unit halves are the sweeps' job).
+            else if (level is not 1)
+            {
+                Edition.Error("COBOLNET1542", $"{entryWhere}: the ANY LENGTH clause may be specified only in an "
+                    + "elementary level 1 entry in the linkage section (ISO §13.18.2.3 SR2)");
+                isAnyLength = false;
+            }
+        }
+        item.IsAnyLength = isAnyLength;
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
         // A method's index-names (M2-OO-1h step 4) register into the METHOD's own scope with a FRESH cell — two
@@ -1583,6 +1629,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     Edition.Error("COBOLNET1518", $"REDEFINES target '{tname}' of method data item "
                         + $"'{item.CobolName ?? "FILLER"}' is not a preceding item in the same method scope "
                         + "(ISO §13.18.44.3 — a method item may not redefine object or program data)");
+                // §13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY
+                // LENGTH clause — a runtime-length item has no fixed storage area a redefiner could overlay.
+                if (item.RedefinesTarget is { IsAnyLength: true })
+                    Edition.Error("COBOLNET1542", $"'{item.CobolName ?? "FILLER"}' REDEFINES "
+                        + $"'{tname}': the redefined item is described with the ANY LENGTH clause "
+                        + "(ISO §13.18.44.3 SR16 — data-name-2 shall not be ANY LENGTH)");
                 // §13.18.44.3 SR8 (the P5.8 spec find): the SUBJECT's storage area shall not be larger than
                 // data-name-2's, unless data-name-2 is a level-1 item (without the EXTERNAL clause — that
                 // residue is unmodeled; a level-1 FILE SECTION entry cannot carry REDEFINES at all, SR3, so

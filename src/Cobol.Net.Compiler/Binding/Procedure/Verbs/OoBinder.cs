@@ -493,7 +493,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                             + "BY CONTENT or use literal subscripts");
                         return null;
                     }
-                    if (rlen != formal.Pic.Length)
+                    if (!formal.IsAnyLength && rlen != formal.Pic.Length)   // ANY LENGTH: any window length matches (§14.8.2.3.2 rule d)
                     {
                         Err($"reference-modified argument window ({rlen}) does not match formal "
                             + $"'{formal.CobolName}' X({formal.Pic.Length}) (ISO §14.8.2.3.2)");
@@ -506,7 +506,8 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
 
             if (byReference)
             {
-                if (OoConformance.DescriptionMismatch(formal, place.Item, byRefGroupPrefix: true) is { } err1)
+                if (OoConformance.DescriptionMismatch(formal, place.Item, byRefGroupPrefix: true,
+                        anyLengthActivationRelax: true) is { } err1)   // §14.8.2.3.2 rules d/e (ANY LENGTH)
                 {
                     Err($"USING argument '{dref.GetText()}' does not conform to formal parameter "
                         + $"'{formal.CobolName}': {err1} (ISO §14.8.2.3.2 — BY REFERENCE requires the "
@@ -594,7 +595,8 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 arg.Pic is { Category: PicCategory.ObjectReference } ap
                     ? OoConformance.ObjectRefWideningMismatch(host.OoClasses, ap, f)
                     : "an object-reference formal takes an object-reference argument (SET rules, §14.8.2.3.3)",
-            _ => OoConformance.DescriptionMismatch(formal, arg),   // edited/other: conservative strict gate
+            _ => OoConformance.DescriptionMismatch(formal, arg,
+                anyLengthActivationRelax: true),   // edited/other: conservative strict gate (:25414c ANY LENGTH)
         };
     }
 
@@ -856,7 +858,10 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     /// (<see cref="OoConformance.DescriptionMismatch"/>, also the §9.3.8.2 override-signature check) that
     /// makes the emitted marshaling TYPE-PRESERVING. Null when conformant, else the mismatch.</summary>
     private static string? OoConformanceError(DataItem formal, DataItem arg)
-        => OoConformance.DescriptionMismatch(formal, arg);
+        // Activation mode: §14.8.2.3.2 rules d/e for arguments; for the INVOKE RETURNING delivery pair the
+        // sender (parameter 1 = the method's returning item) being ANY LENGTH matches any receiver length
+        // (§14.8.3.3 rule 5) while an ANY LENGTH receiver demands an ANY LENGTH sender (rule 4).
+        => OoConformance.DescriptionMismatch(formal, arg, anyLengthActivationRelax: true);
 
     // ── Method-context control flow (deep-dive D8) ──────────────────────────────────────────────────────────
 

@@ -19,6 +19,7 @@ public static class Constructs
     public const string GobackReturning2002 = "goback-returning-2002";
     public const string StopRunStatus2002 = "stop-run-status-2002";
     public const string BasedClause2002 = "based-clause-2002";
+    public const string AnyLengthClause2002 = "any-length-clause-2002";
     public const string ProcedureReturning2002 = "procedure-returning-2002";
     public const string CurrencyPictureSymbol2002 = "currency-picture-symbol-2002";
     public const string PicWide19Digits2002 = "pic-wide-19-digits-2002";

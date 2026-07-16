@@ -169,7 +169,14 @@ public static class OoConformance
                 $"N:{p.Usage}:{p.Digits}:{p.Scale}:{(p.Signed ? "S" : "U")}:{p.ImageSignKind}:"
                 + (item.BlankWhenZero ? "B" : "-"),
             PicCategory.Alphanumeric =>
-                $"S:{p.Length}:{(item.Justified ? "J" : "N")}",
+                // An ANY LENGTH item's length is runtime-varying (ISO §13.18.2 GR1) — encoded '*' so the pair
+                // semantics track DescriptionMismatch (ANY LENGTH must MATCH between the sides; when both carry
+                // it the length compare is void). Through UNIVERSAL dispatch §14.9.23.3 SR7c (:28530) bans an
+                // ANY LENGTH formal outright: a concrete argument descriptor never equals 'S:*', so the crossing
+                // raises EC-OO-UNIVERSAL (loud) — the one permissive corner (an ANY LENGTH argument meeting an
+                // ANY LENGTH formal matches instead of raising) is a documented strictness delta, same family
+                // as the by-ref group-prefix delta above.
+                $"S:{(item.IsAnyLength ? "*" : p.Length.ToString())}:{(item.Justified ? "J" : "N")}",
             _ => "T:!",
         };
     }
@@ -182,8 +189,27 @@ public static class OoConformance
     /// REFERENCE prefix case — <paramref name="byRefGroupPrefix"/> allows a SMALLER formal). Null when
     /// conformant. This strictness keeps BY REFERENCE marshaling TYPE-PRESERVING (the slice-2 design fact);
     /// CONTENT conversions qualify the owner class internal profiles instead.</summary>
-    public static string? DescriptionMismatch(DataItem formal, DataItem arg, bool byRefGroupPrefix = false)
+    public static string? DescriptionMismatch(DataItem formal, DataItem arg, bool byRefGroupPrefix = false,
+        bool anyLengthActivationRelax = false)
     {
+        // ANY LENGTH (ISO §13.18.2). PAIR mode (the default — override/implements signatures and the universal
+        // descriptor; the §9.3.8.2/§14.8.2 conformance tables :12177/:12247/:12335/:12383 list ANY LENGTH among
+        // the clauses that shall be THE SAME between corresponding items): the clause must match between the
+        // sides, and when both carry it the length compare is void — both lengths track the same runtime
+        // argument (GR1). ACTIVATION mode (<paramref name="anyLengthActivationRelax"/> — INVOKE arguments
+        // §14.8.2.3.2 rules d/e (:25375-25377), BY CONTENT (:25414 rule c), and RETURNING delivery §14.8.3.3
+        // rules 4/5 (:25503-25505)): parameter 1 (the formal / the sending returning item) being ANY LENGTH
+        // makes its length "considered to match" the other side's; the OTHER side being ANY LENGTH alone stays
+        // a mismatch (rule e / rule 4 — the pairing must be declared on the formal/receiver too).
+        if (!anyLengthActivationRelax && formal.IsAnyLength != arg.IsAnyLength)
+            return "ANY LENGTH mismatch (the corresponding items shall have the same ANY LENGTH clause — "
+                + "ISO §14.8.2/§9.3.8.2 conformance tables)";
+        if (anyLengthActivationRelax && arg.IsAnyLength && !formal.IsAnyLength)
+            return "the argument/receiver is described with ANY LENGTH — the corresponding formal/sender shall "
+                + "be described with ANY LENGTH too (ISO §14.8.2.3.2 rule e / §14.8.3.3 rule 4)";
+        // Relaxes ONLY the length compares below; category and JUSTIFIED checks stay (the §14.8.2 table row).
+        bool anyLengthFormal = formal.IsAnyLength;
+
         if (formal.IsGroup)
         {
             if (!(arg.IsGroup || arg.Pic?.Category is PicCategory.Alphanumeric))
@@ -211,6 +237,7 @@ public static class OoConformance
             if (f.Category is not PicCategory.Alphanumeric)
                 return "a group argument requires a group or alphanumeric formal";
             if (!arg.IsImageCapable) return "the argument group has no character image (Tier-C)";
+            if (anyLengthFormal) return null;   // §14.8.2.3.2 rule d — the formal's length matches the argument's
             return byRefGroupPrefix
                 ? (f.Length > arg.ImageWidth
                     ? $"the formal ({f.Length} character positions) exceeds the argument "
@@ -247,7 +274,9 @@ public static class OoConformance
             case PicCategory.Alphanumeric:
                 if (formal.Justified != arg.Justified)
                     return "JUSTIFIED mismatch (§14.8.2.3.2 rule 2)";
-                return f.Length != a.Length
+                // ANY LENGTH: the length is considered to match (§14.8.2.3.2 rule d / §14.8.3.3 rule 5 in
+                // activation mode; both-sides-varying in pair mode — the top-of-function match rule).
+                return !anyLengthFormal && f.Length != a.Length
                     ? $"length mismatch (formal X({f.Length}), argument X({a.Length}))"
                     : null;
             default:

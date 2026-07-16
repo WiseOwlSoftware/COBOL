@@ -264,6 +264,45 @@ public sealed partial class DataBinder
         // A GROUP formal/RETURNING item crosses the boundary as its character image (§14.2.3 GR8) and so must be
         // whole-group-referenced (its numeric-DISPLAY leaves image-stored, untouched caller bytes round-tripping) —
         // registered post-bind by UsageCollectionPass (PHASE-05 Step 5), which receives these formals from the emitter.
+
+        // ── The ANY LENGTH placement sweep, METHOD path (ISO §13.18.2.3 SR2/SR3; the CallBindLinkage sweep is
+        // the program/function/object path). SR2: LINKAGE only, elementary, and the containing method shall not
+        // be a PROPERTY method (an explicit METHOD-ID GET|SET PROPERTY — Accessor != '\0'; a PROPERTY-clause-
+        // synthesized accessor clones object data, where the clause is already rejected). SR3: referenced in the
+        // method's PD header as a formal (all header formals are BY REFERENCE today — SR3a) or the RETURNING
+        // item (SR3b). Violations clear the flag (the IsBased discipline). ──
+        foreach (var root in m.Binding!.StaticRoots.Concat(m.Binding!.LocalRoots))
+            if (root.IsAnyLength)
+            {
+                Edition.Error("COBOLNET1542", $"{where}: data item '{root.CobolName ?? "FILLER"}': the ANY "
+                    + "LENGTH clause may be specified only in the LINKAGE SECTION (ISO §13.18.2.3 SR2)");
+                root.IsAnyLength = false;
+            }
+        foreach (var root in m.Binding!.LinkageRoots)
+        {
+            if (!root.IsAnyLength) continue;
+            string rw = $"{where}: data item '{root.CobolName ?? "FILLER"}'";
+            if (root.IsGroup)
+                Edition.Error("COBOLNET1542", $"{rw}: the subject of an ANY LENGTH clause shall be ELEMENTARY "
+                    + "— this entry has subordinate items (ISO §13.18.2.3 SR2)");
+            else if (m.Accessor != '\0')
+                Edition.Error("COBOLNET1542", $"{rw}: the ANY LENGTH clause may not be specified in a PROPERTY "
+                    + "method (ISO §13.18.2.3 SR2 — a method that is not a property method)");
+            else if (!m.Binding!.Formals.Any(f => ReferenceEquals(f.Item, root))
+                && !ReferenceEquals(m.Binding!.Returning, root))
+                Edition.Error("COBOLNET1542", $"{rw}: the subject of an ANY LENGTH clause shall be referenced "
+                    + "in the method's procedure division header as a BY REFERENCE formal parameter or as the "
+                    + "RETURNING item (ISO §13.18.2.3 SR3)");
+            else if (ReferenceEquals(m.Binding!.Returning, root))
+                // SR3b-legal, staged LOUD: the C# return-value crossing cannot carry the INVOKE receiver's
+                // length that GR1 fixes n from (deferred with the ANY-LENGTH-RETURNING wave).
+                Edition.Error(DiagnosticCatalog.AnyLengthReturning, $"{rw}: ANY LENGTH on the method RETURNING "
+                    + "item is recognized (ISO §13.18.2.3 SR3b) but not yet implemented (the "
+                    + "ANY-LENGTH-RETURNING wave); ANY LENGTH formal parameters are fully supported");
+            else
+                continue;   // conformant — keep the flag
+            root.IsAnyLength = false;
+        }
     }
 
     /// <summary>The C# parameter name for a formal: <c>__</c> + the sanitized COBOL name, uniquified within

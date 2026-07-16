@@ -558,7 +558,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line(a.Source is { } sp
                     ? $"string {tmp} = {OoStringReadOf(sp, a)};"
                     : a.StringLiteral is { } slit
-                    ? $"string {tmp} = {RuntimeApi.StrStore(CsLiteral(slit), $"{Math.Max(1, a.Formal.Pic!.Length)}")};"
+                    // An ANY LENGTH formal sees the literal AT ITS OWN length (§13.18.2 GR1) — no width-fit.
+                    ? $"string {tmp} = {(a.Formal.IsAnyLength ? CsLiteral(slit) : RuntimeApi.StrStore(CsLiteral(slit), $"{Math.Max(1, a.Formal.Pic!.Length)}"))};"
                     // A numeric literal into an image-stored numeric formal: compose the zoned image through
                     // the OWNER's internal profile (the review's cross-class rule — qualified, never bare).
                     : $"string {tmp} = {RuntimeApi.NumFormatDisplay(EmitText.UnscaledAtScale(a.NumericLiteral!, a.Formal.Pic!.Scale), qualProfile)};");
@@ -625,7 +626,15 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             else if (recv is RefModPlace)
                 w.Line(PlaceRenderer.Write(recv, tmp));
             else if (retString == OoStringCarried(recv.Item))
-                w.Line(PlaceRenderer.Write(recv, tmp));
+                // ANY LENGTH at the delivery boundary (ISO §14.8.3.3 rules 4/5; §13.18.2 GR1): a varying-length
+                // SENDER delivers width-fitted into a fixed receiver (rule 5 — its length "considered to match");
+                // a varying-length RECEIVER stores at its own current length (its n is fixed by ITS activation).
+                w.Line(PlaceRenderer.Write(recv,
+                    recv.Item.IsAnyLength
+                        ? RuntimeApi.StrStore(tmp, $"{PlaceRenderer.Read(recv)}.Length")
+                    : rs.IsAnyLength && recv.Item.Pic is { } rvp
+                        ? RuntimeApi.StrStore(tmp, $"{Math.Max(1, rvp.Length)}")
+                    : tmp));
             else if (retString)   // string-carried result into native-numeric storage
                 w.Line(PlaceRenderer.Write(recv, $"({recv.Item.ElementType}){RuntimeApi.NumParseDisplay(tmp, recv.Item.ProfileName)}"));
             else                  // native result into image-stored numeric storage
@@ -654,7 +663,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         string read = sp is RefModPlace ? PlaceRenderer.Read(sp)
             : OoStringCarried(sp.Item) ? PlaceRenderer.Read(sp)
             : PlaceRenderer.Read(new NumericImagePlace(sp));
+        // An ANY LENGTH formal takes the argument's characters AT the argument's length (ISO §13.18.2 GR1 —
+        // n = the length of the corresponding argument), so the CONTENT copy must NOT width-normalize to the
+        // formal's Pic.Length (1); the raw read IS the width-correct crossing.
         return a.ByContent && a.Formal.Pic is { } fp && fp.Category is PicCategory.Alphanumeric
+                && !a.Formal.IsAnyLength
             ? RuntimeApi.StrStore(read, $"{Math.Max(1, fp.Length)}")
             : read;
     }

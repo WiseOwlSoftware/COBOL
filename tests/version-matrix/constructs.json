@@ -124,6 +124,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BA.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 B BASED.\n   05 F PIC X(4).\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
     {
+      "id": "any-length-clause-2002",
+      "description": "ANY LENGTH clause (a LINKAGE item whose length tracks the argument at runtime), ISO §13.18.2 — introduced 2002",
+      "display": "ANY LENGTH clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.2",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. ALOP9AL.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\nIDENTIFICATION DIVISION.\nPROGRAM-ID. ALCP9AL.\nDATA DIVISION.\nLINKAGE SECTION.\n01 L PIC X ANY LENGTH.\nPROCEDURE DIVISION USING L.\nM.\n    EXIT PROGRAM.\nEND PROGRAM ALCP9AL.\nEND PROGRAM ALOP9AL.\n"
+    },
+    {
       "id": "procedure-returning-2002",
       "description": "PROCEDURE DIVISION … RETURNING, ISO §14.2 — the RETURNING phrase is 2002+",
       "display": "PROCEDURE DIVISION RETURNING",
