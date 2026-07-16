@@ -74,6 +74,14 @@ public sealed class DataItem
     /// referencing items may interoperate only with the same type (the compile-time §8.5.3.3 checks).</summary>
     public bool TypedefStrong { get; init; }
 
+    /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §13.18.15) — a STRUCTURED
+    /// CONSTANT: its content is the record's normal initial content (§13.18.15.4 GR1 — as though
+    /// <c>INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT</c>, which the typed-native VALUE/default
+    /// initialization already produces), and neither it nor any subordinate may be a receiving operand
+    /// (§13.18.15.3 SR2 → COBOLNET1548 at the receiving chokepoints; <c>DataBinder.IsConstantRecordItem</c>
+    /// walks ancestors). Set only on the root; subordinates are covered by the ancestor walk.</summary>
+    public bool IsConstantRecord { get; init; }
+
     /// <summary>The type-name of a <c>TYPE IS type-name</c> reference (ISO §13.18.57), or null. The referencing entry
     /// is CLONED from that type declaration's subtree by the post-build <c>DataBinder.ExpandTypes</c> pass (D17), which
     /// clears this once expanded.</summary>

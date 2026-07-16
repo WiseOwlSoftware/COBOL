@@ -44,12 +44,15 @@ human-reviewed, full-battery-gated, CI-green): the NATIONAL wave (DISPLAY-OF §1
 the ONE `Repertoire` translator; the N-literal Latin-1 0814 guard lifted), the EC `-N` wave (EXCEPTION-FILE-N
 §15.29 + EXCEPTION-LOCATION-N §15.31 + CHAR-NATIONAL §15.16; ORD-over-national corrected to §15.70.4 r2; the
 2023 connector-arg form staged → P13), the CONCAT wave (§8.8.3 as a COMPILE-TIME literal fold inside
-`nonNumericLiteral` — `ConcatFolder` is the ONE chokepoint; 1540/1541/1545), and the ALLOCATE wave (§14.9.3
+`nonNumericLiteral` — `ConcatFolder` is the ONE chokepoint; 1540/1541/1545), the ALLOCATE wave (§14.9.3
 GR7 INITIALIZED = the spec's own INITIALIZE-equivalence lowered through the EXISTING InitializeBinder;
-GR6 CHARACTERS = binary zeros). Read the P10 doc's checkboxes for the live step state; remaining waves:
-pointers/PROGRAM-POINTER · UDF category-RETURNING+BY VALUE (an agent may have this in flight — check
-`git status` for uncommitted worktree changes FIRST) · file-sharing extension · line-seq 62 ·
-ARITH-STANDARD consumption · B-SHIFT · CONSTANT · RW-2002 (the one L) · TYPEDEF SAME AS · ALPHABET-national.
+GR6 CHARACTERS = binary zeros), the UDF category-RETURNING wave (§8.4.3.2.4 GR1 — 1510 lifted for
+alnum/group/edited/national; per-shape residues stay 1510), and the CONSTANT wave (§13.10 constant entries
+= the COMPILE-TIME substitution table `DataBinder.Constants.cs` + §13.18.15 CONSTANT RECORD; 1547/1548/1549;
+CONSTANT + AS joined the §8.9 interval-word machinery — AS is nameSlot-ONLY, the FU-1 ledger; DEVLOG 861).
+Read the P10 doc's checkboxes for the live step state; remaining waves:
+pointers/PROGRAM-POINTER · UDF BY VALUE+RECURSIVE · file-sharing extension · line-seq 62 ·
+ARITH-STANDARD consumption · B-SHIFT · RW-2002 (the one L) · TYPEDEF SAME AS · ALPHABET-national.
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's
 conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored in the

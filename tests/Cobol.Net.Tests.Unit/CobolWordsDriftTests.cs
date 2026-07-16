@@ -90,9 +90,11 @@ public sealed class CobolWordsDriftTests
         // currently-SHARED word is drift. Without the subscriptTrigger-only pin, flipping a shared+2023-reserved word
         // (COLUMN/LENGTH/SCREEN) to nameSlot=false would silently drop its cobolWord admission yet pass RW-1 (it stays
         // reserved) — the false-green gap the adversarial review flagged.
+        // AS joined BIT at P10 Step 15 BY DESIGN: the §13.10 constant entry's `AS (arith-expr)` must lex its
+        // parenthesized expression in NORMAL mode, so AS cannot be a subscript trigger (the FU-1 ledger).
         var nameSlotOnly = nameSlot.Where(w => !subTrig.Contains(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
-        Assert.True(nameSlotOnly.SequenceEqual(new[] { "BIT" }),
-            $"nameSlot-only expected [BIT] but was [{string.Join(",", nameSlotOnly)}] — update the FU-1 ledger if intended");
+        Assert.True(nameSlotOnly.SequenceEqual(new[] { "AS", "BIT" }),
+            $"nameSlot-only expected [AS,BIT] but was [{string.Join(",", nameSlotOnly)}] — update the FU-1 ledger if intended");
 
         var subTrigOnly = subTrig.Where(w => !nameSlot.Contains(w)).OrderBy(w => w, StringComparer.Ordinal).ToList();
         Assert.True(subTrigOnly.SequenceEqual(new[] { "DISPLAY", "MERGE", "RANDOM", "SIGN", "SORT", "SUM" }),

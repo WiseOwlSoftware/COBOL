@@ -293,6 +293,14 @@ ACCESS      : 'ACCESS' ;
 ADDRESS     : 'ADDRESS' ;
 AREA        : 'AREA' ;
 BASED       : 'BASED' ;
+// CONSTANT (ISO §13.10 constant entry / §13.18.15 CONSTANT RECORD clause; reserved 2002+ per §8.9) — a legal
+// user word at COBOL-85, so it is cobolWord/_dataNameTokens-admitted (cobol-words.json) and funnel-0901'd ≥2002
+// by the VersionConformancePass §8.9 funnel (the PROTOTYPE/SHARING precedent).
+CONSTANT    : 'CONSTANT' ;
+// AS (the §13.10 constant entry's AS phrase; reserved 2002+ per §8.9) — the same interval as CONSTANT: a legal
+// user word at COBOL-85, cobolWord/_dataNameTokens-admitted (cobol-words.json), funnel-0901'd ≥2002. Its only
+// keyword slot is the constantEntryBody `AS` — a direct token, never a name slot.
+AS          : 'AS' ;
 AREAS       : 'AREAS' ;
 ALPHABETIC       : 'ALPHABETIC' ;
 ALPHABETIC_LOWER : 'ALPHABETIC-LOWER' ;

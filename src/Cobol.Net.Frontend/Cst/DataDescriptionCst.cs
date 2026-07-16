@@ -69,12 +69,9 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
     // NOT fork a second copy of that computation. This clause façade exposes only the leaf text reads BindEntry
     // migrated in Group C; the report-writer partial migrates in P7.)
 
-    /// <summary>The OCCURS maximum occurrence count — the LAST integer literal (integer-2 of a <c>n TO m</c>
-    /// table, or the sole literal), or <see langword="null"/> when absent/unparseable (§8.5.1.8). Not an occurs
-    /// clause → null.</summary>
-    public int? OccursMax =>
-        ctx.occursClause()?.integerLiteral() is { Length: > 0 } lits && int.TryParse(lits[^1].GetText(), out int n)
-            ? n : null;
+    // (The OCCURS fixed bounds are no longer a pure text read: each `occursBound` is an integer literal OR an
+    // integer constant-name (ISO §13.10.3 SR2), and resolving the latter needs the binder's compile-time
+    // constant table — so the max-occurrence read lives in DataBinder.Constants.OccursBoundValue, not here.)
 
     /// <summary>The OCCURS INDEXED BY index-name texts, in order (empty when absent). The caller keeps the
     /// <c>INDEXED()</c> presence guard raw.</summary>

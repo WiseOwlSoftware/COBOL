@@ -9,6 +9,7 @@ options { tokenVocab = CobolLexer; }
 cobolWord
     : IDENTIFIER
     | ARITHMETIC
+    | AS
     | AUTO
     | AUTOMATIC
     | BELL
@@ -23,6 +24,7 @@ cobolWord
     | COL
     | COLUMN
     | CONDITION
+    | CONSTANT
     | DEBUGGING
     | DECIMAL_ENCODING
     | DEFAULT

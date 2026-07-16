@@ -88,12 +88,15 @@ $subTrigOnly  = @($subTrigTokens  | Where-Object { -not $nsSet.Contains($_) })  
 # word is drift and fails here — NOT just RW-1 below (which only catches a non-reserved stray; a reserved shared
 # word like COLUMN/LENGTH/SCREEN flipped to nameSlot=false stays 2023-reserved and would slip past RW-1, but lands
 # in subscriptTrigger-only and fails the exact pin). A NEW asymmetry updates the constant + the FU ledger.
-# nameSlot-only: exactly {BIT} (a safe latent under-trigger — in cobolWord, not the lexer trigger set).
-$allowedNameSlotOnly = @('BIT')
+# nameSlot-only: exactly {BIT, AS} (safe latent under-triggers — in cobolWord, not the lexer trigger set).
+# AS (P10 Step 15): the §13.10 constant entry's `AS (arith-expr)` must lex its parenthesized expression in
+# NORMAL mode, so AS cannot be a subscript trigger; a table NAMED As subscripted at 85 is the ledgered
+# under-trigger (the BIT precedent).
+$allowedNameSlotOnly = @('BIT', 'AS')
 $unexpectedNsOnly = @($nameSlotOnly | Where-Object { $allowedNameSlotOnly -notcontains $_ })
 $missingNsOnly    = @($allowedNameSlotOnly | Where-Object { $nameSlotOnly -notcontains $_ })
 if ($unexpectedNsOnly.Count -gt 0 -or $missingNsOnly.Count -gt 0) {
-    throw "nameSlot-only must be EXACTLY {BIT}: unexpected [$($unexpectedNsOnly -join ', ')] missing [$($missingNsOnly -join ', ')] — if intended, update `$allowedNameSlotOnly + the FU ledger"
+    throw "nameSlot-only must be EXACTLY {BIT, AS}: unexpected [$($unexpectedNsOnly -join ', ')] missing [$($missingNsOnly -join ', ')] — if intended, update `$allowedNameSlotOnly + the FU ledger"
 }
 # subscriptTrigger-only: exactly the six functionName-collision words (reserved keywords that collide with a
 # function-name '(' — deliberately NOT in cobolWord). Pinned SYMMETRICALLY with the nameSlot-only pin.

@@ -899,6 +899,9 @@ required (behavior is neutral); the existing subscript/name-slot conformance pro
   captured AS-IS in `cobol-words.json`. Whether `BIT` SHOULD be a subscript trigger (so `BIT(1)` as a
   subscripted data item lexes correctly) is a spec question (§8.10 + §13 USAGE BIT) to resolve as a separate,
   behavior-changing fix with its own conformance test — NOT inside this neutral refactor.
+  `AS` (added P10 Step 15, the §13.10 constant entry) is nameSlot-only BY DESIGN, not by capture: the entry's
+  `AS (arithmetic-expression)` must lex its parenthesized expression in NORMAL mode, so AS cannot trigger
+  SUBSCRIPT lexing; a table NAMED `AS` subscripted at COBOL-85 is the accepted under-trigger (BIT's class).
 - **FU-2 — full `GetText()` migration + context internalization.** P7 migrates the remaining ~337 `GetText()`
   sites onto the `Cst/` façade and flips the generated contexts to `internal` (façade becomes the ONLY
   cross-assembly surface). This phase delivers the façade + the two anchors only.

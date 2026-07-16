@@ -103,7 +103,7 @@ public sealed partial class DataBinder
                 .Select(e => e.dataDescriptionEntry())
                 .Where(e => e is not null)
                 .Select(e => e!);
-            LinkageRoots.AddRange(BindEntries(entries, rootNames));
+            LinkageRoots.AddRange(BindEntries(entries, rootNames, EntrySection.Linkage));
         }
 
         if (program.procedureDivision() is not { } pd) { AnyLengthValidateUnit(); return; }

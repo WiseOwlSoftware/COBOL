@@ -24,6 +24,7 @@ public partial class CobolLexer
         COL,
         COLUMN,
         CONDITION,
+        CONSTANT,
         DEBUGGING,
         DECIMAL_ENCODING,
         DEFAULT,

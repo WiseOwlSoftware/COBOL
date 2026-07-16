@@ -12,6 +12,8 @@
     "char_national",
     "comp1_comp2",
     "conditional_compilation",
+    "constant_entry",
+    "constant_record",
     "exception_file_n",
     "file_sharing",
     "float_88",

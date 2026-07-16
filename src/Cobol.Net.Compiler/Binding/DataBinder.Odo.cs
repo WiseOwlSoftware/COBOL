@@ -21,7 +21,7 @@ public sealed partial class DataBinder
     /// bounds and DEPENDING ON name, plus the ASCENDING/DESCENDING KEY data-names (Formats 1 and 2, §13.18.38
     /// GR3). Returns <see langword="null"/> for a plain keyless fixed table — <see cref="DataItem.Occurs"/>
     /// alone carries those (the dominant case stays allocation-free).</summary>
-    private OccursSpec? OdoBindOccursSpec(Core.OccursClauseContext occ)
+    private OccursSpec? OdoBindOccursSpec(Core.OccursClauseContext occ, string where, int? maxBound)
     {
         bool depending = occ.DEPENDING() is not null;
         var asc = new List<string>();
@@ -57,13 +57,16 @@ public sealed partial class DataBinder
         }
         if (!depending && asc.Count == 0 && desc.Count == 0) return null;
 
-        var lits = occ.integerLiteral();
-        int max = lits.Length > 0 && int.TryParse(lits[^1].GetText(), out int m) ? m : 0;
+        // Each fixed bound is an integer literal or an integer constant-name (§13.10.3 SR2); the caller already
+        // resolved the LAST bound (the maximum) via OccursBoundValue — <paramref name="maxBound"/> — so an
+        // unresolvable bound reports exactly once. Only integer-1 of a Format-2 pair resolves here.
+        var bounds = occ.occursBound();
+        int max = maxBound ?? 0;
         // Format 2 is `OCCURS integer-1 TO integer-2 … DEPENDING …` (§13.18.38 general formats); `OCCURS n
         // DEPENDING` without TO (a widespread dialect shorthand the grammar tolerates) takes minimum 1. Min
         // feeds only the SR16 check and the later EC-BOUND-ODO bounds — allocation is ALWAYS Max (§8.5.1.8).
         int min = !depending ? max
-            : lits.Length > 1 && int.TryParse(lits[0].GetText(), out int mn) ? mn
+            : bounds.Length > 1 ? OccursBoundValue(bounds[0], where) ?? 1
             : 1;
         var spec = new OccursSpec
         {

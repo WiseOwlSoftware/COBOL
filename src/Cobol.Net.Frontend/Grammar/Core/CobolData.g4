@@ -196,8 +196,34 @@ dataName
     ;
 
 dataDescriptionBody
-    : dataDescriptionClauses
+    : constantEntryBody
+    | dataDescriptionClauses
     | renamesClause
+    ;
+
+// Constant entry (ISO §13.10, COBOL-2002): {1|01} constant-name CONSTANT [IS GLOBAL]
+// {AS {arithmetic-expression-1 | BYTE-LENGTH OF data-name-1 | literal-1 | LENGTH OF data-name-2}
+//  | FROM compilation-variable-name-1}.
+// SUPERSET PARSE at every edition — the COBOL-2002 introduction gate is the VersionConformancePass parse arm
+// (VisitConstantEntryBody → constant-entry-2002 → COBOLNET0900 below 2002). LL-disjoint from the clause list
+// (no dataDescriptionClause begins with CONSTANT except constantRecordClause, whose SECOND token RECORD
+// separates it) and from renamesClause (RENAMES). The binder (DataBinder.Constants.cs) folds the entry into
+// the compile-time constant table — a constant occupies NO storage (§13.10.4 GR1/GR3: references substitute
+// the literal).
+constantEntryBody
+    : CONSTANT (IS? GLOBAL)? (AS constantValue | FROM cobolWord)
+    ;
+
+// The AS operand (§13.10.2). LENGTH OF is listed FIRST so it wins over arithmeticExpression's qualified-
+// dataReference reading of the same tokens (`LENGTH OF X` — LENGTH is a cobolWord). A single numeric literal
+// rides arithmeticExpression and is re-classified as a LITERAL by the binder (§13.10.3 SR1); the BYTE-LENGTH
+// form (no dedicated token — §15.14 BYTE-LENGTH is itself a deferred intrinsic) rides arithmeticExpression as
+// the qualified dataReference `BYTE-LENGTH OF x` and is recognized by the binder (staged loud until the
+// §15.14 byte-width authority lands).
+constantValue
+    : LENGTH OF dataReference
+    | nonNumericLiteral
+    | arithmeticExpression
     ;
 
 // ==========================================
@@ -218,6 +244,7 @@ dataDescriptionClause
     | syncClause
     | justifiedClause
     | blankWhenZeroClause
+    | constantRecordClause   // COBOL-2002 §13.18.15; superset parse, introduction-gated by VersionConformancePass ParseArm.VisitConstantRecordClause
     | propertyClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitPropertyClause (rearch 14g.2). (The VALUE-list PROPERTY guards below are KEPT — they are value-operand disambiguation, not an edition gate.)
     | externalClause
     | globalClause
@@ -241,6 +268,14 @@ externalClause
 // data-address pointer (initially NULL) and NO storage until SET ADDRESS OF / ALLOCATE gives it one.
 basedClause
     : BASED   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitBasedClause (rearch 14g.2)
+    ;
+
+// CONSTANT RECORD clause (COBOL-2002 §13.18.15) — identifies a STRUCTURED CONSTANT: the record's content is
+// its normal initial content (§13.18.15.4 GR1 — as though INITIALIZE … WITH FILLER ALL TO VALUE THEN TO
+// DEFAULT), and neither the record nor any subordinate may be a receiving operand (SR2 → COBOLNET1548 at
+// bind). Structural SRs (§13.18.15 SR1 WS/LS-only; §13.16.3 SR3/SR6/SR13) bind-check in DataBinder.
+constantRecordClause
+    : CONSTANT RECORD   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitConstantRecordClause
     ;
 
 // ANY LENGTH clause (COBOL-2002 §13.18.2) — the length of a LINKAGE item varies at runtime with the length
@@ -342,9 +377,13 @@ binarySign
     | UNSIGNED
     ;
 
-// OCCURS Clause
+// OCCURS Clause. Each fixed bound (integer-1/integer-2) is an occursBound: an integer literal OR — COBOL-2002
+// §13.10.3 SR2 — an integer CONSTANT-NAME ("if constant-name-1 is an integer, it may also be used to specify …
+// repetition"; the OCCURS format's integer positions are literal positions, so a constant substitutes there per
+// §13.10.4 GR1/GR3). The constant is resolved at BIND time from the compile-time constant table
+// (DataBinder.Constants.cs) — a cobolWord bound in a program with no such constant rejects loud (COBOLNET1547).
 occursClause
-    : OCCURS integerLiteral (TO integerLiteral)? timesKeyword?
+    : OCCURS occursBound (TO occursBound)? timesKeyword?
       (DEPENDING ON? dataReference)?
       occursKeyClause*
       (INDEXED BY? dataReferenceList)?
@@ -359,6 +398,12 @@ occursDynamicPhrase
     | FROM integerLiteral         // integer-4 — the minimum / initial capacity (GR16)
     | TO integerLiteral           // integer-5 — the expected capacity (GR17)
     | INITIALIZED                 // seed new occurrences per §8.5.1.9.5
+    ;
+
+// A fixed OCCURS bound: integer-1/integer-2 (§13.18.38), or an integer constant-name (§13.10.3 SR2).
+occursBound
+    : integerLiteral
+    | cobolWord
     ;
 
 occursKeyClause

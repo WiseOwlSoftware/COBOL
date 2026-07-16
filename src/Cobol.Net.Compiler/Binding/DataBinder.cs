@@ -15,6 +15,16 @@ namespace CobolNet.Binding;
 
 using Core = CobolParserCore;
 
+/// <summary>The DATA DIVISION section a run of data-description entries belongs to — consumed by the
+/// section-scoped placement rules (e.g. CONSTANT RECORD is WS/LS-only, ISO §13.18.15.3 SR1).</summary>
+internal enum EntrySection
+{
+    WorkingStorage,
+    LocalStorage,
+    Linkage,
+    File,
+}
+
 /// <summary>
 /// Builds the bound DATA DIVISION model (a forest of <see cref="DataItem"/> trees, one per 01/77 item) from the
 /// parse tree, and indexes every named item for reference resolution. Pure syntactic/semantic analysis — no byte
@@ -352,14 +362,25 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <summary>Bind a run of data-description entries (a WORKING-STORAGE section or one FD's records) into the
     /// storage forest: a level-number stack attaches each entry under the nearest open item of a lower level; level-88
     /// becomes a condition-name and level-66 a RENAMES alias. Returns the new top-level (01/77) items, in order — the
-    /// caller (an FD) needs them to model the shared record area.</summary>
-    private List<DataItem> BindEntries(IEnumerable<Core.DataDescriptionEntryContext> entries, HashSet<string> rootNames)
+    /// caller (an FD) needs them to model the shared record area. <paramref name="section"/> names the DATA DIVISION
+    /// section the run belongs to — consumed by the section-scoped placement rules (CONSTANT RECORD §13.18.15.3 SR1).</summary>
+    private List<DataItem> BindEntries(IEnumerable<Core.DataDescriptionEntryContext> entries, HashSet<string> rootNames,
+        EntrySection section = EntrySection.WorkingStorage)
     {
         var newRoots = new List<DataItem>();
         var stack = new Stack<DataItem>();
         bool rootIsTemplate = false;   // true while the current level-1 subtree is a TYPEDEF template (D17)
         foreach (var entry in entries)
         {
+            // A CONSTANT entry (ISO §13.10; the constantEntryBody alternative) is a COMPILE-TIME substitution,
+            // not storage: fold it into the constant table and produce NO DataItem. Checked BEFORE the 66/88
+            // early-outs so a mis-leveled constant entry gets its §13.10.2 level diagnostic, never a RENAMES/
+            // condition-name misbind. (P10 Step 15; DataBinder.Constants.cs.)
+            if (entry.dataDescriptionBody().constantEntryBody() is { } constBody)
+            {
+                BindConstantEntry(entry, constBody);
+                continue;
+            }
             int.TryParse(entry.levelNumber().GetText(), out int lvl);
             // A level-88 entry is a condition-name on the immediately superior item — not a node in the tree.
             if (lvl == 88)
@@ -442,6 +463,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 item.Parent = parent;
                 parent.Children.Add(item);
             }
+            // CONSTANT RECORD placement + subtree conflicts (P10 Step 15). §13.18.15.3 SR1: the clause may be
+            // specified only in the local-storage or working-storage sections. §13.16.3 SR13: BLANK WHEN ZERO /
+            // SYNCHRONIZED (and the level-checked BASED / ANY LENGTH / TYPEDEF) shall not appear in any entry
+            // subordinate to a CONSTANT RECORD entry. (The same-entry SR13/SR3/SR6 conflicts are checked in
+            // BindEntry, where the flags are local — the IsBased discipline.)
+            if (item.IsConstantRecord && section is not (EntrySection.WorkingStorage or EntrySection.LocalStorage))
+                Edition.Error(DiagnosticCatalog.ConstantRecordRule, $"'{item.CobolName ?? "FILLER"}': the "
+                    + "CONSTANT RECORD clause may be specified only in the local-storage or working-storage "
+                    + "sections (ISO §13.18.15.3 SR1)");
+            else if (!item.IsConstantRecord && IsConstantRecordItem(item)
+                && (item.BlankWhenZero || item.Synchronized || item.IsBased || item.IsAnyLength || item.IsTypedef))
+                Edition.Error(DiagnosticCatalog.ConstantRecordRule, $"'{item.CobolName ?? "FILLER"}': the "
+                    + "ANY LENGTH, BASED, BLANK WHEN ZERO, SYNCHRONIZED, and TYPEDEF clauses shall not be "
+                    + "specified in any entry subordinate to a CONSTANT RECORD entry (ISO §13.16.3 SR13)");
             stack.Push(item);
             // A TYPEDEF template's items (root + subordinates) are NOT globally referenceable (ISO §13.18.58.4 GR1) —
             // keep them off ByName; the clones ExpandTypes produces ARE registered.
@@ -575,7 +610,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var fd in fs.fileDescriptionEntry())
         {
             if (fd.fileName()?.GetText() is not { } name) continue;
-            var records = BindEntries(fd.dataDescriptionEntry(), rootNames);
+            var records = BindEntries(fd.dataDescriptionEntry(), rootNames, EntrySection.File);
             if (!FilesByName.TryGetValue(name, out var file))
             {
                 // An FD with no matching SELECT — keep a model so its records still resolve (it is never opened).
@@ -618,7 +653,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         foreach (var sd in fs.sortMergeDescriptionEntry())
         {
             if (sd.fileName()?.GetText() is not { } sdName) continue;
-            var sdRecords = BindEntries(sd.dataDescriptionEntry(), rootNames);
+            var sdRecords = BindEntries(sd.dataDescriptionEntry(), rootNames, EntrySection.File);
             if (!FilesByName.TryGetValue(sdName, out var sdFile))
             {
                 sdFile = new FileModel { CobolName = sdName };
@@ -1155,6 +1190,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
+        bool isConstantRecord = false; // CONSTANT RECORD (ISO §13.18.15 — a structured constant; P10 Step 15)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
 
         // The dataDescriptionClauses presence guard folds into e.Clauses (empty when the body has no clause list).
@@ -1191,6 +1227,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     blankWhenZero = true;   // BLANK [WHEN] ZERO (ISO §13.18.8 — a zero value stores all spaces)
                 else if (clause.Context.syncClause() is not null)
                     synchronized = true;   // SYNCHRONIZED/SYNC (ISO §13.18.55) — no-op here; gated on a GROUP <2023 (step 10)
+                else if (clause.Context.constantRecordClause() is not null)
+                    // CONSTANT RECORD (§13.18.15) — a structured constant; the §13.16.3 SR3/SR6/SR13 same-entry
+                    // shape checks run below (the IsBased discipline). The COBOL-2002 introduction gate is
+                    // VersionConformancePass ParseArm.VisitConstantRecordClause (recognition-based).
+                    isConstantRecord = true;
                 // PROPERTY clause (§13.18.42, COBOL-2002 OO): superset-parsed at every edition; its OO SEMANTICS bind
                 // independently in DataBinder.Oo.OoBindPropertyClauses (which reads the propertyClause node directly),
                 // and its COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitPropertyClause (14g.2) —
@@ -1222,12 +1263,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
                 else if (clause.Context.occursClause() is { } occ)
                 {
-                    // Allocate at the table's MAXIMUM occurrence count — the last integer literal (integer-2 for a
-                    // Format-2 `n TO m` table, the sole literal for a fixed table) — per ISO §8.5.1.8 (physical
-                    // capacity fixed at compile time). The min/DEPENDING/KEY surface is captured in the OccursSpec.
-                    if (clause.OccursMax is { } n)
+                    // Allocate at the table's MAXIMUM occurrence count — the last fixed bound (integer-2 for a
+                    // Format-2 `n TO m` table, the sole bound for a fixed table) — per ISO §8.5.1.8 (physical
+                    // capacity fixed at compile time). Each bound is an integer literal or an integer
+                    // constant-name (§13.10.3 SR2) — OccursBoundValue resolves both (DataBinder.Constants.cs).
+                    // The min/DEPENDING/KEY surface is captured in the OccursSpec.
+                    string occWhere = $"data item '{cobolName ?? "FILLER"}'";
+                    if (occ.occursBound() is { Length: > 0 } bnds && OccursBoundValue(bnds[^1], occWhere) is { } n)
                         occurs = n;
-                    occursSpec = OdoBindOccursSpec(occ);
+                    occursSpec = OdoBindOccursSpec(occ, occWhere, occurs);
                     if (occ.INDEXED() is not null)
                         foreach (var idxName in clause.IndexNames)
                             indexNames.Add(idxName);
@@ -1238,6 +1282,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // skeleton usages error, ISO §13.18.60), and a re-parse would duplicate their diagnostics.
         string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
         Usage entryUsage = PictureAnalyzer.ParseUsage(usageText, Edition, entryWhere);
+
+        // An integer constant-name may specify repetition in a PICTURE character-string (ISO §13.10.3 SR2 second
+        // sentence → §13.18.40): expand `PIC X(K)` to `PIC X(5)` BEFORE Analyze reads the string. Guarded on the
+        // unit actually defining constants, so a constant-free program's PICTURE pipeline is untouched.
+        if (pictureText is not null && _constants.Count > 0)
+            pictureText = ExpandPicConstants(pictureText, entryWhere);
 
         // A PICTURE-less USAGE INDEX entry is an ELEMENTARY index data item (ISO §13.18.60 — class index, no
         // PICTURE allowed), not a group: synthesize its profile so it emits as a long occurrence-number field.
@@ -1333,6 +1383,35 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (isTypedef && hasExternal)
             Edition.Error("COBOLNET1534", $"{entryWhere}: an EXTERNAL type declaration (a run-unit-shared type, "
                 + "ISO §13.18.57.4 GR5 / §13.18.22) is recognized but not yet implemented (data-model D17 residue)");
+
+        // CONSTANT RECORD same-entry shape checks (P10 Step 15; the IsBased discipline — a violation reports and
+        // clears the flag so the item binds as ordinary storage under an already-failed compile). §13.16.3 SR6:
+        // level-01 entries only; SR3: REDEFINES excluded; SR13: ANY LENGTH / BASED / BLANK WHEN ZERO /
+        // SYNCHRONIZED / TYPEDEF excluded same-entry (the subordinate-entry half of SR13 checks in BindEntries,
+        // where the parent chain exists); SR13 ¶2: with EXTERNAL, a strongly-typed TYPE clause is required.
+        if (isConstantRecord)
+        {
+            string? crViolation =
+                level != 1
+                    ? "the CONSTANT RECORD clause may be specified only in a data description entry whose "
+                      + "level-number is 1 (ISO §13.16.3 SR6)"
+                : redefinesTargetName is not null
+                    ? "REDEFINES shall not be specified in the same data description entry as the CONSTANT "
+                      + "RECORD clause (ISO §13.16.3 SR3)"
+                : isAnyLength || isBased || blankWhenZero || synchronized || isTypedef
+                    ? "the ANY LENGTH, BASED, BLANK WHEN ZERO, SYNCHRONIZED, and TYPEDEF clauses shall not be "
+                      + "specified in the same data description entry as the CONSTANT RECORD clause "
+                      + "(ISO §13.16.3 SR13)"
+                : hasExternal && typeRefName is null
+                    ? "a CONSTANT RECORD clause specified with the EXTERNAL clause requires a TYPE clause "
+                      + "naming a strongly typed definition (ISO §13.16.3 SR13)"
+                : null;
+            if (crViolation is not null)
+            {
+                Edition.Error(DiagnosticCatalog.ConstantRecordRule, $"{entryWhere}: {crViolation}");
+                isConstantRecord = false;
+            }
+        }
         var item = new DataItem
         {
             Level = level,
@@ -1351,6 +1430,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Synchronized = synchronized,
             IsTypedef = isTypedef,
             TypedefStrong = typedefStrong,
+            IsConstantRecord = isConstantRecord,
             TypeRefName = typeRefName,
         };
 
@@ -1470,20 +1550,25 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // §8.8.3.3 GR3: a concatenation-expression VALUE operand folds to its equivalent single literal's
         // RAW text (GetText would glue the operand tokens — `"AB" & "CD"` → `"AB"&"CD"` — and the emitter's
         // decode would then mis-read the value). The fold happens HERE, once, so the whole raw-text VALUE
-        // pipeline (ValidateValueCategory, FieldEmitter, ValueInitializer) sees an ordinary literal.
+        // pipeline (ValidateValueCategory, FieldEmitter, ValueInitializer) sees an ordinary literal. A
+        // constant-name operand substitutes its literal the same way (ISO §13.10.3 SR2 / §13.10.4 GR1 — "as if
+        // [the] literal were written"; DataBinder.Constants.ConstantValueRawText).
         if (item.valueClauseOperand().FirstOrDefault() is { } op0
-            && op0.nonNumericLiteral()?.concatenationExpression() is not null)
+            && (op0.nonNumericLiteral()?.concatenationExpression() is not null
+                || ConstantValueRawText(op0) is not null))
             return RawValueOperandText(op0);
         return item.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
     }
 
     /// <summary>The RAW single-literal text of a VALUE operand — the data path's currency (decoded at emit
-    /// time): a §8.8.3 concatenation expression folds to its equivalent literal's raw text (§8.8.3.3 GR3);
-    /// any other operand keeps its source text, numeric literals normalized to dot-decimal
+    /// time): a §8.8.3 concatenation expression folds to its equivalent literal's raw text (§8.8.3.3 GR3); a
+    /// constant-name substitutes its literal's raw text (§13.10.3 SR2 / §13.10.4 GR1 — a VALUE operand is a
+    /// literal position); any other operand keeps its source text, numeric literals normalized to dot-decimal
     /// (ISO §12.3.7 GR14a).</summary>
     private string RawValueOperandText(Core.ValueClauseOperandContext op) =>
         op.nonNumericLiteral()?.concatenationExpression() is { } ce
             ? ConcatFolder.Fold(ce, Edition, Collating).RawText
+            : ConstantValueRawText(op) is { } konst ? konst
             : NormalizeIfNumericLiteral(op.GetText());
 
     /// <summary>THE usage-inheritance pass (P5.11e, DESIGN-data-model §2.7 — the former

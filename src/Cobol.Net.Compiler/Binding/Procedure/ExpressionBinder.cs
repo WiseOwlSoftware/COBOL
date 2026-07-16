@@ -124,7 +124,23 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // (the LINAGE-COUNTER idiom); a BoundExprError inside the computed wrapper stays loud (§1.4).
         : host.Rw.CounterExpr(dref) is { } rcx ? new BoundComputedOperand(rcx)
         : IndexFieldOf(dref) is { } ix ? new BoundComputedOperand(new BoundIndexRef(ix))
+        : ConstantOperand(dref) is { } konst ? konst   // a constant-name substitutes its literal (§13.10.3 SR2)
         : ctx.Refs.Resolve(dref) is { } p ? new BoundFieldOperand(p) : new BoundOperandError(RefFailure(dref));
+
+    /// <summary>The bound literal a bare constant-name reference substitutes, or <see langword="null"/> when
+    /// <paramref name="dref"/> names no constant (ISO §13.10.3 SR2 / §13.10.4 GR1 — "as if [the] literal were
+    /// written where constant-name-1 is written"): the SAME bound shape the equivalent plain literal would
+    /// produce (the <see cref="ConcatOperand"/> precedent). A numeric constant rides <see cref="CheckLiteral"/>
+    /// so the edition digit-cap window applies to the substituted literal exactly as to a written one.</summary>
+    private BoundOperand? ConstantOperand(Core.DataReferenceContext dref) =>
+        ctx.Data.ConstantOf(dref) is not { } k ? null
+        : k.Category switch
+        {
+            PicCategory.Numeric => new BoundNumericLiteral(CheckLiteral(k.Text)),
+            PicCategory.National => new BoundStringLiteral(k.Text) { Category = PicCategory.National },
+            PicCategory.Boolean => new BoundStringLiteral(k.Text) { Category = PicCategory.Boolean },
+            _ => new BoundStringLiteral(k.Text),
+        };
 
     /// <summary>The loud-failure text for an unresolvable data reference — when the name belongs to a REJECTED
     /// shared-storage class (a Tier-C / national REDEFINES, an unsupported cell shape), the class's
@@ -154,8 +170,23 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         // wherever an integer item may (SR1) — read from the report's engine instance, never storage.
         : host.Rw.CounterExpr(dref) is { } rcx ? rcx
         : IndexFieldOf(dref) is { } ix ? new BoundIndexRef(ix)
+        // A constant-name substitutes its literal (§13.10.3 SR2 / §13.10.4 GR1) — in a numeric-expression
+        // position only a NUMERIC constant is legal, exactly as for a written literal (§8.8.1.1).
+        : ctx.Data.ConstantOf(dref) is { } k
+            ? k.Category is PicCategory.Numeric ? new BoundNumLiteral(CheckLiteral(k.Text))
+                : NonNumericConstantExpr(dref.GetText(), k.Category)
         : ctx.Refs.Resolve(dref) is { } p ? new BoundNumRef(p)
         : new BoundExprError(RefFailure(dref));
+
+    /// <summary>Reject a non-numeric constant-name in a numeric-expression position (ISO §8.8.1.1 — arithmetic
+    /// operands shall be numeric; the constant stands for its literal, §13.10.3 SR2), mirroring the written
+    /// national/boolean-literal rejection above (COBOLNET0844).</summary>
+    private BoundExprError NonNumericConstantExpr(string name, PicCategory category)
+    {
+        ctx.Edition.Error("COBOLNET0844", $"constant-name '{name}' substitutes a literal of category "
+            + $"{category} and is not a numeric operand (ISO §8.8.1.1 / §13.10.3 SR2)");
+        return new BoundExprError($"constant-name '{name}' in a numeric context");
+    }
 
     /// <summary>Resolve a LINAGE-COUNTER reference to its file (ISO §8.4.3.14): in the grammar alternative
     /// <c>LINAGE_COUNTER ((OF|IN) cobolWord)?</c> the cobolWord IS the file-name qualifier. Unqualified, the
@@ -223,6 +254,14 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 "LINE-COUNTER shall not be referenced as a receiving operand (ISO §8.4.3.15.3 SR3)");
             return null;
         }
+        // A constant-name substitutes a LITERAL (ISO §13.10.3 SR2 / §13.10.4 GR1) — a literal can never be a
+        // receiving operand; without this the name would fall to Refs.Resolve and fail as merely "unresolved".
+        if (ctx.Data.ConstantOf(dref) is not null)
+        {
+            ctx.Edition.Error(DiagnosticCatalog.ConstantAsReceiver, $"constant-name '{dref.GetText()}' shall "
+                + "not be specified as a receiving operand — it substitutes a literal (ISO §13.10.3 SR2)");
+            return null;
+        }
         if (dref.PAGE_COUNTER() is not null)
         {
             ctx.Edition.Error(DiagnosticCatalog.ReportPageCounterReceiving, "PAGE-COUNTER as a receiving operand (ISO §8.4.3.15 — legal; the "
@@ -239,6 +278,9 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
                 + "receiving operand except in a SET statement Format 14 (ISO §13.18.38 SR30–32)");
             return null;
         }
+        // A CONSTANT RECORD's content cannot be modified — neither the record nor any subordinate may be a
+        // receiving operand (ISO §13.18.15.3 SR2 → COBOLNET1548; DataBinder.RejectConstantStore).
+        if (ctx.Data.RejectConstantStore(place, $"receiving operand '{dref.GetText()}'")) return null;
         return place;
     }
 

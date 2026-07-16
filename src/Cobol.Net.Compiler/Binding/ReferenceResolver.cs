@@ -716,6 +716,11 @@ public sealed class ReferenceResolver(DataBinder data)
     private string? ResolveSubscriptName(string name, List<string> qualifiers)
     {
         if (qualifiers.Count == 0 && data.Symbols.TryResolveIndex(name, data.ActiveScope, out var field)) return field;
+        // An INTEGER constant-name in a subscript position substitutes its integer literal (ISO §13.10.3 SR2 /
+        // §13.10.4 GR1/GR3 — a subscript is a literal position, §8.4.2.3.2) — the literal text IS the C# read.
+        if (qualifiers.Count == 0
+            && data.FindConstant(name) is { Category: PicCategory.Numeric, IsInteger: true } k)
+            return k.Text;
         DataItem? item = qualifiers.Count == 0 ? ResolveUnqualified(name) : ResolveQualified(name, qualifiers);
         return item is not null && AccessPath(item, []) is { } path ? $"CobolTable.Occ({path})" : null;
     }

@@ -1495,7 +1495,10 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
                 var occClause = clause.occursClause();
                 if (occClause != null)
                 {
-                    var intLits = occClause.integerLiteral();
+                    // Each occursBound is an integer literal or (2002+, greenfield-only) a constant-name;
+                    // GetText() on the bound context is the literal text, and a constant-name simply fails
+                    // TryParse below — COBOL-85 legacy input never carries one.
+                    var intLits = occClause.occursBound();
                     int maxOccurs = 1;
                     int minOccurs = 0;
                     string? dependingOn = null;

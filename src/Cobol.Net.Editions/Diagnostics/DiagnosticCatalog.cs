@@ -86,6 +86,43 @@ public static class DiagnosticCatalog
         "The value resulting from concatenation shall be at most 8,191 character positions (alphanumeric, "
         + "boolean, or national).", "ISO §8.8.3.2 SR2–SR4");
 
+    // ── COBOLNET1547/1548/1549 — constant entries + CONSTANT RECORD, one code per rule family (§13.10 /
+    //    §13.18.15; P10 Step 15). 1547 = the §13.10 constant-entry syntax rules; 1548 = the receiving-operand
+    //    rejection (a constant substitutes a LITERAL — §13.10.3 SR2/GR1 — and §13.18.15.3 SR2 forbids storing
+    //    into a structured constant); 1549 = the CONSTANT RECORD structural rules (§13.18.15.3 SR1 +
+    //    §13.16.3 SR3/SR6/SR13). 1540–1546 taken; 1550/1551/1552 earmarked (PHASE-12); 1560-band (PHASE-13). ──
+    public static readonly DiagnosticDescriptor ConstantEntryRule = new(
+        "COBOLNET1547", "constant-entry-rule", EditionSeverity.Error,
+        "A constant entry violates a §13.10 syntax rule (figurative operand SR6; non-literal / exponentiation / "
+        + "division-by-zero in the compile-time expression §7.3.6; duplicate constant-name SR9; ANY-LENGTH / "
+        + "dynamic-length LENGTH operand SR10/SR12; non-integer constant where an integer is required SR2).",
+        "ISO §13.10.3 / §7.3.6.2");
+    public static readonly DiagnosticDescriptor ConstantAsReceiver = new(
+        "COBOLNET1548", "constant-as-receiver", EditionSeverity.Error,
+        "A constant-name or a data item of a CONSTANT RECORD shall not be specified as a receiving operand — a "
+        + "constant substitutes a literal, and a structured constant's content cannot be modified.",
+        "ISO §13.10.3 SR2 / §13.18.15.3 SR2");
+    public static readonly DiagnosticDescriptor ConstantRecordRule = new(
+        "COBOLNET1549", "constant-record-rule", EditionSeverity.Error,
+        "A CONSTANT RECORD clause violates a structural rule: WS/LS sections only (SR1); level-01 only, no "
+        + "REDEFINES, and no ANY LENGTH / BASED / BLANK WHEN ZERO / SYNCHRONIZED / TYPEDEF on the record or any "
+        + "subordinate (§13.16.3 SR3/SR6/SR13).", "ISO §13.18.15.3 / §13.16.3");
+
+    // ── COBOLNET0899 — the staged-loud constant-entry legs (recognized, not yet implemented) ─────────────
+    public static readonly DiagnosticDescriptor ConstantFromCompilationVariable = new(
+        NotImplemented, "constant-from-compilation-variable", EditionSeverity.Error,
+        "CONSTANT … FROM compilation-variable-name (§13.10.4 GR1 — the >>DEFINE tie-in) is recognized but not "
+        + "yet implemented: the preprocessor's compilation-variable store (ConditionalCompilationProcessor) is "
+        + "local to the text stage and not reachable at bind time; the position-correct (SR8 'currently true') "
+        + "capture across COPY expansion is the recorded residue.", "ISO §13.10 (FROM phrase)",
+        RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ConstantByteLength = new(
+        NotImplemented, "constant-byte-length", EditionSeverity.Error,
+        "CONSTANT … AS BYTE-LENGTH OF (§13.10.4 GR5 — defined by the §15.14 BYTE-LENGTH intrinsic) is "
+        + "recognized but not yet implemented: the §15.14 intrinsic itself is a Deferred catalog row, and the "
+        + "byte-width authority lands ONCE, with it (the singular-pattern rule).", "ISO §13.10.4 GR5 / §15.14",
+        RecognizedNotImplemented);
+
     // ── COBOLNET1533 — strong typing, split by rule (§8.5) ───────────────────────────────────────────
     public static readonly DiagnosticDescriptor StrongMoveMismatch = new(
         StrongType, "strong-move-mismatch", EditionSeverity.Error,

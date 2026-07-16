@@ -32,6 +32,9 @@ public static class Constructs
     public const string UsageFloatShort2002 = "usage-float-short-2002";
     public const string UsageFloatBinary322014 = "usage-float-binary32-2014";
     public const string ConstantEntry2002 = "constant-entry-2002";
+    public const string ConstantRecord2002 = "constant-record-2002";
+    public const string UserWordAs2002 = "user-word-as-2002";
+    public const string UserWordConstant2002 = "user-word-constant-2002";
     public const string ConcatOperator2002 = "concat-operator-2002";
     public const string LabelRecordsRemoved2002 = "label-records-removed-2002";
     public const string UserWordCommit2023 = "user-word-commit-2023";

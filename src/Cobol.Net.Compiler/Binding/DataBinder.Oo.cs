@@ -188,14 +188,14 @@ public sealed partial class DataBinder
             if (dd.localStorageSection() is { } ls)
             {
                 GateMethodGlobal(ls.dataDescriptionEntry());
-                m.Binding!.LocalRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), _rootNames));
+                m.Binding!.LocalRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), _rootNames, EntrySection.LocalStorage));
             }
             if (dd.linkageSection() is { } lk)
             {
                 var lkEntries = lk.linkageEntry().Select(e => e.dataDescriptionEntry())
                     .Where(e => e is not null).Select(e => e!).ToList();
                 GateMethodGlobal(lkEntries);
-                m.Binding!.LinkageRoots.AddRange(BindEntries(lkEntries, _rootNames));
+                m.Binding!.LinkageRoots.AddRange(BindEntries(lkEntries, _rootNames, EntrySection.Linkage));
             }
         }
         _bindingMethodScope = null;

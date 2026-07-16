@@ -616,6 +616,30 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>A constant entry (ISO §13.10 — <c>01 name CONSTANT …</c>) — a COBOL-2002 introduction.
+        /// Recognition-based on the dedicated <c>constantEntryBody</c> alternative: the binder folds the entry
+        /// into the compile-time constant table and produces NO DataItem (a bound-arm gate would have no node
+        /// to key on), and a §13.10 SR violation abandons the fold — so recognition is the drop-proof home
+        /// (the TYPEDEF lesson). Fires once per written entry; the §13.10 SRs stay bind-time
+        /// (DataBinder.Constants.cs, COBOLNET1547).</summary>
+        public override object? VisitConstantEntryBody(CobolParserCore.ConstantEntryBodyContext ctx)
+        {
+            string name = (ctx.Parent as CobolParserCore.DataDescriptionBodyContext)?.Parent
+                is CobolParserCore.DataDescriptionEntryContext e ? e.dataName()?.GetText() ?? "?" : "?";
+            _p.Check(Constructs.ConstantEntry2002, $"the constant entry '{name}' (01 … CONSTANT)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The CONSTANT RECORD clause (ISO §13.18.15) — a COBOL-2002 introduction (a structured
+        /// constant). Recognition-based like the BASED/ANY LENGTH gates: <c>DataItem.IsConstantRecord</c> is
+        /// cleared by the binder on every §13.16.3 SR3/SR6/SR13 shape violation, so a bound-arm home would drop
+        /// the 0900 on exactly the declaration-error paths. The placement SRs stay bind-time (COBOLNET1549).</summary>
+        public override object? VisitConstantRecordClause(CobolParserCore.ConstantRecordClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.ConstantRecord2002, "the CONSTANT RECORD clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The TYPEDEF [STRONG] clause (ISO §13.18.58; D17) — a COBOL-2002 introduction (a type DECLARATION).
         /// Recognition-based (the 14g.2-review correction, DEVLOG 734), NOT bound-arm: the typedef ITEM is dropped
         /// from ConformanceForest whenever RegisterTypeDecl rejects it (unnamed/FILLER, duplicate type-name) or it
@@ -1193,6 +1217,8 @@ internal sealed class VersionConformancePass
             CobolLexer.OVERRIDE,  // §11.7 (2002+): the METHOD-ID attribute slot is a direct token — position-blind safe
             CobolLexer.GET, CobolLexer.PROPERTY, CobolLexer.INTERFACE,   // §11.6/§11.7/§13.18.42 (2002+): keyword slots are direct tokens — position-blind safe. IMPLEMENTS is §8.10 context-sensitive: NEVER here.
             CobolLexer.PROTOTYPE, // §11.5 (2002+): the keyword occurs only in the functionIdParagraph `IS PROTOTYPE` tail — a direct token, never a name slot — position-blind safe (the UDF-3 wave)
+            CobolLexer.CONSTANT,  // §13.10/§13.18.15 (2002+): keyword slots are the constantEntryBody head and `CONSTANT RECORD` — direct tokens, never a name slot — position-blind safe (P10 Step 15; the PROTOTYPE precedent)
+            CobolLexer.AS,        // §13.10 (2002+): the sole keyword slot is the constantEntryBody `AS` — a direct token, never a name slot — position-blind safe (the CONSTANT twin)
             CobolLexer.RERUN, CobolLexer.ENTER, CobolLexer.EVERY, CobolLexer.CLOCK_UNITS,
             CobolLexer.DEBUGGING, CobolLexer.REFERENCES, CobolLexer.PROCEDURES,
         ];
