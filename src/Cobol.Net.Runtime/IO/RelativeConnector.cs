@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Buffers.Binary;
-using System.Text;
 
 namespace CobolNet.Runtime.IO;
 
@@ -17,67 +15,6 @@ public enum KeyedAccess
     Dynamic = 2,
 }
 
-/// <summary>The keyed connectors' on-disk framing: a sequence of records, each a 4-byte little-endian length
-/// prefix followed by that many Latin-1 payload bytes; an EMPTY slot is the gap tag 0xFFFFFFFF with no payload
-/// (the legacy varying-relative gap marker). Explicit length framing carries occupancy soundly — the legacy's
-/// fixed-format all-0x00/0xFF gap HEURISTIC could vanish a legitimate all-zero binary record (brief §2.3 #6), so
-/// the greenfield store frames every record explicitly. The physical format is implementor-defined by the spec
-/// (§9.1.13.6 boundaries are "externally defined"); both producer and consumer of a NIST chain run on this same
-/// connector, so the format needs only self-consistency.</summary>
-internal static class KeyedFrames
-{
-    private const uint GapTag = 0xFFFFFFFF;
-
-    /// <summary>Write the whole store: one frame per ordinal position; null = an empty (gap) slot.</summary>
-    public static void Write(string path, IReadOnlyList<string?> frames)
-    {
-        using var fs = new FileStream(path, FileMode.Create, FileAccess.Write);
-        Span<byte> len = stackalloc byte[4];
-        foreach (string? frame in frames)
-        {
-            if (frame is null)
-            {
-                BinaryPrimitives.WriteUInt32LittleEndian(len, GapTag);
-                fs.Write(len);
-                continue;
-            }
-            byte[] payload = Encoding.Latin1.GetBytes(frame);
-            BinaryPrimitives.WriteUInt32LittleEndian(len, (uint)payload.Length);
-            fs.Write(len);
-            fs.Write(payload, 0, payload.Length);
-        }
-    }
-
-    /// <summary>Read the whole store back: one entry per frame, null for a gap. A torn tail ends the store.</summary>
-    public static List<string?> Read(string path)
-    {
-        var frames = new List<string?>();
-        using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
-        var len = new byte[4];
-        while (FillExactly(fs, len, 4))
-        {
-            uint n = BinaryPrimitives.ReadUInt32LittleEndian(len);
-            if (n == GapTag) { frames.Add(null); continue; }
-            var payload = new byte[n];
-            if (!FillExactly(fs, payload, (int)n)) break;
-            frames.Add(Encoding.Latin1.GetString(payload));
-        }
-        return frames;
-    }
-
-    private static bool FillExactly(Stream s, byte[] buf, int count)
-    {
-        int got = 0;
-        while (got < count)
-        {
-            int n = s.Read(buf, got, count - got);
-            if (n == 0) return false;
-            got += n;
-        }
-        return true;
-    }
-}
-
 /// <summary>
 /// A typed-native RELATIVE-organization file connector (ISO/IEC 1989:2023 §9.1.7.3): a sparse 1-based slot model —
 /// each record is identified by its relative record number (RRN); slots between records "do not exist" for READ.
@@ -87,17 +24,14 @@ internal static class KeyedFrames
 /// §9.1.13.7 item 6), and the '43' previous-op-was-READ rule for sequential-access REWRITE/DELETE (§14.9.35 GR5 /
 /// §14.9.10 GR2). Records cross this boundary as their character image (a <see cref="string"/>).
 /// </summary>
-public sealed class RelativeFile
+public sealed class RelativeConnector : FileConnector
 {
-    private readonly int _recordWidth;
     private readonly KeyedAccess _access;
     private readonly int _keyDigits;   // RELATIVE KEY digit capacity (0 = no RELATIVE KEY clause)
 
     /// <summary>The sparse slot store: RRN (1-based, §12.4.5.13 GR1) → record image.</summary>
     private readonly SortedDictionary<long, string> _slots = new();
 
-    private FileOpenMode _mode;
-    private bool _optionalAbsent;        // OPEN INPUT of an absent OPTIONAL file (§14.9.27 GR13)
     private long _fpi;                   // file position indicator: the current slot (§9.1.11)
     private bool _fpiValid;
     private bool _inclusive;             // FPI set by OPEN/START — the positioned record itself is next (§14.9.30 GR21)
@@ -105,151 +39,104 @@ public sealed class RelativeFile
     private long _pendingKey;            // the RELATIVE KEY item's value, set by the compiler before keyed verbs
     private long _seqNext = 1;           // next sequential-access WRITE slot (§14.9.51 GR29a)
     private long _lastSlot;              // last slot read/written — the GR25/GR29a store-back + seq REWRITE/DELETE target
-    private bool _lastReadUnsuccessful;  // → '46' on the next sequential READ (§14.9.30 GR21)
-    private bool _prevOpWasSuccessfulRead;   // → '43' gate for sequential-access REWRITE/DELETE
-
-    /// <summary>The resolved host path of the physical file.</summary>
-    public string HostPath { get; }
-
-    /// <summary>The latest I-O status (ISO §9.1.13). "00" until the first operation.</summary>
-    public string Status { get; private set; } = FileStatusCode.Success;
-
-    /// <summary>True for a SELECT OPTIONAL file (§14.9.27 GR13/GR17).</summary>
-    public bool IsOptional { get; init; }
+    private bool _open;
 
     /// <summary>True between a successful OPEN and the matching CLOSE.</summary>
-    public bool IsOpen { get; private set; }
+    public override bool IsOpen => _open;
 
     /// <summary>The RRN of the record last made available / released — the §14.9.30 GR25 and §14.9.51 GR29a
     /// MOVE-back source the generated code stores into the RELATIVE KEY item.</summary>
     public long LastSlot => _lastSlot;
 
-    /// <summary>Set the I-O status directly (facade-level conditions, e.g. a locked-file OPEN).</summary>
-    public void SetStatus(string status) => Status = status;
-
-    /// <summary>The open-mode view for USE-declarative mode scoping (ISO 14.9.49.4 GR6b-e): (int) of the mode
-    /// while open OR the ATTEMPTED mode of a failed OPEN; -1 after a successful CLOSE / before any OPEN.</summary>
-    public int OpenModeView => _modeKnown ? (int)_mode : -1;
-    private bool _modeKnown;
-
     /// <summary>Stage the RELATIVE KEY item's value for the next keyed operation (§14.9.30 GR29, §14.9.35 GR21,
     /// §14.9.51 GR29b, §14.9.10 GR4). The compiler decodes the TYPED key field — never raw bytes.</summary>
     public void SetPendingKey(long rrn) => _pendingKey = rrn;
 
-    // RECORD IS VARYING bounds (ISO §13.18.43 GR9/GR10); (-1,-1) = fixed-length. The KeyedFrames store already
-    // carries each record's exact length, so a varying record persists at the length it was written (GR13) and
-    // reports it on READ (GR15); WRITE/REWRITE outside the bounds is the GR14/§14.9.35 GR20 '44'.
-    private readonly int _varyMin = -1, _varyMax = -1;
-    private bool IsVarying => _varyMin >= 0;
+    // RECORD IS VARYING: the RecordFraming store already carries each record's exact length, so a varying
+    // record persists at the length it was written (§13.18.43 GR13) and reports it on READ (GR15);
+    // WRITE/REWRITE outside the VaryMin/VaryMax bounds is the GR14/§14.9.35 GR20 '44'.
 
-    /// <summary>The length of the most recently read record (ISO §13.18.43 GR15 — the frame length on a varying
-    /// file, the record width on a fixed one).</summary>
-    public int LastReadLength { get; private set; }
-
-    public RelativeFile(string hostPath, int recordWidth, KeyedAccess access, int relativeKeyDigits,
+    public RelativeConnector(string hostPath, int recordWidth, KeyedAccess access, int relativeKeyDigits,
         int varyMin = -1, int varyMax = -1)
+        : base(hostPath, recordWidth, varyMin, varyMax)
     {
-        HostPath = hostPath;
-        _recordWidth = recordWidth < 1 ? 1 : recordWidth;
         _access = access;
         _keyDigits = relativeKeyDigits;
-        _varyMin = varyMin;
-        _varyMax = varyMax;
-    }
-
-    /// <summary>The stored image of a record being written: a varying record keeps exactly its declared length
-    /// (§13.18.43 GR13 — truncate/pad the area image to it); a fixed record fills the record width. Returns null
-    /// (→ '44') when a varying length violates the declared bounds (GR14 / §14.9.35 GR20).</summary>
-    private string? Stored(string image, int length)
-    {
-        if (!IsVarying) return Fit(image);
-        int len = length >= 0 ? length : image.Length;
-        if (len < _varyMin || len > _varyMax) return null;
-        return image.Length == len ? image : image.Length > len ? image[..len] : image.PadRight(len, ' ');
     }
 
     // ── OPEN / CLOSE (ISO §14.9.27 / §14.9.6) ────────────────────────────────────────────────────────────────
 
-    /// <summary>OPEN in <paramref name="mode"/>. GR14: INPUT/I-O position the FPI at 1; GR15: EXTEND positions
-    /// after the highest existing RRN; GR17: an absent OPTIONAL file on I-O/EXTEND is created ('05'); §9.1.13.6
-    /// item 5: an absent NON-optional file on INPUT/I-O/EXTEND is '35'; §9.1.13.7 item 1: already open is '41'.</summary>
-    public string Open(FileOpenMode mode)
+    /// <summary>The relative OPEN body. GR14: INPUT/I-O position the FPI at 1; GR15: EXTEND positions after the
+    /// highest existing RRN; GR17: an absent OPTIONAL file on I-O/EXTEND is created ('05'); §9.1.13.6 item 5: an
+    /// absent NON-optional file on INPUT/I-O/EXTEND is '35' — the already-open '41' guard, the attempted-mode
+    /// bookkeeping, the position reset, and the '37'/'30' exception mapping live on
+    /// <see cref="FileConnector.Open"/>.</summary>
+    protected override string OpenCore(FileOpenMode mode)
     {
-        if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen;
-        _mode = mode;
-        _modeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
-        _optionalAbsent = false;
-        _lastReadUnsuccessful = false;
-        _prevOpWasSuccessfulRead = false;
         _slots.Clear();
         _pendingKey = 0;
         _lastSlot = 0;
         _positioner = 'O';
         bool exists = File.Exists(HostPath);
         string status = FileStatusCode.Success;
-        try
+        switch (mode)
         {
-            switch (mode)
-            {
-                case FileOpenMode.Input:
-                    if (!exists)
-                    {
-                        if (!IsOptional) return Status = FileStatusCode.FileNotFound;
-                        _optionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
-                        status = FileStatusCode.OptionalFileNotFound;
-                        break;
-                    }
-                    Load();
+            case FileOpenMode.Input:
+                if (!exists)
+                {
+                    if (!IsOptional) return FileStatusCode.FileNotFound;
+                    OptionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
+                    status = FileStatusCode.OptionalFileNotFound;
                     break;
-                case FileOpenMode.Output:
-                    KeyedFrames.Write(HostPath, []);          // a new physical file; records persist at CLOSE
-                    _seqNext = 1;                              // §14.9.51 GR29a — first record released is 1
+                }
+                Load();
+                break;
+            case FileOpenMode.Output:
+                RecordFraming.WriteStore(HostPath, []);          // a new physical file; records persist at CLOSE
+                _seqNext = 1;                              // §14.9.51 GR29a — first record released is 1
+                break;
+            case FileOpenMode.IO:
+                if (!exists)
+                {
+                    if (!IsOptional) return FileStatusCode.FileNotFound;
+                    RecordFraming.WriteStore(HostPath, []);      // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
+                    status = FileStatusCode.OptionalFileNotFound;
                     break;
-                case FileOpenMode.IO:
-                    if (!exists)
-                    {
-                        if (!IsOptional) return Status = FileStatusCode.FileNotFound;
-                        KeyedFrames.Write(HostPath, []);      // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
-                        status = FileStatusCode.OptionalFileNotFound;
-                        break;
-                    }
-                    Load();
-                    break;
-                case FileOpenMode.Extend:
-                    if (!exists)
-                    {
-                        if (!IsOptional) return Status = FileStatusCode.FileNotFound;
-                        KeyedFrames.Write(HostPath, []);      // §14.9.27 GR17
-                        status = FileStatusCode.OptionalFileNotFound;
-                    }
-                    else Load();
-                    _seqNext = (_slots.Count == 0 ? 0 : _slots.Keys.Max()) + 1;   // §14.9.27 GR15 / §14.9.51 GR29a
-                    break;
-            }
+                }
+                Load();
+                break;
+            case FileOpenMode.Extend:
+                if (!exists)
+                {
+                    if (!IsOptional) return FileStatusCode.FileNotFound;
+                    RecordFraming.WriteStore(HostPath, []);      // §14.9.27 GR17
+                    status = FileStatusCode.OptionalFileNotFound;
+                }
+                else Load();
+                _seqNext = (_slots.Count == 0 ? 0 : _slots.Keys.Max()) + 1;   // §14.9.27 GR15 / §14.9.51 GR29a
+                break;
         }
-        catch (UnauthorizedAccessException) { return Status = FileStatusCode.PermissionDenied; }
-        catch (IOException) { return Status = FileStatusCode.PermanentError; }
-        IsOpen = true;
+        _open = true;
         _fpi = 1;                                              // §14.9.27 GR14 — FPI = 1 on INPUT/I-O
         _fpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
         _inclusive = true;
-        return Status = status;
+        return status;
     }
 
-    /// <summary>CLOSE (ISO §14.9.6): not open → '42' (§9.1.13.7 item 2); a writable mode persists the store —
-    /// including via the run-unit-termination <c>CloseAll</c>, which keyed chains (RL208A) depend on.</summary>
-    public string Close()
+    /// <summary>The relative CLOSE body (ISO §14.9.6): a writable mode persists the store — including via the
+    /// run-unit-termination <c>CloseAll</c>, which keyed chains (RL208A) depend on. The not-open '42' guard
+    /// lives on <see cref="FileConnector.Close"/>.</summary>
+    protected override string CloseCore()
     {
-        if (!IsOpen) return Status = FileStatusCode.FileNotOpen;
         try
         {
-            if (!_optionalAbsent && _mode is not FileOpenMode.Input) Persist();
+            if (!OptionalAbsent && Mode is not FileOpenMode.Input) Persist();
         }
-        catch (IOException) { IsOpen = false; return Status = FileStatusCode.PermanentError; }
-        IsOpen = false;
-        _optionalAbsent = false;
-        _modeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
-        return Status = FileStatusCode.Success;
+        catch (IOException) { _open = false; return FileStatusCode.PermanentError; }
+        _open = false;
+        OptionalAbsent = false;
+        ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
+        return FileStatusCode.Success;
     }
 
     // ── READ (ISO §14.9.30) ──────────────────────────────────────────────────────────────────────────────────
@@ -267,12 +154,12 @@ public sealed class RelativeFile
 
     private string ReadSequential(out string image, bool previous)
     {
-        image = new string(' ', _recordWidth);
-        _prevOpWasSuccessfulRead = false;
-        if (!IsOpen || _mode is FileOpenMode.Output or FileOpenMode.Extend)
+        image = new string(' ', RecordWidth);
+        PrevOpWasSuccessfulRead = false;
+        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;            // '47' §9.1.13.7 item 7
-        if (_optionalAbsent) { _lastReadUnsuccessful = true; return Status = FileStatusCode.AtEnd; }   // '10' §9.1.13.4 1c
-        if (_lastReadUnsuccessful) return Status = FileStatusCode.NoValidNextRecord;   // '46' §14.9.30 GR21
+        if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.AtEnd; }   // '10' §9.1.13.4 1c
+        if (LastReadUnsuccessful) return Status = FileStatusCode.NoValidNextRecord;   // '46' §14.9.30 GR21
         if (!_fpiValid) return Status = FileStatusCode.NoValidNextRecord;              // '46' §9.1.13.7 6a (failed START)
 
         long? slot = null;
@@ -290,7 +177,7 @@ public sealed class RelativeFile
         }
         if (slot is not { } s)
         {
-            _lastReadUnsuccessful = true;
+            LastReadUnsuccessful = true;
             _fpiValid = false;                                             // §14.9.30 GR24b
             return Status = FileStatusCode.AtEnd;
         }
@@ -298,14 +185,14 @@ public sealed class RelativeFile
         {
             // §14.9.30 GR21 relative rule d: significant digits of the RRN exceed the RELATIVE KEY item → '14',
             // the at-end condition, FPI invalidated.
-            _lastReadUnsuccessful = true;
+            LastReadUnsuccessful = true;
             _fpiValid = false;
             return Status = FileStatusCode.RelativeKeyOverflow;
         }
         _fpi = s; _fpiValid = true; _inclusive = false; _positioner = 'R';   // GR21 rule f
         _lastSlot = s;
-        _prevOpWasSuccessfulRead = true;
-        _lastReadUnsuccessful = false;
+        PrevOpWasSuccessfulRead = true;
+        LastReadUnsuccessful = false;
         LastReadLength = _slots[s].Length;   // §13.18.43 GR15 — the stored frame length
         image = Fit(_slots[s]);
         return Status = FileStatusCode.Success;
@@ -315,20 +202,20 @@ public sealed class RelativeFile
     /// <see cref="SetPendingKey"/>); no such record → invalid key '23'; an absent optional file → '23' (GR28).</summary>
     public string ReadRandom(out string image)
     {
-        image = new string(' ', _recordWidth);
-        _prevOpWasSuccessfulRead = false;
-        if (!IsOpen || _mode is FileOpenMode.Output or FileOpenMode.Extend)
+        image = new string(' ', RecordWidth);
+        PrevOpWasSuccessfulRead = false;
+        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;
-        if (_optionalAbsent) { _lastReadUnsuccessful = true; return Status = FileStatusCode.RecordNotFound; }
+        if (OptionalAbsent) { LastReadUnsuccessful = true; return Status = FileStatusCode.RecordNotFound; }
         if (!_slots.TryGetValue(_pendingKey, out string? rec))
         {
-            _lastReadUnsuccessful = true;
+            LastReadUnsuccessful = true;
             return Status = FileStatusCode.RecordNotFound;                 // '23' §9.1.13.5 3a
         }
         _fpi = _pendingKey; _fpiValid = true; _inclusive = false; _positioner = 'R';
         _lastSlot = _pendingKey;
-        _prevOpWasSuccessfulRead = true;
-        _lastReadUnsuccessful = false;
+        PrevOpWasSuccessfulRead = true;
+        LastReadUnsuccessful = false;
         LastReadLength = rec.Length;         // §13.18.43 GR15 — the stored frame length
         image = Fit(rec);
         return Status = FileStatusCode.Success;
@@ -342,11 +229,11 @@ public sealed class RelativeFile
     /// legality per §9.1.13.7 item 8 ('48').</summary>
     public string Write(string image, int length = -1)
     {
-        _prevOpWasSuccessfulRead = false;
-        bool sequential = _access == KeyedAccess.Sequential || _mode == FileOpenMode.Extend;
+        PrevOpWasSuccessfulRead = false;
+        bool sequential = _access == KeyedAccess.Sequential || Mode == FileOpenMode.Extend;
         if (sequential)
         {
-            if (!IsOpen || _mode is not (FileOpenMode.Output or FileOpenMode.Extend))
+            if (!IsOpen || Mode is not (FileOpenMode.Output or FileOpenMode.Extend))
                 return Status = FileStatusCode.WriteNotOpenForOutput;      // '48' §9.1.13.7 8a
             long slot = _seqNext;
             if (_keyDigits > 0 && slot.ToString().Length > _keyDigits)
@@ -358,7 +245,7 @@ public sealed class RelativeFile
             _lastSlot = slot;                                              // GR29a — MOVEd back into the key item
             return Status = FileStatusCode.Success;
         }
-        if (!IsOpen || _mode is not (FileOpenMode.IO or FileOpenMode.Output))
+        if (!IsOpen || Mode is not (FileOpenMode.IO or FileOpenMode.Output))
             return Status = FileStatusCode.WriteNotOpenForOutput;          // '48' §9.1.13.7 8b
         long key = _pendingKey;
         if (key < 1) return Status = FileStatusCode.PermanentBoundary;     // '34' §14.9.51 GR29b
@@ -375,9 +262,9 @@ public sealed class RelativeFile
     /// the key item (absent → '23', GR21). The FPI is unaffected (GR13).</summary>
     public string Rewrite(string image, int length = -1)
     {
-        bool wasRead = _prevOpWasSuccessfulRead;
-        _prevOpWasSuccessfulRead = false;
-        if (!IsOpen || _mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
+        bool wasRead = PrevOpWasSuccessfulRead;
+        PrevOpWasSuccessfulRead = false;
+        if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         // §14.9.35 GR18 — a relative record's size MAY differ from the replaced record's; GR20 still bounds it.
         if (_access == KeyedAccess.Sequential)
         {
@@ -399,9 +286,9 @@ public sealed class RelativeFile
     /// invalid key '23', GR4). The FPI is unaffected (GR9).</summary>
     public string Delete()
     {
-        bool wasRead = _prevOpWasSuccessfulRead;
-        _prevOpWasSuccessfulRead = false;
-        if (!IsOpen || _mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
+        bool wasRead = PrevOpWasSuccessfulRead;
+        PrevOpWasSuccessfulRead = false;
+        if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         if (_access == KeyedAccess.Sequential)
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
@@ -420,10 +307,10 @@ public sealed class RelativeFile
     /// key '23' with the FPI invalidated (GR7/GR9c). Open mode must be input or I-O (GR1 → '47').</summary>
     public string Start(string op, long operand)
     {
-        _prevOpWasSuccessfulRead = false;
-        if (!IsOpen || _mode is FileOpenMode.Output or FileOpenMode.Extend)
+        PrevOpWasSuccessfulRead = false;
+        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;
-        if (_optionalAbsent) return StartFail();                           // '23' §14.9.41 GR5
+        if (OptionalAbsent) return StartFail();                           // '23' §14.9.41 GR5
         long? found = null;
         switch (op)
         {
@@ -440,24 +327,24 @@ public sealed class RelativeFile
     /// (or absent optional) file → invalid key '23'.</summary>
     public string StartFirstLast(bool last)
     {
-        _prevOpWasSuccessfulRead = false;
-        if (!IsOpen || _mode is FileOpenMode.Output or FileOpenMode.Extend)
+        PrevOpWasSuccessfulRead = false;
+        if (!IsOpen || Mode is FileOpenMode.Output or FileOpenMode.Extend)
             return Status = FileStatusCode.ReadNotOpenForInput;
-        if (_optionalAbsent || _slots.Count == 0) return StartFail();
+        if (OptionalAbsent || _slots.Count == 0) return StartFail();
         return StartAt(last ? _slots.Keys.Max() : _slots.Keys.Min());
     }
 
     private string StartAt(long slot)
     {
         _fpi = slot; _fpiValid = true; _inclusive = true; _positioner = 'S';
-        _lastReadUnsuccessful = false;
+        LastReadUnsuccessful = false;
         return Status = FileStatusCode.Success;
     }
 
     private string StartFail()
     {
         _fpiValid = false;                  // §14.9.41 GR7 — no valid record position established
-        _lastReadUnsuccessful = true;       // → '46' on the next sequential READ (§9.1.13.7 6a)
+        LastReadUnsuccessful = true;       // → '46' on the next sequential READ (§9.1.13.7 6a)
         return Status = FileStatusCode.RecordNotFound;
     }
 
@@ -466,7 +353,7 @@ public sealed class RelativeFile
     private void Load()
     {
         _slots.Clear();
-        var frames = KeyedFrames.Read(HostPath);
+        var frames = RecordFraming.ReadStore(HostPath);
         for (int i = 0; i < frames.Count; i++)
             if (frames[i] is { } rec)
                 _slots[i + 1] = rec;        // slot ordinal = frame ordinal (1-based RRN, §12.4.5.13 GR1)
@@ -477,11 +364,7 @@ public sealed class RelativeFile
         long max = _slots.Count == 0 ? 0 : _slots.Keys.Max();
         var frames = new string?[max];
         foreach (var (slot, rec) in _slots) frames[slot - 1] = rec;
-        KeyedFrames.Write(HostPath, frames);
+        RecordFraming.WriteStore(HostPath, frames);
     }
 
-    /// <summary>Pad/truncate to the record width — the record-AREA image a READ makes available (a shorter
-    /// varying record space-fills the area; its true length is <see cref="LastReadLength"/>).</summary>
-    private string Fit(string s) =>
-        s.Length == _recordWidth ? s : s.Length > _recordWidth ? s[.._recordWidth] : s.PadRight(_recordWidth, ' ');
 }

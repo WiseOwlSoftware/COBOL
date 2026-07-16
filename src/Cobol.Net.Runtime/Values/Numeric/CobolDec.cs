@@ -16,7 +16,7 @@ namespace CobolNet.Runtime;
 /// </summary>
 public readonly record struct CobolDec(Int128 Sig, int Exp)
 {
-    private static readonly Int128 Limit34 = Pow10(34);
+    private static readonly Int128 Limit34 = Pow10.AsWide(34);
 
     /// <summary>Lift a fixed-point operand (unscaled value + scale) into SDIDI form — exact (≤31 digits always
     /// fits the 34-digit significand, §8.8.1.5.2).</summary>
@@ -41,7 +41,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         bool sticky = false;
         int upRoom = 38 - DigitCount(Int128.Abs(hiSig));
         int up = Math.Min(gap, upRoom);
-        hiSig *= Pow10(up);
+        hiSig *= Pow10.AsWide(up);
         int residual = gap - up;
         if (residual > 0)
         {
@@ -74,7 +74,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
 
         // Pre-scale the numerator so the integer quotient has 34–36 significant digits.
         int scaleUp = Math.Max(0, 34 + DigitCount(den) - DigitCount(UAbs(a.Sig)) + 1);
-        var (hi, lo) = Mul128(UAbs(a.Sig), (UInt128)Pow10(Math.Min(scaleUp, 38)));
+        var (hi, lo) = Mul128(UAbs(a.Sig), (UInt128)Pow10.AsWide(Math.Min(scaleUp, 38)));
         var (q, rem) = DivRem256(hi, lo, den);
 
         // q < 10^37 by construction → fits Int128. Round to 34 digits, folding the division remainder into sticky.
@@ -94,7 +94,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         if (oa != ob) return sa > 0 ? oa.CompareTo(ob) : ob.CompareTo(oa);
         // Same order ⇒ aligning to the smaller exponent lands both within 34+|order-gap=0| ≤ 38 digits.
         int e = Math.Min(a.Exp, b.Exp);
-        Int128 av = a.Sig * Pow10(a.Exp - e), bv = b.Sig * Pow10(b.Exp - e);
+        Int128 av = a.Sig * Pow10.AsWide(a.Exp - e), bv = b.Sig * Pow10.AsWide(b.Exp - e);
         return av.CompareTo(bv);
     }
 
@@ -108,8 +108,8 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         {
             // Widening: keep only digits a ≤38-digit store could ever use; the store's own capacity rules apply.
             Int128 sig = Sig;
-            if (DigitCount(Int128.Abs(sig)) + shift > 38) sig %= Pow10(Math.Max(0, 38 - shift));
-            return sig * Pow10(shift);
+            if (DigitCount(Int128.Abs(sig)) + shift > 38) sig %= Pow10.AsWide(Math.Max(0, 38 - shift));
+            return sig * Pow10.AsWide(shift);
         }
         var (q, rem, den) = DivRemPow10(Sig, -shift);
         return RoundFromRemainder(q, rem, den, sticky: false, mode);
@@ -241,7 +241,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
 
     private static (Int128 Q, Int128 Rem, Int128 Den) DivRemPow10(Int128 v, int n)
     {
-        Int128 den = Pow10(Math.Min(n, 38));
+        Int128 den = Pow10.AsWide(Math.Min(n, 38));
         if (n > 38) return (0, v == 0 ? 0 : 1, 2);   // far below precision: quotient 0, inexact marker
         return (v / den, v % den, den);
     }
@@ -265,14 +265,8 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     private static (Int128 Sig, bool Sticky) ShiftDownSticky(Int128 sig, int n)
     {
         if (n > 38) return (0, sig != 0);
-        Int128 den = Pow10(n);
+        Int128 den = Pow10.AsWide(n);
         return (sig / den, sig % den != 0);
     }
 
-    private static Int128 Pow10(int n)
-    {
-        Int128 r = 1;
-        for (int i = 0; i < n; i++) r *= 10;
-        return r;
-    }
 }

@@ -33,25 +33,10 @@ public static partial class CobolIntrinsics
             // EC-ARGUMENT-FUNCTION raise point (§14.6.13.1.1 Table 13, fatal): the §15.3 default result 0 when
             // checking is off; the raise when the statement carries enabled checking (the ambient gate).
             return Exceptions.ExceptionState.ArgumentError("floating-point intrinsic argument out of domain (NaN/infinity result)");
-        double scaled = d * Pow10D(scale);
+        double scaled = d * Pow10.AsDouble(scale);
         if (scaled >= 9.2e18) return long.MaxValue;
         if (scaled <= -9.2e18) return long.MinValue;
         return (long)Math.Round(scaled, MidpointRounding.AwayFromZero);
     }
 
-    /// <summary>10^<paramref name="n"/> as a double (n ≥ 0).</summary>
-    internal static double Pow10D(int n)
-    {
-        double r = 1;
-        for (int i = 0; i < n; i++) r *= 10;
-        return r;
-    }
-
-    /// <summary>10^<paramref name="n"/> as an <see cref="Int128"/> (n ≥ 0) — exact scaled-long rescaling.</summary>
-    internal static Int128 Pow10I(int n)
-    {
-        Int128 r = 1;
-        for (int i = 0; i < n; i++) r *= 10;
-        return r;
-    }
 }

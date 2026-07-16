@@ -12,7 +12,7 @@ namespace CobolNet.Runtime.IO;
 /// </summary>
 public static partial class CobolFile
 {
-    private static readonly Dictionary<string, SequentialFile> Files = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, SequentialConnector> Files = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> Locked = new(StringComparer.OrdinalIgnoreCase);
     private static int _instSeq;   // the per-object instance-file connector-key sequence (M2-OO-1i; reset in Init for determinism)
     // The GC finalizer thread (~CobolObject) can request a per-object CLOSE at any moment, but the registries
@@ -83,7 +83,7 @@ public static partial class CobolFile
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && Files.ContainsKey(cobolName))
             return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a)
-        Files[cobolName] = new SequentialFile(ResolveHostPath(assignTarget), recordWidth, lineSequential, varyMin, varyMax)
+        Files[cobolName] = new SequentialConnector(ResolveHostPath(assignTarget), recordWidth, lineSequential, varyMin, varyMax)
             { IsOptional = optional };
     }
 

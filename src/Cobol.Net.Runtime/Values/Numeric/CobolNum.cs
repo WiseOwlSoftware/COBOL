@@ -400,20 +400,8 @@ public static class CobolNum
         };
     }
 
-    /// <summary>10^n as a <see cref="long"/> (n in 0..18 — within long's range).</summary>
-    private static long Pow10(int n)
-    {
-        long r = 1;
-        for (int i = 0; i < n; i++) r *= 10;
-        return r;
-    }
-
-    /// <summary>10^n as an <see cref="Int128"/> (n in 0..38 — the wide intermediate range, COBOLNET_DESIGN §18 #4).
+    /// <summary>10^n as an <see cref="Int128"/> (n in 0..38 — the wide intermediate range, COBOLNET_DESIGN §18 #4)
+    /// — a name-stable wrapper over the ONE <see cref="Pow10"/> table (DESIGN-runtime-library §2.3).
     /// Internal: <see cref="CobolEdit.TryFormat"/> uses it for the edited-receiver digit-capacity bound.</summary>
-    internal static Int128 Pow10Wide(int n)
-    {
-        Int128 r = 1;
-        for (int i = 0; i < n; i++) r *= 10;
-        return r;
-    }
+    internal static Int128 Pow10Wide(int n) => Pow10.AsWide(n);
 }

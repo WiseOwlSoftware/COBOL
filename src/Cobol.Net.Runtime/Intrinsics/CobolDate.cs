@@ -151,7 +151,6 @@ public static class CobolDate
         return 0;
     }
 
-    private static Int128 Pow10(int n) { Int128 r = 1; for (int k = 0; k < n; k++) r *= 10; return r; }
     private static bool LongIsoYear(int y) => ISOWeek.GetWeeksInYear(y) == 53;   // §15.3.1.7 — a "long" ISO year has 53 weeks
     private static bool HasWeek(List<Seg> segs) { foreach (var s in segs) if (s.IsField && s.Field == Fld.Week) return true; return false; }
 
@@ -169,7 +168,7 @@ public static class CobolDate
         bool hasDate = segs.Any(s => s.IsField && s.Field == Fld.Year);
         bool hasTime = segs.Any(s => s.IsField && s.Field == Fld.Hour);
 
-        decimal secs = (decimal)secUnscaled / (decimal)(long)Pow10(secScale);
+        decimal secs = (decimal)secUnscaled / (decimal)(long)Pow10.AsWide(secScale);
         long day = integerDate;
         if (hasTime && isUtc && hasOffset)                              // §15.40/41 r2 — a UTC format displays local − offset
         {
@@ -209,7 +208,7 @@ public static class CobolDate
                 case Fld.Hour:       sb.Append(hh.ToString("00")); break;
                 case Fld.Minute:     sb.Append(mi.ToString("00")); break;
                 case Fld.Second:     sb.Append(ss.ToString("00")); break;
-                case Fld.Fraction:   sb.Append(((long)(frac * (decimal)(long)Pow10(s.Width))).ToString(new string('0', s.Width))); break;
+                case Fld.Fraction:   sb.Append(((long)(frac * (decimal)(long)Pow10.AsWide(s.Width))).ToString(new string('0', s.Width))); break;
                 case Fld.OffSign:    sb.Append(osign); break;
                 case Fld.OffHour:    sb.Append(oh.ToString("00")); break;
                 case Fld.OffMinute:  sb.Append(om.ToString("00")); break;
@@ -334,7 +333,7 @@ public static class CobolDate
         else if (hasOrd) integerDate = (new DateTime(yy, 1, 1).AddDays(doy - 1) - Epoch).Days + 1;
         else if (hasWeek) integerDate = (ISOWeek.ToDateTime(yy, wk, wd == 7 ? DayOfWeek.Sunday : (DayOfWeek)wd) - Epoch).Days + 1;
 
-        secondsScaled = ((long)hh * 3600 + mi * 60 + ss) * (long)Pow10(fracDigits) + frac;  // §15.79.4
+        secondsScaled = ((long)hh * 3600 + mi * 60 + ss) * (long)Pow10.AsWide(fracDigits) + frac;  // §15.79.4
         return 0;
     }
 
@@ -355,7 +354,7 @@ public static class CobolDate
         int e = Analyze(format, data, out _, out long secs, out int f);
         if (e != 0)
             return Exceptions.ExceptionState.ArgumentError($"SECONDS-FROM-FORMATTED-TIME: '{data}' invalid per '{format}' (§15.79.3)");
-        return scale == f ? secs : scale > f ? secs * (long)Pow10(scale - f) : secs / (long)Pow10(f - scale);
+        return scale == f ? secs : scale > f ? secs * (long)Pow10.AsWide(scale - f) : secs / (long)Pow10.AsWide(f - scale);
     }
 
     /// <summary>TEST-FORMATTED-DATETIME (§15.92): 0 when a2 is valid per a1, else the 1-based position of the first
@@ -364,5 +363,5 @@ public static class CobolDate
 
     /// <summary>COMBINED-DATETIME (§15.17.4): a1 + a2/100000 as an exact scaled value at scale (a2.scale + 5).</summary>
     public static Int128 CombinedDatetime(long integerDate, Int128 secUnscaled, int secScale)
-        => (Int128)integerDate * Pow10(secScale + 5) + secUnscaled;
+        => (Int128)integerDate * Pow10.AsWide(secScale + 5) + secUnscaled;
 }

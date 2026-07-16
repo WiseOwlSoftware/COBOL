@@ -7,8 +7,10 @@
     here clean (TFM/lang come from Directory.Build.props — not re-declared).
 
     Renamed from CobolNet.Runtime at G0 (docs/COBOLNET_DESIGN.md §17). The assembly is Cobol.Net.Runtime; the
-    root namespace stays CobolNet.Runtime through G0-G7 so generated programs' `using CobolNet.Runtime;` is
-    unaffected. Folders mirror the data-model subsystems (Numeric/, Text/, Control/; later Pointers/, Files/).
+    root namespace stays CobolNet.Runtime until the G8 namespace flip so generated programs' `using
+    CobolNet.Runtime;` is unaffected. Folders are ROLE-based (DESIGN-runtime-library §2): Values/{Numeric,Text,
+    Tables}/ the value library · Verbs/ statement runtime · IO/ file connectors · Control/ run-unit +
+    inter-program (+ Signals/) · Exceptions/ the EC engine · Intrinsics/ the function families.
   -->
   <PropertyGroup>
     <AssemblyName>Cobol.Net.Runtime</AssemblyName>

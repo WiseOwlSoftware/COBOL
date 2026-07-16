@@ -35,21 +35,21 @@ public static partial class CobolIntrinsics
     /// unscaled value at <paramref name="scale"/> fraction digits; the result is a scale-0 integer.</summary>
     public static Int128 Floor(Int128 v, int scale)
     {
-        if (scale <= 0) return v * Pow10I(-scale);           // already an integer (negative scale = P-trailing zeros)
-        Int128 d = Pow10I(scale);
+        if (scale <= 0) return v * Pow10.AsWide(-scale);           // already an integer (negative scale = P-trailing zeros)
+        Int128 d = Pow10.AsWide(scale);
         Int128 q = v / d;
         return v < 0 && v % d != 0 ? q - 1 : q;
     }
 
     /// <summary>INTEGER-PART (§15.49.4): the integer part of the argument (truncation toward zero), scale 0.</summary>
-    public static Int128 Truncate(Int128 v, int scale) => scale <= 0 ? v * Pow10I(-scale) : v / Pow10I(scale);
+    public static Int128 Truncate(Int128 v, int scale) => scale <= 0 ? v * Pow10.AsWide(-scale) : v / Pow10.AsWide(scale);
 
     /// <summary>ABS (§15.7.4, COBOL-2014+): the absolute value, at the argument's own scale.</summary>
     public static Int128 AbsScaled(Int128 v) => v < 0 ? -v : v;
 
     /// <summary>FRACTION-PART (§15.42.4, COBOL-2002+): <c>argument − FUNCTION INTEGER-PART(argument)</c> — the
     /// fractional part with the argument's sign, at the argument's own scale.</summary>
-    public static Int128 FractionPart(Int128 v, int scale) => scale <= 0 ? 0 : v % Pow10I(scale);
+    public static Int128 FractionPart(Int128 v, int scale) => scale <= 0 ? 0 : v % Pow10.AsWide(scale);
 
     // ── MOD / REM (ISO §15.64 / §15.77) — over scale-ALIGNED unscaled values ──────────────────────────────────
 
@@ -222,7 +222,7 @@ public static partial class CobolIntrinsics
         if (frac < 0) frac = 0;
         // Rescale (unscaled, frac) → the requested scale. Widening is exact; narrowing truncates (the requested
         // scale already carries the ≥ 6 working floor, and the receiver's own store rounds/truncates once more).
-        Int128 r = scale >= frac ? unscaled * Pow10I(scale - frac) : unscaled / Pow10I(frac - scale);
+        Int128 r = scale >= frac ? unscaled * Pow10.AsWide(scale - frac) : unscaled / Pow10.AsWide(frac - scale);
         if (neg) r = -r;
         return r > long.MaxValue ? long.MaxValue : r < long.MinValue ? long.MinValue : (long)r;
     }
@@ -266,7 +266,7 @@ public static partial class CobolIntrinsics
             exp = int.Parse(exps) * (eneg ? -1 : 1);                   // 1..4 exponent digits (§15.69.3)
         }
         int shift = scale + exp - frac;                               // the final decimal shift of the unscaled mantissa
-        Int128 r = shift >= 0 ? unscaled * Pow10I(shift) : unscaled / Pow10I(-shift);
+        Int128 r = shift >= 0 ? unscaled * Pow10.AsWide(shift) : unscaled / Pow10.AsWide(-shift);
         if (neg) r = -r;
         return r > long.MaxValue ? long.MaxValue : r < long.MinValue ? long.MinValue : (long)r;
     }

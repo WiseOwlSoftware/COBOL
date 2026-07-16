@@ -33,7 +33,7 @@ public static class CobolFloat
     public static Int128 ToScaled(double v, int scale, CobolRounding mode)
     {
         if (double.IsNaN(v)) return Int128.Zero;
-        double scaled = v * Pow10(scale);
+        double scaled = v * Pow10.AsDouble(scale);
         // Int128.MaxValue ≈ 1.7014e38 — saturate at/above it (and ±Inf) before the (Int128) cast, whose behavior
         // is otherwise undefined for an out-of-range double.
         if (scaled >= 1.7014118e38) return Int128.MaxValue;
@@ -75,15 +75,8 @@ public static class CobolFloat
     public static bool InexactAtScale(double v, int scale)
     {
         if (double.IsNaN(v) || double.IsInfinity(v)) return false;
-        double s = v * Pow10(scale);
+        double s = v * Pow10.AsDouble(scale);
         return s != Math.Truncate(s);
     }
 
-    /// <summary>10^<paramref name="n"/> as a double (n ≥ 0; a float item has no negative scale).</summary>
-    private static double Pow10(int n)
-    {
-        double r = 1;
-        for (int i = 0; i < n; i++) r *= 10;
-        return r;
-    }
 }
