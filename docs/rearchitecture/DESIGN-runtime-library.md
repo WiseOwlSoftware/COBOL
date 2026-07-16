@@ -1,10 +1,12 @@
 # DESIGN — Target Runtime Library Organization (`Cobol.Net.Runtime`)
 
-Status: DESIGN (rearchitecture roadmap). Owner-review required for the OPEN QUESTIONS.
-Scope: the target organization + API cleanup of the greenfield runtime `src/Cobol.Net.Runtime` (~8.2k LOC, 43 `.cs`
-files) that COBOL.NET-generated C# programs call. Upholds the HARD INVARIANTS (typed-native only; spec-first; battery
-green throughout; singular pattern; four-editions-in-one; JSON/XML out of scope). This document is decision-complete:
-a future engineer can execute it.
+Status: EXECUTED (PHASE-08) — §2's target design IS the as-built runtime; §4's migration steps 1–5 are DONE
+(plus the `ExternalSwitches`→`SwitchStore` conversion the §5 hidden-static gate surfaced); step 6 (the G8
+RootNamespace flip + real sub-namespaces) is the ONE remaining item, deferred to G8 Cut 3 behind the compiler's
+`RuntimeApi` façade. §1 records the pre-P8 problems as the rationale; §6's former open questions are resolved
+inline. Scope: the organization + API of the greenfield runtime `src/Cobol.Net.Runtime` that COBOL.NET-generated
+C# programs call. Upholds the HARD INVARIANTS (typed-native only; spec-first; battery green throughout; singular
+pattern; four-editions-in-one; JSON/XML out of scope).
 
 Cross-dimension dependency: the *compiler-side* references to this runtime (~60 runtime members) are funnelled
 through ONE typed `RuntimeApi` façade in the emitter (`CodeGen/Roslyn/RuntimeApi.cs`, a `nameof`-anchored static
@@ -14,9 +16,10 @@ the emitted surface byte-stable (see Migration).
 
 ---
 
-## 1. Current problem (grounded in the survey + the current code)
+## 1. The pre-P8 problems this design fixed (the rationale record; all remedied by PHASE-08)
 
-The runtime is a flat collection of **static facade classes** whose organization has drifted along three axes:
+The pre-P8 runtime was a flat collection of **static facade classes** whose organization had drifted along three
+axes (line references are to the pre-P8 tree):
 
 ### 1.1 Run-unit state is process-global ambient statics with an INCONSISTENT threading model (the prime smell)
 Run-unit-lifetime state is spread across five unrelated static classes, each with its *own* threading assumption:
@@ -266,9 +269,16 @@ unchanged) to keep the emitted surface byte-stable.
 
 ---
 
-## 4. Migration (keeping the 3166 conformance + 281 unit + NIST-353 battery green)
+## 4. Migration (keeping the 3256 conformance + 281 unit + NIST-353 battery green) — steps 1–5 EXECUTED (P8); step 6 = G8
 
 Order the work so each step is independently green and the emitted-code surface is byte-stable until G8.
+Steps 1–5 below are DONE (PHASE-08; battery green at every commit; zero compiler-side changes, so the emitted
+C# is byte-identical by construction). Step 6 remains for G8. Additions beyond the plan, per the §5 hidden-
+static gate: `ExternalSwitches` → instance `SwitchStore` on `RunUnit` (+ static shim) — switch scope is the run
+unit (§12.3.7 GR4 NOTE 1); the only statics left are genuinely immutable (`ExceptionCatalog`, `Pow10`,
+`SystemClock.Instance`). Naming as landed: the instance types are `ProgramTable`, `ExceptionEngine`,
+`ExternalTable`, `ModuleStack`, `SwitchStore`, `FileRegistry` (+ `PhysicalFileTable` under `IO/Sharing/`);
+every pre-P8 static name survives as the emitted-surface shim.
 
 1. **`Pow10` dedup (safe, isolated).** Add `Values/Numeric/Pow10.cs`; repoint the 4 copies; delete them. Pure value
    identity — run the numeric unit tests + full conformance. No emitted-surface change.
@@ -319,24 +329,18 @@ Each step is a commit with its own DEVLOG entry and a guard-fast/greenfield-suit
 
 ---
 
-## 6. Open questions for the owner
+## 6. Formerly-open questions — RESOLVED (as executed by PHASE-08)
 
-1. **Concurrent in-process run units — target or non-goal?** The `RunUnit`/`AsyncLocal` design *enables* running
-   compiled programs concurrently in one process (a large test-throughput win — today the harness spawns
-   `dotnet out.dll`). Do we commit to concurrency as a supported capability (and test it), or adopt `RunUnit` purely
-   for state-ownership hygiene and keep "one run unit per process" as the contract?
-2. **Ambient mechanism.** `AsyncLocal<RunUnit>` (recommended) vs `[ThreadStatic]` (matches today's `CobolModule`, no
-   async cost, but wrong across thread hops) vs threading `RunUnit` explicitly through the `ICobolProgram` ABI
-   (cleanest/most testable, but changes the emitted calling convention and every generated entry point). Preference?
-3. **Static-facade lifetime.** Keep the delegating static facades (`ProgramRegistry`, `ExceptionState`, `CobolFile`,
-   `CobolModule`) permanently as the emitted surface (simplest emitter), or retire them at G8 in favor of
-   `RunUnit.Current.X` instance calls (requires an emitter change but removes the shim layer)?
-4. **Namespace granularity.** Flat `Cobol.Net.Runtime` (fewest emitted `using`s) vs the sub-namespaced
-   `.Values/.IO/.Control/.Exceptions/.Intrinsics/.Verbs` layout above (clearer, more `using`s). This is cheap either
-   way now that the `RuntimeApi` façade has landed; without it, flat would be materially cheaper.
-5. **`Values/` vs keeping `Numeric/`+`Text/`+`Tables/` at top level.** The role grouping is cleaner but deepens paths.
-   Accept `Values/Numeric/…` nesting, or keep the three top-level folders and only fix the `Strings/`→`Verbs/`
-   mislabel?
-6. **Sequential connector split.** `SequentialConnector` carries both line-sequential and record-sequential (+LINAGE)
-   modes in one class (as today). Keep unified (they share most state) or split into `LineSequential`/`RecordSequential`
-   subclasses? Recommendation: keep unified — the shared position/framing state makes a split net-negative.
+1. **Concurrent in-process run units:** adopted for state-ownership HYGIENE; "one run unit per process" stays
+   the supported contract. The `RunUnit`/`AsyncLocal` design enables concurrency later (the harness-throughput
+   win), but it is opt-in/untested until every consumer is audited — no capability claim is made.
+2. **Ambient mechanism:** `AsyncLocal<RunUnit>` (the recommendation), with a LAZY `Current` so the unchanged
+   emitted driver (`ProgramRegistry.Reset(); …`) establishes the ambient unit implicitly. Threading `RunUnit`
+   through the `ICobolProgram` ABI was rejected — it would change every generated entry point pre-G8.
+3. **Static-facade lifetime:** kept pre-G8 as the emitted surface (byte-stability); the retire-vs-keep decision
+   is G8 Cut 3's (with the namespace flip, where the `RuntimeApi` façade centralizes whichever spelling wins).
+4. **Namespace granularity:** deferred to G8 with the flip itself (§2.8's sub-namespaced layout remains the
+   plan of record; the folders already mirror it).
+5. **`Values/` nesting:** ACCEPTED — `Values/{Numeric,Text,Tables}/` landed.
+6. **Sequential connector split:** KEPT UNIFIED (line- + record-sequential + LINAGE in one
+   `SequentialConnector`) — the shared position/framing state makes a split net-negative.

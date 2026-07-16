@@ -33,10 +33,25 @@ per concern. Role-group the folders (`Values/`, `Verbs/`, `IO/`, `Control/`, `Ex
    lazy-ambient shim).
 
 ## STATUS
-`NOT STARTED`
+`DONE` (2026-07-15 — DEVLOG 841–843; three verdict-gated commits, battery green at each: conformance 3256 ·
+unit 281 · legacy guard NIST 353 MATCH / ALL GREEN)
 
-> The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Also
-> keep `resume-prompt.md`'s STATE banner and a `DEVLOG.md` entry per commit boundary (process rules).
+**As-landed record (deviations from the recipe, all within its license):**
+- Executed in BATCHED cycles (the standing P7 discipline): commit 1 = Steps 1–4, commit 2 = Steps 5–9,
+  commit 3 = Step 10 + the gate-driven `ExternalSwitches` conversion. Step 6's audit result is recorded in
+  DEVLOG 842 (notably: `ExternalStore.Cell` IS emitted ⇒ shim kept).
+- Naming as landed: instance `ProgramTable` / `ExceptionEngine` (the doc's own clash resolution) /
+  `ExternalTable` (shim `ExternalStore`) / `ModuleStack` / `SwitchStore` (shim `ExternalSwitches`) /
+  `FileRegistry` + `IO/Sharing/PhysicalFileTable`.
+- BEYOND-RECIPE (the §5 hidden-mutable-static gate found it): `ExternalSwitches`' switch cache was a
+  process-global static holding run-unit-scoped state (§12.3.7 GR4 NOTE 1) — converted to `SwitchStore` on
+  `RunUnit` + static shim. Surviving statics are all genuinely immutable (`ExceptionCatalog`, `Pow10` tables,
+  `SystemClock.Instance`).
+- Exit criteria: 1 ✅ (`RunUnit.Run` + `ResetCurrent` reproduce the old reset semantics; the DEFAULT lazy-ambient
+  path keeps the emitted driver unchanged) · 2 ✅ (`Keyed*` + the fallthrough DELETED; ONE polymorphic
+  `FileRegistry`) · 3 ✅ (`Pow10` single-sourced, six copies deleted) · 4 ✅ (RL/IX/SQ/IC NIST + numeric unit +
+  full conformance green) · 5 ✅ (byte-stable BY CONSTRUCTION — zero compiler-side files changed in the phase;
+  `git diff 534f2253..HEAD -- src/Cobol.Net.Compiler` is empty).
 
 ---
 

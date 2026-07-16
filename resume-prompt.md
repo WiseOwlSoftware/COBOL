@@ -21,42 +21,27 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — EXEC STEP F: PHASE-08 (runtime library reorg)
+## ⛔🔀 RESUME AT — PHASE-09 (M2 OO rearchitect & complete)
 
-**EXEC STEP E IS COMPLETE (2026-07-12).** The ~19 inline edition gates are FOLDED into the two-arm
-`VersionConformancePass` — 20 new `constructs.json` rows (0804/0807/0815/0830–33/0845/0870–72/0876/0877/0879/
-0880/0884/0885 + the dual-window arithmetic-standard-2014), each with a version-matrix fixture; the orphaned
-`GateId` scaffolding is DELETED (generator section 3 + drift fact; `UsageGateId`→`UsageConstructId` rename);
-the "edition-agnostic" claims are reconciled onto the ONE canonical **§1.1 gating-exception ledger**
-(`DESIGN-version-conformance-pipeline.md`): the UDF Check + the catalog-driven per-name windows (D8 intrinsics,
-EC names, PICTURE symbol rows, digit caps) + the two behavioral reads (keyword-omitted FUNCTION routing, MOVE
-CORR pair window) + the owner-disposition SYNC-on-group site. Any OTHER `DialectLevel` comparison in
-`Binding/**` is a defect — relocate it into the pass. Next: **Exec Step F = PHASE 08–16** (start at
-`docs/rearchitecture/PHASE-08-runtime-library-reorg-rununit.md` — read its STATUS line first).
-
-## (completed) EXEC STEP E: P2/P3 edition-gate remediation
-
-**PHASE-07 IS COMPLETE (Steps 1–12).** Both god classes are dissolved; `Place` is structural (Step 11 —
-`AccessPath` + `CodeGen/Roslyn/PlaceRenderer`, `PlaceNeutralityTests` locks G4); and **Step 12 landed the
-FUNCTION-arg grammar**: `functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)?` — arguments are
-REAL `arithmeticExpression` trees through the ONE `ExpressionBinder.BindExpr` (lexer FUNCTION suppression +
-argument-region `SIGNED_*` twins per §8.7.1/§8.3.3.3.2 + the `FNARG_SEPARATOR` §8.3.5 separator token); the
-hand-rolled recursive-descent arg parser is DELETED outright (the keyword-omitted D2 form re-parses its captured
-text through the SAME `functionArgList` rule via `Frontend.Parsing.FunctionArgFragment`; `UdfBinder` binds through
-the same `BindArgOperand`); the `IntrinsicRenderer` STATIC channel is DELETED (one instance channel over the ONE
-`NumericRenderer` under `ReceiverContext.None`, `RuntimeApi`-routed, off the ratchet whitelist; the public render
-entries are save/restore re-entrant). The legacy oracle consumes the reshaped CST via the thin
-`MapFunctionArgTokens` shim (behavior-identical, NIST-proven). ONE documented deferral stands: subscript / ref-mod
-/ RedefView-offset INDEX expressions stay transitional STRINGS, folding into D10 (PHASE 15; D10.4 is now mostly
-pre-empted — residual scope recorded in `DESIGN-frontend-grammar.md §9.5` + PHASE-15 CUT 2.5). Read the PHASE-07
-STATUS banner for the full as-landed record, then execute:
-
-- **Exec Step E — edition-gate remediation (plan §4.1 / task #13):** fold the ~15 inline binder edition gates into
-  the two-arm `VersionConformancePass`, delete the orphaned `GateId` scaffolding, and correct the
-  "edition-agnostic" over-claims in the P2/P3 docs.
+**PHASE-08 IS COMPLETE (2026-07-15, DEVLOG 841–843 — three verdict-gated commits, battery green at each).**
+The runtime is role-foldered (`Values/{Numeric,Text,Tables}`, `Verbs/`, `Control/Signals/`, `IO/Sharing/`;
+`ProgramRegistry.cs` split one-concern-per-file); `Pow10` is the ONE table-driven power-of-ten (six loop copies
+deleted); `RecordFraming` is the ONE on-disk framing; the abstract `FileConnector` base (ISO §9.1.13 status
+machine + the §14.9.30/§14.9.35 read-position pair) underlies `Sequential/Relative/IndexedConnector`; ONE
+polymorphic `FileRegistry` replaced the `Keyed*` fallthrough dispatch (deleted, singular pattern); **`RunUnit`
+(ambient `AsyncLocal`, LAZY `Current`) owns ALL run-unit-lifetime state** — `ProgramTable` / `ExceptionEngine` /
+`ExternalTable` / `ModuleStack` / `SwitchStore` / `FileRegistry` / `IClock Clock` — and every pre-P8 static name
+(`ProgramRegistry`/`ExceptionState`/`ExternalStore`/`CobolModule`/`ExternalSwitches`/`CobolFile`/`AcceptSource`)
+survives as a thin emitted-surface shim over `RunUnit.Current`, so the emitted C# is byte-stable (ZERO
+compiler-side changes in the phase; the G8 namespace flip is the one remaining DESIGN-runtime-library item).
+Surviving statics are genuinely immutable only (`ExceptionCatalog`, `Pow10`, `SystemClock.Instance`).
+Next: **PHASE-09** (`docs/rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md` — read its STATUS line
+first; the P6→P9 seam note: OO bind bodies still live on the emitter behind `IOoBindHost`+`BindSession`, and the
+flagged-latent `OoReparent{Class,Factory}Data` class-env mis-bind (DEVLOG 738) is P9's to fix).
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's
-conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored); commits are
+conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored in the
+worktree; the INDEX is staged at battery launch so the committed tree is EXACTLY the tested tree); commits are
 verdict-gated as separate actions, never `&&`-chained. P7 pickups still queued: SymbolTableBuilder-owned storage;
 route `ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup through the `SymbolTable`; the
 image-fact caching (the O(subtree) perf work).
@@ -81,17 +66,20 @@ image-fact caching (the O(subtree) perf work).
 - **E ✅** — edition-gate remediation complete: the ~19 inline gates folded into the two-arm
   `VersionConformancePass` (20 registry rows, all in the matrix); `GateId` deleted; claims reconciled onto the
   §1.1 gating-exception ledger.
-- **F ◐ (NOW)** — PHASE 08–16: runtime reorg, M2/M3/M4 feature waves, version-matrix closure, G8 legacy cut, CIL backend.
+- **F ◐ (NOW)** — PHASE 08–16: **PHASE-08 ✅ (runtime reorg — `RunUnit`/`FileConnector`/`FileRegistry`/`Pow10`/
+  role folders; see the RESUME banner)**; next PHASE-09 (M2 OO) → 10–14 (feature waves + matrix closure) →
+  15 (G8 legacy cut) → 16 (CIL backend).
 
-**Done:** Phases 00–07 (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
+**Done:** Phases 00–08 (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
 version-conformance pipeline [the two-arm `VersionConformancePass` is the SOLE edition gate] · frontend consolidation
-· the unified data model · the Real Binder · the visitor/god-class/`Place`/FUNCTION-arg decomposition).
+· the unified data model · the Real Binder · the visitor/god-class/`Place`/FUNCTION-arg decomposition · the
+runtime-library reorg onto `RunUnit`).
 D10 SUBSCRIPT-mode
 removal is RELOCATED → PHASE 15 §"CUT 2.5" (D10.4 mostly pre-empted by P7 Step 12). ⚠ Flagged latent (not
 blocking): `OoReparent{Class,Factory}Data` mis-bind the class-level env (CURRENCY/ALPHABET/SELECT) — a dedicated
 fix ~PHASE 09.
 
-**Battery (keep green + pushed at EVERY commit):** 3166 conformance · 282 unit · 33 characterization (32 snapshots
+**Battery (keep green + pushed at EVERY commit):** 3256 conformance · 281 unit · 33 characterization (32 snapshots
 byte-exact + the RuntimeApi ratchet) · FULL legacy guard NIST 353 MATCH. ⚠ Build `CobolSharp.sln` before `dotnet
 test --no-build` — a stale test-bin compiler DLL hides greenfield regressions.
 

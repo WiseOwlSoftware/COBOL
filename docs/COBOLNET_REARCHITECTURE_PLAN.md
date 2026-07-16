@@ -72,9 +72,21 @@
 > locked) and FUNCTION arguments parse as REAL `arithmeticExpression`s (Step 12 — the lexer FUNCTION suppression +
 > argument-region `SIGNED_*` twins + `FNARG_SEPARATOR`; the hand-rolled arg parser DELETED; the keyword-omitted D2
 > form re-parses through the ONE `functionArgList` rule; the `IntrinsicRenderer` static channel DELETED — one
-> instance channel, `RuntimeApi`-routed, off the ratchet whitelist). RESUME AT **Exec Step E** (edition-gate
-> remediation). Battery 3166+ conformance · 282 unit · 33 characterization (byte-exact + ratchet) · legacy guard
-> 353 MATCH.
+> instance channel, `RuntimeApi`-routed, off the ratchet whitelist).
+> **✅ EXEC STEP E — edition-gate remediation — DONE (2026-07-12, DEVLOG 840):** the ~19 inline binder edition
+> gates folded into the two-arm `VersionConformancePass` (20 `constructs.json` rows, all in the version matrix);
+> the orphaned `GateId` scaffolding DELETED; the "edition-agnostic" claims reconciled onto the ONE §1.1
+> gating-exception ledger (`DESIGN-version-conformance-pipeline.md`).
+> **✅ EXEC STEP F(1) — PHASE-08 (runtime library reorg) — DONE (2026-07-15, DEVLOG 841–843):** `Pow10`
+> single-sourced (six loop copies deleted); role-based folders (`Values/`, `Verbs/`, `Control/Signals/`,
+> `IO/Sharing/`; `ProgramRegistry.cs` split one-concern-per-file); the ONE `RecordFraming`; the abstract
+> `FileConnector` base under `Sequential/Relative/IndexedConnector`; ONE polymorphic `FileRegistry` (the
+> `Keyed*` fallthrough dispatch DELETED); **`RunUnit`** (ambient `AsyncLocal`, lazy `Current`) owns ALL
+> run-unit-lifetime state — `ProgramTable`/`ExceptionEngine`/`ExternalTable`/`ModuleStack`/`SwitchStore`/
+> `FileRegistry`/`IClock` — with every pre-P8 static name kept as an emitted-surface shim (byte-stable: ZERO
+> compiler-side changes in the phase); the process-global clock seam replaced by `IClock`/`SystemClock`
+> (`COBOLNET_CLOCK` preserved). RESUME AT **PHASE-09** (M2 OO rearchitect; `docs/rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md`).
+> Battery 3256 conformance · 281 unit · 33 characterization (byte-exact + ratchet) · legacy guard 353 MATCH.
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /
@@ -230,7 +242,7 @@ phase boundary.
 | ✅ | 05 | R | HIGH | 00,02 | Unified data model (`StorageForm`, `Model/`, `RecordLayout`, pass scaffolding) — **DONE (all 7 exit criteria hold; deviations in the PHASE-05 ledger). The `StoreAsImage` FLAG is gone (`Storage` computed once, the name = the read-only projection); `RecordLayout` the ONE width/offset authority (§13.18.44.3 SR8 ENFORCED — COBOLNET1539); `Binding/Model/` + `PictureAnalyzer`/`StrongTypeModel`; sentinels → `DataItem.Pending`; `RedefinesClass.Classify`; apostrophe goldens covered** | [PHASE-05](rearchitecture/PHASE-05-unified-data-model-storageform.md) |
 | ✅ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) — **DONE (all 6 exit criteria hold; deviations in the PHASE-06 STATUS ledger)** | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
 | ✅ | 07 | R | HIGH | 06 | Exhaustive visitor dispatch + binder/emitter god-class decomposition — **DONE (Steps 1–12: both god classes dissolved; structural `Place`; FUNCTION-arg grammar + the IntrinsicRenderer static-channel deletion — as-landed record in the PHASE-07 STATUS)** | [PHASE-07](rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md) |
-| ☐ | 08 | R | MED | 00 | Runtime library reorg (`RunUnit`, `FileConnector`/`FileRegistry`, role-based folders) | [PHASE-08](rearchitecture/PHASE-08-runtime-library-reorg-rununit.md) |
+| ✅ | 08 | R | MED | 00 | Runtime library reorg (`RunUnit`, `FileConnector`/`FileRegistry`, role-based folders) — DONE 2026-07-15 | [PHASE-08](rearchitecture/PHASE-08-runtime-library-reorg-rununit.md) |
 | ☐ | 09 | I | HIGH | 04,07 | M2 OO rearchitecture (`Oo/` + `OoDriver`) + mandatory 2002 OO completion | [PHASE-09](rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md) |
 | ☐ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) | [PHASE-10](rearchitecture/PHASE-10-m2-residual-catalog.md) |
 | ☐ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero + Tier-C REDEFINES confined-byte codec | [PHASE-11](rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md) |

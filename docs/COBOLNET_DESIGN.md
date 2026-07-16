@@ -1300,13 +1300,28 @@ src/Cobol.Net.Cli/
   Program.cs                         (Main + arg orchestration)
   CliOptions.cs                      (the parsed-options record — extracted from Program.cs)
 
-src/Cobol.Net.Runtime/
-  Cobol.Net.Runtime.csproj
-  Numeric/   CobolNum.cs, NumProfile.cs, CobolRounding.cs, (later CobolDecimal.cs)
-  Text/      CobolString.cs
-  Control/   StopRun.cs
-  Pointers/  ManagedPointer.cs       (ported clean at G7)
-  Files/     (G6: typed-record ↔ byte serialization at the medium boundary)
+src/Cobol.Net.Runtime/                (role-based folders — DESIGN-runtime-library §2; namespaces stay
+  Cobol.Net.Runtime.csproj             CobolNet.Runtime[.IO|.Exceptions] until the G8 flip)
+  Values/
+    Numeric/   CobolNum.cs, CobolDec.cs, CobolFloat.cs, CobolEdit.cs, CobolRounding.cs, CobolSizeError.cs,
+               NumProfile.cs, Pow10.cs (the ONE power-of-ten table)
+    Text/      CobolString.cs, CobolBool.cs, CobolClass.cs
+    Tables/    CobolTable.cs, CobolDynTable.cs
+  Verbs/       CobolStringOps.cs (STRING/UNSTRING), CobolInspect.cs (INSPECT)
+  IO/          FileConnector.cs (abstract base: §9.1.13 status machine + read-position pair) +
+               SequentialConnector/RelativeConnector/IndexedConnector, FileRegistry.cs (ONE polymorphic
+               registry), RecordFraming.cs (the ONE 4-byte-LE framing), CobolFile.cs (static facade →
+               RunUnit.Current.Files), FileStatus.cs, FileSupport.cs, Clock.cs (IClock/SystemClock),
+               AcceptSource.cs, CobolSort.cs, ReportWriter.cs, Sharing/PhysicalFileTable.cs
+  Control/     RunUnit.cs (the ONE run-unit-state owner: Programs/Exceptions/External/Modules/Switches/
+               Files/Clock, ambient AsyncLocal), ProgramTable.cs (+ ProgramRegistry.cs static shim),
+               ExternalTable.cs (+ ExternalStore.cs shim), ModuleStack.cs (+ CobolModule.cs shim),
+               SwitchStore.cs (+ ExternalSwitches.cs shim), ManagedPointer.cs, CellPointer.cs,
+               StorageCell.cs, CallAbi.cs, CobolObject.cs, CobolPtr.cs, CobolInvokeArg.cs,
+               Signals/ StopRun.cs, ProgramReturn.cs, MethodReturn.cs, ResumeSignal.cs, NotImplemented.cs
+  Exceptions/  ExceptionState.cs (ExceptionEngine instance + ExceptionState static shim),
+               ExceptionCatalog.cs (immutable — legitimately static), EcFunctions.cs, CobolFatalException.cs
+  Intrinsics/  CobolIntrinsics.{cs,Exact,Float,Text}.cs, CobolDate.cs
 ```
 
 > The runtime subsystem folders (`Numeric/`, `Text/`, …) mirror `COBOLNET_ARCHITECTURE.md` §3's data-model rows, so a reader maps "COBOL national string" → `Text/` and "USAGE POINTER" → `Pointers/` directly.

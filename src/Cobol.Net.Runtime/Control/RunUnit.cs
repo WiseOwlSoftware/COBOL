@@ -45,6 +45,9 @@ public sealed class RunUnit
     /// <summary>The FUNCTION MODULE-NAME call-name stack (§15.65).</summary>
     public ModuleStack Modules { get; } = new();
 
+    /// <summary>The external-switch store (§12.3.7 GR4 NOTE 1 — switch scope is the run unit).</summary>
+    public SwitchStore Switches { get; } = new();
+
     /// <summary>The run-unit file-connector registry (§9.1; owns the physical-file sharing table).</summary>
     public FileRegistry Files { get; } = new();
 
