@@ -85,8 +85,19 @@
 > run-unit-lifetime state — `ProgramTable`/`ExceptionEngine`/`ExternalTable`/`ModuleStack`/`SwitchStore`/
 > `FileRegistry`/`IClock` — with every pre-P8 static name kept as an emitted-surface shim (byte-stable: ZERO
 > compiler-side changes in the phase); the process-global clock seam replaced by `IClock`/`SystemClock`
-> (`COBOLNET_CLOCK` preserved). RESUME AT **PHASE-09** (M2 OO rearchitect; `docs/rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md`).
-> Battery 3256 conformance · 281 unit · 33 characterization (byte-exact + ratchet) · legacy guard 353 MATCH.
+> (`COBOLNET_CLOCK` preserved). RESUME AT **PHASE-10** (M2 residual catalog).
+> **✅ PHASE-09 — M2 OO rearchitect & complete — DONE (2026-07-16, DEVLOG 844–853):** OO re-homed to `Oo/`
+> (`CobolNet.Compiler.Oo`): pure `OoClassTable` + `OoConformance` (AdapterPairs RETURNED, threaded via
+> `BoundCompilation.OoAdapters`) + phase-explicit `OoMethodBinding` + `OoDriver` owning the bind bodies
+> (**`IOoBindHost` DELETED**; `CSharpEmitter` = the two driver entries) + `NamingConvention` (4 accessor-name
+> copies killed; `::EXT::` band = a documented runtime wire contract) + the ambient flags gone (one scoped,
+> three `init`). Features: multi-base INHERITS parses per §11.3.2 and rejects LOUDLY (0849); **ANY LENGTH
+> §13.18.2 on all three unit-kind legs** (+ reject-at-85; RETURNING leg staged loud); the §4.2.2 interface
+> conformance leg proven (0828 lossy-projection negative); the 14 legacy OoTests re-landed (4+10 audited);
+> the DEVLOG-738 latent class-env shadow bug FIXED (`EnvDivisions` outermost-first; `oo_class_env` golden).
+> Deferrals recorded: GOBACK status-phrase + `>>PROPAGATE` semantics → P13. Spec correction: USE F3/F4 carry
+> no [GLOBAL] phrase.
+> Battery 3275 conformance · 281 unit · 33 characterization (byte-exact + ratchet) · legacy guard 353 MATCH.
 > P3 makes edition conformance a single coherent pipeline: **superset parse** (all constructs parse at every `--std`;
 > each version-gated grammar rule carries a committed-match construct-id annotation — version *numbers* live only in
 > `constructs.json`) → **edition-AGNOSTIC bind** → **ONE `VersionConformancePass` over the bound tree** (reject strict /
@@ -243,7 +254,7 @@ phase boundary.
 | ✅ | 06 | R | HIGH | 05 | Real binder phase (manifest pass pipeline, `SymbolTable`, immutable `BoundCompilation`) — **DONE (all 6 exit criteria hold; deviations in the PHASE-06 STATUS ledger)** | [PHASE-06](rearchitecture/PHASE-06-binder-pipeline-symbol-table-bindphase.md) |
 | ✅ | 07 | R | HIGH | 06 | Exhaustive visitor dispatch + binder/emitter god-class decomposition — **DONE (Steps 1–12: both god classes dissolved; structural `Place`; FUNCTION-arg grammar + the IntrinsicRenderer static-channel deletion — as-landed record in the PHASE-07 STATUS)** | [PHASE-07](rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md) |
 | ✅ | 08 | R | MED | 00 | Runtime library reorg (`RunUnit`, `FileConnector`/`FileRegistry`, role-based folders) — DONE 2026-07-15 | [PHASE-08](rearchitecture/PHASE-08-runtime-library-reorg-rununit.md) |
-| ☐ | 09 | I | HIGH | 04,07 | M2 OO rearchitecture (`Oo/` + `OoDriver`) + mandatory 2002 OO completion | [PHASE-09](rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md) |
+| ✅ | 09 | I | HIGH | 04,07 | M2 OO rearchitecture (`Oo/` + `OoDriver`) + mandatory 2002 OO completion | [PHASE-09](rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md) — DONE 2026-07-16 |
 | ☐ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) | [PHASE-10](rearchitecture/PHASE-10-m2-residual-catalog.md) |
 | ☐ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero + Tier-C REDEFINES confined-byte codec | [PHASE-11](rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md) |
 | ☐ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas (dynamic length, TYPEDEF edges, >>PROPAGATE, IEEE floats, function pointers) | [PHASE-12](rearchitecture/PHASE-12-m3-2014-deltas.md) |

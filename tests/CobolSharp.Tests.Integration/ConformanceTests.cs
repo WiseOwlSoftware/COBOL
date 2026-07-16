@@ -90,7 +90,8 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2002", "oo_self_polymorphic"),
         // The INTERFACE/PROPERTY wave (§11.5/§11.6/§13.18.42) — net-new in the greenfield (DEVLOG 606):
         ("2002", "oo_interface"),
-        ("2002", "oo_interface_conformance"),   // the §4.2.2 interface conformance leg (P9 Step 12) — interfaces never landed in legacy
+        ("2002", "oo_interface_conformance"),
+        ("2002", "oo_class_env"),   // class-level env + object-own env both bind (DEVLOG-738 fix) — OBJECT-paragraph env never landed in legacy   // the §4.2.2 interface conformance leg (P9 Step 12) — interfaces never landed in legacy
         ("2002", "oo_interface_covariant"),
         ("2002", "oo_property"),
         ("2002", "oo_property_methods"),

@@ -60,7 +60,12 @@ and sequenced by `BinderDriver.Bind`; the former emitter-hosted `IOoBindHost` se
 contract). Statement binding is the P7 collaborator `Binding/Procedure/Verbs/OoBinder.cs`; emission is the P7
 collaborator `CodeGen/Verbs/OoEmitter.cs`. The former ambient flags are gone: `ActiveMethodScope` push/pops
 via `BinderContext.EnterMethodScope`; `OoIsClassUnit`/`OoCurrentClass`/`OoInFactory` are `init`-only
-per-binder configuration set by `OoDriver` at construction.
+per-binder configuration set by `OoDriver` at construction. P9's feature closes: ANY LENGTH §13.18.2
+(all three unit-kind legs; `IsAnyLength` + the runtime-length store/LENGTH channels + the `CobolArgAdapt.Text`
+width −1 full-string mode; RETURNING leg staged loud); the §4.2.2 interface conformance leg proven
+(`oo_interface_conformance` + the 0828 lossy-projection negative); and the class-level ENVIRONMENT DIVISION
+scoping fixed (`DataBinder.EnvDivisions`, outermost-first — a half's own env no longer shadows the class env;
+`oo_class_env` pins CURRENCY-through-shadow; the DEVLOG-738 latent bug).
 
 ## Spec corrections
 

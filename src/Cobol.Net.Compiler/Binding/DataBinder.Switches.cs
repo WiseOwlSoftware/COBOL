@@ -194,10 +194,9 @@ public sealed partial class DataBinder
     /// implementor-specified; see <c>ExternalSwitches</c> for the documented item-191 contract).</summary>
     private void SwitchBindSpecialNames(Core.ProgramUnitContext program)
     {
-        var cfg = program.environmentDivision()?.configurationSection();
-        if (cfg is null) return;
         string? pcsName = null;
-        foreach (var para in cfg.configurationParagraph())
+        foreach (var para in EnvDivisions(program)
+                     .SelectMany(env => env.configurationSection()?.configurationParagraph() ?? []))
         {
             // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE IS alphabet-name (ISO §12.3.6 — the 85 single-name form).
             if (para.objectComputerParagraph()?.programCollatingSequenceClause() is { } pcs)

@@ -27,7 +27,8 @@ internal sealed class MnemonicRegistry
         for (IParseTree? n = at; n is not null; n = n.Parent)
         {
             if (n is not Core.ProgramUnitContext pu) continue;
-            var paragraphs = pu.environmentDivision()?.configurationSection()?.configurationParagraph() ?? [];
+            var paragraphs = DataBinder.EnvDivisions(pu)
+                .SelectMany(env => env.configurationSection()?.configurationParagraph() ?? []);
             foreach (var para in paragraphs)
                 foreach (var entry in para.specialNamesParagraph()?.specialNameEntry() ?? [])
                     if (entry.implementorSwitchEntry() is { } e

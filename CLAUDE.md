@@ -22,12 +22,15 @@ support for all prior editions (1985 / 2002 / 2014)** — implemented with maxim
 back-compat. **The go-forward roadmap is `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a resumable, execution-grade
 **17-phase** rearchitecture + 100%-ISO plan (clean architecture · all editions · a selectable Roslyn↔CIL backend)
 that subsumes the feature/NIST drive as its phases 09–14; `resume-prompt.md`'s top banner points to it + its §0 resume
-protocol. **Phases 00–08 are DONE (PHASE-08 closed: the runtime reorged onto ONE `RunUnit` run-unit-state owner
+protocol. **Phases 00–09 are DONE (PHASE-09 closed: OO re-homed to `Oo/` — pure table + `OoConformance` +
+`OoMethodBinding` + `OoDriver` [`IOoBindHost` DELETED] + `NamingConvention`; multi-base INHERITS rejects LOUDLY
+[0849]; ANY LENGTH §13.18.2 on all three unit-kind legs; the §4.2.2 interface leg proven; the 14 legacy OoTests
+re-landed; the DEVLOG-738 class-env shadow bug FIXED [`EnvDivisions`]. PHASE-08 before it: the runtime reorged onto ONE `RunUnit` run-unit-state owner
 [ambient `AsyncLocal`; `ProgramTable`/`ExceptionEngine`/`ExternalTable`/`ModuleStack`/`SwitchStore`/`FileRegistry`/
 `IClock`, every pre-P8 static name kept as an emitted-surface shim]; ONE polymorphic `FileRegistry` over the
 `FileConnector` base [the `Keyed*` fallthrough DELETED]; ONE `RecordFraming`; ONE `Pow10`; role-based folders);
-Exec Steps A–E DONE; RESUME AT PHASE-09 (M2 OO rearchitect).** §6 owner decisions D1–D12 are
-ALL resolved. Battery: 3256 conformance · 281 unit · 33 characterization (32 snapshots byte-exact + ratchet) · legacy
+Exec Steps A–E DONE; RESUME AT PHASE-10 (M2 residual catalog).** §6 owner decisions D1–D12 are
+ALL resolved. Battery: 3275 conformance · 281 unit · 33 characterization (32 snapshots byte-exact + ratchet) · legacy
 guard 353 MATCH. **Always read `resume-prompt.md`'s top banner for the live resume point, never this snapshot.** The
 SSOT for locked invariants / settled decisions is **`docs/COBOLNET_DESIGN.md`**; the four-editions mission is validated
 by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist

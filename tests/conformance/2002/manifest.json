@@ -25,6 +25,7 @@
     "initialize_phrases",
     "national_data",
     "oo_any_length",
+    "oo_class_env",
     "oo_ec_goback_raising",
     "oo_ec_raise_object",
     "oo_external_file_shared",

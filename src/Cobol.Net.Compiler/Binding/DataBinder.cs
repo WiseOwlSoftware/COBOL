@@ -203,11 +203,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // DEBUGGING declarative section is COMPILED (switch present — the object-time switch is permanently off
         // here, so it never triggers) or treated as comment lines (switch absent — the '85 rule). Token-text
         // scan of the computerAttributes sink, the VisitComputerAttributes pattern (VCR Table 7 rows 7.9/7.17).
-        DebuggingModeDeclared = program.environmentDivision()?.configurationSection()?.configurationParagraph()
+        DebuggingModeDeclared = EnvDivisions(program).Any(env => env.configurationSection()?.configurationParagraph()
             .Select(p => p.sourceComputerParagraph()?.computerAttributes())
             .Any(attrs => attrs is not null && Enumerable.Range(0, attrs.ChildCount)
                 .Any(i => attrs.GetChild(i).GetText().Equals("DEBUGGING", StringComparison.OrdinalIgnoreCase)))
-            ?? false;
+            ?? false);
 
         // REPOSITORY PROPERTY specifiers (§12.3.8 :14727-14729) — §8.4.3.9.3 SR1 makes a property-specifier
         // a PRECONDITION of every object-property reference in the unit; captured here, checked at the
@@ -216,9 +216,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // same-named intrinsic; the `FUNCTION ALL INTRINSIC` alternative carries no functionName and the
         // per-name INTRINSIC form is excluded by its phrase). CLASS/INTERFACE specifiers stay declarative
         // (names resolve through the group-wide pass-1 table).
-        foreach (var re in program.environmentDivision()?.configurationSection()?.configurationParagraph()
+        foreach (var re in EnvDivisions(program).SelectMany(env => env.configurationSection()?.configurationParagraph()
                      .Select(p => p.repositoryParagraph()).FirstOrDefault(r => r is not null)
-                     ?.repositoryEntry() ?? [])
+                     ?.repositoryEntry() ?? []))
         {
             // REPOSITORY PROPERTY/INTERFACE/CLASS (§12.3.8, OO): the COBOL-2002 introduction gates are now
             // VersionConformancePass ParseArm.VisitRepositoryEntry (14g.5). The PROPERTY name still registers here for
@@ -473,11 +473,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
     // ── FILE-CONTROL + FILE SECTION (ISO §12.4.5 / §13.18; COBOLNET_DESIGN §8) ─────────────────────────────────
 
+    /// <summary>Every ENVIRONMENT DIVISION of the unit, OUTERMOST (class-level) FIRST. A real program unit
+    /// carries at most ONE; an OO synthetic reparent unit (OoDriver's CallReparent pattern) carries
+    /// [half's-own-env, class-env] nearer-first, so iterating REVERSED binds the class scope first and the
+    /// nearer half's registrations override per-clause — the ISO §10.6 scoping (the class definition's
+    /// environment division applies to the factory and object definitions). This is the DEVLOG-738 latent-bug
+    /// fix: the former SINGULAR environmentDivision() read silently DROPPED the class-level env whenever the
+    /// half carried its own (the shadow-0× case).</summary>
+    internal static IReadOnlyList<Core.EnvironmentDivisionContext> EnvDivisions(Core.ProgramUnitContext program) =>
+        [.. program.GetRuleContexts<Core.EnvironmentDivisionContext>().Reverse()];
+
     /// <summary>Bind the FILE-CONTROL paragraph's SELECT clauses into <see cref="FileModel"/>s (assign target,
     /// organization, access mode, OPTIONAL, FILE STATUS). The FD records attach in <see cref="BindFileSection"/>.</summary>
     private void BindFileControl(Core.ProgramUnitContext program)
     {
-        var fc = program.environmentDivision()?.inputOutputSection()?.fileControlParagraph();
+        foreach (var env in EnvDivisions(program)) BindFileControl(env);
+    }
+
+    private void BindFileControl(Core.EnvironmentDivisionContext env)
+    {
+        var fc = env.inputOutputSection()?.fileControlParagraph();
         if (fc is null) return;
         foreach (var grp in fc.fileControlClauseGroup())
         {
@@ -685,7 +700,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// staged with the version-conformance pass phase, not silently absent by oversight.</summary>
     private void BindIoControl(Core.ProgramUnitContext program)
     {
-        var io = program.environmentDivision()?.inputOutputSection()?.ioControlParagraph();
+        foreach (var env in EnvDivisions(program)) BindIoControl(env);
+    }
+
+    private void BindIoControl(Core.EnvironmentDivisionContext env)
+    {
+        var io = env.inputOutputSection()?.ioControlParagraph();
         if (io is null) return;
         foreach (var clause in io.ioControlClause())
         {

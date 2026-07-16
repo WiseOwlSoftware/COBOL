@@ -21,23 +21,25 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — PHASE-09 (M2 OO rearchitect & complete)
+## ⛔🔀 RESUME AT — PHASE-10 (M2 residual catalog: national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat)
 
-**PHASE-08 IS COMPLETE (2026-07-15, DEVLOG 841–843 — three verdict-gated commits, battery green at each).**
-The runtime is role-foldered (`Values/{Numeric,Text,Tables}`, `Verbs/`, `Control/Signals/`, `IO/Sharing/`;
-`ProgramRegistry.cs` split one-concern-per-file); `Pow10` is the ONE table-driven power-of-ten (six loop copies
-deleted); `RecordFraming` is the ONE on-disk framing; the abstract `FileConnector` base (ISO §9.1.13 status
-machine + the §14.9.30/§14.9.35 read-position pair) underlies `Sequential/Relative/IndexedConnector`; ONE
-polymorphic `FileRegistry` replaced the `Keyed*` fallthrough dispatch (deleted, singular pattern); **`RunUnit`
-(ambient `AsyncLocal`, LAZY `Current`) owns ALL run-unit-lifetime state** — `ProgramTable` / `ExceptionEngine` /
-`ExternalTable` / `ModuleStack` / `SwitchStore` / `FileRegistry` / `IClock Clock` — and every pre-P8 static name
-(`ProgramRegistry`/`ExceptionState`/`ExternalStore`/`CobolModule`/`ExternalSwitches`/`CobolFile`/`AcceptSource`)
-survives as a thin emitted-surface shim over `RunUnit.Current`, so the emitted C# is byte-stable (ZERO
-compiler-side changes in the phase; the G8 namespace flip is the one remaining DESIGN-runtime-library item).
-Surviving statics are genuinely immutable only (`ExceptionCatalog`, `Pow10`, `SystemClock.Instance`).
-Next: **PHASE-09** (`docs/rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md` — read its STATUS line
-first; the P6→P9 seam note: OO bind bodies still live on the emitter behind `IOoBindHost`+`BindSession`, and the
-flagged-latent `OoReparent{Class,Factory}Data` class-env mis-bind (DEVLOG 738) is P9's to fix).
+**PHASE-09 IS COMPLETE (2026-07-16, DEVLOG 844–853 — 8 verdict-gated commits; all 8 exit criteria hold; the
+PHASE-09 doc's STATUS block carries the full checkoff + deviations + deferral ledger).** OO lives in `Oo/`
+(`CobolNet.Compiler.Oo`): the PURE `OoClassTable`, `OoConformance` (AdapterPairs RETURNED →
+`BoundCompilation.OoAdapters`), the phase-explicit `OoMethodBinding`, `OoDriver` owning the OO bind bodies
+(**`IOoBindHost` is DELETED**; `CSharpEmitter` = only `Bind`/`EmitBound`), `NamingConvention` (accessor names +
+`__FACTORY`/`__Instance`/`__New` + the `::EXT::`/`::INST::`/`::FACT::` bands — the runtime's `::EXT::` read is a
+documented WIRE CONTRACT), and the former ambient flags gone (`ActiveMethodScope` scoped by `BindPositionScope`;
+`OoIsClassUnit`/`OoCurrentClass`/`OoInFactory` compiler-enforced `init`). Feature closes: multi-base INHERITS
+parses (§11.3.2 repetition) + rejects LOUDLY (COBOLNET0849); **ANY LENGTH §13.18.2 on the method + contained-
+program + function legs** (COBOLNET1542 SR family; RETURNING leg staged loud via `any-length-returning`); the
+§4.2.2 interface conformance leg proven (`oo_interface_conformance` + the 0828 lossy-projection negative); the
+14 legacy OoTests re-landed (`OoPortedTests` — 4 ported + 10 covered, audited in-file); the DEVLOG-738 latent
+class-env shadow bug FIXED (`DataBinder.EnvDivisions` outermost-first over EVERY former singular env read;
+golden `oo_class_env`). Deferrals (all in `docs/ISO2023_CONFORMANCE_PLAN.md`): GOBACK status-phrase → P13;
+`>>PROPAGATE` directive semantics → P13. SPEC CORRECTION: USE Formats 3/4 carry NO [GLOBAL] phrase (§14.9.49.2).
+Next: **PHASE-10** (`docs/rearchitecture/PHASE-10-m2-residual-catalog.md` — read its STATUS line first; it
+OPENS with the greenfield-vs-catalog reconciliation audit).
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's
 conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored in the
@@ -54,8 +56,8 @@ image-fact caching (the O(subtree) perf work).
   middle-end is the declared `BindPipeline.GroupTail` manifest (ProcedureBinding → UsageCollectionPass →
   StorageFormPass → the `VersionConformancePass` terminal pass), ONE validated DAG; 14 CodeGen-read binder
   collections sealed `IReadOnly`; the ONE scope-aware `SymbolTable` (`TryResolve`/`TryResolveIndex`/`IndexCellOf`,
-  explicit `Scope`, per binder). OO bind bodies stay on the emitter behind `IOoBindHost`+`BindSession` (the P6→P9
-  seam).
+  explicit `Scope`, per binder). the P6-era `IOoBindHost` OO seam is
+  DELETED (P9 Step 4 — `Oo/OoDriver` owns the bind bodies).
 - **C ✅** — PHASE 05 the unified data model: the `StoreAsImage` FLAG is gone — `Storage` (the ONE `StorageForm`) is
   computed once by the group-tail `StorageFormPass` from collected facts, the name kept as the read-only projection;
   `RecordLayout` is the ONE phase-free width/offset authority (§13.18.44.3 SR8 enforced, COBOLNET1539); the data
@@ -66,20 +68,17 @@ image-fact caching (the O(subtree) perf work).
 - **E ✅** — edition-gate remediation complete: the ~19 inline gates folded into the two-arm
   `VersionConformancePass` (20 registry rows, all in the matrix); `GateId` deleted; claims reconciled onto the
   §1.1 gating-exception ledger.
-- **F ◐ (NOW)** — PHASE 08–16: **PHASE-08 ✅ (runtime reorg — `RunUnit`/`FileConnector`/`FileRegistry`/`Pow10`/
-  role folders; see the RESUME banner)**; next PHASE-09 (M2 OO) → 10–14 (feature waves + matrix closure) →
-  15 (G8 legacy cut) → 16 (CIL backend).
+- **F ◐ (NOW)** — PHASE 08–16: **PHASE-08 ✅** (runtime reorg onto `RunUnit`) · **PHASE-09 ✅** (M2 OO
+  rearchitect + completion; see the RESUME banner); next PHASE-10 (M2 residual catalog) → 11–14 (feature
+  waves + matrix closure) → 15 (G8 legacy cut) → 16 (CIL backend).
 
-**Done:** Phases 00–08 (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
+**Done:** Phases 00–09 (migration safety net · frontend rename · `Cobol.Net.Editions` leaf + diagnostic registry ·
 version-conformance pipeline [the two-arm `VersionConformancePass` is the SOLE edition gate] · frontend consolidation
 · the unified data model · the Real Binder · the visitor/god-class/`Place`/FUNCTION-arg decomposition · the
-runtime-library reorg onto `RunUnit`).
+runtime-library reorg onto `RunUnit` · the M2 OO rearchitect+completion).
 D10 SUBSCRIPT-mode
-removal is RELOCATED → PHASE 15 §"CUT 2.5" (D10.4 mostly pre-empted by P7 Step 12). ⚠ Flagged latent (not
-blocking): `OoReparent{Class,Factory}Data` mis-bind the class-level env (CURRENCY/ALPHABET/SELECT) — a dedicated
-fix ~PHASE 09.
-
-**Battery (keep green + pushed at EVERY commit):** 3256 conformance · 281 unit · 33 characterization (32 snapshots
+removal is RELOCATED → PHASE 15 §"CUT 2.5" (D10.4 mostly pre-empted by P7 Step 12). 
+**Battery (keep green + pushed at EVERY commit):** 3275 conformance · 281 unit · 33 characterization (32 snapshots
 byte-exact + the RuntimeApi ratchet) · FULL legacy guard NIST 353 MATCH. ⚠ Build `CobolSharp.sln` before `dotnet
 test --no-build` — a stale test-bin compiler DLL hides greenfield regressions.
 

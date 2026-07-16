@@ -15,7 +15,25 @@
   7. The 14 `OoTests` are re-landed as greenfield facts (in `OoSpineTests` or a sibling).
   8. Full battery GREEN: greenfield conformance + unit + the FULL legacy guard (NIST 353 MATCH), with the emitted-C# characterization snapshots either byte-identical or reviewed-and-re-baselined for each intentional emit change.
 
-- **STATUS:** `IN PROGRESS @ step 9 — PART A (rearchitecture, steps 1–8) CLOSED` (2026-07-16, DEVLOG 844–848;
+- **STATUS:** `DONE` (2026-07-16 — DEVLOG 844–853; commits `bbe57910`→the close commit, each verdict-gated on
+  the full battery; battery at close: conformance 3275 · unit 281 · characterization 33 byte-identical ·
+  legacy guard NIST 353 MATCH). **All 8 exit criteria hold:** (1) OO in ONE `Oo/` home, NO OO pass in CodeGen
+  (`IOoBindHost` DELETED); (2) pure symbol table + `OoConformance`, `AdapterPairs` a RETURN value; (3) the four
+  ambient flags gone (one scoped, three compiler-enforced `init`); (4) naming single-sourced in
+  `NamingConvention` + the storage-form facts bind-owned per P5 (adapted, ledgered); (5) `OoMethodSymbol`
+  phase-explicit via `OoMethodBinding` (`OverrideOf` = pass-1 identity, the recorded deviation); (6) the OO
+  surface green + multi-base INHERITS rejected LOUDLY (0849, §11.3.2 repetition PARSES) + ANY LENGTH §13.18.2
+  landed on all three unit-kind legs (+ reject-at-85) + the §4.2.2 interface leg proven (0828 negative);
+  (7) the 14 legacy OoTests re-landed (4 ported + 10 covered, audited accounting); (8) full battery green at
+  every boundary. **BONUS CLOSE-OUT: the DEVLOG-738 flagged-latent OO env bug is FIXED** — `EnvDivisions`
+  (outermost-first) replaces every singular `environmentDivision()` read, so a class-level env is never
+  shadowed by a half's own env (golden `oo_class_env`: class-level CURRENCY + object-own SOURCE-COMPUTER both
+  bind; the ConfigPd 1×-gate pins still hold). **Deferrals recorded in `docs/ISO2023_CONFORMANCE_PLAN.md`:**
+  GOBACK status-phrase (2023) → P13; `>>PROPAGATE` semantics (§7.3.21) → P13; ANY LENGTH RETURNING leg staged
+  loud (`any-length-returning`); inline-invocation rides its own wave. **SPEC CORRECTION (Step 13):** USE
+  Formats 3/4 carry NO [GLOBAL] phrase (§14.9.49.2) — the step's "GLOBAL-walkable F3" premise was not ISO.
+  (The pre-close progress ledger follows for the historical record.)
+  — history: PART A closed (2026-07-16, DEVLOG 844–848;
   commits `bbe57910`→`6264bf65`+1, every one snapshot-byte-identical + full-battery green.)
   **Steps 7–8 dispositions:** 7's NAMING half landed — `Oo/NamingConvention.cs` single-sources
   `__GET_`/`__SET_` (FOUR copies killed — one more than the recipe counted: both `OoClassTable.Build` rosters,
