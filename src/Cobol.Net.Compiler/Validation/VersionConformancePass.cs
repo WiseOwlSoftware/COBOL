@@ -8,6 +8,8 @@ using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;   // DiagnosticCatalog / EditionDiagnostic / EditionCodes / EditionSeverity(Policy) — the §8.9 funnel
 using CobolNet.Frontend.Generated;     // CobolParserCore / CobolLexer / CobolParserCoreBaseVisitor — the parse-tree arm
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Validation;
 
 /// <summary>

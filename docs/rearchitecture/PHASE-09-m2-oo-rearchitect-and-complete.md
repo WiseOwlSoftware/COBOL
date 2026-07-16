@@ -15,8 +15,26 @@
   7. The 14 `OoTests` are re-landed as greenfield facts (in `OoSpineTests` or a sibling).
   8. Full battery GREEN: greenfield conformance + unit + the FULL legacy guard (NIST 353 MATCH), with the emitted-C# characterization snapshots either byte-identical or reviewed-and-re-baselined for each intentional emit change.
 
-- **STATUS:** `NOT STARTED`
+- **STATUS:** `IN PROGRESS @ step 1` (2026-07-15)
   > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the DEVLOG entry-per-commit discipline (`DEVLOG.md`, newest-first) and push every commit boundary (`feedback_fully_autonomous_push`).
+  >
+  > ⚠ **AS-BUILT DRIFT LEDGER (scouted 2026-07-15 — adapt every step to these seams, not the doc's stale anchors):**
+  > P6/P7 already relocated much of what Steps 4/5/8 assume: the 8-step OO orchestration runs in
+  > `Binding/BinderDriver.Bind` (:44–97) behind the `IOoBindHost`+`BindSession` seam (`CSharpEmitter` implements it;
+  > `CallEmitRunUnit`/`CSharpEmitter.Call.cs` no longer exist); the harmonize is `StorageFormPass.
+  > HarmonizeStorageCrossings` (still a fixed point — Step 5's single-pass goal stands, new home);
+  > `QualifyClassFiles` lives on `BinderDriver` (:398); `MarkStoreAsImage` is GONE (P5's `ComputePromotedSet`);
+  > OO emission is ALREADY split out to `CodeGen/Verbs/OoEmitter.cs` (659 lines — Step 8 is largely pre-done;
+  > `CSharpEmitter.Oo.cs` is 172 lines of BIND bodies only, which Step 4 moves into `OoDriver`); OO statement
+  > binding is `Binding/Procedure/Verbs/OoBinder.cs` (904 lines; NO `StatementBinder.Oo.cs`); `BinderContext` is at
+  > `Binding/Procedure/BinderContext.cs` and ALREADY has the scoped push/pop (`EnterMethodScope`/`BindPositionScope`
+  > governing `ActiveMethodScope`) — Step 6 EXTENDS it to `OoInFactory`/`OoCurrentClass`/`OoIsClassUnit` (writes:
+  > `CSharpEmitter.Oo.cs:42,62,79,100,110,111`). Multi-base INHERITS read = `OoClassTable.cs:484`. The
+  > `__GET_`/`__SET_` name builders are FOUR copies (both rosters in `OoClassTable` ~:512/:558 + `DataBinder.Oo.cs
+  > :403,405` + `ReferenceResolver.cs:66-67`). `InstanceKeyField` is a `FileModel` property set in
+  > `BinderDriver.QualifyClassFiles`, not a `DataBinder` field. `AdapterPairs` (mutated public list,
+  > `OoClassTable.cs:43,:167`; read `OoEmitter.cs:85`) and the `OoMethodSymbol` sentinels (:864–894) are genuinely
+  > un-started (Steps 2/3 as written). Confirm 0849 is free before minting (Step 10).
 
 ---
 

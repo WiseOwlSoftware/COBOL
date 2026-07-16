@@ -2,6 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Xunit;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>

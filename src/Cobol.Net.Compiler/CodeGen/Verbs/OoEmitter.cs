@@ -7,6 +7,8 @@ using CobolNet.Binding.Bound;
 using CobolNet.CodeGen.Emit;
 using CobolNet.Runtime;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.CodeGen;
 
 using static CobolNet.CodeGen.Emit.EmitText;
@@ -19,8 +21,9 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// so captured copies would go stale (the coupling-census hazard). The class table and interface-data forests
 /// arrive from the immutable <c>BoundCompilation</c> (never the bind host's session state).</summary>
 internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUnitState callState,
-    ProgramEmitter program, OoClassTable classes,
-    IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData)
+    ProgramEmitter program,
+    IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> ifaceData,
+    IReadOnlyList<AdapterPair> adapters)
 {
     private UnitEmitters U => program.Current;
     private EmitContext Ctx => U.Ctx;
@@ -82,7 +85,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // C# forbids covariant interface implementations that §9.3.8.2.3 5a/5c2 permit).
         string instBase = string.Join(", ", new[] { cls.Symbol.Base?.CsName ?? "CobolObject" }
             .Concat(cls.Symbol.Implements.Select(i => i.CsName)));
-        var instExtras = classes.AdapterPairs
+        var instExtras = adapters
             .Where(a => !a.Factory && ReferenceEquals(a.Impl.Owner, cls.Symbol))
             .Select(a =>
             {
@@ -191,7 +194,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     for (int i = 0; i < m.Formals.Count; i++)
                     {
                         var f = m.Formals[i];
-                        string want = OoClassTable.ConformanceDescriptor(f.Item);
+                        string want = OoConformance.ConformanceDescriptor(f.Item);
                         string wantLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(want, quote: true);
                         w.Line($"if (__a[{i}].Descriptor != {wantLit}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
                             + $"$\"INVOKE '{cobolName}' '{m.Name}': argument {i + 1} does not conform to the formal "
@@ -205,7 +208,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                     else
                     {
                         string rl = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(
-                            OoClassTable.ConformanceDescriptor(m.Returning), quote: true);
+                            OoConformance.ConformanceDescriptor(m.Returning), quote: true);
                         w.Line($"if (__ret is null || __ret.Descriptor != {rl}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
                             + $"\"INVOKE '{cobolName}' '{m.Name}': the RETURNING item is absent or does not conform "
                             + "(ISO §14.8.3/GR7c)\");");

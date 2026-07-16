@@ -6,6 +6,8 @@ using System.Linq;
 using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Binding.Passes;
 
 /// <summary>The shared spine of the whole-group middle-end passes (P6 Step 3): the parse ROOT (the terminal

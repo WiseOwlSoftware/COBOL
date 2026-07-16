@@ -2,6 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Binding.Model;
 
 using Core = CobolParserCore;
@@ -22,6 +24,8 @@ using Core = CobolParserCore;
 /// <param name="ClassUnits">CLASS-ID units (each carrying its OBJECT + FACTORY halves).</param>
 /// <param name="OoClasses">The group's pass-1 class symbol table (OO deep-dive D1).</param>
 /// <param name="InterfaceData">Per-interface DATA forests (prototype LINKAGE formals) for interface emission.</param>
+/// <param name="OoAdapters">The §9.3.8.2.3 5a/5c2 covariant-return adapter pairs (returned by
+/// <see cref="OoConformance.ValidateImplements"/>; the interface emitter renders one explicit implementation per pair).</param>
 /// <param name="Turn">The group's compile-time TurnState (ISO §7.3.25; EC deep-dive D10).</param>
 /// <param name="EcActive">ANY EC-model feature in use (gates every machinery emission; SSOT §18.16).</param>
 /// <param name="AnyFiles">Any unit/class declares files or declaratives (drives the IO using + Init/CloseAll).</param>
@@ -31,6 +35,7 @@ internal sealed record BoundCompilation(
     IReadOnlyList<OoClassUnit> ClassUnits,
     OoClassTable OoClasses,
     IReadOnlyDictionary<OoInterfaceSymbol, DataBinder> InterfaceData,
+    IReadOnlyList<AdapterPair> OoAdapters,
     TurnState Turn,
     bool EcActive,
     bool AnyFiles);

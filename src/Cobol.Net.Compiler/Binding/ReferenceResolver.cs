@@ -8,6 +8,8 @@ using CobolNet.Frontend.Generated;
 
 using CobolNet.Binding.Model;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Binding;
 
 using Core = CobolParserCore;

@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Procedure;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Binding.Bound;
 
 using Core = CobolParserCore;

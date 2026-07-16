@@ -2,6 +2,8 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Binding.Model;
 
 /// <summary>One CLASS-ID unit of the compilation group (the ClassUnit counterpart of <see cref="BoundUnit"/>):

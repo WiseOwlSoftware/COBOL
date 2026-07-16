@@ -6,6 +6,8 @@ using CobolNet.Binding.Model;
 using CobolNet.CodeGen.Emit;
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.CodeGen;
 
 using Core = CobolParserCore;

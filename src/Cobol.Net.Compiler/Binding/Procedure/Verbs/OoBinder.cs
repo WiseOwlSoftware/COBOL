@@ -6,6 +6,8 @@ using CobolNet.Binding.Model;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Binding.Procedure;
 
 using Core = CobolParserCore;
@@ -188,7 +190,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 // The runtime class is the CONTAINING class or a subclass — the containing class's
                 // conformance is the strongest compile-time guarantee (§14.8 — a subclass instance still
                 // conforms downstream of anything the containing class conforms to).
-                if (host.OoClasses?.ObjectRefWideningMismatch(PicInfo.ObjectReferenceItem(cur.Name), nrp) is { } nwerr)
+                if (OoConformance.ObjectRefWideningMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(cur.Name), nrp) is { } nwerr)
                 {
                     ctx.Edition.Error("COBOLNET0826",
                         $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': {nwerr} (ISO §14.8)");
@@ -289,8 +291,8 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         }
         // Receiver conformance (§14.8 via the SET/widening direction): universal accepts anything; a typed
         // receiver accepts the class, a subclass, or — for an INTERFACE-typed receiver — any class whose
-        // §11.8.4 closure implements it (the ONE ObjectRefWideningMismatch rule).
-        if (host.OoClasses?.ObjectRefWideningMismatch(PicInfo.ObjectReferenceItem(cls.Name), retPic) is { } werr)
+        // §11.8.4 closure implements it (the ONE OoConformance.ObjectRefWideningMismatch rule).
+        if (OoConformance.ObjectRefWideningMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(cls.Name), retPic) is { } werr)
         {
             ctx.Edition.Error("COBOLNET0826",
                 $"INVOKE {cls.Name} \"NEW\" RETURNING '{retRef.GetText()}': {werr} (ISO §14.8)");
@@ -413,7 +415,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             // identity rule. Everything else keeps the strict description check.
             string? rerr = m.Returning!.Pic is { Category: PicCategory.ObjectReference } sendPic
                     && rp.Item.Pic is { Category: PicCategory.ObjectReference } recvPic
-                ? host.OoClasses?.ObjectRefWideningMismatch(sendPic, recvPic)
+                ? OoConformance.ObjectRefWideningMismatch(host.OoClasses, sendPic, recvPic)
                 : OoConformanceError(m.Returning!, rp.Item);
             if (rerr is not null)
             {
@@ -504,7 +506,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
 
             if (byReference)
             {
-                if (OoClassTable.DescriptionMismatch(formal, place.Item, byRefGroupPrefix: true) is { } err1)
+                if (OoConformance.DescriptionMismatch(formal, place.Item, byRefGroupPrefix: true) is { } err1)
                 {
                     Err($"USING argument '{dref.GetText()}' does not conform to formal parameter "
                         + $"'{formal.CobolName}': {err1} (ISO §14.8.2.3.2 — BY REFERENCE requires the "
@@ -590,9 +592,9 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                 : "COMPUTE-rule conformance needs a numeric argument (ISO §14.8.2.3.3 rule 2a)",
             PicCategory.ObjectReference =>
                 arg.Pic is { Category: PicCategory.ObjectReference } ap
-                    ? host.OoClasses?.ObjectRefWideningMismatch(ap, f)
+                    ? OoConformance.ObjectRefWideningMismatch(host.OoClasses, ap, f)
                     : "an object-reference formal takes an object-reference argument (SET rules, §14.8.2.3.3)",
-            _ => OoClassTable.DescriptionMismatch(formal, arg),   // edited/other: conservative strict gate
+            _ => OoConformance.DescriptionMismatch(formal, arg),   // edited/other: conservative strict gate
         };
     }
 
@@ -643,7 +645,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     + "the universal path has no BY CONTENT fallback (SR6)");
                 return new BoundNop();
             }
-            string d = OoClassTable.ConformanceDescriptor(p.Item);
+            string d = OoConformance.ConformanceDescriptor(p.Item);
             if (d == "T:!")
             {
                 ctx.Edition.Error("COBOLNET0866",
@@ -665,7 +667,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                     + "to storage");
                 return new BoundNop();
             }
-            retDesc = OoClassTable.ConformanceDescriptor(rp.Item);
+            retDesc = OoConformance.ConformanceDescriptor(rp.Item);
             if (retDesc == "T:!")
             {
                 ctx.Edition.Error("COBOLNET0866",
@@ -749,7 +751,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             {
                 foreach (var tp in targets)
                     if (tp.Item.Pic!.ObjectClassName is not null
-                        && host.OoClasses?.ObjectRefWideningMismatch(spic, tp.Item.Pic!) is { } werr)
+                        && OoConformance.ObjectRefWideningMismatch(host.OoClasses, spic, tp.Item.Pic!) is { } werr)
                         ctx.Edition.Error("COBOLNET0867",
                             $"SET '{tp.Item.CobolName}' TO '{sp.Item.CobolName}': {werr} "
                             + "(ISO §14.9.39.3 SR12 — a universal sender needs an object view to narrow)");
@@ -851,10 +853,10 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The §14.8.2/§14.8.3 STRICT conformance check between a formal/returning item and an
     /// argument/receiver item — delegates to the ONE shared description-equality rule
-    /// (<see cref="OoClassTable.DescriptionMismatch"/>, also the §9.3.8.2 override-signature check) that
+    /// (<see cref="OoConformance.DescriptionMismatch"/>, also the §9.3.8.2 override-signature check) that
     /// makes the emitted marshaling TYPE-PRESERVING. Null when conformant, else the mismatch.</summary>
     private static string? OoConformanceError(DataItem formal, DataItem arg)
-        => OoClassTable.DescriptionMismatch(formal, arg);
+        => OoConformance.DescriptionMismatch(formal, arg);
 
     // ── Method-context control flow (deep-dive D8) ──────────────────────────────────────────────────────────
 

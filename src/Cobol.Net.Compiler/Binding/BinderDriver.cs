@@ -8,6 +8,8 @@ using CobolNet.Binding.Passes;
 using CobolNet.Common;
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Binding;
 
 using Core = CobolParserCore;
@@ -46,8 +48,8 @@ internal sealed class BinderDriver
         oo.BeginBind(session);
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) oo.BindClassData(cls);   // ALL signatures before ANY body (D1 pass-1)
-        table.ValidateOverrideSignatures(edition);            // §9.3.8.2 — after all formals resolve (slice 3a)
-        table.ValidateImplements(edition);                    // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority)
+        OoConformance.ValidateOverrideSignatures(table, edition);   // §9.3.8.2 — after all formals resolve (slice 3a)
+        var ooAdapters = OoConformance.ValidateImplements(table, edition);   // §9.3.11 via §9.3.8.2.3 (D-I1 — the binder is the authority; returns the covariant adapters)
         foreach (var cls in classes) oo.BindClassBody(cls);
         // TWO-PHASE program-unit binding (M2-UDF-1 key enabler): EVERY unit's DATA division binds before ANY
         // unit's procedure body binds (the ProcedureBinding group pass below), so a function-identifier reference
@@ -105,7 +107,7 @@ internal sealed class BinderDriver
             || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
             || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0);
 
-        return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, turn, ecActive, anyFiles);
+        return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive, anyFiles);
     }
 
     /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source

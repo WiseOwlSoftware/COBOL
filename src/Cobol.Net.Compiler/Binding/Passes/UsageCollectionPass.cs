@@ -7,6 +7,8 @@ using CobolNet.Binding.Bound;
 
 using CobolNet.Binding.Model;
 
+using CobolNet.Compiler.Oo;
+
 namespace CobolNet.Binding.Passes;
 
 /// <summary>

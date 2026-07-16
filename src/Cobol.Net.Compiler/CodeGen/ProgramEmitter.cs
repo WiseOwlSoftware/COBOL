@@ -54,7 +54,7 @@ internal sealed class ProgramEmitter
     internal string Emit(BoundCompilation comp)
     {
         _ecState.Active = comp.EcActive;
-        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.OoClasses, comp.InterfaceData);
+        _oo = new OoEmitter(_dispatchState, _ecState, _callState, this, comp.InterfaceData, comp.OoAdapters);
         var units = comp.Units;
         var classes = comp.ClassUnits;
         bool anyFiles = comp.AnyFiles;
