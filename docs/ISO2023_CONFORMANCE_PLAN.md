@@ -372,7 +372,12 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   a location (BY CONTENT) or a value + the target parameter's length/PIC; the emit encodes a value argument via
   `CobolProgramRegistry.EncodeFunctionArg` (`PicRuntime.EncodeNumeric`). Verified `DOUBLER(5)` = 10,
   `DOUBLER(4+1)` = 10. Conformance `tests/conformance/2002/udf_value_args`. **The UDF correctness chapter
-  (M2-UDF-1 + M2-UDF-2) is closed for numeric functions.**
+  (M2-UDF-1 + M2-UDF-2) is closed for numeric functions** — and, in the GREENFIELD (P10 Step 9, DEVLOG 859),
+  the **category-carrying RETURNING channel** extends it to alphanumeric / numeric-edited / national /
+  character-form-group results (§8.4.3.2.4 GR1; golden `udf_returning_categories`, greenfield-only — the
+  frozen legacy carries only numeric results); float/boolean/pointer-class + strong-typed/REDEFINES/
+  variable-length/binary-leaf-group RETURNING stay staged loud per-shape (COBOLNET1510,
+  `UdfBinder.UdfReturningResidue`).
 - ☐ **M2-UDF-3 — Separate-compilation user functions (prototypes).** Caller + function in different translation
   units. *Medium.* §8.13 external repository + function-prototype. *Current:* caller and function must share one
   compilation group. *Recipe:* function-prototype definitions in the caller (or an external repository registry).

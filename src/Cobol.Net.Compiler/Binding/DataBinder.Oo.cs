@@ -378,9 +378,16 @@ public sealed partial class DataBinder
     internal List<(DataItem Temp, DataItem Model)> CompilerTempClones { get; } = [];
 
     /// <summary>The ONE synthesized-compiler-temp constructor (property-reference temps, user-function result
-    /// temps): a level-1 elementary item cloned from <paramref name="model"/>'s description, appended to
-    /// <see cref="Roots"/> so the FieldEmitter declares it like any other item. The pair is recorded for the
-    /// post-bind <c>StoreAsImage</c> re-sync (see <see cref="CompilerTempClones"/>).</summary>
+    /// temps): a level-1 item cloned from <paramref name="model"/>'s description, appended to
+    /// <see cref="Roots"/> so the FieldEmitter declares it like any other item. A GROUP model deep-clones its
+    /// subtree (the §8.4.3.2.4 GR1 "description … is that specified by the description in the linkage
+    /// section" for a group RETURNING item) via <see cref="CloneTempNode"/> — structurally like the TYPEDEF
+    /// <c>CloneItem</c> but UNREGISTERED: a temp's subordinates are never referenceable (a function result is
+    /// only ever a whole sending operand, §8.4.3.2.3 SR1), and registering the callee's LINKAGE member names
+    /// in the CALLER's scope would collide/ambiguate legal caller names. The pair is recorded for the
+    /// post-bind <c>StoreAsImage</c> re-sync (see <see cref="CompilerTempClones"/>); a group temp's
+    /// numeric-DISPLAY leaves are promoted by the <c>UsageCollectionPass</c> whole-group collection instead
+    /// (the temp is a <c>BoundCallProgram.Returning</c> whole-group operand).</summary>
     internal DataItem CreateCompilerTemp(DataItem model, string cobolPrefix, string csPrefix, string tag)
     {
         var t = new DataItem
@@ -396,9 +403,41 @@ public sealed partial class DataBinder
             //  the temp's storage from its model's PRE-whole-group facts, the fused pipeline's re-sync ordering.)
         };
         t.Uid = _uidCounter++;
+        if (model.IsGroup)
+            foreach (var child in model.Children)
+                t.Children.Add(CloneTempNode(child, t));
         _roots.Add(t);
         CompilerTempClones.Add((t, model));
         return t;
+    }
+
+    /// <summary>Deep-clone one description node under a compiler temp (see <see cref="CreateCompilerTemp"/>):
+    /// fresh <see cref="DataItem.Uid"/> (StructName/ProfileName ride on it), the immutable
+    /// <see cref="DataItem.Pic"/> shared, the description fields copied, the <see cref="DataItem.CsName"/>
+    /// uniquified among siblings — and, unlike the TYPEDEF <c>CloneItem</c>, NOT registered (no by-name
+    /// entry, no 88s, no index-names: a temp's subordinates are unreachable by reference). The admissible
+    /// shapes are pre-gated by the caller (UdfBinder's residue check: no REDEFINES, no variable-length
+    /// OCCURS, character-form leaves only), so the copied fields are the complete surviving description.</summary>
+    private DataItem CloneTempNode(DataItem src, DataItem newParent)
+    {
+        var clone = new DataItem
+        {
+            Level = src.Level,
+            CobolName = src.CobolName,
+            CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
+            Pic = src.Pic,
+            OwnSign = src.OwnSign,
+            OwnUsage = src.OwnUsage,
+            Occurs = src.Occurs,
+            OccursSpec = src.OccursSpec is { } os ? CloneOccursSpec(os) : null,
+            Justified = src.Justified,
+            BlankWhenZero = src.BlankWhenZero,
+        };
+        clone.Uid = _uidCounter++;
+        clone.Parent = newParent;
+        foreach (var child in src.Children)
+            clone.Children.Add(CloneTempNode(child, clone));
+        return clone;
     }
 
     /// <summary>Scan the OBJECT/FACTORY WORKING-STORAGE parse entries for PROPERTY clauses (§13.18.42) and

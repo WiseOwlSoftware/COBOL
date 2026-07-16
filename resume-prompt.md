@@ -38,8 +38,18 @@ program + function legs** (COBOLNET1542 SR family; RETURNING leg staged loud via
 class-env shadow bug FIXED (`DataBinder.EnvDivisions` outermost-first over EVERY former singular env read;
 golden `oo_class_env`). Deferrals (all in `docs/ISO2023_CONFORMANCE_PLAN.md`): GOBACK status-phrase → P13;
 `>>PROPAGATE` directive semantics → P13. SPEC CORRECTION: USE Formats 3/4 carry NO [GLOBAL] phrase (§14.9.49.2).
-Next: **PHASE-10** (`docs/rearchitecture/PHASE-10-m2-residual-catalog.md` — read its STATUS line first; it
-OPENS with the greenfield-vs-catalog reconciliation audit).
+**PHASE-10 IS IN PROGRESS (DEVLOG 854–858+):** Step-1 reconciliation audit DONE (the 13-track verdict table +
+evidence is IN the P10 doc under §Step-1 AUDIT RESULT); WAVES LANDED (each spec-first, agent-implemented,
+human-reviewed, full-battery-gated, CI-green): the NATIONAL wave (DISPLAY-OF §15.26 + NATIONAL-OF §15.66 on
+the ONE `Repertoire` translator; the N-literal Latin-1 0814 guard lifted), the EC `-N` wave (EXCEPTION-FILE-N
+§15.29 + EXCEPTION-LOCATION-N §15.31 + CHAR-NATIONAL §15.16; ORD-over-national corrected to §15.70.4 r2; the
+2023 connector-arg form staged → P13), the CONCAT wave (§8.8.3 as a COMPILE-TIME literal fold inside
+`nonNumericLiteral` — `ConcatFolder` is the ONE chokepoint; 1540/1541/1545), and the ALLOCATE wave (§14.9.3
+GR7 INITIALIZED = the spec's own INITIALIZE-equivalence lowered through the EXISTING InitializeBinder;
+GR6 CHARACTERS = binary zeros). Read the P10 doc's checkboxes for the live step state; remaining waves:
+pointers/PROGRAM-POINTER · UDF category-RETURNING+BY VALUE (an agent may have this in flight — check
+`git status` for uncommitted worktree changes FIRST) · file-sharing extension · line-seq 62 ·
+ARITH-STANDARD consumption · B-SHIFT · CONSTANT · RW-2002 (the one L) · TYPEDEF SAME AS · ALPHABET-national.
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's
 conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored in the

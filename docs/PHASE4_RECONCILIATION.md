@@ -22,7 +22,7 @@ NOT-STARTED = no greenfield surface; OBSOLETE = superseded by a ratified decisio
 
 | ItemId | Title | CatalogMark | GreenfieldStatus | Evidence | Phase4Track | Notes |
 |---|---|---|---|---|---|---|
-| M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | **LANDED** | UdfBinder.cs (Binding/Procedure/Verbs/; bind → hoisted CALL…RETURNING over a §8.4.3.2.4 GR1 result temp); 5 udf_* goldens ENABLED byte-exact (invocation, inline_expression, value_args, recursion, nested_args); UdfInvocationTests ×26; user-function-invocation-2002 registry+matrix row | none | As-built + adversarial-review notes below (the two-phase bind was REALIZED, not found). |
+| M2-UDF-1 | Inline UDF invocation FUNCTION user-name(args) | done | **LANDED** (+ the **category-carrying RETURNING channel**, P10 Step 9 2026-07-16: alphanumeric/edited/national/character-form-group results; residues float/boolean/pointer-class + strong-typed/REDEFINES/variable-length/binary-leaf groups stay per-shape 1510 — `UdfReturningResidue`) | UdfBinder.cs (Binding/Procedure/Verbs/; bind → hoisted CALL…RETURNING over a §8.4.3.2.4 GR1 result temp — a GROUP model deep-clones via the unregistered `CloneTempNode`); 6 udf_* runtime goldens ENABLED byte-exact (invocation, inline_expression, value_args, recursion, nested_args, returning_categories); UdfInvocationTests; user-function-invocation-2002 registry+matrix row | none | As-built + adversarial-review notes below (the two-phase bind was REALIZED, not found; the non-numeric-RETURNING finding is RESOLVED — see the review note). |
 | M2-UDF-2 | Literal/arith args to a UDF | done | **LANDED (DEVLOG 615)** | §8.4.3.2.4 GR5b private-copy cells conformed by CobolArgAdapt; udf_value_args ENABLED byte-exact (LIT/ARI) | none | Folded into M2-UDF-1 as designed. |
 | M2-UDF-3 | Separate-compilation function prototypes (§8.13 / §11.5 Format 2) | open | **LANDED (DEVLOG 624)** | `FUNCTION-ID … IS PROTOTYPE` parses (PROTOTYPE token, `functionIdParagraph` tail, 0900 at 85); a prototype registers a signature but emits no runtime module (CallUnit.IsPrototype filters CallEmitProgramClass/Register); cross-assembly resolution reuses the sibling probe (§12.3.8 GR11c); EC-FUNCTION-NOT-FOUND (Fatal) on a locate miss. Golden `udf_prototype` (P=000049, GreenfieldOnly) + 2 cross-assembly tests + 5 UdfInvocationTests | (c) | AS-BUILT below. Runtime half was free (D1). |
 | M2-UDF-4 | Bind REPOSITORY FUNCTION specifiers (ALL INTRINSIC / named) | open | **LANDED (DEVLOG 626)** | `FUNCTION ALL INTRINSIC` (GR14) + `FUNCTION name INTRINSIC` now BIND (DataBinder.RepositoryAllIntrinsic / RepositoryIntrinsics, inherited into contained programs); the §8.4.3.2 SR2 **FUNCTION-keyword-omitted** reference form is LIVE bind-side (D2 — the ONE dataReference→Bound* chokepoints RefExpr/FieldOperand re-route `name(args)` to BindIntrinsicCore when the head is a repository intrinsic/ALL/user-function, SR6; data-item-wins guard). Gated ≥2002. Golden `udf_keyword_omitted` (MAX/MIN/MOD without FUNCTION, GreenfieldOnly) + 5 UdfInvocationTests | (c) | AS-BUILT below. GR12 named-specifier leg landed with UDF-1. |
@@ -158,11 +158,20 @@ The 4-lens find→2-skeptic-verify workflow (wf_e38982d1-0d2) over the landed di
 - **§8.4.6.6 self-name (major).** A function's OWN name is referable with no repository entry
   (self-recursion; §12.3.8 GR11 makes a present self-entry a no-op) — `UdfSelfName` threaded per unit;
   the udf_recursion golden (5! = 120 through five nested activations) proves it end-to-end.
-- **Non-numeric RETURNING mis-carry (critical).** The result reads through `BoundNumRef`, whose category
-  classifiers and relation rendering are numeric — an alphanumeric result would COMPARE numerically and a
-  group RETURNING cloned a Pic-less undeclarable temp (Roslyn failure). STAGED LOUD as COBOLNET1510: only
-  elementary fixed-point numeric RETURNING is implemented; the category-carrying result channel is the
-  named follow-up.
+- **Non-numeric RETURNING mis-carry (critical) — RESOLVED (P10 Step 9).** The result reads through
+  `BoundNumRef`, but every operand chokepoint maps it through the ONE `IntrinsicBinder.OperandOf` to a
+  `BoundFieldOperand` whose `Place.Item` IS the cloned RETURNING description (§8.4.3.2.4 GR1) — so an
+  alphanumeric/national result compares as text under its category, a numeric-edited result carries its
+  mask image, and a GROUP RETURNING deep-clones its subtree into the temp (the unregistered
+  `CloneTempNode` — a temp's subordinates are never referenceable, §8.4.3.2.3 SR1) and crosses the CALL
+  boundary as its AsImage/FromImage character image. Delivery is the existing string ABI
+  (`CobolArgAdapt.StoreReturn(string)`). The relation chokepoint (`ComparisonOperandOf`) routes its
+  computed fallback through `OperandOf` for exactly this. Still STAGED LOUD as COBOLNET1510 (per-shape
+  texts in `UdfBinder.UdfReturningResidue`): FLOAT (the CALL-boundary string carrier has no float write
+  half), BOOLEAN (the §8.8.2 boolean-expression channel has no function-result arm — carrying only
+  MOVE/relations would half-wire), pointer/object/index classes, and the group residues (strong-typed
+  identity, internal REDEFINES, variable-length, non-character binary/packed/COMP-5/float leaves).
+  Golden: `udf_returning_categories`.
 - **Honest argument diagnostics (minor).** A ref-mod/figurative/unresolvable argument now reports ITS
   actual staged shape in COBOLNET1506, never a message claiming a legal form is illegal.
 - **§8.4.3.2.4 mis-citation (minor).** Every "§8.4.3.2.6" citation corrected (the GR1 temp rule and GR2/GR5/

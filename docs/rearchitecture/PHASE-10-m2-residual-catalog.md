@@ -98,7 +98,7 @@ When Phase 10 is DONE, the following are true and demonstrable:
 - [ ] Step 6 — Pointers on `ManagedPointer`/`StorageCell` under `RunUnit` (confirm) — **PROC-5-allocate slice LANDED 2026-07-16** (the §14.9.3 GR7 INITIALIZED lowering + the `allocate_initialized` golden closing both audit gaps; the ManagedPointer/StorageCell confirmation + the two ADDRESS-OF loud residues remain)
 - [ ] Step 7 — `USAGE PROGRAM-POINTER` leg (net-new residue) (COMMIT)
 - [ ] Step 8 — File-2002 (SHARING/LOCK/RETRY/UNLOCK/line-seq/5x-6x) on `FileConnector` (confirm) (COMMIT)
-- [ ] Step 9 — UDF residue: category-carrying RETURNING (lift 1510) (net-new)
+- [x] Step 9 — UDF residue: category-carrying RETURNING (lift 1510) (net-new) (2026-07-16 — the §8.4.3.2.4 GR1 category channel: elementary alphanumeric/numeric-edited/national + character-form GROUP RETURNING carried end-to-end (the temp clones the FULL description — a group deep-clones its subtree unregistered via `CloneTempNode`; every operand chokepoint maps the result read to a `BoundFieldOperand` so the cloned category drives MOVE Table-16 / relation class dispatch / DISPLAY / the LENGTH fold — the relation chokepoint `ComparisonOperandOf` now routes through the ONE `IntrinsicBinder.OperandOf` mapping; delivery = the existing string CALL-ABI `CobolArgAdapt.StoreReturn(string)`, groups as AsImage/FromImage); `udf_returning_categories` golden ENABLED byte-exact + legacy GreenfieldOnly. STAGED loud by name (1510, per-shape texts in `UdfBinder.UdfReturningResidue`): FLOAT (the CALL-boundary string carrier has no float write half), BOOLEAN (no §8.8.2 boolean-expression function-result arm — a partial land would half-wire), pointer/object/index classes, and group residues (strong-typed identity, internal REDEFINES, variable-length, non-character binary/packed/COMP-5/float leaves))
 - [ ] Step 10 — UDF residue: BY VALUE formals + RECURSIVE per-activation data model (COMMIT)
 - [x] Step 11 — EC `-N` twins + `EXCEPTION-FILE-N` (net-new, needs Step 2) (COMMIT) (2026-07-16 — EXCEPTION-FILE-N §15.29 / EXCEPTION-LOCATION-N §15.31 (the ONLY -N EC twins the 2023 text defines) flipped `Deferred`→`Runtime` as `EcFunctions.FileN/LocationN` = the base renderings through the ONE `NationalOf` repertoire translator, category National; the same wave landed CHAR-NATIONAL §15.16 (`CharNational`, native national PCS = UTF-16 order) + ORD-over-national §15.70.4 r2 (the 0844 guard narrowed to CHAR, alphanumeric weights never applied to a national arg); `exception_file_n`+`char_national` ENABLED, `exception-file-n-2002` matrix row, `exception_file_n_below_2002` 85-window negative, ECT018N inline EC Fact; the 2023 file-connector-argument form stays loud → PHASE-13 Step 9)
 - [ ] Step 12 — ARITHMETIC IS STANDARD behavior @2002/2014 (net-new) (COMMIT)
@@ -141,7 +141,7 @@ PHASE-10 §4; PHASE4_RECONCILIATION rows annotated. No code change.
 
 | Track | Verdict | Gaps | Wave sizing |
 |---|---|---|---|
-| UDF | PARTIAL | 4 | M — the wave must land the category-carrying result channel (clone the full RETURNING description into the caller temp and route class/category through the reading expression, deleting the 1510 reject), parse + model header BY VALUE formals end-to-end (grammar → DataBinder.Linkage → UdfArg → CallEmitter), and replace the 1509 hoist guard with per-evaluation activation; the invocation core, recursion, prototypes, and EXIT FUNCTION already ride the new substrate with enabled goldens. |
+| UDF | PARTIAL | 3 | M — **the category-carrying result channel LANDED 2026-07-16 (Step 9):** the caller temp clones the full RETURNING description (groups deep-clone) and every operand chokepoint carries the cloned category (the 1510 reject is now the per-shape `UdfReturningResidue` staging: float/boolean/pointer-class + the group residues). The remaining wave must parse + model header BY VALUE formals end-to-end (grammar → DataBinder.Linkage → UdfArg → CallEmitter) and replace the 1509 hoist guard with per-evaluation activation (both untouched, still open — Step 10); the invocation core, recursion, prototypes, and EXIT FUNCTION already ride the new substrate with enabled goldens. |
 | DATA-3-national | PARTIAL | 3 | S — **LANDED 2026-07-16 (Step 5): DISPLAY-OF/NATIONAL-OF are Runtime rows** (argument-2 turned out to be a substitution character per the 2023 §15.26.3 r2/§15.66.3 r2 text, not a codeset name — both forms fully implemented, no staged deferral); the SR12 national-form numeric/boolean leg stays staged-loud as the separately catalogued residual. |
 | DATA-4-boolean | PARTIAL | 3 | M — the wave must land the four 2023 B-SHIFT operators end-to-end (lexer tokens + a shift tier in the §8.8.2 booleanExpression grammar with an arithmetic shift-count operand, a new BoundBoolShift leaf through the generated visitor, CobolBool.ShiftL/LC/R/RC, a 2023-only VersionConformancePass gate row, an enabled 2023 golden + a below-2023 negative), plus the small BX\"…\" lexer leg and the national-form boolean representation, and fix the stale CobolExpressions.g4:145-150 staged-residue comment; the entire 2002 core (data, literals, four operators, conditions, COMPUTE F2) needs no rework — it already rides StorageForm/Place/CobolBool. |
 | DATA-5-pointers | PARTIAL | 4 | M — the P10 wave must land USAGE PROGRAM-POINTER end-to-end (lexer token + usageClause alternative + a PicCategory/StorageForm.PointerRef-style carrier resolving through the existing RunUnit ProgramTable for SET … TO ENTRY, with a 2002 ConstructRegistry introduction row and an enabled golden), and unstage the two loud residues (class-unit BASED/ADDRESS OF cell emission; qualified/subscripted ADDRESS OF operands) on the already-proven ManagedPointer/StorageCell substrate. |
@@ -172,7 +172,7 @@ Evidence:
 - src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs:103,194,235 — COBOLNET1506 (OMITTED args) and COBOLNET1509 (conditionally-evaluated positions) staged loud
 
 Gaps:
-- category-carrying RETURNING (group / alphanumeric / edited / float result channel; currently staged COBOLNET1510, elementary fixed-point numeric only) — ISO §8.4.3.2.4 GR1
+- ~~category-carrying RETURNING (group / alphanumeric / edited / float result channel; currently staged COBOLNET1510, elementary fixed-point numeric only)~~ — **CLOSED 2026-07-16 (Step 9)** for the categories the channel now carries: alphanumeric/alphabetic, numeric-edited, national, and character-form groups (§8.4.3.2.4 GR1 — the temp clones the full description; §14.2.2 SR5 places no category restriction). Still 1510 by name (per-shape texts in `UdfBinder.UdfReturningResidue`): FLOAT (no CALL-boundary float write half), BOOLEAN (no §8.8.2 function-result arm), pointer/object/index, strong-typed/REDEFINES-bearing/variable-length/binary-leaf groups — ISO §8.4.3.2.4 GR1 / §14.8.3
 - BY VALUE formal parameters in the FUNCTION-ID PROCEDURE DIVISION USING header (grammar-absent — raw parse error, no named diagnostic) — ISO §14.2.3 / §8.4.3.2.4 GR5c
 - OPTIONAL formals / OMITTED arguments for function activation (staged COBOLNET1506) — ISO §14.8.2
 - per-evaluation activation for conditionally-evaluated reference positions: PERFORM UNTIL/VARYING, SEARCH WHEN, EVALUATE selection, non-first AND/OR operands (staged COBOLNET1509) — ISO §8.8.4.13 r2
@@ -613,7 +613,24 @@ Full legacy guard NIST 353 MATCH. Battery green.
 
 ---
 
-### Step 9 — UDF residue: category-carrying non-numeric/group RETURNING (lift `COBOLNET1510`)
+### Step 9 — UDF residue: category-carrying non-numeric/group RETURNING (lift `COBOLNET1510`) — DONE 2026-07-16
+
+> **AS-BUILT (2026-07-16):** landed SMALLER than the recipe — no new bound node, no CallEmitter/CallAbi change.
+> The existing shapes already carried category: `IntrinsicBinder.OperandOf` maps the result's `BoundNumRef` to a
+> `BoundFieldOperand` whose `Place.Item` IS the cloned description (Table-16 legality, relation class dispatch,
+> DISPLAY, the LENGTH fold all read it), and the CALL ABI's string carrier trio + `CobolArgAdapt.StoreReturn(string)`
+> already deliver text/group images. The actual edits: (1) `UdfBinder` — the blanket 1510 became the per-shape
+> `UdfReturningResidue` staging (float/boolean/pointer-class/index + the group residues: strong-typed, internal
+> REDEFINES, variable-length, non-character leaves); (2) `DataBinder.CreateCompilerTemp` — a GROUP model deep-clones
+> its subtree via the new UNREGISTERED `CloneTempNode` (a temp's subordinates are never referenceable, §8.4.3.2.3
+> SR1 — registering the callee's LINKAGE names in the caller's scope would ambiguate legal names; contrast the
+> TYPEDEF `CloneItem`, whose clones ARE referenceable); (3) `ConditionBinder.ComparisonOperandOf` — the computed
+> fallback routes through the ONE `OperandOf` mapping so a relation operand's UDF result compares by its category;
+> (4) `DataBinder.ConformanceForest` — prunes a temp's WHOLE subtree (a group temp's cloned children must not
+> re-fire data-attribute gates in the caller's unit). Golden: `udf_returning_categories` (alnum MOVE/DISPLAY/
+> LENGTH/relation, group MOVE/child-access/DISPLAY, edited DISPLAY + move-to-alnum, national MOVE/relation) +
+> the rewritten `ReturningCategories_CarriedVsStaged1510` matrix in UdfInvocationTests. One golden (not the
+> recipe's two) — all four legs in one runnable witness.
 
 **Files:** `src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs` (the `1510` staging), `Binding/DataBinder.Linkage.cs` (`UserFunctionSignature`), `Binding/Bound/BoundTree.cs` (a category-carrying result operand), `CodeGen/Verbs/CallEmitter.cs` (RETURNING carrier emit), `src/Cobol.Net.Runtime/Control/CallAbi.cs` (`CobolArgAdapt.StoreReturn` for text/group).
 

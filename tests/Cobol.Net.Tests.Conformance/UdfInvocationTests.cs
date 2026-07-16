@@ -379,31 +379,42 @@ public sealed class UdfInvocationTests
         EditionHarness.AssertHasDiagnostic(e23, "COBOLNET0902");
     }
 
-    /// <summary>The staged RETURNING categories (COBOLNET1510): only an elementary fixed-point numeric
-    /// result is implemented — a group or alphanumeric RETURNING would silently mis-carry (a Pic-less temp /
-    /// a numeric comparison of string data), so both fail loud by name.</summary>
+    /// <summary>The RETURNING category channel (§8.4.3.2.4 GR1 / §14.2.2 SR5 — NO category restriction on a
+    /// function's RETURNING item; P10 Step 9): the CARRIED categories — elementary fixed-point numeric,
+    /// alphanumeric, numeric-edited, national, and character-form groups — compile end-to-end (the runtime
+    /// behavior is the udf_returning_categories golden); the STAGED residues — FLOAT (no CALL-boundary float
+    /// write half), BOOLEAN (no §8.8.2 boolean-expression function-result arm), and a group with a
+    /// non-character (binary) leaf (the Tier-C image island) — stay loud COBOLNET1510 by name.</summary>
     [Theory]
-    [InlineData("01 L-R PIC X(4).")]
-    [InlineData("01 L-R.\n               05 L-R-A PIC 9(2).\n               05 L-R-B PIC 9(2).")]
-    public void StagedReturningCategories_1510(string returningDecl)
+    [InlineData("ALN", "01 L-R PIC X(4).", true)]
+    [InlineData("GRP", "01 L-R.\n               05 L-R-A PIC 9(2).\n               05 L-R-B PIC 9(2).", true)]
+    [InlineData("EDT", "01 L-R PIC ZZ9.", true)]
+    [InlineData("NAT", "01 L-R PIC N(3).", true)]
+    [InlineData("FLT", "01 L-R USAGE FLOAT-LONG.", false)]
+    [InlineData("BOL", "01 L-R PIC 1(4).", false)]
+    [InlineData("BIN", "01 L-R.\n               05 L-R-A PIC X(2).\n               05 L-R-B PIC 9(4) USAGE BINARY.", false)]
+    public void ReturningCategories_CarriedVsStaged1510(string tag, string returningDecl, bool carried)
     {
+        // DISPLAY is the category-neutral reference site (a MOVE receiver would entangle Table-16 legality —
+        // e.g. national→alphanumeric is a "No" cell); unique PROGRAM-IDs per fact (P10UR wave).
+        string pid = $"UDFT14{tag}P10UR";
         string src = $$"""
             IDENTIFICATION DIVISION.
-            PROGRAM-ID. UDFT14.
+            PROGRAM-ID. {{pid}}.
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             REPOSITORY.
-                FUNCTION UDFX.
+                FUNCTION UDFX{{tag}}P10UR.
             DATA DIVISION.
             WORKING-STORAGE SECTION.
-            01 WS-R PIC 9(4).
+            01 WS-D PIC X(1).
             PROCEDURE DIVISION.
             MAIN.
-                COMPUTE WS-R = FUNCTION UDFX(1).
+                DISPLAY FUNCTION UDFX{{tag}}P10UR(1).
                 STOP RUN.
-            END PROGRAM UDFT14.
+            END PROGRAM {{pid}}.
             IDENTIFICATION DIVISION.
-            FUNCTION-ID. UDFX.
+            FUNCTION-ID. UDFX{{tag}}P10UR.
             DATA DIVISION.
             LINKAGE SECTION.
             01 L-X PIC 9(4).
@@ -411,11 +422,16 @@ public sealed class UdfInvocationTests
             PROCEDURE DIVISION USING L-X RETURNING L-R.
             P.
                 GOBACK.
-            END FUNCTION UDFX.
+            END FUNCTION UDFX{{tag}}P10UR.
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1510");
+        if (carried)
+            Assert.True(ok, string.Join("\n", errors));
+        else
+        {
+            Assert.False(ok);
+            EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1510");
+        }
     }
 
     /// <summary>Shapes the goldens do not cover, locked at bind level: a no-argument function, a nested

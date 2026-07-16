@@ -184,6 +184,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // Phase-4 track (c) residue, DEVLOG 624: FUNCTION-ID … IS PROTOTYPE (§11.5 Format 2) is a construct the
         // frozen legacy grammar cannot parse; the greenfield CorpusRunner byte-compares udf_prototype.
         ("2002", "udf_prototype"),
+        // P10 Step 9 (DEVLOG 859): category-carrying FUNCTION-ID RETURNING (§8.4.3.2.4 GR1) — alphanumeric/
+        // group/numeric-edited/national results; the frozen legacy's partial UDF support carries only numeric
+        // results (and has no national category at all); the greenfield CorpusRunner byte-compares it.
+        ("2002", "udf_returning_categories"),
         // Phase-4 track (c) residue, DEVLOG 626: the §8.4.3.2 SR2 FUNCTION-keyword-omitted reference form (via
         // REPOSITORY FUNCTION ALL INTRINSIC) is net-new in the greenfield — the frozen legacy treats MAX/MIN/MOD
         // without FUNCTION as undefined data-names (CBL3128); the greenfield CorpusRunner byte-compares it.

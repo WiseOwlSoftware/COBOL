@@ -89,6 +89,7 @@
     "udf_nested_args",
     "udf_prototype",
     "udf_recursion",
+    "udf_returning_categories",
     "udf_value_args"
   ],
   "pending": []

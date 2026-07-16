@@ -1931,17 +1931,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// </summary>
     public IEnumerable<DataItem> ConformanceForest()
     {
-        static IEnumerable<DataItem> Walk(DataItem d)
+        var temps = CompilerTempClones.Count == 0 ? null
+            : new HashSet<DataItem>(CompilerTempClones.Select(t => t.Temp));
+        IEnumerable<DataItem> Walk(DataItem d)
         {
+            // Prune a synthesized compiler temp's WHOLE subtree: a group temp (a UDF group-RETURNING result)
+            // clones the callee's already-gated children — re-yielding them would double-fire the per-item
+            // data-attribute gates in the CALLER's unit (the same exclusion the elementary temp always had).
+            if (temps is not null && temps.Contains(d)) yield break;
             yield return d;
             foreach (var c in d.Children)
                 foreach (var x in Walk(c)) yield return x;
         }
-        var temps = CompilerTempClones.Count == 0 ? null
-            : new HashSet<DataItem>(CompilerTempClones.Select(t => t.Temp));
         foreach (var item in Roots.Concat(LinkageRoots).SelectMany(Walk)
                      .Concat(TypeDecls.Values.SelectMany(Walk)))
-            if (StrongTypeModel.TypeAnchor(item) is null && (temps is null || !temps.Contains(item)))
+            if (StrongTypeModel.TypeAnchor(item) is null)
                 yield return item;
     }
 
