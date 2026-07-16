@@ -51,8 +51,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         var sig = ic.Sig;
         if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)
             return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (catalogued, not yet implemented)"), 0);
-        if (ic.ResultCategory == PicCategory.Alphanumeric)
-            return new NumX(EmitText.LoudValue("long", $"alphanumeric FUNCTION {sig.Name} in a numeric context"), 0);
+        if (ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National)
+            return new NumX(EmitText.LoudValue("long", $"string-class FUNCTION {sig.Name} in a numeric context"), 0);
 
         if (sig.Float) return RenderFloat(ic);
 
@@ -264,6 +264,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
             "Concat" =>                                                        // §15.18 — concatenate all argument images (2023)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
+            // DISPLAY-OF (§15.26) / NATIONAL-OF (§15.66) — the national↔alphanumeric repertoire pair (2002);
+            // the optional argument-2 is the one-character substitution string (§15.26.3 r2 / §15.66.3 r2).
+            "DisplayOf" or "NationalOf" =>
+                RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
             "BaseConvert" =>                                                   // §15.12 — unsigned-integer base conversion (2023)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}, {ArgInt(ic.Args[1])}, {ArgInt(ic.Args[2])}"),
@@ -359,8 +363,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
         public string Visit(BoundFieldOperand n) => OperandText.AsString(n, owner.Num);
         public string Visit(BoundComputedOperand n) =>
-            n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } nested
-                ? owner.RenderString(nested) : Loud(n);
+            n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } nested
+                ? owner.RenderString(nested) : Loud(n);   // string-class results incl. national (NATIONAL-OF §15.66)
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
         public string Visit(BoundNumericLiteral n) => Loud(n);
         public string Visit(BoundFigurative n) => Loud(n);

@@ -323,6 +323,35 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.Contains("COBOLNET1502", detail);
     }
 
+    /// <summary>DISPLAY-OF/NATIONAL-OF (§15.26/§15.66) are 2002 introductions — the D8 per-name catalog window
+    /// (the §1.1 ledger's catalog-driven mechanism, no constructs.json row) rejects them by name at --std 85.</summary>
+    [Fact]
+    public void EditionGate_RepertoireFunctionsAt85_RejectedByName()
+    {
+        var (ok, _, detail) = new CobolNetCompiler(85).CompileAndRun(
+            Program("01 T PIC X(5).", "    MOVE FUNCTION DISPLAY-OF(T) TO T.\n    DISPLAY T."));
+        Assert.False(ok);
+        Assert.Contains("DISPLAY-OF", detail);
+        Assert.Contains("COBOLNET1502", detail);
+        (ok, _, detail) = new CobolNetCompiler(85).CompileAndRun(
+            Program("01 T PIC X(5).", "    MOVE FUNCTION NATIONAL-OF(\"AB\") TO T.\n    DISPLAY T."));
+        Assert.False(ok);
+        Assert.Contains("NATIONAL-OF", detail);
+        Assert.Contains("COBOLNET1502", detail);
+    }
+
+    /// <summary>The NATIONAL-OF result is CATEGORY NATIONAL (§15.66.1 "the type of the function is national" →
+    /// §15.2 type 4), so §14.9.25.3 Table 16 bars moving it to an alphanumeric receiver (National row, AN
+    /// column = No) — the former alphanumeric result-category fold would have let this compile.</summary>
+    [Fact]
+    public void NationalOf_ResultIsCategoryNational_MoveToAlphanumericRejected()
+    {
+        var (ok, _, detail) = new CobolNetCompiler(2002).CompileAndRun(
+            Program("01 T PIC X(5).", "    MOVE FUNCTION NATIONAL-OF(\"AB\") TO T.\n    DISPLAY T."));
+        Assert.False(ok);
+        Assert.Contains("COBOLNET0819", detail);
+    }
+
     [Fact]
     public void DeferredFunction_InWindow_FailsLoud_NeverWrong()
     {

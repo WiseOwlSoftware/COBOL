@@ -191,7 +191,8 @@ public sealed class ExceptionEngine
     /// nonfatal twin of <see cref="ArgumentFunctionChecking"/>).</summary>
     public bool DataConversionChecking { get; set; }
 
-    /// <summary>Record EC-DATA-CONVERSION for an untranslatable CONVERT value (§15.19.4 r1/r3). Nonfatal
+    /// <summary>Record EC-DATA-CONVERSION for an untranslatable repertoire value — CONVERT (§15.19.4 r1/r3)
+    /// and the argument-2-unspecified DISPLAY-OF/NATIONAL-OF forms (§15.26.4 r3 / §15.66.4 r3). Nonfatal
     /// (Table 13), so it never throws; it only sets the last exception status, and only while checking for the
     /// condition is enabled (§14.6.13.1.1). The substitution character is applied by the caller regardless.</summary>
     public void DataConversionError(string detail)

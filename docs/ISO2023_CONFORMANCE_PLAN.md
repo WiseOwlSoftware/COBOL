@@ -272,6 +272,13 @@ was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the
   - **M2-DATA-3** National (UTF-16) data — CORE COMPLETE (383): `PIC N`/`USAGE NATIONAL`, `N"…"`, MOVE/VALUE/
     INITIALIZE/SPACE/DISPLAY/compare + national↔alpha/numeric conversion. Conformance `national_data`.
     An adversarial review caught + fixed silent corruption in the first slice before commit.
+    **P10 national wave (2026-07-16): FUNCTION DISPLAY-OF (§15.26) + NATIONAL-OF (§15.66) implemented** on the
+    greenfield (`CobolIntrinsics.DisplayOf/NationalOf`, riding CONVERT's ONE repertoire translator + the ambient
+    EC-DATA-CONVERSION channel). Argument-2 is a one-character SUBSTITUTION character per the 2023 text
+    (§15.26.3 r2 / §15.66.3 r2 — the format names no CCSID/codeset facility), so BOTH argument forms are fully
+    implemented — nothing staged. The N"…" Latin-1-only literal guard was lifted (full UTF-16 repertoire,
+    D-N1); binder SR checks = COBOLNET1546. Conformance `national_intrinsics` (greenfield-only — the legacy
+    oracle's DISPLAY-OF is a pass-through approximation).
   - **M2-DATA-4** Boolean data — CORE COMPLETE (386): `PIC 1`/`USAGE BIT`, `B"…"`, MOVE/VALUE/INITIALIZE/ZERO/
     DISPLAY/compare/JUSTIFIED. Conformance `boolean_data`. A 2-agent review caught + fixed VALUE corruption,
     boolean-in-COMPUTE silent-numeric, and a JUSTIFIED spec/dead-code defect before commit. Bit operators deferred.

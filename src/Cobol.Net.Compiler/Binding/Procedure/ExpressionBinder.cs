@@ -51,9 +51,11 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Bind an <c>N"…"</c> national literal (ISO §8.3.3.5): SR1 caps the length at 8,191 national
-    /// positions; the track-(a) repertoire is Latin-1 (chars ≤ U+00FF, D-N4) — a wider character needs the
-    /// staged alphanumeric↔national correspondence (§8.3.3.5 SR2/GR3 + §8.1.2) and errors 0814, never a
-    /// silent mojibake store.</summary>
+    /// positions. The content repertoire is the FULL national character set — one UTF-16 char per position
+    /// (D-N1, §8.1.2 NOTE 2) — including characters above U+00FF: the alphanumeric↔national correspondence
+    /// (§8.1.2; the D-N4 Latin-1 identity + substitution for wider characters) is live through
+    /// FUNCTION DISPLAY-OF / NATIONAL-OF (§15.26/§15.66), so the former staged-loud Latin-1-only guard is
+    /// lifted (P10 national wave).</summary>
     public BoundStringLiteral NationalLiteralOperand(string raw)
     {
         // NationalData2002 (the N"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
@@ -62,10 +64,6 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (value.Length > 8191)
             ctx.Edition.Error("COBOLNET0814", $"national literal of {value.Length} positions exceeds the "
                 + "8,191-position maximum (ISO §8.3.3.5 SR1)");
-        if (value.Any(c => c > 'ÿ'))
-            ctx.Edition.Error("COBOLNET0814", "national literal contains a character outside the Latin-1 "
-                + "repertoire — the alphanumeric↔national correspondence for wider characters is not yet "
-                + "implemented (Phase 4a residue; ISO §8.3.3.5 SR2/GR3, §8.1.2)");
         return new BoundStringLiteral(value) { Category = PicCategory.National };
     }
 

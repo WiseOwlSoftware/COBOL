@@ -8,7 +8,7 @@
 - **Goal (one paragraph):** Every mandatory COBOL-2002 *non-OO* language feature is implemented end-to-end on the *rearchitected* substrate — national/boolean data ride `StorageForm.CharImage` (one UTF-16 char per position), pointers ride the `ManagedPointer` carrier, files ride `FileConnector`, UDFs ride the per-activation data model — with a rejecting diagnostic under every `--std` edition that lacks the feature, a discovered positive corpus entry, a version-matrix row, and a negative `.err` case per feature. The phase OPENS with a greenfield-vs-catalog reconciliation audit (a fresh `GreenfieldStatus` column sized against the *current* post-rearchitecture tree, not a stale legacy-era snapshot), so every subsequent wave is scoped against truth rather than the legacy-era ☑/◐ marks. It CLOSES with the M2 catalog marks flipped to greenfield truth and the full battery green.
 - **Exit criteria:** Every track's positive corpus discovered by the greenfield runner (`CorpusRunnerTests` over `manifest.json`) + a version-matrix row + a negative `.err`; the M2 catalog (`docs/ISO2023_CONFORMANCE_PLAN.md` §3 and `docs/PHASE4_RECONCILIATION.md`) marks flipped to greenfield truth; national `CharImage` confirmed one-UTF-16-char-per-position by a runtime assertion + a golden; full battery green (2028+ greenfield conformance + 213+ unit + FULL legacy guard NIST 353 MATCH).
 
-> **STATUS:** IN PROGRESS @ step 1 (2026-07-16 — the reconciliation audit is running as a parallel per-track workflow; results land in this file under Step 1)
+> **STATUS:** IN PROGRESS @ step 5 landed (2026-07-16 — the national wave: DISPLAY-OF/NATIONAL-OF Runtime rows + substrate pins + goldens/negatives; Step 4 ALPHABET-national/UTF-8 NOT touched — still open; next unchecked step = Step 4, then Step 6)
 > _(The executing session updates this line: `NOT STARTED` → `IN PROGRESS @ step N (<short note>)` → `DONE`. Keep the per-step checkboxes in §4 current in the same commit that lands each step.)_
 
 ---
@@ -91,10 +91,10 @@ When Phase 10 is DONE, the following are true and demonstrable:
 **Progress checkboxes (executing session keeps current):**
 
 - [x] Step 1 — Reconciliation audit + `GreenfieldStatus` column (2026-07-16 — the audit table + evidence under Step 1 below; 9 PARTIAL · 3 NOT-STARTED · 1 STAGED-LOUD; 56 ISO-cited gaps)
-- [ ] Step 2 — National on `StorageForm.CharImage` (confirm + prove one-UTF-16-char/position)
-- [ ] Step 3 — Boolean data + operators on the new folders (confirm)
-- [ ] Step 4 — ALPHABET national / UCS-4 / UTF-8 / UTF-16 phrases (net-new)
-- [ ] Step 5 — National wave: matrix rows + negatives + catalog flip (COMMIT)
+- [x] Step 2 — National on `StorageForm.CharImage` (confirm + prove one-UTF-16-char/position) (2026-07-16 — `NationalStorageFormTests` pins CharImage Width==Length for PIC N(5)/USAGE NATIONAL; D-N2 byte-surface guards confirmed live per the Step-1 audit evidence; `national_data` golden green)
+- [x] Step 3 — Boolean data + operators on the new folders (confirm) (2026-07-16 — the audit found the 2002 core already on StorageForm/Values-Text/CobolBool with `boolean_data`/`boolean_ops` ENABLED + negatives; the missing substrate pin added to `NationalStorageFormTests` (PIC 1(4) USAGE BIT CharImage); B-SHIFT/BX"…" stay the separately-catalogued 2023 residue)
+- [ ] Step 4 — ALPHABET national / UCS-4 / UTF-8 / UTF-16 phrases (net-new) — **NOT in the 2026-07-16 wave; untouched (zero surface still)**
+- [x] Step 5 — National wave: DISPLAY-OF/NATIONAL-OF + pins + goldens/negatives (2026-07-16 — see the Step-5 section for the landed list; Step 4 deferred out of the wave, so `alphabet_national` and its matrix row are still open)
 - [ ] Step 6 — Pointers on `ManagedPointer`/`StorageCell` under `RunUnit` (confirm)
 - [ ] Step 7 — `USAGE PROGRAM-POINTER` leg (net-new residue) (COMMIT)
 - [ ] Step 8 — File-2002 (SHARING/LOCK/RETRY/UNLOCK/line-seq/5x-6x) on `FileConnector` (confirm) (COMMIT)
@@ -142,7 +142,7 @@ PHASE-10 §4; PHASE4_RECONCILIATION rows annotated. No code change.
 | Track | Verdict | Gaps | Wave sizing |
 |---|---|---|---|
 | UDF | PARTIAL | 4 | M — the wave must land the category-carrying result channel (clone the full RETURNING description into the caller temp and route class/category through the reading expression, deleting the 1510 reject), parse + model header BY VALUE formals end-to-end (grammar → DataBinder.Linkage → UdfArg → CallEmitter), and replace the 1509 hoist guard with per-evaluation activation; the invocation core, recursion, prototypes, and EXIT FUNCTION already ride the new substrate with enabled goldens. |
-| DATA-3-national | PARTIAL | 3 | S — the P10 wave must land DISPLAY-OF/NATIONAL-OF as Runtime rows on CobolIntrinsics (the ANUM↔NAT repertoire-translation machinery already exists in CobolIntrinsics.Text.cs:134-148 for CONVERT, so this is catalog re-wiring plus the argument-2 codeset-name handling), flip the two rows off Deferred, and ship an enabled 2002 conformance golden exercising both directions in the same commit; the SR12 national-form numeric/boolean leg can stay staged-loud as a separately catalogued residual. |
+| DATA-3-national | PARTIAL | 3 | S — **LANDED 2026-07-16 (Step 5): DISPLAY-OF/NATIONAL-OF are Runtime rows** (argument-2 turned out to be a substitution character per the 2023 §15.26.3 r2/§15.66.3 r2 text, not a codeset name — both forms fully implemented, no staged deferral); the SR12 national-form numeric/boolean leg stays staged-loud as the separately catalogued residual. |
 | DATA-4-boolean | PARTIAL | 3 | M — the wave must land the four 2023 B-SHIFT operators end-to-end (lexer tokens + a shift tier in the §8.8.2 booleanExpression grammar with an arithmetic shift-count operand, a new BoundBoolShift leaf through the generated visitor, CobolBool.ShiftL/LC/R/RC, a 2023-only VersionConformancePass gate row, an enabled 2023 golden + a below-2023 negative), plus the small BX\"…\" lexer leg and the national-form boolean representation, and fix the stale CobolExpressions.g4:145-150 staged-residue comment; the entire 2002 core (data, literals, four operators, conditions, COMPUTE F2) needs no rework — it already rides StorageForm/Place/CobolBool. |
 | DATA-5-pointers | PARTIAL | 4 | M — the P10 wave must land USAGE PROGRAM-POINTER end-to-end (lexer token + usageClause alternative + a PicCategory/StorageForm.PointerRef-style carrier resolving through the existing RunUnit ProgramTable for SET … TO ENTRY, with a 2002 ConstructRegistry introduction row and an enabled golden), and unstage the two loud residues (class-unit BASED/ADDRESS OF cell emission; qualified/subscripted ADDRESS OF operands) on the already-proven ManagedPointer/StorageCell substrate. |
 | PROC-5-allocate | PARTIAL | 2 | S — the wave must land the §14.9.3 GR7 INITIALIZE lowering for ALLOCATE based-item INITIALIZED (drive the existing INITIALIZE machinery over the freshly allocated cell, delete the BoundUnsupported stage at PtrBinder.cs:127-129), and add/extend one enabled 2002 golden so INITIALIZED zero-fill (GR6) and form-2 RETURNING (GR4b) are byte-verified at runtime. |
@@ -203,8 +203,8 @@ Evidence:
 - src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs:647-660 — DisplayOf/NationalOf exist ONLY in the legacy oracle runtime, not the new substrate
 
 Gaps:
-- NATIONAL-OF intrinsic not implemented on the new substrate (catalogued Deferred, renders a loud not-implemented guard; the legacy-only implementation does not count) — ISO §15.66
-- DISPLAY-OF intrinsic (the sanctioned national→alphanumeric narrowing that MoveBinder itself points users at) not implemented on the new substrate (Deferred-loud) — ISO §15.26
+- ~~NATIONAL-OF intrinsic not implemented on the new substrate~~ — **CLOSED 2026-07-16 (Step 5)** — ISO §15.66
+- ~~DISPLAY-OF intrinsic (the sanctioned national→alphanumeric narrowing) not implemented on the new substrate~~ — **CLOSED 2026-07-16 (Step 5)** — ISO §15.26
 - national-form numeric and boolean data (numeric/boolean PICTURE with USAGE NATIONAL) staged loud in PictureAnalyzer, not implemented — ISO §13.18.60.3 SR12
 
 **DATA-4-boolean** — `PARTIAL`
@@ -529,7 +529,14 @@ _(Folds into Step 5 commit.)_
 
 ### Step 5 — National/boolean wave commit
 
-**Files:** `tests/conformance/2002/manifest.json` (confirm `national_data`, `boolean_data`, `boolean_ops` enabled; add `alphabet_national`), `tests/version-matrix/constructs.json` (national/boolean/alphabet rows present), `tests/conformance/negative/` (national-narrowing reject, boolean-VALUE-mismatch, boolean-ordering, alphabet-at-85).
+**LANDED 2026-07-16 (the DISPLAY-OF/NATIONAL-OF wave; Step 4 ALPHABET-national/UCS-4/UTF-8/UTF-16 was explicitly OUT of this wave — untouched, `alphabet_national` + its `constructs.json` row remain open under Step 4):**
+- **DISPLAY-OF (§15.26) / NATIONAL-OF (§15.66) implemented** as Runtime rows on `CobolIntrinsics` (`DisplayOf`/`NationalOf` in `Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs`), riding the ONE `Repertoire` translator extracted from CONVERT's §15.19.4 r1/r3 arm — never a second converter. Argument-2 is the one-character SUBSTITUTION CHARACTER per the 2023 text (§15.26.3 r2 / §15.66.3 r2 — no codeset facility in the format), so BOTH argument forms are fully implemented; the argument-2-unspecified form substitutes '?' + EC-DATA-CONVERSION through the existing ambient `ExceptionState.DataConversionError` channel (§15.26.4 r2/r3, §14.6.13.1.1).
+- `IntrinsicSig.ResultCategory` now maps `IntrinsicType.National` → `PicCategory.National` (§15.2 type 4), so Table-16 MOVE legality and the string channels see the correct class; `IsStringOperand`/`BindLengthFold`/the nested-argument visitor accept national results.
+- **Binder SR checks** (`IntrinsicBinder.CheckRepertoireArgs`, new code **COBOLNET1546**): §15.26.3 r1/r2 + §15.66.3 r1/r2/r3 (argument classes, the one-character argument-2, the zero-length-literal bar).
+- The **N"…" literal Latin-1-only staged guard LIFTED** (`ExpressionBinder.NationalLiteralOperand` — the §8.1.2 correspondence now exists; content = the full national repertoire, one UTF-16 char/position, D-N1; the 8,191 SR1 cap stays).
+- **Pins:** `tests/Cobol.Net.Tests.Unit/NationalStorageFormTests.cs` (Step-2 national + Step-3 boolean CharImage Width==Length). **Goldens:** `tests/conformance/2002/national_intrinsics.cob`/`.out` ENABLED (both directions, nesting, category-national comparison, out-of-repertoire U+4E16 substitution both forms, FUNCTION LENGTH over both results) + a legacy `GreenfieldOnly` exclusion. **Negatives:** `display-of-wrong-category`, `national-of-wrong-category` (COBOLNET1546). **Matrix:** the D8 per-name catalog window covers the 2002 introduction (DESIGN-version-conformance-pipeline §1.1 ledger item 2 — no `constructs.json` row needed); pinned at `--std 85` by `EditionGate_RepertoireFunctionsAt85_RejectedByName` (COBOLNET1502).
+
+**Files (original plan):** `tests/conformance/2002/manifest.json` (confirm `national_data`, `boolean_data`, `boolean_ops` enabled; add `alphabet_national`), `tests/version-matrix/constructs.json` (national/boolean/alphabet rows present), `tests/conformance/negative/` (national-narrowing reject, boolean-VALUE-mismatch, boolean-ordering, alphabet-at-85).
 
 **Verify (full):** `dotnet test tests/Cobol.Net.Tests.Conformance/…` + `…Tests.Unit/…` green; `bash scripts/guard-fast.sh` NIST 353 MATCH.
 

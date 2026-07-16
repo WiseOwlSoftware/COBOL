@@ -10,8 +10,10 @@ namespace CobolNet.Tests.Conformance;
 /// (the leading N/B and the quotes leaked into the value); now each funnel either DECODES the literal with its
 /// category tag (string-legal contexts — DISPLAY, MOVE, EVALUATE selection, INSPECT args, CALL USING) or
 /// rejects COBOLNET0844 (numeric contexts — §8.8.1: a boolean/national literal is not a numeric operand).
-/// The literal guards ride COBOLNET0814: length &gt; 8,191 positions (§8.3.3.4 SR1 / §8.3.3.5 SR1) and a
-/// non-Latin-1 character in an N"…" literal (the staged D-N4 repertoire, §8.3.3.5 SR2/GR3 + §8.1.2).
+/// The literal guard rides COBOLNET0814: length &gt; 8,191 positions (§8.3.3.4 SR1 / §8.3.3.5 SR1). The
+/// content repertoire is the FULL national set (one UTF-16 char per position, D-N1) — the former
+/// Latin-1-only staged guard was LIFTED by the P10 national wave when the §8.1.2 alphanumeric↔national
+/// correspondence landed (FUNCTION DISPLAY-OF / NATIONAL-OF, §15.26/§15.66).
 /// </summary>
 public sealed class NationalBooleanLiteralTests
 {
@@ -282,25 +284,29 @@ public sealed class NationalBooleanLiteralTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0844");
     }
 
-    /// <summary>A non-Latin-1 character in an N"…" literal is COBOLNET0814 — the track-(a) repertoire is the
-    /// Latin-1 subset (D-N4; the staged §8.3.3.5 SR2/GR3 + §8.1.2 alphanumeric↔national correspondence).
+    /// <summary>A non-Latin-1 character in an N"…" literal is LEGAL (§8.3.3.5 — the content repertoire is the
+    /// full national set, one UTF-16 char per position, D-N1; the P10 national wave lifted the staged
+    /// Latin-1-only 0814 guard when the §8.1.2 correspondence landed). FUNCTION DISPLAY-OF substitutes for it:
+    /// '?' + EC-DATA-CONVERSION when argument-2 is unspecified (§15.26.4 r3 — nonfatal, checking off, the
+    /// substitution stands), the explicit argument-2 substitution character when specified (§15.26.4 r2).
     /// ⚠ ENCODING-SENSITIVE: the GREEK CAPITAL OMEGA (U+03A9) is written via a \u escape so this .cs file
     /// stays ASCII; the harness writes the .cob as UTF-8 — the compiler's source decoding must see ONE char
-    /// &gt; U+00FF (a Latin-1 read would mis-decode it as two ≤U+00FF chars and MISS the guard).</summary>
+    /// &gt; U+00FF (a Latin-1 read would mis-decode it as two ≤U+00FF chars and print TWO substitution
+    /// characters below).</summary>
     [Fact]
-    public void NationalLiteral_NonLatin1Char_Rejects0814()
+    public void NationalLiteral_NonLatin1Char_Accepted_DisplayOfSubstitutes()
     {
         string src = $"""
             IDENTIFICATION DIVISION.
-            PROGRAM-ID. NBLIT13.
+            PROGRAM-ID. NBLIT13P10N.
             PROCEDURE DIVISION.
             MAIN.
-                DISPLAY N"A{'\u03A9'}B".
+                DISPLAY FUNCTION DISPLAY-OF(N"A{'\u03A9'}B").
+                DISPLAY FUNCTION DISPLAY-OF(N"A{'\u03A9'}B", "#").
                 STOP RUN.
             """;
-        var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok, "a non-Latin-1 national literal char must be rejected (D-N4 staged repertoire, "
-            + "ISO §8.3.3.5 SR2)");
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0814");
+        var (ok, stdout, detail) = new CobolNetCompiler(2002).CompileAndRun(src);
+        Assert.True(ok, detail);
+        Assert.Equal("A?B\nA#B", stdout);
     }
 }

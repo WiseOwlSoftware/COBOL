@@ -232,6 +232,10 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + "national forms (FUNCTION CHAR-NATIONAL §15.16 / ORD over national) are not yet implemented "
                 + "(Phase 4a residue)");
 
+        // DISPLAY-OF / NATIONAL-OF (§15.26.3 / §15.66.3) — the argument class/category rules of the sanctioned
+        // national↔alphanumeric repertoire pair.
+        if (sig.Name is "DISPLAY-OF" or "NATIONAL-OF") CheckRepertoireArgs(sig, args);
+
         // A FUNCTION EXCEPTION-* reference reads the runtime last-exception register (§15.28–15.33) — flag the
         // program's EC usage so the generated source carries the Exceptions using (the group EC gate).
         if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();
@@ -408,12 +412,74 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>Is a bound operand a NATIONAL-category item or literal (its storage is UTF-16, per D-N1)?</summary>
-    private static bool IsNationalOperand(BoundOperand op) => op switch
+    private static bool IsNationalOperand(BoundOperand op) => OperandCategory(op) is PicCategory.National;
+
+    /// <summary>The statically knowable data category of a function argument (drives the §15.3 per-function
+    /// argument class/category rules): a categorized literal, a non-group field reference (a reference-modified
+    /// operand keeps its item's category — a national item's ref-mod is category national, §8.4.4.4), a nested
+    /// intrinsic's result category, or numeric for a computed arithmetic expression. Null = no fixed static
+    /// class (groups, figuratives, ALL literals, error operands) — the caller skips its check.</summary>
+    private static PicCategory? OperandCategory(BoundOperand op) => op switch
     {
-        BoundStringLiteral { Category: PicCategory.National } => true,
-        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.National,
-        _ => false,
+        BoundStringLiteral sl => sl.Category,
+        BoundNumericLiteral => PicCategory.Numeric,
+        BoundFieldOperand f => f.Place.Item.IsGroup ? null : f.Place.Item.Pic?.Category,
+        BoundComputedOperand { Expr: BoundIntrinsicCall ic } => ic.ResultCategory,
+        BoundComputedOperand => PicCategory.Numeric,
+        _ => null,
     };
+
+    /// <summary>The statically knowable width (character positions) of a function argument, or null when the
+    /// length exists only at runtime (ref-mod views, ANY LENGTH items, computed results).</summary>
+    private static int? KnownWidth(BoundOperand op) => op switch
+    {
+        BoundStringLiteral sl => sl.Value.Length,
+        BoundFieldOperand { Place: RefModPlace } => null,
+        BoundFieldOperand { Place.Item: { IsGroup: false, IsAnyLength: false } item } => item.ImageWidth,
+        _ => null,
+    };
+
+    /// <summary>DISPLAY-OF / NATIONAL-OF argument rules — DISPLAY-OF (§15.26.3): argument-1 shall be of class
+    /// national (r1); argument-2 shall be of class alphabetic or alphanumeric and one character position in
+    /// length (r2 — the alphanumeric SUBSTITUTION character). NATIONAL-OF (§15.66.3): argument-1 shall be of
+    /// class alphabetic or alphanumeric (r1) and shall not be a zero-length literal (r3); argument-2 shall be
+    /// of category national and one character in length (r2 — the national substitution character). Class
+    /// alphanumeric spans the alphanumeric, alphanumeric-edited, and numeric-edited categories (§8.4.2 table 2);
+    /// the checks fire on the statically classifiable shapes and skip shapes with no fixed class.</summary>
+    private void CheckRepertoireArgs(IntrinsicSig sig, List<BoundOperand> args)
+    {
+        bool toNat = sig.Name == "NATIONAL-OF";
+
+        if (toNat && args[0] is BoundStringLiteral { Value.Length: 0 })
+            ctx.Edition.Error("COBOLNET1546", "FUNCTION NATIONAL-OF: argument-1 shall not be a zero-length "
+                + "literal (ISO §15.66.3 rule 3)");
+
+        if (OperandCategory(args[0]) is { } c1)
+        {
+            if (!toNat && c1 is not PicCategory.National)
+                ctx.Edition.Error("COBOLNET1546", "FUNCTION DISPLAY-OF: argument-1 shall be of class national "
+                    + "(ISO §15.26.3 rule 1) — FUNCTION NATIONAL-OF is the alphanumeric→national conversion");
+            else if (toNat && c1 is not (PicCategory.Alphanumeric or PicCategory.NumericEdited))
+                ctx.Edition.Error("COBOLNET1546", "FUNCTION NATIONAL-OF: argument-1 shall be of class alphabetic "
+                    + "or alphanumeric (ISO §15.66.3 rule 1) — FUNCTION DISPLAY-OF is the national→alphanumeric "
+                    + "conversion");
+        }
+
+        if (args.Count < 2) return;
+        if (OperandCategory(args[1]) is { } c2)
+        {
+            if (!toNat && c2 is not (PicCategory.Alphanumeric or PicCategory.NumericEdited))
+                ctx.Edition.Error("COBOLNET1546", "FUNCTION DISPLAY-OF: argument-2 (the substitution character) "
+                    + "shall be of class alphabetic or alphanumeric (ISO §15.26.3 rule 2)");
+            else if (toNat && c2 is not PicCategory.National)
+                ctx.Edition.Error("COBOLNET1546", "FUNCTION NATIONAL-OF: argument-2 (the substitution character) "
+                    + "shall be of category national (ISO §15.66.3 rule 2)");
+        }
+        if (KnownWidth(args[1]) is { } w && w != 1)
+            ctx.Edition.Error("COBOLNET1546", $"FUNCTION {sig.Name}: argument-2 (the substitution character) "
+                + $"shall be one character position in length, not {w} "
+                + $"(ISO {(toNat ? "§15.66.3" : "§15.26.3")} rule 2)");
+    }
 
     /// <summary>The §15.19.2 CONVERT format words (reserved within the argument list, like TRIM's LEADING/TRAILING).</summary>
     private static bool IsConvertFormatWord(string w) =>
@@ -458,11 +524,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     {
         BoundStringLiteral => true,
         // National/boolean operands participate through the char pipeline (MAX/MIN over national compares
-        // ordinal per D-N3; the category-national RESULT channel is the -N intrinsic residue, #11).
+        // ordinal per D-N3); a nested intrinsic with a string-class result (alphanumeric OR national —
+        // NATIONAL-OF/CONVERT-to-NAT) is a string operand likewise.
         BoundFieldOperand f => f.Place.Item.IsGroup
             || f.Place.Item.Pic?.Category is PicCategory.Alphanumeric or PicCategory.NumericEdited
                 or PicCategory.National or PicCategory.Boolean,
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } } => true,
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } } => true,
         _ => false,
     };
 
@@ -487,7 +554,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         BoundFieldOperand { Place.Item.IsAnyLength: true } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
         BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ImageWidth).ToString()),
-        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric } } =>
+        // A nested string-result intrinsic (alphanumeric OR national — one UTF-16 char per national position,
+        // D-N1, so .Length IS the §15.50.4 character-position count for both) keeps a runtime .Length.
+        BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),   // runtime .Length over the nested result image
         // A numeric / figurative / ALL literal is NOT a valid LENGTH argument — §15.50.3 item 1 restricts a LITERAL
         // argument to "an alphanumeric, national, or boolean literal" (a numeric *data item* is allowed as "a data

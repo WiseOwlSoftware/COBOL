@@ -39,9 +39,16 @@ public readonly record struct IntrinsicSig(
     public char ArgKind(int i) =>
         ArgKinds.Length == 0 ? 'n' : ArgKinds[Math.Min(i, ArgKinds.Length - 1)];
 
-    /// <summary>The data category of the function result (§15.2 → §8.4.2) — what MOVE/comparison/DISPLAY consult.</summary>
-    public PicCategory ResultCategory =>
-        Type is IntrinsicType.Alphanumeric or IntrinsicType.National ? PicCategory.Alphanumeric : PicCategory.Numeric;
+    /// <summary>The data category of the function result (§15.2 → §8.4.2) — what MOVE/comparison/DISPLAY consult.
+    /// A NATIONAL-type function's result IS category national (§15.2 type 4 — NATIONAL-OF §15.66.1: "the type of
+    /// the function is national"), so the §14.9.25.3 Table-16 legality and the string channels see the correct
+    /// class — never an alphanumeric fold. (Boolean-type rows are all Deferred; they fall to Numeric unchanged.)</summary>
+    public PicCategory ResultCategory => Type switch
+    {
+        IntrinsicType.National => PicCategory.National,
+        IntrinsicType.Alphanumeric => PicCategory.Alphanumeric,
+        _ => PicCategory.Numeric,
+    };
 }
 
 /// <summary>
@@ -129,13 +136,17 @@ public static class IntrinsicCatalog
         Add(new("DATE-TO-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002)); // §15.23
         Add(new("DAY-TO-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002));   // §15.25
         Add(new("YEAR-TO-YYYY", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002));     // §15.100
-        Add(new("DISPLAY-OF", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Deferred, false, 2002));   // §15.26
-        Add(new("NATIONAL-OF", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Deferred, false, 2002));      // §15.66
+        // DISPLAY-OF (§15.26) / NATIONAL-OF (§15.66) — the sanctioned national↔alphanumeric repertoire pair
+        // (P10 national wave). Argument-2 is a one-character SUBSTITUTION CHARACTER (§15.26.3 r2 / §15.66.3 r2 —
+        // the 2023 text names no codeset facility), so both argument forms are fully implemented.
+        Add(new("DISPLAY-OF", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "DisplayOf", IntrinsicBind.Runtime, false, 2002));   // §15.26
+        Add(new("NATIONAL-OF", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "NationalOf", IntrinsicBind.Runtime, false, 2002));     // §15.66
         Add(new("EXCEPTION-FILE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "EcFile", IntrinsicBind.Runtime, false, 2002)); // §15.28 (no-arg form r1; the 2023 file-connector-arg form renders loud — VCR row 68)
         Add(new("EXCEPTION-FILE-N", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 0, 1, "s", "", IntrinsicBind.Deferred, false, 2002));   // §15.29
         // EXCEPTION-LOCATION/-STATEMENT/-STATUS render the runtime last-exception register (EcFunctions, the §11
-        // EC model); the -N national twins stay Deferred-loud — no national runtime exists, and faking national
-        // as UTF-16 alphanumeric would be the wrong data class (§15.29/§15.31; EC scout hazard H8).
+        // EC model); the -N national twins stay Deferred-loud until the P10 Step-11 EC-N wave lands their
+        // EcFunctions national variants (§15.29/§15.31; EC scout hazard H8) — the category-national result
+        // channel itself is live (NATIONAL-OF above).
         Add(new("EXCEPTION-LOCATION", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcLocation", IntrinsicBind.Runtime, false, 2002));  // §15.30
         Add(new("EXCEPTION-LOCATION-N", IntrinsicType.National, IntrinsicArity.Fixed, 0, 0, "", "", IntrinsicBind.Deferred, false, 2002));           // §15.31
         Add(new("EXCEPTION-STATEMENT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatement", IntrinsicBind.Runtime, false, 2002)); // §15.32

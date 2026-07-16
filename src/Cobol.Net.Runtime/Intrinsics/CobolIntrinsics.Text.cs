@@ -131,15 +131,11 @@ public static partial class CobolIntrinsics
     {
         const int ANUM = 1, HEX = 2, NAT = 3, BYTE = 4;
 
-        // Repertoire translation (§15.19.4 r1/r3): both sides character, no HEX — the DISPLAY-OF/NATIONAL-OF map.
+        // Repertoire translation (§15.19.4 r1/r3): both sides character, no HEX — the ONE translator DISPLAY-OF/
+        // NATIONAL-OF share (CONVERT never takes a caller substitution character, so sub: null — the
+        // implementor-defined '?' + EC-DATA-CONVERSION).
         if (!dstHex && dst != BYTE && (src == ANUM || src == NAT))
-        {
-            var sb = new System.Text.StringBuilder(arg.Length);
-            foreach (char c in arg)
-                sb.Append(dst == NAT ? c                             // ANUM→NAT: same code point (Latin-1 ⊂ national, D-N4)
-                                     : c <= 0xFF ? c : Sub());        // NAT→ANUM: fits a byte, else substitute (r1)
-            return sb.ToString();
-        }
+            return Repertoire(arg, toNational: dst == NAT, sub: null);
 
         // Bit/byte pathway — reduce argument-1 to a byte string per the source format.
         byte[] bytes;
@@ -174,9 +170,39 @@ public static partial class CobolIntrinsics
         return new string(chars);
     }
 
+    /// <summary>DISPLAY-OF (§15.26.4): each national character of argument-1 converted to its corresponding
+    /// alphanumeric character (rule 1 — the D-N4 Latin-1↔national identity is the implementor-defined
+    /// correspondence). A national character with no correspondent (code point &gt; U+00FF) takes
+    /// <paramref name="sub"/>, the argument-2 substitution character (rule 2 — no exception); with argument-2
+    /// unspecified it takes the implementor-defined '?' AND sets EC-DATA-CONVERSION (rule 3). Result length =
+    /// the argument's character count (rule 4 — one display position per national position under D-N4).</summary>
+    public static string DisplayOf(string arg, string? sub = null) =>
+        Repertoire(arg, toNational: false, sub is { Length: > 0 } ? sub[0] : null);
+
+    /// <summary>NATIONAL-OF (§15.66.4): each alphanumeric character of argument-1 converted to its corresponding
+    /// national character (rule 1). Under the D-N4 correspondence the alphanumeric coded set (Latin-1) is a
+    /// SUBSET of national (UTF-16), so every character has a correspondent and the argument-2 substitution
+    /// character (rules 2/3) is never consumed — accepted for §15.66.2 conformance, semantically inert.</summary>
+    public static string NationalOf(string arg, string? sub = null) =>
+        Repertoire(arg, toNational: true, sub is { Length: > 0 } ? sub[0] : null);
+
+    /// <summary>The ONE alphanumeric↔national repertoire translator (CONVERT §15.19.4 r1/r3; DISPLAY-OF §15.26.4;
+    /// NATIONAL-OF §15.66.4 — one mechanism, never a second converter). ANUM→NAT keeps the code point (Latin-1 ⊂
+    /// national, D-N4); NAT→ANUM keeps a code point that fits a byte, else substitutes: the caller's
+    /// <paramref name="sub"/> when specified (§15.26.4 r2 — the EC is NOT set for an explicit substitution
+    /// character), or the implementor-defined '?' + EC-DATA-CONVERSION when not (<see cref="Sub"/> —
+    /// §15.19.4 r1/r3, §15.26.4 r3).</summary>
+    private static string Repertoire(string arg, bool toNational, char? sub)
+    {
+        var sb = new System.Text.StringBuilder(arg.Length);
+        foreach (char c in arg)
+            sb.Append(toNational || c <= 0xFF ? c : sub ?? Sub());
+        return sb.ToString();
+    }
+
     private static char Sub()
     {
-        Exceptions.ExceptionState.DataConversionError("CONVERT: value has no destination-repertoire correspondent (§15.19.4 r1/r3)");
+        Exceptions.ExceptionState.DataConversionError("value has no destination-repertoire correspondent (§15.19.4 r1/r3; §15.26.4 r3)");
         return '?';
     }
     private static byte ByteSub() { _ = Sub(); return (byte)'?'; }
