@@ -37,6 +37,25 @@ public static class CobolLiteral
             : raw;
     }
 
+    /// <summary>Decode an <c>X"…"</c>/<c>X'…'</c> hexadecimal-format alphanumeric literal (ISO §8.3.3.2 —
+    /// each pair of hexadecimal digits is one character) to its character value; an odd digit count (a lexer
+    /// impossibility for a well-formed token, but tolerated) or a non-hex shape yields the empty string. The
+    /// ONE hex decoder (P10 Step 14) — the former <c>OoBinder.OoDecodeMethodNameLiteral</c> inline copy now
+    /// routes here, as does the §8.8.3 concatenation fold.</summary>
+    public static string DecodeHex(string raw)
+    {
+        if (raw.Length < 3 || raw[0] is not ('X' or 'x')) return "";
+        char q = raw[^1];
+        int open = raw.IndexOf(q);
+        if (open < 0 || open >= raw.Length - 1) return "";
+        string digits = raw[(open + 1)..^1];
+        if (digits.Length % 2 != 0) return "";
+        var chars = new char[digits.Length / 2];
+        for (int i = 0; i < chars.Length; i++)
+            chars[i] = (char)Convert.ToInt32(digits.Substring(i * 2, 2), 16);
+        return new string(chars);
+    }
+
     /// <summary>If <paramref name="raw"/> is the figurative <c>ALL "literal"</c> / <c>ALL 'literal'</c> form (a
     /// VALUE / level-88 operand text), the decoded literal; otherwise <see langword="null"/> (e.g. <c>ALL ZEROS</c>,
     /// a figurative word, is handled elsewhere). Tolerant of whether the front-end preserved the space between

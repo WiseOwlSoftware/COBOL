@@ -153,6 +153,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
     /// operand — the same shapes <see cref="ComparisonOperand"/> produces.</summary>
     private BoundOperand BindValueOperand(Core.ValueOperandContext vo)
     {
+        // §8.8.3.3 GR3: a concatenation expression folds to (and selects as) the equivalent single literal.
+        if (vo.nonNumericLiteral()?.concatenationExpression() is { } ce) return host.Expr.ConcatOperand(ce);
         if (vo.nonNumericLiteral()?.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
         if (vo.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
         if (vo.nonNumericLiteral()?.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());

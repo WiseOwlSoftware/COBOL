@@ -1125,6 +1125,20 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>A concatenation expression — the <c>&amp;</c> operator joining literals (ISO §8.8.3) — is a
+        /// COBOL-2002 introduction (concat-operator-2002; roadmap D6). POSITION-BLIND, unlike the national/
+        /// boolean literal gate above: §8.8.3.3 GR3 lets a concat stand anywhere a literal may (VALUE clauses,
+        /// SPECIAL-NAMES operands, statement operands, FUNCTION arguments), and no data-side gate covers the
+        /// construct — recognition of the parse node IS the one funnel. One Check per concatenation
+        /// expression; the &amp; token appears in no other rule, so recognition is exact. The §8.8.3.2 SR
+        /// checks (same class / no ALL figurative / 8,191 cap) are the binder's ConcatFolder — edition-
+        /// invariant semantics, not gates.</summary>
+        public override object? VisitConcatenationExpression(CobolParserCore.ConcatenationExpressionContext ctx)
+        {
+            _p.Check(Constructs.ConcatOperator2002, "a concatenation expression (the & operator)");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>Whether <paramref name="ctx"/> sits inside a procedure-division statement (a StatementContext
         /// ancestor) — the scope that reaches the binder's literal-operand gates, excluding data-division VALUE.</summary>
         private static bool InStatement(Antlr4.Runtime.RuleContext ctx)

@@ -443,6 +443,14 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
     INITIALIZE/DISPLAY/compare. **Defer:** `BX"…"` hex, **bit operators B-AND/B-OR/B-XOR/B-NOT** (corpus-collision
     risk — `B-NOT` seen as an identifier in a unit test; needs careful reserved-word handling + the XOR-operator
     wiring pattern, DEVLOG 375), true bit-packing, GROUP-USAGE BIT, SET cond-name interplay.
+- ☑ **M2-DATA-4b — `&` concatenation expressions (GREENFIELD DONE — P10 Step 14, 2026-07-16).** ISO §8.8.3:
+  the `&` operator joins alphanumeric (incl. `X"…"` hex) / national / boolean literals and figurative
+  constants into ONE literal; §8.8.3.3 GR3 makes the result a compile-time literal usable anywhere a literal
+  of its class may appear — implemented in the greenfield `src/Cobol.Net.*` as the `Binding/ConcatFolder.cs`
+  fold (NO runtime operator; no emitter leg), with the §8.8.3.2 SRs as `COBOLNET1540/1541/1545`, the
+  `concat-operator-2002` VersionConformancePass parse-arm gate (0900 at `--std 85`), the enabled
+  `tests/conformance/2002/literal_concat` golden (+ `concat_below_2002` / `concat_class_mismatch` negatives)
+  and the active version-matrix row. Never existed in the legacy oracle (GreenfieldOnly).
 - ◑ **M2-DATA-5 — Pointers & based addressing. PHASE-1 DONE (DEVLOG 389); Phase-2 = managed .NET refs, done in the data-model Stage 4 (NOT gated).** **[A] HIGH.**
   **Phase-1 COMPLETE:** `USAGE POINTER` (8-byte opaque handle, no PIC), `NULL`, `SET p TO NULL` / `SET p TO q`,
   `= NULL` / `NOT = NULL` / `= q` equality; pointer↔non-pointer MOVE rejected (CBL0901); `VALUE` on a pointer

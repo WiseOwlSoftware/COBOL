@@ -62,3 +62,6 @@ split + the reused `COBOLNET1533`; the broader every-code→descriptor migration
 | COBOLNET1533 | strong-class-condition | Error | ISO §8.8.4.4.3 SR1 | COBOLNET1533 | A strongly-typed group item may not appear in a class condition. |
 | COBOLNET1533 | strong-compare-mismatch | Error | ISO §8.8.4.2.3 SR1 | COBOLNET1533 | A strongly-typed group may be compared only with a group of the same type. |
 | COBOLNET1533 | strong-move-mismatch | Error | ISO §14.9.25.3 SR2 | COBOLNET1533 | MOVE to/from a strongly-typed group requires a group of the same type. |
+| COBOLNET1540 | concat-class-mismatch | Error | ISO §8.8.3.2 SR1 | COBOLNET1540 | Both operands of a concatenation expression shall be of the same class — alphanumeric, boolean, or national (a figurative constant takes the other operand's class). |
+| COBOLNET1541 | concat-all-figurative | Error | ISO §8.8.3.2 SR1 | COBOLNET1541 | Neither operand of a concatenation expression shall be a figurative constant that begins with the word ALL. |
+| COBOLNET1545 | concat-result-too-long | Error | ISO §8.8.3.2 SR2–SR4 | COBOLNET1545 | The value resulting from concatenation shall be at most 8,191 character positions (alphanumeric, boolean, or national). |

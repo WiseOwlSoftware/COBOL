@@ -1083,15 +1083,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                     + "a national conditional variable (ordered by the national collating "
                                     + "sequence) is recognized but not yet implemented (Phase 4a residue) — "
                                     + "(ISO §13.18.63 SR31)");
-                            else if (parent.Pic is { } rp)
+                            // Fold ONCE per operand (a §8.8.3 concat folds here; RawValueOperandText) so the
+                            // category check and the stored value see the same text without double diagnostics.
+                            string rawLo = RawValueOperandText(range.valueClauseOperand(0));
+                            string rawHi = RawValueOperandText(range.valueClauseOperand(1));
+                            if (parent.Pic is { Category: not (PicCategory.Boolean or PicCategory.National) } rp)
                             {
                                 // §13.18.63 SR4/SR5/SR24→SR10: the VALUE literals' category must match the
                                 // conditional variable's — the SAME funnel the item-entry VALUE uses.
-                                ValidateValueCategory(rp, range.valueClauseOperand(0).GetText(), $"condition-name '{name}'");
-                                ValidateValueCategory(rp, range.valueClauseOperand(1).GetText(), $"condition-name '{name}'");
+                                ValidateValueCategory(rp, rawLo, $"condition-name '{name}'");
+                                ValidateValueCategory(rp, rawHi, $"condition-name '{name}'");
                             }
-                            cond.Values.Add((NormalizeIfNumericLiteral(range.valueClauseOperand(0).GetText()),
-                                             NormalizeIfNumericLiteral(range.valueClauseOperand(1).GetText())));
+                            cond.Values.Add((rawLo, rawHi));
                         }
                         else
                             foreach (var op in vi.valueClauseOperand())
@@ -1100,9 +1103,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                 // only its own category, and a national/boolean conditional variable takes only
                                 // its own literal form — the ONE canonical checker (0898 band). Group parents
                                 // (Pic null) are a separate leg.
+                                // Fold ONCE (a §8.8.3 concat folds in RawValueOperandText) so the category
+                                // check and the stored value share one text without double diagnostics.
+                                string raw = RawValueOperandText(op);
                                 if (parent.Pic is { } sp)
-                                    ValidateValueCategory(sp, op.GetText(), $"condition-name '{name}'");
-                                cond.Values.Add((NormalizeIfNumericLiteral(op.GetText()), null));
+                                    ValidateValueCategory(sp, raw, $"condition-name '{name}'");
+                                cond.Values.Add((raw, null));
                             }
                     }
 
@@ -1460,8 +1466,25 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private string? ExtractValue(Core.ValueClauseContext value)
     {
         var item = value.valueItem().FirstOrDefault();
-        return item?.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
+        if (item is null) return null;
+        // §8.8.3.3 GR3: a concatenation-expression VALUE operand folds to its equivalent single literal's
+        // RAW text (GetText would glue the operand tokens — `"AB" & "CD"` → `"AB"&"CD"` — and the emitter's
+        // decode would then mis-read the value). The fold happens HERE, once, so the whole raw-text VALUE
+        // pipeline (ValidateValueCategory, FieldEmitter, ValueInitializer) sees an ordinary literal.
+        if (item.valueClauseOperand().FirstOrDefault() is { } op0
+            && op0.nonNumericLiteral()?.concatenationExpression() is not null)
+            return RawValueOperandText(op0);
+        return item.GetText() is { } raw ? NormalizeIfNumericLiteral(raw) : null;
     }
+
+    /// <summary>The RAW single-literal text of a VALUE operand — the data path's currency (decoded at emit
+    /// time): a §8.8.3 concatenation expression folds to its equivalent literal's raw text (§8.8.3.3 GR3);
+    /// any other operand keeps its source text, numeric literals normalized to dot-decimal
+    /// (ISO §12.3.7 GR14a).</summary>
+    private string RawValueOperandText(Core.ValueClauseOperandContext op) =>
+        op.nonNumericLiteral()?.concatenationExpression() is { } ce
+            ? ConcatFolder.Fold(ce, Edition, Collating).RawText
+            : NormalizeIfNumericLiteral(op.GetText());
 
     /// <summary>THE usage-inheritance pass (P5.11e, DESIGN-data-model §2.7 — the former
     /// <c>ResolveIndexItems</c> + <c>InheritUsageClauses</c> pipeline pair MERGED; both effects, same order): the

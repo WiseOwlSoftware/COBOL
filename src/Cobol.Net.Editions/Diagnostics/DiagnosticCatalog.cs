@@ -72,6 +72,20 @@ public static class DiagnosticCatalog
         "COBOLNET0802", "digit-capacity-over-18-pre-2002", EditionSeverity.Error,
         "A fixed-point item/literal exceeds the 18-digit COBOL-85 limit (19–31 need --std 2002+).", "ISO §8.3.1.2");
 
+    // ── COBOLNET1540/1541/1545 — concatenation expressions, one code per rule (§8.8.3) ───────────────
+    public static readonly DiagnosticDescriptor ConcatClassMismatch = new(
+        "COBOLNET1540", "concat-class-mismatch", EditionSeverity.Error,
+        "Both operands of a concatenation expression shall be of the same class — alphanumeric, boolean, or "
+        + "national (a figurative constant takes the other operand's class).", "ISO §8.8.3.2 SR1");
+    public static readonly DiagnosticDescriptor ConcatAllFigurative = new(
+        "COBOLNET1541", "concat-all-figurative", EditionSeverity.Error,
+        "Neither operand of a concatenation expression shall be a figurative constant that begins with the "
+        + "word ALL.", "ISO §8.8.3.2 SR1");
+    public static readonly DiagnosticDescriptor ConcatResultTooLong = new(
+        "COBOLNET1545", "concat-result-too-long", EditionSeverity.Error,
+        "The value resulting from concatenation shall be at most 8,191 character positions (alphanumeric, "
+        + "boolean, or national).", "ISO §8.8.3.2 SR2–SR4");
+
     // ── COBOLNET1533 — strong typing, split by rule (§8.5) ───────────────────────────────────────────
     public static readonly DiagnosticDescriptor StrongMoveMismatch = new(
         StrongType, "strong-move-mismatch", EditionSeverity.Error,

@@ -316,7 +316,7 @@ public sealed partial class DataBinder
     /// literal as the character at that 1-based NATIVE ordinal (GR7 k1a), and the figurative words written inside
     /// SPECIAL-NAMES as the NATIVE extremes/values (GR10 — HIGH-VALUE=U+00FF, LOW-VALUE=U+0000, SPACE, QUOTE,
     /// ZERO).</summary>
-    private static List<string> AlphabetOperands(Core.AlphabetEntryContext entry)
+    private List<string> AlphabetOperands(Core.AlphabetEntryContext entry)
     {
         var result = new List<string>();
         for (int i = 0; i < entry.ChildCount; i++)
@@ -376,8 +376,13 @@ public sealed partial class DataBinder
     /// <summary>The character content of a class-definition literal: a quoted literal's characters, or — for an
     /// unsigned integer literal — the character at that ORDINAL position of the native collating sequence
     /// (1-based, ISO §12.3.7; ordinal n ⇒ char code n−1 over the 8-bit native sequence).</summary>
-    private static string LiteralChars(Core.LiteralContext lit)
+    private string LiteralChars(Core.LiteralContext lit)
     {
+        // §8.8.3.3 GR3: a concatenation expression stands anywhere a literal of its class may — fold an
+        // ALPHABET/CLASS operand concat to its character value before decoding (GetText would glue the
+        // operand tokens and mis-decode). No PCS applies here — these clauses are DEFINING the sequences.
+        if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce)
+            return ConcatFolder.Fold(ce, Edition, collate: null).Value;
         string text = lit.GetText();
         if (CobolLiteral.IsStringLiteral(text))   // both ISO §8.3.1.2 delimiters (an apostrophe CLASS literal was miscompiled)
             return CobolLiteral.Decode(text);

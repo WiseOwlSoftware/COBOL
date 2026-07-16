@@ -40,6 +40,10 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     public BoundOperand LiteralOperand(Core.LiteralContext lit)
     {
         var nn = lit.nonNumericLiteral();
+        // A concatenation expression folds to its equivalent single literal at COMPILE time (ISO §8.8.3.3
+        // GR3 — "equivalent to a literal of the same class and value"): no BoundConcat node, no emitter leg;
+        // the folded value rides the same operand shapes the plain literals produce (P10 Step 14).
+        if (nn?.concatenationExpression() is { } ce) return ConcatOperand(ce);
         if (nn?.figurativeConstant() is { } fig) return FigurativeOperand(fig);
         if (nn?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
         // National N"…" (§8.3.3.5) / boolean B"…" (§8.3.3.4) literals — LIVE (Phase 4a): the introduction
@@ -48,6 +52,22 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
         if (nn?.NATLIT() is { } nat) return NationalLiteralOperand(nat.GetText());
         if (nn?.BOOLLIT() is { } b) return BooleanLiteralOperand(b.GetText());
         return new BoundNumericLiteral(CheckLiteral(lit.GetText()));   // edition digit cap (ISO §8.3.1.2)
+    }
+
+    /// <summary>Bind a §8.8.3 concatenation expression as a literal operand: fold to the equivalent single
+    /// literal (§8.8.3.3 GR2/GR3 — the ONE ConcatFolder chokepoint enforces the §8.8.3.2 SRs) and produce the
+    /// SAME bound shape the equivalent plain literal would have produced ("may be used anywhere a literal of
+    /// that class may be used"). The introduction gate (concat-operator-2002 → 0900 below 2002) rides the
+    /// VersionConformancePass parse arm on recognition, not this bind path.</summary>
+    public BoundStringLiteral ConcatOperand(Core.ConcatenationExpressionContext ce)
+    {
+        var folded = ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating);
+        return folded.Category switch
+        {
+            PicCategory.National => new BoundStringLiteral(folded.Value) { Category = PicCategory.National },
+            PicCategory.Boolean => new BoundStringLiteral(folded.Value) { Category = PicCategory.Boolean },
+            _ => new BoundStringLiteral(folded.Value),
+        };
     }
 
     /// <summary>Bind an <c>N"…"</c> national literal (ISO §8.3.3.5): SR1 caps the length at 8,191 national
@@ -261,6 +281,16 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// at bind, never raw literal text spliced into the generated expression.</summary>
     private BoundExpr NumLiteral(Core.LiteralContext lit)
     {
+        if (lit.nonNumericLiteral()?.concatenationExpression() is not null)
+        {
+            // A concatenation expression is of class alphanumeric, boolean, or national (ISO §8.8.3.2 SR1) —
+            // never numeric, so it is not an arithmetic operand (§8.8.1.1): the same 0844 posture as a bare
+            // national/boolean literal in a numeric context.
+            ctx.Edition.Error("COBOLNET0844", "a concatenation expression is not a numeric operand "
+                + "(ISO §8.8.3.2 SR1 — class alphanumeric/boolean/national; §8.8.1.1 — arithmetic operands "
+                + "shall be numeric)");
+            return new BoundExprError($"concatenation expression '{lit.GetText()}' in a numeric context");
+        }
         if (lit.nonNumericLiteral()?.figurativeConstant() is { } fig)
             return fig.ZERO() is not null ? new BoundNumLiteral("0")
                 : new BoundExprError($"figurative constant '{fig.GetText()}' in a numeric context");

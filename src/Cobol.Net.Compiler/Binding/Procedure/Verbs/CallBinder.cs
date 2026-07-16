@@ -34,6 +34,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         {
             if (lit.nonNumericLiteral()?.STRINGLIT() is { } s)
                 literalName = CobolLiteral.Decode(s.GetText());
+            // §8.8.3.3 GR3: an alphanumeric concatenation expression may stand anywhere an alphanumeric
+            // literal may — including the §14.9.4 literal-1 program name; fold it at compile time.
+            else if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce
+                     && ConcatFolder.ClassOf(ce) is PicCategory.Alphanumeric)
+                literalName = ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value;
             else
                 return new BoundUnsupported(
                     $"CALL with a non-alphanumeric literal target '{lit.GetText()}' (ISO §14.9.4.3 SR2)");
@@ -149,6 +154,11 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             {
                 if (lit.nonNumericLiteral()?.STRINGLIT() is { } s)
                     targets.Add((CobolLiteral.Decode(s.GetText()), null));
+                // §8.8.3.3 GR3: an alphanumeric concatenation expression stands anywhere an alphanumeric
+                // literal may — including the §14.9.5 literal-1 program name.
+                else if (lit.nonNumericLiteral()?.concatenationExpression() is { } ce
+                         && ConcatFolder.ClassOf(ce) is PicCategory.Alphanumeric)
+                    targets.Add((ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value, null));
                 else
                     return new BoundUnsupported($"CANCEL non-alphanumeric literal target '{lit.GetText()}' (ISO §14.9.5.2 SR1)");
             }

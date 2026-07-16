@@ -335,7 +335,35 @@ numericLiteral
     : signedNumericLiteral
     ;
 
+// A concatenation expression (ISO §8.8.3) is an ALTERNATIVE OF the non-numeric-literal rule because §8.8.3.3
+// GR3 makes it "equivalent to a literal of the same class and value, [usable] anywhere a literal of that class
+// may be used" — every literal position (VALUE clauses, statement operands, FUNCTION arguments, …) inherits it
+// through this one rule. The concat tier is a distinct ADDITIVE alternative (first, per ANTLR first-match
+// precedence); the plain single-token alternatives are untouched, so a non-concatenated literal parses with
+// exactly the same shape as before. AMPERSAND appears in no other rule, so prediction is unambiguous: a literal
+// followed by '&' can only be a concatenation expression.
 nonNumericLiteral
+    : concatenationExpression
+    | STRINGLIT
+    | NATLIT
+    | BOOLLIT
+    | HEXLIT
+    | figurativeConstant
+    ;
+
+// ISO §8.8.3.1 general format: {literal-1 | concatenation-expression-1} & literal-2 — left-recursive in the
+// spec, flattened here to operand (& operand)+. Operands are literals of class alphanumeric (STRINGLIT and its
+// X"…" hex format), national, or boolean, or figurative constants (§8.8.3.2 SR1); numeric literals are NOT
+// operands (SR1 admits only the three classes), so `5 & …` is a parse error by construction. The SR1
+// same-class rule, the no-ALL-figurative rule, and the SR2–SR4 8,191-position caps are BIND-time checks
+// (ConcatFolder — a superset parse, per the repo's parse-wide/bind-narrow doctrine). Gated 2002+ by the
+// VersionConformancePass parse arm (concat-operator-2002 → COBOLNET0900 below 2002); the grammar itself is
+// edition-agnostic (superset parse at every --std).
+concatenationExpression
+    : concatOperand (AMPERSAND concatOperand)+
+    ;
+
+concatOperand
     : STRINGLIT
     | NATLIT
     | BOOLLIT

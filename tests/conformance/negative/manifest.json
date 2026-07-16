@@ -14,6 +14,8 @@
     "boolean_operators_below_2002",
     "class-alphabetic-on-boolean",
     "class-numeric-on-bit",
+    "concat_below_2002",
+    "concat_class_mismatch",
     "close-with-lock",
     "copy-replacing-non-pseudo-text",
     "data-records-fd",

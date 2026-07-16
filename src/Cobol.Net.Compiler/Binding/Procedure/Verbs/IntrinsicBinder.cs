@@ -696,6 +696,9 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// introduction-gate helpers every literal channel uses). HEXLIT stays loud (no §15 consumer).</summary>
     private BoundOperand NonNumericOperand(Core.NonNumericLiteralContext nn)
     {
+        // §8.8.3.3 GR3: a concatenation expression folds to the equivalent single literal — so e.g.
+        // FUNCTION LENGTH("AB" & "CD") sees one 4-character alphanumeric literal argument (§15.55).
+        if (nn.concatenationExpression() is { } ce) return host.Expr.ConcatOperand(ce);
         if (nn.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
         if (nn.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
         if (nn.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());

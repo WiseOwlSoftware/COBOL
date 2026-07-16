@@ -688,6 +688,12 @@ MINUS       : '-' ;
 STAR        : '*' ;
 SLASH       : '/' ;
 COLON       : ':' ;
+// The concatenation operator (ISO §8.7.3): the COBOL character '&', joining literals into one literal
+// (§8.8.3). The §8.7.3 separator-space requirement ("immediately preceded and followed by a separator
+// space") is not enforced at the token level — the parser sees the skipped-WS stream, the same leniency
+// every other separator-adjacent operator (e.g. '::' §8.7.4) already has. '&' has no other lexical role,
+// so the token is unambiguous with or without the spaces.
+AMPERSAND   : '&' ;
 SEMICOLON   : ';' -> skip ;   // §8.3.5: semicolon-space is equivalent to space
 
 // ── Catch-all for unrecognized characters ──

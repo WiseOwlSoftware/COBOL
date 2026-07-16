@@ -23,8 +23,13 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     {
         // STOP RUN … WITH STATUS (§14.9.42) is a COBOL-2002 introduction; the edition gate (StopRunStatus2002)
         // moved to the post-bind VersionConformancePass (Step 14d), reading BoundStop.HasStatusPhrase.
+        // §8.8.3.3 GR3: a concatenation expression stands anywhere a literal of its class may — fold a
+        // STOP literal-1 concat to the equivalent single literal before decoding (GetText on the whole
+        // literal context would glue the operands and mis-decode).
         return stop.literal() is { } slit
-            ? new BoundStopLiteral(CobolLiteral.Decode(slit.GetText()))
+            ? new BoundStopLiteral(slit.nonNumericLiteral()?.concatenationExpression() is { } ce
+                ? ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value
+                : CobolLiteral.Decode(slit.GetText()))
             : new BoundStop { HasStatusPhrase = stop.stopStatusPhrase() is not null };
     }
 

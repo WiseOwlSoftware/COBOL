@@ -131,7 +131,13 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             }
             return OoBindUniversalInvoke(inv, urecv, methodLiteral: null, methodSource: msrc);
         }
-        string? methodName = OoDecodeMethodNameLiteral(inv.invokeMethodName().literal());
+        // §8.8.3.3 GR3: an alphanumeric/national concatenation expression stands anywhere a literal of that
+        // class may — including INVOKE literal-1 (§14.9.23.3 SR2); a boolean-class concat stays null → 0823.
+        var mnLit = inv.invokeMethodName().literal();
+        string? methodName = mnLit?.nonNumericLiteral()?.concatenationExpression() is { } mce
+            ? ConcatFolder.ClassOf(mce) is not PicCategory.Boolean
+                ? ConcatFolder.Fold(mce, ctx.Edition, ctx.Data.Collating).Value : null
+            : OoDecodeMethodNameLiteral(mnLit);
         if (methodName is null)
         {
             ctx.Edition.Error("COBOLNET0823",
@@ -531,12 +537,20 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // a literal that would TRUNCATE still conforms (the SET/MOVE no-truncation requirements are ignored
         // for literal arguments), so length/digit overflow converts per MOVE rules rather than erroring.
         var lit = arg.literal();
-        if (lit?.nonNumericLiteral()?.STRINGLIT() is { } sl)
+        // §8.8.3.3 GR3: an alphanumeric concatenation expression is the equivalent alphanumeric literal —
+        // fold it and ride the STRINGLIT leg's conformance shape (a non-alphanumeric concat falls through
+        // to the trailing unsupported-argument diagnostic like any other non-alphanumeric literal).
+        string? alnumTxt =
+            lit?.nonNumericLiteral()?.STRINGLIT() is { } sl ? CobolLiteral.Decode(sl.GetText())
+            : lit?.nonNumericLiteral()?.concatenationExpression() is { } ice
+              && ConcatFolder.ClassOf(ice) is PicCategory.Alphanumeric
+                ? ConcatFolder.Fold(ice, ctx.Edition, ctx.Data.Collating).Value
+            : null;
+        if (alnumTxt is not null)
         {
-            string txt = CobolLiteral.Decode(sl.GetText());
             if (formal.IsGroup || formal.Pic?.Category is PicCategory.Alphanumeric)
-                return new BoundInvokeArg(formal, null, null, txt, WriteBack: false, ByContent: true);
-            Err($"nonnumeric literal argument {sl.GetText()} for the non-alphanumeric formal "
+                return new BoundInvokeArg(formal, null, null, alnumTxt, WriteBack: false, ByContent: true);
+            Err($"nonnumeric literal argument {lit!.GetText()} for the non-alphanumeric formal "
                 + $"'{formal.CobolName}' (ISO §14.8.2.3.3 MOVE-rule conformance)");
             return null;
         }
@@ -824,17 +838,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             string t = nat.GetText();
             return t.Length >= 3 ? CobolLiteral.Decode(t[1..]) : "";   // strip the N prefix, decode the body
         }
-        if (nn.HEXLIT() is { } hex)
-        {
-            string t = hex.GetText();
-            int q = t.IndexOf(t[^1]);   // the opening quote (matches the closing one)
-            string digits = t[(q + 1)..^1];
-            if (digits.Length % 2 != 0) return "";
-            var chars = new char[digits.Length / 2];
-            for (int i = 0; i < chars.Length; i++)
-                chars[i] = (char)Convert.ToInt32(digits.Substring(i * 2, 2), 16);
-            return new string(chars);
-        }
+        if (nn.HEXLIT() is { } hex) return CobolLiteral.DecodeHex(hex.GetText());   // §8.3.3.2 — the ONE hex codec
         return null;
     }
 

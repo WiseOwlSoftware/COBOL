@@ -34,7 +34,7 @@ public static partial class ConstructRegistry
         new("usage-float-short-2002", "USAGE FLOAT-SHORT", 2002, null, null, "COBOLNET0900", "ISO §13.18.60.4 GR13; D16 (Phase 6a) — the implementor-defined float trio; LIVE"),
         new("usage-float-binary32-2014", "USAGE FLOAT-BINARY-32", 2014, null, null, "COBOLNET0900", "ISO §13.18.59; D16 split (provisional 2014); PENDING (Phase 6)"),
         new("constant-entry-2002", "constant entry (01 … CONSTANT AS)", 2002, null, null, "COBOLNET0900", "ISO §13.10 + §13.18.15; D5; PENDING (Phase 6)"),
-        new("concat-operator-2002", "concatenation expression (&)", 2002, null, null, "COBOLNET0900", "ISO §8.8.3; D6; PENDING (Phase 4g)"),
+        new("concat-operator-2002", "concatenation expression (&)", 2002, null, null, "COBOLNET0900", "ISO §8.8.3; D6"),
         new("label-records-removed-2002", "the LABEL RECORDS clause", 85, 2002, null, "COBOLNET0902", "obsolete '85 FD element DELETED by ISO 2002; the 2023 FD clause set (§13.18) has no LABEL clause; VCR Table 7"),
         new("user-word-commit-2023", "the word COMMIT as a user-defined word", 85, 2023, null, "COBOLNET0901", "§8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32)"),
         new("user-word-raising-2002", "the word RAISING as a user-defined word", 85, 2002, null, "COBOLNET0901", "§8.9 interval encoding: user-definable at 85, reserved since 2002 (the EC family — DEVLOG 585 correction)"),

@@ -52,7 +52,7 @@ The M2 (COBOL-2002) surface was largely built in the **retired legacy byte engin
 
 4. **Files must ride `FileConnector`.** P8 collapses `SequentialFile`/`RelativeFile`/`IndexedFile` behind `FileConnector` + a polymorphic `FileRegistry`, deleting the `Keyed*` fallthrough. The 2002 file surface (SHARING / LOCK MODE / RETRY / UNLOCK / line-sequential + 2002 FILE STATUS 5x/6x) exists but was built on the pre-connector dispatch; it must be re-confirmed on the connector.
 
-5. **Genuine open residue remains, on ANY substrate:** `&`-concatenation (§8.8.3, `concat-operator-2002` PENDING); CONSTANT entries (§13.10) + CONSTANT RECORD (§13.18.15) — **zero grammar/binder surface today** (`grep CONSTANT src/.../DataBinder.cs` → empty); Report Writer 2002 additions PRESENT WHEN format 1 + VARYING format 1 (**zero** hits in `DataBinder.Reports.cs`); ARITHMETIC IS STANDARD *behavior* (the `ArithmeticMode` enum is *captured* in `OptionsModel.cs` but **not consumed** by the numeric engine); ALPHABET national/UCS-4/UTF-8/UTF-16 phrases (no hits in `DataBinder.Switches.cs`); the EC `-N` twins + `EXCEPTION-FILE-N` (`IntrinsicCatalog.cs:133` = `IntrinsicBind.Deferred`, staged loud, blocked on national); the UDF residue (non-numeric/group RETURNING staged `COBOLNET1510` in `Binding/Procedure/Verbs/UdfBinder.cs`; BY VALUE header formals unmodeled; the RECURSIVE per-activation-vs-static data model deviation); the TYPEDEF residue (EXTERNAL type declaration, strong-group heterogeneous relations, SAME AS via `CloneItem`).
+5. **Genuine open residue remains, on ANY substrate:** ✅ `&`-concatenation LANDED (§8.8.3, Step 14 2026-07-16 — a compile-time fold, `concat-operator-2002` ACTIVE); CONSTANT entries (§13.10) + CONSTANT RECORD (§13.18.15) — **zero grammar/binder surface today** (`grep CONSTANT src/.../DataBinder.cs` → empty); Report Writer 2002 additions PRESENT WHEN format 1 + VARYING format 1 (**zero** hits in `DataBinder.Reports.cs`); ARITHMETIC IS STANDARD *behavior* (the `ArithmeticMode` enum is *captured* in `OptionsModel.cs` but **not consumed** by the numeric engine); ALPHABET national/UCS-4/UTF-8/UTF-16 phrases (no hits in `DataBinder.Switches.cs`); the EC `-N` twins + `EXCEPTION-FILE-N` (`IntrinsicCatalog.cs:133` = `IntrinsicBind.Deferred`, staged loud, blocked on national); the UDF residue (non-numeric/group RETURNING staged `COBOLNET1510` in `Binding/Procedure/Verbs/UdfBinder.cs`; BY VALUE header formals unmodeled; the RECURSIVE per-activation-vs-static data model deviation); the TYPEDEF residue (EXTERNAL type declaration, strong-group heterogeneous relations, SAME AS via `CloneItem`).
 
 6. **Per-edition obligation.** Every item above owes TWO things (owner directive, `ISO2023_CONFORMANCE_PLAN.md` §0): the complete per-edition ISO behavior AND the rejecting diagnostic under every `--std` edition that lacks it. A 2002 construct compiled `--std 85` must flag. Coverage = a positive golden + a version-matrix row + a negative `.err`.
 
@@ -71,7 +71,7 @@ When Phase 10 is DONE, the following are true and demonstrable:
 
 **Net-new features (files/classes that exist when done):**
 - `src/Cobol.Net.Compiler/Binding/Model/` (or the P5 model folder): `ConstantEntry` support on `DataItem` (a computed init-only `IsConstant`/`ConstantValue`), a `ConstantEntryPass` (or fold into `BindEntry`); CONSTANT RECORD level-01 handling.
-- `&`-concatenation: a `BoundConcat` bound node (or reuse `BoundBoolBinary`'s pattern), a grammar concat tier in `Core/CobolExpressions.g4`, and an emitter arm; boolean-`&` and (2002) non-numeric-literal `&` both covered.
+- ✅ `&`-concatenation (Step 14, 2026-07-16): the spec surface turned out to be a COMPILE-TIME LITERAL, not a runtime operator — §8.8.3.3 GR3 makes a concatenation expression "equivalent to a literal of the same class and value", and its operands are only literals/figurative constants — so the as-built shape is `Binding/ConcatFolder.cs` (the ONE fold chokepoint; §8.8.3.2 SR diagnostics 1540/1541/1545) + a `concatenationExpression` tier in `Core/CobolExpressions.g4` + the `AMPERSAND` token; NO `BoundConcat` node and NO emitter arm exist (the folded literal rides the pre-existing literal channels). Boolean `&` folds the same way (`B"01" & B"10"` → `B"0110"`), incl. the boolean-relation channel.
 - Report Writer 2002: `PRESENT WHEN` (RD entry, format 1) + `VARYING` (format 1) parsed in `Core/CobolReportWriter.g4`, bound in `DataBinder.Reports.cs` / `ReportSectionBinder`, rendered in `CodeGen/Verbs/ReportWriterEmitter.cs` / the RW runtime.
 - ARITHMETIC IS STANDARD: `OptionsModel.ArithmeticMode` consumed by the numeric renderer / `Runtime/Values/Numeric` intermediate-precision path.
 - ALPHABET national/UCS-4/UTF-8/UTF-16 phrases: bound in `DataBinder.Switches.cs` / `SpecialNamesBinder`, feeding the national codec.
@@ -103,7 +103,7 @@ When Phase 10 is DONE, the following are true and demonstrable:
 - [x] Step 11 — EC `-N` twins + `EXCEPTION-FILE-N` (net-new, needs Step 2) (COMMIT) (2026-07-16 — EXCEPTION-FILE-N §15.29 / EXCEPTION-LOCATION-N §15.31 (the ONLY -N EC twins the 2023 text defines) flipped `Deferred`→`Runtime` as `EcFunctions.FileN/LocationN` = the base renderings through the ONE `NationalOf` repertoire translator, category National; the same wave landed CHAR-NATIONAL §15.16 (`CharNational`, native national PCS = UTF-16 order) + ORD-over-national §15.70.4 r2 (the 0844 guard narrowed to CHAR, alphanumeric weights never applied to a national arg); `exception_file_n`+`char_national` ENABLED, `exception-file-n-2002` matrix row, `exception_file_n_below_2002` 85-window negative, ECT018N inline EC Fact; the 2023 file-connector-argument form stays loud → PHASE-13 Step 9)
 - [ ] Step 12 — ARITHMETIC IS STANDARD behavior @2002/2014 (net-new) (COMMIT)
 - [ ] Step 13 — Report Writer 2002: PRESENT WHEN + VARYING format 1 (net-new) (COMMIT)
-- [ ] Step 14 — `&`-concatenation operator §8.8.3 (net-new) (COMMIT)
+- [x] Step 14 — `&`-concatenation operator §8.8.3 (net-new) (COMMIT) (2026-07-16 — SUPERSET PARSE: the `AMPERSAND` token + a `concatenationExpression` alternative INSIDE `nonNumericLiteral` (every literal position inherits it, §8.8.3.3 GR3); the construct is a COMPILE-TIME fold (`Binding/ConcatFolder.cs`) to the equivalent single literal — no `BoundConcat`, no emitter leg; §8.8.3.2 SRs = COBOLNET1540 class-mismatch / 1541 ALL-figurative / 1545 8,191-cap; figuratives fold ONE char each (§8.3.3.6.4 GR3a, PCS-aware H/L); the introduction gate is the VersionConformancePass parse arm `VisitConcatenationExpression` (position-blind recognition → 0900 below 2002) with the `concat-operator-2002` row flipped ACTIVE; `literal_concat` golden ENABLED (all class pairs + VALUE + 88 + hex + boolean relation + FUNCTION LENGTH) + `concat_below_2002`/`concat_class_mismatch` negatives + legacy GreenfieldOnly exclusion)
 - [ ] Step 15 — CONSTANT entries §13.10 + CONSTANT RECORD §13.18.15 (net-new) (COMMIT)
 - [ ] Step 16 — TYPEDEF residue: EXTERNAL type / SAME AS / strong-group relations (net-new) (COMMIT)
 - [ ] Step 17 — Phase-end verification + catalog flip + STATUS=DONE (COMMIT)
@@ -151,7 +151,7 @@ PHASE-10 §4; PHASE4_RECONCILIATION rows annotated. No code change.
 | PROC-4-ec-n | STAGED-LOUD | 6 | M — **LANDED 2026-07-16 (Step 11):** all four Deferred rows are Runtime (NATIONAL-OF via Step 5; EXCEPTION-FILE-N/EXCEPTION-LOCATION-N/CHAR-NATIONAL via Step 11 — `EcFunctions.FileN/LocationN` on the ONE `NationalOf` translator, `CharNational` on the native national PCS, + ORD-over-national §15.70.4 r2); the golden (`exception_file_n`, `char_national`) + `exception-file-n-2002` matrix row + `--std 85` negative shipped in the same change. Remaining gap = ONLY the 2023 file-connector-argument form (loud; VCR rows 68/69, PHASE-13 Step 9). |
 | ARITH-2-standard | PARTIAL | 6 | M — the phase doc's planned net-new 'OptionsModel.ArithmeticMode consumed by the numeric renderer' build (Step 12, catalog line 76) is ALREADY LANDED and golden-pinned on the post-P7 NumericRenderer/CobolDec substrate, so the P10 wave shrinks to closing the residual spec legs: SDIDI exponentiation (§8.8.1.5.4), routing the §15.4.1 intrinsic set and the RW SUM clause through the mode, the decimal128-range size ECs (§8.8.1.5.2 r2), resolving the 2002-vs-2014 introduction edge against the 2002 standard (then either an arithmetic-standard-2002 registry row + 2002 golden + negative .err at --std 85, or a corrected catalog row), and rewriting the stale Step 12 text from 'consume the mode' to 'close the residual legs'. |
 | RW-2002 | NOT-STARTED | 7 | L — the wave must add the PRESENT lexer token plus six 2002 grammar formats (PRESENT WHEN, VARYING, OCCURS+STEP, multi-COLUMN with alignment, multi-LINE, expression/ROUNDED SOURCE), extend the ReportModel/DataBinder.Reports with presence conditions and varying counters, evaluate them at presentation time in the new-substrate Cobol.Net.Runtime/IO/ReportWriter, and ship 85-edition 0900 gates, matrix rows, and per-edition conformance goldens in the same change set. |
-| CONCAT | NOT-STARTED | 6 | S — the P10 wave must add the & token + a concatenation-expression rule at every literal position, fold operands to one literal at bind time per §8.8.3 (with class-compatibility checks incl. boolean), wire the concat-operator-2002 introduction gate (COBOLNET0900 below 2002) into the VersionConformancePass funnel, and ship enabled concat_literal/concat_boolean goldens while flipping the constructs.json row off pending. |
+| CONCAT | NOT-STARTED | 6 | S — **LANDED 2026-07-16 (Step 14):** the & token + `concatenationExpression` tier inside `nonNumericLiteral` (every literal position), the bind-time fold per §8.8.3.3 GR3 (`ConcatFolder`; class rules incl. boolean → 1540/1541/1545), the concat-operator-2002 gate in the VersionConformancePass parse arm (0900 below 2002), the ONE `literal_concat` golden (subsumes the planned concat_literal/concat_boolean pair — the boolean leg is in it) + `concat_below_2002`/`concat_class_mismatch` negatives, row flipped ACTIVE. |
 | CONSTANT | NOT-STARTED | 6 | M — the P10 wave must add the CONSTANT token and §13.10 grammar alternative, bind constant-names to folded compile-time values substituted wherever literals are legal (including data-division positions), implement §13.18.15 CONSTANT RECORD with immutability enforcement, wire the constant-entry-2002 registry Check so pre-2002 use fires COBOLNET0900 instead of a generic parse error, and activate the pending matrix row with conformance goldens. |
 | TYPEDEF-residue | PARTIAL | 7 | M — the wave must implement SAME AS (§13.18.49) end-to-end (grammar rule + binder inline-expansion reusing the ExpandTypes clone machinery + SR checks + edition gate + goldens), un-stage COBOLNET1534 by modeling run-unit-shared EXTERNAL types with cross-source-unit same-type equivalence in SameStrongType, and un-stage the two mechanical residues (carry Renames66 through CloneItem per §13.18.58.4 GR1; per-reference INDEXED-BY index-name uniquing per §13.18.38), converting the SR4 rejection to its named check and adding 2014/2023 continuity goldens. |
 
@@ -405,7 +405,7 @@ Gaps:
 - SOURCE clause 2002 format: SOURCES ARE, multiple operands, arithmetic-expression sources, the ROUNDED phrase (with the EC-REPORT-SUM-SIZE interaction) — ISO §13.18.53
 - Edition gating + matrix coverage: no VersionConformancePass introduction gate (2002+ construct → 0900 at --std cobol85) and no version-matrix constructs.json row for any RW-2002 construct — ISO §8.9 interval encoding per the version-test-matrix invariant, over §13.18.41/§13.18.64/§13.18.38
 
-**CONCAT — the & concatenation operator (ISO §8.8.3)** — `NOT-STARTED`
+**CONCAT — the & concatenation operator (ISO §8.8.3)** — `NOT-STARTED` → ✅ **LANDED (Step 14, 2026-07-16)** — all six gaps below CLOSED: (1) grammar — `AMPERSAND` (CobolLexer.g4, §8.7.3) + the `concatenationExpression`/`concatOperand` tier as the FIRST alternative of `nonNumericLiteral` (every literal position inherits it per §8.8.3.3 GR3); (2) binder — NO `BoundConcat` (the spec's construct is a compile-time literal, GR3): `Binding/ConcatFolder.cs` folds to the equivalent single literal with the §8.8.3.2 class rules (alnum/national/boolean + figurative adaptation GR1a/GR1b) as COBOLNET1540/1541/1545; (3) emitter — none needed, the folded literal rides the existing literal channels; (4) gating — `Constructs.ConcatOperator2002` fires from the VersionConformancePass parse arm (`VisitConcatenationExpression`, recognition, position-blind) → 0900 below 2002, verified via the CLI at `--std 85`; (5) goldens — `literal_concat` ENABLED (subsumes the planned concat_literal/concat_boolean pair) + the `concat-operator-2002` matrix row ACTIVE + `concat_below_2002`/`concat_class_mismatch` negatives; (6) the boolean leg — B"…" & B"…" folds and routes through the boolean relation channel (`ConditionBinder.IsBooleanValueOperand`/`BindBoolOperandValue` concat arms). Original audit record follows.
 
 Evidence:
 - grep 'BoundConcat' over E:\CobolSharp\src — zero matches (only hit repo-wide is docs\rearchitecture\PHASE-10-m2-residual-catalog.md)
@@ -741,19 +741,44 @@ Goldens + matrix + negatives; NIST-85 RW baselines byte-invariant (full guard). 
 
 ---
 
-### Step 14 — `&`-concatenation operator §8.8.3
+### Step 14 — `&`-concatenation operator §8.8.3 — ✅ LANDED 2026-07-16
 
-**Files:** `src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4` (a concatenation tier — `&` between literals/operands), `src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4` (the `&` token — confirm; note `&` may need care vs continuation), `src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs` (`BoundConcat` node), the binder tier (parallel to `Binding/Procedure/Verbs/ConditionBinder.cs`'s `MakeBoolBinary`), `CodeGen/Emit/OperandText.cs` (render concatenation via `CobolString`/`CobolBool`).
+**As built** (the recipe below predates the spec read; the §8.8.3 text overrode two of its guesses):
+- **The construct is a COMPILE-TIME LITERAL, not a runtime operator.** §8.8.3.1's operands are only
+  literals / figurative constants / concatenation expressions (never identifiers), and §8.8.3.3 GR3 makes the
+  result "equivalent to a literal of the same class and value … used anywhere a literal of that class may be
+  used" — so there is NO `BoundConcat` node and NO emitter/`OperandText` leg: `Binding/ConcatFolder.cs` (the
+  ONE fold chokepoint) collapses the parse-tree `concatenationExpression` into the equivalent single literal,
+  and every consumer rides the pre-existing literal channels. Boolean `&` (`B"01" & B"10"` → `B"0110"`) folds
+  the same way — there is no "runtime concat for bit strings" (both operands are literals by grammar).
+- **Grammar:** `AMPERSAND : '&'` (CobolLexer.g4, §8.7.3 — no continuation interaction; the separator-space
+  rule is token-stream lenient like `::`) + `concatenationExpression : concatOperand (AMPERSAND concatOperand)+`
+  as a distinct additive FIRST alternative of `nonNumericLiteral` (no shared-rule restructure; `&` appears in
+  no other rule, so prediction is exact). SUPERSET PARSE at every edition.
+- **Gate:** NOT an `{is2002()}?` predicate — per the Exec-Step-E doctrine the ONE funnel is the
+  VersionConformancePass parse arm: `VisitConcatenationExpression` → `Check(Constructs.ConcatOperator2002)`
+  (position-blind recognition; 0900 below 2002; `constructs.json` row ACTIVE, `expectDiagnostic` 0900).
+- **SR diagnostics (one code per rule, DiagnosticCatalog):** COBOLNET1540 `concat-class-mismatch` (SR1
+  same-class; figurative adaptation GR1a/GR1b; NULL has no character value), COBOLNET1541
+  `concat-all-figurative` (SR1 — no ALL-prefixed figurative), COBOLNET1545 `concat-result-too-long`
+  (SR2–SR4 8,191 cap). Figuratives fold ONE character (§8.3.3.6.4 GR3a; H/L use the PCS extremes when
+  active, else the native U+00FF/U+0000 pins; boolean class admits only ZERO).
+- **Consumers wired through the fold:** `ExpressionBinder.LiteralOperand/ConcatOperand/NumLiteral` (0844 in a
+  numeric context), `ConditionBinder` (comparisons + the boolean channel), `EvaluateBinder`, `InspectBinder`,
+  `IntrinsicBinder` (FUNCTION arguments), `CallBinder` (CALL/CANCEL literal-1), `ControlFlowBinder` (STOP),
+  `OoBinder` (INVOKE method-name + literal args; its inline hex decode unified into `CobolLiteral.DecodeHex`),
+  `DataBinder` VALUE capture (`ExtractValue`/`RawValueOperandText` incl. level-88s and Report Writer VALUE),
+  `DataBinder.Switches` ALPHABET/CLASS literals, `OptionsBinder` INITIALIZE fill.
 
-**Change:** Implement the §8.8.3 concatenation operator `&`: a *concatenation expression* joins two literals/figurative constants (2002 defines it primarily for VALUE-clause and boolean literals; boolean `&`-concatenation §8.8.2/§8.8.3 concatenates bit strings). Bind to `BoundConcat`, render as a compile-time-folded literal where both operands are literals (the common case — VALUE `"AB" & "CD"`), and as a runtime concat for boolean bit-string concatenation. Gate `{is2002()}?`. Do NOT restructure a shared core expression rule in a DFA-hazardous way — add the concat tier as a distinct additive alternative with the full legacy guard.
-
-**Why:** Named in scope ("the &-concatenation operator §8.8.3"); reconciliation lists `concat-operator-2002` PENDING (Phase 4g). Zero surface today.
-
-**Verify:**
-- New golden `tests/conformance/2002/concat_literal.cob` (`01 X PIC X(4) VALUE "AB" & "CD".` → `ABCD`) and `concat_boolean.cob` (`B"01" & B"10"` → `0110`) → run byte-exact.
-- `--std 85` → `&` concat rejected (`0900`).
-- `constructs.json` row `concat-operator-2002`.
-- **Grammar change → FULL legacy guard** `bash scripts/guard.sh` NIST 353 MATCH.
+**Verified:**
+- Golden `tests/conformance/2002/literal_concat.cob/.out` ENABLED (subsumes the planned
+  `concat_literal`/`concat_boolean` pair): every legal class pair (alnum incl. X"…" hex, national, boolean),
+  figurative operands, a VALUE-clause use, a level-88 VALUE, MOVE/DISPLAY/IF/EVALUATE uses, a boolean
+  relation, a multi-operand chain, and `FUNCTION LENGTH("AB" & "CD")` → 4 — run byte-exact. Legacy
+  `ConformanceTests` GreenfieldOnly exclusion (the frozen legacy grammar has no `&` token).
+- `--std 85` → 0900 (CLI-verified + `concat_below_2002` negative); `"AB" & N"CD"` → 1540
+  (`concat_class_mismatch` negative at 2002/2014/2023); matrix row active across all four editions.
+- **Grammar change → FULL legacy guard** rides the supervising battery (`scripts/guard.sh` NIST 353 MATCH).
 
 **COMMIT BOUNDARY.** Suggested message:
 ```
@@ -881,7 +906,7 @@ All tracks are **COBOL-2002 introductions** (carried unchanged through 2014/2023
 | EC national intrinsics — **LANDED (Step 11)** | §15.29 EXCEPTION-FILE-N + §15.31 EXCEPTION-LOCATION-N (the only `-N` twins) + §15.16 CHAR-NATIONAL | 2002 | `exception_file_n` + `char_national` ✓ | `exception-file-n-2002` ✓ (+ `exception_file_n_below_2002` negative) | (n/a — runtime) |
 | ARITHMETIC IS STANDARD | §11.9.5 ARITHMETIC clause; §14.4.2 standard intermediate arithmetic | 2002 (2014 same; a 2023 VCR delta) | `arithmetic_standard` | `arithmetic-standard-2002` | arithmetic-standard-at-85 |
 | Report Writer 2002 | RD PRESENT WHEN (format 1); VARYING (format 1) | 2002 | `rw_present_when`, `rw_varying` | `rw-present-when-2002`, `rw-varying-2002` | rw-present-when-at-85 |
-| `&`-concatenation | §8.8.3 concatenation expression | 2002 | `concat_literal`, `concat_boolean` | `concat-operator-2002` | concat-at-85 |
+| `&`-concatenation — **LANDED (Step 14)** | §8.8.3 concatenation expression | 2002 | `literal_concat` ✓ (the one golden subsumes the planned pair — boolean leg included) | `concat-operator-2002` ✓ ACTIVE | concat_below_2002 ✓ (+ `concat_class_mismatch` SR1 negative) |
 | CONSTANT entries | §13.10 constant entry; §13.18.15 CONSTANT RECORD | 2002 | `constant_entry`, `constant_record` | `constant-entry-2002`, `constant-record-2002` | constant-as-receiver; constant-at-85 |
 | TYPEDEF residue | §13.18.44 TYPEDEF/SAME AS; §8.8.4.2 SR4 strong-group relations; EXTERNAL type | 2002 | `typedef_same_as`, `typedef_external` | `same-as-clause-2002`, `external-typedef-2002` | strong-group-heterogeneous-compare |
 

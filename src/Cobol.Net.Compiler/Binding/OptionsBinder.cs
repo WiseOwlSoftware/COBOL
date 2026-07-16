@@ -35,11 +35,11 @@ internal static class OptionsBinder
 
         var model = OptionsModel.Default;
         foreach (var clause in options.optionsClause())
-            model = Apply(model, clause);
+            model = Apply(model, clause, edition);
         return model;
     }
 
-    private static OptionsModel Apply(OptionsModel m, Core.OptionsClauseContext c)
+    private static OptionsModel Apply(OptionsModel m, Core.OptionsClauseContext c, EditionContext? edition)
     {
         if (c.arithmeticClause()?.arithmeticMethod() is { } am)
             return m with { Arithmetic = ArithmeticOf(am) };
@@ -54,7 +54,7 @@ internal static class OptionsBinder
         if (c.intermediateRoundingClause()?.intermediateRoundingMode() is { } ir)
             return m with { IntermediateRounding = RoundingModes.MapIntermediate(ir) };
         if (c.optionsInitializeClause() is { } init)
-            return m with { Initialize = InitializeOf(init) };
+            return m with { Initialize = InitializeOf(init, edition) };
         return m;
     }
 
@@ -76,7 +76,7 @@ internal static class OptionsBinder
         return m with { FloatDecimalEncoding = encoding, FloatDecimalEndianness = endianness };
     }
 
-    private static OptionsInitialize InitializeOf(Core.OptionsInitializeClauseContext init)
+    private static OptionsInitialize InitializeOf(Core.OptionsInitializeClauseContext init, EditionContext? edition)
     {
         var target = init.optionsInitializeTarget();
         OptionsSections sections = target.ALL() is not null
@@ -84,7 +84,13 @@ internal static class OptionsBinder
             : target.optionsInitializeSection().Aggregate(OptionsSections.None, (acc, s) => acc | SectionOf(s));
 
         var fill = init.optionsInitializeFill();
-        if (fill.literal() is { } lit) return new OptionsInitialize(sections, OptionsFill.Literal, lit.GetText());
+        // §8.8.3.3 GR3: a concatenation-expression fill literal folds to its equivalent literal's raw text
+        // (GetText would glue the operand tokens). OPTIONS precedes SPECIAL-NAMES, so no PCS table applies.
+        if (fill.literal() is { } lit)
+            return new OptionsInitialize(sections, OptionsFill.Literal,
+                lit.nonNumericLiteral()?.concatenationExpression() is { } ce && edition is not null
+                    ? ConcatFolder.Fold(ce, edition, null).RawText
+                    : lit.GetText());
         OptionsFill kind =
             fill.BINARY() is not null ? OptionsFill.BinaryZeroes
             : fill.HIGH_VALUE() is not null ? OptionsFill.HighValues

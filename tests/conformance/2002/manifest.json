@@ -25,6 +25,7 @@
     "goback_returning",
     "highest_lowest_algebraic",
     "initialize_phrases",
+    "literal_concat",
     "national_data",
     "national_intrinsics",
     "oo_any_length",

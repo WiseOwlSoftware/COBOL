@@ -97,6 +97,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         // national result category; greenfield CorpusRunner byte-compares both.
         ("2002", "exception_file_n"),
         ("2002", "char_national"),
+        // P10 Step 14: §8.8.3 concatenation expressions (the & operator) — the frozen legacy grammar has no
+        // & token at all; greenfield CorpusRunner byte-compares the golden.
+        ("2002", "literal_concat"),
         ("2002", "oo_interface"),
         ("2002", "oo_interface_conformance"),
         ("2002", "oo_class_env"),   // class-level env + object-own env both bind (DEVLOG-738 fix) — OBJECT-paragraph env never landed in legacy   // the §4.2.2 interface conformance leg (P9 Step 12) — interfaces never landed in legacy

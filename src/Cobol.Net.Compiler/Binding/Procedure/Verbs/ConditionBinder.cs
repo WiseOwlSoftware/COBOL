@@ -89,6 +89,11 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundBoolExpr BindBoolOperandValue(Core.ValueOperandContext vo)
     {
         var nn = vo.nonNumericLiteral();
+        // A boolean concatenation expression (B"01" & B"10", ISO §8.8.3) folds to its equivalent single
+        // boolean literal at compile time (§8.8.3.3 GR3) — the §8.8.2 operand list admits a boolean literal,
+        // and the folded result IS one. A non-boolean concat is not a boolean operand (1511, below).
+        if (nn?.concatenationExpression() is { } ce && ConcatFolder.ClassOf(ce) is PicCategory.Boolean)
+            return new BoundBoolLiteral(ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value);
         if (nn?.BOOLLIT() is { } bl)
             // BooleanData2002 (the B"…" literal introduction) gates on RECOGNITION in the VersionConformancePass
             // parse-arm (VisitNonNumericLiteral, statement-scoped); Step 14h.4b.
@@ -124,6 +129,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var nn = vo.nonNumericLiteral();
         if (nn?.BOOLLIT() is not null) return true;
         if (nn?.figurativeConstant()?.BOOLLIT() is not null) return true;
+        // A concatenation expression whose class is boolean (§8.8.3.3 GR1) routes through the boolean channel
+        // like the equivalent single B"…" literal it folds to (GR3). ClassOf is diagnostic-free — the fold
+        // (and its SR diagnostics) happens exactly once, on the bind path this predicate selects.
+        if (nn?.concatenationExpression() is { } ce) return ConcatFolder.ClassOf(ce) is PicCategory.Boolean;
         if (vo.arithmeticExpression() is { } expr && SoleDataRef(expr) is { } dref
             && ctx.Refs.Resolve(dref) is { } p)
             return (p is RefModPlace rm ? rm.Inner.Item.Pic?.Category : p.Item.Pic?.Category) is PicCategory.Boolean;
@@ -531,6 +540,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// and the boolean-alt unwrap path — feedback_singular_pattern).</summary>
     private BoundOperand ComparisonOperandOf(Core.ValueOperandContext? vo)
     {
+        // §8.8.3.3 GR3: a concatenation expression folds to (and compares as) the equivalent single literal.
+        if (vo?.nonNumericLiteral()?.concatenationExpression() is { } ce) return host.Expr.ConcatOperand(ce);
         if (vo?.nonNumericLiteral()?.figurativeConstant() is { } fig) return ExpressionBinder.FigurativeOperand(fig);
         if (vo?.nonNumericLiteral()?.STRINGLIT() is { } s) return new BoundStringLiteral(CobolLiteral.Decode(s.GetText()));
         if (vo?.nonNumericLiteral()?.NATLIT() is { } nat) return host.Expr.NationalLiteralOperand(nat.GetText());

@@ -162,6 +162,10 @@ internal sealed class InspectBinder(BinderContext ctx, StatementBinder host)
                     "INSPECT operand ALL \"literal\" (ISO §14.9.22.3 SR3 — a figurative constant beginning with ALL is not permitted)"), false);
             return (new BoundStringLiteral(InspectFigurativeChar(fig).ToString()), true);
         }
+        // §8.8.3.3 GR3: a concatenation expression is the equivalent single literal — fold and use it as the
+        // INSPECT literal operand (not Figurative: the fold result is a plain literal value).
+        if (c.literal()?.nonNumericLiteral()?.concatenationExpression() is { } ce)
+            return (host.Expr.ConcatOperand(ce), false);
         if (c.literal()?.nonNumericLiteral()?.STRINGLIT() is { } s)
             return (new BoundStringLiteral(CobolLiteral.Decode(s.GetText())), false);
         // National/boolean literal operands decode char-correct (the class-mix SR validation across the

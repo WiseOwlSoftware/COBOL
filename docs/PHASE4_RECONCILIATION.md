@@ -1370,8 +1370,9 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
   method-invocation boolean args** (§8.4.3.4.2 :7121–7140) — rides the inline-invocation residue. (4)
   **Compile-time boolean expressions** in >>DEFINE/>>EVALUATE/>>IF (§7.3.7 :3833 SR1 :3844; §7.3.8; :4051+/
   :4221+) — already a documented deferral, ConditionalCompilationProcessor.cs:20–21. (5) **BX"…" literals**
-  (lexer comment :595) + **`&` boolean concatenation** (§8.8.3 :9429–9450; `concat-operator-2002` row PENDING
-  Phase 4g). (6) **BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN / LENGTH-over-boolean** (§15; catalog Deferred rows
+  (lexer comment :595) stay a residue; **`&` boolean concatenation** (§8.8.3 :9429–9450) is ✅ LANDED — P10
+  Step 14 (2026-07-16): a compile-time fold (`Binding/ConcatFolder.cs`, §8.8.3.3 GR3) incl. the boolean leg
+  (`B"01" & B"10"` folds to `B"0110"` and routes the boolean relation channel); `concat-operator-2002` ACTIVE. (6) **BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN / LENGTH-over-boolean** (§15; catalog Deferred rows
   IntrinsicCatalog.cs:124/:143 — already loud). (7) **Dynamic-length ref-mod operand in F2's GR3 width** — 0898.
   (8) **The boolean EC-DATA-INCOMPATIBLE bridge** (§14.6.13.2 r1 :24869 — non-0/1 sender via REDEFINES/aliasing;
   unchecked = the "undefined result" license, charwise). (9) **USAGE BIT positions under ref-mod** (GR5a :7083)
@@ -1835,7 +1836,8 @@ The M2 non-OO tracks were re-audited against the POST-REARCHITECTURE tree (Stora
 ManagedPointer / RunUnit) by 13 parallel file:line-citing auditors; the authoritative per-track verdict table +
 evidence lives in `docs/rearchitecture/PHASE-10-m2-residual-catalog.md` §Step-1 AUDIT RESULT. Headline: NO track
 is fully confirmed end-to-end; 9 are PARTIAL (UDF, national, boolean, pointers, allocate, file-sharing,
-line-seq, arithmetic-standard, typedef-residue), 3 are NOT-STARTED (the & concatenation operator, CONSTANT
+line-seq, arithmetic-standard, typedef-residue), 3 were NOT-STARTED (the & concatenation operator — since
+LANDED, P10 Step 14 2026-07-16, as the compile-time `ConcatFolder` fold per §8.8.3.3 GR3 — CONSTANT
 entries/records, Report Writer 2002 additions), and the EC `-N` twins were STAGED-LOUD blocked on the national
 intrinsics (since LANDED — P10 Step 11, 2026-07-16). The stale ☑/◐ marks in this file's older tables are
 SUPERSEDED by that section.
