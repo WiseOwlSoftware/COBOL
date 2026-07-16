@@ -1827,3 +1827,13 @@ Excludes 13 LANDED and 1 OBSOLETE-by-design (M2-PROC-3, warning-row only). 24 ro
    verified as zero greenfield surface. Extra checks (M2-PROC-5 ALLOCATE falls to generic
    BoundUnsupported; M2-PROC-3 VALIDATE zero grammar; PicInfo 19 skeleton-usage hits for DATA-1..5)
    all match the audit. The audit rows are trustworthy for wave planning.
+
+## GreenfieldStatus@P10 (2026-07-16 — the PHASE-10 Step-1 reconciliation audit)
+
+The M2 non-OO tracks were re-audited against the POST-REARCHITECTURE tree (StorageForm / FileConnector /
+ManagedPointer / RunUnit) by 13 parallel file:line-citing auditors; the authoritative per-track verdict table +
+evidence lives in `docs/rearchitecture/PHASE-10-m2-residual-catalog.md` §Step-1 AUDIT RESULT. Headline: NO track
+is fully confirmed end-to-end; 9 are PARTIAL (UDF, national, boolean, pointers, allocate, file-sharing,
+line-seq, arithmetic-standard, typedef-residue), 3 are NOT-STARTED (the & concatenation operator, CONSTANT
+entries/records, Report Writer 2002 additions), and the EC `-N` twins are STAGED-LOUD blocked on the national
+intrinsics. The stale ☑/◐ marks in this file's older tables are SUPERSEDED by that section.

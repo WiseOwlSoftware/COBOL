@@ -8,7 +8,7 @@
 - **Goal (one paragraph):** Every mandatory COBOL-2002 *non-OO* language feature is implemented end-to-end on the *rearchitected* substrate — national/boolean data ride `StorageForm.CharImage` (one UTF-16 char per position), pointers ride the `ManagedPointer` carrier, files ride `FileConnector`, UDFs ride the per-activation data model — with a rejecting diagnostic under every `--std` edition that lacks the feature, a discovered positive corpus entry, a version-matrix row, and a negative `.err` case per feature. The phase OPENS with a greenfield-vs-catalog reconciliation audit (a fresh `GreenfieldStatus` column sized against the *current* post-rearchitecture tree, not a stale legacy-era snapshot), so every subsequent wave is scoped against truth rather than the legacy-era ☑/◐ marks. It CLOSES with the M2 catalog marks flipped to greenfield truth and the full battery green.
 - **Exit criteria:** Every track's positive corpus discovered by the greenfield runner (`CorpusRunnerTests` over `manifest.json`) + a version-matrix row + a negative `.err`; the M2 catalog (`docs/ISO2023_CONFORMANCE_PLAN.md` §3 and `docs/PHASE4_RECONCILIATION.md`) marks flipped to greenfield truth; national `CharImage` confirmed one-UTF-16-char-per-position by a runtime assertion + a golden; full battery green (2028+ greenfield conformance + 213+ unit + FULL legacy guard NIST 353 MATCH).
 
-> **STATUS:** NOT STARTED
+> **STATUS:** IN PROGRESS @ step 1 (2026-07-16 — the reconciliation audit is running as a parallel per-track workflow; results land in this file under Step 1)
 > _(The executing session updates this line: `NOT STARTED` → `IN PROGRESS @ step N (<short note>)` → `DONE`. Keep the per-step checkboxes in §4 current in the same commit that lands each step.)_
 
 ---
@@ -90,7 +90,7 @@ When Phase 10 is DONE, the following are true and demonstrable:
 
 **Progress checkboxes (executing session keeps current):**
 
-- [ ] Step 1 — Reconciliation audit + `GreenfieldStatus` column
+- [x] Step 1 — Reconciliation audit + `GreenfieldStatus` column (2026-07-16 — the audit table + evidence under Step 1 below; 9 PARTIAL · 3 NOT-STARTED · 1 STAGED-LOUD; 56 ISO-cited gaps)
 - [ ] Step 2 — National on `StorageForm.CharImage` (confirm + prove one-UTF-16-char/position)
 - [ ] Step 3 — Boolean data + operators on the new folders (confirm)
 - [ ] Step 4 — ALPHABET national / UCS-4 / UTF-8 / UTF-16 phrases (net-new)
@@ -134,6 +134,343 @@ Fresh greenfield-truth audit of the M2 non-OO catalog against the post-rearchite
 tree (StorageForm / FileConnector / ManagedPointer). Wave-sizing recorded in
 PHASE-10 §4; PHASE4_RECONCILIATION rows annotated. No code change.
 ```
+
+---
+
+#### Step-1 AUDIT RESULT (2026-07-16 — 13 parallel read-only auditors, every verdict file:line-cited; the full evidence lists follow the table)
+
+| Track | Verdict | Gaps | Wave sizing |
+|---|---|---|---|
+| UDF | PARTIAL | 4 | M — the wave must land the category-carrying result channel (clone the full RETURNING description into the caller temp and route class/category through the reading expression, deleting the 1510 reject), parse + model header BY VALUE formals end-to-end (grammar → DataBinder.Linkage → UdfArg → CallEmitter), and replace the 1509 hoist guard with per-evaluation activation; the invocation core, recursion, prototypes, and EXIT FUNCTION already ride the new substrate with enabled goldens. |
+| DATA-3-national | PARTIAL | 3 | S — the P10 wave must land DISPLAY-OF/NATIONAL-OF as Runtime rows on CobolIntrinsics (the ANUM↔NAT repertoire-translation machinery already exists in CobolIntrinsics.Text.cs:134-148 for CONVERT, so this is catalog re-wiring plus the argument-2 codeset-name handling), flip the two rows off Deferred, and ship an enabled 2002 conformance golden exercising both directions in the same commit; the SR12 national-form numeric/boolean leg can stay staged-loud as a separately catalogued residual. |
+| DATA-4-boolean | PARTIAL | 3 | M — the wave must land the four 2023 B-SHIFT operators end-to-end (lexer tokens + a shift tier in the §8.8.2 booleanExpression grammar with an arithmetic shift-count operand, a new BoundBoolShift leaf through the generated visitor, CobolBool.ShiftL/LC/R/RC, a 2023-only VersionConformancePass gate row, an enabled 2023 golden + a below-2023 negative), plus the small BX\"…\" lexer leg and the national-form boolean representation, and fix the stale CobolExpressions.g4:145-150 staged-residue comment; the entire 2002 core (data, literals, four operators, conditions, COMPUTE F2) needs no rework — it already rides StorageForm/Place/CobolBool. |
+| DATA-5-pointers | PARTIAL | 4 | M — the P10 wave must land USAGE PROGRAM-POINTER end-to-end (lexer token + usageClause alternative + a PicCategory/StorageForm.PointerRef-style carrier resolving through the existing RunUnit ProgramTable for SET … TO ENTRY, with a 2002 ConstructRegistry introduction row and an enabled golden), and unstage the two loud residues (class-unit BASED/ADDRESS OF cell emission; qualified/subscripted ADDRESS OF operands) on the already-proven ManagedPointer/StorageCell substrate. |
+| PROC-5-allocate | PARTIAL | 2 | S — the wave must land the §14.9.3 GR7 INITIALIZE lowering for ALLOCATE based-item INITIALIZED (drive the existing INITIALIZE machinery over the freshly allocated cell, delete the BoundUnsupported stage at PtrBinder.cs:127-129), and add/extend one enabled 2002 golden so INITIALIZED zero-fill (GR6) and form-2 RETURNING (GR4b) are byte-verified at runtime. |
+| FILE-1-sharing-lock | PARTIAL | 6 | M — the wave must extend lock governance beyond keyed READ on the existing PhysicalFileTable: give sequential connectors a record identity, add the record-operation-conflict (51) check + bound RETRY consumption to WRITE/REWRITE/DELETE/START, honor timed RETRY semantics, and either implement or loudly ledger the cross-run-unit sharing posture (§9.1.15) with new enabled goldens per leg. |
+| FILE-2-line-seq | PARTIAL | 6 | M — the wave must add the 62 production site to DeleteFile via the PhysicalFileTable open set, give sequential records a lock identity (or ledger the residue) so the §9.1.16 51/53/54 family can fire on SequentialConnector, implement the 06/09/71 line-sequential status protocol plus the §14.9.35 line-seq REWRITE leg on the connector, and land the LINE SEQUENTIAL edition gate (VersionConformancePass arm + version-matrix row) while reconciling the 2002-enabled oo_object_report golden — each leg small and localized but spanning runtime, emitter, gate registry, and corpus. |
+| PROC-4-ec-n | STAGED-LOUD | 6 | M — the P10 wave for this track (catalog Step 11 / P11 backlog Step 4) is hard-blocked on national CharImage data landing first (P10 Step 2); it must then flip the four Deferred rows (EXCEPTION-FILE-N, EXCEPTION-LOCATION-N, CHAR-NATIONAL, NATIONAL-OF) to IntrinsicBind.Runtime, add EcFileN/EcLocationN national variants to Cobol.Net.Runtime/Exceptions/EcFunctions.cs, give IntrinsicRenderer a national string channel (replacing the LoudValue arm and the National→Alphanumeric category fold), and ship the golden + matrix row + --std 85 negative in the same commit; the flip itself is S but the national-channel dependency makes the wave M. |
+| ARITH-2-standard | PARTIAL | 6 | M — the phase doc's planned net-new 'OptionsModel.ArithmeticMode consumed by the numeric renderer' build (Step 12, catalog line 76) is ALREADY LANDED and golden-pinned on the post-P7 NumericRenderer/CobolDec substrate, so the P10 wave shrinks to closing the residual spec legs: SDIDI exponentiation (§8.8.1.5.4), routing the §15.4.1 intrinsic set and the RW SUM clause through the mode, the decimal128-range size ECs (§8.8.1.5.2 r2), resolving the 2002-vs-2014 introduction edge against the 2002 standard (then either an arithmetic-standard-2002 registry row + 2002 golden + negative .err at --std 85, or a corrected catalog row), and rewriting the stale Step 12 text from 'consume the mode' to 'close the residual legs'. |
+| RW-2002 | NOT-STARTED | 7 | L — the wave must add the PRESENT lexer token plus six 2002 grammar formats (PRESENT WHEN, VARYING, OCCURS+STEP, multi-COLUMN with alignment, multi-LINE, expression/ROUNDED SOURCE), extend the ReportModel/DataBinder.Reports with presence conditions and varying counters, evaluate them at presentation time in the new-substrate Cobol.Net.Runtime/IO/ReportWriter, and ship 85-edition 0900 gates, matrix rows, and per-edition conformance goldens in the same change set. |
+| CONCAT | NOT-STARTED | 6 | S — the P10 wave must add the & token + a concatenation-expression rule at every literal position, fold operands to one literal at bind time per §8.8.3 (with class-compatibility checks incl. boolean), wire the concat-operator-2002 introduction gate (COBOLNET0900 below 2002) into the VersionConformancePass funnel, and ship enabled concat_literal/concat_boolean goldens while flipping the constructs.json row off pending. |
+| CONSTANT | NOT-STARTED | 6 | M — the P10 wave must add the CONSTANT token and §13.10 grammar alternative, bind constant-names to folded compile-time values substituted wherever literals are legal (including data-division positions), implement §13.18.15 CONSTANT RECORD with immutability enforcement, wire the constant-entry-2002 registry Check so pre-2002 use fires COBOLNET0900 instead of a generic parse error, and activate the pending matrix row with conformance goldens. |
+| TYPEDEF-residue | PARTIAL | 7 | M — the wave must implement SAME AS (§13.18.49) end-to-end (grammar rule + binder inline-expansion reusing the ExpandTypes clone machinery + SR checks + edition gate + goldens), un-stage COBOLNET1534 by modeling run-unit-shared EXTERNAL types with cross-source-unit same-type equivalence in SameStrongType, and un-stage the two mechanical residues (carry Renames66 through CloneItem per §13.18.58.4 GR1; per-reference INDEXED-BY index-name uniquing per §13.18.38), converting the SR4 rejection to its named check and adding 2014/2023 continuity goldens. |
+
+**UDF — user-defined functions (FUNCTION-ID)** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs:85 — COBOLNET1510 still a live staged reject: only elementary fixed-point numeric RETURNING implemented (guard at line 83)
+- tests/Cobol.Net.Tests.Conformance/UdfInvocationTests.cs:388-418 — StagedReturningCategories_1510 asserts the reject (PIC X and group RETURNING both fail loud)
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs:150-151 — invocation lowers onto BoundCallProgram{IsFunction=true} + caller-side __FNRES temp (new bound-tree substrate, P7 Step 10k collaborator)
+- src/Cobol.Net.Compiler/Binding/BinderDriver.cs:187 — implicit recursive attribute for every FUNCTION-ID unit (§9.4 :12529)
+- src/Cobol.Net.Runtime/Control/ProgramTable.cs:119-124 — Recursive ⇒ fresh per-activation instance via n.Factory (the P8 runtime-reorg substrate; RunUnit-owned ModuleStack push at line 131)
+- tests/conformance/2002/manifest.json:80-87 — all 8 udf_* goldens (udf_invocation, udf_inline_expression, udf_value_args, udf_nested_args, udf_recursion, udf_exit_function, udf_prototype, udf_keyword_omitted) in the ENABLED array
+- tests/Cobol.Net.Tests.Conformance/CorpusRunnerTests.cs:27-30 — the greenfield CorpusRunner consumes manifest.json enabled entries (compile + byte-compare .out at --std 2002)
+- tests/conformance/2002/udf_recursion.cob:30 — self-recursive factorial through five nested activations proves per-activation LINKAGE/temp data
+- src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4:406-408 — usingClause is 'USING dataReferenceList' only; NO BY VALUE/BY REFERENCE alternative in the PD header
+- src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs:185 — 'the header BY VALUE phrase is not yet parsed'
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs:158-166 — 'Header BY VALUE formals (GR5c) are not modeled for functions'; UdfArg maps only Reference/Content
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/UdfBinder.cs:103,194,235 — COBOLNET1506 (OMITTED args) and COBOLNET1509 (conditionally-evaluated positions) staged loud
+
+Gaps:
+- category-carrying RETURNING (group / alphanumeric / edited / float result channel; currently staged COBOLNET1510, elementary fixed-point numeric only) — ISO §8.4.3.2.4 GR1
+- BY VALUE formal parameters in the FUNCTION-ID PROCEDURE DIVISION USING header (grammar-absent — raw parse error, no named diagnostic) — ISO §14.2.3 / §8.4.3.2.4 GR5c
+- OPTIONAL formals / OMITTED arguments for function activation (staged COBOLNET1506) — ISO §14.8.2
+- per-evaluation activation for conditionally-evaluated reference positions: PERFORM UNTIL/VARYING, SEARCH WHEN, EVALUATE selection, non-first AND/OR operands (staged COBOLNET1509) — ISO §8.8.4.13 r2
+
+**DATA-3-national** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Compiler/Binding/Passes/StorageFormPass.cs:202 — national leaf classified to StorageForm.CharImage(item.ImageWidth, pic.Category)
+- src/Cobol.Net.Compiler/Binding/Model/StorageForm.cs:49 — CharImage(int Width, PicCategory Category), ImageWidth => Width
+- src/Cobol.Net.Compiler/Binding/Model/DataItem.cs:293 — ElementaryImageWidth = pic.Length for national (one UTF-16 char/position); :237-241 states 'never byte-doubled for national'
+- src/Cobol.Net.Compiler/Binding/Passes/BindPipeline.cs:66 — StorageFormPass wired as the UsageCollected→StorageComputed pass
+- src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs:334-337 — national receiver: StrStore/StrStoreJustified left-justify, national-space pad, right-truncate (§14.6.8.5), A→N/9→N via D-N4
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs:213-228 — §14.9.25.3 SR10 Table-16 national sender/receiver legality (COBOLNET0819)
+- src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs:94-100 — national relations order under the D-N3 ordinal NATIONAL sequence; PCS weight table deliberately excluded
+- src/Cobol.Net.Runtime/Values/Text/CobolString.cs:78-79 — national space pad in the runtime compare substrate
+- src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs:82-85 — national VALUE stores via StrStore (§13.18.63 SR5)
+- src/Cobol.Net.Compiler/Binding/DataBinder.cs:1850-1855 — REDEFINES-over-national reject (tier Rejected, D-N2)
+- src/Cobol.Net.Compiler/Binding/DataBinder.cs:1873-1883 — GateNationalRecords: FD/SD record national leaf → DiagnosticCatalog.NationalData error; wired at BindPipeline.cs:46
+- src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs:332-343 — EXTERNAL cell-backing refuses national leaves (RESIDUE-11); loud ExternalRecordNotCellBacked at :305
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs:144-146 — table-SORT national key → DiagnosticCatalog.NationalData (§14.9.40 GR5b); file-sort keys covered by the FD gate
+- src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs:87-90 — the named diagnostic: NationalData, code 'national-data', RecognizedNotImplemented band
+- tests/conformance/2002/manifest.json:26 — 'national_data' in the ENABLED array; run+byte-compared by tests/Cobol.Net.Tests.Conformance/CorpusRunnerTests.cs:61-80 through the greenfield CompilerDriver
+- tests/conformance/2002/national_data.cob:27-64 — exercises N-literal MOVE, truncate, national-space pad, VALUE N"OK", A→N, 9→N, SPACE/INITIALIZE fill, =/< compares; .out byte-exact
+- tests/conformance/negative/manifest.json:32-33 — enabled negatives move-binary-to-national, move-national-to-an (the Table-16 prohibitions)
+- src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs:132-133 — DISPLAY-OF (§15.26) and NATIONAL-OF (§15.66) catalogued IntrinsicBind.Deferred
+- src/Cobol.Net.Compiler/CodeGen/Emit/IntrinsicRenderer.cs:52-53 — a Deferred row renders EmitText.LoudValue('FUNCTION <name> (catalogued, not yet implemented)'), never a wrong value
+- src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:153-156,194-197 — national-form boolean/numeric PICTURE under USAGE NATIONAL staged loud via DiagnosticCatalog.NationalData (§13.18.60.3 SR12)
+- src/CobolSharp.Runtime/Intrinsics/IntrinsicFunctions.cs:647-660 — DisplayOf/NationalOf exist ONLY in the legacy oracle runtime, not the new substrate
+
+Gaps:
+- NATIONAL-OF intrinsic not implemented on the new substrate (catalogued Deferred, renders a loud not-implemented guard; the legacy-only implementation does not count) — ISO §15.66
+- DISPLAY-OF intrinsic (the sanctioned national→alphanumeric narrowing that MoveBinder itself points users at) not implemented on the new substrate (Deferred-loud) — ISO §15.26
+- national-form numeric and boolean data (numeric/boolean PICTURE with USAGE NATIONAL) staged loud in PictureAnalyzer, not implemented — ISO §13.18.60.3 SR12
+
+**DATA-4-boolean** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:140-165 — PIC 1 → PicCategory.Boolean; USAGE DISPLAY and BIT both accepted (SR5/SR13b, identical D-B1 string storage); non-boolean usages rejected COBOLNET0881
+- src/Cobol.Net.Compiler/Binding/Passes/StorageFormPass.cs:202-203 — PicCategory.Boolean → StorageForm.CharImage: boolean data rides the NEW StorageForm data model (Binding/Model)
+- src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4:615,660 — BOOLLIT B"…" boolean literal token; :659 states BX"…" (hex) is deferred
+- src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4:111,132-138 — booleanExpression precedence tiers (B-NOT > B-AND > B-XOR > B-OR, §8.8.2 rule 7b) + the boolExprAhead()-gated condition entry; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4:804 — COMPUTE Format 2 boolean alt (§14.9.8)
+- src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs:237-263,282,387 — the BoundBoolExpr family (BoundBoolLiteral/Ref/All/Binary/Not/Error), BoundBooleanCondition, BoundComputeBoolean — a dedicated bound-tree value channel
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs:38,185,209 + ArithmeticBinder.cs:165,197 — BindBoolExpr / BindPrimaryBoolean / BoundComputeBoolean binding; ExpressionBinder.cs:74 — BooleanLiteralOperand
+- src/Cobol.Net.Compiler/CodeGen/Emit/BooleanRenderer.cs:14-49 — renders via the generated exhaustive IBoundBoolExprVisitor (PHASE-07 Step 6 substrate) over structural Place (PlaceRenderer.Read, line 25); ConditionRenderer.cs:41,82 — CobolBool.IsTrue/Equal; ArithmeticEmitter.cs:122 — EmitComputeBoolean; RuntimeApi.cs:24-41 — nameof-anchored CobolBool calls
+- src/Cobol.Net.Runtime/Values/Text/CobolBool.cs:23-113 — typed-native runtime (And/Or/Xor/Not/Equal/IsTrue/Resize + …All figurative forms) with §8.8.2 rules 9/10 length semantics; NO byte substrate
+- src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs:269,1101,1110 — BooleanData2002 + BooleanOperators2002 fire through the post-Step-E single gating funnel
+- tests/conformance/2002/manifest.json:9-10 — boolean_data AND boolean_ops ENABLED (CorpusRunnerTests compiles+runs+byte-compares at --std 2002 strict); goldens cover MOVE/VALUE/JUSTIFIED/INITIALIZE/comparison (boolean_data.cob:19-49) and all four operators + ALL B"…" + boolean relation + simple boolean condition (boolean_ops.cob:21-49)
+- tests/conformance/negative/manifest.json:13-14 — boolean-ordering-relation + boolean_operators_below_2002 enabled (must-reject witnesses for the edition gate and the equality-only relation rule)
+- src/Cobol.Net.Editions/ReservedWords.Table.cs:46-49 — B-SHIFT-L/-LC/-R/-RC exist ONLY as 2023 reserved-word rows; grep of src/ finds no lexer token, no grammar tier, no bound node, no CobolBool method, no golden for any shift operator
+- src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs:150-157 — national-form boolean (PIC 1 USAGE NATIONAL, §13.18.60.3 SR12) staged LOUD as an error before recovery to Display
+- DOC DRIFT: src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4:145-150 still claims the boolean relation/condition forms are 'STAGED RESIDUE … NOT yet supported', contradicted by line 111 and the ENABLED boolean_ops golden exercising IF A B-AND B = B"0100" (boolean_ops.cob:36-49)
+
+Gaps:
+- B-SHIFT-L / B-SHIFT-LC / B-SHIFT-R / B-SHIFT-RC boolean shift operators (2023): reserved-word-only — no lexer operator token, no grammar tier, no BoundBool node, no CobolBool runtime method, no golden — ISO §8.7.2 / §8.8.2 (Annex E.2 item 25)
+- BX"…" hexadecimal boolean literal: explicitly deferred at the lexer (CobolLexer.g4:659) — ISO §8.3.3.4
+- national-form boolean data (PIC 1 with USAGE NATIONAL): recognized but staged as a loud not-implemented error, recovers to Display (PictureAnalyzer.cs:150-157) — ISO §13.18.60.3 SR12
+
+**DATA-5-pointers** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs:40,89,193-194,229,261 — PicCategory.Pointer / Usage.Pointer / PicInfo.PointerItem; CLR type 'ManagedPointer', init 'ManagedPointer.Null' (§8.4.3.10)
+- src/Cobol.Net.Compiler/Binding/Passes/StorageFormPass.cs:198,234 — PicCategory.Pointer maps onto the NEW StorageForm data model as StorageForm.PointerRef ('ManagedPointer') — the substrate-riding pass/type
+- src/Cobol.Net.Compiler/Binding/DataBinder.Ptr.cs:51-91 — PtrBindBasedAndAddressables: BASED roots get the ManagedPointer addr field + CobolPtr.Deref bridge (§13.18.5 GR2-4); ADDRESS-OF targets are forced onto per-instance StorageCells
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs:54-91,110-111,130 — BindSetPointer (F4, 0869 band) + the F10 pointer-arithmetic reroute host.Ptr.TryBindSetUpDown
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs:26-52 — SET ADDRESS OF both directions (§14.9.39 F7 SR17/SR18)
+- src/Cobol.Net.Compiler/CodeGen/Verbs/PtrEmitter.cs:26-47 (AddressOfText §8.4.3.11), 67-79 (F10 UP/DOWN BY GR18-20), 85-107 (ALLOCATE §14.9.3 GR1/2/4b/6), 112-138 (FREE §14.9.15 GR1 + EC-STORAGE-NOT-ALLOC)
+- src/Cobol.Net.Compiler/CodeGen/Verbs/SetEmitter.cs:35-37 — EmitSetPointer renders ManagedPointer.Null / pointer copy
+- src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs:63-71 — NULL/pointer [NOT] EQUAL via ManagedPointer.SameTarget (§8.8.4.1.3 structural equality)
+- src/Cobol.Net.Runtime/Control/ManagedPointer.cs:10-80 + CellPointer.cs:10-18 + CobolPtr.cs:24-106 — the ONE carrier + StorageCell window + Deref/UpBy/UpByScaled/Allocate/Free runtime (EC-DATA-PTR-NULL, EC-BOUND-PTR, EC-SIZE-ADDRESS loud)
+- src/Cobol.Net.Runtime/Control/ExternalStore.cs:13 — ExternalStore.Cell forwards to RunUnit.Current.External (the ADDRESS-OF-EXTERNAL leg rides RunUnit instance state; PtrEmitter.cs:43-45 emits it)
+- tests/conformance/2002/manifest.json:7,67-69 + :89 ('pending': []) — based_pointer, pointer_alloc, pointer_arith, pointer_data ALL in the ENABLED list (runnable goldens with sibling .out files)
+- tests/Cobol.Net.Tests.Conformance/PointerDataTests.cs:35-66 + PointerAddressingTests.cs:31-122 + tests/Cobol.Net.Tests.Unit/CobolPtrTests.cs — the edition gate (0900 at 85), the 0869 band, and the review-caught legs locked
+- src/Cobol.Net.Editions/ConstructRegistry.g.cs:23,65,98 — based-clause-2002 / usage-pointer-2002 / set-address-2002 introduction-gate rows (VersionConformancePass funnel)
+- PROGRAM-POINTER absence: src/Cobol.Net.Editions/ReservedWords.Table.cs:338 is a reserved-word row ONLY; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4:456 is a COMMENT; usageClause (CobolData.g4:335-336) has POINTER but NO PROGRAM-POINTER alternative, no lexer token, zero binder/emitter/runtime hits (grep 'ProgramPointer|PROGRAM_POINTER' over src/Cobol.Net.* = empty)
+
+Gaps:
+- USAGE PROGRAM-POINTER (program-pointer data items — declaration, SET pointer TO ENTRY, program-address comparison): grep-empty beyond a reserved-word row and a grammar comment; a source using it is a raw parse error, not a named diagnostic — ISO §13.18.60 GR24 (+ §14.9.39 SET ENTRY formats)
+- USAGE FUNCTION-POINTER (the sibling §13.18.60 phrase named in the same grammar comment) equally absent — ISO §13.18.60
+- BASED data / ADDRESS OF inside a class definition's data divisions: staged LOUD via DiagnosticCatalog.OoBasedInClass (DataBinder.Ptr.cs:57-63) — the OO cell/bridge emission is a named residue — ISO §13.18.5 / §8.4.3.11
+- Qualified or subscripted ADDRESS OF operands: staged LOUD COBOLNET0869 (PtrBinder.cs:65-67, 'a named increment residue') — ISO §8.4.3.11
+
+**PROC-5-allocate** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs:96-131 — BindAllocate: SR3 RETURNING pointer-category check (:104-109), SR2 CHARACTERS-requires-RETURNING rejection COBOLNET0869 (:114-120), Form-1 bind with INITIALIZED flag (:121), Form-2 based bind (:125-130)
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs:127-129 — ALLOCATE based-item INITIALIZED binds to BoundUnsupported ('the §14.9.3 GR7 INITIALIZE lowering — a named increment residue')
+- src/Cobol.Net.Compiler/CodeGen/StatementEmitter.cs:126 + src/Cobol.Net.Compiler/CodeGen/Emit/EmitCore.cs:65 — BoundUnsupported renders LoudStmt = NotImplemented.Run(feature): the staged-loud channel is a RUNTIME throw, not a compile diagnostic code
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs:135-147 — BindFree, §14.9.15 SR1 data-pointer-only operands (0869)
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/PtrBinder.cs:187-196 — PtrResolveBased: §14.9.3 SR1 / §14.9.39 SR18 BASED-01/77 check, COBOLNET0869
+- src/Cobol.Net.Compiler/CodeGen/Verbs/PtrEmitter.cs:85-107 — EmitAllocate: Form-2 GR3/GR4a via the implicit BasedPointerField (:96), GR4b RETURNING delivery (:97-98), GR1 fractional round-UP rescale (:101-104), GR6 zeroFill wiring (:105-106)
+- src/Cobol.Net.Compiler/CodeGen/Verbs/PtrEmitter.cs:112-138 — EmitFree: GR1 three-way per operand, nonfatal EC-STORAGE-NOT-ALLOC through the TurnState-gated block (§14.6.13.1.4)
+- src/Cobol.Net.Runtime/Control/CobolPtr.cs:81-86 — Allocate: GR1 size, GR2 <=0 -> NULL no EC, GR6 '\0' zero-fill; :94-106 — Free: GR1a release+null / GR1b NULL no-op / GR1c notAlloc out-flag; :24-40 — Deref GR3 EC-DATA-PTR-NULL / GR4 EC-BOUND-PTR incl. freed-cell dangling alias
+- src/Cobol.Net.Runtime/Control/ — ManagedPointer.cs, CellPointer.cs, StorageCell.cs, RunUnit.cs all present: the post-P8 Runtime/Control substrate; wired via src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs:202-207 (PtrAllocate/PtrFree -> CobolPtr.Allocate/Free)
+- src/Cobol.Net.Compiler/Binding/Model/DataItem.cs:177 (IsBased) + src/Cobol.Net.Compiler/Binding/Model/RedefinesModel.cs:86 (BasedPointerField) — the BASED interplay lives in the StorageForm data model (Binding/Model/)
+- src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs:818-819 — VisitAllocateStatement recognition-arm edition gate; :794-796 — the FREE gate; registry rows tests/version-matrix/constructs.json:52-71 (allocate-2002 / free-2002, status active, diagnosticCode COBOLNET0900)
+- tests/conformance/2002/manifest.json:67 — pointer_alloc ENABLED; tests/conformance/2002/pointer_alloc.cob:14-24 exercises ALLOCATE B (Form 2), ALLOCATE 5 CHARACTERS RETURNING P (Form 1), SET ADDRESS OF, FREE; pointer_alloc.out:1-3 (B=HELLO/B2=WORLD/FREED=YES) byte-compared by CorpusRunnerTests.EnabledProgram_CompilesStrict_AndMatchesOutIfPresent (tests/Cobol.Net.Tests.Conformance/CorpusRunnerTests.cs:61-88)
+- tests/conformance/negative/manifest.json:4-5,25 — allocate-chars-no-returning, allocate-non-based, free-non-pointer all ENABLED; asserted per-edition by CorpusRunnerTests.EnabledNegativeCase_RejectsWithItsDiagnostic (tests/Cobol.Net.Tests.Conformance/CorpusRunnerTests.cs:97-115); .err substrings match the binder texts (allocate-chars-no-returning.err:1 <-> PtrBinder.cs:117; allocate-non-based.err:1 <-> PtrBinder.cs:193)
+- tests/Cobol.Net.Tests.Conformance/PointerAddressingTests.cs:74-84 — compile locks for the goldens' unreached legs: 2.5 CHARACTERS (GR1 round-up), 8 CHARACTERS INITIALIZED (GR6), ALLOCATE B RETURNING P (GR4b), 0 CHARACTERS -> NULL (GR2)
+- tests/Cobol.Net.Tests.Unit/CobolPtrTests.cs:72-105 — Allocate size rules + zero-fill and Free three-way + dangling-alias-loud unit coverage
+- Note: no positive golden is literally named allocate_* — the enabled runtime witness for this track is 2002/pointer_alloc (the PHASE-10 catalog row docs/rearchitecture/PHASE-10-m2-residual-catalog.md:514 names it)
+
+Gaps:
+- ALLOCATE based-item INITIALIZED: the GR7 lowering (INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO DEFAULT) is staged, not landed — binds BoundUnsupported (PtrBinder.cs:127-129) and emits a runtime NotImplemented.Run throw (StatementEmitter.cs:126, EmitCore.cs:65), so a valid 2002 program using it compiles but dies at runtime — ISO §14.9.3 GR7
+- No ENABLED runtime golden observes GR6 zero-fill or GR4b form-2 RETURNING end-to-end: pointer_alloc.cob never uses INITIALIZED or form-2 RETURNING; those legs are locked only at compile level (PointerAddressingTests.cs:75-78) plus the CobolPtr unit test (CobolPtrTests.cs:79-80), never in an .out byte comparison — ISO §14.9.3 GR6/GR4b
+
+**FILE-1-sharing-lock** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs:12 — the per-host sharing/record-lock table (P8-substrate type; GR7 ceilings 53/54 at :24-26, LockRecord 51/GR8 at :46-59)
+- src/Cobol.Net.Runtime/IO/FileRegistry.cs:34 — PhysicalFileTable owned by the polymorphic run-unit FileRegistry instance (the P8 Step-5 registry)
+- src/Cobol.Net.Runtime/IO/CobolFile.cs:17 — `private static FileRegistry _reg => RunUnit.Current.Files;` — the emitted facade is a pure delegator onto the RunUnit-owned instance (new substrate proof)
+- src/Cobol.Net.Runtime/IO/FileRegistry.cs:354 RegisterSharing · :364-374 OpenShared (RETRY loop + 61) · :378-396 SharedOpenAttempt · :399-405 Table-19 Conflicts (§9.1.13.9 a-e) · :409-444 ReadLockGovern (WITH/NO/IGNORING LOCK, AUTOMATIC GR4, GR6 single-lock) · :448-455 Unlock (§14.9.47 GR1, 42-if-not-open) · :483-498 RetryLoop (§14.7.9)
+- src/Cobol.Net.Runtime/IO/FileRegistry.cs:140-146 — CLOSE deregisters the sharing-active connector and releases its record locks (§9.1.16 :11754)
+- src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs:95-112 (RegisterSharing emit) · :131-160 (OpenShared emit on SHARING/RETRY OPEN) · :207-213 (EmitUnlock)
+- src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs:124 — ReadLockGovern emitted after every keyed READ
+- src/Cobol.Net.Compiler/Binding/Model/FileModel.cs:140-146 — SharingMode (§12.4.5.15) + LockModeInfo (§12.4.5.9) on the unified data model
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs:27-38 (BindUnlock → BoundUnlock, BoundTree.cs:558); KeyedIoBinder.cs:88-93 (READ Lock/Retry/AdvancingOnLock); SequentialIoBinder.cs:25-46 (OPEN SharingOverride+Retry)
+- src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs:791-792 (UnlockStatement2002 gate) · :1065 (RetryPhrase2002 gate) — the Step-E funnel
+- tests/conformance/2002/manifest.json:13 — "file_sharing" in the ENABLED array; tests/conformance/2002/file_sharing.out exists, so the run contract applies (compile strict at --std 2002 + run + byte-compare, tests/Cobol.Net.Tests.Conformance/CorpusRunnerTests.cs:63-69)
+- tests/Cobol.Net.Tests.Unit/CobolFileLockTests.cs:15-80 — lock primitives (51/GR8/UNLOCK/54 ceiling) via the CobolFile facade → the RunUnit registry
+- tests/conformance/negative/sharing_below_2002.cob + sharing-all-no-lockmode.cob/.err — edition-gate and validation negative goldens
+- Gap anchors: FileRegistry.cs:415 + :509-515 (sequential CurrentRecordId = "" suppresses locking — coded residue); FileRegistry.cs:346-349 (single-run-unit residue note: RETRY SECONDS/FOREVER deadlock-bail 52, no cross-run-unit sharing); src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4:291,343,384,407,425 (retryPhrase parsed on the READ/WRITE/REWRITE/DELETE/START sites, but the only binder consumers are KeyedIoBinder.cs:91 [READ] and SequentialIoBinder.cs:35 [OPEN]); KeyedIoBinder.cs:101-126 (BindWrite/BindRewrite carry no Lock/Retry and no lock-conflict check exists in the registry Write/Rewrite/Delete paths)
+
+Gaps:
+- Sequential-organization record locking suppressed — CurrentRecordId returns empty for sequential connectors (FileRegistry.cs:415, :509-515) and ReadLockGovern is emitted only on keyed READs (KeyedIoEmitter.cs:124), so a shared sequential file never acquires or honors record locks — ISO §9.1.16
+- WRITE/REWRITE/DELETE/START never check a record lock held by another connector (no record-operation-conflict 51 outside READ; BindWrite/BindRewrite bind no lock/retry, and the registry write/rewrite/delete paths never consult PhysicalFileTable) — ISO §9.1.16 (:11752) / §14.7.9 GR4
+- RETRY phrase parsed but silently dropped at bind on WRITE/REWRITE/DELETE/START (CobolIO.g4:343-425 carry retryPhrase; only OPEN and READ bind it) — ISO §14.7.9
+- Cross-run-unit file sharing unenforced — PhysicalFileTable is in-process per-run-unit state (cleared on Reset, FileRegistry.cs:52); connectors take no OS-level share locks, so SHARING NO OTHER etc. bind nothing against a concurrent run unit — ISO §9.1.15
+- RETRY SECONDS/FOREVER performs no timed retry — a single re-check then deadlock-bail to 52 (FileRegistry.cs:494-497; documented single-run-unit residue, defensible only until cross-run-unit sharing exists) — ISO §14.7.9 GR2/GR3
+- Record-lock release on COMMIT/ROLLBACK + the implicit LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE for APPLY COMMIT files is absent from the lock subsystem (no commit hooks into PhysicalFileTable) — ISO §9.1.16 (:11756-11760) / §9.1.18
+
+**FILE-2-line-seq — LINE SEQUENTIAL organization + the 5x/6x status family on SequentialConnector** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Runtime/IO/SequentialConnector.cs:19 — _lineSequential lives on the NEW FileConnector-derived connector (P8 substrate)
+- src/Cobol.Net.Runtime/IO/SequentialConnector.cs:233-236 — line-seq WRITE = WriteLine(TrimEnd) (matches ISO §14.9.46 GR21 trailing-space rule, specs/ISO_COBOL.md:33525)
+- src/Cobol.Net.Runtime/IO/SequentialConnector.cs:296-302 — line-seq READ = ReadLine + Fit; :300-301 silently TRUNCATES a longer-than-area line (no status 06 partial-transfer protocol, specs/ISO_COBOL.md:11474 + :30623 NOTE 4)
+- src/Cobol.Net.Runtime/IO/SequentialConnector.cs:365-377 — line-sequential REWRITE unconditionally reports '30' PermanentError (runtime status, not a named compile diagnostic)
+- src/Cobol.Net.Runtime/IO/FileRegistry.cs:89-95 — Register(...) news SequentialConnector(lineSequential) on the polymorphic registry
+- src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs:74-78 — FileOrganization.LineSequential flows into the registration; DataBinder.cs:762 maps ORGANIZATION LINE; CobolIO.g4:116 grammars it
+- src/Cobol.Net.Runtime/IO/FileStatus.cs:60-77 — the full 51/52/53/54/61/62 constant family with §9.1.13.8/.9 citations; NO 06/09/71 constants exist
+- PRODUCTION SITES: 51 = src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs:51 + FileRegistry.cs:423; 52 = FileRegistry.cs:496 (RetryLoop deadlock-bail) + :373; 53 = PhysicalFileTable.cs:56; 54 = PhysicalFileTable.cs:55; 61 = FileRegistry.cs:389-390 (SharedOpenAttempt, Table-19 Conflicts :399-405)
+- 62 = DECLARED-ONLY: grep over src/ finds FileStatus.cs:77 as the sole hit; FileRegistry.DeleteFile (FileRegistry.cs:328-343) never consults the PhysicalFileTable open set — only '41'/'05'/'37'/'30' are producible
+- FileRegistry.cs:512-518 — CurrentRecordId returns "" for a sequential connector ('sequential has no per-record identity in this model (residue)') and :415 suppresses locking on empty recId; ReadLockGovern is emitted ONLY by KeyedIoEmitter.cs:124 — so 51/53/54 (and record-path 52) can never fire on SequentialConnector; 61 + OPEN-path 52 DO reach sequential via SequentialIoEmitter.cs:152 (FileOpenShared)
+- ENABLED goldens: tests/conformance/2002/file_sharing.cob (+ .out; manifest.json:13 'enabled') drives 51/RETRY-51/IGNORING/UNLOCK-00/61 on the new registry; tests/Cobol.Net.Tests.Unit/CobolFileLockTests.cs:72-98 pins 54/53 ceilings; tests/Cobol.Net.Tests.Conformance/FileIoDifferentialTests.cs:167-181 + :205 are enabled Facts reading back LINE SEQUENTIAL streams
+- NO EDITION GATE: LINE SEQUENTIAL is a 2023 introduction (specs/ISO_COBOL.md:1219 new-features list; ORGANIZATION clause at :15606-15613); docs/COBOLNET_FILES_DESIGN.md:136-138 requires rejection at 85 — but VersionConformancePass.cs has no line-sequential arm (grep empty), tests/version-matrix/constructs.json has no row (grep empty), DataBinder.cs:758-766 MapOrganization is unconditional, and the ENABLED 2002 golden tests/conformance/2002/oo_object_report.cob:30 (manifest.json:53) compiles it at --std 2002 strict
+- docs/COBOLNET_FILES_DESIGN.md:106 + :173 — statuses 06/09 are explicitly DEFERRED (open Q4), i.e. a known doc-acknowledged hole, not staged-loud
+
+Gaps:
+- Status 62 (DELETE FILE on a file currently open by another file connector) has no production site — FileRegistry.DeleteFile never checks the PhysicalFileTable open-connector set — ISO §9.1.13.9 item 2 / §14.9.10 Format 2
+- Record-lock statuses 51/53/54 (and the record-path 52) are unreachable on SequentialConnector: CurrentRecordId yields no record identity for sequential (documented 'residue') and ReadLockGovern is emitted only for keyed reads — ISO §9.1.16 record locking / §9.1.13.8
+- Line-sequential status 06 (READ succeeded but no line delimiter detected — the long-record partial-transfer protocol; the connector silently truncates instead) — ISO §9.1.13 item 5 / §14.9.30 item 17 NOTE 4
+- Line-sequential statuses 09 (READ) and 71 (WRITE/REWRITE) for characters outside the implementor-defined line-seq character set — no constants, no charset definition, no checks — ISO §9.1.13 items 7/§9.1.13 '71' / §14.9.46 item 23 / §14.9.35 GR d
+- Line-sequential REWRITE reports a blanket '30' instead of the line-sequential REWRITE rules (in-place replacement with the 06-condition failure leg) — ISO §14.9.35 item 17
+- No edition gate for ORGANIZATION LINE SEQUENTIAL (a 2023 introduction; the FILES design mandates at minimum rejection at 85, and the enabled 2002 golden oo_object_report.cob currently rides the ungated hole) — ISO §12.4.5.10 ORGANIZATION clause (2023 new-features list) + the version-matrix introduction invariant
+
+**PROC-4-ec-n** — `STAGED-LOUD`
+
+Evidence:
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\IntrinsicCatalog.cs:135 — EXCEPTION-FILE-N catalogued IntrinsicType.National, IntrinsicBind.Deferred, IntroducedIn 2002 (§15.29)
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\IntrinsicCatalog.cs:140 — EXCEPTION-LOCATION-N catalogued Deferred (§15.31)
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\IntrinsicCatalog.cs:136-138 — deliberate staging comment: '-N national twins stay Deferred-loud — no national runtime exists; faking national as UTF-16 alphanumeric would be the wrong data class (§15.29/§15.31; EC scout hazard H8)'
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\IntrinsicCatalog.cs:128,133 — the other -N/national intrinsic legs CHAR-NATIONAL (§15.16) and NATIONAL-OF (§15.66) are also Deferred
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\Procedure\Verbs\IntrinsicBinder.cs:125,138-143 — catalogued rows BIND with recognition diagnostics: COBOLNET1501 (unknown function), COBOLNET1502/1503 (D8 edition window — -N twins reject below --std 2002), COBOLNET1504 (arity)
+- E:\CobolSharp\src\Cobol.Net.Compiler\CodeGen\Emit\IntrinsicRenderer.cs:52-53 and 250-251 — the Deferred bind renders EmitText.LoudValue("FUNCTION EXCEPTION-FILE-N (catalogued, not yet implemented)") in both the numeric and string channels
+- E:\CobolSharp\src\Cobol.Net.Compiler\CodeGen\Emit\EmitCore.cs:68-69 — LoudValue emits NotImplemented.Value<T>(feature)
+- E:\CobolSharp\src\Cobol.Net.Runtime\Control\Signals\NotImplemented.cs:11-12,30 — the named diagnostic: NotImplementedCobolFeatureException 'COBOL.NET: a COBOL feature that is not yet implemented was reached at run time: FUNCTION EXCEPTION-FILE-N (catalogued, not yet implemented)'
+- E:\CobolSharp\src\Cobol.Net.Runtime\Exceptions\EcFunctions.cs:6-31 — the alphanumeric bases (EXCEPTION-STATUS §15.33 / -LOCATION §15.30 / -STATEMENT §15.32 / no-arg EXCEPTION-FILE §15.28) ARE implemented on the new ExceptionState substrate; the doc-comment (lines 9-10) states the -N twins stay catalogued-loud
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\IntrinsicCatalog.cs:44 — IntrinsicType.National folds to PicCategory.Alphanumeric in the result-category channel (no national result category exists yet)
+- grep 'exception_file_n|char_national|national_of' over E:\CobolSharp\tests = no matches — no conformance golden exercises any -N leg (the only hits, tests\CobolSharp.Tests.Unit\Runtime\IntrinsicFunctionTests.cs:1114-1157, test the LEGACY src\CobolSharp.Runtime IntrinsicFunctions, not the greenfield)
+- E:\CobolSharp\docs\rearchitecture\PHASE-11-intrinsics-backlog-tierc-codec.md:354-355 — ISO defines NO -N twin for EXCEPTION-STATEMENT/-STATUS; the only EC -N twins are the two catalogued rows
+- E:\CobolSharp\docs\rearchitecture\PHASE-10-m2-residual-catalog.md:312-330 (Step 11) and PHASE-11-intrinsics-backlog-tierc-codec.md:341-361 (Step 4) — both plans schedule the Deferred→Runtime flip, blocked on national data (P10 Step 2)
+
+Gaps:
+- EXCEPTION-FILE-N runtime body (national EcFileN return from ExceptionState, both r1 no-arg and the returned national class) — ISO §15.29
+- EXCEPTION-LOCATION-N runtime body (national EcLocationN return) — ISO §15.31
+- The 2023 file-connector-argument form of EXCEPTION-FILE/EXCEPTION-FILE-N (renders loud even on the alphanumeric base; VCR rows 68/69, PHASE-13 Step 9) — ISO §15.28/§15.29 (2023, E.3.3 items 25/26)
+- Other -N/national intrinsic legs staged on the same Deferred channel: CHAR-NATIONAL — ISO §15.16; NATIONAL-OF — ISO §15.66
+- A true national result-category channel: IntrinsicType.National currently folds to PicCategory.Alphanumeric at IntrinsicCatalog.cs:44, so a landed -N twin would still need the national data class carried through emit — ISO §8.5.2 with §15.29.3/§15.31.3 (returned value is class national)
+- Verification legs: no enabled conformance golden (exception_file_n/intrinsics_ec_national grep-empty in tests/), no version-matrix construct row, no --std 85 negative window row for the -N twins — ISO §15.29/§15.31 (2002-introduced, per-edition obligation)
+
+**ARITH-2-standard — ARITHMETIC IS STANDARD (plain, dual-window 2014→2023) / STANDARD-DECIMAL (2014) behavior at bind+emit. Direct answers: (1) ArithmeticMode IS consumed in CodeGen — the phase doc's captured-not-consumed mark is STALE (landed Phase-4 track (e), DEVLOG 611): NumericRenderer.StandardDecimal (CodeGen/Emit/NumericRenderer.cs:203) routes every +,-,*,/ through CobolDec.Add/Sub/Mul/Div with the §11.9.11 INTERMEDIATE ROUNDING mode (lines 189-198, 205), comparisons through CobolDec.Compare (ConditionRenderer.cs:111), statement temps typed CobolDec (ArithmeticEmitter.cs:181), and the final transfer through CobolDec.ToUnscaled with the receiver's ROUNDED mode (RuntimeApi.cs:106-108); bind-side, StandardBinary is a loud COBOLNET0806 error (DataBinder.cs:196-198) and the §14.7 r2 composite check is native-only (StatementValidation.cs:107). (2) §8.8.1.3 in the 2023 text is NATIVE arithmetic (implementor-defined intermediates — here the Int128 scaled-integer engine that clips nested quotients toward the receiver scale, specs/ISO_COBOL.md:9065-9067); 'standard arithmetic' (the 2002/2014 §8.8.1.3 numbering, dropped by 2023) requires every operation to evaluate in the standard intermediate data item — for fixed-point operands the decimal128-equivalent SDIDI: 34-significant-digit per-operation rounding under INTERMEDIATE ROUNDING, exact operand lift, decimal128-range size ECs (2023 §8.8.1.5, spec 9203-9250). Observable difference the goldens pin: COMPUTE W = 2 / 7 * 7 into PIC 9V9(5) gives 2.00000 under STANDARD/STANDARD-DECIMAL vs the native-clipped 1.99997.** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Compiler/Binding/OptionsModel.cs:21 — Arithmetic captured (§11.9.5, default Native); :54 enum Native/Standard/StandardBinary/StandardDecimal
+- src/Cobol.Net.Compiler/Binding/OptionsBinder.cs:44-45,61-65 — ARITHMETIC clause parsed into ArithmeticMode
+- src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs:203 — StandardDecimal => ctx.Data.Options.Arithmetic is StandardDecimal or Standard (CodeGen CONSUMES the mode; refutes the phase doc's captured-not-consumed)
+- src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs:189-198 — +,-,*,/ emit CobolDec.Add/Sub/Mul/Div(…, IntermediateMode); :205 IntermediateMode = Options.IntermediateRounding (§11.9.11); :209 exact SDIDI lift CobolDec.From (§8.8.1.5.2); :283 Dec unary minus
+- src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs:111 — comparisons via CobolDec.Compare
+- src/Cobol.Net.Compiler/CodeGen/Verbs/ArithmeticEmitter.cs:181 — CobolDec-typed statement temporaries
+- src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs:106-108 — final transfer CobolDec.ToUnscaled(scale, receiver ROUNDED mode) (§14.7 NOTE 1)
+- src/Cobol.Net.Runtime/Values/Numeric/CobolDec.cs:17-23 — the SDIDI record struct (Sig×10^Exp, decimal128-equivalent, §8.8.1.5); :58,68-82 exact 256-bit Mul/Div; :70 EC-SIZE-ZERO-DIVIDE; :134-166 one 34-digit round per op incl. PROHIBITED ⇒ EC-SIZE-TRUNCATION (§11.9.11)
+- src/Cobol.Net.Compiler/Binding/DataBinder.cs:186-198 — bind-time rationale: plain STANDARD routes to the same CobolDec engine (fixed-point standard intermediate = the DECIMAL form); STANDARD-BINARY → COBOLNET0806 loud error (§8.8.1.4.1 NOTE 1)
+- src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs:107 — §14.7 r2 composite-of-operands applies only under Native (mode consumed at bind validation)
+- src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs:997-1005 — ArithmeticStandard2014 dual-window gate (0900 below 2014, 0807 removed-at-2023)
+- tests/version-matrix/constructs.json:197-206 arithmetic-standard-decimal-2014 (positive at 2014+); :1478-1489 arithmetic-standard-2014 dual-window row; :174-183 options-arithmetic-native-2014
+- tests/conformance/2014/arithmetic_standard_decimal.cob:15 + .out:2 — ENABLED golden: COMPUTE W = 2/7*7 → W=200000 (the standard result; native clips to 1.99997) — enabled at tests/CobolSharp.Tests.Integration/ConformanceTests.cs:125 and tests/conformance/2014/manifest.json:4
+- tests/conformance/2014/options_paragraph.cob:8,16 + .out — ENABLED plain-STANDARD golden (same 2/7*7 divergence + DEFAULT ROUNDED), ConformanceTests.cs:118
+- specs/ISO_COBOL.md:9065-9067 — 2023 §8.8.1.3 = NATIVE (implementor-defined); :9203-9250 — §8.8.1.5 SDIDI requirements (decimal128 equivalence, 34 digits, INTERMEDIATE ROUNDING, range ECs)
+- GAP anchors: src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs:271-279 — Power() has no Dec/StandardDecimal branch (native double Math.Pow + FromDouble even under STANDARD-DECIMAL); src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs:517-527 — the only mode-aware intrinsic logic is a float-argument diagnostic, no SDIDI routing of §15.4.1 functions; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs:169 — SUM accumulates via the native NumericRenderer.Align path; src/Cobol.Net.Runtime/Values/Numeric/CobolDec.cs:123-166 — no decimal128 exponent-range (±6144) check, EC-SIZE-OVERFLOW/UNDERFLOW never signaled; docs/rearchitecture/PHASE-10-m2-residual-catalog.md:76,334-353,518 — stale 'consume the mode' net-new plan + a 2002 introduction claim contradicting the shipped 2014 registry edge (constructs.json:1483)
+
+Gaps:
+- Exponentiation (**) under STANDARD/STANDARD-DECIMAL still evaluates on the native double path (NumericRenderer.Power ignores the Dec channel) instead of the SDIDI exponentiation rules — ISO §8.8.1.5.4
+- Integer and numeric intrinsic functions are not routed through the SDIDI when standard-decimal arithmetic is in effect (no ArithmeticMode consultation anywhere in the intrinsic bind/render path) — ISO §8.8.1.5.1 / §15.4.1
+- Report Writer SUM clause accumulation stays on the native scaled-integer path regardless of mode (§8.8.1.5.1 names the SUM clause explicitly) — ISO §8.8.1.5.1
+- EC-SIZE-OVERFLOW / EC-SIZE-UNDERFLOW at the decimal128 range bounds are never signaled (CobolDec.Exp is an unbounded int; Round34Wide has no ±6144/±6176 range check) — ISO §8.8.1.5.2 rule 2
+- The 2002 introduction edge is unresolved: the shipped registry pins ARITHMETIC IS STANDARD (and the whole OPTIONS paragraph) at 2014 (constructs.json:1483 introducedIn 2014; expectDiagnosticBelow COBOLNET0900) while the phase-doc catalog row and this track's charter say 2002 — no arithmetic-standard-2002 row, no tests/conformance/2002/arithmetic_standard.cob golden, and --std 2002 currently REJECTS the clause; must be derived from the 2002 text — ISO/IEC 1989:2002 §8.8.1.3 (2002 numbering) / current §11.9.5
+- Plain-STANDARD float-operand divergence (a possibly IEEE-binary intermediate for floating-point operands) is staged loud behind the float-usage staging (COBOLNET0899, DataBinder.cs:190-193) rather than implemented — ISO 2014 §8.8.1.3 (float leg; 2023 §8.8.1.2/§8.8.1.4); STANDARD-BINARY itself is a deliberate loud COBOLNET0806 rejection (documented posture, §8.8.1.4.1 NOTE 1)
+
+**RW-2002** — `NOT-STARTED`
+
+Evidence:
+- E:\CobolSharp\src\Cobol.Net.Frontend\Grammar\Core\CobolReportWriter.g4:4 — header scopes the entire RW grammar to 'COBOL-85, ISO 1989:1985' rules only
+- E:\CobolSharp\src\Cobol.Net.Frontend\Grammar\Core\CobolReportWriter.g4:77-92 — reportGroupClause alternatives list has NO presentWhen/varying alternative; PRESENT WHEN or VARYING in a report group entry is a raw parse error, not a named diagnostic
+- E:\CobolSharp\src\Cobol.Net.Frontend\Grammar\Core\CobolReportWriter.g4:111-113,121-123,126-128 — LINE, COLUMN, SOURCE are the '85 single-operand formats (no LINES ARE repetition, no LEFT/CENTER/RIGHT or multi-column, no SOURCES ARE/arithmetic-expression/ROUNDED)
+- E:\CobolSharp\src\Cobol.Net.Frontend\Grammar\Core\CobolLexer.g4:588 — VARYING token exists only for PERFORM/SEARCH; no PRESENT token anywhere in the lexer (grep-empty)
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\DataBinder.Reports.cs:1-579 — zero PRESENT/VARYING matches in the entire greenfield report binder
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\DataBinder.Reports.cs:315-317 — the ONE 2002-adjacent leg that is recognized: OCCURS in a report group stages loud via DiagnosticCatalog.ReportOccursInGroup (the shared occursClause parses there; the 2002 STEP phrase does NOT parse)
+- E:\CobolSharp\src\Cobol.Net.Editions\Diagnostics\DiagnosticCatalog.cs:44,119-122 — ReportOccursInGroup = COBOLNET0899 'report-occurs-in-group', ISO §13.18.38, RecognizedNotImplemented
+- E:\CobolSharp\src\Cobol.Net.Editions\ReservedWords.Table.cs:331 — PRESENT registered as reserved since 2002; reserved-word machinery only, no clause implementation behind it
+- E:\CobolSharp\tests\version-matrix\constructs.json — no PRESENT WHEN or report-VARYING construct row (grep-empty); no *.cob under tests\ uses PRESENT WHEN; the only RW goldens are the '85-module NIST RW101A-RW104A (tests\nist\valid\RW101A.txt-RW104A.txt)
+- E:\CobolSharp\specs\ISO_COBOL.md:706,734,703,672,700 — spec anchors verified: PRESENT WHEN §13.18.41, VARYING §13.18.64, OCCURS (report format, STEP) §13.18.38, COLUMN §13.18.14, LINE §13.18.35
+
+Gaps:
+- PRESENT WHEN clause on report group lines/items (grammar rule + PRESENT lexer token + binder + absent-item state in the report model + presentation-time condition evaluation in Cobol.Net.Runtime/IO/ReportWriter) — ISO §13.18.41
+- VARYING clause Format 1 on report group entries (repetition counters driving OCCURS'd report items at presentation time) — ISO §13.18.64
+- OCCURS repeating entries in report groups including the STEP phrase (the STEP phrase does not parse; the bare OCCURS shape is the one staged-loud sliver: COBOLNET0899 report-occurs-in-group) — ISO §13.18.38
+- COLUMN clause 2002 format: multiple column positions, LEFT/CENTER/RIGHT alignment, PLUS-relative repetition — ISO §13.18.14
+- LINE clause 2002 format: LINE NUMBERS ARE / LINES ARE multi-operand repetition — ISO §13.18.35
+- SOURCE clause 2002 format: SOURCES ARE, multiple operands, arithmetic-expression sources, the ROUNDED phrase (with the EC-REPORT-SUM-SIZE interaction) — ISO §13.18.53
+- Edition gating + matrix coverage: no VersionConformancePass introduction gate (2002+ construct → 0900 at --std cobol85) and no version-matrix constructs.json row for any RW-2002 construct — ISO §8.9 interval encoding per the version-test-matrix invariant, over §13.18.41/§13.18.64/§13.18.38
+
+**CONCAT — the & concatenation operator (ISO §8.8.3)** — `NOT-STARTED`
+
+Evidence:
+- grep 'BoundConcat' over E:\CobolSharp\src — zero matches (only hit repo-wide is docs\rearchitecture\PHASE-10-m2-residual-catalog.md)
+- grep "AMPERSAND|'&'" over all src/**/*.g4 — zero matches; no & token or concatenation-expression rule in the grammar
+- grep -i 'concat' over src\Cobol.Net.Frontend (lexer/parser/error strategy) — zero matches; no W1.5 parse-hint, so & in source is a generic parse error, not a named diagnostic
+- src\Cobol.Net.Editions\ConstructRegistry.g.cs:37 — row new("concat-operator-2002", "concatenation expression (&)", 2002, null, null, "COBOLNET0900", "ISO §8.8.3; D6; PENDING (Phase 4g)") — inert seed data
+- src\Cobol.Net.Editions\Constructs.g.cs:35 — Constructs.ConcatOperator2002 defined; grep shows ZERO references anywhere else in src (no gate/pass consumes it, so COBOLNET0900 can never fire for this construct)
+- tests\version-matrix\constructs.json:281-291 — row concat-operator-2002 has "status": "pending" with a seeded source snippet; not exercised
+- Glob tests/**/*concat* — no conformance goldens exist (catalog names concat_literal/concat_boolean as the planned goldens, PHASE-10-m2-residual-catalog.md:520)
+- src\Cobol.Net.Compiler\Binding\IntrinsicCatalog.cs:176 + CodeGen\Emit\IntrinsicRenderer.cs:265 — the 2023 FUNCTION CONCAT (§15.18) IS implemented but is a distinct construct; the §8.8.3 operator it references has zero surface
+
+Gaps:
+- grammar: no & lexer token and no concatenation-expression rule in any literal position — ISO §8.8.3
+- binder: no BoundConcat node / no compile-time folding of literal & literal into the single resulting literal (alphanumeric/national/boolean class-compatibility rules) — ISO §8.8.3
+- emitter: no rendering leg for concatenation expressions — ISO §8.8.3
+- edition gating: Constructs.ConcatOperator2002 wired to NO gate — the COBOLNET0900 introduction diagnostic below 2002 never fires; the registry row is inert — ISO §8.8.3 (VCR introduction invariant)
+- goldens: zero conformance tests (planned concat_literal/concat_boolean absent) and the version-matrix row is status:pending — ISO §8.8.3
+- boolean-literal concatenation leg (the § covers boolean operands too, per PHASE4_RECONCILIATION.md:1372) — ISO §8.8.3
+
+**CONSTANT — constant entries (§13.10 level-01 CONSTANT AS/FROM) + CONSTANT RECORD (§13.18.15)** — `NOT-STARTED`
+
+Evidence:
+- E:\CobolSharp\src\Cobol.Net.Editions\ConstructRegistry.g.cs:36 — registry row 'constant-entry-2002' explicitly marked 'ISO §13.10 + §13.18.15; D5; PENDING (Phase 6)' with code COBOLNET0900; metadata only
+- E:\CobolSharp\src\Cobol.Net.Editions\Constructs.g.cs:34 — the compile-checked id ConstantEntry2002 exists, but grep across src/Cobol.Net.Compiler finds ZERO ConstructRegistry.Check call sites for it (only the two generated registry files reference it)
+- E:\CobolSharp\src\Cobol.Net.Frontend\Grammar\Core\CobolData.g4:386 — the ONLY CONSTANT-adjacent grammar text is a comment about VALUE constant-name operands; a case-insensitive grep of all .g4 under src/Cobol.Net.Frontend/Grammar returns no CONSTANT token or rule (only figurativeConstant and Antlr IntStreamConstants hits), and a whole-word CONSTANT grep of src/Cobol.Net.Frontend excluding Generated/ is empty
+- E:\CobolSharp\src\Cobol.Net.Compiler\Binding\Bound\BoundTree.cs:222 — the sole 'Constant' hit in the bound tree is a figurativeConstant comment; no ConstantEntry/ConstantRecord bound node or binder path exists
+- E:\CobolSharp\tests\version-matrix\constructs.json:270 — the row is status "pending" (its sample source '01 K CONSTANT AS 42.' is catalogued, never compiled)
+- E:\CobolSharp\tests\Cobol.Net.Tests.Conformance\VersionMatrixTests.cs:57 — the matrix generator filters to Status == "active", so no enabled test exercises CONSTANT; not STAGED-LOUD because nothing recognizes the syntax to fire the reserved COBOLNET0900 — a CONSTANT entry today fails as a generic parse error
+
+Gaps:
+- CONSTANT lexer token + level-01 constant-entry grammar rule (01 constant-name CONSTANT [IS GLOBAL] AS {literal | arithmetic-expression}) — ISO §13.10
+- CONSTANT FROM compilation-variable-name leg (the >>DEFINE directive tie-in) — ISO §13.10 (FROM phrase)
+- Binder: constant-name symbol kind + compile-time value folding/substitution at every reference position where a literal is permitted (procedure division AND data division, e.g. PIC replication / OCCURS bounds) — ISO §13.10 general rules
+- CONSTANT RECORD clause grammar + binder: structured-constant marking, level-1/WS-LS-only + clause-conflict syntax rules, INITIALIZE-equivalent content, and receiving-operand immutability rejection — ISO §13.18.15 (+ §13.18.1 SR13 cross-clause conflicts)
+- Live edition gate: no ConstructRegistry.Check(Constructs.ConstantEntry2002) call site exists, so pre-2002 use cannot fire the registered COBOLNET0900 (the registry row at ConstructRegistry.g.cs:36 is inert) — ISO §13.10 (2002 introduction gating)
+- Enabled test coverage: flip the constructs.json 'constant-entry-2002' row from pending to active (VersionMatrixTests.cs:57 filter) + a conformance golden exercising CONSTANT AS, CONSTANT FROM, and CONSTANT RECORD — ISO §13.10 + §13.18.15
+
+**TYPEDEF-residue** — `PARTIAL`
+
+Evidence:
+- src/Cobol.Net.Compiler/Binding/DataBinder.cs:852 — ExpandTypes bind pass (TYPEDEF core rides the new Binding/Model tree; registered in Binding/Passes/BindPipeline.cs:36)
+- src/Cobol.Net.Compiler/Binding/Model/StrongTypeModel.cs:19-73 — StrongRoot/IsStrongGroup/TypeAnchor/SameStrongType overlay on the new data model (P5.11b extraction)
+- tests/conformance/2002/manifest.json:73-79 — seven ENABLED typedef goldens (typedef_88, typedef_indexed, typedef_nested_strong, typedef_odo, typedef_strong_ok, typedef_weak_elem, typedef_weak_group) consumed by the greenfield CorpusRunnerTests (tests/Cobol.Net.Tests.Conformance/CorpusRunnerTests.cs:27)
+- src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs:248-258 — STRONG relation rule §8.8.4.2.3 SR1 (same-type gate, StrongCompareMismatch) at the ONE relation checkpoint covering IF/EVALUATE/PERFORM UNTIL/SEARCH WHEN — LANDED on new substrate
+- src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs:79-95 — §14.9.25.3 SR2 strong-MOVE gate (COBOLNET1533)
+- src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ConditionBinder.cs:359-365 — §8.8.4.4.3 SR1 strong-group class-condition ban (StrongClassCondition)
+- src/Cobol.Net.Compiler/Binding/DataBinder.cs:1011-1028 — §13.18.57.3 SR3/SR4 REDEFINES/RENAMES-of-strong bans (COBOLNET1532); SR6 checked at clone time (comment line 1007-1008)
+- src/Cobol.Net.Compiler/Binding/DataBinder.cs:1327-1329 — EXTERNAL on a type declaration STAGED-LOUD COBOLNET1534 ('recognized but not yet implemented, D17 residue')
+- src/Cobol.Net.Compiler/Binding/Model/StrongTypeModel.cs:52-53 — same-type test scoped to ONE source element; 'cross-program EXTERNAL equivalence is a follow-up' stated in code
+- src/Cobol.Net.Compiler/Binding/DataBinder.cs:387-390 — level-66 RENAMES inside a TYPEDEF STAGED-LOUD COBOLNET1535 (not cloned into TYPE references)
+- src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs:259-265 — §8.8.4.2.3 SR4 ordering-compare of a boolean/object/pointer-bearing strong group rejected loud COBOLNET1535 (spec-conformant rejection, framed as D17 residue); equality positive-companion compiles clean (tests/Cobol.Net.Tests.Conformance/TypedefResidueTests.cs:134-150)
+- src/Cobol.Net.Compiler/Binding/DataBinder.cs:964 — INDEXED-BY type referenced >=2x STAGED-LOUD COBOLNET1531
+- tests/Cobol.Net.Tests.Conformance/TypedefResidueTests.cs:20-110 — all three staged codes (1534/1535/1531) test-pinned
+- SAME AS grep-empty in greenfield: no grammar rule (src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4:189 is the unrelated I-O SAME AREA clause; CobolData.g4 has no sameAsClause), no binder site, no diagnostic; sole mention is a legacy doc comment src/CobolSharp.Compiler/Semantics/DialectConfig.cs:83; spec section confirmed specs/ISO_COBOL.md:21731 ('## 13.18.49 SAME AS clause')
+- tests/conformance/2014/manifest.json — zero typedef rows (2002-vs-2014 refinement provisional per src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4:258-261)
+
+Gaps:
+- SAME AS clause entirely absent (no grammar rule, no binder expansion, no staged diagnostic — a '01 X SAME AS Y.' entry dies as a raw parse error, not a named rejection) — ISO §13.18.49
+- EXTERNAL on a type declaration: run-unit-shared type not modeled, staged loud COBOLNET1534 instead of implemented — ISO §13.18.57.4 GR5 / §13.18.22
+- Cross-source-unit same-type equivalence for EXTERNAL types in the §8.5.3 same-type test (SameStrongType matches type-names within ONE source element only) — ISO §8.5.3.3
+- Level-66 RENAMES declared inside a TYPEDEF template is not cloned into TYPE references (CloneItem drops Renames66), staged loud COBOLNET1535 — ISO §13.18.58.4 GR1
+- A type whose OCCURS carries INDEXED BY cannot be referenced more than once (index-name clones would collide; no per-reference uniquing), staged loud COBOLNET1531 — ISO §13.18.38
+- Ordering-relation semantics for strong groups containing boolean/object-reference/pointer elements: the equality-only SR4 rejection fires (COBOLNET1535) which matches the spec prohibition, but it is implemented/labeled as staged residue rather than the named SR4 check — ISO §8.8.4.2.3 SR4
+- TYPEDEF/TYPE edition gate is 2002-provisional with zero 2014/2023 typedef goldens (no continuity coverage in the version matrix corpus) — ISO §13.18.58 (edition introduction per Annex E)
+
 
 ---
 
