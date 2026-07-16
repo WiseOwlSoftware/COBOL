@@ -214,23 +214,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             if (sig.Name is "MAX" or "MIN") category = PicCategory.Alphanumeric;
         }
 
-        // CHAR/ORD are PCS-relative (§15.15.4 r2 / §15.70.4): flag the call when a NON-identity program collating
-        // sequence is in effect so the backend passes its weights table — and only then (hazard H5: the emitted
-        // __COLLATE field exists only under a non-identity PCS; STANDARD-1/2/NATIVE normalize to identity).
-        bool collate = sig.Name is "CHAR" or "ORD" && ctx.Data.Collating is not null;
+        // CHAR/ORD are PCS-relative (§15.15.4 r2 / §15.70.4 r1): flag the call when a NON-identity ALPHANUMERIC
+        // program collating sequence is in effect so the backend passes its weights table — and only then
+        // (hazard H5: the emitted __COLLATE field exists only under a non-identity PCS; STANDARD-1/2/NATIVE
+        // normalize to identity). A NATIONAL ORD argument reads the NATIONAL program collating sequence instead
+        // (§15.70.4 r2) — always the native UTF-16 code-point order (no ALPHABET … FOR NATIONAL surface exists,
+        // P10 Step 4) — so the alphanumeric weights table must NOT be passed: its 256-entry domain would alias
+        // national characters, and the parameterless runtime Ord IS the r2 value.
+        bool nationalArg = args.Any(a => OperandCategory(a) is PicCategory.National);
+        bool collate = sig.Name is "CHAR" or "ORD" && ctx.Data.Collating is not null && !nationalArg;
 
-        // CHAR/ORD take ALPHANUMERIC operands (§15.15/§15.70; CHAR-NATIONAL §15.16 is the national twin —
-        // Phase-4a residue #11). Belt-and-braces beside the D-N2 guards: a national arg through the 256-entry
-        // weight table would alias its characters via `& 0xFF` — reject at bind, never a wrong ordinal.
-        if (sig.Name is "CHAR" or "ORD" && args.Any(a => a switch
-            {
-                BoundStringLiteral { Category: PicCategory.National } => true,
-                BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.National,
-                _ => false,
-            }))
-            ctx.Edition.Error("COBOLNET0844", $"FUNCTION {sig.Name} takes an alphanumeric operand — the "
-                + "national forms (FUNCTION CHAR-NATIONAL §15.16 / ORD over national) are not yet implemented "
-                + "(Phase 4a residue)");
+        // CHAR takes an INTEGER argument (§15.15.3 r1) — a national operand is a category violation; the
+        // national ordinal→character direction is FUNCTION CHAR-NATIONAL (§15.16, implemented — the P10
+        // Step-11 EC-N wave). Rejected BY NAME at bind — never a wrong ordinal through the numeric channel.
+        if (sig.Name is "CHAR" && nationalArg)
+            ctx.Edition.Error("COBOLNET0844", "FUNCTION CHAR takes an integer operand (§15.15.3 rule 1) — "
+                + "FUNCTION CHAR-NATIONAL (§15.16) is the national program-collating-sequence form");
 
         // DISPLAY-OF / NATIONAL-OF (§15.26.3 / §15.66.3) — the argument class/category rules of the sanctioned
         // national↔alphanumeric repertoire pair.

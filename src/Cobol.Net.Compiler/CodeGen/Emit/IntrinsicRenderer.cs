@@ -255,6 +255,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])),
             "Char" =>                                                          // §15.15 — PCS-relative (H5 conditional weights)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgInt(ic.Args[0])}{Collate(ic)}"),
+            "CharNational" =>                                                  // §15.16 — the NATIONAL PCS ordinal (native UTF-16 order;
+                RuntimeApi.Intrinsic(sig.RuntimeMethod, ArgInt(ic.Args[0])),   //   no ALPHABET FOR NATIONAL surface ⇒ no weights channel)
             "CurrentDate" => RuntimeApi.DateFn(sig.RuntimeMethod, ""),         // §15.21 — the runtime clock
             // WHEN-COMPILED is the COMPILATION timestamp (§15.99.3 r2) — a constant in the generated source.
             // (The legacy's runtime-clock placeholder also passes IF142A's plausibility checks; the constant is
@@ -286,15 +288,20 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "FormattedDatetime" => RenderFormattedDatetime(ic),               // §15.40
             "FormattedCurrentDate" =>                                          // §15.38 — the runtime clock per a combined format
                 RuntimeApi.DateFn(sig.RuntimeMethod, Str(ic.Args[0])),
-            // The last-exception interrogation functions (§15.28/30/32/33 — the EC model): zero-argument reads
-            // of the runtime register; the binder's EcNoteFunction flagged the group EC gate, so the generated
-            // source carries the CobolNet.Runtime.Exceptions using.
+            // The last-exception interrogation functions (§15.28–15.33 — the EC model, incl. the national
+            // twins EXCEPTION-FILE-N/EXCEPTION-LOCATION-N §15.29/§15.31): zero-argument reads of the runtime
+            // register; the binder's EcNoteFunction flagged the group EC gate, so the generated source
+            // carries the CobolNet.Runtime.Exceptions using.
             "EcStatus" => RuntimeApi.EcFn("Status"),                           // §15.33
             "EcLocation" => RuntimeApi.EcFn("Location"),                       // §15.30
+            "EcLocationN" => RuntimeApi.EcFn("LocationN"),                     // §15.31 — the national twin
             "EcStatement" => RuntimeApi.EcFn("Statement"),                     // §15.32
             "EcFile" => ic.Args.Count == 0
                 ? RuntimeApi.EcFn("File")                                      // §15.28.4 r1 — the no-argument form
                 : EmitText.LoudValue("string", "FUNCTION EXCEPTION-FILE(file-connector-name) (the 2023 optional-argument form — VCR row 68)"),
+            "EcFileN" => ic.Args.Count == 0
+                ? RuntimeApi.EcFn("FileN")                                     // §15.29.4 r1 — the no-argument form
+                : EmitText.LoudValue("string", "FUNCTION EXCEPTION-FILE-N(file-connector-name) (the 2023 optional-argument form — VCR row 69)"),
             _ => EmitText.LoudValue("string", $"FUNCTION {sig.Name} in a string context"),
         };
     }

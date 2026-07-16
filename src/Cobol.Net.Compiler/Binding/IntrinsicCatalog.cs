@@ -132,7 +132,10 @@ public static class IntrinsicCatalog
         Add(new("FRACTION-PART", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "FractionPart", IntrinsicBind.Runtime, false, 2002)); // §15.42
         Add(new("BOOLEAN-OF-INTEGER", IntrinsicType.Boolean, IntrinsicArity.Fixed, 2, 2, "ii", "", IntrinsicBind.Deferred, false, 2002)); // §15.13
         Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002));     // §15.14 (byte size ≠ FUNCTION LENGTH, D7)
-        Add(new("CHAR-NATIONAL", IntrinsicType.National, IntrinsicArity.Fixed, 1, 1, "i", "", IntrinsicBind.Deferred, false, 2002));  // §15.16
+        // CHAR-NATIONAL (§15.16) — the national twin of CHAR: the character at the 1-based ordinal position of
+        // the NATIONAL program collating sequence (native UTF-16 order — no ALPHABET … FOR NATIONAL surface
+        // exists, P10 Step 4, so no weights channel). Result class national (§15.16.1). P10 Step-11 EC-N wave.
+        Add(new("CHAR-NATIONAL", IntrinsicType.National, IntrinsicArity.Fixed, 1, 1, "i", "CharNational", IntrinsicBind.Runtime, false, 2002));  // §15.16
         Add(new("DATE-TO-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002)); // §15.23
         Add(new("DAY-TO-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002));   // §15.25
         Add(new("YEAR-TO-YYYY", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002));     // §15.100
@@ -142,13 +145,15 @@ public static class IntrinsicCatalog
         Add(new("DISPLAY-OF", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "DisplayOf", IntrinsicBind.Runtime, false, 2002));   // §15.26
         Add(new("NATIONAL-OF", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "NationalOf", IntrinsicBind.Runtime, false, 2002));     // §15.66
         Add(new("EXCEPTION-FILE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 0, 1, "s", "EcFile", IntrinsicBind.Runtime, false, 2002)); // §15.28 (no-arg form r1; the 2023 file-connector-arg form renders loud — VCR row 68)
-        Add(new("EXCEPTION-FILE-N", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 0, 1, "s", "", IntrinsicBind.Deferred, false, 2002));   // §15.29
-        // EXCEPTION-LOCATION/-STATEMENT/-STATUS render the runtime last-exception register (EcFunctions, the §11
-        // EC model); the -N national twins stay Deferred-loud until the P10 Step-11 EC-N wave lands their
-        // EcFunctions national variants (§15.29/§15.31; EC scout hazard H8) — the category-national result
-        // channel itself is live (NATIONAL-OF above).
+        // The EXCEPTION-* family renders the runtime last-exception register (EcFunctions, the §11 EC model).
+        // The -N national twins — EXCEPTION-FILE-N §15.29 / EXCEPTION-LOCATION-N §15.31, the ONLY two ISO
+        // defines (no -N exists for EXCEPTION-STATEMENT/-STATUS) — are the same renderings projected national
+        // through the ONE NationalOf repertoire translator (P10 Step-11 EC-N wave); their National type rows
+        // carry the category-national result. EXCEPTION-FILE-N's 2023 file-connector-argument form (§15.29.4
+        // r2, E.3.3 item 26) renders loud like the base's — VCR row 69, PHASE-13 Step 9.
+        Add(new("EXCEPTION-FILE-N", IntrinsicType.National, IntrinsicArity.OptionalTrailing, 0, 1, "s", "EcFileN", IntrinsicBind.Runtime, false, 2002));   // §15.29
         Add(new("EXCEPTION-LOCATION", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcLocation", IntrinsicBind.Runtime, false, 2002));  // §15.30
-        Add(new("EXCEPTION-LOCATION-N", IntrinsicType.National, IntrinsicArity.Fixed, 0, 0, "", "", IntrinsicBind.Deferred, false, 2002));           // §15.31
+        Add(new("EXCEPTION-LOCATION-N", IntrinsicType.National, IntrinsicArity.Fixed, 0, 0, "", "EcLocationN", IntrinsicBind.Runtime, false, 2002));   // §15.31
         Add(new("EXCEPTION-STATEMENT", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatement", IntrinsicBind.Runtime, false, 2002)); // §15.32
         Add(new("EXCEPTION-STATUS", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatus", IntrinsicBind.Runtime, false, 2002));    // §15.33
         Add(new("HIGHEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002)); // §15.43 (compile-time PICTURE fold)

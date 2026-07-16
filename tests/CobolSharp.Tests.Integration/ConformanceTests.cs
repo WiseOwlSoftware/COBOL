@@ -92,6 +92,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         // DISPLAY-OF/NATIONAL-OF on the greenfield substrate (P10 national wave): the legacy oracle carries
         // its OWN pass-through DISPLAY-OF approximation (no repertoire substitution) — never a match target.
         ("2002", "national_intrinsics"),
+        // P10 Step-11 EC-N wave: the national EC twins EXCEPTION-FILE-N/EXCEPTION-LOCATION-N (§15.29/§15.31)
+        // and CHAR-NATIONAL/ORD-over-national (§15.16/§15.70.4 r2) — the frozen legacy has no EC model and no
+        // national result category; greenfield CorpusRunner byte-compares both.
+        ("2002", "exception_file_n"),
+        ("2002", "char_national"),
         ("2002", "oo_interface"),
         ("2002", "oo_interface_conformance"),
         ("2002", "oo_class_env"),   // class-level env + object-own env both bind (DEVLOG-738 fix) — OBJECT-paragraph env never landed in legacy   // the §4.2.2 interface conformance leg (P9 Step 12) — interfaces never landed in legacy

@@ -6,8 +6,12 @@ namespace CobolNet.Runtime.Exceptions;
 /// The runtime backends of the last-exception interrogation functions — FUNCTION EXCEPTION-STATUS (ISO
 /// §15.33), EXCEPTION-LOCATION (§15.30), EXCEPTION-STATEMENT (§15.32), and the no-argument EXCEPTION-FILE
 /// (§15.28) — rendering <see cref="ExceptionState"/> per each function's returned-value rules. The national
-/// twins (EXCEPTION-FILE-N §15.29 / EXCEPTION-LOCATION-N §15.31) stay catalogued-loud: the greenfield has no
-/// national runtime, and faking national as UTF-16 alphanumeric would be the wrong class (scout hazard H8).
+/// twins (EXCEPTION-FILE-N §15.29 / EXCEPTION-LOCATION-N §15.31 — ISO defines no -N twin for
+/// EXCEPTION-STATEMENT/-STATUS) are the SAME renderings projected to the national repertoire through the ONE
+/// <see cref="CobolIntrinsics.NationalOf"/> translator (§15.66.4): each -N section's "converted at runtime to
+/// the runtime national character set" IS that alphanumeric→national conversion, and under D-N4 (national =
+/// UTF-16, one char per position; Latin-1 ⊂ national) every code point keeps its value. The compiler-side
+/// difference is the result CATEGORY — the catalog's National rows drive Table-16 MOVE/compare legality.
 /// </summary>
 public static class EcFunctions
 {
@@ -46,4 +50,22 @@ public static class EcFunctions
         string display = sep >= 0 ? file[(sep + 2)..] : file;
         return (ExceptionState.LastIoStatus ?? "  ") + display;                     // r1c
     }
+
+    /// <summary>FUNCTION EXCEPTION-FILE-N with no argument (§15.29.4 r1) — the national twin of
+    /// <see cref="File"/>: two national zeros when the last exception is not an EC-I-O condition (r1a),
+    /// two national spaces for a RAISE / EXIT RAISING / GOBACK RAISING origin (r1b), else the two-character
+    /// I-O status "in national characters" followed by the SELECT-spelled file-name "converted at runtime to
+    /// the runtime national character set" (r1c). That conversion is the ONE alphanumeric→national repertoire
+    /// translation (<see cref="CobolIntrinsics.NationalOf"/>, §15.66.4) applied to the SAME <see cref="File"/>
+    /// rendering — one mechanism, never a second EC formatter; digits/spaces/Latin-1 names keep their code
+    /// points (D-N4). The 2023 file-connector-argument form (r2, E.3.3 item 26) is a PHASE-13 leg and renders
+    /// loud compiler-side, like the base function's (VCR rows 68/69).</summary>
+    public static string FileN() => CobolIntrinsics.NationalOf(File());
+
+    /// <summary>FUNCTION EXCEPTION-LOCATION-N (§15.31.3) — the national twin of <see cref="Location"/>: one
+    /// national space when no location information was saved (r1 — the same documented §15.30.3-r1 choice) or
+    /// when no exception was raised (r2a); else the saved three-part location string "converted at runtime to
+    /// the runtime national character set" (r2b) — the ONE <see cref="CobolIntrinsics.NationalOf"/> repertoire
+    /// translation over the SAME <see cref="Location"/> rendering.</summary>
+    public static string LocationN() => CobolIntrinsics.NationalOf(Location());
 }

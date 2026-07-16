@@ -1486,6 +1486,19 @@
       "vcr": "2014 introduction, 2023 removal (§8.8.1 / Annex E)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWAST.\nOPTIONS.\n    ARITHMETIC IS STANDARD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n77 A PIC 9V9(5).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE A = 2 / 7 * 7.\n    STOP RUN.\n",
       "expectDiagnosticBelow": "COBOLNET0900"
+    },
+    {
+      "id": "exception-file-n-2002",
+      "status": "active",
+      "description": "The national EC interrogation twins FUNCTION EXCEPTION-FILE-N (ISO 15.29) / EXCEPTION-LOCATION-N (15.31) - the ONLY -N EC twins the 2023 text defines (none exists for EXCEPTION-STATEMENT/-STATUS). LIVE (P10 Step-11 EC-N wave): the base EcFunctions renderings projected national through the ONE NationalOf repertoire translator (15.29.4 r1c / 15.31.3 r2b 'converted at runtime to the runtime national character set'), result category National (Table-16 legality). 2002 introductions (the EC model + national data are both 2002; the 2023 delta is only EXCEPTION-FILE-N's optional file-connector argument, E.3.3 item 26 - staged loud, PHASE-13 Step 9). Below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502).",
+      "display": "FUNCTION EXCEPTION-FILE-N / EXCEPTION-LOCATION-N (the national EC twins)",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO §15.29 EXCEPTION-FILE-N / §15.31 EXCEPTION-LOCATION-N; LIVE (P10 Step-11) — EcFunctions.FileN/LocationN = the base renderings through the ONE NationalOf repertoire translator, category National; the 2023 optional-argument form stays loud (E.3.3 item 26, VCR rows 68/69, PHASE-13 Step 9); D8 window 1502 below 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "M2 catalog EC -N twins (PHASE4_RECONCILIATION PROC-4/M4-2b); 2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only; E.3.3 item 26 is the argument DELTA, not the introduction)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEFN1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY FUNCTION EXCEPTION-FILE-N.\n    DISPLAY FUNCTION EXCEPTION-LOCATION-N.\n    STOP RUN.\n"
     }
   ]
 }

@@ -41,8 +41,30 @@ public static partial class CobolIntrinsics
         return " ";                                          // no character at that position → EC default (§15.3)
     }
 
+    /// <summary>CHAR-NATIONAL (§15.16.4): the character in ORDINAL position <paramref name="n"/> (1-based) of
+    /// the NATIONAL program collating sequence. The native national sequence is UTF-16 code-point order (one
+    /// char per national position, D-N1) — position n is code point n−1; an ALPHABET … FOR NATIONAL phrase
+    /// (the only way to impose a non-native national sequence) has no compiler surface yet (P10 Step 4), so
+    /// the national PCS is always native and no weights overload exists. An out-of-range ordinal violates
+    /// §15.16.3 rule 2 — EC-ARGUMENT-FUNCTION, with the §15.3 default one-space result when checking is off.
+    /// The result is CLASS NATIONAL (§15.16.1) — the catalog row's National category carries that.</summary>
+    public static string CharNational(long n)
+    {
+        long c = n - 1;
+        if (c is < 0 or > 0xFFFF)
+        {
+            Exceptions.ExceptionState.ArgumentError($"CHAR-NATIONAL argument {n} outside the national collating sequence (§15.16.3 rule 2)");
+            return " ";
+        }
+        return ((char)c).ToString();
+    }
+
     /// <summary>ORD (§15.70.4): the 1-based ordinal position of the argument's (single) character in the
-    /// alphanumeric program collating sequence — native: char code + 1. The inverse of CHAR.</summary>
+    /// alphanumeric program collating sequence (r1) — native: char code + 1. The inverse of CHAR. A NATIONAL
+    /// argument (§15.70.3 admits category national) reads the NATIONAL program collating sequence instead
+    /// (r2) — always the native UTF-16 code-point order (no ALPHABET … FOR NATIONAL surface exists), so this
+    /// same parameterless body IS the r2 value; the binder never routes a national argument to the
+    /// alphanumeric-weights overload below.</summary>
     public static long Ord(string s) => s.Length == 0
         ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
         : s[0] + 1;

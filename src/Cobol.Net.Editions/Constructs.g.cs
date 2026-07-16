@@ -129,4 +129,5 @@ public static class Constructs
     public const string ProgramIdRecursive2002 = "program-id-recursive-2002";
     public const string OptionsParagraph2014 = "options-paragraph-2014";
     public const string ArithmeticStandard2014 = "arithmetic-standard-2014";
+    public const string ExceptionFileN2002 = "exception-file-n-2002";
 }

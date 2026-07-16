@@ -8,7 +8,7 @@
 - **Goal (one paragraph):** Every mandatory COBOL-2002 *non-OO* language feature is implemented end-to-end on the *rearchitected* substrate — national/boolean data ride `StorageForm.CharImage` (one UTF-16 char per position), pointers ride the `ManagedPointer` carrier, files ride `FileConnector`, UDFs ride the per-activation data model — with a rejecting diagnostic under every `--std` edition that lacks the feature, a discovered positive corpus entry, a version-matrix row, and a negative `.err` case per feature. The phase OPENS with a greenfield-vs-catalog reconciliation audit (a fresh `GreenfieldStatus` column sized against the *current* post-rearchitecture tree, not a stale legacy-era snapshot), so every subsequent wave is scoped against truth rather than the legacy-era ☑/◐ marks. It CLOSES with the M2 catalog marks flipped to greenfield truth and the full battery green.
 - **Exit criteria:** Every track's positive corpus discovered by the greenfield runner (`CorpusRunnerTests` over `manifest.json`) + a version-matrix row + a negative `.err`; the M2 catalog (`docs/ISO2023_CONFORMANCE_PLAN.md` §3 and `docs/PHASE4_RECONCILIATION.md`) marks flipped to greenfield truth; national `CharImage` confirmed one-UTF-16-char-per-position by a runtime assertion + a golden; full battery green (2028+ greenfield conformance + 213+ unit + FULL legacy guard NIST 353 MATCH).
 
-> **STATUS:** IN PROGRESS @ step 5 landed (2026-07-16 — the national wave: DISPLAY-OF/NATIONAL-OF Runtime rows + substrate pins + goldens/negatives; Step 4 ALPHABET-national/UTF-8 NOT touched — still open; next unchecked step = Step 4, then Step 6)
+> **STATUS:** IN PROGRESS @ step 11 landed (2026-07-16 — the EC-N wave: EXCEPTION-FILE-N/EXCEPTION-LOCATION-N + CHAR-NATIONAL/ORD-over-national flipped Deferred→Runtime on the ONE NationalOf translator; golden + matrix row + 85-window negative. Steps 4/6–10 still open; next unchecked step = Step 4, then Step 6)
 > _(The executing session updates this line: `NOT STARTED` → `IN PROGRESS @ step N (<short note>)` → `DONE`. Keep the per-step checkboxes in §4 current in the same commit that lands each step.)_
 
 ---
@@ -75,7 +75,7 @@ When Phase 10 is DONE, the following are true and demonstrable:
 - Report Writer 2002: `PRESENT WHEN` (RD entry, format 1) + `VARYING` (format 1) parsed in `Core/CobolReportWriter.g4`, bound in `DataBinder.Reports.cs` / `ReportSectionBinder`, rendered in `CodeGen/Verbs/ReportWriterEmitter.cs` / the RW runtime.
 - ARITHMETIC IS STANDARD: `OptionsModel.ArithmeticMode` consumed by the numeric renderer / `Runtime/Values/Numeric` intermediate-precision path.
 - ALPHABET national/UCS-4/UTF-8/UTF-16 phrases: bound in `DataBinder.Switches.cs` / `SpecialNamesBinder`, feeding the national codec.
-- EC `-N` twins + `EXCEPTION-FILE-N`: `IntrinsicCatalog.cs` rows flipped from `Deferred` to `Runtime`, backed by `Runtime/Intrinsics` national-string returns; `EcFunctions` national variants.
+- ✅ EC `-N` twins + `EXCEPTION-FILE-N` (Step 11, 2026-07-16): `IntrinsicCatalog.cs` rows flipped from `Deferred` to `Runtime` (`EcFileN`/`EcLocationN`/`CharNational`), backed by `EcFunctions.FileN/LocationN` on the ONE `NationalOf` repertoire translator + `CobolIntrinsics.CharNational`.
 - TYPEDEF residue: EXTERNAL type declaration + `SAME AS` (via the single `CloneItem`/`CloneSubtree`) + strong-group heterogeneous `=`/`<>` relations (§8.8.4.2 SR4), on the P5 `TypedefExpander`.
 
 **Bookkeeping:**
@@ -100,7 +100,7 @@ When Phase 10 is DONE, the following are true and demonstrable:
 - [ ] Step 8 — File-2002 (SHARING/LOCK/RETRY/UNLOCK/line-seq/5x-6x) on `FileConnector` (confirm) (COMMIT)
 - [ ] Step 9 — UDF residue: category-carrying RETURNING (lift 1510) (net-new)
 - [ ] Step 10 — UDF residue: BY VALUE formals + RECURSIVE per-activation data model (COMMIT)
-- [ ] Step 11 — EC `-N` twins + `EXCEPTION-FILE-N` (net-new, needs Step 2) (COMMIT)
+- [x] Step 11 — EC `-N` twins + `EXCEPTION-FILE-N` (net-new, needs Step 2) (COMMIT) (2026-07-16 — EXCEPTION-FILE-N §15.29 / EXCEPTION-LOCATION-N §15.31 (the ONLY -N EC twins the 2023 text defines) flipped `Deferred`→`Runtime` as `EcFunctions.FileN/LocationN` = the base renderings through the ONE `NationalOf` repertoire translator, category National; the same wave landed CHAR-NATIONAL §15.16 (`CharNational`, native national PCS = UTF-16 order) + ORD-over-national §15.70.4 r2 (the 0844 guard narrowed to CHAR, alphanumeric weights never applied to a national arg); `exception_file_n`+`char_national` ENABLED, `exception-file-n-2002` matrix row, `exception_file_n_below_2002` 85-window negative, ECT018N inline EC Fact; the 2023 file-connector-argument form stays loud → PHASE-13 Step 9)
 - [ ] Step 12 — ARITHMETIC IS STANDARD behavior @2002/2014 (net-new) (COMMIT)
 - [ ] Step 13 — Report Writer 2002: PRESENT WHEN + VARYING format 1 (net-new) (COMMIT)
 - [ ] Step 14 — `&`-concatenation operator §8.8.3 (net-new) (COMMIT)
@@ -148,7 +148,7 @@ PHASE-10 §4; PHASE4_RECONCILIATION rows annotated. No code change.
 | PROC-5-allocate | PARTIAL | 2 | S — the wave must land the §14.9.3 GR7 INITIALIZE lowering for ALLOCATE based-item INITIALIZED (drive the existing INITIALIZE machinery over the freshly allocated cell, delete the BoundUnsupported stage at PtrBinder.cs:127-129), and add/extend one enabled 2002 golden so INITIALIZED zero-fill (GR6) and form-2 RETURNING (GR4b) are byte-verified at runtime. |
 | FILE-1-sharing-lock | PARTIAL | 6 | M — the wave must extend lock governance beyond keyed READ on the existing PhysicalFileTable: give sequential connectors a record identity, add the record-operation-conflict (51) check + bound RETRY consumption to WRITE/REWRITE/DELETE/START, honor timed RETRY semantics, and either implement or loudly ledger the cross-run-unit sharing posture (§9.1.15) with new enabled goldens per leg. |
 | FILE-2-line-seq | PARTIAL | 6 | M — the wave must add the 62 production site to DeleteFile via the PhysicalFileTable open set, give sequential records a lock identity (or ledger the residue) so the §9.1.16 51/53/54 family can fire on SequentialConnector, implement the 06/09/71 line-sequential status protocol plus the §14.9.35 line-seq REWRITE leg on the connector, and land the LINE SEQUENTIAL edition gate (VersionConformancePass arm + version-matrix row) while reconciling the 2002-enabled oo_object_report golden — each leg small and localized but spanning runtime, emitter, gate registry, and corpus. |
-| PROC-4-ec-n | STAGED-LOUD | 6 | M — the P10 wave for this track (catalog Step 11 / P11 backlog Step 4) is hard-blocked on national CharImage data landing first (P10 Step 2); it must then flip the four Deferred rows (EXCEPTION-FILE-N, EXCEPTION-LOCATION-N, CHAR-NATIONAL, NATIONAL-OF) to IntrinsicBind.Runtime, add EcFileN/EcLocationN national variants to Cobol.Net.Runtime/Exceptions/EcFunctions.cs, give IntrinsicRenderer a national string channel (replacing the LoudValue arm and the National→Alphanumeric category fold), and ship the golden + matrix row + --std 85 negative in the same commit; the flip itself is S but the national-channel dependency makes the wave M. |
+| PROC-4-ec-n | STAGED-LOUD | 6 | M — **LANDED 2026-07-16 (Step 11):** all four Deferred rows are Runtime (NATIONAL-OF via Step 5; EXCEPTION-FILE-N/EXCEPTION-LOCATION-N/CHAR-NATIONAL via Step 11 — `EcFunctions.FileN/LocationN` on the ONE `NationalOf` translator, `CharNational` on the native national PCS, + ORD-over-national §15.70.4 r2); the golden (`exception_file_n`, `char_national`) + `exception-file-n-2002` matrix row + `--std 85` negative shipped in the same change. Remaining gap = ONLY the 2023 file-connector-argument form (loud; VCR rows 68/69, PHASE-13 Step 9). |
 | ARITH-2-standard | PARTIAL | 6 | M — the phase doc's planned net-new 'OptionsModel.ArithmeticMode consumed by the numeric renderer' build (Step 12, catalog line 76) is ALREADY LANDED and golden-pinned on the post-P7 NumericRenderer/CobolDec substrate, so the P10 wave shrinks to closing the residual spec legs: SDIDI exponentiation (§8.8.1.5.4), routing the §15.4.1 intrinsic set and the RW SUM clause through the mode, the decimal128-range size ECs (§8.8.1.5.2 r2), resolving the 2002-vs-2014 introduction edge against the 2002 standard (then either an arithmetic-standard-2002 registry row + 2002 golden + negative .err at --std 85, or a corrected catalog row), and rewriting the stale Step 12 text from 'consume the mode' to 'close the residual legs'. |
 | RW-2002 | NOT-STARTED | 7 | L — the wave must add the PRESENT lexer token plus six 2002 grammar formats (PRESENT WHEN, VARYING, OCCURS+STEP, multi-COLUMN with alignment, multi-LINE, expression/ROUNDED SOURCE), extend the ReportModel/DataBinder.Reports with presence conditions and varying counters, evaluate them at presentation time in the new-substrate Cobol.Net.Runtime/IO/ReportWriter, and ship 85-edition 0900 gates, matrix rows, and per-edition conformance goldens in the same change set. |
 | CONCAT | NOT-STARTED | 6 | S — the P10 wave must add the & token + a concatenation-expression rule at every literal position, fold operands to one literal at bind time per §8.8.3 (with class-compatibility checks incl. boolean), wire the concat-operator-2002 introduction gate (COBOLNET0900 below 2002) into the VersionConformancePass funnel, and ship enabled concat_literal/concat_boolean goldens while flipping the constructs.json row off pending. |
@@ -346,13 +346,13 @@ Evidence:
 - E:\CobolSharp\docs\rearchitecture\PHASE-11-intrinsics-backlog-tierc-codec.md:354-355 — ISO defines NO -N twin for EXCEPTION-STATEMENT/-STATUS; the only EC -N twins are the two catalogued rows
 - E:\CobolSharp\docs\rearchitecture\PHASE-10-m2-residual-catalog.md:312-330 (Step 11) and PHASE-11-intrinsics-backlog-tierc-codec.md:341-361 (Step 4) — both plans schedule the Deferred→Runtime flip, blocked on national data (P10 Step 2)
 
-Gaps:
-- EXCEPTION-FILE-N runtime body (national EcFileN return from ExceptionState, both r1 no-arg and the returned national class) — ISO §15.29
-- EXCEPTION-LOCATION-N runtime body (national EcLocationN return) — ISO §15.31
-- The 2023 file-connector-argument form of EXCEPTION-FILE/EXCEPTION-FILE-N (renders loud even on the alphanumeric base; VCR rows 68/69, PHASE-13 Step 9) — ISO §15.28/§15.29 (2023, E.3.3 items 25/26)
-- Other -N/national intrinsic legs staged on the same Deferred channel: CHAR-NATIONAL — ISO §15.16; NATIONAL-OF — ISO §15.66
-- A true national result-category channel: IntrinsicType.National currently folds to PicCategory.Alphanumeric at IntrinsicCatalog.cs:44, so a landed -N twin would still need the national data class carried through emit — ISO §8.5.2 with §15.29.3/§15.31.3 (returned value is class national)
-- Verification legs: no enabled conformance golden (exception_file_n/intrinsics_ec_national grep-empty in tests/), no version-matrix construct row, no --std 85 negative window row for the -N twins — ISO §15.29/§15.31 (2002-introduced, per-edition obligation)
+Gaps (all but #3 CLOSED by Step 11, 2026-07-16):
+- ~~EXCEPTION-FILE-N runtime body~~ CLOSED — `EcFunctions.FileN()` = `CobolIntrinsics.NationalOf(File())` (the §15.29.4 r1c "converted … to the runtime national character set" IS the ONE repertoire translation) — ISO §15.29
+- ~~EXCEPTION-LOCATION-N runtime body~~ CLOSED — `EcFunctions.LocationN()` likewise — ISO §15.31
+- The 2023 file-connector-argument form of EXCEPTION-FILE/EXCEPTION-FILE-N (renders loud on base AND twin; VCR rows 68/69, PHASE-13 Step 9) — ISO §15.28/§15.29 (2023, E.3.3 items 25/26) — **still the one open gap (staged loud, recorded location: IntrinsicRenderer.cs `EcFile`/`EcFileN` arms)**
+- ~~Other -N/national legs~~ CLOSED — NATIONAL-OF landed at Step 5; CHAR-NATIONAL landed at Step 11 (`CobolIntrinsics.CharNational`, native national PCS = UTF-16 code-point order — no ALPHABET FOR NATIONAL surface, Step 4) + ORD over a national argument (§15.70.3/§15.70.4 r2; the 0844 guard narrowed to CHAR with a §15.15.3 citation) — ISO §15.16/§15.66/§15.70
+- ~~A true national result-category channel~~ CLOSED at Step 5 — `IntrinsicSig.ResultCategory` maps National→`PicCategory.National` (IntrinsicCatalog.cs)
+- ~~Verification legs~~ CLOSED — `exception_file_n`+`char_national` ENABLED goldens (FUNCTION LENGTH pins the national character-position counts), `exception-file-n-2002` constructs.json row (reject 1502 below 2002), `exception_file_n_below_2002` negative @85, ECT018N inline EC Fact @2023 — ISO §15.29/§15.31
 
 **ARITH-2-standard — ARITHMETIC IS STANDARD (plain, dual-window 2014→2023) / STANDARD-DECIMAL (2014) behavior at bind+emit. Direct answers: (1) ArithmeticMode IS consumed in CodeGen — the phase doc's captured-not-consumed mark is STALE (landed Phase-4 track (e), DEVLOG 611): NumericRenderer.StandardDecimal (CodeGen/Emit/NumericRenderer.cs:203) routes every +,-,*,/ through CobolDec.Add/Sub/Mul/Div with the §11.9.11 INTERMEDIATE ROUNDING mode (lines 189-198, 205), comparisons through CobolDec.Compare (ConditionRenderer.cs:111), statement temps typed CobolDec (ArithmeticEmitter.cs:181), and the final transfer through CobolDec.ToUnscaled with the receiver's ROUNDED mode (RuntimeApi.cs:106-108); bind-side, StandardBinary is a loud COBOLNET0806 error (DataBinder.cs:196-198) and the §14.7 r2 composite check is native-only (StatementValidation.cs:107). (2) §8.8.1.3 in the 2023 text is NATIVE arithmetic (implementor-defined intermediates — here the Int128 scaled-integer engine that clips nested quotients toward the receiver scale, specs/ISO_COBOL.md:9065-9067); 'standard arithmetic' (the 2002/2014 §8.8.1.3 numbering, dropped by 2023) requires every operation to evaluate in the standard intermediate data item — for fixed-point operands the decimal128-equivalent SDIDI: 34-significant-digit per-operation rounding under INTERMEDIATE ROUNDING, exact operand lift, decimal128-range size ECs (2023 §8.8.1.5, spec 9203-9250). Observable difference the goldens pin: COMPUTE W = 2 / 7 * 7 into PIC 9V9(5) gives 2.00000 under STANDARD/STANDARD-DECIMAL vs the native-clipped 1.99997.** — `PARTIAL`
 
@@ -653,17 +653,37 @@ BY VALUE header formals modeled on CallAbi; RECURSIVE static-WS vs per-activatio
 
 ---
 
-### Step 11 — EC `-N` twins + `EXCEPTION-FILE-N` (needs Step 2)
+### Step 11 — EC `-N` twins + `EXCEPTION-FILE-N` (needs Step 2) — **LANDED 2026-07-16**
 
-**Files:** `src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs` (`EXCEPTION-FILE-N` `:133` `Deferred`→`Runtime`; any other `-N` twins), `src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs` (national-string returns), `src/Cobol.Net.Runtime/Exceptions/EcFunctions.cs` (national variants), `CodeGen/Emit/IntrinsicRenderer.cs` (`:44` LoudValue → national channel).
+**As built:** the 2023 §15 text defines exactly TWO -N EC twins — `EXCEPTION-FILE-N` (§15.29) and
+`EXCEPTION-LOCATION-N` (§15.31); none exists for EXCEPTION-STATEMENT/-STATUS (P11 backlog note confirmed against
+the §15.1/§15.2 table). Both flipped `Deferred`→`Runtime` in `IntrinsicCatalog.cs` as `EcFileN`/`EcLocationN`,
+implemented in `src/Cobol.Net.Runtime/Exceptions/EcFunctions.cs` as **the base renderings projected national
+through the ONE `CobolIntrinsics.NationalOf` repertoire translator** (`FileN() = NationalOf(File())`,
+`LocationN() = NationalOf(Location())` — each -N section's "converted at runtime to the runtime national
+character set" IS that §15.66.4 conversion; under D-N4 the Latin-1 code points keep their values, so the
+compiler-observable delta is the result CATEGORY = National, carried by `IntrinsicSig.ResultCategory` and driving
+Table-16 MOVE/compare legality). `IntrinsicRenderer.RenderString` gained the `EcFileN`/`EcLocationN` arms; the
+2023 file-connector-argument form (E.3.3 items 25/26) renders loud on base AND twin (VCR rows 68/69 → PHASE-13
+Step 9). Same wave, same channel: **CHAR-NATIONAL §15.16** landed (`CobolIntrinsics.CharNational` — the native
+national PCS is UTF-16 code-point order; no ALPHABET … FOR NATIONAL surface exists (Step 4), so no weights
+overload) and **ORD over a national argument** landed per §15.70.3/§15.70.4 r2 (the 0844 CHAR/ORD guard narrowed
+to CHAR with a §15.15.3 citation; a national ORD argument never routes to the alphanumeric `__COLLATE` weights).
+Edition window: **IntroducedIn 2002 for both twins + CHAR-NATIONAL** (the EC model and national data are both
+2002 introductions; the 2023 Annex E.3.3 delta is only the optional argument) — D8 `COBOLNET1502` below 2002.
+`EXCEPTION-FILE` (non-national) confirmed unchanged (ECT018 + the base arm untouched).
 
-**Change:** Flip the national exception intrinsics (`EXCEPTION-FILE-N`, and any `EXCEPTION-*-N` twins) from `IntrinsicBind.Deferred`/loud to `Runtime`, returning a national (`CharImage`) string built from the exception state. These were blocked on national data (Step 2). Confirm `EXCEPTION-FILE` (non-national) still returns the alphanumeric form.
-
-**Why:** Named in scope ("the EC -N twins + EXCEPTION-FILE-N"); `IntrinsicCatalog.cs:133` confirms `Deferred` today, blocked on national.
-
-**Verify:**
-- New golden `tests/conformance/2002/exception_file_n.cob` — force a file EC, `DISPLAY FUNCTION EXCEPTION-FILE-N` → national output matches.
-- The M4-2b catalog note ("EXCEPTION-FILE-N also blocked on national (a)") is now unblocked — update it.
+**Verified (all green 2026-07-16):**
+- Goldens `tests/conformance/2002/exception_file_n.cob`+`.out` (r1a "00" pre-EC, r1c "10TF" at EC-I-O-AT-END,
+  FUNCTION LENGTH = 4/1 character positions, category-national MOVE + N"" compare; §15.31.3 r1 one national
+  space) and `char_national.cob`+`.out` (ordinal→char, N"" equality, LENGTH=1, wide U+4E16 leg, ORD=19991) —
+  ENABLED in the 2002 manifest; legacy `GreenfieldOnly` exclusions (no legacy EC model / national category).
+- `exception-file-n-2002` constructs.json row (compile 2002/2014/2023, reject 1502 @85) + regenerated registry.
+- Negative `tests/conformance/negative/exception_file_n_below_2002.cob`+`.err` (COBOLNET1502 @85).
+- Inline EC-net Fact `IoAtEnd_ExceptionFileN_NationalTwin` (ECT018N @2023).
+- The M4-2b catalog note ("EXCEPTION-FILE-N also blocked on national (a)") updated in
+  `ISO2023_CONFORMANCE_PLAN.md` + `PHASE4_RECONCILIATION.md` (M4-2b LANDED; SMALLEST-ALGEBRAIC was already a
+  Fold row).
 
 **COMMIT BOUNDARY.** Suggested message:
 ```
@@ -858,7 +878,7 @@ All tracks are **COBOL-2002 introductions** (carried unchanged through 2014/2023
 | Pointers / ALLOCATE / FREE / BASED | §13.18 USAGE POINTER/PROGRAM-POINTER; §8.8.4.2 equality; §13.18.5 GR3/4 deref; §14.9.5 ALLOCATE, §14.9.16 FREE | 2002 | `based_pointer`, `pointer_alloc`, `pointer_arith` (confirm), `program_pointer` (new) | `usage-program-pointer-2002`, `allocate-2002`, `free-2002` (confirm) | allocate-non-based; program-pointer-deref |
 | File-2002 | §12.4.5.15 SHARING; §14.7.9 RETRY; §9.1.13.8/.9 status 5x/6x; line-sequential org | 2002 | `file_sharing` (confirm) + a 04/39-status golden | `file-sharing-clause-2002`, `user-word-sharing-2002` | close-with-lock; shared-lock-conflict |
 | UDF residue | §8.4.3.2.4 GR1/GR5; §14.9.4 GR5c BY VALUE; §14.6.2.3.2/.3 static/per-activation; §9.4 recursive | 2002 | `udf_alpha_returning`, `udf_group_returning`, `udf_by_value`, `recursive_static_ws` | `call-by-value-2002`, `local-storage-section` | udf-returning-as-receiver |
-| EC national intrinsics | §15.29 EXCEPTION-FILE-N (+ `-N` twins); Table 13 EC codes | 2002 | `exception_file_n` | `exception-file-n-2002` | (n/a — runtime) |
+| EC national intrinsics — **LANDED (Step 11)** | §15.29 EXCEPTION-FILE-N + §15.31 EXCEPTION-LOCATION-N (the only `-N` twins) + §15.16 CHAR-NATIONAL | 2002 | `exception_file_n` + `char_national` ✓ | `exception-file-n-2002` ✓ (+ `exception_file_n_below_2002` negative) | (n/a — runtime) |
 | ARITHMETIC IS STANDARD | §11.9.5 ARITHMETIC clause; §14.4.2 standard intermediate arithmetic | 2002 (2014 same; a 2023 VCR delta) | `arithmetic_standard` | `arithmetic-standard-2002` | arithmetic-standard-at-85 |
 | Report Writer 2002 | RD PRESENT WHEN (format 1); VARYING (format 1) | 2002 | `rw_present_when`, `rw_varying` | `rw-present-when-2002`, `rw-varying-2002` | rw-present-when-at-85 |
 | `&`-concatenation | §8.8.3 concatenation expression | 2002 | `concat_literal`, `concat_boolean` | `concat-operator-2002` | concat-at-85 |

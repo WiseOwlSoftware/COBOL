@@ -42,9 +42,12 @@ invariant permits. The full battery stays green at every commit boundary.
 **IN**
 - Every current `IntrinsicBind.Deferred` row in `src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs`, by family (the 2002 set,
   the 2014 residue, the 2023 rows in scope).
-- `DISPLAY-OF` / `NATIONAL-OF` + the EC `-N` national twins (`EXCEPTION-FILE-N`, `EXCEPTION-LOCATION-N`) — **promoted now that
-  national data landed in P10**.
-- `CHAR-NATIONAL`, `BOOLEAN-OF-INTEGER`, `INTEGER-OF-BOOLEAN` — promoted on the P10 national/boolean base.
+- ~~`DISPLAY-OF` / `NATIONAL-OF` + the EC `-N` national twins (`EXCEPTION-FILE-N`, `EXCEPTION-LOCATION-N`)~~ —
+  **ALREADY LANDED IN P10** (Step 5: DISPLAY-OF/NATIONAL-OF; Step 11: the EC `-N` twins as `EcFunctions.FileN/LocationN`
+  on the ONE `NationalOf` translator + the `exception_file_n` golden/matrix/negative). Steps 3–4 below are SATISFIED
+  except their locale/codepage prose — nothing left for P11 here.
+- ~~`CHAR-NATIONAL`~~ **ALREADY LANDED IN P10 Step 11** (`CharNational`, native national PCS + ORD-over-national
+  §15.70.4 r2; `char_national` golden); `BOOLEAN-OF-INTEGER`, `INTEGER-OF-BOOLEAN` — still promoted on the P10 boolean base.
 - The 5 A.4.9 locale functions (`LOCALE-COMPARE`, `LOCALE-DATE`, `LOCALE-TIME`, `LOCALE-TIME-FROM-SECONDS`, `STANDARD-COMPARE`)
   **+** the `LOCALE` keyword variants of `LOWER-CASE`/`UPPER-CASE`/`TEST-NUMVAL-C` → the **decision-3 documented non-support
   diagnostic path**.
@@ -131,11 +134,11 @@ additive, fully-specified increment** (step group D — recommended).
 | 1 | `BOOLEAN-OF-INTEGER` | §15.13 | `:124` | implement | `BooleanOfInteger` |
 | 2 | `INTEGER-OF-BOOLEAN` | §15.45 | `:143` | implement | `IntegerOfBoolean` |
 | 3 | `BYTE-LENGTH` | §15.14 | `:125` | implement (compile-time fold, byte size) | `Fold` (BYTE-LENGTH) |
-| 4 | `CHAR-NATIONAL` | §15.16 | `:126` | implement (national) | `CharNational` |
-| 5 | `DISPLAY-OF` | §15.26 | `:130` | implement (national→alnum) | `DisplayOf` |
-| 6 | `NATIONAL-OF` | §15.66 | `:131` | implement (alnum→national) | `NationalOf` |
-| 7 | `EXCEPTION-FILE-N` | §15.29 | `:133` | implement (national EC twin) | `EcFileN` |
-| 8 | `EXCEPTION-LOCATION-N` | §15.31 | `:138` | implement (national EC twin) | `EcLocationN` |
+| 4 | `CHAR-NATIONAL` | §15.16 | `:126` | **LANDED (P10 Step 11)** | `CharNational` ✓ |
+| 5 | `DISPLAY-OF` | §15.26 | `:130` | **LANDED (P10 Step 5)** | `DisplayOf` ✓ |
+| 6 | `NATIONAL-OF` | §15.66 | `:131` | **LANDED (P10 Step 5)** | `NationalOf` ✓ |
+| 7 | `EXCEPTION-FILE-N` | §15.29 | `:133` | **LANDED (P10 Step 11)** | `EcFileN` ✓ |
+| 8 | `EXCEPTION-LOCATION-N` | §15.31 | `:138` | **LANDED (P10 Step 11)** | `EcLocationN` ✓ |
 | 9 | `DATE-TO-YYYYMMDD` | §15.23 | `:127` | implement (windowing) | `DateToYyyymmdd` |
 | 10 | `DAY-TO-YYYYDDD` | §15.25 | `:128` | implement (windowing) | `DayToYyyyddd` |
 | 11 | `YEAR-TO-YYYY` | §15.100 | `:129` | implement (windowing) | `YearToYyyy` |
@@ -297,7 +300,12 @@ compile emits **COBOLNET1502** naming COBOL-2002 (via `EditionHarness`/`EditionG
 
 ---
 
-### Step 3 — Family: national conversions `DISPLAY-OF` / `NATIONAL-OF` / `CHAR-NATIONAL` (COMMIT BOUNDARY)
+### Step 3 — Family: national conversions `DISPLAY-OF` / `NATIONAL-OF` / `CHAR-NATIONAL` (COMMIT BOUNDARY) — **SATISFIED BY P10 (Steps 5 + 11); skip, re-verify only**
+
+> **P10 landed this whole family** — DISPLAY-OF/NATIONAL-OF at P10 Step 5 (argument-2 turned out to be a
+> SUBSTITUTION CHARACTER per the 2023 §15.26.3 r2/§15.66.3 r2 text, NOT a codepage name — the codepage prose
+> below is superseded), CHAR-NATIONAL + ORD-over-national (§15.70.4 r2) at P10 Step 11 (`national_intrinsics` +
+> `char_national` goldens; the 0844 guard narrowed to CHAR). The section is kept for the design record only.
 
 ISO §15.26 (DISPLAY-OF: national → alphanumeric in the runtime code page), §15.66 (NATIONAL-OF: alphanumeric → national),
 §15.16 (CHAR-NATIONAL: an ordinal → the national character at that position). National storage landed in P10 (`CobolString`
@@ -338,7 +346,13 @@ Remove the `COBOLNET0844` guard (national forms — CHAR-NATIONAL §15.16 / ORD 
 
 ---
 
-### Step 4 — Family: EC national twins `EXCEPTION-FILE-N` / `EXCEPTION-LOCATION-N` (COMMIT BOUNDARY)
+### Step 4 — Family: EC national twins `EXCEPTION-FILE-N` / `EXCEPTION-LOCATION-N` (COMMIT BOUNDARY) — **SATISFIED BY P10 Step 11; skip, re-verify only**
+
+> **P10 Step 11 landed exactly this design** (2026-07-16): `EcFunctions.FileN()/LocationN()` = the national
+> projection through the ONE `CobolIntrinsics.NationalOf` translator; rows `Runtime` with `EcFileN`/`EcLocationN`;
+> golden `tests/conformance/2002/exception_file_n.cob` (not `intrinsics_ec_national` — the P10 catalog's name),
+> matrix row `exception-file-n-2002`, negative `exception_file_n_below_2002` @85. The 2023 optional-argument form
+> stays loud (VCR 68/69 → PHASE-13 Step 9). Kept for the design record only.
 
 ISO §15.29 / §15.31 — national projections of the existing alphanumeric `EXCEPTION-FILE` (§15.28) / `EXCEPTION-LOCATION`
 (§15.30), which are already implemented (`EcFunctions.File()` / `.Location()`, rendered at `IntrinsicRenderer.cs:284-286/282`).

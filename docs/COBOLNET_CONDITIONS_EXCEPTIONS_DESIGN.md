@@ -143,8 +143,11 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
 
 **Still later waves:** the exception-checking PERFORM WHEN + `>>PROPAGATE` (2023 — VCR row 79/§4808),
 RAISE/RAISING identifier (exception OBJECTS — the OO wave; the `ExceptionState.ExceptionObject` slot exists),
-EXCEPTION-FILE's 2023 file-connector argument (loud by name), the national `-N` twins (no national runtime — loud),
-GLOBAL-walkable F3 declaratives, VALIDATE/EC-VALIDATE (§18.17).
+EXCEPTION-FILE/EXCEPTION-FILE-N's 2023 file-connector argument (loud by name — VCR rows 68/69, PHASE-13 Step 9),
+GLOBAL-walkable F3 declaratives, VALIDATE/EC-VALIDATE (§18.17). *(The national `-N` twins are LIVE — P10 Step 11:
+`EcFunctions.FileN`/`LocationN` (§15.29/§15.31) = the base renderings through the ONE `CobolIntrinsics.NationalOf`
+repertoire translator, result category National; golden `exception_file_n`, matrix row `exception-file-n-2002`,
+85-window negative.)*
 
 ## Decisions
 

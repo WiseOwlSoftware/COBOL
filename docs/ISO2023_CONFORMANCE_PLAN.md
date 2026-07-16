@@ -639,11 +639,14 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   by 2023 (they were user-defined words before), and presence in the 2023 body (§8.8.4.9) proves nothing about
   2002. The operator is `{is2023()}?`-gated; conformance re-editioned to `tests/conformance/2023/logical_xor`
   (VCR rows 32/41; constructs.json rows `logical-xor-operator-2023` + the two user-word interval rows).
-- ☐ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics.** Both verified REAL but non-trivial:
-  EXCEPTION-FILE-N (§15.29) returns NATIONAL data (blocked on M2-DATA-3 national support); SMALLEST-ALGEBRAIC
-  (§15.83) = 10^(-fractionDigits) of the argument's PIC — needs the binder to pass the argument's fraction-digit
-  count (HIGHEST/LOWEST-ALGEBRAIC pass total digits). Deferred — neither is the trivial dispatch case the audit
-  implied.
+- ☑ **M4-2b — `SMALLEST-ALGEBRAIC` + `EXCEPTION-FILE-N` intrinsics — BOTH LANDED.** SMALLEST-ALGEBRAIC (§15.83)
+  is a compile-time PICTURE fold (`IntrinsicBind.Fold`, the HIGHEST/LOWEST `BindAlgebraicFold` family;
+  `smallest_algebraic` ENABLED). EXCEPTION-FILE-N (§15.29) + EXCEPTION-LOCATION-N (§15.31) landed with the P10
+  Step-11 EC-N wave (2026-07-16) once national data unblocked: `EcFunctions.FileN/LocationN` = the base
+  renderings projected through the ONE `NationalOf` repertoire translator, result category National (Table-16
+  legality); `exception_file_n` ENABLED + the `exception-file-n-2002` matrix row + the 85-window negative.
+  Residue: the 2023 optional file-connector-argument form (base + twin) renders loud — VCR rows 68/69,
+  PHASE-13 Step 9.
 - ☐ **M4-3 — Other 2023 intrinsic/bit/boolean additions + dynamic-table finalization + clarifications.** Audit
   `specs/ISO_COBOL.md` 2023-marked changes when M4 begins (many intrinsics already in `IntrinsicFunctions.cs` —
   verify completeness + **version gating**, i.e. a 2023 fn used under `--std 85` / `2002` / `2014` MUST emit the

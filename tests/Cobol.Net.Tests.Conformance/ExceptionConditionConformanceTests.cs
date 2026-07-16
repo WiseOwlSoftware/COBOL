@@ -388,6 +388,48 @@ public sealed class ExceptionConditionConformanceTests
                 STOP RUN.
             """), "H: EC-I-O-AT-END\nF: 10TF\nAFTER-READS");
 
+    [Fact]   // §15.29.4 r1 — EXCEPTION-FILE-N, the national twin of EXCEPTION-FILE (P10 Step-11 EC-N wave):
+             // r1a two national zeros before any EC-I-O condition; r1c the I-O status in national characters +
+             // the SELECT file-name converted to the runtime national character set (the ONE NationalOf
+             // repertoire projection of the same File() rendering). §15.31.3 r1 — EXCEPTION-LOCATION-N is one
+             // national space when the enabling TURN lacked WITH LOCATION. FUNCTION LENGTH (§15.50) pins the
+             // character-position counts of the national results.
+    public void IoAtEnd_ExceptionFileN_NationalTwin()
+        => AssertSpec($"""
+            >>TURN EC-I-O CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ECT018N.
+            {IoEnv}
+            DATA DIVISION.
+            FILE SECTION.
+            {IoFd}
+            WORKING-STORAGE SECTION.
+            01 WS-L1 PIC 9.
+            01 WS-L2 PIC 9.
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            EC-H SECTION. USE AFTER EXCEPTION CONDITION EC-I-O-AT-END.
+            EC-H-P.
+                DISPLAY "FN: " FUNCTION EXCEPTION-FILE-N.
+                MOVE FUNCTION LENGTH(FUNCTION EXCEPTION-FILE-N) TO WS-L1.
+                MOVE FUNCTION LENGTH(FUNCTION EXCEPTION-LOCATION-N) TO WS-L2.
+                DISPLAY "L1: " WS-L1 " L2: " WS-L2.
+                RESUME AT NEXT STATEMENT.
+            END DECLARATIVES.
+            MAIN SECTION.
+            MAIN-PARA.
+                OPEN OUTPUT TF.
+                MOVE "HELLO" TO TF-REC.
+                WRITE TF-REC.
+                CLOSE TF.
+                OPEN INPUT TF.
+                DISPLAY "P: " FUNCTION EXCEPTION-FILE-N.
+                READ TF.
+                READ TF.
+                CLOSE TF.
+                STOP RUN.
+            """, "P: 00\nFN: 10TF\nL1: 4 L2: 1");
+
     [Fact]   // §9.1.13.1 / §14.6.13.1.4 #1: the statement's AT END phrase covers the '1x' family — the EC
              // declarative is NOT selected.
     public void IoAtEnd_AtEndPhrase_SuppressesDeclarative()

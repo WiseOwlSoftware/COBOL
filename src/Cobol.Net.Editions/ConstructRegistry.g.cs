@@ -131,5 +131,6 @@ public static partial class ConstructRegistry
         new("program-id-recursive-2002", "PROGRAM-ID ... RECURSIVE", 2002, null, null, "COBOLNET0885", "ISO §11.10 (the RECURSIVE attribute is 2002+)"),
         new("options-paragraph-2014", "the OPTIONS paragraph", 2014, null, null, "COBOLNET0804", "ISO §11.9 (ARITHMETIC / DEFAULT ROUNDED / INTERMEDIATE ROUNDING ...)"),
         new("arithmetic-standard-2014", "ARITHMETIC IS STANDARD", 2014, 2023, null, "COBOLNET0807", "ISO §8.8.1 (2023 defines NATIVE, STANDARD-BINARY, STANDARD-DECIMAL; 2014 §11.9.5 included STANDARD, dropped by 2023 - use STANDARD-DECIMAL)"),
+        new("exception-file-n-2002", "FUNCTION EXCEPTION-FILE-N / EXCEPTION-LOCATION-N (the national EC twins)", 2002, null, null, "COBOLNET1502", "ISO §15.29 EXCEPTION-FILE-N / §15.31 EXCEPTION-LOCATION-N; LIVE (P10 Step-11) — EcFunctions.FileN/LocationN = the base renderings through the ONE NationalOf repertoire translator, category National; the 2023 optional-argument form stays loud (E.3.3 item 26, VCR rows 68/69, PHASE-13 Step 9); D8 window 1502 below 2002"),
     ];
 }
