@@ -3,26 +3,15 @@
 namespace CobolNet.Runtime;
 
 /// <summary>
-/// The run-unit EXTERNAL data store (ISO §8.6.7 / §13.18.22): ONE storage copy per external name for the whole
-/// run unit, represented as the record's character image (the same Tier-B string-canonical shape the data model
-/// uses for shared storage — never a persisted byte substrate). Every program describing the same external name
-/// windows the same cell; CANCEL does NOT reset it (§14.9.5 GR8). The §13.18.22 GR6 conformance checks
-/// (same byte count / same VALUE across describers) belong to the §14.8.4 EC machinery — not enforced here yet.
+/// The static facade over the run unit's <see cref="ExternalTable"/> (the emitted surface — generated programs
+/// call <c>ExternalStore.Cell(name, image)</c>; kept name-stable pre-G8). Forwards to
+/// <c>RunUnit.Current.External</c>.
 /// </summary>
 public static class ExternalStore
 {
-    private static readonly Dictionary<string, StorageCell> Cells = new(StringComparer.OrdinalIgnoreCase);
+    /// <inheritdoc cref="ExternalTable.Cell"/>
+    public static StorageCell Cell(string name, string initialImage) => RunUnit.Current.External.Cell(name, initialImage);
 
-    /// <summary>The run-unit cell for <paramref name="name"/>, created with <paramref name="initialImage"/> on
-    /// first reference (ISO §14.6.2.3.2 — external data takes its initial state once per run unit). The cell
-    /// is the ONE shared-storage shape (<see cref="StorageCell"/> — increment-2 unification), so ADDRESS OF an
-    /// EXTERNAL item needs no special case.</summary>
-    public static StorageCell Cell(string name, string initialImage)
-    {
-        if (!Cells.TryGetValue(name, out var h)) Cells[name] = h = new StorageCell { Ref = initialImage };
-        return h;
-    }
-
-    /// <summary>Drop every cell (run-unit start hygiene; called from <see cref="ProgramRegistry.Reset"/>).</summary>
-    public static void Reset() => Cells.Clear();
+    /// <inheritdoc cref="ExternalTable.Reset"/>
+    public static void Reset() => RunUnit.Current.External.Reset();
 }

@@ -1,0 +1,532 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+namespace CobolNet.Runtime.IO;
+
+/// <summary>
+/// The run-unit file-connector registry (DESIGN-runtime-library §2.2): ONE lookup keyed by COBOL file-name over
+/// the polymorphic <see cref="FileConnector"/> — no sequential-first probe, no <c>Keyed*</c> fallthrough (the
+/// former second dispatch mechanism, deleted per the singular-pattern rule). Owns the GC deferred-close queue
+/// (per-object connectors, §9.1.4), the per-object instance-key mint (M2-OO-1i), the CLOSE-WITH-LOCK set, the
+/// per-connector declared sharing postures, and the <see cref="PhysicalFileTable"/> (§9.1.15/§9.1.16). The
+/// static <see cref="CobolFile"/> facade (the emitted surface) is a pure delegator onto this instance.
+/// Verbs whose statement forms are organization-specific keep their organization checks here: a sequential-only
+/// verb (WRITE ADVANCING, LINAGE, plain READ) no-ops on a keyed connector exactly as the split registries did —
+/// the emitter routes keyed files through the keyed verb entries.
+/// </summary>
+public sealed class FileRegistry
+{
+    private readonly Dictionary<string, FileConnector> _files = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _locked = new(StringComparer.OrdinalIgnoreCase);
+    private int _instSeq;   // the per-object instance-file connector-key sequence (M2-OO-1i; reset for determinism)
+    // The GC finalizer thread (~CobolObject) can request a per-object CLOSE at any moment, but the registry is a
+    // single-thread structure — so the finalizer only ENQUEUES the key (thread-safe); the actual CloseAndDrop
+    // runs on the mutator thread when it next drains (Reset / Open / CloseAll). §9.1.4's NOTE licenses this
+    // GC-deferred close.
+    private readonly System.Collections.Concurrent.ConcurrentQueue<string> _pendingObjectClose = new();
+
+    /// <summary>A connector's declared sharing posture (from its SELECT's SHARING / LOCK MODE clauses).</summary>
+    private readonly record struct ConnectorShare(string Host, FileSharing Sharing, FileLockMode LockMode, bool Multiple);
+
+    /// <summary>The per-connector declared sharing/lock metadata (a connector is "sharing-active" iff present).</summary>
+    private readonly Dictionary<string, ConnectorShare> _connectorShares = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The physical-file sharing/record-lock registry (§9.1.15/§9.1.16).</summary>
+    private readonly PhysicalFileTable _physical = new();
+
+    // ── Run-unit lifecycle ───────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Reset the registry (run-unit start): drain GC closes, close the sequential connectors (the
+    /// pre-registry semantics — keyed connectors are dropped without a close, exactly as before), clear
+    /// everything, restart the instance-key sequence, and clear the sharing registries.</summary>
+    public void Reset()
+    {
+        DrainPendingObjectCloses();
+        foreach (var c in _files.Values)
+            if (c is SequentialConnector s)
+                s.Close();
+        _files.Clear();
+        _locked.Clear();
+        _instSeq = 0;
+        while (_pendingObjectClose.TryDequeue(out _)) { }   // a new run unit starts with a clean queue
+        _connectorShares.Clear();
+        _physical.Clear();
+    }
+
+    /// <summary>Request the §9.1.4 deletion-time CLOSE of a per-object connector FROM THE GC FINALIZER THREAD:
+    /// only enqueue the key; the mutator thread performs the real close in <see cref="DrainPendingObjectCloses"/>.</summary>
+    public void EnqueueInstanceClose(string key) => _pendingObjectClose.Enqueue(key);
+
+    /// <summary>Perform any GC-requested per-object closes on the MUTATOR thread (called at the top of
+    /// Reset / Open / CloseAll — safe points where no other registry mutation is in flight).</summary>
+    private void DrainPendingObjectCloses()
+    {
+        while (_pendingObjectClose.TryDequeue(out var k)) CloseAndDrop(k);
+    }
+
+    /// <summary>Mint a UNIQUE per-object connector key for an instance file (M2-OO-1i, ISO §9.1.4 — one connector
+    /// per object instance): <paramref name="baseKey"/> suffixed with a monotone <c>#N</c>. Deterministic within
+    /// a run unit (the counter resets in <see cref="Reset"/>).</summary>
+    public string MintInstanceKey(string baseKey) =>
+        baseKey + "#" + System.Threading.Interlocked.Increment(ref _instSeq)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>Close and remove a per-object instance-file connector (M2-OO-1i, ISO §9.1.4 — the implicit CLOSE
+    /// executed when the owning object is deleted). Reuses <see cref="Close"/> for the spec-required close, then
+    /// drops the connector from the registry.</summary>
+    public void CloseAndDrop(string key)
+    {
+        Close(key);
+        _files.Remove(key);
+        _locked.Remove(key);
+    }
+
+    // ── Registration ─────────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Register a SELECTed sequential file (one per SELECT). Re-registering an INTERNAL connector
+    /// replaces it (a fresh program instance gets fresh connectors, ISO §14.6.2.3.2); an EXTERNAL connector (the
+    /// <c>"::EXT::"</c> key band) is ONE per run unit shared by every describing program (ISO §13.18.22.4 GR4a) —
+    /// a later describer keeps the existing live connector (IC227A).</summary>
+    public void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
+        bool optional, int varyMin, int varyMax)
+    {
+        if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
+            return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a)
+        _files[cobolName] = new SequentialConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
+            lineSequential, varyMin, varyMax) { IsOptional = optional };
+    }
+
+    /// <summary>Register a SELECTed RELATIVE file (§12.4.5.13; <paramref name="relativeKeyDigits"/> drives the
+    /// '14'/'24' RRN-digit statuses, 0 = no RELATIVE KEY clause).</summary>
+    public void RegisterRelative(string cobolName, string assignTarget, int recordWidth, bool optional,
+        int accessMode, int relativeKeyDigits, int varyMin, int varyMax)
+    {
+        if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
+            return;   // §13.18.22.4 GR4a
+        _files[cobolName] = new RelativeConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
+            (KeyedAccess)accessMode, relativeKeyDigits, varyMin, varyMax) { IsOptional = optional };
+    }
+
+    /// <summary>Register a SELECTed INDEXED file with its PRIME key's (offset, length) range (§12.4.5.12).</summary>
+    public void RegisterIndexed(string cobolName, string assignTarget, int recordWidth, bool optional,
+        int accessMode, int primeOffset, int primeLength, int varyMin, int varyMax)
+    {
+        if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
+            return;   // §13.18.22.4 GR4a
+        _files[cobolName] = new IndexedConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
+            (KeyedAccess)accessMode, primeOffset, primeLength, varyMin, varyMax) { IsOptional = optional };
+    }
+
+    /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6), in declaration order.</summary>
+    public void AddAlternateKey(string name, int offset, int length, bool duplicates)
+    {
+        if (_files.TryGetValue(name, out var c) && c is IndexedConnector ix)
+            ix.AddAlternateKey(offset, length, duplicates);
+    }
+
+    // ── OPEN / CLOSE ─────────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>OPEN in <paramref name="mode"/> (ISO §14.9.27): a sharing-active connector routes through the
+    /// physical-file registry (Table-19 → 61); every other connector keeps the exclusive path (GR23 implementor
+    /// default) — one polymorphic dispatch for all three organizations.</summary>
+    public void Open(string name, FileOpenMode mode)
+    {
+        DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
+        if (IsSharingActive(name)) { SharedOpenAttempt(name, mode, null); return; }
+        if (!_files.TryGetValue(name, out var c)) return;
+        if (_locked.Contains(name)) c.SetStatus(FileStatusCode.FileLocked);
+        else c.Open(mode);
+    }
+
+    /// <summary>CLOSE (ISO §14.9.6). For a sharing-active connector this also deregisters it from the
+    /// physical-file registry and releases its record locks (§9.1.16 :11754).</summary>
+    public void Close(string name)
+    {
+        SharedClose(name);   // no-op for a non-sharing-active connector
+        if (_files.TryGetValue(name, out var c)) c.Close();
+    }
+
+    /// <summary>CLOSE … WITH LOCK — close, then prevent reopen (a subsequent OPEN is status 38).</summary>
+    public void CloseWithLock(string name) { Close(name); _locked.Add(name); }
+
+    /// <summary>CLOSE … REEL/UNIT on a disk medium: a no-op that leaves the file open with status 07 (the file
+    /// is not reel-structured); on a not-open file it is 42. Sequential-organization surface only.</summary>
+    public void CloseReelUnit(string name)
+    {
+        if (_files.TryGetValue(name, out var c) && c is SequentialConnector f)
+            f.SetStatus(f.IsOpen ? "07" : FileStatusCode.FileNotOpen);
+    }
+
+    /// <summary>Close every open file (run-unit termination, ISO §14.6 — flushes print streams; keyed stores
+    /// persist, e.g. NIST RL208A).</summary>
+    public void CloseAll()
+    {
+        DrainPendingObjectCloses();
+        foreach (var c in _files.Values)
+        {
+            // The pre-registry semantics, preserved exactly: sequential connectors close unconditionally
+            // (a closed one just re-reports '42' into a cleared registry); keyed connectors close only if open.
+            if (c is SequentialConnector s) s.Close();
+            else if (c.IsOpen) c.Close();
+        }
+    }
+
+    // ── Sequential-surface verbs (keyed connectors are reached via the keyed entries below) ─────────────────
+
+    /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46); <paramref name="length"/> is the varying-record length
+    /// (§13.18.43 GR13a), -1 = the record's own size.</summary>
+    public void Write(string name, string image, int length)
+    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.Write(image, length); }
+
+    /// <summary><c>WRITE record {BEFORE|AFTER} ADVANCING {n LINES | PAGE}</c>; <paramref name="lines"/> = -1 is PAGE.</summary>
+    public void WriteAdvancing(string name, string image, int lines, bool before)
+    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteAdvancing(image, lines, before); }
+
+    /// <summary>Install a LINAGE file's logical-page evaluator (ISO §13.18.34 GR6).</summary>
+    public void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
+    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.SetLinage(eval); }
+
+    /// <summary>The file's LINAGE-COUNTER register (ISO §8.4.3.14 / §13.18.34 GR7).</summary>
+    public long LinageCounter(string name) =>
+        _files.TryGetValue(name, out var c) && c is SequentialConnector f ? f.LinageCounter : 0;
+
+    /// <summary>The end-of-page condition of the file's most recent WRITE (ISO §14.9.51 GR26a/b).</summary>
+    public bool EndOfPage(string name) =>
+        _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.EndOfPage;
+
+    /// <summary>Sequential <c>READ … NEXT</c> — the record image and whether a record was obtained.</summary>
+    public bool Read(string name, out string image)
+    {
+        if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) return f.Read(out image);
+        image = "";
+        return false;
+    }
+
+    /// <summary>Sequential <c>REWRITE record</c> (ISO §14.9.35).</summary>
+    public void Rewrite(string name, string image, int length)
+    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.Rewrite(image, length); }
+
+    /// <summary>The AT END condition for a sequential file (status 10).</summary>
+    public bool AtEnd(string name) =>
+        _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.AtEnd;
+
+    /// <summary>True when the last operation on a sequential file was unsuccessful (status not 00).</summary>
+    public bool Failed(string name) =>
+        _files.TryGetValue(name, out var c) && c is SequentialConnector f && f.Status != FileStatusCode.Success;
+
+    // ── Organization-neutral accessors (ONE polymorphic read — the registry win) ────────────────────────────
+
+    /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
+    public string Status(string name) => _files.TryGetValue(name, out var c) ? c.Status : FileStatusCode.Success;
+
+    /// <summary>The length of the most recently read record (ISO §13.18.43 GR15).</summary>
+    public int LastReadLength(string name) => _files.TryGetValue(name, out var c) ? c.LastReadLength : 0;
+
+    /// <summary>The open-mode view for USE-declarative mode scoping (ISO §14.9.49.4 GR6b–e); −1 unknown/closed.</summary>
+    public int OpenModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenModeView : -1;
+
+    // ── Keyed verbs (ISO §14.9.51 / §14.9.35 / §14.9.30 / §14.9.41 / §14.9.10) ───────────────────────────────
+
+    /// <summary>Stage the RELATIVE KEY item's value for the next keyed verb.</summary>
+    public void SetRelativeKey(string name, long rrn)
+    { if (_files.TryGetValue(name, out var c) && c is RelativeConnector r) r.SetPendingKey(rrn); }
+
+    /// <summary>The RRN last made available/released — the §14.9.30 GR25 / §14.9.51 GR29a MOVE-back source.</summary>
+    public long RelativeSlot(string name) =>
+        _files.TryGetValue(name, out var c) && c is RelativeConnector r ? r.LastSlot : 0;
+
+    /// <summary>Keyed WRITE (§14.9.51) — returns the I-O status.</summary>
+    public string WriteKeyed(string name, string image, int length) => _files.TryGetValue(name, out var c)
+        ? c switch
+        {
+            RelativeConnector r => r.Write(image, length),
+            IndexedConnector ix => ix.Write(image, length),
+            _ => FileStatusCode.PermanentError,
+        }
+        : FileStatusCode.PermanentError;
+
+    /// <summary>Keyed REWRITE (§14.9.35) — returns the I-O status.</summary>
+    public string RewriteKeyed(string name, string image, int length) => _files.TryGetValue(name, out var c)
+        ? c switch
+        {
+            RelativeConnector r => r.Rewrite(image, length),
+            IndexedConnector ix => ix.Rewrite(image, length),
+            _ => FileStatusCode.PermanentError,
+        }
+        : FileStatusCode.PermanentError;
+
+    /// <summary>DELETE RECORD (§14.9.10 F1); for indexed random/dynamic the prime key is sliced from
+    /// <paramref name="keyedRecordImage"/> (GR3) — relative uses the staged relative key (GR4).</summary>
+    public string DeleteRecord(string name, string keyedRecordImage) => _files.TryGetValue(name, out var c)
+        ? c switch
+        {
+            RelativeConnector r => r.Delete(),
+            IndexedConnector ix => ix.Delete(keyedRecordImage),
+            _ => FileStatusCode.PermanentError,
+        }
+        : FileStatusCode.PermanentError;
+
+    /// <summary>Sequential keyed READ [NEXT] (§14.9.30 F1) — returns the I-O status and the record image.</summary>
+    public string ReadKeyedNext(string name, out string image)
+    {
+        if (_files.TryGetValue(name, out var c))
+        {
+            if (c is RelativeConnector r) return r.ReadNext(out image);
+            if (c is IndexedConnector ix) return ix.ReadNext(out image);
+        }
+        image = "";
+        return FileStatusCode.PermanentError;
+    }
+
+    /// <summary>Sequential keyed READ PREVIOUS (§14.9.30 F1, COBOL-2002+; compiler edition-gated).</summary>
+    public string ReadKeyedPrevious(string name, out string image)
+    {
+        if (_files.TryGetValue(name, out var c))
+        {
+            if (c is RelativeConnector r) return r.ReadPrevious(out image);
+            if (c is IndexedConnector ix) return ix.ReadPrevious(out image);
+        }
+        image = "";
+        return FileStatusCode.PermanentError;
+    }
+
+    /// <summary>Random keyed READ (§14.9.30 F2): indexed slices the key value from
+    /// <paramref name="keyedRecordImage"/> (GR30–GR32); relative uses the staged relative key (GR29).</summary>
+    public string ReadKeyed(string name, int keyIndex, string keyedRecordImage, out string image)
+    {
+        if (_files.TryGetValue(name, out var c))
+        {
+            if (c is RelativeConnector r) return r.ReadRandom(out image);
+            if (c is IndexedConnector ix) return ix.ReadRandom(keyIndex, keyedRecordImage, out image);
+        }
+        image = "";
+        return FileStatusCode.PermanentError;
+    }
+
+    /// <summary>START on a relative file (§14.9.41 GR8–GR12) — a numeric RRN comparison.</summary>
+    public string StartRelative(string name, string op, long rrn) =>
+        _files.TryGetValue(name, out var c) && c is RelativeConnector r
+            ? r.Start(op, rrn) : FileStatusCode.PermanentError;
+
+    /// <summary>START on an indexed file (§14.9.41 GR13–GR17) — a leftmost-length partial-key comparison.</summary>
+    public string StartIndexed(string name, int keyIndex, string op, string operand, int compareLength) =>
+        _files.TryGetValue(name, out var c) && c is IndexedConnector ix
+            ? ix.Start(keyIndex, op, operand, compareLength) : FileStatusCode.PermanentError;
+
+    /// <summary>START FIRST/LAST (COBOL-2002+; §14.9.41 GR11/GR12), either keyed organization.</summary>
+    public string StartFirstLast(string name, bool last) => _files.TryGetValue(name, out var c)
+        ? c switch
+        {
+            RelativeConnector r => r.StartFirstLast(last),
+            IndexedConnector ix => ix.StartFirstLast(last),
+            _ => FileStatusCode.PermanentError,
+        }
+        : FileStatusCode.PermanentError;
+
+    /// <summary>DELETE FILE (§14.9.10 Format 2, COBOL-2023): an OPEN connector → '41' (GR13); an ABSENT physical
+    /// file is a SUCCESSFUL completion, status '05' (GR14); insufficient authority → '37' (GR16) — ONE
+    /// polymorphic body over <see cref="FileConnector"/> for all three organizations.</summary>
+    public string DeleteFile(string name)
+    {
+        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        string status;
+        if (c.IsOpen) status = FileStatusCode.FileAlreadyOpen;             // '41' GR13
+        else
+            try
+            {
+                if (!File.Exists(c.HostPath)) status = FileStatusCode.OptionalFileNotFound;   // '05' GR14 — successful
+                else { File.Delete(c.HostPath); status = FileStatusCode.Success; }
+            }
+            catch (UnauthorizedAccessException) { status = FileStatusCode.PermissionDenied; }   // '37' GR16
+            catch (IOException) { status = FileStatusCode.PermanentError; }
+        c.SetStatus(status);
+        return status;
+    }
+
+    // ── COBOL-2002 file sharing / record locking (ISO §9.1.15/§9.1.16/§14.9.27/§14.9.47/§14.7.9) ─────────────
+    // Design D1: the 51/52/61 statuses are defined over "another file connector" (§9.1.13.9) — two SELECTs bound
+    // to one resolved host path are two distinct connectors over one physical file within one run unit, so the
+    // machinery is REAL. Single-run-unit residue (loud, documented): RETRY SECONDS/FOREVER cannot block
+    // productively (no external releaser) so an unsatisfiable conflict deadlock-bails to 52 — never a sleep.
+
+    /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (emitted right after registration, only
+    /// for a file that carries either clause). Marks the connector sharing-active so its OPEN routes through the
+    /// physical-file registry.</summary>
+    public void RegisterSharing(string name, FileSharing sharing, FileLockMode lockMode, bool multiple)
+    {
+        _connectorShares[name] = new ConnectorShare(HostPathOf(name), sharing, lockMode, multiple);
+    }
+
+    /// <summary>True when <paramref name="name"/> participates in the sharing subsystem.</summary>
+    private bool IsSharingActive(string name) => _connectorShares.ContainsKey(name);
+
+    /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27) — the emitter's entry
+    /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
+    public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
+        FileRetryKind retryKind, int retryAmount)
+    {
+        // A sharing/retry phrase on the OPEN makes the connector sharing-active even without a SELECT clause.
+        if (!_connectorShares.ContainsKey(name))
+            _connectorShares[name] = new ConnectorShare(HostPathOf(name), FileSharing.AllOther, FileLockMode.None, false);
+        FileSharing? ov = hasSharingOverride ? sharingOverride : null;
+        string status = RetryLoop(() => SharedOpenAttempt(name, mode, ov), retryKind, retryAmount);
+        // SharedOpenAttempt already set the connector status on the terminal attempt; a deadlock-bail overrides it.
+        if (status == FileStatusCode.Deadlock) SetStatusOf(name, FileStatusCode.Deadlock);
+    }
+
+    /// <summary>The sharing-aware OPEN body. Returns the resulting I-O status; on a Table-19 conflict returns 61
+    /// without opening the connector.</summary>
+    private string SharedOpenAttempt(string name, FileOpenMode mode, FileSharing? sharingOverride)
+    {
+        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        if (_locked.Contains(name)) { c.SetStatus(FileStatusCode.FileLocked); return FileStatusCode.FileLocked; }  // ≤2014 CLOSE WITH LOCK
+        FileSharing sharing = sharingOverride ?? _connectorShares[name].Sharing;
+        var st = _physical.For(c.HostPath);
+        foreach (var (other, existing) in st.Open)
+        {
+            if (string.Equals(other, name, StringComparison.OrdinalIgnoreCase)) continue;
+            if (Conflicts(existing, (sharing, mode)))
+            {
+                c.SetStatus(FileStatusCode.FileSharingConflict);   // 61 — §9.1.13.9
+                return FileStatusCode.FileSharingConflict;
+            }
+        }
+        c.Open(mode);
+        if (c.IsOpen) st.Open[name] = (sharing, mode);   // register only a successful open
+        return c.Status;
+    }
+
+    /// <summary>Table-19 open-conflict classification (§9.1.13.9 sub-cases a–e).</summary>
+    public static bool Conflicts((FileSharing Sharing, FileOpenMode Mode) ex, (FileSharing Sharing, FileOpenMode Mode) inc)
+    {
+        if (ex.Sharing == FileSharing.NoOther || inc.Sharing == FileSharing.NoOther) return true;       // (a)/(b)
+        if (ex.Sharing == FileSharing.ReadOnly && inc.Mode != FileOpenMode.Input) return true;          // (c)
+        if (inc.Sharing == FileSharing.ReadOnly && ex.Mode != FileOpenMode.Input) return true;          // (d)
+        return false;                                                                                    // (e) ALL OTHER
+    }
+
+    /// <summary>Record-lock governance for a just-completed keyed READ (§9.1.16; called right after the physical
+    /// read for any sharing-active file). Returns the effective status (and stores it on the connector).</summary>
+    public string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase,
+        FileRetryKind retryKind, int retryAmount)
+    {
+        if (statusJustRead.Length == 0 || statusJustRead[0] != '0') return statusJustRead;   // an unsuccessful read: no locking
+        if (!_connectorShares.TryGetValue(name, out var meta)) return statusJustRead;         // not sharing-active
+        string recId = CurrentRecordId(name);
+        if (recId.Length == 0) return statusJustRead;   // no record identity for this organization (sequential — residue)
+        var st = _physical.For(meta.Host);
+
+        if (phrase != FileRecordLock.Ignoring)
+        {
+            // Another connector's lock blocks the read (§9.1.16 :11752). RETRY re-checks; in one run unit the
+            // holder cannot release mid-loop, so n TIMES exhausts to 51 and SECONDS/FOREVER bail to 52 (GR4a).
+            string conflict = RetryLoop(
+                () => PhysicalFileTable.IsLockedByOther(st, name, recId) ? FileStatusCode.RecordLocked : FileStatusCode.Success,
+                retryKind, retryAmount);
+            if (conflict != FileStatusCode.Success) { SetStatusOf(name, conflict); return conflict; }
+        }
+
+        bool wantLock = phrase switch
+        {
+            FileRecordLock.Ignoring => false,
+            FileRecordLock.WithNoLock => false,
+            FileRecordLock.WithLock => true,
+            _ => meta.LockMode == FileLockMode.Automatic,   // no phrase: AUTOMATIC auto-locks (GR4), MANUAL/None do not
+        };
+        if (wantLock)
+        {
+            // §12.4.5.9 GR6 — single lock discipline: unless WITH LOCK ON MULTIPLE was declared, a connector holds
+            // at most one record lock, so acquiring a new one releases the prior.
+            if (!meta.Multiple) PhysicalFileTable.ReleaseAllForConnector(st, name);
+            string acq = _physical.LockRecord(st, name, recId);
+            if (acq != FileStatusCode.Success) { SetStatusOf(name, acq); return acq; }
+        }
+        return statusJustRead;
+    }
+
+    /// <summary>UNLOCK file [RECORD[S]] (§14.9.47 GR1): release every record lock this connector holds and set
+    /// status 00; UNLOCK of a file not open is status 42.</summary>
+    public void Unlock(string name, bool records)
+    {
+        _ = records;
+        if (!_files.TryGetValue(name, out var c)) return;
+        if (!c.IsOpen) { c.SetStatus(FileStatusCode.FileNotOpen); return; }
+        if (_physical.TryGet(c.HostPath, out var st)) PhysicalFileTable.ReleaseAllForConnector(st, name);
+        c.SetStatus(FileStatusCode.Success);
+    }
+
+    // ── The record-lock primitives (also the CobolFileLockTests surface) ─────────────────────────────────────
+
+    /// <summary>Acquire a lock on <paramref name="recId"/> for connector <paramref name="name"/> (§12.4.5.9 GR7
+    /// ceilings enforced). Returns 00 on grant.</summary>
+    public string LockRecord(string name, string recId) =>
+        _physical.LockRecord(_physical.For(HostPathOf(name)), name, recId);
+
+    /// <summary>True when <paramref name="recId"/> is locked by a connector OTHER than <paramref name="name"/>.</summary>
+    public bool IsLockedByOther(string name, string recId) =>
+        PhysicalFileTable.IsLockedByOther(_physical.For(HostPathOf(name)), name, recId);
+
+    /// <summary>Release every record lock held by <paramref name="name"/> on its physical file (UNLOCK, CLOSE).</summary>
+    public void ReleaseAllForConnector(string name)
+    {
+        if (_physical.TryGet(HostPathOf(name), out var st)) PhysicalFileTable.ReleaseAllForConnector(st, name);
+    }
+
+    /// <summary>Release a single record lock a connector holds (the LOCK MODE single-lock discipline, GR6).</summary>
+    public void ReleaseSingle(string name, string recId)
+    {
+        if (_physical.TryGet(HostPathOf(name), out var st)) PhysicalFileTable.ReleaseSingle(st, name, recId);
+    }
+
+    /// <summary>Evaluate <paramref name="attempt"/> under the RETRY discipline (§14.7.9): None = one attempt;
+    /// TIMES = n+1 attempts (GR1); SECONDS/FOREVER cannot block productively in one run unit, so a still-failing
+    /// attempt deadlock-bails to 52 (GR2/GR3 + §9.1.13.8). Never sleeps.</summary>
+    public static string RetryLoop(Func<string> attempt, FileRetryKind kind, int amount)
+    {
+        string s = attempt();
+        if (s == FileStatusCode.Success) return s;
+        switch (kind)
+        {
+            case FileRetryKind.None:
+                return s;
+            case FileRetryKind.Times:
+                for (int i = 0; i < amount && s != FileStatusCode.Success; i++) s = attempt();
+                return s;
+            default:   // Seconds / Forever — a single re-check, then deadlock-bail (no external releaser exists)
+                s = attempt();
+                return s == FileStatusCode.Success ? s : FileStatusCode.Deadlock;   // 52
+        }
+    }
+
+    // ── Internals ────────────────────────────────────────────────────────────────────────────────────────────
+
+    private string HostPathOf(string name) => _files.TryGetValue(name, out var c) ? c.HostPath : name;
+
+    private void SetStatusOf(string name, string status)
+    {
+        if (_files.TryGetValue(name, out var c)) c.SetStatus(status);
+    }
+
+    /// <summary>The record-lock identity of the most-recently-accessed record: the RRN for a relative file, the
+    /// prime record key for an indexed file; sequential has no per-record identity in this model (residue) —
+    /// an empty string, which suppresses locking.</summary>
+    private string CurrentRecordId(string name) => _files.TryGetValue(name, out var c)
+        ? c switch
+        {
+            RelativeConnector r => r.LastSlot.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            IndexedConnector ix => ix.LastReadPrime ?? "",
+            _ => "",
+        }
+        : "";
+
+    /// <summary>Deregister a connector's open entry on CLOSE and release its record locks (the sharing-registry
+    /// side of CLOSE; no-op for a non-sharing-active connector).</summary>
+    private void SharedClose(string name)
+    {
+        if (!_connectorShares.TryGetValue(name, out var meta)) return;
+        if (_physical.TryGet(meta.Host, out var st))
+        {
+            st.Open.Remove(name);
+            PhysicalFileTable.ReleaseAllForConnector(st, name);
+        }
+    }
+}

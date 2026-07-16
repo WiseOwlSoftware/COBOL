@@ -18,18 +18,13 @@ public static class AcceptSource
     /// 80-character card-image record, the NIST-proven convention of the legacy engine.</summary>
     public const int RecordSize = 80;
 
-    /// <summary>The ONE clock seam every temporal source reads (once per ACCEPT statement). The default consults
-    /// the <c>COBOLNET_CLOCK</c> environment variable (an invariant-culture date-time, e.g.
-    /// <c>2026-06-10T14:30:45.67</c>) so a test run can pin the clock ACROSS PROCESSES — the deterministic-clock
-    /// path that can restore NIST NC214M — falling back to the local system clock (§14.9.1.4 GR7: "the hardware
-    /// clock provides the current date and time"). In-process tests may assign a fixed reading directly.</summary>
-    public static Func<DateTime> Now { get; set; } = DefaultNow;
-
-    private static DateTime DefaultNow() =>
-        Environment.GetEnvironmentVariable("COBOLNET_CLOCK") is { Length: > 0 } pin
-        && DateTime.TryParse(pin, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime pinned)
-            ? pinned
-            : DateTime.Now;
+    /// <summary>The ONE clock read every temporal source makes (once per ACCEPT statement): the run unit's
+    /// injectable <see cref="IClock"/> (DESIGN-runtime-library §2.7 — the former process-global mutable
+    /// <c>Func&lt;DateTime&gt; Now</c> seam is deleted). The default <see cref="SystemClock"/> consults the
+    /// <c>COBOLNET_CLOCK</c> environment variable so a test run can pin the clock ACROSS PROCESSES — the
+    /// deterministic-clock path — falling back to the local system clock (§14.9.1.4 GR7: "the hardware clock
+    /// provides the current date and time"). An in-process test sets <c>RunUnit.Current.Clock</c> instead.</summary>
+    private static DateTime Now() => RunUnit.Current.Clock.Now();
 
     /// <summary>DATE — the conceptual 6-digit unsigned integer YYMMDD (ISO §14.9.1.4 GR7).</summary>
     public static long Date()
