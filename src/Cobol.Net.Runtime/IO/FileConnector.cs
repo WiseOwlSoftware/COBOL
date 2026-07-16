@@ -42,6 +42,12 @@ public abstract class FileConnector
     /// <summary>True for a SELECT OPTIONAL file (ISO §14.9.27 GR13/GR17).</summary>
     public bool IsOptional { get; set; }
 
+    /// <summary>True when the connector participates in file sharing (§9.1.15 — set by the registry when the
+    /// SELECT declares SHARING/LOCK MODE or an OPEN carries a SHARING/RETRY phrase): its physical streams open
+    /// with <see cref="FileShare.ReadWrite"/> so the §9.1.13.9 Table-19 registry — not the OS handle — is the
+    /// sharing arbiter. An unshared connector keeps the default exclusive-writer OS posture, byte-for-byte.</summary>
+    public bool SharedStreams { get; internal set; }
+
     /// <summary>True between a successful OPEN and the matching CLOSE.</summary>
     public abstract bool IsOpen { get; }
 
@@ -73,6 +79,31 @@ public abstract class FileConnector
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15 — the frame length on a varying
     /// file, the record width on a fixed one; the RECORD VARYING DEPENDING item receives it after a READ).</summary>
     public int LastReadLength { get; protected set; }
+
+    // ── Record-lock identity (ISO §9.1.16 — record locking applies to EVERY organization; the READ/REWRITE/
+    //    WRITE/DELETE lock rules §14.9.30 GR7–GR12 / §14.9.35 GR11–GR12 / §14.9.51 GR10–GR11 / §14.9.10 GR6–GR7
+    //    are ALL-FORMATS rules). Each organization names its records for the PhysicalFileTable: the RRN for
+    //    relative, the prime record key for indexed, the record's 1-based ordinal position for sequential (the
+    //    natural analogue — a relative store's frames ARE ordinals). Empty string = no identified record.
+
+    /// <summary>The lock identity of the record most recently made available by a READ (§9.1.16 — the record a
+    /// post-read lock acquisition targets; §14.9.30 GR11c/d).</summary>
+    public virtual string LastReadRecordId => "";
+
+    /// <summary>The lock identity of the record a REWRITE/DELETE executed NOW would target (§14.9.35 GR11 /
+    /// §14.9.10 GR6 — the pre-operation conflict check; <paramref name="recordImage"/> supplies the key slice
+    /// for an indexed random/dynamic target, §14.9.35 GR23 / §14.9.10 GR3).</summary>
+    public virtual string MutationTargetRecordId(string recordImage) => "";
+
+    /// <summary>The lock identity of the record released by the most recent successful WRITE (§14.9.51 GR11 —
+    /// the WITH LOCK acquisition target).</summary>
+    public virtual string LastWrittenRecordId => "";
+
+    /// <summary>Record that a READ terminated in the record-operation-conflict condition (I-O status 51,
+    /// §9.1.13.8): the READ is UNSUCCESSFUL — so a following sequential-access REWRITE/DELETE is '43'
+    /// (§14.9.35 GR5 / §14.9.10 GR2) — but the file position indicator is UNCHANGED (§14.9.30 GR10a), so the
+    /// read-position '46' poison (<see cref="LastReadUnsuccessful"/>) is NOT set and the READ may be retried.</summary>
+    internal void NoteReadLockConflict() => PrevOpWasSuccessfulRead = false;
 
     // ── OPEN / CLOSE (the shared preamble; ISO §14.9.27 / §14.9.6) ───────────────────────────────────────────
 

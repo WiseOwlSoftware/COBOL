@@ -47,26 +47,50 @@ public sealed record BoundKeyedRead(
 /// relative / GR34–GR42 indexed). For a sequential-access relative file the released RRN is MOVEd back into the
 /// RELATIVE KEY item on success (GR29a/GR30); for random/dynamic access the key item is read first (GR29b).</summary>
 public sealed record BoundKeyedWrite(
-    FileModel File, Place Record, BoundOperand? From, KeyedInvalidKey? InvalidKey) : BoundStatement;
+    FileModel File, Place Record, BoundOperand? From, KeyedInvalidKey? InvalidKey) : BoundStatement
+{
+    /// <summary>The explicit record-lock phrase (ISO §14.9.51 — WITH LOCK / WITH NO LOCK), or None; WITH LOCK
+    /// locks the record written on a sharing-active file (GR11), single locking releases the prior lock (GR10).</summary>
+    public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
+    /// <summary>The RETRY phrase (§14.7.9 / §14.9.51 GR16), or null.</summary>
+    public RetrySpec? Retry { get; init; }
+}
 
 /// <summary><c>REWRITE record [FROM x] [INVALID KEY …]</c> on a RELATIVE or INDEXED file (ISO §14.9.35 GR18–GR25):
 /// relative random/dynamic replaces the slot named by the relative key (absent → '23', GR21); indexed sequential
 /// requires the prime key to equal the last-read key ('21', GR22), random/dynamic an existing prime key ('23',
 /// GR23).</summary>
 public sealed record BoundKeyedRewrite(
-    FileModel File, Place Record, BoundOperand? From, KeyedInvalidKey? InvalidKey) : BoundStatement;
+    FileModel File, Place Record, BoundOperand? From, KeyedInvalidKey? InvalidKey) : BoundStatement
+{
+    /// <summary>The explicit record-lock phrase (ISO §14.9.35 — WITH LOCK / WITH NO LOCK), or None; a record
+    /// locked by another connector blocks the rewrite (GR11 → status 51), the GR12 discipline follows.</summary>
+    public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
+    /// <summary>The RETRY phrase (§14.7.9 / §14.9.35 GR11), or null.</summary>
+    public RetrySpec? Retry { get; init; }
+}
 
 /// <summary><c>DELETE file RECORD [INVALID KEY …]</c> (ISO §14.9.10 Format 1): sequential access removes the
 /// record of the prior successful READ (GR2, else '43'); indexed random/dynamic deletes by the prime record key
 /// (GR3), relative by the relative key item (GR4) — absent record → invalid key '23'. The FPI is unaffected (GR9).</summary>
-public sealed record BoundKeyedDelete(FileModel File, KeyedInvalidKey? InvalidKey) : BoundStatement;
+public sealed record BoundKeyedDelete(FileModel File, KeyedInvalidKey? InvalidKey) : BoundStatement
+{
+    /// <summary>The RETRY phrase (§14.7.9 / §14.9.10 GR6 — a record locked by another connector blocks the
+    /// deletion, status 51), or null. (DELETE RECORD carries no record-lock phrase — §14.9.10 general format.)</summary>
+    public RetrySpec? Retry { get; init; }
+}
 
 /// <summary><c>DELETE FILE file [ON EXCEPTION …]</c> (ISO §14.9.10 Format 2 — COBOL-2023, grammar-gated
 /// <c>{is2023()}?</c>): removes the physical file. An open connector → '41' (GR13); an ABSENT file is a
 /// SUCCESSFUL completion with status '05' (GR14 — the legacy returned '35'; the spec wins); insufficient
 /// authority → '37' (GR16).</summary>
 public sealed record BoundKeyedDeleteFile(
-    FileModel File, IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement;
+    FileModel File, IReadOnlyList<BoundStatement>? OnException, IReadOnlyList<BoundStatement>? NotOnException) : BoundStatement
+{
+    /// <summary>The RETRY phrase (§14.7.9 / §14.9.10 GR15 — the physical file open by another connector is the
+    /// '62' file-sharing conflict, re-attempted under RETRY), or null.</summary>
+    public RetrySpec? Retry { get; init; }
+}
 
 /// <summary><c>START file [FIRST|LAST|KEY rel-op k [WITH LENGTH n]] [INVALID KEY …]</c> (ISO §14.9.41).
 /// <paramref name="Op"/> is the mapped C# relational operator (EQUAL when the KEY phrase or its operator is

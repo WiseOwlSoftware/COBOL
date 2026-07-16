@@ -271,6 +271,28 @@ internal static class RuntimeApi
     public static string FileReadLockGovern(string name, string status, string lockRef, string retryKind, string retryAmount) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.ReadLockGovern)}({name}, {status}, {lockRef}, {retryKind}, {retryAmount})";
 
+    /// <summary>Sequential-organization governed READ (§9.1.16 / §14.9.30 GR9–GR12/GR22) — <c>CobolFile.ReadShared</c>
+    /// (bool result, out image — the same contract as the plain <c>FileRead</c>).</summary>
+    public static string FileReadShared(string name, string lockRef, string advancingOnLock, string retryKind,
+        string retryAmount, string imgVar) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadShared)}({name}, {lockRef}, {advancingOnLock}, {retryKind}, {retryAmount}, out var {imgVar})";
+
+    /// <summary>Governed WRITE for a sharing-active file, any organization (§14.9.51 GR10/GR11) — <c>CobolFile.WriteShared</c>.</summary>
+    public static string FileWriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount})";
+
+    /// <summary>Governed REWRITE for a sharing-active file, any organization (§14.9.35 GR11/GR12) — <c>CobolFile.RewriteShared</c>.</summary>
+    public static string FileRewriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RewriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount})";
+
+    /// <summary>Governed DELETE RECORD for a sharing-active file (§14.9.10 GR6/GR7) — <c>CobolFile.DeleteShared</c>.</summary>
+    public static string FileDeleteShared(string name, string areaImage, string retryKind, string retryAmount) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteShared)}({name}, {areaImage}, {retryKind}, {retryAmount})";
+
+    /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 — the '62' re-attempt) — <c>CobolFile.DeleteFile</c>.</summary>
+    public static string FileDeleteFileRetry(string name, string retryKind, string retryAmount) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteFile)}({name}, {retryKind}, {retryAmount})";
+
     /// <summary>The connector's current relative slot number — <c>CobolFile.RelativeSlot</c>.</summary>
     public static string FileRelativeSlot(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.RelativeSlot)}({name})";

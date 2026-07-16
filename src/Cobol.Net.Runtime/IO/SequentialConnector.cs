@@ -30,6 +30,51 @@ public sealed class SequentialConnector : FileConnector
     private long _lastReadBlockStart = -1;
     private long _readOffset;
 
+    // ── Record-lock identity (ISO §9.1.16 on sequential organization) ────────────────────────────────────────
+    // A sequential record's lock identity is its 1-based ORDINAL position in the physical file — two connectors
+    // reading the same physical file agree on ordinals, and the successor relationship (§14.9.51 GR17) makes the
+    // ordinal stable. Reads count from OPEN (INPUT/I-O always position at the start); writes count from a base
+    // seeded by the registry for a SHARING-active connector (OUTPUT = 0; EXTEND = the pre-existing record count,
+    // so appended ordinals continue the file's numbering). Unshared connectors never consult these.
+    private long _readOrdinal;        // ordinal of the record most recently made available by Read
+    private long _writeBase = -1;     // -1 = not seeded (unshared / not yet opened shared)
+    private long _writesDone;         // successful record writes since OPEN
+
+    /// <summary>The ordinal the NEXT sequential Read would deliver (the §14.9.30 GR9 pre-read conflict target —
+    /// knowable BEFORE the read because sequential retrieval advances by exactly one record).</summary>
+    internal long NextReadOrdinal => _readOrdinal + 1;
+
+    /// <summary>True when a Read executed now would reach the physical-read stage (open INPUT/I-O, no '46'
+    /// poison, a live stream) — the registry's lock pre-check runs only then, so a mode/position failure keeps
+    /// its own status ('47'/'46'/'10') rather than a premature '51'.</summary>
+    internal bool ReadEligible => IsOpen && Mode is FileOpenMode.Input or FileOpenMode.IO
+        && !OptionalAbsent && !LastReadUnsuccessful && _reader is not null;
+
+    /// <inheritdoc/>
+    public override string LastReadRecordId =>
+        _readOrdinal > 0 ? _readOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+
+    /// <inheritdoc/>  (a sequential REWRITE replaces the record obtained by the last successful READ, §14.9.35)
+    public override string MutationTargetRecordId(string recordImage) => LastReadRecordId;
+
+    /// <inheritdoc/>
+    public override string LastWrittenRecordId => _writeBase >= 0 && _writesDone > 0
+        ? (_writeBase + _writesDone).ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+
+    /// <summary>Seed the write-ordinal base for a SHARING-active connector (called by the registry after a
+    /// successful shared OPEN): OUTPUT starts a fresh file at 0; EXTEND continues the existing numbering
+    /// (§14.9.51 GR18 — appended records succeed the records present at OPEN), so the pre-existing record
+    /// count is derived from the physical shape (frames / lines / fixed-width blocks).</summary>
+    internal void SeedSharedWriteBase()
+    {
+        _writeBase = 0;
+        _writesDone = 0;
+        if (Mode != FileOpenMode.Extend || !File.Exists(HostPath)) return;
+        if (IsVarying) _writeBase = RecordFraming.ReadStore(HostPath).Count;
+        else if (_lineSequential) _writeBase = File.ReadLines(HostPath).Count();
+        else _writeBase = RecordWidth > 0 ? new FileInfo(HostPath).Length / RecordWidth : 0;
+    }
+
     // A varying file's records are length-framed on disk (the ONE RecordFraming 4-byte little-endian length
     // prefix per record — the same framing the keyed connectors' store uses; the physical format is
     // implementor-defined, §13.18.43 GR2, and only self-consistency matters since producer and consumer run on
@@ -144,6 +189,9 @@ public sealed class SequentialConnector : FileConnector
         _afterAdvancing = false;
         _lastReadBlockStart = -1;
         _readOffset = 0;
+        _readOrdinal = 0;
+        _writeBase = -1;   // unshared default; the registry seeds a sharing-active connector (§9.1.16)
+        _writesDone = 0;
         bool exists = File.Exists(HostPath);
         {
             switch (mode)
@@ -155,16 +203,27 @@ public sealed class SequentialConnector : FileConnector
                         OptionalAbsent = true;                 // positioned at EOF (ISO §9.1.13.2 item 5b)
                         return FileStatusCode.OptionalFileNotFound;
                     }
-                    _reader = new StreamReader(HostPath, Encoding.Latin1);
+                    // A SHARING-active connector's stream permits other connectors' handles (§9.1.15 — the
+                    // Table-19 registry is the sharing arbiter, not the OS handle); unshared keeps the default.
+                    _reader = SharedStreams
+                        ? new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite),
+                            Encoding.Latin1)
+                        : new StreamReader(HostPath, Encoding.Latin1);
                     break;
 
                 case FileOpenMode.Output:
-                    _writer = new StreamWriter(HostPath, append: false, Encoding.Latin1) { NewLine = "\r\n" };
+                    _writer = SharedStreams
+                        ? new StreamWriter(new FileStream(HostPath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite),
+                            Encoding.Latin1) { NewLine = "\r\n" }
+                        : new StreamWriter(HostPath, append: false, Encoding.Latin1) { NewLine = "\r\n" };
                     break;
 
                 case FileOpenMode.Extend:
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
-                    _writer = new StreamWriter(HostPath, append: true, Encoding.Latin1) { NewLine = "\r\n" };
+                    _writer = SharedStreams
+                        ? new StreamWriter(new FileStream(HostPath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite),
+                            Encoding.Latin1) { NewLine = "\r\n" }
+                        : new StreamWriter(HostPath, append: true, Encoding.Latin1) { NewLine = "\r\n" };
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
 
@@ -176,8 +235,8 @@ public sealed class SequentialConnector : FileConnector
                     // is 35; an optional one is created (05).
                     if (!exists && !IsOptional) return FileStatusCode.FileNotFound;
                     if (exists)
-                        _reader = new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.ReadWrite),
-                            Encoding.Latin1);
+                        _reader = new StreamReader(new FileStream(HostPath, FileMode.Open, FileAccess.ReadWrite,
+                            SharedStreams ? FileShare.ReadWrite : FileShare.Read), Encoding.Latin1);
                     else { _writer = new StreamWriter(HostPath, append: false, Encoding.Latin1) { NewLine = "\r\n" }; }
                     if (!exists && IsOptional) return FileStatusCode.OptionalFileNotFound;
                     break;
@@ -235,6 +294,7 @@ public sealed class SequentialConnector : FileConnector
         }
         else if (_lineSequential) _writer.WriteLine(image.TrimEnd());
         else _writer.Write(Fit(image, RecordWidth));
+        _writesDone++;   // the record just released is ordinal base+N (§9.1.16 lock identity; §14.9.51 GR11)
         _afterAdvancing = false;
         // GR7c3 (§13.18.34): a plain WRITE to a LINAGE file advances the counter by one. Only the
         // line-sequential/varying shapes reach here (the record-sequential LINAGE write rerouted above).
@@ -327,6 +387,7 @@ public sealed class SequentialConnector : FileConnector
             image = new string(buf, 0, n).PadRight(RecordWidth, ' ');
         }
         PrevOpWasSuccessfulRead = true;
+        _readOrdinal++;   // the record just made available is ordinal N+1 (§9.1.16 lock identity)
         Status = FileStatusCode.Success;
         return true;
     }

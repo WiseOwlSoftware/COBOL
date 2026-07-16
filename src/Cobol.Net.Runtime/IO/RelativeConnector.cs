@@ -52,6 +52,21 @@ public sealed class RelativeConnector : FileConnector
     /// §14.9.51 GR29b, §14.9.10 GR4). The compiler decodes the TYPED key field — never raw bytes.</summary>
     public void SetPendingKey(long rrn) => _pendingKey = rrn;
 
+    // ── Record-lock identity (ISO §9.1.16) — a relative record's identity IS its RRN ─────────────────────────
+
+    /// <inheritdoc/>
+    public override string LastReadRecordId =>
+        _lastSlot > 0 ? _lastSlot.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+
+    /// <inheritdoc/>  (sequential access targets the last-read slot, §14.9.35 GR19 / §14.9.10 GR2;
+    /// random/dynamic the slot named by the RELATIVE KEY item, §14.9.35 GR21 / §14.9.10 GR4)
+    public override string MutationTargetRecordId(string recordImage) => _access == KeyedAccess.Sequential
+        ? LastReadRecordId
+        : _pendingKey > 0 ? _pendingKey.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
+
+    /// <inheritdoc/>  (Write sets <see cref="_lastSlot"/> to the released RRN on success, §14.9.51 GR29)
+    public override string LastWrittenRecordId => LastReadRecordId;
+
     // RECORD IS VARYING: the RecordFraming store already carries each record's exact length, so a varying
     // record persists at the length it was written (§13.18.43 GR13) and reports it on READ (GR15);
     // WRITE/REWRITE outside the VaryMin/VaryMax bounds is the GR14/§14.9.35 GR20 '44'.

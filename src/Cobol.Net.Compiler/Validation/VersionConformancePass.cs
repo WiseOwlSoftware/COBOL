@@ -152,6 +152,12 @@ internal sealed class VersionConformancePass
                 if (kr.AdvancingOnLock)
                     Check(Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
                 break;
+            case BoundRead sr:
+                // The sequential-organization READ binds the same §14.9.30 GR22 phrase (P10 Step 8 — it was
+                // previously dropped at bind, so this arm is the phrase's first sequential-leg gate).
+                if (sr.AdvancingOnLock)
+                    Check(Constructs.RecordLockPhrase2002, "the READ … ADVANCING ON LOCK phrase");
+                break;
             case BoundKeyedStart ks:
                 // START FIRST/LAST positioning (§14.9.41) and the WITH LENGTH partial-key phrase — two independent
                 // 2002 introductions; both gate, in the binder's order.

@@ -322,14 +322,24 @@ public sealed class FileRegistry
         }
         : FileStatusCode.PermanentError;
 
-    /// <summary>DELETE FILE (§14.9.10 Format 2, COBOL-2023): an OPEN connector → '41' (GR13); an ABSENT physical
-    /// file is a SUCCESSFUL completion, status '05' (GR14); insufficient authority → '37' (GR16) — ONE
-    /// polymorphic body over <see cref="FileConnector"/> for all three organizations.</summary>
-    public string DeleteFile(string name)
+    /// <summary>DELETE FILE (§14.9.10 Format 2, COBOL-2023): an OPEN connector → '41' (GR13); the physical file
+    /// currently open by ANOTHER file connector → the file sharing conflict, '62' (GR15 / §9.1.13.9 item 2),
+    /// re-attempted under a RETRY phrase (GR15 → §14.7.9; in one run unit the other connector cannot close
+    /// mid-loop, so n TIMES exhausts to 62 and SECONDS/FOREVER deadlock-bail to 52); an ABSENT physical file is
+    /// a SUCCESSFUL completion, status '05' (GR14); insufficient authority → '37' (GR16) — ONE polymorphic body
+    /// over <see cref="FileConnector"/> for all three organizations.</summary>
+    public string DeleteFile(string name) => DeleteFile(name, FileRetryKind.None, 0);
+
+    /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 / §14.7.9).</summary>
+    public string DeleteFile(string name, FileRetryKind retryKind, int retryAmount)
     {
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
         string status;
+        string sharing = RetryLoop(() => OpenByAnotherConnector(name, c.HostPath)
+            ? FileStatusCode.DeleteFileSharing : FileStatusCode.Success, retryKind, retryAmount);
         if (c.IsOpen) status = FileStatusCode.FileAlreadyOpen;             // '41' GR13
+        else if (sharing != FileStatusCode.Success)
+            status = sharing;   // '62' GR15/§9.1.13.9 item 2 — the file is not deleted ('52' on a deadlock-bail)
         else
             try
             {
@@ -340,6 +350,18 @@ public sealed class FileRegistry
             catch (IOException) { status = FileStatusCode.PermanentError; }
         c.SetStatus(status);
         return status;
+    }
+
+    /// <summary>True when a file connector OTHER than <paramref name="name"/> currently has the physical file at
+    /// <paramref name="host"/> open (§9.1.13.9 item 2 — the DELETE FILE sharing conflict is defined over "another
+    /// file connector" plainly, so a non-sharing-registered open connector counts too).</summary>
+    private bool OpenByAnotherConnector(string name, string host)
+    {
+        foreach (var (other, c) in _files)
+            if (!string.Equals(other, name, StringComparison.OrdinalIgnoreCase)
+                && c.IsOpen && string.Equals(c.HostPath, host, StringComparison.OrdinalIgnoreCase))
+                return true;
+        return false;
     }
 
     // ── COBOL-2002 file sharing / record locking (ISO §9.1.15/§9.1.16/§14.9.27/§14.9.47/§14.7.9) ─────────────
@@ -354,6 +376,9 @@ public sealed class FileRegistry
     public void RegisterSharing(string name, FileSharing sharing, FileLockMode lockMode, bool multiple)
     {
         _connectorShares[name] = new ConnectorShare(HostPathOf(name), sharing, lockMode, multiple);
+        // A sharing participant's physical streams must admit the other connectors' handles (§9.1.15) — the
+        // Table-19 registry, not the OS handle, arbitrates; unshared connectors keep the exclusive OS posture.
+        if (_files.TryGetValue(name, out var c)) c.SharedStreams = true;
     }
 
     /// <summary>True when <paramref name="name"/> participates in the sharing subsystem.</summary>
@@ -366,7 +391,7 @@ public sealed class FileRegistry
     {
         // A sharing/retry phrase on the OPEN makes the connector sharing-active even without a SELECT clause.
         if (!_connectorShares.ContainsKey(name))
-            _connectorShares[name] = new ConnectorShare(HostPathOf(name), FileSharing.AllOther, FileLockMode.None, false);
+            RegisterSharing(name, FileSharing.AllOther, FileLockMode.None, false);
         FileSharing? ov = hasSharingOverride ? sharingOverride : null;
         string status = RetryLoop(() => SharedOpenAttempt(name, mode, ov), retryKind, retryAmount);
         // SharedOpenAttempt already set the connector status on the terminal attempt; a deadlock-bail overrides it.
@@ -391,7 +416,14 @@ public sealed class FileRegistry
             }
         }
         c.Open(mode);
-        if (c.IsOpen) st.Open[name] = (sharing, mode);   // register only a successful open
+        if (c.IsOpen)
+        {
+            st.Open[name] = (sharing, mode);   // register only a successful open
+            // A sharing-active SEQUENTIAL connector needs its write-ordinal base (§9.1.16 lock identity for
+            // records it releases; §14.9.51 GR18 — EXTEND appends continue the existing numbering). Seeded here,
+            // never for an unshared connector, so unshared sequential I/O is untouched by the lock subsystem.
+            if (c is SequentialConnector f) f.SeedSharedWriteBase();
+        }
         return c.Status;
     }
 
@@ -405,43 +437,232 @@ public sealed class FileRegistry
     }
 
     /// <summary>Record-lock governance for a just-completed keyed READ (§9.1.16; called right after the physical
-    /// read for any sharing-active file). Returns the effective status (and stores it on the connector).</summary>
+    /// read for any sharing-active file). Returns the effective status (and stores it on the connector).
+    /// (The keyed shape is post-read because a NEXT/PREVIOUS walk's record identity is only known after the read;
+    /// the sequential-organization twin is <see cref="ReadShared"/>, whose next ordinal is knowable BEFORE the
+    /// read, keeping the file position indicator untouched on a conflict — §14.9.30 GR10a.)</summary>
     public string ReadLockGovern(string name, string statusJustRead, FileRecordLock phrase,
         FileRetryKind retryKind, int retryAmount)
     {
         if (statusJustRead.Length == 0 || statusJustRead[0] != '0') return statusJustRead;   // an unsuccessful read: no locking
         if (!_connectorShares.TryGetValue(name, out var meta)) return statusJustRead;         // not sharing-active
-        string recId = CurrentRecordId(name);
-        if (recId.Length == 0) return statusJustRead;   // no record identity for this organization (sequential — residue)
+        if (!_files.TryGetValue(name, out var c)) return statusJustRead;
+        string recId = c.LastReadRecordId;
+        if (recId.Length == 0) return statusJustRead;   // no record was identified
         var st = _physical.For(meta.Host);
 
         if (phrase != FileRecordLock.Ignoring)
         {
-            // Another connector's lock blocks the read (§9.1.16 :11752). RETRY re-checks; in one run unit the
+            // Another connector's lock blocks the read (§14.9.30 GR9). RETRY re-checks; in one run unit the
             // holder cannot release mid-loop, so n TIMES exhausts to 51 and SECONDS/FOREVER bail to 52 (GR4a).
             string conflict = RetryLoop(
                 () => PhysicalFileTable.IsLockedByOther(st, name, recId) ? FileStatusCode.RecordLocked : FileStatusCode.Success,
                 retryKind, retryAmount);
-            if (conflict != FileStatusCode.Success) { SetStatusOf(name, conflict); return conflict; }
+            if (conflict != FileStatusCode.Success)
+            {
+                c.NoteReadLockConflict();   // the READ is unsuccessful (→ '43' on a following REWRITE/DELETE), FPI kept (GR10a)
+                SetStatusOf(name, conflict);
+                return conflict;
+            }
         }
+        return ApplyReadLockDiscipline(meta, st, name, recId, phrase) is { } denied ? denied : statusJustRead;
+    }
 
+    /// <summary>The §14.9.30 GR11 post-read lock actions, shared by the keyed and sequential read paths:
+    /// GR11a — single record locking releases any prior lock this connector holds (§12.4.5.9 GR6: any I-O
+    /// statement except START releases it); GR11c/d — the lock on the accessed record is set under AUTOMATIC,
+    /// or under MANUAL only with the WITH LOCK phrase; GR11b — under multiple locking WITH NO LOCK releases a
+    /// lock this connector already held on the accessed record. Returns a denial status (53/54, §12.4.5.9 GR7)
+    /// or null.</summary>
+    private string? ApplyReadLockDiscipline(ConnectorShare meta, PhysicalFileTable.State st, string name,
+        string recId, FileRecordLock phrase)
+    {
+        if (!meta.Multiple) PhysicalFileTable.ReleaseAllForConnector(st, name);   // GR11a / §12.4.5.9 GR6
         bool wantLock = phrase switch
         {
             FileRecordLock.Ignoring => false,
             FileRecordLock.WithNoLock => false,
             FileRecordLock.WithLock => true,
-            _ => meta.LockMode == FileLockMode.Automatic,   // no phrase: AUTOMATIC auto-locks (GR4), MANUAL/None do not
+            _ => meta.LockMode == FileLockMode.Automatic,   // no phrase: AUTOMATIC auto-locks (§12.4.5.9 GR4), MANUAL does not (GR5)
         };
-        if (wantLock)
+        if (wantLock && LocksEffective(meta, st, name))
         {
-            // §12.4.5.9 GR6 — single lock discipline: unless WITH LOCK ON MULTIPLE was declared, a connector holds
-            // at most one record lock, so acquiring a new one releases the prior.
-            if (!meta.Multiple) PhysicalFileTable.ReleaseAllForConnector(st, name);
             string acq = _physical.LockRecord(st, name, recId);
             if (acq != FileStatusCode.Success) { SetStatusOf(name, acq); return acq; }
         }
-        return statusJustRead;
+        else if (meta.Multiple && phrase == FileRecordLock.WithNoLock)
+            PhysicalFileTable.ReleaseSingle(st, name, recId);   // GR11b — an already-held lock on this record releases
+        return null;
     }
+
+    /// <summary>Whether this connector SETS record locks: §12.4.5.9 GR1a/b1 — with no LOCK MODE clause a
+    /// SHARING clause/phrase means NO record locks are set (and the implementor default here is likewise none);
+    /// GR3 — a connector open in the sharing-with-no-other mode has exclusive access, so its LOCK MODE has no
+    /// effect. (Conflict CHECKS against locks OTHER connectors hold are never disabled — §9.1.16: a locked
+    /// record is inaccessible to another file connector regardless of that connector's own lock mode.)</summary>
+    private static bool LocksEffective(ConnectorShare meta, PhysicalFileTable.State st, string name)
+    {
+        if (meta.LockMode == FileLockMode.None) return false;                                   // GR1a/b1
+        if (st.Open.TryGetValue(name, out var open) && open.Sharing == FileSharing.NoOther)
+            return false;                                                                        // GR3
+        return true;
+    }
+
+    /// <summary>Sequential-organization governed READ (§9.1.16 on sequential files — the READ lock rules
+    /// §14.9.30 GR7–GR12 are ALL-FORMATS rules). The next record's ordinal is knowable BEFORE the read, so the
+    /// conflict check precedes the physical read: on a record-operation conflict the file position indicator is
+    /// UNCHANGED (GR10a) and the record area untouched (GR10c refined to "unchanged", the documented COBOL.NET
+    /// refinement). ADVANCING ON LOCK (GR22) skip-scans locked records — each is read-and-discarded "as if the
+    /// locked record were read and the same READ statement were executed" — with no conflict condition; reaching
+    /// end-of-file is the ordinary at-end. Returns true iff a record was made available (the emitted contract of
+    /// the plain <see cref="Read"/>).</summary>
+    public bool ReadShared(string name, FileRecordLock phrase, bool advancingOnLock,
+        FileRetryKind retryKind, int retryAmount, out string image)
+    {
+        if (!_files.TryGetValue(name, out var c) || c is not SequentialConnector f) { image = ""; return false; }
+        if (!_connectorShares.TryGetValue(name, out var meta)) return f.Read(out image);   // not sharing-active — phrases inert (§12.4.5.9 GR1)
+        var st = _physical.For(meta.Host);
+        while (true)
+        {
+            if (phrase != FileRecordLock.Ignoring && f.ReadEligible)   // a mode/position failure keeps its own status
+            {
+                string recId = f.NextReadOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (PhysicalFileTable.IsLockedByOther(st, name, recId))
+                {
+                    if (advancingOnLock)
+                    {
+                        // §14.9.30 GR22 — skip the locked record (read + discard) and repeat; no conflict raised.
+                        if (!f.Read(out image)) return false;   // end of file → at end ('10'), GR22 tail
+                        continue;
+                    }
+                    string conflict = RetryLoop(
+                        () => PhysicalFileTable.IsLockedByOther(st, name, recId) ? FileStatusCode.RecordLocked : FileStatusCode.Success,
+                        retryKind, retryAmount);
+                    if (conflict != FileStatusCode.Success)
+                    {
+                        f.NoteReadLockConflict();   // unsuccessful READ ('43' gate), FPI kept (GR10a)
+                        f.SetStatus(conflict);
+                        image = "";
+                        return false;
+                    }
+                }
+            }
+            bool ok = f.Read(out image);
+            if (ok && ApplyReadLockDiscipline(meta, st, name, f.LastReadRecordId, phrase) is not null)
+            {
+                image = "";   // a 53/54 lock-denial is an unsuccessful READ (§12.4.5.9 GR7) — no record available
+                return false;
+            }
+            return ok;
+        }
+    }
+
+    /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11 + §14.7.9).
+    /// No record-operation conflict is defined for WRITE — §9.1.13.8's 51 covers "an attempt to ACCESS a record",
+    /// the WRITE general rules define no 51 leg, and GR33/GR42 state the invalid-key checks ignore record locks;
+    /// GR16's RETRY governs implementor "resources … locked by another run unit", which cannot arise in-process,
+    /// so the first attempt decides. Returns the I-O status.</summary>
+    public string WriteShared(string name, string image, int length, FileRecordLock phrase,
+        FileRetryKind retryKind, int retryAmount)
+    {
+        _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
+        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        if (!_connectorShares.TryGetValue(name, out var meta)) return WriteAnyOrg(c, image, length);
+        var st = _physical.For(meta.Host);
+        if (!meta.Multiple) PhysicalFileTable.ReleaseAllForConnector(st, name);   // GR10 / §12.4.5.9 GR6
+        bool wantLock = phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name);   // GR11
+        if (wantLock)
+        {
+            string pf = _physical.PreflightNewLock(st, name);   // §12.4.5.9 GR7 — the statement fails BEFORE the write (§14.9.51 GR15)
+            if (pf != FileStatusCode.Success) { c.SetStatus(pf); return pf; }
+        }
+        string status = WriteAnyOrg(c, image, length);
+        if (wantLock && status.Length > 0 && status[0] == '0' && c.LastWrittenRecordId is { Length: > 0 } recId)
+            _physical.LockRecord(st, name, recId);   // GR11 — the just-released record's lock is set
+        return status;
+    }
+
+    /// <summary>Governed REWRITE for a sharing-active connector, any organization (§14.9.35 GR11/GR12 + §14.7.9):
+    /// the pre-operation conflict check against the record identified for rewriting (locked by another connector
+    /// → RETRY re-checks, else 51 with the record NOT rewritten, the record area unaffected and the FPI unchanged
+    /// — GR11a-c/GR14), then the GR12 lock actions. Returns the I-O status.</summary>
+    public string RewriteShared(string name, string image, int length, FileRecordLock phrase,
+        FileRetryKind retryKind, int retryAmount)
+    {
+        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        if (!_connectorShares.TryGetValue(name, out var meta)) return RewriteAnyOrg(c, image, length);
+        var st = _physical.For(meta.Host);
+        string target = c.MutationTargetRecordId(image);
+        if (!meta.Multiple) PhysicalFileTable.ReleaseAllExcept(st, name, target);   // GR12a2 — released at the beginning
+        if (target.Length > 0)
+        {
+            string conflict = RetryLoop(
+                () => PhysicalFileTable.IsLockedByOther(st, name, target) ? FileStatusCode.RecordLocked : FileStatusCode.Success,
+                retryKind, retryAmount);
+            if (conflict != FileStatusCode.Success) { c.SetStatus(conflict); return conflict; }   // GR11
+            // (post-conflict-check any surviving lock on the target is this connector's own — re-lock is
+            // idempotent per §9.1.16 GR8 self-access, so pre-flight only a genuinely NEW lock)
+            if (phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name)
+                && !st.RecordLocks.ContainsKey(target))
+            {
+                string pf = _physical.PreflightNewLock(st, name);   // §12.4.5.9 GR7 pre-flight (§14.9.35 GR14 — no update on failure)
+                if (pf != FileStatusCode.Success) { c.SetStatus(pf); return pf; }
+            }
+        }
+        string status = RewriteAnyOrg(c, image, length);
+        if (status.Length > 0 && status[0] == '0' && target.Length > 0)
+        {
+            if (phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name))
+                _physical.LockRecord(st, name, target);                      // GR12c — set at completion
+            else if (!meta.Multiple || phrase == FileRecordLock.WithNoLock)
+                PhysicalFileTable.ReleaseSingle(st, name, target);           // GR12a1 (single) / GR12b (multiple + NO LOCK)
+        }
+        return status;
+    }
+
+    /// <summary>Governed DELETE RECORD for a sharing-active connector (§14.9.10 GR6/GR7 + §14.7.9): the
+    /// pre-operation conflict check against the record identified for deletion (locked by another connector →
+    /// RETRY re-checks, else 51 with the record NOT removed — GR6a-c), then the GR7 releases: a self-lock on
+    /// another record at the beginning (GR7a2, single), the deleted record's lock at completion (GR7a1/GR7b).
+    /// Returns the I-O status.</summary>
+    public string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, int retryAmount)
+    {
+        if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        if (!_connectorShares.TryGetValue(name, out var meta)) return DeleteRecord(name, keyedRecordImage);
+        var st = _physical.For(meta.Host);
+        string target = c.MutationTargetRecordId(keyedRecordImage);
+        if (!meta.Multiple) PhysicalFileTable.ReleaseAllExcept(st, name, target);   // GR7a2 — released at the beginning
+        if (target.Length > 0)
+        {
+            string conflict = RetryLoop(
+                () => PhysicalFileTable.IsLockedByOther(st, name, target) ? FileStatusCode.RecordLocked : FileStatusCode.Success,
+                retryKind, retryAmount);
+            if (conflict != FileStatusCode.Success) { c.SetStatus(conflict); return conflict; }   // GR6
+        }
+        string status = DeleteRecord(name, keyedRecordImage);
+        if (status.Length > 0 && status[0] == '0' && target.Length > 0)
+            PhysicalFileTable.ReleaseSingle(st, name, target);   // GR7a1/GR7b — the deleted record's lock releases at completion
+        return status;
+    }
+
+    /// <summary>The plain WRITE body over any organization (one polymorphic dispatch — the governed entry's
+    /// operation half; the sequential arm is the same connector call the ungoverned <see cref="Write"/> makes).</summary>
+    private static string WriteAnyOrg(FileConnector c, string image, int length) => c switch
+    {
+        SequentialConnector f => f.Write(image, length),
+        RelativeConnector r => r.Write(image, length),
+        IndexedConnector ix => ix.Write(image, length),
+        _ => FileStatusCode.PermanentError,
+    };
+
+    /// <summary>The plain REWRITE body over any organization (the governed entry's operation half).</summary>
+    private static string RewriteAnyOrg(FileConnector c, string image, int length) => c switch
+    {
+        SequentialConnector f => f.Rewrite(image, length),
+        RelativeConnector r => r.Rewrite(image, length),
+        IndexedConnector ix => ix.Rewrite(image, length),
+        _ => FileStatusCode.PermanentError,
+    };
 
     /// <summary>UNLOCK file [RECORD[S]] (§14.9.47 GR1): release every record lock this connector holds and set
     /// status 00; UNLOCK of a file not open is status 42.</summary>
@@ -505,18 +726,6 @@ public sealed class FileRegistry
     {
         if (_files.TryGetValue(name, out var c)) c.SetStatus(status);
     }
-
-    /// <summary>The record-lock identity of the most-recently-accessed record: the RRN for a relative file, the
-    /// prime record key for an indexed file; sequential has no per-record identity in this model (residue) —
-    /// an empty string, which suppresses locking.</summary>
-    private string CurrentRecordId(string name) => _files.TryGetValue(name, out var c)
-        ? c switch
-        {
-            RelativeConnector r => r.LastSlot.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            IndexedConnector ix => ix.LastReadPrime ?? "",
-            _ => "",
-        }
-        : "";
 
     /// <summary>Deregister a connector's open entry on CLOSE and release its record locks (the sharing-registry
     /// side of CLOSE; no-op for a non-sharing-active connector).</summary>

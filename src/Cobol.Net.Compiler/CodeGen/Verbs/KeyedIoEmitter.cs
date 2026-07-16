@@ -117,8 +117,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // lock/RETRY phrase) has its just-read status adjusted — 51 when another connector holds the record's
         // lock (unless IGNORING LOCK), else the WITH LOCK / AUTOMATIC lock is acquired. Runs BEFORE the success
         // block so a 51 denial leaves the record area untouched (the record is not made available).
-        if (file.Sharing != SharingMode.None || file.LockMode is not null
-            || rd.Lock != BoundRecordLock.None || rd.Retry is not null)
+        if (SequentialIoEmitter.LockGoverned(file, rd.Lock, rd.Retry))
         {
             var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
             w.Line($"{st} = {RuntimeApi.FileReadLockGovern(name, st, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), retryKind, retryAmount)};");
@@ -181,7 +180,16 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         string wimg = OperandText.AsString(new BoundFieldOperand(wr.Record), num);
-        w.Line($"var {st} = {RuntimeApi.FileWriteKeyed(name, wimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a when varying
+        // §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): a lock-relevant WRITE routes through the governed entry —
+        // single locking releases the connector's prior lock, WITH LOCK locks the record written.
+        if (SequentialIoEmitter.LockGoverned(file, wr.Lock, wr.Retry))
+        {
+            var (retryKind, retryAmount) = SeqIo.RenderRetry(wr.Retry);
+            string lenArg = SeqIo.VaryingLengthArg(file) ?? "-1";
+            w.Line($"var {st} = {RuntimeApi.FileWriteShared(name, wimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(wr.Lock), retryKind, retryAmount)};");
+        }
+        else
+            w.Line($"var {st} = {RuntimeApi.FileWriteKeyed(name, wimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a when varying
         // §14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
         // item during execution of the WRITE.
         if (file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential
@@ -214,7 +222,16 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         string rimg = OperandText.AsString(new BoundFieldOperand(rw.Record), num);
-        w.Line($"var {st} = {RuntimeApi.FileRewriteKeyed(name, rimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a / §14.9.35 GR20
+        // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): a lock-relevant REWRITE routes through the governed entry —
+        // another connector's lock on the target blocks it (RETRY re-checks, else 51; the record is unrewritten).
+        if (SequentialIoEmitter.LockGoverned(file, rw.Lock, rw.Retry))
+        {
+            var (retryKind, retryAmount) = SeqIo.RenderRetry(rw.Retry);
+            string lenArg = SeqIo.VaryingLengthArg(file) ?? "-1";
+            w.Line($"var {st} = {RuntimeApi.FileRewriteShared(name, rimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(rw.Lock), retryKind, retryAmount)};");
+        }
+        else
+            w.Line($"var {st} = {RuntimeApi.FileRewriteKeyed(name, rimg, SeqIo.VaryingLengthArg(file))};");   // §13.18.43 GR13a / §14.9.35 GR20
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
         EmitInvalid(st, rw.InvalidKey);
@@ -246,7 +263,15 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         string image = area is not null ? OperandText.AsString(new BoundFieldOperand(area), num) : "\"\"";
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
-        w.Line($"var {st} = {RuntimeApi.FileDeleteRecord(name, image)};");
+        // §9.1.16/§14.9.10 GR6-GR7 (P10 Step 8): a lock-relevant DELETE routes through the governed entry —
+        // a record locked by another connector shall not be deleted (RETRY re-checks, else 51).
+        if (SequentialIoEmitter.LockGoverned(file, BoundRecordLock.None, del.Retry))
+        {
+            var (retryKind, retryAmount) = SeqIo.RenderRetry(del.Retry);
+            w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount)};");
+        }
+        else
+            w.Line($"var {st} = {RuntimeApi.FileDeleteRecord(name, image)};");
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: del.InvalidKey?.Invalid is not null);
         EmitInvalid(st, del.InvalidKey);
@@ -262,7 +287,15 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // f1 f2…` — need the fileName+ grammar; a documented follow-up.)
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
-        w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File))};");
+        // A RETRY phrase re-attempts the §14.9.10 GR15 file-sharing-conflict check ('62' — the physical file
+        // open by another connector); the plain form keeps the existing single-attempt entry.
+        if (df.Retry is { } retry)
+        {
+            var (retryKind, retryAmount) = SeqIo.RenderRetry(retry);
+            w.Line($"var {st} = {RuntimeApi.FileDeleteFileRetry(FileKeyExpr(df.File), retryKind, retryAmount)};");
+        }
+        else
+            w.Line($"var {st} = {RuntimeApi.FileDeleteFile(FileKeyExpr(df.File))};");
         SeqIo.EmitStoreFileStatus(df.File);
         if (df.OnException is null) SeqIo.EmitUseHook(df.File);   // the ON EXCEPTION phrase suppresses the declarative entirely (§9.1.13.1)
         // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL

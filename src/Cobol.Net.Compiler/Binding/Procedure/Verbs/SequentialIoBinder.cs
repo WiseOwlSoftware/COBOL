@@ -89,8 +89,11 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         }
         if (file is null || record is null)
             return new BoundUnsupported($"WRITE record '{w.recordName()?.GetText() ?? w.fileName()?.GetText()}' not resolvable to a file");
-        fileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
-        if (!file.IsSequential) return keyedIo.BindWrite(w, file, record);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
+        // The WRITE lock/RETRY phrases (§14.9.51 Format 1/2 — [retry-phrase] [WITH LOCK | WITH NO LOCK]) bind
+        // for EVERY organization; the emitter routes a lock-relevant statement through the governed runtime entry.
+        BoundRecordLock wlock = fileLock.CheckRecordLockPhrase(file, w.recordLockPhrase(), "WRITE");   // §14.9.51 SR22 → COBOLNET1512
+        RetrySpec? wretry = fileLock.BindVerbRetry(w.retryPhrase());                                    // §14.7.9 / §14.9.51 GR16
+        if (!file.IsSequential) return keyedIo.BindWrite(w, file, record, wlock, wretry);   // relative/indexed WRITE (ISO 14.9.51 GR29-42)
 
         // END-OF-PAGE phrases (ISO §14.9.51 GR27b/GR28): blocks[0] = AT EOP, blocks[1] = NOT AT EOP — the grammar
         // rule `writeAtEndOfPage : AT? (END_OF_PAGE|EOP) statementBlock (NOT AT? (END_OF_PAGE|EOP) statementBlock)?`
@@ -110,7 +113,8 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             && adv.dataReference() is { } mref && ctx.Mnemonics.Of(adv).ContainsKey(mref.GetText()));   // SR13 — pure check
 
         return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()),
-            BindAdvancing(w.writeBeforeAfter()), UnsupportedOrg(file, "WRITE"), atEop, notAtEop);
+            BindAdvancing(w.writeBeforeAfter()), UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
+        { Lock = wlock, Retry = wretry };
     }
 
     public BoundStatement BindRead(Core.ReadStatementContext r)
@@ -119,12 +123,18 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         if (!ctx.Data.FilesByName.TryGetValue(name, out var file))
             return new BoundUnsupported($"READ of undeclared file '{name}'");
         if (!file.IsSequential) return keyedIo.BindRead(r, file);   // relative/indexed READ F1/F2 (ISO 14.9.30; KeyedIo partial)
-        fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ");   // §14.9.30 SR3/SR4 → COBOLNET1512 (sequential leg: SR-validated, effect residue)
         Place? into = r.readInto()?.dataReference() is { } d ? ctx.Refs.Resolve(d) : null;
         List<BoundStatement>? atEnd = null, notAtEnd = null;
         if (r.readAtEnd() is { } ae)
             (atEnd, notAtEnd) = PhraseBlocks.Split(ae.statementBlock(), PhraseBlocks.StartsWithNot(ae), b => host.BindBlocks([b]));
-        return new BoundRead(file, into, atEnd, notAtEnd, UnsupportedOrg(file, "READ"));
+        // The READ lock phrases bind on the sequential organization too — §14.9.30's GR7–GR12 lock rules are
+        // ALL-FORMATS rules, and the sequential record's lock identity is its ordinal position (§9.1.16).
+        return new BoundRead(file, into, atEnd, notAtEnd, UnsupportedOrg(file, "READ"))
+        {
+            Lock = fileLock.CheckRecordLockPhrase(file, r.recordLockPhrase(), "READ"),   // §14.9.30 SR3/SR4 → COBOLNET1512
+            Retry = fileLock.BindVerbRetry(r.retryPhrase()),                             // §14.7.9 / §14.9.30 GR9
+            AdvancingOnLock = r.readAdvancingOnLock() is not null,                       // §14.9.30 GR22
+        };
     }
 
     public BoundStatement BindRewrite(Core.RewriteStatementContext rw)
@@ -133,10 +143,12 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
         FileModel? file = record is not null ? FileOfRecord(record) : null;
         if (file is null || record is null)
             return new BoundUnsupported($"REWRITE record '{rw.recordName()?.GetText()}' not resolvable to a file");
-        fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
-        if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
+        BoundRecordLock rlock = fileLock.CheckRecordLockPhrase(file, rw.recordLockPhrase(), "REWRITE");   // §14.9.35 SR4 → COBOLNET1512
+        RetrySpec? rretry = fileLock.BindVerbRetry(rw.retryPhrase());                                      // §14.7.9 / §14.9.35 GR11
+        if (!file.IsSequential) return keyedIo.BindRewrite(rw, file, record, rlock, rretry);   // relative/indexed REWRITE (ISO 14.9.35 GR18-25)
         return new BoundRewrite(file, record, WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()),
-            UnsupportedOrg(file, "REWRITE"));
+            UnsupportedOrg(file, "REWRITE"))
+        { Lock = rlock, Retry = rretry };
     }
 
     /// <summary>The FROM operand of a WRITE/REWRITE (a data reference or a literal), or null when absent.</summary>

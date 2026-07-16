@@ -159,6 +159,29 @@ public static class CobolFile
         FileRetryKind retryKind, int retryAmount)
         => _reg.ReadLockGovern(name, statusJustRead, phrase, retryKind, retryAmount);
 
+    /// <summary>Sequential-organization governed READ (§9.1.16 / §14.9.30 GR9–GR12, GR22 ADVANCING ON LOCK).</summary>
+    public static bool ReadShared(string name, FileRecordLock phrase, bool advancingOnLock,
+        FileRetryKind retryKind, int retryAmount, out string image)
+        => _reg.ReadShared(name, phrase, advancingOnLock, retryKind, retryAmount, out image);
+
+    /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11).</summary>
+    public static string WriteShared(string name, string image, int length, FileRecordLock phrase,
+        FileRetryKind retryKind, int retryAmount)
+        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount);
+
+    /// <summary>Governed REWRITE for a sharing-active connector, any organization (§14.9.35 GR11/GR12).</summary>
+    public static string RewriteShared(string name, string image, int length, FileRecordLock phrase,
+        FileRetryKind retryKind, int retryAmount)
+        => _reg.RewriteShared(name, image, length, phrase, retryKind, retryAmount);
+
+    /// <summary>Governed DELETE RECORD for a sharing-active connector (§14.9.10 GR6/GR7).</summary>
+    public static string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, int retryAmount)
+        => _reg.DeleteShared(name, keyedRecordImage, retryKind, retryAmount);
+
+    /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 — the '62' file-sharing conflict re-attempt).</summary>
+    public static string DeleteFile(string name, FileRetryKind retryKind, int retryAmount)
+        => _reg.DeleteFile(name, retryKind, retryAmount);
+
     /// <summary>UNLOCK file [RECORD[S]] (§14.9.47 GR1).</summary>
     public static void Unlock(string name, bool records) => _reg.Unlock(name, records);
 

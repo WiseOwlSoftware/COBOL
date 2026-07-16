@@ -1466,14 +1466,23 @@ binding. Guard re-green (556 integration, the 31 all pass). As-built vs the desi
 > *stated reason* for the NoOther default (preserve the pre-2002 corpus byte-exact) more conservatively: the whole
 > legacy corpus never touches the physical-file registry, so the legacy integration suite + NIST are provably invariant.
 > **(2)** The `Locked` HashSet is **retained** for the ≤2014 CLOSE…WITH LOCK/38 path (not merged into
-> `PhysicalFileState` — the design's "free shared-path 38 fix" is a deferred cleanup). **(3)** The record-lock RUNTIME
-> effect is threaded on the **keyed RANDOM read path** (the golden's leg, RRN identity via `RelativeFile.LastSlot`);
-> sequential-organization record locking has no per-record identity in this model (`CurrentRecordId` returns "" →
-> locking suppressed) and stays **SR-validated-only** (documented residue). All `COBOLNET1512` SR checks fire for every
-> organization. **(4)** `RetryLoop` never sleeps (SECONDS/FOREVER → deadlock-bail 52). **Evidence:** golden
-> `file_sharing` (`OPEN-A=00/OPEN-B=00/READA=00/READB=51/RETRYB=51/IGN=ALPHA/AFTER=00/EXCL=61`), `CobolFileLockTests`
-> (10), 4 SR negatives (SR8/SR4/SR2/SR1→1512), 6 matrix rows; 201 unit + 1844 conformance + 557 legacy integration.
-> Runtime: `src/Cobol.Net.Runtime/IO/CobolFile.Locks.cs` (the physical-file registry — the SSOT for this subsystem).
+> `PhysicalFileState` — the design's "free shared-path 38 fix" is a deferred cleanup). **(3)** ~~keyed-READ-only
+> locking~~ — **CLOSED by P10 Step 8 (2026-07-16):** record locking now runs on EVERY organization and EVERY
+> lock-bearing verb — the lock identity is polymorphic on `FileConnector` (`LastReadRecordId` /
+> `MutationTargetRecordId` / `LastWrittenRecordId`: RRN / prime key / the sequential record's ORDINAL position),
+> the mutating verbs pre-check the record-operation conflict (`WriteShared`/`RewriteShared`/`DeleteShared` —
+> §14.9.35 GR11+GR12, §14.9.10 GR6+GR7, §14.9.51 GR10+GR11), the sequential READ pre-checks its next ordinal
+> (`ReadShared` — §14.9.30 GR9 with the GR10a FPI-unchanged conflict + GR22 ADVANCING ON LOCK skip-scan), RETRY
+> binds+emits on READ/WRITE/REWRITE/DELETE/DELETE FILE (§14.7.9; the general formats give START **no** RETRY or
+> lock phrase — §14.9.41 + §12.4.5.9 GR6 excepts START), and DELETE FILE produces **62** when the physical file
+> is open by another connector (§9.1.13.9 item 2 / §14.9.10 GR15). **(4)** `RetryLoop` never sleeps
+> (SECONDS/FOREVER → deadlock-bail 52). **Evidence:** goldens `file_sharing`
+> (`OPEN-A=00/OPEN-B=00/READA=00/READB=51/RETRYB=51/IGN=ALPHA/AFTER=00/EXCL=61`), `file_sharing_seq` (sequential
+> ordinals: 51/RETRY/IGNORING/43-after-conflict/GR11a auto-release/REWRITE-WITH-LOCK 51/EXTEND WRITE-WITH-LOCK
+> 51/FOREVER→52), `file_sharing_mutate` (REWRITE/DELETE 51 + RETRY + write-lock), `2023/delete_file_sharing`
+> (62/62/52/00/05/35); `CobolFileLockTests` (18), 4 SR negatives (SR8/SR4/SR2/SR1→1512), 6 matrix rows.
+> Runtime: `src/Cobol.Net.Runtime/IO/FileRegistry.cs` + `IO/Sharing/PhysicalFileTable.cs` (the P8 homes — the
+> SSOT for this subsystem).
 
 ### M2-FILE-1 — SHARING / LOCK MODE / RETRY / UNLOCK — DECISION-COMPLETE DESIGN (synthesis 2026-07-06; grammar pre-authorized; IMPLEMENTED — see AS-BUILT above)
 

@@ -191,6 +191,13 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         _ => "FileRecordLock.None",
     };
 
+    /// <summary>The ONE lock-relevance predicate (§9.1.16): a statement routes through the runtime's governed
+    /// verb entry when its file declares SHARING or LOCK MODE, or the statement itself carries a record-lock or
+    /// RETRY phrase. Everything else keeps the plain entry — the pre-sharing emission byte-for-byte.</summary>
+    public static bool LockGoverned(FileModel file, BoundRecordLock lockPhrase, RetrySpec? retry) =>
+        file.Sharing != SharingMode.None || file.LockMode is not null
+        || lockPhrase != BoundRecordLock.None || retry is not null;
+
     public void EmitClose(BoundClose c)
     {
         var w = ctx.Writer;
@@ -223,8 +230,18 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         string image = OperandText.AsString(new BoundFieldOperand(wr.Record), num);
         if (wr.Advancing is { } adv)
         {
+            // Print-control writes keep the plain entry: an ADVANCING stream is a presentation surface, not a
+            // record store — its lines carry no record-lock identity (§9.1.16 locks LOGICAL RECORDS).
             string lines = adv.Page ? "-1" : LinesExpr(adv.Lines!);
             w.Line($"{RuntimeApi.FileWriteAdvancing(name, image, lines, adv.Before ? "true" : "false")};");
+        }
+        else if (LockGoverned(wr.File, wr.Lock, wr.Retry))
+        {
+            // §9.1.16/§14.9.51 GR10-GR11 (P10 Step 8): the governed WRITE — single locking releases the
+            // connector's prior lock, WITH LOCK locks the record written. Status lands on the connector.
+            var (retryKind, retryAmount) = RenderRetry(wr.Retry);
+            string lenArg = VaryingLengthArg(wr.File) ?? "-1";
+            w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount)};");
         }
         else
             w.Line($"{RuntimeApi.FileWrite(name, image, VaryingLengthArg(wr.File))};");
@@ -244,6 +261,14 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 using (w.Block("else"))
                     Statements.EmitStatementList(not);
         }
+    }
+
+    /// <summary>Render the governed sequential-READ call (§14.9.30 GR9–GR12/GR22 over the ordinal lock identity).</summary>
+    private string EmitReadSharedCall(BoundRead rd, string name, string tmp)
+    {
+        var (retryKind, retryAmount) = RenderRetry(rd.Retry);
+        return RuntimeApi.FileReadShared(name, RuntimeRecordLock(rd.Lock),
+            rd.AdvancingOnLock ? "true" : "false", retryKind, retryAmount, tmp);
     }
 
     /// <summary>The record-length argument for a WRITE/REWRITE on a RECORD VARYING … DEPENDING file (ISO
@@ -281,7 +306,14 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // The read record is made available in the WHOLE record area — store through the LARGEST record's view
         // (FileModel.AreaRecord, ISO §13.4.2); a shorter Records[0] window would truncate the splice (ST111A).
         Place? area = rd.File.AreaRecord is { } ar ? refs.ResolveItem(ar) : null;
-        using (w.Block($"if ({RuntimeApi.FileRead(name, tmp)})"))
+        // §9.1.16 record locking on the sequential organization (P10 Step 8): a lock-relevant READ routes
+        // through the governed runtime entry — the next ordinal's pre-read conflict check (§14.9.30 GR9,
+        // FPI unchanged on a 51 per GR10a), the GR11 lock discipline, and GR22 ADVANCING ON LOCK skip-scan.
+        // Same bool contract as the plain read, so the two branches below are shared.
+        string readCall = LockGoverned(rd.File, rd.Lock, rd.Retry)
+            ? EmitReadSharedCall(rd, name, tmp)
+            : RuntimeApi.FileRead(name, tmp);
+        using (w.Block($"if ({readCall})"))
         {
             if (area is not null) EmitImageInto(area, tmp);
             EmitReadLengthStore(rd.File);   // §13.18.43 GR15 — the just-read length into DEPENDING
@@ -312,7 +344,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (rw.Unsupported is { } u) { w.Line(LoudStmt(u)); return; }
         if (rw.From is { } from) move.Emit(new BoundMove(from, [rw.Record]));
         string image = OperandText.AsString(new BoundFieldOperand(rw.Record), num);
-        w.Line($"{RuntimeApi.FileRewrite(FileKeyExpr(rw.File), image, VaryingLengthArg(rw.File))};");
+        // §9.1.16/§14.9.35 GR11-GR12 (P10 Step 8): a lock-relevant sequential REWRITE routes through the
+        // governed runtime entry — the pre-operation conflict check on the last-read record (51 leaves the
+        // record unrewritten) and the GR12 lock discipline. The status lands on the connector either way.
+        if (LockGoverned(rw.File, rw.Lock, rw.Retry))
+        {
+            var (retryKind, retryAmount) = RenderRetry(rw.Retry);
+            string lenArg = VaryingLengthArg(rw.File) ?? "-1";
+            w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, lenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount)};");
+        }
+        else
+            w.Line($"{RuntimeApi.FileRewrite(FileKeyExpr(rw.File), image, VaryingLengthArg(rw.File))};");
         EmitStoreFileStatus(rw.File);
         EmitUseHook(rw.File);
     }

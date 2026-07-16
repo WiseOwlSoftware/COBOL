@@ -602,16 +602,40 @@ public sealed record BoundAdvancing(bool Before, bool Page, BoundOperand? Lines)
 /// §14.9.51 GR27b/GR28 — run after the SUCCESSFUL write, branching on the end-of-page condition; SR19 requires
 /// the file to have a LINAGE clause).</summary>
 public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From, BoundAdvancing? Advancing,
-    string? Unsupported, IReadOnlyList<BoundStatement>? AtEop = null, IReadOnlyList<BoundStatement>? NotAtEop = null) : BoundStatement;
+    string? Unsupported, IReadOnlyList<BoundStatement>? AtEop = null, IReadOnlyList<BoundStatement>? NotAtEop = null) : BoundStatement
+{
+    /// <summary>The explicit record-lock phrase (ISO §14.9.51 Format 1 — WITH LOCK / WITH NO LOCK), or None;
+    /// on a sharing-active file WITH LOCK locks the record written (GR11), single locking releases the
+    /// connector's prior lock (GR10).</summary>
+    public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
+    /// <summary>The RETRY phrase (§14.7.9 / §14.9.51 GR16), or null.</summary>
+    public RetrySpec? Retry { get; init; }
+}
 
 /// <summary><c>READ file [NEXT] [INTO x] [AT END …][NOT AT END …]</c> (ISO §14.9.30): a sequential read that
 /// distributes the record image into the FD record (and, with INTO, MOVEs it to <paramref name="Into"/>). The AT END
 /// / NOT AT END imperatives branch on the at-end condition.</summary>
 public sealed record BoundRead(
-    FileModel File, Place? Into, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement;
+    FileModel File, Place? Into, IReadOnlyList<BoundStatement>? AtEnd, IReadOnlyList<BoundStatement>? NotAtEnd, string? Unsupported) : BoundStatement
+{
+    /// <summary>The explicit record-lock phrase (ISO §14.9.30 Format 1 — the GR7–GR12 lock rules are ALL-FORMATS
+    /// rules, so they bind on the sequential organization too), or None.</summary>
+    public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
+    /// <summary>The RETRY phrase (§14.7.9 / §14.9.30 GR9), or null.</summary>
+    public RetrySpec? Retry { get; init; }
+    /// <summary>ADVANCING ON LOCK (§14.9.30 GR22): skip-scan records locked by another connector.</summary>
+    public bool AdvancingOnLock { get; init; }
+}
 
 /// <summary><c>REWRITE record [FROM x]</c> (ISO §14.9.35): replace the last-read record with the record area's image.</summary>
-public sealed record BoundRewrite(FileModel File, Place Record, BoundOperand? From, string? Unsupported) : BoundStatement;
+public sealed record BoundRewrite(FileModel File, Place Record, BoundOperand? From, string? Unsupported) : BoundStatement
+{
+    /// <summary>The explicit record-lock phrase (ISO §14.9.35 — WITH LOCK / WITH NO LOCK; the GR11/GR12 lock
+    /// rules are ALL-FORMATS rules), or None.</summary>
+    public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
+    /// <summary>The RETRY phrase (§14.7.9 / §14.9.35 GR11), or null.</summary>
+    public RetrySpec? Retry { get; init; }
+}
 
 // ── Report Writer verbs (ISO §14.9.21 / §14.9.16 / §14.9.46; COBOLNET_REPORT_WRITER_DESIGN §5) ────────────────
 

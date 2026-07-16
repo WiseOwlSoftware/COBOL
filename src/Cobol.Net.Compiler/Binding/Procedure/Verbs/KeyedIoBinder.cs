@@ -95,10 +95,12 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
 
     // ── WRITE / REWRITE (ISO §14.9.51 / §14.9.35 on relative/indexed organizations) ────────────────────────────
 
-    /// <summary>Bind a WRITE on a RELATIVE/INDEXED file (called from <c>BindWrite</c> with the record and owning
-    /// file already resolved). The print-control phrases (ADVANCING / END-OF-PAGE) apply to sequential print files
-    /// only and fail loud here.</summary>
-    public BoundStatement BindWrite(Core.WriteStatementContext w, FileModel file, Place record)
+    /// <summary>Bind a WRITE on a RELATIVE/INDEXED file (called from <c>BindWrite</c> with the record, owning
+    /// file, and the already-validated lock/RETRY phrases resolved — §14.9.51 [retry-phrase] [WITH LOCK|WITH NO
+    /// LOCK]). The print-control phrases (ADVANCING / END-OF-PAGE) apply to sequential print files only and fail
+    /// loud here.</summary>
+    public BoundStatement BindWrite(Core.WriteStatementContext w, FileModel file, Place record,
+        BoundRecordLock lock_, RetrySpec? retry)
     {
         KeyedValidateFile(file);
         if (w.writeBeforeAfter() is not null || w.writeAtEndOfPage() is not null)
@@ -107,13 +109,15 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         KeyedInvalidKey? invalid =
             w.writeInvalidKey() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
         return new BoundKeyedWrite(file, record,
-            host.SeqIo.WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()), invalid);
+            host.SeqIo.WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()), invalid)
+        { Lock = lock_, Retry = retry };
     }
 
     /// <summary>Bind a REWRITE on a RELATIVE/INDEXED file. §14.9.35 SR2: the INVALID KEY phrases shall not be
     /// specified for a relative-organization file in SEQUENTIAL access mode (its rewrite has no key condition —
     /// only '43'/'49' logic errors, which route to exception processing).</summary>
-    public BoundStatement BindRewrite(Core.RewriteStatementContext rw, FileModel file, Place record)
+    public BoundStatement BindRewrite(Core.RewriteStatementContext rw, FileModel file, Place record,
+        BoundRecordLock lock_, RetrySpec? retry)
     {
         KeyedValidateFile(file);
         // §14.9.35 SR2 forbids INVALID KEY for a relative file in sequential access — tolerated in the default
@@ -122,7 +126,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         KeyedInvalidKey? invalid =
             rw.rewriteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
         return new BoundKeyedRewrite(file, record,
-            host.SeqIo.WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()), invalid);
+            host.SeqIo.WriteSource(rw.rewriteFrom()?.dataReference(), rw.rewriteFrom()?.literal()), invalid)
+        { Lock = lock_, Retry = retry };
     }
 
     // ── DELETE (ISO §14.9.10 Formats 1 and 2) ──────────────────────────────────────────────────────────────────
@@ -146,7 +151,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         // mode: a sequential-access DELETE raises only 4x statuses, so the phrase is dead, never misrouted.
         KeyedInvalidKey? invalid =
             del.deleteInvalidKeyPhrase() is { } ik ? KeyedInvalidPhrase(ik.statementBlock(), PhraseBlocks.StartsWithNot(ik)) : null;
-        return new BoundKeyedDelete(file, invalid);
+        return new BoundKeyedDelete(file, invalid)
+        { Retry = fileLock.BindVerbRetry(del.retryPhrase()) };   // §14.7.9 / §14.9.10 GR6
     }
 
     /// <summary>Bind <c>DELETE FILE file</c> (ISO §14.9.10 Format 2 — COBOL-2023). The construct parses at every
@@ -160,7 +166,8 @@ internal sealed class KeyedIoBinder(BinderContext ctx, StatementBinder host, Fil
         List<BoundStatement>? on = null, notOn = null;
         if (df.deleteFileOnException() is { } ex)
             (on, notOn) = PhraseBlocks.Split(ex.statementBlock(), PhraseBlocks.StartsWithNot(ex), b => host.BindBlocks([b]));
-        return new BoundKeyedDeleteFile(file, on, notOn);
+        return new BoundKeyedDeleteFile(file, on, notOn)
+        { Retry = fileLock.BindVerbRetry(df.retryPhrase()) };   // §14.7.9 / §14.9.10 GR15 — the '62' re-attempt
     }
 
     // ── START (ISO §14.9.41) ───────────────────────────────────────────────────────────────────────────────────

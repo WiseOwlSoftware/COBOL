@@ -9,16 +9,14 @@ namespace CobolNet.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>
-/// The COBOL-2002 file-sharing / record-locking verb binder (Phase-4 track (d) / M2-FILE-1; ISO §14.9.47 UNLOCK,
-/// the READ/WRITE/REWRITE record-lock phrases §14.9.30/.51/.35, the RETRY phrase §14.7.9). The SHARING clause +
-/// OPEN SHARING phrase + connector-registry semantics live in DataBinder / BindOpen / the runtime; this partial
-/// binds UNLOCK and validates the per-verb lock-phrase syntax rules (COBOLNET1512). In the single-run-unit model
-/// the record-lock EFFECT of READ/WRITE/REWRITE is a documented no-op (named residue) — only the SR validation
-/// and UNLOCK/OPEN-SHARING legs are observable — so the lock phrases are validated but not threaded into the
-/// verbs' bound nodes. P7 Step 10g: a real collaborator over <see cref="BinderContext"/>; the two lock/RETRY
-/// services stay PUBLIC — the sequential legs (host, until 10h) and KeyedIo consume them (the census's
-/// inverted-dependency hazard); <c>BindRetry</c> stays a shared spine member on the host (OPEN consumes it
-/// directly).
+/// The COBOL-2002 file-sharing / record-locking verb binder (ISO §14.9.47 UNLOCK, the READ/WRITE/REWRITE
+/// record-lock phrases §14.9.30/.51/.35, the RETRY phrase §14.7.9). The SHARING clause + OPEN SHARING phrase +
+/// connector-registry semantics live in DataBinder / BindOpen / the runtime; this collaborator binds UNLOCK,
+/// validates the per-verb lock-phrase syntax rules (COBOLNET1512), and supplies the lock/RETRY services the
+/// verb binders thread into their bound nodes — READ/WRITE/REWRITE carry <c>Lock</c>+<c>Retry</c> (all
+/// organizations), DELETE RECORD / DELETE FILE carry <c>Retry</c> (§14.9.10 GR6/GR15) — which the emitters
+/// route through the runtime's governed entries (ReadLockGovern/ReadShared/WriteShared/RewriteShared/
+/// DeleteShared). <c>BindRetry</c> stays a shared spine member on the host (OPEN consumes it directly).
 /// </summary>
 internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
 {
@@ -41,8 +39,8 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Validate a verb's record-lock phrase against the file's effective LOCK MODE (ISO §14.9.30 SR3/SR4
     /// / §14.9.51 SR22 / §14.9.35 SR4 → COBOLNET1512): IGNORING LOCK and WITH LOCK are mutually exclusive; and no
     /// explicit lock phrase is permitted when the effective LOCK MODE is AUTOMATIC (the lock is implicit). Called
-    /// from the READ/WRITE/REWRITE binders. Returns the <see cref="BoundRecordLock"/> for documentation (the
-    /// runtime effect is a single-run-unit no-op — named residue).</summary>
+    /// from the READ/WRITE/REWRITE binders, which thread the returned <see cref="BoundRecordLock"/> into their
+    /// bound nodes for the emitters' governed-verb routing (§9.1.16).</summary>
     public BoundRecordLock CheckRecordLockPhrase(FileModel file, Core.RecordLockPhraseContext? lock_, string verb)
     {
         if (lock_ is null) return BoundRecordLock.None;

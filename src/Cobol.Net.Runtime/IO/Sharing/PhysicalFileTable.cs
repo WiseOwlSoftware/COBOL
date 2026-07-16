@@ -79,6 +79,33 @@ internal sealed class PhysicalFileTable
             st.RecordLocks.Remove(recId);
     }
 
+    /// <summary>Release every record lock <paramref name="name"/> holds EXCEPT one on <paramref name="keepId"/>
+    /// — the single-lock begin-of-statement discipline (§12.4.5.9 GR6): a REWRITE/DELETE releases a self-lock
+    /// held on a record OTHER than its target at the beginning of execution (§14.9.35 GR12a2 / §14.9.10 GR7a2);
+    /// the target's own lock survives to the completion rules.</summary>
+    public static void ReleaseAllExcept(State st, string name, string keepId)
+    {
+        var mine = st.RecordLocks
+            .Where(kv => string.Equals(kv.Value, name, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(kv.Key, keepId, StringComparison.Ordinal))
+            .Select(kv => kv.Key).ToList();
+        foreach (var k in mine) st.RecordLocks.Remove(k);
+    }
+
+    /// <summary>Would acquiring one NEW lock (a record <paramref name="name"/> does not already hold) exceed a
+    /// §12.4.5.9 GR7 ceiling? Returns 54/53/00 WITHOUT acquiring — the pre-flight for the mutating verbs, whose
+    /// statement must be unsuccessful with the operation NOT performed (§14.9.51 GR15 / §14.9.35 GR14) rather
+    /// than lock-fail after the record already changed.</summary>
+    public string PreflightNewLock(State st, string name)
+    {
+        int mine = 0;
+        foreach (var o in st.RecordLocks.Values)
+            if (string.Equals(o, name, StringComparison.OrdinalIgnoreCase)) mine++;
+        if (mine >= ConnectorLockMax) return FileStatusCode.ConnectorLockLimit;     // 54 (GR7)
+        if (TotalRunUnitLocks() >= RunUnitLockMax) return FileStatusCode.RunUnitLockLimit;   // 53 (GR7)
+        return FileStatusCode.Success;
+    }
+
     private int TotalRunUnitLocks()
     {
         int n = 0;

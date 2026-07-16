@@ -17,6 +17,8 @@
     "constant_record",
     "exception_file_n",
     "file_sharing",
+    "file_sharing_mutate",
+    "file_sharing_seq",
     "float_88",
     "float_compare",
     "float_edited",

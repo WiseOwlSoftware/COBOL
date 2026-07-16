@@ -41,7 +41,22 @@ public sealed class IndexedConnector : FileConnector
     /// <summary>The prime record key of the most recently read record — the record-lock identity for §9.1.16
     /// record locking (Phase 4d M2-FILE-1). Null before the first successful READ.</summary>
     public string? LastReadPrime => _lastReadPrime;
+    private string? _lastWrittenPrimeId;   // the record released by the last successful Write (§14.9.51 GR11)
     private bool _open;
+
+    // ── Record-lock identity (ISO §9.1.16) — an indexed record's identity is its PRIME record key ────────────
+
+    /// <inheritdoc/>
+    public override string LastReadRecordId => _lastReadPrime ?? "";
+
+    /// <inheritdoc/>  (sequential access targets the last-read record, §14.9.35 GR22 / §14.9.10 GR2;
+    /// random/dynamic the record whose prime key is the record area's key slice, §14.9.35 GR23 / §14.9.10 GR3)
+    public override string MutationTargetRecordId(string recordImage) => _access == KeyedAccess.Sequential
+        ? LastReadRecordId
+        : KeyOf(Fit(recordImage), -1);
+
+    /// <inheritdoc/>
+    public override string LastWrittenRecordId => _lastWrittenPrimeId ?? "";
 
     /// <summary>True between a successful OPEN and the matching CLOSE.</summary>
     public override bool IsOpen => _open;
@@ -78,6 +93,7 @@ public sealed class IndexedConnector : FileConnector
         _fpiKey = ""; _fpiArrival = 0; _inclusive = true; _positioner = 'O';
         _lastWrittenPrime = null;
         _lastReadPrime = null;
+        _lastWrittenPrimeId = null;
         bool exists = File.Exists(HostPath);
         string status = FileStatusCode.Success;
         switch (mode)
@@ -287,6 +303,7 @@ public sealed class IndexedConnector : FileConnector
         }
         _recs.Add(new KeyedRec { Image = stored, Arrival = _nextArrival++ });
         if (sequential) _lastWrittenPrime = prime;
+        _lastWrittenPrimeId = prime;   // §9.1.16 lock identity of the record just released (§14.9.51 GR11)
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
     }
 

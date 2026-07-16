@@ -152,6 +152,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         // legacy grammar cannot parse; the greenfield CorpusRunner byte-compares the sequential leg.
         ("2023", "delete_file"),
         ("2023", "delete_file_absent"),
+        // P10 Step 8: the DELETE FILE '62' file-sharing conflict (§9.1.13.9 item 2 / §14.9.10 GR15 + RETRY) —
+        // same 2023 construct family; greenfield CorpusRunner byte-compares it.
+        ("2023", "delete_file_sharing"),
         // Phase 5 intrinsics, DEVLOG 628: the 2023 CONCAT (§15.18) + BASECONVERT (§15.12) intrinsics — the frozen
         // legacy has CONCAT but crashes on BASECONVERT (InvalidCastException); the greenfield CorpusRunner
         // byte-compares intrinsics_string_2023.
@@ -227,6 +230,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // frozen legacy binder has only the by-name CLOSE-WITH-LOCK/38 primitive and cannot bind these clauses.
         // The greenfield CorpusRunner byte-compares file_sharing (two connectors → 61/51/00 in one run unit).
         ("2002", "file_sharing"),
+        // P10 Step 8 (§9.1.16 completion): record locking on the SEQUENTIAL organization (ordinal lock
+        // identity, WITH LOCK/RETRY/IGNORING/ADVANCING-capable READ, REWRITE/WRITE lock discipline) and the
+        // mutating-verb conflict checks (REWRITE/DELETE 51 + RETRY, WRITE WITH LOCK §14.9.51 GR11) — the
+        // frozen legacy binder cannot bind any of these clauses; greenfield CorpusRunner byte-compares both.
+        ("2002", "file_sharing_seq"),
+        ("2002", "file_sharing_mutate"),
         // Phase 6, TYPEDEF / the TYPE clause (data-model D17, §13.18.58/§13.18.57): a type-declaration template +
         // subtree clone. The frozen legacy has no TYPEDEF model — greenfield CorpusRunner only.
         ("2002", "typedef_weak_elem"),
