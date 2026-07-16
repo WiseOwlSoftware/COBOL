@@ -402,11 +402,10 @@ public sealed partial class DataBinder
 
             bool noGet = pc.NO() is not null && pc.GET() is not null;
             bool noSet = pc.NO() is not null && pc.SET() is not null;
-            string sanitized = DataItem.Sanitize(subjName).ToUpperInvariant();
             if (!noGet)
-                AddAccessor('G', "__GET_" + sanitized);
+                AddAccessor('G', NamingConvention.GetAccessorName(subjName));
             if (!noSet)
-                AddAccessor('S', "__SET_" + sanitized);
+                AddAccessor('S', NamingConvention.SetAccessorName(subjName));
 
             void AddAccessor(char kind, string csName)
             {

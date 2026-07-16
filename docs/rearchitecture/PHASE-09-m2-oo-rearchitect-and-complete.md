@@ -15,7 +15,19 @@
   7. The 14 `OoTests` are re-landed as greenfield facts (in `OoSpineTests` or a sibling).
   8. Full battery GREEN: greenfield conformance + unit + the FULL legacy guard (NIST 353 MATCH), with the emitted-C# characterization snapshots either byte-identical or reviewed-and-re-baselined for each intentional emit change.
 
-- **STATUS:** `IN PROGRESS @ step 6` (2026-07-15 — steps 1–4 DONE, DEVLOG 844–846: `Oo/` home + namespace;
+- **STATUS:** `IN PROGRESS @ step 9 — PART A (rearchitecture, steps 1–8) CLOSED` (2026-07-16, DEVLOG 844–848;
+  commits `bbe57910`→`6264bf65`+1, every one snapshot-byte-identical + full-battery green.)
+  **Steps 7–8 dispositions:** 7's NAMING half landed — `Oo/NamingConvention.cs` single-sources
+  `__GET_`/`__SET_` (FOUR copies killed — one more than the recipe counted: both `OoClassTable.Build` rosters,
+  the PROPERTY-clause synthesis, the property-reference lookup), `FactorySuffix`/`__Instance`/`__New`, and the
+  `::EXT::`/`::INST::`/`::FACT::` bands (the runtime's `::EXT::` recognition documented as a wire contract).
+  7's LAYOUT half is recorded ADAPTED-DONE via P5/P6: `OoStaticRootFields`/`OoStaticIndexCells`/
+  `CallSuppressedRootFields` are BIND-computed storage-form facts (the `DataItem.Storage` species), read-only
+  views consumed by `RecordStructEmitter`; `InstanceKeyField` lives on the bound `FileModel` — an emit-side
+  `OoClassLayout` recomputation would duplicate bound facts (singular pattern). 8 is OBE: R6's premise (an
+  885-line emitter partial) is void — P7 already landed OO emission as the ONE per-verb-family collaborator
+  `Verbs/OoEmitter.cs`, consistent with every sibling; a five-file split would fork that convention.
+  (History of the step-6 run: steps 1–4 DONE, DEVLOG 844–846: `Oo/` home + namespace;
   `OoConformance` extracted with `AdapterPairs` as a RETURN value threaded via `BoundCompilation.OoAdapters`
   [`OoEmitter` no longer sees the class table at all]; `OoMethodSymbol` phase-explicit via `OoMethodBinding`
   [deviation: `OverrideOf` stays pass-1 identity]; `OoDriver` owns the OO bind bodies and **`IOoBindHost` is

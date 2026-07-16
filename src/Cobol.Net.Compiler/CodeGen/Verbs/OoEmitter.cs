@@ -530,7 +530,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             var a = args[i];
             bool stringCarried = OoStringCarried(a.Formal);
             string qualProfile = a.Formal.Pic is { Category: PicCategory.Numeric, IsFloat: false }
-                ? $"{inv.OwnerCsName}{(inv.Form is InvokeForm.Factory ? "__FACTORY" : "")}.{a.Formal.ProfileName}" : "";
+                ? $"{inv.OwnerCsName}{(inv.Form is InvokeForm.Factory ? NamingConvention.FactorySuffix : "")}.{a.Formal.ProfileName}" : "";
 
             // The direct-ref fast path: a MemberPlace whose STORAGE form matches the parameter type exactly
             // (BY REFERENCE identifiers only — CONTENT always copies).
@@ -606,7 +606,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             InvokeForm.Super => "base",
             // The factory singleton is never null — no GR5 guard (brief D11); virtual dispatch through the
             // factory hierarchy realizes §9.3.6 factory resolution.
-            InvokeForm.Factory => $"{inv.ClassCsName}__FACTORY.__Instance",
+            InvokeForm.Factory => $"{inv.ClassCsName}{NamingConvention.FactorySuffix}.{NamingConvention.FactoryInstanceField}",
             _ => RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(inv.Receiver!)),
         };
         string call = $"{target}.{inv.MethodCsName}(" + string.Join(", ", argExprs) + ")";

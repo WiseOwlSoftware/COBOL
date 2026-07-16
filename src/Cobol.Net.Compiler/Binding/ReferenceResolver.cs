@@ -64,9 +64,9 @@ public sealed class ReferenceResolver(DataBinder data)
             if (cls is null) return null;                    // interface-typed receivers: property prototypes are a later refinement (0899 at the interface)
         }
 
-        string pinned = DataItem.Sanitize(name).ToUpperInvariant();
-        var get = factory ? cls.FindFactoryMethod("__GET_" + pinned) : cls.FindMethod("__GET_" + pinned);
-        var set = factory ? cls.FindFactoryMethod("__SET_" + pinned) : cls.FindMethod("__SET_" + pinned);
+        string getName = NamingConvention.GetAccessorName(name), setName = NamingConvention.SetAccessorName(name);
+        var get = factory ? cls.FindFactoryMethod(getName) : cls.FindMethod(getName);
+        var set = factory ? cls.FindFactoryMethod(setName) : cls.FindMethod(setName);
         if (get is null && set is null) return null;         // not a property of the roster → generic diagnosis
 
         if (!data.OoRepositoryProperties.Contains(name))

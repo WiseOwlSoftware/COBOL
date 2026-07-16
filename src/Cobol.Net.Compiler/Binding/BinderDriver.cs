@@ -90,7 +90,7 @@ internal sealed class BinderDriver
         foreach (var unit in units)
             foreach (var file in unit.Data.Files)
                 file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
-                    ? "::EXT::" + ext
+                    ? NamingConvention.ExternalFileBand + ext
                     : unit.Path + "::" + file.CobolName;
         // The OO analogue (M2-OO-1i): an OBJECT/FACTORY file connector is scoped to its class, not a program unit,
         // so the program loop above never sees it. A factory file (singleton) keys by class; an instance file keys
@@ -404,7 +404,7 @@ internal sealed class BinderDriver
         // instance file keys by its run-unit external name like any describer (§13.18.22.4 GR4a — inc 5).
         foreach (var f in cls.Data.Files)
             if (f is { IsExternal: true, ExternalName: { } ext })
-                f.CobolName = "::EXT::" + ext;
+                f.CobolName = NamingConvention.ExternalFileBand + ext;
             else if (f.IsSortMerge)
                 // An SD is NOT a host connector — its store is the name-keyed in-memory CobolSort (§13.4.6), and
                 // OoEmitFileMembers / EmitFileRegistration both skip SDs (host = !IsSortMerge). So it must keep a
@@ -414,13 +414,13 @@ internal sealed class BinderDriver
             else
             {
                 f.InstanceKeyField = "__fkey_" + DataItem.Sanitize(f.CobolName);
-                f.CobolName = cls.CsName + "::INST::" + f.CobolName;
+                f.CobolName = cls.CsName + NamingConvention.InstanceFileBand + f.CobolName;
             }
         // FACTORY files: the class singleton (§9.3.14.2) — a static class-qualified key (no per-object field).
         foreach (var f in cls.FactoryData.Files)
             f.CobolName = f is { IsExternal: true, ExternalName: { } ext }
-                ? "::EXT::" + ext
-                : cls.CsName + "::FACT::" + f.CobolName;
+                ? NamingConvention.ExternalFileBand + ext
+                : cls.CsName + NamingConvention.FactoryFileBand + f.CobolName;
     }
 
     private static void RegisterSubtree(DataBinder data, DataItem item)

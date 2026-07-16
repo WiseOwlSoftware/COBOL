@@ -45,7 +45,7 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     /// copy of inherited factory data; SELF in a factory method is polymorphic §14.9.23.3 SR4f + §8.4.3.8
     /// GR2; factory resolution walks INHERITS §9.3.6. `__` cannot appear in a COBOL-derived name — no
     /// collision).</summary>
-    public string FactoryCsName => CsName + "__FACTORY";
+    public string FactoryCsName => CsName + NamingConvention.FactorySuffix;
 
     private readonly Dictionary<string, OoMethodSymbol> _factoryMethods = new(StringComparer.OrdinalIgnoreCase);
 

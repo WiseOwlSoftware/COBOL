@@ -223,8 +223,9 @@ public sealed class OoClassTable
             {
                 var sel = m.methodPropertySelector();
                 string methodName = sel is not null
-                    ? (sel.GET() is not null ? "__GET_" : "__SET_")
-                      + DataItem.Sanitize(sel.propertyName().GetText()).ToUpperInvariant()
+                    ? (sel.GET() is not null
+                        ? NamingConvention.GetAccessorName(sel.propertyName().GetText())
+                        : NamingConvention.SetAccessorName(sel.propertyName().GetText()))
                     : m.methodName(0).GetText();
                 var pd = m.procedureDivision();
                 string mcs = sel is not null ? methodName : DataItem.Sanitize(methodName).ToUpperInvariant();
@@ -269,8 +270,9 @@ public sealed class OoClassTable
             {
                 var fsel = m.methodPropertySelector();
                 string methodName = fsel is not null
-                    ? (fsel.GET() is not null ? "__GET_" : "__SET_")
-                      + DataItem.Sanitize(fsel.propertyName().GetText()).ToUpperInvariant()
+                    ? (fsel.GET() is not null
+                        ? NamingConvention.GetAccessorName(fsel.propertyName().GetText())
+                        : NamingConvention.SetAccessorName(fsel.propertyName().GetText()))
                     : m.methodName(0).GetText();
                 var pd = m.procedureDivision();
                 if (string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
