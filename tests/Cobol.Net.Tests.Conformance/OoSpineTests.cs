@@ -1801,6 +1801,23 @@ public sealed class OoSpineTests
         Assert.Contains("AFTER 7234", stdout);
     }
 
+    /// <summary>§11.3.2 permits several INHERITS bases; COBOL.NET v1 restricts to SINGLE inheritance and
+    /// rejects 2+ LOUDLY (SSOT §18 #18 / A.4.10 — the R9 fix: the repetition PARSES per the superset-parse
+    /// doctrine, then pass-1 raises 0849; previously the 2nd base was a bare syntax error).</summary>
+    [Fact]
+    public void Class_MultiBaseInherits_0849()
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. MBSPK60 INHERITS FROM MBBASEA MBBASEB.
+            END CLASS MBSPK60.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. MBBASEA.
+            END CLASS MBBASEA.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. MBBASEB.
+            END CLASS MBBASEB.
+            """), "COBOLNET0849");
+
     /// <summary>§10.7 — END INTERFACE names its interface (the 0840 structural family).</summary>
     [Fact]
     public void Interface_EndNameMismatch_0840()

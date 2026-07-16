@@ -193,12 +193,22 @@ public sealed class OoClassTable
             // COBOL-2002 introduction gate: VersionConformancePass ParseArm.VisitClassDefinition (rearch 14g.3,
             // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             string csName = DataItem.Sanitize(name).ToUpperInvariant();   // MUST match PicInfo.ClrType's mapping
+            var bases = id.className().Skip(1).Select(c => c.GetText()).ToList();
             var sym = new OoClassSymbol(name, csName, ctx)
             {
-                BaseName = id.className().Length > 1 ? id.className(1).GetText() : null,
+                Bases = bases,
+                BaseName = bases.Count >= 1 ? bases[0] : null,
                 IsFinal = id.FINAL() is not null,
             };
-            usedCsNames.Add(csName + "__FACTORY");   // belt-and-braces (a `__` name cannot collide with COBOL-derived names)
+            if (bases.Count > 1)
+                // ISO §11.3.2 permits several INHERITS bases; COBOL.NET v1 restricts to SINGLE inheritance and
+                // rejects the rest LOUDLY (SSOT §18 #18; A.4.10 — multiple inheritance / parametric polymorphism
+                // rejected). Silently compiling against only the first base was the R9 silent-miscompile.
+                edition.Error("COBOLNET0849",
+                    $"class '{name}': INHERITS FROM {bases.Count} base classes ({string.Join(", ", bases)}) — "
+                    + "COBOL.NET v1 supports single inheritance only; multiple inheritance is rejected "
+                    + "(ISO §11.3.2; SSOT §18 #18 / A.4.10)");
+            usedCsNames.Add(csName + NamingConvention.FactorySuffix);   // belt-and-braces (a `__` name cannot collide with COBOL-derived names)
             if (table._ifaceByName.ContainsKey(name))
                 edition.Error("COBOLNET0840",
                     $"'{name}' is defined as both a class and an interface — one name namespace "

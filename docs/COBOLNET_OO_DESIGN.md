@@ -44,7 +44,23 @@ INVOKE RESOLUTION (each grounded in a conformance .cob): `Class "NEW" RETURNING 
 
 METHOD ATTRS map cleanly because COBOL forbids implicit hiding: instance methods → `virtual` by default (§9.3.6 runtime-class dispatch); OVERRIDE→`override`; FINAL→`sealed override`; §11.7 SR4a (redefining a base signature without OVERRIDE is an ERROR) means we NEVER emit C# `new`/hiding. (ABSTRACT is NOT ISO — vendor extension only; dropped from the ISO surface. **Spec corrections #4.**)
 
-CORRECTNESS BLOCKER (the only one): GOBACK in a method ≠ STOP RUN. In a method GOBACK returns from the method only; STOP RUN ends the run unit. GOBACK and STOP RUN are distinct signals: STOP RUN binds to `BoundStop`, program GOBACK to `BoundGoback`, and a method-context GOBACK to a distinct `BoundMethodReturn` (carrying the RETURNING item, if any) whose method-return path is separate from the run-unit `StopRun` (see D8 and "Greenfield seams"). SETTLED (SSOT §18 item 18): COBOL allows MULTIPLE class inheritance (§11.3.2 `INHERITS FROM {name}…`), which `: Base` cannot express in C# — v1 restricts to single inheritance and rejects 2+ bases LOUDLY; a multi-base program triggers the deferred owner decision then.
+CORRECTNESS BLOCKER (the only one): GOBACK in a method ≠ STOP RUN. In a method GOBACK returns from the method only; STOP RUN ends the run unit. GOBACK and STOP RUN are distinct signals: STOP RUN binds to `BoundStop`, program GOBACK to `BoundGoback`, and a method-context GOBACK to a distinct `BoundMethodReturn` (carrying the RETURNING item, if any) whose method-return path is separate from the run-unit `StopRun` (see D8 and "Greenfield seams"). SETTLED (SSOT §18 item 18): COBOL allows MULTIPLE class inheritance (§11.3.2 `INHERITS FROM {name}…`), which `: Base` cannot express in C# — v1 restricts to single inheritance and rejects 2+ bases LOUDLY — LANDED (P9 Step 10): the grammar parses the §11.3.2 repetition (`INHERITS FROM className+`, superset-parse doctrine), `OoClassSymbol.Bases` carries the full list, and pass-1 raises COBOLNET0849 (negative corpus `oo-multi-base-inherits` + the `Class_MultiBaseInherits_0849` spine fact).
+
+### The P9 subsystem topology (as-built 2026-07-16 — PHASE-09 Part A)
+
+OO lives in `src/Cobol.Net.Compiler/Oo/` (`CobolNet.Compiler.Oo`): `OoClassTable` (the PURE pass-1 symbol
+table) + `OoClassSymbol`/`OoInterfaceSymbol`/`OoMethodSymbol` (immutable pass-1 identity; the after-data-bind
+signature — formals/RETURNING/data roots/pc range — attaches as `OoMethodBinding`, a null-deref if read too
+early) + `OoConformance` (the §9.3.8.2/§9.3.11 validator; `ValidateImplements` RETURNS the covariant
+`AdapterPair` list, threaded via `BoundCompilation.OoAdapters` to the interface emitter) + `OoDriver` (the
+bind bodies: interface prototype data, class OBJECT/FACTORY halves + signatures, method-body rosters — owned
+and sequenced by `BinderDriver.Bind`; the former emitter-hosted `IOoBindHost` seam is DELETED) +
+`NamingConvention` (the ONE home for `__GET_`/`__SET_`, `__FACTORY`/`__Instance`/`__New`, and the
+`::EXT::`/`::INST::`/`::FACT::` file-key bands — the runtime's `::EXT::` recognition is the documented wire
+contract). Statement binding is the P7 collaborator `Binding/Procedure/Verbs/OoBinder.cs`; emission is the P7
+collaborator `CodeGen/Verbs/OoEmitter.cs`. The former ambient flags are gone: `ActiveMethodScope` push/pops
+via `BinderContext.EnterMethodScope`; `OoIsClassUnit`/`OoCurrentClass`/`OoInFactory` are `init`-only
+per-binder configuration set by `OoDriver` at construction.
 
 ## Spec corrections
 

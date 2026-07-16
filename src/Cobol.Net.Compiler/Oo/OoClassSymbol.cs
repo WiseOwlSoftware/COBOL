@@ -14,7 +14,14 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     public string Name { get; } = name;
     public string CsName { get; } = csName;
     public CobolParserCore.ClassDefinitionContext Ctx { get; } = ctx;
+    /// <summary>The FIRST (and, in v1, only permitted) INHERITS base-class name — null for a root class.</summary>
     public string? BaseName { get; init; }
+
+    /// <summary>The FULL `INHERITS FROM` list as written (ISO §11.3 permits several; SSOT §18 #18 / A.4.10
+    /// restricts v1 to SINGLE inheritance and REJECTS 2+ bases LOUDLY — COBOLNET0849 at pass-1 — so the extra
+    /// bases are representable here for the diagnostic, never silently dropped).</summary>
+    public IReadOnlyList<string> Bases { get; init; } = [];
+
     public OoClassSymbol? Base { get; set; }
 
     /// <summary>CLASS-ID … IS FINAL (§11.3 — GR3: a FINAL class shall not be a superclass; 0839). Emits

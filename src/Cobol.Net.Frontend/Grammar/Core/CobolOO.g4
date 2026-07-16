@@ -37,8 +37,10 @@ factoryParagraph
     ;
 
 classIdParagraph
-    : CLASS_ID DOT className (IS? FINAL)? (INHERITS FROM className)? DOT
-    ;   // [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3 GR3 — bind-gated 0839)
+    : CLASS_ID DOT className (IS? FINAL)? (INHERITS FROM className+)? DOT
+    ;   // [IS FINAL] precedes INHERITS per the §10.6 format (:12742-12744); a FINAL class shall not be a superclass (§11.3 GR3 — bind-gated 0839).
+        // INHERITS repetition PARSES per the §11.3.2 format (superset parse — P3 doctrine); v1 REJECTS 2+ bases
+        // LOUDLY at pass-1 (COBOLNET0849; SSOT §18 #18 / A.4.10) — never a bare syntax error, never a silent drop.
 
 className
     : cobolWord
