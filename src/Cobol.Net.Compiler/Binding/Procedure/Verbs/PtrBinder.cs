@@ -14,7 +14,7 @@ using Core = CobolParserCore;
 /// resolution happens here once: receiver/sender category checks (the 0869 pointer band), the BASED-receiver
 /// rule (SR18), edition gates via the registry (binder-side — a grammar predicate would fall through to the
 /// OTHER SET alternatives and mis-diagnose), and the staged-loud residue (qualified/subscripted ADDRESS OF
-/// operands, INITIALIZED on the based form's INITIALIZE lowering when its shape is exotic).
+/// operands).
 /// P7 Step 10g: a real collaborator over <see cref="BinderContext"/> — the tri-state
 /// <see cref="TryBindSetUpDown"/> contract (null = fall through to the index path · BoundNop = error
 /// consumed · node = bound) and the non-consuming first-target peek move VERBATIM, as does the raw
@@ -90,9 +90,10 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         return new BoundAddressOf(item);
     }
 
-    /// <summary>Bind ALLOCATE (ISO §14.9.3, both formats). The INITIALIZED based form's GR7
-    /// (<c>INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT</c>) is staged loud this increment — the
-    /// corpus has no consumer and the INITIALIZE lowering deserves its own witness.</summary>
+    /// <summary>Bind ALLOCATE (ISO §14.9.3, both formats). The INITIALIZED based form lowers per GR7 to the
+    /// allocation followed by EXACTLY the spec's <c>INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO
+    /// DEFAULT</c> expansion (the ONE INITIALIZE mechanism, <see cref="InitializeBinder.BindAllocateInitialized"/>),
+    /// carried as a <see cref="BoundSequence"/>.</summary>
     public BoundStatement BindAllocate(Core.AllocateStatementContext al)
     {
         // ALLOCATE (§14.9.3) is a COBOL-2002 INTRODUCTION gate, now gated on RECOGNITION by the
@@ -124,10 +125,14 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
         // Form 2: ALLOCATE based-item [INITIALIZED] [RETURNING pointer].
         var basedRef = drefs[0];
         if (PtrResolveBased(basedRef) is not { } based) return new BoundNop();
-        if (al.INITIALIZED() is not null)
-            return new BoundUnsupported("ALLOCATE based-item INITIALIZED (the §14.9.3 GR7 INITIALIZE "
-                + "lowering — a named increment residue)");
-        return new BoundAllocate(based, null, Initialized: false, returning);
+        var alloc = new BoundAllocate(based, null, al.INITIALIZED() is not null, returning);
+        if (al.INITIALIZED() is null) return alloc;
+        // GR7: "the allocated storage is initialized as if an INITIALIZE data-name-1 WITH FILLER ALL TO VALUE
+        // THEN TO DEFAULT statement were executed" — the lowering IS that statement's bind-time expansion,
+        // sequenced AFTER the allocation so each store windows the cell the implicit pointer now addresses
+        // (GR4a). The GR5 not-available leg (no storage to initialize) is unreachable in this managed model —
+        // a form-2 request is the template width (> 0), and CobolPtr.Allocate always satisfies a positive size.
+        return new BoundSequence([alloc, host.Init.BindAllocateInitialized(basedRef)]);
     }
 
     /// <summary>Bind FREE (ISO §14.9.15 SR1 — every operand shall be category data-pointer; the vendor

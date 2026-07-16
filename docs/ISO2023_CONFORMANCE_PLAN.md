@@ -544,7 +544,11 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   `USE … AFTER EXCEPTION`.** **[A] medium, large.** *Recipe:* an EC-condition catalog, a TURN on/off map, a
   condition register, and runtime guards on checked operations. **Backbone for RAISE/RESUME/USE and
   exception-checking PERFORM.** §14.6, §14.9.
-- ☐ **M2-PROC-5 — `ALLOCATE` / `FREE` (based storage).** *Medium.* **Depends on M2-DATA-5 (pointers).** §14.9.
+- ☑ **M2-PROC-5 — `ALLOCATE` / `FREE` (based storage).** *Medium.* **Depends on M2-DATA-5 (pointers).** §14.9.
+  **LANDED greenfield (DEVLOG 617; the §14.9.3 GR7 based-INITIALIZED lowering completed P10 Step-6 slice,
+  2026-07-16, DEVLOG 858):** both formats + FREE on `ManagedPointer`/`StorageCell`; INITIALIZED = GR6
+  binary-zero fill (CHARACTERS) / the GR7 `INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT` expansion
+  (based form, the ONE InitializeBinder mechanism); goldens `2002/pointer_alloc` + `2002/allocate_initialized`.
 - ◑ **M2-PROC-6 — `GOBACK RETURNING` (DONE — DEVLOG 387); EXIT variants verified; `CONTINUE AFTER` deferred.**
   §14.9.16. `GOBACK RETURNING|GIVING identifier` (dialect-gated 2002+) lowers to a synthetic MOVE into the
   PROCEDURE DIVISION RETURNING item + `IrGoBack` (reuses the CALL…RETURNING wiring); conformance

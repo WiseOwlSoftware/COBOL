@@ -108,7 +108,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// specified only within a contained program).</summary>
     public bool InNestedProgram { get; init; }
     internal CorrespondingBinder Corr => _corrBinder ??= new CorrespondingBinder(Ctx, this);
-    private InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
+    internal InitializeBinder Init => _initializeBinder ??= new InitializeBinder(Ctx, this);
 
     /// <summary>The group's pass-1 class symbol table (deep-dive D1) — set by the run-unit emitter before
     /// binding so INVOKE resolves classes/methods defined anywhere in the group. Null ⇔ empty group.</summary>

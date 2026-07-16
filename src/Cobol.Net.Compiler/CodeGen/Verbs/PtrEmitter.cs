@@ -81,7 +81,9 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     /// <summary>ALLOCATE (ISO §14.9.3). Form 1: a fresh cell of ⌈expr⌉ characters (GR1 — a fractional request
     /// rounds UP; GR2 — ≤0 yields NULL, no EC) delivered to RETURNING; INITIALIZED = binary-zero fill (GR6).
     /// Form 2: the BASED item's implicit pointer takes a cell of its template width (GR3/GR4a), RETURNING
-    /// also set when present (GR4b).</summary>
+    /// also set when present (GR4b); the form-2 INITIALIZED effect (GR7) is NOT emitted here — the binder
+    /// lowers it to the spec's own INITIALIZE expansion (a <c>BoundInitialize</c> sequenced after this node),
+    /// so it renders through the ONE INITIALIZE/MOVE path.</summary>
     public void EmitAllocate(BoundAllocate s)
     {
         var w = ctx.Writer;

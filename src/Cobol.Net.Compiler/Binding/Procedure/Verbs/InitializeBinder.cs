@@ -63,6 +63,22 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
         return new BoundInitialize(actions);
     }
 
+    /// <summary>The ALLOCATE based-item INITIALIZED lowering (ISO §14.9.3 GR7): "the allocated storage is
+    /// initialized as if an INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO DEFAULT statement were
+    /// executed" — bind EXACTLY that statement's expansion over the based item (the ONE INITIALIZE mechanism:
+    /// WITH FILLER, the bare-ALL TO VALUE, no REPLACING, THEN TO DEFAULT), sequenced by the ALLOCATE bind
+    /// AFTER the allocation so every store windows the freshly-addressed cell through the implicit
+    /// data-address pointer (GR4a). An unresolvable/exotic shape expands to the loud error action — never a
+    /// silent skip.</summary>
+    public BoundInitialize BindAllocateInitialized(Core.DataReferenceContext basedRef)
+    {
+        var spec = new InitializeSpec(WithFiller: true, ToValue: true, ValueCategory: null,
+            Replacements: [], ToDefault: true);
+        var actions = new List<InitializeAction>();
+        BindInitializeTarget(basedRef, spec, actions);
+        return new BoundInitialize(actions);
+    }
+
     /// <summary>Expand one identifier-1 (ISO §14.9.20 GR5): resolve its FULL data reference (qualification +
     /// subscripts — the legacy binder's name-only resolution was a gap, not behavior), then walk its subtree in
     /// definition order (GR8) collecting the per-elementary stores. identifier-1 itself MAY have / sit under a

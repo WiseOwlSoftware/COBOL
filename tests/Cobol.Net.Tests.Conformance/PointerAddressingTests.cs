@@ -68,13 +68,16 @@ public sealed class PointerAddressingTests
         EditionHarness.AssertHasDiagnostic(e2, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)");
     }
 
-    /// <summary>The ALLOCATE legs the goldens do not reach, locked at compile level: a fractional request
-    /// (GR1 rounds UP via the AwayFromZero rescale), INITIALIZED with CHARACTERS (GR6 zero-fill), and the
-    /// form-2 RETURNING delivery (GR4b).</summary>
+    /// <summary>ALLOCATE statement-shape compile locks: a fractional request (GR1 rounds UP via the
+    /// AwayFromZero rescale), INITIALIZED with CHARACTERS (GR6 zero-fill), the form-2 RETURNING delivery
+    /// (GR4b), the ≤0 NULL leg (GR2), and the based INITIALIZED GR7 lowering (the BoundSequence over the
+    /// INITIALIZE expansion). Runtime observation of GR6/GR4b/GR7 is the ENABLED
+    /// <c>2002/allocate_initialized</c> golden (byte-compared .out).</summary>
     [Theory]
     [InlineData("    ALLOCATE 2.5 CHARACTERS RETURNING P.")]
     [InlineData("    ALLOCATE 8 CHARACTERS INITIALIZED RETURNING P.")]
     [InlineData("    ALLOCATE B RETURNING P.")]
+    [InlineData("    ALLOCATE B INITIALIZED RETURNING P.")]
     [InlineData("    ALLOCATE 0 CHARACTERS RETURNING P.\n            IF P = NULL DISPLAY \"N\" END-IF.")]
     public void Allocate_Legs_Compile(string body)
     {

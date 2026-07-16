@@ -65,6 +65,10 @@ public sealed class ConformanceTests : EndToEndTestBase
     /// DEVLOG-457 owner directive).</summary>
     private static readonly HashSet<(string, string)> GreenfieldOnly =
     [
+        // ALLOCATE based-item INITIALIZED: the §14.9.3 GR7 lowering (INITIALIZE … WITH FILLER ALL TO VALUE
+        // THEN TO DEFAULT) never landed in legacy — its CIL emitter only zero-fills (CilEmitter.cs), so the
+        // GR7-conforming .out (VALUE members honored, numerics ZERO, edited zero, SPACES) is greenfield-only.
+        ("2002", "allocate_initialized"),
         ("2002", "oo_factory"),         // the FACTORY paragraph (ISO §11.4) — net-new in the greenfield (DEVLOG 604)
         ("2002", "oo_factory_file"),    // FACTORY-paragraph FILE-CONTROL + FILE SECTION (M2-OO-1i inc 3) — net-new (DEVLOG 646)
         ("2002", "oo_object_file"),     // OBJECT-paragraph per-object file connector (M2-OO-1i inc 4) — net-new (DEVLOG 647)

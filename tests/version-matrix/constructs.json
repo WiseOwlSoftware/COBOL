@@ -51,7 +51,7 @@
     {
       "id": "allocate-2002",
       "status": "active",
-      "description": "ALLOCATE statement (dynamic storage), ISO §14.9.3 - introduced 2002. ACTIVE as of Phase-4b increment 2 (DEVLOG 617): both formats bind (n CHARACTERS RETURNING p -> a fresh StorageCell window pointer, GR1 round-up / GR2 <=0 -> NULL no EC / GR6 INITIALIZED zero-fill; based-item -> the implicit pointer takes a cell of the template width, GR3/GR4); the based INITIALIZED GR7 INITIALIZE lowering is a named staged residue.",
+      "description": "ALLOCATE statement (dynamic storage), ISO §14.9.3 - introduced 2002. ACTIVE: both formats bind (n CHARACTERS RETURNING p -> a fresh StorageCell window pointer, GR1 round-up / GR2 <=0 -> NULL no EC / GR6 INITIALIZED zero-fill; based-item -> the implicit pointer takes a cell of the template width, GR3/GR4a/GR4b) and the based INITIALIZED form lowers per GR7 to the spec's INITIALIZE ... WITH FILLER ALL TO VALUE THEN TO DEFAULT expansion (a BoundSequence over the ONE INITIALIZE mechanism; golden 2002/allocate_initialized). INITIALIZED is a phrase of this gated statement - no separate matrix row (the phrase-level precedent).",
       "display": "ALLOCATE",
       "diagnosticCode": "COBOLNET0900",
       "citation": "ISO §14.9.3",
