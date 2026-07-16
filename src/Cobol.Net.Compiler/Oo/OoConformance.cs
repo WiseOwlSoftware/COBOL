@@ -34,21 +34,21 @@ public static class OoConformance
             {
                 if (m.OverrideOf is not { } baseM) continue;
                 string where = $"class '{cls.Name}', method '{m.Name}' overriding '{baseM.Name}'";
-                if (m.Formals.Count != baseM.Formals.Count)
+                if (m.Binding!.Formals.Count != baseM.Binding!.Formals.Count)
                 {
-                    edition.Error("COBOLNET0829", $"{where}: {m.Formals.Count} formal parameter(s) vs the "
-                        + $"overridden method's {baseM.Formals.Count} (ISO §9.3.8.2 — an override's signature "
+                    edition.Error("COBOLNET0829", $"{where}: {m.Binding!.Formals.Count} formal parameter(s) vs the "
+                        + $"overridden method's {baseM.Binding!.Formals.Count} (ISO §9.3.8.2 — an override's signature "
                         + "shall conform)");
                     continue;
                 }
-                for (int i = 0; i < m.Formals.Count; i++)
-                    if (DescriptionMismatch(baseM.Formals[i].Item, m.Formals[i].Item) is { } err)
+                for (int i = 0; i < m.Binding!.Formals.Count; i++)
+                    if (DescriptionMismatch(baseM.Binding!.Formals[i].Item, m.Binding!.Formals[i].Item) is { } err)
                         edition.Error("COBOLNET0829", $"{where}: formal parameter #{i + 1} "
-                            + $"('{m.Formals[i].Item.CobolName}'): {err} (ISO §9.3.8.2)");
-                if ((m.Returning is null) != (baseM.Returning is null))
+                            + $"('{m.Binding!.Formals[i].Item.CobolName}'): {err} (ISO §9.3.8.2)");
+                if ((m.Binding!.Returning is null) != (baseM.Binding!.Returning is null))
                     edition.Error("COBOLNET0829", $"{where}: RETURNING presence differs from the overridden "
                         + "method (ISO §9.3.8.2)");
-                else if (m.Returning is { } r && baseM.Returning is { } br)
+                else if (m.Binding!.Returning is { } r && baseM.Binding!.Returning is { } br)
                 {
                     // §9.3.8.2.3 rules 5a/5c2 — a COVARIANT object-reference RETURNING is legal: a universal
                     // base accepts any object-reference override; a typed base accepts the SAME class or a
@@ -103,24 +103,24 @@ public static class OoConformance
                             + "inherited ones)");
                         continue;
                     }
-                    if (impl.Formals.Count != proto.Formals.Count)
+                    if (impl.Binding!.Formals.Count != proto.Binding!.Formals.Count)
                     {
                         edition.Error("COBOLNET0841",
-                            $"class '{cls.Name}', method '{impl.Name}': {impl.Formals.Count} formal(s) vs "
-                            + $"the '{iface.Name}' prototype's {proto.Formals.Count} (ISO §9.3.8.2.3 rule 1)");
+                            $"class '{cls.Name}', method '{impl.Name}': {impl.Binding!.Formals.Count} formal(s) vs "
+                            + $"the '{iface.Name}' prototype's {proto.Binding!.Formals.Count} (ISO §9.3.8.2.3 rule 1)");
                         continue;
                     }
-                    for (int i = 0; i < impl.Formals.Count; i++)
-                        if (DescriptionMismatch(proto.Formals[i].Item, impl.Formals[i].Item) is { } err)
+                    for (int i = 0; i < impl.Binding!.Formals.Count; i++)
+                        if (DescriptionMismatch(proto.Binding!.Formals[i].Item, impl.Binding!.Formals[i].Item) is { } err)
                             edition.Error("COBOLNET0841",
                                 $"class '{cls.Name}', method '{impl.Name}', formal #{i + 1}: {err} "
                                 + $"(ISO §9.3.8.2.3 rules 2/3 vs interface '{iface.Name}' — identical "
                                 + "descriptions; the C# projection cannot check this)");
-                    if ((impl.Returning is null) != (proto.Returning is null))
+                    if ((impl.Binding!.Returning is null) != (proto.Binding!.Returning is null))
                         edition.Error("COBOLNET0841",
                             $"class '{cls.Name}', method '{impl.Name}': RETURNING presence differs from the "
                             + $"'{iface.Name}' prototype (ISO §9.3.8.2.3 rule 4)");
-                    else if (impl.Returning is { } r && proto.Returning is { } pr)
+                    else if (impl.Binding!.Returning is { } r && proto.Binding!.Returning is { } pr)
                     {
                         if (r.Pic is { Category: PicCategory.ObjectReference } rp
                             && pr.Pic is { Category: PicCategory.ObjectReference } prp)

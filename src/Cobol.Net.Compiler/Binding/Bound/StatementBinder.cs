@@ -176,9 +176,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 // A PROPERTY-clause-SYNTHESIZED accessor: no COBOL body exists — the emitter renders the
                 // direct field read/write (D-P1; observably identical to the §13.18.42 GR1/GR2 implicit
                 // MOVE methods). It still occupies a roster slot (override/implements machinery applies).
-                m.EntryPc = table.Paragraphs.Count;
-                m.EndPc = table.Paragraphs.Count - 1;   // empty body by construction
-                methods.Add(new BoundMethod(m.Name, m.CsName, m.EntryPc, m.EndPc));
+                m.Binding!.EntryPc = table.Paragraphs.Count;
+                m.Binding!.EndPc = table.Paragraphs.Count - 1;   // empty body by construction
+                methods.Add(new BoundMethod(m.Name, m.CsName, m.Binding!.EntryPc, m.Binding!.EndPc));
                 continue;
             }
             // A method IS a source element (§14.9.18.3 SR2/SR4a): its OWN PD-header RAISING partition
@@ -189,7 +189,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             // per-pc switch below activates §11.7 GR5 shadowing while this method's statements bind.
             var scope = new OoMethodScope { Data = m.DataScope };
             Ctx.CurrentMethodScope = scope;   // the COLLECTION cursor (AddParagraph registers method-locally)
-            m.EntryPc = table.Paragraphs.Count;
+            m.Binding!.EntryPc = table.Paragraphs.Count;
             if (m.Ctx.procedureDivision() is { } pd)
             {
                 if (pd.declarativePart().Length > 0)
@@ -212,8 +212,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                     }
                 }
             }
-            m.EndPc = table.Paragraphs.Count - 1;
-            methods.Add(new BoundMethod(m.Name, m.CsName, m.EntryPc, m.EndPc));
+            m.Binding!.EndPc = table.Paragraphs.Count - 1;
+            methods.Add(new BoundMethod(m.Name, m.CsName, m.Binding!.EntryPc, m.Binding!.EndPc));
         }
         Ctx.CurrentMethodScope = null;
 

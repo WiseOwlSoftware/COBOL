@@ -74,7 +74,7 @@ public sealed class ReferenceResolver(DataBinder data)
                 $"the object-property reference '{name}' OF '{recv}' requires a PROPERTY specifier in the "
                 + "REPOSITORY paragraph (ISO §8.4.3.9.3 SR1; §12.3.8)");
 
-        var model = get?.Returning ?? set!.Formals[0].Item;
+        var model = get?.Binding!.Returning ?? set!.Binding!.Formals[0].Item;
         if (model.IsGroup)
         {
             data.Edition.Error(DiagnosticCatalog.OoGroupValuedProperty,

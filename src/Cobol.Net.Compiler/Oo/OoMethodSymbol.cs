@@ -59,30 +59,17 @@ public sealed record OoMethodSymbol(
     /// GET/SET PROPERTY methods (they carry real bodies).</summary>
     public DataItem? PropertySubject { get; set; }
 
-    /// <summary>The method's contiguous pc range in its class's one dispatch space — assigned by
-    /// <c>StatementBinder.BindClassBody</c> (the exit-bounded range IS the fall-through guard: running past
-    /// the last paragraph returns from the method, never into a sibling's paragraphs — the legacy trap #4).</summary>
-    public int EntryPc { get; set; } = -1;
-    public int EndPc { get; set; } = -2;   // Entry > End ⇔ an empty method body
 
-    /// <summary>The ordered PD USING formals (§14.9.23.4 GR3 — positional correspondence; every formal is
-    /// BY REFERENCE, the header BY VALUE phrase being an unparsed grammar extension).</summary>
-    public List<OoFormal> Formals { get; } = [];
 
-    /// <summary>The PD RETURNING item (a LINKAGE 01/77 — §14.2.3 GR6: callee-allocated; the method's C# return
-    /// value delivers it, §14.9.23.4 GR8), or null for a void method.</summary>
-    public DataItem? Returning { get; set; }
 
-    /// <summary>The method's LINKAGE roots (ALL of them — formals, the RETURNING item, and any unattached
-    /// entry): each becomes a capturable C# LOCAL of the emitted method.</summary>
-    public List<DataItem> LinkageRoots { get; } = [];
 
-    /// <summary>LOCAL-STORAGE roots → C# locals, re-initialized on every activation (§14.5.3).</summary>
-    public List<DataItem> LocalRoots { get; } = [];
 
-    /// <summary>Method WORKING-STORAGE roots → STATIC fields (D3 — shared across instances, persistent across
-    /// activations, §11.7; ILLEGAL at 2023, §13.5.3 SR 1 — the version-conformance pass window row).</summary>
-    public List<DataItem> StaticRoots { get; } = [];
+
+    /// <summary>The AFTER-DATA-BIND half of the description (P9 R7 — phase-explicit): attached by
+    /// <c>DataBinder.OoBindMethodData</c> once this method's data has bound; the pc range is stamped into it
+    /// later still by <c>StatementBinder.BindClassBody</c>. Reading it before attach is a null-deref — the
+    /// intended type-level ordering guard (never a silent -1 sentinel).</summary>
+    public OoMethodBinding? Binding { get; internal set; }
 
     /// <summary>The method's own name scope (§11.7 GR5 shadowing; sibling invisibility — trap #6).</summary>
     public OoMethodDataScope DataScope { get; } = new();

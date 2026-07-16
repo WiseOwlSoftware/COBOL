@@ -107,9 +107,9 @@ internal static class StorageFormPass
         static bool UnifyPair(OoMethodSymbol a, OoMethodSymbol b)
         {
             bool changed = false;
-            for (int i = 0; i < Math.Min(a.Formals.Count, b.Formals.Count); i++)
-                changed |= UnifyCrossing(a.Formals[i].Item, b.Formals[i].Item);
-            if (a.Returning is { } r && b.Returning is { } br)
+            for (int i = 0; i < Math.Min(a.Binding!.Formals.Count, b.Binding!.Formals.Count); i++)
+                changed |= UnifyCrossing(a.Binding!.Formals[i].Item, b.Binding!.Formals[i].Item);
+            if (a.Binding!.Returning is { } r && b.Binding!.Returning is { } br)
                 changed |= UnifyCrossing(r, br);
             return changed;
         }

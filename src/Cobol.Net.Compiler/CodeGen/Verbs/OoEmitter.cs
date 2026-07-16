@@ -90,7 +90,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             .Select(a =>
             {
                 var (protoRet, protoSig) = OoSignatureOf(a.Proto);
-                string args = string.Join(", ", a.Proto.Formals.Select(f => $"ref {f.ParamName}"));
+                string args = string.Join(", ", a.Proto.Binding!.Formals.Select(f => $"ref {f.ParamName}"));
                 return $"{protoRet} {a.Iface.CsName}.{a.Proto.CsName}({protoSig}) => this.{a.Impl.CsName}({args});   // covariant-return adapter (§9.3.8.2.3 5c2)";
             })
             .ToList();
@@ -188,12 +188,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             {
                 using (w.Block($"case {Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(m.Name.ToUpperInvariant(), quote: true)}:"))
                 {
-                    w.Line($"if (__a.Length != {m.Formals.Count}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
-                        + $"$\"INVOKE '{cobolName}' '{m.Name}': {{__a.Length}} argument(s) for {m.Formals.Count} formal(s) "
+                    w.Line($"if (__a.Length != {m.Binding!.Formals.Count}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
+                        + $"$\"INVOKE '{cobolName}' '{m.Name}': {{__a.Length}} argument(s) for {m.Binding!.Formals.Count} formal(s) "
                         + "(ISO §14.9.23.4 GR7c/§14.8.2 — runtime conformance through a universal receiver)\");");
-                    for (int i = 0; i < m.Formals.Count; i++)
+                    for (int i = 0; i < m.Binding!.Formals.Count; i++)
                     {
-                        var f = m.Formals[i];
+                        var f = m.Binding!.Formals[i];
                         string want = OoConformance.ConformanceDescriptor(f.Item);
                         string wantLit = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(want, quote: true);
                         w.Line($"if (__a[{i}].Descriptor != {wantLit}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
@@ -201,26 +201,26 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                             + $"(caller {{__a[{i}].Descriptor}}, formal {want.Replace('"', '\'')}) (ISO §14.9.23.4 GR7c/§14.8.2)\");");
                         w.Line($"var __p{i} = {OoUnivUnbox(f.Item, $"__a[{i}].Value")};");
                     }
-                    if (m.Returning is null)
+                    if (m.Binding!.Returning is null)
                         w.Line("if (__ret is not null) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
                             + $"\"INVOKE '{cobolName}' '{m.Name}': RETURNING specified but the method declares none "
                             + "(ISO §14.8.3/GR7c)\");");
                     else
                     {
                         string rl = Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(
-                            OoConformance.ConformanceDescriptor(m.Returning), quote: true);
+                            OoConformance.ConformanceDescriptor(m.Binding!.Returning), quote: true);
                         w.Line($"if (__ret is null || __ret.Descriptor != {rl}) throw new CobolFatalException(\"EC-OO-UNIVERSAL\", "
                             + $"\"INVOKE '{cobolName}' '{m.Name}': the RETURNING item is absent or does not conform "
                             + "(ISO §14.8.3/GR7c)\");");
                     }
-                    string argList = string.Join(", ", Enumerable.Range(0, m.Formals.Count).Select(i => $"ref __p{i}"));
-                    w.Line(m.Returning is null
+                    string argList = string.Join(", ", Enumerable.Range(0, m.Binding!.Formals.Count).Select(i => $"ref __p{i}"));
+                    w.Line(m.Binding!.Returning is null
                         ? $"this.{m.CsName}({argList});"
                         : $"var __rv = this.{m.CsName}({argList});");
-                    for (int i = 0; i < m.Formals.Count; i++)
-                        w.Line($"__a[{i}].Value = {OoUnivRebox(m.Formals[i].Item, $"__p{i}")};   // SR6 BY REFERENCE write-back");
-                    if (m.Returning is not null)
-                        w.Line($"__ret!.Value = {OoUnivRebox(m.Returning, "__rv")};");
+                    for (int i = 0; i < m.Binding!.Formals.Count; i++)
+                        w.Line($"__a[{i}].Value = {OoUnivRebox(m.Binding!.Formals[i].Item, $"__p{i}")};   // SR6 BY REFERENCE write-back");
+                    if (m.Binding!.Returning is not null)
+                        w.Line($"__ret!.Value = {OoUnivRebox(m.Binding!.Returning, "__rv")};");
                     w.Line("return;");
                 }
             }
@@ -361,7 +361,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // LINKAGE roots → locals: a formal seeds from its parameter (copy-in; the copy-out below realizes
             // the BY REFERENCE write-through at the method boundary); the RETURNING item and unattached
             // entries start at their initial state (§14.2.3 GR6 — callee-allocated).
-            foreach (var root in m.LinkageRoots)
+            foreach (var root in m.Binding!.LinkageRoots)
             {
                 // A Tier-A (alias) view root forwards to its canonical's field — no local (symmetry with
                 // BuildPhysicals; COBOLNET_DESIGN §4.1; M2-OO-1h review C).
@@ -371,13 +371,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 // to the class width (a wider redefiner needs the full backing — review D), else from the initializer.
                 if (fields.MethodRedefinesBackingDecl(root) is { } bkl)
                 {
-                    var formalB = m.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
+                    var formalB = m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
                     w.Line($"string {bkl.Name} = {(formalB is null ? bkl.Init : RuntimeApi.StrStore(formalB.ParamName, $"{root.Class!.Width}"))};   "
                         + $"// LINKAGE Tier-B REDEFINES backing for {root.CobolName}");
                     continue;
                 }
                 var (type, init) = fields.RootDecl(root);
-                var formal = m.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
+                var formal = m.Binding!.Formals.FirstOrDefault(f => ReferenceEquals(f.Item, root));
                 if (formal is null)
                     w.Line($"{type} {root.CsName} = {init};   // LINKAGE {root.CobolName} (§14.2.3 GR6)");
                 else if (root.IsGroup)
@@ -389,7 +389,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 else
                     w.Line($"{type} {root.CsName} = {formal.ParamName};   // LINKAGE formal {root.CobolName} (BY REFERENCE copy-in)");
             }
-            foreach (var root in m.LocalRoots)
+            foreach (var root in m.Binding!.LocalRoots)
             {
                 if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view → no local (review C)
                 if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the string backing local (M2-OO-1h step 3)
@@ -402,31 +402,31 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             }
             // A method LOCAL/LINKAGE table's INDEXED BY cell is a per-activation local (§14.5.3; M2-OO-1h step 4) —
             // the method's own cell (§11.7.4 GR5), reset to 1 each activation, never the shared class index field.
-            foreach (var root in m.LocalRoots.Concat(m.LinkageRoots))
+            foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
                 foreach (var idx in DataBinder.IndexNamesUnder(root))
                     if (m.DataScope.IndexFields.TryGetValue(idx, out var cell))
                         w.Line($"long {cell} = 1;   // INDEX-NAME {idx} (LOCAL/LINKAGE table cell, §14.5.3)");
-            if (m.EntryPc <= m.EndPc)
+            if (m.Binding!.EntryPc <= m.Binding!.EndPc)
             {
                 // The method's slice of the class's one pc space, as a LOCAL FUNCTION (captures the locals
                 // above by reference — zero allocation for direct calls).
                 string saved = dispatch.DispatchName;
                 dispatch.DispatchName = "__MDispatch";
-                U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.EntryPc, m.EndPc);
+                U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)", m.Binding!.EntryPc, m.Binding!.EndPc);
                 dispatch.DispatchName = saved;
-                w.Line($"try {{ __MDispatch({m.EntryPc}, {m.EndPc}); }} catch (MethodReturn) {{ }}   "
+                w.Line($"try {{ __MDispatch({m.Binding!.EntryPc}, {m.Binding!.EndPc}); }} catch (MethodReturn) {{ }}   "
                     + "// GOBACK / falling off the last paragraph returns HERE (§14.9.18.4 GR4; deep-dive D8)");
             }
             // BY REFERENCE copy-out (§14.2.3 GR8) / RETURNING (§14.9.23.4 GR8). A Tier-B REDEFINES canonical's
             // storage IS its string backing (a width-correct image), not the suppressed root struct — write that
             // back / return that, else the generated C# names an undeclared local (review A/emission).
-            foreach (var f in m.Formals)
+            foreach (var f in m.Binding!.Formals)
             {
                 string src = fields.MethodRedefinesBackingDecl(f.Item) is { } bk ? bk.Name
                     : f.Item.IsGroup ? $"{f.Item.CsName}.AsImage()" : f.Item.CsName;
                 w.Line($"{f.ParamName} = {src};   // BY REFERENCE copy-out (§14.2.3 GR8)");
             }
-            if (m.Returning is { } r)
+            if (m.Binding!.Returning is { } r)
             {
                 string src = fields.MethodRedefinesBackingDecl(r) is { } bk ? bk.Name
                     : r.IsGroup ? $"{r.CsName}.AsImage()" : r.CsName;
@@ -441,8 +441,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// (the same reasoning as the ONE DescriptionMismatch).</summary>
     private static (string RetType, string Sig) OoSignatureOf(OoMethodSymbol m)
     {
-        string retType = m.Returning is { } ret ? (OoStringCarried(ret) ? "string" : ret.ElementType) : "void";
-        string sig = string.Join(", ", m.Formals.Select(f =>
+        string retType = m.Binding!.Returning is { } ret ? (OoStringCarried(ret) ? "string" : ret.ElementType) : "void";
+        string sig = string.Join(", ", m.Binding!.Formals.Select(f =>
             $"ref {(OoStringCarried(f.Item) ? "string" : f.Item.ElementType)} {f.ParamName}"));
         return (retType, sig);
     }

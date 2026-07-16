@@ -1570,9 +1570,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // preceding item in the SAME data description; cross-section WS↔LOCAL↔LINKAGE aliasing is illegal,
                     // and their storage classes differ [static WS vs per-activation LOCAL] — review B). RootOf(item)
                     // == item here (Parent is null).
-                    scope = mm.StaticRoots.Contains(item) ? mm.StaticRoots
-                          : mm.LocalRoots.Contains(item) ? mm.LocalRoots
-                          : mm.LinkageRoots;
+                    scope = mm.Binding!.StaticRoots.Contains(item) ? mm.Binding!.StaticRoots
+                          : mm.Binding!.LocalRoots.Contains(item) ? mm.Binding!.LocalRoots
+                          : mm.Binding!.LinkageRoots;
                 else
                     scope = Roots;
                 item.RedefinesTarget = scope.FirstOrDefault(s =>

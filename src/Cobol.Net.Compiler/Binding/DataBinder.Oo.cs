@@ -127,6 +127,7 @@ public sealed partial class DataBinder
     internal void OoBindMethodData(OoMethodSymbol m)
     {
         string where = $"method '{m.Name}'";
+        m.Binding ??= new OoMethodBinding();   // the after-data-bind half attaches HERE (P9 R7 — phase-explicit)
         // A method definition shall NOT contain an ENVIRONMENT DIVISION: the configuration section (§12.3.3 SR2)
         // and the input-output section / FILE-CONTROL (§12.4.3 SR1) may appear only in a factory or instance
         // definition — never a method. (Object/factory FILE-CONTROL is the M2-OO-1i object/factory ENV+FILE leg;
@@ -180,25 +181,25 @@ public sealed partial class DataBinder
                         Edition.Error(DiagnosticCatalog.OoExternalMethodWorkingStorage, $"{where}: EXTERNAL on a method WORKING-STORAGE item is "
                             + "recognized but not yet implemented (Phase 3, OO port)");
                 var roots = BindEntries(ws.dataDescriptionEntry(), _rootNames);
-                m.StaticRoots.AddRange(roots);
+                m.Binding!.StaticRoots.AddRange(roots);
                 foreach (var r in roots) _ooStaticRootFields.Add(r.CsName);
             }
             if (dd.localStorageSection() is { } ls)
             {
                 GateMethodGlobal(ls.dataDescriptionEntry());
-                m.LocalRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), _rootNames));
+                m.Binding!.LocalRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), _rootNames));
             }
             if (dd.linkageSection() is { } lk)
             {
                 var lkEntries = lk.linkageEntry().Select(e => e.dataDescriptionEntry())
                     .Where(e => e is not null).Select(e => e!).ToList();
                 GateMethodGlobal(lkEntries);
-                m.LinkageRoots.AddRange(BindEntries(lkEntries, _rootNames));
+                m.Binding!.LinkageRoots.AddRange(BindEntries(lkEntries, _rootNames));
             }
         }
         _bindingMethodScope = null;
 
-        foreach (var root in m.StaticRoots.Concat(m.LocalRoots).Concat(m.LinkageRoots))
+        foreach (var root in m.Binding!.StaticRoots.Concat(m.Binding!.LocalRoots).Concat(m.Binding!.LinkageRoots))
         {
             OoMethodScopedRoots.Add(root);
             OoRootOwner[root] = m;   // M2-OO-1h: the post-build passes resolve names through the owning method
@@ -207,12 +208,12 @@ public sealed partial class DataBinder
         }
         // M2-OO-1h step 4: a method-WS table's index cell is a class STATIC (persistent); a LOCAL/LINKAGE table's
         // cell is a per-activation method local (emitted in OoEmitMethod).
-        foreach (var root in m.StaticRoots)
+        foreach (var root in m.Binding!.StaticRoots)
             foreach (var idx in IndexNamesUnder(root))
                 if (m.DataScope.IndexFields.TryGetValue(idx, out var cell)) _ooStaticIndexCells.Add(cell);
         // LINKAGE + LOCAL-STORAGE roots are C# LOCALS of the emitted method (their struct types and numeric
         // profiles still emit at class level) — never instance fields. Method-WS roots DO emit (as statics).
-        foreach (var root in m.LocalRoots.Concat(m.LinkageRoots))
+        foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
             _callSuppressedRootFields.Add(root.CsName);
 
         // The PD header formals (§14.2.2 SR1 — level-01/77 LINKAGE entries; correspondence is positional).
@@ -223,23 +224,23 @@ public sealed partial class DataBinder
         foreach (var dref in pd?.usingClause()?.dataReferenceList()?.dataReference() ?? [])
         {
             string pname = dref.GetText();
-            var item = m.LinkageRoots.FirstOrDefault(r =>
+            var item = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 string.Equals(r.CobolName, pname, StringComparison.OrdinalIgnoreCase));
             if (item is null)
                 Edition.Error("COBOLNET0888", $"{where}: PROCEDURE DIVISION USING parameter '{pname}' is not "
                     + "a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
             else
-                m.Formals.Add(new OoFormal(item, pos, OoParamName(m, item, pos)));
+                m.Binding!.Formals.Add(new OoFormal(item, pos, OoParamName(m, item, pos)));
             pos++;
         }
         if (pd?.returningClause()?.dataReference() is { } rref)
         {
-            m.Returning = m.LinkageRoots.FirstOrDefault(r =>
+            m.Binding!.Returning = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 string.Equals(r.CobolName, rref.GetText(), StringComparison.OrdinalIgnoreCase));
-            if (m.Returning is null)
+            if (m.Binding!.Returning is null)
                 Edition.Error("COBOLNET0888", $"{where}: PROCEDURE DIVISION RETURNING item '{rref.GetText()}' "
                     + "is not a level-01/77 LINKAGE SECTION item of the method (ISO §14.2.2 SR1)");
-            else if (m.Formals.Any(f => ReferenceEquals(f.Item, m.Returning)))
+            else if (m.Binding!.Formals.Any(f => ReferenceEquals(f.Item, m.Binding!.Returning)))
                 Edition.Error("COBOLNET0888", $"{where}: '{rref.GetText()}' may not be both a USING parameter "
                     + "and the RETURNING item (ISO §14.2.2 SR4)");
         }
@@ -272,7 +273,7 @@ public sealed partial class DataBinder
     private static string OoParamName(OoMethodSymbol m, DataItem item, int pos)
     {
         string name = "__" + DataItem.Sanitize(item.CobolName ?? $"P{pos}").ToUpperInvariant();
-        while (m.Formals.Any(f => f.ParamName == name)) name += "_";
+        while (m.Binding!.Formals.Any(f => f.ParamName == name)) name += "_";
         return name;
     }
 
@@ -416,7 +417,8 @@ public sealed partial class DataBinder
                     Accessor = kind, PropertyName = subjName, PropertySubject = subject,
                     IsFinal = pc.FINAL() is not null,
                 };
-                if (kind == 'G') m.Returning = subject; else m.Formals.Add(new OoFormal(subject, 0, "__V"));
+                m.Binding = new OoMethodBinding();   // synthesized accessors carry their signature immediately
+                if (kind == 'G') m.Binding.Returning = subject; else m.Binding.Formals.Add(new OoFormal(subject, 0, "__V"));
                 bool added = factory ? cls.TryAddFactoryMethod(m) : cls.TryAddMethod(m);
                 if (!added)
                     Edition.Error("COBOLNET0842", $"{where}: duplicate accessor for property '{subjName}' — "
@@ -467,7 +469,7 @@ public sealed partial class DataBinder
             if (root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root)
                 && OoRootOwner.TryGetValue(root, out var m))
             {
-                if (m.StaticRoots.Contains(root)) _ooStaticRootFields.Add(cls.BackingCsName);   // method-WS → static
+                if (m.Binding!.StaticRoots.Contains(root)) _ooStaticRootFields.Add(cls.BackingCsName);   // method-WS → static
                 else _callSuppressedRootFields.Add(cls.BackingCsName);   // LOCAL/LINKAGE → emitted as a method local
             }
     }

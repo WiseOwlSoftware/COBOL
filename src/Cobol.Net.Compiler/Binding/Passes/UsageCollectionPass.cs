@@ -51,7 +51,7 @@ internal static class UsageCollectionPass
         foreach (var unit in ctx.Units) Collect(unit.Data, [unit.Bound]);
 
         static IEnumerable<DataItem> OoFormalGroups(IEnumerable<OoMethodSymbol> methods) =>
-            methods.SelectMany(m => m.Formals.Select(f => f.Item).Concat(m.Returning is { } r ? [r] : Array.Empty<DataItem>()));
+            methods.SelectMany(m => m.Binding!.Formals.Select(f => f.Item).Concat(m.Binding!.Returning is { } r ? [r] : Array.Empty<DataItem>()));
     }
 
     /// <summary>Fill <paramref name="data"/>'s <see cref="DataBinder.WholeGroupReferenced"/> from the whole-group

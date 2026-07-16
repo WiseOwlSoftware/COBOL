@@ -15,7 +15,11 @@
   7. The 14 `OoTests` are re-landed as greenfield facts (in `OoSpineTests` or a sibling).
   8. Full battery GREEN: greenfield conformance + unit + the FULL legacy guard (NIST 353 MATCH), with the emitted-C# characterization snapshots either byte-identical or reviewed-and-re-baselined for each intentional emit change.
 
-- **STATUS:** `IN PROGRESS @ step 1` (2026-07-15)
+- **STATUS:** `IN PROGRESS @ step 4` (2026-07-15 — steps 1–3 DONE, DEVLOG 844–845: `Oo/` home + namespace;
+  `OoConformance` extracted with `AdapterPairs` as a RETURN value threaded via `BoundCompilation.OoAdapters`
+  [`OoEmitter` no longer sees the class table at all]; `OoMethodSymbol` phase-explicit via `OoMethodBinding`
+  [deviation: `OverrideOf` stays pass-1 identity]. Next: Step 4 = extract `OoDriver` from `BinderDriver.Bind`'s
+  inline OO sequence + the `CSharpEmitter.Oo.cs` bind bodies, per the drift ledger below.)
   > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the DEVLOG entry-per-commit discipline (`DEVLOG.md`, newest-first) and push every commit boundary (`feedback_fully_autonomous_push`).
   >
   > ⚠ **AS-BUILT DRIFT LEDGER (scouted 2026-07-15 — adapt every step to these seams, not the doc's stale anchors):**

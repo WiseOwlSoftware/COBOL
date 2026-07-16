@@ -70,7 +70,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                         + "GET property method (ISO §8.4.3.9.3 SR3 — WITH NO GET, or no accessor defined)");
                 else
                     pre.Add(new BoundInvoke(form, op.ClassCsName, op.Receiver, op.Get.CsName, tempPlace,
-                        null, op.Get.Returning, op.Get.Owner?.CsName));
+                        null, op.Get.Binding!.Returning, op.Get.Owner?.CsName));
             }
             if (needSet)
             {
@@ -80,7 +80,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
                         + "SET property method (ISO §8.4.3.9.3 SR4 — WITH NO SET, or no accessor defined)");
                 else
                     post.Add(new BoundInvoke(form, op.ClassCsName, op.Receiver, op.Set.CsName, null,
-                        [new BoundInvokeArg(op.Set.Formals[0].Item, tempPlace, null, null, WriteBack: false)],
+                        [new BoundInvokeArg(op.Set.Binding!.Formals[0].Item, tempPlace, null, null, WriteBack: false)],
                         null, op.Set.Owner?.CsName));
             }
         }
@@ -364,12 +364,12 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
     {
         // ── USING marshaling (slice 2 — D6; §14.9.23.4 GR3: positional correspondence) ──
         var argCtxs = inv.invokeUsing()?.invokeArgument() ?? [];
-        if (argCtxs.Length != m.Formals.Count)
+        if (argCtxs.Length != m.Binding!.Formals.Count)
         {
             // The trap-#3 rule: an arity mismatch is LOUD — a silently dropped/extra argument would shift
             // every following slot (the legacy DEVLOG-449 blocker: the first USING bound to the RETURNING).
             ctx.Edition.Error("COBOLNET0828",
-                $"INVOKE \"{m.Name}\": {argCtxs.Length} USING argument(s) for {m.Formals.Count} formal "
+                $"INVOKE \"{m.Name}\": {argCtxs.Length} USING argument(s) for {m.Binding!.Formals.Count} formal "
                 + $"parameter(s) of the method (ISO §14.9.23.4 GR3 — correspondence is positional; "
                 + "trailing-OMITTED support is a later slice)");
             return new BoundNop();
@@ -377,7 +377,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         var args = new List<BoundInvokeArg>(argCtxs.Length);
         for (int i = 0; i < argCtxs.Length; i++)
         {
-            if (OoBindInvokeArg(argCtxs[i], m.Formals[i].Item, m.Name) is not { } a) return new BoundNop();
+            if (OoBindInvokeArg(argCtxs[i], m.Binding!.Formals[i].Item, m.Name) is not { } a) return new BoundNop();
             args.Add(a);
         }
 
@@ -385,17 +385,17 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
         // BOTH mismatch directions are compile-time diagnostics) ──
         var retRef = inv.invokeReturning()?.dataReference();
         Place? retPlace = null;
-        if (retRef is not null && m.Returning is null)
+        if (retRef is not null && m.Binding!.Returning is null)
         {
             ctx.Edition.Error("COBOLNET0828",
                 $"INVOKE \"{m.Name}\" RETURNING: the method declares no RETURNING item (ISO §14.9.23.4 GR8 / "
                 + "§14.8.3 — nothing to deliver)");
             return new BoundNop();
         }
-        if (retRef is null && m.Returning is not null)
+        if (retRef is null && m.Binding!.Returning is not null)
         {
             ctx.Edition.Error("COBOLNET0828",
-                $"INVOKE \"{m.Name}\": the method declares a RETURNING item ('{m.Returning.CobolName}') — "
+                $"INVOKE \"{m.Name}\": the method declares a RETURNING item ('{m.Binding!.Returning.CobolName}') — "
                 + "the INVOKE must specify RETURNING to receive it (the binder's signature check, deep-dive "
                 + "D1; ISO §14.9.23.4 GR8)");
             return new BoundNop();
@@ -413,10 +413,10 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             // for object references that is the WIDENING direction (universal receiver accepts anything; a
             // typed receiver accepts the same class or a subclass — SET SR12a2), NOT the §14.8.2.3.2
             // identity rule. Everything else keeps the strict description check.
-            string? rerr = m.Returning!.Pic is { Category: PicCategory.ObjectReference } sendPic
+            string? rerr = m.Binding!.Returning!.Pic is { Category: PicCategory.ObjectReference } sendPic
                     && rp.Item.Pic is { Category: PicCategory.ObjectReference } recvPic
                 ? OoConformance.ObjectRefWideningMismatch(host.OoClasses, sendPic, recvPic)
-                : OoConformanceError(m.Returning!, rp.Item);
+                : OoConformanceError(m.Binding!.Returning!, rp.Item);
             if (rerr is not null)
             {
                 ctx.Edition.Error("COBOLNET0828",
@@ -426,7 +426,7 @@ internal sealed class OoBinder(BinderContext ctx, StatementBinder host)
             }
             retPlace = rp;
         }
-        return new BoundInvoke(form, null, receiver, m.CsName, retPlace, args, m.Returning, m.Owner?.CsName);
+        return new BoundInvoke(form, null, receiver, m.CsName, retPlace, args, m.Binding!.Returning, m.Owner?.CsName);
     }
 
     /// <summary>Bind ONE INVOKE argument against its positional formal — the conformance RULE is selected
