@@ -33,6 +33,7 @@
     "move-national-to-an",
     "move-space-to-boolean",
     "multiple-file-tape",
+    "oo-interface-arg-mismatch",
     "oo-multi-base-inherits",
     "open-reversed",
     "pic-n-usage-display",

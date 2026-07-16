@@ -48,7 +48,24 @@
   status-phrase (§14.9.18.2 `WITH ERROR|NORMAL STATUS`) is NOT implemented (the `gobackStatement` grammar rule
   carries no status alternative) — DEFERRED to PHASE-13 with the full landing recipe RECORDED in
   `docs/ISO2023_CONFORMANCE_PLAN.md` §"Recorded deferral — GOBACK status-phrase".
-  **Step 13 scouting note:** `oo_ec_raise_object`/`oo_ec_goback_raising` cover the F4 exception-object
+  **Step 11 — DONE (DEVLOG 851; commit `3b4d9552`):** ANY LENGTH §13.18.2 end-to-end (method + contained
+  program + function legs; COBOLNET1542 for the SR family — 0850 was taken; the RETURNING-item leg staged loud
+  via the `any-length-returning` catalog descriptor). **Step 12 — DONE (verify + goldens):** interface-typed
+  INVOKE already flows through the ONE `OoBindResolvedInvoke` conformance tail (§14.9.23.3 SR4e resolution over
+  `AllPrototypes()`), proven by `2002/oo_interface_conformance` (positive: per-instance state through an
+  interface receiver, args+RETURNING checked against the PROTOTYPE) + `negative/oo-interface-arg-mismatch`
+  (PIC 9(6) arg vs the prototype's 9(4) formal — the D-I1 lossy-projection case Roslyn cannot catch → 0828).
+  The SELECTABLE §4.2.2 suboption switch is NOT in scope (the doc's own fallback): the interface-leg checks run
+  unconditionally under STRICT; a selectable mode is deferred with the conformance-suboption family.
+  **Step 13 — VERIFY-ONLY DONE, with a SPEC CORRECTION:** the step's "GLOBAL-walkable F3/F4 declaratives"
+  premise is NOT ISO — the §14.9.49.2 Format 3 and Format 4 diagrams carry NO [GLOBAL] phrase (only Formats 1
+  and 2 do); a `USE GLOBAL AFTER EXCEPTION OBJECT` fixture is a parse error BY THE SPEC. Cross-element
+  exception-object flow is (a) GOBACK/EXIT RAISING to the activator — LANDED (`oo_ec_goback_raising`), and
+  (b) the `>>PROPAGATE` directive (§7.3.21 automatic propagation) — recognized by the preprocessor's directive
+  list but its SEMANTICS are unimplemented: RECORDED as the genuine gap, deferred to PHASE-13 (EC remnants)
+  alongside the GOBACK status phrase. RAISE-identifier object construction + F4 selection (incl. base-class
+  matching + the EXCEPTION-OBJECT register) verified landed (`oo_ec_raise_object`).
+  **Step 13 scouting note (superseded by the above):** `oo_ec_raise_object`/`oo_ec_goback_raising` cover the F4 exception-object
   declarative + activator pickup, but NO golden exercises a GLOBAL exception-object declarative reached from a
   CONTAINED program — `oo_ec_global_f3` is the gap to close (blocked on the Step-11 agent's manifest lock).
   > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the DEVLOG entry-per-commit discipline (`DEVLOG.md`, newest-first) and push every commit boundary (`feedback_fully_autonomous_push`).
