@@ -34,18 +34,27 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     public bool EmitCall(BoundCallProgram c)
     {
         var w = ctx.Writer;
-        string nameExpr = c.LiteralName is { } literal
-            ? CsLiteral(literal)
-            : $"({OperandText.AsString(c.DynamicName!, num)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
         string args = c.Args.Count == 0
             ? "System.Array.Empty<CobolArg>()"
             : $"new CobolArg[] {{ {string.Join(", ", c.Args.Select(ArgText))} }}";
         string ret = c.Returning is { } rp ? RefCarrier(rp) : "null";
         // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
         // runs the §14.9.49 F3 selection and honors RESUME); the registry's boundary default stands down.
-        string invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(callState.SelfPath)}, {args}, {ret}"
-            + $"{(ecState.Active ? ", siteHandlesPropagation: true" : "")}"
-            + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")});";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
+        string invocation;
+        if (c.IsPointerTarget && c.DynamicName is BoundFieldOperand ppf)
+            // CALL through a PROGRAM-POINTER (§14.9.4.3 SR1 / GR :26177; P10 Step 7): activate the HELD
+            // program — the pointer's carrier goes straight to the registry, never a name-string read.
+            invocation = $"ProgramRegistry.CallPointer({PlaceRenderer.Read(ppf.Place)}, {CsLiteral(callState.SelfPath)}, {args}, {ret}"
+                + $"{(ecState.Active ? ", siteHandlesPropagation: true" : "")});";
+        else
+        {
+            string nameExpr = c.LiteralName is { } literal
+                ? CsLiteral(literal)
+                : $"({OperandText.AsString(c.DynamicName!, num)}).Trim()";   // GR3b — the identifier's value at CALL time (GR3a: read once)
+            invocation = $"ProgramRegistry.CallProgram({nameExpr}, {CsLiteral(callState.SelfPath)}, {args}, {ret}"
+                + $"{(ecState.Active ? ", siteHandlesPropagation: true" : "")}"
+                + $"{(c.IsFunction ? ", notFoundEc: \"EC-FUNCTION-NOT-FOUND\"" : "")});";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
+        }
 
         var ecProg = EnabledProgramNames();
         bool hasPhrase = c.OnException is not null || c.NotOnException is not null;

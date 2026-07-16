@@ -72,11 +72,17 @@ public sealed partial class DataBinder
             _ptrBasedBridges.Add((cls.BackingCsName, addr, cls.Width));
         }
 
-        foreach (string name in PtrScanAddressOfTargets(program))
+        foreach (var (name, quals) in PtrScanAddressOfTargets(program))
         {
-            if (!ByName.TryGetValue(name, out var candidates) || candidates.Count == 0)
+            // An unqualified head keeps the historical candidates[0] pick (a duplicate-name mis-force is
+            // loud-caught at the SET bind's cell check); a QUALIFIED head resolves through the ONE §8.4.2.2
+            // qualification machinery so the RIGHT record is forced.
+            DataItem? hit = quals.Count == 0
+                ? ByName.TryGetValue(name, out var candidates) && candidates.Count > 0 ? candidates[0] : null
+                : new ReferenceResolver(this).FindItem(name, quals);
+            if (hit is null)
                 continue;   // unresolved / ambiguous — the SET bind reports 0869 with the source text
-            DataItem root = candidates[0];
+            DataItem root = hit;
             while (root.Parent is { } p) root = p;
             if (root.IsBased) continue;                 // ADDRESS OF a based item reads its implicit pointer (§8.6.5)
             if (root.Class is { } existing && PtrAddressableCellOf.ContainsKey(existing)) continue;
@@ -90,11 +96,12 @@ public sealed partial class DataBinder
         }
     }
 
-    /// <summary>Collect the plain data-names taken by <c>SET pointer TO ADDRESS OF x</c> (alternative 2 of
+    /// <summary>Collect the data-names taken by <c>SET pointer TO ADDRESS OF x</c> (alternative 2 of
     /// setAddressStatement — the ONLY ADDRESS OF surface in the grammar; alternative 1's operand is the BASED
-    /// receiver, never storage-forced). Qualified / subscripted operands are skipped here — the SET bind
-    /// stages them loud (0869, the named increment residue).</summary>
-    private static IEnumerable<string> PtrScanAddressOfTargets(Core.ProgramUnitContext program)
+    /// receiver, never storage-forced). The head name + its OF/IN qualifiers are yielded for EVERY operand
+    /// shape (a subscripted operand forces the same containing record — the occurrence displacement is a
+    /// bind-time offset over the ONE cell, never separate storage).</summary>
+    private static IEnumerable<(string Name, List<string> Qualifiers)> PtrScanAddressOfTargets(Core.ProgramUnitContext program)
     {
         if (program.procedureDivision() is not { } pd) yield break;
         foreach (var ctx in PtrDescendants(pd))
@@ -102,8 +109,11 @@ public sealed partial class DataBinder
                 && sa.GetChild(1) is not ITerminalNode { Symbol.Type: Core.ADDRESS })   // alt 2: SET dr TO ADDRESS OF dr
             {
                 var target = sa.dataReference(1);
-                if (target.ChildCount == 1)   // a plain unqualified, unsubscripted name
-                    yield return target.GetText();
+                if (target.cobolWord() is not { } head) continue;
+                var quals = new List<string>();
+                foreach (var suffix in target.dataReferenceSuffix())
+                    if (suffix.qualification() is { } q) quals.Add(q.cobolWord().GetText());
+                yield return (head.GetText(), quals);
             }
     }
 

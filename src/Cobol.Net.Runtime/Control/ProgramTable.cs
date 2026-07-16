@@ -147,6 +147,42 @@ public sealed class ProgramTable
         if (!siteHandlesPropagation) ApplyPropagationDefault();
     }
 
+    /// <summary>Resolve a program-address-identifier's ENTRY operand (ISO §8.4.3.13): locate the OUTERMOST
+    /// program <paramref name="name"/> names (GR1/GR2 — "the address is that of the outermost program
+    /// identified by the externalized program-name"; the §8.4.6.3 rule-4 scope, including the separately-
+    /// compiled sibling-module probe). Not locatable → GR4: <paramref name="notFound"/> is set (the emitted
+    /// site raises EC-PROGRAM-NOT-FOUND per its checking state) and the result is the NULL program address.
+    /// The returned pointer carries the CANONICAL registered name, so pointer equality (§8.8.4.1.3) holds
+    /// across differently-cased ENTRY spellings.</summary>
+    public ProgramPointer EntryOf(string name, out bool notFound)
+    {
+        string target = name?.Trim() ?? "";
+        foreach (var n in _order)
+            if (n.ParentPath is null && NameEquals(n.Name, target)) { notFound = false; return new ProgramPointer(n.Name); }
+        if (ProbeSiblingModule(target))
+            foreach (var n in _order)
+                if (n.ParentPath is null && NameEquals(n.Name, target)) { notFound = false; return new ProgramPointer(n.Name); }
+        notFound = true;
+        return ProgramPointer.Null;   // §8.4.3.13 GR4 — the value is the predefined address NULL
+    }
+
+    /// <summary>Execute a CALL through a program-pointer (ISO §14.9.4 SR1 — identifier-1 references a
+    /// program-pointer item; GR at :26177 — the item "contains the location of the program being called").
+    /// A NULL pointer has no program to call: §14.9.4.4's "invalid program address" execution is undefined —
+    /// this implementation defines it as the EC-PROGRAM-NOT-FOUND loud failure (never a silent no-op). The
+    /// held name is an OUTERMOST program's identity, so the §8.4.6.3 rule-4 leg of the SAME
+    /// <see cref="CallProgram"/> resolution finds it from any caller (the singular-pattern rule).</summary>
+    public void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args, ManagedPointer? returning,
+        bool siteHandlesPropagation = false)
+    {
+        if (target.IsNull)
+            throw new CobolCallException(
+                "CALL through a NULL program-pointer: the pointer contains no program address "
+                + "(ISO §14.9.4.4 GR — an invalid program address; this implementation raises "
+                + "EC-PROGRAM-NOT-FOUND)", "EC-PROGRAM-NOT-FOUND");
+        CallProgram(target.Name!, callerPath, args, returning, siteHandlesPropagation);
+    }
+
     /// <summary>
     /// Execute one CANCEL target (ISO §14.9.5): a zero-length name is a no-op (GR12); a name not in the run unit
     /// is a no-op (the never-made-available case); an ACTIVE program raises (GR5 — EC-PROGRAM-CANCEL-ACTIVE, the

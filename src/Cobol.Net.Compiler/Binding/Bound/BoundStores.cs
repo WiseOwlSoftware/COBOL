@@ -218,6 +218,8 @@ public static class BoundStores
         public StoreKind? Visit(BoundSetCapacity n) => null;
         public StoreKind? Visit(BoundSetObjectRef n) => null;
         public StoreKind? Visit(BoundSetPointer n) => null;
+        public StoreKind? Visit(BoundSetProgramPointer n) => null;   // a carrier copy, never a PICTURE store (P10 Step 7)
+        public StoreKind? Visit(BoundSetEntry n) => null;            // a carrier assignment (§8.4.3.13)
         public StoreKind? Visit(BoundSetPointerUpDown n) => null;
     }
 }

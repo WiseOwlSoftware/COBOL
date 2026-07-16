@@ -30,19 +30,22 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         while (root.Parent is { } p) root = p;
         if (root.Class is not { } cls)
             return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' without cell storage");
+        // A SUBSCRIPTED operand addresses the OCCURRENCE (§8.4.3.11 GR1): the class offset plus the binder's
+        // occurrence displacement — the occurrences lie end-to-end in the ONE cell image.
+        string off = a.OccursDisplacement is { } disp ? $"{item.ClassOffset} + {disp}" : $"{item.ClassOffset}";
         if (cls.BasedPointerField is { } addr)
             // The based item itself reads its implicit pointer (§8.6.5 :8791); a SUBORDINATE's address is
             // the base displaced by its class offset (§8.4.3.11 GR1 — the address OF THE ITEM; the review's
             // ClassOffset-drop finding). UpBy's GR18 null trap is the right posture: taking the address of a
             // child of an unallocated based record has no address to take.
-            return item.ClassOffset == 0 && ReferenceEquals(item, root)
+            return item.ClassOffset == 0 && ReferenceEquals(item, root) && a.OccursDisplacement is null
                 ? addr
-                : RuntimeApi.PtrUpBy(addr, $"{item.ClassOffset}");
+                : RuntimeApi.PtrUpBy(addr, off);
         if (ctx.Data.PtrAddressableCellOf.TryGetValue(cls, out var cell))
-            return $"ManagedPointer.At({cell}, {item.ClassOffset})";
+            return $"ManagedPointer.At({cell}, {off})";
         if (ctx.Data.CallExternalBackings.FirstOrDefault(b => b.BackingCsName == cls.BackingCsName) is { } ext)
             return $"ManagedPointer.At(ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
-                + $"{CsLiteral(ext.InitImage)}), {item.ClassOffset})";
+                + $"{CsLiteral(ext.InitImage)}), {off})";
         return LoudValue("ManagedPointer", $"ADDRESS OF '{item.CobolName}' — unrecognized cell backing");
     }
 
@@ -106,6 +109,39 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             : $"(long){RuntimeApi.NumRescale(x.Expr, $"{x.Scale}", "0", Runtime.CobolRounding.AwayFromZero)}";   // GR1 — round UP
         w.Line(PlaceRenderer.Write(s.Returning!, RuntimeApi.PtrAllocate(size, zeroFill: s.Initialized))
             + "   // ALLOCATE n CHARACTERS (ISO §14.9.3 GR1/GR2" + (s.Initialized ? "/GR6" : "") + ")");
+    }
+
+    /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 + §8.4.3.13;
+    /// P10 Step 7): resolve the named OUTERMOST program through the run-unit ProgramTable ONCE, assign the
+    /// result to every target. Not locatable → GR4: the value is the NULL program address and
+    /// EC-PROGRAM-NOT-FOUND is set to exist — reported through the checking-gated block (§14.6.13.1.4 — an
+    /// unchecked condition is not raised; the EmitFree EC pattern).</summary>
+    public void EmitSetEntry(BoundSetEntry s)
+    {
+        var w = ctx.Writer;
+        string nameExpr = s.NameLiteral is { } lit
+            ? EmitText.CsLiteral(lit)
+            : $"({PlaceRenderer.Read(s.NamePlace!)}).Trim()";   // §8.4.3.13 GR1a — the identifier's value names the program
+        int id = ctx.Names.NextPtr();
+        string nf = $"__ppNf{id}";
+        w.Line($"bool {nf};");
+        w.Line($"var __ppE{id} = ProgramRegistry.EntryOf({nameExpr}, out {nf});   // SET … TO ENTRY (ISO §8.4.3.13 GR1/GR4)");
+        foreach (var t in s.Targets)
+            w.Line(PlaceRenderer.Write(t, $"__ppE{id}") + "   // SET program-pointer (ISO §14.9.39 Format 9)");
+        bool checkNotFound = ecState.Info?.Enabled.Any(e => e.Ec == "EC-PROGRAM-NOT-FOUND") == true;
+        if (checkNotFound)
+        {
+            var (stmt, loc) = ec.EcStmtLoc(ecState.Info!);
+            using (w.Block($"if ({nf})"))
+            {
+                w.Line($"ExceptionState.Set(\"EC-PROGRAM-NOT-FOUND\", true, {stmt}, {loc});   // §8.4.3.13 GR4 — set to exist");
+                int did = ctx.Names.NextPtr();
+                w.Line($"int __pe{did} = {ec.EcDispatchExpr("\"EC-PROGRAM-NOT-FOUND\"", "\"\"")};");
+                w.Line($"if (__pe{did} >= 0) {{ __pc = __pe{did}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            }
+        }
+        else
+            w.Line($"_ = {nf};   // EC-PROGRAM-NOT-FOUND checking not enabled (§14.6.13.1.4 — not raised; the value is NULL per GR4)");
     }
 
     /// <summary>FREE (ISO §14.9.15 GR1/GR2 — per operand, left to right): the helper runs the three-way;

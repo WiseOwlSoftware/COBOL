@@ -360,6 +360,56 @@ public sealed class ReferenceResolver(DataBinder data)
     /// <see cref="RenderSegment"/>), or null when the segment uses an unhandled form (caller fails loud).</summary>
     internal string? RenderIndexSegment(List<IToken> tokens) => RenderSegment(tokens);
 
+    /// <summary>Resolve an <c>ADDRESS OF</c> operand (ISO §8.4.3.11) to its item plus the OCCURS displacement
+    /// of its subscripts — <c>(idx − 1) × width [+ …]</c> character positions within the item's storage class,
+    /// or a null displacement for an unsubscripted (possibly OF/IN-qualified) reference. The address of
+    /// occurrence k is the class cell displaced by the SAME in-class occurrence arithmetic the Tier-B view
+    /// window uses (<see cref="PlaceForItem"/> — a table lays its occurrences end-to-end in the ONE cell
+    /// image), so the two share one formula; the displacement string is the D10 transitional index carrier
+    /// (a rendered expression, like <see cref="FixedTableSegment.OneBasedIndex"/>). Null overall = an
+    /// unresolvable name, a subscript-count mismatch, or a reference-modified operand (ref-mod addresses a
+    /// character SPAN, not a data item — a named residue) — the caller reports loud, never a wrong address.</summary>
+    internal (DataItem Item, string? OccursDisplacement)? ResolveForAddressOf(Core.DataReferenceContext dref)
+    {
+        DataReferenceCst r = dref;
+        if (r.Register != SpecialRegister.None || r.BaseName is not { } name) return null;
+        var qualifiers = new List<string>();
+        Core.SubscriptOrRefModContext? subCtx = null;
+        foreach (var suffix in dref.dataReferenceSuffix())
+        {
+            if (suffix.qualification() is { } q)
+            {
+                qualifiers.Add(q.cobolWord().Name());
+                if (q.refModPart().Length > 0) return null;   // ref-mod → loud (a span, not an item)
+                foreach (var sp in q.subscriptPart())
+                    if (sp.subscriptOrRefMod() is { } qs)
+                    {
+                        if (HasDepth0Colon(qs)) return null;
+                        subCtx ??= qs;
+                    }
+            }
+            else if (suffix.refModPart() is not null) return null;
+            else if (suffix.subscriptPart()?.subscriptOrRefMod() is { } s)
+            {
+                if (HasDepth0Colon(s)) return null;
+                subCtx ??= s;
+            }
+        }
+        DataItem? item = qualifiers.Count > 0 ? ResolveQualified(name, qualifiers) : ResolveUnqualified(name);
+        if (item is null) return null;
+        if (subCtx is null) return (item, null);
+        var (exprs, isRefMod) = InterpretSubscripts(subCtx);
+        if (isRefMod || exprs is null) return null;
+        // The in-class OCCURS levels outer→inner — the PlaceForItem Tier-B walk (same layout, same formula).
+        var occursLevels = new List<DataItem>();
+        for (DataItem? n = item; n is not null && ReferenceEquals(n.Class, item.Class); n = n.Parent)
+            if (n.Occurs is not null) occursLevels.Add(n);
+        occursLevels.Reverse();
+        if (occursLevels.Count != exprs.Count) return null;   // wrong subscript count → loud
+        string disp = string.Join(" + ", occursLevels.Select((lv, k) => $"({exprs[k]} - 1) * {lv.ImageWidth}"));
+        return (item, disp);
+    }
+
     /// <summary>The STRUCTURAL access path to a Tier-B/Tier-C class's single stored backing field (the
     /// <see cref="RedefViewPlace"/> twin of the old string <c>BackingPath</c>). The backing is emitted in the
     /// canonical's containing struct, so a NESTED class reaches it through that struct's path

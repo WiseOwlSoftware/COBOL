@@ -937,11 +937,20 @@ cancelTarget
 setStatement
     : setLastExceptionStatement
     | setSwitchStatement
+    | setEntryStatement
     | setToValueStatement
     | setBooleanStatement
     | setAddressStatement
     | setObjectReferenceStatement
     | setIndexStatement
+    ;
+
+// SET program-pointer+ TO ENTRY {literal | identifier} (ISO §14.9.39 Format 9 with the §8.4.3.13
+// program-address-identifier as the sender): assign the address of the program the ENTRY operand names.
+// Listed BEFORE setToValueStatement: ENTRY is a reserved token (not in cobolWord), so no other SET form can
+// claim the `TO ENTRY` prefix. A not-locatable program → EC-PROGRAM-NOT-FOUND + NULL (§8.4.3.13 GR4).
+setEntryStatement
+    : SET dataReference+ TO ENTRY (nonNumericLiteral | dataReference)
     ;
 
 // SET LAST EXCEPTION TO OFF (ISO §14.9.39 Format 13, saved-exception; 2002+ — binder-gated): the last

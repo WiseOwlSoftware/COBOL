@@ -42,6 +42,7 @@ cobolWord
     | FLOAT_DECIMAL
     | FOREVER
     | FULL_
+    | FUNCTION_POINTER
     | GET
     | HIGHLIGHT
     | HIGH_ORDER_LEFT
@@ -60,6 +61,7 @@ cobolWord
     | PARSE
     | PROCEDURES
     | PROCESSING
+    | PROGRAM_POINTER
     | PROPERTY
     | PROTOTYPE
     | RAISE

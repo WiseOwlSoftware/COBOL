@@ -38,6 +38,12 @@ public enum PicCategory
     /// (feedback_managed_pointers — the ONE managed-ref carrier; never an 8-byte handle). Increment 1 holds
     /// only NULL (SET TO NULL / pointer, equality); ADDRESS OF / BASED / ALLOCATE are increment 2+.</summary>
     Pointer,
+    /// <summary>Program pointer (USAGE PROGRAM-POINTER, ISO §8.5.2.7 / §13.18.60 GR24) — LIVE (P10 Step 7): a
+    /// PICTURE-less elementary item that may contain the address of a program — for a COBOL program, an
+    /// OUTERMOST program's externalized identity — carried by the runtime <c>ProgramPointer</c> and resolved
+    /// through the ONE run-unit <c>ProgramTable</c> (SET … TO ENTRY §8.4.3.13; CALL §14.9.4 SR1; relations
+    /// §8.8.4.1.3). Occupies NO character positions (the Pointer/ObjectReference image posture).</summary>
+    ProgramPointer,
 }
 
 /// <summary>A SIGN clause's content (ISO §13.18.52): position (LEADING/TRAILING) and SEPARATE CHARACTER mode.
@@ -87,6 +93,13 @@ public enum Usage
     /// <summary>USAGE POINTER (ISO §13.18.60 / §8.5.2.6 data-pointer) — LIVE (Phase-4b increment 1): the
     /// ManagedPointer carrier (<see cref="PicCategory.Pointer"/>).</summary>
     Pointer,
+    /// <summary>USAGE PROGRAM-POINTER (ISO §13.18.60 GR24 / §8.5.2.7) — LIVE (P10 Step 7): the ProgramPointer
+    /// carrier (<see cref="PicCategory.ProgramPointer"/>); the restricted TO-prototype form (GR25) stages loud.</summary>
+    ProgramPointer,
+    /// <summary>USAGE FUNCTION-POINTER (ISO §13.18.60) — recognized, STAGED LOUD (P10 Step 7): function
+    /// prototypes are the P13 repository work; ParseUsage rejects with the named 0899-band descriptor and the
+    /// member exists so the 2014 introduction gate (UsageConstructId) still fires below 2014.</summary>
+    FunctionPointer,
     /// <summary>USAGE FLOAT-SHORT (ISO §13.18.60; the §13.18.59 D16 split) — LIVE (Phase 6a): the implementor-
     /// defined float trio maps FLOAT-SHORT → <c>float</c> (§13.18.60.4 GR13; <see cref="PicInfo.IsFloat"/> /
     /// <see cref="PicInfo.IsSingle"/>).</summary>
@@ -193,6 +206,13 @@ public sealed record PicInfo(
     public static PicInfo PointerItem { get; } =
         new(PicCategory.Pointer, Usage.Pointer, Length: 0, Digits: 0, Scale: 0, Signed: false);
 
+    /// <summary>A USAGE PROGRAM-POINTER item's representation (P10 Step 7; PICTURE-less per §13.16.3 SR8 —
+    /// the PointerItem synthesis pattern). Occupies NO character positions (§13.18.60 GR24 leaves alignment/
+    /// size/representation implementor-defined — this implementation's representation is the managed
+    /// <c>ProgramPointer</c> identity carrier, never storage bytes).</summary>
+    public static PicInfo ProgramPointerItem { get; } =
+        new(PicCategory.ProgramPointer, Usage.ProgramPointer, Length: 0, Digits: 0, Scale: 0, Signed: false);
+
     /// <summary>The synthesized profile of a PICTURE-less fixed-width binary item (USAGE BINARY-CHAR/-SHORT/
     /// -LONG/-DOUBLE, ISO §13.18.60.4 GR12; PICTURE prohibited per §13.16.3 SR8). Category numeric, realized as
     /// a native two's-complement integer of the fixed byte width (1/2/4/8) under the COMP-5 BinaryCapacity
@@ -227,6 +247,9 @@ public sealed record PicInfo(
         // A data pointer is the runtime ManagedPointer carrier; its COBOL initial state is NULL (the Null
         // singleton), so the field is non-nullable and always at least Null.
         PicCategory.Pointer => "ManagedPointer",
+        // A program pointer is the runtime ProgramPointer carrier (§13.18.60 GR24 — the address of an
+        // outermost program; a readonly identity struct whose default IS the NULL program address).
+        PicCategory.ProgramPointer => "ProgramPointer",
         // National (one UTF-16 char per national position, D-N1) and boolean (one '0'/'1' char per boolean
         // position, D-B1 — §13.18.40.4 GR14 R14) ride the same fixed-width string substrate as alphanumeric.
         PicCategory.Alphanumeric or PicCategory.NumericEdited
@@ -259,6 +282,7 @@ public sealed record PicInfo(
         // .NET reference-default null matches exactly, no init needed beyond the explicit form.
         PicCategory.ObjectReference => "null",
         PicCategory.Pointer => "ManagedPointer.Null",   // the predefined NULL data pointer (§8.4.3.10)
+        PicCategory.ProgramPointer => "ProgramPointer.Null",   // the NULL program address (§8.4.3.10 GR3)
         // Alphanumeric AND national default to spaces (the national space is U+0020 under the D-N4 Latin-1
         // repertoire); boolean to boolean zeros (§13.18.63 — the category fill values); numeric to zero (unscaled).
         PicCategory.Alphanumeric or PicCategory.NumericEdited or PicCategory.National

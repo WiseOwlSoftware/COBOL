@@ -66,4 +66,13 @@ public static class ProgramRegistry
 
     /// <inheritdoc cref="ProgramTable.Cancel"/>
     public static void Cancel(string name, string callerPath) => RunUnit.Current.Programs.Cancel(name, callerPath);
+
+    /// <inheritdoc cref="ProgramTable.EntryOf"/>
+    public static ProgramPointer EntryOf(string name, out bool notFound)
+        => RunUnit.Current.Programs.EntryOf(name, out notFound);
+
+    /// <inheritdoc cref="ProgramTable.CallPointer"/>
+    public static void CallPointer(ProgramPointer target, string callerPath, CobolArg[] args,
+        ManagedPointer? returning, bool siteHandlesPropagation = false)
+        => RunUnit.Current.Programs.CallPointer(target, callerPath, args, returning, siteHandlesPropagation);
 }

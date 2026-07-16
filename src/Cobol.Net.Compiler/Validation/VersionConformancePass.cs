@@ -268,6 +268,9 @@ internal sealed class VersionConformancePass
             cat is PicCategory.National || ou is Usage.National ? Constructs.NationalData2002
             : cat is PicCategory.Boolean || ou is Usage.Bit ? Constructs.BooleanData2002
             : pu is Usage.Pointer || ou is Usage.Pointer ? Constructs.UsagePointer2002
+            : cat is PicCategory.ProgramPointer || pu is Usage.ProgramPointer || ou is Usage.ProgramPointer
+                ? Constructs.UsageProgramPointer2002
+            : ou is Usage.FunctionPointer ? Constructs.UsageFunctionPointer2014   // staged loud at 2014+; Pic is the recovery shape, so OwnUsage carries the identity
             : cat is PicCategory.ObjectReference || pu is Usage.ObjectReference || ou is Usage.ObjectReference
                 ? Constructs.UsageObjectReference2002
             : pu is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
@@ -1219,6 +1222,8 @@ internal sealed class VersionConformancePass
             CobolLexer.PROTOTYPE, // §11.5 (2002+): the keyword occurs only in the functionIdParagraph `IS PROTOTYPE` tail — a direct token, never a name slot — position-blind safe (the UDF-3 wave)
             CobolLexer.CONSTANT,  // §13.10/§13.18.15 (2002+): keyword slots are the constantEntryBody head and `CONSTANT RECORD` — direct tokens, never a name slot — position-blind safe (P10 Step 15; the PROTOTYPE precedent)
             CobolLexer.AS,        // §13.10 (2002+): the sole keyword slot is the constantEntryBody `AS` — a direct token, never a name slot — position-blind safe (the CONSTANT twin)
+            CobolLexer.PROGRAM_POINTER,  // §13.18.60 (2002+): the sole keyword slot is the programPointerUsage head — a direct token — position-blind safe (P10 Step 7)
+            CobolLexer.FUNCTION_POINTER, // §13.18.60 (2014+): the sole keyword slot is the functionPointerUsage head — a direct token — position-blind safe (P10 Step 7)
             CobolLexer.RERUN, CobolLexer.ENTER, CobolLexer.EVERY, CobolLexer.CLOCK_UNITS,
             CobolLexer.DEBUGGING, CobolLexer.REFERENCES, CobolLexer.PROCEDURES,
         ];

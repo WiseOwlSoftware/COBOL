@@ -313,6 +313,18 @@ public static class PictureAnalyzer
             // PicInfo.PointerItem (PICTURE-less, the IndexItem pattern).
             case "POINTER":
                 return Usage.Pointer;
+            // USAGE PROGRAM-POINTER — LIVE (P10 Step 7): the introduction gate (0900 below 2002) fires from
+            // UsageConstructId; the caller synthesizes PicInfo.ProgramPointerItem (PICTURE-less, the
+            // PointerItem pattern). The restricted TO-prototype form stages loud at the BindEntry site.
+            case "PROGRAM-POINTER":
+                return Usage.ProgramPointer;
+            // USAGE FUNCTION-POINTER — recognized, STAGED LOUD (function prototypes = P13): the member flows
+            // through so the 2014 introduction gate still fires below 2014; at/above 2014 the named 0899-band
+            // rejection is the honest state (never a silent Display misbind).
+            case "FUNCTION-POINTER":
+                edition.Error(DiagnosticCatalog.UsageFunctionPointer,
+                    $"{where}: USAGE FUNCTION-POINTER (ISO §13.18.60 — a function-pointer data item)");
+                return Usage.FunctionPointer;
             // LIVE as of the Phase-3 OO spine: only the introduction gate remains (0900 below 2002 — the
             // registry row is silent at 2002+); the caller synthesizes PicInfo.ObjectReferenceItem with the
             // declared class name (PICTURE-less per §13.18.60.4, the IndexItem pattern).

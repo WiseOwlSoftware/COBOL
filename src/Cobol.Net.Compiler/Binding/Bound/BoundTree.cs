@@ -461,12 +461,28 @@ public sealed record BoundSetPointer(
 
 /// <summary><c>ADDRESS OF identifier</c> as a pointer VALUE (ISO §8.4.3.11 GR1; Phase-4b increment 2): for a
 /// BASED item the value IS its implicit data-address pointer (§8.6.5 :8791); for a cell-backed record the
-/// emitter renders <c>ManagedPointer.At(cell, classOffset)</c> over the item's forced/EXTERNAL storage cell.</summary>
-public sealed record BoundAddressOf(DataItem Item);
+/// emitter renders <c>ManagedPointer.At(cell, classOffset)</c> over the item's forced/EXTERNAL storage cell.
+/// <paramref name="OccursDisplacement"/> carries a SUBSCRIPTED operand's occurrence displacement —
+/// <c>(idx − 1) × width [+ …]</c> character positions added to the item's class offset (the occurrences lie
+/// end-to-end in the ONE cell image, §8.4.3.11 GR1 — the address OF THE OCCURRENCE); null for an
+/// unsubscripted operand. It is the D10 transitional rendered-index carrier (see
+/// <c>AccessPath</c>/<c>FixedTableSegment</c>) — a <c>BoundExpr</c> when PHASE 15 removes SUBSCRIPT mode.</summary>
+public sealed record BoundAddressOf(DataItem Item, string? OccursDisplacement = null);
 
 /// <summary><c>SET ADDRESS OF based-item TO pointer</c> (ISO §14.9.39 Format 7; SR18 — the receiver shall be
 /// BASED; GR12–13 — the address VALUE is assigned, a snapshot): <c>__addr_B = pointer</c>.</summary>
 public sealed record BoundSetAddressOfBased(DataItem Based, Place Source) : BoundStatement;
+
+/// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; SR21 — both sides
+/// category program-pointer; P10 Step 7): a straight carrier copy, the data-pointer Format-4 twin.</summary>
+public sealed record BoundSetProgramPointer(IReadOnlyList<Place> Targets, Place? Source, bool ToNull) : BoundStatement;
+
+/// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 with the
+/// §8.4.3.13 program-address-identifier sender): resolve the named OUTERMOST program through the run-unit
+/// ProgramTable at statement time. Exactly one of <paramref name="NameLiteral"/> (the decoded literal) /
+/// <paramref name="NamePlace"/> (a runtime name read, GR1a) is set. Not locatable → GR4: the targets take
+/// NULL and EC-PROGRAM-NOT-FOUND is set to exist (the emitter's checking-gated block).</summary>
+public sealed record BoundSetEntry(IReadOnlyList<Place> Targets, string? NameLiteral, Place? NamePlace) : BoundStatement;
 
 /// <summary><c>SET pointer… {UP|DOWN} BY integer</c> (ISO §14.9.39 Format 10; 2002+): the address moves by
 /// bytes (GR20 — character positions in this model); NULL → EC-DATA-PTR-NULL at runtime (GR18).</summary>

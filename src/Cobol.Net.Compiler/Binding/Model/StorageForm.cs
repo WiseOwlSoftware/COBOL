@@ -93,6 +93,15 @@ public abstract record StorageForm
         public override int ImageWidth => 0;
     }
 
+    /// <summary>A program pointer (<c>ProgramPointer</c> — the address of an OUTERMOST program, ISO §13.18.60
+    /// GR24; P10 Step 7). Zero character positions (representation is implementor-defined — this
+    /// implementation's is the managed identity carrier, never storage bytes).</summary>
+    public sealed record ProgramPointerRef : StorageForm
+    {
+        public override bool IsCharacterImage => false;
+        public override int ImageWidth => 0;
+    }
+
     /// <summary>A USAGE INDEX cell (a <c>long</c> occurrence number). Zero character positions.</summary>
     public sealed record IndexCell(int Width) : StorageForm
     {

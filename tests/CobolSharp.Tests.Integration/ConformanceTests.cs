@@ -108,6 +108,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // (DataBinder.Constants.cs) never landed in legacy; greenfield CorpusRunner byte-compares both.
         ("2002", "constant_entry"),
         ("2002", "constant_record"),
+        // P10 Step 6: qualified/subscripted ADDRESS OF (§8.4.3.11 GR1 occurrence addressing) — the pointer
+        // subsystem never landed in legacy; greenfield CorpusRunner byte-compares it.
+        ("2002", "address_of_qualified"),
+        // P10 Step 7: USAGE PROGRAM-POINTER (§13.18.60 GR24 — SET TO ENTRY / CALL-through-pointer /
+        // relations on the ProgramPointer carrier) — never landed in legacy.
+        ("2002", "program_pointer"),
         ("2002", "oo_interface"),
         ("2002", "oo_interface_conformance"),
         ("2002", "oo_class_env"),   // class-level env + object-own env both bind (DEVLOG-738 fix) — OBJECT-paragraph env never landed in legacy   // the §4.2.2 interface conformance leg (P9 Step 12) — interfaces never landed in legacy

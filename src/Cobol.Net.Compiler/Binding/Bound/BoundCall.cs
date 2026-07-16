@@ -41,6 +41,12 @@ public sealed record BoundCallProgram(
     /// edition gate reads this in <see cref="Validation.VersionConformancePass"/> (rearch PHASE-03 Step 14d); the
     /// bound handlers are otherwise identical to the ON EXCEPTION form.</summary>
     public bool UsedOverflowSpelling { get; init; }
+
+    /// <summary>True when <see cref="DynamicName"/> is a PROGRAM-POINTER operand (ISO §14.9.4 SR1 :26082 —
+    /// identifier-1 may reference a program-pointer data item; GR :26177 — the item "contains the location of
+    /// the program being called"): the emitter activates through <c>ProgramRegistry.CallPointer</c> (the held
+    /// ProgramPointer) instead of the name-string read (P10 Step 7).</summary>
+    public bool IsPointerTarget { get; init; }
 }
 
 /// <summary><c>CANCEL {literal|identifier}…</c> (ISO §14.9.5): each target's next CALL finds its initial state

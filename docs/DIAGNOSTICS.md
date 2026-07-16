@@ -29,6 +29,7 @@ split + the reused `COBOLNET1533`; the broader every-code→descriptor migration
 | COBOLNET0899 | oo-interface-property-prototype | Error | ISO §10.6.2 | recognized-not-implemented | A GET/SET PROPERTY prototype in an interface is not yet implemented. |
 | COBOLNET0899 | oo-method-declaratives | Error | ISO §14.2.1 | recognized-not-implemented | DECLARATIVES inside a method are recognized but not yet implemented. |
 | COBOLNET0899 | oo-method-raising-last | Error | ISO §14.9.18.3 SR5 | recognized-not-implemented | RAISING LAST EXCEPTION inside a method is not yet implemented. |
+| COBOLNET0899 | program-pointer-restricted | Error | ISO §13.18.60 GR25 / SR22 | recognized-not-implemented | USAGE PROGRAM-POINTER TO program-prototype-name (§13.18.60 GR25 — a RESTRICTED program-pointer, confined to NULL or a same-signature program's address) is recognized but not yet implemented: signature matching needs the program-prototype registry (P13); the unrestricted form is live. |
 | COBOLNET0899 | report-code-clause | Error | ISO §13.18.12 | recognized-not-implemented | The CODE clause on a report description is not yet implemented. |
 | COBOLNET0899 | report-column-without-line | Error | ISO §13.18.14 | COBOLNET0899 | A COLUMN clause has no LINE clause in effect. |
 | COBOLNET0899 | report-control-operand-unresolved | Error | ISO §13.18.16.3 SR3 | COBOLNET0899 | A CONTROL operand does not resolve to a data item. |
@@ -56,6 +57,7 @@ split + the reused `COBOLNET1533`; the broader every-code→descriptor migration
 | COBOLNET0899 | report-sum-addend-unresolved | Error | ISO §13.18.54.3 SR5 | COBOLNET0899 | A SUM addend does not resolve to a data item outside the report section. |
 | COBOLNET0899 | report-sum-cross-report | Error | ISO §13.18.54.3 SR4g | recognized-not-implemented | SUM … OF report-name (a cross-report sum) is not yet implemented. |
 | COBOLNET0899 | report-sum-rolled-total | Error | ISO §13.18.54.4 GR6 | recognized-not-implemented | A SUM addend naming another sum counter (rolled totals) is not yet implemented. |
+| COBOLNET0899 | usage-function-pointer | Error | ISO §13.18.60 (FUNCTION-POINTER phrase) | recognized-not-implemented | USAGE FUNCTION-POINTER (§13.18.60 — a function-pointer data item) is recognized but not yet implemented: its target identities are FUNCTION PROTOTYPES (§11.5 Format 2 / the repository function-specifier), which are the P13 repository work — the pointer lands with them. |
 | COBOLNET0899 | usage-keyword-unmapped-internal | Error | ISO §13.18.60 | recognized-not-implemented | Internal: a grammar-accepted USAGE keyword has no ParseUsage mapping (a compiler defect). |
 | COBOLNET0900 | edition-introduction | Error | ISO §ann. per construct | COBOLNET0900 | A construct is used below the edition that introduced it (requires a newer --std). |
 | COBOLNET0901 | edition-reserved-word | Error | ISO §8.9 | COBOLNET0901 | A word reserved in the targeted edition is used as a user-defined word. |

@@ -196,6 +196,7 @@ internal static class StorageFormPass
         {
             PicCategory.ObjectReference => new StorageForm.ObjectRef(pic.ObjectClassName),
             PicCategory.Pointer => new StorageForm.PointerRef(),
+            PicCategory.ProgramPointer => new StorageForm.ProgramPointerRef(),
             PicCategory.Numeric when pic.Usage == Usage.Index => new StorageForm.IndexCell(item.ImageWidth),
             PicCategory.Numeric when pic.IsFloat => new StorageForm.NativeFloat(pic.IsSingle, item.ImageWidth),
             PicCategory.Numeric => new StorageForm.NativeInt(pic.IsWide, pic.Digits, item.ImageWidth),
@@ -232,6 +233,7 @@ internal static class StorageFormPass
         StorageForm.IndexCell => "long",
         StorageForm.ObjectRef o => o.ClassName is { } cls ? DataItem.Sanitize(cls).ToUpperInvariant() + "?" : "CobolObject?",
         StorageForm.PointerRef => "ManagedPointer",
+        StorageForm.ProgramPointerRef => "ProgramPointer",
         StorageForm.TierBWindow => "string",       // a Tier-B window is a string slice (a numeric Tier-B leaf is CharImage)
         StorageForm.DynamicTable dt => StorageElementType(dt.Element),
         StorageForm.TierCWindow => "string",       // unreachable today

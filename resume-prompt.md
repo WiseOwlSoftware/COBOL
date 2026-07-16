@@ -47,11 +47,16 @@ the ONE `Repertoire` translator; the N-literal Latin-1 0814 guard lifted), the E
 `nonNumericLiteral` — `ConcatFolder` is the ONE chokepoint; 1540/1541/1545), the ALLOCATE wave (§14.9.3
 GR7 INITIALIZED = the spec's own INITIALIZE-equivalence lowered through the EXISTING InitializeBinder;
 GR6 CHARACTERS = binary zeros), the UDF category-RETURNING wave (§8.4.3.2.4 GR1 — 1510 lifted for
-alnum/group/edited/national; per-shape residues stay 1510), and the CONSTANT wave (§13.10 constant entries
+alnum/group/edited/national; per-shape residues stay 1510), the CONSTANT wave (§13.10 constant entries
 = the COMPILE-TIME substitution table `DataBinder.Constants.cs` + §13.18.15 CONSTANT RECORD; 1547/1548/1549;
-CONSTANT + AS joined the §8.9 interval-word machinery — AS is nameSlot-ONLY, the FU-1 ledger; DEVLOG 861).
+CONSTANT + AS joined the §8.9 interval-word machinery — AS is nameSlot-ONLY, the FU-1 ledger; DEVLOG 861),
+and the POINTERS wave (Steps 6+7, DEVLOG 862 — USAGE PROGRAM-POINTER end-to-end on the ONE ProgramTable
+[`ProgramPointer` carrier = the outermost identity; `setEntryStatement` + CALL-through-pointer + SameTarget
+relations; FUNCTION-POINTER superset-parsed, staged 0899, 2014 interval]; qualified/subscripted ADDRESS OF
+lifted via `ResolveForAddressOf` on the ONE cell-offset formula; class-unit BASED + INITIALIZE-over-pointers
+= named residues).
 Read the P10 doc's checkboxes for the live step state; remaining waves:
-pointers/PROGRAM-POINTER · UDF BY VALUE+RECURSIVE · file-sharing extension · line-seq 62 ·
+UDF BY VALUE+RECURSIVE · file-sharing extension · line-seq 62 ·
 ARITH-STANDARD consumption · B-SHIFT · RW-2002 (the one L) · TYPEDEF SAME AS · ALPHABET-national.
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's

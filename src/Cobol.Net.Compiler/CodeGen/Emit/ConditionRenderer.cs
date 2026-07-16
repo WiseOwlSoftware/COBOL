@@ -71,6 +71,17 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
             string core = $"ManagedPointer.SameTarget({PtrRead(r.Left)}, {PtrRead(r.Right)})";
             return r.Op == "==" ? core : $"!({core})";
         }
+        // Program-pointer relations (P10 Step 7; §8.8.4.1.3 — ProgramPointer.SameTarget: both-NULL / the same
+        // program's identity; the NULL figurative renders as the Null carrier — a struct, never C# null).
+        static bool IsPp(BoundOperand o) =>
+            o is BoundFieldOperand f && f.Place.Item.Pic?.Category == PicCategory.ProgramPointer;
+        if (IsPp(r.Left) || IsPp(r.Right))
+        {
+            static string PpRead(BoundOperand o) =>
+                o is BoundFieldOperand f ? PlaceRenderer.Read(f.Place) : "ProgramPointer.Null";
+            string core = $"ProgramPointer.SameTarget({PpRead(r.Left)}, {PpRead(r.Right)})";
+            return r.Op == "==" ? core : $"!({core})";
+        }
         // Boolean-EXPRESSION relations (ISO §8.8.4.2.2 Format 2): when either side is a boolean expression
         // (a B-op tier, BoundBoolOperand), render BOTH sides as '0'/'1' strings and compare by VALUE with
         // right-zero-extension (§8.8.4.2.8) via CobolBool.Equal. A bare boolean item/literal mixed with an

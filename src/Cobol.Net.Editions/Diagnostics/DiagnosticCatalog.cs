@@ -123,6 +123,20 @@ public static class DiagnosticCatalog
         + "byte-width authority lands ONCE, with it (the singular-pattern rule).", "ISO §13.10.4 GR5 / §15.14",
         RecognizedNotImplemented);
 
+    // ── COBOLNET0899 — the staged-loud pointer-usage legs (P10 Step 7) ────────────────────────────────────
+    public static readonly DiagnosticDescriptor UsageFunctionPointer = new(
+        NotImplemented, "usage-function-pointer", EditionSeverity.Error,
+        "USAGE FUNCTION-POINTER (§13.18.60 — a function-pointer data item) is recognized but not yet "
+        + "implemented: its target identities are FUNCTION PROTOTYPES (§11.5 Format 2 / the repository "
+        + "function-specifier), which are the P13 repository work — the pointer lands with them.",
+        "ISO §13.18.60 (FUNCTION-POINTER phrase)", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ProgramPointerRestricted = new(
+        NotImplemented, "program-pointer-restricted", EditionSeverity.Error,
+        "USAGE PROGRAM-POINTER TO program-prototype-name (§13.18.60 GR25 — a RESTRICTED program-pointer, "
+        + "confined to NULL or a same-signature program's address) is recognized but not yet implemented: "
+        + "signature matching needs the program-prototype registry (P13); the unrestricted form is live.",
+        "ISO §13.18.60 GR25 / SR22", RecognizedNotImplemented);
+
     // ── COBOLNET1533 — strong typing, split by rule (§8.5) ───────────────────────────────────────────
     public static readonly DiagnosticDescriptor StrongMoveMismatch = new(
         StrongType, "strong-move-mismatch", EditionSeverity.Error,

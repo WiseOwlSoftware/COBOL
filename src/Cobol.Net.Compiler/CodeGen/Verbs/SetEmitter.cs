@@ -41,6 +41,15 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET pointer (ISO §14.9.39 Format 4/7)");
     }
 
+    /// <summary><c>SET program-pointer… TO {NULL | program-pointer}</c> (ISO §14.9.39 Format 9; P10 Step 7):
+    /// a straight carrier copy — the Format-4 data-pointer twin over <c>ProgramPointer</c>.</summary>
+    public void EmitSetProgramPointer(BoundSetProgramPointer s)
+    {
+        string src = s.ToNull ? "ProgramPointer.Null" : PlaceRenderer.Read(s.Source!);
+        foreach (var t in s.Targets)
+            ctx.Writer.Line(PlaceRenderer.Write(t, src) + "   // SET program-pointer (ISO §14.9.39 Format 9)");
+    }
+
     /// <summary><c>SET index-name… {UP|DOWN} BY amount</c> (ISO §14.9.39 Format 2): the amount is evaluated ONCE
     /// (GR3), then each index is adjusted by it (GR4).</summary>
     public void EmitSetUpDown(BoundSetUpDown s)

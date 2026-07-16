@@ -292,6 +292,57 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KCR.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 CFG CONSTANT RECORD.\n   05 CFG-TAG PIC X(4) VALUE \"COBL\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY CFG-TAG.\n    STOP RUN.\n"
     },
     {
+      "id": "usage-program-pointer-2002",
+      "status": "active",
+      "description": "USAGE PROGRAM-POINTER (§13.18.60 GR24 — a program-pointer data item holding the address of an OUTERMOST program) — a COBOL-2002 introduction. ACTIVE as of P10 Step 7: the ProgramPointer carrier resolves through the ONE RunUnit ProgramTable (SET … TO ENTRY §8.4.3.13; CALL through the pointer §14.9.4 SR1; relations §8.8.4.1.3). The restricted TO-prototype form (GR25) is staged loud (program prototypes = P13). Gate home: the bound-arm UsageConstructId (the usage-pointer-2002 pattern).",
+      "display": "USAGE PROGRAM-POINTER",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.60 GR24/GR25",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "ISO §13.18.60 (2002 pointer family); GnuCOBOL 2002 reserved list row PROGRAM-POINTER",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KPP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PP USAGE PROGRAM-POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    IF PP = NULL DISPLAY \"NULL\" END-IF.\n    STOP RUN.\n"
+    },
+    {
+      "id": "usage-function-pointer-2014",
+      "status": "pending",
+      "description": "USAGE FUNCTION-POINTER (§13.18.60 — a function-pointer data item) — reserved-word evidence dates it 2014 (reserved-words.json FUNCTION-POINTER r2002=false r2014=true). PENDING: superset-parsed at every edition as of P10 Step 7 with the semantics STAGED LOUD (DiagnosticCatalog.UsageFunctionPointer, 0899 band — function prototypes are the P13 repository work); the positive leg lands with P13. The introduction gate (0900 below 2014) is live via the bound-arm UsageConstructId.",
+      "display": "USAGE FUNCTION-POINTER",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.60; PENDING (P13 function prototypes)",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "vcr": "reserved-words.json FUNCTION-POINTER (added 2014)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FP USAGE FUNCTION-POINTER.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-program-pointer-2002",
+      "status": "active",
+      "description": "The word PROGRAM-POINTER as a user-defined word — user-definable at 85, reserved since 2002 (§8.9; reserved-words.json row PROGRAM-POINTER r85=false r2002..r2023=true). Interval row per the user-word-constant-2002 precedent: cobolWord/_dataNameTokens/CheckedTokenTypes-admitted at P10 Step 7.",
+      "display": "the word PROGRAM-POINTER as a user-defined word",
+      "diagnosticCode": "COBOLNET0901",
+      "citation": "§8.9 interval encoding: user-definable at 85, reserved since 2002 (ReservedWords.Table row; the user-word-constant-2002 precedent)",
+      "introducedIn": 85,
+      "removedIn": 2002,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "reserved-words.json PROGRAM-POINTER (added 2002, GnuCOBOL 2002 list; ISO 2023 §8.9)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWPP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 PROGRAM-POINTER PIC 99 VALUE 5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY PROGRAM-POINTER.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-function-pointer-2014",
+      "status": "active",
+      "description": "The word FUNCTION-POINTER as a user-defined word — user-definable at 85 AND 2002, reserved since 2014 (§8.9; reserved-words.json row FUNCTION-POINTER r85=false r2002=false r2014..r2023=true). Interval row: cobolWord/_dataNameTokens/CheckedTokenTypes-admitted at P10 Step 7.",
+      "display": "the word FUNCTION-POINTER as a user-defined word",
+      "diagnosticCode": "COBOLNET0901",
+      "citation": "§8.9 interval encoding: user-definable at 85/2002, reserved since 2014 (ReservedWords.Table row; the user-word-constant-2002 precedent)",
+      "introducedIn": 85,
+      "removedIn": 2014,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "reserved-words.json FUNCTION-POINTER (added 2014; ISO 2023 §8.9)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. KUWFP.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 FUNCTION-POINTER PIC 99 VALUE 6.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY FUNCTION-POINTER.\n    STOP RUN.\n"
+    },
+    {
       "id": "user-word-as-2002",
       "status": "active",
       "description": "The word AS as a user-defined word — user-definable at 85, reserved since 2002 (§8.9; reserved-words.json row AS r85=false r2002..r2023=true). Interval row per the user-word-constant-2002 twin: cobolWord/_dataNameTokens/CheckedTokenTypes-admitted at P10 Step 15 (the constant entry's AS phrase is its only keyword slot).",

@@ -1326,6 +1326,31 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             pictureText = null;
         }
 
+        // PICTURE is prohibited with USAGE PROGRAM-POINTER / FUNCTION-POINTER (§13.16.3 SR8 — picture-less),
+        // and a VALUE clause is prohibited (§13.18.63 SR9 — no literal denotes a program address). The
+        // restricted TO-prototype form stages loud (§13.18.60 GR25 — signature matching needs the P13
+        // prototype registry). The 0881 declaration band, mirroring the POINTER gates below.
+        if (entryUsage is Usage.ProgramPointer or Usage.FunctionPointer)
+        {
+            if (pictureText is not null)
+            {
+                Edition.Error("COBOLNET0881", $"{entryWhere}: PICTURE may not be specified with USAGE "
+                    + "PROGRAM-POINTER or FUNCTION-POINTER — the item is picture-less (ISO §13.16.3 SR8)");
+                pictureText = null;
+            }
+            if (rawValue is not null)
+            {
+                Edition.Error("COBOLNET0881", $"{entryWhere}: the VALUE clause shall not be specified with a "
+                    + "USAGE clause carrying the PROGRAM-POINTER or FUNCTION-POINTER phrase (ISO §13.18.63 SR9)");
+                rawValue = null;
+            }
+            if (entryUsage is Usage.ProgramPointer
+                && e.Clauses.Select(c => c.Context.usageClause()?.usageKeyword()?.programPointerUsage())
+                    .FirstOrDefault(ppu => ppu is not null)?.TO() is not null)
+                Edition.Error(DiagnosticCatalog.ProgramPointerRestricted,
+                    $"{entryWhere}: USAGE PROGRAM-POINTER TO program-prototype-name (ISO §13.18.60 GR25)");
+        }
+
         // PICTURE is prohibited with USAGE POINTER (§13.18.60.4 — a data-pointer is picture-less; before this
         // gate the entry silently misbound BY ITS PICTURE, the W2 hazard class). The 0881 declaration band.
         if (entryUsage is Usage.Pointer && pictureText is not null)
@@ -1352,6 +1377,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 blankWhenZero, explicitUsage: usageText is not null)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem
+            : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
                 ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
@@ -1535,7 +1561,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     private static string UsageKeyword(Core.UsageClauseContext usage)
     {
         if (usage.usageKeyword() is { } kw)
-            return kw.objectReferenceUsage() is not null ? "OBJECT REFERENCE" : kw.GetText();
+            return kw.objectReferenceUsage() is not null ? "OBJECT REFERENCE"
+                // The pointer-to-prototype usages are RULES with an optional TO tail (§13.18.60) — GetText()
+                // would glue the prototype name into the keyword (the OBJECT REFERENCE precedent).
+                : kw.programPointerUsage() is not null ? "PROGRAM-POINTER"
+                : kw.functionPointerUsage() is not null ? "FUNCTION-POINTER"
+                : kw.GetText();
         return usage.GetChild(0).GetText();
     }
 

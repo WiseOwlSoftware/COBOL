@@ -301,6 +301,11 @@ CONSTANT    : 'CONSTANT' ;
 // user word at COBOL-85, cobolWord/_dataNameTokens-admitted (cobol-words.json), funnel-0901'd ≥2002. Its only
 // keyword slot is the constantEntryBody `AS` — a direct token, never a name slot.
 AS          : 'AS' ;
+// PROGRAM-POINTER / FUNCTION-POINTER (USAGE phrases, ISO §13.18.60; reserved 2002+ per §8.9) — the CONSTANT/AS
+// interval treatment: legal user words at COBOL-85, cobolWord/_dataNameTokens-admitted (cobol-words.json),
+// funnel-0901'd ≥2002. Their only keyword slots are the usageKeyword alternatives — direct tokens.
+PROGRAM_POINTER  : 'PROGRAM-POINTER' ;
+FUNCTION_POINTER : 'FUNCTION-POINTER' ;
 AREAS       : 'AREAS' ;
 ALPHABETIC       : 'ALPHABETIC' ;
 ALPHABETIC_LOWER : 'ALPHABETIC-LOWER' ;

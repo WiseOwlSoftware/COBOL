@@ -55,24 +55,22 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Resolve an <c>ADDRESS OF identifier</c> operand (ISO §8.4.3.11): a BASED item's value is its
     /// implicit pointer (§8.6.5); an ordinary record must have been storage-forced onto a cell by the data
-    /// pass (or be an EXTERNAL record — already cell-backed). Qualified/subscripted operands and un-forcible
-    /// shapes (a rejected COMP-leaf class, an OCCURS-resident anchor, a carrier-resident LINKAGE formal)
-    /// stage LOUD — never a pointer to the wrong storage.</summary>
+    /// pass (or be an EXTERNAL record — already cell-backed). A qualified operand resolves through the ONE
+    /// §8.4.2.2 qualification machinery; a subscripted operand addresses THE OCCURRENCE (GR1) — the resolver
+    /// returns its in-class occurrence displacement (<c>ReferenceResolver.ResolveForAddressOf</c>). Un-forcible
+    /// shapes (a rejected COMP-leaf class, an OCCURS-resident anchor, a carrier-resident LINKAGE formal) and
+    /// reference-modified operands stage LOUD — never a pointer to the wrong storage.</summary>
     private BoundAddressOf? PtrBindAddressOf(Core.DataReferenceContext addrRef)
     {
-        if (addrRef.ChildCount != 1)
+        if (ctx.Refs.ResolveForAddressOf(addrRef) is not { } r)
         {
             ctx.Edition.Error("COBOLNET0869",
-                $"ADDRESS OF '{addrRef.GetText()}': qualified or subscripted ADDRESS OF operands are a named "
-                + "increment residue (ISO §8.4.3.11) — take the address of the containing record");
+                $"ADDRESS OF '{addrRef.GetText()}': the operand is unresolvable, reference-modified, or "
+                + "mis-subscripted — ADDRESS OF takes a (possibly qualified/subscripted) data item "
+                + "(ISO §8.4.3.11)");
             return null;
         }
-        if (ctx.Refs.Resolve(addrRef) is not { } place)
-        {
-            ctx.Edition.Error("COBOLNET0869", $"ADDRESS OF '{addrRef.GetText()}': unresolvable operand");
-            return null;
-        }
-        var item = place.Item;
+        var (item, occursDisp) = r;
         DataItem root = item;
         while (root.Parent is { } p) root = p;
         bool cellBacked = root.Class is { Tier: RedefinesTier.StringCanonical } cls
@@ -87,7 +85,7 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
                 + "LINKAGE formal — named increment residue; ISO §8.4.3.11)");
             return null;
         }
-        return new BoundAddressOf(item);
+        return new BoundAddressOf(item, occursDisp);
     }
 
     /// <summary>Bind ALLOCATE (ISO §14.9.3, both formats). The INITIALIZED based form lowers per GR7 to the

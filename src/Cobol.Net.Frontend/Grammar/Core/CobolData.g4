@@ -368,7 +368,23 @@ usageKeyword
     | NATIONAL
     | BIT
     | POINTER
+    | programPointerUsage    // USAGE PROGRAM-POINTER [TO prototype] (§13.18.60 GR24/GR25, 2002) — introduction-gated post-bind (VersionConformancePass UsageConstructId)
+    | functionPointerUsage   // USAGE FUNCTION-POINTER [TO prototype] (§13.18.60, 2002) — superset parse; semantics STAGED LOUD (function prototypes = P13)
     | objectReferenceUsage   // USAGE OBJECT REFERENCE [class] (OO/2002) — introduction-gated at BIND time (PicInfo.ParseUsage → ConstructRegistry.Check), like NATIONAL/BIT/POINTER above
+    ;
+
+// USAGE PROGRAM-POINTER [TO program-prototype-name-1] (ISO §13.18.60 :22686): a program-pointer data item —
+// may contain the address of a program (GR24; for a COBOL program, the address of an OUTERMOST program). The
+// TO form declares a RESTRICTED program-pointer (GR25 — only NULL or a same-signature program's address);
+// restriction semantics are STAGED LOUD until the prototype registry lands (P13).
+programPointerUsage
+    : PROGRAM_POINTER (TO cobolWord)?
+    ;
+
+// USAGE FUNCTION-POINTER [TO function-prototype-name-1] (ISO §13.18.60): superset parse at every edition;
+// the semantics stage LOUD (function prototypes are the P13 repository work).
+functionPointerUsage
+    : FUNCTION_POINTER (TO cobolWord)?
     ;
 
 // SIGNED (default) / UNSIGNED phrase on a fixed-width binary usage (ISO §13.18.60).

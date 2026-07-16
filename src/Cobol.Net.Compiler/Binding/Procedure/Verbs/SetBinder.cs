@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Common;
 using CobolNet.Frontend.Generated;
 
 namespace CobolNet.Binding.Procedure;
@@ -22,6 +23,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindSet(Core.SetStatementContext set)
     {
         if (set.setLastExceptionStatement() is not null) return host.Ec.BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
+        if (set.setEntryStatement() is { } se) return BindSetEntry(se);   // F9 + §8.4.3.13 ENTRY sender (P10 Step 7)
         if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
@@ -31,10 +33,16 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (set.setObjectReferenceStatement() is { } sor)
         {
             // A POINTER target (§14.9.39 Format 4 — SET pointer TO NULL/pointer) is bound BEFORE the
-            // object-reference Format 5: both share the `SET dataRef+ TO objectReference` shape.
-            if (sor.dataReference().Length > 0 && ctx.Refs.Resolve(sor.dataReference(0))?.Item.Pic?.Category
-                    is PicCategory.Pointer)
+            // object-reference Format 5: both share the `SET dataRef+ TO objectReference` shape. A
+            // PROGRAM-POINTER target selects Format 9 the same way (SR21; P10 Step 7).
+            var sorCat = sor.dataReference().Length > 0
+                ? ctx.Refs.Resolve(sor.dataReference(0))?.Item.Pic?.Category : null;
+            if (sorCat is PicCategory.Pointer)
                 return BindSetPointer(sor.dataReference(),
+                    sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
+                    sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
+            if (sorCat is PicCategory.ProgramPointer)
+                return BindSetProgramPointer(sor.dataReference(),
                     sor.objectReference().dataReference(), sor.objectReference().NULL_() is not null,
                     sor.objectReference().SELF() is not null || sor.objectReference().SUPER() is not null);
             return host.Oo.OoBindSetObjectRef(sor.dataReference(),
@@ -90,6 +98,96 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return new BoundSetPointer(targets, source, toNull);
     }
 
+    /// <summary>SET program-pointer assignment (ISO §14.9.39 Format 9; SR21 — every target AND the sender
+    /// shall be category program-pointer; P10 Step 7): the data-pointer Format-4 twin over the ProgramPointer
+    /// carrier. The sender is NULL or another program-pointer; SELF/SUPER are object references (0869).</summary>
+    private BoundStatement BindSetProgramPointer(
+        IReadOnlyList<Core.DataReferenceContext> targetRefs, Core.DataReferenceContext? senderRef,
+        bool toNull, bool senderIsSelfSuper)
+    {
+        if (senderIsSelfSuper)
+        {
+            ctx.Edition.Error("COBOLNET0869",
+                "SET … TO SELF/SUPER: SELF and SUPER are object references, not program pointers "
+                + "(ISO §14.9.39 Format 5/9 — the sender of a program-pointer SET is NULL, another "
+                + "program-pointer, or an ENTRY program-address-identifier)");
+            return new BoundNop();
+        }
+        var targets = new List<Place>(targetRefs.Count);
+        foreach (var t in targetRefs)
+        {
+            if (ctx.Refs.Resolve(t) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            {
+                ctx.Edition.Error("COBOLNET0869",
+                    $"SET '{t.GetText()}': the receiving operand of a program-pointer SET shall be USAGE "
+                    + "PROGRAM-POINTER (ISO §14.9.39 Format 9 SR21)");
+                return new BoundNop();
+            }
+            targets.Add(tp);
+        }
+        Place? source = null;
+        if (!toNull)
+        {
+            if (senderRef is null) return new BoundUnsupported("SET program-pointer — sender shape");
+            if (ctx.Refs.Resolve(senderRef) is not { } sp
+                || sp.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            {
+                ctx.Edition.Error("COBOLNET0869",
+                    $"SET … TO '{senderRef?.GetText()}': a program-pointer sender shall be NULL, another "
+                    + "USAGE PROGRAM-POINTER item, or an ENTRY program-address-identifier "
+                    + "(ISO §14.9.39 Format 9 SR21 / §8.4.3.13)");
+                return new BoundNop();
+            }
+            source = sp;
+        }
+        return new BoundSetProgramPointer(targets, source, toNull);
+    }
+
+    /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 with the
+    /// §8.4.3.13 program-address-identifier sender; P10 Step 7): every target shall be category
+    /// program-pointer (SR21); the ENTRY operand names the program (§8.4.3.13 GR1 — a literal, or an
+    /// identifier whose VALUE names it per §8.3.2.2).</summary>
+    private BoundStatement BindSetEntry(Core.SetEntryStatementContext se)
+    {
+        var targets = new List<Place>(se.dataReference().Length);
+        // The LAST dataReference is the ENTRY identifier operand when no literal is present — the grammar
+        // shape is `SET dataReference+ TO ENTRY (nonNumericLiteral | dataReference)`.
+        var drefs = se.dataReference();
+        bool identForm = se.nonNumericLiteral() is null;
+        int targetCount = identForm ? drefs.Length - 1 : drefs.Length;
+        if (targetCount < 1) return new BoundUnsupported("SET … TO ENTRY — no receiving operand");
+        for (int i = 0; i < targetCount; i++)
+        {
+            if (ctx.Refs.Resolve(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.ProgramPointer)
+            {
+                ctx.Edition.Error("COBOLNET0869",
+                    $"SET '{drefs[i].GetText()}': the receiving operand of SET … TO ENTRY shall be USAGE "
+                    + "PROGRAM-POINTER (ISO §14.9.39 Format 9 SR21 / §8.4.3.13)");
+                return new BoundNop();
+            }
+            targets.Add(tp);
+        }
+        if (!identForm)
+        {
+            var nn = se.nonNumericLiteral();
+            if (nn?.STRINGLIT() is not { } lit)
+            {
+                ctx.Edition.Error("COBOLNET0869",
+                    $"SET … TO ENTRY {nn?.GetText()}: the ENTRY literal shall be an alphanumeric literal "
+                    + "naming a program (ISO §8.4.3.13 / §8.3.2.2)");
+                return new BoundNop();
+            }
+            return new BoundSetEntry(targets, CobolLiteral.Decode(lit.GetText()), null);
+        }
+        if (ctx.Refs.Resolve(drefs[^1]) is not { } namePlace)
+        {
+            ctx.Edition.Error("COBOLNET0869",
+                $"SET … TO ENTRY '{drefs[^1].GetText()}': the ENTRY identifier is unresolvable (ISO §8.4.3.13 GR1a)");
+            return new BoundNop();
+        }
+        return new BoundSetEntry(targets, null, namePlace);
+    }
+
     public BoundStatement BindSetTo(Core.SetToValueStatementContext tv)
     {
         // SET Format 14 (ISO §14.9.39; the OCCURS DYNAMIC feature, data-model D9): a CAPACITY-register target
@@ -109,6 +207,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             // path cannot carry a ManagedPointer.
             if (t0 is PicCategory.Pointer || s0 is PicCategory.Pointer)
                 return BindSetPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
+            // A PROGRAM-POINTER on either side selects Format 9 (SET pp TO pp — SR21; P10 Step 7).
+            if (t0 is PicCategory.ProgramPointer || s0 is PicCategory.ProgramPointer)
+                return BindSetProgramPointer(tds, senderDref, toNull: false, senderIsSelfSuper: false);
             // Either side being an object reference selects Format 5 (§14.9.39 F5; D-U7).
             if (t0 is PicCategory.ObjectReference || s0 is PicCategory.ObjectReference)
                 return host.Oo.OoBindSetObjectRef(tds, senderDref, senderNull: false, senderSelf: false, senderSuper: false);

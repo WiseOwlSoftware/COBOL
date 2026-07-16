@@ -29,6 +29,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         // ── Target: literal (static) or identifier (dynamic, resolved at run time — GR3b) ──
         string? literalName = null;
         BoundOperand? dynamicName = null;
+        bool isPointerTarget = false;   // identifier-1 is a PROGRAM-POINTER item (§14.9.4.3 SR1; P10 Step 7)
         var target = call.callTarget();
         if (target.literal() is { } lit)
         {
@@ -50,6 +51,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             if (ctx.Refs.Resolve(dref) is not { } place)
                 return new BoundUnsupported($"CALL target '{dref.GetText()}'");
             dynamicName = new BoundFieldOperand(place);
+            // §14.9.4.3 SR1 (:26082): identifier-1 may be alphanumeric, national, OR a PROGRAM-POINTER item —
+            // a pointer target activates the HELD program (GR :26177) through ProgramRegistry.CallPointer
+            // instead of a name-string read (P10 Step 7).
+            if (place.Item.Pic?.Category is PicCategory.ProgramPointer) isPointerTarget = true;
         }
         else
             return new BoundUnsupported("CALL target form");
@@ -141,6 +146,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         return new BoundCallProgram(literalName, dynamicName, args, returning, onExc, notOnExc)
         {
             UsedOverflowSpelling = usedOverflow,
+            IsPointerTarget = isPointerTarget,
         };
     }
 
