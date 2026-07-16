@@ -13,6 +13,10 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 860 — 2026-07-16 10:33 PDT — OWNER DECISION: the P8 static runtime facades retire at G8 Cut 3 with the namespace flip
+
+The owner challenged the P8 shims ("zero reason for back-compat — never-shipped compiler") and ratified the disposition after the reasoning was laid out: the facades are NOT back-compat — they are the byte-stability scaffold that let the P8 state reorg be proven with an EMPTY emitted-code diff (one variable at a time), and their retirement belongs where an emitted-surface change is already forced — **G8 Cut 3, with the RootNamespace flip** — so retirement + flip land as ONE `RuntimeApi`-routed change and ONE reviewed characterization re-baseline. Recorded: `DESIGN-runtime-library.md` §6 Q3 (owner-ratified + the G8 design input: the generated run-unit driver must CAPTURE the run unit once — never per-statement `AsyncLocal` reads on hot paths) and PHASE-15 exit criterion **4a** (the facades named for deletion at Cut 3 with the capture-once requirement). Memory updated.
+
 ## Entry 859 — 2026-07-16 06:09 PDT — P10 Step 9 — the UDF category-RETURNING wave: §8.4.3.2.4 GR1 lifts COBOLNET1510 for alphanumeric / group / numeric-edited / national results; the channel was already there
 
 **The audit's gap 1 (UDF track) closed far smaller than the phase recipe sized it.** The recipe expected a new

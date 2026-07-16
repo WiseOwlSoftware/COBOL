@@ -337,8 +337,13 @@ Each step is a commit with its own DEVLOG entry and a guard-fast/greenfield-suit
 2. **Ambient mechanism:** `AsyncLocal<RunUnit>` (the recommendation), with a LAZY `Current` so the unchanged
    emitted driver (`ProgramRegistry.Reset(); …`) establishes the ambient unit implicitly. Threading `RunUnit`
    through the `ICobolProgram` ABI was rejected — it would change every generated entry point pre-G8.
-3. **Static-facade lifetime:** kept pre-G8 as the emitted surface (byte-stability); the retire-vs-keep decision
-   is G8 Cut 3's (with the namespace flip, where the `RuntimeApi` façade centralizes whichever spelling wins).
+3. **Static-facade lifetime — OWNER-RATIFIED (2026-07-16):** kept pre-G8 as the emitted surface (the
+   byte-stability proof discipline — NOT back-compat; nothing has shipped); the facades RETIRE at **G8 Cut 3**
+   together with the namespace flip, which already forces an emitted-surface change (one re-baseline instead of
+   two). G8 design input recorded with the decision: the replacement must resolve the AsyncLocal-read cost —
+   the generated run-unit driver should CAPTURE the run unit once (`var ru = RunUnit.Current;`) and route
+   statement-level calls through the captured local (or an equivalent cached path), never a per-statement
+   `RunUnit.Current` read on hot paths.
 4. **Namespace granularity:** deferred to G8 with the flip itself (§2.8's sub-namespaced layout remains the
    plan of record; the folders already mirror it).
 5. **`Values/` nesting:** ACCEPTED — `Values/{Numeric,Text,Tables}/` landed.

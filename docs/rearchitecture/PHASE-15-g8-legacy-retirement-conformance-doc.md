@@ -49,6 +49,13 @@ is preserved at an annotated git tag with a WSL reproduction recipe before it is
 3. **The §4.2.16 conformance document is published:** `docs/CONFORMANCE.md` exists, is complete per the section map in
    §7 of this doc, is linked from `README.md` and `docs/DOC_INDEX.md`, and every claim cites a spec § and (where a
    behavioral claim) a passing conformance test / golden.
+4a. **Static runtime facades RETIRED with the flip (owner-ratified 2026-07-16 — DESIGN-runtime-library §6 Q3):**
+   the P8 delegating facades (`ProgramRegistry`/`ExceptionState`/`ExternalStore`/`CobolModule`/
+   `ExternalSwitches`/`CobolFile`/`AcceptSource` statics) exist only as the pre-G8 byte-stability scaffold and are
+   DELETED at Cut 3; emitted code reaches the instances through the run-unit driver's ONE captured
+   `RunUnit` local (capture-once — never a per-statement `AsyncLocal` read on hot paths), routed via the
+   `RuntimeApi` façade so the retirement + namespace flip is one emitted-surface change and ONE reviewed
+   characterization re-baseline.
 4. **Runtime namespace flipped with emitted code green:** `RootNamespace` is `Cobol.Net.Runtime`; the `Generated/`
    regenerates clean; a representative program compiles, its `.g.cs` shows the new `using`, and it runs byte-identically
    to before the flip.
