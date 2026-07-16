@@ -12,7 +12,7 @@ namespace CobolNet.CodeGen;
 /// post-construction — the EC↔statement cycle means no pure bottom-up construction order exists (the
 /// Step-9 coupling census <c>wf_d677d614-5fb</c>). Replaces the transitional CSharpEmitter host edges: the
 /// collaborators now hold DIRECT references to each other; the former god class survives only as the
-/// bind-host facade (the P6→P9 <c>IOoBindHost</c> seam). <see cref="ProgramEmitter.BeginUnit"/> re-creates
+/// bind-host facade (the P6→P9 seam; the OO bind bodies live on <c>Oo/OoDriver</c> since P9 Step 4). <see cref="ProgramEmitter.BeginUnit"/> re-creates
 /// this root at each unit switch — consumers that must track the switch mid-run (OoEmitter) read through
 /// <see cref="ProgramEmitter.Current"/>, never a captured copy.</summary>
 internal sealed class UnitEmitters

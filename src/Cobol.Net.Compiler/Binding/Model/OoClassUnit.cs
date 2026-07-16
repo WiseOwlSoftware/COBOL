@@ -9,7 +9,7 @@ namespace CobolNet.Binding.Model;
 /// <summary>One CLASS-ID unit of the compilation group (the ClassUnit counterpart of <see cref="BoundUnit"/>):
 /// its pass-1 symbol, its OBJECT-paragraph data model, and its bound method bodies.
 /// <para>Relocated from the emitter (rearch PHASE-06 Step 2) — the DATA TYPE lives with the bound model; the OO
-/// bind/emit LOGIC stays on the emitter behind the <see cref="IOoBindHost"/> seam until P9 moves the OO
+/// bind LOGIC lives on <see cref="Compiler.Oo.OoDriver"/> (P9 Step 4; emission on <c>Verbs/OoEmitter</c>) — the OO
 /// subsystem.</para></summary>
 internal sealed class OoClassUnit
 {

@@ -23,8 +23,8 @@ using Core = CobolParserCore;
 /// OO data/body binding → two-phase per-unit binding (ALL data before ANY procedure — the M2-UDF-1
 /// forward-reference enabler) → the middle-end data-model passes (compiler-temp re-sync → UsageCollection →
 /// image marking → OO harmonize → StorageForm) → the EC gate → file-connector registry-key qualification.
-/// <para>The OO orchestration bodies physically remain on <c>CSharpEmitter</c> partials until PHASE 09 and are
-/// reached through the <see cref="IOoBindHost"/> seam — they only mutate binder state, never emit.</para>
+/// <para>The OO bind bodies live on <see cref="Compiler.Oo.OoDriver"/> (P9 R1 — a real binder collaborator;
+/// the former emitter-hosted <c>IOoBindHost</c> seam is deleted). They only mutate binder state, never emit.</para>
 /// </summary>
 internal sealed class BinderDriver
 {
@@ -34,7 +34,7 @@ internal sealed class BinderDriver
     /// directive events (ISO §7.3.25) — they build the group's compile-time TurnState (EC deep-dive D10);
     /// null/empty means the GR1 default, EC-ALL CHECKING OFF.</summary>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
-        IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents, IOoBindHost oo)
+        IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
 
@@ -45,7 +45,7 @@ internal sealed class BinderDriver
 
         var (units, classes, table) = CollectUnits(tree, edition);
         var session = new BindSession { Turn = turn, OoClasses = table, Edition = edition };
-        oo.BeginBind(session);
+        var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) oo.BindClassData(cls);   // ALL signatures before ANY body (D1 pass-1)
         OoConformance.ValidateOverrideSignatures(table, edition);   // §9.3.8.2 — after all formals resolve (slice 3a)

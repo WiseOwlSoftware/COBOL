@@ -61,7 +61,7 @@ internal static class BackendFactory
     /// <summary>Create the backend for <paramref name="id"/>.
     /// <para><b>INTERIM SHAPE (P7 Step 1 deviation, recorded in the phase ledger):</b> the design's factory is
     /// parameterless, but until P9 relocates the OO bind bodies off <see cref="CSharpEmitter"/> (the documented
-    /// P6→P9 <c>IOoBindHost</c> seam), <c>EmitBound</c> must run on the SAME emitter instance that hosted
+    /// P6→P9 seam, deleted at P9 Step 4), <c>EmitBound</c> historically ran on the SAME emitter instance that hosted
     /// <c>Bind</c> — so the driver passes that instance through here. When P9 makes the emitter stateless w.r.t.
     /// binding, this parameter disappears and the factory matches the design verbatim.</para></summary>
     public static ICodeGenBackend For(BackendId id, CSharpEmitter bindHost) => id switch

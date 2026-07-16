@@ -13,7 +13,7 @@ namespace CobolNet.Binding.Passes;
 /// <summary>The shared spine of the whole-group middle-end passes (P6 Step 3): the parse ROOT (the terminal
 /// <c>VersionConformancePass</c>'s parse-tree arm walks it — carrying it on the GROUP context puts no parse context
 /// on any bound NODE), the collected units + class units, and the group-bind session (turn state, class table,
-/// edition, uid bands). Deliberately does NOT carry the <see cref="IOoBindHost"/> seam — no group pass needs the
+/// edition, uid bands). Deliberately does NOT carry the OO bind driver — no group pass needs the
 /// emitter-hosted OO bind bodies (they all run BEFORE the tail), so a pass reaching for emit state is a compile
 /// error by construction.</summary>
 internal sealed record GroupBindContext(

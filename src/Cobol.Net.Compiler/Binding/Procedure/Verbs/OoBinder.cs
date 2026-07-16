@@ -22,7 +22,7 @@ using Core = CobolParserCore;
 /// (GOBACK/EXIT METHOD → <c>BoundMethodReturn</c>). The ride-along bound records moved to
 /// <c>Binding/Bound/BoundOo.cs</c> (records-only, the established rule). The OO HOST state
 /// (OoClasses/OoCurrentClass/OoInFactory — set by the emitter's OO bind half) stays on
-/// <see cref="StatementBinder"/> behind the IOoBindHost seam until P9, read here via host edges that flip
+/// <see cref="StatementBinder"/> (set by <c>Oo/OoDriver</c> since P9 Step 4), read here via host edges that flip
 /// at 10t; BindMethodRoster (the class-roster entry-point twin of Bind()) stays on the host with the
 /// procedure table until the 10t ProcedureTableBuilder hoist.
 /// </summary>
