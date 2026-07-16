@@ -15,11 +15,21 @@
   7. The 14 `OoTests` are re-landed as greenfield facts (in `OoSpineTests` or a sibling).
   8. Full battery GREEN: greenfield conformance + unit + the FULL legacy guard (NIST 353 MATCH), with the emitted-C# characterization snapshots either byte-identical or reviewed-and-re-baselined for each intentional emit change.
 
-- **STATUS:** `IN PROGRESS @ step 4` (2026-07-15 — steps 1–3 DONE, DEVLOG 844–845: `Oo/` home + namespace;
+- **STATUS:** `IN PROGRESS @ step 6` (2026-07-15 — steps 1–4 DONE, DEVLOG 844–846: `Oo/` home + namespace;
   `OoConformance` extracted with `AdapterPairs` as a RETURN value threaded via `BoundCompilation.OoAdapters`
   [`OoEmitter` no longer sees the class table at all]; `OoMethodSymbol` phase-explicit via `OoMethodBinding`
-  [deviation: `OverrideOf` stays pass-1 identity]. Next: Step 4 = extract `OoDriver` from `BinderDriver.Bind`'s
-  inline OO sequence + the `CSharpEmitter.Oo.cs` bind bodies, per the drift ledger below.)
+  [deviation: `OverrideOf` stays pass-1 identity]; `OoDriver` owns the OO bind bodies and **`IOoBindHost` is
+  DELETED** [`BindSession` survives in its own file; `CSharpEmitter` = the two driver entries only].
+  **Step 5 disposition: OBE** — P5 already relocated the harmonize OUT of the emitter into the declared
+  `StorageFormPass.HarmonizeStorageCrossings` (a deterministic MONOTONE closure: each item flips at most once;
+  order-independent lfp), which satisfies R5's intent; the doc's "pick the form from the family root" variant
+  is a DIFFERENT semantics in the conformance-blocked corners (e.g. propagation stops at non-display-numeric
+  nodes) and single-pass is NOT an exit criterion — recorded here instead of churning byte-neutral code.
+  **Step 6 as-built shape:** after Step 4 the three remaining flags are set ONCE at per-class-half binder
+  CONSTRUCTION (fresh `DataBinder`/`StatementBinder` per half — nothing shared, nothing to reset), so they
+  become `init`-only properties (compiler-enforced immutability — STRONGER than scoped push/pop; criterion 3's
+  intent: no mutable ambient flags, reset guaranteed structurally). `ActiveMethodScope` already push/pops via
+  `BinderContext.EnterMethodScope` (P7).)
   > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the DEVLOG entry-per-commit discipline (`DEVLOG.md`, newest-first) and push every commit boundary (`feedback_fully_autonomous_push`).
   >
   > ⚠ **AS-BUILT DRIFT LEDGER (scouted 2026-07-15 — adapt every step to these seams, not the doc's stale anchors):**

@@ -42,10 +42,11 @@ public sealed partial class DataBinder
     /// <c>StatementBinder.BindClassBody</c>; null while binding program/object-level code).</summary>
     public OoMethodDataScope? ActiveMethodScope { get; set; }
 
-    /// <summary>True when this binder binds a CLASS unit (set by the emitter's <c>OoBindClassData</c>): a root
+    /// <summary>True when this binder binds a CLASS unit (per-binder-instance configuration, set ONCE at
+    /// construction by <c>Oo/OoDriver</c> — init-only since P9 Step 6, so a mid-bind mutation cannot compile): a root
     /// that is NOT method-scoped is then OBJECT data — §14.9.23.3 SR 10 bans it from crossing an INVOKE
     /// BY REFERENCE (a bare object-data argument is assumed BY CONTENT instead, §14.9.23.4 GR6a2).</summary>
-    public bool OoIsClassUnit { get; set; }
+    public bool OoIsClassUnit { get; init; }
 
     /// <summary>Every method-scoped root of the class (union over all methods) — the SR 10 discriminator:
     /// an item whose 01/77 root is NOT in this set, in a class unit, is object data.</summary>

@@ -114,14 +114,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// binding so INVOKE resolves classes/methods defined anywhere in the group. Null ⇔ empty group.</summary>
     public OoClassTable? OoClasses { get; set; }
 
-    /// <summary>The CLASS whose method bodies this binder is binding (set by the emitter's OoBindClassBody;
-    /// null in a program unit) — the SELF/SUPER resolution root (§8.4.3.8: SELF resolves on the current
+    /// <summary>The CLASS whose method bodies this binder is binding (per-binder-instance configuration, set
+    /// ONCE at construction by <c>Oo/OoDriver</c> — init-only since P9 Step 6; null in a program unit) — the
+    /// SELF/SUPER resolution root (§8.4.3.8: SELF resolves on the current
     /// class's chain, SUPER starts at its BASE; slice 3b).</summary>
-    public OoClassSymbol? OoCurrentClass { get; set; }
+    public OoClassSymbol? OoCurrentClass { get; init; }
 
-    /// <summary>True while binding the FACTORY roster (§11.4): SELF/SUPER resolve over the FACTORY interface
+    /// <summary>True when this binder binds the FACTORY roster (§11.4; per-binder-instance configuration,
+    /// init-only since P9 Step 6): SELF/SUPER resolve over the FACTORY interface
     /// (§14.9.23.3 SR4f/h) and SELF|SUPER "NEW" binds the ACTIVE-CLASS creation form (§16.2.1).</summary>
-    public bool OoInFactory { get; set; }
+    public bool OoInFactory { get; init; }
 
 
     /// <summary>True while binding a statement inside a METHOD body — the D8 context switch (GOBACK →
