@@ -179,6 +179,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // from the runtime module call-name stack; bound apart from the generic argument path.
         if (sig.Name == "MODULE-NAME") return BindModuleName(sig, argCtxs);
 
+        // NUMVAL-C / TEST-NUMVAL-C (§15.68.2 / §15.94.2) — the optional ANYCASE keyword (orthogonal to the
+        // argument-2 currency; §15.94.3 r1 imports every §15.68.3 argument rule) + the §15.68.3 r3
+        // compilation-unit currency injection; bound apart from the generic argument path. The LOCALE phrase
+        // is the A.4.9 documented non-support (decision 3 — the P11 Step-8 disposition).
+        if (sig.Name is "NUMVAL-C" or "TEST-NUMVAL-C") return BindNumvalCFamily(sig, argCtxs);
+
         var args = BindIntrinsicArgs(argCtxs);
         if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
         {
@@ -206,12 +212,6 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (sig.Bind == IntrinsicBind.Fold
                 && sig.Name is "SMALLEST-ALGEBRAIC" or "HIGHEST-ALGEBRAIC" or "LOWEST-ALGEBRAIC")
             return BindAlgebraicFold(sig, args);
-
-        // NUMVAL-C with argument-2 omitted: there is exactly ONE currency string for the compilation unit — the
-        // SPECIAL-NAMES CURRENCY string or the default sign (§15.68.3 rule 3). Injecting it at bind time keeps
-        // the SPECIAL-NAMES config out of the backend (bound nodes carry complete semantics).
-        if (sig.Name == "NUMVAL-C" && args.Count == 1)
-            args.Add(new BoundStringLiteral(ctx.Data.CurrencyString));
 
         // MAX/MIN are category-polymorphic (§15.59/§15.63: the result follows the arguments — all-alphanumeric
         // arguments return the SELECTED STRING); ORD-MAX/ORD-MIN always return an ordinal but dispatch their
@@ -302,7 +302,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// (noise — argument-3's mere presence selects the skip form, rule 2). The operand arguments are argument-1
     /// (the haystack), argument-2 (the needle), and the optional integer argument-3 (the number of matches to
     /// ignore). The two flags ride on <see cref="BoundIntrinsicCall.FindLast"/> /
-    /// <see cref="BoundIntrinsicCall.FindAnycase"/>; argument-3 (if given) is the third operand.</summary>
+    /// <see cref="BoundIntrinsicCall.Anycase"/>; argument-3 (if given) is the third operand.</summary>
     private BoundExpr BindFindString(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
     {
         bool last = false, anycase = false;
@@ -324,7 +324,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + $"[[START AFTER] argument-3] (ISO §15.37.2); {operands.Count} operand argument(s) given");
             return new BoundExprError("FUNCTION FIND-STRING");
         }
-        return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { FindLast = last, FindAnycase = anycase };
+        return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { FindLast = last, Anycase = anycase };
     }
 
     /// <summary>SUBSTITUTE (§15.87) — <c>argument-1 { [ANYCASE] [FIRST|LAST] argument-2 argument-3 } …</c>
@@ -535,6 +535,34 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1515", "FUNCTION MODULE-NAME NESTED shall be specified only within a "
                 + "nested program (ISO §15.65.3 argument rule 1) — this compilation unit is not contained");
         return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { ModuleNameKind = kind };
+    }
+
+    /// <summary>NUMVAL-C / TEST-NUMVAL-C (§15.68 / §15.94) — argument-1, then EITHER the argument-2 currency
+    /// string OR the LOCALE phrase (stacked alternatives, §15.68.2/§15.94.2), plus the orthogonal optional
+    /// ANYCASE keyword (§15.68.3 r4f — the currency match performed as if both sides were lowercased; rides
+    /// the ONE <see cref="BoundIntrinsicCall.Anycase"/> flag). With neither argument-2 nor LOCALE there is
+    /// exactly ONE currency string for the compilation unit — the SPECIAL-NAMES CURRENCY string or the default
+    /// sign (§15.68.3 r3) — injected HERE at bind time so the SPECIAL-NAMES config stays out of the backend
+    /// (bound nodes carry complete semantics). A LOCALE bare word is not consumed here — it falls to the
+    /// ordinary operand bind (an unresolved name) until the P11 Step-8 A.4.9 disposition claims it.</summary>
+    private BoundExpr BindNumvalCFamily(IntrinsicSig sig, IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    {
+        bool anycase = false;
+        var operands = new List<BoundOperand>();
+        foreach (var a in argCtxs)
+        {
+            if (KeywordWordOf(a) == "ANYCASE") { anycase = true; continue; }
+            operands.Add(BindArgOperand(a));
+        }
+        if (operands.Count is < 1 or > 2)
+        {
+            ctx.Edition.Error("COBOLNET1504", $"FUNCTION {sig.Name} takes argument-1 [argument-2] [ANYCASE] "
+                + $"(ISO §{(sig.Name == "NUMVAL-C" ? "15.68.2" : "15.94.2")}); {operands.Count} operand argument(s) given");
+            return new BoundExprError($"FUNCTION {sig.Name} arity");
+        }
+        if (operands.Count == 1)
+            operands.Add(new BoundStringLiteral(ctx.Data.CurrencyString));   // §15.68.3 r3
+        return new BoundIntrinsicCall(sig, operands, PicCategory.Numeric) { Anycase = anycase };
     }
 
     /// <summary>An operand whose comparison/result category is alphanumeric (drives MAX/MIN resolution): a string

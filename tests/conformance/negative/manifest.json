@@ -87,6 +87,7 @@
     "stop-literal",
     "strong-group-heterogeneous-compare",
     "sync_group_below_2023",
+    "test_validators_below_2002",
     "udf-by-value-arg-class",
     "unlock-sort-file",
     "unlock_below_2002",

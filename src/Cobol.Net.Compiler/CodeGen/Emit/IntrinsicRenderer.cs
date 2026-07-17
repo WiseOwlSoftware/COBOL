@@ -145,13 +145,27 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             {
                 int ws = Math.Max(num.Receiver.Scale, 6);
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
-                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}"), ws);
+                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {ws}{CommaFlag}{AnycaseFlag(ic)}"), ws);
             }
+
+            // The §15.93/§15.94 TEST validators — 0 / first-error position / LENGTH+1, scale 0. The digit-cap
+            // sub-notes are ARITHMETIC-MODE dependent (§15.93.4 r1b notes 2/4): 31 native, 34 under the SDIDI
+            // standard modes (standard-binary's 35 rides the P12/P13 STANDARD-BINARY wave).
+            case "TestNumval":
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
+                    $"{Str(ic.Args[0])}{CommaFlag}{DigitCapFlag}"), 0);
+            case "TestNumvalC":
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
+                    $"{Str(ic.Args[0])}, {Str(ic.Args[1])}{CommaFlag}{AnycaseFlag(ic)}{DigitCapFlag}"), 0);
+
+            // The §15.90/§15.91 date validators — integer verdict chains (year → month → day), scale 0.
+            case "TestDateYyyymmdd" or "TestDayYyyyddd":
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArg(ic, 0)), 0);
 
             case "FindString":                                                  // §15.37 FIND-STRING (2023) — 1-based position of argument-2 in argument-1
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod,
                     $"{Str(ic.Args[0])}, {Str(ic.Args[1])}, {(ic.FindLast ? "true" : "false")}, "
-                    + $"{(ic.Args.Count > 2 ? IntArg(ic, 2) : "0")}, {(ic.FindAnycase ? "true" : "false")}"), 0);
+                    + $"{(ic.Args.Count > 2 ? IntArg(ic, 2) : "0")}, {(ic.Anycase ? "true" : "false")}"), 0);
             case "Ord":                                                         // §15.70 — PCS-relative ordinal (H5: weights only when flagged)
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{Collate(ic)}"), 0);
             case "Length":                                                      // §15.50 runtime residue (nested string-fn argument)
@@ -267,6 +281,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     private string StrArgList(BoundIntrinsicCall ic) => string.Join(", ", ic.Args.Select(Str));
 
     private string CommaFlag => ctx.Data.DecimalPointIsComma ? ", commaMode: true" : "";
+
+    /// <summary>The ANYCASE named argument (§15.68.3 r4f / §15.37.4 r4 — the ONE <see cref="BoundIntrinsicCall.Anycase"/>
+    /// flag), rendered only when present so the default-free call stays byte-stable.</summary>
+    private static string AnycaseFlag(BoundIntrinsicCall ic) => ic.Anycase ? ", anycase: true" : "";
+
+    /// <summary>The §15.93.4/§15.94.4 r1b digit-cap named argument: 34 under the SDIDI standard-arithmetic
+    /// modes (sub-note 4), omitted for the native default 31 (sub-note 2).</summary>
+    private string DigitCapFlag => num.StandardDecimal ? ", digitCap: 34" : "";
 
     /// <summary>The trailing weights argument for a PCS-flagged CHAR/ORD/CHAR-NATIONAL (hazard H5: the binder
     /// set <see cref="BoundIntrinsicCall.Collate"/>/<see cref="BoundIntrinsicCall.CollateNat"/> ONLY when the

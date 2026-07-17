@@ -23,18 +23,21 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C REDEFINES confined-byte codec)
 
-**⏵ P11 IS IN PROGRESS @ Step 6 (2026-07-17).** Steps 0–2 + 5 are DONE (DEVLOG 871–874): `IntrinsicBind.
+**⏵ P11 IS IN PROGRESS @ Step 7 (2026-07-17).** Steps 0–2 + 5–6 are DONE (DEVLOG 871–875): `IntrinsicBind.
 Unsupported` + the five A.4.9 flips (`2a0ab666`); the boolean-conversion pair with the Boolean
-result-category channel (`e159a719`); the Y2K windowing trio §15.23/25/100 on the ONE `YearToYyyy` core
-(argument-2 is a SIGNED offset to the window's ENDING year — the window is ALWAYS 100 years) +
-SECONDS-PAST-MIDNIGHT §15.80 on the `RunUnit.Clock` seam (scale 7, documented 100 ns precision; goldens
-`intrinsics_date_window` first-try byte-exact + `CobolDateWindowingTests` pinned-clock unit facts). Live
-Deferred **17→6** (remaining: BYTE-LENGTH, the four TEST-* validators, CONCATENATE). The anchor re-scout is
-DONE — **READ `docs/rearchitecture/PHASE-11-scout-notes.md` FIRST** (verified anchors, hand-derived golden
-values, code seams file:line, test wiring, the Tier-C guard-site inventory; its ⚠ blocks override the phase
-doc — do NOT re-scout). Resume: Step 6 (the TEST-* validators §15.90/91/93/94 — exact verdict codes in the
-scout notes; the TEST twins belong in `CobolIntrinsics.Exact.cs` beside `TestNumvalF`, NOT Text.cs; extend
-the NUMVAL-C currency injection to TEST-NUMVAL-C) → Steps 7, 8 → Tier-C step groups C/D → Step 9 close-out.
+result-category channel (`e159a719`); the Y2K windowing trio on the ONE `YearToYyyy` core +
+SECONDS-PAST-MIDNIGHT on the `RunUnit.Clock` seam (`1728dfd9`); the TEST validator quartet
+§15.90/91/93/94 (date verdict CHAINS year→month→day; the NUMVAL pair as position-reporting scanners with
+the r1c LENGTH+1 leg, arithmetic-mode digit caps 31/34, and the ONE `BindNumvalCFamily` bespoke bind
+owning the §15.68.3-r3 currency injection + the r4f ANYCASE fold [the `Anycase` flag is now shared with
+FIND-STRING]; golden `intrinsics_test_validators` 34 probes first-try byte-exact). Live Deferred **17→2**
+(remaining: BYTE-LENGTH, CONCATENATE — both Step 7). The anchor re-scout is DONE — **READ
+`docs/rearchitecture/PHASE-11-scout-notes.md` FIRST** (verified anchors, hand-derived golden values, code
+seams file:line, test wiring, the Tier-C guard-site inventory; its ⚠ blocks override the phase doc — do NOT
+re-scout). Resume: Step 7 (CONCATENATE → Runtime reusing `Concat` with the [2002,2023) window rows;
+`BindByteLengthFold` beside `BindLengthFold` folding byte geometry; the SMALLEST-ALGEBRAIC golden +
+2014-window row) → Step 8 (COBOLNET1518 A.4.9 disposition; the scout found NUMVAL-C's LOCALE keyword is a
+spec list omission — dispose it with the same diagnostic) → Tier-C step groups C/D → Step 9 close-out.
 ⚠ Guard-flake note: a 351+2/352+1 guard-fast verdict naming file-I/O suites (SQ/IC) is the DEVLOG-870/872/873
 environmental flake class — re-prove by SOLO rerun before treating as real.
 

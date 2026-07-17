@@ -166,7 +166,9 @@ public sealed record BoundIntrinsicCall(
 
     /// <summary>FIND-STRING (§15.37.2 / .4 rule 4): the <c>ANYCASE</c> phrase keyword — case-insensitive matching
     /// (as if both arguments were lowered per LOWER-CASE). False for every other function.</summary>
-    public bool FindAnycase { get; init; }
+    /// <summary>The ANYCASE phrase was present — FIND-STRING's case-folded search (§15.37.4 r4) and the
+    /// NUMVAL-C / TEST-NUMVAL-C case-folded currency match (§15.68.3 r4f) share the ONE flag.</summary>
+    public bool Anycase { get; init; }
 
     /// <summary>SUBSTITUTE (§15.87.2): one mode flag per (argument-2, argument-3) pair — bit 0 = FIRST (rule 3.a),
     /// bit 1 = LAST (rule 3.b), bit 2 = ANYCASE (rule 5); 0 = replace ALL occurrences. <see cref="Args"/> holds

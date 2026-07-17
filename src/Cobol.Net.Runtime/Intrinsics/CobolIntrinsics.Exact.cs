@@ -331,15 +331,121 @@ public static partial class CobolIntrinsics
     /// grouping separators (',' normally; '.' under DECIMAL-POINT IS COMMA, rule 4d) are ignored (§15.68.4 rule 2);
     /// then the remainder parses exactly as NUMVAL (sign / CR / DB, rule 3).
     /// </summary>
-    public static long NumvalC(string text, string currency, int scale, bool commaMode = false)
+    public static long NumvalC(string text, string currency, int scale, bool commaMode = false, bool anycase = false)
     {
         char group = commaMode ? '.' : ',';
         string cur = currency.Trim();
-        string s = cur.Length == 0 ? text : text.Replace(cur, "", StringComparison.Ordinal);
+        // ANYCASE (§15.68.3 r4f): the currency match is performed as if both sides were lowercased per
+        // LOWER-CASE — an ordinal-ignore-case removal realizes that correspondence for the invariant set.
+        string s = cur.Length == 0 ? text
+            : text.Replace(cur, "", anycase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
         s = s.Replace(group.ToString(), "", StringComparison.Ordinal);
         // The currency may sit between the sign and the digits ("- $ 890.05"): removing it can leave interior
         // spaces after the sign, which Numval's sign-strip + TrimStart already ignores (§15.68.3 r4a's
         // space-strings around the currency).
         return Numval(s, scale, commaMode);
+    }
+
+    // ── The §15.93/§15.94 TEST validators — position-reporting scanners beside their value parsers ────────────
+
+    /// <summary>TEST-NUMVAL (§15.93.4): 0 when argument-1 conforms to the §15.67.3 NUMVAL formats (r1a); else
+    /// the 1-based ordinal position of the first character in error (r1b — an embedded space after the first
+    /// digit reports the first NON-space character following it, sub-note 1: <c>"0 1"</c> → 3; the
+    /// <paramref name="digitCap"/>+1-th digit reports its own position, sub-notes 2/4 — 31 native, 34
+    /// standard-decimal [standard-binary's 35 rides the P12/P13 STANDARD-BINARY wave]); else — no specific
+    /// character in error: zero-length, only spaces, or valid-but-incomplete like <c>" +."</c> —
+    /// LENGTH+1 (r1c). A dedicated scanner beside <see cref="Numval"/> (the TestNumvalF discipline —
+    /// positions are ordinal in the ORIGINAL string, so remove-and-delegate cannot work).</summary>
+    public static long TestNumval(string text, bool commaMode = false, int digitCap = 31)
+    {
+        char dec = commaMode ? ',' : '.';
+        int n = text.Length, i = 0, digits = 0;
+        bool anyDigit = false, sawDot = false, leadSign = false;
+        while (i < n && text[i] == ' ') i++;                          // leading space-string
+        if (i < n && text[i] is '+' or '-') { leadSign = true; i++; } // format-A leading sign
+        while (i < n && text[i] == ' ') i++;                          // spaces before the first digit (r2)
+        for (; i < n; i++)                                            // { digit [ dec [digit] ] | dec digit }
+        {
+            char c = text[i];
+            if (char.IsAsciiDigit(c))
+            {
+                anyDigit = true;
+                if (++digits > digitCap) return i + 1;                // r1b sub-notes 2/4 — the cap+1-th digit
+                continue;
+            }
+            if (c == dec && !sawDot) { sawDot = true; continue; }
+            break;                                                    // the trailing region (or an error)
+        }
+        // No digit anywhere: a scan that BROKE on a real character reports that character (r1b — e.g. a
+        // misplaced sign); a scan that ran off the end with only valid-but-incomplete content (" +.",
+        // all-spaces, zero-length) is the r1c LENGTH+1 leg.
+        if (!anyDigit) return i < n ? i + 1 : n + 1;
+        while (i < n && text[i] == ' ') i++;                          // spaces before a trailing sign
+        if (i < n)
+        {
+            char c = text[i];
+            // Format-B trailing sign / CR / DB (any case, §15.67.3 r1) — only when no leading sign was taken
+            // (the two formats are ALTERNATIVES).
+            if (!leadSign && c is '+' or '-') i++;
+            else if (!leadSign && i + 1 < n
+                     && ((c is 'C' or 'c' && text[i + 1] is 'R' or 'r')
+                         || (c is 'D' or 'd' && text[i + 1] is 'B' or 'b'))) i += 2;
+            else return i + 1;                                        // r1b — first char in error ("0 1" → 3)
+        }
+        while (i < n && text[i] == ' ') i++;                          // trailing space-string
+        return i == n ? 0 : i + 1;
+    }
+
+    /// <summary>TEST-NUMVAL-C (§15.94.4): the §15.93.4-shaped verdict over the §15.68.3 NUMVAL-C formats —
+    /// <c>[sp] [sign] [sp] [currency] [sp] digits[,digits]… [dec [digits]] [sp]</c> (format A, sign BEFORE the
+    /// currency) or <c>[sp] [currency] [sp] digits… [sp] [sign|CR|DB] [sp]</c> (format B, trailing sign). The
+    /// currency (argument-2, or the binder-injected compilation-unit currency, §15.68.3 r3) matches character
+    /// for character (r4a) — case-folded under ANYCASE (r4f); it appears at most once, BEFORE the digits (no
+    /// trailing-currency or currency-then-sign form). Grouping separators are ARBITRARY-length digit groups
+    /// (r4a's <c>digit [, digit]…</c> — no 3-digit constraint; <c>"1,23,4.5"</c> conforms) and are illegal
+    /// after the decimal separator; DECIMAL-POINT IS COMMA SWAPS the two roles (r4d). Verdicts: 0 (r1a) /
+    /// first-error position (r1b, same sub-notes as TEST-NUMVAL) / LENGTH+1 (r1c).</summary>
+    public static long TestNumvalC(string text, string currency, bool commaMode = false, bool anycase = false,
+        int digitCap = 31)
+    {
+        char dec = commaMode ? ',' : '.';
+        char group = commaMode ? '.' : ',';
+        string cur = currency.Trim();
+        var cmp = anycase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+        int n = text.Length, i = 0, digits = 0;
+        bool anyDigit = false, sawDot = false, leadSign = false, sawCur = false;
+        bool AtCurrency() => cur.Length > 0 && !sawCur
+            && i + cur.Length <= n && text.AsSpan(i, cur.Length).Equals(cur, cmp);
+        while (i < n && text[i] == ' ') i++;                          // leading space-string
+        if (i < n && text[i] is '+' or '-') { leadSign = true; i++; } // format-A sign — BEFORE the currency
+        while (i < n && text[i] == ' ') i++;
+        if (AtCurrency()) { sawCur = true; i += cur.Length; }         // the at-most-once currency (r4a)
+        while (i < n && text[i] == ' ') i++;                          // spaces after the currency
+        for (; i < n; i++)                                            // digit groups + one decimal separator
+        {
+            char c = text[i];
+            if (char.IsAsciiDigit(c))
+            {
+                anyDigit = true;
+                if (++digits > digitCap) return i + 1;                // r1b sub-notes 2/4
+                continue;
+            }
+            if (c == group && !sawDot && anyDigit) continue;          // grouping only BEFORE the decimal (r2 of §15.68.4)
+            if (c == dec && !sawDot) { sawDot = true; continue; }
+            break;
+        }
+        if (!anyDigit) return i < n ? i + 1 : n + 1;                  // r1b at the offending char, else r1c
+        while (i < n && text[i] == ' ') i++;
+        if (i < n)
+        {
+            char c = text[i];
+            if (!leadSign && c is '+' or '-') i++;                    // format-B trailing sign
+            else if (!leadSign && i + 1 < n
+                     && ((c is 'C' or 'c' && text[i + 1] is 'R' or 'r')
+                         || (c is 'D' or 'd' && text[i + 1] is 'B' or 'b'))) i += 2;
+            else return i + 1;                                        // r1b
+        }
+        while (i < n && text[i] == ' ') i++;
+        return i == n ? 0 : i + 1;
     }
 }

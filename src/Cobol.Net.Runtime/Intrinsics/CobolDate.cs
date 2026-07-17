@@ -126,6 +126,35 @@ public static class CobolDate
         return YearToYyyy(day / 1000, off, baseYear) * 1000 + day % 1000;        // §15.25.4 r1
     }
 
+    /// <summary>TEST-DATE-YYYYMMDD (ISO §15.90.4 r1) — the if/else-if CHAIN, year before month before day
+    /// (16000230 is 1, not 2): (1) argument-1 outside 16 010 000..99 999 999 — the year subfield is not
+    /// 1601..9999 (r1a); (2) else MOD(argument-1, 10000) outside 100..1299 — the month is not 1..12 (r1b);
+    /// (3) else the day subfield is not valid for the month of the year, Gregorian leap rules (r1c);
+    /// (0) else valid (r1d). Codes confirmed by the informative D.31.3.8.</summary>
+    public static long TestDateYyyymmdd(long date)
+    {
+        if (date is < 16010000 or > 99999999) return 1;                       // r1a — year
+        long mmdd = date % 10000;
+        if (mmdd is < 100 or > 1299) return 2;                                // r1b — month
+        long day = date % 100;
+        if (day < 1 || day > DateTime.DaysInMonth((int)(date / 10000), (int)(mmdd / 100)))
+            return 3;                                                         // r1c — day
+        return 0;                                                             // r1d
+    }
+
+    /// <summary>TEST-DAY-YYYYDDD (ISO §15.91.4 r1) — year before day; there is NO code 3 for this function:
+    /// (1) argument-1 outside 1 601 000..9 999 999 — the year is not 1601..9999 (r1a); (2) else the ordinal
+    /// day is not 1..365/366 for the year, Gregorian leap rules (r1b); (0) else valid (r1c). Codes confirmed
+    /// by the informative D.31.3.9.</summary>
+    public static long TestDayYyyyddd(long day)
+    {
+        if (day is < 1601000 or > 9999999) return 1;                          // r1a — year
+        long ddd = day % 1000;
+        if (ddd < 1 || ddd > (DateTime.IsLeapYear((int)(day / 1000)) ? 366 : 365))
+            return 2;                                                         // r1b — day-of-year
+        return 0;                                                             // r1c
+    }
+
     /// <summary>SECONDS-PAST-MIDNIGHT (ISO §15.80.3): the current LOCAL time of day in seconds past midnight,
     /// in standard numeric time form — type NUMERIC, fractional seconds intended (r1/r2; the Annex D.31.5.4
     /// example carries 12 fraction digits). Returns the day's tick count = the UNSCALED value at SCALE 7 (the

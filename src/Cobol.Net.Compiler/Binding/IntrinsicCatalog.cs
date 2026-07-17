@@ -187,10 +187,15 @@ public static class IntrinsicCatalog
         Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Unsupported, false, 2002)); // §15.54 (A.4.9 item 5)
         Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2002)); // §15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
         Add(new("STANDARD-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 4, "ssis", "", IntrinsicBind.Unsupported, false, 2002)); // §15.85 (A.4.9 item 11 + A.3 item 25)
-        Add(new("TEST-DATE-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "", IntrinsicBind.Deferred, false, 2002)); // §15.90
-        Add(new("TEST-DAY-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "", IntrinsicBind.Deferred, false, 2002));   // §15.91
-        Add(new("TEST-NUMVAL", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002));        // §15.93
-        Add(new("TEST-NUMVAL-C", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "", IntrinsicBind.Deferred, false, 2002)); // §15.94
+        // The TEST validators (§15.90/§15.91/§15.93/§15.94) — verdict chains beside their value parsers:
+        // the date pair is year-before-month-before-day (D.31.3.8/9 confirm codes 0/1/2[/3]); the NUMVAL
+        // pair is 0 / first-error position (the "0 1"→3 embedded-space sub-note; arithmetic-mode digit caps)
+        // / LENGTH+1 (the r1c leg — zero-length, all-spaces, incomplete like " +."). TEST-NUMVAL-C rides the
+        // ONE BindNumvalCFamily bespoke bind (currency injection + ANYCASE, §15.94.3 r1 → §15.68.3).
+        Add(new("TEST-DATE-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "TestDateYyyymmdd", IntrinsicBind.Runtime, false, 2002)); // §15.90
+        Add(new("TEST-DAY-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "TestDayYyyyddd", IntrinsicBind.Runtime, false, 2002));   // §15.91
+        Add(new("TEST-NUMVAL", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "TestNumval", IntrinsicBind.Runtime, false, 2002));        // §15.93
+        Add(new("TEST-NUMVAL-C", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "TestNumvalC", IntrinsicBind.Runtime, false, 2002)); // §15.94
         // CONCATENATE: 2002–2014 only — the 2023 standard's §15 has CONCAT (§15.18) and no CONCATENATE (window
         // provisional; the 2023 E.2 delta names only CONCAT as new).
         Add(new("CONCATENATE", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 1, inf, "s", "", IntrinsicBind.Deferred, false, 2002, 2023));

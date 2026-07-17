@@ -35,6 +35,7 @@
     "initialize_phrases",
     "intrinsics_boolean_conv",
     "intrinsics_date_window",
+    "intrinsics_test_validators",
     "literal_concat",
     "national_data",
     "national_intrinsics",

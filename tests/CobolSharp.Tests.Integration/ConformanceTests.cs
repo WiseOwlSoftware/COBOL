@@ -120,6 +120,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         // P11 Step 5: the Y2K windowing trio + SECONDS-PAST-MIDNIGHT (§15.23/§15.25/§15.100/§15.80) — the
         // frozen legacy has none of the 2002 date functions; greenfield CorpusRunner byte-compares the golden.
         ("2002", "intrinsics_date_window"),
+        // P11 Step 6: the TEST validator quartet (§15.90/§15.91/§15.93/§15.94) — the frozen legacy has no
+        // TEST-* functions; greenfield CorpusRunner byte-compares the golden.
+        ("2002", "intrinsics_test_validators"),
         // P10 Step 15: §13.10 constant entries + §13.18.15 CONSTANT RECORD — the compile-time constant table
         // (DataBinder.Constants.cs) never landed in legacy; greenfield CorpusRunner byte-compares both.
         ("2002", "constant_entry"),
