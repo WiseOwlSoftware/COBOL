@@ -135,27 +135,43 @@ public sealed class UdfInvocationTests
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1507");
     }
 
-    /// <summary>The evaluation-cardinality guard (§14.9.28 / §14.9.37 / §14.9.13 / §8.8.4.13): a function
-    /// reference in a re-evaluated or conditionally-evaluated position cannot ride the once-hoisted
-    /// activation — loud COBOLNET1509, never a stale-temp loop or an over-evaluated side effect. Legs:
-    /// PERFORM UNTIL, PERFORM VARYING, SEARCH WHEN, EVALUATE selection, and a non-first AND operand
-    /// (§8.8.4.13 r1 short-circuit / r2 function timing).</summary>
+    /// <summary>Per-evaluation activation (P10 Step 10 — §8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2): a function
+    /// reference in a conditionally- or repeatedly-evaluated CONDITION window now BINDS — the activations
+    /// attach to the condition (<c>BoundUdfEvaluated</c>) and run once per evaluation of that window.
+    /// Legs: PERFORM UNTIL (per iteration, §14.9.28 GR6), PERFORM VARYING UNTIL (GR13), an EVALUATE
+    /// selection OBJECT (per WHEN consideration, §14.9.13.4 GR4), and a non-first AND/OR operand
+    /// (§8.8.4.13 r1 short-circuit). Runtime cardinality is proven by the udf_per_eval golden.</summary>
     [Theory]
-    [InlineData("    PERFORM UNTIL FUNCTION UDFDBL(WS-A) > 9000\n        ADD 1 TO WS-A\n    END-PERFORM.")]
-    [InlineData("    PERFORM VARYING WS-A FROM 1 BY 1 UNTIL WS-A > FUNCTION UDFDBL(2)\n        DISPLAY \"X\"\n    END-PERFORM.")]
-    [InlineData("    EVALUATE WS-A\n        WHEN FUNCTION UDFDBL(2) DISPLAY \"E\"\n    END-EVALUATE.")]
-    [InlineData("    IF WS-A = 4 AND FUNCTION UDFDBL(WS-A) = 8 DISPLAY \"Y\" END-IF.")]
-    [InlineData("    IF WS-A = 9 OR FUNCTION UDFDBL(WS-A) = 8 DISPLAY \"Y\" END-IF.")]
-    public void ConditionallyEvaluatedPositions_1509(string body)
+    [InlineData("UDFT6A", "    PERFORM UNTIL FUNCTION UDFDBL(WS-A) > 9000\n        ADD 1 TO WS-A\n    END-PERFORM.")]
+    [InlineData("UDFT6B", "    PERFORM VARYING WS-A FROM 1 BY 1 UNTIL WS-A > FUNCTION UDFDBL(2)\n        DISPLAY \"X\"\n    END-PERFORM.")]
+    [InlineData("UDFT6C", "    EVALUATE WS-A\n        WHEN FUNCTION UDFDBL(2) DISPLAY \"E\"\n    END-EVALUATE.")]
+    [InlineData("UDFT6D", "    IF WS-A = 4 AND FUNCTION UDFDBL(WS-A) = 8 DISPLAY \"Y\" END-IF.")]
+    [InlineData("UDFT6E", "    IF WS-A = 9 OR FUNCTION UDFDBL(WS-A) = 8 DISPLAY \"Y\" END-IF.")]
+    public void ConditionallyEvaluatedPositions_BindPerEvaluation(string pid, string body)
     {
-        var (ok, errors, _) = EditionHarness.CompileFull(Group("UDFT6", body), 2002);
+        var (ok, errors, _) = EditionHarness.CompileFull(Group(pid, body), 2002);
+        Assert.True(ok, "per-evaluation window must bind: " + string.Join("\n", errors));
+    }
+
+    /// <summary>The NARROWED 1509 residue (per-evaluation activation does not yet reach these OPERAND
+    /// windows): a PERFORM VARYING BY operand (per augment, §14.9.28 GR12), an AFTER level's FROM
+    /// (re-evaluated per outer augment, GR13e.2), and an EVALUATE selection SUBJECT (once per statement per
+    /// §14.9.13.4 GR3, but this lowering re-binds subjects per WHEN — a hoist would over-activate).</summary>
+    [Theory]
+    [InlineData("UDFT6F", "    PERFORM VARYING WS-A FROM 1 BY FUNCTION UDFDBL(1) UNTIL WS-A > 9\n        DISPLAY \"X\"\n    END-PERFORM.")]
+    [InlineData("UDFT6G", "    PERFORM VARYING WS-A FROM 1 BY 1 UNTIL WS-A > 3\n            AFTER WS-R FROM FUNCTION UDFDBL(1) BY 1 UNTIL WS-R > 3\n        DISPLAY \"X\"\n    END-PERFORM.")]
+    [InlineData("UDFT6H", "    EVALUATE FUNCTION UDFDBL(2)\n        WHEN 4 DISPLAY \"E\"\n    END-EVALUATE.")]
+    public void PerEvaluationResidueOperands_1509(string pid, string body)
+    {
+        var (ok, errors, _) = EditionHarness.CompileFull(Group(pid, body), 2002);
         Assert.False(ok);
         EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1509");
     }
 
-    /// <summary>SEARCH WHEN leg of the 1509 guard (per-pass re-evaluation, §14.9.37).</summary>
+    /// <summary>The SEARCH WHEN window binds per-evaluation too (per scan pass, §14.9.37.4 GR5b) — the
+    /// runtime pass-count proof is the udf_per_eval golden's SEARCH leg.</summary>
     [Fact]
-    public void SearchWhenCondition_1509()
+    public void SearchWhenCondition_BindsPerEvaluation()
     {
         string src = """
             IDENTIFICATION DIVISION.
@@ -189,8 +205,7 @@ public sealed class UdfInvocationTests
             END FUNCTION UDFDBL.
             """;
         var (ok, errors, _) = EditionHarness.CompileFull(src, 2002);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET1509");
+        Assert.True(ok, "SEARCH WHEN must bind per-evaluation: " + string.Join("\n", errors));
     }
 
     /// <summary>The 0900 introduction gate on the BINDER path: a caller-only source (no FUNCTION-ID unit,

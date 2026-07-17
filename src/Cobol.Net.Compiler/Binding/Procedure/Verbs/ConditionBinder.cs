@@ -304,8 +304,13 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     /// <summary>Bind a left-to-right logical sequence (an OR / XOR / AND chain, or an abbreviated-AND chain), threading
     /// the abbreviation <paramref name="carry"/> through every operand in SOURCE ORDER so a later abbreviated relation
     /// sees the subject / operator an earlier one established. A lone operand returns its own condition (no wrapper).
-    /// A user-function reference in a NON-FIRST operand of an AND/OR chain is conditionally evaluated
-    /// (§8.8.4.13 r1 short-circuit / r2 function timing) — guarded loud, the hoist cannot honor it.</summary>
+    /// A user-function reference in a NON-FIRST operand of an AND/OR chain is CONDITIONALLY evaluated
+    /// (§8.8.4.13 r1 — evaluation stops when the hierarchical level's truth value is determined; r2 — functions
+    /// are evaluated "if and when the conditions containing them are evaluated"), so that operand's activations
+    /// attach to the operand itself (<c>UdfAttachPerEvaluation</c>) and run only when C#'s matching
+    /// short-circuit reaches it. The FIRST operand always evaluates — its activations stay statement-hoisted
+    /// (exact) unless an ENCLOSING repeated window drains them. XOR is exempt: both operands are always
+    /// required (§8.8.4.9), so a hoist is exact for every XOR operand.</summary>
     private BoundCondition BindFlatSequence(IParseTree ctx, string op, AbbrevCarry carry)
     {
         var parts = new List<BoundCondition>();
@@ -315,7 +320,8 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             if (ch is ITerminalNode) continue;   // the AND / OR / XOR / EXCLUSIVE-OR connective tokens
             int udfMark = host.Udf.PendingCount;
             parts.Add(BindCondition(ch, carry));
-            if (parts.Count > 1) host.Udf.UdfGuardConditionalOperand(udfMark, op);
+            if (parts.Count > 1 && op != "^")
+                parts[^1] = host.Udf.UdfAttachPerEvaluation(parts[^1], udfMark);
         }
         return parts.Count == 1 ? parts[0] : new BoundLogical(op, parts);
     }

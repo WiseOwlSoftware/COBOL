@@ -127,6 +127,56 @@ public static class CobolArgAdapt
         }
     }
 
+    /// <summary>Adapt argument <paramref name="i"/> to a BY VALUE NUMERIC formal (ISO §14.2.3 GR10): the activated
+    /// element operates on "the record in the linkage section … allocated by the activating runtime element" — a
+    /// data item OF THE FORMAL'S OWN DESCRIPTION that does NOT alias the argument, filled as if by "a COMPUTE
+    /// statement without the ROUNDED phrase" with the argument as the sending operand. Realized as a DETACHED
+    /// cell: the argument's value is rescaled to the formal's scale (truncation — the un-ROUNDED COMPUTE) and
+    /// conformed to the formal's digit capacity via <see cref="CobolNum.Store"/>; the callee's stores reach only
+    /// the cell, never the caller's storage (contrast <see cref="Num"/>, the §14.2.3 GR8 aliasing view).</summary>
+    public static ManagedPointer<long> NumValue(CobolArg[] args, int i, NumProfile formal, int formalScale)
+    {
+        if (!Present(args, i)) return Omitted<long>(i);
+        Int128 v;
+        switch (args[i].Carrier)
+        {
+            case ManagedPointer<long> lp:
+                v = CobolNum.Rescale(lp.Value, args[i].Scale, formalScale, CobolRounding.Truncation);
+                break;
+            case ManagedPointer<string> sp:
+                v = CobolNum.ParseDisplay(sp.Value, formal);   // a character-carried argument decodes through the formal's profile
+                break;
+            default:
+                return Omitted<long>(i);
+        }
+        return ManagedPointer<long>.Cell((long)CobolNum.Store(v, formalScale, formal));
+    }
+
+    /// <summary>Adapt argument <paramref name="i"/> to a BY VALUE formal whose callee-side storage is a CHARACTER
+    /// image of <paramref name="width"/> positions (a REDEFINED fixed-point numeric formal — still class numeric,
+    /// §14.2.2 SR2-legal, but image-carried): the same §14.2.3 GR10 detached copy as <see cref="NumValue"/>, in
+    /// image form. Writes reach only the cell (contrast <see cref="Text"/>, the GR8 splice-through view).</summary>
+    public static ManagedPointer<string> TextValue(CobolArg[] args, int i, int width)
+    {
+        if (!Present(args, i)) return Omitted<string>(i);
+        switch (args[i].Carrier)
+        {
+            case ManagedPointer<string> sp:
+                return ManagedPointer<string>.Cell(CobolString.Store(sp.Value, width));
+            case ManagedPointer<long> lp:
+                var prof = new NumProfile
+                {
+                    Digits = args[i].Digits > 0 ? args[i].Digits : Math.Max(1, width),
+                    FractionDigits = Math.Max(0, args[i].Scale),
+                    Signed = false,
+                    Truncation = NumericTruncation.DigitCount,
+                };
+                return ManagedPointer<string>.Cell(CobolString.Store(CobolNum.FormatDisplay(lp.Value, prof), width));
+            default:
+                return Omitted<string>(i);
+        }
+    }
+
     /// <summary>Deliver a RETURNING value to the caller's RETURNING carrier (ISO §14.2.3 GR7 — at termination the
     /// returning item's value transfers to the activating element's RETURNING identifier). Null-tolerant: a CALL
     /// without RETURNING discards the value (deep-dive edge case).</summary>

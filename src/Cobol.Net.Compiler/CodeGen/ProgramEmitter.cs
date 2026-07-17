@@ -281,15 +281,26 @@ internal sealed class ProgramEmitter
                     // reads/writes through this carrier (its CsName IS `__lnkpN.Value`). An ANY LENGTH formal
                     // (ISO §13.18.2 GR1 — its length IS the caller's argument length) takes the FULL-STRING
                     // view (the width -1 sentinel), never a Pic.Length=1 window that would truncate the caller.
+                    // A BY VALUE formal adopts the DETACHED value-copy cell instead (§14.2.3 GR10 — the
+                    // activated element's stores reach only the copy, never the caller; SR2 restricts the
+                    // carried shape to fixed-point numeric, so the text leg has no BY VALUE arm).
                     w.Line(isNum
-                        ? $"{f.CarrierField} = {RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")};"
+                        ? $"{f.CarrierField} = {(f.ByValue
+                            ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")
+                            : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}"))};"
                         : $"{f.CarrierField} = {RuntimeApi.ArgAdaptText("__args", f.Position, f.Item.IsAnyLength ? "-1" : $"{Math.Max(1, f.Item.Pic!.Length)}")};");
                     continue;
                 }
                 // Boundary round-trip formal (group / redefined): adopt the carrier, copy the caller's image in.
+                // A REDEFINED fixed-point BY VALUE formal (still class numeric — SR2-legal) rides the image
+                // round trip over a DETACHED cell (§14.2.3 GR10): copy-in below, and NO copy-out at return.
                 w.Line(isNum
-                    ? $"{f.CarrierField} = {RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")};"
-                    : $"{f.CarrierField} = {RuntimeApi.ArgAdaptText("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}")};");
+                    ? $"{f.CarrierField} = {(f.ByValue
+                        ? RuntimeApi.ArgAdaptNumValue("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}")
+                        : RuntimeApi.ArgAdaptNum("__args", f.Position, f.Item.ProfileName, $"{f.Item.Pic!.Scale}"))};"
+                    : $"{f.CarrierField} = {(f.ByValue
+                        ? RuntimeApi.ArgAdaptTextValue("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}")
+                        : RuntimeApi.ArgAdaptText("__args", f.Position, $"{Math.Max(1, f.Item.ImageWidth)}"))};");
                 using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
                 {
                     if (place is null)
@@ -304,9 +315,10 @@ internal sealed class ProgramEmitter
             w.Line("try { __Activate(); } finally { __asCalled = false; }");
             foreach (var (f, place, isNum) in formals)
             {
-                if (f.CarrierResident || place is null) continue;
+                if (f.CarrierResident || place is null || f.ByValue) continue;
                 // Copy the (possibly mutated) formal back to the caller's storage — the BY REFERENCE result
-                // becomes visible at activation end (§14.2.3 GR8/GR9; a BY CONTENT cell absorbs it invisibly).
+                // becomes visible at activation end (§14.2.3 GR8/GR9; a BY CONTENT cell absorbs it invisibly;
+                // a BY VALUE formal is SKIPPED above — its stores must never reach the caller, §14.2.3 GR10).
                 using (w.Block($"if ({RuntimeApi.ArgAdaptPresent("__args", f.Position)})"))
                     w.Line(isNum
                         ? $"{f.CarrierField}.Value = {PlaceRenderer.Read(place)};"

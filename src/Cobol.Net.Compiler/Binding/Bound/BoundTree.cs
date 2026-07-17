@@ -298,6 +298,23 @@ public sealed record BoundUserClassCondition(BoundOperand Operand, string Member
 /// <summary>A condition the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundConditionError(string Feature) : BoundCondition;
 
+/// <summary>A condition carrying the user-defined-function <paramref name="Activations"/> its
+/// <paramref name="Inner"/> predicate consumes, for a CONDITIONALLY or REPEATEDLY evaluated window: each
+/// activation runs ONCE PER EVALUATION of this condition — a function-identifier "references a temporary data
+/// item whose value is determined when the function is referenced at runtime" and its arguments are evaluated
+/// "at the beginning of the evaluation of the function-identifier" (ISO §8.4.3.2.4 GR1 :6963 / GR6a :6995), and
+/// functions in conditions are evaluated "if and when the conditions containing them are evaluated"
+/// (§8.8.4.13 r2). The binder attaches the statement-pending activations here instead of the once-per-statement
+/// hoist at every such window: a PERFORM UNTIL / VARYING UNTIL condition (re-evaluated per iteration, §14.9.28),
+/// a SEARCH / SEARCH ALL WHEN condition (per pass, §14.9.37), an EVALUATE selection-object term (per WHEN
+/// consideration, §14.9.13), and a non-first AND/OR combined-condition operand (§8.8.4.13 r1 short-circuit).
+/// The renderer emits an immediately-invoked <c>Func&lt;bool&gt;</c> so the activations execute exactly when the
+/// C# condition text evaluates — including inside loop headers and short-circuited <c>&amp;&amp;</c>/<c>||</c>
+/// chains. This is the ONE deliberate exception to the "side-effect-free predicate tree" contract above; the
+/// activations are the SAME <see cref="BoundCallProgram"/> lowering the hoist uses (one mechanism).</summary>
+public sealed record BoundUdfEvaluated(IReadOnlyList<BoundCallProgram> Activations, BoundCondition Inner)
+    : BoundCondition;
+
 // ── Statements ─────────────────────────────────────────────────────────────────────────────────────────────────
 
 /// <summary>A bound statement.</summary>

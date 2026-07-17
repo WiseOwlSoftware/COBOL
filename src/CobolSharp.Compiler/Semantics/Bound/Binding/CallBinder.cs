@@ -230,11 +230,14 @@ internal sealed class CallBinder
         var usingNames = new List<string>();
         if (ctx.usingClause() is { } usingCtx)
         {
-            var dataRefs = usingCtx.dataReferenceList()?.dataReference();
-            if (dataRefs != null)
+            // Per-parameter since the greenfield P10 Step-10 BY VALUE header grammar; ENTRY formals are
+            // BY REFERENCE in this legacy oracle (its corpus predates BY VALUE headers).
+            foreach (var prm in usingCtx.usingParameter())
             {
-                foreach (var dr in dataRefs)
-                    usingNames.Add(dr.cobolWord().GetText());
+                var dr = prm.usingByReference()?.dataReference()
+                    ?? prm.usingByValue()?.dataReference()
+                    ?? prm.dataReference();
+                usingNames.Add(dr.cobolWord().GetText());
             }
         }
 

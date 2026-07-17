@@ -24,10 +24,14 @@ using Core = CobolParserCore;
 /// Argument evaluation order (§8.4.3.2.4 GR2 — left to right, nested function-identifiers allowed) falls
 /// out of registration order: a nested call registers while its consumer's arguments bind, so it
 /// precedes the consumer in the sequence. A hoist is EXACT only where the reference is unconditionally
-/// evaluated exactly once per statement execution — §8.8.4.13 r2 ties function evaluation to "if and
-/// when the conditions containing them are evaluated", so conditionally-evaluated positions (short-
-/// circuited combined-condition operands, EVALUATE selection, re-evaluated loop conditions) stage LOUD
-/// (COBOLNET1509) rather than silently over/under-evaluating. Emission is 100% existing surface:
+/// evaluated exactly once per statement execution; every conditionally- or repeatedly-evaluated CONDITION
+/// window (a PERFORM UNTIL/VARYING UNTIL condition, a SEARCH WHEN, an EVALUATE object term, a non-first
+/// AND/OR operand) instead drains its suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper
+/// (<see cref="UdfAttachPerEvaluation"/> — §8.8.4.13 r2 "if and when the conditions containing them are
+/// evaluated"); the two operand windows per-evaluation does not yet reach (VARYING BY / AFTER-level FROM)
+/// and the per-WHEN-re-bound EVALUATE subject stage LOUD (the narrowed COBOLNET1509,
+/// <see cref="UdfStagePerEvaluationResidue"/>) rather than silently over/under-evaluating. Emission is
+/// 100% existing surface:
 /// <c>CallEmitCall</c> → <c>ProgramRegistry.CallProgram</c>; FUNCTION-ID units already emit as callable
 /// program classes with the RETURNING carrier.
 /// P7 Step 10k: a real collaborator over <see cref="BinderContext"/>, landed TOGETHER with
@@ -125,7 +129,17 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         var callArgs = new List<BoundCallArg>(operands.Count);
         for (int i = 0; i < operands.Count; i++)
         {
-            if (UdfArg(operands[i]) is not { } arg)
+            // §8.4.3.2.3 SR10 (:6942): when the formal corresponding to argument-1 is specified with a BY
+            // VALUE phrase, argument-1 shall be of class numeric, object, or pointer. Checked HERE (the one
+            // place the formal↔argument pairing exists); the header side's SR2 already restricted the FORMAL.
+            if (fn.Formals[i].ByValue && !UdfArgIsValueClass(operands[i]))
+            {
+                ctx.Edition.Error("COBOLNET1554",
+                    $"FUNCTION {name.ToUpperInvariant()} argument {i + 1}: an argument passed to a BY VALUE "
+                    + "formal parameter shall be of class numeric, object, or pointer (ISO §8.4.3.2.3 SR10)");
+                return new BoundExprError($"FUNCTION {name} argument {i + 1} BY VALUE class");
+            }
+            if (UdfArg(operands[i], fn.Formals[i]) is not { } arg)
             {
                 // Name the ACTUAL unsupported shape when the segment parser already classified it (a
                 // reference-modified argument, a figurative, an unresolvable name) — never a message
@@ -230,17 +244,31 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>One bound argument in its §8.4.3.2.4 GR5 manner: (a) an identifier permitted as a receiving
-    /// operand, with the formal's BY REFERENCE implied ⇒ BY REFERENCE over the caller's storage; (b) a
-    /// literal or arithmetic expression ⇒ a private-copy cell (the runtime <c>CobolArgAdapt</c> profile
-    /// adaptation realizes the §14.2.3 GR9 copy-in conformance to the formal — same-scale cells alias, a
-    /// scale difference gets the rescaling view). Header BY VALUE formals (GR5c) are not modeled for
-    /// functions. Null = unsupported operand form (the caller reports).</summary>
-    private static BoundCallArg? UdfArg(BoundOperand op) => op switch
+    /// operand, with the formal's BY REFERENCE stated or implied ⇒ BY REFERENCE over the caller's storage;
+    /// (b) a literal or arithmetic expression ⇒ BY CONTENT, a private-copy cell (the runtime
+    /// <c>CobolArgAdapt</c> profile adaptation realizes the §14.2.3 GR9 copy-in conformance to the formal —
+    /// same-scale cells alias, a scale difference gets the rescaling view); (c) a formal specified BY VALUE ⇒
+    /// BY VALUE for EVERY argument shape (GR5c :6991) — the caller snapshots the value and the callee adopts
+    /// the §14.2.3 GR10 detached copy, so a store into the formal never reaches the argument. Null =
+    /// unsupported operand form (the caller reports).</summary>
+    private static BoundCallArg? UdfArg(BoundOperand op, LinkageFormal formal) => op switch
     {
-        BoundFieldOperand f => new BoundCallArg(CobolPassMode.Reference, f.Place, null),
+        BoundFieldOperand f => new BoundCallArg(
+            formal.ByValue ? CobolPassMode.Value : CobolPassMode.Reference, f.Place, null),
         BoundNumericLiteral or BoundStringLiteral or BoundComputedOperand
-            => new BoundCallArg(CobolPassMode.Content, null, op),
+            => new BoundCallArg(formal.ByValue ? CobolPassMode.Value : CobolPassMode.Content, null, op),
         _ => null,
+    };
+
+    /// <summary>True when the argument is of class numeric, object, or pointer — the §8.4.3.2.3 SR10
+    /// admissible classes for an argument whose corresponding formal is BY VALUE. A numeric literal and an
+    /// arithmetic expression are class numeric by construction; an identifier tests its item's category.</summary>
+    private static bool UdfArgIsValueClass(BoundOperand op) => op switch
+    {
+        BoundNumericLiteral or BoundComputedOperand => true,
+        BoundFieldOperand f => f.Place.Item.Pic?.Category is PicCategory.Numeric or PicCategory.Pointer
+            or PicCategory.ProgramPointer or PicCategory.ObjectReference,
+        _ => false,
     };
 
     /// <summary>Drain THIS statement's pending function activations (registered while the statement bound)
@@ -248,34 +276,50 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
     /// is never a receiving operand (§8.4.3.2.3 SR1), so unlike property references there is no polarity
     /// classification and no post-ops. Runs INSIDE the property-op wrap at the BindStatement chokepoint, so
     /// a property-reference argument's GET (a pre-op of the OUTER wrap) still precedes the activation that
-    /// consumes its temp.</summary>
+    /// consumes its temp. The hoist is EXACT here: every conditionally- or repeatedly-evaluated window
+    /// already drained its own suffix into a per-evaluation <see cref="BoundUdfEvaluated"/> wrapper (or the
+    /// narrowed <see cref="UdfStagePerEvaluationResidue"/> 1509 stage) BEFORE the statement completed
+    /// binding, so what remains pending is evaluated exactly once per statement execution (a plain operand,
+    /// a sole IF condition, a TIMES count — §14.9.28 GR7, a first-level VARYING FROM — GR13a init, an
+    /// EVALUATE subject occurrence).</summary>
     internal BoundStatement UdfWrapCalls(BoundStatement core, int mark)
     {
         var calls = _udfPendingCalls;
         if (calls.Count <= mark) return core;
         var taken = calls.GetRange(mark, calls.Count - mark);
         calls.RemoveRange(mark, calls.Count - mark);
-
-        // Evaluation-cardinality guard (§1.4 — loud, never silently wrong). A once-hoisted activation is
-        // exact only when the reference is evaluated exactly once per statement execution. Statements whose
-        // condition/operand window re-evaluates or conditionally evaluates stage loud: a PERFORM
-        // UNTIL/VARYING condition (or FROM/BY operand) and a SEARCH WHEN condition re-evaluate per
-        // iteration/pass (§14.9.28 / §14.9.37); EVALUATE selection evaluates subjects once but objects only
-        // until a WHEN satisfies (§14.9.13 — and this backend's chained-selection lowering re-renders
-        // subject expressions per WHEN, so subjects guard too). Body statements are safe — they bind through
-        // their own BindStatement and drain their own suffix; only the statement's OWN window reaches here.
-        // (TIMES counts and a sole IF condition evaluate exactly once — the hoist is exact for those;
-        // short-circuited combined-condition operands are guarded at BindFlatSequence, §8.8.4.13.)
-        if (core is BoundInlinePerform { Control: not (PerformOnce or PerformTimes) }
-            or BoundOutOfLinePerform { Control: not (PerformOnce or PerformTimes) }
-            or BoundSearch or BoundEvaluate)
-            ctx.Edition.Error("COBOLNET1509",
-                "a user-defined function reference in a PERFORM UNTIL/VARYING phrase, a SEARCH WHEN "
-                + "condition, or an EVALUATE selection requires per-evaluation activation (ISO §14.9.28 / "
-                + "§14.9.37 / §14.9.13; §8.8.4.13 r2) — not yet implemented; move the reference to a "
-                + "preceding COMPUTE (M2-UDF follow-up)");
-
         return new BoundSequence([.. taken, core]);
+    }
+
+    /// <summary>Attach the function activations registered while <paramref name="cond"/> bound (those past
+    /// <paramref name="mark"/>) to the condition itself as a per-evaluation <see cref="BoundUdfEvaluated"/>
+    /// wrapper — the §8.4.3.2.4 GR1/GR6a "value determined when the function is referenced" semantics for a
+    /// window the statement evaluates conditionally or repeatedly (§8.8.4.13 r2). The drained suffix leaves
+    /// the pending list, so the statement-level hoist never double-activates them. No pending growth returns
+    /// the condition unchanged (zero cost for the UDF-free path).</summary>
+    internal BoundCondition UdfAttachPerEvaluation(BoundCondition cond, int mark)
+    {
+        var calls = _udfPendingCalls;
+        if (calls.Count <= mark) return cond;
+        var taken = calls.GetRange(mark, calls.Count - mark);
+        calls.RemoveRange(mark, calls.Count - mark);
+        return new BoundUdfEvaluated(taken, cond);
+    }
+
+    /// <summary>The NARROWED evaluation-cardinality stage (§1.4 — loud, never silently wrong) for the
+    /// operand windows per-evaluation activation does not yet reach: a PERFORM VARYING BY operand (evaluated
+    /// per augment, §14.9.28 GR12) or a non-first (AFTER) level's FROM operand (re-evaluated per outer
+    /// augment, GR13e.2), and an EVALUATE selection SUBJECT (this backend's chained-selection lowering
+    /// re-binds subject expressions per WHEN, while §14.9.13 evaluates a subject once per statement — a
+    /// hoist-per-WHEN would over-activate). Conditions are NOT staged — they ride
+    /// <see cref="UdfAttachPerEvaluation"/>.</summary>
+    internal void UdfStagePerEvaluationResidue(int mark, string where)
+    {
+        if (_udfPendingCalls.Count <= mark) return;
+        ctx.Edition.Error("COBOLNET1509",
+            $"a user-defined function reference in {where} requires an activation cardinality this "
+            + "implementation does not yet realize for that operand position (ISO §8.4.3.2.4 GR1/GR6a; "
+            + "§14.9.28 GR12/GR13 / §14.9.13) — move the reference to a preceding COMPUTE");
     }
 
     /// <summary>EXIT FUNCTION (pre-2023 editions — introduced 2002 with user functions, REMOVED by 2023,
@@ -301,19 +345,4 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
         return new BoundGoback(null);
     }
 
-    /// <summary>The §8.8.4.13 short-circuit guard for combined conditions: rule 1 terminates a hierarchical
-    /// level's evaluation as soon as its truth value is determined, and rule 2 evaluates functions "if and
-    /// when the conditions containing them are evaluated" — so a user-function reference in any operand
-    /// AFTER the first of an AND/OR chain is CONDITIONALLY evaluated and a once-hoisted activation would
-    /// over-evaluate it. Called by BindFlatSequence with the pending count marked before each non-first
-    /// operand binds (XOR is exempt — both operands are always required). Loud staging, per §1.4.</summary>
-    internal void UdfGuardConditionalOperand(int mark, string op)
-    {
-        if (_udfPendingCalls.Count <= mark || op == "^") return;
-        ctx.Edition.Error("COBOLNET1509",
-            "a user-defined function reference in a non-first operand of an AND/OR combined condition is "
-            + "evaluated only if the earlier operands do not determine the truth value (ISO §8.8.4.13 r1/r2 "
-            + "short-circuit) — a hoisted activation cannot honor that; move the reference to a preceding "
-            + "COMPUTE (M2-UDF follow-up)");
-    }
 }

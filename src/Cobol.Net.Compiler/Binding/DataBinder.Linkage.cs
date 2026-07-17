@@ -24,7 +24,12 @@ using Core = CobolParserCore;
 /// formal: those keep a callee-local field and round-trip the caller's character image at the ACTIVATION
 /// boundary (copy-in at entry, copy-out at return — the deep-dive group hard problem's whole-struct round trip,
 /// realized at the call boundary).</param>
-public sealed record LinkageFormal(DataItem Item, int Position, string CarrierField, bool CarrierResident);
+/// <param name="ByValue">True when the header names this formal in a BY VALUE phrase (ISO §14.2.2 using-phrase;
+/// §14.2.3 GR4 transitivity resolved at bind). The activated element then operates on a VALUE COPY — a detached
+/// cell conformed to the formal's description (§14.2.3 GR10: the argument is the sending operand of a COMPUTE
+/// without ROUNDED into the allocated record); the callee's stores never reach the caller's storage.</param>
+public sealed record LinkageFormal(DataItem Item, int Position, string CarrierField, bool CarrierResident,
+    bool ByValue = false);
 
 /// <summary>The synthesized run-unit backing of one EXTERNAL record (ISO §13.18.22 / §8.6.7): the emitter
 /// renders <c>private ref string {BackingCsName} =&gt; ref ExternalStore.Cell({ExternalName}, {InitImage}).Ref;</c>
@@ -108,9 +113,32 @@ public sealed partial class DataBinder
 
         if (program.procedureDivision() is not { } pd) { AnyLengthValidateUnit(); return; }
 
+        // The using-phrase modes (ISO §14.2.2 :23636 — { [BY REFERENCE] {[OPTIONAL] d}… | BY VALUE {d}… }…):
+        // BY REFERENCE / BY VALUE are TRANSITIVE across the parameters that follow until the other phrase
+        // appears; BY REFERENCE is assumed before the first phrase (§14.2.3 GR4). Threaded flat over the
+        // grammar's one-parameter-per-node shape (the CALL callArgument precedent).
         int pos = 0;
-        foreach (var dref in pd.usingClause()?.dataReferenceList()?.dataReference() ?? [])
+        bool byValue = false;
+        foreach (var prm in pd.usingClause()?.usingParameter() ?? [])
         {
+            Core.DataReferenceContext dref;
+            bool optional = false;
+            if (prm.usingByValue() is { } vb) { byValue = true; dref = vb.dataReference(); }
+            else if (prm.usingByReference() is { } rb)
+            {
+                byValue = false;
+                dref = rb.dataReference();
+                optional = rb.OPTIONAL() is not null;
+            }
+            else { dref = prm.dataReference(); optional = prm.OPTIONAL() is not null; }
+            if (optional)
+                // Conformant surface (§14.2.2 using-phrase — OPTIONAL may precede a BY REFERENCE formal),
+                // staged loud: the OPTIONAL/OMITTED formal model (§14.2.3 GR3, the §8.8.4.8 omitted-argument
+                // condition) is not implemented — never a silently-required formal.
+                Edition.Error(DiagnosticCatalog.OptionalFormal,
+                    $"formal parameter '{dref.GetText()}': the OPTIONAL phrase is recognized but OPTIONAL "
+                    + "formal parameters are not yet implemented (ISO §14.2.2 / §14.2.3 GR3)");
+
             string pname = dref.GetText();
             var item = FindLinkageRoot(pname);
             if (item is null)
@@ -137,12 +165,33 @@ public sealed partial class DataBinder
                 item.IsBased = false;
             }
 
+            if (byValue)
+            {
+                // §14.2.2 SR2 (:23664): "Each data-name-1 specified in a BY VALUE phrase shall be defined as a
+                // data item of class numeric, message-tag, object, or pointer." Class message-tag is the MCS
+                // module (not modeled — undeclarable here, so unreachable). Fixed-point class numeric is the
+                // CARRIED leg (the §14.2.3 GR10 detached-cell value copy); the remaining SR2-legal shapes
+                // (object/pointer classes, floating-point usage) stage loud by name — never silently by-ref.
+                if (!(item.IsElementary && item.Pic?.Category is PicCategory.Numeric or PicCategory.Pointer
+                        or PicCategory.ProgramPointer or PicCategory.ObjectReference))
+                    Edition.Error("COBOLNET1553",
+                        $"BY VALUE formal parameter '{pname}' shall be of class numeric, message-tag, object, "
+                        + "or pointer (ISO §14.2.2 SR2)");
+                else if (item.Pic is not { Category: PicCategory.Numeric, IsFloat: false })
+                    Edition.Error(DiagnosticCatalog.ByValueFormalCarrier,
+                        $"BY VALUE formal parameter '{pname}': this class's value-copy carrier "
+                        + "(ISO §14.2.3 GR10) is not yet implemented — only a fixed-point numeric BY VALUE "
+                        + "formal is carried");
+            }
+
             string carrier = $"__lnkp{pos}";
             // Carrier-resident = per-access aliasing of the caller's storage (design D1: "refs to LK-CTR
             // read/write LK_CTR.Value — the one unavoidable indirection"). Available for an elementary
             // fixed-point/character formal NOT overlaid by another linkage entry; a group formal (a different
             // C# struct type than the caller's — every cross-program group IS a category reinterpretation) and
-            // a redefined formal round-trip the character image at the activation boundary instead.
+            // a redefined formal round-trip the character image at the activation boundary instead. A BY VALUE
+            // formal is carrier-resident over its DETACHED value-copy cell (§14.2.3 GR10 — same per-access
+            // mechanism, different carrier: CobolArgAdapt.NumValue instead of the aliasing Num view).
             bool redefined = LinkageRoots.Any(r => !ReferenceEquals(r, item)
                 && r.RedefinesTargetName is { } t
                 && string.Equals(t, item.CobolName, StringComparison.OrdinalIgnoreCase));
@@ -154,7 +203,7 @@ public sealed partial class DataBinder
                 item.CsName = carrier + ".Value";
                 _callSuppressedRootFields.Add(item.CsName);
             }
-            _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident));
+            _linkageFormals.Add(new LinkageFormal(item, pos, carrier, resident, byValue));
             pos++;
         }
 
@@ -181,9 +230,9 @@ public sealed partial class DataBinder
     /// method data has (methods sweep in <c>OoBindMethodData</c>). SR2: an elementary level-1 LINKAGE entry of a
     /// FUNCTION or a CONTAINED program — never an outermost program (the §13.18.2.3 NOTE: a prototype-less CALL
     /// cannot associate arguments with an ANY LENGTH formal) and never the object/factory paragraph of a class.
-    /// SR3 (contained program): referenced in the PD header as a formal (every header formal is BY REFERENCE
-    /// today — the header BY VALUE phrase is not yet parsed, so SR3a's phrase requirement is structural) or as
-    /// the RETURNING item. SR4 (function): as a formal only — a function's ANY LENGTH RETURNING is illegal.
+    /// SR3 (contained program): referenced in the PD header as a formal WITH THE BY REFERENCE PHRASE (stated
+    /// or implied — a BY VALUE formal does not qualify, SR3a) or as the RETURNING item. SR4 (function): as a
+    /// BY REFERENCE formal only — a function's ANY LENGTH RETURNING is illegal.
     /// A violation clears <see cref="DataItem.IsAnyLength"/> (the IsBased discipline: the item binds as its
     /// ordinary one-character shape under an already-failed compile — never a half-varying state).</summary>
     private void AnyLengthValidateUnit()
@@ -210,7 +259,9 @@ public sealed partial class DataBinder
                     + "(ISO §13.18.2.3 SR2 and its NOTE)");
             else
             {
-                bool formal = LinkageFormals.Any(f => ReferenceEquals(f.Item, root));
+                // SR3a/SR4 require the BY REFERENCE phrase (stated or implied) — a BY VALUE formal never
+                // qualifies (its length is fixed by the value copy, not the caller's argument).
+                bool formal = LinkageFormals.Any(f => ReferenceEquals(f.Item, root) && !f.ByValue);
                 bool returning = ReferenceEquals(LinkageReturning, root);
                 if (UnitIsFunction ? !formal : !(formal || returning))
                     Edition.Error("COBOLNET1542", UnitIsFunction

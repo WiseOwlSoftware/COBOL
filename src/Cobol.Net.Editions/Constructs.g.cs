@@ -76,6 +76,7 @@ public static class Constructs
     public const string StartWithLength2002 = "start-with-length-2002";
     public const string SpecialNamesForNational2002 = "special-names-for-national-2002";
     public const string CallByValue2002 = "call-by-value-2002";
+    public const string PdHeaderByValue2002 = "pd-header-by-value-2002";
     public const string ClassDefinition2002 = "class-definition-2002";
     public const string InterfaceDefinition2002 = "interface-definition-2002";
     public const string RepositoryInterface2002 = "repository-interface-2002";

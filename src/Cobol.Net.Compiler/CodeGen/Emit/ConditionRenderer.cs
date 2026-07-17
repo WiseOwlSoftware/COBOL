@@ -11,9 +11,19 @@ namespace CobolNet.CodeGen.Emit;
 /// Renders a bound condition to a side-effect-free C# boolean expression (COBOLNET_DESIGN §11): relational
 /// comparisons (numeric scale-aligned, or alphanumeric via <c>CobolString.Compare</c>), logical AND/OR/XOR/NOT,
 /// level-88 membership over the conditional variable, and sign conditions. An unbound condition fails loud (§1.4).
+/// ONE deliberate exception to side-effect freedom: <see cref="BoundUdfEvaluated"/> — a per-evaluation
+/// user-function window — renders as an immediately-invoked <c>Func&lt;bool&gt;</c> whose body runs the
+/// activations then returns the inner predicate, so the activation executes exactly when (and only when) the
+/// containing condition text evaluates (ISO §8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2 — loop headers re-evaluate it per
+/// iteration, a short-circuited <c>&amp;&amp;</c>/<c>||</c> operand skips it entirely).
 /// </summary>
 internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : IBoundConditionVisitor<string>
 {
+    /// <summary>The CALL emitter — property-wired by <see cref="UnitEmitters"/> (the per-evaluation
+    /// <see cref="BoundUdfEvaluated"/> window renders the SAME activation text the statement hoist emits;
+    /// the ctor cannot take it — CallEmitter builds after this renderer).</summary>
+    internal CallEmitter Calls { get; set; } = null!;
+
     /// <summary>Render a bound condition as a C# boolean expression. Dispatch is the generated exhaustive
     /// <see cref="IBoundConditionVisitor{T}"/> (PHASE-07 Step 6e): every BoundCondition leaf has a Visit below, so a
     /// new leaf is a COMPILE error — the former loud <c>_ =></c> default is gone.</summary>
@@ -45,6 +55,12 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         ? $"!CobolClass.IsInClass({OperandText.AsString(n.Operand, num)}, {EmitText.CsLiteral(n.Members)})"
         : $"CobolClass.IsInClass({OperandText.AsString(n.Operand, num)}, {EmitText.CsLiteral(n.Members)})";
     public string Visit(BoundConditionError n) => EmitText.LoudValue("bool", n.Feature);
+    // A per-evaluation user-function window (ISO §8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2): the activations run each
+    // time THIS condition text evaluates — an IIFE, so a while-header re-runs them per iteration and a
+    // short-circuited &&/|| operand position skips them exactly when COBOL's rule 1 skips the operand.
+    public string Visit(BoundUdfEvaluated n) =>
+        $"new Func<bool>(() => {{ {string.Join(" ", n.Activations.Select(Calls.FunctionActivationText))} "
+        + $"return {Render(n.Inner)}; }})()";
 
     private string RenderRelational(BoundRelational r)
     {

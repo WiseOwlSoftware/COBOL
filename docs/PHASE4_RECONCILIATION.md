@@ -105,8 +105,11 @@ surface; no grammar change), with these deviations/realizations — recorded per
 4. **The content-arg "temp of the formal's PIC" is realized by the runtime ABI, not a bind-time temp:**
    literal/arith args ride the existing `BoundCallArg` value forms; `CobolArgAdapt.Num/Text` conform the cell
    to the callee's profile (same-scale cells alias; a scale difference gets the rescaling truncation view) —
-   observably the §14.2.3 GR9 copy-in. Header BY VALUE formals (GR5c) are not modeled (LinkageFormal carries
-   no mode); follow-up with the program-CALL header modes.
+   observably the §14.2.3 GR9 copy-in. ~~Header BY VALUE formals (GR5c) are not modeled (LinkageFormal carries
+   no mode); follow-up with the program-CALL header modes.~~ **CLOSED P10 Step 10 (2026-07-16):** the §14.2.2
+   using-phrase parses per-parameter, `LinkageFormal.ByValue` threads the §14.2.3 GR4 transitivity, and the
+   callee adopts a GR10 DETACHED value-copy cell (`CobolArgAdapt.NumValue`/`TextValue`, copy-out skipped) on
+   BOTH activation paths; SR2 = COBOLNET1553, §8.4.3.2.3 SR10 = COBOLNET1554.
 5. **The pending-call list lives on StatementBinder** (`_udfPendingCalls`), not DataBinder: registration
    happens inside the binder itself (property ops needed DataBinder only because ReferenceResolver registers
    them). The UDF wrap is the INNER sequence at the BindStatement chokepoint (before `OoWrapPropertyOps`), so
@@ -114,7 +117,9 @@ surface; no grammar change), with these deviations/realizations — recorded per
 6. **A per-iteration re-evaluation guard the design missed:** a once-hoisted activation cannot honor a
    PERFORM UNTIL/VARYING condition (or FROM/BY operand) or SEARCH WHEN condition, which re-evaluate per
    iteration (§14.9.28/§14.9.37) — COBOLNET1509 loud, never a stale-temp loop. Body statements are safe
-   (they drain their own suffix).
+   (they drain their own suffix). **P10 Step 10 (2026-07-16) LIFTED the guard for every CONDITION window**
+   (`BoundUdfEvaluated` per-evaluation attach, rendered as an IIFE — §8.4.3.2.4 GR1/GR6a); 1509 remains only
+   for a VARYING BY operand, an AFTER-level FROM, and an EVALUATE selection subject.
 7. **Temp synthesis generalized:** `OoCreatePropertyTemp` now delegates to the ONE `CreateCompilerTemp`
    (feedback_singular_pattern); the UDF result temp is `CreateCompilerTemp(returning, "__FNRES-", "__fnres", name)`.
 8. **Diagnostics band:** 1501 (+ a GR12 hint when the group defines the FUNCTION-ID), 1505 declared-but-undefined
@@ -124,8 +129,10 @@ surface; no grammar change), with these deviations/realizations — recorded per
 9. **Residue (named, staged):** function prototypes/cross-assembly locate (UDF-3 → EC-FUNCTION-NOT-FOUND
    surface), ALL INTRINSIC semantic bind + the FUNCTION-keyword-omitted reference form §8.4.3.2 SR2 (UDF-4),
    EXIT FUNCTION (M2-PROC-6 leg — now unblocked, needs the in-function placement flag), UDF references from
-   class-unit methods, per-evaluation activation (1509), BY VALUE header formals, §14.8.2.3 static
-   description-conformance for reference args (runtime-adapted today, the program-CALL posture).
+   class-unit methods, ~~per-evaluation activation (1509)~~ (CLOSED P10 Step 10 for condition windows; 1509
+   narrowed to VARYING BY / AFTER-level FROM / EVALUATE subjects), ~~BY VALUE header formals~~ (CLOSED P10
+   Step 10), §14.8.2.3 static description-conformance for reference args (runtime-adapted today, the
+   program-CALL posture).
 
 #### M2-UDF-1 — the ADVERSARIAL REVIEW WAVE (same change set; 28 raw findings → 24 confirmed → fixed/staged/documented)
 

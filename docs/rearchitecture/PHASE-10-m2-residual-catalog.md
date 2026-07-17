@@ -52,7 +52,7 @@ The M2 (COBOL-2002) surface was largely built in the **retired legacy byte engin
 
 4. **Files must ride `FileConnector`.** P8 collapses `SequentialFile`/`RelativeFile`/`IndexedFile` behind `FileConnector` + a polymorphic `FileRegistry`, deleting the `Keyed*` fallthrough. The 2002 file surface (SHARING / LOCK MODE / RETRY / UNLOCK / line-sequential + 2002 FILE STATUS 5x/6x) exists but was built on the pre-connector dispatch; it must be re-confirmed on the connector.
 
-5. **Genuine open residue remains, on ANY substrate:** ✅ `&`-concatenation LANDED (§8.8.3, Step 14 2026-07-16 — a compile-time fold, `concat-operator-2002` ACTIVE); CONSTANT entries (§13.10) + CONSTANT RECORD (§13.18.15) — **zero grammar/binder surface today** (`grep CONSTANT src/.../DataBinder.cs` → empty); Report Writer 2002 additions PRESENT WHEN format 1 + VARYING format 1 (**zero** hits in `DataBinder.Reports.cs`); ARITHMETIC IS STANDARD *behavior* (the `ArithmeticMode` enum is *captured* in `OptionsModel.cs` but **not consumed** by the numeric engine); ALPHABET national/UCS-4/UTF-8/UTF-16 phrases (no hits in `DataBinder.Switches.cs`); the EC `-N` twins + `EXCEPTION-FILE-N` (`IntrinsicCatalog.cs:133` = `IntrinsicBind.Deferred`, staged loud, blocked on national); the UDF residue (non-numeric/group RETURNING staged `COBOLNET1510` in `Binding/Procedure/Verbs/UdfBinder.cs`; BY VALUE header formals unmodeled; the RECURSIVE per-activation-vs-static data model deviation); the TYPEDEF residue (EXTERNAL type declaration, strong-group heterogeneous relations, SAME AS via `CloneItem`).
+5. **Genuine open residue remains, on ANY substrate:** ✅ `&`-concatenation LANDED (§8.8.3, Step 14 2026-07-16 — a compile-time fold, `concat-operator-2002` ACTIVE); CONSTANT entries (§13.10) + CONSTANT RECORD (§13.18.15) — **zero grammar/binder surface today** (`grep CONSTANT src/.../DataBinder.cs` → empty); Report Writer 2002 additions PRESENT WHEN format 1 + VARYING format 1 (**zero** hits in `DataBinder.Reports.cs`); ARITHMETIC IS STANDARD *behavior* (the `ArithmeticMode` enum is *captured* in `OptionsModel.cs` but **not consumed** by the numeric engine); ALPHABET national/UCS-4/UTF-8/UTF-16 phrases (no hits in `DataBinder.Switches.cs`); the EC `-N` twins + `EXCEPTION-FILE-N` (`IntrinsicCatalog.cs:133` = `IntrinsicBind.Deferred`, staged loud, blocked on national); the UDF residue (✅ BY VALUE header formals LANDED Step 10 2026-07-16 [§14.2.2/§14.2.3 GR10, both activation paths]; ✅ per-evaluation activation LANDED — 1509 NARROWED to VARYING BY / AFTER-level FROM / EVALUATE subjects; still open: the per-shape `COBOLNET1510` RETURNING residues [float/boolean/pointer-class + group shapes] in `Binding/Procedure/Verbs/UdfBinder.cs`, OPTIONAL/OMITTED formals [0899 `optional-formal`], and the RECURSIVE per-activation-vs-static data model deviation [§14.6.2.3.2/.3 — fresh instance per activation re-initializes WS]); the TYPEDEF residue (EXTERNAL type declaration, strong-group heterogeneous relations, SAME AS via `CloneItem`).
 
 6. **Per-edition obligation.** Every item above owes TWO things (owner directive, `ISO2023_CONFORMANCE_PLAN.md` §0): the complete per-edition ISO behavior AND the rejecting diagnostic under every `--std` edition that lacks it. A 2002 construct compiled `--std 85` must flag. Coverage = a positive golden + a version-matrix row + a negative `.err`.
 
@@ -67,7 +67,7 @@ When Phase 10 is DONE, the following are true and demonstrable:
 - Boolean OPERATORS `B-AND`/`B-OR`/`B-XOR`/`B-NOT` bind through `Binding/Procedure/Verbs/ConditionBinder.cs` (`BoundBoolBinary`) and render through `Values/Text/CobolBool` (already present; confirmed on the new folders + a golden).
 - Pointers (`USAGE POINTER`/`PROGRAM-POINTER`, `NULL`, `SET`, `ADDRESS OF`, `SET ADDRESS OF`, `UP/DOWN BY`, `BASED` deref, `ALLOCATE`/`FREE`) ride `Control/ManagedPointer` + `Control/StorageCell` (`CellPointer` window) under `RunUnit`; `USAGE PROGRAM-POINTER` distinguished from data `POINTER` (equality + `SET pp TO ENTRY`/procedure-pointer semantics per §13.18, staged-loud only where §13.18.5 GR3/GR4 deref would be undefined under .NET).
 - 2002 file surface (SHARING / LOCK MODE / RETRY / UNLOCK / line-sequential / FILE STATUS 5x/6x) is confirmed on `IO/FileConnector` + `FileRegistry`; the sharing registry is on `RunUnit` (`IO/Sharing/PhysicalFileTable`).
-- UDF residue closed: category-carrying non-numeric/group RETURNING (lifts `COBOLNET1510`), BY VALUE header formals modeled, and the per-activation-vs-static data model conformed for RECURSIVE (§14.6.2.3).
+- UDF residue closed: ✅ category-carrying non-numeric/group RETURNING (Step 9 — the blanket 1510 is now the per-shape residue staging), ✅ BY VALUE header formals modeled end-to-end (Step 10 — §14.2.2/§14.2.3 GR10, both activation paths), ✅ per-evaluation activation for condition windows (Step 10 — 1509 narrowed). STILL OPEN at phase end unless a later step takes it: the per-activation-vs-static data model for RECURSIVE (§14.6.2.3.2/.3 — WS should be last-used after the first activation; today a fresh instance per activation re-initializes it).
 
 **Net-new features (files/classes that exist when done):**
 - `src/Cobol.Net.Compiler/Binding/Model/` (or the P5 model folder): `ConstantEntry` support on `DataItem` (a computed init-only `IsConstant`/`ConstantValue`), a `ConstantEntryPass` (or fold into `BindEntry`); CONSTANT RECORD level-01 handling.
@@ -103,7 +103,7 @@ When Phase 10 is DONE, the following are true and demonstrable:
       REMAINING: the line-seq status protocol 06/09/71 + line-seq REWRITE, the 04/39 narrow statuses, the LINE
       SEQUENTIAL edition gate (COMMIT)
 - [x] Step 9 — UDF residue: category-carrying RETURNING (lift 1510) (net-new) (2026-07-16 — the §8.4.3.2.4 GR1 category channel: elementary alphanumeric/numeric-edited/national + character-form GROUP RETURNING carried end-to-end (the temp clones the FULL description — a group deep-clones its subtree unregistered via `CloneTempNode`; every operand chokepoint maps the result read to a `BoundFieldOperand` so the cloned category drives MOVE Table-16 / relation class dispatch / DISPLAY / the LENGTH fold — the relation chokepoint `ComparisonOperandOf` now routes through the ONE `IntrinsicBinder.OperandOf` mapping; delivery = the existing string CALL-ABI `CobolArgAdapt.StoreReturn(string)`, groups as AsImage/FromImage); `udf_returning_categories` golden ENABLED byte-exact + legacy GreenfieldOnly. STAGED loud by name (1510, per-shape texts in `UdfBinder.UdfReturningResidue`): FLOAT (the CALL-boundary string carrier has no float write half), BOOLEAN (no §8.8.2 boolean-expression function-result arm — a partial land would half-wire), pointer/object/index classes, and group residues (strong-typed identity, internal REDEFINES, variable-length, non-character binary/packed/COMP-5/float leaves))
-- [ ] Step 10 — UDF residue: BY VALUE formals + RECURSIVE per-activation data model (COMMIT)
+- [x] Step 10 — UDF residue: BY VALUE formals + per-evaluation activation + recursion verification (COMMIT) (2026-07-16 — (a) BY VALUE header formals END-TO-END: the §14.2.2 using-phrase grammar (`usingParameter`/`usingByValue`, per-parameter — legacy consumers updated shape-only), `LinkageFormal.ByValue` + §14.2.3 GR4 transitivity threading, §14.2.2 SR2 = COBOLNET1553 (+ 0899 `by-value-formal-carrier` for the SR2-legal object/pointer/float shapes; 0899 `optional-formal` for the parsed OPTIONAL phrase), the callee-side §14.2.3 GR10 DETACHED value-copy cells `CobolArgAdapt.NumValue`/`TextValue` on the ONE ABI (copy-out skipped) for BOTH CALL targets and UDF activations, UDF GR5c argument modes + §8.4.3.2.3 SR10 = COBOLNET1554, matrix row `pd-header-by-value-2002` (parse-arm `VisitUsingByValue`); (b) per-evaluation activation: `BoundUdfEvaluated` + `UdfAttachPerEvaluation` at every conditionally/repeatedly-evaluated CONDITION window (PERFORM UNTIL/VARYING UNTIL, SEARCH/SEARCH ALL WHEN, EVALUATE object terms, non-first AND/OR operands; rendered as an IIFE so C# short-circuit realizes §8.8.4.13 r1) — COBOLNET1509 NARROWED to VARYING BY / AFTER-level FROM / EVALUATE subjects; (c) recursion verified per §8.6.6 :8821 (already implemented — `BinderDriver` registers FUNCTION-ID units Recursive; `udf_recursion` re-proven by running). Goldens `udf_by_value` + `udf_per_eval` (EXTERNAL activation counter) verified-then-baked; negatives 1553/1554. ⚠ The RECURSIVE WS-static data-model split (§14.6.2.3.2/.3) did NOT land — still the open deviation, see §"Genuine open residue")
 - [x] Step 11 — EC `-N` twins + `EXCEPTION-FILE-N` (net-new, needs Step 2) (COMMIT) (2026-07-16 — EXCEPTION-FILE-N §15.29 / EXCEPTION-LOCATION-N §15.31 (the ONLY -N EC twins the 2023 text defines) flipped `Deferred`→`Runtime` as `EcFunctions.FileN/LocationN` = the base renderings through the ONE `NationalOf` repertoire translator, category National; the same wave landed CHAR-NATIONAL §15.16 (`CharNational`, native national PCS = UTF-16 order) + ORD-over-national §15.70.4 r2 (the 0844 guard narrowed to CHAR, alphanumeric weights never applied to a national arg); `exception_file_n`+`char_national` ENABLED, `exception-file-n-2002` matrix row, `exception_file_n_below_2002` 85-window negative, ECT018N inline EC Fact; the 2023 file-connector-argument form stays loud → PHASE-13 Step 9)
 - [ ] Step 12 — ARITHMETIC IS STANDARD behavior @2002/2014 (net-new) (COMMIT)
 - [ ] Step 13 — Report Writer 2002: PRESENT WHEN + VARYING format 1 (net-new) (COMMIT)
@@ -145,7 +145,7 @@ PHASE-10 §4; PHASE4_RECONCILIATION rows annotated. No code change.
 
 | Track | Verdict | Gaps | Wave sizing |
 |---|---|---|---|
-| UDF | PARTIAL | 3 | M — **the category-carrying result channel LANDED 2026-07-16 (Step 9):** the caller temp clones the full RETURNING description (groups deep-clone) and every operand chokepoint carries the cloned category (the 1510 reject is now the per-shape `UdfReturningResidue` staging: float/boolean/pointer-class + the group residues). The remaining wave must parse + model header BY VALUE formals end-to-end (grammar → DataBinder.Linkage → UdfArg → CallEmitter) and replace the 1509 hoist guard with per-evaluation activation (both untouched, still open — Step 10); the invocation core, recursion, prototypes, and EXIT FUNCTION already ride the new substrate with enabled goldens. |
+| UDF | PARTIAL | 3 | S — **Steps 9 + 10 BOTH LANDED 2026-07-16:** the category-carrying result channel (Step 9 — the 1510 reject is the per-shape `UdfReturningResidue` staging: float/boolean/pointer-class + the group residues), header BY VALUE formals end-to-end (Step 10 — grammar `usingParameter`/`usingByValue` → `LinkageFormal.ByValue` → GR5c `UdfArg` modes → the shared-ABI `CobolArgAdapt.NumValue`/`TextValue` detached cells; SR2=1553, SR10=1554, `pd-header-by-value-2002` row), and per-evaluation activation (Step 10 — `BoundUdfEvaluated` IIFE windows; 1509 NARROWED to VARYING BY / AFTER-level FROM / EVALUATE subjects). The invocation core, recursion (§8.6.6 — verified), prototypes, and EXIT FUNCTION ride the new substrate with enabled goldens. Remaining: the per-shape 1510 RETURNING residues, OPTIONAL/OMITTED formals (0899), the narrowed 1509 operand shapes, and the RECURSIVE WS-static data-model deviation (§14.6.2.3.2/.3). |
 | DATA-3-national | PARTIAL | 3 | S — **LANDED 2026-07-16 (Step 5): DISPLAY-OF/NATIONAL-OF are Runtime rows** (argument-2 turned out to be a substitution character per the 2023 §15.26.3 r2/§15.66.3 r2 text, not a codeset name — both forms fully implemented, no staged deferral); the SR12 national-form numeric/boolean leg stays staged-loud as the separately catalogued residual. |
 | DATA-4-boolean | PARTIAL | 3 | M — the wave must land the four 2023 B-SHIFT operators end-to-end (lexer tokens + a shift tier in the §8.8.2 booleanExpression grammar with an arithmetic shift-count operand, a new BoundBoolShift leaf through the generated visitor, CobolBool.ShiftL/LC/R/RC, a 2023-only VersionConformancePass gate row, an enabled 2023 golden + a below-2023 negative), plus the small BX\"…\" lexer leg and the national-form boolean representation, and fix the stale CobolExpressions.g4:145-150 staged-residue comment; the entire 2002 core (data, literals, four operators, conditions, COMPUTE F2) needs no rework — it already rides StorageForm/Place/CobolBool. |
 | DATA-5-pointers | PARTIAL | 4 | M — the P10 wave must land USAGE PROGRAM-POINTER end-to-end (lexer token + usageClause alternative + a PicCategory/StorageForm.PointerRef-style carrier resolving through the existing RunUnit ProgramTable for SET … TO ENTRY, with a 2002 ConstructRegistry introduction row and an enabled golden), and unstage the two loud residues (class-unit BASED/ADDRESS OF cell emission; qualified/subscripted ADDRESS OF operands) on the already-proven ManagedPointer/StorageCell substrate. |
@@ -177,9 +177,10 @@ Evidence:
 
 Gaps:
 - ~~category-carrying RETURNING (group / alphanumeric / edited / float result channel; currently staged COBOLNET1510, elementary fixed-point numeric only)~~ — **CLOSED 2026-07-16 (Step 9)** for the categories the channel now carries: alphanumeric/alphabetic, numeric-edited, national, and character-form groups (§8.4.3.2.4 GR1 — the temp clones the full description; §14.2.2 SR5 places no category restriction). Still 1510 by name (per-shape texts in `UdfBinder.UdfReturningResidue`): FLOAT (no CALL-boundary float write half), BOOLEAN (no §8.8.2 function-result arm), pointer/object/index, strong-typed/REDEFINES-bearing/variable-length/binary-leaf groups — ISO §8.4.3.2.4 GR1 / §14.8.3
-- BY VALUE formal parameters in the FUNCTION-ID PROCEDURE DIVISION USING header (grammar-absent — raw parse error, no named diagnostic) — ISO §14.2.3 / §8.4.3.2.4 GR5c
-- OPTIONAL formals / OMITTED arguments for function activation (staged COBOLNET1506) — ISO §14.8.2
-- per-evaluation activation for conditionally-evaluated reference positions: PERFORM UNTIL/VARYING, SEARCH WHEN, EVALUATE selection, non-first AND/OR operands (staged COBOLNET1509) — ISO §8.8.4.13 r2
+- ~~BY VALUE formal parameters in the FUNCTION-ID PROCEDURE DIVISION USING header (grammar-absent — raw parse error, no named diagnostic)~~ — **CLOSED 2026-07-16 (Step 10)**: the §14.2.2 using-phrase parses per-parameter, `LinkageFormal.ByValue` + the §14.2.3 GR4 transitivity thread, SR2 = COBOLNET1553 (+ 0899 `by-value-formal-carrier` for the uncarried SR2-legal classes), the callee-side GR10 detached-cell value copy on the shared ABI (`CobolArgAdapt.NumValue`/`TextValue`, copy-out skipped) for BOTH CALL and UDF activation, GR5c argument modes + SR10 = COBOLNET1554, row `pd-header-by-value-2002`, golden `udf_by_value`, negatives 1553/1554 — ISO §14.2.2 / §14.2.3 GR10 / §8.4.3.2.4 GR5c
+- OPTIONAL formals / OMITTED arguments for function activation (OMITTED args staged COBOLNET1506; the header OPTIONAL phrase now PARSES and stages 0899 `optional-formal`, Step 10) — ISO §14.8.2 / §14.2.3 GR3
+- ~~per-evaluation activation for conditionally-evaluated reference positions: PERFORM UNTIL/VARYING, SEARCH WHEN, EVALUATE selection, non-first AND/OR operands (staged COBOLNET1509)~~ — **CLOSED 2026-07-16 (Step 10)** for every CONDITION window (`BoundUdfEvaluated` per-evaluation attach + IIFE render; golden `udf_per_eval` proves the runtime cardinality with an EXTERNAL activation counter; the Step-1 "same function twice in one statement hoisted once" claim was stale — each occurrence always activated separately per GR2). COBOLNET1509 remains ONLY for: a VARYING BY operand, an AFTER-level FROM operand, and an EVALUATE selection SUBJECT (the lowering re-binds subjects per WHEN while §14.9.13.4 GR3 evaluates them once) — ISO §8.4.3.2.4 GR1/GR6a / §8.8.4.13 r1–r2
+- the RECURSIVE per-activation-vs-static data-model deviation (§14.6.2.3.2/.3): WS should be last-used after the first activation; `Initial || Recursive ⇒ fresh instance per activation` re-initializes it — NOT taken by Step 10 (its goldens use EXTERNAL state instead)
 
 **DATA-3-national** — `PARTIAL`
 
@@ -690,28 +691,61 @@ _(No commit — pairs with Step 10.)_
 
 ---
 
-### Step 10 — UDF residue: BY VALUE header formals + RECURSIVE per-activation data model
+### Step 10 — UDF residue: BY VALUE header formals + per-evaluation activation + recursion verification — DONE 2026-07-16
 
-**Files:** `src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs` (`LinkageFormal` gains a `mode` = REFERENCE/CONTENT/VALUE), `src/Cobol.Net.Frontend/Grammar/Core/CobolControlFlow.g4` (PD header `BY VALUE` phrase — likely already parses for CALL), `Binding/Procedure/Verbs/CallBinder.cs` (marshal BY VALUE), `src/Cobol.Net.Runtime/Control/CallAbi.cs` (BY VALUE copy-in), and the per-activation data model in `src/Cobol.Net.Runtime/Control/ProgramTable.cs` / `RunUnit` (static WS shared across activations vs per-activation LOCAL-STORAGE/formals).
+**As built (the wave's actual scope — BY VALUE end-to-end, the 1509 per-evaluation lift, and the recursion
+verification; the WS-static data-model split stayed OUT — see the deferral note):**
 
-**Change:** (a) Model BY VALUE header formals (§14.9.4 GR5c) — a private copy conformed to the formal, no write-back — currently `LinkageFormal` carries no mode (the M2-UDF-1 deviation #4). (b) Conform the RECURSIVE per-activation data model (§14.6.2.3.2/.3): a function's WORKING-STORAGE is STATIC (last-used after the first activation), while LOCAL-STORAGE / formals are per-activation. Today `Initial || Recursive ⇒ fresh instance per activation` re-initializes WS per activation (a deviation predating UDFs). Split: shared static WS + per-activation automatic storage. This fixes RECURSIVE for both `PROGRAM-ID … RECURSIVE` and every UDF (always implicitly recursive, §9.4).
+(a) **BY VALUE header formals end-to-end** (ISO §14.2.2 using-phrase :23636 / §14.2.3 GR4+GR10 / §8.4.3.2.4
+GR5c): the PD-header using-phrase now parses per-parameter (`usingParameter` / `usingByReference` /
+`usingByValue` in `CobolParserCore.g4` — the CALL `callArgument` precedent; the legacy oracle's three
+`usingClause` consumers updated shape-only, all-BY-REFERENCE semantics preserved). `LinkageFormal` carries
+`ByValue`; `CallBindLinkage` threads the GR4 transitivity, enforces §14.2.2 SR2 (**COBOLNET1553** — class
+numeric/message-tag/object/pointer) and stages the SR2-legal-but-uncarried object/pointer/float shapes loud
+(0899 `by-value-formal-carrier`); the OPTIONAL phrase parses and stages loud (0899 `optional-formal`). The
+callee side delivers the GR10 VALUE COPY through the shared ABI: `CobolArgAdapt.NumValue`/`TextValue` —
+DETACHED cells conformed to the formal (the "COMPUTE without ROUNDED" store via `CobolNum.Store`), the
+copy-out loop skipped for BY VALUE — stores never reach the caller, on BOTH CALL targets and UDF
+activations (one mechanism). UDF caller side: `UdfArg` is formal-aware (GR5c — every argument shape passes
+`CobolPassMode.Value` to a BY VALUE formal) and §8.4.3.2.3 SR10 rejects non-numeric/object/pointer
+arguments (**COBOLNET1554**). Registry row `pd-header-by-value-2002` (parse-arm `VisitUsingByValue`; 0900
+at 85 proven, clean at 2002). Method-header BY VALUE/OPTIONAL parse and stage loud (the INVOKE channel is
+P13+ work).
 
-**Why:** Named in scope ("BY VALUE formals + the per-activation-vs-static data model (conforms §14.6.2.3.2/.3, fixes RECURSIVE)").
+(b) **Per-evaluation activation — the 1509 guard NARROWED** (§8.4.3.2.4 GR1 :6963 / GR2 :6971 / GR6a :6995;
+§8.8.4.13 r2): a new `BoundUdfEvaluated` condition node carries the drained activations of every
+conditionally- or repeatedly-evaluated CONDITION window — PERFORM UNTIL and VARYING UNTIL (per iteration,
+§14.9.28), SEARCH / SEARCH ALL WHEN (per pass, §14.9.37.4 GR5b), EVALUATE selection-object terms (per WHEN
+consideration, §14.9.13.4 GR4a–d), and non-first AND/OR operands (§8.8.4.13 r1; XOR exempt) — attached by
+`UdfBinder.UdfAttachPerEvaluation` at each binder window and rendered as an immediately-invoked
+`Func<bool>` (ConditionRenderer), so the activation executes exactly when the condition text evaluates
+(loop headers re-run it; C#'s `&&`/`||` short-circuit realizes r1 exactly). The statement hoist remains for
+exactly-once positions. **COBOLNET1509 narrowed** to three genuinely-remaining OPERAND shapes
+(`UdfStagePerEvaluationResidue`): a VARYING BY operand (per augment, GR12), an AFTER-level FROM
+(re-evaluated per outer augment, GR13e.2), and an EVALUATE selection SUBJECT (once-per-statement per
+§14.9.13.4 GR3, but the chained-selection lowering re-binds subjects per WHEN — a hoist would
+over-activate). Audit-anchor drift recorded: the Step-1 claim "multiple invocations of one function in one
+statement are hoisted ONCE" was stale — each occurrence already registers its own activation (GR2);
+the actual gap was the conditional/repeated windows.
 
-**Verify:**
-- New golden `tests/conformance/2002/recursive_static_ws.cob` — a RECURSIVE program whose WS counter persists across activations (spec: static) while a LOCAL-STORAGE item resets → proves the split.
-- New golden `udf_by_value.cob` — BY VALUE arg mutated inside the function is NOT visible to the caller (contrast BY REFERENCE).
-- `udf_recursion.cob` (5! = 120) still green.
-- `constructs.json` rows `call-by-value-2002`, `local-storage-section` (if not already present).
+(c) **Recursion verified** (§8.6.6 :8821 "Functions and methods are always recursive" / §9.4 :12529):
+`BinderDriver` already registers every FUNCTION-ID unit `Recursive` (citation strengthened), so
+`ProgramTable`'s §14.9.4.4 GR3f re-entry rejection never fires for a function self-activation and the
+per-activation instance model (D3/D4) applies; proven live by `udf_recursion` (5! = 120, five nested
+activations — re-verified by running).
 
-**COMMIT BOUNDARY.** Suggested message:
-```
-feat(cobolnet): Phase 10 wave D — UDF residue closed: category RETURNING + BY VALUE + RECURSIVE per-activation data
+**⚠ Deferred (NOT in this wave):** the RECURSIVE **WS-static vs per-activation data-model split**
+(§14.6.2.3.2/.3 — static WS should be last-used after the first activation while LOCAL-STORAGE/formals are
+per-activation; today `Initial || Recursive ⇒ fresh instance per activation` re-initializes WS each
+activation). It remains the recorded deviation in §"Genuine open residue" below; the `udf_per_eval` golden
+deliberately proves activation counts through EXTERNAL data (last-used per run unit, §14.6.2.3.3), not WS.
 
-Non-numeric/group RETURNING lifts COBOLNET1510 (category-carrying result temp via the one CloneItem);
-BY VALUE header formals modeled on CallAbi; RECURSIVE static-WS vs per-activation LOCAL-STORAGE split
-(conforms §14.6.2.3). Goldens + matrix rows. Battery green.
-```
+**Verify (all done):** goldens `udf_by_value` (BY VALUE mutation invisible / BY REFERENCE contrast /
+literal-arg / CALL leg) and `udf_per_eval` (two-in-one-statement GR2; per-iteration UNTIL; AND/OR
+short-circuit non-activation; per-WHEN EVALUATE object; per-pass SEARCH WHEN — an EXTERNAL activation
+counter) verified by running then baked; negatives `by-value-formal-class` (1553) +
+`udf-by-value-arg-class` (1554); `udf_recursion` still green; matrix row `pd-header-by-value-2002`;
+GreenfieldOnly exclusions same change set; characterization 33/33; greenfield unit green.
 
 ---
 

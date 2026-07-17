@@ -794,6 +794,18 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>PROCEDURE DIVISION USING … BY VALUE (ISO §14.2.2 using-phrase :23641) — a COBOL-2002
+        /// introduction, the header-side twin of <see cref="Constructs.CallByValue2002"/> (one-construct-one-gate:
+        /// §14.2 header vs §14.9.4 statement). Fires on RECOGNITION, once per BY VALUE parameter phrase, in
+        /// programs, functions, AND methods alike (a method-header occurrence below 2002 is already inside the
+        /// gated class construct — the extra where-string only sharpens the report). The §14.2.2 SR2 class
+        /// restriction and the §14.2.3 GR10 value-copy semantics stay bind-time (DataBinder.CallBindLinkage).</summary>
+        public override object? VisitUsingByValue(CobolParserCore.UsingByValueContext ctx)
+        {
+            _p.Check(Constructs.PdHeaderByValue2002, "the PROCEDURE DIVISION USING BY VALUE phrase");
+            return base.VisitChildren(ctx);
+        }
+
         // ── Step 14g.5: the REPOSITORY OO-specifier gates ─────────────────────────────────────────────────────
         /// <summary>A REPOSITORY CLASS / INTERFACE / PROPERTY specifier (ISO §12.3.8, OO) — a COBOL-2002 introduction.
         /// Parse-arm (recognition): the entry is one <c>repositoryEntry</c> node, mirroring the binder's

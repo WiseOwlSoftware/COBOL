@@ -78,10 +78,23 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         bool subjTrue = subject.booleanLiteral()?.TRUE_() is not null;
         bool subjFalse = subject.booleanLiteral()?.FALSE_() is not null;
 
+        // User-function evaluation cardinality (§8.4.3.2.4 GR1/GR6a) over the EVALUATE windows:
+        // — a SUBJECT is evaluated ONCE "at the beginning of the execution of the EVALUATE statement"
+        //   (§14.9.13.4 GR3), but this chained-selection lowering RE-BINDS the subject expression per WHEN
+        //   pair, so a once-per-statement hoist would activate a subject function once PER WHEN — staged
+        //   loud (the narrowed 1509) rather than over-activating;
+        // — an OBJECT is evaluated only when its WHEN phrase is considered, pairs left-to-right with a
+        //   false pair stopping the phrase (GR4a–d) — its activations attach per-evaluation to the object
+        //   term, and the composed &&/|| chain's C# short-circuit realizes GR4c exactly.
+        int subjMark = host.Udf.PendingCount;
+
         // A CONDITION subject — `EVALUATE X NUMERIC WHEN TRUE …` (the subject's own class test) — pairs with
         // TRUE/FALSE objects: the term is the subject condition (or its negation).
         if (SubjectCondition(subject) is { } subjCond)
         {
+            host.Udf.UdfStagePerEvaluationResidue(subjMark,
+                "an EVALUATE selection subject (evaluated once per statement, §14.9.13.4 GR3 — this "
+                + "lowering re-binds subjects per WHEN)");
             if (item.condition() is { } c && SoleBooleanLiteral(c) is { } objBool)
                 return objBool ? subjCond : new BoundNot(subjCond);
             return new BoundConditionError($"EVALUATE condition-subject paired with non-boolean WHEN '{item.GetText()}'");
@@ -89,7 +102,8 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
 
         if (item.condition() is { } cond)
         {
-            var bound = host.Cond.BindCondition(cond);
+            int objMark = host.Udf.PendingCount;
+            var bound = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(cond), objMark);
             return subjFalse ? new BoundNot(bound) : bound;   // EVALUATE TRUE/FALSE WHEN <condition>
         }
 
@@ -97,16 +111,25 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (subject.valueOperand() is not { } subjOp)
             return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
         BoundOperand left = BindValueOperand(subjOp);
+        host.Udf.UdfStagePerEvaluationResidue(subjMark,
+            "an EVALUATE selection subject (evaluated once per statement, §14.9.13.4 GR3 — this lowering "
+            + "re-binds subjects per WHEN)");
 
         if (item.valueRange() is { } range)
         {
+            int objMark = host.Udf.PendingCount;
             var lo = BindValueOperand(range.valueOperand(0));
             var hi = BindValueOperand(range.valueOperand(1));
-            return new BoundLogical("&&",
-                [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]);
+            return host.Udf.UdfAttachPerEvaluation(new BoundLogical("&&",
+                [host.Cond.CheckedRelational(left, ">=", lo), host.Cond.CheckedRelational(left, "<=", hi)]),
+                objMark);
         }
         if (item.valueOperand() is { } v)
-            return host.Cond.CheckedRelational(left, "==", BindValueOperand(v));
+        {
+            int objMark = host.Udf.PendingCount;
+            return host.Udf.UdfAttachPerEvaluation(
+                host.Cond.CheckedRelational(left, "==", BindValueOperand(v)), objMark);
+        }
         return new BoundConditionError($"EVALUATE WHEN object '{item.GetText()}'");
     }
 

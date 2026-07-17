@@ -1776,9 +1776,16 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
         // ProcedureUsingParameters then the RETURNING item).
         var usingNames = new List<string>();
         var pd = ctx.procedureDivision();
-        if (pd?.usingClause()?.dataReferenceList()?.dataReference() is { } drs)
-            foreach (var dr in drs)
+        // The usingClause is per-parameter since the greenfield P10 Step-10 BY VALUE header grammar; the
+        // legacy oracle treats every parameter as BY REFERENCE (its corpus predates BY VALUE headers).
+        if (pd?.usingClause()?.usingParameter() is { } prms)
+            foreach (var prm in prms)
+            {
+                var dr = prm.usingByReference()?.dataReference()
+                    ?? prm.usingByValue()?.dataReference()
+                    ?? prm.dataReference();
                 usingNames.Add(dr.cobolWord().GetText());
+            }
         if (pd?.returningClause()?.dataReference() is { } ret)
             usingNames.Add(ret.cobolWord().GetText());
 
@@ -1793,14 +1800,17 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
 
     public override object? VisitProcedureDivision(CobolParserCore.ProcedureDivisionContext ctx)
     {
-        // Parse PROCEDURE DIVISION USING data-name-1 data-name-2 ...
+        // Parse PROCEDURE DIVISION USING data-name-1 data-name-2 ... (per-parameter since the greenfield
+        // P10 Step-10 BY VALUE header grammar; the legacy oracle treats every parameter as BY REFERENCE —
+        // its corpus predates BY VALUE headers).
         if (ctx.usingClause() is { } usingCtx)
         {
-            var dataRefs = usingCtx.dataReferenceList()?.dataReference();
-            if (dataRefs != null)
+            foreach (var prm in usingCtx.usingParameter())
             {
-                foreach (var dr in dataRefs)
-                    _procedureUsingNames.Add(dr.cobolWord().GetText());
+                var dr = prm.usingByReference()?.dataReference()
+                    ?? prm.usingByValue()?.dataReference()
+                    ?? prm.dataReference();
+                _procedureUsingNames.Add(dr.cobolWord().GetText());
             }
         }
 

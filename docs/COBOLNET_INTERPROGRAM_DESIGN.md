@@ -48,7 +48,7 @@ Decision-complete design for cross-program data + calls in COBOL.NET (COBOL→ty
 PASSING MODES — caller side:
   BY REFERENCE: CALL "INC" USING CTR.  (01 CTR PIC 9(4))  ->  _INC.Run(ManagedRef<long>.OverField(()=>CTR, v=>CTR=v));   // callee mutation visible
   BY CONTENT:   CALL "P" USING BY CONTENT CTR.            ->  _P.Run(ManagedRef<long>.Cell(CTR));                       // copy; not visible
-  BY VALUE:     CALL "P" USING BY VALUE N. (2002)         ->  _P.Run(N);                                                // plain value param
+  BY VALUE:     CALL "P" USING BY VALUE N. (2002)         ->  new CobolArg(CobolPassMode.Value, ManagedPointer<long>.Cell((long)(N)), …);   // value snapshot at call initiation (§14.9.4.4 GR5); the callee re-conforms it (GR10)
   subscripted:  CALL "P" USING TBL(I).   -> int _i=(int)I-1; _P.Run(ManagedRef<long>.OverField(()=>TBL[_i], v=>TBL[_i]=v));  // index captured once (GR3a)
   literal/expr: CALL "P" USING 5.        -> _P.Run(ManagedRef<long>.Cell(5L));                                          // inherently BY CONTENT
   OMITTED:      CALL "P" USING OMITTED.   -> _P.Run(ManagedRef<long>.Null);
@@ -57,6 +57,13 @@ CALLEE side — LINKAGE + PROCEDURE DIVISION USING:
   ->  private ManagedRef<long> LK_CTR;
       public long Run(ManagedRef<long> p0){ LK_CTR = p0; /*proc body*/ return _ret; }   // refs to LK-CTR read/write LK_CTR.Value
   ADD 1 TO LK-CTR.  ->  LK_CTR.Value = CobolNum.Store(LK_CTR.Value + 1L, 0, _P_LK_CTR);   // the one unavoidable indirection
+  header BY VALUE (ISO §14.2.2 using-phrase; 2002): PROCEDURE DIVISION USING BY VALUE LK-V.
+  ->  __lnkp0 = CobolArgAdapt.NumValue(__args, 0, _P_LK_V, scale);   // a DETACHED cell conformed to the formal — the §14.2.3
+      // GR10 "COMPUTE without ROUNDED" value copy; stores hit only the cell (NO copy-out — never the caller). Modes thread
+      // per §14.2.3 GR4 (transitive; BY REFERENCE assumed first); LinkageFormal.ByValue carries the resolution. §14.2.2 SR2
+      // restricts BY VALUE formals to class numeric/message-tag/object/pointer (COBOLNET1553); the carried leg is fixed-point
+      // numeric — object/pointer/float stage loud (0899 by-value-formal-carrier). A UDF activation's arguments take BY VALUE
+      // whenever the formal says so (§8.4.3.2.4 GR5c; argument class per §8.4.3.2.3 SR10 = COBOLNET1554) — ONE ABI, both paths.
 UNIFORM ABI (dynamic / cross-assembly):
   CALL identifier WS-PGM USING A.  ->
       var _p = Registry.Resolve(WS_PGM);
@@ -118,7 +125,7 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 - Bare argument resolution (§14.9.4.4 GR9): a bare arg with a BY REFERENCE formal becomes BY REFERENCE if it is a valid receiving operand, else BY CONTENT (e.g. a literal/expression).
 - OMITTED / trailing-omitted argument (GR11-12): carrier = Null; omitted-argument condition = IsNull; referencing an omitted param otherwise → EC-PROGRAM-ARG-OMITTED.
 - Argument/parameter count mismatch → EC-PROGRAM-ARG-MISMATCH (when checking enabled) or diagnostic; a missing parameter behaves as omitted.
-- RETURNING a group item → compile-time error (must be elementary, BY VALUE semantics).
+- RETURNING a group item: a character-form group (every leaf character-stored or fixed-point DISPLAY) is carried — the caller temp deep-clones the description and the image crosses via AsImage/FromImage (§8.4.3.2.4 GR1; §14.2.2 SR5 places no category restriction); the strong-typed / internal-REDEFINES / variable-length / non-character-leaf group shapes stage loud (the per-shape COBOLNET1510 residues in `UdfBinder.UdfReturningResidue`).
 - RETURNING with no caller target → value discarded.
 - CALL to a NULL program-pointer → EC-PROGRAM-PTR-NULL; unresolvable name → EC-PROGRAM-NOT-FOUND; both route to ON EXCEPTION if present.
 - ON EXCEPTION / ON OVERFLOW edition surface: `[NOT] ON EXCEPTION` is ANSI X3.23-1985 CALL Format 2 surface (CCVS-85 IC222A tests both phrases), valid at EVERY edition; `ON OVERFLOW` is the 74-carried synonym, valid 85–2014 and REMOVED at 2023 (`VERSION_CHANGE_REFERENCE.md` row 3 / E.2 item 1c → COBOLNET0882). NOT ON EXCEPTION runs only on a successful, non-EC-propagating return (§14.9.4.4 GR3i).
@@ -137,7 +144,7 @@ Capture subscript/ref-mod bound expressions into locals BEFORE constructing carr
 Interprogram constructs vary heavily by edition. Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. At each `DialectLevel` (85/2002/2014/2023) the lacks-it diagnostic is a targeted `COBOLNET-` diagnostic — never a generic parse error. Every row gets (construct × edition) coverage per `docs/VERSION_TEST_MATRIX_DESIGN.md` (the (construct × edition) matrix; Phase 0 done); verify rows against `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist — 2002→2023 deltas ONLY; it has NO 85→2002 rows, so derive 85↔2002 gating from the 2002 standard) and the per-edition spec text.
 
 - **All editions (85+):** CALL USING BY REFERENCE / BY CONTENT, CALL … ON OVERFLOW (removed at 2023 — below), CALL … [NOT] ON EXCEPTION (X3.23-1985 CALL Format 2 — CCVS-85 IC222A tests both phrases), CANCEL, nested/contained programs, COMMON / INITIAL, GLOBAL / EXTERNAL, EXIT PROGRAM.
-- **2002+ (under `--std 85` reject with an "introduced in COBOL-2002" diagnostic):** CALL … BY VALUE; RETURNING (CALL and the procedure-division header); OMITTED arguments + the omitted-argument condition; PROGRAM-ID … RECURSIVE; LOCAL-STORAGE; GOBACK; USAGE POINTER / ADDRESS OF / SET ADDRESS OF; BASED / ALLOCATE / FREE; ANY LENGTH; and the whole EC-PROGRAM-* exception machinery (at `--std 85` CALL failures surface only via the ON OVERFLOW/EXCEPTION phrases / abnormal termination — no EC names, no `>>TURN`).
+- **2002+ (under `--std 85` reject with an "introduced in COBOL-2002" diagnostic):** CALL … BY VALUE AND the procedure-division-header USING BY VALUE phrase (twin registry rows `call-by-value-2002` / `pd-header-by-value-2002`); RETURNING (CALL and the procedure-division header); OMITTED arguments + the omitted-argument condition; PROGRAM-ID … RECURSIVE; LOCAL-STORAGE; GOBACK; USAGE POINTER / ADDRESS OF / SET ADDRESS OF; BASED / ALLOCATE / FREE; ANY LENGTH; and the whole EC-PROGRAM-* exception machinery (at `--std 85` CALL failures surface only via the ON OVERFLOW/EXCEPTION phrases / abnormal termination — no EC names, no `>>TURN`).
 - **2014+:** `>>TURN` of EC-PROGRAM exceptions in a calling element is FLAG-02-flagged (`VERSION_CHANGE_REFERENCE.md` row 97).
 - **2023:** CALL … ON OVERFLOW is REMOVED (row 3, E.2 item 1c) — reject at 2023, accept at 85/2002/2014; EXIT PROGRAM is archaic (rows 89/126) — flag at 2023; GOBACK gains the STOP-style status phrase (row 75) — 2023-only; EXTERNAL-item conformance exception checking is added (row 15).
 

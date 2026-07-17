@@ -129,7 +129,15 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     {
         var opt = p.performOptions().FirstOrDefault();
         if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
-        if ((p.performUntil() ?? opt?.performUntil()) is { } u) return new PerformUntil(host.Cond.BindCondition(u.condition()), u.AFTER() is not null);
+        if ((p.performUntil() ?? opt?.performUntil()) is { } u)
+        {
+            // The UNTIL condition is evaluated per iteration (§14.9.28 GR6/GR13), so a user-function
+            // reference inside it activates per evaluation — the drained-suffix wrapper, never the
+            // once-per-statement hoist (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
+            int udfMark = host.Udf.PendingCount;
+            var cond = host.Cond.BindCondition(u.condition());
+            return new PerformUntil(host.Udf.UdfAttachPerEvaluation(cond, udfMark), u.AFTER() is not null);
+        }
         if ((p.performVarying() ?? opt?.performVarying()) is { } v) return BindVarying(v);
         return new PerformOnce();
     }
@@ -140,12 +148,12 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     private BoundPerformControl BindVarying(Core.PerformVaryingContext v)
     {
         var levels = new List<VaryingLevel>();
-        if (BindVaryingLevel(v.dataReference(), v.arithmeticExpression(), v.condition()) is not { } head)
+        if (BindVaryingLevel(v.dataReference(), v.arithmeticExpression(), v.condition(), firstLevel: true) is not { } head)
             return Unsupported($"PERFORM VARYING induction variable '{v.dataReference().GetText()}'");
         levels.Add(head);
         foreach (var a in v.performVaryingAfter())
         {
-            if (BindVaryingLevel(a.dataReference(), a.arithmeticExpression(), a.condition()) is not { } level)
+            if (BindVaryingLevel(a.dataReference(), a.arithmeticExpression(), a.condition(), firstLevel: false) is not { } level)
                 return Unsupported($"PERFORM VARYING AFTER induction variable '{a.dataReference().GetText()}'");
             levels.Add(level);
         }
@@ -153,14 +161,28 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary>One induction level: the variable is a SET-style target (index-name or data item); the expression
-    /// array is [FROM] or [FROM, BY] (BY omitted ⇒ augment 1, GR12).</summary>
+    /// array is [FROM] or [FROM, BY] (BY omitted ⇒ augment 1, GR12). User-function evaluation cardinality per
+    /// window (§8.4.3.2.4 GR1/GR6a): the UNTIL condition re-evaluates per iteration — its activations attach
+    /// per-evaluation; a FIRST-level FROM evaluates exactly once at loop start (GR13a/GR13b init) — its
+    /// activations stay statement-hoisted (exact); an AFTER-level FROM (re-evaluated on each outer augment,
+    /// GR13e.2) and any BY (evaluated per augment, GR12) stage LOUD — the narrowed 1509 residue.</summary>
     private VaryingLevel? BindVaryingLevel(
-        Core.DataReferenceContext dref, Core.ArithmeticExpressionContext[] exprs, Core.ConditionContext cond)
+        Core.DataReferenceContext dref, Core.ArithmeticExpressionContext[] exprs, Core.ConditionContext cond,
+        bool firstLevel)
     {
         if (host.Set.SetTargetOf(dref) is not { } var) return null;
+        int fromMark = host.Udf.PendingCount;
         BoundExpr from = host.Expr.BindExpr(exprs[0]);
+        if (!firstLevel)
+            host.Udf.UdfStagePerEvaluationResidue(fromMark,
+                "a PERFORM VARYING AFTER level's FROM operand (re-evaluated per outer augment, §14.9.28 GR13e.2)");
+        int byMark = host.Udf.PendingCount;
         BoundExpr by = exprs.Length > 1 ? host.Expr.BindExpr(exprs[1]) : new BoundNumLiteral("1");
-        return new VaryingLevel(var, from, by, host.Cond.BindCondition(cond));
+        host.Udf.UdfStagePerEvaluationResidue(byMark,
+            "a PERFORM VARYING BY operand (evaluated per augment, §14.9.28 GR12)");
+        int untilMark = host.Udf.PendingCount;
+        return new VaryingLevel(var, from, by,
+            host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(cond), untilMark));
     }
 
     private static BoundPerformControl Unsupported(string feature) => new PerformTimes(new BoundOperandError(feature));

@@ -87,5 +87,6 @@ internal sealed class UnitEmitters
         Sort.Statements = Statements;
         ControlFlow.Statements = Statements;
         Call.Statements = Statements;
+        Cond.Calls = Call;   // BoundUdfEvaluated — the per-evaluation function-activation text (P10 Step 10)
     }
 }

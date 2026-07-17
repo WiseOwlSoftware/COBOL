@@ -182,8 +182,11 @@ internal sealed class BinderDriver
             edition.Error("COBOLNET0887",
                 $"program '{name}': COMMON may be specified only in a CONTAINED program (ISO §11.10.3 SR4)");
 
-        // §9.4 (:12529): "a user defined function always possesses the recursive attribute and may call
-        // itself" — implicit, never the explicit PROGRAM-ID attribute, so it rides AFTER the 0885/0886 gates.
+        // §8.6.6 (:8821) "Functions and methods are always recursive" / §9.4 (:12529) "a user defined
+        // function always possesses the recursive attribute and may call itself" — implicit, never the
+        // explicit PROGRAM-ID attribute, so it rides AFTER the 0885/0886 gates. Registering Recursive here
+        // is what keeps ProgramTable's §14.9.4.4 GR3f re-entry rejection (EC-PROGRAM-RECURSIVE-CALL) from
+        // firing on a function's self-activation and selects the per-activation instance model (D3/D4).
         if (isFunction) recursive = true;
 
         string baseName = "_PRG_" + DataItem.Sanitize(name).ToUpperInvariant();

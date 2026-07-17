@@ -404,7 +404,27 @@ procedureDivision
     ;
 
 usingClause
-    : USING dataReferenceList
+    : USING usingParameter (COMMA? usingParameter)*
+    ;
+
+// The procedure-division-header using-phrase parameter forms (ISO §14.2.2 :23636):
+//   { [BY REFERENCE] { [OPTIONAL] data-name-1 }… | BY VALUE { data-name-1 }… }…
+// Parsed FLAT (one parameter per node, the CALL callArgument precedent) — the §14.2.3 GR4 transitivity
+// ("both phrases are transitive across the parameters that follow them") is threaded by the binder
+// (DataBinder.CallBindLinkage), never encoded structurally. BY VALUE is a COBOL-2002 introduction —
+// gated post-bind by VersionConformancePass ParseArm.VisitUsingByValue (pd-header-by-value-2002).
+usingParameter
+    : usingByReference
+    | usingByValue
+    | OPTIONAL? dataReference
+    ;
+
+usingByReference
+    : BY? REFERENCE OPTIONAL? dataReference
+    ;
+
+usingByValue
+    : BY VALUE dataReference
     ;
 
 returningClause

@@ -473,6 +473,16 @@ internal static class RuntimeApi
     public static string ArgAdaptText(string args, int position, string width) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Text)}({args}, {position}, {width})";
 
+    /// <summary>A BY VALUE numeric formal's DETACHED value-copy cell (ISO §14.2.3 GR10 — stores never reach
+    /// the caller) — <c>CobolArgAdapt.NumValue</c>.</summary>
+    public static string ArgAdaptNumValue(string args, int position, string profile, string scale) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.NumValue)}({args}, {position}, {profile}, {scale})";
+
+    /// <summary>A BY VALUE image-carried formal's DETACHED value-copy cell (§14.2.3 GR10, image form) —
+    /// <c>CobolArgAdapt.TextValue</c>.</summary>
+    public static string ArgAdaptTextValue(string args, int position, string width) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.TextValue)}({args}, {position}, {width})";
+
     /// <summary>The argument-present probe (OMITTED handling, §14.2.3) — <c>CobolArgAdapt.Present</c>.</summary>
     public static string ArgAdaptPresent(string args, int position) =>
         $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.Present)}({args}, {position})";

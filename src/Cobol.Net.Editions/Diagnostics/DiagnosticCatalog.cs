@@ -284,6 +284,19 @@ public static class DiagnosticCatalog
         + "return crossing cannot carry the activator's receiver length yet (the ANY LENGTH formal-parameter leg "
         + "is fully implemented).", "ISO §13.18.2.3 SR3b / §13.18.2.4 GR1", RecognizedNotImplemented);
 
+    // ── COBOLNET0899 — inter-program header-formal deferrals (P10 Step 10) ──────────────────────────
+    public static readonly DiagnosticDescriptor ByValueFormalCarrier = new(
+        NotImplemented, "by-value-formal-carrier", EditionSeverity.Error,
+        "A BY VALUE formal parameter of class object, pointer, or of floating-point usage is legal "
+        + "(§14.2.2 SR2) but its value-copy carrier is not yet implemented — only a fixed-point numeric "
+        + "BY VALUE formal is carried (the §14.2.3 GR10 detached-cell copy).",
+        "ISO §14.2.2 SR2 / §14.2.3 GR10", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor OptionalFormal = new(
+        NotImplemented, "optional-formal", EditionSeverity.Error,
+        "An OPTIONAL formal parameter in the procedure division header is recognized (§14.2.2 using-phrase) "
+        + "but the OPTIONAL/OMITTED formal model is not yet implemented (the omitted-argument condition, "
+        + "§8.8.4.8).", "ISO §14.2.2 / §14.2.3 GR3", RecognizedNotImplemented);
+
     // ── COBOLNET0899 — miscellaneous deferrals ───────────────────────────────────────────────────────
     public static readonly DiagnosticDescriptor ExternalRecordNotCellBacked = new(
         NotImplemented, "external-record-not-cell-backed", EditionSeverity.Error,

@@ -34,9 +34,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     public bool EmitCall(BoundCallProgram c)
     {
         var w = ctx.Writer;
-        string args = c.Args.Count == 0
-            ? "System.Array.Empty<CobolArg>()"
-            : $"new CobolArg[] {{ {string.Join(", ", c.Args.Select(ArgText))} }}";
+        string args = ArgsArrayText(c);
         string ret = c.Returning is { } rp ? RefCarrier(rp) : "null";
         // An EC-active group's CALL site consumes a callee-staged RAISING propagation itself (the pickup below
         // runs the §14.9.49 F3 selection and honors RESUME); the registry's boundary default stands down.
@@ -83,6 +81,25 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         EmitPropagationPickup();
         return false;
     }
+
+    /// <summary>The <c>CobolArg[]</c> expression of one bound call's arguments — the ONE argument-array text
+    /// both the statement-position <see cref="EmitCall"/> and the per-evaluation
+    /// <see cref="FunctionActivationText"/> render (singular-pattern rule).</summary>
+    private string ArgsArrayText(BoundCallProgram c) => c.Args.Count == 0
+        ? "System.Array.Empty<CobolArg>()"
+        : $"new CobolArg[] {{ {string.Join(", ", c.Args.Select(ArgText))} }}";
+
+    /// <summary>The single-statement activation text of one user-defined-function call for an EXPRESSION-POSITION
+    /// per-evaluation window (<c>BoundUdfEvaluated</c> — ISO §8.4.3.2.4 GR1/GR6a: the activation runs when the
+    /// containing condition text evaluates). Function references carry no ON EXCEPTION phrases (§8.4.3.2), and a
+    /// declarative RESUME pickup is a statement-position surface (<c>__pc</c>-anchored) that cannot run inside an
+    /// expression — so the invocation goes out WITHOUT <c>siteHandlesPropagation</c>: a callee-staged RAISING
+    /// condition takes the registry's activation-boundary default (fatal → loud termination, nonfatal → stands in
+    /// the last-exception status; ISO §14.6.13.1.3 #8 / §14.6.13.1.4 — the same posture as an EC-free caller).</summary>
+    internal string FunctionActivationText(BoundCallProgram c) =>
+        $"ProgramRegistry.CallProgram({CsLiteral(c.LiteralName!)}, {CsLiteral(callState.SelfPath)}, "
+        + $"{ArgsArrayText(c)}, {(c.Returning is { } rp ? RefCarrier(rp) : "null")}, "
+        + "notFoundEc: \"EC-FUNCTION-NOT-FOUND\");";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
 
     /// <summary>The enabled EC-PROGRAM-* names of the current statement (empty when none / no wrapper).</summary>
     private List<string> EnabledProgramNames() =>
@@ -170,28 +187,34 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                     + "), 0, 0)";
             if (a.Mode == CobolPassMode.Reference)
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, {RefCarrier(p)}, {digits}, {scale})";
-            // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9): a value snapshot.
+            // BY CONTENT — "a record … allocated by the activating element" (§14.2.3 GR9) — and BY VALUE with
+            // an identifier argument (a UDF BY VALUE formal, §8.4.3.2.4 GR5c): both are value snapshots at
+            // call initiation; the mode rides the wire so the arg is honest about which rule produced it
+            // (the BY VALUE callee re-conforms through its own NumValue cell, GR10).
             return CallPlaceIsString(p)
-                ? $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
-                : $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<long>.Cell({PlaceRenderer.Read(p)}), {digits}, {scale})";
+                ? $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CallStringRead(p)}), {digits}, {scale})"
+                : $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<long>.Cell({PlaceRenderer.Read(p)}), {digits}, {scale})";
         }
         switch (a.Value)
         {
             case BoundStringLiteral s:
-                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), 0, 0)";
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell({CsLiteral(s.Value)}), 0, 0)";
             case BoundNumericLiteral n:
             {
                 var lit = UnscaledLit(n.Text);
                 int digits = n.Text.Count(char.IsAsciiDigit);
                 if (digits > 18)
-                    return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell("
+                    return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
                         + LoudValue("string", $"CALL USING wide numeric literal '{n.Text}' (19+ digits — the Int128 carrier tier)") + "), 0, 0)";
-                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<long>.Cell({lit.Expr}), {digits}, {lit.Scale})";
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<long>.Cell({lit.Expr}), {digits}, {lit.Scale})";
             }
             case BoundComputedOperand expr:
             {
-                NumX x = num.Render(expr.Expr, ReceiverContext.None);   // BY VALUE — a converted value copy (§14.2.3 GR10)
-                return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Value)}, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
+                // An expression argument snapshots its computed value (§14.2.3 GR9/GR10 — the CALL BY VALUE
+                // grammar leg binds Mode=Value; a UDF expression argument to a BY REFERENCE formal binds
+                // Mode=Content per §8.4.3.2.4 GR5b — the mode is bound, not assumed here).
+                NumX x = num.Render(expr.Expr, ReceiverContext.None);
+                return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<long>.Cell((long)({x.Expr})), 18, {x.Scale})";
             }
             case BoundAllLiteral all:
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Content)}, ManagedPointer<string>.Cell({CsLiteral(all.Literal)}), 0, 0)";

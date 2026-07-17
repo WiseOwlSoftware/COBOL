@@ -218,12 +218,38 @@ public sealed partial class DataBinder
             _callSuppressedRootFields.Add(root.CsName);
 
         // The PD header formals (§14.2.2 SR1 — level-01/77 LINKAGE entries; correspondence is positional).
-        // Every formal is BY REFERENCE (the header BY VALUE phrase is a grammar extension not yet parsed —
-        // it would stage here, loud, when added).
+        // The BY VALUE / OPTIONAL phrases parse (the §14.2.2 using-phrase grammar, P10 Step 10) but the
+        // METHOD-side value-copy/omitted-argument models are not modeled on the INVOKE channel — staged
+        // loud here, never a silent by-ref downgrade (§1.4).
         var pd = m.Ctx.procedureDivision();
         int pos = 0;
-        foreach (var dref in pd?.usingClause()?.dataReferenceList()?.dataReference() ?? [])
+        foreach (var prm in pd?.usingClause()?.usingParameter() ?? [])
         {
+            Core.DataReferenceContext dref;
+            if (prm.usingByValue() is { } vb)
+            {
+                dref = vb.dataReference();
+                Edition.Error(DiagnosticCatalog.ByValueFormalCarrier,
+                    $"{where}: the BY VALUE phrase on method formal parameter '{dref.GetText()}' is recognized "
+                    + "(ISO §14.2.2) but a method's value-copy formal is not yet implemented on the INVOKE "
+                    + "channel");
+            }
+            else if (prm.usingByReference() is { } rb)
+            {
+                dref = rb.dataReference();
+                if (rb.OPTIONAL() is not null)
+                    Edition.Error(DiagnosticCatalog.OptionalFormal,
+                        $"{where}: OPTIONAL formal parameter '{dref.GetText()}' is recognized (ISO §14.2.2) "
+                        + "but OPTIONAL formals are not yet implemented");
+            }
+            else
+            {
+                dref = prm.dataReference();
+                if (prm.OPTIONAL() is not null)
+                    Edition.Error(DiagnosticCatalog.OptionalFormal,
+                        $"{where}: OPTIONAL formal parameter '{dref.GetText()}' is recognized (ISO §14.2.2) "
+                        + "but OPTIONAL formals are not yet implemented");
+            }
             string pname = dref.GetText();
             var item = m.Binding!.LinkageRoots.FirstOrDefault(r =>
                 string.Equals(r.CobolName, pname, StringComparison.OrdinalIgnoreCase));

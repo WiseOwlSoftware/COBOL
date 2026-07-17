@@ -201,6 +201,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // group/numeric-edited/national results; the frozen legacy's partial UDF support carries only numeric
         // results (and has no national category at all); the greenfield CorpusRunner byte-compares it.
         ("2002", "udf_returning_categories"),
+        // P10 Step 10: BY VALUE formal parameters in the PD header (§14.2.2 using-phrase / §14.2.3 GR10) and
+        // per-evaluation function activation (§8.4.3.2.4 GR1/GR6a — UNTIL/WHEN/EVALUATE-object/short-circuit
+        // windows) are net-new in the greenfield — the frozen legacy grammar has no header BY VALUE phrase and
+        // its UDF support predates evaluation-cardinality; the greenfield CorpusRunner byte-compares both.
+        ("2002", "udf_by_value"),
+        ("2002", "udf_per_eval"),
         // Phase-4 track (c) residue, DEVLOG 626: the §8.4.3.2 SR2 FUNCTION-keyword-omitted reference form (via
         // REPOSITORY FUNCTION ALL INTRINSIC) is net-new in the greenfield — the frozen legacy treats MAX/MIN/MOD
         // without FUNCTION as undefined data-names (CBL3128); the greenfield CorpusRunner byte-compares it.

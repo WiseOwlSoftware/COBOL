@@ -55,8 +55,15 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
             atEnd = host.BindBlocks(ae.statementBlock());
         }
+        // A WHEN condition re-evaluates on every scan pass (§14.9.37.4 GR5b), so a user-function reference
+        // inside it activates per pass — the per-evaluation wrapper (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
         var whens = s.searchWhenClause()
-            .Select(wc => new BoundSearchWhen(host.Cond.BindCondition(wc.condition()), host.BindBlocks(wc.statementBlock())))
+            .Select(wc =>
+            {
+                int udfMark = host.Udf.PendingCount;
+                var cond = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(wc.condition()), udfMark);
+                return new BoundSearchWhen(cond, host.BindBlocks(wc.statementBlock()));
+            })
             .ToList();
         return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
             DependItem: OdoModel.SearchDepending(table, ctx.Refs),
@@ -85,8 +92,16 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             if (ae.NOT() is not null) return new BoundUnsupported("SEARCH NOT AT END (non-ISO extension)");
             atEnd = host.BindBlocks(ae.statementBlock());
         }
+        // The Format-2 WHEN re-evaluates per probe of this implementation's scan technique (GR9 — the search
+        // technique is implementor-specified), so a user-function reference activates per probe: the same
+        // per-evaluation wrapper as Format 1 (§8.4.3.2.4 GR1/GR6a).
         var whens = s.searchAllWhenClause()
-            .Select(wc => new BoundSearchWhen(host.Cond.BindCondition(wc.condition()), host.BindBlocks(wc.statementBlock())))
+            .Select(wc =>
+            {
+                int udfMark = host.Udf.PendingCount;
+                var cond = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(wc.condition()), udfMark);
+                return new BoundSearchWhen(cond, host.BindBlocks(wc.statementBlock()));
+            })
             .ToList();
         return new BoundSearch(ctx.Symbols.IndexCellOf(table.IndexNames[0], ctx.ActiveScope), table.Occurs ?? 0,
             AlsoVaried: null, atEnd, whens, FromStart: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
