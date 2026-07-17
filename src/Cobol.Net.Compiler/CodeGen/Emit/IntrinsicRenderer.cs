@@ -51,7 +51,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         var sig = ic.Sig;
         if (sig.Bind == IntrinsicBind.Deferred || sig.RuntimeMethod.Length == 0)
             return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (catalogued, not yet implemented)"), 0);
-        if (ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National)
+        if (ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean)
             return new NumX(EmitText.LoudValue("long", $"string-class FUNCTION {sig.Name} in a numeric context"), 0);
 
         if (sig.Float) return RenderFloat(ic);
@@ -187,6 +187,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "TestNumvalF":                                                 // §15.95 — 0 / first-error position / LENGTH+1
                 return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{Str(ic.Args[0])}{CommaFlag}"), 0);
 
+            case "IntegerOfBoolean":                                            // §15.45.4 r1 — the unsigned MSB-first value of the bit configuration
+                return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);
+
             default:
                 return new NumX(EmitText.LoudValue("long", $"FUNCTION {sig.Name} (no numeric render recipe)"), 0);
         }
@@ -289,6 +292,10 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
             "Concat" =>                                                        // §15.18 — concatenate all argument images (2023)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, StrArgList(ic)),
+            // BOOLEAN-OF-INTEGER (§15.13.4 r1) — a boolean-result function on the D-B1 '0'/'1' substrate:
+            // rightmost position = low-order digit, left zero-fill/truncate to argument-2 positions.
+            "BooleanOfInteger" =>
+                RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgInt(ic.Args[0])}, {ArgInt(ic.Args[1])}"),
             // DISPLAY-OF (§15.26) / NATIONAL-OF (§15.66) — the national↔alphanumeric repertoire pair (2002);
             // the optional argument-2 is the one-character substitution string (§15.26.3 r2 / §15.66.3 r2).
             "DisplayOf" or "NationalOf" =>
@@ -393,8 +400,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         public string Visit(BoundStringLiteral n) => EmitText.CsLiteral(n.Value);
         public string Visit(BoundFieldOperand n) => OperandText.AsString(n, owner.Num);
         public string Visit(BoundComputedOperand n) =>
-            n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } nested
-                ? owner.RenderString(nested) : Loud(n);   // string-class results incl. national (NATIONAL-OF §15.66)
+            n.Expr is BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } nested
+                ? owner.RenderString(nested) : Loud(n);   // string-class results incl. national (§15.66) + boolean (§15.13 — the '0'/'1' substrate)
         public string Visit(BoundOperandError n) => EmitText.LoudValue("string", n.Feature);
         public string Visit(BoundNumericLiteral n) => Loud(n);
         public string Visit(BoundFigurative n) => Loud(n);

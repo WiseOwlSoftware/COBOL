@@ -48,12 +48,14 @@ public readonly record struct IntrinsicSig(
 
     /// <summary>The data category of the function result (§15.2 → §8.4.2) — what MOVE/comparison/DISPLAY consult.
     /// A NATIONAL-type function's result IS category national (§15.2 type 4 — NATIONAL-OF §15.66.1: "the type of
-    /// the function is national"), so the §14.9.25.3 Table-16 legality and the string channels see the correct
-    /// class — never an alphanumeric fold. (Boolean-type rows are all Deferred; they fall to Numeric unchanged.)</summary>
+    /// the function is national"), and a BOOLEAN-type function's result IS class/category boolean with implicit
+    /// usage bit (§15.2 item 2; §8.5.2.5 item 4 lists "a boolean function"), so the §14.9.25.3 Table-16 legality
+    /// and the string channels see the correct class — never an alphanumeric or numeric fold.</summary>
     public PicCategory ResultCategory => Type switch
     {
         IntrinsicType.National => PicCategory.National,
         IntrinsicType.Alphanumeric => PicCategory.Alphanumeric,
+        IntrinsicType.Boolean => PicCategory.Boolean,
         _ => PicCategory.Numeric,
     };
 }
@@ -137,7 +139,10 @@ public static class IntrinsicCatalog
         Add(new("EXP10", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "Exp10", IntrinsicBind.Runtime, true, 2002));        // §15.35
         Add(new("SIGN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "n", "SignOf", IntrinsicBind.Runtime, false, 2002));       // §15.81
         Add(new("FRACTION-PART", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "FractionPart", IntrinsicBind.Runtime, false, 2002)); // §15.42
-        Add(new("BOOLEAN-OF-INTEGER", IntrinsicType.Boolean, IntrinsicArity.Fixed, 2, 2, "ii", "", IntrinsicBind.Deferred, false, 2002)); // §15.13
+        // BOOLEAN-OF-INTEGER (§15.13) — argument-1's binary value as a boolean item of argument-2 positions
+        // (rightmost = low-order digit; zero-filled or TRUNCATED ON THE LEFT — the result is arg-1 mod
+        // 2^arg-2, Annex D.10). A boolean function result IS class/category boolean (§15.2 item 2).
+        Add(new("BOOLEAN-OF-INTEGER", IntrinsicType.Boolean, IntrinsicArity.Fixed, 2, 2, "ii", "BooleanOfInteger", IntrinsicBind.Runtime, false, 2002)); // §15.13
         Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002));     // §15.14 (byte size ≠ FUNCTION LENGTH, D7)
         // CHAR-NATIONAL (§15.16) — the national twin of CHAR: the character at the 1-based ordinal position of
         // the NATIONAL program collating sequence (native UTF-16 order; a non-native ALPHABET … FOR NATIONAL
@@ -165,7 +170,7 @@ public static class IntrinsicCatalog
         Add(new("EXCEPTION-STATUS", IntrinsicType.Alphanumeric, IntrinsicArity.Fixed, 0, 0, "", "EcStatus", IntrinsicBind.Runtime, false, 2002));    // §15.33
         Add(new("HIGHEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002)); // §15.43 (compile-time PICTURE fold)
         Add(new("LOWEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002));  // §15.58 (compile-time PICTURE fold)
-        Add(new("INTEGER-OF-BOOLEAN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002)); // §15.45
+        Add(new("INTEGER-OF-BOOLEAN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "IntegerOfBoolean", IntrinsicBind.Runtime, false, 2002)); // §15.45 — the unsigned MSB-first value of the bit configuration (r1)
         // The A.4.9 locale module (optional; ratified decision 3 = documented non-support, conforming per
         // §4.2.7 + A.4.1): the four locale functions take a bare POSITIONAL [locale-name-1] (no LOCALE
         // keyword, §15.51.2/.52.2/.53.2/.54.2). STANDARD-COMPARE (§15.85) is A.4.9 item 11 but NOT

@@ -9,8 +9,11 @@
 ## STATUS
 
 ```
-STATUS: IN PROGRESS @ step 1 (Step 0 preflight DONE + the anchor re-scout DONE — resume by reading
-PHASE-11-scout-notes.md FIRST, then execute Step 1)
+STATUS: IN PROGRESS @ step 5 (Steps 0-2 DONE — Step 1 @ 2a0ab666 [Unsupported + the five A.4.9 flips];
+Step 2 [boolean conversions §15.13/§15.45 + the Boolean result-category channel] landed next commit;
+Steps 3-4 were SATISFIED BY P10. Deferred 17→10. Resume: read PHASE-11-scout-notes.md FIRST, then execute
+Step 5 [date windowing §15.23/25/100 + SECONDS-PAST-MIDNIGHT §15.80 — NOTE the scout discrepancy:
+CURRENT-DATE bypasses IClock; SECONDS-PAST-MIDNIGHT must ride RunUnit.Current.Clock.Now()])
 ```
 > The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`. Keep it in sync with the per-step checkboxes in §4.
 

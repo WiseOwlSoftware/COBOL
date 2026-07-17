@@ -1742,6 +1742,19 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEFN1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY FUNCTION EXCEPTION-FILE-N.\n    DISPLAY FUNCTION EXCEPTION-LOCATION-N.\n    STOP RUN.\n"
     },
     {
+      "id": "boolean-of-integer-2002",
+      "status": "active",
+      "description": "The boolean-conversion intrinsic pair FUNCTION BOOLEAN-OF-INTEGER (ISO 15.13) / INTEGER-OF-BOOLEAN (15.45). LIVE (P11 Step 2): BOOLEAN-OF-INTEGER returns a boolean value of argument-2 positions - rightmost position = low-order binary digit, zero-filled or TRUNCATED ON THE LEFT (the result is arg-1 mod 2^arg-2, Annex D.10's 544->low-6-bits worked example) - a boolean function result IS class/category boolean with implicit usage bit (15.2 item 2); INTEGER-OF-BOOLEAN returns the unsigned MSB-first value of the whole bit configuration (15.45.4 r1). Both are 2002 introductions (the boolean-data amendment); below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502).",
+      "display": "FUNCTION BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN (the boolean conversions)",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO §15.13 BOOLEAN-OF-INTEGER / §15.45 INTEGER-OF-BOOLEAN; LIVE (P11 Step 2) — CobolIntrinsics.BooleanOfInteger/IntegerOfBoolean on the D-B1 '0'/'1' substrate; result category Boolean (§15.2 item 2) rides the widened string channels; D8 window 1502 below 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "M2 catalog boolean intrinsics; 2002 introduction (the boolean-data amendment - derive from the 2002 standard; absent from the 1989 Intrinsic Function Module set)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBOOLCNV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N-5 PIC 9(5).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N-5 = FUNCTION INTEGER-OF-BOOLEAN(\n        FUNCTION BOOLEAN-OF-INTEGER(5, 8))\n    DISPLAY N-5\n    STOP RUN.\n"
+    },
+    {
       "id": "report-present-when-2002",
       "status": "active",
       "description": "The report-group PRESENT WHEN clause (§13.18.41 Format 1) — the entry (and its subordinates) is processed only when condition-1 is true, evaluated once per group presentation before any LINE clause processing (GR2); an absent entry is processed as though omitted (GR2b — relative lines re-anchor, absent items leave spaces, an absent SUM entry neither prints nor resets, GR3g). LIVE (P10 Step 13): conditions bind through the ONE ConditionBinder onto the report model; the RWCS engine evaluates per presentation. 2002 introduction — the 2023 Annex E covers 2014→2023 only; derived from the §8.9 reservation of PRESENT 'added 2002' (ReservedWords.Table — the word was reserved FOR this clause) + the 2002 RW modernization family.",

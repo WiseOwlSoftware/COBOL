@@ -113,6 +113,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // P10 Step 14: §8.8.3 concatenation expressions (the & operator) — the frozen legacy grammar has no
         // & token at all; greenfield CorpusRunner byte-compares the golden.
         ("2002", "literal_concat"),
+        // P11 Step 2: FUNCTION BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN (§15.13/§15.45) — the frozen legacy
+        // has no boolean intrinsic functions (its catalog predates the greenfield IntrinsicCatalog);
+        // greenfield CorpusRunner byte-compares the golden.
+        ("2002", "intrinsics_boolean_conv"),
         // P10 Step 15: §13.10 constant entries + §13.18.15 CONSTANT RECORD — the compile-time constant table
         // (DataBinder.Constants.cs) never landed in legacy; greenfield CorpusRunner byte-compares both.
         ("2002", "constant_entry"),

@@ -29,7 +29,7 @@ internal static class OperandText
     private static readonly IsStringVisitor _isString = new();
 
     public static string AsString(BoundOperand op, NumericRenderer num, bool deSign = false) =>
-        op is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National } ic }
+        op is BoundComputedOperand { Expr: BoundIntrinsicCall { ResultCategory: PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean } ic }
             ? num.Intrinsics.RenderString(ic)
             : op.Accept(deSign ? _asStringDeSign : _asStringPlain);
 
@@ -142,10 +142,12 @@ internal static class OperandText
             is PicCategory.Alphanumeric or PicCategory.NumericEdited
             or PicCategory.National or PicCategory.Boolean;
         // An intrinsic result compares by its §15.2 function type: alphanumeric functions are class/category
-        // alphanumeric (IF107A's `IF FUNCTION CURRENT-DATE >= TEMP1` is a STRING comparison); numeric/integer
-        // functions stay numeric operands. A computed operand that is NOT an intrinsic is not text.
+        // alphanumeric (IF107A's `IF FUNCTION CURRENT-DATE >= TEMP1` is a STRING comparison); a boolean
+        // function's '0'/'1' image compares as text likewise (§8.8.4.3 over the D-B1 substrate);
+        // numeric/integer functions stay numeric operands. A computed operand that is NOT an intrinsic is not text.
         public bool Visit(BoundComputedOperand n) =>
-            n.Expr is BoundIntrinsicCall ic && ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National;
+            n.Expr is BoundIntrinsicCall ic
+                && ic.ResultCategory is PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean;
         public bool Visit(BoundFigurative n) => false;
         public bool Visit(BoundNumericLiteral n) => false;
         public bool Visit(BoundOperandError n) => false;

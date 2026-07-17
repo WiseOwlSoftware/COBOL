@@ -877,4 +877,34 @@ public sealed class IntrinsicFunctionDifferentialTests
         Assert.False(ok, "OMITTED violates §8.4.3.2 SR7 for an intrinsic");
         Assert.Contains("COBOLNET1544", detail);
     }
+
+    // ── Spec-pinned: the boolean-conversion pair (§15.13 / §15.45 — P11 Step 2) ─────────────────────────────
+
+    [Fact]
+    public void BooleanOfInteger_MsbFirst_LeftTruncates_Spec() =>
+        // §15.13.4 r1: rightmost boolean position = low-order digit; zero-filled or TRUNCATED ON THE LEFT to
+        // argument-2 positions (544 = 0b1000100000 → the low 6 bits B"100000" — the Annex D.10 worked example);
+        // the MOVE into PIC 1(8) then right-zero-fills (§14.6.8.6) → B"10000000". §15.45.4 r1: the unsigned
+        // MSB-first value — 128, where an LSB-first defect would print 1.
+        AssertSpec(Program("""
+            01 B-8 PIC 1(8) USAGE BIT.
+            01 R PIC 9(3).
+            """, """
+                MOVE FUNCTION BOOLEAN-OF-INTEGER(544, 6) TO B-8.
+                DISPLAY B-8.
+                COMPUTE R = FUNCTION INTEGER-OF-BOOLEAN(B-8).
+                DISPLAY R.
+            """), "10000000\n128", 2002);
+
+    [Fact]
+    public void IntegerOfBoolean_RoundTrip_Spec() =>
+        // §15.13.4 r1 ∘ §15.45.4 r1 — round-trip identity for 0 ≤ n < 2^k (both unsigned, MSB-first); the
+        // boolean-literal argument leg rides §15.3 item 3.
+        AssertSpec(Program("01 R PIC 9(5).", """
+                COMPUTE R = FUNCTION INTEGER-OF-BOOLEAN(
+                    FUNCTION BOOLEAN-OF-INTEGER(200, 8)).
+                DISPLAY R.
+                COMPUTE R = FUNCTION INTEGER-OF-BOOLEAN(B"00000101").
+                DISPLAY R.
+            """), "00200\n00005", 2002);
 }

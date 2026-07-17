@@ -33,6 +33,7 @@
     "goback_returning",
     "highest_lowest_algebraic",
     "initialize_phrases",
+    "intrinsics_boolean_conv",
     "literal_concat",
     "national_data",
     "national_intrinsics",

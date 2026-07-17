@@ -372,4 +372,58 @@ public static partial class CobolIntrinsics
             _ => s.Trim(set),        // both (rule 3)
         };
     }
+
+    // ── FUNCTION BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN (§15.13 / §15.45) — boolean conversions ─────────────
+
+    /// <summary>BOOLEAN-OF-INTEGER (ISO §15.13.4 r1): the boolean value whose bit configuration is the binary
+    /// representation of <paramref name="value"/> — the rightmost boolean position is the low-order binary
+    /// digit — zero-filled or TRUNCATED ON THE LEFT to exactly <paramref name="length"/> boolean positions.
+    /// Left truncation is NORMAL, not an error: the result is <c>value mod 2^length</c> (Annex D.10's
+    /// 544→low-6-bits worked example). §15.13.3: argument-2 shall be a positive nonzero integer (r2);
+    /// argument-1 shall be positive (r1) — COBOL.NET accepts 0 (all-zero bits; the r1-vs-r2
+    /// "positive"/"positive nonzero" drafting contrast reads as arg-2-only excluding zero) and rejects a
+    /// negative via EC-ARGUMENT-FUNCTION (§15.3). The documented COBOL.NET maximum returned-value length
+    /// (§15.4) is the §8.3.3.4.3 SR1 boolean-literal maximum, 8 191 positions. The '0'/'1' string is the
+    /// D-B1 boolean substrate.</summary>
+    public static string BooleanOfInteger(long value, long length)
+    {
+        if (length < 1 || length > 8191)
+        {
+            Exceptions.ExceptionState.ArgumentError(
+                $"FUNCTION BOOLEAN-OF-INTEGER argument-2 {length} is not in 1..8191 (§15.13.3 r2; §15.4)");
+            return "0";
+        }
+        if (value < 0)
+        {
+            Exceptions.ExceptionState.ArgumentError(
+                $"FUNCTION BOOLEAN-OF-INTEGER argument-1 {value} is negative (§15.13.3 r1)");
+            return new string('0', (int)length);
+        }
+        var chars = new char[length];
+        for (int i = 0; i < length; i++)   // the rightmost position is the low-order digit (§15.13.4 r1)
+            chars[length - 1 - i] = i < 63 && ((value >> i) & 1) != 0 ? '1' : '0';
+        return new string(chars);
+    }
+
+    /// <summary>INTEGER-OF-BOOLEAN (ISO §15.45.4 r1): the unsigned binary value of argument-1's bit
+    /// configuration, most-significant bit first, over a temporary boolean item sized to argument-1 (r1a/r1b).
+    /// COBOL.NET's integer channel is a signed 64-bit long, so a configuration above 63 significant bits takes
+    /// EC-ARGUMENT-FUNCTION via the §15.4 maximum-returned-value hook (the documented COBOL.NET policy — §15.45
+    /// itself sets no cap). A zero-length argument (a zero-length hex-boolean literal, §8.3.3.4.3) is value 0 —
+    /// the natural reading of an empty configuration (no explicit rule; flagged in the P11 scout notes).</summary>
+    public static long IntegerOfBoolean(string boolean)
+    {
+        long v = 0;
+        foreach (char c in boolean)
+        {
+            if (c is not ('0' or '1'))
+                return Exceptions.ExceptionState.ArgumentError(
+                    "FUNCTION INTEGER-OF-BOOLEAN argument-1 is not of class boolean (§15.45.3 r1)");
+            if (v > long.MaxValue >> 1)   // 2v (+bit) would exceed long.MaxValue = the 63-bit maximum
+                return Exceptions.ExceptionState.ArgumentError(
+                    "FUNCTION INTEGER-OF-BOOLEAN value exceeds the 63-bit COBOL.NET integer maximum (§15.4)");
+            v = (v << 1) | (uint)(c - '0');
+        }
+        return v;
+    }
 }

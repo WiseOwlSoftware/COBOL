@@ -18,6 +18,7 @@
     "based-redefines-conflict",
     "bit-usage-numeric-pic",
     "boolean-ordering-relation",
+    "boolean_conv_below_2002",
     "boolean_operators_below_2002",
     "by-value-formal-class",
     "class-alphabetic-on-boolean",
