@@ -83,6 +83,8 @@ public static class Constructs
     public const string RepositoryClass2002 = "repository-class-2002";
     public const string StartWithLength2002 = "start-with-length-2002";
     public const string SpecialNamesForNational2002 = "special-names-for-national-2002";
+    public const string AlphabetNational2002 = "alphabet-national-2002";
+    public const string ProgramCollatingNational2002 = "program-collating-national-2002";
     public const string CallByValue2002 = "call-by-value-2002";
     public const string PdHeaderByValue2002 = "pd-header-by-value-2002";
     public const string LocalStorageSection2002 = "local-storage-section-2002";

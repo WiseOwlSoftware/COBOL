@@ -1520,14 +1520,32 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
 13. **Boundary codec.** `System.Text.Encoding.Latin1` (lossless 8-bit) is the ONE shared boundary codepage constant
     — used by file serialization, REDEFINES Tier C, and the whole-group image. Settled once in `CobolNet.Runtime`.
 14. **Figurative HIGH/LOW-VALUE + collating.** No PCS ⇒ alphanumeric `HIGH-VALUE`=U+00FF /
-    `LOW-VALUE`=U+0000 (national U+FFFF / U+0000). With a PROGRAM COLLATING SEQUENCE they are the sequence's
-    EXTREME characters (ISO §8.3.3.6 GR6/7 + §12.3.7 GR8/9 — character identity, ties: highest→last-specified,
-    lowest→first-specified). The custom-`ALPHABET` subsystem is LIVE: `CollatingTable` (256-entry position table,
-    §12.3.7 GR7 k1–k6 incl. the k3 distinct-ascending unspecified tail), built in `DataBinder.Switches`
-    (`Alphabets`/`Collating`), rendered as the generated `__COLLATE` field, consumed by the settled seam
-    `CobolString.Compare(a,b,weights)` at every relation/condition-name comparison site (§12.3.6 GR11) and by the
-    PCS-aware figurative fills (`EmissionContext.FigFill`). SORT/MERGE keys + CHAR/ORD take the same table when
-    those subsystems land (GR13/GR5 precedence).
+    `LOW-VALUE`=U+0000 (the native NATIONAL pin is U+00FF/U+0000 — a flagged §8.3.3.6 GR6/GR7 divergence from the
+    65,536-position native national sequence's U+FFFF extreme, kept byte-stable; `FigurativeConstants`'s doc carries
+    the flag). With a PROGRAM COLLATING SEQUENCE they are the sequence's EXTREME characters (ISO §8.3.3.6 GR6/7 +
+    §12.3.7 GR8/9 — character identity, ties: highest→last-specified, lowest→first-specified). The custom-`ALPHABET`
+    subsystem is LIVE in BOTH classes (§12.3.7.2 two-branch format, the FOR phrase in its ISO position between the
+    name and IS plus the historical postfix superset):
+    - **Alphanumeric**: `CollatingTable` (256-entry position table, §12.3.7 GR7 k1–k6 incl. the k3
+      distinct-ascending unspecified tail), built in `DataBinder.Switches` (`Alphabets`/`Collating`), rendered as
+      the generated `__COLLATE` field, consumed by the settled seam `CobolString.Compare(a,b,weights)` at every
+      relation/condition-name comparison site (§12.3.6 GR11), by CHAR/ORD (H5 flag), and by the PCS-aware
+      figurative fills.
+    - **National** (P10 Step 4): `NationalCollatingTable` — a SPARSE table over the 65,536 UTF-16 code units
+      (only the specified characters tabulated; every unspecified code unit takes its GR7 k3 distinct ascending
+      position arithmetically) — built by `AlphabetBindNational` (`NationalAlphabets`/`NationalCollating`),
+      rendered as the generated `__COLLATE_NAT` `NationalCollation` instance, consumed by
+      `CobolString.Compare(a,b,national)` at national relation/condition-name sites (§8.8.4.2.9 / §12.3.6 GR11),
+      by CHAR-NATIONAL/ORD-over-national (`CollateNat`, §15.16.4/§15.70.4 r2), and by the national figurative
+      fills (§12.3.7 GR8/9). Code-set phrases: **UCS-4** names the ISO 10646 collating sequence — on the D-N1
+      one-code-unit-per-position substrate that IS the native code-unit order (§8.5.1.4 denies surrogate-pair
+      recognition, so the supplementary-plane codepoint/code-unit divergence is unreachable; the correspondence is
+      the BMP identity, implementor item 188) — and **UTF-8/UTF-16** name coded character sets ONLY (§12.3.7 GR7
+      Table 6): referencing them as a collating sequence is rejected (0898), and no codec boundary consumes their
+      coded-set role yet (the CODE-SET clause has no compiler surface — declaring them is well-formed, inert).
+    SORT/MERGE: alphabet-name-1 takes the alphanumeric table (GR5 precedence, live); alphabet-name-2 / the FOR
+    NATIONAL form resolve + class-validate, but national KEYS cannot yet exist (D-N2; the table-sort national key
+    stages loud), so the validated national sequence is not yet carried into the sort (lands with RESIDUE-11).
 15. **Reference modification out of range.** Throw (`EC-BOUND-REF-MOD` → `CobolRuntimeException`) by default; a
     lenient clamping dialect is a later option.
 16. **Exception model default.** EC checking OFF by default (NIST-faithful, fast — ISO §5000), enabled only by

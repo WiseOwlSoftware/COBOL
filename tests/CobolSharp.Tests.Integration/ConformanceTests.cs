@@ -101,6 +101,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // DISPLAY-OF/NATIONAL-OF on the greenfield substrate (P10 national wave): the legacy oracle carries
         // its OWN pass-through DISPLAY-OF approximation (no repertoire substitution) — never a match target.
         ("2002", "national_intrinsics"),
+        // ALPHABET … FOR NATIONAL + PROGRAM COLLATING SEQUENCE FOR NATIONAL (P10 Step 4, §12.3.7/§12.3.6):
+        // the legacy engine never modeled a national collating sequence (its SemanticBuilder keeps the 85
+        // single-name PCS view) — greenfield-only.
+        ("2002", "alphabet_national"),
         // P10 Step-11 EC-N wave: the national EC twins EXCEPTION-FILE-N/EXCEPTION-LOCATION-N (§15.29/§15.31)
         // and CHAR-NATIONAL/ORD-over-national (§15.16/§15.70.4 r2) — the frozen legacy has no EC model and no
         // national result category; greenfield CorpusRunner byte-compares both.

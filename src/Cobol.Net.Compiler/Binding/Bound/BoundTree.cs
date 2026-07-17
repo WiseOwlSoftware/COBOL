@@ -150,6 +150,12 @@ public sealed record BoundExprError(string Feature) : BoundExpr;
 public sealed record BoundIntrinsicCall(
     IntrinsicSig Sig, IReadOnlyList<BoundOperand> Args, PicCategory ResultCategory, bool Collate = false) : BoundExpr
 {
+    /// <summary>CHAR-NATIONAL / ORD-over-a-national-argument bound under a NON-native NATIONAL program collating
+    /// sequence (an <c>ALPHABET … FOR NATIONAL</c> literal phrase; §15.16.4 / §15.70.4 r2) — the backend then
+    /// passes the emitted <c>__COLLATE_NAT</c> table; when false the field does not even exist (the H5 twin).
+    /// Never true together with <see cref="Collate"/> — each call reads exactly one class's sequence.</summary>
+    public bool CollateNat { get; init; }
+
     /// <summary>TRIM (§15.96.4): 0 = both leading and trailing (rule 3), 1 = LEADING (rule 1), 2 = TRAILING
     /// (rule 2) — the LEADING/TRAILING phrase keyword, extracted at bind time. Zero for every other function.</summary>
     public int TrimMode { get; init; }

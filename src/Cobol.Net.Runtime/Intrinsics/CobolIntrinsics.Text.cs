@@ -42,12 +42,13 @@ public static partial class CobolIntrinsics
     }
 
     /// <summary>CHAR-NATIONAL (§15.16.4): the character in ORDINAL position <paramref name="n"/> (1-based) of
-    /// the NATIONAL program collating sequence. The native national sequence is UTF-16 code-point order (one
-    /// char per national position, D-N1) — position n is code point n−1; an ALPHABET … FOR NATIONAL phrase
-    /// (the only way to impose a non-native national sequence) has no compiler surface yet (P10 Step 4), so
-    /// the national PCS is always native and no weights overload exists. An out-of-range ordinal violates
-    /// §15.16.3 rule 2 — EC-ARGUMENT-FUNCTION, with the §15.3 default one-space result when checking is off.
-    /// The result is CLASS NATIONAL (§15.16.1) — the catalog row's National category carries that.</summary>
+    /// the NATIVE national collating sequence — UTF-16 code-unit order (one char per national position, D-N1;
+    /// position n is code unit n−1). This parameterless body serves every IDENTITY national program collating
+    /// sequence (none declared, NATIVE, UCS-4 — the §8.5.1.4 codepoint≡code-unit equivalence); a non-native
+    /// <c>ALPHABET … FOR NATIONAL</c> literal phrase routes to the <see cref="NationalCollation"/> overload.
+    /// An out-of-range ordinal violates §15.16.3 rule 2 — EC-ARGUMENT-FUNCTION, with the §15.3 default
+    /// one-space result when checking is off. The result is CLASS NATIONAL (§15.16.1) — the catalog row's
+    /// National category carries that.</summary>
     public static string CharNational(long n)
     {
         long c = n - 1;
@@ -59,15 +60,36 @@ public static partial class CobolIntrinsics
         return ((char)c).ToString();
     }
 
+    /// <summary>CHAR-NATIONAL under a NON-native national program collating sequence (§15.16.4; the emitted
+    /// <c>__COLLATE_NAT</c> table): the character at position n−1 — a shared (ALSO) position returns the FIRST
+    /// character defined for it (rule 2, deterministic per implementor item 22).</summary>
+    public static string CharNational(long n, NationalCollation national)
+    {
+        int c = national.CharAt(n - 1);
+        if (c < 0)
+        {
+            Exceptions.ExceptionState.ArgumentError($"CHAR-NATIONAL argument {n} outside the national collating sequence (§15.16.3 rule 2)");
+            return " ";
+        }
+        return ((char)c).ToString();
+    }
+
     /// <summary>ORD (§15.70.4): the 1-based ordinal position of the argument's (single) character in the
     /// alphanumeric program collating sequence (r1) — native: char code + 1. The inverse of CHAR. A NATIONAL
     /// argument (§15.70.3 admits category national) reads the NATIONAL program collating sequence instead
-    /// (r2) — always the native UTF-16 code-point order (no ALPHABET … FOR NATIONAL surface exists), so this
-    /// same parameterless body IS the r2 value; the binder never routes a national argument to the
-    /// alphanumeric-weights overload below.</summary>
+    /// (r2) — this same parameterless body IS the r2 value for every IDENTITY national sequence (none declared,
+    /// NATIVE, UCS-4 — D-N3 code-unit order); a non-native <c>ALPHABET … FOR NATIONAL</c> sequence routes to
+    /// the <see cref="NationalCollation"/> overload below, and the binder never routes a national argument to
+    /// the alphanumeric-weights overload (its 256-entry domain would alias national characters).</summary>
     public static long Ord(string s) => s.Length == 0
         ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
         : s[0] + 1;
+
+    /// <summary>ORD over a NATIONAL argument under a NON-native national program collating sequence
+    /// (§15.70.4 r2; the emitted <c>__COLLATE_NAT</c> table): the character's collating position + 1.</summary>
+    public static long Ord(string s, NationalCollation national) => s.Length == 0
+        ? Exceptions.ExceptionState.ArgumentError("ORD argument is empty (§15.70.3 — a one-character argument is required)")
+        : national.Weight(s[0]) + 1L;
 
     /// <summary>ORD under a non-identity PCS: the character's collating weight + 1 (<c>Positions[c]</c> is the
     /// 0-based position). A char beyond the table keeps its native ordinal (the table covers the alphabet's

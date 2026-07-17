@@ -138,12 +138,15 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
                     return new BoundUnsupported($"SORT table key '{kn}' — keys shall not be described with / "
                         + "subordinate to an inner OCCURS (ISO §14.9.40.3 SR14e), and a REDEFINES-view key in the "
                         + "typed-array path is deferred");
-                // A NATIONAL key orders under the NATIONAL collating sequence (§14.9.40 GR5b) — the key
-                // comparator's collating leg for national is Phase-4a residue #5 (file-sort national keys are
-                // already blocked by the FD/SD record gate). Staged loud, never a wrong ordinal.
+                // A NATIONAL key orders under the NATIONAL collating sequence (§14.9.40 GR5b) — the national
+                // sequence itself now RESOLVES (P10 Step 4: ALPHABET … FOR NATIONAL + alphabet-name-2/FOR
+                // NATIONAL bind and validate), but the key comparator's national leg is still the staged
+                // residue (file-sort national keys are separately blocked by the D-N2 FD/SD record gate).
+                // Staged loud, never a wrong ordinal.
                 if (key.Pic is { Category: PicCategory.National })
                     ctx.Edition.Error(DiagnosticCatalog.NationalData, $"SORT with a national key ('{kn}') is recognized but "
-                        + "not yet implemented — national key collating (Phase 4a residue; ISO §14.9.40 GR5b)");
+                        + "not yet implemented — the key comparator's national collating leg (ISO §14.9.40 GR5b; "
+                        + "the national COLLATING SEQUENCE itself binds, P10 Step 4)");
                 keys.Add(new BoundTableSortKey(desc, path, key));
             }
         }
@@ -326,24 +329,70 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
     /// alphabet-name-1 — including a NATIVE/STANDARD-1/STANDARD-2 alphabet, which FORCES the native order over any
     /// PCS; (b) absent the phrase, the program collating sequence; null = native. The COLLATING keyword itself may
     /// be omitted in the source (CCVS leniency L5 — ST139A writes <c>SEQUENCE alphabet-name</c>; the grammar's
-    /// permissive superset, flagged under strict dialects when that channel lands). The second alphabet-name
-    /// (national keys) and the 2002+ <c>FOR ALPHANUMERIC/NATIONAL</c> forms are the national class — out of this
-    /// slice (the FOR forms are not yet in the grammar; edition-gated fragments per the grammar-factoring rule).</summary>
+    /// permissive superset, flagged under strict dialects when that channel lands). Alphabet-name-2 / the FOR
+    /// NATIONAL form name the NATIONAL sequence for national keys (ISO §14.9.40.3 SR2 + GR5b; the 2002 national
+    /// class — introduction-gated by the pass, VisitSortCollatingPhrase): it is resolved and CLASS-VALIDATED here
+    /// against the FOR NATIONAL alphabet registry (a UTF-8/UTF-16 alphabet references NO collating sequence —
+    /// §12.3.7 Table 6), then intentionally NOT carried into the bound node: a national KEY cannot yet exist
+    /// (D-N2 refuses national leaves in FD/SD records; the table-sort national key stages loud in this binder),
+    /// so no reachable program observes the sequence — the staged key legs are the fence, and the carried slot
+    /// lands with them (RESIDUE-11).</summary>
     private (CollatingTable? Table, BoundStatement? Error) SortBindCollating(Core.SortCollatingPhraseContext? c)
     {
         if (c is null) return (ctx.Data.Collating, null);   // GR5b — the program collating sequence (null ⇒ native)
-        var words = c.cobolWord();
-        if (words.Length > 1)
+
+        string? alnumName = null, natName = null;
+        var fors = c.collatingForPhrase();
+        if (fors.Length > 0)
         {
-            // Alphabet-name-2 orders NATIONAL keys (ISO §14.9.40.3 SR2) — a COBOL-2002+ class;
-            // sort-collating-national-2002: the pass owns the edition gate (Exec Step E).
-            return (null, new BoundUnsupported("SORT/MERGE COLLATING SEQUENCE alphabet-name-2 (national keys — "
-                + "the national class is a later slice)"));
+            foreach (var f in fors)
+            {
+                bool isNat = f.NATIONAL() is not null;
+                ref string? slot = ref isNat ? ref natName : ref alnumName;
+                if (slot is not null)
+                    ctx.Edition.Error("COBOLNET0898", "SORT/MERGE COLLATING SEQUENCE: the FOR "
+                        + $"{(isNat ? "NATIONAL" : "ALPHANUMERIC")} phrase may be specified only once "
+                        + "(ISO §14.9.40.2 general format)");
+                slot = f.cobolWord().GetText();
+            }
         }
-        string alphabet = words[0].GetText();
-        if (!ctx.Data.Alphabets.TryGetValue(alphabet, out var table))
-            return (null, new BoundUnsupported($"SORT/MERGE COLLATING SEQUENCE '{alphabet}' is not an alphabet-name "
+        else
+        {
+            var words = c.cobolWord();
+            alnumName = words.Length > 0 ? words[0].GetText() : null;
+            natName = words.Length > 1 ? words[1].GetText() : null;
+        }
+
+        // Alphabet-name-2 (national): resolve + class-validate; see the method doc for why it is not carried.
+        if (natName is not null)
+        {
+            if (!ctx.Data.NationalAlphabets.TryGetValue(natName, out var def))
+                ctx.Edition.Error("COBOLNET0898", $"SORT/MERGE COLLATING SEQUENCE '{natName}': alphabet-name-2 "
+                    + "shall reference an alphabet that defines a NATIONAL collating sequence "
+                    + $"({(ctx.Data.Alphabets.ContainsKey(natName) ? "this alphabet is alphanumeric — write ALPHABET … FOR NATIONAL" : "no such national alphabet is declared in SPECIAL-NAMES")}; "
+                    + "ISO §14.9.40.3 SR2)");
+            else if (!def.HasCollatingSequence)
+                ctx.Edition.Error("COBOLNET0898", $"SORT/MERGE COLLATING SEQUENCE '{natName}': a {def.Phrase} "
+                    + "alphabet references a coded character set but NOT a collating sequence (ISO §12.3.7 GR7 "
+                    + "Table 6) — only NATIVE, UCS-4, and literal-phrase national alphabets may collate "
+                    + "(ISO §14.9.40.3 SR2)");
+        }
+
+        // Alphabet-name-1 (alphanumeric/alphabetic keys, GR5a); a FOR NATIONAL-only phrase leaves the
+        // alphanumeric keys on the program collating sequence (GR5b per class).
+        if (alnumName is null) return (ctx.Data.Collating, null);
+        if (!ctx.Data.Alphabets.TryGetValue(alnumName, out var table))
+        {
+            if (ctx.Data.NationalAlphabets.ContainsKey(alnumName))
+            {
+                ctx.Edition.Error("COBOLNET0898", $"SORT/MERGE COLLATING SEQUENCE '{alnumName}': "
+                    + "alphabet-name-1 shall reference an alphabet that defines an ALPHANUMERIC collating "
+                    + "sequence — this alphabet is defined FOR NATIONAL (ISO §14.9.40.3 SR2)");
+                return (null, null);
+            }
+            return (null, new BoundUnsupported($"SORT/MERGE COLLATING SEQUENCE '{alnumName}' is not an alphabet-name "
                 + "declared in SPECIAL-NAMES (ISO §14.9.40.3 SR1 / §12.3.7)"));
+        }
         return (table, null);   // GR5a — the statement's own sequence (a native alphabet stored null ⇒ native)
     }
 

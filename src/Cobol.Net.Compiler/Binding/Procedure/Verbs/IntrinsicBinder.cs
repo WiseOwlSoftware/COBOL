@@ -235,11 +235,14 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // program collating sequence is in effect so the backend passes its weights table — and only then
         // (hazard H5: the emitted __COLLATE field exists only under a non-identity PCS; STANDARD-1/2/NATIVE
         // normalize to identity). A NATIONAL ORD argument reads the NATIONAL program collating sequence instead
-        // (§15.70.4 r2) — always the native UTF-16 code-point order (no ALPHABET … FOR NATIONAL surface exists,
-        // P10 Step 4) — so the alphanumeric weights table must NOT be passed: its 256-entry domain would alias
-        // national characters, and the parameterless runtime Ord IS the r2 value.
+        // (§15.70.4 r2), and CHAR-NATIONAL always does (§15.16.4) — so the alphanumeric weights table must NOT
+        // be passed for those (its 256-entry domain would alias national characters): they take the H5-twin
+        // CollateNat flag, set only under a NON-native national sequence (an ALPHABET … FOR NATIONAL literal
+        // phrase — NATIVE/UCS-4 are the D-N3 code-unit identity the parameterless runtime bodies realize).
         bool nationalArg = args.Any(a => OperandCategory(a) is PicCategory.National);
         bool collate = sig.Name is "CHAR" or "ORD" && ctx.Data.Collating is not null && !nationalArg;
+        bool collateNat = ctx.Data.NationalCollating is not null
+            && (sig.Name is "CHAR-NATIONAL" || (sig.Name is "ORD" && nationalArg));
 
         // CHAR takes an INTEGER argument (§15.15.3 r1) — a national operand is a category violation; the
         // national ordinal→character direction is FUNCTION CHAR-NATIONAL (§15.16, implemented — the P10
@@ -256,7 +259,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // program's EC usage so the generated source carries the Exceptions using (the group EC gate).
         if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();
 
-        return new BoundIntrinsicCall(resolved, args, category, collate);
+        return new BoundIntrinsicCall(resolved, args, category, collate) { CollateNat = collateNat };
     }
 
     /// <summary>TRIM (§15.96) — a phrase keyword in the argument list (<c>[LEADING|TRAILING]</c>, §15.96.2),

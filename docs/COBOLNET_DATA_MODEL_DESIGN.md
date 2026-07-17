@@ -172,10 +172,17 @@ DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Red
 - **D-N2 byte≠char containment**: every byte-addressed surface REFUSES a national leaf loud (REDEFINES ComputeTier,
   EXTERNAL/ADDRESS-OF/BASED cells via ForceStringCanonical, FD/SD records, SORT keys) until the 2-byte layout
   residue lands (RESIDUE-11 coordination with the pointer track).
-- **D-N3 collating**: national comparisons order by UTF-16 ordinal (the implementor default national sequence);
-  the ALPHANUMERIC program collating sequence never applies (separate sequences — §8.8.4.2.9; the 256-entry
-  weight table would alias national chars through `& 0xFF`).
-- **D-N4 repertoire**: Latin-1 (≤ U+00FF) this phase; the only wider-char source is an N"…" literal, 0814 at bind.
+- **D-N3 collating**: national comparisons order by UTF-16 code-unit ordinal (the implementor default national
+  sequence); the ALPHANUMERIC program collating sequence never applies (separate sequences — §8.8.4.2.9; the
+  256-entry weight table would alias national chars through `& 0xFF`). A NON-native national sequence exists via
+  `ALPHABET … FOR NATIONAL` literal phrases (§12.3.7) + `PROGRAM COLLATING SEQUENCE FOR NATIONAL` (§12.3.6) — the
+  sparse `NationalCollatingTable`/`__COLLATE_NAT` channel; the coded-set names collapse to the D-N3 identity:
+  UCS-4's ISO 10646 order over one-code-unit-per-position characters IS code-unit order (§8.5.1.4 — COBOL
+  recognizes no surrogate pairs, so the supplementary-plane codepoint/code-unit divergence is unreachable), and
+  UTF-8/UTF-16 name coded character sets only (§12.3.7 GR7 Table 6 — never a collating sequence).
+- **D-N4 repertoire**: the FULL national repertoire — one UTF-16 code unit per position (the Latin-1-only
+  staged guard was lifted with the DISPLAY-OF/NATIONAL-OF wave; the §8.1.2 correspondence for NAT→ANUM remains
+  the Latin-1 subset identity with '?'+EC-DATA-CONVERSION substitution beyond it).
 - **D-B1 boolean**: one alphanumeric character '0'/'1' per boolean position for BOTH usage display AND usage BIT —
   the §13.18.40.4 GR14 R14 license, a PERMANENTLY conforming choice. byte=char HOLDS: boolean leaves are admitted
   at every character surface (Tier-B windows, images, records, cells for the display form). The category

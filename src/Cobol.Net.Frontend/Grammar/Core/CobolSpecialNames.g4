@@ -80,9 +80,19 @@ symbolicCharacterEntry
     : cobolWord+ (IS | ARE) integerLiteral+
     ;
 
-// ALPHABET name IS ... [FOR {ALPHANUMERIC|NATIONAL}]
+// ALPHABET alphabet-name-1 [FOR ALPHANUMERIC] IS {NATIVE|STANDARD-1|STANDARD-2|literal-phrase…}
+// ALPHABET alphabet-name-2 FOR NATIONAL IS {NATIVE|UCS-4|UTF-8|UTF-16|literal-phrase…}   (ISO §12.3.7.2)
+// The FOR phrase's ISO position is BETWEEN the name and IS; the historical postfix position (after the
+// definition) is kept as an accepted superset (pre-existing corpus surface). The binder reads either site
+// and rejects a clause writing both. UCS-4/UTF-8/UTF-16 are §8.9 CONTEXT-SENSITIVE words (ALPHABET clause
+// scope) — they arrive as ordinary cobolWord entries and are recognized BY TEXT in the binder/pass, never
+// as lexer keywords (they stay user-definable outside this clause).
 alphabetClause
-    : ALPHABET cobolWord IS alphabetDefinition (FOR (ALPHANUMERIC | NATIONAL))?
+    : ALPHABET cobolWord alphabetForPhrase? IS alphabetDefinition alphabetForPhrase?
+    ;
+
+alphabetForPhrase
+    : FOR (ALPHANUMERIC | NATIONAL)
     ;
 
 // NATIVE, STANDARD-1, STANDARD-2 are dedicated lexer tokens.

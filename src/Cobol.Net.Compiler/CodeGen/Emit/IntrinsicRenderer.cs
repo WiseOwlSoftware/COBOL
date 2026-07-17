@@ -251,10 +251,13 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
 
     private string CommaFlag => ctx.Data.DecimalPointIsComma ? ", commaMode: true" : "";
 
-    /// <summary>The trailing weights argument for a PCS-flagged CHAR/ORD (hazard H5: the binder set
-    /// <see cref="BoundIntrinsicCall.Collate"/> ONLY when a non-identity PCS exists — exactly when the program
-    /// class emitted its <c>__COLLATE</c> table).</summary>
-    private static string Collate(BoundIntrinsicCall ic) => ic.Collate ? ", __COLLATE" : "";
+    /// <summary>The trailing weights argument for a PCS-flagged CHAR/ORD/CHAR-NATIONAL (hazard H5: the binder
+    /// set <see cref="BoundIntrinsicCall.Collate"/>/<see cref="BoundIntrinsicCall.CollateNat"/> ONLY when the
+    /// matching non-identity PCS exists — exactly when the program class emitted its <c>__COLLATE</c> /
+    /// <c>__COLLATE_NAT</c> table; the two never coexist on one call — CHAR/alphanumeric-ORD read the
+    /// alphanumeric sequence, CHAR-NATIONAL/national-ORD the national one, §15.15.4/§15.16.4/§15.70.4).</summary>
+    private static string Collate(BoundIntrinsicCall ic) =>
+        ic.Collate ? ", __COLLATE" : ic.CollateNat ? ", __COLLATE_NAT" : "";
 
     // ── The STRING channel (instance — reached through OperandText.AsString with the per-unit renderer) ─────
 
@@ -274,8 +277,9 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])),
             "Char" =>                                                          // §15.15 — PCS-relative (H5 conditional weights)
                 RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgInt(ic.Args[0])}{Collate(ic)}"),
-            "CharNational" =>                                                  // §15.16 — the NATIONAL PCS ordinal (native UTF-16 order;
-                RuntimeApi.Intrinsic(sig.RuntimeMethod, ArgInt(ic.Args[0])),   //   no ALPHABET FOR NATIONAL surface ⇒ no weights channel)
+            "CharNational" =>                                                  // §15.16 — the NATIONAL PCS ordinal (native UTF-16 order,
+                RuntimeApi.Intrinsic(sig.RuntimeMethod,                        //   or __COLLATE_NAT under a non-native ALPHABET … FOR NATIONAL)
+                    $"{ArgInt(ic.Args[0])}{Collate(ic)}"),
             "CurrentDate" => RuntimeApi.DateFn(sig.RuntimeMethod, ""),         // §15.21 — the runtime clock
             // WHEN-COMPILED is the COMPILATION timestamp (§15.99.3 r2) — a constant in the generated source.
             // (The legacy's runtime-clock placeholder also passes IF142A's plausibility checks; the constant is

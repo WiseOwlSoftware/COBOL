@@ -531,7 +531,9 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
     {
         if (ctx.programCollatingSequenceClause() is { } pcsClause)
         {
-            var alphaName = pcsClause.cobolWord()?.GetText();
+            // Shape-only update for the 2002 PCS grammar superset (cobolWord is an array now; the FOR
+            // forms / alphabet-name-2 are greenfield-only — the legacy oracle keeps the 85 single-name view).
+            var alphaName = pcsClause.cobolWord() is { Length: > 0 } ws ? ws[0].GetText() : null;
             if (alphaName != null)
                 _programCollatingSequenceAlphabetName = alphaName;
         }

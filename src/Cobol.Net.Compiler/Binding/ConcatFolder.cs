@@ -34,8 +34,9 @@ using Core = CobolParserCore;
 /// A figurative constant inside a concatenation expression is ONE character (§8.3.3.6.4 GR3a): ZERO '0',
 /// SPACE ' ', QUOTE '"', and the HIGH-VALUE/LOW-VALUE collating extremes — the program collating sequence's
 /// characters when a PCS is active (§8.3.3.6.3 F4/F5 + §12.3.7 GR8/GR9), else the native U+00FF/U+0000 pins;
-/// class national never takes the alphanumeric PCS (the D-N3 pin — same posture as
-/// <c>FigurativeConstants.Fill</c>, the codegen twin of this table). NULL has no character value (§8.3.3.6.3
+/// class national never takes the alphanumeric PCS — it reads its OWN sequence (the explicit national PCS
+/// extremes when declared, else the D-N3 pin; same posture as <c>FigurativeConstants.Fill</c>, the codegen
+/// twin of this table). NULL has no character value (§8.3.3.6.3
 /// Format 8 — a pointer figurative) and is rejected. In class boolean only ZERO folds (a boolean character is
 /// 0 or 1, §8.3.3.4 — SPACE/QUOTE/HIGH/LOW have no boolean value; the §13.18.63 SR10 posture).
 /// §8.8.3.3 GR2: the value is the concatenation of the operand values; two zero-length operands fold to a
@@ -82,10 +83,13 @@ internal static class ConcatFolder
 
     /// <summary>Fold <paramref name="ctx"/> to its equivalent single literal (§8.8.3.3 GR2/GR3), reporting the
     /// §8.8.3.2 syntax-rule violations to <paramref name="edition"/>. <paramref name="collate"/> is the active
-    /// PROGRAM COLLATING SEQUENCE table (its HIGH-VALUE/LOW-VALUE extremes, §8.3.3.6.3 F4/F5), null when none.
+    /// ALPHANUMERIC PROGRAM COLLATING SEQUENCE table (its HIGH-VALUE/LOW-VALUE extremes, §8.3.3.6.3 F4/F5), and
+    /// <paramref name="natCollate"/> its NATIONAL twin (a non-native ALPHABET … FOR NATIONAL sequence — its
+    /// extremes govern HIGH-/LOW-VALUE in a class-national concatenation, §12.3.7 GR8/GR9); null when none.
     /// Always returns a best-effort value so the caller's plumbing continues — on any reported error the
     /// compile has already failed (the driver halts before emit).</summary>
-    public static Folded Fold(Core.ConcatenationExpressionContext ctx, EditionContext edition, CollatingTable? collate)
+    public static Folded Fold(Core.ConcatenationExpressionContext ctx, EditionContext edition,
+        CollatingTable? collate, NationalCollatingTable? natCollate = null)
     {
         var cat = ClassOf(ctx);
         var sb = new System.Text.StringBuilder();
@@ -138,9 +142,9 @@ internal static class ConcatFolder
                 // F4/F5 + §12.3.7 GR8/GR9), else the native U+00FF/U+0000 pins (COBOLNET_DESIGN §14.9); class
                 // national never takes the alphanumeric PCS (D-N3 — the FigurativeConstants.Fill posture).
                 else if (fig.HIGH_VALUE() is not null)
-                    sb.Append(cat is PicCategory.National ? '\u00ff' : collate?.HighValue ?? '\u00ff');
+                    sb.Append(cat is PicCategory.National ? natCollate?.HighValue ?? '\u00ff' : collate?.HighValue ?? '\u00ff');
                 else if (fig.LOW_VALUE() is not null)
-                    sb.Append(cat is PicCategory.National ? '\u0000' : collate?.LowValue ?? '\u0000');
+                    sb.Append(cat is PicCategory.National ? natCollate?.LowValue ?? '\u0000' : collate?.LowValue ?? '\u0000');
                 else   // NULL — the pointer figurative (§8.3.3.6.3 Format 8): no character value to concatenate.
                     ClassError(edition, cat, $"figurative constant '{fig.GetText()}' (no character value)");
             }

@@ -156,7 +156,7 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
             && (char.IsWhiteSpace(w[3]) || char.IsLetter(w[3])))
             w = w[3..].TrimStart();
         return FigurativeConstants.KindOf(w, includeNull: true) is { } k
-            ? FigurativeConstants.Fill(k, ctx.Data.Collating, cat) : null;   // the ONE service (P7 Step 4)
+            ? FigurativeConstants.Fill(k, ctx.Data.Collating, cat, ctx.Data.NationalCollating) : null;   // the ONE service (P7 Step 4)
     }
 
     // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ─────────────────────────────────────────────────────────────

@@ -808,10 +808,30 @@ internal sealed class VersionConformancePass
 
         /// <summary>ALPHABET … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — a COBOL-2002 introduction; the base ALPHABET
         /// clause is version-invariant. One of the three SPECIAL-NAMES FOR-phrase sites (all one constructId +
-        /// where-string), gated on the <c>FOR</c> token exactly as the former AlphabetBind Check.</summary>
+        /// where-string), gated once per clause on the FOR phrase's presence (either the ISO position between the
+        /// name and IS, or the accepted postfix superset — the <c>alphabetForPhrase</c> subrule covers both).
+        /// The UCS-4/UTF-8/UTF-16 coded-set phrases (§12.3.7.2, the FOR NATIONAL branch) are §8.9
+        /// CONTEXT-SENSITIVE words arriving as plain cobolWord entries — recognized here BY TEXT (never lexer
+        /// keywords) and gated as their own 2002 introduction (alphabet-national-2002).</summary>
         public override object? VisitAlphabetClause(CobolParserCore.AlphabetClauseContext ctx)
         {
-            if (ctx.FOR() is not null) _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+            if (ctx.alphabetForPhrase().Length > 0)
+                _p.Check(Constructs.SpecialNamesForNational2002, "the FOR ALPHANUMERIC/NATIONAL phrase");
+            if (ctx.alphabetDefinition() is { } def && def.alphabetEntry() is [{ ChildCount: 1 } entry]
+                && entry.GetChild(0) is CobolParserCore.CobolWordContext w
+                && w.GetText().ToUpperInvariant() is "UCS-4" or "UTF-8" or "UTF-16")
+                _p.Check(Constructs.AlphabetNational2002, $"the ALPHABET {w.GetText().ToUpperInvariant()} phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>PROGRAM COLLATING SEQUENCE's national surface (ISO §12.3.6.2) — alphabet-name-2 of the
+        /// two-name IS form and the FOR ALPHANUMERIC/FOR NATIONAL forms are 2002 introductions (the 85 format is
+        /// the single-name IS form); one gate per clause on recognition.</summary>
+        public override object? VisitProgramCollatingSequenceClause(CobolParserCore.ProgramCollatingSequenceClauseContext ctx)
+        {
+            if (ctx.collatingForPhrase().Length > 0 || ctx.cobolWord().Length > 1)
+                _p.Check(Constructs.ProgramCollatingNational2002,
+                    "the PROGRAM COLLATING SEQUENCE alphabet-name-2 / FOR ALPHANUMERIC/NATIONAL forms");
             return base.VisitChildren(ctx);
         }
 
@@ -1058,12 +1078,13 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>SORT/MERGE COLLATING SEQUENCE alphabet-name-2 (ISO §14.9.40.3 SR2 — the national collating
-        /// sequence): the second alphabet word is a 2002 introduction (the national class).</summary>
+        /// <summary>SORT/MERGE COLLATING SEQUENCE's national surface (ISO §14.9.40.2 / §14.9.24.2 —
+        /// §14.9.40.3 SR2 national collating): alphabet-name-2 of the IS form and the FOR ALPHANUMERIC/FOR
+        /// NATIONAL forms are 2002 introductions (the national class); one gate per phrase on recognition.</summary>
         public override object? VisitSortCollatingPhrase(CobolParserCore.SortCollatingPhraseContext ctx)
         {
-            if (ctx.cobolWord().Length > 1)
-                _p.Check(Constructs.SortCollatingNational2002, "COLLATING SEQUENCE alphabet-name-2");
+            if (ctx.cobolWord().Length > 1 || ctx.collatingForPhrase().Length > 0)
+                _p.Check(Constructs.SortCollatingNational2002, "COLLATING SEQUENCE alphabet-name-2 / FOR forms");
             return base.VisitChildren(ctx);
         }
 

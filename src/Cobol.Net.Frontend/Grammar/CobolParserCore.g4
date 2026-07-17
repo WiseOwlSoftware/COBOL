@@ -381,8 +381,13 @@ objectComputerParagraph
       programCollatingSequenceClause? DOT)?
     ;
 
+// PROGRAM COLLATING SEQUENCE {IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS alphabet-name-1 |
+// FOR NATIONAL IS alphabet-name-2}…} (ISO §12.3.6.2). The 85 surface is the single-name IS form; the second
+// name and the FOR forms arrived with the national class (2002) — introduction-gated on recognition by
+// VersionConformancePass ParseArm.VisitProgramCollatingSequenceClause (program-collating-national-2002).
+// collatingForPhrase is the ONE shared FOR-class subrule (CobolIO.g4 — SORT/MERGE reuse it).
 programCollatingSequenceClause
-    : PROGRAM COLLATING? SEQUENCE IS? cobolWord
+    : PROGRAM COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord cobolWord?)
     ;
 
 computerName

@@ -88,7 +88,10 @@ public sealed class EditionGateDiagnosticTests
                 STOP RUN.
             """, 85), "2002", "85");
 
-    /// <summary>SPECIAL-NAMES class — the FOR NATIONAL phrase (ISO §12.3.7, 2002) at 85.</summary>
+    /// <summary>SPECIAL-NAMES class — the FOR NATIONAL phrase (ISO §12.3.7, 2002) at 85. The fixture is the
+    /// spec-valid national branch (§12.3.7.2 — the FOR phrase between the name and IS; STANDARD-1 belongs to
+    /// the alphanumeric branch only, so the former <c>IS STANDARD-1 FOR NATIONAL</c> shape now also draws the
+    /// P10 Step-4 branch-mismatch 0898).</summary>
     [Fact]
     public void AlphabetForNational_At85_Names0900()
         => AssertNames(ErrorsAt("""
@@ -97,7 +100,7 @@ public sealed class EditionGateDiagnosticTests
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             SPECIAL-NAMES.
-                ALPHABET AB1 IS STANDARD-1 FOR NATIONAL.
+                ALPHABET AB1 FOR NATIONAL IS NATIVE.
             PROCEDURE DIVISION.
             MAIN.
                 STOP RUN.

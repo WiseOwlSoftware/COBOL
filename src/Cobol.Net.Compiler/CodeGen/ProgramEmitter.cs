@@ -155,6 +155,14 @@ internal sealed class ProgramEmitter
                 w.Line("private bool __filesRegistered;   // connectors register once per INSTANCE — a canceled/INITIAL program gets fresh connectors (ISO §14.6.2.3.2)");
             if (data.Collating is { } collate)
                 w.Line($"private static readonly ushort[] __COLLATE = {{ {string.Join(", ", collate.Positions)} }};");
+            if (data.NationalCollating is { } nat)
+                // The NON-native NATIONAL program collating sequence (ISO §12.3.6 GR9/GR11; an ALPHABET … FOR
+                // NATIONAL literal phrase) — SPARSE: the specified code units + positions; the runtime computes
+                // every unspecified character's GR7 k3 position arithmetically (NationalCollation.Weight).
+                w.Line("private static readonly NationalCollation __COLLATE_NAT = new("
+                    + $"new ushort[] {{ {string.Join(", ", nat.Codes)} }}, "
+                    + $"new ushort[] {{ {string.Join(", ", nat.Positions)} }}, "
+                    + $"new ushort[] {{ {string.Join(", ", nat.RepByPos)} }}, {nat.NextFree});");
 
             foreach (var b in unit.Bridges)
             {

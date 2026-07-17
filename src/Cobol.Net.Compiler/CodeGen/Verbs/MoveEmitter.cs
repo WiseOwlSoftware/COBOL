@@ -35,7 +35,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                     // item); the fill char is category-aware (national/boolean = the D-N3 pin, not the PCS extreme).
                     var rmp = (RefModPlace)target;
                     ctx.Writer.Line(m.Source is BoundFigurative fig
-                        ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.Pic?.Category))
+                        ? PlaceRenderer.WriteFill(rmp, FigurativeConstants.Fill(fig.Kind, ctx.Data.Collating, rmp.Inner.Item.Pic?.Category, ctx.Data.NationalCollating))
                         : PlaceRenderer.Write(rmp, OperandText.AsString(m.Source, num)));
                     break;
                 case MoveKind.Group:
@@ -282,9 +282,10 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         if (source is BoundFigurative f && pic.Category is not PicCategory.Numeric
             && !(f.Kind is 'Z' && pic.Category is PicCategory.NumericEdited)
             && !(pic.Category is PicCategory.Alphanumeric && pic.EditMask is not null))
-            // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE is the D-N3 pin, never the
-            // ALPHANUMERIC program collating sequence's extreme (§8.3.3.6 GR6/GR7 over the national sequence).
-            return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating, pic.Category)}, {wN})";
+            // Category-aware fill: a national/boolean receiver's HIGH/LOW-VALUE reads its OWN sequence — the
+            // explicit national PCS extremes when declared, else the D-N3 pin — never the ALPHANUMERIC
+            // program collating sequence's extreme (§8.3.3.6 GR6/GR7 over the national sequence).
+            return $"new string({FigurativeConstants.Fill(f.Kind, ctx.Data.Collating, pic.Category, ctx.Data.NationalCollating)}, {wN})";
         // ALL "literal" repeats the literal to the receiver width (ISO §8.3.3.6.4 GR2). An ANY LENGTH
         // receiver's width exists only at runtime — repeat at runtime, then width-fit (§13.18.2 GR1).
         if (source is BoundAllLiteral a && pic.Category is not PicCategory.Numeric)

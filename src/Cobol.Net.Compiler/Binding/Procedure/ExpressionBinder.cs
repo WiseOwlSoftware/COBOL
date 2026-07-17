@@ -61,7 +61,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     /// VersionConformancePass parse arm on recognition, not this bind path.</summary>
     public BoundStringLiteral ConcatOperand(Core.ConcatenationExpressionContext ce)
     {
-        var folded = ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating);
+        var folded = ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating, ctx.Data.NationalCollating);
         return folded.Category switch
         {
             PicCategory.National => new BoundStringLiteral(folded.Value) { Category = PicCategory.National },

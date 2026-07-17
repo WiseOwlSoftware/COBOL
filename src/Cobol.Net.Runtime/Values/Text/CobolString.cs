@@ -111,4 +111,24 @@ public static class CobolString
         }
         return 0;
     }
+
+    /// <summary>
+    /// Compare two NATIONAL values under a non-native NATIONAL program collating sequence (ISO §8.8.4.2.9 /
+    /// §12.3.6 GR11 — an <c>ALPHABET … FOR NATIONAL</c> literal phrase; the identity sequences NATIVE/UCS-4
+    /// never reach here — they ARE the two-argument ordinal compare, D-N3): position by position over the
+    /// <see cref="NationalCollation"/> weights, the shorter operand extended on the right with the national
+    /// space (§8.8.4.2.1 — the pad itself weighs through the sequence, matching the alphanumeric twin above).
+    /// </summary>
+    public static int Compare(string? left, string? right, NationalCollation national)
+    {
+        left ??= ""; right ??= "";
+        int n = Math.Max(left.Length, right.Length);
+        for (int i = 0; i < n; i++)
+        {
+            int a = national.Weight(i < left.Length ? left[i] : ' ');
+            int b = national.Weight(i < right.Length ? right[i] : ' ');
+            if (a != b) return a < b ? -1 : 1;
+        }
+        return 0;
+    }
 }

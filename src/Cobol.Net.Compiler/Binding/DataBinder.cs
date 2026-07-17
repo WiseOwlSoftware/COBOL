@@ -2011,7 +2011,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// (ISO §12.3.7 GR14a).</summary>
     private string RawValueOperandText(Core.ValueClauseOperandContext op) =>
         op.nonNumericLiteral()?.concatenationExpression() is { } ce
-            ? ConcatFolder.Fold(ce, Edition, Collating).RawText
+            ? ConcatFolder.Fold(ce, Edition, Collating, NationalCollating).RawText
             : ConstantValueRawText(op) is { } konst ? konst
             : NormalizeIfNumericLiteral(op.GetText());
 

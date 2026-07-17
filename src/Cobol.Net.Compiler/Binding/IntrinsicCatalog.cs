@@ -133,8 +133,8 @@ public static class IntrinsicCatalog
         Add(new("BOOLEAN-OF-INTEGER", IntrinsicType.Boolean, IntrinsicArity.Fixed, 2, 2, "ii", "", IntrinsicBind.Deferred, false, 2002)); // §15.13
         Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002));     // §15.14 (byte size ≠ FUNCTION LENGTH, D7)
         // CHAR-NATIONAL (§15.16) — the national twin of CHAR: the character at the 1-based ordinal position of
-        // the NATIONAL program collating sequence (native UTF-16 order — no ALPHABET … FOR NATIONAL surface
-        // exists, P10 Step 4, so no weights channel). Result class national (§15.16.1). P10 Step-11 EC-N wave.
+        // the NATIONAL program collating sequence (native UTF-16 order; a non-native ALPHABET … FOR NATIONAL
+        // sequence rides the CollateNat/__COLLATE_NAT channel, P10 Step 4). Result class national (§15.16.1).
         Add(new("CHAR-NATIONAL", IntrinsicType.National, IntrinsicArity.Fixed, 1, 1, "i", "CharNational", IntrinsicBind.Runtime, false, 2002));  // §15.16
         Add(new("DATE-TO-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002)); // §15.23
         Add(new("DAY-TO-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002));   // §15.25

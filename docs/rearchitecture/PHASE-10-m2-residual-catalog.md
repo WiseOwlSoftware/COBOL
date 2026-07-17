@@ -8,7 +8,7 @@
 - **Goal (one paragraph):** Every mandatory COBOL-2002 *non-OO* language feature is implemented end-to-end on the *rearchitected* substrate — national/boolean data ride `StorageForm.CharImage` (one UTF-16 char per position), pointers ride the `ManagedPointer` carrier, files ride `FileConnector`, UDFs ride the per-activation data model — with a rejecting diagnostic under every `--std` edition that lacks the feature, a discovered positive corpus entry, a version-matrix row, and a negative `.err` case per feature. The phase OPENS with a greenfield-vs-catalog reconciliation audit (a fresh `GreenfieldStatus` column sized against the *current* post-rearchitecture tree, not a stale legacy-era snapshot), so every subsequent wave is scoped against truth rather than the legacy-era ☑/◐ marks. It CLOSES with the M2 catalog marks flipped to greenfield truth and the full battery green.
 - **Exit criteria:** Every track's positive corpus discovered by the greenfield runner (`CorpusRunnerTests` over `manifest.json`) + a version-matrix row + a negative `.err`; the M2 catalog (`docs/ISO2023_CONFORMANCE_PLAN.md` §3 and `docs/PHASE4_RECONCILIATION.md`) marks flipped to greenfield truth; national `CharImage` confirmed one-UTF-16-char-per-position by a runtime assertion + a golden; full battery green (2028+ greenfield conformance + 213+ unit + FULL legacy guard NIST 353 MATCH).
 
-> **STATUS:** IN PROGRESS @ the Step-6 PROC-5-allocate slice landed (2026-07-16 — ALLOCATE based-item INITIALIZED lowers per §14.9.3 GR7 to the spec's INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT expansion on the ONE InitializeBinder mechanism; the PtrBinder BoundUnsupported stage deleted; `allocate_initialized` golden ENABLED byte-verifying GR7 + GR6 zero-fill + GR4b RETURNING — both PROC-5 audit gaps CLOSED. Steps 4/6-rest/7–10 still open; next unchecked step = Step 4, then the Step 6 remainder)
+> **STATUS:** IN PROGRESS @ Step 4 landed (2026-07-17 — the LAST unchecked feature step: the full ALPHABET-national/UCS-4/UTF-8/UTF-16 collating surface on the ONE collating subsystem — sparse `NationalCollatingTable`/`__COLLATE_NAT`, PCS + SORT/MERGE FOR forms, national relations/88s/CHAR-NATIONAL/ORD/HIGH-LOW-VALUE, the UCS-4≡native §8.5.1.4 derivation, Table-6 coded-set-only rejections; `alphabet_national` golden + 4 negatives + 2 new matrix rows + `sort-collating-national-2002` ACTIVATED — see the Step-4 section. Steps 6-rest/7–10 [confirm/close bookkeeping] remain)
 > _(The executing session updates this line: `NOT STARTED` → `IN PROGRESS @ step N (<short note>)` → `DONE`. Keep the per-step checkboxes in §4 current in the same commit that lands each step.)_
 
 ---
@@ -93,8 +93,8 @@ When Phase 10 is DONE, the following are true and demonstrable:
 - [x] Step 1 — Reconciliation audit + `GreenfieldStatus` column (2026-07-16 — the audit table + evidence under Step 1 below; 9 PARTIAL · 3 NOT-STARTED · 1 STAGED-LOUD; 56 ISO-cited gaps)
 - [x] Step 2 — National on `StorageForm.CharImage` (confirm + prove one-UTF-16-char/position) (2026-07-16 — `NationalStorageFormTests` pins CharImage Width==Length for PIC N(5)/USAGE NATIONAL; D-N2 byte-surface guards confirmed live per the Step-1 audit evidence; `national_data` golden green)
 - [x] Step 3 — Boolean data + operators on the new folders (confirm) (2026-07-16 — the audit found the 2002 core already on StorageForm/Values-Text/CobolBool with `boolean_data`/`boolean_ops` ENABLED + negatives; the missing substrate pin added to `NationalStorageFormTests` (PIC 1(4) USAGE BIT CharImage); B-SHIFT/BX"…" stay the separately-catalogued 2023 residue)
-- [ ] Step 4 — ALPHABET national / UCS-4 / UTF-8 / UTF-16 phrases (net-new) — **NOT in the 2026-07-16 wave; untouched (zero surface still)**
-- [x] Step 5 — National wave: DISPLAY-OF/NATIONAL-OF + pins + goldens/negatives (2026-07-16 — see the Step-5 section for the landed list; Step 4 deferred out of the wave, so `alphabet_national` and its matrix row are still open)
+- [x] Step 4 — ALPHABET national / UCS-4 / UTF-8 / UTF-16 phrases (2026-07-17 — the FULL national collating surface: two-branch §12.3.7.2 ALPHABET grammar [ISO FOR position + postfix superset], sparse `NationalCollatingTable`/`__COLLATE_NAT`, PCS/SORT-MERGE FOR forms + alphabet-name-2, national relations/88s/CHAR-NATIONAL/ORD/HIGH-LOW-VALUE wired, UCS-4≡native derivation documented, UTF-8/UTF-16 coded-set-only rejections; `alphabet_national` golden + 4 negatives + `alphabet-national-2002`/`program-collating-national-2002` rows + `sort-collating-national-2002` ACTIVATED — see the Step-4 section)
+- [x] Step 5 — National wave: DISPLAY-OF/NATIONAL-OF + pins + goldens/negatives (2026-07-16 — see the Step-5 section for the landed list; Step 4 was deferred out of that wave and landed separately 2026-07-17)
 - [x] Step 6 — Pointers on `ManagedPointer`/`StorageCell` under `RunUnit` (confirm) — **PROC-5-allocate slice LANDED 2026-07-16** (the §14.9.3 GR7 INITIALIZED lowering + the `allocate_initialized` golden); **the qualified/subscripted ADDRESS OF residue LIFTED 2026-07-16 (the pointers wave):** `ReferenceResolver.ResolveForAddressOf` resolves the operand through the ONE §8.4.2.2 qualification machinery and returns the in-class OCCURS displacement (`(idx−1)×width` — the SAME end-to-end cell-layout formula the Tier-B `PlaceForItem` window uses; a D10 transitional rendered-index string on `BoundAddressOf.OccursDisplacement`); the pre-scan `PtrScanAddressOfTargets` yields (head, qualifiers) for EVERY operand shape and resolves qualified heads via `FindItem`; ref-mod operands stay loud (a span, not an item). Golden `address_of_qualified` ENABLED (qualified / subscripted / variable-subscript / combined — each address re-based onto a BASED view and read back). REMAINING (named): BASED/ADDRESS OF inside a class definition stays staged (`OoBasedInClass` — the OO cell/bridge emission; deferred out of the wave by the tripwire rule), and INITIALIZE over pointer categories (§14.9.24 — NULL under DEFAULT/REPLACING) is a residue shared by data- AND program-pointers (neither kind is handled by InitializeBinder today).
 - [x] Step 7 — `USAGE PROGRAM-POINTER` leg (net-new residue) (COMMIT) (2026-07-16 — the pointers wave: the CONSTANT/AS §8.9 interval treatment for BOTH new words (PROGRAM-POINTER 2002+, FUNCTION-POINTER 2014+ per reserved-words.json: lexer tokens + cobolWord + CheckedTokenTypes + `user-word-*` interval rows); `programPointerUsage`/`functionPointerUsage` grammar alternatives with the `TO prototype` tail; `PicCategory.ProgramPointer`/`Usage.ProgramPointer`/`PicInfo.ProgramPointerItem`/`StorageForm.ProgramPointerRef`; the `Control/ProgramPointer` runtime carrier = the OUTERMOST program's externalized identity resolved through the ONE `ProgramTable` (`EntryOf` — §8.4.3.13 GR1/GR4 with the sibling-module probe; `CallPointer` — NULL → loud EC-PROGRAM-NOT-FOUND, the documented implementor definition of §14.9.4.4's undefined invalid-address case); the NEW `setEntryStatement` grammar rule + `BindSetEntry` (Format 9 + the §8.4.3.13 ENTRY sender, literal + identifier forms, EC-gated via the EmitFree checking pattern); `BindSetProgramPointer` re-routes mirroring the data-pointer F4 pair (the setToValue + objectReference peeks); CALL-through-pointer via `BoundCallProgram.IsPointerTarget` → `ProgramRegistry.CallPointer` (§14.9.4 SR1 :26082); `ProgramPointer.SameTarget` relations (§8.8.4.1.3, the NULL figurative renders the Null carrier); PIC prohibited (§13.16.3 SR8) + VALUE prohibited (§13.18.63 SR9) = 0881; restricted TO-prototype (GR25) + FUNCTION-POINTER semantics STAGED LOUD (0899 descriptors `program-pointer-restricted`/`usage-function-pointer` — prototypes are P13). Gates: `usage-program-pointer-2002` ACTIVE + `usage-function-pointer-2014` pending via the bound-arm `UsageConstructId`. Golden `program_pointer` ENABLED (verified by running: init-NULL, ENTRY literal + identifier, CALL ×2 through the pointer, copy, relations, NULL reset, the GR4 not-found → NULL leg) + 5 negatives + legacy exclusion.)
 - [◐] Step 8 — File-2002 (SHARING/LOCK/RETRY/UNLOCK/line-seq/5x-6x) on `FileConnector` — **sharing/record-lock
@@ -147,7 +147,7 @@ PHASE-10 §4; PHASE4_RECONCILIATION rows annotated. No code change.
 | Track | Verdict | Gaps | Wave sizing |
 |---|---|---|---|
 | UDF | PARTIAL | 3 | S — **Steps 9 + 10 BOTH LANDED 2026-07-16:** the category-carrying result channel (Step 9 — the 1510 reject is the per-shape `UdfReturningResidue` staging: float/boolean/pointer-class + the group residues), header BY VALUE formals end-to-end (Step 10 — grammar `usingParameter`/`usingByValue` → `LinkageFormal.ByValue` → GR5c `UdfArg` modes → the shared-ABI `CobolArgAdapt.NumValue`/`TextValue` detached cells; SR2=1553, SR10=1554, `pd-header-by-value-2002` row), and per-evaluation activation (Step 10 — `BoundUdfEvaluated` IIFE windows; 1509 NARROWED to VARYING BY / AFTER-level FROM / EVALUATE subjects). The invocation core, recursion (§8.6.6 — verified), prototypes, and EXIT FUNCTION ride the new substrate with enabled goldens. **Step 10a LANDED 2026-07-16:** the RECURSIVE WS-static data model (§13.5.4 GR1/§14.6.2.3.2/.3 — static WS on the ONE `StaticRootFields` channel + program/function LOCAL-STORAGE binding + the `__ResetStatics` CANCEL hook; golden `recursive_ws`). Remaining: the per-shape 1510 RETURNING residues, OPTIONAL/OMITTED formals (0899), the narrowed 1509 operand shapes, and the Step-10a stages (0899 `recursive-contained-working-storage` / `recursive-working-storage-pointer-backed`). |
-| DATA-3-national | PARTIAL | 3 | S — **LANDED 2026-07-16 (Step 5): DISPLAY-OF/NATIONAL-OF are Runtime rows** (argument-2 turned out to be a substitution character per the 2023 §15.26.3 r2/§15.66.3 r2 text, not a codeset name — both forms fully implemented, no staged deferral); the SR12 national-form numeric/boolean leg stays staged-loud as the separately catalogued residual. |
+| DATA-3-national | PARTIAL | 3 | S — **LANDED 2026-07-16 (Step 5): DISPLAY-OF/NATIONAL-OF are Runtime rows** (argument-2 turned out to be a substitution character per the 2023 §15.26.3 r2/§15.66.3 r2 text, not a codeset name — both forms fully implemented, no staged deferral); the SR12 national-form numeric/boolean leg stays staged-loud as the separately catalogued residual. **Step 4 LANDED 2026-07-17: the ALPHABET-national collating surface** (two-branch §12.3.7.2 grammar, sparse `NationalCollatingTable`/`__COLLATE_NAT`, PCS/SORT-MERGE FOR forms, national relations/88s/CHAR-NATIONAL/ORD/HIGH-LOW-VALUE; UCS-4≡native per §8.5.1.4; UTF-8/UTF-16 coded-set-only per Table 6). |
 | DATA-4-boolean | PARTIAL | 3 | M — the wave must land the four 2023 B-SHIFT operators end-to-end (lexer tokens + a shift tier in the §8.8.2 booleanExpression grammar with an arithmetic shift-count operand, a new BoundBoolShift leaf through the generated visitor, CobolBool.ShiftL/LC/R/RC, a 2023-only VersionConformancePass gate row, an enabled 2023 golden + a below-2023 negative), plus the small BX\"…\" lexer leg and the national-form boolean representation, and fix the stale CobolExpressions.g4:145-150 staged-residue comment; the entire 2002 core (data, literals, four operators, conditions, COMPUTE F2) needs no rework — it already rides StorageForm/Place/CobolBool. |
 | DATA-5-pointers | PARTIAL | 4 | M — the P10 wave must land USAGE PROGRAM-POINTER end-to-end (lexer token + usageClause alternative + a PicCategory/StorageForm.PointerRef-style carrier resolving through the existing RunUnit ProgramTable for SET … TO ENTRY, with a 2002 ConstructRegistry introduction row and an enabled golden), and unstage the two loud residues (class-unit BASED/ADDRESS OF cell emission; qualified/subscripted ADDRESS OF operands) on the already-proven ManagedPointer/StorageCell substrate. |
 | PROC-5-allocate | PARTIAL | 2 | S — **LANDED 2026-07-16 (the Step-6 slice):** the §14.9.3 GR7 lowering (ALLOCATE based-item INITIALIZED → the allocation + EXACTLY the spec's `INITIALIZE data-name-1 WITH FILLER ALL TO VALUE THEN TO DEFAULT` expansion via `InitializeBinder.BindAllocateInitialized`, carried as a `BoundSequence` — the ONE INITIALIZE mechanism; the PtrBinder BoundUnsupported stage DELETED) + the ENABLED `2002/allocate_initialized` golden byte-verifying GR7 (VALUE members / numeric ZERO / edited zero / WITH-FILLER spaces), GR6 zero-fill (LOW-VALUE witness), and GR4b form-2 RETURNING; legacy GreenfieldOnly exclusion (legacy only zero-fills). Both gaps CLOSED. |
@@ -192,7 +192,7 @@ Evidence:
 - src/Cobol.Net.Compiler/Binding/Passes/BindPipeline.cs:66 — StorageFormPass wired as the UsageCollected→StorageComputed pass
 - src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs:334-337 — national receiver: StrStore/StrStoreJustified left-justify, national-space pad, right-truncate (§14.6.8.5), A→N/9→N via D-N4
 - src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs:213-228 — §14.9.25.3 SR10 Table-16 national sender/receiver legality (COBOLNET0819)
-- src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs:94-100 — national relations order under the D-N3 ordinal NATIONAL sequence; PCS weight table deliberately excluded
+- src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs — national relations order under the NATIONAL sequence (the D-N3 ordinal identity, or `__COLLATE_NAT` under an explicit ALPHABET … FOR NATIONAL — Step 4); the ALPHANUMERIC PCS weight table deliberately excluded
 - src/Cobol.Net.Runtime/Values/Text/CobolString.cs:78-79 — national space pad in the runtime compare substrate
 - src/Cobol.Net.Compiler/CodeGen/DataDivision/ValueInitializer.cs:82-85 — national VALUE stores via StrStore (§13.18.63 SR5)
 - src/Cobol.Net.Compiler/Binding/DataBinder.cs:1850-1855 — REDEFINES-over-national reject (tier Rejected, D-N2)
@@ -357,7 +357,7 @@ Gaps (all but #3 CLOSED by Step 11, 2026-07-16):
 - ~~EXCEPTION-FILE-N runtime body~~ CLOSED — `EcFunctions.FileN()` = `CobolIntrinsics.NationalOf(File())` (the §15.29.4 r1c "converted … to the runtime national character set" IS the ONE repertoire translation) — ISO §15.29
 - ~~EXCEPTION-LOCATION-N runtime body~~ CLOSED — `EcFunctions.LocationN()` likewise — ISO §15.31
 - The 2023 file-connector-argument form of EXCEPTION-FILE/EXCEPTION-FILE-N (renders loud on base AND twin; VCR rows 68/69, PHASE-13 Step 9) — ISO §15.28/§15.29 (2023, E.3.3 items 25/26) — **still the one open gap (staged loud, recorded location: IntrinsicRenderer.cs `EcFile`/`EcFileN` arms)**
-- ~~Other -N/national legs~~ CLOSED — NATIONAL-OF landed at Step 5; CHAR-NATIONAL landed at Step 11 (`CobolIntrinsics.CharNational`, native national PCS = UTF-16 code-point order — no ALPHABET FOR NATIONAL surface, Step 4) + ORD over a national argument (§15.70.3/§15.70.4 r2; the 0844 guard narrowed to CHAR with a §15.15.3 citation) — ISO §15.16/§15.66/§15.70
+- ~~Other -N/national legs~~ CLOSED — NATIONAL-OF landed at Step 5; CHAR-NATIONAL landed at Step 11 (`CobolIntrinsics.CharNational`, native national PCS = UTF-16 code-unit order; the non-native ALPHABET … FOR NATIONAL weights channel [`CollateNat`/`__COLLATE_NAT`] landed at Step 4) + ORD over a national argument (§15.70.3/§15.70.4 r2; the 0844 guard narrowed to CHAR with a §15.15.3 citation) — ISO §15.16/§15.66/§15.70
 - ~~A true national result-category channel~~ CLOSED at Step 5 — `IntrinsicSig.ResultCategory` maps National→`PicCategory.National` (IntrinsicCatalog.cs)
 - ~~Verification legs~~ CLOSED — `exception_file_n`+`char_national` ENABLED goldens (FUNCTION LENGTH pins the national character-position counts), `exception-file-n-2002` constructs.json row (reject 1502 below 2002), `exception_file_n_below_2002` negative @85, ECT018N inline EC Fact @2023 — ISO §15.29/§15.31
 
@@ -519,26 +519,64 @@ _(Folds into Step 5.)_
 
 ---
 
-### Step 4 — ALPHABET national / UCS-4 / UTF-8 / UTF-16 phrases (net-new)
+### Step 4 — ALPHABET national / UCS-4 / UTF-8 / UTF-16 phrases — **LANDED 2026-07-17**
 
-**Files:** `src/Cobol.Net.Frontend/Grammar/Core/CobolSpecialNames.g4` (ALPHABET phrase alternatives), `src/Cobol.Net.Compiler/Binding/DataBinder.Switches.cs` (or the P6 `SpecialNamesBinder`), `src/Cobol.Net.Compiler/Binding/CollatingModel.cs`, `src/Cobol.Net.Runtime/Values/Text/` (national codec hookup).
+**Scout finding (audit drift, the five-of-six pattern):** the audit's "zero surface" was PARTIAL drift — the grammar
+already parsed a postfix `FOR (ALPHANUMERIC|NATIONAL)` on the ALPHABET clause (nonstandard position; edition-gated
+by `VisitAlphabetClause`), but the binder ignored the class entirely and UCS-4/UTF-8/UTF-16 had no surface at all.
+Also, the original plan's "feed the encoding into the CODE-SET/codec boundary" has NO consumption point: the
+CODE-SET clause has no compiler surface (fails loud at parse), so the coded-set role of UTF-8/UTF-16 is
+inert-by-construction — nothing to stage.
 
-**Change:** Parse + bind the 2002 ALPHABET phrases `NATIONAL`, `UCS-4`, `UTF-8`, `UTF-16` (§13.16.6 / SPECIAL-NAMES ALPHABET clause). Feed the selected encoding into the national CODE-SET / codec boundary (in-memory stays UTF-16; the alphabet governs the external-encoding boundary concern). Where a phrase implies an external encoding the .NET runtime cannot losslessly round-trip for a given operation, stage LOUD with a named diagnostic rather than silently mis-encode. Gate `{is2002()}?`.
-
-**Why:** Named in scope; unblocks correct national collation + the `-N` intrinsic legs. Currently zero surface (`grep` in Switches empty).
-
-**Verify:**
-- New golden `tests/conformance/2002/alphabet_national.cob`+`.out` (declare `ALPHABET A IS UTF-8`, use in national context) → run matches.
-- `--std 85` → ALPHABET-national phrase rejected (`0900` introduction band).
-- Add `constructs.json` row `alphabet-national-2002` (IntroducedIn 2002).
-
-_(Folds into Step 5 commit.)_
+**Landed (spec-derived first — §12.3.7.2 two-branch format, §12.3.7 GR7 f/g/h + Table 6, §12.3.6, §14.9.40.2,
+§8.5.1.4, §15.16.4, §15.70.4 r2):**
+- **Grammar** (shared .g4, superset; legacy consumers shape-only-fixed): `alphabetClause` takes the FOR phrase in
+  its ISO position (between the name and IS) AND keeps the historical postfix as an accepted superset;
+  `programCollatingSequenceClause` + `sortCollatingPhrase` gained the two-name IS form / the ONE shared
+  `collatingForPhrase` subrule (`FOR ALPHANUMERIC|NATIONAL IS? alphabet-name`). **UCS-4/UTF-8/UTF-16 are §8.9
+  CONTEXT-SENSITIVE words** (ALPHABET-clause scope): recognized BY TEXT as plain cobolWord entries — no lexer
+  tokens minted (no ANTLR auto-mint exposure; they stay user-definable elsewhere).
+- **Binder** (`DataBinder.Switches.cs`): the FOR-class splits the registries — `Alphabets` (alphanumeric) vs
+  `NationalAlphabets` (`NationalAlphabetDef`: Table 6's per-name collating-capability). NATIVE/UCS-4 → identity
+  (null table); UTF-8/UTF-16 → coded-set-ONLY (referencing them as a collating sequence = 0898); literal phrase →
+  the SPARSE `NationalCollatingTable` (GR7 k1–k6 over the 65,536-code-unit native national set; k3's unspecified
+  tail computed arithmetically, never a dense table; GR10 figuratives = the native NATIONAL extremes U+FFFF/U+0000;
+  SR14c literal-class checks). PCS resolution fills `Collating` + `NationalCollating` with §12.3.6 SR1/SR2
+  class-validation; SORT/MERGE name-2/FOR-forms resolve + class-validate (§14.9.40.3 SR2) — the validated national
+  sequence is intentionally NOT carried into the sort: national KEYS cannot exist (D-N2 + the staged table-sort
+  key), the staged legs are the fence (carried slot lands with RESIDUE-11).
+- **UCS-4 ≡ NATIVE derivation (documented, not staged):** GR7 f makes UCS-4's collating sequence the ISO 10646
+  appearance order; §8.5.1.4 (:8057/:8067) makes each UTF-16 code element its OWN character position with "no
+  special handling or recognition of surrogate pairs" — so the codepoint-vs-code-unit divergence above U+FFFF
+  (weighing a surrogate PAIR as one supplementary codepoint) is UNREACHABLE in COBOL's per-position comparison
+  model, and ISO 10646 order over the 65,536 single-position characters IS the native code-unit order (D-N3).
+  The implementor correspondence (item 188) is the BMP identity.
+- **Runtime + emit:** `NationalCollation` (`Values/Text/`, sparse Weight/CharAt) emitted as `__COLLATE_NAT`;
+  `CobolString.Compare(a,b,national)`; national relations + condition-names take `NatCollateArg` (§12.3.6 GR11 /
+  §8.8.4.2.9); `CharNational(n, nat)` + `Ord(s, nat)` behind the H5-twin `BoundIntrinsicCall.CollateNat`;
+  national HIGH-/LOW-VALUE fills read the explicit sequence's extremes (§12.3.7 GR8/GR9) via
+  `FigurativeConstants` (the native national pin stays byte-stable — the flagged GR6/GR7 divergence).
+- **Gates/matrix:** rows `alphabet-national-2002` (the coded-set phrases, by-text parse-arm gate) +
+  `program-collating-national-2002` (PCS name-2/FOR forms) ADDED; `sort-collating-national-2002` ACTIVATED
+  (pending→active; its probe now uses a spec-valid `FOR NATIONAL IS NATIVE` name-2); the
+  `special-names-for-national-2002` probe rewritten spec-valid (`STANDARD-1 FOR NATIONAL` violates the branch
+  format the binder now enforces).
+- **Proof:** golden `2002/alphabet_national.cob` (ENABLED + legacy `GreenfieldOnly`) — a `N"CBA"` national PCS
+  visibly REVERSES national relations, places unspecified characters per k3, drives CHAR-NATIONAL(1)='C',
+  ORD(A)=3/ORD(space)=36, LOW-VALUE='C', HIGH-VALUE=U+FFFF, and the level-88 — hand-derived, byte-matched on run.
+  Negatives: `alphabet-national-at-85` (0900), `alphabet-utf8-collating`, `alphabet-standard1-for-national`,
+  `alphabet-ucs4-for-alphanumeric` (all 0898). Unit: `NationalCollationTests` (the sparse math + the ALSO
+  representative). Rejections ride the EXISTING 0898 national-rule band (no free code below the 1560 P13 band).
+- **Out (documented):** the LOCALE alphabet phrase (no locale subsystem; no lexer token — fails loud at parse);
+  code-name-1/code-name-2 (SR15 — none supported, 0898); MAX/MIN under a NON-native sequence — a pre-existing
+  residue shared by BOTH classes (`CobolIntrinsics.MaxString`/`MinString` compare ordinal and equally ignore the
+  ALPHANUMERIC PCS today; the one fix covers both when the intrinsic-collation leg lands).
 
 ---
 
 ### Step 5 — National/boolean wave commit
 
-**LANDED 2026-07-16 (the DISPLAY-OF/NATIONAL-OF wave; Step 4 ALPHABET-national/UCS-4/UTF-8/UTF-16 was explicitly OUT of this wave — untouched, `alphabet_national` + its `constructs.json` row remain open under Step 4):**
+**LANDED 2026-07-16 (the DISPLAY-OF/NATIONAL-OF wave; Step 4 ALPHABET-national/UCS-4/UTF-8/UTF-16 was explicitly OUT of this wave and landed separately 2026-07-17 — see the Step-4 section):**
 - **DISPLAY-OF (§15.26) / NATIONAL-OF (§15.66) implemented** as Runtime rows on `CobolIntrinsics` (`DisplayOf`/`NationalOf` in `Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs`), riding the ONE `Repertoire` translator extracted from CONVERT's §15.19.4 r1/r3 arm — never a second converter. Argument-2 is the one-character SUBSTITUTION CHARACTER per the 2023 text (§15.26.3 r2 / §15.66.3 r2 — no codeset facility in the format), so BOTH argument forms are fully implemented; the argument-2-unspecified form substitutes '?' + EC-DATA-CONVERSION through the existing ambient `ExceptionState.DataConversionError` channel (§15.26.4 r2/r3, §14.6.13.1.1).
 - `IntrinsicSig.ResultCategory` now maps `IntrinsicType.National` → `PicCategory.National` (§15.2 type 4), so Table-16 MOVE legality and the string channels see the correct class; `IsStringOperand`/`BindLengthFold`/the nested-argument visitor accept national results.
 - **Binder SR checks** (`IntrinsicBinder.CheckRepertoireArgs`, new code **COBOLNET1546**): §15.26.3 r1/r2 + §15.66.3 r1/r2/r3 (argument classes, the one-character argument-2, the zero-length-literal bar).
@@ -767,8 +805,8 @@ compiler-observable delta is the result CATEGORY = National, carried by `Intrins
 Table-16 MOVE/compare legality). `IntrinsicRenderer.RenderString` gained the `EcFileN`/`EcLocationN` arms; the
 2023 file-connector-argument form (E.3.3 items 25/26) renders loud on base AND twin (VCR rows 68/69 → PHASE-13
 Step 9). Same wave, same channel: **CHAR-NATIONAL §15.16** landed (`CobolIntrinsics.CharNational` — the native
-national PCS is UTF-16 code-point order; no ALPHABET … FOR NATIONAL surface exists (Step 4), so no weights
-overload) and **ORD over a national argument** landed per §15.70.3/§15.70.4 r2 (the 0844 CHAR/ORD guard narrowed
+national PCS is UTF-16 code-unit order; the non-native ALPHABET … FOR NATIONAL weights overload
+[`CharNational(n, NationalCollation)`] landed at Step 4) and **ORD over a national argument** landed per §15.70.3/§15.70.4 r2 (the 0844 CHAR/ORD guard narrowed
 to CHAR with a §15.15.3 citation; a national ORD argument never routes to the alphanumeric `__COLLATE` weights).
 Edition window: **IntroducedIn 2002 for both twins + CHAR-NATIONAL** (the EC model and national data are both
 2002 introductions; the 2023 Annex E.3.3 delta is only the optional argument) — D8 `COBOLNET1502` below 2002.
@@ -998,7 +1036,7 @@ All tracks are **COBOL-2002 introductions** (carried unchanged through 2014/2023
 | Track | Spec § (ISO/IEC 1989:2023, `specs/ISO_COBOL.md`) | Edition | Positive golden(s) → `manifest.json` enabled | Version-matrix row(s) `constructs.json` | Negative `.err` |
 |---|---|---|---|---|---|
 | National data | §13.16.6 / §13.18 USAGE NATIONAL; Table 16 MOVE; §8.8.4.2.9 compare; §14.9.11.4 | 2002 | `national_data` (enabled — confirm) | `national-usage-2002`, `pic-n-2002` | national-narrowing reject; national-at-85 |
-| ALPHABET national encodings | SPECIAL-NAMES ALPHABET (NATIONAL/UCS-4/UTF-8/UTF-16) | 2002 | `alphabet_national` | `alphabet-national-2002` | alphabet-national-at-85 |
+| ALPHABET national encodings — **LANDED (Step 4)** | §12.3.7.2 ALPHABET FOR NATIONAL (NATIVE/UCS-4/UTF-8/UTF-16/literal-phrase); §12.3.6 PCS FOR forms; §14.9.40.2 SORT/MERGE FOR forms; §12.3.7 GR7 Table 6 | 2002 | `alphabet_national` ✓ | `alphabet-national-2002` ✓, `program-collating-national-2002` ✓, `sort-collating-national-2002` ✓ (activated) | alphabet-national-at-85 ✓; alphabet-utf8-collating ✓; alphabet-standard1-for-national ✓; alphabet-ucs4-for-alphanumeric ✓ (0898) |
 | Boolean data + operators | §13.18.40 USAGE BIT/PIC 1; §8.8.2/§8.8.4.2.8 boolean expr/compare; §14.9.8 F2 COMPUTE | 2002 (B-SHIFT = 2023) | `boolean_data`, `boolean_ops` (enabled — confirm) | `usage-bit-2002`, `boolean-operator-2002` | boolean-ordering-relation; bit-usage-numeric-pic |
 | Pointers / ALLOCATE / FREE / BASED | §13.18 USAGE POINTER/PROGRAM-POINTER; §8.8.4.2 equality; §13.18.5 GR3/4 deref; §14.9.5 ALLOCATE, §14.9.16 FREE | 2002 | `based_pointer`, `pointer_alloc`, `pointer_arith` (confirm), `program_pointer` (new) | `usage-program-pointer-2002`, `allocate-2002`, `free-2002` (confirm) | allocate-non-based; program-pointer-deref |
 | File-2002 | §12.4.5.15 SHARING; §14.7.9 RETRY; §9.1.13.8/.9 status 5x/6x; line-sequential org | 2002 | `file_sharing` (confirm) + a 04/39-status golden | `file-sharing-clause-2002`, `user-word-sharing-2002` | close-with-lock; shared-lock-conflict |

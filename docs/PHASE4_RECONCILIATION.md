@@ -695,12 +695,21 @@ both ways); negative corpus +1 (based-level-05).
   Tier-B REDEFINES windows, group images, FD/SD records, EXTERNAL/cell classes, pointer windows (F10 GR20
   "bytes" = one byte per boolean position under D-B1 — conforming). True bit-packing = residue (an opt-in
   future representation, never required for conformance). **D-N3 National collating**: the national program
-  collating sequence defaults to the native UTF-16 ordinal (§8.8.4.2.9's implementor default); the
-  alphanumeric PCS **never** applies to national comparisons (separate sequences — §12.3.7 FOR NATIONAL,
-  itself gated by the existing `special-names-for-national-2002` row); HIGH/LOW-VALUE in national contexts =
-  U+00FF/U+0000 (identical to alphanumeric under the Latin-1 repertoire — revisit with non-Latin-1 residue).
-  **D-N4 Repertoire**: track (a) supports the Latin-1 subset (chars ≤ U+00FF); the ONLY source of wider chars
-  is an N"…" literal, guarded at bind (0814). A→N widening and 9→N digit imaging are ≤U+00FF by construction.
+  collating sequence defaults to the native UTF-16 code-unit ordinal (§8.8.4.2.9's implementor default);
+  the alphanumeric PCS **never** applies to national comparisons (separate sequences). A NON-native national
+  sequence is LIVE (P10 Step 4): `ALPHABET … FOR NATIONAL` literal phrases build the sparse
+  `NationalCollatingTable` (§12.3.7 GR7 k over the 65,536-code-unit set), resolved by `PROGRAM COLLATING
+  SEQUENCE FOR NATIONAL`/alphabet-name-2 (§12.3.6) into the emitted `__COLLATE_NAT` channel (relations,
+  condition-names, CHAR-NATIONAL/ORD, national HIGH-/LOW-VALUE = the sequence's extremes per §12.3.7
+  GR8/GR9); UCS-4 collates identically to NATIVE (ISO 10646 order over one-code-unit-per-position characters
+  IS code-unit order — §8.5.1.4 recognizes no surrogate pairs), and UTF-8/UTF-16 name coded character sets
+  only (GR7 Table 6 — referencing them as a collating sequence is the 0898 reject). The NATIVE-default
+  HIGH/LOW-VALUE pin in national contexts stays U+00FF/U+0000 (the flagged §8.3.3.6 GR6/GR7 divergence vs
+  the native sequence's U+FFFF extreme — byte-stable; `FigurativeConstants` carries the flag).
+  **D-N4 Repertoire**: the FULL national repertoire — one UTF-16 code unit per position (the Latin-1-only
+  0814 guard was LIFTED with the P10 Step-5 DISPLAY-OF/NATIONAL-OF wave; NAT→ANUM keeps the Latin-1 subset
+  identity with '?'+EC-DATA-CONVERSION substitution beyond it). A→N widening and 9→N digit imaging are
+  ≤U+00FF by construction.
 
 - **PicInfo (the M2-DATA-1 BinaryItem un-skeleton recipe, adapted).** (1) **Classification**
   (`PicInfo.Analyze`, PicInfo.cs:314–444): remove `hasN`/`has1` from the gate block :372–387 (keep `hasE` +

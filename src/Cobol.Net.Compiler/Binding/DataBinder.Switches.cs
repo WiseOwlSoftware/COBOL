@@ -37,14 +37,32 @@ public sealed partial class DataBinder
     /// (§8.8.4.1.4 — true when the operand consists entirely of members).</summary>
     public Dictionary<string, string> UserClasses { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>ALPHABET names (case-insensitive) → the built collating table (ISO §12.3.7 GR7), or null for a
-    /// NATIVE/STANDARD-1/STANDARD-2 alphabet (ISO/IEC 646 order IS the Latin-1 native order — identity, no table).</summary>
+    /// <summary>ALPHANUMERIC alphabet names (case-insensitive) → the built collating table (ISO §12.3.7 GR7), or
+    /// null for a NATIVE/STANDARD-1/STANDARD-2 alphabet (ISO/IEC 646 order IS the Latin-1 native order — identity,
+    /// no table). An <c>ALPHABET … FOR NATIONAL</c> clause registers in <see cref="NationalAlphabets"/> instead —
+    /// the two classes are disjoint reference domains (§12.3.6 SR1/SR2, §14.9.40 GR5).</summary>
     public Dictionary<string, CollatingTable?> Alphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>The resolved PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9–GR11), or null when none is specified /
-    /// the named alphabet is the native order. Drives relation, condition-name, and (later) SORT/MERGE-key
+    /// <summary>NATIONAL alphabet names (case-insensitive) → what the name references (ISO §12.3.7 GR7 b/d2/f/g/h/k
+    /// + Table 6): a null-table identity for NATIVE and the coded-set names (UCS-4 collates in ISO 10646 order,
+    /// which on the D-N1 one-code-unit-per-position substrate IS the native code-unit order — see
+    /// <see cref="NationalAlphabetDef"/> for the §8.5.1.4 derivation; UTF-8/UTF-16 name coded character sets ONLY),
+    /// or the sparse <see cref="NationalCollatingTable"/> of a literal phrase.</summary>
+    public Dictionary<string, NationalAlphabetDef> NationalAlphabets { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>The resolved ALPHANUMERIC PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9–GR11), or null when none is
+    /// specified / the named alphabet is the native order. Drives relation, condition-name, and (later) SORT/MERGE-key
     /// comparisons (GR11/GR13) and the runtime HIGH-/LOW-VALUE characters (§8.3.3.6 GR6/GR7).</summary>
     public CollatingTable? Collating { get; private set; }
+
+    /// <summary>The resolved NATIONAL PROGRAM COLLATING SEQUENCE (ISO §12.3.6 GR9 — alphabet-name-2 / the FOR
+    /// NATIONAL form), or null when none is specified / the named alphabet is an identity sequence (NATIVE, UCS-4 —
+    /// the native UTF-16 code-unit order, D-N3). Drives NATIONAL relation and condition-name comparisons (GR11 /
+    /// §8.8.4.2.9), CHAR-NATIONAL/ORD-over-national (§15.16.4 / §15.70.4 r2), and the national HIGH-/LOW-VALUE
+    /// characters (§12.3.7 GR8/GR9). National SORT/MERGE keys (GR13 / §14.9.40 GR5b) cannot yet EXIST — D-N2
+    /// refuses national leaves in FD/SD records and the table-sort national key is staged loud — so no key
+    /// consumer reads this yet.</summary>
+    public NationalCollatingTable? NationalCollating { get; private set; }
 
     /// <summary>DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14 — the decimal and grouping separator characters EXCHANGE
     /// functionality in numeric literals [GR14a] and PICTURE character-strings / edited insertion [GR14b]).
@@ -194,13 +212,14 @@ public sealed partial class DataBinder
     /// implementor-specified; see <c>ExternalSwitches</c> for the documented item-191 contract).</summary>
     private void SwitchBindSpecialNames(Core.ProgramUnitContext program)
     {
-        string? pcsName = null;
+        Core.ProgramCollatingSequenceClauseContext? pcsClause = null;
         foreach (var para in EnvDivisions(program)
                      .SelectMany(env => env.configurationSection()?.configurationParagraph() ?? []))
         {
-            // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE IS alphabet-name (ISO §12.3.6 — the 85 single-name form).
+            // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (ISO §12.3.6 — the 85 single-name IS form, the 2002
+            // two-name IS form, and the 2002 FOR ALPHANUMERIC/FOR NATIONAL forms; resolved AFTER the walk).
             if (para.objectComputerParagraph()?.programCollatingSequenceClause() is { } pcs)
-                pcsName = pcs.cobolWord().GetText();
+                pcsClause = pcs;
             if (para.specialNamesParagraph() is not { } sn) continue;
             foreach (var entry in sn.specialNameEntry())
             {
@@ -231,10 +250,67 @@ public sealed partial class DataBinder
             }
         }
         // The PCS resolves AFTER the walk (OBJECT-COMPUTER precedes SPECIAL-NAMES in source, §12.3.6 GR9); only
-        // the NAMED alphabet becomes the program sequence — other defined alphabets have no effect (NC219A's
-        // unreferenced COLLATING-SEQ-2). A native-order alphabet leaves Collating null (the fast path).
-        if (pcsName is not null && Alphabets.TryGetValue(pcsName, out var pcsTable))
-            Collating = pcsTable;
+        // the NAMED alphabets become the program sequences — other defined alphabets have no effect (NC219A's
+        // unreferenced COLLATING-SEQ-2). A native-order alphabet leaves the sequence null (the fast path).
+        if (pcsClause is not null) ResolveProgramCollating(pcsClause);
+    }
+
+    /// <summary>Resolve the PROGRAM COLLATING SEQUENCE clause (ISO §12.3.6): the IS form's alphabet-name-1
+    /// [alphabet-name-2], or the FOR ALPHANUMERIC / FOR NATIONAL forms — each class at most once (§12.3.6.2
+    /// braces one of each). SR1: alphabet-name-1 shall reference an alphabet defining an ALPHANUMERIC collating
+    /// sequence — an unknown name-1 stays inert (the historical single-name leniency; NC219A posture), but a
+    /// NATIONAL alphabet in the slot is the class-mismatch error. SR2: alphabet-name-2 shall reference an
+    /// alphabet defining a NATIONAL collating sequence — a UTF-8/UTF-16 alphabet references a coded character
+    /// set but NO collating sequence (§12.3.7 Table 6), and an alphanumeric-class or undeclared name is the
+    /// mismatch; the national slot is a new surface, so it is strict.</summary>
+    private void ResolveProgramCollating(Core.ProgramCollatingSequenceClauseContext pcs)
+    {
+        string? alnumName = null, natName = null;
+        var fors = pcs.collatingForPhrase();
+        if (fors.Length > 0)
+        {
+            foreach (var f in fors)
+            {
+                bool isNat = f.NATIONAL() is not null;
+                ref string? slot = ref isNat ? ref natName : ref alnumName;
+                if (slot is not null)
+                    Edition.Error("COBOLNET0898", "PROGRAM COLLATING SEQUENCE: the FOR "
+                        + $"{(isNat ? "NATIONAL" : "ALPHANUMERIC")} phrase may be specified only once "
+                        + "(ISO §12.3.6.2 general format)");
+                slot = f.cobolWord().GetText();
+            }
+        }
+        else
+        {
+            var words = pcs.cobolWord();
+            alnumName = words.Length > 0 ? words[0].GetText() : null;
+            natName = words.Length > 1 ? words[1].GetText() : null;
+        }
+
+        if (alnumName is not null)
+        {
+            if (Alphabets.TryGetValue(alnumName, out var table)) Collating = table;
+            else if (NationalAlphabets.ContainsKey(alnumName))
+                Edition.Error("COBOLNET0898", $"PROGRAM COLLATING SEQUENCE '{alnumName}': alphabet-name-1 "
+                    + "shall reference an alphabet that defines an ALPHANUMERIC collating sequence — this "
+                    + "alphabet is defined FOR NATIONAL (ISO §12.3.6 SR1)");
+            // else: an undeclared name-1 stays inert (the historical 85-surface leniency).
+        }
+        if (natName is not null)
+        {
+            if (!NationalAlphabets.TryGetValue(natName, out var def))
+                Edition.Error("COBOLNET0898", $"PROGRAM COLLATING SEQUENCE FOR NATIONAL '{natName}': "
+                    + "alphabet-name-2 shall reference an alphabet that defines a NATIONAL collating sequence "
+                    + $"({(Alphabets.ContainsKey(natName) ? "this alphabet is alphanumeric — write ALPHABET … FOR NATIONAL" : "no such national alphabet is declared in SPECIAL-NAMES")}; "
+                    + "ISO §12.3.6 SR2)");
+            else if (!def.HasCollatingSequence)
+                Edition.Error("COBOLNET0898", $"PROGRAM COLLATING SEQUENCE FOR NATIONAL '{natName}': a "
+                    + $"{def.Phrase} alphabet references a coded character set but NOT a collating sequence "
+                    + "(ISO §12.3.7 GR7 Table 6) — only NATIVE, UCS-4, and literal-phrase national alphabets "
+                    + "may collate (ISO §12.3.6 SR2)");
+            else
+                NationalCollating = def.Table;   // null for NATIVE/UCS-4 — the identity fast path (D-N3)
+        }
     }
 
     /// <summary>Build one <c>ALPHABET name IS …</c> clause (ISO §12.3.7 GR7): NATIVE / STANDARD-1 / STANDARD-2 are
@@ -247,9 +323,32 @@ public sealed partial class DataBinder
     private void AlphabetBind(Core.AlphabetClauseContext alpha)
     {
         // ALPHABET … FOR ALPHANUMERIC/NATIONAL — the FOR phrase edition gate is now VersionConformancePass
-        // ParseArm.VisitAlphabetClause (14g.4, recognition).
+        // ParseArm.VisitAlphabetClause (14g.4, recognition), as is the UCS-4/UTF-8/UTF-16 phrase gate
+        // (alphabet-national-2002). The ISO position for the FOR phrase is between the name and IS
+        // (§12.3.7.2); the historical postfix position is an accepted superset — either site names the
+        // class, both at once is malformed.
         string name = alpha.cobolWord().GetText();
         var def = alpha.alphabetDefinition();
+        var fors = alpha.alphabetForPhrase();
+        if (fors.Length > 1)
+            Edition.Error("COBOLNET0898", $"ALPHABET {name}: the FOR phrase may be written once — between "
+                + "alphabet-name and IS (ISO §12.3.7.2 general format)");
+        if (fors.Any(f => f.NATIONAL() is not null))
+        {
+            AlphabetBindNational(name, def);
+            return;
+        }
+
+        // The ALPHANUMERIC branch (explicit FOR ALPHANUMERIC, or implied — §12.3.7.3 SR13). The national
+        // coded-set names are NOT in this branch's format (§12.3.7.2 admits them only after FOR NATIONAL) —
+        // intercept them rather than mis-binding their letters as literal characters.
+        if (CodeSetNameOf(def) is { } wrongBranch)
+        {
+            Edition.Error("COBOLNET0898", $"ALPHABET {name} IS {wrongBranch}: the {wrongBranch} coded character "
+                + "set may be referenced only in the FOR NATIONAL branch of the ALPHABET clause "
+                + "(ISO §12.3.7.2 general format)");
+            return;
+        }
         if (def.NATIVE() is not null || def.STANDARD_1() is not null || def.STANDARD_2() is not null)
         {
             Alphabets.TryAdd(name, null);
@@ -310,6 +409,200 @@ public sealed partial class DataBinder
         foreach (char c in specOrder) if (pos[c & 0xFF] == minPos) { low = c; break; }        // tie → FIRST specified
 
         Alphabets.TryAdd(name, new CollatingTable(pos, high, low));
+    }
+
+    /// <summary>The national coded-character-set name a definition consists of ("UCS-4" / "UTF-8" / "UTF-16"),
+    /// or null. These are §8.9 CONTEXT-SENSITIVE words scoped to the ALPHABET clause — they arrive as a single
+    /// plain <c>cobolWord</c> alphabet entry (never lexer keywords; they stay user-definable elsewhere), so the
+    /// shape is: exactly one entry, no THROUGH/ALSO, one cobolWord, whose text is one of the three names.</summary>
+    private static string? CodeSetNameOf(Core.AlphabetDefinitionContext def)
+    {
+        if (def.alphabetEntry() is not [{ } entry]) return null;
+        if (entry.THRU() is not null || entry.THROUGH() is not null || entry.ALSO().Length > 0) return null;
+        if (entry.ChildCount != 1 || entry.GetChild(0) is not Core.CobolWordContext w) return null;
+        string t = w.GetText().ToUpperInvariant();
+        return t is "UCS-4" or "UTF-8" or "UTF-16" ? t : null;
+    }
+
+    /// <summary>Bind an <c>ALPHABET … FOR NATIONAL IS …</c> clause (ISO §12.3.7.2 second branch): NATIVE — the
+    /// native national coded set and collating sequence (GR7 d2, identity); UCS-4 — the ISO/IEC 10646 coded set
+    /// AND its appearance-order collating sequence (GR7 f), which on the D-N1 one-UTF-16-code-unit-per-position
+    /// substrate IS the native code-unit order (see <see cref="NationalAlphabetDef"/> — §8.5.1.4 denies surrogate
+    /// -pair recognition, so the supplementary-plane codepoint/code-unit divergence is unreachable; the
+    /// correspondence is the BMP identity, implementor item 188); UTF-8/UTF-16 — coded character sets ONLY
+    /// (GR7 g/h + Table 6: no collating sequence); a literal phrase — the sparse national collating table
+    /// (GR7 k over the native national set). STANDARD-1/STANDARD-2 and LOCALE are not in the national branch's
+    /// format (STANDARD-1/2 are alphanumeric-branch-only; the LOCALE phrase has no compiler surface — the locale
+    /// subsystem is unimplemented and the word fails loud at parse). Unknown words are code-name-2 — the
+    /// implementor supports none (§12.3.7.3 SR15).</summary>
+    private void AlphabetBindNational(string name, Core.AlphabetDefinitionContext def)
+    {
+        if (def.NATIVE() is not null)
+        {
+            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: true, "NATIVE"));
+            return;
+        }
+        if (def.STANDARD_1() is not null || def.STANDARD_2() is not null)
+        {
+            Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: STANDARD-1/STANDARD-2 name the "
+                + "ISO/IEC 646 ALPHANUMERIC coded character set and may be referenced only in the FOR "
+                + "ALPHANUMERIC branch (ISO §12.3.7.2 general format)");
+            return;
+        }
+        if (CodeSetNameOf(def) is { } cs)
+        {
+            // UCS-4 references BOTH a coded set and a collating sequence; UTF-8/UTF-16 a coded set ONLY
+            // (§12.3.7 GR7 f/g/h + Table 6). All three collapse to the identity on this substrate — the
+            // difference is only WHERE the name may legally be referenced.
+            NationalAlphabets.TryAdd(name, new NationalAlphabetDef(null, HasCollatingSequence: cs == "UCS-4", cs));
+            return;
+        }
+        // A single non-figurative bare word that is not a coded-set name would be code-name-2 (§12.3.7.3 SR15
+        // — implementor-defined; none are supported). Figurative words are literal-phrase operands (GR10).
+        if (def.alphabetEntry() is [{ ChildCount: 1 } only] && only.GetChild(0) is Core.CobolWordContext cw
+            && !IsNationalFigurativeWord(cw.GetText()))
+        {
+            Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL IS {cw.GetText()}: not a supported "
+                + "code-name — this implementation defines no code-name-2 names (ISO §12.3.7.3 SR15; the "
+                + "national coded character sets are NATIVE, UCS-4, UTF-8, and UTF-16)");
+            return;
+        }
+        AlphabetBindNationalLiteralPhrase(name, def);
+    }
+
+    private static bool IsNationalFigurativeWord(string word) => word.ToUpperInvariant()
+        is "HIGH-VALUE" or "HIGH-VALUES" or "LOW-VALUE" or "LOW-VALUES"
+        or "SPACE" or "SPACES" or "QUOTE" or "QUOTES" or "ZERO" or "ZEROS" or "ZEROES";
+
+    /// <summary>Build a NATIONAL literal-phrase alphabet (ISO §12.3.7 GR7 k over the NATIVE NATIONAL character
+    /// set — the 65,536 UTF-16 code units, D-N1): a numeric literal is the 1-based NATIONAL ordinal (k1a, SR14c1
+    /// — 1..65536 ⇒ code unit ordinal−1); a noninteger literal shall be a NATIONAL literal (SR14c2), each
+    /// character taking successive ascending positions leftmost-first (k1b); THROUGH expands the native run in
+    /// EITHER direction (k5); ALSO members share ONE position (k6); every unspecified code unit takes a DISTINCT
+    /// ascending position above the highest specified, in native relative order (k3 — realized SPARSELY, the
+    /// runtime computes it arithmetically). Figurative words inside SPECIAL-NAMES are the NATIVE NATIONAL
+    /// extremes/values (GR10 — HIGH-VALUE = U+FFFF, LOW-VALUE = U+0000 in the native national sequence).</summary>
+    private void AlphabetBindNationalLiteralPhrase(string name, Core.AlphabetDefinitionContext def)
+    {
+        var pos = new Dictionary<char, ushort>();
+        var specOrder = new List<char>();          // every specified char in source order (GR8/GR9 tie rules)
+        var repByPos = new List<char>();           // the FIRST char defined per position (§15.16.4 r2)
+        ushort next = 0;
+        void Assign(char c, bool advance)
+        {
+            if (pos.ContainsKey(c)) return;        // SR14a duplicate — first wins (the alphanumeric builder's posture)
+            pos[c] = next;
+            specOrder.Add(c);
+            if (repByPos.Count == next) repByPos.Add(c);
+            if (advance) next++;
+        }
+
+        foreach (var entry in def.alphabetEntry())
+        {
+            var operands = AlphabetOperandsNational(name, entry);
+            if (operands.Count == 0) continue;
+            if (entry.THRU() is not null || entry.THROUGH() is not null)
+            {
+                // k)5: the native national run from operand-1 to operand-2, either direction (SR14c3 — one char each).
+                if (operands.Count >= 2 && operands[0].Length == 1 && operands[1].Length == 1)
+                {
+                    int a = operands[0][0], b = operands[1][0], step = a <= b ? 1 : -1;
+                    for (int c = a; ; c += step) { Assign((char)c, advance: true); if (c == b) break; }
+                }
+                else
+                    Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: each THROUGH operand shall "
+                        + "be one character in length (ISO §12.3.7.3 SR14c3)");
+                continue;
+            }
+            if (entry.ALSO().Length > 0)
+            {
+                // k)6: operand-1 and every ALSO operand share ONE position; operand-1 is that position's first
+                // character. Advance only when the group assigned something (a duplicate-only group is inert).
+                int before = repByPos.Count;
+                foreach (var op in operands)
+                {
+                    if (op.Length == 1) Assign(op[0], advance: false);
+                    else Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: each ALSO operand shall "
+                        + "be one character in length (ISO §12.3.7.3 SR14c3)");
+                }
+                if (repByPos.Count > before) next++;
+                continue;
+            }
+            // k)1.b: a (possibly multi-character) national literal — each character, leftmost first.
+            foreach (char c in operands[0]) Assign(c, advance: true);
+        }
+        if (specOrder.Count == 0) return;           // every operand failed its SR — errors already reported
+
+        // Sparse arrays sorted by code (the runtime's binary-search key).
+        var codes = pos.Keys.Order().ToArray();
+        var positions = new ushort[codes.Length];
+        for (int i = 0; i < codes.Length; i++) positions[i] = pos[codes[i]];
+
+        // GR8/GR9 extremes over the FULL national sequence: position 0 belongs to the first character specified
+        // (a position-0 ALSO tie also resolves to it — GR9 takes the FIRST specified); the HIGHEST position
+        // belongs to the largest UNSPECIFIED code unit (unspecified characters sit above all specified ones,
+        // GR7 k3) — U+FFFF unless specified, else the next free code downward; if every code unit is specified
+        // (unreachable from real source), GR8's tie rule over the top specified position applies.
+        char low = specOrder[0];
+        char high = '\uffff';
+        while (pos.ContainsKey(high) && high > '\u0000') high--;
+        if (pos.ContainsKey(high))                   // all 65,536 specified — GR8 over the specified block
+        {
+            ushort maxPos = positions.Max();
+            foreach (char c in specOrder) if (pos[c] == maxPos) high = c;   // tie → LAST specified (GR8)
+        }
+
+        NationalAlphabets.TryAdd(name, new NationalAlphabetDef(
+            new NationalCollatingTable(codes.Select(c => (ushort)c).ToArray(), positions,
+                repByPos.Select(c => (ushort)c).ToArray(), next, high, low),
+            HasCollatingSequence: true, "literal-phrase"));
+    }
+
+    /// <summary>A NATIONAL alphabet entry's operand texts in source order (ISO §12.3.7.3 SR14c): a quoted
+    /// literal shall be a NATIONAL literal (SR14c2 — decoded to its characters); an unsigned integer literal is
+    /// the character at that 1-based ordinal of the NATIVE NATIONAL character set (SR14c1 — 1..65536); the
+    /// figurative words written inside SPECIAL-NAMES are the NATIVE NATIONAL extremes/values (GR10 —
+    /// HIGH-VALUE = U+FFFF, LOW-VALUE = U+0000, SPACE, QUOTE, ZERO).</summary>
+    private List<string> AlphabetOperandsNational(string name, Core.AlphabetEntryContext entry)
+    {
+        var result = new List<string>();
+        for (int i = 0; i < entry.ChildCount; i++)
+        {
+            switch (entry.GetChild(i))
+            {
+                case Core.LiteralContext lit:
+                    string text = lit.GetText();
+                    if (int.TryParse(text, out int ordinal))
+                    {
+                        if (ordinal is >= 1 and <= 0x10000) result.Add(((char)(ordinal - 1)).ToString());
+                        else Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: ordinal {ordinal} is "
+                            + "outside the native national character set (1..65536, ISO §12.3.7.3 SR14c1)");
+                    }
+                    else if (text.Length >= 1 && text[0] is 'N' or 'n')
+                        result.Add(CobolLiteral.Decode(text));
+                    else
+                    {
+                        Edition.Error("COBOLNET0898", $"ALPHABET {name} FOR NATIONAL: {text} — each noninteger "
+                            + "literal shall be a NATIONAL literal (N\"…\"; ISO §12.3.7.3 SR14c2)");
+                        if (CobolLiteral.IsStringLiteral(text)) result.Add(CobolLiteral.Decode(text));
+                    }
+                    break;
+                case Core.CobolWordContext w:
+                    string t = w.GetText().ToUpperInvariant();
+                    result.Add(t switch
+                    {
+                        // GR10: the native NATIONAL extremes — the highest/lowest of the 65,536-code-unit set.
+                        "HIGH-VALUE" or "HIGH-VALUES" => "\uffff",
+                        "LOW-VALUE" or "LOW-VALUES" => "\u0000",
+                        "SPACE" or "SPACES" => " ",
+                        "QUOTE" or "QUOTES" => "\"",
+                        "ZERO" or "ZEROS" or "ZEROES" => "0",
+                        _ => t,
+                    });
+                    break;
+            }
+        }
+        return result;
     }
 
     /// <summary>An alphabet entry's operand texts in source order: quoted literals decoded, an unsigned integer

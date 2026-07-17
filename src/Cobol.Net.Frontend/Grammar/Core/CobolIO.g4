@@ -503,7 +503,16 @@ sortCollatingPhrase
     // COLLATING is required by the ISO SORT/MERGE format; the CCVS suite (ST139A) writes the phrase as
     // `SEQUENCE alphabet-name` with COLLATING omitted, so the keyword is OPTIONAL in the permissive
     // superset and the omission is flagged under strict modes (leniency L5, docs/dialect-strictness.md).
-    : COLLATING? SEQUENCE IS? cobolWord (cobolWord)?
+    // COLLATING SEQUENCE {IS alphabet-name-1 [alphabet-name-2] | {FOR ALPHANUMERIC IS alphabet-name-1 |
+    // FOR NATIONAL IS alphabet-name-2}…} (ISO §14.9.40.2 / §14.9.24.2). alphabet-name-2 + the FOR forms
+    // are the 2002 national class — gated on recognition (VisitSortCollatingPhrase).
+    : COLLATING? SEQUENCE (collatingForPhrase+ | IS? cobolWord (cobolWord)?)
+    ;
+
+// The ONE FOR-class collating subrule (ISO §12.3.6.2 / §14.9.40.2 — the PROGRAM COLLATING SEQUENCE clause
+// and the SORT/MERGE COLLATING SEQUENCE phrase share it).
+collatingForPhrase
+    : FOR (ALPHANUMERIC | NATIONAL) IS? cobolWord
     ;
 
 sortUsingPhrase

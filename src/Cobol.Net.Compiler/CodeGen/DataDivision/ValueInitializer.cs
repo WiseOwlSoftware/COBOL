@@ -123,7 +123,7 @@ internal sealed class ValueInitializer(EmitContext ctx)
             && FigurativeConstants.KindOf(key[3..], includeNull: true) is not null)
             key = key[3..];
         if (FigurativeConstants.KindOf(key, includeNull: true) is not { } k) return null;
-        string fillChar = FigurativeConstants.Fill(k, ctx.Data.Collating, pic.Category);
+        string fillChar = FigurativeConstants.Fill(k, ctx.Data.Collating, pic.Category, ctx.Data.NationalCollating);
         return pic.Category is PicCategory.Numeric ? pic.DefaultInitializer : $"new string({fillChar}, {pic.Length})";
     }
 

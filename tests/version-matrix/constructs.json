@@ -907,15 +907,39 @@
     },
     {
       "id": "special-names-for-national-2002",
-      "description": "The FOR ALPHANUMERIC / FOR NATIONAL phrase on the SPECIAL-NAMES ALPHABET, CLASS, and SYMBOLIC CHARACTERS clauses, ISO 12.3.7 - introduced 2002 (national repertoire). Grammar-gated at the three sites; W1.5 parse-layer 0900 mapping below 2002.",
+      "description": "The FOR ALPHANUMERIC / FOR NATIONAL phrase on the SPECIAL-NAMES ALPHABET, CLASS, and SYMBOLIC CHARACTERS clauses, ISO 12.3.7 - introduced 2002 (national repertoire). Parse-arm gated at the three sites (VisitAlphabetClause/VisitClassDefinitionClause/VisitSymbolicCharactersClause).",
       "display": "the FOR ALPHANUMERIC/NATIONAL phrase (ALPHABET/CLASS/SYMBOLIC CHARACTERS)",
       "diagnosticCode": "COBOLNET0900",
-      "citation": "ISO §12.3.7; grammar-gated at three SPECIAL-NAMES sites; W1.5 parse-layer 0900 mapping",
+      "citation": "ISO §12.3.7; parse-arm gated at three SPECIAL-NAMES sites",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0900",
       "vcr": "M2 national surface; W1.5 parse-layer mapping (DEVLOG 594)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15L.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET AB1 IS STANDARD-1 FOR NATIONAL.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15L.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET AB1 FOR NATIONAL IS NATIVE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "alphabet-national-2002",
+      "description": "The UCS-4 / UTF-8 / UTF-16 coded-character-set phrases of the ALPHABET ... FOR NATIONAL clause, ISO 12.3.7.2 - introduced 2002 with the national class (UCS-4 names both a coded set and the ISO 10646-order collating sequence; UTF-8/UTF-16 name coded sets only, Table 6). Context-sensitive words (8.9, ALPHABET-clause scope) recognized BY TEXT in the parse arm (VisitAlphabetClause) - no lexer keywords.",
+      "display": "the ALPHABET UCS-4/UTF-8/UTF-16 phrase (FOR NATIONAL)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.3.7.2 alphabet-name-clause (the FOR NATIONAL branch); §8.9 context-sensitive words UCS-4/UTF-8/UTF-16; parse-arm gate (VisitAlphabetClause)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the national class; the ALPHABET national branch arrived with it)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15AN.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET UNI FOR NATIONAL IS UCS-4.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
+    },
+    {
+      "id": "program-collating-national-2002",
+      "description": "The national surface of the OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE clause, ISO 12.3.6.2 - alphabet-name-2 of the two-name IS form and the FOR ALPHANUMERIC / FOR NATIONAL forms, all introduced 2002 with the national class (the 85 format is the single-name IS form). Parse-arm gated on recognition (VisitProgramCollatingSequenceClause).",
+      "display": "the PROGRAM COLLATING SEQUENCE national surface (alphabet-name-2 / FOR forms)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.3.6.2 (PROGRAM COLLATING SEQUENCE second alternative + alphabet-name-2); parse-arm gate (VisitProgramCollatingSequenceClause)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (the national class, §12.3.6 SR2/GR9)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. W15PC.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nOBJECT-COMPUTER. XYZ\n    PROGRAM COLLATING SEQUENCE FOR NATIONAL IS NATSEQ.\nSPECIAL-NAMES.\n    ALPHABET NATSEQ FOR NATIONAL IS NATIVE.\nPROCEDURE DIVISION.\nMAIN.\n    STOP RUN.\n"
     },
     {
       "id": "call-by-value-2002",
@@ -1559,16 +1583,15 @@
     },
     {
       "id": "sort-collating-national-2002",
-      "description": "SORT/MERGE COLLATING SEQUENCE with alphabet-name-2 (national keys) - a 2002 introduction; the in-window national collating path is a staged later slice (BoundUnsupported), so the matrix skips compile assertions (PENDING: activates when the national collating slice lands, PHASE 10/12 - the SortBinder BoundUnsupported island) while the registry row drives the gate. Folded from the inline SortBinder gate (Exec Step E).",
-      "display": "COLLATING SEQUENCE alphabet-name-2",
+      "description": "SORT/MERGE COLLATING SEQUENCE national surface - alphabet-name-2 of the IS form and the FOR ALPHANUMERIC / FOR NATIONAL forms (ISO 14.9.40.2 / 14.9.24.2), a 2002 introduction with the national class. ACTIVE as of P10 Step 4: the phrase parses at every edition (superset), the gate fires on recognition (VisitSortCollatingPhrase), and the binder resolves + class-validates alphabet-name-2 against the FOR NATIONAL alphabet registry (14.9.40.3 SR2); national KEYS still cannot exist (D-N2 refuses national leaves in SD records; the table-sort national key stages loud), so the validated sequence has no reachable key consumer yet.",
+      "display": "COLLATING SEQUENCE alphabet-name-2 / FOR forms",
       "diagnosticCode": "COBOLNET0872",
-      "citation": "ISO §14.9.40.3 SR2 (alphabet-name-2 orders NATIONAL keys; the national class is 2002+)",
+      "citation": "ISO §14.9.40.3 SR2 (alphabet-name-2 orders NATIONAL keys; the national class is 2002+); parse-arm gate (VisitSortCollatingPhrase)",
       "introducedIn": 2002,
       "removedIn": null,
       "expectDiagnostic": "COBOLNET0872",
       "vcr": "2002 introduction (the national class, §14.9.40.3 SR2)",
-      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWSCN.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET A1 IS STANDARD-1\n    ALPHABET A2 IS STANDARD-1.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT S-F ASSIGN TO \"rwscn.tmp\".\nDATA DIVISION.\nFILE SECTION.\nSD S-F.\n01 S-REC PIC X(5).\nWORKING-STORAGE SECTION.\n01 W-REC PIC X(5).\nPROCEDURE DIVISION.\nMAIN.\n    SORT S-F ON ASCENDING KEY S-REC\n        COLLATING SEQUENCE A1 A2\n        INPUT PROCEDURE IS IP\n        OUTPUT PROCEDURE IS OP.\n    STOP RUN.\nIP.\n    RELEASE S-REC FROM W-REC.\nOP.\n    RETURN S-F INTO W-REC AT END CONTINUE END-RETURN.\n",
-      "status": "pending"
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. RWSCN.\nENVIRONMENT DIVISION.\nCONFIGURATION SECTION.\nSPECIAL-NAMES.\n    ALPHABET A1 IS STANDARD-1\n    ALPHABET A2 FOR NATIONAL IS NATIVE.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT S-F ASSIGN TO \"rwscn.tmp\".\nDATA DIVISION.\nFILE SECTION.\nSD S-F.\n01 S-REC PIC X(5).\nWORKING-STORAGE SECTION.\n01 W-REC PIC X(5).\nPROCEDURE DIVISION.\nMAIN.\n    SORT S-F ON ASCENDING KEY S-REC\n        COLLATING SEQUENCE A1 A2\n        INPUT PROCEDURE IS IP\n        OUTPUT PROCEDURE IS OP.\n    STOP RUN.\nIP.\n    RELEASE S-REC FROM W-REC.\nOP.\n    RETURN S-F INTO W-REC AT END CONTINUE END-RETURN.\n"
     },
     {
       "id": "table-sort-2002",
