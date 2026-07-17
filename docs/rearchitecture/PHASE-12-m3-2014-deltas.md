@@ -18,10 +18,34 @@ Land the remaining COBOL-2014 *surface* deltas on the (rearchitected) data model
 
 ### STATUS
 
-`NOT STARTED`
+`IN PROGRESS @ step 3` (branch `phase-12-m3-2014`)
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the
 > per-step checkboxes in §4 in sync. On resume, read this line + the last DEVLOG entry + `git log --oneline -15` first.
+
+> ### ⚠️ RE-SCOUT CORRECTIONS — read `PHASE-12-scout-notes.md` FIRST; it OVERRIDES this plan's anchors
+> This plan was authored 2026-07-07, **before P8/P9/P10/P11 landed**, so many of its code-state and spec anchors
+> drifted. A 6-scout + adversarial-verify re-scout (2026-07-17) produced the corrected reference
+> **`docs/rearchitecture/PHASE-12-scout-notes.md`** — trust IT for anchors, this doc for step structure. The
+> load-bearing corrections applied during execution:
+> 1. **IEEE fidelity (Step 7) was INVERTED.** GR14-18 PIN `FLOAT-BINARY-*`/`FLOAT-DECIMAL-*` to ISO/IEC 60559:2020;
+>    only the FLOAT trio is implementor-defined (GR13/GR21). Decision: implement `FLOAT-BINARY-32`→`float` and
+>    `FLOAT-BINARY-64`→`double` (exact/conforming); declare `FLOAT-BINARY-128`/`FLOAT-DECIMAL-16`/`FLOAT-DECIMAL-34`
+>    **processor-dependent non-support** (Annex A.3 items 17/19) — loud, never a silent misbind. NOT `double`-backed.
+> 2. **PROGRAM-POINTER is DONE as a 2002 feature** (P10 Step 7). Step 8's PROGRAM-POINTER half + `{is2014()}?` gate
+>    would be a regression; only the restricted `TO`-prototype form + `ADDRESS OF PROGRAM` spelling remain.
+> 3. **FUNCTION-POINTER surface DONE, staged loud (0899)**; only its runtime semantics (SET Format 8 + carrier +
+>    mandatory `TO`) remain (genuinely 2014). `COBOLNET1552` is unnecessary (dup of the live 0899 gate).
+> 4. **Diagnostic band 1540-1559 COLLIDES** — 17/20 codes are live (high-water 1559, not 1538). Keep 1550/1551/1552
+>    (already earmarked P12) and draw the rest from **1561-1599**. Renumber the plan's `1540/1541`/`1545`.
+> 5. **`>>PROPAGATE` is LIVE in 2023**, not removed — Step 9 does an INTRODUCTION gate (~2002), NO top-end span.
+> 6. **TYPE TO is NOT a pointer form** — it's the TYPE clause's optional word (§13.18.57.2). The §7 table also swaps
+>    the TYPE(§13.18.57)/TYPEDEF(§13.18.58)/SAME-AS(§13.18.49) citations.
+> 7. **Diagnostic registry** is `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs` (+ regenerate
+>    `docs/DIAGNOSTICS.md`), NOT the plan's `Cobol.Net.Compiler/Diagnostics/`. Battery baseline = **3521 conf / 301
+>    unit** (not 3166/281). `scripts/guard.ps1` does not exist — use `bash scripts/guard-fast.sh`.
+> 8. **Steps 1 & 3 are largely satisfied already:** `occurs-dynamic-2014` is active (10 `dyn_*` enabled);
+>    `tests/conformance/2002/float_usage.cob` already covers the whole trio — Step 3 needs no new redundant program.
 
 ---
 
