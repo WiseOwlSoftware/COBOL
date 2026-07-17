@@ -148,9 +148,13 @@ public static class IntrinsicCatalog
         // the NATIONAL program collating sequence (native UTF-16 order; a non-native ALPHABET … FOR NATIONAL
         // sequence rides the CollateNat/__COLLATE_NAT channel, P10 Step 4). Result class national (§15.16.1).
         Add(new("CHAR-NATIONAL", IntrinsicType.National, IntrinsicArity.Fixed, 1, 1, "i", "CharNational", IntrinsicBind.Runtime, false, 2002));  // §15.16
-        Add(new("DATE-TO-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002)); // §15.23
-        Add(new("DAY-TO-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002));   // §15.25
-        Add(new("YEAR-TO-YYYY", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "", IntrinsicBind.Deferred, false, 2002));     // §15.100
+        // The Y2K windowing trio (§15.23/§15.25/§15.100) — ONE windowing core (CobolDate.YearToYyyy); the
+        // composite pair is defined BY REFERENCE to it (§15.23.4 r1 / §15.25.4 r1). The window is ALWAYS 100
+        // years ending at maximum-year = argument-2 + argument-3 (argument-2 = a SIGNED offset, default 50 —
+        // NOT a window size; argument-3 defaults to the year at EXECUTION time, §15.100.3 r5).
+        Add(new("DATE-TO-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "DateToYyyymmdd", IntrinsicBind.Runtime, false, 2002)); // §15.23
+        Add(new("DAY-TO-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "DayToYyyyddd", IntrinsicBind.Runtime, false, 2002));   // §15.25
+        Add(new("YEAR-TO-YYYY", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 3, "iii", "YearToYyyy", IntrinsicBind.Runtime, false, 2002));     // §15.100
         // DISPLAY-OF (§15.26) / NATIONAL-OF (§15.66) — the sanctioned national↔alphanumeric repertoire pair
         // (P10 national wave). Argument-2 is a one-character SUBSTITUTION CHARACTER (§15.26.3 r2 / §15.66.3 r2 —
         // the 2023 text names no codeset facility), so both argument forms are fully implemented.
@@ -181,7 +185,7 @@ public static class IntrinsicCatalog
         Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "is", "", IntrinsicBind.Unsupported, false, 2002));     // §15.52 (A.4.9 item 3)
         Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "is", "", IntrinsicBind.Unsupported, false, 2002));     // §15.53 (A.4.9 item 4)
         Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Unsupported, false, 2002)); // §15.54 (A.4.9 item 5)
-        Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "", IntrinsicBind.Deferred, false, 2002)); // §15.80
+        Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "SecondsPastMidnight", IntrinsicBind.Runtime, false, 2002)); // §15.80 — NUMERIC (fractional seconds); the RunUnit.Clock seam, scale 7
         Add(new("STANDARD-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 4, "ssis", "", IntrinsicBind.Unsupported, false, 2002)); // §15.85 (A.4.9 item 11 + A.3 item 25)
         Add(new("TEST-DATE-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "", IntrinsicBind.Deferred, false, 2002)); // §15.90
         Add(new("TEST-DAY-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "", IntrinsicBind.Deferred, false, 2002));   // §15.91

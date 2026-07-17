@@ -150,6 +150,7 @@ public static class Constructs
     public const string ArithmeticStandard2002 = "arithmetic-standard-2002";
     public const string ExceptionFileN2002 = "exception-file-n-2002";
     public const string BooleanOfInteger2002 = "boolean-of-integer-2002";
+    public const string DateToYyyymmdd2002 = "date-to-yyyymmdd-2002";
     public const string ReportPresentWhen2002 = "report-present-when-2002";
     public const string ReportVarying2002 = "report-varying-2002";
     public const string ReportMultiColumn2002 = "report-multi-column-2002";

@@ -9,11 +9,12 @@
 ## STATUS
 
 ```
-STATUS: IN PROGRESS @ step 5 (Steps 0-2 DONE — Step 1 @ 2a0ab666 [Unsupported + the five A.4.9 flips];
-Step 2 [boolean conversions §15.13/§15.45 + the Boolean result-category channel] landed next commit;
-Steps 3-4 were SATISFIED BY P10. Deferred 17→10. Resume: read PHASE-11-scout-notes.md FIRST, then execute
-Step 5 [date windowing §15.23/25/100 + SECONDS-PAST-MIDNIGHT §15.80 — NOTE the scout discrepancy:
-CURRENT-DATE bypasses IClock; SECONDS-PAST-MIDNIGHT must ride RunUnit.Current.Clock.Now()])
+STATUS: IN PROGRESS @ step 6 (Steps 0-2 + 5 DONE — Step 1 @ 2a0ab666 [Unsupported + the five A.4.9 flips];
+Step 2 @ e159a719 [boolean conversions + the Boolean result-category channel]; Steps 3-4 SATISFIED BY P10;
+Step 5 [the Y2K windowing trio on the ONE YearToYyyy core + SECONDS-PAST-MIDNIGHT on the RunUnit.Clock
+seam, scale 7] landed next commit. Deferred 17→6. Resume: read PHASE-11-scout-notes.md FIRST, then execute
+Step 6 [the four TEST-* validators §15.90/91/93/94 — the scout's exact verdict-code tables; the TEST twins
+live in CobolIntrinsics.Exact.cs beside TestNumvalF, NOT Text.cs])
 ```
 > The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`. Keep it in sync with the per-step checkboxes in §4.
 

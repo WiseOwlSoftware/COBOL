@@ -1755,6 +1755,19 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBOOLCNV.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N-5 PIC 9(5).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE N-5 = FUNCTION INTEGER-OF-BOOLEAN(\n        FUNCTION BOOLEAN-OF-INTEGER(5, 8))\n    DISPLAY N-5\n    STOP RUN.\n"
     },
     {
+      "id": "date-to-yyyymmdd-2002",
+      "status": "active",
+      "description": "The Y2K windowing intrinsic trio FUNCTION YEAR-TO-YYYY (ISO 15.100) / DATE-TO-YYYYMMDD (15.23) / DAY-TO-YYYYDDD (15.25) + FUNCTION SECONDS-PAST-MIDNIGHT (15.80). LIVE (P11 Step 5): ONE windowing core (CobolDate.YearToYyyy) the composite pair delegates to (15.23.4 r1 / 15.25.4 r1 by-reference definitions) - the window is ALWAYS 100 years ending at maximum-year = argument-2 + argument-3 (argument-2 a SIGNED offset, default 50; argument-3 defaults to the EXECUTION-time year via the injectable RunUnit.Clock); SECONDS-PAST-MIDNIGHT is type NUMERIC (fractional seconds, documented 100 ns precision, scale 7) on the same clock seam. All four are 2002 introductions; below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502).",
+      "display": "FUNCTION YEAR-TO-YYYY / DATE-TO-YYYYMMDD / DAY-TO-YYYYDDD / SECONDS-PAST-MIDNIGHT (Y2K windowing + clock)",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO §15.100 YEAR-TO-YYYY / §15.23 DATE-TO-YYYYMMDD / §15.25 DAY-TO-YYYYDDD / §15.80 SECONDS-PAST-MIDNIGHT; LIVE (P11 Step 5) — the ONE CobolDate.YearToYyyy windowing core (§15.100.4 r1/r2a/r2b), delegation per §15.23.4/§15.25.4 r1; SECONDS-PAST-MIDNIGHT on the RunUnit.Clock seam (§15.80.3 r3 documented precision 100 ns); D8 window 1502 below 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "M2 catalog date/time additions; 2002 introduction (the Y2K windowing amendment - derive from the 2002 standard; absent from the 1989 Intrinsic Function Module set)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMDATEWIN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 D8 PIC 9(8).\n01 SPM PIC 9(5)V9(7).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE D8 = FUNCTION YEAR-TO-YYYY(4, 23, 1995)\n    COMPUTE D8 = FUNCTION DATE-TO-YYYYMMDD(851003, 10, 2002)\n    COMPUTE D8 = FUNCTION DAY-TO-YYYYDDD(10004, 20, 2002)\n    COMPUTE SPM = FUNCTION SECONDS-PAST-MIDNIGHT\n    DISPLAY D8\n    STOP RUN.\n"
+    },
+    {
       "id": "report-present-when-2002",
       "status": "active",
       "description": "The report-group PRESENT WHEN clause (§13.18.41 Format 1) — the entry (and its subordinates) is processed only when condition-1 is true, evaluated once per group presentation before any LINE clause processing (GR2); an absent entry is processed as though omitted (GR2b — relative lines re-anchor, absent items leave spaces, an absent SUM entry neither prints nor resets, GR3g). LIVE (P10 Step 13): conditions bind through the ONE ConditionBinder onto the report model; the RWCS engine evaluates per presentation. 2002 introduction — the 2023 Annex E covers 2014→2023 only; derived from the §8.9 reservation of PRESENT 'added 2002' (ReservedWords.Table — the word was reserved FOR this clause) + the 2002 RW modernization family.",

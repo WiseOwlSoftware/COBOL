@@ -161,6 +161,20 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             case "DateOfInteger" or "DayOfInteger" or "IntegerOfDate" or "IntegerOfDay":
                 return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, IntArg(ic, 0)), 0);
 
+            // The Y2K windowing trio (§15.23/§15.25/§15.100) — integer results; the optional trailing
+            // argument-2 (a SIGNED offset) / argument-3 ride the runtime's C#-optional-parameter defaults
+            // (50 / the execution-time year via the argument-3 = 0 sentinel), so only the present arguments
+            // render.
+            case "DateToYyyymmdd" or "DayToYyyyddd" or "YearToYyyy":
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod,
+                    string.Join(", ", Enumerable.Range(0, ic.Args.Count).Select(i => IntArg(ic, i)))), 0);
+
+            // SECONDS-PAST-MIDNIGHT (§15.80) — type NUMERIC in standard numeric time form: the runtime
+            // returns the local time-of-day TICK count = the unscaled value at SCALE 7 (the documented
+            // 100 ns COBOL.NET precision, §15.80.3 r3).
+            case "SecondsPastMidnight":
+                return new NumX(RuntimeApi.DateFn(sig.RuntimeMethod, ""), 7);
+
             // ── The COBOL-2014 date/time + number family (§15.17/48/79/92; §15.69/95) ───────────────────────────
             case "CombinedDatetime":                                            // §15.17 — a1 + a2/100000
             {

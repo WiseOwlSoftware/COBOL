@@ -71,6 +71,72 @@ public static class CobolDate
         return (new DateTime((int)year, 1, 1).AddDays(day - 1) - Epoch).Days + 1;
     }
 
+    // ── The §15.100/§15.23/§15.25 Y2K WINDOWING TRIO + §15.80 SECONDS-PAST-MIDNIGHT (COBOL-2002) ──────────────
+
+    /// <summary>YEAR-TO-YYYY (ISO §15.100.4) — the ONE windowing core the composite pair delegates to
+    /// (§15.23.4 r1 / §15.25.4 r1 are defined BY REFERENCE to this function; singular-pattern rule).
+    /// <c>maximum-year = argument-2 + argument-3</c> (r1) is the ENDING year of the ALWAYS-100-year window —
+    /// argument-2 is a SIGNED offset from argument-3, NOT a window size (the §15.100.4 NOTE-2 fixed-window
+    /// guidance). The result is the unique year in <c>[maximum-year−99, maximum-year]</c> whose low-order two
+    /// digits equal argument-1: r2a when <c>MOD(maximum-year,100) ≥ argument-1</c>, else r2b. Defaults:
+    /// argument-2 omitted = 50 (r3 of §15.100.3); argument-3 omitted = the year at EXECUTION time
+    /// (§15.100.3 r5 — <c>FUNCTION NUMVAL(FUNCTION CURRENT-DATE(1:4))</c>), read from the injectable
+    /// <see cref="RunUnit.Clock"/> (the <paramref name="baseYear"/> 0 sentinel — 0 is outside the legal
+    /// 1601..9999, so unambiguous). Argument rules (§15.100.3): argument-1 nonnegative &lt; 100 (r1 — 0 IS
+    /// legal); argument-3 in 1601..9999 (r4); argument-2+argument-3 in 1700..9999 (r6). Violations →
+    /// EC-ARGUMENT-FUNCTION (§15.3, default 0). maximum-year ≥ 1700, so truncating division ≡ the rule's
+    /// FUNCTION INTEGER (floor).</summary>
+    public static long YearToYyyy(long yy, long off = 50, long baseYear = 0)
+    {
+        if (yy is < 0 or > 99)
+            return Exceptions.ExceptionState.ArgumentError($"YEAR-TO-YYYY argument-1 {yy} is not a nonnegative integer less than 100 (§15.100.3 r1)");
+        long b = baseYear == 0 ? RunUnit.Current.Clock.Now().Year : baseYear;
+        if (b is <= 1600 or >= 10000)
+            return Exceptions.ExceptionState.ArgumentError($"YEAR-TO-YYYY argument-3 {b} is not greater than 1600 and less than 10000 (§15.100.3 r4)");
+        long max = off + b;                                   // r1: maximum-year
+        if (max is <= 1699 or >= 10000)
+            return Exceptions.ExceptionState.ArgumentError($"YEAR-TO-YYYY argument-2 + argument-3 = {max} is not greater than 1699 and less than 10000 (§15.100.3 r6)");
+        return max % 100 >= yy
+            ? yy + 100 * (max / 100)                          // r2a
+            : yy + 100 * (max / 100 - 1);                     // r2b
+    }
+
+    /// <summary>DATE-TO-YYYYMMDD (ISO §15.23.4 r1): <c>YEAR-TO-YYYY(YY, argument-2, argument-3) × 10000 +
+    /// mmdd</c> where <c>YY = argument-1 / 10000</c> and <c>mmdd = MOD(argument-1, 10000)</c> — pure delegation
+    /// to the ONE windowing core. §15.23.3 r1: argument-1 a POSITIVE integer &lt; 1,000,000 (0 illegal here,
+    /// unlike YEAR-TO-YYYY's r1); the function does NOT validate the calendar date (the §15.23.3 NOTE points at
+    /// TEST-DATE-YYYYMMDD). The r6 sum window is checked uniformly as argument-2+argument-3 (§15.25.3 r6 /
+    /// §15.100.3 r6 wording; §15.23.3 r6's "year at the time of execution" phrasing coincides when argument-3
+    /// is defaulted — the scout-noted drafting divergence, resolved to the delegated form).</summary>
+    public static long DateToYyyymmdd(long date, long off = 50, long baseYear = 0)
+    {
+        if (date is < 1 or > 999999)
+            return Exceptions.ExceptionState.ArgumentError($"DATE-TO-YYYYMMDD argument-1 {date} is not a positive integer less than 1000000 (§15.23.3 r1)");
+        return YearToYyyy(date / 10000, off, baseYear) * 10000 + date % 10000;   // §15.23.4 r1
+    }
+
+    /// <summary>DAY-TO-YYYYDDD (ISO §15.25.4 r1): <c>YEAR-TO-YYYY(YY, argument-2, argument-3) × 1000 + nnn</c>
+    /// where <c>YY = argument-1 / 1000</c> and <c>nnn = MOD(argument-1, 1000)</c>. §15.25.3 r1: argument-1 a
+    /// POSITIVE integer &lt; 100,000; ordinal-day validity is NOT checked (the NOTE points at
+    /// TEST-DAY-YYYYDDD).</summary>
+    public static long DayToYyyyddd(long day, long off = 50, long baseYear = 0)
+    {
+        if (day is < 1 or > 99999)
+            return Exceptions.ExceptionState.ArgumentError($"DAY-TO-YYYYDDD argument-1 {day} is not a positive integer less than 100000 (§15.25.3 r1)");
+        return YearToYyyy(day / 1000, off, baseYear) * 1000 + day % 1000;        // §15.25.4 r1
+    }
+
+    /// <summary>SECONDS-PAST-MIDNIGHT (ISO §15.80.3): the current LOCAL time of day in seconds past midnight,
+    /// in standard numeric time form — type NUMERIC, fractional seconds intended (r1/r2; the Annex D.31.5.4
+    /// example carries 12 fraction digits). Returns the day's tick count = the UNSCALED value at SCALE 7 (the
+    /// renderer's documented contract): the COBOL.NET documented precision (§15.80.3 r3, implementor item 171)
+    /// is 100 ns — 7 fraction digits, the .NET <see cref="DateTime"/> resolution. Range [0, 86 400) —
+    /// LEAP-SECOND is not supported (the §7.3.17 default OFF is the only mode; §15.5.5), so a returned value
+    /// ≥ 86 400 is unreachable (§15.80.3 r4 answered "no"). Reads the injectable <see cref="RunUnit.Clock"/>
+    /// (COBOLNET_CLOCK-deterministic — NOT the <see cref="CurrentDate"/> direct-<c>DateTimeOffset.Now</c>
+    /// path, which predates the seam).</summary>
+    public static long SecondsPastMidnight() => RunUnit.Current.Clock.Now().TimeOfDay.Ticks;
+
     // ── The §15.3 date/time FORMAT ENGINE (COBOL-2014 FORMATTED-*/INTEGER-OF-FORMATTED-DATE/etc.) ────────────────
     // One tokenizer feeds the emitter (FORMATTED-*) and the analyzer (INTEGER-OF-FORMATTED-DATE /
     // SECONDS-FROM-FORMATTED-TIME / TEST-FORMATTED-DATETIME) — ONE parse of a format string (singular pattern).

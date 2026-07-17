@@ -34,6 +34,7 @@
     "highest_lowest_algebraic",
     "initialize_phrases",
     "intrinsics_boolean_conv",
+    "intrinsics_date_window",
     "literal_concat",
     "national_data",
     "national_intrinsics",

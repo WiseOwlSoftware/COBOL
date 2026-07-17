@@ -23,19 +23,20 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C REDEFINES confined-byte codec)
 
-**⏵ P11 IS IN PROGRESS @ Step 5 (2026-07-17).** Steps 0–2 are DONE (DEVLOG 871–873): `IntrinsicBind.
-Unsupported` + the five A.4.9 flips (`2a0ab666`); the boolean-conversion pair §15.13/§15.45 with the
-Boolean result-category channel (ResultCategory → PicCategory.Boolean + the four widened string-channel
-seams; golden `intrinsics_boolean_conv` first-try byte-exact; matrix row `boolean-of-integer-2002`). Live
-Deferred **17→10** (remaining: BYTE-LENGTH, the date trio, SECONDS-PAST-MIDNIGHT, the four TEST-*
-validators, CONCATENATE). The anchor re-scout is DONE — **READ `docs/rearchitecture/PHASE-11-scout-notes.md`
-FIRST** (verified anchors, hand-derived golden values, code seams file:line, test wiring, the Tier-C
-guard-site inventory; its ⚠ blocks override the phase doc — do NOT re-scout). Resume: Step 5 (date
-windowing §15.23/25/100 + SECONDS-PAST-MIDNIGHT §15.80 — the scout found CURRENT-DATE BYPASSES IClock;
-SECONDS-PAST-MIDNIGHT must ride `RunUnit.Current.Clock.Now()` to be COBOLNET_CLOCK-deterministic) → Steps
-6, 7, 8 → Tier-C step groups C/D → Step 9 close-out. ⚠ Guard-flake note: a 351+2 guard-fast verdict naming
-file-I/O suites (SQ/IC) is the DEVLOG-870/872 environmental flake class — re-prove by SOLO rerun before
-treating as real.
+**⏵ P11 IS IN PROGRESS @ Step 6 (2026-07-17).** Steps 0–2 + 5 are DONE (DEVLOG 871–874): `IntrinsicBind.
+Unsupported` + the five A.4.9 flips (`2a0ab666`); the boolean-conversion pair with the Boolean
+result-category channel (`e159a719`); the Y2K windowing trio §15.23/25/100 on the ONE `YearToYyyy` core
+(argument-2 is a SIGNED offset to the window's ENDING year — the window is ALWAYS 100 years) +
+SECONDS-PAST-MIDNIGHT §15.80 on the `RunUnit.Clock` seam (scale 7, documented 100 ns precision; goldens
+`intrinsics_date_window` first-try byte-exact + `CobolDateWindowingTests` pinned-clock unit facts). Live
+Deferred **17→6** (remaining: BYTE-LENGTH, the four TEST-* validators, CONCATENATE). The anchor re-scout is
+DONE — **READ `docs/rearchitecture/PHASE-11-scout-notes.md` FIRST** (verified anchors, hand-derived golden
+values, code seams file:line, test wiring, the Tier-C guard-site inventory; its ⚠ blocks override the phase
+doc — do NOT re-scout). Resume: Step 6 (the TEST-* validators §15.90/91/93/94 — exact verdict codes in the
+scout notes; the TEST twins belong in `CobolIntrinsics.Exact.cs` beside `TestNumvalF`, NOT Text.cs; extend
+the NUMVAL-C currency injection to TEST-NUMVAL-C) → Steps 7, 8 → Tier-C step groups C/D → Step 9 close-out.
+⚠ Guard-flake note: a 351+2/352+1 guard-fast verdict naming file-I/O suites (SQ/IC) is the DEVLOG-870/872/873
+environmental flake class — re-prove by SOLO rerun before treating as real.
 
 **PHASE-10 IS COMPLETE (2026-07-17, DEVLOG 854–870 — 14 battery-gated commits `7436a1ef`→`a0fd3f68`+close, CI
 green on each; the P10 doc's STATUS banner carries the exit-criteria confirmation + the NAMED forward-residue
