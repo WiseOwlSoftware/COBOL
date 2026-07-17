@@ -52,6 +52,8 @@
     "label-records-fd",
     "level88-alnum-value-boolean",
     "level88-boolean-value-alnum",
+    "locale_functions_a49",
+    "locale_keyword_a49",
     "lock-mode-multiple-sequential",
     "memory-size",
     "move-binary-to-national",

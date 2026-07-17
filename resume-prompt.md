@@ -23,22 +23,24 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C REDEFINES confined-byte codec)
 
-**⏵ P11 IS IN PROGRESS @ Step 8 (2026-07-17).** Steps 0–2 + 5–7 are DONE (DEVLOG 871–876): the boolean
-pair (`e159a719`), the Y2K trio + SECONDS-PAST-MIDNIGHT (`1728dfd9`), the TEST validator quartet
-(`813d9bd4`), and Step 7 — **BYTE-LENGTH** as a compile-time fold over the new `DataItem.ByteWidth` (pinned
-implementor byte widths: DISPLAY/BIT 1, NATIONAL 2, binary/packed StorageWidth, float 4/8, index/pointer 8;
-national proves BYTE-LENGTH 6 ≠ LENGTH 3) + the **SMALLEST-ALGEBRAIC** golden/2014-window row + the
-**CONCATENATE DELETION**. **ZERO Deferred rows — exit criterion 1 MET.** ⚠ The scout established CONCATENATE
-is NOT ISO at any edition (CONCAT §15.18 is new-in-2023; zero spec occurrences), so the "window [2002,2023)"
-plan was drift: the row is DELETED (a reference now draws COBOLNET1501); CONCATENATE-as-vendor-extension is
-a separate future call. The anchor re-scout is DONE — **READ `docs/rearchitecture/PHASE-11-scout-notes.md`
-FIRST** (its ⚠ blocks override the phase doc — do NOT re-scout). Resume: Step 8 (the A.4.9 locale
-disposition — a COBOLNET1518 bind arm mapping the five `Unsupported` rows to a documented-non-support reject
-+ LOCALE-keyword detection on LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C; the scout found NUMVAL-C's
-LOCALE keyword is a spec list-omission → dispose with the same diagnostic; STANDARD-COMPARE additionally
-cites A.3 item 25) → Tier-C step groups C/D → Step 9 close-out. ⚠ Guard-flake note: a 351+2/352+1
-guard-fast verdict naming file-I/O suites (SQ/IC/IX) is the DEVLOG-870/872/873/875 environmental flake class
-— re-prove by SOLO rerun before treating as real.
+**⏵ P11 IS IN PROGRESS @ Step C (the Tier-C decision) (2026-07-17).** Steps 0–2 + 5–8 are DONE (DEVLOG
+871–877): all intrinsic waves landed — the boolean pair (`e159a719`), the Y2K trio + SECONDS-PAST-MIDNIGHT
+(`1728dfd9`), the TEST validator quartet (`813d9bd4`), BYTE-LENGTH + SMALLEST-ALGEBRAIC + the CONCATENATE
+deletion (`4b537b04`, ZERO Deferred), and Step 8 — **the A.4.9 locale disposition**: a COBOLNET1518 bind arm
+maps the five `Unsupported` locale functions (LOCALE-COMPARE/-DATE/-TIME/-TIME-FROM-SECONDS + STANDARD-COMPARE
+[which also cites §A.3 item 25]) and the LOCALE keyword phrase of LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C
+to documented-non-support (`LocaleDispositionTests` 11 facts; negatives `locale_functions_a49` +
+`locale_keyword_a49`; plain forms unregressed). **INTRINSIC EXIT CRITERIA 1/3/4 MET.** Only exit criterion 2
+(Tier-C decided) remains. **READ `docs/rearchitecture/PHASE-11-scout-notes.md` §code:tier-c-code FIRST** — its
+⚠ blocks reshape the plan: the CLASS rejection is ALREADY single-sourced (the ONE `RedefinesClass.Classify`
+mutator; ComputeTier is `DataBinder.cs:2376` not ~1752; `ByteCanonical` is dead-by-construction; `TierCWindow`
+has no Read/Write; there is NO `RedefinesClassifier` type). What is scattered is the CLASSLESS mixed-usage-GROUP
+island — ~13 emit guards (C1–C13) + ~7 bind guards (B4–B13) across FOUR predicate variants. Step C = route
+those through ONE reason formatter PRESERVING each predicate variant + fold ComputeTier's reason strings +
+`TierCRejectionTests` + the FULL guard. **Step D (the byte codec) is being DEFERRED** as a scheduled increment
+(the phase doc's own gate; the §2.3 design is stale vs. reality and needs re-basing). Then Step 9 close-out.
+⚠ Guard-flake note: a 351+2/352+1 guard-fast verdict naming file-I/O suites (SQ/IC/IX) is the
+DEVLOG-870/872/873/875 environmental flake class — re-prove by SOLO rerun before treating as real.
 
 **PHASE-10 IS COMPLETE (2026-07-17, DEVLOG 854–870 — 14 battery-gated commits `7436a1ef`→`a0fd3f68`+close, CI
 green on each; the P10 doc's STATUS banner carries the exit-criteria confirmation + the NAMED forward-residue

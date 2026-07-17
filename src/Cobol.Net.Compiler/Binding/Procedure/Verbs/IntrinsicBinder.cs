@@ -159,6 +159,22 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
                 + "equivalent arithmetic expression evaluated in the standard-decimal intermediate (§8.8.1.5), "
                 + "and this function's native IEEE-double evaluation cannot honor that equality");
 
+        // A.4.9 LOCALE MODULE — DOCUMENTED NON-SUPPORT (ratified decision 3; conformant per ISO §4.2.7 +
+        // Annex A §A.4.1: an implementation accepts an optional element's syntax ONLY when support is claimed).
+        // The five locale FUNCTIONS bind Unsupported → a bind-time reject BY NAME (never the renderer's loud
+        // backstop). STANDARD-COMPARE additionally rides §A.3 item 25 (the implementor need not accept the
+        // syntax absent an ISO/IEC 14651:2020 implementation) — it is ordering-table-, not locale-, dependent.
+        if (sig.Bind == IntrinsicBind.Unsupported)
+            return LocaleUnsupported($"FUNCTION {sig.Name}", alsoA3: sig.Name == "STANDARD-COMPARE");
+
+        // The LOCALE keyword variant of the otherwise-supported case/numeric functions — LOWER-CASE (§15.57),
+        // UPPER-CASE (§15.97), NUMVAL-C (§15.68), TEST-NUMVAL-C (§15.94): the LOCALE phrase itself is A.4.9
+        // (items 6/13/12; NUMVAL-C's LOCALE keyword is a spec Annex-A LIST OMISSION, disposed identically —
+        // §15.94.3 r1 imports every §15.68.3 rule, and the phrase is inoperable without the A.4.9 SPECIAL-NAMES
+        // LOCALE machinery). The function WITHOUT a LOCALE phrase binds exactly as before (zero regression).
+        if (sig.Name is "LOWER-CASE" or "UPPER-CASE" or "NUMVAL-C" or "TEST-NUMVAL-C" && HasLocalePhrase(argCtxs))
+            return LocaleUnsupported($"the LOCALE phrase of FUNCTION {sig.Name}");
+
         // TRIM (§15.96) — the one §15 function whose argument list carries a phrase keyword (LEADING/TRAILING);
         // its bespoke shape is bound apart from the generic comma/space-split argument path.
         if (sig.Name == "TRIM") return BindTrim(sig, argCtxs);
@@ -540,6 +556,35 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error("COBOLNET1515", "FUNCTION MODULE-NAME NESTED shall be specified only within a "
                 + "nested program (ISO §15.65.3 argument rule 1) — this compilation unit is not contained");
         return new BoundIntrinsicCall(sig, [], PicCategory.Alphanumeric) { ModuleNameKind = kind };
+    }
+
+    /// <summary>The ONE A.4.9 locale-module documented-non-support diagnostic (ratified decision 3; conformant
+    /// per ISO §4.2.7 + Annex A §A.4.1 — an implementation accepts an optional element's syntax only when
+    /// support is claimed). Shared by the five locale FUNCTIONS (<c>Bind == Unsupported</c>) and by the LOCALE
+    /// phrase of the otherwise-supported LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C. <paramref name="element"/>
+    /// names the specific element; <paramref name="alsoA3"/> adds the §A.3 item 25 citation (STANDARD-COMPARE,
+    /// which is ISO/IEC 14651:2020-ordering-dependent, not locale-dependent).</summary>
+    private BoundExpr LocaleUnsupported(string element, bool alsoA3 = false)
+    {
+        string extra = alsoA3 ? " and §A.3 item 25 (dependent on an ISO/IEC 14651:2020 implementation)" : "";
+        ctx.Edition.Error("COBOLNET1518", $"{element} is in the optional locale module (ISO/IEC 1989:2023 "
+            + $"Annex A §A.4.9{extra}), which COBOL.NET does not support — documented non-support, conformant "
+            + "per ISO §4.2.7 / §A.4.1. Use a supported alternative (e.g. STANDARD-1/STANDARD-2 collating, "
+            + "FORMATTED-DATE/-TIME, or NUMVAL-C without the LOCALE phrase).");
+        return new BoundExprError($"{element} (A.4.9 locale, not supported)");
+    }
+
+    /// <summary>Detect an A.4.9 <c>LOCALE</c> phrase in a function's argument list — the keyword appears as a
+    /// bare-word argument (via <see cref="KeywordWordOf"/>) at argument position 2 or later (never argument-1,
+    /// the operand): <c>LOWER-CASE(arg-1 LOCALE locale-name-1)</c> (§15.57.2), <c>NUMVAL-C(arg-1 LOCALE
+    /// [locale-name-1])</c> (§15.68.2). LOCALE is not a reserved word, so the phrase parses as extra space- or
+    /// comma-separated arguments; the argument-1 exclusion avoids a false positive on a data item happening to
+    /// be named LOCALE.</summary>
+    private static bool HasLocalePhrase(IReadOnlyList<Core.FunctionArgumentContext> argCtxs)
+    {
+        for (int i = 1; i < argCtxs.Count; i++)
+            if (KeywordWordOf(argCtxs[i]) == "LOCALE") return true;
+        return false;
     }
 
     /// <summary>NUMVAL-C / TEST-NUMVAL-C (§15.68 / §15.94) — argument-1, then EITHER the argument-2 currency
