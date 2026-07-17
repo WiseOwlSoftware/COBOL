@@ -806,6 +806,18 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The LOCAL-STORAGE SECTION (ISO §13.6 — automatic data) — a COBOL-2002 introduction. Fires on
+        /// RECOGNITION wherever the shared <c>dataDivision</c> rule carries it (programs, functions, AND methods
+        /// alike — a method occurrence below 2002 is already inside the gated class construct; the extra 0900 only
+        /// sharpens the report, the VisitUsingByValue posture). The §13.6.4 GR1 activation-state semantics
+        /// (automatic data — initial state on every activation, §14.6.2.3.2) stay bind/emit-time
+        /// (<c>DataBinder.LocalStorageRoots</c> + the P10 RECURSIVE-WS activation-state model).</summary>
+        public override object? VisitLocalStorageSection(CobolParserCore.LocalStorageSectionContext ctx)
+        {
+            _p.Check(Constructs.LocalStorageSection2002, "the LOCAL-STORAGE SECTION");
+            return base.VisitChildren(ctx);
+        }
+
         // ── Step 14g.5: the REPOSITORY OO-specifier gates ─────────────────────────────────────────────────────
         /// <summary>A REPOSITORY CLASS / INTERFACE / PROPERTY specifier (ISO §12.3.8, OO) — a COBOL-2002 introduction.
         /// Parse-arm (recognition): the entry is one <c>repositoryEntry</c> node, mirroring the binder's

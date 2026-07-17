@@ -27,6 +27,9 @@ public sealed class ProgramTable
         public bool Initial, Common, Recursive;
         public required Func<ICobolProgram?, ICobolProgram> Factory;   // parent instance → new instance
         public ICobolProgram? Instance;     // the cached (last-used) instance; null = initial state on next CALL
+        public Action? StaticReset;         // re-initializes a RECURSIVE unit's STATIC working-storage (§13.5.4 GR1
+                                            // static data lives on the CLASS, not the per-activation instance, so
+                                            // dropping Instance alone cannot realize §14.9.5 GR3 / §14.6.2.3.2 for it)
         public int Active;                  // activation depth (GR3f recursion check; GR5 cancel-active check)
         public List<Node> Children = [];    // contained programs, source order (GR4 cancels in REVERSE)
     }
@@ -49,20 +52,28 @@ public sealed class ProgramTable
         _owner.Modules.Reset();   // the FUNCTION MODULE-NAME call-name stack (§15.65)
     }
 
-    /// <summary>Register one program unit (emitted once per unit at run-unit start, containers before containees).</summary>
+    /// <summary>Register one program unit (emitted once per unit at run-unit start, containers before containees).
+    /// <paramref name="staticReset"/> — supplied ONLY by a RECURSIVE-and-not-INITIAL unit with working-storage —
+    /// re-initializes that unit's STATIC WS fields (§13.5.4 GR1: WS of a non-initial program / a function is
+    /// static data, ONE copy on the class): invoked here so §14.6.2.3.2 case 1 (initial state "the first time
+    /// the function … or program … is activated in a run unit") holds even when the same loaded module serves a
+    /// SECOND run unit in one process, and by <see cref="CancelNode"/> (§14.9.5 GR3 / §14.6.2.3.2 case 3).</summary>
     public void Register(
         string path, string name, string? parentPath,
         bool initial, bool common, bool recursive,
-        Func<ICobolProgram?, ICobolProgram> factory)
+        Func<ICobolProgram?, ICobolProgram> factory,
+        Action? staticReset = null)
     {
         var node = new Node
         {
             Path = path, Name = name, ParentPath = parentPath,
             Initial = initial, Common = common, Recursive = recursive, Factory = factory,
+            StaticReset = staticReset,
         };
         _byPath[path] = node;
         _order.Add(node);
         if (parentPath is not null && _byPath.TryGetValue(parentPath, out var parent)) parent.Children.Add(node);
+        staticReset?.Invoke();   // run-unit start = initial state for the unit's static data (§14.6.2.3.2 case 1)
     }
 
     /// <summary>Run the run unit's MAIN program (the first program of the compilation group).</summary>
@@ -118,8 +129,13 @@ public sealed class ProgramTable
         ICobolProgram inst;
         if (n.Initial || n.Recursive)
         {
-            // INITIAL: initial state on EVERY activation (§14.6.2.3.2) — a fresh instance IS the initial state.
-            // RECURSIVE: per-activation instance (deep-dive D3/D4).
+            // INITIAL: initial state on EVERY activation (§14.6.2.3.2) — a fresh instance IS the initial state
+            // (its WS is INITIAL data, §13.5.4 GR2, emitted as instance fields).
+            // RECURSIVE (incl. every FUNCTION, §8.6.6): per-activation instance (deep-dive D3/D4) — the instance
+            // carries the AUTOMATIC data (LOCAL-STORAGE, §13.6.4 GR1), the formal carriers, and the PERFORM
+            // control state (§14.6.2.2), each in initial state per activation; the unit's WORKING-STORAGE is
+            // STATIC data (§13.5.4 GR1) emitted as STATIC fields — ONE copy in last-used state (§14.6.2.3.3)
+            // shared across all concurrent and successive activations, untouched by this fresh instance.
             inst = n.Factory(ParentInstance(n));
             n.Instance = inst;   // contained-program factories reach their container through the registry
             if (n.Initial) CancelContained(n);   // contained programs re-initialize too (ISO §11.10.4 GR3)
@@ -212,6 +228,12 @@ public sealed class ProgramTable
         {
             inst.CloseFiles();   // GR9 — implicit CLOSE of every open internal file connector
             n.Instance = null;   // GR3 — the next CALL finds the initial state (GR8: the external store untouched)
+            // A RECURSIVE unit's WS is STATIC data on the class (§13.5.4 GR1) — dropping the instance does not
+            // touch it; the emitted __ResetStatics reassigns every static WS field/index cell to its initializer
+            // so the next CALL finds the §14.6.2.3.2 initial state (GR3; also case 2 — an INITIAL container's
+            // activation cascades here via CancelContained). EXTERNAL data stays untouched (GR8: it lives on
+            // the run unit's ExternalStore, never in these statics).
+            n.StaticReset?.Invoke();
         }
         // no instance → never called / already canceled → no-op (GR7)
     }

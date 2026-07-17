@@ -26,21 +26,67 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
             if (tbl.OccursSpec?.CapacityRegister is { } reg) EmitProfiles(reg, w);
         // Programs are instantiable classes (interprogram design D3): root + index fields are INSTANCE fields —
         // a fresh instance IS the §14.6.2.3.2 initial state; the registry's cached singleton IS last-used state.
+        // EXCEPT the static channel (StaticRootFields/StaticIndexCells): a RECURSIVE unit's WS is STATIC data
+        // (ISO §13.5.4 GR1) — ONE copy in last-used state across all activations (§14.6.2.3.3) — while its
+        // fresh-per-activation instance carries the automatic data (LOCAL-STORAGE, §13.6.4 GR1) and formals.
         // The suppression filter skips members another mechanism provides: a carrier-resident LINKAGE formal
         // (its field is `__lnkpN.Value` — caller storage, ISO §13.7.1) and an inherited GLOBAL table's index
         // field (a ref-bridge to the container, §13.18.27 GR2).
         foreach (var (name, field) in ctx.Data.IndexFields)
             if (!ctx.Data.CallSuppressedRootFields.Contains(field))
-                w.Line($"private long {field} = 1;   // INDEX-NAME {name}");
+                // A RECURSIVE unit's WS table cell rides its table's static storage (RouteStaticUnitStorage —
+                // a last-used table with per-activation indexes would silently lose SET positions).
+                w.Line($"private {(ctx.Data.StaticIndexCells.Contains(field) ? "static " : "")}long {field} = 1;   // INDEX-NAME {name}");
         // A method WORKING-STORAGE table's index cell is a class STATIC (persistent across activations, §11.7;
         // M2-OO-1h step 4). LOCAL/LINKAGE table cells are per-activation method locals, emitted in OoEmitMethod.
-        foreach (var cell in ctx.Data.OoStaticIndexCells)
-            w.Line($"private static long {cell} = 1;   // method-WS INDEX-NAME cell (M2-OO-1h)");
+        // (A method cell never appears in IndexFields — the loop above — so only the method channel emits here.)
+        var unitCells = new HashSet<string>(ctx.Data.IndexFields.Values, StringComparer.Ordinal);
+        foreach (var cell in ctx.Data.StaticIndexCells)
+            if (!unitCells.Contains(cell))
+                w.Line($"private static long {cell} = 1;   // method-WS INDEX-NAME cell (M2-OO-1h)");
         foreach (var f in phys.RootPhysicals())
             if (!ctx.Data.CallSuppressedRootFields.Contains(f.Name))
-                // A method-WS root is a STATIC field (OO deep-dive D3 — one copy per class, shared across
-                // instances, persistent across activations, ISO §11.7; pre-2023 editions only, §13.5.3 SR 1).
-                w.Line($"private {(ctx.Data.OoStaticRootFields.Contains(f.Name) ? "static " : "")}{f.Type} {f.Name} = {f.Init};   // {f.Comment}");
+                // A static-channel root is a STATIC field: method WS (OO deep-dive D3 — one copy per class,
+                // shared across instances, persistent across activations, ISO §11.7; pre-2023 editions only,
+                // §13.5.3 SR 1) or a RECURSIVE unit's WS (§13.5.4 GR1 — see RouteStaticUnitStorage).
+                w.Line($"private {(ctx.Data.StaticRootFields.Contains(f.Name) ? "static " : "")}{f.Type} {f.Name} = {f.Init};   // {f.Comment}");
+        if (ctx.Data.UnitStaticWs) EmitStaticReset(w);
+    }
+
+    /// <summary>Emit a RECURSIVE unit's <c>__ResetStatics</c> — the §14.6.2.3.2 initial-state action for the
+    /// unit's STATIC working-storage (registered with the run-unit ProgramTable): reassigns every static WS
+    /// root field / Tier-B backing to the SAME composed initializer its declaration carries (the ONE
+    /// ValueInitializer channel — §13.18.63 VALUE semantics identical to first-load), and every static WS
+    /// index cell to 1. Invoked by the runtime at run-unit start (§14.6.2.3.2 case 1 — robust to a re-run of
+    /// the same loaded module), after CANCEL (case 3 / §14.9.5 GR3), and via an INITIAL container's implicit
+    /// cancel cascade (case 2). EXTERNAL records never enter the static channel (they are run-unit
+    /// ExternalStore cells, untouched per §14.9.5 GR8). Emitted only when static WS storage EXISTS, so every
+    /// other unit's generated source is byte-identical.</summary>
+    private void EmitStaticReset(CodeWriter w)
+    {
+        // The emission condition MUST mirror the registration condition (ProgramEmitter passes
+        // `{ClassRef}.__ResetStatics` iff UnitStaticWs && StaticRootFields.Count > 0) — a divergence would
+        // reference an unemitted member in generated code (CS0103).
+        if (ctx.Data.StaticRootFields.Count == 0) return;
+        var stmts = new List<string>();
+        foreach (var root in ctx.Data.WorkingStorageRoots)
+        {
+            if (root.Class is { Tier: RedefinesTier.StringCanonical } cls)
+            {
+                // The class's ONE string backing is the storage; members are windows. Reset once, at the canonical.
+                if (ReferenceEquals(cls.Canonical, root) && ctx.Data.StaticRootFields.Contains(cls.BackingCsName))
+                    stmts.Add($"{cls.BackingCsName} = {RuntimeApi.StrStore(codec.ImageInitOf(root), $"{cls.Width}")};   // {root.CobolName ?? "FILLER"} (Tier-B backing)");
+            }
+            else if (!(root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical)   // a Tier-A view has no field
+                && ctx.Data.StaticRootFields.Contains(root.CsName))
+                stmts.Add($"{root.CsName} = {vals.FieldInit(root)};   // {root.CobolName ?? "FILLER"}");
+            foreach (var idx in DataBinder.IndexNamesUnder(root))
+                if (ctx.Data.IndexFields.TryGetValue(idx, out var cell) && ctx.Data.StaticIndexCells.Contains(cell))
+                    stmts.Add($"{cell} = 1;   // INDEX-NAME {idx}");
+        }
+        w.Line();
+        using (w.Block("internal static void __ResetStatics()   // static WS → initial state (ISO §14.6.2.3.2; §14.9.5 GR3)"))
+            foreach (var s in stmts) w.Line(s);
     }
 
     /// <summary>The C# (type, initializer) pair for declaring one root as a METHOD LOCAL (the OO slice-2

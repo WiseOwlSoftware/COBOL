@@ -78,6 +78,7 @@
     "program_pointer",
     "pointer_arith",
     "pointer_data",
+    "recursive_ws",
     "repository_paragraph",
     "sort_table_format2",
     "table_value_occurs",

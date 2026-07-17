@@ -52,11 +52,15 @@ public sealed partial class DataBinder
     /// an item whose 01/77 root is NOT in this set, in a class unit, is object data.</summary>
     public HashSet<DataItem> OoMethodScopedRoots { get; } = [];
 
-    /// <summary>Method WORKING-STORAGE roots (D3: STATIC fields — one copy per class, shared across instances,
-    /// persistent across activations). Consumed by <see cref="CodeGen.Emit.FieldEmitter"/> to emit the root
-    /// field with the <c>static</c> modifier. (READ-ONLY view — P6 Step 5.)</summary>
-    public IReadOnlySet<string> OoStaticRootFields => _ooStaticRootFields;
-    private readonly HashSet<string> _ooStaticRootFields = new(StringComparer.Ordinal);
+    /// <summary>The STATIC-field channel: every emitted root field name whose storage is ONE per-class copy —
+    /// consumed by <c>RecordStructEmitter</c> to add the <c>static</c> modifier. TWO producers, one mechanism
+    /// (the singular-pattern rule): (a) method WORKING-STORAGE roots (D3 — one copy per class, shared across
+    /// instances, persistent across activations, ISO §11.7); (b) a RECURSIVE-and-not-INITIAL unit's (incl.
+    /// every FUNCTION's, §8.6.6) WORKING-STORAGE roots + Tier-B backings (<see cref="RouteStaticUnitStorage"/>
+    /// — §13.5.4 GR1 static data, ONE last-used copy across all activations, §14.6.2.3.3).
+    /// (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlySet<string> StaticRootFields => _staticRootFields;
+    private readonly HashSet<string> _staticRootFields = new(StringComparer.Ordinal);
 
     /// <summary>Method root (01/77) → its owning method symbol (M2-OO-1h). The post-build passes (OdoResolve,
     /// ResolveRedefines) run AFTER <see cref="OoScopeSubtree"/> has moved method names out of the global maps, and
@@ -64,12 +68,15 @@ public sealed partial class DataBinder
     /// target through its OWNING method's scope (§11.7.4 GR5), keyed off the item's root, never the class globals.</summary>
     internal Dictionary<DataItem, OoMethodSymbol> OoRootOwner { get; } = new(ReferenceEqualityComparer.Instance);
 
-    /// <summary>Method index cells (M2-OO-1h step 4) whose table is method WORKING-STORAGE — emitted as class-level
-    /// STATIC <c>long</c> fields (persistent across activations, §11.7). A LOCAL/LINKAGE table's cell is instead a
-    /// per-activation method local (emitted in <c>OoEmitMethod</c>) and never appears here. (READ-ONLY view —
-    /// P6 Step 5.)</summary>
-    public IReadOnlySet<string> OoStaticIndexCells => _ooStaticIndexCells;
-    private readonly HashSet<string> _ooStaticIndexCells = new(StringComparer.Ordinal);
+    /// <summary>The STATIC index-cell channel — INDEXED BY cells emitted as class-level STATIC <c>long</c>
+    /// fields because their table's storage is static. TWO producers, one mechanism: (a) method-WS table cells
+    /// (M2-OO-1h step 4 — persistent across activations, §11.7; a method LOCAL/LINKAGE table's cell is instead
+    /// a per-activation method local, emitted in <c>OoEmitMethod</c>, and never appears here); (b) a RECURSIVE
+    /// unit's WS table cells (<see cref="RouteStaticUnitStorage"/> — the cell rides its table's §13.5.4 GR1
+    /// static storage; these DO also appear in <see cref="IndexFields"/>, so the emitter's instance-cell loop
+    /// consults this set for the modifier). (READ-ONLY view — P6 Step 5.)</summary>
+    public IReadOnlySet<string> StaticIndexCells => _staticIndexCells;
+    private readonly HashSet<string> _staticIndexCells = new(StringComparer.Ordinal);
 
     /// <summary>Every INDEX-NAME declared under a root (its subtree's <c>INDEXED BY</c> names).</summary>
     internal static IEnumerable<string> IndexNamesUnder(DataItem root)
@@ -183,7 +190,7 @@ public sealed partial class DataBinder
                             + "recognized but not yet implemented (Phase 3, OO port)");
                 var roots = BindEntries(ws.dataDescriptionEntry(), _rootNames);
                 m.Binding!.StaticRoots.AddRange(roots);
-                foreach (var r in roots) _ooStaticRootFields.Add(r.CsName);
+                foreach (var r in roots) _staticRootFields.Add(r.CsName);
             }
             if (dd.localStorageSection() is { } ls)
             {
@@ -211,7 +218,7 @@ public sealed partial class DataBinder
         // cell is a per-activation method local (emitted in OoEmitMethod).
         foreach (var root in m.Binding!.StaticRoots)
             foreach (var idx in IndexNamesUnder(root))
-                if (m.DataScope.IndexFields.TryGetValue(idx, out var cell)) _ooStaticIndexCells.Add(cell);
+                if (m.DataScope.IndexFields.TryGetValue(idx, out var cell)) _staticIndexCells.Add(cell);
         // LINKAGE + LOCAL-STORAGE roots are C# LOCALS of the emitted method (their struct types and numeric
         // profiles still emit at class level) — never instance fields. Method-WS roots DO emit (as statics).
         foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
@@ -562,7 +569,7 @@ public sealed partial class DataBinder
     }
 
     /// <summary>Route a method-scoped Tier-B REDEFINES class's ONE string backing to the right storage (M2-OO-1h
-    /// step 3): a method-WS canonical → STATIC (<see cref="OoStaticRootFields"/>, matching the static root); a
+    /// step 3): a method-WS canonical → STATIC (<see cref="StaticRootFields"/>, matching the static root); a
     /// method LOCAL/LINKAGE canonical → a method LOCAL (suppressed from the class-level field loop via
     /// <see cref="CallSuppressedRootFields"/>, emitted in <c>OoEmitMethod</c>). Runs after
     /// <c>ClassifyRedefinesClasses</c>. A subordinate (02) canonical rides its root's composed initializer and
@@ -573,7 +580,7 @@ public sealed partial class DataBinder
             if (root.Class is { Tier: RedefinesTier.StringCanonical } cls && ReferenceEquals(cls.Canonical, root)
                 && OoRootOwner.TryGetValue(root, out var m))
             {
-                if (m.Binding!.StaticRoots.Contains(root)) _ooStaticRootFields.Add(cls.BackingCsName);   // method-WS → static
+                if (m.Binding!.StaticRoots.Contains(root)) _staticRootFields.Add(cls.BackingCsName);   // method-WS → static
                 else _callSuppressedRootFields.Add(cls.BackingCsName);   // LOCAL/LINKAGE → emitted as a method local
             }
     }

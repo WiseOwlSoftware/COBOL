@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using CobolNet.Binding.Bound;
+using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Passes;
 using CobolNet.Common;
@@ -225,6 +226,21 @@ internal sealed class BinderDriver
     private static void BindUnitData(BoundUnit unit, BindSession session)
     {
         var edition = session.Edition;
+        // The static-WS discriminator (ISO §13.5.4 GR1 + §14.6.2.3.2/.3; the full derivation is on
+        // DataBinder.UnitStaticWs): a RECURSIVE-and-not-INITIAL unit — including every FUNCTION-ID unit
+        // (§8.6.6 :8821 / §9.4 :12529, the implicit attribute set in MakeUnit) — owns ONE last-used WS copy
+        // shared across activations, so its WS roots emit STATIC. Scoped to units WITHOUT contained programs:
+        // a containee's GLOBAL/__outer ref-bridges alias the CONTAINER INSTANCE's fields (§13.18.27 GR2), and
+        // C# forbids `instance.staticField` — the composition is staged LOUD below, never half-wired (§1.4).
+        // (A FUNCTION cannot contain programs, so every UDF takes the static leg.)
+        bool staticWs = unit.Recursive && !unit.Initial && unit.Children.Count == 0;
+        if (unit.Recursive && !unit.Initial && unit.Children.Count > 0
+            && unit.Ctx.dataDivision()?.workingStorageSection() is not null)
+            edition.Error(DiagnosticCatalog.RecursiveContainedWs,
+                $"program '{unit.Name}': a RECURSIVE program that directly contains programs and declares "
+                + "WORKING-STORAGE is recognized but not yet implemented — the shared-static WS model "
+                + "(ISO §13.5.4 GR1 / §14.6.2.3.3) does not yet compose with contained-program GLOBAL "
+                + "bridges (§13.18.27 GR2)");
         var data = new DataBinder(edition)
         {
             OoClasses = session.OoClasses,
@@ -232,6 +248,7 @@ internal sealed class BinderDriver
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,
             UnitIsFunction = unit.IsFunction,
+            UnitStaticWs = staticWs,
         };
         data.CallSeedUids(session.TakeUidBand());
 

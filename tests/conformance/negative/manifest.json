@@ -61,6 +61,7 @@
     "property_below_2002",
     "raising_below_2002",
     "read-auto-with-lock",
+    "recursive-contained-ws",
     "remarks-paragraph",
     "rerun",
     "retry_below_2002",

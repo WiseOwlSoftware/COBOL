@@ -47,6 +47,10 @@ internal static class BindPipeline
         new BindPass("ResolveReports", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.ResolveReports()),
         new BindPass("CallBindExternalAndGlobal", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.CallBindExternalAndGlobal(program)),
         new BindPass("PtrBindBasedAndAddressables", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.PtrBindBasedAndAddressables(program)),
+        // A RECURSIVE unit's WS → the static-field channel (§13.5.4 GR1 / §14.6.2.3.3; no-op unless the binder's
+        // UnitStaticWs). AFTER the pointer pass — the last tier-overwrite seam — so Tier-B backings, EXTERNAL
+        // re-basing, and BASED/ADDRESS-OF forcing are settled facts when the roots route.
+        new BindPass("RouteStaticUnitStorage", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.RouteStaticUnitStorage()),
         new BindPass("MarkFileRecordImageLeaves", PassPhase.FilesResolved, PassPhase.FilesResolved, d => d.MarkFileRecordImageLeaves()),
     };
 

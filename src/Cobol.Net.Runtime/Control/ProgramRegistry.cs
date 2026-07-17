@@ -53,8 +53,9 @@ public static class ProgramRegistry
     public static void Register(
         string path, string name, string? parentPath,
         bool initial, bool common, bool recursive,
-        Func<ICobolProgram?, ICobolProgram> factory)
-        => RunUnit.Current.Programs.Register(path, name, parentPath, initial, common, recursive, factory);
+        Func<ICobolProgram?, ICobolProgram> factory,
+        Action? staticReset = null)
+        => RunUnit.Current.Programs.Register(path, name, parentPath, initial, common, recursive, factory, staticReset);
 
     /// <inheritdoc cref="ProgramTable.RunMain"/>
     public static void RunMain(string path) => RunUnit.Current.Programs.RunMain(path);

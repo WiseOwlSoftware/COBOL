@@ -302,6 +302,18 @@ public static class DiagnosticCatalog
         NotImplemented, "external-record-not-cell-backed", EditionSeverity.Error,
         "An EXTERNAL record cannot be cell-backed (a restriction of the current EXTERNAL model).",
         "ISO §13.18.24", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor RecursiveContainedWs = new(
+        NotImplemented, "recursive-contained-working-storage", EditionSeverity.Error,
+        "A RECURSIVE program that directly contains programs and declares WORKING-STORAGE is recognized but "
+        + "not yet implemented — the shared-static WS model (one last-used copy across activations) does not "
+        + "yet compose with contained-program GLOBAL/__outer bridges.",
+        "ISO §13.5.4 GR1 / §14.6.2.3.3 / §13.18.27 GR2", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor RecursiveWsPointerBacked = new(
+        NotImplemented, "recursive-working-storage-pointer-backed", EditionSeverity.Error,
+        "BASED data or an ADDRESS-OF-taken record in the WORKING-STORAGE of a RECURSIVE program or function "
+        + "is recognized but its static cell/bridge storage is not yet implemented (the cell and the implicit "
+        + "data-address pointer are per-instance today, which would re-initialize per activation).",
+        "ISO §13.5.4 GR1 / §14.6.2.3.2 #5", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor DebugRegisterFacility = new(
         NotImplemented, "debug-register-facility", EditionSeverity.Error,
         "The X3.23-1985 debug facility (DEBUG-ITEM registers, debugging-section invocation) is not implemented.",

@@ -273,6 +273,31 @@ internal sealed class ProgramEmitter
     {
         using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
         {
+            // LOCAL-STORAGE is AUTOMATIC data (ISO §13.6.4 GR1): "placed in the initial state every time the
+            // … program … is activated" (§14.6.2.3.2) — for an INITIAL or RECURSIVE unit the fresh instance
+            // per activation already IS that state, but a cached-singleton unit (neither attribute) re-enters
+            // the SAME instance, so its LS roots re-initialize HERE, at every CALL activation entry, through
+            // the SAME composed initializers the field declarations carry (the ONE ValueInitializer channel —
+            // §13.18.63 VALUE semantics; the OoEmitMethod LS-local pattern, program-class edition). An LS
+            // table's INDEXED BY cell resets with its table. Emitted only when an LS section EXISTS.
+            if (!unit.Initial && !unit.Recursive && unit.Data.LocalStorageRoots.Count > 0)
+            {
+                var fields = new DataEmitter(Current.Ctx);
+                foreach (var root in unit.Data.LocalStorageRoots)
+                {
+                    if (unit.Data.CallSuppressedRootFields.Contains(root.CsName)) continue;
+                    if (root.Class is { Tier: RedefinesTier.Alias } && !root.IsCanonical) continue;   // Tier-A view — no field
+                    if (fields.MethodRedefinesBackingDecl(root) is { } bkl)   // Tier-B canonical → the ONE string backing
+                        w.Line($"{bkl.Name} = {bkl.Init};   // LOCAL-STORAGE {root.CobolName} (Tier-B backing) — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
+                    else if (root.Class is { Tier: RedefinesTier.StringCanonical })
+                        continue;   // a non-canonical Tier-B member — a window over the backing, no field
+                    else
+                        w.Line($"{root.CsName} = {fields.RootDecl(root).Init};   // LOCAL-STORAGE {root.CobolName ?? "FILLER"} — initial state each activation (§13.6.4 GR1 / §14.6.2.3.2)");
+                    foreach (var idx in DataBinder.IndexNamesUnder(root))
+                        if (unit.Data.IndexFields.TryGetValue(idx, out var cell) && !unit.Data.CallSuppressedRootFields.Contains(cell))
+                            w.Line($"{cell} = 1;   // INDEX-NAME {idx} (LOCAL-STORAGE table cell)");
+                }
+            }
             foreach (var (f, place, isNum) in formals)
             {
                 if (f.CarrierResident)
@@ -350,8 +375,13 @@ internal sealed class ProgramEmitter
                 string factory = u.Parent is { } pp
                     ? $"static __o => new {u.ClassRef}(({pp.ClassRef})__o!)"
                     : $"static __o => new {u.ClassRef}()";
+                // A RECURSIVE unit with static WS registers its __ResetStatics — the runtime's §14.6.2.3.2
+                // initial-state hook (run-unit start / CANCEL / INITIAL-container cascade). The optional
+                // argument is OMITTED for every other unit, keeping their registration lines byte-identical.
+                string reset = u.Data.UnitStaticWs && u.Data.StaticRootFields.Count > 0
+                    ? $", {u.ClassRef}.__ResetStatics" : "";
                 w.Line($"ProgramRegistry.Register({CsLiteral(u.Path)}, {CsLiteral(u.Name)}, {parentPath}, "
-                    + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory});");
+                    + $"{CallEmitter.CallBool(u.Initial)}, {CallEmitter.CallBool(u.Common)}, {CallEmitter.CallBool(u.Recursive)}, {factory}{reset});");
             }
         w.Line();
         // The run-unit main is the first top-level PROGRAM unit (§8.3.1). A prototype precedes every other unit

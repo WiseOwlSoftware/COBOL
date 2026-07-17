@@ -46,6 +46,41 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     public IReadOnlyList<DataItem> Roots => _roots;
     private readonly List<DataItem> _roots = [];
 
+    /// <summary>True when this binder binds a RECURSIVE-and-not-INITIAL PROGRAM unit or a FUNCTION unit
+    /// (functions "are always recursive", ISO §8.6.6 :8821 / §9.4 :12529) that has NO contained programs — the
+    /// unit whose WORKING-STORAGE emits STATIC (set once by <c>BinderDriver.BindUnitData</c>, init-only).
+    /// <para><b>The §-derivation this flag realizes</b> (storage class × unit kind → copy semantics):
+    /// §13.5.4 GR1 — WS of "a program that does not have the initial attribute, a function, a factory, or an
+    /// object" is STATIC data; §14.6.2.3.3 — "Static and external data are the only data that are in the
+    /// last-used state", so a recursive unit's WS is ONE copy shared across ALL concurrent and successive
+    /// activations, placed in initial state only per the §14.6.2.3.2 triggers (first activation in the run
+    /// unit; first activation after an activation of an INITIAL container; first activation after CANCEL).
+    /// §13.6.4 GR1 — LOCAL-STORAGE is AUTOMATIC data → §14.6.2.3.2 "Automatic data and initial data is placed
+    /// in the initial state every time the … program … is activated" (a separate copy per activation).
+    /// LINKAGE formals are the activator's storage (§13.7.1), per-activation by construction; EXTERNAL data is
+    /// run-unit storage on the ExternalStore (§8.6.7, last-used per §14.6.2.3.3), never per-class static.
+    /// An INITIAL program's WS is INITIAL data (§13.5.4 GR2) → per-activation initial state, so the flag keys
+    /// on Recursive AND NOT Initial (the two attributes are mutually exclusive anyway, §11.10.3 SR5–6).
+    /// A NON-recursive NON-initial program's WS is equally static data, but such a program can never be
+    /// concurrently active (§8.6.6 :8823) — the registry's cached singleton instance realizes its last-used
+    /// state without statics, byte-identically to the pre-slice emission.</para></summary>
+    public bool UnitStaticWs { get; init; }
+
+    /// <summary>The unit's WORKING-STORAGE SECTION roots, in source order — the subset of <see cref="Roots"/>
+    /// whose storage class is decided by §13.5.4 (static/initial data), captured at bind so the static-WS
+    /// routing (<see cref="RouteStaticUnitStorage"/>) and the emitter's <c>__ResetStatics</c> never guess from
+    /// the mixed forest (FILE records and compiler temps share <see cref="Roots"/>).</summary>
+    public IReadOnlyList<DataItem> WorkingStorageRoots => _workingStorageRoots;
+    private readonly List<DataItem> _workingStorageRoots = [];
+
+    /// <summary>The unit's LOCAL-STORAGE SECTION roots, in source order (ISO §13.6 — automatic data,
+    /// §13.6.4 GR1). Emitted as ordinary INSTANCE fields: for an INITIAL or RECURSIVE unit the fresh instance
+    /// per activation IS the §14.6.2.3.2 per-activation initial state; for a cached-singleton unit the emitted
+    /// <c>Call</c> entry re-initializes them (ProgramEmitter) — automatic data is in initial state on EVERY
+    /// activation regardless of the unit's attributes.</summary>
+    public IReadOnlyList<DataItem> LocalStorageRoots => _localStorageRoots;
+    private readonly List<DataItem> _localStorageRoots = [];
+
     /// <summary>
     /// Every named item, keyed by COBOL name (case-insensitive) → the list of items with that name. COBOL permits
     /// duplicate data-names disambiguated only by qualification (OF/IN), so this is a MULTIMAP — a single-valued
@@ -255,7 +290,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
-            BindEntries(ws.dataDescriptionEntry(), _rootNames);
+            _workingStorageRoots.AddRange(BindEntries(ws.dataDescriptionEntry(), _rootNames));
+
+        // LOCAL-STORAGE SECTION (ISO §13.6 — automatic data, legal in a program or function definition per
+        // §13.6.3 SR1; the method leg binds in OoBindMethodData): the SAME BindEntries path as WS, so VALUE
+        // clauses, CONSTANT entries (§13.10 — WS/LS-legal), REDEFINES classes, and INDEXED BY cells all bind
+        // identically; only the ACTIVATION-STATE model differs (§13.6.4 GR1 automatic → §14.6.2.3.2 initial
+        // state on every activation — realized at emit, see LocalStorageRoots).
+        if (program.dataDivision()?.localStorageSection() is { } ls)
+            _localStorageRoots.AddRange(BindEntries(ls.dataDescriptionEntry(), _rootNames, EntrySection.LocalStorage));
 
         // LINKAGE SECTION roots + the PROCEDURE DIVISION header's USING/RETURNING formals (ISO §13.7 / §14.2.2;
         // COBOLNET_INTERPROGRAM_DESIGN D1/D3 — bound into the same forest so every verb works unchanged).
@@ -356,6 +399,53 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (child.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display })
                     MarkImageForced(child);      // the collected image fact (same rule as the whole-group union, §14.9 MOVE GR4)
             }
+        }
+    }
+
+    /// <summary>Route a RECURSIVE unit's WORKING-STORAGE onto the ONE static-field channel (the mechanism the
+    /// method-WS D3 pattern established — <see cref="StaticRootFields"/> / <see cref="StaticIndexCells"/>,
+    /// consumed by <c>RecordStructEmitter</c>): a no-op unless <see cref="UnitStaticWs"/>. ISO basis on the
+    /// flag's doc — §13.5.4 GR1 (a non-initial program's / a function's WS is STATIC data) + §14.6.2.3.3 (static
+    /// data is in LAST-USED state: one copy shared across all activations), while the per-activation instance
+    /// keeps carrying the §13.6.4 GR1 automatic data and the formals. Runs AFTER the pointer pass (the last
+    /// tier-overwrite seam) so Tier-B backings, EXTERNAL re-basing, and BASED/ADDRESS-OF forcing are settled:
+    /// <list type="bullet">
+    /// <item>a Tier-B StringCanonical WS root → its ONE string backing goes static (the OO
+    ///   <see cref="OoRouteMethodRedefinesBackings"/> twin), plus the root's own name (harmless when the
+    ///   physical is the backing — membership is tested per emitted field name);</item>
+    /// <item>an EXTERNAL WS record stays OFF the channel — it is run-unit storage on the ExternalStore
+    ///   (§8.6.7; §14.6.2.3.3 external data is ALWAYS last-used), reached through a ref-bridge, never a
+    ///   per-class static;</item>
+    /// <item>a WS table's INDEXED BY cell goes static with its table (the M2-OO-1h step-4 mirror — a
+    ///   last-used table with per-activation indexes would silently lose SET positions);</item>
+    /// <item>a BASED WS root / an ADDRESS-OF-taken WS record stages LOUD (0899) — their cell/bridge storage
+    ///   is per-instance (<see cref="PtrAddressableBackings"/>/<see cref="PtrBasedBridges"/> emit instance
+    ///   members), and §14.6.2.3.2 #5 makes a based item's address part of the unit's static state; a silent
+    ///   instance-resident cell would re-initialize per activation (§1.4 — never silent-wrong).</item>
+    /// </list></summary>
+    internal void RouteStaticUnitStorage()
+    {
+        if (!UnitStaticWs) return;
+        foreach (var root in _workingStorageRoots)
+        {
+            if (root.Class is { Tier: RedefinesTier.StringCanonical } cls
+                && CallExternalBackings.Any(b => b.BackingCsName == cls.BackingCsName))
+                continue;   // an EXTERNAL-backed class (canonical AND views) — run-unit cell storage (§14.6.2.3.3), not a class static
+            if (root.IsBased || root.Class is { } c
+                && (c.BasedPointerField is not null || PtrAddressableCellOf.ContainsKey(c)))
+            {
+                Edition.Error(DiagnosticCatalog.RecursiveWsPointerBacked,
+                    $"'{root.CobolName ?? "FILLER"}': BASED data or an ADDRESS-OF-taken record in the "
+                    + "WORKING-STORAGE of a RECURSIVE program or function is recognized but its static "
+                    + "cell/bridge storage is not yet implemented (ISO §13.5.4 GR1 / §14.6.2.3.2 #5)");
+                continue;
+            }
+            if (root.Class is { Tier: RedefinesTier.StringCanonical } c2 && ReferenceEquals(c2.Canonical, root))
+                _staticRootFields.Add(c2.BackingCsName);   // Tier-B: the ONE string backing IS the storage
+            _staticRootFields.Add(root.CsName);
+            foreach (var idx in IndexNamesUnder(root))
+                if (_indexFields.TryGetValue(idx, out var cell))
+                    _staticIndexCells.Add(cell);
         }
     }
 

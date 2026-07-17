@@ -114,6 +114,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         // P10 Step 7: USAGE PROGRAM-POINTER (§13.18.60 GR24 — SET TO ENTRY / CALL-through-pointer /
         // relations on the ProgramPointer carrier) — never landed in legacy.
         ("2002", "program_pointer"),
+        // P10 RECURSIVE-WS slice: the §13.5.4 GR1 / §14.6.2.3.2/.3 activation-state model (a RECURSIVE
+        // unit's WS = ONE static last-used copy; LOCAL-STORAGE = per-activation initial state; CANCEL
+        // resets the statics per §14.9.5 GR3) — the legacy byte engine re-initializes a recursive unit's
+        // WS per activation and never bound program-level LOCAL-STORAGE; greenfield-only coverage.
+        ("2002", "recursive_ws"),
         ("2002", "oo_interface"),
         ("2002", "oo_interface_conformance"),
         ("2002", "oo_class_env"),   // class-level env + object-own env both bind (DEVLOG-738 fix) — OBJECT-paragraph env never landed in legacy   // the §4.2.2 interface conformance leg (P9 Step 12) — interfaces never landed in legacy

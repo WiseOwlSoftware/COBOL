@@ -844,6 +844,19 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PHBV.\nDATA DIVISION.\nLINKAGE SECTION.\n01 LV PIC 9(4).\nPROCEDURE DIVISION USING BY VALUE LV.\nMAIN.\n    STOP RUN.\n"
     },
     {
+      "id": "local-storage-section-2002",
+      "status": "active",
+      "description": "The LOCAL-STORAGE SECTION (automatic data), ISO §13.6 - introduced 2002. ACTIVE as of the P10 RECURSIVE-WS slice: a program/function LOCAL-STORAGE SECTION binds through the ONE BindEntries path (EntrySection.LocalStorage; the method leg bound already via OoBindMethodData) and realizes §13.6.4 GR1 automatic data / §14.6.2.3.2 initial state on EVERY activation - a fresh instance per activation for INITIAL/RECURSIVE units, an emitted Call-entry re-initialization for cached-singleton units. The introduction gate fires on recognition in the VersionConformancePass parse arm (VisitLocalStorageSection).",
+      "display": "the LOCAL-STORAGE SECTION",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.6 / §13.6.4 GR1 / §14.6.2.3.2; parse-arm gate (VisitLocalStorageSection)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "M2 data-division surface (P10 RECURSIVE-WS slice - program/function LOCAL-STORAGE)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. LSS1.\nDATA DIVISION.\nLOCAL-STORAGE SECTION.\n01 LV PIC 9(4) VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY LV.\n    STOP RUN.\n"
+    },
+    {
       "id": "class-definition-2002",
       "status": "active",
       "description": "A class definition (CLASS-ID compilation unit), ISO 11.2/11.3 - introduced 2002 (OO). Grammar-gated in compilationGroup; below 2002 the W1.5 parse-layer mapping names the edition (0900); LIVE since the Phase-3 spine part 2 (the ClassUnit collection + pass-1 class symbol table, DEVLOG 601): a class-only unit compiles at 2002+ to a real C# class rooted at CobolObject.",
