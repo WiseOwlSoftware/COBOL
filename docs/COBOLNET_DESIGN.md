@@ -821,8 +821,9 @@ compile-time-fold | runtime-method}. §15.2's six types ARE the return-type colu
   `double`**;
 - **exact numeric (SUM, MEAN, MEDIAN, MAX/MIN-numeric, MOD, REM, INTEGER, INTEGER-PART, FRACTION-PART, ABS, SIGN,
   NUMVAL, NUMVAL-C, NUMVAL-F) → `CobolInt`** (so it flows straight into `TryStore` with the receiver's ROUNDED);
-- **alphanumeric/national (UPPER-CASE, LOWER-CASE, REVERSE, TRIM, CONCATENATE, SUBSTITUTE, CHAR, NATIONAL-OF,
-  DISPLAY-OF, date strings) → `string`**; **boolean → `bool`**.
+- **alphanumeric/national (UPPER-CASE, LOWER-CASE, REVERSE, TRIM, CONCAT [§15.18, 2023 — CONCATENATE is NOT an
+  ISO function at any edition, PHASE-11 Step 7], SUBSTITUTE, CHAR, NATIONAL-OF, DISPLAY-OF, date strings) →
+  `string`**; **boolean → `bool`** (BOOLEAN-OF-INTEGER on the D-B1 substrate).
 
 Runtime homes: `CobolNet.Runtime.CobolIntrinsics` + `CobolNet.Runtime.CobolDate`. Mine the legacy `IntrinsicFunctions`
 for BEHAVIOR only (NaN/out-of-domain → EC-ARGUMENT-FUNCTION default result; ORD-MAX/ORD-MIN tie = first; NUMVAL

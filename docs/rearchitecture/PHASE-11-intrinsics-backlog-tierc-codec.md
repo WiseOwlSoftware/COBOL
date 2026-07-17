@@ -192,7 +192,7 @@ additive, fully-specified increment** (step group D — recommended).
 | 14 | `TEST-DAY-YYYYDDD` | §15.91 | `:151` | implement (validation) | `TestDayYyyyddd` |
 | 15 | `TEST-NUMVAL` | §15.93 | `:152` | implement (validation) | `TestNumval` |
 | 16 | `TEST-NUMVAL-C` | §15.94 | `:153` | implement (validation) | `TestNumvalC` |
-| 17 | `CONCATENATE` | §15.18¹ | `:156` | implement (window `[2002,2023)`) | `Concat` (reuse) |
+| 17 | `CONCATENATE` | §15.18¹ | `:156` | **DELETED — NOT an ISO function (see STATUS scope-change; the re-scout found zero spec occurrences)** | row removed → COBOLNET1501 |
 | 18 | `LOCALE-COMPARE` | §15.51 | `:144` | **disposition A.4.9** | `Unsupported(A49)` |
 | 19 | `LOCALE-DATE` | §15.52 | `:145` | **disposition A.4.9** | `Unsupported(A49)` |
 | 20 | `LOCALE-TIME` | §15.53 | `:146` | **disposition A.4.9** | `Unsupported(A49)` |
@@ -689,7 +689,7 @@ comment and the test:
 | SECONDS-PAST-MIDNIGHT | §15.80 | 2002 |
 | TEST-DATE-YYYYMMDD / TEST-DAY-YYYYDDD | §15.90 / §15.91 | 2002 — **direct in-spec attribution @D.31.3.1** (non-provisional) |
 | TEST-NUMVAL / TEST-NUMVAL-C | §15.93 / §15.94 | 2002 |
-| CONCATENATE | §15.18 (name) | **[2002, 2023)** — removed in 2023 (RemovedIn already set) |
+| CONCATENATE | — | **DELETED — NOT an ISO function at any edition** (the re-scout found zero spec occurrences; §15.18 CONCAT is new-in-2023; a reference draws COBOLNET1501) |
 | SMALLEST-ALGEBRAIC | §15.83 | 2023 (already Fold; golden + 2014-window row) |
 | LOCALE-COMPARE / -DATE / -TIME / -TIME-FROM-SECONDS / STANDARD-COMPARE | §15.51/52/53/54/85 | 2002 rows → **A.4.9 documented non-support** (decision 3) |
 | LOCALE keyword variants (LOWER-CASE/UPPER-CASE/TEST-NUMVAL-C) | §15.57/97/94 | **A.4.9 documented non-support** (decision 3) |
