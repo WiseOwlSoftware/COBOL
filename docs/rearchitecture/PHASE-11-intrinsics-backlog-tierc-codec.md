@@ -9,9 +9,27 @@
 ## STATUS
 
 ```
-STATUS: NOT STARTED
+STATUS: IN PROGRESS @ step 1 (Step 0 preflight DONE + the anchor re-scout DONE — resume by reading
+PHASE-11-scout-notes.md FIRST, then execute Step 1)
 ```
 > The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`. Keep it in sync with the per-step checkboxes in §4.
+
+> **Step 0 baseline (2026-07-17, tree at `45fe74dd`, all green):** greenfield conformance **3467/3467** ·
+> greenfield unit **292/292** · the legacy guard `guard-fast.sh` **NIST 353 MATCH, 0 regressions** (legacy
+> unit 1196 + integration 636 ALL GREEN) · solution build 0 warnings 0 errors.
+>
+> **The Step-1 enumeration is DONE:** the live `IntrinsicBind.Deferred` set is **17 rows** (catalog lines
+> 133–174) = §3.1's 22 minus the 5 P10-landed rows (CHAR-NATIONAL, DISPLAY-OF, NATIONAL-OF,
+> EXCEPTION-FILE-N, EXCEPTION-LOCATION-N — already `Runtime`, verified in the catalog source).
+>
+> **The P10-lesson anchor re-scout is DONE** (11 parallel scouts over the spec + code, 2026-07-17):
+> **`PHASE-11-scout-notes.md`** carries the full verified findings — exact §/GR/SR anchors with spec line
+> numbers, hand-derived golden values per family, the end-to-end code seams (catalog row → binder →
+> renderer → runtime, with file:line), the conformance/matrix/negative test wiring (the P10
+> `exception_file_n` worked example), and the complete Tier-C guard-site inventory. **Its ⚠ gotcha /
+> discrepancy blocks OVERRIDE this doc where they conflict** (e.g. `ComputeTier` is at
+> `DataBinder.cs:2376`, not ~1752; BOOLEAN-OF-INTEGER(0, n) is an ambiguity resolved accept-0; left
+> truncation to argument-2 bits is NORMAL per §15.13.4 r1 + Annex D.10). Do NOT re-scout — read the notes.
 
 ---
 

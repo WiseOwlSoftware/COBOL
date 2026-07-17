@@ -23,6 +23,15 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C REDEFINES confined-byte codec)
 
+**⏵ P11 IS IN PROGRESS @ Step 1 (2026-07-17).** Step 0 preflight is DONE and green (conformance 3467/3467 ·
+guard-fast NIST 353 MATCH 0 regressions · legacy 1196+636). The Step-1 enumeration is DONE: the live Deferred
+set is **17 rows** (`IntrinsicCatalog.cs:133-174`). The P10-lesson anchor re-scout is DONE — **READ
+`docs/rearchitecture/PHASE-11-scout-notes.md` FIRST** (verified §/GR/SR anchors + spec line numbers,
+hand-derived golden values, end-to-end code seams file:line, test wiring incl. the P10 `exception_file_n`
+worked example, the full Tier-C guard-site inventory; its ⚠ blocks override the phase doc where they
+conflict — do NOT re-scout). Resume: execute the phase doc's Step 1 (add `IntrinsicBind.Unsupported`, flip
+the 5 A.4.9 rows) → then Steps 2, 5, 6, 7, 8 → Tier-C step groups C/D → Step 9 close-out.
+
 **PHASE-10 IS COMPLETE (2026-07-17, DEVLOG 854–870 — 14 battery-gated commits `7436a1ef`→`a0fd3f68`+close, CI
 green on each; the P10 doc's STATUS banner carries the exit-criteria confirmation + the NAMED forward-residue
 ledger).** Every M2 non-OO track is landed on the greenfield substrate or staged loud by name. The waves, in
