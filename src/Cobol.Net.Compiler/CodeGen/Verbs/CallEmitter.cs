@@ -183,7 +183,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             string scale = (p.Pic?.Scale ?? 0).ToString();
             if (p.Item.IsGroup && !p.Item.IsCharacterImage && p is not RedefViewPlace)
                 return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, ManagedPointer<string>.Cell("
-                    + LoudValue("string", $"CALL USING mixed-usage group '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte island, deferred)")
+                    + LoudValue("string", TierCIsland.Reason(p.Item, "CALL USING group", "COMP/binary"))
                     + "), 0, 0)";
             if (a.Mode == CobolPassMode.Reference)
                 return $"new CobolArg({RuntimeApi.PassModeText(CobolPassMode.Reference)}, {RefCarrier(p)}, {digits}, {scale})";

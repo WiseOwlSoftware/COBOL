@@ -377,8 +377,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // assignment that fails the backend compile (the old ST133A/ST134A/SQ203A CS0029 class).
             if (!record.Item.IsImageCapable)
             {
-                w.Line(LoudStmt($"record area '{record.Item.CobolName}' contains float/COMP-5/INDEX leaves — the "
-                    + "Tier-C byte island (COBOLNET_DESIGN §4.2), deferred"));
+                w.Line(LoudStmt(TierCIsland.Reason($"record area '{record.Item.CobolName}' contains float/COMP-5/INDEX leaves")));
                 return;
             }
             w.Line($"{PlaceRenderer.Read(record)}.FromImage({RuntimeApi.StrStore(imageExpr, $"{record.Item.ImageWidth}")});");
@@ -413,7 +412,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // status group distributes via FromImage; only a float/COMP-5/INDEX leaf stays loud (§1.4).
             if (!item.IsImageCapable)
             {
-                ctx.Writer.Line(LoudStmt($"FILE STATUS into group '{item.CobolName}' with a float/COMP-5/INDEX leaf (Tier-C byte island, deferred)"));
+                ctx.Writer.Line(LoudStmt(TierCIsland.Reason(item, "FILE STATUS into group")));
                 return;
             }
             // A GROUP status item fills without conversion through the image facility (§14.9.25.4 GR4 — the

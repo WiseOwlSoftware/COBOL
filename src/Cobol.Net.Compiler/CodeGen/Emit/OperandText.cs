@@ -74,7 +74,7 @@ internal static class OperandText
         if (p.Item.IsGroup)
             return p.Item.IsImageCapable
                 ? $"{PlaceRenderer.Read(p)}.AsImage()"
-                : EmitText.LoudValue("string", $"whole-group image of '{p.Item.CobolName}' with a float/COMP-5/INDEX leaf (Tier-C byte island, deferred — COBOLNET_DESIGN §4.2)");
+                : EmitText.LoudValue("string", TierCIsland.Reason(p.Item, "whole-group image of"));
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)

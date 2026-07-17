@@ -9,23 +9,15 @@
 ## STATUS
 
 ```
-STATUS: IN PROGRESS @ step C (Steps 0-2 + 5-8 DONE — Step 7 @ 4b537b04 [BYTE-LENGTH fold + SMALLEST-ALGEBRAIC
-+ the CONCATENATE deletion, ZERO Deferred]; Step 8 [the A.4.9 locale disposition — COBOLNET1518] landed next
-commit. INTRINSIC EXIT CRITERIA 1/3/4 MET (zero Deferred; every promotion has a value golden + a window/
-disposition row; every promotion has a negative row). Only exit criterion 2 (Tier-C decided) remains.
-Resume: read PHASE-11-scout-notes.md §code:tier-c-code FIRST — its ⚠ blocks reshape the Tier-C plan: the
-CLASS-side rejection is ALREADY single-sourced (the ONE RedefinesClass.Classify mutator + RejectReason
-threading); ComputeTier is at DataBinder.cs:2376 (not ~1752); RedefinesTier.ByteCanonical is dead-by-
-construction; TierCWindow has NO Read/Write members; there is NO RedefinesClassifier type. What is scattered
-is the CLASSLESS mixed-usage-GROUP island — ~13 emit guards (C1–C13) + ~7 bind conformance guards (B4–B13)
-across FOUR predicate variants (IsImageCapable P1 / IsCharacterImage P2 / ForceStringCanonical Display-only
-P3 / UdfBinder Binary+Packed-reject P4). Step C = route those through ONE reason formatter, PRESERVING each
-predicate variant (do NOT force a lossy single-predicate collapse), + fold ComputeTier's reason strings into
-a reason table + TierCRejectionTests + the FULL guard (touches emitter loud paths). ⚠ DECISION on Step D
-(the confined byte[] codec): the phase doc's own gate permits DEFERRING it as a scheduled increment — and
-the scout shows its design (§2.3) is stale vs. reality (ByteCanonical dead, TierCWindow.Read/Write absent),
-so it needs re-basing. Plan: do Step C (satisfies exit criterion 2 via single-sourced rejection), DEFER Step
-D to a properly-designed future wave (record in DESIGN-data-model.md §2.3 + P11 close-out) → Step 9)
+STATUS: IN PROGRESS @ step 9 (Steps 0-2 + 5-8 + C DONE — Step 8 @ 5e5b9b0d [A.4.9 disposition]; Step C [the
+Tier-C single-sourcing — the ONE TierCIsland.Reason source over the ~12 scattered emit guards, predicates
+preserved; TierCRejectionTests; DESIGN-data-model §2.3 re-based to as-built] landed next commit. ALL FIVE P11
+EXIT CRITERIA MET: (1) zero Deferred; (2) Tier-C decided [rejection single-sourced]; (3) value goldens; (4)
+window/disposition negatives; (5) full battery green. Step D (the confined byte[] codec) DEFERRED as a
+scheduled increment (DESIGN-data-model §2.3 — the design needs re-basing). Resume: Step 9 close-out only —
+sync COBOLNET_INTRINSICS_DESIGN + VERSION_CHANGE_REFERENCE + DOC_INDEX + memory; STATUS→DONE; roadmap banner
++ resume-prompt → PHASE-12; delete PHASE-11-scout-notes.md (its durable content is now in the design docs +
+DEVLOG); final battery counts.)
 ```
 > The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`. Keep it in sync with the per-step checkboxes in §4.
 

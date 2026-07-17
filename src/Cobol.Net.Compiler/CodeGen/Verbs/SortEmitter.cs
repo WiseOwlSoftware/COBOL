@@ -223,7 +223,7 @@ internal sealed class SortEmitter(EmitContext ctx, NumericRenderer num, Dispatch
         if (k.IsGroup)
             return k.IsCharacterImage
                 ? RuntimeApi.StrCompare($"{pa}.AsImage()", $"{pb}.AsImage()", weightsArg)
-                : LoudValue("int", $"table-sort key '{k.CobolName}' over a mixed-usage group (Tier-C byte island, deferred)");
+                : LoudValue("int", TierCIsland.Reason($"table-sort key '{k.CobolName}' over a mixed-usage group"));
         return k.Pic switch
         {
             { Category: PicCategory.Numeric, IsFloat: false } when k.StoreAsImage =>

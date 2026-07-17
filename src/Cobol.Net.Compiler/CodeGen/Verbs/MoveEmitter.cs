@@ -113,7 +113,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         var item = target.Item;
         if (!item.IsImageCapable)
         {
-            ctx.Writer.Line(LoudStmt($"group MOVE into '{item.CobolName}' (a float/COMP-5/INDEX receiver has no character image — Tier-C, COBOLNET_DESIGN §4.2)"));
+            ctx.Writer.Line(LoudStmt(TierCIsland.Reason(item, "group MOVE into")));
             return;
         }
         // The width-fitted image (§14.6.8): receiver character-position count via the ONE canonical ImageWidth
@@ -167,7 +167,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // the genuinely incapable receiver (float/COMP-5/INDEX leaf) stays loud (§1.4).
             if (!target.Item.IsImageCapable)
             {
-                ctx.Writer.Line(LoudStmt($"MOVE to group '{target.Item.CobolName}' with a float/COMP-5/INDEX leaf (Tier-C byte island, deferred — COBOLNET_DESIGN §4.2)"));
+                ctx.Writer.Line(LoudStmt(TierCIsland.Reason(target.Item, "MOVE to group")));
                 return;
             }
         }

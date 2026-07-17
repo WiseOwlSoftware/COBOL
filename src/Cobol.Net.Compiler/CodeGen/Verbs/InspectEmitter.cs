@@ -88,7 +88,7 @@ internal sealed class InspectEmitter(EmitContext ctx, NumericRenderer num, Arith
             if (p is RedefViewPlace) { w.Line(PlaceRenderer.Write(p, img)); return; }
             if (!p.Item.IsCharacterImage)
             {
-                w.Line(LoudStmt($"INSPECT REPLACING/CONVERTING into mixed-usage group '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
+                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "INSPECT REPLACING/CONVERTING into group", "COMP/binary")));
                 return;
             }
             w.Line($"{PlaceRenderer.Read(p)}.FromImage({img});");

@@ -62,7 +62,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
         {
             if (!item.IsCharacterImage)
             {
-                w.Line(LoudStmt($"ACCEPT into mixed-usage group '{item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
+                w.Line(LoudStmt(TierCIsland.Reason(item, "ACCEPT into group", "COMP/binary")));
                 return;
             }
             string img = $"AcceptSource.Device({item.ImageWidth})";
@@ -123,7 +123,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num)
         {
             if (!item.IsCharacterImage)
             {
-                w.Line(LoudStmt($"ACCEPT temporal into mixed-usage group '{item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
+                w.Line(LoudStmt(TierCIsland.Reason(item, "ACCEPT temporal into group", "COMP/binary")));
                 return;
             }
             // A group receiver is an alphanumeric-category move (§14.9.25.4 GR4 — filled without conversion).

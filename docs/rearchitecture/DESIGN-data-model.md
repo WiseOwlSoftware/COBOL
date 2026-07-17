@@ -193,11 +193,37 @@ The 4-tier lattice (A Alias ⊑ B StringCanonical ⊑ C ByteCanonical ⊑ D Reje
 - Tier classification produces `StorageForm` for each member: Tier-A view → the canonical's form; Tier-B view →
   `TierBWindow`; Tier-C view → `TierCWindow`; Tier-D → a rejection diagnostic (no form emitted).
 - `RedefinesClass.Tier`/`.Width` become **init-only**, set once by `RedefinesClassifier` (§2.5) — no set-then-overwrite.
-- **Tier-C decision (resolves the ~10 scattered guards):** implement the confined `byte[]` codec **OR** single-source
-  the rejection. This design recommends **single-source-the-rejection now, implement later**: one
-  `RedefinesClassifier.RejectTierC(class, reason)` emitting one diagnostic code, and `TierCWindow.Read/Write` throw
-  the internal-error backstop. Delete the ~10 inline Tier-C-deferred `if` guards in favor of the single verdict.
-  (Full byte[] codec is a separately-scheduled increment — the sanctioned single byte boundary of invariant #1.)
+- **Tier-C decision — AS BUILT (PHASE-11 Step C):** the rejection is single-sourced; the confined `byte[]` codec is
+  a scheduled increment (Step D — deferred). The as-built shape differs from the earlier sketch above, because the
+  P11 re-scout found the surface was already partly consolidated and more nuanced than "~10 guards":
+  - **The REDEFINES-CLASS Tier-C rejection was ALREADY single-sourced.** A genuine mixed-USAGE REDEFINES pun
+    (`RedefinesTier.ByteCanonical`) is rejected in ONE place — `DataBinder.ComputeTier` (whose two reason arms +
+    the dynamic-table arm carry the ISO citations) applied through the ONE `RedefinesClass.Classify` mutator, with
+    the reason threaded to references by `ExpressionBinder.RefFailure`. `ByteCanonical` is dead-by-construction
+    (ComputeTier never returns it); `StorageForm.TierCWindow` stays QUARANTINED (assigned to zero leaves, no
+    `Read`/`Write` members — `StorageForm` is a pure classification record, so the "throw the internal-error
+    backstop" sketch has no counterpart; the de-facto backstop is `ReferenceResolver.PlaceForItem` returning null →
+    the caller fails loud). There is **no** `RedefinesClassifier` type; classification lives in
+    `DataBinder.ClassifyRedefinesClasses` + `ComputeTier`.
+  - **What P11 Step C consolidated** is the SEPARATE *classless* mixed-usage-GROUP image island — a plain group
+    (not a REDEFINES pun) whose leaves are not uniformly character-imageable (a float/COMP-5/INDEX/BINARY-* leaf
+    under `DataItem.IsImageCapable`, or a COMP/binary leaf under the stricter `DataItem.IsCharacterImage`) has no
+    whole-group character image, so ~12 emit-time verbs (MOVE/STRING/UNSTRING/INSPECT/ACCEPT/DISPLAY/CALL/SORT-key/
+    record-area distribution/FILE-STATUS) staged loud with copy-pasted, drifted message text. Step C routes every
+    such guard's message through the ONE `Binding/Model/TierCIsland.Reason` source, **preserving each site's own
+    predicate** (P1 `IsImageCapable` vs P2 `IsCharacterImage` — no lossy single-predicate collapse) and its
+    operation-specific lead + offending-leaf descriptor. `TierCRejectionTests` locks that every shape still fails
+    loud through the one reason (the "Tier-C" substring). The OO/SORT/UDF bind-time conformance guards keep their
+    context-specific messages by design (their strictness variants — UDF rejects Binary/Packed too — are
+    deliberate, per the scout's risk-3 note).
+- **Step D (the confined `byte[]` codec) — DEFERRED, scheduled increment.** It is the one sanctioned `byte[]`
+  boundary of hard-invariant #1: `CobolByteImage` (COMP big-endian two's-complement / COMP-3 packed nibbles /
+  COMP-1/2 IEEE bits / DISPLAY chars) behind a real `StorageForm.TierCWindow` + a `GroupImageCodec` byte path, at
+  which point `ComputeTier`'s arm 1 flips `ByteCanonical` from Rejected to modeled and the `TierCIsland` guards
+  admit the class automatically (the payoff of the single predicate). **NEEDS RE-BASING against reality before
+  implementation** — the earlier §2.5/§3 sketch (a `RedefinesClassifier` type, init-only `Tier`/`Width`,
+  `TierCWindow.Read/Write`) does not match the as-built code; a fresh design pass authors it correctly. No NIST
+  program requires it, so its goldens are hand-authored spec-pinned cases.
 
 ### 2.4 `DataItem` — slim core + init-only pass facts
 

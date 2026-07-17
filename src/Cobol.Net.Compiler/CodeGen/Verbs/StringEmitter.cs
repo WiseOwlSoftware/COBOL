@@ -150,7 +150,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         {
             if (!p.Item.IsCharacterImage)
             {
-                w.Line(LoudStmt($"STRING INTO mixed-usage group '{p.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
+                w.Line(LoudStmt(TierCIsland.Reason(p.Item, "STRING INTO group", "COMP/binary")));
                 return;
             }
             w.Line($"{PlaceRenderer.Read(p)}.FromImage({imageExpr});");
@@ -192,7 +192,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         {
             if (!target.Item.IsCharacterImage)
             {
-                w.Line(LoudStmt($"UNSTRING INTO mixed-usage group '{target.Item.CobolName}' with a COMP/binary leaf (Tier-C byte path, deferred)"));
+                w.Line(LoudStmt(TierCIsland.Reason(target.Item, "UNSTRING INTO group", "COMP/binary")));
                 return;
             }
             string image = RuntimeApi.StrStore(valueExpr, $"{target.Item.ImageWidth}");
