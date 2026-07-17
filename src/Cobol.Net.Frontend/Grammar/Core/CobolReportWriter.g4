@@ -1,8 +1,11 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
-// REPORT SECTION rules (COBOL-85, ISO 1989:1985 §13.8/§13.14/§13.15; clauses §13.18.12/14/16/28/37/39/53/54/57).
-// Imported by CobolParserCore.g4 — no options block of its own beyond tokenVocab.
+// REPORT SECTION rules (ISO 1989:2023 §13.14/§13.15; clauses §13.18.12/14/16/29/35/37/39/41/53/54/57/64).
+// The COBOL-85 surface plus the 2002 additions (PRESENT WHEN, VARYING, the multiple/relative COLUMN and
+// multiple LINE operand forms) — superset parse; the 2002 forms are introduction-gated post-bind by the
+// VersionConformancePass ParseArm (0900 below 2002). Imported by CobolParserCore.g4 — no options block of
+// its own beyond tokenVocab.
 
 parser grammar CobolReportWriter;
 
@@ -49,7 +52,7 @@ reportControlClause
     : (CONTROL IS? | CONTROLS ARE?) (FINAL | dataReference)+
     ;
 
-// PAGE LIMIT IS n LINES [HEADING n] [FIRST DETAIL n] [LAST DETAIL n] [FOOTING n] (§13.18.37)
+// PAGE LIMIT IS n LINES [HEADING n] [FIRST DETAIL n] [LAST DETAIL n] [FOOTING n] (§13.18.39)
 reportPageClause
     : PAGE (LIMIT IS? | LIMITS ARE?)? integerLiteral (LINE | LINES)?
       reportPageSubclause*
@@ -82,6 +85,8 @@ reportGroupClause
     | reportSourceClause
     | reportSumClause
     | reportGroupIndicateClause
+    | reportPresentWhenClause
+    | reportVaryingClause
     | pictureClause
     | usageClause
     | signClause
@@ -107,19 +112,36 @@ reportGroupType
     | (REPORT FOOTING | RF)
     ;
 
-// LINE NUMBER IS {integer [ON NEXT PAGE] | PLUS integer | NEXT PAGE}  (§13.18.28)
+// {LINE|LINES} [NUMBER|NUMBERS] [IS|ARE] {integer [ON NEXT PAGE] | PLUS integer | [ON] NEXT PAGE}...  (§13.18.35 F1)
+// The multi-operand form (a "multiple LINE clause", §13.18.35.3 SR10) and the LINES/NUMBERS/ARE spellings are
+// COBOL-2002 — introduction-gated post-bind by VersionConformancePass ParseArm.VisitReportLineClause; the
+// multi-operand repetition itself stages LOUD at bind (COBOLNET0899 report-multiple-line).
 reportLineClause
-    : LINE NUMBER? IS? (PLUSWORD integerLiteral | integerLiteral (ON? NEXT PAGE)? | NEXT PAGE)
+    : (LINE | LINES) (NUMBER | NUMBERS)? (IS | ARE)? reportLineOperand+
     ;
 
-// NEXT GROUP IS {integer | PLUS integer | NEXT PAGE}  (§13.18.39)
+reportLineOperand
+    : PLUSWORD integerLiteral
+    | integerLiteral (ON? NEXT PAGE)?
+    | ON? NEXT PAGE
+    ;
+
+// NEXT GROUP IS {integer | PLUS integer | NEXT PAGE}  (§13.18.37)
 reportNextGroupClause
     : NEXT GROUP IS? (PLUSWORD integerLiteral | integerLiteral | NEXT PAGE)
     ;
 
-// COLUMN NUMBER IS integer  (§13.18.14)
+// {COLUMN|COLUMNS|COL|COLS} [NUMBER|NUMBERS] [IS|ARE] {integer | PLUS integer}...  (§13.18.14 F1)
+// The multi-operand form (a "multiple COLUMN clause", §13.18.14.3 SR10), the relative PLUS operand, and the
+// COL/COLS/COLUMNS/NUMBERS/ARE spellings are COBOL-2002 — introduction-gated post-bind by VersionConformancePass
+// ParseArm.VisitReportColumnClause. The LEFT/CENTER/RIGHT alignment phrase has no grammar surface
+// (COBOLNET_REPORT_WRITER_DESIGN §5 — the SR9 LEFT default applies).
 reportColumnClause
-    : COLUMN NUMBER? IS? integerLiteral
+    : (COLUMN | COLUMNS | COL | COLS) (NUMBER | NUMBERS)? (IS | ARE)? reportColumnOperand+
+    ;
+
+reportColumnOperand
+    : PLUSWORD? integerLiteral
     ;
 
 // SOURCE IS identifier  (§13.18.53)
@@ -142,10 +164,28 @@ reportSumReset
     : RESET ON? (FINAL | dataReference)
     ;
 
-// GROUP INDICATE  (§13.18.28 group-indicate phrase) — print this field only on the first
+// GROUP INDICATE  (§13.18.29) — print this field only on the first
 // detail of a page or after a control break.
 reportGroupIndicateClause
     : GROUP INDICATE?
+    ;
+
+// PRESENT WHEN condition-1  (§13.18.41 Format 1, COBOL-2002) — the entry (and its subordinates) is processed
+// only when the condition is true at group-presentation time. Introduction-gated post-bind by
+// VersionConformancePass ParseArm.VisitReportPresentWhenClause.
+reportPresentWhenClause
+    : PRESENT WHEN condition
+    ;
+
+// VARYING {data-name-1 [FROM arith-1] [BY arith-2]}...  (§13.18.64, COBOL-2002) — per-repetition counters for a
+// repeating report entry (a multiple LINE/COLUMN clause or a report-group OCCURS, §13.18.64.3 SR1).
+// Introduction-gated post-bind by VersionConformancePass ParseArm.VisitReportVaryingClause.
+reportVaryingClause
+    : VARYING reportVaryingSpec+
+    ;
+
+reportVaryingSpec
+    : cobolWord (FROM arithmeticExpression)? (BY arithmeticExpression)?
     ;
 
 // ==========================================

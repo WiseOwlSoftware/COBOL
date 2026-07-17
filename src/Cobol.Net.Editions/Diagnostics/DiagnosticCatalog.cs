@@ -195,6 +195,19 @@ public static class DiagnosticCatalog
         + "or a TYPE clause (SR4).", "ISO §13.18.49.3 SR3/SR4");
 
     // ── COBOLNET1558 — EXTERNAL type declarations (§13.18.22 / §13.18.58; P10 Step 16) ───────────────
+    // ── COBOLNET1559 — the report-group PRESENT WHEN / VARYING / multiple-COLUMN syntax rules, one code for
+    //    the rule family (§13.15.3 / §13.18.64.3; P10 Step 13 — the SameAsEntryRule bundling precedent).
+    //    1560-band stays earmarked (PHASE-13). ──
+    public static readonly DiagnosticDescriptor ReportGroupClauseRule = new(
+        "COBOLNET1559", "report-group-clause-rule", EditionSeverity.Error,
+        "A report group description entry violates a PRESENT WHEN / VARYING syntax rule: a PRESENT WHEN "
+        + "condition shall not reference a sum counter, LINE-COUNTER, PAGE-COUNTER, or another report section "
+        + "data item (§13.15.3 SR16); GROUP INDICATE shall not share an entry with PRESENT WHEN (§13.15.3 "
+        + "SR17); a VARYING entry shall also contain an OCCURS clause or a multiple LINE or multiple COLUMN "
+        + "clause (§13.18.64.3 SR1); its data-name shall not be defined elsewhere in the source element (SR2) "
+        + "nor referenced in arithmetic-expression-1 of the same clause (SR3).",
+        "ISO §13.15.3 SR16/SR17 / §13.18.64.3 SR1–SR3");
+
     public static readonly DiagnosticDescriptor ExternalTypeRule = new(
         "COBOLNET1558", "external-type-rule", EditionSeverity.Error,
         "An EXTERNAL type declaration is misused: a data description containing an EXTERNAL type shall be at "
@@ -238,6 +251,22 @@ public static class DiagnosticCatalog
         NotImplemented, "report-occurs-in-group", EditionSeverity.Error,
         "OCCURS (repeating entries) in a report group description is not yet implemented.",
         "ISO §13.18.38", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ReportMultipleLine = new(
+        NotImplemented, "report-multiple-line", EditionSeverity.Error,
+        "A multiple LINE clause (vertical repetition — the §13.18.35.4 GR9 OCCURS equivalence) is not yet "
+        + "implemented; the report-group OCCURS family stages with it.", "ISO §13.18.35.3 SR10", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ReportVaryingCounterInExpression = new(
+        NotImplemented, "report-varying-counter-in-expression", EditionSeverity.Error,
+        "A report VARYING counter referenced inside a FROM/BY expression of a VARYING clause is not yet "
+        + "implemented (legal in arithmetic-expression-2 per §13.18.64.3 SR3).", "ISO §13.18.64.3 SR3", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ReportConditionFunction = new(
+        NotImplemented, "report-condition-function", EditionSeverity.Error,
+        "A FUNCTION reference inside a report PRESENT WHEN condition is not yet implemented.",
+        "ISO §13.18.41", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ReportIndicateRelativeColumn = new(
+        NotImplemented, "report-indicate-relative-column", EditionSeverity.Error,
+        "GROUP INDICATE on an entry with a relative (PLUS) COLUMN operand is not yet implemented.",
+        "ISO §13.18.29 / §13.18.14", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ReportNonDisplayItem = new(
         NotImplemented, "report-non-display-item", EditionSeverity.Error,
         "A non-DISPLAY printable report item is not supported.", "ISO §13.15", RecognizedNotImplemented);

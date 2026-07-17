@@ -342,6 +342,44 @@ public sealed class ReportWriterConformanceTests
                 CLOSE RPT.
             """ + ReadBack5), "D1\nD2\nCF 05");
 
+    // ── PRESENT WHEN (§13.18.41 Format 1; P10 Step 13 — a COBOL-2002 clause, compiled at --std 2002) ────────
+
+    private static readonly ICompilerUnderTest CobolNet2002 = new CobolNetCompiler(2002);
+
+    /// <summary>Compile-and-run at <c>--std 2002</c> (the PRESENT WHEN / VARYING clauses gate 0900 below 2002).</summary>
+    private static void AssertSpec2002(string source, string expected)
+    {
+        var (ok, stdout, detail) = CobolNet2002.CompileAndRun(source);
+        Assert.True(ok, $"COBOL.NET failed: {detail}");
+        Assert.Equal(expected, stdout);
+    }
+
+    [Fact]   // §13.18.41.4 GR3g / §13.18.54.4 GR10: a SUM entry absent under its PRESENT WHEN is neither
+             // printed nor reset for that instance of the report group — the counter carries its accumulation
+             // forward; the next PRESENT instance prints the carried total and resets (no RESET phrase ⇒
+             // reset where printed, §13.18.54.4 GR2). Addends 5 (absent), 3, 2 print blank, 08, 02.
+    public void PresentWhen_Gr3g_AbsentSumNeitherPrintsNorResets()
+        => AssertSpec2002(Program("""
+            RD R-1 PAGE LIMIT IS 20 LINES.
+            01 DET-1 TYPE DE LINE PLUS 1.
+                03 COLUMN 1 PIC X(2) VALUE "D:".
+                03 COLUMN 4 PIC 99 SUM WS-AMT
+                   PRESENT WHEN WS-SHOW = 1.
+            """, """
+        01 WS-AMT PIC 9 VALUE 5.
+        01 WS-SHOW PIC 9 VALUE 0.
+        """, """
+                INITIATE R-1.
+                GENERATE DET-1.
+                MOVE 3 TO WS-AMT.
+                MOVE 1 TO WS-SHOW.
+                GENERATE DET-1.
+                MOVE 2 TO WS-AMT.
+                GENERATE DET-1.
+                TERMINATE R-1.
+                CLOSE RPT.
+            """ + ReadBack5), "D:\nD: 08\nD: 02");
+
     // ── USE BEFORE REPORTING (§14.9.49 Format 2 GR8) ────────────────────────────────────────────────────────
 
     [Fact]   // GR8: the declarative is invoked just before the named report group is produced — a MOVE in it is

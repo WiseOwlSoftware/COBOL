@@ -3,6 +3,7 @@
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
+using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
 
 namespace CobolNet.Binding;
@@ -96,23 +97,61 @@ public sealed class ReportGroupModel
 /// <summary>The LINE clause form of one report line (ISO §13.18.35; the NEXT PAGE phrases are staged loud).</summary>
 public enum ReportLineKindModel { Absolute, Relative }
 
-/// <summary>One report line: its LINE clause and its printable fields in declaration order.</summary>
+/// <summary>One report line: its LINE clause, its printable fields in declaration order, and its effective
+/// PRESENT WHEN chain (ISO §13.18.41 Format 1) — every condition on the entry that opened the line AND on its
+/// ancestors up to the 01 (GR2b: an absent ancestor makes every subordinate absent, so the line is present iff
+/// ALL chain conditions are true). Conditions are captured as parse contexts at data bind and bound through the
+/// ONE <c>ConditionBinder</c> when the procedure phase runs (<c>ReportWriterBinder.BindReportGroupClauses</c>).</summary>
 public sealed class ReportLineModel(ReportLineKindModel kind, int value)
 {
     public ReportLineKindModel Kind { get; } = kind;
     public int Value { get; } = value;
     public List<ReportFieldModel> Fields { get; } = [];
+
+    /// <summary>The PRESENT WHEN condition chain (01 → line entry) as captured parse contexts (§13.18.41).</summary>
+    public List<CobolParserCore.ConditionContext> PresentWhenCtxs { get; } = [];
+    /// <summary>The bound chain (AND-composed by the emitter); parallel to <see cref="PresentWhenCtxs"/>.</summary>
+    public List<BoundCondition> PresentWhen { get; } = [];
 }
 
-/// <summary>One PRINTABLE item (an entry with a COLUMN clause, ISO §13.18.14): its column, the synthetic
+/// <summary>One COLUMN clause operand (ISO §13.18.14 Format 1): absolute (<c>integer-1</c>) or relative
+/// (<c>PLUS integer-2</c> — positioned against the line's horizontal counter, GR7/GR8).</summary>
+public readonly record struct ReportColumnSpec(bool Relative, int Value);
+
+/// <summary>One report VARYING counter (ISO §13.18.64): the counter name, the FROM/BY expressions as captured
+/// parse contexts (bound to <see cref="From"/>/<see cref="By"/> in the procedure phase; null = the GR3 default 1),
+/// stepping once per repetition of the entry's multiple COLUMN clause (GR3a/GR3b).</summary>
+public sealed class ReportVaryingModel
+{
+    public required string Name { get; init; }
+    public CobolParserCore.ArithmeticExpressionContext? FromCtx { get; init; }
+    public CobolParserCore.ArithmeticExpressionContext? ByCtx { get; init; }
+    public BoundExpr? From { get; set; }
+    public BoundExpr? By { get; set; }
+}
+
+/// <summary>One PRINTABLE item (an entry with a COLUMN clause, ISO §13.18.14): its column operands (one per
+/// repetition — a multiple COLUMN clause is a repeating entry, §13.15.4 GR3), the synthetic
 /// <see cref="DataItem"/> carrying its PICTURE/JUSTIFIED/BLANK WHEN ZERO (so the emitter reuses the ONE MOVE
-/// conversion — §13.18.53.4 GR1's implicit MOVE), its value source, and the GROUP INDICATE flag (§13.18.29).</summary>
+/// conversion — §13.18.53.4 GR1's implicit MOVE), its value source, the GROUP INDICATE flag (§13.18.29), its
+/// field-local PRESENT WHEN chain (the conditions BELOW the line entry — the line's own chain already gates the
+/// whole line), and the entry's VARYING counters (§13.18.64).</summary>
 public sealed class ReportFieldModel
 {
-    public int Column { get; init; }
+    public required IReadOnlyList<ReportColumnSpec> Columns { get; init; }
     public required DataItem PrintItem { get; init; }
     public required ReportFieldSource Source { get; init; }
     public bool GroupIndicate { get; init; }
+
+    /// <summary>The first column operand's value — the single-absolute fast path and diagnostics anchor.</summary>
+    public int Column => Columns[0].Value;
+
+    /// <summary>PRESENT WHEN conditions strictly below the line entry, down to this entry (§13.18.41 GR2b).</summary>
+    public List<CobolParserCore.ConditionContext> PresentWhenCtxs { get; } = [];
+    public List<BoundCondition> PresentWhen { get; } = [];
+
+    /// <summary>The entry's VARYING counters (§13.18.64) — empty for a non-VARYING entry.</summary>
+    public List<ReportVaryingModel> Varyings { get; } = [];
 }
 
 /// <summary>A printable item's value source, by clause kind.</summary>
@@ -135,6 +174,11 @@ public sealed record FieldCounterSource(bool IsPage) : ReportFieldSource;
 
 /// <summary>The printable face of a SUM entry (ISO §13.18.54.4 GR4 — the sum counter acts as the source item).</summary>
 public sealed record FieldSumSource(string CounterId) : ReportFieldSource;
+
+/// <summary>A SOURCE naming the entry's own VARYING counter (ISO §13.18.64.4 GR4 NOTE — the counter is usable as
+/// a source data item); <paramref name="Index"/> indexes <see cref="ReportFieldModel.Varyings"/>. Renders as the
+/// compose-local counter, re-read per repetition.</summary>
+public sealed record FieldVaryingSource(int Index) : ReportFieldSource;
 
 /// <summary>One SUM counter (ISO §13.18.54): its id (the entry's data-name per GR5, else synthesized), the
 /// counter scale (GR1 — derived from the entry's PICTURE), the addend data-names (SR5 — items OUTSIDE the
@@ -162,6 +206,12 @@ public sealed class ReportSumModel
     /// <summary>The exact where-string the SUM-counter <c>Analyze</c> used (<c>RD '…' SUM counter '…'</c>) — replayed
     /// verbatim by GateData when <see cref="SkeletonGate"/> fires, so the 0900 is byte-identical to the former site.</summary>
     public string SkeletonWhere { get; init; } = "";
+
+    /// <summary>The SUM entry's FULL PRESENT WHEN chain (01 → entry). When any condition is false at a group
+    /// presentation the counter is neither printed nor reset for that instance (ISO §13.18.41.4 GR3g /
+    /// §13.18.54.4 GR10) — the engine consults the AND of these per presentation.</summary>
+    public List<CobolParserCore.ConditionContext> PresentWhenCtxs { get; } = [];
+    public List<BoundCondition> PresentWhen { get; } = [];
 }
 
 public sealed partial class DataBinder
@@ -247,11 +297,18 @@ public sealed partial class DataBinder
     /// rule (ISO §13.15 / COBOLNET_REPORT_WRITER_DESIGN §3.3): walking the entries in declaration order, a
     /// 01-level entry opens a new GROUP; an entry whose clauses include a LINE clause OPENS a new report line
     /// (LINE is legal at ANY level — RW101A puts <c>LINE PLUS 1</c> on an 03); an entry with a COLUMN clause
-    /// appends a printable field to the CURRENT line. Legal-but-unimplemented clauses stage loud (§1.4).</summary>
+    /// appends a printable field to the CURRENT line. PRESENT WHEN conditions (§13.18.41 Format 1) accumulate
+    /// down a level-number stack — a line carries the chain 01→line-entry, a field the chain strictly below the
+    /// line entry, a SUM entry the full chain (GR2b: an absent ancestor absents every subordinate,
+    /// "irrespective of any PRESENT WHEN clauses they may also contain" — the AND of independent conditions).
+    /// Legal-but-unimplemented clauses stage loud (§1.4).</summary>
     private void BindReportGroups(Core.ReportDescriptionEntryContext rd, ReportModel model)
     {
         ReportGroupModel? group = null;
         ReportLineModel? line = null;
+        // The PRESENT WHEN scope stack: one frame per entry on the current level path (§13.18.41 GR2b).
+        var chain = new List<(int Level, Core.ConditionContext? Cond)>();
+        int lineChainDepth = 0;   // stack frames whose conditions the CURRENT line already carries
         foreach (var ge in rd.reportGroupEntry())
         {
             int.TryParse(ge.levelNumber().GetText(), out int level);
@@ -267,15 +324,18 @@ public sealed partial class DataBinder
                 Edition.Error(DiagnosticCatalog.ReportGroupBefore01, $"RD '{model.Name}': report group entry before any 01-level entry");
                 continue;
             }
+            while (chain.Count > 0 && chain[^1].Level >= level) chain.RemoveAt(chain.Count - 1);
 
             // Clause capture for THIS entry (clauses may appear in any order within the entry — RW104A).
             string? picText = null, usageText = null, rawValue = null;
             SignSpec? ownSign = null;
-            bool justified = false, blankWhenZero = false, groupIndicate = false;
-            int? column = null;
+            bool justified = false, blankWhenZero = false, groupIndicate = false, staysLoud = false;
+            var columns = new List<ReportColumnSpec>();
             ReportFieldSource? source = null;
             ReportLineModel? opened = null;
             Core.ReportSumClauseContext? sumClause = null;
+            Core.ConditionContext? ownCond = null;
+            var varyings = new List<ReportVaryingModel>();
 
             foreach (var clause in ge.reportGroupClause())
             {
@@ -283,25 +343,57 @@ public sealed partial class DataBinder
                     BindGroupType(t, group, model);
                 else if (clause.reportLineClause() is { } lc)
                 {
-                    if (lc.NEXT() is not null)
+                    var ops = lc.reportLineOperand();
+                    if (ops.Length > 1)
+                    {
+                        // The multiple LINE clause (§13.18.35.3 SR10) is GR9-equivalent to LINE + a simple OCCURS —
+                        // it stages LOUD with the report-group OCCURS repetition family.
+                        Edition.Error(DiagnosticCatalog.ReportMultipleLine, $"RD '{model.Name}': a multiple LINE clause "
+                            + "(ISO §13.18.35.3 SR10 — vertical repetition) is not yet implemented");
+                        staysLoud = true;
+                    }
+                    var op = ops[0];
+                    if (op.NEXT() is not null)
                         Edition.Error(DiagnosticCatalog.ReportLineNextPage, $"RD '{model.Name}': LINE … NEXT PAGE (ISO §13.18.35) is "
                             + "not yet implemented");
-                    else if (lc.PLUSWORD() is not null)
-                        opened = new ReportLineModel(ReportLineKindModel.Relative, int.Parse(lc.integerLiteral().GetText()));
+                    else if (op.PLUSWORD() is not null)
+                        opened = new ReportLineModel(ReportLineKindModel.Relative, int.Parse(op.integerLiteral().GetText()));
                     else
-                        opened = new ReportLineModel(ReportLineKindModel.Absolute, int.Parse(lc.integerLiteral().GetText()));
+                        opened = new ReportLineModel(ReportLineKindModel.Absolute, int.Parse(op.integerLiteral().GetText()));
                 }
                 else if (clause.reportNextGroupClause() is not null)
                     Edition.Error(DiagnosticCatalog.ReportNextGroupClause, $"RD '{model.Name}': the NEXT GROUP clause (ISO §13.18.37) is "
                         + "not yet implemented");
                 else if (clause.reportColumnClause() is { } cc)
-                    column = int.Parse(cc.integerLiteral().GetText());
+                    foreach (var op in cc.reportColumnOperand())
+                        columns.Add(new ReportColumnSpec(op.PLUSWORD() is not null, int.Parse(op.integerLiteral().GetText())));
                 else if (clause.reportSourceClause() is { } sc)
                     source = BindSourceClause(sc, model);
                 else if (clause.reportSumClause() is { } sm)
                     sumClause = sm;
                 else if (clause.reportGroupIndicateClause() is not null)
                     groupIndicate = true;
+                else if (clause.reportPresentWhenClause() is { } pw)
+                {
+                    ownCond = pw.condition();
+                    // A FUNCTION inside condition-1 would need the UDF activation-hoist protocol, which is a
+                    // statement-context mechanism — staged loud, never a silent mis-hoist.
+                    if (HasToken(ownCond, CobolLexer.FUNCTION))
+                    {
+                        Edition.Error(DiagnosticCatalog.ReportConditionFunction, $"RD '{model.Name}': a FUNCTION reference inside a "
+                            + "PRESENT WHEN condition (ISO §13.18.41) is not yet implemented");
+                        ownCond = null;
+                    }
+                }
+                else if (clause.reportVaryingClause() is { } vy)
+                    foreach (var spec in vy.reportVaryingSpec())
+                        varyings.Add(new ReportVaryingModel
+                        {
+                            Name = spec.cobolWord().GetText(),
+                            FromCtx = spec.FROM() is not null ? spec.arithmeticExpression(0) : null,
+                            ByCtx = spec.BY() is not null
+                                ? spec.arithmeticExpression(spec.FROM() is not null ? 1 : 0) : null,
+                        });
                 else if (clause.pictureClause()?.PIC_STRING() is { } pic)
                     picText = pic.GetText();
                 else if (clause.usageClause() is { } usage)
@@ -313,25 +405,78 @@ public sealed partial class DataBinder
                 else if (clause.blankWhenZeroClause() is not null)
                     blankWhenZero = true;
                 else if (clause.occursClause() is not null)
+                {
                     Edition.Error(DiagnosticCatalog.ReportOccursInGroup, $"RD '{model.Name}': OCCURS in a report group description "
                         + "(ISO §13.18.38 repeating entries) is not yet implemented");
+                    staysLoud = true;
+                }
                 else if (clause.valueClause() is { } value)
                     rawValue = ExtractValue(value);
             }
 
-            if (opened is not null) { line = opened; group.Lines.Add(line); }
+            // GROUP INDICATE shall not share an entry with PRESENT WHEN (ISO §13.15.3 SR17 — GROUP INDICATE IS
+            // a fixed-condition PRESENT WHEN, §13.18.29.4 GR1).
+            if (groupIndicate && ownCond is not null)
+                Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': the GROUP "
+                    + "INDICATE clause shall not be specified in an entry in which the PRESENT WHEN clause is "
+                    + "specified (ISO §13.15.3 SR17)");
+            if (groupIndicate && columns.Any(c => c.Relative))
+                Edition.Error(DiagnosticCatalog.ReportIndicateRelativeColumn, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': GROUP "
+                    + "INDICATE on an entry with a relative (PLUS) COLUMN operand (ISO §13.18.29 / §13.18.14) is "
+                    + "not yet implemented");
 
-            // A SUM entry establishes a counter whether or not it is printable (§13.18.54.4 GR1/GR3).
+            // VARYING (§13.18.64): SR1 — the entry shall also contain OCCURS or a multiple LINE or multiple
+            // COLUMN clause (the OCCURS / multiple-LINE vehicles staged loud above ride their own 0899).
+            if (varyings.Count > 0)
+            {
+                if (!staysLoud && columns.Count <= 1)
+                    Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' entry '{entryName ?? "FILLER"}': a VARYING "
+                        + "clause requires the entry to also contain an OCCURS clause or a multiple LINE or "
+                        + "multiple COLUMN clause (ISO §13.18.64.3 SR1)");
+                foreach (var v in varyings)
+                {
+                    // SR3: data-name-1 shall not be referenced in arithmetic-expression-1 of the same clause.
+                    if (v.FromCtx is not null && varyings.Any(o => HasWord(v.FromCtx, o.Name)))
+                        Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' VARYING '{v.Name}': the counter shall "
+                            + "not be referenced in the FROM expression of the same VARYING clause (ISO "
+                            + "§13.18.64.3 SR3)");
+                    // SR3 permits the counter in arithmetic-expression-2 — that leg is staged loud (the
+                    // expression would need to bind against the compose-local counter).
+                    if (v.ByCtx is not null && varyings.Any(o => HasWord(v.ByCtx, o.Name)))
+                        Edition.Error(DiagnosticCatalog.ReportVaryingCounterInExpression, $"RD '{model.Name}' VARYING '{v.Name}': a "
+                            + "VARYING counter referenced inside the BY expression (ISO §13.18.64.3 SR3) is not "
+                            + "yet implemented");
+                }
+            }
+
+            if (opened is not null)
+            {
+                line = opened;
+                group.Lines.Add(line);
+                // The line's PRESENT WHEN chain: every ancestor condition + this entry's own (§13.18.41 GR2b).
+                foreach (var (_, c) in chain) if (c is not null) line.PresentWhenCtxs.Add(c);
+                if (ownCond is not null) line.PresentWhenCtxs.Add(ownCond);
+                lineChainDepth = chain.Count + 1;   // this entry's frame is pushed below
+            }
+
+            // A SUM entry establishes a counter whether or not it is printable (§13.18.54.4 GR1/GR3); its FULL
+            // chain governs the GR10 print/reset suppression (§13.18.41.4 GR3g).
             ReportSumModel? sum = null;
             if (sumClause is not null)
-                sum = BindSumClause(sumClause, entryName, picText, group, model);
-
-            if (column is { } col)
             {
+                sum = BindSumClause(sumClause, entryName, picText, group, model);
+                foreach (var (_, c) in chain) if (c is not null) sum.PresentWhenCtxs.Add(c);
+                if (ownCond is not null) sum.PresentWhenCtxs.Add(ownCond);
+            }
+
+            if (columns.Count > 0)
+            {
+                int col = columns[0].Value;
                 if (line is null)
                 {
                     Edition.Error(DiagnosticCatalog.ReportColumnWithoutLine, $"RD '{model.Name}': a COLUMN clause with no LINE clause in "
                         + "effect (ISO §13.18.14 — a printable item belongs to a report line)");
+                    chain.Add((level, ownCond));
                     continue;
                 }
                 // The printable item (§13.18.14): a SYNTHETIC DataItem carrying the PICTURE so the emitter's ONE
@@ -346,6 +491,7 @@ public sealed partial class DataBinder
                 {
                     Edition.Error(DiagnosticCatalog.ReportItemMissingPicture, $"RD '{model.Name}': printable item at COLUMN {col} has no "
                         + "PICTURE clause (ISO §13.16 — an elementary printable item requires one)");
+                    chain.Add((level, ownCond));
                     continue;
                 }
                 if (pic.Usage is not Usage.Display)
@@ -368,12 +514,46 @@ public sealed partial class DataBinder
                     : source
                     ?? (rawValue is not null ? new FieldValueSource(rawValue)
                         : new FieldValueSource("SPACE"));   // no VALUE/SOURCE/SUM ⇒ spaces (ISO §13.15 — empty item)
-                line.Fields.Add(new ReportFieldModel
+                // SOURCE naming the entry's own VARYING counter (§13.18.64.4 GR4 NOTE — a counter is a source item).
+                if (src is FieldDataSource { Qualifiers.Count: 0 } fd)
                 {
-                    Column = col, PrintItem = item, Source = src, GroupIndicate = groupIndicate,
-                });
+                    int vi = varyings.FindIndex(v => v.Name.Equals(fd.Name, StringComparison.OrdinalIgnoreCase));
+                    if (vi >= 0) src = new FieldVaryingSource(vi);
+                }
+                var field = new ReportFieldModel
+                {
+                    Columns = columns, PrintItem = item, Source = src, GroupIndicate = groupIndicate,
+                };
+                // The field-local chain: conditions strictly BELOW the line entry (its own chain gates the line).
+                for (int ci = Math.Min(lineChainDepth, chain.Count); ci < chain.Count; ci++)
+                    if (chain[ci].Cond is { } c) field.PresentWhenCtxs.Add(c);
+                if (ownCond is not null && opened is null) field.PresentWhenCtxs.Add(ownCond);
+                field.Varyings.AddRange(varyings);
+                line.Fields.Add(field);
             }
+
+            chain.Add((level, ownCond));
         }
+    }
+
+    /// <summary>True when <paramref name="tree"/> contains a terminal of <paramref name="tokenType"/>.</summary>
+    private static bool HasToken(Antlr4.Runtime.Tree.IParseTree tree, int tokenType)
+    {
+        if (tree is Antlr4.Runtime.Tree.ITerminalNode t) return t.Symbol.Type == tokenType;
+        for (int i = 0; i < tree.ChildCount; i++)
+            if (HasToken(tree.GetChild(i), tokenType)) return true;
+        return false;
+    }
+
+    /// <summary>True when <paramref name="tree"/> contains a word terminal spelled <paramref name="word"/>
+    /// (case-insensitive) — the VARYING-counter / report-section-name reference scans.</summary>
+    private static bool HasWord(Antlr4.Runtime.Tree.IParseTree tree, string word)
+    {
+        if (tree is Antlr4.Runtime.Tree.ITerminalNode t)
+            return t.GetText().Equals(word, StringComparison.OrdinalIgnoreCase);
+        for (int i = 0; i < tree.ChildCount; i++)
+            if (HasWord(tree.GetChild(i), word)) return true;
+        return false;
     }
 
     /// <summary>Map a TYPE clause (ISO §13.18.57 Format 2 + the SR9 abbreviations) onto the group model,
@@ -550,13 +730,83 @@ public sealed partial class DataBinder
                         + "not an operand of the CONTROL clause (ISO §13.18.54.3 SR8)");
             }
 
-            // Line width: the FD's fixed RECORD CONTAINS, else the widest field extent (column + width − 1).
-            int widest = 1;
+            // PRESENT WHEN SR16 (§13.15.3): condition-1 shall not reference a sum counter, LINE-COUNTER,
+            // PAGE-COUNTER, or another report section data item. Scanned over each DISTINCT captured condition
+            // (an entry's condition appears in every subordinate chain) against this RD's report-section names.
+            CheckConditionOperands(model);
+
+            // VARYING SR2 (§13.18.64.3): data-name-1 shall not be defined elsewhere in the source element.
             foreach (var g in model.Groups)
                 foreach (var ln in g.Lines)
                     foreach (var f in ln.Fields)
-                        widest = Math.Max(widest, f.Column + f.PrintItem.ImageWidth - 1);
+                        foreach (var v in f.Varyings)
+                            if (ByName.ContainsKey(v.Name))
+                                Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}' VARYING '{v.Name}': the counter "
+                                    + "data-name shall not be defined elsewhere in the source element (ISO "
+                                    + "§13.18.64.3 SR2)");
+
+            // Line width: the FD's fixed RECORD CONTAINS, else the widest NOMINAL field extent — absolute
+            // operands at column + width − 1; relative (PLUS) operands walked against the line's horizontal
+            // counter with every item present (§13.18.14.4 GR7–GR9; presentation-time absence only SHRINKS the
+            // occupied extent, so the all-present walk is the width bound).
+            int widest = 1;
+            foreach (var g in model.Groups)
+                foreach (var ln in g.Lines)
+                {
+                    int hc = 0;
+                    foreach (var f in ln.Fields)
+                        foreach (var spec in f.Columns)
+                        {
+                            int left = spec.Relative ? hc + spec.Value : spec.Value;
+                            hc = left + f.PrintItem.ImageWidth - 1;   // GR9 — the rightmost column becomes the counter
+                            widest = Math.Max(widest, hc);
+                        }
+                }
             model.LineWidth = model.File?.RecordContains ?? widest;
+        }
+    }
+
+    /// <summary>The §13.15.3 SR16 scan: no PRESENT WHEN condition of <paramref name="model"/> may reference
+    /// LINE-COUNTER, PAGE-COUNTER, a sum counter, or another report section data item (group / printable-entry
+    /// names). Token-level scan over each distinct captured condition context.</summary>
+    private void CheckConditionOperands(ReportModel model)
+    {
+        var conds = new HashSet<Core.ConditionContext>(ReferenceEqualityComparer.Instance);
+        foreach (var g in model.Groups)
+            foreach (var ln in g.Lines)
+            {
+                foreach (var c in ln.PresentWhenCtxs) conds.Add(c);
+                foreach (var f in ln.Fields)
+                    foreach (var c in f.PresentWhenCtxs) conds.Add(c);
+            }
+        foreach (var s in model.Sums)
+            foreach (var c in s.PresentWhenCtxs) conds.Add(c);
+        if (conds.Count == 0) return;
+
+        // A name also declared in ordinary storage resolves THERE (never to the report item), so it is not an
+        // SR16 reference — only report-section-exclusive names are scanned (no textual false positives).
+        var names = new List<string>();
+        foreach (var g in model.Groups)
+        {
+            if (g.Name is { } gn && !ByName.ContainsKey(gn)) names.Add(gn);
+            foreach (var ln in g.Lines)
+                foreach (var f in ln.Fields)
+                    if (f.PrintItem.CobolName is { } fn && !ByName.ContainsKey(fn)) names.Add(fn);
+        }
+        foreach (var s in model.Sums) if (!ByName.ContainsKey(s.Id)) names.Add(s.Id);
+
+        foreach (var cond in conds)
+        {
+            if (HasToken(cond, CobolLexer.LINE_COUNTER) || HasToken(cond, CobolLexer.PAGE_COUNTER))
+                Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': a PRESENT WHEN condition shall not "
+                    + "reference LINE-COUNTER or PAGE-COUNTER (ISO §13.15.3 SR16)");
+            foreach (var n in names)
+                if (HasWord(cond, n))
+                {
+                    Edition.Error(DiagnosticCatalog.ReportGroupClauseRule, $"RD '{model.Name}': a PRESENT WHEN condition shall not "
+                        + $"reference the report section data item '{n}' (ISO §13.15.3 SR16)");
+                    break;
+                }
         }
     }
 

@@ -472,7 +472,12 @@ internal static class RuntimeApi
 
     /// <summary>Place a printable item's image at its COLUMN (§13.18.14) — <c>CobolReport.Place</c>.</summary>
     public static string ReportPlace(string lineVar, int column, string image) =>
-        $"{nameof(CobolReport)}.{nameof(CobolReport.Place)}({lineVar}, {column}, {image})";
+        ReportPlace(lineVar, column.ToString(), image);
+
+    /// <summary>The variable-column form of <see cref="ReportPlace(string,int,string)"/> — a relative (PLUS)
+    /// COLUMN operand places against the line's horizontal counter (§13.18.14.4 GR8).</summary>
+    public static string ReportPlace(string lineVar, string columnExpr, string image) =>
+        $"{nameof(CobolReport)}.{nameof(CobolReport.Place)}({lineVar}, {columnExpr}, {image})";
 
     /// <summary>Decode a DISPLAY image back into a native numeric leaf, preserving unset positions from the
     /// current value — <c>CobolNum.StoreDisplay</c>.</summary>

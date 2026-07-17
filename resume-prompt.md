@@ -57,7 +57,10 @@ lifted via `ResolveForAddressOf` on the ONE cell-offset formula; class-unit BASE
 = named residues).
 Read the P10 doc's checkboxes for the live step state; remaining waves:
 UDF BY VALUE+RECURSIVE · file-sharing extension · line-seq 62 ·
-ARITH-STANDARD consumption · B-SHIFT · RW-2002 (the one L) · TYPEDEF SAME AS · ALPHABET-national.
+ARITH-STANDARD consumption · B-SHIFT · TYPEDEF SAME AS · ALPHABET-national.
+(RW-2002 landed 2026-07-16 — Step 13: PRESENT WHEN + VARYING + multiple/relative COLUMN on the existing RWCS;
+COBOLNET1559 SR family; golden `2002/rw_present_when`; multiple-LINE repetition staged 0899 with the
+report-group OCCURS family.)
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's
 conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored in the

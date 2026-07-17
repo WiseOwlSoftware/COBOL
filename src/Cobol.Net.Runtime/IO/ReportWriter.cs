@@ -17,7 +17,7 @@ public enum ReportLineKind { Absolute, Relative }
 /// LINE-COUNTER is set to the line's number (ISO §13.18.35.4 GR6) — which is what makes <c>SOURCE IS
 /// LINE-COUNTER</c> print the line's OWN number and every SOURCE an implicit MOVE executed "when the line is
 /// printed" (§13.18.53.4 GR1/GR3).</summary>
-public sealed class ReportGroupLine(ReportLineKind kind, int value, Func<string> compose)
+public sealed class ReportGroupLine(ReportLineKind kind, int value, Func<string> compose, Func<bool>? present = null)
 {
     /// <summary>Absolute or relative (ISO §13.18.35).</summary>
     public ReportLineKind Kind { get; } = kind;
@@ -27,6 +27,11 @@ public sealed class ReportGroupLine(ReportLineKind kind, int value, Func<string>
 
     /// <summary>The generated compose method — the §13.18.53.4 GR1 implicit MOVEs into one line image.</summary>
     public Func<string> Compose { get; } = compose;
+
+    /// <summary>The line's PRESENT WHEN condition chain (ISO §13.18.41 Format 1), AND-composed by the emitter;
+    /// null = unconditional. Evaluated ONCE per group presentation, before any LINE clause is processed (GR2);
+    /// false ⇒ the line is processed as though its entry were omitted (GR2b).</summary>
+    public Func<bool>? Present { get; } = present;
 }
 
 /// <summary>One report group (ISO §13.15 report group description entry): its TYPE, name (referenced by GENERATE
@@ -120,13 +125,19 @@ public sealed class CobolReport(
     /// <summary>One SUM counter (ISO §13.18.54): an unscaled integer accumulation at the counter's scale (GR1 —
     /// digits derived from the entry's PICTURE), an addend delegate over the program's typed storage, the UPON
     /// detail filter (GR7c2), the RESET control level (GR2; −1 = reset where printed), and the group it prints in.</summary>
-    private sealed class SumEntry(Func<long> addend, string[]? uponDetails, int resetLevel, ReportGroup printedIn)
+    private sealed class SumEntry(
+        Func<long> addend, string[]? uponDetails, int resetLevel, ReportGroup printedIn, Func<bool>? present)
     {
         public long Value;
         public Func<long> Addend { get; } = addend;
         public string[]? UponDetails { get; } = uponDetails;
         public int ResetLevel { get; } = resetLevel;
         public ReportGroup PrintedIn { get; } = printedIn;
+
+        /// <summary>The SUM entry's PRESENT WHEN chain (ISO §13.18.41.4 GR3g / §13.18.54.4 GR10): when false at
+        /// a presentation the counter is neither printed (the printable face carries the same chain in its
+        /// compose) nor reset. Null = unconditional.</summary>
+        public Func<bool>? Present { get; } = present;
     }
 
     private readonly Dictionary<string, SumEntry> _sums = new(StringComparer.OrdinalIgnoreCase);
@@ -156,9 +167,12 @@ public sealed class CobolReport(
     /// <summary>Register a SUM counter (ISO §13.18.54). <paramref name="addend"/> yields the addends' current
     /// total, already at the counter's scale; <paramref name="uponDetails"/> restricts accumulation to the named
     /// details (GR7c2; null = every GENERATE for this report, GR7c1); <paramref name="resetLevel"/> is the RESET
-    /// control level (GR2; −1 = reset at the end of the group it prints in).</summary>
-    public void AddSum(string id, Func<long> addend, string[]? uponDetails, int resetLevel, ReportGroup printedIn) =>
-        _sums[id] = new SumEntry(addend, uponDetails, resetLevel, printedIn);
+    /// control level (GR2; −1 = reset at the end of the group it prints in); <paramref name="present"/> is the
+    /// entry's PRESENT WHEN chain (§13.18.41.4 GR3g — false suppresses the end-of-group reset; null =
+    /// unconditional).</summary>
+    public void AddSum(string id, Func<long> addend, string[]? uponDetails, int resetLevel, ReportGroup printedIn,
+        Func<bool>? present = null) =>
+        _sums[id] = new SumEntry(addend, uponDetails, resetLevel, printedIn, present);
 
     /// <summary>A SUM counter's current value (unscaled, at the counter's scale) — read by the generated compose
     /// of the printable item the counter is the source of (ISO §13.18.54.4 GR4).</summary>
@@ -307,40 +321,53 @@ public sealed class CobolReport(
         var lines = group.Lines;
         if (lines.Length == 0) return;     // a dummy group affects no counters (§8.4.3.15.4 GR5)
 
+        // §13.18.41.4 GR2: every PRESENT WHEN condition is evaluated ONCE, before the processing of any LINE
+        // clauses for the report group. An absent line is processed as though its entry were omitted (GR2b);
+        // when EVERY line is absent the effect is as though the entire description were omitted — no fit test,
+        // no printing, no counter movement, no sum reset (the dummy-group shape above).
+        var (present, first) = EvaluatePresent(lines);
+        if (first < 0) return;
+
         if (_paged && !_firstBodySinceInitiate)
         {
             // §13.18.35.4 GR4b (absolute): fit iff integer-1 > LINE-COUNTER. GR4c (relative): trial =
             // LINE-COUNTER + Σ integer-2 over the group's relative LINE clauses; fit iff trial ≤ the group's
-            // lower limit (§13.18.57.4 GR8: detail → LAST DETAIL; CH → LAST CH; CF → FOOTING).
+            // lower limit (§13.18.57.4 GR8: detail → LAST DETAIL; CH → LAST CH; CF → FOOTING). Which LINE
+            // clause is "first" — and which contribute — depends on the PRESENT WHEN values (§13.18.35.4
+            // GR4/§13.18.41.4 GR3a/GR3d: absent lines are disregarded by the page fit test).
             // ⚠ The 2023 GR4c wording — "incremented by integer-2 for each *subsequent* LINE clause" — is
             // ambiguous about the FIRST relative line's integer-2; the NIST goldens and the legacy oracle
             // resolve it as the sum over ALL relative lines (RW103A overflows exactly at LINE-COUNTER 25 with
             // LAST DETAIL 25 and one PLUS 1 line: 25+1 > 25), and GR5b3 then IGNORES the first line's relative
             // value anyway (first body group on the new page lands at FIRST DETAIL). Encoded as Σ over all.
             bool fit;
-            if (lines[0].Kind == ReportLineKind.Absolute)
-                fit = lines[0].Value > LineCounter;
+            if (lines[first].Kind == ReportLineKind.Absolute)
+                fit = lines[first].Value > LineCounter;
             else
             {
                 long trial = LineCounter;
-                foreach (var l in lines)
-                    if (l.Kind == ReportLineKind.Relative) trial += l.Value;
+                for (int i = 0; i < lines.Length; i++)
+                    if ((present is null || present[i]) && lines[i].Kind == ReportLineKind.Relative)
+                        trial += lines[i].Value;
                 fit = trial <= LowerLimit(group);
             }
             if (!fit) AdvancePage();   // §13.18.35.4 GR4 tail → the §14.9.16.4 GR6 sequence
         }
 
+        bool isFirst = true;
         for (int i = 0; i < lines.Length; i++)
         {
+            if (present is not null && !present[i]) continue;   // §13.18.41.4 GR2b — the next relative line re-anchors on LINE-COUNTER
             long target;
-            if (i == 0)
+            if (isFirst)
             {
                 // §13.18.35.4 GR5a: absolute → integer-1. GR5b3 (paged, relative): the FIRST body group on the
                 // page lands at FIRST DETAIL (the relative value is IGNORED); otherwise LINE-COUNTER + integer-2.
-                // GR5c (unpaged, relative): LINE-COUNTER + integer-2.
-                target = lines[0].Kind == ReportLineKind.Absolute ? lines[0].Value
+                // GR5c (unpaged, relative): LINE-COUNTER + integer-2. "First" = the first PRESENT line (GR5).
+                target = lines[i].Kind == ReportLineKind.Absolute ? lines[i].Value
                     : _paged && _firstBodyOnPage ? _firstDetail
-                    : LineCounter + lines[0].Value;
+                    : LineCounter + lines[i].Value;
+                isFirst = false;
             }
             else
                 // GR7: a subsequent absolute line → integer-1; relative → LINE-COUNTER + integer-2.
@@ -351,6 +378,23 @@ public sealed class CobolReport(
         _firstBodyOnPage = false;
         if (group.Kind == ReportGroupKind.Detail) _indicateFresh = false;   // §13.18.29 — repeats now suppress
         EndOfGroupSumReset(group);
+    }
+
+    /// <summary>Evaluate the lines' PRESENT WHEN conditions (ISO §13.18.41.4 GR2 — once per presentation,
+    /// before any LINE processing). Returns a null flag array when every line is unconditional (the untouched
+    /// fast path) and the index of the first present line (−1 = all absent).</summary>
+    private static (bool[]? Present, int First) EvaluatePresent(ReportGroupLine[] lines)
+    {
+        bool[]? present = null;
+        for (int i = 0; i < lines.Length; i++)
+            if (lines[i].Present is not null)
+            {
+                present = new bool[lines.Length];
+                for (int j = 0; j < lines.Length; j++) present[j] = lines[j].Present?.Invoke() ?? true;
+                break;
+            }
+        if (present is null) return (null, lines.Length > 0 ? 0 : -1);
+        return (present, Array.IndexOf(present, true));
     }
 
     /// <summary>The body group's LOWER LIMIT for the page-fit test (ISO §13.18.57.4 GR8d/e/f).</summary>
@@ -380,34 +424,46 @@ public sealed class CobolReport(
     }
 
     /// <summary>Present the page heading (placement ISO §13.18.35.4 GR5b2: absolute → integer-1; relative with no
-    /// report heading on the page → HEADING + integer-2 − 1, with one → LINE-COUNTER + integer-2).</summary>
+    /// report heading on the page → HEADING + integer-2 − 1, with one → LINE-COUNTER + integer-2). "First" =
+    /// the first PRESENT line (§13.18.41.4 GR2/GR5); an all-absent PH prints nothing (GR2b).</summary>
     private void PresentPageHeading()
     {
         var ph = _pageHeading!;
         ph.BeforeReporting?.Invoke();   // §14.9.49 Format 2 GR8
+        var (present, first) = EvaluatePresent(ph.Lines);
+        if (first < 0) return;
+        bool isFirst = true;
         for (int i = 0; i < ph.Lines.Length; i++)
         {
+            if (present is not null && !present[i]) continue;               // §13.18.41.4 GR2b
             var l = ph.Lines[i];
             long target = l.Kind == ReportLineKind.Absolute ? l.Value
-                : i > 0 ? LineCounter + l.Value                              // GR7
+                : !isFirst ? LineCounter + l.Value                           // GR7
                 : _rhOnThisPage ? LineCounter + l.Value                      // GR5b2 second form
                 : _heading + l.Value - 1;                                    // GR5b2 first form
+            isFirst = false;
             PresentLine(target, l, ph);
         }
     }
 
     /// <summary>Present the page footing (placement ISO §13.18.35.4 GR5b4: absolute → integer-1; relative →
-    /// FOOTING + integer-2).</summary>
+    /// FOOTING + integer-2). "First" = the first PRESENT line (§13.18.41.4 GR2/GR5); an all-absent PF prints
+    /// nothing (GR2b).</summary>
     private void PresentPageFooting()
     {
         var pf = _pageFooting!;
         pf.BeforeReporting?.Invoke();   // §14.9.49 Format 2 GR8
+        var (present, first) = EvaluatePresent(pf.Lines);
+        if (first < 0) return;
+        bool isFirst = true;
         for (int i = 0; i < pf.Lines.Length; i++)
         {
+            if (present is not null && !present[i]) continue;               // §13.18.41.4 GR2b
             var l = pf.Lines[i];
             long target = l.Kind == ReportLineKind.Absolute ? l.Value
-                : i > 0 ? LineCounter + l.Value                              // GR7
+                : !isFirst ? LineCounter + l.Value                           // GR7
                 : _footing + l.Value;                                        // GR5b4
+            isFirst = false;
             PresentLine(target, l, pf);
         }
         _pfOnThisPage = true;
@@ -415,18 +471,24 @@ public sealed class CobolReport(
 
     /// <summary>Present the report heading or report footing in flow (placement ISO §13.18.35.4 GR5b1 for RH —
     /// relative → HEADING + integer-2 − 1; GR5b5 for RF — relative → FOOTING + integer-2 unless a page footing
-    /// printed on the same page, then LINE-COUNTER + integer-2; absolute → integer-1 for both).</summary>
+    /// printed on the same page, then LINE-COUNTER + integer-2; absolute → integer-1 for both). "First" = the
+    /// first PRESENT line (§13.18.41.4 GR2/GR5); an all-absent group prints nothing (GR2b).</summary>
     private void PresentHeadingFooting(ReportGroup group)
     {
         group.BeforeReporting?.Invoke();   // §14.9.49 Format 2 GR8
+        var (present, first) = EvaluatePresent(group.Lines);
+        if (first < 0) return;
+        bool isFirst = true;
         for (int i = 0; i < group.Lines.Length; i++)
         {
+            if (present is not null && !present[i]) continue;               // §13.18.41.4 GR2b
             var l = group.Lines[i];
             long target = l.Kind == ReportLineKind.Absolute ? l.Value
-                : i > 0 ? LineCounter + l.Value                              // GR7
+                : !isFirst ? LineCounter + l.Value                           // GR7
                 : group.Kind == ReportGroupKind.ReportHeading ? _heading + l.Value - 1            // GR5b1
                 : _pfOnThisPage ? LineCounter + l.Value                                            // GR5b5
                 : _footing + l.Value;                                                              // GR5b5
+            isFirst = false;
             PresentLine(target, l, group);
         }
         if (group.Kind == ReportGroupKind.ReportHeading) _rhOnThisPage = true;
@@ -465,6 +527,10 @@ public sealed class CobolReport(
     {
         foreach (var s in _sums.Values)
         {
+            // An entry absent under its PRESENT WHEN chain is neither printed nor reset for this instance of
+            // the report group (ISO §13.18.41.4 GR3g / §13.18.54.4 GR10) — the print half falls out of the
+            // compose (the printable face carries the same chain); the reset half is suppressed here.
+            if (s.Present?.Invoke() == false) continue;
             bool reset = s.ResetLevel >= 0
                 ? group.Kind == ReportGroupKind.ControlFooting && group.ControlLevel == s.ResetLevel
                 : ReferenceEquals(s.PrintedIn, group);

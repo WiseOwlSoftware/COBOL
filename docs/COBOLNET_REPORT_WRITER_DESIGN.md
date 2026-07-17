@@ -16,8 +16,13 @@ the NIST goldens never compare** (`ReportWriterConformanceTests`) — load-beari
 report-file content is demonstrably WRONG in two places (see §7); the spec, not the oracle, governs.
 
 **Edition status:** RW is an optional module in COBOL-85 (the NIST RW suite runs `--std 85`) and an optional
-language element in 2023 (A.4.11). Its 2002 status is NOT derivable from the 2023 spec text — flagged as a
-`VERSION_CHANGE_REFERENCE.md` follow-up row; the grammar is NOT edition-gated today.
+language element in 2023 (A.4.11). Its module-level 2002 status is NOT derivable from the 2023 spec text —
+flagged as a `VERSION_CHANGE_REFERENCE.md` follow-up row. The '85 clause surface is not edition-gated; the
+2002 RW additions ARE (the VersionConformancePass parse arm, 0900 below 2002): PRESENT WHEN (§13.18.41 F1),
+VARYING (§13.18.64), the multiple/relative COLUMN forms + COL/COLS/COLUMNS/NUMBERS/ARE spellings (§13.18.14 F1
+— the '85 form was exactly `COLUMN NUMBER IS integer-1`), and the multiple-LINE form + LINES/NUMBERS/ARE
+spellings (§13.18.35 F1). Matrix rows `report-present-when-2002` / `report-varying-2002` /
+`report-multi-column-2002` (+ `report-multi-line-2002` pending).
 
 ## 1. Architecture (ONE mechanism — compose-at-presentation)
 
@@ -64,8 +69,11 @@ RD → ReportModel                 INITIATE/GENERATE/TERMINATE →        engine
 | `Terminate` | §14.9.46.4 GR1 (inactive seam), **GR2 (no GENERATE ⇒ NO groups print — only →inactive)**, GR3a–d (controls→prior, CFs minor→major, restore), §13.18.57.4 GR6f (final-page PF, "immediately followed by" the RF), GR3c (RF), GR6 (file NOT closed) |
 | controls | §13.18.16.4 GR1 (operand order = hierarchy), GR2 (FINAL highest, never breaks mid-report), GR3 (first GENERATE saves priors; major→minor compare), GR4a (CF composes under restored prior values), GR5 (TERMINATE = most-major break). Break key = the item's CHARACTER IMAGE via generated get/set delegates (representation-faithful for every category; restore decodes via `CobolNum.StoreDisplay` for native numeric leaves) |
 | SUM | §13.18.54.4 GR1 (counter scale from the entry's PICTURE), GR2 (reset where printed / RESET ON level), GR4 (the counter is the printable entry's source item — `BoundReportSumRef`), GR7c1/c2 (accumulate per GENERATE / UPON detail filter), GR9 (multi-addend) |
-| GROUP INDICATE | §13.18.29 — indicated items print on the first presentation after INITIATE / page advance / control break, blanked otherwise (engine-side, post-compose) |
+| GROUP INDICATE | §13.18.29 — indicated items print on the first presentation after INITIATE / page advance / control break, blanked otherwise (engine-side, post-compose); one blank span per ABSOLUTE COLUMN operand |
 | USE BEFORE REPORTING | §14.9.49 Format 2 GR8/SR9 — the declarative section binds to the named group (`BoundDeclarative.ReportGroup`) and runs via the group's `BeforeReporting` hook (a `__RunUse` bounded dispatch) just before the group is produced |
+| PRESENT WHEN | §13.18.41 Format 1 — `EvaluatePresent` evaluates every line's condition chain ONCE per presentation, BEFORE any LINE processing (GR2, after the `BeforeReporting` hook); an absent line is SKIPPED so the next relative line re-anchors on LINE-COUNTER (GR2b — the line collapse); the fit-test form, the trial sum, and the GR5 first-line placement key on the first PRESENT line (§13.18.35.4 GR4/GR5; absent relative lines excluded from the trial, §13.18.41.4 GR3d); ALL lines absent ⇒ return-before-flags, as though the whole description were omitted (GR2b — no counters, no fit, no sum reset); an absent SUM entry is neither printed (the compose guard) nor reset (`EndOfGroupSumReset` consults `SumEntry.Present` — GR3g/§13.18.54.4 GR10); absent printable items place nothing and never advance the horizontal counter (GR3e/GR3f) |
+| VARYING | §13.18.64 — per-repetition counters over the multiple-COLUMN repetition vehicle (SR1): compose-local `long`s, first occurrence ← FROM (default 1, GR3a — re-evaluated per presentation), += BY per repetition (default 1, GR3b); each value persists through its occurrence (GR4 — `SOURCE IS counter` renders it, GR4 NOTE); a noninteger FROM/BY truncates via `Rescale` (the GR5 EC-REPORT-VARYING seam, checking default-off §18.16) |
+| multiple/relative COLUMN | §13.18.14 F1 — a multiple COLUMN clause defines one printable item per operand (GR12); relative (PLUS) operands place at `horizontal counter + integer-2` (GR8) with the counter starting at 0 (GR7) and set to each placed item's rightmost column (GR9) |
 
 **The GR4c trial-sum ambiguity (decided):** the 2023 wording "incremented by integer-2 for each *subsequent*
 LINE clause" is ambiguous for the FIRST relative line's integer-2. The NIST goldens + the legacy resolve it
@@ -99,6 +107,21 @@ off-by-one through every later counter check.
   through ONE chokepoint, `ResolveReceiving` — a counter receiver is rejected at bind (LINE-COUNTER illegal
   per §8.4.3.15.3 SR3; PAGE-COUNTER legal-but-staged) instead of being silently dropped by
   `.OfType<Place>()` (the silent-miscompile hazard).
+- **PRESENT WHEN chains** (§13.18.41 F1): conditions accumulate down a level-number stack while the flat entry
+  list walks — §13.18.41.4 GR2b makes an absent ancestor absent every subordinate "irrespective of any PRESENT
+  WHEN clauses they may also contain", so presence = the AND of INDEPENDENT chain conditions. A LINE carries
+  the chain 01→line-entry; a printable field the slice strictly BELOW its line entry (the line's own chain
+  already gates the whole line); a SUM entry the FULL chain (the GR3g print/reset suppression). Conditions are
+  captured as parse contexts at data bind and bound in the procedure phase through the ONE `ConditionBinder`
+  (`ReportWriterBinder.BindReportGroupClauses`, memoized per distinct context, called at the top of
+  `StatementBinder.Bind`); VARYING FROM/BY bind the same way through the ONE expression binder.
+- **The §13.15.3/§13.18.64.3 SR family = COBOLNET1559** (`report-group-clause-rule`, one bundled code): SR16 —
+  condition-1 shall not reference LINE-/PAGE-COUNTER or a report-section data item (token scan in
+  `ResolveReports` over report-section-EXCLUSIVE names; a name also in ordinary storage resolves there and is
+  exempt); SR17 — GROUP INDICATE ⊥ PRESENT WHEN in one entry; VARYING SR1 — the entry needs OCCURS / multiple
+  LINE / multiple COLUMN (the first two vehicles are 0899-staged, so the LIVE vehicle is multiple COLUMN);
+  SR2 — the counter shall not be defined elsewhere (`ByName` probe); SR3 — the counter shall not appear in its
+  own FROM. `SOURCE IS counter` (same entry, unqualified) rebinds to `FieldVaryingSource` (§13.18.64.4 GR4 NOTE).
 
 ## 4. Emission (`CodeGen/Verbs/ReportWriterEmitter.cs`)
 
@@ -108,8 +131,20 @@ off-by-one through every later counter check.
   the OPEN falls into the keyed-organization else-branch and every report write silently no-ops).
 - Per line: `private string __RPT_C_{r}_{g}_{l}()` — a space-filled `char[LineWidth]`
   (`CobolReport.NewLine`), each field placed at its COLUMN (`CobolReport.Place`) with the `ConvertSource`
-  image. SOURCE counters/sums render through `NumericRenderer` (`BoundReportCounterRef` /
-  `BoundReportSumRef` — one case each; both relation conditions and MOVE sources route through the renderer).
+  image. SOURCE counters/sums/VARYING counters render through `NumericRenderer` (`BoundReportCounterRef` /
+  `BoundReportSumRef` / `BoundReportVaryingRef` — one case each; both relation conditions and MOVE sources
+  route through the renderer).
+- Compose-side 2002 decoration (`EmitFieldPlacements`; the plain '85 shape — one absolute operand,
+  unconditional, no VARYING, all-absolute line — keeps its exact single-statement emission, the
+  characterization-pinned text): a field's PRESENT WHEN chain wraps its placements in `if (…)` (the
+  `ConditionRenderer` AND — §13.18.41.4 GR2b/GR3f: an absent item places nothing and never advances the
+  horizontal counter); a multiple COLUMN entry unrolls one `Place` per operand with `long __rv{uid}_{k}`
+  VARYING locals stepped between repetitions (§13.18.64.4 GR3a/GR3b; FROM/BY align to scale 0 via `Rescale`
+  truncation — the GR5 EC-REPORT-VARYING seam); `int __hc` (emitted only when a relative operand exists)
+  realizes the §13.18.14.4 GR7/GR8/GR9 horizontal counter.
+- Construction decoration: a conditioned line appends `, () => chain` to its `ReportGroupLine` (the engine
+  evaluates it once per presentation, GR2); a conditioned SUM entry appends its chain to `AddSum` (the GR3g
+  reset suppression). Both parameters are optional — unconditioned emission is byte-identical.
 - Verbs: `__RPT_n.Initiate()/.Generate("DETAIL-NAME" | null)/.Terminate()`; multi-name statements unroll in
   written order (§14.9.21.4 GR5 / §14.9.46.4 GR4).
 - Multi-unit: engine fields are per-instance; the engine's file name is the SAME emit-qualified
@@ -121,17 +156,29 @@ off-by-one through every later counter check.
 (any level); COLUMN/PIC/SOURCE/VALUE/JUSTIFIED/BLANK WHEN ZERO/SIGN printable items; SOURCE
 LINE-/PAGE-COUNTER; CONTROL/CONTROLS incl. FINAL (breaks, prior-value CF composition, TERMINATE final
 break); SUM + UPON + RESET; GROUP INDICATE; summary `GENERATE report-name`; multi-name INITIATE/TERMINATE;
-PD counter references incl. qualified; USE BEFORE REPORTING (Format 2 declaratives); unpaged reports.
+PD counter references incl. qualified; USE BEFORE REPORTING (Format 2 declaratives); unpaged reports;
+**PRESENT WHEN Format 1** (§13.18.41 — any entry level, chain semantics per GR2b, the GR3a–g LINE/COLUMN/SUM
+interactions, edition-gated 2002); **VARYING** (§13.18.64 — over the multiple-COLUMN repetition vehicle,
+counter-as-SOURCE, per-presentation FROM); **multiple + relative (PLUS) COLUMN** (§13.18.14 F1 incl. the
+COL/COLS/COLUMNS/NUMBERS/ARE spellings and the GR7–GR9 horizontal counter).
 
 **Staged LOUD at bind (`COBOLNET0899`, Edition.Error — legal-but-unimplemented, never silent):** NEXT GROUP
 (§13.18.37, incl. the WITH RESET PAGE-COUNTER form); CODE (§13.18.12); LINE … NEXT PAGE / ON NEXT PAGE;
-OCCURS in report groups (§13.18.38 repeating entries, multi-operand SOURCE §13.18.53 SR6); GLOBAL RD
-(§13.18.27); multi-report FDs (`REPORTS ARE r1 r2`); subscripted/ref-modified SOURCE; SOURCE of another
-report's counter; rolled SUM totals (§13.18.54.4 GR6 — a report-section addend); cross-report SUM
-(`SUM x OF report`); non-DISPLAY printable items; PAGE-COUNTER as a receiving operand. PAGE `COLS`/width
-and LAST CONTROL HEADING have no grammar surface (the GR3c default applies); **SUPPRESS (§14.9.45) has no
-grammar rule** — it cannot parse (a frontend change, which this wave may not make: shared-frontend guard).
-EC-REPORT-* checking is default-off (SSOT §18.16) — cited seam comments at every raise point.
+OCCURS in report groups (§13.18.38 repeating entries, multi-operand SOURCE §13.18.53 SR6); **multiple LINE
+(§13.18.35.3 SR10 — GR9-equivalent to LINE + a simple OCCURS, staged with the OCCURS repetition family;
+`report-multiple-line`)**; **a VARYING counter inside a FROM/BY expression (the §13.18.64.3 SR3-legal BY
+self-reference; `report-varying-counter-in-expression`)**; **FUNCTION inside a PRESENT WHEN condition
+(`report-condition-function` — the UDF activation-hoist is statement-context machinery)**; **GROUP INDICATE on
+an entry with a relative COLUMN operand (`report-indicate-relative-column` — the engine's blank spans need
+static columns)**; GLOBAL RD (§13.18.27); multi-report FDs (`REPORTS ARE r1 r2`); subscripted/ref-modified
+SOURCE; SOURCE of another report's counter; rolled SUM totals (§13.18.54.4 GR6 — a report-section addend);
+cross-report SUM (`SUM x OF report`); non-DISPLAY printable items; PAGE-COUNTER as a receiving operand. PAGE
+`COLS`/width, LAST CONTROL HEADING (the GR3c default applies), and **the COLUMN LEFT/CENTER/RIGHT alignment
+phrase (§13.18.14 F1 — the SR9 LEFT default is what the grammar parses)** have no grammar surface; **SUPPRESS
+(§14.9.45) has no grammar rule** — it cannot parse. The §13.18.14.3 SR4/SR5 IS/ARE-spelling pairings and the
+SR7/SR8/SR10b operand-order-vs-PRESENT-WHEN arrangement rules are not enforced (over-acceptance; the runtime
+overlap seams are EC-REPORT-COLUMN-OVERLAP/-LINE-OVERLAP, default-off). EC-REPORT-* checking is default-off
+(SSOT §18.16) — cited seam comments at every raise point.
 
 ## 6. Design authority (this doc + the cited GRs, not the legacy)
 
@@ -159,8 +206,16 @@ deep-dive table points here.
 
 - NIST: RW101A, RW102A, RW103A, RW104A GREEN (byte-match, `--std 85 --nist`) — counters (INITIATE values,
   per-GENERATE LINE-COUNTER, page-advance PAGE-COUNTER/FIRST-DETAIL placement over 3-page runs).
-- `tests/Cobol.Net.Tests.Conformance/ReportWriterConformanceTests.cs` (14 spec-pinned tests): INITIATE GR1;
+- `tests/Cobol.Net.Tests.Conformance/ReportWriterConformanceTests.cs` (15 spec-pinned tests): INITIATE GR1;
   GR5b3 first-body placement; GR4c trial-sum overflow; the §13.18.53.4 GR1 content pins (the two legacy
   bugs); PH composes its own line (GR6); RH-once/PH-per-page (GR4a/GR6f); PF at advance + final-page PF→RF
   (GR6a/GR6f/GR3c); TERMINATE-without-GENERATE (GR2); control-break prior/new values (GR4a); SUM
-  accumulate/reset/UPON (GR2/GR7); USE BEFORE REPORTING (GR8); LINE-COUNTER receiving rejection (SR3).
+  accumulate/reset/UPON (GR2/GR7); USE BEFORE REPORTING (GR8); LINE-COUNTER receiving rejection (SR3);
+  the §13.18.41.4 GR3g absent-SUM neither-prints-nor-resets pin (at `--std 2002`).
+- Corpus golden `tests/conformance/2002/rw_present_when.cob` (+`.out`, byte-exact, verified by RUNNING): the
+  PRESENT WHEN line collapse across a present and an absent presentation (the relative TAIL line re-anchors on
+  LINE-COUNTER, §13.18.41.4 GR2b), field-level suppression within a present line, and `COLUMNS ARE 12 16 20 …
+  VARYING RV-IDX FROM WS-SEQ BY 2` with the counter as SOURCE (per-presentation FROM). Negatives:
+  `present-when-at-85` (0900), `report-varying-no-repetition` (1559 §13.18.64.3 SR1),
+  `present-when-group-indicate` (1559 §13.15.3 SR17). Matrix rows `report-present-when-2002` /
+  `report-varying-2002` / `report-multi-column-2002` ACTIVE (+ `report-multi-line-2002` pending).

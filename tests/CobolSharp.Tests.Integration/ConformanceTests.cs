@@ -124,6 +124,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         // resets the statics per §14.9.5 GR3) — the legacy byte engine re-initializes a recursive unit's
         // WS per activation and never bound program-level LOCAL-STORAGE; greenfield-only coverage.
         ("2002", "recursive_ws"),
+        // Report-group PRESENT WHEN + VARYING + multiple COLUMN (§13.18.41/§13.18.64/§13.18.14, P10 Step 13)
+        // — the 2002 RW clauses never landed in the legacy Report Writer; greenfield-only coverage.
+        ("2002", "rw_present_when"),
         ("2002", "oo_interface"),
         ("2002", "oo_interface_conformance"),
         ("2002", "oo_class_env"),   // class-level env + object-own env both bind (DEVLOG-738 fix) — OBJECT-paragraph env never landed in legacy   // the §4.2.2 interface conformance leg (P9 Step 12) — interfaces never landed in legacy

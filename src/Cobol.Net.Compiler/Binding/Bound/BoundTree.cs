@@ -129,6 +129,12 @@ public sealed record BoundReportCounterRef(ReportModel Report, bool IsPage) : Bo
 /// PROCEDURE DIVISION references in this slice).</summary>
 public sealed record BoundReportSumRef(ReportModel Report, string Id, int Scale) : BoundExpr;
 
+/// <summary>A report VARYING counter read (ISO §13.18.64.4 GR3/GR4 — the per-repetition counter persists
+/// through its occurrence and acts as a source item): a scale-0 integer, <paramref name="CsName"/> naming the
+/// compose-local counter variable. Produced only by the report-section compose emission (a counter is
+/// referable only within its entry, §13.18.64.3 SR2).</summary>
+public sealed record BoundReportVaryingRef(string CsName) : BoundExpr;
+
 /// <summary>An operand the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundExprError(string Feature) : BoundExpr;
 

@@ -147,4 +147,8 @@ public static class Constructs
     public const string OptionsParagraph2002 = "options-paragraph-2002";
     public const string ArithmeticStandard2002 = "arithmetic-standard-2002";
     public const string ExceptionFileN2002 = "exception-file-n-2002";
+    public const string ReportPresentWhen2002 = "report-present-when-2002";
+    public const string ReportVarying2002 = "report-varying-2002";
+    public const string ReportMultiColumn2002 = "report-multi-column-2002";
+    public const string ReportMultiLine2002 = "report-multi-line-2002";
 }

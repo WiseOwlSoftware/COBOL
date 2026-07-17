@@ -22,7 +22,9 @@ cobolWord
     | B_XOR
     | CLOCK_UNITS
     | COL
+    | COLS
     | COLUMN
+    | COLUMNS
     | CONDITION
     | CONSTANT
     | DEBUGGING
@@ -56,9 +58,11 @@ cobolWord
     | MANUAL
     | NATIONAL
     | NORMAL
+    | NUMBERS
     | ONLY
     | OVERRIDE
     | PARSE
+    | PRESENT
     | PROCEDURES
     | PROCESSING
     | PROGRAM_POINTER

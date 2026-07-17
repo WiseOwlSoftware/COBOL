@@ -1717,6 +1717,58 @@
       "expectDiagnostic": "COBOLNET1502",
       "vcr": "M2 catalog EC -N twins (PHASE4_RECONCILIATION PROC-4/M4-2b); 2002 introduction (derive from the 2002 standard - Annex E covers 2014-2023 only; E.3.3 item 26 is the argument DELTA, not the introduction)",
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMEFN1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY FUNCTION EXCEPTION-FILE-N.\n    DISPLAY FUNCTION EXCEPTION-LOCATION-N.\n    STOP RUN.\n"
+    },
+    {
+      "id": "report-present-when-2002",
+      "status": "active",
+      "description": "The report-group PRESENT WHEN clause (§13.18.41 Format 1) — the entry (and its subordinates) is processed only when condition-1 is true, evaluated once per group presentation before any LINE clause processing (GR2); an absent entry is processed as though omitted (GR2b — relative lines re-anchor, absent items leave spaces, an absent SUM entry neither prints nor resets, GR3g). LIVE (P10 Step 13): conditions bind through the ONE ConditionBinder onto the report model; the RWCS engine evaluates per presentation. 2002 introduction — the 2023 Annex E covers 2014→2023 only; derived from the §8.9 reservation of PRESENT 'added 2002' (ReservedWords.Table — the word was reserved FOR this clause) + the 2002 RW modernization family.",
+      "display": "PRESENT WHEN (report group description)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.41 Format 1 / §13.15; introduction gate = VersionConformancePass ParseArm.VisitReportPresentWhenClause",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 RW addition (PRESENT reserved 'added 2002'; Annex E 2014→2023 has no introduction hit ⇒ predates 2014)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRPW1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrpw1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nWORKING-STORAGE SECTION.\n01 W-F PIC 9 VALUE 1.\nREPORT SECTION.\nRD R-1.\n01 D-1 TYPE DE.\n   03 LINE PLUS 1.\n      05 COLUMN 1 PIC X(2) VALUE \"OK\" PRESENT WHEN W-F = 1.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
+    },
+    {
+      "id": "report-varying-2002",
+      "status": "active",
+      "description": "The report-group VARYING clause (§13.18.64) — an independent temporary integer counter per repetition of a repeating report entry: first occurrence ← arithmetic-expression-1 (default 1, GR3a), subsequent occurrences += arithmetic-expression-2 (default 1, GR3b); each value persists through its occurrence (GR4 — usable as a SOURCE item). LIVE (P10 Step 13) on the multiple-COLUMN repetition vehicle (SR1); the OCCURS / multiple-LINE vehicles stage 0899 with the report-group OCCURS family. 2002 introduction — same derivation chain as report-present-when-2002 (VCR row 101's 2002→2014 TERMINATE-with-VARYING flagging delta presupposes the 2002 clause).",
+      "display": "VARYING (report group description)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.64 / §13.15; introduction gate = VersionConformancePass ParseArm.VisitReportVaryingClause",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 RW addition (VCR row 101 presupposes it in 2002; Annex E 2014→2023 has no introduction hit)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRVY1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrvy1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nREPORT SECTION.\nRD R-1.\n01 D-1 TYPE DE.\n   03 LINE PLUS 1.\n      05 COLUMNS ARE 1 5 9 PIC Z9 SOURCE IS R-V VARYING R-V FROM 1 BY 2.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
+    },
+    {
+      "id": "report-multi-column-2002",
+      "status": "active",
+      "description": "The multiple/relative COLUMN clause forms (§13.18.14 Format 1) — more than one operand defines a repeating printable item at possibly-unequal horizontal intervals (GR12, the SR10 'multiple COLUMN clause'); PLUS integer-2 positions relative to the line's horizontal counter (GR7/GR8/GR9); COL/COLS/COLUMNS/NUMBERS/ARE are the 2002 spellings (SR1). LIVE (P10 Step 13): compose-time horizontal-counter placement; an absent (PRESENT WHEN) item does not advance the counter (§13.18.41.4 GR3f). The COBOL-85 form was the single absolute 'COLUMN NUMBER IS integer-1' — everything else gates 2002.",
+      "display": "multiple/relative COLUMN (report group description)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.14 Format 1 SR10/GR7–GR12; introduction gate = VersionConformancePass ParseArm.VisitReportColumnClause",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 RW addition (COLS/COLUMNS reserved 'added 2002'; the 85 format is single-absolute-operand only)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRMC1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrmc1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nWORKING-STORAGE SECTION.\n01 W-A PIC 99 VALUE 7.\nREPORT SECTION.\nRD R-1.\n01 D-1 TYPE DE.\n   03 LINE PLUS 1.\n      05 COLUMN 1 12 PIC 99 SOURCE IS W-A.\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
+    },
+    {
+      "id": "report-multi-line-2002",
+      "status": "pending",
+      "description": "The multiple LINE clause (§13.18.35.3 SR10) — more than one operand defines a set of report lines at possibly-unequal vertical intervals (GR9: functionally a LINE + simple OCCURS). PENDING (P10 Step 13): recognized + introduction-gated (0900 below 2002); the vertical repetition itself stages LOUD (COBOLNET0899 report-multiple-line) with the report-group OCCURS family it is GR9-equivalent to.",
+      "display": "multiple LINE (report group description)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.35 Format 1 SR10/GR9; recognized + edition-gated (ParseArm.VisitReportLineClause), repetition staged 0899",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 RW addition (the 85 LINE format is single-operand; staged with report-group OCCURS)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMRML1.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT RPT ASSIGN TO \"vmrml1.rpt\".\nDATA DIVISION.\nFILE SECTION.\nFD RPT REPORT IS R-1.\nREPORT SECTION.\nRD R-1 PAGE LIMIT IS 20 LINES.\n01 D-1 TYPE DE.\n   03 LINE 2 4.\n      05 COLUMN 1 PIC X(2) VALUE \"OK\".\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT RPT.\n    INITIATE R-1.\n    GENERATE D-1.\n    TERMINATE R-1.\n    CLOSE RPT.\n    STOP RUN.\n"
     }
   ]
 }

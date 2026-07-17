@@ -671,6 +671,51 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The report-group PRESENT WHEN clause (ISO §13.18.41 Format 1; P10 Step 13) — a COBOL-2002
+        /// introduction (the 2002 RW modernization; PRESENT itself is §8.9-reserved "added 2002").
+        /// Recognition-based: the rule is report-section-exclusive (never shared with data/screen entries), and
+        /// the binder drops the condition on its own staging paths, so recognition is the drop-proof home.</summary>
+        public override object? VisitReportPresentWhenClause(CobolParserCore.ReportPresentWhenClauseContext ctx)
+        {
+            _p.Check(Constructs.ReportPresentWhen2002, "the PRESENT WHEN clause (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The report-group VARYING clause (ISO §13.18.64; P10 Step 13) — a COBOL-2002 introduction
+        /// (the repetition-counter half of the 2002 RW modernization). Recognition-based; report-section-exclusive
+        /// rule. The §13.18.64.3 SRs stay bind-time (COBOLNET1559).</summary>
+        public override object? VisitReportVaryingClause(CobolParserCore.ReportVaryingClauseContext ctx)
+        {
+            _p.Check(Constructs.ReportVarying2002, "the VARYING clause (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The 2002 COLUMN-clause forms (ISO §13.18.14 Format 1; P10 Step 13): more than one operand
+        /// (the SR10 "multiple COLUMN clause"), a relative PLUS operand, or the COL/COLS/COLUMNS/NUMBERS/ARE
+        /// spellings — the COBOL-85 form was exactly <c>COLUMN NUMBER IS integer-1</c>. Fires at most once per
+        /// written clause; report-section-exclusive rule.</summary>
+        public override object? VisitReportColumnClause(CobolParserCore.ReportColumnClauseContext ctx)
+        {
+            if (ctx.COL() is not null || ctx.COLS() is not null || ctx.COLUMNS() is not null
+                || ctx.NUMBERS() is not null || ctx.ARE() is not null
+                || ctx.reportColumnOperand().Length > 1
+                || ctx.reportColumnOperand().Any(o => o.PLUSWORD() is not null))
+                _p.Check(Constructs.ReportMultiColumn2002, "the multiple/relative COLUMN clause forms (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The 2002 LINE-clause forms (ISO §13.18.35 Format 1; P10 Step 13): more than one operand
+        /// (the SR10 "multiple LINE clause") or the LINES/NUMBERS/ARE spellings — the COBOL-85 form was
+        /// <c>LINE NUMBER IS</c> with ONE operand. The repetition itself also stages LOUD at bind
+        /// (COBOLNET0899 report-multiple-line). Report-section-exclusive rule.</summary>
+        public override object? VisitReportLineClause(CobolParserCore.ReportLineClauseContext ctx)
+        {
+            if (ctx.LINES() is not null || ctx.NUMBERS() is not null || ctx.ARE() is not null
+                || ctx.reportLineOperand().Length > 1)
+                _p.Check(Constructs.ReportMultiLine2002, "the multiple LINE clause form (report group description)");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>Whether <paramref name="ctx"/> (a data-description clause) sits inside a real
         /// <c>dataDescriptionEntry</c> whose level is NEITHER 66 nor 88 — i.e. exactly the entries the binder routes
         /// through <c>DataBinder.BindEntry</c>'s storage-clause loop (the former gate site). It excludes two families:

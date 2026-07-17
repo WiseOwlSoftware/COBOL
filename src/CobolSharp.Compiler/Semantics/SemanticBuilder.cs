@@ -1049,15 +1049,19 @@ public sealed class SemanticBuilder : CobolParserCoreBaseVisitor<object?>
             }
             if (clause.reportLineClause() is { } lc)
             {
+                // Shape-only migration (P10 Step 13): the greenfield grammar factored the LINE operand into
+                // reportLineOperand+ (the 2002 multiple-LINE form); the legacy reads the FIRST operand exactly
+                // as it read the former single-operand rule.
                 group.HasLine = true;
-                if (lc.NEXT() != null && lc.PAGE() != null) group.LineNextPage = true;
-                else if (lc.integerLiteral() is { } li && int.TryParse(li.GetText(), out int lv))
+                var lop = lc.reportLineOperand(0);
+                if (lop.NEXT() != null && lop.PAGE() != null) group.LineNextPage = true;
+                else if (lop.integerLiteral() is { } li && int.TryParse(li.GetText(), out int lv))
                 {
                     group.LineValue = lv;
-                    group.LineRelative = lc.PLUSWORD() != null;
+                    group.LineRelative = lop.PLUSWORD() != null;
                 }
             }
-            if (clause.reportColumnClause()?.integerLiteral() is { } colLit
+            if (clause.reportColumnClause()?.reportColumnOperand(0)?.integerLiteral() is { } colLit
                 && int.TryParse(colLit.GetText(), out int col))
             {
                 group.HasColumn = true;

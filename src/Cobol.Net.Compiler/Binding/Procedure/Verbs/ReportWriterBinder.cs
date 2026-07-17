@@ -13,13 +13,47 @@ using Core = CobolParserCore;
 /// The Report Writer half of the statement binder (ISO/IEC 1989:2023 §14.9.21 INITIATE / §14.9.16 GENERATE /
 /// §14.9.46 TERMINATE; COBOLNET_REPORT_WRITER_DESIGN §5): the three verb binders over the bound
 /// <see cref="ReportModel"/>s, the LINE-COUNTER / PAGE-COUNTER reference interception (§8.4.3.15 — the
-/// registers are RWCS state, never storage; the <c>BoundLinageCounterRef</c> precedent). P7 Step 10f: a real
-/// collaborator over <see cref="BinderContext"/> ONLY (the census: zero sibling-partial consumption). The
+/// registers are RWCS state, never storage; the <c>BoundLinageCounterRef</c> precedent), and the report-section
+/// PRESENT WHEN / VARYING expression binding (§13.18.41/§13.18.64 — parse contexts captured at data bind,
+/// bound HERE through the host's ONE condition/expression binders). P7 Step 10f collaborator; the host is
+/// consumed only by <see cref="BindReportGroupClauses"/> (the standard (ctx, host) collaborator shape). The
 /// receiving-side counter guard (<c>ResolveReceiving</c>) did NOT ride along — it is the shared receiving
 /// spine (5 host pipelines consume it) and hoisted to the core, final home <c>ExpressionBinder</c> at 10q.
 /// </summary>
-internal sealed class ReportWriterBinder(BinderContext ctx)
+internal sealed class ReportWriterBinder(BinderContext ctx, StatementBinder host)
 {
+    /// <summary>Bind every report-section PRESENT WHEN condition (ISO §13.18.41 Format 1) and VARYING FROM/BY
+    /// expression (§13.18.64) captured on this unit's report models — once per unit bind, through the ONE
+    /// <c>ConditionBinder</c> / expression binder. Each DISTINCT condition context binds exactly once (an
+    /// entry's condition appears in every subordinate chain — the memo keeps diagnostics single-shot).</summary>
+    public void BindReportGroupClauses()
+    {
+        var memo = new Dictionary<Core.ConditionContext, BoundCondition>(ReferenceEqualityComparer.Instance);
+        BoundCondition Bind(Core.ConditionContext c)
+        {
+            if (!memo.TryGetValue(c, out var b)) memo[c] = b = host.Cond.BindCondition(c);
+            return b;
+        }
+        foreach (var r in ctx.Data.Reports)
+        {
+            foreach (var g in r.Groups)
+                foreach (var ln in g.Lines)
+                {
+                    foreach (var c in ln.PresentWhenCtxs) ln.PresentWhen.Add(Bind(c));
+                    foreach (var f in ln.Fields)
+                    {
+                        foreach (var c in f.PresentWhenCtxs) f.PresentWhen.Add(Bind(c));
+                        foreach (var v in f.Varyings)
+                        {
+                            if (v.FromCtx is { } fc) v.From = host.Expr.BindExpr(fc);
+                            if (v.ByCtx is { } bc) v.By = host.Expr.BindExpr(bc);
+                        }
+                    }
+                }
+            foreach (var s in r.Sums)
+                foreach (var c in s.PresentWhenCtxs) s.PresentWhen.Add(Bind(c));
+        }
+    }
     /// <summary><c>INITIATE report-name…</c> (ISO §14.9.21): each name shall be an RD entry (SR1); a multi-name
     /// statement unrolls in written order (GR5).</summary>
     public BoundStatement BindInitiate(Core.InitiateStatementContext stmt)

@@ -344,7 +344,9 @@ CLASS       : 'CLASS' ;
 CODE        : 'CODE' ;
 CODE_SET    : 'CODE-SET' ;
 COL         : 'COL' ;
+COLS        : 'COLS' ;      // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14 SR1); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
 COLUMN      : 'COLUMN' ;
+COLUMNS     : 'COLUMNS' ;   // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14 SR1); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
 COLLATING   : 'COLLATING' ;
 COMMON      : 'COMMON' ;
 COMP        : 'COMP' ;
@@ -486,6 +488,7 @@ NEXT        : 'NEXT' ;
 NORMAL      : 'NORMAL' ;
 NO          : 'NO' ;
 NUMBER      : 'NUMBER' ;
+NUMBERS     : 'NUMBERS' ;   // COLUMN/LINE clause plural spelling (ISO §13.18.14/§13.18.35) — §8.10 context-sensitive (user word at every edition)
 NOT         : 'NOT' ;
 NUMERIC     : 'NUMERIC' ;
 NULL_       : 'NULL' ;
@@ -517,6 +520,7 @@ PH          : 'PH' ;
 PIC         : ('PIC' | 'PICTURE') -> pushMode(PICMODE) ;
 POINTER     : 'POINTER' ;
 PLUSWORD    : 'PLUS' ;       // the reserved WORD PLUS (LINE/NEXT GROUP relative); distinct from PLUS ('+')
+PRESENT     : 'PRESENT' ;   // PRESENT WHEN clause (ISO §13.18.41, 2002+); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
 PREVIOUS    : 'PREVIOUS' ;
 PRINTING    : 'PRINTING' ;
 PROGRAM     : 'PROGRAM' ;

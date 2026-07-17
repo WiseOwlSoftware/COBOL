@@ -43,7 +43,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private StringUnstringBinder Strings => _stringUnstringBinder ??= new StringUnstringBinder(Ctx, this);
     private MoveBinder Move => _moveBinder ??= new MoveBinder(Ctx, this, Corr);
     private ReportWriterBinder? _rwBinder;
-    internal ReportWriterBinder Rw => _rwBinder ??= new ReportWriterBinder(Ctx);
+    internal ReportWriterBinder Rw => _rwBinder ??= new ReportWriterBinder(Ctx, this);
     private FileLockBinder? _fileLockBinder;
     private FileLockBinder FileLock => _fileLockBinder ??= new FileLockBinder(Ctx, this);
     private PtrBinder? _ptrBinder;
@@ -133,6 +133,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     /// <summary>Bind a program unit's PROCEDURE DIVISION into a <see cref="BoundProgram"/>.</summary>
     public BoundProgram Bind(Core.ProgramUnitContext program)
     {
+        // Report-section PRESENT WHEN conditions + VARYING expressions (§13.18.41/§13.18.64) bind through the
+        // procedure-phase binders (they resolve ordinary data references) — before statement binding, and even
+        // for a PD-less unit (the report emission does not require a PROCEDURE DIVISION).
+        if (Ctx.Data.Reports.Count > 0) Rw.BindReportGroupClauses();
         if (program.procedureDivision() is not { } pd) return new BoundProgram([]);
         Ec.EcCollectPdRaising(pd);   // the PD-header RAISING list (§14.2.1) — consumed by the GOBACK/EXIT SR2 check
         var table = Ctx.Table;

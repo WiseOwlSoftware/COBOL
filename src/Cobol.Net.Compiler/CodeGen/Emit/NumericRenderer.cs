@@ -75,6 +75,8 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     // A SUM counter read (ISO §13.18.54.4 GR4 — the counter is its printable entry's source item): an unscaled
     // integer at the counter's PICTURE-derived scale (GR1), engine-sourced.
     public NumX Visit(BoundReportSumRef n) => new($"__RPT_{n.Report.CsIndex}.SumValue({EmitText.CsLiteral(n.Id)})", n.Scale);
+    // A report VARYING counter read (ISO §13.18.64.4 GR3/GR4): the compose-local integer counter, scale 0.
+    public NumX Visit(BoundReportVaryingRef n) => new(n.CsName, 0);
     public NumX Visit(BoundBinary n) => CombineCore(n.Left.Accept(this), n.Op.ToString(), n.Right.Accept(this));
     public NumX Visit(BoundNegate n) => Negate(n.Operand.Accept(this));
     public NumX Visit(BoundPower n) => Power(n.Base.Accept(this), n.Exp.Accept(this));

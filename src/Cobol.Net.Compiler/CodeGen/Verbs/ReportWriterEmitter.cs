@@ -21,7 +21,8 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// content bugs cannot recur by construction). No byte plans, no registration kinds — the typed-native singular
 /// pattern.
 /// </summary>
-internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move)
+internal sealed class ReportWriterEmitter(
+    EmitContext ctx, NumericRenderer num, ReferenceResolver refs, MoveEmitter move, ConditionRenderer cond)
 {
     /// <summary>Emit the per-report class members: the engine field, the NumProfile statics of the numeric
     /// printable items (synthetic items live outside the storage forest, so <c>FieldEmitter.EmitProfiles</c>
@@ -48,17 +49,77 @@ internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, 
     /// <summary>Emit one report line's compose method: a space-filled buffer of the report's line width, each
     /// printable item placed at its COLUMN (§13.18.14) with the value the §13.18.53.4 GR1/GR3 implicit MOVE
     /// produces — evaluated when the ENGINE invokes the method, i.e. at presentation time, after LINE-COUNTER
-    /// was set to this line's number (§13.18.35.4 GR6).</summary>
+    /// was set to this line's number (§13.18.35.4 GR6). A field-local PRESENT WHEN chain guards its placements
+    /// (§13.18.41.4 GR2b — an absent item places nothing and never advances the horizontal counter, GR3f);
+    /// a multiple COLUMN entry places once per operand (§13.18.14.4 GR12) with its VARYING counters stepped
+    /// per repetition (§13.18.64.4 GR3); a relative (PLUS) operand places against the line's horizontal
+    /// counter (§13.18.14.4 GR7/GR8/GR9).</summary>
     private void EmitCompose(ReportModel r, ReportGroupModel group, int gi, ReportLineModel line, int li, CodeWriter w)
     {
         using (w.Block($"private string __RPT_C_{r.CsIndex}_{gi}_{li}()   // {r.Name} {group.Kind} line {li + 1}"))
         {
             w.Line($"var __ln = {RuntimeApi.ReportNewLine(r.LineWidth)};");
+            // The horizontal counter (§13.18.14.4 GR7 — the rightmost occupied column, 0 at line start) exists
+            // only when some operand is relative; every placed item then updates it (GR9).
+            bool needsHc = line.Fields.Any(f => f.Columns.Any(c => c.Relative));
+            if (needsHc) w.Line("int __hc = 0;   // the §13.18.14.4 GR7 horizontal counter");
             foreach (var f in line.Fields)
-                w.Line($"{RuntimeApi.ReportPlace("__ln", f.Column, FieldImage(r, f))};");
+                EmitFieldPlacements(r, f, needsHc, w);
             w.Line("return new string(__ln);");
         }
     }
+
+    /// <summary>Emit one printable entry's placements into the compose body (see <see cref="EmitCompose"/>).
+    /// The COBOL-85 shape — one absolute operand, unconditional, no VARYING, in an all-absolute line — keeps
+    /// its exact single-statement emission (the characterization-pinned text).</summary>
+    private void EmitFieldPlacements(ReportModel r, ReportFieldModel f, bool needsHc, CodeWriter w)
+    {
+        if (!needsHc && f.Columns.Count == 1 && f.PresentWhen.Count == 0 && f.Varyings.Count == 0)
+        {
+            w.Line($"{RuntimeApi.ReportPlace("__ln", f.Column, FieldImage(r, f))};");
+            return;
+        }
+        using IDisposable? guard = f.PresentWhen.Count > 0
+            ? w.Block($"if ({PresentExpr(f.PresentWhen)})   // PRESENT WHEN (§13.18.41.4 GR2b)")
+            : null;
+        // VARYING counters (§13.18.64.4 GR3a): the first occurrence takes FROM (default 1). A noninteger
+        // FROM/BY truncates through Rescale — the EC-REPORT-VARYING seam (GR5; checking default-off, SSOT §18.16).
+        for (int k = 0; k < f.Varyings.Count; k++)
+            w.Line($"long {VaryName(f, k)} = {VaryValue(f.Varyings[k].From)};   // VARYING {f.Varyings[k].Name} (§13.18.64.4 GR3a)");
+        for (int rep = 0; rep < f.Columns.Count; rep++)
+        {
+            if (rep > 0)
+                for (int k = 0; k < f.Varyings.Count; k++)
+                    w.Line($"{VaryName(f, k)} += {VaryValue(f.Varyings[k].By)};   // §13.18.64.4 GR3b");
+            var spec = f.Columns[rep];
+            string image = FieldImage(r, f);
+            if (!spec.Relative)
+            {
+                w.Line($"{RuntimeApi.ReportPlace("__ln", spec.Value, image)};");
+                if (needsHc) w.Line($"__hc = {spec.Value + f.PrintItem.ImageWidth - 1};   // §13.18.14.4 GR9");
+            }
+            else
+            {
+                w.Line($"__hc += {spec.Value};   // §13.18.14.4 GR8 — leftmost = horizontal counter + integer-2");
+                w.Line($"{RuntimeApi.ReportPlace("__ln", "__hc", image)};");
+                w.Line($"__hc += {f.PrintItem.ImageWidth - 1};   // §13.18.14.4 GR9");
+            }
+        }
+    }
+
+    /// <summary>The compose-local name of a VARYING counter (§13.18.64) — keyed by the synthetic print item's
+    /// uid + the counter's index within the entry's VARYING clause.</summary>
+    private static string VaryName(ReportFieldModel f, int k) => $"__rv{f.PrintItem.Uid}_{k}";
+
+    /// <summary>A VARYING FROM/BY value as a scale-0 C# expression (ISO §13.18.64.4 GR3a/GR3b; absent ⇒ 1).
+    /// A noninteger evaluation truncates (GR5's undefined-content case — the EC-REPORT-VARYING seam).</summary>
+    private string VaryValue(BoundExpr? e) =>
+        e is null ? "1" : NumericRenderer.Align(num.Render(e, ReceiverContext.None), 0);
+
+    /// <summary>A PRESENT WHEN chain as ONE C# boolean expression — the AND of the chain (ISO §13.18.41.4 GR2b:
+    /// an absent ancestor absents every subordinate, so presence = every condition true).</summary>
+    private string PresentExpr(IReadOnlyList<BoundCondition> conds) =>
+        string.Join(" && ", conds.Select(c => $"({cond.Render(c)})"));
 
     /// <summary>The C# expression of one printable item's image — the result of the implicit MOVE of its source
     /// into the printable item (ISO §13.18.53.4 GR1; a VALUE item per §13.18.63), through the orchestrator's ONE
@@ -82,6 +143,11 @@ internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, 
                 // The SUM counter is the printable entry's source item (§13.18.54.4 GR4).
                 var sum = r.Sums.First(x => x.Id.Equals(s.CounterId, StringComparison.OrdinalIgnoreCase));
                 source = new BoundComputedOperand(new BoundReportSumRef(r, sum.Id, sum.Scale));
+                break;
+            case FieldVaryingSource v:
+                // The entry's own VARYING counter as the source item (§13.18.64.4 GR4 NOTE) — the compose-local
+                // counter, re-read at each repetition's placement.
+                source = new BoundComputedOperand(new BoundReportVaryingRef(VaryName(f, v.Index)));
                 break;
             case FieldDataSource d when d.Item is { } item && refs.ResolveItem(item) is { } place:
                 source = new BoundFieldOperand(place);
@@ -122,18 +188,25 @@ internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, 
                 + $"{r.LastControlHeading}, {r.LastDetail}, {r.Footing});");
             foreach (var (group, gi) in r.Groups.Select((g, i) => (g, i)))
             {
+                // A conditioned line carries its PRESENT WHEN chain as a delegate the engine evaluates once per
+                // presentation, BEFORE any LINE processing (§13.18.41.4 GR2); unconditional lines keep the
+                // three-argument construction (the characterization-pinned text).
                 string lines = group.Lines.Count == 0
                     ? "System.Array.Empty<ReportGroupLine>()"
                     : "new[] { " + string.Join(", ", group.Lines.Select((l, li) =>
-                        $"new ReportGroupLine(ReportLineKind.{l.Kind}, {l.Value}, __RPT_C_{r.CsIndex}_{gi}_{li})")) + " }";
+                        $"new ReportGroupLine(ReportLineKind.{l.Kind}, {l.Value}, __RPT_C_{r.CsIndex}_{gi}_{li}"
+                        + (l.PresentWhen.Count > 0 ? $", () => {PresentExpr(l.PresentWhen)}" : "") + ")")) + " }";
                 w.Line($"var __rg{r.CsIndex}_{gi} = new ReportGroup(ReportGroupKind.{group.Kind}, "
                     + $"{CsLiteral(group.Name ?? "")}, {group.ControlLevel}, {lines});");
                 w.Line($"__RPT_{r.CsIndex}.AddGroup(__rg{r.CsIndex}_{gi});");
-                // GROUP INDICATE items (§13.18.29): the engine blanks them on repeated presentations.
+                // GROUP INDICATE items (§13.18.29): the engine blanks them on repeated presentations — one span
+                // per absolute COLUMN operand (a relative operand with GROUP INDICATE is staged loud at bind).
                 foreach (var ln in group.Lines)
                     foreach (var f in ln.Fields)
                         if (f.GroupIndicate)
-                            w.Line($"__rg{r.CsIndex}_{gi}.IndicateFields.Add(({f.Column}, {f.PrintItem.ImageWidth}));");
+                            foreach (var spec in f.Columns)
+                                if (!spec.Relative)
+                                    w.Line($"__rg{r.CsIndex}_{gi}.IndicateFields.Add(({spec.Value}, {f.PrintItem.ImageWidth}));");
             }
             // CONTROL hierarchy (§13.18.16), major→minor: get/set image delegates over the typed storage — the
             // CALL boundary's one string-carrier pair (CallStringRead/CallStringWrite), reused verbatim.
@@ -182,8 +255,12 @@ internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, 
                     ? "null"
                     : "new[] { " + string.Join(", ", sum.UponDetails.Select(CsLiteral)) + " }";
                 int printedGi = r.Groups.IndexOf(sum.PrintedIn);
+                // A conditioned SUM entry passes its PRESENT WHEN chain — false at a presentation suppresses
+                // the end-of-group reset (§13.18.41.4 GR3g / §13.18.54.4 GR10); the print half rides the
+                // printable face's identical chain inside the compose.
+                string sumPresent = sum.PresentWhen.Count > 0 ? $", () => {PresentExpr(sum.PresentWhen)}" : "";
                 w.Line($"__RPT_{r.CsIndex}.AddSum({CsLiteral(sum.Id)}, () => (long)({addend}), {upon}, "
-                    + $"{sum.ResetLevel}, __rg{r.CsIndex}_{printedGi});");
+                    + $"{sum.ResetLevel}, __rg{r.CsIndex}_{printedGi}{sumPresent});");
             }
         }
         // USE BEFORE REPORTING hooks (ISO §14.9.49 Format 2 GR8): the engine invokes the declarative's bounded
