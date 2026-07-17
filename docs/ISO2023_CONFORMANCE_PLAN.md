@@ -1,5 +1,12 @@
 # COBOL.NET — ISO/IEC 1989:2023 Conformance Plan (LEDGER — the M2/M3/M4 post-85 feature catalog)
 
+> ✅ **M2 CATALOG FLIPPED TO GREENFIELD TRUTH (2026-07-17 — the PHASE-10 close, DEVLOG 854–870).** Every M2
+> (COBOL-2002) non-OO track is LANDED on the greenfield substrate or carries a NAMED staged residue: the
+> per-track record is the PHASE-10 doc's verdict table + per-step as-builts
+> (`docs/rearchitecture/PHASE-10-m2-residual-catalog.md` — its STATUS banner lists the forward ledger), with the
+> per-wave row flips in `docs/PHASE4_RECONCILIATION.md`. §3's per-item marks below remain the LEGACY-era record
+> per the superseded-banner note — consult the P10 table for greenfield truth, this file for the FEATURE LIST.
+
 > ⚠️ **PARTIALLY SUPERSEDED (2026-06-09, DEVLOG 521).** This doc predates the greenfield PIVOT (DEVLOG 457): its
 > framing — the byte-engine "data-model migration" being the #1 priority before conformance (§0 / §0.5), stages,
 > EnableTypedFields, "island the byte engine" — is **OBSOLETE** (the greenfield is born typed-native; there is no

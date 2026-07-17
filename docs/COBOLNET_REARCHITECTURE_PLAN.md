@@ -85,7 +85,19 @@
 > run-unit-lifetime state — `ProgramTable`/`ExceptionEngine`/`ExternalTable`/`ModuleStack`/`SwitchStore`/
 > `FileRegistry`/`IClock` — with every pre-P8 static name kept as an emitted-surface shim (byte-stable: ZERO
 > compiler-side changes in the phase); the process-global clock seam replaced by `IClock`/`SystemClock`
-> (`COBOLNET_CLOCK` preserved). RESUME AT **PHASE-10** (M2 residual catalog).
+> (`COBOLNET_CLOCK` preserved).
+> **✅ PHASE-10 — M2 residual catalog — DONE (2026-07-17, DEVLOG 854–870; 14 battery-gated commits, CI green
+> on each):** the Step-1 reconciliation audit (13-agent workflow) then the feature waves — national intrinsics ·
+> EC-N twins · `&`-concat · ALLOCATE INITIALIZED · UDF category-RETURNING · CONSTANT entries/CONSTANT RECORD ·
+> PROGRAM-POINTER + qualified/subscripted ADDRESS OF · all-organization record locking + RETRY + DELETE FILE 62 ·
+> UDF BY VALUE + per-evaluation activation · recursive-unit static WS + program LOCAL-STORAGE · ARITHMETIC IS
+> STANDARD (the SDIDI residuals; gates re-timed to 2002) · SAME AS + EXTERNAL type declarations + element-wise
+> strong-group relations · RW-2002 PRESENT WHEN/VARYING/multi-COLUMN · ALPHABET FOR NATIONAL + national collating
+> (UCS-4 ≡ NATIVE proven via §8.5.1.4). Recurring lesson: the Step-1 audit itself drifted in five of six checked
+> claims — every wave re-scouted its anchors spec-first before implementing (three wrong §-citations, two
+> already-landed "gaps", one mislabeled status code corrected). Final battery 3467 conformance · 292 unit ·
+> 33 characterization byte-identical · NIST 353 MATCH. Ledgered residues carry forward BY NAME in the P10 doc.
+> RESUME AT **PHASE-11** (intrinsics-to-zero + the Tier-C codec).
 > **✅ PHASE-09 — M2 OO rearchitect & complete — DONE (2026-07-16, DEVLOG 844–853):** OO re-homed to `Oo/`
 > (`CobolNet.Compiler.Oo`): pure `OoClassTable` + `OoConformance` (AdapterPairs RETURNED, threaded via
 > `BoundCompilation.OoAdapters`) + phase-explicit `OoMethodBinding` + `OoDriver` owning the bind bodies
@@ -255,7 +267,7 @@ phase boundary.
 | ✅ | 07 | R | HIGH | 06 | Exhaustive visitor dispatch + binder/emitter god-class decomposition — **DONE (Steps 1–12: both god classes dissolved; structural `Place`; FUNCTION-arg grammar + the IntrinsicRenderer static-channel deletion — as-landed record in the PHASE-07 STATUS)** | [PHASE-07](rearchitecture/PHASE-07-visitor-dispatch-emitter-decomposition.md) |
 | ✅ | 08 | R | MED | 00 | Runtime library reorg (`RunUnit`, `FileConnector`/`FileRegistry`, role-based folders) — DONE 2026-07-15 | [PHASE-08](rearchitecture/PHASE-08-runtime-library-reorg-rununit.md) |
 | ✅ | 09 | I | HIGH | 04,07 | M2 OO rearchitecture (`Oo/` + `OoDriver`) + mandatory 2002 OO completion | [PHASE-09](rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md) — DONE 2026-07-16 |
-| ☐ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) | [PHASE-10](rearchitecture/PHASE-10-m2-residual-catalog.md) |
+| ☑ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) — DONE 2026-07-17 | [PHASE-10](rearchitecture/PHASE-10-m2-residual-catalog.md) |
 | ☐ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero + Tier-C REDEFINES confined-byte codec | [PHASE-11](rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md) |
 | ☐ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas (dynamic length, TYPEDEF edges, >>PROPAGATE, IEEE floats, function pointers) | [PHASE-12](rearchitecture/PHASE-12-m3-2014-deltas.md) |
 | ☐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + Table 1/5 behavior-row burn-down | [PHASE-13](rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md) |

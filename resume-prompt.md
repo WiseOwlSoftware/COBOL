@@ -21,46 +21,46 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — PHASE-10 (M2 residual catalog: national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat)
+## ⛔🔀 RESUME AT — PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C REDEFINES confined-byte codec)
 
-**PHASE-09 IS COMPLETE (2026-07-16, DEVLOG 844–853 — 8 verdict-gated commits; all 8 exit criteria hold; the
-PHASE-09 doc's STATUS block carries the full checkoff + deviations + deferral ledger).** OO lives in `Oo/`
-(`CobolNet.Compiler.Oo`): the PURE `OoClassTable`, `OoConformance` (AdapterPairs RETURNED →
-`BoundCompilation.OoAdapters`), the phase-explicit `OoMethodBinding`, `OoDriver` owning the OO bind bodies
-(**`IOoBindHost` is DELETED**; `CSharpEmitter` = only `Bind`/`EmitBound`), `NamingConvention` (accessor names +
-`__FACTORY`/`__Instance`/`__New` + the `::EXT::`/`::INST::`/`::FACT::` bands — the runtime's `::EXT::` read is a
-documented WIRE CONTRACT), and the former ambient flags gone (`ActiveMethodScope` scoped by `BindPositionScope`;
-`OoIsClassUnit`/`OoCurrentClass`/`OoInFactory` compiler-enforced `init`). Feature closes: multi-base INHERITS
-parses (§11.3.2 repetition) + rejects LOUDLY (COBOLNET0849); **ANY LENGTH §13.18.2 on the method + contained-
-program + function legs** (COBOLNET1542 SR family; RETURNING leg staged loud via `any-length-returning`); the
-§4.2.2 interface conformance leg proven (`oo_interface_conformance` + the 0828 lossy-projection negative); the
-14 legacy OoTests re-landed (`OoPortedTests` — 4 ported + 10 covered, audited in-file); the DEVLOG-738 latent
-class-env shadow bug FIXED (`DataBinder.EnvDivisions` outermost-first over EVERY former singular env read;
-golden `oo_class_env`). Deferrals (all in `docs/ISO2023_CONFORMANCE_PLAN.md`): GOBACK status-phrase → P13;
-`>>PROPAGATE` directive semantics → P13. SPEC CORRECTION: USE Formats 3/4 carry NO [GLOBAL] phrase (§14.9.49.2).
-**PHASE-10 IS IN PROGRESS (DEVLOG 854–858+):** Step-1 reconciliation audit DONE (the 13-track verdict table +
-evidence is IN the P10 doc under §Step-1 AUDIT RESULT); WAVES LANDED (each spec-first, agent-implemented,
-human-reviewed, full-battery-gated, CI-green): the NATIONAL wave (DISPLAY-OF §15.26 + NATIONAL-OF §15.66 on
-the ONE `Repertoire` translator; the N-literal Latin-1 0814 guard lifted), the EC `-N` wave (EXCEPTION-FILE-N
-§15.29 + EXCEPTION-LOCATION-N §15.31 + CHAR-NATIONAL §15.16; ORD-over-national corrected to §15.70.4 r2; the
-2023 connector-arg form staged → P13), the CONCAT wave (§8.8.3 as a COMPILE-TIME literal fold inside
-`nonNumericLiteral` — `ConcatFolder` is the ONE chokepoint; 1540/1541/1545), the ALLOCATE wave (§14.9.3
-GR7 INITIALIZED = the spec's own INITIALIZE-equivalence lowered through the EXISTING InitializeBinder;
-GR6 CHARACTERS = binary zeros), the UDF category-RETURNING wave (§8.4.3.2.4 GR1 — 1510 lifted for
-alnum/group/edited/national; per-shape residues stay 1510), the CONSTANT wave (§13.10 constant entries
-= the COMPILE-TIME substitution table `DataBinder.Constants.cs` + §13.18.15 CONSTANT RECORD; 1547/1548/1549;
-CONSTANT + AS joined the §8.9 interval-word machinery — AS is nameSlot-ONLY, the FU-1 ledger; DEVLOG 861),
-and the POINTERS wave (Steps 6+7, DEVLOG 862 — USAGE PROGRAM-POINTER end-to-end on the ONE ProgramTable
-[`ProgramPointer` carrier = the outermost identity; `setEntryStatement` + CALL-through-pointer + SameTarget
-relations; FUNCTION-POINTER superset-parsed, staged 0899, 2014 interval]; qualified/subscripted ADDRESS OF
-lifted via `ResolveForAddressOf` on the ONE cell-offset formula; class-unit BASED + INITIALIZE-over-pointers
-= named residues).
-Read the P10 doc's checkboxes for the live step state; remaining waves:
-UDF BY VALUE+RECURSIVE · file-sharing extension · line-seq 62 ·
-ARITH-STANDARD consumption · B-SHIFT · TYPEDEF SAME AS · ALPHABET-national.
-(RW-2002 landed 2026-07-16 — Step 13: PRESENT WHEN + VARYING + multiple/relative COLUMN on the existing RWCS;
-COBOLNET1559 SR family; golden `2002/rw_present_when`; multiple-LINE repetition staged 0899 with the
-report-group OCCURS family.)
+**PHASE-10 IS COMPLETE (2026-07-17, DEVLOG 854–870 — 14 battery-gated commits `7436a1ef`→`a0fd3f68`+close, CI
+green on each; the P10 doc's STATUS banner carries the exit-criteria confirmation + the NAMED forward-residue
+ledger).** Every M2 non-OO track is landed on the greenfield substrate or staged loud by name. The waves, in
+landing order (each spec-first, line-reviewed, full-battery-gated): NATIONAL intrinsics (the ONE `Repertoire`
+translator) · EC `-N` twins + CHAR-NATIONAL · `&`-CONCAT (compile-time fold, `ConcatFolder`) · ALLOCATE
+INITIALIZED (§14.9.3 GR7 through the ONE InitializeBinder) · UDF category-RETURNING (§8.4.3.2.4 GR1) ·
+CONSTANT entries + CONSTANT RECORD (§13.10/§13.18.15 — the compile-time substitution table
+`DataBinder.Constants.cs`; CONSTANT+AS joined the §8.9 interval machinery, AS nameSlot-ONLY [FU-1]) ·
+PROGRAM-POINTER + qualified/subscripted ADDRESS OF (the `ProgramPointer` outermost-identity carrier on the ONE
+`ProgramTable`; `ResolveForAddressOf` on the ONE cell-offset formula) · FILE-LOCK (§9.1.16 record locks on
+EVERY organization [sequential = ordinal identity]; RETRY on the mutating verbs; DELETE FILE **62** = the
+sharing conflict §9.1.13.9 item 2 — the audit had mislabeled it; the ONE `LockGoverned` neutrality hinge) ·
+UDF BY VALUE + PER-EVALUATION activation (§14.2.3 GR10 detached cells on the ONE CALL ABI;
+`BoundUdfEvaluated` IIFE windows — C# short-circuit IS the COBOL rule; 1509 narrowed to 3 named shapes) ·
+RECURSIVE-WS (§13.5.4 GR1 static WS for `Recursive&&!Initial` incl. every FUNCTION, `__ResetStatics` at
+registration/CANCEL; program LOCAL-STORAGE was silently UNBOUND — now binds per §13.6.4 GR1) ·
+ARITH-STANDARD (the six SDIDI residuals: `CobolDec.Pow`, decimal128 range ECs, float→SDIDI operands, MEAN;
+the ARITHMETIC gates RE-TIMED to 2002 with the full 0900/0903/0807 lifecycle; the ENTRY-CONVENTION funnel
+bug fixed) · TYPEDEF residue (SAME AS §13.18.49 on the ONE `CloneItem`; EXTERNAL type §13.18.22 LIVE [the
+1534 stage's § citation was wrong]; strong groups compare element-wise §8.8.4.2.12; ExpandType was DROPPING
+template root clauses — fixed via the shared `CopyEntryDescription`) · RW-2002 (PRESENT WHEN §13.18.41 +
+VARYING §13.18.64 — whose SR1 pulled multiple/relative COLUMN in; the absent-entry line-collapse model;
+1559) · ALPHABET-NATIONAL (FOR NATIONAL + UCS-4/UTF-8/UTF-16 on the ONE Collating subsystem; the sparse
+`NationalCollatingTable`; **UCS-4 ≡ NATIVE proven via §8.5.1.4** — surrogate pairs are two character
+positions by spec, so the divergence is unreachable; GR7 Table 6 coded-set-only rejections).
+**⚠ THE P10 RECURRING LESSON: the Step-1 audit itself drifted in ~5 of 6 re-checked claims** — wrong §
+citations (EXTERNAL-type "GR5", RW "§13.18.44"), already-landed "gaps" (strong relations, ARITH consumption,
+per-occurrence UDF activation), a mislabeled status code (62 vs 71) — EVERY wave must re-scout its anchors
+spec-first before implementing. Battery at close: **3467 conformance · 292 unit · 33 characterization
+byte-identical · legacy 1196+636 · NIST 353 MATCH.**
+**NEXT: PHASE-11** (`docs/rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md`, STATUS: NOT STARTED —
+read its §0/steps; it can run parallel to P12 per its header): every remaining `IntrinsicBind.Deferred`
+catalog row → Runtime (BYTE-LENGTH unblocks the staged `CONSTANT AS BYTE-LENGTH OF`; the EC-N 2023 arg
+forms live there too) + the Tier-C REDEFINES confined-byte codec. The P10 forward residues (per-shape 1510,
+OPTIONAL formals, recursive-WS stages, OO class-unit BASED, INITIALIZE-over-pointers, line-seq 06/09/71,
+keyed GR10a FPI, cross-run-unit sharing, multiple-LINE, narrowed-1509 shapes, signed-leaf strong ordering,
+MAX/MIN-under-collating) are ledgered IN the P10 doc's STATUS banner; B-SHIFT/BX + STANDARD-BINARY are
+2023/2014 items for P12/P13.
 
 **Working discipline in force:** BATCHED cycles (multiple sub-steps per battery run) with PIPELINING (batch N's
 conformance runs on the prebuilt binaries in the background while batch N+1's edits are authored in the
