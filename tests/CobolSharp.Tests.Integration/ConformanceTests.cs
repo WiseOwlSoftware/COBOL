@@ -123,6 +123,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // P11 Step 6: the TEST validator quartet (§15.90/§15.91/§15.93/§15.94) — the frozen legacy has no
         // TEST-* functions; greenfield CorpusRunner byte-compares the golden.
         ("2002", "intrinsics_test_validators"),
+        // P11 Step 7: BYTE-LENGTH (§15.14) — the frozen legacy has no BYTE-LENGTH function (its national
+        // byte-geometry differs anyway); greenfield CorpusRunner byte-compares the golden.
+        ("2002", "intrinsics_byte_length"),
+        // P11 Step 7: SMALLEST-ALGEBRAIC (§15.83, new-in-2023) — the frozen legacy predates it; greenfield
+        // CorpusRunner byte-compares the golden.
+        ("2023", "intrinsics_smallest_algebraic"),
         // P10 Step 15: §13.10 constant entries + §13.18.15 CONSTANT RECORD — the compile-time constant table
         // (DataBinder.Constants.cs) never landed in legacy; greenfield CorpusRunner byte-compares both.
         ("2002", "constant_entry"),

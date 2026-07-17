@@ -353,14 +353,17 @@ public sealed class IntrinsicFunctionDifferentialTests
     }
 
     [Fact]
-    public void DeferredFunction_InWindow_FailsLoud_NeverWrong()
+    public void StagedLoudResidue_FailsLoud_NeverWrong()
     {
-        // A catalogued-but-deferred function INSIDE its window compiles and fails LOUD at run time naming the
-        // function (COBOLNET_DESIGN §1.4) — never a silent wrong value. (BYTE-LENGTH §15.14 is still Deferred —
-        // the byte-size ≠ FUNCTION LENGTH; it awaits the USAGE-width model. Retargeted off FORMATTED-CURRENT-DATE,
-        // now implemented in DEVLOG 635.)
+        // The §1.4 loud-failure doctrine — an unimplemented RESIDUE of a catalogued-and-otherwise-implemented
+        // function compiles and fails LOUD at run time naming the feature, never a silent wrong value. (P11
+        // drove the whole IntrinsicBind.Deferred backlog to zero, so there is no longer a fully-deferred
+        // function; the doctrine is now proven on a staged residue.) BYTE-LENGTH (§15.14) folds for a fixed
+        // data item, but a REFERENCE-MODIFIED argument has a runtime length (§15.14.4 r5, the LENGTH
+        // discipline) and is staged loud by name.
         var (ok, _, detail) = new CobolNetCompiler(2023).CompileAndRun(
-            Program("01 T PIC 9(4).", "    MOVE FUNCTION BYTE-LENGTH(\"ABC\") TO T.\n    DISPLAY T."));
+            Program("01 WS-X PIC X(5) VALUE \"ABCDE\".\n01 T PIC 9(4).",
+                "    MOVE FUNCTION BYTE-LENGTH(WS-X(1:2)) TO T.\n    DISPLAY T."));
         Assert.False(ok);
         Assert.Contains("BYTE-LENGTH", detail);
     }
@@ -907,4 +910,44 @@ public sealed class IntrinsicFunctionDifferentialTests
                 COMPUTE R = FUNCTION INTEGER-OF-BOOLEAN(B"00000101").
                 DISPLAY R.
             """), "00200\n00005", 2002);
+
+    // ── Spec-pinned: BYTE-LENGTH vs LENGTH (§15.14/§15.50 — P11 Step 7) ─────────────────────────────────────
+
+    [Fact]
+    public void ByteLength_NationalDivergesFromLength_Spec() =>
+        // §15.14.4 r1 counts BYTES (national = 2 bytes/position, D-N1), §15.50.4 r2 counts national POSITIONS —
+        // the D7 distinction: BYTE-LENGTH(N(3)) = 6, LENGTH(N(3)) = 3.
+        AssertSpec(Program("01 WS-N PIC N(3).", """
+                DISPLAY FUNCTION BYTE-LENGTH(WS-N).
+                DISPLAY FUNCTION LENGTH(WS-N).
+            """), "6\n3", 2002);
+
+    // ── Spec-pinned: SMALLEST-ALGEBRAIC (§15.83 — P11 Step 7) ──────────────────────────────────────────────
+
+    [Fact]
+    public void SmallestAlgebraic_PictureIncrement_Spec() =>
+        // §15.83.4 RVR2 NOTE table: the smallest positive increment = 10^(−scale) from the PICTURE alone —
+        // S999 → 1, 99V9(3) → 0.001, S9PP → 100 (P-scaling).
+        AssertSpec(Program("""
+            01 X-INT  PIC S999.
+            01 X-FRAC PIC 99V9(3).
+            01 X-PSCL PIC S9PP.
+            """, """
+                DISPLAY FUNCTION SMALLEST-ALGEBRAIC(X-INT).
+                DISPLAY FUNCTION SMALLEST-ALGEBRAIC(X-FRAC).
+                DISPLAY FUNCTION SMALLEST-ALGEBRAIC(X-PSCL).
+            """), "1\n0.001\n100", 2023);
+
+    [Fact]
+    public void Concatenate_NotAnIsoFunction_1501()
+    {
+        // The P11 anchor re-scout established CONCATENATE is NOT an ISO/IEC 1989 function at any edition
+        // (CONCAT §15.18 is new-in-2023; CONCATENATE has zero spec occurrences). A reference to it draws the
+        // unknown-function diagnostic, not an edition-window one — even at 2014 where the phase doc's stale
+        // premise would have accepted it.
+        var (ok, _, detail) = new CobolNetCompiler(2014).CompileAndRun(
+            Program("01 R PIC X(4).", "    MOVE FUNCTION CONCATENATE(\"A\", \"B\") TO R.\n    DISPLAY R."));
+        Assert.False(ok, "CONCATENATE is not an ISO intrinsic function");
+        Assert.Contains("COBOLNET1501", detail);
+    }
 }

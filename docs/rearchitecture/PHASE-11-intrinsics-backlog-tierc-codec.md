@@ -9,13 +9,16 @@
 ## STATUS
 
 ```
-STATUS: IN PROGRESS @ step 7 (Steps 0-2 + 5-6 DONE — Step 1 @ 2a0ab666 [Unsupported + the five A.4.9
-flips]; Step 2 @ e159a719 [boolean conversions + the Boolean result-category channel]; Steps 3-4 SATISFIED
-BY P10; Step 5 @ 1728dfd9 [the Y2K windowing trio on the ONE YearToYyyy core + SECONDS-PAST-MIDNIGHT on
-the RunUnit.Clock seam]; Step 6 [the TEST validator quartet — verdict chains + positional scanners + the
-ONE BindNumvalCFamily bind with ANYCASE] landed next commit. Deferred 17→2 (BYTE-LENGTH, CONCATENATE).
-Resume: read PHASE-11-scout-notes.md FIRST, then execute Step 7 [CONCATENATE window reuse of Concat +
-BindByteLengthFold beside BindLengthFold + the SMALLEST-ALGEBRAIC golden + window rows])
+STATUS: IN PROGRESS @ step 8 (Steps 0-2 + 5-7 DONE — Step 6 @ 813d9bd4 [the TEST validator quartet];
+Step 7 [BYTE-LENGTH fold + SMALLEST-ALGEBRAIC golden/window + the CONCATENATE spec-faithfulness DELETION]
+landed next commit. ZERO Deferred rows — exit criterion 1 MET. ⚠ SCOPE CHANGE: the P11 anchor re-scout
+established CONCATENATE is NOT an ISO function at any edition (spec:concat-smallest — zero spec occurrences;
+CONCAT §15.18 is new-in-2023), so the "implement CONCATENATE with window [2002,2023)" plan was audit drift:
+the row is DELETED, a reference now draws COBOLNET1501, and CONCATENATE-as-a-vendor-extension is a separate
+future decision. Resume: read PHASE-11-scout-notes.md FIRST, then execute Step 8 [the A.4.9 locale
+disposition — COBOLNET1518 bind arm for the Unsupported rows + the LOCALE keyword variants of
+LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C; the scout found NUMVAL-C's LOCALE keyword is a spec
+list-omission → dispose with the same diagnostic] → Tier-C step groups C/D → Step 9 close-out)
 ```
 > The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`. Keep it in sync with the per-step checkboxes in §4.
 

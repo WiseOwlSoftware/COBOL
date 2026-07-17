@@ -23,23 +23,22 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C REDEFINES confined-byte codec)
 
-**⏵ P11 IS IN PROGRESS @ Step 7 (2026-07-17).** Steps 0–2 + 5–6 are DONE (DEVLOG 871–875): `IntrinsicBind.
-Unsupported` + the five A.4.9 flips (`2a0ab666`); the boolean-conversion pair with the Boolean
-result-category channel (`e159a719`); the Y2K windowing trio on the ONE `YearToYyyy` core +
-SECONDS-PAST-MIDNIGHT on the `RunUnit.Clock` seam (`1728dfd9`); the TEST validator quartet
-§15.90/91/93/94 (date verdict CHAINS year→month→day; the NUMVAL pair as position-reporting scanners with
-the r1c LENGTH+1 leg, arithmetic-mode digit caps 31/34, and the ONE `BindNumvalCFamily` bespoke bind
-owning the §15.68.3-r3 currency injection + the r4f ANYCASE fold [the `Anycase` flag is now shared with
-FIND-STRING]; golden `intrinsics_test_validators` 34 probes first-try byte-exact). Live Deferred **17→2**
-(remaining: BYTE-LENGTH, CONCATENATE — both Step 7). The anchor re-scout is DONE — **READ
-`docs/rearchitecture/PHASE-11-scout-notes.md` FIRST** (verified anchors, hand-derived golden values, code
-seams file:line, test wiring, the Tier-C guard-site inventory; its ⚠ blocks override the phase doc — do NOT
-re-scout). Resume: Step 7 (CONCATENATE → Runtime reusing `Concat` with the [2002,2023) window rows;
-`BindByteLengthFold` beside `BindLengthFold` folding byte geometry; the SMALLEST-ALGEBRAIC golden +
-2014-window row) → Step 8 (COBOLNET1518 A.4.9 disposition; the scout found NUMVAL-C's LOCALE keyword is a
-spec list omission — dispose it with the same diagnostic) → Tier-C step groups C/D → Step 9 close-out.
-⚠ Guard-flake note: a 351+2/352+1 guard-fast verdict naming file-I/O suites (SQ/IC) is the DEVLOG-870/872/873
-environmental flake class — re-prove by SOLO rerun before treating as real.
+**⏵ P11 IS IN PROGRESS @ Step 8 (2026-07-17).** Steps 0–2 + 5–7 are DONE (DEVLOG 871–876): the boolean
+pair (`e159a719`), the Y2K trio + SECONDS-PAST-MIDNIGHT (`1728dfd9`), the TEST validator quartet
+(`813d9bd4`), and Step 7 — **BYTE-LENGTH** as a compile-time fold over the new `DataItem.ByteWidth` (pinned
+implementor byte widths: DISPLAY/BIT 1, NATIONAL 2, binary/packed StorageWidth, float 4/8, index/pointer 8;
+national proves BYTE-LENGTH 6 ≠ LENGTH 3) + the **SMALLEST-ALGEBRAIC** golden/2014-window row + the
+**CONCATENATE DELETION**. **ZERO Deferred rows — exit criterion 1 MET.** ⚠ The scout established CONCATENATE
+is NOT ISO at any edition (CONCAT §15.18 is new-in-2023; zero spec occurrences), so the "window [2002,2023)"
+plan was drift: the row is DELETED (a reference now draws COBOLNET1501); CONCATENATE-as-vendor-extension is
+a separate future call. The anchor re-scout is DONE — **READ `docs/rearchitecture/PHASE-11-scout-notes.md`
+FIRST** (its ⚠ blocks override the phase doc — do NOT re-scout). Resume: Step 8 (the A.4.9 locale
+disposition — a COBOLNET1518 bind arm mapping the five `Unsupported` rows to a documented-non-support reject
++ LOCALE-keyword detection on LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C; the scout found NUMVAL-C's
+LOCALE keyword is a spec list-omission → dispose with the same diagnostic; STANDARD-COMPARE additionally
+cites A.3 item 25) → Tier-C step groups C/D → Step 9 close-out. ⚠ Guard-flake note: a 351+2/352+1
+guard-fast verdict naming file-I/O suites (SQ/IC/IX) is the DEVLOG-870/872/873/875 environmental flake class
+— re-prove by SOLO rerun before treating as real.
 
 **PHASE-10 IS COMPLETE (2026-07-17, DEVLOG 854–870 — 14 battery-gated commits `7436a1ef`→`a0fd3f68`+close, CI
 green on each; the P10 doc's STATUS banner carries the exit-criteria confirmation + the NAMED forward-residue

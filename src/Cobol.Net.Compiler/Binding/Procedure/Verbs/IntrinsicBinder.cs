@@ -207,6 +207,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (sig.Bind == IntrinsicBind.Fold && sig.Name == "LENGTH")
             return BindLengthFold(sig, args);
 
+        // FUNCTION BYTE-LENGTH folds at compile time from the item's declared BYTE geometry (§15.14; the D7
+        // byte-vs-position twin of LENGTH).
+        if (sig.Bind == IntrinsicBind.Fold && sig.Name == "BYTE-LENGTH")
+            return BindByteLengthFold(sig, args);
+
         // SMALLEST/HIGHEST/LOWEST-ALGEBRAIC fold at compile time from the argument item's PICTURE metadata
         // (§15.83/§15.43/§15.58; the same Fold discipline as LENGTH).
         if (sig.Bind == IntrinsicBind.Fold
@@ -609,6 +614,31 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // argument to "an alphanumeric, national, or boolean literal" (a numeric *data item* is allowed as "a data
         // item of any class or category", handled by the BoundFieldOperand arm above). So this error is spec-correct.
         _ => new BoundExprError("FUNCTION LENGTH argument (a numeric/figurative literal is not a valid argument, ISO §15.50.3)"),
+    };
+
+    /// <summary>FUNCTION BYTE-LENGTH (§15.14.4 r1): the argument's length in BYTES — the compile-time twin of the
+    /// LENGTH fold, counting bytes instead of character positions (D7). §15.14.3 r1 restricts a LITERAL argument
+    /// to an ALPHANUMERIC or NATIONAL literal (unlike LENGTH, a boolean/numeric literal is NOT valid): an
+    /// alphanumeric literal is 1 byte/char, a national literal 2 bytes/char (D-N1). A fixed data item folds to
+    /// <see cref="DataItem.ByteWidth"/> (the pinned per-usage widths). Runtime-length shapes — a reference-modified
+    /// view, a variable-length (OCCURS DEPENDING) group, or an ANY LENGTH item (§15.14.4 r2/r5) — have a byte
+    /// length known only at runtime; with no runtime BYTE-LENGTH body (the §15.14 CONSTANT-entry path aside) they
+    /// stage LOUD by name, the LENGTH discipline (§1.4).</summary>
+    private BoundExpr BindByteLengthFold(IntrinsicSig sig, List<BoundOperand> args) => args[0] switch
+    {
+        BoundStringLiteral { Category: PicCategory.National } s => new BoundNumLiteral((2 * Math.Max(1, s.Value.Length)).ToString()),
+        BoundStringLiteral { Category: PicCategory.Alphanumeric } s => new BoundNumLiteral(Math.Max(1, s.Value.Length).ToString()),
+        BoundStringLiteral =>
+            new BoundExprError("FUNCTION BYTE-LENGTH literal argument (only an alphanumeric or national literal is a valid argument, ISO §15.14.3)"),
+        BoundFieldOperand { Place: RefModPlace } =>
+            new BoundExprError("FUNCTION BYTE-LENGTH of a reference-modified argument (runtime length, §15.14.4)"),
+        BoundFieldOperand f when f.Place.Item.IsGroup
+                && OdoModel.TableUnder(f.Place.Item) is { OccursSpec.Depending: not null } =>
+            new BoundExprError("FUNCTION BYTE-LENGTH of a variable-length (OCCURS DEPENDING) group (runtime length, §15.14.4 r6)"),
+        BoundFieldOperand { Place.Item.IsAnyLength: true } =>
+            new BoundExprError("FUNCTION BYTE-LENGTH of an ANY LENGTH item (runtime length, ISO §13.18.2)"),
+        BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ByteWidth).ToString()),
+        _ => new BoundExprError("FUNCTION BYTE-LENGTH argument (a numeric/figurative literal is not a valid argument, ISO §15.14.3)"),
     };
 
     /// <summary>SMALLEST/HIGHEST/LOWEST-ALGEBRAIC (§15.83 / §15.43 / §15.58) — a compile-time PICTURE fold, like

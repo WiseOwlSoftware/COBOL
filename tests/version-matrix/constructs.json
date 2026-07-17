@@ -1781,6 +1781,32 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMTESTVAL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 R2 PIC 9(2).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R2 = FUNCTION TEST-DATE-YYYYMMDD(20240229)\n    COMPUTE R2 = FUNCTION TEST-DAY-YYYYDDD(2024366)\n    COMPUTE R2 = FUNCTION TEST-NUMVAL(\"123.45\")\n    COMPUTE R2 = FUNCTION TEST-NUMVAL-C(\"$1,234.56\")\n    DISPLAY R2\n    STOP RUN.\n"
     },
     {
+      "id": "byte-length-2002",
+      "status": "active",
+      "description": "FUNCTION BYTE-LENGTH (ISO 15.14) - the byte-counting twin of FUNCTION LENGTH (15.50); the D7 byte-vs-position distinction. LIVE (P11 Step 7): a COMPILE-TIME FOLD (BindByteLengthFold) over DataItem.ByteWidth, which pins COBOL.NET's implementor-defined per-usage byte widths (13.18.60 leaves them to the implementor): DISPLAY/BIT 1 byte per position, NATIONAL 2 bytes per position (UTF-16), BINARY/PACKED/BINARY-CHAR..DOUBLE the StorageWidth, float 4/8, index/pointer/object-reference 8. Runtime-length shapes (ref-mod/ODO/ANY LENGTH) stay loud by name. 2002 introduction; below 2002 the D8 catalog window rejects by name+edition (COBOLNET1502).",
+      "display": "FUNCTION BYTE-LENGTH (byte count, != FUNCTION LENGTH)",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO §15.14 BYTE-LENGTH (vs §15.50 LENGTH); LIVE (P11 Step 7) — the BindByteLengthFold compile-time fold over DataItem.ByteWidth (pinned implementor widths, COBOLNET_INTRINSICS_DESIGN); D8 window 1502 below 2002",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "M2 catalog BYTE-LENGTH; 2002 introduction (the byte-length function - derive from the 2002 standard; absent from the 1989 Intrinsic Function Module set)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMBYTELEN.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 WS-N PIC N(3).\n01 R2 PIC 9(2).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R2 = FUNCTION BYTE-LENGTH(WS-N)\n    DISPLAY R2\n    STOP RUN.\n"
+    },
+    {
+      "id": "smallest-algebraic-2023",
+      "status": "active",
+      "description": "FUNCTION SMALLEST-ALGEBRAIC (ISO 15.83) - the smallest positive value that may increment argument-1, from its PICTURE/usage description alone (NOT its runtime contents). LIVE (P11: the fold pre-existed via BindAlgebraicFold; Step 7 added the golden + window row): a compile-time PICTURE fold = 10^(-scale) - S999 -> +1, 99V9(3) -> 0.001, S9PP -> +100, BINARY-CHAR -> +1 (the 15.83.4 RVR2 NOTE table). argument-1 shall be a category-numeric DATA ITEM (15.83.3 AR1 - stricter than HIGHEST/LOWEST-ALGEBRAIC: NO numeric-edited, no literal/expression/function). NEW-IN-2023 (Annex E.3 item 29 'has been added'); at --std 2014 or below the D8 catalog window rejects by name+edition (COBOLNET1502).",
+      "display": "FUNCTION SMALLEST-ALGEBRAIC (PICTURE increment fold)",
+      "diagnosticCode": "COBOLNET1502",
+      "citation": "ISO §15.83 SMALLEST-ALGEBRAIC; LIVE — BindAlgebraicFold (10^-scale from the PICTURE, §15.83.4 RVR2 NOTE table); AR1 numeric DATA ITEM only (no numeric-edited); NEW-IN-2023 (Annex E.3 item 29); D8 window 1502 below 2023",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET1502",
+      "vcr": "M2/M3 catalog SMALLEST-ALGEBRAIC; 2023 introduction (Annex E.3 item 29 'has been added'; Annex E.2 item 13 lists it among the new intrinsic-function names)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMSMALLALG.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 X-INT PIC S999.\n01 R3 PIC S9(3).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R3 = FUNCTION SMALLEST-ALGEBRAIC(X-INT)\n    DISPLAY R3\n    STOP RUN.\n"
+    },
+    {
       "id": "report-present-when-2002",
       "status": "active",
       "description": "The report-group PRESENT WHEN clause (§13.18.41 Format 1) — the entry (and its subordinates) is processed only when condition-1 is true, evaluated once per group presentation before any LINE clause processing (GR2); an absent entry is processed as though omitted (GR2b — relative lines re-anchor, absent items leave spaces, an absent SUM entry neither prints nor resets, GR3g). LIVE (P10 Step 13): conditions bind through the ONE ConditionBinder onto the report model; the RWCS engine evaluates per presentation. 2002 introduction — the 2023 Annex E covers 2014→2023 only; derived from the §8.9 reservation of PRESENT 'added 2002' (ReservedWords.Table — the word was reserved FOR this clause) + the 2002 RW modernization family.",

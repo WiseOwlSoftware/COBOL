@@ -62,12 +62,14 @@ public readonly record struct IntrinsicSig(
 
 /// <summary>
 /// The ONE declarative intrinsic-function table (ISO §15.6 summary of functions; deep-dive D2 — replaces the
-/// legacy's ad-hoc AlphanumericFunctions set + scattered special cases). Adding a function is one row. The 42
-/// functions of the 1989 Intrinsic Function Module (the NIST IF suite) are fully implemented; later-edition
-/// functions are catalogued with their D8 windows and bind <see cref="IntrinsicBind.Deferred"/> (loud) until their
-/// subsystem wave lands. Edition windows for post-85 rows beyond the 2023 seven-function delta
-/// (docs/VERSION_CHANGE_REFERENCE.md rows 65–73) are PROVISIONAL pending the version-test-matrix wave — D8 notes
-/// the 85↔2002 gating derives from the 2002 standard, which the reference doc does not yet tabulate.
+/// legacy's ad-hoc AlphanumericFunctions set + scattered special cases). Adding a function is one row. Every
+/// catalogued ISO function is LIVE (P11 drove the <see cref="IntrinsicBind.Deferred"/> backlog to zero): each row
+/// binds <see cref="IntrinsicBind.Runtime"/> (a runtime body), <see cref="IntrinsicBind.Fold"/> (a compile-time
+/// fold — LENGTH/BYTE-LENGTH/the ALGEBRAIC family/WHEN-COMPILED), or <see cref="IntrinsicBind.Unsupported"/> (the
+/// A.4.9 locale module — documented non-support, §4.2.7). The <see cref="IntrinsicBind.Deferred"/> member remains
+/// only as the renderer's never-hit backstop. Edition windows for post-85 rows beyond the 2023 seven-function
+/// delta (docs/VERSION_CHANGE_REFERENCE.md rows 65–73) are firmed against the 2002/2014/2023 standards per the
+/// docs/rearchitecture/PHASE-11 §7 window-authority table.
 /// </summary>
 public static class IntrinsicCatalog
 {
@@ -143,7 +145,14 @@ public static class IntrinsicCatalog
         // (rightmost = low-order digit; zero-filled or TRUNCATED ON THE LEFT — the result is arg-1 mod
         // 2^arg-2, Annex D.10). A boolean function result IS class/category boolean (§15.2 item 2).
         Add(new("BOOLEAN-OF-INTEGER", IntrinsicType.Boolean, IntrinsicArity.Fixed, 2, 2, "ii", "BooleanOfInteger", IntrinsicBind.Runtime, false, 2002)); // §15.13
-        Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002));     // §15.14 (byte size ≠ FUNCTION LENGTH, D7)
+        // BYTE-LENGTH (§15.14) — a COMPILE-TIME FOLD like LENGTH (§15.50), but counting BYTES, not character
+        // positions (the D7 distinction). The per-usage byte widths are IMPLEMENTOR-DEFINED (§13.18.60 GR4/6/7/
+        // 8/11/12; §8.1.2) — COBOL.NET pins them in DataItem.ByteWidth (documented in COBOLNET_INTRINSICS_DESIGN):
+        // 1 byte/character-position for DISPLAY (and boolean/BIT, the §13.18.40.4 R14 one-character
+        // representation), 2 bytes/position for NATIONAL (UTF-16, D-N1), the binary/packed StorageWidth,
+        // 4/8 for the float trio, 8 for index/pointer/object-reference carriers. Runtime-length shapes
+        // (ref-mod / ODO / ANY LENGTH) stay loud by name (§15.14.4 r2/r5, the LENGTH discipline).
+        Add(new("BYTE-LENGTH", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Fold, false, 2002));     // §15.14 (byte size ≠ FUNCTION LENGTH, D7)
         // CHAR-NATIONAL (§15.16) — the national twin of CHAR: the character at the 1-based ordinal position of
         // the NATIONAL program collating sequence (native UTF-16 order; a non-native ALPHABET … FOR NATIONAL
         // sequence rides the CollateNat/__COLLATE_NAT channel, P10 Step 4). Result class national (§15.16.1).
@@ -196,9 +205,17 @@ public static class IntrinsicCatalog
         Add(new("TEST-DAY-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "TestDayYyyyddd", IntrinsicBind.Runtime, false, 2002));   // §15.91
         Add(new("TEST-NUMVAL", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "TestNumval", IntrinsicBind.Runtime, false, 2002));        // §15.93
         Add(new("TEST-NUMVAL-C", IntrinsicType.Integer, IntrinsicArity.OptionalTrailing, 1, 2, "ss", "TestNumvalC", IntrinsicBind.Runtime, false, 2002)); // §15.94
-        // CONCATENATE: 2002–2014 only — the 2023 standard's §15 has CONCAT (§15.18) and no CONCATENATE (window
-        // provisional; the 2023 E.2 delta names only CONCAT as new).
-        Add(new("CONCATENATE", IntrinsicType.Alphanumeric, IntrinsicArity.Variadic, 1, inf, "s", "", IntrinsicBind.Deferred, false, 2002, 2023));
+        // NOTE — CONCATENATE is NOT an ISO/IEC 1989 function and is intentionally ABSENT from this catalog.
+        // The P11 anchor re-scout established (docs/rearchitecture/PHASE-11-scout-notes.md, spec:concat-smallest)
+        // that the string "CONCATENATE" has ZERO occurrences anywhere in ISO/IEC 1989:2023 — not in §15, not in
+        // the §8.9 intrinsic-function-name list, not in the Annex E incompatibility/substitution lists, not in
+        // the archaic/obsolete lists. §15.18 CONCAT is a NEW-IN-2023 function (Annex E.3 item 23 "has been
+        // added"); there is no evidence CONCATENATE was ever an ISO name at any edition. The earlier catalog row
+        // (window [2002,2023), premised on "CONCATENATE = the 2002/2014 name removed in 2023") was audit drift —
+        // a 2023 removal of a real 2002 function would appear in the E.2 incompatibility list, and it does not.
+        // CONCATENATE is a vendor extension (Micro Focus / GnuCOBOL / ACUCOBOL); a reference to it correctly
+        // draws COBOLNET1501 ("not an intrinsic function of ISO/IEC 1989"). Adding it as a dialect-gated vendor
+        // extension is a SEPARATE decision for a future vendor-extension wave, not an ISO edition window.
 
         // ── COBOL-2014 additions (windows provisional pending the matrix wave) ────────────────────────────────
         Add(new("ABS", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "AbsScaled", IntrinsicBind.Runtime, false, 2014));     // §15.7

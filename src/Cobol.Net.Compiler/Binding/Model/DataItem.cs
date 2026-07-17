@@ -340,6 +340,42 @@ public sealed class DataItem
         }
     }
 
+    /// <summary>The item's size in BYTES — the FUNCTION BYTE-LENGTH (§15.14) authority (the D7 byte-vs-position
+    /// distinction). A group sums each non-redefining child's byte contribution × its own fixed-OCCURS count
+    /// (mirroring <see cref="ImageWidth"/>; a REDEFINING child overlays its target and adds no storage,
+    /// §13.18.44). Per-usage byte widths are IMPLEMENTOR-DEFINED (§13.18.60 GR4/6/7/8/11/12; §8.1.2 even makes
+    /// bits-per-byte implementor-specified) — these are COBOL.NET's PINNED, DOCUMENTED widths
+    /// (COBOLNET_INTRINSICS_DESIGN §BYTE-LENGTH): DISPLAY = 1 byte per character position; BIT/boolean = 1 byte
+    /// per boolean position (the §13.18.40.4 R14 one-alphanumeric-character representation COBOL.NET stores,
+    /// D-B1); NATIONAL = 2 bytes per position (UTF-16, D-N1/D-N3); BINARY/COMP-5/PACKED/BINARY-CHAR..DOUBLE =
+    /// their <see cref="Model.PicInfo.StorageWidth"/>; COMP-1/FLOAT-SHORT = 4, COMP-2/FLOAT-LONG/-EXTENDED = 8
+    /// (the .NET Single/Double carriers); INDEX / POINTER / PROGRAM-POINTER / FUNCTION-POINTER / OBJECT REFERENCE
+    /// = 8 (the 64-bit managed carrier). COBOL.NET has no SYNCHRONIZED physical padding, so a group carries no
+    /// implicit-filler bytes (§15.14.4 r3 is satisfied vacuously).</summary>
+    public int ByteWidth =>
+        IsElementary ? ElementaryByteWidth
+        : Children.Where(c => c.RedefinesTargetName is null).Sum(c => c.ByteWidth * (c.Occurs ?? 1));
+
+    /// <summary>An elementary item's byte width — the per-usage pinned widths documented on <see cref="ByteWidth"/>.</summary>
+    internal int ElementaryByteWidth
+    {
+        get
+        {
+            if (Pic is not { } pic) return 0;
+            return pic.Usage switch
+            {
+                Usage.Binary or Usage.Comp5 or Usage.Packed or Usage.BinaryChar or Usage.BinaryShort
+                    or Usage.BinaryLong or Usage.BinaryDouble => pic.StorageWidth,
+                Usage.Float or Usage.FloatShort => 4,
+                Usage.Double or Usage.FloatLong or Usage.FloatExtended => 8,
+                Usage.Index or Usage.Pointer or Usage.ProgramPointer or Usage.FunctionPointer
+                    or Usage.ObjectReference => 8,
+                Usage.National => 2 * ElementaryImageWidth,     // 2 bytes per national position (UTF-16, D-N1/D-N3)
+                _ => ElementaryImageWidth,                       // DISPLAY / BIT: 1 byte per character/boolean position
+            };
+        }
+    }
+
     /// <summary>The C# type of a single occurrence (a record-struct type name for a group, a <see cref="string"/> for
     /// a <see cref="StoreAsImage"/> numeric leaf, else the PIC's CLR type).</summary>
     public string ElementType => IsGroup ? StructName : StoreAsImage ? "string" : Pic?.ClrType ?? "object";
