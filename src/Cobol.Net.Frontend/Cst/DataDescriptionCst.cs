@@ -58,6 +58,24 @@ public readonly struct DataDescriptionClauseCst(Core.DataDescriptionClauseContex
     /// <summary>The <c>TYPE IS type-name</c> referenced type-name text (§13.18.57; D17), or null.</summary>
     public string? TypeRefName => ctx.typeClause()?.IDENTIFIER()?.GetText();
 
+    /// <summary>The <c>SAME AS data-name-1</c> target data-name text (ISO §13.18.49), or null. The first
+    /// <c>cobolWord</c> is the target; any further ones are its OF/IN qualifiers (<see cref="SameAsQualifiers"/>).</summary>
+    public string? SameAsTargetName => ctx.sameAsClause()?.cobolWord(0)?.GetText();
+
+    /// <summary>The SAME AS target's OF/IN qualifier names, outermost-last as written (empty when unqualified
+    /// or when this is not a sameAsClause).</summary>
+    public IReadOnlyList<string> SameAsQualifiers
+    {
+        get
+        {
+            var words = ctx.sameAsClause()?.cobolWord();
+            if (words is null || words.Length <= 1) return [];
+            var quals = new string[words.Length - 1];
+            for (int i = 1; i < words.Length; i++) quals[i - 1] = words[i].GetText();
+            return quals;
+        }
+    }
+
     /// <summary>The REDEFINES target's <c>dataReference</c> text, or null.</summary>
     public string? RedefinesTargetName => ctx.redefinesClause()?.dataReference().GetText();
 

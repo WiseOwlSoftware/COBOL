@@ -250,6 +250,7 @@ dataDescriptionClause
     | globalClause
     | typeClause
     | typedefClause
+    | sameAsClause
     | basedClause
     | anyLengthClause
     | genericDataClause
@@ -303,6 +304,18 @@ typeClause
 // LL-disjoint from externalClause/globalClause (IS? EXTERNAL | GLOBAL): the keyword after the optional IS differs.
 typedefClause
     : IS? TYPEDEF STRONG?   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitTypedefClause (recognition; rearch 14g.2, DEVLOG 734)
+    ;
+
+// SAME AS clause (ISO §13.18.49, COBOL-2002): the subject takes the SAME data description as data-name-1's
+// entry, subordinates included (GR1/GR2 — coded in place, minus data-name-1's level/name/CONSTANT RECORD/
+// EXTERNAL/GLOBAL/REDEFINES/SELECT WHEN; subordinate levels renumber). §13.16.3 SR12 composes it only with
+// CONSTANT RECORD / entry-name / EXTERNAL / GLOBAL / level-number / OCCURS — enforced at bind (COBOLNET1555).
+// The target may be QUALIFIED (OF/IN — data-name-1 is an ordinary data-name reference) but never subscripted
+// (§13.18.49 SR1 — data-name-1 shall not be subject to any OCCURS clause). LL-disjoint from every other
+// dataDescriptionClause (unique leading token SAME; the I-O-CONTROL sameArea rule is a different context).
+// Expansion rides the ONE TYPEDEF clone machinery (DataBinder.ExpandSameAs → CloneItem; data-model D17).
+sameAsClause
+    : SAME AS cobolWord ((OF | IN) cobolWord)*   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitSameAsClause (recognition; the typedefClause pattern)
     ;
 
 genericDataClause

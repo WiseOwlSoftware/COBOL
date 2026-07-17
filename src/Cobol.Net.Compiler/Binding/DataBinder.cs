@@ -498,9 +498,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // A RENAMES INSIDE a TYPEDEF template is part of the type (§13.18.58.4 GR1) but CloneItem does not
                 // carry Renames66 into a TYPE reference — so it would be silently dropped. Staged loud (D17 inc 4).
                 if (rootIsTemplate)
-                    Edition.Error("COBOLNET1535", "a level-66 RENAMES inside a TYPEDEF (part of the type per "
-                        + "ISO §13.18.58.4 GR1) is recognized but not yet cloned into TYPE references (data-model "
-                        + "D17 residue)");
+                    Edition.Error(DiagnosticCatalog.TypedefRenamesStaged, "a level-66 RENAMES inside a TYPEDEF "
+                        + "(part of the type per ISO §13.18.58.4 GR1) is recognized but not yet cloned into TYPE "
+                        + "references (data-model D17 residue)");
                 BindRenames(entry);
                 continue;
             }
@@ -981,6 +981,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         _typedIndexNames.Clear();   // per-program: the ≥2×-INDEXED-type collision guard (D17 inc 4)
         foreach (var item in AllItems().Where(i => i.TypeRefName is not null).ToList())
             ExpandType(item, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        // SAME AS (ISO §13.18.49; P10 Step 16) — expanded AFTER every TYPE reference, so a data-name-1 that
+        // was itself declared with a TYPE clause copies its fully-EXPANDED description (GR1 — "as though the
+        // data description identified by data-name-1 had been coded in place"). Chains (a target with its own
+        // pending SAME AS) recurse inside ExpandSameAs; cycles are the §13.18.49.3 SR3 rejection.
+        foreach (var item in AllItems().Where(i => i.SameAsName is not null).ToList())
+            ExpandSameAs(item, []);
     }
 
     /// <summary>Clone the referenced TYPEDEF template into <paramref name="item"/> (ISO §13.18.57.4 GR1/GR2): an
@@ -1012,6 +1018,26 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         item.TypeName = typeName;
         item.StrongType = template.TypedefStrong;
 
+        // An EXTERNAL type declaration's effect lands on its REFERENCES (ISO §13.18.22; P10 Step 16 — the
+        // former COBOLNET1534 stage is lifted): GR2 — a data description containing an external type shall be
+        // at level-number 1; GR3 — such a record is itself EXTERNAL (marked here; CallBindExternalAndGlobal
+        // re-bases it onto the run-unit ExternalStore cell exactly like an explicitly-EXTERNAL record).
+        if (template.IsExternalTypedef)
+        {
+            if (item.Level != 1)
+                Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{subject}' references EXTERNAL type "
+                    + $"'{typeName}': a data description containing an external type declaration shall be at "
+                    + "level-number 1 (ISO §13.18.22 GR2)");
+            else
+                item.ExternalFromType = true;   // §13.18.22 GR3
+        }
+        // §13.18.22 SR5: when a record description is an external item, an associated type declaration that is
+        // strongly typed shall also be external.
+        if (item.HasExternalClause && template.TypedefStrong && !template.IsExternalTypedef)
+            Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{subject}': an EXTERNAL record described with "
+                + $"STRONG type '{typeName}' requires that type declaration to be external too "
+                + "(ISO §13.18.22 SR5)");
+
         // §13.18.57.3 SR7 (review fix #1): a level-77 subject requires an ELEMENTARY type — a level-77 item is an
         // independent elementary item (§13.18.38). Version- AND strength-invariant (this applies to WEAK types too;
         // the old SR6 branch caught only the STRONG case).
@@ -1042,14 +1068,41 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "(ISO §13.18.57.3 SR6)");
         }
 
-        // Clone the template's structure in (children / PICTURE / the type's root-level 88s) AFTER the flags above.
+        // Clone the template's structure in (children / the entry description / the type's root-level 88s)
+        // AFTER the flags above. The entry-description copy (§13.18.58.4 GR3 — "all other data description
+        // clauses ... are assumed by data defined using the type-name") shares CopyEntryDescription with the
+        // SAME AS expansion; copySync: false — §13.18.57.4 GR1 EXCLUDES alignment (contrast §13.18.49 GR1,
+        // which copies it). The subject's own VALUE wins (§13.18.57.4 GR3 — RawValue ??=).
         if (template.IsGroup)
             foreach (var child in template.Children)
                 item.Children.Add(CloneItem(child, item, expanding));
-        else
-            item.Pic ??= template.Pic;   // elementary type → item becomes this leaf (its own VALUE/OCCURS kept, GR3/SR14)
+        CopyEntryDescription(template, item, copySync: false);
         foreach (var c88 in template.Own88s) CloneConditionOnto(item, c88);   // the type's ROOT-level 88s (GR1; D17 inc 3)
         expanding.Remove(typeName);
+    }
+
+    /// <summary>Copy one entry's data description CLAUSES onto another (the shared GR-1 body of
+    /// <see cref="ExpandType"/> — ISO §13.18.58.4 GR3 / §13.18.57.4 GR1 — and <see cref="ExpandSameAs"/> —
+    /// §13.18.49 GR1): PICTURE / USAGE / SIGN / VALUE / JUSTIFIED / BLANK WHEN ZERO / the deferred
+    /// NATIONAL-BIT mark / the carried TYPE identity. The receiver's OWN clause always wins (<c>??=</c> —
+    /// §13.18.57.4 GR3 for VALUE; a SAME AS subject can own none of these, §13.16.3 SR12). NEVER copied:
+    /// level-number, name, OCCURS (a SAME AS target owns none, SR5; a subject's own OCCURS is the
+    /// array-of-description form, §13.16.3 SR12/SR14), REDEFINES / EXTERNAL / GLOBAL / CONSTANT RECORD
+    /// (both GR-1 exclusion lists), BASED (§13.18.57.4 GR4 — the subject's own applies). SYNCHRONIZED
+    /// (alignment) is copied ONLY for SAME AS (§13.18.49 GR1 has no alignment exclusion; §13.18.57.4 GR1
+    /// excludes it).</summary>
+    private static void CopyEntryDescription(DataItem from, DataItem to, bool copySync)
+    {
+        to.Pic ??= from.Pic;
+        if (to.Pending is PicPending.None) to.Pending = from.Pending;
+        to.RawValue ??= from.RawValue;
+        to.Justified |= from.Justified;
+        to.BlankWhenZero |= from.BlankWhenZero;
+        if (copySync) to.Synchronized |= from.Synchronized;
+        to.OwnUsage ??= from.OwnUsage;
+        to.OwnSign ??= from.OwnSign;
+        to.TypeName ??= from.TypeName;     // a data-name-1 declared with TYPE carries its type identity (§8.5.3)
+        to.StrongType |= from.StrongType;
     }
 
     /// <summary>Deep-clone one template node under <paramref name="newParent"/> (generalizes the flat OO compiler-temp
@@ -1057,12 +1110,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// shared Uid would collide the clone's emitted type/profile with the template's), the immutable
     /// <see cref="DataItem.Pic"/> shared, the description fields copied, the <see cref="DataItem.CsName"/> re-uniquified
     /// in the NEW scope, and — unlike the template — REGISTERED (clones ARE referenceable). A nested TYPE reference in
-    /// the template is expanded in place.</summary>
-    private DataItem CloneItem(DataItem src, DataItem newParent, HashSet<string> expanding)
+    /// the template is expanded in place; so is a nested SAME AS (§13.18.49 — a subordinate of the copied
+    /// description carrying SAME AS re-expands per clone, the TypeRefName pattern). <paramref name="levelDelta"/>
+    /// renumbers the cloned subtree's level-numbers relative to the new subject (ISO §13.18.49.4 GR2b — SAME AS
+    /// splices a level-1 description under an arbitrary-level subject, and the adjusted levels may exceed 49,
+    /// GR2c; TYPE expansion passes 0 — its templates clone level-verbatim, byte-stable).</summary>
+    private DataItem CloneItem(DataItem src, DataItem newParent, HashSet<string> expanding, int levelDelta = 0)
     {
         var clone = new DataItem
         {
-            Level = src.Level,
+            Level = src.Level + levelDelta,
             CobolName = src.CobolName,
             CsName = Unique(src.CsName, newParent.Children.Select(c => c.CsName)),
             Pic = src.Pic,
@@ -1079,9 +1136,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Justified = src.Justified,
             BlankWhenZero = src.BlankWhenZero,
             TypeRefName = src.TypeRefName,
+            SameAsName = src.SameAsName,   // a pending nested SAME AS re-expands per clone (below)
         };
         clone.Uid = _uidCounter++;
         clone.Parent = newParent;
+        clone.SameAsQualifiers.AddRange(src.SameAsQualifiers);
+        // An ALREADY-EXPANDED source subtree (a SAME AS target that was declared with TYPE) carries its type
+        // identity on inner nodes — copy it so the clone stays anchored for the §8.5.3 same-type test. For the
+        // TYPE-template flows these are always null/false (templates are never expanded in place; nested refs
+        // expand per-clone), so this is a no-op there.
+        clone.TypeName = src.TypeName;
+        clone.StrongType = src.StrongType;
         foreach (var idx in src.IndexNames)
         {
             clone.IndexNames.Add(idx);
@@ -1095,8 +1160,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         RegisterName(clone);
         foreach (var c88 in src.Own88s) CloneConditionOnto(clone, c88);   // §13.18.58.4 GR1 — the 88s are part of the type (D17 inc 3)
         foreach (var child in src.Children)
-            clone.Children.Add(CloneItem(child, clone, expanding));
+            clone.Children.Add(CloneItem(child, clone, expanding, levelDelta));
         if (clone.TypeRefName is not null) ExpandType(clone, expanding);   // a nested TYPE reference inside the template
+        if (clone.SameAsName is not null) ExpandSameAs(clone, []);         // a nested SAME AS inside the copied description (§13.18.49)
         return clone;
     }
 
@@ -1128,6 +1194,232 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         c.DescendingKeyNames.AddRange(s.DescendingKeyNames);
         return c;
     }
+
+    // ── SAME AS (ISO §13.18.49, COBOL-2002; P10 Step 16) ─────────────────────────────────────────────────────
+
+    /// <summary>Expand one <c>SAME AS data-name-1</c> reference (ISO §13.18.49): resolve data-name-1 as an
+    /// ordinary (optionally OF/IN-qualified) data-name, enforce the §13.18.49.3 syntax rules, then copy its
+    /// data description onto <paramref name="item"/> — the subject "as though the data description identified
+    /// by data-name-1 had been coded in place of the SAME AS clause" (GR1), via the ONE
+    /// <see cref="CopyEntryDescription"/>/<see cref="CloneItem"/> machinery TYPE expansion uses
+    /// (feedback_singular_pattern; SAME AS is structurally the TYPE expansion with a DATA-NAME source).
+    /// Excluded from the copy per GR1: data-name-1's level-number, name, CONSTANT RECORD, EXTERNAL, GLOBAL,
+    /// REDEFINES, and SELECT WHEN (not modeled). Subordinate levels renumber relative to the subject (GR2b/c —
+    /// the <see cref="CloneItem"/> levelDelta). <paramref name="expanding"/> is the SAME-AS expansion chain —
+    /// a target already on it is the SR3 cycle.</summary>
+    private void ExpandSameAs(DataItem item, HashSet<DataItem> expanding)
+    {
+        if (item.SameAsName is null) return;   // already expanded through a chain hop (idempotent — the TypeRefName pattern)
+        string targetName = item.SameAsName;
+        item.SameAsName = null;
+        string subject = item.CobolName ?? item.CsName;
+        expanding.Add(item);
+
+        // §13.18.49.3 SR2: the entry shall not be immediately followed by a subordinate data description entry
+        // or level-88 entry — the copied description IS the subject's whole shape.
+        if (item.Children.Count > 0 || item.Own88s.Count > 0)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"'{subject}': a data description entry that "
+                + "specifies the SAME AS clause shall not be immediately followed by a subordinate data "
+                + "description entry or level 88 entry (ISO §13.18.49.3 SR2)");
+            return;
+        }
+        // §13.18.49.3 SR9: no group containing the subject may carry a GROUP-USAGE, SIGN, or USAGE clause —
+        // it would silently override the copied representation (the TYPE-clause §13.18.57.3 SR5 twin, 1538).
+        // (GROUP-USAGE is not modeled — its national/bit group forms are the staged national legs.)
+        for (var p = item.Parent; p is not null; p = p.Parent)
+            if (p.OwnUsage is not null || p.OwnSign is not null)
+            {
+                Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"'{subject}': a group item to which a SAME AS "
+                    + "entry is subordinate shall not contain a GROUP-USAGE, SIGN, or USAGE clause "
+                    + "(ISO §13.18.49.3 SR9)");
+                break;   // report once; keep expanding under the already-failed compile
+            }
+
+        // Resolve data-name-1: an ordinary data-name reference (qualification narrows by ancestor names);
+        // never subscripted — SR1 makes a table-subordinate target illegal anyway. TYPEDEF template members
+        // are OFF ByName (§13.18.58.4 GR1), so a type declaration's insides are unreachable here by design.
+        var candidates = ByName.TryGetValue(targetName, out var byName)
+            ? byName.Where(c => SameAsQualifiersMatch(c, item.SameAsQualifiers)).ToList()
+            : [];
+        if (candidates.Count != 1)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS "
+                + $"'{targetName}{(item.SameAsQualifiers.Count > 0 ? " OF " + string.Join(" OF ", item.SameAsQualifiers) : "")}' "
+                + (candidates.Count == 0
+                    ? "does not resolve to a data description entry (ISO §13.18.49.2 — data-name-1 shall "
+                      + "reference a data item; §13.18.49.3 SR7)"
+                    : "is ambiguous — the reference shall identify exactly one entry (ISO §8.4.3.2)"));
+            return;
+        }
+        var target = candidates[0];
+
+        // §13.18.49.3 SR3 — cycles: data-name-1 (or its description, through a chain) shall not reference the
+        // subject or any group the subject is subordinate to. The chain leg is the expanding-set test; the
+        // containment leg is the subject-ancestor walk. (SR4 — a TYPE clause in data-name-1's description
+        // referencing the subject's record — is caught by the same walks over the EXPANDED target, plus
+        // §13.18.57.3 SR1 on the TYPE side.)
+        if (ReferenceEquals(target, item) || expanding.Contains(target))
+        {
+            Edition.Error(DiagnosticCatalog.SameAsCycle, $"'{subject}': SAME AS '{targetName}' directly or "
+                + "indirectly references the subject of the entry (ISO §13.18.49.3 SR3)");
+            return;
+        }
+        // A chained SAME AS target expands FIRST, so GR1 copies the COMPLETE description; a pending TYPE
+        // reference likewise (defensive — the SAME AS loop runs after the TYPE loop, so Roots targets are
+        // already expanded; ExpandType is idempotent via the TypeRefName-null mark).
+        if (target.SameAsName is not null) ExpandSameAs(target, expanding);
+        if (target.TypeRefName is not null) ExpandType(target, new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+        for (var p = item.Parent; p is not null; p = p.Parent)
+            if (ReferenceEquals(p, target))
+            {
+                Edition.Error(DiagnosticCatalog.SameAsCycle, $"'{subject}': SAME AS '{targetName}' references a "
+                    + "group item to which this entry is subordinate (ISO §13.18.49.3 SR3)");
+                return;
+            }
+
+        // §13.18.49.3 SR7: data-name-1 shall reference an elementary item or a level-1 group item (of the
+        // file / working-storage / local-storage / linkage section; a level-66 RENAMES alias is neither).
+        if (target.Level == 66 || !(target.IsElementary || target.Level == 1))
+        {
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS '{targetName}' shall "
+                + "reference an elementary item or a level 1 group item (ISO §13.18.49.3 SR7)");
+            return;
+        }
+        // §13.18.49.3 SR5: data-name-1's own entry shall not contain an OCCURS clause (subordinates may).
+        if (target.Occurs is not null || target.OccursSpec is not null)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': the description of SAME AS "
+                + $"target '{targetName}' shall not contain an OCCURS clause — only items subordinate to it may "
+                + "(ISO §13.18.49.3 SR5)");
+            return;
+        }
+        // §13.18.49.3 SR1: data-name-1 shall not be SUBJECT TO any OCCURS clause (no table ancestor — the
+        // reference is a bare data-name, never subscripted).
+        for (var p = target.Parent; p is not null; p = p.Parent)
+            if (p.IsTable)
+            {
+                Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS target "
+                    + $"'{targetName}' shall not be subject to any OCCURS clause (ISO §13.18.49.3 SR1)");
+                return;
+            }
+        // §13.18.49.3 SR10: data-name-1's description shall not contain a CONSTANT RECORD clause.
+        if (target.IsConstantRecord)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': the description of SAME AS "
+                + $"target '{targetName}' shall not contain a CONSTANT RECORD clause (ISO §13.18.49.3 SR10)");
+            return;
+        }
+        // §13.18.49.3 SR8: a level-77 subject requires an elementary data-name-1 (a level-77 item is an
+        // independent ELEMENTARY item — the TYPE-clause SR7 twin, 1536).
+        if (item.Level == 77 && target.IsGroup)
+        {
+            Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"'{subject}': a level-77 SAME AS subject requires "
+                + "an elementary data-name-1 (ISO §13.18.49.3 SR8)");
+            return;
+        }
+        // §13.18.49.3 SR6: in the FILE SECTION, data-name-1's description (subordinates included) shall not
+        // contain a USAGE OBJECT REFERENCE item.
+        if (IsFileSectionItem(item) && HasObjectReferenceLeaf(target))
+        {
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': a SAME AS clause in the file "
+                + $"section shall not reference '{targetName}', whose description contains a USAGE OBJECT "
+                + "REFERENCE data item (ISO §13.18.49.3 SR6)");
+            return;
+        }
+
+        // ── GR1/GR2: the copy. ──────────────────────────────────────────────────────────────────────────────
+        // The entry description (PICTURE/USAGE/SIGN/VALUE/JUSTIFIED/BLANK WHEN ZERO/SYNCHRONIZED + the carried
+        // TYPE identity; copySync: true — §13.18.49 GR1 does NOT exclude alignment, unlike §13.18.57.4 GR1).
+        CopyEntryDescription(target, item, copySync: true);
+        // GR3/GR5: a USAGE / SIGN clause of a group containing data-name-1 takes effect as though specified
+        // for the SUBJECT (nearest enclosing clause, the §13.18.60 GR1 discipline; only an ELEMENTARY target
+        // can have ancestors — SR7). The subject's chain cannot see data-name-1's ancestors, so the transform
+        // the InheritUsage/InheritSign passes would have applied is applied here, on the copied Pic.
+        if (item.OwnUsage is null)
+            for (var p = target.Parent; p is not null; p = p.Parent)
+                if (p.OwnUsage is { } au)
+                {
+                    item.OwnUsage = au;
+                    if (au is Usage.Binary or Usage.Packed or Usage.Comp5
+                        && item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Usage: Usage.Display } upic)
+                        item.Pic = upic with { Usage = au, SignKind = PicInfo.SignKindFor(au, upic.Signed, item.OwnSign) };
+                    break;
+                }
+        if (item.OwnSign is null)
+            for (var p = target.Parent; p is not null; p = p.Parent)
+                if (p.OwnSign is { } asg)
+                {
+                    item.OwnSign = asg;
+                    if (item.Pic is { Category: PicCategory.Numeric, Signed: true, Usage: Usage.Display } spic)
+                        item.Pic = spic with { SignKind = PicInfo.SignKindFor(spic.Usage, signed: true, asg) };
+                    break;
+                }
+        // GR2: a group data-name-1 → the subject becomes a group with the same subordinate names, descriptions,
+        // and hierarchy; levels renumber relative to the subject (GR2b, may exceed 49 — GR2c). The ONE CloneItem.
+        if (target.IsGroup)
+        {
+            int levelDelta = item.Level - target.Level;
+            var typeExpanding = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var child in target.Children)
+                item.Children.Add(CloneItem(child, item, typeExpanding, levelDelta));
+        }
+        foreach (var c88 in target.Own88s) CloneConditionOnto(item, c88);   // GR2a — data-name-1's own condition-names ride the copy
+
+        // §13.18.22 GR3 carried through SAME AS: when data-name-1's external-ness came FROM ITS TYPE (not from
+        // an explicit EXTERNAL clause — that one GR1 excludes), the copied description still names the external
+        // type, so the subject is external under the same GR2 level-1 constraint.
+        if (target.ExternalFromType)
+        {
+            if (item.Level != 1)
+                Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{subject}': a data description containing "
+                    + "an external type declaration shall be at level-number 1 (ISO §13.18.22 GR2)");
+            else
+                item.ExternalFromType = true;
+        }
+        // A copied STRONG type identity re-checks placement (§13.18.57.3 SR6 — level 1 or subordinate to a
+        // strongly-typed group; the ExpandType twin).
+        if (item.StrongType && item.Level != 1)
+        {
+            bool underStrong = false;
+            for (var p = item.Parent; p is not null; p = p.Parent)
+                if (p.StrongType) { underStrong = true; break; }
+            if (!underStrong)
+                Edition.Error("COBOLNET1532", $"'{subject}' copies strongly-typed '{targetName}' (type "
+                    + $"'{item.TypeName}'): a strongly-typed item shall be specified only at level 1 or "
+                    + "subordinate to a strongly-typed group (ISO §13.18.57.3 SR6)");
+        }
+        expanding.Remove(item);
+    }
+
+    /// <summary>Whether a candidate matches a SAME AS reference's OF/IN qualifiers: each qualifier, in written
+    /// order, names some (strictly enclosing) ancestor of the previous match (ISO §8.4.3.2 qualification).</summary>
+    private static bool SameAsQualifiersMatch(DataItem candidate, List<string> qualifiers)
+    {
+        var p = candidate.Parent;
+        foreach (string q in qualifiers)
+        {
+            while (p is not null && !string.Equals(p.CobolName, q, StringComparison.OrdinalIgnoreCase))
+                p = p.Parent;
+            if (p is null) return false;
+            p = p.Parent;
+        }
+        return true;
+    }
+
+    /// <summary>Whether an item belongs to a FILE SECTION record (its root is some FD/SD's record) — the
+    /// §13.18.49.3 SR6 placement test.</summary>
+    private bool IsFileSectionItem(DataItem item)
+    {
+        var root = item;
+        while (root.Parent is { } p) root = p;
+        return Files.Any(f => f.Records.Contains(root));
+    }
+
+    /// <summary>True when the item's description (subordinates included) contains a USAGE OBJECT REFERENCE
+    /// data item (ISO §13.18.49.3 SR6 / §13.18.57.3 SR8).</summary>
+    private static bool HasObjectReferenceLeaf(DataItem item) =>
+        item.Pic?.Category is PicCategory.ObjectReference || item.Children.Any(HasObjectReferenceLeaf);
 
     /// <summary>The STRONG type-declaration use restrictions that need the RESOLVED REDEFINES/RENAMES graph
     /// (ISO §13.18.57.3): <b>SR4</b> — a strongly-typed item shall not be redefined in whole or in part; <b>SR3</b> —
@@ -1284,6 +1576,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
         bool isConstantRecord = false; // CONSTANT RECORD (ISO §13.18.15 — a structured constant; P10 Step 15)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
+        string? sameAsName = null;     // SAME AS data-name-1 — the entry this one copies, expanded post-build (§13.18.49)
+        IReadOnlyList<string> sameAsQuals = [];   // the SAME AS target's OF/IN qualifiers
 
         // The dataDescriptionClauses presence guard folds into e.Clauses (empty when the body has no clause list).
             foreach (var clause in e.Clauses)
@@ -1313,6 +1607,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // VersionConformancePass ParseArm.VisitTypeClause (14g.2, recognition-based — TypeRefName is
                     // nulled by ExpandTypes during bind, so a bound-arm gate would drop it).
                     typeRefName = trn;
+                else if (clause.SameAsTargetName is { } san)
+                    // SAME AS data-name-1 (ISO §13.18.49; P10 Step 16) — the subject copies data-name-1's
+                    // description via the ONE ExpandTypes/CloneItem machinery (ExpandSameAs, GR1/GR2). The
+                    // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitSameAsClause
+                    // (recognition-based — SameAsName is nulled by ExpandSameAs during bind, the TypeRefName
+                    // pattern).
+                    { sameAsName = san; sameAsQuals = clause.SameAsQualifiers; }
                 else if (clause.Context.justifiedClause() is not null)
                     justified = true;   // JUSTIFIED [RIGHT] (ISO §13.18.34 — right-justify alphanumeric receives)
                 else if (clause.Context.blankWhenZeroClause() is not null)
@@ -1495,12 +1796,28 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
         if (rawValue is { } rv && pic is not null) ValidateValueCategory(pic, rv, entryWhere);
-        // §13.18.57.4 GR5 / §13.18.22 (D17 inc 4, staged loud): an EXTERNAL type declaration shares the type across
-        // the run unit (a strong external record's type must also be external). Cross-program external TYPE sharing
-        // is not yet modeled — reject loud rather than clone a per-program copy that silently diverges.
-        if (isTypedef && hasExternal)
-            Edition.Error("COBOLNET1534", $"{entryWhere}: an EXTERNAL type declaration (a run-unit-shared type, "
-                + "ISO §13.18.57.4 GR5 / §13.18.22) is recognized but not yet implemented (data-model D17 residue)");
+        // An EXTERNAL type declaration (ISO §13.18.22 SR1 — EXTERNAL is legal on a level-1 type declaration;
+        // the level-1 shape is §13.18.58.3 SR3, already enforced by RegisterTypeDecl's 1529). The declaration
+        // itself has no storage (§13.18.58.4 GR2); the effect lands on its REFERENCES — §13.18.22 GR2 (a data
+        // description containing the type shall be level-1) and GR3 (those records are themselves EXTERNAL) are
+        // enforced in ExpandType, and the record rides the ordinary run-unit ExternalStore re-basing
+        // (CallBindExternalAndGlobal). The former COBOLNET1534 stage is LIFTED (P10 Step 16).
+        // (Its old §13.18.57.4 GR5 citation was wrong — GR5 is a Format-2 REPORT-GROUP rule.)
+
+        // SAME AS same-entry composition (ISO §13.16.3 SR12): the SAME AS clause shall not share a data
+        // description entry with any clause except CONSTANT RECORD, entry-name, EXTERNAL, GLOBAL, level-number,
+        // and OCCURS. A violation reports and clears the reference so the item binds as ordinary storage under
+        // an already-failed compile (the IsBased discipline).
+        if (sameAsName is not null
+            && (pictureText is not null || usageText is not null || rawValue is not null || ownSign is not null
+                || justified || blankWhenZero || synchronized || redefinesTargetName is not null || isBased
+                || isAnyLength || typeRefName is not null || isTypedef))
+        {
+            Edition.Error(DiagnosticCatalog.SameAsEntryRule, $"{entryWhere}: the SAME AS clause shall not be "
+                + "specified in the same data description entry with any clauses except CONSTANT RECORD, "
+                + "entry-name, EXTERNAL, GLOBAL, level-number, and OCCURS (ISO §13.16.3 SR12)");
+            sameAsName = null;
+        }
 
         // CONSTANT RECORD same-entry shape checks (P10 Step 15; the IsBased discipline — a violation reports and
         // clears the flag so the item binds as ordinary storage under an already-failed compile). §13.16.3 SR6:
@@ -1548,9 +1865,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Synchronized = synchronized,
             IsTypedef = isTypedef,
             TypedefStrong = typedefStrong,
+            IsExternalTypedef = isTypedef && hasExternal,   // §13.18.22 SR1 / §13.18.58.3 SR3 (P10 Step 16)
+            HasExternalClause = hasExternal,                // backs the §13.18.22 SR5 strong-external pairing check
             IsConstantRecord = isConstantRecord,
             TypeRefName = typeRefName,
+            SameAsName = sameAsName,
         };
+        if (sameAsName is not null) item.SameAsQualifiers.AddRange(sameAsQuals);
 
         // BASED declaration validation (the 0881 declaration-entry band; Phase-4b increment 2): §13.16 SR16 —
         // a BASED entry is a level-01/77 record-description entry (WS/LS/LINKAGE; the file-subsystem sweep is

@@ -351,21 +351,45 @@ to the outermost `StrongType` ancestor) + `SameStrongType(a,b)` (equal strong-ro
 path), checked in `BindMove` (`CheckStrongMove`) / `CheckedRelational` (the ONE relation chokepoint) / the
 class-condition arm (`CheckClassConditionOperand`).
 
-**Grammar (ONE shared-.g4 change → FULL legacy guard).** The TYPE-reference rule already exists. ADD only: a
-`STRONG` lexer token; `typedefClause : IS? TYPEDEF STRONG? ;` on `dataDescriptionClause` (modeled on
-`externalClause`; superset parse — no edition predicate); the COBOL-2002 introduction gates are the bind-time
-`ConstructRegistry.Check(TypedefDef2002)` / `Check(TypeClause2002)` in the `DataBinder` clause loop → **COBOLNET0900**
-(the `VersionConformancePass` funnel at end state).
-**Do NOT add an `AS` token** — SAME AS is DEFERRED (a distinct feature; `AS` is a legacy-compat hazard as a
-common data-name; `CloneSubtree` is built generically so the later SAME AS slice reuses it with a different exclusion
-mask). `POINTER TO type-name` also stays out.
+**Grammar (shared-.g4 rules → FULL legacy guard per change).** `typedefClause : IS? TYPEDEF STRONG? ;` and
+`sameAsClause : SAME AS cobolWord ((OF|IN) cobolWord)* ;` on `dataDescriptionClause` (superset parse — no edition
+predicates); the TYPE-reference rule pre-existed. The COBOL-2002 introduction gates are the `VersionConformancePass`
+parse arms (`VisitTypedefClause` / `VisitTypeClause` / `VisitSameAsClause`, recognition-based) → **COBOLNET0900**
+(rows `typedef-def-2002` / `type-clause-2002` / `same-as-clause-2002`). The `AS` token is shared with the
+CONSTANT-entry surface (both §8.9-interval words; `AS` is nameSlot-only — the FU-1 ledger). `POINTER TO type-name`
+stays out.
 
-**Diagnostics (15xx, continuing after 1528).** **1529** malformed TYPEDEF (SR15 level-1/named; SR1 STRONG-on-
-elementary; TYPEDEF × REDEFINES/BASED/CONSTANT RECORD/PROPERTY); **1530** TYPE unresolved/recursive; **1531** illegal
-TYPE-reference context (immediate subordinate/88; disallowed sibling clause; 77-of-group; type-with-INDEXED-BY used
-≥2×); **1532** STRONG declaration violation; **1533** STRONG use incompatibility (MOVE/compare non-same-type; strong
-group in a class condition); **1534** staged-loud EXTERNAL type declaration (2023 delta); **1535** staged-loud
-RENAMES-in-TYPEDEF / strong-group boolean-object non-equality compare.
+**SAME AS (§13.18.49) rides the SAME machinery** — it is the TYPE expansion with a DATA-NAME source:
+`DataItem.SameAsName`/`SameAsQualifiers` → `ExpandSameAs` (inside the ONE `ExpandTypes` pass, AFTER the TYPE loop so
+targets copy their expanded description; chains recurse, cycles = the expanding-set + subject-ancestor walks). The
+copy = the shared `CopyEntryDescription` (also ExpandType's §13.18.58.4 GR3 body; SYNCHRONIZED copies for SAME AS
+only — §13.18.49 GR1 has no alignment exclusion, §13.18.57.4 GR1 does) + `CloneItem` with a `levelDelta` (GR2b
+subordinate renumbering relative to the subject, may exceed 49 per GR2c; TYPE flows pass 0). GR1 exclusions honored:
+data-name-1's level/name/CONSTANT RECORD/EXTERNAL/GLOBAL/REDEFINES are not copied. GR3/GR5: a USAGE/SIGN on a group
+containing data-name-1 applies as though specified for the subject (mirrored onto the copied Pic at expansion —
+the subject's chain cannot see the target's ancestors). A copied TYPE identity keeps the §8.5.3 anchors
+(`SameStrongType` holds across `B SAME AS A` pairs) and re-checks the §13.18.57.3 SR6 strong placement.
+
+**EXTERNAL type declarations (§13.18.22) are LIVE** — a conformance surface + record-external attribution, NOT a
+cross-program type registry: `DataItem.IsExternalTypedef` on the template; `ExpandType` enforces GR2 (a data
+description containing an external type shall be level-1) and SR5 (an external record of a STRONG type requires the
+type external too) → **1558**, and marks GR3 records `ExternalFromType`; `CallBindExternalAndGlobal` re-bases those
+roots onto the run-unit `ExternalStore` cell exactly like explicitly-EXTERNAL records (GR6 matching by externalized
+name rides the existing mechanism). Cross-source-unit §8.5.3 same-type equivalence for external types remains the
+recorded follow-up in `StrongTypeModel`.
+
+**Diagnostics (15xx).** **1529** malformed TYPEDEF (SR15 level-1/named; SR1 STRONG-on-elementary; TYPEDEF ×
+REDEFINES/BASED/CONSTANT RECORD/PROPERTY); **1530** TYPE unresolved/recursive; **1531** illegal TYPE-reference
+context (immediate subordinate/88; disallowed sibling clause; 77-of-group; type-with-INDEXED-BY used ≥2×);
+**1532** STRONG declaration violation; **1533** STRONG use incompatibility (MOVE/compare non-same-type; strong group
+in a class condition — split by descriptor: `strong-move-mismatch`/`strong-compare-mismatch`/`strong-class-condition`);
+**1535** two descriptors on one code: `strong-compare-ordering` (§8.8.4.2.3 SR4 — a boolean/object/pointer-bearing
+strong group compares for equality/inequality only; the NAMED spec rule) and `typedef-renames-staged`
+(RENAMES-in-TYPEDEF, staged); **1555/1556/1557** SAME AS subject-entry / referenced-entry / cycle rule families
+(§13.16.3 SR12 + §13.18.49.3); **1558** EXTERNAL-type conformance (§13.18.22 GR2/SR5); **0899**
+`strong-group-ordering-signed-leaf` (ordering same-type strong groups with a SIGNED numeric leaf needs the
+§8.8.4.2.12 element-by-element algebraic order the image comparison cannot honor — equality and unsigned/character
+orderings are image-equivalent and live).
 
 **Implemented (the CORE increments).** (1)
 grammar (`STRONG` token + `typedefClause`; `EditionGateHints.TypedefClause` → 0900; the
@@ -388,14 +412,19 @@ clean companion). (3) level-88 condition-names inside a TYPEDEF (§13.18.58.4 GR
 `DataItem.Own88s` (the item's own 88s), `BindCondition(…, registerGlobal: !rootIsTemplate)` keeps a template's 88s OFF
 the global by-name index (GR1), and `ExpandType`/`CloneItem` call `CloneConditionOnto` to clone them onto each
 reference (registered globally — clones ARE referenceable). Golden `typedef_88` + `TypedefConditionTests` ×2.
-(4) staged-loud residue: **1534** EXTERNAL type declaration (`BindEntry`), **1535**
-RENAMES-in-TYPEDEF (the in-template level-66 guard in `BindEntries`) + a strong-group-with-boolean/object/pointer
-ordering compare (§8.8.4.2.3 SR4, in `CheckedRelational`), **1531** an INDEXED-BY type referenced ≥2× (the
-`_typedIndexNames` collision set in `CloneItem`). Golden `typedef_indexed` (a single INDEXED-type reference works) +
-`TypedefResidueTests` ×5. **Matrix note:** the STRONG phrase rides the SAME `typedefClause` gate as `typedef-def-2002`
-(introduction gating already covered) and 1531–1535 are edition-INVARIANT compile-time diagnostics (no cross-edition
-behavior variance), so no new matrix row is warranted (`ISO2023_CONFORMANCE_PLAN` M3-2: TYPEDEF ◑ DONE; SAME AS
-/ TYPE TO deferred).
+(4) the residue rules: **1558** EXTERNAL-type conformance (§13.18.22 GR2/SR5 in
+`ExpandType` — the external-record attribution itself is LIVE, see the EXTERNAL-type paragraph above), **1535**
+RENAMES-in-TYPEDEF staged (the in-template level-66 guard in `BindEntries`, descriptor `typedef-renames-staged`) +
+the NAMED §8.8.4.2.3 SR4 equality-only rule for a strong group with boolean/object/pointer elements (descriptor
+`strong-compare-ordering`, in the relation checkpoint), **0899** `strong-group-ordering-signed-leaf` (the
+§8.8.4.2.12 signed-leaf element ordering, staged), **1531** an INDEXED-BY type referenced ≥2× (the
+`_typedIndexNames` collision set in `CloneItem`). Goldens `typedef_indexed` (a single INDEXED-type reference works),
+`typedef_same_as` (elementary+VALUE / group+qualified / nested renumbered / OCCURS composition / strong-copy
+relations), `typedef_external` (two programs, one ExternalStore cell) + `TypedefResidueTests`/`SameAsTests`.
+**Matrix note:** the STRONG phrase rides the SAME `typedefClause` gate as `typedef-def-2002` (introduction gating
+already covered); SAME AS carries its own row `same-as-clause-2002`; an EXTERNAL-typedef row is NOT warranted
+(TYPEDEF is unreachable below 2002, so the composition needs no second 0900); 1531–1535/1555–1558 are
+edition-INVARIANT compile-time diagnostics (no cross-edition behavior variance). `TYPE TO` stays deferred.
 
 **Additional hardening (current invariants).** `ExpandType` sets `TypeName`/`StrongType` BEFORE cloning children, so a
 nested TYPE ref's SR6 ancestor walk sees the enclosing strong item (no false SR6 strong-in-strong rejection).

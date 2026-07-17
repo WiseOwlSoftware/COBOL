@@ -210,9 +210,10 @@ internal sealed class StatementValidation(DataBinder data)
     /// by every relation (IF, EVALUATE pairings/ranges, PERFORM UNTIL, SEARCH WHEN, sole-operand conditions).
     /// A PURE emission check (no verdict — the caller always builds the node; the checks are side-effect
     /// diagnostics): class-boolean comparability (§8.8.4.2.2 Format 2 — boolean operands compare only with a
-    /// boolean or the figurative ZERO, equality only — COBOLNET0844), and the strongly-typed-group rule
-    /// (§8.8.4.2.3 SR1: same type both sides; SR4: a strong group with a boolean/object/pointer leaf is
-    /// equality-only — COBOLNET1535, data-model D17 residue).</summary>
+    /// boolean or the figurative ZERO, equality only — COBOLNET0844), and the strongly-typed-group rules
+    /// (§8.8.4.2.3 SR1: same type both sides — COBOLNET1533; SR4: a strong group with a boolean/object/pointer
+    /// leaf is equality-only — COBOLNET1535 <c>strong-compare-ordering</c>; plus the §8.8.4.2.12 signed-leaf
+    /// ordering stage — COBOLNET0899 <c>strong-group-ordering-signed-leaf</c>, P10 Step 16).</summary>
     public void CheckRelationalOperands(BoundOperand left, string op, BoundOperand right)
     {
         static bool IsBoolOperand(BoundOperand o) => o switch
@@ -247,8 +248,7 @@ internal sealed class StatementValidation(DataBinder data)
         }
         // §8.8.4.2.3 SR1 (data-model D17): if either operand is a strongly-typed group, both shall be of the same
         // type (§8.5.3.3). This is the ONE relation checkpoint, so it also covers EVALUATE pairings/ranges,
-        // PERFORM UNTIL, and SEARCH WHEN. (SR4 — a strong group with boolean/object/pointer elements admits only
-        // equality — is staged residue, inc 4.)
+        // PERFORM UNTIL, and SEARCH WHEN.
         DataItem? sl = left is BoundFieldOperand fl ? fl.Place.Item : null;
         DataItem? sr = right is BoundFieldOperand fr ? fr.Place.Item : null;
         if ((sl is { } && StrongTypeModel.IsStrongGroup(sl)) || (sr is { } && StrongTypeModel.IsStrongGroup(sr)))
@@ -256,13 +256,27 @@ internal sealed class StatementValidation(DataBinder data)
             if (sl is null || sr is null || !StrongTypeModel.SameStrongType(sl, sr))
                 data.Edition.Error(DiagnosticCatalog.StrongCompareMismatch, "a strongly-typed group may be compared only with a group of the "
                     + "same type (ISO §8.8.4.2.3 SR1 / §8.5.3.3)");
-            // §8.8.4.2.3 SR4 (D17 inc 4, staged loud): a strong group whose elements include class boolean,
-            // object-reference, or pointer may be compared only for equality — an ordering relation on such a group
-            // is not defined/implemented.
+            // §8.8.4.2.3 SR4: a strong group whose elementary items include class boolean, message-tag,
+            // object, or pointer may be compared only for EQUALITY or INEQUALITY — an ordering relation on
+            // such a group is a syntax error (the complete spec rule, not a stage; P10 Step 16 reclassified
+            // the former "not implemented" framing — message-tag has no greenfield class yet, so the test
+            // covers the three modeled categories).
             else if (op is not ("==" or "!=") && (ContainsNonOrderableLeaf(sl) || ContainsNonOrderableLeaf(sr)))
-                data.Edition.Error("COBOLNET1535", "a strongly-typed group containing a boolean, object-reference, "
-                    + "or pointer element may be compared only for equality (ISO §8.8.4.2.3 SR4) — an ordering "
-                    + "relation is not implemented (data-model D17 residue)");
+                data.Edition.Error(DiagnosticCatalog.StrongCompareOrdering, "a strongly-typed group containing a boolean, object-reference, "
+                    + "or pointer element may be compared only for equality or inequality "
+                    + "(ISO §8.8.4.2.3 SR4 — no ordering relation is defined for such a group)");
+            // §8.8.4.2.12 (P10 Step 16, staged loud): strongly-typed groups order ELEMENT BY ELEMENT, a signed
+            // numeric pair comparing ALGEBRAICALLY (§8.8.4.2.4) — the whole-group character-image comparison
+            // the emitter performs cannot honor that for a SIGNED leaf (overpunch/separate-sign images do not
+            // order algebraically). EQUALITY stays image-based for every same-type shape (a fixed profile's
+            // value→image map is injective, so image-equal ⟺ element-equal), and an ordering over
+            // unsigned-numeric/alphanumeric/national leaves is image-order == element-order (equal-width
+            // digit/character columns, §8.8.4.2.7) — both fully implemented.
+            else if (op is not ("==" or "!=") && sl is { } && (ContainsSignedNumericLeaf(sl) || ContainsSignedNumericLeaf(sr!)))
+                data.Edition.Error(DiagnosticCatalog.StrongGroupOrderingSignedLeaf, "an ordering relation between "
+                    + "strongly-typed groups containing a SIGNED numeric elementary item requires the "
+                    + "element-by-element algebraic comparison of ISO §8.8.4.2.12/§8.8.4.2.4 — recognized but "
+                    + "not yet implemented (the image comparison carries equality and unsigned orderings only)");
         }
     }
 
@@ -274,6 +288,18 @@ internal sealed class StatementValidation(DataBinder data)
             return item.Pic?.Category is PicCategory.Boolean or PicCategory.ObjectReference or PicCategory.Pointer;
         foreach (var c in item.Children)
             if (ContainsNonOrderableLeaf(c)) return true;
+        return false;
+    }
+
+    /// <summary>True when a group (or elementary) item has any SIGNED fixed-point numeric leaf — the one shape
+    /// whose §8.8.4.2.12 element-by-element ordering (algebraic per element, §8.8.4.2.4) diverges from the
+    /// whole-group character-image ordering the emitter performs (P10 Step 16 staged residue).</summary>
+    private static bool ContainsSignedNumericLeaf(DataItem item)
+    {
+        if (item.IsElementary)
+            return item.Pic is { Category: PicCategory.Numeric, IsFloat: false, Signed: true };
+        foreach (var c in item.Children)
+            if (ContainsSignedNumericLeaf(c)) return true;
         return false;
     }
 }

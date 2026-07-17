@@ -630,9 +630,11 @@ Each item: **ID** · feature · spec ref · severity · tractability · current 
   under `tests/conformance/2014`).
 - ◑ **M3-2 — `TYPEDEF` / `SAME AS` / `TYPE TO`.** *Medium.* **TYPEDEF + the `TYPE` clause DONE** (data-model D17,
   DEVLOG 659–663 — inc 1 weak-TYPE spine, inc 2 STRONG typing, inc 3 level-88s, inc 4 staged-loud residue; goldens
-  `typedef_weak_elem`/`typedef_weak_group`/`typedef_strong_ok`/`typedef_88`/`typedef_indexed`). **DEFERRED:** `SAME AS`
-  (a distinct feature — a hard `AS` keyword is a legacy-compat hazard; `CloneItem` is built generically for its reuse)
-  and `TYPE TO` (the pointer-target form). Diagnostic band 15xx = 1529–1535.
+  `typedef_weak_elem`/`typedef_weak_group`/`typedef_strong_ok`/`typedef_88`/`typedef_indexed`). **`SAME AS` DONE**
+  (P10 Step 16 — §13.18.49 on the ONE `CloneItem`/`ExpandSameAs` machinery; the `AS` token landed with the CONSTANT
+  wave; golden `typedef_same_as`, matrix row `same-as-clause-2002` ACTIVE, SR bands 1555/1556/1557). **EXTERNAL type
+  declarations DONE** (P10 Step 16 — §13.18.22 GR2/GR3/SR5 = 1558; the 1534 stage lifted; golden `typedef_external`).
+  **DEFERRED:** `TYPE TO` (the pointer-target form). Diagnostic band 15xx = 1529–1533, 1535, 1555–1558.
 - ⛔ **M3-3 — JSON & XML** `JSON GENERATE/PARSE`, `XML GENERATE/PARSE` + special registers (XML-CODE/JSON-CODE/…).
   **NON-ISO — OUT OF THE ISO-CONFORMANCE SCOPE.** `specs/ISO_COBOL.md` (the ISO/IEC 1989:2023 text) has ZERO `JSON`/
   `XML` occurrences — these are IBM Enterprise-COBOL vendor extensions, NOT part of the standard (confirmed 2026-07-07,

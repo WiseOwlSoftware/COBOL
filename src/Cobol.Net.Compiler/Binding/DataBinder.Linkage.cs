@@ -321,6 +321,15 @@ public sealed partial class DataBinder
                 if (external) CallMakeExternal(item);
             }
 
+        // Records EXTERNAL BY TYPE (ISO §13.18.22 GR3; P10 Step 16): a record whose TYPE clause names an
+        // EXTERNAL type declaration is itself external "subject to the same rules" — ExpandType marked it
+        // (the record's own entry carries no EXTERNAL clause, so the parse-tree scan above cannot see it).
+        // Re-based through the SAME cell mechanism, keyed by the record's own name (GR5). An entry that ALSO
+        // carries its own EXTERNAL clause was already re-based by the scan above — skip the double registration.
+        foreach (var item in Roots)
+            if (item is { ExternalFromType: true, HasExternalClause: false, CobolName: not null })
+                CallMakeExternal(item);
+
         // EXTERNAL FDs: the record area is ONE run-unit cell keyed by the externalized FILE name (§13.18.22.4
         // GR4b/GR5 — the records of every describer alias it; multi-01 records under the FD are already one
         // REDEFINES class, so re-basing the first record re-bases the whole area). The GR6 same-byte-count

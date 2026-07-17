@@ -649,6 +649,17 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The SAME AS clause (ISO §13.18.49; P10 Step 16) — a COBOL-2002 introduction (the
+        /// TYPEDEF-family data-description edge). Recognition-based (the typedefClause pattern): the subject's
+        /// SameAsName is nulled by ExpandSameAs during bind — and cleared entirely on a §13.16.3 SR12
+        /// composition violation — so a bound-arm gate would drop the 0900 on exactly those paths. One Check
+        /// per written SAME AS clause.</summary>
+        public override object? VisitSameAsClause(CobolParserCore.SameAsClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.SameAsClause2002, "the SAME AS clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The TYPEDEF [STRONG] clause (ISO §13.18.58; D17) — a COBOL-2002 introduction (a type DECLARATION).
         /// Recognition-based (the 14g.2-review correction, DEVLOG 734), NOT bound-arm: the typedef ITEM is dropped
         /// from ConformanceForest whenever RegisterTypeDecl rejects it (unnamed/FILLER, duplicate type-name) or it

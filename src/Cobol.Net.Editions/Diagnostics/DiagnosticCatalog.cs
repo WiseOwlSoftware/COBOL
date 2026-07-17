@@ -159,6 +159,48 @@ public static class DiagnosticCatalog
         StrongType, "strong-compare-mismatch", EditionSeverity.Error,
         "A strongly-typed group may be compared only with a group of the same type.", "ISO §8.8.4.2.3 SR1");
 
+    // ── COBOLNET1535 — reused across two rules (the 1533 disambiguation pattern; code byte-stable) ───
+    public static readonly DiagnosticDescriptor StrongCompareOrdering = new(
+        "COBOLNET1535", "strong-compare-ordering", EditionSeverity.Error,
+        "A strongly-typed group whose elementary items include class boolean, message-tag, object, or pointer "
+        + "may be compared only for equality or inequality — an ordering relation on such a group is a syntax "
+        + "error.", "ISO §8.8.4.2.3 SR4");
+    public static readonly DiagnosticDescriptor TypedefRenamesStaged = new(
+        "COBOLNET1535", "typedef-renames-staged", EditionSeverity.Error,
+        "A level-66 RENAMES inside a TYPEDEF (part of the type per §13.18.58.4 GR1) is recognized but not yet "
+        + "cloned into TYPE references.", "ISO §13.18.58.4 GR1", RecognizedNotImplemented);
+
+    // ── COBOLNET1555/1556/1557 — the SAME AS clause, one code per rule family (§13.18.49 / §13.16.3;
+    //    P10 Step 16). 1555 = the SUBJECT-entry rules (what the SAME AS entry itself may look like);
+    //    1556 = the REFERENCED-entry rules (what data-name-1 may be); 1557 = the cycle rules.
+    //    1550/1551/1552 stay earmarked (PHASE-12); 1553/1554 taken; 1558 = EXTERNAL type declarations. ──
+    public static readonly DiagnosticDescriptor SameAsEntryRule = new(
+        "COBOLNET1555", "same-as-entry-rule", EditionSeverity.Error,
+        "A SAME AS entry violates a subject-entry rule: no clause other than CONSTANT RECORD, entry-name, "
+        + "EXTERNAL, GLOBAL, level-number, and OCCURS may share the entry (§13.16.3 SR12); the entry shall not "
+        + "be immediately followed by a subordinate or level-88 entry (§13.18.49 SR2); a level-77 subject "
+        + "requires an elementary data-name-1 (SR8); no group containing the subject may carry a GROUP-USAGE, "
+        + "SIGN, or USAGE clause (SR9).", "ISO §13.18.49.3 / §13.16.3 SR12");
+    public static readonly DiagnosticDescriptor SameAsReferencedEntry = new(
+        "COBOLNET1556", "same-as-referenced-entry", EditionSeverity.Error,
+        "A SAME AS reference violates a data-name-1 rule: the target shall resolve to exactly one elementary "
+        + "item or level-1 group item of the file/working-storage/local-storage/linkage section (§13.18.49 SR7); "
+        + "it shall not be subject to any OCCURS clause (SR1) nor itself carry one (SR5); it shall not carry a "
+        + "CONSTANT RECORD clause (SR10); in the file section its description shall not contain a USAGE OBJECT "
+        + "REFERENCE item (SR6).", "ISO §13.18.49.3");
+    public static readonly DiagnosticDescriptor SameAsCycle = new(
+        "COBOLNET1557", "same-as-cycle", EditionSeverity.Error,
+        "A SAME AS reference is cyclic: neither data-name-1's description nor any subordinate of the subject "
+        + "may directly or indirectly reference the subject or a group it is subordinate to, via SAME AS (SR3) "
+        + "or a TYPE clause (SR4).", "ISO §13.18.49.3 SR3/SR4");
+
+    // ── COBOLNET1558 — EXTERNAL type declarations (§13.18.22 / §13.18.58; P10 Step 16) ───────────────
+    public static readonly DiagnosticDescriptor ExternalTypeRule = new(
+        "COBOLNET1558", "external-type-rule", EditionSeverity.Error,
+        "An EXTERNAL type declaration is misused: a data description containing an EXTERNAL type shall be at "
+        + "level-number 1 (§13.18.22 GR2), and an external record whose type declaration is strongly typed "
+        + "requires that type declaration to be external too (§13.18.22 SR5).", "ISO §13.18.22 SR5 / GR2/GR3");
+
     // ── COBOLNET0899 — national data (category not yet implemented) ──────────────────────────────────
     public static readonly DiagnosticDescriptor NationalData = new(
         NotImplemented, "national-data", EditionSeverity.Error,
@@ -329,6 +371,15 @@ public static class DiagnosticCatalog
         NotImplemented, "debug-register-facility", EditionSeverity.Error,
         "The X3.23-1985 debug facility (DEBUG-ITEM registers, debugging-section invocation) is not implemented.",
         "VCR Table 7 row 7.17", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
+        NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
+        "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "
+        + "elementary item is legal (§8.8.4.2.3 SR4 restricts only boolean/message-tag/object/pointer contents) "
+        + "but not yet implemented: §8.8.4.2.12 orders strongly-typed groups ELEMENT BY ELEMENT — a signed "
+        + "numeric pair compares ALGEBRAICALLY (§8.8.4.2.4), which the whole-group character-image comparison "
+        + "cannot honor (the overpunch/separate sign breaks lexical=algebraic). Equality and every "
+        + "unsigned/alphanumeric-leaf ordering ARE carried by the image comparison (provably element-equivalent "
+        + "for a fixed same-type profile).", "ISO §8.8.4.2.12 / §8.8.4.2.4", RecognizedNotImplemented);
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

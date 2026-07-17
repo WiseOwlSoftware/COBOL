@@ -53,17 +53,22 @@ public sealed class DataItem
 
     /// <summary>This entry's OWN SIGN clause (ISO §13.18.52), or <see langword="null"/> when none — captured even on
     /// a group item: a group-level SIGN applies to every subordinate signed numeric DISPLAY item, nearest enclosing
-    /// clause winning (GR1–3, applied by the binder's post-build inheritance pass).</summary>
-    public SignSpec? OwnSign { get; init; }
+    /// clause winning (GR1–3, applied by the binder's post-build inheritance pass). Settable (not init-only) for
+    /// ONE additional writer: the <c>ExpandTypes</c> description copy (a TYPE / SAME AS subject assumes the
+    /// template's / data-name-1's description, §13.18.58.4 GR3 / §13.18.49 GR1+GR5).</summary>
+    public SignSpec? OwnSign { get; set; }
 
     /// <summary>This entry's OWN USAGE keyword (ISO §13.18.60), or <see langword="null"/> when none — captured even
     /// on a group item: a group-level USAGE applies to every elementary item subordinate to it (GR1; NC107A's
     /// <c>01 U9 USAGE COMPUTATIONAL</c> makes the PICTURE-only U10 binary). Applied by the binder's post-build
-    /// <c>InheritUsageClauses</c> pass.</summary>
-    public Usage? OwnUsage { get; init; }
+    /// <c>InheritUsageClauses</c> pass. Settable for the <c>ExpandTypes</c> description copy (§13.18.58.4 GR3 /
+    /// §13.18.49 GR1+GR3).</summary>
+    public Usage? OwnUsage { get; set; }
 
-    /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.</summary>
-    public string? RawValue { get; init; }
+    /// <summary>The raw VALUE operand text (e.g. <c>"ABC"</c> or <c>-12.5</c>), or <see langword="null"/> if none.
+    /// Settable for the <c>ExpandTypes</c> description copy (a subject's OWN VALUE wins, §13.18.57.4 GR3;
+    /// otherwise the copied description's VALUE applies, §13.18.49 GR1 — VALUE is not in the exclusion list).</summary>
+    public string? RawValue { get; set; }
 
     /// <summary>True when this entry carries a TYPEDEF clause — it is a TYPE DECLARATION (a named template; ISO
     /// §13.18.58, data-model D17), allocating NO storage. Registered in <c>DataBinder.TypeDecls</c>, kept OFF
@@ -73,6 +78,26 @@ public sealed class DataItem
     /// <summary>True when the TYPEDEF carries STRONG (ISO §13.18.58.2) — the declared type is strongly typed, so its
     /// referencing items may interoperate only with the same type (the compile-time §8.5.3.3 checks).</summary>
     public bool TypedefStrong { get; init; }
+
+    /// <summary>True when this TYPEDEF entry also carries the EXTERNAL clause (ISO §13.18.22 SR1 — a level-1
+    /// type declaration may be external; §13.18.58.3 SR3). The type declaration itself has no storage
+    /// (§13.18.58.4 GR2); the effect is on its REFERENCES: any record description containing that type is itself
+    /// EXTERNAL (§13.18.22 GR3) and must be level-1 (GR2) — <c>ExpandType</c> marks the subject
+    /// <see cref="ExternalFromType"/>, and <c>CallBindExternalAndGlobal</c> re-bases it onto the run-unit
+    /// <c>ExternalStore</c> cell like any explicitly-EXTERNAL record.</summary>
+    public bool IsExternalTypedef { get; init; }
+
+    /// <summary>True when THIS entry carries an explicit EXTERNAL clause (ISO §13.18.22). The external re-basing
+    /// itself is parse-tree-driven (<c>CallBindExternalAndGlobal</c>); this stored fact backs the §13.18.22 SR5
+    /// conformance check (an external record whose TYPE is STRONG requires the type declaration to be external
+    /// too) and the double-registration guard for <see cref="ExternalFromType"/>.</summary>
+    public bool HasExternalClause { get; init; }
+
+    /// <summary>True when this record became EXTERNAL by referencing an EXTERNAL type declaration
+    /// (ISO §13.18.22 GR3 — "the record descriptions in which it is specified are also external"). Set by
+    /// <c>ExpandType</c>; consumed by <c>CallBindExternalAndGlobal</c> (which cannot see it in the parse tree —
+    /// the record's own entry carries no EXTERNAL clause).</summary>
+    public bool ExternalFromType { get; set; }
 
     /// <summary>True when this level-01 entry carries a CONSTANT RECORD clause (ISO §13.18.15) — a STRUCTURED
     /// CONSTANT: its content is the record's normal initial content (§13.18.15.4 GR1 — as though
@@ -86,6 +111,16 @@ public sealed class DataItem
     /// is CLONED from that type declaration's subtree by the post-build <c>DataBinder.ExpandTypes</c> pass (D17), which
     /// clears this once expanded.</summary>
     public string? TypeRefName { get; set; }
+
+    /// <summary>The <c>SAME AS data-name-1</c> target name (ISO §13.18.49), or null. Structurally the TYPE
+    /// reference with a DATA-NAME source: <c>DataBinder.ExpandSameAs</c> (inside the ONE <c>ExpandTypes</c> pass)
+    /// resolves the target entry and clones its description in via the SAME <c>CloneItem</c> machinery (GR1/GR2),
+    /// then clears this. <see cref="SameAsQualifiers"/> carries any OF/IN qualifiers of the reference.</summary>
+    public string? SameAsName { get; set; }
+
+    /// <summary>The OF/IN qualifier names of a <see cref="SameAsName"/> reference, in written order (empty when
+    /// unqualified). Each must name an ancestor of the target for the reference to match.</summary>
+    public List<string> SameAsQualifiers { get; } = [];
 
     /// <summary>After <c>ExpandTypes</c>: the type-name this item (or its containing subtree root) was cloned from —
     /// backs the §8.5.3.3 STRONG same-type check. Null for a non-typed item.</summary>
@@ -140,17 +175,20 @@ public sealed class DataItem
     public bool StoreAsImage => Storage is Model.StorageForm.CharImage { Category: PicCategory.Numeric };
 
     /// <summary>JUSTIFIED [RIGHT] (ISO §13.18.34): alphanumeric/alphabetic receives right-justify — space-fill on
-    /// the LEFT when the sender is shorter, truncate from the LEFT when longer (§14.9.25.4 GR6c).</summary>
-    public bool Justified { get; init; }
+    /// the LEFT when the sender is shorter, truncate from the LEFT when longer (§14.9.25.4 GR6c). Settable for
+    /// the <c>ExpandTypes</c> description copy (§13.18.58.4 GR3 / §13.18.49 GR1).</summary>
+    public bool Justified { get; set; }
 
     /// <summary>BLANK [WHEN] ZERO (ISO §13.18.8): storing a ZERO value fills the item with spaces — applied at
-    /// every numeric-edited store (MOVE editing and arithmetic resultants alike).</summary>
-    public bool BlankWhenZero { get; init; }
+    /// every numeric-edited store (MOVE editing and arithmetic resultants alike). Settable for the
+    /// <c>ExpandTypes</c> description copy (§13.18.58.4 GR3 / §13.18.49 GR1).</summary>
+    public bool BlankWhenZero { get; set; }
 
     /// <summary>The entry carried a SYNCHRONIZED / SYNC clause (ISO §13.18.55). A no-op in the typed-native model
     /// (no byte alignment), but recorded so the edition validator can gate SYNCHRONIZED on a GROUP item — a
-    /// COBOL-2023 introduction (Annex E.3.2 item 6) — below 2023 (P3 step 10). Not emitted.</summary>
-    public bool Synchronized { get; init; }
+    /// COBOL-2023 introduction (Annex E.3.2 item 6) — below 2023 (P3 step 10). Not emitted. Settable for the
+    /// <c>ExpandTypes</c> description copy (§13.18.49 GR1 — SYNCHRONIZED is not in the exclusion list).</summary>
+    public bool Synchronized { get; set; }
 
     /// <summary>Subordinate items (group members). Empty for an elementary item.</summary>
     public List<DataItem> Children { get; } = [];
