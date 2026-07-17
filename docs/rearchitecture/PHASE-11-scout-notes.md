@@ -1216,3 +1216,191 @@ Routing under P11 Step C:
 - §2.3 says 'Tier-C view → TierCWindow' is produced by classification — in reality StorageFormPass NEVER constructs TierCWindow (its documented parity obligation is assigning it to ZERO leaves); RedefinesTier.ByteCanonical is never returned by ComputeTier (dead enum case by construction).
 - NOT one predicate but three: IsImageCapable (float/COMP-5/INDEX/BINARY-* island), IsCharacterImage (stricter, promotion-dependent — used by STRING/UNSTRING/ACCEPT/INSPECT/CALL/table-SORT emit guards), and ForceStringCanonical's Display-only cell gate (also refuses national/bit); UdfBinder's group-RETURNING gate is a fourth variant (rejects Binary/Packed too). A single-predicate collapse must reconcile these deliberately.
 
+
+---
+
+# APPENDIX — P11 Step 2 — boolean conversions: the exact edit list (pre-verified against live code)
+
+All anchors re-verified this session (see also PHASE-11-scout-notes.md `spec:boolean` + `code:renderer-runtime` §11).
+Apply ONLY after the Step-1 commit lands and no battery is running.
+
+## 1. Catalog (`src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs`)
+- Row :133 → `"BooleanOfInteger"`, `IntrinsicBind.Runtime` (keep Type Boolean, "ii", 2002).
+- Row :161 → `"IntegerOfBoolean"`, `IntrinsicBind.Runtime` (keep Type Integer, "s", 2002).
+- `ResultCategory` (:46-51): add `IntrinsicType.Boolean => PicCategory.Boolean,` and REWRITE the doc
+  comment's parenthetical ("Boolean-type rows are all Deferred; they fall to Numeric unchanged" is now false —
+  a boolean function result IS category boolean, §15.2 item 2 / §8.5.2.5 item 4).
+
+## 2. The four channel seams (scout `code:renderer-runtime` §11 — Boolean flows like National)
+- `CodeGen/Emit/OperandText.cs:32` AsString entry intercept: `Alphanumeric or National` → add `or PicCategory.Boolean`.
+- `OperandText.cs:147-148` IsStringVisitor computed arm: same widening (boolean-result intrinsic compares as text).
+- `CodeGen/Emit/IntrinsicRenderer.cs:396` StrArgVisitor nested arm: same widening (nested boolean-result argument).
+- `IntrinsicRenderer.cs:54-55` RenderNum string-class guard: add Boolean (a boolean-result function in a numeric
+  context is loud BY NAME, never a wrong value).
+
+## 3. Renderer arms (`IntrinsicRenderer.cs`)
+- RenderNum: `case "IntegerOfBoolean": return new NumX(RuntimeApi.Intrinsic(sig.RuntimeMethod, Str(ic.Args[0])), 0);   // §15.45.4 r1 — unsigned MSB-first value, scale 0`
+- RenderString: `"BooleanOfInteger" => RuntimeApi.Intrinsic(sig.RuntimeMethod, $"{ArgInt(ic.Args[0])}, {ArgInt(ic.Args[1])}"),   // §15.13.4 r1`
+
+## 4. Runtime bodies (`src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs`, new region at the end)
+```csharp
+// ── FUNCTION BOOLEAN-OF-INTEGER / INTEGER-OF-BOOLEAN (§15.13 / §15.45) — boolean conversions ─────────────
+
+/// <summary>FUNCTION BOOLEAN-OF-INTEGER (ISO §15.13.4 r1): the boolean value whose bit configuration is the
+/// binary representation of argument-1 — rightmost boolean position = low-order binary digit — zero-filled
+/// or TRUNCATED ON THE LEFT to exactly argument-2 boolean positions (left truncation is NORMAL, not an
+/// error: the result is argument-1 mod 2^argument-2 — Annex D.10's 544→low-6-bits worked example).
+/// §15.13.3: argument-2 shall be a positive nonzero integer (r2); argument-1 shall be positive (r1) —
+/// COBOL.NET accepts 0 (all-zero bits; the r1-vs-r2 "positive"/"positive nonzero" drafting contrast, scout-
+/// resolved) and rejects negatives via EC-ARGUMENT-FUNCTION (§15.3). The documented COBOL.NET maximum
+/// returned-value length (§15.4) is the §8.3.3.4.3 SR1 boolean maximum, 8 191 positions.</summary>
+public static string BooleanOfInteger(long value, long length)
+{
+    if (length < 1 || length > 8191)
+    {
+        Exceptions.ExceptionState.ArgumentError(
+            $"FUNCTION BOOLEAN-OF-INTEGER argument-2 {length} is not in 1..8191 (§15.13.3 r2; §15.4)");
+        return "0";
+    }
+    if (value < 0)
+    {
+        Exceptions.ExceptionState.ArgumentError(
+            $"FUNCTION BOOLEAN-OF-INTEGER argument-1 {value} is negative (§15.13.3 r1)");
+        return new string('0', (int)length);
+    }
+    var chars = new char[length];
+    for (int i = 0; i < length; i++)   // rightmost position = the low-order digit (§15.13.4 r1)
+        chars[length - 1 - i] = i < 63 && ((value >> i) & 1) != 0 ? '1' : '0';
+    return new string(chars);
+}
+
+/// <summary>FUNCTION INTEGER-OF-BOOLEAN (ISO §15.45.4 r1): the unsigned binary value of argument-1's bit
+/// configuration, MSB first, over a temporary boolean item sized to argument-1 (r1a/r1b). COBOL.NET's
+/// integer channel is a signed 64-bit long, so a configuration above 63 significant bits takes
+/// EC-ARGUMENT-FUNCTION via the §15.4 maximum-returned-value hook (documented). A zero-length argument
+/// (a zero-length BX literal, §8.3.3.4.3) is value 0 — the natural reading of an empty configuration.</summary>
+public static long IntegerOfBoolean(string boolean)
+{
+    long v = 0;
+    foreach (char c in boolean)
+    {
+        if (c is not ('0' or '1'))
+            return Exceptions.ExceptionState.ArgumentError(
+                "FUNCTION INTEGER-OF-BOOLEAN argument-1 is not of class boolean (§15.45.3 r1)");
+        if (v > (long.MaxValue >> 1) - (c - '0'))   // the next shift would exceed 63 significant bits
+            return Exceptions.ExceptionState.ArgumentError(
+                "FUNCTION INTEGER-OF-BOOLEAN value exceeds the 63-bit COBOL.NET integer maximum (§15.4)");
+        v = (v << 1) | (uint)(c - '0');
+    }
+    return v;
+}
+```
+(Overflow guard: `v > (long.MaxValue >> 1) - bit` ⇔ `2v + bit > long.MaxValue` without overflowing. Verify with a
+unit-style golden if in doubt; the corpus golden stays within 8 bits.)
+
+## 5. Corpus (files pre-authored in this scratchpad dir)
+- `tests/conformance/2002/intrinsics_boolean_conv.cob` + `.out` (copy from here) + `"intrinsics_boolean_conv"`
+  into `tests/conformance/2002/manifest.json` "enabled".
+- Legacy exclusion SAME COMMIT: `("2002", "intrinsics_boolean_conv")` + comment into `GreenfieldOnly`,
+  `tests/CobolSharp.Tests.Integration/ConformanceTests.cs` (frozen legacy has no boolean functions).
+- `tests/conformance/negative/boolean_conv_below_2002.cob` + `.err` (copy from here) + manifest "enabled" entry.
+- Matrix row in `tests/version-matrix/constructs.json` (id `boolean-of-integer-2002`, introducedIn 2002,
+  expectDiagnostic COBOLNET1502, citation §15.13/§15.45, source = the nested COMPUTE program from the negative
+  row without the reject header) → re-run `scripts/gen-constructs.ps1` → commit BOTH regenerated .g.cs files
+  (`src/Cobol.Net.Editions/Constructs.g.cs` + `ConstructRegistry.g.cs`).
+- Optional: one `AssertSpec` fact in `IntrinsicFunctionDifferentialTests.cs` (dialect 2002) pinning T3/T5 values.
+
+## 6. Verify (before the battery)
+- CLI spot-run: `dotnet build src/Cobol.Net.Cli && dotnet src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.dll
+  <scratch>/intrinsics_boolean_conv.cob --std 2002 -o E:/Temp/claude/p11boolconv.dll --run` → expect the .out
+  content EXACTLY (T3=128 proves MSB-first; T2 proves left-truncate + right-fill composition).
+- Negative spot: compile at --std 85 → COBOLNET1502 naming both functions.
+- Then: build sln → stage → guard-fast → conformance → unit → commit (msg pattern:
+  `feat(cobolnet): P11 Step 2 — FUNCTION BOOLEAN-OF-INTEGER/INTEGER-OF-BOOLEAN (§15.13/§15.45) on the P10
+  boolean base + golden + 85-window row (DEVLOG NNN)`).
+
+## Known hazards (checked, do not re-derive)
+- MOVE legality: `MoveCategoryLegality` already maps `BoundComputedOperand{BoundIntrinsicCall}` →
+  `ic.ResultCategory` (MoveBinder.cs:162) — boolean→boolean MOVE is legal once ResultCategory says Boolean.
+- MOVE store path: MoveEmitter.cs:343 `StrStoreBoolean(OperandText.AsString(source…))` — flows through the
+  widened AsString intercept automatically (§14.6.8.6 left-justify right-zero-fill).
+- Boolean literals bind as `BoundStringLiteral{Category=Boolean}` (ExpressionBinder.cs:92-101) — StrArgVisitor
+  renders them via CsLiteral with NO change.
+- BX"…" literals are NOT lexed yet (boolean_data.cob header: deferred) — keep them out of goldens.
+- Ref-mod over bit items: unproven on the greenfield — kept OUT of the Step-2 golden (T3 uses the whole item).
+- DISPLAY FUNCTION <numeric-result> is LOUD by design — goldens COMPUTE/MOVE into a PIC receiver first.
+
+### Pre-authored golden `tests/conformance/2002/intrinsics_boolean_conv.cob`
+
+```cobol
+      *> ISO §15.13 BOOLEAN-OF-INTEGER / §15.45 INTEGER-OF-BOOLEAN — the boolean-conversion pair (P11 Step 2).
+      *> Values hand-derived in docs/rearchitecture/PHASE-11-scout-notes.md (spec:boolean): §15.13.4 r1 —
+      *> rightmost boolean position = low-order binary digit, zero-filled or TRUNCATED ON THE LEFT to
+      *> argument-2 positions (truncation is NORMAL: Annex D.10's 544 → low-6-bits worked example); the MOVE
+      *> into a longer PIC 1(n) receiver then right-zero-fills (§14.6.8.6 — the OPPOSITE end). §15.45.4 r1 —
+      *> the unsigned binary value of the whole bit configuration, MSB first.
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P11BOOLCONV.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 BIT-8      PIC 1(8) USAGE BIT.
+       01 INT-ITEM   PIC 9(5) VALUE 544.
+       01 N-3        PIC 9(3).
+       01 N-5        PIC 9(5).
+       PROCEDURE DIVISION.
+       MAIN.
+      *> §15.13.4 r1 exact fit: 5 = 101 over 8 positions, left zero-fill.
+           MOVE FUNCTION BOOLEAN-OF-INTEGER(5, 8) TO BIT-8
+           IF BIT-8 = B"00000101" DISPLAY "T1=OK"
+              ELSE DISPLAY "T1=" BIT-8 END-IF
+      *> Annex D.10: 544 = 0b1000100000 → the low 6 bits B"100000"; the MOVE into PIC 1(8)
+      *> left-justifies and right-zero-fills (§14.6.8.6) → B"10000000".
+           MOVE FUNCTION BOOLEAN-OF-INTEGER(INT-ITEM, 6) TO BIT-8
+           IF BIT-8 = B"10000000" DISPLAY "T2=OK"
+              ELSE DISPLAY "T2=" BIT-8 END-IF
+      *> §15.45.4 r1 MSB-first: B"10000000" = 128 (an LSB-first bug would yield 1).
+           COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(BIT-8)
+           DISPLAY "T3=" N-3
+      *> §15.45.4 r1 over a boolean literal argument (§15.3 item 3).
+           COMPUTE N-3 = FUNCTION INTEGER-OF-BOOLEAN(B"00000101")
+           DISPLAY "T4=" N-3
+      *> Round-trip identity for 0 <= n < 2^k (§15.13.4 r1 ∘ §15.45.4 r1, both unsigned MSB-first).
+           COMPUTE N-5 = FUNCTION INTEGER-OF-BOOLEAN(
+               FUNCTION BOOLEAN-OF-INTEGER(200, 8))
+           DISPLAY "T5=" N-5
+      *> §15.13.4 r1 left truncation: 256 mod 2^8 = 0 → all-zero bits.
+           MOVE FUNCTION BOOLEAN-OF-INTEGER(256, 8) TO BIT-8
+           IF BIT-8 = B"00000000" DISPLAY "T6=OK"
+              ELSE DISPLAY "T6=" BIT-8 END-IF
+           STOP RUN.
+```
+
+### Pre-authored `.out`
+
+```
+T1=OK
+T2=OK
+T3=128
+T4=005
+T5=00200
+T6=OK
+```
+
+### Pre-authored negative `tests/conformance/negative/boolean_conv_below_2002.cob` (`.err` = `COBOLNET1502`)
+
+```cobol
+      *> reject-at: 85
+      *> ISO §15.13 BOOLEAN-OF-INTEGER / §15.45 INTEGER-OF-BOOLEAN are COBOL-2002 introductions (the
+      *> boolean-data amendment; PHASE-11-scout-notes.md spec:boolean). Below 2002 the D8 catalog window
+      *> rejects each reference BY NAME — COBOLNET1502 (IntrinsicBinder window gate).
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. P11BOOLW85.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 N-5 PIC 9(5).
+       PROCEDURE DIVISION.
+       MAIN.
+           COMPUTE N-5 = FUNCTION INTEGER-OF-BOOLEAN(
+               FUNCTION BOOLEAN-OF-INTEGER(5, 8))
+           STOP RUN.
+```

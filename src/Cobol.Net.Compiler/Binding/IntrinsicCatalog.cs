@@ -17,8 +17,15 @@ public enum IntrinsicArity { Fixed, OptionalTrailing, Variadic }
 /// call; <see cref="Fold"/> = resolved at compile time (LENGTH from PIC metadata §15.50, WHEN-COMPILED's
 /// compilation timestamp §15.99.3 r2); <see cref="Deferred"/> = catalogued (so D8 edition gating and arity checks
 /// apply) but not yet implemented — renders a LOUD not-implemented guard (COBOLNET_DESIGN §1.4), never a wrong
-/// value.</summary>
-public enum IntrinsicBind { Runtime, Fold, Deferred }
+/// value; <see cref="Unsupported"/> = catalogued (edition/arity gating applies) but the containing OPTIONAL
+/// language module is DOCUMENTED NON-SUPPORT — a permanent, conformance-legal disposition, distinct from
+/// <see cref="Deferred"/>'s "will be implemented": ISO §4.2.7 + A.4.1 (an implementation accepts an optional
+/// element's syntax ONLY when support is claimed; non-support is conforming when documented), here the A.4.9
+/// locale module (ratified decision 3) — STANDARD-COMPARE additionally rides A.3 item 25 (the implementor need
+/// not accept the syntax absent an ISO/IEC 14651:2020 implementation). The binder rejects such a reference at
+/// BIND time with COBOLNET1518 (the P11 Step-8 arm); the renderer's empty-<c>RuntimeMethod</c> loud fallback is
+/// the never-reached backstop.</summary>
+public enum IntrinsicBind { Runtime, Fold, Deferred, Unsupported }
 
 /// <summary>
 /// One catalog row (deep-dive D2 — the SINGLE source of result-category truth). <paramref name="ArgKinds"/> is the
@@ -159,12 +166,18 @@ public static class IntrinsicCatalog
         Add(new("HIGHEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002)); // §15.43 (compile-time PICTURE fold)
         Add(new("LOWEST-ALGEBRAIC", IntrinsicType.Numeric, IntrinsicArity.Fixed, 1, 1, "n", "", IntrinsicBind.Fold, false, 2002));  // §15.58 (compile-time PICTURE fold)
         Add(new("INTEGER-OF-BOOLEAN", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002)); // §15.45
-        Add(new("LOCALE-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "sss", "", IntrinsicBind.Deferred, false, 2002)); // §15.51
-        Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "is", "", IntrinsicBind.Deferred, false, 2002));     // §15.52
-        Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "is", "", IntrinsicBind.Deferred, false, 2002));     // §15.53
-        Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Deferred, false, 2002)); // §15.54
+        // The A.4.9 locale module (optional; ratified decision 3 = documented non-support, conforming per
+        // §4.2.7 + A.4.1): the four locale functions take a bare POSITIONAL [locale-name-1] (no LOCALE
+        // keyword, §15.51.2/.52.2/.53.2/.54.2). STANDARD-COMPARE (§15.85) is A.4.9 item 11 but NOT
+        // locale-dependent — it consumes an ISO/IEC 14651:2020 cultural ordering table (SPECIAL-NAMES ORDER
+        // TABLE, §12.3.7 GR17); its independent non-support route is A.3 item 25 (the implementor need not
+        // accept the syntax absent a 14651 implementation) — cite BOTH. Bind = Unsupported → COBOLNET1518.
+        Add(new("LOCALE-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 3, "sss", "", IntrinsicBind.Unsupported, false, 2002)); // §15.51 (A.4.9 item 2)
+        Add(new("LOCALE-DATE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "is", "", IntrinsicBind.Unsupported, false, 2002));     // §15.52 (A.4.9 item 3)
+        Add(new("LOCALE-TIME", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "is", "", IntrinsicBind.Unsupported, false, 2002));     // §15.53 (A.4.9 item 4)
+        Add(new("LOCALE-TIME-FROM-SECONDS", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 1, 2, "ns", "", IntrinsicBind.Unsupported, false, 2002)); // §15.54 (A.4.9 item 5)
         Add(new("SECONDS-PAST-MIDNIGHT", IntrinsicType.Numeric, IntrinsicArity.Fixed, 0, 0, "", "", IntrinsicBind.Deferred, false, 2002)); // §15.80
-        Add(new("STANDARD-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 4, "ssis", "", IntrinsicBind.Deferred, false, 2002)); // §15.85
+        Add(new("STANDARD-COMPARE", IntrinsicType.Alphanumeric, IntrinsicArity.OptionalTrailing, 2, 4, "ssis", "", IntrinsicBind.Unsupported, false, 2002)); // §15.85 (A.4.9 item 11 + A.3 item 25)
         Add(new("TEST-DATE-YYYYMMDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "", IntrinsicBind.Deferred, false, 2002)); // §15.90
         Add(new("TEST-DAY-YYYYDDD", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "i", "", IntrinsicBind.Deferred, false, 2002));   // §15.91
         Add(new("TEST-NUMVAL", IntrinsicType.Integer, IntrinsicArity.Fixed, 1, 1, "s", "", IntrinsicBind.Deferred, false, 2002));        // §15.93
