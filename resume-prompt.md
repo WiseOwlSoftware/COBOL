@@ -21,26 +21,36 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — PHASE-11 (deferred-intrinsics backlog to zero + the Tier-C REDEFINES confined-byte codec)
+## ⛔🔀 RESUME AT — PHASE-12 (M3 / COBOL-2014 deltas)
 
-**⏵ P11 IS IN PROGRESS @ Step C (the Tier-C decision) (2026-07-17).** Steps 0–2 + 5–8 are DONE (DEVLOG
-871–877): all intrinsic waves landed — the boolean pair (`e159a719`), the Y2K trio + SECONDS-PAST-MIDNIGHT
-(`1728dfd9`), the TEST validator quartet (`813d9bd4`), BYTE-LENGTH + SMALLEST-ALGEBRAIC + the CONCATENATE
-deletion (`4b537b04`, ZERO Deferred), and Step 8 — **the A.4.9 locale disposition**: a COBOLNET1518 bind arm
-maps the five `Unsupported` locale functions (LOCALE-COMPARE/-DATE/-TIME/-TIME-FROM-SECONDS + STANDARD-COMPARE
-[which also cites §A.3 item 25]) and the LOCALE keyword phrase of LOWER-CASE/UPPER-CASE/NUMVAL-C/TEST-NUMVAL-C
-to documented-non-support (`LocaleDispositionTests` 11 facts; negatives `locale_functions_a49` +
-`locale_keyword_a49`; plain forms unregressed). **INTRINSIC EXIT CRITERIA 1/3/4 MET.** Only exit criterion 2
-(Tier-C decided) remains. **READ `docs/rearchitecture/PHASE-11-scout-notes.md` §code:tier-c-code FIRST** — its
-⚠ blocks reshape the plan: the CLASS rejection is ALREADY single-sourced (the ONE `RedefinesClass.Classify`
-mutator; ComputeTier is `DataBinder.cs:2376` not ~1752; `ByteCanonical` is dead-by-construction; `TierCWindow`
-has no Read/Write; there is NO `RedefinesClassifier` type). What is scattered is the CLASSLESS mixed-usage-GROUP
-island — ~13 emit guards (C1–C13) + ~7 bind guards (B4–B13) across FOUR predicate variants. Step C = route
-those through ONE reason formatter PRESERVING each predicate variant + fold ComputeTier's reason strings +
-`TierCRejectionTests` + the FULL guard. **Step D (the byte codec) is being DEFERRED** as a scheduled increment
-(the phase doc's own gate; the §2.3 design is stale vs. reality and needs re-basing). Then Step 9 close-out.
-⚠ Guard-flake note: a 351+2/352+1 guard-fast verdict naming file-I/O suites (SQ/IC/IX) is the
-DEVLOG-870/872/873/875 environmental flake class — re-prove by SOLO rerun before treating as real.
+**⏭ PHASE-11 IS COMPLETE (2026-07-17, DEVLOG 871–879 — 9 battery-gated commits `2a0ab666`→`19dfe579`+close,
+CI green on each). Next: PHASE-12** (`docs/rearchitecture/PHASE-12-m3-2014-deltas.md` — M3/COBOL-2014 deltas:
+dynamic length, TYPEDEF edges, `>>PROPAGATE`, IEEE floats, function pointers; read its §0/STATUS + steps; it
+can run parallel to the DEFERRED P11 Step D). **The go-forward roadmap `docs/COBOLNET_REARCHITECTURE_PLAN.md`
+banner + §4 index carry the live phase pointer.**
+
+**PHASE-11 — deferred-intrinsics backlog → zero + the Tier-C decision — DONE.** Every ISO §15 intrinsic is
+now LIVE (`IntrinsicBind.Deferred` = **zero**; every row `Runtime`/`Fold`/`Unsupported`). The waves (each
+spec-first from the persisted anchor re-scout, line-reviewed, full-battery-gated): BOOLEAN-OF-INTEGER/
+INTEGER-OF-BOOLEAN §15.13/§15.45 (the Boolean result-category channel made real — `ResultCategory` →
+`PicCategory.Boolean` + four widened string-channel seams) · the Y2K windowing trio §15.23/25/100 on ONE
+`YearToYyyy` core + SECONDS-PAST-MIDNIGHT §15.80 on the `RunUnit.Clock` seam · the TEST validator quartet
+§15.90/91/93/94 (date verdict chains + NUMVAL positional scanners + the ONE `BindNumvalCFamily` bind with the
+shared `Anycase` flag) · BYTE-LENGTH §15.14 (compile-time fold over the new `DataItem.ByteWidth`, pinned
+implementor byte widths) + the SMALLEST-ALGEBRAIC golden · the A.4.9 locale module → documented non-support
+(COBOLNET1518 — the five functions + the LOCALE keyword variants) · the Tier-C decision (rejection
+single-sourced: the class reject was already ONE `RedefinesClass.Classify`; Step C collapsed the ~12 scattered
+classless-group emit guards onto the ONE `TierCIsland.Reason`, predicates preserved). **⚠ THE P11 SCOPE
+CHANGE: CONCATENATE is NOT an ISO function at any edition** (the re-scout found zero spec occurrences; CONCAT
+§15.18 is new-in-2023) — the "window [2002,2023)" plan was audit drift; the row is DELETED (a reference draws
+COBOLNET1501); CONCATENATE-as-a-vendor-extension is a separate future call. **Step D (the confined `byte[]`
+codec) is DEFERRED** as a scheduled increment (DESIGN-data-model §2.3 — its design needs re-basing; no NIST
+program requires it). All five exit criteria met. Final battery **3521 conformance · 301 unit · 33
+characterization · legacy 1196+636 · NIST 353 MATCH**. Per-function verified anchors + hand-derived golden
+values + the Tier-C guard-site inventory are retained in `docs/rearchitecture/PHASE-11-scout-notes.md`
+(a durable spec-to-code reference). ⚠ Guard-flake note (still in force): a 35x+n guard-fast verdict naming
+a file-I/O suite (SQ/IC/IX/ST) under JOBS=32 is the environmental flake class (DEVLOG 870/872/873/875/877) —
+re-prove by SOLO rerun before treating as real.
 
 **PHASE-10 IS COMPLETE (2026-07-17, DEVLOG 854–870 — 14 battery-gated commits `7436a1ef`→`a0fd3f68`+close, CI
 green on each; the P10 doc's STATUS banner carries the exit-criteria confirmation + the NAMED forward-residue

@@ -9,16 +9,36 @@
 ## STATUS
 
 ```
-STATUS: IN PROGRESS @ step 9 (Steps 0-2 + 5-8 + C DONE — Step 8 @ 5e5b9b0d [A.4.9 disposition]; Step C [the
-Tier-C single-sourcing — the ONE TierCIsland.Reason source over the ~12 scattered emit guards, predicates
-preserved; TierCRejectionTests; DESIGN-data-model §2.3 re-based to as-built] landed next commit. ALL FIVE P11
-EXIT CRITERIA MET: (1) zero Deferred; (2) Tier-C decided [rejection single-sourced]; (3) value goldens; (4)
-window/disposition negatives; (5) full battery green. Step D (the confined byte[] codec) DEFERRED as a
-scheduled increment (DESIGN-data-model §2.3 — the design needs re-basing). Resume: Step 9 close-out only —
-sync COBOLNET_INTRINSICS_DESIGN + VERSION_CHANGE_REFERENCE + DOC_INDEX + memory; STATUS→DONE; roadmap banner
-+ resume-prompt → PHASE-12; delete PHASE-11-scout-notes.md (its durable content is now in the design docs +
-DEVLOG); final battery counts.)
+STATUS: DONE (2026-07-17, DEVLOG 871–879; 9 battery-gated commits 2a0ab666→19dfe579+close, CI green on each)
 ```
+
+> **ALL FIVE EXIT CRITERIA MET.** (1) **Zero `Deferred` intrinsic rows** — every §15 row binds
+> `Runtime`/`Fold`/`Unsupported` (grep-verified). (2) **Tier-C decided** — the rejection is single-sourced (the
+> REDEFINES-class reject was already the ONE `RedefinesClass.Classify` mutator; Step C collapsed the ~12
+> scattered classless-mixed-usage-group emit guards onto the ONE `TierCIsland.Reason`, predicates preserved);
+> the confined-`byte[]` codec (Step D) is DEFERRED as a scheduled increment (DESIGN-data-model §2.3). (3)
+> **Every promotion has a value-exercising golden** (`intrinsics_boolean_conv`, `intrinsics_date_window`,
+> `intrinsics_test_validators`, `intrinsics_byte_length`, `intrinsics_smallest_algebraic` + the spec-pinned
+> `IntrinsicFunctionDifferentialTests` facts + `CobolDateWindowingTests`/`TestNumvalScannerTests`). (4)
+> **Every promotion has a window/disposition negative row** (`*_below_2002` / `smallest_algebraic_below_2023`
+> → COBOLNET1502; `locale_functions_a49` / `locale_keyword_a49` → COBOLNET1518; matrix rows
+> `boolean-of-integer-2002` / `date-to-yyyymmdd-2002` / `test-numval-2002` / `byte-length-2002` /
+> `smallest-algebraic-2023`). (5) **Full battery green:** conformance **3521** · unit **301** · characterization
+> **33** · legacy 1196+636 · NIST **353 MATCH**.
+>
+> **⚠ SCOPE CHANGE (spec-faithfulness):** CONCATENATE is NOT an ISO function at any edition (the re-scout found
+> zero spec occurrences; §15.18 CONCAT is new-in-2023) — the "implement with window [2002,2023)" plan was audit
+> drift; the greenfield catalog row is DELETED (a reference draws COBOLNET1501). CONCATENATE-as-a-vendor-extension
+> is a separate future call.
+>
+> **DEFERRED to a scheduled increment (Step D):** the confined `byte[]` REDEFINES codec — the one sanctioned
+> `byte[]` boundary of invariant #1. Its §2.5/§3 design is stale vs. the as-built code (no `RedefinesClassifier`
+> type; `RedefinesTier.ByteCanonical` dead-by-construction; `StorageForm.TierCWindow` has no Read/Write) and no
+> NIST program requires it — it needs a fresh design pass (recorded in DESIGN-data-model §2.3).
+>
+> **Retained reference:** `PHASE-11-scout-notes.md` (the persisted anchor re-scout — verified §/GR/SR anchors +
+> spec line numbers, hand-derived golden values, the Tier-C guard-site inventory) is kept as a durable
+> spec-to-code reference (its forward-resume framing is now historical).
 > The executing session updates this line to `IN PROGRESS @ step N` and finally `DONE`. Keep it in sync with the per-step checkboxes in §4.
 
 > **Step 0 baseline (2026-07-17, tree at `45fe74dd`, all green):** greenfield conformance **3467/3467** ·

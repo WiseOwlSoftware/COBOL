@@ -86,6 +86,26 @@
 > `FileRegistry`/`IClock` — with every pre-P8 static name kept as an emitted-surface shim (byte-stable: ZERO
 > compiler-side changes in the phase); the process-global clock seam replaced by `IClock`/`SystemClock`
 > (`COBOLNET_CLOCK` preserved).
+> **✅ PHASE-11 — deferred-intrinsics backlog → zero + the Tier-C decision — DONE (2026-07-17, DEVLOG 871–879;
+> 9 battery-gated commits, CI green on each):** every ISO §15 intrinsic is now LIVE — the `IntrinsicBind.Deferred`
+> backlog is ZERO. Waves (each spec-first from the persisted anchor re-scout `PHASE-11-scout-notes.md`,
+> line-reviewed, full-battery-gated): BOOLEAN-OF-INTEGER/INTEGER-OF-BOOLEAN (§15.13/§15.45 — the Boolean
+> result-category channel made real) · the Y2K windowing trio DATE-TO-YYYYMMDD/DAY-TO-YYYYDDD/YEAR-TO-YYYY
+> (§15.23/25/100 on ONE `YearToYyyy` core — argument-2 is a SIGNED offset to the window's ENDING year, not a
+> window size) + SECONDS-PAST-MIDNIGHT (§15.80 on the `RunUnit.Clock` seam) · the TEST validator quartet
+> (§15.90/91/93/94 — date verdict chains + NUMVAL positional scanners + the ONE `BindNumvalCFamily` bind with
+> ANYCASE) · BYTE-LENGTH (§15.14 compile-time fold over the new `DataItem.ByteWidth`, pinned implementor byte
+> widths) + the SMALLEST-ALGEBRAIC golden · the A.4.9 locale module → documented non-support (COBOLNET1518, the
+> five functions + the LOCALE keyword variants) · the Tier-C decision (the rejection is single-sourced — the
+> class reject was already ONE `RedefinesClass.Classify`; Step C collapsed the ~12 scattered classless-group emit
+> guards onto the ONE `TierCIsland.Reason`, predicates preserved). **⚠ THE P11 SCOPE CHANGE: CONCATENATE is NOT
+> an ISO function at any edition** (the re-scout found zero spec occurrences; CONCAT §15.18 is new-in-2023) — the
+> phase doc's "implement with window [2002,2023)" was audit drift, so the row is DELETED (a reference draws
+> COBOLNET1501); CONCATENATE-as-a-vendor-extension is a separate future call. **Step D (the confined `byte[]`
+> codec) is DEFERRED** as a scheduled increment (its §2.3 design needs re-basing; no NIST program requires it).
+> All five exit criteria met. Final battery **3521 conformance · 301 unit · 33 characterization · NIST 353 MATCH**.
+> RESUME AT **PHASE-12** (M3 / COBOL-2014 deltas — can run parallel to the deferred P11 Step D).
+>
 > **✅ PHASE-10 — M2 residual catalog — DONE (2026-07-17, DEVLOG 854–870; 14 battery-gated commits, CI green
 > on each):** the Step-1 reconciliation audit (13-agent workflow) then the feature waves — national intrinsics ·
 > EC-N twins · `&`-concat · ALLOCATE INITIALIZED · UDF category-RETURNING · CONSTANT entries/CONSTANT RECORD ·
@@ -97,7 +117,6 @@
 > claims — every wave re-scouted its anchors spec-first before implementing (three wrong §-citations, two
 > already-landed "gaps", one mislabeled status code corrected). Final battery 3467 conformance · 292 unit ·
 > 33 characterization byte-identical · NIST 353 MATCH. Ledgered residues carry forward BY NAME in the P10 doc.
-> RESUME AT **PHASE-11** (intrinsics-to-zero + the Tier-C codec).
 > **✅ PHASE-09 — M2 OO rearchitect & complete — DONE (2026-07-16, DEVLOG 844–853):** OO re-homed to `Oo/`
 > (`CobolNet.Compiler.Oo`): pure `OoClassTable` + `OoConformance` (AdapterPairs RETURNED, threaded via
 > `BoundCompilation.OoAdapters`) + phase-explicit `OoMethodBinding` + `OoDriver` owning the bind bodies
@@ -268,7 +287,7 @@ phase boundary.
 | ✅ | 08 | R | MED | 00 | Runtime library reorg (`RunUnit`, `FileConnector`/`FileRegistry`, role-based folders) — DONE 2026-07-15 | [PHASE-08](rearchitecture/PHASE-08-runtime-library-reorg-rununit.md) |
 | ✅ | 09 | I | HIGH | 04,07 | M2 OO rearchitecture (`Oo/` + `OoDriver`) + mandatory 2002 OO completion | [PHASE-09](rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md) — DONE 2026-07-16 |
 | ☑ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) — DONE 2026-07-17 | [PHASE-10](rearchitecture/PHASE-10-m2-residual-catalog.md) |
-| ☐ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero + Tier-C REDEFINES confined-byte codec | [PHASE-11](rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md) |
+| ☑ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero (DONE 2026-07-17) + Tier-C rejection single-sourced; the confined-byte[] codec (Step D) DEFERRED as a scheduled increment | [PHASE-11](rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md) |
 | ☐ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas (dynamic length, TYPEDEF edges, >>PROPAGATE, IEEE floats, function pointers) | [PHASE-12](rearchitecture/PHASE-12-m3-2014-deltas.md) |
 | ☐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + Table 1/5 behavior-row burn-down | [PHASE-13](rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md) |
 | ☐ | 14 | I | MED | 03,13 | Matrix closure + in-repo greenfield guard + one-time equivalence proof | [PHASE-14](rearchitecture/PHASE-14-matrix-closure-greenfield-guard-equivalence.md) |

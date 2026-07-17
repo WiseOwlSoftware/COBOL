@@ -1,14 +1,18 @@
-# PHASE-11 — Pre-implementation scout notes (spec anchors verified + code seams mapped)
+# PHASE-11 — Verified spec anchors + code seams (retained reference)
 
-> **What this is:** the persisted output of the P11 Step-0/Step-1 re-scout (11 parallel read-only agents,
-> 2026-07-17) run per the P10 recurring lesson (*every wave re-scouts its anchors spec-first before
-> implementing* — the P10 Step-1 audit had drifted in ~5 of 6 re-checked claims). Each section below is one
-> scout's verified findings: exact ISO/IEC 1989:2023 §/GR/SR anchors as `specs/ISO_COBOL.md` numbers them,
-> hand-derived golden values, and the code seams (file:line) each family touches. **Read this INSTEAD of
-> re-scouting**; trust `gotchas`/`discrepancies` over the P11 phase doc where they conflict.
+> **STATUS: RETAINED REFERENCE (PHASE-11 is DONE).** This is the persisted output of the P11 anchor re-scout
+> (11 parallel read-only agents, 2026-07-17) run per the P10 recurring lesson (*every wave re-scouts its
+> anchors spec-first before implementing*). Each section is one scout's verified findings: exact ISO/IEC
+> 1989:2023 §/GR/SR anchors as `specs/ISO_COBOL.md` numbers them (with line numbers), hand-derived golden
+> values with rule citations, and the code seams (file:line) each family touches. It was the working reference
+> DURING P11; it is KEPT as a durable spec-to-code traceability record for future waves that touch these
+> functions (e.g. the deferred Tier-C Step D, or a P12/P13 wave over the date/national/boolean families).
+> **⚠ Its forward-resume framing ("read this FIRST", "the executing session") is now HISTORICAL** — P11 is
+> complete; the current design lives in the design-doc corpus. Line numbers were captured at `45fe74dd` and
+> have since shifted. The Step-2 APPENDIX (pre-authored files) is transient scratch, superseded by the landed
+> commits.
 >
-> Companion to `PHASE-11-intrinsics-backlog-tierc-codec.md` (the step plan). Delete this file at P11 close
-> (its durable content flows into the design docs + DEVLOG at Step 9).
+> Companion to `PHASE-11-intrinsics-backlog-tierc-codec.md` (the step plan, STATUS: DONE).
 
 ## `spec:boolean` — BOOLEAN-OF-INTEGER §15.13 / INTEGER-OF-BOOLEAN §15.45
 
