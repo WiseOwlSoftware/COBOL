@@ -107,6 +107,22 @@ internal static class RuntimeApi
     public static string DecToUnscaled(string decExpr, string scale, CobolRounding mode) =>
         $"({decExpr}).{nameof(CobolDec.ToUnscaled)}({scale}, {RoundingText(mode)})";
 
+    /// <summary>SDIDI exponentiation (ISO §8.8.1.5.4; P10 Step 12) — <c>CobolDec.Pow</c>. <paramref name="mode"/>
+    /// is the pre-rendered INTERMEDIATE ROUNDING fragment (<c>CobolRounding.X</c>).</summary>
+    public static string DecPow(string baseOperand, string expOperand, string mode) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.Pow)}({baseOperand}, {expOperand}, {mode})";
+
+    /// <summary>The §8.8.1.5.1 implementor-defined float→SDIDI operand conversion — <c>CobolDec.FromDouble</c>
+    /// (the shortest round-trip decimal identity of the IEEE value; P10 Step 12).</summary>
+    public static string DecFromDouble(string doubleExpr) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.FromDouble)}({doubleExpr})";
+
+    /// <summary>One SDIDI division of two exactly-lifted fixed-point values — MEAN's §15.60.4 equivalent-expression
+    /// division under standard-decimal arithmetic (§15.4.1 r1; P10 Step 12).</summary>
+    public static string DecDivLifted(string numerator, string numeratorScale, string denominator, string mode) =>
+        $"{nameof(CobolDec)}.{nameof(CobolDec.Div)}({nameof(CobolDec)}.{nameof(CobolDec.From)}({numerator}, "
+        + $"{numeratorScale}), {nameof(CobolDec)}.{nameof(CobolDec.From)}({denominator}, 0), {mode})";
+
     /// <summary>A float value's inexactness probe at a fraction scale (the ROUNDED PROHIBITED gate, §14.7.5 r7)
     /// — <c>CobolFloat.InexactAtScale</c>.</summary>
     public static string FloatInexactAtScale(string value, string scale) =>

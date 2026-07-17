@@ -8,9 +8,10 @@ namespace CobolNet.Binding;
 
 /// <summary>
 /// The fully-parsed content of a source unit's OPTIONS paragraph (ISO/IEC 1989:2023 §11.9), captured once at bind
-/// time and exposed program-wide so every later pass can read it (the binder applies DEFAULT ROUNDED today; the
-/// remaining clauses are captured for the features that will consume them — ARITHMETIC feeds the numeric engine,
-/// FLOAT-BINARY/DECIMAL feed standard-float USAGE, INITIALIZE feeds the initial-state fill).
+/// time and exposed program-wide so every later pass can read it. CONSUMED today: ARITHMETIC +
+/// INTERMEDIATE ROUNDING drive the numeric engine's standard-decimal SDIDI path (NumericRenderer.StandardDecimal
+/// → CobolDec, §8.8.1.5), DEFAULT ROUNDED sets the bare-ROUNDED mode (§11.9.6). Still capture-only:
+/// FLOAT-BINARY/DECIMAL (standard-float USAGE encodings) and INITIALIZE (the initial-state fill).
 /// </summary>
 /// <remarks>An absent OPTIONS paragraph (or an absent clause) yields the ISO-implied default — see
 /// <see cref="Default"/>. The model carries the program's <i>intent</i>; whether a clause is yet <i>applied</i> is the
@@ -49,8 +50,9 @@ public sealed record OptionsModel
     public static readonly OptionsModel Default = new();
 }
 
-/// <summary>The ARITHMETIC clause mode (§11.9.5.1). <see cref="Standard"/> is the no-suffix spelling many compilers and
-/// the CCVS accept alongside the standardized <see cref="StandardBinary"/>/<see cref="StandardDecimal"/> phrases.</summary>
+/// <summary>The ARITHMETIC clause mode (§11.9.5.1). <see cref="Standard"/> is the ISO/IEC 1989:2002 standardized
+/// mode (NATIVE|STANDARD was the 2002 clause), designated obsolete by 2014 and removed by 2023 (Annex E.2
+/// item 21) in favor of <see cref="StandardBinary"/>/<see cref="StandardDecimal"/>; the CCVS still writes it.</summary>
 public enum ArithmeticMode { Native, Standard, StandardBinary, StandardDecimal }
 
 /// <summary>Endianness of a standard floating-point usage (FLOAT-BINARY / FLOAT-DECIMAL clauses, §11.9.8/§11.9.9).</summary>

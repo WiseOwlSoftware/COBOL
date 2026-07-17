@@ -22,6 +22,130 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// fits the 34-digit significand, §8.8.1.5.2).</summary>
     public static CobolDec From(Int128 unscaled, int scale) => new(unscaled, -scale);
 
+    /// <summary>Lift a FLOATING-POINT operand into SDIDI form — the ISO §8.8.1.5.1 implementor-defined
+    /// float→SDIDI conversion: the SHORTEST ROUND-TRIP decimal representation of the IEEE value (.NET "R" —
+    /// ≤17 significant digits, so it always fits the 34-digit significand EXACTLY and the conversion itself
+    /// never rounds; §8.8.1.5.2 r1's "cannot be expressed exactly" case does not arise). The shortest form
+    /// makes decimal-clean float values convert to their decimal identity (a COMP-2 holding 0.1 becomes the
+    /// SDIDI 0.1, not 0.1000000000000000055…). An infinite operand exceeds the decimal128 range
+    /// (EC-SIZE-OVERFLOW, §8.8.1.5.2 r2); a NaN operand is the IEC 60559 'invalid operation' state
+    /// (EC-DATA-INCOMPATIBLE, §8.8.1.5.1).</summary>
+    public static CobolDec FromDouble(double d)
+    {
+        if (double.IsNaN(d))
+            throw new CobolSizeError("NaN floating-point operand in standard-decimal arithmetic (ISO §8.8.1.5.1 — "
+                + "the IEC 60559 invalid-operation state)", "EC-DATA-INCOMPATIBLE");
+        if (double.IsInfinity(d))
+            throw new CobolSizeError("infinite floating-point operand exceeds the decimal128 range "
+                + "(ISO §8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");
+        if (d == 0) return new CobolDec(0, 0);
+        // "R" = the shortest decimal string that round-trips the double: [-]digits[.digits][E±dd]. Parsed
+        // directly to (significand, power-of-ten) — no decimal intermediary (decimal is 28-digit/limited-range).
+        string s = d.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+        bool neg = s[0] == '-';
+        int i = neg ? 1 : 0;
+        Int128 sig = 0;
+        int frac = 0, exp10 = 0;
+        bool inFrac = false;
+        for (; i < s.Length; i++)
+        {
+            char c = s[i];
+            if (c == '.') { inFrac = true; continue; }
+            if (c is 'E' or 'e')
+            {
+                exp10 = int.Parse(s[(i + 1)..], System.Globalization.CultureInfo.InvariantCulture);
+                break;
+            }
+            sig = sig * 10 + (c - '0');
+            if (inFrac) frac++;
+        }
+        return new CobolDec(neg ? -sig : sig, exp10 - frac);
+    }
+
+    /// <summary>The multiplicative identity (the §8.8.1.5.4 r1/r3 constant 1).</summary>
+    private static readonly CobolDec One = new(1, 0);
+
+    /// <summary>Exponentiation in standard-decimal arithmetic (ISO §8.8.1.5.4). An INTEGER exponent evaluates by
+    /// binary square-and-multiply over <see cref="Mul"/> — for exponents 1–4 this performs exactly the r2a–r2d
+    /// equivalent expressions (SDIDI multiplication is commutative with a single per-operation rounding, so
+    /// b×(b×b) ≡ (b×b)×b digit-for-digit), and for larger integers it is the r2e implementor-defined equivalent
+    /// expression whose every multiplication/division follows the §8.8.1.5.3 IEC 60559 rules; a negative integer
+    /// exponent is r3's 1/(b ** |e|) via <see cref="Div"/>. A NON-integer exponent (positive base only —
+    /// §8.8.1.2 r6c) is the r2e implementor-defined approximation: IEEE-double pow, converted through the
+    /// <see cref="FromDouble"/> operand conversion (§8.8.1.5.2 r1). EC-SIZE-EXPONENTIATION legs: 0 ** 0 (r4),
+    /// zero base with a non-positive exponent (§8.8.1.2 r6a), and a negative base with a non-integer exponent
+    /// (§8.8.1.2 r6c). Every step is range-checked at the decimal128 bounds (§8.8.1.5.2 r2, via the ONE
+    /// <see cref="Round34Wide"/> clamp).</summary>
+    public static CobolDec Pow(CobolDec b, CobolDec e, CobolRounding mode)
+    {
+        bool eInt = TryIntegerValue(e, out long n);
+        if (b.Sig == 0)
+        {
+            // §8.8.1.2 r6a / §8.8.1.5.4 r4: a zero base requires an exponent greater than zero.
+            if (e.Sig <= 0)
+                throw new CobolSizeError("exponentiation of zero with a non-positive exponent "
+                    + "(ISO §8.8.1.2 r6a / §8.8.1.5.4 r4)", "EC-SIZE-EXPONENTIATION");
+            return new CobolDec(0, 0);
+        }
+        if (e.Sig == 0) return One;                              // §8.8.1.5.4 r1: b ** 0 = 1 (b ≠ 0)
+        if (b.Sig < 0 && !eInt)
+            throw new CobolSizeError("exponentiation of a negative base with a non-integer exponent "
+                + "(ISO §8.8.1.2 r6c)", "EC-SIZE-EXPONENTIATION");
+        if (eInt)
+        {
+            // |n| is loop-bounded: past this bound a |base| ≠ 1 is out of the decimal128 range anyway (the
+            // adjusted exponent |n·log10|b|| ≥ |n|·(1/34) > 6144), and |base| = 1 resolves by parity.
+            // long.MinValue (the TryIntegerValue saturation) has no Math.Abs — saturate to long.MaxValue
+            // (identical disposition: it exceeds the loop bound).
+            const long LoopBound = 500_000;
+            long m = n == long.MinValue ? long.MaxValue : Math.Abs(n);
+            if (m > LoopBound)
+            {
+                if (IsUnitMagnitude(b)) return b.Sig > 0 || m % 2 == 0 ? One : new CobolDec(-1, 0);
+                throw new CobolSizeError($"exponentiation result of |exponent| {m} exceeds the decimal128 "
+                    + "range (ISO §8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");
+            }
+            CobolDec acc = One, sq = b;
+            bool first = true;
+            while (m > 0)
+            {
+                if ((m & 1) != 0) { acc = first ? sq : Mul(acc, sq, mode); first = false; }
+                m >>= 1;
+                if (m > 0) sq = Mul(sq, sq, mode);
+            }
+            return n < 0 ? Div(One, acc, mode) : acc;            // r3: 1 / (b ** |e|)
+        }
+        // r2e (non-integer exponent, positive base): implementor-defined — IEEE-double approximation converted
+        // through the one float→SDIDI operand conversion.
+        return FromDouble(Math.Pow(b.ToDouble(), e.ToDouble()));
+    }
+
+    /// <summary>Whether the value is an INTEGER, and its magnitude as a <see cref="long"/> when it fits (a
+    /// trailing-zero significand normalizes into the exponent first; a value whose integer form exceeds the
+    /// long range reports integer-ness with <paramref name="n"/> saturated — the caller's loop bound rejects
+    /// it before use).</summary>
+    private static bool TryIntegerValue(CobolDec v, out long n)
+    {
+        Int128 sig = v.Sig;
+        int exp = v.Exp;
+        while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }   // normalize trailing zeros into the exponent
+        if (exp < 0) { n = 0; return false; }
+        // Integer: sig × 10^exp. Saturate past long range (the Pow loop bound rejects it).
+        Int128 wide = sig;
+        for (int i = 0; i < exp && Int128.Abs(wide) <= long.MaxValue; i++) wide *= 10;
+        n = Int128.Abs(wide) > long.MaxValue ? (wide < 0 ? long.MinValue : long.MaxValue) : (long)wide;
+        return true;
+    }
+
+    /// <summary>Whether |value| = 1 (the Pow large-exponent parity shortcut).</summary>
+    private static bool IsUnitMagnitude(CobolDec v)
+    {
+        Int128 sig = Int128.Abs(v.Sig);
+        int exp = v.Exp;
+        while (exp < 0 && sig % 10 == 0) { sig /= 10; exp++; }
+        return sig == 1 && exp == 0;
+    }
+
     public static CobolDec Add(CobolDec a, CobolDec b, CobolRounding mode) => AddSigned(a, b, negateB: false, mode);
 
     public static CobolDec Sub(CobolDec a, CobolDec b, CobolRounding mode) => AddSigned(a, b, negateB: true, mode);
@@ -109,6 +233,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             // Widening: keep only digits a ≤38-digit store could ever use; the store's own capacity rules apply.
             Int128 sig = Sig;
             if (DigitCount(Int128.Abs(sig)) + shift > 38) sig %= Pow10.AsWide(Math.Max(0, 38 - shift));
+            if (sig == 0) return 0;                            // a far-out-of-range value keeps no store digits
             return sig * Pow10.AsWide(shift);
         }
         var (q, rem, den) = DivRemPow10(Sig, -shift);
@@ -162,7 +287,36 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             }
             if (sig == (Int128)Limit34) { sig /= 10; exp++; }   // 999…9 rounded up → 100…0 × 10
         }
-        return new CobolDec(negative ? -sig : sig, exp);
+        return Clamp(negative ? -sig : sig, exp, mode);
+    }
+
+    // decimal128 range bounds (ISO §8.8.1.5.2 NOTE 2): largest |value| 9.999…9E+6144 (34 nines), smallest
+    // positive nonzero (subnormal) 1.0E−6176.
+    private const int MaxAdjustedExp = 6144;
+    private const int MinExp = -6176;
+
+    /// <summary>The §8.8.1.5.2 r2 decimal128 range check, applied by the ONE rounding funnel to every operation
+    /// result: a value whose adjusted exponent exceeds +6144 raises the size error condition with
+    /// EC-SIZE-OVERFLOW; a value below the smallest subnormal quantum (10^−6176) re-rounds onto that quantum
+    /// (the IEC 60559 subnormal range) under the INTERMEDIATE ROUNDING mode — a nonzero value that rounds to
+    /// zero there is too small to be contained and raises EC-SIZE-UNDERFLOW.</summary>
+    private static CobolDec Clamp(Int128 sig, int exp, CobolRounding mode)
+    {
+        if (sig == 0) return new CobolDec(0, 0);
+        if (DigitCount(Int128.Abs(sig)) + exp - 1 > MaxAdjustedExp)
+            throw new CobolSizeError("standard-decimal intermediate exceeds the decimal128 range "
+                + "(ISO §8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");
+        if (exp < MinExp)
+        {
+            // Re-round onto the 10^−6176 quantum (drop exp − MinExp digits with the true remainder).
+            var (q, rem, den) = DivRemPow10(sig, MinExp - exp);
+            Int128 r = RoundFromRemainder(q, rem, den, sticky: false, mode);
+            if (r == 0)
+                throw new CobolSizeError("standard-decimal intermediate is below the decimal128 range "
+                    + "(ISO §8.8.1.5.2 r2)", "EC-SIZE-UNDERFLOW");
+            return new CobolDec(r, MinExp);
+        }
+        return new CobolDec(sig, exp);
     }
 
     private static Int128 RoundFromRemainder(Int128 q, Int128 rem, Int128 den, bool sticky, CobolRounding mode)

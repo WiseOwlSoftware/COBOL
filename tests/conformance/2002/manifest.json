@@ -6,6 +6,7 @@
     "any_length_contained",
     "any_length_function",
     "apos_class",
+  "arith_standard",
     "based_pointer",
     "binary_usage",
     "boolean_data",

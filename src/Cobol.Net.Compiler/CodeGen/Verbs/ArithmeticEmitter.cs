@@ -83,7 +83,13 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary><c>DIVIDE … GIVING q REMAINDER r</c> (ISO §14.9.12 GR7): the remainder is defined from the
     /// INTERMEDIATE quotient TRUNCATED at the quotient receiver's scale — even when the stored quotient is ROUNDED
     /// — as <c>remainder = dividend − (intermediate quotient × divisor)</c>; the subtraction aligns scales exactly.
-    /// The quotient stores with its OWN rounding (recomputed at the receiver's mode when not truncation).</summary>
+    /// The quotient stores with its OWN rounding (recomputed at the receiver's mode when not truncation).
+    /// Under STANDARD / STANDARD-DECIMAL (P10 Step 12) the subsidiary quotient stays this EXACT receiver-scale
+    /// kernel division: GR6c truncates it at the receiver's digits, and the exact integer-remainder truncation
+    /// equals the SDIDI-quotient-then-truncate result for every case except a true quotient carrying 34+
+    /// consecutive nines at the rounding boundary (the same documented extra-precision residue class as the
+    /// >34-digit exact intrinsics — CobolIntrinsics.Exact.cs header); the back-multiply/subtract DO evaluate
+    /// in SDIDI form through the mode-aware <c>Combine</c>.</summary>
     public void EmitDivideRemainder(BoundDivideRemainder d)
         => EmitArith(d.SizeError, ise =>
         {

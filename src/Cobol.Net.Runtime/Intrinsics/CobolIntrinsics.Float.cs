@@ -7,6 +7,14 @@ namespace CobolNet.Runtime;
 /// <see cref="double"/> under the §15.4.1 native-arithmetic license — "the value returned is an implementor-defined
 /// approximation of the value of [the equivalent arithmetic] expression"). Out-of-domain arguments produce NaN here
 /// and quantize to the EC-ARGUMENT-FUNCTION default result 0 in <see cref="CobolIntrinsics.FromDouble"/> (§15.3).
+/// <para><b>Standard arithmetic (ISO §15.4.1, P10 Step 12).</b> The trig/log/SQRT/E/PI rows stay conforming under
+/// ARITHMETIC IS STANDARD / STANDARD-DECIMAL: their returned-value rules are prose approximations, NOT equivalent
+/// arithmetic expressions, so the value is implementor-defined in EVERY mode (§15.4.1 last paragraph), and a
+/// double result entering a standard-decimal expression converts through the one §8.8.1.5.2 r1 operand
+/// conversion (<c>CobolDec.FromDouble</c>). ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION carry
+/// EAEs with inexact divisions that §15.4.1 r1 requires be evaluated in SDIDI form — those four are staged LOUD
+/// under the standard modes at bind time (COBOLNET0899 'arithmetic-standard-intrinsic', IntrinsicBinder) until
+/// CobolDec evaluations land.</para>
 /// </summary>
 public static partial class CobolIntrinsics
 {

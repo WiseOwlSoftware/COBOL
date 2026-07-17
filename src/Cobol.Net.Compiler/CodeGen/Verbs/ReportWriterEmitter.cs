@@ -162,6 +162,14 @@ internal sealed class ReportWriterEmitter(EmitContext ctx, NumericRenderer num, 
             }
             // SUM counters (§13.18.54): the addend delegate yields the addends' total at the counter's scale
             // (GR3 — ADD-consistent accumulation; GR9 — multiple addends sum together).
+            // ARITHMETIC IS STANDARD / STANDARD-DECIMAL (§8.8.1.5.1 names the SUM clause; P10 Step 12): this
+            // native path IS the standard-decimal result, documented rather than routed — each GR3 accumulation
+            // is ONE addition of fixed-point values into a fixed-point counter, and an aligned addition of a
+            // ≤31-digit counter and a ≤31-digit addend total is ≤32 significant digits, EXACT both in this
+            // Int128 accumulation and in a 34-digit SDIDI (§8.8.1.5.2 — an exact ≤34-digit result never
+            // rounds), then stored to the counter's own picture identically; the two engines are
+            // digit-identical for every reachable SUM shape (report SUM addends are fixed-point by
+            // §13.18.54.3, never float).
             foreach (var sum in r.Sums)
             {
                 var terms = sum.Addends

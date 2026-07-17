@@ -11,7 +11,7 @@ Decision-complete design for COBOL.NET's native scaled-integer numeric model. SU
 
 THE CENTRAL HARDENING: the runtime's value engine (`src/Cobol.Net.Runtime/Numeric/CobolNum.cs`) is Int128-monomorphic, NOT long — a long-only engine would silently overflow real COMPUTE (e.g. `COMPUTE c = a * b` on two PIC 9(18) = 36 digits). The single intermediate carrier is an Int128 value + its compile-time scale (conceptually `CobolInt(Int128 Unscaled, int Scale)`). Storage stays the narrow native type; every operand widens long→Int128 at op entry, scales-align, computes in Int128, and a single `TryStore` rescales/rounds/truncates/bounds-checks back into the receiver's storage type. The 'Int128 escape boundary' is reached only when a single product of two ≥19-digit operands exceeds Int128 (~38 digits) → EC-SIZE-OVERFLOW.
 
-INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION integer powers expand to repeated multiply (§8.8.1.5.4 a–d). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD-DECIMAL (decimal128) is implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
+INTERMEDIATE PRECISION (ISO §8.8.1, mined from the proven legacy `decimal` path): arithmetic operates on the algebraic VALUE (§8.8.1.2). Per-operator result scale: ADD/SUBTRACT → max(scales); MULTIPLY → sum(scales); DIVIDE/COMPUTE-division → a guard scale = max(receiver-scales, operand-scales) + DIV_GUARD_DIGITS (DIV_GUARD_DIGITS=14, reproducing the legacy decimal accumulator's ~28-sig-digit headroom — the one policy `decimal` auto-picked that I must make explicit). EXPONENTIATION: native = the §8.8.1.2 implementor-defined approximation (double `Math.Pow`, quantized through `CobolIntrinsics.FromDouble` at `max(receiver-scale, 9)`); standard modes = `CobolDec.Pow` per §8.8.1.5.4 (integer powers by repeated SDIDI multiply — r2a–d exactly). Statement-arithmetic enforces the 31-digit composite-of-operands limit (§ rule 2, p595); COMPUTE expressions have NO composite limit (§8.8.1.2 rule 7) — Int128 is the cap, SIZE ERROR past ~38 digits. Default mode = NATIVE arithmetic (§8.8.1.3, implementor-defined = Int128 fixed-point); STANDARD (2002) / STANDARD-DECIMAL (2014, decimal128) are implemented via the `CobolDec` SDIDI, and STANDARD-BINARY is documented-unsupported (spec-obsolete).
 
 ALL USAGES with capacity/truncation: DISPLAY/COMP/COMP-4/BINARY → DigitCount discipline (PIC 99 COMP holds 0–99 not 0–32767); COMP-3/PACKED → 2n−1 packed-digit capacity; COMP-5/BINARY-CHAR…DOUBLE → native two's-complement width (PIC S9(4) COMP-5 = −32768..32767, PIC 9(4) COMP-5 = 0..65535); COMP-1/COMP-2 → IEEE, bypass the scaled engine. The 8 ROUNDED modes are the `CobolRounding` enum; `Store` is the no-SIZE-ERROR (silent-truncation) branch and `TryStore` (bool, receiver-unchanged-on-overflow, PROHIBITED-inexact → SIZE ERROR) is the ON SIZE ERROR branch.
 
@@ -55,23 +55,55 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > **Arithmetic modes (per edition, end to end):**
 > - **NATIVE** (the default): the documented implementor-defined technique IS the exact Int128 fixed-point engine
 >   (D1/D2) — per §8.8.1.3 fully conformant.
-> - **STANDARD-DECIMAL — implemented** (`Cobol.Net.Runtime/Numeric/CobolDec.cs`): the SDIDI (§8.8.1.5.2) as
->   `readonly record struct CobolDec(Int128 Sig, int Exp)` — every operation computes EXACTLY (a 256-bit
+> - **STANDARD-DECIMAL — implemented** (`Cobol.Net.Runtime/Values/Numeric/CobolDec.cs`): the SDIDI (§8.8.1.5.2)
+>   as `readonly record struct CobolDec(Int128 Sig, int Exp)` — every operation computes EXACTLY (a 256-bit
 >   hi:lo-UInt128 scratch for products/quotients; shift-subtract 256÷128 division, clarity-first until profiled)
 >   and rounds ONCE per op to 34 significant digits with the INTERMEDIATE ROUNDING mode (§11.9.11: default
 >   NEAREST-AWAY-FROM-ZERO; NEAREST-EVEN; TRUNCATION; PROHIBITED ⇒ EC-SIZE-TRUNCATION, surfaced as the size
->   error until the EC model). Fixed-point operands lift EXACTLY (≤31 digits ≤ 34). The renderer routes
->   `Combine`/comparisons through `CobolDec` when the mode is in effect (`NumX.Dec`); the receiver's ROUNDED
->   applies only at the final transfer via the `CobolNum.Store/TryStore(CobolDec, …)` overloads (§14.7 NOTE 1).
->   An Int128 significand represents every decimal128 value's 34-digit significand exactly; only the rejection of
->   `decimal` (96-bit/28-digit) stands.
-> - **STANDARD-BINARY — documented-unsupported** (COBOLNET0806): spec-obsolete (§8.8.1.4.1 NOTE 1); a binary128
->   SDIDI has no exact .NET carrier; revisit only if the spec retains it.
-> - **Plain `ARITHMETIC IS STANDARD`** (the 2014 mode): dropped by ISO 2023 (§8.8.1.2 names only the three) —
->   rejected with COBOLNET0807 ("removed at 2023" / "unsupported, use STANDARD-DECIMAL" below).
-> - **Edition gates:** the OPTIONS paragraph itself is 2014+ (COBOLNET0804); ROUNDED MODE IS is 2014+
->   (COBOLNET0803); the composite-of-operands check is 31 at EVERY edition (§14.7 rule 2 — an 85-specific
->   tightening to 18 is refuted by CCVS-85 itself: NC101A composes 21 digits in a MULTIPLY).
+>   error until the EC model), then range-checks at the decimal128 bounds (§8.8.1.5.2 r2 — adjusted exponent
+>   > +6144 ⇒ EC-SIZE-OVERFLOW; below the 10⁻⁶¹⁷⁶ subnormal quantum the value re-rounds onto it, and a nonzero
+>   value that rounds to zero there ⇒ EC-SIZE-UNDERFLOW; the ONE `Clamp` in the `Round34Wide` funnel).
+>   Fixed-point operands lift EXACTLY (≤31 digits ≤ 34); FLOAT operands convert via `CobolDec.FromDouble` —
+>   the §8.8.1.5.1 implementor-defined conversion, defined as the SHORTEST round-trip decimal identity of the
+>   IEEE value (≤17 digits ⇒ always exact in the significand; Infinity ⇒ EC-SIZE-OVERFLOW, NaN ⇒ the
+>   invalid-operation EC-DATA-INCOMPATIBLE). The renderer routes `Combine`/`Power`/comparisons through
+>   `CobolDec` when the mode is in effect (`NumX.Dec`; the mode branch runs BEFORE the D16 float branch);
+>   **exponentiation** is `CobolDec.Pow` (§8.8.1.5.4: integer exponents by square-and-multiply over `Mul` —
+>   exactly r2a–r2d for 1–4, the r2e implementor-defined form beyond, r3's `1/(b**|e|)` for negatives, the
+>   §8.8.1.2 r6 / r4 EC-SIZE-EXPONENTIATION legs; a non-integer exponent is the r2e double approximation
+>   converted through `FromDouble`). The receiver's ROUNDED applies only at the final transfer via the
+>   `CobolNum.Store/TryStore(CobolDec, …)` overloads (§14.7 NOTE 1). An Int128 significand represents every
+>   decimal128 value's 34-digit significand exactly; only the rejection of `decimal` (96-bit/28-digit) stands.
+> - **Intrinsic functions under the standard modes (§15.4.1 r1):** a function WITH an equivalent arithmetic
+>   expression must return exactly the SDIDI-evaluated EAE value. The exact-Int128 family (MOD/REM/MAX/MIN/
+>   RANGE/SUM/MEDIAN/MIDRANGE/ABS/SIGN/INTEGER…) already satisfies it — every EAE step is exact in both engines
+>   (the documented-equivalence header of `CobolIntrinsics.Exact.cs`; the one recorded residue: an exact result
+>   past 34 digits — FACTORIAL 31–33, a >34-digit SUM chain — keeps MORE precision than the per-op-rounded
+>   SDIDI would). MEAN's one inexact division evaluates in SDIDI form (IntrinsicRenderer), making the spec's
+>   §15.4.1 NOTE-2 relation `FUNCTION MEAN(a b c) = (a+b+c)/3` TRUE. The prose-approximation family (SQRT/trig/
+>   log/E/PI) has no EAE — implementor-defined in every mode (§15.4.1 last ¶), converting into expressions per
+>   §8.8.1.5.2 r1. **Staged LOUD:** ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION (inexact-division
+>   EAEs on the double engine) reject under the standard modes with COBOLNET0899 `arithmetic-standard-intrinsic`
+>   (IntrinsicBinder) until CobolDec evaluations land.
+> - **The RW SUM clause (§8.8.1.5.1 names it):** documented-equivalence consumption at the ReportWriterEmitter
+>   chokepoint — each §13.18.54 GR3 accumulation is one ≤32-digit fixed-point addition, exact and digit-identical
+>   in both engines; no routing needed.
+> - **STANDARD-BINARY — documented-unsupported** (COBOLNET0806 at every edition that has it): spec-obsolete
+>   (§8.8.1.4.1 NOTE 1); a binary128 SDIDI has no exact .NET carrier; revisit only if the spec retains it. Its
+>   2014 introduction edge is the pass's `arithmetic-standard-binary-2014` row (0900 below 2014; pending —
+>   no compiling cell).
+> - **Plain `ARITHMETIC IS STANDARD`** (the 2002 mode — the 2002 OPTIONS paragraph's NATIVE|STANDARD clause):
+>   obsolete 2014, dropped by ISO 2023 (Annex E.2 item 21; §8.8.1.2 names only the three). Implemented as the
+>   same CobolDec SDIDI engine (the standard intermediate for its reachable operands IS the decimal form); the
+>   `arithmetic-standard-2002` dual-window row emits 0900 below 2002, the 0903 obsolete flag at 2014, and 0807
+>   at 2023 (error strict / warning permissive).
+> - **Edition gates:** the OPTIONS paragraph is 2002+ (COBOLNET0804, `options-paragraph-2002` — with ARITHMETIC
+>   NATIVE|STANDARD); the 2014-only clauses each carry their own 0900 row (`options-default-rounded-2014`,
+>   `options-intermediate-rounding-2014`, `options-entry-convention-2014` [conservative — the in-repo 85/2002
+>   evidence establishes only ARITHMETIC at 2002], `options-float-binary/decimal-2014`, `options-initialize-2014`,
+>   and the STANDARD-BINARY/STANDARD-DECIMAL keyword rows); ROUNDED MODE IS is 2014+ (COBOLNET0803); the
+>   composite-of-operands check is 31 at EVERY edition (§14.7 rule 2 — an 85-specific tightening to 18 is
+>   refuted by CCVS-85 itself: NC101A composes 21 digits in a MULTIPLY).
 
 **Rationale.** §8.8.1.3 lets the implementor define native arithmetic and it is the default when no ARITHMETIC clause is present — which is the entire NIST/conformance corpus. STANDARD-DECIMAL requires a decimal128 (34-digit, exp ±6144) decimal-floating type per §8.8.1.5.2 / ISO 60559:2020 — modeled exactly by an Int128 significand (`CobolDec`), never .NET `decimal` (96-bit/28-digit). STANDARD-BINARY is marked obsolete by the spec itself (NOTE, §8.8.1.4 / p9086). Native = Int128 fixed-point is fully conformant and reproduces the NIST-passing legacy behavior.
 
@@ -139,14 +171,15 @@ float usage is a new **COBOLNET1521** reject; the 08xx declaration band is exhau
 predicate (Float/FloatShort) drives the `f` literal suffix + the `(float)` store cast. `ClrType` short→float,
 long/extended→double; init `0f`/`0d`.
 
-**Arithmetic (extends D7; NATIVE §8.8.1.3, the default).** Any expression with ≥1 float operand evaluates ENTIRELY in
-`double` (a single operand widens exactly; result category floating). Realized by a `bool Real` flag on the
-`NumX` carrier (parallel to `Dec`): a float leaf → `Real` NumX (`(double)(read)`);
+**Arithmetic (extends D7; NATIVE §8.8.1.3, the default).** Under NATIVE, any expression with ≥1 float operand
+evaluates ENTIRELY in `double` (a single operand widens exactly; result category floating). Realized by a `bool
+Real` flag on the `NumX` carrier (parallel to `Dec`): a float leaf → `Real` NumX (`(double)(read)`);
 `NumericRenderer.Real(x)` gains a `Real` pass-through arm (the ONE double-conversion helper for all three carrier
-kinds); `Combine` takes a **`Real`-first branch → `CombineReal`** (before the StandardDecimal path — COBOL float is
-IEEE binary, never decimal); `Negate`/`Power` get Real arms. **STANDARD-BINARY/DECIMAL × a float operand also
-evaluates native binary64** (documented residue — the SBIDI/SDIDI-of-float leg is 6b; STANDARD-BINARY is obsolete in
-2023 §8.8.1.4 NOTE :9086; the goldens use the default NATIVE mode). Store to a FIXED receiver lands via a new
+kinds); `Combine` takes the `Real` branch under NATIVE; `Negate`/`Power` get Real arms. **Under STANDARD /
+STANDARD-DECIMAL the mode branch runs FIRST** (P10 Step 12): a float operand converts into SDIDI form through
+`CobolDec.FromDouble` (the §8.8.1.5.1 implementor-defined conversion — the shortest round-trip decimal identity)
+and the operations are the SDIDI ones; comparisons stay native-double (§8.8.4.2.4 — comparison is not an
+arithmetic expression) unless a side already IS an SDIDI intermediate. Store to a FIXED receiver lands via a new
 `CobolFloat.ToScaled(double,scale,mode)` (double→unscaled Int128, rounded; ±Inf/overflow saturate so the existing
 capacity check fires SIZE ERROR; NaN→0+latch EC-SIZE) then the EXISTING `CobolNum.Store`/`TryStore` funnel (ROUNDED +
 SIZE ERROR for free; MOVE truncates toward zero §14.6.8.2, COMPUTE uses the receiver ROUNDED mode). Store INTO a float
@@ -255,7 +288,7 @@ if (CobolNum.IsNumericClass(rawImageOrValue, P_X)) ...
 - **PICTURE digit ceiling — 18 (1985) vs 31 (2002+)**: `PIC S9(31)` (the `Int128` storage tier) is legal only at `--std ≥2002`; under `--std 85` any picture >18 digits is a compile diagnostic. The long→Int128 boundary is edition-reachable only at ≥2002.
 - **Composite-of-operands limit — 18 digits (1985) vs 31 (2002+)** (§14.7.5 rule 2): the compile-time threshold is per-edition, not the constant 31.
 - **ROUNDED MODE IS / the 8 modes / DEFAULT ROUNDED (§11.9.6) / INTERMEDIATE ROUNDING (§11.9.11) — 2014+**: at `--std 85|2002` bare ROUNDED means the single nearest-away-from-zero rounding, and `ROUNDED MODE IS …` + those OPTIONS clauses are not-yet-introduced diagnostics. 2014→2023 behavior delta: rounding raises EC-SIZE-TRUNCATION only under PROHIBITED (`VERSION_CHANGE_REFERENCE.md` row 53).
-- **ARITHMETIC clause**: `NATIVE`/`STANDARD` are 2002 introductions (derive from the 2002 standard); `STANDARD-BINARY`/`STANDARD-DECIMAL` 2014+; at 2023 `STANDARD` is REMOVED (row 28) and `STANDARD-BINARY` is flagged OBSOLETE (row 116). At `--std 85` the whole clause is not-yet-introduced. A legal-but-unimplemented mode (STANDARD-DECIMAL at 2014/2023) additionally needs a clean not-implemented diagnostic, distinct from the edition gate.
+- **ARITHMETIC clause — LIVE (P10 Step 12)**: `NATIVE`/`STANDARD` are 2002 introductions (rows `options-paragraph-2002` / `options-arithmetic-native-2002` / `arithmetic-standard-2002`; the E.2-item-21 back-derivation), `STANDARD-BINARY`/`STANDARD-DECIMAL` 2014+ keyword rows on the `VisitArithmeticMethod` arm; at 2023 `STANDARD` is REMOVED (row 28 — 0807, error strict / warning permissive) and it is OBSOLETE-flagged (0903) at 2014; `STANDARD-BINARY` is OBSOLETE at 2023 (row 116) and documented-unsupported everywhere (COBOLNET0806 — distinct from the edition gates). The 2014-only OPTIONS clauses carry their own 0900 rows (`options-default-rounded/-intermediate-rounding/-entry-convention/-float-binary/-float-decimal/-initialize-2014`). At `--std 85` the whole paragraph is not-yet-introduced (0804).
 - **BINARY-CHAR/SHORT/LONG/DOUBLE usages — 2002+** (they lower to the COMP-5 binary-wrap discipline); diagnosed at `--std 85`. **LIVE:** PICTURE-less native 1/2/4/8-byte two's-complement integers (SIGNED default / UNSIGNED widens), BinaryCapacity truncation, implied DISPLAY digit width 3/5/10/19·20; introduction gate COBOLNET0900 below 2002, PICTURE prohibited COBOLNET0870 (§13.16.3 SR8). COMP-5 itself is an extension — document its per-dialect availability.
 - **EC-* exception conditions (EC-SIZE-*) — 2002+**: at `--std 85` only the ON SIZE ERROR phrase semantics exist; EC names/TURN must not surface.
 

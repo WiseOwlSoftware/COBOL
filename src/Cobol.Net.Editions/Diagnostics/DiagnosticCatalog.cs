@@ -123,6 +123,17 @@ public static class DiagnosticCatalog
         + "byte-width authority lands ONCE, with it (the singular-pattern rule).", "ISO §13.10.4 GR5 / §15.14",
         RecognizedNotImplemented);
 
+    // ── COBOLNET0899 — the staged-loud standard-arithmetic leg (P10 Step 12) ─────────────────────────────
+    public static readonly DiagnosticDescriptor ArithmeticStandardIntrinsic = new(
+        NotImplemented, "arithmetic-standard-intrinsic",  EditionSeverity.Error,
+        "Under ARITHMETIC IS STANDARD / STANDARD-DECIMAL, ISO §15.4.1 r1 requires this function's returned "
+        + "value to EQUAL its equivalent arithmetic expression evaluated in the standard-decimal intermediate "
+        + "(SDIDI, §8.8.1.5) — the ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION equivalent "
+        + "expressions carry inexact divisions, and the native IEEE-double engine (§15.4.1's native-arithmetic "
+        + "approximation license) cannot honor that equality; staged loud until the CobolDec evaluations land "
+        + "so a program depending on standard-decimal function results never silently gets native ones.",
+        "ISO §15.4.1 / §8.8.1.5.1", RecognizedNotImplemented);
+
     // ── COBOLNET0899 — the staged-loud pointer-usage legs (P10 Step 7) ────────────────────────────────────
     public static readonly DiagnosticDescriptor UsageFunctionPointer = new(
         NotImplemented, "usage-function-pointer", EditionSeverity.Error,

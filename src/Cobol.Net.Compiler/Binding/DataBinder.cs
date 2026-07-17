@@ -228,20 +228,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     {
         Options = OptionsBinder.Bind(program, Edition);   // captured even when there is no WORKING-STORAGE
 
-        // ARITHMETIC mode validity (§11.9.5 / §8.8.1): NATIVE, STANDARD-DECIMAL, and — as of Phase-4 track (e),
-        // DEVLOG 611 — plain STANDARD are implemented. STANDARD arithmetic (§8.8.1.2) performs operations in the
-        // standard intermediate data item; for FIXED-POINT (non-float) operands that item IS the standard
-        // DECIMAL form (§8.8.1.4), so STANDARD and STANDARD-DECIMAL produce identical results — STANDARD routes
-        // to the same CobolDec engine (NumericRenderer.StandardDecimal). The two diverge only for FLOATING-POINT
-        // operands (STANDARD may use an IEEE-binary intermediate); the float USAGE families are staged loud
-        // (PicInfo COBOLNET0899, Phase 6/D16), so no reachable STANDARD program observes the divergence yet —
-        // when the float types land they carry the STANDARD-binary-intermediate leg. STANDARD was DROPPED by
-        // ISO/IEC 1989:2023 (§8.8.1 names only NATIVE/STANDARD-BINARY/STANDARD-DECIMAL) → a removed-feature error
-        // at --std 2023. STANDARD-BINARY is spec-obsolete (§8.8.1.4.1 NOTE 1) and documented-unsupported.
+        // ARITHMETIC mode validity (§11.9.5 / §8.8.1): NATIVE, STANDARD-DECIMAL, and plain STANDARD are
+        // implemented. STANDARD arithmetic (the 2002 mode; obsolete 2014, removed 2023 — Annex E.2 item 21)
+        // performs operations in the standard intermediate data item, which for its reachable operands IS the
+        // standard DECIMAL form, so STANDARD routes to the same CobolDec engine as STANDARD-DECIMAL
+        // (NumericRenderer.StandardDecimal). Floating-point operands participate under BOTH modes through the
+        // §8.8.1.5.1 implementor-defined float→SDIDI conversion (CobolDec.FromDouble — the shortest-round-trip
+        // decimal identity of the IEEE value); the operations themselves are SDIDI (P10 Step 12).
+        // STANDARD was DROPPED by ISO/IEC 1989:2023 (§8.8.1 names only NATIVE/STANDARD-BINARY/STANDARD-DECIMAL)
+        // → the pass's arithmetic-standard-2002 dual-window row rejects it at --std 2023 (0807).
+        // STANDARD-BINARY is spec-obsolete (§8.8.1.4.1 NOTE 1 — binary128 intermediates, no exact .NET carrier)
+        // and documented-unsupported at EVERY edition that has it; its 2014 introduction edge is the pass's
+        // arithmetic-standard-binary-2014 row.
         if (Options.Arithmetic == ArithmeticMode.StandardBinary)
             Edition.Error("COBOLNET0806", "ARITHMETIC IS STANDARD-BINARY is an obsolete feature (ISO §8.8.1.4.1 "
                 + "NOTE 1 / Annex F) and is not supported; use NATIVE or STANDARD-DECIMAL");
-        // arithmetic-standard-2014 (dual-window; dropped 2023): the pass owns the edition gate (Exec Step E).
+        // arithmetic-standard-2002 (dual-window; dropped 2023): the pass owns the edition gate (Exec Step E).
 
         // The '85 debug facility's compile-time switch (X3.23-1985 SOURCE-COMPUTER … WITH DEBUGGING MODE; the
         // clause itself is 0902-gated ≥2002 by the version-conformance pass): its presence decides whether a USE FOR

@@ -1046,20 +1046,58 @@ internal sealed class VersionConformancePass
             return false;
         }
 
-        /// <summary>The OPTIONS paragraph (ISO §11.9) — a 2014 introduction. The binder still returns
-        /// <c>OptionsModel.Default</c> below 2014 (silent routing — this arm owns the diagnostic).</summary>
+        /// <summary>The OPTIONS paragraph (ISO §11.9) — a 2002 introduction (the 2002 standard added it with the
+        /// ARITHMETIC clause; Annex E.2 item 21 back-derives the container from obsolete-in-2014 Standard
+        /// Arithmetic). The binder still returns <c>OptionsModel.Default</c> below 2002 (silent routing — this
+        /// arm owns the diagnostic). The 2014-only clauses carry their own arms below (P10 Step 12).</summary>
         public override object? VisitOptionsParagraph(CobolParserCore.OptionsParagraphContext ctx)
-        { _p.Check(Constructs.OptionsParagraph2014, "the OPTIONS paragraph"); return base.VisitChildren(ctx); }
+        { _p.Check(Constructs.OptionsParagraph2002, "the OPTIONS paragraph"); return base.VisitChildren(ctx); }
 
-        /// <summary>ARITHMETIC IS STANDARD (ISO §8.8.1 / 2014 §11.9.5) — a dual-window row: introduced 2014,
-        /// DROPPED by 2023 (use STANDARD-DECIMAL). The Removed verdict is error-strict / warning-permissive —
-        /// the removed-construct posture (a permissive 2023 compile continues under standard arithmetic).</summary>
+        /// <summary>The ARITHMETIC clause's mode keywords (ISO §11.9.5; P10 Step 12). STANDARD is the dual-window
+        /// 2002 mode: introduced 2002, obsolete 2014, DROPPED by 2023 (Annex E.2 item 21 — use STANDARD-DECIMAL);
+        /// the Removed verdict is error-strict / warning-permissive (a permissive 2023 compile continues under
+        /// standard arithmetic). STANDARD-BINARY / STANDARD-DECIMAL are 2014 keywords of the 2002 clause — their
+        /// introduction edges live HERE now that the paragraph parses at 2002 (NATIVE needs no arm: the paragraph
+        /// row IS its introduction).</summary>
         public override object? VisitArithmeticMethod(CobolParserCore.ArithmeticMethodContext ctx)
         {
             if (ctx.STANDARD() is not null)
-                _p.Check(Constructs.ArithmeticStandard2014, "ARITHMETIC IS STANDARD");
+                _p.Check(Constructs.ArithmeticStandard2002, "ARITHMETIC IS STANDARD");
+            if (ctx.STANDARD_DECIMAL() is not null)
+                _p.Check(Constructs.ArithmeticStandardDecimal2014, "ARITHMETIC IS STANDARD-DECIMAL");
+            if (ctx.STANDARD_BINARY() is not null)
+                _p.Check(Constructs.ArithmeticStandardBinary2014, "ARITHMETIC IS STANDARD-BINARY");
             return base.VisitChildren(ctx);
         }
+
+        // ── The 2014-only OPTIONS clauses (ISO §11.9.6–§11.9.11; P10 Step 12): with the paragraph gate at
+        // 2002, each 2014 clause fires its own introduction row on RECOGNITION. ENTRY-CONVENTION is gated 2014
+        // conservatively (the in-repo 85/2002 evidence chain establishes only the ARITHMETIC clause at 2002 —
+        // the constructs.json row records the ambiguity). ──────────────────────────────────────────────────
+
+        /// <summary>DEFAULT ROUNDED (ISO §11.9.6) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
+        public override object? VisitDefaultRoundedClause(CobolParserCore.DefaultRoundedClauseContext ctx)
+        { _p.Check(Constructs.OptionsDefaultRounded2014, "the DEFAULT ROUNDED clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>INTERMEDIATE ROUNDING (ISO §11.9.11) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
+        public override object? VisitIntermediateRoundingClause(CobolParserCore.IntermediateRoundingClauseContext ctx)
+        { _p.Check(Constructs.OptionsIntermediateRounding2014, "the INTERMEDIATE ROUNDING clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>ENTRY-CONVENTION (ISO §11.9.7) — gated 2014 conservatively (see the block note).</summary>
+        public override object? VisitEntryConventionClause(CobolParserCore.EntryConventionClauseContext ctx)
+        { _p.Check(Constructs.OptionsEntryConvention2014, "the ENTRY-CONVENTION clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>FLOAT-BINARY (ISO §11.9.8) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
+        public override object? VisitFloatBinaryClause(CobolParserCore.FloatBinaryClauseContext ctx)
+        { _p.Check(Constructs.OptionsFloatBinary2014, "the FLOAT-BINARY clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>FLOAT-DECIMAL (ISO §11.9.9) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
+        public override object? VisitFloatDecimalClause(CobolParserCore.FloatDecimalClauseContext ctx)
+        { _p.Check(Constructs.OptionsFloatDecimal2014, "the FLOAT-DECIMAL clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>OPTIONS INITIALIZE (ISO §11.9.10) — a 2014 clause of the 2002 OPTIONS paragraph.</summary>
+        public override object? VisitOptionsInitializeClause(CobolParserCore.OptionsInitializeClauseContext ctx)
+        { _p.Check(Constructs.OptionsInitialize2014, "the OPTIONS INITIALIZE clause"); return base.VisitChildren(ctx); }
 
         /// <summary>CURRENCY SIGN … WITH PICTURE SYMBOL (ISO §12.3.7) — the 1985 clause had only the
         /// single-character literal form; the PICTURE SYMBOL form is 2002+.</summary>
@@ -1303,6 +1341,15 @@ internal sealed class VersionConformancePass
             // Step 12: arguments parse as real trees, so phrase words reach cobolWord — the former SUB-token
             // capture never surfaced them here.)
             if (IsBareFunctionArgumentWord(ctx))
+                return base.VisitChildren(ctx);
+            // The ENTRY-CONVENTION value slot (§11.9.7 general format: ENTRY-CONVENTION IS {COBOL |
+            // entry-convention-name}): COBOL there is the FORMAT'S OWN keyword alternative — grammar-matched
+            // as cobolWord exactly so the funnel decides by context — and an implementor entry-convention-name
+            // is a use of an implementor name, never a user-defined-word DEFINITION. Skip the funnel for the
+            // slot (the EXCEPTION-OBJECT predefined-register precedent; P10 Step 12 — surfaced when the
+            // OPTIONS paragraph began parsing at 2002 and the options-entry-convention-2014 matrix row's
+            // 2014 cell hit the COBOL reservation).
+            if (ctx.Parent is CobolParserCore.EntryConventionClauseContext)
                 return base.VisitChildren(ctx);
             // EXCEPTION-OBJECT inside an objectReference operand (SET sender, RAISE operand) is a reference to
             // the PREDEFINED register (§8.4.3.6 — the EC-OO wave), not a user-defined word: the reservation

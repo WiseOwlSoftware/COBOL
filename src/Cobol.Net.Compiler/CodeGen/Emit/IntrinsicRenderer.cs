@@ -105,7 +105,17 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             }
             case "MeanScaled":                                                  // §15.60 — Σ/n with the ÷ discipline of §8.8.1
             {
-                var (argList, s) = AlignedArgs(ic);
+                var (argList, s, anyReal) = AlignedArgsEx(ic);
+                // STANDARD / STANDARD-DECIMAL (§15.4.1 r1 + §8.8.1.5.1 — MEAN's returned value shall EQUAL its
+                // §15.60.4 equivalent arithmetic expression evaluated in SDIDI form, so the spec's own NOTE-2
+                // relation `FUNCTION MEAN(a b c) = (a + b + c) / 3` holds): the exact Int128 sum (identical to
+                // the SDIDI addition chain — ≤32-digit sums are exact in both engines) divides ONCE in SDIDI
+                // form under the INTERMEDIATE ROUNDING mode. Fixed-point arguments only — a float argument
+                // falls to the native rendering below exactly as before (its Align shape is the pre-existing
+                // native-path behavior for float statistics arguments).
+                if (num.StandardDecimal && !anyReal)
+                    return new NumX(RuntimeApi.DecDivLifted(RuntimeApi.Intrinsic("SumScaled", argList),
+                        s.ToString(), ic.Args.Count.ToString(), num.IntermediateMode), 0, Dec: true);
                 // Quotient quantized at ws = max(Receiver.Scale, s+1, 6): the receiver's scale when known, never
                 // below the sum's own resolution + 1, with a fraction floor for receiver-less (scale-0) contexts.
                 int ws = Math.Max(Math.Max(num.Receiver.Scale, s + 1), 6);
@@ -223,9 +233,18 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// comparison/arithmetic equal value comparison/arithmetic), as a C# argument list + that scale.</summary>
     private (string ArgList, int Scale) AlignedArgs(BoundIntrinsicCall ic)
     {
+        var (argList, s, _) = AlignedArgsEx(ic);
+        return (argList, s);
+    }
+
+    /// <summary>As <see cref="AlignedArgs"/>, also reporting whether any argument rendered FLOATING (Real) —
+    /// the MEAN standard-arithmetic branch keys on it (a float statistics argument keeps the pre-existing
+    /// native rendering).</summary>
+    private (string ArgList, int Scale, bool AnyReal) AlignedArgsEx(BoundIntrinsicCall ic)
+    {
         var xs = ic.Args.Select(a => num.AsNum(a, num.Receiver)).ToList();
         int s = xs.Count == 0 ? 0 : xs.Max(x => x.Scale);
-        return (string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s))), s);
+        return (string.Join(", ", xs.Select(x => NumericRenderer.Align(x, s))), s, xs.Any(x => x.Real));
     }
 
     private string StrArgList(BoundIntrinsicCall ic) => string.Join(", ", ic.Args.Select(Str));

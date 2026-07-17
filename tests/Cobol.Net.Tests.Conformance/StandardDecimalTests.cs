@@ -9,9 +9,9 @@ namespace CobolNet.Tests.Conformance;
 /// semantics, 34 significant digits, per-operation INTERMEDIATE ROUNDING (§11.9.11, default
 /// NEAREST-AWAY-FROM-ZERO) — with the statement's ROUNDED applied only at the final transfer (§14.7 NOTE 1).
 /// SPEC-PINNED (expectations verified against an IEEE decimal128 reference computation; the legacy has no
-/// standard-decimal mode). All facts compile at --std 2014+ (the OPTIONS paragraph's edition). Also pins the
-/// per-edition gates: OPTIONS rejected below 2014; STANDARD-BINARY documented-unsupported; plain STANDARD
-/// dropped at 2023.
+/// standard-decimal mode). Also pins the per-edition gates (P10 Step 12): the OPTIONS paragraph is 2002+
+/// (rejected at 85 naming 2002, accepted at 2002 with its 2002 ARITHMETIC clause); STANDARD-BINARY
+/// documented-unsupported; plain STANDARD dropped at 2023.
 /// </summary>
 public sealed class StandardDecimalTests
 {
@@ -70,17 +70,23 @@ public sealed class StandardDecimalTests
 
     // ── The mode/edition gates ───────────────────────────────────────────────────────────────────────────────
 
+    /// <summary>The OPTIONS paragraph is a 2002 introduction (P10 Step 12 — the Annex E.2 item 21
+    /// back-derivation: plain Standard Arithmetic was obsolete-but-present in 2014, so it and its container
+    /// predate 2014): --std 85 rejects the paragraph naming 2002; --std 2002 ACCEPTS it (ARITHMETIC IS
+    /// NATIVE|STANDARD was the 2002 clause).</summary>
     [Fact]
-    public void OptionsParagraph_RejectedBelow2014_NamingTheEdition()
+    public void OptionsParagraph_RejectedAt85_AcceptedAt2002_NamingTheEdition()
     {
-        foreach (int edition in new[] { 85, 2002 })
-        {
-            var (ok, diags) = EditionHarness.Compile(
-                Program("    ARITHMETIC IS NATIVE.", "01 W PIC 9.", "DISPLAY W."), edition);
-            Assert.False(ok, $"OPTIONS must be REJECTED at --std {edition}");
-            EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0804");
-            EditionHarness.AssertHasDiagnostic(diags, "2014");
-        }
+        var (ok85, diags85) = EditionHarness.Compile(
+            Program("    ARITHMETIC IS NATIVE.", "01 W PIC 9.", "DISPLAY W."), 85);
+        Assert.False(ok85, "OPTIONS must be REJECTED at --std 85");
+        EditionHarness.AssertHasDiagnostic(diags85, "COBOLNET0804");
+        EditionHarness.AssertHasDiagnostic(diags85, "2002");
+
+        var (ok2002, diags2002) = EditionHarness.Compile(
+            Program("    ARITHMETIC IS NATIVE.", "01 W PIC 9.", "DISPLAY W."), 2002);
+        Assert.True(ok2002, "OPTIONS + ARITHMETIC IS NATIVE must COMPILE at --std 2002: "
+            + string.Join("\n", diags2002));
     }
 
     [Fact]

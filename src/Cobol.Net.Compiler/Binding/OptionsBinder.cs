@@ -16,10 +16,12 @@ using Core = CobolParserCore;
 internal static class OptionsBinder
 {
     /// <summary>Read the program unit's OPTIONS paragraph into an <see cref="OptionsModel"/>. The OPTIONS
-    /// paragraph (and so every clause in it — ARITHMETIC, DEFAULT ROUNDED, INTERMEDIATE ROUNDING, …) was
-    /// introduced by ISO/IEC 1989:2014 (§11.9): targeting 85/2002 REJECTS it with an edition diagnostic, and the
-    /// implied defaults (native arithmetic, nearest-away-from-zero bare ROUNDED) apply — exactly the pre-2014
-    /// semantics.</summary>
+    /// paragraph was introduced by ISO/IEC 1989:2002 (§11.9 — with the ARITHMETIC clause; Annex E.2 item 21
+    /// back-derives the container from obsolete-in-2014 Standard Arithmetic): targeting 85 REJECTS it with an
+    /// edition diagnostic and the implied defaults (native arithmetic, nearest-away-from-zero bare ROUNDED)
+    /// apply. The 2014-only clauses (DEFAULT ROUNDED, INTERMEDIATE ROUNDING, ENTRY-CONVENTION, FLOAT-BINARY/
+    /// -DECIMAL, INITIALIZE; the STANDARD-BINARY/-DECIMAL keywords) carry per-clause 2014 rows in the pass
+    /// (P10 Step 12) — a strict 2002 compile fails on those diagnostics before the bound model matters.</summary>
     public static OptionsModel Bind(Core.ProgramUnitContext program, EditionContext? edition = null)
     {
         var paragraphs = program.identificationDivision()?.identificationBody()?.identificationParagraph();
@@ -28,9 +30,9 @@ internal static class OptionsBinder
         var options = paragraphs.Select(p => p.optionsParagraph()).FirstOrDefault(o => o is not null);
         if (options is null) return OptionsModel.Default;
 
-        // options-paragraph-2014: the pass owns the edition gate (Exec Step E); below 2014 the paragraph is
+        // options-paragraph-2002: the pass owns the edition gate (Exec Step E); below 2002 the paragraph is
         // routed INERT (Default) — the strict compile fails on the pass's diagnostic before the model matters.
-        if (edition is { DialectLevel: < 2014 })
+        if (edition is { DialectLevel: < 2002 })
             return OptionsModel.Default;
 
         var model = OptionsModel.Default;

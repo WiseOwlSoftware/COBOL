@@ -69,6 +69,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         // THEN TO DEFAULT) never landed in legacy — its CIL emitter only zero-fills (CilEmitter.cs), so the
         // GR7-conforming .out (VALUE members honored, numerics ZERO, edited zero, SPACES) is greenfield-only.
         ("2002", "allocate_initialized"),
+        // ARITHMETIC IS STANDARD full consumption (P10 Step 12): SDIDI exponentiation (§8.8.1.5.4 — CobolDec.Pow),
+        // the decimal128 range ECs (§8.8.1.5.2 r2), float→SDIDI operand conversion (§8.8.1.5.1), and the
+        // §15.4.1 r1 MEAN-in-SDIDI equality never landed in legacy (its standard-arith engine covers only the
+        // basic four ops) — greenfield-only.
+        ("2002", "arith_standard"),
         ("2002", "oo_factory"),         // the FACTORY paragraph (ISO §11.4) — net-new in the greenfield (DEVLOG 604)
         ("2002", "oo_factory_file"),    // FACTORY-paragraph FILE-CONTROL + FILE SECTION (M2-OO-1i inc 3) — net-new (DEVLOG 646)
         ("2002", "oo_object_file"),     // OBJECT-paragraph per-object file connector (M2-OO-1i inc 4) — net-new (DEVLOG 647)

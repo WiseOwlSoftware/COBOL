@@ -178,14 +178,13 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
 
     private NumX CombineCore(NumX a, string op, NumX b)
     {
-        // D16: any expression with ≥1 float operand evaluates ENTIRELY in IEEE binary64 (a single-precision operand
-        // widens exactly) — BEFORE the StandardDecimal branch, because COBOL float arithmetic is IEEE binary, never
-        // decimal. This holds regardless of the ARITHMETIC mode (the SBIDI/SDIDI-of-float conversion is Phase 6b;
-        // STANDARD-BINARY is obsolete in 2023 §8.8.1.4 NOTE). +,-,*,/ are native double ops.
-        if (a.Real || b.Real || _rcv.Real) return new NumX($"({Real(a)} {op} {Real(b)})", 0, Real: true);
-        // STANDARD-DECIMAL arithmetic (§8.8.1.5): every operation evaluates in SDIDI form (decimal128 semantics),
-        // rounded per-op to 34 significant digits with the INTERMEDIATE ROUNDING mode (§11.9.11); the receiver's
-        // ROUNDED applies only at the final transfer (§14.7 NOTE 1).
+        // STANDARD / STANDARD-DECIMAL arithmetic (§8.8.1.5): every operation of an arithmetic expression
+        // evaluates in SDIDI form (decimal128 semantics), rounded per-op to 34 significant digits with the
+        // INTERMEDIATE ROUNDING mode (§11.9.11) and range-checked at the decimal128 bounds (§8.8.1.5.2 r2);
+        // the receiver's ROUNDED applies only at the final transfer (§14.7 NOTE 1). This branch runs BEFORE
+        // the D16 float branch: under a standard mode a FLOATING-POINT operand converts into SDIDI form via
+        // the §8.8.1.5.1 implementor-defined conversion (CobolDec.FromDouble — the shortest-round-trip decimal
+        // identity of the IEEE value; see DecOperand) and the operation itself is the SDIDI one.
         if (StandardDecimal)
             return op switch
             {
@@ -195,18 +194,29 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
                 "/" => new NumX($"CobolDec.Div({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
                 _ => a,
             };
+        // D16 (NATIVE arithmetic): any expression with ≥1 float operand evaluates ENTIRELY in IEEE binary64 (a
+        // single-precision operand widens exactly) — native COBOL float arithmetic is IEEE binary, never decimal
+        // (§8.8.1.3 implementor-defined; STANDARD-BINARY is obsolete, 2023 §8.8.1.4.1 NOTE). +,-,*,/ are native
+        // double ops.
+        if (a.Real || b.Real || _rcv.Real) return new NumX($"({Real(a)} {op} {Real(b)})", 0, Real: true);
         return CombineNative(a, op, b);
     }
 
-    // Plain STANDARD arithmetic uses the standard DECIMAL intermediate for fixed-point operands (§8.8.1.2 /
-    // §8.8.1.4 — identical to STANDARD-DECIMAL there; the float divergence is staged loud, DEVLOG 611 track (e)).
-    private bool StandardDecimal => ctx.Data.Options.Arithmetic is ArithmeticMode.StandardDecimal or ArithmeticMode.Standard;
+    // Plain STANDARD arithmetic (2002; obsolete 2014, removed 2023 — Annex E.2 item 21) uses the standard
+    // intermediate data item, which for these operands IS the standard DECIMAL form — STANDARD routes to the
+    // same CobolDec engine as STANDARD-DECIMAL (DataBinder.BindDeclarations documents the bind-side rationale).
+    internal bool StandardDecimal => ctx.Data.Options.Arithmetic is ArithmeticMode.StandardDecimal or ArithmeticMode.Standard;
 
-    private string IntermediateMode => $"CobolRounding.{ctx.Data.Options.IntermediateRounding}";
+    internal string IntermediateMode => $"CobolRounding.{ctx.Data.Options.IntermediateRounding}";
 
     /// <summary>Render an operand in SDIDI form: an already-decimal intermediate passes through; a fixed-point
-    /// value lifts EXACTLY via <c>CobolDec.From</c> (≤31 digits always representable, §8.8.1.5.2).</summary>
-    public string DecOperand(NumX x) => x.Dec ? x.Expr : $"CobolDec.From({x.Expr}, {x.Scale})";
+    /// value lifts EXACTLY via <c>CobolDec.From</c> (≤31 digits always representable, §8.8.1.5.2); a FLOAT
+    /// (Real) operand converts via <c>CobolDec.FromDouble</c> — the §8.8.1.5.1 implementor-defined float→SDIDI
+    /// conversion (the shortest round-trip decimal, ≤17 digits, always exact in the 34-digit significand).</summary>
+    public string DecOperand(NumX x) =>
+        x.Dec ? x.Expr
+        : x.Real ? RuntimeApi.DecFromDouble(x.Expr)
+        : $"CobolDec.From({x.Expr}, {x.Scale})";
 
     private NumX CombineNative(NumX a, string op, NumX b) => op switch
     {
@@ -270,8 +280,15 @@ internal sealed class NumericRenderer(EmitContext ctx) : IBoundExprVisitor<NumX>
     /// working scale (a receiver-less context renders at scale 0 — the P7.3 <see cref="ReceiverContext.None"/>).</summary>
     private NumX Power(NumX b, NumX e)
     {
-        // D16: a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip the
-        // FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
+        // STANDARD / STANDARD-DECIMAL: exponentiation follows §8.8.1.5.4 — an integer exponent evaluates by
+        // repeated SDIDI multiplication (r2a–r2d exactly; r2e's implementor-defined form for larger integers,
+        // every step per §8.8.1.5.3), r3's reciprocal for a negative exponent, and the EC-SIZE-EXPONENTIATION
+        // legs of §8.8.1.2 r6 / §8.8.1.5.4 r4; a float operand converts in per §8.8.1.5.1 (DecOperand). The ONE
+        // runtime implementation is CobolDec.Pow.
+        if (StandardDecimal)
+            return new NumX(RuntimeApi.DecPow(DecOperand(b), DecOperand(e), IntermediateMode), 0, Dec: true);
+        // D16 (NATIVE): a float base/exponent OR a float receiver keeps the result FLOATING (native double) — skip
+        // the FromDouble quantize-back that a pure fixed-point power needs, so a float ** stays in the float pipeline.
         if (b.Real || e.Real || _rcv.Real)
             return new NumX($"System.Math.Pow({Real(b)}, {Real(e)})", 0, Real: true);
         int ws = Math.Max(_rcv.Scale, 9);

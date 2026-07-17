@@ -23,9 +23,16 @@ public static class Constructs
     public const string ProcedureReturning2002 = "procedure-returning-2002";
     public const string CurrencyPictureSymbol2002 = "currency-picture-symbol-2002";
     public const string PicWide19Digits2002 = "pic-wide-19-digits-2002";
-    public const string OptionsArithmeticNative2014 = "options-arithmetic-native-2014";
+    public const string OptionsArithmeticNative2002 = "options-arithmetic-native-2002";
     public const string RoundedModeIs2014 = "rounded-mode-is-2014";
     public const string ArithmeticStandardDecimal2014 = "arithmetic-standard-decimal-2014";
+    public const string ArithmeticStandardBinary2014 = "arithmetic-standard-binary-2014";
+    public const string OptionsDefaultRounded2014 = "options-default-rounded-2014";
+    public const string OptionsIntermediateRounding2014 = "options-intermediate-rounding-2014";
+    public const string OptionsEntryConvention2014 = "options-entry-convention-2014";
+    public const string OptionsFloatBinary2014 = "options-float-binary-2014";
+    public const string OptionsFloatDecimal2014 = "options-float-decimal-2014";
+    public const string OptionsInitialize2014 = "options-initialize-2014";
     public const string OccursDynamic2014 = "occurs-dynamic-2014";
     public const string TypeClause2002 = "type-clause-2002";
     public const string TypedefDef2002 = "typedef-def-2002";
@@ -136,7 +143,7 @@ public static class Constructs
     public const string UseAfterExceptionCondition2002 = "use-after-exception-condition-2002";
     public const string AcceptFourDigitYear2002 = "accept-four-digit-year-2002";
     public const string ProgramIdRecursive2002 = "program-id-recursive-2002";
-    public const string OptionsParagraph2014 = "options-paragraph-2014";
-    public const string ArithmeticStandard2014 = "arithmetic-standard-2014";
+    public const string OptionsParagraph2002 = "options-paragraph-2002";
+    public const string ArithmeticStandard2002 = "arithmetic-standard-2002";
     public const string ExceptionFileN2002 = "exception-file-n-2002";
 }

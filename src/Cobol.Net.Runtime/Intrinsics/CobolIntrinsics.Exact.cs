@@ -8,6 +8,17 @@ namespace CobolNet.Runtime;
 /// never decimal). The "<c>…Scaled</c>" variadic entries take arguments ALREADY ALIGNED by the emitter to one
 /// common scale (the same Align machinery the arithmetic verbs use, ISO §8.8.1), so value comparison/arithmetic on
 /// the unscaled longs IS comparison/arithmetic on the algebraic values.
+/// <para><b>Standard arithmetic (ISO §15.4.1 r1 / §8.8.1.5, P10 Step 12).</b> Under ARITHMETIC IS STANDARD /
+/// STANDARD-DECIMAL a function with an equivalent arithmetic expression must return EXACTLY that expression's
+/// SDIDI-evaluated value. This family already satisfies it, so the mode needs no routing here: every EAE step of
+/// MOD/REM (a − b×q with |b×q| ≤ |a|, ≤31 digits), MAX/MIN/RANGE (compare/subtract), SUM (≤32-digit sums per
+/// step), MEDIAN/MIDRANGE (the ×10/×5 halving trick keeps the /2 exact), ABS/SIGN/INTEGER/INTEGER-PART/
+/// FRACTION-PART is EXACT here AND exact in a 34-digit SDIDI (§8.8.1.5.2 — an exact ≤34-digit result never
+/// rounds), so the two evaluations are digit-identical. The ONE recorded residue: a result whose exact form
+/// exceeds 34 significant digits (FACTORIAL of 31–33; a SUM chain past 34 digits) stays exact-Int128 here where
+/// the SDIDI evaluation would round each step to 34 digits — a divergence in the direction of MORE precision,
+/// undetectable at bind time (argument values are runtime data) and recorded in COBOLNET_NUMERIC_DESIGN §D3
+/// rather than staged. MEAN's inexact division is evaluated in SDIDI form by the emitter (IntrinsicRenderer).</para>
 /// </summary>
 public static partial class CobolIntrinsics
 {
