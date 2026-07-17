@@ -303,6 +303,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. OD.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-TBL.\n   05 W-E PIC 9(3) OCCURS DYNAMIC FROM 2 TO 8.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY \"OK\".\n    STOP RUN.\n"
     },
     {
+      "id": "dynamic-length-item-2014",
+      "description": "DYNAMIC LENGTH elementary item — a variable-length, minimum-length-zero PIC X/N string (§8.5.1.10 / §13.18.19), ISO 2014+; below 2014 the DYNAMIC LENGTH clause is COBOLNET0900. LIVE (P12 wave 2): the item is a native string (no byte substrate); a receiving MOVE truncates to the LIMIT with no padding (CobolDynString.Store). The 2023 SET [SIZE OF] length enhancement (VCR row 60) is deferred to P13.",
+      "display": "DYNAMIC LENGTH elementary item",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §8.5.1.10 / §13.18.19 — variable-length min-0 string; §13.16.3 SR18 permitted co-clauses; §13.18.19.3 SR1 PICTURE one N or X",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2014 introduction (§8.5.1.10 / §13.18.19 DYNAMIC LENGTH elementary items)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. DL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 W-D PIC X DYNAMIC LENGTH LIMIT IS 20.\nPROCEDURE DIVISION.\nMAIN.\n    MOVE \"HELLO\" TO W-D.\n    DISPLAY W-D.\n    STOP RUN.\n"
+    },
+    {
       "id": "type-clause-2002",
       "description": "TYPE IS clause referencing a type declaration, ISO §13.18.58 (TYPEDEF family) — PROVISIONAL 2002 edge (ISO-validation, DEVLOG 582: zero Annex E 2014→2023 rows ⇒ predates 2023, so the old 2023 seed was provably wrong; the 2002-vs-2014 refinement is blocked on the older standards per decision 1). LIVE (data-model D17, weak-TYPE spine).",
       "display": "TYPE clause (TYPEDEF family)",

@@ -18,7 +18,7 @@ Land the remaining COBOL-2014 *surface* deltas on the (rearchitected) data model
 
 ### STATUS
 
-`IN PROGRESS @ step 3` (branch `phase-12-m3-2014`)
+`IN PROGRESS @ step 6` (branch `phase-12-m3-2014`)
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the
 > per-step checkboxes in §4 in sync. On resume, read this line + the last DEVLOG entry + `git log --oneline -15` first.
@@ -116,13 +116,13 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 
 > Diagnostic band for this phase: **1540-1559.** Grammar-touching steps (5, 6, 8) require the FULL legacy guard before commit. Every feature-landing step adds its `tests/conformance/2014/*.cob` + `.out` + `manifest.json` entry **in the same commit** (memory `feedback_conformance_tests_per_feature`, `feedback_parse_and_emit_together`).
 
-### [ ] Step 0 — Baseline & branch (COMMIT BOUNDARY: none; setup only)
+### [x] Step 0 — Baseline & branch (COMMIT BOUNDARY: none; setup only)
 
 - **Do:** From `main` (default branch), create a working branch `phase-12-m3-2014`. Confirm the green baseline (§1.2). Record the baseline counts (conformance/unit/NIST) in the DEVLOG draft.
 - **Why:** A known-green start so any red is attributable to this phase.
 - **Verify:** the three battery commands in §1.2 all green.
 
-### [ ] Step 1 — Verify OCCURS DYNAMIC across all four editions; make its matrix row assert (COMMIT BOUNDARY)
+### [x] Step 1 — Verify OCCURS DYNAMIC across all four editions; make its matrix row assert (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (row `occurs-dynamic-2014` — already `active`, verify), `tests/conformance/2014/manifest.json` (the `dyn_*` programs already enabled — verify byte-match).
 - **Do:**
@@ -140,7 +140,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   All green.
 - **Commit:** `test(cobolnet): P12 step 1 — OCCURS DYNAMIC matrix-locked at all four editions (DEVLOG NNN)` (only if a row flip or a new assertion was needed; otherwise fold into Step 2).
 
-### [ ] Step 2 — Flip the live float trio matrix rows `pending`→`active` (COMMIT BOUNDARY)
+### [x] Step 2 — Flip the live float trio matrix rows `pending`→`active` (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (rows `usage-float-short-2002`, `usage-float-long-2002`, `usage-float-extended-2002`).
 - **Do:** Remove `"status": "pending"` (defaults to `active`) from the three trio rows — the feature is already live (`PictureAnalyzer.ParseUsage`). Update each row's `description` to drop the "PENDING … Phase 6 implements" clause and state "LIVE (P12 step 2)". Keep `introducedIn: 2002`, `expectDiagnostic: "COBOLNET0900"`.
@@ -152,7 +152,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   The three float-trio cases now compile at 2002/2014/2023 and reject with `COBOLNET0900` at 1985. Green.
 - **Commit:** `test(cobolnet): P12 — activate the live FLOAT-SHORT/LONG/EXTENDED matrix rows (DEVLOG NNN)`.
 
-### [ ] Step 3 — Add a real float-trio conformance program to the 2014 corpus (COMMIT BOUNDARY)
+### [x] Step 3 — Add a real float-trio conformance program to the 2014 corpus (COMMIT BOUNDARY)
 
 - **Files:** create `tests/conformance/2014/float_trio.cob` + `.out`; edit `tests/conformance/2014/manifest.json` (add `float_trio` to `enabled`). (Note: the trio is a 2002 feature, but per the OCCURS-DYNAMIC precedent, 2014-and-earlier float corpus programs live under `2014/`; alternatively add a `2002/` program — pick per where the manifest coverage is thinnest. Recommendation: `2002/float_trio` since introducedIn=2002, so the 2002 corpus exercises it at its own edition.)
 - **Do:** Write a program that declares `FLOAT-SHORT`/`FLOAT-LONG`/`FLOAT-EXTENDED` items, does arithmetic (`COMPUTE`, `ADD`), and `DISPLAY`s results. Generate the `.out` by running the compiled program once and **verifying the output is arithmetically CORRECT** (not merely non-crashing — memory `feedback_verify_demo_output`); cite the IEEE-754 rounding you expect. Unique `PROGRAM-ID` (memory `feedback_unique_programid_per_test`).
@@ -165,7 +165,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   `Manifest_CoversEveryProgram_NoOverlap` and `EnabledProgram_CompilesStrict_AndMatchesOutIfPresent` green.
 - **Commit:** `feat(cobolnet): P12 — float-trio 2002 conformance program (DEVLOG NNN)`.
 
-### [ ] Step 4 — DYNAMIC LENGTH: runtime carrier + data model (COMMIT BOUNDARY)
+### [x] Step 4 — DYNAMIC LENGTH: runtime carrier + data model (COMMIT BOUNDARY)
 
 - **Files:**
   - create `src/Cobol.Net.Runtime/Text/CobolDynString.cs`. A variable-length, min-0 string over `CobolString` semantics: a `string Value` with a `Limit` (max chars; `int.MaxValue`/`-1` if implementor-default per §13.18.19.4 GR2) and `Class` (Alphanumeric for `X`, National for `N`, §13.18.19.4 GR1). Constructor, `Length`, MOVE-in truncation-to-limit, `ToString`.
@@ -175,7 +175,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 - **Verify:** `dotnet build src/Cobol.Net.Runtime` and `src/Cobol.Net.Compiler` succeed; add a `CobolDynString` unit test (round-trip, truncation-to-limit, min-0). `dotnet test tests/Cobol.Net.Tests.Unit --filter CobolDynString`.
 - **Commit:** `feat(cobolnet): P12 — CobolDynString runtime carrier + DynamicString storage form (DEVLOG NNN)`.
 
-### [ ] Step 5 — DYNAMIC LENGTH: grammar + binder + emitter + conformance (COMMIT BOUNDARY — FULL LEGACY GUARD)
+### [x] Step 5 — DYNAMIC LENGTH: grammar + binder + emitter + conformance (COMMIT BOUNDARY — FULL LEGACY GUARD)
 
 - **Files:**
   - `src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4`: add `dynamicLengthClause : {is2014()}? DYNAMIC LENGTH dataName? (LIMIT IS? integerLiteral)?` and wire it into the data-description-entry clause alternation (beside `occursClause`). Tokens `DYNAMIC`/`LENGTH`/`LIMIT` already exist (`CobolLexer.g4:366,444,410`) — no lexer change, so this is LL-safe: `DYNAMIC LENGTH` is disjoint from `OCCURS DYNAMIC` (different leading token).
@@ -194,7 +194,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   ```
 - **Commit:** `feat(cobolnet): P12 — DYNAMIC LENGTH elementary items (§8.5.1.10/§13.18.19, 2014); NIST 353 MATCH (DEVLOG NNN)`.
 
-### [ ] Step 6 — DYNAMIC LENGTH: version-matrix row (COMMIT BOUNDARY)
+### [x] Step 6 — DYNAMIC LENGTH: version-matrix row (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (new `active` row `dynamic-length-item-2014`); `docs/VERSION_CHANGE_REFERENCE.md` (mark the 2014-introduction status; keep row 60 — the 2023 SET-length delta — as TODO with a "P13" note).
 - **Do:** Add the row: `introducedIn: 2014`, `removedIn: null`, `expectDiagnostic: "COBOLNET0900"`, `vcr: "2014 introduction (§8.5.1.10 / §13.18.19 DYNAMIC LENGTH)"`, a minimal `source` (a `01 D PIC X DYNAMIC LENGTH LIMIT IS 20.` program that `DISPLAY`s and `STOP RUN`s).

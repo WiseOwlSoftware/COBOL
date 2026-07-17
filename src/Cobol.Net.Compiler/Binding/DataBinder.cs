@@ -1572,6 +1572,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
+        bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
+        int dynLengthLimit = -1;       // the LIMIT phrase (§13.18.19.4 GR2); -1 = the implementor-defined maximum
+        string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name (§12.3.7 — not yet supported)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
         bool isConstantRecord = false; // CONSTANT RECORD (ISO §13.18.15 — a structured constant; P10 Step 15)
@@ -1595,6 +1598,16 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // (recognition-based — IsAnyLength is cleared on every SR violation, so a bound-arm gate
                     // would drop the 0900 on exactly those paths; the BASED pattern).
                     isAnyLength = true;
+                else if (clause.Context.dynamicLengthClause() is { } dl)
+                {
+                    // DYNAMIC LENGTH (§8.5.1.10 / §13.18.19) — SR1 + the §13.16.3 SR18 clause-exclusion + the
+                    // structure-name non-support are validated below (the ANY LENGTH pattern). The COBOL-2014
+                    // introduction gate is VersionConformancePass ParseArm.VisitDynamicLengthClause (recognition —
+                    // IsDynamicLength is cleared on every SR violation, so a bound-arm gate would drop the 0900).
+                    isDynamicLength = true;
+                    dynLengthStructureName = dl.cobolWord()?.GetText();
+                    if (dl.integerLiteral() is { } lim && int.TryParse(lim.GetText(), out int lv)) dynLengthLimit = lv;
+                }
                 else if (clause.Context.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
                 else if (clause.Context.typedefClause() is { } td)
@@ -1945,6 +1958,48 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             }
         }
         item.IsAnyLength = isAnyLength;
+
+        // DYNAMIC LENGTH declaration-shape validation (ISO §8.5.1.10 / §13.18.19; COBOL-2014). Violations clear the
+        // flag so the item binds as ordinary storage under an already-failed compile (the ANY LENGTH / IsBased
+        // discipline). The COBOL-2014 introduction gate is VersionConformancePass ParseArm.VisitDynamicLengthClause.
+        if (isDynamicLength)
+        {
+            // §13.18.19.3 SR1: a PICTURE clause shall be specified and its character-string shall be exactly ONE
+            // instance of the picture symbol 'N' or 'X' (a "(1)" repetition writes the same one instance). Unlike
+            // ANY LENGTH (§13.18.2.3 SR1), the boolean symbol '1' is NOT permitted — a dynamic-length item is
+            // alphanumeric or national only (§13.18.19.4 GR1).
+            string norm = pictureText?.Trim().ToUpperInvariant() ?? "";
+            if (norm is not ("X" or "N" or "X(1)" or "N(1)"))
+            {
+                Edition.Error("COBOLNET1561", $"{entryWhere}: the DYNAMIC LENGTH clause requires a PICTURE whose "
+                    + "character-string is exactly one instance of the picture symbol 'N' or 'X' "
+                    + $"(ISO §13.18.19.3 SR1{(pictureText is null ? "; no PICTURE clause is specified" : $"; PICTURE {pictureText}")})");
+                isDynamicLength = false;
+            }
+            // §13.18.19.3 SR2/SR3: a dynamic-length-structure-name refers to a SPECIAL-NAMES DYNAMIC LENGTH
+            // STRUCTURE (§12.3.7 — PREFIXED/DELIMITED/physical layout). COBOL.NET does not yet support the physical
+            // structure declaration, so a naming reference is rejected LOUD rather than silently defaulting the
+            // layout (a staged residue; the 2023 SET-length enhancement, VCR row 60, is separately P13).
+            else if (dynLengthStructureName is not null)
+            {
+                Edition.Error("COBOLNET1562", $"{entryWhere}: a DYNAMIC LENGTH clause naming a "
+                    + $"dynamic-length-structure-name ('{dynLengthStructureName}') is not yet supported "
+                    + "(ISO §13.18.19.3 SR2 / §12.3.7 DYNAMIC LENGTH STRUCTURE)");
+                isDynamicLength = false;
+            }
+            // §13.16.3 SR18: with DYNAMIC LENGTH the ONLY other clauses permitted are level-number, entry-name,
+            // PICTURE, USAGE, and VALUE — reject every other decoded clause loud, never a half-shaped item.
+            else if (occursSpec is not null || occurs is not null || redefinesTargetName is not null || isBased
+                || hasExternal || justified || blankWhenZero || synchronized || ownSign is not null
+                || isTypedef || typeRefName is not null || sameAsName is not null || isConstantRecord || isAnyLength)
+            {
+                Edition.Error("COBOLNET1563", $"{entryWhere}: with the DYNAMIC LENGTH clause the only other clauses "
+                    + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR18)");
+                isDynamicLength = false;
+            }
+        }
+        item.IsDynamicLength = isDynamicLength;
+        if (isDynamicLength) item.DynLengthLimit = dynLengthLimit;
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
         // A method's index-names (M2-OO-1h step 4) register into the METHOD's own scope with a FRESH cell — two

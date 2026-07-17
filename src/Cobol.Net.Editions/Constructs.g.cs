@@ -34,6 +34,7 @@ public static class Constructs
     public const string OptionsFloatDecimal2014 = "options-float-decimal-2014";
     public const string OptionsInitialize2014 = "options-initialize-2014";
     public const string OccursDynamic2014 = "occurs-dynamic-2014";
+    public const string DynamicLengthItem2014 = "dynamic-length-item-2014";
     public const string TypeClause2002 = "type-clause-2002";
     public const string TypedefDef2002 = "typedef-def-2002";
     public const string SameAsClause2002 = "same-as-clause-2002";

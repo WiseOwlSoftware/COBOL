@@ -273,6 +273,16 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     public string ConvertSource(BoundOperand source, DataItem target, string? runtimeWidth = null)
     {
         var pic = target.Pic!;
+        // A DYNAMIC LENGTH receiver (ISO §8.5.1.10.4 / §13.18.19): store the sender's DISPLAY image, replacing the
+        // old content, with the new length TRUNCATED ON THE RIGHT to the LIMIT and NO padding (the minimum length is
+        // zero, §13.18.19.4 GR1). A figurative SPACE yields length 0 (§8.5.1.10.4 — space-fill sets the length to
+        // zero); a zero-length literal stores as length 0 (§14.9.25.4 GR2 — NOT SPACE-substituted for a
+        // dynamic-length receiver — AsString of "" is ""). A PIC X/N dynamic-length item carries no edit mask, so
+        // this precedes (and correctly bypasses) the fixed-width figurative/ALL and numeric-edited paths below.
+        if (target.IsDynamicLength)
+            return source is BoundFigurative { Kind: 'S' }
+                ? "\"\""
+                : RuntimeApi.DynStore(OperandText.AsString(source, num, deSign: true), target.DynLengthLimit.ToString());
         string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§13.18.2 GR1)
         // A figurative constant fills the receiver to its width (ISO §8.3.1.2 / §14.9.24) — EXCEPT figurative
         // ZERO into a numeric-edited receiver, which is the numeric value 0 EDITED into the mask (§14.9.25.4 GR5;

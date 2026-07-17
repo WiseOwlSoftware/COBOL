@@ -606,6 +606,17 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The DYNAMIC LENGTH clause (ISO §8.5.1.10 / §13.18.19) — a COBOL-2014 introduction (a
+        /// variable-length, minimum-length-zero PIC X/N elementary string). Parse-arm (recognition) like the ANY
+        /// LENGTH gate: <c>DataItem.IsDynamicLength</c> is cleared by the binder on every SR1/SR18 shape violation,
+        /// so a bound-arm home would drop the 0900 on exactly the declaration-error paths. The §13.18.19.3 /
+        /// §13.16.3 SR18 shape SRs stay bind-time (DataBinder.BindEntry, COBOLNET1561/1562/1563).</summary>
+        public override object? VisitDynamicLengthClause(CobolParserCore.DynamicLengthClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.DynamicLengthItem2014, "the DYNAMIC LENGTH clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The TYPE IS type-name clause (the TYPEDEF family, ISO §13.18.58; D17) — a COBOL-2002 introduction.
         /// Fires once per written <c>TYPE IS</c> occurrence: the ExpandTypes clones are DataItem objects, not parse
         /// nodes, so a TYPEDEF referenced N times yields exactly N typeClause nodes (matching the former per-entry

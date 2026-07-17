@@ -650,6 +650,16 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // (the same BoundIntrinsicCall channel a nested string-function argument uses).
         BoundFieldOperand { Place.Item.IsAnyLength: true } =>
             new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
+        // A DYNAMIC LENGTH item's LENGTH is its CURRENT length in BYTES (ISO §15.50.4 rule 6 — unlike the
+        // character-position count of rules 2/3), never a compile-time fold. For a PIC X item one byte per
+        // character position, so the runtime .Length over the native string IS the answer (the ANY LENGTH
+        // channel). A PIC N (national) item is 2 bytes per position (D-N1) — the byte count is 2 × positions,
+        // and the plain .Length is the character count (half): staged loud by name until the doubling is wired
+        // (no national dynamic-length consumer in the corpus; §1.4).
+        BoundFieldOperand { Place.Item: { IsDynamicLength: true, Pic.Category: PicCategory.National } } =>
+            new BoundExprError("FUNCTION LENGTH of a NATIONAL DYNAMIC LENGTH item (current length in bytes = 2× character positions, ISO §15.50.4 rule 6)"),
+        BoundFieldOperand { Place.Item.IsDynamicLength: true } =>
+            new BoundIntrinsicCall(sig, args, PicCategory.Numeric),
         BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ImageWidth).ToString()),
         // A nested string-result intrinsic (alphanumeric OR national — one UTF-16 char per national position,
         // D-N1, so .Length IS the §15.50.4 character-position count for both) keeps a runtime .Length.
@@ -682,6 +692,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
             new BoundExprError("FUNCTION BYTE-LENGTH of a variable-length (OCCURS DEPENDING) group (runtime length, §15.14.4 r6)"),
         BoundFieldOperand { Place.Item.IsAnyLength: true } =>
             new BoundExprError("FUNCTION BYTE-LENGTH of an ANY LENGTH item (runtime length, ISO §13.18.2)"),
+        // A DYNAMIC LENGTH item's BYTE-LENGTH is its CURRENT byte length at RUNTIME (ISO §15.14.4 rule 5), not the
+        // compile-time ByteWidth (0 for a variable-length item) — staged loud by name until a runtime BYTE-LENGTH
+        // body exists (the ANY LENGTH discipline; §1.4).
+        BoundFieldOperand { Place.Item.IsDynamicLength: true } =>
+            new BoundExprError("FUNCTION BYTE-LENGTH of a DYNAMIC LENGTH item (current length in bytes at runtime, ISO §15.14.4 rule 5)"),
         BoundFieldOperand f => new BoundNumLiteral(Math.Max(1, f.Place.Item.ByteWidth).ToString()),
         _ => new BoundExprError("FUNCTION BYTE-LENGTH argument (a numeric/figurative literal is not a valid argument, ISO §15.14.3)"),
     };

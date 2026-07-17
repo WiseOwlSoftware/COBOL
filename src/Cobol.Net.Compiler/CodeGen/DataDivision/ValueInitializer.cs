@@ -42,6 +42,16 @@ internal sealed class ValueInitializer(EmitContext ctx)
     {
         var pic = item.Pic!;
 
+        // A DYNAMIC LENGTH item (ISO §8.5.1.10 / §13.18.19): the field is a native string. §8.6.4 — a VALUE clause
+        // defines the initial length (stored truncated on the right to the LIMIT, no padding); absent a VALUE the
+        // initial length is zero (never a fixed-width space fill). A figurative VALUE yields length 0 (the min-0 model).
+        if (item.IsDynamicLength)
+        {
+            if (item.RawValue is not { } dv) return "\"\"";
+            if (FigurativeInitializer(dv, pic) is not null) return "\"\"";
+            return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynLengthLimit.ToString());
+        }
+
         // CCVS leniency: an ALPHANUMERIC literal VALUE on a numeric DISPLAY item stores its CHARACTERS as the
         // item's content (ISO §13.18.63 SR2 wants a numeric literal; the 85 corpus writes `PIC 999 VALUE "000"`
         // — NC107A's DATA-P — and the legacy oracle accepts the character form). Strict rejection is a future
