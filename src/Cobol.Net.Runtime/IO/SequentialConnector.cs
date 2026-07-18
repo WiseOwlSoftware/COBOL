@@ -343,9 +343,13 @@ public sealed class SequentialConnector : FileConnector
         if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
         _afterAdvancing = true;
         _writer.Write(PrintSafe(image.TrimEnd()));
+        // Two DISTINCT advancing operations (GR25e then GR25f): advance and count each SEPARATELY so a page-boundary
+        // crossing WITHIN the BEFORE advance is handled by its own §14.9.51 GR26/GR7c overflow logic before the
+        // AFTER advance runs (a single combined increment would mis-handle a boundary between the two).
         Advance(beforeLines);
+        if (_linageEval is not null) AdvanceLinageCounter(beforeLines);
         Advance(afterLines);
-        if (_linageEval is not null) AdvanceLinageCounter(beforeLines + afterLines);
+        if (_linageEval is not null) AdvanceLinageCounter(afterLines);
         return Status = FileStatusCode.Success;
     }
 

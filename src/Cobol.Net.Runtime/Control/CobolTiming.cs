@@ -25,14 +25,18 @@ public static class CobolTiming
     /// (The §14.6.13.1.4 selection of a matching USE declarative for this nonfatal condition is a scheduled
     /// follow-on — the last-exception status this sets is the observable behavior.)
     /// </summary>
-    public static void ContinueAfter(long seconds, bool checkLessThanZero)
+    public static void ContinueAfter(double seconds, bool checkLessThanZero)
     {
-        if (seconds < 0)
+        // GR1a/GR1b operate on arithmetic-expression-1's EVALUATED value (the sign test precedes the m=0
+        // truncation), so a negative FRACTIONAL interval in (-1, 0) must still set the exception — test the sign of
+        // the full-precision value, not a pre-truncated integer.
+        if (seconds < 0.0)
         {
             if (checkLessThanZero) ExceptionState.Set("EC-CONTINUE-LESS-THAN-ZERO", fatal: false);
-            return;
+            return;                                                 // GR1a — value set to 0 → no suspension
         }
-        if (seconds == 0) return;                                   // GR1 — no suspension
-        System.Threading.Thread.Sleep((int)System.Math.Min(seconds, MaxSeconds) * 1000);
+        long secs = (long)seconds;                                  // m = 0: truncate toward zero (GR1, no ROUNDED)
+        if (secs == 0) return;                                      // GR1 — no suspension for a zero interval
+        System.Threading.Thread.Sleep((int)System.Math.Min(secs, MaxSeconds) * 1000);
     }
 }

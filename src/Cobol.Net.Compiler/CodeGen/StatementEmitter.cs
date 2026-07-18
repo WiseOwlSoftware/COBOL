@@ -104,10 +104,11 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundNop n) => false;
     public bool Visit(BoundContinueAfter n)
     {
-        // CONTINUE AFTER n SECONDS (§14.9.9): evaluate the interval as an integer (m=0 implementor choice — fractional
-        // seconds truncate, GR1's COMPUTE without ROUNDED), then suspend via the runtime, which floors a negative to 0
-        // and sets the nonfatal EC-CONTINUE-LESS-THAN-ZERO under CHECKING ON (GR1a/GR1b).
-        string secs = $"(long)({NumericRenderer.Align(_num.Render(n.Seconds, ReceiverContext.None), 0)})";
+        // CONTINUE AFTER n SECONDS (§14.9.9): evaluate the interval at FULL precision (the GR1a/GR1b sign test
+        // precedes the m=0 truncation), then suspend via the runtime, which sets the nonfatal
+        // EC-CONTINUE-LESS-THAN-ZERO under CHECKING ON for a negative value (incl. a fractional (-1,0)) and truncates
+        // toward zero (m=0) for the positive-value sleep.
+        string secs = NumericRenderer.Real(_num.Render(n.Seconds, ReceiverContext.None));
         _ctx.Writer.Line(RuntimeApi.ContinueAfter(secs, n.CheckLessThanZero ? "true" : "false") + ";");
         return false;
     }

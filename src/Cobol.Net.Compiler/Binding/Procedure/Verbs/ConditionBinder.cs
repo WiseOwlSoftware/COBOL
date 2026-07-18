@@ -69,6 +69,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundBoolExpr BindBoolShift(Core.BooleanShiftTermContext shift)
     {
         BoundBoolExpr acc = BindBoolFactor(shift.booleanFactor());
+        // Rule 7b (§8.8.2): a shift's precedence is that of the operator IMMEDIATELY TO ITS LEFT — context-sensitive,
+        // not a fixed tier. The fixed booleanShiftTerm tier realizes the UNMIXED default correctly, but a shift at the
+        // SAME level as a binary boolean operator (B-AND/B-OR/B-XOR — i.e. its enclosing chain has >1 operand) would
+        // be silently mis-grouped. Reject that loudly (LOUD-not-silently-wrong); the user parenthesizes to
+        // disambiguate. A parenthesized shift starts a fresh booleanExpression, so its chain is single-operand here.
+        if (shift.booleanShiftSuffix().Length > 0 && ShiftMixedWithBinary(shift))
+            ctx.Edition.Error("COBOLNET1569", "a boolean shift operator (B-SHIFT-L/R/LC/RC) combined with a binary "
+                + "boolean operator (B-AND/B-OR/B-XOR) in the same expression is not supported — its precedence is "
+                + "context-sensitive (ISO §8.8.2 rule 7b); parenthesize the shift operand to disambiguate");
         foreach (var suf in shift.booleanShiftSuffix())
         {
             var kind = suf.B_SHIFT_LC() is not null ? BoolShiftKind.LeftCircular
@@ -94,6 +103,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (ctx.booleanExpression() is { } paren) return BindBoolExpr(paren);
         return BindBoolOperandValue(ctx.valueOperand());
     }
+
+    /// <summary>True when this shift term sits at the same precedence level as a binary boolean operator — its
+    /// enclosing B-AND chain has &gt;1 shift term, or the XOR chain &gt;1 AND term, or the OR chain &gt;1 XOR term.
+    /// Parentheses start a fresh <c>booleanExpression</c>, so a parenthesized shift's chains are single-operand here
+    /// and it is (correctly) not flagged (§8.8.2 rule 7b context-sensitivity).</summary>
+    private static bool ShiftMixedWithBinary(Core.BooleanShiftTermContext shift) =>
+        (shift.Parent is Core.BooleanAndTermContext a && a.booleanShiftTerm().Length > 1)
+        || (shift.Parent?.Parent is Core.BooleanXorTermContext x && x.booleanAndTerm().Length > 1)
+        || (shift.Parent?.Parent?.Parent is Core.BooleanExpressionContext e && e.booleanXorTerm().Length > 1);
 
     /// <summary>Rule 4 (§8.8.2 :9364): both operands of a binary boolean op shall not both be ALL "literal".</summary>
     private BoundBoolExpr MakeBoolBinary(BoundBoolExpr left, char op, BoundBoolExpr right)

@@ -250,9 +250,12 @@ stopStatement
 // The shared run-unit-termination status phrase (ISO §14.9.42.2 STOP / §14.9.18.2 GOBACK). ONE rule referenced
 // by BOTH stopStatement and gobackStatement — annex item 32: "GOBACK … now allows the same status phrase as
 // the STOP statement" (feedback_singular_pattern). STOP-status is a 2002 introduction; GOBACK-status is 2023.
+// [WITH] {ERROR|NORMAL} [STATUS [id|lit]] — WITH is an OPTIONAL word (§5.2.3, not underlined); exactly one of the
+// underlined keywords ERROR/NORMAL is REQUIRED (§14.9.42.2/§14.9.18.2 brace group); the STATUS keyword introduces
+// the optional operand (the operand is bracketed = optional). The former rule wrongly required WITH, bound STATUS
+// to its operand, and admitted a keyword-less `STATUS operand` (P13 Wave-I review findings 1/2/3).
 statusPhrase
-    : WITH (ERROR | NORMAL) (STATUS (dataReference | literal))?   // WITH {ERROR|NORMAL} [STATUS {id|lit}]
-    | STATUS (dataReference | literal)                             // STATUS {id|lit} (without WITH)
+    : WITH? (ERROR | NORMAL) (STATUS (dataReference | literal)?)?
     ;
 
 // ==========================================

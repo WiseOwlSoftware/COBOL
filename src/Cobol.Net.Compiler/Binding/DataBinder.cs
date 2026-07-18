@@ -1827,7 +1827,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + $"only to USAGE PACKED-DECIMAL, not USAGE {usageText}");
             else if (pic is { Signed: true })
                 Edition.Error("COBOLNET1566", $"{entryWhere}: a PICTURE containing 'S' shall not be specified with "
-                    + "PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.3 SR31 — an unsigned representation)");
+                    + "PACKED-DECIMAL WITH NO SIGN (ISO §13.18.40.3 SR31 — an unsigned representation)");
             else if (pic is not null)
                 pic = pic with { PackedNoSign = true };
         }
