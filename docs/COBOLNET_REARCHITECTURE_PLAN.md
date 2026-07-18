@@ -270,11 +270,13 @@ aspirational — it is a scheduled deliverable and a *cross-cutting architectura
   sequence-point support — Reflection.Emit lacks it — plus explicit metadata authoring for EXTERNAL/GLOBAL/cross-CALL
   + OO hierarchies, MIT license, decades-mature; isolated in a leaf `Cobol.Net.Backend.Cil` assembly so the default
   Roslyn path stays Cecil-free). Reflection.Emit is used ONLY for the throwaway seam-proof.
-- The **seam-proof lands as PHASE-07 Step 13** — a `NullBackend` + a tiny in-box Reflection.Emit `DisplayBackend` +
-  the executable backend-contract test — proving `ICodeGenBackend` is real and the IR carries no C# *by a second
-  consumer* before phases 08–15 can silently re-introduce C# into a node. **Phase 16** delivers the full `CilBackend`,
-  gated by a **backend-equivalence harness** (the golden corpus byte-identical across `--backend roslyn` and
-  `--backend cil`).
+- The **seam-proof lands as PHASE-16 Milestone 0** — a `NullBackend` + a tiny in-box Reflection.Emit `DisplayBackend`
+  + the executable backend-contract test — proving `ICodeGenBackend` is real and the bound tree carries no C# *by a
+  second consumer* before the full backend build-out. (Originally scoped as a post-P07 milestone; P07 closed at
+  Step 12 without it, and `DESIGN-backend-abstraction.md` formalizes it as PHASE-16 M0. The bound-tree neutrality
+  invariant it proves is guarded in the interim by the §7 I1 `BackendNeutrality` grep gate.) **Phase 16** then
+  delivers the full `CilBackend`, gated by a **backend-equivalence harness** (the golden corpus byte-identical across
+  `--backend roslyn` and `--backend cil`).
 - ⚠ **Neutrality is broader than `Place`.** The backfill review found the leak reaches into `BoundTree.cs` itself
   (bound *statement* nodes carrying C# path/identifier strings — `BoundSearch.IndexField/DependCount/DynTable`,
   `BoundSetCapacity.TablePath`, `CapacityRegisterPlace.TablePath`, `BoundIndexRef.IndexField`, `BoundMethod.CsName`)
@@ -310,9 +312,10 @@ phase boundary.
 | ☐ | 15 | C | MED/HIGH | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | [PHASE-15](rearchitecture/PHASE-15-g8-legacy-retirement-conformance-doc.md) |
 | ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | [PHASE-16](rearchitecture/PHASE-16-cil-backend.md) |
 
-> **Phase 16 sequencing:** its cheap *seam-proof* milestone lands right after Phase 07 (proving `ICodeGenBackend` is
-> real and the IR carries no C#); the full `CilBackend` build-out proceeds in parallel with the feature track and must
-> be complete before/with Phase 15. See `PHASE-16` for the exact insertion.
+> **Phase 16 sequencing:** its cheap *seam-proof* milestone (Milestone 0 — proving `ICodeGenBackend` is real and the
+> bound tree carries no C#) was originally scoped for the post-Phase-07 slot but deferred to PHASE-16 M0 (P07 closed
+> at Step 12 without it); the interim guard is the §7 I1 `BackendNeutrality` gate. The full `CilBackend` build-out
+> then proceeds behind the backend-equivalence harness. See `PHASE-16` for the exact milestone breakdown.
 
 > **Version-conformance pipeline (cross-cutting driver, `DESIGN-version-conformance-pipeline.md`).** Like the
 > dual-backend mandate (§3), the pipeline touches several phases — but **P03 owns DELIVERY of the ENTIRE pipeline,
@@ -463,3 +466,46 @@ phase** (detail + file:line in the cited `SURVEY-*.md` / `CRITIQUE-*.md` ROADMAP
   The G8 namespace flip is scoped to emitted `using`s, but the compiler makes **direct** compile-time calls into the
   runtime (`CobolEdit.Format`/`MaskScale` for constant-VALUE folding) that the `RuntimeApi` façade must also cover.
   *(SURVEY-runtime-value.md)*
+
+### Improvement registry (I1–I4)
+
+Owner-proposed refinements (2026-07-18), each anchored to EXISTING infrastructure with **zero architecture impact**
+(the bound-tree shape, the edition data, and the conformance machinery already exist). Adopted as below, with the
+mechanism refinements noted inline. These turn already-asserted invariants into *checked* gates and publish
+already-derivable coverage; none change the pipeline.
+
+- **I1 — Bound-tree backend-neutrality gate** *(→ PHASE-16 M0; a grep leg addable at PHASE-14).* Make R1's neutrality
+  claim a CHECKED invariant, not an assertion. **Now (a PHASE-14 grep exit criterion):** a `BackendNeutrality` gate
+  over `Binding/Bound/` that fails on the C#-SPECIFIC leak patterns R1 enumerates (`*.CsName`, `*.TablePath`,
+  `*.IndexField`, `*.DependCount`, the `*.DynTable` path string — i.e. mangled identifiers / .NET type names / Roslyn
+  `Syntax*` / format literals), NOT legitimate COBOL-domain strings (data-names, literal text, PIC). The R1-listed
+  existing leaks are the P16 M0 neutralization checklist. **Robust form (PHASE-16, as the backend-neutrality proof):**
+  promote the grep to a Roslyn analyzer **COBOLNET9001** (a build error on a NEW leak; a `[BackendNeutral]` assembly
+  marker + a `[CSharpArtifact]` opt-out allowlist for the sanctioned residue). NOTE: COBOLNET9001 is an
+  analyzer-on-our-own-C# code (the `9xxx` band, free), distinct from the COBOL-facing `COBOLNET0xxx/1xxx` diagnostics.
+  ⚠ **Anchor correction:** the seam-proof (`NullBackend`/`DisplayBackend` + the contract test) is **PHASE-16
+  Milestone 0** per `DESIGN-backend-abstraction.md`, NOT the roadmap-§3 "PHASE-07 Step 13" — P07 closed at Step 12 and
+  the seam-proof did not land there (§3 corrected in the same change set). *(R1; DESIGN-backend-abstraction.md)*
+- **I2 — ICE-free robustness gate** *(→ PHASE-14, new exit criterion 8).* Enforce the §1.4 loud-failure invariant
+  against MALFORMED input: `CompilerInvocationHarness.TryCompile` over a deterministic **one-token-deletion corpus of
+  the committed NIST sources** must never throw an uncaught exception — only diagnostics or a clean success (an
+  internal compiler error is a bug, a NAMED diagnostic is the contract). ⚠ **Refinement:** do NOT commit the mutated
+  corpus (NIST × per-token ≈ 10^5 files → repo bloat); commit the harness + a fixed seed and GENERATE the deletions at
+  test time (reproducible). A sampled subset per push, the full sweep at the P14 gate. Explicitly a bounded
+  deterministic corpus, NOT a continuous fuzzer. *(§1.4; §2 principle 1)*
+- **I3 — Edition-delta coverage report** *(→ PHASE-14 deliverable; published PHASE-15).* `scripts/gen-edition-delta-
+  report.ps1` (a sibling to `gen-vcr.ps1`) folds `constructs.json` + `docs/VERSION_CHANGE_REFERENCE.md` +
+  `docs/CONFORMANCE.md` dispositions into `docs/EDITION-DELTA-COVERAGE.md` — Supported / Deferred / Rejected-loud
+  tables per 2014→2023 (and prior) delta. Drift-guarded by `EditionDeltaCoverageDriftTest` (the existing generate-then-
+  diff pattern the VCR + differential goldens already use). Land the generator at **P14** (all source data exists now;
+  it also renders the live P13 wave rollup) and finalize/publish with the **P15** conformance docs.
+  *(VERSION_CHANGE_REFERENCE.md, constructs.json, CONFORMANCE.md, gen-vcr.ps1)*
+- **I4 — Negative-corpus edition-boundary coverage gate** *(→ PHASE-14, extends exit criterion 4).* EC#4 already
+  asserts every DIAGNOSTIC descriptor has ≥1 negative case; I4 adds the orthogonal CONSTRUCT×EDITION axis:
+  `NegativeCorpusCoverageTests` enumerates every `constructs.json` row and asserts a below-edition negative fixture
+  exists at each earlier-edition boundary the construct crosses (introducedIn 2023 ⇒ 85/2002/2014 witnesses; 2002 ⇒
+  85). ⚠ **Mechanism correction:** an `[Ignore("STUB")]` xUnit test is SKIPPED (green) and does NOT block CI — the
+  GATE is the coverage assertion (missing fixture ⇒ the test fails red), not ignored stubs; `gen-negative-stubs.ps1`
+  only scaffolds the fixture files to author. Scoped against the existing `VersionMatrixTests` (which already
+  compile-and-reject per edition from each row's `source`/`expectDiagnostic`): I4 adds the COMPLETENESS check, never
+  duplicate reject-tests. *(§2 principle 11; the VCR / version-matrix harness)*
