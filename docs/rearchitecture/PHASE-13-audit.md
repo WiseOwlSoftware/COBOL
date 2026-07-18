@@ -7,7 +7,30 @@
 > group by GATE type — grammar constructs share ONE full legacy guard; binder/runtime + doc rows use the
 > greenfield battery only.
 
-**Counts:** 71 rows — **31 MISSING · 21 PARTIAL · 18 DONE · 1 N/A**.
+**Counts:** 71 rows — **31 MISSING · 21 PARTIAL · 18 DONE · 1 N/A** (original audit).
+
+> **PROGRESS (updated 2026-07-17, Wave C batch + Wave H start).** Since the audit, the following worklist items are
+> IMPLEMENTED (grammar + binder + emit + runtime + `constructs.json` gate + conformance golden + below-2023 negative;
+> DEVLOG 887–889; pushed through `0a08e9b7`). TRUST this progress note over the MISSING/PARTIAL states in the table
+> below for these rows:
+> - **VCR 42** USAGE PACKED-DECIMAL WITH NO SIGN — DONE (COBOLNET1565/1566 rejects).
+> - **VCR 54** 63-character COBOL words — DONE (COBOLNET1567 ceiling; >63 rejected all editions).
+> - **VCR 60** dynamic-length SET — DONE as `SET [SIZE OF] data-name TO n` (§14.9.39 Format 16 — NOT "SET LENGTH OF"
+>   and the EC is EC-STORAGE-NOT-AVAIL, NOT EC-BOUND; the re-scout corrected both audit-hint errors). COBOLNET1568 SR33.
+> - **VCR 57** CONTINUE AFTER n SECONDS + EC-CONTINUE-LESS-THAN-ZERO — DONE (EC set under CHECKING ON; m=0).
+> - **VCR 80** PERFORM UNTIL EXIT — DONE. (PERFORM Format 3 exception-checking WHEN — the other half of that audit
+>   row — is a documented staged follow-on.)
+> - **VCR 9/32/46** boolean shift B-SHIFT-L/R/LC/RC — DONE (Annex A Table A.2 oracle byte-exact; the rule-7b
+>   context-sensitive precedence is a documented refinement — fixed tier realizes the unmixed default).
+> - **VCR 45** WRITE BEFORE AND AFTER ADVANCING — DONE (LINAGE-COUNTER += before+after; SR17 reject COBOLNET0862).
+> - **VCR 75** GOBACK status phrase — DONE presence-only (the exit-code VALUE wiring is a staged slice).
+> - **A.3 disposition sweep / §4.2.6 note rows** — `docs/CONFORMANCE.md` created (46-item A.3 table + the four
+>   documented-non-support facilities). The COBOLNET1560-band §4.2.6 WARNING mechanism + the recognize-and-name
+>   facility diagnostics remain the Wave H code half.
+>
+> **STILL OPEN (highest-value):** SUPPRESS WHEN alt-key (indexed-runtime), PICTURE EDITING phrase, PERFORM Format 3,
+> the EXTERNAL cluster (Wave E), the directive quintet (Wave D), USE FOR DEBUGGING (Wave F), the behavior rows
+> (Wave G), the Wave H §4.2.6-warning code half, and the STOP/GOBACK exit-code slice.
 
 | State | Item | VCR | Spec § | Evidence | Action this phase |
 |---|---|---|---|---|---|
