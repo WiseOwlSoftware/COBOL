@@ -38,6 +38,7 @@ public static class Constructs
     public const string TypeClause2002 = "type-clause-2002";
     public const string TypedefDef2002 = "typedef-def-2002";
     public const string SameAsClause2002 = "same-as-clause-2002";
+    public const string UsagePointerToType2014 = "usage-pointer-to-type-2014";
     public const string UsageFloatShort2002 = "usage-float-short-2002";
     public const string UsageFloatBinary322014 = "usage-float-binary32-2014";
     public const string UsageFloatBinary642014 = "usage-float-binary64-2014";

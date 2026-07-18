@@ -399,7 +399,7 @@ single-file ABI contract — the best of both without SyntaxFactory's verbosity.
 
 ## 5. Migration — keeping the battery green throughout
 
-The battery (3166 conformance + 281 unit + 33 characterization + legacy guard NIST 353 MATCH) must stay green at **every** step. Sequence
+The battery (greenfield conformance + unit + 33 characterization + legacy guard NIST 353 MATCH) must stay green at **every** step. Sequence
 smallest-blast-radius first; each step is behavior-neutral and independently committable.
 
 - **M0 — `ICodeGenBackend` wrap (no behavior change).** Introduce the interface; make the current `CSharpEmitter`+

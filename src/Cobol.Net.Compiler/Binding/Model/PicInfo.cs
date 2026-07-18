@@ -38,7 +38,7 @@ public enum PicCategory
     /// (feedback_managed_pointers — the ONE managed-ref carrier; never an 8-byte handle). Increment 1 holds
     /// only NULL (SET TO NULL / pointer, equality); ADDRESS OF / BASED / ALLOCATE are increment 2+.</summary>
     Pointer,
-    /// <summary>Program pointer (USAGE PROGRAM-POINTER, ISO §8.5.2.7 / §13.18.60 GR24) — LIVE (P10 Step 7): a
+    /// <summary>Program pointer (USAGE PROGRAM-POINTER, ISO §8.5.2.15 / §13.18.60 GR24) — LIVE (P10 Step 7): a
     /// PICTURE-less elementary item that may contain the address of a program — for a COBOL program, an
     /// OUTERMOST program's externalized identity — carried by the runtime <c>ProgramPointer</c> and resolved
     /// through the ONE run-unit <c>ProgramTable</c> (SET … TO ENTRY §8.4.3.13; CALL §14.9.4 SR1; relations
@@ -93,7 +93,7 @@ public enum Usage
     /// <summary>USAGE POINTER (ISO §13.18.60 / §8.5.2.6 data-pointer) — LIVE (Phase-4b increment 1): the
     /// ManagedPointer carrier (<see cref="PicCategory.Pointer"/>).</summary>
     Pointer,
-    /// <summary>USAGE PROGRAM-POINTER (ISO §13.18.60 GR24 / §8.5.2.7) — LIVE (P10 Step 7): the ProgramPointer
+    /// <summary>USAGE PROGRAM-POINTER (ISO §13.18.60 GR24 / §8.5.2.15) — LIVE (P10 Step 7): the ProgramPointer
     /// carrier (<see cref="PicCategory.ProgramPointer"/>); the restricted TO-prototype form (GR25) stages loud.</summary>
     ProgramPointer,
     /// <summary>USAGE FUNCTION-POINTER (ISO §13.18.60) — recognized, STAGED LOUD (P10 Step 7): function

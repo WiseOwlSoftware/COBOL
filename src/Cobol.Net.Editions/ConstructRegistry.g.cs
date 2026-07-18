@@ -40,6 +40,7 @@ public static partial class ConstructRegistry
         new("type-clause-2002", "TYPE clause (TYPEDEF family)", 2002, null, null, "COBOLNET0900", "ISO §13.18.58; PROVISIONAL 2002 edge (ISO-validation DEVLOG 582; decision-1 policy)"),
         new("typedef-def-2002", "TYPEDEF clause (a type declaration)", 2002, null, null, "COBOLNET0900", "ISO §13.18.58; data-model D17 — the type-declaration entry (a named template; no storage). LIVE (weak-TYPE spine)"),
         new("same-as-clause-2002", "SAME AS clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.49; provisional 2002 per the decision-1 policy (the TYPEDEF-family edge)"),
+        new("usage-pointer-to-type-2014", "USAGE POINTER TO type-name (restricted data-pointer)", 2014, null, null, "COBOLNET0900", "ISO §13.18.60.2 (USAGE POINTER [TO type-name]) / Annex D.9.2.2; provisional 2014 (conformance-plan M3-2 deferral)"),
         new("usage-float-short-2002", "USAGE FLOAT-SHORT", 2002, null, null, "COBOLNET0900", "ISO §13.18.60.4 GR13 (USAGE clause; the implementor-defined float trio); LIVE"),
         new("usage-float-binary32-2014", "USAGE FLOAT-BINARY-32", 2014, null, null, "COBOLNET0900", "ISO §13.18.60.4 GR14 (USAGE clause; ISO/IEC 60559:2020 binary32); LIVE"),
         new("usage-float-binary64-2014", "USAGE FLOAT-BINARY-64", 2014, null, null, "COBOLNET0900", "ISO §13.18.60.4 GR15 (USAGE clause; ISO/IEC 60559:2020 binary64); LIVE"),

@@ -18,7 +18,7 @@ Land the remaining COBOL-2014 *surface* deltas on the (rearchitected) data model
 
 ### STATUS
 
-`IN PROGRESS @ step 7 (float USAGE family done; external-float E PICTURE deferred as a documented residue)` (branch `phase-12-m3-2014`)
+`IN PROGRESS @ step 11 (waves 1-5 done: matrix locks, DYNAMIC LENGTH, float USAGE family, pointer §-fixes, >>PROPAGATE gate, TYPE TO re-anchor; E-picture + FUNCTION-POINTER runtime deferred as documented residues)` (branch `phase-12-m3-2014`)
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the
 > per-step checkboxes in §4 in sync. On resume, read this line + the last DEVLOG entry + `git log --oneline -15` first.
@@ -244,7 +244,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   ```
 - **Commit:** `feat(cobolnet): P12 — PROGRAM-POINTER (full) + FUNCTION-POINTER (prototype-dependent) data, 2014 (DEVLOG NNN)`.
 
-### [ ] Step 9 — `>>PROPAGATE` re-editioning + conditional-expression enhancements (COMMIT BOUNDARY)
+### [x] Step 9 — `>>PROPAGATE` re-editioning + conditional-expression enhancements (COMMIT BOUNDARY)
 
 - **Files:**
   - `>>PROPAGATE`: `src/Cobol.Net.Frontend/Preprocessor/` (the directive handler; `ConditionalCompilationProcessor.cs:36` already lists `PROPAGATE` as a variable name — that is the `>>DEFINE`-style *variable*, NOT the §7.3.21 directive). Add/route the `>>PROPAGATE ON|OFF` directive (§7.3.21) so it is recognized ≤2014 (its introduction edition — confirm against §7.3.21 and the VCR before gating; it controls automatic EC propagation to a calling runtime element). If EC-propagation *runtime semantics* are Phase-13/EC-remnant scope, this phase makes the directive **recognized and edition-gated with a warning that propagation is honored per the EC model**, not a parse error — cite the exact behavior in the DEVLOG (`feedback_bare_end`).
@@ -259,7 +259,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   ```
 - **Commit:** `feat(cobolnet): P12 — >>PROPAGATE re-editioned (§7.3.21, ≤2014) + §8.8.4 conditional-expr deltas; increased-limits DROPPED per §4.2.15 (DEVLOG NNN)`.
 
-### [ ] Step 10 — TYPEDEF / `SAME AS` / `TYPE TO` edges: confirm + catalogue `TYPE TO` (COMMIT BOUNDARY)
+### [x] Step 10 — TYPEDEF / `SAME AS` / `TYPE TO` edges: confirm + catalogue `TYPE TO` (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (rows `typedef-def-2002`, `type-clause-2002`, `same-as-clause-2002` — confirm `active`); the `TYPE TO` deferral row.
 - **Do:** TYPEDEF + `TYPE` are DONE, and **`SAME AS` LANDED in P10 Step 16** (§13.18.49 on the ONE `CloneItem`/`ExpandSameAs`; row `same-as-clause-2002` ACTIVE; golden `typedef_same_as`; SR bands 1555/1556/1557 — this step no longer owns it). Verify the three matrix rows are `active` and the `typedef_*` goldens green; no code change expected. **`TYPE TO`** (the pointer-target form) stays DEFERRED — record it as a `pending` matrix row (`type-to-2014`) with a cited owning-follow-up so the matrix catalogues it (never a silent gap — `VersionMatrixTests.PendingRow_HasActivationContract` requires a vcr + source).
@@ -338,8 +338,8 @@ Byte-exact / behavior-neutrality checks:
 | FUNCTION-POINTER data (prototype-dependent) | §8.5.2.7 | 2014 | `2014/function_pointer` | `function-pointer-2014` (active if prototypes ready, else pending) |
 | `>>PROPAGATE` directive | §7.3.21 | ≤2014 (confirm) | `2014/propagate_directive` | (directive — gate, no matrix data-row unless a construct row fits) |
 | Conditional-expression enhancements | §8.8.4 | 2014 | as a real delta is found | per delta |
-| `SAME AS` / `TYPE TO` | §13.18.57 / §13.18.58 | 2002/2014 | deferred | `same-as-2014`, `type-to-2014` (pending, catalogued) unless owner schedules SAME AS |
-| TYPEDEF / `TYPE` (confirm) | §13.18.57 / §13.18.58 | 2002 | `typedef_*` (exist) | `typedef-def-2002`, `type-clause-2002` (active) |
+| `SAME AS` (done) / restricted `USAGE POINTER TO type` (deferred) | §13.18.49 / §13.18.60.2 (Annex D.9.2.2) | 2002 / prov. 2014 | `typedef_same_as` | `same-as-clause-2002` (active); `usage-pointer-to-type-2014` (pending) — the re-anchored "TYPE TO" |
+| TYPEDEF / `TYPE` (confirm) | §13.18.58 / §13.18.57 | 2002 | `typedef_*` (exist) | `typedef-def-2002`, `type-clause-2002` (active) |
 | Increased limits | §4.2.15 | — | **DROPPED** (implementor-defined) | none |
 
 **Editions:** every 2014-introduced construct compiles at `--std 2014` and `--std 2023`, and is rejected `COBOLNET0900` at `--std 1985` and `--std 2002`. Every 2002-introduced construct (float trio, external-float PIC) compiles at 2002/2014/2023, rejected at 1985. The matrix (`VersionMatrixTests`) computes and asserts this from each row's `introducedIn`.

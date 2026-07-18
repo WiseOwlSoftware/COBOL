@@ -20,6 +20,7 @@
     "func_expr_arg",
     "options_default_rounded",
     "options_paragraph",
+    "propagate_directive",
     "rounded_mode_prohibited",
     "rounded_modes"
   ],

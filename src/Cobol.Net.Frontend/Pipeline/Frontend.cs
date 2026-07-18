@@ -84,9 +84,10 @@ public sealed class Frontend
         string text = ReferenceFormatProcessor.NormalizeToFreeForm(raw, DialectLevel, Permissive, diagnostics, sourcePath);
 
         // Conditional compilation runs on free-form text BEFORE COPY so an >>IF may include/omit COPY statements.
-        // leaveTurnDirectives: an emitting-branch >>TURN survives for the TurnDirectiveProcessor stage below
-        // (the COBOL.NET EC model, ISO §7.3.25) — the legacy pipeline still consumes TURN here.
-        text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true);
+        // leaveTurnDirectives / leavePropagateDirectives: an emitting-branch >>TURN / >>PROPAGATE survives for its
+        // dedicated stage below (the COBOL.NET EC model, ISO §7.3.25 / §7.3.21) — the legacy pipeline still consumes
+        // both here.
+        text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true, leavePropagateDirectives: true);
 
         // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
@@ -104,6 +105,13 @@ public sealed class Frontend
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "TurnDirectiveProcessor changed the line count — TURN scoping would silently misanchor (hazard H3)");
+
+        // >>PROPAGATE (ISO §7.3.21): recognize + edition-gate (introduction gate; runtime semantics are PHASE-13).
+        // Line-count preserving like the >>TURN stage.
+        text = PropagateDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "PropagateDirectiveProcessor changed the line count (hazard H3)");
 
         return text;
     }

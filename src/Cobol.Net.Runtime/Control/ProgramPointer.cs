@@ -3,7 +3,7 @@
 namespace CobolNet.Runtime;
 
 /// <summary>
-/// The program-pointer carrier (ISO §13.18.60 GR24 / §8.5.2.7; P10 Step 7): "may contain the address of a
+/// The program-pointer carrier (ISO §13.18.60 GR24 / §8.5.2.15; P10 Step 7): "may contain the address of a
 /// program … For a COBOL program, the address is for an outermost program." GR24 leaves alignment, size, and
 /// representation implementor-defined — this implementation's representation is the OUTERMOST program's
 /// externalized identity (its per-run-unit-unique PROGRAM-ID name, §8.4.6.3 rule 4), resolved and activated
