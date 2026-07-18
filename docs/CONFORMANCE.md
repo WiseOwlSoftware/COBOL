@@ -71,11 +71,37 @@ of an unsupported facility.
 - **I-O status '0x' case equivalence** (E.2 item 17): the low-order status digit for a non-'00' successful
   completion is implementor-dependent; COBOL.NET reports the specific '0x' value (e.g. '04', '05', '07') rather
   than collapsing to '00'.
-- **I-O status '04' (record-length mismatch)**: reported on a READ whose retrieved record length differs from the
-  fixed record description, where detectable.
-- **Case mappings (UPPER-CASE / LOWER-CASE, §15.97/§15.57)**: the .NET invariant Unicode case tables are used; the
-  enumerated 2023 additions/deletions (DOTLESS I, GREEK FINAL SIGMA) are an approximation to the invariant mapping
-  (a corner-case determination — the general Latin/basic repertoire matches exactly).
+- **I-O status '04' (record-length mismatch, §9.1.13.2 item 3)**: the record-sequential READ short/long-record
+  status '04' is **not yet emitted** — the record-sequential connector fits the physical record to the fixed record
+  width without flagging a length mismatch (a successful READ returns '00'). Planned (VCR 21; the value is
+  version-invariant — the E.2 item 15 2023 delta only clarifies *when* it is set).
+- **I-O status '07' restricted to OPEN/CLOSE (§9.1.13.2 item 6; E.2 item 16)**: already met at all editions — the
+  only '07' setter is CLOSE REEL/UNIT on a non-reel medium (`FileRegistry.CloseReelUnit`); no READ/WRITE/START/
+  REWRITE/DELETE path sets it. The 2023 restriction holds without a `DialectLevel` gate.
+- **I-O status '37' insufficient authority on OPEN/DELETE FILE (§9.1.13.6 item 6b; E.2 item 18)**: emitted at all
+  editions (mapped from .NET `UnauthorizedAccessException`). The spec permits it ("may") and marks detection
+  processor-dependent; E.2 item 18 is a clarification that it is allowed, not a 2023 introduction — so it is NOT
+  gated/suppressed below 2023.
+- **I-O status '39' (fixed-file-attribute conflict, §9.1.13.6 item 7; E.3.3 item 35)**: not produced — the host-file
+  model carries no persisted fixed-attribute catalog (record size / organization / code-set) to detect a conflict
+  against, so DELETE FILE / OPEN never returns '39'. Documented non-support until a physical-attribute store exists.
+- **Transfer of control includes sections (§14.6; E.2 item 26)**: a section is a first-class transfer target at all
+  editions — `ProcedureTableBuilder` gives each section a contiguous `[StartPc,EndPc]` pc range, so GO TO / PERFORM
+  of a section resolve (§14.9.17 / §14.9.28). The 2023 clarification is met without a gate.
+- **WRITE with no END-OF-PAGE phrase (§14.9.51; E.2 item 30)**: when the END-OF-PAGE condition occurs and no
+  END-OF-PAGE phrase is present, control falls through to the next statement (the natural code path — no branch is
+  emitted for an absent phrase). Version-invariant; met without a gate (no `>>FLAG-14` option exists for it).
+- **>>EVALUATE combined-condition end omission (§7.3.13 GR6/GR10; E.2 item 8)**: the preprocessor omits the
+  END-EVALUATE text precisely when no WHEN matched AND no WHEN OTHER is present — the corrected 2023 AND-truth rule;
+  the compile-time directive is version-invariant.
+- **Figurative constant on an unspecified-length item (§8.3.3.6.4 GR3b/c; E.2 item 11)**: a bare figurative VALUE
+  fills a single character (GR3b); an `ALL "literal"` fills the literal's own length (GR3c). Both are defined for
+  dynamic-length items at all editions, superseding the pre-2023 undefined case.
+- **Case mappings (UPPER-CASE / LOWER-CASE, §15.97.4 GR4 / §15.57.4)**: absent a locale, the case correspondence is
+  **implementor-defined** (§15.97.4 GR4). COBOL.NET uses the .NET invariant Unicode case tables. Because the mapping
+  is delegated to the implementor, the enumerated 2023 annex changes (E.2 item 14 deletions of DOTLESS I
+  `(0131,0069)` and GREEK FINAL SIGMA `(03C2,03C3)`; E.3.3 item 6 additions) are not separately tuned — the invariant
+  mapping is the determination (a corner case; the general Latin/basic repertoire matches exactly).
 - **STOP RUN / GOBACK termination status (§14.9.42.4 GR5 / §14.9.18.4 GR10 — Annex A required items 192/193)**:
   the status "passed to the operating system" and the ERROR/NORMAL termination indication both map to the single
   observable available on .NET — the process exit code (`Environment.ExitCode`). The constraint on the STATUS
