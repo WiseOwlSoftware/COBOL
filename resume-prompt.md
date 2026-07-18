@@ -214,6 +214,33 @@ verdict-gated as separate actions, never `&&`-chained. P7 pickups still queued: 
 route `ReferenceResolver.ResolveUnqualified` + the StatementBinder condition lookup through the `SymbolTable`; the
 image-fact caching (the O(subtree) perf work).
 
+**⚡ EXECUTION MODEL — tiered testing + batching + parallelism (owner-directed 2026-07-18; use it every session).**
+The comprehensive battery is ~12–15 min/run, so gate by BLAST RADIUS, not reflexively:
+- **Tiered testing.** *Wave-local gate* (~2–3 min, run per wave): a FRESH `CobolSharp.sln` build, then only the
+  targeted subset — characterization (emit byte-identity), `CorpusRunnerTests` FILTERED to the wave's subsystem +
+  its new golden, the wave's targeted unit tests, and a CLI probe of the feature. *Comprehensive gate* (~15–18 min):
+  the FULL greenfield conformance + FULL legacy guard (NIST) — run once per BATCH of waves and **mandatory before
+  any merge to `main` and before the P15 legacy cut**. GUARDRAILS that FORCE the comprehensive gate regardless:
+  (1) any SHARED-`.g4`/preprocessor/lexer change → full legacy guard (the parser is shared with the frozen legacy
+  compiler); (2) any bound-tree SHAPE change or shared-infra refactor → full conformance; (3) any config-divergent
+  code (`#if DEBUG`/`[Conditional]`) → a `-c Release` leg (CI tests Release, local is Debug — [[feedback_guard_fast_not_ci_complete]]);
+  (4) enabling a shared-corpus golden → the legacy suite too ([[feedback_legacy_suite_on_shared_corpus]]).
+- **Batching.** Land 3–4 INDEPENDENT greenfield waves sequentially in ONE tree (fast; no merge conflict), gate each
+  wave-local, run ONE comprehensive battery for the whole batch, then commit each wave SEPARATELY off the green tree
+  (verdict-gated) and push the batch.
+- **Parallelism (worktrees + agents; owner directs max parallelism where beneficial).** RELIABLY parallel: the
+  scouts/re-scouts, adversarial reviews, and MECHANICAL/DISJOINT bulk (the P15 migration cuts, P16 bound-node
+  neutralization sites) — fan out via `Workflow` (`isolation:'worktree'`), then INTEGRATE + comprehensive-gate.
+  DISJOINT feature waves (e.g. Wave F USE-DEBUGGING is independent of the EC waves) may run in parallel worktrees.
+  KEEP SERIAL / SUPERVISED: waves sharing the EC/gate hot files (`ExceptionState`/`ExceptionCatalog`/`EcEmitter`/
+  `EcBinder`/`constructs.json`/`VersionConformancePass`) — parallelizing them just manufactures merge conflicts + a
+  diagnostic-code-counter collision (two waves both grabbing the next free `COBOLNET15xx`); and the grammar batch
+  (shared `.g4` → one legacy guard); and the strict phase chain **13→14→15** (can't close the matrix before features
+  land; can't delete the oracle before P14 proves equivalence — prove-then-delete). Before any parallel fan-out:
+  PARTITION by disjoint file-sets and PRE-ALLOCATE a diagnostic-code range per worker. Spec-first FEATURE
+  implementation stays supervised (the [[feedback_use_the_spec]]/complete-not-scoped rules are exacting — subagents
+  drift); delegate only well-scoped mechanical/disjoint work, and REVIEW+integrate every agent diff against the spec.
+
 **Execution order (§4.1, TOOLING-FIRST):**
 - **A ✅** — the source-generated exhaustive bound-tree visitor (PHASE-07 Step 6): the 7 generated `IBound*Visitor` +
   `Accept` + `BoundStatementTree.StatementChildren`; every completeness-critical dispatch converted; every switch
