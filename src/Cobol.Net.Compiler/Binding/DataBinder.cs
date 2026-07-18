@@ -291,6 +291,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         BindReportSection(program);                // RD entries → ReportModels (ISO §13.14; DataBinder.Reports.cs)
         BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
 
+        // SCREEN SECTION (ISO §13.9) is an OPTIONAL facility (§4.2.7) COBOL.NET does not implement: it parses but is
+        // not bound. §4.2.6 requires a compile-time WARNING naming the unsupported element (rather than the former
+        // silent drop) — the COBOLNET1560 non-support band, catalogued in docs/CONFORMANCE.md §4. The program still
+        // compiles; the screen behavior is simply absent.
+        if (program.dataDivision()?.screenSection() is not null)
+            Edition.Warning("COBOLNET1560", "the SCREEN SECTION (ISO §13.9) is an optional facility (§4.2.7) that is "
+                + "not supported — it is accepted but produces no screen behavior (see docs/CONFORMANCE.md §4)");
+
         if (program.dataDivision()?.workingStorageSection() is { } ws)
             _workingStorageRoots.AddRange(BindEntries(ws.dataDescriptionEntry(), _rootNames));
 
