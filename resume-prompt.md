@@ -23,7 +23,7 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-13 IN PROGRESS (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
-**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `ad6bf79a`).
+**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `e42ee330`).
 DO NOT re-create the branch or re-run the audit — check it out and continue. Wave C is 8/10 constructs done +
 `docs/CONFORMANCE.md` created + the 8-construct adversarial review run (5 defects fixed); see "WHAT P13 HAS
 LANDED" + the trimmed "REMAINING P13 WORK" below.**
@@ -55,8 +55,11 @@ LANDED" + the trimmed "REMAINING P13 WORK" below.**
   **⚠ LESSON: the generated ANTLR parser is SHARED with the frozen legacy compiler** — a grammar RESTRUCTURE needs
   the legacy binder fixed + full legacy guard (an additive change does not break it, but a restructure does).
 - **Wave H (start) — `docs/CONFORMANCE.md`** (`6e9d1d12`, DEVLOG 889): the §4.2.16 conformance record + Annex A.3
-  46-item disposition + the four documented-non-support facilities. The §4.2.6 COBOLNET1560-band warning mechanism +
-  the recognize-and-name facility diagnostics are the Wave H code half (still to land).
+  46-item disposition + the four documented-non-support facilities. **The SCREEN SECTION §4.2.7 non-support WARNING
+  landed** (`e42ee330`, DEVLOG 891 — the silent-drop replaced by `warning COBOLNET1560` via `EditionContext.Warning`,
+  establishing the §4.2.6 warning band). **REMAINING Wave H code half:** the recognize-and-name diagnostics for MCS
+  (SEND/RECEIVE), COMMIT/ROLLBACK, VALIDATE (today a generic COBOL0001) — needs shared-parser keyword recognition
+  (→ full legacy guard).
 - **Wave I (partial) — adversarial review of the 8 Wave C constructs** (`ad6bf79a`, DEVLOG 890): a 17-agent
   find→verify workflow found **9 confirmed defects**; the 5 that reject/miscompute VALID input are FIXED
   (statusPhrase grammar's WITH-required/STATUS-binding/ERROR-NORMAL-optional bugs — a pre-existing STOP-status bug
