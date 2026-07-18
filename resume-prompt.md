@@ -23,8 +23,9 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-13 IN PROGRESS (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
-**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; 2 commits pushed
-`08acae23`→`a4cca7ae`). DO NOT re-create the branch or re-run the audit — check it out and continue.**
+**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `6e9d1d12`).
+DO NOT re-create the branch or re-run the audit — check it out and continue. Wave C is 8/10 constructs done +
+`docs/CONFORMANCE.md` created; see "WHAT P13 HAS LANDED" + the trimmed "REMAINING P13 WORK" below.**
 
 ### ▶ HOW TO RESUME P13 (read these, in order)
 1. `git checkout phase-13-m4-2023` (the live P13 branch; `main` is at the P12 merge `e95dd92c`).
@@ -44,16 +45,35 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
   `ExceptionState.BoundOverflowChecking`/`BoundRefModChecking` flags set by `EcEmitter` from `TurnState`, `EcBinder`
   wrapping every table-grow/ref-mod statement in a `BoundEcChecked`, + runtime raise at `CobolDynTable`
   grow-past-capacity and `CobolString.RefMod` zero-length; LOUD-not-silently-wrong today).
+- **Wave C — 8 of 10 COBOL-2023 grammar constructs** (`82be7e50` batch 1 + `a1704318` WRITE; DEVLOG 887–888), each
+  spec-first from the persisted re-scout `docs/rearchitecture/PHASE-13-wave-c-scout.md` (which caught the
+  SET-SIZE-OF-not-LENGTH-OF + EC-STORAGE-not-EC-BOUND + boolean-shift-precedence audit drifts), CLI-probed, golden +
+  below-2023 negative each: GOBACK status (presence-only), USAGE PACKED-DECIMAL WITH NO SIGN, 63-char words, SET
+  [SIZE OF] dyn-length, CONTINUE AFTER SECONDS + EC-CONTINUE, PERFORM UNTIL EXIT, boolean shift B-SHIFT-L/R/LC/RC
+  (Table A.2 oracle byte-exact), WRITE BEFORE AND AFTER ADVANCING. Diag band 1565–1568 consumed (next free 1569).
+  **⚠ LESSON: the generated ANTLR parser is SHARED with the frozen legacy compiler** — a grammar RESTRUCTURE needs
+  the legacy binder fixed + full legacy guard (an additive change does not break it, but a restructure does).
+- **Wave H (start) — `docs/CONFORMANCE.md`** (`6e9d1d12`, DEVLOG 889): the §4.2.16 conformance record + Annex A.3
+  46-item disposition + the four documented-non-support facilities. The §4.2.6 COBOLNET1560-band warning mechanism +
+  the recognize-and-name facility diagnostics are the Wave H code half (still to land).
 
 ### ▶ THE REMAINING P13 WORK (from the audit — batch by GATE type; owner directive: optimize/combine, not at the risk of accuracy)
-- **Wave C — 2023 grammar constructs** (each a FULL vertical grammar→binder→emit→runtime→golden→below-2023 negative;
-  ALL share ONE full legacy guard per batch): boolean shift B-SHIFT-L/R/LC/RC (§8.8.2), USAGE NO SIGN (§13.18.60),
-  CONTINUE AFTER n SECONDS + EC-CONTINUE-LESS-THAN-ZERO (§14.9.9), PICTURE EDITING (§13.18.40), PERFORM WHEN /
-  UNTIL EXIT (§14.9.31), WRITE BEFORE AND AFTER (§14.9.51), SUPPRESS WHEN alt-key, 63-char words (§8, VCR 54 —
-  needs a NEW length rejection: >30 below 2023 / >63 at 2023, watch regression), dynamic-length SET (§14.9.38),
-  GOBACK 2023 status phrase (§14.9.18 — NOTE: `BoundStop.HasStatusPhrase` is presence-only, the status VALUE / §12
-  RETURN-CODE wiring is a documented later slice, so GOBACK-status at that level is a thin compile-only golden —
-  decide whether to wire the value first).
+- **Wave C — 2023 grammar constructs (8 of 10 DONE — see "WHAT P13 HAS LANDED"; REMAINING 3 + 1 slice):**
+  - **SUPPRESS WHEN on ALTERNATE RECORD KEY** (§13.x / §14.9.51 GR41 / §14.9.30 GR21c) — the big one: an indexed-file
+    per-alternate-key suppression across Write/Rewrite/ReadSequential/ReadRandom/START in `IndexedConnector`, with the
+    no-DUPLICATES '22' + GR27 '02' lookahead bypass. Scout: `PHASE-13-wave-c-scout.md` §C6 (item B). High blast radius
+    on the IX file suite.
+  - **PICTURE EDITING phrase** (§13.18.40, VCR 62) — L: EDITING character-1 IS/FOR NEGATIVE/POSITIVE. Thread the
+    EDITING map INTO `PictureAnalyzer.Analyze` (else 0808 rejects character-1); a new sign-sensitive `CobolEdit`
+    overload. ⚠ Trust Annex D.24 over the extracted Table 8 (an inversion hazard). Scout §C4; NO PICMODE change (the
+    audit hint was wrong). Fixed simple/sign-sensitive first; floating extended editing goldened separately.
+  - **PERFORM Format 3 (exception-checking PERFORM … WHEN)** (§14.9.28.2) — staged large: 2 new tokens (FINALLY,
+    LOCATION) + a whole new statement + deep EC integration (GR14 PUSH/POP/TURN, GR17 declarative-shadowing, GR20
+    fatal/nonfatal resumption). PERFORM UNTIL EXIT already landed. Scout §C5.
+  - **STOP/GOBACK exit-code VALUE wiring slice** (§14.9.42 GR5 / §14.9.18.4 GR10) — staged (owner-sanctioned "later
+    slice"): upgrade `BoundStop.HasStatusPhrase` presence-only → set `Environment.ExitCode` for BOTH STOP RUN status
+    and main-program GOBACK status, ONE run-unit termination-status mechanism. Blast radius = the `Main`/`StopRun`/
+    `ProgramReturn` path.
 - **Wave D — directives** (preprocessor → full legacy guard): `>>COBOL-WORDS` (mutates the per-unit ReservedWordSet
   seam), `>>PUSH`/`>>POP` (directive-state stack), `>>DISPLAY` (compile-log line), `>>FLAG-14` + `>>FLAG-02`-obsolete.
 - **Wave E — EXTERNAL conformance cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63; strong-typed external,
@@ -64,13 +84,16 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **Wave G — behavior rows** (I-O status 04/07/0x/37 + DELETE FILE '39'/goldens; VALUE numeric-edited conformance
   34/35/36/86; MERGE-in-output-proc 27, transfer-of-control sections 33, WRITE-EOP 37, EVALUATE-directive 14,
   ALL-length 17, case-mapping 20/49 — many pin-to-spec).
-- **Wave H — the A.3 46-item disposition sweep** + `docs/CONFORMANCE.md` (§4.2.16) + ONE `COBOLNET1560`-band §4.2.6
-  processor-dependent-not-supported warning + the 4 documented-non-support facilities (MCS/commit-rollback/VALIDATE/
-  screen).
+- **Wave H — `docs/CONFORMANCE.md` DONE (`6e9d1d12`)** (the A.3 46-item disposition + §4.2.16 record + the 4
+  documented-non-support facilities catalogued). **REMAINING code half:** ONE `COBOLNET1560`-band §4.2.6
+  processor-dependent-not-supported WARNING mechanism + the recognize-and-name diagnostics for MCS
+  (SEND/RECEIVE)/commit-rollback (COMMIT/ROLLBACK)/VALIDATE/screen (SCREEN SECTION silent-drop → named warning) —
+  needs lexer/grammar recognition of those keywords (→ full legacy guard).
 - **Wave I — adversarial review** (Workflow find→verify, prior phases found ~6-7 real defects each) → phase close
   (STATUS→DONE, resume-prompt/roadmap/DOC_INDEX/memory sweep) → merge to `main`.
-- **Diagnostic band:** the P13 plan says 15xx from 1539, but P12 consumed 1561-1564; the true free band is **1565+**
-  (verify with `grep -o 'COBOLNET15[0-9][0-9]' src`). Directive/introduction gates use COBOLNET0900; obsolete 0903.
+- **Diagnostic band:** Wave C batch 1 consumed **1565** (NO SIGN on non-Packed), **1566** (SR31 'S'+NO SIGN),
+  **1567** (word-length ceiling), **1568** (SET SIZE SR33); WRITE used 0862 (SR17). **Next free = 1569** (verify
+  with `grep -o 'COBOLNET15[0-9][0-9]' src`). Directive/introduction gates use COBOLNET0900; obsolete 0903.
 
 **Then: PHASE-14** (matrix closure + in-repo greenfield guard `scripts/guard.ps1`/`greenfield-guard` + one-time
 legacy-equivalence proof) → **PHASE-15** (G8 legacy retirement — the three cuts DELETE `CobolSharp.Compiler`/the
