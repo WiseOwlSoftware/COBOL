@@ -963,6 +963,7 @@ setStatement
     : setLastExceptionStatement
     | setSwitchStatement
     | setEntryStatement
+    | setSizeStatement
     | setToValueStatement
     | setBooleanStatement
     | setAddressStatement
@@ -992,6 +993,14 @@ setSwitchStatement
     ;
 
 // SET dataReference+ TO arithmeticExpression (COBOL-85 §14.9.39 Format 1)
+// SET [SIZE OF] data-name-3 TO {integer-2 | arithmetic-expression-5} (ISO §14.9.39 Format 16, COBOL-2023):
+// set the current length of a DYNAMIC LENGTH elementary item. SIZE OF is the explicit form (SIZE is a reserved
+// token, so it cannot head a dataReference — no ambiguity, listed before setToValueStatement). The SIZE-OF-absent
+// bare form `SET dyn TO n` parses as setToValueStatement and re-routes at bind via a dynamic-length peek.
+setSizeStatement
+    : SET SIZE OF dataReference TO arithmeticExpression
+    ;
+
 setToValueStatement
     : SET dataReference+ TO arithmeticExpression
     ;
@@ -1085,7 +1094,9 @@ displayNoAdvancing
 // ==========================================
 
 gobackStatement
-    : GOBACK ((RETURNING | GIVING) dataReference)? raisingPhrase?   // RETURNING introduction-gated at BIND time (CallBindGoback → Check(GobackReturning2002))
+    // RETURNING introduction-gated at BIND time (CallBindGoback → Check(GobackReturning2002)); the RAISING and
+    // 2023 STATUS phrases are the mutually-exclusive §14.9.18.2 tail alternatives (statusPhrase shared with STOP).
+    : GOBACK ((RETURNING | GIVING) dataReference)? (raisingPhrase | statusPhrase)?
     ;
 
 // ==========================================

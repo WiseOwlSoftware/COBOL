@@ -180,8 +180,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind <c>GOBACK [RETURNING x]</c> (ISO §14.9.18). GOBACK itself was introduced by ISO/IEC
     /// 1989:2002 — at <c>--std 85</c> it is rejected with a targeted diagnostic (the G1 lacks-it obligation;
-    /// COBOL-85 programs use STOP RUN / EXIT PROGRAM). The 2023-only WITH ERROR/NORMAL STATUS phrase is not in
-    /// the grammar yet (VERSION_CHANGE_REFERENCE row 75 — a later slice with the §12 RETURN-CODE wiring).</summary>
+    /// COBOL-85 programs use STOP RUN / EXIT PROGRAM). The 2023 WITH ERROR/NORMAL STATUS phrase (§14.9.18.2,
+    /// VERSION_CHANGE_REFERENCE row 75) parses through the shared <c>statusPhrase</c> rule and is introduction-
+    /// gated by the VersionConformancePass (GobackStatus2023); it binds presence-only here (the status VALUE →
+    /// exit-code wiring is the shared STOP+GOBACK termination-status slice, matching the presence-only STOP sibling).</summary>
     public BoundStatement BindGoback(Core.GobackStatementContext g)
     {
         if (host.InMethod) return host.Oo.OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)

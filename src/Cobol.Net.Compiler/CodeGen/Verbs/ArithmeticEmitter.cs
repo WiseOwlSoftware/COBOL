@@ -127,7 +127,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// A multi-receiver COMPUTE materializes the value once (the §14.7.7-shaped once-evaluation).</summary>
     public void EmitComputeBoolean(BoundComputeBoolean cb)
     {
-        string value = BooleanRenderer.Render(cb.Rhs);
+        string value = BooleanRenderer.Render(cb.Rhs, num);
         if (cb.Gr3Width > 0) value = RuntimeApi.BoolResize(value, $"{cb.Gr3Width}");
         // One evaluation for multiple receivers (a boolean expr can read an item a prior receiver aliases).
         if (cb.Targets.Count > 1)

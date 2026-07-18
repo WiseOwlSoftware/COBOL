@@ -18,6 +18,13 @@ public static class Constructs
     public const string Invoke2002 = "invoke-2002";
     public const string GobackReturning2002 = "goback-returning-2002";
     public const string StopRunStatus2002 = "stop-run-status-2002";
+    public const string GobackStatus2023 = "goback-status-2023";
+    public const string UsagePackedNoSign2023 = "usage-packed-no-sign-2023";
+    public const string SetDynLengthSize2023 = "set-dyn-length-size-2023";
+    public const string WordLength632023 = "word-length-63-2023";
+    public const string ContinueAfter2023 = "continue-after-2023";
+    public const string PerformUntilExit2023 = "perform-until-exit-2023";
+    public const string BooleanShiftOperators2023 = "boolean-shift-operators-2023";
     public const string BasedClause2002 = "based-clause-2002";
     public const string AnyLengthClause2002 = "any-length-clause-2002";
     public const string ProcedureReturning2002 = "procedure-returning-2002";

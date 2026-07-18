@@ -55,10 +55,31 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     private BoundBoolExpr BindBoolAnd(Core.BooleanAndTermContext ctx)
     {
-        var factors = ctx.booleanFactor();
-        BoundBoolExpr acc = BindBoolFactor(factors[0]);
-        for (int i = 1; i < factors.Length; i++)
-            acc = MakeBoolBinary(acc, '&', BindBoolFactor(factors[i]));
+        var terms = ctx.booleanShiftTerm();
+        BoundBoolExpr acc = BindBoolShift(terms[0]);
+        for (int i = 1; i < terms.Length; i++)
+            acc = MakeBoolBinary(acc, '&', BindBoolShift(terms[i]));
+        return acc;
+    }
+
+    /// <summary>Bind a boolean shift term (ISO §8.8.2 rule 8, COBOL-2023): a boolean factor followed by zero or more
+    /// <c>(B-SHIFT-L|R|LC|RC) integer</c> suffixes, left-associative. Rule 5 — the first operand of a shift shall not
+    /// be the figurative ALL literal (COBOLNET1511). The 2023 introduction is gated in the VersionConformancePass
+    /// parse arm (HasShiftOp), so no binder-side gate here (the boolean-operators precedent).</summary>
+    private BoundBoolExpr BindBoolShift(Core.BooleanShiftTermContext shift)
+    {
+        BoundBoolExpr acc = BindBoolFactor(shift.booleanFactor());
+        foreach (var suf in shift.booleanShiftSuffix())
+        {
+            var kind = suf.B_SHIFT_LC() is not null ? BoolShiftKind.LeftCircular
+                     : suf.B_SHIFT_RC() is not null ? BoolShiftKind.RightCircular
+                     : suf.B_SHIFT_L() is not null ? BoolShiftKind.Left
+                     : BoolShiftKind.Right;
+            if (acc is BoundBoolAll)
+                ctx.Edition.Error("COBOLNET1511", "the first operand of a boolean shift operation shall not be the "
+                    + "figurative constant ALL literal (ISO §8.8.2 rule 5)");
+            acc = new BoundBoolShift(acc, kind, host.Expr.BindExpr(suf.arithmeticExpression()));
+        }
         return acc;
     }
 
@@ -146,6 +167,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundBoolRef r => r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.Pic?.Length ?? 0,
         BoundBoolBinary b => System.Math.Max(Gr3Width(b.Left), Gr3Width(b.Right)),
         BoundBoolNot n => Gr3Width(n.Operand),
+        BoundBoolShift s => Gr3Width(s.Operand),   // rule 9 — result length = the FIRST operand (the count adds none)
         _ => 0,   // literals / ALL / error contribute no ITEM width
     };
 
@@ -182,6 +204,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundBoolRef r => (r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.Pic?.Length ?? 0) == 1,
         BoundBoolBinary b => BoolExprAllLengthOne(b.Left) && BoolExprAllLengthOne(b.Right),
         BoundBoolNot n => BoolExprAllLengthOne(n.Operand),
+        BoundBoolShift s => BoolExprAllLengthOne(s.Operand),   // shift preserves length (rule 9)
         BoundBoolAll => true,   // positionless — materializes to the sibling's length
         _ => true,              // error nodes already reported
     };
@@ -259,9 +282,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (xor.Length != 1) return null;
         var and = xor[0].booleanAndTerm();
         if (and.Length != 1) return null;
-        var fac = and[0].booleanFactor();
-        if (fac.Length != 1) return null;
-        return UnwrapFactor(fac[0]);
+        var shift = and[0].booleanShiftTerm();
+        // A bare operand has a single shift term with NO shift suffix (a shift op means it is a real expression).
+        if (shift.Length != 1 || shift[0].booleanShiftSuffix().Length != 0) return null;
+        return UnwrapFactor(shift[0].booleanFactor());
     }
 
     private static Core.ValueOperandContext? UnwrapFactor(Core.BooleanFactorContext f)

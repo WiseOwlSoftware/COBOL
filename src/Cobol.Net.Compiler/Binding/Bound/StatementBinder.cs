@@ -290,7 +290,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => Accept.BindAccept(ac),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
-        _ when s.continueStatement() is not null => new BoundNop(),
+        _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by

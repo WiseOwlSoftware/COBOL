@@ -102,6 +102,7 @@ public static class BoundStores
         public StoreKind? Visit(BoundExitParagraph n) => StoreKind.None;
         public StoreKind? Visit(BoundExitPerform n) => StoreKind.None;
         public StoreKind? Visit(BoundNop n) => StoreKind.None;
+        public StoreKind? Visit(BoundContinueAfter n) => StoreKind.None;   // reads its interval expr; stores nothing
         public StoreKind? Visit(BoundNextSentence n) => StoreKind.None;
         public StoreKind? Visit(BoundOpen n) => StoreKind.None;
         public StoreKind? Visit(BoundClose n) => StoreKind.None;
@@ -158,6 +159,7 @@ public static class BoundStores
         public StoreKind? Visit(BoundSetConditions n) => n.Sets.Any(x => Hit(x.Parent)) ? StoreKind.Write : StoreKind.None;
         public StoreKind? Visit(BoundSetTo n) => n.Targets.Any(TargetHit) ? StoreKind.Write : StoreKind.None;
         public StoreKind? Visit(BoundSetUpDown n) => n.Targets.Any(TargetHit) ? StoreKind.ReadWrite : StoreKind.None;
+        public StoreKind? Visit(BoundSetSize n) => Hit(n.Target) ? StoreKind.ReadWrite : StoreKind.None;   // reads current content, writes resized
 
         // ── SEARCH ──────────────────────────────────────────────────────────────────────────────────────
         public StoreKind? Visit(BoundSearch n) => StoreOrKids(TargetHit(n.AlsoVaried), StoreKind.ReadWrite,

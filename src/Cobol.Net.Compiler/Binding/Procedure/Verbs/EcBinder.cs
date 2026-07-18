@@ -418,6 +418,7 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
     {
         BoundBoolBinary b => BoolExprHasIntrinsic(b.Left) || BoolExprHasIntrinsic(b.Right),
         BoundBoolNot n => BoolExprHasIntrinsic(n.Operand),
+        BoundBoolShift s => BoolExprHasIntrinsic(s.Operand) || ExprHasIntrinsic(s.Count),   // the count is a numeric expr
         _ => false,
     };
 

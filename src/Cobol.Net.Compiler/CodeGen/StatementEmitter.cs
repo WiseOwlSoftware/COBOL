@@ -102,6 +102,15 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundExitPerform n) { _ctx.Writer.Line(n.Cycle ? "continue;" : "break;"); return false; }   // inline-PERFORM loop
     public bool Visit(BoundGoToDepending n) { _controlFlow.EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
+    public bool Visit(BoundContinueAfter n)
+    {
+        // CONTINUE AFTER n SECONDS (§14.9.9): evaluate the interval as an integer (m=0 implementor choice — fractional
+        // seconds truncate, GR1's COMPUTE without ROUNDED), then suspend via the runtime, which floors a negative to 0
+        // and sets the nonfatal EC-CONTINUE-LESS-THAN-ZERO under CHECKING ON (GR1a/GR1b).
+        string secs = $"(long)({NumericRenderer.Align(_num.Render(n.Seconds, ReceiverContext.None), 0)})";
+        _ctx.Writer.Line(RuntimeApi.ContinueAfter(secs, n.CheckLessThanZero ? "true" : "false") + ";");
+        return false;
+    }
 
     public bool Visit(BoundSequence n)
     {
@@ -151,6 +160,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundSetTo n) { _set.EmitSetTo(n); return false; }
     public bool Visit(BoundSetUpDown n) { _set.EmitSetUpDown(n); return false; }
     public bool Visit(BoundSetCapacity n) { _set.EmitSetCapacity(n); return false; }
+    public bool Visit(BoundSetSize n) { _set.EmitSetSize(n); return false; }
     public bool Visit(BoundSearch n) { _controlFlow.EmitSearch(n); return false; }
     public bool Visit(BoundEvaluate n) { _evaluate.Emit(n); return false; }
     public bool Visit(BoundInspect n) { _inspect.Emit(n); return false; }

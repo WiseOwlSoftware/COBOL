@@ -40,7 +40,15 @@
    every commit boundary; per `docs/rearchitecture/DESIGN-test-build-ci.md` gates 1 & 2 red = stop.
 
 ## STATUS
-`IN PROGRESS — Step 1 (audit) + Wave B partial DONE; RESUME AT Wave C` (branch `phase-13-m4-2023`, 2 commits `08acae23`→`a4cca7ae`; NOT merged)
+`IN PROGRESS — Step 1 (audit) + Wave B partial + Wave C batch 1 (7 constructs) DONE; RESUME AT Wave C batch 2` (branch `phase-13-m4-2023`; NOT merged)
+
+> **Wave C batch 1 (7 of 10 constructs) landed** — spec-first from the persisted re-scout
+> `docs/rearchitecture/PHASE-13-wave-c-scout.md` (which caught the SET-SIZE-OF-not-LENGTH-OF + EC-STORAGE-not-EC-BOUND
+> + boolean-shift-precedence audit drifts): GOBACK status (presence-only), USAGE PACKED-DECIMAL WITH NO SIGN,
+> 63-char words, SET [SIZE OF] dyn-length, CONTINUE AFTER SECONDS + EC-CONTINUE-LESS-THAN-ZERO, PERFORM UNTIL EXIT,
+> boolean shift B-SHIFT-L/R/LC/RC (Table A.2 oracle byte-exact). Diag band 1565–1568 consumed. See DEVLOG 887.
+> **Wave C batch 2 (remaining):** WRITE BEFORE AND AFTER + SUPPRESS WHEN alt-key (C5), PICTURE EDITING phrase (C3),
+> PERFORM Format 3 exception-checking (staged large), + the STOP/GOBACK exit-code VALUE wiring slice.
 
 > **RESUME POINTER (a new session): read `resume-prompt.md`'s top P13 banner FIRST — it has the ordered resume
 > steps + the batched remaining-work waves.** LANDED: Step 1 = the as-built audit (`PHASE-13-audit.md` — THE

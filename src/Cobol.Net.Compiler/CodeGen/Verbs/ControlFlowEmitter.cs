@@ -79,6 +79,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             case PerformVarying v:
                 EmitVarying(v, body);
                 break;
+            case PerformForever:
+                // UNTIL EXIT (§14.9.28.4 GR11, 2023): the condition never becomes true. An inline EXIT PERFORM emits
+                // `break` (StatementEmitter.Visit(BoundExitPerform)); an out-of-line loop escapes only via GOBACK/STOP.
+                using (w.Block("while (true)")) body();
+                break;
             default:   // PerformOnce — an inline body runs once via do/while(false); an out-of-line call is unconditional
                 if (inline) { using (w.Block("do")) body(); w.Line("while (false);"); }
                 else body();

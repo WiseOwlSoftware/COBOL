@@ -76,6 +76,18 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
         ctx.Writer.Line($"{PlaceRenderer.RenderPath(s.Table, AccessDir.Sending)}.{call}({tmp});");
     }
 
+    /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): evaluate the amount ONCE, then
+    /// resize the dynamic-length item's native string in place — <c>CobolDynString.SetSize</c> space-fills grown
+    /// positions (GR39), drops trailing ones on shrink, clamps above the LIMIT and floors a negative to 0
+    /// (GR37/GR38).</summary>
+    public void EmitSetSize(BoundSetSize s)
+    {
+        string amt = $"__sz{ctx.Names.NextSet()}";
+        ctx.Writer.Line($"long {amt} = (long)({NumericRenderer.Align(num.Render(s.Amount, ReceiverContext.None), 0)});");
+        ctx.Writer.Line(PlaceRenderer.Write(s.Target,
+            RuntimeApi.DynSetSize(PlaceRenderer.Read(s.Target), amt, s.Limit.ToString())));
+    }
+
     /// <summary>THE store into a SET-style target (shared by SET TO and PERFORM VARYING initialization): an
     /// index-name field or index data item takes the integer value UNCHANGED (§14.9.39 GR2a/2b — an index IS its
     /// occurrence number); a numeric data item takes it through its own PICTURE store (GR2c).</summary>

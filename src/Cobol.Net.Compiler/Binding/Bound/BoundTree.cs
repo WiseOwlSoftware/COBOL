@@ -268,6 +268,17 @@ public sealed record BoundBoolBinary(BoundBoolExpr Left, char Op, BoundBoolExpr 
 /// <summary>Boolean negation (B-NOT) — length preserved (ISO §8.8.2 rule 10).</summary>
 public sealed record BoundBoolNot(BoundBoolExpr Operand) : BoundBoolExpr;
 
+/// <summary>The four boolean shift operators (ISO §8.8.2, COBOL-2023): logical (fill boolean 0) or circular
+/// (rotate), left or right.</summary>
+public enum BoolShiftKind { Left, Right, LeftCircular, RightCircular }
+
+/// <summary>A boolean shift/rotate (ISO §8.8.2 rule 8, COBOL-2023): shift <paramref name="Operand"/> by the
+/// integer <paramref name="Count"/>. The result length equals the operand's length (rule 9 — the count contributes
+/// no positions). NOTE the rule-7b context-sensitive precedence (a shift inheriting a preceding B-OR/B-XOR's
+/// precedence) is a documented refinement — the grammar binds the shift tighter than B-AND (the unmixed default
+/// case, which the Annex A Table A.2 oracle exercises).</summary>
+public sealed record BoundBoolShift(BoundBoolExpr Operand, BoolShiftKind Kind, BoundExpr Count) : BoundBoolExpr;
+
 /// <summary>A boolean expression the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundBoolError(string Feature) : BoundBoolExpr;
 
@@ -432,6 +443,10 @@ public sealed record PerformOnce : BoundPerformControl;
 public sealed record PerformTimes(BoundOperand Count) : BoundPerformControl;
 /// <summary>Run the body until <paramref name="Until"/> (TEST BEFORE → while; <paramref name="TestAfter"/> → do/while).</summary>
 public sealed record PerformUntil(BoundCondition Until, bool TestAfter) : BoundPerformControl;
+/// <summary>PERFORM … UNTIL EXIT (ISO §14.9.28.4 GR11, COBOL-2023): an unconditional infinite loop (a condition
+/// that never becomes true → <c>while(true)</c>). Escape is the programmer's responsibility — an inline loop by
+/// EXIT PERFORM, an out-of-line loop by GOBACK/STOP RUN (NOTE 4).</summary>
+public sealed record PerformForever : BoundPerformControl;
 
 /// <summary>One VARYING/AFTER level of a PERFORM Format 4 (ISO §14.9.28): the induction variable (an index-name or
 /// data item — SET-style target), its FROM initialization, BY augment (1 when the phrase is omitted, GR12), and
@@ -466,6 +481,13 @@ public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
 
 /// <summary>A no-op statement: bare <c>EXIT</c>, <c>CONTINUE</c>, or <c>EXIT PROGRAM</c> in the main program.</summary>
 public sealed record BoundNop : BoundStatement;
+
+/// <summary>CONTINUE AFTER arithmetic-expression-1 SECONDS (ISO §14.9.9, COBOL-2023): a timed pause.
+/// <paramref name="Seconds"/> is the interval; a value below zero is forced to 0 (GR1a) and, when
+/// <paramref name="CheckLessThanZero"/> (EC-CONTINUE-LESS-THAN-ZERO checking was enabled at this statement),
+/// sets the nonfatal EC-CONTINUE-LESS-THAN-ZERO (GR1b) before continuing; otherwise execution suspends for the
+/// interval (GR1). Fractional seconds truncate (implicit COMPUTE without ROUNDED).</summary>
+public sealed record BoundContinueAfter(BoundExpr Seconds, bool CheckLessThanZero) : BoundStatement;
 
 /// <summary>A fixed pre/main/post statement group emitted in order — the carrier for bind-time desugars
 /// that wrap ONE source statement in synthesized neighbors (first client: object-property references,
@@ -561,6 +583,14 @@ public enum SetCapacityKind { To, UpBy, DownBy }
 /// whole-table access path) — raising or lowering the current capacity, seeding new occurrences (§8.5.1.9.5), clamped
 /// to the minimum, and raising EC-FLOW-SEARCH if a SEARCH of that same table is active (GR31).</summary>
 public sealed record BoundSetCapacity(AccessPath Table, BoundExpr Amount, SetCapacityKind Kind) : BoundStatement;
+
+/// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of the
+/// dynamic-length elementary item at <paramref name="Target"/> to <paramref name="Amount"/> characters. Growing
+/// space-fills the added positions (GR39); shrinking drops the trailing ones; a value above <paramref name="Limit"/>
+/// (the LIMIT character count, −1 = unbounded) clamps, a negative value yields 0 (GR37/GR38). A self-identifying
+/// node — the VersionConformancePass bound-tree arm gates it (SetDynLengthSize2023) for both the explicit SIZE OF
+/// form and the bare re-routed form.</summary>
+public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit) : BoundStatement;
 
 // ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
 

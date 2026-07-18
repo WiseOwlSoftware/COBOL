@@ -25,4 +25,21 @@ public static class CobolDynString
         value ??= "";
         return limit >= 0 && value.Length > limit ? value[..limit] : value;
     }
+
+    /// <summary>
+    /// SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, GR37–GR39): set the current length of a
+    /// dynamic-length item. GR39 — growing initializes the ADDED positions to SPACES (the national space is
+    /// U+0020 under the Latin-1 identity), NEVER restoring previously-truncated content; shrinking drops the
+    /// trailing positions. GR38 — a value above <paramref name="limit"/> clamps to it; GR37 — a value below zero
+    /// yields length 0. (The nonfatal EC-STORAGE-NOT-AVAIL that also becomes set in the clamp/negative cases when
+    /// checking is enabled is a checking-off no-op — the stored value is identical either way — so it is a staged
+    /// follow-on.) <paramref name="limit"/> below 0 means no LIMIT phrase — the implementor maximum, here unbounded.
+    /// A non-integer <paramref name="newLen"/> is already truncated toward zero by the integer-typed caller (GR37).
+    /// </summary>
+    public static string SetSize(string? current, long newLen, int limit)
+    {
+        current ??= "";
+        long n = newLen < 0 ? 0 : limit >= 0 && newLen > limit ? limit : newLen;
+        return n <= current.Length ? current[..(int)n] : current + new string(' ', (int)n - current.Length);
+    }
 }

@@ -325,6 +325,14 @@ public sealed class ConformanceTests : EndToEndTestBase
         // PHASE-13 EC remnants: the EC engine (>>TURN / EXCEPTION-STATUS / the named nonfatal-EC model) is
         // greenfield-only; the frozen legacy has a limited EC model. CorpusRunnerTests byte-compares these.
         ("2023", "ec_size_truncation_prohibited"),
+        // PHASE-13 Wave C batch 1 — COBOL-2023 grammar constructs the frozen legacy compiler has no support for
+        // (grammar/binder/runtime landed greenfield-only). CorpusRunnerTests byte-compares these at --std 2023.
+        ("2023", "usage_packed_no_sign"),   // USAGE PACKED-DECIMAL WITH NO SIGN (§13.18.60.4 GR11)
+        ("2023", "set_size"),               // SET [SIZE OF] dyn-length TO n (§14.9.39 Format 16)
+        ("2023", "continue_after"),         // CONTINUE AFTER n SECONDS + EC-CONTINUE-LESS-THAN-ZERO (§14.9.9)
+        ("2023", "perform_until_exit"),     // PERFORM … UNTIL EXIT (§14.9.28.4 GR11)
+        ("2023", "boolean_shift"),          // boolean shift B-SHIFT-L/R/LC/RC (§8.8.2 rule 8)
+        ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
     ];
 
     [Theory]

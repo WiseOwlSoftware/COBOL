@@ -48,7 +48,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
         : $"!ExternalSwitches.Get({EmitText.CsLiteral(n.ImplementorName)})";
     public string Visit(BoundSignCondition n) => RenderSign(n);
     // A simple boolean condition (ISO §8.8.4.3.4 GR1): true iff the boolean value is 1.
-    public string Visit(BoundBooleanCondition n) => $"CobolBool.IsTrue({BooleanRenderer.Render(n.Expr)})";
+    public string Visit(BoundBooleanCondition n) => $"CobolBool.IsTrue({BooleanRenderer.Render(n.Expr, num)})";
     public string Visit(BoundClassCondition n) => RenderClass(n);
     // A user-defined class (§8.8.4.1.4 / §12.3.7): operand consists entirely of the class's member characters.
     public string Visit(BoundUserClassCondition n) => n.Negated
@@ -200,9 +200,9 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// boolean expression via <see cref="BooleanRenderer"/>, a boolean field via its <c>Place.Read()</c>, a
     /// boolean literal via its value, and figurative ZERO as "0" (CobolBool.Equal zero-extends it to the other
     /// operand's width — §8.3.3.6.4 GR4 boolean zeros).</summary>
-    private static string BoolRead(BoundOperand o) => o switch
+    private string BoolRead(BoundOperand o) => o switch
     {
-        BoundBoolOperand b => BooleanRenderer.Render(b.Expr),
+        BoundBoolOperand b => BooleanRenderer.Render(b.Expr, num),
         BoundFieldOperand f => PlaceRenderer.Read(f.Place),
         BoundStringLiteral { Category: PicCategory.Boolean } s => EmitText.CsLiteral(s.Value),
         BoundFigurative { Kind: 'Z' } => "\"0\"",

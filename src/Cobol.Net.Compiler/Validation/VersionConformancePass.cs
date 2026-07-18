@@ -138,6 +138,11 @@ internal sealed class VersionConformancePass
                 Check(Constructs.SetObjectReference2002, "the SET … TO object-reference statement (Format 5)"); break;
             case BoundSetPointerUpDown:
                 Check(Constructs.PointerArithmetic2002, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)"); break;
+            case BoundSetSize:
+                // SET [SIZE OF] dynamic-length-item TO n (§14.9.39 Format 16) — a 2023 introduction. Semantic (the
+                // target must be dynamic-length), so it stays a bound-tree gate — one arm covers the explicit SIZE
+                // OF form and the bare re-routed form (both bind to BoundSetSize).
+                Check(Constructs.SetDynLengthSize2023, "the SET [SIZE OF] … TO length statement (dynamic-length item, Format 16)"); break;
 
             // (OPEN-SHARING / GOBACK-RETURNING / CALL-BY-VALUE / CALL-ON-OVERFLOW / STOP-RUN-STATUS / END-ACCEPT —
             // phrase gates whose presence is purely syntactic — migrated to the ParseArm in Step 14h.3.)
@@ -356,6 +361,8 @@ internal sealed class VersionConformancePass
         private readonly ReservedWordSet _reservedWords = ReservedWordSet.Default;
         // One COBOLNET0901 per distinct word per compilation (P2.4) — not one per occurrence.
         private HashSet<string>? _flaggedWords;
+        // One COBOLNET1567 per distinct over-long word per compilation (the §8.3.2.1 length ceiling).
+        private HashSet<string>? _overlongWords;
         // Whether the CURRENT source unit declares SOURCE-COMPUTER … WITH DEBUGGING MODE (the X3.23-1985
         // compile-time debug switch): decides the USE FOR DEBUGGING posture (VCR Table 7 row 7.17) — without it
         // a debugging section is comment-treated (never walked); with it, DEBUG-* register references diagnose
@@ -456,8 +463,40 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.StopLiteralRemoved2002, "the STOP literal statement");
             // STOP RUN … WITH NORMAL/ERROR STATUS (Format 1) — a COBOL-2002 INTRODUCTION (14h.3), a disjoint
             // alternative from the STOP literal (Format 2) removal above; both fire from this one override.
-            if (ctx.stopStatusPhrase() is not null)
+            if (ctx.statusPhrase() is not null)
                 _p.Check(Constructs.StopRunStatus2002, "the STOP RUN … WITH NORMAL/ERROR STATUS phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>USAGE … WITH NO SIGN (ISO §13.18.60.4 GR11) — a COBOL-2023 addition. Recognition-based on the
+        /// parsed noSignPhrase (NO SIGN is a modifier on Usage.Packed, which exists at every edition, so it cannot
+        /// be keyed on the resolved Usage enum). The binder separately rejects NO SIGN on a non-Packed usage (1565)
+        /// and an 'S' picture (SR31, 1566); this arm owns only the below-2023 introduction gate.</summary>
+        public override object? VisitUsageClause(CobolParserCore.UsageClauseContext ctx)
+        {
+            if (ctx.noSignPhrase() is not null)
+                _p.Check(Constructs.UsagePackedNoSign2023, "USAGE PACKED-DECIMAL WITH NO SIGN");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>CONTINUE AFTER arithmetic-expression SECONDS (ISO §14.9.9) — the timed-pause phrase is a
+        /// COBOL-2023 addition; plain CONTINUE is 1985-continuous. Recognition-based on the phrase's presence (the
+        /// arithmeticExpression child ≡ the AFTER … SECONDS phrase); parse-arm so a below-edition occurrence names
+        /// its edition even though the phrase would otherwise bind to a no-op (DEVLOG 724).</summary>
+        public override object? VisitContinueStatement(CobolParserCore.ContinueStatementContext ctx)
+        {
+            if (ctx.arithmeticExpression() is not null)
+                _p.Check(Constructs.ContinueAfter2023, "the CONTINUE AFTER … SECONDS phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>PERFORM … UNTIL EXIT (ISO §14.9.28.4 GR11) — the infinite-loop phrase is a COBOL-2023 addition
+        /// (plain UNTIL condition is edition-invariant). Recognition-based on the EXIT alternative of performUntil;
+        /// parse-arm so a below-2023 occurrence names its edition even though it drops to a bound control node.</summary>
+        public override object? VisitPerformUntil(CobolParserCore.PerformUntilContext ctx)
+        {
+            if (ctx.EXIT() is not null)
+                _p.Check(Constructs.PerformUntilExit2023, "the PERFORM UNTIL EXIT phrase");
             return base.VisitChildren(ctx);
         }
 
@@ -1000,6 +1039,11 @@ internal sealed class VersionConformancePass
             // (§14.9.18.4 GR4 — the same InMethodDefinition exclusion the binder's InMethod short-circuit gave).
             else if (ctx.dataReference() is null && !InMethodDefinition(ctx))
                 _p.Check(Constructs.GobackBare2002, "the GOBACK statement");
+            // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — a COBOL-2023 introduction (annex item 32: GOBACK
+            // "now allows the same status phrase as the STOP statement"). DISTINCT edition from the STOP-status
+            // gate (StopRunStatus2002 = 2002); the shared statusPhrase rule is 2002-gated on STOP, 2023 on GOBACK.
+            if (ctx.statusPhrase() is not null && !InMethodDefinition(ctx))
+                _p.Check(Constructs.GobackStatus2023, "the GOBACK … WITH NORMAL/ERROR STATUS phrase");
             return base.VisitChildren(ctx);
         }
 
@@ -1288,6 +1332,8 @@ internal sealed class VersionConformancePass
         {
             if (ctx.booleanExpression().Any(HasBoolOp))
                 _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
+            if (ctx.booleanExpression().Any(HasShiftOp))
+                _p.Check(Constructs.BooleanShiftOperators2023, "the boolean shift operators (B-SHIFT-L/R/LC/RC)");
             return base.VisitChildren(ctx);
         }
 
@@ -1297,6 +1343,8 @@ internal sealed class VersionConformancePass
         {
             if (ctx.booleanExpression() is { } be && HasBoolOp(be))
                 _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
+            if (ctx.booleanExpression() is { } bse && HasShiftOp(bse))
+                _p.Check(Constructs.BooleanShiftOperators2023, "the boolean shift operators (B-SHIFT-L/R/LC/RC)");
             return base.VisitChildren(ctx);
         }
 
@@ -1347,6 +1395,19 @@ internal sealed class VersionConformancePass
                 return term.Symbol.Type is CobolLexer.B_AND or CobolLexer.B_OR or CobolLexer.B_XOR or CobolLexer.B_NOT;
             for (int i = 0; i < t.ChildCount; i++)
                 if (HasBoolOp(t.GetChild(i))) return true;
+            return false;
+        }
+
+        /// <summary>Whether a boolean-expression subtree contains any boolean SHIFT operator terminal (ISO §8.8.2,
+        /// 2023). A DISTINCT construct/edition from HasBoolOp (2023 vs 2002) — a program using only shift operators
+        /// at --std 2002 must get the shift's COBOLNET0900, not the boolean-operators-2002 message.</summary>
+        private static bool HasShiftOp(Antlr4.Runtime.Tree.IParseTree t)
+        {
+            if (t is Antlr4.Runtime.Tree.ITerminalNode term)
+                return term.Symbol.Type is CobolLexer.B_SHIFT_L or CobolLexer.B_SHIFT_R
+                    or CobolLexer.B_SHIFT_LC or CobolLexer.B_SHIFT_RC;
+            for (int i = 0; i < t.ChildCount; i++)
+                if (HasShiftOp(t.GetChild(i))) return true;
             return false;
         }
 
@@ -1423,6 +1484,17 @@ internal sealed class VersionConformancePass
 
         public override object? VisitCobolWord(CobolParserCore.CobolWordContext ctx)
         {
+            // §8.3.2.1 word-length ceiling — a COBOL word is "not more than 63 characters" at COBOL-2023; the
+            // limit was 31 in 2002/2014 and 30 in 1985 (E.3.3 item 11: a 2023 RELAXATION — the OPPOSITE direction
+            // from a new-feature introduction gate, so it is NOT a 0900 construct). Fire below 2023 for 32–63-char
+            // words, and at EVERY edition for >63 (a hard cap). Checked for every COBOL word regardless of role
+            // (reserved words are all short — only user-defined words reach the limit); deduped per distinct word.
+            string raw = ctx.Start.Text;
+            int max = _p._edition.Year >= 2023 ? 63 : _p._edition.Year >= 2002 ? 31 : 30;
+            if (raw.Length > max && (_overlongWords ??= []).Add(raw.ToUpperInvariant()))
+                _p._sink.Report(new EditionDiagnostic("COBOLNET1567", EditionSeverity.Error, "word-length-exceeded",
+                    $"the COBOL word '{raw}' is {raw.Length} characters, exceeding the {max}-character maximum for "
+                    + $"COBOL-{_p._edition.Year} (ISO §8.3.2.1 — COBOL-2023 raised the limit to 63)", "", "ISO §8.3.2.1"));
             if (!CheckedTokenTypes.Contains(ctx.Start.Type) && !IsProvableUserWordPosition(ctx))
                 return base.VisitChildren(ctx);
             string word = ctx.Start.Text.ToUpperInvariant();

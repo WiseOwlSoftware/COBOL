@@ -204,6 +204,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundExitPerform n) => false;
         public bool Visit(BoundExitProgram n) => false;
         public bool Visit(BoundNop n) => false;
+        public bool Visit(BoundContinueAfter n) => false;
         public bool Visit(BoundNextSentence n) => false;
         public bool Visit(BoundOpen n) => false;
         public bool Visit(BoundClose n) => false;
@@ -228,6 +229,7 @@ internal static class UsageCollectionPass
         public bool Visit(BoundSetAddressOfBased n) => false;
         public bool Visit(BoundSetPointerUpDown n) => false;
         public bool Visit(BoundSetCapacity n) => false;
+        public bool Visit(BoundSetSize n) => false;
         public bool Visit(BoundAllocate n) => false;
         public bool Visit(BoundFree n) => false;
 

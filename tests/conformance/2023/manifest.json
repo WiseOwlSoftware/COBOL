@@ -3,9 +3,12 @@
   "enabled": [
     "delete_file",
     "delete_file_absent",
+    "boolean_shift",
     "delete_file_sharing",
+    "continue_after",
     "ec_size_truncation_prohibited",
     "find_string",
+    "goback_status",
     "inspect_backward",
     "intrinsics_convert",
     "intrinsics_smallest_algebraic",
@@ -13,8 +16,11 @@
     "intrinsics_trim",
     "logical_xor",
     "module_name",
+    "perform_until_exit",
+    "set_size",
     "smallest_algebraic",
-    "substitute"
+    "substitute",
+    "usage_packed_no_sign"
   ],
   "pending": []
 }

@@ -61,6 +61,50 @@ public static class CobolBool
     /// value defensively tests position 1.</summary>
     public static bool IsTrue(string? a) => a is { Length: > 0 } && a[0] == '1';
 
+    /// <summary>Boolean SHIFT LEFT (ISO §8.8.2 rule 8, B-SHIFT-L): each position takes its immediate successor to
+    /// the right; the rightmost becomes boolean 0 and the original leftmost is discarded — repeated <paramref name="k"/>
+    /// times. Result length = the operand's length (rule 9). Example (Annex A Table A.2): <c>1100 B-SHIFT-L 3 = 0000</c>.</summary>
+    public static string ShiftLeft(string? v, long k) => Shift(v, k, circular: false, left: true);
+    /// <summary>Boolean SHIFT RIGHT (ISO §8.8.2 rule 8, B-SHIFT-R): each position takes its immediate successor to
+    /// the left; the leftmost becomes boolean 0 and the original rightmost is discarded. <c>1100 B-SHIFT-R 3 = 0001</c>.</summary>
+    public static string ShiftRight(string? v, long k) => Shift(v, k, circular: false, left: false);
+    /// <summary>Boolean CIRCULAR SHIFT LEFT (ISO §8.8.2 rule 8, B-SHIFT-LC): a left rotation — the leftmost digit
+    /// wraps into the rightmost position. <c>1100 B-SHIFT-LC 3 = 0110</c>.</summary>
+    public static string ShiftLeftCircular(string? v, long k) => Shift(v, k, circular: true, left: true);
+    /// <summary>Boolean CIRCULAR SHIFT RIGHT (ISO §8.8.2 rule 8, B-SHIFT-RC): a right rotation — the rightmost digit
+    /// wraps into the leftmost position. <c>1100 B-SHIFT-RC 3 = 1001</c>.</summary>
+    public static string ShiftRightCircular(string? v, long k) => Shift(v, k, circular: true, left: false);
+
+    /// <summary>The shared shift kernel (ISO §8.8.2 rule 8) over the D-B1 '0'/'1' substrate, "without regard for the
+    /// usage of the first operand" (rule 8). A count ≤ 0 leaves the value unchanged; a logical shift by ≥ the length
+    /// yields all boolean zeros; a circular shift is periodic in the length. The result length equals the operand's
+    /// length (rule 9 — the integer count contributes no positions).</summary>
+    private static string Shift(string? v, long k, bool circular, bool left)
+    {
+        v ??= "";
+        int n = v.Length;
+        if (n == 0 || k <= 0) return v;
+        if (circular) { k %= n; if (k == 0) return v; }
+        else if (k >= n) return new string('0', n);
+        var arr = v.ToCharArray();
+        for (long it = 0; it < k; it++)
+        {
+            if (left)
+            {
+                char first = arr[0];
+                for (int i = 0; i < n - 1; i++) arr[i] = arr[i + 1];
+                arr[n - 1] = circular ? first : '0';
+            }
+            else
+            {
+                char last = arr[n - 1];
+                for (int i = n - 1; i > 0; i--) arr[i] = arr[i - 1];
+                arr[0] = circular ? last : '0';
+            }
+        }
+        return new string(arr);
+    }
+
     /// <summary>Resize a boolean value to <paramref name="width"/> positions (ISO §14.9.8 GR3 / §14.6.8.6): the
     /// value is left-aligned, right-zero-filled when shorter, right-truncated when longer — the boolean store
     /// discipline for a COMPUTE Format-2 receiver.</summary>

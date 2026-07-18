@@ -1570,6 +1570,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         SignSpec? ownSign = null;
         bool justified = false, blankWhenZero = false, synchronized = false;
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
+        bool noSign = false;           // USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.4 GR11 — no sign nibble; 2023)
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
         bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
@@ -1655,6 +1656,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // binarySign sibling is a direct child of usageClause in BOTH the full (USAGE IS
                     // BINARY-CHAR SIGNED) and the bare (BINARY-CHAR SIGNED) alternatives.
                     binaryUnsigned = usage.binarySign()?.UNSIGNED() is not null;
+                    noSign = usage.noSignPhrase() is not null;   // §13.18.60.4 GR11 — validated against usage/picture below
                     var oru = usage.usageKeyword()?.objectReferenceUsage();
                     if (oru?.FACTORY() is not null)
                         // OBJECT REFERENCE FACTORY OF class (§13.18.60 :22681) — the factory-object
@@ -1813,6 +1815,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var pending = pic is null && entryUsage is Usage.National ? PicPending.NationalUsage
             : pic is null && entryUsage is Usage.Bit ? PicPending.BitUsage
             : PicPending.None;
+
+        // USAGE … WITH NO SIGN (ISO §13.18.60.4 GR11, 2023): applies ONLY to PACKED-DECIMAL (grammatically tolerated
+        // after any usageKeyword — reject on a non-Packed usage, COBOLNET1565) and forbids an 'S' picture (SR31,
+        // COBOLNET1566). When valid it drops the sign nibble via PicInfo.PackedNoSign (StorageWidth only — the value
+        // path is identical to plain unsigned packed). The 2023 introduction gate is VersionConformancePass.
+        if (noSign)
+        {
+            if (entryUsage is not Usage.Packed)
+                Edition.Error("COBOLNET1565", $"{entryWhere}: the WITH NO SIGN phrase (ISO §13.18.60.4 GR11) applies "
+                    + $"only to USAGE PACKED-DECIMAL, not USAGE {usageText}");
+            else if (pic is { Signed: true })
+                Edition.Error("COBOLNET1566", $"{entryWhere}: a PICTURE containing 'S' shall not be specified with "
+                    + "PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.3 SR31 — an unsigned representation)");
+            else if (pic is not null)
+                pic = pic with { PackedNoSign = true };
+        }
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.

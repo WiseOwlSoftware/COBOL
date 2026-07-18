@@ -30,7 +30,19 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
             ? new BoundStopLiteral(slit.nonNumericLiteral()?.concatenationExpression() is { } ce
                 ? ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value
                 : CobolLiteral.Decode(slit.GetText()))
-            : new BoundStop { HasStatusPhrase = stop.stopStatusPhrase() is not null };
+            : new BoundStop { HasStatusPhrase = stop.statusPhrase() is not null };
+    }
+
+    /// <summary>CONTINUE [AFTER arithmetic-expression-1 SECONDS] (ISO §14.9.9). Plain CONTINUE is a 1985-continuous
+    /// no-op (<see cref="BoundNop"/>). The AFTER … SECONDS timed-pause phrase (COBOL-2023, introduction-gated on the
+    /// phrase by the VersionConformancePass) binds to a <see cref="BoundContinueAfter"/>. Whether
+    /// EC-CONTINUE-LESS-THAN-ZERO checking is enabled at this statement is captured from the TurnState NOW (a bound
+    /// node carries no parse line), so the runtime raises the nonfatal exception (GR1b) only under CHECKING ON.</summary>
+    public BoundStatement BindContinue(Core.ContinueStatementContext cont)
+    {
+        if (cont.arithmeticExpression() is not { } secs) return new BoundNop();   // plain CONTINUE — a §14.9.9 no-op
+        bool checkLtz = ctx.EcState.Turn.Enabled("EC-CONTINUE-LESS-THAN-ZERO", null, cont.Start.Line);
+        return new BoundContinueAfter(host.Expr.BindExpr(secs), checkLtz);
     }
 
     public BoundStatement BindGoTo(Core.GoToStatementContext g)
@@ -131,6 +143,10 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
         if ((p.performUntil() ?? opt?.performUntil()) is { } u)
         {
+            // UNTIL EXIT (§14.9.28.4 GR11, 2023): an infinite loop (a condition that never becomes true). The
+            // grammar gives EXIT its own alternative, so SR8's "no TEST with EXIT" is structural; escape is the
+            // programmer's job (inline: EXIT PERFORM; out-of-line: GOBACK/STOP). Introduction-gated in the pass.
+            if (u.EXIT() is not null) return new PerformForever();
             // The UNTIL condition is evaluated per iteration (§14.9.28 GR6/GR13), so a user-function
             // reference inside it activates per evaluation — the drained-suffix wrapper, never the
             // once-per-statement hoist (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
