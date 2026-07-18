@@ -40,7 +40,13 @@
    every commit boundary; per `docs/rearchitecture/DESIGN-test-build-ci.md` gates 1 & 2 red = stop.
 
 ## STATUS
-`NOT STARTED`
+`IN PROGRESS @ step 1` (branch `phase-13-m4-2023`)
+
+> **The as-built audit is DONE — see `PHASE-13-audit.md` (the worklist) + `PHASE-13-scout-notes.json`.** 71 items:
+> 18 DONE (verify-and-flip only), 21 PARTIAL, 31 MISSING. The genuinely-remaining work is batched by GATE type
+> (owner optimization directive): grammar constructs share ONE full legacy guard per batch; binder/runtime + doc
+> rows use the greenfield battery only. Each feature is still individually CLI-probed + ships its golden + a
+> below-2023 negative in its batch commit.
 
 > **Executing session: update this line** to `IN PROGRESS @ step N` as you work, and to `DONE` when the exit
 > criteria are met. Append a one-line note per commit boundary you cross (commit SHA + step numbers).
