@@ -42,7 +42,7 @@ public static class ConditionalCompilationProcessor
     /// text for the downstream <see cref="TurnDirectiveProcessor"/> (the COBOL.NET EC model, ISO §7.3.25); an
     /// omitted-branch one still drops with its branch. The default (false) is the exact legacy behavior —
     /// TURN consumed here, the legacy caller untouched.</param>
-    public static string Process(string text, bool leaveTurnDirectives = false)
+    public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false)
     {
         var defines = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
         var stack = new Stack<Frame>();
@@ -133,6 +133,11 @@ public static class ConditionalCompilationProcessor
                     // TurnDirectiveProcessor stage (ISO §7.3.25) — legacy callers keep consuming it.
                     if (!emitting) output[i] = "";
                     else if (leaveTurnDirectives && keyword == "TURN") output[i] = line;
+                    // With leavePropagateDirectives (the COBOL.NET caller), an emitting-branch >>PROPAGATE survives
+                    // for the PropagateDirectiveProcessor stage (ISO §7.3.21 — the edition gate). Checked BEFORE the
+                    // KnownIgnoredDirectives fallthrough, so PROPAGATE stays in that set and a legacy caller (no
+                    // flag) keeps consuming it — the greenfield stage adds the edition gate, legacy behavior intact.
+                    else if (leavePropagateDirectives && keyword == "PROPAGATE") output[i] = line;
                     else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                     break;
             }

@@ -12,16 +12,40 @@ Land the remaining COBOL-2014 *surface* deltas on the (rearchitected) data model
 
 ### Exit criteria (copy from the roadmap — do not weaken)
 
-1. The `tests/conformance/2014/` corpus is non-empty **and** every on-disk `.cob` is discovered by `CorpusRunnerTests` (the manifest-coverage integrity test is green).
-2. The **dynamic-table** (`occurs-dynamic-2014`) and **dynamic-length** (`dynamic-length-item-2014`) version-matrix rows are `active` and **green at all four editions** (compile at 2014/2023, `COBOLNET0900` at 1985/2002).
-3. The **full battery** is green: greenfield conformance (currently 3166) + unit (currently 281) + the FULL legacy guard (NIST 353 MATCH), with **zero regressions**, at every commit boundary.
+1. ✅ The `tests/conformance/2014/` corpus is non-empty **and** every on-disk `.cob` is discovered by `CorpusRunnerTests` (the manifest-coverage integrity test is green) — MET (the corpus grew by `dynamic_length_item`/`_limit`/`_figurative`, `float_binary`, `propagate_directive`).
+2. ✅ The **dynamic-table** (`occurs-dynamic-2014`) and **dynamic-length** (`dynamic-length-item-2014`) version-matrix rows are `active` and **green at all four editions** (compile at 2014/2023, `COBOLNET0900` at 1985/2002) — MET.
+3. ✅ The **full battery** is green: greenfield conformance (3582) + unit (311) + the FULL legacy guard (NIST 353 MATCH), with **zero regressions**, at every commit boundary — MET (6 battery-gated commits, `fb17f98f`→`9afde9f3`).
 
 ### STATUS
 
-`NOT STARTED`
+`DONE (2026-07-17) — all 13 steps complete; branch phase-12-m3-2014 merged to main`
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the
 > per-step checkboxes in §4 in sync. On resume, read this line + the last DEVLOG entry + `git log --oneline -15` first.
+
+> ### ⚠️ RE-SCOUT CORRECTIONS — read `PHASE-12-scout-notes.md` FIRST; it OVERRIDES this plan's anchors
+> This plan was authored 2026-07-07, **before P8/P9/P10/P11 landed**, so many of its code-state and spec anchors
+> drifted. A 6-scout + adversarial-verify re-scout (2026-07-17) produced the corrected reference
+> **`docs/rearchitecture/PHASE-12-scout-notes.md`** — trust IT for anchors, this doc for step structure. The
+> load-bearing corrections applied during execution:
+> 1. **IEEE fidelity (Step 7) was INVERTED.** GR14-18 PIN `FLOAT-BINARY-*`/`FLOAT-DECIMAL-*` to ISO/IEC 60559:2020;
+>    only the FLOAT trio is implementor-defined (GR13/GR21). Decision: implement `FLOAT-BINARY-32`→`float` and
+>    `FLOAT-BINARY-64`→`double` (exact/conforming); declare `FLOAT-BINARY-128`/`FLOAT-DECIMAL-16`/`FLOAT-DECIMAL-34`
+>    **processor-dependent non-support** (Annex A.3 items 17/19) — loud, never a silent misbind. NOT `double`-backed.
+> 2. **PROGRAM-POINTER is DONE as a 2002 feature** (P10 Step 7). Step 8's PROGRAM-POINTER half + `{is2014()}?` gate
+>    would be a regression; only the restricted `TO`-prototype form + `ADDRESS OF PROGRAM` spelling remain.
+> 3. **FUNCTION-POINTER surface DONE, staged loud (0899)**; only its runtime semantics (SET Format 8 + carrier +
+>    mandatory `TO`) remain (genuinely 2014). `COBOLNET1552` is unnecessary (dup of the live 0899 gate).
+> 4. **Diagnostic band 1540-1559 COLLIDES** — 17/20 codes are live (high-water 1559, not 1538). Keep 1550/1551/1552
+>    (already earmarked P12) and draw the rest from **1561-1599**. Renumber the plan's `1540/1541`/`1545`.
+> 5. **`>>PROPAGATE` is LIVE in 2023**, not removed — Step 9 does an INTRODUCTION gate (~2002), NO top-end span.
+> 6. **TYPE TO is NOT a pointer form** — it's the TYPE clause's optional word (§13.18.57.2). The §7 table also swaps
+>    the TYPE(§13.18.57)/TYPEDEF(§13.18.58)/SAME-AS(§13.18.49) citations.
+> 7. **Diagnostic registry** is `src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs` (+ regenerate
+>    `docs/DIAGNOSTICS.md`), NOT the plan's `Cobol.Net.Compiler/Diagnostics/`. Battery baseline = **3521 conf / 301
+>    unit** (not 3166/281). `scripts/guard.ps1` does not exist — use `bash scripts/guard-fast.sh`.
+> 8. **Steps 1 & 3 are largely satisfied already:** `occurs-dynamic-2014` is active (10 `dyn_*` enabled);
+>    `tests/conformance/2002/float_usage.cob` already covers the whole trio — Step 3 needs no new redundant program.
 
 ---
 
@@ -92,13 +116,13 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 
 > Diagnostic band for this phase: **1540-1559.** Grammar-touching steps (5, 6, 8) require the FULL legacy guard before commit. Every feature-landing step adds its `tests/conformance/2014/*.cob` + `.out` + `manifest.json` entry **in the same commit** (memory `feedback_conformance_tests_per_feature`, `feedback_parse_and_emit_together`).
 
-### [ ] Step 0 — Baseline & branch (COMMIT BOUNDARY: none; setup only)
+### [x] Step 0 — Baseline & branch (COMMIT BOUNDARY: none; setup only)
 
 - **Do:** From `main` (default branch), create a working branch `phase-12-m3-2014`. Confirm the green baseline (§1.2). Record the baseline counts (conformance/unit/NIST) in the DEVLOG draft.
 - **Why:** A known-green start so any red is attributable to this phase.
 - **Verify:** the three battery commands in §1.2 all green.
 
-### [ ] Step 1 — Verify OCCURS DYNAMIC across all four editions; make its matrix row assert (COMMIT BOUNDARY)
+### [x] Step 1 — Verify OCCURS DYNAMIC across all four editions; make its matrix row assert (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (row `occurs-dynamic-2014` — already `active`, verify), `tests/conformance/2014/manifest.json` (the `dyn_*` programs already enabled — verify byte-match).
 - **Do:**
@@ -116,7 +140,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   All green.
 - **Commit:** `test(cobolnet): P12 step 1 — OCCURS DYNAMIC matrix-locked at all four editions (DEVLOG NNN)` (only if a row flip or a new assertion was needed; otherwise fold into Step 2).
 
-### [ ] Step 2 — Flip the live float trio matrix rows `pending`→`active` (COMMIT BOUNDARY)
+### [x] Step 2 — Flip the live float trio matrix rows `pending`→`active` (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (rows `usage-float-short-2002`, `usage-float-long-2002`, `usage-float-extended-2002`).
 - **Do:** Remove `"status": "pending"` (defaults to `active`) from the three trio rows — the feature is already live (`PictureAnalyzer.ParseUsage`). Update each row's `description` to drop the "PENDING … Phase 6 implements" clause and state "LIVE (P12 step 2)". Keep `introducedIn: 2002`, `expectDiagnostic: "COBOLNET0900"`.
@@ -128,7 +152,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   The three float-trio cases now compile at 2002/2014/2023 and reject with `COBOLNET0900` at 1985. Green.
 - **Commit:** `test(cobolnet): P12 — activate the live FLOAT-SHORT/LONG/EXTENDED matrix rows (DEVLOG NNN)`.
 
-### [ ] Step 3 — Add a real float-trio conformance program to the 2014 corpus (COMMIT BOUNDARY)
+### [x] Step 3 — Add a real float-trio conformance program to the 2014 corpus (COMMIT BOUNDARY)
 
 - **Files:** create `tests/conformance/2014/float_trio.cob` + `.out`; edit `tests/conformance/2014/manifest.json` (add `float_trio` to `enabled`). (Note: the trio is a 2002 feature, but per the OCCURS-DYNAMIC precedent, 2014-and-earlier float corpus programs live under `2014/`; alternatively add a `2002/` program — pick per where the manifest coverage is thinnest. Recommendation: `2002/float_trio` since introducedIn=2002, so the 2002 corpus exercises it at its own edition.)
 - **Do:** Write a program that declares `FLOAT-SHORT`/`FLOAT-LONG`/`FLOAT-EXTENDED` items, does arithmetic (`COMPUTE`, `ADD`), and `DISPLAY`s results. Generate the `.out` by running the compiled program once and **verifying the output is arithmetically CORRECT** (not merely non-crashing — memory `feedback_verify_demo_output`); cite the IEEE-754 rounding you expect. Unique `PROGRAM-ID` (memory `feedback_unique_programid_per_test`).
@@ -141,7 +165,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   `Manifest_CoversEveryProgram_NoOverlap` and `EnabledProgram_CompilesStrict_AndMatchesOutIfPresent` green.
 - **Commit:** `feat(cobolnet): P12 — float-trio 2002 conformance program (DEVLOG NNN)`.
 
-### [ ] Step 4 — DYNAMIC LENGTH: runtime carrier + data model (COMMIT BOUNDARY)
+### [x] Step 4 — DYNAMIC LENGTH: runtime carrier + data model (COMMIT BOUNDARY)
 
 - **Files:**
   - create `src/Cobol.Net.Runtime/Text/CobolDynString.cs`. A variable-length, min-0 string over `CobolString` semantics: a `string Value` with a `Limit` (max chars; `int.MaxValue`/`-1` if implementor-default per §13.18.19.4 GR2) and `Class` (Alphanumeric for `X`, National for `N`, §13.18.19.4 GR1). Constructor, `Length`, MOVE-in truncation-to-limit, `ToString`.
@@ -151,7 +175,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 - **Verify:** `dotnet build src/Cobol.Net.Runtime` and `src/Cobol.Net.Compiler` succeed; add a `CobolDynString` unit test (round-trip, truncation-to-limit, min-0). `dotnet test tests/Cobol.Net.Tests.Unit --filter CobolDynString`.
 - **Commit:** `feat(cobolnet): P12 — CobolDynString runtime carrier + DynamicString storage form (DEVLOG NNN)`.
 
-### [ ] Step 5 — DYNAMIC LENGTH: grammar + binder + emitter + conformance (COMMIT BOUNDARY — FULL LEGACY GUARD)
+### [x] Step 5 — DYNAMIC LENGTH: grammar + binder + emitter + conformance (COMMIT BOUNDARY — FULL LEGACY GUARD)
 
 - **Files:**
   - `src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4`: add `dynamicLengthClause : {is2014()}? DYNAMIC LENGTH dataName? (LIMIT IS? integerLiteral)?` and wire it into the data-description-entry clause alternation (beside `occursClause`). Tokens `DYNAMIC`/`LENGTH`/`LIMIT` already exist (`CobolLexer.g4:366,444,410`) — no lexer change, so this is LL-safe: `DYNAMIC LENGTH` is disjoint from `OCCURS DYNAMIC` (different leading token).
@@ -170,7 +194,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   ```
 - **Commit:** `feat(cobolnet): P12 — DYNAMIC LENGTH elementary items (§8.5.1.10/§13.18.19, 2014); NIST 353 MATCH (DEVLOG NNN)`.
 
-### [ ] Step 6 — DYNAMIC LENGTH: version-matrix row (COMMIT BOUNDARY)
+### [x] Step 6 — DYNAMIC LENGTH: version-matrix row (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (new `active` row `dynamic-length-item-2014`); `docs/VERSION_CHANGE_REFERENCE.md` (mark the 2014-introduction status; keep row 60 — the 2023 SET-length delta — as TODO with a "P13" note).
 - **Do:** Add the row: `introducedIn: 2014`, `removedIn: null`, `expectDiagnostic: "COBOLNET0900"`, `vcr: "2014 introduction (§8.5.1.10 / §13.18.19 DYNAMIC LENGTH)"`, a minimal `source` (a `01 D PIC X DYNAMIC LENGTH LIMIT IS 20.` program that `DISPLAY`s and `STOP RUN`s).
@@ -178,7 +202,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 - **Verify:** `dotnet test tests/Cobol.Net.Tests.Conformance --filter "VersionMatrixTests"` — the new row compiles at 2014/2023, rejects at 1985/2002. Green.
 - **Commit:** fold into Step 5's commit if done together, else `test(cobolnet): P12 — dynamic-length-item version-matrix row, active at 4 editions (DEVLOG NNN)`.
 
-### [ ] Step 7 — IEEE float family (`FLOAT-BINARY-*` / `FLOAT-DECIMAL-*`) + external-float `E` PICTURE (COMMIT BOUNDARY — FULL LEGACY GUARD)
+### [x] Step 7 — IEEE float family (`FLOAT-BINARY-*` / `FLOAT-DECIMAL-*`) + external-float `E` PICTURE (COMMIT BOUNDARY — FULL LEGACY GUARD)
 
 - **Files:**
   - `src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4` `usageKeyword`: add `| {is2014()}? floatBinaryUsage | {is2014()}? floatDecimalUsage`, with `floatBinaryUsage : FLOAT_BINARY (integerLiteral)?` (accept the `-32/-64/-128` suffix; the token is `FLOAT-BINARY`, the numeric part follows) and `floatDecimalUsage : FLOAT_DECIMAL (integerLiteral)?`. Confirm the lexer splits `FLOAT-BINARY-32` as `FLOAT_BINARY` + `-32` or a single token; if the hyphen-number is lexed together, add explicit tokens `FLOAT_BINARY_32/64/128`, `FLOAT_DECIMAL_16/34` in `CobolLexer.g4` (reproduce a quick `dotnet .../cobol.dll` probe to see how `FLOAT-BINARY-32` tokenizes before choosing).
@@ -220,7 +244,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   ```
 - **Commit:** `feat(cobolnet): P12 — PROGRAM-POINTER (full) + FUNCTION-POINTER (prototype-dependent) data, 2014 (DEVLOG NNN)`.
 
-### [ ] Step 9 — `>>PROPAGATE` re-editioning + conditional-expression enhancements (COMMIT BOUNDARY)
+### [x] Step 9 — `>>PROPAGATE` re-editioning + conditional-expression enhancements (COMMIT BOUNDARY)
 
 - **Files:**
   - `>>PROPAGATE`: `src/Cobol.Net.Frontend/Preprocessor/` (the directive handler; `ConditionalCompilationProcessor.cs:36` already lists `PROPAGATE` as a variable name — that is the `>>DEFINE`-style *variable*, NOT the §7.3.21 directive). Add/route the `>>PROPAGATE ON|OFF` directive (§7.3.21) so it is recognized ≤2014 (its introduction edition — confirm against §7.3.21 and the VCR before gating; it controls automatic EC propagation to a calling runtime element). If EC-propagation *runtime semantics* are Phase-13/EC-remnant scope, this phase makes the directive **recognized and edition-gated with a warning that propagation is honored per the EC model**, not a parse error — cite the exact behavior in the DEVLOG (`feedback_bare_end`).
@@ -235,7 +259,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
   ```
 - **Commit:** `feat(cobolnet): P12 — >>PROPAGATE re-editioned (§7.3.21, ≤2014) + §8.8.4 conditional-expr deltas; increased-limits DROPPED per §4.2.15 (DEVLOG NNN)`.
 
-### [ ] Step 10 — TYPEDEF / `SAME AS` / `TYPE TO` edges: confirm + catalogue `TYPE TO` (COMMIT BOUNDARY)
+### [x] Step 10 — TYPEDEF / `SAME AS` / `TYPE TO` edges: confirm + catalogue `TYPE TO` (COMMIT BOUNDARY)
 
 - **Files:** `tests/version-matrix/constructs.json` (rows `typedef-def-2002`, `type-clause-2002`, `same-as-clause-2002` — confirm `active`); the `TYPE TO` deferral row.
 - **Do:** TYPEDEF + `TYPE` are DONE, and **`SAME AS` LANDED in P10 Step 16** (§13.18.49 on the ONE `CloneItem`/`ExpandSameAs`; row `same-as-clause-2002` ACTIVE; golden `typedef_same_as`; SR bands 1555/1556/1557 — this step no longer owns it). Verify the three matrix rows are `active` and the `typedef_*` goldens green; no code change expected. **`TYPE TO`** (the pointer-target form) stays DEFERRED — record it as a `pending` matrix row (`type-to-2014`) with a cited owning-follow-up so the matrix catalogues it (never a silent gap — `VersionMatrixTests.PendingRow_HasActivationContract` requires a vcr + source).
@@ -243,20 +267,20 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 - **Verify:** `dotnet test tests/Cobol.Net.Tests.Conformance --filter "TypedefStrongTests|TypedefConditionTests|TypedefResidueTests|TypedefReviewFixTests|VersionMatrixTests"` green.
 - **Commit:** `test(cobolnet): P12 — confirm TYPEDEF/TYPE matrix edges; catalogue SAME AS / TYPE TO as pending (DEVLOG NNN)` (or a `feat` if SAME AS implemented).
 
-### [ ] Step 11 — Sync docs + conformance ledger (COMMIT BOUNDARY)
+### [x] Step 11 — Sync docs + conformance ledger (COMMIT BOUNDARY)
 
 - **Files:** `docs/ISO2023_CONFORMANCE_PLAN.md` (§3.8 M3: mark M3-4 items DONE/deferred per what landed; M3-1 already ☑, M3-2 already ◑), `docs/VERSION_CHANGE_REFERENCE.md` (2014-introduction status cells; row 60 stays TODO→"P13"), `docs/DOC_INDEX.md` (if a new subsystem doc was added), `resume-prompt.md` top STATE banner (P12 progress — memory `feedback_plan_updates`), and the relevant deep-dive (`docs/COBOLNET_DATA_MODEL_DESIGN.md` for DYNAMIC LENGTH / float family, per `feedback_follow_design_docs_and_spec` — keep the deep-dive current in the SAME change set).
 - **Do:** Reconcile every ledger with what actually shipped; note any spec-fidelity residues (e.g. the binary128/decimal-fidelity implementor choice, deferred function-prototype FUNCTION-POINTER, deferred SET-length).
 - **Verify:** `dotnet test tests/Cobol.Net.Tests.Conformance --filter "VersionMatrixTests"` (the registry drift tests bind constructs.json to the ledger — they must stay green).
 - **Commit:** `docs(cobolnet): P12 — sync conformance ledger + VCR + resume banner for the 2014 deltas (DEVLOG NNN)`.
 
-### [ ] Step 12 — Adversarial find→verify review of P12 (COMMIT BOUNDARY)
+### [x] Step 12 — Adversarial find→verify review of P12 (COMMIT BOUNDARY)
 
 - **Do:** Every prior feature's post-implementation adversarial review found real defects (OCCURS DYNAMIC: 7 confirmed; TYPEDEF: 7 confirmed). Run a find→verify sweep over the P12 code: float exhaustiveness (every `Usage.*` member handled in every `switch`), DYNAMIC LENGTH edge cases (empty MOVE → length 0; overflow truncation; `FUNCTION LENGTH`; REDEFINES/OCCURS interaction — reject if illegal per §13.18.19.3), pointer SET formats, and the edition gates at all four `--std`. Fix each confirmed defect; add a golden/guard per fix (memory `feedback_scan_all_similar`).
 - **Verify:** the full battery (see §5). Add the review's new tests.
 - **Commit:** `fix(cobolnet): P12 adversarial review — N confirmed defects, all fixed (DEVLOG NNN)`.
 
-### [ ] Step 13 — Merge to `main`, push (COMMIT BOUNDARY)
+### [x] Step 13 — Merge to `main`, push (COMMIT BOUNDARY)
 
 - **Do:** Ensure the full battery is green (§5). Update this file's STATUS line to `DONE`. Merge the branch to `main`; push (memory `feedback_fully_autonomous_push` — commit AND push every checkpoint; never ask "should I push"). Write the final DEVLOG entry (newest-first, real timestamp from `date "+%Y-%m-%d %H:%M %Z"`).
 
@@ -314,8 +338,8 @@ Byte-exact / behavior-neutrality checks:
 | FUNCTION-POINTER data (prototype-dependent) | §8.5.2.7 | 2014 | `2014/function_pointer` | `function-pointer-2014` (active if prototypes ready, else pending) |
 | `>>PROPAGATE` directive | §7.3.21 | ≤2014 (confirm) | `2014/propagate_directive` | (directive — gate, no matrix data-row unless a construct row fits) |
 | Conditional-expression enhancements | §8.8.4 | 2014 | as a real delta is found | per delta |
-| `SAME AS` / `TYPE TO` | §13.18.57 / §13.18.58 | 2002/2014 | deferred | `same-as-2014`, `type-to-2014` (pending, catalogued) unless owner schedules SAME AS |
-| TYPEDEF / `TYPE` (confirm) | §13.18.57 / §13.18.58 | 2002 | `typedef_*` (exist) | `typedef-def-2002`, `type-clause-2002` (active) |
+| `SAME AS` (done) / restricted `USAGE POINTER TO type` (deferred) | §13.18.49 / §13.18.60.2 (Annex D.9.2.2) | 2002 / prov. 2014 | `typedef_same_as` | `same-as-clause-2002` (active); `usage-pointer-to-type-2014` (pending) — the re-anchored "TYPE TO" |
+| TYPEDEF / `TYPE` (confirm) | §13.18.58 / §13.18.57 | 2002 | `typedef_*` (exist) | `typedef-def-2002`, `type-clause-2002` (active) |
 | Increased limits | §4.2.15 | — | **DROPPED** (implementor-defined) | none |
 
 **Editions:** every 2014-introduced construct compiles at `--std 2014` and `--std 2023`, and is rejected `COBOLNET0900` at `--std 1985` and `--std 2002`. Every 2002-introduced construct (float trio, external-float PIC) compiles at 2002/2014/2023, rejected at 1985. The matrix (`VersionMatrixTests`) computes and asserts this from each row's `introducedIn`.

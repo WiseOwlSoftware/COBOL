@@ -431,7 +431,10 @@ relations), `typedef_external` (two programs, one ExternalStore cell) + `Typedef
 **Matrix note:** the STRONG phrase rides the SAME `typedefClause` gate as `typedef-def-2002` (introduction gating
 already covered); SAME AS carries its own row `same-as-clause-2002`; an EXTERNAL-typedef row is NOT warranted
 (TYPEDEF is unreachable below 2002, so the composition needs no second 0900); 1531–1535/1555–1558 are
-edition-INVARIANT compile-time diagnostics (no cross-edition behavior variance). `TYPE TO` stays deferred.
+edition-INVARIANT compile-time diagnostics (no cross-edition behavior variance). The restricted data-pointer
+`USAGE POINTER TO type-name` (ISO §13.18.60.2 / Annex D.9.2.2) stays deferred — catalogued as the pending matrix
+row `usage-pointer-to-type-2014` (the P12 re-scout re-anchored the former "`TYPE TO` pointer-target" label: plain
+`TYPE [TO]` is the TYPE clause's optional word, §13.18.57.2, already live).
 
 **Additional hardening (current invariants).** `ExpandType` sets `TypeName`/`StrongType` BEFORE cloning children, so a
 nested TYPE ref's SR6 ancestor walk sees the enclosing strong item (no false SR6 strong-in-strong rejection).

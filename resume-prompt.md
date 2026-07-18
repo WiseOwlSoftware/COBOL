@@ -21,13 +21,34 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — PHASE-12 (M3 / COBOL-2014 deltas)
+## ⛔🔀 RESUME AT — PHASE-13 (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
-**⏭ PHASE-11 IS COMPLETE (2026-07-17, DEVLOG 871–879 — 9 battery-gated commits `2a0ab666`→`19dfe579`+close,
-CI green on each). Next: PHASE-12** (`docs/rearchitecture/PHASE-12-m3-2014-deltas.md` — M3/COBOL-2014 deltas:
-dynamic length, TYPEDEF edges, `>>PROPAGATE`, IEEE floats, function pointers; read its §0/STATUS + steps; it
-can run parallel to the DEFERRED P11 Step D). **The go-forward roadmap `docs/COBOLNET_REARCHITECTURE_PLAN.md`
-banner + §4 index carry the live phase pointer.**
+**⏭ PHASE-12 IS COMPLETE (2026-07-17, DEVLOG 880–884 — 6 battery-gated commits `fb17f98f`→`9afde9f3`+close,
+CI green on each). Next: PHASE-13** (`docs/rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md`; read
+its §0/STATUS + steps). **The go-forward roadmap `docs/COBOLNET_REARCHITECTURE_PLAN.md` banner + §4 index carry
+the live phase pointer.**
+
+**PHASE-12 — M3 (COBOL-2014) surface deltas — DONE.** The waves (each spec-first from the persisted anchor
+re-scout `PHASE-12-scout-notes.md`, line-reviewed, full-battery + full-legacy-guard-gated): **DYNAMIC LENGTH
+elementary items** (§8.5.1.10 / §13.18.19 — a variable-length min-0 `PIC X`/`N` native string; `CobolDynString`
++ `StorageForm.DynamicString`; the 1561-1563 SR band) · the **IEEE float USAGE family** (§13.18.60.4 GR14-18 —
+`FLOAT-BINARY-32`→`float`, `FLOAT-BINARY-64`→`double` LIVE; `FLOAT-BINARY-128`/`FLOAT-DECIMAL-16/34`
+processor-dependent NON-support per Annex A.3 17/19, COBOLNET1564) · pointer §8.5.2.7→§8.5.2.15 comment fixes ·
+the **`>>PROPAGATE`** introduction gate (§7.3.21, provisional 2002, COBOLNET0883; `PropagateDirectiveProcessor`
+on the `>>TURN` pattern) · the **`TYPE TO`** re-anchor (the restricted `USAGE POINTER [TO type]`, row
+`usage-pointer-to-type-2014` pending). **⚠ THE P12 SCOPE CHANGE / re-scout catch: the IEEE-754 fidelity claim
+was INVERTED** — the plan called `double`-backed binary128 "a conforming implementor choice per GR13"; GR14-18
+PIN the standard usages to ISO/IEC 60559:2020, so they are refused loudly where .NET has no type, never silently
+mis-backed. **Deferred residues (documented):** the external-float `E` PICTURE (§13.18.40.4 GR13b, staged 0899),
+the FUNCTION-POINTER runtime + restricted PROGRAM-POINTER + `ADDRESS OF` spellings (staged 0899), the
+`>>PROPAGATE` runtime semantics + its §7.3.21.3 SR1 placement rule (→ P13), and the DYNAMIC LENGTH national
+FUNCTION LENGTH / BYTE-LENGTH runtime paths (staged loud). **The Step-12 adversarial review found 6 real defects,
+0 refuted** — incl. a spec MISREADING shipped in wave 2 (MOVE SPACE → length 0; §8.3.3.6.4 GR3b makes it length
+1) — all fixed + locked (DEVLOG 884). Final battery **3582 conformance · 311 unit · 33 characterization · legacy
+1196+646 · NIST 353 MATCH**. The verified anchors + the IEEE-fidelity derivation are retained in
+`docs/rearchitecture/PHASE-12-scout-notes.md`. ⚠ Guard-flake note (recurred 2× in P12): a 35x+n guard-fast
+verdict naming a file-I/O suite (SQ/IC/IX/ST/OB) under JOBS=32 is the environmental flake class — re-prove by
+SOLO rerun before treating as real.
 
 **PHASE-11 — deferred-intrinsics backlog → zero + the Tier-C decision — DONE.** Every ISO §15 intrinsic is
 now LIVE (`IntrinsicBind.Deferred` = **zero**; every row `Runtime`/`Fold`/`Unsupported`). The waves (each

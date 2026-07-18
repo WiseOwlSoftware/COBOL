@@ -285,6 +285,12 @@ internal sealed class VersionConformancePass
             : pu is Usage.FloatShort || ou is Usage.FloatShort ? Constructs.UsageFloatShort2002
             : pu is Usage.FloatLong || ou is Usage.FloatLong ? Constructs.UsageFloatLong2002
             : pu is Usage.FloatExtended || ou is Usage.FloatExtended ? Constructs.UsageFloatExtended2002
+            // The 2014 IEEE interchange floats binary32/64 (LIVE) — the 0900 introduction gate below 2014. The
+            // FLOAT-BINARY-128 / FLOAT-DECIMAL-16/34 non-support forms have no construct row: their operative
+            // diagnostic is COBOLNET1564 (processor-dependent non-support, Annex A.3), fired by ParseUsage at every
+            // edition, so a redundant 0900 introduction gate below 2014 would only add noise.
+            : pu is Usage.FloatBinary32 || ou is Usage.FloatBinary32 ? Constructs.UsageFloatBinary322014
+            : pu is Usage.FloatBinary64 || ou is Usage.FloatBinary64 ? Constructs.UsageFloatBinary642014
             : null;
     }
 
@@ -603,6 +609,17 @@ internal sealed class VersionConformancePass
         public override object? VisitAnyLengthClause(CobolParserCore.AnyLengthClauseContext ctx)
         {
             if (InGatedDataEntry(ctx)) _p.Check(Constructs.AnyLengthClause2002, "the ANY LENGTH clause");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The DYNAMIC LENGTH clause (ISO §8.5.1.10 / §13.18.19) — a COBOL-2014 introduction (a
+        /// variable-length, minimum-length-zero PIC X/N elementary string). Parse-arm (recognition) like the ANY
+        /// LENGTH gate: <c>DataItem.IsDynamicLength</c> is cleared by the binder on every SR1/SR18 shape violation,
+        /// so a bound-arm home would drop the 0900 on exactly the declaration-error paths. The §13.18.19.3 /
+        /// §13.16.3 SR18 shape SRs stay bind-time (DataBinder.BindEntry, COBOLNET1561/1562/1563).</summary>
+        public override object? VisitDynamicLengthClause(CobolParserCore.DynamicLengthClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx)) _p.Check(Constructs.DynamicLengthItem2014, "the DYNAMIC LENGTH clause");
             return base.VisitChildren(ctx);
         }
 

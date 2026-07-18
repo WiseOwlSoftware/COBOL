@@ -230,6 +230,19 @@ public sealed class DataItem
     /// Emit-side: every width-sensitive render of the item uses the CARRIER's runtime length, never Pic.Length.</summary>
     public bool IsAnyLength { get; set; }
 
+    /// <summary>DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19; COBOL-2014) — a variable-length, minimum-length-zero
+    /// <c>PIC X</c> or <c>PIC N</c> string whose current length varies at runtime (never a fixed-width image). Set by
+    /// <c>DataBinder.BindEntry</c> after the §13.18.19.3 SR1 (PICTURE exactly one N or X) and §13.16.3 SR18
+    /// (permitted-co-clause) shape checks pass; CLEARED on any violation so the item binds as ordinary storage under
+    /// an already-failed compile (the IsBased pattern). The item's field is a native <c>string</c> (init "" or VALUE);
+    /// a receiving MOVE stores through <c>CobolDynString.Store</c> (truncate-to-<see cref="DynLengthLimit"/>, no pad).</summary>
+    public bool IsDynamicLength { get; set; }
+
+    /// <summary>The DYNAMIC LENGTH maximum character count — the LIMIT phrase (§13.18.19.4 GR2). -1 = no explicit
+    /// LIMIT (the implementor-defined maximum; here unbounded within the .NET string limit). Meaningful only when
+    /// <see cref="IsDynamicLength"/> is set.</summary>
+    public int DynLengthLimit { get; set; } = -1;
+
     /// <summary>The start of this view's window within its class's concatenated image (0 for a whole-area redefiner;
     /// &gt;0 for a partial-overlap view or a RENAMES sub-span). Meaningful only when <see cref="Class"/> is set.
     /// ONE writer: <c>DataBinder.AssignClassOffsets</c> — the classifier's offset walk, shared by the cell forcer
@@ -277,8 +290,9 @@ public sealed class DataItem
     /// </summary>
     public bool IsCharacterImage =>
         // A DYNAMIC-capacity table is out-of-line (non-contiguous, variable size — §8.5.1.9.1) so it has no static
-        // character image; a group CONTAINING one drops out via Children.All below (the Tier-C island, D9).
-        !IsDynamicTable && (
+        // character image; a DYNAMIC LENGTH elementary item is a variable-length string (§8.5.1.10) with no fixed
+        // width. Either makes a group CONTAINING it a variable-length group — it drops out via Children.All below.
+        !IsDynamicTable && !IsDynamicLength && (
         IsElementary
             // National and boolean leaves are string-stored (D-N1/D-B1) and contribute their CHARACTER
             // positions to a group image (ImageWidth = Length — never byte-doubled for national; a byte
@@ -301,7 +315,7 @@ public sealed class DataItem
     /// §13.18.52 SR2 — a binary item never carries a separate sign).
     /// </summary>
     public bool IsImageCapable =>
-        !IsDynamicTable && (   // out-of-line dynamic table — not in the static record codec (D9)
+        !IsDynamicTable && !IsDynamicLength && (   // out-of-line dynamic table / variable-length string — not in the static record codec (D9 / §8.5.1.10)
         IsElementary
             // P5.7: the leaf arm is defined DIRECTLY on Pic (a pure declared-shape fact, phase-stable at every
             // point of the pipeline — resolve, procedure bind, emit). Value-identical to the former
@@ -333,6 +347,10 @@ public sealed class DataItem
     {
         get
         {
+            // A DYNAMIC LENGTH item has no fixed character-image width — it contributes no static positions to an
+            // enclosing group (§8.5.1.10; its current byte/char length is a runtime value, read via FUNCTION
+            // LENGTH/BYTE-LENGTH). Zero keeps the fixed-layout math sound for the standalone-item case.
+            if (IsDynamicLength) return 0;
             if (Pic is not { } pic) return 0;
             if (pic.Category is PicCategory.Numeric)
                 return pic.Digits + (pic.Signed && pic.SignKind is "LeadingSeparate" or "TrailingSeparate" ? 1 : 0);
@@ -366,8 +384,12 @@ public sealed class DataItem
             {
                 Usage.Binary or Usage.Comp5 or Usage.Packed or Usage.BinaryChar or Usage.BinaryShort
                     or Usage.BinaryLong or Usage.BinaryDouble => pic.StorageWidth,
-                Usage.Float or Usage.FloatShort => 4,
-                Usage.Double or Usage.FloatLong or Usage.FloatExtended => 8,
+                Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => 4,   // IEEE binary32 = 4 bytes
+                Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 => 8,   // binary64 = 8
+                // The processor-dependent non-support formats (rejected at ParseUsage, COBOLNET1564) — their pinned
+                // ISO/IEC 60559 byte widths, so a BYTE-LENGTH fold under an already-errored compile is not off by 1x.
+                Usage.FloatBinary128 or Usage.FloatDecimal34 => 16,   // binary128 / decimal128 = 16 bytes
+                Usage.FloatDecimal16 => 8,                            // decimal64 = 8 bytes
                 Usage.Index or Usage.Pointer or Usage.ProgramPointer or Usage.FunctionPointer
                     or Usage.ObjectReference => 8,
                 Usage.National => 2 * ElementaryImageWidth,     // 2 bytes per national position (UTF-16, D-N1/D-N3)

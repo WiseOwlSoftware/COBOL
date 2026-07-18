@@ -161,6 +161,11 @@ internal static class StorageFormPass
         // (1) OCCURS DYNAMIC — the out-of-line table wraps its element's own form (highest priority; §8.5.1.9.1, D9).
         if (item.IsDynamicTable) return new StorageForm.DynamicTable(BaseElementary(item));
 
+        // (1b) DYNAMIC LENGTH — a variable-length, min-0 native string (§8.5.1.10 / §13.18.19, COBOL-2014). The
+        // category (X→Alphanumeric, N→National) comes from the PIC; the limit is the LIMIT phrase (-1 = implementor max).
+        if (item.IsDynamicLength)
+            return new StorageForm.DynamicString(item.Pic?.Category ?? PicCategory.Alphanumeric, item.DynLengthLimit);
+
         // (2) A REDEFINES view member (non-canonical member of a class).
         if (item.Class is { } cls && !item.IsCanonical)
         {
@@ -236,6 +241,7 @@ internal static class StorageFormPass
         StorageForm.ProgramPointerRef => "ProgramPointer",
         StorageForm.TierBWindow => "string",       // a Tier-B window is a string slice (a numeric Tier-B leaf is CharImage)
         StorageForm.DynamicTable dt => StorageElementType(dt.Element),
+        StorageForm.DynamicString => "string",      // a DYNAMIC LENGTH item IS a native string (§8.5.1.10)
         StorageForm.TierCWindow => "string",       // unreachable today
         _ => "object",
     };

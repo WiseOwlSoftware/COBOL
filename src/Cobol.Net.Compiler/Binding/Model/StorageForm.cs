@@ -78,6 +78,18 @@ public abstract record StorageForm
         public override int ImageWidth => Element.ImageWidth;
     }
 
+    /// <summary>A DYNAMIC LENGTH elementary item (ISO §8.5.1.10 / §13.18.19; COBOL-2014) — a variable-length,
+    /// minimum-length-zero native <c>string</c> whose current length varies at runtime. Never a fixed character
+    /// image: a dynamic-length item makes its enclosing group a VARIABLE-LENGTH group (§8.5.1.12), so an item-level
+    /// query short-circuits on it just like <see cref="DynamicTable"/>. <paramref name="Category"/> is Alphanumeric
+    /// (PIC X) or National (PIC N), §13.18.19.4 GR1. <paramref name="Limit"/> is the maximum character count from
+    /// the LIMIT phrase (§13.18.19.4 GR2), or -1 for the implementor-defined maximum (no explicit LIMIT).</summary>
+    public sealed record DynamicString(PicCategory Category, int Limit) : StorageForm
+    {
+        public override bool IsCharacterImage => false;
+        public override int ImageWidth => 0;
+    }
+
     /// <summary>A .NET object reference (a typed class, or universal <c>CobolObject?</c> when ClassName is null).
     /// Zero character positions.</summary>
     public sealed record ObjectRef(string? ClassName) : StorageForm

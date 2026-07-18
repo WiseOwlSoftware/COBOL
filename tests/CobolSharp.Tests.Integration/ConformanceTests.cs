@@ -311,6 +311,17 @@ public sealed class ConformanceTests : EndToEndTestBase
         // Phase 6, OCCURS DYNAMIC adversarial review (wf_3f05d472-ad8) regressions — data-model D9. Greenfield only.
         ("2014", "dyn_nested_group_move"),   // #1 a group MOVE nested below a dynamic level grows via RefReceiving
         ("2014", "dyn_corr"),                // #2 CORRESPONDING excludes a dynamic-table member (§14.7.6 rule 4)
+        // PHASE-12 wave 2, DYNAMIC LENGTH elementary items (§8.5.1.10 / §13.18.19): a variable-length min-0 string
+        // (CobolDynString + StorageForm.DynamicString). The frozen legacy binder/emitter has no dynamic-length
+        // model — it treats `PIC X DYNAMIC LENGTH` as a fixed PIC X (width 1), so the current-length behavior is
+        // greenfield-only; CorpusRunnerTests byte-compares both goldens.
+        ("2014", "dynamic_length_item"),
+        ("2014", "dynamic_length_limit"),
+        ("2014", "dynamic_length_figurative"),
+        // PHASE-12 wave 3, FLOAT-BINARY-32/64 (§13.18.60.4 GR14/GR15): the IEEE-754 binary32/binary64 interchange
+        // USAGES — the frozen legacy grammar has no FLOAT-BINARY-* tokens at all (parse error), so this is
+        // greenfield-only; CorpusRunnerTests byte-compares the golden.
+        ("2014", "float_binary"),
     ];
 
     [Theory]

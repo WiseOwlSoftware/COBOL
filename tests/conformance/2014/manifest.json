@@ -1,5 +1,5 @@
 {
-  "_comment": "The 2014 positive corpus - SEEDED EMPTY (roadmap Phase 1: \"create tests/conformance/2014/ now so the directory gap stops being invisible\"). Phase 6 (M3: dynamic tables, DYNAMIC-LENGTH items, TYPEDEF, >>PROPAGATE, the M3-4 catchall) populates and enables it.",
+  "_comment": "The 2014 positive corpus (COBOL-2014 / M3 surface). PHASE-12 populates it: OCCURS DYNAMIC (dyn_*), the arithmetic-standard/OPTIONS/rounded-mode families, and the DYNAMIC LENGTH elementary items (dynamic_length_*).",
   "enabled": [
     "arithmetic_standard_decimal",
     "corresponding_rounded_mode",
@@ -13,10 +13,15 @@
     "dyn_initialized",
     "dyn_nested_group_move",
     "dyn_search",
+    "dynamic_length_figurative",
+    "dynamic_length_item",
+    "dynamic_length_limit",
+    "float_binary",
     "formatted_datetime",
     "func_expr_arg",
     "options_default_rounded",
     "options_paragraph",
+    "propagate_directive",
     "rounded_mode_prohibited",
     "rounded_modes"
   ],

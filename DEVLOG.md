@@ -13,6 +13,264 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 885 — 2026-07-17 19:41 PDT — ✅ PHASE-12 COMPLETE — Step 13 phase close + the doc sweep; merge to main
+
+PHASE-12 (M3 / COBOL-2014 surface deltas) closes. All 13 steps done across 6 battery-gated commits
+(`fb17f98f`→`9afde9f3`+close, CI green on each). All three exit criteria met:
+1. the `tests/conformance/2014/` corpus grew (`dynamic_length_item`/`_limit`/`_figurative`, `float_binary`,
+   `propagate_directive`) and every `.cob` is manifest-discovered;
+2. `occurs-dynamic-2014` + `dynamic-length-item-2014` matrix rows are `active` and green at all four editions;
+3. the full battery is green at every boundary — **3582 conformance · 311 unit · 33 characterization · legacy
+   1196+646 · NIST 353 MATCH**.
+
+**What shipped:** DYNAMIC LENGTH elementary items · the IEEE float USAGE family (binary32/64 native,
+binary128/decimal processor-dependent non-support — the IEEE-fidelity inversion corrected) · the `>>PROPAGATE`
+introduction gate · the `TYPE TO` re-anchor. **What is deferred (documented residues):** the external-float `E`
+PICTURE + the FUNCTION-POINTER runtime + restricted PROGRAM-POINTER + `ADDRESS OF` spellings (all staged loud at
+0899), the `>>PROPAGATE` runtime semantics + its §7.3.21.3 SR1 placement rule, and the DYNAMIC LENGTH
+national-LENGTH/BYTE-LENGTH runtime paths — carried forward by name (several → P13).
+
+**The methodological win, again:** the persisted anchor re-scout (`PHASE-12-scout-notes.md`, trusted over the
+drift-prone 2026-07-07 plan) caught the IEEE-754 fidelity inversion, the `>>PROPAGATE` "≤2014" span error, the
+`TYPE TO` pointer-form mislabel, and the 1540/1545 diagnostic-band collision BEFORE coding; the Step-12
+adversarial review then caught 6 more real defects (0 refuted) that the re-scout could not — including a spec
+MISREADING I shipped in wave 2 (MOVE SPACE → length 0). Re-scout + adversarial review are complementary: the
+re-scout fixes the PLAN, the review fixes the CODE.
+
+**This entry (the doc sweep):** PHASE-12 doc STATUS → DONE + the three-exit-criteria confirmation; the master
+roadmap banner + §4 index (row 12 ☑ DONE); `resume-prompt.md` top banner (RESUME AT PHASE-13 + the P12 summary);
+`CLAUDE.md` snapshot; the memory index (compacted 23.3→17.1KB, the per-phase detail moved to the
+`project_rearchitecture_plan` topic file). Next: **PHASE-13** (M4 / COBOL-2023 deltas + EC remnants + the
+Table 1/5 behavior-row burn-down).
+
+## Entry 884 — 2026-07-17 19:18 PDT — PHASE-12 Step 12 — the adversarial review found 6 real defects (incl. a spec misreading I shipped); all fixed
+
+The find→verify adversarial review over the whole P12 diff (5 spec-first finders × the diff dimensions +
+adversarial verifiers, a Workflow fan-out; prior phases found ~7 each). It returned 11 CONFIRMED findings
+deduplicating to **6 distinct real defects** — every one verified against the spec and reproduced via the CLI.
+Fixed all 6, each with a golden/test.
+
+1. **MOVE SPACE/SPACES into a DYNAMIC LENGTH item gave length 0, not 1 — a spec misreading I shipped in wave 2.**
+   My wave-2 MoveEmitter special-cased figurative SPACE → `""` on a mis-read "space-fill sets length 0". The
+   verifier proved NO such rule: §8.3.3.6.4 GR3b — a figurative constant other than `ALL literal` sends ONE
+   character, so MOVE SPACE stores a single space (length 1). The special case was also UNNECESSARY (a zero-length
+   literal `""` is a `BoundStringLiteral`, already length 0 via the general path). Deleted it; SPACE now flows
+   through `DynStore(AsString(source), limit)` = `new string(' ',1)` (length 1). This is exactly the class of error
+   the review exists to catch — a plausible-but-wrong behavior that my own goldens did not exercise.
+2. **Figurative VALUE on a DYNAMIC LENGTH item initialized to length 0, not 1** (the same root, ValueInitializer):
+   `VALUE SPACE`/`ZERO`/`HIGH-VALUES` → length 1 (§8.6.4 initial length is MOVE-like, §13.18.63.4 GR7; §8.3.3.6.4
+   GR3b). Now returns the one-char `FigurativeInitializer` fill, not `""` (the no-VALUE case stays `""`, §8.6.4).
+3. **§13.16.3 SR18 omitted GLOBAL (and PROPERTY)** — `01 D PIC X DYNAMIC LENGTH … IS GLOBAL` compiled clean. GLOBAL
+   is decoded post-build (CallBindExternalAndGlobal), so it escaped the allowlist; added `hasGlobal`/`hasProperty`
+   flags in the clause loop and to the SR18 rejection (COBOLNET1563).
+4. **FUNCTION BYTE-LENGTH of FLOAT-BINARY-32/64 folded to 1** — the new 2014 usages were missing from
+   `DataItem.ElementaryByteWidth`; the `_` default gave `ElementaryImageWidth` (→ Math.Max(1,·) = 1). Added
+   binary32→4, binary64→8 (+ the non-support formats' pinned widths 8/16 for exhaustiveness).
+5. **PIC X(01)/N(001) DYNAMIC LENGTH falsely rejected 1561** — the SR1 check string-matched the RAW picture against
+   a `"X"|"N"|"X(1)"|"N(1)"` set, so an explicit-count-1 spelling (`X(01)`) failed. Replaced with the regex
+   `^[XN](\(0*1\))?$` (accepts every count-1 form, still rejects `XX`/`X(2)`/`A`/`9`).
+6. **>>PROPAGATE §7.3.21.3 SR1 (not within a compilation unit) is not enforced** — a pre-parse line-based stage has
+   no unit-boundary awareness. Documented as a known limitation in the processor (a placement-diagnostic follow-up),
+   not a silent mis-compile of well-placed source.
+
+New locks: `tests/conformance/2014/dynamic_length_figurative` (MOVE SPACE/ZERO → length 1, VALUE SPACE → length 1,
+`""` → length 0, PIC X(01)); the `float_binary` golden extended with BYTE-LENGTH (B32BYTES=00004, B64BYTES=00008);
+`DynamicLengthTests` +6 (GLOBAL 1563, count-1 accepted ×3, count>1 rejected ×2). The review REFUTED 0 — every
+surfaced finding was real (the finders were well-targeted; the SR18/BYTE-LENGTH/figurative issues were each found by
+two independent finders). Full battery green + FULL legacy guard (NIST 353 MATCH — these fixes are greenfield-only,
+Cobol.Net.Compiler). Next: Step 13 — phase close (merge to main).
+
+## Entry 883 — 2026-07-17 18:01 PDT — PHASE-12 waves 4+5 — pointer §-fixes + the >>PROPAGATE introduction gate + the TYPE TO re-anchor (Steps 8-11)
+
+Two lighter waves combined into one commit — the pointer residues (Step 8), the `>>PROPAGATE` directive gate
+(Step 9), the `TYPE TO` re-anchor (Step 10), and the doc sync (Step 11). The re-scout had already shown Step 8's
+pointer work was mostly DONE (PROGRAM-POINTER live since P10, FUNCTION-POINTER correctly staged loud), so it
+reduced to the corrections below rather than the plan's full implementation.
+
+**Step 8 (pointers) — the residue corrections:** fixed the three §8.5.2.7→§8.5.2.15 code-comment errors the
+re-scout flagged (program-pointer category is §8.5.2.15; §8.5.2.7 is function-pointer category) at
+`ProgramPointer.cs:6`, `PicInfo.cs:41`, `PicInfo.cs:96`. The genuine remaining pointer work — the FUNCTION-POINTER
+runtime carrier + SET Format 8, the restricted PROGRAM-POINTER `TO`-prototype form, and the ISO `ADDRESS OF
+PROGRAM/FUNCTION` spellings — stays STAGED LOUD (COBOLNET0899, correct, not silently wrong) and is documented as a
+residue (it dovetails with the P13 function-prototype work).
+
+**Step 9 (`>>PROPAGATE`) — the introduction gate:** the re-scout inverted the plan's "re-edition to ≤2014"
+premise — §7.3.21 is LIVE in the 2023 spec (Annex E lists no removal), so the correct action is an INTRODUCTION
+gate, not a top-end span. Implemented via the proven `>>TURN` pattern: `PropagateDirectiveProcessor` (a new
+line-count-preserving preprocessor stage) recognizes `>>PROPAGATE ON|OFF`, edition-gates it below its
+introduction edition with **COBOLNET0883** (">>PROPAGATE requires --std 2002+"), validates the ON/OFF operand
+(§7.3.21.2), and blanks the line. Provisional COBOL-2002 (the roadmap decision-1 policy — the 2002-vs-2014 edge
+cannot be pinned from the 2023 text or the VCR; §7.3.21 is 2002-era EC-directive facility, same era as `>>TURN`).
+`ConditionalCompilationProcessor` gained a `leavePropagateDirectives` flag (the `leaveTurnDirectives` twin) so the
+directive survives to the new stage — PROPAGATE STAYS in `KnownIgnoredDirectives` so a legacy caller (no flag)
+keeps consuming it (verified: the legacy `CobolSharp.Compiler` references `Cobol.Net.Frontend`, so it shares the
+stage and handles `>>PROPAGATE` identically). **The RUNTIME propagation SEMANTICS (GR1/GR2 — actually driving EC
+propagation) remain the deferred PHASE-13 EC-remnant work** — this wave delivers recognition + the edition gate,
+resolving the P9/P13/P12 ownership question: P12 owns the gate, P13 owns the semantics.
+
+**Step 10 (`TYPE TO`) — the re-anchor:** the re-scout showed plain `TYPE TO` is the TYPE clause's OPTIONAL word
+(§13.18.57.2 Format 1, `TYPE [TO] type-name`, already covered by the live TYPE clause), NOT a pointer form. The
+genuine "pointer-target" deferral is the RESTRICTED data-pointer `USAGE POINTER TO type-name` (§13.18.60.2 / Annex
+D.9.2.2). Catalogued it as the pending matrix row `usage-pointer-to-type-2014` (never a silent gap), and fixed the
+mislabel + the swapped TYPE(§13.18.57)/TYPEDEF(§13.18.58)/SAME-AS(§13.18.49) citations in the three docs
+(`ISO2023_CONFORMANCE_PLAN.md`, `COBOLNET_DATA_MODEL_DESIGN.md`, the P12 §7 table).
+
+**Step 11 (doc sync):** stale hardcoded battery counts (3166/281) in `DESIGN-codegen-backend.md` /
+`DESIGN-data-model.md` replaced with count-free phrasing; the plan STATUS + step checkboxes updated.
+
+Tests: `tests/conformance/2014/propagate_directive` (byte-compared; NOT GreenfieldOnly — the legacy shares the
+Frontend and handles it identically, verified by a legacy compile); `PropagateDirectiveTests` (6: recognized at
+2002/2014/2023, COBOLNET0883 below 2002, malformed-operand reject). Full battery green + FULL legacy guard (NIST
+353 MATCH — shared preprocessor changed). Deferred residues (documented): the external-float `E` PICTURE
+(§13.18.40.4 GR13b, staged 0899), the FUNCTION-POINTER runtime + restricted PROGRAM-POINTER + `ADDRESS OF`
+spellings (staged 0899), and the `>>PROPAGATE` runtime semantics (P13). Next: wave 6 = the adversarial review +
+phase close (Steps 12-13).
+
+## Entry 882 — 2026-07-17 17:06 PDT — PHASE-12 wave 3 — the IEEE-754 float USAGE family (§13.18.60.4 GR14-18, COBOL-2014); the fidelity inversion corrected
+
+The COBOL-2014 IEEE interchange float family lands — and with it the spec-faithfulness correction the P12
+re-scout forced. **The plan premised "backing FLOAT-BINARY-128 by `double` … is a conforming implementor choice
+per §13.18.60.4 GR13."** Re-checked directly against the spec: GR13/GR21 make ONLY the FLOAT-SHORT/LONG/EXTENDED
+trio implementor-defined; **GR14-18 PIN** FLOAT-BINARY-32/64/128 to ISO/IEC 60559:2020 binary32/64/128 and
+FLOAT-DECIMAL-16/34 to decimal64/128. A `double`/`System.Decimal` backing of a pinned format is NON-conforming
+(the CONCATENATE-class catch — a plan premise that contradicts the spec).
+
+**The honest split implemented (spec-first):**
+- **FLOAT-BINARY-32 → native `float`, FLOAT-BINARY-64 → native `double`** — the pinned IEEE interchange formats
+  map EXACTLY, so these are conforming and LIVE. `Usage.FloatBinary32/64`, `IsFloat`/`IsSingle`/`ClrType`/
+  `DefaultInitializer` arms, the picture-less float synthesis (`PicInfo.FloatItem`), and the runtime `CobolFloat`
+  path all extend the FLOAT-SHORT trio. Verified: `10.5*2 → 00021` (binary32), `100.25*4 → 00401` (binary64),
+  `10.5+100.25 → 00110` (mixed, truncated).
+- **FLOAT-BINARY-128 / FLOAT-DECIMAL-16 / FLOAT-DECIMAL-34 → processor-dependent NON-support** (Annex A.3 items
+  17/19): .NET has no IEEE binary128 or IEEE decimal64/128 type, and GR16-18 pin the formats — so `PictureAnalyzer.
+  ParseUsage` rejects them LOUD with **COBOLNET1564** ("processor-dependent language element not supported …
+  Annex A.3"), never a silent non-conforming approximation. The `Usage` members exist so the emit path has a valid
+  synthesized Pic (no NRE on the errored compile) and the switches stay exhaustive.
+
+**Grammar:** dedicated hyphenated tokens `FLOAT_BINARY_32/64/128`, `FLOAT_DECIMAL_16/34` (before IDENTIFIER — the
+scout catch: `FLOAT-BINARY-32` lexes as ONE IDENTIFIER by maximal-munch otherwise, so the plan's
+`FLOAT_BINARY integerLiteral?` primary plan could not work; the fallback was mandatory) + the five `usageKeyword` /
+bare-`usageClause` alternatives. ANTLR regen clean (0 warnings). All five words were already in reserved-words.json;
+the drift tests stay green.
+
+**Matrix:** `usage-float-binary32-2014` flipped pending→active (+ the missing `expectDiagnostic` field), new active
+`usage-float-binary64-2014`; new PENDING rows `usage-float-binary128-2014` / `usage-float-decimal16-2014` /
+`usage-float-decimal34-2014` catalogue the processor-dependent non-support (they would activate if the pinned format
+is ever implemented). The introduction gate (0900 below 2014) fires from `UsageConstructId` for binary32/64; the
+non-support forms get 1564 at every edition (a redundant 0900 would only add noise).
+
+**AI misstep caught by a CLI spot-run (feedback_transparency):** the first build compiled but `MOVE 10.5 TO WS-B32`
+NRE'd in `MoveEmitter.ConvertSource` — FLOAT-BINARY-* were absent from DataBinder's picture-less float-synthesis
+list (lines the FLOAT-SHORT trio owns), so `target.Pic` was null. Added all five to the synthesis + the
+picture-prohibition (§13.18.60.2 → COBOLNET1521). This is why every wave RUNS a program, not just compiles it
+(feedback_verify_demo_output).
+
+**Deferred (documented residue):** the external-float `E`-symbol PICTURE (§13.18.40.4 GR13b, floating-point
+numeric-edited) stays staged LOUD at COBOLNET0899 — it is a separable editing feature (rendering a float into a
+`+9.99E+99` mask), not silently wrong, and does not block the float-USAGE scope. Scheduled as a follow-up increment.
+
+Tests: `tests/conformance/2014/float_binary` (byte-compared, binary32/64 arithmetic; GreenfieldOnly — the frozen
+legacy grammar has no FLOAT-BINARY-* tokens); `FloatFamilyTests` (10: binary32/64 positives + the three 1564
+non-support rejects + the 4-edition gate + the §13.18.60.2 picture prohibition). Full battery green + FULL legacy
+guard (NIST 353 MATCH — grammar changed). Next: wave 4 = the pointer residues (Step 8).
+
+## Entry 881 — 2026-07-17 16:11 PDT — PHASE-12 wave 2 — DYNAMIC LENGTH elementary items (§8.5.1.10 / §13.18.19, COBOL-2014) LIVE end-to-end
+
+DYNAMIC LENGTH elementary items land on the greenfield substrate — a variable-length, minimum-length-zero
+`PIC X`/`PIC N` string. Typed-native, spec-first: the item IS a native .NET `string` field (no byte substrate),
+its current length varies at runtime, and a receiving MOVE truncates on the right to the LIMIT with NO padding.
+
+**The pipeline (bottom-up, all from the persisted scout anchors, not the drifted plan):**
+- **Runtime** `CobolDynString.Store(value, limit)` — the §8.5.1.10.4 receiving rule (replace, truncate-right-to-limit,
+  no pad; -1 = the implementor-defined maximum, §13.18.19.4 GR2). A static helper over `string`, the `CobolString`
+  pattern.
+- **Data model** — `StorageForm.DynamicString(Category, Limit)` (IsCharacterImage=false, ImageWidth=0 — a
+  dynamic-length item makes its group a variable-length group, §8.5.1.12); `DataItem.IsDynamicLength` +
+  `DynLengthLimit` facts; `ElementaryImageWidth`/`IsCharacterImage`/`IsImageCapable` short-circuit on it like
+  `IsDynamicTable`; `StorageFormPass` classifies it (a new branch) and maps its element type to `string`.
+- **Grammar** — `dynamicLengthClause : DYNAMIC LENGTH cobolWord? (LIMIT IS? integerLiteral)?`, a superset-parse
+  alternative in `dataDescriptionClause` (the BASED/ANY-LENGTH convention — NOT a `{is2014()}?` predicate). Tokens
+  DYNAMIC/LENGTH/LIMIT already existed; ANTLR regen clean (0 warnings — LL-disjoint from `occursClause`, which leads
+  with OCCURS).
+- **Binder** — `BindEntry` decodes the clause and enforces the shape SRs (the ANY LENGTH template): §13.18.19.3 SR1
+  (PICTURE exactly one N or X — NOT the boolean '1') → **COBOLNET1561**; the dynamic-length-structure-name
+  non-support (§13.18.19.3 SR2 / §12.3.7) → **COBOLNET1562**; §13.16.3 SR18 (only level-number/entry-name/PICTURE/
+  USAGE/VALUE permitted) → **COBOLNET1563**. A fresh 1561-1563 band — the plan's 1540/1541 collide with live P10
+  concat codes (the re-scout catch), so P12 draws from 1561+.
+- **Edition gate** — `VersionConformancePass ParseArm.VisitDynamicLengthClause` → the `dynamic-length-item-2014`
+  construct → COBOLNET0900 below 2014 (recognition-based, the drop-proof home).
+- **Emitter** — the field is a `string` init `""` (or its VALUE, truncated to the LIMIT — §8.6.4 defines the initial
+  length from VALUE, absent VALUE it is 0); a receiving MOVE emits `CobolDynString.Store` (a figurative SPACE →
+  length 0, §8.5.1.10.4; a zero-length literal → length 0, §14.9.25.4 GR2 — NOT SPACE-substituted). FUNCTION LENGTH
+  of a PIC X dynamic-length item returns the runtime `.Length` (§15.50.4 rule 6 — current length in bytes = its
+  character positions); a NATIONAL dynamic-length LENGTH (bytes = 2× positions) and BYTE-LENGTH (no runtime body)
+  stage loud by name (the ANY LENGTH discipline; §1.4).
+
+**Spec-faithfulness detail the scout forced (verified against the spec):** §13.16.3 SR18 — NOT §13.18.19.3 — is the
+co-clause exclusion authority (the plan cited the wrong §); VALUE is PERMITTED and sets a non-zero initial length
+(§8.6.4), so the field is NOT unconditionally initialized to empty; and FUNCTION LENGTH of a dynamic-length item
+returns BYTES (§15.50.4 rule 6), so a naive character-count for PIC N would be wrong — hence the national leg is
+staged loud rather than shipped half-right.
+
+**Verified (CLI + goldens, byte-exact on first run):** `MOVE "HELLO"` → length 5; `MOVE` a 38-char literal into a
+LIMIT-20 item → truncates to 20; `MOVE SPACES` → length 0; VALUE "INIT" → initial length 4; an item with no LIMIT
+→ unbounded (34-char store). All four SR/gate diagnostics fire (1561/1562/1563/0900). Two byte-compared conformance
+programs (`tests/conformance/2014/dynamic_length_item`, `dynamic_length_limit`), the `DynamicLengthTests` guard suite
+(10 cases: the SR negatives + well-formed positives + the 4-edition gate), and `CobolDynStringTests` (10 unit cases:
+round-trip / truncation / min-0 / no-limit) all green. Matrix row `dynamic-length-item-2014` active — asserts
+compile at 2014/2023, COBOLNET0900 at 1985/2002 (exit criterion 2 MET). Full battery green with the FULL legacy
+guard (NIST 353 MATCH — grammar changed).
+
+**Two AI missteps the gates caught (feedback_transparency):** (a) the new `dynamic-length-item-2014` matrix row
+was authored WITHOUT the required `vcr` field — `VersionMatrixTests.LoadCatalogue`'s static ctor threw, red-lining
+all 587 matrix cells at once (the catalogue is a single static). Added `vcr`, regenerated the construct files.
+(b) The two new `2014/dynamic_length_*` conformance programs went RED in the FROZEN legacy `ConformanceTests` (the
+byte engine has no dynamic-length model — it read `PIC X DYNAMIC LENGTH` as a fixed `PIC X`, so `1[H]` not
+`1[HI]`). This is the `feedback_legacy_suite_on_shared_corpus` case: added both to the `GreenfieldOnly` exclusion
+in the SAME commit (the greenfield CorpusRunnerTests byte-compares them; the legacy runner skips them until the G8
+cut-over). The full legacy guard is the only gate that surfaces the second class — guard-fast is NOT optional for a
+shared-corpus golden. Next: wave 3 = the IEEE float family (Step 7).
+
+## Entry 880 — 2026-07-17 15:40 PDT — PHASE-12 START — the anchor re-scout (drift caught before coding) + wave 1: the live FLOAT trio matrix-locked
+
+PHASE-12 (M3 / COBOL-2014 deltas) opens on branch `phase-12-m3-2014`. Baseline green at HEAD `91ff7301`:
+**3521 conformance · 301 unit** (both re-run on the fresh build).
+
+**The re-scout (methodology first, per the P10/P11 lesson `feedback_persist_anchor_rescout`).** The PHASE-12 plan
+was authored 2026-07-07 — BEFORE P8/P9/P10/P11 landed — so its code-state and several spec anchors had drifted
+badly. Ran a 6-scout + adversarial-verify workflow re-verifying every plan anchor against `specs/ISO_COBOL.md` and
+the current tree; persisted the corrected reference as `docs/rearchitecture/PHASE-12-scout-notes.md`. **Every one of
+the 13 completed verify agents returned UPHELD or MODIFIED — not one scout claim was refuted; the plan drifted in
+every checked case.** The load-bearing catches (this is the P11-CONCATENATE class of finding — a plan premise that
+contradicts the spec):
+1. **IEEE-754 fidelity INVERTED.** The plan called backing FLOAT-BINARY-128 by `double` "a conforming implementor
+   choice per §13.18.60.4 GR13". Re-checked directly against the spec: GR13/GR21 make ONLY the FLOAT-SHORT/LONG/
+   EXTENDED trio implementor-defined; **GR14-18 (spec lines 22826-22867) PIN** FLOAT-BINARY-32/64/128 to ISO/IEC
+   60559:2020 binary32/64/128 and FLOAT-DECIMAL-16/34 to decimal64/decimal128. Decision for Step 7:
+   FLOAT-BINARY-32→`float`, FLOAT-BINARY-64→`double` (exact/conforming); FLOAT-BINARY-128 + FLOAT-DECIMAL-16/34 →
+   **processor-dependent non-support** (Annex A.3 items 17/19), loud — never `double`-backed.
+2. **PROGRAM-POINTER is DONE as a 2002 feature** (P10 Step 7) — the plan's "2014" + `{is2014()}?` Step-8 gate would
+   REGRESS it. FUNCTION-POINTER surface also done (staged loud 0899); only its runtime semantics remain.
+3. **Diagnostic band 1540-1559 COLLIDES** — 17/20 codes live (high-water 1559, not the plan's 1538). Keep the
+   1550/1551/1552 pointer earmark; DYNAMIC LENGTH + float take fresh codes from 1561+.
+4. **`>>PROPAGATE` is LIVE in 2023**, not removed → introduction gate (~2002), no top-end span. Ownership conflict
+   P9/P13/P12 flagged for resolution.
+5. **TYPE TO is NOT a pointer form** — it is the TYPE clause's optional word (§13.18.57.2); the §7 table swaps the
+   TYPE/TYPEDEF/SAME-AS citations. Registry is `Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs`, not the plan's
+   path. `scripts/guard.ps1` does not exist. Battery baseline 3521/301, not the plan's stale 3166/281.
+
+Direct CLI probes confirmed the scout: the FLOAT trio compiles+RUNS at 2002 (`S=0021` from 10.5×2), FLOAT-BINARY-32
+fails to parse ("no viable alternative"), and the E-picture is staged loud at COBOLNET0899.
+
+**Wave 1 (Steps 1-3, no grammar — this commit).** OCCURS DYNAMIC's `occurs-dynamic-2014` row was already active with
+all 10 `dyn_*` enabled (Step 1 = verify-and-lock, no change). Flipped the three live FLOAT-trio rows
+`usage-float-{short,long,extended}-2002` `pending`→`active`, corrected their descriptions (drop the stale
+"silent-misbind"/"PENDING") and the §13.18.59→§13.18.60 citation (§13.18.59 is UNDERLINE; USAGE is §13.18.60). Step 3
+needs no new program — `tests/conformance/2002/float_usage.cob` already exercises the whole trio. Reconciled the plan
+doc: STATUS → `IN PROGRESS @ step 3` + a prominent RE-SCOUT CORRECTIONS banner pointing at the scout notes.
+Verified green: **1975/1975** across `VersionMatrixTests | CorpusRunnerTests | Occurs*Tests` (the three trio rows now
+assert compile at 2002/2014/2023 and COBOLNET0900 at 1985). Next: wave 2 = DYNAMIC LENGTH (§8.5.1.10 / §13.18.19).
+
 ## Entry 879 — 2026-07-17 13:42 PDT — ✅ PHASE-11 COMPLETE — the deferred-intrinsics backlog is ZERO, the Tier-C rejection is single-sourced; the phase-close doc sweep
 
 PHASE-11 closes. Every ISO/IEC 1989:2023 §15 intrinsic function is LIVE — `IntrinsicBind.Deferred` = zero

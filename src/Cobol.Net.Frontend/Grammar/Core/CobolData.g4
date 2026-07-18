@@ -253,6 +253,7 @@ dataDescriptionClause
     | sameAsClause
     | basedClause
     | anyLengthClause
+    | dynamicLengthClause
     | genericDataClause
     ;
 
@@ -284,6 +285,18 @@ constantRecordClause
 // rules bind-check in DataBinder and the placement sweeps.
 anyLengthClause
     : ANY LENGTH   // introduction-gated post-bind by VersionConformancePass ParseArm.VisitAnyLengthClause
+    ;
+
+// DYNAMIC LENGTH clause (ISO §8.5.1.10 / §13.18.19, COBOL-2014) — a variable-length, minimum-length-zero PIC X or
+// PIC N string. Format: DYNAMIC LENGTH [dynamic-length-structure-name] [LIMIT IS? integer]. UNGATED superset parse
+// (the anyLengthClause pattern); the §13.18.19.3 SR1 (PICTURE exactly one N or X), §13.16.3 SR18 (permitted
+// co-clauses), and the structure-name non-support bind-check in DataBinder (COBOLNET1561/1562/1563), and the
+// COBOL-2014 introduction gate is VersionConformancePass ParseArm.VisitDynamicLengthClause → COBOLNET0900 below
+// 2014. LL-disjoint from occursClause: occursClause always leads with OCCURS (its Format-4 dynamic-capacity
+// alternative has DYNAMIC only as the SECOND token); here DYNAMIC is the leading token, and DYNAMIC appears
+// nowhere else at the start of a dataDescriptionClause — so tokens DYNAMIC/LENGTH/LIMIT need no lexer change.
+dynamicLengthClause
+    : DYNAMIC LENGTH cobolWord? (LIMIT IS? integerLiteral)?
     ;
 
 // GLOBAL clause (§13.18.27) — visible to contained programs
@@ -348,6 +361,8 @@ usageClause
     | FLOAT_SHORT
     | FLOAT_LONG
     | FLOAT_EXTENDED
+    | FLOAT_BINARY_32 | FLOAT_BINARY_64 | FLOAT_BINARY_128     // §13.18.60.4 GR14-16 IEEE binary32/64/128 (2014)
+    | FLOAT_DECIMAL_16 | FLOAT_DECIMAL_34                       // §13.18.60.4 GR17-18 IEEE decimal64/128 (2014)
     | (BINARY_CHAR | BINARY_SHORT | BINARY_LONG | BINARY_DOUBLE) binarySign?   // bare BINARY-xxx [SIGNED|UNSIGNED]
     | BINARY
     | PACKED_DECIMAL
@@ -371,6 +386,8 @@ usageKeyword
     | FLOAT_SHORT
     | FLOAT_LONG
     | FLOAT_EXTENDED
+    | FLOAT_BINARY_32 | FLOAT_BINARY_64 | FLOAT_BINARY_128     // §13.18.60.4 GR14-16 IEEE binary32/64/128 (2014)
+    | FLOAT_DECIMAL_16 | FLOAT_DECIMAL_34                       // §13.18.60.4 GR17-18 IEEE decimal64/128 (2014)
     | BINARY_CHAR
     | BINARY_SHORT
     | BINARY_LONG

@@ -1572,7 +1572,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
+        bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
+        int dynLengthLimit = -1;       // the LIMIT phrase (§13.18.19.4 GR2); -1 = the implementor-defined maximum
+        string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name (§12.3.7 — not yet supported)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
+        bool hasGlobal = false;        // GLOBAL (§13.18.27) — observed for the DYNAMIC LENGTH §13.16.3 SR18 co-clause check
+        bool hasProperty = false;      // PROPERTY (§13.18.42, OO) — observed for the same SR18 check
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
         bool isConstantRecord = false; // CONSTANT RECORD (ISO §13.18.15 — a structured constant; P10 Step 15)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
@@ -1595,8 +1600,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // (recognition-based — IsAnyLength is cleared on every SR violation, so a bound-arm gate
                     // would drop the 0900 on exactly those paths; the BASED pattern).
                     isAnyLength = true;
+                else if (clause.Context.dynamicLengthClause() is { } dl)
+                {
+                    // DYNAMIC LENGTH (§8.5.1.10 / §13.18.19) — SR1 + the §13.16.3 SR18 clause-exclusion + the
+                    // structure-name non-support are validated below (the ANY LENGTH pattern). The COBOL-2014
+                    // introduction gate is VersionConformancePass ParseArm.VisitDynamicLengthClause (recognition —
+                    // IsDynamicLength is cleared on every SR violation, so a bound-arm gate would drop the 0900).
+                    isDynamicLength = true;
+                    dynLengthStructureName = dl.cobolWord()?.GetText();
+                    if (dl.integerLiteral() is { } lim && int.TryParse(lim.GetText(), out int lv)) dynLengthLimit = lv;
+                }
                 else if (clause.Context.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
+                else if (clause.Context.globalClause() is not null)
+                    hasGlobal = true;   // §13.18.27; observed for the §13.16.3 SR18 DYNAMIC LENGTH co-clause check
+                else if (clause.Context.propertyClause() is not null)
+                    hasProperty = true;   // §13.18.42 (OO); observed for the SR18 DYNAMIC LENGTH co-clause check
                 else if (clause.Context.typedefClause() is { } td)
                     // §13.18.58; D17. The COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitTypedefClause
                     // (14g.2, recognition-based — the typedef item is discarded from ConformanceForest when it fails to
@@ -1758,10 +1777,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // violation, 15xx). Before this a float item synthesized pic=null and NRE'd the emit; a float WITH a picture
         // would misbind by that (illegal) picture. (D16.)
         if (entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+                or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
+                or Usage.FloatDecimal16 or Usage.FloatDecimal34
             && pictureText is not null)
         {
             Edition.Error("COBOLNET1521", $"{entryWhere}: PICTURE may not be specified with a floating-point usage "
-                + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) — a floating-point item is picture-less (ISO §13.18.60.2)");
+                + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED/FLOAT-BINARY-*/FLOAT-DECIMAL-*) — a floating-point item "
+                + "is picture-less (ISO §13.18.60.2)");
             pictureText = null;
         }
 
@@ -1774,9 +1796,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
                 ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
-            // A PICTURE-less floating-point item (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, §13.18.60.2, D16) —
-            // its value is a native float/double, never scaled-integer (before this the chain fell to null → NRE).
+            // A PICTURE-less floating-point item (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED + the 2014
+            // FLOAT-BINARY-*/FLOAT-DECIMAL-* family, §13.18.60.2, D16) — its value is a native float/double, never
+            // scaled-integer (before this the chain fell to null → NRE). The processor-dependent non-support forms
+            // (binary128/decimal, rejected COBOLNET1564) still synthesize a Pic so the errored compile does not NRE.
             : entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+                or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
+                or Usage.FloatDecimal16 or Usage.FloatDecimal34
                 ? PicInfo.FloatItem(entryUsage)
             : null;   // incl. a PICTURE-less USAGE NATIONAL/BIT entry — Pending (below) carries its adjudication
 
@@ -1945,6 +1971,52 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             }
         }
         item.IsAnyLength = isAnyLength;
+
+        // DYNAMIC LENGTH declaration-shape validation (ISO §8.5.1.10 / §13.18.19; COBOL-2014). Violations clear the
+        // flag so the item binds as ordinary storage under an already-failed compile (the ANY LENGTH / IsBased
+        // discipline). The COBOL-2014 introduction gate is VersionConformancePass ParseArm.VisitDynamicLengthClause.
+        if (isDynamicLength)
+        {
+            // §13.18.19.3 SR1: a PICTURE clause shall be specified and its character-string shall be exactly ONE
+            // instance of the picture symbol 'N' or 'X'. A count of 1 in ANY spelling is still one instance —
+            // `X`, `X(1)`, `X(01)`, `N(001)` all denote one position (the regex `^[XN](\(0*1\))?$` matches every
+            // count-1 form and rejects `XX`, `X(2)`, `A`, `9`, editing symbols, …). Unlike ANY LENGTH (§13.18.2.3
+            // SR1), the boolean symbol '1' is NOT permitted — a dynamic-length item is alphanumeric or national only
+            // (§13.18.19.4 GR1).
+            string norm = pictureText?.Trim().ToUpperInvariant() ?? "";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(norm, @"^[XN](\(0*1\))?$"))
+            {
+                Edition.Error("COBOLNET1561", $"{entryWhere}: the DYNAMIC LENGTH clause requires a PICTURE whose "
+                    + "character-string is exactly one instance of the picture symbol 'N' or 'X' "
+                    + $"(ISO §13.18.19.3 SR1{(pictureText is null ? "; no PICTURE clause is specified" : $"; PICTURE {pictureText}")})");
+                isDynamicLength = false;
+            }
+            // §13.18.19.3 SR2/SR3: a dynamic-length-structure-name refers to a SPECIAL-NAMES DYNAMIC LENGTH
+            // STRUCTURE (§12.3.7 — PREFIXED/DELIMITED/physical layout). COBOL.NET does not yet support the physical
+            // structure declaration, so a naming reference is rejected LOUD rather than silently defaulting the
+            // layout (a staged residue; the 2023 SET-length enhancement, VCR row 60, is separately P13).
+            else if (dynLengthStructureName is not null)
+            {
+                Edition.Error("COBOLNET1562", $"{entryWhere}: a DYNAMIC LENGTH clause naming a "
+                    + $"dynamic-length-structure-name ('{dynLengthStructureName}') is not yet supported "
+                    + "(ISO §13.18.19.3 SR2 / §12.3.7 DYNAMIC LENGTH STRUCTURE)");
+                isDynamicLength = false;
+            }
+            // §13.16.3 SR18: with DYNAMIC LENGTH the ONLY other clauses permitted are level-number, entry-name,
+            // PICTURE, USAGE, and VALUE — reject every other decoded clause loud, never a half-shaped item. GLOBAL
+            // (§13.18.27) and PROPERTY (§13.18.42) are decoded here for this check (GLOBAL otherwise binds post-build
+            // in CallBindExternalAndGlobal, so it would escape the allowlist without an explicit flag).
+            else if (occursSpec is not null || occurs is not null || redefinesTargetName is not null || isBased
+                || hasExternal || hasGlobal || hasProperty || justified || blankWhenZero || synchronized || ownSign is not null
+                || isTypedef || typeRefName is not null || sameAsName is not null || isConstantRecord || isAnyLength)
+            {
+                Edition.Error("COBOLNET1563", $"{entryWhere}: with the DYNAMIC LENGTH clause the only other clauses "
+                    + "permitted are level-number, entry-name, PICTURE, USAGE, and VALUE (ISO §13.16.3 SR18)");
+                isDynamicLength = false;
+            }
+        }
+        item.IsDynamicLength = isDynamicLength;
+        if (isDynamicLength) item.DynLengthLimit = dynLengthLimit;
 
         // Register each INDEXED BY index-name as a distinct C# long field (1-based occurrence number, §3.5).
         // A method's index-names (M2-OO-1h step 4) register into the METHOD's own scope with a FRESH cell — two

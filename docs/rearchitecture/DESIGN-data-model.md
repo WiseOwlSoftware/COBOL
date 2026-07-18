@@ -348,7 +348,7 @@ elementary / group / `ALL 'x'` / Report-Writer SOURCE VALUEs. This closes the co
 
 ## 4. Migration — keeping the battery green throughout
 
-The battery (3166 conformance + 281 unit + 33 characterization + legacy guard NIST 353 MATCH) must stay green **every phase**.
+The battery (greenfield conformance + unit + 33 characterization + legacy guard NIST 353 MATCH) must stay green **every phase**.
 Strategy: introduce the new SSOT **in parallel**, prove byte-equivalence, then flip readers and delete the old fact.
 
 **Phase D0 — Parallel `StorageForm` (no behavior change).**

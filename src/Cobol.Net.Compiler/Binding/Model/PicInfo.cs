@@ -38,7 +38,7 @@ public enum PicCategory
     /// (feedback_managed_pointers — the ONE managed-ref carrier; never an 8-byte handle). Increment 1 holds
     /// only NULL (SET TO NULL / pointer, equality); ADDRESS OF / BASED / ALLOCATE are increment 2+.</summary>
     Pointer,
-    /// <summary>Program pointer (USAGE PROGRAM-POINTER, ISO §8.5.2.7 / §13.18.60 GR24) — LIVE (P10 Step 7): a
+    /// <summary>Program pointer (USAGE PROGRAM-POINTER, ISO §8.5.2.15 / §13.18.60 GR24) — LIVE (P10 Step 7): a
     /// PICTURE-less elementary item that may contain the address of a program — for a COBOL program, an
     /// OUTERMOST program's externalized identity — carried by the runtime <c>ProgramPointer</c> and resolved
     /// through the ONE run-unit <c>ProgramTable</c> (SET … TO ENTRY §8.4.3.13; CALL §14.9.4 SR1; relations
@@ -93,7 +93,7 @@ public enum Usage
     /// <summary>USAGE POINTER (ISO §13.18.60 / §8.5.2.6 data-pointer) — LIVE (Phase-4b increment 1): the
     /// ManagedPointer carrier (<see cref="PicCategory.Pointer"/>).</summary>
     Pointer,
-    /// <summary>USAGE PROGRAM-POINTER (ISO §13.18.60 GR24 / §8.5.2.7) — LIVE (P10 Step 7): the ProgramPointer
+    /// <summary>USAGE PROGRAM-POINTER (ISO §13.18.60 GR24 / §8.5.2.15) — LIVE (P10 Step 7): the ProgramPointer
     /// carrier (<see cref="PicCategory.ProgramPointer"/>); the restricted TO-prototype form (GR25) stages loud.</summary>
     ProgramPointer,
     /// <summary>USAGE FUNCTION-POINTER (ISO §13.18.60) — recognized, STAGED LOUD (P10 Step 7): function
@@ -109,6 +109,24 @@ public enum Usage
     /// <summary>USAGE FLOAT-EXTENDED (ISO §13.18.60) — LIVE (Phase 6a): maps to <c>double</c> (no .NET quad;
     /// the §13.18.60.4 GR13 subset nesting).</summary>
     FloatExtended,
+    /// <summary>USAGE FLOAT-BINARY-32 (ISO §13.18.60.4 GR14 — ISO/IEC 60559:2020 binary32; COBOL-2014) — LIVE
+    /// (P12 wave 3): maps EXACTLY to .NET <c>float</c> (the pinned IEEE interchange format is conforming).</summary>
+    FloatBinary32,
+    /// <summary>USAGE FLOAT-BINARY-64 (ISO §13.18.60.4 GR15 — binary64; COBOL-2014) — LIVE (P12 wave 3): maps
+    /// EXACTLY to .NET <c>double</c> (conforming).</summary>
+    FloatBinary64,
+    /// <summary>USAGE FLOAT-BINARY-128 (ISO §13.18.60.4 GR16 — binary128; COBOL-2014) — PROCESSOR-DEPENDENT
+    /// NON-SUPPORT (Annex A.3 item 17): .NET has no IEEE binary128 type, and GR16 PINS the format (backing it by
+    /// <c>double</c> would be non-conforming), so ParseUsage rejects it LOUD (COBOLNET1564). The member exists so
+    /// the 2014 introduction gate still fires below 2014.</summary>
+    FloatBinary128,
+    /// <summary>USAGE FLOAT-DECIMAL-16 (ISO §13.18.60.4 GR17 — ISO/IEC 60559:2020 decimal64; COBOL-2014) —
+    /// PROCESSOR-DEPENDENT NON-SUPPORT (Annex A.3 item 19): .NET has no IEEE decimal64 type (System.Decimal is a
+    /// different format), and GR17 PINS it, so ParseUsage rejects it LOUD (COBOLNET1564).</summary>
+    FloatDecimal16,
+    /// <summary>USAGE FLOAT-DECIMAL-34 (ISO §13.18.60.4 GR18 — decimal128; COBOL-2014) — PROCESSOR-DEPENDENT
+    /// NON-SUPPORT (Annex A.3 item 19): rejected LOUD (COBOLNET1564), the FLOAT-DECIMAL-16 twin.</summary>
+    FloatDecimal34,
     /// <summary>USAGE BINARY-CHAR [SIGNED|UNSIGNED] (ISO §13.18.60.4 GR12) — LIVE (Phase 4 M2-DATA-1): a
     /// PICTURE-less native 1-byte two's-complement integer (SIGNED −128..127, UNSIGNED 0..255), realized on the
     /// COMP-5 BinaryCapacity discipline (<see cref="PicInfo.BinaryItem"/>).</summary>
@@ -259,21 +277,29 @@ public sealed record PicInfo(
         // Int128 for the 19–31-digit 2002+ tier. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
         PicCategory.Numeric => Usage switch
         {
-            Usage.Float or Usage.FloatShort => "float",
+            Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => "float",   // COMP-1 / FLOAT-SHORT / IEEE binary32
             Usage.Double or Usage.FloatLong or Usage.FloatExtended => "double",
+            // FLOAT-BINARY-64 = IEEE binary64 (double). FLOAT-BINARY-128 / FLOAT-DECIMAL-16/34 are processor-
+            // dependent NON-support (rejected at ParseUsage, COBOLNET1564) — these fallback maps are unreached in a
+            // valid compile (never emit a non-conforming double/decimal for a pinned IEEE format).
+            Usage.FloatBinary64 or Usage.FloatBinary128 => "double",
+            Usage.FloatDecimal16 or Usage.FloatDecimal34 => "decimal",
             _ => Digits > 18 ? "Int128" : "long",
         },
         _ => "object", // Group: never stored as a scalar (emitted as a record struct).
     };
 
-    /// <summary>True for a floating-point usage (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED); its value is IEEE, not
-    /// a scaled integer (D16). FLOAT-EXTENDED maps to double — no .NET quad (§13.18.60.4 GR13 subset nesting).</summary>
+    /// <summary>True for a floating-point usage (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED and the 2014
+    /// FLOAT-BINARY-*/FLOAT-DECIMAL-* family); its value is IEEE floating-point, not a scaled integer (D16).
+    /// FLOAT-EXTENDED maps to double — no .NET quad (§13.18.60.4 GR13 subset nesting).</summary>
     public bool IsFloat => Usage is Usage.Float or Usage.Double
-        or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended;
+        or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+        or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
+        or Usage.FloatDecimal16 or Usage.FloatDecimal34;
 
-    /// <summary>True for a SINGLE-precision float usage (COMP-1 / FLOAT-SHORT) — drives the <c>f</c> literal suffix
-    /// and the <c>(float)</c> store cast; every other float usage is double.</summary>
-    public bool IsSingle => Usage is Usage.Float or Usage.FloatShort;
+    /// <summary>True for a SINGLE-precision float usage (COMP-1 / FLOAT-SHORT / FLOAT-BINARY-32 = IEEE binary32) —
+    /// drives the <c>f</c> literal suffix and the <c>(float)</c> store cast; every other float usage is double.</summary>
+    public bool IsSingle => Usage is Usage.Float or Usage.FloatShort or Usage.FloatBinary32;
 
     /// <summary>The default C# initializer for an item with no VALUE clause (COBOL initial state, ISO §13.18.63).</summary>
     public string DefaultInitializer => Category switch
@@ -290,8 +316,9 @@ public sealed record PicInfo(
         PicCategory.Boolean => $"new string('0', {Length})",
         PicCategory.Numeric => Usage switch
         {
-            Usage.Float or Usage.FloatShort => "0f",
-            Usage.Double or Usage.FloatLong or Usage.FloatExtended => "0d",
+            Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => "0f",
+            Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 or Usage.FloatBinary128 => "0d",
+            Usage.FloatDecimal16 or Usage.FloatDecimal34 => "0m",   // unreached (rejected at ParseUsage, COBOLNET1564)
             _ => Digits > 18 ? "(Int128)0" : "0L",
         },
         _ => "default",
