@@ -671,6 +671,11 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
     /// <summary>The RETRY phrase (§14.7.9 / §14.9.51 GR16), or null.</summary>
     public RetrySpec? Retry { get; init; }
+    /// <summary>The AFTER-ADVANCING phrase of a COBOL-2023 combined <c>WRITE … BEFORE ADVANCING … AFTER ADVANCING …</c>
+    /// (ISO §14.9.51 GR25e/GR25f): when non-null, <see cref="Advancing"/> holds the BEFORE phrase and this holds the
+    /// AFTER phrase, and the record is presented once at the current line then advanced by BOTH amounts (both after
+    /// presentation). PAGE is forbidden in the combined form (SR17). Null = the classic single-phrase WRITE.</summary>
+    public BoundAdvancing? AfterAdvancing { get; init; }
 }
 
 /// <summary><c>READ file [NEXT] [INTO x] [AT END …][NOT AT END …]</c> (ISO §14.9.30): a sequential read that

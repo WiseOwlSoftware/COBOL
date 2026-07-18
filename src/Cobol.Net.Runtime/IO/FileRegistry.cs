@@ -181,6 +181,10 @@ public sealed class FileRegistry
     public void WriteAdvancing(string name, string image, int lines, bool before)
     { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteAdvancing(image, lines, before); }
 
+    /// <summary>COBOL-2023 combined <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/f).</summary>
+    public void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines)
+    { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.WriteBeforeAndAfter(image, beforeLines, afterLines); }
+
     /// <summary>Install a LINAGE file's logical-page evaluator (ISO §13.18.34 GR6).</summary>
     public void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
     { if (_files.TryGetValue(name, out var c) && c is SequentialConnector f) f.SetLinage(eval); }

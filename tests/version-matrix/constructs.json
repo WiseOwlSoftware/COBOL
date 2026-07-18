@@ -196,6 +196,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. BSH.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 A PIC 1(4) VALUE B\"1100\".\n01 R PIC 1(4).\nPROCEDURE DIVISION.\nMAIN.\n    COMPUTE R = A B-SHIFT-L 1.\n    STOP RUN.\n"
     },
     {
+      "id": "write-before-and-after-advancing-2023",
+      "description": "WRITE … BEFORE ADVANCING … AFTER ADVANCING … (ISO §14.9.51 SR17/GR25e/GR25f) — specifying BOTH advancing phrases on one WRITE is a COBOL-2023 addition (the record is presented once at the current line, then advanced by both amounts; PAGE forbidden, SR17). A single BEFORE or AFTER phrase is edition-invariant. Recognition gate on the co-occurrence (two writeAdvancePhrase children).",
+      "display": "WRITE BEFORE AND AFTER ADVANCING",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §14.9.51 SR17 / GR25e-f; Annex E.3.3 item 2",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 45 (WRITE BEFORE AND AFTER — 2023 introduction)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. WBA.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT PRTF ASSIGN TO \"vmwba.prt\".\nDATA DIVISION.\nFILE SECTION.\nFD PRTF.\n01 P-REC PIC X(6).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN OUTPUT PRTF.\n    MOVE \"AAA\" TO P-REC.\n    WRITE P-REC BEFORE ADVANCING 1 AFTER ADVANCING 2.\n    CLOSE PRTF.\n    STOP RUN.\n"
+    },
+    {
       "id": "based-clause-2002",
       "description": "BASED clause (a data item addressed via SET ADDRESS/ALLOCATE), ISO §13.18.5 — introduced 2002",
       "display": "BASED clause",

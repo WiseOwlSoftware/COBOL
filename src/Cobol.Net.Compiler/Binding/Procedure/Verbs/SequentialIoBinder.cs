@@ -104,17 +104,18 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
             // SR19 (the silent-drop bug class): the END-OF-PAGE / NOT END-OF-PAGE phrase requires a LINAGE clause
             // in the file's file description entry — a bind-time rejection, never a dropped branch.
             ctx.Validation.CheckWriteEopLinage(file);                                     // SR19 — pure check
-            ctx.Validation.CheckWriteEopAdvancingPage(w.writeBeforeAfter()?.PAGE() is not null);   // SR18 — pure check
+            ctx.Validation.CheckWriteEopAdvancingPage(AnyAdvancePage(w.writeBeforeAfter()));   // SR18 — pure check
             (atEop, notAtEop) = PhraseBlocks.Split(eop.statementBlock(), PhraseBlocks.StartsWithNot(eop), b => host.BindBlocks([b]));
         }
         // SR13: with a LINAGE clause, the ADVANCING phrase shall not name a SPECIAL-NAMES mnemonic (the
         // implementor positioning rules and the logical-page model are mutually exclusive).
-        ctx.Validation.CheckWriteAdvancingMnemonic(file, w.writeBeforeAfter() is { } adv
-            && adv.dataReference() is { } mref && ctx.Mnemonics.Of(adv).ContainsKey(mref.GetText()));   // SR13 — pure check
+        ctx.Validation.CheckWriteAdvancingMnemonic(file, w.writeBeforeAfter()?.writeAdvancePhrase()
+            .Any(p => p.dataReference() is { } mref && ctx.Mnemonics.Of(p).ContainsKey(mref.GetText())) ?? false);   // SR13 — pure check
 
+        var (beforeAdv, afterAdv) = BindAdvancingPair(w.writeBeforeAfter());
         return new BoundWrite(file, record, WriteSource(w.writeFrom()?.dataReference(), w.writeFrom()?.literal()),
-            BindAdvancing(w.writeBeforeAfter()), UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
-        { Lock = wlock, Retry = wretry };
+            beforeAdv, UnsupportedOrg(file, "WRITE"), atEop, notAtEop)
+        { Lock = wlock, Retry = wretry, AfterAdvancing = afterAdv };
     }
 
     public BoundStatement BindRead(Core.ReadStatementContext r)
@@ -160,7 +161,30 @@ internal sealed class SequentialIoBinder(BinderContext ctx, StatementBinder host
     /// per the IMPLEMENTOR's rules for the associated feature (§14.9.46 GR — mnemonic-name-1); this
     /// implementation's rule, inherited from the legacy oracle and encoded by the NIST goldens, is a ZERO-line
     /// advance (the write lands on the current line).</summary>
-    private BoundAdvancing? BindAdvancing(Core.WriteBeforeAfterContext? wba)
+    private static bool AnyAdvancePage(Core.WriteBeforeAfterContext? wba) =>
+        wba?.writeAdvancePhrase().Any(p => p.PAGE() is not null) ?? false;
+
+    /// <summary>Bind the ADVANCING phrase(s) of a WRITE (ISO §14.9.51). One phrase → (that, null); the COBOL-2023
+    /// combined form → (the BEFORE phrase, the AFTER phrase). SR17: the combined form may not carry PAGE and shall
+    /// be one BEFORE + one AFTER; a malformed pair (two BEFOREs / two AFTERs / PAGE) is rejected COBOLNET0862.</summary>
+    private (BoundAdvancing? Before, BoundAdvancing? After) BindAdvancingPair(Core.WriteBeforeAfterContext? wba)
+    {
+        if (wba is null) return (null, null);
+        var phrases = wba.writeAdvancePhrase();
+        if (phrases.Length == 1) return (BindAdvancing(phrases[0]), null);
+        // Combined BEFORE AND AFTER (SR17): exactly one BEFORE and one AFTER, neither PAGE.
+        var beforeP = phrases.FirstOrDefault(p => p.BEFORE() is not null);
+        var afterP = phrases.FirstOrDefault(p => p.AFTER() is not null);
+        if (beforeP is null || afterP is null || AnyAdvancePage(wba))
+        {
+            ctx.Edition.Error("COBOLNET0862", "the combined WRITE … BEFORE ADVANCING … AFTER ADVANCING form "
+                + "(ISO §14.9.51 SR17) shall specify one BEFORE and one AFTER phrase and shall not specify PAGE");
+            return (BindAdvancing(phrases[0]), null);
+        }
+        return (BindAdvancing(beforeP), BindAdvancing(afterP));
+    }
+
+    private BoundAdvancing? BindAdvancing(Core.WriteAdvancePhraseContext? wba)
     {
         if (wba is null) return null;
         bool before = wba.BEFORE() is not null;

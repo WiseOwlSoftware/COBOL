@@ -431,6 +431,10 @@ internal static class RuntimeApi
     public static string FileWriteAdvancing(string name, string image, string lines, string before) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.WriteAdvancing)}({name}, {image}, {lines}, {before})";
 
+    /// <summary>WRITE … BEFORE ADVANCING n AFTER ADVANCING m (ISO §14.9.51, 2023) — <c>CobolFile.WriteBeforeAndAfter</c>.</summary>
+    public static string FileWriteBeforeAndAfter(string name, string image, string beforeLines, string afterLines) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteBeforeAndAfter)}({name}, {image}, {beforeLines}, {afterLines})";
+
     /// <summary>The LINAGE end-of-page probe (§13.18.34) — <c>CobolFile.EndOfPage</c>.</summary>
     public static string FileEndOfPage(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.EndOfPage)}({name})";

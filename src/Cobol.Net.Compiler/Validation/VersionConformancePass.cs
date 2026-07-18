@@ -490,6 +490,16 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>WRITE … BEFORE ADVANCING … AFTER ADVANCING … (ISO §14.9.51 SR17) — specifying BOTH advancing
+        /// phrases on one WRITE is a COBOL-2023 addition. Gate on the CO-OCCURRENCE (two writeAdvancePhrase children),
+        /// not on ADVANCING itself — a single BEFORE or AFTER is edition-invariant. Recognition-based (DEVLOG 724).</summary>
+        public override object? VisitWriteBeforeAfter(CobolParserCore.WriteBeforeAfterContext ctx)
+        {
+            if (ctx.writeAdvancePhrase().Length == 2)
+                _p.Check(Constructs.WriteBeforeAndAfterAdvancing2023, "the combined WRITE BEFORE AND AFTER ADVANCING phrases");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>PERFORM … UNTIL EXIT (ISO §14.9.28.4 GR11) — the infinite-loop phrase is a COBOL-2023 addition
         /// (plain UNTIL condition is edition-invariant). Recognition-based on the EXIT alternative of performUntil;
         /// parse-arm so a below-2023 occurrence names its edition even though it drops to a bound control node.</summary>

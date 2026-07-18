@@ -25,6 +25,7 @@ public static class Constructs
     public const string ContinueAfter2023 = "continue-after-2023";
     public const string PerformUntilExit2023 = "perform-until-exit-2023";
     public const string BooleanShiftOperators2023 = "boolean-shift-operators-2023";
+    public const string WriteBeforeAndAfterAdvancing2023 = "write-before-and-after-advancing-2023";
     public const string BasedClause2002 = "based-clause-2002";
     public const string AnyLengthClause2002 = "any-length-clause-2002";
     public const string ProcedureReturning2002 = "procedure-returning-2002";

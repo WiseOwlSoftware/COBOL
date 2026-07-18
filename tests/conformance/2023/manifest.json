@@ -20,7 +20,8 @@
     "set_size",
     "smallest_algebraic",
     "substitute",
-    "usage_packed_no_sign"
+    "usage_packed_no_sign",
+    "write_before_and_after"
   ],
   "pending": []
 }

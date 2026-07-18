@@ -73,6 +73,10 @@ public static class CobolFile
     public static void WriteAdvancing(string name, string image, int lines, bool before)
         => _reg.WriteAdvancing(name, image, lines, before);
 
+    /// <summary>COBOL-2023 combined <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/f).</summary>
+    public static void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines)
+        => _reg.WriteBeforeAndAfter(name, image, beforeLines, afterLines);
+
     /// <summary>Install a LINAGE file's logical-page evaluator (ISO §13.18.34 GR6).</summary>
     public static void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
         => _reg.SetLinage(name, eval);

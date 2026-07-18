@@ -27,6 +27,7 @@ public static partial class ConstructRegistry
         new("continue-after-2023", "CONTINUE AFTER n SECONDS", 2023, null, null, "COBOLNET0900", "ISO §14.9.9.2 / §14.9.9.4 GR1; Annex E.3.3 item 14"),
         new("perform-until-exit-2023", "PERFORM UNTIL EXIT", 2023, null, null, "COBOLNET0900", "ISO §14.9.28.2 until-phrase / §14.9.28.4 GR11; Annex E.3.3 item 37"),
         new("boolean-shift-operators-2023", "boolean shift operators B-SHIFT-L/R/LC/RC", 2023, null, null, "COBOLNET0900", "ISO §8.8.2 rule 8 / Table 4; Annex E.2 (reserved-word additions)"),
+        new("write-before-and-after-advancing-2023", "WRITE BEFORE AND AFTER ADVANCING", 2023, null, null, "COBOLNET0900", "ISO §14.9.51 SR17 / GR25e-f; Annex E.3.3 item 2"),
         new("based-clause-2002", "BASED clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.5"),
         new("any-length-clause-2002", "ANY LENGTH clause", 2002, null, null, "COBOLNET0900", "ISO §13.18.2"),
         new("procedure-returning-2002", "PROCEDURE DIVISION RETURNING", 2002, null, null, "COBOLNET0900", "ISO §14.2"),

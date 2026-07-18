@@ -352,7 +352,13 @@ writeFrom
     : FROM (dataReference | literal)
     ;
 
+// ISO §14.9.51: one or (COBOL-2023, SR17) BOTH of BEFORE/AFTER ADVANCING. The combined form is introduction-gated
+// at 2023 and rejects PAGE (SR17); a single phrase is edition-invariant (85+).
 writeBeforeAfter
+    : writeAdvancePhrase writeAdvancePhrase?
+    ;
+
+writeAdvancePhrase
     : (BEFORE | AFTER) ADVANCING?
       ( PAGE
       | (dataReference | integerLiteral | literal) (LINE | LINES)?

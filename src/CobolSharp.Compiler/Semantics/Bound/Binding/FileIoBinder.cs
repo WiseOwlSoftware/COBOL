@@ -35,7 +35,9 @@ internal sealed class FileIoBinder
         int? advancingLines = null;
         bool isAfterAdvancing = true;
         BoundExpression? advancingExpression = null;
-        var advCtx = ctx.writeBeforeAfter();
+        // The shared grammar wraps the advancing phrase in writeAdvancePhrase (COBOL-2023 allows two — BEFORE AND
+        // AFTER — in the greenfield compiler; this frozen legacy oracle consumes only the first/single phrase).
+        var advCtx = ctx.writeBeforeAfter()?.writeAdvancePhrase(0);
         if (advCtx != null)
         {
             isAfterAdvancing = advCtx.GetChild(0).GetText().Equals("AFTER", StringComparison.OrdinalIgnoreCase);

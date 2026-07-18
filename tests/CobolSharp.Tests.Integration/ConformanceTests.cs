@@ -333,6 +333,7 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2023", "perform_until_exit"),     // PERFORM … UNTIL EXIT (§14.9.28.4 GR11)
         ("2023", "boolean_shift"),          // boolean shift B-SHIFT-L/R/LC/RC (§8.8.2 rule 8)
         ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
+        ("2023", "write_before_and_after"), // WRITE … BEFORE ADVANCING … AFTER ADVANCING … (§14.9.51 SR17)
     ];
 
     [Theory]

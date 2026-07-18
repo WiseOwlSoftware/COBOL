@@ -333,6 +333,22 @@ public sealed class SequentialConnector : FileConnector
         return new string(a);
     }
 
+    /// <summary>Print-control <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/GR25f,
+    /// COBOL-2023): present the trimmed image at the CURRENT line, then advance by the BEFORE amount and by the AFTER
+    /// amount — both after presentation (SR17 forbids PAGE, so neither is a form feed). LINAGE-COUNTER increments by
+    /// n+m.</summary>
+    public string WriteBeforeAndAfter(string image, int beforeLines, int afterLines)
+    {
+        if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
+        if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
+        _afterAdvancing = true;
+        _writer.Write(PrintSafe(image.TrimEnd()));
+        Advance(beforeLines);
+        Advance(afterLines);
+        if (_linageEval is not null) AdvanceLinageCounter(beforeLines + afterLines);
+        return Status = FileStatusCode.Success;
+    }
+
     private void Advance(int lines)
     {
         if (lines < 0) { _writer!.Write('\f'); return; }   // ADVANCING PAGE

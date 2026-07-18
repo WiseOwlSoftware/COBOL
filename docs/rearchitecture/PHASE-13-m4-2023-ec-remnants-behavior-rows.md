@@ -47,8 +47,11 @@
 > + boolean-shift-precedence audit drifts): GOBACK status (presence-only), USAGE PACKED-DECIMAL WITH NO SIGN,
 > 63-char words, SET [SIZE OF] dyn-length, CONTINUE AFTER SECONDS + EC-CONTINUE-LESS-THAN-ZERO, PERFORM UNTIL EXIT,
 > boolean shift B-SHIFT-L/R/LC/RC (Table A.2 oracle byte-exact). Diag band 1565–1568 consumed. See DEVLOG 887.
-> **Wave C batch 2 (remaining):** WRITE BEFORE AND AFTER + SUPPRESS WHEN alt-key (C5), PICTURE EDITING phrase (C3),
-> PERFORM Format 3 exception-checking (staged large), + the STOP/GOBACK exit-code VALUE wiring slice.
+> **Wave C batch 2:** WRITE … BEFORE AND AFTER ADVANCING landed (DEVLOG 888 — established that the ANTLR parser is
+> SHARED with the frozen legacy compiler, so a grammar RESTRUCTURE needs the legacy binder fixed + full legacy guard).
+> **Remaining:** SUPPRESS WHEN alt-key (indexed-runtime, complex), PICTURE EDITING phrase (C3, full PICTURE pipeline),
+> PERFORM Format 3 exception-checking (staged large), + the STOP/GOBACK exit-code VALUE wiring slice (staged —
+> run-unit termination blast radius; owner-sanctioned later slice).
 
 > **RESUME POINTER (a new session): read `resume-prompt.md`'s top P13 banner FIRST — it has the ordered resume
 > steps + the batched remaining-work waves.** LANDED: Step 1 = the as-built audit (`PHASE-13-audit.md` — THE
