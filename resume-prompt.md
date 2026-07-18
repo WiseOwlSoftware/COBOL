@@ -21,6 +21,12 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
+> ## ⚠️ PHASE-13 IS ALREADY IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`).
+> **`git checkout phase-13-m4-2023`** and read ITS `resume-prompt.md` top banner for the LIVE P13 state
+> (the as-built audit `docs/rearchitecture/PHASE-13-audit.md` is the worklist; Step 1 + Wave B EC-SIZE landed;
+> resume at Wave C — the 2023 grammar constructs). Do NOT re-create the branch or re-run the audit. The banner
+> below is the P12-close snapshot.
+
 ## ⛔🔀 RESUME AT — PHASE-13 (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
 **⏭ PHASE-12 IS COMPLETE (2026-07-17, DEVLOG 880–884 — 6 battery-gated commits `fb17f98f`→`9afde9f3`+close,
