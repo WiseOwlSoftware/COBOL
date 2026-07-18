@@ -21,12 +21,72 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 - **`DEVLOG.md`** — DESCENDING (newest entry first, under the preamble); add each entry at the TOP with a real
   `date "+%Y-%m-%d %H:%M %Z"` stamp. The full session history lives here (this banner stays lean).
 
-## ⛔🔀 RESUME AT — PHASE-13 (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
+## ⛔🔀 RESUME AT — PHASE-13 IN PROGRESS (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
-**⏭ PHASE-12 IS COMPLETE (2026-07-17, DEVLOG 880–884 — 6 battery-gated commits `fb17f98f`→`9afde9f3`+close,
-CI green on each). Next: PHASE-13** (`docs/rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md`; read
-its §0/STATUS + steps). **The go-forward roadmap `docs/COBOLNET_REARCHITECTURE_PLAN.md` banner + §4 index carry
-the live phase pointer.**
+**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; 2 commits pushed
+`08acae23`→`a4cca7ae`). DO NOT re-create the branch or re-run the audit — check it out and continue.**
+
+### ▶ HOW TO RESUME P13 (read these, in order)
+1. `git checkout phase-13-m4-2023` (the live P13 branch; `main` is at the P12 merge `e95dd92c`).
+2. **`docs/rearchitecture/PHASE-13-audit.md` — THE WORKLIST.** The 6-auditor as-built audit (durable, spec-cited)
+   classified all **71** P13 scope items: **18 DONE** (verify-and-flip only), **21 PARTIAL**, **31 MISSING**. Full
+   evidence in `docs/rearchitecture/PHASE-13-scout-notes.json`. Work the MISSING + PARTIAL rows; the DONE rows just
+   need a matrix/VCR flip. TRUST the audit over the (2026-07-07-authored, drift-prone) phase plan's step list.
+3. `PHASE-13-m4-2023-ec-remnants-behavior-rows.md` STATUS line + the newest DEVLOG entries (886→880).
+4. Confirm the branch battery is green at HEAD before touching code (greenfield conformance + unit; the FULL legacy
+   guard for a `.g4`/preprocessor change — re-prove a file-I/O-suite flake by SOLO rerun).
+
+### ▶ WHAT P13 HAS LANDED (branch commits)
+- **Step 1 — the as-built audit** (`08acae23`): `PHASE-13-audit.md` + `-scout-notes.json`.
+- **Wave B — EC-SIZE-TRUNCATION** (`a4cca7ae`, DEVLOG 886): verified ALREADY-RAISED on a ROUNDED MODE IS PROHIBITED
+  inexact store (§14.7.5) + golden `tests/conformance/2023/ec_size_truncation_prohibited` (GreenfieldOnly). **EC-BOUND-
+  OVERFLOW / EC-BOUND-REF-MOD are STAGED** (catalogued, not raised — needs the ambient-gate pipeline generalized:
+  `ExceptionState.BoundOverflowChecking`/`BoundRefModChecking` flags set by `EcEmitter` from `TurnState`, `EcBinder`
+  wrapping every table-grow/ref-mod statement in a `BoundEcChecked`, + runtime raise at `CobolDynTable`
+  grow-past-capacity and `CobolString.RefMod` zero-length; LOUD-not-silently-wrong today).
+
+### ▶ THE REMAINING P13 WORK (from the audit — batch by GATE type; owner directive: optimize/combine, not at the risk of accuracy)
+- **Wave C — 2023 grammar constructs** (each a FULL vertical grammar→binder→emit→runtime→golden→below-2023 negative;
+  ALL share ONE full legacy guard per batch): boolean shift B-SHIFT-L/R/LC/RC (§8.8.2), USAGE NO SIGN (§13.18.60),
+  CONTINUE AFTER n SECONDS + EC-CONTINUE-LESS-THAN-ZERO (§14.9.9), PICTURE EDITING (§13.18.40), PERFORM WHEN /
+  UNTIL EXIT (§14.9.31), WRITE BEFORE AND AFTER (§14.9.51), SUPPRESS WHEN alt-key, 63-char words (§8, VCR 54 —
+  needs a NEW length rejection: >30 below 2023 / >63 at 2023, watch regression), dynamic-length SET (§14.9.38),
+  GOBACK 2023 status phrase (§14.9.18 — NOTE: `BoundStop.HasStatusPhrase` is presence-only, the status VALUE / §12
+  RETURN-CODE wiring is a documented later slice, so GOBACK-status at that level is a thin compile-only golden —
+  decide whether to wire the value first).
+- **Wave D — directives** (preprocessor → full legacy guard): `>>COBOL-WORDS` (mutates the per-unit ReservedWordSet
+  seam), `>>PUSH`/`>>POP` (directive-state stack), `>>DISPLAY` (compile-log line), `>>FLAG-14` + `>>FLAG-02`-obsolete.
+- **Wave E — EXTERNAL conformance cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63; strong-typed external,
+  CONSTANT RECORD only for strong external, cross-SELECT FILE STATUS + relative-key consistency, run-unit
+  descriptor-conflict raise).
+- **Wave F — USE FOR DEBUGGING + the DEBUG-ITEM register at `--std 85`** (X3.23-1985; retires the biggest 0899
+  staging + the golden-less DB-series NIST programs).
+- **Wave G — behavior rows** (I-O status 04/07/0x/37 + DELETE FILE '39'/goldens; VALUE numeric-edited conformance
+  34/35/36/86; MERGE-in-output-proc 27, transfer-of-control sections 33, WRITE-EOP 37, EVALUATE-directive 14,
+  ALL-length 17, case-mapping 20/49 — many pin-to-spec).
+- **Wave H — the A.3 46-item disposition sweep** + `docs/CONFORMANCE.md` (§4.2.16) + ONE `COBOLNET1560`-band §4.2.6
+  processor-dependent-not-supported warning + the 4 documented-non-support facilities (MCS/commit-rollback/VALIDATE/
+  screen).
+- **Wave I — adversarial review** (Workflow find→verify, prior phases found ~6-7 real defects each) → phase close
+  (STATUS→DONE, resume-prompt/roadmap/DOC_INDEX/memory sweep) → merge to `main`.
+- **Diagnostic band:** the P13 plan says 15xx from 1539, but P12 consumed 1561-1564; the true free band is **1565+**
+  (verify with `grep -o 'COBOLNET15[0-9][0-9]' src`). Directive/introduction gates use COBOLNET0900; obsolete 0903.
+
+**Then: PHASE-14** (matrix closure + in-repo greenfield guard `scripts/guard.ps1`/`greenfield-guard` + one-time
+legacy-equivalence proof) → **PHASE-15** (G8 legacy retirement — the three cuts DELETE `CobolSharp.Compiler`/the
+differential oracle + §4.2.16 conformance docs + runtime namespace flip + D10 SUBSCRIPT-mode removal "CUT 2.5") →
+**PHASE-16** (CIL/Cecil backend `--backend cil` + the backend-neutrality equivalence harness).
+
+### ▶ THE PROVEN WAVE PATTERN (used through P10–P13; keep it)
+persisted anchor re-scout/audit (Workflow, parallel spec-first agents → a repo doc, TRUSTED over the drift-prone
+phase plan — it caught the P11 CONCATENATE + P12 IEEE-fidelity inversions BEFORE coding) → supervised implement
+(one feature at a time, CLI-probe each, golden + below-edition negative in the SAME commit) → batch by gate type
+(grammar constructs share ONE full legacy guard) → full battery + solo-rerun flake adjudication → verdict-gated
+commit + push → adversarial find→verify review at phase end (catches what the re-scout can't — it found 6 real
+P12 defects incl. a shipped spec misreading) → phase-close doc sweep → merge to `main`.
+
+**PHASE-12 IS COMPLETE (2026-07-17, DEVLOG 880–884 — 6 battery-gated commits `fb17f98f`→`9afde9f3`+close, merged
+to `main` `e95dd92c`).** Read `docs/COBOLNET_REARCHITECTURE_PLAN.md` banner + §4 index for the phase pointer.
 
 **PHASE-12 — M3 (COBOL-2014) surface deltas — DONE.** The waves (each spec-first from the persisted anchor
 re-scout `PHASE-12-scout-notes.md`, line-reviewed, full-battery + full-legacy-guard-gated): **DYNAMIC LENGTH

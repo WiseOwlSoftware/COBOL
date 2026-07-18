@@ -40,7 +40,14 @@
    every commit boundary; per `docs/rearchitecture/DESIGN-test-build-ci.md` gates 1 & 2 red = stop.
 
 ## STATUS
-`IN PROGRESS @ step 1` (branch `phase-13-m4-2023`)
+`IN PROGRESS — Step 1 (audit) + Wave B partial DONE; RESUME AT Wave C` (branch `phase-13-m4-2023`, 2 commits `08acae23`→`a4cca7ae`; NOT merged)
+
+> **RESUME POINTER (a new session): read `resume-prompt.md`'s top P13 banner FIRST — it has the ordered resume
+> steps + the batched remaining-work waves.** LANDED: Step 1 = the as-built audit (`PHASE-13-audit.md` — THE
+> worklist: 18 DONE / 21 PARTIAL / 31 MISSING; evidence in `PHASE-13-scout-notes.json`); Wave B = EC-SIZE-TRUNCATION
+> verified+goldened (§14.7.5). STAGED: EC-BOUND-OVERFLOW/REF-MOD (catalogued, not raised — needs the ambient-gate
+> pipeline). NEXT: Wave C = the 2023 grammar constructs (batch by the shared full-legacy-guard gate). ⚠ the plan's
+> "band head 1538 / from 1539" is STALE — P12 took 1561-1564; use **1565+** (grep to confirm).
 
 > **The as-built audit is DONE — see `PHASE-13-audit.md` (the worklist) + `PHASE-13-scout-notes.json`.** 71 items:
 > 18 DONE (verify-and-flip only), 21 PARTIAL, 31 MISSING. The genuinely-remaining work is batched by GATE type
