@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.Exceptions;
+
 namespace CobolNet.Runtime;
 
 /// <summary>
@@ -36,14 +38,24 @@ public static class CobolString
     public static string Repeat(string s, int n) => n <= 1 ? s : string.Concat(Enumerable.Repeat(s, n));
 
     /// <summary>
-    /// Reference modification read (ISO §8.4.2.4): the substring of <paramref name="s"/> beginning at 1-based
+    /// Reference modification read (ISO §8.4.3.3): the substring of <paramref name="s"/> beginning at 1-based
     /// <paramref name="leftmost"/> for <paramref name="length"/> characters (a negative length means "to the end").
-    /// Out-of-range positions are clamped and the result space-padded to the requested length (the lenient default;
-    /// the strict dialect raises EC-BOUND-REF-MOD — a later option).
+    /// When EC-BOUND-REF-MOD checking is enabled (§14.6.13.1.1) an out-of-range leftmost/length or a zero-length
+    /// result raises the fatal EC-BOUND-REF-MOD (§8.4.3.3.4, spec :7089); with checking OFF (the default)
+    /// out-of-range positions are clamped and the result space-padded to the requested length (the lenient default).
     /// </summary>
     public static string RefMod(string? s, int leftmost, int length)
     {
         s ??= "";
+        int size = s.Length;
+        // §8.4.3.3.4 (spec :7089): leftmost shall be 1..size; length (when specified, i.e. >= 0) shall be positive
+        // nonzero with leftmost+length-1 <= size (a zero-length result is allowed only under REF-MOD-ZERO-LENGTH — a
+        // staged follow-on). A violation raises EC-BOUND-REF-MOD (fatal) ONLY when checking is on; checking off falls
+        // through to the lenient clamp below (byte-identical to a pre-slice build).
+        if (leftmost < 1 || leftmost > size || length == 0 || (length > 0 && leftmost + length - 1 > size))
+            ExceptionState.RefModError(
+                $"reference modification ({leftmost}:{(length < 0 ? "" : length.ToString())}) out of range for a "
+                + $"{size}-position item (ISO §8.4.3.3.4)");
         int start = leftmost - 1;
         if (start < 0) start = 0;
         int avail = Math.Max(0, s.Length - start);
@@ -54,16 +66,22 @@ public static class CobolString
     }
 
     /// <summary>
-    /// Reference modification write (ISO §8.4.2.4 / §14.9.24): return <paramref name="dst"/> with the
+    /// Reference modification write (ISO §8.4.3.3 / §14.9.24): return <paramref name="dst"/> with the
     /// <paramref name="length"/> characters at 1-based <paramref name="leftmost"/> replaced by
     /// <paramref name="slice"/> (left-justified, <paramref name="pad"/>-filled, truncated to the slice length).
     /// <paramref name="dst"/>'s overall length is preserved; only the targeted positions change (editing is not
     /// re-applied). A boolean receiver splices with boolean-zero fill (§14.6.8.6; §8.4.3.3 GR5a — a bit position
-    /// IS a char index under D-B1).
+    /// IS a char index under D-B1). When EC-BOUND-REF-MOD checking is enabled an out-of-range/zero-length ref-mod
+    /// raises the fatal EC-BOUND-REF-MOD (§8.4.3.3.4); checking off keeps the lenient no-op default.
     /// </summary>
     public static string SpliceInto(string? dst, int leftmost, int length, string? slice, char pad = ' ')
     {
         dst ??= ""; slice ??= "";
+        int size = dst.Length;
+        if (leftmost < 1 || leftmost > size || length == 0 || (length > 0 && leftmost + length - 1 > size))
+            ExceptionState.RefModError(
+                $"reference modification ({leftmost}:{(length < 0 ? "" : length.ToString())}) out of range for a "
+                + $"{size}-position receiver (ISO §8.4.3.3.4)");
         int start = leftmost - 1;
         if (start < 0 || start >= dst.Length) return dst;
         int len = length < 0 ? dst.Length - start : Math.Min(length, dst.Length - start);

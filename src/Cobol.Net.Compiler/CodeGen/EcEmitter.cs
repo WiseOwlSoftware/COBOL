@@ -97,35 +97,44 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     /// <summary>The inner EC dispatch of a checked statement: the EC-ARGUMENT-FUNCTION fatal ambient gate (with
     /// USE F3 dispatch on the raise) or, when that condition is not enabled, a plain statement emission. Wrapped by
     /// <see cref="EcEmitChecked"/> with the nonfatal EC-DATA-CONVERSION gate when needed.</summary>
+    /// <summary>The FATAL ambient per-statement EC gates — each rides an <c>ExceptionState.XxxChecking</c> flag its
+    /// runtime raise site consults; a raise throws <see cref="Runtime.Exceptions.CobolFatalException"/> which the
+    /// statement guard catches for USE F3 dispatch (RESUME) else re-throws to terminate. Fixed order for
+    /// byte-stability. (Nonfatal twins live in <see cref="EmitChecked"/>'s set/reset wrapper — they need no catch.)</summary>
+    private static readonly (string Ec, string Flag)[] FatalAmbientGates =
+    [
+        ("EC-ARGUMENT-FUNCTION", "ArgumentFunctionChecking"),   // §15.3 — intrinsic argument/domain error
+        ("EC-BOUND-REF-MOD", "BoundRefModChecking"),            // §8.4.3.3.4 — ref-mod out of range / zero-length
+    ];
+
     private bool EmitArgOrPlain(BoundEcChecked ec)
     {
-        bool terminated;
-        if (ec.Info.Enabled.Any(p => p.Ec == "EC-ARGUMENT-FUNCTION"))
+        // The fatal ambient gates enabled at this statement: intrinsic calls / ref-mod render inline inside
+        // arbitrary expressions, so the guard wraps the STATEMENT and the runtime error sites consult the flag(s).
+        var gates = FatalAmbientGates.Where(g => ec.Info.Enabled.Any(p => p.Ec == g.Ec)).ToList();
+        if (gates.Count == 0)
+            return Statements.EmitStatement(ec.Inner);
+
+        var w = ctx.Writer;
+        int id = ctx.Names.NextEc();
+        var (stmt, loc) = EcStmtLoc(ec.Info);
+        // One gate ⇒ the raised name is the literal (byte-identical to the pre-generalization output); two or more
+        // ⇒ the actual __af.EcName drives the status/dispatch.
+        string ecExpr = gates.Count == 1 ? CsLiteral(gates[0].Ec) : $"__af{id}.EcName";
+        string nameTest = string.Join(" || ", gates.Select(g => $"__af{id}.EcName == {CsLiteral(g.Ec)}"));
+        foreach (var g in gates) w.Line($"ExceptionState.{g.Flag} = true;");
+        using (w.Block("try"))
+            Statements.EmitStatement(ec.Inner);
+        using (w.Block($"catch (CobolFatalException __af{id}) when ({nameTest})"))
         {
-            // EC-ARGUMENT-FUNCTION rides an ambient per-statement gate (ExceptionState.ArgumentFunctionChecking):
-            // intrinsic calls render inline inside arbitrary expressions, so the guard wraps the STATEMENT and
-            // the runtime domain-error sites consult the flag (ExceptionState.ArgumentError — §15.3's default
-            // result 0 becomes the raise when checking is on; Table 13: Fatal).
-            var w = ctx.Writer;
-            int id = ctx.Names.NextEc();
-            var (stmt, loc) = EcStmtLoc(ec.Info);
-            w.Line("ExceptionState.ArgumentFunctionChecking = true;");
-            using (w.Block("try"))
-                Statements.EmitStatement(ec.Inner);
-            using (w.Block($"catch (CobolFatalException __af{id}) when (__af{id}.EcName == \"EC-ARGUMENT-FUNCTION\")"))
-            {
-                if (ec.Info.WithLocation)
-                    w.Line($"ExceptionState.Set(\"EC-ARGUMENT-FUNCTION\", true, {stmt}, {loc});");
-                w.Line($"int __r{id} = {EcDispatchExpr("\"EC-ARGUMENT-FUNCTION\"", "\"\"")};");
-                w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
-                w.Line($"if (__r{id} != -2) throw;   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7)");
-            }
-            w.Line("finally { ExceptionState.ArgumentFunctionChecking = false; }");
-            terminated = false;   // conservative: the catch can resume past an inner transfer
+            if (ec.Info.WithLocation)
+                w.Line($"ExceptionState.Set({ecExpr}, true, {stmt}, {loc});");
+            w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
+            w.Line($"if (__r{id} >= 0) {{ __pc = __r{id}; break; }}   // RESUME AT procedure-name (§14.9.33.4 GR3)");
+            w.Line($"if (__r{id} != -2) throw;   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7)");
         }
-        else
-            terminated = Statements.EmitStatement(ec.Inner);
-        return terminated;
+        w.Line("finally { " + string.Join(" ", gates.Select(g => $"ExceptionState.{g.Flag} = false;")) + " }");
+        return false;   // conservative: the catch can resume past an inner transfer
     }
 
     // ── RAISE (§14.9.29) ─────────────────────────────────────────────────────────────────────────────────────

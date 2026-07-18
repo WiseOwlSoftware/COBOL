@@ -353,6 +353,13 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
             // "references a dynamic table" filter is a documented future refinement.
             if (ctx.EcState.Turn.Enabled("EC-BOUND-OVERFLOW", null, line))
                 enabled.Add(("EC-BOUND-OVERFLOW", null));
+            // EC-BOUND-REF-MOD (fatal, §8.4.3.3.4) rides an ambient per-statement gate: a reference modification
+            // whose leftmost/length is out of range (or an unallowed zero-length) raises it while checking is
+            // enabled. Wrapped conservatively (any statement in a checking-on region) — the raise fires only at an
+            // actual out-of-range ref-mod evaluation, so the guard around a ref-mod-free statement is harmless (the
+            // catch never fires). A precise ContainsRefMod filter is a documented follow-on.
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-REF-MOD", null, line))
+                enabled.Add(("EC-BOUND-REF-MOD", null));
         }
         QueryFor(bound);
 

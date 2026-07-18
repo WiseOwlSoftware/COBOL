@@ -17,6 +17,7 @@
     "conditional_compilation",
     "constant_entry",
     "constant_record",
+    "ec_bound_ref_mod",
     "exception_file_n",
     "file_sharing",
     "file_sharing_mutate",

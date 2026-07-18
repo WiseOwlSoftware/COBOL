@@ -215,6 +215,27 @@ public sealed class ExceptionEngine
     {
         if (BoundOverflowChecking) Set("EC-BOUND-OVERFLOW", fatal: false);
     }
+
+    // ── EC-BOUND-REF-MOD ambient statement gate (reference modification out of bounds / zero-length) ───────────
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-REF-MOD checking enabled (the fatal
+    /// twin of <see cref="ArgumentFunctionChecking"/>). Reference-modification evaluation sites consult it.</summary>
+    public bool BoundRefModChecking { get; set; }
+
+    /// <summary>Raise EC-BOUND-REF-MOD for a reference-modification whose leftmost-position or length is out of
+    /// range — a zero-length result (unless the REF-MOD-ZERO-LENGTH directive is in effect), a leftmost &lt; 1, or a
+    /// position outside the data item (ISO §8.4.2.3 c / the GR at spec :7089; Table 13 Fatal). When checking is
+    /// enabled it throws <see cref="CobolFatalException"/> (caught by the statement guard for USE F3 dispatch, else
+    /// terminating the run unit per §14.6.13.1.3 #5/#7); when checking is OFF it returns and the caller's lenient
+    /// clamp/space-pad default stands (byte-identical to a pre-slice build).</summary>
+    public void RefModError(string detail)
+    {
+        if (BoundRefModChecking)
+        {
+            Set("EC-BOUND-REF-MOD", fatal: true);
+            throw new CobolFatalException("EC-BOUND-REF-MOD", detail);
+        }
+    }
 }
 
 /// <summary>
@@ -312,4 +333,14 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.BoundOverflowError"/>
     public static void BoundOverflowError(string detail) => E.BoundOverflowError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundRefModChecking"/>
+    public static bool BoundRefModChecking
+    {
+        get => E.BoundRefModChecking;
+        set => E.BoundRefModChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.RefModError"/>
+    public static void RefModError(string detail) => E.RefModError(detail);
 }
