@@ -322,6 +322,9 @@ public sealed class ConformanceTests : EndToEndTestBase
         // USAGES — the frozen legacy grammar has no FLOAT-BINARY-* tokens at all (parse error), so this is
         // greenfield-only; CorpusRunnerTests byte-compares the golden.
         ("2014", "float_binary"),
+        // PHASE-13 EC remnants: the EC engine (>>TURN / EXCEPTION-STATUS / the named nonfatal-EC model) is
+        // greenfield-only; the frozen legacy has a limited EC model. CorpusRunnerTests byte-compares these.
+        ("2023", "ec_size_truncation_prohibited"),
     ];
 
     [Theory]

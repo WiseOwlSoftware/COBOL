@@ -4,6 +4,7 @@
     "delete_file",
     "delete_file_absent",
     "delete_file_sharing",
+    "ec_size_truncation_prohibited",
     "find_string",
     "inspect_backward",
     "intrinsics_convert",
