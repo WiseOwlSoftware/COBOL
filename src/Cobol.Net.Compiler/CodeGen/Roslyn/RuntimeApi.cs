@@ -92,6 +92,11 @@ internal static class RuntimeApi
     public static string ContinueAfter(string seconds, string checkLessThanZero) =>
         $"{nameof(CobolTiming)}.{nameof(CobolTiming.ContinueAfter)}({seconds}, {checkLessThanZero})";
 
+    /// <summary>Set the run-unit termination status passed to the OS as the process exit code (ISO §14.9.42.4 GR5 /
+    /// §14.9.18.4 GR10) — <c>RunUnit.SetExitStatus(status)</c>.</summary>
+    public static string SetExitStatus(string status) =>
+        $"{nameof(RunUnit)}.{nameof(RunUnit.SetExitStatus)}({status})";
+
     // ── Editing (CobolEdit) ──
 
     /// <summary>Edit a numeric value into a PICTURE mask — <c>CobolEdit.Format</c>. <paramref name="cfgArgs"/> is

@@ -62,8 +62,12 @@ public sealed record BoundCancel(
 /// (Archaic at 2023 — Annex F.1; flagged, not rejected.)</summary>
 public sealed record BoundExitProgram(BoundRaising? Raising = null) : BoundStatement;
 
-/// <summary><c>GOBACK [RETURNING x] [RAISING …]</c> (ISO §14.9.18): terminates the executing program — return to
-/// the caller in a called program (GR2), STOP-equivalent in a main program (GR3). <paramref name="ReturningSource"/>
-/// moves into the procedure-division RETURNING item before return (the activation result, GR2);
-/// <paramref name="Raising"/> stages an exception condition for re-raise in the activator. COBOL-2002+.</summary>
-public sealed record BoundGoback(Place? ReturningSource, BoundRaising? Raising = null) : BoundStatement;
+/// <summary><c>GOBACK [RETURNING x] [RAISING … | WITH {NORMAL|ERROR} STATUS [value]]</c> (ISO §14.9.18):
+/// terminates the executing program — return to the caller in a called program (GR2), STOP-equivalent in a main
+/// program (GR3). <paramref name="ReturningSource"/> moves into the procedure-division RETURNING item before
+/// return (the activation result, GR2); <paramref name="Raising"/> stages an exception condition for re-raise in
+/// the activator; <paramref name="Status"/> (COBOL-2023, mutually exclusive with RAISING) passes the termination
+/// status to the OS — but ONLY in a main program (GR3/GR10; a called-program status phrase is inert, GR2), so the
+/// emit guards it with <c>!__asCalled</c>. COBOL-2002+ (the STATUS phrase 2023+).</summary>
+public sealed record BoundGoback(Place? ReturningSource, BoundRaising? Raising = null,
+    TerminationStatus? Status = null) : BoundStatement;

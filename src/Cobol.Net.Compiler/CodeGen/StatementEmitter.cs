@@ -88,7 +88,14 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     internal bool EmitStatement(BoundStatement s) => s.Accept(this);
 
     // ── Control flow / no-op ─────────────────────────────────────────────────────────────────────────────────
-    public bool Visit(BoundStop n) { _ctx.Writer.Line("throw new StopRun();"); return true; }
+    public bool Visit(BoundStop n)
+    {
+        // STOP RUN … WITH {NORMAL|ERROR} STATUS [value] (§14.9.42.4 GR5): pass the status to the OS (the process
+        // exit code) before unwinding. No status phrase ⇒ no SetExitStatus (exit stays 0 — byte-identical default).
+        if (n.Status is { } st) _ctx.Writer.Line(RuntimeApi.SetExitStatus(_num.ExitStatus(st)) + ";");
+        _ctx.Writer.Line("throw new StopRun();");
+        return true;
+    }
 
     public bool Visit(BoundStopLiteral n)
     {

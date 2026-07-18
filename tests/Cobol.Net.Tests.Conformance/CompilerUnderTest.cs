@@ -57,6 +57,16 @@ internal static class CutRunner
     public static (bool ok, string stdout, string detail) Run(string dllPath, string workDir, string? stdinFile = null,
         IReadOnlyDictionary<string, string>? env = null)
     {
+        var (code, stdout, detail) = RunExit(dllPath, workDir, stdinFile, env);
+        return (code == 0, stdout, detail);
+    }
+
+    /// <summary>Like <see cref="Run"/> but returns the NUMERIC process exit code (the run-unit termination status
+    /// "passed to the operating system" — ISO §14.9.42.4 GR5 / §14.9.18.4 GR10), not just success. The exit-code
+    /// tests assert the value; the golden harness only needs the <c>ok</c> bool. A timeout returns <c>-1</c>.</summary>
+    public static (int exitCode, string stdout, string detail) RunExit(string dllPath, string workDir,
+        string? stdinFile = null, IReadOnlyDictionary<string, string>? env = null)
+    {
         var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"")
         {
             WorkingDirectory = workDir,
@@ -78,9 +88,9 @@ internal static class CutRunner
         {
             proc.Kill();
             proc.WaitForExit(2000);
-            return (false, Normalize(outTask.IsCompleted ? outTask.Result : ""), "process timed out after 30s");
+            return (-1, Normalize(outTask.IsCompleted ? outTask.Result : ""), "process timed out after 30s");
         }
-        return (proc.ExitCode == 0, Normalize(outTask.Result), Normalize(errTask.Result));
+        return (proc.ExitCode, Normalize(outTask.Result), Normalize(errTask.Result));
     }
 
     /// <summary>Create a fresh isolated temp directory for one compile-and-run.</summary>
@@ -122,6 +132,27 @@ public sealed class CobolNetCompiler(int dialectLevel = 85) : ICompilerUnderTest
                 return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
             return CutRunner.Run(dll, dir);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
+    /// <summary>Compile+run and return the NUMERIC process exit code — the STOP RUN / GOBACK termination status
+    /// "passed to the operating system" (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). A compile failure returns
+    /// <c>(-1, "", detail)</c>.</summary>
+    public (int exitCode, string stdout, string detail) CompileAndRunExit(string source)
+    {
+        string dir = CutRunner.NewTempDir("cn");
+        try
+        {
+            string src = Path.Combine(dir, "prog.cob");
+            string dll = Path.Combine(dir, "prog.dll");
+            File.WriteAllText(src, source);
+
+            var result = CompilerDriver.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialectLevel));
+            if (!result.Success)
+                return (-1, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
+
+            return CutRunner.RunExit(dll, dir);
         }
         finally { CutRunner.TryDelete(dir); }
     }

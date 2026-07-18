@@ -63,7 +63,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private IntrinsicBinder? _intrinsicBinder;
     internal IntrinsicBinder Intrinsic => _intrinsicBinder ??= new IntrinsicBinder(Ctx, this);
     private ControlFlowBinder? _controlFlowBinder;
-    private ControlFlowBinder ControlFlow => _controlFlowBinder ??= new ControlFlowBinder(Ctx, this);
+    internal ControlFlowBinder ControlFlow => _controlFlowBinder ??= new ControlFlowBinder(Ctx, this);
     private SetBinder? _setBinder;
     internal SetBinder Set => _setBinder ??= new SetBinder(Ctx, this);
     private SearchBinder? _searchBinder;

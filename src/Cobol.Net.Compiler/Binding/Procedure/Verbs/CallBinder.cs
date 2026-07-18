@@ -202,6 +202,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             return host.Ec.EcBindRaising(raising, g.Start.Line, "GOBACK") is { } r
                 ? new BoundGoback(source, r)
                 : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
-        return new BoundGoback(source);
+        // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass; mutually
+        // exclusive with RAISING by the grammar). Decode the shared statusPhrase into the termination status; the
+        // emit passes it to the OS only in a MAIN program (§14.9.18.4 GR3/GR10 — a called-program status is inert).
+        return new BoundGoback(source, null, host.ControlFlow.BindTerminationStatus(g.statusPhrase()));
     }
 }

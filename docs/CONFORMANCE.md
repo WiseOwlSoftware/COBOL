@@ -76,6 +76,16 @@ of an unsupported facility.
 - **Case mappings (UPPER-CASE / LOWER-CASE, §15.97/§15.57)**: the .NET invariant Unicode case tables are used; the
   enumerated 2023 additions/deletions (DOTLESS I, GREEK FINAL SIGMA) are an approximation to the invariant mapping
   (a corner-case determination — the general Latin/basic repertoire matches exactly).
+- **STOP RUN / GOBACK termination status (§14.9.42.4 GR5 / §14.9.18.4 GR10 — Annex A required items 192/193)**:
+  the status "passed to the operating system" and the ERROR/NORMAL termination indication both map to the single
+  observable available on .NET — the process exit code (`Environment.ExitCode`). The constraint on the STATUS
+  operand (item 192): the integer value of `literal-1` / `identifier-1` (truncated toward zero) becomes the exit
+  code; a non-integer display/national operand is interpreted numerically. The error-termination mechanism
+  (item 193): when a status phrase specifies `ERROR` with **no** STATUS value, the exit code is 1; `NORMAL` (or
+  no phrase) is 0. When a STATUS value is present it wins regardless of ERROR/NORMAL. A main-program GOBACK
+  (§14.9.18.4 GR3) uses the same mapping; a status phrase on a GOBACK executed in a **called** program is inert
+  (GR2). Programs with no status phrase leave the exit code at 0 (the abnormal-fatal case still forces item 44's
+  nonzero exit).
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 

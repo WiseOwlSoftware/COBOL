@@ -1,9 +1,10 @@
       *> ISO §14.9.18.2 / §14.9.18.4 GR3 — GOBACK … WITH {ERROR|NORMAL} STATUS [id|lit] (COBOL-2023: annex
       *> item 32 adds to GOBACK the same status phrase STOP allows). In a main program a GOBACK operates as a
-      *> STOP statement carrying the status phrase (GR3), so the run unit terminates normally here. This slice
-      *> parses + 2023-introduction-gates the phrase and binds it presence-only (matching the STOP sibling); the
-      *> status VALUE → exit-code wiring is the shared STOP+GOBACK termination-status slice, so the golden keeps
-      *> to NORMAL STATUS 0 (whose normal/0 termination coincides with the current default exit behavior).
+      *> STOP statement carrying the status phrase (GR3), so the run unit terminates normally here. The phrase is
+      *> parsed, 2023-introduction-gated, and its VALUE wired to the process exit code (§14.9.18.4 GR10 →
+      *> RunUnit.ExitStatus → Environment.ExitCode). This stdout golden keeps to NORMAL STATUS 0 (exit 0, which the
+      *> golden harness's ExitCode==0 check requires); the nonzero-status exit codes are asserted by
+      *> StopGobackExitCodeTests.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. GBSTAT.
        DATA DIVISION.

@@ -349,15 +349,20 @@ public abstract record BoundStatement;
 /// <summary>An unsupported / unresolved statement — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundUnsupported(string Feature) : BoundStatement;
 
-/// <summary><c>STOP RUN</c> / <c>GOBACK</c> (this slice: both unwind the paragraph chain).</summary>
-public sealed record BoundStop : BoundStatement
-{
-    /// <summary>True when written as <c>STOP RUN … WITH NORMAL/ERROR STATUS</c> (ISO §14.9.42, COBOL-2002) — the
-    /// edition gate (StopRunStatus2002) reads this in the post-bind <see cref="Validation.VersionConformancePass"/>
-    /// (rearch PHASE-03 Step 14d). The status VALUE is not yet modeled (the §12 RETURN-CODE wiring is a later
-    /// slice), so only the phrase's presence is recorded here.</summary>
-    public bool HasStatusPhrase { get; init; }
-}
+/// <summary>The STOP RUN / GOBACK termination status phrase (ISO §14.9.42 / §14.9.18.2 — COBOL-2002 on STOP,
+/// COBOL-2023 on GOBACK): <c>WITH {ERROR | NORMAL} STATUS [value]</c>. <paramref name="Error"/> selects the OS
+/// error-vs-normal termination indication (§14.9.42.4 GR2/GR3 · §14.9.18.4 GR7/GR8); <paramref name="Value"/> is
+/// the status VALUE passed to the operating system (§14.9.42.4 GR5 · §14.9.18.4 GR10), null when no <c>STATUS</c>
+/// operand is given. On .NET the single observable is the process exit code (<see cref="Runtime.RunUnit.ExitStatus"/>
+/// → <c>Environment.ExitCode</c>): the value wins when present, else ERROR ⇒ 1 / NORMAL ⇒ 0 (the documented
+/// implementor mapping — <c>docs/CONFORMANCE.md</c> §4.2.16).</summary>
+public sealed record TerminationStatus(bool Error, BoundExpr? Value);
+
+/// <summary><c>STOP RUN [ WITH {NORMAL|ERROR} STATUS [value] ]</c> (ISO §14.9.42): terminate the run unit,
+/// passing <see cref="Status"/> to the operating system as the process exit code. The edition gate
+/// (StopRunStatus2002) reads the PARSE tree in the post-bind <see cref="Validation.VersionConformancePass"/>,
+/// not this node.</summary>
+public sealed record BoundStop(TerminationStatus? Status = null) : BoundStatement;
 
 /// <summary>STOP literal (X3.23-1985 §14 Format 2, deleted 2002; edition-gated ≥2002 by the validator): "the
 /// literal is communicated to the operator" and, on resume, "execution continues with the next executable

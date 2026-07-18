@@ -300,6 +300,11 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));
         }
         if (g.Raising is { } r) EmitRaisingStage(r, "GOBACK");
+        // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.4 GR10): the status reaches the OS ONLY in a main
+        // program (GR3 — a called-program GOBACK returns to the activator, GR2, so its status phrase is inert);
+        // guard on __asCalled, the same activation flag EmitExitProgram uses.
+        if (g.Status is { } st)
+            w.Line($"if (!__asCalled) {RuntimeApi.SetExitStatus(num.ExitStatus(st))};   // §14.9.18.4 GR3/GR10 — a main program passes the status");
         w.Line("throw new ProgramReturn();   // return to the activator; in a main program ≡ STOP (ISO §14.9.18 GR2/GR3)");
         return true;
     }

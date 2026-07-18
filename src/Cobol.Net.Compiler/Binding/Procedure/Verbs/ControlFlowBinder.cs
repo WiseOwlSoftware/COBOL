@@ -22,7 +22,8 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindStop(Core.StopStatementContext stop)
     {
         // STOP RUN … WITH STATUS (§14.9.42) is a COBOL-2002 introduction; the edition gate (StopRunStatus2002)
-        // moved to the post-bind VersionConformancePass (Step 14d), reading BoundStop.HasStatusPhrase.
+        // lives in the post-bind VersionConformancePass (Step 14d), reading the PARSE tree (ctx.statusPhrase()).
+        // The status VALUE → process-exit-code wiring is decoded here into BoundStop.Status (§14.9.42.4 GR5).
         // §8.8.3.3 GR3: a concatenation expression stands anywhere a literal of its class may — fold a
         // STOP literal-1 concat to the equivalent single literal before decoding (GetText on the whole
         // literal context would glue the operands and mis-decode).
@@ -30,7 +31,21 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
             ? new BoundStopLiteral(slit.nonNumericLiteral()?.concatenationExpression() is { } ce
                 ? ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value
                 : CobolLiteral.Decode(slit.GetText()))
-            : new BoundStop { HasStatusPhrase = stop.statusPhrase() is not null };
+            : new BoundStop(BindTerminationStatus(stop.statusPhrase()));
+    }
+
+    /// <summary>Decode a shared <c>statusPhrase</c> (<c>WITH? (ERROR|NORMAL) (STATUS (dataReference|literal)?)?</c>,
+    /// ISO §14.9.42.2 / §14.9.18.2) into a <see cref="TerminationStatus"/>, or null when the phrase is absent. The
+    /// ERROR/NORMAL keyword is mandatory when the phrase is present; the STATUS value operand is optional (§14.9.42.4
+    /// GR5 / §14.9.18.4 GR10 — an integer literal or a display/national/integer data item, bound as a numeric
+    /// expression). Shared by STOP RUN and GOBACK (the same grammar rule).</summary>
+    internal TerminationStatus? BindTerminationStatus(Core.StatusPhraseContext? sp)
+    {
+        if (sp is null) return null;
+        BoundExpr? value = sp.dataReference() is { } d ? host.Expr.BindExpr(d)
+            : sp.literal() is { } l ? host.Expr.BindExpr(l)
+            : null;
+        return new TerminationStatus(sp.ERROR() is not null, value);
     }
 
     /// <summary>CONTINUE [AFTER arithmetic-expression-1 SECONDS] (ISO §14.9.9). Plain CONTINUE is a 1985-continuous
