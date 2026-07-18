@@ -31,8 +31,11 @@ re-landed; the DEVLOG-738 class-env shadow bug FIXED [`EnvDivisions`]. PHASE-08 
 `FileConnector` base [the `Keyed*` fallthrough DELETED]; ONE `RecordFraming`; ONE `Pow10`; role-based folders);
 Exec Steps A–E DONE. PHASE-10 (M2 residual catalog) + PHASE-11 (deferred-intrinsics backlog → ZERO + the
 Tier-C rejection single-sourced; CONCATENATE deleted as non-ISO; the confined-byte[] codec Step D DEFERRED)
-DONE 2026-07-17. RESUME AT PHASE-12 (M3/2014 deltas).** §6 owner decisions D1–D12 are
-ALL resolved. Battery: 3521 conformance · 301 unit · 33 characterization (32 snapshots byte-exact + ratchet) · legacy
++ PHASE-12 (M3/COBOL-2014 deltas: DYNAMIC LENGTH · the IEEE float USAGE family [binary32/64 native,
+binary128/decimal processor-dependent non-support — the IEEE-fidelity inversion corrected] · >>PROPAGATE
+intro-gate · TYPE TO re-anchor; the Step-12 review found+fixed 6 defects) DONE 2026-07-17.
+RESUME AT PHASE-13 (M4/COBOL-2023 deltas + EC remnants).** §6 owner decisions D1–D12 are
+ALL resolved. Battery: 3582 conformance · 311 unit · 33 characterization (32 snapshots byte-exact + ratchet) · legacy
 guard 353 MATCH. **Always read `resume-prompt.md`'s top banner for the live resume point, never this snapshot.** The
 SSOT for locked invariants / settled decisions is **`docs/COBOLNET_DESIGN.md`**; the four-editions mission is validated
 by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist

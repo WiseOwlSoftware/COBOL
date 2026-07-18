@@ -12,13 +12,13 @@ Land the remaining COBOL-2014 *surface* deltas on the (rearchitected) data model
 
 ### Exit criteria (copy from the roadmap — do not weaken)
 
-1. The `tests/conformance/2014/` corpus is non-empty **and** every on-disk `.cob` is discovered by `CorpusRunnerTests` (the manifest-coverage integrity test is green).
-2. The **dynamic-table** (`occurs-dynamic-2014`) and **dynamic-length** (`dynamic-length-item-2014`) version-matrix rows are `active` and **green at all four editions** (compile at 2014/2023, `COBOLNET0900` at 1985/2002).
-3. The **full battery** is green: greenfield conformance (currently 3166) + unit (currently 281) + the FULL legacy guard (NIST 353 MATCH), with **zero regressions**, at every commit boundary.
+1. ✅ The `tests/conformance/2014/` corpus is non-empty **and** every on-disk `.cob` is discovered by `CorpusRunnerTests` (the manifest-coverage integrity test is green) — MET (the corpus grew by `dynamic_length_item`/`_limit`/`_figurative`, `float_binary`, `propagate_directive`).
+2. ✅ The **dynamic-table** (`occurs-dynamic-2014`) and **dynamic-length** (`dynamic-length-item-2014`) version-matrix rows are `active` and **green at all four editions** (compile at 2014/2023, `COBOLNET0900` at 1985/2002) — MET.
+3. ✅ The **full battery** is green: greenfield conformance (3582) + unit (311) + the FULL legacy guard (NIST 353 MATCH), with **zero regressions**, at every commit boundary — MET (6 battery-gated commits, `fb17f98f`→`9afde9f3`).
 
 ### STATUS
 
-`IN PROGRESS @ step 11 (waves 1-5 done: matrix locks, DYNAMIC LENGTH, float USAGE family, pointer §-fixes, >>PROPAGATE gate, TYPE TO re-anchor; E-picture + FUNCTION-POINTER runtime deferred as documented residues)` (branch `phase-12-m3-2014`)
+`DONE (2026-07-17) — all 13 steps complete; branch phase-12-m3-2014 merged to main`
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the
 > per-step checkboxes in §4 in sync. On resume, read this line + the last DEVLOG entry + `git log --oneline -15` first.
@@ -267,20 +267,20 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 - **Verify:** `dotnet test tests/Cobol.Net.Tests.Conformance --filter "TypedefStrongTests|TypedefConditionTests|TypedefResidueTests|TypedefReviewFixTests|VersionMatrixTests"` green.
 - **Commit:** `test(cobolnet): P12 — confirm TYPEDEF/TYPE matrix edges; catalogue SAME AS / TYPE TO as pending (DEVLOG NNN)` (or a `feat` if SAME AS implemented).
 
-### [ ] Step 11 — Sync docs + conformance ledger (COMMIT BOUNDARY)
+### [x] Step 11 — Sync docs + conformance ledger (COMMIT BOUNDARY)
 
 - **Files:** `docs/ISO2023_CONFORMANCE_PLAN.md` (§3.8 M3: mark M3-4 items DONE/deferred per what landed; M3-1 already ☑, M3-2 already ◑), `docs/VERSION_CHANGE_REFERENCE.md` (2014-introduction status cells; row 60 stays TODO→"P13"), `docs/DOC_INDEX.md` (if a new subsystem doc was added), `resume-prompt.md` top STATE banner (P12 progress — memory `feedback_plan_updates`), and the relevant deep-dive (`docs/COBOLNET_DATA_MODEL_DESIGN.md` for DYNAMIC LENGTH / float family, per `feedback_follow_design_docs_and_spec` — keep the deep-dive current in the SAME change set).
 - **Do:** Reconcile every ledger with what actually shipped; note any spec-fidelity residues (e.g. the binary128/decimal-fidelity implementor choice, deferred function-prototype FUNCTION-POINTER, deferred SET-length).
 - **Verify:** `dotnet test tests/Cobol.Net.Tests.Conformance --filter "VersionMatrixTests"` (the registry drift tests bind constructs.json to the ledger — they must stay green).
 - **Commit:** `docs(cobolnet): P12 — sync conformance ledger + VCR + resume banner for the 2014 deltas (DEVLOG NNN)`.
 
-### [ ] Step 12 — Adversarial find→verify review of P12 (COMMIT BOUNDARY)
+### [x] Step 12 — Adversarial find→verify review of P12 (COMMIT BOUNDARY)
 
 - **Do:** Every prior feature's post-implementation adversarial review found real defects (OCCURS DYNAMIC: 7 confirmed; TYPEDEF: 7 confirmed). Run a find→verify sweep over the P12 code: float exhaustiveness (every `Usage.*` member handled in every `switch`), DYNAMIC LENGTH edge cases (empty MOVE → length 0; overflow truncation; `FUNCTION LENGTH`; REDEFINES/OCCURS interaction — reject if illegal per §13.18.19.3), pointer SET formats, and the edition gates at all four `--std`. Fix each confirmed defect; add a golden/guard per fix (memory `feedback_scan_all_similar`).
 - **Verify:** the full battery (see §5). Add the review's new tests.
 - **Commit:** `fix(cobolnet): P12 adversarial review — N confirmed defects, all fixed (DEVLOG NNN)`.
 
-### [ ] Step 13 — Merge to `main`, push (COMMIT BOUNDARY)
+### [x] Step 13 — Merge to `main`, push (COMMIT BOUNDARY)
 
 - **Do:** Ensure the full battery is green (§5). Update this file's STATUS line to `DONE`. Merge the branch to `main`; push (memory `feedback_fully_autonomous_push` — commit AND push every checkpoint; never ask "should I push"). Write the final DEVLOG entry (newest-first, real timestamp from `date "+%Y-%m-%d %H:%M %Z"`).
 

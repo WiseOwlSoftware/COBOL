@@ -104,7 +104,16 @@
 > COBOLNET1501); CONCATENATE-as-a-vendor-extension is a separate future call. **Step D (the confined `byte[]`
 > codec) is DEFERRED** as a scheduled increment (its §2.3 design needs re-basing; no NIST program requires it).
 > All five exit criteria met. Final battery **3521 conformance · 301 unit · 33 characterization · NIST 353 MATCH**.
-> RESUME AT **PHASE-12** (M3 / COBOL-2014 deltas — can run parallel to the deferred P11 Step D).
+>
+> **PHASE-12 (M3 / COBOL-2014 deltas) is DONE** (2026-07-17, DEVLOG 880–884; 6 battery-gated commits
+> `fb17f98f`→`9afde9f3`): DYNAMIC LENGTH elementary items · the IEEE float USAGE family (`FLOAT-BINARY-32/64`
+> native, `FLOAT-BINARY-128`/`FLOAT-DECIMAL-16/34` processor-dependent NON-support per Annex A.3 — the plan's
+> IEEE-fidelity claim was INVERTED; GR14-18 PIN the standard usages, corrected) · `>>PROPAGATE` intro-gate
+> (§7.3.21) · `TYPE TO` re-anchor (the restricted `USAGE POINTER [TO type]`). The Step-12 adversarial review
+> found+fixed 6 real defects (0 refuted). Deferred residues: the E PICTURE + FUNCTION-POINTER runtime (staged
+> 0899), the `>>PROPAGATE` semantics (P13). Final battery **3582 conformance · 311 unit · 33 characterization ·
+> NIST 353 MATCH**.
+> RESUME AT **PHASE-13** (M4 / COBOL-2023 deltas + EC remnants + Table 1/5 behavior-row burn-down).
 >
 > **✅ PHASE-10 — M2 residual catalog — DONE (2026-07-17, DEVLOG 854–870; 14 battery-gated commits, CI green
 > on each):** the Step-1 reconciliation audit (13-agent workflow) then the feature waves — national intrinsics ·
@@ -288,7 +297,7 @@ phase boundary.
 | ✅ | 09 | I | HIGH | 04,07 | M2 OO rearchitecture (`Oo/` + `OoDriver`) + mandatory 2002 OO completion | [PHASE-09](rearchitecture/PHASE-09-m2-oo-rearchitect-and-complete.md) — DONE 2026-07-16 |
 | ☑ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) — DONE 2026-07-17 | [PHASE-10](rearchitecture/PHASE-10-m2-residual-catalog.md) |
 | ☑ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero (DONE 2026-07-17) + Tier-C rejection single-sourced; the confined-byte[] codec (Step D) DEFERRED as a scheduled increment | [PHASE-11](rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md) |
-| ☐ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas (dynamic length, TYPEDEF edges, >>PROPAGATE, IEEE floats, function pointers) | [PHASE-12](rearchitecture/PHASE-12-m3-2014-deltas.md) |
+| ☑ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas — DYNAMIC LENGTH, IEEE float USAGE family (binary32/64 native; binary128/decimal processor-dependent non-support — IEEE-fidelity inversion corrected), >>PROPAGATE intro-gate, TYPE TO re-anchor — DONE 2026-07-17 (E PICTURE + FUNCTION-POINTER runtime staged 0899; >>PROPAGATE semantics → P13) | [PHASE-12](rearchitecture/PHASE-12-m3-2014-deltas.md) · [scout-notes](rearchitecture/PHASE-12-scout-notes.md) |
 | ☐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + Table 1/5 behavior-row burn-down | [PHASE-13](rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md) |
 | ☐ | 14 | I | MED | 03,13 | Matrix closure + in-repo greenfield guard + one-time equivalence proof | [PHASE-14](rearchitecture/PHASE-14-matrix-closure-greenfield-guard-equivalence.md) |
 | ☐ | 15 | C | MED/HIGH | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | [PHASE-15](rearchitecture/PHASE-15-g8-legacy-retirement-conformance-doc.md) |
