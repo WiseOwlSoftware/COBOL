@@ -21,4 +21,10 @@
            COMPUTE WS-B64 = WS-B32 + WS-B64.
            COMPUTE WS-R = WS-B64.
            DISPLAY "SUM=" WS-R.
+      *> FUNCTION BYTE-LENGTH folds to the pinned IEEE byte widths
+      *> (13.18.60.4 GR14/GR15): binary32 = 4 bytes, binary64 = 8 bytes.
+           MOVE FUNCTION BYTE-LENGTH(WS-B32) TO WS-R.
+           DISPLAY "B32BYTES=" WS-R.
+           MOVE FUNCTION BYTE-LENGTH(WS-B64) TO WS-R.
+           DISPLAY "B64BYTES=" WS-R.
            STOP RUN.

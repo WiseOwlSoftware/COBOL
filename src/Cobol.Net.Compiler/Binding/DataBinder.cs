@@ -1576,6 +1576,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         int dynLengthLimit = -1;       // the LIMIT phrase (§13.18.19.4 GR2); -1 = the implementor-defined maximum
         string? dynLengthStructureName = null;   // the optional dynamic-length-structure-name (§12.3.7 — not yet supported)
         bool hasExternal = false;      // observed for the BASED×EXTERNAL SR (the clause itself binds later)
+        bool hasGlobal = false;        // GLOBAL (§13.18.27) — observed for the DYNAMIC LENGTH §13.16.3 SR18 co-clause check
+        bool hasProperty = false;      // PROPERTY (§13.18.42, OO) — observed for the same SR18 check
         bool isTypedef = false, typedefStrong = false;   // TYPEDEF [STRONG] — a type declaration (ISO §13.18.58; D17)
         bool isConstantRecord = false; // CONSTANT RECORD (ISO §13.18.15 — a structured constant; P10 Step 15)
         string? typeRefName = null;    // TYPE IS type-name — the type this entry clones, expanded post-build (D17)
@@ -1610,6 +1612,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 }
                 else if (clause.Context.externalClause() is not null)
                     hasExternal = true;   // consumed by CallBindExternalAndGlobal; flagged here for the 0881 check
+                else if (clause.Context.globalClause() is not null)
+                    hasGlobal = true;   // §13.18.27; observed for the §13.16.3 SR18 DYNAMIC LENGTH co-clause check
+                else if (clause.Context.propertyClause() is not null)
+                    hasProperty = true;   // §13.18.42 (OO); observed for the SR18 DYNAMIC LENGTH co-clause check
                 else if (clause.Context.typedefClause() is { } td)
                     // §13.18.58; D17. The COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitTypedefClause
                     // (14g.2, recognition-based — the typedef item is discarded from ConformanceForest when it fails to
@@ -1972,11 +1978,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (isDynamicLength)
         {
             // §13.18.19.3 SR1: a PICTURE clause shall be specified and its character-string shall be exactly ONE
-            // instance of the picture symbol 'N' or 'X' (a "(1)" repetition writes the same one instance). Unlike
-            // ANY LENGTH (§13.18.2.3 SR1), the boolean symbol '1' is NOT permitted — a dynamic-length item is
-            // alphanumeric or national only (§13.18.19.4 GR1).
+            // instance of the picture symbol 'N' or 'X'. A count of 1 in ANY spelling is still one instance —
+            // `X`, `X(1)`, `X(01)`, `N(001)` all denote one position (the regex `^[XN](\(0*1\))?$` matches every
+            // count-1 form and rejects `XX`, `X(2)`, `A`, `9`, editing symbols, …). Unlike ANY LENGTH (§13.18.2.3
+            // SR1), the boolean symbol '1' is NOT permitted — a dynamic-length item is alphanumeric or national only
+            // (§13.18.19.4 GR1).
             string norm = pictureText?.Trim().ToUpperInvariant() ?? "";
-            if (norm is not ("X" or "N" or "X(1)" or "N(1)"))
+            if (!System.Text.RegularExpressions.Regex.IsMatch(norm, @"^[XN](\(0*1\))?$"))
             {
                 Edition.Error("COBOLNET1561", $"{entryWhere}: the DYNAMIC LENGTH clause requires a PICTURE whose "
                     + "character-string is exactly one instance of the picture symbol 'N' or 'X' "
@@ -1995,9 +2003,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 isDynamicLength = false;
             }
             // §13.16.3 SR18: with DYNAMIC LENGTH the ONLY other clauses permitted are level-number, entry-name,
-            // PICTURE, USAGE, and VALUE — reject every other decoded clause loud, never a half-shaped item.
+            // PICTURE, USAGE, and VALUE — reject every other decoded clause loud, never a half-shaped item. GLOBAL
+            // (§13.18.27) and PROPERTY (§13.18.42) are decoded here for this check (GLOBAL otherwise binds post-build
+            // in CallBindExternalAndGlobal, so it would escape the allowlist without an explicit flag).
             else if (occursSpec is not null || occurs is not null || redefinesTargetName is not null || isBased
-                || hasExternal || justified || blankWhenZero || synchronized || ownSign is not null
+                || hasExternal || hasGlobal || hasProperty || justified || blankWhenZero || synchronized || ownSign is not null
                 || isTypedef || typeRefName is not null || sameAsName is not null || isConstantRecord || isAnyLength)
             {
                 Edition.Error("COBOLNET1563", $"{entryWhere}: with the DYNAMIC LENGTH clause the only other clauses "

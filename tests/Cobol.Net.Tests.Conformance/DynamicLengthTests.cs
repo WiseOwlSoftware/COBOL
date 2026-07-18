@@ -78,6 +78,41 @@ public sealed class DynamicLengthTests
         EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1563");
     }
 
+    /// <summary>§13.16.3 SR18 — GLOBAL is NOT a permitted co-clause; it is decoded post-build for ordinary items, so
+    /// the SR18 guard must capture it explicitly (the P12 adversarial-review fix). COBOLNET1563.</summary>
+    [Fact]
+    public void GlobalCoClause_Rejected1563()
+    {
+        var (ok, diag) = EditionHarness.Compile(Prog("01 WS-D PIC X DYNAMIC LENGTH LIMIT IS 10 IS GLOBAL."), 2014);
+        Assert.False(ok, "GLOBAL with DYNAMIC LENGTH must be rejected (ISO §13.16.3 SR18)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1563");
+    }
+
+    /// <summary>§13.18.19.3 SR1 — a count of 1 in ANY spelling is still ONE instance: <c>PIC X</c>, <c>X(1)</c>,
+    /// <c>X(01)</c>, <c>N(001)</c> all denote one X/N position and must be ACCEPTED (the P12 review fix — the former
+    /// raw-string match falsely rejected the explicit-count forms).</summary>
+    [Theory]
+    [InlineData("01 WS-D PIC X(1) DYNAMIC LENGTH.")]
+    [InlineData("01 WS-D PIC X(01) DYNAMIC LENGTH LIMIT IS 10.")]
+    [InlineData("01 WS-D PIC N(001) DYNAMIC LENGTH.")]
+    public void CountOneForm_Accepted(string entry)
+    {
+        var (ok, diag) = EditionHarness.Compile(Prog(entry), 2014);
+        Assert.True(ok, $"a count-1 PICTURE must be accepted for DYNAMIC LENGTH:\n{string.Join("\n", diag)}");
+    }
+
+    /// <summary>§13.18.19.3 SR1 — a count &gt; 1 (two positions) IS rejected (COBOLNET1561), confirming the count-1
+    /// acceptance did not weaken the rule.</summary>
+    [Theory]
+    [InlineData("01 WS-D PIC XX DYNAMIC LENGTH.")]
+    [InlineData("01 WS-D PIC X(2) DYNAMIC LENGTH.")]
+    public void CountGreaterThanOne_Rejected1561(string entry)
+    {
+        var (ok, diag) = EditionHarness.Compile(Prog(entry), 2014);
+        Assert.False(ok, "a multi-position PICTURE must be rejected for DYNAMIC LENGTH (ISO §13.18.19.3 SR1)");
+        EditionHarness.AssertHasDiagnostic(diag, "COBOLNET1561");
+    }
+
     /// <summary>A well-formed DYNAMIC LENGTH item (PIC X, LIMIT, VALUE — all §13.16.3 SR18-permitted) compiles clean
     /// at COBOL-2014; the positive facts must NOT trip a shape guard.</summary>
     [Theory]

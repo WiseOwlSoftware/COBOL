@@ -384,8 +384,12 @@ public sealed class DataItem
             {
                 Usage.Binary or Usage.Comp5 or Usage.Packed or Usage.BinaryChar or Usage.BinaryShort
                     or Usage.BinaryLong or Usage.BinaryDouble => pic.StorageWidth,
-                Usage.Float or Usage.FloatShort => 4,
-                Usage.Double or Usage.FloatLong or Usage.FloatExtended => 8,
+                Usage.Float or Usage.FloatShort or Usage.FloatBinary32 => 4,   // IEEE binary32 = 4 bytes
+                Usage.Double or Usage.FloatLong or Usage.FloatExtended or Usage.FloatBinary64 => 8,   // binary64 = 8
+                // The processor-dependent non-support formats (rejected at ParseUsage, COBOLNET1564) — their pinned
+                // ISO/IEC 60559 byte widths, so a BYTE-LENGTH fold under an already-errored compile is not off by 1x.
+                Usage.FloatBinary128 or Usage.FloatDecimal34 => 16,   // binary128 / decimal128 = 16 bytes
+                Usage.FloatDecimal16 => 8,                            // decimal64 = 8 bytes
                 Usage.Index or Usage.Pointer or Usage.ProgramPointer or Usage.FunctionPointer
                     or Usage.ObjectReference => 8,
                 Usage.National => 2 * ElementaryImageWidth,     // 2 bytes per national position (UTF-16, D-N1/D-N3)

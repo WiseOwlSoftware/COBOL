@@ -43,12 +43,14 @@ internal sealed class ValueInitializer(EmitContext ctx)
         var pic = item.Pic!;
 
         // A DYNAMIC LENGTH item (ISO §8.5.1.10 / §13.18.19): the field is a native string. §8.6.4 — a VALUE clause
-        // defines the initial length (stored truncated on the right to the LIMIT, no padding); absent a VALUE the
-        // initial length is zero (never a fixed-width space fill). A figurative VALUE yields length 0 (the min-0 model).
+        // defines the initial length (MOVE-like, §13.18.63.4 GR7; stored truncated on the right to the LIMIT, no
+        // padding); ABSENT a VALUE the initial length is zero (§8.6.4 second sentence — never a fixed-width fill).
+        // A figurative VALUE other than `ALL literal` has length ONE (§8.3.3.6.4 GR3b — FigurativeInitializer fills
+        // pic.Length = 1 for the single-symbol X/N picture), so it initializes to a single fill character, NOT "".
         if (item.IsDynamicLength)
         {
             if (item.RawValue is not { } dv) return "\"\"";
-            if (FigurativeInitializer(dv, pic) is not null) return "\"\"";
+            if (FigurativeInitializer(dv, pic) is { } figFill) return figFill;
             return RuntimeApi.DynStore(EmitText.CsLiteral(CobolLiteral.Decode(dv)), item.DynLengthLimit.ToString());
         }
 

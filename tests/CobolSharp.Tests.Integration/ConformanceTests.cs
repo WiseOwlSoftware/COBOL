@@ -317,6 +317,7 @@ public sealed class ConformanceTests : EndToEndTestBase
         // greenfield-only; CorpusRunnerTests byte-compares both goldens.
         ("2014", "dynamic_length_item"),
         ("2014", "dynamic_length_limit"),
+        ("2014", "dynamic_length_figurative"),
         // PHASE-12 wave 3, FLOAT-BINARY-32/64 (§13.18.60.4 GR14/GR15): the IEEE-754 binary32/binary64 interchange
         // USAGES — the frozen legacy grammar has no FLOAT-BINARY-* tokens at all (parse error), so this is
         // greenfield-only; CorpusRunnerTests byte-compares the golden.

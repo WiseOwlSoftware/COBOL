@@ -9,8 +9,11 @@ namespace CobolNet.Frontend.Preprocessor;
 /// The COBOL.NET <c>&gt;&gt;PROPAGATE</c> directive stage (ISO/IEC 1989:2023 §7.3.21): the directive controls
 /// AUTOMATIC propagation of an unhandled exception condition to the activating runtime element (GR1/GR2 — as though
 /// a <c>GOBACK RAISING LAST</c> were executed), scoped over the functions/methods/programs that follow in the
-/// compilation group; the default is <c>PROPAGATE OFF</c> (GR4). SR1 requires it OUTSIDE a compilation unit
-/// (between units).
+/// compilation group; the default is <c>PROPAGATE OFF</c> (GR4). <b>§7.3.21.3 SR1 (the directive shall not be
+/// specified WITHIN a compilation unit) is NOT enforced</b> — this pre-parse, line-based stage has no
+/// compilation-unit-boundary awareness, and blanking the line before parsing means no downstream stage can catch a
+/// misplaced directive, so a <c>&gt;&gt;PROPAGATE</c> inside a unit is recognized and consumed. A documented
+/// limitation (a placement-diagnostic follow-up), not a silent mis-compile of well-placed source.
 /// <para>This stage RECOGNIZES the directive and EDITION-GATES it (the introduction gate). Its INTRODUCTION edition
 /// is PROVISIONAL COBOL-2002 (the roadmap decision-1 policy, as for TYPEDEF / the FLOAT trio): §7.3.21 is live in
 /// the 2023 spec — Annex E lists no removal — and it belongs to the 2002-era EC / compiler-directive facility (the
