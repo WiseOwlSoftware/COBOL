@@ -347,6 +347,35 @@ public static class PictureAnalyzer
                 return Usage.FloatLong;
             case "FLOAT-EXTENDED":
                 return Usage.FloatExtended;
+            // The COBOL-2014 IEEE-754 interchange float family (§13.18.60.4 GR14-18). binary32/64 map EXACTLY to
+            // native float/double (the pinned ISO/IEC 60559:2020 formats are conforming) — LIVE (P12 wave 3). The
+            // introduction gate (0900 below 2014) fires from UsageConstructId.
+            case "FLOAT-BINARY-32":
+                return Usage.FloatBinary32;
+            case "FLOAT-BINARY-64":
+                return Usage.FloatBinary64;
+            // FLOAT-BINARY-128 (binary128, GR16) and FLOAT-DECIMAL-16/34 (decimal64/128, GR17-18) are
+            // PROCESSOR-DEPENDENT language elements (Annex A.3 items 17/19): .NET has no IEEE binary128 or IEEE
+            // decimal64/128 type, and GR16-18 PIN the formats (a double/System.Decimal approximation would be
+            // NON-conforming — the P12 re-scout catch). Documented non-support — rejected LOUD (never a silent wrong
+            // representation). The member flows through so the 2014 introduction gate still fires below 2014.
+            case "FLOAT-BINARY-128":
+                edition.Error("COBOLNET1564", $"{where}: USAGE FLOAT-BINARY-128 (ISO/IEC 60559:2020 binary128, "
+                    + "ISO §13.18.60.4 GR16) is a processor-dependent language element not supported by COBOL.NET "
+                    + "(Annex A.3 item 17): .NET provides no IEEE 754 binary128 type, and GR16 pins the format so a "
+                    + "double-backed approximation would be non-conforming");
+                return Usage.FloatBinary128;
+            case "FLOAT-DECIMAL-16":
+                edition.Error("COBOLNET1564", $"{where}: USAGE FLOAT-DECIMAL-16 (ISO/IEC 60559:2020 decimal64, "
+                    + "ISO §13.18.60.4 GR17) is a processor-dependent language element not supported by COBOL.NET "
+                    + "(Annex A.3 item 19): .NET provides no IEEE 754 decimal64 type (System.Decimal is a different "
+                    + "format)");
+                return Usage.FloatDecimal16;
+            case "FLOAT-DECIMAL-34":
+                edition.Error("COBOLNET1564", $"{where}: USAGE FLOAT-DECIMAL-34 (ISO/IEC 60559:2020 decimal128, "
+                    + "ISO §13.18.60.4 GR18) is a processor-dependent language element not supported by COBOL.NET "
+                    + "(Annex A.3 item 19): .NET provides no IEEE 754 decimal128 type");
+                return Usage.FloatDecimal34;
             case { } other:
                 // The grammar admits nothing else — reaching here is a compiler defect (a new grammar
                 // alternative without its ParseUsage arm). LOUD, never a silent Display misbind.

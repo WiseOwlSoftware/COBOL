@@ -1771,10 +1771,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // violation, 15xx). Before this a float item synthesized pic=null and NRE'd the emit; a float WITH a picture
         // would misbind by that (illegal) picture. (D16.)
         if (entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+                or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
+                or Usage.FloatDecimal16 or Usage.FloatDecimal34
             && pictureText is not null)
         {
             Edition.Error("COBOLNET1521", $"{entryWhere}: PICTURE may not be specified with a floating-point usage "
-                + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) — a floating-point item is picture-less (ISO §13.18.60.2)");
+                + "(COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED/FLOAT-BINARY-*/FLOAT-DECIMAL-*) — a floating-point item "
+                + "is picture-less (ISO §13.18.60.2)");
             pictureText = null;
         }
 
@@ -1787,9 +1790,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectClassName)
             : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
                 ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
-            // A PICTURE-less floating-point item (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED, §13.18.60.2, D16) —
-            // its value is a native float/double, never scaled-integer (before this the chain fell to null → NRE).
+            // A PICTURE-less floating-point item (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED + the 2014
+            // FLOAT-BINARY-*/FLOAT-DECIMAL-* family, §13.18.60.2, D16) — its value is a native float/double, never
+            // scaled-integer (before this the chain fell to null → NRE). The processor-dependent non-support forms
+            // (binary128/decimal, rejected COBOLNET1564) still synthesize a Pic so the errored compile does not NRE.
             : entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
+                or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
+                or Usage.FloatDecimal16 or Usage.FloatDecimal34
                 ? PicInfo.FloatItem(entryUsage)
             : null;   // incl. a PICTURE-less USAGE NATIONAL/BIT entry — Pending (below) carries its adjudication
 

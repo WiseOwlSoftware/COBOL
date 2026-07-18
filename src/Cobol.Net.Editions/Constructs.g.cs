@@ -40,6 +40,10 @@ public static class Constructs
     public const string SameAsClause2002 = "same-as-clause-2002";
     public const string UsageFloatShort2002 = "usage-float-short-2002";
     public const string UsageFloatBinary322014 = "usage-float-binary32-2014";
+    public const string UsageFloatBinary642014 = "usage-float-binary64-2014";
+    public const string UsageFloatBinary1282014 = "usage-float-binary128-2014";
+    public const string UsageFloatDecimal162014 = "usage-float-decimal16-2014";
+    public const string UsageFloatDecimal342014 = "usage-float-decimal34-2014";
     public const string ConstantEntry2002 = "constant-entry-2002";
     public const string ConstantRecord2002 = "constant-record-2002";
     public const string UsageProgramPointer2002 = "usage-program-pointer-2002";

@@ -15,6 +15,7 @@
     "dyn_search",
     "dynamic_length_item",
     "dynamic_length_limit",
+    "float_binary",
     "formatted_datetime",
     "func_expr_arg",
     "options_default_rounded",

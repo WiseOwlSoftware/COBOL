@@ -285,6 +285,12 @@ internal sealed class VersionConformancePass
             : pu is Usage.FloatShort || ou is Usage.FloatShort ? Constructs.UsageFloatShort2002
             : pu is Usage.FloatLong || ou is Usage.FloatLong ? Constructs.UsageFloatLong2002
             : pu is Usage.FloatExtended || ou is Usage.FloatExtended ? Constructs.UsageFloatExtended2002
+            // The 2014 IEEE interchange floats binary32/64 (LIVE) — the 0900 introduction gate below 2014. The
+            // FLOAT-BINARY-128 / FLOAT-DECIMAL-16/34 non-support forms have no construct row: their operative
+            // diagnostic is COBOLNET1564 (processor-dependent non-support, Annex A.3), fired by ParseUsage at every
+            // edition, so a redundant 0900 introduction gate below 2014 would only add noise.
+            : pu is Usage.FloatBinary32 || ou is Usage.FloatBinary32 ? Constructs.UsageFloatBinary322014
+            : pu is Usage.FloatBinary64 || ou is Usage.FloatBinary64 ? Constructs.UsageFloatBinary642014
             : null;
     }
 

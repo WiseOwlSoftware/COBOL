@@ -196,6 +196,17 @@ STANDARD_DECIMAL  : 'STANDARD-DECIMAL' ;
 ENTRY_CONVENTION  : 'ENTRY-CONVENTION' ;
 FLOAT_BINARY      : 'FLOAT-BINARY' ;
 FLOAT_DECIMAL     : 'FLOAT-DECIMAL' ;
+// The COBOL-2014 IEEE-754 interchange float USAGES (ISO §13.18.60.4 GR14-18): FLOAT-BINARY-32/64/128 =
+// ISO/IEC 60559:2020 binary32/64/128, FLOAT-DECIMAL-16/34 = decimal64/128. Dedicated hyphenated tokens declared
+// BEFORE IDENTIFIER so maximal-munch + first-rule-wins picks the whole keyword (the source text 'FLOAT-BINARY-32'
+// lexes as ONE IDENTIFIER otherwise — the numeric suffix is swallowed by NAME_BODY). Introduction-gated to 2014
+// post-bind (VersionConformancePass, via the Usage member); binary32/64 are LIVE (native float/double), the
+// binary128/decimal formats are processor-dependent non-support (Annex A.3 items 17/19, COBOLNET1564).
+FLOAT_BINARY_32   : 'FLOAT-BINARY-32' ;
+FLOAT_BINARY_64   : 'FLOAT-BINARY-64' ;
+FLOAT_BINARY_128  : 'FLOAT-BINARY-128' ;
+FLOAT_DECIMAL_16  : 'FLOAT-DECIMAL-16' ;
+FLOAT_DECIMAL_34  : 'FLOAT-DECIMAL-34' ;
 HIGH_ORDER_LEFT   : 'HIGH-ORDER-LEFT' ;
 HIGH_ORDER_RIGHT  : 'HIGH-ORDER-RIGHT' ;
 BINARY_ENCODING   : 'BINARY-ENCODING' ;

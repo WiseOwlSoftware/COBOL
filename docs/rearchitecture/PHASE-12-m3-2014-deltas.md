@@ -18,7 +18,7 @@ Land the remaining COBOL-2014 *surface* deltas on the (rearchitected) data model
 
 ### STATUS
 
-`IN PROGRESS @ step 6` (branch `phase-12-m3-2014`)
+`IN PROGRESS @ step 7 (float USAGE family done; external-float E PICTURE deferred as a documented residue)` (branch `phase-12-m3-2014`)
 
 > The executing session updates this line to `IN PROGRESS @ step N` after each step and `DONE` at phase end. Keep the
 > per-step checkboxes in §4 in sync. On resume, read this line + the last DEVLOG entry + `git log --oneline -15` first.
@@ -202,7 +202,7 @@ The net effect: after P12 the 2014 introduction surface is either implemented-an
 - **Verify:** `dotnet test tests/Cobol.Net.Tests.Conformance --filter "VersionMatrixTests"` — the new row compiles at 2014/2023, rejects at 1985/2002. Green.
 - **Commit:** fold into Step 5's commit if done together, else `test(cobolnet): P12 — dynamic-length-item version-matrix row, active at 4 editions (DEVLOG NNN)`.
 
-### [ ] Step 7 — IEEE float family (`FLOAT-BINARY-*` / `FLOAT-DECIMAL-*`) + external-float `E` PICTURE (COMMIT BOUNDARY — FULL LEGACY GUARD)
+### [x] Step 7 — IEEE float family (`FLOAT-BINARY-*` / `FLOAT-DECIMAL-*`) + external-float `E` PICTURE (COMMIT BOUNDARY — FULL LEGACY GUARD)
 
 - **Files:**
   - `src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4` `usageKeyword`: add `| {is2014()}? floatBinaryUsage | {is2014()}? floatDecimalUsage`, with `floatBinaryUsage : FLOAT_BINARY (integerLiteral)?` (accept the `-32/-64/-128` suffix; the token is `FLOAT-BINARY`, the numeric part follows) and `floatDecimalUsage : FLOAT_DECIMAL (integerLiteral)?`. Confirm the lexer splits `FLOAT-BINARY-32` as `FLOAT_BINARY` + `-32` or a single token; if the hyphen-number is lexed together, add explicit tokens `FLOAT_BINARY_32/64/128`, `FLOAT_DECIMAL_16/34` in `CobolLexer.g4` (reproduce a quick `dotnet .../cobol.dll` probe to see how `FLOAT-BINARY-32` tokenizes before choosing).
