@@ -113,7 +113,14 @@
 > found+fixed 6 real defects (0 refuted). Deferred residues: the E PICTURE + FUNCTION-POINTER runtime (staged
 > 0899), the `>>PROPAGATE` semantics (P13). Final battery **3582 conformance · 311 unit · 33 characterization ·
 > NIST 353 MATCH**.
-> RESUME AT **PHASE-13** (M4 / COBOL-2023 deltas + EC remnants + Table 1/5 behavior-row burn-down).
+> **PHASE-13 IN PROGRESS** (M4 / COBOL-2023 deltas + EC remnants + Table 1/5 behavior-row burn-down; branch
+> `phase-13-m4-2023`, NOT merged). LANDED: the Step-1 as-built audit, Wave B (EC-SIZE-TRUNCATION), Wave C's 8/10
+> grammar constructs + the STOP/GOBACK status→exit-code slice, Wave H (`docs/CONFORMANCE.md` + the SCREEN §4.2.7
+> warning), and a partial Wave I adversarial review (5 fixes). REMAINING: the Wave C grammar batch (SUPPRESS WHEN ·
+> PICTURE EDITING · PERFORM Format 3), EC-BOUND-OVERFLOW/REF-MOD, Waves D (directives) / E (EXTERNAL) / F
+> (USE FOR DEBUGGING) / G (behavior rows), the Wave H code half, then the final adversarial review → phase close →
+> merge. Trusted worklists: `PHASE-13-audit.md` + `PHASE-13-wave-c-scout.md` + `PHASE-13-remaining-waves-scout.md`;
+> the live resume point is always the `resume-prompt.md` top banner. Then PHASE-14 → 15 → 16 close out the compiler.
 >
 > **✅ PHASE-10 — M2 residual catalog — DONE (2026-07-17, DEVLOG 854–870; 14 battery-gated commits, CI green
 > on each):** the Step-1 reconciliation audit (13-agent workflow) then the feature waves — national intrinsics ·
@@ -298,7 +305,7 @@ phase boundary.
 | ☑ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) — DONE 2026-07-17 | [PHASE-10](rearchitecture/PHASE-10-m2-residual-catalog.md) |
 | ☑ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero (DONE 2026-07-17) + Tier-C rejection single-sourced; the confined-byte[] codec (Step D) DEFERRED as a scheduled increment | [PHASE-11](rearchitecture/PHASE-11-intrinsics-backlog-tierc-codec.md) |
 | ☑ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas — DYNAMIC LENGTH, IEEE float USAGE family (binary32/64 native; binary128/decimal processor-dependent non-support — IEEE-fidelity inversion corrected), >>PROPAGATE intro-gate, TYPE TO re-anchor — DONE 2026-07-17 (E PICTURE + FUNCTION-POINTER runtime staged 0899; >>PROPAGATE semantics → P13) | [PHASE-12](rearchitecture/PHASE-12-m3-2014-deltas.md) · [scout-notes](rearchitecture/PHASE-12-scout-notes.md) |
-| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged): Step 1 audit + Wave B EC-SIZE done; resume at Wave C. See PHASE-13-audit.md (worklist) + resume-prompt banner | [PHASE-13](rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md) |
+| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged): Step-1 audit + Wave B (EC-SIZE-TRUNCATION goldened; EC-BOUND-* staged) + Wave C 8/10 grammar constructs + STOP/GOBACK status→exit-code slice + Wave H `CONFORMANCE.md`/SCREEN warning + Wave I partial review (5 fixes) DONE. Remaining: Wave C grammar batch (SUPPRESS WHEN · PICTURE EDITING · PERFORM Fmt3) + EC-BOUND-OVERFLOW/REF-MOD + Waves D (directives)/E (EXTERNAL)/F (USE-DEBUGGING)/G (behavior rows) + Wave H code half + final review→merge. Worklists: `PHASE-13-audit.md` (71-row as-built) + `PHASE-13-wave-c-scout.md` + `PHASE-13-remaining-waves-scout.md` (D–H); live resume = resume-prompt banner | [PHASE-13](rearchitecture/PHASE-13-m4-2023-ec-remnants-behavior-rows.md) |
 | ☐ | 14 | I | MED | 03,13 | Matrix closure + in-repo greenfield guard + one-time equivalence proof | [PHASE-14](rearchitecture/PHASE-14-matrix-closure-greenfield-guard-equivalence.md) |
 | ☐ | 15 | C | MED/HIGH | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | [PHASE-15](rearchitecture/PHASE-15-g8-legacy-retirement-conformance-doc.md) |
 | ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | [PHASE-16](rearchitecture/PHASE-16-cil-backend.md) |
