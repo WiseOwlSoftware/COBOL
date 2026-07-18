@@ -23,9 +23,10 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-13 IN PROGRESS (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
-**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `6e9d1d12`).
+**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `ad6bf79a`).
 DO NOT re-create the branch or re-run the audit — check it out and continue. Wave C is 8/10 constructs done +
-`docs/CONFORMANCE.md` created; see "WHAT P13 HAS LANDED" + the trimmed "REMAINING P13 WORK" below.**
+`docs/CONFORMANCE.md` created + the 8-construct adversarial review run (5 defects fixed); see "WHAT P13 HAS
+LANDED" + the trimmed "REMAINING P13 WORK" below.**
 
 ### ▶ HOW TO RESUME P13 (read these, in order)
 1. `git checkout phase-13-m4-2023` (the live P13 branch; `main` is at the P12 merge `e95dd92c`).
@@ -56,6 +57,13 @@ DO NOT re-create the branch or re-run the audit — check it out and continue. W
 - **Wave H (start) — `docs/CONFORMANCE.md`** (`6e9d1d12`, DEVLOG 889): the §4.2.16 conformance record + Annex A.3
   46-item disposition + the four documented-non-support facilities. The §4.2.6 COBOLNET1560-band warning mechanism +
   the recognize-and-name facility diagnostics are the Wave H code half (still to land).
+- **Wave I (partial) — adversarial review of the 8 Wave C constructs** (`ad6bf79a`, DEVLOG 890): a 17-agent
+  find→verify workflow found **9 confirmed defects**; the 5 that reject/miscompute VALID input are FIXED
+  (statusPhrase grammar's WITH-required/STATUS-binding/ERROR-NORMAL-optional bugs — a pre-existing STOP-status bug
+  exposed by sharing the rule; CONTINUE fractional-negative EC miss; WRITE LINAGE double-advance; boolean-shift
+  silent mis-grouping → loud COBOLNET1569; the NO SIGN §-citation). 2 accept-invalid gate-refinements documented as
+  follow-ons (SET SIZE SR34 compile-time check; PERFORM UNTIL EXIT SR8 nested-under-VARYING). Diag band now 1569
+  used, **next free 1570**. The Wave-I review still owes: the remaining Wave C constructs + waves D–H once landed.
 
 ### ▶ THE REMAINING P13 WORK (from the audit — batch by GATE type; owner directive: optimize/combine, not at the risk of accuracy)
 - **Wave C — 2023 grammar constructs (8 of 10 DONE — see "WHAT P13 HAS LANDED"; REMAINING 3 + 1 slice):**
@@ -91,9 +99,10 @@ DO NOT re-create the branch or re-run the audit — check it out and continue. W
   needs lexer/grammar recognition of those keywords (→ full legacy guard).
 - **Wave I — adversarial review** (Workflow find→verify, prior phases found ~6-7 real defects each) → phase close
   (STATUS→DONE, resume-prompt/roadmap/DOC_INDEX/memory sweep) → merge to `main`.
-- **Diagnostic band:** Wave C batch 1 consumed **1565** (NO SIGN on non-Packed), **1566** (SR31 'S'+NO SIGN),
-  **1567** (word-length ceiling), **1568** (SET SIZE SR33); WRITE used 0862 (SR17). **Next free = 1569** (verify
-  with `grep -o 'COBOLNET15[0-9][0-9]' src`). Directive/introduction gates use COBOLNET0900; obsolete 0903.
+- **Diagnostic band:** Wave C consumed **1565** (NO SIGN on non-Packed), **1566** (SR31 'S'+NO SIGN), **1567**
+  (word-length ceiling), **1568** (SET SIZE SR33), **1569** (boolean-shift mixed-with-binary reject); WRITE used
+  0862 (SR17). **Next free = 1570** (verify with `grep -o 'COBOLNET15[0-9][0-9]' src`). Introduction gates use
+  COBOLNET0900; obsolete 0903.
 
 **Then: PHASE-14** (matrix closure + in-repo greenfield guard `scripts/guard.ps1`/`greenfield-guard` + one-time
 legacy-equivalence proof) → **PHASE-15** (G8 legacy retirement — the three cuts DELETE `CobolSharp.Compiler`/the
