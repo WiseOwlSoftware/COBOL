@@ -16,6 +16,7 @@
     "dynamic_length_figurative",
     "dynamic_length_item",
     "dynamic_length_limit",
+    "ec_bound_overflow",
     "float_binary",
     "formatted_datetime",
     "func_expr_arg",

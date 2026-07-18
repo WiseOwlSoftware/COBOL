@@ -63,8 +63,10 @@ public static class ExceptionCatalog
         // Level-3 rows — ISO §14.6.13.1.6 Table 13 in table order. IntroducedIn: 2002 = the EC model's
         // introduction edition; 2023 = the names VERSION_CHANGE_REFERENCE rows 40/61 record as new in 2023
         // (EC-MCS-*, EC-FLOW-APPLY-COMMIT/-COMMIT/-ROLLBACK, EC-CONTINUE-*, EC-EXTERNAL-*, EC-I-O-WARNING,
-        // EC-I-O-RECORD-CONTENT). Other 2014-era candidates (dynamic-capacity tables) default to 2002 —
-        // PROVISIONAL pending the version-matrix per-name audit (scout brief H9).
+        // EC-I-O-RECORD-CONTENT). 2014 = the dynamic-capacity-table EC names (§8.5.1.9 is a COBOL-2014 feature):
+        // EC-BOUND-OVERFLOW. (EC-BOUND-SET, the explicit-SET twin, stays a nonfatal staged follow-on — audited
+        // when it lands.) The IntroducedIn is observably inert where the enabling construct is itself
+        // edition-gated (a dyn table cannot exist below 2014 to overflow), but the metadata is kept correct.
         void L3(string name, EcFatality f, int introduced = 2002) =>
             t[name] = new EcInfo(name, 3, Level2OfName(name), f, introduced);
 
@@ -73,7 +75,7 @@ public static class ExceptionCatalog
         L3("EC-BOUND-FUNC-RET-VALUE", EcFatality.Nonfatal);
         L3("EC-BOUND-IMP", EcFatality.Imp);
         L3("EC-BOUND-ODO", EcFatality.Fatal);
-        L3("EC-BOUND-OVERFLOW", EcFatality.Nonfatal);
+        L3("EC-BOUND-OVERFLOW", EcFatality.Nonfatal, 2014);   // dynamic-capacity tables — §8.5.1.9 (COBOL-2014)
         L3("EC-BOUND-PTR", EcFatality.Fatal);
         L3("EC-BOUND-REF-MOD", EcFatality.Fatal);
         L3("EC-BOUND-SET", EcFatality.Nonfatal);

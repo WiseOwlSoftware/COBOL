@@ -61,26 +61,35 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
 
     // ── The BoundEcChecked wrapper (the statement EC context + the EC-ARGUMENT-FUNCTION ambient gate) ────────
 
+    /// <summary>The NONFATAL ambient per-statement EC gates — each rides a run-unit-scoped
+    /// <c>ExceptionState.XxxChecking</c> flag its runtime raise site consults, set/reset around the statement (no
+    /// catch, no throw — nonfatal ⇒ the raise only records the last exception status). Fixed order for
+    /// byte-stability of the generated wrapper (a statement enabling one emits exactly the pre-generalization
+    /// output). The fatal twins (EC-ARGUMENT-FUNCTION) stay in <see cref="EmitArgOrPlain"/> — they need a catch.</summary>
+    private static readonly (string Ec, string Flag)[] NonfatalAmbientGates =
+    [
+        ("EC-DATA-CONVERSION", "DataConversionChecking"),   // §15.19.4 r1/r3 — CONVERT / DISPLAY-OF / NATIONAL-OF
+        ("EC-BOUND-OVERFLOW", "BoundOverflowChecking"),     // §8.5.1.9.6 GR1 — OCCURS DYNAMIC implicit growth
+    ];
+
     public bool EmitChecked(BoundEcChecked ec)
     {
         var prev = ecState.Info;
         ecState.Info = ec.Info;
-        bool terminated;
-        // EC-DATA-CONVERSION (nonfatal, §15.19.4 r1/r3) rides an ambient per-statement gate — the nonfatal twin of
-        // the EC-ARGUMENT-FUNCTION gate below: FUNCTION CONVERT's substitution site records the last exception
-        // status while checking is enabled. Nonfatal ⇒ set/reset only (no catch, no throw); it wraps whichever
-        // inner dispatch (the fatal-gated or the plain) the statement needs.
-        if (ec.Info.Enabled.Any(p => p.Ec == "EC-DATA-CONVERSION"))
+        // The nonfatal ambient gates enabled at this statement ride a set/reset wrapper around whichever inner
+        // dispatch (the fatal-gated or the plain) the statement needs.
+        var gates = NonfatalAmbientGates.Where(g => ec.Info.Enabled.Any(p => p.Ec == g.Ec)).ToList();
+        if (gates.Count > 0)
         {
             var w = ctx.Writer;
-            w.Line("ExceptionState.DataConversionChecking = true;");
+            foreach (var g in gates) w.Line($"ExceptionState.{g.Flag} = true;");
             using (w.Block("try"))
                 EmitArgOrPlain(ec);
-            w.Line("finally { ExceptionState.DataConversionChecking = false; }");
+            w.Line("finally { " + string.Join(" ", gates.Select(g => $"ExceptionState.{g.Flag} = false;")) + " }");
             ecState.Info = prev;
             return false;   // conservative: the inner dispatch may itself resume past a transfer
         }
-        terminated = EmitArgOrPlain(ec);
+        bool terminated = EmitArgOrPlain(ec);
         ecState.Info = prev;
         return terminated;
     }

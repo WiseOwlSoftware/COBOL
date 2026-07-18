@@ -345,6 +345,14 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
             // gate records it while checking is enabled (harmless around a non-CONVERT intrinsic — no site sets it).
             if (ctx.EcState.Turn.Enabled("EC-DATA-CONVERSION", null, line) && ContainsIntrinsic(node))
                 enabled.Add(("EC-DATA-CONVERSION", null));
+            // EC-BOUND-OVERFLOW (nonfatal, §8.5.1.9.6 GR1) rides an ambient per-statement gate: a dynamic-capacity
+            // table's implicit growth past its expected capacity records the last exception status while checking is
+            // enabled. Wrapped conservatively (any statement in a checking-on region) — the raise site
+            // (CobolDynTable.RefReceiving) fires ONLY on an actual dyn-table receiving grow-past-expected, so the
+            // flag around a dyn-table-free statement is a harmless no-op (nonfatal, no site sets it). A precise
+            // "references a dynamic table" filter is a documented future refinement.
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-OVERFLOW", null, line))
+                enabled.Add(("EC-BOUND-OVERFLOW", null));
         }
         QueryFor(bound);
 

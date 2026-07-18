@@ -199,6 +199,22 @@ public sealed class ExceptionEngine
     {
         if (DataConversionChecking) Set("EC-DATA-CONVERSION", fatal: false);
     }
+
+    // ── EC-BOUND-OVERFLOW ambient statement gate (OCCURS DYNAMIC implicit growth past expected capacity) ───────
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-OVERFLOW checking enabled (the
+    /// nonfatal twin of <see cref="DataConversionChecking"/>). A dynamic-capacity table's implicit growth past
+    /// its expected (TO) capacity consults it.</summary>
+    public bool BoundOverflowChecking { get; set; }
+
+    /// <summary>Record EC-BOUND-OVERFLOW when a dynamic-capacity table's implicit growth (a receiving subscript)
+    /// first exceeds its expected capacity (§8.5.1.9.6 GR1 — the FIRST crossing only; an already-exceeded
+    /// implicit grow raises nothing). Nonfatal (Table 13), so it never throws; it sets the last exception status
+    /// only while checking is enabled (§14.6.13.1.1). The growth proceeds regardless.</summary>
+    public void BoundOverflowError(string detail)
+    {
+        if (BoundOverflowChecking) Set("EC-BOUND-OVERFLOW", fatal: false);
+    }
 }
 
 /// <summary>
@@ -286,4 +302,14 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.DataConversionError"/>
     public static void DataConversionError(string detail) => E.DataConversionError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundOverflowChecking"/>
+    public static bool BoundOverflowChecking
+    {
+        get => E.BoundOverflowChecking;
+        set => E.BoundOverflowChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.BoundOverflowError"/>
+    public static void BoundOverflowError(string detail) => E.BoundOverflowError(detail);
 }
