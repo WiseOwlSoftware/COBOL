@@ -71,12 +71,13 @@ public sealed class DebugItem
     public const int ContentsWidth = 30;
 
     /// <summary>The whole DEBUG-ITEM group image width — the members plus the single-space FILLER between each
-    /// (6 + 1 + 30 + 1 + 4 + 1 + 4 + 1 + 4 + 1 + 30 = 83).</summary>
+    /// (6 + 1 + 30 + 1 + 5 + 1 + 5 + 1 + 5 + 1 + 30 = 86; a DEBUG-SUB-n is S9(4) SIGN LEADING SEPARATE = 5).</summary>
     public const int GroupWidth =
         LineWidth + 1 + NameWidth + 1 + SubWidth + 1 + SubWidth + 1 + SubWidth + 1 + ContentsWidth;
 
-    /// <summary>DEBUG-LINE — the compiler-assigned source line of the subject procedure (implementor-defined
-    /// format; COBOL.NET right-justifies the decimal image in X(6)).</summary>
+    /// <summary>DEBUG-LINE — the source line of the CAUSING statement (the statement whose execution
+    /// triggered the debugging declarative — the Wave F review fix, pinned by DB101A; implementor-defined
+    /// format: COBOL.NET right-justifies the decimal image in X(6)).</summary>
     public string DebugLine { get; private set; } = new string(' ', LineWidth);
 
     /// <summary>DEBUG-NAME — the leftmost 30 characters of the triggering procedure-name.</summary>

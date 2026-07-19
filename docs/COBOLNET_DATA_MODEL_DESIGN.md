@@ -272,9 +272,10 @@ hit the plain scale-0 branch, its `NumProfile` emitted (not a field) for the DIS
 receiver — the `ResolveReceiving` chokepoint; and the SR30 implicit-definition name collision in `DynamicResolve`),
 **1524** (SET F14 with a second/mixed target). A whole (unsubscripted) dynamic-table reference fails LOUD (a
 `PlaceForItem` guard) rather than emitting a bare `CobolDynTable<T>` object. Goldens `dyn_capacity_read`/
-`dyn_capacity_set`/`dyn_capacity_bounds` (greenfield-only). **Deferred:** (a) **EC-BOUND-OVERFLOW** on exceeding the
-TO/expected capacity is NONFATAL and checking-gated — with runtime checking off (the default) the operation continues
-either way (identical observable behavior), so the runtime `_expected` enforcement + the `>>TURN … CHECKING ON` gate
+`dyn_capacity_set`/`dyn_capacity_bounds` (greenfield-only). **Landed since (P13):** (a) **EC-BOUND-OVERFLOW** on exceeding the
+TO/expected capacity is NONFATAL and checking-gated — the raise is LIVE (`ExceptionEngine.BoundOverflowError` via the
+ambient `BoundOverflowChecking` statement gate; first crossing only, §8.5.1.9.6 GR1); with checking off (the default)
+the operation continues either way, so the runtime `_expected` enforcement + the `>>TURN … CHECKING ON` gate
 ride the EC-integration pass (`dyn_capacity_bounds` proves the checking-off continue). (b) **FUNCTION LENGTH over a
 dynamic table** (= `Capacity × elemWidth`) + the `DynWholeTablePlace` whole-table place + its value-funnel loud belong
 with the §14.6.9 **1527** whole-/variable-length-group work (one home for whole-dynamic-table operations); the clean
@@ -309,8 +310,8 @@ dynamic-table element works correctly (a `RefModPlace` over the
 `DynTablePlace` — `WS-E(i)(1:2)` gives the right substring), and the cited "§13.7.1 SR6" restriction is actually the
 §8.4.3.11.4 ADDRESS-OF/bit-item SR6, not a general ref-mod prohibition — so a 1526 guard would over-restrict valid
 code. Negative tests: `OccursDynamicGuardTests` (1522/1525/1528 + the positive companions). **EC-BOUND-OVERFLOW**
-(nonfatal, checking-gated) and **FULL variable-length-group MOVE/COMPARE** (a bind-time 1527 + a `DynWholeTablePlace`
-carrying FUNCTION LENGTH = `Capacity × elemWidth`) remain the two flagged follow-ons (an EC-integration pass + a
+is LIVE since P13 (the ambient checking-gated raise); **FULL variable-length-group MOVE/COMPARE** (a bind-time 1527 + a
+`DynWholeTablePlace` carrying FUNCTION LENGTH = `Capacity × elemWidth`) remains the flagged follow-on (an EC-integration pass + a
 whole-dynamic-table-operations pass); today both are LOUD, never silently wrong.
 
 **Hardening (current invariants).** A whole-GROUP receiving MOVE into a group nested BELOW the dynamic level routes
@@ -323,7 +324,9 @@ OTHER THAN the file section"). The SET Format 14 capacity peek uses a PURE `Refe
 (never `refs.Resolve`, which would route an OO `prop OF obj` first target through the property hook and enqueue a
 spurious pending op). The **1528** guard also covers a GROUP dynamic table with a subordinate VALUE AND a TO (the
 §13.18.63 GR16 superordinate-scope derivation; a subordinate VALUE with NO TO stays supported = capacity FROM).
-`CobolDynTable.GrowTo` does NOT wire EC-BOUND-OVERFLOW/EC-BOUND-SET (both remain the flagged nonfatal follow-on).
+`CobolDynTable` wires **EC-BOUND-OVERFLOW** since P13 (the receiving-subscript implicit grow past the expected
+capacity raises through the ambient `BoundOverflowChecking` gate, first crossing only); **EC-BOUND-SET** remains the
+flagged nonfatal follow-on.
 Resolved open questions: VALUE-capacity staged; EC-FLOW-SEARCH in CORE.
 
 ### D17. TYPEDEF + the TYPE clause (§13.18.58 / §13.18.57 / §13.16, COBOL-2002) — a template registry + a subtree clone spliced into the forest at declaration-bind; a FRONT-END + BINDER-ONLY feature (ZERO emitter change).

@@ -14,8 +14,11 @@ COBOL.NET is a **standard-conforming** COBOL implementation targeting ISO/IEC 19
 the 1985, 2002, and 2014 editions selected by `--std`. It implements the required nucleus and the standard modules
 except the optional/processor-dependent facilities listed as **not supported** below. Per §4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §4.2.7, an
-optional element is implemented only when support is claimed. The four **documented non-support facilities**
-(§2.4) are recognized enough to emit a named §4.2.6/§4.2.13 warning rather than a bare syntax error.
+optional element is implemented only when support is claimed. Of the four **documented non-support
+facilities** (§4), SCREEN handling is recognized at compile time with the named COBOLNET1560 warning; MCS
+(SEND/RECEIVE), COMMIT/ROLLBACK, and VALIDATE are today a generic parse error — their named recognize-and-warn
+diagnostics are the tracked PHASE-13 Wave H code half (they ship before the §4.2.6 warning-mechanism claim can
+be made for those three).
 
 ## 2. Annex A.3 — processor-dependent language element disposition
 
@@ -46,14 +49,14 @@ of an unsupported facility.
 | 20–21 | Encoding/endianness for standard decimal float | 13.18.60.4 | N/A | Decimal floating-point usages not provided (item 19) |
 | 22 | FLOAT-SHORT / -LONG / -EXTENDED | 13.18.60.4 | **Claimed** | Map to `float`/`double` (= COMP-1/COMP-2) |
 | 23 | USAGE PACKED-DECIMAL | 13.18.60.4 | **Claimed** | Native scaled decimal; incl. WITH NO SIGN (2023, §13.18.60.4 GR11) |
-| 24 | DISPLAY positioning ignored when N/A | 14.9.13 | **Claimed** | Console device; positioning is a no-op where inapplicable |
+| 24 | DISPLAY positioning ignored when N/A | 14.9.11 | **Claimed** | Console device; positioning is a no-op where inapplicable |
 | 25 | STANDARD-COMPARE / EC-ORDER-NOT-SUPPORTED / ORDER TABLE (ISO/IEC 14651) | SPECIAL-NAMES | **Not claimed** | Cultural-ordering locale module not provided (P11, COBOLNET1518) |
 | 26 | STANDARD-1 phrase of RECORD DELIMITER | 13.x | Not claimed | Reel-device delimiter; mass-storage model only |
 | 27 | CODE-SET clause | 13.x | Partial | Native code set; alternate device code sets not provided |
 | 28–30 | CLOSE REEL/UNIT, FOR REMOVAL, WITH NO REWIND | 14.9.7 | Partial | REEL/UNIT accepted (mass-storage no-op); tape positioning inert |
 | 31 | DELETE statement | 14.9.10 | **Claimed** | Mass-storage DELETE (record) + DELETE FILE (2023) |
-| 32 | OPEN I-O phrase | 14.9.26 | **Claimed** | Mass-storage I-O open |
-| 33–34 | OPEN WITH NO REWIND / EXTEND | 14.9.26 | Partial | EXTEND claimed; WITH NO REWIND inert (no reel device) |
+| 32 | OPEN I-O phrase | 14.9.27 | **Claimed** | Mass-storage I-O open |
+| 33–34 | OPEN WITH NO REWIND / EXTEND | 14.9.27 | Partial | EXTEND claimed; WITH NO REWIND inert (no reel device) |
 | 35 | REWRITE statement | 14.9.35 | **Claimed** | Mass-storage rewrite |
 | 36 | USE … I-O phrase | 14.9.49 | **Claimed** | Declarative on the mass-storage I-O mode |
 | 37 | WRITE BEFORE / AFTER ADVANCING (each separately) | 14.9.51 | **Claimed** | Print-control advancing incl. the 2023 combined BEFORE AND AFTER form |
@@ -71,10 +74,12 @@ of an unsupported facility.
 - **I-O status '0x' case equivalence** (E.2 item 17): the low-order status digit for a non-'00' successful
   completion is implementor-dependent; COBOL.NET reports the specific '0x' value (e.g. '04', '05', '07') rather
   than collapsing to '00'.
-- **I-O status '04' (record-length mismatch, §9.1.13.2 item 3)**: the record-sequential READ short/long-record
-  status '04' is **not yet emitted** — the record-sequential connector fits the physical record to the fixed record
-  width without flagging a length mismatch (a successful READ returns '00'). Planned (VCR 21; the value is
-  version-invariant — the E.2 item 15 2023 delta only clarifies *when* it is set).
+- **I-O status '04' (record-length mismatch, §14.9.30 GR14 / §9.1.13.2 item 3)**: **emitted** on a
+  record-sequential READ whose physical record is outside the file's min/max record size (fixed leg: shorter than
+  the record width; varying leg: outside [VaryMin, VaryMax]) — the READ is successful, the record is delivered,
+  status '04' (VCR 21; golden `2002/io_status_04`). Line-sequential is excluded (§14.9.30 GR15 pads short records
+  with trailing spaces — its '06' write path remains unimplemented). The value is version-invariant — the E.2
+  item 15 2023 delta only clarifies *when* it is set.
 - **I-O status '07' restricted to OPEN/CLOSE (§9.1.13.2 item 6; E.2 item 16)**: already met at all editions — the
   only '07' setter is CLOSE REEL/UNIT on a non-reel medium (`FileRegistry.CloseReelUnit`); no READ/WRITE/START/
   REWRITE/DELETE path sets it. The 2023 restriction holds without a `DialectLevel` gate.
@@ -115,12 +120,15 @@ of an unsupported facility.
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
-The following whole facilities are **not implemented**. Each is recognized at compile time and reported with a
-named COBOLNET1560-band warning (never a bare syntax error), per §4.2.6 (the warning mechanism) and §4.2.13
-(obsolete optional elements):
+The following whole facilities are **not implemented**. SCREEN handling (item 4) is recognized at compile time
+and reported with the named COBOLNET1560 warning per §4.2.6; MCS, COMMIT/ROLLBACK, and VALIDATE (items 1–3) are
+today a generic parse error — their named recognize-and-warn diagnostics (the COBOLNET1560 band) are the tracked
+PHASE-13 Wave H code half, after which every row here meets the §4.2.6 warning mechanism / §4.2.13 obsolete
+flagging:
 
 1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
-   MESSAGE-TAG, the COMMUNICATION SECTION. Processor-dependent; not provided.
+   and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
+   of this edition). Processor-dependent; not provided.
 2. **Commit and rollback** (E.3.2 item 2 / A.3 items 6–7): `COMMIT`, `ROLLBACK`. No transaction manager.
 3. **VALIDATE facility** (§14.9.50, §13.16–13.18, F.2 item 5): the `VALIDATE` statement, the validation clauses
    (`CLASS`/`DEFAULT`/`DESTINATION`/`INVALID`/`PRESENT WHEN`/`VARYING`), and EC-VALIDATE. An obsolete optional

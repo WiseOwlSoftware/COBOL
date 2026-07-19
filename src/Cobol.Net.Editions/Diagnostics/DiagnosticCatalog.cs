@@ -114,7 +114,7 @@ public static class DiagnosticCatalog
     //    §13.18.15; P10 Step 15). 1547 = the §13.10 constant-entry syntax rules; 1548 = the receiving-operand
     //    rejection (a constant substitutes a LITERAL — §13.10.3 SR2/GR1 — and §13.18.15.3 SR2 forbids storing
     //    into a structured constant); 1549 = the CONSTANT RECORD structural rules (§13.18.15.3 SR1 +
-    //    §13.16.3 SR3/SR6/SR13). 1540–1546 taken; 1550/1551/1552 earmarked (PHASE-12); 1560-band (PHASE-13). ──
+    //    §13.16.3 SR3/SR6/SR13). 1540–1546 taken; 1550/1551/1552 are unallocated mid-band holes (the PHASE-12 earmark expired unused); 1560-band (PHASE-13). ──
     public static readonly DiagnosticDescriptor ConstantEntryRule = new(
         "COBOLNET1547", "constant-entry-rule", EditionSeverity.Error,
         "A constant entry violates a §13.10 syntax rule (figurative operand SR6; non-literal / exponentiation / "
@@ -197,7 +197,7 @@ public static class DiagnosticCatalog
     // ── COBOLNET1555/1556/1557 — the SAME AS clause, one code per rule family (§13.18.49 / §13.16.3;
     //    P10 Step 16). 1555 = the SUBJECT-entry rules (what the SAME AS entry itself may look like);
     //    1556 = the REFERENCED-entry rules (what data-name-1 may be); 1557 = the cycle rules.
-    //    1550/1551/1552 stay earmarked (PHASE-12); 1553/1554 taken; 1558 = EXTERNAL type declarations. ──
+    //    1550/1551/1552 are unallocated holes (the PHASE-12 earmark expired unused); 1553/1554 taken; 1558 = EXTERNAL type declarations. ──
     public static readonly DiagnosticDescriptor SameAsEntryRule = new(
         "COBOLNET1555", "same-as-entry-rule", EditionSeverity.Error,
         "A SAME AS entry violates a subject-entry rule: no clause other than CONSTANT RECORD, entry-name, "
