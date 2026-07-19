@@ -23,10 +23,22 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-13 IN PROGRESS (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
-**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `e42ee330`).
-DO NOT re-create the branch or re-run the audit — check it out and continue. Wave C is 8/10 constructs done +
-`docs/CONFORMANCE.md` created + the 8-construct adversarial review run (5 defects fixed); see "WHAT P13 HAS
-LANDED" + the trimmed "REMAINING P13 WORK" below.**
+**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `0efb0d88`).
+DO NOT re-create the branch or re-run the audit — check it out and continue. See "WHAT P13 HAS LANDED" + the
+trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **3648** · unit **311** · characterization
+**33** · legacy/NIST unaffected (no `.g4` change since the pushed grammar work).**
+
+> **⚡ SESSION 2026-07-18 LANDED (8 commits, each battery-gated; the tiered/batched/parallel execution model in
+> `resume-prompt.md` §"EXECUTION MODEL" + [[feedback_execution_model_tiered_parallel]] was adopted + PROVEN this
+> session):** STOP/GOBACK status→exit-code (VCR 75, `0fd9f6ac`) · **EC-BOUND-OVERFLOW** (§8.5.1.9.6 GR1, `e574af41`)
+> · **EC-BOUND-REF-MOD raise** (§8.4.3.3.4 — the EC-BOUND surface is now CLOSED; `3eebcfd1`) · Wave G **8 pin-to-spec
+> dispositions** in CONFORMANCE.md + '04' false-claim fix (`2265c33a`) · **Wave F USE FOR DEBUGGING + DEBUG-ITEM**
+> (VCR 7.17 — built in a parallel worktree, 5-lens adversarial review caught 2 blockers [DEBUG-LINE causing-statement;
+> a DebugRegisterPlace neutrality leak] fixed + re-verified before integration; `0efb0d88`). Plus: owner improvements
+> **I1–I4 folded into the roadmap §7** + the seam-proof anchor reconciled to P16 M0. ⚠ Spec-first caught 2 citation
+> drifts BOTH the audit AND the earlier scout had wrong: ref-mod is **§8.4.3.3.4** (not §8.4.2.3/.4); the '04'
+> CONFORMANCE claim was FALSE (not emitted). ⚠ Diag band: main used none new; Wave F took **1571**; next free **1572**
+> (Wave G CLASS A → 1570/1572).
 
 ### ▶ HOW TO RESUME P13 (read these, in order)
 1. `git checkout phase-13-m4-2023` (the live P13 branch; `main` is at the P12 merge `e95dd92c`).
