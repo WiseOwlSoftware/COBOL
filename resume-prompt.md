@@ -138,9 +138,19 @@ the FULL Conformance project (not a CorpusRunner-only filter — the `04c32a93`/
     - ⚠ **Gate EVERY acceptance/semantics change with the FULL Conformance project** (differential + matrix + permissive suites), never a
       CorpusRunner-only filter (the `04c32a93` + `cf1fcaa2` lessons: the filter missed the differential-test regressions AND the
       matrix's `RemovedConstruct_CompilesPermissive` permissive-severity leg).
-  - **Wave E — EXTERNAL cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63) — strong-typed-external intro gate,
-    CONSTANT-RECORD strong-external dialect-gate, cross-SELECT FILE STATUS + relative-key consistency, run-unit
-    descriptor-conflict raise. Shares the EC hot-files ⇒ serial (no parallel worktree). Scout Wave E.
+  - **Wave E — EXTERNAL cluster + EC-EXTERNAL-\*** (§13.18.22 [NOT §13.18.27 — scout drift], VCR 15/16/18/31/63) — Scout Wave E.
+    - ✅ **VCR 63 + 16 + the §13.6.2 GR7 init fix DONE 2026-07-19 (DEVLOG 904)** — (63) the **STRONGLY-TYPED** external
+      type declaration intro gate (COBOLNET0900; STRONG+EXTERNAL is the 2023 add per E.3 item 10 — a WEAK `TYPEDEF IS
+      EXTERNAL` stays COBOL-2002, §13.18.58.3 SR3; the STRONG-less first cut regressed the 2002 `typedef_external`
+      golden, caught by the FULL Conformance gate); (16) the EXTERNAL-CONSTANT-RECORD-requires-strong-TYPE dialect flip
+      (COBOLNET1549 gated ≥2023); (init) external CONSTANT RECORDs now seed their run-unit cell with the VALUE-composed
+      image (`GroupImageCodec.ImageInitOf`) per §13.6.2 GR7, while plain externals stay blank (§13.18.63 GR4a). Battery:
+      Conformance **3685** · Unit 311 · char 33 all green.
+    - ⏳ **REMAINING Wave E:** VCR 18 (cross-SELECT FILE STATUS consistency, COBOLNET1570) + VCR 31 (relative-key
+      consistency, COBOLNET1571) — one post-bind cross-unit pass, both dialect-gated ≥2023; then VCR 15 (EC-EXTERNAL-*
+      run-unit descriptor-conflict raise — the big runtime half; shares EC hot-files ⇒ serial). VCR 63/16 consumed NO
+      new 15xx (0900 / 1549 reused); VCR 18/31 need 2 new codes — allocate from the next free 15xx (verify
+      `DiagnosticCatalog`; the scout's "1570/1571" is stale — 1570 is Wave G's VCR 34).
   - ~~**REF-MOD-ZERO-LENGTH directive** (§7.3.23)~~ **✅ DONE 2026-07-18 (`420eb720`, DEVLOG 897)** — the `>>REF-MOD-ZERO-LENGTH
     {ON|OFF}` directive that allows a zero-length ref-mod result (§8.4.3.3.4 item 5c). Landed the `RefModZeroLengthDirectiveProcessor`
     (mirror of TurnDirectiveProcessor, intro-gated via the ONE ConstructRegistry) + `RefModZeroLengthState` line-fold + init-only

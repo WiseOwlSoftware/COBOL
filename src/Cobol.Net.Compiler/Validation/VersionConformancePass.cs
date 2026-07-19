@@ -782,6 +782,39 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>A strongly-typed EXTERNAL type declaration (ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3 item 10) —
+        /// a COBOL-2023 introduction: E.3 item 10 states external items "could not be strongly typed" before 2023, so
+        /// it is specifically the <c>STRONG</c>+<c>EXTERNAL</c> combination on a level-1 TYPEDEF that is new. A WEAK
+        /// <c>TYPEDEF IS EXTERNAL</c> (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3), so it is NOT gated
+        /// here; plain EXTERNAL is 1985-continuous and plain TYPEDEF is the separate COBOL-2002 gate above. Gate on the
+        /// CO-OCCURRENCE of the EXTERNAL clause with a STRONG TYPEDEF clause on ONE dataDescriptionEntry. SR5 forces a
+        /// strongly-typed external record's type to itself be a strong external type declaration, so gating the
+        /// DECLARATION covers both faces (the declaration AND the "strongly-typed external item" that must reference
+        /// it). Recognition-based, keyed on the externalClause node (the TYPEDEF/DEVLOG-734 drop-proof lesson: a
+        /// bound-arm gate would lose the 0900 whenever RegisterTypeDecl rejects the typedef). Fires once per written
+        /// strong-external-typedef entry.</summary>
+        public override object? VisitExternalClause(CobolParserCore.ExternalClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx) && EntryHasStrongTypedef(ctx))
+                _p.Check(Constructs.ExternalTypeDeclaration2023, "a strongly-typed EXTERNAL type declaration");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> also carries a <c>TYPEDEF STRONG</c>
+        /// clause — i.e. <paramref name="ctx"/> (an externalClause) sits on a STRONGLY-TYPED type DECLARATION (the 2023
+        /// combination, E.3 item 10), not a plain external data item nor a weak (COBOL-2002) external type declaration.
+        /// externalClause and typedefClause are both <c>dataDescriptionClause</c> alternatives under the entry's
+        /// <c>dataDescriptionClauses</c> list, so the sibling scan is over that list; <c>typedefClause.STRONG()</c> is
+        /// the STRONG phrase (the same test <c>DataBinder</c> uses at its typedef bind, §13.18.58.2).</summary>
+        private static bool EntryHasStrongTypedef(Antlr4.Runtime.RuleContext ctx)
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.DataDescriptionEntryContext e)
+                    return e.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
+                        ?.Any(c => c.typedefClause()?.STRONG() is not null) ?? false;
+            return false;
+        }
+
         /// <summary>The report-group PRESENT WHEN clause (ISO §13.18.41 Format 1; P10 Step 13) — a COBOL-2002
         /// introduction (the 2002 RW modernization; PRESENT itself is §8.9-reserved "added 2002").
         /// Recognition-based: the rule is report-section-exclusive (never shared with data/screen entries), and

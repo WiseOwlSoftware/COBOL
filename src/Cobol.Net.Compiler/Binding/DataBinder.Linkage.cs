@@ -33,8 +33,12 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 
 /// <summary>The synthesized run-unit backing of one EXTERNAL record (ISO §13.18.22 / §8.6.7): the emitter
 /// renders <c>private ref string {BackingCsName} =&gt; ref ExternalStore.Cell({ExternalName}, {InitImage}).Ref;</c>
-/// and every reference windows it through the Tier-B view machinery.</summary>
-public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, string InitImage);
+/// and every reference windows it through the Tier-B view machinery. <see cref="InitImage"/> is the §13.18.63 GR4a
+/// initial image for a PLAIN external item — spaces/zoned-zeros, since a plain external item's VALUE takes effect
+/// only during INITIALIZE, not at initial state. <see cref="Record"/> carries the record's own DataItem so the
+/// emitter can substitute the VALUE-composed image (<c>GroupImageCodec.ImageInitOf</c>) for a CONSTANT RECORD, which
+/// §13.6.2 GR7 DOES initialize at initial state (the one external exception).</summary>
+public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, string InitImage, DataItem Record);
 
 /// <summary>One FUNCTION-ID unit's activation signature (ISO §9.4 user-defined functions; M2-UDF-1): the
 /// registered function name, its PROCEDURE DIVISION RETURNING item (whose description the caller-side result
@@ -368,7 +372,7 @@ public sealed partial class DataBinder
         }
         _callExternalBackings.Add(new CallExternalBacking(
             cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width,
-            CallInitialImage(item).PadRight(cls.Width)));
+            CallInitialImage(item).PadRight(cls.Width), item));
     }
 
     /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —

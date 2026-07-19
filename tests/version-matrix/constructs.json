@@ -196,6 +196,18 @@
       "source": "        >>REF-MOD-ZERO-LENGTH ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. RMZL.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W PIC X(5) VALUE \"HELLO\".\n       01 R PIC X(5).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE W (3:0) TO R.\n           DISPLAY R.\n           STOP RUN.\n"
     },
     {
+      "id": "external-type-declaration-2023",
+      "description": "A strongly-typed EXTERNAL type declaration (ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3 item 10) — a COBOL-2023 addition. E.3 item 10 states external items 'could not be strongly typed' before 2023, so it is specifically the STRONG+EXTERNAL combination on a level-1 TYPEDEF that is new; SR5 forces a strongly-typed external record's type to itself be a strong external type declaration. A WEAK 'TYPEDEF IS EXTERNAL' (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3) and is NOT gated. Gated on the co-occurrence of the EXTERNAL clause with a STRONG TYPEDEF clause on one level-1 data description entry. Below 2023 the strong external type declaration is rejected.",
+      "display": "a strongly-typed EXTERNAL type declaration",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3 item 10",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 63 (strongly-typed EXTERNAL type declaration — 2023 introduction; weak external TYPEDEF stays COBOL-2002)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. XTD.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 T IS EXTERNAL TYPEDEF STRONG.\n          05 A PIC X(4).\n       01 R TYPE T IS EXTERNAL.\n       PROCEDURE DIVISION.\n       MAIN.\n           STOP RUN.\n"
+    },
+    {
       "id": "value-numeric-literal-numeric-edited-2023",
       "description": "A non-zero numeric literal in the VALUE clause of a numeric-edited item (ISO §13.18.63 SR6) — a COBOL-2023 capability (Annex E.3.3 item 43): the literal is converted to its numeric-edited form per the MOVE rules. Below 2023 a numeric-edited VALUE required an alphanumeric edited-image literal. SR6 exempts the figurative constant ZERO and the integer/decimal forms of the literal zero at ALL editions, so only a NON-ZERO numeric literal is gated.",
       "display": "numeric-literal VALUE for a numeric-edited item",

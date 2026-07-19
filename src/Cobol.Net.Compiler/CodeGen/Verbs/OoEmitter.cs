@@ -40,8 +40,17 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     public void EmitExternalBackings(DataBinder data, CodeWriter w)
     {
         foreach (var ext in data.CallExternalBackings)
+        {
+            // §13.18.63 GR4a: a PLAIN external item's VALUE takes effect only during INITIALIZE, so its cell seeds
+            // with the blank/zoned initial image. §13.6.2 GR7: a CONSTANT RECORD is the ONE external item initialized
+            // at initial state — seed its cell with the VALUE-composed image via the SAME Tier-B seeder
+            // (GroupImageCodec.ImageInitOf) that RecordStructEmitter/ProgramEmitter use for every other string backing.
+            string init = ext.Record.IsConstantRecord
+                ? RuntimeApi.StrStore(new DataEmitter(Ctx).ImageInitOf(ext.Record), $"{ext.Width}")
+                : CsLiteral(ext.InitImage);
             w.Line($"private ref string {ext.BackingCsName} => ref ExternalStore.Cell({CsLiteral(ext.ExternalName)}, "
-                + $"{CsLiteral(ext.InitImage)}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+                + $"{init}).Ref;   // EXTERNAL — ONE storage copy per run unit (ISO §8.6.7); survives CANCEL (§14.9.5 GR8)");
+        }
     }
 
     private void EmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)

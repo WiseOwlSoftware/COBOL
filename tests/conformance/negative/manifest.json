@@ -37,6 +37,7 @@
     "constant-record-at-85",
     "constant-record-level",
     "constant-record-store",
+    "external-constant-record-no-type-at-2023",
     "copy-replacing-non-pseudo-text",
     "data-records-fd",
     "date_window_below_2002",

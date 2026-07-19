@@ -3,6 +3,7 @@
   "enabled": [
     "arithmetic_standard_decimal",
     "corresponding_rounded_mode",
+    "external_constant_record",
     "dyn_capacity_bounds",
     "dyn_capacity_read",
     "dyn_capacity_set",
