@@ -208,6 +208,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VNL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 NE PIC $ZZ9.99 VALUE 12.5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY NE.\n    STOP RUN.\n"
     },
     {
+      "id": "merge-in-sort-merge-proc-removed-2023",
+      "description": "A MERGE statement in the output procedure of another MERGE, or the input/output procedure of a file-format SORT, is PROHIBITED as of COBOL-2023 (ISO §14.9.24; Annex E.2 item 20 — the prior standard allowed it with conflicting rules, and SORT already disallowed it). A bind-time procedure-range cross-pass (VersionConformancePass.GateMergeInSortMergeProc) rejects it at >=2023 with COBOLNET1572; below 2023 the runtime EC-SORT-MERGE-ACTIVE seam is the (checking-off) dynamic net. Modeled as a removedIn=2023 construct (compiles at 85/2002/2014, rejects at 2023).",
+      "display": "MERGE in a SORT/MERGE input or output procedure",
+      "diagnosticCode": "COBOLNET1572",
+      "citation": "ISO §14.9.24; Annex E.2 item 20",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET1572",
+      "vcr": "VCR row 27 (MERGE-in-SORT/MERGE-procedure — 2023 prohibition)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. MERGEPRO.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F1 ASSIGN TO \"mp1.txt\".\n           SELECT F2 ASSIGN TO \"mp2.txt\".\n           SELECT F3 ASSIGN TO \"mp3.txt\".\n           SELECT F4 ASSIGN TO \"mp4.txt\".\n           SELECT FO ASSIGN TO \"mpo.txt\".\n       DATA DIVISION.\n       FILE SECTION.\n       SD S1.\n       01 SR1 PIC X(5).\n       SD S2.\n       01 SR2 PIC X(5).\n       FD F1.\n       01 R1 PIC X(5).\n       FD F2.\n       01 R2 PIC X(5).\n       FD F3.\n       01 R3 PIC X(5).\n       FD F4.\n       01 R4 PIC X(5).\n       FD FO.\n       01 RO PIC X(5).\n       PROCEDURE DIVISION.\n       MAIN-PARA.\n           MERGE S1 ON ASCENDING KEY SR1\n               USING F1 F2\n               OUTPUT PROCEDURE OUT-PROC.\n           STOP RUN.\n       OUT-PROC.\n           MERGE S2 ON ASCENDING KEY SR2\n               USING F3 F4\n               GIVING FO.\n"
+    },
+    {
       "id": "boolean-shift-operators-2023",
       "description": "The boolean shift operators B-SHIFT-L / B-SHIFT-R / B-SHIFT-LC / B-SHIFT-RC (ISO §8.8.2 rule 8) — a COBOL-2023 addition (strictly later than the 2002 boolean operators B-AND/B-OR/B-XOR/B-NOT). Logical shift fills boolean 0; circular shift rotates. The second operand is an integer; the result length is the first operand's length (rule 9). Recognition-based gate (HasShiftOp) at the COMPUTE F2 / primaryCondition altitude, distinct from the boolean-operators-2002 gate.",
       "display": "boolean shift operators B-SHIFT-L/R/LC/RC",

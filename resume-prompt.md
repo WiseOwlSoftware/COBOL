@@ -109,19 +109,14 @@ trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **36
     - ✅ **VCR 21 DONE 2026-07-18 (DEVLOG 899)** — I-O status '04' on a record-sequential READ whose physical record is outside
       min/max (§14.9.35 GR14). Runtime-only `SequentialConnector.Read` (`shortLong` flag; fixed `n<RecordWidth`, varying
       `n<VaryMin||n>VaryMax`; line-seq excluded). Golden `2002/io_status_04` (self-contained, GreenfieldOnly).
-    - ⏳ **REMAINING (decision-complete plans below):**
-      - **VCR 27 MERGE-in-output-proc static prohibition** (§14.9.24 / E.2 item 20; **COBOLNET1572** at ≥2023). As-built anchors:
-        the deferral is `SortBinder.cs:206-209` (remove it); `BoundMerge.outputProc` + file-format `BoundSort.inputProc`/`outputProc`
-        are `(int,int)?` paragraph-pc ranges (`SortRange`→`ctx.Table.ResolveProcedure`, ProcedureTableBuilder pc = paragraph ordinal).
-        Cross-pass home = `VersionConformancePass.WalkProgram` (already walks `prog.Paragraphs[i]`→`para.Statements`). Plan: (1) VERIFY
-        `prog.Paragraphs` index aligns with the ProcedureTable pc (critical — a wrong alignment fires on wrong ranges); (2) pass A —
-        collect prohibited ranges from every file-format SORT (USING/GIVING present) input/output proc + every MERGE output proc;
-        (3) pass B — for each `BoundMerge` whose enclosing paragraph-pc ∈ any prohibited range, emit COBOLNET1572 (≥2023 only; <2023 the
-        runtime EC-SORT-MERGE-ACTIVE net stands). constructs: register 1572. Golden: a MERGE whose OUTPUT PROCEDURE contains a second
-        MERGE → ≥2023 1572, <2023 compiles. ⚠ Use the FULL Conformance project as the gate (an acceptance-semantics change — the
-        CorpusRunner-only filter misses the differential suites; lesson from `04c32a93`).
-      - **VCR 68/69 EXCEPTION-FILE(connector) optional-arg form** (§15.28/§15.29; COBOLNET0900 + 2 constructs rows +
-        IntrinsicRenderer/EcFunctions/FileRegistry EverAccessed flag). Scout Wave E/G §1447-1462 decision-complete.
+    - ✅ **VCR 27 DONE 2026-07-18 (DEVLOG 900)** — MERGE-in-SORT/MERGE-procedure prohibition (§14.9.24 / E.2 item 20; **COBOLNET1572**
+      at ≥2023). Bind-time procedure-range cross-pass `VersionConformancePass.GateMergeInSortMergeProc` (pc-alignment verified:
+      `BoundProgram.Paragraphs[i]` pc == the ProcedureTable pc `SortRange` uses). Matrix row `merge-in-sort-merge-proc-removed-2023`
+      (removedIn 2023). CLI-probed all quadrants (no false positive on a standalone MERGE).
+    - ⏳ **REMAINING:** **VCR 68/69 EXCEPTION-FILE(connector) optional-arg form** (§15.28/§15.29; COBOLNET0900 + 2 constructs rows +
+      IntrinsicRenderer/EcFunctions/FileRegistry EverAccessed flag). Scout §1447-1462 decision-complete. Then **VCR 34** (deferred —
+      the ≥2023 length-`<=` check for an alphanumeric edited-image literal, COBOLNET1570). ⚠ Gate every acceptance change with the
+      FULL Conformance project (differential suites), never a CorpusRunner-only filter (lesson from `04c32a93`).
   - **Wave E — EXTERNAL cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63) — strong-typed-external intro gate,
     CONSTANT-RECORD strong-external dialect-gate, cross-SELECT FILE STATUS + relative-key consistency, run-unit
     descriptor-conflict raise. Shares the EC hot-files ⇒ serial (no parallel worktree). Scout Wave E.

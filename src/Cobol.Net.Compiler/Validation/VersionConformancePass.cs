@@ -110,6 +110,51 @@ internal sealed class VersionConformancePass
         foreach (var para in prog.Paragraphs)
             foreach (var stmt in para.Statements)
                 WalkStatement(stmt);
+        GateMergeInSortMergeProc(prog);
+    }
+
+    /// <summary>VCR 27 (ISO §14.9.24; Annex E.2 item 20): at COBOL-2023 a MERGE statement is PROHIBITED in the
+    /// output procedure of another MERGE or the input/output procedure of a file-format SORT (the prior standard
+    /// allowed it with conflicting rules; SORT already disallowed it). A bind-time cross-pass over the paragraph-pc
+    /// ranges — a paragraph's pc IS its index in <see cref="BoundProgram.Paragraphs"/>, the same pc space as the
+    /// SORT/MERGE procedure ranges (<c>SortRange</c> → the ProcedureTable). Below 2023 the runtime
+    /// EC-SORT-MERGE-ACTIVE seam is the (checking-off) net, so this fires only at ≥2023.</summary>
+    private void GateMergeInSortMergeProc(BoundProgram prog)
+    {
+        if (_edition.Year < 2023) return;
+
+        // Pass A — the prohibited paragraph-pc ranges: every file-format SORT's input/output procedure + every
+        // MERGE's output procedure (a SORT/MERGE with only USING/GIVING files contributes no procedure range).
+        var prohibited = new List<(int Start, int End)>();
+        void Collect(BoundStatement s)
+        {
+            if (s is BoundSort { InputProcedure: { } ip }) prohibited.Add(ip);
+            if (s is BoundSort { OutputProcedure: { } op }) prohibited.Add(op);
+            if (s is BoundMerge { OutputProcedure: { } mop }) prohibited.Add(mop);
+            foreach (var c in s.StatementChildren()) Collect(c);
+        }
+        foreach (var para in prog.Paragraphs)
+            foreach (var stmt in para.Statements) Collect(stmt);
+        if (prohibited.Count == 0) return;
+
+        // Pass B — flag every MERGE whose ENCLOSING paragraph pc falls within a prohibited range (a MERGE nested in
+        // an IF/inline-PERFORM is still in that paragraph). The owning MERGE's own paragraph is never in its own
+        // output-proc range (a distinct named procedure), so a MERGE never false-flags itself.
+        // The 2023 prohibition is a REMOVAL of a prior-edition capability, so its severity follows the removal
+        // policy — an Error under strict, downgraded to a Warning (compile succeeds) under --permissive migration
+        // mode (EditionSeverityPolicy), matching the version matrix's RemovedConstruct_CompilesPermissive contract.
+        var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, _edition);
+        void Flag(BoundStatement s, int paraPc)
+        {
+            if (s is BoundMerge m && prohibited.Any(r => paraPc >= r.Start && paraPc <= r.End))
+                _sink.Report(new EditionDiagnostic("COBOLNET1572", severity, "merge-in-sort-merge-proc",
+                    $"MERGE '{m.File.CobolName}' is prohibited in the output procedure of another MERGE or the input "
+                    + "or output procedure of a file SORT (ISO §14.9.24; COBOL-2023, Annex E.2 item 20)",
+                    $"MERGE '{m.File.CobolName}'", "ISO §14.9.24; Annex E.2 item 20"));
+            foreach (var c in s.StatementChildren()) Flag(c, paraPc);
+        }
+        for (int i = 0; i < prog.Paragraphs.Count; i++)
+            foreach (var stmt in prog.Paragraphs[i].Statements) Flag(stmt, i);
     }
 
     private void WalkStatement(BoundStatement s)

@@ -403,6 +403,13 @@ public static class DiagnosticCatalog
         + "kinds and the SORT/MERGE INPUT/OUTPUT-procedure DEBUG-CONTENTS cause are staged — rejected loud rather "
         + "than compiled with a missing/stale trigger.",
         "VCR Table 7 row 7.17 (X3.23-1985 debug module)");
+    public static readonly DiagnosticDescriptor MergeInSortMergeProc = new(
+        "COBOLNET1572", "merge-in-sort-merge-proc", EditionSeverity.Error,
+        "At COBOL-2023 a MERGE statement is prohibited in the output procedure of another MERGE, or the input or "
+        + "output procedure of a file-format SORT (the prior standard allowed it with conflicting rules; SORT "
+        + "already disallowed it). A bind-time procedure-range cross-pass rejects it at --std 2023; below 2023 the "
+        + "runtime EC-SORT-MERGE-ACTIVE seam is the checking-off dynamic net.",
+        "ISO §14.9.24 / Annex E.2 item 20 (VCR row 27)");
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "
