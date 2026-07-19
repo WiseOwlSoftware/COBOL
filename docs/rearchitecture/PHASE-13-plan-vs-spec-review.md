@@ -995,3 +995,38 @@ from here. Full notes: `scratchpad/batch6-verdicts.json`.
   (DispatchEmitter.cs:156-193) incl. the GLOBAL walk; what is missing is only the RAISE side (the guard
   silently skips instead of raising EC-FLOW-USE where the spec sets the condition). Route: EC-seam batch with
   the EC-RANGE/EC-DATA twins (V3/V4) — seams or a named residue row.
+
+## 15. Batch-8 verdicts (2026-07-19 — minors 32/35/37, 6 agents, 0 errors)
+
+Also dispositioned without agents: item 34 (data-model EC-BOUND-OVERFLOW stale note) = ALREADY FIXED in
+remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUMED by V30's R3 remediation unit.
+
+### V32. >>CALL-CONVENTION / >>LEAP-SECOND (+ LISTING/PAGE) silently swallowed, undocumented — CONFIRMED
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** behavior is conformant-or-implementor-permissible in every leg EXCEPT the sharp edge: an
+  undefined call-convention-name-1 is silently accepted with the default mapping (§7.3.9.3 GR2b makes the
+  mapping implementor-defined — and COBOL.NET defines none, undocumented), and §7.3.17.3 SR1 (LEAP-SECOND
+  placement) is unchecked. Citation fix: the LEAP-SECOND GR2/GR3 rules are §7.3.17.4 (not .3). The runtime
+  LEAP-SECOND OFF-only choice is already implemented+commented (CobolDate.cs:163/:391) but undocumented.
+  Route: Wave D (already named there) — CONFORMANCE.md rows for all four + the non-COBOL convention-name
+  warning + optionally the SR1 placement check.
+
+### V35. EXCEPTION-FILE arg form fully implemented but five doc sites still say "renders loud" — CONFIRMED
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** the implementation matches §15.28.4 r2 / §15.29.4 r2 exactly (verified to the r2a/r2b
+  letter); stale sites = IntrinsicCatalog.cs:172/177-178 · EcFunctions.cs:61-62 · the constructs.json
+  exception-file-n-2002 note (edit the JSON, not the generated .g4) · VCR rows 68/69 todo anchors (both
+  constructs.json rows EXIST — flip to gate: anchors + regen gen-vcr.ps1). CORRECTION: the rows' "Affects
+  existing? No" column is CORRECT — the stale signal is the anchor, not that column. Route: Opus fix session
+  (doc/comment truth sweep + anchor flip).
+
+### V37. CONFORMANCE.md row 45 parametric-polymorphism "Claimed" — SPLIT → REAL-doc-flip-only
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REFUTED-as-found/residual-tracked (high)
+- **Disposition:** A.3 item 45 is CONDITIONAL ("When parametric polymorphism is provided…") and it is NOT
+  provided (COBOLNET0822 rejects overload signatures) — so row 45's "Claimed" is wrong: flip to N/A/
+  not-provided. ALSO: the new §5 A.4.10 row mis-lumps item 2 — INTERFACE multi-INHERITS IS supported
+  (OoClassTable.cs:152-165); only CLASS multi-base INHERITS rejects 0849 — split the wording. Route: Opus fix
+  session (two-line doc flip).
