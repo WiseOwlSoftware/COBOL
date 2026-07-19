@@ -9,6 +9,10 @@ public static class FileStatusCode
 {
     /// <summary>00 — successful completion.</summary>
     public const string Success = "00";
+    /// <summary>04 — a READ was successful but the physical record is shorter or longer than the min/max record
+    /// length for the file's fixed attributes (ISO §9.1.13.2 item 3 / §14.9.35 GR14 — record-sequential only; the
+    /// record is still delivered). Clarified in COBOL-2023 (Annex E.2 item 15), version-invariant behavior.</summary>
+    public const string RecordLengthShortLong = "04";
     /// <summary>05 — OPEN of an OPTIONAL file that is not present (created on OUTPUT/EXTEND/I-O, EOF on INPUT).</summary>
     public const string OptionalFileNotFound = "05";
     /// <summary>10 — end-of-file reached on a sequential READ (the AT END condition).</summary>

@@ -99,10 +99,19 @@ trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **36
     generic COBOL0001) via shared-parser keyword recognition + the COBOLNET156x-band WARNING (the SCREEN §4.2.7 warning is
     the pattern, already landed). Batch here (shared parser). Scout Wave H.
 - **② GREENFIELD-ONLY (no legacy guard; sequential-in-one-tree, ONE comprehensive gate per batch — [[feedback_execution_model_tiered_parallel]]):**
-  - **Wave G CLASS A** — numeric-edited VALUE cluster as ONE change set (VCR 86 intro gate COBOLNET0900 · VCR 35 figurative-ZERO
-    edited-zero `DialectLevel` branch · VCR 34 SR7 class/length reject **COBOLNET1570** · VCR 36 auto-supply falls out) + MERGE-in-
-    output-proc static prohibition (VCR 27, **COBOLNET1572**) + EXCEPTION-FILE optional-arg form (VCR 68/69, COBOLNET0900) +
-    I-O status '04' (VCR 21, runtime-only, SQ blast radius — and it FIXES the corrected CONFORMANCE.md §3 '04' note). Scout Wave G decision-complete.
+  - **Wave G CLASS A** — partially landed:
+    - ✅ **VCR 35 + 86 DONE 2026-07-18 (`1123a77f`, DEVLOG 898)** — figurative-ZERO edited-zero `DialectLevel` branch (ValueInitializer)
+      + non-zero-numeric-literal intro gate COBOLNET0900 (DataBinder; `value-numeric-literal-numeric-edited-2023` row). SR6 literal-zero
+      exemption honored; one blast-radius hit (`func_expr_arg.cob` `PIC Z9 VALUE 34`) spec-verified non-conforming @2014 + fixed at source.
+    - ⏳ **VCR 34 DEFERRED (scout drift)** — scout's `length == pic.Length` is wrong (SR4/SR5 = "shall not exceed", `<=`); national-class
+      mismatch already caught by COBOLNET0898. Genuine surface = an ≥2023 length-`<=` check for an alphanumeric edited-image literal
+      (COBOLNET1570). Needs precise spec derivation. (VCR 36 numeric auto-supply fell out of 86; its VALUE-EDITING FLAG-14 twin is Wave D/H.)
+    - ✅ **VCR 21 DONE 2026-07-18 (DEVLOG 899)** — I-O status '04' on a record-sequential READ whose physical record is outside
+      min/max (§14.9.35 GR14). Runtime-only `SequentialConnector.Read` (`shortLong` flag; fixed `n<RecordWidth`, varying
+      `n<VaryMin||n>VaryMax`; line-seq excluded). Golden `2002/io_status_04` (self-contained, GreenfieldOnly).
+    - ⏳ **REMAINING:** VCR 27 MERGE-in-output-proc static prohibition (**COBOLNET1572**, bind-time cross-pass over SORT/MERGE proc ranges) ·
+      VCR 68/69 EXCEPTION-FILE(connector) optional-arg form (COBOLNET0900 + 2 constructs rows + IntrinsicRenderer/EcFunctions/FileRegistry).
+      Scout Wave G decision-complete.
   - **Wave E — EXTERNAL cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63) — strong-typed-external intro gate,
     CONSTANT-RECORD strong-external dialect-gate, cross-SELECT FILE STATUS + relative-key consistency, run-unit
     descriptor-conflict raise. Shares the EC hot-files ⇒ serial (no parallel worktree). Scout Wave E.

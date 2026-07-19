@@ -373,6 +373,10 @@ public sealed class SequentialConnector : FileConnector
         if (LastReadUnsuccessful) { Status = FileStatusCode.NoValidNextRecord; return false; }
         if (_reader is null) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
 
+        // §14.9.35 GR14 / §9.1.13.2 item 3: a RECORD-sequential physical record whose length is outside the file's
+        // min/max record size is a SUCCESSFUL read with status '04' (the record is still delivered). Line-sequential
+        // is excluded — its short/long conditions are '06'/'09', never '04'.
+        bool shortLong = false;
         if (_lineSequential)
         {
             string? line = _reader.ReadLine();
@@ -392,6 +396,7 @@ public sealed class SequentialConnector : FileConnector
             _readOffset += 4 + n;
             LastReadLength = n;
             image = new string(buf, 0, n).PadRight(RecordWidth, ' ');
+            if (n < VaryMin || n > VaryMax) shortLong = true;   // outside the varying record min/max (§14.9.35 GR14)
         }
         else
         {
@@ -405,10 +410,13 @@ public sealed class SequentialConnector : FileConnector
             _readOffset += n;
             LastReadLength = n;
             image = new string(buf, 0, n).PadRight(RecordWidth, ' ');
+            // Fixed-length record sequential: min == max == RecordWidth, so a partial (short) final record is '04'.
+            // A longer-than-max record cannot occur (the buffer is read in RecordWidth chunks). n == 0 is EOF above.
+            if (n < RecordWidth) shortLong = true;
         }
         PrevOpWasSuccessfulRead = true;
         _readOrdinal++;   // the record just made available is ordinal N+1 (§9.1.16 lock identity)
-        Status = FileStatusCode.Success;
+        Status = shortLong ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success;
         return true;
     }
 
