@@ -14,7 +14,7 @@ COBOL.NET is a **standard-conforming** COBOL implementation targeting ISO/IEC 19
 the 1985, 2002, and 2014 editions selected by `--std`. It implements the required nucleus and the standard modules
 except the optional/processor-dependent facilities listed as **not supported** below. Per §4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §4.2.7, an
-optional element is implemented only when support is claimed. Of the four **documented non-support
+optional element is implemented only when support is claimed. Of the five **documented non-support
 facilities** (§4), SCREEN handling is recognized at compile time with the named COBOLNET1560 warning; MCS
 (SEND/RECEIVE), COMMIT/ROLLBACK, and VALIDATE are today a generic parse error — their named recognize-and-warn
 diagnostics are the tracked PHASE-13 Wave H code half (they ship before the §4.2.6 warning-mechanism claim can
@@ -31,9 +31,9 @@ of an unsupported facility.
 | 1 | Significand/exponent >31/>3 digits in float literal / numeric-edited PICTURE | 13.18.40 | Not claimed | External floating-point `E` PICTURE is staged; standard IEEE usages cover the fixed formats |
 | 2 | ARITHMETIC IS STANDARD-BINARY | 11.9.5 | Not claimed | Obsolete feature (A.3 NOTE 1); the native/standard-decimal modes are provided |
 | 3 | ARITHMETIC IS STANDARD-DECIMAL | 11.9.5 | **Claimed** | Full SDIDI consumption (P10): `CobolDec` engine, decimal128 range ECs |
-| 4 | Asynchronous messaging (MCS) facility | E.3.2 | **Not claimed** | Documented non-support (§2.4) — inter-run-unit communication not provided |
+| 4 | Asynchronous messaging (MCS) facility | E.3.2 | **Not claimed** | Documented non-support (§4) — inter-run-unit communication not provided |
 | 5 | BLOCK CONTAINS clause | 13.x | **Claimed** (inert) | Accepted; no effect on the managed I-O model (A.3 item 5 sanctions this) |
-| 6–7 | Commit and rollback facility / its devices | E.3.2 | **Not claimed** | Documented non-support (§2.4) — no transaction manager |
+| 6–7 | Commit and rollback facility / its devices | E.3.2 | **Not claimed** | Documented non-support (§4) — no transaction manager |
 | 8 | CONTINUE AFTER precision greater than .99 | 14.9.9 | Not claimed | Implementor m = 0 (integer seconds); a fractional interval truncates (§14.9.9.4 GR1) |
 | 9 | DEFAULT ROUNDED clause | 11.9 | **Claimed** | The §14.7.4 rounding modes are provided (incl. PROHIBITED, TRUNCATION, NEAREST-*) |
 | 10 | INTERMEDIATE ROUNDING clause | 11.9 | **Claimed** | Provided for the standard-decimal intermediate model |
@@ -121,10 +121,11 @@ of an unsupported facility.
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
 The following whole facilities are **not implemented**. SCREEN handling (item 4) is recognized at compile time
-and reported with the named COBOLNET1560 warning per §4.2.6; MCS, COMMIT/ROLLBACK, and VALIDATE (items 1–3) are
-today a generic parse error — their named recognize-and-warn diagnostics (the COBOLNET1560 band) are the tracked
-PHASE-13 Wave H code half, after which every row here meets the §4.2.6 warning mechanism / §4.2.13 obsolete
-flagging:
+and reported with the named COBOLNET1560 warning per §4.2.6; the locale facility (item 5) is rejected at bind
+with the COBOLNET1518 error (the A.4.1 unclaimed-optional posture); MCS, COMMIT/ROLLBACK, and VALIDATE
+(items 1–3) are today a generic parse error — their named recognize-and-warn diagnostics (the COBOLNET1560
+band) are the tracked PHASE-13 Wave H code half, after which every row here meets the §4.2.6 warning mechanism
+/ §4.2.13 obsolete flagging:
 
 1. **Message Control System (MCS) asynchronous messaging** (E.3.2 item 1 / A.3 item 4): `SEND`, `RECEIVE`,
    and MESSAGE-TAG data items (the ISO/IEC 1989:2023 MCS surface — the pre-2002 COMMUNICATION SECTION is not part
@@ -135,6 +136,15 @@ flagging:
    element (§4.2.13).
 4. **Screen handling** (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the
    EC-SCREEN family. Not provided.
+5. **Locale facility** (Annex A.4.9 optional module): the intrinsic functions `LOCALE-COMPARE`, `LOCALE-DATE`,
+   `LOCALE-TIME`, `LOCALE-TIME-FROM-SECONDS`, and `STANDARD-COMPARE` (the last also disposed under A.3 item 25,
+   §2 row 25), plus the `LOCALE` phrases of `LOWER-CASE`/`UPPER-CASE`/`NUMVAL-C`/`TEST-NUMVAL-C` — each rejected
+   at bind time with the **COBOLNET1518 error** (per Annex A.4.1 a processor accepts optional-element syntax only
+   when support is claimed, so an ERROR — not the §4.2.6 COBOLNET1560 warning band, which applies to
+   processor-dependent elements — is the conforming disposition for this unclaimed optional module). The
+   remaining locale entry points (`SET LC_*` formats 11/12, the SPECIAL-NAMES `LOCALE` clause,
+   OBJECT-COMPUTER `CHARACTER CLASSIFICATION`) currently have **no named diagnostic** — the first two are parse
+   errors, the third is silently accepted; naming them is a tracked review-ledger fix (F3).
 
 ## 5. Maintenance
 
