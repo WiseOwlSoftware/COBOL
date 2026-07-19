@@ -2397,7 +2397,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
                 if (item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(RootOf(item)))
-                    Edition.Error("COBOLNET1518", $"REDEFINES target '{tname}' of method data item "
+                    // 1577, renumbered from a bare "COBOLNET1518" that collided with the locale-module
+                    // non-support meaning (review V11 — the code comes from the catalog descriptor, never a literal).
+                    Edition.Error(DiagnosticCatalog.MethodRedefinesScope,
+                        $"REDEFINES target '{tname}' of method data item "
                         + $"'{item.CobolName ?? "FILLER"}' is not a preceding item in the same method scope "
                         + "(ISO §13.18.44.3 — a method item may not redefine object or program data)");
                 // §13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY

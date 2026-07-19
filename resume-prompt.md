@@ -202,7 +202,7 @@ finders) → phase-close → merge.** ⚠ Every acceptance/semantics change gate
   Wave C · 1570 VCR 34 · 1571 Wave F · 1572 VCR 27 · **1573 external-file-status-consistency (VCR 18) — its
   ONLY meaning since the DEVLOG-907 collision fix** · 1574 EXCEPTION-FILE not-a-file (VCR 68/69) · 1575
   external-relative-key-consistency (VCR 31) · **1576 REF-MOD-ZERO-LENGTH malformed-operand (renumbered from the
-  colliding bare-literal 1573)**. **NEXT FREE = 1577** — allocate ONLY after BOTH scans agree:
+  colliding bare-literal 1573)**. **1577 method-redefines-scope (renumbered from the 1518 collision, review V11)**. **NEXT FREE = 1578** — allocate ONLY after BOTH scans agree:
   `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u` AND the `DiagnosticCatalog` descriptor list (the
   `EveryEmittedCode_IsACatalogDescriptor` drift test now forces the frontend channel through the catalog;
   1550–1552 remain unallocated mid-band holes — usable, but note the catalog comment). Introduction gates

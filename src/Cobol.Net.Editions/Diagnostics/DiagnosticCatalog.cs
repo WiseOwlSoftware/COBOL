@@ -470,6 +470,14 @@ public static class DiagnosticCatalog
         + "processor default in the absence of the directive) — any other operand is rejected, never silently "
         + "accepted.",
         "ISO §7.3.23.2 (VCR row 30)");
+    // 1577 renumbered FROM a bare-literal "COBOLNET1518" in DataBinder that collided with the A.4.9 locale-module
+    // non-support meaning (the P13 review batch-3 finding V11 — the THIRD collision of the class; 1518 stays
+    // solely = locale non-support as CONFORMANCE.md item 25 documents).
+    public static readonly DiagnosticDescriptor MethodRedefinesScope = new(
+        "COBOLNET1577", "method-redefines-scope", EditionSeverity.Error,
+        "A method data item's REDEFINES target shall be a preceding item in the SAME method scope — a method "
+        + "item may not redefine object or program data (ISO §13.18.44.3).",
+        "ISO §13.18.44.3");
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "

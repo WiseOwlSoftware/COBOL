@@ -1342,7 +1342,7 @@ public sealed class OoSpineTests
     }
 
     /// <summary>§13.18.44.3 SR (M2-OO-1h step 3) — a method 01 REDEFINES may only overlay a preceding item in the
-    /// SAME method scope; naming an OBJECT item is out of scope → COBOLNET1518, never a silent cross-scope bind
+    /// SAME method scope; naming an OBJECT item is out of scope → COBOLNET1577 (renumbered from the 1518 collision, review V11), never a silent cross-scope bind
     /// (the pre-fix behavior bound the method redefiner to the object item through the global Roots pool).</summary>
     [Fact]
     public void MethodRedefines_TargetInObjectScope_Rejected()
@@ -1365,7 +1365,7 @@ public sealed class OoSpineTests
             01 OBJNUM PIC 9(4) VALUE 1.
             PROCEDURE DIVISION.
             METHOD-ID. M.
-            """)), "COBOLNET1518");
+            """)), "COBOLNET1577");
     }
 
     /// <summary>§13.18.44.3 SR (M2-OO-1h review B) — a REDEFINES target must be in the SAME data description; a
@@ -1388,7 +1388,7 @@ public sealed class OoSpineTests
                 DISPLAY LVIEW.
                 GOBACK.
             END METHOD M.
-            """)), "COBOLNET1518");
+            """)), "COBOLNET1577");
     }
 
     // ── The FACTORY slice (§11.4; brief D11 — DEVLOG 604) ───────────────────────────────────────────────────

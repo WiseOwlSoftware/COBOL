@@ -1790,7 +1790,7 @@ units only*, so class FileModels are never registered nor key-qualified).
 
 **Diagnostics.** COBOLNET**1519** (a section not permitted in a method: ENV / FILE / REPORT / SCREEN — one error
 class, message names which) · COBOLNET**1520** (GLOBAL on a factory/instance/method FD, §13.18.27.3 SR4). Both in the
-free 15xx band (1518 is last-used). Edition-invariant — OO cannot parse below 2002, so no explicit dialect guard.
+free 15xx band (1518 was last-used HERE; the M2-OO REDEFINES leg was later renumbered to 1577 when 1518 was double-allocated to the locale non-support — P13 review V11). Edition-invariant — OO cannot parse below 2002, so no explicit dialect guard.
 *Not over-diagnosed:* method-WS keeps 0900/0902; method-WS EXTERNAL/GLOBAL keeps 0899.
 
 **Golden & test plan (one golden per branch; all GreenfieldOnly — legacy can't parse OO).** Positive corpus goldens
