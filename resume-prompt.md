@@ -106,17 +106,21 @@ trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **36
   - **Wave E — EXTERNAL cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63) — strong-typed-external intro gate,
     CONSTANT-RECORD strong-external dialect-gate, cross-SELECT FILE STATUS + relative-key consistency, run-unit
     descriptor-conflict raise. Shares the EC hot-files ⇒ serial (no parallel worktree). Scout Wave E.
-  - **REF-MOD-ZERO-LENGTH directive** (§7.3.23) — the follow-on to the landed EC-BOUND-REF-MOD raise: the directive ALLOWS a
-    zero-length ref-mod (suppresses the raise) — add a defaulted `RefModPlace.AllowZeroLength` (low ripple) + the preprocessor
-    directive + a `ref-mod-zero-length-2023` constructs.json row (COBOLNET0900). Scout §(2).
+  - ~~**REF-MOD-ZERO-LENGTH directive** (§7.3.23)~~ **✅ DONE 2026-07-18 (`420eb720`, DEVLOG 897)** — the `>>REF-MOD-ZERO-LENGTH
+    {ON|OFF}` directive that allows a zero-length ref-mod result (§8.4.3.3.4 item 5c). Landed the `RefModZeroLengthDirectiveProcessor`
+    (mirror of TurnDirectiveProcessor, intro-gated via the ONE ConstructRegistry) + `RefModZeroLengthState` line-fold + init-only
+    `RefModPlace.AllowZeroLength` + the `ref-mod-zero-length-2023` constructs.json row (COBOLNET0900) + **COBOLNET1573** malformed-operand.
+    ⚠ The full legacy guard surfaced + FIXED **two pre-existing latent GreenfieldOnly misses** (`ec_bound_ref_mod` from `3eebcfd1`,
+    `ec_bound_overflow` from `e574af41` — landed without their legacy-exclusions; [[feedback_legacy_suite_on_shared_corpus]]).
 - **③ Wave D — directives** (preprocessor; VERIFY whether it touches the shared `.g4` → guard accordingly): `>>COBOL-WORDS`
   (per-unit ReservedWordSet mutation), `>>PUSH`/`>>POP` (directive-state stack), `>>DISPLAY` (compile-log line), `>>FLAG-14`
   (wire the GR4 a–l twins §7.3.15.4 to the behavior rows — the FLAG-14 twins named in Wave G land here), `>>FLAG-02`-obsolete. Scout Wave D.
 - **④ Wave I — adversarial review** (Workflow 5-lens find→verify over the P13 landed constructs — the Wave F review proved the
   pattern; prior phases found 6–7 real defects) → fix confirmed defects → EXIT CRITERIA check → phase-close doc sweep → merge to `main`.
-- **Diagnostic band:** Wave C consumed 1565–1569; **Wave F took 1571**. **NEXT FREE = 1572** (verify
-  `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u`). Wave G CLASS A → 1570 (VCR 34) + 1572 (VCR 27). Introduction gates
-  COBOLNET0900; new-reserved-word user-word gates COBOLNET0901; obsolete 0903; §4.2.6 non-support WARNING band 1560.
+- **Diagnostic band:** Wave C consumed 1565–1569; **Wave F took 1571**; **REF-MOD-ZERO-LENGTH took 1573** (malformed operand).
+  **NEXT FREE = 1574** (verify `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u`). Wave G CLASS A → 1570 (VCR 34) + 1572 (VCR 27)
+  (both still free/earmarked). Introduction gates COBOLNET0900; new-reserved-word user-word gates COBOLNET0901; obsolete 0903;
+  §4.2.6 non-support WARNING band 1560.
 
 **Then: PHASE-14** (matrix closure + in-repo greenfield guard `scripts/guard.ps1`/`greenfield-guard` + one-time
 legacy-equivalence proof) → **PHASE-15** (G8 legacy retirement — the three cuts DELETE `CobolSharp.Compiler`/the
