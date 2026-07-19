@@ -138,10 +138,10 @@ trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **36
   (wire the GR4 a–l twins §7.3.15.4 to the behavior rows — the FLAG-14 twins named in Wave G land here), `>>FLAG-02`-obsolete. Scout Wave D.
 - **④ Wave I — adversarial review** (Workflow 5-lens find→verify over the P13 landed constructs — the Wave F review proved the
   pattern; prior phases found 6–7 real defects) → fix confirmed defects → EXIT CRITERIA check → phase-close doc sweep → merge to `main`.
-- **Diagnostic band:** Wave C consumed 1565–1569; **Wave F took 1571**; **REF-MOD-ZERO-LENGTH took 1573** (malformed operand).
-  **NEXT FREE = 1574** (verify `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u`). Wave G CLASS A → 1570 (VCR 34) + 1572 (VCR 27)
-  (both still free/earmarked). Introduction gates COBOLNET0900; new-reserved-word user-word gates COBOLNET0901; obsolete 0903;
-  §4.2.6 non-support WARNING band 1560.
+- **Diagnostic band (Wave G CLASS A complete):** 1565–1569 Wave C · 1571 Wave F · 1573 REF-MOD-ZERO-LENGTH malformed ·
+  **1570 VCR 34** (numeric-edited VALUE oversize) · **1572 VCR 27** (MERGE-in-proc) · **1574 EXCEPTION-FILE not-a-file (VCR 68/69)**.
+  **NEXT FREE = 1575** (verify `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u`). Introduction gates COBOLNET0900; new-reserved-word
+  user-word gates COBOLNET0901; obsolete 0903; §4.2.6 non-support WARNING band 1560.
 
 **Then: PHASE-14** (matrix closure + in-repo greenfield guard `scripts/guard.ps1`/`greenfield-guard` + one-time
 legacy-equivalence proof) → **PHASE-15** (G8 legacy retirement — the three cuts DELETE `CobolSharp.Compiler`/the
