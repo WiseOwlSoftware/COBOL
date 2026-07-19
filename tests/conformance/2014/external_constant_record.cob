@@ -1,7 +1,7 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. EXTCONREC.
       *> VCR 16 — below COBOL-2023 the "EXTERNAL CONSTANT RECORD requires a
-      *> strong TYPE" requirement (ISO 13.16.3 SR13 para 2; Annex E.3 item 10)
+      *> strong TYPE" requirement (ISO 13.16.3 SR13 para 2; Annex E.2 item 10)
       *> does NOT apply: a bare external constant record (no TYPE) is the
       *> legacy accepted form. Per 11.9.10.4 GR7 a CONSTANT RECORD is the one
       *> external item initialized at initial state (unlike a plain external

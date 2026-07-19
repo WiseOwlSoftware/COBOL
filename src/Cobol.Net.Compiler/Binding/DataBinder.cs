@@ -1110,6 +1110,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{subject}': an EXTERNAL record described with "
                 + $"STRONG type '{typeName}' requires that type declaration to be external too "
                 + "(ISO §13.18.22 SR5)");
+        // VCR 16, the STRENGTH half (§13.16.3 SR13 ¶2; Annex E.2 item 10; the P13 review finding C9): "If the
+        // CONSTANT RECORD clause is specified with the EXTERNAL clause, there shall also be a TYPE clause that
+        // specifies a STRONGLY typed definition." The declaration-site check (BindEntry) can verify only TYPE
+        // PRESENCE — strength is known HERE, where the template resolved. ≥2023 like its presence half (the
+        // requirement is the 2023 flip; below 2023 a weak-TYPE external constant record was legal). Scoped to the
+        // literal EXTERNAL-clause co-occurrence SR13 ¶2 names (an item external only via the TYPE's own EXTERNAL —
+        // GR3 — has no EXTERNAL clause, and its external typedef is separately gated by VCR 63 when strong).
+        if (item.IsConstantRecord && item.HasExternalClause && !template.TypedefStrong
+            && Edition.DialectLevel >= 2023)
+            Edition.Error(DiagnosticCatalog.ConstantRecordRule, $"'{subject}': a CONSTANT RECORD clause specified "
+                + $"with the EXTERNAL clause requires a TYPE clause naming a STRONGLY typed definition — "
+                + $"'{typeName}' is a weak (non-STRONG) typedef (ISO §13.16.3 SR13 ¶2; Annex E.2 item 10; ≥2023)");
 
         // §13.18.57.3 SR7 (review fix #1): a level-77 subject requires an ELEMENTARY type — a level-77 item is an
         // independent elementary item (§13.18.38). Version- AND strength-invariant (this applies to WEAK types too;

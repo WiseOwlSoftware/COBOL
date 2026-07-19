@@ -360,6 +360,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // OMITTED when the golden landed (9a33dfa7 — the third instance of the latent-miss class the
         // legacy-suite-on-shared-corpus rule exists for); caught by the Wave E pt3 legacy-suite run (DEVLOG 909).
         ("2023", "external_type_decl"),
+        // PHASE-13 review-fix (C9) — the VCR 16 strength-half 2014 continuity witness: a WEAK typedef satisfying
+        // TYPE on an EXTERNAL CONSTANT RECORD below 2023. The legacy engine's typedef/constant-record composition
+        // diverges on this shape (verified by suite run) — greenfield CorpusRunner byte-compares it.
+        ("2014", "external_constant_record_weak_type"),
         // PHASE-13 Wave E VCR 15 — the EC-EXTERNAL-* run-unit conformance raises (§14.8.4 / §14.9.4.4 GR3e):
         // >>TURN-gated activation-entry descriptor checks over the run-unit ExternalTable — the greenfield EC
         // model + descriptor machinery the frozen legacy has neither of. CorpusRunner byte-compares all three.

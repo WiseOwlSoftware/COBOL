@@ -27,7 +27,8 @@
     "options_paragraph",
     "propagate_directive",
     "rounded_mode_prohibited",
-    "rounded_modes"
+    "rounded_modes",
+    "external_constant_record_weak_type"
   ],
   "pending": []
 }
