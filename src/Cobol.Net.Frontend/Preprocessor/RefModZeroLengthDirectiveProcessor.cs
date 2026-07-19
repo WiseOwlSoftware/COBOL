@@ -61,7 +61,9 @@ public static class RefModZeroLengthDirectiveProcessor
             if (operand is "ON" or "OFF")
                 (events ??= []).Add(new RefModZeroLengthEvent(i + 1, operand == "ON"));
             else
-                diagnostics.ReportError("COBOLNET1573",
+                // The Id comes from the catalog descriptor, never a bare literal — a bare "COBOLNET1573" here
+                // collided with the later catalog-allocated external-file-status-consistency (review finding C1).
+                diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.RefModZeroLengthMalformedOperand.Code,
                     $">>REF-MOD-ZERO-LENGTH expects the ON or OFF phrase (ISO §7.3.23.2), not '{operand}'", loc, default);
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
         }

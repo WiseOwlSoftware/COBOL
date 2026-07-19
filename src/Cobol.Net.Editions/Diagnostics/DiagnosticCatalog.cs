@@ -72,6 +72,30 @@ public static class DiagnosticCatalog
         "COBOLNET0802", "digit-capacity-over-18-pre-2002", EditionSeverity.Error,
         "A fixed-point item/literal exceeds the 18-digit COBOL-85 limit (19–31 need --std 2002+).", "ISO §8.3.1.2");
 
+    // ── Compiler-directing facility band (emitted by the frontend directive processors). Registered by the
+    //    P13 plan-vs-spec remediation (review finding C1's recurrence guard): every emitted code must be a
+    //    catalog descriptor so the next-free allocation scan and DIAGNOSTICS.md see it — these four were bare
+    //    frontend literals, the same channel that shipped the COBOLNET1573 collision. ─────────────────────────
+    public static readonly DiagnosticDescriptor TurnDirectiveMalformed = new(
+        "COBOLNET0718", "turn-directive-malformed", EditionSeverity.Error,
+        "A >>TURN directive is malformed: the format is '>>TURN {exception-name [file-name]…}… CHECKING "
+        + "{ON [WITH LOCATION] | OFF}' — an unexpected word, a missing CHECKING phrase, or a repeated "
+        + "exception-name/file-name combination is rejected (ISO §7.3.25.2 / §7.3.25.3 SR1, SR3).",
+        "ISO §7.3.25.2 / §7.3.25.3 SR1/SR3");
+    public static readonly DiagnosticDescriptor TurnFileNameNonIo = new(
+        "COBOLNET0719", "turn-file-name-non-io", EditionSeverity.Error,
+        "A >>TURN file-name may follow only an exception-name beginning 'EC-I-O' (ISO §7.3.25.3 SR4).",
+        "ISO §7.3.25.3 SR4");
+    public static readonly DiagnosticDescriptor TurnDirectiveBelow2002 = new(
+        "COBOLNET0875", "turn-directive-below-2002", EditionSeverity.Error,
+        ">>TURN is the COBOL-2002+ exception-condition checking directive — it requires --std 2002 or later "
+        + "(ISO §7.3.25).", "ISO §7.3.25");
+    public static readonly DiagnosticDescriptor PropagateDirective = new(
+        "COBOLNET0883", "propagate-directive", EditionSeverity.Error,
+        "The >>PROPAGATE directive's compile-time diagnostics (ISO §7.3.21): below --std 2002 the directive is "
+        + "rejected (the introduction gate); at 2002+ an operand other than ON or OFF is rejected, never "
+        + "silently accepted (§7.3.21.2).", "ISO §7.3.21 / §7.3.21.2");
+
     // ── COBOLNET1540/1541/1545 — concatenation expressions, one code per rule (§8.8.3) ───────────────
     public static readonly DiagnosticDescriptor ConcatClassMismatch = new(
         "COBOLNET1540", "concat-class-mismatch", EditionSeverity.Error,
@@ -436,6 +460,16 @@ public static class DiagnosticCatalog
         + "§14.8.4.2; Annex E.2 item 24) — a corresponding SELECT omitting RELATIVE KEY, or naming a non-external / "
         + "different external item, is rejected. Below 2023 the requirement did not exist.",
         "ISO §12.4.5.3 GR1(h) / §14.8.4.2 / Annex E.2 item 24 (VCR row 31)");
+    // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
+    // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
+    // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now
+    // lives HERE and the frontend emits via its Id — allocation stays catalog-visible.
+    public static readonly DiagnosticDescriptor RefModZeroLengthMalformedOperand = new(
+        "COBOLNET1576", "ref-mod-zero-length-malformed-operand", EditionSeverity.Error,
+        "The >>REF-MOD-ZERO-LENGTH directive takes exactly one of the ON or OFF phrases (ISO §7.3.23.2; OFF is the "
+        + "processor default in the absence of the directive) — any other operand is rejected, never silently "
+        + "accepted.",
+        "ISO §7.3.23.2 (VCR row 30)");
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "

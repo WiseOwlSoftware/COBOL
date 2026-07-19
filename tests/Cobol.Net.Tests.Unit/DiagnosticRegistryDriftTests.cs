@@ -22,6 +22,11 @@ public sealed class DiagnosticRegistryDriftTests
     /// <c>.Error("&lt;code&gt;"</c> literal for these may survive in the compiler.</summary>
     private static readonly string[] SplitCodes = ["COBOLNET0899", "COBOLNET1533"];
 
+    /// <summary>Codes DELIBERATELY shared by multiple descriptors: the split families plus COBOLNET1535
+    /// (the catalog's own "reused across two rules (the 1533 disambiguation pattern; code byte-stable)"
+    /// note). Any other shared code is a collision.</summary>
+    private static readonly string[] SharedCodes = ["COBOLNET0899", "COBOLNET1533", "COBOLNET1535"];
+
     [Fact]
     public void EveryDescriptor_HasUniqueId()
     {
@@ -31,6 +36,22 @@ public sealed class DiagnosticRegistryDriftTests
             .Select(g => g.Key)
             .ToList();
         Assert.True(dupes.Count == 0, $"duplicate descriptor Id(s): [{string.Join(", ", dupes)}]");
+    }
+
+    /// <summary>No two descriptors may share a COBOLNET Code — one user-visible code, one meaning — except the
+    /// deliberate split-code families (<see cref="SplitCodes"/>: many staged-loud descriptors share 0899/1533 by
+    /// design). Id-uniqueness alone cannot catch a code collision (two kebab names, one code) — the shipped
+    /// COBOLNET1573 collision class.</summary>
+    [Fact]
+    public void EveryDescriptor_HasUniqueCode_OutsideSplitFamilies()
+    {
+        var dupes = DiagnosticCatalog.All
+            .Where(d => !SharedCodes.Contains(d.Code))
+            .GroupBy(d => d.Code, StringComparer.Ordinal)
+            .Where(g => g.Count() > 1)
+            .Select(g => $"{g.Key} [{string.Join(", ", g.Select(d => d.Id))}]")
+            .ToList();
+        Assert.True(dupes.Count == 0, $"descriptor code collision(s): {string.Join("; ", dupes)}");
     }
 
     [Fact]
@@ -48,6 +69,39 @@ public sealed class DiagnosticRegistryDriftTests
         }
         Assert.True(offenders.Count == 0,
             $"bare split-code emit literal(s) — route through DiagnosticCatalog.Error(descriptor, …): "
+            + string.Join(", ", offenders));
+    }
+
+    /// <summary>Every COBOLNETnnnn id string EMITTED anywhere in src (compiler, frontend, editions, runtime)
+    /// must exist as a catalog descriptor — a bare literal outside the catalog is invisible to the next-free
+    /// allocation scan and to DIAGNOSTICS.md, which is exactly how the shipped COBOLNET1573 two-meanings
+    /// collision happened (the P13 plan-vs-spec review finding C1: the frontend's REF-MOD-ZERO-LENGTH
+    /// malformed-operand emit bypassed the catalog, and Wave E's catalog-only scan re-allocated 1573).</summary>
+    [Fact]
+    public void EveryEmittedCode_IsACatalogDescriptor()
+    {
+        var known = DiagnosticCatalog.All.Select(d => d.Code).ToHashSet(StringComparer.Ordinal);
+        var offenders = new List<string>();
+        string src = Path.Combine(RepoRoot(), "src");
+        var emitRx = new System.Text.RegularExpressions.Regex(
+            "Report(?:Error|Warning)\\(\\s*\"(COBOLNET\\d{4})\"|(?<![\\w.])(?:Error|Warning)\\(\\s*\"(COBOLNET\\d{4})\"");
+        foreach (var file in Directory.EnumerateFiles(src, "*.cs", SearchOption.AllDirectories))
+        {
+            if (file.Contains("Generated", StringComparison.OrdinalIgnoreCase)
+                || file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
+            var lines = File.ReadAllLines(file);
+            for (int i = 0; i < lines.Length; i++)
+                foreach (System.Text.RegularExpressions.Match match in emitRx.Matches(lines[i]))
+                {
+                    string code = match.Groups[1].Success ? match.Groups[1].Value : match.Groups[2].Value;
+                    if (!known.Contains(code))
+                        offenders.Add($"{Path.GetFileName(file)}:{i + 1} {code}");
+                }
+        }
+        Assert.True(offenders.Count == 0,
+            "emitted diagnostic code(s) with NO DiagnosticCatalog descriptor — register a descriptor (allocation "
+            + "and DIAGNOSTICS.md are catalog-driven; a bare literal is how the 1573 collision shipped): "
             + string.Join(", ", offenders));
     }
 
