@@ -103,7 +103,15 @@ the FULL Conformance project (not a CorpusRunner-only filter — the `04c32a93`/
     + a new statement + deep EC integration (GR14/GR17/GR20). PERFORM UNTIL EXIT already landed. Scout §C5.
   - **Wave H code half** — recognize-and-name §4.2.6 non-support for MCS (SEND/RECEIVE), COMMIT/ROLLBACK, VALIDATE (today a
     generic COBOL0001) via shared-parser keyword recognition + the COBOLNET156x-band WARNING (the SCREEN §4.2.7 warning is
-    the pattern, already landed). Batch here (shared parser). Scout Wave H.
+    the pattern, already landed). Batch here (shared parser). Scout Wave H — **but READ its ⛔ MECHANISM CORRECTION banner
+    (2026-07-19) FIRST:** the scout's IDENTIFIER-led `{facilityWord(...)}? mcsFacilityStatement` seam was implemented and
+    **empirically poisons the boolean-factor prediction DFA** (broke `COMPUTE R = B-NOT A.` at all editions — DEVLOG-621
+    class), so it was reverted to green. **Corrected singular mechanism (matches RAISE):** real lexer tokens
+    `RECEIVE`/`SEND`/`VALIDATE` + `cobol-words.json` nameSlot rows (regen `CobolWords.g4`) + a **keyword-led**
+    `{facilityWord(...)}? (RECEIVE|SEND) (~DOT)*` alternative (DFA-safe — distinct-token lead). COMMIT/ROLLBACK stay the
+    diagnostic-layer 0901→1571 refinement (no grammar rule, unaffected). This shares the same token+cobolWord machinery as
+    PICTURE-EDITING (`EDITING`) and PERFORM-Fmt3 (`FINALLY`/`LOCATION`) — do all three tokens under the ONE legacy guard.
+    DEVLOG 903.
 - **② GREENFIELD-ONLY (no legacy guard; sequential-in-one-tree, ONE comprehensive gate per batch — [[feedback_execution_model_tiered_parallel]]):**
   - **Wave G CLASS A** — partially landed:
     - ✅ **VCR 35 + 86 DONE 2026-07-18 (`1123a77f`, DEVLOG 898)** — figurative-ZERO edited-zero `DialectLevel` branch (ValueInitializer)
