@@ -13,6 +13,17 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 909 — 2026-07-19 12:50 PDT — Legacy-suite latent-miss #3: `external_type_decl` GreenfieldOnly exclusion (Wave E pt1 omission)
+
+Running the legacy conformance suite after the VCR-15 shared-corpus manifest change (the
+[[feedback_legacy_suite_on_shared_corpus]] rule) caught a PRE-EXISTING miss: the Wave E pt1 golden
+`2023/external_type_decl` (VCR 63, `9a33dfa7`) landed WITHOUT its GreenfieldOnly exclusion — the frozen legacy
+grammar cannot parse the 2023 STRONG TYPEDEF + EXTERNAL TYPE surface, so the legacy runner failed on it. The
+THIRD instance of this latent-miss class (after `ec_bound_ref_mod`/`ec_bound_overflow`, Entry 897). Exclusion
+added; legacy suite 165/165 green. The pattern-level fix candidate (a drift test asserting every
+2023-manifest-enabled golden either legacy-compiles or has a GreenfieldOnly row) goes to the review ledger's
+Wave I batch — this class keeps recurring precisely because only a full legacy-suite run surfaces it.
+
 ## Entry 908 — 2026-07-19 12:30 PDT — PHASE-13 Wave E (part 3, FINAL) — VCR 15: the EC-EXTERNAL-* run-unit conformance raises (§14.8.4)
 
 **Wave E is COMPLETE** (VCR 63/16 → Entry 904, VCR 18/31 → Entry 905, VCR 15 here). The four EC-EXTERNAL-*

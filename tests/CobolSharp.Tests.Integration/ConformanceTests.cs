@@ -355,6 +355,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         // file's min/max size (§14.9.35 GR14). New greenfield SequentialConnector behavior; the frozen legacy's
         // record-length handling is not modified here, so the greenfield CorpusRunner byte-compares it.
         ("2002", "io_status_04"),
+        // PHASE-13 Wave E VCR 63 — the STRONGLY-TYPED external type declaration (§13.18.22/§13.18.58.3; 2023):
+        // the frozen legacy grammar cannot parse STRONG TYPEDEF + EXTERNAL TYPE surface. ⚠ This exclusion was
+        // OMITTED when the golden landed (9a33dfa7 — the third instance of the latent-miss class the
+        // legacy-suite-on-shared-corpus rule exists for); caught by the Wave E pt3 legacy-suite run (DEVLOG 909).
+        ("2023", "external_type_decl"),
         // PHASE-13 Wave E VCR 15 — the EC-EXTERNAL-* run-unit conformance raises (§14.8.4 / §14.9.4.4 GR3e):
         // >>TURN-gated activation-entry descriptor checks over the run-unit ExternalTable — the greenfield EC
         // model + descriptor machinery the frozen legacy has neither of. CorpusRunner byte-compares all three.
