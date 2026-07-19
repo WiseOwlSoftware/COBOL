@@ -958,3 +958,40 @@ from here. Full notes: `scratchpad/batch6-verdicts.json`.
 ### V33 (spec lens only — code lens killed). EC-FLOW-USE / EC-FLOW-GLOBAL-* seams
 
 - **Disposition:** _half-verified — re-run the code lens with items 28/29 in the resume batch._
+
+## 14. Batch-7 verdicts (2026-07-19 — the batch-6 casualties re-run: items 28/29/33, 6 agents, 0 errors)
+
+### V28. New-2023 intrinsics constructs.json rows — SPLIT → NOT A GAP (already-tracked P14 ledger closure)
+
+- **Verdicts:** spec-lens REAL-but-downgraded (high) · code-lens REFUTED (high)
+- **Disposition:** the below-2023 gating is IMPLEMENTED (IntrinsicCatalog D8 window, COBOLNET1502) and
+  FIXTURE-PROVEN for all eight items (IntrinsicFunctionDifferentialTests GatedBelow2023 suite); the absent
+  constructs.json rows match the DOCUMENTED §1.1 exception-ledger doctrine (intrinsic windows live in their
+  OWN tables, not constructs.json — smallest-algebraic-2023 is the P11 exception, not the norm). The open
+  remainder is the already-routed P14 todo burn-down: resolve VCR rows 65-74 as gate-rows OR a DISPOSITION
+  citing the catalog-window mechanism (rows 68/69 stay todo — EXCEPTION-FILE optional-arg is staged); reword
+  audit row 98's action "none" → "VCR flip/disposition at P14"; optionally extend the differential fixtures
+  from the single 2014 point to the 85/2002/2014 sweep.
+
+### V29. CONSTANT … AS BYTE-LENGTH OF staged on a now-false rationale — CONFIRMED
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** BYTE-LENGTH §15.14 is a live compile-time Fold since P11, yet the CONSTANT leg
+  (§13.10.4 GR5) stays staged loud with the user-facing message "the §15.14 intrinsic is itself a Deferred
+  catalog row" in THREE places (DataBinder.Constants.cs:45-46/:189 emit + the ConstantByteLength descriptor
+  DiagnosticCatalog.cs:143-148 → DIAGNOSTICS.md:24) — factually false today. GR5's ODO exception (MAXIMUM
+  size) is honored by construction by a ByteWidth-based fold. Route: the Opus fix session — either activate
+  the constant leg via the live fold (small) or at minimum truth-correct the three rationale sites; the
+  resume-prompt:304 P10 note ("BYTE-LENGTH unblocks the staged CONSTANT AS BYTE-LENGTH OF") proves the plan
+  expected the leg to land with P11.
+
+### V33. EC-FLOW-USE / EC-FLOW-GLOBAL-EXIT/-GOBACK — CONFIRMED (with a headline correction)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** the three raises are absent and untracked; STRONGER spec anchors than the finder cited:
+  EC-FLOW-GLOBAL-GOBACK has GOBACK §14.9.18 GR6, EC-FLOW-USE has USE §14.9.49.4 GR2, and §14.6.13.1.3 item 6
+  verbatim EXCLUDES EC-FLOW-GLOBAL-EXIT/-GOBACK from PROPAGATE. HEADLINE CORRECTION: "the legacy USE-recursion
+  guard was not carried over" is WRONG — the greenfield emits per-declarative __useActive re-entrancy guards
+  (DispatchEmitter.cs:156-193) incl. the GLOBAL walk; what is missing is only the RAISE side (the guard
+  silently skips instead of raising EC-FLOW-USE where the spec sets the condition). Route: EC-seam batch with
+  the EC-RANGE/EC-DATA twins (V3/V4) — seams or a named residue row.
