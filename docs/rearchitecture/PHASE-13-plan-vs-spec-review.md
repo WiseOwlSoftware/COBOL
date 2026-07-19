@@ -832,3 +832,33 @@ the batch-2 journal (session store) + `scratchpad/batch2-verdicts.json`.
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
 - **Disposition:** CONFIRMED — ControlFlowBinder.cs:102 binds BoundUnsupported("EXIT SECTION") while EXIT PARAGRAPH (:85) works; §14.9.14 Format 4 GR7 = control to an unnamed empty paragraph after the last paragraph of the section (the pc-move the docs describe). Route: implement (small — section EndPc exists) or fix the docs; the review-fix wave.
+
+## 10. Batch-3 verdicts (2026-07-19 — worklist items 6/8/9/10/11, 10 agents, 0 errors)
+
+Item 7 (RW SUPPRESS) was skipped as a duplicate of confirmed C5. Full verdict notes:
+`scratchpad/batch3-verdicts.json` + the batch-3 journal.
+
+### V6. DISPLAY … UPON silently dropped (SR2 unchecked, device ignored)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). Route: review-fix wave — bind displayUpon mirroring BindAcceptFromMnemonic (0817-style reject; output set CONSOLE/SYSOUT/SYSERR is an IMPLEMENTOR choice to document, §12.3.7.3 delegates), carry device on BoundDisplay, SYSERR→stderr, golden. Corrections: the intrinsics design doc :188 already PROMISES the routing; legacy-side tests cover UPON CONSOLE/SYSOUT only; nit — AcceptDisplayEmitter.cs:17 cites §14.9.8, 2023 numbering is §14.9.11. Also: MnemonicRegistry does NO device validation at declaration.
+
+### V8. CALL Format 2 (AS NESTED / prototype) + the OMITTED argument — zero grammar surface, SSOT reads as implemented
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). Route: decide implement-vs-stage-loud (owner-scope candidate for the grammar batch); in the deferral case reword COBOLNET_DESIGN.md:705 AND COBOLNET_INTERPROGRAM_DESIGN.md:56/:128 (the deep-dive example `CALL "P" USING OMITTED` is itself invalid ISO — OMITTED is Format-2-only; the optional bracket is the whole `{id|lit} AS` prefix). Correction: the deep-dive :149 DOES list OMITTED as 2002+; it is Format 2/AS NESTED/prototypes the inventory omits.
+
+### V9. National-argument intrinsic results bound category ALPHANUMERIC (8-function family)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). Route: review-fix wave — computed-category hook on the 8 catalog rows (CONVERT precedent); addition from the code lens: CONCAT rides the generic path (no BindConcat), and §15.18.1 also has an "All alphabetic → Alphabetic" row (a further lesser drift). Golden pinning Table-16 MOVE legality both directions.
+
+### V10. LENGTH/BYTE-LENGTH residual legs untracked (PHYSICAL keyword unparsed; ref-mod/ODO-group error out)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). Route: tracked residue row (P13 residue or P14 backlog) — PHYSICAL keyword acceptance, ref-mod/.Length + ODO/DEPENDING runtime legs, and the two error-message § corrections (r7/r6 → r4/r2).
+
+### V11. COBOLNET1518 double-claimed: locale non-support vs method-REDEFINES scope error
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high) — the THIRD live diag collision (after 1573 fixed, 1535 documented-deliberate). Fix: renumber the DataBinder method-REDEFINES emit (now at :2400) to 1577, catalog descriptor per the new drift-guard discipline, doc sweep; 1518 stays = A.4.9 locale non-support. NOTE: the compiler dot-prefixed Edition.Error channel is exactly where the drift guard does not yet scan — this collision validates extending it.
