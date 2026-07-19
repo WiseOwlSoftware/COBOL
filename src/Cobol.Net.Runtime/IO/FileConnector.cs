@@ -39,6 +39,11 @@ public abstract class FileConnector
     /// <summary>Set the I-O status directly (facade-level conditions: a locked-file OPEN, a REEL/UNIT CLOSE).</summary>
     public void SetStatus(string status) => Status = status;
 
+    /// <summary>The connector has been opened, attempted to be opened, or otherwise accessed (ISO §15.28.4 r2a) —
+    /// FUNCTION EXCEPTION-FILE(connector) returns two spaces until this is true. Set by <see cref="Open"/> and
+    /// <c>FileRegistry.DeleteFile</c>; a never-touched SELECTed connector stays false.</summary>
+    public bool EverAccessed { get; set; }
+
     /// <summary>True for a SELECT OPTIONAL file (ISO §14.9.27 GR13/GR17).</summary>
     public bool IsOptional { get; set; }
 
@@ -113,6 +118,7 @@ public abstract class FileConnector
     /// Sets and returns the status.</summary>
     public string Open(FileOpenMode mode)
     {
+        EverAccessed = true;   // an OPEN (successful or attempted) counts for FUNCTION EXCEPTION-FILE r2a (§15.28.4)
         if (IsOpen) return Status = FileStatusCode.FileAlreadyOpen;
         Mode = mode;
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")

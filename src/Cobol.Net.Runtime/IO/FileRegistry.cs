@@ -222,6 +222,17 @@ public sealed class FileRegistry
     /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
     public string Status(string name) => _files.TryGetValue(name, out var c) ? c.Status : FileStatusCode.Success;
 
+    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §15.28.4 r2): two alphanumeric spaces when the
+    /// named connector was never opened, attempted to be opened, or otherwise accessed (r2a — or is unknown); else
+    /// its two-character I-O status followed by the SELECT-spelled file-name (r2b — the stored key's part after the
+    /// last "::", the same emit-namespace strip as the no-argument <c>EcFunctions.File()</c>).</summary>
+    public string ExceptionFile(string name)
+    {
+        if (!_files.TryGetValue(name, out var c) || !c.EverAccessed) return "  ";
+        int sep = name.LastIndexOf("::", StringComparison.Ordinal);
+        return c.Status + (sep >= 0 ? name[(sep + 2)..] : name);
+    }
+
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15).</summary>
     public int LastReadLength(string name) => _files.TryGetValue(name, out var c) ? c.LastReadLength : 0;
 
@@ -338,6 +349,7 @@ public sealed class FileRegistry
     public string DeleteFile(string name, FileRetryKind retryKind, int retryAmount)
     {
         if (!_files.TryGetValue(name, out var c)) return FileStatusCode.PermanentError;
+        c.EverAccessed = true;   // a DELETE FILE accesses the connector — FUNCTION EXCEPTION-FILE r2a (§15.28.4)
         string status;
         string sharing = RetryLoop(() => OpenByAnotherConnector(name, c.HostPath)
             ? FileStatusCode.DeleteFileSharing : FileStatusCode.Success, retryKind, retryAmount);

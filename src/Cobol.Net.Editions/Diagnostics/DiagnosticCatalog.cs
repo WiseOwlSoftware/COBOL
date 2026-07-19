@@ -410,6 +410,11 @@ public static class DiagnosticCatalog
         + "already disallowed it). A bind-time procedure-range cross-pass rejects it at --std 2023; below 2023 the "
         + "runtime EC-SORT-MERGE-ACTIVE seam is the checking-off dynamic net.",
         "ISO §14.9.24 / Annex E.2 item 20 (VCR row 27)");
+    public static readonly DiagnosticDescriptor ExceptionFileArgumentNotFile = new(
+        "COBOLNET1574", "exception-file-argument-not-file", EditionSeverity.Error,
+        "The argument of FUNCTION EXCEPTION-FILE / EXCEPTION-FILE-N shall be the name of a file connector specified "
+        + "in an FD statement (ISO §15.28.3 rule 1 / §15.29.3) — the given name does not resolve to a declared file.",
+        "ISO §15.28.3 rule 1 / §15.29.3 (VCR rows 68/69)");
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "

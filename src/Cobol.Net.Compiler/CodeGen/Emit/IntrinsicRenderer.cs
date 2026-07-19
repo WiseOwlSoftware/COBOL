@@ -362,12 +362,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
             "EcLocation" => RuntimeApi.EcFn("Location"),                       // §15.30
             "EcLocationN" => RuntimeApi.EcFn("LocationN"),                     // §15.31 — the national twin
             "EcStatement" => RuntimeApi.EcFn("Statement"),                     // §15.32
-            "EcFile" => ic.Args.Count == 0
-                ? RuntimeApi.EcFn("File")                                      // §15.28.4 r1 — the no-argument form
-                : EmitText.LoudValue("string", "FUNCTION EXCEPTION-FILE(file-connector-name) (the 2023 optional-argument form — VCR row 68)"),
-            "EcFileN" => ic.Args.Count == 0
-                ? RuntimeApi.EcFn("FileN")                                     // §15.29.4 r1 — the no-argument form
-                : EmitText.LoudValue("string", "FUNCTION EXCEPTION-FILE-N(file-connector-name) (the 2023 optional-argument form — VCR row 69)"),
+            // §15.28.4 / §15.29.4: the no-argument form (r1) reads the last-exception register; the 2023
+            // file-connector-argument form (r2) reads the NAMED connector — the SAME FileKeyExpr the file verbs use.
+            "EcFile" => ic.FileArg is { } eff
+                ? RuntimeApi.EcFn("File", EmitText.FileKeyExpr(eff))          // §15.28.4 r2 — the named connector's status
+                : RuntimeApi.EcFn("File"),                                    // §15.28.4 r1 — the no-argument form
+            "EcFileN" => ic.FileArg is { } effn
+                ? RuntimeApi.EcFn("FileN", EmitText.FileKeyExpr(effn))        // §15.29.4 r2 — the national twin
+                : RuntimeApi.EcFn("FileN"),                                   // §15.29.4 r1 — the no-argument form
             _ => EmitText.LoudValue("string", $"FUNCTION {sig.Name} in a string context"),
         };
     }

@@ -6,6 +6,7 @@
     "boolean_shift",
     "delete_file_sharing",
     "continue_after",
+    "exception_file_arg",
     "ec_size_truncation_prohibited",
     "find_string",
     "goback_status",

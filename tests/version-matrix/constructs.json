@@ -208,6 +208,30 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VNL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 NE PIC $ZZ9.99 VALUE 12.5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY NE.\n    STOP RUN.\n"
     },
     {
+      "id": "exception-file-argument-2023",
+      "description": "FUNCTION EXCEPTION-FILE(file-connector-name) with an optional file-connector-name argument (ISO §15.28.2/.3/.4 r2) — a COBOL-2023 addition (Annex E.3.3 item 25): it returns the NAMED FD connector's I-O status + SELECT-spelled name, or two spaces if that connector was never opened/attempted/accessed. The no-argument base form is 2002. The argument form is gated below 2023.",
+      "display": "FUNCTION EXCEPTION-FILE(file-connector-name)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §15.28.3 rule 1 / §15.28.4 r2; Annex E.3.3 item 25",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 68 (EXCEPTION-FILE argument form — 2023 introduction)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. EXCFA.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"excfa.txt\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(5).\n       WORKING-STORAGE SECTION.\n       01 W PIC X(20).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE FUNCTION EXCEPTION-FILE(F) TO W.\n           DISPLAY W.\n           STOP RUN.\n"
+    },
+    {
+      "id": "exception-file-n-argument-2023",
+      "description": "FUNCTION EXCEPTION-FILE-N(file-connector-name) — the national twin of EXCEPTION-FILE's optional file-connector-name argument (ISO §15.29.4 r2), a COBOL-2023 addition (Annex E.3.3 item 26). Same connector-status semantics in the national repertoire. The no-argument base form is 2002; the argument form is gated below 2023.",
+      "display": "FUNCTION EXCEPTION-FILE-N(file-connector-name)",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §15.29.3 / §15.29.4 r2; Annex E.3.3 item 26",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 69 (EXCEPTION-FILE-N argument form — 2023 introduction)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. EXCFAN.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"excfan.txt\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(5).\n       WORKING-STORAGE SECTION.\n       01 W PIC N(20).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE FUNCTION EXCEPTION-FILE-N(F) TO W.\n           DISPLAY W.\n           STOP RUN.\n"
+    },
+    {
       "id": "merge-in-sort-merge-proc-removed-2023",
       "description": "A MERGE statement in the output procedure of another MERGE, or the input/output procedure of a file-format SORT, is PROHIBITED as of COBOL-2023 (ISO §14.9.24; Annex E.2 item 20 — the prior standard allowed it with conflicting rules, and SORT already disallowed it). A bind-time procedure-range cross-pass (VersionConformancePass.GateMergeInSortMergeProc) rejects it at >=2023 with COBOLNET1572; below 2023 the runtime EC-SORT-MERGE-ACTIVE seam is the (checking-off) dynamic net. Modeled as a removedIn=2023 construct (compiles at 85/2002/2014, rejects at 2023).",
       "display": "MERGE in a SORT/MERGE input or output procedure",

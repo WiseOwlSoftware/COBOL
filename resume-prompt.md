@@ -113,24 +113,17 @@ trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **36
       at ≥2023). Bind-time procedure-range cross-pass `VersionConformancePass.GateMergeInSortMergeProc` (pc-alignment verified:
       `BoundProgram.Paragraphs[i]` pc == the ProcedureTable pc `SortRange` uses). Matrix row `merge-in-sort-merge-proc-removed-2023`
       (removedIn 2023). CLI-probed all quadrants (no false positive on a standalone MERGE).
-    - ⏳ **REMAINING — VCR 68/69 EXCEPTION-FILE(connector) optional-arg form** (§15.28.4 r2 / §15.29; COBOL-2023, E.3.3 items 25/26).
-      Spec: arg form returns **"  " (2 spaces) if the connector was never opened/attempted/accessed**, else the 2-char I-O status + the
-      SELECT-spelled file-name. Decision-complete plan + as-built anchors:
-      - ⚠ **CRUX — a NEW binder path.** The file-connector-name arg is TODAY bound generically as a data operand (`IntrinsicBinder`
-        ~line 255-283 builds `args` as `BoundOperand`s) — incidental, NOT resolved to a connector. Needs: resolve the FD file-name to
-        the connector KEY (the emit-namespace form `PROG::NAME` / `::EXT::NAME`, matching `EcFunctions.File()`'s `::`-prefix-strip at
-        `EcFunctions.cs:44`) and carry it on `BoundIntrinsicCall` (a new `FileConnectorKey` field, set only for EcFile/EcFileN with 1 arg).
-      - **Renderer:** `IntrinsicRenderer.cs:365-370` — replace the `LoudValue` 1-arg branch with `RuntimeApi.EcFn("File", <key-literal>)`
-        / `EcFn("FileN", <key-literal>)`.
-      - **Runtime:** `EcFunctions.File(string connectorKey)` + `FileN(string)` overloads — resolve `RunUnit.FileRegistry` by key; return
-        "  " if never accessed (a new **`FileConnector.EverAccessed`** flag set in Open/attempted-Open/DeleteFile/any access), else
-        `connector.Status` + the `::`-stripped display name.
-      - **Gate:** intro gate COBOLNET0900 for the arg form at <2023 (VersionConformancePass or the IntrinsicBinder, keyed on arg-count==1)
-        + 2 constructs.json rows `exception-file-argument-2023` / `exception-file-n-argument-2023`. **Golden** (GreenfieldOnly): open a
-        file → read to AT END ('10') → `FUNCTION EXCEPTION-FILE(F)` = `"10<selectname>"`; a never-opened connector → `"  "`. Scout §1447-1462.
-      - Then **VCR 34** (deferred — the ≥2023 length-`<=` check for an alphanumeric edited-image literal on a numeric-edited item,
-        COBOLNET1570; scout's `==` was drift, national-class already caught by 0898).
-      ⚠ **Gate EVERY acceptance/semantics change with the FULL Conformance project** (differential + matrix + permissive suites), never a
+    - ✅ **VCR 68/69 DONE 2026-07-18 (DEVLOG 901)** — EXCEPTION-FILE(connector)/EXCEPTION-FILE-N(connector) arg form (§15.28.4 r2 /
+      §15.29.4 r2). New binder path `IntrinsicBinder.BindExceptionFileArg` (file-name → FileModel, carried on `BoundIntrinsicCall.FileArg`;
+      renderer passes `FileKeyExpr`) + runtime `EcFunctions.File(key)`/`FileN(key)` + `FileRegistry.ExceptionFile` + `FileConnector.EverAccessed`.
+      Intro gate COBOLNET0900 (2 constructs rows); non-file arg → COBOLNET1574. Golden `2023/exception_file_arg` (GreenfieldOnly).
+      **⟹ Wave G CLASS A COMPLETE** except VCR 34 (deferred).
+    - ⏳ **VCR 34 (deferred, the ONLY remaining CLASS-A item)** — the ≥2023 length-`<=` check (§13.18.63 SR4/SR5) for an alphanumeric
+      edited-image literal VALUE on a numeric-edited item → **COBOLNET1570**. ⚠ The scout's `length == pic.Length` is DRIFT (SR4/SR5 say
+      "shall not exceed", i.e. `<=`); the national-class-mismatch leg is ALREADY caught at all editions by COBOLNET0898
+      (`DataBinder.ValidateValueCategory:1006`). So the genuine surface is narrow: at ≥2023, a plain-string (alphanumeric) literal on a
+      numeric-edited item whose decoded length EXCEEDS `pic.Length` → 1570. Needs precise spec derivation before coding.
+    - ⚠ **Gate EVERY acceptance/semantics change with the FULL Conformance project** (differential + matrix + permissive suites), never a
       CorpusRunner-only filter (the `04c32a93` + `cf1fcaa2` lessons: the filter missed the differential-test regressions AND the
       matrix's `RemovedConstruct_CompilesPermissive` permissive-severity leg).
   - **Wave E — EXTERNAL cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63) — strong-typed-external intro gate,
