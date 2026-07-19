@@ -320,7 +320,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             else
                 w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));
         }
-        if (g.Raising is { } r) EmitRaisingStage(r, "GOBACK");
+        if (g.Raising is { } r)
+            // §14.9.18.4 GR3 (the P13 review C3 fix): in a program NOT under the control of a calling runtime
+            // element, GOBACK operates as STOP and "a RAISING phrase, if specified, is ignored" — so the staging
+            // (including the checking-off fatal termination arm) is __asCalled-gated, exactly like EmitExitProgram.
+            using (w.Block("if (__asCalled)   // §14.9.18.4 GR1b/GR3 — a main-program GOBACK ignores RAISING"))
+                EmitRaisingStage(r, "GOBACK");
         // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.4 GR10): the status reaches the OS ONLY in a main
         // program (GR3 — a called-program GOBACK returns to the activator, GR2, so its status phrase is inert);
         // guard on __asCalled, the same activation flag EmitExitProgram uses.

@@ -802,3 +802,33 @@ These close the A3/A4/C4 coverage gaps of §5; each finding below is RAW (unveri
 - **Evidence:** Rule 5 is a formation (compile-time) rule: the shift's second operand shall be an INTEGER operand. The grammar deliberately supersets (`booleanShiftSuffix : (B_SHIFT_*) arithmeticExpression`, comment at CobolExpressions.g4:141-142) but BindBoolShift (ConditionBinder.cs:69-93) adds no integer check — `COMPUTE R = A B-SHIFT-L 1.5` (or a non-integer item/expression count) binds clean and the renderer truncates at scale 0 (BooleanRenderer.cs:51-52). The Wave-C scout (gotcha 10) prescribed a bind-time COBOLNET1511 formation error for a non-integer second operand; the leniency is documented only in the grammar comment and is not dialect-gated, violating the every-leniency-gated dialect rule. (The parenthesized/complex-expression superset beyond Table 4's identifier-or-literal is the same class.)
 - **Proposed action:** In BindBoolShift, reject a statically non-integer count (a fractional numeric literal, or an expression whose bound scale/operands are non-integer) with the COBOLNET1511 formation-error family citing §8.8.2 rule 5 / Table 4; if the runtime-value truncation for non-literal counts is retained, record it as a documented implementor determination in docs/CONFORMANCE.md rather than a silent comment-only superset.
 - **Disposition:** _raw batch-1 capture — verify + route_
+
+## 9. Batch-2 verdicts (2026-07-19 — worklist items 1–5, 10 agents, 0 errors)
+
+The owner-directed batched verification, batch 2 of N. Both lenses ran per finding; full verdict notes in
+the batch-2 journal (session store) + `scratchpad/batch2-verdicts.json`.
+
+### V1. PAGE reserved-word table data (r2023=false with false provenance)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED — fix: drop PAGE from gen-reserved-words.ps1:111, regen both mirrors (r2023=true), 4-edition negative witness. NOTE the code-lens correction: NO live acceptance hole (PAGE is a dedicated lexer keyword → parse error as a user word at every edition); the defect is table/matrix DATA fidelity + every future table consumer (ReservedWordSet COBOL-WORDS layer, matrix invariants).
+
+### V2. runtime-negative ref-mod length vs the -1 omitted sentinel
+
+- **Verdicts:** spec-lens REAL (high) · code-lens refuted/dedupe (high)
+- **Disposition:** CONFIRMED-AS-DUPLICATE — merge into confirmed C14 (same defect); NEW increment for the C14 fix: ExceptionState.cs:227 still cites "ISO §8.4.2.3 c" (correct: §8.4.3.3.4), missed by the citation batch; also apply the fix to SpliceInto AND WriteFill. Spec nuance: the raise obligation for a negative is GR5c ("positive nonzero integer") — the EC trigger list never says "negative"; a specified length may NOT be reinterpreted as omission (omission is SYNTACTIC).
+
+### V3. EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW catalogued-unraisable, untracked
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED — spec anchors: NOT-FINITE raise rule §14.6.13.2 item 3 (:24897, four exemptions: class condition, sign condition, same-standard-usage MOVE, VALIDATE); OVERFLOW = Fatal :24668. Route: raise seams at the float conversion/MOVE paths (checking-gated) or a NAMED residue row — currently in NO ledger.
+
+### V4. the EC-RANGE family catalogued-unraisable, untracked (SEARCH-INDEX/SEARCH-NO-MATCH/PERFORM-VARYING/INVALID)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED — the four names are EC-RANGE-SEARCH-INDEX (§14.9.35→serial SEARCH GR4 :30935), EC-RANGE-SEARCH-NO-MATCH (:30946/:30962), EC-RANGE-PERFORM-VARYING (§14.9.28 GR3 :29561 — non-POSITIVE, so zero too), EC-RANGE-INVALID; catalogued at ExceptionCatalog.cs:164-168 with no seam and no ledger row. Route: seams or a named residue row.
+
+### V5. EXIT SECTION doc-vs-impl (BoundUnsupported while the docs claim the pc-move lowering is current)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED — ControlFlowBinder.cs:102 binds BoundUnsupported("EXIT SECTION") while EXIT PARAGRAPH (:85) works; §14.9.14 Format 4 GR7 = control to an unnamed empty paragraph after the last paragraph of the section (the pc-move the docs describe). Route: implement (small — section EndPc exists) or fix the docs; the review-fix wave.
