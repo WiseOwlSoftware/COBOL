@@ -1092,3 +1092,38 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   prescribes a standalone I-O-STATUS-04 directive that does not exist in §7.3 (I-O-STATUS-04 is a FLAG-14
   option word only) — the landed VCR-21 work correctly ignored the phantom prescription. Route: annotate the
   audit rows (a LEDGER doc — annotate, don't rewrite history) at the phase-close sweep.
+
+## 18. Batch-11 verdicts (2026-07-19 — minors 45/46/47, 6 agents, 0 errors)
+
+### V45. CheckExternalFileConsistency single-describer skip — CONFIRMED, with a NEW sharper bug found
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** §14.8.4.2's "shall be external data items" first conjunct is UNCONDITIONAL, and the lone-
+  describer case is structurally unreachable by the VCR-15 runtime face (Describe is pairwise; a single-program
+  run unit never activates) — the BinderDriver:154 comment's routing claim is false for that leg. STALE half:
+  LINAGE IS tracked+compared at runtime since VCR 15 (only the compile-time in-group LINAGE leg is missing).
+  **NEW BUG the code lens named:** the "!" non-external sentinel makes TWO non-external describers compare
+  EQUAL at runtime ("!"=="!" → no raise) — a false-negative against both §14.8.4.2 conjuncts even
+  cross-compiled. Fixes for Opus: (a) "!" never compares equal in the DataMismatch check; (b) drop the count<2
+  early-out for the externality leg (≥2023: any specified FILE STATUS/RELATIVE KEY/LINAGE operand on an
+  external connector must have a non-null ExternalItemIdentity); (c) add the compile-time LINAGE leg
+  (§13.4.5.4 GR2c); (d) correct the :154 comment.
+
+### V46. COBOLNET1570's SR4/SR5 citation — REFUTED-as-cited; the NATIONAL half of E.2 item 27 is the real gap
+
+- **Verdicts:** spec-lens REAL-as-amended (high) · code-lens REAL (high)
+- **Disposition:** the SR4/SR5 size sentences ARE the only normative "shall not exceed" text — the citation
+  stands (do NOT re-cite to SR7; optionally sharpen to "SR4/SR5 size sentences" + ADD SR7 for the class leg).
+  The REAL gap: a usage-NATIONAL numeric-edited item is class national (§8.5.1.2), SR7 requires an N"…"
+  literal to conform at 2023 and SR5-s2 caps its size — but DataBinder:1024-1027 rejects N"…" on
+  numeric-edited UNCONDITIONALLY at all editions (0898) and the ≥2023 size check reaches only '"'-leading
+  literals. Route: review-fix wave (the national leg of the VALUE rework).
+
+### V47. Sibling-assembly STOP RUN WITH STATUS discarded — CONFIRMED
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** the ONLY Environment.ExitCode sink is gated on the MAIN compilation group's own
+  HasStatusPhrase parse-tree scan (BinderDriver:129; ProgramEmitter:424-427) — a STOP RUN WITH STATUS executed
+  in a separately-compiled CALLed assembly is silently discarded (exit 0). Fix shape for Opus: make the sink
+  unconditional in the entry wrapper (or a runtime-side always-on exit-status register) so the status crosses
+  assembly boundaries; golden with a two-assembly run unit.
