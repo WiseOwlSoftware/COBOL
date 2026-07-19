@@ -1127,3 +1127,34 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   in a separately-compiled CALLed assembly is silently discarded (exit 0). Fix shape for Opus: make the sink
   unconditional in the entry wrapper (or a runtime-side always-on exit-status register) so the status crosses
   assembly boundaries; golden with a two-assembly run unit.
+
+## 19. Batch-12 verdicts (2026-07-19 — minors 48/49/50, 6 agents, 0 errors) — THE ORIGINAL 50-ITEM WORKLIST IS FULLY VERIFIED
+
+### V48. Internal ODO-group receive splice spuriously raises EC-BOUND-REF-MOD — CONFIRMED (broader than filed)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** EC-BOUND-REF-MOD is defined ONLY for reference modification; §13.18.38 GR8a makes the
+  zero-extent group receive a DEFINED no-op. `ReceiveInto` (PlaceRenderer.cs:167-168 after the V31 drift)
+  splices without allowZeroLength ⇒ under checking-ON the zero-extent case throws fatal. BROADER: OdoExtent
+  clamps to [0,max] not [min,max], so OCCURS 1 TO n with DEPENDING=0 also reaches it; reachable via BOTH the
+  group MOVE and the INSPECT store-back. Same C#-in-Place neutrality-leak class as V31/the Wave F
+  DebugRegisterPlace finding. Fix for Opus: `allowZeroLength: true` (or a check-free internal splice entry) in
+  ReceiveInto; the RedefViewPlace splice is provably safe (constant Width ≥ 1) but remains gate-coupled.
+
+### V49. The §8.4.3.3.4 GR5 non-integer raise leg unimplementable in the current pipeline — CONFIRMED
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** a COMPUTED fractional leftmost/length truncates at the transitional integer carrier
+  (ReferenceResolver.RenderSegment renders `/` as C# long division — the fraction is lost BEFORE the (int)
+  casts), so the :7089 non-integer raise can never fire; a literal fractional fails loud at bind. The scout's
+  disposition ("reduces to the range tests") is itself a spec misread — 1.5 truncates to 1 and PASSES the
+  range test. Route: document as a CONFORMANCE.md restriction now + fix the scout note; the real fix rides the
+  P15 BoundExpr conversion (evaluate at full scale, raise on fractional per GR5).
+
+### V50. Wrong-§ EC/exit-code citations vs the 2023 numbering — CONFIRMED; three NEW actionable sites
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** ExceptionState.cs:227 is already carried by the V2→C14 increment. NEW residue for the fix
+  list: PlaceRenderer.cs:30,32 cite "ISO §8.4.2.4" (nonexistent in the 2023 numbering) + one more site in the
+  full notes (`scratchpad/batch12-verdicts.json`) — correct all to §8.4.3.3.4 with the GR 5b/c anchors
+  (:7085-7087) + the unnumbered raise rule at :7089.
