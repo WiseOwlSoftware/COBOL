@@ -1920,6 +1920,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (rawValue is { } nrv && pic is { Category: PicCategory.NumericEdited } && IsNonZeroNumericLiteral(nrv))
             ConstructRegistry.Check(Edition.Edition, Edition.Sink,
                 Constructs.ValueNumericLiteralNumericEdited2023, entryWhere);
+        // VCR 34 (ISO §13.18.63 SR4/SR5; Annex E.2 item 27): at >=2023 an alphanumeric edited-image literal VALUE on
+        // a numeric-edited item is checked against the PICTURE size — a literal LONGER than the edited width is
+        // rejected (below 2023 it was stored truncated — the "unclear value"). Under --permissive the check
+        // downgrades to a warning (a removed-capability posture). The national-class-mismatch leg is already
+        // COBOLNET0898 (ValidateValueCategory); only a plain alphanumeric literal (leading '"') reaches this size check.
+        if (rawValue is { } arv && pic is { Category: PicCategory.NumericEdited } && Edition.DialectLevel >= 2023
+            && arv.StartsWith('"') && CobolLiteral.Decode(arv).Length > pic.Length)
+            Edition.Sink.Report(new EditionDiagnostic("COBOLNET1570",
+                EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), "value-numeric-edited-oversize",
+                $"{entryWhere}: the VALUE literal ({CobolLiteral.Decode(arv).Length} characters) exceeds the "
+                + $"numeric-edited item's {pic.Length}-character edited size (ISO §13.18.63 SR4/SR5; COBOL-2023, "
+                + "Annex E.2 item 27)", entryWhere, "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"));
         // An EXTERNAL type declaration (ISO §13.18.22 SR1 — EXTERNAL is legal on a level-1 type declaration;
         // the level-1 shape is §13.18.58.3 SR3, already enforced by RegisterTypeDecl's 1529). The declaration
         // itself has no storage (§13.18.58.4 GR2); the effect lands on its REFERENCES — §13.18.22 GR2 (a data

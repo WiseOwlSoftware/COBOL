@@ -208,6 +208,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VNL.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 NE PIC $ZZ9.99 VALUE 12.5.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY NE.\n    STOP RUN.\n"
     },
     {
+      "id": "value-numeric-edited-oversize-removed-2023",
+      "description": "An alphanumeric edited-image literal in the VALUE clause of a numeric-edited item that EXCEEDS the PICTURE's edited size (ISO §13.18.63 SR4/SR5) — before COBOL-2023 it was stored truncated (the 'unclear value'), at 2023 it is checked and rejected (Annex E.2 item 27). Modeled as removedIn=2023 (compiles at 85/2002/2014 truncated, rejects at 2023 with COBOLNET1570; --permissive downgrades to a warning). The national/alphanumeric class mismatch is the separate COBOLNET0898 check.",
+      "display": "over-size alphanumeric VALUE literal for a numeric-edited item",
+      "diagnosticCode": "COBOLNET1570",
+      "citation": "ISO §13.18.63 SR4/SR5; Annex E.2 item 27",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET1570",
+      "vcr": "VCR row 34 (numeric-edited VALUE literal size check — 2023)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. NEOS.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 NE PIC ZZ9 VALUE \"ABCDEF\".\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY NE.\n    STOP RUN.\n"
+    },
+    {
       "id": "exception-file-argument-2023",
       "description": "FUNCTION EXCEPTION-FILE(file-connector-name) with an optional file-connector-name argument (ISO §15.28.2/.3/.4 r2) — a COBOL-2023 addition (Annex E.3.3 item 25): it returns the NAMED FD connector's I-O status + SELECT-spelled name, or two spaces if that connector was never opened/attempted/accessed. The no-argument base form is 2002. The argument form is gated below 2023.",
       "display": "FUNCTION EXCEPTION-FILE(file-connector-name)",

@@ -118,11 +118,9 @@ trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **36
       renderer passes `FileKeyExpr`) + runtime `EcFunctions.File(key)`/`FileN(key)` + `FileRegistry.ExceptionFile` + `FileConnector.EverAccessed`.
       Intro gate COBOLNET0900 (2 constructs rows); non-file arg → COBOLNET1574. Golden `2023/exception_file_arg` (GreenfieldOnly).
       **⟹ Wave G CLASS A COMPLETE** except VCR 34 (deferred).
-    - ⏳ **VCR 34 (deferred, the ONLY remaining CLASS-A item)** — the ≥2023 length-`<=` check (§13.18.63 SR4/SR5) for an alphanumeric
-      edited-image literal VALUE on a numeric-edited item → **COBOLNET1570**. ⚠ The scout's `length == pic.Length` is DRIFT (SR4/SR5 say
-      "shall not exceed", i.e. `<=`); the national-class-mismatch leg is ALREADY caught at all editions by COBOLNET0898
-      (`DataBinder.ValidateValueCategory:1006`). So the genuine surface is narrow: at ≥2023, a plain-string (alphanumeric) literal on a
-      numeric-edited item whose decoded length EXCEEDS `pic.Length` → 1570. Needs precise spec derivation before coding.
+    - ✅ **VCR 34 DONE 2026-07-19 (DEVLOG 902)** — the ≥2023 over-size check (§13.18.63 SR4/SR5) for an alphanumeric edited-image
+      literal VALUE on a numeric-edited item → **COBOLNET1570** (permissive-aware, removedIn-2023 posture). Scout's `==` was drift
+      (SR4/SR5 = "shall not exceed", `>`); national-class already COBOLNET0898. **⟹ WAVE G CLASS A FULLY COMPLETE — no deferred residue.**
     - ⚠ **Gate EVERY acceptance/semantics change with the FULL Conformance project** (differential + matrix + permissive suites), never a
       CorpusRunner-only filter (the `04c32a93` + `cf1fcaa2` lessons: the filter missed the differential-test regressions AND the
       matrix's `RemovedConstruct_CompilesPermissive` permissive-severity leg).

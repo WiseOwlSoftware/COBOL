@@ -396,6 +396,13 @@ public static class DiagnosticCatalog
         + "is recognized but its static cell/bridge storage is not yet implemented (the cell and the implicit "
         + "data-address pointer are per-instance today, which would re-initialize per activation).",
         "ISO §13.5.4 GR1 / §14.6.2.3.2 #5", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ValueNumericEditedOversize = new(
+        "COBOLNET1570", "value-numeric-edited-oversize", EditionSeverity.Error,
+        "At COBOL-2023 an alphanumeric edited-image literal in the VALUE clause of a numeric-edited item is checked "
+        + "against the PICTURE size (ISO §13.18.63 SR4/SR5) — a literal longer than the edited width is rejected "
+        + "(before 2023 it was stored truncated). Under --permissive the check is a warning (a removed-capability "
+        + "posture); the national/alphanumeric class mismatch is the separate COBOLNET0898 check.",
+        "ISO §13.18.63 SR4/SR5 / Annex E.2 item 27 (VCR row 34)");
     public static readonly DiagnosticDescriptor DebugSubFacilityStaged = new(
         "COBOLNET1571", "debug-sub-facility-staged", EditionSeverity.Error,
         "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES trigger leg + the DEBUG-ITEM special "

@@ -26,6 +26,7 @@ public static class Constructs
     public const string PerformUntilExit2023 = "perform-until-exit-2023";
     public const string RefModZeroLength2023 = "ref-mod-zero-length-2023";
     public const string ValueNumericLiteralNumericEdited2023 = "value-numeric-literal-numeric-edited-2023";
+    public const string ValueNumericEditedOversizeRemoved2023 = "value-numeric-edited-oversize-removed-2023";
     public const string ExceptionFileArgument2023 = "exception-file-argument-2023";
     public const string ExceptionFileNArgument2023 = "exception-file-n-argument-2023";
     public const string MergeInSortMergeProcRemoved2023 = "merge-in-sort-merge-proc-removed-2023";

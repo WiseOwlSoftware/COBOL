@@ -28,6 +28,7 @@ public static partial class ConstructRegistry
         new("perform-until-exit-2023", "PERFORM UNTIL EXIT", 2023, null, null, "COBOLNET0900", "ISO §14.9.28.2 until-phrase / §14.9.28.4 GR11; Annex E.3.3 item 37"),
         new("ref-mod-zero-length-2023", ">>REF-MOD-ZERO-LENGTH directive", 2023, null, null, "COBOLNET0900", "ISO §7.3.23; §8.4.3.3.4 item 5c; Annex E.3.3 item 23"),
         new("value-numeric-literal-numeric-edited-2023", "numeric-literal VALUE for a numeric-edited item", 2023, null, null, "COBOLNET0900", "ISO §13.18.63 SR6; Annex E.3.3 item 43"),
+        new("value-numeric-edited-oversize-removed-2023", "over-size alphanumeric VALUE literal for a numeric-edited item", 85, 2023, null, "COBOLNET1570", "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"),
         new("exception-file-argument-2023", "FUNCTION EXCEPTION-FILE(file-connector-name)", 2023, null, null, "COBOLNET0900", "ISO §15.28.3 rule 1 / §15.28.4 r2; Annex E.3.3 item 25"),
         new("exception-file-n-argument-2023", "FUNCTION EXCEPTION-FILE-N(file-connector-name)", 2023, null, null, "COBOLNET0900", "ISO §15.29.3 / §15.29.4 r2; Annex E.3.3 item 26"),
         new("merge-in-sort-merge-proc-removed-2023", "MERGE in a SORT/MERGE input or output procedure", 85, 2023, null, "COBOLNET1572", "ISO §14.9.24; Annex E.2 item 20"),
