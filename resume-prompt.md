@@ -146,11 +146,13 @@ the FULL Conformance project (not a CorpusRunner-only filter — the `04c32a93`/
       (COBOLNET1549 gated ≥2023); (init) external CONSTANT RECORDs now seed their run-unit cell with the VALUE-composed
       image (`GroupImageCodec.ImageInitOf`) per §13.6.2 GR7, while plain externals stay blank (§13.18.63 GR4a). Battery:
       Conformance **3685** · Unit 311 · char 33 all green.
-    - ⏳ **REMAINING Wave E:** VCR 18 (cross-SELECT FILE STATUS consistency, COBOLNET1570) + VCR 31 (relative-key
-      consistency, COBOLNET1571) — one post-bind cross-unit pass, both dialect-gated ≥2023; then VCR 15 (EC-EXTERNAL-*
-      run-unit descriptor-conflict raise — the big runtime half; shares EC hot-files ⇒ serial). VCR 63/16 consumed NO
-      new 15xx (0900 / 1549 reused); VCR 18/31 need 2 new codes — allocate from the next free 15xx (verify
-      `DiagnosticCatalog`; the scout's "1570/1571" is stale — 1570 is Wave G's VCR 34).
+    - ✅ **VCR 18 + 31 DONE 2026-07-19 (DEVLOG 905)** — the two ≥2023 cross-unit external-file consistency checks
+      (FILE STATUS = COBOLNET1573; RELATIVE KEY = COBOLNET1575) via ONE post-bind cross-unit pass
+      `BinderDriver.CheckExternalFileConsistency` (dialect-gated ≥2023, binder-reads-edition doctrine; `ExternalItemIdentity`
+      = the external-root qualified path). 6 goldens (neg/pos/2014-continuity). (VCR 63/16 consumed no new 15xx — 0900/1549 reused.)
+    - ⏳ **REMAINING Wave E:** VCR 15 only (EC-EXTERNAL-* run-unit descriptor-conflict raise — the big runtime half:
+      `ExternalTable` descriptor recording + `ExceptionState.ExternalChecking` flag + 4 Raise helpers + emitter prologue
+      flag; shares EC hot-files ⇒ serial). Scout Wave E §"VCR 15". Diag band: next free 15xx after 1575 = 1576+ (verify `DiagnosticCatalog`).
   - ~~**REF-MOD-ZERO-LENGTH directive** (§7.3.23)~~ **✅ DONE 2026-07-18 (`420eb720`, DEVLOG 897)** — the `>>REF-MOD-ZERO-LENGTH
     {ON|OFF}` directive that allows a zero-length ref-mod result (§8.4.3.3.4 item 5c). Landed the `RefModZeroLengthDirectiveProcessor`
     (mirror of TurnDirectiveProcessor, intro-gated via the ONE ConstructRegistry) + `RefModZeroLengthState` line-fold + init-only

@@ -4,6 +4,8 @@
     "arithmetic_standard_decimal",
     "corresponding_rounded_mode",
     "external_constant_record",
+    "external_file_status_below",
+    "external_relative_key_below",
     "dyn_capacity_bounds",
     "dyn_capacity_read",
     "dyn_capacity_set",

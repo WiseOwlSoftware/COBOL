@@ -8,6 +8,8 @@
     "continue_after",
     "exception_file_arg",
     "external_type_decl",
+    "external_file_status_consistency",
+    "external_relative_key_consistency",
     "ec_size_truncation_prohibited",
     "find_string",
     "goback_status",

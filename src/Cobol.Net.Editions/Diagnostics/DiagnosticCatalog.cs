@@ -422,6 +422,20 @@ public static class DiagnosticCatalog
         "The argument of FUNCTION EXCEPTION-FILE / EXCEPTION-FILE-N shall be the name of a file connector specified "
         + "in an FD statement (ISO §15.28.3 rule 1 / §15.29.3) — the given name does not resolve to a declared file.",
         "ISO §15.28.3 rule 1 / §15.29.3 (VCR rows 68/69)");
+    public static readonly DiagnosticDescriptor ExternalFileStatusConsistency = new(
+        "COBOLNET1573", "external-file-status-consistency", EditionSeverity.Error,
+        "At COBOL-2023, for an external file all corresponding file control entries in the run unit shall specify the "
+        + "FILE STATUS clause naming the same corresponding external data item (ISO §12.4.5.3 GR1(i); §14.8.4.2; Annex "
+        + "E.2 item 12) — a corresponding SELECT omitting FILE STATUS, or naming a non-external / different external "
+        + "item, is rejected. Below 2023 the requirement did not exist.",
+        "ISO §12.4.5.3 GR1(i) / §14.8.4.2 / Annex E.2 item 12 (VCR row 18)");
+    public static readonly DiagnosticDescriptor ExternalRelativeKeyConsistency = new(
+        "COBOLNET1575", "external-relative-key-consistency", EditionSeverity.Error,
+        "At COBOL-2023, for an external relative file all corresponding file control entries in the run unit shall "
+        + "specify the RELATIVE KEY clause naming the same corresponding external data item (ISO §12.4.5.3 GR1(h); "
+        + "§14.8.4.2; Annex E.2 item 24) — a corresponding SELECT omitting RELATIVE KEY, or naming a non-external / "
+        + "different external item, is rejected. Below 2023 the requirement did not exist.",
+        "ISO §12.4.5.3 GR1(h) / §14.8.4.2 / Annex E.2 item 24 (VCR row 31)");
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "
