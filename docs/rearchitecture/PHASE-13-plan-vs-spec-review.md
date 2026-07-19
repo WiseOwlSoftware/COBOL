@@ -1030,3 +1030,34 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   not-provided. ALSO: the new §5 A.4.10 row mis-lumps item 2 — INTERFACE multi-INHERITS IS supported
   (OoClassTable.cs:152-165); only CLASS multi-base INHERITS rejects 0849 — split the wording. Route: Opus fix
   session (two-line doc flip).
+
+## 16. Batch-9 verdicts (2026-07-19 — minors 38/39/40, 6 agents, 0 errors)
+
+### V38. REPOSITORY-declaration SRs for referenced class/interface names unenforced — CONFIRMED (worse than filed)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** §11.3.3 SR2 + §11.8.3 SR1 + (under-cited) §13.18.60.3 SR8/SR9 + §12.3.8.1 all require the
+  repository declaration; INHERITS/IMPLEMENTS/USAGE resolve group-wide with NO check, and the DataBinder
+  repository loop does not even CAPTURE class/interface specifier names (only PROPERTY/FUNCTION) — no
+  enforcement infrastructure exists. The OO slice brief PROMISED 0836 enforcement "once REPOSITORY INTERFACE
+  parses" — that condition is NOW met without the enforcement landing. Cheapest fix (recorded for Opus):
+  capture the names in the existing loop + check at the resolution sites, self-name carve-out per §12.3.8.3
+  SR5/SR8; drop INVOKE from the enforcement list (covered via the USAGE rules). Or: a dialect-gated leniency
+  descriptor pair + registry row.
+
+### V39. Wrong-§ citations in shipped RW/EXTERNAL code — CONFIRMED, now SIX sites (one more found; two C18 rows already fixed)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition (the exact fix list for Opus):** CobolReportWriter.g4:200 §14.9.19→§14.9.16 (GENERATE) ·
+  :207 §14.9.62 (nonexistent)→§14.9.46 (TERMINATE) · DataBinder.Reports.cs:136 AND :418 AND :425
+  §13.18.29→§13.18.28 (GROUP INDICATE; :418 is the NEW sixth site — "§13.18.29.4 GR1"→"§13.18.28.4 GR1") ·
+  DiagnosticCatalog.cs:410 ExternalRecordNotCellBacked §13.18.24→§13.18.22 + regen DIAGNOSTICS.md (:27) ·
+  CONFORMANCE.md CLOSE row (:57) 14.9.7→14.9.6 (the DISPLAY/OPEN rows are ALREADY fixed by 451cede8/885d90e4).
+
+### V40. ALIGNED clause (§13.18.1) absent entirely — CONFIRMED
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** no lexer token, grammar rule, or binder model — only the reserved-word row (≥2002, so it
+  cannot even parse as a user word; a conforming 2002+ program dies as a parse error); the Annex E.2 item 2
+  2023 consistency delta has no landing surface; tracked nowhere. ALIGNED is bit/boolean-data-adjacent
+  surface — route: a named staged-loud diagnostic + a plan row (the bit-data family owner), P14 candidate.
