@@ -178,9 +178,50 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     public Dictionary<string, FileModel> FilesByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>True when SOURCE-COMPUTER declares WITH DEBUGGING MODE (the X3.23-1985 compile-time debug
-    /// switch) — consumed by the declaratives binder to decide the USE FOR DEBUGGING posture (compiled but
-    /// never triggered vs comment-treated; VCR Table 7 rows 7.9/7.17).</summary>
+    /// switch) — consumed by the declaratives binder to decide the USE FOR DEBUGGING posture: with the switch the
+    /// debugging section is compiled AND its procedure-trigger leg is modeled (fires; the DEBUG-ITEM register
+    /// resolves), without it the section is comment-treated (VCR Table 7 rows 7.9/7.17).</summary>
     public bool DebuggingModeDeclared { get; private set; }
+
+    /// <summary>The X3.23-1985 <c>DEBUG-ITEM</c> special register and its members (DEBUG-LINE / DEBUG-NAME /
+    /// DEBUG-SUB-1/2/3 / DEBUG-CONTENTS), keyed by COBOL name (case-insensitive) → the synthesized alphanumeric
+    /// <see cref="DataItem"/> VIEW + its read-only runtime read expression. The register is IMPLICITLY described
+    /// (no DATA DIVISION entry, §ISO absent — 1985 debug module, VCR Table 7 row 7.17) — kept OFF <see cref="ByName"/>
+    /// / <see cref="Roots"/>; the resolver consults this to build a <see cref="DebugRegisterPlace"/>. Populated by
+    /// <see cref="ActivateDebugRegisters"/> when a procedure-subject debugging declarative is collected under
+    /// WITH DEBUGGING MODE (empty otherwise — a non-debug program's resolution is unchanged).</summary>
+    public IReadOnlyDictionary<string, (DataItem Item, DebugRegisterMember Member)> DebugRegisters => _debugRegisters;
+    private readonly Dictionary<string, (DataItem, DebugRegisterMember)> _debugRegisters = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Register the X3.23-1985 DEBUG-ITEM special-register family (idempotent) — called by the procedure
+    /// table builder when it collects a <c>USE FOR DEBUGGING</c> procedure-subject declarative under WITH DEBUGGING
+    /// MODE, BEFORE statement binding resolves the DEBUG-* references inside the debugging section. Each member is a
+    /// synthesized elementary VIEW of its fixed 1985 width over the program-instance <c>__dbgItem</c>
+    /// (<see cref="CobolNet.Runtime.DebugItem"/>) — carried as a STRUCTURAL <see cref="DebugRegisterMember"/> selector
+    /// (the C# read text lives in the renderer); the whole-group DEBUG-ITEM reads the concatenated image. DEBUG-SUB-n
+    /// carries the S9(4) SIGN LEADING SEPARATE image WIDTH (5) but as an alphanumeric character-image view: the
+    /// procedure-trigger leg only ever renders it SPACES, and the subscripted numeric-value population + the
+    /// §14.9.25.4 GR6a "sign not moved" MOVE semantics ride the staged data-name leg (COBOLNET1571).</summary>
+    internal void ActivateDebugRegisters()
+    {
+        if (_debugRegisters.Count > 0) return;
+        void Reg(string name, int width, DebugRegisterMember member) =>
+            _debugRegisters[name] = (new DataItem
+            {
+                Level = 49,
+                CsName = "__dbg_" + name.Replace('-', '_'),
+                CobolName = name,
+                Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: width, Digits: 0, Scale: 0, Signed: false),
+                Uid = _uidCounter++,
+            }, member);
+        Reg("DEBUG-ITEM", Runtime.DebugItem.GroupWidth, DebugRegisterMember.Item);
+        Reg("DEBUG-LINE", Runtime.DebugItem.LineWidth, DebugRegisterMember.Line);
+        Reg("DEBUG-NAME", Runtime.DebugItem.NameWidth, DebugRegisterMember.Name);
+        Reg("DEBUG-SUB-1", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub1);
+        Reg("DEBUG-SUB-2", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub2);
+        Reg("DEBUG-SUB-3", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub3);
+        Reg("DEBUG-CONTENTS", Runtime.DebugItem.ContentsWidth, DebugRegisterMember.Contents);
+    }
 
     /// <summary>The compilation group's pass-1 class symbol table (OO deep-dive D1) — set by the run-unit
     /// emitter BEFORE <see cref="Bind"/> so a typed <c>USAGE OBJECT REFERENCE class-name</c> validates its

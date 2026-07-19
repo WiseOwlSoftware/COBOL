@@ -9,8 +9,9 @@ namespace CobolNet.Tests.Conformance;
 /// The X3.23-1985 notInGrammar 85-acceptance set (roadmap Phase 2 W3 item ④ — VCR Table 7 rows 7.15–7.18):
 /// RERUN, ENTER, USE FOR DEBUGGING, and section-header segment-numbers — four obsolete '85 elements DELETED by
 /// ISO/IEC 1989:2002 that formerly had no grammar at all (generic parse errors at EVERY edition, the G1
-/// co-equal-diagnostic violation). These facts pin the ACCEPTED-INERT 85 leg (parse + correct inert run
-/// semantics) and the per-word §8.9 user-word continuity; the ≥2002 reject/permissive legs are pinned by the
+/// co-equal-diagnostic violation). These facts pin the ACCEPTED 85 leg (parse + correct run semantics — RERUN /
+/// ENTER / segment-numbers are inert; USE FOR DEBUGGING is MODELED at 85, the procedure-trigger leg, VCR 7.17)
+/// and the per-word §8.9 user-word continuity; the ≥2002 reject/permissive legs are pinned by the
 /// four constructs.json matrix rows and the negative corpus (rerun / enter / use-for-debugging /
 /// segment-numbers). No ISO-2023 § exists for any of them — the registry rows cite the §8.9 ABSENCE pinpoints.
 /// </summary>
@@ -153,12 +154,14 @@ public sealed class Ansi85AcceptanceTests
             STOP RUN.
         """, "42");
 
-    // ── USE FOR DEBUGGING (row 7.17): inert per the '85 debug-facility rules ──
+    // ── USE FOR DEBUGGING (row 7.17): the '85 debug module, MODELED at --std 85 (procedure-trigger leg) ──
 
-    /// <summary>WITH DEBUGGING MODE present: the debugging section IS compiled, but the (implementor-defined)
-    /// object-time switch is permanently off — the declarative never fires ("NEVER-SEEN" must not print).</summary>
+    /// <summary>WITH DEBUGGING MODE present: the debugging section IS compiled AND, with the object-time switch ON
+    /// (RunUnit.DebugMode default true — the CCVS posture), the ON ALL PROCEDURES declarative FIRES just before each
+    /// nondeclarative procedure. Here M1 is the sole nondeclarative procedure (its first execution → "START
+    /// PROGRAM"), so the debug section runs before M1's body.</summary>
     [Fact]
-    public void UseForDebugging_SwitchPresent_CompiledNeverTriggered() => AssertRuns("""
+    public void UseForDebugging_SwitchPresent_AllProcedures_FiresTheDeclarative() => AssertRuns("""
         IDENTIFICATION DIVISION.
         PROGRAM-ID. A85UD1.
         ENVIRONMENT DIVISION.
@@ -172,18 +175,18 @@ public sealed class Ansi85AcceptanceTests
         DBG-SEC SECTION.
             USE FOR DEBUGGING ON ALL PROCEDURES.
         DBG-PARA.
-            DISPLAY "NEVER-SEEN".
+            DISPLAY "DBG " DEBUG-CONTENTS.
         END DECLARATIVES.
         MAIN SECTION.
         M1.
             DISPLAY W.
             DISPLAY "DEBUG-OK".
             STOP RUN.
-        """, "3\nDEBUG-OK");
+        """, "DBG START PROGRAM\n3\nDEBUG-OK");
 
     /// <summary>WITHOUT the switch, X3.23-1985 compiles debugging sections as if they were COMMENT lines —
-    /// so even unimplemented DEBUG-* register references inside must compile (the DB103M shape: no switch,
-    /// 95 register references, designed by NIST to run with the sections inert).</summary>
+    /// so even DEBUG-* register references inside must compile (the DB103M shape: no switch, 95 register
+    /// references, designed by NIST to run with the sections inert).</summary>
     [Fact]
     public void UseForDebugging_NoSwitch_CommentTreated_DebugRegistersCompile() => AssertRuns("""
         IDENTIFICATION DIVISION.
@@ -205,11 +208,11 @@ public sealed class Ansi85AcceptanceTests
             STOP RUN.
         """, "COMMENT-TREATED");
 
-    /// <summary>WITH the switch, a DEBUG-* register reference is a legal '85 use of a facility this compiler
-    /// defers (the DB series is golden-less residue) — it must diagnose the TRUTH (COBOLNET0899
-    /// not-implemented), not a false §8.9 "reserved word as user-defined word" 0901.</summary>
+    /// <summary>WITH the switch, a DEBUG-* register reference is a legal '85 use of the now-MODELED facility — it
+    /// resolves to the DEBUG-ITEM register (an alphanumeric view), so the program COMPILES; never a deferred
+    /// COBOLNET0899 nor a false §8.9 "reserved word as user-defined word" COBOLNET0901.</summary>
     [Fact]
-    public void UseForDebugging_SwitchPresent_DebugRegisters_Diagnose0899()
+    public void UseForDebugging_SwitchPresent_DebugRegisters_Resolve()
     {
         var (ok, errors, _) = EditionHarness.CompileFull("""
             IDENTIFICATION DIVISION.
@@ -231,10 +234,10 @@ public sealed class Ansi85AcceptanceTests
             M1.
                 STOP RUN.
             """, 85);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(errors, "COBOLNET0899");
-        EditionHarness.AssertHasDiagnostic(errors, "DEBUG-LINE");
+        Assert.True(ok, string.Join("\n", errors));
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0899");
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1571");
     }
 
     /// <summary>The '85 operand forms in one declarative: ALL REFERENCES OF identifier (OF-qualified),
@@ -321,7 +324,7 @@ public sealed class Ansi85AcceptanceTests
 
     [Theory]
     [InlineData("DB103M")]   // no switch + 95 DEBUG-register references → comment treatment
-    [InlineData("DB301M")]   // switch present, no registers → compiled-never-triggered
+    [InlineData("DB301M")]   // switch + USE FOR DEBUGGING → the procedure-trigger leg is modeled; compiles
     [InlineData("DB302M")]
     [InlineData("DB305M")]
     public void DbResidue_CompilesAt85(string name)
@@ -330,15 +333,18 @@ public sealed class Ansi85AcceptanceTests
         Assert.True(ok, string.Join("\n", diagnostics));
     }
 
-    /// <summary>DB101A (switch + active register use) still rejects — but with the honest 0899 naming the
-    /// deferred facility, never the false 0901.</summary>
+    /// <summary>DB101A (switch + active DEBUG-* register use + ON procedure-name subjects) COMPILES at 85 — the
+    /// X3.23-1985 procedure-trigger debug facility (DEBUG-ITEM register + ON procedure-name / ALL PROCEDURES) is
+    /// modeled (VCR Table 7 row 7.17), so its DEBUG-* references resolve and its debugging declaratives bind; no
+    /// deferred COBOLNET0899, no false COBOLNET0901, and no COBOLNET1571 (its subjects are all procedure-names).</summary>
     [Fact]
-    public void Db101a_Rejects0899_Not0901()
+    public void Db101a_CompilesAt85_DebugFacilityModeled()
     {
         var (ok, diagnostics) = EditionHarness.CompileNist("DB101A", 85);
-        Assert.False(ok);
-        EditionHarness.AssertHasDiagnostic(diagnostics, "COBOLNET0899");
+        Assert.True(ok, string.Join("\n", diagnostics));
+        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOLNET0899");
         EditionHarness.AssertNoDiagnostic(diagnostics, "COBOLNET0901");
+        EditionHarness.AssertNoDiagnostic(diagnostics, "COBOLNET1571");
     }
 
     // ── §8.9 user-word continuity: each word frees exactly at its ReservedWords.Table edition ──

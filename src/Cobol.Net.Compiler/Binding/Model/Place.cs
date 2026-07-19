@@ -161,6 +161,33 @@ public sealed record CapacityRegisterPlace(AccessPath Table, DataItem RegisterIt
     public override DataItem Item => RegisterItem;
 }
 
+/// <summary>The member of the X3.23-1985 <c>DEBUG-ITEM</c> register a <see cref="DebugRegisterPlace"/> refers to
+/// (the whole group, or one elementary member). A STRUCTURAL selector — the backend
+/// (<c>CodeGen.PlaceRenderer</c>) maps it to the C# read expression, so no C# text lives in the bound tree
+/// (the G4 backend-neutrality invariant; the <see cref="CapacityRegisterPlace"/> precedent).</summary>
+public enum DebugRegisterMember { Item, Line, Name, Sub1, Sub2, Sub3, Contents }
+
+/// <summary>
+/// The X3.23-1985 <c>DEBUG-ITEM</c> special register (and its members DEBUG-LINE / DEBUG-NAME / DEBUG-SUB-1/2/3 /
+/// DEBUG-CONTENTS) — the '85 debug module, deleted 2002 and absent ISO 2023, so modeled only at <c>--std 85</c>
+/// (VCR Table 7 row 7.17). It is IMPLICITLY described (no DATA DIVISION entry) and referenced only inside debugging
+/// declaratives, so it is a VIEW, never its own storage: reading is the read-only program-instance
+/// <c>__dbgItem</c> member selected by <paramref name="Member"/> (<see cref="CobolNet.Runtime.DebugItem"/>), which
+/// the injected debug trigger populates — the C# text is produced by <c>CodeGen.PlaceRenderer</c>, NOT stored here
+/// (backend-neutral, like <see cref="CapacityRegisterPlace"/>). A COBOL program never assigns to a DEBUG-* register
+/// (the runtime sets it), so <c>PlaceRenderer.Write</c> of this place is an internal-error backstop.
+/// <see cref="RegisterItem"/> carries the member's alphanumeric <see cref="PicInfo"/> (its fixed width) so
+/// MOVE / DISPLAY interpret it as an X-item.
+/// </summary>
+public sealed record DebugRegisterPlace(DataItem RegisterItem, DebugRegisterMember Member) : Place
+{
+    /// <inheritdoc/>
+    public override PicInfo? Pic => RegisterItem.Pic;
+
+    /// <inheritdoc/>
+    public override DataItem Item => RegisterItem;
+}
+
 /// <summary>
 /// A reference-modified place <c>inner(start:length)</c> (COBOLNET_DESIGN §3.3 / §7.2): reading is a substring
 /// (<c>CobolString.RefMod</c>); writing splices the new slice back into the inner field (<c>CobolString.SpliceInto</c>),

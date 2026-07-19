@@ -72,7 +72,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                 if (ctx.Table.ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{host.OoScopeHint}");
                 targets.Add(range.Start);
             }
-            return new BoundGoToDepending(host.Expr.FieldOperand(sel), targets);
+            return new BoundGoToDepending(host.Expr.FieldOperand(sel), targets, g.Start.Line);
         }
         if (names.Length == 0) return host.Alter.AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
         if (ctx.Table.ResolveProcedure(names[0]) is not { } target)
@@ -82,7 +82,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindExit(Core.ExitStatementContext e)
     {
-        if (e.PARAGRAPH() is not null) return new BoundExitParagraph();
+        if (e.PARAGRAPH() is not null) return new BoundExitParagraph(e.Start.Line);
         if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
         if (e.PROGRAM() is not null)   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
         {
@@ -142,7 +142,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         else if (start > end)
             return new BoundNop();   // PERFORM of an EMPTY section runs nothing (no first statement, ISO §14.9.28)
 
-        return new BoundOutOfLinePerform(start, end, BindPerformControl(p));
+        return new BoundOutOfLinePerform(start, end, BindPerformControl(p), p.Start.Line);
     }
 
     /// <summary>Bind the OPTIONAL control phrase (TIMES / UNTIL / VARYING) of a PERFORM. Per ISO §14.9.28 the phrase

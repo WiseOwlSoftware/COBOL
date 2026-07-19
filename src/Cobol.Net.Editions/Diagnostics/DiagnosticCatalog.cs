@@ -396,10 +396,13 @@ public static class DiagnosticCatalog
         + "is recognized but its static cell/bridge storage is not yet implemented (the cell and the implicit "
         + "data-address pointer are per-instance today, which would re-initialize per activation).",
         "ISO §13.5.4 GR1 / §14.6.2.3.2 #5", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor DebugRegisterFacility = new(
-        NotImplemented, "debug-register-facility", EditionSeverity.Error,
-        "The X3.23-1985 debug facility (DEBUG-ITEM registers, debugging-section invocation) is not implemented.",
-        "VCR Table 7 row 7.17", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor DebugSubFacilityStaged = new(
+        "COBOLNET1571", "debug-sub-facility-staged", EditionSeverity.Error,
+        "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES trigger leg + the DEBUG-ITEM special "
+        + "register are modeled at --std 85; the data-name (incl. ALL REFERENCES OF), file-name, and cd-name subject "
+        + "kinds and the SORT/MERGE INPUT/OUTPUT-procedure DEBUG-CONTENTS cause are staged — rejected loud rather "
+        + "than compiled with a missing/stale trigger.",
+        "VCR Table 7 row 7.17 (X3.23-1985 debug module)");
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "

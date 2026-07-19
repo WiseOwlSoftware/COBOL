@@ -78,9 +78,13 @@ semantics).
 `computerAttributes` sink) · the five identification comment paragraphs · REMARKS (≥2002 only — CCVS carve-out)
 · STOP literal (85 semantics implemented: `BoundStopLiteral` → operator channel/stderr + continue) · OPEN
 REVERSED · **the notInGrammar 85-acceptance gates (VCR Table 7 rows 7.15–7.18): RERUN (parsed-and-ignored)
-· ENTER (BoundNop; system-name operands outside the funnel) · USE FOR DEBUGGING (the '85 dual posture —
-comment-treated without WITH DEBUGGING MODE [DB103M], compiled-never-triggered with it; DEBUG-* register
-references under the switch diagnose 0899 not-implemented, never the false 0901) · section-header
+· ENTER (BoundNop; system-name operands outside the funnel) · USE FOR DEBUGGING (the '85 debug module, VCR
+Table 7 row 7.17 — the '85 dual posture: comment-treated without WITH DEBUGGING MODE [DB103M], and, WITH the
+switch, the ON procedure-name / ALL PROCEDURES leg is MODELED — the DEBUG-ITEM special register + procedure-entry
+triggers with the START PROGRAM / SPACES / PERFORM LOOP / FALL THROUGH DEBUG-CONTENTS taxonomy, object-time
+switch `RunUnit.DebugMode` default ON; a DEBUG-* register reference under the switch resolves to the register,
+never the false 0901; the data-name / file-name / cd-name subject kinds + the SORT/MERGE cause are staged loud
+COBOLNET1571) · section-header
 segment-numbers (both header rules)**. 2014→2023: CLOSE WITH LOCK · CALL ON OVERFLOW (0882). Windows:
 EXIT METHOD/FUNCTION (2002→2023). Archaic 0903 @≥2023: EXIT PROGRAM · NEXT SENTENCE. Reserved-word intervals:
 COMMIT@2023, RAISING@2002, RECEIVE + END-RECEIVE (85-reserved → free 2002/2014 → re-reserved 2023). Pass

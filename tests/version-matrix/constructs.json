@@ -1401,10 +1401,10 @@
     },
     {
       "id": "use-for-debugging-removed-2002",
-      "description": "USE FOR DEBUGGING declarative (the '85 debug facility) - deleted by ISO 2002 with the whole facility (DEBUG-* registers included). Accepted-inert at 85: without WITH DEBUGGING MODE the debugging section is compiled as if comment lines (the '85 rule); with it, compiled but never triggered (the object-time switch is permanently off). Companion of debugging-mode-removed-2002.",
+      "description": "USE FOR DEBUGGING declarative (the '85 debug module) - deleted by ISO 2002 with the whole facility (DEBUG-* registers included), absent from ISO 2023. MODELED at --std 85 (the ON procedure-name / ALL PROCEDURES trigger leg + the DEBUG-ITEM register; object-time switch RunUnit.DebugMode default ON): without WITH DEBUGGING MODE the debugging section is comment-treated (the '85 rule); with it, the declarative fires before each subject procedure. Rejected COBOLNET0902 at >=2002. Companion of debugging-mode-removed-2002.",
       "display": "the USE FOR DEBUGGING declarative",
       "diagnosticCode": "COBOLNET0902",
-      "citation": "the '85 debug facility's declarative, deleted by ISO 2002 with the whole facility incl. DEBUG-* registers (§8.9 absence @10407–10408); inert at 85 (comment-treated without WITH DEBUGGING MODE, never-triggered with it); companion of debugging-mode-removed-2002; VCR Table 7 row 7.17",
+      "citation": "the '85 debug module's declarative, deleted by ISO 2002 with the whole facility incl. DEBUG-* registers (§8.9 absence @10407–10408); modeled at 85 (comment-treated without WITH DEBUGGING MODE, its ON procedure-name / ALL PROCEDURES triggers fire with it); companion of debugging-mode-removed-2002; VCR Table 7 row 7.17",
       "introducedIn": 85,
       "removedIn": 2002,
       "expectDiagnostic": "COBOLNET0902",

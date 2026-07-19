@@ -31,4 +31,4 @@ public sealed record BoundAlter(IReadOnlyList<BoundAlterEntry> Entries) : BoundS
 /// value of the paragraph's <paramref name="AlterField"/> (D4 — <c>__pc = _alter_X; break;</c>).
 /// <paramref name="DefaultPc"/> initializes the field: the written GO TO target's pc, or −1 for a target-less
 /// <c>GO TO.</c> not yet ALTERed — executing it then is undefined (ANSI-85), realized as −1 = dispatcher exit.</summary>
-public sealed record BoundGoToAlterable(string AlterField, int DefaultPc) : BoundStatement;
+public sealed record BoundGoToAlterable(string AlterField, int DefaultPc, int SourceLine = 0) : BoundStatement;

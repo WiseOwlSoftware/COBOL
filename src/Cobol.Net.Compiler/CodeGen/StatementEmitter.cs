@@ -104,8 +104,11 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         return false;
     }
 
-    public bool Visit(BoundGoTo n) { var w = _ctx.Writer; w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
-    public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
+    // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): a GO TO transfer is DEBUG-CONTENTS SPACES (Transfer); EXIT PARAGRAPH
+    // returns to the paragraph end (a controlled fall-through into pc+1) — DEBUG-CONTENTS "FALL THROUGH". DEBUG-LINE
+    // is the transferring statement's own source line.
+    public bool Visit(BoundGoTo n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "Transfer", n.SourceLine); w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
+    public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine); w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
     public bool Visit(BoundExitPerform n) { _ctx.Writer.Line(n.Cycle ? "continue;" : "break;"); return false; }   // inline-PERFORM loop
     public bool Visit(BoundGoToDepending n) { _controlFlow.EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
@@ -135,6 +138,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         // the paragraph fall-through (pc+1 — the dispatcher's at-exit check then handles a PERFORM return).
         var w = _ctx.Writer;
         if (_dispatchState.SentenceEndLabel is { } lbl) { w.Line($"goto {lbl};"); return true; }
+        _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine);   // to pc+1 (X3.23-1985 "FALL THROUGH", VCR 7.17)
         w.Line($"__pc = {_dispatchState.CurrentPc + 1};");
         w.Line("break;");
         return true;

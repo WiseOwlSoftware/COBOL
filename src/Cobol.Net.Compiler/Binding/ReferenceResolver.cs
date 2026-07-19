@@ -111,6 +111,14 @@ public sealed class ReferenceResolver(DataBinder data)
         // to loud (AccessPath null / normal resolution fails) — a later refinement.
         if (CapacityRegisterFor(dref) is { } capReg) return capReg;
 
+        // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
+        // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
+        // a DebugRegisterPlace. Registered ONLY when a procedure-subject debugging declarative is active under WITH
+        // DEBUGGING MODE (DebugRegisters empty otherwise → this never fires for a non-debug program). Only the plain
+        // unqualified/unsubscripted form is covered — a reference-modified/qualified DEBUG-* falls through to loud.
+        if (data.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
+            return new DebugRegisterPlace(dbg.Item, dbg.Member);
+
         var qualifiers = new List<string>();
         Core.SubscriptOrRefModContext? subCtx = null;    // the subscript group (no depth-0 colon)
         Core.SubscriptOrRefModContext? refCtx = null;    // a reference-modification group (start : length)

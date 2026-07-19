@@ -151,9 +151,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in table.Paragraphs[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
-            bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
+            // The paragraph's LAST executable statement source line — the X3.23-1985 DEBUG-LINE for a FALL THROUGH
+            // trigger (VCR 7.17; only used when the debug facility is active). 0 for an empty paragraph.
+            int lastLine = table.Paragraphs[i].Sentences
+                .SelectMany(s => s.statement()).LastOrDefault()?.Start.Line ?? 0;
+            bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences, lastLine));
         }
-        return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures());
+        return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures(),
+            DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null);
     }
 
     /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY
@@ -291,7 +296,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.acceptStatement() is { } ac => Accept.BindAccept(ac),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
         _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
-        _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
+        _ when s.nextSentenceStatement() is not null => new BoundNextSentence(s.Start.Line),
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
         // the validator, its 85 semantics implemented via BoundStopLiteral).

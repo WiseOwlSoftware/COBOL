@@ -9,7 +9,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 
 /// <summary>The ALTER / alterable-GO-TO / SET-external-switch emitter (P7 Step 9c — a real collaborator over
 /// the per-unit <see cref="EmitContext"/>, extracted from the CSharpEmitter.AlterSwitches partial).</summary>
-internal sealed class AlterSwitchEmitter(EmitContext ctx)
+internal sealed class AlterSwitchEmitter(EmitContext ctx, DispatchState dispatch)
 {
     // ── ALTER + the alterable GO TO (ANSI X3.23-1985; COBOLNET_CONTROL_FLOW_DESIGN D4) ───────────────────────
 
@@ -48,6 +48,9 @@ internal sealed class AlterSwitchEmitter(EmitContext ctx)
     public void EmitGoTo(BoundGoToAlterable g)
     {
         var w = ctx.Writer;
+        // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): an altered GO TO transfer is DEBUG-CONTENTS SPACES (Transfer),
+        // DEBUG-LINE the GO TO statement's own line.
+        dispatch.EmitDebugCause(w, "Transfer", g.SourceLine);
         w.Line($"__pc = {g.AlterField};");
         w.Line("break;");
     }

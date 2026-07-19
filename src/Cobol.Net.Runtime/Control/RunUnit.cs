@@ -54,6 +54,15 @@ public sealed class RunUnit
     /// <summary>The run unit's clock (ISO §14.9.1.4 GR7; injectable — a test may set a fixed clock).</summary>
     public IClock Clock { get; set; } = SystemClock.Instance;
 
+    /// <summary>The X3.23-1985 OBJECT-TIME (run-time) debug switch (the '85 debug module — deleted 2002, absent 2023;
+    /// COBOL.NET models the facility only at <c>--std 85</c>, VCR Table 7 row 7.17). It is implementor-defined; for a
+    /// CCVS run it is ON. Default ON so a program compiled WITH DEBUGGING MODE runs its debugging declaratives (the
+    /// COMPILE-time switch — SOURCE-COMPUTER … WITH DEBUGGING MODE — is what gates whether the debug scaffolding is
+    /// emitted at all; this is the second switch that gates whether emitted triggers actually fire). The emitted
+    /// <c>__RunDebug</c> helper reads it, giving a future CLI <c>--debug-mode off</c> override a single home without
+    /// perturbing generated code.</summary>
+    public bool DebugMode { get; set; } = true;
+
     /// <summary>The run-unit termination status "passed to the operating system" by STOP RUN / a main-program
     /// GOBACK with a status phrase (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). On .NET the single observable is the
     /// process exit code (<c>Environment.ExitCode</c>), so the STATUS value and the ERROR/NORMAL indication

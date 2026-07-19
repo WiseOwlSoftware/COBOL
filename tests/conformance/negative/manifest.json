@@ -18,6 +18,7 @@
     "based-redefines-conflict",
     "bit-usage-numeric-pic",
     "boolean-ordering-relation",
+    "wavef-debug-removed-2002",
     "boolean_conv_below_2002",
     "boolean_operators_below_2002",
     "by-value-formal-class",

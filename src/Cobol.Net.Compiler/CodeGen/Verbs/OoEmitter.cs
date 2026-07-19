@@ -137,6 +137,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         ecState.UnitHasF3 = false;            // declaratives inside methods are staged loud (no __EcDispatch here)
         dispatch.UseDecls = false;               // a class owns no USE declaratives — clear any bleed from a prior unit (M2-OO-1i review)
         dispatch.OuterGlobalUse = false;
+        dispatch.DebugActive = false;            // a class owns no USE FOR DEBUGGING facility — clear any bleed (VCR 7.17)
         callState.InheritedStatusPlace.Clear();
 
         using (w.Block($"public {(sealedType ? "sealed " : "")}class {csName} : {baseCsName}"))

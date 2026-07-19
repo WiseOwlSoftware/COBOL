@@ -45,7 +45,23 @@ internal static class PlaceRenderer
         RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
+        // The X3.23-1985 DEBUG-ITEM register / member (VCR 7.17): a read-only view over the program's __dbgItem.
+        DebugRegisterPlace d => DebugRead(d.Member),
         _ => throw Unhandled(p),
+    };
+
+    /// <summary>The C# read expression for a DEBUG-ITEM register member (X3.23-1985, VCR 7.17) — the C# text the
+    /// structural <see cref="DebugRegisterMember"/> selector maps to (kept on the RENDERER, never in the Place).</summary>
+    private static string DebugRead(DebugRegisterMember m) => m switch
+    {
+        DebugRegisterMember.Item => "__dbgItem.Image",
+        DebugRegisterMember.Line => "__dbgItem.DebugLine",
+        DebugRegisterMember.Name => "__dbgItem.DebugName",
+        DebugRegisterMember.Sub1 => "__dbgItem.DebugSub1",
+        DebugRegisterMember.Sub2 => "__dbgItem.DebugSub2",
+        DebugRegisterMember.Sub3 => "__dbgItem.DebugSub3",
+        DebugRegisterMember.Contents => "__dbgItem.DebugContents",
+        _ => throw new System.InvalidOperationException($"unknown DEBUG-ITEM member '{m}'"),
     };
 
     /// <summary>A C# statement (with trailing <c>;</c>) that stores <paramref name="rhs"/> into <paramref name="p"/>.</summary>
@@ -71,6 +87,12 @@ internal static class PlaceRenderer
         CapacityRegisterPlace => throw new System.InvalidOperationException(
             "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38 SR30-32); a direct store must be "
             + "rejected COBOLNET1523 at bind time and never reach PlaceRenderer.Write"),
+        // Unreachable: a COBOL program never assigns to a DEBUG-* register (X3.23-1985 — the runtime populates it via
+        // the injected debug trigger); a receiving-position use is rejected at bind time. The backstop for a
+        // receiver path that forgot the gate.
+        DebugRegisterPlace => throw new System.InvalidOperationException(
+            "the X3.23-1985 DEBUG-ITEM register is read-only (the debug facility populates it); a store must be "
+            + "rejected at bind time and never reach PlaceRenderer.Write"),
         _ => throw Unhandled(p),
     };
 

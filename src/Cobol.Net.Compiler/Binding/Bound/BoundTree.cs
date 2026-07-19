@@ -23,7 +23,24 @@ public sealed record BoundProgram(
     int EntryPc = 0,
     IReadOnlyList<BoundDeclarative>? Declaratives = null,
     EcFeatures? Ec = null,
-    IReadOnlyList<BoundMethod>? Methods = null);
+    IReadOnlyList<BoundMethod>? Methods = null,
+    IReadOnlyList<BoundDebugSubject>? DebugSubjects = null);
+
+/// <summary>One <c>USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES</c> subject procedure (X3.23-1985 debug
+/// module; deleted 2002, absent ISO 2023 — modeled only at <c>--std 85</c>, VCR Table 7 row 7.17). The emitter
+/// injects, at <paramref name="SubjectPc"/>'s dispatcher entry, a call that space-fills DEBUG-ITEM, sets
+/// DEBUG-LINE (<paramref name="SourceLine"/>) / DEBUG-NAME (<paramref name="SubjectName"/>) / DEBUG-CONTENTS (the
+/// transfer cause), then runs the debugging declarative body over the bounded pc range
+/// [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>]. A subject is always a NONdeclarative
+/// procedure (pc ≥ EntryPc): a debugging declarative is never debugged, matching ALL PROCEDURES's exclusion of
+/// the debugging sections themselves (DB101A "USE PROCEDURE NOT EXECUTED"). The data-name / file-name / cd-name
+/// subject kinds and the SORT/MERGE-procedure cause taxonomy are staged (rejected COBOLNET1571 at bind).</summary>
+public sealed record BoundDebugSubject(
+    int SubjectPc,
+    string SubjectName,
+    int SourceLine,
+    int SectionStartPc,
+    int SectionEndPc);
 
 /// <summary>One bound METHOD of a class body (ISO §11.7; OO deep-dive — the emit-into-a-type spine): its
 /// contiguous pc range in the class's ONE dispatch space. The emitted public method runs
@@ -80,8 +97,13 @@ public sealed record BoundDeclarative(
 /// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19 GR6).
 /// Its pc index is its position in <see cref="BoundProgram.Paragraphs"/> — the G4 PC dispatcher transfers control
 /// by that index.</summary>
-public sealed record BoundParagraph(string CobolName, IReadOnlyList<IReadOnlyList<BoundStatement>> Sentences)
+public sealed record BoundParagraph(string CobolName, IReadOnlyList<IReadOnlyList<BoundStatement>> Sentences,
+    int SourceLine = 0)
 {
+    // SourceLine: the paragraph's LAST executable statement's source line — the X3.23-1985 DEBUG-LINE value when a
+    // debug subject is reached by sequential FALL THROUGH (the causing statement is the one that completed and fell
+    // through; DB101A "FALL-THROUGH-TEST" pins it to the preceding "MOVE 0 TO RESULT-FLAG.", :403-407). 0 when the
+    // debug facility is inactive / the paragraph is empty (never read then). VCR Table 7 row 7.17.
     /// <summary>All statements in order (sentence boundaries flattened) — for consumers that don't care.</summary>
     public IEnumerable<BoundStatement> Statements => Sentences.SelectMany(s => s);
 }
@@ -469,17 +491,21 @@ public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyLi
 /// <summary>An out-of-line <c>PERFORM p [THRU q] [control]</c> — the resolved pc range [<paramref name="StartPc"/>,
 /// <paramref name="EndPc"/>] (inclusive; a single paragraph has StartPc == EndPc), run per the control via the G4
 /// dispatcher (a recursive bounded <c>Dispatch(StartPc, EndPc)</c>).</summary>
-public sealed record BoundOutOfLinePerform(int StartPc, int EndPc, BoundPerformControl Control) : BoundStatement;
+// SourceLine (on the transfer nodes below): the source line of the transferring statement — the X3.23-1985
+// DEBUG-LINE value when the transfer reaches a debug subject (VCR Table 7 row 7.17; the causing statement, DB101A —
+// PERF-ITERATION-TEST pins the PERFORM line :611-617, GO-TO-TEST the GO TO line :482-489, on every iteration). 0
+// when the debug facility is inactive (never read then).
+public sealed record BoundOutOfLinePerform(int StartPc, int EndPc, BoundPerformControl Control, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>GO TO p</c> — set the program counter to <paramref name="TargetPc"/> (ISO §14.9.20 Format 1).</summary>
-public sealed record BoundGoTo(int TargetPc) : BoundStatement;
+public sealed record BoundGoTo(int TargetPc, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>GO TO p1 p2 … DEPENDING ON sel</c> — transfer to <c>Targets[sel-1]</c>; out-of-range falls through
 /// to the next statement (ISO §14.9.20 Format 2).</summary>
-public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int> Targets) : BoundStatement;
+public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int> Targets, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>EXIT PARAGRAPH</c> — transfer to the end of the current paragraph (fall through to the next).</summary>
-public sealed record BoundExitParagraph : BoundStatement;
+public sealed record BoundExitParagraph(int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>EXIT PERFORM [CYCLE]</c> — break (or continue, when CYCLE) the nearest inline PERFORM loop.</summary>
 public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
@@ -503,7 +529,7 @@ public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps) : BoundS
 
 /// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19 GR6 / §14.9.37 — archaic per Annex F.1, legal at every edition):
 /// transfer to the implicit CONTINUE following the current sentence's separator period.</summary>
-public sealed record BoundNextSentence : BoundStatement;
+public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>SET condition-name+ TO TRUE</c> — each names a level-88 whose first VALUE is stored into its
 /// (already-resolved) parent place.</summary>

@@ -1540,26 +1540,20 @@ internal sealed class VersionConformancePass
                         return base.VisitChildren(ctx);
                     if (a is CobolParserCore.StatementContext) break;   // far enough — not an object operand
                 }
+            // Under WITH DEBUGGING MODE a DEBUG-* occurrence is the X3.23-1985 REGISTER (DEBUG-ITEM family), not a
+            // user-defined word — a legal '85 reference to the now-modeled debug facility (VCR Table 7 row 7.17;
+            // the switch-ABSENT case never gets here — comment treatment skips the section body). The binder
+            // resolves it to a DebugRegisterPlace, so ACCEPT it here (no §8.9 violation, no not-implemented note).
+            if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
+                return base.VisitChildren(ctx);
             if (_reservedWords.RejectsAt(word, _p._edition.Year) && (_flaggedWords ??= []).Add(word))
             {
-                // Under WITH DEBUGGING MODE a DEBUG-* occurrence is the X3.23-1985 REGISTER (DEBUG-ITEM family),
-                // not a user-defined word — a legal '85 reference to a facility this compiler defers (VCR Table 7
-                // row 7.17; the switch-ABSENT case never gets here — comment treatment skips the section body).
-                // Diagnose the truth (0899 not-implemented) instead of a false §8.9 violation.
-                if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
-                    _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.DebugRegisterFacility.Code,
-                        EditionSeverity.Error, DiagnosticCatalog.DebugRegisterFacility.Id,
-                        $"the X3.23-1985 debug register '{word}' is recognized, but the '85 debug facility "
-                        + "(DEBUG-ITEM registers, debugging-section invocation) is not implemented — deferred "
-                        + "with the golden-less DB series (VCR Table 7 row 7.17)", "",
-                        DiagnosticCatalog.DebugRegisterFacility.IsoSection));
-                else
-                    // The §8.9 reserved-word removal-of-spelling severity routes through the ONE policy (P3 step 2:
-                    // was EditionContext.Removed; now EditionSeverityPolicy over the structured sink — byte-identical).
-                    _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                        EditionSeverityPolicy.For(ConstructAvailability.Removed, _p._edition), "edition-reserved-word",
-                        $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
-                        + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
+                // The §8.9 reserved-word removal-of-spelling severity routes through the ONE policy (P3 step 2:
+                // was EditionContext.Removed; now EditionSeverityPolicy over the structured sink — byte-identical).
+                _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
+                    EditionSeverityPolicy.For(ConstructAvailability.Removed, _p._edition), "edition-reserved-word",
+                    $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
+                    + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
             }
             return base.VisitChildren(ctx);
         }
