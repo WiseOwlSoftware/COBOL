@@ -894,3 +894,32 @@ owner-visible OO-surface disposition at P13 close (implement vs staged-loud + P1
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
 - **Disposition:** CONFIRMED (both high) — mandatory 2023 surface (E.3-listed); zero grammar; the P3 registry row exists as a validator-catalogue entry only (a dead gate — PHASE-03 doc propagates the drift). Same OO-surface batch routing.
+
+## 12. Batch-5 verdicts (2026-07-19 — worklist items 22/24/25/26/27, 10 agents, 0 errors)
+
+Item 23 was verified merged into 22. Full notes: `scratchpad/batch5-verdicts.json` + the batch-5 journal.
+
+### V22. CONFORMANCE.md has no Annex A.4 optional-element disposition section (§4.2.7 itemization for partial RW; A.4.8/A.4.13 over-claimed by the §1 blanket)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). Nuance: §4.2.7 mandates itemizing PARTIAL support (RW — its itemization lives only in the internal design doc) and does not itself require listing unclaimed elements — but CONFORMANCE.md's own charter + §1 blanket convert every omission into an affirmative false claim (A.4.8 FORMAT/SELECT WHEN, A.4.13 REWRITE FILE/WRITE FILE — zero surface). Tracking correction: A.4.8/A.4.13 dispositions ARE planned (PHASE-14:112/403 + the G8 Cut-3 doc set) — the live doc is still non-compliant today. Route: add the A.4 disposition section (one row per A.4.2–A.4.14, incl. multi-inheritance) OR rescope §1 to positively enumerate claimed facilities + explicitly point to the P14 rows — FIX NOW docs slice.
+
+### V24. OPTIONS INITIALIZE bound then silently dropped in codegen + its intro gate mis-dated 2014 (E.3.3 item 33 = 2023)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). Two halves: (a) the initial-state fill is structurally unreachable (OptionsInitialize zero references outside the binder — user-silent capture-only, acknowledged only in a code comment); (b) constructs.json introducedIn:2014 is UNCITED drift — E.3.3 item 33 is a 2014→2023 delta (the repo's own VCR row 76 says 2014→2023), so --std 2014 wrongly accepts. Route: review-fix wave (implement the fill via the ValueInitializer channel or stage loud; flip the row to 2023 + negative witness; sweep OptionsBinder:22-24 + NUMERIC_DESIGN:103).
+
+### V25. REPOSITORY FUNCTION ALL INTRINSIC user-word prohibition (§12.3.8 SR12/SR13; E.2 item 13) unenforced
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). Refinement: not wholly untracked — the code names it deferred (DataBinder.cs:254-255) and the 2023 seven-new-intrinsics half has partial coverage; the SR12/SR13 user-word PROHIBITION has no enforcement or row. Route: review-fix wave (small bind-time check at the REPOSITORY binder) or a named residue row.
+
+### V26. FLAG-85 / FLAG-NATIVE-ARITHMETIC — E.2 item 21 removal silently swallowed at all editions
+
+- **Verdicts:** spec-lens REAL (high) · code-lens refuted/tracked (high)
+- **Disposition:** SPLIT → REAL-BUT-TRACKED. The code gap is real (KnownIgnoredDirectives swallows both at ALL editions; no ≥2023 rejection, no 2014 obsolete flag) but it is ALREADY routed: Wave D's list in the resume-prompt banner (this session's ②/③ update) names FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21 handling. Disposition: fold into Wave D (no new row needed); the finding's "orphaned" claim is superseded.
+
+### V27. DB-series NIST golden establishment (audit VCR 7.17) — falls through at phase close
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). The audit row VCR 7.17's DB-series golden-establishment half was never picked up by any remaining worklist (the Wave F implementation landed; the NIST DB101A-DB105A goldens were not established). Route: add to the P13 phase-close checklist (or explicitly re-scope to P14 with a row — decide at Wave I).
