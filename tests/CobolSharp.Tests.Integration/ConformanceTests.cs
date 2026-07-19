@@ -343,6 +343,11 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2023", "boolean_shift"),          // boolean shift B-SHIFT-L/R/LC/RC (§8.8.2 rule 8)
         ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
         ("2023", "write_before_and_after"), // WRITE … BEFORE ADVANCING … AFTER ADVANCING … (§14.9.51 SR17)
+        // PHASE-13 Wave G — numeric-edited VALUE 2023 rework (§13.18.63 SR6/SR11; VCR 35 + 86): a figurative ZERO
+        // on a numeric-edited item edits per PICTURE (was the left-justified "0000000"), BLANK WHEN ZERO effects
+        // init, and a non-zero numeric literal VALUE is permitted. The frozen legacy engine produces the pre-2023
+        // zero-fill and has no numeric-literal-on-numeric-edited path — greenfield CorpusRunner byte-compares it.
+        ("2023", "value_numeric_edited"),
     ];
 
     [Theory]

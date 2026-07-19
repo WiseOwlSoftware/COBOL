@@ -962,6 +962,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// posture). Both directions: an <c>N"…"</c>/<c>B"…"</c> literal seeds no OTHER category. Size: the decoded
     /// content shall not exceed the item's positions (SR5/SR10; alphanumeric receivers keep their historical
     /// truncating store — only the new categories get the strict check).</summary>
+    /// <summary>True when <paramref name="raw"/> is a plain numeric literal (optional sign, digits, one decimal
+    /// point) whose value is NOT zero — the VCR 86 gate subject (ISO §13.18.63 SR6 exempts the literal-zero forms
+    /// at all editions, so <c>0</c>/<c>0.00</c> return false; a quoted/national/figurative VALUE is not numeric).</summary>
+    private static bool IsNonZeroNumericLiteral(string raw)
+    {
+        string t = raw.Trim();
+        if (t.StartsWith('+') || t.StartsWith('-')) t = t[1..];
+        bool sawDigit = false, anyNonZero = false, sawDot = false;
+        foreach (char c in t)
+        {
+            if (c == '.') { if (sawDot) return false; sawDot = true; continue; }
+            if (!char.IsAsciiDigit(c)) return false;
+            sawDigit = true;
+            if (c != '0') anyNonZero = true;
+        }
+        return sawDigit && anyNonZero;
+    }
+
     private void ValidateValueCategory(PicInfo pic, string raw, string where)
     {
         bool isNatLit = raw.Length >= 3 && raw[0] is 'N' or 'n' && raw[1] is '"' or '\'';
@@ -1895,6 +1913,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
         if (rawValue is { } rv && pic is not null) ValidateValueCategory(pic, rv, entryWhere);
+        // VCR 86 (ISO §13.18.63 SR6; Annex E.3.3 item 43): a NON-ZERO numeric literal VALUE for a numeric-edited
+        // item is a COBOL-2023 capability — below 2023 a numeric-edited VALUE required an alphanumeric edited-image
+        // literal. SR6 exempts "the integer and decimal forms of the literal zero" (and the figurative ZERO — VCR
+        // 35) at ALL editions, so only a non-zero numeric literal is gated. Scoped to the ITEM VALUE (not level-88).
+        if (rawValue is { } nrv && pic is { Category: PicCategory.NumericEdited } && IsNonZeroNumericLiteral(nrv))
+            ConstructRegistry.Check(Edition.Edition, Edition.Sink,
+                Constructs.ValueNumericLiteralNumericEdited2023, entryWhere);
         // An EXTERNAL type declaration (ISO §13.18.22 SR1 — EXTERNAL is legal on a level-1 type declaration;
         // the level-1 shape is §13.18.58.3 SR3, already enforced by RegisterTypeDecl's 1529). The declaration
         // itself has no storage (§13.18.58.4 GR2); the effect lands on its REFERENCES — §13.18.22 GR2 (a data

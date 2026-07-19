@@ -76,6 +76,14 @@ internal sealed class ValueInitializer(EmitContext ctx)
 
         if (item.RawValue is not { } raw) return pic.DefaultInitializer;
 
+        // VCR 35 (ISO §13.18.63 SR6; Annex E.2 item 28): at >=2023 a figurative ZERO/ZEROES (with or without ALL)
+        // on a numeric-edited item is treated IDENTICALLY to the numeric literal zero — edited per PICTURE (so a
+        // BLANK WHEN ZERO clause now takes effect, NOTE 2), NOT the pre-2023 left-justified zero-fill ("0000000").
+        // Below 2023 it falls through to the FigurativeInitializer zero-fill (the pre-2023 behavior).
+        if (pic.Category is PicCategory.NumericEdited && ctx.Data.Edition.DialectLevel >= 2023 && FigurativeKind(raw) == 'Z')
+            return EmitText.CsLiteral(RuntimeApi.EditCompose(Int128.Zero, pic.Scale, pic.EditMask!, item.BlankWhenZero,
+                ctx.Data.CurrencyPicSymbol, ctx.Data.DecimalPointIsComma));
+
         // Figurative constants (ZERO / SPACE / HIGH-VALUE / LOW-VALUE / QUOTE / NULL) fill the item to its width.
         if (FigurativeInitializer(raw, pic) is { } fig) return fig;
 
@@ -125,18 +133,26 @@ internal sealed class ValueInitializer(EmitContext ctx)
     /// and width; otherwise null (ISO §8.3.1.2; HIGH/LOW = U+00FF/U+0000 per COBOLNET_DESIGN §14.9).</summary>
     public string? FigurativeInitializer(string raw, PicInfo pic)
     {
+        if (FigurativeKind(raw) is not { } k) return null;
+        string fillChar = FigurativeConstants.Fill(k, ctx.Data.Collating, pic.Category, ctx.Data.NationalCollating);
+        return pic.Category is PicCategory.Numeric ? pic.DefaultInitializer : $"new string({fillChar}, {pic.Length})";
+    }
+
+    /// <summary>The figurative KIND of a VALUE text (ALL-stripped, ISO §8.3.3.6.4), or null when it is not a
+    /// figurative constant. The ONE detector shared by <see cref="FigurativeInitializer"/> and the VCR 35
+    /// numeric-edited figurative-ZERO branch.</summary>
+    private static char? FigurativeKind(string raw)
+    {
         string key = raw.ToUpperInvariant();
         // ALL <figurative-word> (e.g. ALL ZEROS, ALL SPACES) is equivalent to the bare figurative (a single-character
         // figurative repeated to the width); strip the ALL prefix when the remainder is a figurative WORD. (ALL "literal"
-        // — repeating a multi-character literal — is a separate form left to the literal path. This site's strip
-        // predates upper-casing, so only the GLUED spelling reaches the retry — preserved verbatim, see the
-        // FigurativeConstants ALL-strip note.)
+        // — repeating a multi-character literal — is a separate form left to the literal path. This strip predates
+        // upper-casing, so only the GLUED spelling reaches the retry — preserved verbatim, see the FigurativeConstants
+        // ALL-strip note.)
         if (FigurativeConstants.KindOf(key, includeNull: true) is null && key.StartsWith("ALL") && key.Length > 3
             && FigurativeConstants.KindOf(key[3..], includeNull: true) is not null)
             key = key[3..];
-        if (FigurativeConstants.KindOf(key, includeNull: true) is not { } k) return null;
-        string fillChar = FigurativeConstants.Fill(k, ctx.Data.Collating, pic.Category, ctx.Data.NationalCollating);
-        return pic.Category is PicCategory.Numeric ? pic.DefaultInitializer : $"new string({fillChar}, {pic.Length})";
+        return FigurativeConstants.KindOf(key, includeNull: true);
     }
 
     /// <summary>A numeric VALUE literal as a C# float/double literal for a COMP-1/COMP-2 item.</summary>
