@@ -106,7 +106,9 @@
     "user-word-receive",
     "value-boolean-mismatch",
     "value-of-fd",
-    "xor_below_2023"
+    "xor_below_2023",
+    "ref-mod-zero-length-malformed",
+    "ec-external-turn-below-2023"
   ],
   "pending": []
 }

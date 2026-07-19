@@ -355,6 +355,12 @@ public sealed class ConformanceTests : EndToEndTestBase
         // file's min/max size (§14.9.35 GR14). New greenfield SequentialConnector behavior; the frozen legacy's
         // record-length handling is not modified here, so the greenfield CorpusRunner byte-compares it.
         ("2002", "io_status_04"),
+        // PHASE-13 Wave E VCR 15 — the EC-EXTERNAL-* run-unit conformance raises (§14.8.4 / §14.9.4.4 GR3e):
+        // >>TURN-gated activation-entry descriptor checks over the run-unit ExternalTable — the greenfield EC
+        // model + descriptor machinery the frozen legacy has neither of. CorpusRunner byte-compares all three.
+        ("2023", "ec_external_format_conflict"),
+        ("2023", "ec_external_file_mismatch"),
+        ("2023", "ec_external_data_mismatch"),
     ];
 
     [Theory]

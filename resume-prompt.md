@@ -23,16 +23,19 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-13 IN PROGRESS (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
-**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `f71faa0f`).
-DO NOT re-create the branch or re-run the audit — check it out and continue. Battery at HEAD: greenfield conformance
-**3678** · unit **311** · characterization **33** · legacy/NIST unaffected (no `.g4` change yet). **🎯 WAVE G CLASS A
-FULLY COMPLETE + REF-MOD-ZERO-LENGTH landed** (2026-07-18/19, 6 feature commits `420eb720`→`5dbe0d08`, each full-Conformance
-gated): REF-MOD-ZERO-LENGTH directive (§7.3.23) · numeric-edited VALUE 2023 rework (VCR 35/86/34) · I-O status '04' (VCR 21)
-· MERGE-in-proc prohibition (VCR 27, COBOLNET1572) · EXCEPTION-FILE(connector) arg form (VCR 68/69) · + 2 pre-existing
-latent GreenfieldOnly-miss fixes + 2 differential-test-regression fixes the full-Conformance gate surfaced.
-**REMAINING P13 (see the "REMAINING P13 WORK" list below): ① the GRAMMAR BATCH (shared `.g4` → ONE full legacy guard) ·
-③ Wave D directives · ④ Wave I adversarial review → phase-close → merge.** ⚠ Every acceptance/semantics change gates with
-the FULL Conformance project (not a CorpusRunner-only filter — the `04c32a93`/`cf1fcaa2` lessons).**
+**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`). DO NOT re-create the branch or
+re-run the audit — check it out and continue. Battery at HEAD: greenfield conformance **3696** · unit **313** ·
+characterization **33** · legacy/NIST unaffected (no `.g4` change yet). **🎯 WAVE E COMPLETE (VCR 63/16/18/31/15 —
+the EC-EXTERNAL-* raises landed 2026-07-19, DEVLOG 908) + Wave G CLASS A complete + REF-MOD-ZERO-LENGTH landed.**
+**⚖ THE COMPREHENSIVE PLAN-VS-SPEC REVIEW RAN 2026-07-19 (DEVLOG 906): its findings ledger
+`docs/rearchitecture/PHASE-13-plan-vs-spec-review.md` is LIVE — 28 confirmed (1 critical: the COBOLNET1573
+collision, FIXED → 1576, DEVLOG 907) + 37 unverified (Wave I re-verifies) + 3 unrun spec-area finders (A3 §9/§12,
+A4 §13, C4 Wave C — Wave I re-runs). Work its §6 disposition batches alongside the remaining waves.**
+**REMAINING P13 (see the "REMAINING P13 WORK" list below): ① the GRAMMAR BATCH (shared `.g4` → ONE full legacy
+guard; now + RW SUPPRESS per review C5) · ② the review FIX-NOW/spec-derive batches (ledger §6) · ③ Wave D
+directives (now + the review's directive fixes) · ④ Wave I adversarial review (+ the 37 unverified + 3 unrun
+finders) → phase-close → merge.** ⚠ Every acceptance/semantics change gates with the FULL Conformance project
+(not a CorpusRunner-only filter — the `04c32a93`/`cf1fcaa2` lessons).**
 
 > **⚡ SESSION 2026-07-18 LANDED (8 commits, each battery-gated; the tiered/batched/parallel execution model in
 > `resume-prompt.md` §"EXECUTION MODEL" + [[feedback_execution_model_tiered_parallel]] was adopted + PROVEN this
@@ -101,6 +104,14 @@ the FULL Conformance project (not a CorpusRunner-only filter — the `04c32a93`/
     **EDITING is a NEW 2023 reserved word** (cobolWord funnel + COBOLNET0901, like XOR/COMMIT). NO PICMODE change.
   - **PERFORM Format 3 (exception-checking PERFORM … WHEN)** (§14.9.28.2) — staged large: 2 new tokens (FINALLY, LOCATION)
     + a new statement + deep EC integration (GR14/GR17/GR20). PERFORM UNTIL EXIT already landed. Scout §C5.
+  - **RW SUPPRESS statement (§14.9.45; review finding C5 — CONFIRMED, found independently by 2 finders):** the only
+    RW verb with NO grammar rule (hard parse error today, violating the RW §5 staged-loud convention). Small: rule
+    `SUPPRESS PRINTING?` (PRINTING is OPTIONAL — non-underlined per the format notation; the finder's own
+    "mandatory" claim was verifier-corrected), SR1 USE-BEFORE-REPORTING-only bind check, a per-presentation
+    suppression flag on the ReportWriter engine (the `ReportWriter.cs:53` hook is pre-staged) per GR3a-e. Golden +
+    CONFORMANCE.md row. Batch here (shared `.g4`). Also cover the three phrase-level no-grammar holes the same
+    review sentence names (COLUMN LEFT/CENTER/RIGHT §13.18.14 · PAGE COLS · LAST CONTROL HEADING) — staged loud at
+    minimum.
   - **Wave H code half** — recognize-and-name §4.2.6 non-support for MCS (SEND/RECEIVE), COMMIT/ROLLBACK, VALIDATE (today a
     generic COBOL0001) via shared-parser keyword recognition + the COBOLNET156x-band WARNING (the SCREEN §4.2.7 warning is
     the pattern, already landed). Batch here (shared parser). Scout Wave H — **but READ its ⛔ MECHANISM CORRECTION banner
@@ -150,24 +161,52 @@ the FULL Conformance project (not a CorpusRunner-only filter — the `04c32a93`/
       (FILE STATUS = COBOLNET1573; RELATIVE KEY = COBOLNET1575) via ONE post-bind cross-unit pass
       `BinderDriver.CheckExternalFileConsistency` (dialect-gated ≥2023, binder-reads-edition doctrine; `ExternalItemIdentity`
       = the external-root qualified path). 6 goldens (neg/pos/2014-continuity). (VCR 63/16 consumed no new 15xx — 0900/1549 reused.)
-    - ⏳ **REMAINING Wave E:** VCR 15 only (EC-EXTERNAL-* run-unit descriptor-conflict raise — the big runtime half:
-      `ExternalTable` descriptor recording + `ExceptionState.ExternalChecking` flag + 4 Raise helpers + emitter prologue
-      flag; shares EC hot-files ⇒ serial). Scout Wave E §"VCR 15". Diag band: next free 15xx after 1575 = 1576+ (verify `DiagnosticCatalog`).
+    - ✅ **VCR 15 DONE 2026-07-19 (DEVLOG 908) — WAVE E COMPLETE.** The EC-EXTERNAL-FORMAT-CONFLICT /
+      -DATA-MISMATCH / -FILE-MISMATCH raises at the §14.9.4.4 GR3e CALL raise point: activation-entry
+      `ExternalStore.Describe` descriptor registration + cross-describer compare on the run-unit `ExternalTable`
+      (kind-bucketed record vs file-connector); the §14.8.4.1 both-elements gate = CALL-site per-statement TURN mask
+      (`ExceptionState.ExternalCheckMask`, latched by `ProgramTable.CallProgram` into `ActivatorExternalMask`)
+      AND the activated unit's before-Environment-division mask — bitwise, each condition pairs independently.
+      Raise = `CobolCallException` → the CALL catch (widened to EC-EXTERNAL-*) → ON EXCEPTION per GR3h #1.
+      EC-EXTERNAL-IMP has no raise site by definition (no implementor-defined checks — conforming). 3 goldens +
+      1 negative; zero-scaffolding proven by characterization. ⚠ 2 scout drifts caught: the before-Env-division
+      rule is ACTIVATED-side only; the scout's golden lacked the ON EXCEPTION a fatal raise needs (GR3h #2 →
+      §14.6.13.1.3 termination). Named residues: UDF/INVOKE activation boundaries carry site-mask 0 (no raise
+      there; the INVOKE GR7d leg needs the OO activation seam).
   - ~~**REF-MOD-ZERO-LENGTH directive** (§7.3.23)~~ **✅ DONE 2026-07-18 (`420eb720`, DEVLOG 897)** — the `>>REF-MOD-ZERO-LENGTH
     {ON|OFF}` directive that allows a zero-length ref-mod result (§8.4.3.3.4 item 5c). Landed the `RefModZeroLengthDirectiveProcessor`
     (mirror of TurnDirectiveProcessor, intro-gated via the ONE ConstructRegistry) + `RefModZeroLengthState` line-fold + init-only
     `RefModPlace.AllowZeroLength` + the `ref-mod-zero-length-2023` constructs.json row (COBOLNET0900) + **COBOLNET1573** malformed-operand.
     ⚠ The full legacy guard surfaced + FIXED **two pre-existing latent GreenfieldOnly misses** (`ec_bound_ref_mod` from `3eebcfd1`,
     `ec_bound_overflow` from `e574af41` — landed without their legacy-exclusions; [[feedback_legacy_suite_on_shared_corpus]]).
+- **②b THE REVIEW BATCHES (`docs/rearchitecture/PHASE-13-plan-vs-spec-review.md` §6 — the ledger's disposition
+  lines are the live to-do state):** FIX NOW docs/citations (CONFORMANCE.md '04' + four-facility rewording ·
+  wrong-§ corrections [§13.6.2→§11.9.10.4 GR7 · 'E.3 item 10'→E.2 · §14.9.35→§14.9.30 GR14 · the A8 citation trio
+  · MCS 'COMMUNICATION SECTION' wording] · stale notes [data-model EC-BOUND-OVERFLOW · DebugItem · CC-processor
+  comment] · 1550-1552 earmark cleanup · 0849 double-claim reconciliation) + the SPEC-DERIVE fixes (VCR 16
+  strong-TYPE strength leg §13.16.3 SR13 ¶2 · VCR 86 below-2023 SR6 re-derivation · GOBACK RAISING main-program
+  normal-termination · ref-mod negative-length −1-sentinel collision · COBOLNET1570 scope § · EXCEPTION-FILE r2a
+  EverAccessed/SD legs — serial greenfield, full-Conformance gated). DONE so far: the 1573→1576 collision fix +
+  catalog-completeness drift guards (DEVLOG 907) · banner refresh (this edit).
 - **③ Wave D — directives** (preprocessor; VERIFY whether it touches the shared `.g4` → guard accordingly): `>>COBOL-WORDS`
   (per-unit ReservedWordSet mutation), `>>PUSH`/`>>POP` (directive-state stack), `>>DISPLAY` (compile-log line), `>>FLAG-14`
   (wire the GR4 a–l twins §7.3.15.4 to the behavior rows — the FLAG-14 twins named in Wave G land here), `>>FLAG-02`-obsolete. Scout Wave D.
+  **+ from the review (confirmed):** `>>DEFINE AS PARAMETER` + the §7.3.6/§7.3.7 compile-time expression evaluator
+  (LIFT the existing `DataBinder.Constants.cs` §7.3.6 evaluator, don't rebuild — verifier note) + the SR2
+  no-OVERRIDE check · `>>SOURCE FORMAT` mid-file switching (§7.3.24.3 GR1) · CC-directives-inside-COPY (§7.2.1
+  Step 1/2 ordering) · the CC/SOURCE-FORMAT intro gate at --std 85 · FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21
+  handling · >>CALL-CONVENTION / >>LEAP-SECOND dispositions (unverified U1 — verify first).
 - **④ Wave I — adversarial review** (Workflow 5-lens find→verify over the P13 landed constructs — the Wave F review proved the
   pattern; prior phases found 6–7 real defects) → fix confirmed defects → EXIT CRITERIA check → phase-close doc sweep → merge to `main`.
-- **Diagnostic band (Wave G CLASS A complete):** 1565–1569 Wave C · 1571 Wave F · 1573 REF-MOD-ZERO-LENGTH malformed ·
-  **1570 VCR 34** (numeric-edited VALUE oversize) · **1572 VCR 27** (MERGE-in-proc) · **1574 EXCEPTION-FILE not-a-file (VCR 68/69)**.
-  **NEXT FREE = 1575** (verify `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u`). Introduction gates COBOLNET0900; new-reserved-word
-  user-word gates COBOLNET0901; obsolete 0903; §4.2.6 non-support WARNING band 1560.
+- **Diagnostic band (THE one next-free claim — do not duplicate it elsewhere; review finding C7):** 1565–1569
+  Wave C · 1570 VCR 34 · 1571 Wave F · 1572 VCR 27 · **1573 external-file-status-consistency (VCR 18) — its
+  ONLY meaning since the DEVLOG-907 collision fix** · 1574 EXCEPTION-FILE not-a-file (VCR 68/69) · 1575
+  external-relative-key-consistency (VCR 31) · **1576 REF-MOD-ZERO-LENGTH malformed-operand (renumbered from the
+  colliding bare-literal 1573)**. **NEXT FREE = 1577** — allocate ONLY after BOTH scans agree:
+  `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u` AND the `DiagnosticCatalog` descriptor list (the
+  `EveryEmittedCode_IsACatalogDescriptor` drift test now forces the frontend channel through the catalog;
+  1550–1552 remain unallocated mid-band holes — usable, but note the catalog comment). Introduction gates
+  COBOLNET0900; new-reserved-word user-word gates COBOLNET0901; obsolete 0903; §4.2.6 non-support WARNING band 1560.
 
 **Then: PHASE-14** (matrix closure + in-repo greenfield guard `scripts/guard.ps1`/`greenfield-guard` + one-time
 legacy-equivalence proof) → **PHASE-15** (G8 legacy retirement — the three cuts DELETE `CobolSharp.Compiler`/the

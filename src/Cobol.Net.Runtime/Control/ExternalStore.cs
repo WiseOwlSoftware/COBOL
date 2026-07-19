@@ -12,6 +12,14 @@ public static class ExternalStore
     /// <inheritdoc cref="ExternalTable.Cell"/>
     public static StorageCell Cell(string name, string initialImage) => RunUnit.Current.External.Cell(name, initialImage);
 
+    /// <summary>Register one external description at an activation entry and run the §14.8.4 conformance check.
+    /// The gate realizes §14.8.4.1's both-elements rule: the ACTIVATING element's mask (latched by the activation
+    /// boundary into <c>ActivatorExternalMask</c>) ANDed with <paramref name="selfMask"/>, the activated element's
+    /// own before-Environment-division TURN mask — each EC-EXTERNAL condition pairs independently, bitwise.</summary>
+    public static void Describe(string describer, string name, ExternalDescriptor desc, int selfMask)
+        => RunUnit.Current.External.Describe(describer, name, desc,
+            (ExternalChecks)(Exceptions.ExceptionState.ActivatorExternalMask & selfMask));
+
     /// <inheritdoc cref="ExternalTable.Reset"/>
     public static void Reset() => RunUnit.Current.External.Reset();
 }

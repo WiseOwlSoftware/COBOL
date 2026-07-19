@@ -53,6 +53,60 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         }
     }
 
+    /// <summary>True when this unit must emit a <c>__DescribeExternals()</c> activation-entry registration
+    /// (ISO §14.8.4): the compilation group has an enabling EC-EXTERNAL <c>&gt;&gt;TURN</c> somewhere AND the
+    /// unit describes any external record or external file connector. False keeps the generated source
+    /// byte-identical to a pre-VCR-15 build (zero-scaffolding).</summary>
+    public static bool WantsExternalDescribes(DataBinder data) =>
+        data.ExternalDescribe && (data.CallExternalBackings.Count > 0 || data.Files.Any(f => f.IsExternal));
+
+    /// <summary>Emit the <c>__DescribeExternals()</c> method — one <c>ExternalStore.Describe</c> per external
+    /// record (§14.8.4.3 / §13.18.22 GR6 facts: byte count, record-name VALUE clause spec, strong TYPE name,
+    /// CONSTANT RECORD presence) and per external file connector (§14.8.4.2 file-referencing control-item
+    /// identities + the §12.4.5.3 GR1 a–m entry fingerprint), each carrying the unit's before-Environment-
+    /// division mask (§14.8.4.1). Called FIRST at every activation entry (<c>Call</c> and <c>Activate</c>) —
+    /// the §14.9.4.4 GR3e check precedes execution; a raise unwinds to the CALL site before any statement or
+    /// formal adoption runs. A complete-record REDEFINES contributes nothing (GR6's explicit exemption — the
+    /// descriptor is built from the base record only). RECORD DELIMITER / RESERVE / COLLATING SEQUENCE are not
+    /// modeled by <see cref="FileModel"/>, so they are identical by construction and absent from the
+    /// fingerprint.</summary>
+    public void EmitExternalDescribes(DataBinder data, string unitPath, CodeWriter w)
+    {
+        using (w.Block("private void __DescribeExternals()"))
+        {
+            foreach (var ext in data.CallExternalBackings)
+            {
+                // §13.18.22 GR6: the VALUE identity is the RECORD NAME's own VALUE clause specification ("the
+                // VALUE clause specification, if any, for each record name ... shall be identical") — the
+                // record-level clause text, not the subordinate items' clauses.
+                string valueSpec = ext.Record.RawValue is { } rv ? CsLiteral(rv.ToUpperInvariant()) : "null";
+                string strongKey = ext.Record.StrongType && ext.Record.TypeName is { } tn ? CsLiteral(tn.ToUpperInvariant()) : "null";
+                w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(ext.ExternalName)}, "
+                    + $"new ExternalDescriptor(\"record\", ByteCount: {ext.Width}, ValueImage: {valueSpec}, "
+                    + $"StrongTypeKey: {strongKey}, ConstantRecord: {(ext.Record.IsConstantRecord ? "true" : "false")}), "
+                    + $"{data.ExternalCheckMask});   // §14.8.4.3 / §13.18.22 GR6");
+            }
+            foreach (var f in data.Files.Where(f => f.IsExternal))
+            {
+                string ItemRef(string? clauseName, DataItem? item) => clauseName is null ? "null"
+                    : CsLiteral(BinderDriver.ExternalItemIdentity(item) ?? "!");   // "!" = present but NOT an external item (§14.8.4.2 violation face)
+                string linage = f.Linage is null ? "null"
+                    : CsLiteral(string.Join(";", f.Linage.Operands.Select(op => op.DataName is null
+                        ? $"={op.Literal}"
+                        : BinderDriver.ExternalItemIdentity(op.Item) ?? "!")));
+                string fingerprint = CsLiteral(
+                    $"OPT={f.Optional}|ASSIGN={f.AssignTarget.ToUpperInvariant()}|ORG={f.Organization}|ACC={f.AccessMode}"
+                    + $"|KEY={(f.RecordKeyName?.ToUpperInvariant() ?? "")}"
+                    + $"|ALT={string.Join(",", f.AlternateKeyNames.Select(a => $"{a.Name.ToUpperInvariant()}:{a.Duplicates}"))}"
+                    + $"|SHARE={f.Sharing}|LOCK={(f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : "")}");
+                w.Line($"ExternalStore.Describe({CsLiteral(unitPath)}, {CsLiteral(f.ExternalName!)}, "
+                    + $"new ExternalDescriptor(\"file\", FileStatusRef: {ItemRef(f.FileStatusName, f.FileStatusItem)}, "
+                    + $"RelativeKeyRef: {ItemRef(f.RelativeKeyName, f.RelativeKeyItem)}, LinageRef: {linage}, "
+                    + $"SelectFingerprint: {fingerprint}), {data.ExternalCheckMask});   // §14.8.4.2 / §14.8.4.4 / §12.4.5.3 GR1");
+            }
+        }
+    }
+
     private void EmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)
     {
         var hostFiles = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the in-memory sort store, never a host connector

@@ -2,18 +2,71 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace CobolNet.Runtime;
 
+/// <summary>The EC-EXTERNAL conformance-check selector bits (ISO §14.8.4 / §14.9.4.4 GR3e's rule→condition
+/// table). A bit is set in an element's mask when checking for the corresponding level-3 condition is enabled
+/// there (>>TURN, §7.3.25); the §14.8.4.1 "both the activating and activated runtime elements" rule is realized
+/// as the bitwise AND of the CALL-site mask and the activated element's before-Environment-division mask —
+/// each condition pairs independently.</summary>
+[Flags]
+public enum ExternalChecks
+{
+    None = 0,
+    /// <summary>EC-EXTERNAL-FORMAT-CONFLICT — §14.8.4.3 / §13.18.22 GR6 (Fatal).</summary>
+    FormatConflict = 1,
+    /// <summary>EC-EXTERNAL-DATA-MISMATCH — §14.8.4.2 file status / linage / relative key storage identity (Fatal).</summary>
+    DataMismatch = 2,
+    /// <summary>EC-EXTERNAL-FILE-MISMATCH — §14.8.4.4 / §12.4.5.3 GR1 a–m entry consistency (Fatal).</summary>
+    FileMismatch = 4,
+    /// <summary>EC-EXTERNAL-IMP — implementor-defined mismatch (Imp). This implementation defines NO
+    /// implementor-specific external checks, so the condition has no raise site (a conforming choice —
+    /// the condition is implementor-defined by Table 13).</summary>
+    Imp = 8,
+}
+
+/// <summary>One runtime element's compile-time description of an external item or external file connector —
+/// the facts §14.8.4 compares across the run unit's describers. Every field is a compile-time constant emitted
+/// at the describing element's activation entry.
+/// RECORD kind (§14.8.4.3 / §13.18.22 GR6): <see cref="ByteCount"/> = the record's byte count;
+/// <see cref="ValueImage"/> = the VALUE-composed initial image when ANY VALUE clause appears in the record
+/// description, else null (the GR6 "identical VALUE clause specification" identity, canonicalized to the
+/// composed image — clause spellings that compose the same image are treated as identical); a complete-record
+/// REDEFINES contributes nothing (GR6 explicitly exempts it for non-strong records — the descriptor is built
+/// from the base record only); <see cref="StrongTypeKey"/> = the external strong TYPE name (null when not
+/// strongly typed) and <see cref="ConstantRecord"/> = the CONSTANT RECORD presence (§14.8.4.3 ¶3).
+/// FILE kind (§14.8.4.2 / §14.8.4.4): <see cref="FileStatusRef"/> / <see cref="RelativeKeyRef"/> /
+/// <see cref="LinageRef"/> = the corresponding-external-item identities of the file-referencing control items
+/// ("EXTNAME.SUB.PATH", "!" when the item exists but is NOT external, null when the clause is absent);
+/// <see cref="SelectFingerprint"/> = the §12.4.5.3 GR1 a–m canonical fingerprint of the file control entry.</summary>
+public sealed record ExternalDescriptor(
+    string Kind,
+    int ByteCount = 0,
+    string? ValueImage = null,
+    string? StrongTypeKey = null,
+    bool ConstantRecord = false,
+    string? FileStatusRef = null,
+    string? RelativeKeyRef = null,
+    string? LinageRef = null,
+    string? SelectFingerprint = null);
+
 /// <summary>
 /// The run-unit EXTERNAL data store (ISO §8.6.7 / §13.18.22): ONE storage copy per external name for the whole
 /// run unit, represented as the record's character image (the same Tier-B string-canonical shape the data model
 /// uses for shared storage — never a persisted byte substrate). Every program describing the same external name
-/// windows the same cell; CANCEL does NOT reset it (§14.9.5 GR8). The §13.18.22 GR6 conformance checks
-/// (same byte count / same VALUE across describers) belong to the §14.8.4 EC machinery — not enforced here yet.
+/// windows the same cell; CANCEL does NOT reset it (§14.9.5 GR8). The §13.18.22 GR6 / §14.8.4 conformance checks
+/// run through <see cref="Describe"/> — each describing runtime element registers its compile-time
+/// <see cref="ExternalDescriptor"/> at activation entry and is compared against every OTHER describer already
+/// registered (the run-unit-global SHALLs of §14.8.4.2–.4), raising the paired EC-EXTERNAL condition when the
+/// CALL-site/activated-element enablement gate passes (§14.8.4.1 / §14.9.4.4 GR3e).
 /// One INSTANCE per run unit on <see cref="RunUnit"/> ("once per run unit" is the spec's own scoping,
 /// §14.6.2.3.2); the static <see cref="ExternalStore"/> shim keeps the emitted surface unchanged pre-G8.
 /// </summary>
 public sealed class ExternalTable
 {
     private readonly Dictionary<string, StorageCell> _cells = new(StringComparer.OrdinalIgnoreCase);
+    // Per external name: each describing element's descriptor, keyed by the describer's unit path. A
+    // re-activation re-describes identically (compile-time constants), so same-key replacement is a no-op;
+    // CANCEL does not remove entries (the external storage — and hence its description — persists, §14.9.5 GR8).
+    private readonly Dictionary<string, Dictionary<string, ExternalDescriptor>> _describers = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The run-unit cell for <paramref name="name"/>, created with <paramref name="initialImage"/> on
     /// first reference (ISO §14.6.2.3.2 — external data takes its initial state once per run unit). The cell
@@ -25,6 +78,53 @@ public sealed class ExternalTable
         return h;
     }
 
-    /// <summary>Drop every cell (run-unit start hygiene; called from the run-unit reset).</summary>
-    public void Reset() => _cells.Clear();
+    /// <summary>Register <paramref name="describer"/>'s description of external <paramref name="name"/> and check
+    /// its conformance against every OTHER describer already registered in the run unit (ISO §14.8.4; raise points
+    /// §14.9.4.4 GR3e / §14.9.23.4 GR7d). <paramref name="gate"/> is the pre-ANDed enablement mask — CALL-site
+    /// mask &amp; activated element's before-Environment-division mask (§14.8.4.1's both-elements rule) — so a
+    /// zero gate stores without checking (checking not enabled ⇒ the condition is not raised, §14.6.13.1.1).
+    /// A detected violation whose bit is in the gate throws <see cref="CobolCallException"/> carrying the Table 13
+    /// level-3 name: the activation unwinds to the CALL site ("the program call is not successful", GR3e), where
+    /// the ON EXCEPTION phrase or the §14.6.13.1.3 sequence takes it (GR3h).</summary>
+    public void Describe(string describer, string name, ExternalDescriptor desc, ExternalChecks gate)
+    {
+        // An external FILE CONNECTOR and an external RECORD are different external object classes that may share
+        // one name (an FD IS EXTERNAL externalizes both under the FD name, §13.18.22.4 GR4a/GR4b) — bucket by
+        // kind so the two registrations never overwrite or cross-compare.
+        string key = desc.Kind + ":" + name;
+        if (!_describers.TryGetValue(key, out var entries))
+            _describers[key] = entries = new Dictionary<string, ExternalDescriptor>(StringComparer.OrdinalIgnoreCase);
+        if (gate != ExternalChecks.None)
+            foreach (var (other, prior) in entries)
+            {
+                if (other.Equals(describer, StringComparison.OrdinalIgnoreCase)) continue;
+                if ((gate & ExternalChecks.FormatConflict) != 0 && desc.Kind == "record"
+                    && (prior.ByteCount != desc.ByteCount || prior.ValueImage != desc.ValueImage
+                        || prior.StrongTypeKey != desc.StrongTypeKey || prior.ConstantRecord != desc.ConstantRecord))
+                    throw new CobolCallException(
+                        $"external record '{name}': the descriptions in '{other}' and '{describer}' do not conform "
+                        + $"— byte count {prior.ByteCount} vs {desc.ByteCount}, VALUE/strong-type/CONSTANT-RECORD identity "
+                        + "(ISO §14.8.4.3 / §13.18.22 GR6 — EC-EXTERNAL-FORMAT-CONFLICT)",
+                        "EC-EXTERNAL-FORMAT-CONFLICT");
+                if ((gate & ExternalChecks.DataMismatch) != 0 && desc.Kind == "file"
+                    && (prior.FileStatusRef != desc.FileStatusRef || prior.RelativeKeyRef != desc.RelativeKeyRef
+                        || prior.LinageRef != desc.LinageRef))
+                    throw new CobolCallException(
+                        $"external file '{name}': the FILE STATUS / LINAGE / RELATIVE KEY data items of '{other}' and "
+                        + $"'{describer}' are not the same corresponding external data items "
+                        + "(ISO §14.8.4.2 — EC-EXTERNAL-DATA-MISMATCH)",
+                        "EC-EXTERNAL-DATA-MISMATCH");
+                if ((gate & ExternalChecks.FileMismatch) != 0 && desc.Kind == "file"
+                    && prior.SelectFingerprint != desc.SelectFingerprint)
+                    throw new CobolCallException(
+                        $"external file '{name}': the file control entries of '{other}' and '{describer}' are not "
+                        + $"consistent ('{prior.SelectFingerprint}' vs '{desc.SelectFingerprint}') "
+                        + "(ISO §14.8.4.4 / §12.4.5.3 GR1 — EC-EXTERNAL-FILE-MISMATCH)",
+                        "EC-EXTERNAL-FILE-MISMATCH");
+            }
+        entries[describer] = desc;
+    }
+
+    /// <summary>Drop every cell and descriptor (run-unit start hygiene; called from the run-unit reset).</summary>
+    public void Reset() { _cells.Clear(); _describers.Clear(); }
 }

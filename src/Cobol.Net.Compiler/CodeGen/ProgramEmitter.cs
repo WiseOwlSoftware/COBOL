@@ -200,7 +200,15 @@ internal sealed class ProgramEmitter
             w.Line();
 
             EmitCallMethod(unit, formals, w);
-            w.Line("void ICobolProgram.Activate() => __Activate();");
+            if (OoEmitter.WantsExternalDescribes(data))
+            {
+                // §14.8.4: the main-program activation registers its external descriptions too (the ACTIVATOR
+                // mask is zero there — store-only; a CALLed activation registers via the Call() entry below).
+                w.Line("void ICobolProgram.Activate() { __DescribeExternals(); __Activate(); }");
+                _oo.EmitExternalDescribes(data, unit.Path, w);
+            }
+            else
+                w.Line("void ICobolProgram.Activate() => __Activate();");
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files)
                     if (!file.IsExternal)   // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists (GR8 / §13.18.22.4 GR4a)
@@ -281,6 +289,11 @@ internal sealed class ProgramEmitter
     {
         using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
         {
+            // §14.9.4.4 GR3e: the external-conformance check runs FIRST at the CALLed activation entry — before
+            // LOCAL-STORAGE re-initialization and formal adoption — so a raised EC-EXTERNAL condition unwinds to
+            // the CALL site ("the program call is not successful") before any effect of the activation.
+            if (OoEmitter.WantsExternalDescribes(unit.Data))
+                w.Line("__DescribeExternals();");
             // LOCAL-STORAGE is AUTOMATIC data (ISO §13.6.4 GR1): "placed in the initial state every time the
             // … program … is activated" (§14.6.2.3.2) — for an INITIAL or RECURSIVE unit the fresh instance
             // per activation already IS that state, but a cached-singleton unit (neither attribute) re-enters

@@ -272,6 +272,15 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
         "EC-PROGRAM-NOT-FOUND", "EC-PROGRAM-RECURSIVE-CALL", "EC-PROGRAM-CANCEL-ACTIVE", "EC-PROGRAM-ARG-OMITTED",
     ];
 
+    /// <summary>The EC-EXTERNAL family a CALL raises through <c>CobolCallException</c> when the activated
+    /// element's external descriptions do not conform (ISO §14.8.4 / §14.9.4.4 GR3e; the checkable trio —
+    /// EC-EXTERNAL-IMP has no raise site, this implementation defines no implementor-specific external checks).
+    /// The site-enabled subset ALSO drives the emitted CALL-site mask (§14.8.4.1's activating-element half).</summary>
+    internal static readonly string[] ExternalNames =
+    [
+        "EC-EXTERNAL-FORMAT-CONFLICT", "EC-EXTERNAL-DATA-MISMATCH", "EC-EXTERNAL-FILE-MISMATCH",
+    ];
+
     /// <summary>Wrap <paramref name="bound"/> in <see cref="BoundEcChecked"/> when the TurnState enables any
     /// exception-name RELEVANT to its kind at this statement's line (§7.3.25.4 GR6); otherwise return it
     /// untouched — the zero-scaffolding gate. The relevant set is the statement kind's raise points
@@ -329,8 +338,12 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundKeyedRewrite k: Query(IoNames, k.File); break;
                 case BoundKeyedDelete k: Query(IoNames, k.File); break;
                 case BoundKeyedStart k: Query(IoNames, k.File); break;
-                case BoundCallProgram or BoundCancel:
+                case BoundCallProgram:
                     Query(ProgramNames);
+                    Query(ExternalNames);   // §14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point (§14.8.4)
+                    break;
+                case BoundCancel:
+                    Query(ProgramNames);    // CANCEL raises no EC-EXTERNAL — external state persists (§14.9.5 GR8)
                     break;
                 case BoundFree:
                     Query(["EC-STORAGE-NOT-ALLOC"]);   // §14.9.15 GR1c (nonfatal; Phase-4b inc 2)

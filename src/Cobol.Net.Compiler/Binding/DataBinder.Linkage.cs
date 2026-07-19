@@ -99,6 +99,20 @@ public sealed partial class DataBinder
     public IReadOnlyList<CallExternalBacking> CallExternalBackings => _callExternalBackings;
     private readonly List<CallExternalBacking> _callExternalBackings = [];
 
+    /// <summary>This unit's before-Environment-division EC-EXTERNAL enablement mask (ISO §14.8.4.1 — the
+    /// ACTIVATED-element half of the both-elements rule; <c>ExternalChecks</c> bits). Computed by
+    /// <c>BinderDriver.BindUnitData</c> from the group TurnState folded at the unit's first
+    /// post-Identification division header; emitted as the selfMask of the activation-entry
+    /// <c>ExternalStore.Describe</c> registrations.</summary>
+    public int ExternalCheckMask { get; set; }
+
+    /// <summary>True when any enabling <c>&gt;&gt;TURN</c> event anywhere in the compilation group covers an
+    /// EC-EXTERNAL condition — the group-level gate for emitting the activation-entry
+    /// <c>ExternalStore.Describe</c> registrations at all (an element with a zero
+    /// <see cref="ExternalCheckMask"/> must still REGISTER its descriptions so a later-enabled element can
+    /// check against them, §14.8.4; a group with no EC-EXTERNAL TURN emits nothing — zero-scaffolding).</summary>
+    public bool ExternalDescribe { get; set; }
+
     /// <summary>
     /// Bind the LINKAGE SECTION and the PROCEDURE DIVISION header's USING/RETURNING operands. Runs inside
     /// <c>Bind</c> right after WORKING-STORAGE (so linkage items join the same forest, name index, and

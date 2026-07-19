@@ -188,7 +188,7 @@ internal sealed class BinderDriver
     /// file-referencing items are the SAME corresponding external item iff their identities are equal. (Keys by the
     /// data-name, consistent with the run-unit ExternalStore cell key; the rare AS-literal externalized name is not
     /// honored there either.)</summary>
-    private static string? ExternalItemIdentity(DataItem? item)
+    internal static string? ExternalItemIdentity(DataItem? item)
     {
         if (item is null) return null;
         var path = new List<string>();
@@ -365,6 +365,22 @@ internal sealed class BinderDriver
 
         data.Bind(unit.Ctx);
         unit.Data = data;
+
+        // The unit's EC-EXTERNAL enablement facts (ISO §14.8.4.1): the ACTIVATED-element mask is the group
+        // TurnState folded at the unit's first post-Identification division header line ("which for activated
+        // runtime elements shall be before the Environment division"); the group-level Describe gate is any
+        // EC-EXTERNAL enabling event anywhere in the group (a mask-zero unit still registers its descriptions
+        // so a later-enabled element can check against them; no event anywhere ⇒ zero-scaffolding).
+        int divLine = unit.Ctx.environmentDivision()?.Start.Line
+            ?? unit.Ctx.dataDivision()?.Start.Line
+            ?? unit.Ctx.procedureDivision()?.Start.Line
+            ?? int.MaxValue;
+        int extMask = 0;
+        if (session.Turn.Enabled("EC-EXTERNAL-FORMAT-CONFLICT", null, divLine)) extMask |= (int)Runtime.ExternalChecks.FormatConflict;
+        if (session.Turn.Enabled("EC-EXTERNAL-DATA-MISMATCH", null, divLine)) extMask |= (int)Runtime.ExternalChecks.DataMismatch;
+        if (session.Turn.Enabled("EC-EXTERNAL-FILE-MISMATCH", null, divLine)) extMask |= (int)Runtime.ExternalChecks.FileMismatch;
+        data.ExternalCheckMask = extMask;
+        data.ExternalDescribe = Procedure.EcBinder.ExternalNames.Any(session.Turn.AnyEnabledFor);
 
         // GLOBAL FD inheritance (ISO §13.18.30: the file-name of a GLOBAL FD is a GLOBAL name, visible in every
         // directly/indirectly contained program; §13.18.27 GR1–2 — nearest container first, a local declaration
