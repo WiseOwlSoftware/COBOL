@@ -17,6 +17,7 @@
     "logical_xor",
     "module_name",
     "perform_until_exit",
+    "ref_mod_zero_length",
     "set_size",
     "smallest_algebraic",
     "substitute",

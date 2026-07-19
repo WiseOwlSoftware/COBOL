@@ -35,7 +35,8 @@ internal sealed class BinderDriver
     /// directive events (ISO §7.3.25) — they build the group's compile-time TurnState (EC deep-dive D10);
     /// null/empty means the GR1 default, EC-ALL CHECKING OFF.</summary>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
-        IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents)
+        IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents,
+        IReadOnlyList<Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
 
@@ -43,9 +44,12 @@ internal sealed class BinderDriver
         // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
         // group). Name/edition validation happens here (SR2 + the 2023-only families).
         var turn = TurnState.Build(turnEvents, edition);
+        // The group's compile-time REF-MOD-ZERO-LENGTH resolution (ISO §7.3.23) — the per-line zero-length
+        // allowance fold every ReferenceResolver queries when building a ref-mod Place (§8.4.3.3.4 item 5c).
+        var refModZl = RefModZeroLengthState.Build(refModZlEvents);
 
         var (units, classes, table) = CollectUnits(tree, edition);
-        var session = new BindSession { Turn = turn, OoClasses = table, Edition = edition };
+        var session = new BindSession { Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) oo.BindClassData(cls);   // ALL signatures before ANY body (D1 pass-1)
@@ -262,6 +266,7 @@ internal sealed class BinderDriver
         var data = new DataBinder(edition)
         {
             OoClasses = session.OoClasses,
+            RefModZeroLength = session.RefModZeroLength,
             // The ANY LENGTH placement facts (ISO §13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,

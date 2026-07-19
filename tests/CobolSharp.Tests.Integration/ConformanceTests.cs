@@ -325,6 +325,15 @@ public sealed class ConformanceTests : EndToEndTestBase
         // PHASE-13 EC remnants: the EC engine (>>TURN / EXCEPTION-STATUS / the named nonfatal-EC model) is
         // greenfield-only; the frozen legacy has a limited EC model. CorpusRunnerTests byte-compares these.
         ("2023", "ec_size_truncation_prohibited"),
+        // EC-BOUND-REF-MOD raise (§8.4.3.3.4) + EC-BOUND-OVERFLOW (§8.5.1.9.6 GR1): >>TURN-gated fatal/nonfatal
+        // EC raises with USE-F3 declaratives + FUNCTION EXCEPTION-STATUS — the greenfield EC model the frozen
+        // legacy lacks. These two exclusions were OMITTED when the goldens landed (commits 3eebcfd1 / e574af41
+        // did not touch this list, DEVLOG 897 latent-miss fix); the legacy runner cannot compile/match them.
+        ("2002", "ec_bound_ref_mod"),
+        ("2014", "ec_bound_overflow"),
+        // REF-MOD-ZERO-LENGTH directive (§7.3.23) — a COBOL-2023 compiler directive + the EC-BOUND-REF-MOD raise;
+        // the frozen legacy has neither the directive nor the EC model. CorpusRunnerTests byte-compares it.
+        ("2023", "ref_mod_zero_length"),
         // PHASE-13 Wave C batch 1 — COBOL-2023 grammar constructs the frozen legacy compiler has no support for
         // (grammar/binder/runtime landed greenfield-only). CorpusRunnerTests byte-compares these at --std 2023.
         ("2023", "usage_packed_no_sign"),   // USAGE PACKED-DECIMAL WITH NO SIGN (§13.18.60.4 GR11)

@@ -196,4 +196,11 @@ public sealed record DebugRegisterPlace(DataItem RegisterItem, DebugRegisterMemb
 /// they become <c>BoundExpr</c> when PHASE 15 removes the SUBSCRIPT lexer mode). Rendered by
 /// <c>CodeGen.PlaceRenderer</c>.
 /// </summary>
-public sealed record RefModPlace(Place Inner, string Start, string? Length) : PlaceDecorator(Inner);
+public sealed record RefModPlace(Place Inner, string Start, string? Length) : PlaceDecorator(Inner)
+{
+    /// <summary>The REF-MOD-ZERO-LENGTH directive (ISO §7.3.23) is ON at this ref-mod's source line — a zero-length
+    /// result is ALLOWED (no EC-BOUND-REF-MOD raise, §8.4.3.3.4 item 5c). The directive's GR default is OFF, so this
+    /// is <see langword="false"/> for every ref-mod outside a <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> region — an
+    /// init-only property (not a positional member) so existing deconstructions/constructions stay untouched.</summary>
+    public bool AllowZeroLength { get; init; }
+}

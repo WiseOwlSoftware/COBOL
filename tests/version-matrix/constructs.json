@@ -184,6 +184,18 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. PUE.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM UNTIL EXIT\n        ADD 1 TO N\n        IF N = 2 EXIT PERFORM END-IF\n    END-PERFORM.\n    STOP RUN.\n"
     },
     {
+      "id": "ref-mod-zero-length-2023",
+      "description": "The >>REF-MOD-ZERO-LENGTH {ON|OFF} compiler directive (ISO §7.3.23) — a COBOL-2023 addition (Annex E.3.3 item 23): when ON, a reference modification MAY have a zero-length result (§8.4.3.3.4 item 5c); when OFF/omitted (the default) a zero-length ref-mod raises EC-BOUND-REF-MOD (§7.3.23.3 GR1). A text-manipulation-stage directive consumed by RefModZeroLengthDirectiveProcessor and folded per source line; the introduction gate rejects the directive below 2023.",
+      "display": ">>REF-MOD-ZERO-LENGTH directive",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §7.3.23; §8.4.3.3.4 item 5c; Annex E.3.3 item 23",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 30 (REF-MOD-ZERO-LENGTH directive — 2023 introduction)",
+      "source": "        >>REF-MOD-ZERO-LENGTH ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. RMZL.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W PIC X(5) VALUE \"HELLO\".\n       01 R PIC X(5).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE W (3:0) TO R.\n           DISPLAY R.\n           STOP RUN.\n"
+    },
+    {
       "id": "boolean-shift-operators-2023",
       "description": "The boolean shift operators B-SHIFT-L / B-SHIFT-R / B-SHIFT-LC / B-SHIFT-RC (ISO §8.8.2 rule 8) — a COBOL-2023 addition (strictly later than the 2002 boolean operators B-AND/B-OR/B-XOR/B-NOT). Logical shift fills boolean 0; circular shift rotates. The second operand is an integer; the result length is the first operand's length (rule 9). Recognition-based gate (HasShiftOp) at the COMPUTE F2 / primaryCondition altitude, distinct from the boolean-operators-2002 gate.",
       "display": "boolean shift operators B-SHIFT-L/R/LC/RC",

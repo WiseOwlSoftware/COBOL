@@ -42,7 +42,8 @@ public static class ConditionalCompilationProcessor
     /// text for the downstream <see cref="TurnDirectiveProcessor"/> (the COBOL.NET EC model, ISO §7.3.25); an
     /// omitted-branch one still drops with its branch. The default (false) is the exact legacy behavior —
     /// TURN consumed here, the legacy caller untouched.</param>
-    public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false)
+    public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false,
+        bool leaveRefModZeroLengthDirectives = false)
     {
         var defines = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
         var stack = new Stack<Frame>();
@@ -138,6 +139,11 @@ public static class ConditionalCompilationProcessor
                     // KnownIgnoredDirectives fallthrough, so PROPAGATE stays in that set and a legacy caller (no
                     // flag) keeps consuming it — the greenfield stage adds the edition gate, legacy behavior intact.
                     else if (leavePropagateDirectives && keyword == "PROPAGATE") output[i] = line;
+                    // With leaveRefModZeroLengthDirectives (the COBOL.NET caller), an emitting-branch
+                    // >>REF-MOD-ZERO-LENGTH survives for the RefModZeroLengthDirectiveProcessor stage (ISO §7.3.23 —
+                    // the introduction gate + the per-line zero-length fold). It stays in KnownIgnoredDirectives so a
+                    // legacy caller (no flag) keeps consuming it; the greenfield stage adds the real behavior.
+                    else if (leaveRefModZeroLengthDirectives && keyword == "REF-MOD-ZERO-LENGTH") output[i] = line;
                     else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                     break;
             }

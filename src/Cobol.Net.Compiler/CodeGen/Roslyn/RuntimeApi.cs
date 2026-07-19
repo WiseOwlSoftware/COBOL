@@ -254,15 +254,19 @@ internal static class RuntimeApi
 
     // ── More strings / tables ──
 
-    /// <summary>A reference-modification slice — <c>CobolString.RefMod</c> (1-based start, length).</summary>
-    public static string StrRefMod(string s, string start, string len) =>
-        $"{nameof(CobolString)}.{nameof(CobolString.RefMod)}({s}, {start}, {len})";
+    /// <summary>A reference-modification slice — <c>CobolString.RefMod</c> (1-based start, length).
+    /// <paramref name="allowZeroLength"/> (the REF-MOD-ZERO-LENGTH directive, §7.3.23) emits the named argument only
+    /// when true, so every existing site stays byte-identical.</summary>
+    public static string StrRefMod(string s, string start, string len, bool allowZeroLength = false) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.RefMod)}({s}, {start}, {len}{(allowZeroLength ? ", allowZeroLength: true" : "")})";
 
     /// <summary>Splice <paramref name="rhs"/> into <paramref name="s"/> at a 1-based start/length, preserving the
     /// rest of the width — <c>CobolString.SpliceInto</c>. <paramref name="pad"/> is the optional fill-char argument
     /// (a C# <c>char</c> literal, e.g. boolean-zero <c>'0'</c>); null emits the default space fill.</summary>
-    public static string StrSpliceInto(string s, string start, string len, string rhs, string? pad = null) =>
-        $"{nameof(CobolString)}.{nameof(CobolString.SpliceInto)}({s}, {start}, {len}, {rhs}{(pad is null ? "" : $", pad: {pad}")})";
+    public static string StrSpliceInto(string s, string start, string len, string rhs, string? pad = null,
+        bool allowZeroLength = false) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.SpliceInto)}({s}, {start}, {len}, {rhs}"
+        + $"{(pad is null ? "" : $", pad: {pad}")}{(allowZeroLength ? ", allowZeroLength: true" : "")})";
 
     /// <summary>The three-way alphanumeric comparison — <c>CobolString.Compare</c>. <paramref name="weightsArg"/>
     /// is the trailing collated-weights argument (", __COLLATE" / an inline table), possibly empty.</summary>

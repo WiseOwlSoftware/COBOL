@@ -228,10 +228,16 @@ public sealed class ReferenceResolver(DataBinder data)
                 if (RenderSegment(lenToks) is not { } l) return null;
                 rmLen = l;
             }
-            return new RefModPlace(inner, rmStart, rmLen);
+            // §7.3.23 / §8.4.3.3.4 item 5c: the ref-mod allows a zero-length result iff REF-MOD-ZERO-LENGTH is ON at
+            // this site's source line (the group's compile-time directive fold; OFF everywhere by default).
+            return new RefModPlace(inner, rmStart, rmLen)
+                { AllowZeroLength = data.RefModZeroLength.IsOnAt(cleanRef.Start.Line) };
         }
         var (rm, _) = InterpretSubscripts(refCtx!);
-        return rm is { Count: > 0 } ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null) : null;
+        return rm is { Count: > 0 }
+            ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null)
+                { AllowZeroLength = data.RefModZeroLength.IsOnAt(refCtx!.Start.Line) }
+            : null;
     }
 
     /// <summary>

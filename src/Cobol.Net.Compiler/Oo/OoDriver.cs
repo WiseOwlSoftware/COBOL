@@ -31,7 +31,7 @@ internal sealed class OoDriver(BindSession session)
     /// prototypes reuse the whole OoBindMethodData machinery with no bodies).</summary>
     public void BindInterfaceData(OoInterfaceSymbol iface)
     {
-        var data = new DataBinder(session.Edition) { OoClasses = session.OoClasses, OoIsClassUnit = true };
+        var data = new DataBinder(session.Edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, RefModZeroLength = session.RefModZeroLength };
         data.CallSeedUids(session.TakeUidBand());
         var synthetic = new Core.ProgramUnitContext(null!, -1);
         if (iface.Ctx.environmentDivision() is { } env) synthetic.AddChild(env);
@@ -52,7 +52,7 @@ internal sealed class OoDriver(BindSession session)
     public void BindClassData(OoClassUnit cls)
     {
         var edition = session.Edition;
-        var data = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true };
+        var data = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, RefModZeroLength = session.RefModZeroLength };
         data.CallSeedUids(session.TakeUidBand());
         var synthetic = OoReparentClassData(cls.Symbol.Ctx);
         data.BindDeclarations(synthetic);
@@ -69,7 +69,7 @@ internal sealed class OoDriver(BindSession session)
         // invisible to instance methods and vice versa (separate source elements, §10.6), realized exactly
         // like method scoping: a second binder, never a merged namespace. SR 10 (INVOKE-argument ban on
         // factory WS) works free: the factory binder's WS roots are not method-scoped → OoIsObjectData.
-        var fdata = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true };
+        var fdata = new DataBinder(edition) { OoClasses = session.OoClasses, OoIsClassUnit = true, RefModZeroLength = session.RefModZeroLength };
         fdata.CallSeedUids(session.TakeUidBand());
         var fsynthetic = OoReparentFactoryData(cls.Symbol.Ctx);
         fdata.BindDeclarations(fsynthetic);

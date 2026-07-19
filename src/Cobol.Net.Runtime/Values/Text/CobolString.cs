@@ -44,15 +44,16 @@ public static class CobolString
     /// result raises the fatal EC-BOUND-REF-MOD (§8.4.3.3.4, spec :7089); with checking OFF (the default)
     /// out-of-range positions are clamped and the result space-padded to the requested length (the lenient default).
     /// </summary>
-    public static string RefMod(string? s, int leftmost, int length)
+    public static string RefMod(string? s, int leftmost, int length, bool allowZeroLength = false)
     {
         s ??= "";
         int size = s.Length;
-        // §8.4.3.3.4 (spec :7089): leftmost shall be 1..size; length (when specified, i.e. >= 0) shall be positive
-        // nonzero with leftmost+length-1 <= size (a zero-length result is allowed only under REF-MOD-ZERO-LENGTH — a
-        // staged follow-on). A violation raises EC-BOUND-REF-MOD (fatal) ONLY when checking is on; checking off falls
-        // through to the lenient clamp below (byte-identical to a pre-slice build).
-        if (leftmost < 1 || leftmost > size || length == 0 || (length > 0 && leftmost + length - 1 > size))
+        // §8.4.3.3.4 (spec :7089), item 5c: leftmost shall be 1..size; length (when specified, i.e. >= 0) shall be
+        // positive nonzero with leftmost+length-1 <= size — UNLESS the REF-MOD-ZERO-LENGTH directive (§7.3.23) is ON
+        // (<paramref name="allowZeroLength"/>), when the result MAY also be zero (an out-of-range leftmost still
+        // raises — the directive relaxes only the zero-length aspect). A violation raises EC-BOUND-REF-MOD (fatal)
+        // ONLY when checking is on; checking off falls through to the lenient clamp below (byte-identical).
+        if (leftmost < 1 || leftmost > size || (length == 0 && !allowZeroLength) || (length > 0 && leftmost + length - 1 > size))
             ExceptionState.RefModError(
                 $"reference modification ({leftmost}:{(length < 0 ? "" : length.ToString())}) out of range for a "
                 + $"{size}-position item (ISO §8.4.3.3.4)");
@@ -74,11 +75,14 @@ public static class CobolString
     /// IS a char index under D-B1). When EC-BOUND-REF-MOD checking is enabled an out-of-range/zero-length ref-mod
     /// raises the fatal EC-BOUND-REF-MOD (§8.4.3.3.4); checking off keeps the lenient no-op default.
     /// </summary>
-    public static string SpliceInto(string? dst, int leftmost, int length, string? slice, char pad = ' ')
+    public static string SpliceInto(string? dst, int leftmost, int length, string? slice, char pad = ' ',
+        bool allowZeroLength = false)
     {
         dst ??= ""; slice ??= "";
         int size = dst.Length;
-        if (leftmost < 1 || leftmost > size || length == 0 || (length > 0 && leftmost + length - 1 > size))
+        // §8.4.3.3.4 item 5c — a zero-length receiving ref-mod is allowed only under REF-MOD-ZERO-LENGTH (§7.3.23);
+        // an out-of-range leftmost/length still raises regardless of the directive.
+        if (leftmost < 1 || leftmost > size || (length == 0 && !allowZeroLength) || (length > 0 && leftmost + length - 1 > size))
             ExceptionState.RefModError(
                 $"reference modification ({leftmost}:{(length < 0 ? "" : length.ToString())}) out of range for a "
                 + $"{size}-position receiver (ISO §8.4.3.3.4)");

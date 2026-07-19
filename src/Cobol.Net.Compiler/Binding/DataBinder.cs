@@ -41,6 +41,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <c>--std</c>.</summary>
     public EditionContext Edition { get; } = edition ?? new EditionContext(2023);
 
+    /// <summary>The group's compile-time <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> resolution (ISO §7.3.23) — queried by
+    /// <see cref="ReferenceResolver"/> when it builds a reference-modification Place, to set
+    /// <c>RefModPlace.AllowZeroLength</c> from the directive fold at the ref-mod's source line (§8.4.3.3.4 item 5c).
+    /// Defaults to <see cref="RefModZeroLengthState.Empty"/> (the OFF default) for direct test construction.</summary>
+    public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
+
     /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order. (READ-ONLY view — P6 Step 5:
     /// the emitter consumes the bound model without a write channel; the binder populates the private backing.)</summary>
     public IReadOnlyList<DataItem> Roots => _roots;

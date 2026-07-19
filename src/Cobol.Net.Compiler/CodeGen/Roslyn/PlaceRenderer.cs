@@ -28,7 +28,7 @@ internal static class PlaceRenderer
     public static string Read(Place p) => p switch
     {
         // A reference-modified slice inner(start:length) (ISO §8.4.2.4): a substring of the inner field's image.
-        RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r)),
+        RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r), r.AllowZeroLength),
         // A NUMERIC-DISPLAY item viewed as its character image (ISO §8.4.2.4): format the stored value's display image.
         NumericImagePlace n => RuntimeApi.NumFormatDisplay(Read(n.Inner), n.Inner.Item.ProfileName),
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' character images.
@@ -70,7 +70,7 @@ internal static class PlaceRenderer
         // Splice the new slice back into the inner field, preserving its width. A BOOLEAN receiver pads with
         // boolean-zero (§14.6.8.6; §8.4.3.3 GR5a); every other category keeps the space fill.
         RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(Read(r.Inner), RmStart(r), RmLen(r), rhs,
-            r.Inner.Item.Pic is { Category: PicCategory.Boolean } ? "'0'" : null)),
+            r.Inner.Item.Pic is { Category: PicCategory.Boolean } ? "'0'" : null, allowZeroLength: r.AllowZeroLength)),
         // Decode the spliced image back into the typed field (sign-aware via the FormatDisplay/StoreDisplay pair).
         NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreDisplay(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         RenamesPlace n => WriteRenames(n, rhs),
