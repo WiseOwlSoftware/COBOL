@@ -862,3 +862,35 @@ Item 7 (RW SUPPRESS) was skipped as a duplicate of confirmed C5. Full verdict no
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
 - **Disposition:** CONFIRMED (both high) — the THIRD live diag collision (after 1573 fixed, 1535 documented-deliberate). Fix: renumber the DataBinder method-REDEFINES emit (now at :2400) to 1577, catalog descriptor per the new drift-guard discipline, doc sweep; 1518 stays = A.4.9 locale non-support. NOTE: the compiler dot-prefixed Edition.Error channel is exactly where the drift guard does not yet scan — this collision validates extending it.
+
+## 11. Batch-4 verdicts (2026-07-19 — worklist items 12/16/17/18/19, 10 agents, 0 errors)
+
+ALL CONFIRMED high/high. The four OO items are MANDATORY surface (A.4.10's optional list = multiple
+inheritance ×2 + parametric polymorphism ONLY) — a plan-scope decision, not a quiet residue: route to an
+owner-visible OO-surface disposition at P13 close (implement vs staged-loud + P14 plan rows). Full notes:
+`scratchpad/batch4-verdicts.json` + the batch-4 journal.
+
+### V12. CONFORMANCE.md lacks the A.4.9 locale-facility row the code claims exists
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high). Fix: add the fifth §4 facility row (scope per the code-lens corrections: the 1518 ERROR covers the 5 Unsupported functions + the four functions' LOCALE phrases — NUMVAL has no LOCALE phrase; SET LC_*/SPECIAL-NAMES LOCALE legs have NO diagnostic today, F3 is the companion code fix); four→five counts; the surviving (§2.4) refs at lines 34/36. Route: FIX NOW docs (next remediation slice).
+
+### V16. Inline method invocation (§8.4.3.4 '::' identifier form) absent; the shipped rule is a non-ISO statement shape
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high) — MANDATORY 2002+ (A.4.10 lists only multi-inheritance ×2 + parametric polymorphism as optional). The shipped inlineMethodInvocationStatement (dataReference(args) STATEMENT, {is2023()}?-gated) is NON-ISO: the ISO form is an IDENTIFIER `{class|id} :: literal [(args)]` usable in sending positions, never a statement; no :: token exists; the registry row is a dead gate claiming introduced-2023 (ISO: 2002). Route: OWNER-VISIBLE plan scope — the OO-surface batch (P13-close decision: implement vs staged-loud + plan row; the non-ISO statement rule needs a disposition either way).
+
+### V17. Object-view (§8.4.3.5 identifier AS class/interface/UNIVERSAL) — zero surface, mandatory 2002+
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high) — mandatory 2002+ identifier Format 5; zero surface. Same OO-surface batch routing as V16.
+
+### V18. USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS + the ONLY phrase — unimplemented, mis-diagnosed
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high) — §13.18.60.2: ACTIVE-CLASS mis-diagnoses as unknown-class; ONLY silently ignored where implemented-adjacent. Same OO-surface batch routing.
+
+### V19. Parameterized classes/interfaces (CLASS-ID/INTERFACE-ID USING, REPOSITORY EXPANDS/AS) — mandatory 2023 surface, zero grammar
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED (both high) — mandatory 2023 surface (E.3-listed); zero grammar; the P3 registry row exists as a validator-catalogue entry only (a dead gate — PHASE-03 doc propagates the drift). Same OO-surface batch routing.
