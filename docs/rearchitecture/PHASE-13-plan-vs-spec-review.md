@@ -923,3 +923,38 @@ Item 23 was verified merged into 22. Full notes: `scratchpad/batch5-verdicts.jso
 
 - **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
 - **Disposition:** CONFIRMED (both high). The audit row VCR 7.17's DB-series golden-establishment half was never picked up by any remaining worklist (the Wave F implementation landed; the NIST DB101A-DB105A goldens were not established). Route: add to the P13 phase-close checklist (or explicitly re-scope to P14 with a row — decide at Wave I).
+
+## 13. Batch-6 verdicts (2026-07-19 — PARTIAL: the monthly spend limit killed 5 of 10 agents)
+
+Completed: items 30 (both lenses) + 31 (both lenses) + 33 (spec lens only). KILLED by the limit: items 28
+(new-2023 intrinsics matrix rows), 29 (BYTE-LENGTH staging rationale) — both lenses — and 33's code lens.
+**RESUME STATE:** re-run items 28/29/33 in the next batch once the limit is raised; then the ~17 minors
+(worklist 32/34-50) and the 12 batch-1 raw findings (§8 F1-F12) remain — the batch-of-10 cadence continues
+from here. Full notes: `scratchpad/batch6-verdicts.json`.
+
+### V30. RANDOM sequence state is process-wide static — the P8 "ONE RunUnit owner" claim is contradicted
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED — §15.75.3 rule 4 scopes the sequence to the run unit; `CobolIntrinsics.Float.cs:79`
+  holds a process-wide `static Random` while the code's own comment cites the per-run-unit rule and `RunUnit.cs`
+  contracts AsyncLocal concurrency. **Tracking CORRECTION (strengthens it):** this was plan §7 refinement **R3
+  must-apply P8 work** (`_random` · `CobolSort.Files` · `ExternalSwitches.States` · `CobolTable.Scratch<T>.Slot`
+  all to be homed on RunUnit) — P8 executed it PARTIALLY (switches homed; `_random` + `CobolSort.Files:36` +
+  `Scratch<T>.Slot:34` still process-global) and closed claiming the ONE-owner criterion. Route: ONE remediation
+  unit = the R3 siblings + the SURVEY G2 CI-grep broadening (catch `static Random` etc.), the
+  ExceptionState/CobolFile shim pattern, emitted surface unchanged. Severity major (single-run-unit CLI hosts
+  unaffected; multi/sequential run units get sequence bleed + broken §15.75.4 rule-2 determinism).
+
+### V31. WriteFill drops AllowZeroLength — spurious fatal EC-BOUND-REF-MOD under >>REF-MOD-ZERO-LENGTH ON
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** CONFIRMED — §8.4.3.3.4 GR5c + §7.3.23.3 GR1: with the directive ON a zero-length result is
+  allowed, and §14.9.25.4 GR1 sanctions a zero-length MOVE receiver ("leaves identifier-2 unchanged"). The Write
+  RefModPlace arm threads `r.AllowZeroLength` (PlaceRenderer.cs:72-73) but the figurative-fill arm WriteFill
+  (:153-154) omits it and `RuntimeApi.StrSpliceInto` defaults false ⇒ a figurative MOVE into a zero-length slice
+  spuriously raises fatal EC-BOUND-REF-MOD when checking is ON. Fix: pass `allowZeroLength: p.AllowZeroLength`
+  in WriteFill, mirroring the Write arm — **FIXED same-day (see the commit referencing this section)**.
+
+### V33 (spec lens only — code lens killed). EC-FLOW-USE / EC-FLOW-GLOBAL-* seams
+
+- **Disposition:** _half-verified — re-run the code lens with items 28/29 in the resume batch._
