@@ -1061,3 +1061,34 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   cannot even parse as a user word; a conforming 2002+ program dies as a parse error); the Annex E.2 item 2
   2023 consistency delta has no landing surface; tracked nowhere. ALIGNED is bit/boolean-data-adjacent
   surface — route: a named staged-loud diagnostic + a plan row (the bit-data family owner), P14 candidate.
+
+## 17. Batch-10 verdicts (2026-07-19 — minors 41/42/43, 6 agents, 0 errors)
+
+### V41. Annex E.2 item 6 (compile-time arithmetic mode) — CONFIRMED, and STRONGER than filed
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** §7.3.6 GR2 + implementor-defined-items annex entry 29 make documenting the mode a REQUIRED
+  conformance-documentation item (not a nicety). The constructs.json `arithmetic-intermediate-precision-2023`
+  pending candidate probes RUNTIME arithmetic — mis-anchored for the compile-time mode; it does not discharge
+  the duty. Route: land the CONFORMANCE.md implementor-defined note + the VCR row-12 disposition WITH the
+  tracked Wave D §7.3.6/§7.3.7 evaluator work (the evaluator forces the mode determination). Nuance: 2014
+  mandated Standard Arithmetic for compile-time expressions — keep row 12 a disposition anchor, not ref-only.
+
+### V42. VCR todo-anchor staleness — SPLIT → the P14 home EXISTS; the residue is stale P13-scope phrasing
+
+- **Verdicts:** spec-lens REAL (high, as doc-doctrine inconsistency) · code-lens REFUTED-as-filed (high)
+- **Disposition:** the factual core holds (~20 landed constructs still carry todo anchors; the generated index
+  lists only the 15 pre-P13 rows; VcrDriftTests validates only gate: anchors — the todo-vs-catalogue mismatch
+  is CI-invisible), BUT the P14 burn-down has ALWAYS owned the flips (PHASE-14 Step 1 "Drive the VCR to
+  zero-TODO" + exit criterion 1 + roadmap :311) — "the deferral exists only in DEVLOG 895" is false. Residue:
+  (a) the audit preamble + resume-prompt HOW-TO-RESUME item 2 still phrase the flips as pending P13 scope —
+  update both to point at P14 Step 1; (b) extend VcrDriftTests to FAIL when a todo anchor's construct exists
+  in constructs.json (closes the blind spot). Both cheap; Opus session.
+
+### V43. Audit bookkeeping errors — CONFIRMED (VCR-78 double-count; the nonexistent I-O-STATUS-04 "directive")
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** (a) audit lines 88/89 count one VCR-78 item twice in the 31/21/18/1 split; (b) audit :37
+  prescribes a standalone I-O-STATUS-04 directive that does not exist in §7.3 (I-O-STATUS-04 is a FLAG-14
+  option word only) — the landed VCR-21 work correctly ignored the phantom prescription. Route: annotate the
+  audit rows (a LEDGER doc — annotate, don't rewrite history) at the phase-close sweep.
