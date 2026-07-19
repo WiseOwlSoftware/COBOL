@@ -23,10 +23,16 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 
 ## ⛔🔀 RESUME AT — PHASE-13 IN PROGRESS (M4 / COBOL-2023 deltas + EC remnants + behavior-row burn-down)
 
-**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `0efb0d88`).
-DO NOT re-create the branch or re-run the audit — check it out and continue. See "WHAT P13 HAS LANDED" + the
-trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **3648** · unit **311** · characterization
-**33** · legacy/NIST unaffected (no `.g4` change since the pushed grammar work).**
+**⏭ PHASE-13 IS IN PROGRESS on branch `phase-13-m4-2023` (NOT merged to `main`; pushed through `f71faa0f`).
+DO NOT re-create the branch or re-run the audit — check it out and continue. Battery at HEAD: greenfield conformance
+**3678** · unit **311** · characterization **33** · legacy/NIST unaffected (no `.g4` change yet). **🎯 WAVE G CLASS A
+FULLY COMPLETE + REF-MOD-ZERO-LENGTH landed** (2026-07-18/19, 6 feature commits `420eb720`→`5dbe0d08`, each full-Conformance
+gated): REF-MOD-ZERO-LENGTH directive (§7.3.23) · numeric-edited VALUE 2023 rework (VCR 35/86/34) · I-O status '04' (VCR 21)
+· MERGE-in-proc prohibition (VCR 27, COBOLNET1572) · EXCEPTION-FILE(connector) arg form (VCR 68/69) · + 2 pre-existing
+latent GreenfieldOnly-miss fixes + 2 differential-test-regression fixes the full-Conformance gate surfaced.
+**REMAINING P13 (see the "REMAINING P13 WORK" list below): ① the GRAMMAR BATCH (shared `.g4` → ONE full legacy guard) ·
+③ Wave D directives · ④ Wave I adversarial review → phase-close → merge.** ⚠ Every acceptance/semantics change gates with
+the FULL Conformance project (not a CorpusRunner-only filter — the `04c32a93`/`cf1fcaa2` lessons).**
 
 > **⚡ SESSION 2026-07-18 LANDED (8 commits, each battery-gated; the tiered/batched/parallel execution model in
 > `resume-prompt.md` §"EXECUTION MODEL" + [[feedback_execution_model_tiered_parallel]] was adopted + PROVEN this
