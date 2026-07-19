@@ -782,8 +782,9 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
-        /// <summary>A strongly-typed EXTERNAL type declaration (ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3 item 10) —
-        /// a COBOL-2023 introduction: E.3 item 10 states external items "could not be strongly typed" before 2023, so
+        /// <summary>A strongly-typed EXTERNAL type declaration (ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3.3 item 20) —
+        /// a COBOL-2023 introduction: E.3.3 item 20 ("External data items may now be strongly typed"), corroborated by
+        /// E.2 item 10 ("previously external items could not be strongly typed"), so
         /// it is specifically the <c>STRONG</c>+<c>EXTERNAL</c> combination on a level-1 TYPEDEF that is new. A WEAK
         /// <c>TYPEDEF IS EXTERNAL</c> (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3), so it is NOT gated
         /// here; plain EXTERNAL is 1985-continuous and plain TYPEDEF is the separate COBOL-2002 gate above. Gate on the

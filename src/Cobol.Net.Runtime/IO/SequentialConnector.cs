@@ -373,7 +373,7 @@ public sealed class SequentialConnector : FileConnector
         if (LastReadUnsuccessful) { Status = FileStatusCode.NoValidNextRecord; return false; }
         if (_reader is null) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
 
-        // §14.9.35 GR14 / §9.1.13.2 item 3: a RECORD-sequential physical record whose length is outside the file's
+        // §14.9.30 GR14 (READ) / §9.1.13.2 item 3: a RECORD-sequential physical record whose length is outside the file's
         // min/max record size is a SUCCESSFUL read with status '04' (the record is still delivered). Line-sequential
         // is excluded — its short/long conditions are '06'/'09', never '04'.
         bool shortLong = false;
@@ -396,7 +396,7 @@ public sealed class SequentialConnector : FileConnector
             _readOffset += 4 + n;
             LastReadLength = n;
             image = new string(buf, 0, n).PadRight(RecordWidth, ' ');
-            if (n < VaryMin || n > VaryMax) shortLong = true;   // outside the varying record min/max (§14.9.35 GR14)
+            if (n < VaryMin || n > VaryMax) shortLong = true;   // outside the varying record min/max (§14.9.30 GR14)
         }
         else
         {

@@ -42,7 +42,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         foreach (var ext in data.CallExternalBackings)
         {
             // §13.18.63 GR4a: a PLAIN external item's VALUE takes effect only during INITIALIZE, so its cell seeds
-            // with the blank/zoned initial image. §13.6.2 GR7: a CONSTANT RECORD is the ONE external item initialized
+            // with the blank/zoned initial image. §11.9.10.4 GR7: a CONSTANT RECORD is the ONE external item initialized
             // at initial state — seed its cell with the VALUE-composed image via the SAME Tier-B seeder
             // (GroupImageCodec.ImageInitOf) that RecordStructEmitter/ProgramEmitter use for every other string backing.
             string init = ext.Record.IsConstantRecord

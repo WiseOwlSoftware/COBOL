@@ -37,7 +37,8 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 /// initial image for a PLAIN external item — spaces/zoned-zeros, since a plain external item's VALUE takes effect
 /// only during INITIALIZE, not at initial state. <see cref="Record"/> carries the record's own DataItem so the
 /// emitter can substitute the VALUE-composed image (<c>GroupImageCodec.ImageInitOf</c>) for a CONSTANT RECORD, which
-/// §13.6.2 GR7 DOES initialize at initial state (the one external exception).</summary>
+/// §11.9.10.4 GR7 DOES initialize at initial state (the one external exception — external WS items are not
+/// initialized at initial state "except for those with the CONSTANT RECORD clause").</summary>
 public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, string InitImage, DataItem Record);
 
 /// <summary>One FUNCTION-ID unit's activation signature (ISO §9.4 user-defined functions; M2-UDF-1): the

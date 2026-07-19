@@ -1973,10 +1973,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     ? "the ANY LENGTH, BASED, BLANK WHEN ZERO, SYNCHRONIZED, and TYPEDEF clauses shall not be "
                       + "specified in the same data description entry as the CONSTANT RECORD clause "
                       + "(ISO §13.16.3 SR13)"
-                // VCR 16 (ISO §13.16.3 SR13 ¶2; Annex E.3 item 10): the "EXTERNAL CONSTANT RECORD requires a strong
+                // VCR 16 (ISO §13.16.3 SR13 ¶2; Annex E.2 item 10): the "EXTERNAL CONSTANT RECORD requires a strong
                 // TYPE" requirement is a COBOL-2023 addition — below 2023 the bare external constant record (no TYPE)
                 // was the legacy accepted form (its content initializes per §13.18.15.4 GR1 and is not re-initialized
-                // on run-unit re-entry, §13.6.2). Version-conditioned structural SR ⇒ read DialectLevel directly (the
+                // on run-unit re-entry, §11.9.10.4 GR7 / §14.6.2.3.3). Version-conditioned structural SR ⇒ read DialectLevel directly (the
                 // CheckDigitCapacity/binder-reads-edition doctrine), NOT a ConstructRegistry introduction gate.
                 : hasExternal && typeRefName is null && Edition.DialectLevel >= 2023
                     ? "a CONSTANT RECORD clause specified with the EXTERNAL clause requires a TYPE clause "

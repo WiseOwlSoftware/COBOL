@@ -352,7 +352,7 @@ public sealed class ConformanceTests : EndToEndTestBase
         // greenfield EC + FileRegistry feature the frozen legacy has no EC model for. CorpusRunner byte-compares it.
         ("2023", "exception_file_arg"),
         // PHASE-13 Wave G VCR 21 — I-O status '04' on a record-sequential READ whose physical record is outside the
-        // file's min/max size (§14.9.35 GR14). New greenfield SequentialConnector behavior; the frozen legacy's
+        // file's min/max size (§14.9.30 GR14 — the READ statement's record-length rule). New greenfield SequentialConnector behavior; the frozen legacy's
         // record-length handling is not modified here, so the greenfield CorpusRunner byte-compares it.
         ("2002", "io_status_04"),
         // PHASE-13 Wave E VCR 63 — the STRONGLY-TYPED external type declaration (§13.18.22/§13.18.58.3; 2023):

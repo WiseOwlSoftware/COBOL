@@ -27,7 +27,7 @@ public static partial class ConstructRegistry
         new("continue-after-2023", "CONTINUE AFTER n SECONDS", 2023, null, null, "COBOLNET0900", "ISO §14.9.9.2 / §14.9.9.4 GR1; Annex E.3.3 item 14"),
         new("perform-until-exit-2023", "PERFORM UNTIL EXIT", 2023, null, null, "COBOLNET0900", "ISO §14.9.28.2 until-phrase / §14.9.28.4 GR11; Annex E.3.3 item 37"),
         new("ref-mod-zero-length-2023", ">>REF-MOD-ZERO-LENGTH directive", 2023, null, null, "COBOLNET0900", "ISO §7.3.23; §8.4.3.3.4 item 5c; Annex E.3.3 item 23"),
-        new("external-type-declaration-2023", "a strongly-typed EXTERNAL type declaration", 2023, null, null, "COBOLNET0900", "ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3 item 10"),
+        new("external-type-declaration-2023", "a strongly-typed EXTERNAL type declaration", 2023, null, null, "COBOLNET0900", "ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3.3 item 20"),
         new("value-numeric-literal-numeric-edited-2023", "numeric-literal VALUE for a numeric-edited item", 2023, null, null, "COBOLNET0900", "ISO §13.18.63 SR6; Annex E.3.3 item 43"),
         new("value-numeric-edited-oversize-removed-2023", "over-size alphanumeric VALUE literal for a numeric-edited item", 85, 2023, null, "COBOLNET1570", "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"),
         new("exception-file-argument-2023", "FUNCTION EXCEPTION-FILE(file-connector-name)", 2023, null, null, "COBOLNET0900", "ISO §15.28.3 rule 1 / §15.28.4 r2; Annex E.3.3 item 25"),
