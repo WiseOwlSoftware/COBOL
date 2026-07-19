@@ -40,7 +40,15 @@
    every commit boundary; per `docs/rearchitecture/DESIGN-test-build-ci.md` gates 1 & 2 red = stop.
 
 ## STATUS
-`IN PROGRESS — Step 1 (audit) + Wave B partial + Wave C batch 1 (7 constructs) DONE; RESUME AT Wave C batch 2` (branch `phase-13-m4-2023`; NOT merged)
+`IN PROGRESS (branch phase-13-m4-2023, NOT merged; pushed through 82db4562; conformance 3648/unit 311/char 33).`
+**DONE:** Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · STOP/GOBACK exit-code (VCR 75) ·
+EC-BOUND-OVERFLOW + REF-MOD raise (**EC-BOUND surface CLOSED**) · Wave F USE FOR DEBUGGING + DEBUG-ITEM (VCR 7.17,
+parallel-worktree + adversarial-review) · Wave G 8 pin-to-spec dispositions · Wave H CONFORMANCE.md/SCREEN warning ·
+Wave I partial review · I1–I4 roadmap adoption.
+**RESUME AT (see `resume-prompt.md` "REMAINING P13 WORK" — the authoritative list):** the grammar batch (SUPPRESS
+WHEN · PICTURE EDITING · PERFORM Fmt3 · Wave H code half — shared `.g4`, one legacy guard) + greenfield-only (Wave G
+CLASS A · Wave E EXTERNAL · REF-MOD-ZERO-LENGTH directive) + Wave D directives + Wave I review→merge. Worklists:
+`PHASE-13-remaining-waves-scout.md` (D–H) + `PHASE-13-wave-c-scout.md` (grammar). Diag next free **1572**.
 
 > **Wave C batch 1 (7 of 10 constructs) landed** — spec-first from the persisted re-scout
 > `docs/rearchitecture/PHASE-13-wave-c-scout.md` (which caught the SET-SIZE-OF-not-LENGTH-OF + EC-STORAGE-not-EC-BOUND

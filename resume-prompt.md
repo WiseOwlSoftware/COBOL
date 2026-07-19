@@ -80,44 +80,43 @@ trimmed "REMAINING P13 WORK" below. Battery at HEAD: greenfield conformance **36
   follow-ons (SET SIZE SR34 compile-time check; PERFORM UNTIL EXIT SR8 nested-under-VARYING). Diag band now 1569
   used, **next free 1570**. The Wave-I review still owes: the remaining Wave C constructs + waves D–H once landed.
 
-### ▶ THE REMAINING P13 WORK (from the audit — batch by GATE type; owner directive: optimize/combine, not at the risk of accuracy)
-- **Wave C — 2023 grammar constructs (8 of 10 DONE — see "WHAT P13 HAS LANDED"; REMAINING 3 + 1 slice):**
-  - **SUPPRESS WHEN on ALTERNATE RECORD KEY** (§13.x / §14.9.51 GR41 / §14.9.30 GR21c) — the big one: an indexed-file
-    per-alternate-key suppression across Write/Rewrite/ReadSequential/ReadRandom/START in `IndexedConnector`, with the
-    no-DUPLICATES '22' + GR27 '02' lookahead bypass. Scout: `PHASE-13-wave-c-scout.md` §C6 (item B). High blast radius
-    on the IX file suite.
-  - **PICTURE EDITING phrase** (§13.18.40, VCR 62) — L: EDITING character-1 IS/FOR NEGATIVE/POSITIVE. Thread the
-    EDITING map INTO `PictureAnalyzer.Analyze` (else 0808 rejects character-1); a new sign-sensitive `CobolEdit`
-    overload. ⚠ Trust Annex D.24 over the extracted Table 8 (an inversion hazard). Scout §C4; NO PICMODE change (the
-    audit hint was wrong). Fixed simple/sign-sensitive first; floating extended editing goldened separately.
-  - **PERFORM Format 3 (exception-checking PERFORM … WHEN)** (§14.9.28.2) — staged large: 2 new tokens (FINALLY,
-    LOCATION) + a whole new statement + deep EC integration (GR14 PUSH/POP/TURN, GR17 declarative-shadowing, GR20
-    fatal/nonfatal resumption). PERFORM UNTIL EXIT already landed. Scout §C5.
-  - **STOP/GOBACK exit-code VALUE wiring slice** (§14.9.42 GR5 / §14.9.18.4 GR10) — staged (owner-sanctioned "later
-    slice"): upgrade `BoundStop.HasStatusPhrase` presence-only → set `Environment.ExitCode` for BOTH STOP RUN status
-    and main-program GOBACK status, ONE run-unit termination-status mechanism. Blast radius = the `Main`/`StopRun`/
-    `ProgramReturn` path.
-- **Wave D — directives** (preprocessor → full legacy guard): `>>COBOL-WORDS` (mutates the per-unit ReservedWordSet
-  seam), `>>PUSH`/`>>POP` (directive-state stack), `>>DISPLAY` (compile-log line), `>>FLAG-14` + `>>FLAG-02`-obsolete.
-- **Wave E — EXTERNAL conformance cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63; strong-typed external,
-  CONSTANT RECORD only for strong external, cross-SELECT FILE STATUS + relative-key consistency, run-unit
-  descriptor-conflict raise).
-- **Wave F — USE FOR DEBUGGING + the DEBUG-ITEM register at `--std 85`** (X3.23-1985; retires the biggest 0899
-  staging + the golden-less DB-series NIST programs).
-- **Wave G — behavior rows** (I-O status 04/07/0x/37 + DELETE FILE '39'/goldens; VALUE numeric-edited conformance
-  34/35/36/86; MERGE-in-output-proc 27, transfer-of-control sections 33, WRITE-EOP 37, EVALUATE-directive 14,
-  ALL-length 17, case-mapping 20/49 — many pin-to-spec).
-- **Wave H — `docs/CONFORMANCE.md` DONE (`6e9d1d12`)** (the A.3 46-item disposition + §4.2.16 record + the 4
-  documented-non-support facilities catalogued). **REMAINING code half:** ONE `COBOLNET1560`-band §4.2.6
-  processor-dependent-not-supported WARNING mechanism + the recognize-and-name diagnostics for MCS
-  (SEND/RECEIVE)/commit-rollback (COMMIT/ROLLBACK)/VALIDATE/screen (SCREEN SECTION silent-drop → named warning) —
-  needs lexer/grammar recognition of those keywords (→ full legacy guard).
-- **Wave I — adversarial review** (Workflow find→verify, prior phases found ~6-7 real defects each) → phase close
-  (STATUS→DONE, resume-prompt/roadmap/DOC_INDEX/memory sweep) → merge to `main`.
-- **Diagnostic band:** Wave C consumed **1565** (NO SIGN on non-Packed), **1566** (SR31 'S'+NO SIGN), **1567**
-  (word-length ceiling), **1568** (SET SIZE SR33), **1569** (boolean-shift mixed-with-binary reject); WRITE used
-  0862 (SR17). **Next free = 1570** (verify with `grep -o 'COBOLNET15[0-9][0-9]' src`). Introduction gates use
-  COBOLNET0900; obsolete 0903.
+### ▶ THE REMAINING P13 WORK (batch by GATE type; owner directive: optimize/combine, not at the risk of accuracy)
+> **DONE 2026-07-18 (pushed through `82db4562`):** STOP/GOBACK exit-code (VCR 75) · EC-BOUND-OVERFLOW + EC-BOUND-REF-MOD
+> raise (**EC-BOUND surface CLOSED**) · Wave F USE FOR DEBUGGING + DEBUG-ITEM (VCR 7.17) · Wave G's 8 pin-to-spec
+> dispositions (VCR 22/24/78/33/37/14/17/20/49). The scout `docs/rearchitecture/PHASE-13-remaining-waves-scout.md`
+> (D–H) + `PHASE-13-wave-c-scout.md` (grammar) are the decision-complete worklists. REMAINING:
+
+- **① GRAMMAR BATCH (shared `.g4` ⇒ ONE full legacy guard — do together, batch by this gate):**
+  - **SUPPRESS WHEN on ALTERNATE RECORD KEY** (§12.4.5.6 / §14.9.51 GR41 / §14.9.30 GR21c) — indexed-file
+    per-alternate-key suppression across Write/Rewrite/ReadSequential/ReadRandom/START in `IndexedConnector`, no-DUPLICATES
+    '22' + GR27 '02' lookahead bypass. Scout `PHASE-13-wave-c-scout.md` §C6-B (decision-complete). High blast radius, IX suite.
+  - **PICTURE EDITING phrase** (§13.18.40, VCR 62) — EDITING character-1 IS/FOR NEGATIVE/POSITIVE → `PictureAnalyzer.Analyze`
+    + a sign-sensitive `CobolEdit`. ⚠ the remaining-waves scout caught: renders via **Table 9 (not 8)**, intro **E.3.3 item 19**,
+    **EDITING is a NEW 2023 reserved word** (cobolWord funnel + COBOLNET0901, like XOR/COMMIT). NO PICMODE change.
+  - **PERFORM Format 3 (exception-checking PERFORM … WHEN)** (§14.9.28.2) — staged large: 2 new tokens (FINALLY, LOCATION)
+    + a new statement + deep EC integration (GR14/GR17/GR20). PERFORM UNTIL EXIT already landed. Scout §C5.
+  - **Wave H code half** — recognize-and-name §4.2.6 non-support for MCS (SEND/RECEIVE), COMMIT/ROLLBACK, VALIDATE (today a
+    generic COBOL0001) via shared-parser keyword recognition + the COBOLNET156x-band WARNING (the SCREEN §4.2.7 warning is
+    the pattern, already landed). Batch here (shared parser). Scout Wave H.
+- **② GREENFIELD-ONLY (no legacy guard; sequential-in-one-tree, ONE comprehensive gate per batch — [[feedback_execution_model_tiered_parallel]]):**
+  - **Wave G CLASS A** — numeric-edited VALUE cluster as ONE change set (VCR 86 intro gate COBOLNET0900 · VCR 35 figurative-ZERO
+    edited-zero `DialectLevel` branch · VCR 34 SR7 class/length reject **COBOLNET1570** · VCR 36 auto-supply falls out) + MERGE-in-
+    output-proc static prohibition (VCR 27, **COBOLNET1572**) + EXCEPTION-FILE optional-arg form (VCR 68/69, COBOLNET0900) +
+    I-O status '04' (VCR 21, runtime-only, SQ blast radius — and it FIXES the corrected CONFORMANCE.md §3 '04' note). Scout Wave G decision-complete.
+  - **Wave E — EXTERNAL cluster + EC-EXTERNAL-\*** (§13.18.27, VCR 15/16/18/31/63) — strong-typed-external intro gate,
+    CONSTANT-RECORD strong-external dialect-gate, cross-SELECT FILE STATUS + relative-key consistency, run-unit
+    descriptor-conflict raise. Shares the EC hot-files ⇒ serial (no parallel worktree). Scout Wave E.
+  - **REF-MOD-ZERO-LENGTH directive** (§7.3.23) — the follow-on to the landed EC-BOUND-REF-MOD raise: the directive ALLOWS a
+    zero-length ref-mod (suppresses the raise) — add a defaulted `RefModPlace.AllowZeroLength` (low ripple) + the preprocessor
+    directive + a `ref-mod-zero-length-2023` constructs.json row (COBOLNET0900). Scout §(2).
+- **③ Wave D — directives** (preprocessor; VERIFY whether it touches the shared `.g4` → guard accordingly): `>>COBOL-WORDS`
+  (per-unit ReservedWordSet mutation), `>>PUSH`/`>>POP` (directive-state stack), `>>DISPLAY` (compile-log line), `>>FLAG-14`
+  (wire the GR4 a–l twins §7.3.15.4 to the behavior rows — the FLAG-14 twins named in Wave G land here), `>>FLAG-02`-obsolete. Scout Wave D.
+- **④ Wave I — adversarial review** (Workflow 5-lens find→verify over the P13 landed constructs — the Wave F review proved the
+  pattern; prior phases found 6–7 real defects) → fix confirmed defects → EXIT CRITERIA check → phase-close doc sweep → merge to `main`.
+- **Diagnostic band:** Wave C consumed 1565–1569; **Wave F took 1571**. **NEXT FREE = 1572** (verify
+  `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u`). Wave G CLASS A → 1570 (VCR 34) + 1572 (VCR 27). Introduction gates
+  COBOLNET0900; new-reserved-word user-word gates COBOLNET0901; obsolete 0903; §4.2.6 non-support WARNING band 1560.
 
 **Then: PHASE-14** (matrix closure + in-repo greenfield guard `scripts/guard.ps1`/`greenfield-guard` + one-time
 legacy-equivalence proof) → **PHASE-15** (G8 legacy retirement — the three cuts DELETE `CobolSharp.Compiler`/the
