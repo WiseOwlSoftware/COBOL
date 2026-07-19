@@ -12,7 +12,8 @@
 
 COBOL.NET is a **standard-conforming** COBOL implementation targeting ISO/IEC 1989:2023, with correct support for
 the 1985, 2002, and 2014 editions selected by `--std`. It implements the required nucleus and the standard modules
-except the optional/processor-dependent facilities listed as **not supported** below. Per §4.2.6, an
+except the optional/processor-dependent facilities listed as **not supported** below; the per-module
+optional-element dispositions are §5 (only Claimed/Partial rows there are claimed). Per §4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §4.2.7, an
 optional element is implemented only when support is claimed. Of the five **documented non-support
 facilities** (§4), SCREEN handling is recognized at compile time with the named COBOLNET1560 warning; MCS
@@ -146,7 +147,31 @@ band) are the tracked PHASE-13 Wave H code half, after which every row here meet
    OBJECT-COMPUTER `CHARACTER CLASSIFICATION`) currently have **no named diagnostic** — the first two are parse
    errors, the third is silently accepted; naming them is a tracked review-ledger fix (F3).
 
-## 5. Maintenance
+## 5. Annex A.4 optional-element disposition (§4.2.7)
+
+One row per A.4 optional module. **Claimed** = support is claimed (§4.2.7/A.4.1); **Partial** = the supported /
+not-supported split is itemized (the §4.2.7 second-sentence requirement); **Not claimed** = the module's syntax
+is not accepted (per A.4.1, optional-element syntax is accepted only when support is claimed — so a parse error
+or a named error is the conforming posture). This section is the user-documentation face; §1's conformance
+summary claims only what is Claimed/Partial here.
+
+| A.4 § | Module | Disposition | Note |
+|---|---|---|---|
+| A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed | The SCREEN facility (§4 item 4; COBOLNET1560 warning) |
+| A.4.3 | Commit and rollback | Not claimed | §4 item 2 |
+| A.4.4 | Dynamic capacity tables | **Claimed** | OCCURS DYNAMIC (P12 §8.5.1.9; EC-BOUND-OVERFLOW raise live) |
+| A.4.5 | DYNAMIC LENGTH elementary items | Partial | Alphanumeric live (§13.18.19, the 1561–1563 SR band); the NATIONAL dynamic-length FUNCTION LENGTH / BYTE-LENGTH runtime paths are staged loud (the P12 residue ledger) |
+| A.4.6 | Extended letters | **Claimed** | National (UTF-16) repertoire (§2 row 38) |
+| A.4.7 | File sharing and record locking | **Claimed** | SHARING/LOCK MODE/RETRY on every organization (P10 FILE-LOCK) |
+| A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed | No surface — a parse error today; a named diagnostic is a tracked P14 disposition row |
+| A.4.9 | Locale support and related functions | Not claimed | §4 item 5 (COBOLNET1518 error) |
+| A.4.10 | Object orientation optional items | Not claimed | The three OPTIONAL items only: multiple inheritance (×2 — multi-base INHERITS rejects COBOLNET0849) and parametric-polymorphism method resolution (rejected/deferred; §2 row 45 covers the supported single-dispatch resolution). The OO CORE is mandatory surface, claimed separately |
+| A.4.11 | Report Writer | Partial | Implemented: the RW nucleus incl. PRESENT WHEN + VARYING (P10 RW-2002). Staged LOUD (COBOLNET0899 band): cross-program CODE, LINE NEXT PAGE / multiple LINE, report-group OCCURS, several counter/SOURCE/SUM legs. NO grammar surface yet (tracked, the P13 grammar batch + ledger): SUPPRESS, COLUMN LEFT/CENTER/RIGHT, PAGE COLS, LAST CONTROL HEADING. The full itemization: `docs/COBOLNET_REPORT_WRITER_DESIGN.md` §5 |
+| A.4.12 | RESUME statement | **Claimed** | §14.9.33 (the EC declarative RESUME) |
+| A.4.13 | REWRITE FILE and WRITE FILE | Not claimed | No surface — a parse error today; a named diagnostic is a tracked P14 disposition row |
+| A.4.14 | VALIDATE | Not claimed | §4 item 3 |
+
+## 6. Maintenance
 
 Update this document in the same change set as any change to the supported surface (a new usage, a facility
 newly implemented or newly documented as non-support, an I-O status determination). The COBOLNET1560-band
