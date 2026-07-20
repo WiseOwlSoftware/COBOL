@@ -831,8 +831,11 @@ public sealed class IntrinsicFunctionDifferentialTests
     public void StringChannel_NumericEditedArg_DeEdits() =>
         // A numeric-edited argument inside the string channel DE-EDITS to its value (§14.9.25.4 GR5) — the
         // former context-free channel stayed loud on numeric-edited operands.
-        AssertSpec(Program("01 WS-ED PIC Z9 VALUE 34.\n01 R PIC 9(3).",
-            "    COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED)).\n    DISPLAY R."), "034");
+        // WS-ED is initialized by MOVE (not a numeric-literal VALUE, which is a COBOL-2023 feature per ISO
+        // §13.18.63 SR6 / Annex E.3.3 item 43 — invalid at the default dialect 85); the de-editing under test is
+        // edition-invariant.
+        AssertSpec(Program("01 WS-ED PIC Z9.\n01 R PIC 9(3).",
+            "    MOVE 34 TO WS-ED.\n    COMPUTE R = FUNCTION ORD(FUNCTION CHAR(WS-ED)).\n    DISPLAY R."), "034");
 
     [Fact]
     public void RefModArgument_Renders() =>

@@ -43,6 +43,7 @@ performTimes
 
 performUntil
     : (WITH? TEST (BEFORE | AFTER))? UNTIL condition
+    | UNTIL EXIT                                       // §14.9.28.4 GR11 (2023) — an infinite loop; SR8 forbids TEST here
     ;
 
 performVarying
@@ -242,21 +243,29 @@ exitStatement
 // ==========================================
 
 stopStatement
-    : STOP RUN (stopStatusPhrase)?   // status phrase introduction-gated at BIND time (StatementBinder.BindStop → Check(StopRunStatus2002))
+    : STOP RUN (statusPhrase)?   // status phrase introduction-gated at BIND time (StatementBinder.BindStop → Check(StopRunStatus2002))
     | STOP literal                     // STOP literal (Format 2, obsolete)
     ;
 
-stopStatusPhrase
-    : WITH (ERROR | NORMAL) (STATUS (dataReference | literal))?   // WITH {ERROR|NORMAL} [STATUS {id|lit}]
-    | STATUS (dataReference | literal)                             // STATUS {id|lit} (without WITH)
+// The shared run-unit-termination status phrase (ISO §14.9.42.2 STOP / §14.9.18.2 GOBACK). ONE rule referenced
+// by BOTH stopStatement and gobackStatement — annex item 32: "GOBACK … now allows the same status phrase as
+// the STOP statement" (feedback_singular_pattern). STOP-status is a 2002 introduction; GOBACK-status is 2023.
+// [WITH] {ERROR|NORMAL} [STATUS [id|lit]] — WITH is an OPTIONAL word (§5.2.3, not underlined); exactly one of the
+// underlined keywords ERROR/NORMAL is REQUIRED (§14.9.42.2/§14.9.18.2 brace group); the STATUS keyword introduces
+// the optional operand (the operand is bracketed = optional). The former rule wrongly required WITH, bound STATUS
+// to its operand, and admitted a keyword-less `STATUS operand` (P13 Wave-I review findings 1/2/3).
+statusPhrase
+    : WITH? (ERROR | NORMAL) (STATUS (dataReference | literal)?)?
     ;
 
 // ==========================================
 // CONTINUE / NEXT SENTENCE (§14.9.9, §14.9.19)
 // ==========================================
 
+// CONTINUE [AFTER arithmetic-expression-1 SECONDS] (ISO §14.9.9). Plain CONTINUE is a 1985-continuous no-op;
+// the AFTER … SECONDS timed-pause phrase is a COBOL-2023 addition (introduction-gated on the phrase, not the verb).
 continueStatement
-    : CONTINUE
+    : CONTINUE (AFTER arithmeticExpression SECONDS)?
     ;
 
 nextSentenceStatement

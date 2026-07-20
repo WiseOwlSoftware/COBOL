@@ -402,32 +402,27 @@ internal sealed class StringStatementBinder
         if (ctx.stringOnOverflow() is { } ovCtx)
         {
             var impStmts = ovCtx.statementBlock();
-            bool isNotOnly = ovCtx.NOT() != null && impStmts.Length == 1;
-            if (isNotOnly)
+            // Since 2026-07-19 the NOT-LED arm may carry TWO blocks (`NOT ON OVERFLOW b1 (ON OVERFLOW b2)?`)
+            // — ISO 5.2.6.4's choice indicators permit both phrases in either order. The old
+            // `NOT() != null && Length == 1` test cannot distinguish which phrase came first (a forward-order
+            // pair also has a NOT token), so the LEADING TOKEN is the discriminator.
+            bool notFirst = ovCtx.Start?.Type == CobolParserCore.NOT;
+            var first = notFirst ? notOnOverflow : onOverflow;
+            var second = notFirst ? onOverflow : notOnOverflow;
+            if (impStmts.Length >= 1)
             {
                 foreach (var stmt in impStmts[0].statement())
                 {
                     var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notOnOverflow.Add(bound);
+                    if (bound != null) first.Add(bound);
                 }
             }
-            else
+            if (impStmts.Length >= 2)
             {
-                if (impStmts.Length >= 1)
+                foreach (var stmt in impStmts[1].statement())
                 {
-                    foreach (var stmt in impStmts[0].statement())
-                    {
-                        var bound = _ctx.BindStatement(stmt);
-                        if (bound != null) onOverflow.Add(bound);
-                    }
-                }
-                if (impStmts.Length >= 2)
-                {
-                    foreach (var stmt in impStmts[1].statement())
-                    {
-                        var bound = _ctx.BindStatement(stmt);
-                        if (bound != null) notOnOverflow.Add(bound);
-                    }
+                    var bound = _ctx.BindStatement(stmt);
+                    if (bound != null) second.Add(bound);
                 }
             }
         }
@@ -507,23 +502,17 @@ internal sealed class StringStatementBinder
         if (ctx.unstringOnOverflow() is { } ovCtx2)
         {
             var impStmts2 = ovCtx2.statementBlock();
-            bool isNotOnly2 = ovCtx2.NOT() != null && impStmts2.Length == 1;
-            if (isNotOnly2)
+            // Same leading-token discriminator as STRING above (ISO 5.2.6.4 — either order, since 2026-07-19).
+            bool notFirst2 = ovCtx2.Start?.Type == CobolParserCore.NOT;
             {
-                foreach (var stmt in impStmts2[0].statement())
-                {
-                    var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notOnOverflow.Add(bound);
-                }
-            }
-            else
-            {
+                var first2 = notFirst2 ? notOnOverflow : onOverflow;
+                var second2 = notFirst2 ? onOverflow : notOnOverflow;
                 if (impStmts2.Length >= 1)
                 {
                     foreach (var stmt in impStmts2[0].statement())
                     {
                         var bound = _ctx.BindStatement(stmt);
-                        if (bound != null) onOverflow.Add(bound);
+                        if (bound != null) first2.Add(bound);
                     }
                 }
                 if (impStmts2.Length >= 2)
@@ -531,7 +520,7 @@ internal sealed class StringStatementBinder
                     foreach (var stmt in impStmts2[1].statement())
                     {
                         var bound = _ctx.BindStatement(stmt);
-                        if (bound != null) notOnOverflow.Add(bound);
+                        if (bound != null) second2.Add(bound);
                     }
                 }
             }

@@ -20,7 +20,9 @@ public sealed class CorpusRunnerTests
     private sealed record Manifest(IReadOnlyList<string> Enabled, IReadOnlyList<string> Pending);
 
     private static readonly string Root = Path.Combine(EditionHarness.RepoRoot(), "tests", "conformance");
-    private static readonly string[] EditionDirs = ["2002", "2014", "2023"];
+    // 85 carries the X3.23-1985-only goldens (the USE FOR DEBUGGING / DEBUG-ITEM facility, VCR 7.17 — a REMOVAL
+    // gate whose ACCEPT edition is 85); 2002/2014/2023 carry the post-85 introductions.
+    private static readonly string[] EditionDirs = ["85", "2002", "2014", "2023"];
 
     private static Manifest Load(string dir)
     {
@@ -32,6 +34,7 @@ public sealed class CorpusRunnerTests
 
     /// <summary>Every on-disk .cob is manifest-listed (enabled ⊕ pending) — nothing silently undiscovered.</summary>
     [Theory]
+    [InlineData("85")]
     [InlineData("2002")]
     [InlineData("2014")]
     [InlineData("2023")]

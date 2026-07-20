@@ -3,6 +3,9 @@
   "enabled": [
     "arithmetic_standard_decimal",
     "corresponding_rounded_mode",
+    "external_constant_record",
+    "external_file_status_below",
+    "external_relative_key_below",
     "dyn_capacity_bounds",
     "dyn_capacity_read",
     "dyn_capacity_set",
@@ -16,6 +19,7 @@
     "dynamic_length_figurative",
     "dynamic_length_item",
     "dynamic_length_limit",
+    "ec_bound_overflow",
     "float_binary",
     "formatted_datetime",
     "func_expr_arg",
@@ -23,7 +27,8 @@
     "options_paragraph",
     "propagate_directive",
     "rounded_mode_prohibited",
-    "rounded_modes"
+    "rounded_modes",
+    "external_constant_record_weak_type"
   ],
   "pending": []
 }

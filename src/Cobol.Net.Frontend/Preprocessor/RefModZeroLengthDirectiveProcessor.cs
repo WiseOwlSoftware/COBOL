@@ -1,0 +1,82 @@
+// Copyright (c) 2026 Brent Rector. All rights reserved.
+// Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Editions;
+using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Diagnostics;
+
+namespace CobolNet.Frontend.Preprocessor;
+
+/// <summary>One <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> directive toggle (ISO/IEC 1989:2023 §7.3.23), anchored to its
+/// 1-based line in the FINAL preprocessed text — directly comparable to an ANTLR token's <c>Start.Line</c>. The
+/// compile-time <see cref="Binding.RefModZeroLengthState"/> folds these to decide whether a reference modification
+/// on a given line ALLOWS a zero-length result (§8.4.3.3.4 item 5c).</summary>
+/// <param name="Line">The directive's 1-based line in the final preprocessed text. A directive applies to the
+/// text that FOLLOWS it (the <c>&gt;&gt;TURN</c> GR5 discipline); a directive occupies its own whole line after
+/// free-form normalization, so the fold is strict <c>Line &lt; siteLine</c>.</param>
+/// <param name="On">ON (zero-length allowed) vs OFF (the §7.3.23.3 GR1 default — a zero-length ref-mod raises
+/// EC-BOUND-REF-MOD).</param>
+public sealed record RefModZeroLengthEvent(int Line, bool On);
+
+/// <summary>
+/// The COBOL.NET <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> directive stage (ISO §7.3.23; greenfield-only — the legacy
+/// pipeline keeps consuming the directive via <see cref="ConditionalCompilationProcessor"/>'s
+/// <c>KnownIgnoredDirectives</c>): parses each surviving <c>&gt;&gt;REF-MOD-ZERO-LENGTH {ON | OFF}</c> line of the
+/// FINAL preprocessed text into a <see cref="RefModZeroLengthEvent"/>, edition-gates the directive (the
+/// introduction gate — §7.3.23 is a COBOL-2023 addition, Annex E.3.3 item 23 — routed through the ONE
+/// <see cref="ConstructRegistry"/> so the message is single-sourced and the construct enters the version matrix),
+/// and blanks the line (line-count preserving, so every later token line number is stable — the <c>&gt;&gt;TURN</c>
+/// H3 discipline).
+/// </summary>
+public static class RefModZeroLengthDirectiveProcessor
+{
+    private const string Keyword = "REF-MOD-ZERO-LENGTH";   // 19 characters
+
+    /// <summary>Process <paramref name="text"/>: collect the toggle events, edition-gate + syntax-check each
+    /// directive, blank the directive lines. At <paramref name="dialectLevel"/> &lt; 2023 the directive is the
+    /// four-compilers introduction diagnostic (COBOLNET0900), never silently ignored. Line-count preserving.</summary>
+    public static (string Text, IReadOnlyList<RefModZeroLengthEvent> Events) Process(
+        string text, int dialectLevel, bool permissive, DiagnosticBag diagnostics, string sourcePath)
+    {
+        if (!text.Contains(">>", StringComparison.Ordinal)) return (text, []);
+        var lines = text.Split('\n');
+        List<RefModZeroLengthEvent>? events = null;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            string trimmed = lines[i].TrimEnd('\r').TrimStart();
+            if (!trimmed.StartsWith(">>", StringComparison.Ordinal)) continue;
+            string body = trimmed[2..].TrimStart();
+            if (!body.StartsWith(Keyword, StringComparison.OrdinalIgnoreCase)
+                || (body.Length > Keyword.Length && !char.IsWhiteSpace(body[Keyword.Length]))) continue;
+
+            var loc = new SourceLocation(sourcePath, 0, i, 0);
+
+            // Introduction gate (§7.3.23 is a COBOL-2023 addition): reject below 2023 via the ONE ConstructRegistry
+            // (COBOLNET0900). Check is a no-op at 2023+ (Available). Single-sources the message + version-matrix row.
+            ConstructRegistry.Check(EditionInfo.Of(dialectLevel, permissive), new BagSink(diagnostics, loc),
+                Constructs.RefModZeroLength2023, ">>REF-MOD-ZERO-LENGTH directive");
+
+            // §7.3.23.2: >> REF-MOD-ZERO-LENGTH { ON | OFF }, OFF the underlined default. Record a well-formed toggle;
+            // a malformed operand is the syntax diagnostic (never a silent accept).
+            string operand = body.Length > Keyword.Length ? body[Keyword.Length..].Trim().ToUpperInvariant() : "";
+            if (operand is "ON" or "OFF")
+                (events ??= []).Add(new RefModZeroLengthEvent(i + 1, operand == "ON"));
+            else
+                // The Id comes from the catalog descriptor, never a bare literal — a bare "COBOLNET1573" here
+                // collided with the later catalog-allocated external-file-status-consistency (review finding C1).
+                diagnostics.ReportError(Editions.Diagnostics.DiagnosticCatalog.RefModZeroLengthMalformedOperand.Code,
+                    $">>REF-MOD-ZERO-LENGTH expects the ON or OFF phrase (ISO §7.3.23.2), not '{operand}'", loc, default);
+            lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)
+        }
+        return (string.Join('\n', lines), (IReadOnlyList<RefModZeroLengthEvent>?)events ?? []);
+    }
+
+    /// <summary>Bridges the ONE <see cref="ConstructRegistry"/> edition funnel's <see cref="EditionDiagnostic"/>
+    /// onto this stage's <see cref="DiagnosticBag"/> — the frontend's first registry-driven directive gate (the
+    /// parse layer captures the message; a preprocessor stage reports it directly at the directive's line).</summary>
+    private sealed class BagSink(DiagnosticBag bag, SourceLocation loc) : IDiagnosticSink
+    {
+        public void Report(in EditionDiagnostic d) => bag.Report(d.Code,
+            d.Severity == EditionSeverity.Error ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning,
+            d.Message, loc, default);
+    }
+}

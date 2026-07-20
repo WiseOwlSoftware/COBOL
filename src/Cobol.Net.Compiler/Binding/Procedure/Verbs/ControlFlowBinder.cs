@@ -22,7 +22,8 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
     public BoundStatement BindStop(Core.StopStatementContext stop)
     {
         // STOP RUN … WITH STATUS (§14.9.42) is a COBOL-2002 introduction; the edition gate (StopRunStatus2002)
-        // moved to the post-bind VersionConformancePass (Step 14d), reading BoundStop.HasStatusPhrase.
+        // lives in the post-bind VersionConformancePass (Step 14d), reading the PARSE tree (ctx.statusPhrase()).
+        // The status VALUE → process-exit-code wiring is decoded here into BoundStop.Status (§14.9.42.4 GR5).
         // §8.8.3.3 GR3: a concatenation expression stands anywhere a literal of its class may — fold a
         // STOP literal-1 concat to the equivalent single literal before decoding (GetText on the whole
         // literal context would glue the operands and mis-decode).
@@ -30,7 +31,33 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
             ? new BoundStopLiteral(slit.nonNumericLiteral()?.concatenationExpression() is { } ce
                 ? ConcatFolder.Fold(ce, ctx.Edition, ctx.Data.Collating).Value
                 : CobolLiteral.Decode(slit.GetText()))
-            : new BoundStop { HasStatusPhrase = stop.stopStatusPhrase() is not null };
+            : new BoundStop(BindTerminationStatus(stop.statusPhrase()));
+    }
+
+    /// <summary>Decode a shared <c>statusPhrase</c> (<c>WITH? (ERROR|NORMAL) (STATUS (dataReference|literal)?)?</c>,
+    /// ISO §14.9.42.2 / §14.9.18.2) into a <see cref="TerminationStatus"/>, or null when the phrase is absent. The
+    /// ERROR/NORMAL keyword is mandatory when the phrase is present; the STATUS value operand is optional (§14.9.42.4
+    /// GR5 / §14.9.18.4 GR10 — an integer literal or a display/national/integer data item, bound as a numeric
+    /// expression). Shared by STOP RUN and GOBACK (the same grammar rule).</summary>
+    internal TerminationStatus? BindTerminationStatus(Core.StatusPhraseContext? sp)
+    {
+        if (sp is null) return null;
+        BoundExpr? value = sp.dataReference() is { } d ? host.Expr.BindExpr(d)
+            : sp.literal() is { } l ? host.Expr.BindExpr(l)
+            : null;
+        return new TerminationStatus(sp.ERROR() is not null, value);
+    }
+
+    /// <summary>CONTINUE [AFTER arithmetic-expression-1 SECONDS] (ISO §14.9.9). Plain CONTINUE is a 1985-continuous
+    /// no-op (<see cref="BoundNop"/>). The AFTER … SECONDS timed-pause phrase (COBOL-2023, introduction-gated on the
+    /// phrase by the VersionConformancePass) binds to a <see cref="BoundContinueAfter"/>. Whether
+    /// EC-CONTINUE-LESS-THAN-ZERO checking is enabled at this statement is captured from the TurnState NOW (a bound
+    /// node carries no parse line), so the runtime raises the nonfatal exception (GR1b) only under CHECKING ON.</summary>
+    public BoundStatement BindContinue(Core.ContinueStatementContext cont)
+    {
+        if (cont.arithmeticExpression() is not { } secs) return new BoundNop();   // plain CONTINUE — a §14.9.9 no-op
+        bool checkLtz = ctx.EcState.Turn.Enabled("EC-CONTINUE-LESS-THAN-ZERO", null, cont.Start.Line);
+        return new BoundContinueAfter(host.Expr.BindExpr(secs), checkLtz);
     }
 
     public BoundStatement BindGoTo(Core.GoToStatementContext g)
@@ -45,7 +72,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
                 if (ctx.Table.ResolveProcedure(n) is not { } range) return new BoundUnsupported($"GO TO unknown procedure '{n.GetText()}'{host.OoScopeHint}");
                 targets.Add(range.Start);
             }
-            return new BoundGoToDepending(host.Expr.FieldOperand(sel), targets);
+            return new BoundGoToDepending(host.Expr.FieldOperand(sel), targets, g.Start.Line);
         }
         if (names.Length == 0) return host.Alter.AlterBindBareGoTo(g);   // the 85-only target-less GO TO (ALTER subsystem)
         if (ctx.Table.ResolveProcedure(names[0]) is not { } target)
@@ -55,7 +82,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
 
     public BoundStatement BindExit(Core.ExitStatementContext e)
     {
-        if (e.PARAGRAPH() is not null) return new BoundExitParagraph();
+        if (e.PARAGRAPH() is not null) return new BoundExitParagraph(e.Start.Line);
         if (e.PERFORM() is not null) return new BoundExitPerform(e.CYCLE() is not null);
         if (e.PROGRAM() is not null)   // §14.9.14 GR2/GR3 — CONTINUE in a non-called program, return-to-caller in a called one (runtime-contextual)
         {
@@ -115,7 +142,7 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         else if (start > end)
             return new BoundNop();   // PERFORM of an EMPTY section runs nothing (no first statement, ISO §14.9.28)
 
-        return new BoundOutOfLinePerform(start, end, BindPerformControl(p));
+        return new BoundOutOfLinePerform(start, end, BindPerformControl(p), p.Start.Line);
     }
 
     /// <summary>Bind the OPTIONAL control phrase (TIMES / UNTIL / VARYING) of a PERFORM. Per ISO §14.9.28 the phrase
@@ -131,6 +158,10 @@ internal sealed class ControlFlowBinder(BinderContext ctx, StatementBinder host)
         if ((p.performTimes() ?? opt?.performTimes()) is { } t) return new PerformTimes(CountOperand(t));
         if ((p.performUntil() ?? opt?.performUntil()) is { } u)
         {
+            // UNTIL EXIT (§14.9.28.4 GR11, 2023): an infinite loop (a condition that never becomes true). The
+            // grammar gives EXIT its own alternative, so SR8's "no TEST with EXIT" is structural; escape is the
+            // programmer's job (inline: EXIT PERFORM; out-of-line: GOBACK/STOP). Introduction-gated in the pass.
+            if (u.EXIT() is not null) return new PerformForever();
             // The UNTIL condition is evaluated per iteration (§14.9.28 GR6/GR13), so a user-function
             // reference inside it activates per evaluation — the drained-suffix wrapper, never the
             // once-per-statement hoist (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).

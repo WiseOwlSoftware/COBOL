@@ -31,6 +31,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
     private readonly List<OoMethodScope?> _paraMethod = [];   // per-pc owning method (parallel to _paras; the
                                                               // ambient CURRENT scope lives on Ctx — 10s)
 
+    private readonly List<int> _paraLine = [];   // per-pc source line (parallel to _paras) — the X3.23-1985
+                                                 // DEBUG-LINE register value for a debug-subject procedure (VCR 7.17)
+
     // ── Procedure table (paragraphs + sections, ISO §14.4.3 / §8.4.2.2) ─────────────────────────────────────
 
     /// <summary>Register one paragraph (name + uniquified method key + its sentences) at the next pc. Inside a
@@ -49,7 +52,25 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         section?.Paras.TryAdd(name, _paras.Count); // in-section map for qualified / same-section resolution
         _paraSection.Add(section);
         _paraMethod.Add(ctx.CurrentMethodScope);
+        _paraLine.Add(sentences.Length > 0 ? sentences[0].Start.Line : 0);   // DEBUG-LINE source line (VCR 7.17)
         _paras.Add((name, method, sentences));
+    }
+
+    /// <summary>Add the ISO §14.4.3 paragraph-name-OMITTED paragraph — "one or more successive sentences
+    /// following the procedure division header or a section header". It takes a pc like any other paragraph so
+    /// the dispatcher executes it, but it is DELIBERATELY registered in NO name map: having no paragraph-name it
+    /// can never be the target of PERFORM / GO TO (§8.4.2.2 resolves procedure-NAMES only), and inventing a
+    /// synthetic name would make it referenceable and collide with a user word. The display name carries spaces
+    /// so it is not a well-formed COBOL word; the C# method name is generated independently.</summary>
+    public void AddAnonymousParagraph(Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
+    {
+        if (sentences.Length == 0) return;
+        string method = "P__Anon";
+        for (int n = 2; !used.Add(method); n++) method = $"P__Anon_{n}";
+        _paraSection.Add(section);
+        _paraMethod.Add(ctx.CurrentMethodScope);
+        _paraLine.Add(sentences[0].Start.Line);
+        _paras.Add(("(sentences without a paragraph-name)", method, sentences));
     }
 
     public void CollectParagraphs(Core.ProcedureDivisionContext pd)
@@ -64,6 +85,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 DeclCollectSection(sec, used);
         _entryPc = _paras.Count;
 
+        // §14.4.3 — sentences written directly after the PROCEDURE DIVISION header, with no paragraph-name.
+        // They form the first nondeclarative paragraph, so they must take the ENTRY pc (execution begins with
+        // the first nondeclarative procedure, §14.2.3 GR1) — hence before the procedureUnit walk.
+        AddAnonymousParagraph(pd.sentence(), null, used);
+
         foreach (var unit in pd.procedureUnit())
         {
             if (unit.paragraphDefinition() is { } para)
@@ -74,12 +100,21 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
                 // statement of its first paragraph through last statement of its last (ISO §14.9.28).
                 var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
+                // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
+                // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
+                AddAnonymousParagraph(section.sentence(), info, used);
                 foreach (var p in section.paragraphDefinition())
                     AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
                 info.EndPc = _paras.Count - 1;
                 _sections.TryAdd(info.Name, info);
             }
         }
+
+        // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): resolve the debug SUBJECTS now that every
+        // nondeclarative procedure is in the pc space — the ALL PROCEDURES / procedure-name legs bind to real
+        // trigger points; the data-name / file-name / cd-name subject kinds and the SORT/MERGE cause taxonomy
+        // are staged loud (COBOLNET1571). No-op unless WITH DEBUGGING MODE collected a debug declarative.
+        FinalizeDebug(pd);
     }
 
     /// <summary>Resolve a procedure-name reference to its inclusive pc range (ISO §8.4.2.2): a section name is its
@@ -153,11 +188,15 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             // X3.23-1985 USE FOR DEBUGGING (the '85 debug facility, deleted by ISO 2002 — 0902-gated ≥2002 by
             // the version-conformance pass, VCR Table 7 row 7.17). Accepted-inert at 85 per the '85 rules: WITHOUT
             // SOURCE-COMPUTER … WITH DEBUGGING MODE the whole debugging section is compiled as if it were
-            // comment lines (skip it — nothing binds, its names leave the pc space); WITH the switch the
-            // section IS compiled, but the object-time debug switch (implementor-defined) is permanently OFF
-            // here, so no trigger ever fires (scope stays null — no BoundDeclarative). The DEBUG-ITEM register
-            // family is not implemented (the full debug facility is deferred with the golden-less DB series).
+            // comment lines (skip it — nothing binds, its names leave the pc space). WITH the switch the section
+            // IS compiled and, with the object-time switch ON (RunUnit.DebugMode default true — the CCVS posture),
+            // its ON procedure-name / ALL PROCEDURES triggers fire (the DEBUG-ITEM register family is modeled).
+            // The section body is collected below (an ordinary pc range invoked by the emitted __RunDebug, not a
+            // BoundDeclarative — scope stays null); FinalizeDebug records the subjects once every procedure is in.
             if (!ctx.Data.DebuggingModeDeclared) return;
+            ctx.Data.ActivateDebugRegisters();   // make DEBUG-* references resolvable while this section binds
+            _pendingDebug.Add((info, use));      // info.EndPc is filled after the body is collected below
+            // fall through to collect the section body into the pc space (scope stays null — no BoundDeclarative)
         }
         else
             scope = DeclBindUse(use, name);
@@ -179,6 +218,117 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
             _declaratives.Add(new BoundDeclarative(
                 name, info.StartPc, info.EndPc, DeclHandlerEndPc(sec, info), s.Files, s.ModeIndex, s.Global, s.Report,
                 s.EcEntries, s.EoClassCsName));
+    }
+
+    // ── X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17) ────────────────────────────────────────────────
+    // The debug declaratives collected under WITH DEBUGGING MODE (section info + the USE statement), pending
+    // subject resolution once every nondeclarative procedure is in the pc space (FinalizeDebug).
+    private readonly List<(SectionInfo Section, Core.UseStatementContext Use)> _pendingDebug = [];
+    private readonly List<BoundDebugSubject> _debugSubjects = [];
+
+    /// <summary>The X3.23-1985 debug-facility trigger subjects (VCR Table 7 row 7.17) — each a nondeclarative
+    /// procedure whose entry the emitter instruments to populate DEBUG-ITEM and run the debugging declarative;
+    /// empty unless a procedure-subject USE FOR DEBUGGING was collected under WITH DEBUGGING MODE.</summary>
+    public IReadOnlyList<BoundDebugSubject> DebugSubjects => _debugSubjects;
+
+    /// <summary>Resolve the collected debug declaratives to trigger SUBJECTS now that the whole pc space exists
+    /// (X3.23-1985 debug module, VCR Table 7 row 7.17). <c>ALL PROCEDURES</c> and a bare procedure-name bind to
+    /// real trigger points at NONdeclarative procedures (a debugging declarative is never debugged — the '85
+    /// ALL PROCEDURES exclusion, DB101A "USE PROCEDURE NOT EXECUTED"). The data-name (incl. ALL REFERENCES OF),
+    /// file-name, and cd-name subject kinds are STAGED — rejected loud COBOLNET1571 (their after-statement /
+    /// after-I-O trigger insertion and the DEBUG-SUB subscript rendering are not modeled). A SORT/MERGE INPUT/
+    /// OUTPUT procedure that is also a debug subject is likewise staged (the SORT INPUT/OUTPUT/MERGE OUTPUT
+    /// DEBUG-CONTENTS cause is not modeled — rejecting avoids a silent wrong cause).</summary>
+    private void FinalizeDebug(Core.ProcedureDivisionContext pd)
+    {
+        if (_pendingDebug.Count == 0) return;
+        foreach (var (section, use) in _pendingDebug)
+        {
+            foreach (var t in use.useDebugTarget())
+            {
+                if (t.PROCEDURES() is not null)          // ALL PROCEDURES → every nondeclarative procedure
+                {
+                    for (int pc = _entryPc; pc < _paras.Count; pc++)
+                        AddDebugSubject(pc, section);
+                }
+                else if (t.REFERENCES() is not null)     // ALL REFERENCES OF identifier-1 → data-name subject (staged)
+                {
+                    ctx.Edition.Error("COBOLNET1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
+                        + "ON ALL REFERENCES OF a data item (the after-statement data trigger with DEBUG-CONTENTS/"
+                        + "DEBUG-SUB rendering) is recognized but not modeled — only ON procedure-name / ALL "
+                        + "PROCEDURES is implemented (X3.23-1985 debug module; VCR Table 7 row 7.17)");
+                }
+                else if (t.dataReference() is { } dr)    // bare name: procedure-name, else file/data/cd (staged)
+                {
+                    string nm = dr.cobolWord()?.GetText() ?? dr.GetText();
+                    if (dr.dataReferenceSuffix().Length == 0 && _paraIndex.TryGetValue(nm, out int ppc))
+                        AddDebugSubject(ppc, section);                       // procedure-name (paragraph)
+                    else if (dr.dataReferenceSuffix().Length == 0 && _sections.TryGetValue(nm, out var psec))
+                        for (int pc = psec.StartPc; pc <= psec.EndPc; pc++)  // procedure-name (section → its paragraphs)
+                            AddDebugSubject(pc, section);
+                    else
+                        ctx.Edition.Error("COBOLNET1571", $"declarative section '{section.Name}': USE FOR DEBUGGING "
+                            + $"ON '{nm}' names a file-name, cd-name, or data item (not a procedure-name of this "
+                            + "program) — only the ON procedure-name / ALL PROCEDURES leg is modeled; the file / "
+                            + "data / communication debug triggers are not (X3.23-1985 debug module; VCR Table 7 row 7.17)");
+                }
+            }
+        }
+
+        // A SORT/MERGE INPUT/OUTPUT procedure that is also a debug subject would trigger with a stale cause — the
+        // SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS taxonomy is not modeled. Reject loud rather than emit a
+        // silent wrong cause (X3.23-1985; the DB2xx SORT/MERGE witnesses are staged).
+        if (_debugSubjects.Count > 0)
+        {
+            var subjectPcs = _debugSubjects.Select(s => s.SubjectPc).ToHashSet();
+            foreach (var (name, rng) in SortMergeProcedureRanges(pd))
+                if (Enumerable.Range(rng.Start, rng.End - rng.Start + 1).Any(subjectPcs.Contains))
+                {
+                    ctx.Edition.Error("COBOLNET1571", $"the SORT/MERGE {name} PROCEDURE is also a USE FOR "
+                        + "DEBUGGING subject: the SORT INPUT/OUTPUT / MERGE OUTPUT DEBUG-CONTENTS cause is not "
+                        + "modeled (only the plain-transfer / fall-through / PERFORM-loop / START-PROGRAM causes "
+                        + "are) — X3.23-1985 debug module; VCR Table 7 row 7.17");
+                    break;
+                }
+        }
+    }
+
+    /// <summary>Record one debug trigger subject (the subject pc's name + source line + the debugging section's
+    /// invokable pc range) — deduplicated so a procedure named twice does not double-fire.</summary>
+    private void AddDebugSubject(int pc, SectionInfo section)
+    {
+        if (pc < 0 || pc >= _paras.Count) return;
+        if (_debugSubjects.Any(s => s.SubjectPc == pc)) return;
+        _debugSubjects.Add(new BoundDebugSubject(
+            pc, _paras[pc].Cobol, _paraLine[pc], section.StartPc, section.EndPc));
+    }
+
+    /// <summary>The pc range of each SORT/MERGE INPUT/OUTPUT PROCEDURE in the procedure division (for the debug
+    /// SORT/MERGE-overlap staging check). Resolves the phrase's procedure-name(s) via the ordinary procedure
+    /// table (THRU forms span first..last).</summary>
+    private List<(string Kind, (int Start, int End) Range)> SortMergeProcedureRanges(
+        Core.ProcedureDivisionContext pd)
+    {
+        var results = new List<(string, (int, int))>();
+        void Add(string kind, Core.ProcedureNameContext[] pns)
+        {
+            if (pns.Length == 0) return;
+            if (ResolveProcedure(pns[0]) is not { } first) return;
+            var last = pns.Length > 1 ? ResolveProcedure(pns[^1]) : first;
+            if (last is { } l) results.Add((kind, (first.Start, l.End)));
+        }
+        void Walk(Antlr4.Runtime.Tree.IParseTree node)
+        {
+            switch (node)
+            {
+                case Core.SortInputProcedurePhraseContext ip: Add("INPUT", ip.procedureName()); return;
+                case Core.SortOutputProcedurePhraseContext op: Add("OUTPUT", op.procedureName()); return;
+                case Core.MergeOutputProcedurePhraseContext mo: Add("OUTPUT", mo.procedureName()); return;
+            }
+            for (int i = 0; i < node.ChildCount; i++) Walk(node.GetChild(i));
+        }
+        Walk(pd);
+        return results;
     }
 
     /// <summary>One USE statement's bound trigger scope: Format 1's files/mode (+GLOBAL), Format 2's report

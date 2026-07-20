@@ -55,10 +55,40 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     private BoundBoolExpr BindBoolAnd(Core.BooleanAndTermContext ctx)
     {
-        var factors = ctx.booleanFactor();
-        BoundBoolExpr acc = BindBoolFactor(factors[0]);
-        for (int i = 1; i < factors.Length; i++)
-            acc = MakeBoolBinary(acc, '&', BindBoolFactor(factors[i]));
+        var terms = ctx.booleanShiftTerm();
+        BoundBoolExpr acc = BindBoolShift(terms[0]);
+        for (int i = 1; i < terms.Length; i++)
+            acc = MakeBoolBinary(acc, '&', BindBoolShift(terms[i]));
+        return acc;
+    }
+
+    /// <summary>Bind a boolean shift term (ISO §8.8.2 rule 8, COBOL-2023): a boolean factor followed by zero or more
+    /// <c>(B-SHIFT-L|R|LC|RC) integer</c> suffixes, left-associative. Rule 5 — the first operand of a shift shall not
+    /// be the figurative ALL literal (COBOLNET1511). The 2023 introduction is gated in the VersionConformancePass
+    /// parse arm (HasShiftOp), so no binder-side gate here (the boolean-operators precedent).</summary>
+    private BoundBoolExpr BindBoolShift(Core.BooleanShiftTermContext shift)
+    {
+        BoundBoolExpr acc = BindBoolFactor(shift.booleanFactor());
+        // Rule 7b (§8.8.2): a shift's precedence is that of the operator IMMEDIATELY TO ITS LEFT — context-sensitive,
+        // not a fixed tier. The fixed booleanShiftTerm tier realizes the UNMIXED default correctly, but a shift at the
+        // SAME level as a binary boolean operator (B-AND/B-OR/B-XOR — i.e. its enclosing chain has >1 operand) would
+        // be silently mis-grouped. Reject that loudly (LOUD-not-silently-wrong); the user parenthesizes to
+        // disambiguate. A parenthesized shift starts a fresh booleanExpression, so its chain is single-operand here.
+        if (shift.booleanShiftSuffix().Length > 0 && ShiftMixedWithBinary(shift))
+            ctx.Edition.Error("COBOLNET1569", "a boolean shift operator (B-SHIFT-L/R/LC/RC) combined with a binary "
+                + "boolean operator (B-AND/B-OR/B-XOR) in the same expression is not supported — its precedence is "
+                + "context-sensitive (ISO §8.8.2 rule 7b); parenthesize the shift operand to disambiguate");
+        foreach (var suf in shift.booleanShiftSuffix())
+        {
+            var kind = suf.B_SHIFT_LC() is not null ? BoolShiftKind.LeftCircular
+                     : suf.B_SHIFT_RC() is not null ? BoolShiftKind.RightCircular
+                     : suf.B_SHIFT_L() is not null ? BoolShiftKind.Left
+                     : BoolShiftKind.Right;
+            if (acc is BoundBoolAll)
+                ctx.Edition.Error("COBOLNET1511", "the first operand of a boolean shift operation shall not be the "
+                    + "figurative constant ALL literal (ISO §8.8.2 rule 5)");
+            acc = new BoundBoolShift(acc, kind, host.Expr.BindExpr(suf.arithmeticExpression()));
+        }
         return acc;
     }
 
@@ -73,6 +103,15 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (ctx.booleanExpression() is { } paren) return BindBoolExpr(paren);
         return BindBoolOperandValue(ctx.valueOperand());
     }
+
+    /// <summary>True when this shift term sits at the same precedence level as a binary boolean operator — its
+    /// enclosing B-AND chain has &gt;1 shift term, or the XOR chain &gt;1 AND term, or the OR chain &gt;1 XOR term.
+    /// Parentheses start a fresh <c>booleanExpression</c>, so a parenthesized shift's chains are single-operand here
+    /// and it is (correctly) not flagged (§8.8.2 rule 7b context-sensitivity).</summary>
+    private static bool ShiftMixedWithBinary(Core.BooleanShiftTermContext shift) =>
+        (shift.Parent is Core.BooleanAndTermContext a && a.booleanShiftTerm().Length > 1)
+        || (shift.Parent?.Parent is Core.BooleanXorTermContext x && x.booleanAndTerm().Length > 1)
+        || (shift.Parent?.Parent?.Parent is Core.BooleanExpressionContext e && e.booleanXorTerm().Length > 1);
 
     /// <summary>Rule 4 (§8.8.2 :9364): both operands of a binary boolean op shall not both be ALL "literal".</summary>
     private BoundBoolExpr MakeBoolBinary(BoundBoolExpr left, char op, BoundBoolExpr right)
@@ -146,6 +185,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundBoolRef r => r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.Pic?.Length ?? 0,
         BoundBoolBinary b => System.Math.Max(Gr3Width(b.Left), Gr3Width(b.Right)),
         BoundBoolNot n => Gr3Width(n.Operand),
+        BoundBoolShift s => Gr3Width(s.Operand),   // rule 9 — result length = the FIRST operand (the count adds none)
         _ => 0,   // literals / ALL / error contribute no ITEM width
     };
 
@@ -182,6 +222,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         BoundBoolRef r => (r.Place is RefModPlace ? RefModLen(r.Place) : r.Place.Item.Pic?.Length ?? 0) == 1,
         BoundBoolBinary b => BoolExprAllLengthOne(b.Left) && BoolExprAllLengthOne(b.Right),
         BoundBoolNot n => BoolExprAllLengthOne(n.Operand),
+        BoundBoolShift s => BoolExprAllLengthOne(s.Operand),   // shift preserves length (rule 9)
         BoundBoolAll => true,   // positionless — materializes to the sibling's length
         _ => true,              // error nodes already reported
     };
@@ -259,9 +300,10 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (xor.Length != 1) return null;
         var and = xor[0].booleanAndTerm();
         if (and.Length != 1) return null;
-        var fac = and[0].booleanFactor();
-        if (fac.Length != 1) return null;
-        return UnwrapFactor(fac[0]);
+        var shift = and[0].booleanShiftTerm();
+        // A bare operand has a single shift term with NO shift suffix (a shift op means it is a real expression).
+        if (shift.Length != 1 || shift[0].booleanShiftSuffix().Length != 0) return null;
+        return UnwrapFactor(shift[0].booleanFactor());
     }
 
     private static Core.ValueOperandContext? UnwrapFactor(Core.BooleanFactorContext f)

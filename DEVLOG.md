@@ -13,6 +13,1523 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 932 — 2026-07-20 01:30 PDT — 151 normative sentences were cut in half by page breaks; and Annex A.1's documentation obligation was never tracked
+
+Owner instruction: *"Read the actual spec on fixed-form. I suspect the compiler simply ignores characters past
+column 72."* Correct — and reading it properly overturned my own justification and exposed a v1.0 conformance gap.
+
+**§6.3.1 says margin R is IMPLEMENTOR-DEFINED.** *"The rightmost character position of the program-text area is a
+fixed position defined by the implementor."* The standard does **not** mandate column 72; characters beyond
+margin R are not an error, they are simply outside the program-text area (§6.3.4 — comment-text likewise runs
+only "up to margin R"). ISO 2023 has **no "identification area"** at all; that was a COBOL-85 card-image
+convention I had asserted from memory in a code comment. §6.3.2 further: the sequence number area is optional and
+*"may consist of any character"* — so my `seqOk` digits-or-blank test is itself a heuristic, not a spec rule. The
+column-72 veto still stands, but as a DETECTION heuristic justified by OUR margin R, not as a rule of the
+standard. Comment corrected to say so.
+
+**THE GAP THAT FOUND: Annex A item 158** — *"Reference format (rightmost character position of program-text
+area). This item is **required**. This item **shall be documented** in the implementor's user documentation."* We
+did not document it. And it is not isolated: **A.1 lists 222 implementor-defined elements — 164 required, 26
+conditionally required, 29 optional — of which 199 carry the shall-be-documented obligation**, and
+`docs/CONFORMANCE.md` had **no A.1 section at all** (it covers A.3 and A.4 only). D13 defines "100% conforming" as
+the mandatory core complete **plus every required implementor documentation item**, so those 199 are part of the
+definition of done and nothing was tracking them. Opened `CONFORMANCE.md §7` with item 158 written in full;
+registered the remaining 198 as **§11 row A11**, scheduled into P14 Step 0 (A.1 rows ARE inventory rows). Per D15
+this is registered, not crammed into P13 — but it is conformance-BLOCKING, not tidiness.
+
+**Then: "Fix the markdown where pagebreaks alter the context."** At every printed page boundary the transcription
+injects `--- / <a id="page-N"> / ## Page N / # ISO/IEC 1989:2023 (E)`. Where a boundary fell MID-SENTENCE that
+block landed *inside* a rule, splitting one sentence into two paragraphs with ~6 lines of furniture between them.
+**151 normative sentences were broken this way** — §4.2.7 (*"the elements that are supported and those that
+are"* ‖ *"not supported"*), §7.2 COPY REPLACING (*"the entire REPLACING phrase"* ‖ *"operand that precedes the
+reserved word BY"*), §4.2.9, §8.x, §12.3.6, §13.x. A reader who stops at the break gets half a rule — the exact
+mechanism behind the C5 PERFORM inversion that reached an owner escalation earlier in this work.
+
+Repaired to a fixpoint over four passes (`scripts/fix_spec_pagebreaks.py`, committed). Conservative by
+construction: joins only when the first half lacks terminal punctuation AND the second begins lowercase AND
+neither side is a heading/anchor/table/fence/list item. **The DRY RUN caught a corrupting bug before it applied**
+— the running header has three transcribed shapes (`# ISO/IEC…`, `**ISO/IEC…**`, and BARE `ISO/IEC…`), and the
+first matcher missed the bare form, so on page 53 it would have spliced the header string into the middle of the
+§4.2.7 conformance rule. A hard assertion now makes that class impossible to land silently. Given I had already
+shipped two silent-tooling failures this session, applying unseen was not an option.
+
+Integrity verified rather than assumed: **anchors 1261 → 1261** (they are load-bearing — `render-spec-page.py`
+and the figure audit map markdown lines to PDF pages through them), A.1 still 222 items numbered 1..222, item 158
+intact, zero furniture spliced into prose. Four detector hits deliberately NOT joined: the §8.9 reserved-word
+LIST, whose entries legitimately lack terminal punctuation.
+
+**Also restored A.4.3 "Commit and Rollback"** — a page break had demoted it from a `##` heading to bold text and
+stripped its section anchor, which is why my first heading scan reported it "missing". Its five items were
+present and correct all along; only the heading was lost. Swept for the pattern: it was the only instance.
+
+**Correction to Entry 931's framing:** I reported "91 required-documented items" from a regex that silently failed
+on entries straddling page breaks. The true figures are above (222 / 199). Same lesson as the harness: a count
+produced by a pattern that can fail silently is not a measurement.
+
+## Entry 931 — 2026-07-20 00:40 PDT — The GnuCOBOL corpus lands and immediately finds TWO systemic bugs our whole battery was blind to
+
+The owner pulled PHASE-14 Step 13 forward: retrieve the GnuCOBOL testsuite and run it through COBOL.NET,
+because "they should identify places where we got the grammar wrong." They did, within minutes of the harness
+working — and the harness itself taught the sharper lesson.
+
+**THE INFRASTRUCTURE** (committed `fb6538b4`): `fetch-gnucobol-tests.ps1` (GnuCOBOL 3.2 pinned, SHA256-verified,
+into the git-ignored tree) · `gnucobol_extract.py` (a bracket-balanced m4/autotest parser — regex cannot do it,
+the quoting nests; validated at **1346 groups / 3503 checks / ZERO extraction failures**) ·
+`gnucobol_differential.py`. Licensing per the owner's ruling: their SOURCE and EXPECTED OUTPUT never leave the
+ignored tree; short factual group TITLES and KEYWORDS are citable identification, which is what makes the ledger
+usable for triage.
+
+**⛔ MY HARNESS FABRICATED 1046 FINDINGS, AND I RELAYED THEM.** The first run reported
+`WE_REJECT_THEY_ACCEPT = 1046, AGREE_ACCEPT = 0`. I noted in passing that it was "almost certainly my harness"
+and then, one paragraph later, narrated it as though the paragraph-less bug "explained the 1046". It explained
+none of it: aggregating the error text showed **all 1046 were `<<RUNNER-ERROR FileNotFoundError>>`** — on
+Windows, `subprocess.run` with a relative forward-slash path raises WinError 2 even though `os.path.exists()` is
+True, so the compiler was never invoked once. My `except Exception → we_ok = False` laundered a dead harness into
+a thousand plausible "compiler rejects legal COBOL" findings. **That is the exact defect class I have spent this
+session hunting — a wrong answer that looks like a finding — reproduced inside my own instrument.** Two hardening
+changes: a harness failure now returns a distinct `RUNNER_ERROR` verdict rather than a compiler verdict, and the
+run **ABORTS LOUDLY above 5% harness failures** because past that every downstream number is noise.
+`AGREE_ACCEPT = 0` against 1323 real programs is not a plausible result for any compiler and I should have
+stopped there.
+
+**BUG 1 — we rejected PARAGRAPH-LESS procedure divisions.** §14.4.3: a paragraph is a paragraph-name plus
+sentences *"or, if the paragraph-name is omitted, one or more successive sentences following the procedure
+division header or a section header."* Our grammar had **no alternative for it at all** — every `procedureUnit`
+had to open with a paragraph or section name. Adding `sentence*` made such programs PARSE and then silently
+produce NO OUTPUT, because `ProcedureTableBuilder` walks `procedureUnit()` and never saw them — the
+parse-but-drop class, worse than rejecting. So the binder half was required too: `AddAnonymousParagraph` takes a
+pc so the dispatcher runs it but is registered in **NO name map** — having no paragraph-name it must not be a
+PERFORM/GO TO target (§8.4.2.2 resolves procedure-NAMES), and a synthetic name would both make it referenceable
+and risk colliding with a user word. Wired at all three sites (PD header, SECTION header, method PDs); verified
+by execution, including `PERFORM S1` correctly entering a section whose first paragraph is unnamed.
+
+**BUG 2 — we rejected fixed-form COMMENT LINES when the sequence area is blank.** `IsFixedForm` REQUIRED a
+numeric sequence area:
+```csharp
+return totalLines > 0 && hasNumericSequence && fixedIndicators * 100 / totalLines > FixedFormThresholdPercent;
+```
+Columns 1–6 are OPTIONAL (§6.2.1 — they "may be used to label a source line"). With them blank the file was
+classified **FREE**-form, where a `*` in column 7 is not a comment indicator but a stray token — so an ordinary
+comment line became a syntax error. Now either signal suffices: a numeric sequence area **OR** a real column-7
+indicator glyph, both still behind the same structural ratio that keeps genuinely free-form source (code at
+column 1 ⇒ letters in cols 1–6 ⇒ `seqOk` fails) out of the fixed branch. Verified against all three shapes.
+
+**WHY BOTH HID FOR SO LONG — the same root cause.** NIST/CCVS is punched-card-era source: it *always* fills the
+sequence area and *always* writes paragraph names. Our entire regression net inherited that shape, so 3701
+conformance + 313 unit + 33 characterization + 667 legacy + 350 NIST tests are ALL green and ALL blind to both.
+An in-house corpus cannot find what the in-house corpus's own conventions conceal. This is the whole argument for
+Campaign B, demonstrated on day one.
+
+**MEASURED IMPACT** (same corpus, three runs): harness fixed → `AGREE_ACCEPT 412`; +paragraph-less fix and
++reference-format fix → **`AGREE_ACCEPT 477`, `WE_REJECT_THEY_ACCEPT 634 → 569`**. Agreement 44% → 49% of 1323.
+
+**WHAT REMAINS, AND HOW TO READ IT.** GnuCOBOL's default dialect is ISO **plus extensions** and the suite pins an
+ISO edition on only ~63 groups, so `WE_REJECT_THEY_ACCEPT` is *not* a bug list — the long tail is visibly
+vendor surface we are RIGHT to reject (`BINARY-INT`, `COMP-6`, `ASSIGN EXTERNAL`, `DISPLAY UPON ENVIRONMENT`,
+JSON/XML GENERATE → our COBOL0313). The higher-confidence direction is **`WE_ACCEPT_THEY_REJECT = 107`**
+(6 of them ISO-PINNED): source GnuCOBOL's *permissive* default refused and we accepted — prime "our grammar is
+too lax" leads, needing no dialect adjudication first. That is the next triage front.
+
+## Entry 930 — 2026-07-19 23:30 PDT — A self-inflicted "regression", and the guard gets run isolation
+
+The guard reported `IX216A: DIFF` / `IX217A: DIFF` after the paired-phrase repair. Chasing it properly took
+three steps and produced a real infrastructure fix.
+
+**First, a process mistake of mine.** I ran `dotnet build` while `guard.sh` was in flight — the exact thing
+[[feedback_run_guard_script]] forbids, because the NIST leg *executes the binary it just built*. Rebuilding swaps
+`cobolsharp.dll`/`CobolSharp.Runtime.dll` mid-loop, so early tests use compiler A and later ones compiler B. I
+killed that run rather than trust its verdict, and truncated its output with `tail -30`, losing the failing test
+name — so the re-run cost a full 20 minutes to recover information I had already had and thrown away.
+
+**Then the diagnosis, which required not assuming either way:**
+1. Stash my changes → rebuild at HEAD → recompile IX216A → **matches the golden**. So NOT pre-existing.
+2. Restore my changes → rebuild → recompile → **also matches**. So NOT caused by my edits.
+3. Therefore: run conditions. **`TaskStop` kills the wrapper but not its child `dotnet` processes**, which kept
+   writing into the shared `tests/nist/output/`. The replacement run's start-clean `rm -f *.txt` raced against
+   those stragglers — and IX216A/IX217A are precisely the absent-OPTIONAL-file tests that assert status 05
+   ("not present, created"), so *any* stray file fails them. They are named in `guard.sh`'s own comment as the
+   canaries for exactly this, and IX is in the §3 guard-flake class.
+
+Both intermediate conclusions would have been wrong if taken alone: the first run's verdict was contaminated,
+and "baseline is green" does not by itself acquit a change.
+
+**THE FIX — run isolation in `guard.sh` (~30 lines, no fork).** Forking a second `guard-isolated.sh` was
+rejected outright: two mechanisms for one job, in the one script where silent divergence between copies would be
+worst. Instead the NIST leg now snapshots the built compiler + the NIST inputs into a per-run temp dir
+(`GUARD_WORK`, `GUARD_KEEP=1` to retain for post-mortem) and does all work there. This closes both failure modes:
+- the executing binary can no longer be swapped by a concurrent build, so **the "no source edits" window shrinks
+  from the whole ~20-minute run to just the build phase**;
+- `tests/nist/output/` is no longer shared, so overlapping runs — including stragglers from a killed one —
+  cannot corrupt each other.
+Cost: a ~40 MB copy, a few seconds. Verified by running it: **=== ALL GREEN ===**, which simultaneously confirms
+the paired-phrase repair is safe and that the new mechanism works.
+
+**A performance number worth having** (the owner asked about turnaround): the isolated guard runs
+`real 20m6s / user 1m22s / sys 9m38s`. **20 minutes of wall clock for ~11 minutes of CPU** — the NIST loop is
+sequential, one program at a time, and it dominates the comprehensive gate far more than the 14-minute
+Conformance suite does. Parallelising that loop (it is already partitioned by producer/consumer chains, which is
+what makes it non-trivial) is the real lever; `scripts/guard-run-group.sh` suggests the grouping already exists.
+Recorded rather than acted on — it is not on the P13 close-line.
+
+Also honest: I over-gated. Plan §3 prescribes wave-local (~2–3 min) per change and comprehensive **once per
+batch**; I ran the full comprehensive gate plus full NIST guard for a single change set, twice. Batching the
+remaining grammar work under one comprehensive gate is free time back.
+
+## Entry 929 — 2026-07-19 20:55 PDT — The paired-phrase repair: 13 rules fixed, and the codebase already contained the answer
+
+Item 0 of the close-line. Before touching anything I re-derived each claimed defect from the *corrected* diagrams
+and CLI-probed it — and that discipline paid, because **three of my own automated scan's hits were false
+positives**:
+
+- **`searchAtEndClause` — NOT a bug.** The corrected SEARCH figures (Formats 1 and 2) show only
+  `[ AT END imperative-statement-1 ]` — a plain bracket, and **no `NOT AT END` at all**. Our grammar *accepts*
+  one, so this is over-permissiveness, not a missing form. It sits beside an existing NIST/IBM `END`-without-`AT`
+  leniency arm, so it is plausibly deliberate; left alone and recorded rather than "fixed" on a bad premise.
+- **`exceptionPhrase` / `onExceptionPhrase` / `notOnExceptionPhrase` — DEAD.** Defined in `CobolParserCore.g4`,
+  referenced by nothing. Deleted — and worth deleting rather than leaving, because `exceptionPhrase` modelled the
+  pair as an *exclusive one-of-two*, i.e. it was a loaded gun: wiring it up would have reintroduced exactly the
+  defect being repaired.
+- **`readAtEnd` — a bug my scan MISSED**, because its body reads `AT? END` rather than the literal `AT END` my
+  regex required. Found by widening the pattern. A reminder that a scan tuned to the examples you already know is
+  a scan that finds only those.
+
+**The codebase already contained the correct shape.** `returnAtEndPhrase` in `Core/CobolIO.g4` reads:
+```antlr
+returnAtEndPhrase
+    : AT? END statementBlock (NOT AT? END statementBlock)?
+    | NOT AT? END statementBlock (AT? END statementBlock)?     // ← the reversed arm every sibling lacked
+    ;
+```
+with a comment citing *"ISO §14.9.34.3 SR4: the AT END and NOT AT END phrases may be written in REVERSED order."*
+RETURN happens to be the one statement where the standard states the any-order rule **in prose** rather than
+leaving it to the figure's choice-indicator bars — so it got implemented correctly, and the other twelve did not.
+That is the whole defect in miniature: **the rule was only ever learned where the prose said it out loud.** The
+fix is therefore not an invention but a generalization of an in-repo precedent — [[feedback_singular_pattern]]
+applied to a rule that had one correct instance and twelve wrong ones.
+
+**Repaired (13 rules):** `arithmeticOnSizeError` (⇒ ADD ×2, SUBTRACT ×2, MULTIPLY, DIVIDE) · `computeOnSizeError`
+(×2) · `readAtEnd` · `readInvalidKey` · `writeAtEndOfPage` · `writeInvalidKey` · `rewriteInvalidKeyPhrase` ·
+`deleteInvalidKeyPhrase` · `deleteFileOnException` · `startInvalidKeyPhrase` · `stringOnOverflow` ·
+`unstringOnOverflow` · and CALL, which needed a new `callExceptionPhrases` **container** rule because its two
+phrases were two independently-optional slots on `callStatement` (`callOnExceptionPhrase? callNotOnExceptionPhrase?`)
+— syntactically order-fixed even though each was individually optional. Four of these (`readAtEnd`,
+`writeAtEndOfPage`, `deleteFileOnException`, and CALL's container) also gained the previously-missing
+negative-only form.
+
+The CALL container change propagated to **three** consumers in one change set per [[feedback_no_transitional_hacks]]
+— the greenfield `CallBinder`, the legacy `CallBinder`, and `VersionConformancePass`'s `VisitCallStatement`
+(which reads `OVERFLOW()` off both phrases for the CallOnOverflowRemoved2023 gate). The build caught all three
+immediately, which is the exhaustive-dispatch property working as designed.
+
+**Verified by running, not by reading.** All three originally-proven rejections now compile; the forward-order
+control still compiles; and semantics are pinned: a reversed-order `ADD` on a non-overflowing value takes the
+`NOT` branch and on an overflowing value takes the `ON` branch — the written order does not change which
+condition selects which phrase.
+
+**Goldens** (`tests/conformance/85/`, edition-invariant since '85): `phrase_order_arithmetic` covers all five
+arithmetic statements in reversed order with both the overflow and non-overflow case per statement (8 assertions);
+`phrase_order_overflow` covers STRING and UNSTRING. One good catch while pinning the second: I expected
+`UNS-NOT` and got `UNS-ON`. The compiler was right and my expectation was wrong — `UNSTRING "AB,CD,EFG" … INTO`
+two receivers leaves `"EFG"` unexamined, which is precisely §14.9.48 GR15(b)'s overflow condition. Checked the
+rule before pinning rather than after, per [[feedback_diff_is_a_bug]]; the comment now carries the citation.
+
+Corpus runner green at 288. The comprehensive gate (full Conformance + unit + characterization + the FULL legacy
+integration suite, then `scripts/guard.sh`) is running — mandatory here because the change is to shared `.g4`
+consumed by both compilers.
+
+## Entry 928 — 2026-07-19 20:25 PDT — All 226 spec diagrams reproduced from the PDF; the transcription is now trustworthy for syntax
+
+The prose-figure pass finished, and both halves of the audit are now applied (`specs` submodule `763a521`).
+
+**The combined census.**
+
+| | prose figures | code blocks | total |
+|---|---|---|---|
+| diagrams checked | 195 | 49 | 244 |
+| defective | 83 | 31 | 114 |
+| DECISION-CHANGING | 28 | 20 | 48 |
+| printed figures with choice indicators | 27 | 19 | 46 |
+| …where the transcription dropped the bars | 25 (93%) | 18 (95%) | 43 (93%) |
+
+Of the two prose survivors, one drew the bars but *described* them as an exclusive one-of-three choice — so the
+correct "one or more, any order" semantics survived in **1 of 27 figures (4%)**. The rollup's finding is the one
+that matters: the loss "always fails in the same direction — toward **falsely restrictive** syntax (legal source
+made to look illegal)." That is exactly the bug class proved in 927, and it means the defect is *uniform*: our
+compiler's failures from this cause will all be wrongful rejections, never wrongful acceptances. That is at least
+a benign direction for a compiler — you find out loudly — but it is invisible to a corpus authored from the same
+source.
+
+**Beyond the bars**, 28 further prose figures had structural defects: braces rendered as brackets and vice versa
+(required-vs-optional inverted), invented outer brackets, ellipses bound to the wrong delimiter pair, and — worst
+— whole trailing phrases simply truncated. Two of those truncations land directly on live work: **STRING's entire
+`ON OVERFLOW` / `NOT ON OVERFLOW` group with its `END-STRING`**, and **PERFORM Format 3's `WHEN OTHER` / `FINALLY`
+/ `END-PERFORM` lines**. The latter is the construct the C5 research packet was designed from — which retro-
+explains a chunk of that packet's confusion, including its inverted GO TO / RESUME reading. C5 must be re-derived
+against the corrected figure before any of it is implemented.
+
+**Applied:** 226 replacements (195 figures + 31 code blocks), zero skipped. Diagrams carrying choice-indicator
+bars go from **1 → 46**, matching the 27+19 census exactly — a good independent check that the apply landed
+correctly rather than smearing. Every reproduction now carries a `> **Figure notes**` block naming the underlined
+words and, where bars exist, stating plainly what they permit, so a future reader skimming prose cannot lose the
+structure again. Both passes also confirmed genuine NEGATIVES (RECEIVE `CONTINUE AFTER`, EVALUATE subjects, OPEN,
+INSPECT tallying/replacing, CLOSE, INVOKE, TRIM, …) where bars are truly absent and must not be added — the census
+is measured, not sprayed.
+
+A mechanical note worth keeping: the first apply attempt was wrong. I applied the 195 figure replacements, then
+went to apply the 31 code-block fixes — whose line numbers had been computed against the *original* file and were
+now all shifted. Caught it before committing, reverted, merged both lists into ONE descending-by-line pass. The
+lesson generalizes: **two independently-computed apply-lists over the same file must be merged and sorted
+together, never applied in sequence.**
+
+Still open from this thread: the six unverified compiler cross-check items (DISPLAY `AT LINE/COLUMN` ordering,
+PROGRAM-ID `COMMON`+`INITIAL`, INSPECT `AFTER`+`BEFORE INITIAL`, SORT `FOR ALPHANUMERIC`+`FOR NATIONAL`,
+INITIALIZE multi-category, screen SIGN optionality), the ten paired-phrase grammar rules to repair, and the
+`>>TURN` owner question from 925.
+
+## Entry 927 — 2026-07-19 20:05 PDT — The diagram audit found REAL COMPILER BUGS: 95% of choice indicators lost, and we reject legal COBOL because of it
+
+The code-block half of the diagram audit finished, and it converted a documentation-hygiene task into a genuine
+bug hunt. **The compiler rejects source the standard permits, and the defect traces directly to the transcription.**
+
+**THE CENSUS.** 49 fenced code-block diagrams; **19 carry choice indicators in the printed standard; the markdown
+preserved them in exactly ONE** (PICTURE Format 1 — the one I had already fixed by hand). **18 of 19 lost — a 95%
+loss rate**, 17 of them decision-changing. That single surviving instance is why a corpus-wide grep for `|` in
+these blocks returned a count of 1, which is what tipped me off. Fourteen of the losses are the positive/negative
+conditional-phrase pair (`ON SIZE ERROR`/`NOT`, `ON EXCEPTION`/`NOT`) — precisely the case where a markdown-only
+reader concludes the standard forbids writing both branches. The agents also confirmed genuine NEGATIVES (13
+diagrams where bars really are absent and must NOT be added: RECEIVE `CONTINUE AFTER`, EVALUATE subjects, OPEN,
+INSPECT tallying/replacing, CLOSE, INVOKE, TRIM, …), so this is a measured census, not bar-spraying.
+
+**THE BUGS — proven by CLI probe against the built compiler, not by reading.** Ten paired-phrase grammar rules
+exist, and they split into two defect classes:
+
+*Class 1 — wrong ORDER rejected (all ten rules).* Every one is shaped `X … (NOT X …)? | NOT X …`, which admits
+`ON`-then-`NOT` and each alone, but **not** `NOT`-then-`ON`. §5.2.6.4 is explicit that choice-indicator
+alternatives "may be specified in **any order**." Proven:
+```
+ADD 1 TO A  NOT ON SIZE ERROR DISPLAY "OK"  ON SIZE ERROR DISPLAY "SZ"  END-ADD.
+→ error COBOL0001: no viable alternative at input 'ON'
+```
+The forward order compiles clean. Same for COMPUTE. Via `arithmeticOnSizeError`/`computeOnSizeError` this reaches
+**ADD (both forms), SUBTRACT (both), MULTIPLY, DIVIDE, COMPUTE (both)** — every arithmetic statement — plus the
+six I/O rules (`readInvalidKey`, `writeInvalidKey`, `rewriteInvalidKeyPhrase`, `deleteInvalidKeyPhrase`,
+`startInvalidKeyPhrase`).
+
+*Class 2 — the NOT-alone form MISSING ENTIRELY (three rules).* `notOnExceptionPhrase` (`CobolParserCore.g4:1148`),
+`searchAtEndClause` (`CobolControlFlow.g4:137`), and `deleteFileOnException` (`CobolIO.g4:442`) have no `| NOT …`
+arm at all, so the negative-only form cannot be written. Proven:
+```
+DELETE FILE F  NOT ON EXCEPTION DISPLAY "GONE"  END-DELETE.
+→ error COBOL0001: no viable alternative at input 'NOT'
+```
+Control: the same shape on ADD (which *does* have the arm) compiles — so the probe method is sound.
+
+**Why this matters beyond the fix.** These are not obscure corners; `ON SIZE ERROR` on arithmetic and
+`INVALID KEY` on I/O are everyday COBOL. A real program written in the legal-but-unusual order would be rejected
+by our compiler with a parse error blaming the wrong token. And nothing in the markdown's *rule text* hints at it
+— §14.9.1 and friends never restate phrase ordering, because the ordering lives entirely in the FIGURE. Only the
+printed page carries it. This is the strongest possible evidence for the standing rule adopted in 926: when a
+general-format diagram is load-bearing, render the PDF.
+
+Also worth recording: this class of bug is invisible to the whole existing battery. 3699 conformance tests, 313
+unit, 33 characterization, 167 legacy — all green at HEAD, none writes `NOT ON SIZE ERROR` before
+`ON SIZE ERROR`, because the corpus was written against the same defective understanding. **A test suite derived
+from a defective spec cannot detect the defect.** The negative-corpus discipline does not help either, since this
+is legal source we wrongly reject rather than illegal source we wrongly accept.
+
+Fix plan: repair the 10 rules to the each-at-most-once/any-order shape (with a duplicate-phrase diagnostic, since
+"only once" is also normative), land the 31 corrected code-block diagrams, and add conformance goldens covering
+the reversed order and the negative-only form for every affected statement. The prose-figure pass (195 figures)
+is still running; its apply list lands with the same change set. Evidence:
+`docs/rearchitecture/evidence/PHASE-13-spec-codeblock-repair.json` (incl. a 14-item compiler cross-check list —
+the remaining items still to verify are DISPLAY `AT LINE/COLUMN` ordering, PROGRAM-ID `COMMON`+`INITIAL`,
+INSPECT `AFTER`+`BEFORE INITIAL`, SORT `FOR ALPHANUMERIC`+`FOR NATIONAL`, INITIALIZE multi-category, and the
+screen-section SIGN clause optionality). OPEN multi-mode was probed and is CORRECT.
+
+## Entry 926 — 2026-07-19 19:40 PDT — The markdown spec's syntax DIAGRAMS are lossy: root cause, the first fix, a render helper, and a full 195-figure audit
+
+Following the fork adjudication (925), the owner directed checking the canonical PDF, then clarified the concern
+precisely: **no content is omitted from `specs/ISO_COBOL.md` — the loss is in the DIAGRAMS, and we should fix
+them.** That reframes 925's incidental discovery into a work item.
+
+**Root cause established.** The PDF's text layer is encoded with a custom font mapping and extracts as pure
+mojibake — `get_text()` on any page returns runs like `'\x0c\x16\x12Ȁ\x0c\x08\x06\x03ͳͻͺͻǣʹͲʹ͵'`, and a search
+for *"TURN directive shall not"* across all 1261 pages returns **zero** hits despite the sentence being plainly
+present. So the markdown was necessarily produced by **OCR of rendered page images**. Prose rule text survived
+that process faithfully (verified — several apparent garbles are in the printed standard too, and must not be
+"corrected"). **General-format syntax diagrams did not survive**: rather than being transcribed as diagrams they
+were replaced by English prose beginning `> **Figure: …`, and that prose silently drops structure.
+
+**Mapping established:** the markdown's `<a id="page-N">` anchors correspond **1:1** to PDF pages — 1261 anchors,
+1261 pages, and the anchor immediately preceding the PICTURE figure is `page-471` while the figure is on PDF page
+471. Offset zero. That makes every figure mechanically checkable.
+
+**First fix landed** (submodule `7af5cd0`), verified by rendering page 471 at 600 dpi and looking at it:
+- **DECISION-CHANGING** — the Format 1 `EDITING` … `FOR` group's **choice-indicator bars** were dropped. The
+  prose read *"a left curly brace containing two stacked options: NEGATIVE IS literal-2 (top) and POSITIVE IS
+  literal-3 (bottom)"*, which denotes an exclusive either/or. The printed figure encloses the pair in `| |`, and
+  per 5.2.6.4 bars inside braces mean *"one or more … but any single alternative only once … in any order."* So
+  one FOR phrase may carry NEGATIVE, POSITIVE, or **both**.
+- **STRUCTURAL** — the prose invented a second square bracket where the figure has a brace. True nesting is
+  `[ EDITING character-1 { IS literal-1 / FOR {| … |} } ] …`.
+
+The first defect is the sharpest possible illustration of why this matters: **that one dropped pair of bars
+manufactured a spec ambiguity out of nothing**, which propagated into a research packet, survived two adversarial
+verification lenses, was escalated to me as an owner-decision-grade fork, and was one step from consuming an owner
+decision on a question the standard answers plainly. No amount of careful *reasoning* over the markdown could have
+caught it — only looking at the printed page could.
+
+**Added `scripts/render-spec-page.py`** (page N == anchor page-N → PNG at any dpi). This is now the standing
+method whenever a general-format diagram is load-bearing, recorded in memory as
+[[feedback_spec_diagrams_render_pdf]].
+
+**In flight:** a 14-agent pass over all **195** prose-described figures (137 distinct pages), partitioned one
+worklist file per agent per [[feedback_workflow_agent_dispatch]], grading each OK / COSMETIC / STRUCTURAL /
+DECISION-CHANGING and emitting a corrected rendering for every defect. Its rollup answers the question that
+decides the remediation strategy: **is the loss systematic?** If choice indicators are dropped everywhere they
+occur, the transcription needs regenerating, not patching — and every prior spec-derivation that leaned on a
+figure becomes suspect and needs re-checking.
+
+## Entry 925 — 2026-07-19 19:20 PDT — Fork adjudication: 4 of 5 claimed "owner decisions" dissolved into spec, three ISO drafting defects found, and a new standing rule about the OCR'd spec
+
+The owner ruled that PICTURE EDITING (C4) and PERFORM Format 3 (C5) STAY in the grammar batch and their spec
+forks get adjudicated now (so D16's close-line stands, unchanged). Before spending owner decisions I checked the
+verifiers' framing against the ISO text — and the very first fork was **misattributed**: §13.18.40.3 SR9 requires
+the EDITING phrase's literal-1/2/3 to be *"national literals"* or *"alphanumeric literals"*, and a figurative
+constant is a distinct category (§8.3.3.6). So C4 has no figurative-length question at all — it needs an SR9
+*reject* — and the fork actually belongs to **C6B SUPPRESS WHEN**, whose §12.4.5.6.3 SR7 does admit figuratives.
+Had I relayed the packet as written, the owner would have adjudicated a question about the wrong construct.
+
+An 11-agent adjudication pass then read each fork against the standard and adversarially re-read every
+conclusion. **Four of five dissolved into spec; one genuine fork survives**, and it is low-stakes:
+
+- **C4 repeated IS-form character-1 — LEGAL.** Editing rules 3 and 5 *partition* character-1: with literal-1
+  specified it is a **simple insertion** symbol, so SR24's *"for fixed insertion with editing sign control
+  symbols"* scope never reaches it. Killed twice over — SR25 independently makes SR24 count EDITING *phrases*.
+  `PIC 9G9G9 EDITING "G" IS "<>"` is legal; size is per occurrence (3 + 2×2 = 7).
+- **C4 both NEGATIVE and POSITIVE in one FOR phrase — YES.** Settled by **rendering the printed Format-1 figure
+  at 600 dpi**: it carries the §5.2.6.4 choice-indicator bars that our markdown transcription dropped. The
+  "fork" was an artifact of OCR loss, not of the standard.
+- **C4 may the IS form FLOAT — NO** (the FOR form does). Editing rule 6's floating-symbol list is closed, and
+  proved *selective* by CR/DB's absence from it.
+- **C5 FINALLY on the fatal path — DOES NOT RUN.** §14.9.28.4 GR16 makes FINALLY definitionally *the end of the
+  PERFORM*, which runs iff control reaches it. Emit plain sequential code, never a C# `finally`. Six-case table
+  agreed by both readers.
+- **C6B figurative suppression literal — replicates to the key's length** (§8.3.3.6.4 GR2, whose NOTE 1 makes
+  *"compared with"* an association). The strict counter-reading was closed off by observing it would make GR2
+  the empty set, since MOVE itself has no statement-local length rule.
+
+**Three defects in the STANDARD ITSELF** were identified, and they get recorded rather than silently coded
+around — otherwise a future maintainer "fixes" the compiler back to wrong behavior: (a) §13.18.40.3 SR12
+sentence 1 mislabels the IS form a *"fixed editing sign control symbol"*, a term-of-art collision GR14 exposes;
+(b) §13.18.40.6's precedence borrow, applied literally, would outlaw both `LLLL` and any picture pairing 'X'
+with character-1 — repealing GR7/GR10 — so it resolves in favour of editing rule 6; (c) §14.9.28.4 GR18 has two
+consecutive contradictory sentences and a malformed cross-reference (*"General rule 14.9.29"* for *"General rule
+20"*); implement GR18 as GR20.
+
+**The adversarial re-read earned its keep in a way I did not expect.** It changed the *grounds* but not the
+outcome on four of five — and in three of those the first reader's stated rationale was simply WRONG and would
+have misled the next maintainer ("rule 3 alone resolves it"; "Table 10 never governs repetition"; "§8.8.4.2.7(2)
+is unreachable, assert on it"). The last was **behavior-changing**: it would have shipped a live defect rejecting
+the legal `SUPPRESS WHEN "AB"` on a longer key. Lesson recorded: when a verification pass agrees with a verdict,
+check whether it agrees with the *reasoning* — a right answer held for a wrong reason is a latent defect.
+
+**New standing rule for this repo:** trust `specs/ISO_COBOL.md` for RULE TEXT (verified faithful — several
+apparent garbles are in the printed standard too), but **render the PDF page image whenever a general-format
+DIAGRAM is load-bearing**. Figure choice-indicator bars do not survive transcription, and that loss alone
+manufactured an entire owner-decision-grade fork.
+
+Remaining for the owner: exactly one question — whether a `>>TURN` written inside imperative-statement-1 of a
+format-3 PERFORM should draw a suppressible diagnostic (§7.3.25.3 SR5 read flat vs narrow). Runtime semantics are
+identical either way; only the diagnostic differs. Evidence at
+`docs/rearchitecture/evidence/PHASE-13-spec-fork-adjudication.json`.
+
+## Entry 924 — 2026-07-19 19:00 PDT — The grammar-batch research pass: 7 decision-complete specs, and all 14 adversarial verdicts came back NEEDS-CORRECTION
+
+Baseline battery confirmed green at `6d6c655d` and matching §0 exactly (Conformance **3699** · unit **313** ·
+characterization **33** · legacy **167**, zero failures) — so the §0 numbers are not stale, and source edits are
+cleared.
+
+Then the research pass for the grammar batch: a 22-agent workflow (2.83M tokens, 0 errors, ~27 min) producing a
+decision-complete implementation spec per construct, each then verified by **two independent adversarial lenses** —
+SPEC FIDELITY (independently re-read the ISO text; hunt omitted formats/rules/tables, paraphrased-not-verbatim
+quotes, wrong edition attribution) and CODE REALITY (open every cited `file:line`; hunt already-implemented
+duplication, ANTLR DFA hazards, project-invariant violations).
+
+**All 14 verdicts returned NEEDS-CORRECTION.** Not one spec survived clean. That is the headline: a single-pass
+research fan-out — which is what I would have shipped without the verify stage — would have put real defects into
+every one of the seven constructs. The verification cost roughly half the tokens and paid for itself several times
+over. Representative catches:
+
+- **C5 PERFORM Format 3 — a straight spec inversion, in BOTH directions.** The design *builds* the GO TO path that
+  §14.9.17.3 SR3 flatly forbids ("A GO TO statement shall not be specified in a WHEN phrase of an exception-checking
+  PERFORM statement") — the `return TargetPc` handler path and the whole `>=0` protocol arm exist for it — while
+  *excluding* `RESUME AT NEXT STATEMENT`, which §14.9.33.3 SR1 expressly permits, on the strength of an openQuestion
+  that admits §14.9.33 was never read. Separately: `TurnState.Empty` is a process-wide **static singleton** returned
+  whenever a group has no `>>TURN` (the common case), so pushing scope frames onto it leaks state across compilation
+  units and across parallel test compilations.
+- **VF4 VALUE Format 2 — the fix would have broken its own headline golden.** It confirms a *live* silent-data-
+  corruption bug (`VALUE 1 2 3` binds `123` with zero diagnostics at every edition today), but wrote the initial
+  capacity into `OccursSpec.InitialCap` — which is "FROM integer-4, the minimum capacity", used by the runtime as a
+  permanent FLOOR. The Annex D.3.7 town-record example would have had its *minimum* set to 3, silently clamping a
+  later SET to 1. Needs a distinct `ValueInitialCap` field.
+- **C6B SUPPRESS WHEN — a false current-state claim that collapsed the risk argument.** "alternateKeyClause is not
+  shared" is flatly false: it is referenced from BOTH `CobolIO.g4:62` and `CobolData.g4:63`. The DEVLOG-736 shared-
+  rule over-fire hazard applies after all, and `DataBinder.cs:772`'s FD clause loop has no arm for it — an FD-level
+  occurrence would fire 0900 below 2023 and silently no-op at 2023, the worst possible edition asymmetry.
+- **Wave H — the SEND gate was dead code.** Predicate `{facilityWord("RECEIVE")}?` guarding a `(RECEIVE | SEND)`
+  rule: false for any SEND-led statement, so half the MCS surface never parses — while the spec's own golden asserts
+  two warnings. And the greedy `(~DOT)*` swallow eats `END-IF`, breaking every block-structured context (`statement`
+  is reachable from `statementBlock`), producing *no* named warning — defeating the entire point of recognize-and-name.
+- **VF2 COLLATING — systematically wrong citations headed for user-visible text.** "§12.4.5.2 SR1(g)" is really
+  §12.4.5.3 **GR**1(g) (six occurrences, one of them inside a diagnostic message string); "§12.4.5.2 GR6" is really
+  §12.4.5.3 GR6 (~8 occurrences, including the `constructs.json` citation field). §12.4.5.2 is the *Syntax-rules*
+  subclause and has no general rules at all — and the very file being edited already cites the sibling correctly
+  (`BinderDriver.cs:167`). Exactly the [[feedback_spec_fidelity_discipline]] failure: a cited § must MATCH, not merely
+  sound plausible.
+
+**Two things are already landed and must NOT be re-implemented** — both research packets were stale on the point:
+PERFORM **UNTIL EXIT** (grammar, binder, `PerformForever`, `while(true)` emission, 0900 gate, constructs row, passing
+golden) and **C6-A WRITE BEFORE AND AFTER ADVANCING** (verified across all six layers). Only UNTIL EXIT's §14.9.28.3
+SR8 lexical-nesting residue remains, and it rides the RW SUPPRESS slot as a micro-item.
+
+This entry records the research + verification; the distilled working doc, the owner escalations (two constructs
+recommended for deferral on *unadjudicated spec forks*, plus the VF2 scope posture), and the implementation follow.
+Raw structured evidence — every spec and both verdicts — persisted at
+`docs/rearchitecture/evidence/PHASE-13-grammar-batch-research.json` (796 KB) so no downstream session re-derives it.
+
+## Entry 923 — 2026-07-19 18:55 PDT — Session bootstrap for the grammar batch: a ~40-site diagnostic-code drift in the remaining-waves scout, and the Wave H legacy-token risk CLEARED
+
+Started the P13 grammar batch (the top of the D16 close-line). Bootstrap per plan §0: probe green
+(`phase-13-m4-2023` @ `6d6c655d`, clean, pushed, next-free `COBOLNET1578`, 104 VCR todos, 166/109 corpus),
+baseline battery launched, and a 7-construct research fan-out started. Before touching code, four pre-checks
+turned up one large piece of drift and cleared one flagged blocker. Owner directive received mid-session:
+*"update docs as you identify errors so they drift for a minimal amount of time"* — so this landed immediately
+rather than being batched into the implementation commits ([[feedback_propagate_reconciliations]] updated with
+the timing rule).
+
+**1. The drift: `PHASE-13-remaining-waves-scout.md` duplicated live diagnostic-band state in ~40 places.**
+The scout was produced by a 9-agent parallel re-scout, and **every wave section independently allocated codes
+starting from the then-next-free 1570** — so Wave E, Wave F, Wave G, Wave H, Wave D, PICTURE EDITING,
+PERFORM Fmt 3, SUPPRESS WHEN, COBOL-WORDS, PUSH/POP and FLAG-14 all claim overlapping numbers in 1570–1574.
+They collide with each other *and* with what actually shipped: 1570–1577 are now fully consumed. The scout's
+own hedge ("final numbering reconciled at implementation time") was too weak to stop a reader copying a number.
+
+The fix is the plan's **single-write rule** applied literally: live state is written ONLY in §0; every other
+site POINTS there. Renumbering ~40 speculative claims inline was explicitly rejected — most belong to waves
+that haven't landed, so any renumbering re-drifts the moment one of them does. Instead: ONE authoritative
+top banner that supersedes every local number, plus an **as-landed mapping table** (1570 `value-numeric-
+edited-oversize` ← Wave G VCR 34's guess of 1570, the one that happened to match; 1571 `debug-sub-facility-
+staged` ← Wave F's 1570; 1572 `merge-in-sort-merge-proc` ← Wave G VCR 27's 1571; 1573 `external-file-status-
+consistency` ← Wave E VCR 18's 1570; 1575 `external-relative-key-consistency` ← Wave E VCR 31's 1571) so the
+landed waves' sections stay *readable* rather than merely wrong. The still-unallocated sections (the grammar
+batch, Wave D, Wave H) are named explicitly as needing fresh codes from §0. Seven of the most load-bearing
+sites additionally got inline markers with symbolic placeholders (`[EDIT-A/B/C]`, `[PERF3-A/B]`,
+`<SUPPRESS-SR7>`, `<PUSHPOP-GR2>`, `<FLAG14-TWIN>`) so a reader landing mid-document can't copy a dead number.
+
+Worth noting the mechanism: this is the *same* failure class as the two collisions the plan-vs-spec review
+already fixed (1573→1576, 1518→1577). Parallel agents each reading "next free = N" and each claiming from N
+is a systematic hazard of the ≤10-agent fan-out pattern — which is exactly why plan §3 says *pre-allocate
+diagnostic ranges before any parallel fan-out*. The scout predates that rule; this is its residue.
+
+**2. The Wave H legacy-token blocker: CLEARED, no action needed.** The scout's MECHANISM CORRECTION
+(DEVLOG 903) requires real `RECEIVE`/`SEND`/`VALIDATE` lexer tokens (an IDENTIFIER-led `statement` alternative
+poisons the ALL(*) boolean-factor DFA), and flagged one open risk: a bare `RECEIVE`/`SEND` in a legacy guard
+program would change its parse. The CM-series **is** present — `tests/nist/programs/CM{101,102,103,104,105,201,
+202,303,401}M.cob`, 9 programs, containing genuine bare statements (`RECEIVE CM-INQUE-1 MESSAGE INTO
+INCOMING-MSG`, `SEND CM-OUTQUE-1 FROM MSG-70 WITH EMI`) — **but all 9 are `pending` / `cataloged (not
+asserted)` in `tests/nist/corpus.tsv` with no golden in `tests/nist/valid/`, so none executes in the guard.**
+The token addition is legacy-safe. Recorded at the site that posed the question so it is never re-investigated.
+
+Separately scanned the other six candidate tokens: `VALIDATE`/`EDITING`/`FINALLY`/`LOCATION` appear in the
+corpus only inside comment lines, string literals, or as substrings of hyphenated user words (`SEND-SWITCH`,
+`RECEIVE-ECHO-AND-LOG`, `EXCEPTION-LOCATION-N`) which lex as single IDENTIFIERs — no bare-word collision.
+`COMMIT` appears as a deliberate user word in `tests/conformance/negative/user-word-commit.cob`
+(`*> reject-at: 2023`), which is precisely why COMMIT/ROLLBACK take the diagnostic-layer route with no grammar
+rule, and why every new token must go through the `cobolWord` nameSlot funnel rather than being unconditional.
+
+**3. Two probe claims independently re-verified** (not taken on faith): next-free `COBOLNET1578` confirmed by a
+full 15xx catalog scan, and the apparent duplicate `COBOLNET1535` is a *documented* two-rule reuse
+(`DiagnosticCatalog.cs:186`, the 1533 pattern), not a third collision.
+
+**4. The batch's real coupling identified.** `EDITING`, `FINALLY`, `LOCATION`, `COMMIT`, `ROLLBACK`, `VALIDATE`
+are all already rows in `reserved-words.json` but have **no lexer tokens** — so six of the seven constructs
+converge on `Core/CobolLexer.g4`. That, not any individual construct, is what makes this a single serial batch
+under one full legacy guard. (`SUPPRESS` and `COLLATING` already have tokens.)
+
+Docs-only change; no source touched, so the in-flight baseline battery is unaffected.
+
+## Entry 922 — 2026-07-19 18:28 PDT — The final plan-hardening trio: the v1.0 RELEASE DEFINITION, the session-probe script, the single-write rule — the plan is now DECLARED COMPLETE; execute it
+
+Three last improvements, after which further plan work is diminishing returns:
+1. **The v1.0 RELEASE DEFINITION** (a P15 checklist step): v1.0 SHIPS, not just passes — the user manual
+   (installation · CLI reference · the per-edition language-support statement GENERATED from the traceability
+   inventory · migration note · pointers to DIAGNOSTICS/CONFORMANCE + the A8 register) · packaging (dotnet
+   tool + win-x64/linux-x64 binaries, reproducible from the tag) · semver + tag + CHANGELOG-from-DEVLOG ·
+   the release gate (full battery + census guard + the §11 gates green ON THE TAG). D15-tiered: the
+   language-support statement + the gate are v1.0-required; migration/packaging polish is QUALITY. Effort
+   model: P15 3–5 → v1.0 ≈ 19–33 sessions.
+2. **`scripts/session-probe.ps1`** (BUILT and verified, not just planned): mechanizes §0 bootstrap step ③ —
+   branch/dirty/unpushed · the diag band from BOTH scans with a DISAGREE alarm (the 1573-collision class,
+   now machine-checked every session) · VCR todo count · corpus counts · inventory GAP count (post-P14-Step-0).
+   First run confirms: scans agree at 1577 → next free 1578, 104 VCR todos, 166 goldens · 109 negatives.
+3. **THE SINGLE-WRITE RULE** (§0 preamble): live state is written ONLY in §0; every other section points,
+   never duplicates (the §4 P13 row's duplicated worklist trimmed to a pointer). Duplication is where the
+   stale-banner class breeds; finding live state written twice is itself a session task.
+
+With D13–D18, the §11 backlog, the §12 risks, the effort model, the lane map, the release definition, and
+mechanical state probing, the plan is COMPLETE as a plan. The best remaining improvement is execution: the
+P13 grammar batch is the next unit of work.
+
+## Entry 921 — 2026-07-19 18:13 PDT — Deliverability hardening (owner-ratified): D14–D18 + the P13 close-line + the P14 OO wave + the effort model + the lane map + the §12 risk register
+
+The owner ratified the deliverability package with my recommended defaults, plus two explicit rulings. New
+owner decisions (plan §6):
+- **D14 — RELEASE MILESTONES:** v1.0 = the P15 exit ("100% conforming ×4"); **P16 CIL = v2, explicitly OFF
+  the conformance critical path**; M4-beta = the P13 merge; conformance-mapped = P14 Step 0 complete.
+- **D15 — SCOPE-CONTROL RULE:** every new finding tiers at fold time (CONFORMANCE-BLOCKING / QUALITY /
+  POST-v1.0); only the first may gate a phase — the counterweight to the analysis ratchet (also a §3 standing
+  rule).
+- **D16 — THE P13 CLOSE-LINE:** P13 = the M4 feature waves + fixes to P13-LANDED code only + Wave I close
+  (~4–6 sessions); the rest of the §24 queue formally RESCHEDULED to P14 GAP-closing. §0's REMAINING list
+  re-scoped accordingly.
+- **D17 — the OO MANDATORY SURFACE implements inside P14 as its OPENING FEATURE WAVE** (new Step 0-W:
+  inline `::` identifier form + the non-ISO-rule disposition · object-view · ACTIVE-CLASS/ONLY ·
+  parameterized classes; 4–8 sessions; parallel lane with the inventory).
+- **D18 — historical-standards acquisition PRE-AUTHORIZED on the A1 trigger**, with the owner's stated
+  expectation recorded: the 2023 spec correctly identifies every statement's version across editions, so
+  Step 0a is expected to CONFIRM derivability — the pre-authorization is the hedge, not the plan.
+Also folded: **the EFFORT MODEL into §0** (A10 flipped DONE-initial: P13 4–6 · P14 ≈12–22 incl. the OO wave ·
+P15 2–4 → **v1.0 ≈ 18–32 sessions**; P16/v2 9–16) · **the P14 PARALLEL-LANE MAP** (analysis ∥ OO wave ∥
+perf+GnuCOBOL infra, then the serial closure tail) · **the §12 RISK REGISTER** (R-1 OO overrun → split rule;
+R-2 A1 underivable → D18; R-3 perf surprise → the pre-P15 gate; R-4 limit outages → the proven durable-fold;
+R-5 GAP blowout → D15 tiering). Phase-table rows now carry the v1.0/v2 labels.
+
+## Entry 920 — 2026-07-19 18:10 PDT — Owner requirement: retrieve + incorporate the GnuCOBOL testsuite (§11 A4 → the execution-grade P14 Step 13)
+
+§11 row A4 upgraded from an analysis campaign to a REQUIREMENT with full execution detail as **P14 Step 13**:
+retrieve the GnuCOBOL testsuite (the ~1000+ `syn_*/run_*.at` autotest groups + its NIST runner config) and
+incorporate it into our test infrastructure. **The load-bearing licensing posture is encoded in the step:**
+GnuCOBOL's testsuite is GPL, this repo is BSL — so retrieval is FETCH-ON-DEMAND into a git-ignored dir
+(pinned, checksum-verified tarball via `scripts/fetch-gnucobol-tests.ps1`); NOTHING of theirs is ever
+committed. The committed artifacts are ours alone: the fetch script, the `.at` extractor, the per-edition
+adapter suite, and the independently-authored classification/expectations ledger
+(`tests/external/gnucobol-expectations.json`: ISO-CONFORMING / GNUCOBOL-EXTENSION (excluded — reject is OUR
+correct outcome) / IMPLEMENTOR-SPECIFIC / DIVERGENT, each with a §-cited rationale). Divergences get the
+review treatment (spec-first adjudication, 2-lens verify) → inventory GAP rows or dispositions. The NIST
+module-coverage map is produced in the same campaign. Exit: zero UNCLASSIFIED groups, all divergences
+adjudicated, a periodic CI job. If retrieval/licensing proves blocking, the step records the attempt and the
+fallback escalates to the owner ("if possible" honored). Remains a ⛔ P15 gate.
+
+## Entry 919 — 2026-07-19 18:00 PDT — The §11 ANALYSIS BACKLOG recorded (10 missing analyses, owner-directed) + integrated into the work plan
+
+The owner asked which analyses are useful but missing, then directed a durable record integrated into the
+plan. **New plan §11** — the register of ten known analytical blind spots, each with why-it-matters, its
+output, a SCHEDULED HOME, and a PENDING status (flipping a row is a plan edit; silent drops forbidden):
+A1 per-edition authority sufficiency (can 85/2002/2014 conformance be derived from the sole in-repo 2023
+spec? may overturn council decision #1) · A2 the SR-enforcement census · A3 the numeric-semantics depth audit
+(§8.8.1 end-to-end) · A4 the external differential corpus (GnuCOBOL + the NIST module-coverage map) · A5 the
+runtime isolation/hosting-contract audit (the full statics census + the written contract) · A6 the
+performance benchmark + generated-code cost model · A7 mutation-testing of test-suite strength · A8 the
+interpretations-register extraction · A9 the developer-experience analysis · A10 the effort model.
+
+**Work-plan integration:** A1/A2 became **P14 Step 0a/0b** (companions to the traceability inventory —
+0a stamps every pre-2023 row with its derivation authority; 0b deepens rows to SR granularity, feeding the
+negative corpus). A6 became **P14 Step 12** (the perf gate: benchmark suite + cost model, CI-trended,
+escalating architecture surprises BEFORE the legacy comparison dies). **P15 gained a ⛔ preconditions gate:**
+the oracle deletion shall not start until A3/A4/A5/A6 are complete (each is cheap only while the legacy
+comparison exists); A8 executes inside P15's conformance-doc step. A5 executes WITH the review-ledger §24
+tier-7 fix unit. A10 is due at the next §0 update. §0 and the §4 P14 row point at the backlog.
+
+## Entry 918 — 2026-07-19 17:51 PDT — Context-doc refresh sweep: every session-bootstrap doc current; zero dangling references to the consolidated-away files
+
+The owner asked for all context docs a new session needs to resume toward completing the compiler. Swept and
+fixed (12 docs):
+- **The plan §0 gains an explicit SESSION BOOTSTRAP checklist** (①CLAUDE.md rules → ②§0 → ③checkout+battery →
+  ④top worklist item, spec-first → ⑤update §0 + DEVLOG, commit+push) and its §4 P13 row's stale carried tail
+  (audit/resume-prompt pointers, old battery numbers) is corrected; four carried-text residuals inside the
+  absorbed §4.1/P15 sections now point at §0/Part III.
+- **CLAUDE.md's drift-prone status-snapshot paragraph SHRUNK to a lean pointer** (it had drifted twice before;
+  it now states only the D13 mission, the plan-is-the-only-plan rule, and "the §0 banner is the ONLY live
+  resume point"). PROMPT.md + CONSTRAINTS.md kickoff pointers retargeted at the plan §0.
+- **Pointer retargets** in COBOLNET_DATA_MODEL_DESIGN, COBOLNET_OO_SLICE_BRIEFS (×3 slice checklists),
+  DESIGN-test-build-ci, COBOLNET_DESIGN (earlier).
+- **FROZEN HISTORICAL banners** added to the three legacy planning ledgers a session could mistake for live
+  tracking: COMPLETION_ROADMAP_COUNCIL.md, ISO2023_CONFORMANCE_PLAN.md, PHASE4_RECONCILIATION.md (the review
+  proved rows in the latter two stale — each banner now says so and points at the plan §0/§8 + the review
+  ledger §24).
+- **Supersession notes** on the two P13 scouts (they cite the deleted audit as provenance; the note points at
+  the verified review ledger + the §0 worklist; scouts still the working designs, deleted at P13 close).
+Verification: repo-wide grep — zero live-doc references to resume-prompt/the phase docs/the audit remain
+(DEVLOG + the review ledger's evidence citations are history, intentionally untouched). README checked, current.
+
+## Entry 917 — 2026-07-19 17:45 PDT — D13 (100% CONFORMING) + PHASE-14 Step 0 (the traceability inventory) + THE PLAN CONSOLIDATION (one uber doc; 21 planning files deleted)
+
+**Owner decisions (2026-07-19):** (1) **D13 — the conformance target = 100% CONFORMING per ISO §4.2.16**:
+mandatory core complete + required implementor documentation across all four editions; optional modules may
+remain documented non-support; implementing an optional module later is a NEW owner decision. Recorded in the
+plan §6. (2) **Consolidate all rearchitecture/planning docs into ONE uber document** and delete what it
+replaces.
+
+**PHASE-14 Step 0 — the four-edition spec-traceability inventory** (the D13 definition-of-done instrument) is
+folded into the plan's Part II P14 section, execution-grade: ~600–900 rows at clause/statement/function/
+directive/format granularity × per-edition applicability, four states (LIVE-with-evidence / STAGED /
+DISPOSED / GAP), built by the proven ≤10-agent durable-fold batch discipline seeded from the existing
+instruments + the review ledger; exit = zero UNKNOWN, every GAP owned (scheduled or dispositioned), a drift
+guard wiring constructs.json/CONFORMANCE.md to inventory row ids. 100% conforming = zero GAP rows — the
+mission's DONE becomes checkable.
+
+**THE CONSOLIDATION:** `docs/COBOLNET_REARCHITECTURE_PLAN.md` REBUILT IN PLACE as THE ONE PLAN (2,502 lines):
+§0 live resume state (replaces resume-prompt.md) · Part I (mission/D13 · north-star+principles+dual-backend ·
+the §3 execution model · the §4 phase index · §6 D1–D13 · §7 refinements · the §8 CONSOLIDATED residue ledger
+[P10-by-name + P12 + session residues + P7 pickups] · §9 verification/corpus mechanics · the §10 doc map) ·
+Part II (the ABSORBED P14/P15/P16 step-by-steps verbatim, headers demoted; P14 gains Step 0) · Part III (the
+13 completed-phase STATUS banners absorbed verbatim + the PLAN-bindtime record). **DELETED (21 files, content
+absorbed):** resume-prompt.md · PHASE-00..16 (17 docs) · PHASE-13-audit.md + PHASE-13-scout-notes.json ·
+PLAN-bindtime-gating-migration.md. KEPT: the DESIGN-* deep-dives (design SSOTs), the review ledger (fix SSOT),
+PHASE-11/12-scout-notes + the two P13 scouts (working designs; delete at P13 close), SURVEY/CRITIQUE/EVAL
+(frozen analyses cited by §7/the ledger; delete at the P15 doc sweep). CLAUDE.md + DOC_INDEX.md + the
+COBOLNET_DESIGN.md pointer retargeted; zero live references to the deleted files remain.
+
+## Entry 916 — 2026-07-19 17:30 PDT — THE PLAN-VS-SPEC REVIEW VERIFICATION IS COMPLETE — 16 batches, every finding 2-lens verified, the ledger is the fix SSOT
+
+The owner-directed batched completion (batches of ≤10 agents, each batch's results folded into the ledger and
+PUSHED before the next launched — durable against the two spend-limit outages that killed the monolithic runs)
+finished: **batches 1–16, 88 verification agents total after the re-runs, 0 errors in the final 10 batches.**
+The ledger `docs/rearchitecture/PHASE-13-plan-vs-spec-review.md` banner is flipped to VERIFICATION COMPLETE;
+its §24 carries the final tally + the 10-tier prioritized fix queue for the follow-up session.
+
+Headlines of the verification tail: F4 VALUE multi-literal binds CORRUPT GLUED values (probe: `VALUE 1 2 3` →
+123, zero diagnostics — worse than filed); F10 SET SIZE silently deviated from its own scout's EC plan while
+DEVLOG-890 asserted correctness (annotated); F11 inline-PERFORM multiple options first-wins (probe-proven);
+V45's NEW "!"-sentinel equality bug; V30's P8 R3 half-execution; the OO quartet (V16–V19) confirmed MANDATORY
+surface. Refuted/not-a-gap: V28 (the §1.1 catalog-window doctrine), V37/V42-as-filed (doc-flips only), V26
+(Wave-D-tracked). Fixed DURING the cycle (each gated + pushed): the 1573→1576 and 1518→1577 collisions + the
+catalog drift guards, the CONFORMANCE.md truth restoration + locale row + A.4 §5 section, the citation sweeps,
+the VCR 16 strength half, GOBACK GR3 (+ its stale test), WriteFill AllowZeroLength, external_type_decl
+GreenfieldOnly. Battery at close: FULL Conformance 3699 · unit 313 · characterization 33 byte-exact · legacy
+167 — all green at HEAD.
+
+## Entry 915 — 2026-07-19 16:19 PDT — Review-fix V31: WriteFill threads AllowZeroLength (spurious fatal EC-BOUND-REF-MOD under >>REF-MOD-ZERO-LENGTH ON) + review batches 4–6 folded
+
+**⚠ The full gate caught a stale spec-pinned test the GOBACK GR3 fix (Entry 913) invalidated** —
+`GobackRaisingFatal_InMainProgram_TerminatesAtRunUnitBoundary` pinned the PRE-fix behavior on a premise
+(§14.9.18's "run-unit boundary activator") that has no GR; §14.9.18.4 GR3's explicit sentence ("A RAISING
+phrase, if specified, is ignored") governs. The test now asserts the GR3 behavior
+(`GobackRaisingFatal_InMainProgram_IsIgnored_NormalTermination`; EC suite 51/51). HONEST NOTE: Entry 913's
+commit gated wave-local (CorpusRunner + unit + characterization + legacy) and NOT the full Conformance
+project — the `04c32a93` lesson class recurring; this Entry's commit runs the full gate.
+
+**The V31 fix (batch-6 verdict, confirmed both lenses):** the figurative-constant store into a ref-mod slice
+(`PlaceRenderer.WriteFill`) omitted `allowZeroLength` while the sibling `Write` RefModPlace arm threads it —
+so `MOVE SPACES TO X(3:0)` under `>>REF-MOD-ZERO-LENGTH ON` + EC checking spuriously raised fatal
+EC-BOUND-REF-MOD. §8.4.3.3.4 GR5c allows the zero-length result with the directive ON, and §14.9.25.4 GR1
+makes the zero-length MOVE receiver a no-op ("leaves identifier-2 unchanged"). One-line fix mirroring the
+Write arm; the `ref_mod_zero_length` golden extended with the RECEIVING half (X unchanged, status clear;
+CLI-probed). CorpusRunner 286 · characterization 33 byte-exact · full Conformance gate run at commit.
+
+**The review batch cadence (owner-directed batches of ≤10, durable fold before each launch):** batches 4–6
+folded (ledger §11–§13, each pushed). Batch 4: the four OO gaps CONFIRMED as MANDATORY surface (A.4.10's
+optional list ≠ them; the shipped inline-invocation rule is additionally a NON-ISO statement shape) + the
+locale CONFORMANCE row (fixed same-day). Batch 5: the A.4 disposition section gap (fixed same-day — the new
+CONFORMANCE.md §5) · OPTIONS INITIALIZE (unreachable fill + the intro gate mis-dated 2014 vs E.3.3 item 33's
+2014→2023 — an acceptance fix queued for the batched-gate wave) · REPOSITORY SR12/13 unenforced · FLAG-85
+real-but-already-routed-to-Wave-D · the DB-series golden fall-through. Batch 6 PARTIAL (the monthly spend
+limit killed 5/10 agents): V30 RANDOM-static CONFIRMED — and the code lens found it was plan §7 R3 MUST-APPLY
+P8 work executed only partially (`_random` + `CobolSort.Files` + `Scratch<T>.Slot` still process-global while
+P8 closed claiming the ONE-owner criterion; route as ONE remediation unit + the SURVEY G2 CI-grep) · V31 fixed
+here. RESUME STATE (ledger §13): items 28/29/33-code re-run next batch; then ~17 minors + the 12 batch-1 raw
+findings.
+
+## Entry 914 — 2026-07-19 14:11 PDT — Review-fix: the COBOLNET1518 collision RESOLVED (method-REDEFINES → 1577) — the third of the class
+
+Batch-3 verdict V11 (confirmed both lenses): 1518 was live-emitted with two unrelated meanings — the A.4.9
+locale-module non-support (IntrinsicBinder, P11, documented in CONFORMANCE.md item 25) and the M2-OO
+method-REDEFINES scope error (DataBinder, DEVLOG 639; PHASE4_RECONCILIATION.md:1793 recorded it as last-used
+there, then the P11 plan double-allocated it). Same root cause as 1573: a bare compiler literal invisible to
+the catalog — the `Edition.Error("COBOLNETnnnn"…)` dot-prefixed channel the Entry-907 drift guard does NOT yet
+scan (this collision validates extending it; routed in the ledger). Fix: the method-REDEFINES error renumbered
+→ **COBOLNET1577** via a catalog descriptor (`MethodRedefinesScope`, the descriptor overload — never a
+literal); the two OoSpineTests pins updated in the same commit; 1518 stays solely = locale non-support (its
+golden untouched, LocaleDispositionTests 11/11 green). PHASE4_RECONCILIATION note corrected; resume-prompt
+band: 1577 taken, **NEXT FREE = 1578**. Gate: drift tests 5/5 · OoSpine 85/85 · Locale 11/11 ·
+characterization 33 byte-exact · DIAGNOSTICS.md regenerated (+1 row).
+
+## Entry 913 — 2026-07-19 14:02 PDT — Review-fix: main-program GOBACK RAISING ignored (§14.9.18.4 GR3) + review batch 2 verdicts folded
+
+**The GOBACK GR3 fix (review C13, confirmed):** §14.9.18.4 GR3 — a GOBACK in a program NOT under the control of
+a calling runtime element "operates as if executing a STOP statement … A RAISING phrase, if specified, is
+ignored." The emitter staged the RAISING unconditionally (including the checking-off FATAL termination arm), so
+a main-program `GOBACK RAISING EXCEPTION <fatal-ec>` killed the run unit. Fix: the staging is now
+`__asCalled`-gated in `EmitGoback` — exactly the gate `EmitExitProgram` already had (the two are now
+symmetric). Golden `2002/goback_raising_main` (CLI-probed: BEFORE prints, exit 0; before the fix — loud
+termination). Probe lesson: the RAISING exception-name form requires the EXCEPTION keyword (`RAISING EXCEPTION
+ec-name`) — a bare ec-name binds the identifier leg (0849). Legacy suite 167/167 (no exclusion needed — the
+legacy engine agrees), CorpusRunner 286, unit 313, characterization 33 byte-exact (no snapshot carries GOBACK
+RAISING — zero drift).
+
+**Review batch 2 (10 agents, 0 errors — verdicts in the ledger §9):** all five worklist majors verified.
+PAGE reserved-word table data CONFIRMED (r2023=false with a false provenance from the gen-reserved-words.ps1
+PAGE filter; NO live acceptance hole — PAGE is a dedicated lexer keyword — the defect is table/matrix data
+fidelity). Ref-mod negative-length CONFIRMED as a duplicate of C14 (+ a new increment: ExceptionState.cs:227
+still cites §8.4.2.3c — the §8.4.3.3.4 correction missed it; fix SpliceInto + WriteFill too). EC-DATA-NOT-
+FINITE/OVERFLOW and the EC-RANGE four CONFIRMED untracked (catalogued, no seam, no ledger row — spec anchors
+recorded). EXIT SECTION doc-vs-impl CONFIRMED (ControlFlowBinder:102 BoundUnsupported vs the docs' pc-move
+claim; §14.9.14 F4 GR7).
+
+## Entry 912 — 2026-07-19 13:52 PDT — Review-fix: the VCR 16 STRENGTH half (§13.16.3 SR13 ¶2) — weak-TYPE external CONSTANT RECORD now rejected ≥2023
+
+Review finding C9 (confirmed): the landed VCR 16 gate checked TYPE PRESENCE only; SR13 ¶2 requires the TYPE to
+name a STRONGLY typed definition. The strength is known only at ExpandType (where the template resolves) — the
+check lands there, beside the §13.18.22 SR5 external-type check: `IsConstantRecord && HasExternalClause &&
+!template.TypedefStrong && DialectLevel >= 2023` → COBOLNET1549 (the same ConstantRecordRule descriptor as the
+presence half). Scoped to the literal EXTERNAL-clause co-occurrence SR13 ¶2 names (the GR3
+external-via-the-TYPE shape has no EXTERNAL clause; its strong external typedef is separately VCR-63-gated) —
+the interpretation choice is documented at the check. Fixtures: negative
+`external-constant-record-weak-type-at-2023` (COBOLNET1549 at 2023; CLI-probed) + the 2014 continuity golden
+`external_constant_record_weak_type` (weak TYPE satisfies below 2023 — prints WXYZ; GreenfieldOnly, the legacy
+suite diverges on the shape, verified by run). Also swept the stale "Annex E.3 item 10" labels in the two
+sibling fixtures (E.2 item 10 — the Entry-910 correction propagated). Battery: legacy 166/166 · full greenfield
+Conformance **3698** · (unit/characterization green earlier this tree). Wave I re-verify note: the finding's
+EXCEPTION-FILE r2a / GOBACK RAISING / ref-mod-negative siblings remain queued in the spec-derive batch.
+
+## Entry 911 — 2026-07-19 13:25 PDT — Review remediation pt3 — CONFORMANCE.md truth restoration + the stale-note sweep (FIX NOW batch complete)
+
+**CONFORMANCE.md (the §4.2.16 record now states CURRENT truth):** the '04' bullet flipped to EMITTED
+(§14.9.30 GR14 / §9.1.13.2 item 3; record-sequential READ, fixed + varying legs, line-seq excluded per GR15);
+the §1/§4 four-facility present-tense claim reworded (SCREEN's COBOLNET1560 warning is landed; MCS/COMMIT/
+ROLLBACK/VALIDATE are today a generic parse error, named recognition = the tracked Wave H code half); the two
+dangling "(§2.4)" refs → §4; MCS row reworded (the pre-2002 COMMUNICATION SECTION is not 2023 surface);
+statement-§ fixes: DISPLAY row 14.9.13→14.9.11, OPEN rows 14.9.26→14.9.27 (each verified in the spec).
+
+**Stale notes corrected to current state:** the data-model deep-dive's three EC-BOUND-OVERFLOW deferral notes
+(the raise is LIVE since P13; EC-BOUND-SET + full var-length-group MOVE/COMPARE remain the follow-ons);
+DebugItem's group-width arithmetic text (SubWidth=5 ⇒ 86, not the stale "+4…=83") + the DEBUG-LINE comment
+(the CAUSING statement, the Wave F fix — the comment still described the subject-procedure semantics);
+ConditionalCompilationProcessor's header (>>EVALUATE/>>WHEN ARE implemented; the real deferrals restated with
+their silent-wrong-value defects named, per review C2); DiagnosticCatalog's two 1550-1552 "earmarked
+(PHASE-12)" comments (the earmark expired unused — unallocated holes).
+
+Gate: build + drift tests + characterization 33 byte-exact (docs/comments only). The FIX NOW batch of the
+review ledger §6 is COMPLETE except the 0849 shared-code reconciliation (routed to the spec-derive wave — it
+needs a renumber decision, not a comment).
+
+## Entry 910 — 2026-07-19 13:12 PDT — Review remediation pt2 — the confirmed wrong-§ citations corrected (spec-verified); review resume killed by the MONTHLY spend limit
+
+**Citations (each § re-read in the spec BEFORE editing — the review's own discipline):**
+- **'04' READ length rule = §14.9.30 GR14** (READ), not §14.9.35 (REWRITE): SequentialConnector, FileStatus,
+  the `io_status_04` golden header, the GreenfieldOnly row comment.
+- **The two annex items are DIFFERENT rules and the code had one wrong label for both:** VCR 63's introduction
+  proof is **Annex E.3.3 item 20** ("External data items may now be strongly typed") — fixed in
+  VersionConformancePass + constructs.json (+ `gen-constructs.ps1` regen); VCR 16's flip proof is **Annex E.2
+  item 10** (CONSTANT RECORD now strong-only; line 49148 sits under E.2, which starts at 49022) — fixed in
+  DataBinder. This also resolves the review's apparent C9-verifier/C22 conflict: both were half-right.
+- **External CONSTANT-RECORD initial-state rule = §11.9.10.4 GR7** ("External items in the Working-storage
+  section are not initialized … except for those with the CONSTANT RECORD clause"), not "§13.6.2 GR7" (§13.6.2
+  is the LOCAL-STORAGE general format, no GRs): DataBinder.Linkage, OoEmitter, DataBinder VCR-16 comment, the
+  2014 `external_constant_record` golden header.
+Gate: build + all drift tests + characterization 33 byte-exact (comment/citation-only — no semantics change).
+
+**Review completion status:** the resume of workflow `wf_099b899f-7eb` was killed by the MONTHLY spend limit
+(107/119 agent calls failed). Before dying it landed 5 finder re-runs (23 raw findings — folded into the ledger
+§7 per the owner's fold-as-they-complete directive; notable: a B2 claim that RANDOM sequence state is a
+process-wide static contradicting the P8 RunUnit-owner claim, and a C3 claim that WriteFill drops
+AllowZeroLength — a spurious fatal EC-BOUND-REF-MOD under `>>REF-MOD-ZERO-LENGTH ON`) + 3 high-confidence
+verdicts confirming the >>DEFINE-AS-PARAMETER, >>SOURCE-FORMAT-first-wins, and CC-in-COPY findings. The
+ledger §5 carries the resume protocol for finishing once the limit is raised.
+
+## Entry 909 — 2026-07-19 12:50 PDT — Legacy-suite latent-miss #3: `external_type_decl` GreenfieldOnly exclusion (Wave E pt1 omission)
+
+Running the legacy conformance suite after the VCR-15 shared-corpus manifest change (the
+[[feedback_legacy_suite_on_shared_corpus]] rule) caught a PRE-EXISTING miss: the Wave E pt1 golden
+`2023/external_type_decl` (VCR 63, `9a33dfa7`) landed WITHOUT its GreenfieldOnly exclusion — the frozen legacy
+grammar cannot parse the 2023 STRONG TYPEDEF + EXTERNAL TYPE surface, so the legacy runner failed on it. The
+THIRD instance of this latent-miss class (after `ec_bound_ref_mod`/`ec_bound_overflow`, Entry 897). Exclusion
+added; legacy suite 165/165 green. The pattern-level fix candidate (a drift test asserting every
+2023-manifest-enabled golden either legacy-compiles or has a GreenfieldOnly row) goes to the review ledger's
+Wave I batch — this class keeps recurring precisely because only a full legacy-suite run surfaces it.
+
+## Entry 908 — 2026-07-19 12:30 PDT — PHASE-13 Wave E (part 3, FINAL) — VCR 15: the EC-EXTERNAL-* run-unit conformance raises (§14.8.4)
+
+**Wave E is COMPLETE** (VCR 63/16 → Entry 904, VCR 18/31 → Entry 905, VCR 15 here). The four EC-EXTERNAL-*
+conditions were catalogued-but-never-raised (`ExternalTable.cs:10` conceded "not enforced here yet"); now the three
+checkable ones raise at the §14.9.4.4 GR3e CALL raise point. Spec-first derivation (all §s re-read this session):
+
+- **The check (§14.8.4.2/.3/.4):** at each activated element's activation entry, its compile-time
+  `ExternalDescriptor` per external RECORD (byte count · record-name VALUE spec · strong TYPE name · CONSTANT
+  RECORD presence — §13.18.22 GR6/§14.8.4.3; the complete-record REDEFINES exemption honored by construction)
+  and per external FILE connector (FILE STATUS/RELATIVE KEY/LINAGE corresponding-external-item identities —
+  §14.8.4.2; the §12.4.5.3 GR1 a–m entry fingerprint — §14.8.4.4) registers into the run-unit `ExternalTable`
+  (`Describe`, kind-bucketed so a same-named FD record + connector never collide) and compares against every
+  OTHER describer. Violation ⇒ `CobolCallException` carrying the Table 13 name (all three Fatal) — the
+  activation unwinds to the CALL site, "the program call is not successful" (GR3e), ON EXCEPTION takes it
+  (GR3h #1) via the CALL emitter's catch, now widened from EC-PROGRAM-* to + EC-EXTERNAL-*. EC-EXTERNAL-IMP has
+  NO raise site by definition (no implementor-defined external checks — a conforming choice, Table 13 "Imp").
+- **The §14.8.4.1 both-elements gate, derived precisely:** checking must be enabled in BOTH the ACTIVATING
+  element — at the CALL statement (per-statement TURN state; the site emits
+  `ExceptionState.ExternalCheckMask = <bits>` only when non-zero) — and the ACTIVATED element — "before the
+  Environment division" (a per-unit constant folded by `BinderDriver.BindUnitData` at the first
+  post-Identification division header line). `ProgramTable.CallProgram` latches site-mask → `ActivatorExternalMask`
+  around each activation (save/zero/restore — no leak across statements or nested calls); the gate is the bitwise
+  AND, so each condition pairs independently. **⚠ SCOUT DRIFT CAUGHT (2):** the scout's plan put the
+  before-Env-division rule on both sides — §14.8.4.1 scopes it to the ACTIVATED side only; and the scout's golden
+  expected a post-CALL DISPLAY to run after an unhandled fatal raise — GR3h #2 → §14.6.13.1.3 terminates; the
+  landed golden uses ON EXCEPTION.
+- **Zero-scaffolding:** the `__DescribeExternals()` emission is gated on (group has ANY enabling EC-EXTERNAL TURN)
+  && (unit describes externals) — `TurnState.AnyEnabledFor` (new) — so an EC-free group's generated source is
+  byte-identical (characterization 33 ✓). A mask-zero unit in a TURN-carrying group still REGISTERS (a later
+  element must be able to check against it); cross-compilation-group descriptors from a TURN-free group are
+  absent, which is exactly the no-enablement-no-check posture.
+- **Wiring:** EcBinder `ExternalNames` on `BoundCallProgram` (CANCEL excluded — §14.9.5 GR8) · CallEmitter site
+  mask + widened catch · OoEmitter `EmitExternalDescribes` (beside its sibling `EmitExternalBackings`; reuses
+  `BinderDriver.ExternalItemIdentity` — the VCR 18/31 identity, now internal) · ProgramEmitter Call()/Activate()
+  entry hooks. RECORD DELIMITER/RESERVE/COLLATING are not modeled by FileModel ⇒ identical by construction,
+  absent from the fingerprint (noted in code). UDF/INVOKE activations: site mask 0 ⇒ no raise at those
+  boundaries — a named residue (function refs carry no ON EXCEPTION; the INVOKE GR7d leg needs the OO activation
+  seam), recorded in the remaining-waves scout's Wave E section owner.
+- **Goldens (3, CLI-probed, GreenfieldOnly + manifest + legacy exclusions same commit):**
+  `2023/ec_external_format_conflict` (GR6 byte-count 4v8; the failed CALL provably never ran the sub; a
+  conforming third describer then succeeds and shares the cell §8.6.7) · `2023/ec_external_file_mismatch`
+  (GR1(e) organization SEQUENTIAL vs RELATIVE) · `2023/ec_external_data_mismatch` (LINAGE data-name vs literal —
+  the one in-group-reachable §14.8.4.2 face, since VCR 18/31's compile checks block the FILE STATUS/RELATIVE KEY
+  faces) · negative `ec-external-turn-below-2023` (COBOLNET0878 at 2002/2014). No new diag codes (runtime EC
+  names only).
+
+Battery: characterization 33 byte-exact · unit 313 · full Conformance run pending at commit gate.
+
+## Entry 907 — 2026-07-19 12:25 PDT — Review remediation pt1 — the COBOLNET1573 collision RESOLVED (→1576) + the catalog-completeness drift guard
+
+The review's one CRITICAL finding, fixed at the root:
+- **The collision:** `RefModZeroLengthDirectiveProcessor` emitted a BARE `"COBOLNET1573"` literal (Entry 897)
+  invisible to the catalog; Wave E's catalog-only next-free scan re-allocated 1573 to
+  `external-file-status-consistency` (Entry 905). One user-visible code, two meanings.
+- **The fix:** the RefMod malformed-operand diagnostic renumbered → **COBOLNET1576**, registered as a REAL
+  catalog descriptor (`RefModZeroLengthMalformedOperand`), the frontend now emits via `.Code` — allocation is
+  catalog-visible. 1573 keeps its single Wave E meaning (its golden pins it; no test pinned the RefMod 1573 —
+  the cheap side renumbered). New negative `ref-mod-zero-length-malformed` pins 1576. DIAGNOSTICS.md regenerated.
+- **The recurrence guards (2 new drift tests):** `EveryEmittedCode_IsACatalogDescriptor` (any
+  `ReportError/Warning("COBOLNETnnnn")`-style emit in src whose code lacks a descriptor FAILS — it immediately
+  caught 4 more bare frontend codes: 0718/0719 TURN-malformed/SR4, 0875 TURN-below-2002, 0883 PROPAGATE, all
+  now registered with faithful descriptors, +5 DIAGNOSTICS.md rows) and
+  `EveryDescriptor_HasUniqueCode_OutsideSplitFamilies` (code-level uniqueness — Id-uniqueness alone cannot see
+  a two-names-one-code collision; the deliberate shared families 0899/1533/1535 exempted per the catalog's own
+  notes). ⚠ KNOWN SCOPE LIMIT (routed to the review ledger): the compiler's `Edition.Error("COBOLNETnnnn"…)`
+  dot-prefixed channel is NOT yet scanned — registering that channel's backlog is a named follow-on, not a
+  silent gap. ALSO fixed while in the file: my first draft asserted `d.Id` where the COBOLNET code is `d.Code`
+  (Id is the kebab name) — the test was self-diagnosing until corrected.
+
+## Entry 906 — 2026-07-19 12:06 PDT — PHASE-13 comprehensive plan-vs-spec review — 28 confirmed findings (1 critical), the ledger persisted
+
+**What ran:** an owner-directed comprehensive review of the rearchitecture plan + implementation at HEAD `38c4a669`
+against `specs/ISO_COBOL.md` — a 16-finder Workflow across three axes (A: spec-coverage omissions per spec area ·
+B: plan-vs-implementation claim verification · C: citation drift in landed P13 code), every finding adversarially
+verified by two independent lenses (spec re-read + code re-read) with a tiebreak judge. 184 agents, 85 completed
+(~7.7M tokens); a session-limit outage killed 99 agents mid-run.
+
+**Result — persisted as `docs/rearchitecture/PHASE-13-plan-vs-spec-review.md` (LIVE ledger, per-item dispositions):**
+- **28 CONFIRMED** (1 critical · 14 major · 13 minor; 26 unique). The critical: **COBOLNET1573 is shipped with two
+  meanings** — the `>>REF-MOD-ZERO-LENGTH` malformed-operand error (frontend BARE string literal, Entry 897) vs the
+  Wave E external-file-status-consistency error (catalog descriptor, Entry 905). Root cause: the frontend emit
+  bypasses `DiagnosticCatalog`, so Wave E's catalog-only next-free scan couldn't see the earlier claim, and the
+  registry drift tests scan only the catalog. Other confirmed majors: `>>DEFINE AS PARAMETER`/compile-time-expression
+  silent wrong values (§7.3.11 GR4/GR6) · `>>SOURCE FORMAT` first-directive-wins (§7.3.24.3 GR1) · CC-directives-in-
+  COPY never processed (§7.2.1 Step 1/2 ordering) · RW SUPPRESS has no grammar rule (hard parse error, untracked) ·
+  CONFORMANCE.md false present-tense claims ('04' + the four-facility recognize-and-name) · VCR ledger 16+ stale
+  `todo` anchors (the generated Gating-status index omits ALL of P13) · VCR 16 checks TYPE presence not STRENGTH
+  (§13.16.3 SR13 ¶2) · VCR 86 SR6 mis-derivation (VALUE 0 vs VALUE ZERO diverge below 2023) · '04' cites §14.9.35
+  (REWRITE) instead of §14.9.30 (READ) GR14 · main-program GOBACK RAISING terminates loudly instead of normally ·
+  runtime-negative ref-mod length collides with the omitted-length −1 sentinel (EC-BOUND-REF-MOD can never raise for
+  negatives) · stale next-free=1575 in the banner (the same stale-ledger pattern that caused the 1573 collision).
+- **37 UNVERIFIED** — plausible finder reports whose verify agents died on the limit (OO surface gaps, EC seam gaps,
+  intrinsics national/PHYSICAL legs, OPTIONS INITIALIZE dropped in codegen, audit re-tally 53/16/1/1, …). Routed to
+  Wave I for the verify pass. **3 finders never ran** (A3 §9/§12 sweep, A4 §13 clause sweep, C4 Wave C re-derivation)
+  — those areas are unreviewed; Wave I re-runs them.
+- **Recurring theme (the P10–P13 lesson again):** 6 confirmed wrong-§/wrong-annex citations shipped in
+  otherwise-correct code; every one was caught by re-reading the spec text, none by any test.
+
+**Routing (the ledger §6):** FIX NOW (1573 renumber + doc/citation remediation) · a spec-derive review-fix wave
+(VCR 16 strength leg, VCR 86 re-derivation, GOBACK RAISING, ref-mod negative-length, EXCEPTION-FILE r2a legs) ·
+RW SUPPRESS → the grammar batch · directive fixes → Wave D · everything unverified → Wave I. DOC_INDEX row added
+(review-findings ledger family).
+
+## Entry 905 — 2026-07-19 03:19 PDT — PHASE-13 Wave E (part 2) — cross-SELECT FILE STATUS (VCR 18) + relative-key (VCR 31) consistency for external files, ≥2023
+
+Second Wave E installment — the two ≥2023 cross-unit external-file conformance requirements, from the persisted scout §"Wave E". Greenfield-only (no `.g4`), one shared post-bind cross-unit pass.
+
+**VCR 18 — external file FILE STATUS consistency (ISO §12.4.5.3 GR1(i); §14.8.4.2; Annex E.2 item 12).** It is now required at COBOL-2023 that if an external file has a FILE STATUS clause on any corresponding SELECT in the run unit, ALL corresponding SELECTs shall specify FILE STATUS naming the same corresponding external data item. **VCR 31 — external RELATIVE file RELATIVE KEY consistency (ISO §12.4.5.3 GR1(h); §14.8.4.2; Annex E.2 item 24).** The same, for the RELATIVE KEY of an external relative file. As-built: NO check existed (grep confirmed) — `DataBinder` recorded external-file identity + FileStatusItem/RelativeKeyItem but never reconciled them across the group's connectors.
+
+**Mechanism — one post-bind cross-unit pass.** A new `BinderDriver.CheckExternalFileConsistency(units, edition)` runs right after the file-connector namespace qualification loop (where every unit's `Data.Files` is bound and external files are already keyed by externalized name), gated `edition.DialectLevel >= 2023` (a version-conditioned structural SR read directly in the binder — the CheckDigitCapacity/binder-reads-edition doctrine, NOT a ConstructRegistry introduction gate, NOT `VersionConformancePass` — these are cross-unit SRs, not a construct's introduction). It groups the group's file connectors by externalized name; for each external connector described by ≥2 in-group file control entries, if ANY specifies FILE STATUS (VCR 18) / RELATIVE KEY on a relative file (VCR 31), ALL must, and each must name the SAME corresponding external item. "Same corresponding external data item" is computed by `ExternalItemIdentity(DataItem?)` — the dotted qualified path from the item's EXTERNAL root (the root carrying the EXTERNAL clause or an external TYPE), null when the item is absent or non-external — consistent with the run-unit `ExternalStore` cell key (data-name, not the rare AS-literal). Two diagnostics: **COBOLNET1573** (external-file-status-consistency) + **COBOLNET1575** (external-relative-key-consistency), both EditionSeverity.Error; DIAGNOSTICS.md regenerated. Compile-time reach is the group's units only; true separate-compilation conformance is VCR 15's runtime EC-EXTERNAL-DATA-MISMATCH descriptor check (still pending).
+
+**Severity policy — the continuity catch (the second full-gate save this session, after VCR 63).** The first cut registered COBOLNET1573/1575 as plain `EditionSeverity.Error` and `edition.Error(...)`. The full Conformance gate's `VersionMatrixTests.Cobol85Program_StillCompilesAtLaterEdition("IC227A", 2023)` went red: **IC227A** is a real NIST-85 program whose two programs describe one external file (EXTERNAL-FILE) with **differently-named, non-external** FILE STATUS items (`EXTERNAL-FILE-FS` vs `LINKAGE-FS`) — a genuine §12.4.5.3 GR1(i) violation at 2023 (E.2 item 12 even anticipates it: "few programs would be affected, but those that are should be corrected"). So the *rejection* is spec-correct — but the INV-1 continuity contract (the §10 #1 migration posture) requires that an 85 program broken by a later edition still **COMPILES under `--permissive`** (documented removals warn, never break) and rejects only under **strict** with a recognized edition-band code. TWO fixes were needed, one per leg:
+- **Permissive leg** — a hard Error broke it. Fixed by following the VCR 27/34 removal-policy pattern: `EditionSeverityPolicy.For(ConstructAvailability.Removed, edition.Edition)` (the 2023 requirement REMOVES the prior freedom to have inconsistent external-file status/key items) → Error under strict, Warning under permissive, reported via `edition.Report(new EditionDiagnostic(...))`. IC227A now COMPILES @2023 permissive.
+- **Strict leg** — the band-code assertion (`EditionBandCode`) only recognized `COBOLNET0[89]\d\d`; IC227A's SOLE strict error is COBOLNET1573 (its 0903 is a non-failing WARNING, and it carries no 0902 — my earlier assumption that removed-85 elements would supply a band code was wrong). Broadened the regex to `COBOLNET(0[89]|15)\d\d`: for a continuity witness (green at 85 by construction), ANY 15xx ERROR surfacing only at a later edition is necessarily edition-conditioned — an edition-invariant 15xx SR would have errored at 85 too and excluded the program from the green set — so 1573/1575 are legitimate recognized-edition rejections, never generic parse errors.
+
+The lesson repeats VCR 63's: the full Conformance gate — never a filter — is what catches a version-conditioned diagnostic that's individually correct but violates the cross-edition continuity contract; and the fix must satisfy BOTH continuity legs (permissive-warns AND strict-band-coded).
+
+Verified by CLI probe across editions — VCR 18: a two-program group sharing external file F, one omitting FILE STATUS → COBOLNET1573 @2023 strict, warning-not-error @2023 permissive, clean @2014; the consistent form (both naming external EXT-ST) → clean @2023. VCR 31: a two-program group sharing external relative file RELFILE, one with a LOCAL (non-external) RELATIVE KEY → COBOLNET1575 @2023, clean @2014; both external → clean @2023. Six goldens: negatives `tests/conformance/negative/external-{file-status,relative-key}-consistency-at-2023` (reject-at 2023, strict), positives `tests/conformance/2023/external_{file_status,relative_key}_consistency`, continuity `tests/conformance/2014/external_{file_status,relative_key}_below` (the inconsistent source accepted below 2023 — the dialect-gate proof). Gated with the FULL Conformance project + Unit + characterization. REMAINING Wave E: VCR 15 (the EC-EXTERNAL-* runtime raising half).
+
+## Entry 904 — 2026-07-19 02:20 PDT — PHASE-13 Wave E (part 1) — EXTERNAL type declaration gate (VCR 63) + EXTERNAL CONSTANT RECORD dialect flip (VCR 16) + the §13.6.2 GR7 external-constant-record init fix
+
+First installment of Wave E (the EXTERNAL conformance cluster), from the persisted scout `docs/rearchitecture/PHASE-13-remaining-waves-scout.md` §"Wave E" (which itself corrects the audit's §13.18.27→§13.18.22 anchor drift). Two dialect gates + one initialization fix the second gate surfaced. Greenfield-only (no `.g4` change ⇒ no legacy guard).
+
+**VCR 63 — a STRONGLY-TYPED EXTERNAL type declaration is a COBOL-2023 introduction (ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3 item 10).** E.3 item 10 dates the change precisely to strong-typing ("external items **could not be strongly typed**" before 2023), so the gated identity is the **STRONG+EXTERNAL** combination on a level-1 TYPEDEF — a WEAK `01 T TYPEDEF IS EXTERNAL` (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3). As-built the data-model plumbing (`DataBinder` `IsExternalTypedef`/`HasExternalClause`, `ExpandType` GR2/GR3/SR5) existed but there was NO introduction gate — a probe `01 T IS EXTERNAL TYPEDEF STRONG. … 01 R TYPE T IS EXTERNAL.` compiled + ran `ABCD` at BOTH 2023 AND 2014 (the below-edition acceptance a live bug). Fixed with a recognition-based `VersionConformancePass.ParseArm.VisitExternalClause` that fires `Constructs.ExternalTypeDeclaration2023` (COBOLNET0900) only on the co-occurrence of an externalClause with a **STRONG** typedefClause on one entry (new `EntryHasStrongTypedef` sibling-scan keyed on `typedefClause.STRONG()`; recognition, not bound-arm, per the DEVLOG-734 typedef-drop lesson). SR5 forces a strongly-typed external record's type to itself be a strong external type declaration, so gating the STRONG declaration covers both faces. New `constructs.json` row `external-type-declaration-2023` (regenerated `Constructs.g.cs`/`ConstructRegistry.g.cs`) matrix-pins the below-2023 reject; positive @2023 golden `tests/conformance/2023/external_type_decl` (stdout `ABCD`). **Full-gate catch:** the FIRST cut of this gate (co-occurrence of EXTERNAL with ANY typedef, STRONG-less) regressed the existing passing 2002 golden `typedef_external` (a WEAK external typedef, valid since 2002) with a false COBOLNET0900 — the full `Cobol.Net.Tests.Conformance` project's CorpusRunner surfaced it (`CompilesStrict(edition:"2002", name:"typedef_external")`), which forced re-reading E.3 item 10 + spec line 1226 and narrowing the gate to STRONG. Exactly the "trust the persisted scout, but its grammar/edition-*mechanism* is a hypothesis to verify against the spec" lesson (`feedback_persist_anchor_rescout`) — the scout's own title said "may be strongly typed" but its gated-identity bullet had dropped STRONG; corrected in the scout doc. Probe confirms: STRONG @2023 → `ABCD`; STRONG @2014 → COBOLNET0900; weak `TYPEDEF IS EXTERNAL` @2002 → clean.
+
+**VCR 16 — "EXTERNAL CONSTANT RECORD requires a strong TYPE" is a COBOL-2023 requirement (ISO §13.16.3 SR13 ¶2; Annex E.3 item 10).** As-built `DataBinder`'s ConstantRecordRule (COBOLNET1549) fired UNCONDITIONALLY for `hasExternal && typeRefName is null`, so the bare external constant record (no TYPE) — the legacy accepted form below 2023 — errored at every edition. Gated that ONE violation leg to `Edition.DialectLevel >= 2023` (a version-conditioned structural SR read directly in the binder — the CheckDigitCapacity/binder-reads-edition doctrine, NOT a ConstructRegistry gate). Positive-@2014 golden `tests/conformance/2014/external_constant_record` (stdout `ABCD`); negative-@2023 `tests/conformance/negative/external-constant-record-no-type-at-2023` (COBOLNET1549).
+
+**The §13.6.2 GR7 external-constant-record initialization fix (surfaced by VCR 16's golden).** With the bare external constant record now accepted below 2023, its golden displayed BLANKS, not `ABCD`. Root cause (a PRE-EXISTING latent gap, broken at ALL editions — the ≥2023 strong-type form showed blanks too): the external-cell seeder `CallMakeExternal` used the value-IGNORING `CallInitialImage` (spaces/zoned-zeros). That is CORRECT for a PLAIN external item — §13.18.63 GR4a: a plain external's VALUE takes effect only during INITIALIZE, not at initial state (verified: plain `01 R IS EXTERNAL.` with a VALUE still displays blanks, as it must) — but WRONG for a CONSTANT RECORD, the ONE external item §13.6.2 GR7 initializes at initial state. Fix reuses the SINGULAR Tier-B seeder the rest of the compiler already uses (`GroupImageCodec.ImageInitOf`, the same one `RecordStructEmitter`/`ProgramEmitter` seed every other string backing with): external records ARE Tier-B StringCanonical (`ForceStringCanonical`), so `CallExternalBacking` now carries the record's `DataItem` and `OoEmitter.EmitExternalBackings` substitutes `RuntimeApi.StrStore(new DataEmitter(Ctx).ImageInitOf(record), width)` for a `IsConstantRecord` item while keeping the blank image for plain externals. Now: external constant record → `ABCD` at 2014 (VCR 16) AND 2023 strong-type; plain external → blank (GR4a) — all spec-precise.
+
+Battery gate: the FULL `Cobol.Net.Tests.Conformance` project (CorpusRunner + VersionMatrix + differential + negative + NIST-diff) — the acceptance/semantics + external-emit blast radius mandates the full project, never a filter (the `04c32a93`/`cf1fcaa2` lesson) — plus the Unit project (external-data/OO emit paths). REMAINING Wave E: VCR 18/31 (cross-SELECT FILE STATUS / relative-key consistency, one post-bind cross-unit pass) + VCR 15 (EC-EXTERNAL-* runtime raising).
+
+## Entry 903 — 2026-07-19 01:53 PDT — PHASE-13 Wave H (code half) — IDENTIFIER-led recognition seam poisons the boolean-factor DFA; reverted, mechanism corrected
+
+*(Env-clock note: the host clock jumped backward this session — the date advanced to 2026-07-19 but `date` now reads 01:53 PDT, earlier than Entry 902's 08:30 stamp. This entry is genuinely newer; trust the entry number over the wall-clock stamp. Logged for transparency — `feedback_transparency`.)*
+
+**What I attempted.** Wave H code half is the first item of the P13 grammar batch: turn the generic `COBOL0001` that the three documented-non-support facilities (MCS `SEND`/`RECEIVE`, `COMMIT`/`ROLLBACK`, `VALIDATE`) produce today into *named* §4.2.6/§4.2.13 non-support **warnings** (COBOLNET1575/1576/1577), accepted + no-op, per the persisted scout `docs/rearchitecture/PHASE-13-remaining-waves-scout.md` §"Wave H". I implemented the scout's recommended recognition seam verbatim: a `CobolParserCoreBase.facilityWord(kw)` semantic predicate (true when the current token spells `kw` AND `ReservedWords.Find(kw).IsReservedAt(Edition.Year)`) gating **IDENTIFIER-led** `statement` alternatives — `| {facilityWord("RECEIVE")}? mcsFacilityStatement` with `mcsFacilityStatement : IDENTIFIER (~DOT)*`, plus commit/rollback + validate twins — dispatched through one `StatementBinder.BindUnsupportedFacility` → `EditionContext.Warning` + `BoundNop`. All three CLI-probed correctly (BEFORE/AFTER inert stdout + the named warnings); the continuity cases (`01 RECEIVE PIC X` @2014, `01 VALIDATE PIC X` @85, `01 COMMIT PIC 9` @2014) compiled clean; characterization 33/33; the **full legacy guard passed** (NIST 353 MATCH, legacy Integration/Unit green).
+
+**How it broke.** The greenfield Conformance suite caught it: `boolean_ops` @2002 regressed to `error COBOL0001: no viable alternative at input 'A'` on `COMPUTE R = B-NOT A.` — at **every** edition, not just 2002. Adding **any IDENTIFIER-led alternative** to the `statement` rule poisons ANTLR's ALL(*) boolean-factor prediction DFA: an IDENTIFIER at a `statement`/`sentence` follow-boundary now has an ambiguous continuation (arithmetic operand vs. the start of a facility statement), and the predicated alternatives don't resolve it in SLL, so a decision that previously reduced `booleanFactor → valueOperand → arithmeticExpression → dataReference(A)` now finds no viable alternative. This is exactly the **DEVLOG-621 DFA-fragility class** already flagged at `Core/CobolExpressions.g4:154-159`. I confirmed it three ways — original position, alternatives moved to the end of `statement`, and `(~DOT)*`→`dataReference*` — all failed identically; reverting the grammar restored green. **The scout's claim that "additive IDENTIFIER-led `statement` alternatives are low-risk" is false;** the low-risk property belongs to **keyword-token-led** alternatives (RAISE/ALLOCATE/INVOKE coexist with the boolean grammar precisely because each leads with its own distinct token, never IDENTIFIER).
+
+**Decision — revert to green + correct the design.** I reverted the entire Wave H change set back to the pushed-green `6ca8d184` (grammar, `facilityWord`, binder dispatch, 1575/1576/1577 catalog rows, CONFORMANCE.md rows, the six goldens, manifest, DIAGNOSTICS.md), rebuilt, and re-confirmed `boolean_ops` clean. Rather than kick the can, I traced the **correct singular mechanism** by studying how the grammar already solves "a verb-word that is also a legal user-word": `RAISE`/`ALLOCATE`/`INVOKE` are real lexer keyword **tokens** (`Core/CobolLexer.g4`) whose `statement` alternatives are therefore keyword-led (DFA-safe), and `RAISE`/`RESUME`/`SCREEN` appear in the generated `cobolWord` funnel (`Core/CobolWords.g4`, from `tests/version-matrix/cobol-words.json` nameSlot rows) so they stay legal user-defined words where unreserved. The non-monotonic reservation the scout cited as the reason to *avoid* tokens (`VALIDATE` a user word @85, `RECEIVE`/`SEND` @2002/2014) is **exactly what cobolWord + the §8.9 funnel already handle** — cobolWord admits the token in name slots, the funnel rejects it (0901) only at editions where it's reserved.
+
+**Corrected mechanism (recorded in the scout's new ⛔ MECHANISM CORRECTION banner + resume-prompt):** (1) add `RECEIVE`/`SEND`/`VALIDATE` lexer tokens; (2) add their `cobol-words.json` nameSlot rows (regen `CobolWords.g4` + `CobolWordsDriftTests`); (3) a **keyword-led** `{facilityWord(...)}? (RECEIVE|SEND) (~DOT)*` — the predicate still narrows firing to the reserved-as-facility editions but sits on a distinct-token lead, unreachable during arithmetic/boolean prediction; (4) COMMIT/ROLLBACK keep the scout's **diagnostic-layer** 0901→1571 refinement (they already parse cleanly as paragraph-names — no grammar rule, DFA-unaffected). This turns Wave H into a genuine shared-**lexer** change (full legacy guard mandatory) that shares the identical token+cobolWord machinery with the batch's PICTURE-EDITING (`EDITING` token) and PERFORM-Fmt3 (`FINALLY`/`LOCATION` tokens). **Deferred to that one focused grammar-batch pass** — doing the three lexer-token features together under the single legacy guard the batch was designed around, rather than three separate lexer surgeries. Tree is back to green at `6ca8d184`; next P13 target is the greenfield-only **Wave E EXTERNAL** cluster (no shared-parser risk).
+
+**Lesson.** A persisted spec-first scout is trusted over the phase plan — but a scout's *grammar-mechanism* recommendation is a hypothesis about ANTLR prediction, not a spec fact, and this parser's boolean/comparison DFA is a known-fragile neighborhood (DEVLOG-621). Any new `statement`/expression alternative must lead with a **distinct token**, never IDENTIFIER; when a verb-word doubles as a user-word, the answer is always token + cobolWord nameSlot (the RAISE pattern), never an IDENTIFIER-predicate fork (`feedback_singular_pattern`). The scout doc was corrected in the same change set (`feedback_update_adr_on_design_corrections`).
+
+## Entry 902 — 2026-07-19 08:30 PDT — PHASE-13 Wave G — numeric-edited VALUE literal size check (VCR 34) — CLASS A COMPLETE
+
+Landed the previously-deferred VCR 34 (ISO §13.18.63 SR4/SR5; Annex E.2 item 27): at COBOL-2023 an alphanumeric
+edited-image literal in the VALUE clause of a numeric-edited item is checked against the PICTURE size — a literal
+LONGER than the edited width is rejected with **COBOLNET1570** (before 2023 it was stored truncated — the "unclear
+value"). This is the LAST Wave G CLASS-A item; **Wave G CLASS A is now complete with no deferred residue.**
+
+**Spec-first (the deferral resolved).** The remaining-waves scout specified `length == pic.Length`; direct spec reading
+gives SR4/SR5 = "shall not **exceed**" (`<=`), so the correct check is `> pic.Length` (an exact-or-shorter literal is
+valid, space-padded). The scout's class-mismatch leg (a national literal on a DISPLAY numeric-edited item) is ALREADY
+rejected at all editions by COBOLNET0898 (`DataBinder.ValidateValueCategory:1006`), so VCR 34's genuine new surface is
+only the ≥2023 SIZE check for a plain alphanumeric literal (leading `"`).
+
+**Design.** A ≥2023 check in the item-VALUE path (`DataBinder`, beside the VCR 86 gate; scoped to the item VALUE, not
+level-88): a plain-string VALUE whose decoded length > `pic.Length` on a numeric-edited item →
+`Edition.Sink.Report(COBOLNET1570, EditionSeverityPolicy.For(Removed, edition), …)` — Error under strict, Warning
+(compile succeeds) under `--permissive` migration mode (the removed-capability posture, matching the matrix's
+RemovedConstruct_CompilesPermissive contract, same as VCR 27). Matrix row `value-numeric-edited-oversize-removed-2023`
+(introducedIn 85, removedIn 2023). COBOLNET1570 registered in DiagnosticCatalog (DIAGNOSTICS.md regenerated).
+
+**Verified** CLI-probed: `PIC ZZ9 VALUE "ABCDEF"` (6>3) → 1570 @2023 strict, WARNING+compiles @2023 --permissive,
+clean @2014; an exact-size `PIC ZZ9 VALUE "  1"` (3=3) is NOT flagged. Gated with the FULL Conformance project.
+
+## Entry 901 — 2026-07-18 21:10 PDT — PHASE-13 Wave G — EXCEPTION-FILE(connector) optional-arg form (VCR 68/69)
+
+Landed the COBOL-2023 file-connector-argument form of `FUNCTION EXCEPTION-FILE` (§15.28.4 r2; Annex E.3.3 item 25) and
+its national twin `EXCEPTION-FILE-N` (§15.29.4 r2; E.3.3 item 26). Unlike the no-argument form (which reports the LAST
+exception), the arg form reports the **NAMED** connector's current I-O status + SELECT-spelled file-name (r2b), or two
+alphanumeric spaces when the connector was never opened/attempted/accessed (r2a). This closes the last Wave G CLASS-A
+implementation item (VCR 34 remains deferred).
+
+**Design — a NEW binder path (the crux).** The argument is an FD file-connector-name, NOT a data reference — the
+previous 1-arg form just rendered loud. `IntrinsicBinder.BindExceptionFileArg` (intercepting before the generic
+`BindIntrinsicArgs`, the SUBSTITUTE/CONVERT pattern) resolves the argument text to its `FileModel` from
+`ctx.Data.Files` (§15.28.3 rule 1; a non-file → **COBOLNET1574**) and carries it on a new `BoundIntrinsicCall.FileArg`.
+The renderer (`IntrinsicRenderer`) then passes `EmitText.FileKeyExpr(fa)` — the SAME connector key every file verb uses
+— to `RuntimeApi.EcFn("File"/"FileN", key)`, so dispatch/display share one key. Introduction-gated via the ONE
+`ConstructRegistry` (new `exception-file-argument-2023` / `exception-file-n-argument-2023` rows → COBOLNET0900 < 2023).
+
+**Runtime.** `EcFunctions.File(string key)` / `FileN(string key)` overloads → `CobolFile.ExceptionFile` →
+`FileRegistry.ExceptionFile`: "  " if the connector was never accessed (a new **`FileConnector.EverAccessed`** flag set
+by `Open` [successful OR attempted] + `FileRegistry.DeleteFile`) or unknown; else `Status` + the `::`-stripped display
+name (the SAME emit-namespace strip as the no-argument `File()`). The `-N` twin reuses the ONE `NationalOf` repertoire
+translation over the alpha rendering.
+
+**Verified** all cases CLI-probed: opened INF read to EOF → `EXCEPTION-FILE(INF)` = `10INF`; a never-opened SELECTed
+connector → `"  "`; `EXCEPTION-FILE-N` national `35INF`; a non-file argument → COBOLNET1574; `--std 2014` → COBOLNET0900.
+Golden `tests/conformance/2023/exception_file_arg` (GreenfieldOnly — a greenfield EC + FileRegistry feature the frozen
+legacy has no EC model for) + the two matrix rows. Registered COBOLNET1574 in DiagnosticCatalog (DIAGNOSTICS.md
+regenerated). Gated with the FULL Conformance project (the `04c32a93`/`cf1fcaa2` lesson).
+
+## Entry 900 — 2026-07-18 20:20 PDT — PHASE-13 Wave G — MERGE-in-SORT/MERGE-procedure prohibition (VCR 27, COBOLNET1572)
+
+Implemented the COBOL-2023 static prohibition (ISO §14.9.24; Annex E.2 item 20): a MERGE statement is prohibited in
+the output procedure of another MERGE, or the input or output procedure of a file-format SORT (the prior standard
+allowed it with conflicting rules; SORT already disallowed it — "the results ... could cause an exception to be raised
+or undefined action"). Rejected at `--std 2023` with **COBOLNET1572**; below 2023 the runtime EC-SORT-MERGE-ACTIVE seam
+is the (checking-off) dynamic net.
+
+**Design — a bind-time procedure-range cross-pass** (`VersionConformancePass.GateMergeInSortMergeProc`, called from
+`WalkProgram`; the deferral comment at `SortBinder.cs:206-209` removed). **The pc-alignment is the crux, verified:** a
+paragraph's pc IS its index in `BoundProgram.Paragraphs` (BoundTree.cs:98), and that list is built 1:1 from
+`table.Paragraphs[i]` (StatementBinder.cs:145-158) — the SAME pc space as the SORT/MERGE procedure ranges
+(`SortRange` → `ctx.Table.ResolveProcedure`). Two passes: (A) collect the prohibited ranges — every file-format
+`BoundSort.InputProcedure`/`OutputProcedure` + every `BoundMerge.OutputProcedure` (a SORT/MERGE with only USING/GIVING
+files contributes none); (B) flag every `BoundMerge` whose enclosing paragraph-pc ∈ a prohibited range. Both passes
+descend nested containers via the generated `StatementChildren()` (a MERGE nested in an IF is still in its paragraph).
+The owning MERGE never false-flags itself (its output proc is a distinct named procedure). Fires only at `_edition.Year
+>= 2023`.
+
+**Verification.** CLI-probed all four quadrants: MERGE in a MERGE's output proc → 1572; MERGE in a file-SORT's output
+proc → 1572; a standalone MERGE (GIVING, no proc) → NO false positive; `--std 85/2002/2014` → clean compile. Test: the
+version-matrix row `merge-in-sort-merge-proc-removed-2023` (introducedIn 85, **removedIn 2023**, COBOLNET1572) — the
+matrix compiles the nested-MERGE source at every edition (85/2002/2014 clean, 2023 → 1572), the natural home for a
+"prohibited-at-2023" behavior (no runtime output → no `.out` golden). Registered in DIAGNOSTICS.md + the regenerated
+ConstructRegistry. **Gate: the FULL Conformance project** (the `04c32a93` lesson — an acceptance-semantics change needs
+the differential suites, not a CorpusRunner-only filter).
+
+**The full gate caught a --permissive gap (fixed):** the first pass hard-coded `EditionSeverity.Error`, which failed
+`VersionMatrixTests.RemovedConstruct_CompilesPermissive_WithWarning` — a REMOVED construct under `--std 2023
+--permissive` must COMPILE with a warning, not error. Fixed: the severity is now
+`EditionSeverityPolicy.For(ConstructAvailability.Removed, _edition)` — Error under strict, Warning (compile succeeds)
+under permissive migration mode. CLI-confirmed both. (Exactly the permissive question flagged during implementation —
+the matrix's permissive leg is why gating through the full Conformance project matters.)
+
+## Entry 899 — 2026-07-18 19:40 PDT — PHASE-13 Wave G — I-O status '04' on record-sequential short/long READ (VCR 21)
+
+Implemented I-O status '04' (ISO §9.1.13.2 item 3 / §14.9.35 GR14; clarified COBOL-2023 Annex E.2 item 15,
+version-invariant behavior): a record-sequential READ whose physical record length is outside the file's min/max
+record size is SUCCESSFUL but sets status '04' — the record is still delivered, right-padded (short) or truncated
+(long). Runtime-only, no grammar / bound-node / emitter change.
+
+**As-built + fix.** `FileStatusCode` had no '04' (added `RecordLengthShortLong`). `SequentialConnector.Read` set
+`Status = Success` unconditionally; now a branch-specific `shortLong` flag: the FIXED leg (min==max==RecordWidth) sets
+it when `n < RecordWidth` (a short/partial final record; a longer-than-max record cannot occur — the buffer reads in
+RecordWidth chunks; `n == 0` is EOF), and the VARYING leg when `n < VaryMin || n > VaryMax` (the connector already
+carries `VaryMin`/`VaryMax` from the '44' write check). **Line-sequential is deliberately excluded** — its short/long
+conditions are '06'/'09', never '04'. The read stays successful (`PrevOpWasSuccessfulRead`, returns the record).
+
+**Golden.** `tests/conformance/2002/io_status_04` (self-contained, GreenfieldOnly — new greenfield SequentialConnector
+behavior): writes three 5-char records (a 15-byte file) then reads through a 10-char record description — read 1 =
+`00`/`AAAAABBBBB`, read 2 = `04`/`CCCCC     ` (the trailing 5-byte partial record), read 3 = EOF. CLI-probed both this
+self-contained path and an external short file (`X(10)` FD over a 5-byte file → `04`, `HELLO     `). SQ blast radius is
+greenfield-side only (the legacy runtime is untouched; the greenfield NIST differential is the sweep target) — the
+comprehensive gate adjudicates any existing SQ golden that legitimately flips '00'→'04'.
+
+**⚠ Process miss caught (folded in): the VCR 21 FULL Conformance gate surfaced 2 VCR-86 (cluster, `1123a77f`)
+regressions the cluster's own gate had missed** — I had FILTERED the cluster gate to `CorpusRunner|VersionMatrix|
+CorpusManifest`, skipping the differential-test classes. `DecimalPointDifferentialTests.NumericValue_OnEditedItem_
+ConvertsPerMoveRules` (`PIC 99.99 VALUE 1.5`) and `IntrinsicFunctionDifferentialTests.StringChannel_NumericEditedArg_
+DeEdits` (`PIC Z9 VALUE 34`) both compile at dialect 85, where VCR 86 now correctly rejects the numeric-edited
+numeric-literal VALUE. Fixed: the first pins at 2023 (it IS the VCR 86 feature — an `AssertSpecPinned` dialect param);
+the second keeps 85 and initializes via MOVE (the de-editing under test is edition-invariant; the VALUE was incidental,
+the func_expr_arg pattern). A broad `feedback_scan_all_similar` sweep of ALL test source found no other greenfield hits
+(the `9(n)V99`/`P(n)` matches are category numeric, not numeric-edited; `EnvironmentSpecTests` `@99.99 VALUE 10.00` is
+legacy-compiled, unaffected). **Lesson: a change to acceptance semantics needs the FULL Conformance project, never a
+CorpusRunner-only filter** — the differential suites are where spec-pinned acceptance is asserted.
+
+## Entry 898 — 2026-07-18 19:10 PDT — PHASE-13 Wave G — numeric-edited VALUE 2023 rework (VCR 35 + 86); VCR 34 deferred (scout drift)
+
+Landed the first two of the numeric-edited-VALUE cluster (ISO §13.18.63 SR6/SR11; Annex E.2 item 28 + E.3.3 item 43):
+
+- **VCR 35 — figurative ZERO edits per PICTURE at ≥2023** (`ValueInitializer.cs`). A figurative `ZERO`/`ZEROES`
+  (with or without `ALL`) on a numeric-edited item is now treated IDENTICALLY to the numeric literal zero — edited
+  per the PICTURE (`$ZZ9.99 VALUE ZERO` → `$  0.00`), not the pre-2023 left-justified `0000000`. A `DialectLevel >=
+  2023` branch (a value-emission difference, not accept/reject); below 2023 falls through to the historical zero-fill.
+  Crucially, `BLANK WHEN ZERO` now effects the init (§13.18.63 NOTE 2 — the figurative-ZERO init is a numeric literal),
+  so `$ZZ9.99 BLANK WHEN ZERO VALUE ZERO` → 7 spaces. Extracted the ONE `FigurativeKind` detector (byte-neutral
+  refactor of the existing ALL-strip, shared with `FigurativeInitializer`).
+- **VCR 86 — non-zero numeric literal VALUE is a 2023 capability** (`DataBinder.cs`, introduction gate). Below 2023 a
+  numeric-edited VALUE required an alphanumeric edited-image literal; ≥2023 a numeric literal is edit-composed. Gated
+  via the ONE `ConstructRegistry` (new `value-numeric-literal-numeric-edited-2023` row → **COBOLNET0900** below 2023).
+  **⚠ SR6 spec-derivation:** SR6 exempts "the figurative constant ZERO or ZEROES **and the integer and decimal forms
+  of the literal zero**" at ALL editions — so `VALUE 0`/`VALUE 0.00` are NOT gated (only a non-zero numeric literal is).
+  A binder-side `IsNonZeroNumericLiteral` (no CodeGen dependency — avoids a Binding→CodeGen layering violation),
+  scoped to the ITEM VALUE (line 1897), never a level-88 condition value.
+
+**VCR 34 (SR7 class/length reject) DEFERRED — scout drift caught.** The remaining-waves scout specified VCR 34 as
+`COBOLNET1570` when a numeric-edited VALUE literal's `length == pic.Length`. Spec-first review found two problems: (1)
+SR4/SR5 say the literal "shall not **exceed** the size" (`<=`, not `==`) — the scout's `==` would wrongly reject a
+short alphanumeric edited-image literal the spec allows; (2) the class-mismatch leg (a national `N"…"` literal on a
+DISPLAY numeric-edited item) is ALREADY rejected at all editions by `COBOLNET0898` (`DataBinder.ValidateValueCategory`
+line 1006). So VCR 34's genuine remaining surface is only the ≥2023 length-`<=` check for an alphanumeric edited-image
+literal — a narrower, precise change deferred rather than shipping the scout's over-strict `==`. Recorded for the Wave I
+review / a follow-up. VCR 36's numeric auto-supply falls out of VCR 86; its VALUE-EDITING FLAG-14 twin is Wave D/H.
+
+**Golden.** `tests/conformance/2023/value_numeric_edited` (GreenfieldOnly — the frozen legacy gives the pre-2023
+zero-fill and has no numeric-literal-on-numeric-edited path): FIG=`$  0.00` · BWZ=7 spaces · LIT0=`$  0.00` · NUM=
+`$ 12.50`. Below-2023 negative is the matrix row (`VALUE 12.5` at 85/2002/2014 → COBOLNET0900). CLI-probed the
+non-zero gate + the literal-zero exemption (`VALUE 0` clean at 2014).
+
+**Blast-radius sweep (VCR 86 changes acceptance below 2023).** Swept the greenfield corpus for a numeric-EDITED item
+with a non-zero numeric literal VALUE. Verified the E.3.3 item 43 introduction claim against the spec directly ("It is
+now permitted to allow numeric-edited data items to be assigned values specified as numeric literals", spec :50338) —
+the gate IS spec-correct. Exactly one corpus program was affected: `func_expr_arg.cob` (2014) declared
+`01 WS-ED PIC Z9 VALUE 34` — genuinely non-conforming at 2014. Fixed the SOURCE (it is invalid, not a compiler bug per
+[[feedback_compiler_bugs]]): WS-ED stays numeric-edited (the test exercises numeric-edited de-editing via
+`CHAR(WS-ED)`) but is now initialized `MOVE 34 TO WS-ED` — compiles at 2014, byte-identical output. No other hits
+(plain `PIC 9(n)`/`9V99` are category numeric, not numeric-edited).
+
+## Entry 897 — 2026-07-18 18:16 PDT — PHASE-13 — REF-MOD-ZERO-LENGTH directive (§7.3.23) at --std 2023 — the zero-length ref-mod allowance
+
+Landed the `>>REF-MOD-ZERO-LENGTH {ON | OFF}` compiler directive (COBOL-2023, Annex E.3.3 item 23) — the greenfield-only
+follow-on to the already-landed EC-BOUND-REF-MOD raise. When ON, a reference-modification result **may** be zero-length
+(§8.4.3.3.4 item 5c: "length shall result in a positive nonzero integer, **unless the REF-MOD-ZERO-LENGTH directive is
+set to ON, when the result may also be zero**"); the §7.3.23.3 GR1 default (OFF/omitted) keeps raising the fatal
+EC-BOUND-REF-MOD on a zero-length result. The directive relaxes **only** the zero-length aspect — an out-of-range
+leftmost/length still raises regardless.
+
+**Spec derivation (rule #1).** Read §8.4.3.3.4 item 5b/5c + the trailing GR paragraph (spec :7089) and §7.3.23.1–.3
+directly. Confirmed the governing § is **§8.4.3.3.4** — the remaining-waves scout's section-(2) header cites §8.4.2.3
+(that id resolves elsewhere); the landed raise commit's §8.4.3.3.4 citation is the correct one, so the code + goldens
+cite §8.4.3.3.4. OFF is the underlined default (§7.3.23.2).
+
+**Design (mirrors the >>TURN / >>PROPAGATE directive-stage pattern — the singular pattern).** A new
+`RefModZeroLengthDirectiveProcessor` (frontend) runs LAST on the final preprocessed text (line-count preserving, the
+>>TURN H3 discipline), collects `RefModZeroLengthEvent(Line, On)` toggles, and edition-gates the directive through the
+ONE `ConstructRegistry` (a new `ref-mod-zero-length-2023` constructs.json row → **COBOLNET0900** below 2023, so the
+construct enters the version matrix and the message is single-sourced). `ConditionalCompilationProcessor` keeps
+REF-MOD-ZERO-LENGTH in `KnownIgnoredDirectives` (legacy still consumes it) + gains a `leaveRefModZeroLengthDirectives`
+flag so the greenfield caller lets it survive to the new stage — the exact TURN/PROPAGATE idiom. A `RefModZeroLengthState`
+line-fold (mirror of `TurnState`, strict `Line < siteLine`, last-wins, OFF default) threads Frontend →
+`BinderDriver.Bind` → `BindSession.RefModZeroLength` → `DataBinder` → `ReferenceResolver`, which sets a new **init-only**
+`RefModPlace.AllowZeroLength` from the fold at the ref-mod's own source line. `PlaceRenderer` emits the `allowZeroLength:`
+argument to `StrRefMod`/`StrSpliceInto` **only when true**, so `CobolString.RefMod`/`SpliceInto` suppress the
+`length == 0` disjunct of the raise test exactly there. Directive concern (is a zero-length result legal?) stays cleanly
+separate from EC checking (should a violation raise?).
+
+**Byte-neutrality.** `AllowZeroLength` is init-only (no positional-arity change — every existing `RefModPlace`
+construction/deconstruction untouched) and defaults false ⇒ `StrRefMod` emits the pre-existing 3-arg form ⇒ every
+existing ref-mod site is byte-identical (characterization **33** byte-exact; the RuntimeApi ratchet accepts the
+defaulted optional-param additions). The change is greenfield-only, but it touches the shared-frontend
+`ConditionalCompilationProcessor` (a default-false param, legacy path provably unchanged) — full legacy guard run.
+
+**Diagnostics.** Intro gate **COBOLNET0900** (via the registry row). Malformed operand (`>>REF-MOD-ZERO-LENGTH FOO`) →
+**COBOLNET1573** — the 087x/088x/089x directive-syntax bands are full, and 1570/1572 are Wave G CLASS A earmarks, 1571
+is Wave F; 1573 is the next unreserved. Verified before commit.
+
+**Golden.** `tests/conformance/2023/ref_mod_zero_length` (GreenfieldOnly via the 2023 manifest) proves BOTH the
+allowance (ON + `WS-X(3:0)` → no EC, receiver space-filled, status clear) AND the "relaxes only zero-length" property
+(a following out-of-range `WS-X(7:2)` STILL raises → USE-F3 declarative → RESUME AT NEXT). CLI-probed all four
+quadrants: {ON,OFF}×{zero-length,out-of-range}. Below-edition negative is the matrix row (85/2002/2014 → COBOLNET0900).
+
+**Latent-miss fix (surfaced by the full legacy guard).** The legacy `ConformanceTests.Conformance` (Integration) runs
+the SAME `tests/conformance` corpus through the frozen legacy engine, skipping greenfield-only goldens via a
+`GreenfieldOnly` set. The new `ref_mod_zero_length` needed an entry — but running the full Integration suite ALSO
+surfaced two PRE-EXISTING misses: `ec_bound_ref_mod` (added by `3eebcfd1`) and `ec_bound_overflow` (added by
+`e574af41`) both landed WITHOUT their `GreenfieldOnly` entries (neither commit touched `ConformanceTests.cs`), so they
+had been red in the legacy Integration ConformanceTests ever since — a [[feedback_legacy_suite_on_shared_corpus]]
+violation the earlier wave-local gates missed. All three exclusions are added here (EC/2023 goldens the frozen legacy
+can neither compile nor match); the greenfield CorpusRunnerTests still byte-compares all three.
+
+## Entry 896 — 2026-07-18 17:26 PDT — PHASE-13 Wave F — USE FOR DEBUGGING + DEBUG-ITEM at --std 85 (VCR 7.17) — parallel worktree + adversarial review → integrated
+
+Landed the X3.23-1985 debug module at `--std 85` (deleted 2002, absent ISO-2023 — the 1985 standard is the authority):
+the USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES trigger leg + the DEBUG-ITEM special register. A REMOVAL
+gate (85 accepts + models; >=2002 rejects, COBOLNET0902). **This wave is the first end-to-end proof of the
+parallel-worktree + adversarial-review execution model** ([[feedback_execution_model_tiered_parallel]]).
+
+**Process (the model working).** Delegated to a worktree agent (isolation:'worktree', run in parallel with the main
+session's EC-BOUND-REF-MOD wave — file-disjoint). The agent implemented + self-gated (its own conformance 3645). A
+5-agent adversarial review workflow (5 lenses → per-blocker verification) then found **2 CONFIRMED BLOCKERS + 4
+should-fixes** the agent's green battery had NOT caught: (1) DEBUG-LINE reported the SUBJECT procedure's line for every
+cause, but X3.23-1985 (DB101A:611-614) requires the CAUSING statement's line; (2) `DebugRegisterPlace` carried a raw
+C# expression string (`__dbgItem.Image` …) — a backend-neutrality leak. Sent the agent back with precise spec-first
+fixes; it fixed all 4, re-gated (conformance 3647 in-worktree); I RE-VERIFIED both blockers against the primary
+sources myself (DB101A:611-617 confirms the PERFORM-line requirement; the neutralized `DebugRegisterPlace(DataItem,
+DebugRegisterMember enum)` confines the C# text to `PlaceRenderer.DebugRead`) before squash-integrating. **Two spec
+violations were caught before they reached the mainline** — the safety the pattern exists for.
+
+**As-built.** Runtime `DebugItem` register (fixed-width string members; DEBUG-SUB-1/2/3 = S9(4) SIGN LEADING SEPARATE
+per MOVE GR6a §14.9.25.4, width 5 / group 86) → the backend-NEUTRAL `DebugRegisterPlace`. DEBUG-CONTENTS taxonomy
+(START PROGRAM / FALL THROUGH / PERFORM LOOP / SPACES) + DEBUG-LINE causing-statement, both threaded through every
+transfer of control (fall-through, GO TO, GO TO DEPENDING, altered GO TO, per-PERFORM `__dbgFirst`, EXIT PARAGRAPH,
+NEXT SENTENCE) via a defaulted `SourceLine` on the transfer bound nodes. Two-switch model: WITH DEBUGGING MODE
+(compile-time, gates scaffolding — zero-scaffolding invariant, characterization 33 byte-exact) + `RunUnit.DebugMode`
+(object-time, default ON). Loud-staged **COBOLNET1571** (ERROR, not the scout's WARNING — the anti-silent-wrong-answer
+call the review confirmed sound): data-name/file/cd subjects + SORT/MERGE-procedure overlap. Docs: constructs.json
+`use-for-debugging-removed-2002` + ConstructRegistry regenerated (0902 message current), COBOLNET_VALIDATION_DESIGN
+row-7.17, DIAGNOSTICS.md; the dead 0899 debug-register descriptor retired → DebugSubFacilityStaged (1571). Diag-band
+reconciliation: main used 1570 (free) for none, Wave F took 1571; Wave G CLASS A will use 1570/1572.
+
+NO grammar change (legacy + NIST unaffected). Battery on the integrated tree (main + Wave F squashed): conformance
+**3648** · characterization 33 · Wave F/drift 39 · unit 311. Worktree history `d8284660` (impl) + `1779763a` (review
+fixes), squashed to one commit on `phase-13-m4-2023`.
+
+## Entry 895 — 2026-07-18 16:49 PDT — PHASE-13 Wave G — 8 pin-to-spec behavior-row dispositions (CONFORMANCE.md) + a false-claim correction
+
+Recorded the CLASS B/C behavior-row determinations from the remaining-waves scout in `docs/CONFORMANCE.md` §3 — each
+verified spec-first (the 3 decisive citations grep-confirmed in the spec before recording, since the scout had just
+been wrong about §8.4.2.3): VCR 22 I-O status '07' restricted to OPEN/CLOSE (already ⊆ CLOSE, no gate), VCR 24 '37'
+insufficient authority (§9.1.13.6 item 6b — "may"/processor-dependent, emitted all editions, not gated), VCR 78 '39'
+fixed-attribute conflict (documented non-support — no persisted attribute catalog), VCR 33 transfer-of-control
+sections (already pc-range targets), VCR 37 WRITE-no-EOP fall-through (natural default; no FLAG-14 option exists —
+the task hint was wrong), VCR 14 >>EVALUATE combined-condition (impl already matches the 2023 AND-truth GR6/GR10),
+VCR 17 figurative ALL unspecified length (§8.3.3.6.4 GR3b/c, already defined), VCR 20/49 UPPER/LOWER-CASE mappings
+(§15.97.4 GR4 makes the correspondence IMPLEMENTOR-DEFINED absent a locale — the decisive citation the audit didn't
+quote; .NET invariant tables, the 2023 annex code-point changes not separately tuned).
+
+**Doc-drift caught + corrected:** CONFORMANCE.md §3 falsely claimed I-O status '04' (record-length mismatch) "is
+reported" — but the runtime has no '04' constant and the record-sequential READ fits to the fixed width without
+flagging a mismatch (grep-confirmed 0 hits; FileStatus.cs has no '04'). Corrected the bullet to the honest current
+state (not yet emitted; VCR 21 pending — it is an organization-dependent implement wave, not a trivial fix, and its
+blast radius lands on the flake-prone SQ suite).
+
+Doc-only; no code/battery. Disjoint from the in-flight Wave F (which touches DIAGNOSTICS.md + the design doc, not
+CONFORMANCE.md). The VCR row-flips (VERSION_CHANGE_REFERENCE dispositions) are P14 matrix-closure bookkeeping. Diag
+band reconciliation for the Wave G code items (deferred): 1570 free (main session used none), 1571 taken by Wave F,
+so VCR 34→1570 / VCR 27→1572 when those CLASS A items land.
+
+## Entry 894 — 2026-07-18 15:07 PDT — PHASE-13 EC-BOUND-REF-MOD raise (§8.4.3.3.4) — the fatal twin
+
+Raise the fatal EC-BOUND-REF-MOD when a reference modification's leftmost-position or length is out of range (or an
+unallowed zero-length), under >>TURN EC-BOUND-REF-MOD CHECKING ON. Closes the second staged EC-BOUND condition
+(the REF-MOD-ZERO-LENGTH directive that ALLOWS a zero-length result is a split-out follow-on — it needs the RefModPlace
+shape change; the raise itself does not).
+
+**⚠ SPEC-CITATION DRIFT CAUGHT (both prior sources wrong).** The audit cited §8.4.2.4, the remaining-waves scout cited
+§8.4.2.3 — but §8.4.2.3 is "Subscripts" and §8.4.2.4 is numeric comparison. Grep of the spec put reference
+modification at **§8.4.3.3** (§8.4.3.3.4 General rules holds the GR at spec :7089: "If the evaluation of
+leftmost-position or length results in a non-integer value, a zero value, or a value that references a position
+outside the area of identifier-1, the EC-BOUND-REF-MOD exception condition is set to exist. However, when the
+REF-MOD-ZERO-LENGTH directive is in effect, a zero-length result is allowed."). Cited §8.4.3.3.4 throughout — a good
+reminder to verify even the scout spec-first ([[feedback_use_the_spec]]).
+
+- Runtime: `ExceptionState`/Engine gains the fatal ambient gate `BoundRefModChecking` + `RefModError` (mirrors
+  ArgumentFunctionChecking/ArgumentError — throws CobolFatalException only when checking is on) + the static shim.
+  `CobolString.RefMod` (read) and `SpliceInto` (write) call `RefModError` BEFORE the clamp when leftmost<1 /
+  leftmost>size / length==0 / leftmost+length-1>size; checking OFF (the default) falls through to the lenient
+  clamp/space-pad — byte-identical for every existing program (no program enables the gate). Fixed the stale §8.4.2.4
+  doc citation on both methods.
+- Emit: GENERALIZED `EcEmitter.EmitArgOrPlain` (the fatal leg) to wrap for the SET of fatal ambient gates
+  {EC-ARGUMENT-FUNCTION, EC-BOUND-REF-MOD} — ONE gate emits the literal name (byte-identical to the pre-generalization
+  output; characterization 33 confirms), two+ use the actual __af.EcName for the status/dispatch. `EcBinder.EcWrap`
+  adds EC-BOUND-REF-MOD conservatively (scout-sanctioned; the raise fires only at an actual out-of-range ref-mod).
+- Golden: `tests/conformance/2002/ec_bound_ref_mod` (+ manifest). WS-X(7:2) on X(5) → out of range → USE AFTER
+  EXCEPTION CONDITION declarative → "CAUGHT=EC-BOUND-REF-MOD" → RESUME AT NEXT STATEMENT → "Y=[??]" (the aborted MOVE
+  left WS-Y unchanged). CLI-probed: checking-on+declarative (RESUME), checking-off (clamp "Y=[  ]"), fatal-unhandled
+  (abnormal termination, exit 1, the cited message). Scout golden had `RESUME NEXT STATEMENT`; the grammar requires
+  `RESUME AT NEXT STATEMENT` (§14.9.33.2 — AT required) — corrected.
+
+Wave-local gate (tiered per the new execution model): characterization 33 (emit byte-identity) + CorpusRunner 262
+(+1 golden, EC/ref-mod regression clean). Greenfield-only; the comprehensive battery runs at the batch boundary.
+The EC-BOUND surface is now closed (OVERFLOW + REF-MOD); Wave B's staging is retired.
+
+## Entry 893 — 2026-07-18 14:52 PDT — PHASE-13 EC-BOUND-OVERFLOW (§8.5.1.9.6 GR1) + owner improvements I1–I4 adopted
+
+Two threads landed. (a) The owner reviewed a staged `COBOL_NET_Rearchitecture_Plan_v2.0.md` — rejected (it proposed a
+lowered SSA IR + Reflection.Emit-primary CIL that contradict the locked no-lowered-IR / Roslyn-primary / Mono.Cecil-P16
+decisions, and misstated the project as "end of Phase 3" when it is at P13/17 with 3634 conformance green); the owner
+deleted it. Four refined owner proposals (I1 bound-tree backend-neutrality gate, I2 ICE-free robustness gate, I3
+edition-delta coverage report, I4 negative-corpus edition-boundary coverage gate) were evaluated — all sound,
+correctly anchored, zero architecture impact — and folded into the roadmap §7 with mechanism refinements
+(I2 generate-not-commit; I4 an [Ignore] stub is skipped→green so the gate must be a coverage assertion) + a
+reconciliation the review surfaced (the backend seam-proof is PHASE-16 M0 per DESIGN-backend-abstraction.md, NOT the
+roadmap-§3 "PHASE-07 Step 13" — P07 closed at Step 12; §3 corrected). Commits `ed491430`/`97254b2e`.
+
+(b) EC-BOUND-OVERFLOW (§8.5.1.9.6 GR1, nonfatal): a dynamic-capacity table's IMPLICIT growth first crossing its
+expected capacity (TO) now sets EC-BOUND-OVERFLOW under CHECKING ON. GR1's "already exceeded before an implicit
+change ⇒ no exception" is the `_count <= exp` guard (first-crossing only) in `CobolDynTable.RefReceiving`; GrowTo
+stays the pure primitive. Added the nonfatal ambient gate `BoundOverflowChecking`/`BoundOverflowError` (mirrors the
+DataConversion twin) and GENERALIZED `EcEmitter.EmitChecked` to wrap for the SET of nonfatal ambient gates
+{EC-DATA-CONVERSION, EC-BOUND-OVERFLOW} — byte-identical for the existing case (characterization 33). `EcBinder.EcWrap`
+adds it conservatively (scout-sanctioned: the raise fires only at a real dyn-table receiving grow-past-expected).
+Catalog IntroducedIn 2002→2014 (dynamic tables are §8.5.1.9, COBOL-2014; observably inert). Golden
+`tests/conformance/2014/ec_bound_overflow` (FROM 2 TO 4: grow-to-3 no-EC → grow-to-5 first-crossing EC → SET LAST
+EXCEPTION TO OFF → grow-to-7 already-exceeded no-EC). Battery: conformance 3634 (+1) · unit 311 · characterization 33.
+The EC-BOUND-REF-MOD raise (the fatal twin — §8.4.2.3, the audit's §8.4.2.4 was wrong) is next; its raise needs NO
+RefModPlace shape change (the REF-MOD-ZERO-LENGTH directive that does is a split-out follow-on).
+
+Process: owner directed a faster cadence — tiered testing (wave-local targeted gate ~2min; full battery + legacy guard
+per batch and mandatory before merge / the P15 legacy cut) + batched greenfield waves, one comprehensive run per batch.
+
+## Entry 892 — 2026-07-18 13:12 PDT — PHASE-13 remaining-waves re-scout + STOP/GOBACK status→exit-code slice (VCR 75)
+
+Resumed Phase-13 on `phase-13-m4-2023`. Two commits.
+
+**(1) The remaining-waves re-scout (docs).** Ran a 9-agent parallel spec-first anchor re-scout of every remaining
+P13 wave (Wave C residuals, D/E/F/G/H) → `docs/rearchitecture/PHASE-13-remaining-waves-scout.md`, the trusted
+worklist ([[feedback_persist_anchor_rescout]]). Each wave was independently derived from `specs/ISO_COBOL.md` with
+grep-verified line numbers, CLI-probed, and adversarially checked against `PHASE-13-audit.md`. It caught fresh audit
+drifts before any code was written: PICTURE EDITING renders via **Table 9** not Table 8, its intro leg is Annex
+**E.3.3 item 19** not item 1, and **EDITING is a NEW 2023 reserved word** (needs a COBOLNET0901 user-word gate like
+XOR/COMMIT); the reference-mod GR is **§8.4.2.3** not the audit's §8.4.2.4 (which resolves to numeric comparison);
+EC-BOUND-OVERFLOW is **§8.5.1.9.6 GR1** (first-crossing-only, with the "already-exceeded ⇒ no exception" edge) not
+§8.5.1.9.1. Also refreshed the master roadmap (`COBOLNET_REARCHITECTURE_PLAN.md`) STATUS banner + §4 Phase-13 row,
+which were stale ("Wave B done; resume at Wave C").
+
+**(2) STOP/GOBACK status → process exit-code wiring (VCR 75).** The first greenfield wave off the re-scout: the
+`STOP RUN` / `GOBACK … WITH {NORMAL|ERROR} STATUS [value]` phrase had bound presence-only; now its value reaches the
+process exit code (ISO §14.9.42.4 GR5 / §14.9.18.4 GR3/GR10). Independent spec read confirmed the derivation (GR5
+@spec:32250, GR3 @27745, GR10 @27765). On .NET the sole observable is `Environment.ExitCode`, so the STATUS value and
+the ERROR/NORMAL indication collapse into ONE run-unit field `RunUnit.ExitStatus` (the documented implementor mapping,
+Annex A required items 192/193 — recorded in `CONFORMANCE.md` §3): value-when-present, else ERROR⇒1 / NORMAL⇒0. A
+main-program GOBACK is STOP-equivalent (GR3); a called-program GOBACK status is inert (GR2) — the emit guards it with
+`!__asCalled`. Modeled `TerminationStatus(bool Error, BoundExpr? Value)` on `BoundStop`/`BoundGoback`; the Main
+exit-code sink is gated on a bind-computed `BoundCompilation.UsesTerminationStatus` (a parse-tree `statusPhrase` scan)
+so a status-free program's entry wrapper stays byte-identical (zero-scaffolding, SSOT §18.16). Corrected DESIGN
+decision 20 (RETURNING/GIVING is the activation result §14.9.18.4 GR2, NOT the exit code; the status rides the
+run-unit field, not a `ProgramReturn` payload — the design sketch was as-designed-not-as-built). Added
+`StopGobackExitCodeTests` (11 facts asserting the NUMERIC exit code — the golden harness only checks `ExitCode==0` as
+a bool; `CutRunner.RunExit`/`CompileAndRunExit` expose the value).
+
+**Verification.** CLI-probed all 8 spec cases — every exit code matched the hand-derived value (ERROR STATUS 42→42,
+bare ERROR→1, NORMAL STATUS 7→7, plain→0, data-item(13)→13, main GOBACK→5, called-GOBACK inert→0); below-edition
+gates still reject (COBOLNET0900). Battery: greenfield conformance **3633** (+11) · unit **311** · characterization
+**33** (no drift). Greenfield-only (no shared grammar / no legacy compiler touched); guard-fast's NIST leg = 350
+genuine MATCH + the 3 pre-existing known states (ST122A/ST123A `pending`, ST146A `LEGACY_DIVERGENT` §14.9.30 GR18) —
+zero regressions (the diff cannot touch the legacy path).
+
+**Misstep (transparency).** First CLI probes used `cobol run file.cob` (the scout doc's shorthand); the actual CLI
+is `cobol <source> --run`. Corrected after the first run dumped usage help — a reminder to verify tool invocation
+against `--help`, not a scout doc's convenience phrasing.
+
+## Entry 891 — 2026-07-18 00:05 PDT — PHASE-13 Wave H — SCREEN SECTION §4.2.7 non-support warning (COBOLNET1560 band)
+
+Replaced the SCREEN SECTION silent-drop with the §4.2.6-mandated compile-time WARNING, establishing the
+COBOLNET1560 non-support band that `docs/CONFORMANCE.md` §4 catalogues. A normal program's SCREEN SECTION (ISO §13.9,
+an OPTIONAL facility §4.2.7 COBOL.NET does not implement) parsed but was silently dropped; now `DataBinder.Bind`
+emits `warning COBOLNET1560: the SCREEN SECTION … is an optional facility (§4.2.7) that is not supported …` via
+`EditionContext.Warning` (a warning, not an error — the program still compiles and runs; the screen behavior is
+absent). CLI-probed: the warning appears and the program prints DONE. Closes the audit's SCREEN row. The remaining
+Wave H code half — the recognize-and-name diagnostics for MCS (SEND/RECEIVE), COMMIT/ROLLBACK, and VALIDATE (which
+today hit a generic COBOL0001, not a named §4.2.6/§4.2.13 non-support) — needs lexer/grammar recognition of those
+keywords (→ a shared-parser change + full legacy guard) and is the next Wave H increment.
+
+## Entry 890 — 2026-07-17 23:30 PDT — PHASE-13 Wave I (partial) — adversarial review of the 8 Wave C constructs; 5 defects fixed
+
+Ran the adversarial find→verify review (17-agent Workflow, fresh-context skeptics — one finder per construct + a
+per-finding verifier defaulting to REFUTED). **9 confirmed defects across the 8 constructs.** Fixed the 5 that
+reject/miscompute VALID input (the worst class); documented 2 accept-invalid gate-refinements where the runtime is
+already spec-correct; and the review VINDICATED the earlier no-defect constructs (word-length: 0 findings).
+
+**Fixed (verified via CLI probe; battery re-run):**
+1. **`statusPhrase` grammar (3 findings, pre-existing STOP bug inherited by sharing the rule):** the rule wrongly
+   REQUIRED `WITH` (so `GOBACK NORMAL.` / `STOP RUN NORMAL.` were rejected — WITH is an optional word, §5.2.3), bound
+   the STATUS keyword to its operand (so `WITH ERROR STATUS.` with the operand omitted was rejected), and admitted a
+   keyword-less `STATUS operand` (over-accepting — §14.9.42.2 makes `{ERROR|NORMAL}` a required brace group). New rule:
+   `WITH? (ERROR | NORMAL) (STATUS (dataReference | literal)?)?`. Fixes both STOP and GOBACK.
+2. **CONTINUE fractional-negative (§14.9.9 GR1a/b):** the sign test ran on the m=0-TRUNCATED integer, so a negative
+   fractional interval in (-1,0) truncated to 0 and failed to set EC-CONTINUE-LESS-THAN-ZERO. Now the interval is
+   rendered at full precision (`NumericRenderer.Real`) and the sign test precedes the truncation — `CONTINUE AFTER
+   -0.5` under CHECKING ON now correctly sets the EC (was silently '00').
+3. **WRITE combined-advance LINAGE (§14.9.51 GR25e/f + GR26/GR7c):** the two advances collapsed into a single
+   LINAGE-COUNTER increment, mishandling a page boundary between them. Now `Advance`+`AdvanceLinageCounter` run
+   separately per operation (before, then after) so each advance gets its own overflow/footing logic.
+4. **Boolean shift × binary-operator precedence (§8.8.2 rule 7b):** the documented rule-7b limitation was
+   silently mis-grouping VALID mixed expressions. Now a shift at the same level as a B-AND/B-OR/B-XOR is REJECTED
+   LOUD (COBOLNET1569, "parenthesize to disambiguate") via a precise parse-ancestry check — LOUD-not-silently-wrong;
+   the unmixed default (the Table A.2 oracle + realistic usage) is unaffected.
+5. **NO SIGN diagnostic §-citation:** COBOLNET1566 cited §13.18.60.3 SR31, but SR31 (the 'S'-forbidding rule) is in
+   the PICTURE clause §13.18.40.3 (verified spec line 20397) — corrected.
+
+**Documented as follow-ons (accept a non-conforming program, but the runtime behavior on valid input is spec-correct):**
+- **SET SIZE SR34** (a literal integer-2 exceeding the LIMIT / negative is not compile-time-diagnosed): the runtime
+  already floors negative → 0 and clamps > LIMIT per GR37/GR38, so the behavior is correct; only the early
+  syntax-rule diagnostic is missing (no LIMIT ⇒ only a negative literal is even a violation).
+- **PERFORM UNTIL EXIT SR8** (UNTIL EXIT nested UNDER a VARYING PERFORM is not statically rejected): a cross-statement
+  static check; the same-statement VARYING+UNTIL-EXIT form cannot parse (they are alternatives of performOptions).
+
+Diag band: COBOLNET1569 now used (boolean-shift-mixed); next free **1570**.
+
+## Entry 889 — 2026-07-17 22:55 PDT — PHASE-13 Wave H (start) — docs/CONFORMANCE.md (§4.2.16) created
+
+Created `docs/CONFORMANCE.md` — the §4.2.16 conformance record + the implementor's user documentation §4.2.6
+requires. It dispositions all 46 Annex A.3 processor-dependent language elements (claimed / not claimed / N/A,
+each cited), records the pinned §4.2.6 behavior determinations (I-O status '0x'/'04' reporting, the .NET-invariant
+case-mapping approximation), and names the four documented-non-support facilities (MCS asynchronous messaging,
+commit/rollback, VALIDATE, screen — §4.2.6/§4.2.7/§4.2.13). Dispositions are drawn from the P10–P13 codebase state
+(STANDARD-DECIMAL arith claimed; the IEEE binary32/64 usages claimed, binary128/decimal not per COBOLNET1564; the
+ISO/IEC-14651 locale module not claimed per COBOLNET1518; PACKED-DECIMAL incl. 2023 NO SIGN; WRITE incl. the 2023
+combined advancing; CONTINUE AFTER at implementor m=0; abnormal-termination nonzero exit; etc.). Added the DOC_INDEX
+row. This closes the audit rows that required "a §4.2.6 note in CONFORMANCE.md" (I-O '0x' equivalence, case-mapping
+20/49, and the disposition column of the A.3 sweep). The COBOLNET1560-band §4.2.6 WARNING mechanism + the
+recognize-and-name diagnostics for the four facilities are the Wave H code half (still to land) — this doc is the
+catalogue behind them.
+
+## Entry 888 — 2026-07-17 22:35 PDT — PHASE-13 Wave C — WRITE … BEFORE AND AFTER ADVANCING (§14.9.51 SR17); the shared-parser lesson
+
+Landed the COBOL-2023 combined **WRITE … BEFORE ADVANCING n AFTER ADVANCING m** (§14.9.51 SR17/GR25e/GR25f): the
+grammar `writeBeforeAfter` was refactored to a repeatable `writeAdvancePhrase writeAdvancePhrase?`; the binder builds
+a (before, after) pair with SR17 rejection (COBOLNET0862 for a malformed pair or PAGE in the combined form); a new
+`BoundWrite.AfterAdvancing` field carries the AFTER phrase; the emitter routes the combined case to
+`CobolFile.WriteBeforeAndAfter` → `SequentialConnector.WriteBeforeAndAfter`, which presents the line at the current
+position then advances by BOTH amounts (both after presentation — GR25f relocates AFTER's advance) with
+LINAGE-COUNTER += before+after. Recognition gate `WriteBeforeAndAfterAdvancing2023` fires on the co-occurrence (two
+phrases) — a single BEFORE/AFTER stays edition-invariant. Golden `write_before_and_after` proves it via LINAGE-COUNTER
+(OPEN=001 → BEFORE 1 + AFTER 2 → 004; a single BEFORE 1 alone gives 002, a single AFTER 2 gives 003, so 004 uniquely
+proves both phrases parsed and applied).
+
+**THE LESSON (corrects an earlier session assumption): the generated ANTLR parser is SHARED between the greenfield
+and the frozen legacy compiler** — `src/CobolSharp.Compiler` binds against `CobolParserCore` too. Batch-1's grammar
+changes were purely ADDITIVE, so they didn't break the legacy; but this `writeBeforeAfter` RESTRUCTURE broke the legacy
+`FileIoBinder`'s `writeBeforeAfter().PAGE()/.integerLiteral()/.dataReference()` accessors. Fixed by pointing the legacy
+binder at `writeBeforeAfter().writeAdvancePhrase(0)` (it consumes only the single/first phrase — a frozen oracle needs
+no 2023 combined form). This is exactly why the standing rule requires a FULL legacy guard for every `.g4` change; the
+greenfield-only claim in DEVLOG 887 was too strong — the `.g4` FILES live only in the greenfield, but their generated
+output is shared. Also: the scout's golden used file-name `PF`, which is a RESERVED word (Report Writer page-footing) —
+switched to `PRTF`.
+
+`write_before_and_after` added to `GreenfieldOnly` (the legacy compiler has no combined-advance path). Battery:
+greenfield conformance + unit 311 + characterization 33 + full legacy guard (NIST 353 MATCH) — all pending at commit.
+
+## Entry 887 — 2026-07-17 21:55 PDT — PHASE-13 Wave C (batch 1) — 7 COBOL-2023 grammar constructs, spec-first from a persisted re-scout
+
+Ran the standing per-wave discipline: an 8-agent parallel spec-first anchor re-scout FIRST (persisted as
+`docs/rearchitecture/PHASE-13-wave-c-scout.md`, TRUSTED over the drift-prone plan — [[feedback_persist_anchor_rescout]]),
+then implemented one construct at a time, CLI-probing each + shipping its golden + a below-2023 negative in the same
+batch. **The re-scout caught two audit-drift errors before any code:** (1) the dynamic-length SET form is
+`SET [SIZE OF] data-name TO n` (§14.9.39 Format 16) — NOT the audit's "SET LENGTH OF"; and its EC is
+EC-STORAGE-NOT-AVAIL, NOT the audit's EC-BOUND. (2) The boolean-shift precedence (rule 7b) is context-sensitive
+(a shift inherits the precedence of its preceding operator), not a fixed grammar tier.
+
+**Landed (each: superset grammar + binder + emit + runtime + `constructs.json` row + VersionConformancePass gate +
+conformance golden + below-2023 negative):**
+1. **GOBACK … WITH {ERROR|NORMAL} STATUS** (§14.9.18.2, VCR 75) — reused a shared `statusPhrase` rule (renamed from
+   `stopStatusPhrase`, singular-pattern) referenced by both STOP and GOBACK; gated `GobackStatus2023` (0900).
+   Presence-only, matching the STOP sibling — the status VALUE → exit-code wiring is a separate STOP+GOBACK
+   termination-status slice (tracked). Golden `goback_status`.
+2. **USAGE PACKED-DECIMAL WITH NO SIGN** (§13.18.60.4 GR11, VCR 42) — `PicInfo.PackedNoSign` drops the sign nibble
+   (StorageWidth `ceil(Digits/2)` vs `Digits/2+1`); value path identical to unsigned packed. New rejects: NO SIGN on
+   a non-Packed usage (COBOLNET1565), 'S' picture + NO SIGN (SR31, COBOLNET1566). Recognition gate
+   `UsagePackedNoSign2023`. Golden proves the byte-width delta via `FUNCTION BYTE-LENGTH` (BL-PLAIN=4 vs BL-NOSIGN=3).
+3. **63-character COBOL words** (§8.3.2.1, VCR 54) — a length CEILING (a relaxation, opposite direction from a 0900
+   introduction): `VisitCobolWord` rejects >max (COBOLNET1567) where max = 63 (2023) / 31 (2002/2014) / 30 (1985);
+   >63 rejected at EVERY edition. Deduped per distinct word.
+4. **SET [SIZE OF] dyn-length TO n** (§14.9.39 Format 16, VCR 60) — new `setSizeStatement` + a bare-form peek
+   (`SET dyn TO n`), `BoundSetSize`, runtime `CobolDynString.SetSize` (GR39 space-fills GROWN positions, never
+   restores truncated content — the golden is deliberately shrink-then-grow 5→3→6 = `HEL   `). Semantic gate
+   `SetDynLengthSize2023` on the bound node (covers both forms). SR33 reject COBOLNET1568. Golden `set_size`.
+5. **CONTINUE AFTER n SECONDS** (§14.9.9, VCR 57) — `BoundContinueAfter` + runtime `CobolTiming.ContinueAfter`; a
+   negative interval → 0 (GR1a) and, under `>>TURN EC-CONTINUE-LESS-THAN-ZERO CHECKING ON`, sets that nonfatal EC
+   (GR1b, observed via `FUNCTION EXCEPTION-STATUS`); the check flag is captured from the TurnState at bind. m=0
+   implementor choice (integer seconds). Gate `ContinueAfter2023`. Golden `continue_after`.
+6. **PERFORM … UNTIL EXIT** (§14.9.28.4 GR11, VCR 80) — `PerformForever` control → `while(true)`; escape by
+   inline EXIT PERFORM. Gate `PerformUntilExit2023`. Golden `perform_until_exit`. (The Format-3 exception-checking
+   PERFORM — a large EC-entangled construct — is a documented follow-on, per the scout's split recommendation.)
+7. **Boolean shift B-SHIFT-L/R/LC/RC** (§8.8.2 rule 8, VCR 9/32/46) — 4 lexer tokens + a `booleanShiftTerm` tier
+   (integer 2nd operand, rule 5) + `BoundBoolShift` + runtime `CobolBool.Shift{Left,Right}[Circular]`. Output matches
+   the Annex A Table A.2 oracle byte-for-byte (1100 → SL3=0000/SR3=0001/SLC=0110/SRC=1001). Recognition gate
+   `BooleanShiftOperators2023` (a `HasShiftOp` scan parallel to `HasBoolOp`) — correctly distinct from
+   boolean-operators-2002 at `--std 2002`. **The rule-7b context-sensitive precedence (a shift inheriting a preceding
+   B-OR/B-XOR's precedence) is a DOCUMENTED refinement** — the fixed tier realizes the unmixed default case (the
+   oracle + all realistic usage); mixed shift+binary precedence is staged. `BooleanRenderer` was refactored to thread
+   a `NumericRenderer` (the shift count is a numeric operand).
+
+**Diagnostic band:** consumed COBOLNET1565–1568 (NO SIGN ×2, word-length, SET-SIZE SR33); next free 1569. Six new
+`constructs.json` introduction gates use 0900; the word-length ceiling uses 1567.
+
+**Battery:** greenfield conformance green (features 1–4 verified at 3602; 5–7 + boolean-shift run pending at commit),
+unit 311, characterization 33 (the `BooleanRenderer`/`ConditionRenderer` refactor byte-neutral), full legacy guard
+(NIST) pending — the grammar is greenfield-only (`src/Cobol.Net.Frontend/Grammar`), so the legacy CLI/NIST is
+structurally unaffected, run as the standing backstop. **Remaining Wave C:** WRITE BEFORE AND AFTER + SUPPRESS WHEN
+(C5), PICTURE EDITING (C3), PERFORM Format 3; then Waves D–I. Persisted anchors: `PHASE-13-wave-c-scout.md`.
+
+## Entry 886 — 2026-07-17 20:10 PDT — PHASE-13 Wave B (start) — EC-SIZE-TRUNCATION verified + goldened (§14.7.5 / VCR 53)
+
+The P13 as-built audit (Entry, this session) showed EC-SIZE-TRUNCATION was ALREADY RAISED (the plan's
+"observable level only" premise is stale): `ArithmeticEmitter` latches "EC-SIZE-TRUNCATION" on a ROUNDED MODE IS
+PROHIBITED inexact store AND on receiver-capacity overflow, flowing to `ExceptionState.Set` via `EcEmitter`. CLI
+probe confirmed: a `COMPUTE X ROUNDED MODE IS PROHIBITED = 0.35` (X = PIC 9V9) under `>>TURN EC-SIZE CHECKING ON`
+raises the fatal EC; observed via `ON SIZE ERROR` + `FUNCTION EXCEPTION-STATUS` = `EC-SIZE-TRUNCATION`, with the
+receiver LEFT UNCHANGED (§14.7.5). So this row is verify+golden, not implement: added the golden
+`tests/conformance/2023/ec_size_truncation_prohibited` (GreenfieldOnly — the named-EC / >>TURN / EXCEPTION-STATUS
+model is greenfield; the frozen legacy has a limited EC model). Greenfield CorpusRunner 253 green, legacy
+ConformanceTests 147 green (skip confirmed), no compiler change → NIST untouched.
+
+**EC-BOUND-OVERFLOW / EC-BOUND-REF-MOD (STAGED, documented residue):** both are catalogued (nonfatal / fatal) but
+NOT raised — raising them needs the ambient-gate pipeline generalized (a per-statement `ExceptionState.
+BoundOverflowChecking`/`BoundRefModChecking` flag set by `EcEmitter` from the compile-time `TurnState`, plus the
+`EcBinder` wrapping every table-grow / ref-mod-bearing statement in a `BoundEcChecked`, plus the runtime raise at
+`CobolDynTable` grow-past-capacity and `CobolString.RefMod` zero-length/out-of-range). That is a substantial
+EC-engine change with real regression surface; deferred to a dedicated sub-increment rather than rushed into this
+wave (both remain LOUD-not-silently-wrong today — the `CobolDynTable` comment already flags the site). Next: the
+2023 grammar constructs (Wave C), batched by the shared full-legacy-guard gate.
+
 ## Entry 885 — 2026-07-17 19:41 PDT — ✅ PHASE-12 COMPLETE — Step 13 phase close + the doc sweep; merge to main
 
 PHASE-12 (M3 / COBOL-2014 surface deltas) closes. All 13 steps done across 6 battery-gated commits

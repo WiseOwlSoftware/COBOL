@@ -29,12 +29,26 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // to a containing program's GLOBAL declaratives (IC233A: the contained unit has no declaratives, yet its
         // failing OPEN must fire the outer's USE GLOBAL).
         dispatchState.UseDecls = bound.Declaratives is { Count: > 0 } || dispatchState.OuterGlobalUse;
+        // X3.23-1985 USE FOR DEBUGGING procedure-trigger facility (VCR Table 7 row 7.17): active when a
+        // procedure-subject debugging declarative was collected under WITH DEBUGGING MODE. Gates all debug
+        // scaffolding (zero-scaffolding invariant — a non-debug program is byte-identical).
+        dispatchState.DebugActive = bound.DebugSubjects is { Count: > 0 };
+        dispatchState.DebugByPc = bound.DebugSubjects?.ToDictionary(s => s.SubjectPc)
+            ?? new Dictionary<int, BoundDebugSubject>();
         w.Line();
         // The dispatcher internals use a `__` prefix — COBOL data-names cannot contain a double underscore — so they
         // never collide with a program's fields (e.g. a COBOL `01 N` and the paragraph count `__N`).
         w.Line($"private const int __N = {n};   // paragraph count");
         alterSwitch.EmitFields(bound, w);   // the per-altered-paragraph mutable GO TO target fields (control-flow design D4)
         reportWriter.EmitReportMembers(w);      // per-report engine fields + line compose methods (Verbs/ReportWriterEmitter.cs)
+        if (dispatchState.DebugActive)
+        {
+            // The X3.23-1985 DEBUG-ITEM special register + its per-trigger transfer cause (VCR Table 7 row 7.17).
+            w.Line("private readonly DebugItem __dbgItem = new DebugItem();   // X3.23-1985 DEBUG-ITEM register (VCR 7.17)");
+            w.Line("private DebugCause __dbgCause;   // the transfer-of-control cause of the next debug trigger (default Transfer → SPACES)");
+            w.Line("private int __dbgLine;   // the CAUSING statement's source line — DEBUG-LINE for a non-START-PROGRAM trigger");
+            w.Line("private bool __dbgBusy;   // a debugging declarative is not itself debugged (re-entrancy guard)");
+        }
         w.Line();
         using (w.Block("public void __Activate()"))
         {
@@ -54,6 +68,8 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             }
             // Execution begins at the first NONdeclarative procedure (ISO §14.2.3 GR1) — declarative sections
             // occupy the pcs below EntryPc, entered only via __RunUse or an explicit PERFORM/GO TO (SR4).
+            // X3.23-1985: the FIRST execution of the first nondeclarative procedure is DEBUG-CONTENTS "START PROGRAM".
+            dispatchState.EmitDebugCause(w, "StartProgram");
             w.Line($"try {{ __Dispatch({bound.EntryPc}, -1); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18 GR2/GR3; §14.9.14 GR3)");
         }
         w.Line();
@@ -61,6 +77,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
         // (__IoCheckEc needs no declaratives to bridge status→EC and apply the fatal default) — gated so an
         // EC-free program's source is unchanged.
         if (dispatchState.UseDecls || bound.Ec is { HasIoChecked: true }) EmitUseMachinery(bound, w);
+        if (dispatchState.DebugActive) EmitDebugRunner(w);
         EmitDispatchMethod(bound, w, "private int __Dispatch(int __startPc, int __exitPc)",
             0, bound.Paragraphs.Count - 1);
     }
@@ -88,8 +105,19 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                         dispatchState.CurrentPc = i;
                         using (w.Block($"case {i}:   // {bound.Paragraphs[i].CobolName}"))
                         {
+                            // X3.23-1985 USE FOR DEBUGGING (VCR Table 7 row 7.17): a debug SUBJECT procedure fires
+                            // its debugging declarative just BEFORE its own body — populate DEBUG-ITEM from the
+                            // transfer cause (__dbgCause, set by whatever transferred control here) and run the
+                            // section over its bounded pc range.
+                            if (dispatchState.DebugActive && dispatchState.DebugByPc.TryGetValue(i, out var subj))
+                                w.Line($"__RunDebug({Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(subj.SubjectName, true)}, "
+                                    + $"{subj.SourceLine}, {subj.SectionStartPc}, {subj.SectionEndPc});");
                             if (!EmitParagraphBody(bound.Paragraphs[i], i))
                             {
+                                // Sequential fall-through into pc+1 is DEBUG-CONTENTS "FALL THROUGH"; DEBUG-LINE is
+                                // this paragraph's LAST statement (the causing statement that fell through, DB101A
+                                // FALL-THROUGH-TEST :403-407).
+                                dispatchState.EmitDebugCause(w, "FallThrough", bound.Paragraphs[i].SourceLine);
                                 w.Line($"__pc = {i + 1};");
                                 w.Line("break;");
                             }
@@ -101,6 +129,28 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             }
             w.Line("return __pc;");
         }
+    }
+
+    /// <summary>Emit the X3.23-1985 debug trigger runner (VCR Table 7 row 7.17): space-fill DEBUG-ITEM, set
+    /// DEBUG-LINE/DEBUG-NAME/DEBUG-CONTENTS for the triggering occurrence, then run the debugging declarative body
+    /// over the bounded pc range. Guarded by the OBJECT-TIME switch (<c>RunUnit.DebugMode</c>, default ON — the CCVS
+    /// posture) and a re-entrancy flag (a debugging declarative is not itself debugged). Emitted ONLY for a
+    /// debug-active program.</summary>
+    private void EmitDebugRunner(CodeWriter w)
+    {
+        using (w.Block("private void __RunDebug(string __nm, int __subjLine, int __ds, int __de)"))
+        {
+            w.Line("if (!RunUnit.Current.DebugMode) return;   // the X3.23-1985 object-time debug switch (default ON)");
+            w.Line("if (__dbgBusy) return;");
+            w.Line("__dbgBusy = true;");
+            // DEBUG-LINE: START PROGRAM has no causing statement — it is the subject's own first executable
+            // statement (DB101A START-PROGRAM-TEST :257-264); every other cause is the causing (transferring)
+            // statement, carried in __dbgLine by the transfer site.
+            w.Line("int __line = __dbgCause == DebugCause.StartProgram ? __subjLine : __dbgLine;");
+            w.Line("__dbgItem.Populate(__line, __nm, __dbgCause);");
+            w.Line("try { __Dispatch(__ds, __de); } finally { __dbgBusy = false; }");
+        }
+        w.Line();
     }
 
     /// <summary>Emit the USE-declaratives machinery (ISO §14.9.49; emitted ONLY when the program declares USE

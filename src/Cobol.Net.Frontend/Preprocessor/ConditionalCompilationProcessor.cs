@@ -17,9 +17,12 @@ namespace CobolNet.Frontend.Preprocessor;
 ///       relation (<c>operand [IS] [NOT] relop operand</c>, relop ∈ = &lt;&gt; &lt; &gt; &lt;= &gt;=),
 ///       combined with <c>AND</c> / <c>OR</c> / <c>NOT</c> and parentheses.
 ///
-/// Deferred (documented WS-2002-FORMAT follow-ups): <c>&gt;&gt;EVALUATE</c>/<c>&gt;&gt;WHEN</c>, arithmetic /
-/// boolean expression operands in DEFINE, the PARAMETER (operating-environment) source of a define, and
-/// conditional-compilation directives located inside copied library text.
+/// Deferred (tracked in the P13 review ledger + Wave D): arithmetic / boolean expression operands in
+/// DEFINE/EVALUATE (§7.3.6/§7.3.7 — today only single-token operands bind; multi-token operands bind the FIRST
+/// token, a known silent-wrong-value defect), the PARAMETER (operating-environment) source of a define (today it
+/// wrongly binds the literal word "PARAMETER"), the §7.3.11.3 SR2 no-OVERRIDE redefinition check, and
+/// conditional-compilation directives located inside copied library text (§7.2.1 orders COPY before the CC scan).
+/// <c>&gt;&gt;EVALUATE</c>/<c>&gt;&gt;WHEN</c> ARE implemented (the earlier deferral note was stale).
 ///
 /// Blast radius is essentially nil: a source with no <c>&gt;&gt;</c> lines is reproduced byte-for-byte.
 /// </summary>
@@ -42,7 +45,8 @@ public static class ConditionalCompilationProcessor
     /// text for the downstream <see cref="TurnDirectiveProcessor"/> (the COBOL.NET EC model, ISO §7.3.25); an
     /// omitted-branch one still drops with its branch. The default (false) is the exact legacy behavior —
     /// TURN consumed here, the legacy caller untouched.</param>
-    public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false)
+    public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false,
+        bool leaveRefModZeroLengthDirectives = false)
     {
         var defines = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
         var stack = new Stack<Frame>();
@@ -138,6 +142,11 @@ public static class ConditionalCompilationProcessor
                     // KnownIgnoredDirectives fallthrough, so PROPAGATE stays in that set and a legacy caller (no
                     // flag) keeps consuming it — the greenfield stage adds the edition gate, legacy behavior intact.
                     else if (leavePropagateDirectives && keyword == "PROPAGATE") output[i] = line;
+                    // With leaveRefModZeroLengthDirectives (the COBOL.NET caller), an emitting-branch
+                    // >>REF-MOD-ZERO-LENGTH survives for the RefModZeroLengthDirectiveProcessor stage (ISO §7.3.23 —
+                    // the introduction gate + the per-line zero-length fold). It stays in KnownIgnoredDirectives so a
+                    // legacy caller (no flag) keeps consuming it; the greenfield stage adds the real behavior.
+                    else if (leaveRefModZeroLengthDirectives && keyword == "REF-MOD-ZERO-LENGTH") output[i] = line;
                     else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                     break;
             }

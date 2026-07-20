@@ -93,7 +93,7 @@ internal sealed class ProgramEmitter
         foreach (var unit in units)
             if (unit.Parent is null && !unit.IsPrototype)   // a prototype has no body (§10.6.2 SR4f) — no class
                 EmitProgramClass(unit, w);
-        EmitEntryWrapper(units, w, anyFiles);
+        EmitEntryWrapper(units, w, anyFiles, comp.UsesTerminationStatus);
         return w.ToString();
     }
 
@@ -200,7 +200,15 @@ internal sealed class ProgramEmitter
             w.Line();
 
             EmitCallMethod(unit, formals, w);
-            w.Line("void ICobolProgram.Activate() => __Activate();");
+            if (OoEmitter.WantsExternalDescribes(data))
+            {
+                // §14.8.4: the main-program activation registers its external descriptions too (the ACTIVATOR
+                // mask is zero there — store-only; a CALLed activation registers via the Call() entry below).
+                w.Line("void ICobolProgram.Activate() { __DescribeExternals(); __Activate(); }");
+                _oo.EmitExternalDescribes(data, unit.Path, w);
+            }
+            else
+                w.Line("void ICobolProgram.Activate() => __Activate();");
             using (w.Block("public void CloseFiles()"))   // CANCEL §14.9.5 GR9 / run-unit close §14.6.11
                 foreach (var file in data.Files)
                     if (!file.IsExternal)   // CANCEL closes INTERNAL connectors only (§14.9.5 GR9); an EXTERNAL connector persists (GR8 / §13.18.22.4 GR4a)
@@ -281,6 +289,11 @@ internal sealed class ProgramEmitter
     {
         using (w.Block("public void Call(CobolArg[] __args, ManagedPointer? __ret)"))
         {
+            // §14.9.4.4 GR3e: the external-conformance check runs FIRST at the CALLed activation entry — before
+            // LOCAL-STORAGE re-initialization and formal adoption — so a raised EC-EXTERNAL condition unwinds to
+            // the CALL site ("the program call is not successful") before any effect of the activation.
+            if (OoEmitter.WantsExternalDescribes(unit.Data))
+                w.Line("__DescribeExternals();");
             // LOCAL-STORAGE is AUTOMATIC data (ISO §13.6.4 GR1): "placed in the initial state every time the
             // … program … is activated" (§14.6.2.3.2) — for an INITIAL or RECURSIVE unit the fresh instance
             // per activation already IS that state, but a cached-singleton unit (neither attribute) re-enters
@@ -372,7 +385,7 @@ internal sealed class ProgramEmitter
     /// locate step; §14.6.1: a run unit contains one or more runtime modules). <c>Main</c> runs the first
     /// program as main and performs the §14.6.11 implicit CLOSE at run-unit termination; STOP RUN unwinds to
     /// here (§14.9.43); a main-program GOBACK already returned normally through its activation entry.</summary>
-    private void EmitEntryWrapper(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles)
+    private void EmitEntryWrapper(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles, bool usesTerminationStatus)
     {
         using (w.Block("public static class __CobolModule"))
         using (w.Block("public static void Register()"))
@@ -404,8 +417,14 @@ internal sealed class ProgramEmitter
             w.Line("__CobolModule.Register();");
             if (mainUnit is not null)
             {
-                w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(mainUnit.Path)}); }}");
-                w.Line("catch (StopRun) { }");
+                // The termination status "passed to the operating system" (§14.9.42.4 GR5 / §14.9.18.4 GR10) is the
+                // process exit code. Set it on the normal-return and STOP-RUN paths (both carry RunUnit.ExitStatus,
+                // default 0); the fatal-EC catch below sets 1 and WINS (it is not reached on these paths). Emitted
+                // only when the group uses a status phrase — a status-free program's Main stays byte-identical.
+                string setExit = usesTerminationStatus
+                    ? " Environment.ExitCode = (int) RunUnit.Current.ExitStatus;" : "";
+                w.Line($"try {{ ProgramRegistry.RunMain({CsLiteral(mainUnit.Path)});{setExit} }}");
+                w.Line($"catch (StopRun) {{{setExit} }}");
                 if (_ecState.Active)
                     // The fatal-EC default (ISO §14.6.13.1.3 #7 → §14.6.12 abnormal run-unit termination; the settled
                     // SSOT §18.16 implementor choice): diagnostic on stderr + NONZERO exit. The finally's CloseAll is

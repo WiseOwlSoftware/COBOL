@@ -88,7 +88,14 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     internal bool EmitStatement(BoundStatement s) => s.Accept(this);
 
     // ── Control flow / no-op ─────────────────────────────────────────────────────────────────────────────────
-    public bool Visit(BoundStop n) { _ctx.Writer.Line("throw new StopRun();"); return true; }
+    public bool Visit(BoundStop n)
+    {
+        // STOP RUN … WITH {NORMAL|ERROR} STATUS [value] (§14.9.42.4 GR5): pass the status to the OS (the process
+        // exit code) before unwinding. No status phrase ⇒ no SetExitStatus (exit stays 0 — byte-identical default).
+        if (n.Status is { } st) _ctx.Writer.Line(RuntimeApi.SetExitStatus(_num.ExitStatus(st)) + ";");
+        _ctx.Writer.Line("throw new StopRun();");
+        return true;
+    }
 
     public bool Visit(BoundStopLiteral n)
     {
@@ -97,11 +104,24 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         return false;
     }
 
-    public bool Visit(BoundGoTo n) { var w = _ctx.Writer; w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
-    public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
+    // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): a GO TO transfer is DEBUG-CONTENTS SPACES (Transfer); EXIT PARAGRAPH
+    // returns to the paragraph end (a controlled fall-through into pc+1) — DEBUG-CONTENTS "FALL THROUGH". DEBUG-LINE
+    // is the transferring statement's own source line.
+    public bool Visit(BoundGoTo n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "Transfer", n.SourceLine); w.Line($"__pc = {n.TargetPc};"); w.Line("break;"); return true; }
+    public bool Visit(BoundExitParagraph n) { var w = _ctx.Writer; _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine); w.Line($"__pc = {_dispatchState.CurrentPc + 1};"); w.Line("break;"); return true; }
     public bool Visit(BoundExitPerform n) { _ctx.Writer.Line(n.Cycle ? "continue;" : "break;"); return false; }   // inline-PERFORM loop
     public bool Visit(BoundGoToDepending n) { _controlFlow.EmitGoToDepending(n); return false; }
     public bool Visit(BoundNop n) => false;
+    public bool Visit(BoundContinueAfter n)
+    {
+        // CONTINUE AFTER n SECONDS (§14.9.9): evaluate the interval at FULL precision (the GR1a/GR1b sign test
+        // precedes the m=0 truncation), then suspend via the runtime, which sets the nonfatal
+        // EC-CONTINUE-LESS-THAN-ZERO under CHECKING ON for a negative value (incl. a fractional (-1,0)) and truncates
+        // toward zero (m=0) for the positive-value sleep.
+        string secs = NumericRenderer.Real(_num.Render(n.Seconds, ReceiverContext.None));
+        _ctx.Writer.Line(RuntimeApi.ContinueAfter(secs, n.CheckLessThanZero ? "true" : "false") + ";");
+        return false;
+    }
 
     public bool Visit(BoundSequence n)
     {
@@ -118,6 +138,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         // the paragraph fall-through (pc+1 — the dispatcher's at-exit check then handles a PERFORM return).
         var w = _ctx.Writer;
         if (_dispatchState.SentenceEndLabel is { } lbl) { w.Line($"goto {lbl};"); return true; }
+        _dispatchState.EmitDebugCause(w, "FallThrough", n.SourceLine);   // to pc+1 (X3.23-1985 "FALL THROUGH", VCR 7.17)
         w.Line($"__pc = {_dispatchState.CurrentPc + 1};");
         w.Line("break;");
         return true;
@@ -151,6 +172,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     public bool Visit(BoundSetTo n) { _set.EmitSetTo(n); return false; }
     public bool Visit(BoundSetUpDown n) { _set.EmitSetUpDown(n); return false; }
     public bool Visit(BoundSetCapacity n) { _set.EmitSetCapacity(n); return false; }
+    public bool Visit(BoundSetSize n) { _set.EmitSetSize(n); return false; }
     public bool Visit(BoundSearch n) { _controlFlow.EmitSearch(n); return false; }
     public bool Visit(BoundEvaluate n) { _evaluate.Emit(n); return false; }
     public bool Visit(BoundInspect n) { _inspect.Emit(n); return false; }

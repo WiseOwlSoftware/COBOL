@@ -18,6 +18,7 @@
     "based-redefines-conflict",
     "bit-usage-numeric-pic",
     "boolean-ordering-relation",
+    "wavef-debug-removed-2002",
     "boolean_conv_below_2002",
     "boolean_operators_below_2002",
     "by-value-formal-class",
@@ -36,6 +37,9 @@
     "constant-record-at-85",
     "constant-record-level",
     "constant-record-store",
+    "external-constant-record-no-type-at-2023",
+    "external-file-status-consistency-at-2023",
+    "external-relative-key-consistency-at-2023",
     "copy-replacing-non-pseudo-text",
     "data-records-fd",
     "date_window_below_2002",
@@ -102,7 +106,10 @@
     "user-word-receive",
     "value-boolean-mismatch",
     "value-of-fd",
-    "xor_below_2023"
+    "xor_below_2023",
+    "ref-mod-zero-length-malformed",
+    "ec-external-turn-below-2023",
+    "external-constant-record-weak-type-at-2023"
   ],
   "pending": []
 }

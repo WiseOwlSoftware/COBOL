@@ -55,6 +55,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         }
 
         var ecProg = EnabledProgramNames();
+        // The ACTIVATING half of §14.8.4.1's both-elements rule: this CALL statement's enabled EC-EXTERNAL-*
+        // set becomes the pending site mask the activation boundary latches for the activated element's
+        // Describe gate (§14.9.4.4 GR3e — "enabled ... in both the activated program and activating runtime
+        // element"). Zero-scaffolding: an EC-free site emits nothing (the boundary re-zeroes after every call).
+        int siteExternalMask = ecProg.Sum(ExternalBit);
+        if (siteExternalMask != 0)
+            w.Line($"ExceptionState.ExternalCheckMask = {siteExternalMask};   // §14.8.4.1 — this CALL's EC-EXTERNAL enablement (the activating element)");
         bool hasPhrase = c.OnException is not null || c.NotOnException is not null;
         if (!hasPhrase && ecProg.Count == 0)
         {
@@ -101,10 +108,24 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         + $"{ArgsArrayText(c)}, {(c.Returning is { } rp ? RefCarrier(rp) : "null")}, "
         + "notFoundEc: \"EC-FUNCTION-NOT-FOUND\");";   // §8.4.3.2.4 GR6b — a UDF locate miss is EC-FUNCTION-NOT-FOUND
 
-    /// <summary>The enabled EC-PROGRAM-* names of the current statement (empty when none / no wrapper).</summary>
+    /// <summary>The enabled EC-PROGRAM-* / EC-EXTERNAL-* names of the current statement (empty when none / no
+    /// wrapper) — the two families a CALL raises through <see cref="CobolCallException"/> (ISO §14.9.4.4
+    /// GR3b–f: locate/recursion/argument failures; GR3e: the §14.8.4 external-conformance trio). Both take the
+    /// same catch arm: all are Table 13 Fatal and GR3h #1 gives the ON EXCEPTION phrase both families.</summary>
     private List<string> EnabledProgramNames() =>
-        ecState.Info?.Enabled.Where(p => p.Ec.StartsWith("EC-PROGRAM-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
+        ecState.Info?.Enabled.Where(p => p.Ec.StartsWith("EC-PROGRAM-", StringComparison.Ordinal)
+            || p.Ec.StartsWith("EC-EXTERNAL-", StringComparison.Ordinal)).Select(p => p.Ec).ToList()
         ?? [];
+
+    /// <summary>The <see cref="ExternalChecks"/> bit of one EC-EXTERNAL level-3 name (0 for any other name) —
+    /// the emitted CALL-site mask is the OR over the statement's enabled set.</summary>
+    private static int ExternalBit(string ec) => ec switch
+    {
+        "EC-EXTERNAL-FORMAT-CONFLICT" => (int)ExternalChecks.FormatConflict,
+        "EC-EXTERNAL-DATA-MISMATCH" => (int)ExternalChecks.DataMismatch,
+        "EC-EXTERNAL-FILE-MISMATCH" => (int)ExternalChecks.FileMismatch,
+        _ => 0,
+    };
 
     /// <summary>Emit the name-filtered <c>catch (CobolCallException)</c> arm of a CALL/CANCEL under enabled
     /// EC-PROGRAM checking (§9.1.13-style bridge for the inter-program family: the runtime latched the Table 13
@@ -299,7 +320,17 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             else
                 w.Line(LoudStmt("GOBACK RETURNING without a PROCEDURE DIVISION RETURNING item (ISO §14.9.18 SR)"));
         }
-        if (g.Raising is { } r) EmitRaisingStage(r, "GOBACK");
+        if (g.Raising is { } r)
+            // §14.9.18.4 GR3 (the P13 review C3 fix): in a program NOT under the control of a calling runtime
+            // element, GOBACK operates as STOP and "a RAISING phrase, if specified, is ignored" — so the staging
+            // (including the checking-off fatal termination arm) is __asCalled-gated, exactly like EmitExitProgram.
+            using (w.Block("if (__asCalled)   // §14.9.18.4 GR1b/GR3 — a main-program GOBACK ignores RAISING"))
+                EmitRaisingStage(r, "GOBACK");
+        // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.4 GR10): the status reaches the OS ONLY in a main
+        // program (GR3 — a called-program GOBACK returns to the activator, GR2, so its status phrase is inert);
+        // guard on __asCalled, the same activation flag EmitExitProgram uses.
+        if (g.Status is { } st)
+            w.Line($"if (!__asCalled) {RuntimeApi.SetExitStatus(num.ExitStatus(st))};   // §14.9.18.4 GR3/GR10 — a main program passes the status");
         w.Line("throw new ProgramReturn();   // return to the activator; in a main program ≡ STOP (ISO §14.9.18 GR2/GR3)");
         return true;
     }

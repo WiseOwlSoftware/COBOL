@@ -272,6 +272,15 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
         "EC-PROGRAM-NOT-FOUND", "EC-PROGRAM-RECURSIVE-CALL", "EC-PROGRAM-CANCEL-ACTIVE", "EC-PROGRAM-ARG-OMITTED",
     ];
 
+    /// <summary>The EC-EXTERNAL family a CALL raises through <c>CobolCallException</c> when the activated
+    /// element's external descriptions do not conform (ISO §14.8.4 / §14.9.4.4 GR3e; the checkable trio —
+    /// EC-EXTERNAL-IMP has no raise site, this implementation defines no implementor-specific external checks).
+    /// The site-enabled subset ALSO drives the emitted CALL-site mask (§14.8.4.1's activating-element half).</summary>
+    internal static readonly string[] ExternalNames =
+    [
+        "EC-EXTERNAL-FORMAT-CONFLICT", "EC-EXTERNAL-DATA-MISMATCH", "EC-EXTERNAL-FILE-MISMATCH",
+    ];
+
     /// <summary>Wrap <paramref name="bound"/> in <see cref="BoundEcChecked"/> when the TurnState enables any
     /// exception-name RELEVANT to its kind at this statement's line (§7.3.25.4 GR6); otherwise return it
     /// untouched — the zero-scaffolding gate. The relevant set is the statement kind's raise points
@@ -329,8 +338,12 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
                 case BoundKeyedRewrite k: Query(IoNames, k.File); break;
                 case BoundKeyedDelete k: Query(IoNames, k.File); break;
                 case BoundKeyedStart k: Query(IoNames, k.File); break;
-                case BoundCallProgram or BoundCancel:
+                case BoundCallProgram:
                     Query(ProgramNames);
+                    Query(ExternalNames);   // §14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point (§14.8.4)
+                    break;
+                case BoundCancel:
+                    Query(ProgramNames);    // CANCEL raises no EC-EXTERNAL — external state persists (§14.9.5 GR8)
                     break;
                 case BoundFree:
                     Query(["EC-STORAGE-NOT-ALLOC"]);   // §14.9.15 GR1c (nonfatal; Phase-4b inc 2)
@@ -345,6 +358,21 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
             // gate records it while checking is enabled (harmless around a non-CONVERT intrinsic — no site sets it).
             if (ctx.EcState.Turn.Enabled("EC-DATA-CONVERSION", null, line) && ContainsIntrinsic(node))
                 enabled.Add(("EC-DATA-CONVERSION", null));
+            // EC-BOUND-OVERFLOW (nonfatal, §8.5.1.9.6 GR1) rides an ambient per-statement gate: a dynamic-capacity
+            // table's implicit growth past its expected capacity records the last exception status while checking is
+            // enabled. Wrapped conservatively (any statement in a checking-on region) — the raise site
+            // (CobolDynTable.RefReceiving) fires ONLY on an actual dyn-table receiving grow-past-expected, so the
+            // flag around a dyn-table-free statement is a harmless no-op (nonfatal, no site sets it). A precise
+            // "references a dynamic table" filter is a documented future refinement.
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-OVERFLOW", null, line))
+                enabled.Add(("EC-BOUND-OVERFLOW", null));
+            // EC-BOUND-REF-MOD (fatal, §8.4.3.3.4) rides an ambient per-statement gate: a reference modification
+            // whose leftmost/length is out of range (or an unallowed zero-length) raises it while checking is
+            // enabled. Wrapped conservatively (any statement in a checking-on region) — the raise fires only at an
+            // actual out-of-range ref-mod evaluation, so the guard around a ref-mod-free statement is harmless (the
+            // catch never fires). A precise ContainsRefMod filter is a documented follow-on.
+            if (ctx.EcState.Turn.Enabled("EC-BOUND-REF-MOD", null, line))
+                enabled.Add(("EC-BOUND-REF-MOD", null));
         }
         QueryFor(bound);
 
@@ -418,6 +446,7 @@ internal sealed class EcBinder(BinderContext ctx, StatementBinder host)
     {
         BoundBoolBinary b => BoolExprHasIntrinsic(b.Left) || BoolExprHasIntrinsic(b.Right),
         BoundBoolNot n => BoolExprHasIntrinsic(n.Operand),
+        BoundBoolShift s => BoolExprHasIntrinsic(s.Operand) || ExprHasIntrinsic(s.Count),   // the count is a numeric expr
         _ => false,
     };
 

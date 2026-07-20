@@ -131,7 +131,16 @@ comparisonOperand
 // introduction gate is bind-time: Check(BooleanOperators2002) in BindBoolExpr when HasBoolOp — residue migration #2. ──
 booleanExpression : booleanXorTerm ( B_OR booleanXorTerm )* ;
 booleanXorTerm    : booleanAndTerm ( B_XOR booleanAndTerm )* ;
-booleanAndTerm    : booleanFactor  ( B_AND booleanFactor )* ;
+booleanAndTerm    : booleanShiftTerm ( B_AND booleanShiftTerm )* ;
+// Boolean shift tier (ISO §8.8.2 rule 8, COBOL-2023). The shift's SECOND operand is an INTEGER operand (rule 5 /
+// Table 4 — after a shift operator ONLY an identifier-or-literal integer may appear), never a booleanFactor. This
+// fixed placement gives the shift tighter-than-B-AND binding, which realizes the default (unmixed) rule-7b case
+// exactly; the context-sensitive rule-7b precedence (a shift inheriting the precedence of a preceding B-OR/B-XOR)
+// is a documented refinement (see BoundBoolShift / the wave-C scout).
+booleanShiftTerm  : booleanFactor booleanShiftSuffix* ;
+// The shift's second operand is an INTEGER operand (ISO §8.8.2 rule 5). Permissive-superset: parse an
+// arithmeticExpression (an integer literal / data item is a subset) — the count is used as an integer at runtime.
+booleanShiftSuffix : (B_SHIFT_L | B_SHIFT_R | B_SHIFT_LC | B_SHIFT_RC) arithmeticExpression ;
 booleanFactor     : B_NOT booleanFactor
                   | LPAREN booleanExpression RPAREN
                   | valueOperand

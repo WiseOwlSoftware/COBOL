@@ -29,9 +29,12 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         var w = ctx.Writer;
         int id = ctx.Names.NextDep();
         w.Line($"int __dep{id} = (int)({num.AsNum(d.Selector, ReceiverContext.None).Expr});");
+        // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): an in-range GO TO … DEPENDING transfer is DEBUG-CONTENTS SPACES,
+        // DEBUG-LINE the GO TO DEPENDING statement's own line.
+        string cause = dispatch.DebugActive ? $" __dbgCause = DebugCause.Transfer; __dbgLine = {d.SourceLine};" : "";
         using (w.Block($"switch (__dep{id})"))
             for (int k = 0; k < d.Targets.Count; k++)
-                w.Line($"case {k + 1}: __pc = {d.Targets[k]}; break;");
+                w.Line($"case {k + 1}:{cause} __pc = {d.Targets[k]}; break;");
         w.Line($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count}) break;   // in range → transfer (exit the dispatcher switch)");
     }
 
@@ -51,9 +54,27 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
     public void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () => Statements.EmitStatementList(p.Body), inline: true);
 
     /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
-    /// (the C# call stack is the return-address stack, COBOLNET_DESIGN §5.4).</summary>
-    public void EmitOutOfLinePerform(BoundOutOfLinePerform p) =>
-        EmitPerform(p.Control, () => ctx.Writer.Line($"{dispatch.DispatchName}({p.StartPc}, {p.EndPc});"), inline: false);
+    /// (the C# call stack is the return-address stack, COBOLNET_DESIGN §5.4). X3.23-1985 USE FOR DEBUGGING (VCR 7.17):
+    /// the FIRST entry into the range is a plain-PERFORM transfer (DEBUG-CONTENTS SPACES); every subsequent loop
+    /// iteration is DEBUG-CONTENTS "PERFORM LOOP" — a per-PERFORM first-iteration flag carries that (any loop form).</summary>
+    public void EmitOutOfLinePerform(BoundOutOfLinePerform p)
+    {
+        var w = ctx.Writer;
+        if (dispatch.DebugActive)
+        {
+            // DEBUG-LINE for a PERFORM/iteration trigger is the PERFORM statement's own line on EVERY iteration
+            // (DB101A PERF-ITERATION-TEST :611-617); DEBUG-CONTENTS is SPACES on entry, "PERFORM LOOP" on re-iter.
+            int fid = ctx.Names.NextLoop();
+            w.Line($"bool __dbgFirst{fid} = true;");
+            EmitPerform(p.Control, () =>
+            {
+                w.Line($"__dbgCause = __dbgFirst{fid} ? DebugCause.Transfer : DebugCause.PerformLoop; __dbgFirst{fid} = false; __dbgLine = {p.SourceLine};");
+                w.Line($"{dispatch.DispatchName}({p.StartPc}, {p.EndPc});");
+            }, inline: false);
+        }
+        else
+            EmitPerform(p.Control, () => w.Line($"{dispatch.DispatchName}({p.StartPc}, {p.EndPc});"), inline: false);
+    }
 
 
     private void EmitPerform(BoundPerformControl control, Action body, bool inline)
@@ -78,6 +99,11 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
                 break;
             case PerformVarying v:
                 EmitVarying(v, body);
+                break;
+            case PerformForever:
+                // UNTIL EXIT (§14.9.28.4 GR11, 2023): the condition never becomes true. An inline EXIT PERFORM emits
+                // `break` (StatementEmitter.Visit(BoundExitPerform)); an out-of-line loop escapes only via GOBACK/STOP.
+                using (w.Block("while (true)")) body();
                 break;
             default:   // PerformOnce — an inline body runs once via do/while(false); an out-of-line call is unconditional
                 if (inline) { using (w.Block("do")) body(); w.Line("while (false);"); }

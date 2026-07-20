@@ -170,6 +170,14 @@ public sealed record PicInfo(
     /// </summary>
     public string SignKind { get; init; } = "TrailingOverpunch";
 
+    /// <summary>USAGE PACKED-DECIMAL WITH NO SIGN (ISO/IEC 1989:2023 §13.18.60.4 GR11, a 2023 addition): the item
+    /// reserves NO trailing sign nibble, so its storage is exactly the digit nibbles — <c>ceil(Digits/2)</c> bytes
+    /// (vs a plain packed item's <c>Digits/2+1</c>). The VALUE semantics are identical to an unsigned (S-less)
+    /// packed item ("always considered to have a zero, or positive value"); SR31 forbids an <c>S</c> in the
+    /// picture. Only <see cref="StorageWidth"/> / byte-length / physical layout differ — the store/truncation path
+    /// is unchanged. Meaningful only when <see cref="Usage"/> is <see cref="Usage.Packed"/>.</summary>
+    public bool PackedNoSign { get; init; }
+
     /// <summary>The COBOL-2002 introduction gate (a <c>Constructs.*</c> id) this item's PICTURE carries as a
     /// recognized-but-unimplemented SKELETON — an external floating-point picture (symbol E, <c>PicExternalFloat2002</c>)
     /// or national-edited data (<c>NationalEdited2002</c>) — after <c>PictureAnalyzer.Analyze</c> RECOVERED the category
@@ -327,7 +335,8 @@ public sealed record PicInfo(
     /// <summary>Storage width in bytes, for the PACKED-DECIMAL / COMP-5 capacity disciplines (else 0 — unused).</summary>
     public int StorageWidth => Usage switch
     {
-        Usage.Packed => Digits / 2 + 1,
+        // WITH NO SIGN (§13.18.60.4 GR11) drops the trailing sign nibble → exactly the digit nibbles.
+        Usage.Packed => PackedNoSign ? (Digits + 1) / 2 : Digits / 2 + 1,
         Usage.Binary or Usage.Comp5 => Digits <= 2 ? 1 : Digits <= 4 ? 2 : Digits <= 9 ? 4 : 8,
         // The fixed-width binary usages own their byte width directly (independent of the implied Digits;
         // ISO §13.18.60.4 GR21 — implementor-defined length, SIGNED and UNSIGNED the same width).

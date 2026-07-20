@@ -110,6 +110,51 @@ internal sealed class VersionConformancePass
         foreach (var para in prog.Paragraphs)
             foreach (var stmt in para.Statements)
                 WalkStatement(stmt);
+        GateMergeInSortMergeProc(prog);
+    }
+
+    /// <summary>VCR 27 (ISO §14.9.24; Annex E.2 item 20): at COBOL-2023 a MERGE statement is PROHIBITED in the
+    /// output procedure of another MERGE or the input/output procedure of a file-format SORT (the prior standard
+    /// allowed it with conflicting rules; SORT already disallowed it). A bind-time cross-pass over the paragraph-pc
+    /// ranges — a paragraph's pc IS its index in <see cref="BoundProgram.Paragraphs"/>, the same pc space as the
+    /// SORT/MERGE procedure ranges (<c>SortRange</c> → the ProcedureTable). Below 2023 the runtime
+    /// EC-SORT-MERGE-ACTIVE seam is the (checking-off) net, so this fires only at ≥2023.</summary>
+    private void GateMergeInSortMergeProc(BoundProgram prog)
+    {
+        if (_edition.Year < 2023) return;
+
+        // Pass A — the prohibited paragraph-pc ranges: every file-format SORT's input/output procedure + every
+        // MERGE's output procedure (a SORT/MERGE with only USING/GIVING files contributes no procedure range).
+        var prohibited = new List<(int Start, int End)>();
+        void Collect(BoundStatement s)
+        {
+            if (s is BoundSort { InputProcedure: { } ip }) prohibited.Add(ip);
+            if (s is BoundSort { OutputProcedure: { } op }) prohibited.Add(op);
+            if (s is BoundMerge { OutputProcedure: { } mop }) prohibited.Add(mop);
+            foreach (var c in s.StatementChildren()) Collect(c);
+        }
+        foreach (var para in prog.Paragraphs)
+            foreach (var stmt in para.Statements) Collect(stmt);
+        if (prohibited.Count == 0) return;
+
+        // Pass B — flag every MERGE whose ENCLOSING paragraph pc falls within a prohibited range (a MERGE nested in
+        // an IF/inline-PERFORM is still in that paragraph). The owning MERGE's own paragraph is never in its own
+        // output-proc range (a distinct named procedure), so a MERGE never false-flags itself.
+        // The 2023 prohibition is a REMOVAL of a prior-edition capability, so its severity follows the removal
+        // policy — an Error under strict, downgraded to a Warning (compile succeeds) under --permissive migration
+        // mode (EditionSeverityPolicy), matching the version matrix's RemovedConstruct_CompilesPermissive contract.
+        var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, _edition);
+        void Flag(BoundStatement s, int paraPc)
+        {
+            if (s is BoundMerge m && prohibited.Any(r => paraPc >= r.Start && paraPc <= r.End))
+                _sink.Report(new EditionDiagnostic("COBOLNET1572", severity, "merge-in-sort-merge-proc",
+                    $"MERGE '{m.File.CobolName}' is prohibited in the output procedure of another MERGE or the input "
+                    + "or output procedure of a file SORT (ISO §14.9.24; COBOL-2023, Annex E.2 item 20)",
+                    $"MERGE '{m.File.CobolName}'", "ISO §14.9.24; Annex E.2 item 20"));
+            foreach (var c in s.StatementChildren()) Flag(c, paraPc);
+        }
+        for (int i = 0; i < prog.Paragraphs.Count; i++)
+            foreach (var stmt in prog.Paragraphs[i].Statements) Flag(stmt, i);
     }
 
     private void WalkStatement(BoundStatement s)
@@ -138,6 +183,11 @@ internal sealed class VersionConformancePass
                 Check(Constructs.SetObjectReference2002, "the SET … TO object-reference statement (Format 5)"); break;
             case BoundSetPointerUpDown:
                 Check(Constructs.PointerArithmetic2002, "SET pointer UP/DOWN BY (ISO §14.9.39 Format 10)"); break;
+            case BoundSetSize:
+                // SET [SIZE OF] dynamic-length-item TO n (§14.9.39 Format 16) — a 2023 introduction. Semantic (the
+                // target must be dynamic-length), so it stays a bound-tree gate — one arm covers the explicit SIZE
+                // OF form and the bare re-routed form (both bind to BoundSetSize).
+                Check(Constructs.SetDynLengthSize2023, "the SET [SIZE OF] … TO length statement (dynamic-length item, Format 16)"); break;
 
             // (OPEN-SHARING / GOBACK-RETURNING / CALL-BY-VALUE / CALL-ON-OVERFLOW / STOP-RUN-STATUS / END-ACCEPT —
             // phrase gates whose presence is purely syntactic — migrated to the ParseArm in Step 14h.3.)
@@ -356,6 +406,8 @@ internal sealed class VersionConformancePass
         private readonly ReservedWordSet _reservedWords = ReservedWordSet.Default;
         // One COBOLNET0901 per distinct word per compilation (P2.4) — not one per occurrence.
         private HashSet<string>? _flaggedWords;
+        // One COBOLNET1567 per distinct over-long word per compilation (the §8.3.2.1 length ceiling).
+        private HashSet<string>? _overlongWords;
         // Whether the CURRENT source unit declares SOURCE-COMPUTER … WITH DEBUGGING MODE (the X3.23-1985
         // compile-time debug switch): decides the USE FOR DEBUGGING posture (VCR Table 7 row 7.17) — without it
         // a debugging section is comment-treated (never walked); with it, DEBUG-* register references diagnose
@@ -456,8 +508,50 @@ internal sealed class VersionConformancePass
                 _p.Check(Constructs.StopLiteralRemoved2002, "the STOP literal statement");
             // STOP RUN … WITH NORMAL/ERROR STATUS (Format 1) — a COBOL-2002 INTRODUCTION (14h.3), a disjoint
             // alternative from the STOP literal (Format 2) removal above; both fire from this one override.
-            if (ctx.stopStatusPhrase() is not null)
+            if (ctx.statusPhrase() is not null)
                 _p.Check(Constructs.StopRunStatus2002, "the STOP RUN … WITH NORMAL/ERROR STATUS phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>USAGE … WITH NO SIGN (ISO §13.18.60.4 GR11) — a COBOL-2023 addition. Recognition-based on the
+        /// parsed noSignPhrase (NO SIGN is a modifier on Usage.Packed, which exists at every edition, so it cannot
+        /// be keyed on the resolved Usage enum). The binder separately rejects NO SIGN on a non-Packed usage (1565)
+        /// and an 'S' picture (SR31, 1566); this arm owns only the below-2023 introduction gate.</summary>
+        public override object? VisitUsageClause(CobolParserCore.UsageClauseContext ctx)
+        {
+            if (ctx.noSignPhrase() is not null)
+                _p.Check(Constructs.UsagePackedNoSign2023, "USAGE PACKED-DECIMAL WITH NO SIGN");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>CONTINUE AFTER arithmetic-expression SECONDS (ISO §14.9.9) — the timed-pause phrase is a
+        /// COBOL-2023 addition; plain CONTINUE is 1985-continuous. Recognition-based on the phrase's presence (the
+        /// arithmeticExpression child ≡ the AFTER … SECONDS phrase); parse-arm so a below-edition occurrence names
+        /// its edition even though the phrase would otherwise bind to a no-op (DEVLOG 724).</summary>
+        public override object? VisitContinueStatement(CobolParserCore.ContinueStatementContext ctx)
+        {
+            if (ctx.arithmeticExpression() is not null)
+                _p.Check(Constructs.ContinueAfter2023, "the CONTINUE AFTER … SECONDS phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>WRITE … BEFORE ADVANCING … AFTER ADVANCING … (ISO §14.9.51 SR17) — specifying BOTH advancing
+        /// phrases on one WRITE is a COBOL-2023 addition. Gate on the CO-OCCURRENCE (two writeAdvancePhrase children),
+        /// not on ADVANCING itself — a single BEFORE or AFTER is edition-invariant. Recognition-based (DEVLOG 724).</summary>
+        public override object? VisitWriteBeforeAfter(CobolParserCore.WriteBeforeAfterContext ctx)
+        {
+            if (ctx.writeAdvancePhrase().Length == 2)
+                _p.Check(Constructs.WriteBeforeAndAfterAdvancing2023, "the combined WRITE BEFORE AND AFTER ADVANCING phrases");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>PERFORM … UNTIL EXIT (ISO §14.9.28.4 GR11) — the infinite-loop phrase is a COBOL-2023 addition
+        /// (plain UNTIL condition is edition-invariant). Recognition-based on the EXIT alternative of performUntil;
+        /// parse-arm so a below-2023 occurrence names its edition even though it drops to a bound control node.</summary>
+        public override object? VisitPerformUntil(CobolParserCore.PerformUntilContext ctx)
+        {
+            if (ctx.EXIT() is not null)
+                _p.Check(Constructs.PerformUntilExit2023, "the PERFORM UNTIL EXIT phrase");
             return base.VisitChildren(ctx);
         }
 
@@ -686,6 +780,40 @@ internal sealed class VersionConformancePass
         {
             if (InGatedDataEntry(ctx)) _p.Check(Constructs.TypedefDef2002, "the TYPEDEF clause");
             return base.VisitChildren(ctx);
+        }
+
+        /// <summary>A strongly-typed EXTERNAL type declaration (ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3.3 item 20) —
+        /// a COBOL-2023 introduction: E.3.3 item 20 ("External data items may now be strongly typed"), corroborated by
+        /// E.2 item 10 ("previously external items could not be strongly typed"), so
+        /// it is specifically the <c>STRONG</c>+<c>EXTERNAL</c> combination on a level-1 TYPEDEF that is new. A WEAK
+        /// <c>TYPEDEF IS EXTERNAL</c> (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3), so it is NOT gated
+        /// here; plain EXTERNAL is 1985-continuous and plain TYPEDEF is the separate COBOL-2002 gate above. Gate on the
+        /// CO-OCCURRENCE of the EXTERNAL clause with a STRONG TYPEDEF clause on ONE dataDescriptionEntry. SR5 forces a
+        /// strongly-typed external record's type to itself be a strong external type declaration, so gating the
+        /// DECLARATION covers both faces (the declaration AND the "strongly-typed external item" that must reference
+        /// it). Recognition-based, keyed on the externalClause node (the TYPEDEF/DEVLOG-734 drop-proof lesson: a
+        /// bound-arm gate would lose the 0900 whenever RegisterTypeDecl rejects the typedef). Fires once per written
+        /// strong-external-typedef entry.</summary>
+        public override object? VisitExternalClause(CobolParserCore.ExternalClauseContext ctx)
+        {
+            if (InGatedDataEntry(ctx) && EntryHasStrongTypedef(ctx))
+                _p.Check(Constructs.ExternalTypeDeclaration2023, "a strongly-typed EXTERNAL type declaration");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>Whether the dataDescriptionEntry enclosing <paramref name="ctx"/> also carries a <c>TYPEDEF STRONG</c>
+        /// clause — i.e. <paramref name="ctx"/> (an externalClause) sits on a STRONGLY-TYPED type DECLARATION (the 2023
+        /// combination, E.3 item 10), not a plain external data item nor a weak (COBOL-2002) external type declaration.
+        /// externalClause and typedefClause are both <c>dataDescriptionClause</c> alternatives under the entry's
+        /// <c>dataDescriptionClauses</c> list, so the sibling scan is over that list; <c>typedefClause.STRONG()</c> is
+        /// the STRONG phrase (the same test <c>DataBinder</c> uses at its typedef bind, §13.18.58.2).</summary>
+        private static bool EntryHasStrongTypedef(Antlr4.Runtime.RuleContext ctx)
+        {
+            for (Antlr4.Runtime.RuleContext? a = ctx.Parent; a is not null; a = a.Parent)
+                if (a is CobolParserCore.DataDescriptionEntryContext e)
+                    return e.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
+                        ?.Any(c => c.typedefClause()?.STRONG() is not null) ?? false;
+            return false;
         }
 
         /// <summary>The report-group PRESENT WHEN clause (ISO §13.18.41 Format 1; P10 Step 13) — a COBOL-2002
@@ -1000,6 +1128,11 @@ internal sealed class VersionConformancePass
             // (§14.9.18.4 GR4 — the same InMethodDefinition exclusion the binder's InMethod short-circuit gave).
             else if (ctx.dataReference() is null && !InMethodDefinition(ctx))
                 _p.Check(Constructs.GobackBare2002, "the GOBACK statement");
+            // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — a COBOL-2023 introduction (annex item 32: GOBACK
+            // "now allows the same status phrase as the STOP statement"). DISTINCT edition from the STOP-status
+            // gate (StopRunStatus2002 = 2002); the shared statusPhrase rule is 2002-gated on STOP, 2023 on GOBACK.
+            if (ctx.statusPhrase() is not null && !InMethodDefinition(ctx))
+                _p.Check(Constructs.GobackStatus2023, "the GOBACK … WITH NORMAL/ERROR STATUS phrase");
             return base.VisitChildren(ctx);
         }
 
@@ -1012,8 +1145,10 @@ internal sealed class VersionConformancePass
         {
             if (ctx.callUsingPhrase()?.callArgument().Any(a => a.callByValue() is not null) == true)
                 _p.Check(Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
-            if (ctx.callOnExceptionPhrase()?.OVERFLOW() is not null
-                || ctx.callNotOnExceptionPhrase()?.OVERFLOW() is not null)
+            // Both phrases hang off the ONE callExceptionPhrases container (either order — ISO 5.2.6.4).
+            var callExc = ctx.callExceptionPhrases();
+            if (callExc?.callOnExceptionPhrase()?.OVERFLOW() is not null
+                || callExc?.callNotOnExceptionPhrase()?.OVERFLOW() is not null)
                 _p.Check(Constructs.CallOnOverflowRemoved2023, "the CALL statement");
             // CALL … RETURNING (§14.9.4) — a 2002 introduction (Exec Step E — folded from the CallBinder gate).
             if (ctx.callReturningPhrase() is not null)
@@ -1288,6 +1423,8 @@ internal sealed class VersionConformancePass
         {
             if (ctx.booleanExpression().Any(HasBoolOp))
                 _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
+            if (ctx.booleanExpression().Any(HasShiftOp))
+                _p.Check(Constructs.BooleanShiftOperators2023, "the boolean shift operators (B-SHIFT-L/R/LC/RC)");
             return base.VisitChildren(ctx);
         }
 
@@ -1297,6 +1434,8 @@ internal sealed class VersionConformancePass
         {
             if (ctx.booleanExpression() is { } be && HasBoolOp(be))
                 _p.Check(Constructs.BooleanOperators2002, "the boolean operators (B-AND/B-OR/B-XOR/B-NOT)");
+            if (ctx.booleanExpression() is { } bse && HasShiftOp(bse))
+                _p.Check(Constructs.BooleanShiftOperators2023, "the boolean shift operators (B-SHIFT-L/R/LC/RC)");
             return base.VisitChildren(ctx);
         }
 
@@ -1347,6 +1486,19 @@ internal sealed class VersionConformancePass
                 return term.Symbol.Type is CobolLexer.B_AND or CobolLexer.B_OR or CobolLexer.B_XOR or CobolLexer.B_NOT;
             for (int i = 0; i < t.ChildCount; i++)
                 if (HasBoolOp(t.GetChild(i))) return true;
+            return false;
+        }
+
+        /// <summary>Whether a boolean-expression subtree contains any boolean SHIFT operator terminal (ISO §8.8.2,
+        /// 2023). A DISTINCT construct/edition from HasBoolOp (2023 vs 2002) — a program using only shift operators
+        /// at --std 2002 must get the shift's COBOLNET0900, not the boolean-operators-2002 message.</summary>
+        private static bool HasShiftOp(Antlr4.Runtime.Tree.IParseTree t)
+        {
+            if (t is Antlr4.Runtime.Tree.ITerminalNode term)
+                return term.Symbol.Type is CobolLexer.B_SHIFT_L or CobolLexer.B_SHIFT_R
+                    or CobolLexer.B_SHIFT_LC or CobolLexer.B_SHIFT_RC;
+            for (int i = 0; i < t.ChildCount; i++)
+                if (HasShiftOp(t.GetChild(i))) return true;
             return false;
         }
 
@@ -1423,6 +1575,17 @@ internal sealed class VersionConformancePass
 
         public override object? VisitCobolWord(CobolParserCore.CobolWordContext ctx)
         {
+            // §8.3.2.1 word-length ceiling — a COBOL word is "not more than 63 characters" at COBOL-2023; the
+            // limit was 31 in 2002/2014 and 30 in 1985 (E.3.3 item 11: a 2023 RELAXATION — the OPPOSITE direction
+            // from a new-feature introduction gate, so it is NOT a 0900 construct). Fire below 2023 for 32–63-char
+            // words, and at EVERY edition for >63 (a hard cap). Checked for every COBOL word regardless of role
+            // (reserved words are all short — only user-defined words reach the limit); deduped per distinct word.
+            string raw = ctx.Start.Text;
+            int max = _p._edition.Year >= 2023 ? 63 : _p._edition.Year >= 2002 ? 31 : 30;
+            if (raw.Length > max && (_overlongWords ??= []).Add(raw.ToUpperInvariant()))
+                _p._sink.Report(new EditionDiagnostic("COBOLNET1567", EditionSeverity.Error, "word-length-exceeded",
+                    $"the COBOL word '{raw}' is {raw.Length} characters, exceeding the {max}-character maximum for "
+                    + $"COBOL-{_p._edition.Year} (ISO §8.3.2.1 — COBOL-2023 raised the limit to 63)", "", "ISO §8.3.2.1"));
             if (!CheckedTokenTypes.Contains(ctx.Start.Type) && !IsProvableUserWordPosition(ctx))
                 return base.VisitChildren(ctx);
             string word = ctx.Start.Text.ToUpperInvariant();
@@ -1458,26 +1621,20 @@ internal sealed class VersionConformancePass
                         return base.VisitChildren(ctx);
                     if (a is CobolParserCore.StatementContext) break;   // far enough — not an object operand
                 }
+            // Under WITH DEBUGGING MODE a DEBUG-* occurrence is the X3.23-1985 REGISTER (DEBUG-ITEM family), not a
+            // user-defined word — a legal '85 reference to the now-modeled debug facility (VCR Table 7 row 7.17;
+            // the switch-ABSENT case never gets here — comment treatment skips the section body). The binder
+            // resolves it to a DebugRegisterPlace, so ACCEPT it here (no §8.9 violation, no not-implemented note).
+            if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
+                return base.VisitChildren(ctx);
             if (_reservedWords.RejectsAt(word, _p._edition.Year) && (_flaggedWords ??= []).Add(word))
             {
-                // Under WITH DEBUGGING MODE a DEBUG-* occurrence is the X3.23-1985 REGISTER (DEBUG-ITEM family),
-                // not a user-defined word — a legal '85 reference to a facility this compiler defers (VCR Table 7
-                // row 7.17; the switch-ABSENT case never gets here — comment treatment skips the section body).
-                // Diagnose the truth (0899 not-implemented) instead of a false §8.9 violation.
-                if (_debuggingModeDeclared && word.StartsWith("DEBUG-", StringComparison.Ordinal))
-                    _p._sink.Report(new EditionDiagnostic(DiagnosticCatalog.DebugRegisterFacility.Code,
-                        EditionSeverity.Error, DiagnosticCatalog.DebugRegisterFacility.Id,
-                        $"the X3.23-1985 debug register '{word}' is recognized, but the '85 debug facility "
-                        + "(DEBUG-ITEM registers, debugging-section invocation) is not implemented — deferred "
-                        + "with the golden-less DB series (VCR Table 7 row 7.17)", "",
-                        DiagnosticCatalog.DebugRegisterFacility.IsoSection));
-                else
-                    // The §8.9 reserved-word removal-of-spelling severity routes through the ONE policy (P3 step 2:
-                    // was EditionContext.Removed; now EditionSeverityPolicy over the structured sink — byte-identical).
-                    _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
-                        EditionSeverityPolicy.For(ConstructAvailability.Removed, _p._edition), "edition-reserved-word",
-                        $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
-                        + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
+                // The §8.9 reserved-word removal-of-spelling severity routes through the ONE policy (P3 step 2:
+                // was EditionContext.Removed; now EditionSeverityPolicy over the structured sink — byte-identical).
+                _p._sink.Report(new EditionDiagnostic(EditionCodes.ReservedWord,
+                    EditionSeverityPolicy.For(ConstructAvailability.Removed, _p._edition), "edition-reserved-word",
+                    $"'{word}' is a reserved word in COBOL-{_p._edition.Year} and cannot be used as a "
+                    + "user-defined word (ISO §8.9)", "", "ISO §8.9"));
             }
             return base.VisitChildren(ctx);
         }

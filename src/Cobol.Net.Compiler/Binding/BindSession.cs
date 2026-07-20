@@ -16,6 +16,11 @@ internal sealed class BindSession
     public required OoClassTable OoClasses { get; init; }
     public required EditionContext Edition { get; init; }
 
+    /// <summary>The group's compile-time <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> resolution (ISO §7.3.23) — the per-line
+    /// zero-length allowance fold every unit's <see cref="ReferenceResolver"/> queries when building a ref-mod
+    /// Place. Defaults to <see cref="RefModZeroLengthState.Empty"/> (the OFF default, no directive).</summary>
+    public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
+
     private int _uidBand;
 
     /// <summary>Take the next disjoint 100k uid band (one per DataBinder, so nested-class struct/profile names

@@ -42,6 +42,33 @@ internal sealed class DispatchState
     /// <summary>A CONTAINING program has USE … GLOBAL declaratives (ISO §14.9.49.4 GR4b — the child's
     /// <c>__IoCheck</c> walks outward). Set per unit by the program-class emission.</summary>
     public bool OuterGlobalUse { get; set; }
+
+    /// <summary>The program being emitted has an ACTIVE X3.23-1985 USE FOR DEBUGGING procedure-trigger facility
+    /// (WITH DEBUGGING MODE + a procedure-subject debugging declarative; VCR Table 7 row 7.17). Gates the debug
+    /// scaffolding — the <c>__dbgItem</c>/<c>__dbgCause</c> fields, the <c>__RunDebug</c> helper, the per-subject
+    /// entry triggers, and the DEBUG-CONTENTS cause assignments threaded through every transfer of control — so a
+    /// non-debug program's generated source is byte-identical (the zero-scaffolding invariant). Set per unit by the
+    /// dispatcher emission; a class unit owns no debug facility.</summary>
+    public bool DebugActive { get; set; }
+
+    /// <summary>The debug trigger subjects keyed by their nondeclarative pc (empty unless <see cref="DebugActive"/>):
+    /// the dispatch-method emission injects a <c>__RunDebug(...)</c> at each subject case's entry.</summary>
+    public IReadOnlyDictionary<int, BoundDebugSubject> DebugByPc { get; set; } =
+        new Dictionary<int, BoundDebugSubject>();
+
+    /// <summary>Emit a DEBUG-CONTENTS cause + DEBUG-LINE assignment at a transfer of control, but ONLY when the
+    /// debug facility is active (else nothing — the zero-scaffolding gate). <paramref name="cause"/> is a
+    /// <c>DebugCause</c> enumerand name (the emitted file has <c>using CobolNet.Runtime;</c>);
+    /// <paramref name="causingLine"/> is the source line of the CAUSING (transferring) statement — the X3.23-1985
+    /// DEBUG-LINE (VCR 7.17). A non-positive line is omitted (e.g. START PROGRAM, whose DEBUG-LINE is the subject's
+    /// own first statement, applied in __RunDebug).</summary>
+    public void EmitDebugCause(CodeWriter w, string cause, int causingLine = 0)
+    {
+        if (!DebugActive) return;
+        w.Line(causingLine > 0
+            ? $"__dbgCause = DebugCause.{cause}; __dbgLine = {causingLine};"
+            : $"__dbgCause = DebugCause.{cause};");
+    }
 }
 
 /// <summary>The exception-condition emission state (ISO §14.6.13 / §7.3.25) shared by the EC wrappers, the

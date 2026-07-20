@@ -447,12 +447,21 @@ internal sealed class ArithmeticStatementBinder
 
         if (startsWithNot)
         {
-            // NOT ON SIZE ERROR only — all imperatives go to notOnSizeError
-            foreach (var imp in imperatives)
-                foreach (var stmt in imp.statement())
+            // NOT-LED form. Since 2026-07-19 this is NOT necessarily NOT-only: ISO 5.2.6.4's choice indicators
+            // permit BOTH phrases in EITHER order, so the grammar's NOT-led arm is
+            // `NOT ON SIZE ERROR b1 (ON SIZE ERROR b2)?` — block[0] is the NOT branch and block[1], when
+            // present, is the ON branch. (Before that fix the arm could only carry one block, and this code
+            // funnelled every block into notOnSizeError; that premise is now false.)
+            foreach (var stmt in imperatives[0].statement())
+            {
+                var bound = _ctx.BindStatement(stmt);
+                if (bound != null) notOnSizeError.Add(bound);
+            }
+            if (imperatives.Count > 1)
+                foreach (var stmt in imperatives[1].statement())
                 {
                     var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notOnSizeError.Add(bound);
+                    if (bound != null) onSizeError.Add(bound);
                 }
         }
         else

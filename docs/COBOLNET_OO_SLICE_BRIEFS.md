@@ -242,7 +242,7 @@ Process: grammar change → regen both OSes, guard-fast after the grammar commit
 12. docs/COBOLNET_OO_DESIGN.md — D11/D12/D13 added; CORRECTION notes on Summary :37, D7 :115, edge case :232 (static-fields sketch superseded — cite §8.6.4/:8765, SR4f, §9.3.6); STATUS banner + Greenfield seams; same change set.
 13. tests/conformance/2002/ — oo_factory_basic|oo_factory_inherit|oo_factory_self .cob/.out + manifest.json enabled entries.
 14. tests/Cobol.Net.Tests.Conformance/ — OoFactoryTests (matrix rows 2-6, 9-10) + trap #11; version-matrix negative cases (rows 11-12).
-15. DEVLOG.md entry (top, real timestamp) + resume-prompt.md RESUME-AT update; commit per feedback_commit_messages; full guard before commit.
+15. DEVLOG.md entry (top, real timestamp) + the plan §0 update; commit per feedback_commit_messages; full guard before commit.
 
 ## Sequencing note
 Lands AFTER slice 3b (SELF/SUPER instance dispatch — the roster-switch code extends :184-217, and __New's covariance rides the 3a base-chain emission). The remaining banner order after this slice: PROPERTY → INTERFACE-ID (adds IMPLEMENTS to FACTORY + OBJECT) → universal reference (FACTORY OF refs + §16.2.2 FactoryObject + __CobolInvoke) → EC-OO (EC-OO-RESOURCE on New per §16.2.1 GR2 :39187 belongs there; today allocation failure is a .NET OOM — document, don't fake).
@@ -630,7 +630,7 @@ Unit/adversarial `tests/Cobol.Net.Tests.Conformance/OoUniversalTests.cs` (OoSpin
 Pre-commit: full battery + corpus sweep + legacy guard per the standing rules.
 
 ## 6. Doc updates (same change set — rule 4)
-`docs/COBOLNET_OO_DESIGN.md`: D10 gains an AS-BUILT note (CobolInvokeArg signature vs the sketched `object?[]`; descriptor model + the D-U3 invariant; unconditional GR7c raise decision; roster = declared-non-override + base chaining); C# mapping :188-196 corrected (universal → `CobolObject?`; the __CobolInvoke sketch updated); edge-case bullets :240-241 rewritten (universal live; IS-class struck per D-U8); banner/Greenfield-seams staged-item lines for SET (StatementBinder.cs:668-669 reference) and D10 cleared. DEVLOG entry (descending, real timestamp) + resume-prompt STATE banner + `docs/DOC_INDEX.md` untouched (no new doc).
+`docs/COBOLNET_OO_DESIGN.md`: D10 gains an AS-BUILT note (CobolInvokeArg signature vs the sketched `object?[]`; descriptor model + the D-U3 invariant; unconditional GR7c raise decision; roster = declared-non-override + base chaining); C# mapping :188-196 corrected (universal → `CobolObject?`; the __CobolInvoke sketch updated); edge-case bullets :240-241 rewritten (universal live; IS-class struck per D-U8); banner/Greenfield-seams staged-item lines for SET (StatementBinder.cs:668-669 reference) and D10 cleared. DEVLOG entry (descending, real timestamp) + the plan §0 banner + `docs/DOC_INDEX.md` untouched (no new doc).
 
 ---
 
@@ -906,7 +906,7 @@ methods; RAISING LAST inside a method (needs method declaratives); EXCEPTION-OBJ
 | `CodeGen/CSharpEmitter.Call.cs:696-709, 863-883` | pickup object branch; CallEmitRaisingStage object leg |
 | `CodeGen/CSharpEmitter.cs:346+, 421-423` | BoundRaiseObject/BoundSetObjectRef dispatch cases; BoundMethodReturn stages Raising before the throw; F4 selector emission beside EcEmitDispatchSelector |
 | `CodeGen/CSharpEmitter.Oo.cs:237-330` | OoEmitInstanceInvoke tail calls CallEmitPropagationPickup (Instance/Self/Super; _ecActive-gated) |
-| `docs/COBOLNET_OO_DESIGN.md`, `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN*` | slice-6 AS-BUILT + this brief's decisions; close the "Open questions" EC-OO bullet; DEVLOG entry; resume-prompt STATE |
+| `docs/COBOLNET_OO_DESIGN.md`, `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN*` | slice-6 AS-BUILT + this brief's decisions; close the "Open questions" EC-OO bullet; DEVLOG entry; the plan §0 |
 
 ## 4. Diagnostics (new band; all COBOL-worded, never a Roslyn CS on user source — the G4 rule)
 

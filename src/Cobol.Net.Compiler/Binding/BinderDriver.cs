@@ -3,6 +3,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
 using CobolNet.Binding.Bound;
+using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Model;
 using CobolNet.Binding.Passes;
@@ -35,7 +36,8 @@ internal sealed class BinderDriver
     /// directive events (ISO §7.3.25) — they build the group's compile-time TurnState (EC deep-dive D10);
     /// null/empty means the GR1 default, EC-ALL CHECKING OFF.</summary>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
-        IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents)
+        IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents,
+        IReadOnlyList<Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
 
@@ -43,9 +45,12 @@ internal sealed class BinderDriver
         // statement binder folds the same source-ordered directive events (GR6: checking spans the compilation
         // group). Name/edition validation happens here (SR2 + the 2023-only families).
         var turn = TurnState.Build(turnEvents, edition);
+        // The group's compile-time REF-MOD-ZERO-LENGTH resolution (ISO §7.3.23) — the per-line zero-length
+        // allowance fold every ReferenceResolver queries when building a ref-mod Place (§8.4.3.3.4 item 5c).
+        var refModZl = RefModZeroLengthState.Build(refModZlEvents);
 
         var (units, classes, table) = CollectUnits(tree, edition);
-        var session = new BindSession { Turn = turn, OoClasses = table, Edition = edition };
+        var session = new BindSession { Turn = turn, OoClasses = table, Edition = edition, RefModZeroLength = refModZl };
         var oo = new OoDriver(session);   // P9 R1 — the OO bind driver is a binder collaborator, not an emitter seam
         foreach (var iface in table.Interfaces) oo.BindInterfaceData(iface);   // prototype formals (§10.6.2 SR4)
         foreach (var cls in classes) oo.BindClassData(cls);   // ALL signatures before ANY body (D1 pass-1)
@@ -93,6 +98,14 @@ internal sealed class BinderDriver
                 file.CobolName = file is { IsExternal: true, ExternalName: { } ext }
                     ? NamingConvention.ExternalFileBand + ext
                     : unit.Path + "::" + file.CobolName;
+
+        // VCR 18/31 (ISO §12.4.5.3 GR1(i)/(h); §14.8.4.2; Annex E.2 items 12/24) — a COBOL-2023 requirement: all
+        // corresponding file control entries of an EXTERNAL file connector in the run unit shall specify FILE STATUS
+        // (VCR 18) and, for a relative file, RELATIVE KEY (VCR 31) naming the SAME corresponding external data item.
+        // Version-conditioned structural SR ⇒ read DialectLevel directly (the binder-reads-edition doctrine). The
+        // compile-time reach is the group's units only; true separate-compilation conformance is the VCR-15 runtime
+        // EC-EXTERNAL-DATA-MISMATCH descriptor check.
+        if (edition.DialectLevel >= 2023) CheckExternalFileConsistency(units, edition);
         // The OO analogue (M2-OO-1i): an OBJECT/FACTORY file connector is scoped to its class, not a program unit,
         // so the program loop above never sees it. A factory file (singleton) keys by class; an instance file keys
         // per object (a minted key held in a __fkey field — see QualifyClassFiles); an EXTERNAL class file keys
@@ -108,7 +121,93 @@ internal sealed class BinderDriver
             || units.Any(u => u.Bound.Declaratives is { Count: > 0 })
             || classes.Any(c => c.Data.Files.Count > 0 || c.FactoryData.Files.Count > 0);
 
-        return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive, anyFiles);
+        // The termination-status gate: any STOP RUN / GOBACK … WITH NORMAL/ERROR STATUS phrase in the group makes
+        // the generated Main pass RunUnit.ExitStatus to Environment.ExitCode (§14.9.42.4 GR5 / §14.9.18.4 GR10). A
+        // status-free group keeps its entry wrapper byte-identical (the zero-scaffolding invariant, SSOT §18.16) —
+        // the parse-tree scan finds the phrase (statusPhrase appears only on STOP/GOBACK; below-edition uses are
+        // rejected before codegen).
+        bool usesTerminationStatus = HasStatusPhrase(tree);
+
+        return new BoundCompilation(tree, units, classes, table, oo.InterfaceData, ooAdapters, turn, ecActive,
+            anyFiles, usesTerminationStatus);
+    }
+
+    /// <summary>VCR 18/31 (ISO §12.4.5.3 GR1(i)/(h); §14.8.4.2; Annex E.2 items 12/24) — the ≥2023 cross-unit
+    /// external-file conformance check. Group the compilation group's file connectors by externalized name; for each
+    /// external connector described by more than one file control entry (in-group), require that FILE STATUS (VCR 18)
+    /// and — for a relative file — RELATIVE KEY (VCR 31) are specified by ALL corresponding entries and name the SAME
+    /// corresponding external data item. "If any specifies it, all shall" plus same-external-item identity.</summary>
+    private static void CheckExternalFileConsistency(IReadOnlyList<BoundUnit> units, EditionContext edition)
+    {
+        var byExternalName = units.SelectMany(u => u.Data.Files)
+            .Where(f => f is { IsExternal: true, ExternalName: not null })
+            .GroupBy(f => f.ExternalName!.ToUpperInvariant());
+        // The 2023 requirement REMOVES a prior-edition freedom (corresponding external-file SELECTs could name
+        // inconsistent / non-external FILE STATUS + RELATIVE KEY items), so its severity follows the removal policy:
+        // an Error under strict, downgraded to a Warning under --permissive migration mode — the same contract the
+        // continuity witnesses need (an 85 NIST program that violates the new rule, e.g. IC227A with two differently-
+        // named non-external FILE STATUS items, still COMPILES under permissive and rejects under strict).
+        var severity = EditionSeverityPolicy.For(ConstructAvailability.Removed, edition.Edition);
+        foreach (var group in byExternalName)
+        {
+            var conns = group.ToList();
+            if (conns.Count < 2) continue;   // one describer in-group — nothing to reconcile here (VCR-15 runtime check owns cross-compilation)
+
+            // VCR 18 — FILE STATUS: if ANY corresponding SELECT specifies FILE STATUS, ALL shall, each naming the
+            // same corresponding external data item (§12.4.5.3 GR1(i)).
+            if (conns.Any(f => f.FileStatusName is not null))
+            {
+                var ids = conns.Select(f => ExternalItemIdentity(f.FileStatusItem)).ToList();
+                if (ids.Any(id => id is null) || ids.Distinct(StringComparer.Ordinal).Count() > 1)
+                    edition.Report(new EditionDiagnostic("COBOLNET1573", severity, "external-file-status-consistency",
+                        $"external file '{group.Key}': all corresponding SELECT statements in the run unit shall "
+                        + "specify FILE STATUS naming the same corresponding external data item "
+                        + "(ISO §12.4.5.3 GR1(i); Annex E.2 item 12)",
+                        $"external file '{group.Key}'", "ISO §12.4.5.3 GR1(i) / §14.8.4.2 / Annex E.2 item 12"));
+            }
+
+            // VCR 31 — RELATIVE KEY: for an external RELATIVE file, if ANY corresponding SELECT specifies RELATIVE
+            // KEY, ALL shall, each naming the same corresponding external data item (§12.4.5.3 GR1(h)).
+            if (conns.Any(f => f.Organization == FileOrganization.Relative)
+                && conns.Any(f => f.RelativeKeyName is not null))
+            {
+                var ids = conns.Select(f => ExternalItemIdentity(f.RelativeKeyItem)).ToList();
+                if (ids.Any(id => id is null) || ids.Distinct(StringComparer.Ordinal).Count() > 1)
+                    edition.Report(new EditionDiagnostic("COBOLNET1575", severity, "external-relative-key-consistency",
+                        $"external relative file '{group.Key}': all corresponding SELECT statements in the run unit "
+                        + "shall specify RELATIVE KEY naming the same corresponding external data item "
+                        + "(ISO §12.4.5.3 GR1(h); Annex E.2 item 24)",
+                        $"external relative file '{group.Key}'", "ISO §12.4.5.3 GR1(h) / §14.8.4.2 / Annex E.2 item 24"));
+            }
+        }
+    }
+
+    /// <summary>The "corresponding external data item" identity of <paramref name="item"/> (ISO §14.8.4.2): the
+    /// dotted qualified path from its EXTERNAL root (the root carries the EXTERNAL clause or an external TYPE), i.e.
+    /// the externalized name plus the sub-path — null if the item is absent or is NOT an external data item. Two
+    /// file-referencing items are the SAME corresponding external item iff their identities are equal. (Keys by the
+    /// data-name, consistent with the run-unit ExternalStore cell key; the rare AS-literal externalized name is not
+    /// honored there either.)</summary>
+    internal static string? ExternalItemIdentity(DataItem? item)
+    {
+        if (item is null) return null;
+        var path = new List<string>();
+        var r = item;
+        while (r.Parent is not null) { path.Add(r.CobolName ?? "?"); r = r.Parent; }
+        if (!(r.HasExternalClause || r.ExternalFromType)) return null;   // root is not an external data item
+        path.Add(r.CobolName ?? "?");
+        path.Reverse();
+        return string.Join(".", path).ToUpperInvariant();
+    }
+
+    /// <summary>True when <paramref name="node"/> contains a STOP RUN / GOBACK status phrase anywhere in its
+    /// subtree (ISO §14.9.42.2 / §14.9.18.2 <c>statusPhrase</c>).</summary>
+    private static bool HasStatusPhrase(IParseTree node)
+    {
+        if (node is Core.StatusPhraseContext) return true;
+        for (int i = 0; i < node.ChildCount; i++)
+            if (HasStatusPhrase(node.GetChild(i))) return true;
+        return false;
     }
 
     /// <summary>Flatten the compilation group into the ordered unit lists — top-level program units in source
@@ -244,6 +343,7 @@ internal sealed class BinderDriver
         var data = new DataBinder(edition)
         {
             OoClasses = session.OoClasses,
+            RefModZeroLength = session.RefModZeroLength,
             // The ANY LENGTH placement facts (ISO §13.18.2.3 SR2–SR4 — the rules differ for a contained
             // program, a function, and an outermost program): the unit kind is known only here.
             UnitIsContained = unit.Parent is not null,
@@ -265,6 +365,22 @@ internal sealed class BinderDriver
 
         data.Bind(unit.Ctx);
         unit.Data = data;
+
+        // The unit's EC-EXTERNAL enablement facts (ISO §14.8.4.1): the ACTIVATED-element mask is the group
+        // TurnState folded at the unit's first post-Identification division header line ("which for activated
+        // runtime elements shall be before the Environment division"); the group-level Describe gate is any
+        // EC-EXTERNAL enabling event anywhere in the group (a mask-zero unit still registers its descriptions
+        // so a later-enabled element can check against them; no event anywhere ⇒ zero-scaffolding).
+        int divLine = unit.Ctx.environmentDivision()?.Start.Line
+            ?? unit.Ctx.dataDivision()?.Start.Line
+            ?? unit.Ctx.procedureDivision()?.Start.Line
+            ?? int.MaxValue;
+        int extMask = 0;
+        if (session.Turn.Enabled("EC-EXTERNAL-FORMAT-CONFLICT", null, divLine)) extMask |= (int)Runtime.ExternalChecks.FormatConflict;
+        if (session.Turn.Enabled("EC-EXTERNAL-DATA-MISMATCH", null, divLine)) extMask |= (int)Runtime.ExternalChecks.DataMismatch;
+        if (session.Turn.Enabled("EC-EXTERNAL-FILE-MISMATCH", null, divLine)) extMask |= (int)Runtime.ExternalChecks.FileMismatch;
+        data.ExternalCheckMask = extMask;
+        data.ExternalDescribe = Procedure.EcBinder.ExternalNames.Any(session.Turn.AnyEnabledFor);
 
         // GLOBAL FD inheritance (ISO §13.18.30: the file-name of a GLOBAL FD is a GLOBAL name, visible in every
         // directly/indirectly contained program; §13.18.27 GR1–2 — nearest container first, a local declaration

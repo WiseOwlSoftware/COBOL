@@ -203,12 +203,29 @@ public static class ReferenceFormatProcessor
         int fixedIndicators = 0;
         int totalLines = 0;
         bool hasNumericSequence = false;
+        bool hasFixedIndicatorGlyph = false;
+        bool hasContentPastSourceArea = false;
 
         foreach (var rawLine in lines)
         {
             var line = rawLine.TrimEnd('\r');
             if (string.IsNullOrWhiteSpace(line)) continue;
             totalLines++;
+
+            // ⚠ A DETECTION HEURISTIC, not a spec rule — do not restate it as one.
+            // ISO §6.3.1: "The rightmost character position of the program-text area is a fixed position
+            // defined by the IMPLEMENTOR" (margin R). The standard does NOT mandate column 72, and characters
+            // beyond margin R are not an error — they are simply outside the program-text area (§6.3.4;
+            // comment-text likewise runs only "up to margin R"). ISO 2023 has no "identification area"; that
+            // was a COBOL-85 card-image convention.
+            // What this flag captures: OUR margin R is column 72 (Annex A item 158 — a REQUIRED documented
+            // item, recorded in docs/CONFORMANCE.md §7). Source with real text past column 72 is therefore
+            // source we would TRUNCATE if we treated it as fixed, so — absent a numeric sequence area proving
+            // card-image origin — it is far likelier to be free-form. NIST/CCVS fills 73-80 with its member tag
+            // ("IX2164.2") and IS fixed-form, which is why a numeric sequence area overrides this signal.
+            if (line.Length > SourceAreaStart + SourceAreaWidth
+                && line[(SourceAreaStart + SourceAreaWidth)..].Trim().Length > 0)
+                hasContentPastSourceArea = true;
 
             if (line.Length > IndicatorColumn)
             {
@@ -235,12 +252,30 @@ public static class ReferenceFormatProcessor
                                 break;
                             }
                         }
+                        // A NON-SPACE indicator in column 7 is independent positive evidence of fixed format.
+                        // The sequence area is OPTIONAL (ISO §6.2.1 — it "may be used to label a source line"),
+                        // so a great deal of real-world COBOL leaves columns 1-6 blank and is still fixed-form.
+                        // Requiring a numeric sequence area misclassified every such file as FREE-form, where a
+                        // '*' in column 7 is no longer a comment indicator but a stray token — so an ordinary
+                        // comment line became a syntax error. NIST/CCVS never exposed this because it always
+                        // fills the sequence area; the GnuCOBOL corpus did, immediately (DEVLOG 931).
+                        if (indicator is not ' ') hasFixedIndicatorGlyph = true;
                     }
                 }
             }
         }
 
-        return totalLines > 0 && hasNumericSequence &&
+        // Either signal suffices: a numeric sequence area, OR a real column-7 indicator glyph. Both are
+        // gated behind the same structural ratio (columns 1-6 digits-or-blank and a valid indicator on most
+        // lines), which is what keeps genuinely free-form source — whose code starts at column 1, so columns
+        // 1-6 hold letters and seqOk fails — from being dragged into the fixed branch.
+        // A numeric sequence area is decisive on its own (the NIST/CCVS shape).
+        // Failing that, a real column-7 indicator glyph means fixed-form ONLY IF nothing runs past column 72:
+        // free-form source is not column-bounded, so text in 73+ is proof the file is NOT fixed. Without this
+        // veto the relaxed rule dragged 168 free-form corpus programs into the fixed branch, where truncation
+        // at column 72 silently cut their code (30 conformance failures — DEVLOG 931).
+        bool fixedShape = hasNumericSequence || (hasFixedIndicatorGlyph && !hasContentPastSourceArea);
+        return totalLines > 0 && fixedShape &&
                fixedIndicators * 100 / totalLines > FixedFormThresholdPercent;
     }
 

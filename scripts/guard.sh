@@ -13,8 +13,36 @@ echo "=== Integration tests ==="
 dotnet test tests/CobolSharp.Tests.Integration/CobolSharp.Tests.Integration.csproj --verbosity quiet
 
 echo "=== NIST regression ==="
-cp src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll tests/nist/output/
-CLI=src/CobolSharp.CLI/bin/Debug/net10.0/cobolsharp.dll
+
+# ── RUN ISOLATION (2026-07-19) ────────────────────────────────────────────────────────────────────────────
+# The NIST leg used to compile and run straight out of the live tree, which made it fragile in two ways:
+#   1. It EXECUTES the binary it just built. Any rebuild during the ~20-minute loop (a concurrent
+#      `dotnet build`, an IDE, a second guard) swaps cobolsharp.dll / CobolSharp.Runtime.dll MID-RUN, so
+#      early tests use compiler A and later ones compiler B — the "phantom regression" class.
+#   2. tests/nist/output/ is SHARED MUTABLE state. Two overlapping runs (including one whose children
+#      outlived a kill) interleave their .txt writes. The absent-OPTIONAL-file tests IX216A/IX217A are the
+#      canaries: they expect status 05 ("not present, created"), so ANY stray file makes them fail.
+# Both are fixed by snapshotting the built compiler and the NIST inputs into a per-run directory and doing
+# all work there. Cost: a ~40 MB copy (a few seconds). Benefit: the tree is only frozen for the BUILD phase,
+# not the whole run, and concurrent runs can no longer corrupt each other.
+# Set GUARD_WORK to a fixed path to keep the snapshot for post-mortem; default is a fresh temp dir.
+GUARD_WORK="${GUARD_WORK:-$(mktemp -d -t nistguard.XXXXXX)}"
+GUARD_KEEP="${GUARD_KEEP:-0}"
+echo "  run-scoped work dir: $GUARD_WORK"
+mkdir -p "$GUARD_WORK/output"
+cp -r tests/nist/programs "$GUARD_WORK/programs"
+cp -r tests/nist/valid    "$GUARD_WORK/valid"
+[ -d tests/nist/copylib ] && cp -r tests/nist/copylib "$GUARD_WORK/copylib"
+[ -d tests/nist/data ]    && cp -r tests/nist/data    "$GUARD_WORK/data"
+cp -r src/CobolSharp.CLI/bin/Debug/net10.0 "$GUARD_WORK/cli"
+cp src/CobolSharp.Runtime/bin/Debug/net10.0/CobolSharp.Runtime.dll "$GUARD_WORK/output/"
+CLI="$GUARD_WORK/cli/cobolsharp.dll"
+NIST_OUT="$GUARD_WORK/output"
+NIST_PROGS="$GUARD_WORK/programs"
+NIST_VALID="$GUARD_WORK/valid"
+NIST_DATA="$GUARD_WORK/data"
+cleanup_guard_work() { if [ "$GUARD_KEEP" != "1" ]; then rm -rf "$GUARD_WORK"; fi; }
+trap cleanup_guard_work EXIT
 
 # Start each run from a clean DATA-file state so the guard is deterministic and reproducible from any prior
 # state. Producer/consumer chains (RL/SQ/IX) rebuild WITHIN this run because the producer runs before the
@@ -23,7 +51,7 @@ CLI=src/CobolSharp.CLI/bin/Debug/net10.0/cobolsharp.dll
 # status 05 = "not present, created") must NOT see the file they themselves created on a previous invocation;
 # without this start-clean such a test passes once then fails forever. Only data/report .txt files are
 # removed — the compiled .dll/.runtimeconfig.json stay.
-rm -f tests/nist/output/*.txt
+rm -f $NIST_OUT/*.txt
 
 # All NIST tests currently at 100% — must stay green
 # (93 NC + 42 IF + 15 SM + 18 IC + 83 SQ + 28 RL + 39 IX + 29 ST + 3 OBSQ = 350 tests).
@@ -147,7 +175,7 @@ LEGACY_DIVERGENT="IX111A IX210A IX214A IX215A NC235A NC236A SQ207M ST146A SQ101M
 FAILURES=0
 for test in $NIST_TESTS; do
     # Compile
-    if ! dotnet "$CLI" --nist "tests/nist/programs/$test.cob" -o "tests/nist/output/$test.dll" 2>/dev/null; then
+    if ! dotnet "$CLI" --nist "$NIST_PROGS/$test.cob" -o "$NIST_OUT/$test.dll" 2>/dev/null; then
         echo "  $test: COMPILE FAILED — REGRESSION!"
         FAILURES=$((FAILURES + 1))
         continue
@@ -156,19 +184,19 @@ for test in $NIST_TESTS; do
     # Run in the output directory; capture stdout for DISPLAY-only tests
     # Pipe NIST data file to stdin when available (for ACCEPT tests)
     outfile=$(echo "$test" | tr '[:upper:]' '[:lower:]').txt
-    stdoutfile="tests/nist/output/${test}-stdout.txt"
-    datafile="tests/nist/data/$test.dat"
+    stdoutfile="$NIST_OUT/${test}-stdout.txt"
+    datafile="$NIST_DATA/$test.dat"
     if [ -f "$datafile" ]; then
-        (cd tests/nist/output && dotnet "$test.dll" 2>/dev/null || true) < "$datafile" > "$stdoutfile"
+        (cd $NIST_OUT && dotnet "$test.dll" 2>/dev/null || true) < "$datafile" > "$stdoutfile"
     else
-        (cd tests/nist/output && dotnet "$test.dll" 2>/dev/null || true) > "$stdoutfile"
+        (cd $NIST_OUT && dotnet "$test.dll" 2>/dev/null || true) > "$stdoutfile"
     fi
 
-    # Compare output (files written to tests/nist/output/)
-    validfile="tests/nist/valid/$test.txt"
+    # Compare output (files written to $NIST_OUT/)
+    validfile="$NIST_VALID/$test.txt"
     if [ ! -f "$validfile" ]; then
         # No baseline = test has known failures. Still compile/run but don't compare.
-        fail_count=$(grep -c "FAIL\*" "tests/nist/output/$outfile" 2>/dev/null || true)
+        fail_count=$(grep -c "FAIL\*" "$NIST_OUT/$outfile" 2>/dev/null || true)
         fail_count=${fail_count:-0}
         echo "  $test: NO BASELINE (${fail_count} FAIL* — pending fix)"
         continue
@@ -182,7 +210,7 @@ for test in $NIST_TESTS; do
     esac
 
     # Normalize: strip CR (CRLF->LF), then trailing spaces, then time-dependent COMPUTED values.
-    # tr -d '\r' must come FIRST: the golden tests/nist/valid/*.txt are CRLF; a compiled program's DISPLAY uses
+    # tr -d '\r' must come FIRST: the golden $NIST_VALID/*.txt are CRLF; a compiled program's DISPLAY uses
     # Console.WriteLine = platform newline (\r\n on Windows, \n on Linux/CI), so on Linux the actual output is
     # LF. Order matters — 's/ *$//' is a no-op while a trailing \r still sits at end-of-line, so squeezing spaces
     # before stripping CR would leave the two sides unequal (a false REGRESSION). Idempotent on Windows.
@@ -190,10 +218,10 @@ for test in $NIST_TESTS; do
 
     # Find the actual output file (outfile, print-file, or stdout)
     actual=""
-    if diff <(normalize "$validfile") <(normalize "tests/nist/output/$outfile") > /dev/null 2>&1; then
-        actual="tests/nist/output/$outfile"
-    elif diff <(normalize "$validfile") <(normalize "tests/nist/output/print-file.txt") > /dev/null 2>&1; then
-        actual="tests/nist/output/print-file.txt"
+    if diff <(normalize "$validfile") <(normalize "$NIST_OUT/$outfile") > /dev/null 2>&1; then
+        actual="$NIST_OUT/$outfile"
+    elif diff <(normalize "$validfile") <(normalize "$NIST_OUT/print-file.txt") > /dev/null 2>&1; then
+        actual="$NIST_OUT/print-file.txt"
     elif diff <(normalize "$validfile") <(normalize "$stdoutfile") > /dev/null 2>&1; then
         actual="$stdoutfile"
     fi
@@ -232,7 +260,7 @@ fi
 # Verify every baseline is clean and non-vacuous — baselines must be 100% trustworthy.
 # (1) a 0-byte baseline matches any empty/crash output vacuously; (2) a FAIL* detail line is a real
 # failure; (3) a nonzero footer "NNN TEST(S) FAILED" is a real failure even with no FAIL* detail line.
-for f in tests/nist/valid/*.txt; do
+for f in $NIST_VALID/*.txt; do
     if [ ! -s "$f" ]; then
         echo "=== ERROR: $(basename "$f") is EMPTY — a 0-byte baseline passes vacuously; remove from valid/ ==="
         FAILURES=$((FAILURES + 1))

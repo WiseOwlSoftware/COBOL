@@ -333,6 +333,26 @@ public sealed class SequentialConnector : FileConnector
         return new string(a);
     }
 
+    /// <summary>Print-control <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/GR25f,
+    /// COBOL-2023): present the trimmed image at the CURRENT line, then advance by the BEFORE amount and by the AFTER
+    /// amount — both after presentation (SR17 forbids PAGE, so neither is a form feed). LINAGE-COUNTER increments by
+    /// n+m.</summary>
+    public string WriteBeforeAndAfter(string image, int beforeLines, int afterLines)
+    {
+        if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
+        if (Mode is not (FileOpenMode.Output or FileOpenMode.Extend)) return Status = FileStatusCode.WriteNotOpenForOutput;
+        _afterAdvancing = true;
+        _writer.Write(PrintSafe(image.TrimEnd()));
+        // Two DISTINCT advancing operations (GR25e then GR25f): advance and count each SEPARATELY so a page-boundary
+        // crossing WITHIN the BEFORE advance is handled by its own §14.9.51 GR26/GR7c overflow logic before the
+        // AFTER advance runs (a single combined increment would mis-handle a boundary between the two).
+        Advance(beforeLines);
+        if (_linageEval is not null) AdvanceLinageCounter(beforeLines);
+        Advance(afterLines);
+        if (_linageEval is not null) AdvanceLinageCounter(afterLines);
+        return Status = FileStatusCode.Success;
+    }
+
     private void Advance(int lines)
     {
         if (lines < 0) { _writer!.Write('\f'); return; }   // ADVANCING PAGE
@@ -353,6 +373,10 @@ public sealed class SequentialConnector : FileConnector
         if (LastReadUnsuccessful) { Status = FileStatusCode.NoValidNextRecord; return false; }
         if (_reader is null) { Status = FileStatusCode.ReadNotOpenForInput; return false; }
 
+        // §14.9.30 GR14 (READ) / §9.1.13.2 item 3: a RECORD-sequential physical record whose length is outside the file's
+        // min/max record size is a SUCCESSFUL read with status '04' (the record is still delivered). Line-sequential
+        // is excluded — its short/long conditions are '06'/'09', never '04'.
+        bool shortLong = false;
         if (_lineSequential)
         {
             string? line = _reader.ReadLine();
@@ -372,6 +396,7 @@ public sealed class SequentialConnector : FileConnector
             _readOffset += 4 + n;
             LastReadLength = n;
             image = new string(buf, 0, n).PadRight(RecordWidth, ' ');
+            if (n < VaryMin || n > VaryMax) shortLong = true;   // outside the varying record min/max (§14.9.30 GR14)
         }
         else
         {
@@ -385,10 +410,13 @@ public sealed class SequentialConnector : FileConnector
             _readOffset += n;
             LastReadLength = n;
             image = new string(buf, 0, n).PadRight(RecordWidth, ' ');
+            // Fixed-length record sequential: min == max == RecordWidth, so a partial (short) final record is '04'.
+            // A longer-than-max record cannot occur (the buffer is read in RecordWidth chunks). n == 0 is EOF above.
+            if (n < RecordWidth) shortLong = true;
         }
         PrevOpWasSuccessfulRead = true;
         _readOrdinal++;   // the record just made available is ordinal N+1 (§9.1.16 lock identity)
-        Status = FileStatusCode.Success;
+        Status = shortLong ? FileStatusCode.RecordLengthShortLong : FileStatusCode.Success;
         return true;
     }
 

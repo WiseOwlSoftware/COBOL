@@ -73,6 +73,10 @@ public static class CobolFile
     public static void WriteAdvancing(string name, string image, int lines, bool before)
         => _reg.WriteAdvancing(name, image, lines, before);
 
+    /// <summary>COBOL-2023 combined <c>WRITE record BEFORE ADVANCING n AFTER ADVANCING m</c> (ISO §14.9.51 GR25e/f).</summary>
+    public static void WriteBeforeAndAfter(string name, string image, int beforeLines, int afterLines)
+        => _reg.WriteBeforeAndAfter(name, image, beforeLines, afterLines);
+
     /// <summary>Install a LINAGE file's logical-page evaluator (ISO §13.18.34 GR6).</summary>
     public static void SetLinage(string name, Func<(int Body, int Footing, int Top, int Bottom)> eval)
         => _reg.SetLinage(name, eval);
@@ -144,6 +148,10 @@ public static class CobolFile
 
     /// <summary>DELETE FILE (§14.9.10 Format 2, COBOL-2023).</summary>
     public static string DeleteFile(string name) => _reg.DeleteFile(name);
+
+    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (ISO §15.28.4 r2) — the named connector's I-O status +
+    /// SELECT-spelled name, or two spaces when never opened/attempted/accessed.</summary>
+    public static string ExceptionFile(string name) => _reg.ExceptionFile(name);
 
     /// <summary>Register a SELECTed file's declared SHARING / LOCK MODE (§12.4.5.15/§12.4.5.9).</summary>
     public static void RegisterSharing(string name, FileSharing sharing, FileLockMode lockMode, bool multiple)

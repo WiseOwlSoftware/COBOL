@@ -41,6 +41,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// <c>--std</c>.</summary>
     public EditionContext Edition { get; } = edition ?? new EditionContext(2023);
 
+    /// <summary>The group's compile-time <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> resolution (ISO §7.3.23) — queried by
+    /// <see cref="ReferenceResolver"/> when it builds a reference-modification Place, to set
+    /// <c>RefModPlace.AllowZeroLength</c> from the directive fold at the ref-mod's source line (§8.4.3.3.4 item 5c).
+    /// Defaults to <see cref="RefModZeroLengthState.Empty"/> (the OFF default) for direct test construction.</summary>
+    public RefModZeroLengthState RefModZeroLength { get; init; } = RefModZeroLengthState.Empty;
+
     /// <summary>The top-level (01/77) items of WORKING-STORAGE, in source order. (READ-ONLY view — P6 Step 5:
     /// the emitter consumes the bound model without a write channel; the binder populates the private backing.)</summary>
     public IReadOnlyList<DataItem> Roots => _roots;
@@ -178,9 +184,50 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     public Dictionary<string, FileModel> FilesByName { get; } = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>True when SOURCE-COMPUTER declares WITH DEBUGGING MODE (the X3.23-1985 compile-time debug
-    /// switch) — consumed by the declaratives binder to decide the USE FOR DEBUGGING posture (compiled but
-    /// never triggered vs comment-treated; VCR Table 7 rows 7.9/7.17).</summary>
+    /// switch) — consumed by the declaratives binder to decide the USE FOR DEBUGGING posture: with the switch the
+    /// debugging section is compiled AND its procedure-trigger leg is modeled (fires; the DEBUG-ITEM register
+    /// resolves), without it the section is comment-treated (VCR Table 7 rows 7.9/7.17).</summary>
     public bool DebuggingModeDeclared { get; private set; }
+
+    /// <summary>The X3.23-1985 <c>DEBUG-ITEM</c> special register and its members (DEBUG-LINE / DEBUG-NAME /
+    /// DEBUG-SUB-1/2/3 / DEBUG-CONTENTS), keyed by COBOL name (case-insensitive) → the synthesized alphanumeric
+    /// <see cref="DataItem"/> VIEW + its read-only runtime read expression. The register is IMPLICITLY described
+    /// (no DATA DIVISION entry, §ISO absent — 1985 debug module, VCR Table 7 row 7.17) — kept OFF <see cref="ByName"/>
+    /// / <see cref="Roots"/>; the resolver consults this to build a <see cref="DebugRegisterPlace"/>. Populated by
+    /// <see cref="ActivateDebugRegisters"/> when a procedure-subject debugging declarative is collected under
+    /// WITH DEBUGGING MODE (empty otherwise — a non-debug program's resolution is unchanged).</summary>
+    public IReadOnlyDictionary<string, (DataItem Item, DebugRegisterMember Member)> DebugRegisters => _debugRegisters;
+    private readonly Dictionary<string, (DataItem, DebugRegisterMember)> _debugRegisters = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Register the X3.23-1985 DEBUG-ITEM special-register family (idempotent) — called by the procedure
+    /// table builder when it collects a <c>USE FOR DEBUGGING</c> procedure-subject declarative under WITH DEBUGGING
+    /// MODE, BEFORE statement binding resolves the DEBUG-* references inside the debugging section. Each member is a
+    /// synthesized elementary VIEW of its fixed 1985 width over the program-instance <c>__dbgItem</c>
+    /// (<see cref="CobolNet.Runtime.DebugItem"/>) — carried as a STRUCTURAL <see cref="DebugRegisterMember"/> selector
+    /// (the C# read text lives in the renderer); the whole-group DEBUG-ITEM reads the concatenated image. DEBUG-SUB-n
+    /// carries the S9(4) SIGN LEADING SEPARATE image WIDTH (5) but as an alphanumeric character-image view: the
+    /// procedure-trigger leg only ever renders it SPACES, and the subscripted numeric-value population + the
+    /// §14.9.25.4 GR6a "sign not moved" MOVE semantics ride the staged data-name leg (COBOLNET1571).</summary>
+    internal void ActivateDebugRegisters()
+    {
+        if (_debugRegisters.Count > 0) return;
+        void Reg(string name, int width, DebugRegisterMember member) =>
+            _debugRegisters[name] = (new DataItem
+            {
+                Level = 49,
+                CsName = "__dbg_" + name.Replace('-', '_'),
+                CobolName = name,
+                Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: width, Digits: 0, Scale: 0, Signed: false),
+                Uid = _uidCounter++,
+            }, member);
+        Reg("DEBUG-ITEM", Runtime.DebugItem.GroupWidth, DebugRegisterMember.Item);
+        Reg("DEBUG-LINE", Runtime.DebugItem.LineWidth, DebugRegisterMember.Line);
+        Reg("DEBUG-NAME", Runtime.DebugItem.NameWidth, DebugRegisterMember.Name);
+        Reg("DEBUG-SUB-1", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub1);
+        Reg("DEBUG-SUB-2", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub2);
+        Reg("DEBUG-SUB-3", Runtime.DebugItem.SubWidth, DebugRegisterMember.Sub3);
+        Reg("DEBUG-CONTENTS", Runtime.DebugItem.ContentsWidth, DebugRegisterMember.Contents);
+    }
 
     /// <summary>The compilation group's pass-1 class symbol table (OO deep-dive D1) — set by the run-unit
     /// emitter BEFORE <see cref="Bind"/> so a typed <c>USAGE OBJECT REFERENCE class-name</c> validates its
@@ -290,6 +337,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         BindFileSection(program, _rootNames);      // FD records → Roots + FileModel.Records + the shared-area REDEFINES
         BindReportSection(program);                // RD entries → ReportModels (ISO §13.14; DataBinder.Reports.cs)
         BindIoControl(program);                    // I-O-CONTROL: SAME RECORD AREA → cross-file shared record area (§12.4.6.4 GR2)
+
+        // SCREEN SECTION (ISO §13.9) is an OPTIONAL facility (§4.2.7) COBOL.NET does not implement: it parses but is
+        // not bound. §4.2.6 requires a compile-time WARNING naming the unsupported element (rather than the former
+        // silent drop) — the COBOLNET1560 non-support band, catalogued in docs/CONFORMANCE.md §4. The program still
+        // compiles; the screen behavior is simply absent.
+        if (program.dataDivision()?.screenSection() is not null)
+            Edition.Warning("COBOLNET1560", "the SCREEN SECTION (ISO §13.9) is an optional facility (§4.2.7) that is "
+                + "not supported — it is accepted but produces no screen behavior (see docs/CONFORMANCE.md §4)");
 
         if (program.dataDivision()?.workingStorageSection() is { } ws)
             _workingStorageRoots.AddRange(BindEntries(ws.dataDescriptionEntry(), _rootNames));
@@ -907,6 +962,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// posture). Both directions: an <c>N"…"</c>/<c>B"…"</c> literal seeds no OTHER category. Size: the decoded
     /// content shall not exceed the item's positions (SR5/SR10; alphanumeric receivers keep their historical
     /// truncating store — only the new categories get the strict check).</summary>
+    /// <summary>True when <paramref name="raw"/> is a plain numeric literal (optional sign, digits, one decimal
+    /// point) whose value is NOT zero — the VCR 86 gate subject (ISO §13.18.63 SR6 exempts the literal-zero forms
+    /// at all editions, so <c>0</c>/<c>0.00</c> return false; a quoted/national/figurative VALUE is not numeric).</summary>
+    private static bool IsNonZeroNumericLiteral(string raw)
+    {
+        string t = raw.Trim();
+        if (t.StartsWith('+') || t.StartsWith('-')) t = t[1..];
+        bool sawDigit = false, anyNonZero = false, sawDot = false;
+        foreach (char c in t)
+        {
+            if (c == '.') { if (sawDot) return false; sawDot = true; continue; }
+            if (!char.IsAsciiDigit(c)) return false;
+            sawDigit = true;
+            if (c != '0') anyNonZero = true;
+        }
+        return sawDigit && anyNonZero;
+    }
+
     private void ValidateValueCategory(PicInfo pic, string raw, string where)
     {
         bool isNatLit = raw.Length >= 3 && raw[0] is 'N' or 'n' && raw[1] is '"' or '\'';
@@ -1037,6 +1110,18 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             Edition.Error(DiagnosticCatalog.ExternalTypeRule, $"'{subject}': an EXTERNAL record described with "
                 + $"STRONG type '{typeName}' requires that type declaration to be external too "
                 + "(ISO §13.18.22 SR5)");
+        // VCR 16, the STRENGTH half (§13.16.3 SR13 ¶2; Annex E.2 item 10; the P13 review finding C9): "If the
+        // CONSTANT RECORD clause is specified with the EXTERNAL clause, there shall also be a TYPE clause that
+        // specifies a STRONGLY typed definition." The declaration-site check (BindEntry) can verify only TYPE
+        // PRESENCE — strength is known HERE, where the template resolved. ≥2023 like its presence half (the
+        // requirement is the 2023 flip; below 2023 a weak-TYPE external constant record was legal). Scoped to the
+        // literal EXTERNAL-clause co-occurrence SR13 ¶2 names (an item external only via the TYPE's own EXTERNAL —
+        // GR3 — has no EXTERNAL clause, and its external typedef is separately gated by VCR 63 when strong).
+        if (item.IsConstantRecord && item.HasExternalClause && !template.TypedefStrong
+            && Edition.DialectLevel >= 2023)
+            Edition.Error(DiagnosticCatalog.ConstantRecordRule, $"'{subject}': a CONSTANT RECORD clause specified "
+                + $"with the EXTERNAL clause requires a TYPE clause naming a STRONGLY typed definition — "
+                + $"'{typeName}' is a weak (non-STRONG) typedef (ISO §13.16.3 SR13 ¶2; Annex E.2 item 10; ≥2023)");
 
         // §13.18.57.3 SR7 (review fix #1): a level-77 subject requires an ELEMENTARY type — a level-77 item is an
         // independent elementary item (§13.18.38). Version- AND strength-invariant (this applies to WEAK types too;
@@ -1570,6 +1655,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         SignSpec? ownSign = null;
         bool justified = false, blankWhenZero = false, synchronized = false;
         bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
+        bool noSign = false;           // USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.4 GR11 — no sign nibble; 2023)
         bool isBased = false;          // BASED (ISO §13.18.5 — a storage template; Phase-4b increment 2)
         bool isAnyLength = false;      // ANY LENGTH (ISO §13.18.2 — a runtime-length LINKAGE formal; PHASE-09 Step 11)
         bool isDynamicLength = false;  // DYNAMIC LENGTH (ISO §8.5.1.10 / §13.18.19 — a variable-length min-0 string; P12 wave 2)
@@ -1655,6 +1741,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // binarySign sibling is a direct child of usageClause in BOTH the full (USAGE IS
                     // BINARY-CHAR SIGNED) and the bare (BINARY-CHAR SIGNED) alternatives.
                     binaryUnsigned = usage.binarySign()?.UNSIGNED() is not null;
+                    noSign = usage.noSignPhrase() is not null;   // §13.18.60.4 GR11 — validated against usage/picture below
                     var oru = usage.usageKeyword()?.objectReferenceUsage();
                     if (oru?.FACTORY() is not null)
                         // OBJECT REFERENCE FACTORY OF class (§13.18.60 :22681) — the factory-object
@@ -1814,6 +1901,22 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : pic is null && entryUsage is Usage.Bit ? PicPending.BitUsage
             : PicPending.None;
 
+        // USAGE … WITH NO SIGN (ISO §13.18.60.4 GR11, 2023): applies ONLY to PACKED-DECIMAL (grammatically tolerated
+        // after any usageKeyword — reject on a non-Packed usage, COBOLNET1565) and forbids an 'S' picture (SR31,
+        // COBOLNET1566). When valid it drops the sign nibble via PicInfo.PackedNoSign (StorageWidth only — the value
+        // path is identical to plain unsigned packed). The 2023 introduction gate is VersionConformancePass.
+        if (noSign)
+        {
+            if (entryUsage is not Usage.Packed)
+                Edition.Error("COBOLNET1565", $"{entryWhere}: the WITH NO SIGN phrase (ISO §13.18.60.4 GR11) applies "
+                    + $"only to USAGE PACKED-DECIMAL, not USAGE {usageText}");
+            else if (pic is { Signed: true })
+                Edition.Error("COBOLNET1566", $"{entryWhere}: a PICTURE containing 'S' shall not be specified with "
+                    + "PACKED-DECIMAL WITH NO SIGN (ISO §13.18.40.3 SR31 — an unsigned representation)");
+            else if (pic is not null)
+                pic = pic with { PackedNoSign = true };
+        }
+
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.1.2 / §13.18.40) — reject, never silently mis-store.
         if (pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited, IsFloat: false, Digits: > 0 })
@@ -1822,6 +1925,25 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // VALUE-clause literal/category conformance for the string-stored 2002 categories (ISO §13.18.63
         // SR5 national / SR10 boolean — the 0898 band, both directions).
         if (rawValue is { } rv && pic is not null) ValidateValueCategory(pic, rv, entryWhere);
+        // VCR 86 (ISO §13.18.63 SR6; Annex E.3.3 item 43): a NON-ZERO numeric literal VALUE for a numeric-edited
+        // item is a COBOL-2023 capability — below 2023 a numeric-edited VALUE required an alphanumeric edited-image
+        // literal. SR6 exempts "the integer and decimal forms of the literal zero" (and the figurative ZERO — VCR
+        // 35) at ALL editions, so only a non-zero numeric literal is gated. Scoped to the ITEM VALUE (not level-88).
+        if (rawValue is { } nrv && pic is { Category: PicCategory.NumericEdited } && IsNonZeroNumericLiteral(nrv))
+            ConstructRegistry.Check(Edition.Edition, Edition.Sink,
+                Constructs.ValueNumericLiteralNumericEdited2023, entryWhere);
+        // VCR 34 (ISO §13.18.63 SR4/SR5; Annex E.2 item 27): at >=2023 an alphanumeric edited-image literal VALUE on
+        // a numeric-edited item is checked against the PICTURE size — a literal LONGER than the edited width is
+        // rejected (below 2023 it was stored truncated — the "unclear value"). Under --permissive the check
+        // downgrades to a warning (a removed-capability posture). The national-class-mismatch leg is already
+        // COBOLNET0898 (ValidateValueCategory); only a plain alphanumeric literal (leading '"') reaches this size check.
+        if (rawValue is { } arv && pic is { Category: PicCategory.NumericEdited } && Edition.DialectLevel >= 2023
+            && arv.StartsWith('"') && CobolLiteral.Decode(arv).Length > pic.Length)
+            Edition.Sink.Report(new EditionDiagnostic("COBOLNET1570",
+                EditionSeverityPolicy.For(ConstructAvailability.Removed, Edition.Edition), "value-numeric-edited-oversize",
+                $"{entryWhere}: the VALUE literal ({CobolLiteral.Decode(arv).Length} characters) exceeds the "
+                + $"numeric-edited item's {pic.Length}-character edited size (ISO §13.18.63 SR4/SR5; COBOL-2023, "
+                + "Annex E.2 item 27)", entryWhere, "ISO §13.18.63 SR4/SR5; Annex E.2 item 27"));
         // An EXTERNAL type declaration (ISO §13.18.22 SR1 — EXTERNAL is legal on a level-1 type declaration;
         // the level-1 shape is §13.18.58.3 SR3, already enforced by RegisterTypeDecl's 1529). The declaration
         // itself has no storage (§13.18.58.4 GR2); the effect lands on its REFERENCES — §13.18.22 GR2 (a data
@@ -1863,9 +1985,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     ? "the ANY LENGTH, BASED, BLANK WHEN ZERO, SYNCHRONIZED, and TYPEDEF clauses shall not be "
                       + "specified in the same data description entry as the CONSTANT RECORD clause "
                       + "(ISO §13.16.3 SR13)"
-                : hasExternal && typeRefName is null
+                // VCR 16 (ISO §13.16.3 SR13 ¶2; Annex E.2 item 10): the "EXTERNAL CONSTANT RECORD requires a strong
+                // TYPE" requirement is a COBOL-2023 addition — below 2023 the bare external constant record (no TYPE)
+                // was the legacy accepted form (its content initializes per §13.18.15.4 GR1 and is not re-initialized
+                // on run-unit re-entry, §11.9.10.4 GR7 / §14.6.2.3.3). Version-conditioned structural SR ⇒ read DialectLevel directly (the
+                // CheckDigitCapacity/binder-reads-edition doctrine), NOT a ConstructRegistry introduction gate.
+                : hasExternal && typeRefName is null && Edition.DialectLevel >= 2023
                     ? "a CONSTANT RECORD clause specified with the EXTERNAL clause requires a TYPE clause "
-                      + "naming a strongly typed definition (ISO §13.16.3 SR13)"
+                      + "naming a strongly typed definition (ISO §13.16.3 SR13 ¶2; ≥2023)"
                 : null;
             if (crViolation is not null)
             {
@@ -2270,7 +2397,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 // A method 01 REDEFINES whose target isn't in the method's own roots is a scope error (never a
                 // silent cross-scope bind to an object/program item) — §13.18.44.3 SR.
                 if (item.RedefinesTarget is null && item.Parent is null && OoRootOwner.ContainsKey(RootOf(item)))
-                    Edition.Error("COBOLNET1518", $"REDEFINES target '{tname}' of method data item "
+                    // 1577, renumbered from a bare "COBOLNET1518" that collided with the locale-module
+                    // non-support meaning (review V11 — the code comes from the catalog descriptor, never a literal).
+                    Edition.Error(DiagnosticCatalog.MethodRedefinesScope,
+                        $"REDEFINES target '{tname}' of method data item "
                         + $"'{item.CobolName ?? "FILLER"}' is not a preceding item in the same method scope "
                         + "(ISO §13.18.44.3 — a method item may not redefine object or program data)");
                 // §13.18.44.3 SR16: data-name-2 (the redefined item) shall not be described with the ANY

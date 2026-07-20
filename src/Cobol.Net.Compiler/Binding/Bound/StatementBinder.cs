@@ -63,7 +63,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
     private IntrinsicBinder? _intrinsicBinder;
     internal IntrinsicBinder Intrinsic => _intrinsicBinder ??= new IntrinsicBinder(Ctx, this);
     private ControlFlowBinder? _controlFlowBinder;
-    private ControlFlowBinder ControlFlow => _controlFlowBinder ??= new ControlFlowBinder(Ctx, this);
+    internal ControlFlowBinder ControlFlow => _controlFlowBinder ??= new ControlFlowBinder(Ctx, this);
     private SetBinder? _setBinder;
     internal SetBinder Set => _setBinder ??= new SetBinder(Ctx, this);
     private SearchBinder? _searchBinder;
@@ -151,9 +151,14 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
             var sentences = new List<IReadOnlyList<BoundStatement>>();
             foreach (var sentence in table.Paragraphs[i].Sentences)
                 sentences.Add(sentence.statement().Select(BindStatement).ToList());
-            bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences));
+            // The paragraph's LAST executable statement source line — the X3.23-1985 DEBUG-LINE for a FALL THROUGH
+            // trigger (VCR 7.17; only used when the debug facility is active). 0 for an empty paragraph.
+            int lastLine = table.Paragraphs[i].Sentences
+                .SelectMany(s => s.statement()).LastOrDefault()?.Start.Line ?? 0;
+            bound.Add(new BoundParagraph(table.Paragraphs[i].Cobol, sentences, lastLine));
         }
-        return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures());
+        return new BoundProgram(bound, table.EntryPc, table.Declaratives, Ctx.EcState.BuildFeatures(),
+            DebugSubjects: table.DebugSubjects.Count > 0 ? table.DebugSubjects : null);
     }
 
     /// <summary>Appended to unknown-procedure guards bound inside a method: names resolve METHOD-LOCALLY
@@ -202,6 +207,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                     data.Edition.Error(DiagnosticCatalog.OoMethodDeclaratives,
                         $"class '{cls.Name}', method '{m.Name}': DECLARATIVES inside a method (ISO §14.2.1) "
                         + "are recognized but not yet implemented (owning roadmap phase: Phase 3, OO port)");
+                // §14.4.3 — a method's procedure division may also open with unnamed sentences (same rule as a
+                // program's; the header form is shared). They take the method's ENTRY pc, set just above.
+                table.AddAnonymousParagraph(pd.sentence(), null, used);
                 foreach (var unit in pd.procedureUnit())
                 {
                     if (unit.paragraphDefinition() is { } para)
@@ -211,6 +219,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                         // A section inside a method is a method-local pc range (the legacy COBOL0116 reject is
                         // superseded: with per-method scopes the range cannot truncate or leak — trap #5).
                         var info = new SectionInfo(section.sectionName().GetText(), table.Paragraphs.Count);
+                        table.AddAnonymousParagraph(section.sentence(), info, used);
                         foreach (var p in section.paragraphDefinition())
                             table.AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
                         info.EndPc = table.Paragraphs.Count - 1;
@@ -290,8 +299,8 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => Accept.BindAccept(ac),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
-        _ when s.continueStatement() is not null => new BoundNop(),
-        _ when s.nextSentenceStatement() is not null => new BoundNextSentence(),
+        _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
+        _ when s.nextSentenceStatement() is not null => new BoundNextSentence(s.Start.Line),
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
         // literal form no longer silently binds as STOP RUN (the DEVLOG-578 mis-bind; edition-gated ≥2002 by
         // the validator, its 85 semantics implemented via BoundStopLiteral).

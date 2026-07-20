@@ -228,7 +228,14 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (wr.From is { } from) move.Emit(new BoundMove(from, [wr.Record]));
         string name = FileKeyExpr(wr.File);
         string image = OperandText.AsString(new BoundFieldOperand(wr.Record), num);
-        if (wr.Advancing is { } adv)
+        if (wr.AfterAdvancing is { } aft && wr.Advancing is { } bfr)
+        {
+            // COBOL-2023 combined BEFORE AND AFTER ADVANCING (§14.9.51 GR25e/GR25f): present the line at the current
+            // position, then advance by the BEFORE amount and by the AFTER amount (both after presentation; SR17
+            // forbids PAGE, so neither is a form feed). LINAGE-COUNTER increments by before+after.
+            w.Line($"{RuntimeApi.FileWriteBeforeAndAfter(name, image, LinesExpr(bfr.Lines!), LinesExpr(aft.Lines!))};");
+        }
+        else if (wr.Advancing is { } adv)
         {
             // Print-control writes keep the plain entry: an ADVANCING stream is a presentation surface, not a
             // record store — its lines carry no record-lock identity (§9.1.16 locks LOGICAL RECORDS).

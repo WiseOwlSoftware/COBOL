@@ -54,6 +54,31 @@ public sealed class RunUnit
     /// <summary>The run unit's clock (ISO §14.9.1.4 GR7; injectable — a test may set a fixed clock).</summary>
     public IClock Clock { get; set; } = SystemClock.Instance;
 
+    /// <summary>The X3.23-1985 OBJECT-TIME (run-time) debug switch (the '85 debug module — deleted 2002, absent 2023;
+    /// COBOL.NET models the facility only at <c>--std 85</c>, VCR Table 7 row 7.17). It is implementor-defined; for a
+    /// CCVS run it is ON. Default ON so a program compiled WITH DEBUGGING MODE runs its debugging declaratives (the
+    /// COMPILE-time switch — SOURCE-COMPUTER … WITH DEBUGGING MODE — is what gates whether the debug scaffolding is
+    /// emitted at all; this is the second switch that gates whether emitted triggers actually fire). The emitted
+    /// <c>__RunDebug</c> helper reads it, giving a future CLI <c>--debug-mode off</c> override a single home without
+    /// perturbing generated code.</summary>
+    public bool DebugMode { get; set; } = true;
+
+    /// <summary>The run-unit termination status "passed to the operating system" by STOP RUN / a main-program
+    /// GOBACK with a status phrase (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10). On .NET the single observable is the
+    /// process exit code (<c>Environment.ExitCode</c>), so the STATUS value and the ERROR/NORMAL indication
+    /// collapse into this ONE canonical integer (the documented implementor mapping — <c>docs/CONFORMANCE.md</c>
+    /// §4.2.16; Annex A "required documented behavior" items 192/193): the STATUS value when specified, else
+    /// ERROR ⇒ 1 / NORMAL ⇒ 0. Read at run-unit termination by the generated <c>Main</c> and set to
+    /// <c>Environment.ExitCode</c>. Default 0 (a normal termination with no status phrase — byte-identical to a
+    /// pre-slice build). The future RETURN-CODE special register writes this SAME field (singular-pattern — one
+    /// exit-code source, never two).</summary>
+    public long ExitStatus { get; set; }
+
+    /// <summary>The emitted-surface shim STOP RUN / GOBACK write (kept name-stable over <see cref="Current"/>,
+    /// mirroring the <see cref="ExceptionState"/>/<see cref="ProgramRegistry"/> facades): set the run unit's
+    /// termination status (ISO §14.9.42.4 GR5 / §14.9.18.4 GR10).</summary>
+    public static void SetExitStatus(long status) => Current.ExitStatus = status;
+
     /// <summary>Establish a FRESH ambient run unit for the duration of <paramref name="body"/> — the one
     /// lifecycle boundary (begin = a clean run unit; end = the §14.6 implicit CloseAll + ambient restore).
     /// The DEFAULT emitted run-unit driver does not call this (it stays on the lazy-ambient

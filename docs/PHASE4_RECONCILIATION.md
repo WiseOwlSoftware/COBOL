@@ -1,5 +1,9 @@
 # Phase 4 Greenfield-vs-Catalog Reconciliation
 
+> **⚠ FROZEN HISTORICAL LEDGER (2026-07-19):** authoritative AS OF the P10 close only. The P13 review found
+> multiple rows stale ('Deferred … no named track' items now tracked in the plan §0 Wave D / the review ledger
+> §24; the 1518 'last-used' note corrected in place). Live state = the plan §0/§8 + the review ledger.
+
 > **STATUS: the AUTHORITATIVE greenfield-truth view of the M2/M3/M4 catalog** (the ratified
 > Phase-4 entry audit — `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase 4). The catalog
 > `docs/ISO2023_CONFORMANCE_PLAN.md` §3 carries LEGACY-era ☑/◐ marks; THIS table supersedes them with the
@@ -1790,7 +1794,7 @@ units only*, so class FileModels are never registered nor key-qualified).
 
 **Diagnostics.** COBOLNET**1519** (a section not permitted in a method: ENV / FILE / REPORT / SCREEN — one error
 class, message names which) · COBOLNET**1520** (GLOBAL on a factory/instance/method FD, §13.18.27.3 SR4). Both in the
-free 15xx band (1518 is last-used). Edition-invariant — OO cannot parse below 2002, so no explicit dialect guard.
+free 15xx band (1518 was last-used HERE; the M2-OO REDEFINES leg was later renumbered to 1577 when 1518 was double-allocated to the locale non-support — P13 review V11). Edition-invariant — OO cannot parse below 2002, so no explicit dialect guard.
 *Not over-diagnosed:* method-WS keeps 0900/0902; method-WS EXTERNAL/GLOBAL keeps 0899.
 
 **Golden & test plan (one golden per branch; all GreenfieldOnly — legacy can't parse OO).** Positive corpus goldens

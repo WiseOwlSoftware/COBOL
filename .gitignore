@@ -61,3 +61,25 @@ tests/conformance/**/*.g.cs
 tests/conformance/**/*.runtimeconfig.json
 tests/conformance/**/*.pdb
 .aider*
+*.prt
+
+# ── EXTERNAL DIFFERENTIAL CORPUS (plan §11 A4 / P14 Step 13) ────────────────────────────────────────────
+# ⚖ LICENSING (load-bearing — do NOT relax): GnuCOBOL and its testsuite are GPL-3.0; this repo is BSL 1.1.
+# Their test TEXT is NEVER committed here. It is fetched on demand by scripts/fetch-gnucobol-tests.ps1 into
+# this ignored tree. What we DO commit is ours alone: the retrieval script, the .at extractor, the adapter
+# test project, and tests/external/gnucobol-expectations.json (independently-authored FACTS about cases —
+# per-case classification + our §-cited rationale — never their source or their expected text).
+tests/external/gnucobol/
+tests/external/*.tar.*
+tests/external/*.7z
+tests/external/*.zip
+# WHERE THE LINE SITS (owner decision 2026-07-19): the substantial expressive content — their COBOL test
+# SOURCE and their EXPECTED OUTPUT text — is never committed. Short factual GROUP TITLES and KEYWORDS are
+# citable identification (the same nominative use an article describing the suite would make), so the
+# differential report and the expectations ledger MAY carry them. Case IDs ("syn_move:38") are coordinates
+# we compute. Net effect: our reports are committable; their corpus is not.
+scripts/__pycache__/
+# Regenerable output of scripts/gnucobol_differential.py (re-run to recreate). NOT a licensing
+# exclusion — per the owner's 2026-07-19 ruling its case titles/keywords are citable; it is simply
+# generated. The COMMITTED artifact is tests/external/gnucobol-expectations.json (our classifications).
+tests/external/gnucobol-differential-report.json

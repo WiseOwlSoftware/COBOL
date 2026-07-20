@@ -41,6 +41,15 @@ internal static class RuntimeApi
         _ => nameof(CobolBool.And),   // '&' and the (unreachable) default — the pre-4b table's shape
     };
 
+    /// <summary>A boolean shift/rotate (ISO §8.8.2 rule 8, 2023) — <c>CobolBool.Shift{Left|Right}[Circular](v, k)</c>.</summary>
+    public static string BoolShift(CobolNet.Binding.Bound.BoolShiftKind kind, string operand, string count) => kind switch
+    {
+        CobolNet.Binding.Bound.BoolShiftKind.Left => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftLeft)}({operand}, {count})",
+        CobolNet.Binding.Bound.BoolShiftKind.Right => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftRight)}({operand}, {count})",
+        CobolNet.Binding.Bound.BoolShiftKind.LeftCircular => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftLeftCircular)}({operand}, {count})",
+        _ => $"{nameof(CobolBool)}.{nameof(CobolBool.ShiftRightCircular)}({operand}, {count})",
+    };
+
     // ── Numeric (CobolNum) ──
 
     /// <summary>Decode a zoned/separate-sign DISPLAY image per the receiver's profile — <c>CobolNum.ParseDisplay</c>.</summary>
@@ -72,6 +81,21 @@ internal static class RuntimeApi
     /// for the implementor-defined maximum (no explicit LIMIT phrase).</summary>
     public static string DynStore(string value, string limit) =>
         $"{nameof(CobolDynString)}.{nameof(CobolDynString.Store)}({value}, {limit})";
+
+    /// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16) — set the current length of a dynamic-length
+    /// item, space-filling grown positions (GR39) — <c>CobolDynString.SetSize(current, newLen, limit)</c>.</summary>
+    public static string DynSetSize(string current, string newLen, string limit) =>
+        $"{nameof(CobolDynString)}.{nameof(CobolDynString.SetSize)}({current}, {newLen}, {limit})";
+
+    /// <summary>CONTINUE AFTER n SECONDS (ISO §14.9.9) — the timed pause; a negative interval sets the nonfatal
+    /// EC-CONTINUE-LESS-THAN-ZERO when checking is enabled — <c>CobolTiming.ContinueAfter(seconds, check)</c>.</summary>
+    public static string ContinueAfter(string seconds, string checkLessThanZero) =>
+        $"{nameof(CobolTiming)}.{nameof(CobolTiming.ContinueAfter)}({seconds}, {checkLessThanZero})";
+
+    /// <summary>Set the run-unit termination status passed to the OS as the process exit code (ISO §14.9.42.4 GR5 /
+    /// §14.9.18.4 GR10) — <c>RunUnit.SetExitStatus(status)</c>.</summary>
+    public static string SetExitStatus(string status) =>
+        $"{nameof(RunUnit)}.{nameof(RunUnit.SetExitStatus)}({status})";
 
     // ── Editing (CobolEdit) ──
 
@@ -230,15 +254,19 @@ internal static class RuntimeApi
 
     // ── More strings / tables ──
 
-    /// <summary>A reference-modification slice — <c>CobolString.RefMod</c> (1-based start, length).</summary>
-    public static string StrRefMod(string s, string start, string len) =>
-        $"{nameof(CobolString)}.{nameof(CobolString.RefMod)}({s}, {start}, {len})";
+    /// <summary>A reference-modification slice — <c>CobolString.RefMod</c> (1-based start, length).
+    /// <paramref name="allowZeroLength"/> (the REF-MOD-ZERO-LENGTH directive, §7.3.23) emits the named argument only
+    /// when true, so every existing site stays byte-identical.</summary>
+    public static string StrRefMod(string s, string start, string len, bool allowZeroLength = false) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.RefMod)}({s}, {start}, {len}{(allowZeroLength ? ", allowZeroLength: true" : "")})";
 
     /// <summary>Splice <paramref name="rhs"/> into <paramref name="s"/> at a 1-based start/length, preserving the
     /// rest of the width — <c>CobolString.SpliceInto</c>. <paramref name="pad"/> is the optional fill-char argument
     /// (a C# <c>char</c> literal, e.g. boolean-zero <c>'0'</c>); null emits the default space fill.</summary>
-    public static string StrSpliceInto(string s, string start, string len, string rhs, string? pad = null) =>
-        $"{nameof(CobolString)}.{nameof(CobolString.SpliceInto)}({s}, {start}, {len}, {rhs}{(pad is null ? "" : $", pad: {pad}")})";
+    public static string StrSpliceInto(string s, string start, string len, string rhs, string? pad = null,
+        bool allowZeroLength = false) =>
+        $"{nameof(CobolString)}.{nameof(CobolString.SpliceInto)}({s}, {start}, {len}, {rhs}"
+        + $"{(pad is null ? "" : $", pad: {pad}")}{(allowZeroLength ? ", allowZeroLength: true" : "")})";
 
     /// <summary>The three-way alphanumeric comparison — <c>CobolString.Compare</c>. <paramref name="weightsArg"/>
     /// is the trailing collated-weights argument (", __COLLATE" / an inline table), possibly empty.</summary>
@@ -411,6 +439,10 @@ internal static class RuntimeApi
     /// <summary>WRITE … ADVANCING — <c>CobolFile.WriteAdvancing</c>.</summary>
     public static string FileWriteAdvancing(string name, string image, string lines, string before) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.WriteAdvancing)}({name}, {image}, {lines}, {before})";
+
+    /// <summary>WRITE … BEFORE ADVANCING n AFTER ADVANCING m (ISO §14.9.51, 2023) — <c>CobolFile.WriteBeforeAndAfter</c>.</summary>
+    public static string FileWriteBeforeAndAfter(string name, string image, string beforeLines, string afterLines) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteBeforeAndAfter)}({name}, {image}, {beforeLines}, {afterLines})";
 
     /// <summary>The LINAGE end-of-page probe (§13.18.34) — <c>CobolFile.EndOfPage</c>.</summary>
     public static string FileEndOfPage(string name) =>

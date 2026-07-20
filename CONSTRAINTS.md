@@ -125,7 +125,7 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 ### Phase 9: Final Consolidation and Cleanup
 - Sweep for remaining anti-patterns
 - Normalize naming, documentation, and structure
-- Ensure the docs (DEVLOG.md, resume-prompt.md, the design corpus) reflect a stable, long-term architecture
+- Ensure the docs (DEVLOG.md, the plan's §0 banner, the design corpus) reflect a stable, long-term architecture
 
 ---
 
@@ -133,7 +133,7 @@ not exhaustive — you must also identify and fix any other anti-patterns you fi
 
 ### Session-Start Ritual
 At the start of every session:
-1. Load and summarize the current state from resume-prompt.md + recent DEVLOG.md entries
+1. Load and summarize the current state from docs/COBOLNET_REARCHITECTURE_PLAN.md §0 + recent DEVLOG.md entries
 2. Identify: current phase, last session's focus, outstanding TODOs, known regressions
 3. Produce a brief summary: current phase/status, key decisions, top 3-5 TODOs
 4. Confirm scope with user (phase, files/modules, constraints)

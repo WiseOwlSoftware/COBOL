@@ -17,10 +17,12 @@ public sealed class DecimalPointDifferentialTests
 
     private static void AssertSameAsLegacy(string source) => DifferentialGolden.Assert(source);
 
-    /// <summary>Spec-pinned (no oracle): asserted against the ISO-derived expected output directly.</summary>
-    private static void AssertSpecPinned(string source, string expected)
+    /// <summary>Spec-pinned (no oracle): asserted against the ISO-derived expected output directly. The optional
+    /// <paramref name="dialect"/> targets a specific edition (a numeric literal VALUE on a numeric-edited item is a
+    /// COBOL-2023 feature, ISO §13.18.63 SR6 / Annex E.3.3 item 43 — such tests pin at 2023).</summary>
+    private static void AssertSpecPinned(string source, string expected, int dialect = 85)
     {
-        var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
+        var (cok, cout, cdetail) = new CobolNetCompiler(dialect).CompileAndRun(source);
         Assert.True(cok, $"COBOL.NET failed: {cdetail}");
         Assert.Equal(expected, cout);
     }
@@ -179,7 +181,7 @@ public sealed class DecimalPointDifferentialTests
             MAIN-P.
                 DISPLAY "E=" E "=".
                 STOP RUN.
-            """, "E=01.50=");
+            """, "E=01.50=", dialect: 2023);   // numeric literal VALUE on a numeric-edited item is 2023 (Annex E.3.3 item 43)
 
     /// <summary>§12.3.7 GR14a (negative): a tight-comma decimal literal WITHOUT the clause is rejected with the
     /// specific COBOLNET0895 diagnostic — §8.3.3.3.2 admits only the decimal point. (The legacy accepts it

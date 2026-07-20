@@ -344,7 +344,7 @@ pictureClause
 // USAGE Clause. The optional binarySign applies to the COBOL-2002 BINARY-CHAR/SHORT/LONG/DOUBLE usages
 // (ISO §13.18.60); it is grammatically tolerated after any usageKeyword and ignored for non-binary ones.
 usageClause
-    : USAGE IS? usageKeyword binarySign?   // full form: USAGE IS DISPLAY  /  USAGE IS BINARY-CHAR SIGNED
+    : USAGE IS? usageKeyword binarySign? noSignPhrase?   // full form: USAGE IS DISPLAY / … / PACKED-DECIMAL WITH NO SIGN
     | DISPLAY                        // bare keyword forms (no USAGE prefix)
     | COMPUTATIONAL                  // per ISO §13.16 — USAGE keyword is optional
     | COMPUTATIONAL_1
@@ -365,8 +365,15 @@ usageClause
     | FLOAT_DECIMAL_16 | FLOAT_DECIMAL_34                       // §13.18.60.4 GR17-18 IEEE decimal64/128 (2014)
     | (BINARY_CHAR | BINARY_SHORT | BINARY_LONG | BINARY_DOUBLE) binarySign?   // bare BINARY-xxx [SIGNED|UNSIGNED]
     | BINARY
-    | PACKED_DECIMAL
+    | PACKED_DECIMAL noSignPhrase?   // bare PACKED-DECIMAL [WITH NO SIGN] (§13.18.60.4 GR11, 2023)
     | INDEX
+    ;
+
+// USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.2 / GR11 — a COBOL-2023 addition): no trailing sign nibble.
+// Grammatically tolerated after any usageKeyword; the binder rejects it on a non-PACKED-DECIMAL usage (COBOLNET1565)
+// and rejects an 'S' picture with NO SIGN (SR31, COBOLNET1566). WITH is the conventional optional noise word.
+noSignPhrase
+    : WITH? NO SIGN
     ;
 
 usageKeyword

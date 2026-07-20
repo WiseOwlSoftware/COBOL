@@ -13,10 +13,14 @@
        01 C PIC 9(3) VALUE 5.
        01 ARR VALUE "40537".
            02 IND OCCURS 5 TIMES PIC 9.
-       01 WS-ED PIC Z9 VALUE 34.
+      *> WS-ED is numeric-edited so CHAR(WS-ED) exercises numeric-edited de-editing;
+      *> it is initialized by MOVE (not a numeric-literal VALUE, which is a COBOL-2023
+      *> feature per ISO §13.18.63 SR6 / Annex E.3.3 item 43 — invalid at --std 2014).
+       01 WS-ED PIC Z9.
        01 R PIC 9(5).
        PROCEDURE DIVISION.
        MAIN-PARA.
+           MOVE 34 TO WS-ED.
            COMPUTE R = FUNCTION MAX(A / B, C).
            DISPLAY "DIV=" R.
            COMPUTE R = FUNCTION MAX(A * B, (C + 1) / 2, 3 + 4).

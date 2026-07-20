@@ -62,6 +62,15 @@ public static class EcFunctions
     /// loud compiler-side, like the base function's (VCR rows 68/69).</summary>
     public static string FileN() => CobolIntrinsics.NationalOf(File());
 
+    /// <summary>FUNCTION EXCEPTION-FILE(file-connector-name) (§15.28.4 r2, COBOL-2023): the NAMED connector's I-O
+    /// status + SELECT-spelled name (r2b), or two alphanumeric spaces when it was never opened/attempted/accessed
+    /// (r2a). Unlike the no-argument form this reads the connector directly, not the last-exception register.</summary>
+    public static string File(string connectorKey) => IO.CobolFile.ExceptionFile(connectorKey);
+
+    /// <summary>FUNCTION EXCEPTION-FILE-N(file-connector-name) (§15.29.4 r2) — the national twin: the SAME
+    /// <see cref="File(string)"/> rendering through the ONE alphanumeric→national repertoire translation.</summary>
+    public static string FileN(string connectorKey) => CobolIntrinsics.NationalOf(File(connectorKey));
+
     /// <summary>FUNCTION EXCEPTION-LOCATION-N (§15.31.3) — the national twin of <see cref="Location"/>: one
     /// national space when no location information was saved (r1 — the same documented §15.30.3-r1 choice) or
     /// when no exception was raised (r2a); else the saved three-part location string "converted at runtime to

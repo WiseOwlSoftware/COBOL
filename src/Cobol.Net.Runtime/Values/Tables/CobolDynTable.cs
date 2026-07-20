@@ -57,20 +57,29 @@ public sealed class CobolDynTable<T>
     }
 
     /// <summary>A RECEIVING element reference (§8.5.1.9.3): an occurrence &gt; the current capacity GROWS the table to
-    /// it, seeding any skipped intermediate occurrences. An occurrence &lt; 1 is benign scratch.</summary>
+    /// it, seeding any skipped intermediate occurrences. An occurrence &lt; 1 is benign scratch. When the growth
+    /// FIRST crosses the expected capacity (TO integer-5) it sets the nonfatal EC-BOUND-OVERFLOW (§8.5.1.9.6 GR1)
+    /// under CHECKING ON — GR1's "already exceeded before an implicit change ⇒ no exception" is the
+    /// <c>!wasExceeded</c> guard (only the first crossing raises); the growth proceeds regardless.</summary>
     public ref T RefReceiving(long occ)
     {
         if (occ < 1) { _scratch = _seed(); return ref _scratch; }
-        if (occ > _count) GrowTo((int)occ);
+        if (occ > _count)
+        {
+            if (_expected is { } exp && occ > exp && _count <= exp)   // first implicit crossing of the expected capacity
+                ExceptionState.BoundOverflowError(
+                    $"OCCURS DYNAMIC implicit growth to {occ} exceeds the expected capacity {exp} (ISO §8.5.1.9.6 GR1)");
+            GrowTo((int)occ);
+        }
         return ref _store[(int)(occ - 1)];
     }
 
     /// <summary>Raise the current capacity to <paramref name="newCount"/>, seeding new occurrences [old..new)
     /// (§8.5.1.9.5). A request past <see cref="MaxOccurrences"/> raises EC-BOUND-TABLE-LIMIT (fatal, capacity
-    /// unchanged). NOTE: the nonfatal capacity-overflow exceptions are NOT yet raised — EC-BOUND-OVERFLOW on implicit
-    /// growth past the expected capacity (§8.5.1.9.6 item 1) and EC-BOUND-SET on an explicit SET past it (§14.9.39
-    /// GR30) are checking-gated and, being nonfatal, produce identical observable results with checking OFF (the
-    /// default); <see cref="_expected"/> is captured for that future wiring (data-model D9 flagged follow-on).</summary>
+    /// unchanged). This is the pure grow primitive: EC-BOUND-OVERFLOW on implicit growth past the expected capacity
+    /// (§8.5.1.9.6 GR1) is raised by <see cref="RefReceiving"/> BEFORE calling here (only implicit growth qualifies);
+    /// EC-BOUND-SET on an explicit SET past the expected capacity (§14.9.39 GR30) stays a nonfatal staged follow-on —
+    /// being nonfatal, it produces identical observable results with checking OFF (the default).</summary>
     private void GrowTo(int newCount)
     {
         if (newCount <= _count) return;

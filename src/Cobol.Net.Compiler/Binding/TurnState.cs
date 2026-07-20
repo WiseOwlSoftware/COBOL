@@ -63,6 +63,13 @@ public sealed class TurnState
     /// with no enabling TURN, no F3, no RAISE/RESUME emits byte-identical code to a pre-EC build).</summary>
     public bool AnyEnabled => _events.Any(e => e.On);
 
+    /// <summary>True when any enabling event ANYWHERE in the group covers level-3 <paramref name="level3"/> —
+    /// the group-level gate for machinery that must exist wherever the condition COULD pair (the EC-EXTERNAL
+    /// descriptor registrations: an element whose own mask is zero must still register its descriptions when a
+    /// LATER element in the group can check against them, §14.8.4 — TURN events are line-scoped across the
+    /// whole group text).</summary>
+    public bool AnyEnabledFor(string level3) => _events.Any(e => e.On && NameMatches(e.Ec, level3));
+
     /// <summary>Is checking for level-3 name <paramref name="level3"/> (for <paramref name="file"/>, when the
     /// name is EC-I-O-scoped) enabled at the statement starting on <paramref name="statementLine"/>?</summary>
     public bool Enabled(string level3, string? file, int statementLine) =>

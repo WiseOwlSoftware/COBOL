@@ -24,6 +24,8 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     {
         if (set.setLastExceptionStatement() is not null) return host.Ec.BindSetLastException();   // F13 (ISO §14.9.39; 2002+)
         if (set.setEntryStatement() is { } se) return BindSetEntry(se);   // F9 + §8.4.3.13 ENTRY sender (P10 Step 7)
+        if (set.setSizeStatement() is { } ss)
+            return BindSetSize(ss.dataReference(), ss.arithmeticExpression());   // F16 explicit SIZE OF (2023)
         if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
@@ -195,6 +197,10 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // so it would otherwise fall through to the Format-1 store and throw at CapacityRegisterPlace.Write.
         if (DynTryBindSetCapacity(tv.dataReference(), tv.arithmeticExpression(), SetCapacityKind.To) is { } dcap)
             return dcap;
+        // SET Format 16 SIZE-OF-absent bare form (ISO §14.9.39; SIZE OF is optional): `SET dyn TO n` on a
+        // dynamic-length elementary item reroutes to the length-set. A dynamic-length item is alphanumeric/national,
+        // so the Format-1 value path cannot carry it — the peek disambiguates on the resolved item type.
+        if (DynTrySetSize(tv.dataReference(), tv.arithmeticExpression()) is { } dsz) return dsz;
         // The Format-5 SEMANTIC re-route (D-U7): `SET U TO A` parses HERE (alternative order — a
         // dataReference sender is an arithmeticExpression prefix), but an object-reference TARGET selects
         // §14.9.39 Format 5. Detect on the FIRST target; mixed target categories then fail SR8 inside.
@@ -264,6 +270,36 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
 
     private static string SetCapacityKindText(SetCapacityKind kind) =>
         kind switch { SetCapacityKind.To => "TO", SetCapacityKind.UpBy => "UP BY", _ => "DOWN BY" };
+
+    /// <summary>SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of a
+    /// dynamic-length elementary item. data-name-3 shall itself be dynamic-length (SR33 → COBOLNET1568). The 2023
+    /// introduction gate is on the <see cref="BoundSetSize"/> node (VersionConformancePass semantic arm), covering
+    /// both the explicit SIZE OF form and the bare re-routed form.</summary>
+    private BoundStatement BindSetSize(Core.DataReferenceContext dref, Core.ArithmeticExpressionContext amount)
+    {
+        if (host.Expr.ResolveReceiving(dref) is not { } p)
+            return new BoundUnsupported($"SET SIZE OF '{dref.GetText()}'");
+        if (!p.Item.IsDynamicLength)
+        {
+            ctx.Edition.Error("COBOLNET1568",
+                $"SET SIZE OF '{p.Item.CobolName}': data-name-3 shall be a dynamic-length elementary item "
+                + "(ISO §14.9.39 Format 16 SR33)");
+            return new BoundNop();
+        }
+        return new BoundSetSize(p, host.Expr.BindExpr(amount), p.Item.DynLengthLimit);
+    }
+
+    /// <summary>The SIZE-OF-absent bare-form peek (ISO §14.9.39 Format 16): reroute `SET dyn TO n` when the sole,
+    /// bare (unqualified/unsubscripted) target resolves to a dynamic-length elementary item; null otherwise so the
+    /// normal Format-1/5 path continues. Guarding on a bare name BEFORE resolving keeps a speculative resolve off
+    /// the OO property hook (the DynTryBindSetCapacity discipline — a dynamic-length item is never a property).</summary>
+    private BoundStatement? DynTrySetSize(
+        IReadOnlyList<Core.DataReferenceContext> targets, Core.ArithmeticExpressionContext amount)
+    {
+        if (targets.Count != 1 || targets[0].dataReferenceSuffix().Length != 0) return null;
+        if (host.Expr.ResolveReceiving(targets[0]) is not { Item.IsDynamicLength: true } p) return null;
+        return new BoundSetSize(p, host.Expr.BindExpr(amount), p.Item.DynLengthLimit);
+    }
 
     /// <summary>A SET receiving operand: an INDEXED BY index-name (its <c>long</c> field) or a resolvable data item
     /// (an index data item or an integer item — the emitter dispatches on its usage).</summary>

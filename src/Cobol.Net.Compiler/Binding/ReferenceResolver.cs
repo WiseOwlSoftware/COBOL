@@ -111,6 +111,14 @@ public sealed class ReferenceResolver(DataBinder data)
         // to loud (AccessPath null / normal resolution fails) — a later refinement.
         if (CapacityRegisterFor(dref) is { } capReg) return capReg;
 
+        // The X3.23-1985 DEBUG-ITEM special register / member (VCR Table 7 row 7.17): an IMPLICITLY-defined read-only
+        // VIEW over the program-instance __dbgItem — not in ByName, so resolved HERE (before ordinary name lookup) to
+        // a DebugRegisterPlace. Registered ONLY when a procedure-subject debugging declarative is active under WITH
+        // DEBUGGING MODE (DebugRegisters empty otherwise → this never fires for a non-debug program). Only the plain
+        // unqualified/unsubscripted form is covered — a reference-modified/qualified DEBUG-* falls through to loud.
+        if (data.DebugRegisters.TryGetValue(name, out var dbg) && dref.dataReferenceSuffix().Length == 0)
+            return new DebugRegisterPlace(dbg.Item, dbg.Member);
+
         var qualifiers = new List<string>();
         Core.SubscriptOrRefModContext? subCtx = null;    // the subscript group (no depth-0 colon)
         Core.SubscriptOrRefModContext? refCtx = null;    // a reference-modification group (start : length)
@@ -220,10 +228,16 @@ public sealed class ReferenceResolver(DataBinder data)
                 if (RenderSegment(lenToks) is not { } l) return null;
                 rmLen = l;
             }
-            return new RefModPlace(inner, rmStart, rmLen);
+            // §7.3.23 / §8.4.3.3.4 item 5c: the ref-mod allows a zero-length result iff REF-MOD-ZERO-LENGTH is ON at
+            // this site's source line (the group's compile-time directive fold; OFF everywhere by default).
+            return new RefModPlace(inner, rmStart, rmLen)
+                { AllowZeroLength = data.RefModZeroLength.IsOnAt(cleanRef.Start.Line) };
         }
         var (rm, _) = InterpretSubscripts(refCtx!);
-        return rm is { Count: > 0 } ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null) : null;
+        return rm is { Count: > 0 }
+            ? new RefModPlace(inner, rm[0], rm.Count > 1 ? rm[1] : null)
+                { AllowZeroLength = data.RefModZeroLength.IsOnAt(refCtx!.Start.Line) }
+            : null;
     }
 
     /// <summary>

@@ -33,8 +33,13 @@ public sealed record LinkageFormal(DataItem Item, int Position, string CarrierFi
 
 /// <summary>The synthesized run-unit backing of one EXTERNAL record (ISO §13.18.22 / §8.6.7): the emitter
 /// renders <c>private ref string {BackingCsName} =&gt; ref ExternalStore.Cell({ExternalName}, {InitImage}).Ref;</c>
-/// and every reference windows it through the Tier-B view machinery.</summary>
-public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, string InitImage);
+/// and every reference windows it through the Tier-B view machinery. <see cref="InitImage"/> is the §13.18.63 GR4a
+/// initial image for a PLAIN external item — spaces/zoned-zeros, since a plain external item's VALUE takes effect
+/// only during INITIALIZE, not at initial state. <see cref="Record"/> carries the record's own DataItem so the
+/// emitter can substitute the VALUE-composed image (<c>GroupImageCodec.ImageInitOf</c>) for a CONSTANT RECORD, which
+/// §11.9.10.4 GR7 DOES initialize at initial state (the one external exception — external WS items are not
+/// initialized at initial state "except for those with the CONSTANT RECORD clause").</summary>
+public sealed record CallExternalBacking(string BackingCsName, string ExternalName, int Width, string InitImage, DataItem Record);
 
 /// <summary>One FUNCTION-ID unit's activation signature (ISO §9.4 user-defined functions; M2-UDF-1): the
 /// registered function name, its PROCEDURE DIVISION RETURNING item (whose description the caller-side result
@@ -94,6 +99,20 @@ public sealed partial class DataBinder
     /// <c>ref</c>-properties over <c>ExternalStore</c>). (READ-ONLY view — P6 Step 5.)</summary>
     public IReadOnlyList<CallExternalBacking> CallExternalBackings => _callExternalBackings;
     private readonly List<CallExternalBacking> _callExternalBackings = [];
+
+    /// <summary>This unit's before-Environment-division EC-EXTERNAL enablement mask (ISO §14.8.4.1 — the
+    /// ACTIVATED-element half of the both-elements rule; <c>ExternalChecks</c> bits). Computed by
+    /// <c>BinderDriver.BindUnitData</c> from the group TurnState folded at the unit's first
+    /// post-Identification division header; emitted as the selfMask of the activation-entry
+    /// <c>ExternalStore.Describe</c> registrations.</summary>
+    public int ExternalCheckMask { get; set; }
+
+    /// <summary>True when any enabling <c>&gt;&gt;TURN</c> event anywhere in the compilation group covers an
+    /// EC-EXTERNAL condition — the group-level gate for emitting the activation-entry
+    /// <c>ExternalStore.Describe</c> registrations at all (an element with a zero
+    /// <see cref="ExternalCheckMask"/> must still REGISTER its descriptions so a later-enabled element can
+    /// check against them, §14.8.4; a group with no EC-EXTERNAL TURN emits nothing — zero-scaffolding).</summary>
+    public bool ExternalDescribe { get; set; }
 
     /// <summary>
     /// Bind the LINKAGE SECTION and the PROCEDURE DIVISION header's USING/RETURNING operands. Runs inside
@@ -368,7 +387,7 @@ public sealed partial class DataBinder
         }
         _callExternalBackings.Add(new CallExternalBacking(
             cls.BackingCsName, externalName ?? item.CobolName!.ToUpperInvariant(), cls.Width,
-            CallInitialImage(item).PadRight(cls.Width)));
+            CallInitialImage(item).PadRight(cls.Width), item));
     }
 
     /// <summary>The ONE cell-backing forcer (increment-2 factoring of the proven EXTERNAL re-basing —

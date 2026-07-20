@@ -72,6 +72,30 @@ public static class DiagnosticCatalog
         "COBOLNET0802", "digit-capacity-over-18-pre-2002", EditionSeverity.Error,
         "A fixed-point item/literal exceeds the 18-digit COBOL-85 limit (19–31 need --std 2002+).", "ISO §8.3.1.2");
 
+    // ── Compiler-directing facility band (emitted by the frontend directive processors). Registered by the
+    //    P13 plan-vs-spec remediation (review finding C1's recurrence guard): every emitted code must be a
+    //    catalog descriptor so the next-free allocation scan and DIAGNOSTICS.md see it — these four were bare
+    //    frontend literals, the same channel that shipped the COBOLNET1573 collision. ─────────────────────────
+    public static readonly DiagnosticDescriptor TurnDirectiveMalformed = new(
+        "COBOLNET0718", "turn-directive-malformed", EditionSeverity.Error,
+        "A >>TURN directive is malformed: the format is '>>TURN {exception-name [file-name]…}… CHECKING "
+        + "{ON [WITH LOCATION] | OFF}' — an unexpected word, a missing CHECKING phrase, or a repeated "
+        + "exception-name/file-name combination is rejected (ISO §7.3.25.2 / §7.3.25.3 SR1, SR3).",
+        "ISO §7.3.25.2 / §7.3.25.3 SR1/SR3");
+    public static readonly DiagnosticDescriptor TurnFileNameNonIo = new(
+        "COBOLNET0719", "turn-file-name-non-io", EditionSeverity.Error,
+        "A >>TURN file-name may follow only an exception-name beginning 'EC-I-O' (ISO §7.3.25.3 SR4).",
+        "ISO §7.3.25.3 SR4");
+    public static readonly DiagnosticDescriptor TurnDirectiveBelow2002 = new(
+        "COBOLNET0875", "turn-directive-below-2002", EditionSeverity.Error,
+        ">>TURN is the COBOL-2002+ exception-condition checking directive — it requires --std 2002 or later "
+        + "(ISO §7.3.25).", "ISO §7.3.25");
+    public static readonly DiagnosticDescriptor PropagateDirective = new(
+        "COBOLNET0883", "propagate-directive", EditionSeverity.Error,
+        "The >>PROPAGATE directive's compile-time diagnostics (ISO §7.3.21): below --std 2002 the directive is "
+        + "rejected (the introduction gate); at 2002+ an operand other than ON or OFF is rejected, never "
+        + "silently accepted (§7.3.21.2).", "ISO §7.3.21 / §7.3.21.2");
+
     // ── COBOLNET1540/1541/1545 — concatenation expressions, one code per rule (§8.8.3) ───────────────
     public static readonly DiagnosticDescriptor ConcatClassMismatch = new(
         "COBOLNET1540", "concat-class-mismatch", EditionSeverity.Error,
@@ -90,7 +114,7 @@ public static class DiagnosticCatalog
     //    §13.18.15; P10 Step 15). 1547 = the §13.10 constant-entry syntax rules; 1548 = the receiving-operand
     //    rejection (a constant substitutes a LITERAL — §13.10.3 SR2/GR1 — and §13.18.15.3 SR2 forbids storing
     //    into a structured constant); 1549 = the CONSTANT RECORD structural rules (§13.18.15.3 SR1 +
-    //    §13.16.3 SR3/SR6/SR13). 1540–1546 taken; 1550/1551/1552 earmarked (PHASE-12); 1560-band (PHASE-13). ──
+    //    §13.16.3 SR3/SR6/SR13). 1540–1546 taken; 1550/1551/1552 are unallocated mid-band holes (the PHASE-12 earmark expired unused); 1560-band (PHASE-13). ──
     public static readonly DiagnosticDescriptor ConstantEntryRule = new(
         "COBOLNET1547", "constant-entry-rule", EditionSeverity.Error,
         "A constant entry violates a §13.10 syntax rule (figurative operand SR6; non-literal / exponentiation / "
@@ -173,7 +197,7 @@ public static class DiagnosticCatalog
     // ── COBOLNET1555/1556/1557 — the SAME AS clause, one code per rule family (§13.18.49 / §13.16.3;
     //    P10 Step 16). 1555 = the SUBJECT-entry rules (what the SAME AS entry itself may look like);
     //    1556 = the REFERENCED-entry rules (what data-name-1 may be); 1557 = the cycle rules.
-    //    1550/1551/1552 stay earmarked (PHASE-12); 1553/1554 taken; 1558 = EXTERNAL type declarations. ──
+    //    1550/1551/1552 are unallocated holes (the PHASE-12 earmark expired unused); 1553/1554 taken; 1558 = EXTERNAL type declarations. ──
     public static readonly DiagnosticDescriptor SameAsEntryRule = new(
         "COBOLNET1555", "same-as-entry-rule", EditionSeverity.Error,
         "A SAME AS entry violates a subject-entry rule: no clause other than CONSTANT RECORD, entry-name, "
@@ -396,10 +420,64 @@ public static class DiagnosticCatalog
         + "is recognized but its static cell/bridge storage is not yet implemented (the cell and the implicit "
         + "data-address pointer are per-instance today, which would re-initialize per activation).",
         "ISO §13.5.4 GR1 / §14.6.2.3.2 #5", RecognizedNotImplemented);
-    public static readonly DiagnosticDescriptor DebugRegisterFacility = new(
-        NotImplemented, "debug-register-facility", EditionSeverity.Error,
-        "The X3.23-1985 debug facility (DEBUG-ITEM registers, debugging-section invocation) is not implemented.",
-        "VCR Table 7 row 7.17", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ValueNumericEditedOversize = new(
+        "COBOLNET1570", "value-numeric-edited-oversize", EditionSeverity.Error,
+        "At COBOL-2023 an alphanumeric edited-image literal in the VALUE clause of a numeric-edited item is checked "
+        + "against the PICTURE size (ISO §13.18.63 SR4/SR5) — a literal longer than the edited width is rejected "
+        + "(before 2023 it was stored truncated). Under --permissive the check is a warning (a removed-capability "
+        + "posture); the national/alphanumeric class mismatch is the separate COBOLNET0898 check.",
+        "ISO §13.18.63 SR4/SR5 / Annex E.2 item 27 (VCR row 34)");
+    public static readonly DiagnosticDescriptor DebugSubFacilityStaged = new(
+        "COBOLNET1571", "debug-sub-facility-staged", EditionSeverity.Error,
+        "The X3.23-1985 USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES trigger leg + the DEBUG-ITEM special "
+        + "register are modeled at --std 85; the data-name (incl. ALL REFERENCES OF), file-name, and cd-name subject "
+        + "kinds and the SORT/MERGE INPUT/OUTPUT-procedure DEBUG-CONTENTS cause are staged — rejected loud rather "
+        + "than compiled with a missing/stale trigger.",
+        "VCR Table 7 row 7.17 (X3.23-1985 debug module)");
+    public static readonly DiagnosticDescriptor MergeInSortMergeProc = new(
+        "COBOLNET1572", "merge-in-sort-merge-proc", EditionSeverity.Error,
+        "At COBOL-2023 a MERGE statement is prohibited in the output procedure of another MERGE, or the input or "
+        + "output procedure of a file-format SORT (the prior standard allowed it with conflicting rules; SORT "
+        + "already disallowed it). A bind-time procedure-range cross-pass rejects it at --std 2023; below 2023 the "
+        + "runtime EC-SORT-MERGE-ACTIVE seam is the checking-off dynamic net.",
+        "ISO §14.9.24 / Annex E.2 item 20 (VCR row 27)");
+    public static readonly DiagnosticDescriptor ExceptionFileArgumentNotFile = new(
+        "COBOLNET1574", "exception-file-argument-not-file", EditionSeverity.Error,
+        "The argument of FUNCTION EXCEPTION-FILE / EXCEPTION-FILE-N shall be the name of a file connector specified "
+        + "in an FD statement (ISO §15.28.3 rule 1 / §15.29.3) — the given name does not resolve to a declared file.",
+        "ISO §15.28.3 rule 1 / §15.29.3 (VCR rows 68/69)");
+    public static readonly DiagnosticDescriptor ExternalFileStatusConsistency = new(
+        "COBOLNET1573", "external-file-status-consistency", EditionSeverity.Error,
+        "At COBOL-2023, for an external file all corresponding file control entries in the run unit shall specify the "
+        + "FILE STATUS clause naming the same corresponding external data item (ISO §12.4.5.3 GR1(i); §14.8.4.2; Annex "
+        + "E.2 item 12) — a corresponding SELECT omitting FILE STATUS, or naming a non-external / different external "
+        + "item, is rejected. Below 2023 the requirement did not exist.",
+        "ISO §12.4.5.3 GR1(i) / §14.8.4.2 / Annex E.2 item 12 (VCR row 18)");
+    public static readonly DiagnosticDescriptor ExternalRelativeKeyConsistency = new(
+        "COBOLNET1575", "external-relative-key-consistency", EditionSeverity.Error,
+        "At COBOL-2023, for an external relative file all corresponding file control entries in the run unit shall "
+        + "specify the RELATIVE KEY clause naming the same corresponding external data item (ISO §12.4.5.3 GR1(h); "
+        + "§14.8.4.2; Annex E.2 item 24) — a corresponding SELECT omitting RELATIVE KEY, or naming a non-external / "
+        + "different external item, is rejected. Below 2023 the requirement did not exist.",
+        "ISO §12.4.5.3 GR1(h) / §14.8.4.2 / Annex E.2 item 24 (VCR row 31)");
+    // 1576 renumbered FROM a bare-literal "COBOLNET1573" in RefModZeroLengthDirectiveProcessor that collided with
+    // ExternalFileStatusConsistency above (the P13 plan-vs-spec review finding C1, DEVLOG 907): the frontend emit
+    // bypassed this catalog, so the Wave E catalog-only next-free scan could not see the claim. The descriptor now
+    // lives HERE and the frontend emits via its Id — allocation stays catalog-visible.
+    public static readonly DiagnosticDescriptor RefModZeroLengthMalformedOperand = new(
+        "COBOLNET1576", "ref-mod-zero-length-malformed-operand", EditionSeverity.Error,
+        "The >>REF-MOD-ZERO-LENGTH directive takes exactly one of the ON or OFF phrases (ISO §7.3.23.2; OFF is the "
+        + "processor default in the absence of the directive) — any other operand is rejected, never silently "
+        + "accepted.",
+        "ISO §7.3.23.2 (VCR row 30)");
+    // 1577 renumbered FROM a bare-literal "COBOLNET1518" in DataBinder that collided with the A.4.9 locale-module
+    // non-support meaning (the P13 review batch-3 finding V11 — the THIRD collision of the class; 1518 stays
+    // solely = locale non-support as CONFORMANCE.md item 25 documents).
+    public static readonly DiagnosticDescriptor MethodRedefinesScope = new(
+        "COBOLNET1577", "method-redefines-scope", EditionSeverity.Error,
+        "A method data item's REDEFINES target shall be a preceding item in the SAME method scope — a method "
+        + "item may not redefine object or program data (ISO §13.18.44.3).",
+        "ISO §13.18.44.3");
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "

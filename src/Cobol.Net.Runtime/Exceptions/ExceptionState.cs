@@ -199,6 +199,59 @@ public sealed class ExceptionEngine
     {
         if (DataConversionChecking) Set("EC-DATA-CONVERSION", fatal: false);
     }
+
+    // ── EC-BOUND-OVERFLOW ambient statement gate (OCCURS DYNAMIC implicit growth past expected capacity) ───────
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-OVERFLOW checking enabled (the
+    /// nonfatal twin of <see cref="DataConversionChecking"/>). A dynamic-capacity table's implicit growth past
+    /// its expected (TO) capacity consults it.</summary>
+    public bool BoundOverflowChecking { get; set; }
+
+    /// <summary>Record EC-BOUND-OVERFLOW when a dynamic-capacity table's implicit growth (a receiving subscript)
+    /// first exceeds its expected capacity (§8.5.1.9.6 GR1 — the FIRST crossing only; an already-exceeded
+    /// implicit grow raises nothing). Nonfatal (Table 13), so it never throws; it sets the last exception status
+    /// only while checking is enabled (§14.6.13.1.1). The growth proceeds regardless.</summary>
+    public void BoundOverflowError(string detail)
+    {
+        if (BoundOverflowChecking) Set("EC-BOUND-OVERFLOW", fatal: false);
+    }
+
+    // ── EC-BOUND-REF-MOD ambient statement gate (reference modification out of bounds / zero-length) ───────────
+
+    /// <summary>True while the currently-executing statement has EC-BOUND-REF-MOD checking enabled (the fatal
+    /// twin of <see cref="ArgumentFunctionChecking"/>). Reference-modification evaluation sites consult it.</summary>
+    public bool BoundRefModChecking { get; set; }
+
+    /// <summary>Raise EC-BOUND-REF-MOD for a reference-modification whose leftmost-position or length is out of
+    /// range — a zero-length result (unless the REF-MOD-ZERO-LENGTH directive is in effect), a leftmost &lt; 1, or a
+    /// position outside the data item (ISO §8.4.2.3 c / the GR at spec :7089; Table 13 Fatal). When checking is
+    /// enabled it throws <see cref="CobolFatalException"/> (caught by the statement guard for USE F3 dispatch, else
+    /// terminating the run unit per §14.6.13.1.3 #5/#7); when checking is OFF it returns and the caller's lenient
+    /// clamp/space-pad default stands (byte-identical to a pre-slice build).</summary>
+    public void RefModError(string detail)
+    {
+        if (BoundRefModChecking)
+        {
+            Set("EC-BOUND-REF-MOD", fatal: true);
+            throw new CobolFatalException("EC-BOUND-REF-MOD", detail);
+        }
+    }
+
+    // ── EC-EXTERNAL enablement masks (§14.8.4.1 — the both-elements pairing) ──────────────────────────────────
+
+    /// <summary>The pending CALL-site EC-EXTERNAL enablement mask (<see cref="ExternalChecks"/> bits): set by an
+    /// emitted CALL statement whose site has any EC-EXTERNAL-* checking enabled (§7.3.25 TURN state at the
+    /// statement — the ACTIVATING half of §14.8.4.1), consumed and zeroed by the activation boundary
+    /// (<c>ProgramTable.CallProgram</c>), which moves it into <see cref="ActivatorExternalMask"/> for the
+    /// activated element's registrations. Zero-scaffolding: an EC-free call site emits nothing and the boundary
+    /// re-zeroes after every activation, so the mask never leaks across statements.</summary>
+    public int ExternalCheckMask { get; set; }
+
+    /// <summary>The current activation's ACTIVATING-element EC-EXTERNAL mask (§14.8.4.1's other half): set by the
+    /// activation boundary from the captured <see cref="ExternalCheckMask"/>, saved/restored around nested
+    /// activations. The activated element's <c>ExternalStore.Describe</c> gate is this mask ANDed with its own
+    /// before-Environment-division mask. Zero at the main-program activation (no activating element).</summary>
+    public int ActivatorExternalMask { get; set; }
 }
 
 /// <summary>
@@ -286,4 +339,38 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.DataConversionError"/>
     public static void DataConversionError(string detail) => E.DataConversionError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundOverflowChecking"/>
+    public static bool BoundOverflowChecking
+    {
+        get => E.BoundOverflowChecking;
+        set => E.BoundOverflowChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.BoundOverflowError"/>
+    public static void BoundOverflowError(string detail) => E.BoundOverflowError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.BoundRefModChecking"/>
+    public static bool BoundRefModChecking
+    {
+        get => E.BoundRefModChecking;
+        set => E.BoundRefModChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.RefModError"/>
+    public static void RefModError(string detail) => E.RefModError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.ExternalCheckMask"/>
+    public static int ExternalCheckMask
+    {
+        get => E.ExternalCheckMask;
+        set => E.ExternalCheckMask = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.ActivatorExternalMask"/>
+    public static int ActivatorExternalMask
+    {
+        get => E.ActivatorExternalMask;
+        set => E.ActivatorExternalMask = value;
+    }
 }

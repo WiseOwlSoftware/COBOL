@@ -1,0 +1,1295 @@
+{
+ "batches": [
+  {
+   "batch": "1",
+   "diagramsProcessed": 8,
+   "diagrams": [
+    {
+     "startLine": 5949,
+     "page": 137,
+     "what": "Alphanumeric literal Format 1 (alphanumeric) general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "defects": [],
+     "correctedBlock": "⎧  \" [character-1]  … \"  ⎫\n⎩  ' [character-1]  … '  ⎭",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "notesBlock": ""
+    },
+    {
+     "startLine": 5956,
+     "page": 137,
+     "what": "Alphanumeric literal Format 2 (hexadecimal-alphanumeric) general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "defects": [],
+     "correctedBlock": "⎧  X\"[hex-character-sequence-1]  …\"  ⎫\n⎩  X'[hex-character-sequence-1]  …'  ⎭",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "notesBlock": ""
+    },
+    {
+     "startLine": 20247,
+     "page": 471,
+     "what": "PICTURE clause Format 1 (basic) general format",
+     "verdict": "DEFECT",
+     "severity": "COSMETIC",
+     "defects": [
+      "Choice indicators around NEGATIVE/POSITIVE are PRESENT in the markdown and PRESENT in print — semantics intact (this is the one diagram in the corpus that kept its bars).",
+      "Cosmetic: the inner FOR brace uses ⎧…⎫ on row 2 and ⎨…⎬ on row 3, i.e. a top-half glyph paired with a mid-half glyph instead of a proper two-row ⎧⎫ / ⎩⎭ pair; normalized."
+     ],
+     "correctedBlock": "⎧ PICTURE ⎫                        ⎡                     ⎧ IS literal-1                     ⎫ ⎤\n⎨         ⎬ IS character-string-1  ⎢ EDITING character-1 ⎨     ⎧| NEGATIVE IS literal-2 |⎫  ⎬ ⎥ …\n⎩ PIC     ⎭                        ⎣                     ⎩ FOR ⎩| POSITIVE IS literal-3 |⎭  ⎭ ⎦",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": true,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "notesBlock": "> **Figure notes (PICTURE clause Format 1 (basic) syntax diagram).** `PICTURE`, `PIC`, `EDITING`, `NEGATIVE`, and\n> `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation).\n> ⚠ **The `FOR` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside its braces — verified\n> against the printed page at 900 dpi). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the\n> enclosed alternatives shall be specified, each at most once, **in any order** — so a single `FOR` phrase may carry\n> `NEGATIVE` alone, `POSITIVE` alone, or **both**. This is NOT the exclusive either/or that plain stacked braces\n> would denote. The ellipsis applies to the outer bracketed `EDITING` group, which may therefore be repeated."
+    },
+    {
+     "startLine": 26995,
+     "page": 644,
+     "what": "DIVIDE statement Format 1 (into) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "defects": [
+      "Choice-indicator bars LOST from the ON SIZE ERROR / NOT ON SIZE ERROR bracket group (printed shows ⎡| … |⎤, verified at 1000 dpi). Plain brackets read as 'zero or one', which wrongly forbids writing both branches on one DIVIDE.",
+      "Layout: the SIZE ERROR bracket was floated to the right of the DIVIDE line; in print it is a separate group on its own lines below, followed by [ END-DIVIDE ].",
+      "The bracket group was drawn with a spurious empty fourth row (⎣ … ⎦ on a blank line) instead of a clean two-row bracket."
+     ],
+     "correctedBlock": "           ⎧ identifier-1 ⎫\nDIVIDE     ⎨              ⎬ INTO { identifier-2 [ rounded-phrase ] } ...\n           ⎩ literal-1    ⎭\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-DIVIDE ]",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "notesBlock": "> **Figure notes (DIVIDE Format 1 (into) syntax diagram).** `DIVIDE`, `INTO`, `ON`, `SIZE`, `ERROR`, `NOT`, and\n> `END-DIVIDE` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** — the `|` bars just inside the brackets. Per\n> 5.2.6.4, bars enclosed by BRACKETS mean **zero or more** of the alternatives may be specified, each at most once,\n> **in any order** — so a single DIVIDE may carry `ON SIZE ERROR`, `NOT ON SIZE ERROR`, **both**, or neither.\n> Plain brackets without bars would wrongly read as 'zero or one'."
+    },
+    {
+     "startLine": 27005,
+     "page": 644,
+     "what": "DIVIDE statement Format 2 (into-giving) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "defects": [
+      "Choice-indicator bars LOST from the ON SIZE ERROR / NOT ON SIZE ERROR bracket group (printed shows ⎡| … |⎤, verified at 1000 dpi).",
+      "The bracket group was drawn with a spurious empty third row (⎣ … ⎦ on a blank line) instead of a clean two-row bracket."
+     ],
+     "correctedBlock": "           ⎧ identifier-1 ⎫      ⎧ identifier-2 ⎫\nDIVIDE     ⎨              ⎬ INTO ⎨              ⎬\n           ⎩ literal-1    ⎭      ⎩ literal-2    ⎭\n\n    GIVING { identifier-3 [ rounded-phrase ] } ...\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-DIVIDE ]",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "notesBlock": "> **Figure notes (DIVIDE Format 2 (into-giving) syntax diagram).** `DIVIDE`, `INTO`, `GIVING`, `ON`, `SIZE`,\n> `ERROR`, `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,\n> bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — both\n> `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement."
+    },
+    {
+     "startLine": 27020,
+     "page": 644,
+     "what": "DIVIDE statement Format 3 (by-giving) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "defects": [
+      "Choice-indicator bars LOST from the ON SIZE ERROR / NOT ON SIZE ERROR bracket group (printed shows ⎡| … |⎤, verified at 1000 dpi).",
+      "The bracket group was drawn with a spurious empty third row (⎣ … ⎦ on a blank line) instead of a clean two-row bracket."
+     ],
+     "correctedBlock": "           ⎧ identifier-2 ⎫    ⎧ identifier-1 ⎫\nDIVIDE     ⎨              ⎬ BY ⎨              ⎬\n           ⎩ literal-2    ⎭    ⎩ literal-1    ⎭\n\n    GIVING { identifier-3 [ rounded-phrase ] } ...\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-DIVIDE ]",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "notesBlock": "> **Figure notes (DIVIDE Format 3 (by-giving) syntax diagram).** `DIVIDE`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`,\n> `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,\n> bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — both\n> `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement."
+    },
+    {
+     "startLine": 29071,
+     "page": 703,
+     "what": "MULTIPLY statement Format 1 (by) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "defects": [
+      "Choice-indicator bars LOST from the ON SIZE ERROR / NOT ON SIZE ERROR bracket group (printed shows ⎡| … |⎤, verified at 1000 dpi).",
+      "The bracket group is malformed: opened with ⎡/⎢ and never closed — no ⎣ … ⎦ bottom row.",
+      "[ END-MULTIPLY ] was flush left; in print it is indented under the statement body, outside the bracket group."
+     ],
+     "correctedBlock": "                 ⎧ identifier-1 ⎫\nMULTIPLY         ⎨              ⎬  BY { identifier-2 [ rounded-phrase ] }  ...\n                 ⎩ literal-1    ⎭\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-MULTIPLY ]",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "notesBlock": "> **Figure notes (MULTIPLY Format 1 (by) syntax diagram).** `MULTIPLY`, `BY`, `ON`, `SIZE`, `ERROR`, `NOT`, and\n> `END-MULTIPLY` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,\n> bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — a single\n> MULTIPLY may carry `ON SIZE ERROR`, `NOT ON SIZE ERROR`, **both**, or neither."
+    },
+    {
+     "startLine": 29083,
+     "page": 703,
+     "what": "MULTIPLY statement Format 2 (giving) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "defects": [
+      "Choice-indicator bars LOST from the ON SIZE ERROR / NOT ON SIZE ERROR bracket group (printed shows ⎡| … |⎤, verified at 1000 dpi).",
+      "The bracket group is malformed: opened with ⎡/⎢ and never closed — no ⎣ … ⎦ bottom row.",
+      "GIVING and [ END-MULTIPLY ] were flush left; in print they are indented under the statement body."
+     ],
+     "correctedBlock": "                 ⎧ identifier-1 ⎫      ⎧ identifier-2 ⎫\nMULTIPLY         ⎨              ⎬  BY  ⎨              ⎬\n                 ⎩ literal-1    ⎭      ⎩ literal-2    ⎭\n\n    GIVING { identifier-3 [ rounded-phrase ] } ...\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-MULTIPLY ]",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "notesBlock": "> **Figure notes (MULTIPLY Format 2 (giving) syntax diagram).** `MULTIPLY`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`,\n> `NOT`, and `END-MULTIPLY` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,\n> bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — both\n> `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement."
+    }
+   ]
+  },
+  {
+   "batch": "2",
+   "diagramsProcessed": 7,
+   "diagrams": [
+    {
+     "startLine": 6171,
+     "page": 141,
+     "what": "National literal Format 1 general format (braces, two alternatives)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "⎧  N\"[character-1] … \"  ⎫\n⎩  N'[character-1] … '  ⎭"
+    },
+    {
+     "startLine": 22710,
+     "page": 534,
+     "what": "USAGE encoding-phrase general format (braces, two alternatives)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "⎧ BINARY-ENCODING  ⎫\n⎩ DECIMAL-ENCODING ⎭",
+     "notesBlock": "> **Figure notes (13.18.60.2, encoding-phrase):** braces — exactly one alternative shall be selected. No choice indicators. BINARY-ENCODING and DECIMAL-ENCODING are wholly underlined in the printed figure (required words)."
+    },
+    {
+     "startLine": 22717,
+     "page": 534,
+     "what": "USAGE endianness-phrase general format (braces, two alternatives)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "⎧ HIGH-ORDER-LEFT  ⎫\n⎩ HIGH-ORDER-RIGHT ⎭",
+     "notesBlock": "> **Figure notes (13.18.60.2, endianness-phrase):** braces — exactly one alternative shall be selected. No choice indicators. HIGH-ORDER-LEFT and HIGH-ORDER-RIGHT are wholly underlined in the printed figure (required words)."
+    },
+    {
+     "startLine": 27171,
+     "page": 648,
+     "what": "EVALUATE selection-subject general format (braces, seven stacked alternatives)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "⎧ identifier-1              ⎫\n⎪ literal-1                 ⎪\n⎪ arithmetic-expression-1   ⎪\n⎨ boolean-expression-1      ⎬\n⎪ condition-1               ⎪\n⎪ TRUE                      ⎪\n⎩ FALSE                     ⎭",
+     "notesBlock": "> **Figure notes (14.9.13.2, selection-subject):** a single pair of braces spanning seven stacked alternatives — exactly one shall be selected. Verified at 900 dpi: NO choice-indicator bars are present. TRUE and FALSE are underlined in the printed figure (required words)."
+    },
+    {
+     "startLine": 27183,
+     "page": 648,
+     "what": "EVALUATE selection-object general format (braces, ten stacked alternatives)",
+     "verdict": "DEFECT",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "Column misalignment: the `arithmetic-expression-2` row has no space before its closing `⎪`, so the right-hand brace column is ragged. No semantic loss."
+     ],
+     "correctedBlock": "⎧ [ NOT ] identifier-2            ⎫\n⎪ [ NOT ] literal-2               ⎪\n⎪ [ NOT ] arithmetic-expression-2 ⎪\n⎪ [ NOT ] boolean-expression-2    ⎪\n⎨ [ NOT ] range-expression        ⎬\n⎪ condition-2                     ⎪\n⎪ partial-expression-1            ⎪\n⎪ TRUE                            ⎪\n⎪ FALSE                           ⎪\n⎩ ANY                             ⎭",
+     "notesBlock": "> **Figure notes (14.9.13.2, selection-object):** a single pair of braces spanning ten stacked alternatives — exactly one shall be selected. Verified at 900 dpi: NO choice-indicator bars are present. The bracketed `NOT` applies only to the first five alternatives, exactly as stacked. NOT, TRUE, FALSE and ANY are underlined in the printed figure (required words)."
+    },
+    {
+     "startLine": 29148,
+     "page": 705,
+     "what": "OPEN statement general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "The OUTER pair of braces is missing entirely. The printed figure wraps the whole open-mode group — { open-mode-brace [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } … } — in a second, taller brace pair carrying its own trailing ellipsis. The markdown kept the stray trailing `...` but dropped the braces that give it a referent, so the repetition of the entire (mode + phrases + file list) group is unreadable — it wrongly reads as though a single OPEN may name only one open mode.",
+      "Inner file-name group `{ file-name-1 [ WITH NO REWIND ] } ...` is present but its ellipsis and the outer ellipsis are indistinguishable without the outer delimiter pair."
+     ],
+     "correctedBlock": "        ⎧ ⎧ INPUT  ⎫                                                                          ⎫\n        ⎪ ⎪ OUTPUT ⎪                                                                          ⎪\nOPEN    ⎨ ⎨ I-O    ⎬ [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } … ⎬ …\n        ⎪ ⎩ EXTEND ⎭                                                                          ⎪\n        ⎩                                                                                     ⎭",
+     "notesBlock": "> **Figure notes (14.9.27.2, OPEN):** the printed figure has TWO nested brace pairs. The INNER braces enclose the four open modes (INPUT / OUTPUT / I-O / EXTEND) — exactly one shall be selected. The OUTER braces enclose the entire group `{ open-mode } [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …` and carry their own trailing ellipsis, so that whole group — mode, phrases and file list together — may be repeated, which is how one OPEN statement opens files in differing modes. Verified at 900 dpi: NO choice-indicator bars are present anywhere in this figure. OPEN, INPUT, OUTPUT, I-O, EXTEND, NO and REWIND are underlined in the printed figure (required words); WITH is not underlined (optional word)."
+    },
+    {
+     "startLine": 29157,
+     "page": 705,
+     "what": "OPEN sharing-phrase general format (braces, three alternatives)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "                ⎧ ALL OTHER  ⎫\nSHARING WITH    ⎨ NO OTHER   ⎬\n                ⎩ READ ONLY  ⎭",
+     "notesBlock": "> **Figure notes (14.9.27.2, sharing-phrase):** braces — exactly one alternative shall be selected. Verified at 900 dpi: NO choice-indicator bars. SHARING, ALL, NO, READ and ONLY are underlined in the printed figure (required words); WITH and OTHER are not underlined (optional words)."
+    }
+   ]
+  },
+  {
+   "batch": "3",
+   "diagramsProcessed": 7,
+   "diagrams": [
+    {
+     "startLine": 6767,
+     "page": 155,
+     "what": "identifier Format 6 (predefined-object) general format",
+     "verdict": "DEFECT",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "Ragged right-brace column: the closing brace glyphs do not align, so the 4-row brace does not read as one delimiter pair",
+      "Right-brace glyph run is correct in kind but unaligned; no semantic loss"
+     ],
+     "correctedBlock": "⎧ EXCEPTION-OBJECT                 ⎫\n⎪ NULL                             ⎪\n⎪ SELF                             ⎪\n⎩ [ object-class-name-1 OF ] SUPER ⎭",
+     "notesBlock": ""
+    },
+    {
+     "startLine": 6784,
+     "page": 155,
+     "what": "identifier Format 9 (address-identifier) general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "⎧ data-address-identifier-1    ⎫\n⎩ program-address-identifier-1 ⎭",
+     "notesBlock": ""
+    },
+    {
+     "startLine": 25827,
+     "page": 613,
+     "what": "ADD statement Format 1 (simple) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "LOST CHOICE INDICATORS: the printed ON SIZE ERROR group is ⎡| … |⎤ / ⎣| … |⎦ — bracket AND bar, two distinct strokes, confirmed at 700 dpi. The markdown kept only the bracket, which reads as zero-or-ONE and wrongly forbids writing both ON SIZE ERROR and NOT ON SIZE ERROR in one statement.",
+      "Wrong bottom-left/bottom-right bracket glyph: the 2-row group used ⎢/⎥ (extension) instead of ⎣/⎦ (bottom corner)"
+     ],
+     "correctedBlock": "         ⎧ identifier-1 ⎫\nADD      ⎨              ⎬ ... TO { identifier-2 [ rounded-phrase ] } ...\n         ⎩ literal-1    ⎭\n\n⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n[ END-ADD ]",
+     "notesBlock": "> **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars just inside the brackets, spanning both stacked alternatives). Bars enclosed by BRACKETS mean: zero or more of the enclosed alternatives may be specified, each at most once, in any order. Therefore **both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may appear in the same ADD statement. Plain brackets without bars would wrongly read as zero-or-one."
+    },
+    {
+     "startLine": 25839,
+     "page": 613,
+     "what": "ADD statement Format 2 (giving) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "LOST CHOICE INDICATORS on the ON SIZE ERROR group (printed ⎡| … |⎤ / ⎣| … |⎦, confirmed at 700 dpi) — both branches are writable in one statement",
+      "Wrong bottom bracket glyphs ⎢/⎥ instead of ⎣/⎦"
+     ],
+     "correctedBlock": "         ⎧ identifier-1 ⎫             ⎧ identifier-2 ⎫\nADD      ⎨              ⎬ ... TO      ⎨              ⎬\n         ⎩ literal-1    ⎭             ⎩ literal-2    ⎭\n\nGIVING  { identifier-3 [ rounded-phrase ] } ...\n\n⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n[ END-ADD ]",
+     "notesBlock": "> **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars inside the brackets). Bars within BRACKETS mean zero or more of the alternatives, each at most once, in any order — so **both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be specified in the same ADD statement."
+    },
+    {
+     "startLine": 25853,
+     "page": 613,
+     "what": "ADD statement Format 3 (corresponding) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "LOST CHOICE INDICATORS on the ON SIZE ERROR group (printed ⎡| … |⎤ / ⎣| … |⎦, confirmed at 700 dpi)",
+      "Wrong bottom bracket glyphs ⎢/⎥ instead of ⎣/⎦"
+     ],
+     "correctedBlock": "         ⎧ CORRESPONDING ⎫\nADD      ⎨               ⎬ identifier-4 TO identifier-5  [ rounded-phrase ]\n         ⎩ CORR          ⎭\n\n⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n[ END-ADD ]",
+     "notesBlock": "> **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars inside the brackets): zero or more of the enclosed alternatives, each at most once, in any order. **Both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written in the same ADD statement."
+    },
+    {
+     "startLine": 27543,
+     "page": 658,
+     "what": "GENERATE statement general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "             ⎧ data-name-1   ⎫\nGENERATE     ⎨               ⎬\n             ⎩ report-name-1 ⎭",
+     "notesBlock": ""
+    },
+    {
+     "startLine": 30162,
+     "page": 732,
+     "what": "RECEIVE statement general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "LOST CHOICE INDICATORS: the printed ON EXCEPTION group is ⎡| … |⎤ / ⎣| … |⎦ — bracket AND a distinct inner bar on both sides, confirmed at 700 dpi. The markdown kept only the bracket, wrongly forbidding both ON EXCEPTION and NOT ON EXCEPTION in one statement.",
+      "Wrong bottom bracket glyphs ⎢/⎥ instead of ⎣/⎦ on the ON EXCEPTION group",
+      "VERIFIED CONTRAST: the CONTINUE AFTER group has plain brackets with NO bars (700 dpi crop) — it is genuinely zero-or-one, and must not gain bars"
+     ],
+     "correctedBlock": "⎡                   ⎧ arithmetic-expression-1 SECONDS ⎫ ⎤\n⎢ CONTINUE AFTER    ⎨                                 ⎬ ⎥\n⎣                   ⎩ MESSAGE RECEIVED                ⎭ ⎦\n\n⎡|  ON EXCEPTION imperative-statement-1      |⎤\n⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n[ END-RECEIVE ]",
+     "notesBlock": "> **Figure notes (ISO 5.2.6.4)** — the ON EXCEPTION group carries **choice indicators** (`|` bars just inside the brackets, spanning both stacked alternatives): zero or more of the enclosed alternatives, each at most once, in any order. Therefore **both** `ON EXCEPTION` and `NOT ON EXCEPTION` may be specified in one RECEIVE statement. The `CONTINUE AFTER` group by contrast has **plain brackets with no bars** — it is optional and, if present, exactly one of `arithmetic-expression-1 SECONDS` / `MESSAGE RECEIVED` is selected by the inner braces."
+    }
+   ]
+  },
+  {
+   "batch": "4",
+   "diagramsProcessed": 6,
+   "diagrams": [
+    {
+     "startLine": 12707,
+     "page": 287,
+     "what": "program-definition general format (PROGRAM-ID paragraph with COMMON/INITIAL/RECURSIVE)",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "Choice-indicator bars lost: the printed outer BRACE carries a bar immediately inside on each side, spanning the stacked alternatives COMMON and {INITIAL|RECURSIVE}. Without them the markdown reads as 'select exactly ONE of COMMON / {INITIAL|RECURSIVE}', which wrongly forbids the legal 'IS COMMON INITIAL PROGRAM' / 'IS INITIAL COMMON PROGRAM'.",
+      "The nested brace around INITIAL/RECURSIVE was malformed in the markdown: the top line showed an opening '⎧' with no matching closer on that row and the bottom line showed two '⎭' closers, so the nesting is unreadable.",
+      "Alignment: the bracket column did not line up under the PROGRAM-ID row."
+     ],
+     "correctedBlock": "[ IDENTIFICATION DIVISION. ]\n\n                                             ⎡    ⎧|  COMMON                |⎫           ⎤\nPROGRAM-ID. program-name-1 [ AS literal-1 ]  ⎢ IS ⎨|  ⎧ INITIAL   ⎫         |⎬  PROGRAM  ⎥ .\n                                             ⎣    ⎩|  ⎩ RECURSIVE ⎭         |⎭           ⎦\n\n[ options-paragraph ]\n[ environment-division ]\n[ data-division ]\n[ procedure-division  [ program-definition ] ... ]\n[ END PROGRAM program-name-1. ]",
+     "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the outer BRACE are choice indicators spanning the two stacked alternatives `COMMON` and `⎧ INITIAL | RECURSIVE ⎭`. Inside braces they mean: **one or more** of the enclosed alternatives shall be specified, each **at most once**, **in any order**. So `IS COMMON PROGRAM`, `IS INITIAL PROGRAM`, `IS RECURSIVE PROGRAM`, `IS COMMON INITIAL PROGRAM` and `IS INITIAL COMMON PROGRAM` are all legal; `IS INITIAL RECURSIVE PROGRAM` is not (the inner brace has no bars — exactly one of INITIAL/RECURSIVE). Underlined (required) words in the printed figure: IDENTIFICATION, DIVISION, PROGRAM-ID, AS, COMMON, INITIAL, RECURSIVE, END, PROGRAM."
+    },
+    {
+     "startLine": 26040,
+     "page": 618,
+     "what": "CALL statement, Format 1 (Program) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "The ON EXCEPTION / NOT ON EXCEPTION group was transcribed as nested brackets '⎡ ⎡ ... ⎤ ⎤'. The printed figure is a BRACKET plus a CHOICE-INDICATOR BAR ('⎡|' … '|⎤'), a distinct stroke. Plain nested brackets read as zero-or-one, wrongly forbidding a CALL that writes BOTH branches.",
+      "USING group mis-delimited: the markdown wrote '[USING ⎢ … ⎥]' — an ASCII bracket pair straddling the box-drawing bracket. The printed form is one outer bracket enclosing 'USING', the brace of two alternatives, and the trailing ellipsis: '⎡ USING ⎧…⎫ ... ⎤'. The ellipsis belongs INSIDE the outer bracket, after the closing brace."
+     ],
+     "correctedBlock": "          ⎧ identifier-1 ⎫   ⎡        ⎧ [ BY REFERENCE ] { identifier-2 } ... ⎫     ⎤\nCALL      ⎨              ⎬   ⎢ USING  ⎨                                       ⎬ ... ⎥\n          ⎩ literal-1    ⎭   ⎣        ⎩ BY CONTENT { identifier-2 } ...       ⎭     ⎦\n\n    [ RETURNING identifier-3 ]\n\n    ⎡|  ON EXCEPTION imperative-statement-1      |⎤\n    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n    [ END-CALL ]",
+     "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` are choice indicators: **zero or more** of the enclosed alternatives may be specified, each **at most once**, **in any order**. Both branches may therefore appear in one CALL statement, in either order. Underlined (required) words: CALL, REFERENCE, CONTENT, USING, RETURNING, EXCEPTION, NOT, END-CALL."
+    },
+    {
+     "startLine": 27872,
+     "page": 667,
+     "what": "INITIALIZE statement general format (WITH FILLER / TO VALUE / THEN REPLACING / THEN TO DEFAULT)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "No choice indicators are present in the printed figure — verified by a 900 dpi crop of the TO VALUE and THEN REPLACING groups; both are plain bracket-plus-brace.",
+      "Cosmetic only: the '⎧ ALL / category-name ⎭' column was ragged (closing brace not aligned) and the nested REPLACING braces were unaligned. Corrected block re-aligns; structure and operands are unchanged."
+     ],
+     "correctedBlock": "INITIALIZE { identifier-1 } ... [ WITH FILLER ]\n\n    ⎡ ⎧ ALL           ⎫             ⎤\n    ⎢ ⎨               ⎬ TO VALUE    ⎥\n    ⎣ ⎩ category-name ⎭             ⎦\n\n    ⎡                     ⎧                        ⎧ identifier-2 ⎫ ⎫     ⎤\n    ⎢ THEN REPLACING      ⎨ category-name DATA BY  ⎨              ⎬ ⎬ ... ⎥\n    ⎣                     ⎩                        ⎩ literal-1    ⎭ ⎭     ⎦\n\n    [ THEN TO DEFAULT ]",
+     "notesBlock": "> **Figure notes.** No choice indicators in this figure. The ellipsis after the outer REPLACING brace repeats the whole `category-name DATA BY {identifier-2|literal-1}` phrase. Underlined (required) words in the printed figure: INITIALIZE, FILLER, ALL, VALUE, REPLACING, BY, DEFAULT."
+    },
+    {
+     "startLine": 27886,
+     "page": 667,
+     "what": "INITIALIZE — 'where category-name is' alternatives list",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "Choice-indicator bars lost. The printed brace carries a bar immediately inside on each side, spanning all thirteen stacked category names — confirmed at 900 dpi (two clearly separate strokes: the curved brace and a straight vertical rule). The markdown shows a bare brace, which reads as 'exactly one', losing the each-at-most-once / any-order permission."
+     ],
+     "correctedBlock": "⎧|  ALPHABETIC           |⎫\n⎪|  ALPHANUMERIC         |⎪\n⎪|  ALPHANUMERIC-EDITED  |⎪\n⎪|  BOOLEAN              |⎪\n⎪|  DATA-POINTER         |⎪\n⎪|  FUNCTION-POINTER     |⎪\n⎨|  MESSAGE-TAG          |⎬\n⎪|  NATIONAL             |⎪\n⎪|  NATIONAL-EDITED      |⎪\n⎪|  NUMERIC              |⎪\n⎪|  NUMERIC-EDITED       |⎪\n⎪|  OBJECT-REFERENCE     |⎪\n⎩|  PROGRAM-POINTER      |⎭",
+     "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACE are choice indicators: **one or more** of the thirteen category names shall be specified, each **at most once**, **in any order**. Every one of the thirteen words is underlined (required word) in the printed figure."
+    },
+    {
+     "startLine": 31015,
+     "page": 756,
+     "what": "SEND statement, Format 1 (to-message-server) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "The ON EXCEPTION / NOT ON EXCEPTION group lost its choice-indicator bars: the printed figure is '⎡|' … '|⎤' (bracket plus a separate straight bar), confirmed at 900 dpi. The bare bracket in the markdown reads as zero-or-one, wrongly forbidding a SEND that writes both branches."
+     ],
+     "correctedBlock": "              ⎧ literal-1             ⎫\nSEND TO       ⎨                       ⎬ FROM identifier-1\n              ⎩ message-server-name-1 ⎭\n\n    RETURNING data-name-1\n\n    ⎡|  ON EXCEPTION imperative-statement-1      |⎤\n    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n\nEND-SEND",
+     "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` mean **zero or more** of the alternatives, each **at most once**, **in any order** — both branches may appear in one SEND. Note also that `RETURNING data-name-1` and `END-SEND` are NOT bracketed in the printed figure: they are required in Format 1. Underlined (required) words: SEND, TO, FROM, RETURNING, EXCEPTION, NOT, END-SEND."
+    },
+    {
+     "startLine": 31032,
+     "page": 756,
+     "what": "SEND statement, Format 2 (message-server-response) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "The ON EXCEPTION / NOT ON EXCEPTION group lost its choice-indicator bars ('⎡|' … '|⎤' in the printed figure, confirmed at 900 dpi).",
+      "The RAISING group was verified at 900 dpi to be a plain bracket-plus-brace with NO bars — it is correct as transcribed and is preserved unchanged (only re-aligned)."
+     ],
+     "correctedBlock": "SEND TO  data-name-2  FROM identifier-1\n\n    ⎡           ⎧ EXCEPTION exception-name-1 ⎫ ⎤\n    ⎢ RAISING   ⎨                            ⎬ ⎥\n    ⎣           ⎩ LAST EXCEPTION             ⎭ ⎦\n\n    ⎡|  ON EXCEPTION imperative-statement-1      |⎤\n    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n\nEND-SEND",
+     "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` mean **zero or more** of the alternatives, each **at most once**, **in any order** — both branches may appear in one SEND. The RAISING brace has NO bars: exactly one of `EXCEPTION exception-name-1` / `LAST EXCEPTION` when the optional RAISING phrase is written. `END-SEND` is not bracketed — it is required in Format 2. Underlined (required) words: SEND, TO, FROM, RAISING, EXCEPTION, LAST, NOT, END-SEND."
+    }
+   ]
+  },
+  {
+   "batch": "5",
+   "diagramsProcessed": 4,
+   "diagrams": [
+    {
+     "startLine": 12810,
+     "page": 289,
+     "what": "METHOD-ID paragraph / method-definition general format",
+     "verdict": "DEFECT",
+     "severity": "COSMETIC",
+     "defects": [
+      "Right-hand brace column is ragged: the ⎫/⎬/⎭ strokes of the outer brace do not line up with each other, and the ⎪ continuation strokes are missing on two of the five rows, so the outer brace does not read as a single enclosure.",
+      "METHOD-ID. and the [ OVERRIDE ] [ IS FINAL ] tail sit on the ⎨/⎬ row but the nested { GET / SET } brace is drawn one row lower than the outer brace's vertical centre, mis-suggesting that PROPERTY belongs to a third alternative.",
+      "No notation element is lost: the printed figure has NO choice indicators here — the outer brace is a plain 2-alternative brace and the inner GET/SET brace is a plain 2-alternative brace (verified at 900 dpi crop)."
+     ],
+     "correctedBlock": "[ IDENTIFICATION DIVISION. ]\n\n              ⎧ method-name-1 [ AS literal-1 ]               ⎫\n              ⎪                                              ⎪\nMETHOD-ID.  ⎨   ⎧ GET ⎫                                       ⎬  [ OVERRIDE ] [ IS FINAL ] .\n              ⎪   ⎩ SET ⎭  PROPERTY property-name-1           ⎪\n              ⎩                                              ⎭\n\n[ options-paragraph ]\n[ environment-division ]\n[ data-division ]\n[ procedure-division ]\nEND METHOD [ method-name-1 ] .",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "HIGH"
+    },
+    {
+     "startLine": 26060,
+     "page": 619,
+     "what": "CALL statement, Format 2 (program-prototype) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "defects": [
+      "LOST CHOICE INDICATORS on the ON EXCEPTION group. The printed figure (verified at 900 dpi crop) shows ⎡| … |⎤ — a bracket with a choice-indicator bar immediately inside on BOTH sides, spanning the two stacked alternatives. The markdown transcribed only the bracket. Per 5.2.6.4, bars inside brackets mean zero or more of the alternatives, each at most once, in any order — so ON EXCEPTION and NOT ON EXCEPTION may BOTH be written on one CALL. A plain bracket wrongly reads as zero-or-one, forbidding both branches.",
+      "The markdown attempted to convey the same thing with a doubled bracket ⎡ ⎡ … ⎦ ⎦ (as the Format 1 transcription at line 26046 does). That is not the printed notation and does not mean the same thing — it reads as a bracket nested inside a bracket, i.e. still zero-or-one.",
+      "USING group mis-structured. Printed: an outer BRACKET encloses the whole USING clause; inside it USING is followed by a single BRACE holding the three BY-phrase alternatives, and the ellipsis … sits OUTSIDE that brace but INSIDE the outer bracket. The markdown drew the inner enclosure with bracket glyphs, put the … inside it, and used ⎢ (left stroke) for the right-hand edge of every row instead of ⎥.",
+      "BY CONTENT alternative list rendered with two ⎨ rows (lines 26070-26071); a four-item brace takes ⎧ ⎪ ⎨ ⎩ on the left and ⎫ ⎪ ⎬ ⎭ on the right."
+     ],
+     "correctedBlock": "        ⎡ ⎧ identifier-1 ⎫      ⎤   ⎧ NESTED                   ⎫\nCALL    ⎢ ⎨              ⎬  AS  ⎥   ⎨                          ⎬\n        ⎣ ⎩ literal-1    ⎭      ⎦   ⎩ program-prototype-name-1 ⎭\n\n⎡                                                                       ⎤\n⎢                ⎧                     ⎧ identifier-2 ⎫                 ⎥\n⎢                ⎪  [ BY REFERENCE ]   ⎨              ⎬                 ⎥\n⎢                ⎪                     ⎩ OMITTED      ⎭                 ⎥\n⎢                ⎪                                                      ⎥\n⎢                ⎪                     ⎧ arithmetic-expression-1 ⎫      ⎥\n⎢                ⎪                     ⎪ boolean-expression-1    ⎪      ⎥\n⎢  USING         ⎨  [ BY CONTENT ]     ⎨ identifier-4            ⎬  ... ⎥\n⎢                ⎪                     ⎩ literal-2               ⎭      ⎥\n⎢                ⎪                                                      ⎥\n⎢                ⎪                     ⎧ arithmetic-expression-1 ⎫      ⎥\n⎢                ⎪  [ BY VALUE ]       ⎨ identifier-4            ⎬      ⎥\n⎢                ⎩                     ⎩ literal-2               ⎭      ⎥\n⎣                                                                       ⎦\n\n[ RETURNING identifier-3 ]\n\n⎡|  ON EXCEPTION imperative-statement-1      |⎤\n⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n\n[ END-CALL ]",
+     "notesBlock": "> **Figure notes (CALL Format 2).** The ON EXCEPTION group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`). Per 5.2.6.4, that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so a single CALL statement may specify BOTH `ON EXCEPTION imperative-statement-1` AND `NOT ON EXCEPTION imperative-statement-2`, in either order. It is NOT a plain zero-or-one bracket. The USING clause as a whole is enclosed in a plain bracket (optional); within it the three BY-phrase alternatives are enclosed in a BRACE (exactly one selected per repetition), and the `...` following that brace repeats the selected BY phrase. Required words (underlined in the printed figure): CALL, AS, NESTED, REFERENCE, CONTENT, VALUE, OMITTED, USING, RETURNING, EXCEPTION, NOT, END-CALL.",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "HIGH"
+    },
+    {
+     "startLine": 28121,
+     "page": 673,
+     "what": "INSPECT statement — tallying-phrase general format",
+     "verdict": "DEFECT",
+     "severity": "STRUCTURAL",
+     "defects": [
+      "No choice indicators are lost — verified at 800 dpi crop, every enclosure in this figure is a plain brace with no bars.",
+      "Brace geometry is broken: `identifier-2 FOR` sits on the ⎨ row but the second-level brace holding CHARACTERS / ALL / LEADING opens with ⎧ on the CHARACTERS row and never carries ⎨ on its own vertical centre, and its right-hand column mixes ⎪ and ⎬ inconsistently; the outer brace's right edge is missing from most rows.",
+      "The ALL and LEADING alternatives each nest THREE levels in the printed figure — ALL { { identifier-3 / literal-1 } [ after-before-phrase ] } … — but the markdown collapses the middle brace's right edge onto the same column as the inner one, so the [ after-before-phrase ] appears to be outside both braces rather than inside the middle one.",
+      "Ellipsis placement: the printed figure carries THREE ellipses — one inside each of the ALL and LEADING middle braces, one after the second-level brace, and one after the outermost brace. The markdown preserves the outer two (line 28125) but leaves the ALL/LEADING inner `...` mis-columned."
+     ],
+     "correctedBlock": "⎧                                                                                    ⎫\n⎪                   ⎧ CHARACTERS [ after-before-phrase ]                     ⎫       ⎪\n⎪                   ⎪                                                        ⎪       ⎪\n⎪                   ⎪          ⎧ ⎧ identifier-3 ⎫                       ⎫    ⎪       ⎪\n⎪                   ⎪  ALL     ⎨ ⎨              ⎬ [ after-before-phrase ] ⎬ ...⎪     ⎪\n⎨ identifier-2 FOR  ⎨          ⎩ ⎩ literal-1    ⎭                       ⎭    ⎬  ...  ⎬  ...\n⎪                   ⎪                                                        ⎪       ⎪\n⎪                   ⎪          ⎧ ⎧ identifier-3 ⎫                       ⎫    ⎪       ⎪\n⎪                   ⎪ LEADING  ⎨ ⎨              ⎬ [ after-before-phrase ] ⎬ ...⎪     ⎪\n⎩                   ⎩          ⎩ ⎩ literal-1    ⎭                       ⎭    ⎭       ⎭",
+     "notesBlock": "> **Figure notes (INSPECT tallying-phrase).** All enclosures here are plain braces — there are NO choice indicators in the printed figure, so exactly one alternative is selected at each level. Nesting, outermost first: `{ identifier-2 FOR { CHARACTERS [ after-before-phrase ] | ALL { { identifier-3 / literal-1 } [ after-before-phrase ] } … | LEADING { { identifier-3 / literal-1 } [ after-before-phrase ] } … } … } …` — where the vertical bars in this note are prose separators for the stacked alternatives, not choice indicators. Three distinct ellipses apply: the innermost repeats the { identifier-3 / literal-1 } [ after-before-phrase ] pairing within one ALL or LEADING phrase; the middle repeats the selected CHARACTERS/ALL/LEADING phrase for one identifier-2; the outermost repeats the whole `identifier-2 FOR …` group. Required words (underlined in the printed figure): CHARACTERS, ALL, LEADING, FOR.",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "HIGH"
+    },
+    {
+     "startLine": 31781,
+     "page": 775,
+     "what": "SORT statement, Format 1 (file) general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "defects": [
+      "LOST CHOICE INDICATORS on the COLLATING SEQUENCE inner group. The printed figure (verified at 1000 dpi crop) shows ⎧| FOR ALPHANUMERIC … |⎫ / ⎩| FOR NATIONAL … |⎭ — a BRACE with a choice-indicator bar immediately inside on both sides. The markdown transcribed only the brace. Per 5.2.6.4, bars inside braces mean one or more of the alternatives, each at most once, in any order — so FOR ALPHANUMERIC IS alphabet-name-1 and FOR NATIONAL IS alphabet-name-2 may BOTH be specified, in either order. A plain brace wrongly reads as select-exactly-one, which forbids specifying both an alphanumeric and a national collating sequence.",
+      "THROUGH/THRU bracket over-spans. In the printed figure the [ ⎧THROUGH/THRU⎭ procedure-name-2 ] bracket sits on the INPUT PROCEDURE row only; the markdown draws it as though it spans all three rows including the USING alternative, implying THROUGH may follow `USING { file-name-2 } ...`. Same defect on the OUTPUT PROCEDURE group.",
+      "The INPUT/OUTPUT PROCEDURE outer braces are missing their ⎪ continuation strokes, so a reader cannot tell the group is a two-alternative brace rather than a three-row one."
+     ],
+     "correctedBlock": "                 ⎧       ⎧ ASCENDING  ⎫                         ⎫\nSORT file-name-1 ⎨  ON   ⎨            ⎬ KEY { data-name-1 } ... ⎬  ...\n                 ⎩       ⎩ DESCENDING ⎭                         ⎭\n\n[ WITH DUPLICATES IN ORDER ]\n\n⎡                      ⎧  IS alphabet-name-1 [ alphabet-name-2 ]     ⎫ ⎤\n⎢ COLLATING SEQUENCE   ⎨ ⎧| FOR ALPHANUMERIC IS alphabet-name-1 |⎫   ⎬ ⎥\n⎣                      ⎩ ⎩| FOR NATIONAL IS alphabet-name-2     |⎭   ⎭ ⎦\n\n⎧                                          ⎡ ⎧ THROUGH ⎫                  ⎤ ⎫\n⎪  INPUT PROCEDURE IS procedure-name-1     ⎢ ⎨         ⎬ procedure-name-2 ⎥ ⎪\n⎨                                          ⎣ ⎩ THRU    ⎭                  ⎦ ⎬\n⎪  USING { file-name-2 } ...                                                ⎪\n⎩                                                                          ⎭\n\n⎧                                          ⎡ ⎧ THROUGH ⎫                  ⎤ ⎫\n⎪  OUTPUT PROCEDURE IS procedure-name-3    ⎢ ⎨         ⎬ procedure-name-4 ⎥ ⎪\n⎨                                          ⎣ ⎩ THRU    ⎭                  ⎦ ⎬\n⎪  GIVING { file-name-3 } ...                                               ⎪\n⎩                                                                          ⎭",
+     "notesBlock": "> **Figure notes (SORT Format 1).** Inside the COLLATING SEQUENCE bracket, the second alternative is a BRACE WITH CHOICE INDICATORS (`⎧|` … `|⎫`). Per 5.2.6.4, that means one or more of the enclosed alternatives shall be specified, each at most once, in any order — so `FOR ALPHANUMERIC IS alphabet-name-1` and `FOR NATIONAL IS alphabet-name-2` may BOTH appear, in either order. It is NOT a select-exactly-one brace. The enclosing brace offers a choice between that bar-group and the single-line form `IS alphabet-name-1 [ alphabet-name-2 ]`, and the whole COLLATING SEQUENCE clause is optional (outer brackets). The THROUGH/THRU bracket applies only to the `INPUT PROCEDURE IS procedure-name-1` (resp. `OUTPUT PROCEDURE IS procedure-name-3`) alternative, never to the USING/GIVING alternative. Required words (underlined in the printed figure): SORT, ASCENDING, DESCENDING, DUPLICATES, SEQUENCE, ALPHANUMERIC, NATIONAL, INPUT, PROCEDURE, USING, THROUGH, THRU, OUTPUT, GIVING.",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "HIGH"
+    }
+   ]
+  },
+  {
+   "batch": "6",
+   "diagramsProcessed": 6,
+   "diagrams": [
+    {
+     "startLine": 12966,
+     "page": 293,
+     "what": "Identification division structure — general format (11.2.1)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "Closing-brace column ragged (⎫/⎬/⎭ not vertically aligned); the ⎨ row is off by one column"
+     ],
+     "correctedBlock": "[ IDENTIFICATION DIVISION. ]\n\n⎧ program-id-paragraph   ⎫\n⎪ function-id-paragraph  ⎪\n⎪ class-id-paragraph     ⎪\n⎨ factory-paragraph      ⎬\n⎪ object-paragraph       ⎪\n⎪ method-id-paragraph    ⎪\n⎩ interface-id-paragraph ⎭\n\n[ options-paragraph ]"
+    },
+    {
+     "startLine": 26283,
+     "page": 625,
+     "what": "CANCEL statement general format (14.9.5.2)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "CANCEL keyword indentation inconsistent with the brace column (2-space drift on the ⎨ row)"
+     ],
+     "correctedBlock": "       ⎧ identifier-1             ⎫\nCANCEL ⎨ literal-1                ⎬ ...\n       ⎩ program-prototype-name-1 ⎭"
+    },
+    {
+     "startLine": 28142,
+     "page": 674,
+     "what": "INSPECT after-before-phrase (14.9.22.2)",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "CHOICE INDICATORS LOST: the printed figure shows ⎧| … |⎫ — a brace PLUS a distinct inner bar stroke spanning both alternatives (confirmed at 700 dpi crop). The markdown rendered the bars as a second, nested brace pair (⎧ ⎧ … ⎫ ⎫).",
+      "Semantic consequence: nested braces read as 'select exactly ONE of the AFTER-group / BEFORE-group', which wrongly forbids INSPECT … AFTER INITIAL x BEFORE INITIAL y. Bars inside braces (5.2.6.4) mean one or more, each at most once, in any order.",
+      "Last line's inner ⎩ literal-2 ⎭ hung outside the enclosing braces (unbalanced final row)."
+     ],
+     "correctedBlock": "⎧|                     ⎧ identifier-4 ⎫ |⎫\n⎪|  AFTER  INITIAL     ⎨              ⎬ |⎪\n⎨|                     ⎩ literal-2    ⎭ |⎬\n⎪|                     ⎧ identifier-4 ⎫ |⎪\n⎪|  BEFORE INITIAL     ⎨              ⎬ |⎪\n⎩|                     ⎩ literal-2    ⎭ |⎭",
+     "notesBlock": "> **Figure notes (ISO 5.2.6.4):** the outer braces carry CHOICE INDICATORS (the `|` bars just inside them, spanning both stacked alternatives). Bars enclosed by BRACES mean: one or more of the alternatives shall be specified, each may be specified at most once, and they may appear in any order. Therefore `AFTER INITIAL` and `BEFORE INITIAL` may BOTH be written in the same phrase, in either order. AFTER and BEFORE are underlined (required) in the printed figure; INITIAL is not underlined (optional word)."
+    },
+    {
+     "startLine": 28153,
+     "page": 674,
+     "what": "INSPECT replacing-phrase (14.9.22.2)",
+     "verdict": "DEFECT",
+     "severity": "STRUCTURAL",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "No choice indicators in the printed figure — verified at 700 dpi on BOTH the left (single curly stroke) and right (single curly stroke) outer edges. Outer brace = select exactly one of CHARACTERS / ALL / LEADING / FIRST, with the trailing ellipsis permitting repetition.",
+      "Right-hand ⎪/⎫/⎭ column badly ragged across rows (drifts by up to 4 columns), so the outer brace does not read as one stroke.",
+      "The per-alternative group brace (the delimiter pair for the inner `...`) closed on the wrong row in the ALL/LEADING/FIRST blocks.",
+      "`[after-before-phrase]` written without the house-style inner spaces used elsewhere on the page."
+     ],
+     "correctedBlock": "⎧ CHARACTERS BY replacement-item [ after-before-phrase ]                            ⎫\n⎪                                                                                   ⎪\n⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪\n⎪ ALL     ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎪\n⎪         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎪\n⎪                                                                                   ⎪\n⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪\n⎨ LEADING ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎬ ...\n⎪         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎪\n⎪                                                                                   ⎪\n⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪\n⎪ FIRST   ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎪\n⎩         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎭",
+     "notesBlock": "> **Figure notes:** no choice indicators here — the outer braces are plain (verified at 700 dpi), so exactly one of CHARACTERS / ALL / LEADING / FIRST is selected per repetition, and the trailing `...` after the outer brace permits the whole replacing-phrase to be repeated. Each of ALL / LEADING / FIRST has its own inner `...` applying to the group brace immediately to its left (the `{identifier-3|literal-1} BY replacement-item [after-before-phrase]` unit). CHARACTERS, BY, ALL, LEADING and FIRST are underlined (required words) in the printed figure."
+    },
+    {
+     "startLine": 28171,
+     "page": 674,
+     "what": "INSPECT replacement-item (14.9.22.2)",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "⎧ identifier-5 ⎫\n⎩ literal-3    ⎭"
+    },
+    {
+     "startLine": 34937,
+     "page": 860,
+     "what": "CONVERT intrinsic function destination-format (15.19.2)",
+     "verdict": "DEFECT",
+     "severity": "STRUCTURAL",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "No choice indicators in the printed figure — every stroke on both edges is a curly brace, confirmed at 700 dpi. Five nested levels on the left (x≈135/230/320/415/500) pair to five on the right (x≈1770/1685/1415/1330/1250).",
+      "NESTING LOST: the markdown collapsed the printed five-level nest to three and left the braces unbalanced — the ⎨ … ⎬ that should mark the mid-row of levels 3 and 4 appears on a single row (line 34941) with two closers and no matching openers.",
+      "SPURIOUS CONTENT: the OCR turned the printed UNDERLINING of ALPHANUMERIC and NAT into literal underscore rows (`____________`, `________`) transcribed as if they were alternatives inside the braces. They are not operands and must be removed.",
+      "HEX was placed inside the innermost group rather than between the level-3 and level-2 closing braces, changing what it qualifies."
+     ],
+     "correctedBlock": "⎧ ⎧ ⎧ ⎧ ⎧ ALPHANUMERIC ⎫ ⎫ ⎫     ⎫ ⎫\n⎪ ⎪ ⎪ ⎪ ⎩ ANUM         ⎭ ⎪ ⎪     ⎪ ⎪\n⎪ ⎨ ⎨ ⎨                  ⎬ ⎬ HEX ⎬ ⎪\n⎪ ⎪ ⎪ ⎪ ⎧ NAT          ⎫ ⎪ ⎪     ⎪ ⎪\n⎨ ⎩ ⎩ ⎩ ⎩ NATIONAL     ⎭ ⎭ ⎭     ⎭ ⎬\n⎪                                   ⎪\n⎩ BYTE                              ⎭",
+     "notesBlock": "> **Figure notes:** all delimiters in this figure are BRACES — there are no choice indicators (verified at 700 dpi). The outermost brace selects exactly one of the HEX group or BYTE; within the HEX group, exactly one of `{ALPHANUMERIC | ANUM}` or `{NAT | NATIONAL}` is selected and is followed by the required word HEX. ALPHANUMERIC, ANUM, NAT, NATIONAL, HEX and BYTE are all underlined (required words) in the printed figure; the underscore rows in the previous transcription were OCR artefacts of that underlining, not operands."
+    }
+   ]
+  },
+  {
+   "batch": "7",
+   "diagramsProcessed": 5,
+   "diagrams": [
+    {
+     "startLine": 13554,
+     "page": 306,
+     "what": "FLOAT-DECIMAL encoding-phrase general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "⎧ BINARY-ENCODING  ⎫\n⎩ DECIMAL-ENCODING ⎭",
+     "notesBlock": "> **Figure notes** — plain braces, no choice indicators: exactly one alternative shall be selected. BINARY-ENCODING and DECIMAL-ENCODING are underlined in the printed standard (required words)."
+    },
+    {
+     "startLine": 13561,
+     "page": 306,
+     "what": "FLOAT-DECIMAL endianness-phrase general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [],
+     "correctedBlock": "⎧ HIGH-ORDER-LEFT  ⎫\n⎩ HIGH-ORDER-RIGHT ⎭",
+     "notesBlock": "> **Figure notes** — plain braces, no choice indicators: exactly one alternative shall be selected. HIGH-ORDER-LEFT and HIGH-ORDER-RIGHT are underlined in the printed standard (required words)."
+    },
+    {
+     "startLine": 26362,
+     "page": 627,
+     "what": "CLOSE statement general format (14.9.6.2)",
+     "verdict": "DEFECT",
+     "severity": "STRUCTURAL",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "A spurious rule of em-dashes (`⎨——————⎬`) was transcribed between REEL and UNIT; in the printed figure that horizontal stroke is the UNDERLINE under REEL (required word), not a diagram element.",
+      "The inner REEL/UNIT brace was spread over three lines with an empty middle, mis-registering REEL/UNIT against the [ FOR REMOVAL ] baseline.",
+      "Closing outer brace column was ragged; the trailing ellipsis belongs immediately after the closing outer brace."
+     ],
+     "correctedBlock": "      ⎧                                          ⎫\n      ⎪             ⎡ ⎧ REEL ⎫                  ⎤ ⎪\nCLOSE ⎨ file-name-1 ⎢ ⎨      ⎬ [ FOR REMOVAL ]  ⎥ ⎬ ...\n      ⎪             ⎢ ⎩ UNIT ⎭                  ⎥ ⎪\n      ⎩             ⎣ WITH NO REWIND            ⎦ ⎭",
+     "notesBlock": "> **Figure notes** — no choice indicators appear in the printed figure (verified at 800 dpi): the outer braces with the trailing ellipsis mean the whole `file-name-1 …` group is required and repeatable; the inner brackets are plain, so at most ONE of the `{REEL|UNIT} [FOR REMOVAL]` row or the `WITH NO REWIND` row may be written per file-name. CLOSE, REEL, UNIT, REMOVAL, NO and REWIND are underlined in the printed standard (required words)."
+    },
+    {
+     "startLine": 28387,
+     "page": 681,
+     "what": "INVOKE statement general format (14.9.23.2)",
+     "verdict": "DEFECT",
+     "severity": "STRUCTURAL",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "USING was transcribed OUTSIDE the enclosing optional bracket; in the printed figure the bracket opens to the LEFT of USING, so the entire `USING … …` phrase is optional.",
+      "The repetition ellipsis was placed after the closing bracket; in the printed figure it sits INSIDE the bracket, immediately right of the closing brace of the argument group, so it repeats the argument group, not the whole USING phrase.",
+      "The three-way BY REFERENCE / BY CONTENT / BY VALUE group is a single brace group (exactly one per repetition); the transcription broke its brace column and left stray ⎨/⎬ glyphs mid-list inside the BY CONTENT and BY VALUE operand braces.",
+      "Operand braces for BY CONTENT (4 items) and BY VALUE (3 items) used ⎨⎬ on interior lines instead of ⎪ continuation strokes."
+     ],
+     "correctedBlock": "       ⎧ object-class-name-1 ⎫ ⎧ identifier-2 ⎫\nINVOKE ⎩ identifier-1        ⎭ ⎩ literal-1    ⎭\n\n  ⎡       ⎧                                                     ⎫    ⎤\n  ⎢       ⎪ [ BY REFERENCE ] ⎧ identifier-3 ⎫                   ⎪    ⎥\n  ⎢       ⎪                  ⎩ OMITTED      ⎭                   ⎪    ⎥\n  ⎢       ⎪                                                     ⎪    ⎥\n  ⎢       ⎪                  ⎧ arithmetic-expression-1 ⎫        ⎪    ⎥\n  ⎢ USING ⎨ [ BY CONTENT ]   ⎪ boolean-expression-1    ⎪        ⎬ ...⎥\n  ⎢       ⎪                  ⎨ identifier-5            ⎬        ⎪    ⎥\n  ⎢       ⎪                  ⎩ literal-2               ⎭        ⎪    ⎥\n  ⎢       ⎪                                                     ⎪    ⎥\n  ⎢       ⎪                  ⎧ arithmetic-expression-1 ⎫        ⎪    ⎥\n  ⎢       ⎪ [ BY VALUE ]     ⎨ identifier-5            ⎬        ⎪    ⎥\n  ⎣       ⎩                  ⎩ literal-2               ⎭        ⎭    ⎦\n\n  [ RETURNING identifier-4 ]",
+     "notesBlock": "> **Figure notes** — no choice indicators appear anywhere in the printed figure (verified at 750 dpi). The outer brackets make the whole USING phrase optional; the ellipsis is INSIDE those brackets, so the `[BY …] operand` group repeats. The BY REFERENCE / BY CONTENT / BY VALUE group is a brace group: exactly one of the three is selected on each repetition. INVOKE, REFERENCE, OMITTED, CONTENT, VALUE, USING and RETURNING are underlined in the printed standard (required words)."
+    },
+    {
+     "startLine": 37201,
+     "page": 920,
+     "what": "MODULE-NAME function general format (15.65.2)",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "confidence": "high",
+     "renderedAtHighDpi": true,
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "defects": [
+      "The literal argument PARENTHESES were transcribed as curly braces `{ }`. In the printed figure the outer strokes are tall parentheses — required COBOL punctuation around the function argument — enclosing the notation brace. Reading them as a notation brace both loses the mandatory `(` `)` and duplicates the alternation, which is decision-changing for the parser.",
+      "No blank/optional form: the keyword argument is required (brace, not bracket) — preserved."
+     ],
+     "correctedBlock": "                       ⎧ ACTIVATING ⎫\n                       ⎪  CURRENT   ⎪\nFUNCTION MODULE-NAME ( ⎨   NESTED   ⎬ )\n                       ⎪   STACK    ⎪\n                       ⎩ TOP-LEVEL  ⎭",
+     "notesBlock": "> **Figure notes** — the outer `(` `)` are literal COBOL argument parentheses, not notation; the inner braces are a notation brace with no choice indicators (verified at 900 dpi), so exactly ONE keyword argument shall be specified. FUNCTION, MODULE-NAME, ACTIVATING, CURRENT, NESTED, STACK and TOP-LEVEL are underlined in the printed standard (required words)."
+    }
+   ]
+  },
+  {
+   "batch": "8",
+   "diagramsProcessed": 6,
+   "diagrams": [
+    {
+     "startLine": 17390,
+     "page": 399,
+     "what": "Screen description entry, Format 2 (elementary) — general format",
+     "verdict": "DEFECT",
+     "severity": "STRUCTURAL",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "defects": [
+      "COLUMN NUMBER group is structurally broken: the closing bracket column is ragged and the ⎣ - ⎦ row hangs OUTSIDE the group, dangling below/right of the enclosing bracket instead of sitting inside the inner PLUS/+/MINUS/- bracket",
+      "The SIGN clause lost its enclosing outer bracket entirely — printed is [ [SIGN IS] {LEADING/TRAILING} [SEPARATE CHARACTER] ]; md rendered it as a bare unbracketed line, wrongly making the whole clause mandatory",
+      "JUSTIFIED group has a spurious empty third row and a mis-sized right edge",
+      "Minor: inconsistent inner spacing / missing ⎨⎬ middle-row brace glyphs in the COLUMN alternation"
+     ],
+     "correctedBlock": "[ IS GLOBAL ]\n\n⎡                 ⎡ PLUS  ⎤                 ⎤\n⎢                 ⎢ +     ⎥ ⎧ identifier-1 ⎫ ⎥\n⎢ LINE NUMBER IS  ⎢ MINUS ⎥ ⎩ integer-1    ⎭ ⎥\n⎣                 ⎣ -     ⎦                 ⎦\n\n⎡ ⎧ COLUMN ⎫              ⎡ PLUS  ⎤                 ⎤\n⎢ ⎨        ⎬ NUMBER IS    ⎢ +     ⎥ ⎧ identifier-2 ⎫ ⎥\n⎢ ⎩ COL    ⎭              ⎢ MINUS ⎥ ⎩ integer-2    ⎭ ⎥\n⎣                         ⎣ -     ⎦                 ⎦\n\n⎡ BLANK ⎧ LINE   ⎫ ⎤\n⎣       ⎩ SCREEN ⎭ ⎦\n\n⎡        ⎧ END OF LINE   ⎫ ⎤\n⎢ ERASE  ⎨ END OF SCREEN ⎬ ⎥\n⎢        ⎨ EOL           ⎬ ⎥\n⎣        ⎩ EOS           ⎭ ⎦\n\n[ screen-attribute-clauses ]\n[ picture-clause ]\n[ source-destination-clauses ]\n[ BLANK WHEN ZERO ]\n\n⎡ ⎧ JUST      ⎫       ⎤\n⎣ ⎩ JUSTIFIED ⎭ RIGHT ⎦\n\n⎡              ⎧ LEADING  ⎫                        ⎤\n⎣ [ SIGN IS ]  ⎩ TRAILING ⎭ [ SEPARATE CHARACTER ] ⎦\n\n[ FULL ]\n[ AUTO ]\n[ SECURE ]\n[ REQUIRED ]\n[ OCCURS integer-5 TIMES ]\n\n⎡ [ USAGE IS ] ⎧ DISPLAY  ⎫ ⎤ .\n⎣              ⎩ NATIONAL ⎭ ⎦",
+     "notesBlock": "> **Figure notes (ISO 5.2.6 notation).** This format contains NO choice indicators; every stacked group is a plain brace (exactly one alternative) or a plain bracket (zero or one). Underlined required words in the printed figure: GLOBAL, LINE, PLUS, MINUS, COLUMN, COL, BLANK, LINE, SCREEN, ERASE, LINE, SCREEN, EOL, EOS, BLANK/ZERO, JUST, JUSTIFIED, SIGN, LEADING, TRAILING, SEPARATE, FULL, AUTO, SECURE, REQUIRED, OCCURS, USAGE, DISPLAY, NATIONAL. Note that `[ SIGN IS ]` is an optional phrase nested INSIDE the outer optional bracket that encloses the whole sign clause."
+    },
+    {
+     "startLine": 26854,
+     "page": 640,
+     "what": "DISPLAY statement, Format 1 (device) — general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "defects": [],
+     "correctedBlock": "           ⎧ identifier-1 ⎫\nDISPLAY    ⎨              ⎬  ...  [ UPON mnemonic-name-1 ]  [ WITH NO ADVANCING ]  [ END-DISPLAY ]\n           ⎩ literal-1    ⎭"
+    },
+    {
+     "startLine": 26864,
+     "page": 640,
+     "what": "DISPLAY statement, Format 2 (screen) — general format",
+     "verdict": "DEFECT",
+     "severity": "DECISION-CHANGING",
+     "printedHasChoiceIndicators": true,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "defects": [
+      "LOST CHOICE INDICATORS in the AT phrase: the printed figure is [ AT { | LINE NUMBER … | {COLUMN|COL} NUMBER … | } ] — a BRACE with bars. Verified at 1400 dpi: after the tall '[' and the word AT there is a curly '{' followed by a distinct straight vertical bar. Md transcribed it as plain nested brackets, which reads as 'zero or one of the two clauses' and wrongly forbids AT LINE n COLUMN m — the overwhelmingly common form.",
+      "LOST CHOICE INDICATORS in the exception phrase: printed is ⎡| ON EXCEPTION … |⎤ / ⎣| NOT ON EXCEPTION … |⎦ — bracket AND bar, two distinct strokes at both left and right edges. Md kept only the bracket, wrongly forbidding both ON EXCEPTION and NOT ON EXCEPTION in one statement.",
+      "Md's AT group also mis-nested the brackets (⎡⎡ / ⎣⎣ triples) and used brackets where the printed figure uses braces for the LINE/COLUMN alternation container.",
+      "Md drops the required word IS-less spelling correctly, but the head line 'DISPLAY screen-name-1' sits outside the fence (pre-existing house style; not corrected here)."
+     ],
+     "correctedBlock": "⎡    ⎧|                ⎧ identifier-2 ⎫             |⎫ ⎤\n⎢    ⎪| LINE NUMBER    ⎨              ⎬             |⎪ ⎥\n⎢ AT ⎨|                ⎩ integer-1    ⎭             |⎬ ⎥\n⎢    ⎪| ⎧ COLUMN ⎫              ⎧ identifier-3 ⎫    |⎪ ⎥\n⎣    ⎩| ⎩ COL    ⎭  NUMBER      ⎩ integer-2    ⎭    |⎭ ⎦\n\n⎡|  ON EXCEPTION imperative-statement-1      |⎤\n⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n[ END-DISPLAY ]",
+     "notesBlock": "> **Figure notes — choice indicators (ISO 5.2.6.4).** Two groups in this format carry choice-indicator bars, both lost in transcription.\n> **(1) The AT phrase** — bars enclosed by BRACES: one or more of the enclosed alternatives shall be specified, each may be specified only once, and they may appear in any order. So `AT LINE NUMBER n`, `AT COLUMN NUMBER m`, and `AT LINE NUMBER n COLUMN NUMBER m` are all valid; the whole AT phrase is itself optional via the surrounding bracket.\n> **(2) The exception phrase** — bars enclosed by BRACKETS: zero or more of the enclosed alternatives, each at most once, in any order. So a single DISPLAY may specify BOTH `ON EXCEPTION` and `NOT ON EXCEPTION`, in either order. Plain brackets without bars would wrongly read as 'zero or one'.\n> Underlined required words: DISPLAY, LINE, COLUMN, COL, EXCEPTION, NOT, END-DISPLAY."
+    },
+    {
+     "startLine": 28795,
+     "page": 694,
+     "what": "MOVE statement, Format 1 (simple) — general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "defects": [],
+     "correctedBlock": "        ⎧ identifier-1 ⎫\nMOVE    ⎨              ⎬  TO { identifier-2 } ...\n        ⎩ literal-1    ⎭"
+    },
+    {
+     "startLine": 28803,
+     "page": 694,
+     "what": "MOVE statement, Format 2 (corresponding) — general format",
+     "verdict": "FAITHFUL",
+     "severity": "COSMETIC",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "defects": [],
+     "correctedBlock": "        ⎧ CORRESPONDING ⎫\nMOVE    ⎨               ⎬  identifier-3  TO  identifier-4\n        ⎩ CORR          ⎭"
+    },
+    {
+     "startLine": 38859,
+     "page": 962,
+     "what": "FUNCTION TRIM — general format",
+     "verdict": "DEFECT",
+     "severity": "COSMETIC",
+     "printedHasChoiceIndicators": false,
+     "mdHadChoiceIndicators": false,
+     "renderedAtHighDpi": true,
+     "confidence": "high",
+     "defects": [
+      "Alignment only: the LEADING/TRAILING bracket rows were left ragged and its bracket glyphs did not line up in a single column (⎡ … ⎤ on row 1, ⎣ … ⎦ on row 3 with mismatched widths). Structure, operand spellings, ellipsis placement and paren nesting were all correct."
+     ],
+     "correctedBlock": "                ⎛                ⎡ LEADING  ⎤                      ⎞\nFUNCTION TRIM   ⎜   argument-1   ⎢          ⎥  [ argument-2 ] ...  ⎟\n                ⎝                ⎣ TRAILING ⎦                      ⎠",
+     "notesBlock": "> **Figure notes.** No choice indicators in this format. The `[ LEADING | TRAILING ]` group is a plain bracket — zero or one may be specified. The ellipsis follows `[ argument-2 ]` and denotes repetition of that bracketed portion. Underlined required words: FUNCTION, TRIM, LEADING, TRAILING."
+    }
+   ]
+  }
+ ],
+ "rollup": {
+  "totals": {
+   "diagramsProcessed": 49,
+   "batches": 8,
+   "faithful": 18,
+   "defect": 31,
+   "severityDecisionChanging": 20,
+   "severityStructural": 6,
+   "severityCosmetic": 23,
+   "severityCosmeticAmongDefects": 5,
+   "allRenderedAtHighDpi": 49,
+   "confidenceHigh": 49
+  },
+  "choiceIndicatorCensus": "HEADLINE: 19 of the 49 code-block diagrams carry choice indicators in the printed standard. The markdown preserved them in exactly ONE (PICTURE clause Format 1, line 20247, p.471). **18 of 19 printed choice-indicator groups were dropped in transcription — a 95% loss rate.** The single surviving instance is why the corpus-wide `|` count was 1. Of the 18 losses, 17 are DECISION-CHANGING (the 18th, PICTURE, was not lost); every dropped group either (a) turned a \"one or more, any order\" BRACE-with-bars into an exclusive select-exactly-one, or (b) turned a \"zero or more, any order\" BRACKET-with-bars into a zero-or-one. Fourteen of the losses are the positive/negative conditional-phrase pair (ON SIZE ERROR/NOT, ON EXCEPTION/NOT), i.e. the exact case where a markdown-only reader would conclude the standard forbids writing both branches on one statement. Three further losses are not conditional phrases at all and are easy to miss: PROGRAM-ID `COMMON`+`{INITIAL|RECURSIVE}` (p.287), INITIALIZE `category-name` list of 13 (p.667), SORT `COLLATING SEQUENCE FOR ALPHANUMERIC`/`FOR NATIONAL` (p.775), plus DISPLAY Format 2's `AT LINE/COLUMN` brace (p.640) which carries bars AND is separate from that statement's exception-phrase bars — that diagram lost two distinct choice-indicator groups. Confirmed NEGATIVE (bars genuinely absent, verified at 700-1400 dpi and must NOT be added): RECEIVE `CONTINUE AFTER`, EVALUATE selection-subject/selection-object, OPEN (both figures), INSPECT tallying-phrase, INSPECT replacing-phrase, SEND Format 2 `RAISING`, INVOKE, CLOSE, CONVERT destination-format, MODULE-NAME, TRIM, screen description Format 2, INITIALIZE main figure.",
+  "decisionChanging": [
+   {
+    "startLine": 31781,
+    "page": 775,
+    "construct": "SORT statement Format 1 (file) — COLLATING SEQUENCE clause",
+    "lost": "Choice-indicator bars inside the inner brace: printed is ⎧| FOR ALPHANUMERIC IS alphabet-name-1 |⎫ / ⎩| FOR NATIONAL IS alphabet-name-2 |⎭. Also: the THROUGH/THRU bracket was drawn spanning the USING alternative when in print it applies only to the INPUT/OUTPUT PROCEDURE row.",
+    "consequence": "A markdown-only reader concludes SORT may specify EITHER an alphanumeric OR a national collating sequence, never both — so `COLLATING SEQUENCE FOR ALPHANUMERIC IS A1 FOR NATIONAL IS A2` reads as illegal. Bars inside braces mean one or more, each at most once, any order: both are legal in either order. A compiler built from the markdown REJECTS conforming source. The THROUGH defect conversely ADMITS `USING file THRU proc`, which the standard forbids."
+   },
+   {
+    "startLine": 31032,
+    "page": 756,
+    "construct": "SEND statement Format 2 (message-server-response) — ON EXCEPTION / NOT ON EXCEPTION",
+    "lost": "Bracket-plus-bar (⎡| … |⎤) reduced to a plain bracket.",
+    "consequence": "Reads as zero-or-one: a SEND may carry ON EXCEPTION or NOT ON EXCEPTION but not both. The standard permits both, in either order. Compiler built to the markdown rejects legal source."
+   },
+   {
+    "startLine": 31015,
+    "page": 756,
+    "construct": "SEND statement Format 1 (to-message-server) — ON EXCEPTION / NOT ON EXCEPTION",
+    "lost": "Bracket-plus-bar (⎡| … |⎤) reduced to a plain bracket.",
+    "consequence": "Same as Format 2 — both branches wrongly appear mutually exclusive. Note also RETURNING and END-SEND are unbracketed (required) in print."
+   },
+   {
+    "startLine": 30162,
+    "page": 732,
+    "construct": "RECEIVE statement — ON EXCEPTION / NOT ON EXCEPTION (the reference case)",
+    "lost": "Bracket-plus-bar (⎡| … |⎤) reduced to a plain bracket; bottom glyphs also wrong (⎢/⎥ for ⎣/⎦).",
+    "consequence": "Reads as zero-or-one, forbidding a RECEIVE that handles both the exception and the no-exception path in one statement. Verified contrast on the same figure: the CONTINUE AFTER group genuinely has NO bars and must stay zero-or-one."
+   },
+   {
+    "startLine": 29148,
+    "page": 705,
+    "construct": "OPEN statement — outer repetition brace over (open-mode + phrases + file list)",
+    "lost": "The entire OUTER brace pair. The trailing `...` survived with no delimiter pair to bind to.",
+    "consequence": "No choice indicators were involved, but the effect is equally decision-changing: the markdown reads as though one OPEN statement selects ONE open mode and the stray ellipsis repeats only the file list. In print the outer brace + ellipsis repeats the whole (mode, sharing, retry, file-list) group, which is how `OPEN INPUT F1 OUTPUT F2 I-O F3` — a single OPEN naming files in differing modes — is legal. A compiler built from the markdown rejects the multi-mode OPEN, one of the most common forms in real programs."
+   },
+   {
+    "startLine": 29083,
+    "page": 703,
+    "construct": "MULTIPLY statement Format 2 (giving) — ON SIZE ERROR / NOT ON SIZE ERROR",
+    "lost": "Bracket-plus-bar reduced to plain bracket; the bracket group was additionally unclosed (opened ⎡/⎢, no ⎣/⎦ row).",
+    "consequence": "Both size-error branches read as mutually exclusive; the unclosed bracket also leaves the extent of the group ambiguous. Legal `MULTIPLY A BY B GIVING C ON SIZE ERROR … NOT ON SIZE ERROR …` would be rejected."
+   },
+   {
+    "startLine": 29071,
+    "page": 703,
+    "construct": "MULTIPLY statement Format 1 (by) — ON SIZE ERROR / NOT ON SIZE ERROR",
+    "lost": "Bracket-plus-bar reduced to plain bracket; unclosed bracket group.",
+    "consequence": "Same: both branches on one MULTIPLY wrongly read as illegal."
+   },
+   {
+    "startLine": 28142,
+    "page": 674,
+    "construct": "INSPECT after-before-phrase — AFTER INITIAL / BEFORE INITIAL",
+    "lost": "Brace-plus-bar (⎧| … |⎫) was mis-transcribed as a second NESTED brace pair (⎧ ⎧ … ⎫ ⎫).",
+    "consequence": "Nested braces read as 'select exactly one of the AFTER group or the BEFORE group'. That forbids `INSPECT X TALLYING T FOR ALL \"A\" AFTER INITIAL \"(\" BEFORE INITIAL \")\"` — the standard delimiting idiom. Bars inside braces mean one or more, each once, any order: both may be written, in either order. This is a high-frequency real-world rejection."
+   },
+   {
+    "startLine": 27886,
+    "page": 667,
+    "construct": "INITIALIZE — 'where category-name is' 13-item list",
+    "lost": "Brace-plus-bar (⎧| … |⎫) spanning all thirteen category names reduced to a bare brace.",
+    "consequence": "Reads as 'exactly one category-name'. The bars permit one or more, each at most once, in any order — so `INITIALIZE X REPLACING NUMERIC DATA BY 0 ALPHANUMERIC DATA BY SPACE` style multi-category use and multi-category TO VALUE forms are legal. Markdown-only reading forbids them."
+   },
+   {
+    "startLine": 27020,
+    "page": 644,
+    "construct": "DIVIDE statement Format 3 (by-giving) — ON SIZE ERROR / NOT ON SIZE ERROR",
+    "lost": "Bracket-plus-bar reduced to plain bracket; spurious empty bracket row.",
+    "consequence": "Both size-error branches on one DIVIDE wrongly read as illegal."
+   },
+   {
+    "startLine": 27005,
+    "page": 644,
+    "construct": "DIVIDE statement Format 2 (into-giving) — ON SIZE ERROR / NOT ON SIZE ERROR",
+    "lost": "Bracket-plus-bar reduced to plain bracket; spurious empty bracket row.",
+    "consequence": "Both size-error branches on one DIVIDE wrongly read as illegal."
+   },
+   {
+    "startLine": 26995,
+    "page": 644,
+    "construct": "DIVIDE statement Format 1 (into) — ON SIZE ERROR / NOT ON SIZE ERROR",
+    "lost": "Bracket-plus-bar reduced to plain bracket; the group was also floated to the right of the DIVIDE line instead of standing below it.",
+    "consequence": "Both size-error branches on one DIVIDE wrongly read as illegal."
+   },
+   {
+    "startLine": 26864,
+    "page": 640,
+    "construct": "DISPLAY statement Format 2 (screen) — AT phrase AND ON EXCEPTION phrase (TWO separate losses)",
+    "lost": "(1) The AT phrase is printed as a BRACE with bars enclosing LINE NUMBER … and {COLUMN|COL} NUMBER …; markdown rendered plain nested BRACKETS. (2) The exception phrase lost its bracket-plus-bar.",
+    "consequence": "The AT loss is the single worst in the corpus: plain brackets read as 'zero or one of LINE / COLUMN', which forbids `DISPLAY X AT LINE 5 COLUMN 10` — the overwhelmingly common screen-positioning form. The exception loss additionally forbids both ON EXCEPTION and NOT ON EXCEPTION. A compiler built from the markdown would reject the majority of real screen-section DISPLAY statements."
+   },
+   {
+    "startLine": 26060,
+    "page": 619,
+    "construct": "CALL statement Format 2 (program-prototype) — ON EXCEPTION / NOT ON EXCEPTION",
+    "lost": "Bracket-plus-bar reduced to a DOUBLED bracket (⎡ ⎡ … ⎦ ⎦), which is not the printed notation and still reads as zero-or-one. USING group also mis-structured (ellipsis outside the brace, wrong right-edge glyphs).",
+    "consequence": "Reader concludes a prototype CALL may not write both exception branches. Also the mis-placed ellipsis obscures that the BY-phrase/operand group repeats."
+   },
+   {
+    "startLine": 26040,
+    "page": 618,
+    "construct": "CALL statement Format 1 (program) — ON EXCEPTION / NOT ON EXCEPTION",
+    "lost": "Bracket-plus-bar transcribed as nested brackets; USING group mis-delimited with an ASCII bracket straddling the box-drawing bracket and the ellipsis placed outside the outer bracket.",
+    "consequence": "Reader concludes `CALL 'X' ON EXCEPTION … NOT ON EXCEPTION …` is illegal. The USING defect additionally misplaces the repetition unit."
+   },
+   {
+    "startLine": 25853,
+    "page": 613,
+    "construct": "ADD statement Format 3 (corresponding) — ON SIZE ERROR / NOT ON SIZE ERROR",
+    "lost": "Bracket-plus-bar reduced to plain bracket; wrong bottom glyphs ⎢/⎥ for ⎣/⎦.",
+    "consequence": "Both size-error branches on one ADD CORRESPONDING wrongly read as illegal."
+   },
+   {
+    "startLine": 25839,
+    "page": 613,
+    "construct": "ADD statement Format 2 (giving) — ON SIZE ERROR / NOT ON SIZE ERROR",
+    "lost": "Bracket-plus-bar reduced to plain bracket; wrong bottom glyphs.",
+    "consequence": "Both size-error branches on one ADD wrongly read as illegal."
+   },
+   {
+    "startLine": 25827,
+    "page": 613,
+    "construct": "ADD statement Format 1 (simple) — ON SIZE ERROR / NOT ON SIZE ERROR",
+    "lost": "Bracket-plus-bar reduced to plain bracket; wrong bottom glyphs.",
+    "consequence": "Both size-error branches on one ADD wrongly read as illegal."
+   },
+   {
+    "startLine": 37201,
+    "page": 920,
+    "construct": "FUNCTION MODULE-NAME — argument parentheses",
+    "lost": "The literal COBOL argument parentheses `(` `)` were transcribed as notation braces `{ }`.",
+    "consequence": "A parser built from the markdown would not require the mandatory parentheses around the function argument and would see a spurious extra level of alternation. `FUNCTION MODULE-NAME (CURRENT)` is the only legal spelling; the markdown implies the parens are optional notation."
+   },
+   {
+    "startLine": 12707,
+    "page": 287,
+    "construct": "program-definition / PROGRAM-ID paragraph — COMMON / {INITIAL | RECURSIVE}",
+    "lost": "Choice-indicator bars inside the outer BRACE spanning the stacked alternatives COMMON and {INITIAL|RECURSIVE}. The nested INITIAL/RECURSIVE brace was also malformed (unmatched opener, doubled closer).",
+    "consequence": "Markdown reads as 'select exactly ONE of COMMON / INITIAL / RECURSIVE', so `PROGRAM-ID. P IS COMMON INITIAL PROGRAM` (and the reversed `IS INITIAL COMMON PROGRAM`) read as illegal. The standard permits one or more, each once, any order — while the INNER brace, which genuinely has no bars, still forbids INITIAL together with RECURSIVE. A compiler built from the markdown rejects a common nested-program header."
+   }
+  ],
+  "applyList": [
+   {
+    "startLine": 38859,
+    "page": 962,
+    "what": "FUNCTION TRIM general format",
+    "correctedBlock": "                ⎛                ⎡ LEADING  ⎤                      ⎞\nFUNCTION TRIM   ⎜   argument-1   ⎢          ⎥  [ argument-2 ] ...  ⎟\n                ⎝                ⎣ TRAILING ⎦                      ⎠",
+    "notesBlock": "> **Figure notes.** No choice indicators in this format. The `[ LEADING | TRAILING ]` group is a plain bracket — zero or one may be specified. The ellipsis follows `[ argument-2 ]` and denotes repetition of that bracketed portion. Underlined required words: FUNCTION, TRIM, LEADING, TRAILING."
+   },
+   {
+    "startLine": 37201,
+    "page": 920,
+    "what": "MODULE-NAME function general format (15.65.2)",
+    "correctedBlock": "                       ⎧ ACTIVATING ⎫\n                       ⎪  CURRENT   ⎪\nFUNCTION MODULE-NAME ( ⎨   NESTED   ⎬ )\n                       ⎪   STACK    ⎪\n                       ⎩ TOP-LEVEL  ⎭",
+    "notesBlock": "> **Figure notes** — the outer `(` `)` are literal COBOL argument parentheses, not notation; the inner braces are a notation brace with no choice indicators (verified at 900 dpi), so exactly ONE keyword argument shall be specified. FUNCTION, MODULE-NAME, ACTIVATING, CURRENT, NESTED, STACK and TOP-LEVEL are underlined in the printed standard (required words)."
+   },
+   {
+    "startLine": 34937,
+    "page": 860,
+    "what": "CONVERT intrinsic function destination-format (15.19.2)",
+    "correctedBlock": "⎧ ⎧ ⎧ ⎧ ⎧ ALPHANUMERIC ⎫ ⎫ ⎫     ⎫ ⎫\n⎪ ⎪ ⎪ ⎪ ⎩ ANUM         ⎭ ⎪ ⎪     ⎪ ⎪\n⎪ ⎨ ⎨ ⎨                  ⎬ ⎬ HEX ⎬ ⎪\n⎪ ⎪ ⎪ ⎪ ⎧ NAT          ⎫ ⎪ ⎪     ⎪ ⎪\n⎨ ⎩ ⎩ ⎩ ⎩ NATIONAL     ⎭ ⎭ ⎭     ⎭ ⎬\n⎪                                   ⎪\n⎩ BYTE                              ⎭",
+    "notesBlock": "> **Figure notes:** all delimiters in this figure are BRACES — there are no choice indicators (verified at 700 dpi). The outermost brace selects exactly one of the HEX group or BYTE; within the HEX group, exactly one of `{ALPHANUMERIC | ANUM}` or `{NAT | NATIONAL}` is selected and is followed by the required word HEX. ALPHANUMERIC, ANUM, NAT, NATIONAL, HEX and BYTE are all underlined (required words) in the printed figure; the underscore rows in the previous transcription were OCR artefacts of that underlining, not operands."
+   },
+   {
+    "startLine": 31781,
+    "page": 775,
+    "what": "SORT statement, Format 1 (file) general format",
+    "correctedBlock": "                 ⎧       ⎧ ASCENDING  ⎫                         ⎫\nSORT file-name-1 ⎨  ON   ⎨            ⎬ KEY { data-name-1 } ... ⎬  ...\n                 ⎩       ⎩ DESCENDING ⎭                         ⎭\n\n[ WITH DUPLICATES IN ORDER ]\n\n⎡                      ⎧  IS alphabet-name-1 [ alphabet-name-2 ]     ⎫ ⎤\n⎢ COLLATING SEQUENCE   ⎨ ⎧| FOR ALPHANUMERIC IS alphabet-name-1 |⎫   ⎬ ⎥\n⎣                      ⎩ ⎩| FOR NATIONAL IS alphabet-name-2     |⎭   ⎭ ⎦\n\n⎧                                          ⎡ ⎧ THROUGH ⎫                  ⎤ ⎫\n⎪  INPUT PROCEDURE IS procedure-name-1     ⎢ ⎨         ⎬ procedure-name-2 ⎥ ⎪\n⎨                                          ⎣ ⎩ THRU    ⎭                  ⎦ ⎬\n⎪  USING { file-name-2 } ...                                                ⎪\n⎩                                                                          ⎭\n\n⎧                                          ⎡ ⎧ THROUGH ⎫                  ⎤ ⎫\n⎪  OUTPUT PROCEDURE IS procedure-name-3    ⎢ ⎨         ⎬ procedure-name-4 ⎥ ⎪\n⎨                                          ⎣ ⎩ THRU    ⎭                  ⎦ ⎬\n⎪  GIVING { file-name-3 } ...                                               ⎪\n⎩                                                                          ⎭",
+    "notesBlock": "> **Figure notes (SORT Format 1).** Inside the COLLATING SEQUENCE bracket, the second alternative is a BRACE WITH CHOICE INDICATORS (`⎧|` … `|⎫`). Per 5.2.6.4, that means one or more of the enclosed alternatives shall be specified, each at most once, in any order — so `FOR ALPHANUMERIC IS alphabet-name-1` and `FOR NATIONAL IS alphabet-name-2` may BOTH appear, in either order. It is NOT a select-exactly-one brace. The enclosing brace offers a choice between that bar-group and the single-line form `IS alphabet-name-1 [ alphabet-name-2 ]`, and the whole COLLATING SEQUENCE clause is optional (outer brackets). The THROUGH/THRU bracket applies only to the `INPUT PROCEDURE IS procedure-name-1` (resp. `OUTPUT PROCEDURE IS procedure-name-3`) alternative, never to the USING/GIVING alternative. Required words (underlined in the printed figure): SORT, ASCENDING, DESCENDING, DUPLICATES, SEQUENCE, ALPHANUMERIC, NATIONAL, INPUT, PROCEDURE, USING, THROUGH, THRU, OUTPUT, GIVING."
+   },
+   {
+    "startLine": 31032,
+    "page": 756,
+    "what": "SEND statement, Format 2 (message-server-response) general format",
+    "correctedBlock": "SEND TO  data-name-2  FROM identifier-1\n\n    ⎡           ⎧ EXCEPTION exception-name-1 ⎫ ⎤\n    ⎢ RAISING   ⎨                            ⎬ ⎥\n    ⎣           ⎩ LAST EXCEPTION             ⎭ ⎦\n\n    ⎡|  ON EXCEPTION imperative-statement-1      |⎤\n    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n\nEND-SEND",
+    "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` mean **zero or more** of the alternatives, each **at most once**, **in any order** — both branches may appear in one SEND. The RAISING brace has NO bars: exactly one of `EXCEPTION exception-name-1` / `LAST EXCEPTION` when the optional RAISING phrase is written. `END-SEND` is not bracketed — it is required in Format 2. Underlined (required) words: SEND, TO, FROM, RAISING, EXCEPTION, LAST, NOT, END-SEND."
+   },
+   {
+    "startLine": 31015,
+    "page": 756,
+    "what": "SEND statement, Format 1 (to-message-server) general format",
+    "correctedBlock": "              ⎧ literal-1             ⎫\nSEND TO       ⎨                       ⎬ FROM identifier-1\n              ⎩ message-server-name-1 ⎭\n\n    RETURNING data-name-1\n\n    ⎡|  ON EXCEPTION imperative-statement-1      |⎤\n    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n\nEND-SEND",
+    "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` mean **zero or more** of the alternatives, each **at most once**, **in any order** — both branches may appear in one SEND. Note also that `RETURNING data-name-1` and `END-SEND` are NOT bracketed in the printed figure: they are required in Format 1. Underlined (required) words: SEND, TO, FROM, RETURNING, EXCEPTION, NOT, END-SEND."
+   },
+   {
+    "startLine": 30162,
+    "page": 732,
+    "what": "RECEIVE statement general format",
+    "correctedBlock": "⎡                   ⎧ arithmetic-expression-1 SECONDS ⎫ ⎤\n⎢ CONTINUE AFTER    ⎨                                 ⎬ ⎥\n⎣                   ⎩ MESSAGE RECEIVED                ⎭ ⎦\n\n⎡|  ON EXCEPTION imperative-statement-1      |⎤\n⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n[ END-RECEIVE ]",
+    "notesBlock": "> **Figure notes (ISO 5.2.6.4)** — the ON EXCEPTION group carries **choice indicators** (`|` bars just inside the brackets, spanning both stacked alternatives): zero or more of the enclosed alternatives, each at most once, in any order. Therefore **both** `ON EXCEPTION` and `NOT ON EXCEPTION` may be specified in one RECEIVE statement. The `CONTINUE AFTER` group by contrast has **plain brackets with no bars** — it is optional and, if present, exactly one of `arithmetic-expression-1 SECONDS` / `MESSAGE RECEIVED` is selected by the inner braces."
+   },
+   {
+    "startLine": 29148,
+    "page": 705,
+    "what": "OPEN statement general format",
+    "correctedBlock": "        ⎧ ⎧ INPUT  ⎫                                                                          ⎫\n        ⎪ ⎪ OUTPUT ⎪                                                                          ⎪\nOPEN    ⎨ ⎨ I-O    ⎬ [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } … ⎬ …\n        ⎪ ⎩ EXTEND ⎭                                                                          ⎪\n        ⎩                                                                                     ⎭",
+    "notesBlock": "> **Figure notes (14.9.27.2, OPEN):** the printed figure has TWO nested brace pairs. The INNER braces enclose the four open modes (INPUT / OUTPUT / I-O / EXTEND) — exactly one shall be selected. The OUTER braces enclose the entire group `{ open-mode } [ sharing-phrase ] [ retry-phrase ] { file-name-1 [ WITH NO REWIND ] } …` and carry their own trailing ellipsis, so that whole group — mode, phrases and file list together — may be repeated, which is how one OPEN statement opens files in differing modes. Verified at 900 dpi: NO choice-indicator bars are present anywhere in this figure. OPEN, INPUT, OUTPUT, I-O, EXTEND, NO and REWIND are underlined in the printed figure (required words); WITH is not underlined (optional word)."
+   },
+   {
+    "startLine": 29083,
+    "page": 703,
+    "what": "MULTIPLY statement Format 2 (giving) general format",
+    "correctedBlock": "                 ⎧ identifier-1 ⎫      ⎧ identifier-2 ⎫\nMULTIPLY         ⎨              ⎬  BY  ⎨              ⎬\n                 ⎩ literal-1    ⎭      ⎩ literal-2    ⎭\n\n    GIVING { identifier-3 [ rounded-phrase ] } ...\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-MULTIPLY ]",
+    "notesBlock": "> **Figure notes (MULTIPLY Format 2 (giving) syntax diagram).** `MULTIPLY`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`,\n> `NOT`, and `END-MULTIPLY` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,\n> bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — both\n> `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement."
+   },
+   {
+    "startLine": 29071,
+    "page": 703,
+    "what": "MULTIPLY statement Format 1 (by) general format",
+    "correctedBlock": "                 ⎧ identifier-1 ⎫\nMULTIPLY         ⎨              ⎬  BY { identifier-2 [ rounded-phrase ] }  ...\n                 ⎩ literal-1    ⎭\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-MULTIPLY ]",
+    "notesBlock": "> **Figure notes (MULTIPLY Format 1 (by) syntax diagram).** `MULTIPLY`, `BY`, `ON`, `SIZE`, `ERROR`, `NOT`, and\n> `END-MULTIPLY` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,\n> bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — a single\n> MULTIPLY may carry `ON SIZE ERROR`, `NOT ON SIZE ERROR`, **both**, or neither."
+   },
+   {
+    "startLine": 28387,
+    "page": 681,
+    "what": "INVOKE statement general format (14.9.23.2)",
+    "correctedBlock": "       ⎧ object-class-name-1 ⎫ ⎧ identifier-2 ⎫\nINVOKE ⎩ identifier-1        ⎭ ⎩ literal-1    ⎭\n\n  ⎡       ⎧                                                     ⎫    ⎤\n  ⎢       ⎪ [ BY REFERENCE ] ⎧ identifier-3 ⎫                   ⎪    ⎥\n  ⎢       ⎪                  ⎩ OMITTED      ⎭                   ⎪    ⎥\n  ⎢       ⎪                                                     ⎪    ⎥\n  ⎢       ⎪                  ⎧ arithmetic-expression-1 ⎫        ⎪    ⎥\n  ⎢ USING ⎨ [ BY CONTENT ]   ⎪ boolean-expression-1    ⎪        ⎬ ...⎥\n  ⎢       ⎪                  ⎨ identifier-5            ⎬        ⎪    ⎥\n  ⎢       ⎪                  ⎩ literal-2               ⎭        ⎪    ⎥\n  ⎢       ⎪                                                     ⎪    ⎥\n  ⎢       ⎪                  ⎧ arithmetic-expression-1 ⎫        ⎪    ⎥\n  ⎢       ⎪ [ BY VALUE ]     ⎨ identifier-5            ⎬        ⎪    ⎥\n  ⎣       ⎩                  ⎩ literal-2               ⎭        ⎭    ⎦\n\n  [ RETURNING identifier-4 ]",
+    "notesBlock": "> **Figure notes** — no choice indicators appear anywhere in the printed figure (verified at 750 dpi). The outer brackets make the whole USING phrase optional; the ellipsis is INSIDE those brackets, so the `[BY …] operand` group repeats. The BY REFERENCE / BY CONTENT / BY VALUE group is a brace group: exactly one of the three is selected on each repetition. INVOKE, REFERENCE, OMITTED, CONTENT, VALUE, USING and RETURNING are underlined in the printed standard (required words)."
+   },
+   {
+    "startLine": 28153,
+    "page": 674,
+    "what": "INSPECT replacing-phrase (14.9.22.2)",
+    "correctedBlock": "⎧ CHARACTERS BY replacement-item [ after-before-phrase ]                            ⎫\n⎪                                                                                   ⎪\n⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪\n⎪ ALL     ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎪\n⎪         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎪\n⎪                                                                                   ⎪\n⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪\n⎨ LEADING ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎬ ...\n⎪         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎪\n⎪                                                                                   ⎪\n⎪         ⎧ ⎧ identifier-3 ⎫                                            ⎫           ⎪\n⎪ FIRST   ⎨ ⎨              ⎬ BY replacement-item [ after-before-phrase ] ⎬ ...       ⎪\n⎩         ⎩ ⎩ literal-1    ⎭                                            ⎭           ⎭",
+    "notesBlock": "> **Figure notes:** no choice indicators here — the outer braces are plain (verified at 700 dpi), so exactly one of CHARACTERS / ALL / LEADING / FIRST is selected per repetition, and the trailing `...` after the outer brace permits the whole replacing-phrase to be repeated. Each of ALL / LEADING / FIRST has its own inner `...` applying to the group brace immediately to its left (the `{identifier-3|literal-1} BY replacement-item [after-before-phrase]` unit). CHARACTERS, BY, ALL, LEADING and FIRST are underlined (required words) in the printed figure."
+   },
+   {
+    "startLine": 28142,
+    "page": 674,
+    "what": "INSPECT after-before-phrase (14.9.22.2)",
+    "correctedBlock": "⎧|                     ⎧ identifier-4 ⎫ |⎫\n⎪|  AFTER  INITIAL     ⎨              ⎬ |⎪\n⎨|                     ⎩ literal-2    ⎭ |⎬\n⎪|                     ⎧ identifier-4 ⎫ |⎪\n⎪|  BEFORE INITIAL     ⎨              ⎬ |⎪\n⎩|                     ⎩ literal-2    ⎭ |⎭",
+    "notesBlock": "> **Figure notes (ISO 5.2.6.4):** the outer braces carry CHOICE INDICATORS (the `|` bars just inside them, spanning both stacked alternatives). Bars enclosed by BRACES mean: one or more of the alternatives shall be specified, each may be specified at most once, and they may appear in any order. Therefore `AFTER INITIAL` and `BEFORE INITIAL` may BOTH be written in the same phrase, in either order. AFTER and BEFORE are underlined (required) in the printed figure; INITIAL is not underlined (optional word)."
+   },
+   {
+    "startLine": 28121,
+    "page": 673,
+    "what": "INSPECT statement — tallying-phrase general format",
+    "correctedBlock": "⎧                                                                                    ⎫\n⎪                   ⎧ CHARACTERS [ after-before-phrase ]                     ⎫       ⎪\n⎪                   ⎪                                                        ⎪       ⎪\n⎪                   ⎪          ⎧ ⎧ identifier-3 ⎫                       ⎫    ⎪       ⎪\n⎪                   ⎪  ALL     ⎨ ⎨              ⎬ [ after-before-phrase ] ⎬ ...⎪     ⎪\n⎨ identifier-2 FOR  ⎨          ⎩ ⎩ literal-1    ⎭                       ⎭    ⎬  ...  ⎬  ...\n⎪                   ⎪                                                        ⎪       ⎪\n⎪                   ⎪          ⎧ ⎧ identifier-3 ⎫                       ⎫    ⎪       ⎪\n⎪                   ⎪ LEADING  ⎨ ⎨              ⎬ [ after-before-phrase ] ⎬ ...⎪     ⎪\n⎩                   ⎩          ⎩ ⎩ literal-1    ⎭                       ⎭    ⎭       ⎭",
+    "notesBlock": "> **Figure notes (INSPECT tallying-phrase).** All enclosures here are plain braces — there are NO choice indicators in the printed figure, so exactly one alternative is selected at each level. Nesting, outermost first: `{ identifier-2 FOR { CHARACTERS [ after-before-phrase ] | ALL { { identifier-3 / literal-1 } [ after-before-phrase ] } … | LEADING { { identifier-3 / literal-1 } [ after-before-phrase ] } … } … } …` — where the vertical bars in this note are prose separators for the stacked alternatives, not choice indicators. Three distinct ellipses apply: the innermost repeats the { identifier-3 / literal-1 } [ after-before-phrase ] pairing within one ALL or LEADING phrase; the middle repeats the selected CHARACTERS/ALL/LEADING phrase for one identifier-2; the outermost repeats the whole `identifier-2 FOR …` group. Required words (underlined in the printed figure): CHARACTERS, ALL, LEADING, FOR."
+   },
+   {
+    "startLine": 27886,
+    "page": 667,
+    "what": "INITIALIZE — 'where category-name is' alternatives list",
+    "correctedBlock": "⎧|  ALPHABETIC           |⎫\n⎪|  ALPHANUMERIC         |⎪\n⎪|  ALPHANUMERIC-EDITED  |⎪\n⎪|  BOOLEAN              |⎪\n⎪|  DATA-POINTER         |⎪\n⎪|  FUNCTION-POINTER     |⎪\n⎨|  MESSAGE-TAG          |⎬\n⎪|  NATIONAL             |⎪\n⎪|  NATIONAL-EDITED      |⎪\n⎪|  NUMERIC              |⎪\n⎪|  NUMERIC-EDITED       |⎪\n⎪|  OBJECT-REFERENCE     |⎪\n⎩|  PROGRAM-POINTER      |⎭",
+    "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACE are choice indicators: **one or more** of the thirteen category names shall be specified, each **at most once**, **in any order**. Every one of the thirteen words is underlined (required word) in the printed figure."
+   },
+   {
+    "startLine": 27183,
+    "page": 648,
+    "what": "EVALUATE selection-object general format (braces, ten stacked alternatives)",
+    "correctedBlock": "⎧ [ NOT ] identifier-2            ⎫\n⎪ [ NOT ] literal-2               ⎪\n⎪ [ NOT ] arithmetic-expression-2 ⎪\n⎪ [ NOT ] boolean-expression-2    ⎪\n⎨ [ NOT ] range-expression        ⎬\n⎪ condition-2                     ⎪\n⎪ partial-expression-1            ⎪\n⎪ TRUE                            ⎪\n⎪ FALSE                           ⎪\n⎩ ANY                             ⎭",
+    "notesBlock": "> **Figure notes (14.9.13.2, selection-object):** a single pair of braces spanning ten stacked alternatives — exactly one shall be selected. Verified at 900 dpi: NO choice-indicator bars are present. The bracketed `NOT` applies only to the first five alternatives, exactly as stacked. NOT, TRUE, FALSE and ANY are underlined in the printed figure (required words)."
+   },
+   {
+    "startLine": 27020,
+    "page": 644,
+    "what": "DIVIDE statement Format 3 (by-giving) general format",
+    "correctedBlock": "           ⎧ identifier-2 ⎫    ⎧ identifier-1 ⎫\nDIVIDE     ⎨              ⎬ BY ⎨              ⎬\n           ⎩ literal-2    ⎭    ⎩ literal-1    ⎭\n\n    GIVING { identifier-3 [ rounded-phrase ] } ...\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-DIVIDE ]",
+    "notesBlock": "> **Figure notes (DIVIDE Format 3 (by-giving) syntax diagram).** `DIVIDE`, `BY`, `GIVING`, `ON`, `SIZE`, `ERROR`,\n> `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,\n> bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — both\n> `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement."
+   },
+   {
+    "startLine": 27005,
+    "page": 644,
+    "what": "DIVIDE statement Format 2 (into-giving) general format",
+    "correctedBlock": "           ⎧ identifier-1 ⎫      ⎧ identifier-2 ⎫\nDIVIDE     ⎨              ⎬ INTO ⎨              ⎬\n           ⎩ literal-1    ⎭      ⎩ literal-2    ⎭\n\n    GIVING { identifier-3 [ rounded-phrase ] } ...\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-DIVIDE ]",
+    "notesBlock": "> **Figure notes (DIVIDE Format 2 (into-giving) syntax diagram).** `DIVIDE`, `INTO`, `GIVING`, `ON`, `SIZE`,\n> `ERROR`, `NOT`, and `END-DIVIDE` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** (`|` bars just inside the brackets). Per 5.2.6.4,\n> bars enclosed by BRACKETS mean **zero or more** of the alternatives, each at most once, **in any order** — both\n> `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written on the same statement."
+   },
+   {
+    "startLine": 26995,
+    "page": 644,
+    "what": "DIVIDE statement Format 1 (into) general format",
+    "correctedBlock": "           ⎧ identifier-1 ⎫\nDIVIDE     ⎨              ⎬ INTO { identifier-2 [ rounded-phrase ] } ...\n           ⎩ literal-1    ⎭\n\n    ⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n    ⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n    [ END-DIVIDE ]",
+    "notesBlock": "> **Figure notes (DIVIDE Format 1 (into) syntax diagram).** `DIVIDE`, `INTO`, `ON`, `SIZE`, `ERROR`, `NOT`, and\n> `END-DIVIDE` are underlined in the printed standard (required words).\n> ⚠ **The ON SIZE ERROR group is enclosed in CHOICE INDICATORS** — the `|` bars just inside the brackets. Per\n> 5.2.6.4, bars enclosed by BRACKETS mean **zero or more** of the alternatives may be specified, each at most once,\n> **in any order** — so a single DIVIDE may carry `ON SIZE ERROR`, `NOT ON SIZE ERROR`, **both**, or neither.\n> Plain brackets without bars would wrongly read as 'zero or one'."
+   },
+   {
+    "startLine": 26864,
+    "page": 640,
+    "what": "DISPLAY statement, Format 2 (screen) — general format",
+    "correctedBlock": "⎡    ⎧|                ⎧ identifier-2 ⎫             |⎫ ⎤\n⎢    ⎪| LINE NUMBER    ⎨              ⎬             |⎪ ⎥\n⎢ AT ⎨|                ⎩ integer-1    ⎭             |⎬ ⎥\n⎢    ⎪| ⎧ COLUMN ⎫              ⎧ identifier-3 ⎫    |⎪ ⎥\n⎣    ⎩| ⎩ COL    ⎭  NUMBER      ⎩ integer-2    ⎭    |⎭ ⎦\n\n⎡|  ON EXCEPTION imperative-statement-1      |⎤\n⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n[ END-DISPLAY ]",
+    "notesBlock": "> **Figure notes — choice indicators (ISO 5.2.6.4).** Two groups in this format carry choice-indicator bars, both lost in transcription.\n> **(1) The AT phrase** — bars enclosed by BRACES: one or more of the enclosed alternatives shall be specified, each may be specified only once, and they may appear in any order. So `AT LINE NUMBER n`, `AT COLUMN NUMBER m`, and `AT LINE NUMBER n COLUMN NUMBER m` are all valid; the whole AT phrase is itself optional via the surrounding bracket.\n> **(2) The exception phrase** — bars enclosed by BRACKETS: zero or more of the enclosed alternatives, each at most once, in any order. So a single DISPLAY may specify BOTH `ON EXCEPTION` and `NOT ON EXCEPTION`, in either order. Plain brackets without bars would wrongly read as 'zero or one'.\n> Underlined required words: DISPLAY, LINE, COLUMN, COL, EXCEPTION, NOT, END-DISPLAY."
+   },
+   {
+    "startLine": 26362,
+    "page": 627,
+    "what": "CLOSE statement general format (14.9.6.2)",
+    "correctedBlock": "      ⎧                                          ⎫\n      ⎪             ⎡ ⎧ REEL ⎫                  ⎤ ⎪\nCLOSE ⎨ file-name-1 ⎢ ⎨      ⎬ [ FOR REMOVAL ]  ⎥ ⎬ ...\n      ⎪             ⎢ ⎩ UNIT ⎭                  ⎥ ⎪\n      ⎩             ⎣ WITH NO REWIND            ⎦ ⎭",
+    "notesBlock": "> **Figure notes** — no choice indicators appear in the printed figure (verified at 800 dpi): the outer braces with the trailing ellipsis mean the whole `file-name-1 …` group is required and repeatable; the inner brackets are plain, so at most ONE of the `{REEL|UNIT} [FOR REMOVAL]` row or the `WITH NO REWIND` row may be written per file-name. CLOSE, REEL, UNIT, REMOVAL, NO and REWIND are underlined in the printed standard (required words)."
+   },
+   {
+    "startLine": 26060,
+    "page": 619,
+    "what": "CALL statement, Format 2 (program-prototype) general format",
+    "correctedBlock": "        ⎡ ⎧ identifier-1 ⎫      ⎤   ⎧ NESTED                   ⎫\nCALL    ⎢ ⎨              ⎬  AS  ⎥   ⎨                          ⎬\n        ⎣ ⎩ literal-1    ⎭      ⎦   ⎩ program-prototype-name-1 ⎭\n\n⎡                                                                       ⎤\n⎢                ⎧                     ⎧ identifier-2 ⎫                 ⎥\n⎢                ⎪  [ BY REFERENCE ]   ⎨              ⎬                 ⎥\n⎢                ⎪                     ⎩ OMITTED      ⎭                 ⎥\n⎢                ⎪                                                      ⎥\n⎢                ⎪                     ⎧ arithmetic-expression-1 ⎫      ⎥\n⎢                ⎪                     ⎪ boolean-expression-1    ⎪      ⎥\n⎢  USING         ⎨  [ BY CONTENT ]     ⎨ identifier-4            ⎬  ... ⎥\n⎢                ⎪                     ⎩ literal-2               ⎭      ⎥\n⎢                ⎪                                                      ⎥\n⎢                ⎪                     ⎧ arithmetic-expression-1 ⎫      ⎥\n⎢                ⎪  [ BY VALUE ]       ⎨ identifier-4            ⎬      ⎥\n⎢                ⎩                     ⎩ literal-2               ⎭      ⎥\n⎣                                                                       ⎦\n\n[ RETURNING identifier-3 ]\n\n⎡|  ON EXCEPTION imperative-statement-1      |⎤\n⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n\n[ END-CALL ]",
+    "notesBlock": "> **Figure notes (CALL Format 2).** The ON EXCEPTION group is enclosed in BRACKETS WITH CHOICE INDICATORS (`⎡|` … `|⎤`). Per 5.2.6.4, that means zero or more of the enclosed alternatives may be specified, each at most once, in any order — so a single CALL statement may specify BOTH `ON EXCEPTION imperative-statement-1` AND `NOT ON EXCEPTION imperative-statement-2`, in either order. It is NOT a plain zero-or-one bracket. The USING clause as a whole is enclosed in a plain bracket (optional); within it the three BY-phrase alternatives are enclosed in a BRACE (exactly one selected per repetition), and the `...` following that brace repeats the selected BY phrase. Required words (underlined in the printed figure): CALL, AS, NESTED, REFERENCE, CONTENT, VALUE, OMITTED, USING, RETURNING, EXCEPTION, NOT, END-CALL."
+   },
+   {
+    "startLine": 26040,
+    "page": 618,
+    "what": "CALL statement, Format 1 (Program) general format",
+    "correctedBlock": "          ⎧ identifier-1 ⎫   ⎡        ⎧ [ BY REFERENCE ] { identifier-2 } ... ⎫     ⎤\nCALL      ⎨              ⎬   ⎢ USING  ⎨                                       ⎬ ... ⎥\n          ⎩ literal-1    ⎭   ⎣        ⎩ BY CONTENT { identifier-2 } ...       ⎭     ⎦\n\n    [ RETURNING identifier-3 ]\n\n    ⎡|  ON EXCEPTION imperative-statement-1      |⎤\n    ⎣|  NOT ON EXCEPTION imperative-statement-2  |⎦\n    [ END-CALL ]",
+    "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the BRACKET enclosing `ON EXCEPTION` / `NOT ON EXCEPTION` are choice indicators: **zero or more** of the enclosed alternatives may be specified, each **at most once**, **in any order**. Both branches may therefore appear in one CALL statement, in either order. Underlined (required) words: CALL, REFERENCE, CONTENT, USING, RETURNING, EXCEPTION, NOT, END-CALL."
+   },
+   {
+    "startLine": 25853,
+    "page": 613,
+    "what": "ADD statement Format 3 (corresponding) general format",
+    "correctedBlock": "         ⎧ CORRESPONDING ⎫\nADD      ⎨               ⎬ identifier-4 TO identifier-5  [ rounded-phrase ]\n         ⎩ CORR          ⎭\n\n⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n[ END-ADD ]",
+    "notesBlock": "> **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars inside the brackets): zero or more of the enclosed alternatives, each at most once, in any order. **Both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be written in the same ADD statement."
+   },
+   {
+    "startLine": 25839,
+    "page": 613,
+    "what": "ADD statement Format 2 (giving) general format",
+    "correctedBlock": "         ⎧ identifier-1 ⎫             ⎧ identifier-2 ⎫\nADD      ⎨              ⎬ ... TO      ⎨              ⎬\n         ⎩ literal-1    ⎭             ⎩ literal-2    ⎭\n\nGIVING  { identifier-3 [ rounded-phrase ] } ...\n\n⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n[ END-ADD ]",
+    "notesBlock": "> **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars inside the brackets). Bars within BRACKETS mean zero or more of the alternatives, each at most once, in any order — so **both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may be specified in the same ADD statement."
+   },
+   {
+    "startLine": 25827,
+    "page": 613,
+    "what": "ADD statement Format 1 (simple) general format",
+    "correctedBlock": "         ⎧ identifier-1 ⎫\nADD      ⎨              ⎬ ... TO { identifier-2 [ rounded-phrase ] } ...\n         ⎩ literal-1    ⎭\n\n⎡|  ON SIZE ERROR imperative-statement-1      |⎤\n⎣|  NOT ON SIZE ERROR imperative-statement-2  |⎦\n[ END-ADD ]",
+    "notesBlock": "> **Figure notes (ISO 5.2.6.4)** — the ON SIZE ERROR group carries **choice indicators** (`|` bars just inside the brackets, spanning both stacked alternatives). Bars enclosed by BRACKETS mean: zero or more of the enclosed alternatives may be specified, each at most once, in any order. Therefore **both** `ON SIZE ERROR` and `NOT ON SIZE ERROR` may appear in the same ADD statement. Plain brackets without bars would wrongly read as zero-or-one."
+   },
+   {
+    "startLine": 20247,
+    "page": 471,
+    "what": "PICTURE clause Format 1 (basic) general format",
+    "correctedBlock": "⎧ PICTURE ⎫                        ⎡                     ⎧ IS literal-1                     ⎫ ⎤\n⎨         ⎬ IS character-string-1  ⎢ EDITING character-1 ⎨     ⎧| NEGATIVE IS literal-2 |⎫  ⎬ ⎥ …\n⎩ PIC     ⎭                        ⎣                     ⎩ FOR ⎩| POSITIVE IS literal-3 |⎭  ⎭ ⎦",
+    "notesBlock": "> **Figure notes (PICTURE clause Format 1 (basic) syntax diagram).** `PICTURE`, `PIC`, `EDITING`, `NEGATIVE`, and\n> `POSITIVE` are underlined in the printed standard (required words / required minimum abbreviation).\n> ⚠ **The `FOR` group is enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside its braces — verified\n> against the printed page at 900 dpi). Per 5.2.6.4, braces enclosing choice indicators mean **one or more** of the\n> enclosed alternatives shall be specified, each at most once, **in any order** — so a single `FOR` phrase may carry\n> `NEGATIVE` alone, `POSITIVE` alone, or **both**. This is NOT the exclusive either/or that plain stacked braces\n> would denote. The ellipsis applies to the outer bracketed `EDITING` group, which may therefore be repeated."
+   },
+   {
+    "startLine": 17390,
+    "page": 399,
+    "what": "Screen description entry, Format 2 (elementary) — general format",
+    "correctedBlock": "[ IS GLOBAL ]\n\n⎡                 ⎡ PLUS  ⎤                 ⎤\n⎢                 ⎢ +     ⎥ ⎧ identifier-1 ⎫ ⎥\n⎢ LINE NUMBER IS  ⎢ MINUS ⎥ ⎩ integer-1    ⎭ ⎥\n⎣                 ⎣ -     ⎦                 ⎦\n\n⎡ ⎧ COLUMN ⎫              ⎡ PLUS  ⎤                 ⎤\n⎢ ⎨        ⎬ NUMBER IS    ⎢ +     ⎥ ⎧ identifier-2 ⎫ ⎥\n⎢ ⎩ COL    ⎭              ⎢ MINUS ⎥ ⎩ integer-2    ⎭ ⎥\n⎣                         ⎣ -     ⎦                 ⎦\n\n⎡ BLANK ⎧ LINE   ⎫ ⎤\n⎣       ⎩ SCREEN ⎭ ⎦\n\n⎡        ⎧ END OF LINE   ⎫ ⎤\n⎢ ERASE  ⎨ END OF SCREEN ⎬ ⎥\n⎢        ⎨ EOL           ⎬ ⎥\n⎣        ⎩ EOS           ⎭ ⎦\n\n[ screen-attribute-clauses ]\n[ picture-clause ]\n[ source-destination-clauses ]\n[ BLANK WHEN ZERO ]\n\n⎡ ⎧ JUST      ⎫       ⎤\n⎣ ⎩ JUSTIFIED ⎭ RIGHT ⎦\n\n⎡              ⎧ LEADING  ⎫                        ⎤\n⎣ [ SIGN IS ]  ⎩ TRAILING ⎭ [ SEPARATE CHARACTER ] ⎦\n\n[ FULL ]\n[ AUTO ]\n[ SECURE ]\n[ REQUIRED ]\n[ OCCURS integer-5 TIMES ]\n\n⎡ [ USAGE IS ] ⎧ DISPLAY  ⎫ ⎤ .\n⎣              ⎩ NATIONAL ⎭ ⎦",
+    "notesBlock": "> **Figure notes (ISO 5.2.6 notation).** This format contains NO choice indicators; every stacked group is a plain brace (exactly one alternative) or a plain bracket (zero or one). Underlined required words in the printed figure: GLOBAL, LINE, PLUS, MINUS, COLUMN, COL, BLANK, LINE, SCREEN, ERASE, LINE, SCREEN, EOL, EOS, BLANK/ZERO, JUST, JUSTIFIED, SIGN, LEADING, TRAILING, SEPARATE, FULL, AUTO, SECURE, REQUIRED, OCCURS, USAGE, DISPLAY, NATIONAL. Note that `[ SIGN IS ]` is an optional phrase nested INSIDE the outer optional bracket that encloses the whole sign clause."
+   },
+   {
+    "startLine": 12810,
+    "page": 289,
+    "what": "METHOD-ID paragraph / method-definition general format",
+    "correctedBlock": "[ IDENTIFICATION DIVISION. ]\n\n              ⎧ method-name-1 [ AS literal-1 ]               ⎫\n              ⎪                                              ⎪\nMETHOD-ID.  ⎨   ⎧ GET ⎫                                       ⎬  [ OVERRIDE ] [ IS FINAL ] .\n              ⎪   ⎩ SET ⎭  PROPERTY property-name-1           ⎪\n              ⎩                                              ⎭\n\n[ options-paragraph ]\n[ environment-division ]\n[ data-division ]\n[ procedure-division ]\nEND METHOD [ method-name-1 ] ."
+   },
+   {
+    "startLine": 12707,
+    "page": 287,
+    "what": "program-definition general format (PROGRAM-ID paragraph with COMMON/INITIAL/RECURSIVE)",
+    "correctedBlock": "[ IDENTIFICATION DIVISION. ]\n\n                                             ⎡    ⎧|  COMMON                |⎫           ⎤\nPROGRAM-ID. program-name-1 [ AS literal-1 ]  ⎢ IS ⎨|  ⎧ INITIAL   ⎫         |⎬  PROGRAM  ⎥ .\n                                             ⎣    ⎩|  ⎩ RECURSIVE ⎭         |⎭           ⎦\n\n[ options-paragraph ]\n[ environment-division ]\n[ data-division ]\n[ procedure-division  [ program-definition ] ... ]\n[ END PROGRAM program-name-1. ]",
+    "notesBlock": "> **Figure notes (5.2.6.4 choice indicators).** The bars just inside the outer BRACE are choice indicators spanning the two stacked alternatives `COMMON` and `⎧ INITIAL | RECURSIVE ⎭`. Inside braces they mean: **one or more** of the enclosed alternatives shall be specified, each **at most once**, **in any order**. So `IS COMMON PROGRAM`, `IS INITIAL PROGRAM`, `IS RECURSIVE PROGRAM`, `IS COMMON INITIAL PROGRAM` and `IS INITIAL COMMON PROGRAM` are all legal; `IS INITIAL RECURSIVE PROGRAM` is not (the inner brace has no bars — exactly one of INITIAL/RECURSIVE). Underlined (required) words in the printed figure: IDENTIFICATION, DIVISION, PROGRAM-ID, AS, COMMON, INITIAL, RECURSIVE, END, PROGRAM."
+   },
+   {
+    "startLine": 6767,
+    "page": 155,
+    "what": "identifier Format 6 (predefined-object) general format",
+    "correctedBlock": "⎧ EXCEPTION-OBJECT                 ⎫\n⎪ NULL                             ⎪\n⎪ SELF                             ⎪\n⎩ [ object-class-name-1 OF ] SUPER ⎭"
+   }
+  ],
+  "compilerCrossCheck": [
+   {
+    "construct": "ON SIZE ERROR / NOT ON SIZE ERROR on ADD (Formats 1-3), DIVIDE (Formats 1-3), MULTIPLY (Formats 1-2) — and by extension SUBTRACT and COMPUTE, whose figures were prose-replaced and handled by the companion pass",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (arithmetic statement rules; the shared size-error/on-exception phrase rule if one exists)",
+    "whatToVerify": "That the parser admits BOTH phrases on one statement AND in either order (NOT ON SIZE ERROR before ON SIZE ERROR). The common bug is a rule like `onSizeError? notOnSizeError?` which silently forbids the reversed order, or `(onSizeError | notOnSizeError)?` which forbids both. Per 5.2.6.4 the correct shape is each-at-most-once, any-order. Also verify the binder diagnoses a DUPLICATE of either phrase (each at most once) rather than silently accepting two."
+   },
+   {
+    "construct": "ON EXCEPTION / NOT ON EXCEPTION on CALL Format 1, CALL Format 2, RECEIVE, SEND Format 1, SEND Format 2, DISPLAY Format 2",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (callStatement, receiveStatement, sendStatement, displayStatement)",
+    "whatToVerify": "Same each-at-most-once/any-order shape as the size-error phrases. Highest-risk: CALL, where the markdown showed doubled brackets and a from-the-markdown implementer would most plausibly write an exclusive alternation."
+   },
+   {
+    "construct": "DISPLAY Format 2 AT phrase — LINE NUMBER and COLUMN/COL NUMBER",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (screen-section DISPLAY)",
+    "whatToVerify": "That `DISPLAY x AT LINE 5 COLUMN 10` parses, that `AT COLUMN 10 LINE 5` also parses (any order), and that at least one of the two must be present when AT is written (bars in BRACES = one or more, not zero or more). This is the single most likely user-visible rejection in the corpus."
+   },
+   {
+    "construct": "OPEN — repetition of the whole (open-mode, sharing, retry, file-list) group",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (openStatement)",
+    "whatToVerify": "That `OPEN INPUT F1 OUTPUT F2 I-O F3` parses as one statement with three mode groups. If the rule is `OPEN openMode sharing? retry? fileSpec+` without an outer `+`, multi-mode OPEN is rejected."
+   },
+   {
+    "construct": "PROGRAM-ID — COMMON together with INITIAL or RECURSIVE, in either order",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (programIdParagraph)",
+    "whatToVerify": "That `PROGRAM-ID. P IS COMMON INITIAL PROGRAM` and `IS INITIAL COMMON PROGRAM` both parse, while `IS INITIAL RECURSIVE PROGRAM` is REJECTED (inner brace has no bars). Check also that COMMON+RECURSIVE is admitted."
+   },
+   {
+    "construct": "INSPECT after-before-phrase — AFTER INITIAL together with BEFORE INITIAL, either order",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (inspectStatement, afterBeforePhrase)",
+    "whatToVerify": "That `INSPECT X TALLYING T FOR ALL 'A' AFTER INITIAL '(' BEFORE INITIAL ')'` parses, and the reversed order too, with each specifiable at most once. A from-the-markdown implementation (nested braces) admits exactly one."
+   },
+   {
+    "construct": "SORT / MERGE — COLLATING SEQUENCE FOR ALPHANUMERIC together with FOR NATIONAL",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (sortStatement, mergeStatement; also the SPECIAL-NAMES/OBJECT-COMPUTER collating clauses which share the FOR ALPHANUMERIC/FOR NATIONAL shape)",
+    "whatToVerify": "That both FOR phrases may be given on one COLLATING SEQUENCE clause in either order, each once. Separately verify the THROUGH/THRU procedure-name-2 phrase is admitted ONLY after INPUT/OUTPUT PROCEDURE and REJECTED after USING/GIVING — the markdown's over-spanning bracket invites the opposite."
+   },
+   {
+    "construct": "INITIALIZE — multiple category-names in the TO VALUE and THEN REPLACING clauses",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (initializeStatement, categoryName)",
+    "whatToVerify": "That more than one category-name may be specified (one or more, each at most once, any order) rather than exactly one, and that a repeated category-name is diagnosed."
+   },
+   {
+    "construct": "PICTURE clause EDITING — FOR NEGATIVE together with FOR POSITIVE",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (pictureClause)",
+    "whatToVerify": "The only diagram whose bars survived, so the markdown is right here — confirm the grammar actually implements it: both NEGATIVE and POSITIVE in one FOR group, either order, and the EDITING group itself repeatable (trailing ellipsis)."
+   },
+   {
+    "construct": "FUNCTION MODULE-NAME — mandatory argument parentheses",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (intrinsicFunctionCall / function-specific rules)",
+    "whatToVerify": "That the parens are required and that exactly one of ACTIVATING/CURRENT/NESTED/STACK/TOP-LEVEL is required inside. A grammar written from the defective markdown might treat the keyword as a bare operand."
+   },
+   {
+    "construct": "INVOKE — optionality and repetition extent of the USING phrase",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (invokeStatement)",
+    "whatToVerify": "That the whole USING phrase is optional and the repetition applies to the `[BY …] operand` group inside it (not to the USING keyword), and that BY REFERENCE/CONTENT/VALUE is re-selectable per repetition."
+   },
+   {
+    "construct": "CLOSE — per-file {REEL|UNIT} [FOR REMOVAL] versus WITH NO REWIND exclusivity",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (closeStatement)",
+    "whatToVerify": "That at most ONE of the two rows may follow a given file-name (no bars in print), and that the file-name group repeats. Guard against having copied the OCR's spurious em-dash row into a token."
+   },
+   {
+    "construct": "Screen description entry Format 2 — SIGN clause optionality",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (screenDescriptionEntry)",
+    "whatToVerify": "That the entire `[[SIGN IS] {LEADING|TRAILING} [SEPARATE CHARACTER]]` clause is OPTIONAL. The markdown dropped its outer bracket, so a from-the-markdown grammar would require a sign clause on every elementary screen item."
+   },
+   {
+    "construct": "FUNCTION CONVERT destination-format nesting",
+    "grammarFile": "src/Cobol.Net.Frontend/Grammar/ (intrinsic function argument rules)",
+    "whatToVerify": "That HEX attaches to the {ALPHANUMERIC|ANUM|NAT|NATIONAL} group as a whole and that BYTE is a sibling alternative to that whole HEX group. Also confirm no OCR underscore artefact ('____') leaked into any token or keyword list."
+   }
+  ]
+ }
+}

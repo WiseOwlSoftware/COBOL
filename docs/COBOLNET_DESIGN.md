@@ -838,8 +838,10 @@ reuses the EXACT `CobolNum`/`CobolString` paths (zero special-case in the verb e
 SORT-RETURN → static `long`; WHEN-COMPILED → a compile-time constant string (timestamp injectable for determinism);
 LENGTH OF/BYTE-LENGTH → a folded `long` byte-size from PIC+USAGE; ADDRESS OF → `ManagedPointer`; LINAGE-COUNTER/
 LINE-COUNTER/PAGE-COUNTER + XML-*/JSON-* register NAMES are reserved by the registry but attach to their (scope-flagged)
-subsystems. **RETURN-CODE is ONE canonical static field** also written by GOBACK/STOP RUN/CALL RETURNING and read as
-the process exit code — a cross-subsystem contract (§14, §15).
+subsystems. **The run-unit exit code is ONE canonical field** (`RunUnit.ExitStatus`) — written by the STOP RUN /
+main-program GOBACK **WITH {NORMAL|ERROR} STATUS** phrase (§14.9.42.4 GR5 / §14.9.18.4 GR10) and by RETURN-CODE
+when implemented, read by the generated `Main` as the process exit code (a cross-subsystem contract, §14/§15; the
+DISTINCT RETURNING/GIVING activation result does not feed it — decision 20).
 
 ### 12.3 Smaller surfaces
 
@@ -1127,7 +1129,7 @@ cross-design prerequisites the subsystem designs flagged are surfaced inline.
 **STATUS:** G0 ✅ · G1 ✅ · G2 ✅ · G3 ✅ · G4 ✅ · G5 ✅ (files / interprogram / SORT) · G6 ✅
 (REDEFINES/RENAMES 4-tier, AsImage, ON SIZE ERROR, PICTURE P). G7 (per-edition correctness) is IN PROGRESS; G8
 (cut-over) pending. The rearchitecture roadmap (`docs/COBOLNET_REARCHITECTURE_PLAN.md`) is the go-forward plan and
-carries the live resume point (via `resume-prompt.md`); default `--std` = COBOL-2023.
+carries the live resume point (its §0 banner); default `--std` = COBOL-2023.
 
 ### G1 — Bootstrap ✅ (done)
 HELLO end-to-end (preprocess→parse→emit C#→Roslyn→run); DISPLAY of literals; STOP RUN.
@@ -1511,8 +1513,11 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     (accepted at `--std 85`, no failing diagnostic), DELETED by ISO/IEC 1989:2002 → REJECTED at 2002/2014/2023
     (COBOLNET0810/0811) — the earlier "gated ON through 2014" was reconciled against the ISO history (the 2023
     standard has no ALTER; §14.9.17 GO TO has only Formats 1–2). Realization: the D4 per-paragraph mutable field.
-    `PERFORM UNTIL EXIT` in scope (`while(true)` + EXIT PERFORM=`break`); main-program `GOBACK`-with-status →
-    `ProgramReturn` carrying the status (process exit code).
+    `PERFORM UNTIL EXIT` in scope (`while(true)` + EXIT PERFORM=`break`); a STOP RUN / main-program `GOBACK` WITH
+    {NORMAL|ERROR} STATUS (§14.9.42.4 GR5 / §14.9.18.4 GR10) writes the termination status into the run-unit
+    `RunUnit.ExitStatus` field, which the generated `Main` reads into `Environment.ExitCode` (the status rides the
+    run-unit field, NOT a `ProgramReturn`/`StopRun` payload — `ProgramReturn` is caught at `__Activate`, never
+    reaching `Main`; a called-program GOBACK status is inert, GR2).
 11. **CALL BY REFERENCE of an irregular receiver.** Array element → C# `ref`; a reference-modified splice →
     promote to BY CONTENT (lenient default), diagnosable under a strict dialect.
 12. **Pointer carrier.** A typed `ManagedRef<T>` (managed reference; NOT the abandoned `byte[]`+offset+length form);
@@ -1556,8 +1561,12 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     triggers an owner decision then (linearize one C# base + `IMPLEMENTS` interfaces with forwarding).
 19. **Intrinsic internals.** Never `decimal` — exact via unscaled `long`/`Int128`, float via `double` (extends the
     owner's decimal/BigInteger ban into intrinsic internals).
-20. **RETURN-CODE.** ONE synthesized `static long`, written by CALL RETURNING / GOBACK GIVING, read as the process
-    exit code (a single cross-subsystem owner, not duplicated).
+20. **RETURN-CODE / termination status.** The run-unit exit code is ONE canonical field — `RunUnit.ExitStatus`
+    (long), read by the generated `Main` into `Environment.ExitCode`. It is written by the STOP RUN / GOBACK
+    **WITH {NORMAL|ERROR} STATUS** phrase (§14.9.42.4 GR5 / §14.9.18.4 GR10 — the OS termination status) and, when
+    implemented, by the RETURN-CODE special register; a single cross-subsystem owner, never duplicated. NOTE:
+    RETURNING / GIVING is the **activation result** (§14.9.18.4 GR2 — moved into the caller's RETURNING item), a
+    DISTINCT mechanism from the OS status — it does NOT feed the exit code.
 21. **Whole-group-as-alphanumeric.** A generated `string AsImage()` / `FromImage()` per record struct is the
     PERMANENT typed-native mechanism for whole-group MOVE/compare of **DISPLAY-homogeneous** groups; a group with a
     COMP/COMP-3/COMP-5/float (non-character) leaf is the genuine mixed-USAGE byte-island routed to the Tier-C/file

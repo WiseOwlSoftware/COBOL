@@ -130,12 +130,15 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         //    synonym, accepted 85–2014 and REMOVED at 2023 (Annex E.2 item 1c). ──
         List<BoundStatement>? onExc = null, notOnExc = null;
         bool usedOverflow = false;
-        if (call.callOnExceptionPhrase() is { } onp)
+        // The two phrases live under ONE container (callExceptionPhrases) so either order parses — ISO 5.2.6.4
+        // choice indicators. Order of WRITING does not change binding: each phrase keeps its own role.
+        var excPhrases = call.callExceptionPhrases();
+        if (excPhrases?.callOnExceptionPhrase() is { } onp)
         {
             usedOverflow |= onp.OVERFLOW() is not null;
             onExc = host.BindBlocks([onp.statementBlock()]);
         }
-        if (call.callNotOnExceptionPhrase() is { } notp)
+        if (excPhrases?.callNotOnExceptionPhrase() is { } notp)
         {
             usedOverflow |= notp.OVERFLOW() is not null;
             notOnExc = host.BindBlocks([notp.statementBlock()]);
@@ -180,8 +183,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>Bind <c>GOBACK [RETURNING x]</c> (ISO §14.9.18). GOBACK itself was introduced by ISO/IEC
     /// 1989:2002 — at <c>--std 85</c> it is rejected with a targeted diagnostic (the G1 lacks-it obligation;
-    /// COBOL-85 programs use STOP RUN / EXIT PROGRAM). The 2023-only WITH ERROR/NORMAL STATUS phrase is not in
-    /// the grammar yet (VERSION_CHANGE_REFERENCE row 75 — a later slice with the §12 RETURN-CODE wiring).</summary>
+    /// COBOL-85 programs use STOP RUN / EXIT PROGRAM). The 2023 WITH ERROR/NORMAL STATUS phrase (§14.9.18.2,
+    /// VERSION_CHANGE_REFERENCE row 75) parses through the shared <c>statusPhrase</c> rule and is introduction-
+    /// gated by the VersionConformancePass (GobackStatus2023); it binds presence-only here (the status VALUE →
+    /// exit-code wiring is the shared STOP+GOBACK termination-status slice, matching the presence-only STOP sibling).</summary>
     public BoundStatement BindGoback(Core.GobackStatementContext g)
     {
         if (host.InMethod) return host.Oo.OoBindMethodGoback(g);   // §14.9.18.4 GR4 — a METHOD return, never an activation return (D8)
@@ -200,6 +205,9 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             return host.Ec.EcBindRaising(raising, g.Start.Line, "GOBACK") is { } r
                 ? new BoundGoback(source, r)
                 : new BoundUnsupported("GOBACK RAISING identifier (exception object — the OO wave; ISO §14.9.18.3 SR4)");
-        return new BoundGoback(source);
+        // GOBACK … WITH {NORMAL|ERROR} STATUS [value] (§14.9.18.2, COBOL-2023, 2023-gated in the pass; mutually
+        // exclusive with RAISING by the grammar). Decode the shared statusPhrase into the termination status; the
+        // emit passes it to the OS only in a MAIN program (§14.9.18.4 GR3/GR10 — a called-program status is inert).
+        return new BoundGoback(source, null, host.ControlFlow.BindTerminationStatus(g.statusPhrase()));
     }
 }

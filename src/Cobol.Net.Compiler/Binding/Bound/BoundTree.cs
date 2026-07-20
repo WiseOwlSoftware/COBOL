@@ -23,7 +23,24 @@ public sealed record BoundProgram(
     int EntryPc = 0,
     IReadOnlyList<BoundDeclarative>? Declaratives = null,
     EcFeatures? Ec = null,
-    IReadOnlyList<BoundMethod>? Methods = null);
+    IReadOnlyList<BoundMethod>? Methods = null,
+    IReadOnlyList<BoundDebugSubject>? DebugSubjects = null);
+
+/// <summary>One <c>USE FOR DEBUGGING ON procedure-name / ALL PROCEDURES</c> subject procedure (X3.23-1985 debug
+/// module; deleted 2002, absent ISO 2023 — modeled only at <c>--std 85</c>, VCR Table 7 row 7.17). The emitter
+/// injects, at <paramref name="SubjectPc"/>'s dispatcher entry, a call that space-fills DEBUG-ITEM, sets
+/// DEBUG-LINE (<paramref name="SourceLine"/>) / DEBUG-NAME (<paramref name="SubjectName"/>) / DEBUG-CONTENTS (the
+/// transfer cause), then runs the debugging declarative body over the bounded pc range
+/// [<paramref name="SectionStartPc"/>..<paramref name="SectionEndPc"/>]. A subject is always a NONdeclarative
+/// procedure (pc ≥ EntryPc): a debugging declarative is never debugged, matching ALL PROCEDURES's exclusion of
+/// the debugging sections themselves (DB101A "USE PROCEDURE NOT EXECUTED"). The data-name / file-name / cd-name
+/// subject kinds and the SORT/MERGE-procedure cause taxonomy are staged (rejected COBOLNET1571 at bind).</summary>
+public sealed record BoundDebugSubject(
+    int SubjectPc,
+    string SubjectName,
+    int SourceLine,
+    int SectionStartPc,
+    int SectionEndPc);
 
 /// <summary>One bound METHOD of a class body (ISO §11.7; OO deep-dive — the emit-into-a-type spine): its
 /// contiguous pc range in the class's ONE dispatch space. The emitted public method runs
@@ -80,8 +97,13 @@ public sealed record BoundDeclarative(
 /// boundaries are semantic: NEXT SENTENCE transfers to the point after the current sentence, ISO §14.9.19 GR6).
 /// Its pc index is its position in <see cref="BoundProgram.Paragraphs"/> — the G4 PC dispatcher transfers control
 /// by that index.</summary>
-public sealed record BoundParagraph(string CobolName, IReadOnlyList<IReadOnlyList<BoundStatement>> Sentences)
+public sealed record BoundParagraph(string CobolName, IReadOnlyList<IReadOnlyList<BoundStatement>> Sentences,
+    int SourceLine = 0)
 {
+    // SourceLine: the paragraph's LAST executable statement's source line — the X3.23-1985 DEBUG-LINE value when a
+    // debug subject is reached by sequential FALL THROUGH (the causing statement is the one that completed and fell
+    // through; DB101A "FALL-THROUGH-TEST" pins it to the preceding "MOVE 0 TO RESULT-FLAG.", :403-407). 0 when the
+    // debug facility is inactive / the paragraph is empty (never read then). VCR Table 7 row 7.17.
     /// <summary>All statements in order (sentence boundaries flattened) — for consumers that don't care.</summary>
     public IEnumerable<BoundStatement> Statements => Sentences.SelectMany(s => s);
 }
@@ -155,6 +177,12 @@ public sealed record BoundIntrinsicCall(
     /// passes the emitted <c>__COLLATE_NAT</c> table; when false the field does not even exist (the H5 twin).
     /// Never true together with <see cref="Collate"/> — each call reads exactly one class's sequence.</summary>
     public bool CollateNat { get; init; }
+
+    /// <summary>EXCEPTION-FILE / EXCEPTION-FILE-N with a file-connector-name argument (§15.28.4 r2 / §15.29.4 r2,
+    /// COBOL-2023): the resolved FD <see cref="FileModel"/> the function reports the I-O status of. Non-null only
+    /// for the arg form; the renderer passes its <c>FileKeyExpr</c> so the runtime reads the NAMED connector's
+    /// status (not the last exception's). Null for the no-argument form and every other function.</summary>
+    public FileModel? FileArg { get; init; }
 
     /// <summary>TRIM (§15.96.4): 0 = both leading and trailing (rule 3), 1 = LEADING (rule 1), 2 = TRAILING
     /// (rule 2) — the LEADING/TRAILING phrase keyword, extracted at bind time. Zero for every other function.</summary>
@@ -268,6 +296,17 @@ public sealed record BoundBoolBinary(BoundBoolExpr Left, char Op, BoundBoolExpr 
 /// <summary>Boolean negation (B-NOT) — length preserved (ISO §8.8.2 rule 10).</summary>
 public sealed record BoundBoolNot(BoundBoolExpr Operand) : BoundBoolExpr;
 
+/// <summary>The four boolean shift operators (ISO §8.8.2, COBOL-2023): logical (fill boolean 0) or circular
+/// (rotate), left or right.</summary>
+public enum BoolShiftKind { Left, Right, LeftCircular, RightCircular }
+
+/// <summary>A boolean shift/rotate (ISO §8.8.2 rule 8, COBOL-2023): shift <paramref name="Operand"/> by the
+/// integer <paramref name="Count"/>. The result length equals the operand's length (rule 9 — the count contributes
+/// no positions). NOTE the rule-7b context-sensitive precedence (a shift inheriting a preceding B-OR/B-XOR's
+/// precedence) is a documented refinement — the grammar binds the shift tighter than B-AND (the unmixed default
+/// case, which the Annex A Table A.2 oracle exercises).</summary>
+public sealed record BoundBoolShift(BoundBoolExpr Operand, BoolShiftKind Kind, BoundExpr Count) : BoundBoolExpr;
+
 /// <summary>A boolean expression the binder could not resolve — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundBoolError(string Feature) : BoundBoolExpr;
 
@@ -338,15 +377,20 @@ public abstract record BoundStatement;
 /// <summary>An unsupported / unresolved statement — the backend emits a loud runtime guard (§1.4).</summary>
 public sealed record BoundUnsupported(string Feature) : BoundStatement;
 
-/// <summary><c>STOP RUN</c> / <c>GOBACK</c> (this slice: both unwind the paragraph chain).</summary>
-public sealed record BoundStop : BoundStatement
-{
-    /// <summary>True when written as <c>STOP RUN … WITH NORMAL/ERROR STATUS</c> (ISO §14.9.42, COBOL-2002) — the
-    /// edition gate (StopRunStatus2002) reads this in the post-bind <see cref="Validation.VersionConformancePass"/>
-    /// (rearch PHASE-03 Step 14d). The status VALUE is not yet modeled (the §12 RETURN-CODE wiring is a later
-    /// slice), so only the phrase's presence is recorded here.</summary>
-    public bool HasStatusPhrase { get; init; }
-}
+/// <summary>The STOP RUN / GOBACK termination status phrase (ISO §14.9.42 / §14.9.18.2 — COBOL-2002 on STOP,
+/// COBOL-2023 on GOBACK): <c>WITH {ERROR | NORMAL} STATUS [value]</c>. <paramref name="Error"/> selects the OS
+/// error-vs-normal termination indication (§14.9.42.4 GR2/GR3 · §14.9.18.4 GR7/GR8); <paramref name="Value"/> is
+/// the status VALUE passed to the operating system (§14.9.42.4 GR5 · §14.9.18.4 GR10), null when no <c>STATUS</c>
+/// operand is given. On .NET the single observable is the process exit code (<see cref="Runtime.RunUnit.ExitStatus"/>
+/// → <c>Environment.ExitCode</c>): the value wins when present, else ERROR ⇒ 1 / NORMAL ⇒ 0 (the documented
+/// implementor mapping — <c>docs/CONFORMANCE.md</c> §4.2.16).</summary>
+public sealed record TerminationStatus(bool Error, BoundExpr? Value);
+
+/// <summary><c>STOP RUN [ WITH {NORMAL|ERROR} STATUS [value] ]</c> (ISO §14.9.42): terminate the run unit,
+/// passing <see cref="Status"/> to the operating system as the process exit code. The edition gate
+/// (StopRunStatus2002) reads the PARSE tree in the post-bind <see cref="Validation.VersionConformancePass"/>,
+/// not this node.</summary>
+public sealed record BoundStop(TerminationStatus? Status = null) : BoundStatement;
 
 /// <summary>STOP literal (X3.23-1985 §14 Format 2, deleted 2002; edition-gated ≥2002 by the validator): "the
 /// literal is communicated to the operator" and, on resume, "execution continues with the next executable
@@ -432,6 +476,10 @@ public sealed record PerformOnce : BoundPerformControl;
 public sealed record PerformTimes(BoundOperand Count) : BoundPerformControl;
 /// <summary>Run the body until <paramref name="Until"/> (TEST BEFORE → while; <paramref name="TestAfter"/> → do/while).</summary>
 public sealed record PerformUntil(BoundCondition Until, bool TestAfter) : BoundPerformControl;
+/// <summary>PERFORM … UNTIL EXIT (ISO §14.9.28.4 GR11, COBOL-2023): an unconditional infinite loop (a condition
+/// that never becomes true → <c>while(true)</c>). Escape is the programmer's responsibility — an inline loop by
+/// EXIT PERFORM, an out-of-line loop by GOBACK/STOP RUN (NOTE 4).</summary>
+public sealed record PerformForever : BoundPerformControl;
 
 /// <summary>One VARYING/AFTER level of a PERFORM Format 4 (ISO §14.9.28): the induction variable (an index-name or
 /// data item — SET-style target), its FROM initialization, BY augment (1 when the phrase is omitted, GR12), and
@@ -449,23 +497,34 @@ public sealed record BoundInlinePerform(BoundPerformControl Control, IReadOnlyLi
 /// <summary>An out-of-line <c>PERFORM p [THRU q] [control]</c> — the resolved pc range [<paramref name="StartPc"/>,
 /// <paramref name="EndPc"/>] (inclusive; a single paragraph has StartPc == EndPc), run per the control via the G4
 /// dispatcher (a recursive bounded <c>Dispatch(StartPc, EndPc)</c>).</summary>
-public sealed record BoundOutOfLinePerform(int StartPc, int EndPc, BoundPerformControl Control) : BoundStatement;
+// SourceLine (on the transfer nodes below): the source line of the transferring statement — the X3.23-1985
+// DEBUG-LINE value when the transfer reaches a debug subject (VCR Table 7 row 7.17; the causing statement, DB101A —
+// PERF-ITERATION-TEST pins the PERFORM line :611-617, GO-TO-TEST the GO TO line :482-489, on every iteration). 0
+// when the debug facility is inactive (never read then).
+public sealed record BoundOutOfLinePerform(int StartPc, int EndPc, BoundPerformControl Control, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>GO TO p</c> — set the program counter to <paramref name="TargetPc"/> (ISO §14.9.20 Format 1).</summary>
-public sealed record BoundGoTo(int TargetPc) : BoundStatement;
+public sealed record BoundGoTo(int TargetPc, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>GO TO p1 p2 … DEPENDING ON sel</c> — transfer to <c>Targets[sel-1]</c>; out-of-range falls through
 /// to the next statement (ISO §14.9.20 Format 2).</summary>
-public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int> Targets) : BoundStatement;
+public sealed record BoundGoToDepending(BoundOperand Selector, IReadOnlyList<int> Targets, int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>EXIT PARAGRAPH</c> — transfer to the end of the current paragraph (fall through to the next).</summary>
-public sealed record BoundExitParagraph : BoundStatement;
+public sealed record BoundExitParagraph(int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>EXIT PERFORM [CYCLE]</c> — break (or continue, when CYCLE) the nearest inline PERFORM loop.</summary>
 public sealed record BoundExitPerform(bool Cycle) : BoundStatement;
 
 /// <summary>A no-op statement: bare <c>EXIT</c>, <c>CONTINUE</c>, or <c>EXIT PROGRAM</c> in the main program.</summary>
 public sealed record BoundNop : BoundStatement;
+
+/// <summary>CONTINUE AFTER arithmetic-expression-1 SECONDS (ISO §14.9.9, COBOL-2023): a timed pause.
+/// <paramref name="Seconds"/> is the interval; a value below zero is forced to 0 (GR1a) and, when
+/// <paramref name="CheckLessThanZero"/> (EC-CONTINUE-LESS-THAN-ZERO checking was enabled at this statement),
+/// sets the nonfatal EC-CONTINUE-LESS-THAN-ZERO (GR1b) before continuing; otherwise execution suspends for the
+/// interval (GR1). Fractional seconds truncate (implicit COMPUTE without ROUNDED).</summary>
+public sealed record BoundContinueAfter(BoundExpr Seconds, bool CheckLessThanZero) : BoundStatement;
 
 /// <summary>A fixed pre/main/post statement group emitted in order — the carrier for bind-time desugars
 /// that wrap ONE source statement in synthesized neighbors (first client: object-property references,
@@ -476,7 +535,7 @@ public sealed record BoundSequence(IReadOnlyList<BoundStatement> Steps) : BoundS
 
 /// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19 GR6 / §14.9.37 — archaic per Annex F.1, legal at every edition):
 /// transfer to the implicit CONTINUE following the current sentence's separator period.</summary>
-public sealed record BoundNextSentence : BoundStatement;
+public sealed record BoundNextSentence(int SourceLine = 0) : BoundStatement;
 
 /// <summary><c>SET condition-name+ TO TRUE</c> — each names a level-88 whose first VALUE is stored into its
 /// (already-resolved) parent place.</summary>
@@ -562,6 +621,14 @@ public enum SetCapacityKind { To, UpBy, DownBy }
 /// to the minimum, and raising EC-FLOW-SEARCH if a SEARCH of that same table is active (GR31).</summary>
 public sealed record BoundSetCapacity(AccessPath Table, BoundExpr Amount, SetCapacityKind Kind) : BoundStatement;
 
+/// <summary>SET [SIZE OF] data-name TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of the
+/// dynamic-length elementary item at <paramref name="Target"/> to <paramref name="Amount"/> characters. Growing
+/// space-fills the added positions (GR39); shrinking drops the trailing ones; a value above <paramref name="Limit"/>
+/// (the LIMIT character count, −1 = unbounded) clamps, a negative value yields 0 (GR37/GR38). A self-identifying
+/// node — the VersionConformancePass bound-tree arm gates it (SetDynLengthSize2023) for both the explicit SIZE OF
+/// form and the bare re-routed form.</summary>
+public sealed record BoundSetSize(Place Target, BoundExpr Amount, int Limit) : BoundStatement;
+
 // ── SEARCH (ISO §14.9.37 Format 1 — serial search) ─────────────────────────────────────────────────────────────
 
 /// <summary>One WHEN arm of a serial SEARCH: its condition and imperative statements (evaluated in source order;
@@ -641,6 +708,11 @@ public sealed record BoundWrite(FileModel File, Place Record, BoundOperand? From
     public BoundRecordLock Lock { get; init; } = BoundRecordLock.None;
     /// <summary>The RETRY phrase (§14.7.9 / §14.9.51 GR16), or null.</summary>
     public RetrySpec? Retry { get; init; }
+    /// <summary>The AFTER-ADVANCING phrase of a COBOL-2023 combined <c>WRITE … BEFORE ADVANCING … AFTER ADVANCING …</c>
+    /// (ISO §14.9.51 GR25e/GR25f): when non-null, <see cref="Advancing"/> holds the BEFORE phrase and this holds the
+    /// AFTER phrase, and the record is presented once at the current line then advanced by BOTH amounts (both after
+    /// presentation). PAGE is forbidden in the combined form (SR17). Null = the classic single-phrase WRITE.</summary>
+    public BoundAdvancing? AfterAdvancing { get; init; }
 }
 
 /// <summary><c>READ file [NEXT] [INTO x] [AT END …][NOT AT END …]</c> (ISO §14.9.30): a sequential read that

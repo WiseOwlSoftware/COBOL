@@ -203,10 +203,11 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host, Sequen
         }
         if (givingFiles.Count == 0 && outputProc is null)
             return new BoundUnsupported("MERGE requires {OUTPUT PROCEDURE | GIVING} (ISO §14.9.24.2 general format)");
-        // VERSION_CHANGE_REFERENCE row 27 (2014→2023): MERGE newly PROHIBITED inside another MERGE's output
-        // procedure / a file-SORT's input or output procedure — a ≥2023 static diagnostic needs a procedure-range
-        // cross-pass (deferred; the runtime EC-SORT-MERGE-ACTIVE seam in CobolSort covers the dynamic case,
-        // checking OFF per COBOLNET_DESIGN §18.16).
+        // VCR 27 (2014→2023): a MERGE newly PROHIBITED inside another MERGE's output procedure / a file-SORT's input
+        // or output procedure (§14.9.24; Annex E.2 item 20) is the ≥2023 static diagnostic COBOLNET1572 — a
+        // procedure-range cross-pass in VersionConformancePass.GateMergeInSortMergeProc (the paragraph-pc ranges are
+        // available on this BoundMerge/BoundSort). Below 2023 the runtime EC-SORT-MERGE-ACTIVE seam in CobolSort
+        // covers the dynamic case (checking OFF per COBOLNET_DESIGN §18.16).
         return new BoundMerge(file, width, keys, collating, usingFiles, givingFiles, outputProc, SortVaryingOf(file));
     }
 

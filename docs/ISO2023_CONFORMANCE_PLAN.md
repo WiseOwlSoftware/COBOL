@@ -1,5 +1,9 @@
 # COBOL.NET — ISO/IEC 1989:2023 Conformance Plan (LEDGER — the M2/M3/M4 post-85 feature catalog)
 
+> **⚠ FROZEN HISTORICAL LEDGER (2026-07-19):** rows here are NOT live tracking — the P13 review found several
+> stale (e.g. 'no named track' rows that ARE now tracked). Live state = the plan §0 + its §8 residue ledger +
+> the review ledger §24. The PHASE-10 doc it cites was absorbed into the plan (Part III record + §8).
+
 > ✅ **M2 CATALOG FLIPPED TO GREENFIELD TRUTH (2026-07-17 — the PHASE-10 close, DEVLOG 854–870).** Every M2
 > (COBOL-2002) non-OO track is LANDED on the greenfield substrate or carries a NAMED staged residue: the
 > per-track record is the PHASE-10 doc's verdict table + per-step as-builts

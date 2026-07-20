@@ -11,14 +11,21 @@ using Core = CobolParserCore;
 /// <summary>
 /// The ONE conditional-phrase pair extractor (P7 Step 10b — replaces the ~8 per-verb clones the phase doc
 /// enumerates). Every ISO two-branch phrase shares the grammar shape
-/// <c>ON-X b1 (NOT-ON-X b2)? | NOT-ON-X b1</c> (AT END §14.9.30/§14.9.34, INVALID KEY §9.1.14, ON SIZE ERROR
-/// §14.7.5, ON OVERFLOW §14.9.43/§14.9.48, ON EXCEPTION §14.9.10, AT END-OF-PAGE §14.9.51): blocks[0] is the
-/// first written branch, blocks[1] the second when both are present, and a leading NOT token marks the
-/// NOT-first alternative. The positional swap below is TOTAL over every legal shape: NOT-only (one block,
-/// NOT-led) → (null, b0); RETURN's §14.9.34.3 SR4 reversed PAIR (two blocks, NOT-led) → (b1, b0); the normal
-/// order → (b0, b1). For the three rules whose grammar cannot produce a NOT-led form (readAtEnd,
-/// writeAtEndOfPage, deleteFileOnException) passing <see cref="StartsWithNot"/> is a provable no-op — the
-/// premise audit's shape table — so ALL call sites use the same call uniformly.
+/// <c>ON-X b1 (NOT-ON-X b2)? | NOT-ON-X b1 (ON-X b2)?</c> (AT END §14.9.30/§14.9.34, INVALID KEY §9.1.14,
+/// ON SIZE ERROR §14.7.5, ON OVERFLOW §14.9.43/§14.9.48, ON EXCEPTION §14.9.10, AT END-OF-PAGE §14.9.51):
+/// blocks[0] is the first written branch, blocks[1] the second when both are present, and a leading NOT token
+/// marks the NOT-first alternative. The positional swap below is TOTAL over every legal shape: NOT-only (one
+/// block, NOT-led) → (null, b0); a reversed PAIR (two blocks, NOT-led) → (b1, b0); the normal order → (b0, b1).
+/// <para>
+/// ⚠ SUPERSEDED PREMISE (2026-07-19, DEVLOG 927/929): this doc used to state that three rules — readAtEnd,
+/// writeAtEndOfPage, deleteFileOnException — could not produce a NOT-led form, making <see cref="StartsWithNot"/>
+/// a provable no-op for them. THAT PREMISE IS DEAD. ISO 5.2.6.4's choice indicators — dropped by our spec
+/// transcription and restored from the printed page — permit BOTH phrases in EITHER order on all of these
+/// statements, so every such rule now carries the NOT-led arm. Because each call site already passed
+/// <see cref="StartsWithNot"/> uniformly instead of relying on that no-op, the greenfield binder absorbed the
+/// shape change with ZERO edits — which is exactly why the uniformity was worth paying for. The frozen legacy
+/// binders hand-rolled the same split four times and every one had to be repaired.
+/// </para>
 /// </summary>
 internal static class PhraseBlocks
 {

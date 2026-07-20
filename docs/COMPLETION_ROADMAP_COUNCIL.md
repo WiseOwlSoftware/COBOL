@@ -1,7 +1,7 @@
 > **Status: RATIFIED (2026-07-03, owner). This is the ratified G7→G8 completion plan.** The edition-conformance
 > and M2/M3/M4 feature work it scopes is now carried under `docs/COBOLNET_REARCHITECTURE_PLAN.md` (its phases
 > 09–14 subsume this G7→G8 drive), and this report's ISO adjudications, feature catalog, and owner decisions
-> remain the reference for that work. The live session-kickoff head is `resume-prompt.md`; its STATE banner
+> remain the reference for that work. ⚠ FROZEN HISTORICAL RECORD (2026-07-19): superseded by the consolidated plan `docs/COBOLNET_REARCHITECTURE_PLAN.md` (its §0 banner
 > points to the rearchitecture plan, not here. The owner resolved the §5
 > decision packet: **#1 = NO further standards acquisition** — the ISO docs in hand are the authority
 > (`specs/ISO_COBOL_2023.pdf` + the extracted `specs/ISO_COBOL.md`); prior-edition
@@ -88,7 +88,7 @@ Prior OO work covered only slices 1-3b, and FACTORY is not even in the grammar (
 
 ## 3. Changes vs the current canonical plan
 
-The council **confirms** the SSOT §16 / resume-prompt.md backbone (EditionValidator → M2 with OO largest → M3 → M4 → G8) and the P2.1-P2.8 plan as written. Deltas:
+The council **confirms** the SSOT §16 / kickoff-banner backbone (now the plan §0) (EditionValidator → M2 with OO largest → M3 → M4 → G8) and the P2.1-P2.8 plan as written. Deltas:
 
 1. **Owner decisions and standards acquisition move to Session-0** (canonically parked mid-plan/"before M3"). They gate M2/M4 sizing and TYPEDEF/RW-130d adjudication.
 2. **A metadata-adjudication step is inserted before P2.5**: constructs.json scrub (JSON/XML fiction, TYPE IS edition, XOR alignment) so the drift tests never fossilize wrong data. Not in the canonical plan.

@@ -322,6 +322,54 @@ public sealed class ConformanceTests : EndToEndTestBase
         // USAGES — the frozen legacy grammar has no FLOAT-BINARY-* tokens at all (parse error), so this is
         // greenfield-only; CorpusRunnerTests byte-compares the golden.
         ("2014", "float_binary"),
+        // PHASE-13 EC remnants: the EC engine (>>TURN / EXCEPTION-STATUS / the named nonfatal-EC model) is
+        // greenfield-only; the frozen legacy has a limited EC model. CorpusRunnerTests byte-compares these.
+        ("2023", "ec_size_truncation_prohibited"),
+        // EC-BOUND-REF-MOD raise (§8.4.3.3.4) + EC-BOUND-OVERFLOW (§8.5.1.9.6 GR1): >>TURN-gated fatal/nonfatal
+        // EC raises with USE-F3 declaratives + FUNCTION EXCEPTION-STATUS — the greenfield EC model the frozen
+        // legacy lacks. These two exclusions were OMITTED when the goldens landed (commits 3eebcfd1 / e574af41
+        // did not touch this list, DEVLOG 897 latent-miss fix); the legacy runner cannot compile/match them.
+        ("2002", "ec_bound_ref_mod"),
+        ("2014", "ec_bound_overflow"),
+        // REF-MOD-ZERO-LENGTH directive (§7.3.23) — a COBOL-2023 compiler directive + the EC-BOUND-REF-MOD raise;
+        // the frozen legacy has neither the directive nor the EC model. CorpusRunnerTests byte-compares it.
+        ("2023", "ref_mod_zero_length"),
+        // PHASE-13 Wave C batch 1 — COBOL-2023 grammar constructs the frozen legacy compiler has no support for
+        // (grammar/binder/runtime landed greenfield-only). CorpusRunnerTests byte-compares these at --std 2023.
+        ("2023", "usage_packed_no_sign"),   // USAGE PACKED-DECIMAL WITH NO SIGN (§13.18.60.4 GR11)
+        ("2023", "set_size"),               // SET [SIZE OF] dyn-length TO n (§14.9.39 Format 16)
+        ("2023", "continue_after"),         // CONTINUE AFTER n SECONDS + EC-CONTINUE-LESS-THAN-ZERO (§14.9.9)
+        ("2023", "perform_until_exit"),     // PERFORM … UNTIL EXIT (§14.9.28.4 GR11)
+        ("2023", "boolean_shift"),          // boolean shift B-SHIFT-L/R/LC/RC (§8.8.2 rule 8)
+        ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
+        ("2023", "write_before_and_after"), // WRITE … BEFORE ADVANCING … AFTER ADVANCING … (§14.9.51 SR17)
+        // PHASE-13 Wave G — numeric-edited VALUE 2023 rework (§13.18.63 SR6/SR11; VCR 35 + 86): a figurative ZERO
+        // on a numeric-edited item edits per PICTURE (was the left-justified "0000000"), BLANK WHEN ZERO effects
+        // init, and a non-zero numeric literal VALUE is permitted. The frozen legacy engine produces the pre-2023
+        // zero-fill and has no numeric-literal-on-numeric-edited path — greenfield CorpusRunner byte-compares it.
+        ("2023", "value_numeric_edited"),
+        // PHASE-13 Wave G VCR 68/69 — FUNCTION EXCEPTION-FILE(file-connector-name) arg form (§15.28.4 r2): a
+        // greenfield EC + FileRegistry feature the frozen legacy has no EC model for. CorpusRunner byte-compares it.
+        ("2023", "exception_file_arg"),
+        // PHASE-13 Wave G VCR 21 — I-O status '04' on a record-sequential READ whose physical record is outside the
+        // file's min/max size (§14.9.30 GR14 — the READ statement's record-length rule). New greenfield SequentialConnector behavior; the frozen legacy's
+        // record-length handling is not modified here, so the greenfield CorpusRunner byte-compares it.
+        ("2002", "io_status_04"),
+        // PHASE-13 Wave E VCR 63 — the STRONGLY-TYPED external type declaration (§13.18.22/§13.18.58.3; 2023):
+        // the frozen legacy grammar cannot parse STRONG TYPEDEF + EXTERNAL TYPE surface. ⚠ This exclusion was
+        // OMITTED when the golden landed (9a33dfa7 — the third instance of the latent-miss class the
+        // legacy-suite-on-shared-corpus rule exists for); caught by the Wave E pt3 legacy-suite run (DEVLOG 909).
+        ("2023", "external_type_decl"),
+        // PHASE-13 review-fix (C9) — the VCR 16 strength-half 2014 continuity witness: a WEAK typedef satisfying
+        // TYPE on an EXTERNAL CONSTANT RECORD below 2023. The legacy engine's typedef/constant-record composition
+        // diverges on this shape (verified by suite run) — greenfield CorpusRunner byte-compares it.
+        ("2014", "external_constant_record_weak_type"),
+        // PHASE-13 Wave E VCR 15 — the EC-EXTERNAL-* run-unit conformance raises (§14.8.4 / §14.9.4.4 GR3e):
+        // >>TURN-gated activation-entry descriptor checks over the run-unit ExternalTable — the greenfield EC
+        // model + descriptor machinery the frozen legacy has neither of. CorpusRunner byte-compares all three.
+        ("2023", "ec_external_format_conflict"),
+        ("2023", "ec_external_file_mismatch"),
+        ("2023", "ec_external_data_mismatch"),
     ];
 
     [Theory]

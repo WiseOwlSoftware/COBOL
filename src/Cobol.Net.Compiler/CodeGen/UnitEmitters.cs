@@ -56,7 +56,7 @@ internal sealed class UnitEmitters
         Move = new MoveEmitter(Ctx, Num, Refs);
         Ec = new EcEmitter(Ctx, ecState, dispatchState);
         Arith = new ArithmeticEmitter(Ctx, Num, ecState, Ec);
-        AlterSwitch = new AlterSwitchEmitter(Ctx);
+        AlterSwitch = new AlterSwitchEmitter(Ctx, dispatchState);
         AcceptDisplay = new AcceptDisplayEmitter(Ctx, Num);
         Evaluate = new EvaluateEmitter(Ctx, Cond);
         Initialize = new InitializeEmitter(Ctx, Move);

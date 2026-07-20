@@ -185,10 +185,16 @@ public sealed class VersionMatrixTests
         from edition in new[] { 2002, 2014, 2023 }
         select new object[] { name, edition };
 
-    /// <summary>A recognized edition diagnostic (the 0900–0903 band or any pinned 08xx gate) — as opposed to a
-    /// generic <c>COBOL0001</c> parse error. The point is "a COBOLNET code diagnosed the edition delta."</summary>
+    /// <summary>A recognized edition diagnostic (the 0900–0903 band or any pinned 08xx gate, plus the 15xx
+    /// conformance-requirement band) — as opposed to a generic <c>COBOL0001</c> parse error. The point is "a COBOLNET
+    /// code diagnosed the edition delta." The 15xx band is included because a version-conditioned structural SR read
+    /// directly in the binder (the CheckDigitCapacity/binder-reads-edition doctrine — e.g. VCR 18/31's external-file
+    /// FILE-STATUS/RELATIVE-KEY consistency, COBOLNET1573/1575) reports in that band, not 08xx/09xx: for a CONTINUITY
+    /// witness (green at 85 by construction), ANY 15xx ERROR surfacing only at a later edition is necessarily
+    /// edition-conditioned — an edition-invariant 15xx SR would have errored at 85 too and excluded the program from
+    /// the green set — so it is a legitimate recognized-edition rejection, never a generic parse error.</summary>
     private static readonly System.Text.RegularExpressions.Regex EditionBandCode =
-        new(@"COBOLNET0[89]\d\d", System.Text.RegularExpressions.RegexOptions.Compiled);
+        new(@"COBOLNET(0[89]|15)\d\d", System.Text.RegularExpressions.RegexOptions.Compiled);
     /// <summary>The ST representative is a DOCUMENTED removal, not a continuity witness: NIST programs carry
     /// obsolete '85 elements DELETED by ISO/IEC 1989:2002 — ST101A's FDs write LABEL RECORDS (0902, the
     /// validator's first gate, DEVLOG 588) and its SD writes DATA RECORDS (0873, still binder-side) — so it

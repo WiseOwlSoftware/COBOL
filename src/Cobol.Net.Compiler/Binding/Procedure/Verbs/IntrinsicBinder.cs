@@ -4,6 +4,7 @@ using Antlr4.Runtime;
 using CobolNet.Common;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
+using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
@@ -201,6 +202,12 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // is the A.4.9 documented non-support (decision 3 — the P11 Step-8 disposition).
         if (sig.Name is "NUMVAL-C" or "TEST-NUMVAL-C") return BindNumvalCFamily(sig, argCtxs);
 
+        // EXCEPTION-FILE / EXCEPTION-FILE-N with a file-connector-name argument (§15.28.4 r2 / §15.29.4 r2,
+        // COBOL-2023 — E.3.3 items 25/26): the argument is an FD file-name (a file connector, NOT a data
+        // reference — it reports the NAMED connector's I-O status); bound apart from the generic operand path.
+        if (sig.Name is "EXCEPTION-FILE" or "EXCEPTION-FILE-N" && argCtxs.Count == 1)
+            return BindExceptionFileArg(sig, argCtxs[0]);
+
         var args = BindIntrinsicArgs(argCtxs);
         if (args.Count < sig.MinArgs || args.Count > sig.MaxArgs)
         {
@@ -281,6 +288,27 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         if (resolved.RuntimeMethod.StartsWith("Ec", StringComparison.Ordinal)) host.Ec.EcNoteFunction();
 
         return new BoundIntrinsicCall(resolved, args, category, collate) { CollateNat = collateNat };
+    }
+
+    /// <summary>Bind FUNCTION EXCEPTION-FILE(file-connector-name) / EXCEPTION-FILE-N(...) (§15.28.4 r2 / §15.29.4 r2,
+    /// COBOL-2023, E.3.3 items 25/26): argument-1 is an FD file-name (a file connector, §15.28.3 rule 1) resolved to
+    /// its <see cref="FileModel"/>; the runtime reports that connector's I-O status + SELECT-spelled name (r2b), or
+    /// two spaces when it was never opened/attempted/accessed (r2a). Introduction-gated at 2023 (COBOLNET0900).</summary>
+    private BoundExpr BindExceptionFileArg(IntrinsicSig sig, Core.FunctionArgumentContext argCtx)
+    {
+        ConstructRegistry.Check(ctx.Edition.Edition, ctx.Edition.Sink,
+            sig.Name == "EXCEPTION-FILE" ? Constructs.ExceptionFileArgument2023 : Constructs.ExceptionFileNArgument2023,
+            $"FUNCTION {sig.Name}(file-connector-name)");
+        string name = argCtx.GetText().Trim();
+        var file = ctx.Data.Files.FirstOrDefault(f => f.CobolName.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (file is null)
+        {
+            ctx.Edition.Error("COBOLNET1574", $"FUNCTION {sig.Name} argument '{name}' is not the name of a file "
+                + "connector specified in an FD statement (ISO §15.28.3 rule 1)");
+            return new BoundExprError($"FUNCTION {sig.Name} argument");
+        }
+        host.Ec.EcNoteFunction();
+        return new BoundIntrinsicCall(sig, [], sig.ResultCategory) { FileArg = file };
     }
 
     /// <summary>TRIM (§15.96) — a phrase keyword in the argument list (<c>[LEADING|TRAILING]</c>, §15.96.2),

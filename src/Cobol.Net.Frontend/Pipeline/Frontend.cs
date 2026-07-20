@@ -58,6 +58,10 @@ public sealed class Frontend
     /// compile-time TurnState's basis, deep-dive D10). Empty when the source has no TURN directives.</summary>
     public IReadOnlyList<TurnEvent> TurnEvents { get; private set; } = [];
 
+    /// <summary>The frontend's <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> directive events (ISO §7.3.23) — they build the
+    /// group's compile-time <see cref="Binding.RefModZeroLengthState"/> (the per-line zero-length allowance fold).</summary>
+    public IReadOnlyList<RefModZeroLengthEvent> RefModZeroLengthEvents { get; private set; } = [];
+
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
     /// syntax error was reported (collected into <paramref name="diagnostics"/>).
@@ -87,7 +91,8 @@ public sealed class Frontend
         // leaveTurnDirectives / leavePropagateDirectives: an emitting-branch >>TURN / >>PROPAGATE survives for its
         // dedicated stage below (the COBOL.NET EC model, ISO §7.3.25 / §7.3.21) — the legacy pipeline still consumes
         // both here.
-        text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true, leavePropagateDirectives: true);
+        text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true, leavePropagateDirectives: true,
+            leaveRefModZeroLengthDirectives: true);
 
         // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
@@ -112,6 +117,15 @@ public sealed class Frontend
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "PropagateDirectiveProcessor changed the line count (hazard H3)");
+
+        // >>REF-MOD-ZERO-LENGTH (ISO §7.3.23): recognize + edition-gate + collect the per-line zero-length toggle
+        // events on the FINAL text (each event line is directly comparable to a ref-mod token's Start.Line — the
+        // >>TURN anchoring discipline). Line-count preserving like the two stages above.
+        (text, RefModZeroLengthEvents) =
+            RefModZeroLengthDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
 
         return text;
     }

@@ -143,6 +143,12 @@ B_AND           : 'B-AND' ;
 B_OR            : 'B-OR' ;
 B_XOR           : 'B-XOR' ;
 B_NOT           : 'B-NOT' ;
+// Boolean shift operators (ISO §8.8.2, COBOL-2023). Order-sensitive: the -LC/-RC literals FIRST so a longer
+// match wins over the -L/-R prefix (ANTLR first-match; feedback_grammar_precedence).
+B_SHIFT_LC      : 'B-SHIFT-LC' ;
+B_SHIFT_RC      : 'B-SHIFT-RC' ;
+B_SHIFT_L       : 'B-SHIFT-L' ;
+B_SHIFT_R       : 'B-SHIFT-R' ;
 FLOAT_SHORT     : 'FLOAT-SHORT' ;   // COBOL-2002 standard floating point: IEEE-754 single (= COMP-1)
 FLOAT_LONG      : 'FLOAT-LONG' ;    // COBOL-2002 standard floating point: IEEE-754 double (= COMP-2)
 FLOAT_EXTENDED  : 'FLOAT-EXTENDED' ;// COBOL-2002 extended float — mapped to IEEE-754 double (.NET has no quad)

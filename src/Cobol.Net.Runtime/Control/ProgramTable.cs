@@ -145,8 +145,20 @@ public sealed class ProgramTable
 
         n.Active++;
         _owner.Modules.Push(n.Name, OutermostName(n), n.ParentPath is not null);   // §15.65.4 r7/r8 frame
+        // The EC-EXTERNAL enablement handshake (§14.8.4.1 / §14.9.4.4 GR3e): latch the CALL site's pending mask
+        // as the activated element's ACTIVATOR mask (the "activating runtime element" half of the pair), then
+        // zero the pending mask so a site-emit-free nested CALL correctly reads "checking not enabled". Both
+        // restore/re-zero on return — the mask never leaks across statements or activations.
+        var exc = _owner.Exceptions;
+        int savedActivator = exc.ActivatorExternalMask;
+        exc.ActivatorExternalMask = exc.ExternalCheckMask;
+        exc.ExternalCheckMask = 0;
         try { inst.Call(args, returning); }
-        finally { n.Active--; _owner.Modules.Pop(); }
+        finally
+        {
+            n.Active--; _owner.Modules.Pop();
+            exc.ActivatorExternalMask = savedActivator; exc.ExternalCheckMask = 0;
+        }
 
         if (n.Initial)
         {

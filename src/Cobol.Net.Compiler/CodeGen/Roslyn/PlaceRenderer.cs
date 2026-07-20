@@ -28,7 +28,7 @@ internal static class PlaceRenderer
     public static string Read(Place p) => p switch
     {
         // A reference-modified slice inner(start:length) (ISO §8.4.2.4): a substring of the inner field's image.
-        RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r)),
+        RefModPlace r => RuntimeApi.StrRefMod(Read(r.Inner), RmStart(r), RmLen(r), r.AllowZeroLength),
         // A NUMERIC-DISPLAY item viewed as its character image (ISO §8.4.2.4): format the stored value's display image.
         NumericImagePlace n => RuntimeApi.NumFormatDisplay(Read(n.Inner), n.Inner.Item.ProfileName),
         // A level-66 RENAMES alias (ISO §13.18.45): concatenate the spanned leaves' character images.
@@ -45,7 +45,23 @@ internal static class PlaceRenderer
         RedefViewPlace v => RuntimeApi.StrRefMod(RenderPath(v.Backing, AccessDir.Sending), RvOffset(v), v.Width.ToString()),
         // The OCCURS DYNAMIC CAPACITY register (§13.18.38 GR15): a read-only view over the table's current capacity.
         CapacityRegisterPlace c => $"{RenderPath(c.Table, AccessDir.Sending)}.Capacity",
+        // The X3.23-1985 DEBUG-ITEM register / member (VCR 7.17): a read-only view over the program's __dbgItem.
+        DebugRegisterPlace d => DebugRead(d.Member),
         _ => throw Unhandled(p),
+    };
+
+    /// <summary>The C# read expression for a DEBUG-ITEM register member (X3.23-1985, VCR 7.17) — the C# text the
+    /// structural <see cref="DebugRegisterMember"/> selector maps to (kept on the RENDERER, never in the Place).</summary>
+    private static string DebugRead(DebugRegisterMember m) => m switch
+    {
+        DebugRegisterMember.Item => "__dbgItem.Image",
+        DebugRegisterMember.Line => "__dbgItem.DebugLine",
+        DebugRegisterMember.Name => "__dbgItem.DebugName",
+        DebugRegisterMember.Sub1 => "__dbgItem.DebugSub1",
+        DebugRegisterMember.Sub2 => "__dbgItem.DebugSub2",
+        DebugRegisterMember.Sub3 => "__dbgItem.DebugSub3",
+        DebugRegisterMember.Contents => "__dbgItem.DebugContents",
+        _ => throw new System.InvalidOperationException($"unknown DEBUG-ITEM member '{m}'"),
     };
 
     /// <summary>A C# statement (with trailing <c>;</c>) that stores <paramref name="rhs"/> into <paramref name="p"/>.</summary>
@@ -54,7 +70,7 @@ internal static class PlaceRenderer
         // Splice the new slice back into the inner field, preserving its width. A BOOLEAN receiver pads with
         // boolean-zero (§14.6.8.6; §8.4.3.3 GR5a); every other category keeps the space fill.
         RefModPlace r => Write(r.Inner, RuntimeApi.StrSpliceInto(Read(r.Inner), RmStart(r), RmLen(r), rhs,
-            r.Inner.Item.Pic is { Category: PicCategory.Boolean } ? "'0'" : null)),
+            r.Inner.Item.Pic is { Category: PicCategory.Boolean } ? "'0'" : null, allowZeroLength: r.AllowZeroLength)),
         // Decode the spliced image back into the typed field (sign-aware via the FormatDisplay/StoreDisplay pair).
         NumericImagePlace n => Write(n.Inner, RuntimeApi.NumStoreDisplay(rhs, n.Inner.Item.ProfileName, Read(n.Inner))),
         RenamesPlace n => WriteRenames(n, rhs),
@@ -71,6 +87,12 @@ internal static class PlaceRenderer
         CapacityRegisterPlace => throw new System.InvalidOperationException(
             "the CAPACITY register is set only by SET Format 14 (ISO §13.18.38 SR30-32); a direct store must be "
             + "rejected COBOLNET1523 at bind time and never reach PlaceRenderer.Write"),
+        // Unreachable: a COBOL program never assigns to a DEBUG-* register (X3.23-1985 — the runtime populates it via
+        // the injected debug trigger); a receiving-position use is rejected at bind time. The backstop for a
+        // receiver path that forgot the gate.
+        DebugRegisterPlace => throw new System.InvalidOperationException(
+            "the X3.23-1985 DEBUG-ITEM register is read-only (the debug facility populates it); a store must be "
+            + "rejected at bind time and never reach PlaceRenderer.Write"),
         _ => throw Unhandled(p),
     };
 
@@ -127,9 +149,14 @@ internal static class PlaceRenderer
     }
 
     /// <summary>A figurative-constant store into a reference-modified slice: an EMPTY slice with the fill char as the
-    /// SpliceInto pad, so every targeted position takes the fill (ISO §8.3.3.6.4 GR2 / §8.4.3.3 GR5/GR6).</summary>
+    /// SpliceInto pad, so every targeted position takes the fill (ISO §8.3.3.6.4 GR2 / §8.4.3.3 GR5/GR6). Threads
+    /// <c>AllowZeroLength</c> exactly like the <see cref="Write"/> RefModPlace arm (review V31: omitting it made a
+    /// figurative MOVE into a zero-length slice spuriously raise fatal EC-BOUND-REF-MOD under
+    /// <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> — §8.4.3.3.4 GR5c allows the zero-length result, and §14.9.25.4 GR1
+    /// makes the zero-length MOVE receiver a no-op, never a raise).</summary>
     public static string WriteFill(RefModPlace p, string fillChar) =>
-        Write(p.Inner, RuntimeApi.StrSpliceInto(Read(p.Inner), RmStart(p), RmLen(p), "\"\"", pad: fillChar));
+        Write(p.Inner, RuntimeApi.StrSpliceInto(Read(p.Inner), RmStart(p), RmLen(p), "\"\"", pad: fillChar,
+            allowZeroLength: p.AllowZeroLength));
 
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>
