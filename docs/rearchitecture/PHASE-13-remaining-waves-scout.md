@@ -8,7 +8,34 @@
 
 > **STATUS: the trusted worklist for the remaining Phase-13 work.** Owner rule: trust a persisted spec-first re-scout over the drift-prone phase plan/audit ([[feedback_persist_anchor_rescout]]). Produced by a 9-agent parallel re-scout (each wave independently derived from specs/ISO_COBOL.md with grep-verified line numbers, CLI-probed against the as-built compiler, adversarially checked against PHASE-13-audit.md). Each section is decision-complete: exact section, quoted format, GR-level semantics, the below-2023 gate + diag code, file:line code anchors, a golden program + hand-derived stdout, AUDIT DRIFT caught, and an implementation plan. Implement FROM this doc + the spec; do not re-derive. Companions: PHASE-13-wave-c-scout.md (the 8 already-landed constructs incl. SUPPRESS-WHEN part-B and PICTURE-EDITING C4 partial) and PHASE-13-audit.md (the 71-row as-built table).
 
-> **Diagnostic band at scout time:** next free COBOLNET15xx = **1570**; new-in-2023 introduction gates reuse **COBOLNET0900**; new-reserved-word user-word gates use **COBOLNET0901**; obsolete-flag warnings **COBOLNET0903**; the §4.2.6 processor-dependent non-support WARNING band starts at **COBOLNET1560**. Final numbering reconciled at implementation time (each wave proposed codes independently).
+> **⛔ EVERY 15xx DIAGNOSTIC NUMBER IN THIS DOC IS STALE AND NON-AUTHORITATIVE — DO NOT COPY ANY OF THEM.**
+> At scout time next-free was 1570, and **each wave section independently allocated from 1570**, so the ~40
+> occurrences of 1570/1571/1572/1573/1574 below collide with one another *and* with what actually shipped.
+> The live band is written ONLY in the plan §0 (the single-write rule; duplication is where drift breeds) —
+> **as of 2026-07-19 next-free = `COBOLNET1578`**, allocated only after BOTH scans agree
+> (`grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u` AND the `DiagnosticCatalog` descriptor list).
+>
+> **AS-LANDED MAP (what the scout's guesses actually became — use this to read the sections below):**
+>
+> | Actual code | Descriptor | Scout section that predicted it | Scout's guess |
+> |---|---|---|---|
+> | 1570 | `value-numeric-edited-oversize` | Wave G VCR 34 (VALUE numeric-edited SR7) | 1570 ✓ |
+> | 1571 | `debug-sub-facility-staged` | Wave F (USE FOR DEBUGGING residual) | 1570 ✗ |
+> | 1572 | `merge-in-sort-merge-proc` | Wave G VCR 27 (MERGE prohibition) | 1571 ✗ |
+> | 1573 | `external-file-status-consistency` | Wave E VCR 18 | 1570 ✗ |
+> | 1574 | `exception-file-argument-not-file` | Wave E/G EXCEPTION-FILE | — (Wave D's `>>DISPLAY` also guessed 1574 ✗) |
+> | 1575 | `external-relative-key-consistency` | Wave E VCR 31 | 1571 ✗ |
+> | 1576 | `ref-mod-zero-length-malformed-operand` | (P13 review C1 renumber) | — |
+> | 1577 | `method-redefines-scope` | (P13 review renumber from 1518) | — |
+>
+> **Waves E / F / G are LANDED — read their numbers via the table above, never literally.** The sections whose
+> codes are still UNALLOCATED (the grammar batch = PICTURE EDITING · PERFORM Fmt 3 · SUPPRESS WHEN · RW SUPPRESS ·
+> VALUE Format 2 · file-control COLLATING; plus Wave D directives and Wave H MCS/COMMIT-ROLLBACK/VALIDATE) must
+> draw fresh codes from the plan §0 next-free at implementation time.
+>
+> Unchanged and still valid: introduction gates reuse **COBOLNET0900**; new-reserved-word user-word gates
+> **COBOLNET0901**; obsolete-flag warnings **COBOLNET0903**; the §4.2.6 processor-dependent non-support WARNING
+> band starts at **COBOLNET1560**.
 
 ---
 
@@ -73,7 +100,11 @@ editingPhrase : EDITING literal          // character-1 (one-char alphanumeric/n
 - **Emit** `RuntimeApi.cs:100` / `NumericRenderer.cs:116` / `GroupImageCodec.cs:49` / `ValueInitializer.cs:92`: when `pic.EditingRules is not null`, emit the overload with the rules serialized as a C# collection expression (`[ new(...), … ]`).
 - **`constructs.json`** (`tests/version-matrix/constructs.json`) → regenerates `ConstructRegistry.g.cs`/`Constructs.g.cs`: add `picture-editing-2023` (`introducedIn:2023`, gate `COBOLNET0900`, cite "ISO §13.18.40.2/.5; Annex E.3.3 item 19; VCR row 62") and `user-word-editing-2023` (`introducedIn:85, removedIn:null, reservedIn:2023`, gate `COBOLNET0901`, "§8.9 / Annex E.2 item 25").
 - **VersionConformancePass** (`VersionConformancePass.cs`, next to `VisitUsageClause`@475): `public override object? VisitPictureClause(...) { if (ctx.editingPhrase().Length > 0) _p.Check(Constructs.PictureEditing2023, "the PICTURE EDITING phrase"); return base.VisitChildren(ctx); }`.
-- **Diag codes** (next free is **1570**; I claim **1570–1572** for the EDITING SR band — reconcile at implementation time if a sibling wave also consumes from 1570): **COBOLNET1570** — char-1 illegal (SR8) / char-1 absent from mask (SR10) / duplicate char-1 (SR11); **COBOLNET1571** — FOR constraints (SR12a width mismatch, SR12b symbol-set, extended sign on a floating-point edited item); **COBOLNET1572** — SR24/SR25 multiplicity/ordering. Introduction gate reuses **0900**; reserved-word-as-user-word reuses **0901**.
+- **Diag codes** — ⛔ **the numbers below are STALE placeholders (see the top banner); allocate three fresh codes
+  from the plan §0 next-free.** The useful content is the RULE→code GROUPING, which stands: **[EDIT-A]** — char-1
+  illegal (SR8) / char-1 absent from mask (SR10) / duplicate char-1 (SR11); **[EDIT-B]** — FOR constraints (SR12a
+  width mismatch, SR12b symbol-set, extended sign on a floating-point edited item); **[EDIT-C]** — SR24/SR25
+  multiplicity/ordering. Introduction gate reuses **0900**; reserved-word-as-user-word reuses **0901**.
 
 **Golden** (hand-derived from the GRs, *not* the oracle). Staged slice 1 = simple insertion + sign-sensitive fixed insertion.
 
@@ -237,8 +268,10 @@ Wire `StatementChildren`/Recurse for the generated visitor (memory: "any new tre
 **7. Gate + registry:** `VersionConformancePass` ParseArm `VisitPerformStatement` override → `Check(Constructs.PerformExceptionChecking2023, …)`; `Constructs.g.cs` const; `ConstructRegistry.g.cs` row; `tests/version-matrix/constructs.json` row (`expectDiagnostic COBOLNET0900`).
 
 **8. New diagnostics (next free 15xx band; final numbers reconciled at implementation time — I claim these two after any earlier waves):**
-- **COBOLNET1570** — Format-3 WHEN syntax-rule violation (SR14 duplicate file-name / SR15 duplicate exception-name / SR16 `FILE`-scoped name not `EC-I-O*`). Message cites §14.9.28.3.
-- **COBOLNET1571** — illegal statement inside a Format-3 handler: `RAISE` outside imperative-statement-1 (§14.9.29.3 SR4) **or** a transfer-of-control out of `FINALLY` (§14.9.28.4 GR16).
+⛔ **STALE code numbers (see the top banner) — allocate two fresh codes from the plan §0 next-free.** The rule
+grouping stands:
+- **[PERF3-A]** — Format-3 WHEN syntax-rule violation (SR14 duplicate file-name / SR15 duplicate exception-name / SR16 `FILE`-scoped name not `EC-I-O*`). Message cites §14.9.28.3.
+- **[PERF3-B]** — illegal statement inside a Format-3 handler: `RAISE` outside imperative-statement-1 (§14.9.29.3 SR4) **or** a transfer-of-control out of `FINALLY` (§14.9.28.4 GR16).
 
 (The introduction gate itself uses **COBOLNET0900**, not a 15xx.)
 
@@ -396,7 +429,12 @@ The connector's core invariant (IndexedConnector.cs:8–16) — *the arrival-ord
 2. **Binder.** `FileModel.AlternateKeyNames` → add a suppression element; `AlternateKeys` tuple → `(DataItem Item, bool Duplicates, string? SuppressValue)`.
    - DataBinder.cs:648–652: when `ak.SUPPRESS() is not null`, evaluate `ak.literal()` to its fixed alphanumeric string via the existing VALUE/literal constant path (`DataBinder.Constants.cs` — the same evaluator that folds `figurativeConstant`/`nonNumericLiteral` for VALUE clauses); carry the raw evaluated string.
    - DataBinder.cs:875–877: resolve and pad the suppression string to the alt key's `ImageWidth` (SR7 ALL/figurative expansion happens here), store into `AlternateKeys`.
-   - **SR7 semantic check (optional, propose COBOLNET1570):** if the literal is numeric (not alphanumeric/national/figurative) or an `ALL` literal longer than one char, `Edition.Error("COBOLNET1570", "…SUPPRESS WHEN literal must be an alphanumeric/national literal or figurative constant of the alternate key's category (ISO §12.4.5.6.3 SR7)")`. If deferred, note it — the grammar's `literal` already blocks a bare numeric in most positions, but national/category mismatch is only catchable here.
+   - **SR7 semantic check (optional; ⛔ the code number below is STALE — allocate one fresh code from the plan §0
+     next-free, see the top banner):** if the literal is numeric (not alphanumeric/national/figurative) or an `ALL`
+     literal longer than one char, `Edition.Error("<SUPPRESS-SR7>", "…SUPPRESS WHEN literal must be an
+     alphanumeric/national literal or figurative constant of the alternate key's category (ISO §12.4.5.6.3 SR7)")`.
+     If deferred, note it — the grammar's `literal` already blocks a bare numeric in most positions, but
+     national/category mismatch is only catchable here.
 3. **Emitter.** KeyedIoEmitter.cs:63–72 — pass the suppression string (or `null`) to a **5-arg** `AddAlternateKey(name, aOff, width, dups, suppressValueOrNull)`; `RuntimeApi.FileAddAlternateKey` (RuntimeApi.cs:292) and `CobolFile.AddAlternateKey` (CobolFile.cs:51) + `FileRegistry.AddAlternateKey` (FileRegistry.cs:120) gain the 5th `string?` param. Emit the C# string literal via the existing `CsLiteral` helper (used at KeyedIoEmitter.cs:44).
 4. **Runtime (IndexedConnector.cs).**
    - `_alts` tuple → `List<(int Off, int Len, bool Dups, string? Suppress)>`; `AddAlternateKey(int,int,bool,string?)` stores the padded suppression value.
@@ -407,7 +445,9 @@ The connector's core invariant (IndexedConnector.cs:8–16) — *the arrival-ord
 5. **constructs.json + regen.** New row `suppress-when-alt-key-2023` (fields in the gate section above); run `scripts/gen-constructs.ps1`; `Constructs.g.cs` const `SuppressWhenAltKey2023`.
 6. **VersionConformancePass.cs.** `ParseArm.VisitAlternateKeyClause` override in the §14g.4 cluster (near :867), gated on `ctx.SUPPRESS() is not null`.
 7. **Docs.** Update `docs/COBOLNET_DESIGN.md` (indexed-file / edition-gate section), `docs/VERSION_CHANGE_REFERENCE.md` (a new row for SUPPRESS WHEN), the grammar doc for CobolIO.g4, and the P13 audit row status → DONE. DEVLOG entry.
-- **Diag codes:** introduction gate **COBOLNET0900** (reused via the construct). Optional SR7 semantic error → **COBOLNET1570** (next free 15xx after 1569; flag for reconciliation — sibling waves also draw from 1570+). If SR7 is deferred, no new 15xx is consumed.
+- **Diag codes:** introduction gate **COBOLNET0900** (reused via the construct — still valid). Optional SR7
+  semantic error → ⛔ one fresh code from the plan §0 next-free (the doc's original "1570" is STALE and collided
+  with six sibling claims; see the top banner). If SR7 is deferred, no new 15xx is consumed.
 
 ### Golden
 
@@ -802,7 +842,8 @@ Keep the four **named bool properties** (`ArgumentFunctionChecking`, `DataConver
   - Gate: `dialectLevel < 2023` ⇒ `diagnostics.ReportError("COBOLNET0900", …)`, blank the line, skip application.
   - **RESERVE / UNDEFINE:** build a per-unit `ReservedWordSet` overlay. Extend `ReservedWordSet` (`ReservedWords.cs:51-63`) with an instance overlay (`Reserve(word)` adds a synthetic high-confidence entry reserved at the current edition → `RejectsAt` true; `Undefine(word)` masks the default entry). Thread the built set into `VersionConformancePass` in place of `ReservedWordSet.Default` (`VersionConformancePass.cs:361`) — the only wiring the bind-time consumer needs.
   - **EQUATE:** whole-word, case-insensitive text substitution literal-2→literal-1 over the post-COPY text (respecting COBOL word boundaries; skip literals/comments).
-  - **SUBSTITUTE / (general) UNDEFINE:** emit **`COBOLNET1570`** (§4.2.6-band Warning) "the COBOL-WORDS {SUBSTITUTE|UNDEFINE} option is not supported by this processor (static reserved-word table) — see docs/CONFORMANCE.md", recognize-and-blank, and add a `docs/CONFORMANCE.md` row (Wave H's file). *(Owner decision candidate: fully support only EQUATE+RESERVE now vs. a mutable-lexer follow-up on the Phase-16 CIL backend.)*
+  - **SUBSTITUTE / (general) UNDEFINE:** emit a fresh §4.2.6-band Warning code from the plan §0 next-free
+    (⛔ the doc's original **`COBOLNET1570`** is STALE — see the top banner) "the COBOL-WORDS {SUBSTITUTE|UNDEFINE} option is not supported by this processor (static reserved-word table) — see docs/CONFORMANCE.md", recognize-and-blank, and add a `docs/CONFORMANCE.md` row (Wave H's file). *(Owner decision candidate: fully support only EQUATE+RESERVE now vs. a mutable-lexer follow-up on the Phase-16 CIL backend.)*
   - Enforce SR2 (alphanumeric literal, no space/hex) and validate literal-1/3/4 are reserved & literal-2/5/6 are not (SR3/SR4) → `COBOLNET0900`-adjacent syntax errors; SR1 placement (before first ID DIV) recognized leniently and **documented not-enforced** (the PROPAGATE SR1 precedent, `PropagateDirectiveProcessor.cs:12-16`).
   - No bound node, no `.g4` change, no `constructs.json` row.
 - **Golden:** (EQUATE, positive — clean observable)
@@ -841,7 +882,8 @@ Keep the four **named bool properties** (`ArgumentFunctionChecking`, `DataConver
   - Because the highest-value and most common PUSH/POP target is the **DEFINE compilation-variable table** (which already lives in `ConditionalCompilationProcessor.defines`), implement PUSH/POP **inside `ConditionalCompilationProcessor`** as two new `case` arms, snapshotting/restoring a `Stack<Dictionary<string,Value>>` clone of `defines`. This is the complete-and-correct behavior for the DEFINE state and produces an observable golden.
   - For `PUSH ALL` / `POP ALL` of the *other* directive states (TURN, PROPAGATE, FLAG-14/02, LISTING, SOURCE FORMAT…): the decision-complete design is a `DirectiveStateStack` with per-directive save/restore hooks registered by each processor; the **pragmatic first cut** snapshots the states owned by the conditional-compilation stage (DEFINE + the current source-format flag) and recognizes/edition-gates the rest. Document the staged remainder (mirrors how PROPAGATE recognizes-but-defers its runtime effect).
   - Edition gate: below 2023 ⇒ `COBOLNET0900` (needs `dialectLevel` — pass it into `ConditionalCompilationProcessor.Process`, currently `dialectLevel`-unaware; add the parameter and a `DiagnosticBag`, threaded from `Frontend.cs:90`; keep the legacy caller `Compilation.cs:345` on an overload that no-ops the gate/PUSH-POP for byte-identity).
-  - Unmatched POP ⇒ `diagnostics.ReportWarning("COBOLNET1571", …)` (GR2 mandated warning). SR4 (not within an exception-checking PERFORM) recognized-leniently, documented not-enforced.
+  - Unmatched POP ⇒ `diagnostics.ReportWarning("<PUSHPOP-GR2>", …)` (GR2 mandated warning; ⛔ the doc's original
+    "COBOLNET1571" is STALE — allocate from the plan §0 next-free, see the top banner). SR4 (not within an exception-checking PERFORM) recognized-leniently, documented not-enforced.
   - No `.g4`, no bound node, no `constructs.json`.
 - **Golden:** (PUSH/POP of DEFINE state — proves restore)
   ```cobol
@@ -912,8 +954,8 @@ Keep the four **named bool properties** (`ArgumentFunctionChecking`, `DataConver
 - **As-built today:** not in `KnownIgnoredDirectives`; reaches the lexer. **CLI probe:** `>>FLAG-14 ALL ON` → `COBOL0001: unexpected '>'` (confirmed). No flag-state machine, no GR4 wiring (`grep Flag14/FlagDirective/CompatFlag` in `src` = 0 matches).
 - **AUDIT DRIFT CAUGHT:** the audit's option nickname "NUM-ED-ZERO-FIG-CONST" / "VALUE-FIG-CON-LENGTH" match the spec's slightly-garbled boxed names (`NUM-ED-ZERO-FIGCONST` in the figure line 4462 vs. `NUM-ED-ZERO-FIG-CONSTANT` in GR4b line 4519; `VALUE-FIG-CON-LENGTH` in the figure vs. `VALUE-FIG-CON-NO-LENTH` [sic] in GR4k line 4531). The **figure spellings** (`NUM-ED-ZERO-FIGCONST`, `VALUE-FIG-CON-LENGTH`, `VALUE – EDITING`) are the syntactic keywords to accept; the GR4 prose spellings are typos in the standard. Accept the figure spellings; note the discrepancy. Otherwise the citation (§7.3.15, E.3.3 item 21) checks out.
 - **Implementation plan:**
-  - **Complete design** (mirrors `TurnDirectiveProcessor`'s `TurnEvents`): a `Flag14DirectiveProcessor` that, instead of consuming positionally in the preprocessor, **collects `(line, option, on|off)` events** on the final post-COPY text (like `TurnEvents`, `Frontend.cs:104`), threaded to the binder; a `Flag14State` the binder consults at each flag-eligible construct site to emit `COBOLNET1572` warnings. Wire the options whose constructs are already implemented first (`EVALUATE`, `VALUE-ZERO`/`NUM-ED-ZERO-FIGCONST` — the Wave-B/G VALUE-numeric-edited path; `WRITE-END-OF-PAGE` — `SequentialIoBinder.cs:98`; `REF-MOD-ZERO-LENGTH` — the EC-BOUND-REF-MOD gate). Options whose constructs are not yet implemented (`READ-PREVIOUS`) are recognized/validated and their flagging staged with a documented note.
-  - **Pragmatic first cut for Wave D** (keeps Wave D preprocessor-only): recognize + syntax-validate the option/ON-OFF, edition-gate below 2023 (`COBOLNET0900`), maintain the flag-state, and emit the `COBOLNET1572` twin for the already-landed constructs; blank the directive line (line-count preserving). Deeper per-construct wiring co-lands with Wave G's behavior rows.
+  - **Complete design** (mirrors `TurnDirectiveProcessor`'s `TurnEvents`): a `Flag14DirectiveProcessor` that, instead of consuming positionally in the preprocessor, **collects `(line, option, on|off)` events** on the final post-COPY text (like `TurnEvents`, `Frontend.cs:104`), threaded to the binder; a `Flag14State` the binder consults at each flag-eligible construct site to emit `<FLAG14-TWIN>` warnings (⛔ the doc's original "COBOLNET1572" is STALE — allocate from the plan §0 next-free). Wire the options whose constructs are already implemented first (`EVALUATE`, `VALUE-ZERO`/`NUM-ED-ZERO-FIGCONST` — the Wave-B/G VALUE-numeric-edited path; `WRITE-END-OF-PAGE` — `SequentialIoBinder.cs:98`; `REF-MOD-ZERO-LENGTH` — the EC-BOUND-REF-MOD gate). Options whose constructs are not yet implemented (`READ-PREVIOUS`) are recognized/validated and their flagging staged with a documented note.
+  - **Pragmatic first cut for Wave D** (keeps Wave D preprocessor-only): recognize + syntax-validate the option/ON-OFF, edition-gate below 2023 (`COBOLNET0900`), maintain the flag-state, and emit the `<FLAG14-TWIN>` twin for the already-landed constructs; blank the directive line (line-count preserving). Deeper per-construct wiring co-lands with Wave G's behavior rows.
   - Gate + state need `dialectLevel` + `DiagnosticBag`; new stage in `Frontend.Preprocess`. No `.g4`, no bound node.
 - **Golden:** (EVALUATE flag — a construct that definitely parses)
   ```cobol
@@ -1620,7 +1662,10 @@ error COBOLNET0902: the USE FOR DEBUGGING declarative was removed in COBOL-2002 
 
 **As-built mechanism today:** `EditionContext.Warning(code, message)` (`src/Cobol.Net.Compiler/Binding/EditionContext.cs:85`) appends `"warning {code}: {message}"` to the non-failing `Warnings` channel, surfaced by `CompilerDriver` on every result, printed to stderr, never fails the compile. SCREEN is the one live caller (`DataBinder.cs:298-300`, COBOLNET1560). This IS the reusable mechanism — **do not invent a parallel `Lenient()`/`Unsupported()` method (`feedback_singular_pattern`)**; call `Edition.Warning` directly at each facility site with the SCREEN message shape: `"the <FACILITY> (ISO §<x>) is <a processor-dependent element (§4.2.6) | an obsolete optional facility (§4.2.13/§4.2.7)> that is not supported — it is accepted but produces no <effect> (see docs/CONFORMANCE.md §4)"`. The ONLY optional refactor worth doing: a 3-line convenience wrapper `EditionContext.UnsupportedFacility(string code, string name, string iso, string effect)` that formats that exact template, so the three new sites + the SCREEN site read identically — acceptable under singular-pattern *only if* SCREEN is migrated onto it in the same change set (else leave SCREEN as-is and inline the three).
 
-**Diagnostic band:** next free 15xx after 1569 is **COBOLNET1570**. Wave H claims **1570 / 1571 / 1572** (MCS / commit-rollback / VALIDATE). Sibling waves (the grammar batch — PICTURE EDITING / SUPPRESS WHEN / PERFORM Fmt3) start at **1573**. Final numbering reconciled at implementation.
+**Diagnostic band:** ⛔ **STALE — the original claim ("next free 1570; Wave H takes 1570/1571/1572; siblings start
+at 1573") is dead on both halves: 1570–1577 were all consumed by later P13 waves, AND six sibling sections in this
+same doc independently claimed the same 1570+ numbers (see the top banner).** Wave H needs THREE fresh codes
+(MCS / commit-rollback / VALIDATE) allocated from the plan §0 next-free at implementation time.
 
 **The one cross-cutting hazard (applies to all three):** _[⛔ **SUPERSEDED by the MECHANISM CORRECTION banner at the top of this section** — the "do NOT add hard lexer tokens; use an IDENTIFIER-led predicated `statement` alternative" conclusion below is empirically wrong (it poisons the boolean-factor DFA). The corrected mechanism IS lexer tokens + cobolWord nameSlot + a keyword-led alternative. The non-monotonic-reservation facts stated here remain accurate; only the conclusion drawn from them is wrong.]_ the facility words are **NOT lexer tokens** — `grep` of `CobolLexer.g4` finds no `COMMIT/ROLLBACK/RECEIVE/SEND/VALIDATE/MESSAGE` rule; they lex as `IDENTIFIER` and their reserved-ness is decided post-parse by the `ReservedWords` table. **Do NOT add hard lexer tokens** for them: reservation is non-monotonic across editions (VALIDATE is a *user word* at '85; RECEIVE/SEND are user words at 2002/2014; COMMIT/ROLLBACK/MESSAGE-TAG are user words at 85/2002/2014), so an unconditional token would break `01 VALIDATE PIC X` at `--std 85`, `01 RECEIVE PIC X` at `--std 2002`, etc. The recognition MUST be edition-gated to *exactly* the editions where the word is reserved-as-facility. The single source of truth for that is the reserved-word table itself.
 
@@ -1638,7 +1683,19 @@ protected bool facilityWord(string kw) =>
 ```
 (`ReservedWords.Find` is static in `Cobol.Net.Editions`, already referenced by the frontend; `ReservedWordEntry.IsReservedAt(int)` is the same predicate `ReservedWordSet.RejectsAt` uses at `VersionConformancePass.cs:1543`.)
 
-**Every grammar/rule change below is a SHARED-PARSER change** (the generated ANTLR parser is shared with the frozen legacy `CobolSharp.Compiler`). Adding `statement` alternatives is *additive* (new context types the legacy binder never visits — its statement dispatch has a default fallthrough), so it is low-risk, **but a FULL legacy guard run is mandatory** (`scripts/guard-fast.sh` is NOT sufficient — it omits the characterization gate + legacy CliExitCodeTests; run the full legacy conformance + CliExitCode suites, `feedback_guard_fast_not_ci_complete`). Because `facilityWord("RECEIVE"/"SEND")` fires at `--std 85` and the legacy NIST corpus targets '85, **specifically confirm no legacy guard program contains a bare `RECEIVE`/`SEND`/`CD` communication statement** (the CM-series comm module is deferred; if any CM golden is in-corpus its parse changes). No new lexer token ⇒ tokenization is byte-identical ⇒ that is the only legacy-facing risk.
+**Every grammar/rule change below is a SHARED-PARSER change** (the generated ANTLR parser is shared with the frozen legacy `CobolSharp.Compiler`). Adding `statement` alternatives is *additive* (new context types the legacy binder never visits — its statement dispatch has a default fallthrough), so it is low-risk, **but a FULL legacy guard run is mandatory** (`scripts/guard-fast.sh` is NOT sufficient — it omits the characterization gate + legacy CliExitCodeTests; run the full legacy conformance + CliExitCode suites, `feedback_guard_fast_not_ci_complete`). Because `facilityWord("RECEIVE"/"SEND")` fires at `--std 85` and the legacy NIST corpus targets '85, the open
+question was whether any legacy guard program contains a bare `RECEIVE`/`SEND`/`CD` communication statement.
+
+> ✅ **RESOLVED 2026-07-19 — the risk is CLEARED, no action needed.** The CM-series IS physically present
+> (`tests/nist/programs/CM{101,102,103,104,105,201,202,303,401}M.cob`, 9 programs) and they DO contain bare
+> `RECEIVE`/`SEND` statements (e.g. `RECEIVE CM-INQUE-1 MESSAGE INTO INCOMING-MSG`, `SEND CM-OUTQUE-1 FROM MSG-70
+> WITH EMI`) — **but all 9 are marked `pending` / `cataloged (not asserted)` in `tests/nist/corpus.tsv` and none
+> has a golden in `tests/nist/valid/`, so none is executed by the guard.** Adding the `RECEIVE`/`SEND` lexer
+> tokens is therefore legacy-safe. (Scanned separately: `VALIDATE`, `EDITING`, `FINALLY`, `LOCATION` occur in the
+> corpus only inside comment lines, string literals, or as substrings of hyphenated user words such as
+> `SEND-SWITCH` / `RECEIVE-ECHO-AND-LOG` / `EXCEPTION-LOCATION-N`, which lex as single IDENTIFIERs — no bare-word
+> collision. `COMMIT` appears as a deliberate user word in `tests/conformance/negative/user-word-commit.cob`
+> (`reject-at: 2023`), which is exactly why COMMIT/ROLLBACK take the diagnostic-layer route with NO grammar rule.)
 
 ---
 
