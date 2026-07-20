@@ -1,5 +1,9 @@
 # Phase 4 Greenfield-vs-Catalog Reconciliation
 
+> **⚠ FROZEN HISTORICAL LEDGER (2026-07-19):** authoritative AS OF the P10 close only. The P13 review found
+> multiple rows stale ('Deferred … no named track' items now tracked in the plan §0 Wave D / the review ledger
+> §24; the 1518 'last-used' note corrected in place). Live state = the plan §0/§8 + the review ledger.
+
 > **STATUS: the AUTHORITATIVE greenfield-truth view of the M2/M3/M4 catalog** (the ratified
 > Phase-4 entry audit — `docs/COMPLETION_ROADMAP_COUNCIL.md` Phase 4). The catalog
 > `docs/ISO2023_CONFORMANCE_PLAN.md` §3 carries LEGACY-era ☑/◐ marks; THIS table supersedes them with the

@@ -1,5 +1,11 @@
 # PHASE-13 Wave C — persisted spec-first anchor re-scout
 
+> **⚠ 2026-07-19 NOTE:** `PHASE-13-audit.md` (cited throughout as provenance) was RE-VERIFIED by the
+> plan-vs-spec review and DELETED in the plan consolidation — do not look for it; the verified record is
+> `PHASE-13-plan-vs-spec-review.md` and the live worklist is the plan §0. This scout stays the WORKING
+> DESIGN for the remaining P13 waves; delete it at P13 close.
+
+
 > **STATUS: the Wave C worklist (trusted over the drift-prone phase plan — [[feedback_persist_anchor_rescout]]).**
 > Produced by an 8-agent parallel spec-first re-scout (each construct independently derived from
 > `specs/ISO_COBOL.md`, CLI-probed against the as-built compiler, and adversarially checked against the

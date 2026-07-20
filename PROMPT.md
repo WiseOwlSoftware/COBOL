@@ -262,5 +262,5 @@ Do not deviate from it.
 8. Supplementary Documents
 Read CONSTRAINTS.md for the full anti-pattern catalog (with labels), session rituals (start and end), and
 behavioral constraints.
-For the current state, plan, and session history, read `resume-prompt.md` (the live kickoff) + `DEVLOG.md`
+For the current state and plan, read `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 (THE ONE PLAN, live kickoff) + `DEVLOG.md`
 (the narrative log).

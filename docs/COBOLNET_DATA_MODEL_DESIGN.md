@@ -109,7 +109,7 @@ Every verb emitter (MOVE/ADD/COMPUTE/file READ INTO/WRITE FROM/CALL USING) takes
 == 12. SUMMARY OF REQUIRED CHANGES TO EXISTING CODE ==
 > **Note.** The list below is the DATA DIVISION design inventory; most of it is implemented in
 > `src/Cobol.Net.Compiler` (`Place`/`ReferenceResolver`, nested record-struct emission, the `ByName` multimap,
-> `Condition88` capture, `WidePrecision`/Int128). The live remaining-work tracker is `resume-prompt.md`, not this
+> `Condition88` capture, `WidePrecision`/Int128). The live remaining-work tracker is the plan's §0 (`docs/COBOLNET_REARCHITECTURE_PLAN.md`), not this
 > section.
 DataItem: add IsJustifiedRight, IsSynchronized, BlankWhenZero, RedefinesName/Redefines, RenamesInfo, OccursInfo (min/max/dependingOn/indexNames/keys), IsGroup-aware ClrType using `_T_` struct names + array `[]`, Level-88 ValueSet, FigurativeInit/AllLiteralPattern, WidePrecision. DataBinder: stop skipping 66/88; capture all clauses; build a name MULTIMAP; collect OCCURS dims + INDEXED BY index-names as their own entities; deferred-resolution pass for REDEFINES/RENAMES/DEPENDING-ON targets. PicInfo: WidePrecision (Int128), BlankWhenZero, IsJustifiedRight; ParseUsage already covers usages. New `ReferenceResolver`(→Place) + the suffix flattener (port legacy SUB_* interpretation). Emitter (`CodeGen/DataDivision/{DataEmitter,RecordStructEmitter}`): emit nested record-struct TYPES + composed initializers rather than flattening groups to leaves; route every operand through Place. Runtime: CobolString.RefMod/SpliceInto, CobolCond.In, Int128 overloads of CobolNum, COMP-5 wrap.
 

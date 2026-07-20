@@ -1,5 +1,11 @@
 # PHASE-13 remaining waves — persisted spec-first anchor re-scout (Waves C-residual / D / E / F / G / H)
 
+> **⚠ 2026-07-19 NOTE:** `PHASE-13-audit.md` (cited throughout as provenance) was RE-VERIFIED by the
+> plan-vs-spec review and DELETED in the plan consolidation — do not look for it; the verified record is
+> `PHASE-13-plan-vs-spec-review.md` and the live worklist is the plan §0. This scout stays the WORKING
+> DESIGN for the remaining P13 waves; delete it at P13 close.
+
+
 > **STATUS: the trusted worklist for the remaining Phase-13 work.** Owner rule: trust a persisted spec-first re-scout over the drift-prone phase plan/audit ([[feedback_persist_anchor_rescout]]). Produced by a 9-agent parallel re-scout (each wave independently derived from specs/ISO_COBOL.md with grep-verified line numbers, CLI-probed against the as-built compiler, adversarially checked against PHASE-13-audit.md). Each section is decision-complete: exact section, quoted format, GR-level semantics, the below-2023 gate + diag code, file:line code anchors, a golden program + hand-derived stdout, AUDIT DRIFT caught, and an implementation plan. Implement FROM this doc + the spec; do not re-derive. Companions: PHASE-13-wave-c-scout.md (the 8 already-landed constructs incl. SUPPRESS-WHEN part-B and PICTURE-EDITING C4 partial) and PHASE-13-audit.md (the 71-row as-built table).
 
 > **Diagnostic band at scout time:** next free COBOLNET15xx = **1570**; new-in-2023 introduction gates reuse **COBOLNET0900**; new-reserved-word user-word gates use **COBOLNET0901**; obsolete-flag warnings **COBOLNET0903**; the §4.2.6 processor-dependent non-support WARNING band starts at **COBOLNET1560**. Final numbering reconciled at implementation time (each wave proposed codes independently).

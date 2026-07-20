@@ -273,7 +273,7 @@ checkout (a failed regen fails the build — keep).
 - **`docs/COBOLNET_REARCHITECTURE_PLAN.md`** (the master plan) — the resumable migration SSOT / ROADMAP: an ordered
   P0–P16 phase index, per-phase exit criteria (universal clause: "gates (1) & (2) green; gate (3) either unchanged or
   reviewed-re-baselined in this change set"), a top STATE banner naming the current phase, and the owner-decisions
-  table. This is what a future engineer resumes the REARCH from; `resume-prompt.md` remains the feature-drive live
+  table. This is what a future engineer resumes the REARCH from; the plan §0 banner is the feature-drive live
   state and cross-links to it.
 - **DEVLOG.md** — unchanged discipline (descending, real timestamp, one entry per commit) per the existing
   `feedback_devlog*` memories. Each rearch phase commit references its ROADMAP phase id.
@@ -373,7 +373,7 @@ errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `Res
 4. **`--suppress` granularity:** per-code, per-family, or per-descriptor `SuppressKey`? Affects the registry shape;
    default proposed is per-code with an optional family key.
 5. **Migration-SSOT vs resume-prompt.md ownership — RESOLVED (2026-07-07):** the migration roadmap is the standalone
-   `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan), cross-linked from `resume-prompt.md`'s top banner;
+   `docs/COBOLNET_REARCHITECTURE_PLAN.md` (since 2026-07-19 THE ONE consolidated plan incl. the §0 live banner);
    `resume-prompt.md` remains the feature-drive state.
 6. **Do we snapshot the runtime deploy?** The runtime DLL is copied per emit; characterization ignores it. Confirm
    the runtime is out of the neutrality scope (it is typed-native and separately unit-tested) — assumed yes.

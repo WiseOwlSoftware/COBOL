@@ -10,6 +10,13 @@
 
 ## §0 — LIVE RESUME STATE (keep this current every session)
 
+**SESSION BOOTSTRAP (a NEW session does exactly this):** ① read `CLAUDE.md` (the non-negotiable rules) → ② this
+§0 → ③ `git checkout phase-13-m4-2023` and confirm the battery green at HEAD (§9 commands; build `CobolSharp.sln`
+first) → ④ work the top item of the REMAINING list below (spec-first, § cited, complete-not-test-scoped;
+design questions → `docs/COBOLNET_DESIGN.md` §0.5 deep-dives; fixes → the review ledger §24 entries carry the
+exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per commit; commit AND push every
+checkpoint.
+
 - **Branch:** `phase-13-m4-2023` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
 - **Battery at HEAD (2026-07-19):** greenfield Conformance **3699** · unit **313** · characterization **33**
   byte-exact · legacy suite **167** · NIST/legacy guard unaffected (no `.g4` change this session). Build
@@ -162,7 +169,7 @@ aspirational — it is a scheduled deliverable and a *cross-cutting architectura
   in as required PHASE-05/06/07 additions + a program-skeleton neutralization checklist (see §7).
 
 Full design: `docs/rearchitecture/DESIGN-backend-abstraction.md` + `DESIGN-codegen-backend.md`. Step-by-step:
-`docs/rearchitecture/PHASE-16-cil-backend.md`.
+Part II §PHASE-16 of this document.
 
 ## §3 EXECUTION MODEL — tiered testing + batching + parallelism (owner-directed; use it every session)
 
@@ -205,7 +212,7 @@ phase boundary.
 | ☑ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) — DONE 2026-07-17 | Part III record |
 | ☑ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero (DONE 2026-07-17) + Tier-C rejection single-sourced; the confined-byte[] codec (Step D) DEFERRED as a scheduled increment | Part III record |
 | ☑ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas — DYNAMIC LENGTH, IEEE float USAGE family (binary32/64 native; binary128/decimal processor-dependent non-support — IEEE-fidelity inversion corrected), >>PROPAGATE intro-gate, TYPE TO re-anchor — DONE 2026-07-17 (E PICTURE + FUNCTION-POINTER runtime staged 0899; >>PROPAGATE semantics → P13) | Part III record · `PHASE-12-scout-notes.md` |
-| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged; pushed through `0efb0d88`; conformance 3648/unit 311/char 33). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: the grammar batch (SUPPRESS WHEN · PICTURE EDITING · PERFORM Fmt3 · Wave H code half · + review adds: RW SUPPRESS, VALUE Format 2, file-control COLLATING SEQUENCE) + Wave D directives (+ review adds) + the ledger §24 fix queue + Wave I close→merge. Worklists: `PHASE-13-audit.md` + `PHASE-13-wave-c-scout.md` + `PHASE-13-remaining-waves-scout.md`; live resume = resume-prompt banner | §0 worklists + the review ledger |
+| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged; battery + HEAD live in §0). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: the grammar batch (SUPPRESS WHEN · PICTURE EDITING · PERFORM Fmt3 · Wave H code half · + review adds: RW SUPPRESS, VALUE Format 2, file-control COLLATING SEQUENCE) + Wave D directives (+ review adds) + the ledger §24 fix queue + Wave I close→merge. Worklists: §0 (the live list) + the two P13 scouts (working designs) + the review ledger §24 (the fix queue); the audit was re-verified by the review and deleted | §0 worklists + the review ledger |
 | ☐ | 14 | I | HIGH | 03,13 | **Step 0: the FOUR-EDITION SPEC-TRACEABILITY INVENTORY (the D13 definition-of-done instrument — every clause/statement/function/directive/format × edition mapped LIVE/STAGED/DISPOSED/GAP with evidence; batched-agent sweep, durably folded per batch)** → matrix closure (VCR zero-todo) + in-repo greenfield guard + one-time equivalence proof | Part II §PHASE-14 |
 | ☐ | 15 | C | MED/HIGH | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | Part II §PHASE-15 |
 | ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | Part II §PHASE-16 |
@@ -264,7 +271,7 @@ it does NOT renumber the phases.
 
 **Guiding rule going forward (`[[feedback_singular_pattern]]` + tooling):** any NEW tree traversal uses the ONE
 generated/shared visitor (bound tree) or the ANTLR generated visitor/listener (CST) — never a fresh bespoke `switch`.
-The PHASE-05 / PHASE-06 / PHASE-07 docs' STATUS lines carry the live resume point for A–D; `resume-prompt.md`'s banner
+The PHASE-05/06/07 records (Part III) close A–D; §0 carries the live resume point; this section's banner
 points at the current exec step. Keep this table + those STATUS lines + the §4 ticks in sync as each exec step lands.
 
 ## §6 Owner decisions (ALL RESOLVED — D1–D13)
@@ -1174,7 +1181,7 @@ only remaining references are the legacy projects referencing each other, and th
   - Search the whole repo (excluding `bin/`, `obj/`, `.git/`) for stale references and fix each: doc comments naming
     "the legacy CobolSharp.Compiler assembly" (notably `src/Cobol.Net.Frontend/Pipeline/Frontend.cs:16` banner —
     correct it to state the frontend is self-contained; P4/P1 own the code rename but the banner text may still be
-    stale), `resume-prompt.md` / `CLAUDE.md` "legacy oracle" live-state mentions, and any `docs/` reference to the
+    stale), this plan's §0 / `CLAUDE.md` "legacy oracle" live-state mentions, and any `docs/` reference to the
     deleted scripts.
   - Verify:
     ```bash
@@ -1311,7 +1318,7 @@ This is the only step here that changes emitted code; it is a coordinated flip m
   - File: `docs/DOC_INDEX.md`. Remove rows for the deleted byte-engine architecture guides (already deleted at the
     PIVOT, but confirm no dangling rows), the deleted guard scripts (if indexed), and any doc that referenced the
     legacy engine as live. Add rows for `CONFORMANCE.md`, `LEGACY-ARCHIVE.md`, and this phase doc
-    (`PHASE-15-…md`). Update the preamble count. Also update `resume-prompt.md`'s STATE banner and `CLAUDE.md`'s PIVOT
+    (Part II §PHASE-15). Update the preamble count. Also update this plan's §0 banner and `CLAUDE.md`'s PIVOT
     STATE line to record G8 complete (legacy severed; runtime namespace flipped; conformance doc published).
   - Verify:
     ```bash
@@ -1454,7 +1461,7 @@ claims cannot rot:
 Every commit boundary above gets a DEVLOG entry at the TOP of `DEVLOG.md` (descending; real `date "+%Y-%m-%d %H:%M %Z"`
 stamp; `## Entry NNN — … — Title`), referencing "P15 / G8". Commit messages are forensic and end with the mandated
 Co-Authored-By / Claude-Session trailers. Push every checkpoint (fully-autonomous rule). After the phase, update
-`resume-prompt.md` STATE + `CLAUDE.md` PIVOT STATE to "G8 COMPLETE".
+this plan's §0 + `CLAUDE.md` PIVOT STATE to "G8 COMPLETE".
 
 # PHASE-16 — CIL/Cecil backend + backend-neutrality proof
 
