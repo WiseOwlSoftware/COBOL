@@ -1220,3 +1220,28 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 
 - **Verdicts + disposition:** in `scratchpad/batch14-verdicts.json` (the citation fix joins the V39/V50
   wrong-§ fix list).
+
+## 22. Batch-15 verdicts (2026-07-19 — batch-1 raw findings F7/F8/F9, 6 agents, 0 errors)
+
+### VF7 (=§8 F7). CONFORMANCE.md VALIDATE row omits 3 of A.4.14's 10 elements — CONFIRMED (with 2 rationale corrections)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** the row misses VALIDATE-STATUS (§13.18.62), data description entry format 4 (§13.16), and
+  VALUE format 5. Corrections: CLASS is RIGHT to keep (the data-division CLASS clause IS a validation clause
+  per §13.16.2; A.4.14 omitting it is the standard's own editorial gap — note that); the driver is not
+  §4.2.13 but that the Wave H COBOLNET1572 recognizer is scoped "matching CONFORMANCE.md §4 row 3" — an
+  incomplete row propagates into an incomplete recognizer. Route: reword the row to the full A.4.14
+  enumeration + citation (Opus doc slice, before the Wave H code half).
+
+### VF8 (=§8 F8). SYNCHRONIZED no-op determination not in CONFORMANCE.md — CONFIRMED and STRENGTHENED
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** the no-op is conforming (GR3/GR9/GR10 + §8.5.1.6.4) BUT Annex A implementor-documentation
+  items 195/197 make documenting it REQUIRED user documentation — the missing §3 row is a spec-conformance
+  gap, not tidiness. Add the §3 row (accepted; no alignment/slack/implicit-FILLER in the typed-native model;
+  group form ≥2023 per E.3.2 item 6; layouts dense — §15.14.4 r3 vacuously satisfied), ideally alongside the
+  V40 ALIGNED row. Corrections: the maintenance rule is §6 not §5; minor line drifts recorded.
+
+### VF9 (=§8 F9). GOBACK/STOP status-phrase non-numeric operand — see full notes
+
+- **Verdicts + disposition:** in `scratchpad/batch15-verdicts.json`.
