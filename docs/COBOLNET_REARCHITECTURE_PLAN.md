@@ -23,9 +23,11 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-m4-2023` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **Battery at HEAD (2026-07-19):** greenfield Conformance **3699** · unit **313** · characterization **33**
-  byte-exact · legacy suite **167** · NIST/legacy guard unaffected (no `.g4` change this session). Build
-  `CobolSharp.sln` before any `--no-build` test run.
+- **Battery at HEAD `73d31bdf` (2026-07-20, branch `phase-13-grammar-batch`):** greenfield Conformance **3704**
+  · unit **313** · characterization **33** byte-exact · full legacy guard (unit+integration+all 350 NIST) GREEN
+  (the last two commits changed shared `.g4`, so each ran the full guard). Build `CobolSharp.sln` before any
+  `--no-build` test run. Grammar batch: **Wave H** (`bcfbc25d`) + **RW SUPPRESS** (`73d31bdf`) landed; a Wave H
+  fixture fixup at `ef080854`.
 - **Mission target (owner decision D13, 2026-07-19): 100% CONFORMING** per ISO §4.2.16 across ALL FOUR editions
   (85/2002/2014/2023) — mandatory core complete + required implementor documentation; optional modules may stay
   documented non-support. Definition of done = the PHASE-14 Step-0 traceability inventory at zero GAP.
