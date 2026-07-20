@@ -15,17 +15,28 @@ every other section/row POINTS here, never duplicates. Duplication is where drif
 class); if you find live state written twice, fixing that is part of the session.
 
 **SESSION BOOTSTRAP (a NEW session does exactly this):** ① read `CLAUDE.md` (the non-negotiable rules) → ② this
-§0 → ③ `git checkout phase-13-m4-2023` and run **`pwsh scripts/session-probe.ps1`** (mechanical state check:
+§0 → ③ `git checkout phase-13-grammar-batch` and run **`pwsh scripts/session-probe.ps1`** (mechanical state check:
 branch/dirty/unpushed, the diag band from BOTH scans, VCR todos, corpus counts, inventory GAPs), then confirm
 the battery green at HEAD (§9 commands; build `CobolSharp.sln` first) → ④ work the top item of the REMAINING list below (spec-first, § cited, complete-not-test-scoped;
 design questions → `docs/COBOLNET_DESIGN.md` §0.5 deep-dives; fixes → the review ledger §24 entries carry the
 exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per commit; commit AND push every
 checkpoint.
 
-- **Branch:** `phase-13-m4-2023` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **Battery at HEAD `73d31bdf` (2026-07-20, branch `phase-13-grammar-batch`):** greenfield Conformance **3704**
+- **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
+- **▶ RESUME AT (2026-07-20, HEAD `586e0323`):** the GRAMMAR BATCH is **4 of 7 done** — Wave H, RW SUPPRESS,
+  file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6) all LANDED + pushed. **NEXT = PICTURE
+  EDITING (§13.18.40, C4)**, then VALUE Format 2 (§13.18.63), then PERFORM Format 3 (C5, NOT yet implementable —
+  read `PHASE-13-c5-perform-format3-rederivation.json` first). **The spec-grounded design SSOT for all three is
+  `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`** (each DERIVED from the spec then
+  adversarially verified). PICTURE EDITING is large: new 2023 reserved word EDITING, the SR8–SR12c suite in
+  PictureAnalyzer, a new `es` render arm in `CobolEdit.Format` (⛔ implement the sign map from **Table 9 + Annex
+  D.24**, NOT the transcribed **Table 8 which is sign-inverted**), and the multi-char/floating-`es` render is a
+  documented **P14 GAP** (single-char IS-form + single-occurrence fixed FOR-form fit the 1:1 mask model). After
+  the grammar batch: Wave D directives (§0 list below), then the §24 fix-queue residue → P14.
+- **Battery at HEAD `586e0323` (2026-07-20, branch `phase-13-grammar-batch`):** greenfield Conformance **3714**
   · unit **313** · characterization **33** byte-exact · full legacy guard (unit+integration+all 350 NIST) GREEN
-  (the last two commits changed shared `.g4`, so each ran the full guard). Build `CobolSharp.sln` before any
+  (the indexed batch changed shared `.g4` + the core `IndexedConnector`, so it ran the full guard). Build
+  `CobolSharp.sln` before any
   `--no-build` test run. Grammar batch: **Wave H** (`bcfbc25d`) + **RW SUPPRESS** (`73d31bdf`) landed; a Wave H
   fixture fixup at `ef080854`.
 - **Mission target (owner decision D13, 2026-07-19): 100% CONFORMING** per ISO §4.2.16 across ALL FOUR editions
@@ -317,7 +328,7 @@ phase boundary.
 | ☑ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) — DONE 2026-07-17 | Part III record |
 | ☑ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero (DONE 2026-07-17) + Tier-C rejection single-sourced; the confined-byte[] codec (Step D) DEFERRED as a scheduled increment | Part III record |
 | ☑ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas — DYNAMIC LENGTH, IEEE float USAGE family (binary32/64 native; binary128/decimal processor-dependent non-support — IEEE-fidelity inversion corrected), >>PROPAGATE intro-gate, TYPE TO re-anchor — DONE 2026-07-17 (E PICTURE + FUNCTION-POINTER runtime staged 0899; >>PROPAGATE semantics → P13) | Part III record · `PHASE-12-scout-notes.md` |
-| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged; battery + HEAD live in §0). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: per the D16 close-line — **the live worklist is §0 ONLY (the single-write rule)**; closes as **M4-beta**. Worklists: §0 (the live list) + the two P13 scouts (working designs) + the review ledger §24 (the fix queue); the audit was re-verified by the review and deleted | §0 worklists + the review ledger |
+| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-grammar-batch, NOT merged; battery + HEAD + grammar-batch progress live in §0). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · the GRAMMAR BATCH 4/7 (Wave H · RW SUPPRESS · COLLATING §12.4.5.7 · SUPPRESS WHEN §12.4.5.6) · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: per the D16 close-line — **the live worklist is §0 ONLY (the single-write rule)**; closes as **M4-beta**. Worklists: §0 (the live list) + the two P13 scouts (working designs) + the review ledger §24 (the fix queue); the audit was re-verified by the review and deleted | §0 worklists + the review ledger |
 | ☐ | 14 | I | HIGH | 03,13 | **Step 0: the FOUR-EDITION SPEC-TRACEABILITY INVENTORY (the D13 definition-of-done instrument — every clause/statement/function/directive/format × edition mapped LIVE/STAGED/DISPOSED/GAP with evidence; batched-agent sweep, durably folded per batch; + Step 0a authority-sufficiency + Step 0b SR-enforcement census)** + **the D17 OO MANDATORY-SURFACE OPENING WAVE (parallel lane)** → matrix closure (VCR zero-todo) + in-repo greenfield guard + one-time equivalence proof + **Step 12 perf gate**; §11 campaigns A3/A4 run here and gate P15 | Part II §PHASE-14 |
 | ☐ | 15 | C | MED/HIGH | 14 | **= v1.0 (D14: 100% conforming ×4).** G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | Part II §PHASE-15 |
 | ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **= v2 (D14 — off the conformance critical path). CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | Part II §PHASE-16 |
