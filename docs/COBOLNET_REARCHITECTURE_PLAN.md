@@ -89,6 +89,25 @@ checkpoint.
   producer→consumer chains must stay ordered; `scripts/guard-run-group.sh` suggests the grouping half-exists).
   Recorded, NOT scheduled — it is not on the close-line. ⚠ Standing reminder: §3 prescribes wave-local (~2–3 min)
   per change and comprehensive ONCE PER BATCH; running the full gate per change set is over-gating.
+- **✅ DONE 2026-07-20 (Campaign B pulled forward by owner directive; all gate-green):** the **GnuCOBOL external
+  differential corpus** is live (`fetch-gnucobol-tests.ps1` pinning 3.2 SHA256-verified · `gnucobol_extract.py`,
+  a bracket-balanced m4/autotest parser validated at 1346 groups / 3503 checks / ZERO extraction failures ·
+  `gnucobol_differential.py`). It found **two systemic conformance bugs on day one, both invisible to the entire
+  4212-test battery** because NIST/CCVS always fills the sequence area and always writes paragraph names:
+  **paragraph-less PROCEDURE DIVISION rejected** (§14.4.3 — grammar had no alternative; the binder half needed
+  `AddAnonymousParagraph`, registered in NO name map since §8.4.2.2 resolves procedure-NAMES) and **fixed-form
+  comment lines rejected when the sequence area is blank** (§6.3.2 — it is optional; the file was misclassified
+  free-form so a col-7 `*` became a stray token). Both fixed (`f5a91244`). Agreement 44% → 49% of 1323 groups.
+  **`docs/GnuCOBOL extensions.md`** is the owner-requested register of non-ISO constructs, with a **FOUR-way**
+  classification (owner correction): vendor extension · **ISO OPTIONAL A.4 not claimed — NOT an extension, its
+  home is CONFORMANCE.md §5** · ISO-mandatory-wrongly-refused (our bug) · needs-verification. 104 of 569
+  rejections map to A.4 modules = correct behaviour. ⚠ A rejection inside a **Claimed** A.4 module would be a
+  FALSE CONFORMANCE CLAIM; A.4.7 was investigated and cleared (`LOCK MODE IS EXCLUSIVE` is non-ISO — §12.4.5.9
+  admits only MANUAL/AUTOMATIC).
+- **⛔ NEW SR-ENFORCEMENT FINDINGS (seed §11 A2; verified against the spec, accepted at ALL FOUR editions):**
+  `OCCURS` on a level 01/66/77/88 entry (§13.18.38.3 SR1(a)) and `RENAMES` naming a level 1/66/77/88 entry
+  (§13.18.45.3 SR5) are both **unenforced** — we accept source the standard forbids. Tiered CONFORMANCE-BLOCKING;
+  scheduled to P14 Step 0b (the SR census) rather than crammed into P13 per D15.
 - **REMAINING P13 (the D16 CLOSE-LINE — work in this order, then P14):**
   1. **The GRAMMAR BATCH** (shared `.g4` ⇒ ONE full legacy guard): SUPPRESS WHEN on ALTERNATE RECORD KEY
      (§12.4.5.6; scout §C6-B) · PICTURE EDITING (§13.18.40, Table 9, EDITING = new 2023 reserved word) · PERFORM
