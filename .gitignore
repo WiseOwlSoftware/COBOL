@@ -79,3 +79,7 @@ tests/external/*.zip
 # differential report and the expectations ledger MAY carry them. Case IDs ("syn_move:38") are coordinates
 # we compute. Net effect: our reports are committable; their corpus is not.
 scripts/__pycache__/
+# Regenerable output of scripts/gnucobol_differential.py (re-run to recreate). NOT a licensing
+# exclusion — per the owner's 2026-07-19 ruling its case titles/keywords are citable; it is simply
+# generated. The COMMITTED artifact is tests/external/gnucobol-expectations.json (our classifications).
+tests/external/gnucobol-differential-report.json
