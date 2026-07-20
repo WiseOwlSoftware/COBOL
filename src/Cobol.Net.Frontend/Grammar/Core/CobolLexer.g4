@@ -103,7 +103,9 @@ COMMENT_START: '*>' -> skip, pushMode(COMMENT_MODE) ;
 END_IF       : 'END-IF' ;
 END_PERFORM  : 'END-PERFORM' ;
 END_EVALUATE : 'END-EVALUATE' ;
+END_RECEIVE  : 'END-RECEIVE' ;  // MCS scope terminator (ISO 14.9.31)
 END_READ     : 'END-READ' ;
+END_SEND     : 'END-SEND' ;     // MCS scope terminator (ISO 14.9.38)
 END_SEARCH   : 'END-SEARCH' ;
 END_CALL     : 'END-CALL' ;
 END_SORT     : 'END-SORT' ;
@@ -281,6 +283,7 @@ ALLOCATE    : 'ALLOCATE' ;
 FREE        : 'FREE' ;
 INVOKE      : 'INVOKE' ;
 JSON        : 'JSON' ;
+MESSAGE     : 'MESSAGE' ;      // MCS: the CONTINUE AFTER MESSAGE RECEIVED phrase (ISO 14.9.31)
 MERGE       : 'MERGE' ;
 MOVE        : 'MOVE' ;
 MULTIPLY    : 'MULTIPLY' ;
@@ -365,6 +368,7 @@ COLS        : 'COLS' ;      // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14
 COLUMN      : 'COLUMN' ;
 COLUMNS     : 'COLUMNS' ;   // COBOL-2002 COLUMN-clause spelling (ISO §13.18.14 SR1); usable as a user word via cobolWord (§8.9 funnel gates ≥2002)
 COLLATING   : 'COLLATING' ;
+COMMIT      : 'COMMIT' ;       // commit/rollback facility (A.3 items 6-7) - recognized-not-supported
 COMMON      : 'COMMON' ;
 COMP        : 'COMP' ;
 COMP_1      : 'COMP-1' ;
@@ -551,6 +555,7 @@ EO          : 'EO' ;         // USE AFTER EO ≡ EXCEPTION OBJECT (ISO §14.9.49
 EC          : 'EC' ;         // USE AFTER EC ≡ EXCEPTION CONDITION (ISO §14.9.49.3 SR12); maximal munch keeps
                              // EC-I-O-AT-END etc. one IDENTIFIER (the longer match wins)
 RANDOM      : 'RANDOM' ;
+RECEIVE     : 'RECEIVE' ;      // MCS RECEIVE (ISO 14.9.31) - recognized-not-supported (4.2.6, A.3 item 4)
 RECORD      : 'RECORD' ;
 RECORDS     : 'RECORDS' ;
 REEL        : 'REEL' ;
@@ -570,6 +575,7 @@ REWIND      : 'REWIND' ;
 REVERSED    : 'REVERSED' ;
 RF          : 'RF' ;
 RH          : 'RH' ;
+ROLLBACK    : 'ROLLBACK' ;     // commit/rollback facility (A.3 items 6-7) - recognized-not-supported
 ROUNDED     : 'ROUNDED' ;
 RIGHT       : 'RIGHT' ;
 RUN         : 'RUN' ;
@@ -579,6 +585,7 @@ SORT_MERGE  : 'SORT-MERGE' ;
 MULTIPLE    : 'MULTIPLE' ;
 TAPE        : 'TAPE' ;
 POSITION    : 'POSITION' ;
+SEND        : 'SEND' ;         // MCS SEND (ISO 14.9.38) - recognized-not-supported (4.2.6, A.3 item 4)
 SECURE      : 'SECURE' ;
 SECURITY    : 'SECURITY' ;
 SELECT      : 'SELECT' ;
@@ -617,6 +624,7 @@ UNTIL       : 'UNTIL' ;
 UP          : 'UP' ;
 USAGE       : 'USAGE' ;
 USING       : 'USING' ;
+VALIDATE    : 'VALIDATE' ;     // VALIDATE (ISO 14.9.50) - optional 4.2.7/A.4.14 + obsolete 4.2.13
 VALUE       : 'VALUE' ;
 VALUES      : 'VALUES' ;
 VARYING     : 'VARYING' ;

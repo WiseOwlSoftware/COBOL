@@ -25,12 +25,15 @@ cobolWord
     | COLS
     | COLUMN
     | COLUMNS
+    | COMMIT
     | CONDITION
     | CONSTANT
     | DEBUGGING
     | DECIMAL_ENCODING
     | DEFAULT
     | EC
+    | END_RECEIVE
+    | END_SEND
     | ENTER
     | ENTRY_CONVENTION
     | EO
@@ -56,6 +59,7 @@ cobolWord
     | LENGTH
     | LOWLIGHT
     | MANUAL
+    | MESSAGE
     | NATIONAL
     | NORMAL
     | NUMBERS
@@ -70,20 +74,24 @@ cobolWord
     | PROTOTYPE
     | RAISE
     | RAISING
+    | RECEIVE
     | REFERENCES
     | REQUIRED
     | RERUN
     | RESUME
     | RETRY
+    | ROLLBACK
     | ROUNDING
     | SCREEN
     | SECONDS
     | SECURE
+    | SEND
     | SHARING
     | STANDARD_BINARY
     | STANDARD_DECIMAL
     | STATEMENT
     | UNDERLINE_
     | UNLOCK
+    | VALIDATE
     | XOR
     ;

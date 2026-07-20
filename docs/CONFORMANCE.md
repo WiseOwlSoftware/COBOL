@@ -15,11 +15,23 @@ the 1985, 2002, and 2014 editions selected by `--std`. It implements the require
 except the optional/processor-dependent facilities listed as **not supported** below; the per-module
 optional-element dispositions are §5 (only Claimed/Partial rows there are claimed). Per §4.2.6, an
 implementation need not implement processor-dependent elements for which support is not claimed; per §4.2.7, an
-optional element is implemented only when support is claimed. Of the five **documented non-support
-facilities** (§4), SCREEN handling is recognized at compile time with the named COBOLNET1560 warning; MCS
-(SEND/RECEIVE), COMMIT/ROLLBACK, and VALIDATE are today a generic parse error — their named recognize-and-warn
-diagnostics are the tracked PHASE-13 Wave H code half (they ship before the §4.2.6 warning-mechanism claim can
-be made for those three).
+optional element is implemented only when support is claimed. All five **documented non-support facilities**
+(§4) are now recognized at compile time with a NAMED warning, satisfying §4.2.6 ¶3's mandatory warning
+mechanism: SCREEN handling → **COBOLNET1560**; MCS SEND/RECEIVE → **COBOLNET1578**; COMMIT/ROLLBACK →
+**COBOLNET1579**; VALIDATE → **COBOLNET1580**. Each is a WARNING, not an error — the program compiles, runs,
+and the facility is inert, and no associated exception condition is raised (§14.6.13.1.1 licenses this).
+
+> ⚠ **One documented position where the warning does NOT fire.** When a bare facility verb whose word is also
+> a legal user-name (`COMMIT`, `ROLLBACK`, `VALIDATE`) is written as the FIRST statement of an `EVALUATE … WHEN`
+> arm, the WHEN selection-object list absorbs it as a data reference before the statement arm is reached, so no
+> COBOLNET1579/1580 is emitted. The construct then fails LOUDLY at run time
+> (`NotImplementedCobolFeatureException: reference 'COMMIT'`) — it is not a silent wrong answer — but the
+> compile-time warning obligation is unmet in that one position. This is the pre-existing EVALUATE
+> selection-object greediness, NOT a Wave H regression: the identical behaviour occurs at `--std 2014`, where
+> `COMMIT` is a user word and the Wave H statement arm does not fire at all. `RECEIVE`/`SEND` are unaffected
+> (their `FROM`/`TO` operand keyword cannot continue an object list, so the parser recovers into the statement).
+> Registered as a P14 Step-0 GAP row; fixing it means constraining the EVALUATE object list, which is a shared
+> grammar change and is deliberately not bundled into this wave.
 
 ## 2. Annex A.3 — processor-dependent language element disposition
 

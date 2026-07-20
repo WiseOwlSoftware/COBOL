@@ -299,6 +299,16 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         _ when s.unstringStatement() is { } suns => Strings.BindUnstring(suns),
         _ when s.acceptStatement() is { } ac => Accept.BindAccept(ac),
         _ when s.initializeStatement() is { } ini => Init.Bind(ini),
+        // ── Wave H — recognize-and-name the unsupported facilities (ISO §4.2.6 ¶3 makes the compile-time
+        //    warning mechanism MANDATORY even where the facility itself need not be implemented). Each binds
+        //    to BoundNop: the program compiles, runs, and the facility is inert — never a silent wrong answer,
+        //    and never an EC (licensed off by §14.6.13.1.1). ──
+        _ when s.mcsReceiveStatement() is not null || s.mcsSendStatement() is not null
+            => BindUnsupportedFacility(DiagnosticCatalog.McsFacilityUnsupported),
+        _ when s.commitFacilityStatement() is not null || s.rollbackFacilityStatement() is not null
+            => BindUnsupportedFacility(DiagnosticCatalog.CommitRollbackUnsupported),
+        _ when s.validateFacilityStatement() is not null
+            => BindUnsupportedFacility(DiagnosticCatalog.ValidateFacilityUnsupported),
         _ when s.continueStatement() is { } cont => ControlFlow.BindContinue(cont),
         _ when s.nextSentenceStatement() is not null => new BoundNextSentence(s.Start.Line),
         // STOP RUN vs STOP literal (X3.23-1985 Format 2 — communicate to the operator, then CONTINUE): the
@@ -379,4 +389,15 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
 
     private static string FirstToken(IParseTree node) =>
         node.ChildCount > 0 ? node.GetChild(0).GetText() : node.GetText();
+
+    /// <summary>Recognize-and-name an unsupported facility: emit its NAMED §4.2.6/§4.2.13 warning once per
+    /// site on the non-failing channel and bind to <see cref="BoundNop"/>. The program still compiles and
+    /// runs; the facility is inert. This is the ONE mechanism for the band — do not add a parallel
+    /// Lenient()/Unsupported() helper (feedback_singular_pattern); it routes through the same
+    /// <c>EditionContext.Warning</c> channel the SCREEN non-support warning already uses.</summary>
+    private BoundStatement BindUnsupportedFacility(DiagnosticDescriptor d)
+    {
+        Ctx.Edition.Warning(d.Code, d.Title);
+        return new BoundNop();
+    }
 }

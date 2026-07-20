@@ -34,11 +34,18 @@ checkpoint.
   QUEUE — the fix SSOT.** Fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + catalog drift
   guards · CONFORMANCE.md restoration + locale row + the A.4 §5 section · citation sweeps · VCR-16 strength
   half · GOBACK GR3 · WriteFill AllowZeroLength · `external_type_decl` exclusion.
-- **Diagnostic band (THE one next-free claim):** …1570–1577 all taken (1573 = external-file-status-consistency
-  ONLY; 1576 = ref-mod-zero-length-malformed; 1577 = method-redefines-scope). **NEXT FREE = 1578** — allocate
-  only after BOTH scans agree: `grep -rho 'COBOLNET15[0-9][0-9]' src | sort -u` AND the DiagnosticCatalog
-  descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces the frontend channel through
-  the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is queued — ledger V11 note).
+- **Diagnostic band (THE one next-free claim):** …1570–1577 taken (1573 = external-file-status-consistency
+  ONLY; 1576 = ref-mod-zero-length-malformed; 1577 = method-redefines-scope). **1578/1579/1580 SHIPPED
+  2026-07-20 by Wave H** (mcs-facility-unsupported · commit-rollback-unsupported · validate-facility-unsupported
+  — the §4.2.6 ¶3 recognize-and-name band). **NEXT FREE = 1581** — allocate only after BOTH scans agree:
+  `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u` AND the DiagnosticCatalog descriptor list (the
+  `EveryEmittedCode_IsACatalogDescriptor` drift test forces the frontend channel through the catalog; extending
+  it to the compiler's dot-prefixed `Edition.Error` channel is queued — ledger V11 note).
+  ⚠ **RESERVED, not yet shipped** (the grammar-batch synthesis pre-allocated these to prevent the parallel-agent
+  collision class that produced the ~40-site scout drift): **1581–1582** RW SUPPRESS + the PERFORM UNTIL EXIT
+  §14.9.28.3 SR8 residue · **1583–1585** file-control COLLATING · **1586–1587** SUPPRESS WHEN alt-key ·
+  **1588–1593** VALUE Format 2 · **1594–1605** PICTURE EDITING · **1606–1616** PERFORM Format 3. A wave that
+  does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
   1550–1552 are unallocated mid-band holes. Intro gates 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
   warning band 1560.
 - **RELEASE MILESTONES (D14): v1.0 = the P15 exit (100% conforming ×4); P16 CIL = v2 (off the conformance

@@ -35,6 +35,36 @@ public abstract class CobolParserCoreBase : Parser
     protected bool is2014() => Edition.Has(2014);
     protected bool is2023() => Edition.Has(2023);
 
+    /// <summary>
+    /// True when the current token spells a reserved-as-facility keyword AT THE TARGETED EDITION — i.e. it can
+    /// only be the (unsupported) facility verb here, never a user-defined word. Gates the recognize-and-name
+    /// statement arms for the facilities COBOL.NET does not implement: MCS SEND/RECEIVE (ISO §14.9.31/§14.9.38,
+    /// Annex A.3 item 4), COMMIT/ROLLBACK (A.3 items 6–7), VALIDATE (§14.9.50).
+    /// <para>
+    /// WHY A PREDICATE AT ALL, given these are now hard lexer tokens: their §8.9 reservation is NON-MONOTONIC —
+    /// RECEIVE/SEND/END-RECEIVE are reserved at 85, USER WORDS at 2002/2014, and re-reserved at 2023;
+    /// COMMIT/ROLLBACK/END-SEND are reserved at 2023 only; VALIDATE is a user word at 85; MESSAGE runs the other
+    /// way (reserved 85/2002, user word 2014/2023). The tokens are admitted to the <c>cobolWord</c> nameSlot
+    /// funnel so they remain legal user names wherever unreserved, and this predicate stops the STATEMENT arm
+    /// from firing at those editions — so <c>01 RECEIVE PIC X.</c> at --std 2002 stays a data item.
+    /// </para>
+    /// <para>
+    /// ⛔ The arms this gates are KEYWORD-TOKEN-LED, never IDENTIFIER-led. An IDENTIFIER-led <c>statement</c>
+    /// alternative poisons ANTLR's ALL(*) boolean-factor prediction DFA and regresses
+    /// <c>COMPUTE R = B-NOT A.</c> at every edition — empirically proven and reverted (DEVLOG 903). A predicate
+    /// on a distinct leading token is unreachable during arithmetic/boolean prediction and cannot poison it.
+    /// </para>
+    /// Reads the SAME <see cref="ReservedWords"/> table the §8.9 funnel uses, so recognition and reservation
+    /// can never diverge. Read-only — safe for ANTLR's repeated speculative prediction calls.
+    /// </summary>
+    protected bool facilityWord(string keyword)
+    {
+        var t = CurrentToken;
+        if (t is null) return false;
+        if (!string.Equals(t.Text, keyword, StringComparison.OrdinalIgnoreCase)) return false;
+        return ReservedWords.Find(keyword)?.IsReservedAt(Edition.Year) ?? false;
+    }
+
     protected CobolParserCoreBase(ITokenStream input) : base(input) { }
     protected CobolParserCoreBase(ITokenStream input, TextWriter output, TextWriter errorOutput)
         : base(input, output, errorOutput) { }

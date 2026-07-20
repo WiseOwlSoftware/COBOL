@@ -68,6 +68,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         // ALLOCATE based-item INITIALIZED: the §14.9.3 GR7 lowering (INITIALIZE … WITH FILLER ALL TO VALUE
         // THEN TO DEFAULT) never landed in legacy — its CIL emitter only zero-fills (CilEmitter.cs), so the
         // GR7-conforming .out (VALUE members honored, numerics ZERO, edited zero, SPACES) is greenfield-only.
+        // Wave H recognize-and-name (§4.2.6 ¶3): the MCS / COMMIT-ROLLBACK / VALIDATE statements exist only
+        // in the greenfield grammar+binder (COBOLNET1578/1579/1580). The frozen legacy compiler has no such
+        // statements at all — it still fails these programs at parse — so the golden is greenfield-only.
+        ("2023", "wave_h_facilities_inert"),
         ("2002", "allocate_initialized"),
         // ARITHMETIC IS STANDARD full consumption (P10 Step 12): SDIDI exponentiation (§8.8.1.5.4 — CobolDec.Pow),
         // the decimal128 range ECs (§8.8.1.5.2 r2), float→SDIDI operand conversion (§8.8.1.5.1), and the

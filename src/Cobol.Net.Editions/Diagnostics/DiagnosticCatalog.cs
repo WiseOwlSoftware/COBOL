@@ -478,6 +478,34 @@ public static class DiagnosticCatalog
         "A method data item's REDEFINES target shall be a preceding item in the SAME method scope — a method "
         + "item may not redefine object or program data (ISO §13.18.44.3).",
         "ISO §13.18.44.3");
+    // ── Wave H — the §4.2.6 ¶3 / §4.2.13 RECOGNIZE-AND-NAME band. These are WARNINGS, not errors: the
+    //    facilities are optional (§4.2.7) or processor-dependent (§4.2.6), so we need not implement them —
+    //    but §4.2.6 ¶3 makes the compile-time warning MECHANISM mandatory ("shall provide a warning mechanism
+    //    at compile time to indicate use of syntactically-detectable processor-dependent language elements not
+    //    supported"), and §14.6.13.1.1 licenses raising NO exception conditions for them. So the program
+    //    COMPILES, RUNS, and the facility is inert. Before this band these constructs produced a GENERIC parse
+    //    error, which satisfied neither the warning obligation nor the "never a silent wrong answer" rule. ──
+    public static readonly DiagnosticDescriptor McsFacilityUnsupported = new(
+        "COBOLNET1578", "mcs-facility-unsupported", EditionSeverity.Warning,
+        "The asynchronous messaging facility (SEND/RECEIVE, ISO §14.9.31/§14.9.38) is a processor-dependent "
+        + "element (§4.2.6; Annex A.3 item 4) that is not supported — the statement is accepted but performs no "
+        + "message I-O, and no EC-MCS-* condition is raised (§14.6.13.1.1). See docs/CONFORMANCE.md §4.",
+        "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §14.9.31 / §14.9.38", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor CommitRollbackUnsupported = new(
+        "COBOLNET1579", "commit-rollback-unsupported", EditionSeverity.Warning,
+        "The commit and rollback facility (COMMIT/ROLLBACK, ISO §14.9.7/§14.9.36) is a processor-dependent "
+        + "element (§4.2.6; Annex A.3 items 6-7) that is not supported — the statement is accepted but performs "
+        + "no transaction control and behaves as CONTINUE, and no EC-FLOW-COMMIT/ROLLBACK condition is raised "
+        + "(§14.6.13.1.1). See docs/CONFORMANCE.md §4.",
+        "ISO §4.2.6 ¶3 / Annex A.3 items 6-7 / §14.9.7 / §14.9.36", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor ValidateFacilityUnsupported = new(
+        "COBOLNET1580", "validate-facility-unsupported", EditionSeverity.Warning,
+        "The VALIDATE facility (ISO §14.9.50) is an OPTIONAL element (§4.2.7; Annex A.4.14) and, at COBOL-2023, "
+        + "additionally OBSOLETE (§4.2.13; Annex F.2 item 5) — it is not supported. The statement is accepted "
+        + "but performs no content validation, and no EC-VALIDATE-* condition is raised (§14.6.13.1.1). Fires at "
+        + "2002/2014/2023 (the facility exists from 2002); at --std 85 VALIDATE is a user word, not a statement. "
+        + "See docs/CONFORMANCE.md §4.",
+        "ISO §4.2.7 / Annex A.4.14 / §4.2.13 / Annex F.2 item 5 / §14.9.50", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor StrongGroupOrderingSignedLeaf = new(
         NotImplemented, "strong-group-ordering-signed-leaf", EditionSeverity.Error,
         "An ORDERING relation (<, >, <=, >=) between strongly-typed groups containing a SIGNED numeric "
