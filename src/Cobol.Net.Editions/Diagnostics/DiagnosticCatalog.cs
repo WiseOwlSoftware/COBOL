@@ -300,6 +300,20 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportSuppressContext = new(
         "COBOLNET1581", "report-suppress-context", EditionSeverity.Error,
         "A SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.", "ISO §14.9.45.3 SR1");
+    // §12.4.5.7 file-control COLLATING SEQUENCE (INDEXED record-key collating).
+    public static readonly DiagnosticDescriptor FileCollatingKey = new(
+        "COBOLNET1582", "file-collating-key", EditionSeverity.Error,
+        "A file-control COLLATING SEQUENCE clause is malformed: it applies only to an INDEXED file, at most one "
+        + "file-level clause is allowed, and every key-level name shall be a declared RECORD/ALTERNATE RECORD KEY "
+        + "named in at most one clause.", "ISO §12.4.5.7.3 SR3-SR8");
+    public static readonly DiagnosticDescriptor FileCollatingAlphabet = new(
+        "COBOLNET1583", "file-collating-alphabet", EditionSeverity.Error,
+        "A file-control COLLATING SEQUENCE clause names an alphabet that is not declared in SPECIAL-NAMES or is of "
+        + "the wrong class for the key.", "ISO §12.4.5.7.3 SR1/SR2/SR7");
+    public static readonly DiagnosticDescriptor FileCollatingNationalUnsupported = new(
+        "COBOLNET1584", "file-collating-national-unsupported", EditionSeverity.Warning,
+        "A NATIONAL alphabet on a file-control COLLATING SEQUENCE clause is recognized but national-key collating "
+        + "for indexed files is not yet implemented — the key orders natively.", "ISO §12.4.5.7", RecognizedNotImplemented);
     public static readonly DiagnosticDescriptor ReportSourceOtherReportCounter = new(
         NotImplemented, "report-source-other-report-counter", EditionSeverity.Error,
         "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15 SR2", RecognizedNotImplemented);

@@ -695,7 +695,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 else if (clauses.alternateKeyClause() is { } ak)                                                     // ISO §12.4.5.6
                 {
                     var (an, aq) = KeyReference(ak.dataReference());
-                    file.AlternateKeyNames.Add((an, aq, ak.DUPLICATES() is not null));
+                    // §12.4.5.6.4 GR6 — the SUPPRESS WHEN key suppression value (decoded literal; null when absent).
+                    string? suppress = ak.alternateKeySuppressWhen()?.literal() is { } sl ? CobolLiteral.Decode(sl.GetText()) : null;
+                    file.AlternateKeyNames.Add((an, aq, ak.DUPLICATES() is not null, suppress));
                 }
                 else if (clauses.relativeKeyClause()?.dataReference() is { } rlk)
                     file.RelativeKeyName = KeyReference(rlk).Base;   // ISO §12.4.5.13 SR3 — outside the record
@@ -703,6 +705,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     file.Sharing = MapSharing(sh.sharingMode());
                 else if (clauses.lockModeClause() is { } lm)   // §12.4.5.9 — edition gate: VersionConformancePass ParseArm.VisitLockModeClause (14g.4)
                     file.LockMode = MapLockMode(lm);
+                else if (clauses.fileCollatingSequenceClause() is { } col)   // §12.4.5.7 — introduction-gated post-bind; resolved in ResolveFileCollating
+                    CaptureFileCollating(file, col);
             }
             // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
             // or sequential-organization file.
@@ -719,6 +723,109 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             _files.Add(file);
             FilesByName[name] = file;
         }
+    }
+
+    /// <summary>Capture one file-control COLLATING SEQUENCE clause as written (ISO §12.4.5.7) — resolved to per-key
+    /// weight tables post-build in <see cref="ResolveFileCollating"/> (the keys are not yet bound here). Format 2 is
+    /// OF-led; Format 1 is the FOR-split or the IS alphabet-name-1 [alphabet-name-2] form.</summary>
+    private static void CaptureFileCollating(FileModel file, Core.FileCollatingSequenceClauseContext ctx)
+    {
+        if (ctx.OF() is not null)   // Format 2 (key-level): OF {key}… IS alphabet-name-3
+        {
+            var words = ctx.cobolWord();
+            var keyNames = words.Take(words.Length - 1).Select(w => w.GetText()).ToList();
+            file.KeyLevelCollating.Add((keyNames, words[^1].GetText()));
+            return;
+        }
+        file.FileLevelCollatingCount++;   // §12.4.5.7.3 SR3 — at most one file-level clause
+        string? alnum = null, nat = null;
+        if (ctx.collatingForPhrase() is { Length: > 0 } fors)
+            foreach (var f in fors)
+            {
+                if (f.NATIONAL() is not null) nat = f.cobolWord().GetText();
+                else alnum = f.cobolWord().GetText();
+            }
+        else
+        {
+            var words = ctx.cobolWord();
+            alnum = words.Length > 0 ? words[0].GetText() : null;
+            nat = words.Length > 1 ? words[1].GetText() : null;
+        }
+        file.FileLevelCollating = (alnum, nat);
+    }
+
+    /// <summary>Resolve each INDEXED key's collating-weight table from the file's §12.4.5.7 COLLATING SEQUENCE
+    /// clauses (post-build — the keys are bound by now). Per §12.4.5.7.4 the sequence for a key is, in order: (GR6)
+    /// a Format-2 clause naming it; else (GR2/GR3) the Format-1 default for the key's class; else (GR4/GR5) native
+    /// (null weights = ordinal). SR3 (single file-level clause), SR4/SR5 (Format-2 names shall be declared keys),
+    /// and SR1/SR2/SR7 (alphabet class) are enforced. A NATIONAL alphabet on a key is recognized-but-not-yet-
+    /// implemented (national-key collating is a documented P14 GAP — never silently applied).</summary>
+    private void ResolveFileCollating(FileModel file)
+    {
+        if (file.FileLevelCollatingCount > 1)
+            Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': at most one file-level "
+                + "COLLATING SEQUENCE clause may be specified in one file control entry (ISO §12.4.5.7.3 SR3)");
+        if (file.FileLevelCollating is null && file.KeyLevelCollating.Count == 0) return;   // no clause → native
+
+        if (file.Organization != FileOrganization.Indexed)
+        {
+            Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': a file-control COLLATING "
+                + "SEQUENCE clause applies only to an INDEXED file (ISO §12.4.5.7.1)");
+            return;
+        }
+
+        // SR4/SR5: every Format-2 name shall be a declared RECORD KEY or ALTERNATE RECORD KEY of this file.
+        var keyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (file.RecordKeyName is { } pk) keyNames.Add(pk);
+        foreach (var (n, _, _, _) in file.AlternateKeyNames) keyNames.Add(n);
+        var seenInClause = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (names, _) in file.KeyLevelCollating)
+            foreach (var n in names)
+            {
+                if (!keyNames.Contains(n))
+                    Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': COLLATING SEQUENCE "
+                        + $"OF '{n}' — '{n}' is not a RECORD KEY or ALTERNATE RECORD KEY of this file "
+                        + "(ISO §12.4.5.7.3 SR4/SR5)");
+                else if (!seenInClause.Add(n))   // SR8 — a key named in more than one Format-2 clause
+                    Edition.Error(DiagnosticCatalog.FileCollatingKey, $"file '{file.CobolName}': key '{n}' is named "
+                        + "in more than one COLLATING SEQUENCE clause (ISO §12.4.5.7.3 SR8)");
+            }
+
+        file.PrimeKeyWeights = ResolveKeyCollating(file, file.RecordKeyName);
+        for (int i = 0; i < file.AlternateKeys.Count; i++)
+            file.AlternateKeyWeights.Add(ResolveKeyCollating(file, AltName(file, i)));
+    }
+
+    /// <summary>The declared name of the i-th resolved alternate key (index-aligned when all names resolve — the
+    /// normal case; a name that failed to resolve has already errored).</summary>
+    private static string? AltName(FileModel file, int i) =>
+        i < file.AlternateKeyNames.Count ? file.AlternateKeyNames[i].Name : null;
+
+    /// <summary>Resolve one key's collating weights (§12.4.5.7.4): a Format-2 alphabet naming the key wins (GR6),
+    /// else the file-level alphanumeric default (GR2), else native ordinal (null). An alphanumeric alphabet
+    /// resolves to its weight table; a NATIONAL alphabet is the recognized-not-implemented P14 GAP; an undeclared
+    /// name errors.</summary>
+    private ushort[]? ResolveKeyCollating(FileModel file, string? keyName)
+    {
+        string? alphabet = null;
+        if (keyName is not null)
+            foreach (var (names, a) in file.KeyLevelCollating)
+                if (names.Any(n => n.Equals(keyName, StringComparison.OrdinalIgnoreCase))) { alphabet = a; break; }
+        alphabet ??= file.FileLevelCollating?.Alnum;   // GR2 file-level alphanumeric default
+        if (alphabet is null) return null;             // GR4/GR5 — native ordinal
+
+        if (Alphabets.TryGetValue(alphabet, out var table) && table is not null)
+            return table.Positions;   // SR1 — alphanumeric collating
+        if (NationalAlphabets.ContainsKey(alphabet))
+        {
+            Edition.Error(DiagnosticCatalog.FileCollatingNationalUnsupported, $"file '{file.CobolName}': COLLATING "
+                + $"SEQUENCE '{alphabet}' names a NATIONAL alphabet — national-key collating for indexed files is "
+                + "recognized but not yet implemented; the key orders natively (ISO §12.4.5.7).");
+            return null;
+        }
+        Edition.Error(DiagnosticCatalog.FileCollatingAlphabet, $"file '{file.CobolName}': COLLATING SEQUENCE "
+            + $"'{alphabet}' does not name an alphabet declared in SPECIAL-NAMES (ISO §12.4.5.7.3 SR1)");
+        return null;
     }
 
     /// <summary>Map the SHARING clause / phrase mode (ISO §12.4.5.15).</summary>
@@ -919,9 +1026,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 file.Records.Select(r => FindQualified(r, keyName, quals)).FirstOrDefault(x => x is not null)
                 ?? (quals.Count == 0 && ByName.TryGetValue(keyName, out var l) && l.Count > 0 ? l[0] : null);
             if (file.RecordKeyName is { } rk) file.RecordKeyItem = InRecords(rk, file.RecordKeyQualifiers);
-            foreach (var (altName, altQuals, dups) in file.AlternateKeyNames)
+            foreach (var (altName, altQuals, dups, suppress) in file.AlternateKeyNames)
                 if (InRecords(altName, altQuals) is { } alt)
-                    file.AlternateKeys.Add((alt, dups));
+                    file.AlternateKeys.Add((alt, dups, suppress));
+            ResolveFileCollating(file);   // §12.4.5.7 — per-key collating weights (needs the resolved keys)
             if (file.RelativeKeyName is { } rl && ByName.TryGetValue(rl, out var rlist) && rlist.Count > 0)
                 file.RelativeKeyItem = rlist[0];
             // RECORD VARYING … DEPENDING ON names an integer item outside the record (ISO §13.18.43 SR — the

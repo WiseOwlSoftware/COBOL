@@ -1584,6 +1584,30 @@
       "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWLM.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS SEQUENTIAL\n               LOCK MODE IS MANUAL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R PIC X(8).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
     },
     {
+      "id": "file-collating-clause-2002",
+      "description": "The file-control COLLATING SEQUENCE clause (ISO 12.4.5.7) - the collating sequence for the record keys of an INDEXED file (Format 1 file-level IS/FOR ALPHANUMERIC/FOR NATIONAL, Format 2 key-level OF key... IS alphabet). 2002 introduction (programmable indexed-key collating); 0900 below 2002. Parses at all editions (superset), introduction-gated post-bind by VersionConformancePass.",
+      "display": "the file COLLATING SEQUENCE clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.4.5.7; LIVE (P13 grammar batch) — per-key collating weights on the IndexedConnector; 2002 introduction (expanded indexed I-O)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2002 introduction (derive from the 2002 standard - Annex E covers 2014->2023 only)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWCOL.\n       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           ALPHABET AL IS \"ABCDEFGHIJKLMNOPQRSTUVWXYZ\".\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS INDEXED\n               RECORD KEY IS R-KEY\n               COLLATING SEQUENCE IS AL.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R.\n          05 R-KEY PIC X(4).\n          05 R-D   PIC X(4).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+    },
+    {
+      "id": "alternate-key-suppress-when-2023",
+      "description": "The SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause (ISO 12.4.5.6.2) - alternate-key suppression: a record's alternate access path is withheld when the key value equals literal-1 (12.4.5.6.4 GR6), and the record is not considered to exist for READ/START. A COBOL-2023 addition; 0900 below 2023. Parses at all editions (superset), introduction-gated post-bind by VersionConformancePass.",
+      "display": "the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §12.4.5.6.2 / §12.4.5.6.4 GR6 (Annex E.3.3 item 42); LIVE (P13 grammar batch) — a visibility filter on the IndexedConnector; 2023 introduction",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "2023 introduction (Introduction p.27 + Annex E.3.3 item 42)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. ROWSUP.\n       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\" ORGANIZATION IS INDEXED\n               RECORD KEY IS R-KEY\n               ALTERNATE RECORD KEY IS R-ALT SUPPRESS WHEN SPACES.\n       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 R.\n          05 R-KEY PIC X(4).\n          05 R-ALT PIC X(4).\n       PROCEDURE DIVISION.\n       MAIN. STOP RUN.\n"
+    },
+    {
       "id": "retry-phrase-2002",
       "description": "The RETRY phrase (ISO 14.7.9; RETRY n TIMES | FOR n SECONDS | FOREVER on OPEN/READ/WRITE/REWRITE/DELETE) - n TIMES loops the lock check, SECONDS/FOREVER deadlock-bail to 52 in one run unit (GR4a). 2002 introduction; 0900 below 2002.",
       "display": "the RETRY phrase",

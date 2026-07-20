@@ -951,6 +951,18 @@ internal sealed class VersionConformancePass
         public override object? VisitLockModeClause(CobolParserCore.LockModeClauseContext ctx)
         { _p.Check(Constructs.LockModeClause2002, "the LOCK MODE clause"); return base.VisitChildren(ctx); }
 
+        /// <summary>The file-control COLLATING SEQUENCE clause (ISO §12.4.5.7 — programmable INDEXED record-key
+        /// collating) — a COBOL-2002 introduction. Parses at all editions (superset); this arm names the edition
+        /// below 2002. Recognition-fire on the clause's presence, drop-proof on a SELECT error (DEVLOG 724).</summary>
+        public override object? VisitFileCollatingSequenceClause(CobolParserCore.FileCollatingSequenceClauseContext ctx)
+        { _p.Check(Constructs.FileCollatingClause2002, "the file COLLATING SEQUENCE clause"); return base.VisitChildren(ctx); }
+
+        /// <summary>The SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause (ISO §12.4.5.6.2) — a COBOL-2023
+        /// addition (Introduction p.27 / Annex E.3.3 item 42). Parses at all editions (superset); this arm names
+        /// the edition below 2023. Recognition-fire on the dedicated phrase rule (DEVLOG-736-safe).</summary>
+        public override object? VisitAlternateKeySuppressWhen(CobolParserCore.AlternateKeySuppressWhenContext ctx)
+        { _p.Check(Constructs.AlternateKeySuppressWhen2023, "the SUPPRESS WHEN phrase of the ALTERNATE RECORD KEY clause"); return base.VisitChildren(ctx); }
+
         /// <summary>ALPHABET … FOR ALPHANUMERIC/NATIONAL (ISO §12.3.7) — a COBOL-2002 introduction; the base ALPHABET
         /// clause is version-invariant. One of the three SPECIAL-NAMES FOR-phrase sites (all one constructId +
         /// where-string), gated once per clause on the FOR phrase's presence (either the ISO position between the

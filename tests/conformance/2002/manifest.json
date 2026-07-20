@@ -19,6 +19,7 @@
     "constant_record",
     "ec_bound_ref_mod",
     "exception_file_n",
+    "file_collating_seq",
     "file_sharing",
     "file_sharing_mutate",
     "file_sharing_seq",

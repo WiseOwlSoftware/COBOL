@@ -67,7 +67,24 @@ fileControlClauses
     // (SHARING / LOCK), {is2002()}?-gated, ADDITIVE (the DEVLOG 621/622 lesson).
     | sharingClause   // COBOL-2002; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass ParseArm.VisitSharingClause (rearch 14g.4)
     | lockModeClause   // LOCK MODE (LOCK/MODE hard-reserved) introduction-gated post-bind by VersionConformancePass ParseArm.VisitLockModeClause (rearch 14g.4)
+    | fileCollatingSequenceClause   // §12.4.5.7 INDEXED per-key collating; parses at all editions (superset), introduction-gated post-bind by VersionConformancePass
     | vendorFileControlClause
+    ;
+
+// ISO §12.4.5.7 COLLATING SEQUENCE clause — the collating sequence for the record keys of an INDEXED file.
+// Format 1 (file-level): reuses the shared `collatingForPhrase` (FOR ALPHANUMERIC / FOR NATIONAL — §5.2.6.4
+// choice indicators, one-or-more any-order) and the `IS alphabet-name-1 [alphabet-name-2]` form. Format 2
+// (key-level, OF-led): names specific RECORD KEY / ALTERNATE RECORD KEY items and their alphabet-name-3. Parses
+// at all editions (superset); the post-85 FOR-split / national / key-level legs are introduction-gated at bind,
+// and SR1-8 (alphabet class, single file-level clause, key existence, no subscript, single clause per key) are
+// enforced by the binder — the grammar is a permissive shape (the sharing/lock precedent). `OF` disambiguates
+// Format 2 from Format 1; list it first so the parser commits on the OF token.
+fileCollatingSequenceClause
+    : COLLATING? SEQUENCE
+      ( OF cobolWord+ IS? cobolWord                 // Format 2: OF {data-name-1 | record-key-name-1}… IS alphabet-name-3
+      | collatingForPhrase+                         // Format 1: {FOR ALPHANUMERIC | FOR NATIONAL} IS alphabet-name …
+      | IS? cobolWord cobolWord?                    // Format 1: IS alphabet-name-1 [alphabet-name-2]
+      )
     ;
 
 // COBOL-2002 SHARING clause (ISO §12.4.5.15): the file-connector sharing mode.
@@ -146,6 +163,15 @@ recordKeyClause
 alternateKeyClause
     : ALTERNATE RECORD? KEY? IS? dataReference
       (WITH? DUPLICATES)?
+      alternateKeySuppressWhen?
+    ;
+
+// ISO §12.4.5.6.2 — SUPPRESS WHEN literal-1: alternate-key suppression (a COBOL-2023 addition). literal-1 is the
+// key suppression value: a record's alternate access path is withheld when the key equals literal-1 (§12.4.5.6.4
+// GR6). Fixed order — DUPLICATES precedes SUPPRESS. Parses at all editions (superset); introduction-gated at 2023
+// by VersionConformancePass ParseArm.VisitAlternateKeySuppressWhen (recognition-fire on this dedicated rule).
+alternateKeySuppressWhen
+    : SUPPRESS WHEN literal
     ;
 
 // ISO §12.4.5.8.2: only STATUS is a required keyword (FILE STATUS IS data-name-1, STATUS underlined);

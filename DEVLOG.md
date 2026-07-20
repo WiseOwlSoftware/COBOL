@@ -13,6 +13,48 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 936 — 2026-07-20 14:40 PDT — SUPPRESS WHEN alternate-key suppression (§12.4.5.6, COBOL-2023) lands on COLLATING's compare seam
+
+Grammar batch position 4, and the second half of the coupled indexed-file batch. The SUPPRESS WHEN phrase of the
+ALTERNATE RECORD KEY clause (§12.4.5.6.2, a COBOL-2023 addition — Introduction p.27 / Annex E.3.3 item 42) gives
+each alternate key a suppression value: a record whose alternate key equals literal-1 has that alternate access
+path WITHHELD (§12.4.5.6.4 GR6), and the record "is not considered to exist" for READ/START on that key — while
+the record itself and its prime-key path are untouched.
+
+This landed small precisely because COLLATING went first: the suppression equality is the SAME §14.9.51 GR35
+relation condition COLLATING already built (`KeyEq(keyOfRecord, literal, keyIndex)`, which routes through the
+per-key weights — so suppression respects a declared COLLATING SEQUENCE for free, and is ordinal otherwise). The
+runtime is ONE predicate, `IsSuppressed(image, keyIndex)` (prime key never suppressible, GR6), applied at the
+four consumers the spec touches — NOT one, as an early one-liner scout claimed: the `Ordered(keyIndex)` filter
+covers READ NEXT/PREVIOUS + START + the GR27 '02' look-ahead (all route through it), but ReadRandom (§14.9.30
+GR32), WRITE (§14.9.51 GR41 — a suppressed key never duplicates), and REWRITE (§14.9.35 GR24 — entering/leaving
+suppression re-positions) each scan `_recs` directly and needed the predicate at their own site. The alt-key
+tuple widened once (Compiler + Runtime) to carry the decoded suppression value; the emitter threads it as a
+named `suppress:` argument only when present, so a plain alternate key's registration is unchanged.
+
+Grammar: `alternateKeySuppressWhen : SUPPRESS WHEN literal`, appended after the DUPLICATES phrase (fixed order),
+parsed at all editions and 2023-gated by `VisitAlternateKeySuppressWhen` (construct `alternate-key-suppress-when-
+2023`, COBOLNET0900 below 2023). No new diagnostic code (the §12.4.5.6.3 SR7 literal-category check is a
+registered P14 refinement). Golden `tests/conformance/2023/altkey_suppress_when.cob` (GreenfieldOnly) pins the
+exact semantics: record 02 (alt key "XX" = the suppression value) is INVISIBLE on the alternate-key walk (only 01
+and 03 return) yet PRESENT on the prime-key walk (01, 02, 03). Ships as its own change set atop COLLATING; both
+constructs share the one comprehensive legacy guard for the indexed-file batch (owner's multiple-waves-per-guard
+directive).
+
+## Entry 935 — 2026-07-20 14:32 PDT — File-control COLLATING SEQUENCE (§12.4.5.7) lands; a null-default reroute keeps NIST-IX byte-identical; and the weighted compare exposed an OPEN-FPI AT-END bug
+
+Grammar batch position 3, and the largest of the remaining constructs: the file-control COLLATING SEQUENCE clause
+(§12.4.5.7) makes an INDEXED file's record keys order, position (START), and compare for uniqueness under a
+declared alphabet instead of native ordinal. Before this the clause was a generic parse error at every edition.
+
+**Spec-grounded first** (owner directive; the design SSOT is `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`, SPEC-FAITHFUL/high). The clause is a §8.8.4.2.7 weighted relation-condition applied per key of reference: READ NEXT/PREVIOUS order (§12.4.5.5.3 GR2c), START positioning (§14.9.41 GR17e), and key equality/uniqueness/'02'-lookahead (§12.4.5.12.4 GR1 / §14.9.51 GR35) all key on "the collating sequence … according to the rules for a relation condition." Grammar: `fileCollatingSequenceClause` (Format 1 reuses the shared `collatingForPhrase` + the `IS alphabet-name-1 [alphabet-name-2]` form; Format 2 is the OF-led key-level form), parsed at all editions (superset) and introduction-gated at 2002 by a new `VisitFileCollatingSequenceClause` (construct `file-collating-clause-2002`, COBOLNET0900 below 2002). Bind resolves each key's alphabet (GR6 Format-2 → GR2 file-level → native) via the existing `Alphabets` registry (cloning `ResolveProgramCollating`), enforcing SR3/SR4/SR5/SR8 (COBOLNET1582), SR1/SR2/SR7 alphabet class (1583); a NATIONAL alphabet on a key is recognized-not-implemented (1584 — national-key collating is a documented P14 GAP, the alphanumeric core is complete).
+
+**The reroute is safe because it defaults to a no-op.** The single ordering derivation `IndexedConnector.Ordered`, plus `PositionCompare`/START, the ascending-WRITE '21' check, and every equality site (prime/alt uniqueness, ReadRandom, Rewrite/Delete target lookup, the GR27 '02' look-ahead) now route through `KeyCompare(a,b,keyIndex)` / `KeyEq`, which reads a per-key `ushort[]? weights` — **null for a no-clause key, and null means `string.CompareOrdinal`, byte-identical to the pre-clause engine.** So the 39 NIST-IX tests (no COLLATING clause) are provably unaffected; only a declared alphabet takes the `CobolString.Compare(a,b,weights)` path. Weights thread emitter→`RegisterIndexed`/`AddAlternateKey` as a named arg emitted only when non-null (a no-clause file's registration is unchanged). Verified: greenfield corpus + all indexed/NIST differential = **654/654**.
+
+**A bug the weighted compare exposed and I had to fix.** OPEN INPUT/I-O seeds the file position indicator with `_fpiKey = ""` as a "before the lowest record" sentinel, and READ NEXT returned the first record whose key compared greater. That relied on `"" < everything` — true under ordinal, but under an alphabet where the pad SPACE weighs HIGH (any alphabet not listing space among the low positions — e.g. the reversed `Z..A`), `""` space-extends to a value ABOVE every letter key, so the walk found nothing and the first READ NEXT returned '10' (AT END) with records present. The FILE STATUS trace (writes 00, OPEN 00, first READ 10) pinned it. Fix: when positioned by OPEN (`_positioner=='O'`), the forward READ NEXT takes `seq[0]` (the collating-lowest) directly instead of comparing against the sentinel — behavior-identical under ordinal (still `seq[0]`), correct under weighting.
+
+The golden `tests/conformance/2002/file_collating_seq.cob` (GreenfieldOnly — the legacy has no clause) pins all three behaviors on ONE alphabet each: `REV` (Z..A) makes records written A,M,Z read back Z,M,A and START `>= "M"` walk M,A; an equivalence-class `EQV` (`"A" ALSO "B"`) makes the second WRITE of a weight-equal prime key duplicate-key '22'. Ships with grammar + binder + FileModel per-key capture/resolution + the reroute + the emitter weights + the 2002 gate + 3 catalog descriptors + regenerated DIAGNOSTICS.md/Constructs.g.cs + plan §0.
+
 ## Entry 934 — 2026-07-20 13:10 PDT — RW SUPPRESS (§14.9.45) lands; the owner's "resolve from the SPEC, not the implementation" caught my inverted sum-reset research; and a Wave H fixture bug the local gate had missed
 
 Grammar batch position 2. `SUPPRESS PRINTING` (§14.9.45) inhibits the printing of a report group. The RW engine
