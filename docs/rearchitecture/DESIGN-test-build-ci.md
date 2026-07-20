@@ -82,7 +82,7 @@ and `--suppress` cannot target a specific rule and the version matrix cannot enu
    characterization harness cannot snapshot the bound tree independently of emission.
 8. **Roslyn reference set uncached** ⇒ the in-process battery pays ~180 `MetadataReference.CreateFromFile` per
    compile (thousands of times per run).
-9. **Roadmap SSOT is a 100 KB `resume-prompt.md`** — excellent for session resume, but there is no compact,
+9. **Roadmap SSOT was a 100 KB `resume-prompt.md`** (since absorbed into `docs/COBOLNET_REARCHITECTURE_PLAN.md` and deleted) — excellent for session resume, but there is no compact,
    phase-structured, exit-criteria-bearing rearchitecture roadmap doc that a future engineer resumes the
    MIGRATION (not the feature drive) from.
 
@@ -374,6 +374,6 @@ errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `Res
    default proposed is per-code with an optional family key.
 5. **Migration-SSOT vs resume-prompt.md ownership — RESOLVED (2026-07-07):** the migration roadmap is the standalone
    `docs/COBOLNET_REARCHITECTURE_PLAN.md` (since 2026-07-19 THE ONE consolidated plan incl. the §0 live banner);
-   `resume-prompt.md` remains the feature-drive state.
+   the feature-drive state ALSO lives there now — `resume-prompt.md` was absorbed into it and DELETED (2026-07-19).
 6. **Do we snapshot the runtime deploy?** The runtime DLL is copied per emit; characterization ignores it. Confirm
    the runtime is out of the neutrality scope (it is typed-native and separately unit-tested) — assumed yes.

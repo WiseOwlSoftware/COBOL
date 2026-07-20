@@ -19,14 +19,14 @@
 > compiler (`src/CobolSharp.*` — differential oracle only, deleted at G8). In the greenfield `src/Cobol.Net.*` a
 > feature counts as done ONLY when implemented there per the `COBOLNET_*` deep-dives + the ISO spec, with BOTH
 > per-edition obligations: the complete spec behavior AND the rejecting diagnostic under every `--std` edition
-> that lacks it.** The live plan is `resume-prompt.md` (two-track RESUME AT) over the SSOT `docs/COBOLNET_DESIGN.md`;
+> that lacks it.** The live plan is `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 (THE ONE PLAN — it absorbed `resume-prompt.md`, now deleted) over the SSOT `docs/COBOLNET_DESIGN.md`;
 > multi-edition correctness is driven by `docs/VERSION_TEST_MATRIX_DESIGN.md` / `docs/VERSION_CHANGE_REFERENCE.md`.
 
 > **Purpose.** This is the durable, authoritative work-breakdown to take the compiler to **complete,
 > production-quality ISO/IEC 1989:2023 COBOL support**. Work *from* this document — do **not** re-run the gap
 > analysis each session (it has been done at least three times). When an item lands, tick it here in the same
 > commit. When you discover a new gap, add it here. This supersedes ad-hoc backlogs scattered across DEVLOG /
-> memory; the live plan is `resume-prompt.md` over the SSOT `docs/COBOLNET_DESIGN.md` (the former milestone view
+> memory; the live plan is `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 over the SSOT `docs/COBOLNET_DESIGN.md` (the former milestone view
 > `docs/MULTIVERSION_ROADMAP.md` was deleted with the pre-PIVOT docs, DEVLOG 523–524).
 >
 > **Provenance.** Built 2026-06-05 from a 15-area parallel spec-conformance audit (workflow
@@ -71,7 +71,7 @@
 
 The owner had directed a foundational re-architecture to **"the best native .NET implementation of COBOL"** — this
 was the **#1 work item of the pre-PIVOT byte-engine era. Do NOT do it now:** the greenfield is born typed-native
-(no migration); the live plan is `resume-prompt.md`. Kept below for history only.
+(no migration); the live plan is `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0. Kept below for history only.
 
 - **The design is settled and reviewed — do NOT re-litigate it** (the owner co-authored it across a long dialogue,
   DEVLOG 393). Read both first:
