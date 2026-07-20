@@ -29,6 +29,13 @@
            MOVE WS-X (3:0) TO WS-Y.
            DISPLAY "Y=[" WS-Y "]".
            DISPLAY "S1=" FUNCTION EXCEPTION-STATUS.
+      *> the RECEIVING half (review V31): a figurative store into a zero-length
+      *> slice is a NO-OP (14.9.25.4 GR1 - the receiver is left unchanged),
+      *> never a raise while the directive is ON (8.4.3.3.4 GR5c). Before the
+      *> V31 fix the WriteFill arm dropped AllowZeroLength and raised here.
+           MOVE SPACES TO WS-X (3:0).
+           DISPLAY "X=[" WS-X "]".
+           DISPLAY "S2=" FUNCTION EXCEPTION-STATUS.
            MOVE WS-X (7:2) TO WS-Z.
            DISPLAY "Z=[" WS-Z "]".
            STOP RUN.

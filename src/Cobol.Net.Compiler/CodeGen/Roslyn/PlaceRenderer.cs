@@ -149,9 +149,14 @@ internal static class PlaceRenderer
     }
 
     /// <summary>A figurative-constant store into a reference-modified slice: an EMPTY slice with the fill char as the
-    /// SpliceInto pad, so every targeted position takes the fill (ISO §8.3.3.6.4 GR2 / §8.4.3.3 GR5/GR6).</summary>
+    /// SpliceInto pad, so every targeted position takes the fill (ISO §8.3.3.6.4 GR2 / §8.4.3.3 GR5/GR6). Threads
+    /// <c>AllowZeroLength</c> exactly like the <see cref="Write"/> RefModPlace arm (review V31: omitting it made a
+    /// figurative MOVE into a zero-length slice spuriously raise fatal EC-BOUND-REF-MOD under
+    /// <c>&gt;&gt;REF-MOD-ZERO-LENGTH ON</c> — §8.4.3.3.4 GR5c allows the zero-length result, and §14.9.25.4 GR1
+    /// makes the zero-length MOVE receiver a no-op, never a raise).</summary>
     public static string WriteFill(RefModPlace p, string fillChar) =>
-        Write(p.Inner, RuntimeApi.StrSpliceInto(Read(p.Inner), RmStart(p), RmLen(p), "\"\"", pad: fillChar));
+        Write(p.Inner, RuntimeApi.StrSpliceInto(Read(p.Inner), RmStart(p), RmLen(p), "\"\"", pad: fillChar,
+            allowZeroLength: p.AllowZeroLength));
 
     /// <summary>The SENDING character image of an occurs-depending GROUP operand (ISO §13.18.38 GR8 — only the
     /// current-count part: the maximum image truncated to the current extent, a prefix by SR22).</summary>

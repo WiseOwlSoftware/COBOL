@@ -659,10 +659,13 @@ public sealed class ExceptionConditionConformanceTests
                 EXIT PROGRAM RAISING EXCEPTION EC-USER-EXIT.
             """, "CAUGHT: EC-USER-EXIT\nAFTER-CALL");
 
-    [Fact]   // §14.9.18 GR + §14.6.13.1.3: a FATAL condition staged by the MAIN program's GOBACK RAISING has the
-             // run-unit boundary as its activator — the boundary default terminates abnormally.
-    public void GobackRaisingFatal_InMainProgram_TerminatesAtRunUnitBoundary()
-        => AssertFatal("""
+    [Fact]   // §14.9.18.4 GR3 (the P13 review C13 fix — this test previously pinned the PRE-fix behavior): a
+             // GOBACK in a program NOT under the control of a calling runtime element "operates as if executing
+             // a STOP statement … A RAISING phrase, if specified, is ignored" — even with checking enabled and a
+             // FATAL name. Normal termination, no condition raised (the earlier "run-unit boundary activator"
+             // reading has no GR — GR1b's staging applies only to a CALLED program's activator).
+    public void GobackRaisingFatal_InMainProgram_IsIgnored_NormalTermination()
+        => AssertSpec("""
             >>TURN EC-SIZE CHECKING ON
             IDENTIFICATION DIVISION.
             PROGRAM-ID. ECT031.
@@ -670,7 +673,7 @@ public sealed class ExceptionConditionConformanceTests
             MAIN-PARA.
                 DISPLAY "BEFORE".
                 GOBACK RAISING EXCEPTION EC-SIZE-OVERFLOW.
-            """, "EC-SIZE-OVERFLOW", "BEFORE");
+            """, "BEFORE");
 
     // ── Diagnostics (the COBOLNET07xx/08xx band) ─────────────────────────────────────────────────────────────
 
