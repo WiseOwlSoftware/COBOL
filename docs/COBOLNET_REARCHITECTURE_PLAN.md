@@ -57,8 +57,9 @@ checkpoint.
   4. **Wave I** — final adversarial review of ALL P13-landed work → exit-criteria check → phase-close doc sweep
      (incl. deleting the two P13 scouts + updating this §0) → merge to `main`.
 - **The §11 ANALYSIS BACKLOG** (owner-recorded 2026-07-19) holds the ten known-missing analyses with
-  scheduled homes — A1/A2 ride P14 Step 0, A6 is P14 Step 12, A3/A4/A5 gate P15, A10 (the effort model) is due
-  at the NEXT §0 update. Do not drop rows silently.
+  scheduled homes — A1/A2 ride P14 Step 0, A6 is P14 Step 12, **A4 is now the P14 Step-13 REQUIREMENT
+  (retrieve + incorporate the GnuCOBOL testsuite; GPL fetch-on-demand — never commit their text)**,
+  A3/A4/A5 gate P15, A10 (the effort model) is due at the NEXT §0 update. Do not drop rows silently.
 - **Standing rules pointers:** the ⛔ NON-NEGOTIABLE PROCESS RULES live in `CLAUDE.md` (spec-first with cited
   §s; implement from the deep-dives; complete-not-test-scoped; docs current; no workarounds). The EXECUTION
   MODEL (tiered testing · batching · ≤10-agent durable-fold parallelism) is §3 below. Full battery + verdict-
@@ -469,7 +470,7 @@ already-derivable coverage; none change the pipeline.
 | A1 | **Per-edition AUTHORITY SUFFICIENCY** — which 85/2002/2014 facts are NOT derivable from the sole in-repo 2023 spec (Annex E covers only 2014→2023)? | The "100% conforming ×4" claim rests on an unexamined derivation chain (2023 text + E-annex + NIST); may overturn council decision #1 (no standards acquisition) | Per-edition verdict: derivable / derivable-with-NIST-corroboration / underivable → documented assumption or acquire the historical standard | **P14 Step 0a** (companion to the inventory; qualifies every pre-2023 row) | PENDING |
 | A2 | **SR-ENFORCEMENT CENSUS** — enforced / lenient-registered / silently-unenforced, per spec syntax rule | The review PROVED the class (glued VALUEs, DISPLAY UPON, ASSIGN USING, BWZ/JUST/SIGN — all found incidentally); the negative corpus (~110 fixtures) is tiny vs the SR surface | The SR-level complement to the inventory; feeds the negative corpus + the leniency registry | **P14 Step 0b** (deepens the inventory to SR granularity) | PENDING |
 | A3 | **NUMERIC-SEMANTICS DEPTH AUDIT** — the intermediate-results model vs §8.8.1 end-to-end: 8 ROUNDED modes × ops, native-vs-standard intermediates, size-error boundaries, long/Int128 crossovers, float↔fixed | Arithmetic is COBOL's heart; wave-grown tests ≠ a model-level audit; numeric bugs silently corrupt data | A verified conformance map of the numeric engine + hand-derived oracle values; GAP rows into the inventory | **CAMPAIGN A** — inside P14 after Step 0 (consumes/extends inventory rows); REQUIRED before the P15 oracle deletion | PENDING |
-| A4 | **EXTERNAL DIFFERENTIAL CORPUS** — the GnuCOBOL test suite (+ public-domain real COBOL) through COBOL.NET; the NIST module-coverage map (all CCVS modules, or only the 353 baselines?) | Every internal instrument shares the project's blind spots; external corpora find what in-house nets cannot; cheapest while the legacy oracle exists | A divergence ledger (accept/reject/behavior) + the NIST coverage map + an adopted-fixture set | **CAMPAIGN B** — inside P14; REQUIRED before the P15 oracle deletion (P15 precondition added) | PENDING |
+| A4 | **EXTERNAL DIFFERENTIAL CORPUS** — the GnuCOBOL test suite (+ public-domain real COBOL) through COBOL.NET; the NIST module-coverage map (all CCVS modules, or only the 353 baselines?) | Every internal instrument shares the project's blind spots; external corpora find what in-house nets cannot; cheapest while the legacy oracle exists | A divergence ledger (accept/reject/behavior) + the NIST coverage map + an adopted-fixture set | **CAMPAIGN B = P14 Step 13 (a REQUIREMENT, owner-directed 2026-07-19: retrieve the GnuCOBOL test cases if possible and incorporate them — execution detail in Step 13, incl. the GPL fetch-on-demand licensing posture)**; REQUIRED before the P15 oracle deletion | PENDING |
 | A5 | **RUNTIME ISOLATION / HOSTING-CONTRACT AUDIT** — the full statics + shared-mutable-state census; WRITE the hosting contract (run-units per process, concurrency, re-entrancy) | The review found 3 instances (RANDOM, Scratch slots, CobolSort.Files) incidentally — the CLASS was never swept; the P8 ONE-owner claim needs proof, and P15 renames the shim surface | The census + the documented hosting contract + the broadened CI grep (SURVEY G2) | Executes WITH the review-ledger §24 TIER-7 fix unit (V30/R3); complete before P15 Cut 3 | PENDING |
 | A6 | **PERFORMANCE BENCHMARK + GENERATED-CODE COST MODEL** — compile throughput (large programs/copybooks), Tier-B string-canonical storage cost, PC-dispatcher overhead, MOVE-heavy loops, file-I/O throughput, allocation profile | "Commercial-quality" has ZERO perf evidence; a storage-model surprise is cheap to fix before P15/P16 lock the architecture and the legacy comparison dies | An in-repo benchmark suite (CI-trended) + the cost model + any architecture-decision escalations | **P14 Step 12** (new — the perf gate; a P15 precondition) | PENDING |
 | A7 | **MUTATION-TESTING of test-suite strength** — the numeric engine, PictureAnalyzer, collating first | 3699 green tests ≠ protection (the review found a test pinning WRONG behavior); mutation score locates weakly-tested subsystems | Mutation-score report + a corpus-investment list | P14, after Step 0 (informs where inventory GAP-closing tests go first) | PENDING |
@@ -875,6 +876,45 @@ PC-dispatcher overhead (PERFORM-dense kernels); sequential/indexed file throughp
 the design claims) and escalate any architecture-relevant surprise to the owner BEFORE P15 deletes the
 legacy comparison. Wire the suite into CI as a trend (not a hard gate). CAMPAIGNS A (numeric depth) and B
 (external differential corpus) — §11 rows A3/A4 — also run inside this phase and are P15 preconditions.
+
+#### Step 13 — CAMPAIGN B: retrieve + incorporate the GnuCOBOL testsuite (§11 row A4 — a REQUIREMENT, owner-directed 2026-07-19; P15 gate)
+
+**Goal.** Run the GnuCOBOL project's testsuite (the largest maintained external COBOL test corpus: the
+`tests/testsuite.src/*.at` groups — syntax `syn_*.at` + runtime `run_*.at`, ~1000+ groups — plus its NIST
+runner configuration) through COBOL.NET, and fold every divergence into the traceability inventory / the
+conformance dispositions. External corpora find what every in-house instrument is blind to; this is cheapest
+while the legacy oracle still exists.
+
+**⚖ LICENSING POSTURE (load-bearing — do not deviate):** GnuCOBOL and its testsuite are GPL-licensed; this
+repo is BSL 1.1. Therefore: **NEVER commit GnuCOBOL test text into this repo.** The committed artifacts are
+OURS only: (a) the retrieval script (`scripts/fetch-gnucobol-tests.ps1` — pinned release tarball from the
+official GNU mirror, checksum-verified, extracted into the git-ignored `tests/external/gnucobol/`); (b) the
+`.at`-format EXTRACTOR (parses autotest groups into (source, expected-stdout | expected-diagnostic) pairs at
+run time, in memory or under the ignored dir); (c) the ADAPTER test project (compiles each extracted case with
+`cobol.exe` per edition and compares); (d) the CLASSIFICATION + EXPECTATIONS LEDGER
+(`tests/external/gnucobol-expectations.json`, independently authored facts: per-case id → ISO-CONFORMING |
+GNUCOBOL-EXTENSION (excluded, non-ISO) | IMPLEMENTOR-SPECIFIC (dispositioned) | DIVERGENT (triaged), with our
+§-cited rationale — facts about cases, not their text). If retrieval or licensing proves blocking, record the
+attempt here and escalate the fallback (full-NIST + independently-authored equivalents) as an owner decision.
+
+**Sub-steps.**
+1. The retrieval script + the ignored-dir plumbing (a missing corpus SKIPS the suite with a loud notice —
+   never a silent pass; CI may cache the tarball).
+2. The `.at` extractor (start with `syn_*.at` diagnostics-only groups, then `run_*.at` stdout groups; skip
+   groups needing GnuCOBOL-specific runners).
+3. FIRST SWEEP (batched ≤10 agents, durable per-batch fold — the §3 discipline): classify every group into the
+   expectations ledger. The GNUCOBOL-EXTENSION class is expected to be large (non-ISO surface — reject-with-
+   diagnostic is OUR correct outcome and is so recorded).
+4. The adapter runs the ISO-CONFORMING class per edition; every DIVERGENT case gets the review treatment
+   (spec-first adjudication, 2-lens verify): our bug → an inventory GAP row / a §24-style fix entry; their
+   bug / implementor freedom → a documented disposition in the ledger.
+5. CI wiring: a periodic (not hot-path) job running the adapter suite; the expectations ledger is the drift
+   guard.
+
+**Exit criteria for Step 13:** the retrieval+extractor+adapter exist and run green on the classified corpus;
+the expectations ledger covers 100% of extracted groups (zero UNCLASSIFIED); every DIVERGENT case is
+adjudicated (fix row or disposition); the NIST module-coverage map (which CCVS modules our 353 baselines
+actually exercise vs the full suite) is produced as part of the same campaign.
 
 ### 5. Verification — the full battery at phase end
 
