@@ -177,3 +177,20 @@ Update this document in the same change set as any change to the supported surfa
 newly implemented or newly documented as non-support, an I-O status determination). The COBOLNET1560-band
 warning sites are the code-side counterpart — keep the two in sync. This file is referenced by
 `docs/VERSION_CHANGE_REFERENCE.md` (the edition-change checklist) and by `docs/DOC_INDEX.md`.
+
+## 7. Annex A.1 — implementor-defined language element register (§4.2.5 / §4.2.16)
+
+> **⛔ STATUS: INCOMPLETE — this is a known, registered v1.0 conformance gap, not an oversight.**
+> Annex A.1 lists **222** implementor-defined language elements: 164 required · 26 conditionally required ·
+> 29 optional, of which **199 carry the obligation "This item shall be documented in the implementor's user
+> documentation."** D13 defines "100% conforming" as the mandatory core complete **plus every required
+> implementor documentation item**, so those 199 are part of the definition of done. This section currently
+> documents only the entries determined so far. Completing it is **PHASE-14 Step 0** work — the four-edition
+> traceability inventory is the instrument that enumerates every A.1 row and drives it to zero-GAP; do not
+> attempt it piecemeal here. Items are added below as, and only as, the compiler's behaviour for them is
+> actually settled — an undocumented determination and a wrongly-documented one are both non-conformance,
+> and the second is worse.
+
+| A.1 item | Element | Our determination |
+|---|---|---|
+| 158 | **Reference format — rightmost character position of the program-text area (margin R)**, §6.3, required + documented | **Margin R is immediately to the right of character position 72**, i.e. the fixed-form program-text area is columns **8–72**. Characters beyond it are not part of the program text and are ignored — they are not an error (§6.3.4; comment-text likewise runs only "up to margin R"). Note §6.3.1 makes this position *implementor-defined*: the standard does **not** mandate 72, and ISO 2023 has no "identification area" (that was a COBOL-85 card-image convention). Columns 1–6, the sequence number area, are **optional** and may hold any character (§6.3.2) — a blank sequence area is ordinary fixed-form source. Free-form reference format (§6.2) is not column-bounded and is unaffected. Our auto-detection between the two formats is an implementor extension beyond the standard, which specifies fixed-form as the default and `>>SOURCE FORMAT` as the selector; the detector's rules live in `ReferenceFormatProcessor.IsFixedForm`. |

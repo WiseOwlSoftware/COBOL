@@ -13,6 +13,123 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 932 — 2026-07-20 01:30 PDT — 151 normative sentences were cut in half by page breaks; and Annex A.1's documentation obligation was never tracked
+
+Owner instruction: *"Read the actual spec on fixed-form. I suspect the compiler simply ignores characters past
+column 72."* Correct — and reading it properly overturned my own justification and exposed a v1.0 conformance gap.
+
+**§6.3.1 says margin R is IMPLEMENTOR-DEFINED.** *"The rightmost character position of the program-text area is a
+fixed position defined by the implementor."* The standard does **not** mandate column 72; characters beyond
+margin R are not an error, they are simply outside the program-text area (§6.3.4 — comment-text likewise runs
+only "up to margin R"). ISO 2023 has **no "identification area"** at all; that was a COBOL-85 card-image
+convention I had asserted from memory in a code comment. §6.3.2 further: the sequence number area is optional and
+*"may consist of any character"* — so my `seqOk` digits-or-blank test is itself a heuristic, not a spec rule. The
+column-72 veto still stands, but as a DETECTION heuristic justified by OUR margin R, not as a rule of the
+standard. Comment corrected to say so.
+
+**THE GAP THAT FOUND: Annex A item 158** — *"Reference format (rightmost character position of program-text
+area). This item is **required**. This item **shall be documented** in the implementor's user documentation."* We
+did not document it. And it is not isolated: **A.1 lists 222 implementor-defined elements — 164 required, 26
+conditionally required, 29 optional — of which 199 carry the shall-be-documented obligation**, and
+`docs/CONFORMANCE.md` had **no A.1 section at all** (it covers A.3 and A.4 only). D13 defines "100% conforming" as
+the mandatory core complete **plus every required implementor documentation item**, so those 199 are part of the
+definition of done and nothing was tracking them. Opened `CONFORMANCE.md §7` with item 158 written in full;
+registered the remaining 198 as **§11 row A11**, scheduled into P14 Step 0 (A.1 rows ARE inventory rows). Per D15
+this is registered, not crammed into P13 — but it is conformance-BLOCKING, not tidiness.
+
+**Then: "Fix the markdown where pagebreaks alter the context."** At every printed page boundary the transcription
+injects `--- / <a id="page-N"> / ## Page N / # ISO/IEC 1989:2023 (E)`. Where a boundary fell MID-SENTENCE that
+block landed *inside* a rule, splitting one sentence into two paragraphs with ~6 lines of furniture between them.
+**151 normative sentences were broken this way** — §4.2.7 (*"the elements that are supported and those that
+are"* ‖ *"not supported"*), §7.2 COPY REPLACING (*"the entire REPLACING phrase"* ‖ *"operand that precedes the
+reserved word BY"*), §4.2.9, §8.x, §12.3.6, §13.x. A reader who stops at the break gets half a rule — the exact
+mechanism behind the C5 PERFORM inversion that reached an owner escalation earlier in this work.
+
+Repaired to a fixpoint over four passes (`scripts/fix_spec_pagebreaks.py`, committed). Conservative by
+construction: joins only when the first half lacks terminal punctuation AND the second begins lowercase AND
+neither side is a heading/anchor/table/fence/list item. **The DRY RUN caught a corrupting bug before it applied**
+— the running header has three transcribed shapes (`# ISO/IEC…`, `**ISO/IEC…**`, and BARE `ISO/IEC…`), and the
+first matcher missed the bare form, so on page 53 it would have spliced the header string into the middle of the
+§4.2.7 conformance rule. A hard assertion now makes that class impossible to land silently. Given I had already
+shipped two silent-tooling failures this session, applying unseen was not an option.
+
+Integrity verified rather than assumed: **anchors 1261 → 1261** (they are load-bearing — `render-spec-page.py`
+and the figure audit map markdown lines to PDF pages through them), A.1 still 222 items numbered 1..222, item 158
+intact, zero furniture spliced into prose. Four detector hits deliberately NOT joined: the §8.9 reserved-word
+LIST, whose entries legitimately lack terminal punctuation.
+
+**Also restored A.4.3 "Commit and Rollback"** — a page break had demoted it from a `##` heading to bold text and
+stripped its section anchor, which is why my first heading scan reported it "missing". Its five items were
+present and correct all along; only the heading was lost. Swept for the pattern: it was the only instance.
+
+**Correction to Entry 931's framing:** I reported "91 required-documented items" from a regex that silently failed
+on entries straddling page breaks. The true figures are above (222 / 199). Same lesson as the harness: a count
+produced by a pattern that can fail silently is not a measurement.
+
+## Entry 931 — 2026-07-20 00:40 PDT — The GnuCOBOL corpus lands and immediately finds TWO systemic bugs our whole battery was blind to
+
+The owner pulled PHASE-14 Step 13 forward: retrieve the GnuCOBOL testsuite and run it through COBOL.NET,
+because "they should identify places where we got the grammar wrong." They did, within minutes of the harness
+working — and the harness itself taught the sharper lesson.
+
+**THE INFRASTRUCTURE** (committed `fb6538b4`): `fetch-gnucobol-tests.ps1` (GnuCOBOL 3.2 pinned, SHA256-verified,
+into the git-ignored tree) · `gnucobol_extract.py` (a bracket-balanced m4/autotest parser — regex cannot do it,
+the quoting nests; validated at **1346 groups / 3503 checks / ZERO extraction failures**) ·
+`gnucobol_differential.py`. Licensing per the owner's ruling: their SOURCE and EXPECTED OUTPUT never leave the
+ignored tree; short factual group TITLES and KEYWORDS are citable identification, which is what makes the ledger
+usable for triage.
+
+**⛔ MY HARNESS FABRICATED 1046 FINDINGS, AND I RELAYED THEM.** The first run reported
+`WE_REJECT_THEY_ACCEPT = 1046, AGREE_ACCEPT = 0`. I noted in passing that it was "almost certainly my harness"
+and then, one paragraph later, narrated it as though the paragraph-less bug "explained the 1046". It explained
+none of it: aggregating the error text showed **all 1046 were `<<RUNNER-ERROR FileNotFoundError>>`** — on
+Windows, `subprocess.run` with a relative forward-slash path raises WinError 2 even though `os.path.exists()` is
+True, so the compiler was never invoked once. My `except Exception → we_ok = False` laundered a dead harness into
+a thousand plausible "compiler rejects legal COBOL" findings. **That is the exact defect class I have spent this
+session hunting — a wrong answer that looks like a finding — reproduced inside my own instrument.** Two hardening
+changes: a harness failure now returns a distinct `RUNNER_ERROR` verdict rather than a compiler verdict, and the
+run **ABORTS LOUDLY above 5% harness failures** because past that every downstream number is noise.
+`AGREE_ACCEPT = 0` against 1323 real programs is not a plausible result for any compiler and I should have
+stopped there.
+
+**BUG 1 — we rejected PARAGRAPH-LESS procedure divisions.** §14.4.3: a paragraph is a paragraph-name plus
+sentences *"or, if the paragraph-name is omitted, one or more successive sentences following the procedure
+division header or a section header."* Our grammar had **no alternative for it at all** — every `procedureUnit`
+had to open with a paragraph or section name. Adding `sentence*` made such programs PARSE and then silently
+produce NO OUTPUT, because `ProcedureTableBuilder` walks `procedureUnit()` and never saw them — the
+parse-but-drop class, worse than rejecting. So the binder half was required too: `AddAnonymousParagraph` takes a
+pc so the dispatcher runs it but is registered in **NO name map** — having no paragraph-name it must not be a
+PERFORM/GO TO target (§8.4.2.2 resolves procedure-NAMES), and a synthetic name would both make it referenceable
+and risk colliding with a user word. Wired at all three sites (PD header, SECTION header, method PDs); verified
+by execution, including `PERFORM S1` correctly entering a section whose first paragraph is unnamed.
+
+**BUG 2 — we rejected fixed-form COMMENT LINES when the sequence area is blank.** `IsFixedForm` REQUIRED a
+numeric sequence area:
+```csharp
+return totalLines > 0 && hasNumericSequence && fixedIndicators * 100 / totalLines > FixedFormThresholdPercent;
+```
+Columns 1–6 are OPTIONAL (§6.2.1 — they "may be used to label a source line"). With them blank the file was
+classified **FREE**-form, where a `*` in column 7 is not a comment indicator but a stray token — so an ordinary
+comment line became a syntax error. Now either signal suffices: a numeric sequence area **OR** a real column-7
+indicator glyph, both still behind the same structural ratio that keeps genuinely free-form source (code at
+column 1 ⇒ letters in cols 1–6 ⇒ `seqOk` fails) out of the fixed branch. Verified against all three shapes.
+
+**WHY BOTH HID FOR SO LONG — the same root cause.** NIST/CCVS is punched-card-era source: it *always* fills the
+sequence area and *always* writes paragraph names. Our entire regression net inherited that shape, so 3701
+conformance + 313 unit + 33 characterization + 667 legacy + 350 NIST tests are ALL green and ALL blind to both.
+An in-house corpus cannot find what the in-house corpus's own conventions conceal. This is the whole argument for
+Campaign B, demonstrated on day one.
+
+**MEASURED IMPACT** (same corpus, three runs): harness fixed → `AGREE_ACCEPT 412`; +paragraph-less fix and
++reference-format fix → **`AGREE_ACCEPT 477`, `WE_REJECT_THEY_ACCEPT 634 → 569`**. Agreement 44% → 49% of 1323.
+
+**WHAT REMAINS, AND HOW TO READ IT.** GnuCOBOL's default dialect is ISO **plus extensions** and the suite pins an
+ISO edition on only ~63 groups, so `WE_REJECT_THEY_ACCEPT` is *not* a bug list — the long tail is visibly
+vendor surface we are RIGHT to reject (`BINARY-INT`, `COMP-6`, `ASSIGN EXTERNAL`, `DISPLAY UPON ENVIRONMENT`,
+JSON/XML GENERATE → our COBOL0313). The higher-confidence direction is **`WE_ACCEPT_THEY_REJECT = 107`**
+(6 of them ISO-PINNED): source GnuCOBOL's *permissive* default refused and we accepted — prime "our grammar is
+too lax" leads, needing no dialect adjudication first. That is the next triage front.
+
 ## Entry 930 — 2026-07-19 23:30 PDT — A self-inflicted "regression", and the guard gets run isolation
 
 The guard reported `IX216A: DIFF` / `IX217A: DIFF` after the paired-phrase repair. Chasing it properly took

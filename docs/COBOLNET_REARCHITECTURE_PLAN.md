@@ -73,8 +73,23 @@ checkpoint.
   `AT LINE/COLUMN` order · PROGRAM-ID `COMMON`+`INITIAL` · INSPECT `AFTER`+`BEFORE INITIAL` · SORT `FOR
   ALPHANUMERIC`+`FOR NATIONAL` · INITIALIZE multi-category · screen SIGN optionality. (OPEN multi-mode: probed
   CORRECT.) Evidence: `docs/rearchitecture/evidence/PHASE-13-spec-{figure-reproduction,codeblock-repair}.json`.
+- **✅ DONE 2026-07-19/20 (this session, all gate-green):** the **paired-phrase grammar repair** (13 rules + the
+  new `callExceptionPhrases` container; 4 hand-rolled LEGACY binder clones repaired — greenfield was immune
+  because every site routes through `PhraseBlocks`; 2 goldens in `tests/conformance/85/`; commit `c6ab7b75`) ·
+  **all six compiler cross-checks CLEARED** (PROGRAM-ID `COMMON`+`INITIAL` either order · INSPECT
+  `AFTER`+`BEFORE INITIAL` · INITIALIZE multi-category · COLLATING `FOR ALPHANUMERIC`+`FOR NATIONAL` · OPEN
+  multi-mode · screen SIGN optional; DISPLAY `AT LINE/COLUMN` is not a phrase bug — screen DISPLAY Format 2 is
+  unimplemented under *documented* SCREEN non-support, COBOLNET1560) · **`guard.sh` RUN ISOLATION** (`4a128c9e`
+  — the NIST leg now snapshots compiler+inputs into a per-run dir, so the tree is frozen only for the BUILD
+  phase and concurrent runs cannot corrupt each other; `GUARD_KEEP=1` retains the snapshot) · **the GnuCOBOL
+  external-corpus infrastructure** (`fb6538b4` — see §11 A4 below).
+- **⏱ MEASURED (for the turnaround question):** the isolated guard is `real 20m6s / user 1m22s / sys 9m38s` —
+  **20 min wall for ~11 min CPU**, i.e. the NIST loop is SEQUENTIAL and dominates the comprehensive gate more
+  than the 14-min Conformance suite does. Parallelising it is the next perf lever (non-trivial: the RL/SQ/IX/ST
+  producer→consumer chains must stay ordered; `scripts/guard-run-group.sh` suggests the grouping half-exists).
+  Recorded, NOT scheduled — it is not on the close-line. ⚠ Standing reminder: §3 prescribes wave-local (~2–3 min)
+  per change and comprehensive ONCE PER BATCH; running the full gate per change set is over-gating.
 - **REMAINING P13 (the D16 CLOSE-LINE — work in this order, then P14):**
-  0. **The paired-phrase grammar repair + the six cross-checks** (above) — proven defects outrank new features.
   1. **The GRAMMAR BATCH** (shared `.g4` ⇒ ONE full legacy guard): SUPPRESS WHEN on ALTERNATE RECORD KEY
      (§12.4.5.6; scout §C6-B) · PICTURE EDITING (§13.18.40, Table 9, EDITING = new 2023 reserved word) · PERFORM
      Format 3 (§14.9.28.2; FINALLY/LOCATION tokens; scout §C5) · the Wave H code half (MCS/COMMIT/ROLLBACK/
@@ -519,6 +534,7 @@ already-derivable coverage; none change the pipeline.
 | # | Analysis | Why it matters | Output | Scheduled home | Status |
 |---|---|---|---|---|---|
 | A1 | **Per-edition AUTHORITY SUFFICIENCY** — which 85/2002/2014 facts are NOT derivable from the sole in-repo 2023 spec (Annex E covers only 2014→2023)? | The "100% conforming ×4" claim rests on an unexamined derivation chain (2023 text + E-annex + NIST); may overturn council decision #1 — **acquisition is PRE-AUTHORIZED (D18) if the verdict requires it; the owner expects the 2023 spec to correctly identify every statement version across editions** | Per-edition verdict: derivable / derivable-with-NIST-corroboration / underivable → documented assumption or acquire the historical standard | **P14 Step 0a** (companion to the inventory; qualifies every pre-2023 row) | PENDING |
+| A11 | **ANNEX A.1 IMPLEMENTOR-DEFINED DOCUMENTATION REGISTER** — A.1 lists **222** implementor-defined elements (164 required · 26 conditionally required · 29 optional), of which **199 carry "This item shall be documented in the implementor's user documentation."** `docs/CONFORMANCE.md` documents A.3 and A.4 but had **no A.1 section at all** until 2026-07-20, when §7 was opened with item 158 (margin R). | **D13 defines "100% conforming" as the mandatory core complete PLUS every required implementor documentation item** — so 199 undocumented determinations are a direct v1.0 conformance gap, not a tidiness issue. Found incidentally while deriving margin R for the reference-format fix (DEVLOG 931); nothing was tracking it. | Every A.1 row determined + written to CONFORMANCE.md §7, or explicitly dispositioned (N/A where the element belongs to an unclaimed optional/processor-dependent facility) | **P14 Step 0** (the traceability inventory enumerates A.1 alongside the clause/statement surface; A.1 rows are inventory rows) | PENDING (1 of 199 written) |
 | A2 | **SR-ENFORCEMENT CENSUS** — enforced / lenient-registered / silently-unenforced, per spec syntax rule | The review PROVED the class (glued VALUEs, DISPLAY UPON, ASSIGN USING, BWZ/JUST/SIGN — all found incidentally); the negative corpus (~110 fixtures) is tiny vs the SR surface | The SR-level complement to the inventory; feeds the negative corpus + the leniency registry | **P14 Step 0b** (deepens the inventory to SR granularity) | PENDING |
 | A3 | **NUMERIC-SEMANTICS DEPTH AUDIT** — the intermediate-results model vs §8.8.1 end-to-end: 8 ROUNDED modes × ops, native-vs-standard intermediates, size-error boundaries, long/Int128 crossovers, float↔fixed | Arithmetic is COBOL's heart; wave-grown tests ≠ a model-level audit; numeric bugs silently corrupt data | A verified conformance map of the numeric engine + hand-derived oracle values; GAP rows into the inventory | **CAMPAIGN A** — inside P14 after Step 0 (consumes/extends inventory rows); REQUIRED before the P15 oracle deletion | PENDING |
 | A4 | **EXTERNAL DIFFERENTIAL CORPUS** — the GnuCOBOL test suite (+ public-domain real COBOL) through COBOL.NET; the NIST module-coverage map (all CCVS modules, or only the 353 baselines?) | Every internal instrument shares the project's blind spots; external corpora find what in-house nets cannot; cheapest while the legacy oracle exists | A divergence ledger (accept/reject/behavior) + the NIST coverage map + an adopted-fixture set | **CAMPAIGN B = P14 Step 13 (a REQUIREMENT, owner-directed 2026-07-19: retrieve the GnuCOBOL test cases if possible and incorporate them — execution detail in Step 13, incl. the GPL fetch-on-demand licensing posture)**; REQUIRED before the P15 oracle deletion | PENDING |
