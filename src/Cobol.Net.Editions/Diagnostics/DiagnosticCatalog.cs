@@ -294,6 +294,12 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor ReportNonDisplayItem = new(
         NotImplemented, "report-non-display-item", EditionSeverity.Error,
         "A non-DISPLAY printable report item is not supported.", "ISO §13.15", RecognizedNotImplemented);
+    // SUPPRESS PRINTING (§14.9.45) syntax-rule violation: the statement may appear ONLY in a USE BEFORE
+    // REPORTING procedure (§14.9.45.3 SR1), which fixes the affected report group (§14.9.45.4 GR1). Written
+    // anywhere else there is no group to inhibit — a genuine user error, not a non-support.
+    public static readonly DiagnosticDescriptor ReportSuppressContext = new(
+        "COBOLNET1581", "report-suppress-context", EditionSeverity.Error,
+        "A SUPPRESS statement may appear only in a USE BEFORE REPORTING procedure.", "ISO §14.9.45.3 SR1");
     public static readonly DiagnosticDescriptor ReportSourceOtherReportCounter = new(
         NotImplemented, "report-source-other-report-counter", EditionSeverity.Error,
         "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15 SR2", RecognizedNotImplemented);

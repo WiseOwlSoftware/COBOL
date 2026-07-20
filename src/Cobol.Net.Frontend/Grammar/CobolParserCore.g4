@@ -658,6 +658,7 @@ statement
     | initiateStatement
     | generateStatement
     | terminateStatement
+    | suppressStatement   // §14.9.45 — SUPPRESS PRINTING; SR1/GR1 (USE-BEFORE-REPORTING context) enforced at bind
     | invokeStatement   // introduction-gated at BIND time (StatementBinder.Oo → Check(Invoke2002))
     | {is2023()}? inlineMethodInvocationStatement
     // ── Wave H: RECOGNIZE-AND-NAME the facilities COBOL.NET does not implement. ISO §4.2.6 ¶3 makes the

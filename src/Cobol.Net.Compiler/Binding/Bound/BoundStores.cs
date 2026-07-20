@@ -108,6 +108,7 @@ public static class BoundStores
         public StoreKind? Visit(BoundClose n) => StoreKind.None;
         public StoreKind? Visit(BoundInitiate n) => StoreKind.None;
         public StoreKind? Visit(BoundGenerate n) => StoreKind.None;
+        public StoreKind? Visit(BoundSuppress n) => StoreKind.None;
         public StoreKind? Visit(BoundTerminate n) => StoreKind.None;
         public StoreKind? Visit(BoundRaise n) => StoreKind.None;
         public StoreKind? Visit(BoundResume n) => StoreKind.None;

@@ -37,13 +37,15 @@ checkpoint.
 - **Diagnostic band (THE one next-free claim):** …1570–1577 taken (1573 = external-file-status-consistency
   ONLY; 1576 = ref-mod-zero-length-malformed; 1577 = method-redefines-scope). **1578/1579/1580 SHIPPED
   2026-07-20 by Wave H** (mcs-facility-unsupported · commit-rollback-unsupported · validate-facility-unsupported
-  — the §4.2.6 ¶3 recognize-and-name band). **NEXT FREE = 1581** — allocate only after BOTH scans agree:
-  `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u` AND the DiagnosticCatalog descriptor list (the
-  `EveryEmittedCode_IsACatalogDescriptor` drift test forces the frontend channel through the catalog; extending
-  it to the compiler's dot-prefixed `Edition.Error` channel is queued — ledger V11 note).
+  — the §4.2.6 ¶3 recognize-and-name band). **1581 SHIPPED 2026-07-20 by RW SUPPRESS** (report-suppress-context
+  — §14.9.45.3 SR1, a SUPPRESS outside a USE BEFORE REPORTING procedure). **NEXT FREE = 1582** — allocate only
+  after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u` AND the DiagnosticCatalog
+  descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces the frontend channel through
+  the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is queued — ledger V11 note).
   ⚠ **RESERVED, not yet shipped** (the grammar-batch synthesis pre-allocated these to prevent the parallel-agent
-  collision class that produced the ~40-site scout drift): **1581–1582** RW SUPPRESS + the PERFORM UNTIL EXIT
-  §14.9.28.3 SR8 residue · **1583–1585** file-control COLLATING · **1586–1587** SUPPRESS WHEN alt-key ·
+  collision class that produced the ~40-site scout drift): **1582** the PERFORM UNTIL EXIT §14.9.28.3 SR8 residue
+  (rides PERFORM Format 3, position 7 — RW SUPPRESS needed only the one code, 1581) · **1583–1585** file-control
+  COLLATING · **1586–1587** SUPPRESS WHEN alt-key ·
   **1588–1593** VALUE Format 2 · **1594–1605** PICTURE EDITING · **1606–1616** PERFORM Format 3. A wave that
   does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
   1550–1552 are unallocated mid-band holes. Intro gates 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
@@ -116,13 +118,14 @@ checkpoint.
   (§13.18.45.3 SR5) are both **unenforced** — we accept source the standard forbids. Tiered CONFORMANCE-BLOCKING;
   scheduled to P14 Step 0b (the SR census) rather than crammed into P13 per D15.
 - **REMAINING P13 (the D16 CLOSE-LINE — work in this order, then P14):**
-  1. **The GRAMMAR BATCH** (shared `.g4` ⇒ ONE full legacy guard): SUPPRESS WHEN on ALTERNATE RECORD KEY
-     (§12.4.5.6; scout §C6-B) · PICTURE EDITING (§13.18.40, Table 9, EDITING = new 2023 reserved word) · PERFORM
-     Format 3 (§14.9.28.2; FINALLY/LOCATION tokens; scout §C5) · the Wave H code half (MCS/COMMIT/ROLLBACK/
-     VALIDATE recognize-and-name — READ the scout's ⛔ MECHANISM CORRECTION banner first: keyword-led tokens,
-     never the IDENTIFIER-led DFA-poisoning seam; DEVLOG 903) · **+ review adds:** RW SUPPRESS (§14.9.45,
-     ledger C5) · VALUE Format 2 + the glued-multi-literal reject (ledger VF4) · file-control COLLATING
-     SEQUENCE, the standard-alphabet core leg (ledger VF2). Working designs: `PHASE-13-wave-c-scout.md` +
+  1. **The GRAMMAR BATCH** (shared `.g4` ⇒ ONE full legacy guard). **✅ LANDED so far (branch
+     `phase-13-grammar-batch`):** Wave H — MCS/COMMIT-ROLLBACK/VALIDATE recognize-and-name (COBOLNET1578/1579/1580;
+     commit `bcfbc25d`, DEVLOG 933) · **RW SUPPRESS** (§14.9.45; COBOLNET1581; DEVLOG 934). **REMAINING:** SUPPRESS
+     WHEN on ALTERNATE RECORD KEY (§12.4.5.6; scout §C6-B) · PICTURE EDITING (§13.18.40, Table 9, EDITING = new
+     2023 reserved word) · PERFORM Format 3 (§14.9.28.2; FINALLY/LOCATION tokens; scout §C5 — the C5 re-derivation
+     `PHASE-13-c5-perform-format3-rederivation.json` found a THIRD spec inversion, NOT yet implementable, read it
+     first) · VALUE Format 2 + the glued-multi-literal reject (ledger VF4) · file-control COLLATING SEQUENCE, the
+     standard-alphabet core leg (ledger VF2 / §12.4.5.7). Working designs: `PHASE-13-wave-c-scout.md` +
      `PHASE-13-remaining-waves-scout.md` (delete both at P13 close).
   2. **Wave D — directives** (verify `.g4` impact → guard accordingly): >>COBOL-WORDS · >>PUSH/>>POP ·
      >>DISPLAY · >>FLAG-14 (the GR4 a–l twins) · >>FLAG-02-obsolete · **+ review adds:** the §7.3.6/§7.3.7

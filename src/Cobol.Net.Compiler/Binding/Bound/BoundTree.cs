@@ -751,6 +751,15 @@ public sealed record BoundInitiate(IReadOnlyList<ReportModel> Reports) : BoundSt
 /// (GR2 — the report-name form, same processing with no detail printed).</summary>
 public sealed record BoundGenerate(ReportModel Report, ReportGroupModel? Detail) : BoundStatement;
 
+/// <summary><c>SUPPRESS PRINTING</c> (ISO §14.9.45): inhibit the PRINTING of the current instance of the report
+/// group named by the lexically-enclosing USE BEFORE REPORTING procedure (GR1/SR1). <paramref name="Report"/> is
+/// that group's owning report, resolved at bind time (the target group is a static, lexical property — GR1). The
+/// per-instance suppression itself is a RUNTIME effect (GR2): the emitted call sets a one-shot flag the report
+/// engine consumes at the next group presentation, inhibiting print lines, page advance, NEXT GROUP, and
+/// LINE-COUNTER changes (GR3 a–d) — but NOT sum-counter accumulation (GR7) or the end-of-group sum reset (GR2;
+/// only PRESENT WHEN / OCCURS DEPENDING absence skips the reset, §13.18.54.4 GR10).</summary>
+public sealed record BoundSuppress(ReportModel Report) : BoundStatement;
+
 /// <summary><c>TERMINATE report-name…</c> (ISO §14.9.46): final control footings + report footing, report →
 /// inactive (GR3); unrolls in written order (GR4); does NOT close the file (GR6).</summary>
 public sealed record BoundTerminate(IReadOnlyList<ReportModel> Reports) : BoundStatement;
