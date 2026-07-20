@@ -207,6 +207,9 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                     data.Edition.Error(DiagnosticCatalog.OoMethodDeclaratives,
                         $"class '{cls.Name}', method '{m.Name}': DECLARATIVES inside a method (ISO §14.2.1) "
                         + "are recognized but not yet implemented (owning roadmap phase: Phase 3, OO port)");
+                // §14.4.3 — a method's procedure division may also open with unnamed sentences (same rule as a
+                // program's; the header form is shared). They take the method's ENTRY pc, set just above.
+                table.AddAnonymousParagraph(pd.sentence(), null, used);
                 foreach (var unit in pd.procedureUnit())
                 {
                     if (unit.paragraphDefinition() is { } para)
@@ -216,6 +219,7 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                         // A section inside a method is a method-local pc range (the legacy COBOL0116 reject is
                         // superseded: with per-method scopes the range cannot truncate or leak — trap #5).
                         var info = new SectionInfo(section.sectionName().GetText(), table.Paragraphs.Count);
+                        table.AddAnonymousParagraph(section.sentence(), info, used);
                         foreach (var p in section.paragraphDefinition())
                             table.AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
                         info.EndPc = table.Paragraphs.Count - 1;

@@ -56,6 +56,23 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
         _paras.Add((name, method, sentences));
     }
 
+    /// <summary>Add the ISO §14.4.3 paragraph-name-OMITTED paragraph — "one or more successive sentences
+    /// following the procedure division header or a section header". It takes a pc like any other paragraph so
+    /// the dispatcher executes it, but it is DELIBERATELY registered in NO name map: having no paragraph-name it
+    /// can never be the target of PERFORM / GO TO (§8.4.2.2 resolves procedure-NAMES only), and inventing a
+    /// synthetic name would make it referenceable and collide with a user word. The display name carries spaces
+    /// so it is not a well-formed COBOL word; the C# method name is generated independently.</summary>
+    public void AddAnonymousParagraph(Core.SentenceContext[] sentences, SectionInfo? section, HashSet<string> used)
+    {
+        if (sentences.Length == 0) return;
+        string method = "P__Anon";
+        for (int n = 2; !used.Add(method); n++) method = $"P__Anon_{n}";
+        _paraSection.Add(section);
+        _paraMethod.Add(ctx.CurrentMethodScope);
+        _paraLine.Add(sentences[0].Start.Line);
+        _paras.Add(("(sentences without a paragraph-name)", method, sentences));
+    }
+
     public void CollectParagraphs(Core.ProcedureDivisionContext pd)
     {
         var used = new HashSet<string>(StringComparer.Ordinal);
@@ -68,6 +85,11 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 DeclCollectSection(sec, used);
         _entryPc = _paras.Count;
 
+        // §14.4.3 — sentences written directly after the PROCEDURE DIVISION header, with no paragraph-name.
+        // They form the first nondeclarative paragraph, so they must take the ENTRY pc (execution begins with
+        // the first nondeclarative procedure, §14.2.3 GR1) — hence before the procedureUnit walk.
+        AddAnonymousParagraph(pd.sentence(), null, used);
+
         foreach (var unit in pd.procedureUnit())
         {
             if (unit.paragraphDefinition() is { } para)
@@ -78,6 +100,9 @@ internal sealed class ProcedureTableBuilder(BinderContext ctx)
                 // GO TO section transfers to its first paragraph (ISO §14.9.17), PERFORM section runs first
                 // statement of its first paragraph through last statement of its last (ISO §14.9.28).
                 var info = new SectionInfo(section.sectionName().GetText(), _paras.Count);
+                // §14.4.3 — a section header may likewise be followed directly by unnamed sentences; they are
+                // the section's first paragraph, so GO TO / PERFORM <section> enters them (§14.9.17/§14.9.28).
+                AddAnonymousParagraph(section.sentence(), info, used);
                 foreach (var p in section.paragraphDefinition())
                     AddParagraph(p.paragraphName().GetText(), p.sentence(), info, used);
                 info.EndPc = _paras.Count - 1;

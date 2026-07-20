@@ -66,15 +66,25 @@ def run_case(args):
 
     std, tier = std_of(chk['command'])
     out_dll = os.path.join(d, '_out.dll')
+    runner_error = ''
     try:
         r = subprocess.run([exe, os.path.join(d, os.path.basename(prim)), '--std', std, '-o', out_dll],
                            capture_output=True, text=True, timeout=60)
         we_ok = (r.returncode == 0)
         diag = r.stdout + r.stderr
     except subprocess.TimeoutExpired:
-        we_ok, diag = False, '<<TIMEOUT>>'
+        we_ok, diag, runner_error = False, '<<TIMEOUT>>', 'TimeoutExpired'
     except Exception as e:                                    # noqa: BLE001
-        we_ok, diag = False, f'<<RUNNER-ERROR {type(e).__name__}>>'
+        we_ok, diag, runner_error = False, '', f'{type(e).__name__}: {e}'
+
+    # A harness failure is NOT a compiler verdict. Laundering one into WE_REJECT_THEY_ACCEPT is how a
+    # totally broken run reports as 1046 "compiler bugs" — which is exactly what happened on the first
+    # run of this script (a relative exe path that Windows CreateProcess could not resolve).
+    if runner_error:
+        return {'id': gid, 'file': group['file'], 'title': group['title'][:160],
+                'keywords': group['keywords'], 'std': std, 'tier': tier,
+                'verdict': 'RUNNER_ERROR', 'ourCodes': [], 'ourFirstError': runner_error,
+                'xfail': group.get('xfail', False)}
 
     they_ok = not chk['expects_failure']
     if we_ok and they_ok:
@@ -109,6 +119,10 @@ def main() -> int:
 
     if not os.path.exists(a.exe):
         print(f'!! compiler not found: {a.exe}', file=sys.stderr); return 2
+    # MUST be absolute: on Windows, CreateProcess does not resolve a relative forward-slash path, so
+    # subprocess.run() raises FileNotFoundError (WinError 2) even though os.path.exists() is True. Left
+    # relative, EVERY case fails identically and the run reports a corpus-wide false "we reject everything".
+    a.exe = os.path.abspath(a.exe)
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from gnucobol_extract import parse_file            # noqa: E402
     from dataclasses import asdict
@@ -132,6 +146,20 @@ def main() -> int:
 
     from collections import Counter
     by_v = Counter(r['verdict'] for r in results)
+
+    # LOUD failure on a broken harness — silence is not success. If a meaningful share of cases never
+    # reached the compiler, every downstream number is noise and must not be read as a finding.
+    errs = by_v.get('RUNNER_ERROR', 0)
+    if errs:
+        pct = 100.0 * errs / max(1, len(results))
+        print(f'\n!! {errs} of {len(results)} cases ({pct:.1f}%) FAILED IN THE HARNESS, not the compiler.')
+        for m, n in Counter(r['ourFirstError'] for r in results
+                            if r['verdict'] == 'RUNNER_ERROR').most_common(5):
+            print(f'   {n:5}  {m[:110]}')
+        if pct > 5.0:
+            print('!! ABORTING: >5% harness failures — the verdict counts below would be meaningless.',
+                  file=sys.stderr)
+            return 3
     by_vt = Counter((r['verdict'], r['tier']) for r in results)
     print(f'\ncases run: {len(results)}')
     for v, n in by_v.most_common():

@@ -405,6 +405,10 @@ computerAttributes
 procedureDivision
     : PROCEDURE DIVISION usingClause? (returningClause)? (raisingClause)? DOT   // returningClause + raisingClause introduction-gated post-bind by VersionConformancePass ParseArm.VisitReturning/RaisingClause (rearch 14g.4, InMethodDefinition-guarded — program-unit PDs only; this rule is SHARED with method PDs)
       declarativePart*
+      sentence*          // §14.4.3: the paragraph-name-OMITTED paragraph — "one or more successive sentences
+                         // following the procedure division header or a section header". Legal COBOL with no
+                         // paragraph at all; NIST/CCVS never exercises it (it always writes paragraph names),
+                         // which is why the GnuCOBOL external corpus was what surfaced it (DEVLOG 931).
       procedureUnit*
     ;
 
@@ -579,7 +583,9 @@ procedureUnit
 
 // SECTION integerLiteral? — the '85 segment-number; see the declarativeSection note (VCR Table 7 row 7.18).
 sectionDefinition
-    : sectionName SECTION integerLiteral? DOT paragraphDefinition*
+    : sectionName SECTION integerLiteral? DOT
+      sentence*          // §14.4.3 — same paragraph-name-omitted form after a SECTION header
+      paragraphDefinition*
     ;
 
 sectionName
