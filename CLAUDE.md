@@ -21,7 +21,7 @@ The North Star is a **commercial-quality, decades-sustainable COBOL compiler, 10
 1989:2023 per §4.2.16 with correct support for all prior editions (1985/2002/2014)** — owner decision D13;
 optional modules may remain documented non-support; the definition of done is the PHASE-14 Step-0 traceability
 inventory at zero GAP. **The go-forward plan is `docs/COBOLNET_REARCHITECTURE_PLAN.md` — THE ONE PLANNING
-DOCUMENT** (17 phases; Roslyn↔CIL dual backend; §6 owner decisions D1–D13 all resolved). **Do NOT trust any
+DOCUMENT** (17 phases; Roslyn↔CIL dual backend; §6 owner decisions D1–D20 all resolved). **Do NOT trust any
 status snapshot here or in memory — the plan's §0 banner is the ONLY live resume point** (phases 00–12 done;
 P13 in progress; then P14 [Step 0 = the traceability inventory] → P15 legacy retirement → P16 CIL backend).
 The SSOT for locked invariants / settled decisions is **`docs/COBOLNET_DESIGN.md`**; the four-editions mission

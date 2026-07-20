@@ -47,7 +47,34 @@ checkpoint.
   scale):** P13 remainder (per the D16 close-line) **4–6** · P14 incl. the D17 OO wave (4–8) + inventory/
   campaigns/closure (8–14) **≈ 12–22** · P15 **3–5** (incl. the v1.0 RELEASE DEFINITION step) → **v1.0 ≈ 19–33 sessions**; P16 (v2) 9–16, high
   variance. Swing factors: the OO wave and the inventory GAP count (bounded by the D15 tiering).
+- **⛔ THE SPEC TRANSCRIPTION WAS SYSTEMATICALLY LOSSY FOR SYNTAX — NOW REPAIRED (2026-07-19; DEVLOG 926–928).**
+  `specs/ISO_COBOL.md` is OCR'd from the printed standard (the PDF text layer is custom-encoded → mojibake), and
+  while RULE TEXT survived faithfully, **DIAGRAMS did not**. Audit of all 244 general-format diagrams: 114
+  defective, **48 decision-changing**, and of the 46 printed figures carrying §5.2.6.4 CHOICE INDICATORS, **43
+  (93%) had dropped the bars** — always failing toward FALSELY RESTRICTIVE syntax (legal source made to look
+  illegal). All 226 corrections applied (`specs` submodule `763a521`); diagrams with bars went 1 → 46.
+  **STANDING RULE: when a general-format DIAGRAM is load-bearing, render the PDF page — `pwsh`/`python3
+  scripts/render-spec-page.py <page>` (anchor `page-N` == PDF page N). Never derive syntax from the prose alone.**
+  ⚠ **Consequence: any grammar rule, diagnostic, or conformance expectation derived from a FIGURE before this date
+  is suspect and must be re-derived.** Two truncations hit live work: STRING's whole `ON OVERFLOW`/`NOT ON
+  OVERFLOW`+`END-STRING` group, and **PERFORM Format 3's `WHEN OTHER`/`WHEN COMMON`/`FINALLY`/`END-PERFORM` lines
+  (⇒ the C5 packet must be RE-DERIVED before implementation)**.
+- **⛔ PROVEN COMPILER BUGS FROM THAT DEFECT — FIX FIRST (DEVLOG 927; CLI-probed, not inferred):** ten paired-phrase
+  grammar rules reject LEGAL COBOL. *Class 1 (all ten)* — shaped `X … (NOT X …)? | NOT X …`, so the REVERSED order
+  is rejected though §5.2.6.4 says "may be specified in **any order**" (`ADD 1 TO A NOT ON SIZE ERROR … ON SIZE
+  ERROR … END-ADD` → COBOL0001). Reaches ADD/SUBTRACT/MULTIPLY/DIVIDE/COMPUTE via `arithmeticOnSizeError` +
+  `computeOnSizeError`, plus `readInvalidKey`/`writeInvalidKey`/`rewriteInvalidKeyPhrase`/`deleteInvalidKeyPhrase`/
+  `startInvalidKeyPhrase`. *Class 2 (three)* — NO `NOT`-alone arm at all: `notOnExceptionPhrase`
+  (`CobolParserCore.g4:1148`), `searchAtEndClause` (`CobolControlFlow.g4:137`), `deleteFileOnException`
+  (`CobolIO.g4:442`) (`DELETE FILE F NOT ON EXCEPTION … END-DELETE` → COBOL0001). Fix to each-at-most-once/any-order
+  + a duplicate-phrase diagnostic (§5.2.6.4's "only once" is normative), with goldens for the reversed and
+  negative-only forms per affected statement. **The whole 4212-test battery is green and BLIND to this class — the
+  corpus was authored from the same defective transcription.** Six cross-check items still unverified: DISPLAY
+  `AT LINE/COLUMN` order · PROGRAM-ID `COMMON`+`INITIAL` · INSPECT `AFTER`+`BEFORE INITIAL` · SORT `FOR
+  ALPHANUMERIC`+`FOR NATIONAL` · INITIALIZE multi-category · screen SIGN optionality. (OPEN multi-mode: probed
+  CORRECT.) Evidence: `docs/rearchitecture/evidence/PHASE-13-spec-{figure-reproduction,codeblock-repair}.json`.
 - **REMAINING P13 (the D16 CLOSE-LINE — work in this order, then P14):**
+  0. **The paired-phrase grammar repair + the six cross-checks** (above) — proven defects outrank new features.
   1. **The GRAMMAR BATCH** (shared `.g4` ⇒ ONE full legacy guard): SUPPRESS WHEN on ALTERNATE RECORD KEY
      (§12.4.5.6; scout §C6-B) · PICTURE EDITING (§13.18.40, Table 9, EDITING = new 2023 reserved word) · PERFORM
      Format 3 (§14.9.28.2; FINALLY/LOCATION tokens; scout §C5) · the Wave H code half (MCS/COMMIT/ROLLBACK/
@@ -295,7 +322,7 @@ generated/shared visitor (bound tree) or the ANTLR generated visitor/listener (C
 The PHASE-05/06/07 records (Part III) close A–D; §0 carries the live resume point; this section's banner
 points at the current exec step. Keep this table + those STATUS lines + the §4 ticks in sync as each exec step lands.
 
-## §6 Owner decisions (ALL RESOLVED — D1–D13)
+## §6 Owner decisions (ALL RESOLVED — D1–D20)
 
 **ALL RESOLVED by the owner (2026-07-07).** The rulings are recorded below. Where the ruling equals the recommended
 default the phase docs already assume it (no change needed); the ONE exception is **D10** — an owner override that
@@ -321,6 +348,8 @@ EXPANDS PHASE-04 (see the note under the table).
 | D16 | THE P13 CLOSE-LINE (2026-07-19). | ✅ P13 closes on: the M4 feature waves (the grammar batch + Wave D) + review fixes to P13-LANDED code only + Wave I close. The REST of the §24 fix queue is formally RESCHEDULED into P14's GAP-closing work (the Step-0 inventory re-derives and re-tiers it). P13 is thereby bounded at ~4–6 sessions. |
 | D17 | THE OO MANDATORY SURFACE (review V16–V19). | ✅ **Implement inside P14 as its own wave — the P14 OPENING FEATURE WAVE** (inline `::` invocation identifier form + disposition of the shipped non-ISO statement rule · object-view §8.4.3.5 · ACTIVE-CLASS/ONLY §13.18.60.2 · parameterized classes/interfaces + REPOSITORY EXPANDS/AS). Spec-first from a persisted scout per the proven wave pattern; sized 4–8 sessions; runs in a parallel lane with the Step-0 inventory. |
 | D18 | HISTORICAL-STANDARDS ACQUISITION (the A1 trigger). | ✅ **PRE-AUTHORIZED if needed**: should Step 0a find per-edition facts underivable from the 2023 spec, acquiring the 1985/2002/2014 standards proceeds without a further decision round. The owner's stated expectation: the 2023 spec correctly identifies every statement's version across editions, so A1 is expected to CONFIRM derivability — the pre-authorization is the hedge, not the plan. |
+| D19 | C4/C5 STAY IN THE GRAMMAR BATCH (2026-07-19). | ✅ PICTURE EDITING and PERFORM Format 3 are **retained in the P13 grammar batch** with their spec forks adjudicated inline, rather than deferred to dedicated waves. D16's close-line is therefore unchanged. (Adjudication outcome: 4 of the 5 claimed forks dissolved into spec — see D20 for the one that did not.) |
+| D20 | `>>TURN` INSIDE AN EXCEPTION-CHECKING PERFORM (2026-07-19). | ✅ **FLAT BAN, SUPPRESSIBLE WARNING.** A `>>TURN` written anywhere lexically within a format-3 PERFORM — `imperative-statement-1` included, not just the handler phrases — draws a suppressible conformance warning citing §7.3.25.3 SR5; the program still compiles (§4.2.2 requires only an optionally-invoked warning for syntax-rule violations), and §14.9.28.4 GR14 sentence 4's semantics are still implemented for the accepted case. Use **ONE shared lexical-containment predicate** for TURN/PUSH/POP (singular-mechanism rule) — do not build a second region-partitioned predicate. **The REJECTED reading, recorded so it is not re-litigated:** the "narrow" reading holds that SR5's wording ("exception **processing** PERFORM") deviates deliberately from the sibling PUSH/POP bans ("exception **checking** PERFORM") and that §3.70 scopes "exception processing procedures" to the WHEN-phrase handlers, so SR5 would ban `>>TURN` only inside WHEN/WHEN OTHER/WHEN COMMON/FINALLY; it is further supported by GR14's implicit `PUSH ALL` + `TURN OFF ALL` … `POP ALL` bracket spanning exactly the handler region (a `>>TURN` there is unwound before END-PERFORM, which is what a syntax rule should forbid), whereas one in `imperative-statement-1` has both a specified effect (GR14 s.4) and specified survival (GR22). It was rejected because **Annex D.16.4 uses the phrase "exception-processing PERFORM statement" for the PUSH/POP ban** — which is stated normatively as "exception checking" and which both readings agree is whole-statement — so the two phrasings are drafting synonyms and the narrow reading's sole tie-breaker fails. Honest residual: D.16.4 is informative, and SR5's wording deviation remains unexplained under the adopted reading. |
 
 > **D10 scope expansion → RELOCATED to PHASE 15.** The owner override stands: FULLY remove the
 > lexer `SUBSCRIPT` mode AND the binder subscript re-parse, replacing them with a grammar-level subscript (`x(i)`) rule
