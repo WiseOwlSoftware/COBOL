@@ -27,10 +27,12 @@ all prior editions (1985 / 2002 / 2014), validated as N per-edition compilers by
 re-run the audit — check it out and continue. Battery at HEAD: greenfield conformance **3696** · unit **313** ·
 characterization **33** · legacy/NIST unaffected (no `.g4` change yet). **🎯 WAVE E COMPLETE (VCR 63/16/18/31/15 —
 the EC-EXTERNAL-* raises landed 2026-07-19, DEVLOG 908) + Wave G CLASS A complete + REF-MOD-ZERO-LENGTH landed.**
-**⚖ THE COMPREHENSIVE PLAN-VS-SPEC REVIEW RAN 2026-07-19 (DEVLOG 906): its findings ledger
-`docs/rearchitecture/PHASE-13-plan-vs-spec-review.md` is LIVE — 28 confirmed (1 critical: the COBOLNET1573
-collision, FIXED → 1576, DEVLOG 907) + 37 unverified (Wave I re-verifies) + 3 unrun spec-area finders (A3 §9/§12,
-A4 §13, C4 Wave C — Wave I re-runs). Work its §6 disposition batches alongside the remaining waves.**
+**⚖ THE COMPREHENSIVE PLAN-VS-SPEC REVIEW IS VERIFICATION-COMPLETE (2026-07-19, DEVLOG 906–916): every
+finding 2-lens verified across 16 owner-directed ≤10-agent batches, each folded+pushed before the next. The
+ledger `docs/rearchitecture/PHASE-13-plan-vs-spec-review.md` §24 = the final tally + the 10-tier prioritized
+FIX QUEUE (the SSOT for the follow-up fix session). Fixed during the cycle: both diag collisions (1573→1576,
+1518→1577) + drift guards · CONFORMANCE.md restoration + locale row + the A.4 §5 section · citation sweeps ·
+VCR 16 strength half · GOBACK GR3 · WriteFill AllowZeroLength · external_type_decl exclusion.**
 **REMAINING P13 (see the "REMAINING P13 WORK" list below): ① the GRAMMAR BATCH (shared `.g4` → ONE full legacy
 guard; now + RW SUPPRESS per review C5) · ② the review FIX-NOW/spec-derive batches (ledger §6) · ③ Wave D
 directives (now + the review's directive fixes) · ④ Wave I adversarial review (+ the 37 unverified + 3 unrun

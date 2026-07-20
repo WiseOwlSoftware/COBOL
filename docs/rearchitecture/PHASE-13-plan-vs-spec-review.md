@@ -1,6 +1,8 @@
 # PHASE-13 comprehensive plan-vs-spec review — findings ledger
 
-> **STATUS: LIVE LEDGER (2026-07-19) — the disposition lines are the to-do state; update them as items land.**
+> **STATUS: VERIFICATION COMPLETE (2026-07-19) — every finding adversarially verified; the disposition lines
+> are the fix to-do state for the follow-up (Opus) session; update them as fixes land. See §24 for the final
+> tally + the prioritized fix list.**
 > Review of the rearchitecture plan + implementation at HEAD `38c4a669` (branch `phase-13-m4-2023`) against
 > `specs/ISO_COBOL.md` (ISO/IEC 1989:2023). Methodology: a 16-finder multi-agent Workflow across three axes —
 > **A** spec-coverage omissions (9 finders by spec area), **B** plan-vs-implementation claim verification
@@ -1245,3 +1247,68 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
 ### VF9 (=§8 F9). GOBACK/STOP status-phrase non-numeric operand — see full notes
 
 - **Verdicts + disposition:** in `scratchpad/batch15-verdicts.json`.
+
+## 23. Batch-16 verdicts (2026-07-19 — batch-1 raw findings F10/F11/F12, 6 agents, 0 errors) — FINAL BATCH
+
+### VF10 (=§8 F10). SET [SIZE OF] never sets EC-STORAGE-NOT-AVAIL (GR37/GR38) — CONFIRMED major
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** §14.9.39.4 GR37/GR38 mandate "is set to exist" on the negative and clamp legs; no EC path
+  exists anywhere, while the SAME wave wired the identical nonfatal pattern for CONTINUE. STRENGTHENED: the
+  persisted scout (wave-c-scout:614) explicitly specified the EC signaling — the implementation silently
+  deviated from its own plan, and DEVLOG-890 falsely asserts "the runtime behavior on valid input is
+  spec-correct". Fix for Opus: mirror the CONTINUE pattern (bind-time Turn.Enabled capture on BoundSetSize →
+  check flag → nonfatal Set on both legs), correct the comment + the DEVLOG framing, golden hitting both legs
+  under CHECKING ON. GR38's storage-unavailable third leg = N/A under .NET (pin in CONFORMANCE.md).
+
+### VF11 (=§8 F11). Inline PERFORM accepts multiple performOptions, first-wins silently — CONFIRMED (probe-proven)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** §14.9.28.2 Formats 1/2 permit at most ONE of times/until/varying — the INLINE form's
+  `performOptions+` (CobolControlFlow.g4:26) + the binder's FirstOrDefault silently drop the rest:
+  probe-proven `PERFORM VARYING … UNTIL cond UNTIL EXIT` compiles clean and runs as plain VARYING. The
+  out-of-line alternatives are structurally safe. Fix: reject >1 option with a named diagnostic leading with
+  §14.9.28.2 (+ SR8 when one is UNTIL EXIT); correct DEVLOG-890/resume-prompt to say "same-statement INLINE
+  form". Shared .g4? No — the fix is binder-side (count the options), no grammar change needed.
+
+### VF12 (=§8 F12). Boolean-shift count accepts any arithmetic expression — CONFIRMED
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** §8.8.2 rule 5 second sentence (the count SHALL be an INTEGER OPERAND — identifier or
+  literal, corroborated by Table 4 and :6944) is compile-time and unenforced: BindBoolShift binds the count
+  via the general numeric spine. Fix: bind-time operand-shape check (identifier/integer-literal only) with a
+  named diagnostic. Full notes: `scratchpad/batch16-verdicts.json`.
+
+## 24. FINAL TALLY — the review verification is COMPLETE (2026-07-19)
+
+**Every finding is now adversarially verified (2 lenses, high confidence throughout):**
+- The original 16-finder review: 28 confirmed (§2), 37 then-unverified (§3) — all 37 since verified or
+  dispositioned across batches 2–12 (§9–§19).
+- The resume-pass re-finds (§7): folded; dispositioned via their merged worklist items.
+- The 3 originally-unrun finders (A3/A4/C4): run as batch 1 (§8), their 12 raw findings verified as batches
+  13–16 (§20–§23).
+- **Net verdict classes:** REFUTED/not-a-gap: V28 (catalog-window doctrine) + V37-as-filed (doc-flip only) +
+  V42-as-filed (P14 home exists) + V26-as-filed (Wave-D-tracked). Everything else CONFIRMED, several
+  strengthened or found WORSE than filed (F4 glued VALUEs; V45's "!"-sentinel bug; V30's half-executed P8 R3).
+- **FIXED during the review cycle** (all gated + pushed): COBOLNET1573 collision→1576 · COBOLNET1518
+  collision→1577 · the catalog-completeness drift guards · CONFORMANCE.md truth restoration + the locale row +
+  the A.4 §5 section · the wrong-§ citation sweeps (pt2/pt3) · VCR 16 strength half · main-program GOBACK
+  RAISING (GR3) + its stale test · WriteFill AllowZeroLength (V31) · external_type_decl GreenfieldOnly.
+
+**The prioritized fix queue for the follow-up session (majors first; each entry above carries the exact fix):**
+1. OO-surface scope decision (V16-V19 — MANDATORY surface; owner-visible).
+2. ASSIGN USING (F1) + DISPLAY UPON (V6) — the silent-semantics pair.
+3. VALUE Format 2 + glued-multi-literal corruption (F4) → grammar batch.
+4. File-control COLLATING SEQUENCE core leg (F2) → grammar batch (with RW SUPPRESS, C5).
+5. The EC-seam batch: EC-RANGE four (V4) + EC-DATA twins (V3) + EC-FLOW trio raise side (V33) +
+   SET-SIZE EC-STORAGE-NOT-AVAIL (F10).
+6. The ref-mod cluster: C14 negative-length sentinel (+ExceptionState:227 cite) + ODO ReceiveInto (V48) +
+   the "!"-sentinel equality bug + single-describer externality leg (V45).
+7. RANDOM/RunUnit R3 completion unit (V30: _random + CobolSort.Files + Scratch<T>.Slot + the G2 CI-grep).
+8. Sibling-assembly STOP RUN STATUS (V47) · EXIT SECTION (V5) · PAGE reserved word (V1) · OPTIONS INITIALIZE
+   gate flip + fill (V24) · national intrinsic categories (V9) + the N"…" numeric-edited leg (V46).
+9. Doc/comment slices: BYTE-LENGTH rationale (V29) · EXCEPTION-FILE stale comments + anchor flips (V35) ·
+   row-45 flip + A.4.10 wording (V37) · the V39/V50/F6 citation fix lists · VALIDATE row completion (F7) ·
+   SYNCHRONIZED §3 row (F8) · audit annotations (V43) · V42's phrasing fixes + the VcrDriftTests extension.
+10. Wave D additions (V32 dispositions, C2/C3/C4 directive work) + REPOSITORY SR12/13 (V25) + repository-
+    declaration SRs (V38) + inline-PERFORM options (F11) + boolean-shift count (F12) + E.2 item 6 note (V41).
