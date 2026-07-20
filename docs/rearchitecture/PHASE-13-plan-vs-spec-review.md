@@ -1190,3 +1190,33 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   boundary of this fold; the F3 one-line fix — a CLASSIFICATION case in the computerAttributes token-scan
   emitting the locale-module non-support diagnostic — was already named in the V12 CONFORMANCE row as the
   tracked companion).
+
+## 21. Batch-14 verdicts (2026-07-19 — batch-1 raw findings F4/F5/F6, 6 agents, 0 errors)
+
+### VF4 (=§8 F4). VALUE Format 2 unparseable + multi-literal VALUE binds CORRUPT GLUED values — CONFIRMED (worse than filed)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** probe-verified at HEAD: the spec's own Format-2 example dies with raw COBOL0001; and the
+  mechanism correction — multi-literal VALUE on an ordinary item does NOT bind the first literal, it GLUES:
+  `VALUE 1 2 3` → 123, `VALUE 1, 2, 3` → 123, `VALUE "A" "B"` → A"B — corrupt values, zero diagnostics (the
+  greedy valueItem operand loop packs all literals into one item and GetText() concatenates). The 88-level
+  half of the design-doc-admitted FirstOrDefault bug was since fixed; the item-entry half is live. Route: the
+  GRAMMAR BATCH (shared .g4): parse Format 2 + 2002 intro gate + reject multi-literal on non-88/non-report
+  entries with a named diagnostic; fix DATA_MODEL_DESIGN.md:89/:584's wrong bare-positional-list model
+  (SR19-21 key literals to occurrence ranges via required FROM; SR22/23 add the 2014 dynamic-capacity rules).
+
+### VF5 (=§8 F5). BLANK WHEN ZERO / JUSTIFIED / SIGN applicability SRs unenforced — CONFIRMED (+ a legal-BWZ-national inertness bug)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** the three clause families capture with NO applicability validation (illegal combinations
+  silently drop or ignore). Precise check-shapes for Opus: BWZ = "not display AND not national" (SR2 permits
+  national — AND PictureAnalyzer.cs:244's `usage is Display` test makes a LEGAL national BWZ item silently
+  INERT, a correctness bug to fix in the same change); SIGN-without-S applies only to elementary
+  picture-bearing entries (SR1 third dash legalizes group SIGN — the inheritance pass depends on it);
+  JUSTIFIED adds SR4 (not on a dynamic-length item). Historical note that STRENGTHENS it: PHASE-00's
+  safety-net flagged "JUSTIFIED-on-numeric not caught at bind" for PHASE-02 and it fell through.
+
+### VF6 (=§8 F6). JUSTIFIED cited as §13.18.34 (=LINAGE) — see full notes
+
+- **Verdicts + disposition:** in `scratchpad/batch14-verdicts.json` (the citation fix joins the V39/V50
+  wrong-§ fix list).
