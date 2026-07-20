@@ -1129,7 +1129,7 @@ cross-design prerequisites the subsystem designs flagged are surfaced inline.
 **STATUS:** G0 ✅ · G1 ✅ · G2 ✅ · G3 ✅ · G4 ✅ · G5 ✅ (files / interprogram / SORT) · G6 ✅
 (REDEFINES/RENAMES 4-tier, AsImage, ON SIZE ERROR, PICTURE P). G7 (per-edition correctness) is IN PROGRESS; G8
 (cut-over) pending. The rearchitecture roadmap (`docs/COBOLNET_REARCHITECTURE_PLAN.md`) is the go-forward plan and
-carries the live resume point (via `resume-prompt.md`); default `--std` = COBOL-2023.
+carries the live resume point (its §0 banner); default `--std` = COBOL-2023.
 
 ### G1 — Bootstrap ✅ (done)
 HELLO end-to-end (preprocess→parse→emit C#→Roslyn→run); DISPLAY of literals; STOP RUN.

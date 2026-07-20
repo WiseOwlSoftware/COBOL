@@ -1,8 +1,7 @@
 # CobolSharp — Claude Code Instructions
 
 ## ⛔ NON-NEGOTIABLE PROCESS RULES (owner-emphasized — obey BEFORE writing any code)
-These are the rules the owner most insists on (repeatedly corrected). Full text at the top of `PROMPT.md` and
-`resume-prompt.md`; durable in memories `feedback_use_the_spec`, `feedback_follow_design_docs_and_spec`,
+These are the rules the owner most insists on (repeatedly corrected). Full text at the top of `PROMPT.md`; durable in memories `feedback_use_the_spec`, `feedback_follow_design_docs_and_spec`,
 `feedback_spec_scopes_not_tests`.
 1. **The ISO/IEC 1989:2023 spec (`specs/ISO_COBOL.md`) defines correct behavior for EVERY case** — read it and cite
    the § for any semantics/syntax/output question; the legacy oracle is a regression net, NOT authority.
@@ -13,16 +12,16 @@ These are the rules the owner most insists on (repeatedly corrected). Full text 
 4. **Keep the docs CURRENT** — when a change supersedes a deep-dive, update it in the same change set to state the
    current design. Every doc **except `DEVLOG.md`** describes the CURRENT compiler; the historical narrative (how we
    got here) lives only in `DEVLOG.md`.
-**Live kickoff = `resume-prompt.md`** (read it FIRST; its top RESUME banner + the §"NON-NEGOTIABLE PROCESS RULES"
-block are current). The COBOL.NET rewrite SSOT is `docs/COBOLNET_DESIGN.md`.
+**Live kickoff = `docs/COBOLNET_REARCHITECTURE_PLAN.md` §0 — THE ONE PLAN** (owner-directed consolidation
+2026-07-19: it absorbed `resume-prompt.md` + all 17 phase docs + the P13 audit; read its §0 FIRST and update §0
+before ending every session). The COBOL.NET rewrite design SSOT is `docs/COBOLNET_DESIGN.md`.
 
-## ⛔ TOP-LEVEL PLAN: `docs/COBOLNET_REARCHITECTURE_PLAN.md` is the go-forward roadmap (read `resume-prompt.md` FIRST → the plan → `docs/COBOLNET_DESIGN.md`)
+## ⛔ TOP-LEVEL PLAN: `docs/COBOLNET_REARCHITECTURE_PLAN.md` is THE ONE PLANNING DOCUMENT (read its §0 resume banner FIRST → the worklists → `docs/COBOLNET_DESIGN.md` for design)
 The North Star is a **commercial-quality, decades-sustainable, full ISO/IEC 1989:2023 COBOL compiler with correct
 support for all prior editions (1985 / 2002 / 2014)** — implemented with maximum autonomy + practical parallelism, no
 back-compat. **The go-forward roadmap is `docs/COBOLNET_REARCHITECTURE_PLAN.md`** — a resumable, execution-grade
 **17-phase** rearchitecture + 100%-ISO plan (clean architecture · all editions · a selectable Roslyn↔CIL backend)
-that subsumes the feature/NIST drive as its phases 09–14; `resume-prompt.md`'s top banner points to it + its §0 resume
-protocol. **Phases 00–09 are DONE (PHASE-09 closed: OO re-homed to `Oo/` — pure table + `OoConformance` +
+that subsumes the feature/NIST drive as its phases 09–14; its §0 IS the live resume protocol + state. **Phases 00–09 are DONE (PHASE-09 closed: OO re-homed to `Oo/` — pure table + `OoConformance` +
 `OoMethodBinding` + `OoDriver` [`IOoBindHost` DELETED] + `NamingConvention`; multi-base INHERITS rejects LOUDLY
 [0849]; ANY LENGTH §13.18.2 on all three unit-kind legs; the §4.2.2 interface leg proven; the 14 legacy OoTests
 re-landed; the DEVLOG-738 class-env shadow bug FIXED [`EnvDivisions`]. PHASE-08 before it: the runtime reorged onto ONE `RunUnit` run-unit-state owner
@@ -35,9 +34,8 @@ Tier-C rejection single-sourced; CONCATENATE deleted as non-ISO; the confined-by
 binary128/decimal processor-dependent non-support — the IEEE-fidelity inversion corrected] · >>PROPAGATE
 intro-gate · TYPE TO re-anchor; the Step-12 review found+fixed 6 defects) DONE 2026-07-17.
 RESUME AT PHASE-13 (M4/COBOL-2023 deltas + EC remnants — IN PROGRESS, pushed through `82db4562`; EC-BOUND surface
-closed + Wave F/G landed 2026-07-18).** §6 owner decisions D1–D12 are ALL resolved. Battery: 3648 conformance · 311
-unit · 33 characterization (byte-exact + ratchet) · legacy/NIST unaffected this session. **Always read
-`resume-prompt.md`'s top banner for the live resume point, never this snapshot.** The
+closed + Wave F/G landed 2026-07-18).** §6 owner decisions D1–D13 are ALL resolved (D13 2026-07-19: the target = 100% CONFORMING per §4.2.16; the PHASE-14 Step-0 traceability inventory is the definition-of-done instrument). Battery: 3648 conformance · 311
+unit · 33 characterization (byte-exact + ratchet) · legacy/NIST unaffected this session. **Always read the plan's §0 banner for the live resume point, never this snapshot.** The
 SSOT for locked invariants / settled decisions is **`docs/COBOLNET_DESIGN.md`**; the four-editions mission is validated
 by the VERSION TEST MATRIX (`docs/VERSION_TEST_MATRIX_DESIGN.md`) against the edition-change checklist
 `docs/VERSION_CHANGE_REFERENCE.md`. The greenfield design lives in the `docs/COBOLNET_*` corpus (the pre-PIVOT
