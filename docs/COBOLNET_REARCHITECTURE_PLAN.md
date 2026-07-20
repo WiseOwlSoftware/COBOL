@@ -36,7 +36,13 @@ checkpoint.
   the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is queued — ledger V11 note).
   1550–1552 are unallocated mid-band holes. Intro gates 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
   warning band 1560.
-- **REMAINING P13 (work in this order, then P14):**
+- **RELEASE MILESTONES (D14): v1.0 = the P15 exit (100% conforming ×4); P16 CIL = v2 (off the conformance
+  critical path). M4-beta = the P13 merge; conformance-mapped = P14 Step 0 complete.**
+- **THE EFFORT MODEL (§11 A10 — initial 2026-07-19; refresh at each phase close; 1 session ≈ the 2026-07-19
+  scale):** P13 remainder (per the D16 close-line) **4–6** · P14 incl. the D17 OO wave (4–8) + inventory/
+  campaigns/closure (8–14) **≈ 12–22** · P15 **2–4** → **v1.0 ≈ 18–32 sessions**; P16 (v2) 9–16, high
+  variance. Swing factors: the OO wave and the inventory GAP count (bounded by the D15 tiering).
+- **REMAINING P13 (the D16 CLOSE-LINE — work in this order, then P14):**
   1. **The GRAMMAR BATCH** (shared `.g4` ⇒ ONE full legacy guard): SUPPRESS WHEN on ALTERNATE RECORD KEY
      (§12.4.5.6; scout §C6-B) · PICTURE EDITING (§13.18.40, Table 9, EDITING = new 2023 reserved word) · PERFORM
      Format 3 (§14.9.28.2; FINALLY/LOCATION tokens; scout §C5) · the Wave H code half (MCS/COMMIT/ROLLBACK/
@@ -51,9 +57,11 @@ checkpoint.
      the SR2 OVERRIDE check · >>SOURCE FORMAT mid-file (§7.3.24.3 GR1; C3) · CC-directives-inside-COPY (§7.2.1;
      C4) · FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21 handling · >>CALL-CONVENTION/>>LEAP-SECOND dispositions
      (V32) · the E.2-item-6 compile-time-arithmetic-mode CONFORMANCE note (V41 — REQUIRED doc item).
-  3. **The ledger §24 fix queue** (tiers 1–10; each entry carries the exact verified fix) — tier 1 is the
-     OWNER-VISIBLE OO-surface scope decision (V16–V19: inline `::` invocation, object-view,
-     ACTIVE-CLASS/ONLY, parameterized classes — all MANDATORY surface).
+  3. **Review fixes to P13-LANDED code ONLY** (per D16): from the §24 queue, the items touching this phase's
+     waves (the ref-mod cluster incl. the negative-length sentinel + ODO ReceiveInto + the "!"-sentinel bug,
+     the VCR-86 SR6 re-derivation, EXCEPTION-FILE r2a legs, COBOLNET1570 national leg). Everything else in
+     §24 is RESCHEDULED to P14 GAP-closing (the inventory re-tiers it per D15). The OO surface is DECIDED
+     (D17): the P14 opening feature wave — no longer a P13 item.
   4. **Wave I** — final adversarial review of ALL P13-landed work → exit-criteria check → phase-close doc sweep
      (incl. deleting the two P13 scouts + updating this §0) → merge to `main`.
 - **The §11 ANALYSIS BACKLOG** (owner-recorded 2026-07-19) holds the ten known-missing analyses with
@@ -192,6 +200,10 @@ Part II §PHASE-16 of this document.
   this survives spend-limit outages). KEEP SERIAL: waves sharing EC/gate hot files; the grammar batch; the
   phase chain 13→14→15. Pre-allocate diagnostic ranges before any parallel fan-out. Spec-first FEATURE work
   stays supervised.
+- **Scope-control rule (D15).** Every newly-found work item is TIERED at fold time: CONFORMANCE-BLOCKING /
+  QUALITY / POST-v1.0. Only the first may gate a phase; the other two are scheduled without extending exit
+  criteria. This is the counterweight to the review/inventory ratchet — analyses ADD knowledge, not
+  automatically deadline-scope.
 - **Guard-flake rule:** a guard verdict naming a file-I/O suite (SQ/IC/IX/ST/OB) under JOBS=32 is the known
   environmental flake class — re-prove by SOLO rerun before treating as real.
 
@@ -216,10 +228,10 @@ phase boundary.
 | ☑ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) — DONE 2026-07-17 | Part III record |
 | ☑ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero (DONE 2026-07-17) + Tier-C rejection single-sourced; the confined-byte[] codec (Step D) DEFERRED as a scheduled increment | Part III record |
 | ☑ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas — DYNAMIC LENGTH, IEEE float USAGE family (binary32/64 native; binary128/decimal processor-dependent non-support — IEEE-fidelity inversion corrected), >>PROPAGATE intro-gate, TYPE TO re-anchor — DONE 2026-07-17 (E PICTURE + FUNCTION-POINTER runtime staged 0899; >>PROPAGATE semantics → P13) | Part III record · `PHASE-12-scout-notes.md` |
-| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged; battery + HEAD live in §0). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: the grammar batch (SUPPRESS WHEN · PICTURE EDITING · PERFORM Fmt3 · Wave H code half · + review adds: RW SUPPRESS, VALUE Format 2, file-control COLLATING SEQUENCE) + Wave D directives (+ review adds) + the ledger §24 fix queue + Wave I close→merge. Worklists: §0 (the live list) + the two P13 scouts (working designs) + the review ledger §24 (the fix queue); the audit was re-verified by the review and deleted | §0 worklists + the review ledger |
-| ☐ | 14 | I | HIGH | 03,13 | **Step 0: the FOUR-EDITION SPEC-TRACEABILITY INVENTORY (the D13 definition-of-done instrument — every clause/statement/function/directive/format × edition mapped LIVE/STAGED/DISPOSED/GAP with evidence; batched-agent sweep, durably folded per batch; + Step 0a authority-sufficiency + Step 0b SR-enforcement census)** → matrix closure (VCR zero-todo) + in-repo greenfield guard + one-time equivalence proof + **Step 12 perf gate**; §11 campaigns A3/A4 run here and gate P15 | Part II §PHASE-14 |
-| ☐ | 15 | C | MED/HIGH | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | Part II §PHASE-15 |
-| ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | Part II §PHASE-16 |
+| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged; battery + HEAD live in §0). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: the grammar batch (SUPPRESS WHEN · PICTURE EDITING · PERFORM Fmt3 · Wave H code half · + review adds: RW SUPPRESS, VALUE Format 2, file-control COLLATING SEQUENCE) + Wave D directives (+ review adds) + the D16-scoped §24 fixes (P13-landed code only) + Wave I close→merge = **M4-beta**. Worklists: §0 (the live list) + the two P13 scouts (working designs) + the review ledger §24 (the fix queue); the audit was re-verified by the review and deleted | §0 worklists + the review ledger |
+| ☐ | 14 | I | HIGH | 03,13 | **Step 0: the FOUR-EDITION SPEC-TRACEABILITY INVENTORY (the D13 definition-of-done instrument — every clause/statement/function/directive/format × edition mapped LIVE/STAGED/DISPOSED/GAP with evidence; batched-agent sweep, durably folded per batch; + Step 0a authority-sufficiency + Step 0b SR-enforcement census)** + **the D17 OO MANDATORY-SURFACE OPENING WAVE (parallel lane)** → matrix closure (VCR zero-todo) + in-repo greenfield guard + one-time equivalence proof + **Step 12 perf gate**; §11 campaigns A3/A4 run here and gate P15 | Part II §PHASE-14 |
+| ☐ | 15 | C | MED/HIGH | 14 | **= v1.0 (D14: 100% conforming ×4).** G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | Part II §PHASE-15 |
+| ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **= v2 (D14 — off the conformance critical path). CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | Part II §PHASE-16 |
 
 > **Phase 16 sequencing:** its cheap *seam-proof* milestone (Milestone 0 — proving `ICodeGenBackend` is real and the
 > bound tree carries no C#) was originally scoped for the post-Phase-07 slot but deferred to PHASE-16 M0 (P07 closed
@@ -299,6 +311,11 @@ EXPANDS PHASE-04 (see the note under the table).
 | D11 | Emitted `.g.cs`. | ✅ **Keep always-on** (a Roslyn-backend debugging artifact; the CIL backend emits IL, not `.g.cs`). |
 | D12 | national (`PIC N`) / boolean (`PIC 1`) representation. | ✅ **Stay CHARACTER-width in the unified model** — one C# `char` per position, riding the shared `CobolString` substrate (the current D-N1/D-B1 model). |
 | D13 | The conformance TARGET reading (2026-07-19). | ✅ **100% CONFORMING** per ISO §4.2.16: the MANDATORY core of each edition complete + every required implementor documentation item — with optional modules/processor-dependent elements permitted to remain **documented non-support** (§4.2.6/§4.2.7/Annex A; the CONFORMANCE.md dispositions are part of the deliverable, not a waiver). "Implement every optional module" is explicitly NOT the target; claiming one later is a new owner decision. The definition of DONE is the PHASE-14 Step-0 traceability inventory reaching zero-GAP/zero-UNKNOWN (every row LIVE, STAGED-with-schedule, or DISPOSED). |
+| D14 | RELEASE MILESTONES (2026-07-19). | ✅ **v1.0 = the P15 exit** ("100% conforming, four editions" — the D13 target achieved and documented). **P16 (the CIL backend) = v2** — an architecture deliverable, explicitly OFF the conformance critical path. Intermediate nameable milestones: **M4-beta** = the P13 merge to `main`; **conformance-mapped** = P14 Step 0 complete (every GAP scheduled). |
+| D15 | SCOPE-CONTROL RULE (2026-07-19 — the ratchet counterweight). | ✅ Every new finding/analysis output lands TIERED: **CONFORMANCE-BLOCKING** (may gate a phase exit) · **QUALITY** (scheduled work, never gates) · **POST-v1.0**. Only CONFORMANCE-BLOCKING items may extend a phase's exit criteria; the tier is assigned when the item is folded (review/inventory/campaign outputs alike). |
+| D16 | THE P13 CLOSE-LINE (2026-07-19). | ✅ P13 closes on: the M4 feature waves (the grammar batch + Wave D) + review fixes to P13-LANDED code only + Wave I close. The REST of the §24 fix queue is formally RESCHEDULED into P14's GAP-closing work (the Step-0 inventory re-derives and re-tiers it). P13 is thereby bounded at ~4–6 sessions. |
+| D17 | THE OO MANDATORY SURFACE (review V16–V19). | ✅ **Implement inside P14 as its own wave — the P14 OPENING FEATURE WAVE** (inline `::` invocation identifier form + disposition of the shipped non-ISO statement rule · object-view §8.4.3.5 · ACTIVE-CLASS/ONLY §13.18.60.2 · parameterized classes/interfaces + REPOSITORY EXPANDS/AS). Spec-first from a persisted scout per the proven wave pattern; sized 4–8 sessions; runs in a parallel lane with the Step-0 inventory. |
+| D18 | HISTORICAL-STANDARDS ACQUISITION (the A1 trigger). | ✅ **PRE-AUTHORIZED if needed**: should Step 0a find per-edition facts underivable from the 2023 spec, acquiring the 1985/2002/2014 standards proceeds without a further decision round. The owner's stated expectation: the 2023 spec correctly identifies every statement's version across editions, so A1 is expected to CONFIRM derivability — the pre-authorization is the hedge, not the plan. |
 
 > **D10 scope expansion → RELOCATED to PHASE 15.** The owner override stands: FULLY remove the
 > lexer `SUBSCRIPT` mode AND the binder subscript re-parse, replacing them with a grammar-level subscript (`x(i)`) rule
@@ -467,7 +484,7 @@ already-derivable coverage; none change the pipeline.
 
 | # | Analysis | Why it matters | Output | Scheduled home | Status |
 |---|---|---|---|---|---|
-| A1 | **Per-edition AUTHORITY SUFFICIENCY** — which 85/2002/2014 facts are NOT derivable from the sole in-repo 2023 spec (Annex E covers only 2014→2023)? | The "100% conforming ×4" claim rests on an unexamined derivation chain (2023 text + E-annex + NIST); may overturn council decision #1 (no standards acquisition) | Per-edition verdict: derivable / derivable-with-NIST-corroboration / underivable → documented assumption or acquire the historical standard | **P14 Step 0a** (companion to the inventory; qualifies every pre-2023 row) | PENDING |
+| A1 | **Per-edition AUTHORITY SUFFICIENCY** — which 85/2002/2014 facts are NOT derivable from the sole in-repo 2023 spec (Annex E covers only 2014→2023)? | The "100% conforming ×4" claim rests on an unexamined derivation chain (2023 text + E-annex + NIST); may overturn council decision #1 — **acquisition is PRE-AUTHORIZED (D18) if the verdict requires it; the owner expects the 2023 spec to correctly identify every statement version across editions** | Per-edition verdict: derivable / derivable-with-NIST-corroboration / underivable → documented assumption or acquire the historical standard | **P14 Step 0a** (companion to the inventory; qualifies every pre-2023 row) | PENDING |
 | A2 | **SR-ENFORCEMENT CENSUS** — enforced / lenient-registered / silently-unenforced, per spec syntax rule | The review PROVED the class (glued VALUEs, DISPLAY UPON, ASSIGN USING, BWZ/JUST/SIGN — all found incidentally); the negative corpus (~110 fixtures) is tiny vs the SR surface | The SR-level complement to the inventory; feeds the negative corpus + the leniency registry | **P14 Step 0b** (deepens the inventory to SR granularity) | PENDING |
 | A3 | **NUMERIC-SEMANTICS DEPTH AUDIT** — the intermediate-results model vs §8.8.1 end-to-end: 8 ROUNDED modes × ops, native-vs-standard intermediates, size-error boundaries, long/Int128 crossovers, float↔fixed | Arithmetic is COBOL's heart; wave-grown tests ≠ a model-level audit; numeric bugs silently corrupt data | A verified conformance map of the numeric engine + hand-derived oracle values; GAP rows into the inventory | **CAMPAIGN A** — inside P14 after Step 0 (consumes/extends inventory rows); REQUIRED before the P15 oracle deletion | PENDING |
 | A4 | **EXTERNAL DIFFERENTIAL CORPUS** — the GnuCOBOL test suite (+ public-domain real COBOL) through COBOL.NET; the NIST module-coverage map (all CCVS modules, or only the 353 baselines?) | Every internal instrument shares the project's blind spots; external corpora find what in-house nets cannot; cheapest while the legacy oracle exists | A divergence ledger (accept/reject/behavior) + the NIST coverage map + an adopted-fixture set | **CAMPAIGN B = P14 Step 13 (a REQUIREMENT, owner-directed 2026-07-19: retrieve the GnuCOBOL test cases if possible and incorporate them — execution detail in Step 13, incl. the GPL fetch-on-demand licensing posture)**; REQUIRED before the P15 oracle deletion | PENDING |
@@ -476,7 +493,18 @@ already-derivable coverage; none change the pipeline.
 | A7 | **MUTATION-TESTING of test-suite strength** — the numeric engine, PictureAnalyzer, collating first | 3699 green tests ≠ protection (the review found a test pinning WRONG behavior); mutation score locates weakly-tested subsystems | Mutation-score report + a corpus-investment list | P14, after Step 0 (informs where inventory GAP-closing tests go first) | PENDING |
 | A8 | **INTERPRETATIONS REGISTER extraction** — every spec-ambiguity/erratum resolution buried in code comments + DEVLOG (incl. the standard's own errata: A.4.14 omitting CLASS, the E.2/E.3 mislabels) | Real vendors keep one; CONFORMANCE.md §3 is the seed but the extraction pass never ran | The complete register appended to CONFORMANCE.md | The P15 conformance-documentation step (it produces the final §4.2.16 doc set) | PENDING |
 | A9 | **DEVELOPER-EXPERIENCE analysis** — diagnostic-message quality census, the COBOL→C# debug story (#line mapping / sequence points), emitted-C# readability vs the "idiomatic" claim | Commercial-quality is also a UX claim; never evaluated | A DX report + a prioritized improvement list | Post-P15 / with P16 (the post-conformance goals track) | PENDING |
-| A10 | **EFFORT MODEL of remaining work** — sessions-per-tier over the §24 queue + P14–P16 | The owner budgets sessions/spend blind today (two limit outages on 2026-07-19) | A lightweight sizing table kept in §0, refreshed at each phase close | NEXT SESSION, at the §0 update (LIGHTWEIGHT) | PENDING |
+| A10 | **EFFORT MODEL of remaining work** — sessions-per-tier over the §24 queue + P14–P16 | The owner budgets sessions/spend blind today (two limit outages on 2026-07-19) | A lightweight sizing table kept in §0, refreshed at each phase close | §0 carries the table (initial 2026-07-19); refresh at each phase close | **DONE (initial)** |
+
+
+## §12 RISK REGISTER (top risks to v1.0; review at each phase close)
+
+| # | Risk | Trigger | Response |
+|---|---|---|---|
+| R-1 | The D17 OO wave overruns (largest single feature block, 4–8 sessions) | wave-local gates slipping past session 8 | Split: land inline-invocation + ACTIVE-CLASS first (smaller), re-tier object-view/parameterized-classes with a D15 review; v1.0 date moves only on owner sign-off |
+| R-2 | Step 0a finds underivable per-edition facts | any "underivable" inventory row | D18 pre-authorized acquisition of the historical standards; rows carry documented assumptions in the interim |
+| R-3 | A perf surprise in the Tier-B storage model after P15 deletes the comparison | Step 12 cost model flags an order-of-magnitude issue | Step 12 runs BEFORE P15 (gated); escalation is an architecture decision while the legacy comparison exists |
+| R-4 | Spend-limit outages mid-campaign | agent-batch failures | MITIGATED: the §3 durable-fold discipline (proven 2026-07-19 — two outages, zero loss); resume via journal caches |
+| R-5 | Inventory GAP-count blowout re-opens unbounded scope | Step 0 yields ≫ expected GAP rows | D15 tiering at fold time: only CONFORMANCE-BLOCKING rows gate v1.0; QUALITY/POST-v1.0 scheduled behind it |
 
 
 ---
@@ -633,6 +661,30 @@ get one of: ENFORCED (diagnostic + fixture cited) / LENIENT (dialect-registered 
 gap class the review proved — glued VALUEs, DISPLAY UPON, ASSIGN USING, BWZ/JUST/SIGN). Every UNENFORCED SR
 either gets a scheduled fix row or a leniency-registry entry. Feeds the negative corpus, which is the
 census regression net.
+
+#### Step 0-W — the OO MANDATORY-SURFACE OPENING WAVE (owner decision D17; runs in a PARALLEL LANE with Step 0)
+
+The four review-confirmed mandatory gaps (ledger §11 batch-4 verdicts V16–V19), implemented as ONE feature
+wave per the proven pattern (persisted spec-first scout → supervised implement, CLI-probe each, golden +
+below-edition negative per construct → adversarial review): (1) **inline method invocation** — the ISO
+§8.4.3.4 IDENTIFIER form `{class|id} :: literal [(args)]` usable in sending positions (+ a disposition for the
+shipped non-ISO `inlineMethodInvocationStatement` rule and its dead mis-dated registry gate; ISO intro = 2002,
+not 2023); (2) **object-view** §8.4.3.5 (`identifier AS [FACTORY OF] class [ONLY] | interface | UNIVERSAL`) +
+the EC-OO-CONFORMANCE raise site; (3) **USAGE OBJECT REFERENCE [FACTORY OF] ACTIVE-CLASS + the ONLY phrase**
+§13.18.60.2 (today ACTIVE-CLASS mis-diagnoses as unknown-class); (4) **parameterized classes/interfaces**
+(CLASS-ID/INTERFACE-ID USING, REPOSITORY EXPANDS/AS — mandatory 2023 surface). Grammar changes ride the
+shared-`.g4` guardrail (ONE full legacy guard for the wave). Sized 4–8 sessions; CONFORMANCE-BLOCKING (D15).
+
+#### THE P14 PARALLEL-LANE MAP (compress wall-clock; the §3 discipline per lane)
+
+- **Lane 1 (analysis):** Step 0 inventory batches + 0a/0b — batched agents, durable per-batch fold.
+- **Lane 2 (features):** Step 0-W (the OO wave) — supervised, serial within itself.
+- **Lane 3 (infra):** Step 12 perf-suite build + the Step-13 GnuCOBOL fetch/extractor/classification sweep.
+- **SERIAL tail (after the lanes):** matrix closure (Steps 1–5 — consumes the inventory) → the guard
+  (Steps 6–8, 11) → the equivalence proof (Step 9 — the irreversible-ordering gate) → campaign A (numeric
+  depth — consumes inventory rows) → the P15 gates check (§11 A3/A4/A5/A6 complete).
+- Lanes share the diagnostic-band pre-allocation rule and NEVER share the EC/gate hot files; integration of
+  each lane's output takes the comprehensive gate.
 
 
 #### Step 1 — Drive the VCR to zero-TODO (green/GATED or written disposition)
