@@ -56,6 +56,9 @@ checkpoint.
      ACTIVE-CLASS/ONLY, parameterized classes — all MANDATORY surface).
   4. **Wave I** — final adversarial review of ALL P13-landed work → exit-criteria check → phase-close doc sweep
      (incl. deleting the two P13 scouts + updating this §0) → merge to `main`.
+- **The §11 ANALYSIS BACKLOG** (owner-recorded 2026-07-19) holds the ten known-missing analyses with
+  scheduled homes — A1/A2 ride P14 Step 0, A6 is P14 Step 12, A3/A4/A5 gate P15, A10 (the effort model) is due
+  at the NEXT §0 update. Do not drop rows silently.
 - **Standing rules pointers:** the ⛔ NON-NEGOTIABLE PROCESS RULES live in `CLAUDE.md` (spec-first with cited
   §s; implement from the deep-dives; complete-not-test-scoped; docs current; no workarounds). The EXECUTION
   MODEL (tiered testing · batching · ≤10-agent durable-fold parallelism) is §3 below. Full battery + verdict-
@@ -213,7 +216,7 @@ phase boundary.
 | ☑ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero (DONE 2026-07-17) + Tier-C rejection single-sourced; the confined-byte[] codec (Step D) DEFERRED as a scheduled increment | Part III record |
 | ☑ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas — DYNAMIC LENGTH, IEEE float USAGE family (binary32/64 native; binary128/decimal processor-dependent non-support — IEEE-fidelity inversion corrected), >>PROPAGATE intro-gate, TYPE TO re-anchor — DONE 2026-07-17 (E PICTURE + FUNCTION-POINTER runtime staged 0899; >>PROPAGATE semantics → P13) | Part III record · `PHASE-12-scout-notes.md` |
 | ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged; battery + HEAD live in §0). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: the grammar batch (SUPPRESS WHEN · PICTURE EDITING · PERFORM Fmt3 · Wave H code half · + review adds: RW SUPPRESS, VALUE Format 2, file-control COLLATING SEQUENCE) + Wave D directives (+ review adds) + the ledger §24 fix queue + Wave I close→merge. Worklists: §0 (the live list) + the two P13 scouts (working designs) + the review ledger §24 (the fix queue); the audit was re-verified by the review and deleted | §0 worklists + the review ledger |
-| ☐ | 14 | I | HIGH | 03,13 | **Step 0: the FOUR-EDITION SPEC-TRACEABILITY INVENTORY (the D13 definition-of-done instrument — every clause/statement/function/directive/format × edition mapped LIVE/STAGED/DISPOSED/GAP with evidence; batched-agent sweep, durably folded per batch)** → matrix closure (VCR zero-todo) + in-repo greenfield guard + one-time equivalence proof | Part II §PHASE-14 |
+| ☐ | 14 | I | HIGH | 03,13 | **Step 0: the FOUR-EDITION SPEC-TRACEABILITY INVENTORY (the D13 definition-of-done instrument — every clause/statement/function/directive/format × edition mapped LIVE/STAGED/DISPOSED/GAP with evidence; batched-agent sweep, durably folded per batch; + Step 0a authority-sufficiency + Step 0b SR-enforcement census)** → matrix closure (VCR zero-todo) + in-repo greenfield guard + one-time equivalence proof + **Step 12 perf gate**; §11 campaigns A3/A4 run here and gate P15 | Part II §PHASE-14 |
 | ☐ | 15 | C | MED/HIGH | 14 | G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | Part II §PHASE-15 |
 | ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | Part II §PHASE-16 |
 
@@ -454,6 +457,27 @@ already-derivable coverage; none change the pipeline.
   review ledger); delete at the P15 doc sweep.
 
 
+## §11 ANALYSIS BACKLOG (owner-recorded 2026-07-19 — the durable register of USEFUL-BUT-MISSING analyses; every row has a scheduled home)
+
+> These are the known analytical blind spots identified after the P13 plan-vs-spec review reached
+> verification-complete. Each row is integrated into the work plan at the named home; when an analysis runs,
+> flip its Status here and fold its outputs the same way the review was folded (batched agents, durable
+> per-batch commit, adversarial verify on findings). Do NOT silently drop a row — rescheduling is an §0 edit.
+
+| # | Analysis | Why it matters | Output | Scheduled home | Status |
+|---|---|---|---|---|---|
+| A1 | **Per-edition AUTHORITY SUFFICIENCY** — which 85/2002/2014 facts are NOT derivable from the sole in-repo 2023 spec (Annex E covers only 2014→2023)? | The "100% conforming ×4" claim rests on an unexamined derivation chain (2023 text + E-annex + NIST); may overturn council decision #1 (no standards acquisition) | Per-edition verdict: derivable / derivable-with-NIST-corroboration / underivable → documented assumption or acquire the historical standard | **P14 Step 0a** (companion to the inventory; qualifies every pre-2023 row) | PENDING |
+| A2 | **SR-ENFORCEMENT CENSUS** — enforced / lenient-registered / silently-unenforced, per spec syntax rule | The review PROVED the class (glued VALUEs, DISPLAY UPON, ASSIGN USING, BWZ/JUST/SIGN — all found incidentally); the negative corpus (~110 fixtures) is tiny vs the SR surface | The SR-level complement to the inventory; feeds the negative corpus + the leniency registry | **P14 Step 0b** (deepens the inventory to SR granularity) | PENDING |
+| A3 | **NUMERIC-SEMANTICS DEPTH AUDIT** — the intermediate-results model vs §8.8.1 end-to-end: 8 ROUNDED modes × ops, native-vs-standard intermediates, size-error boundaries, long/Int128 crossovers, float↔fixed | Arithmetic is COBOL's heart; wave-grown tests ≠ a model-level audit; numeric bugs silently corrupt data | A verified conformance map of the numeric engine + hand-derived oracle values; GAP rows into the inventory | **CAMPAIGN A** — inside P14 after Step 0 (consumes/extends inventory rows); REQUIRED before the P15 oracle deletion | PENDING |
+| A4 | **EXTERNAL DIFFERENTIAL CORPUS** — the GnuCOBOL test suite (+ public-domain real COBOL) through COBOL.NET; the NIST module-coverage map (all CCVS modules, or only the 353 baselines?) | Every internal instrument shares the project's blind spots; external corpora find what in-house nets cannot; cheapest while the legacy oracle exists | A divergence ledger (accept/reject/behavior) + the NIST coverage map + an adopted-fixture set | **CAMPAIGN B** — inside P14; REQUIRED before the P15 oracle deletion (P15 precondition added) | PENDING |
+| A5 | **RUNTIME ISOLATION / HOSTING-CONTRACT AUDIT** — the full statics + shared-mutable-state census; WRITE the hosting contract (run-units per process, concurrency, re-entrancy) | The review found 3 instances (RANDOM, Scratch slots, CobolSort.Files) incidentally — the CLASS was never swept; the P8 ONE-owner claim needs proof, and P15 renames the shim surface | The census + the documented hosting contract + the broadened CI grep (SURVEY G2) | Executes WITH the review-ledger §24 TIER-7 fix unit (V30/R3); complete before P15 Cut 3 | PENDING |
+| A6 | **PERFORMANCE BENCHMARK + GENERATED-CODE COST MODEL** — compile throughput (large programs/copybooks), Tier-B string-canonical storage cost, PC-dispatcher overhead, MOVE-heavy loops, file-I/O throughput, allocation profile | "Commercial-quality" has ZERO perf evidence; a storage-model surprise is cheap to fix before P15/P16 lock the architecture and the legacy comparison dies | An in-repo benchmark suite (CI-trended) + the cost model + any architecture-decision escalations | **P14 Step 12** (new — the perf gate; a P15 precondition) | PENDING |
+| A7 | **MUTATION-TESTING of test-suite strength** — the numeric engine, PictureAnalyzer, collating first | 3699 green tests ≠ protection (the review found a test pinning WRONG behavior); mutation score locates weakly-tested subsystems | Mutation-score report + a corpus-investment list | P14, after Step 0 (informs where inventory GAP-closing tests go first) | PENDING |
+| A8 | **INTERPRETATIONS REGISTER extraction** — every spec-ambiguity/erratum resolution buried in code comments + DEVLOG (incl. the standard's own errata: A.4.14 omitting CLASS, the E.2/E.3 mislabels) | Real vendors keep one; CONFORMANCE.md §3 is the seed but the extraction pass never ran | The complete register appended to CONFORMANCE.md | The P15 conformance-documentation step (it produces the final §4.2.16 doc set) | PENDING |
+| A9 | **DEVELOPER-EXPERIENCE analysis** — diagnostic-message quality census, the COBOL→C# debug story (#line mapping / sequence points), emitted-C# readability vs the "idiomatic" claim | Commercial-quality is also a UX claim; never evaluated | A DX report + a prioritized improvement list | Post-P15 / with P16 (the post-conformance goals track) | PENDING |
+| A10 | **EFFORT MODEL of remaining work** — sessions-per-tier over the §24 queue + P14–P16 | The owner budgets sessions/spend blind today (two limit outages on 2026-07-19) | A lightweight sizing table kept in §0, refreshed at each phase close | NEXT SESSION, at the §0 update (LIGHTWEIGHT) | PENDING |
+
+
 ---
 
 # PART II — LIVE-PHASE EXECUTION DETAIL (absorbed step-by-steps)
@@ -596,6 +620,18 @@ only (LIVE rows are spot-sampled, 1 in 10).
    inventory row id, and (b) every `LIVE` row's cited test still exists. The inventory is thereafter maintained
    in the same change set as any surface change (the CLAUDE.md rule-4 discipline).
 4. The DEFINITION OF DONE for the whole mission becomes checkable: 100% conforming = zero GAP rows.
+
+**Step 0a — the per-edition AUTHORITY SUFFICIENCY analysis (§11 row A1; runs alongside the inventory).** For
+every pre-2023 applicability flag the inventory assigns, record the DERIVATION AUTHORITY: the 2023 text /
+an Annex E backward statement / a NIST fixture / or NONE (underivable). Output = the per-edition sufficiency
+verdict; any "underivable" class escalates to the owner as a decision (acquire the historical standard vs a
+documented assumption) — it may overturn council decision #1.
+
+**Step 0b — the SR-ENFORCEMENT CENSUS (§11 row A2; deepens the inventory).** For each inventory row, its SRs
+get one of: ENFORCED (diagnostic + fixture cited) / LENIENT (dialect-registered leniency) / UNENFORCED (the
+gap class the review proved — glued VALUEs, DISPLAY UPON, ASSIGN USING, BWZ/JUST/SIGN). Every UNENFORCED SR
+either gets a scheduled fix row or a leniency-registry entry. Feeds the negative corpus, which is the
+census regression net.
 
 
 #### Step 1 — Drive the VCR to zero-TODO (green/GATED or written disposition)
@@ -830,6 +866,16 @@ Expected: identical verdict; the divergent set now flows from the LEDGER.
 
 ---
 
+#### Step 12 — PERFORMANCE BENCHMARK + generated-code cost model (§11 row A6 — the perf gate; NEW 2026-07-19)
+
+Build the in-repo benchmark suite (BenchmarkDotNet or a timed harness): compile throughput on large
+programs/deep copybooks; runtime cost of the Tier-B string-canonical storage on MOVE-heavy loops;
+PC-dispatcher overhead (PERFORM-dense kernels); sequential/indexed file throughput; allocation profile
+(strings per MOVE; Int128 paths). Produce the COST MODEL note (what the typed-native model costs where, vs
+the design claims) and escalate any architecture-relevant surprise to the owner BEFORE P15 deletes the
+legacy comparison. Wire the suite into CI as a trend (not a hard gate). CAMPAIGNS A (numeric depth) and B
+(external differential corpus) — §11 rows A3/A4 — also run inside this phase and are P15 preconditions.
+
 ### 5. Verification — the full battery at phase end
 
 Run all of the following from a clean build; every one must be green before declaring DONE:
@@ -961,6 +1007,11 @@ is preserved at an annotated git tag with a WSL reproduction recipe before it is
 ---
 
 ### 1. Preconditions to VERIFY before starting (do not skip)
+
+> **⛔ §11 ANALYSIS GATES (added 2026-07-19):** P15 shall NOT begin the oracle deletion until §11 rows A3
+> (numeric depth), A4 (external differential corpus), A5 (runtime isolation census — with the §24 tier-7 fix
+> unit), and A6 (the P14 Step-12 perf gate) are COMPLETE — each is cheap only while the legacy comparison
+> exists. A8 (the interpretations register) executes INSIDE this phase's conformance-documentation step.
 A future session must confirm the world is in the expected shape, because P15 is destructive. Run these and abort if
 any fails — the missing precondition belongs to an earlier phase, not here.
 
