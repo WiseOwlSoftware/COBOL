@@ -980,8 +980,16 @@ run time, in memory or under the ignored dir); (c) the ADAPTER test project (com
 `cobol.exe` per edition and compares); (d) the CLASSIFICATION + EXPECTATIONS LEDGER
 (`tests/external/gnucobol-expectations.json`, independently authored facts: per-case id → ISO-CONFORMING |
 GNUCOBOL-EXTENSION (excluded, non-ISO) | IMPLEMENTOR-SPECIFIC (dispositioned) | DIVERGENT (triaged), with our
-§-cited rationale — facts about cases, not their text). If retrieval or licensing proves blocking, record the
+§-cited rationale). If retrieval or licensing proves blocking, record the
 attempt here and escalate the fallback (full-NIST + independently-authored equivalents) as an owner decision.
+
+**WHERE THE LINE SITS (owner decision 2026-07-19 — refines the above):** the prohibition is on the
+**substantial expressive content** — their COBOL test SOURCE and their EXPECTED OUTPUT/diagnostic text. Those
+are never committed and never reproduced. Short factual **group TITLES and KEYWORDS are citable identification**
+— the same nominative use a magazine article or online write-up describing the suite would make — so our
+differential report and the expectations ledger MAY carry them, and doing so is what makes the ledger usable for
+triage. Case IDs (`syn_move:38`) are coordinates we compute, not their expression. Net effect: **our reports are
+committable; their corpus is not.**
 
 **Sub-steps.**
 1. The retrieval script + the ignored-dir plumbing (a missing corpus SKIPS the suite with a loud notice —
