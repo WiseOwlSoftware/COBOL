@@ -1158,3 +1158,35 @@ remediation pt3 (DEVLOG 911); item 44 (Scratch<T>.Slot process-global) = SUBSUME
   list: PlaceRenderer.cs:30,32 cite "ISO §8.4.2.4" (nonexistent in the 2023 numbering) + one more site in the
   full notes (`scratchpad/batch12-verdicts.json`) — correct all to §8.4.3.3.4 with the GR 5b/c anchors
   (:7085-7087) + the unnumbered raise rule at :7089.
+
+## 20. Batch-13 verdicts (2026-07-19 — batch-1 raw findings F1/F2/F3, 6 agents, 0 errors)
+
+### VF1 (=§8 F1). ASSIGN USING data-name silently ignored — CONFIRMED (major)
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** the dynamic-file-assignment USING phrase parses in both grammar forms but the binder never
+  consumes the dataReference; FileModel has no USING field; the emitters bake AssignTarget as a compile-time
+  literal — the semantics are structurally unimplementable without model+runtime changes. No intro gate (the
+  2002+ phrase compiles silently at 85), no test, no VCR row. Status-'31' nuance: strictly it covers the
+  combined `ASSIGN TO … USING` inconsistency; the bare-USING failed association is GR3b unsuccessful with an
+  implementor '30'/'31' determination — document either way. Route: implement (bind the item onto FileModel +
+  runtime resolve-at-OPEN/SORT/MERGE per GR3b) or reject loudly + CONFORMANCE row + intro gate; owner-visible
+  (the silent-semantics class).
+
+### VF2 (=§8 F2). File-control COLLATING SEQUENCE — CONFIRMED, mandatory surface NARROWED precisely
+
+- **Verdicts:** spec-lens REAL (high) · code-lens REAL (high)
+- **Disposition:** zero grammar surface (COLLATING is a reserved token the IDENTIFIER-led genericClause cannot
+  match) — but A.3 items 41/42 dispose MORE than the cultural legs (41 exempts LOCALE- or LITERAL-defined
+  alphabets; 42 exempts cultural + per-key-differing sequences). The MANDATORY core residue = the uniform
+  file-level Format 1 clause naming a STANDARD-phrase alphabet (STANDARD-1/2/NATIVE/UCS-x) — probe-verified
+  unparseable. Even disposable legs owe a named §4.2.6 recognize-and-warn (the Wave H class). Route: the
+  grammar batch (reuse collatingForPhrase; bind onto FileModel; IndexedConnector consumption) with the item-42
+  legs optionally declined via a CONFORMANCE row.
+
+### VF3 (=§8 F3). OBJECT-COMPUTER CHARACTER CLASSIFICATION silently swallowed — see full notes
+
+- **Verdicts + disposition:** recorded in `scratchpad/batch13-verdicts.json` (folded below the truncation
+  boundary of this fold; the F3 one-line fix — a CLASSIFICATION case in the computerAttributes token-scan
+  emitting the locale-module non-support diagnostic — was already named in the V12 CONFORMANCE row as the
+  tracked companion).
