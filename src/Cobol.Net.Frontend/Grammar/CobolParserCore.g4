@@ -701,10 +701,15 @@ roundingModeName
     | TRUNCATION
     ;
 
+// ISO 5.2.6.4: the ON SIZE ERROR / NOT ON SIZE ERROR pair is enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER. The
+// reversed order was rejected until 2026-07-19 (our spec transcription had dropped the bars); the shape below
+// matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 arithmeticOnSizeError
     : ON SIZE ERROR statementBlock
       (NOT ON SIZE ERROR statementBlock)?
     | NOT ON SIZE ERROR statementBlock
+      (ON SIZE ERROR statementBlock)?
     ;
 
 // ==========================================
@@ -833,10 +838,12 @@ computeStore
     : dataReference roundedPhrase?
     ;
 
+// ISO 5.2.6.4 choice indicators — see the arithmeticOnSizeError note: both phrases, each once, any order.
 computeOnSizeError
     : ON SIZE ERROR statementBlock
       (NOT ON SIZE ERROR statementBlock)?
     | NOT ON SIZE ERROR statementBlock
+      (ON SIZE ERROR statementBlock)?
     ;
 
 // ==========================================
@@ -867,8 +874,7 @@ callStatement
     : CALL callTarget
       callUsingPhrase?
       callReturningPhrase?
-      callOnExceptionPhrase?
-      callNotOnExceptionPhrase?
+      callExceptionPhrases?
       END_CALL?
 
     ;
@@ -903,6 +909,15 @@ callByContent
 
 callReturningPhrase
     : RETURNING dataReference
+    ;
+
+// ISO 5.2.6.4 choice indicators — see the arithmeticOnSizeError note. CALL's ON EXCEPTION / NOT ON EXCEPTION
+// pair carries them in the printed general format (Formats 1 and 2), so both may be written, each at most
+// once, in either order. Held in ONE container rule rather than two independently-optional slots on
+// callStatement, which admitted only the ON-then-NOT order.
+callExceptionPhrases
+    : callOnExceptionPhrase (callNotOnExceptionPhrase)?
+    | callNotOnExceptionPhrase (callOnExceptionPhrase)?
     ;
 
 callOnExceptionPhrase
@@ -1136,15 +1151,8 @@ raisingClause
 // REUSABLE EXCEPTION PHRASES
 // ==========================================
 
-exceptionPhrase
-    : onExceptionPhrase
-    | notOnExceptionPhrase
-    ;
-
-onExceptionPhrase
-    : ON EXCEPTION statementBlock
-    ;
-
-notOnExceptionPhrase
-    : NOT ON EXCEPTION statementBlock
-    ;
+// (Deleted 2026-07-19: `exceptionPhrase` / `onExceptionPhrase` / `notOnExceptionPhrase` were DEAD — defined
+// here but referenced by nothing. They were also a trap: `exceptionPhrase` modelled the pair as an exclusive
+// one-of-two, which is exactly the 5.2.6.4 choice-indicator defect repaired across this file, so wiring them
+// up would have reintroduced it. Statements with ON EXCEPTION own their phrase rules — see
+// callExceptionPhrases above and deleteFileOnException in Core/CobolIO.g4.)

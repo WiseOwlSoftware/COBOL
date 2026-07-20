@@ -130,12 +130,15 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         //    synonym, accepted 85–2014 and REMOVED at 2023 (Annex E.2 item 1c). ──
         List<BoundStatement>? onExc = null, notOnExc = null;
         bool usedOverflow = false;
-        if (call.callOnExceptionPhrase() is { } onp)
+        // The two phrases live under ONE container (callExceptionPhrases) so either order parses — ISO 5.2.6.4
+        // choice indicators. Order of WRITING does not change binding: each phrase keeps its own role.
+        var excPhrases = call.callExceptionPhrases();
+        if (excPhrases?.callOnExceptionPhrase() is { } onp)
         {
             usedOverflow |= onp.OVERFLOW() is not null;
             onExc = host.BindBlocks([onp.statementBlock()]);
         }
-        if (call.callNotOnExceptionPhrase() is { } notp)
+        if (excPhrases?.callNotOnExceptionPhrase() is { } notp)
         {
             usedOverflow |= notp.OVERFLOW() is not null;
             notOnExc = host.BindBlocks([notp.statementBlock()]);

@@ -87,7 +87,7 @@ internal sealed class FileIoBinder
         if (ctx.writeInvalidKey() is { } wikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, wikCtx);
-            BindInvalidKeyBlocks(wikCtx.statementBlock(), wikCtx.NOT(), invalidKey, notInvalidKey);
+            BindInvalidKeyBlocks(wikCtx.statementBlock(), wikCtx.Start?.Type == CobolParserCore.NOT, invalidKey, notInvalidKey);
         }
 
         // AT END-OF-PAGE / NOT AT END-OF-PAGE (EOP) phrases — for LINAGE files (ISO §14.9.51).
@@ -96,17 +96,22 @@ internal sealed class FileIoBinder
         if (ctx.writeAtEndOfPage() is { } eopCtx)
         {
             var eopBlocks = eopCtx.statementBlock();
+            // Since 2026-07-19 writeAtEndOfPage also has a NOT-LED arm (ISO 5.2.6.4 — either order), so the
+            // leading token, not position alone, decides which block is which.
+            bool eopNotFirst = eopCtx.Start?.Type == CobolParserCore.NOT;
+            var eopFirst = eopNotFirst ? notAtEndOfPage : atEndOfPage;
+            var eopSecond = eopNotFirst ? atEndOfPage : notAtEndOfPage;
             if (eopBlocks.Length >= 1)
                 foreach (var stmt in eopBlocks[0].statement())
                 {
                     var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) atEndOfPage.Add(bound);
+                    if (bound != null) eopFirst.Add(bound);
                 }
             if (eopBlocks.Length >= 2)
                 foreach (var stmt in eopBlocks[1].statement())
                 {
                     var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notAtEndOfPage.Add(bound);
+                    if (bound != null) eopSecond.Add(bound);
                 }
         }
 
@@ -305,12 +310,18 @@ internal sealed class FileIoBinder
         if (atEndCtx != null)
         {
             var impStmts = atEndCtx.statementBlock();
+            // Since 2026-07-19 readAtEnd also has a NOT-LED arm (`NOT AT END b1 (AT END b2)?`) — ISO 5.2.6.4's
+            // choice indicators permit both phrases in either order. Positional indexing alone would therefore
+            // file the branches backwards; the leading token decides which block is which.
+            bool notFirst = atEndCtx.Start?.Type == CobolParserCore.NOT;
+            var first = notFirst ? notAtEnd : atEnd;
+            var second = notFirst ? atEnd : notAtEnd;
             if (impStmts.Length >= 1)
             {
                 foreach (var stmt in impStmts[0].statement())
                 {
                     var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) atEnd.Add(bound);
+                    if (bound != null) first.Add(bound);
                 }
             }
             if (impStmts.Length >= 2)
@@ -318,7 +329,7 @@ internal sealed class FileIoBinder
                 foreach (var stmt in impStmts[1].statement())
                 {
                     var bound = _ctx.BindStatement(stmt);
-                    if (bound != null) notAtEnd.Add(bound);
+                    if (bound != null) second.Add(bound);
                 }
             }
         }
@@ -329,7 +340,7 @@ internal sealed class FileIoBinder
         if (ctx.readInvalidKey() is { } ikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
-            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.NOT(), invalidKey, notInvalidKey);
+            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.Start?.Type == CobolParserCore.NOT, invalidKey, notInvalidKey);
         }
 
         return new BoundReadStatement(fileSym, intoId, direction, keyDataName, atEnd, notAtEnd, invalidKey, notInvalidKey);
@@ -361,7 +372,7 @@ internal sealed class FileIoBinder
         if (ctx.rewriteInvalidKeyPhrase() is { } rikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, rikCtx);
-            BindInvalidKeyBlocks(rikCtx.statementBlock(), rikCtx.NOT(), invalidKey, notInvalidKey);
+            BindInvalidKeyBlocks(rikCtx.statementBlock(), rikCtx.Start?.Type == CobolParserCore.NOT, invalidKey, notInvalidKey);
         }
 
         return new BoundRewriteStatement(fileSym, recordSym, from, invalidKey, notInvalidKey);
@@ -382,7 +393,7 @@ internal sealed class FileIoBinder
         if (ctx.deleteInvalidKeyPhrase() is { } ikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
-            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.NOT(), invalidKey, notInvalidKey);
+            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.Start?.Type == CobolParserCore.NOT, invalidKey, notInvalidKey);
         }
 
         return new BoundDeleteStatement(fileSym, invalidKey, notInvalidKey);
@@ -428,7 +439,7 @@ internal sealed class FileIoBinder
         if (ctx.startInvalidKeyPhrase() is { } ikCtx)
         {
             DialectStrictnessChecks.CheckInvalidKeyNoiseWord(_ctx, ikCtx);
-            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.NOT(), invalidKey, notInvalidKey);
+            BindInvalidKeyBlocks(ikCtx.statementBlock(), ikCtx.Start?.Type == CobolParserCore.NOT, invalidKey, notInvalidKey);
         }
 
         return new BoundStartStatement(fileSym, keyCondition, invalidKey, notInvalidKey);
@@ -444,17 +455,23 @@ internal sealed class FileIoBinder
     /// the <c>INVALID KEY block</c> form. ISO §9.1.14. Binding the NOT-only block as the INVALID-KEY block was
     /// the RL205A (8 of 9 FAIL*) and IX108A failure.
     /// </summary>
+    /// <summary>Split an INVALID KEY / NOT INVALID KEY phrase's blocks into its branch pair.
+    /// <paramref name="notFirst"/> must come from the phrase context's LEADING TOKEN, not from the mere
+    /// presence of a NOT token: since 2026-07-19 the grammar's NOT-led arm may carry BOTH blocks
+    /// (`NOT INVALID KEY b1 (INVALID KEY b2)?` — ISO 5.2.6.4 choice indicators permit either order), so a
+    /// `NOT() != null` test cannot tell which phrase was written first (a forward-order pair has one too).</summary>
     private void BindInvalidKeyBlocks(
-        CobolParserCore.StatementBlockContext[] blocks, Antlr4.Runtime.Tree.ITerminalNode? notToken,
+        CobolParserCore.StatementBlockContext[] blocks, bool notFirst,
         List<BoundStatement> invalidKey, List<BoundStatement> notInvalidKey)
     {
         if (blocks.Length == 0) return;
-        var firstTarget = blocks.Length == 1 && notToken != null ? notInvalidKey : invalidKey;
+        var first = notFirst ? notInvalidKey : invalidKey;
+        var second = notFirst ? invalidKey : notInvalidKey;
         foreach (var stmt in blocks[0].statement())
-            if (_ctx.BindStatement(stmt) is { } bound) firstTarget.Add(bound);
+            if (_ctx.BindStatement(stmt) is { } bound) first.Add(bound);
         if (blocks.Length >= 2)
             foreach (var stmt in blocks[1].statement())
-                if (_ctx.BindStatement(stmt) is { } bound) notInvalidKey.Add(bound);
+                if (_ctx.BindStatement(stmt) is { } bound) second.Add(bound);
     }
 
     // ── RETURN ──

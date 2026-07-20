@@ -183,7 +183,8 @@ internal sealed class CallBinder
         // ON EXCEPTION / NOT ON EXCEPTION (independently optional per spec)
         var onException = new List<BoundStatement>();
         var notOnException = new List<BoundStatement>();
-        if (ctx.callOnExceptionPhrase() is { } excCtx)
+        var excPhrases = ctx.callExceptionPhrases();
+        if (excPhrases?.callOnExceptionPhrase() is { } excCtx)
         {
             foreach (var stmt in excCtx.statementBlock().statement())
             {
@@ -191,7 +192,7 @@ internal sealed class CallBinder
                 if (bound != null) onException.Add(bound);
             }
         }
-        if (ctx.callNotOnExceptionPhrase() is { } notExcCtx)
+        if (excPhrases?.callNotOnExceptionPhrase() is { } notExcCtx)
         {
             foreach (var stmt in notExcCtx.statementBlock().statement())
             {

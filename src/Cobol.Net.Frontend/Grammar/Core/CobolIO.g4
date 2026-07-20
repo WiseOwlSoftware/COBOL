@@ -315,9 +315,15 @@ readKey
 
 // AT is an optional word in the at-end phrase (ISO §6 optional-word rule; the CCVS suite and
 // mainstream compilers accept "READ … RECORD END …" without AT).
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 readAtEnd
     : AT? END statementBlock
       (NOT AT? END statementBlock)?
+    | NOT AT? END statementBlock
+      (AT? END statementBlock)?
     ;
 
 // Leniency L1 (see docs/dialect-strictness.md): the grammar parses the permissive superset
@@ -326,10 +332,15 @@ readAtEnd
 // in DialectMode.Default and diagnosed under named-strict modes by
 // DialectStrictnessChecks.CheckInvalidKeyNoiseWord (called from FileIoBinder). 'INVALID' is a reserved
 // word, so this relaxation is unambiguous. Applies to all five INVALID KEY phrases below.
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 readInvalidKey
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
     | NOT INVALID KEY? statementBlock
+      (INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -365,15 +376,26 @@ writeAdvancePhrase
       )
     ;
 
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 writeAtEndOfPage
     : AT? (END_OF_PAGE | EOP) statementBlock
       (NOT AT? (END_OF_PAGE | EOP) statementBlock)?
+    | NOT AT? (END_OF_PAGE | EOP) statementBlock
+      (AT? (END_OF_PAGE | EOP) statementBlock)?
     ;
 
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 writeInvalidKey
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
     | NOT INVALID KEY? statementBlock
+      (INVALID KEY? statementBlock)?
     ;
 
 recordName
@@ -398,10 +420,15 @@ rewriteFrom
     : FROM (dataReference | literal)
     ;
 
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 rewriteInvalidKeyPhrase
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
     | NOT INVALID KEY? statementBlock
+      (INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -416,10 +443,15 @@ deleteStatement
 
     ;
 
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 deleteInvalidKeyPhrase
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
     | NOT INVALID KEY? statementBlock
+      (INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -439,9 +471,15 @@ unlockStatement
     : UNLOCK fileName (RECORD | RECORDS)?
     ;
 
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 deleteFileOnException
     : ON EXCEPTION statementBlock
       (NOT ON EXCEPTION statementBlock)?
+    | NOT ON EXCEPTION statementBlock
+      (ON EXCEPTION statementBlock)?
     ;
 
 // ==========================================
@@ -469,10 +507,15 @@ startWithLength
     : WITH LENGTH arithmeticExpression
     ;
 
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 startInvalidKeyPhrase
     : INVALID KEY? statementBlock
       (NOT INVALID KEY? statementBlock)?
     | NOT INVALID KEY? statementBlock
+      (INVALID KEY? statementBlock)?
     ;
 
 // ==========================================
@@ -632,9 +675,13 @@ stringWithPointer
     : WITH? POINTER dataReference
     ;
 
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 stringOnOverflow
     : ON? OVERFLOW statementBlock (NOT ON? OVERFLOW statementBlock)?
-    | NOT ON? OVERFLOW statementBlock
+    | NOT ON? OVERFLOW statementBlock (ON? OVERFLOW statementBlock)?
     ;
 
 // ==========================================
@@ -678,9 +725,13 @@ unstringTallying
     : TALLYING IN? dataReference
     ;
 
+// ISO 5.2.6.4: the positive and negative phrases are enclosed in CHOICE INDICATORS (| bars inside the
+// brackets of the printed general format), so BOTH may be specified, each at most once, IN ANY ORDER.
+// The reversed order was rejected until 2026-07-19 (the transcription had dropped the bars); the shape
+// below matches returnAtEndPhrase, which already carried it via the explicit SR4 in 14.9.34.3.
 unstringOnOverflow
     : ON? OVERFLOW statementBlock (NOT ON? OVERFLOW statementBlock)?
-    | NOT ON? OVERFLOW statementBlock
+    | NOT ON? OVERFLOW statementBlock (ON? OVERFLOW statementBlock)?
     ;
 
 // ==========================================

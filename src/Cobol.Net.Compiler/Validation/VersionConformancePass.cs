@@ -1145,8 +1145,10 @@ internal sealed class VersionConformancePass
         {
             if (ctx.callUsingPhrase()?.callArgument().Any(a => a.callByValue() is not null) == true)
                 _p.Check(Constructs.CallByValue2002, "the CALL … BY VALUE phrase");
-            if (ctx.callOnExceptionPhrase()?.OVERFLOW() is not null
-                || ctx.callNotOnExceptionPhrase()?.OVERFLOW() is not null)
+            // Both phrases hang off the ONE callExceptionPhrases container (either order — ISO 5.2.6.4).
+            var callExc = ctx.callExceptionPhrases();
+            if (callExc?.callOnExceptionPhrase()?.OVERFLOW() is not null
+                || callExc?.callNotOnExceptionPhrase()?.OVERFLOW() is not null)
                 _p.Check(Constructs.CallOnOverflowRemoved2023, "the CALL statement");
             // CALL … RETURNING (§14.9.4) — a 2002 introduction (Exec Step E — folded from the CallBinder gate).
             if (ctx.callReturningPhrase() is not null)
