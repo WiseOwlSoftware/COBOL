@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Render one or more pages of the canonical ISO COBOL PDF to PNG for visual inspection.
+
+The markdown `<a id="page-N">` anchors map 1:1 onto PDF pages, so N is passed directly.
+Usage:  python3 scripts/render-spec-page.py <page> [<page> ...] [--dpi 300] [--out DIR]
+"""
+import sys, os, fitz
+
+PDF = os.path.join(os.path.dirname(__file__), '..', 'specs',
+                   'ISO_COBOL_2023.pdf')
+
+def main(argv):
+    pages, dpi, out = [], 300, os.environ.get('TEMP', '.')
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == '--dpi':   dpi = int(argv[i+1]); i += 2; continue
+        if a == '--out':   out = argv[i+1];      i += 2; continue
+        pages.append(int(a)); i += 1
+    os.makedirs(out, exist_ok=True)
+    doc = fitz.open(PDF)
+    for p in pages:
+        if not (1 <= p <= doc.page_count):
+            print(f'!! page {p} out of range (1..{doc.page_count})'); continue
+        pix = doc[p-1].get_pixmap(dpi=dpi)          # anchor page-N == PDF page N
+        f = os.path.join(out, f'spec_p{p}.png')
+        pix.save(f)
+        print(f'{f}  ({pix.width}x{pix.height} @ {dpi}dpi)')
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
