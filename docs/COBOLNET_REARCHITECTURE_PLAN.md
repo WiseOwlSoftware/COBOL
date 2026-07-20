@@ -10,9 +10,14 @@
 
 ## §0 — LIVE RESUME STATE (keep this current every session)
 
+**THE SINGLE-WRITE RULE:** live state (worklists, battery, ledgers, estimates) is written ONLY in this §0 —
+every other section/row POINTS here, never duplicates. Duplication is where drift breeds (the stale-banner
+class); if you find live state written twice, fixing that is part of the session.
+
 **SESSION BOOTSTRAP (a NEW session does exactly this):** ① read `CLAUDE.md` (the non-negotiable rules) → ② this
-§0 → ③ `git checkout phase-13-m4-2023` and confirm the battery green at HEAD (§9 commands; build `CobolSharp.sln`
-first) → ④ work the top item of the REMAINING list below (spec-first, § cited, complete-not-test-scoped;
+§0 → ③ `git checkout phase-13-m4-2023` and run **`pwsh scripts/session-probe.ps1`** (mechanical state check:
+branch/dirty/unpushed, the diag band from BOTH scans, VCR todos, corpus counts, inventory GAPs), then confirm
+the battery green at HEAD (§9 commands; build `CobolSharp.sln` first) → ④ work the top item of the REMAINING list below (spec-first, § cited, complete-not-test-scoped;
 design questions → `docs/COBOLNET_DESIGN.md` §0.5 deep-dives; fixes → the review ledger §24 entries carry the
 exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per commit; commit AND push every
 checkpoint.
@@ -40,7 +45,7 @@ checkpoint.
   critical path). M4-beta = the P13 merge; conformance-mapped = P14 Step 0 complete.**
 - **THE EFFORT MODEL (§11 A10 — initial 2026-07-19; refresh at each phase close; 1 session ≈ the 2026-07-19
   scale):** P13 remainder (per the D16 close-line) **4–6** · P14 incl. the D17 OO wave (4–8) + inventory/
-  campaigns/closure (8–14) **≈ 12–22** · P15 **2–4** → **v1.0 ≈ 18–32 sessions**; P16 (v2) 9–16, high
+  campaigns/closure (8–14) **≈ 12–22** · P15 **3–5** (incl. the v1.0 RELEASE DEFINITION step) → **v1.0 ≈ 19–33 sessions**; P16 (v2) 9–16, high
   variance. Swing factors: the OO wave and the inventory GAP count (bounded by the D15 tiering).
 - **REMAINING P13 (the D16 CLOSE-LINE — work in this order, then P14):**
   1. **The GRAMMAR BATCH** (shared `.g4` ⇒ ONE full legacy guard): SUPPRESS WHEN on ALTERNATE RECORD KEY
@@ -228,7 +233,7 @@ phase boundary.
 | ☑ | 10 | I | MED | 05,08,09 | M2 residual catalog (national/boolean, pointers, UDF, file-2002, RW/CONSTANT/concat) — DONE 2026-07-17 | Part III record |
 | ☑ | 11 | I | MED | 10 | Deferred-intrinsics backlog → zero (DONE 2026-07-17) + Tier-C rejection single-sourced; the confined-byte[] codec (Step D) DEFERRED as a scheduled increment | Part III record |
 | ☑ | 12 | I | MED | 10 | M3 (COBOL-2014) deltas — DYNAMIC LENGTH, IEEE float USAGE family (binary32/64 native; binary128/decimal processor-dependent non-support — IEEE-fidelity inversion corrected), >>PROPAGATE intro-gate, TYPE TO re-anchor — DONE 2026-07-17 (E PICTURE + FUNCTION-POINTER runtime staged 0899; >>PROPAGATE semantics → P13) | Part III record · `PHASE-12-scout-notes.md` |
-| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged; battery + HEAD live in §0). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: the grammar batch (SUPPRESS WHEN · PICTURE EDITING · PERFORM Fmt3 · Wave H code half · + review adds: RW SUPPRESS, VALUE Format 2, file-control COLLATING SEQUENCE) + Wave D directives (+ review adds) + the D16-scoped §24 fixes (P13-landed code only) + Wave I close→merge = **M4-beta**. Worklists: §0 (the live list) + the two P13 scouts (working designs) + the review ledger §24 (the fix queue); the audit was re-verified by the review and deleted | §0 worklists + the review ledger |
+| ◐ | 13 | I | HIGH | 11,12 | M4 (COBOL-2023) deltas + EC remnants + behavior rows — IN PROGRESS (branch phase-13-m4-2023, NOT merged; battery + HEAD live in §0). DONE: Step-1 audit · Wave B EC-SIZE · Wave C 8/10 grammar constructs · **STOP/GOBACK exit-code (VCR 75)** · **EC-BOUND-OVERFLOW + REF-MOD raise (EC-BOUND surface CLOSED)** · **Wave F USE FOR DEBUGGING (VCR 7.17, parallel-worktree + adversarial-review)** · Wave G **8 pin-to-spec dispositions** · Wave H CONFORMANCE.md/SCREEN warning · Wave I partial review. Wave G CLASS A + REF-MOD-ZERO-LENGTH + Wave E (incl. the VCR-15 EC-EXTERNAL raises) COMPLETE 2026-07-19; **the comprehensive plan-vs-spec review is VERIFICATION-COMPLETE (DEVLOG 906–916): the ledger `PHASE-13-plan-vs-spec-review.md` §24 = the 10-tier prioritized fix queue — the fix SSOT**; fixed during the cycle: both diag collisions (1573→1576, 1518→1577) + drift guards, CONFORMANCE.md restoration + locale row + the A.4 §5 section, citation sweeps, VCR-16 strength half, GOBACK GR3, WriteFill AllowZeroLength. REMAINING: per the D16 close-line — **the live worklist is §0 ONLY (the single-write rule)**; closes as **M4-beta**. Worklists: §0 (the live list) + the two P13 scouts (working designs) + the review ledger §24 (the fix queue); the audit was re-verified by the review and deleted | §0 worklists + the review ledger |
 | ☐ | 14 | I | HIGH | 03,13 | **Step 0: the FOUR-EDITION SPEC-TRACEABILITY INVENTORY (the D13 definition-of-done instrument — every clause/statement/function/directive/format × edition mapped LIVE/STAGED/DISPOSED/GAP with evidence; batched-agent sweep, durably folded per batch; + Step 0a authority-sufficiency + Step 0b SR-enforcement census)** + **the D17 OO MANDATORY-SURFACE OPENING WAVE (parallel lane)** → matrix closure (VCR zero-todo) + in-repo greenfield guard + one-time equivalence proof + **Step 12 perf gate**; §11 campaigns A3/A4 run here and gate P15 | Part II §PHASE-14 |
 | ☐ | 15 | C | MED/HIGH | 14 | **= v1.0 (D14: 100% conforming ×4).** G8 legacy retirement (three cuts) + §4.2.16 conformance docs + runtime namespace flip + **§"CUT 2.5" D10 SUBSCRIPT-mode removal** (relocated from P04; runs after Cut 2 deletes the legacy `SUB_*` consumer) | Part II §PHASE-15 |
 | ☐ | 16 | R/I | HIGH | 07 (seam) ; 08 (full) | **= v2 (D14 — off the conformance critical path). CIL/Cecil backend + backend-neutrality proof** (`--backend cil`, equivalence harness) | Part II §PHASE-16 |
@@ -1476,6 +1481,23 @@ This is the only step here that changes emitted code; it is a coordinated flip m
 - [ ] **Step 13 — Final exit-criteria gate.** Run §5 in full; confirm all five EXIT CRITERIA hold; set STATUS to `DONE`.
 
 ---
+
+#### The v1.0 RELEASE DEFINITION (D14 deliverable checklist — added 2026-07-19; QUALITY-tier items marked)
+
+P15's exit is not only "the criteria hold" — it SHIPS v1.0. The release checklist (each item a small step,
+most rolling into the existing conformance-doc pass):
+
+1. **User documentation** (v1.0-required — "commercial-quality" + §4.2.16 imply it): a USER MANUAL covering
+   installation, the CLI reference (`cobol` options, `check-batch`, `--std`/`--permissive` semantics), the
+   per-edition language-support statement (generated FROM the traceability inventory — LIVE/DISPOSED rows),
+   a migration-from-other-compilers note, and pointers to the error-message reference (`docs/DIAGNOSTICS.md`)
+   and the conformance record (`docs/CONFORMANCE.md` + the A8 interpretations register).
+2. **Packaging**: a `dotnet tool` package + release binaries (win-x64 / linux-x64), reproducible from a tag.
+3. **Versioning + release engineering**: semantic versioning from v1.0.0; an annotated git tag; a CHANGELOG
+   generated from the DEVLOG phase records; release notes stating the D13/D14 conformance claim verbatim.
+4. **The release gate**: the full battery + the greenfield census guard + the §11 gates all green ON THE TAG.
+(QUALITY-tier per D15: the manual's migration note and packaging polish never gate the conformance claim
+itself — but items 1's language-support statement and 4 DO gate the v1.0 release.)
 
 ### 5. Verification (full battery at phase end)
 Run all of these from a clean checkout on BOTH Windows and Linux (WSL) — cross-platform parity is now the whole gate:
