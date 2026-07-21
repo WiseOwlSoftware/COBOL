@@ -264,7 +264,9 @@ recording:
   rather than forking a second operand grammar (the packet's worst defect). GO TO banned in a WHEN
   (§14.9.17.3 SR3), RESUME AT NEXT STATEMENT permitted (§14.9.33.3 SR1) — both directions confirmed.
 C5 is NOT yet implementable — a 65 KB synthesized spec whose four inputs were all refuted needs a careful read
-first. Evidence at `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-rederivation.json`.
+first. (Later corrected 2026-07-20: the rejected re-derivation JSON was DELETED and replaced by the
+adversarially-verified `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md`; the figure questions
+resolved in `PHASE-13-c5-perform-format3-pdf-resolution.md`.)
 
 **Process note:** the Wave H gate was interrupted by a session boundary (no verdict recorded). Did NOT assume it
 passed — rebuilt clean, re-verified the behaviour on the fresh build, and re-ran the full comprehensive gate

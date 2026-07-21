@@ -2,8 +2,9 @@
 
 **Source:** ISO/IEC 1989:2023 PDF **page 712** (printed folio 682), rendered at 400 dpi
 (`python3 scripts/render-spec-page.py 712 --dpi 400`) and read glyph-by-glyph 2026-07-20. This resolves the three
-"open questions" the C5 re-derivation (`PHASE-13-c5-perform-format3-rederivation.json`) left for owner adjudication —
-they are all answered by the DIAGRAM + the §8.9 reserved-word list, per the standing render-the-PDF rule
+"open questions" the rejected C5 re-derivation left for owner adjudication (the corrected, implementation-ready
+design is `PHASE-13-c5-perform-format3-DESIGN.md`; the defective re-derivation JSON was deleted) — they are all
+answered by the DIAGRAM + the §8.9 reserved-word list, per the standing render-the-PDF rule
 (`feedback_spec_diagrams_render_pdf`). No owner adjudication is required.
 
 ## The figure as printed (page 712)
