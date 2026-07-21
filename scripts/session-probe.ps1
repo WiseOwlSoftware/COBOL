@@ -16,14 +16,23 @@ if ($dirty) { Write-Host "⚠ DIRTY TREE ($(@($dirty).Count) paths) — commit o
 $unpushed = git log --oneline '@{u}..HEAD' 2>$null
 if ($unpushed) { Write-Host "⚠ UNPUSHED commits: $(@($unpushed).Count)" } else { Write-Host "push   : up to date" }
 
-# 2. Diagnostic band — BOTH scans must agree (the 1573/1518 lesson)
+# 2. Diagnostic band — the next-free claim is the CEILING of BOTH scans (the 1573/1518 collision lesson).
+#    Scan the WHOLE COBOLNET1xxx band, not one decade — diagnostics crossed 1600 (PERFORM Format 3 et al.),
+#    so a decade-pinned regex silently caps out and manufactures a phantom disagreement. Two channels
+#    legitimately diverge: the compiler-channel raw Edition.Error codes are NOT catalog descriptors (ledger
+#    V11 queues folding them in), so src-max >= catalog-max is the EXPECTED steady state, not drift. The one
+#    real anomaly the cross-check still catches is catalog-max > src-max: a catalog descriptor above every
+#    emitted code = an orphan (reserved-but-never-emitted at the ceiling) worth reconciling before allocating.
 $grepCodes = Select-String -Path (Get-ChildItem src -Recurse -Filter *.cs | Where-Object FullName -notmatch '\\(bin|obj)\\') `
-    -Pattern 'COBOLNET15[0-9][0-9]' -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Unique
+    -Pattern 'COBOLNET1[0-9][0-9][0-9]' -AllMatches | ForEach-Object { $_.Matches.Value } | Sort-Object -Unique
 $maxGrep = ($grepCodes | Measure-Object -Maximum).Maximum
-$catalog = Select-String -Path 'src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs' -Pattern '"(COBOLNET15\d\d)"' -AllMatches |
+$catalog = Select-String -Path 'src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs' -Pattern '"(COBOLNET1\d\d\d)"' -AllMatches |
     ForEach-Object { $_.Matches } | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
 $maxCat = ($catalog | Measure-Object -Maximum).Maximum
-Write-Host "diag   : src-grep max $maxGrep · catalog max $maxCat $(if ($maxGrep -ne $maxCat) { '⚠ SCANS DISAGREE — reconcile before allocating' } else { "→ next free = COBOLNET$(([int]($maxGrep -replace 'COBOLNET','')) + 1)" })"
+$grepNum = [int]($maxGrep -replace 'COBOLNET', '')
+$catNum = [int]($maxCat -replace 'COBOLNET', '')
+$nextFree = ([Math]::Max($grepNum, $catNum)) + 1
+Write-Host "diag   : src-grep max $maxGrep · catalog max $maxCat $(if ($catNum -gt $grepNum) { "⚠ CATALOG ABOVE SRC (orphan descriptor $maxCat never emitted) — reconcile before allocating; next free = COBOLNET$nextFree" } else { "→ next free = COBOLNET$nextFree" })"
 
 # 3. VCR todo count (the P14 burn-down instrument)
 $todo = (Select-String -Path 'docs/VERSION_CHANGE_REFERENCE.md' -Pattern '<!-- todo -->' -AllMatches | ForEach-Object { $_.Matches }).Count
