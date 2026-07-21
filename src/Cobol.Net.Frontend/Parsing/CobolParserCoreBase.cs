@@ -126,9 +126,16 @@ public abstract class CobolParserCoreBase : Parser
                 // must fall to the normal comparison unchanged (else a plain comparison mis-gates as boolean, and RETRY
                 // #4's sibling mis-fire class returns). Below 2002 B-AND/B-OR/B-XOR are legal user words; at ≥2002 the
                 // §8.9 funnel already reserves them, so a leading occurrence is a name-slot error either way — never here.
+                // The four boolean SHIFT operators (§8.8.2 rule 8, 2023) are NEVER legal user words (absent from
+                // _dataNameTokens), so a shift token always IS the operator — detecting it here recognizes a shift-only
+                // boolean expression (e.g. `A B-SHIFT-L 2`), which no binary/unary B-op precedes.
                 case CobolLexer.B_AND:
                 case CobolLexer.B_OR:
                 case CobolLexer.B_XOR:
+                case CobolLexer.B_SHIFT_L:
+                case CobolLexer.B_SHIFT_R:
+                case CobolLexer.B_SHIFT_LC:
+                case CobolLexer.B_SHIFT_RC:
                     if (IsBoolOperandTerm(prev)) return true;
                     break;
                 // UNARY prefix B-NOT is genuine when a boolean operand can immediately FOLLOW (IF B-NOT A), not when it

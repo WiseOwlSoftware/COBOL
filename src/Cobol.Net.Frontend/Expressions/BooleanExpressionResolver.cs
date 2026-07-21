@@ -70,14 +70,29 @@ public static class BooleanExpressionResolver
         {
             if (item.IsOperand) { operands.Push(item.Operand!); continue; }
 
-            int prec = item.ShiftSuffix is not null ? prevPrec : BinaryPrec(item.BinaryOp);
+            if (item.ShiftSuffix is { } suf)
+            {
+                // A boolean SHIFT is a POSTFIX operator on its LEFT operand (its right operand — the count — is
+                // captured in the suffix). Rule 7b: it takes the precedence of the operation immediately before it
+                // (B-AND if none). So reduce the left operand down to that precedence, then apply the shift
+                // IMMEDIATELY — never defer it on the operator stack, or a HIGHER-precedence FOLLOWING operator
+                // (e.g. the B-AND in `A B-OR B B-SHIFT-L n B-AND C`) would wrongly fold its right operand INTO the
+                // shift's operand. A following shift inherits the same preceding-operation precedence, so prevPrec
+                // is left unchanged.
+                while (ops.Count > 0 && ops.Peek().Prec >= prevPrec)
+                    Apply(ops.Pop(), operands, binary);
+                operands.Push(shift(operands.Pop(), suf));
+                continue;
+            }
+
+            int prec = BinaryPrec(item.BinaryOp);
             while (ops.Count > 0 && ops.Peek().Prec >= prec)
-                Apply(ops.Pop(), operands, binary, shift);
-            ops.Push(new PendingOp(item.BinaryOp, item.ShiftSuffix, prec));
+                Apply(ops.Pop(), operands, binary);
+            ops.Push(new PendingOp(item.BinaryOp, prec));
             prevPrec = prec;
         }
         while (ops.Count > 0)
-            Apply(ops.Pop(), operands, binary, shift);
+            Apply(ops.Pop(), operands, binary);
 
         return operands.Pop();
     }
@@ -89,20 +104,11 @@ public static class BooleanExpressionResolver
         _ => PrecOr,     // '|'
     };
 
-    private static void Apply<T>(PendingOp op, Stack<T> operands,
-        Func<T, char, T, T> binary, Func<T, Core.BooleanShiftSuffixContext, T> shift)
+    private static void Apply<T>(PendingOp op, Stack<T> operands, Func<T, char, T, T> binary)
     {
-        if (op.Shift is not null)
-        {
-            T operand = operands.Pop();
-            operands.Push(shift(operand, op.Shift));
-        }
-        else
-        {
-            T right = operands.Pop();
-            T left = operands.Pop();
-            operands.Push(binary(left, op.BinaryOp, right));
-        }
+        T right = operands.Pop();
+        T left = operands.Pop();
+        operands.Push(binary(left, op.BinaryOp, right));
     }
 
     // ── flattening (tiered tree → lexical operand/operator sequence) ──────────────────────────────────────────
@@ -184,7 +190,7 @@ public static class BooleanExpressionResolver
         public static Item<T> Shift(Core.BooleanShiftSuffixContext s) => new() { ShiftSuffix = s };
     }
 
-    /// <summary>An operator awaiting its operands on the shunting-yard stack, with the precedence it was assigned
-    /// (a shift's precedence is context-derived — §8.8.2 rule 7b).</summary>
-    private readonly record struct PendingOp(char BinaryOp, Core.BooleanShiftSuffixContext? Shift, int Prec);
+    /// <summary>A BINARY operator awaiting its right operand on the shunting-yard stack, with its precedence. (A
+    /// shift is postfix — applied immediately, never stacked — so it does not appear here.)</summary>
+    private readonly record struct PendingOp(char BinaryOp, int Prec);
 }

@@ -18,4 +18,9 @@
            DISPLAY "OR-SHIFT=" R.
            COMPUTE R = A B-SHIFT-L 1 B-AND B.
            DISPLAY "SHIFT-AND=" R.
+      *> A shift whose inherited precedence (B-OR, lowest) is LOWER than a FOLLOWING operator (B-AND): the shift
+      *> still binds to its LEFT operand only, and the B-AND applies to the shift's RESULT — (A B-OR B)<<1 then
+      *> B-AND B = (1110<<1=1100) B-AND 0110 = 0100. A deferred-shift bug would give shiftL1((A|B)&B)=0000.
+           COMPUTE R = A B-OR B B-SHIFT-L 1 B-AND B.
+           DISPLAY "OR-SHIFT-AND=" R.
            STOP RUN.

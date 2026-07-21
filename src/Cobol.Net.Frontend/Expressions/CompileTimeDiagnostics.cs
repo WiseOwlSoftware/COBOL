@@ -15,6 +15,14 @@ public enum CtDiagCode
 
     /// <summary>A §12.3.7 GR14a numeric-literal decimal-separator violation (the DECIMAL-POINT IS COMMA rule).</summary>
     NumericSeparator,
+
+    /// <summary>A compiler-directive expression formation rule OTHER than the shared §7.3.6 arithmetic core — the
+    /// §7.3.3 SR10 master constraint (no floating-point literal / figurative constant / concatenation in a
+    /// directive), a §7.3.7 boolean-operand rule, or a §7.3.8 constant-conditional-expression rule. Raised only by
+    /// the directive-only entry points (<c>EvaluateBoolean</c> / <c>EvaluateOperand</c> / <c>EvaluateCce</c>), so a
+    /// consumer that evaluates only arithmetic operands (the CONSTANT-entry binder) never sees it; the frontend
+    /// routes it to COBOLNET1619.</summary>
+    DirectiveRule,
 }
 
 /// <summary>A CODE-preserving diagnostic sink for the shared compile-time expression evaluator. The evaluator

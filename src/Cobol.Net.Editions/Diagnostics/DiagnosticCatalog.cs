@@ -318,6 +318,13 @@ public static class DiagnosticCatalog
         "COBOLNET1618", "define-no-override-redefinition", EditionSeverity.Error,
         "A >>DEFINE directive redefines a compilation variable to a different value without the OVERRIDE phrase "
         + "(the previous definition was neither OFF nor the same value).", "ISO §7.3.11.3 SR2");
+    public static readonly DiagnosticDescriptor DirectiveExpressionViolation = new(
+        "COBOLNET1619", "directive-expression-violation", EditionSeverity.Error,
+        "A compiler-directive expression is malformed — a syntax error, or a formation-rule violation such as a "
+        + "floating-point literal / figurative constant / concatenation in a directive (§7.3.3 SR10), a non-literal "
+        + "or wrong-category operand, an exponentiation or division-by-zero in a compile-time arithmetic expression, "
+        + "or a category-mismatched / non-numeric-ordering constant-conditional relation.",
+        "ISO §7.3.6 / §7.3.7 / §7.3.8");
     public static readonly DiagnosticDescriptor ReportSourceOtherReportCounter = new(
         NotImplemented, "report-source-other-report-counter", EditionSeverity.Error,
         "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15 SR2", RecognizedNotImplemented);

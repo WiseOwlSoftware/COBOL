@@ -52,25 +52,71 @@ public sealed class ConditionalCompilationDefineTests
         Assert.False(Has1618(diags));
     }
 
-    [Fact] // GR4 — AS PARAMETER sources the value from the operating environment (numeric here).
+    [Fact] // GR4 — AS PARAMETER sources the value from the operating environment (numeric here). The compilation-
+           // variable-name is a COBOL user-defined word (§8.3.1.2 — letters/digits/hyphens; NO underscore).
     public void Parameter_SourcesFromEnvironment()
     {
-        Environment.SetEnvironmentVariable("CN_CC_TEST_PARAM", "42");
+        Environment.SetEnvironmentVariable("CN-CC-TEST-PARAM", "42");
         try
         {
-            var (text, diags) = Run(">>DEFINE CN_CC_TEST_PARAM AS PARAMETER\n>>IF CN_CC_TEST_PARAM = 42\nKEEP\n>>END-IF\n");
+            var (text, diags) = Run(">>DEFINE CN-CC-TEST-PARAM AS PARAMETER\n>>IF CN-CC-TEST-PARAM = 42\nKEEP\n>>END-IF\n");
             Assert.False(Has1618(diags));
             Assert.Contains("KEEP", text);   // the >>IF matched → the guarded line survives
         }
-        finally { Environment.SetEnvironmentVariable("CN_CC_TEST_PARAM", null); }
+        finally { Environment.SetEnvironmentVariable("CN-CC-TEST-PARAM", null); }
     }
 
     [Fact] // GR4 — when the environment supplies no value, the variable is NOT defined.
     public void Parameter_Unavailable_NotDefined()
     {
-        Environment.SetEnvironmentVariable("CN_CC_TEST_UNSET", null);
-        var (text, _) = Run(">>DEFINE CN_CC_TEST_UNSET AS PARAMETER\n>>IF CN_CC_TEST_UNSET DEFINED\nKEEP\n>>END-IF\n");
+        Environment.SetEnvironmentVariable("CN-CC-TEST-UNSET", null);
+        var (text, _) = Run(">>DEFINE CN-CC-TEST-UNSET AS PARAMETER\n>>IF CN-CC-TEST-UNSET DEFINED\nKEEP\n>>END-IF\n");
         Assert.DoesNotContain("KEEP", text);   // undefined → the >>IF DEFINED is false → the line drops
+    }
+
+    private static bool Has1619(DiagnosticBag b) => b.Diagnostics.Any(d => d.Code == "COBOLNET1619");
+
+    [Fact] // ⛔ Ledger C2 — the CLOSED DEFECT: a MULTI-TOKEN arithmetic operand now EVALUATES (§7.3.6) instead of
+           // silently binding to its first token. >>DEFINE X AS 2 * 3 + 1 defines 7 (was 2), so >>IF X = 7 matches.
+    public void Define_ArithmeticExpressionOperand_Evaluated()
+    {
+        var (text, _) = Run(">>DEFINE X AS 2 * 3 + 1\n>>IF X = 7\nKEEP\n>>END-IF\n");
+        Assert.Contains("KEEP", text);
+    }
+
+    [Fact] // §7.3.11.4 GR5 — a single numeric literal keeps its fractional value (not INTEGER-PART truncated).
+    public void Define_SingleFractionLiteral_KeepsValue()
+    {
+        var (text, _) = Run(">>DEFINE Q AS 0.25\n>>IF Q = 0.25\nKEEP\n>>END-IF\n");
+        Assert.Contains("KEEP", text);
+    }
+
+    [Fact] // §7.3.7 — a boolean-EXPRESSION operand now EVALUATES: FLG = B"1100" B-OR B"0011" = B"1111".
+    public void Define_BooleanExpressionOperand_Evaluated()
+    {
+        var (text, _) = Run(">>DEFINE FLG AS B\"1100\" B-OR B\"0011\"\n>>IF FLG = B\"1111\"\nKEEP\n>>END-IF\n");
+        Assert.Contains("KEEP", text);
+    }
+
+    [Fact] // §7.3.3 SR10 — a floating-point literal in a directive operand is a loud COBOLNET1619, not a value.
+    public void Define_FloatLiteral_Rejected1619()
+    {
+        var (_, diags) = Run(">>DEFINE X AS 1.5E3\n");
+        Assert.True(Has1619(diags));
+    }
+
+    [Fact] // §7.3.6.2 SR1c — a division by zero in a compile-time arithmetic operand is COBOLNET1619.
+    public void Define_DivByZero_Rejected1619()
+    {
+        var (_, diags) = Run(">>DEFINE X AS 5 / 0\n");
+        Assert.True(Has1619(diags));
+    }
+
+    [Fact] // §7.3.13.3 SR11 — an EVALUATE selection object of a different category than the subject is COBOLNET1619.
+    public void Evaluate_ObjectCategoryMismatch_Rejected1619()
+    {
+        var (_, diags) = Run(">>EVALUATE 5\n>>WHEN \"A\"\nX\n>>END-EVALUATE\n");
+        Assert.True(Has1619(diags));
     }
 
     [Fact] // >>PUSH / >>POP are recognized (consumed), not left as stray tokens.

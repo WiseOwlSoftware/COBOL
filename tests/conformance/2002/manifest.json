@@ -17,6 +17,7 @@
     "conditional_compilation",
     "constant_entry",
     "constant_record",
+    "directive_expressions",
     "ec_bound_ref_mod",
     "exception_file_n",
     "file_collating_seq",

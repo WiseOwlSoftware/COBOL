@@ -1,10 +1,27 @@
 # DESIGN — Compile-time expression evaluation (§7.3.6 / §7.3.7 / §7.3.8)
 
-> **Status: DESIGN (in implementation, P13 Wave D).** Canonical deep-dive for the ONE shared compile-time
+> **Status: IMPLEMENTED (P13 Wave D, ledger C2).** Canonical deep-dive for the ONE shared compile-time
 > expression evaluator (frontend conditional-compilation stage + CONSTANT-entry binder), the ONE boolean
 > precedence resolver (compile-time + runtime), and the ANTLR grammar that parses every compiler-directive
 > expression. Design SSOT for review-ledger item **C2** (`PHASE-13-plan-vs-spec-review.md §24`). Keep CURRENT
 > (describes the compiler as built); do not narrate the doc's own revision history — that belongs in `DEVLOG.md`.
+
+## 0. ⛔ THE MASTER CONSTRAINT — §7.3.3 SR10 (a directive is NOT a CONSTANT data entry)
+
+**§7.3.3 SR10 (a general syntax rule over EVERY compiler directive):** *"A literal in a compiler directive shall
+not be specified as a concatenation expression, a figurative constant, or a floating-point numeric literal."*
+This governs every `>>DEFINE` / `>>EVALUATE` / `>>IF` operand and every literal inside a cce. Consequences the
+evaluator enforces (COBOLNET1619) — and the reason the shared arithmetic core is CONSUMER-agnostic:
+
+* **No floating-point literal** as a directive operand — even a *sole* one. (The CONSTANT data entry `01 c CONSTANT
+  AS …`, §13.10.3, is NOT a compiler directive, so it DOES admit a sole floating-point literal — `EvaluateArithmeticOperand`
+  keeps that behavior; the §7.3.3 SR10 bar lives in the frontend-only `EvaluateOperand`/`EvaluateDirectiveArithmetic`,
+  never in the shared arithmetic core.)
+* **No figurative constant** (`ZERO`/`SPACE`/`HIGH-VALUE`/`LOW-VALUE`/`QUOTE`/`ALL "literal"`) — in an arithmetic
+  operand (`ZERO_ARITH`), a non-numeric operand (`figurativeConstant`), or a boolean operand. So a compile-time
+  BOOLEAN operand is a boolean LITERAL only (§7.3.7.2 SR1) — the runtime §8.8.2 figurative operands (`ZERO`,
+  `ALL B"…"`) are barred here, and `BitString` carries no positionless (figurative) case.
+* **No concatenation expression.**
 
 ## 1. Scope and the defect being closed
 
@@ -182,9 +199,11 @@ dot-decimal (a stated, spec-grounded limitation).
 ## 6. Boolean semantics (§7.3.7 → §8.8.2) — complete, via ONE shared precedence resolver
 
 A compile-time boolean value is a **bit string** — an immutable `BitString` with **value equality**
-(`IEquatable`, length-sensitive) so SR2 redefinition and cce `=`/`<>` compare correctly. Operands: boolean
-literals `B"1010"` (decoded via `CobolLiteral`), figurative `ZERO`/`ALL B"…"`, grouped sub-expressions,
-previously-defined boolean names.
+(`IEquatable`, length-sensitive) so SR2 redefinition and cce `=`/`<>` compare correctly. Operands (§7.3.7.2 SR1):
+boolean literals `B"1010"` (decoded via `CobolLiteral`), grouped sub-expressions, and previously-defined boolean
+compilation-variable substitutions. **No figurative operands** — §7.3.7.2 SR1 admits only boolean literals, and
+§7.3.3 SR10 bars the figurative `ZERO`/`ALL "literal"` the runtime §8.8.2 admits — so `BitString` carries NO
+positionless (figurative) case (a figurative boolean operand is a COBOLNET1619 formation error at the leaf, §0).
 
 **Precedence is implemented correctly, including the context-inherited shift precedence (rule 7b), in ONE shared
 mechanism.** A CFG cannot express context-dependent precedence, so `BooleanExpressionResolver.Resolve<T>`
@@ -204,21 +223,25 @@ legal mixed shift-with-binary form and told the user to parenthesize — a confo
 source. `ConditionBinder`'s tier-walk (`BindBoolExpr/Xor/And/Shift`) is refactored onto `Resolve<T>`; the mixed
 form is now accepted and evaluated per rule 7b. Existing COBOLNET1569 tests flip from reject to accept-and-verify.
 
-Operator/operand semantics (§8.8.2):
+`BitString`'s fold mirrors the runtime `CobolBool` kernel EXACTLY (the proven §8.8.2 implementation; the Frontend
+cannot reference the Runtime assembly, so the algorithm — not the code — is shared). Operator/operand semantics
+(§8.8.2):
 
-* **`B-NOT`** — complement, length preserved (`ALL` folds — flip the pattern).
+* **`B-NOT`** — complement, length preserved.
 * **Binary `B-AND`/`B-OR`/`B-XOR`** (rules 9/10) — bit-by-bit from the left; unequal length ⇒ shorter
   right-extended with boolean zeros; result length = the larger operand; zero-length ⇒ zero-length (rule 9
   NOTE 2).
-* **Shift `-L/-R/-LC/-RC`** (rule 8) — second operand is an **integer operand**: evaluated via
-  `EvaluateArithmeticOperand` (GR3-truncated) and **rule-5-validated** (a fractional value rejected); `count==0`
-  identity; a **negative** count rejected (§8.8.2 defines only counts ≥ 1). Logical (zero-fill) vs circular (wrap);
-  result length = first operand; `count ≥ length` degenerates correctly.
-* **Rule 4/5 adjacency** — both binary operands `ALL literal`, or an `ALL literal` first shift operand, rejected
-  (reuse COBOLNET1511 in the binder; COBOLNET1619 in the frontend).
-* **Figurative operand length (compile-time rule).** A figurative `ZERO`/`ALL literal` operand takes the **other
-  operand's length** in a binary op; a standalone figurative boolean value, or a binary op with both operands
-  figurative, has indeterminate length and is rejected. Documented + unit-tested.
+* **Shift `-L/-R/-LC/-RC`** (rule 8) — second operand is an **integer operand**: evaluated via the directive
+  arithmetic boundary (§7.3.3 SR10 + GR3-truncated) and required to be integral (a fractional value rejected,
+  rule 5); `count==0` identity; a **negative** count rejected (§8.8.2 defines only counts ≥ 1). Logical (zero-fill)
+  vs circular (wrap); result length = first operand; `count ≥ length` degenerates correctly.
+* **Rules 4/5 ALL-adjacency are moot for the compile-time fold** — §7.3.3 SR10 rejects any figurative operand at
+  the leaf UPSTREAM, so no `ALL literal` operand ever reaches a binary/shift combine. (The runtime `ConditionBinder`
+  keeps its COBOLNET1511 rule-4/5 checks — it DOES admit the §8.8.2 figuratives; only the frontend fold does not.)
+
+The **`boolExprAhead()` predicate** (`CobolParserCoreBase`) was completed to also detect the four shift operators
+`B-SHIFT-L/R/LC/RC` (never legal user words), so a shift-only boolean expression (`A B-SHIFT-L 2`) is recognized —
+both in the directive fragment (`compileTimeOperand`) and, as a latent-gap fix, in the main-parse `primaryCondition`.
 
 ## 7. The constant-conditional-expression (§7.3.8) — evaluated over the ANTLR tree
 
@@ -228,9 +251,12 @@ Operator/operand semantics (§8.8.2):
   formation error in any operand is always reportable per §7.3.8, regardless of branch truth). Test-pinned.
 * **`definedCondition`** — `IS [NOT] DEFINED` per §7.3.8.4.4.
 * **Relation** (§8.8.4.2 / §7.3.8.2 SR1a) — evaluate both operands to `CtValue`s: **SR1a.1** reject a
-  category mismatch; **SR1a.2** for non-numeric operands only `=`/`<>` are valid; **comparison** (§7.3.8.3 GR2)
-  numeric by value, non-numeric by binary character/bit value, length-sensitive (unequal ⇒ not equal), no
-  collating.
+  category mismatch; **SR1a.2** for non-numeric operands only `=`/`<>` are valid; **comparison** via
+  `CtValue.RelationalEquals` (NOT the SR2-redefinition `Equals`): numeric by value; **boolean per §8.8.4.2.8 —
+  the shorter operand RIGHT-zero-extended (so `B"1" = B"10"` is TRUE)**; alphanumeric/national per §7.3.8.3 GR2 —
+  binary character value, LENGTH-sensitive (unequal ⇒ not equal), no collating. (§7.3.8.3 GR2's length-sensitivity
+  is explicitly for operands "not numeric or **boolean**"; a boolean relation right-extends — the same equality
+  the EVALUATE Format-1 GR4a match uses.)
 * **Bare boolean condition** (§8.8.4.3) — enforce SR1 (length 1, else reject) + GR1 (true iff the single bit is
   `1`); leading `NOT` per GR2. The bit-string→truth bridge.
 
@@ -253,26 +279,35 @@ Member-wise record equality is **replaced by a hand-written `Equals`** dispatchi
 Alnum/National → `Text`; Boolean → `Bits` value-equality). `AS PARAMETER` (GR4, landed) and the SR2/COBOLNET1618
 redefinition check (landed) use this model.
 
-## 10. Legacy-oracle safety
+## 10. Legacy-oracle safety — ONE mechanism, behavior-preserving
 
 `ConditionalCompilationProcessor.Process` has two callers: greenfield `Frontend.cs` and the legacy differential
-oracle `Compilation.cs:345` (frozen until G8). The new ANTLR evaluation path is **greenfield-only**, selected by
-an explicit parameter the greenfield caller sets; the legacy caller keeps its exact current behavior (frozen-
-oracle doctrine — compile-time expressions are a 2002+ feature the 85-era oracle never needs). **Pre-check:** grep
-the legacy differential corpus for any `>>` directive with a compile-time operand (expected none — 85 predates
-conditional compilation). **Gate:** the full legacy guard (`scripts/guard.sh`) `=== ALL GREEN ===` before commit
-(not guard-fast). The runtime `ConditionBinder` rule-7b refactor (§6) is guarded the same way; its COBOLNET1569
-tests flip to accept-and-verify.
+oracle `Compilation.cs:345` (frozen until G8). Both route through the SAME shared evaluator — the hand-rolled
+`Tokenize`/`CondParser`/`Value`/`Relate` engine is **deleted** (the singular-pattern rule: one mechanism, the best
+one). The design's earlier "greenfield-only path" posture is superseded by reality: the legacy caller IS exercised
+with directives (`tests/CobolSharp.Tests.Integration/SpecFixTests.cs` CC1–CE3 run `>>DEFINE`/`>>IF`/`>>EVALUATE`
+end-to-end through `Compilation.cs`). The shared evaluator REPRODUCES the old single-token-operand behavior
+(single literal, defined-condition, relation, THROUGH range, compound cce) exactly, so those tests stay green;
+the rewrite only ADDS correct multi-token evaluation (the closed defect) and loud COBOLNET1619 rejects. The
+`directive_expressions` 2002 conformance golden passes BOTH the greenfield `CorpusRunnerTests` and the legacy
+`ConformanceTests` (its cce directives fold to a DISPLAY-only surviving program both pipelines compile
+identically), so no `GreenfieldOnly` exclusion is needed. **Gate:** the full legacy guard (`scripts/guard.sh`)
+`=== ALL GREEN ===` before commit (not guard-fast — the shared `.g4` changed). One behavior note: the deleted
+tokenizer wrongly accepted `_` in a compilation-variable name; ANTLR (correct COBOL, §8.3.1.2 — letters/digits/
+hyphens) does not, so a test using an underscore name was corrected to a hyphenated one.
 
 ## 11. Test plan (ships in the change set)
 
 * **Unit — `BooleanExpressionResolver`**: rule-7b groupings (`A B-AND B B-SHIFT-L 2`, `A B-OR B B-SHIFT-L 2`,
   `A B-SHIFT-L 2 B-AND C`, isolated shift, consecutive shifts) via both the BitString and BoundBoolExpr
   instantiations.
-* **Unit — shared evaluator**: arithmetic (`2+3*4`, `(2+3)*4-6/2`, unary sign, div-by-0, `**` reject, non-literal
-  reject, GR5 `0.25` no-truncation, GR3 truncation); boolean (`B-AND`/`B-OR`/`B-XOR` bit results, unequal-length
-  extension, `B-NOT`, shift logical + circular L/R, `count≥length`, fractional/negative-count reject,
-  `ALL`-adjacency reject, figurative-length rule).
+* **Unit — shared evaluator** (`CompileTimeBooleanCceTests`): arithmetic (`2+3*4`, `(2+3)*4-6/2`, unary sign,
+  div-by-0, `**` reject, non-literal reject, GR5 `0.25` no-truncation, GR3 truncation); boolean
+  (`B-AND`/`B-OR`/`B-XOR` bit results, unequal-length extension, `B-NOT`, shift logical + circular L/R,
+  `count==0`/`count≥length`, fractional/negative-count reject, rule-7b context-inherited shift precedence,
+  §7.3.3 SR10 figurative/float reject, non-literal reject); cce (numeric/alnum length-sensitive/boolean relations,
+  AND/OR/NOT, grouping, defined-condition, name substitution of any category, SR1a.1/SR1a.2 rejects, bare-boolean
+  SR1, formation-error-in-short-circuited-branch).
 * **Unit — frontend directive** (extend `ConditionalCompilationDefineTests`): `>>DEFINE X AS 1 + 2` ⇒ 3;
   `>>EVALUATE 1 + 1` selects `WHEN 2`; `>>IF A + 1 = B`; boolean DEFINE + `>>IF`; `>>IF NAME = "ABC"`;
   `A IS NOT = 1`; `((A = 1))`; category-mismatch reject; THRU-non-numeric reject; loud COBOLNET1619; existing

@@ -305,6 +305,43 @@ functionArgListFragment
     : functionArgList? EOF
     ;
 
+// ── COMPILE-TIME DIRECTIVE-EXPRESSION fragments (ISO §7.3.6 arithmetic / §7.3.7 boolean / §7.3.8 constant-
+// conditional-expression). Isolated fragment entry rules — reachable ONLY from the frontend's directive-expression
+// re-parse (the functionArgListFragment precedent: referenced by nothing in compilationUnit, so ZERO blast radius
+// on the main parse). They reuse the existing operand sub-rules (arithmeticExpression / booleanExpression /
+// nonNumericLiteral / comparisonOperator / cobolWord) — no duplicated expression grammar. The lexer is primed with
+// PrimeDirectiveExpr() so DEFINED is a token and every '(' groups. Evaluated by the ONE shared
+// CompileTimeExpressionEvaluator (DESIGN-compile-time-expressions.md §4). ──
+
+// One compile-time operand (a >>DEFINE value, a >>EVALUATE selection-subject / >>WHEN object). Operand-kind
+// disambiguation reuses the boolExprAhead() predicate (the primaryCondition mechanism): booleanExpression is
+// entered ONLY when a real B-operator is present; otherwise an arithmetic operand (a single numeric literal too —
+// GR5 reclassification is in the evaluator) or a non-numeric literal. The evaluator dispatches on WHICH sub-node
+// parsed, not a token guess (booleanExpression's leaf would otherwise match every arithmetic/non-numeric operand).
+compileTimeOperandFragment : compileTimeOperand EOF ;
+compileTimeOperand
+    : {boolExprAhead()}? booleanExpression      // a genuine boolean expression (a B-operator is present)
+    | arithmeticExpression                       // numeric operand (a single numeric literal too — GR5 in eval)
+    | nonNumericLiteral                          // string / national / boolean / hex literal operand
+    ;
+
+// A constant-conditional-expression (§7.3.8) — the >>IF operand and the >>EVALUATE-TRUE >>WHEN operand.
+// Precedence NOT > AND > OR (§8.8.4.9), parentheses grouping (LPAREN is always a group under PrimeDirectiveExpr).
+constantConditionalExpressionFragment : constantConditionalExpression EOF ;
+constantConditionalExpression : cceOr ;
+cceOr      : cceAnd ( OR cceAnd )* ;
+cceAnd     : cceNot ( AND cceNot )* ;
+cceNot     : NOT cceNot | ccePrimary ;
+ccePrimary : LPAREN constantConditionalExpression RPAREN
+           | definedCondition
+           | cceRelationOrBoolean ;
+// §7.3.8.4.4 defined-condition. DEFINED is a token only under PrimeDirectiveExpr (a primed-lexer keyword). Listed
+// before cceRelationOrBoolean so a trailing DEFINED selects it; a cobolWord with no DEFINED falls through.
+definedCondition : cobolWord IS? NOT? DEFINED ;
+cceRelationOrBoolean
+    : {boolExprAhead()}? booleanExpression                            // §8.8.4.3 simple boolean condition (length-1)
+    | compileTimeOperand ( IS? NOT? comparisonOperator compileTimeOperand )? ;   // §7.3.8.2 relation (or a bare operand)
+
 // Function names are normally IDENTIFIERs, but several intrinsic function names
 // collide with reserved words (lexer tokens). List them explicitly so the parser
 // accepts them after FUNCTION.

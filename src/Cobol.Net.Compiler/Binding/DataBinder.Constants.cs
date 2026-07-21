@@ -209,7 +209,7 @@ public sealed partial class DataBinder
         // its literal, §13.10.3 SR2/GR1), routes the evaluator's diagnostics to its own codes, and names the
         // operand source per §13.10.3.
         var evaluator = new CompileTimeExpressionEvaluator(
-            resolveNumericName: NumericConstantValue,
+            resolveName: ResolveConstantName,
             diag: new ConstantEvaluatorDiagnostics(this),
             vocab: new CtOperandVocabulary(
                 "previously defined numeric constant-names substituting them", "ISO §13.10.3 SR7 / §7.3.6.2 SR1b"),
@@ -219,13 +219,15 @@ public sealed partial class DataBinder
         return new ConstantDef(name, PicCategory.Numeric, n.Text, isInt, isGlobal, n.Text);
     }
 
-    /// <summary>The numeric value of a BARE constant-name (§7.3.6.2 SR1b / §13.10.3 SR2 substitution), or null when
-    /// the name is not a currently-defined NUMERIC constant — the shared compile-time evaluator's name-resolution
-    /// callback. (A constant's <see cref="ConstantDef.Text"/> is already normalized dot-decimal.)</summary>
-    private decimal? NumericConstantValue(string word) =>
+    /// <summary>The value of a BARE constant-name (§7.3.6.2 SR1b / §13.10.3 SR2 substitution), or null when the
+    /// name is not a currently-defined constant — the shared compile-time evaluator's name-resolution callback.
+    /// The CONSTANT-entry arithmetic path uses only the NUMERIC case (§7.3.6.2 SR1b), so a non-numeric constant
+    /// resolves to null and is rejected there. (A constant's <see cref="ConstantDef.Text"/> is already normalized
+    /// dot-decimal.)</summary>
+    private CtValue? ResolveConstantName(string word) =>
         _constants.TryGetValue(word, out var d) && d.Category == PicCategory.Numeric
         && decimal.TryParse(d.Text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowLeadingSign,
-            CultureInfo.InvariantCulture, out decimal v) ? v : null;
+            CultureInfo.InvariantCulture, out decimal v) ? CtValue.Numeric(v, d.Text) : null;
 
     /// <summary>Routes the shared compile-time evaluator's diagnostics to the CONSTANT-entry binder's own codes: an
     /// arithmetic rule → the <c>ConstantEntryRule</c> descriptor; a §12.3.7 GR14a separator violation →

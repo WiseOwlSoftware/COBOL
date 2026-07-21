@@ -3,30 +3,27 @@
 using System.Globalization;
 using CobolNet.Frontend.Common;
 using CobolNet.Frontend.Diagnostics;
+using CobolNet.Frontend.Expressions;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Frontend.Preprocessor;
 
 /// <summary>
-/// COBOL-2002 conditional compilation (ISO §7.3.11 DEFINE directive, §7.3.16 IF directive) — a text-manipulation
-/// stage pass that selectively includes source lines based on compilation variables. It runs on free-form
-/// normalized text, before COPY expansion, so an <c>&gt;&gt;IF</c> may gate COPY statements in its branches.
+/// COBOL conditional compilation (ISO/IEC 1989:2023 §7.3.11 DEFINE, §7.3.16 IF, §7.3.13 EVALUATE) — a
+/// text-manipulation stage (§7.2) that selectively includes source lines based on compilation variables. It runs on
+/// free-form normalized text, before COPY expansion, so an <c>&gt;&gt;IF</c> may gate COPY statements in its
+/// branches.
 ///
-/// Supported:
-///   <c>&gt;&gt;DEFINE name [AS] {literal | OFF} [OVERRIDE]</c> — define / undefine a compilation variable to a
-///       numeric or alphanumeric literal (GR15: a single numeric literal is a literal, not an expression).
-///   <c>&gt;&gt;IF cce</c> / <c>&gt;&gt;ELSE</c> / <c>&gt;&gt;END-IF</c> with arbitrary nesting.
-///   constant-conditional-expression = defined-condition (<c>name [IS] [NOT] DEFINED</c>),
-///       relation (<c>operand [IS] [NOT] relop operand</c>, relop ∈ = &lt;&gt; &lt; &gt; &lt;= &gt;=),
-///       combined with <c>AND</c> / <c>OR</c> / <c>NOT</c> and parentheses.
-///
-/// Implemented (Wave D): the §7.3.11.3 SR2 no-OVERRIDE redefinition check (COBOLNET1618), <c>AS PARAMETER</c>
-/// (GR4 — the operating-environment source), and the OVERRIDE phrase (GR3). <c>&gt;&gt;EVALUATE</c>/<c>&gt;&gt;WHEN</c>
-/// ARE implemented (the earlier deferral note was stale).
-///
-/// Deferred (tracked in the P13 review ledger + Wave D): arithmetic / boolean EXPRESSION operands in
-/// DEFINE/EVALUATE (§7.3.6/§7.3.7 — today only single-token operands bind; a multi-token operand binds the FIRST
-/// token, a known silent-wrong-value defect awaiting the compile-time expression evaluator), and
-/// conditional-compilation directives located inside copied library text (§7.2.1 orders COPY before the CC scan).
+/// Two cleanly separated jobs (DESIGN-compile-time-expressions.md §2): (1) LINE SELECTION — walking the
+/// <c>&gt;&gt;IF/&gt;&gt;ELSE/&gt;&gt;END-IF/&gt;&gt;EVALUATE/&gt;&gt;WHEN</c> nesting to decide which physical lines
+/// survive; this stays a small line-inclusion state machine here because "text-1/text-2" may be any source lines,
+/// including un-expanded COPY and (in omitted branches) non-COBOL, so it MUST precede the main parse. (2) EXPRESSION /
+/// CONDITION EVALUATION — every <c>&gt;&gt;DEFINE</c> operand, <c>&gt;&gt;IF</c> cce, and <c>&gt;&gt;EVALUATE</c>/
+/// <c>&gt;&gt;WHEN</c> operand is fragment-parsed by ANTLR (<see cref="DirectiveExpressionFragment"/>) and evaluated
+/// by the ONE shared <see cref="CompileTimeExpressionEvaluator"/> — there is no hand-rolled tokenizer or condition
+/// parser; the ANTLR grammar is the single source of truth for directive-expression syntax (§7.3.6 arithmetic,
+/// §7.3.7 boolean, §7.3.8 constant-conditional-expression). A formation violation is a loud <b>COBOLNET1619</b>,
+/// never a silently mis-bound value.
 ///
 /// Blast radius is essentially nil: a source with no <c>&gt;&gt;</c> lines is reproduced byte-for-byte.
 /// </summary>
@@ -59,7 +56,18 @@ public static class ConditionalCompilationProcessor
     public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false,
         bool leaveRefModZeroLengthDirectives = false, DiagnosticBag? diagnostics = null, string? sourcePath = null)
     {
-        var defines = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
+        var defines = new Dictionary<string, CtValue>(StringComparer.OrdinalIgnoreCase);
+        var diag = new DirectiveDiag(diagnostics, sourcePath);
+        // The ONE shared compile-time expression evaluator (ledger C2). Its name resolution reads the CURRENT
+        // `defines` (a directive may reference a variable an earlier directive set); the frontend routes every
+        // formation diagnostic to COBOLNET1619; a directive operand is dot-decimal (§5.3 — processed before
+        // SPECIAL-NAMES, so DECIMAL-POINT IS COMMA is not yet in effect).
+        var evaluator = new CompileTimeExpressionEvaluator(
+            resolveName: w => defines.TryGetValue(w, out var v) ? v : null,
+            diag: diag,
+            vocab: new CtOperandVocabulary("previously defined numeric compilation variables", "ISO §7.3.6.2 SR1b"),
+            decimalPointIsComma: false);
+
         var stack = new Stack<Frame>();
         var lines = text.Split('\n');
         var output = new string[lines.Length];
@@ -69,6 +77,7 @@ public static class ConditionalCompilationProcessor
             string line = lines[i];
             string trimmed = line.TrimEnd('\r').TrimStart();
             bool emitting = stack.Count == 0 || stack.Peek().Emitting;
+            diag.Line = i;
 
             if (!trimmed.StartsWith(">>", StringComparison.Ordinal))
             {
@@ -82,7 +91,7 @@ public static class ConditionalCompilationProcessor
                 case "IF":
                 {
                     bool parentActive = stack.Count == 0 || stack.Peek().Emitting;
-                    bool cond = parentActive && Evaluate(rest, defines);
+                    bool cond = parentActive && EvaluateCceText(rest, evaluator, diag, ">>IF");
                     stack.Push(new Frame { Kind = FrameKind.If, ParentActive = parentActive, Emitting = cond, BranchTaken = cond });
                     output[i] = "";
                     break;
@@ -106,7 +115,7 @@ public static class ConditionalCompilationProcessor
                     var f = new Frame { Kind = FrameKind.Evaluate, ParentActive = parentActive, Emitting = false, BranchTaken = false };
                     string subj = rest.Trim();
                     if (subj.Equals("TRUE", StringComparison.OrdinalIgnoreCase)) f.TruthForm = true;
-                    else f.Subject = ResolveFirst(subj, defines);
+                    else if (parentActive) f.Subject = EvaluateOperandText(subj, evaluator, diag, ">>EVALUATE");
                     stack.Push(f);
                     output[i] = "";
                     break;
@@ -122,8 +131,9 @@ public static class ConditionalCompilationProcessor
                             f.Emitting = false;                                // enclosing omitted, or a prior WHEN already matched
                         else
                         {
-                            bool match = f.TruthForm ? Evaluate(obj, defines)  // Format 2: constant-conditional-expression
-                                                     : MatchWhen(f.Subject, obj, defines); // Format 1: subject = object [THRU object3]
+                            bool match = f.TruthForm
+                                ? EvaluateCceText(obj, evaluator, diag, ">>WHEN")               // Format 2: constant-conditional-expression
+                                : MatchWhen(f.Subject, obj, evaluator, diag);                   // Format 1: subject = object [THRU object3]
                             f.Emitting = match;
                             if (match) f.BranchTaken = true;
                         }
@@ -135,7 +145,7 @@ public static class ConditionalCompilationProcessor
                     output[i] = "";
                     break;
                 case "DEFINE":
-                    if (emitting) ApplyDefine(rest, defines, diagnostics, sourcePath, i);   // a DEFINE in an omitted branch has no effect
+                    if (emitting) ApplyDefine(rest, defines, evaluator, diag);   // a DEFINE in an omitted branch has no effect
                     output[i] = "";
                     break;
                 default:
@@ -176,63 +186,155 @@ public static class ConditionalCompilationProcessor
         public bool Emitting;       // is THIS branch's text currently being included?
         public bool BranchTaken;    // IF: the IF arm was taken (drives ELSE); EVALUATE: some WHEN already matched (drives later WHEN/OTHER)
         public bool TruthForm;      // EVALUATE: true for Format 2 (>>EVALUATE TRUE), where each WHEN carries a constant-conditional-expression
-        public Value? Subject;      // EVALUATE Format 1: the selection-subject value
+        public CtValue? Subject;    // EVALUATE Format 1: the selection-subject value
     }
 
-    /// <summary>Resolve the first token of a directive operand string to a value (an EVALUATE selection-subject).</summary>
-    private static Value? ResolveFirst(string text, Dictionary<string, Value> defines)
+    // ── DEFINE (§7.3.11) ──────────────────────────────────────────────────────────────────────────────────────
+
+    private enum DefineKind { Value, Off, Parameter }
+
+    /// <summary>Split a <c>&gt;&gt;DEFINE compilation-variable-name [AS] { operand | PARAMETER | OFF } [OVERRIDE]</c>
+    /// directive at the DIRECTIVE-SYNTAX level (name / AS / OFF / PARAMETER / OVERRIDE are directive keywords, not
+    /// expression syntax); the OPERAND text is handed to the ANTLR fragment parse. §7.3.11.2 makes AS optional and
+    /// OVERRIDE a trailing phrase; OFF and PARAMETER are the two operand-less alternatives.</summary>
+    private static (string Name, DefineKind Kind, string Operand, bool Override) SplitDefine(string rest)
     {
-        var toks = Tokenize(text);
-        return toks.Count == 0 ? null : ResolveToken(toks[0], defines);
+        string s = rest.Trim();
+        int sp = 0;
+        while (sp < s.Length && !char.IsWhiteSpace(s[sp])) sp++;
+        string name = s[..sp];
+        string body = sp < s.Length ? s[sp..].Trim() : "";
+        if (StartsWithWord(body, "AS")) body = body["AS".Length..].TrimStart();
+        bool over = EndsWithWord(body, "OVERRIDE");
+        if (over) body = body[..^"OVERRIDE".Length].TrimEnd();
+        body = body.Trim();
+        if (body.Equals("OFF", StringComparison.OrdinalIgnoreCase)) return (name, DefineKind.Off, "", over);
+        if (body.Equals("PARAMETER", StringComparison.OrdinalIgnoreCase)) return (name, DefineKind.Parameter, "", over);
+        return (name, DefineKind.Value, body, over);
     }
 
-    /// <summary>Format-1 WHEN match: subject = object, or subject within [object .. object3] when THROUGH/THRU is given.</summary>
-    private static bool MatchWhen(Value? subject, string whenText, Dictionary<string, Value> defines)
+    private static void ApplyDefine(string rest, Dictionary<string, CtValue> defines,
+        CompileTimeExpressionEvaluator evaluator, DirectiveDiag diag)
+    {
+        var (name, kind, operand, over) = SplitDefine(rest);
+        if (name.Length == 0) return;
+        switch (kind)
+        {
+            case DefineKind.Off:
+                defines.Remove(name);   // GR2 — undefine
+                return;
+            case DefineKind.Parameter:
+            {
+                // GR4 — the value is obtained from the operating environment; unavailable ⇒ NOT defined. A value
+                // that parses as a numeric literal is numeric, else alphanumeric.
+                string? env = Environment.GetEnvironmentVariable(name);
+                if (env is null) { defines.Remove(name); return; }
+                var pv = decimal.TryParse(env, NumberStyles.Number, CultureInfo.InvariantCulture, out var num)
+                    ? CtValue.Numeric(num, env) : CtValue.Alphanumeric(env);
+                AssignDefine(name, pv, over, defines, diag);
+                return;
+            }
+            default:
+                if (EvaluateOperandText(operand, evaluator, diag, $">>DEFINE {name}") is { } v)
+                    AssignDefine(name, v, over, defines, diag);
+                return;
+        }
+    }
+
+    /// <summary>Bind <paramref name="name"/> to <paramref name="newVal"/>, enforcing §7.3.11.3 SR2: without the
+    /// OVERRIDE phrase a compilation variable already defined (and not OFF'd) may be redefined only to the SAME
+    /// value (category-aware value equality — <c>AS 1</c> / <c>AS 01</c> / <c>AS 1.0</c> are the same). A differing
+    /// no-OVERRIDE redefinition is COBOLNET1618 (superset-continue: the new value still binds).</summary>
+    private static void AssignDefine(string name, CtValue newVal, bool over, Dictionary<string, CtValue> defines,
+        DirectiveDiag diag)
+    {
+        if (!over && defines.TryGetValue(name, out var existing) && !existing.Equals(newVal))
+            diag.Report1618(name);
+        defines[name] = newVal;
+    }
+
+    // ── operand / cce evaluation via the ANTLR fragment parse + the shared evaluator ──────────────────────────
+
+    /// <summary>Fragment-parse and evaluate one compile-time operand to a <see cref="CtValue"/>, or null (a
+    /// syntax error is reported as COBOLNET1619; a formation error is reported by the evaluator).</summary>
+    private static CtValue? EvaluateOperandText(string text, CompileTimeExpressionEvaluator evaluator,
+        DirectiveDiag diag, string where)
+    {
+        if (DirectiveExpressionFragment.ParseOperand(text) is not { } frag) { diag.Malformed(where, text); return null; }
+        return evaluator.EvaluateOperand(frag.compileTimeOperand(), where);
+    }
+
+    /// <summary>Fragment-parse and evaluate a constant-conditional-expression; a malformed cce / formation error
+    /// yields false for line selection (and is reported).</summary>
+    private static bool EvaluateCceText(string text, CompileTimeExpressionEvaluator evaluator,
+        DirectiveDiag diag, string where)
+    {
+        if (DirectiveExpressionFragment.ParseCce(text) is not { } frag) { diag.Malformed(where, text); return false; }
+        return evaluator.EvaluateCce(frag.constantConditionalExpression(), where) ?? false;
+    }
+
+    /// <summary>Format-1 WHEN match (§7.3.13.4 GR4): subject == object, or (with THROUGH/THRU) the subject in the
+    /// inclusive NUMERIC range [object, object3] (SR12 — a range requires numeric operands). Non-numeric equality
+    /// is category-aware and length-sensitive (GR7).</summary>
+    private static bool MatchWhen(CtValue? subject, string whenText, CompileTimeExpressionEvaluator evaluator,
+        DirectiveDiag diag)
     {
         if (subject is null) return false;
-        var toks = Tokenize(whenText);
-        if (toks.Count == 0) return false;
-        int thru = toks.FindIndex(t => t.Kind == TokKind.Word &&
-            (t.Text.Equals("THROUGH", StringComparison.OrdinalIgnoreCase) || t.Text.Equals("THRU", StringComparison.OrdinalIgnoreCase)));
-        if (thru > 0 && thru + 1 < toks.Count)
+        var (loText, hiText) = SplitRange(whenText);
+        if (EvaluateOperandText(loText, evaluator, diag, ">>WHEN") is not { } lo) return false;
+        // §7.3.13.3 SR11 — all selection subjects and objects shall be of the same category.
+        if (subject.Category != lo.Category)
         {
-            var lo = ResolveToken(toks[0], defines);
-            var hi = ResolveToken(toks[thru + 1], defines);
-            return Relate(subject, ">=", lo) && Relate(subject, "<=", hi);
+            diag.Report(CtDiagCode.DirectiveRule,
+                ">>WHEN: a selection object shall be of the same category as the selection subject (ISO §7.3.13.3 SR11)");
+            return false;
         }
-        return Relate(subject, "=", ResolveToken(toks[0], defines));
-    }
-
-    /// <summary>Resolve a single token to a comparable value: a literal is itself; a name is its define (null if undefined).</summary>
-    private static Value? ResolveToken(Tok t, Dictionary<string, Value> defines) => t.Kind switch
-    {
-        TokKind.Number => new Value(true, decimal.Parse(t.Text, CultureInfo.InvariantCulture), t.Text),
-        TokKind.String => new Value(false, 0m, t.Value),
-        TokKind.Word => defines.TryGetValue(t.Text, out var v) ? v : null,
-        _ => null,
-    };
-
-    /// <summary>Apply a relational operator to two values (numeric compare when both numeric, else ordinal string compare).</summary>
-    private static bool Relate(Value? a, string op, Value? b)
-    {
-        if (a is null || b is null)
-            return op == "<>" ? !(a is null && b is null) : (op == "=" && a is null && b is null);
-
-        int cmp = a.IsNumeric && b.IsNumeric
-            ? decimal.Compare(a.Number, b.Number)
-            : string.CompareOrdinal(a.Str, b.Str);
-
-        return op switch
+        if (hiText is null) return subject.RelationalEquals(lo);   // GR4a — subject == object (boolean right-extends, §8.8.4.2.8)
+        if (EvaluateOperandText(hiText, evaluator, diag, ">>WHEN") is not { } hi) return false;
+        // GR4b / SR12 — an inclusive NUMERIC range.
+        if (subject.Category != CtCategory.Numeric || lo.Category != CtCategory.Numeric || hi.Category != CtCategory.Numeric)
         {
-            "=" => cmp == 0,
-            "<>" => cmp != 0,
-            "<" => cmp < 0,
-            ">" => cmp > 0,
-            "<=" => cmp <= 0,
-            ">=" => cmp >= 0,
-            _ => false,
-        };
+            diag.Report(CtDiagCode.DirectiveRule, ">>WHEN: a THROUGH range requires numeric operands (ISO §7.3.13.3 SR12)");
+            return false;
+        }
+        return subject.Number >= lo.Number && subject.Number <= hi.Number;
     }
+
+    /// <summary>Split a WHEN object at a top-level <c>THROUGH</c>/<c>THRU</c> word (the §7.3.13 range separator),
+    /// ignoring any occurrence inside a string literal. Returns (object, null) when no range is present.</summary>
+    private static (string Lo, string? Hi) SplitRange(string text)
+    {
+        int idx = FindRangeWord(text);
+        if (idx < 0) return (text.Trim(), null);
+        int end = idx;
+        while (end < text.Length && !char.IsWhiteSpace(text[end])) end++;
+        return (text[..idx].Trim(), text[end..].Trim());
+    }
+
+    private static int FindRangeWord(string text)
+    {
+        bool inStr = false;
+        char q = '\0';
+        for (int i = 0; i < text.Length; i++)
+        {
+            char c = text[i];
+            if (inStr) { if (c == q) inStr = false; continue; }
+            if (c is '"' or '\'') { inStr = true; q = c; continue; }
+            bool wordStart = i == 0 || char.IsWhiteSpace(text[i - 1]);
+            if (wordStart && (MatchesWordAt(text, i, "THROUGH") || MatchesWordAt(text, i, "THRU"))) return i;
+        }
+        return -1;
+    }
+
+    private static bool MatchesWordAt(string text, int i, string word)
+    {
+        if (i + word.Length > text.Length) return false;
+        if (string.Compare(text, i, word, 0, word.Length, StringComparison.OrdinalIgnoreCase) != 0) return false;
+        int after = i + word.Length;
+        return after == text.Length || char.IsWhiteSpace(text[after]);
+    }
+
+    // ── small directive-syntax helpers ────────────────────────────────────────────────────────────────────────
 
     /// <summary>Strip the leading <c>&gt;&gt;</c>, return the upper-cased directive keyword and the remainder.</summary>
     private static (string keyword, string rest) SplitDirective(string trimmed)
@@ -243,223 +345,32 @@ public static class ConditionalCompilationProcessor
         return (s[..sp].ToUpperInvariant(), sp < s.Length ? s[sp..].Trim() : "");
     }
 
-    /// <summary>Apply a <c>&gt;&gt;DEFINE compilation-variable-name AS { arithmetic-expression | boolean-expression |
-    /// literal | PARAMETER } [OVERRIDE] | OFF</c> directive (ISO §7.3.11). Enforces SR2 (§7.3.11.3 #2 — a
-    /// no-OVERRIDE redefinition to a DIFFERENT value is a violation), GR3 (OVERRIDE ⇒ unconditional set), GR4
-    /// (PARAMETER ⇒ the value comes from the operating environment; undefined when unavailable). NOTE: an
-    /// arithmetic/boolean EXPRESSION operand (§7.3.6/§7.3.7) still binds only its FIRST token today — the §7.3.6
-    /// compile-time evaluator is a separate Wave-D item; single-token literals + PARAMETER are exact.</summary>
-    private static void ApplyDefine(string rest, Dictionary<string, Value> defines,
-        DiagnosticBag? diagnostics, string? sourcePath, int lineIndex)
+    private static bool StartsWithWord(string s, string word) =>
+        s.StartsWith(word, StringComparison.OrdinalIgnoreCase)
+        && (s.Length == word.Length || char.IsWhiteSpace(s[word.Length]));
+
+    private static bool EndsWithWord(string s, string word) =>
+        s.EndsWith(word, StringComparison.OrdinalIgnoreCase)
+        && (s.Length == word.Length || char.IsWhiteSpace(s[s.Length - word.Length - 1]));
+
+    /// <summary>The frontend diagnostic gateway: the shared evaluator's code-preserving reports (any
+    /// <see cref="CtDiagCode"/>) and a fragment syntax error both route to COBOLNET1619 (the directive-expression
+    /// violation); the §7.3.11.3 SR2 redefinition is COBOLNET1618. <see cref="Line"/> is set before each directive.</summary>
+    private sealed class DirectiveDiag(DiagnosticBag? bag, string? sourcePath) : ICtDiagnostics
     {
-        var toks = Tokenize(rest);
-        if (toks.Count == 0 || toks[0].Kind != TokKind.Word) return;
-        string name = toks[0].Text;
-        int idx = 1;
-        if (idx < toks.Count && toks[idx].Kind == TokKind.Word &&
-            toks[idx].Text.Equals("AS", StringComparison.OrdinalIgnoreCase)) idx++;
-        if (idx >= toks.Count) return;
+        private readonly string _path = sourcePath ?? "";
+        public int Line;
 
-        // OVERRIDE is the optional trailing phrase (GR3) — its presence bypasses SR2 and unconditionally sets.
-        bool over = toks[^1].Kind == TokKind.Word && toks[^1].Text.Equals("OVERRIDE", StringComparison.OrdinalIgnoreCase);
-        var v = toks[idx];
+        public void Report(CtDiagCode code, string message) => Emit("COBOLNET1619", message);
 
-        if (v.Kind == TokKind.Word && v.Text.Equals("OFF", StringComparison.OrdinalIgnoreCase))
-        {
-            defines.Remove(name);   // GR2 — undefine
-            return;
-        }
+        public void Report1618(string name) => Emit("COBOLNET1618",
+            $">>DEFINE: compilation variable '{name}' is redefined to a different value without the OVERRIDE "
+            + "phrase (ISO §7.3.11.3 SR2)");
 
-        // AS PARAMETER (GR4): the value is obtained from the operating environment; when no value is available the
-        // compilation variable is NOT defined. A value that parses as a numeric literal is numeric, else alphanumeric.
-        if (v.Kind == TokKind.Word && v.Text.Equals("PARAMETER", StringComparison.OrdinalIgnoreCase))
-        {
-            string? env = Environment.GetEnvironmentVariable(name);
-            if (env is null) { defines.Remove(name); return; }
-            var pv = decimal.TryParse(env, NumberStyles.Number, CultureInfo.InvariantCulture, out var num)
-                ? new Value(true, num, env) : new Value(false, 0m, env);
-            AssignDefine(name, pv, over, defines, diagnostics, sourcePath, lineIndex);
-            return;
-        }
+        public void Malformed(string where, string text) => Emit("COBOLNET1619",
+            $"{where}: malformed compile-time expression '{text}' (ISO §7.3.6 / §7.3.7 / §7.3.8)");
 
-        AssignDefine(name, Value.FromToken(v), over, defines, diagnostics, sourcePath, lineIndex);
-    }
-
-    /// <summary>Bind <paramref name="name"/> to <paramref name="newVal"/>, enforcing §7.3.11.3 SR2: without the
-    /// OVERRIDE phrase, a compilation variable already defined (and not OFF'd) may be redefined only to the SAME
-    /// value. A differing no-OVERRIDE redefinition is diagnosed (superset-continue: the new value still binds).</summary>
-    private static void AssignDefine(string name, Value newVal, bool over, Dictionary<string, Value> defines,
-        DiagnosticBag? diagnostics, string? sourcePath, int lineIndex)
-    {
-        if (!over && defines.TryGetValue(name, out var existing) && !existing.Equals(newVal))
-            diagnostics?.ReportError("COBOLNET1618",
-                $">>DEFINE: compilation variable '{name}' is redefined to a different value without the OVERRIDE "
-                + "phrase (ISO §7.3.11.3 SR2)", new SourceLocation(sourcePath ?? "", 0, lineIndex, 0), default);
-        defines[name] = newVal;
-    }
-
-    // ── constant-conditional-expression evaluation ────────────────────────────────────────────────────────────
-
-    private static bool Evaluate(string expr, Dictionary<string, Value> defines)
-    {
-        var parser = new CondParser(Tokenize(expr), defines);
-        bool result = parser.ParseOr();
-        return result;
-    }
-
-    private sealed class CondParser
-    {
-        private readonly List<Tok> _t;
-        private readonly Dictionary<string, Value> _defines;
-        private int _p;
-
-        public CondParser(List<Tok> tokens, Dictionary<string, Value> defines) { _t = tokens; _defines = defines; }
-
-        private Tok? Peek => _p < _t.Count ? _t[_p] : null;
-        private Tok Next() => _t[_p++];
-        private bool IsWord(string w) => Peek is { Kind: TokKind.Word } t && t.Text.Equals(w, StringComparison.OrdinalIgnoreCase);
-        private bool TakeWord(string w) { if (IsWord(w)) { _p++; return true; } return false; }
-
-        public bool ParseOr()
-        {
-            bool v = ParseAnd();
-            while (TakeWord("OR")) v = ParseAnd() || v;   // evaluate rhs unconditionally (no side effects); keep || for clarity
-            return v;
-        }
-
-        private bool ParseAnd()
-        {
-            bool v = ParseNot();
-            while (TakeWord("AND")) v = ParseNot() && v;
-            return v;
-        }
-
-        private bool ParseNot()
-        {
-            if (TakeWord("NOT")) return !ParseNot();
-            return ParsePrimary();
-        }
-
-        private bool ParsePrimary()
-        {
-            if (Peek is { Kind: TokKind.LParen })
-            {
-                _p++;
-                bool v = ParseOr();
-                if (Peek is { Kind: TokKind.RParen }) _p++;
-                return v;
-            }
-            return ParseCondition();
-        }
-
-        /// <summary>defined-condition | relation.</summary>
-        private bool ParseCondition()
-        {
-            if (Peek is null) return false;
-            Tok left = Next();
-            TakeWord("IS");                 // optional IS
-            bool negate = TakeWord("NOT");  // optional NOT (applies to the whole condition)
-
-            if (TakeWord("DEFINED"))
-            {
-                bool d = left.Kind == TokKind.Word && _defines.ContainsKey(left.Text);
-                return negate ^ d;
-            }
-
-            // relation: left relop right
-            string? op = ReadRelop();
-            if (op is null) return false;   // malformed — treat as false
-            if (Peek is null) return false;
-            Tok right = Next();
-            bool r = Relate(ResolveToken(left, _defines), op, ResolveToken(right, _defines));
-            return negate ^ r;
-        }
-
-        private string? ReadRelop()
-        {
-            if (Peek is not { Kind: TokKind.Op } t) return null;
-            _p++;
-            return t.Text;
-        }
-    }
-
-    /// <summary>A compilation-variable value (numeric or alphanumeric).</summary>
-    private sealed record Value(bool IsNumeric, decimal Number, string Str)
-    {
-        public static Value FromToken(Tok t) => t.Kind switch
-        {
-            TokKind.Number => new Value(true, decimal.Parse(t.Text, CultureInfo.InvariantCulture), t.Text),
-            TokKind.String => new Value(false, 0m, t.Value),
-            _ => new Value(false, 0m, t.Text),
-        };
-    }
-
-    // ── tokenizer ─────────────────────────────────────────────────────────────────────────────────────────────
-
-    private enum TokKind { Word, Number, String, Op, LParen, RParen }
-
-    private readonly record struct Tok(TokKind Kind, string Text, string Value);
-
-    private static List<Tok> Tokenize(string s)
-    {
-        var toks = new List<Tok>();
-        int i = 0;
-        while (i < s.Length)
-        {
-            char c = s[i];
-            if (char.IsWhiteSpace(c)) { i++; continue; }
-
-            if (c is '"' or '\'')
-            {
-                char q = c; i++;
-                var sb = new System.Text.StringBuilder();
-                while (i < s.Length)
-                {
-                    if (s[i] == q)
-                    {
-                        if (i + 1 < s.Length && s[i + 1] == q) { sb.Append(q); i += 2; continue; } // doubled quote
-                        i++; break;
-                    }
-                    sb.Append(s[i++]);
-                }
-                toks.Add(new Tok(TokKind.String, sb.ToString(), sb.ToString()));
-                continue;
-            }
-
-            if (c == '(') { toks.Add(new Tok(TokKind.LParen, "(", "")); i++; continue; }
-            if (c == ')') { toks.Add(new Tok(TokKind.RParen, ")", "")); i++; continue; }
-
-            if (c is '=' or '<' or '>')
-            {
-                // two-char relops first: <=, >=, <>
-                if (i + 1 < s.Length && (s[i + 1] == '=' || (c == '<' && s[i + 1] == '>')))
-                {
-                    toks.Add(new Tok(TokKind.Op, s.Substring(i, 2), "")); i += 2; continue;
-                }
-                toks.Add(new Tok(TokKind.Op, c.ToString(), "")); i++; continue;
-            }
-
-            // numeric literal: optional sign, digits, optional fractional part
-            if (char.IsDigit(c) || ((c == '+' || c == '-' || c == '.') && i + 1 < s.Length && char.IsDigit(s[i + 1])))
-            {
-                int start = i;
-                if (c is '+' or '-') i++;
-                while (i < s.Length && (char.IsDigit(s[i]) || s[i] == '.')) i++;
-                toks.Add(new Tok(TokKind.Number, s[start..i], ""));
-                continue;
-            }
-
-            // word: letters, digits, hyphen, underscore (a COBOL user-defined word / compiler-directive word)
-            if (char.IsLetter(c) || c == '_')
-            {
-                int start = i;
-                while (i < s.Length && (char.IsLetterOrDigit(s[i]) || s[i] == '-' || s[i] == '_')) i++;
-                toks.Add(new Tok(TokKind.Word, s[start..i], ""));
-                continue;
-            }
-
-            i++; // skip any other character
-        }
-        return toks;
+        private void Emit(string code, string message) =>
+            bag?.ReportError(code, message, new SourceLocation(_path, 0, Line, 0), default);
     }
 }

@@ -48,7 +48,8 @@ public sealed class CompileTimeExpressionEvaluatorTests
 
         var diag = new CollectingDiag();
         var ev = new CompileTimeExpressionEvaluator(
-            resolveNumericName: w => names is not null && names.TryGetValue(w, out var v) ? v : null,
+            resolveName: w => names is not null && names.TryGetValue(w, out var v)
+                ? CtValue.Numeric(v, v.ToString(System.Globalization.CultureInfo.InvariantCulture)) : null,
             diag: diag, vocab: Vocab, decimalPointIsComma: false);
         return (ev.EvaluateArithmeticOperand(ctx, "test"), diag);
     }

@@ -43,15 +43,31 @@ options {
     private readonly System.Collections.Generic.List<bool> _fnParenStack = new();
     private bool _primeFunctionArgs;
 
+    // COMPILER-DIRECTIVE EXPRESSION region (compile-time expression evaluator, ISO §7.3.6/§7.3.7/§7.3.8). The
+    // frontend fragment-parses a directive operand / constant-conditional-expression with the lexer primed here.
+    // Two directive-only effects (both context-sensitive — nil global blast radius): (1) 'DEFINED' becomes a
+    // token (the §7.3.8.4.4 defined-condition keyword — reserved nowhere else); (2) every '(' is a grouping
+    // LPAREN, never a subscript. Effect (2) is required because the subscript-vs-grouping decision treats a '('
+    // after any word that COULD be a data-name as a subscript, and the boolean operators (B-AND …) are legal
+    // data-names below 2023, so `A B-AND (…)` would mis-lex the group in SUBSCRIPT mode; a directive operand
+    // never subscripts, so every '(' is unambiguously a group (confirmed by token dump, DESIGN §4.1).
+    private bool _primeDirectiveExpr;
+
     private bool InFunctionArgs() => _primeFunctionArgs || _fnParenStack.Contains(true);
 
     // Fragment re-parse hook (the D2 keyword-omitted argument re-parse): treat the WHOLE input as one
     // function-argument region (the fragment is the text inside the argument parens).
     public void PrimeFunctionArgs() => _primeFunctionArgs = true;
 
+    // Fragment re-parse hook (the compile-time directive-expression parse): treat the WHOLE input as a directive
+    // operand / cce region — DEFINED is a token and every '(' groups (DESIGN §4.1).
+    public void PrimeDirectiveExpr() => _primeDirectiveExpr = true;
+
     private void OnDefaultLParen()
     {
-        if (PreviousTokenCouldBeDataName() && !PreviousIsFunctionName())
+        // A directive-expression region never subscripts: every '(' groups (DESIGN §4.1). Checked first so a '('
+        // after a boolean-operator data-name (e.g. `A B-AND (…)`, B-AND legal as a name below 2023) stays a group.
+        if (!_primeDirectiveExpr && PreviousTokenCouldBeDataName() && !PreviousIsFunctionName())
         {
             PushMode(SUBSCRIPT);   // subscript / ref-mod capture — the matching ')' is SUB_RPAREN (popMode)
             return;
@@ -678,6 +694,12 @@ FN_SIGNED_DECIMALLIT : {SignedLiteralCanStart()}? [+-] DEC_BODY -> type(SIGNED_D
 FN_SIGNED_INTEGERLIT : {SignedLiteralCanStart()}? [+-] INT_BODY -> type(SIGNED_INTEGERLIT) ;
 
 DECIMALLIT  : DEC_BODY ;
+
+// DEFINED — the §7.3.8.4.4 defined-condition keyword (`compilation-variable-name IS [NOT] DEFINED`). It is NOT a
+// reserved word in the source language: it is a token ONLY inside a primed compiler-directive-expression fragment
+// (the PrimeFunctionArgs precedent). Predicated + placed before IDENTIFIER so first-match picks it when primed;
+// when unprimed the predicate fails and 'DEFINED' lexes as an ordinary IDENTIFIER (a legal user data-name).
+DEFINED     : {_primeDirectiveExpr}? 'DEFINED' ;
 
 // ── IDENTIFIER (must come BEFORE INTEGERLIT) ──
 // COBOL-85 user-defined words: 1-30 chars from {A-Z, a-z, 0-9, hyphen},
