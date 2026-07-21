@@ -23,7 +23,7 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D IN PROGRESS — C2 evaluator FOUNDATION + rule-7b runtime + arithmetic-core/CONSTANT-rewire LANDED; NEXT = boolean fold + ANTLR grammar + frontend rewire; code HEAD `de39ba20`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D — ⛔ ledger-C2 COMPLETE: the frontend compile-time-expression DEFECT is CLOSED [boolean fold + ANTLR directive grammar + frontend rewire, Tokenize/CondParser DELETED, COBOLNET1619]; code HEAD `12f19906`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
   landed the full RECOGNIZE/VALIDATE/DIAGNOSE/GATE surface: the Formats-2/3 grammar MERGE + the `whenOperandAhead()`
@@ -62,12 +62,20 @@ checkpoint.
   `CtOperandVocabulary`; `DataBinder.BindConstantArithmetic` moved onto it (`EvalConstExpr`/`ParseConstLiteral`/
   `SoleNumericLiteral` deleted — no duplicate); byte-identical CONSTANT path (a 2-agent adversarial Workflow
   caught + fixed a transient sole-float-literal silent-drop before commit; a latent comma-mode COBOLNET0895
-  removed); 13 evaluator unit tests [`de39ba20`]. ⏭ **NEXT (the actual frontend DEFECT fix + the biggest/most
-  delicate piece):** the evaluator's **boolean fold** (`BitString` + `EvaluateBoolean` via the resolver + the
-  `CtValue` model) → the **ANTLR fragment/cce grammar** (`compileTimeOperandFragment` + `constantConditionalExpression`,
-  the `PrimeDirectiveExpr` lexer flag [`(` after a boolean op = grouping, `DEFINED` a token — confirmed by token
-  dump] ) + regen [shared `.g4` ⇒ FULL legacy guard] → **frontend rewire** (delete `Tokenize`/`CondParser`; directive
-  operands via fragment-parse + the shared evaluator) + a directive-expression conformance test. ·
+  removed); 13 evaluator unit tests [`de39ba20`]. ✅ **C2 COMPLETE [`12f19906`]** — the frontend DEFECT closed: the
+  **boolean fold** (`BitString` §8.8.2 mirroring the runtime `CobolBool`, `EvaluateBoolean` via the shared resolver,
+  the `CtValue` model), the **ANTLR fragment/cce grammar** (`compileTimeOperandFragment` + `constantConditionalExpression*`
+  fragment rules [zero blast radius], the `PrimeDirectiveExpr` lexer flag [`DEFINED` token + `(` groups], regen),
+  the **frontend rewire** (`Tokenize`/`CondParser` DELETED; operands via fragment-parse + the shared evaluator),
+  COBOLNET1619, the `directive_expressions` 2002 golden (passes greenfield + legacy). **THE LOAD-BEARING SPEC
+  CORRECTION — §7.3.3 SR10:** no float/figurative/concat in ANY directive operand (frontend-only bar; the CONSTANT
+  data entry keeps float acceptance, byte-identical). **A 5-dimension adversarial-review WORKFLOW caught 3 MAJOR
+  defects the suite missed** (all fixed + regression-tested compile-time AND runtime): the resolver deferred a
+  POSTFIX shift (a higher-prec FOLLOWING op folded into its operand — the runtime `ConditionBinder` shared this, so
+  COMPUTE-F2 mis-folded too); a boolean cce relation compared length-sensitively not §8.8.4.2.8 right-extend; a
+  shift count > `long.MaxValue` overflowed the cast. `boolExprAhead()` completed for the shift operators (a
+  latent-gap main-parse fix). Design SSOT `DESIGN-compile-time-expressions.md` = **IMPLEMENTED**. ⏭ **NEXT (Wave-D
+  remainder):**
   **>>SOURCE FORMAT mid-file** (§7.3.24.3 GR1 — restructures `ReferenceFormatProcessor` from one-format-per-file to
   per-segment, an every-program path) · the **real FLAG-14/FLAG-02 flagging** (recognition landed; the migration/
   obsolescence diagnostics need the flaggable-construct census) · >>COBOL-WORDS · CC-directives-inside-COPY (§7.2.1).
@@ -82,16 +90,21 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD `de39ba20` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield Conformance
-  **3784** (+ `boolean_shift_mixed`) · unit **392** (+ the 13 `BooleanExpressionResolver` + 13 `CompileTimeExpressionEvaluator` tests) · characterization
-  **33** byte-exact. **Full legacy guard (`scripts/guard.sh`) `=== ALL GREEN ===`** at BOTH C2 commits (`09760ca3`
-  foundation + `a1d6c7c7` rule-7b runtime), greenfield suites green at each. ⚠ The legacy `ConformanceTests` runs
-  the shared corpus against the frozen legacy too — a new 2023/boolean golden needs a `GreenfieldOnly` exclusion in
-  the SAME commit ([[feedback_legacy_suite_on_shared_corpus]]; the guard caught the omission for `boolean_shift_mixed`
-  before push). ⚠ **A capture rule (owner-flagged):** never `| tail -N` a guard/test run whose verdict you need — the
-  guard prints `=== ALL GREEN ===` near, not at, the end, so `tail` can drop it and surface a trailing flaky-cleanup
-  line instead; redirect FULL output to a file and `grep 'ALL GREEN'` + `grep -iE 'crash|abort|Failed: *[1-9]'`.
-  Build `CobolSharp.sln` before any `--no-build` test run.
+- **Battery at code-HEAD `12f19906` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield unit **447**
+  (+ the `CompileTimeBooleanCceTests` boolean-fold/cce + the C2 defect regressions) · characterization **33**
+  byte-exact · greenfield Conformance **3784** + the `directive_expressions` 2002 golden (both pipelines).
+  **⛔ TESTING DISCIPLINE (owner-corrected — a repeated miss): gate each WAVE with the WAVE-LOCAL gate (~2–3 min:
+  fresh build + characterization + `CorpusRunnerTests` FILTERED to the wave + TARGETED unit + a CLI probe), NOT the
+  full suites.** The COMPREHENSIVE gate (FULL greenfield Conformance + FULL legacy guard) is **once per BATCH,
+  before merge only** (§3). Do NOT default to the full greenfield unit / full Conformance / `guard.sh` per commit.
+  For the legacy guard when forced, `scripts/guard-fast.sh` (~3.3 min parallel, byte-equivalent) is the tool — NOT
+  the ~20-min serial `guard.sh`. THIS commit's wave-local gate was green (build · characterization 33 · filtered
+  boolean+directive CorpusRunner · targeted 94 CC/evaluator tests · CLI probe `PROBE-OK`); guard-fast ran clean as a
+  bonus (NIST 353 MATCH / 0 regression). ⚠ The legacy `ConformanceTests` AUTO-DISCOVERS every on-disk golden — a new
+  2023/boolean golden that the frozen legacy can't reproduce needs a `GreenfieldOnly` exclusion same commit
+  ([[feedback_legacy_suite_on_shared_corpus]]); `directive_expressions` needs none (both pipelines agree). ⚠ **Capture
+  rule:** never `| tail -N` a guard verdict — redirect FULL output to a file, `grep 'ALL GREEN'` + `grep -iE
+  'crash|abort|Failed: *[1-9]'`. Build `CobolSharp.sln` before any `--no-build` test run.
 - **Mission target (owner decision D13, 2026-07-19): 100% CONFORMING** per ISO §4.2.16 across ALL FOUR editions
   (85/2002/2014/2023) — mandatory core complete + required implementor documentation; optional modules may stay
   documented non-support. Definition of done = the PHASE-14 Step-0 traceability inventory at zero GAP.
@@ -125,13 +138,14 @@ checkpoint.
   **1609 (XS-RESUME-PLACEMENT) subsumed by COBOLNET0712**. All bands are COMPILER-channel raw codes (the 1542/0808
   pattern — NOT catalog descriptors; the split-code 0899 staged gate rides `DiagnosticCatalog.ConstructStagedNotImplemented`).
   **1618 SHIPPED 2026-07-20 by Wave D** (define-no-override-redefinition — §7.3.11.3 SR2, a FRONTEND `ReportError`
-  code ⇒ a DiagnosticCatalog descriptor, NOT the compiler-channel raw band). **1619 RESERVED for ledger C2** — the
-  frontend directive-expression violation (`>>DEFINE`/`>>IF`/`>>EVALUATE`/`>>DISPLAY` operand; design SSOT
-  `DESIGN-compile-time-expressions.md §5.2`), to be EMITTED by the C2 frontend rewire (not yet in src). **COBOLNET1569
+  code ⇒ a DiagnosticCatalog descriptor, NOT the compiler-channel raw band). **1619 SHIPPED 2026-07-21 by ledger C2**
+  (`12f19906`) — the frontend directive-expression violation (`directive-expression-violation` — a syntax error, a
+  §7.3.3 SR10 float/figurative/concat, a wrong-category/non-literal operand, a §7.3.6 arithmetic rule, or a §7.3.8
+  cce rule); a FRONTEND `DiagnosticBag.ReportError` code ⇒ a `DiagnosticCatalog` descriptor. **COBOLNET1569
   RETIRED** (the boolean-shift-mixed reject removed — the mixed form is now ACCEPTED per §8.8.2 rule 7b; DEVLOG 943).
   **NEXT FREE = 1620** — allocate only
   after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
-  (max = 1618, 1619 reserved-not-emitted) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
+  (max = 1619) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
   the frontend channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is
   queued — ledger V11 note). 1589–1590 · 1598 · 1602/1603 · 1609 · 1613 stay released/reserved mid-band holes.
   A wave that does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
