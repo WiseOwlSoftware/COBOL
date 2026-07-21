@@ -87,8 +87,23 @@ checkpoint.
   losing a blank line; the regex missing a cols-73-80 sequence-tagged directive) — both fixed + regression-tested.
   ⏭ Residual: `>>SOURCE FORMAT`/free-form are 2002+ (should REJECT at `--std cobol85` — a VERSION-matrix/VCR gap);
   a copybook's own `>>SOURCE FORMAT` (§7.3.24.3 GR5 scoped-and-reverting) rides the CC-in-COPY item.
-  ⏭ **NEXT (Wave-D remainder):** the **real FLAG-14/FLAG-02 flagging** (recognition landed; the migration/
-  obsolescence diagnostics need the flaggable-construct census) · >>COBOL-WORDS · CC-directives-inside-COPY (§7.2.1).
+  ⏭ **NEXT (Wave-D remainder) — IN PROGRESS: the real FLAG-14/FLAG-02 flagging.** ✅ **DESIGN SSOT COMPLETE
+  [`docs/rearchitecture/DESIGN-flag-directives.md`]** (2026-07-21): an 8-agent spec+code scout produced the
+  adversarially-verified per-option census (FLAG-14 ALL+12 incl. WRITE-END-OF-PAGE which the first census pass
+  dropped — the verify caught it; FLAG-02 ALL+5), each option → GR4 sub-rule → Annex E.2 item → detection site.
+  **STRUCTURAL DECISION:** a dedicated `FlagConformancePass` (sibling to VersionConformancePass, reusing the
+  drift-proof `StatementChildren()` traversal — NOT a bolt-on: flagging is directive-driven + always-Warning,
+  orthogonal to `--std` edition gating), ONE `FlagState` per-option toggle-fold (the `>>REF-MOD-ZERO-LENGTH`
+  template), ONE `FlagDirectiveLine` parser + `FlagOption` catalog, TWO collection sites (bound options
+  post-COPY via a new `FlagDirectiveProcessor`; the two frontend-only options — compile-time-arith b + `>>EVALUATE`
+  c, no bound residue — inline in `ConditionalCompilationProcessor`), diagnostics **COBOLNET1620** (Flag02Warning)
+  / **1621** (Flag14Warning) with per-option ConstructId/Citation, plus the directive-word edition gates
+  (>>FLAG-14 = 2023 intro; >>FLAG-02 = 2014 intro / 2023 obsolete). 5-increment plan (Incr 0 core+READ-PREVIOUS →
+  Incr 4 the new-analysis options). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
+  = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
+  CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
+  with shared directive state — the copybook >>SOURCE FORMAT GR5 reversion rides the same driver; GnuCOBOL-diff
+  gated, high blast radius).
   **THEN the PERFORM Format-3 RUNTIME interceptor** (STAGED at 0899 — use the **pc-RANGE architecture** [reuse
   `__RunUse`/`ResumeSignal`, singular-pattern with declaratives; NOT the design §5 lambda approach — C# cannot `goto`
   out of a lambda], gate `__EcPerform` on "unit HAS an F3 PERFORM" so non-F3 output stays byte-identical; design SSOT
