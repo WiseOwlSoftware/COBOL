@@ -125,9 +125,13 @@ checkpoint.
   **1609 (XS-RESUME-PLACEMENT) subsumed by COBOLNET0712**. All bands are COMPILER-channel raw codes (the 1542/0808
   pattern — NOT catalog descriptors; the split-code 0899 staged gate rides `DiagnosticCatalog.ConstructStagedNotImplemented`).
   **1618 SHIPPED 2026-07-20 by Wave D** (define-no-override-redefinition — §7.3.11.3 SR2, a FRONTEND `ReportError`
-  code ⇒ a DiagnosticCatalog descriptor, NOT the compiler-channel raw band). **NEXT FREE = 1619** — allocate only
+  code ⇒ a DiagnosticCatalog descriptor, NOT the compiler-channel raw band). **1619 RESERVED for ledger C2** — the
+  frontend directive-expression violation (`>>DEFINE`/`>>IF`/`>>EVALUATE`/`>>DISPLAY` operand; design SSOT
+  `DESIGN-compile-time-expressions.md §5.2`), to be EMITTED by the C2 frontend rewire (not yet in src). **COBOLNET1569
+  RETIRED** (the boolean-shift-mixed reject removed — the mixed form is now ACCEPTED per §8.8.2 rule 7b; DEVLOG 943).
+  **NEXT FREE = 1620** — allocate only
   after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
-  (max = 1618) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
+  (max = 1618, 1619 reserved-not-emitted) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
   the frontend channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is
   queued — ledger V11 note). 1589–1590 · 1598 · 1602/1603 · 1609 · 1613 stay released/reserved mid-band holes.
   A wave that does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
