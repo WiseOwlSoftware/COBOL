@@ -196,6 +196,31 @@
       "source": "        >>REF-MOD-ZERO-LENGTH ON\n       IDENTIFICATION DIVISION.\n       PROGRAM-ID. RMZL.\n       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W PIC X(5) VALUE \"HELLO\".\n       01 R PIC X(5).\n       PROCEDURE DIVISION.\n       MAIN.\n           MOVE W (3:0) TO R.\n           DISPLAY R.\n           STOP RUN.\n"
     },
     {
+      "id": "flag-14-directive-2023",
+      "description": "The >>FLAG-14 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §7.3.15) — a COBOL-2023 addition: Annex E.2 item 5 lists FLAG-14 among the compiler-directive words new to 2023. It directs the implementor's warning mechanism to flag 2014-to-2023 incompatibilities (GR1). Recognized and collected by FlagDirectiveProcessor and folded per option per source line by FlagState (FlagConformancePass emits the per-option COBOLNET1621 warning); the introduction gate rejects the directive word below 2023.",
+      "display": ">>FLAG-14 directive",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §7.3.15; Annex E.2 item 5 (compiler-directive words added in 2023)",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 64 (FLAG-14 directive — 2023 introduction)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLG14.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n       >>FLAG-14 READ-PREVIOUS ON\n           DISPLAY \"Y\".\n           STOP RUN.\n"
+    },
+    {
+      "id": "flag-02-directive-2014",
+      "description": "The >>FLAG-02 { ALL | option... } { ON | OFF } migration-flagging directive (ISO §7.3.14) — introduced in COBOL-2014 to flag 2002-to-2014 incompatibilities (GR1; the directive references the 2014 edition, and Annex E.2 item 5 lists only FLAG-14 as new to 2023, so FLAG-02 predates 2023). It is OBSOLETE (NOT removed) in COBOL-2023 — §7.3.14.1 NOTE: 'an obsolete element in this Working Draft International Standard and is to be deleted from the next edition'. Per §4.2.13 an implementation SHALL SUPPORT obsolete elements, so at 2023 it STILL COMPILES and carries the COBOLNET0903 obsolete warning (never a 0902 removal error). Modeled introducedIn=2014 + obsoleteIn=2023: the introduction gate rejects below 2014, the obsolete gate warns at 2023.",
+      "display": ">>FLAG-02 directive",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO §7.3.14; §7.3.14.1 NOTE (obsolete in 2023); §4.2.13 (obsolete elements shall be supported + warned)",
+      "introducedIn": 2014,
+      "removedIn": null,
+      "obsoleteIn": 2023,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR rows 91/96/115 (FLAG-02 directive — 2014 introduction, obsolete 2023)",
+      "source": "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLG02.\n       PROCEDURE DIVISION.\n       MAIN.\n           DISPLAY \"X\".\n       >>FLAG-02 I-O-STATUS-07 ON\n           DISPLAY \"Y\".\n           STOP RUN.\n"
+    },
+    {
       "id": "external-type-declaration-2023",
       "description": "A strongly-typed EXTERNAL type declaration (ISO §13.18.22.3 SR1/SR5; §8.5.3; Annex E.3 item 10) — a COBOL-2023 addition. E.3 item 10 states external items 'could not be strongly typed' before 2023, so it is specifically the STRONG+EXTERNAL combination on a level-1 TYPEDEF that is new; SR5 forces a strongly-typed external record's type to itself be a strong external type declaration. A WEAK 'TYPEDEF IS EXTERNAL' (no STRONG) was already valid in COBOL-2002 (§13.18.58.3 SR3) and is NOT gated. Gated on the co-occurrence of the EXTERNAL clause with a STRONG TYPEDEF clause on one level-1 data description entry. Below 2023 the strong external type declaration is rejected.",
       "display": "a strongly-typed EXTERNAL type declaration",

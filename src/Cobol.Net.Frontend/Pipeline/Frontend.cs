@@ -135,7 +135,7 @@ public sealed class Frontend
         // >>FLAG-02 / >>FLAG-14 (ISO §7.3.14 / §7.3.15): collect the per-option ON/OFF toggle events on the FINAL
         // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
         // anchoring discipline). Line-count preserving like the stages above.
-        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath);
+        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, DialectLevel, Permissive, diagnostics, sourcePath);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "FlagDirectiveProcessor changed the line count (hazard H3)");

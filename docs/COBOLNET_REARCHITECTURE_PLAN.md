@@ -103,9 +103,15 @@ checkpoint.
   collect on final text → `FlagState` per-option line-fold → the dedicated `FlagConformancePass` ANTLR parse-tree
   visitor, threaded frontend→driver→binder) + the two syntactic detectors **FLAG-14 h READ-PREVIOUS** (1621) and
   **FLAG-02 c I-O-STATUS-07** (CLOSE NO REWIND/UNIT, 1620); diagnostics 1620/1621/1622; 16 unit tests + CLI-probed;
-  characterization 33/33 byte-exact (zero-overhead invariant holds). ⏭ NEXT = Incr 0b (directive-word edition gates
-  + constructs.json rows) → Incr 1 (data/VALUE + WRITE + TERMINATE options) → Incr 2 (frontend-inline b/c) →
-  Incr 3 (state-coupled) → Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
+  characterization 33/33 byte-exact (zero-overhead invariant holds). ✅ **Incr 0b LANDED** — the directive-WORD
+  edition gates through the ONE `ConstructRegistry` (uniform-with-every-construct, NOT a bespoke gate):
+  `flag-14-directive-2023` (introducedIn 2023 → 0900 below) and `flag-02-directive-2014` (introducedIn 2014 +
+  **obsoleteIn 2023** — the first matrix row combining introduction + obsolescence; `StatusAt` handles it). ⛔ SPEC
+  NAILED (owner Q, PDF-confirmed p.100 §7.3.14.1 + §4.2.13): FLAG-02 is OBSOLETE not removed in 2023 → must still
+  COMPILE + carry the **0903 obsolete warning** (§4.2.13 "shall support obsolete elements"); a `removedIn`/0902
+  reject would be a conformance violation. CLI-probed all 4 editions; version-matrix + drift + characterization green.
+  ⏭ NEXT = Incr 1 (data/VALUE + WRITE + TERMINATE options) → Incr 2 (frontend-inline b/c) → Incr 3 (state-coupled)
+  → Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
   CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
   with shared directive state — the copybook >>SOURCE FORMAT GR5 reversion rides the same driver; GnuCOBOL-diff

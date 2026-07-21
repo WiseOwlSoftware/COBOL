@@ -55,9 +55,14 @@ The directive *words* were added at different editions (Annex E.2 item 5 lists `
 * `>>FLAG-14` — a **2023 introduction** (below 2023 the word is a compilation-variable name, not a directive):
   introduction gate **COBOLNET0900** below 2023, via `ConstructRegistry.Check` (the `>>REF-MOD-ZERO-LENGTH`
   precedent). New registry construct `Flag14Directive2023`.
-* `>>FLAG-02` — introduced with the **2014** standard (it flags 2002↔2014); **obsolete at 2023** (§7.3.14.1
-  NOTE → the 0903 archaic-warning). New registry construct `Flag02DirectiveObsolete2023` (a dual-window: 0900
-  below 2014, 0903 archaic at 2023). Recognized-and-flagged even when obsolete — never silently dropped.
+* `>>FLAG-02` — introduced with the **2014** standard (it flags 2002↔2014); **obsolete — NOT removed — at 2023**
+  (§7.3.14.1 NOTE, PDF-confirmed p.100: *"an obsolete element in this Working Draft … to be deleted from the
+  **next** edition"*). Per **§4.2.13** an implementation *shall support* obsolete elements and *shall provide a
+  warning mechanism* to flag them — so at 2023 it must still **compile** and carry the **0903 obsolete warning**,
+  never a `removedIn`/0902 rejection (that would refuse legal, still-supported source). Registry row
+  `flag-02-directive-2014` = `introducedIn:2014, obsoleteIn:2023` (0900 below 2014, clean 2014–2022, 0903 at 2023).
+  Recognized-and-flagged even when obsolete — never silently dropped. (F.2, which §4.2.13 says lists obsolete
+  elements, does not name FLAG-02 — an ISO gap; the §7.3.14.1 NOTE is the direct authority.)
 
 ## 1. The verified census (adversarially reviewed 2026-07-21)
 
