@@ -23,7 +23,7 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-20, HEAD `7c58b7e9`):** the GRAMMAR BATCH is **6 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-20, HEAD `178d7603`; last CODE commit `7c58b7e9`, docs-only since):** the GRAMMAR BATCH is **6 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), **PICTURE EDITING (§13.18.40.2,
   COBOL-2023)**, **VALUE Format 2 (§13.18.63.2, COBOL-2002)** all LANDED. **NEXT = PERFORM Format 3 (§14.9.28, C5)** — the
   three figure-reading questions are now RESOLVED from the rendered PDF page 712 (they were already in the repaired
@@ -44,7 +44,7 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at HEAD `7c58b7e9` (2026-07-20, branch `phase-13-grammar-batch`):** greenfield Conformance
+- **Battery at code-HEAD `7c58b7e9` (2026-07-20; docs-only commits since → tip `178d7603`; branch `phase-13-grammar-batch`):** greenfield Conformance
   **3752** · unit **313** · characterization **33** byte-exact · full legacy guard (legacy unit+integration+all 350
   NIST) **ALL GREEN**. Batch 2 (PICTURE EDITING + VALUE Format 2) changed shared `CobolData.g4` + the CobolEdit /
   CobolDynTable runtime, so it ran the full guard; the VALUE-Format-2 glued-multi-literal reject was validated
@@ -68,14 +68,18 @@ checkpoint.
   SR20 1586 · value-format2-to-subscript SR21 1587 · value-format2-dynamic-no-to SR22 1588; the reserved 1589–1590
   RELEASED per the no-hole rule). **1591–1596 SHIPPED 2026-07-20 by PICTURE EDITING** (SR8 char-1 1591 · SR11
   distinct-char-1 1592 · SR10 char-1-in-mask 1593 · SR9 literal-≤50 1594 · SR12a neg/pos-width 1595 · SR12b FOR-symbol-set
-  1596; the reserved 1597–1602 RELEASED). Both bands are COMPILER-channel raw codes (the 1542/0808 pattern — NOT catalog
+  1596). Both bands are COMPILER-channel raw codes (the 1542/0808 pattern — NOT catalog
   descriptors; the split-code 0899 staged-render gate rides `DiagnosticCatalog.ConstructStagedNotImplemented`).
-  **NEXT FREE = 1589** — allocate only after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
+  **NEXT FREE = 1589** (the lowest free hole) — allocate only after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
   (max = 1596) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
   the frontend channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is
   queued — ledger V11 note).
-  ⚠ **RESERVED, not yet shipped:** **1603–1613** PERFORM Format 3 (+ its §14.9.28.3 SR8 residue). A wave that does NOT
-  need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
+  ⚠ **RESERVED for PERFORM Format 3 (NEXT): 1597–1617** (21 codes — the SR bans, per
+  `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` §3; SUPERSEDES the old too-small 1603–1613
+  reservation. ⛔ The design's own synthesis first said "next-free 1585" from a catalog-ONLY scan — WRONG, since
+  1585-1596 are compiler-channel codes not in the catalog; corrected to 1597–1617 after BOTH scans agreed — the classic
+  catalog-only-scan collision, avoided). 1589–1590 stay released mid-band holes; after PERFORM Format 3, NEXT FREE = 1618.
+  A wave that does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
   1550–1552 are unallocated mid-band holes. Intro gates 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
   warning band 1560.
 - **RELEASE MILESTONES (D14): v1.0 = the P15 exit (100% conforming ×4); P16 CIL = v2 (off the conformance
