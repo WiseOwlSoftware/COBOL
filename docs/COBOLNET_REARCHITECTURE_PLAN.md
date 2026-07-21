@@ -110,8 +110,21 @@ checkpoint.
   NAILED (owner Q, PDF-confirmed p.100 §7.3.14.1 + §4.2.13): FLAG-02 is OBSOLETE not removed in 2023 → must still
   COMPILE + carry the **0903 obsolete warning** (§4.2.13 "shall support obsolete elements"); a `removedIn`/0902
   reject would be a conformance violation. CLI-probed all 4 editions; version-matrix + drift + characterization green.
-  ⏭ NEXT = Incr 1 (data/VALUE + WRITE + TERMINATE options) → Incr 2 (frontend-inline b/c) → Incr 3 (state-coupled)
-  → Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
+  ✅ **Incr 1a LANDED** (`39a93af9`) — the VALUE-clause options **g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO** (the same
+  predicate — figurative ZERO in a numeric-edited item's VALUE — so one `VisitDataDescriptionEntry` detector serves
+  both). Establishes the DATA-arm-free approach the owner's spec Q settled: **parse-arm anchoring** (§7.3.15.4 GR2
+  "all text that follows" ⇒ source-position, so `ctx.Start.Line`, NOT the source-line-less resolved forest);
+  numeric-edited category via the ONE `PictureAnalyzer` on the parse PIC_STRING (discard `EditionContext`, no
+  re-emit; FILLER-safe); figurative ZERO via a generic `FirstDescendant<FigurativeConstantContext>`. 20 unit tests +
+  CLI-probed + characterization 33/33. ⏭ **NEXT — the Incr 1 remainder (each its OWN careful pass):**
+  **Incr 1b = j VALUE-EDITING + k VALUE-FIG-CON-LENGTH** (⚠ SUBTLE — derive the exact predicate from §13.18.63
+  SR6/SR11 + the §13.18.40 editing-character set BEFORE coding; a wrong "editing symbols" set silently false-flags an
+  advisory diagnostic, which tests would only encode). **Incr 1c = m WRITE-END-OF-PAGE** (WRITE + `FileModel.Linage`
+  present + no `writeAtEndOfPage`) **+ FLAG-02 f TERMINATE-WITH-VARYING** (TERMINATE + a report whose group fields
+  carry `Varyings`) — crisp predicates, but both need a resolved-model lookup (record→file, report→ReportModel)
+  threaded into the parse visitor from `GroupBindContext.Units[].Data`. THEN Incr 2 (frontend-inline b/c) → Incr 3
+  (state-coupled: i REF-MOD-ZERO-LENGTH, d MOVE-TO-SAME-NAME, e RANGE-EXCEPTION-FOR-INDEX) → Incr 4 (new-analysis:
+  I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
   CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
   with shared directive state — the copybook >>SOURCE FORMAT GR5 reversion rides the same driver; GnuCOBOL-diff
