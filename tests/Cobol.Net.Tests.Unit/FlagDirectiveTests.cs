@@ -241,4 +241,69 @@ public sealed class FlagDirectiveTests
             "       >>FLAG-14 NUM-ED-ZERO-FIGCONST ON\n", "01 NE PIC ZZ9 VALUE 5."));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
     }
+
+    // ── Incr 1c: FLAG-14 m WRITE-END-OF-PAGE (§7.3.15.4 GR4 m) — WRITE + file has LINAGE + no AT EOP ──
+
+    private static string WriteProgram(bool linage, string directive, string writeStmt) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGWR.\n       ENVIRONMENT DIVISION.\n" +
+        "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT OUTF ASSIGN \"of.txt\".\n" +
+        "       DATA DIVISION.\n       FILE SECTION.\n" +
+        (linage ? "       FD OUTF\n           LINAGE IS 60 LINES.\n" : "       FD OUTF.\n") +
+        "       01 OUT-REC PIC X(80).\n       PROCEDURE DIVISION.\n       MAIN.\n           OPEN OUTPUT OUTF.\n" +
+        directive + "           " + writeStmt + "\n           CLOSE OUTF.\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_WriteEndOfPageOn_Flags_WriteWithoutEopOnLinageFile()
+    {
+        var warnings = CompileWarnings(WriteProgram(linage: true,
+            "       >>FLAG-14 WRITE-END-OF-PAGE ON\n", "WRITE OUT-REC."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("WRITE-END-OF-PAGE", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_WriteEndOfPage_NotFlagged_WhenEopPhraseIsPresent()
+    {
+        var warnings = CompileWarnings(WriteProgram(linage: true,
+            "       >>FLAG-14 WRITE-END-OF-PAGE ON\n", "WRITE OUT-REC AT END-OF-PAGE CONTINUE END-WRITE."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_WriteEndOfPage_NotFlagged_OnNonLinageFile()
+    {
+        // The file has no LINAGE clause, so a WRITE to it does not "allow" an END-OF-PAGE phrase (§14.9.51).
+        var warnings = CompileWarnings(WriteProgram(linage: false,
+            "       >>FLAG-14 WRITE-END-OF-PAGE ON\n", "WRITE OUT-REC."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    // ── Incr 1c: FLAG-02 f TERMINATE-WITH-VARYING (§7.3.14.4 GR4 f) — TERMINATE of a report with a VARYING clause ──
+
+    private static string ReportProgram(bool varying, string directive) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGT.\n       ENVIRONMENT DIVISION.\n" +
+        "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT RPT ASSIGN \"r.rpt\".\n" +
+        "       DATA DIVISION.\n       FILE SECTION.\n       FD RPT REPORT IS R.\n" +
+        "       WORKING-STORAGE SECTION.\n       01 WS-SEQ PIC 9 VALUE 0.\n" +
+        "       REPORT SECTION.\n       RD R.\n       01 DET TYPE DE.\n          02 LINE PLUS 1.\n" +
+        (varying
+            ? "             03 COLUMNS ARE 1 5 PIC Z9 SOURCE IS RV\n                VARYING RV FROM WS-SEQ BY 1.\n"
+            : "             03 COLUMN 1 PIC Z9 SOURCE IS WS-SEQ.\n") +
+        "       PROCEDURE DIVISION.\n       MAIN.\n           OPEN OUTPUT RPT.\n           INITIATE R.\n" +
+        "           GENERATE DET.\n" + directive + "           TERMINATE R.\n           CLOSE RPT.\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_TerminateWithVaryingOn_Flags_ReportContainingVarying()
+    {
+        var warnings = CompileWarnings(ReportProgram(varying: true, "       >>FLAG-02 TERMINATE-WITH-VARYING ON\n"));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal)
+            && w.Contains("TERMINATE-WITH-VARYING", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_TerminateWithVarying_NotFlagged_ReportWithoutVarying()
+    {
+        var warnings = CompileWarnings(ReportProgram(varying: false, "       >>FLAG-02 TERMINATE-WITH-VARYING ON\n"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1620", StringComparison.Ordinal));
+    }
 }

@@ -30,15 +30,23 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
 {
     private readonly FlagState _flag;
     private readonly IDiagnosticSink _sink;
+    // Resolved-model lookups keyed by SOURCE NAME (the flag pass runs before the file-connector renaming, so the
+    // model still carries source names — see BinderDriver): the WRITE targets (record- and file-names) whose file
+    // has a LINAGE clause (FLAG-14 m), and the report-names whose description carries a VARYING clause (FLAG-02 f).
+    private readonly IReadOnlySet<string> _linageWriteTargets;
+    private readonly IReadOnlySet<string> _varyingReports;
     // A discard EditionContext so the reused PictureAnalyzer (the ONE picture-category mechanism) can classify a
     // parse-tree PICTURE string WITHOUT re-emitting its bind-time diagnostics to the real sink. At 2023 (the
     // superset) so no legal symbol is spuriously rejected; the picture was already validated during binding.
     private readonly EditionContext _discard = new(2023);
 
-    private FlagConformancePass(FlagState flag, IDiagnosticSink sink)
+    private FlagConformancePass(FlagState flag, IDiagnosticSink sink,
+        IReadOnlySet<string> linageWriteTargets, IReadOnlySet<string> varyingReports)
     {
         _flag = flag;
         _sink = sink;
+        _linageWriteTargets = linageWriteTargets;
+        _varyingReports = varyingReports;
     }
 
     /// <summary>Flag every construct an active FLAG option covers. A no-op (no walk) when no FLAG directive is
@@ -47,7 +55,26 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     public static void Run(GroupBindContext group, FlagState flag, IDiagnosticSink sink)
     {
         if (!flag.Any) return;
-        new FlagConformancePass(flag, sink).Visit(group.Tree);
+
+        // Build the two source-name lookups the statement detectors need (m WRITE-END-OF-PAGE / f
+        // TERMINATE-WITH-VARYING). Files/reports live in program units (not OO class data), so units suffice.
+        var linage = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var varying = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var unit in group.Units)
+        {
+            foreach (var file in unit.Data.Files)
+                if (file.Linage is not null)
+                {
+                    linage.Add(file.CobolName);
+                    foreach (var rec in file.Records)
+                        if (rec.CobolName is { } rn) linage.Add(rn);
+                }
+            foreach (var report in unit.Data.Reports)
+                if (report.Groups.Any(g => g.Lines.Any(l => l.Fields.Any(f => f.Varyings.Count > 0))))
+                    varying.Add(report.Name);
+        }
+
+        new FlagConformancePass(flag, sink, linage, varying).Visit(group.Tree);
     }
 
     /// <summary>Emit the option's Warning if it is flagging at <paramref name="line"/>. The Code is per-directive;
@@ -104,6 +131,37 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
             Flag(FlagOption.Flag14NumEdZeroFigconst, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
             Flag(FlagOption.Flag14ValueZero, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
         }
+        return base.VisitChildren(ctx);
+    }
+
+    // ── FLAG-14 m WRITE-END-OF-PAGE (§7.3.15.4 GR4 m) — a WRITE that ALLOWS an END-OF-PAGE phrase (its file has a
+    //    LINAGE clause, §14.9.51) but does not specify it. The "allows EOP" fact is the file's LINAGE, resolved by
+    //    name from the model; anchored at the WRITE. ──
+    public override object? VisitWriteStatement(CobolParserCore.WriteStatementContext ctx)
+    {
+        if (ctx.writeAtEndOfPage() is null)
+        {
+            // recordName (a dataReference — unqualified for a WRITE record in practice; a qualified record name is a
+            // rare false-negative for this advisory flag) or the FILE fileName form.
+            string? target = ctx.recordName()?.GetText() ?? ctx.fileName()?.GetText();
+            if (target is not null && _linageWriteTargets.Contains(target))
+                Flag(FlagOption.Flag14WriteEndOfPage, ctx.Start.Line,
+                    "the WRITE without an END-OF-PAGE phrase (the file has a LINAGE clause)");
+        }
+        return base.VisitChildren(ctx);
+    }
+
+    // ── FLAG-02 f TERMINATE-WITH-VARYING (§7.3.14.4 GR4 f) — a TERMINATE of a report whose description contains a
+    //    VARYING clause (§13.18.64). Flagged once per TERMINATE when any named report carries a VARYING. ──
+    public override object? VisitTerminateStatement(CobolParserCore.TerminateStatementContext ctx)
+    {
+        foreach (var report in ctx.reportName())
+            if (_varyingReports.Contains(report.GetText()))
+            {
+                Flag(FlagOption.Flag02TerminateWithVarying, ctx.Start.Line,
+                    "the TERMINATE of a report whose description contains a VARYING clause");
+                break;
+            }
         return base.VisitChildren(ctx);
     }
 
