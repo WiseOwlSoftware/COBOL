@@ -74,10 +74,17 @@ checkpoint.
   POSTFIX shift (a higher-prec FOLLOWING op folded into its operand — the runtime `ConditionBinder` shared this, so
   COMPUTE-F2 mis-folded too); a boolean cce relation compared length-sensitively not §8.8.4.2.8 right-extend; a
   shift count > `long.MaxValue` overflowed the cast. `boolExprAhead()` completed for the shift operators (a
-  latent-gap main-parse fix). Design SSOT `DESIGN-compile-time-expressions.md` = **IMPLEMENTED**. ⏭ **NEXT (Wave-D
-  remainder):**
-  **>>SOURCE FORMAT mid-file** (§7.3.24.3 GR1 — restructures `ReferenceFormatProcessor` from one-format-per-file to
-  per-segment, an every-program path) · the **real FLAG-14/FLAG-02 flagging** (recognition landed; the migration/
+  latent-gap main-parse fix). Design SSOT `DESIGN-compile-time-expressions.md` = **IMPLEMENTED**.
+  ✅ **>>SOURCE FORMAT mid-file COMPLETE [`10da6c3d`]** (§7.3.24.3 GR1; DEVLOG 946) — `ReferenceFormatProcessor`
+  restructured one-format-per-file → PER-SEGMENT (each directive switches the format of the following segment; the
+  directive line discarded/blanked; per-segment continuation state per §7.3.3 SR8c; file-relative `lineOffset` for
+  the continuation diagnostics; `FORMAT`/`IS` optional per §7.3.24.2). **⚡ VALIDATED ON THE GnuCOBOL EXTERNAL
+  DIFFERENTIAL (owner directive):** full 1323-group before/after — exactly ONE flip, a FIX (`syn_copy:660`), ZERO
+  regressions; characterization byte-identical. A 3-dim adversarial review caught 2 majors (SplitLines over-trim
+  losing a blank line; the regex missing a cols-73-80 sequence-tagged directive) — both fixed + regression-tested.
+  ⏭ Residual: `>>SOURCE FORMAT`/free-form are 2002+ (should REJECT at `--std cobol85` — a VERSION-matrix/VCR gap);
+  a copybook's own `>>SOURCE FORMAT` (§7.3.24.3 GR5 scoped-and-reverting) rides the CC-in-COPY item.
+  ⏭ **NEXT (Wave-D remainder):** the **real FLAG-14/FLAG-02 flagging** (recognition landed; the migration/
   obsolescence diagnostics need the flaggable-construct census) · >>COBOL-WORDS · CC-directives-inside-COPY (§7.2.1).
   **THEN the PERFORM Format-3 RUNTIME interceptor** (STAGED at 0899 — use the **pc-RANGE architecture** [reuse
   `__RunUse`/`ResumeSignal`, singular-pattern with declaratives; NOT the design §5 lambda approach — C# cannot `goto`
@@ -90,17 +97,24 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD `12f19906` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield unit **447**
-  (+ the `CompileTimeBooleanCceTests` boolean-fold/cce + the C2 defect regressions) · characterization **33**
-  byte-exact · greenfield Conformance **3784** + the `directive_expressions` 2002 golden (both pipelines).
+- **Battery at code-HEAD `10da6c3d` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield unit **447**
+  (+ `CompileTimeBooleanCceTests`) · legacy unit `Preprocessor` **11** (+ `SourceFormatTests`) · characterization
+  **33** byte-exact · greenfield Conformance **3784** + the `directive_expressions` 2002 golden.
   **⛔ TESTING DISCIPLINE (owner-corrected — a repeated miss): gate each WAVE with the WAVE-LOCAL gate (~2–3 min:
-  fresh build + characterization + `CorpusRunnerTests` FILTERED to the wave + TARGETED unit + a CLI probe), NOT the
+  fresh build + characterization + `CorpusRunnerTests`/targeted unit FILTERED to the wave + a CLI probe), NOT the
   full suites.** The COMPREHENSIVE gate (FULL greenfield Conformance + FULL legacy guard) is **once per BATCH,
   before merge only** (§3). Do NOT default to the full greenfield unit / full Conformance / `guard.sh` per commit.
   For the legacy guard when forced, `scripts/guard-fast.sh` (~3.3 min parallel, byte-equivalent) is the tool — NOT
-  the ~20-min serial `guard.sh`. THIS commit's wave-local gate was green (build · characterization 33 · filtered
-  boolean+directive CorpusRunner · targeted 94 CC/evaluator tests · CLI probe `PROBE-OK`); guard-fast ran clean as a
-  bonus (NIST 353 MATCH / 0 regression). ⚠ The legacy `ConformanceTests` AUTO-DISCOVERS every on-disk golden — a new
+  the ~20-min serial `guard.sh`.
+  **⚡ GnuCOBOL EXTERNAL DIFFERENTIAL — USE IT (owner directive):** `python3 scripts/gnucobol_differential.py --exe
+  src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe --report <path>` runs the fetched GPL corpus (1323 groups,
+  git-ignored `tests/external/gnucobol/`; `fetch-gnucobol-tests.ps1` if absent) through `cobol.exe` and buckets
+  accept/reject vs GnuCOBOL. It is a TRIAGE net, not a green/red gate — run it BEFORE + AFTER a change and DIFF the
+  per-case verdicts: a FIX = a divergence→AGREE flip; a REGRESSION = an AGREE→divergence flip (0 tolerated). It
+  catches reference-format/grammar bugs the internal battery is blind to (it found 2 on day one; the SOURCE-FORMAT
+  wave scored +1 fix / 0 regressions). ⚖ GPL: NEVER commit/reproduce their source or expected output — titles/
+  keywords only. Baseline this batch: **475/476 AGREE_ACCEPT · 171 AGREE_REJECT · 570 WE_REJECT_THEY_ACCEPT · 106
+  WE_ACCEPT_THEY_REJECT**. ⚠ The legacy `ConformanceTests` AUTO-DISCOVERS every on-disk golden — a new
   2023/boolean golden that the frozen legacy can't reproduce needs a `GreenfieldOnly` exclusion same commit
   ([[feedback_legacy_suite_on_shared_corpus]]); `directive_expressions` needs none (both pipelines agree). ⚠ **Capture
   rule:** never `| tail -N` a guard verdict — redirect FULL output to a file, `grep 'ALL GREEN'` + `grep -iE
