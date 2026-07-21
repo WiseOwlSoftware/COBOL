@@ -23,7 +23,10 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D — ⛔ ledger-C2 COMPLETE: the frontend compile-time-expression DEFECT is CLOSED [boolean fold + ANTLR directive grammar + frontend rewire, Tokenize/CondParser DELETED, COBOLNET1619]; code HEAD `12f19906`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D — ⛔ ledger-C2 COMPLETE [`12f19906`, the frontend
+  compile-time-expression DEFECT closed] AND ✅ >>SOURCE FORMAT mid-file COMPLETE [`10da6c3d`]; code HEAD `10da6c3d`,
+  pushed. NEXT = the Wave-D remainder: FLAG-14/02 flagging · >>COBOL-WORDS · CC-in-COPY — see the ⏭ block below):**
+  the GRAMMAR BATCH is **7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
   landed the full RECOGNIZE/VALIDATE/DIAGNOSE/GATE surface: the Formats-2/3 grammar MERGE + the `whenOperandAhead()`
