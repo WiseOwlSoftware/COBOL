@@ -25,9 +25,15 @@ checkpoint.
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
 - **▶ RESUME AT (2026-07-20, HEAD `7c58b7e9`):** the GRAMMAR BATCH is **6 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), **PICTURE EDITING (§13.18.40.2,
-  COBOL-2023)**, **VALUE Format 2 (§13.18.63.2, COBOL-2002)** all LANDED. **NEXT = PERFORM Format 3 (§14.9.28, C5 —
-  NOT yet implementable; read `PHASE-13-c5-perform-format3-rederivation.json` FIRST — it found a THIRD spec
-  inversion)**, then Wave D directives (§0 list below), then the §24 fix-queue residue → P14. **The spec-grounded
+  COBOL-2023)**, **VALUE Format 2 (§13.18.63.2, COBOL-2002)** all LANDED. **NEXT = PERFORM Format 3 (§14.9.28, C5)** — the
+  three figure-reading questions are now RESOLVED from the rendered PDF page 712 (they were already in the repaired
+  markdown notes; see `PHASE-13-c5-perform-format3-pdf-resolution.md`): **≥1 ordinary WHEN is REQUIRED** (outer
+  brace), **no operand-form mixing within a WHEN** (three stacked alternatives), **`IO` = `I-O`** (§8.9). What still
+  blocks implementation is the C5 re-derivation's OTHER rejected defects (the greedy `useEcEntry+`/`useOnTarget`
+  mis-parse of a following statement · the ~12 missed cross-statement SRs — POP/PUSH/CLOSE/DELETE/OPEN/MERGE/SORT
+  restrictions + the `EXIT PERFORM CYCLE` ban · the RESUME-AT-optional fix · the deep exception-checking runtime
+  GR14–22) — a corrected design is needed, read `PHASE-13-c5-perform-format3-rederivation.json` + its resolution
+  note. Then Wave D directives (§0 list below), then the §24 fix-queue residue → P14. **The spec-grounded
   design SSOT = `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`.**
   **PICTURE EDITING** — the single-char IS form (any character-1 occurrence) + single-occurrence FOR form render via a
   threaded `CobolEdit.EditRule(Char1,Neg,Pos)` (sign map = Table 9 + Annex D.24, NOT the sign-inverted Table 8);
