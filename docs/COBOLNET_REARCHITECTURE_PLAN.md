@@ -115,16 +115,19 @@ checkpoint.
   both). Establishes the DATA-arm-free approach the owner's spec Q settled: **parse-arm anchoring** (§7.3.15.4 GR2
   "all text that follows" ⇒ source-position, so `ctx.Start.Line`, NOT the source-line-less resolved forest);
   numeric-edited category via the ONE `PictureAnalyzer` on the parse PIC_STRING (discard `EditionContext`, no
-  re-emit; FILLER-safe); figurative ZERO via a generic `FirstDescendant<FigurativeConstantContext>`. 20 unit tests +
-  CLI-probed + characterization 33/33. ⏭ **NEXT — the Incr 1 remainder (each its OWN careful pass):**
-  **Incr 1b = j VALUE-EDITING + k VALUE-FIG-CON-LENGTH** (⚠ SUBTLE — derive the exact predicate from §13.18.63
-  SR6/SR11 + the §13.18.40 editing-character set BEFORE coding; a wrong "editing symbols" set silently false-flags an
-  advisory diagnostic, which tests would only encode). **Incr 1c = m WRITE-END-OF-PAGE** (WRITE + `FileModel.Linage`
-  present + no `writeAtEndOfPage`) **+ FLAG-02 f TERMINATE-WITH-VARYING** (TERMINATE + a report whose group fields
-  carry `Varyings`) — crisp predicates, but both need a resolved-model lookup (record→file, report→ReportModel)
-  threaded into the parse visitor from `GroupBindContext.Units[].Data`. THEN Incr 2 (frontend-inline b/c) → Incr 3
-  (state-coupled: i REF-MOD-ZERO-LENGTH, d MOVE-TO-SAME-NAME, e RANGE-EXCEPTION-FOR-INDEX) → Incr 4 (new-analysis:
-  I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
+  re-emit; FILLER-safe); figurative ZERO via a generic `FirstDescendant<FigurativeConstantContext>`.
+  ✅ **Incr 1c LANDED** (`50636ee1`) — **m WRITE-END-OF-PAGE** (WRITE + `FileModel.Linage` + no `writeAtEndOfPage`) +
+  **FLAG-02 f TERMINATE-WITH-VARYING** (TERMINATE + a report whose fields carry `Varyings`); source-name lookups
+  built in `Run` from `GroupBindContext.Units[].Data` (keyed on source names — the pass runs before file-connector
+  renaming). ✅ **Incr 1b j LANDED** — **j VALUE-EDITING** (numeric-edited VALUE that is a literal, not figurative,
+  with no editing symbols — §13.18.63 SR6/SR11 + E.2 item 29; the `{space / , . + - $ *}`+CR/DB insertion scan;
+  `0`/`B` a documented rare false-negative). **Detectors done: 7 of 19.** 29 unit tests + CLI-probed all + char 33/33.
+  ⏭ **k VALUE-FIG-CON-LENGTH = SCHEDULED (own pass):** flag a figurative VALUE on an item with "no specified length"
+  (E.2 item 11); reachable (`01 X VALUE SPACE.` compiles) but a correct predicate must EXCLUDE a group (its
+  figurative VALUE has a specified length via subordinates, §13.18.63 SR13) ⇒ needs group-vs-elementary sibling
+  lookahead — deferred to its own careful build (E.2 item 11: "few if any programs"; must land before Wave I).
+  ⏭ THEN Incr 2 (frontend-inline b/c) → Incr 3 (state-coupled: i REF-MOD-ZERO-LENGTH, d MOVE-TO-SAME-NAME, e
+  RANGE-EXCEPTION-FOR-INDEX) → Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
   CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
   with shared directive state — the copybook >>SOURCE FORMAT GR5 reversion rides the same driver; GnuCOBOL-diff

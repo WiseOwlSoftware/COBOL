@@ -242,6 +242,41 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
     }
 
+    // ── Incr 1b: FLAG-14 j VALUE-EDITING (§7.3.15.4 GR4 j) — numeric-edited VALUE literal without editing symbols ──
+
+    [Fact]
+    public void Compile_ValueEditingOn_Flags_NumericLiteralOnNumericEdited()
+    {
+        // A numeric literal on a numeric-edited item carries no editing symbols (editing is now auto-supplied).
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-EDITING ON\n", "01 A PIC ZZZ9 VALUE 5."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("VALUE-EDITING", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_ValueEditingOn_Flags_NonnumericLiteralWithoutEditingSymbols()
+    {
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-EDITING ON\n", "01 B PIC ZZZ9 VALUE \"0005\"."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("VALUE-EDITING", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_ValueEditing_NotFlagged_WhenLiteralContainsEditingSymbols()
+    {
+        // "1,234" already carries an editing symbol (the comma) — the edited form, not flagged.
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-EDITING ON\n", "01 C PIC Z,ZZ9 VALUE \"1,234\"."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_ValueEditing_NotFlagged_OnFigurativeConstant()
+    {
+        // A figurative constant is not "a literal" for j (it is g/l/k territory).
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-EDITING ON\n", "01 D PIC ZZZ9 VALUE ZERO."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
     // ── Incr 1c: FLAG-14 m WRITE-END-OF-PAGE (§7.3.15.4 GR4 m) — WRITE + file has LINAGE + no AT EOP ──
 
     private static string WriteProgram(bool linage, string directive, string writeStmt) =>

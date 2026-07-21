@@ -192,9 +192,24 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
   (Flag14Warning), both exercised. Goldens: `>>FLAG-14 READ-PREVIOUS ON` + a READ PREVIOUS ⇒ warning (OFF ⇒
   none); `>>FLAG-02 I-O-STATUS-07 ON` + a CLOSE WITH NO REWIND ⇒ warning. Directive-word introduction gate +
   `constructs.json` rows land here too (or the immediately-following Incr 0b if kept tight).
-* **Incr 1 — the data/VALUE + report/WRITE options** (parse arm + resolved lookups): g/l (shared numeric-edited
-  VALUE-ZERO), j VALUE-EDITING, k VALUE-FIG-CON-LENGTH, m WRITE-END-OF-PAGE, and FLAG-02 f
-  TERMINATE-WITH-VARYING. Each with a golden.
+* **Incr 1 — the data/VALUE + report/WRITE options** (parse arm + resolved lookups), delivered as sub-increments:
+  * **1a (DONE)** g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO — `VisitDataDescriptionEntry`; numeric-edited via the ONE
+    `PictureAnalyzer` (discard edition); figurative ZERO via `FirstDescendant<FigurativeConstantContext>`.
+  * **1c (DONE)** m WRITE-END-OF-PAGE (WRITE + `FileModel.Linage` + no `writeAtEndOfPage`) + FLAG-02 f
+    TERMINATE-WITH-VARYING (TERMINATE + a report whose fields carry `Varyings`) — source-name lookups built in
+    `Run` from `GroupBindContext.Units[].Data`.
+  * **1b (DONE for j)** j VALUE-EDITING — a numeric-edited VALUE that is a LITERAL (not figurative) with no
+    editing symbols (§13.18.63 SR6/SR11 + E.2 item 29: numeric literals get editing auto-supplied, alphanumeric/
+    national literals now require it). "Editing symbols" scanned from the literal via the unambiguous insertion set
+    `{space / , . + - $ *}` + trailing CR/DB; `0`/`B` insertions are a documented rare false-negative.
+  * **1b remainder — k VALUE-FIG-CON-LENGTH (SCHEDULED, its own pass):** flag a figurative-constant VALUE on an
+    item with "no specified length" (E.2 item 11 — "with the ALL phrase where the length is unspecified"). The
+    flaggable construct IS reachable (`01 X VALUE SPACE.` with no PICTURE compiles), but a correct predicate must
+    EXCLUDE a group item — a group's figurative VALUE has a specified length via its subordinates (§13.18.63 SR13),
+    so it is not flaggable — which needs group-vs-elementary discrimination (sibling lookahead: the item is a group
+    iff a following entry has a higher level number). Deferred to a dedicated increment because that discrimination
+    warrants its own careful build; E.2 item 11 notes the case affects "few if any programs" and "could be expected
+    to cause a compiler error." NOT silent debt — scheduled, and must land (or get owner sign-off) before Wave I.
 * **Incr 2 — the frontend-inline options** b, c (compile-time-arith, EVALUATE directive) + the `FlagScanState`
   in `ConditionalCompilationProcessor`. Goldens exercising each.
 * **Incr 3 — the state-coupled options** i REF-MOD-ZERO-LENGTH (tri-state `RefModZeroLengthState`

@@ -125,11 +125,26 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     //    the ONE PictureAnalyzer on the parse-tree picture — FILLER-safe (no name lookup). ──
     public override object? VisitDataDescriptionEntry(CobolParserCore.DataDescriptionEntryContext ctx)
     {
-        if (NumericEditedValue(ctx) is { } value && ValueIsFigurativeZero(value))
+        if (NumericEditedValue(ctx) is { } value)
         {
             int line = value.Start.Line;
-            Flag(FlagOption.Flag14NumEdZeroFigconst, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
-            Flag(FlagOption.Flag14ValueZero, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
+            if (FirstDescendant<CobolParserCore.FigurativeConstantContext>(value) is { } fig)
+            {
+                // g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO — the figurative constant ZERO (ZERO/ZEROS/ZEROES, with or
+                // without ALL). One condition, two independently-toggled options.
+                if (fig.ZERO() is not null)
+                {
+                    Flag(FlagOption.Flag14NumEdZeroFigconst, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
+                    Flag(FlagOption.Flag14ValueZero, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
+                }
+            }
+            else if (LiteralHasNoEditingSymbols(value))
+            {
+                // j VALUE-EDITING — the VALUE is a LITERAL (numeric or nonnumeric, NOT a figurative constant)
+                // carrying no editing symbols. §13.18.63 SR6/SR11 + E.2 item 29: at 2023 editing is auto-supplied
+                // for a numeric literal and compulsory for an alphanumeric/national literal (both changed 2014→2023).
+                Flag(FlagOption.Flag14ValueEditing, line, "a numeric-edited VALUE literal that contains no editing symbols");
+            }
         }
         return base.VisitChildren(ctx);
     }
@@ -185,10 +200,42 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
             == PicCategory.NumericEdited ? value : null;
     }
 
-    /// <summary>Whether a VALUE clause specifies the figurative constant ZERO / ZEROS / ZEROES (with or without
-    /// ALL) — the <c>ZERO</c> lexer token covers all three spellings.</summary>
-    private static bool ValueIsFigurativeZero(CobolParserCore.ValueClauseContext value)
-        => FirstDescendant<CobolParserCore.FigurativeConstantContext>(value)?.ZERO() is not null;
+    /// <summary>Whether a numeric-edited VALUE clause is a plain LITERAL (numeric or nonnumeric — the caller has
+    /// already excluded figurative constants) that contains NO editing symbols (j VALUE-EDITING). A numeric literal
+    /// never carries editing symbols (flagged); a nonnumeric STRINGLIT/NATLIT is scanned for the unambiguous
+    /// numeric-editing insertion characters. Only a '0'- or 'B'-only insertion (ambiguous with a digit / a letter)
+    /// escapes the scan — a rare false-negative for this advisory flag. A concatenation / boolean / hex literal is
+    /// not analyzed (not a numeric-editing value) and is not flagged.</summary>
+    private static bool LiteralHasNoEditingSymbols(CobolParserCore.ValueClauseContext value)
+    {
+        if (FirstDescendant<CobolParserCore.NonNumericLiteralContext>(value) is { } nn)
+        {
+            string? text = nn.STRINGLIT()?.GetText() ?? nn.NATLIT()?.GetText();
+            return text is not null && !ContainsEditingSymbol(StripLiteral(text));
+        }
+        return FirstDescendant<CobolParserCore.NumericLiteralContext>(value) is not null;
+    }
+
+    // The unambiguous numeric-editing INSERTION characters as they appear in an edited value literal (§13.18.40.3).
+    // '0' (zero insertion) and 'B' (space insertion) are omitted — indistinguishable from a digit / a letter in the
+    // literal text without re-deriving the picture mask.
+    private static readonly char[] EditingChars = [' ', '/', ',', '.', '+', '-', '$', '*'];
+
+    private static bool ContainsEditingSymbol(string content)
+    {
+        if (content.IndexOfAny(EditingChars) >= 0) return true;
+        string trimmed = content.TrimEnd();   // the CR / DB trailing sign insertions
+        return trimmed.EndsWith("CR", StringComparison.OrdinalIgnoreCase)
+            || trimmed.EndsWith("DB", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>The content of a STRINGLIT / NATLIT token — a leading national <c>N</c> prefix and the surrounding
+    /// quotes stripped — for the editing-symbol scan.</summary>
+    private static string StripLiteral(string token)
+    {
+        string s = token.Length > 0 && token[0] is 'N' or 'n' ? token[1..] : token;
+        return s.Replace("\"", "").Replace("'", "");
+    }
 
     /// <summary>The first descendant of type <typeparamref name="T"/> in <paramref name="node"/>'s subtree (pre-order),
     /// or null. A small generic walk — the flag detectors reach into a construct's operand subtree without threading
