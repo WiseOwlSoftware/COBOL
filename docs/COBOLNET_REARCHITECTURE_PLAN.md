@@ -23,7 +23,7 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-20, HEAD = the batch-2 commits below):** the GRAMMAR BATCH is **6 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-20, HEAD `7c58b7e9`):** the GRAMMAR BATCH is **6 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), **PICTURE EDITING (§13.18.40.2,
   COBOL-2023)**, **VALUE Format 2 (§13.18.63.2, COBOL-2002)** all LANDED. **NEXT = PERFORM Format 3 (§14.9.28, C5 —
   NOT yet implementable; read `PHASE-13-c5-perform-format3-rederivation.json` FIRST — it found a THIRD spec
@@ -36,7 +36,7 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at HEAD = the batch-2 commit (2026-07-20, branch `phase-13-grammar-batch`):** greenfield Conformance
+- **Battery at HEAD `7c58b7e9` (2026-07-20, branch `phase-13-grammar-batch`):** greenfield Conformance
   **3752** · unit **313** · characterization **33** byte-exact · full legacy guard (legacy unit+integration+all 350
   NIST) **ALL GREEN**. Batch 2 (PICTURE EDITING + VALUE Format 2) changed shared `CobolData.g4` + the CobolEdit /
   CobolDynTable runtime, so it ran the full guard; the VALUE-Format-2 glued-multi-literal reject was validated
