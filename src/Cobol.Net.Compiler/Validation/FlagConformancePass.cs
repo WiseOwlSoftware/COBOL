@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolNet.Binding;              // FlagState
+using CobolNet.Binding;              // FlagState / PictureAnalyzer / EditionContext
+using CobolNet.Binding.Model;        // Usage / PicCategory / PicInfo
 using CobolNet.Binding.Passes;       // GroupBindContext
 using CobolNet.Editions;             // IDiagnosticSink / EditionDiagnostic / EditionSeverity
 using CobolNet.Editions.Diagnostics; // DiagnosticCatalog
@@ -29,6 +30,10 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
 {
     private readonly FlagState _flag;
     private readonly IDiagnosticSink _sink;
+    // A discard EditionContext so the reused PictureAnalyzer (the ONE picture-category mechanism) can classify a
+    // parse-tree PICTURE string WITHOUT re-emitting its bind-time diagnostics to the real sink. At 2023 (the
+    // superset) so no legal symbol is spuriously rejected; the picture was already validated during binding.
+    private readonly EditionContext _discard = new(2023);
 
     private FlagConformancePass(FlagState flag, IDiagnosticSink sink)
     {
@@ -84,5 +89,60 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
             }
         }
         return base.VisitChildren(ctx);
+    }
+
+    // ── FLAG-14 g NUM-ED-ZERO-FIGCONST (§7.3.15.4 GR4 g) + l VALUE-ZERO (GR4 l) — the SAME predicate stated from
+    //    two sides (the use of figurative ZERO in the VALUE clause of a numeric-edited item), so one detector
+    //    serves both flags; each fires only if its own option is ON. Anchored at the VALUE clause's source line
+    //    (the flaggable syntax). The numeric-edited category is a PICTURE-string property (§13.18.40), decided by
+    //    the ONE PictureAnalyzer on the parse-tree picture — FILLER-safe (no name lookup). ──
+    public override object? VisitDataDescriptionEntry(CobolParserCore.DataDescriptionEntryContext ctx)
+    {
+        if (NumericEditedValue(ctx) is { } value && ValueIsFigurativeZero(value))
+        {
+            int line = value.Start.Line;
+            Flag(FlagOption.Flag14NumEdZeroFigconst, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
+            Flag(FlagOption.Flag14ValueZero, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
+        }
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>The entry's VALUE clause when the item is numeric-edited (its PICTURE classifies as
+    /// <see cref="PicCategory.NumericEdited"/> via the ONE <see cref="PictureAnalyzer"/>), else null. A custom
+    /// CURRENCY SIGN symbol is not threaded here — a numeric-edited picture using a non-default currency symbol is
+    /// a rare false-negative for this advisory flag, never a false-positive.</summary>
+    private CobolParserCore.ValueClauseContext? NumericEditedValue(CobolParserCore.DataDescriptionEntryContext ctx)
+    {
+        var clauses = ctx.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
+        if (clauses is null) return null;
+        string? picture = null;
+        CobolParserCore.ValueClauseContext? value = null;
+        foreach (var c in clauses)
+        {
+            if (c.pictureClause()?.PIC_STRING() is { } ps) picture = ps.GetText();
+            if (c.valueClause() is { } vc) value = vc;
+        }
+        if (picture is null || value is null) return null;
+        return PictureAnalyzer.Analyze(picture, Usage.Display, _discard, "a flagged VALUE clause").Category
+            == PicCategory.NumericEdited ? value : null;
+    }
+
+    /// <summary>Whether a VALUE clause specifies the figurative constant ZERO / ZEROS / ZEROES (with or without
+    /// ALL) — the <c>ZERO</c> lexer token covers all three spellings.</summary>
+    private static bool ValueIsFigurativeZero(CobolParserCore.ValueClauseContext value)
+        => FirstDescendant<CobolParserCore.FigurativeConstantContext>(value)?.ZERO() is not null;
+
+    /// <summary>The first descendant of type <typeparamref name="T"/> in <paramref name="node"/>'s subtree (pre-order),
+    /// or null. A small generic walk — the flag detectors reach into a construct's operand subtree without threading
+    /// the exact (edition-varying) grammar path.</summary>
+    private static T? FirstDescendant<T>(Antlr4.Runtime.Tree.IParseTree node) where T : class
+    {
+        for (int i = 0; i < node.ChildCount; i++)
+        {
+            var child = node.GetChild(i);
+            if (child is T hit) return hit;
+            if (FirstDescendant<T>(child) is { } deeper) return deeper;
+        }
+        return null;
     }
 }

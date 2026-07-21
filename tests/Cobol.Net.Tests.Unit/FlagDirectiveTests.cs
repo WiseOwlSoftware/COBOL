@@ -198,4 +198,47 @@ public sealed class FlagDirectiveTests
         var warnings = CompileWarnings(program);
         Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1620", StringComparison.Ordinal));
     }
+
+    // ── Incr 1a: the VALUE-clause data options g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO (§7.3.15.4 GR4 g/l) ──
+
+    private static string ValueProgram(string directives, string entry) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGVAL.\n       DATA DIVISION.\n" +
+        "       WORKING-STORAGE SECTION.\n" + directives + "       " + entry + "\n" +
+        "       PROCEDURE DIVISION.\n       MAIN.\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_NumEdZeroFigconstOn_Flags_NumericEditedValueZero()
+    {
+        var warnings = CompileWarnings(ValueProgram(
+            "       >>FLAG-14 NUM-ED-ZERO-FIGCONST ON\n", "01 NE PIC ZZ9.99 VALUE ZERO."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("NUM-ED-ZERO-FIGCONST", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_ValueZeroOn_Flags_NumericEditedValueZero()
+    {
+        var warnings = CompileWarnings(ValueProgram(
+            "       >>FLAG-14 VALUE-ZERO ON\n", "01 NE PIC ZZ9.99 VALUE ZERO."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("VALUE-ZERO", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_NumEdZero_NotFlagged_OnPlainNumericItem()
+    {
+        // PIC 999 is category numeric (NOT numeric-edited) — GR4 g/l do not reach it.
+        var warnings = CompileWarnings(ValueProgram(
+            "       >>FLAG-14 NUM-ED-ZERO-FIGCONST ON\n", "01 PLAIN PIC 999 VALUE ZERO."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_NumEdZero_NotFlagged_WhenValueIsNumericLiteral()
+    {
+        // A numeric-edited item whose VALUE is a numeric literal (not the figurative ZERO) is not flagged.
+        var warnings = CompileWarnings(ValueProgram(
+            "       >>FLAG-14 NUM-ED-ZERO-FIGCONST ON\n", "01 NE PIC ZZ9 VALUE 5."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
 }
