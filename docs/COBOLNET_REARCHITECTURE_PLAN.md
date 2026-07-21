@@ -23,7 +23,7 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-20; grammar-batch 7/7 DONE — PERFORM Format 3 LANDED at code HEAD `e9b31a35`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D IN PROGRESS; code HEAD `323f09cb`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
   landed the full RECOGNIZE/VALIDATE/DIAGNOSE/GATE surface: the Formats-2/3 grammar MERGE + the `whenOperandAhead()`
@@ -40,10 +40,25 @@ checkpoint.
   (operand-exclusivity) NOT emitted — no §14.9.28.3 SR backs it** (spec-fidelity); XS-POP/PUSH (1602/1603) stay
   RESERVED (>>POP/>>PUSH are themselves unimplemented); XS-RESUME-PLACEMENT subsumed by 0712; `IsLexicallyWithin`/
   bound-POP-checks don't exist ⇒ region bans are parse-subtree walks; TurnState is immutable ⇒ GR14 is a derived-
-  instance overlay. **NEXT = the PERFORM Format-3 RUNTIME interceptor wave** (the ambient F3-frame stack +
-  `__EcPerform`; recorded blocker: C# cannot `goto` out of a lambda ⇒ a non-lambda handler-emission strategy is
-  needed), then Wave D directives (§0 list below), then the §24 fix-queue residue → P14. **Design SSOT =
-  `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` + `PHASE-13-grammar-batch-spec-grounding.json`.**
+  instance overlay. Design SSOT = `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` +
+  `PHASE-13-grammar-batch-spec-grounding.json`.
+  **WAVE D IN PROGRESS (DEVLOG 941; commits `3a6734ce`/`005f8f9b`/`76ee0aa8`/`323f09cb`):** ✅ landed — **>>DEFINE
+  §7.3.11** (SR2 no-OVERRIDE redefinition COBOLNET1618 + **AS PARAMETER** GR4 + **OVERRIDE** GR3 + **>>PUSH/>>POP**
+  recognition), the **V41** compile-time-arithmetic-mode CONFORMANCE note (§7.3.6, required §4.2.16 implementor doc,
+  `CONFORMANCE.md §3`), the **V32** >>CALL-CONVENTION/>>LEAP-SECOND/>>LISTING/>>PAGE dispositions, and
+  **>>DISPLAY/>>FLAG-02/>>FLAG-14 recognition** (a conforming compiler must not error on a standard §7.3 directive).
+  **⛔ NEXT = the CAREFUL SHARED-CORE Wave-D builds — do NOT rush (owner: commercial-quality, decade-supportable);
+  each direction recorded:** the **§7.3.6/§7.3.7 DEFINE/EVALUATE arithmetic evaluator** (a multi-token operand still
+  binds only its first token — needs a SHARED, parse-tree-independent evaluator BOTH the frontend CC processor
+  [fragment-parse of the operand — confirmed feasible] and the compiler binder [`DataBinder.Constants.cs
+  EvalConstExpr`] call, per singular-pattern — a careful refactor of battery-tested code, NOT a duplicate) ·
+  **>>SOURCE FORMAT mid-file** (§7.3.24.3 GR1 — restructures `ReferenceFormatProcessor` from one-format-per-file to
+  per-segment, an every-program path) · the **real FLAG-14/FLAG-02 flagging** (recognition landed; the migration/
+  obsolescence diagnostics need the flaggable-construct census) · >>COBOL-WORDS · CC-directives-inside-COPY (§7.2.1).
+  **THEN the PERFORM Format-3 RUNTIME interceptor** (STAGED at 0899 — use the **pc-RANGE architecture** [reuse
+  `__RunUse`/`ResumeSignal`, singular-pattern with declaratives; NOT the design §5 lambda approach — C# cannot `goto`
+  out of a lambda], gate `__EcPerform` on "unit HAS an F3 PERFORM" so non-F3 output stays byte-identical; design SSOT
+  IMPLEMENTED note §6). THEN the §24 fix-queue residue (D16 item 3) → Wave I merge → P14.**
   **PICTURE EDITING** — the single-char IS form (any character-1 occurrence) + single-occurrence FOR form render via a
   threaded `CobolEdit.EditRule(Char1,Neg,Pos)` (sign map = Table 9 + Annex D.24, NOT the sign-inverted Table 8);
   multi-char literal + floating (character-1 ≥2 under a FOR phrase) = documented **P14 render GAP** (COBOLNET0899).
@@ -51,12 +66,16 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD `e9b31a35` (2026-07-20; branch `phase-13-grammar-batch`, pushed):** greenfield Conformance
-  **3783** · unit **353** · characterization **33** byte-exact · **full legacy guard (`scripts/guard.sh`) `=== ALL GREEN ===`**
-  — re-run AFTER the adversarial-review fixes (legacy unit+integration+all 350 NIST). PERFORM Format 3 changed shared
-  `CobolControlFlow.g4`/`CobolParserCore.g4` (the Formats-2/3 merge + `resumeStatement AT?`), so it ran the full guard
-  twice (before + after the review fixes); the legacy oracle's two `ControlFlowBinder` sites were repaired in the same
-  change set. Build `CobolSharp.sln` before any `--no-build` test run.
+- **Battery at code-HEAD `323f09cb` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield Conformance
+  **3783** · unit **≈360** (+ the new CC-DEFINE tests) · characterization **33** byte-exact. **Full legacy guard
+  (`scripts/guard.sh`) `=== ALL GREEN ===`** most recently at the Wave-D `>>DEFINE` commit `3a6734ce` (and twice at
+  PERFORM Format 3, before + after the review fixes); the `>>DISPLAY`/`>>FLAG` recognition commit `323f09cb` ran
+  **guard-fast `=== ALL GREEN ===`** (zero blast radius — confirmed no test expected those directives to error). The
+  legacy oracle's two `ControlFlowBinder` sites were repaired in the PERFORM Format 3 change set (the Formats-2/3
+  `.g4` merge). ⚠ **A capture rule (owner-flagged):** never `| tail -N` a guard/test run whose verdict you need — the
+  guard prints `=== ALL GREEN ===` near, not at, the end, so `tail` can drop it and surface a trailing flaky-cleanup
+  line instead; redirect FULL output to a file and `grep 'ALL GREEN'` + `grep -iE 'crash|abort|Failed: *[1-9]'`.
+  Build `CobolSharp.sln` before any `--no-build` test run.
 - **Mission target (owner decision D13, 2026-07-19): 100% CONFORMING** per ISO §4.2.16 across ALL FOUR editions
   (85/2002/2014/2023) — mandatory core complete + required implementor documentation; optional modules may stay
   documented non-support. Definition of done = the PHASE-14 Step-0 traceability inventory at zero GAP.
