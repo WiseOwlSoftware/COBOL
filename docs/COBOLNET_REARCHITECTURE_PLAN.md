@@ -23,7 +23,7 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D IN PROGRESS; code HEAD `323f09cb`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D IN PROGRESS — C2 compile-time-expression evaluator FOUNDATION + rule-7b runtime LANDED, evaluator NEXT; code HEAD `a1d6c7c7`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
   landed the full RECOGNIZE/VALIDATE/DIAGNOSE/GATE surface: the Formats-2/3 grammar MERGE + the `whenOperandAhead()`
@@ -48,10 +48,20 @@ checkpoint.
   `CONFORMANCE.md §3`), the **V32** >>CALL-CONVENTION/>>LEAP-SECOND/>>LISTING/>>PAGE dispositions, and
   **>>DISPLAY/>>FLAG-02/>>FLAG-14 recognition** (a conforming compiler must not error on a standard §7.3 directive).
   **⛔ NEXT = the CAREFUL SHARED-CORE Wave-D builds — do NOT rush (owner: commercial-quality, decade-supportable);
-  each direction recorded:** the **§7.3.6/§7.3.7 DEFINE/EVALUATE arithmetic evaluator** (a multi-token operand still
-  binds only its first token — needs a SHARED, parse-tree-independent evaluator BOTH the frontend CC processor
-  [fragment-parse of the operand — confirmed feasible] and the compiler binder [`DataBinder.Constants.cs
-  EvalConstExpr`] call, per singular-pattern — a careful refactor of battery-tested code, NOT a duplicate) ·
+  each direction recorded:** the **§7.3.6/§7.3.7/§7.3.8 compile-time EXPRESSION evaluator** (ledger C2 — the
+  multi-token silent-wrong-value defect). **Design SSOT = `docs/rearchitecture/DESIGN-compile-time-expressions.md`**
+  (owner-steered: ANTLR-for-ALL-parsing — no hand-rolled parser; ONE shared evaluator for the frontend CC stage +
+  the CONSTANT binder; NO deferrals — memories [[feedback_design_structural_singular_first]] /
+  [[feedback_no_deferral_default]]). ✅ **LANDED:** the FOUNDATION — `CobolLiteral`/`NumericLiteral.Normalize`
+  relocated to Frontend (the shared evaluator's layering home) + the `BooleanExpressionResolver` (§8.8.2 rule 7b
+  incl. the context-inherited shift precedence a CFG can't express; 13 tests) [`09760ca3`]; and the **rule-7b
+  RUNTIME fix** — `ConditionBinder` refactored onto the resolver, the **COBOLNET1569 legal-source reject REMOVED**
+  (it refused the legal mixed shift-with-binary form), `boolean_shift_mixed` golden (verified end-to-end)
+  [`a1d6c7c7`]. ⏭ **NEXT:** the `CompileTimeExpressionEvaluator` (the `EvalConstExpr` arithmetic lift + boolean
+  fold via the resolver + the `CtValue`/`BitString`/coded-diagnostics types, GR5/GR3 at the public boundary) →
+  binder rewire (`BindConstantArithmetic`) → the ANTLR fragment/cce grammar (`compileTimeOperandFragment` +
+  `constantConditionalExpression`, the `PrimeDirectiveExpr` lexer flag [`(` after a boolean op = grouping, `DEFINED`
+  a token] ) + regen → frontend rewire (delete `Tokenize`/`CondParser`). ·
   **>>SOURCE FORMAT mid-file** (§7.3.24.3 GR1 — restructures `ReferenceFormatProcessor` from one-format-per-file to
   per-segment, an every-program path) · the **real FLAG-14/FLAG-02 flagging** (recognition landed; the migration/
   obsolescence diagnostics need the flaggable-construct census) · >>COBOL-WORDS · CC-directives-inside-COPY (§7.2.1).
@@ -66,13 +76,13 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD `323f09cb` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield Conformance
-  **3783** · unit **≈360** (+ the new CC-DEFINE tests) · characterization **33** byte-exact. **Full legacy guard
-  (`scripts/guard.sh`) `=== ALL GREEN ===`** most recently at the Wave-D `>>DEFINE` commit `3a6734ce` (and twice at
-  PERFORM Format 3, before + after the review fixes); the `>>DISPLAY`/`>>FLAG` recognition commit `323f09cb` ran
-  **guard-fast `=== ALL GREEN ===`** (zero blast radius — confirmed no test expected those directives to error). The
-  legacy oracle's two `ControlFlowBinder` sites were repaired in the PERFORM Format 3 change set (the Formats-2/3
-  `.g4` merge). ⚠ **A capture rule (owner-flagged):** never `| tail -N` a guard/test run whose verdict you need — the
+- **Battery at code-HEAD `a1d6c7c7` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield Conformance
+  **3784** (+ `boolean_shift_mixed`) · unit **379** (+ the 13 `BooleanExpressionResolver` tests) · characterization
+  **33** byte-exact. **Full legacy guard (`scripts/guard.sh`) `=== ALL GREEN ===`** at BOTH C2 commits (`09760ca3`
+  foundation + `a1d6c7c7` rule-7b runtime), greenfield suites green at each. ⚠ The legacy `ConformanceTests` runs
+  the shared corpus against the frozen legacy too — a new 2023/boolean golden needs a `GreenfieldOnly` exclusion in
+  the SAME commit ([[feedback_legacy_suite_on_shared_corpus]]; the guard caught the omission for `boolean_shift_mixed`
+  before push). ⚠ **A capture rule (owner-flagged):** never `| tail -N` a guard/test run whose verdict you need — the
   guard prints `=== ALL GREEN ===` near, not at, the end, so `tail` can drop it and surface a trailing flaky-cleanup
   line instead; redirect FULL output to a file and `grep 'ALL GREEN'` + `grep -iE 'crash|abort|Failed: *[1-9]'`.
   Build `CobolSharp.sln` before any `--no-build` test run.
