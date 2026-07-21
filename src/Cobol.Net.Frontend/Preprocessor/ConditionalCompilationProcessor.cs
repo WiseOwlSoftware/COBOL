@@ -54,7 +54,8 @@ public static class ConditionalCompilationProcessor
     /// omitted-branch one still drops with its branch. The default (false) is the exact legacy behavior —
     /// TURN consumed here, the legacy caller untouched.</param>
     public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false,
-        bool leaveRefModZeroLengthDirectives = false, DiagnosticBag? diagnostics = null, string? sourcePath = null)
+        bool leaveRefModZeroLengthDirectives = false, bool leaveFlagDirectives = false,
+        DiagnosticBag? diagnostics = null, string? sourcePath = null)
     {
         var defines = new Dictionary<string, CtValue>(StringComparer.OrdinalIgnoreCase);
         var diag = new DirectiveDiag(diagnostics, sourcePath);
@@ -168,6 +169,11 @@ public static class ConditionalCompilationProcessor
                     // the introduction gate + the per-line zero-length fold). It stays in KnownIgnoredDirectives so a
                     // legacy caller (no flag) keeps consuming it; the greenfield stage adds the real behavior.
                     else if (leaveRefModZeroLengthDirectives && keyword == "REF-MOD-ZERO-LENGTH") output[i] = line;
+                    // With leaveFlagDirectives (the COBOL.NET caller), an emitting-branch >>FLAG-02 / >>FLAG-14
+                    // survives for the FlagDirectiveProcessor stage (ISO §7.3.14 / §7.3.15 — the per-line per-option
+                    // migration-flag fold). Both stay in KnownIgnoredDirectives so a legacy caller (no flag) keeps
+                    // consuming them; the greenfield stage adds the real behavior.
+                    else if (leaveFlagDirectives && (keyword == "FLAG-02" || keyword == "FLAG-14")) output[i] = line;
                     else output[i] = KnownIgnoredDirectives.Contains(keyword) ? "" : line;
                     break;
             }

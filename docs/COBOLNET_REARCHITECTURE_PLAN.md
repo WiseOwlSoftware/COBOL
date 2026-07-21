@@ -99,7 +99,13 @@ checkpoint.
   c, no bound residue — inline in `ConditionalCompilationProcessor`), diagnostics **COBOLNET1620** (Flag02Warning)
   / **1621** (Flag14Warning) with per-option ConstructId/Citation, plus the directive-word edition gates
   (>>FLAG-14 = 2023 intro; >>FLAG-02 = 2014 intro / 2023 obsolete). 5-increment plan (Incr 0 core+READ-PREVIOUS →
-  Incr 4 the new-analysis options). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
+  Incr 4 the new-analysis options). ✅ **Incr 0 LANDED** — the full pipeline (frontend `FlagDirectiveProcessor`
+  collect on final text → `FlagState` per-option line-fold → the dedicated `FlagConformancePass` ANTLR parse-tree
+  visitor, threaded frontend→driver→binder) + the two syntactic detectors **FLAG-14 h READ-PREVIOUS** (1621) and
+  **FLAG-02 c I-O-STATUS-07** (CLOSE NO REWIND/UNIT, 1620); diagnostics 1620/1621/1622; 16 unit tests + CLI-probed;
+  characterization 33/33 byte-exact (zero-overhead invariant holds). ⏭ NEXT = Incr 0b (directive-word edition gates
+  + constructs.json rows) → Incr 1 (data/VALUE + WRITE + TERMINATE options) → Incr 2 (frontend-inline b/c) →
+  Incr 3 (state-coupled) → Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·
   CC-directives-inside-COPY (§7.2.1; direction recorded: MERGE CC+COPY into ONE interleaved text-manip driver
   with shared directive state — the copybook >>SOURCE FORMAT GR5 reversion rides the same driver; GnuCOBOL-diff
@@ -175,9 +181,12 @@ checkpoint.
   §7.3.3 SR10 float/figurative/concat, a wrong-category/non-literal operand, a §7.3.6 arithmetic rule, or a §7.3.8
   cce rule); a FRONTEND `DiagnosticBag.ReportError` code ⇒ a `DiagnosticCatalog` descriptor. **COBOLNET1569
   RETIRED** (the boolean-shift-mixed reject removed — the mixed form is now ACCEPTED per §8.8.2 rule 7b; DEVLOG 943).
-  **NEXT FREE = 1620** — allocate only
+  **1620/1621/1622 SHIPPED 2026-07-21 by FLAG Incr 0** — the migration-flagging subsystem: **1620** flag-02-incompatibility
+  (Warning) · **1621** flag-14-incompatibility (Warning) · **1622** flag-directive-malformed (Error); all THREE are
+  `DiagnosticCatalog` descriptors (the two Warnings are the per-directive channel carrying per-option ConstructId/Citation).
+  **NEXT FREE = 1623** — allocate only
   after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
-  (max = 1619) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
+  (max = 1622) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
   the frontend channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is
   queued — ledger V11 note). 1589–1590 · 1598 · 1602/1603 · 1609 · 1613 stay released/reserved mid-band holes.
   A wave that does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.

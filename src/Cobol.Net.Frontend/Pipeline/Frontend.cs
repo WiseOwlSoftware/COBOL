@@ -62,6 +62,11 @@ public sealed class Frontend
     /// group's compile-time <see cref="Binding.RefModZeroLengthState"/> (the per-line zero-length allowance fold).</summary>
     public IReadOnlyList<RefModZeroLengthEvent> RefModZeroLengthEvents { get; private set; } = [];
 
+    /// <summary>The frontend's <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> directive events (ISO §7.3.14 /
+    /// §7.3.15) — they build the group's compile-time <see cref="Binding.FlagState"/> (the per-line per-option
+    /// migration-flag fold that <c>FlagConformancePass</c> queries). Empty when the source has no FLAG directives.</summary>
+    public IReadOnlyList<FlagEvent> FlagEvents { get; private set; } = [];
+
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
     /// syntax error was reported (collected into <paramref name="diagnostics"/>).
@@ -92,7 +97,7 @@ public sealed class Frontend
         // dedicated stage below (the COBOL.NET EC model, ISO §7.3.25 / §7.3.21) — the legacy pipeline still consumes
         // both here.
         text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true, leavePropagateDirectives: true,
-            leaveRefModZeroLengthDirectives: true, diagnostics: diagnostics, sourcePath: sourcePath);
+            leaveRefModZeroLengthDirectives: true, leaveFlagDirectives: true, diagnostics: diagnostics, sourcePath: sourcePath);
 
         // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
@@ -126,6 +131,14 @@ public sealed class Frontend
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
+
+        // >>FLAG-02 / >>FLAG-14 (ISO §7.3.14 / §7.3.15): collect the per-option ON/OFF toggle events on the FINAL
+        // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
+        // anchoring discipline). Line-count preserving like the stages above.
+        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath);
+        if (CountLines(text) != linesBefore)
+            throw new InvalidOperationException(
+                "FlagDirectiveProcessor changed the line count (hazard H3)");
 
         return text;
     }

@@ -37,7 +37,8 @@ internal sealed class BinderDriver
     /// null/empty means the GR1 default, EC-ALL CHECKING OFF.</summary>
     public BoundCompilation Bind(Core.CompilationUnitContext tree, EditionContext edition,
         IReadOnlyList<Frontend.Preprocessor.TurnEvent>? turnEvents,
-        IReadOnlyList<Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null)
+        IReadOnlyList<Frontend.Preprocessor.RefModZeroLengthEvent>? refModZlEvents = null,
+        IReadOnlyList<Frontend.Preprocessor.FlagEvent>? flagEvents = null)
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
 
@@ -76,6 +77,12 @@ internal sealed class BinderDriver
             pass.Run(ctx);
             foreach (var d in ctx.AllBinders()) d.MarkProduced(pass.Produces);
         }
+
+        // The migration-flagging pass (ISO §7.3.14 FLAG-02 / §7.3.15 FLAG-14) — a SIBLING to the terminal
+        // VersionConformancePass, run right after it: it is an orthogonal axis (directive-state-driven, always a
+        // Warning, fires regardless of --std), so it is NOT a GroupTail manifest pass. A no-op (no parse-tree walk)
+        // when the source carries no >>FLAG directive — the zero-overhead invariant.
+        global::CobolNet.Validation.FlagConformancePass.Run(ctx, FlagState.Build(flagEvents), edition);
 
         // The group EC gate: ANY use of the EC model (an enabling TURN, a RAISE/RESUME/F3/RAISING, an
         // EXCEPTION-* function) turns the machinery on; otherwise the generated source is byte-identical to a

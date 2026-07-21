@@ -325,6 +325,20 @@ public static class DiagnosticCatalog
         + "or wrong-category operand, an exponentiation or division-by-zero in a compile-time arithmetic expression, "
         + "or a category-mismatched / non-numeric-ordering constant-conditional relation.",
         "ISO §7.3.6 / §7.3.7 / §7.3.8");
+    // §7.3.14 / §7.3.15 migration-flagging directives — the warning channel (one code per directive; each emit
+    // carries the specific option's message + GR4/Annex-E citation). Warning: a flag NEVER fails a compile.
+    public static readonly DiagnosticDescriptor Flag02Warning = new(
+        "COBOLNET1620", "flag-02-incompatibility", EditionSeverity.Warning,
+        "A construct is flagged by an active >>FLAG-02 option — a 2002-to-2014 incompatibility potentially "
+        + "affecting existing programs (the specific option + change is named in the message).", "ISO §7.3.14");
+    public static readonly DiagnosticDescriptor Flag14Warning = new(
+        "COBOLNET1621", "flag-14-incompatibility", EditionSeverity.Warning,
+        "A construct is flagged by an active >>FLAG-14 option — a 2014-to-2023 incompatibility potentially "
+        + "affecting existing programs (the specific option + change is named in the message).", "ISO §7.3.15");
+    public static readonly DiagnosticDescriptor FlagDirectiveMalformed = new(
+        "COBOLNET1622", "flag-directive-malformed", EditionSeverity.Error,
+        "A >>FLAG-02 / >>FLAG-14 directive is malformed — an unknown option word, no option or ALL named, ALL "
+        + "combined with individual options, or (FLAG-14) a missing ON/OFF phrase.", "ISO §7.3.14.2 / §7.3.15.2");
     public static readonly DiagnosticDescriptor ReportSourceOtherReportCounter = new(
         NotImplemented, "report-source-other-report-counter", EditionSeverity.Error,
         "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15 SR2", RecognizedNotImplemented);

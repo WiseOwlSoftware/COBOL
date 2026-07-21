@@ -101,14 +101,23 @@ trigger axis (user directive-state vs `--std`), always Warning, and two of its d
 at all (b, c are frontend-only). Bolting per-case `if (flagState.IsOnAt…)` onto VCP's `GateStatement` switch
 would dilute that pass's documented single-responsibility ("sole owner of edition gating", the two-arm
 disjointness invariant) and its "one policy = `ConstructRegistry.Check` funnel" identity. `FlagConformancePass`
-is a sibling post-bind pass in `Cobol.Net.Compiler/Validation`.
+is a sibling post-bind pass in `Cobol.Net.Compiler/Validation`, invoked from `BinderDriver` right after the
+`BindPipeline.GroupTail()` loop with `(GroupBindContext, FlagState, sink)`.
 
-**D2 — ONE traversal mechanism, reused, never a second bespoke walk.** `FlagConformancePass` recurses via the
-generated drift-proof `BoundStatement.StatementChildren()` (the same primitive VCP's `Recurse` uses) and reads
-data through the shared `DataBinder.ConformanceForest()` / `.Reports` accessors. No hand-rolled statement switch
-duplicating VCP's traversal (`feedback_path_a_leverage_tooling`). If the `WalkProgram`/`Recurse` scaffold is
-worth sharing, extract a tiny internal `BoundTreeWalker` both passes call — but the load-bearing shared element
-is `StatementChildren()`, which already exists.
+**D2 — a PARSE-TREE visitor (the source-line reason), reusing the generated ANTLR base visitor.** The flag fold
+is **line-sensitive** (GR2: a flag applies to the text *following* the directive), so every detector needs its
+construct's source line. `BoundStatement` does **not** carry a uniform source line — only a handful of nodes hold
+a `SourceLine` (for DEBUG-LINE), and e.g. `BoundTerminate` has none — so a bound-tree walk cannot anchor the
+fold. The **parse tree** carries `ctx.Start.Line` on every node, and because `FlagDirectiveProcessor` collects
+events on the FINAL preprocessed text, those `Start.Line`s are directly comparable to `FlagEvent.Line` (the same
+basis TurnState/RefModZeroLength use). Therefore `FlagConformancePass` is a `CobolParserCoreBaseVisitor<object?>`
+over `group.Tree` — the SAME traversal mechanism VCP's `ParseArm` uses (the generated, drift-proof visitor; no
+bespoke switch — `feedback_path_a_leverage_tooling`). Options whose trigger is **syntactic** (READ PREVIOUS,
+CLOSE NO REWIND/UNIT, WRITE-without-EOP, SET-index, the VALUE-clause data options, MOVE shape) are decided from
+the parse node directly; options needing a **resolved fact** (TERMINATE's report has a VARYING clause; a MOVE's
+operands share a DDE; a condition tests a FILE STATUS item) look that fact up **by name** in the resolved models
+reachable from `GroupBindContext` (`Units[].Data` forest, `.Reports`, `FilesByName`) — a cheap dictionary hit,
+never a re-run of operand binding.
 
 **D3 — ONE FlagState, ONE FlagOption catalog, ONE directive-line parser.** A single `FlagState`
 (`Cobol.Net.Compiler/Binding`, cloned from `RefModZeroLengthState` and extended per-option) folds the toggle
@@ -169,18 +178,23 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
 
 ## 4. Increment plan (ONE option-or-group per commit, conformance test + wave-local gate each)
 
-* **Incr 0 — CORE + first slice.** `FlagOption`/`FlagDirective` + descriptor table; `FlagDirectiveLine` parser;
-  `FlagEvent` + `FlagDirectiveProcessor` (+ `leaveFlagDirectives` wiring + `Frontend.FlagEvents`); `FlagState`;
-  thread through the drivers; `FlagConformancePass` skeleton + **h READ-PREVIOUS** detector; catalog 1620/1621;
-  directive-word introduction gate + `constructs.json` rows. Conformance golden: `>>FLAG-14 READ-PREVIOUS ON`
-  + a READ PREVIOUS ⇒ warning; the OFF form ⇒ none.
-* **Incr 1 — the data/VALUE + report/WRITE options** (all `[B]`, no new infra): g/l (shared), j, k, m, and
-  FLAG-02 f TERMINATE-WITH-VARYING. Each with a golden.
+* **Incr 0 — CORE + first slice (both directives, both codes, purely syntactic).** `FlagOption`/`FlagDirective`
+  + option catalog; `FlagDirectiveLine` parser; `FlagEvent` + `FlagDirectiveProcessor` (+ `leaveFlagDirectives`
+  wiring + `Frontend.FlagEvents`); `FlagState`; thread through the drivers; `FlagConformancePass` (the ANTLR
+  parse-tree visitor) with two syntactic detectors — **FLAG-14 h READ-PREVIOUS** (`readDirection().PREVIOUS()`)
+  and **FLAG-02 c I-O-STATUS-07** (`closeOption` = `UNIT` or `NO REWIND`; parse-visible, so NO `BoundClose`
+  model change is needed — a simplification over the original Incr-3 plan). Catalog 1620 (Flag02Warning) + 1621
+  (Flag14Warning), both exercised. Goldens: `>>FLAG-14 READ-PREVIOUS ON` + a READ PREVIOUS ⇒ warning (OFF ⇒
+  none); `>>FLAG-02 I-O-STATUS-07 ON` + a CLOSE WITH NO REWIND ⇒ warning. Directive-word introduction gate +
+  `constructs.json` rows land here too (or the immediately-following Incr 0b if kept tight).
+* **Incr 1 — the data/VALUE + report/WRITE options** (parse arm + resolved lookups): g/l (shared numeric-edited
+  VALUE-ZERO), j VALUE-EDITING, k VALUE-FIG-CON-LENGTH, m WRITE-END-OF-PAGE, and FLAG-02 f
+  TERMINATE-WITH-VARYING. Each with a golden.
 * **Incr 2 — the frontend-inline options** b, c (compile-time-arith, EVALUATE directive) + the `FlagScanState`
   in `ConditionalCompilationProcessor`. Goldens exercising each.
-* **Incr 3 — the EC/state-coupled options** i REF-MOD-ZERO-LENGTH (tri-state `RefModZeroLengthState`
-  extension), FLAG-02 c I-O-STATUS-07 (`BoundClose` NoRewind bit), d MOVE-TO-SAME-NAME, e
-  RANGE-EXCEPTION-FOR-INDEX (TurnState read).
+* **Incr 3 — the state-coupled options** i REF-MOD-ZERO-LENGTH (tri-state `RefModZeroLengthState`
+  extension + EC-BOUND-REF-MOD read), d MOVE-TO-SAME-NAME (same-DDE via name resolution), e
+  RANGE-EXCEPTION-FOR-INDEX (SET-index + EC-RANGE-INDEX TurnState read).
 * **Incr 4 — the new-analysis options** d I-O-DECLARATIVE, e/f I-O-STATUS-04/07 (FILE-STATUS reference
   tagging), FLAG-02 b EC-PROGRAM-EXCEPTIONS (element-scope call/invoke aggregation). Each is real
   cross-cutting analysis designed here to spec; implemented last because it introduces new machinery, NOT a
