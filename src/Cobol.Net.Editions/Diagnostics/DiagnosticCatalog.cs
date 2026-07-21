@@ -314,6 +314,10 @@ public static class DiagnosticCatalog
         "COBOLNET1584", "file-collating-national-unsupported", EditionSeverity.Warning,
         "A NATIONAL alphabet on a file-control COLLATING SEQUENCE clause is recognized but national-key collating "
         + "for indexed files is not yet implemented — the key orders natively.", "ISO §12.4.5.7", RecognizedNotImplemented);
+    public static readonly DiagnosticDescriptor DefineNoOverrideRedefinition = new(
+        "COBOLNET1618", "define-no-override-redefinition", EditionSeverity.Error,
+        "A >>DEFINE directive redefines a compilation variable to a different value without the OVERRIDE phrase "
+        + "(the previous definition was neither OFF nor the same value).", "ISO §7.3.11.3 SR2");
     public static readonly DiagnosticDescriptor ReportSourceOtherReportCounter = new(
         NotImplemented, "report-source-other-report-counter", EditionSeverity.Error,
         "A SOURCE referencing another report's counter is not yet implemented.", "ISO §8.4.3.15 SR2", RecognizedNotImplemented);

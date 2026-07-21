@@ -89,8 +89,10 @@ checkpoint.
   [OVERRIDE] {file}…` shape is itself an unimplemented grammar gap), so 1613 is unreachable until that lands;
   **1609 (XS-RESUME-PLACEMENT) subsumed by COBOLNET0712**. All bands are COMPILER-channel raw codes (the 1542/0808
   pattern — NOT catalog descriptors; the split-code 0899 staged gate rides `DiagnosticCatalog.ConstructStagedNotImplemented`).
-  **NEXT FREE = 1618** — allocate only after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
-  (max = 1617) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
+  **1618 SHIPPED 2026-07-20 by Wave D** (define-no-override-redefinition — §7.3.11.3 SR2, a FRONTEND `ReportError`
+  code ⇒ a DiagnosticCatalog descriptor, NOT the compiler-channel raw band). **NEXT FREE = 1619** — allocate only
+  after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
+  (max = 1618) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
   the frontend channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is
   queued — ledger V11 note). 1589–1590 · 1598 · 1602/1603 · 1609 · 1613 stay released/reserved mid-band holes.
   A wave that does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
@@ -190,11 +192,15 @@ checkpoint.
      runtime with a landable/staged boundary) + the figure resolution `PHASE-13-c5-perform-format3-pdf-resolution.md`.
      Working designs: `PHASE-13-wave-c-scout.md` + `PHASE-13-remaining-waves-scout.md` (delete both at P13 close).
      **⛔ SPEC-GROUNDED DESIGN SSOT for the remaining four = `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`** (2026-07-20, each construct DERIVED from the spec then adversarially verified — supersedes the scouts' inline claims). Verdicts: COLLATING · SUPPRESS WHEN · PICTURE EDITING = **SPEC-FAITHFUL**; VALUE Format 2 = **PARTIALLY-REFUTED** (its "out-of-range table elements default to spaces/zero" claim is UNSPEC — §13.18.63.4 GR4 leaves untouched occurrences undefined; do not assert it). Cross-cutting corrections: **all scouts' inline diag codes are STALE — use the plan's reserved ranges below, not the scout numbers.** **COLLATING↔SUPPRESS WHEN are COUPLED** (both in `IndexedConnector.cs`; suppression equality uses the FILE collating sequence per §14.9.51 GR35 — implement COLLATING first so the weighted-comparison seam `CobolString.Compare(l,r,weights)` exists, then SUPPRESS WHEN reuses it). SUPPRESS WHEN is **4 touch points not one** (ReadRandom/Write/Rewrite don't route through `Ordered`) + the shared `IsSuppressed` (max-length/no-truncate GR35, NOT key-width pre-pad). PICTURE EDITING: the extracted **Table 8 is sign-inverted** and SR12 is a drafting defect — implement from Table 9 + Annex D.24; the multi-char/floating-`es` RENDER is a **P14 GAP** (parse+bind+SR diagnostics land). **Suggested batch order (multiple waves / ONE comprehensive guard, owner 2026-07-20): COLLATING → SUPPRESS WHEN (batch 1, coupled), then PICTURE-EDITING-parse-half + VALUE-Format-2 (batch 2).**
-  2. **Wave D — directives** (verify `.g4` impact → guard accordingly): >>COBOL-WORDS · >>PUSH/>>POP ·
-     >>DISPLAY · >>FLAG-14 (the GR4 a–l twins) · >>FLAG-02-obsolete · **+ review adds:** the §7.3.6/§7.3.7
-     DEFINE/EVALUATE evaluator (LIFT DataBinder.Constants.cs's §7.3.6 evaluator; ledger C2) + AS PARAMETER +
-     the SR2 OVERRIDE check · >>SOURCE FORMAT mid-file (§7.3.24.3 GR1; C3) · CC-directives-inside-COPY (§7.2.1;
-     C4) · FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21 handling · >>CALL-CONVENTION/>>LEAP-SECOND dispositions
+  2. **Wave D — directives** (verify `.g4` impact → guard accordingly). **✅ LANDED (DEVLOG 941):** the §7.3.11
+     DEFINE **SR2 no-OVERRIDE redefinition check (COBOLNET1618)** + **AS PARAMETER** (GR4 operating-environment
+     source) + the **OVERRIDE** phrase (GR3), and **>>PUSH/>>POP recognition** (§7.3.20/§7.3.22 — consumed, no-op
+     disposition since no compiler-directive state is varied). **REMAINING:** >>COBOL-WORDS · >>DISPLAY ·
+     >>FLAG-14 (the GR4 a–l twins) · >>FLAG-02-obsolete · the §7.3.6/§7.3.7 DEFINE/EVALUATE arithmetic/boolean
+     EXPRESSION evaluator (LIFT DataBinder.Constants.cs's §7.3.6 evaluator; ledger C2 — the multi-token
+     silent-wrong-value defect) + AS PARAMETER refinements + the SR2 OVERRIDE redefinition edge cases ·
+     >>SOURCE FORMAT mid-file (§7.3.24.3 GR1; C3) · CC-directives-inside-COPY (§7.2.1; C4) ·
+     FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21 handling · >>CALL-CONVENTION/>>LEAP-SECOND dispositions
      (V32) · the E.2-item-6 compile-time-arithmetic-mode CONFORMANCE note (V41 — REQUIRED doc item).
   3. **Review fixes to P13-LANDED code ONLY** (per D16): from the §24 queue, the items touching this phase's
      waves (the ref-mod cluster incl. the negative-length sentinel + ODO ReceiveInto + the "!"-sentinel bug,

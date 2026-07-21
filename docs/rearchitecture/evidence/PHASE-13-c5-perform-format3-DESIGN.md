@@ -36,13 +36,26 @@ contiguous free block 1597-1617 (batch 2 used 1585-1596). -->
 >    are parse-subtree walks that fall out of the F3 node's own sub-lists (simpler than the design implied).
 >    **TurnState is IMMUTABLE** ⇒ GR14 is a `WithImplicitEnable` derived-instance overlay (line-0 synthetic enables),
 >    NOT a push/pop mutator.
-> 6. **THE RUNTIME (GR17–20) IS STAGED via a 0899 REJECTION, not a partial compile.** The design's §5 lambda-based
->    interceptor has a real blocker: **C# cannot `goto` out of a lambda**, so an `EXIT PERFORM` inside a WHEN handler
->    (emitted in the matcher closure) cannot jump to the PERFORM end label; plus threading `fatal` through `EcDispatchExpr`
->    touches many raise sites. Per the batch-2 precedent (PICTURE EDITING/VALUE Format 2 staged their forms as 0899
->    REJECTIONS), the F3 PERFORM is REJECTED at 2023 with COBOLNET0899 (`perform-exception-checking-2023` row =
->    `status:pending`) — safe (no silent on-raise divergence) and honest. **The interceptor wave needs a NON-LAMBDA
->    handler-emission strategy** (or an EXIT-PERFORM-in-handler sub-stage). §5 below is the plan of record for that wave.
+> 6. **THE RUNTIME (GR17–20) IS STAGED via a 0899 REJECTION, not a partial compile.** The F3 PERFORM is REJECTED at
+>    2023 with COBOLNET0899 (`perform-exception-checking-2023` row = `status:pending`) — safe (no silent on-raise
+>    divergence) and honest, per the batch-2 precedent (PICTURE EDITING/VALUE Format 2 staged their forms as 0899
+>    rejections). **The interceptor is a proper NEXT WAVE requiring a production architecture decision — do NOT rush a
+>    kludge** (owner requirement: commercial-quality, decade-supportable). The design's §5 **lambda-mode-inline** approach
+>    is **REJECTED for production**: it needs a "am-I-in-a-lambda" statement-emission mode (RESUME → return-action,
+>    `EXIT PERFORM` → a thrown signal because C# cannot `goto` out of a lambda) — a SECOND mechanism for "run a handler
+>    in response to an EC," violating the singular-pattern rule (`feedback_singular_pattern`) and a long-term maintenance
+>    hazard. The as-built architecture for exactly that job already exists: **`ResumeSignal.cs` records that declaratives
+>    are pc-RANGES run by the bounded dispatcher (`__RunUse` wraps `__Dispatch(start,end)` in a `try/catch(ResumeSignal)`
+>    and RETURNS the resume action to the raise site).** A WHEN handler IS an inline declarative (GR17: a WHEN match
+>    REPLACES a matching USE declarative), so the wave should choose between two SIGNAL-BASED, singular-pattern options
+>    and NOT the lambda: **(A)** emit imp-2..5 as synthetic pc-ranges dispatched exactly like declaratives (max reuse of
+>    `__RunUse`/`ResumeSignal`; needs anonymous-pc synthesis for inline bodies — cf. `AddAnonymousParagraph`); or **(B)**
+>    emit imp-2..5 as ordinary methods invoked by a frame matcher, with RESUME → `ResumeSignal` and `EXIT PERFORM` → a
+>    new `ExitPerformSignal` caught at the PERFORM boundary (the established exception-as-control family:
+>    `ResumeSignal`/`StopRun`/`ProgramReturn`). Also required: gate `__EcPerform` on "unit HAS an F3 PERFORM" so every
+>    existing (non-F3) program's generated code stays BYTE-IDENTICAL (the 33 characterization tests + the battery), and
+>    thread `fatal` through the raise-site dispatch seam. §5 below is the feature spec; its emit *shape* is superseded by
+>    this note.
 
 **The three mandatory adversarial corrections are applied:**
 1. Next-free diagnostic is **COBOLNET1597**. NEXT-FREE is 1597, NOT 1585: this session's batch 2 consumed 1585-1588 (VALUE Format 2) and 1591-1596 (PICTURE EDITING) as COMPILER-CHANNEL raw codes (in DataBinder/PictureAnalyzer, NOT DiagnosticCatalog.cs), so a catalog-only scan is insufficient — BOTH the `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src` scan (max 1596) AND the catalog must agree. The contiguous free block 1597-1617 fits this feature's 21 codes. The stale "1585"/"1581"/"1578" claims are discarded.

@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Globalization;
+using CobolNet.Frontend.Common;
+using CobolNet.Frontend.Diagnostics;
 
 namespace CobolNet.Frontend.Preprocessor;
 
@@ -17,12 +19,14 @@ namespace CobolNet.Frontend.Preprocessor;
 ///       relation (<c>operand [IS] [NOT] relop operand</c>, relop ∈ = &lt;&gt; &lt; &gt; &lt;= &gt;=),
 ///       combined with <c>AND</c> / <c>OR</c> / <c>NOT</c> and parentheses.
 ///
-/// Deferred (tracked in the P13 review ledger + Wave D): arithmetic / boolean expression operands in
-/// DEFINE/EVALUATE (§7.3.6/§7.3.7 — today only single-token operands bind; multi-token operands bind the FIRST
-/// token, a known silent-wrong-value defect), the PARAMETER (operating-environment) source of a define (today it
-/// wrongly binds the literal word "PARAMETER"), the §7.3.11.3 SR2 no-OVERRIDE redefinition check, and
+/// Implemented (Wave D): the §7.3.11.3 SR2 no-OVERRIDE redefinition check (COBOLNET1618), <c>AS PARAMETER</c>
+/// (GR4 — the operating-environment source), and the OVERRIDE phrase (GR3). <c>&gt;&gt;EVALUATE</c>/<c>&gt;&gt;WHEN</c>
+/// ARE implemented (the earlier deferral note was stale).
+///
+/// Deferred (tracked in the P13 review ledger + Wave D): arithmetic / boolean EXPRESSION operands in
+/// DEFINE/EVALUATE (§7.3.6/§7.3.7 — today only single-token operands bind; a multi-token operand binds the FIRST
+/// token, a known silent-wrong-value defect awaiting the compile-time expression evaluator), and
 /// conditional-compilation directives located inside copied library text (§7.2.1 orders COPY before the CC scan).
-/// <c>&gt;&gt;EVALUATE</c>/<c>&gt;&gt;WHEN</c> ARE implemented (the earlier deferral note was stale).
 ///
 /// Blast radius is essentially nil: a source with no <c>&gt;&gt;</c> lines is reproduced byte-for-byte.
 /// </summary>
@@ -38,6 +42,8 @@ public static class ConditionalCompilationProcessor
     {
         "CALL-CONVENTION", "LISTING", "PAGE", "LEAP-SECOND", "PROPAGATE",
         "FLAG-85", "FLAG-NATIVE-ARITHMETIC", "REF-MOD-ZERO-LENGTH", "TURN", "COBOL-WORDS",
+        "PUSH", "POP",   // §7.3.20/§7.3.22 directive-state save/restore — recognized so they don't stray-token; no
+                         // compiler-directive state we currently vary needs saving, so a no-op disposition is faithful.
     };
 
     /// <param name="text">The free-form-normalized source text.</param>
@@ -46,7 +52,7 @@ public static class ConditionalCompilationProcessor
     /// omitted-branch one still drops with its branch. The default (false) is the exact legacy behavior —
     /// TURN consumed here, the legacy caller untouched.</param>
     public static string Process(string text, bool leaveTurnDirectives = false, bool leavePropagateDirectives = false,
-        bool leaveRefModZeroLengthDirectives = false)
+        bool leaveRefModZeroLengthDirectives = false, DiagnosticBag? diagnostics = null, string? sourcePath = null)
     {
         var defines = new Dictionary<string, Value>(StringComparer.OrdinalIgnoreCase);
         var stack = new Stack<Frame>();
@@ -124,7 +130,7 @@ public static class ConditionalCompilationProcessor
                     output[i] = "";
                     break;
                 case "DEFINE":
-                    if (emitting) ApplyDefine(rest, defines);   // a DEFINE inside an omitted branch has no effect
+                    if (emitting) ApplyDefine(rest, defines, diagnostics, sourcePath, i);   // a DEFINE in an omitted branch has no effect
                     output[i] = "";
                     break;
                 default:
@@ -232,7 +238,14 @@ public static class ConditionalCompilationProcessor
         return (s[..sp].ToUpperInvariant(), sp < s.Length ? s[sp..].Trim() : "");
     }
 
-    private static void ApplyDefine(string rest, Dictionary<string, Value> defines)
+    /// <summary>Apply a <c>&gt;&gt;DEFINE compilation-variable-name AS { arithmetic-expression | boolean-expression |
+    /// literal | PARAMETER } [OVERRIDE] | OFF</c> directive (ISO §7.3.11). Enforces SR2 (§7.3.11.3 #2 — a
+    /// no-OVERRIDE redefinition to a DIFFERENT value is a violation), GR3 (OVERRIDE ⇒ unconditional set), GR4
+    /// (PARAMETER ⇒ the value comes from the operating environment; undefined when unavailable). NOTE: an
+    /// arithmetic/boolean EXPRESSION operand (§7.3.6/§7.3.7) still binds only its FIRST token today — the §7.3.6
+    /// compile-time evaluator is a separate Wave-D item; single-token literals + PARAMETER are exact.</summary>
+    private static void ApplyDefine(string rest, Dictionary<string, Value> defines,
+        DiagnosticBag? diagnostics, string? sourcePath, int lineIndex)
     {
         var toks = Tokenize(rest);
         if (toks.Count == 0 || toks[0].Kind != TokKind.Word) return;
@@ -241,13 +254,43 @@ public static class ConditionalCompilationProcessor
         if (idx < toks.Count && toks[idx].Kind == TokKind.Word &&
             toks[idx].Text.Equals("AS", StringComparison.OrdinalIgnoreCase)) idx++;
         if (idx >= toks.Count) return;
+
+        // OVERRIDE is the optional trailing phrase (GR3) — its presence bypasses SR2 and unconditionally sets.
+        bool over = toks[^1].Kind == TokKind.Word && toks[^1].Text.Equals("OVERRIDE", StringComparison.OrdinalIgnoreCase);
         var v = toks[idx];
+
         if (v.Kind == TokKind.Word && v.Text.Equals("OFF", StringComparison.OrdinalIgnoreCase))
         {
-            defines.Remove(name);
+            defines.Remove(name);   // GR2 — undefine
             return;
         }
-        defines[name] = Value.FromToken(v);   // trailing OVERRIDE (if any) is ignored — we always override
+
+        // AS PARAMETER (GR4): the value is obtained from the operating environment; when no value is available the
+        // compilation variable is NOT defined. A value that parses as a numeric literal is numeric, else alphanumeric.
+        if (v.Kind == TokKind.Word && v.Text.Equals("PARAMETER", StringComparison.OrdinalIgnoreCase))
+        {
+            string? env = Environment.GetEnvironmentVariable(name);
+            if (env is null) { defines.Remove(name); return; }
+            var pv = decimal.TryParse(env, NumberStyles.Number, CultureInfo.InvariantCulture, out var num)
+                ? new Value(true, num, env) : new Value(false, 0m, env);
+            AssignDefine(name, pv, over, defines, diagnostics, sourcePath, lineIndex);
+            return;
+        }
+
+        AssignDefine(name, Value.FromToken(v), over, defines, diagnostics, sourcePath, lineIndex);
+    }
+
+    /// <summary>Bind <paramref name="name"/> to <paramref name="newVal"/>, enforcing §7.3.11.3 SR2: without the
+    /// OVERRIDE phrase, a compilation variable already defined (and not OFF'd) may be redefined only to the SAME
+    /// value. A differing no-OVERRIDE redefinition is diagnosed (superset-continue: the new value still binds).</summary>
+    private static void AssignDefine(string name, Value newVal, bool over, Dictionary<string, Value> defines,
+        DiagnosticBag? diagnostics, string? sourcePath, int lineIndex)
+    {
+        if (!over && defines.TryGetValue(name, out var existing) && !existing.Equals(newVal))
+            diagnostics?.ReportError("COBOLNET1618",
+                $">>DEFINE: compilation variable '{name}' is redefined to a different value without the OVERRIDE "
+                + "phrase (ISO §7.3.11.3 SR2)", new SourceLocation(sourcePath ?? "", 0, lineIndex, 0), default);
+        defines[name] = newVal;
     }
 
     // ── constant-conditional-expression evaluation ────────────────────────────────────────────────────────────

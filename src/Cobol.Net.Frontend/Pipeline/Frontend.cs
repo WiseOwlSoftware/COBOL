@@ -92,7 +92,7 @@ public sealed class Frontend
         // dedicated stage below (the COBOL.NET EC model, ISO §7.3.25 / §7.3.21) — the legacy pipeline still consumes
         // both here.
         text = ConditionalCompilationProcessor.Process(text, leaveTurnDirectives: true, leavePropagateDirectives: true,
-            leaveRefModZeroLengthDirectives: true);
+            leaveRefModZeroLengthDirectives: true, diagnostics: diagnostics, sourcePath: sourcePath);
 
         // COPY expansion runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
