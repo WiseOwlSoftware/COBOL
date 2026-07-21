@@ -203,8 +203,9 @@ checkpoint.
      parse-tree-independent evaluator usable by BOTH the frontend CC processor [pre-parse] and the compiler binder
      [`DataBinder.Constants.cs EvalConstExpr`, post-parse] to honour the singular-pattern rule; a careful refactor,
      NOT a duplicate) + the SR2 OVERRIDE redefinition edge cases · >>SOURCE FORMAT mid-file (§7.3.24.3 GR1; C3) ·
-     CC-directives-inside-COPY (§7.2.1; C4) · FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21 handling ·
-     >>CALL-CONVENTION/>>LEAP-SECOND dispositions (V32).
+     CC-directives-inside-COPY (§7.2.1; C4) · FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21 handling. (**✅ the V32
+     >>CALL-CONVENTION/>>LEAP-SECOND dispositions + >>LISTING/>>PAGE are now documented in `CONFORMANCE.md §3` as
+     the recognized-and-ignored implementor-disposition set.**)
   3. **Review fixes to P13-LANDED code ONLY** (per D16): from the §24 queue, the items touching this phase's
      waves (the ref-mod cluster incl. the negative-length sentinel + ODO ReceiveInto + the "!"-sentinel bug,
      the VCR-86 SR6 re-derivation, EXCEPTION-FILE r2a legs, COBOLNET1570 national leg). Everything else in

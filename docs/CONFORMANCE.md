@@ -145,6 +145,15 @@ of an unsupported facility.
   now; the same determination governs the DEFINE / EVALUATE directive arithmetic-expression operands once the
   frontend (pre-parse) evaluator lands (today a multi-token directive operand binds only its first token — a recorded
   Wave-D GAP).
+- **Recognized-and-ignored compiler directives (§7.3 — the implementor-disposition set)**: the following standard
+  directives are RECOGNIZED (consumed during text manipulation so the program compiles unchanged) and carry no
+  effect, each because COBOL.NET provides a single behaviour with no alternative to select: **>>CALL-CONVENTION**
+  (§7.3.9) — CALL uses the single .NET managed calling convention (a native-interop convention selector has no
+  target); **>>LEAP-SECOND** (§7.3.17) — the underlying .NET date/time model does not represent leap seconds, so
+  leap-second handling is documented non-support; **>>LISTING** / **>>PAGE** (§7.3.18 / §7.3.19) — no source listing
+  is produced, so listing on/off and page ejects are inert. (The **>>FLAG-02 / >>FLAG-14** flagging directives,
+  §7.3.14 / §7.3.15, are a separate REMAINING Wave-D item — they request real migration/obsolescence diagnostics, not
+  a no-op disposition.) Set: `ConditionalCompilationProcessor.KnownIgnoredDirectives`.
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
