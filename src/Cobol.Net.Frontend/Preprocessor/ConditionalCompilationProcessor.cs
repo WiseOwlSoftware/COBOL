@@ -44,6 +44,11 @@ public static class ConditionalCompilationProcessor
         "FLAG-85", "FLAG-NATIVE-ARITHMETIC", "REF-MOD-ZERO-LENGTH", "TURN", "COBOL-WORDS",
         "PUSH", "POP",   // §7.3.20/§7.3.22 directive-state save/restore — recognized so they don't stray-token; no
                          // compiler-directive state we currently vary needs saving, so a no-op disposition is faithful.
+        "DISPLAY",       // §7.3.12 — transfers text to the source listing / a compile-time device; no listing is
+                         // produced (like LISTING/PAGE), so the directive is recognized and consumed.
+        "FLAG-02", "FLAG-14",   // §7.3.14/§7.3.15 flagging directives — RECOGNIZED (a conforming compiler must not
+                         // error on a standard directive); the migration/obsolescence diagnostics themselves are a
+                         // remaining Wave-D item (the flags are not yet emitted).
     };
 
     /// <param name="text">The free-form-normalized source text.</param>

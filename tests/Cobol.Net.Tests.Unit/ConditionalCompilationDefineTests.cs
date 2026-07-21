@@ -82,4 +82,18 @@ public sealed class ConditionalCompilationDefineTests
         Assert.DoesNotContain(">>POP", text);
         Assert.Contains("LINE-A", text);
     }
+
+    [Theory] // every standard §7.3 directive is RECOGNIZED (consumed with its operand), never a stray token.
+    [InlineData(">>DISPLAY \"hi\"")]
+    [InlineData(">>FLAG-02 ON")]
+    [InlineData(">>FLAG-14 OFF")]
+    [InlineData(">>CALL-CONVENTION COBOL")]
+    [InlineData(">>LEAP-SECOND ON")]
+    [InlineData(">>LISTING ON")]
+    public void StandardDirective_Recognized_Consumed(string directive)
+    {
+        var (text, _) = Run(directive + "\nLINE-B\n");
+        Assert.DoesNotContain(">>", text);      // the whole directive line is consumed (operand and all)
+        Assert.Contains("LINE-B", text);
+    }
 }

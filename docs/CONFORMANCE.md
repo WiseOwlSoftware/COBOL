@@ -151,9 +151,11 @@ of an unsupported facility.
   (§7.3.9) — CALL uses the single .NET managed calling convention (a native-interop convention selector has no
   target); **>>LEAP-SECOND** (§7.3.17) — the underlying .NET date/time model does not represent leap seconds, so
   leap-second handling is documented non-support; **>>LISTING** / **>>PAGE** (§7.3.18 / §7.3.19) — no source listing
-  is produced, so listing on/off and page ejects are inert. (The **>>FLAG-02 / >>FLAG-14** flagging directives,
-  §7.3.14 / §7.3.15, are a separate REMAINING Wave-D item — they request real migration/obsolescence diagnostics, not
-  a no-op disposition.) Set: `ConditionalCompilationProcessor.KnownIgnoredDirectives`.
+  is produced, so listing on/off and page ejects are inert; **>>DISPLAY** (§7.3.12) — likewise transfers text to the
+  (absent) source listing / compile-time device, so it is recognized and consumed. The **>>FLAG-02 / >>FLAG-14**
+  flagging directives (§7.3.14 / §7.3.15) are RECOGNIZED (a conforming compiler must not error on a standard
+  directive), but the migration / obsolescence diagnostics they request are a separate REMAINING Wave-D item — the
+  flags are not yet emitted. Set: `ConditionalCompilationProcessor.KnownIgnoredDirectives`.
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 

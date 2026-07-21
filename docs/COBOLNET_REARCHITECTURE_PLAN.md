@@ -197,8 +197,11 @@ checkpoint.
      source) + the **OVERRIDE** phrase (GR3), and **>>PUSH/>>POP recognition** (§7.3.20/§7.3.22 — consumed, no-op
      disposition since no compiler-directive state is varied); **the V41 REQUIRED implementor-documentation item**
      — the E.2-item-6 compile-time-arithmetic-mode CONFORMANCE note (§7.3.6.2 SR2 / §7.3.6.3 GR2: standard
-     decimal128 mode, div-truncation, GR3 integer-part) is now in `CONFORMANCE.md §3`. **REMAINING:** >>COBOL-WORDS ·
-     >>DISPLAY · >>FLAG-14 (the GR4 a–l twins) · >>FLAG-02-obsolete · the §7.3.6/§7.3.7 DEFINE/EVALUATE
+     decimal128 mode, div-truncation, GR3 integer-part) is now in `CONFORMANCE.md §3`; **>>DISPLAY (§7.3.12) +
+     >>FLAG-02/>>FLAG-14 (§7.3.14/.15) are now RECOGNIZED** (consumed, no stray-token error — a conforming compiler
+     must not reject a standard directive). **REMAINING:** >>COBOL-WORDS · the real >>FLAG-14 (GR4 a–l twins) /
+     >>FLAG-02-obsolete migration/obsolescence FLAGGING (recognition landed; the diagnostics are not yet emitted) ·
+     the §7.3.6/§7.3.7 DEFINE/EVALUATE
      arithmetic/boolean EXPRESSION evaluator (the multi-token silent-wrong-value defect — needs a SHARED,
      parse-tree-independent evaluator usable by BOTH the frontend CC processor [pre-parse] and the compiler binder
      [`DataBinder.Constants.cs EvalConstExpr`, post-parse] to honour the singular-pattern rule; a careful refactor,
