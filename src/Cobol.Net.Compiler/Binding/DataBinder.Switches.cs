@@ -90,17 +90,22 @@ public sealed partial class DataBinder
     /// call this directly.</summary>
     public string NormalizeNumericLiteral(string text)
     {
-        if (DecimalPointIsComma)
+        // The normalization ALGORITHM is the ONE shared CobolNet.Common.NumericLiteral.Normalize (Frontend), so the
+        // compile-time expression evaluator applies the identical §12.3.7 GR14a rule; the binder retains ownership
+        // of the COBOLNET0895 diagnostic (its own channel/descriptor), routing the returned issue to it verbatim.
+        string norm = Common.NumericLiteral.Normalize(text, DecimalPointIsComma, out var issue);
+        switch (issue)
         {
-            if (text.Contains('.'))
+            case Common.NumericSeparatorIssue.DecimalPointUnderCommaMode:
                 Edition.Error("COBOLNET0895", $"numeric literal '{text}': under DECIMAL-POINT IS COMMA the "
                     + "decimal separator is the comma (ISO §12.3.7 GR14a); '.' is not valid in a numeric literal");
-            return text.Replace(',', '.');
+                break;
+            case Common.NumericSeparatorIssue.CommaWithoutCommaMode:
+                Edition.Error("COBOLNET0895", $"numeric literal '{text}': a comma decimal separator requires "
+                    + "DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14a; §8.3.3.3.2 admits only '.' as the decimal point)");
+                break;
         }
-        if (text.Contains(','))
-            Edition.Error("COBOLNET0895", $"numeric literal '{text}': a comma decimal separator requires "
-                + "DECIMAL-POINT IS COMMA (ISO §12.3.7 GR14a; §8.3.3.3.2 admits only '.' as the decimal point)");
-        return text.Replace(',', '.');   // diagnosed; normalized so downstream decode stays well-formed
+        return norm;   // canonical dot-decimal; a diagnosed literal is normalized too so downstream decode stays well-formed
     }
 
     /// <summary>Normalize <paramref name="text"/> when it is a numeric literal (digits with optional sign and
