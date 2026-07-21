@@ -104,6 +104,19 @@ internal static class RuntimeApi
     public static string EditFormat(string value, string scale, string maskLiteral, string cfgArgs) =>
         $"{nameof(CobolEdit)}.{nameof(CobolEdit.Format)}({value}, {scale}, {maskLiteral}{cfgArgs})";
 
+    /// <summary>The trailing <c>edits:</c> named argument for a numeric-edited store carrying PICTURE EDITING
+    /// phrases (ISO §13.18.40.2 Format 1) — the resolved single-character render rules serialized as a
+    /// <c>CobolEdit.EditRule[]</c>. Empty for every non-editing item, so the generated code of an ordinary program
+    /// is byte-identical. Appended AFTER <c>BwzFlag</c>/<c>EditCfgArgs</c> (all named args) at each edited store.</summary>
+    public static string EditsArg(IReadOnlyList<CobolEdit.EditRule>? rules)
+    {
+        if (rules is null || rules.Count == 0) return "";
+        static string Ch(char c) => Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(c, quote: true);
+        string items = string.Join(", ", rules.Select(r =>
+            $"new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}({Ch(r.Char1)}, {Ch(r.Neg)}, {Ch(r.Pos)})"));
+        return $", edits: new {nameof(CobolEdit)}.{nameof(CobolEdit.EditRule)}[] {{ {items} }}";
+    }
+
     /// <summary>Place sending characters into an alphanumeric-edited mask's positions (ISO §13.18.40 insertion) —
     /// <c>CobolEdit.FormatAlphanumeric</c>.</summary>
     public static string EditFormatAlphanumeric(string value, string maskLiteral) =>
@@ -627,6 +640,7 @@ internal static class RuntimeApi
     /// <summary>The COMPILE-TIME edited-image composition (a typed passthrough): a numeric literal VALUE on a
     /// numeric-edited item bakes its edited image as a constant (ISO §13.18.63 GR6) with the SAME runtime
     /// editor the generated code calls.</summary>
-    public static string EditCompose(Int128 value, int valueScale, string picture, bool blankWhenZero, char currency, bool commaMode) =>
-        CobolEdit.Format(value, valueScale, picture, blankWhenZero, currency, commaMode);
+    public static string EditCompose(Int128 value, int valueScale, string picture, bool blankWhenZero, char currency,
+        bool commaMode, IReadOnlyList<CobolEdit.EditRule>? edits = null) =>
+        CobolEdit.Format(value, valueScale, picture, blankWhenZero, currency, commaMode, edits?.ToArray());
 }

@@ -1423,6 +1423,42 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWXOR2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 EXCLUSIVE-OR PIC 9 VALUE 7.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY EXCLUSIVE-OR.\n    STOP RUN.\n"
     },
     {
+      "id": "picture-editing-2023",
+      "description": "The PICTURE clause EDITING phrase (ISO 13.18.40.2 Format 1) - user-defined picture editing via the new-in-2023 reserved word EDITING (Annex E.3.3 item 19). Below 2023 the whole EDITING phrase is rejected with the introduction gate, recognition-fired from VersionConformancePass.ParseArm.VisitPictureClause on editingPhrase presence (the AnyLength/DynamicLength recognition-gate precedent).",
+      "display": "the PICTURE EDITING phrase",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO 13.18.40.2 Format 1 / 13.18.40.5; Annex E.3.3 item 19",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 62 (Annex E.3.3 item 19)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPEDIT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T-EDIT PIC 99T99 EDITING \"T\" IS \":\".\nPROCEDURE DIVISION.\nMAIN.\n    MOVE 1230 TO T-EDIT.\n    DISPLAY T-EDIT.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-editing-2023",
+      "description": "The word EDITING as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014 (the PICTURE EDITING phrase did not exist), reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token so a pre-2023 data-name EDITING still parses; the funnel rejects 0901 at 2023.",
+      "display": "the word EDITING as a user-defined word",
+      "diagnosticCode": "COBOLNET0901",
+      "citation": "8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32); cobolWord-admitted",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "VCR row 32 (Annex E.2 item 25); reserved-words.json row EDITING",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWEDIT.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 EDITING PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY EDITING.\n    STOP RUN.\n"
+    },
+    {
+      "id": "value-table-format-2002",
+      "description": "The Format 2 (table) VALUE clause (ISO 13.18.63.2) - a literal list keyed to occurrence subscripts by a mandatory FROM (subscript) phrase with optional TO, initializing selected OCCURS-table elements/ranges. A COBOL-2002 addition (derived - COBOLNET_DATA_MODEL_DESIGN.md; not citable from the 2023 spec Annex E, whose VALUE rows are numeric-edited only - the A1 authority gap, D18). Recognition-fired by VersionConformancePass.ParseArm.VisitValueClause on a valueClauseTablePhrase.",
+      "display": "the Format 2 (table) VALUE clause",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO 13.18.63.2 Format 2 (table); a COBOL-2002 addition (derived - COBOLNET_DATA_MODEL_DESIGN.md; the 2023 Annex E VALUE rows are numeric-edited only, the A1 gap D18)",
+      "introducedIn": 2002,
+      "removedIn": null,
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "Table-format VALUE (COBOL-2002); A1 authority-sufficiency gap (D18)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVAL2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T-GRP.\n   03 E PIC X(3) OCCURS 6 VALUES ARE \"AAA\" \"BBB\" FROM (1).\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY E(1).\n    STOP RUN.\n"
+    },
+    {
       "id": "fixed-form-word-continuation-removed-2023",
       "description": "Continuation of a COBOL word across fixed-form lines via the col-7 hyphen - permitted through 2014, REMOVED by ISO 2023 (Annex E.2 item 1 bullet 2). Emit site: the frontend ReferenceFormatProcessor (only the column-aware pass sees the indicator); 0902 error strict / warning permissive at 2023, pre-removal join semantics preserved.",
       "display": "continuation of a COBOL word in fixed-form reference format",

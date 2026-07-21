@@ -86,7 +86,7 @@ while staying coherent, and confines bytes to genuine mixed-USAGE puns only.
 == 10. VALUE INITIALIZATION incl. TABLES, ISO §13.18.63 / §14.9.4 ==
 Default (no VALUE): alphanumeric→spaces, numeric→0 (unscaled), index→1, pointer→null. Already implemented for flat items. Extensions needed:
   • Group with VALUE: initialize every subordinate per the group literal spread across the group's char positions (rare; the common form is per-elementary VALUE). 
-  • OCCURS with VALUE: ISO permits VALUE on a table item → every element initialized to that value. Emit a collection-expression / array initializer: `Items = [.. Enumerable.Repeat(elemInit, n)]` or an explicit `new _T_Item[]{ init, init, … }`. Multi-literal table VALUE (one literal per element, COBOL-2002) → positional initializer list, padded with the last/default.
+  • OCCURS with VALUE: ISO permits VALUE on a table item → every element initialized to that value (Format 1 GR9). Emit a collection-expression / array initializer: `Items = [.. Enumerable.Repeat(elemInit, n)]` or an explicit `new _T_Item[]{ init, init, … }`. The **Format 2 (table) VALUE** (ISO §13.18.63.2, COBOL-2002) is NOT a bare one-literal-per-element positional list — it REQUIRES a `FROM (subscript-1)` phrase (optional `TO (subscript-2)`) keying a literal list to occurrence RANGES with cyclic reuse (GR13), no-TO = fill to the maximum (GR14), later-FROM-wins on overlap (GR15), and the GR16 dynamic-capacity computation. Emit per-occurrence: a fixed table becomes `new _T_Item[]{ ElemInit(1), …, ElemInit(n) }` (default outside every range — §13.18.63.4 leaves those occurrences UNDEFINED, so this is the implementation default, not a spec guarantee), a dynamic table a `CobolDynTable` opened at the GR16 initial capacity with a per-occurrence seed. Landable today = a single-dimension table on its own OCCURS entry; a multi-dimension odometer or a subordinate-item table VALUE is staged (COBOLNET0899, P14 GAP).
   • Figurative constants (ZERO/SPACE/HIGH-VALUE/LOW-VALUE/QUOTE/ALL "x"): map to the typed default of the right width — ZERO→0L or "0000", SPACE→new string(' ',w), ALL "AB"→repeat to width. Capture FigurativeInit + AllLiteralPattern (legacy already models these; port).
   The whole 01 field's initializer is a single C# object-initializer expression composed recursively from the leaves — emitted in the static field declaration (program) or the instance ctor (OO), one initializer per instance.
 
@@ -581,7 +581,9 @@ standard / the ISO2023_CONFORMANCE_PLAN M2 catalog) + `docs/VERSION_TEST_MATRIX_
     ⇒ diagnostic; >31 digits ⇒ diagnostic at every edition (Int128's 38-digit headroom is substrate, not surface).
   • Boolean data (PICTURE symbol `1`, USAGE BIT): 2002 introduction (derive from the 2002 standard) — diagnose
     at `--std 85`.
-  • Multi-literal table VALUE (one literal per element): 2002 introduction — diagnose at `--std 85`.
+  • Format 2 (table) VALUE — literals keyed to occurrence ranges via a mandatory `FROM (subscript)` phrase
+    (§13.18.63.2): 2002 introduction (derived — the 2023 Annex E VALUE rows are numeric-edited only, the A1
+    authority gap) — diagnose at `--std 85` (COBOLNET0900); construct `value-table-format-2002`.
   • SET condition-name TO FALSE / the `VALUE … WHEN SET TO FALSE` phrase: 2002 introduction — diagnose at
     `--std 85`.
   • Zero-length reference modification: edition-varying, 2023-only directive control — see §5

@@ -23,22 +23,24 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-20, HEAD `586e0323`):** the GRAMMAR BATCH is **4 of 7 done** — Wave H, RW SUPPRESS,
-  file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6) all LANDED + pushed. **NEXT = PICTURE
-  EDITING (§13.18.40, C4)**, then VALUE Format 2 (§13.18.63), then PERFORM Format 3 (C5, NOT yet implementable —
-  read `PHASE-13-c5-perform-format3-rederivation.json` first). **The spec-grounded design SSOT for all three is
-  `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`** (each DERIVED from the spec then
-  adversarially verified). PICTURE EDITING is large: new 2023 reserved word EDITING, the SR8–SR12c suite in
-  PictureAnalyzer, a new `es` render arm in `CobolEdit.Format` (⛔ implement the sign map from **Table 9 + Annex
-  D.24**, NOT the transcribed **Table 8 which is sign-inverted**), and the multi-char/floating-`es` render is a
-  documented **P14 GAP** (single-char IS-form + single-occurrence fixed FOR-form fit the 1:1 mask model). After
-  the grammar batch: Wave D directives (§0 list below), then the §24 fix-queue residue → P14.
-- **Battery at HEAD `586e0323` (2026-07-20, branch `phase-13-grammar-batch`):** greenfield Conformance **3714**
-  · unit **313** · characterization **33** byte-exact · full legacy guard (unit+integration+all 350 NIST) GREEN
-  (the indexed batch changed shared `.g4` + the core `IndexedConnector`, so it ran the full guard). Build
-  `CobolSharp.sln` before any
-  `--no-build` test run. Grammar batch: **Wave H** (`bcfbc25d`) + **RW SUPPRESS** (`73d31bdf`) landed; a Wave H
-  fixture fixup at `ef080854`.
+- **▶ RESUME AT (2026-07-20, HEAD = the batch-2 commits below):** the GRAMMAR BATCH is **6 of 7 done** — Wave H,
+  RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), **PICTURE EDITING (§13.18.40.2,
+  COBOL-2023)**, **VALUE Format 2 (§13.18.63.2, COBOL-2002)** all LANDED. **NEXT = PERFORM Format 3 (§14.9.28, C5 —
+  NOT yet implementable; read `PHASE-13-c5-perform-format3-rederivation.json` FIRST — it found a THIRD spec
+  inversion)**, then Wave D directives (§0 list below), then the §24 fix-queue residue → P14. **The spec-grounded
+  design SSOT = `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`.**
+  **PICTURE EDITING** — the single-char IS form (any character-1 occurrence) + single-occurrence FOR form render via a
+  threaded `CobolEdit.EditRule(Char1,Neg,Pos)` (sign map = Table 9 + Annex D.24, NOT the sign-inverted Table 8);
+  multi-char literal + floating (character-1 ≥2 under a FOR phrase) = documented **P14 render GAP** (COBOLNET0899).
+  **VALUE Format 2** — single-dimension table on its OWN OCCURS entry (fixed + dynamic; GR12–GR16 per-occurrence init;
+  Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
+  grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
+  ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
+- **Battery at HEAD = the batch-2 commit (2026-07-20, branch `phase-13-grammar-batch`):** greenfield Conformance
+  **3752** · unit **313** · characterization **33** byte-exact · full legacy guard (legacy unit+integration+all 350
+  NIST) **ALL GREEN**. Batch 2 (PICTURE EDITING + VALUE Format 2) changed shared `CobolData.g4` + the CobolEdit /
+  CobolDynTable runtime, so it ran the full guard; the VALUE-Format-2 glued-multi-literal reject was validated
+  against the whole battery + a corpus grep (no dependents). Build `CobolSharp.sln` before any `--no-build` test run.
 - **Mission target (owner decision D13, 2026-07-19): 100% CONFORMING** per ISO §4.2.16 across ALL FOUR editions
   (85/2002/2014/2023) — mandatory core complete + required implementor documentation; optional modules may stay
   documented non-support. Definition of done = the PHASE-14 Step-0 traceability inventory at zero GAP.
@@ -53,17 +55,19 @@ checkpoint.
   — the §4.2.6 ¶3 recognize-and-name band). **1581 SHIPPED 2026-07-20 by RW SUPPRESS** (report-suppress-context
   — §14.9.45.3 SR1, a SUPPRESS outside a USE BEFORE REPORTING procedure). **1582/1583/1584 SHIPPED 2026-07-20 by
   file-control COLLATING** (file-collating-key · file-collating-alphabet · file-collating-national-unsupported —
-  §12.4.5.7; took next-free sequential rather than the reserved 1583-1585, so no hole). **NEXT FREE = 1585** —
-  allocate only after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u` AND the
-  DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces the frontend
-  channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is queued —
-  ledger V11 note).
-  ⚠ **RESERVED, not yet shipped** (the grammar-batch synthesis pre-allocated these to prevent the parallel-agent
-  collision class that produced the ~40-site scout drift): **1585–1590** VALUE Format 2 · **1591–1602** PICTURE
-  EDITING · **1603–1613** PERFORM Format 3 (+ its §14.9.28.3 SR8 residue). (SUPPRESS WHEN alt-key SHIPPED with NO
-  new diag — it uses the 0900 introduction gate; the reserved 1585–1586 are released here per the no-hole rule.
-  Its §12.4.5.6.3 SR7 literal-category check is a registered P14 refinement.) A wave that does NOT need its whole
-  reservation must release the remainder in its own §0 edit rather than leaving a hole.
+  §12.4.5.7; took next-free sequential rather than the reserved 1583-1585, so no hole).
+  **1585–1588 SHIPPED 2026-07-20 by VALUE Format 2** (value-format2-glued-multi-literal 1585 · value-format2-subscript-range
+  SR20 1586 · value-format2-to-subscript SR21 1587 · value-format2-dynamic-no-to SR22 1588; the reserved 1589–1590
+  RELEASED per the no-hole rule). **1591–1596 SHIPPED 2026-07-20 by PICTURE EDITING** (SR8 char-1 1591 · SR11
+  distinct-char-1 1592 · SR10 char-1-in-mask 1593 · SR9 literal-≤50 1594 · SR12a neg/pos-width 1595 · SR12b FOR-symbol-set
+  1596; the reserved 1597–1602 RELEASED). Both bands are COMPILER-channel raw codes (the 1542/0808 pattern — NOT catalog
+  descriptors; the split-code 0899 staged-render gate rides `DiagnosticCatalog.ConstructStagedNotImplemented`).
+  **NEXT FREE = 1589** — allocate only after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
+  (max = 1596) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
+  the frontend channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is
+  queued — ledger V11 note).
+  ⚠ **RESERVED, not yet shipped:** **1603–1613** PERFORM Format 3 (+ its §14.9.28.3 SR8 residue). A wave that does NOT
+  need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
   1550–1552 are unallocated mid-band holes. Intro gates 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
   warning band 1560.
 - **RELEASE MILESTONES (D14): v1.0 = the P15 exit (100% conforming ×4); P16 CIL = v2 (off the conformance
@@ -143,13 +147,15 @@ checkpoint.
      GAP; alnum core complete) · **SUPPRESS WHEN on ALTERNATE RECORD KEY** (§12.4.5.6, COBOL-2023; the alt-key
      suppression value is an `IsSuppressed` visibility filter on `IndexedConnector.Ordered`/ReadRandom/Write/
      Rewrite reusing COLLATING's `KeyEq`; the suppressed record is off the ALT path but reachable via the prime
-     key; 2023-gated; no new diag — SR7 literal-category is a P14 refinement). **REMAINING:** PICTURE EDITING
-     (§13.18.40, Table 9, EDITING = new
-     2023 reserved word) · PERFORM Format 3 (§14.9.28.2; FINALLY/LOCATION tokens; scout §C5 — the C5 re-derivation
-     `PHASE-13-c5-perform-format3-rederivation.json` found a THIRD spec inversion, NOT yet implementable, read it
-     first) · VALUE Format 2 + the glued-multi-literal reject (ledger VF4) · file-control COLLATING SEQUENCE, the
-     standard-alphabet core leg (ledger VF2 / §12.4.5.7). Working designs: `PHASE-13-wave-c-scout.md` +
-     `PHASE-13-remaining-waves-scout.md` (delete both at P13 close).
+     key; 2023-gated; no new diag — SR7 literal-category is a P14 refinement) · **PICTURE EDITING** (§13.18.40.2,
+     COBOL-2023; DEVLOG 937; single-char IS/fixed-FOR render via `CobolEdit.EditRule`, Table 9+D.24 sign map;
+     COBOLNET1591-1596; multi-char + floating render = P14 GAP COBOLNET0899) · **VALUE Format 2** (§13.18.63.2,
+     COBOL-2002; DEVLOG 938; per-occurrence `ValueInitializer.TableValueInit` GR12-16, D.3.7 dynamic golden lands;
+     the glued-multi-literal reject COBOLNET1585; COBOLNET1586-1588 SRs; multi-dim / subordinate-item table VALUE =
+     P14 GAP COBOLNET0899). **REMAINING:** PERFORM Format 3 (§14.9.28.2; FINALLY/LOCATION tokens; scout §C5 — the C5
+     re-derivation `PHASE-13-c5-perform-format3-rederivation.json` found a THIRD spec inversion, NOT yet
+     implementable, read it first). Working designs: `PHASE-13-wave-c-scout.md` + `PHASE-13-remaining-waves-scout.md`
+     (delete both at P13 close).
      **⛔ SPEC-GROUNDED DESIGN SSOT for the remaining four = `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`** (2026-07-20, each construct DERIVED from the spec then adversarially verified — supersedes the scouts' inline claims). Verdicts: COLLATING · SUPPRESS WHEN · PICTURE EDITING = **SPEC-FAITHFUL**; VALUE Format 2 = **PARTIALLY-REFUTED** (its "out-of-range table elements default to spaces/zero" claim is UNSPEC — §13.18.63.4 GR4 leaves untouched occurrences undefined; do not assert it). Cross-cutting corrections: **all scouts' inline diag codes are STALE — use the plan's reserved ranges below, not the scout numbers.** **COLLATING↔SUPPRESS WHEN are COUPLED** (both in `IndexedConnector.cs`; suppression equality uses the FILE collating sequence per §14.9.51 GR35 — implement COLLATING first so the weighted-comparison seam `CobolString.Compare(l,r,weights)` exists, then SUPPRESS WHEN reuses it). SUPPRESS WHEN is **4 touch points not one** (ReadRandom/Write/Rewrite don't route through `Ordered`) + the shared `IsSuppressed` (max-length/no-truncate GR35, NOT key-width pre-pad). PICTURE EDITING: the extracted **Table 8 is sign-inverted** and SR12 is a drafting defect — implement from Table 9 + Annex D.24; the multi-char/floating-`es` RENDER is a **P14 GAP** (parse+bind+SR diagnostics land). **Suggested batch order (multiple waves / ONE comprehensive guard, owner 2026-07-20): COLLATING → SUPPRESS WHEN (batch 1, coupled), then PICTURE-EDITING-parse-half + VALUE-Format-2 (batch 2).**
   2. **Wave D — directives** (verify `.g4` impact → guard accordingly): >>COBOL-WORDS · >>PUSH/>>POP ·
      >>DISPLAY · >>FLAG-14 (the GR4 a–l twins) · >>FLAG-02-obsolete · **+ review adds:** the §7.3.6/§7.3.7

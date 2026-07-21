@@ -152,6 +152,12 @@
       "note": "USE AFTER EC (14.9.49.3 SR12): EC family, a user word at every edition"
     },
     {
+      "token": "EDITING",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "PICTURE EDITING phrase (ISO 13.18.40.2; new-in-2023 reserved word, Annex E.2 item 25). USER WORD at 85/2002/2014; reserved 2023 only. Admitted to the cobolWord nameSlot funnel so the hard lexer token added for PICTURE EDITING does not break its legal user-word use below 2023 (the COMMIT/VALIDATE precedent)."
+    },
+    {
       "token": "END_RECEIVE",
       "nameSlot": true,
       "subscriptTrigger": true,

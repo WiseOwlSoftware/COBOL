@@ -124,6 +124,9 @@ public static class Constructs
     public const string LogicalXorOperator2023 = "logical-xor-operator-2023";
     public const string UserWordXor2023 = "user-word-xor-2023";
     public const string UserWordExclusiveOr2023 = "user-word-exclusive-or-2023";
+    public const string PictureEditing2023 = "picture-editing-2023";
+    public const string UserWordEditing2023 = "user-word-editing-2023";
+    public const string ValueTableFormat2002 = "value-table-format-2002";
     public const string FixedFormWordContinuationRemoved2023 = "fixed-form-word-continuation-removed-2023";
     public const string CopyReplacingNonPseudoTextRemoved2023 = "copy-replacing-non-pseudo-text-removed-2023";
     public const string Col7ContinuationObsolete2023 = "col7-continuation-obsolete-2023";

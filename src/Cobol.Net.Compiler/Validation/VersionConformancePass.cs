@@ -717,6 +717,32 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The PICTURE EDITING phrase (ISO §13.18.40.2 Format 1) — a COBOL-2023 introduction (user-defined
+        /// picture editing via the new reserved word EDITING; Annex E.3.3 item 19). Recognition-based on the presence
+        /// of an <c>editingPhrase</c> under the picture clause: the phrase is a purely syntactic 2023 marker wherever
+        /// it appears, and <c>PictureAnalyzer</c> RECOVERS the item on the render-staged (sign-control / multi-char /
+        /// floating) forms, so a bound-arm gate would drop the 0900 on those paths. NOT <c>InGatedDataEntry</c>-guarded —
+        /// unlike BASED/ANY LENGTH, a PICTURE clause legally carries EDITING in the report section too. Fires once per
+        /// editing-bearing PICTURE clause; the §13.18.40.3 SR8–SR25 shape rules stay bind-time (PictureAnalyzer,
+        /// COBOLNET1591–1602).</summary>
+        public override object? VisitPictureClause(CobolParserCore.PictureClauseContext ctx)
+        {
+            if (ctx.editingPhrase().Length > 0) _p.Check(Constructs.PictureEditing2023, "the PICTURE EDITING phrase");
+            return base.VisitChildren(ctx);
+        }
+
+        /// <summary>The Format 2 (table) VALUE clause (ISO §13.18.40 → §13.18.63.2) — a COBOL-2002 introduction
+        /// (literals keyed to OCCURS occurrences by a mandatory FROM (subscript) phrase). Recognition-based on the
+        /// presence of a <c>valueClauseTablePhrase</c>: the binder DROPS the table spec on every §13.18.63.3 SR
+        /// violation (no OCCURS, bad subscript, …), so a bound-arm gate would lose the 0900 on those paths — the
+        /// TYPEDEF/ANY LENGTH drop-proof lesson. Fires once per written table VALUE; the SR16–SR23 shape rules stay
+        /// bind-time (DataBinder, COBOLNET1585–1590).</summary>
+        public override object? VisitValueClause(CobolParserCore.ValueClauseContext ctx)
+        {
+            if (ctx.valueClauseTablePhrase().Length > 0) _p.Check(Constructs.ValueTableFormat2002, "the Format 2 (table) VALUE clause");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>The TYPE IS type-name clause (the TYPEDEF family, ISO §13.18.58; D17) — a COBOL-2002 introduction.
         /// Fires once per written <c>TYPE IS</c> occurrence: the ExpandTypes clones are DataItem objects, not parse
         /// nodes, so a TYPEDEF referenced N times yields exactly N typeClause nodes (matching the former per-entry

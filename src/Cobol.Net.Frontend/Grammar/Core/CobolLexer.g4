@@ -417,6 +417,7 @@ RERUN       : 'RERUN' ;       // the I-O-CONTROL RERUN clause head (row 7.15)
 REFERENCES  : 'REFERENCES' ;  // USE FOR DEBUGGING ON ALL REFERENCES OF (row 7.17); distinct from REFERENCE
 PROCEDURES  : 'PROCEDURES' ;  // USE FOR DEBUGGING ON ALL PROCEDURES (row 7.17); distinct from PROCEDURE
 EDITED      : 'EDITED' ;
+EDITING     : 'EDITING' ;                 // PICTURE EDITING phrase (ISO §13.18.40.2; new-in-2023 reserved word, Annex E.2 item 25)
 ELSE        : 'ELSE' ;
 END         : 'END' ;
 EOL         : 'EOL' ;

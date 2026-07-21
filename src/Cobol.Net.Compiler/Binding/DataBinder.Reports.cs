@@ -328,6 +328,7 @@ public sealed partial class DataBinder
 
             // Clause capture for THIS entry (clauses may appear in any order within the entry — RW104A).
             string? picText = null, usageText = null, rawValue = null;
+            List<EditingPhraseSpec>? reportEditing = null;   // PICTURE EDITING phrases (§13.18.40.2)
             SignSpec? ownSign = null;
             bool justified = false, blankWhenZero = false, groupIndicate = false, staysLoud = false;
             var columns = new List<ReportColumnSpec>();
@@ -395,7 +396,10 @@ public sealed partial class DataBinder
                                 ? spec.arithmeticExpression(spec.FROM() is not null ? 1 : 0) : null,
                         });
                 else if (clause.pictureClause()?.PIC_STRING() is { } pic)
+                {
                     picText = pic.GetText();
+                    reportEditing = BuildEditingSpecs(clause.pictureClause());
+                }
                 else if (clause.usageClause() is { } usage)
                     usageText = UsageKeyword(usage);
                 else if (clause.signClause() is { } sign)
@@ -485,7 +489,7 @@ public sealed partial class DataBinder
                 string itemWhere = $"RD '{model.Name}' printable item '{entryName ?? "FILLER"}'";
                 var pic = picText is not null
                     ? PictureAnalyzer.Analyze(picText, PictureAnalyzer.ParseUsage(usageText, Edition, itemWhere), Edition,
-                        itemWhere, ownSign, CurrencyPicSymbol, blankWhenZero)
+                        itemWhere, ownSign, CurrencyPicSymbol, blankWhenZero, editing: reportEditing)
                     : null;
                 if (pic is null)
                 {

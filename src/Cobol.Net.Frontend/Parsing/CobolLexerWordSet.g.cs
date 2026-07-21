@@ -33,6 +33,7 @@ public partial class CobolLexer
         DEFAULT,
         DISPLAY,
         EC,
+        EDITING,
         END_RECEIVE,
         END_SEND,
         ENTER,

@@ -32,6 +32,7 @@ cobolWord
     | DECIMAL_ENCODING
     | DEFAULT
     | EC
+    | EDITING
     | END_RECEIVE
     | END_SEND
     | ENTER

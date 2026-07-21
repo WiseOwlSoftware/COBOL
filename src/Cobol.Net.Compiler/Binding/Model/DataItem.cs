@@ -17,6 +17,14 @@ public enum PicPending
     BitUsage,
 }
 
+/// <summary>One Format 2 (table) VALUE phrase (ISO §13.18.63.2, COBOL-2002): a literal list keyed to an occurrence
+/// range. <see cref="Literals"/> is the RAW operand text (decoded at emit — the Format-1 currency); <see cref="From"/>
+/// is subscript-1 (one integer per OCCURS dimension, SR20); <see cref="To"/> is the optional subscript-2 (SR21), null
+/// for the no-TO form (GR14 = fill to the table maximum). <see cref="Ordinal"/> is the source order (GR15 last-FROM
+/// wins on an overlap).</summary>
+public sealed record TableValueSpec(
+    IReadOnlyList<string> Literals, IReadOnlyList<int> From, IReadOnlyList<int>? To, int Ordinal);
+
 /// <summary>
 /// A bound DATA DIVISION item: a node in the record tree. Elementary items (<see cref="Pic"/> non-null) become
 /// native C# fields; group items (children, no PIC) become nested <c>record struct</c> types. There is no byte
@@ -69,6 +77,12 @@ public sealed class DataItem
     /// Settable for the <c>ExpandTypes</c> description copy (a subject's OWN VALUE wins, §13.18.57.4 GR3;
     /// otherwise the copied description's VALUE applies, §13.18.49 GR1 — VALUE is not in the exclusion list).</summary>
     public string? RawValue { get; set; }
+
+    /// <summary>The Format 2 (table) VALUE phrases (ISO §13.18.63.2, COBOL-2002): each keys a literal list to an
+    /// occurrence range via FROM (subscript-1 …) [TO (subscript-2 …)]. Mutually exclusive with <see cref="RawValue"/>
+    /// (the grammar's two arms cannot both match). Null unless the entry carries a table VALUE. Resolved to the
+    /// per-occurrence emitter map after the forest is built (dimensions / dynamic expected capacity are known then).</summary>
+    public IReadOnlyList<TableValueSpec>? TableValues { get; set; }
 
     /// <summary>True when this entry carries a TYPEDEF clause — it is a TYPE DECLARATION (a named template; ISO
     /// §13.18.58, data-model D17), allocating NO storage. Registered in <c>DataBinder.TypeDecls</c>, kept OFF

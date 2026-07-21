@@ -1756,6 +1756,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         string csName = isFiller ? $"_filler{_fillerCounter++}" : DataItem.Sanitize(cobolName!);
 
         string? pictureText = null, usageText = null, rawValue = null, redefinesTargetName = null;
+        List<EditingPhraseSpec>? editingSpecs = null;   // PICTURE EDITING phrases (§13.18.40.2), threaded to PictureAnalyzer
+        List<TableValueSpec>? tableValues = null;       // Format 2 (table) VALUE phrases (§13.18.63.2)
+        bool gluedMultiLiteral = false;                 // a Format-1 VALUE with >1 operand (no FROM) — the glued-list reject
         string? objectClassName = null;   // USAGE OBJECT REFERENCE class-name (null = universal; §13.18.60.4)
         int? occurs = null;
         OccursSpec? occursSpec = null;
@@ -1782,7 +1785,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var clause in e.Clauses)
             {
                 if (clause.PictureText is { } picText)
+                {
                     pictureText = picText;
+                    editingSpecs = BuildEditingSpecs(clause.Context.pictureClause());   // PICTURE EDITING (§13.18.40.2)
+                }
                 else if (clause.Context.basedClause() is not null)
                     // BASED (§13.18.5) validated below (§13.16 SR16 placement; the 0881 declaration band). The
                     // COBOL-2002 introduction gate is VersionConformancePass ParseArm.VisitBasedClause (14g.2,
@@ -1865,7 +1871,20 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // prior sibling, but a chain A REDEFINES B REDEFINES C resolves in the post-build pass).
                     redefinesTargetName = redefTarget;
                 else if (clause.Context.valueClause() is { } value)
-                    rawValue = ExtractValue(value);
+                {
+                    if (value.valueClauseTablePhrase() is { Length: > 0 } tphrases)
+                        tableValues = BuildTableValueSpecs(tphrases);   // Format 2 (table) — §13.18.63.2
+                    else
+                    {
+                        rawValue = ExtractValue(value);
+                        // Format 1 takes EXACTLY ONE literal (§13.18.63.2); a bare multi-literal list (no FROM) is
+                        // Format 2 or (report section) Format 4, never a Format-1 data item — ExtractValue GLUES it
+                        // today (GetText over the collapsed valueItem). Flag it for a loud reject once entryWhere exists.
+                        var vi0 = value.valueItem().FirstOrDefault();
+                        if (vi0?.valueClauseRange() is null && (vi0?.valueClauseOperand().Length ?? 0) > 1)
+                            gluedMultiLiteral = true;
+                    }
+                }
                 else if (clause.Context.signClause() is { } sign)
                     ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
                 else if (clause.Context.occursClause() is { } occ)
@@ -1889,6 +1908,17 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // skeleton usages error, ISO §13.18.60), and a re-parse would duplicate their diagnostics.
         string entryWhere = $"data item '{cobolName ?? "FILLER"}'";
         Usage entryUsage = PictureAnalyzer.ParseUsage(usageText, Edition, entryWhere);
+
+        // THE GLUED-MULTI-LITERAL REJECT (ISO §13.18.63.2): a Format-1 (data-item) VALUE takes exactly one literal;
+        // a list needs Format 2's FROM (subscript) phrase. The greedy operand loop silently glued a bare list into
+        // one corrupt value for the life of the tree — reject it loud, binding nothing.
+        if (gluedMultiLiteral)
+        {
+            Edition.Error("COBOLNET1585", $"{entryWhere}: a data-item VALUE clause (Format 1) takes exactly one "
+                + "literal; a list of literals requires the Format 2 table form's FROM (subscript) phrase "
+                + "(ISO §13.18.63.2)");
+            rawValue = null;
+        }
 
         // An integer constant-name may specify repetition in a PICTURE character-string (ISO §13.10.3 SR2 second
         // sentence → §13.18.40): expand `PIC X(K)` to `PIC X(5)` BEFORE Analyze reads the string. Guarded on the
@@ -1984,7 +2014,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
 
         var pic = pictureText is not null
             ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, CurrencyPicSymbol,
-                blankWhenZero, explicitUsage: usageText is not null)
+                blankWhenZero, explicitUsage: usageText is not null, editing: editingSpecs)
             : entryUsage is Usage.Index ? PicInfo.IndexItem
             : entryUsage is Usage.Pointer ? PicInfo.PointerItem
             : entryUsage is Usage.ProgramPointer ? PicInfo.ProgramPointerItem   // §13.18.60 GR24 (P10 Step 7)
@@ -2118,6 +2148,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             OwnSign = ownSign,
             OwnUsage = usageText is not null ? entryUsage : null,
             RawValue = rawValue,
+            TableValues = tableValues,
             Occurs = occurs,
             OccursSpec = occursSpec,
             RedefinesTargetName = redefinesTargetName,
@@ -2133,6 +2164,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             SameAsName = sameAsName,
         };
         if (sameAsName is not null) item.SameAsQualifiers.AddRange(sameAsQuals);
+        ValidateTableValues(item, entryWhere);   // Format 2 (table) VALUE SR18–SR22 (§13.18.63.3)
 
         // BASED declaration validation (the 0881 declaration-entry band; Phase-4b increment 2): §13.16 SR16 —
         // a BASED entry is a level-01/77 record-description entry (WS/LS/LINKAGE; the file-subsystem sweep is
@@ -2321,6 +2353,130 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             ? ConcatFolder.Fold(ce, Edition, Collating, NationalCollating).RawText
             : ConstantValueRawText(op) is { } konst ? konst
             : NormalizeIfNumericLiteral(op.GetText());
+
+    /// <summary>Build the <see cref="EditingPhraseSpec"/> list for a PICTURE clause's EDITING phrases
+    /// (ISO §13.18.40.2 Format 1) — DECODED character-1 + literal text, handed to <see cref="PictureAnalyzer"/>
+    /// for SR8–SR12 validation and render-rule construction. Null when the clause carries no EDITING phrase.</summary>
+    private static List<EditingPhraseSpec>? BuildEditingSpecs(Core.PictureClauseContext? pic)
+    {
+        var phrases = pic?.editingPhrase();
+        if (phrases is null || phrases.Length == 0) return null;
+        var list = new List<EditingPhraseSpec>(phrases.Length);
+        foreach (var ph in phrases)
+        {
+            var lits = ph.literal();
+            string char1 = DecodeEditLiteral(lits.Length > 0 ? lits[0] : null) ?? "";
+            if (ph.editingForPhrase() is { } forp)
+            {
+                // FOR (extended sign control): map the literals to NEGATIVE / POSITIVE by keyword position (either
+                // order is legal — §13.18.40.2 choice indicators). The keyword that appears first owns literal[0].
+                var flits = forp.literal();
+                var neg = forp.NEGATIVE();
+                var pos = forp.POSITIVE();
+                bool negFirst = neg is not null && (pos is null || neg.Symbol.TokenIndex < pos.Symbol.TokenIndex);
+                string? negLit, posLit;
+                if (negFirst)
+                {
+                    negLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null);
+                    posLit = pos is not null && flits.Length > 1 ? DecodeEditLiteral(flits[1]) : null;
+                }
+                else
+                {
+                    posLit = DecodeEditLiteral(flits.Length > 0 ? flits[0] : null);
+                    negLit = neg is not null && flits.Length > 1 ? DecodeEditLiteral(flits[1]) : null;
+                }
+                list.Add(new EditingPhraseSpec(char1, Simple: null, Neg: negLit, Pos: posLit, IsForForm: true));
+            }
+            else
+            {
+                // IS (simple insertion): literal(1) is literal-1 (literal(0) is character-1).
+                list.Add(new EditingPhraseSpec(char1,
+                    Simple: DecodeEditLiteral(lits.Length > 1 ? lits[1] : null), Neg: null, Pos: null, IsForForm: false));
+            }
+        }
+        return list;
+    }
+
+    /// <summary>Decode a PICTURE EDITING literal (character-1 or an insertion literal). A quoted alphanumeric /
+    /// national / hex literal decodes to its content; any other shape (numeric, figurative, concatenation) is
+    /// returned raw so <see cref="PictureAnalyzer"/>'s SR8/SR9 checks reject it with a named diagnostic.</summary>
+    private static string? DecodeEditLiteral(Core.LiteralContext? lit)
+    {
+        if (lit is null) return null;
+        var nn = lit.nonNumericLiteral();
+        return nn?.STRINGLIT() is not null || nn?.NATLIT() is not null || nn?.HEXLIT() is not null
+            ? CobolLiteral.Decode(lit.GetText())
+            : lit.GetText();
+    }
+
+    /// <summary>Build the <see cref="TableValueSpec"/> list for a Format 2 (table) VALUE clause (ISO §13.18.63.2):
+    /// each phrase's literal list (raw operand text, concat/constant folded — the Format-1 currency) plus its FROM
+    /// (subscript-1 …) and optional TO (subscript-2 …) integer subscripts. The subscripts are split by the TO
+    /// token's position (FROM's precede it, TO's follow).</summary>
+    private List<TableValueSpec> BuildTableValueSpecs(Core.ValueClauseTablePhraseContext[] phrases)
+    {
+        var list = new List<TableValueSpec>(phrases.Length);
+        for (int i = 0; i < phrases.Length; i++)
+        {
+            var ph = phrases[i];
+            var literals = ph.valueClauseOperand().Select(RawValueOperandText).ToList();
+            int toIdx = ph.TO()?.Symbol.TokenIndex ?? int.MaxValue;
+            var from = new List<int>();
+            List<int>? to = ph.TO() is not null ? [] : null;
+            foreach (var il in ph.integerLiteral())
+            {
+                int v = int.TryParse(il.GetText(), out int n) ? n : 0;
+                if (il.Start.TokenIndex < toIdx) from.Add(v); else to!.Add(v);
+            }
+            list.Add(new TableValueSpec(literals, from, to, i));
+        }
+        return list;
+    }
+
+    /// <summary>Validate a Format 2 (table) VALUE (ISO §13.18.63.3 SR18–SR22). LANDABLE scope: a SINGLE-dimension
+    /// table VALUE on the SAME entry that carries the OCCURS clause (fixed or dynamic). A multi-dimension odometer or
+    /// a table VALUE on an item SUBORDINATE to the OCCURS is recognized but its per-occurrence path threading is not
+    /// yet implemented — staged loud (COBOLNET0899, P14 GAP), TableValues cleared so the emitter skips it.</summary>
+    private void ValidateTableValues(DataItem item, string where)
+    {
+        if (item.TableValues is not { Count: > 0 } specs) return;
+
+        bool sameItemTable = item.Occurs is not null || item.IsDynamicTable;
+        bool singleDim = specs.All(s => s.From.Count == 1 && (s.To is null || s.To.Count == 1));
+        if (!sameItemTable || !singleDim)
+        {
+            Edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented, $"{where}: a Format 2 (table) VALUE clause "
+                + "is recognized but currently supported only on a single-dimension table's own OCCURS entry — a "
+                + "multi-dimension or subordinate-item table VALUE is not yet implemented (ISO §13.18.63.2; P14 GAP)");
+            item.TableValues = null;
+            return;
+        }
+
+        // The physical maximum: fixed = Occurs; dynamic = the OCCURS TO expected capacity (null ⇒ unbounded).
+        int? max = item.Occurs ?? item.OccursSpec?.ExpectedMax;
+        bool dynamicNoTo = item.IsDynamicTable && item.OccursSpec?.ExpectedMax is null;
+        foreach (var s in specs)
+        {
+            int from = s.From[0];
+            if (from < 1 || (max is { } mx && from > mx))
+                Edition.Error("COBOLNET1586", $"{where}: a Format 2 VALUE FROM subscript ({from}) is out of range "
+                    + $"1..{(max?.ToString() ?? "the expected capacity")} (ISO §13.18.63.3 SR20)");
+            if (s.To is { } toList)
+            {
+                int t = toList[0];
+                if (t < 1 || (max is { } mx2 && t > mx2))
+                    Edition.Error("COBOLNET1587", $"{where}: a Format 2 VALUE TO subscript ({t}) is out of range "
+                        + $"1..{(max?.ToString() ?? "the expected capacity")} (ISO §13.18.63.3 SR21)");
+                else if (t < from)
+                    Edition.Error("COBOLNET1587", $"{where}: a Format 2 VALUE TO subscript ({t}) is less than its "
+                        + $"FROM subscript ({from}) — subscript-2 shall be the same or a successive occurrence "
+                        + "(ISO §13.18.63.3 SR21)");
+            }
+            else if (dynamicNoTo)
+                Edition.Error("COBOLNET1588", $"{where}: a Format 2 VALUE with no TO phrase is not permitted on an "
+                    + "OCCURS DYNAMIC table declared without an OCCURS TO (expected) capacity (ISO §13.18.63.3 SR22)");
+        }
+    }
 
     /// <summary>THE usage-inheritance pass (P5.11e, DESIGN-data-model §2.7 — the former
     /// <c>ResolveIndexItems</c> + <c>InheritUsageClauses</c> pipeline pair MERGED; both effects, same order): the

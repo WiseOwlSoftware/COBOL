@@ -3,8 +3,15 @@
 using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Binding.Model;
+using CobolNet.Runtime;
 
 namespace CobolNet.Binding;
+
+/// <summary>A parsed PICTURE EDITING phrase (ISO §13.18.40.2 Format 1, COBOL-2023) handed to
+/// <see cref="PictureAnalyzer.Analyze"/>: the DECODED editing character-1 text and its DECODED literal(s).
+/// <see cref="IsForForm"/> distinguishes the sign-control FOR form (<see cref="Neg"/>/<see cref="Pos"/>, either
+/// side null when unspecified per SR12c) from the simple-insertion IS form (<see cref="Simple"/>).</summary>
+public sealed record EditingPhraseSpec(string Char1Text, string? Simple, string? Neg, string? Pos, bool IsForForm);
 
 /// <summary>
 /// The PICTURE character-string scanner and the USAGE-keyword mapper (ISO/IEC 1989:2023 §13.18.40 / §13.18.60) —
@@ -29,7 +36,8 @@ public static class PictureAnalyzer
     /// flag), not the symbols themselves, and both are whitelisted regardless.
     /// </summary>
     public static PicInfo Analyze(string picture, Usage usage, EditionContext edition, string where,
-        SignSpec? sign = null, char currency = '$', bool blankWhenZero = false, bool explicitUsage = false)
+        SignSpec? sign = null, char currency = '$', bool blankWhenZero = false, bool explicitUsage = false,
+        IReadOnlyList<EditingPhraseSpec>? editing = null)
     {
         // A TRAILING ';' is the clause SEPARATOR (ISO §8.3.5 rule 2 — a semicolon immediately followed by a
         // space is a separator; ';' is never a PICTURE symbol). The REAL cure is the W3 lexer-mode trim
@@ -50,6 +58,13 @@ public static class PictureAnalyzer
         string expanded = ExpandRepeats(picture);
         char cs = char.ToUpperInvariant(currency);
 
+        // ── PICTURE EDITING phrases (ISO §13.18.40.2 Format 1, COBOL-2023): validate SR8–SR12 and build the
+        // single-character render rules. char1Set lets the SR2 whitelist admit the declared editing characters
+        // (else char-1 letters like 'L'/'T'/'G' would trip COBOLNET0808). The introduction gate below 2023 is fired
+        // by VersionConformancePass.ParseArm.VisitPictureClause; the render-staged forms (multi-character literal,
+        // floating character-1) raise COBOLNET0899 (P14 render GAP) here at ≥2023.
+        var editRules = ValidateEditing(editing, expanded, edition, where, cs, out var char1Set);
+
         // ── The §13.18.40.3 SR2 symbol whitelist (the W2 loud guard). The legal ISO 2023 Format-1 symbols are
         // A B E N P S V X Z 0 1 9 / , . + - * CR DB and the program's currency symbol (§13.18.40.4 GR14;
         // ExpandRepeats has already uppercased, so the §8.1.3 GR3 case equivalence is folded). 'N' (national,
@@ -61,6 +76,7 @@ public static class PictureAnalyzer
         for (int i = 0; i < expanded.Length; i++)
         {
             char c = expanded[i];
+            if (char1Set.Contains(c)) continue;   // a declared PICTURE EDITING character-1 (ISO §13.18.40.3 SR8) — not an invalid symbol
             switch (c)
             {
                 // '$' is the currency picture symbol ONLY when no CURRENCY SIGN clause redefines it
@@ -223,17 +239,20 @@ public static class PictureAnalyzer
         // §12.3.7 GR13) is an editing symbol exactly like '$' — without it a `PIC WWWWW` would fall through to
         // "pure numeric, zero digits".
         bool anyEdit = expanded.Any(c => c is 'Z' or '*' or '+' or '-' or ',' or '.' or '$' or 'B' or '0' or '/' || c == cs)
-            || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal);
+            || expanded.Contains("CR", StringComparison.Ordinal) || expanded.Contains("DB", StringComparison.Ordinal)
+            || char1Set.Count > 0;   // a PICTURE EDITING character-1 makes the item numeric-/alphanumeric-edited (ISO §13.18.40.5 Table 7)
 
         if (anyAlpha)
         {
-            // ALPHANUMERIC-EDITED (ISO §13.18.40 — X/A/9 with B 0 / simple insertion): every position counts in
-            // the length, and the mask drives MOVE editing. A plain alphanumeric has no insertion symbols.
-            bool edited = expanded.Any(c => c is 'B' or '0' or '/');
+            // ALPHANUMERIC-EDITED (ISO §13.18.40 — X/A/9 with B 0 / simple insertion, plus any EDITING character-1):
+            // every position counts in the length, and the mask drives MOVE editing. A plain alphanumeric has no
+            // insertion symbols and no editing character-1.
+            bool edited = expanded.Any(c => c is 'B' or '0' or '/') || char1Set.Count > 0;
             return new PicInfo(PicCategory.Alphanumeric, usage,
-                Length: expanded.Count(c => c is 'X' or 'A' or '9' or 'B' or '0' or '/'),
+                Length: expanded.Count(c => c is 'X' or 'A' or '9' or 'B' or '0' or '/' || char1Set.Contains(c)),
                 Digits: 0, Scale: 0, Signed: false)
-            { EditMask = edited ? expanded : null, IsAlphabetic = expanded.All(c => c is 'A') };
+            { EditMask = edited ? expanded : null, IsAlphabetic = expanded.All(c => c is 'A'),
+              EditingRules = editRules };
         }
 
         string signKind = PicInfo.SignKindFor(usage, signed, sign);
@@ -247,7 +266,7 @@ public static class PictureAnalyzer
             // its digit positions being the Z/*/floating symbols themselves (§13.18.40).
             return new PicInfo(PicCategory.NumericEdited, usage,
                 Length: expanded.Count(c => c is not ('V' or 'S' or 'P')), Digits: digits, Scale: scale, Signed: signed)
-            { SignKind = signKind, EditMask = expanded };
+            { SignKind = signKind, EditMask = expanded, EditingRules = editRules };
 
         // Pure numeric. The stored-digit count (Digits) and DISPLAY width (Length) are the '9' count — P holds no
         // storage; the implied decimal position lives entirely in the signed Scale.
@@ -277,6 +296,125 @@ public static class PictureAnalyzer
             sb.Append(c);
         }
         return sb.ToString();
+    }
+
+    /// <summary>Validate the PICTURE EDITING phrases (ISO §13.18.40.3 SR8–SR12; COBOL-2023) and build the
+    /// single-character render rules. Emits the SR diagnostics (COBOLNET1591–1596); the render-staged forms
+    /// (a literal wider than one character, or a floating character-1 — the same character-1 appearing ≥2 times
+    /// under a FOR phrase) raise the P14 render-GAP COBOLNET0899 at ≥2023 and contribute NO render rule (the item
+    /// still binds numeric-edited). <paramref name="char1Set"/> (uppercased) collects every accepted character-1 so
+    /// the SR2 whitelist admits them. Returns null when there are no phrases, an SR error, or a staged phrase.</summary>
+    private static IReadOnlyList<CobolEdit.EditRule>? ValidateEditing(
+        IReadOnlyList<EditingPhraseSpec>? editing, string expanded, EditionContext edition, string where, char cs,
+        out HashSet<char> char1Set)
+    {
+        char1Set = [];
+        if (editing is null || editing.Count == 0) return null;
+
+        // Pre-scan every phrase's character-1 (SR25 admits up to two extended sign symbols — e.g. a leftmost 'L'
+        // and a rightmost 'F') so SR12b's "only character-1 and 9 . cs P V Z" test admits ALL declared editing
+        // characters, not just the phrase under validation.
+        var allChar1 = new HashSet<char>();
+        foreach (var ph0 in editing)
+            if ((ph0.Char1Text ?? "") is { Length: 1 } t0 && char.IsLetter(t0[0])) allChar1.Add(char.ToUpperInvariant(t0[0]));
+
+        var rules = new List<CobolEdit.EditRule>();
+        bool error = false, staged = false;
+
+        foreach (var ph in editing)
+        {
+            // character-1 (§13.18.40.3 SR8): a single basic letter, not a CURRENCY-SIGN letter and not one of
+            // A B C D E N P R S V X Z.
+            string c1 = ph.Char1Text ?? "";
+            if (c1.Length != 1 || !char.IsLetter(c1[0]))
+            {
+                edition.Error("COBOLNET1591", $"{where}: PICTURE EDITING character-1 must be a single basic letter "
+                    + $"(ISO §13.18.40.3 SR8; got \"{c1}\")");
+                error = true; continue;
+            }
+            char char1 = char.ToUpperInvariant(c1[0]);
+            if (char1 == cs || "ABCDENPRSVXZ".IndexOf(char1) >= 0)
+            {
+                edition.Error("COBOLNET1591", $"{where}: PICTURE EDITING character-1 '{c1}' must be a basic letter "
+                    + "other than A B C D E N P R S V X Z or a CURRENCY-SIGN letter (ISO §13.18.40.3 SR8)");
+                error = true; continue;
+            }
+            // SR11: distinct character-1 across phrases.
+            if (!char1Set.Add(char1))
+            {
+                edition.Error("COBOLNET1592", $"{where}: PICTURE EDITING character-1 '{c1}' is specified in more than "
+                    + "one EDITING phrase (ISO §13.18.40.3 SR11 — each character-1 shall be distinct)");
+                error = true; continue;
+            }
+            // SR10: character-1 shall appear at least once in the character-string.
+            int occ = expanded.Count(x => char.ToUpperInvariant(x) == char1);
+            if (occ == 0)
+            {
+                edition.Error("COBOLNET1593", $"{where}: PICTURE EDITING character-1 '{c1}' does not appear in the "
+                    + "PICTURE character-string (ISO §13.18.40.3 SR10)");
+                error = true; continue;
+            }
+            // SR9: no literal may exceed 50 characters (the national-vs-alphanumeric class matches the item's
+            // category; the national-literal sub-check rides the national-edited staging).
+            foreach (string? lit in new[] { ph.Simple, ph.Neg, ph.Pos })
+                if (lit is { Length: > 50 })
+                {
+                    edition.Error("COBOLNET1594", $"{where}: a PICTURE EDITING literal exceeds 50 characters "
+                        + "(ISO §13.18.40.3 SR9)");
+                    error = true;
+                }
+
+            if (ph.IsForForm)
+            {
+                // SR12b: a FOR (extended sign-control) picture may contain only character-1 and 9 . cs P V Z.
+                foreach (char mc in expanded)
+                {
+                    char mu = char.ToUpperInvariant(mc);
+                    if (allChar1.Contains(mu) || mu is '9' or '.' or 'P' or 'V' or 'Z' || mu == cs) continue;
+                    edition.Error("COBOLNET1596", $"{where}: with a FOR (extended editing sign control) EDITING "
+                        + $"phrase the PICTURE character-string may contain only character-1 and 9 . {cs} P V Z "
+                        + $"(ISO §13.18.40.3 SR12b; found '{mc}')");
+                    error = true; break;
+                }
+                // SR12a: the NEGATIVE and POSITIVE literals (when both present) occupy the same number of positions.
+                if (ph.Neg is { } n2 && ph.Pos is { } p3 && n2.Length != p3.Length)
+                {
+                    edition.Error("COBOLNET1595", $"{where}: the NEGATIVE and POSITIVE literals of a FOR EDITING "
+                        + "phrase shall occupy the same number of character positions (ISO §13.18.40.3 SR12a)");
+                    error = true; continue;
+                }
+                // SR12c: the unspecified side defaults to spaces of the specified literal's width. LANDABLE only for
+                // a single-character literal at a SINGLE character-1 occurrence (fixed sign control); a wider literal
+                // or a repeated character-1 (floating string) is the P14 render GAP.
+                int width = (ph.Neg ?? ph.Pos)?.Length ?? 0;
+                if (width == 1 && occ == 1)
+                {
+                    char neg = ph.Neg is { Length: 1 } ? ph.Neg[0] : ' ';
+                    char pos = ph.Pos is { Length: 1 } ? ph.Pos[0] : ' ';
+                    rules.Add(new CobolEdit.EditRule(char1, neg, pos));
+                }
+                else staged = true;
+            }
+            else
+            {
+                // IS (simple insertion) form — sign-independent (ISO §13.18.40.5 editing rule 3): character-1
+                // inserts literal-1 at every occurrence, immune to sign. LANDABLE for a single-character literal
+                // (any occurrence count); a wider literal is the P14 render GAP.
+                string lit = ph.Simple ?? "";
+                if (lit.Length == 1) rules.Add(new CobolEdit.EditRule(char1, lit[0], lit[0]));
+                else staged = true;
+            }
+        }
+
+        if (staged && edition.DialectLevel >= 2023)
+            edition.Error(DiagnosticCatalog.ConstructStagedNotImplemented, $"{where}: a multi-character-literal or "
+                + "floating PICTURE EDITING phrase is recognized but its variable-width render is not yet implemented "
+                + "(ISO §13.18.40.5; the P14 render GAP — single-character insertion and single-occurrence sign "
+                + "control are supported)");
+
+        // Any SR error OR a staged phrase → no landable rule set is applied (the item still binds numeric-edited;
+        // under the doomed emit character-1 renders verbatim — harmless, the compile has already failed).
+        return error || staged || rules.Count == 0 ? null : rules;
     }
 
     /// <summary>

@@ -202,7 +202,7 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         switch (target.Item.Pic)
         {
             case { Category: PicCategory.NumericEdited, EditMask: { } mask }:
-                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", CsLiteral(mask), ctx.EditCfgArgs)));
+                w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormat(RuntimeApi.NumFromAlphanumeric(valueExpr), "0", CsLiteral(mask), ctx.EditCfgArgs + RuntimeApi.EditsArg(target.Item.Pic!.EditingRules))));
                 return;
             case { Category: PicCategory.Alphanumeric, EditMask: { } amask }:
                 w.Line(PlaceRenderer.Write(target, RuntimeApi.EditFormatAlphanumeric(valueExpr, CsLiteral(amask))));

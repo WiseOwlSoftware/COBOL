@@ -206,6 +206,14 @@ public sealed record PicInfo(
     /// every other category.</summary>
     public string? EditMask { get; init; }
 
+    /// <summary>For a numeric-edited (or alphanumeric-edited) item carrying one or more PICTURE EDITING phrases
+    /// (ISO §13.18.40.2 Format 1, COBOL-2023): the resolved single-character render rules keyed on character-1's
+    /// position in <see cref="EditMask"/> — the simple-insertion (IS) form and the single-occurrence sign-control
+    /// (FOR) form. Threaded to <c>CobolEdit.Format</c>/<c>DeEdit</c>. Null on every non-editing item AND on the
+    /// render-staged forms (multi-character literals / floating character-1) which <c>PictureAnalyzer</c> rejects
+    /// loud (COBOLNET0899) as a documented P14 render GAP — so a non-null value always renders 1:1.</summary>
+    public IReadOnlyList<CobolNet.Runtime.CobolEdit.EditRule>? EditingRules { get; init; }
+
     /// <summary>True when every PICTURE position is <c>A</c> — category alphabetic (ISO §8.5.2). INITIALIZE
     /// category matching (§14.9.20 GR5c/GR6c) must distinguish alphabetic from alphanumeric receivers; both map
     /// to <see cref="PicCategory.Alphanumeric"/> storage, so the category needs this flag.</summary>

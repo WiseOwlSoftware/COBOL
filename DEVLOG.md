@@ -13,6 +13,101 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 938 — 2026-07-20 17:31 PDT — VALUE clause Format 2 (table, §13.18.63.2, COBOL-2002) — per-occurrence init + the glued-multi-literal reject
+
+Grammar batch position 6. The Format 2 (table) VALUE clause keys a literal list to occurrence subscripts by a
+MANDATORY `FROM (subscript-1)` phrase with an optional `TO (subscript-2)` — initializing SELECTED OCCURS-table
+elements/ranges, distinct from Format 1 (one literal, every occurrence the same). Before this, the clause did not
+parse at all: `valueClause` had no FROM/TO/subscript surface, so even the spec's own Annex-D.3.7 example was a raw
+COBOL0001 — a reject-valid-input failure.
+
+Grammar: `valueClause` becomes two arms with the Format-2 arm FIRST (`valueClauseTablePhrase+`) — the mandatory FROM
+terminates the operand loop so ALL(*) selects it whenever FROM is present; a bare-list-first ordering would consume
+the literals then die on FROM. FROM/TO are not subscript-trigger words, so `FROM (1)` lexes as DEFAULT LPAREN/RPAREN.
+No new reserved word. 2002 introduction gate is recognition-fired by `VisitValueClause` (construct
+`value-table-format-2002`, COBOLNET0900 below 2002 — the edition is derived: the 2023 Annex E VALUE rows are
+numeric-edited only, the A1 authority gap D18).
+
+Runtime (ISO §13.18.63.4): `ValueInitializer.TableValueInit` resolves occurrence→literal (GR12 sequential fill, GR13
+cyclic reuse under TO, GR14 no-TO = fill to the maximum, GR15 later-FROM-wins), then emits a fixed table as
+`new T[]{ ElemInit(1) … ElemInit(n) }` and a dynamic table as a `CobolDynTable` opened at the GR16 initial capacity
+with a per-occurrence seed. `InitializerFor` gained a `rawOverride` so ONE initializer path serves both the item's
+own VALUE and each occurrence's literal (singular pattern). `CobolDynTable` gained a `Func<int,T>` per-occurrence-seed
+ctor overload; the existing `Func<T>` ctor delegates as `_ => seed()` so every current dynamic-table golden emits
+byte-identically. `OccursSpec.InitialCap` stays the FROM minimum (unchanged) — the GR16 capacity is computed at emit
+and passed as a new ctor arg, so no model field flips to a second-writer. Annex D.3.7 lands verbatim:
+`OCCURS DYNAMIC FROM 1 TO 20 VALUES ARE "Leeds","Bordeaux","Pisa" FROM (1) TO (3)` opens at capacity 3 with the three
+names.
+
+⛔ SPEC PRECISION (the verdict's one refutation): occurrences OUTSIDE every FROM..TO range are NOT asserted to default
+to spaces/zero — §13.18.63.4 leaves them UNDEFINED; the golden `FixedTable_ExplicitRange` deliberately asserts only
+the in-range elements. They take the element's implementation default (not a spec guarantee).
+
+THE GLUED-MULTI-LITERAL REJECT (the paired defect): `ExtractValue` GLUES a bare multi-operand Format-1 VALUE via
+`GetText` over the collapsed `valueItem` (the ledger's "binds the first literal" was wrong — it glues). A data-item
+VALUE with >1 operand and no FROM is now rejected loud (COBOLNET1585); 88s are untouched (BindCondition has its own
+per-operand loop, never ExtractValue). Ran the FULL battery + a corpus grep for the blast radius (a program depending
+on a glued value would break).
+
+LANDABLE scope = a single-dimension table on its OWN OCCURS entry (fixed or dynamic). A multi-dimension odometer
+(subscript per nested OCCURS) or a table VALUE on an item SUBORDINATE to the OCCURS is recognized, bound, then staged
+loud (COBOLNET0899, P14 GAP — the per-occurrence path threading through GroupValueSlicer is the model-change boundary).
+SRs: SR20 subscript range (1586), SR21 TO range / TO<FROM (1587), SR22 dynamic-no-TO (1588); SR19 is grammar-enforced
+(integerLiteral). Diag 1585-1588 used; 1589-1590 released. Conformance `ValueFormat2Tests` (12): cyclic fill, explicit
+range, last-wins, numeric element, the D.3.7 dynamic golden, the glued reject (+ the single-literal non-regression),
+SR20/SR21, multi-dim staging, the below-2002 gate. Design docs corrected (COBOLNET_DATA_MODEL_DESIGN §10 + the §"2002
+introductions" row; COBOLNET_DESIGN §"VALUE init") — the old "positional one-literal-per-element list" model was a
+spec inversion. Shared `.g4` ⇒ full legacy guard.
+
+## Entry 937 — 2026-07-20 17:05 PDT — PICTURE EDITING phrase (§13.18.40.2, COBOL-2023) — single-char render lands, multi-char/floating is a P14 GAP
+
+Grammar batch position 5. The PICTURE clause EDITING phrase (§13.18.40.2 Format 1; the new-in-2023 reserved word
+EDITING, Annex E.3.3 item 19) is user-defined picture editing: an IS (simple insertion) form inserts a literal at
+each character-1 position UNCONDITIONALLY (editing rule 3, sign-independent), and a FOR (extended sign control) form
+selects the NEGATIVE literal on a negative value and the POSITIVE literal (or spaces, SR12c) otherwise.
+
+**The sign map is Table 9 + Annex D.24, NOT the extracted Table 8** — Table 8 in the OCR'd spec is sign-INVERTED
+(its character-1 NEGATIVE-phrase row puts the negative literal on positive values, contradicting Table 9 at 20572,
+D.24's `EDITING "L" FOR NEGATIVE IS "("` → `MOVE -123.45` = leading `(`, and Table 8's own correct built-in rows).
+The spec-grounding SSOT (`PHASE-13-grammar-batch-spec-grounding.json`) caught and adversarially confirmed this.
+
+**Landable vs P14 render GAP.** The engine seam is `CobolEdit.Format`'s `char[pattern.Length]` 1:1 output array. A
+SINGLE-character literal fits that model, so the IS form (any character-1 occurrence count) and the single-occurrence
+FOR form (fixed sign control) RENDER now, threaded as a new `CobolEdit.EditRule(Char1, Neg, Pos)` (IS: Neg==Pos). A
+MULTI-character literal ("DEBIT ") or a FLOATING character-1 (the same character-1 ≥2 times under a FOR phrase) needs
+the variable-width position-group model — a documented P14 render GAP, staged loud (COBOLNET0899). Chose EditRule
+threading over compile-time mask-baking because baking a literal char that collides with a mask metacharacter (`.`,
+`+`, `Z`, …) would corrupt the mask; the EditRule resolves character-1 as a RAW insert before the metacharacter
+switch, immune to re-interpretation.
+
+**Threading.** `EditRule[]? edits` is a trailing OPTIONAL param on `Format`/`TryFormat`/`DeEdit` (default null → every
+existing call byte-identical). The emitter appends an `edits:` named argument (via `RuntimeApi.EditsArg`) only when
+`pic.EditingRules is not null`, so an ordinary program's generated code is unchanged. Threaded through the six edited
+stores (MOVE, arithmetic GIVING, STRING, ACCEPT/DISPLAY, VALUE constant-fold, group image) + DeEdit sign recovery.
+
+**Bind (`PictureAnalyzer.ValidateEditing`).** SR8 (character-1 a basic letter ≠ A B C D E N P R S V X Z / currency →
+COBOLNET1591), SR11 (distinct character-1 → 1592), SR10 (character-1 present in the mask → 1593), SR9 (literal ≤50 →
+1594), SR12a (equal NEGATIVE/POSITIVE width → 1595), SR12b (FOR picture only character-1 and 9 . cs P V Z → 1596). A
+pre-scan of ALL phrases' character-1 lets SR12b admit a SECOND extended sign symbol (SR25 leftmost/rightmost, e.g. a
+leftmost `L` and a rightmost `F`). char1Set feeds the §13.18.40.3 SR2 whitelist so character-1 letters are not
+COBOLNET0808-rejected. The IS form's repeated character-1 is LEGAL (fork2: SR24 scopes the built-in +,-,CR,DB, not
+the simple-insertion character-1).
+
+**Grammar / gating.** `pictureClause : PIC PIC_STRING editingPhrase*` (additive; PIC_STRING pops PICMODE at
+whitespace so EDITING lexes in default mode) + `editingPhrase`/`editingForPhrase` (the FOR choice indicators = one or
+both of NEGATIVE/POSITIVE, either order — verified against the re-rendered Format-1 figure). EDITING is a new hard
+lexer token admitted to the cobolWord nameSlot funnel (`cobol-words.json`) so `01 EDITING PIC 9` stays legal below
+2023 (COBOLNET0901 at 2023; the COMMIT/VALIDATE precedent). 2023 introduction gate is recognition-fired by
+`VersionConformancePass.ParseArm.VisitPictureClause` on editingPhrase presence (COBOLNET0900 below 2023). Two
+`constructs.json` rows (picture-editing-2023, user-word-editing-2023).
+
+Conformance `PictureEditingTests` (13): IS render `99T99 EDITING "T" IS ":"`→`12:30`; repeated IS `9G9G9`→`1:2:3`
+(sign-independent); FOR `L999.99F EDITING "L" FOR NEGATIVE IS "(" EDITING "F" FOR NEGATIVE IS ")"` → `(012.34)` /
+` 056.78 `; multi-char + floating → COBOLNET0899; SR8/11/10/12a negatives; below-2023 → COBOLNET0900; EDITING as a
+data-name compiles at 85, COBOLNET0901 at 2023. Diagnostics 1591-1596 (compiler channel, raw codes — the 1542/0808
+pattern); 0899 via DiagnosticCatalog.ConstructStagedNotImplemented (the split-code drift rule); reserved 1591-1602 →
+1597-1602 released. Shared `.g4` ⇒ full legacy guard.
+
 ## Entry 936 — 2026-07-20 14:40 PDT — SUPPRESS WHEN alternate-key suppression (§12.4.5.6, COBOL-2023) lands on COLLATING's compare seam
 
 Grammar batch position 4, and the second half of the coupled indexed-file batch. The SUPPRESS WHEN phrase of the
