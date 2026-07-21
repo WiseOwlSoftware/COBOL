@@ -23,7 +23,7 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D IN PROGRESS — C2 compile-time-expression evaluator FOUNDATION + rule-7b runtime LANDED, evaluator NEXT; code HEAD `a1d6c7c7`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-21; grammar-batch 7/7 DONE + Wave D IN PROGRESS — C2 evaluator FOUNDATION + rule-7b runtime + arithmetic-core/CONSTANT-rewire LANDED; NEXT = boolean fold + ANTLR grammar + frontend rewire; code HEAD `de39ba20`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
   landed the full RECOGNIZE/VALIDATE/DIAGNOSE/GATE surface: the Formats-2/3 grammar MERGE + the `whenOperandAhead()`
@@ -57,11 +57,17 @@ checkpoint.
   incl. the context-inherited shift precedence a CFG can't express; 13 tests) [`09760ca3`]; and the **rule-7b
   RUNTIME fix** — `ConditionBinder` refactored onto the resolver, the **COBOLNET1569 legal-source reject REMOVED**
   (it refused the legal mixed shift-with-binary form), `boolean_shift_mixed` golden (verified end-to-end)
-  [`a1d6c7c7`]. ⏭ **NEXT:** the `CompileTimeExpressionEvaluator` (the `EvalConstExpr` arithmetic lift + boolean
-  fold via the resolver + the `CtValue`/`BitString`/coded-diagnostics types, GR5/GR3 at the public boundary) →
-  binder rewire (`BindConstantArithmetic`) → the ANTLR fragment/cce grammar (`compileTimeOperandFragment` +
-  `constantConditionalExpression`, the `PrimeDirectiveExpr` lexer flag [`(` after a boolean op = grouping, `DEFINED`
-  a token] ) + regen → frontend rewire (delete `Tokenize`/`CondParser`). ·
+  [`a1d6c7c7`]; and the **`CompileTimeExpressionEvaluator` ARITHMETIC core + CONSTANT binder rewire** — the
+  §7.3.6 `EvalConstExpr` lift with GR5/GR3 at the public boundary + injected name-resolution/`ICtDiagnostics`/
+  `CtOperandVocabulary`; `DataBinder.BindConstantArithmetic` moved onto it (`EvalConstExpr`/`ParseConstLiteral`/
+  `SoleNumericLiteral` deleted — no duplicate); byte-identical CONSTANT path (a 2-agent adversarial Workflow
+  caught + fixed a transient sole-float-literal silent-drop before commit; a latent comma-mode COBOLNET0895
+  removed); 13 evaluator unit tests [`de39ba20`]. ⏭ **NEXT (the actual frontend DEFECT fix + the biggest/most
+  delicate piece):** the evaluator's **boolean fold** (`BitString` + `EvaluateBoolean` via the resolver + the
+  `CtValue` model) → the **ANTLR fragment/cce grammar** (`compileTimeOperandFragment` + `constantConditionalExpression`,
+  the `PrimeDirectiveExpr` lexer flag [`(` after a boolean op = grouping, `DEFINED` a token — confirmed by token
+  dump] ) + regen [shared `.g4` ⇒ FULL legacy guard] → **frontend rewire** (delete `Tokenize`/`CondParser`; directive
+  operands via fragment-parse + the shared evaluator) + a directive-expression conformance test. ·
   **>>SOURCE FORMAT mid-file** (§7.3.24.3 GR1 — restructures `ReferenceFormatProcessor` from one-format-per-file to
   per-segment, an every-program path) · the **real FLAG-14/FLAG-02 flagging** (recognition landed; the migration/
   obsolescence diagnostics need the flaggable-construct census) · >>COBOL-WORDS · CC-directives-inside-COPY (§7.2.1).
@@ -76,8 +82,8 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD `a1d6c7c7` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield Conformance
-  **3784** (+ `boolean_shift_mixed`) · unit **379** (+ the 13 `BooleanExpressionResolver` tests) · characterization
+- **Battery at code-HEAD `de39ba20` (2026-07-21; branch `phase-13-grammar-batch`, pushed):** greenfield Conformance
+  **3784** (+ `boolean_shift_mixed`) · unit **392** (+ the 13 `BooleanExpressionResolver` + 13 `CompileTimeExpressionEvaluator` tests) · characterization
   **33** byte-exact. **Full legacy guard (`scripts/guard.sh`) `=== ALL GREEN ===`** at BOTH C2 commits (`09760ca3`
   foundation + `a1d6c7c7` rule-7b runtime), greenfield suites green at each. ⚠ The legacy `ConformanceTests` runs
   the shared corpus against the frozen legacy too — a new 2023/boolean golden needs a `GreenfieldOnly` exclusion in
