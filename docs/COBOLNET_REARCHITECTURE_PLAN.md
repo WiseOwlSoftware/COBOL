@@ -195,13 +195,16 @@ checkpoint.
   2. **Wave D — directives** (verify `.g4` impact → guard accordingly). **✅ LANDED (DEVLOG 941):** the §7.3.11
      DEFINE **SR2 no-OVERRIDE redefinition check (COBOLNET1618)** + **AS PARAMETER** (GR4 operating-environment
      source) + the **OVERRIDE** phrase (GR3), and **>>PUSH/>>POP recognition** (§7.3.20/§7.3.22 — consumed, no-op
-     disposition since no compiler-directive state is varied). **REMAINING:** >>COBOL-WORDS · >>DISPLAY ·
-     >>FLAG-14 (the GR4 a–l twins) · >>FLAG-02-obsolete · the §7.3.6/§7.3.7 DEFINE/EVALUATE arithmetic/boolean
-     EXPRESSION evaluator (LIFT DataBinder.Constants.cs's §7.3.6 evaluator; ledger C2 — the multi-token
-     silent-wrong-value defect) + AS PARAMETER refinements + the SR2 OVERRIDE redefinition edge cases ·
-     >>SOURCE FORMAT mid-file (§7.3.24.3 GR1; C3) · CC-directives-inside-COPY (§7.2.1; C4) ·
-     FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21 handling · >>CALL-CONVENTION/>>LEAP-SECOND dispositions
-     (V32) · the E.2-item-6 compile-time-arithmetic-mode CONFORMANCE note (V41 — REQUIRED doc item).
+     disposition since no compiler-directive state is varied); **the V41 REQUIRED implementor-documentation item**
+     — the E.2-item-6 compile-time-arithmetic-mode CONFORMANCE note (§7.3.6.2 SR2 / §7.3.6.3 GR2: standard
+     decimal128 mode, div-truncation, GR3 integer-part) is now in `CONFORMANCE.md §3`. **REMAINING:** >>COBOL-WORDS ·
+     >>DISPLAY · >>FLAG-14 (the GR4 a–l twins) · >>FLAG-02-obsolete · the §7.3.6/§7.3.7 DEFINE/EVALUATE
+     arithmetic/boolean EXPRESSION evaluator (the multi-token silent-wrong-value defect — needs a SHARED,
+     parse-tree-independent evaluator usable by BOTH the frontend CC processor [pre-parse] and the compiler binder
+     [`DataBinder.Constants.cs EvalConstExpr`, post-parse] to honour the singular-pattern rule; a careful refactor,
+     NOT a duplicate) + the SR2 OVERRIDE redefinition edge cases · >>SOURCE FORMAT mid-file (§7.3.24.3 GR1; C3) ·
+     CC-directives-inside-COPY (§7.2.1; C4) · FLAG-85/FLAG-NATIVE-ARITHMETIC E.2-item-21 handling ·
+     >>CALL-CONVENTION/>>LEAP-SECOND dispositions (V32).
   3. **Review fixes to P13-LANDED code ONLY** (per D16): from the §24 queue, the items touching this phase's
      waves (the ref-mod cluster incl. the negative-length sentinel + ODO ReceiveInto + the "!"-sentinel bug,
      the VCR-86 SR6 re-derivation, EXCEPTION-FILE r2a legs, COBOLNET1570 national leg). Everything else in

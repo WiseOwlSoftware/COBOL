@@ -130,6 +130,21 @@ of an unsupported facility.
   (§14.9.18.4 GR3) uses the same mapping; a status phrase on a GOBACK executed in a **called** program is inert
   (GR2). Programs with no status phrase leave the exit code at 0 (the abnormal-fatal case still forces item 44's
   nonzero exit).
+- **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
+  documentation)**: compile-time arithmetic expressions are evaluated in a **standard fixed-point decimal mode** —
+  .NET `System.Decimal` (a 128-bit decimal type, **28–29 significant decimal digits**, magnitude up to ≈ ±7.9×10²⁸).
+  A standard mode is chosen over the native binary runtime mode for **portability** (§7.3.6.3 GR2 NOTE). *Intermediate
+  precision / magnitude / range (§7.3.6.2 SR2):* the same 28–29-digit decimal throughout; an intermediate result that
+  exceeds it is a **diagnosed error** (`DiagnosticCatalog.ConstantEntryRule`), never a silent wrap. *Intermediate
+  rounding (§7.3.6.2 SR2):* addition / subtraction / multiplication are exact within the precision; **division
+  truncates** toward the decimal precision. The exponentiation operator is rejected (§7.3.6.2 SR1a); a division by
+  zero is rejected (§7.3.6.2 SR1c). *Final result (§7.3.6.3 GR3):* the value of an arithmetic-expression operand is
+  **truncated to its integer part** (`decimal.Truncate`) and treated as an integer numeric literal — a single numeric
+  literal in the arithmetic-expression position is instead re-classified as a literal and keeps its own value and
+  scale (§13.10.3 SR1). Evaluator: `DataBinder.Constants.cs EvalConstExpr`, invoked from the §13.10 constant entry
+  now; the same determination governs the DEFINE / EVALUATE directive arithmetic-expression operands once the
+  frontend (pre-parse) evaluator lands (today a multi-token directive operand binds only its first token — a recorded
+  Wave-D GAP).
 
 ## 4. Documented non-support facilities (§4.2.6 / §4.2.7 / §4.2.13)
 
