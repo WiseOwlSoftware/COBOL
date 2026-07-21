@@ -358,6 +358,10 @@ public sealed class ConformanceTests : EndToEndTestBase
         ("2023", "continue_after"),         // CONTINUE AFTER n SECONDS + EC-CONTINUE-LESS-THAN-ZERO (§14.9.9)
         ("2023", "perform_until_exit"),     // PERFORM … UNTIL EXIT (§14.9.28.4 GR11)
         ("2023", "boolean_shift"),          // boolean shift B-SHIFT-L/R/LC/RC (§8.8.2 rule 8)
+        // §8.8.2 rule 7b — a boolean shift MIXED with a binary boolean operator (grouped per the shift's context-
+        // inherited precedence). The frozen legacy has no boolean-expression support at all (like boolean_ops/
+        // boolean_shift), so this rule-7b golden is greenfield-only. (ledger C2 — the shared BooleanExpressionResolver.)
+        ("2023", "boolean_shift_mixed"),
         ("2023", "goback_status"),          // GOBACK … WITH NORMAL/ERROR STATUS (§14.9.18.2) — 2023 phrase
         ("2023", "write_before_and_after"), // WRITE … BEFORE ADVANCING … AFTER ADVANCING … (§14.9.51 SR17)
         // PHASE-13 Wave G — numeric-edited VALUE 2023 rework (§13.18.63 SR6/SR11; VCR 35 + 86): a figurative ZERO

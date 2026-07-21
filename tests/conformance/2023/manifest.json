@@ -4,6 +4,7 @@
     "delete_file",
     "delete_file_absent",
     "boolean_shift",
+    "boolean_shift_mixed",
     "delete_file_sharing",
     "continue_after",
     "exception_file_arg",
