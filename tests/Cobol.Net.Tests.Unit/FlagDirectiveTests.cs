@@ -277,6 +277,49 @@ public sealed class FlagDirectiveTests
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
     }
 
+    // ── Incr 1b: FLAG-14 k VALUE-FIG-CON-LENGTH (§7.3.15.4 GR4 k) — figurative VALUE on an item with no length ──
+
+    [Fact]
+    public void Compile_ValueFigConLengthOn_Flags_FigurativeValueNoPictureNoUsage()
+    {
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n", "01 A VALUE SPACE."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("VALUE-FIG-CON-LENGTH", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_ValueFigConLengthOn_Flags_UsageDisplayWithoutPicture()
+    {
+        // USAGE DISPLAY without a PICTURE still has no specified length.
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n", "01 E USAGE DISPLAY VALUE SPACE."));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("VALUE-FIG-CON-LENGTH", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_ValueFigConLength_NotFlagged_WhenPicturePresent()
+    {
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n", "01 C PIC XXX VALUE SPACE."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_ValueFigConLength_NotFlagged_OnLengthImplyingUsage()
+    {
+        // COMP-2 implies a fixed length (8 bytes) — the item's length is specified.
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n", "01 D USAGE COMP-2 VALUE ZERO."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_ValueFigConLength_NotFlagged_OnGroupItem()
+    {
+        // A group's figurative VALUE is filled to the subordinates' length (§13.18.63 SR13) — length is specified.
+        var warnings = CompileWarnings(ValueProgram("       >>FLAG-14 VALUE-FIG-CON-LENGTH ON\n",
+            "01 G VALUE SPACE.\n          05 GA PIC X."));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
     // ── Incr 1c: FLAG-14 m WRITE-END-OF-PAGE (§7.3.15.4 GR4 m) — WRITE + file has LINAGE + no AT EOP ──
 
     private static string WriteProgram(bool linage, string directive, string writeStmt) =>

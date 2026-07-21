@@ -121,11 +121,12 @@ checkpoint.
   built in `Run` from `GroupBindContext.Units[].Data` (keyed on source names — the pass runs before file-connector
   renaming). ✅ **Incr 1b j LANDED** — **j VALUE-EDITING** (numeric-edited VALUE that is a literal, not figurative,
   with no editing symbols — §13.18.63 SR6/SR11 + E.2 item 29; the `{space / , . + - $ *}`+CR/DB insertion scan;
-  `0`/`B` a documented rare false-negative). **Detectors done: 7 of 19.** 29 unit tests + CLI-probed all + char 33/33.
-  ⏭ **k VALUE-FIG-CON-LENGTH = SCHEDULED (own pass):** flag a figurative VALUE on an item with "no specified length"
-  (E.2 item 11); reachable (`01 X VALUE SPACE.` compiles) but a correct predicate must EXCLUDE a group (its
-  figurative VALUE has a specified length via subordinates, §13.18.63 SR13) ⇒ needs group-vs-elementary sibling
-  lookahead — deferred to its own careful build (E.2 item 11: "few if any programs"; must land before Wave I).
+  `0`/`B` a documented rare false-negative). ✅ **Incr 1b k LANDED** — **k VALUE-FIG-CON-LENGTH** (a figurative VALUE
+  on a data item with no specified length): decided precisely from the parse — no PICTURE, no length-implying USAGE
+  (`UsageGivesNoLength`: DISPLAY/absent → none; COMP-*/INDEX/… → length; CLI-verified `USAGE DISPLAY` flagged,
+  `COMP-2` not), and not a group (`HasSubordinates` sibling-level lookahead; a group's figurative VALUE has a
+  specified length via subordinates, §13.18.63 SR13); real data levels 1–49/77 only (level-88 condition-names
+  excluded). **Detectors done: 8 of 19.** 34 unit tests + CLI-probed all + char 33/33 byte-exact. **INCR 1 COMPLETE.**
   ⏭ THEN Incr 2 (frontend-inline b/c) → Incr 3 (state-coupled: i REF-MOD-ZERO-LENGTH, d MOVE-TO-SAME-NAME, e
   RANGE-EXCEPTION-FOR-INDEX) → Incr 4 (new-analysis: I-O-DECLARATIVE, I-O-STATUS-04/07, EC-PROGRAM-EXCEPTIONS). ⏭ THEN >>COBOL-WORDS (direction recorded: ONE runtime override layer
   = CobolWordsMap → post-lex token rewriter + composed ReservedWordSet; never regen the grammar per group) ·

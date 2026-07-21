@@ -202,14 +202,16 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     editing symbols (§13.18.63 SR6/SR11 + E.2 item 29: numeric literals get editing auto-supplied, alphanumeric/
     national literals now require it). "Editing symbols" scanned from the literal via the unambiguous insertion set
     `{space / , . + - $ *}` + trailing CR/DB; `0`/`B` insertions are a documented rare false-negative.
-  * **1b remainder — k VALUE-FIG-CON-LENGTH (SCHEDULED, its own pass):** flag a figurative-constant VALUE on an
-    item with "no specified length" (E.2 item 11 — "with the ALL phrase where the length is unspecified"). The
-    flaggable construct IS reachable (`01 X VALUE SPACE.` with no PICTURE compiles), but a correct predicate must
-    EXCLUDE a group item — a group's figurative VALUE has a specified length via its subordinates (§13.18.63 SR13),
-    so it is not flaggable — which needs group-vs-elementary discrimination (sibling lookahead: the item is a group
-    iff a following entry has a higher level number). Deferred to a dedicated increment because that discrimination
-    warrants its own careful build; E.2 item 11 notes the case affects "few if any programs" and "could be expected
-    to cause a compiler error." NOT silent debt — scheduled, and must land (or get owner sign-off) before Wave I.
+  * **1b (DONE) k VALUE-FIG-CON-LENGTH** — a figurative-constant VALUE (any figurative, via
+    `FirstDescendant<FigurativeConstantContext>`) on a data item with **no specified length** (§7.3.15.4 GR4 k;
+    E.2 item 11). "No specified length" is decided precisely from the parse: **no PICTURE clause**, **no
+    length-implying USAGE** (`UsageGivesNoLength` — DISPLAY/absent has none without a PICTURE; COMP-*/INDEX/POINTER/
+    float/binary families imply one — CLI-verified that `USAGE DISPLAY VALUE SPACE` IS flagged and `USAGE COMP-2
+    VALUE ZERO` is NOT), and **not a group** (`HasSubordinates` — the immediately-following sibling entry is a real
+    subordinate, level 2–49; a group's figurative VALUE is filled to the subordinates' length so its length IS
+    specified, §13.18.63 SR13). Restricted to real data levels (1–49, 77) — a level-88 condition-name reaches
+    `VisitDataDescriptionEntry` via `valueClause` and is excluded (`IsRealDataLevel`). k reaches ANY item (not just
+    numeric-edited); g/l/j remain numeric-edited-gated.
 * **Incr 2 — the frontend-inline options** b, c (compile-time-arith, EVALUATE directive) + the `FlagScanState`
   in `ConditionalCompilationProcessor`. Goldens exercising each.
 * **Incr 3 — the state-coupled options** i REF-MOD-ZERO-LENGTH (tri-state `RefModZeroLengthState`

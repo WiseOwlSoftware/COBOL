@@ -118,32 +118,47 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         return base.VisitChildren(ctx);
     }
 
-    // ── FLAG-14 g NUM-ED-ZERO-FIGCONST (§7.3.15.4 GR4 g) + l VALUE-ZERO (GR4 l) — the SAME predicate stated from
-    //    two sides (the use of figurative ZERO in the VALUE clause of a numeric-edited item), so one detector
-    //    serves both flags; each fires only if its own option is ON. Anchored at the VALUE clause's source line
-    //    (the flaggable syntax). The numeric-edited category is a PICTURE-string property (§13.18.40), decided by
-    //    the ONE PictureAnalyzer on the parse-tree picture — FILLER-safe (no name lookup). ──
+    // ── The VALUE-clause data options — anchored at the VALUE clause's source line (the flaggable syntax). k
+    //    reaches ANY real data item; g/l/j reach numeric-edited items (a PICTURE-string property, §13.18.40, via the
+    //    ONE PictureAnalyzer). FILLER-safe (no name lookup). ──
     public override object? VisitDataDescriptionEntry(CobolParserCore.DataDescriptionEntryContext ctx)
     {
-        if (NumericEditedValue(ctx) is { } value)
+        var (picture, value, usage) = Clauses(ctx);
+        if (value is not null)
         {
             int line = value.Start.Line;
-            if (FirstDescendant<CobolParserCore.FigurativeConstantContext>(value) is { } fig)
+            var fig = FirstDescendant<CobolParserCore.FigurativeConstantContext>(value);
+
+            // k VALUE-FIG-CON-LENGTH (§7.3.15.4 GR4 k; E.2 item 11) — a figurative constant VALUE on a data item
+            // with NO SPECIFIED LENGTH: no PICTURE, no length-implying USAGE (DISPLAY/absent gives none without a
+            // PICTURE; COMP-*/INDEX/POINTER/… imply one), and NOT a group (a group's figurative VALUE is filled to
+            // the subordinates' length, §13.18.63 SR13). Applies to any real data item (levels 1-49, 77); a
+            // level-88 condition-name reaches here via valueClause and is excluded.
+            if (fig is not null && picture is null && UsageGivesNoLength(usage)
+                && IsRealDataLevel(ctx) && !HasSubordinates(ctx))
+                Flag(FlagOption.Flag14ValueFigConLength, line,
+                    "a figurative constant in the VALUE clause of a data item with no specified length");
+
+            // g/l/j — numeric-edited items only.
+            if (picture is not null && IsNumericEditedPicture(picture))
             {
-                // g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO — the figurative constant ZERO (ZERO/ZEROS/ZEROES, with or
-                // without ALL). One condition, two independently-toggled options.
-                if (fig.ZERO() is not null)
+                if (fig is not null)
                 {
-                    Flag(FlagOption.Flag14NumEdZeroFigconst, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
-                    Flag(FlagOption.Flag14ValueZero, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
+                    // g NUM-ED-ZERO-FIGCONST + l VALUE-ZERO — the figurative constant ZERO (ZERO/ZEROS/ZEROES, with
+                    // or without ALL). One condition, two independently-toggled options.
+                    if (fig.ZERO() is not null)
+                    {
+                        Flag(FlagOption.Flag14NumEdZeroFigconst, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
+                        Flag(FlagOption.Flag14ValueZero, line, "the figurative constant ZERO in the VALUE clause of a numeric-edited item");
+                    }
                 }
-            }
-            else if (LiteralHasNoEditingSymbols(value))
-            {
-                // j VALUE-EDITING — the VALUE is a LITERAL (numeric or nonnumeric, NOT a figurative constant)
-                // carrying no editing symbols. §13.18.63 SR6/SR11 + E.2 item 29: at 2023 editing is auto-supplied
-                // for a numeric literal and compulsory for an alphanumeric/national literal (both changed 2014→2023).
-                Flag(FlagOption.Flag14ValueEditing, line, "a numeric-edited VALUE literal that contains no editing symbols");
+                else if (LiteralHasNoEditingSymbols(value))
+                {
+                    // j VALUE-EDITING — the VALUE is a LITERAL (numeric or nonnumeric, NOT a figurative constant)
+                    // carrying no editing symbols. §13.18.63 SR6/SR11 + E.2 item 29: at 2023 editing is auto-supplied
+                    // for a numeric literal and compulsory for an alphanumeric/national literal (both changed 2014→2023).
+                    Flag(FlagOption.Flag14ValueEditing, line, "a numeric-edited VALUE literal that contains no editing symbols");
+                }
             }
         }
         return base.VisitChildren(ctx);
@@ -180,24 +195,71 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
         return base.VisitChildren(ctx);
     }
 
-    /// <summary>The entry's VALUE clause when the item is numeric-edited (its PICTURE classifies as
-    /// <see cref="PicCategory.NumericEdited"/> via the ONE <see cref="PictureAnalyzer"/>), else null. A custom
-    /// CURRENCY SIGN symbol is not threaded here — a numeric-edited picture using a non-default currency symbol is
-    /// a rare false-negative for this advisory flag, never a false-positive.</summary>
-    private CobolParserCore.ValueClauseContext? NumericEditedValue(CobolParserCore.DataDescriptionEntryContext ctx)
+    /// <summary>The entry's PICTURE string, VALUE clause, and USAGE clause (each null when absent) — read once from
+    /// the data-description clauses.</summary>
+    private static (string? Picture, CobolParserCore.ValueClauseContext? Value, CobolParserCore.UsageClauseContext? Usage)
+        Clauses(CobolParserCore.DataDescriptionEntryContext ctx)
     {
-        var clauses = ctx.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
-        if (clauses is null) return null;
-        string? picture = null;
+        var list = ctx.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause();
+        string? pic = null;
         CobolParserCore.ValueClauseContext? value = null;
-        foreach (var c in clauses)
+        CobolParserCore.UsageClauseContext? usage = null;
+        if (list is not null)
+            foreach (var c in list)
+            {
+                if (c.pictureClause()?.PIC_STRING() is { } ps) pic = ps.GetText();
+                if (c.valueClause() is { } vc) value = vc;
+                if (c.usageClause() is { } uc) usage = uc;
+            }
+        return (pic, value, usage);
+    }
+
+    /// <summary>Whether a PICTURE string classifies as <see cref="PicCategory.NumericEdited"/> via the ONE
+    /// <see cref="PictureAnalyzer"/> (discard sink; §13.18.40). A custom CURRENCY SIGN symbol is not threaded — a
+    /// numeric-edited picture using a non-default currency symbol is a rare false-negative, never a false-positive.</summary>
+    private bool IsNumericEditedPicture(string picture)
+        => PictureAnalyzer.Analyze(picture, Usage.Display, _discard, "a flagged VALUE clause").Category
+            == PicCategory.NumericEdited;
+
+    /// <summary>Whether an item with NO PICTURE has no length from its USAGE either: DISPLAY (explicit or absent —
+    /// the default) has no length without a PICTURE, while every other usage (COMP-*, INDEX, POINTER family, the
+    /// float/binary families, …) implies a fixed length. Detected from the usage keyword text.</summary>
+    private static bool UsageGivesNoLength(CobolParserCore.UsageClauseContext? usage)
+        => usage is null || usage.GetText().ToUpperInvariant().EndsWith("DISPLAY", StringComparison.Ordinal);
+
+    /// <summary>A real data-item level (1–49 or the independent 77) — excludes 66 (RENAMES), 78 (CONSTANT), and
+    /// 88 (condition-name), none of which is a length-bearing data item.</summary>
+    private static bool IsRealDataLevel(CobolParserCore.DataDescriptionEntryContext ctx)
+    {
+        int lvl = Level(ctx);
+        return (lvl >= 1 && lvl <= 49) || lvl == 77;
+    }
+
+    private static int Level(CobolParserCore.DataDescriptionEntryContext ctx)
+        => int.TryParse(ctx.levelNumber()?.GetText(), out int n) ? n : 0;
+
+    /// <summary>Whether the entry is a GROUP item — the immediately-following sibling entry is a real subordinate
+    /// data item (level 2–49, deeper than this entry). A following 66/88 entry is NOT a subordinate.</summary>
+    private static bool HasSubordinates(CobolParserCore.DataDescriptionEntryContext ctx)
+    {
+        if (NextEntry(ctx) is not { } next) return false;
+        int nl = Level(next);
+        return nl > Level(ctx) && nl is >= 2 and <= 49;
+    }
+
+    /// <summary>The next sibling <c>dataDescriptionEntry</c> in the same container (entries are a FLAT list — data
+    /// nesting is by level number, not parse structure), or null.</summary>
+    private static CobolParserCore.DataDescriptionEntryContext? NextEntry(CobolParserCore.DataDescriptionEntryContext ctx)
+    {
+        if (ctx.Parent is not { } parent) return null;
+        bool found = false;
+        for (int i = 0; i < parent.ChildCount; i++)
         {
-            if (c.pictureClause()?.PIC_STRING() is { } ps) picture = ps.GetText();
-            if (c.valueClause() is { } vc) value = vc;
+            var child = parent.GetChild(i);
+            if (found && child is CobolParserCore.DataDescriptionEntryContext next) return next;
+            if (ReferenceEquals(child, ctx)) found = true;
         }
-        if (picture is null || value is null) return null;
-        return PictureAnalyzer.Analyze(picture, Usage.Display, _discard, "a flagged VALUE clause").Category
-            == PicCategory.NumericEdited ? value : null;
+        return null;
     }
 
     /// <summary>Whether a numeric-edited VALUE clause is a plain LITERAL (numeric or nonnumeric — the caller has
