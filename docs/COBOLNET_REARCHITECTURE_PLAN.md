@@ -23,7 +23,7 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-20; grammar-batch 7/7 DONE — the code lands as the next commit after docs HEAD `bc5a56dc`):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
+- **▶ RESUME AT (2026-07-20; grammar-batch 7/7 DONE — PERFORM Format 3 LANDED at code HEAD `e9b31a35`, pushed):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
   RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
   VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
   landed the full RECOGNIZE/VALIDATE/DIAGNOSE/GATE surface: the Formats-2/3 grammar MERGE + the `whenOperandAhead()`
@@ -51,7 +51,7 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery after PERFORM Format 3 (2026-07-20; branch `phase-13-grammar-batch`; the code lands as the next commit):** greenfield Conformance
+- **Battery at code-HEAD `e9b31a35` (2026-07-20; branch `phase-13-grammar-batch`, pushed):** greenfield Conformance
   **3783** · unit **353** · characterization **33** byte-exact · **full legacy guard (`scripts/guard.sh`) `=== ALL GREEN ===`**
   — re-run AFTER the adversarial-review fixes (legacy unit+integration+all 350 NIST). PERFORM Format 3 changed shared
   `CobolControlFlow.g4`/`CobolParserCore.g4` (the Formats-2/3 merge + `resumeStatement AT?`), so it ran the full guard
