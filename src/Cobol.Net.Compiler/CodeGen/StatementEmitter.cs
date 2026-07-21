@@ -164,6 +164,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // ── Conditionals / loops / SEARCH / EVALUATE ─────────────────────────────────────────────────────────────
     public bool Visit(BoundIf n) { _controlFlow.EmitIf(n); return false; }
     public bool Visit(BoundInlinePerform n) { _controlFlow.EmitInlinePerform(n); return false; }
+    public bool Visit(BoundExceptionPerform n) { _controlFlow.EmitExceptionPerform(n); return false; }
     public bool Visit(BoundOutOfLinePerform n) { _controlFlow.EmitOutOfLinePerform(n); return false; }
     public bool Visit(BoundSetConditions n) { _set.EmitSet(n); return false; }
     public bool Visit(BoundSetSwitches n) { _alterSwitch.EmitSetSwitches(n); return false; }

@@ -231,4 +231,37 @@ public abstract class CobolParserCoreBase : Parser
         }
         return false;
     }
+
+    /// <summary>
+    /// The Format-3 PERFORM WHEN operand-list CONTINUATION stop-set (design §1.3 / §1.6): the context-sensitive
+    /// verbs that are <c>cobolWord</c>s (so they would otherwise be annexed as a spurious exception-name /
+    /// file-name) yet ALSO lead a dispatcher statement (imperative-statement-2) —
+    /// RESUME/RAISE/VALIDATE/UNLOCK/SEND/RECEIVE/COMMIT/ROLLBACK/ENTER lead a statement now; GET/PARSE are
+    /// carried anticipatorily (future statement verbs) so the set is forward-complete.
+    /// Pure reserved verbs (MOVE, ADD, DISPLAY, IF, PERFORM…) are NOT cobolWords, so the <c>cobolWord</c> grammar
+    /// element itself stops the loop at them — no entry needed. The Format-3 phrase keywords FINALLY / OTHER /
+    /// COMMON are likewise not cobolWords (FINALLY is a pure reserved keyword; OTHER/COMMON always were), so they
+    /// stop the loop naturally too — no entry here. Completeness is enforced by <c>WhenOperandAheadDriftTests</c>.
+    /// Single source of truth: the predicate iterates this array.
+    /// </summary>
+    public static readonly int[] WhenOperandStopTokens =
+    {
+        CobolLexer.RESUME, CobolLexer.RAISE, CobolLexer.VALIDATE, CobolLexer.UNLOCK, CobolLexer.SEND,
+        CobolLexer.RECEIVE, CobolLexer.COMMIT, CobolLexer.ROLLBACK, CobolLexer.GET, CobolLexer.ENTER,
+        CobolLexer.PARSE,
+    };
+
+    /// <summary>
+    /// True when LT(1) MAY continue a Format-3 WHEN operand list — i.e. it is not one of
+    /// <see cref="WhenOperandStopTokens"/>. Gates only the CONTINUATION of the operand list (the first operand
+    /// after WHEN / WHEN EXCEPTION is taken unconditionally), so a WHEN body's leading verb cannot be annexed as
+    /// a spurious operand. (ISO §14.9.28.2 Format 3; design §1.2–§1.5.)
+    /// </summary>
+    protected bool whenOperandAhead()
+    {
+        int la1 = TokenStream.LA(1);
+        foreach (int stop in WhenOperandStopTokens)
+            if (la1 == stop) return false;
+        return true;
+    }
 }

@@ -1459,6 +1459,31 @@
       "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMVAL2.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 T-GRP.\n   03 E PIC X(3) OCCURS 6 VALUES ARE \"AAA\" \"BBB\" FROM (1).\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY E(1).\n    STOP RUN.\n"
     },
     {
+      "id": "perform-exception-checking-2023",
+      "description": "PENDING (runtime staged). The Format 3 (exception-checking) PERFORM (ISO 14.9.28.2 Format 3 / 14.9.28.4 GR14-22) - a per-statement exception interceptor scoped to imperative-statement-1 that dispatches a raised exception condition to a matching WHEN handler in written order (new-in-2023). Fully recognized/validated (COBOLNET1597-1617) + introduction-gated (COBOLNET0900 below 2023, recognition-fired from VersionConformancePass.ParseArm.VisitPerformStatement on a performWhenPhrase, disjoint from the perform-until-exit-2023 gate), but the runtime handler dispatch is a documented next-wave GAP - at 2023 the construct is currently rejected with COBOLNET0899 (staged), so no 2023 program compiles yet. status flips to active + expectDiagnostic drops when the interceptor wave lands.",
+      "display": "the Format-3 (exception-checking) PERFORM",
+      "diagnosticCode": "COBOLNET0900",
+      "citation": "ISO 14.9.28.2 Format 3 / 14.9.28.3 SR14-16 / 14.9.28.4 GR14-22; Annex E.3.3",
+      "introducedIn": 2023,
+      "removedIn": null,
+      "status": "pending",
+      "expectDiagnostic": "COBOLNET0900",
+      "vcr": "VCR row 79 (exception-checking PERFORM WHEN - 2023 introduction)",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. VMPERF3.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 N PIC 9 VALUE 0.\nPROCEDURE DIVISION.\nMAIN.\n    PERFORM\n        ADD 1 TO N\n    WHEN EC-SIZE\n        DISPLAY \"S\"\n    END-PERFORM.\n    STOP RUN.\n"
+    },
+    {
+      "id": "user-word-location-2023",
+      "description": "The word LOCATION as a user-defined word - 8.9 interval encoding: user-definable at 85/2002/2014 (the exception-checking PERFORM WITH LOCATION phrase did not exist), reserved by 2023 (Annex E.2 item 25 = VCR row 32). cobolWord admits the token so a pre-2023 data-name/paragraph LOCATION still parses; the funnel rejects 0901 at 2023 (the continuity invariant; the EDITING precedent).",
+      "display": "the word LOCATION as a user-defined word",
+      "diagnosticCode": "COBOLNET0901",
+      "citation": "8.9 interval encoding: user-definable until 2023 reserved it (Annex E.2 item 25 = VCR row 32); cobolWord-admitted",
+      "introducedIn": 85,
+      "removedIn": 2023,
+      "expectDiagnostic": "COBOLNET0901",
+      "vcr": "VCR row 32 (Annex E.2 item 25); reserved-words.json row LOCATION",
+      "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. UWLOC.\nDATA DIVISION.\nWORKING-STORAGE SECTION.\n01 LOCATION PIC 9 VALUE 1.\nPROCEDURE DIVISION.\nMAIN.\n    DISPLAY LOCATION.\n    STOP RUN.\n"
+    },
+    {
       "id": "fixed-form-word-continuation-removed-2023",
       "description": "Continuation of a COBOL word across fixed-form lines via the col-7 hyphen - permitted through 2014, REMOVED by ISO 2023 (Annex E.2 item 1 bullet 2). Emit site: the frontend ReferenceFormatProcessor (only the column-aware pass sees the indicator); 0902 error strict / warning permissive at 2023, pre-removal join semantics preserved.",
       "display": "continuation of a COBOL word in fixed-form reference format",

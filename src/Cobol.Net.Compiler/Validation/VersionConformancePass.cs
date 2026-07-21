@@ -555,6 +555,19 @@ internal sealed class VersionConformancePass
             return base.VisitChildren(ctx);
         }
 
+        /// <summary>The Format-3 (exception-checking) PERFORM (ISO §14.9.28.2 Format 3) — a COBOL-2023 addition.
+        /// Recognition-based on any WHEN / WHEN OTHER / WHEN COMMON / FINALLY phrase or a [WITH] LOCATION head (the
+        /// same discriminator the binder uses); disjoint from the UNTIL EXIT gate above. Parse-arm so a below-2023
+        /// occurrence names its edition even though it binds to a BoundExceptionPerform.</summary>
+        public override object? VisitPerformStatement(CobolParserCore.PerformStatementContext ctx)
+        {
+            // The ONE Format-3 discriminator, shared with the binder (ControlFlowBinder.IsFormat3), so the
+            // COBOLNET0900 gate here and the COBOLNET0899 staged-reject there cannot drift apart.
+            if (Binding.Procedure.ControlFlowBinder.IsFormat3(ctx))
+                _p.Check(Constructs.PerformExceptionChecking2023, "the Format-3 (exception-checking) PERFORM");
+            return base.VisitChildren(ctx);
+        }
+
         /// <summary>OPEN … REVERSED — obsolete '85 tape phrase deleted 2002 (P2.6; NO REWIND stays — it survives
         /// into 2023 §14.9.26).</summary>
         public override object? VisitOpenFileSpec(CobolParserCore.OpenFileSpecContext ctx)

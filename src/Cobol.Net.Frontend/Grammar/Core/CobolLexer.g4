@@ -436,6 +436,7 @@ FALSE_      : 'FALSE' ;
 FILE        : 'FILE' ;
 FILLER      : 'FILLER' ;
 FINAL       : 'FINAL' ;
+FINALLY     : 'FINALLY' ;                 // exception-checking PERFORM FINALLY phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
 FULL_       : 'FULL' ;
 POSITIVE    : 'POSITIVE' ;
 NEGATIVE    : 'NEGATIVE' ;
@@ -489,6 +490,7 @@ LENGTH      : 'LENGTH' ;
 LESS        : 'LESS' ;
 LINE        : 'LINE' ;
 LINES       : 'LINES' ;
+LOCATION    : 'LOCATION' ;                // exception-checking PERFORM WITH LOCATION phrase (ISO §14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25)
 LOCK        : 'LOCK' ;
 LOWLIGHT    : 'LOWLIGHT' ;
 // ── COBOL-2002 file sharing / record locking (ISO §12.4.5.9/.15, §14.7.9, §14.9.27/.30/.47). SHARING/RETRY/

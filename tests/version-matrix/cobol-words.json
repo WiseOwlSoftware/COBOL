@@ -314,6 +314,12 @@
       "note": "START WITH LENGTH / FUNCTION LENGTH. 8.9-reserved at all editions per reserved-words.json: syntactically admitted in a name slot, funnel-gated (see the RW cross-check note in gen-cobol-words.ps1)"
     },
     {
+      "token": "LOCATION",
+      "nameSlot": true,
+      "subscriptTrigger": true,
+      "note": "exception-checking PERFORM WITH LOCATION phrase (ISO 14.9.28.2 Format 3; new-in-2023 reserved word, Annex E.2 item 25). USER WORD at 85/2002/2014; reserved 2023 only. Admitted to the cobolWord nameSlot funnel so a paragraph named LOCATION and 'PERFORM LOCATION' keep parsing below 2023 (the continuity invariant; EDITING/COMMIT precedent). LOCATION appears only in the F3 head (never after a statement), so unlike FINALLY it is structurally safe in the name slot."
+    },
+    {
       "token": "LOWLIGHT",
       "nameSlot": true,
       "subscriptTrigger": true,

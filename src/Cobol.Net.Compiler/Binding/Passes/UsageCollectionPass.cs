@@ -100,6 +100,7 @@ internal static class UsageCollectionPass
 
         // ── whole-group operand positions ──
         public bool Visit(BoundMove n) { Op(n.Source); foreach (var t in n.Targets) P(t); return false; }
+        public bool Visit(BoundExceptionPerform n) => false;   // no direct data operands; imp-1..5 walked via StatementChildren
         public bool Visit(BoundDisplay n) { foreach (var o in n.Operands) Op(o); return false; }
         public bool Visit(BoundAccept n) { P(n.Target); return false; }
         public bool Visit(BoundInspect n)

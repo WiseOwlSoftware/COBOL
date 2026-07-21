@@ -59,6 +59,7 @@ public partial class CobolLexer
         INTERFACE,
         INTERMEDIATE,
         LENGTH,
+        LOCATION,
         LOWLIGHT,
         MANUAL,
         MERGE,

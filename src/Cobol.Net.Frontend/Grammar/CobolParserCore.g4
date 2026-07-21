@@ -1199,9 +1199,10 @@ raiseStatement
     : RAISE (EXCEPTION cobolWord | objectReference)
     ;
 
-// RESUME AT {NEXT STATEMENT | procedure-name-1} (ISO §14.9.33.2 — AT is required in the 2023 format).
+// RESUME [AT] {NEXT STATEMENT | procedure-name-1} (ISO §14.9.33.2 — AT is an OPTIONAL word: it is not
+// underlined in the general format, so `RESUME NEXT STATEMENT` / `RESUME procedure-name` are legal too).
 resumeStatement
-    : RESUME AT (NEXT STATEMENT | procedureName)
+    : RESUME AT? (NEXT STATEMENT | procedureName)
     ;
 
 // RAISING {EXCEPTION exception-name-1 | identifier-1 | LAST EXCEPTION} (ISO §14.9.18.2 / §14.9.14.2 F2) —

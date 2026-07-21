@@ -23,20 +23,27 @@ exact verified fix) → ⑤ before ending: update THIS §0 + a DEVLOG entry per 
 checkpoint.
 
 - **Branch:** `phase-13-grammar-batch` (NOT merged; `main` = the P12 merge `e95dd92c`). **PHASE-13 IN PROGRESS.**
-- **▶ RESUME AT (2026-07-20, HEAD `178d7603`; last CODE commit `7c58b7e9`, docs-only since):** the GRAMMAR BATCH is **6 of 7 done** — Wave H,
-  RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), **PICTURE EDITING (§13.18.40.2,
-  COBOL-2023)**, **VALUE Format 2 (§13.18.63.2, COBOL-2002)** all LANDED. **NEXT = PERFORM Format 3 (§14.9.28, C5)** — the
-  three figure-reading questions are now RESOLVED from the rendered PDF page 712 (they were already in the repaired
-  markdown notes; see `PHASE-13-c5-perform-format3-pdf-resolution.md`): **≥1 ordinary WHEN is REQUIRED** (outer
-  brace), **no operand-form mixing within a WHEN** (three stacked alternatives), **`IO` = `I-O`** (§8.9). **The
-  corrected, implementation-ready design SSOT is `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md`**
-  (adversarially verified; the rejected C5 re-derivation JSON was DELETED, its correct parts folded in) — it fixes
-  every C5 defect: the greedy-safe grammar (a `whenOperandAhead()` continuation predicate so a WHEN operand cannot
-  swallow a following `RESUME`/statement) · all ~16 cross-statement SR bans (POP/PUSH/CLOSE/DELETE/OPEN/MERGE/SORT +
-  the `EXIT PERFORM CYCLE` ban) at diag **1597–1617** · the RESUME `AT?` fix · the GR14–22 exception-checking runtime
-  with an explicit LANDABLE-vs-STAGED boundary (the mode-operand matcher + the exhaustive raise-site sweep are the
-  documented staged GAPs). Then Wave D directives (§0 list below), then the §24 fix-queue residue → P14. **The spec-grounded
-  design SSOT = `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`.**
+- **▶ RESUME AT (2026-07-20; grammar-batch 7/7 DONE — the code lands as the next commit after docs HEAD `bc5a56dc`):** the GRAMMAR BATCH is **7 of 7 done** — Wave H,
+  RW SUPPRESS, file-control COLLATING (§12.4.5.7), SUPPRESS WHEN alt-key (§12.4.5.6), PICTURE EDITING (§13.18.40.2),
+  VALUE Format 2 (§13.18.63.2), and **PERFORM Format 3 (§14.9.28, C5)** all LANDED. **PERFORM Format 3** (DEVLOG 940)
+  landed the full RECOGNIZE/VALIDATE/DIAGNOSE/GATE surface: the Formats-2/3 grammar MERGE + the `whenOperandAhead()`
+  greedy-safe continuation predicate, new tokens LOCATION/FINALLY, the `EcBinder.ExceptionPerform` binder (all
+  §14.9.28.3 SRs + the cross-statement bans at diag **1597–1617**, the RESUME `AT?` fix + RESUME-in-WHEN relaxation
+  [1610], the GR14 `TurnState.WithImplicitEnable` overlay), the COBOLNET0900 introduction gate
+  (`VisitPerformStatement`). **The RUNTIME interceptor (GR17–20) is STAGED** — the F3 PERFORM is REJECTED at 2023 with
+  COBOLNET0899 (`perform-exception-checking-2023` row = `status:pending`); batch-2-consistent (a staged form is a
+  0899 rejection, not a silent partial compile), safe (no on-raise divergence). **Reconciliations from the 8-agent
+  scout (design corrections, all spec-grounded, in the design SSOT §5.4 + D12):** FINALLY is a pure reserved keyword
+  NOT a cobolWord (else a preceding DISPLAY/MOVE operand list swallows the FINALLY phrase — a documented negligible
+  deviation); LOCATION stays a cobolWord (head-only ⇒ no swallow; continuity); the merged inline arm PRECEDES the
+  out-of-line `PERFORM procedureName` (LOCATION-ambiguity, END-PERFORM disambiguates); **COBOLNET1598
+  (operand-exclusivity) NOT emitted — no §14.9.28.3 SR backs it** (spec-fidelity); XS-POP/PUSH (1602/1603) stay
+  RESERVED (>>POP/>>PUSH are themselves unimplemented); XS-RESUME-PLACEMENT subsumed by 0712; `IsLexicallyWithin`/
+  bound-POP-checks don't exist ⇒ region bans are parse-subtree walks; TurnState is immutable ⇒ GR14 is a derived-
+  instance overlay. **NEXT = the PERFORM Format-3 RUNTIME interceptor wave** (the ambient F3-frame stack +
+  `__EcPerform`; recorded blocker: C# cannot `goto` out of a lambda ⇒ a non-lambda handler-emission strategy is
+  needed), then Wave D directives (§0 list below), then the §24 fix-queue residue → P14. **Design SSOT =
+  `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` + `PHASE-13-grammar-batch-spec-grounding.json`.**
   **PICTURE EDITING** — the single-char IS form (any character-1 occurrence) + single-occurrence FOR form render via a
   threaded `CobolEdit.EditRule(Char1,Neg,Pos)` (sign map = Table 9 + Annex D.24, NOT the sign-inverted Table 8);
   multi-char literal + floating (character-1 ≥2 under a FOR phrase) = documented **P14 render GAP** (COBOLNET0899).
@@ -44,11 +51,12 @@ checkpoint.
   Annex D.3.7 lands) + the glued-multi-literal reject (COBOLNET1585, broad blast radius — the full battery + a corpus
   grep were the check); a multi-dimension odometer or a subordinate-item table VALUE = **P14 GAP** (COBOLNET0899).
   ⛔ Do NOT assert out-of-range table occurrences default to spaces/zero — §13.18.63.4 leaves them UNDEFINED.
-- **Battery at code-HEAD `7c58b7e9` (2026-07-20; docs-only commits since → tip `178d7603`; branch `phase-13-grammar-batch`):** greenfield Conformance
-  **3752** · unit **313** · characterization **33** byte-exact · full legacy guard (legacy unit+integration+all 350
-  NIST) **ALL GREEN**. Batch 2 (PICTURE EDITING + VALUE Format 2) changed shared `CobolData.g4` + the CobolEdit /
-  CobolDynTable runtime, so it ran the full guard; the VALUE-Format-2 glued-multi-literal reject was validated
-  against the whole battery + a corpus grep (no dependents). Build `CobolSharp.sln` before any `--no-build` test run.
+- **Battery after PERFORM Format 3 (2026-07-20; branch `phase-13-grammar-batch`; the code lands as the next commit):** greenfield Conformance
+  **3783** · unit **353** · characterization **33** byte-exact · **full legacy guard (`scripts/guard.sh`) `=== ALL GREEN ===`**
+  — re-run AFTER the adversarial-review fixes (legacy unit+integration+all 350 NIST). PERFORM Format 3 changed shared
+  `CobolControlFlow.g4`/`CobolParserCore.g4` (the Formats-2/3 merge + `resumeStatement AT?`), so it ran the full guard
+  twice (before + after the review fixes); the legacy oracle's two `ControlFlowBinder` sites were repaired in the same
+  change set. Build `CobolSharp.sln` before any `--no-build` test run.
 - **Mission target (owner decision D13, 2026-07-19): 100% CONFORMING** per ISO §4.2.16 across ALL FOUR editions
   (85/2002/2014/2023) — mandatory core complete + required implementor documentation; optional modules may stay
   documented non-support. Definition of done = the PHASE-14 Step-0 traceability inventory at zero GAP.
@@ -70,15 +78,21 @@ checkpoint.
   distinct-char-1 1592 · SR10 char-1-in-mask 1593 · SR9 literal-≤50 1594 · SR12a neg/pos-width 1595 · SR12b FOR-symbol-set
   1596). Both bands are COMPILER-channel raw codes (the 1542/0808 pattern — NOT catalog
   descriptors; the split-code 0899 staged-render gate rides `DiagnosticCatalog.ConstructStagedNotImplemented`).
-  **NEXT FREE = 1589** (the lowest free hole) — allocate only after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
-  (max = 1596) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
+  **1597–1617 SHIPPED 2026-07-20 by PERFORM Format 3** (§14.9.28.3 SRs + cross-statement bans; all COMPILER-channel
+  raw `Edition.Error` codes): 1597 ≥1-WHEN · 1599 SR14 dup-file · 1600 SR15 dup-EC · 1601 SR16 EC-I-O-prefix · 1604
+  EXIT-PERFORM-CYCLE · 1605/1606/1607 INITIATE/TERMINATE/VALIDATE-multi · 1608 GO-TO-in-WHEN · 1610 RESUME-AT-proc-in-WHEN
+  · 1611 RAISE-outside-imp1 · 1612 multi-CLOSE-imp1 · 1614 dup-INITIALIZE-imp1 · 1615 MERGE-imp1 · 1616 dup-OPEN-imp1 ·
+  1617 SORT-imp1. **DISPOSITIONS (documented, not holes):** **1598 (operand-exclusivity) NOT emitted** — no §14.9.28.3
+  SR backs it (spec-fidelity); **1602/1603 (XS-POP/XS-PUSH) stay RESERVED** — the >>POP/>>PUSH directives are
+  themselves unimplemented, so their F3 ban rides that directive wave; **1613 (XS-DELETE-FILE-MULTI) stays RESERVED**
+  — the `deleteFileStatement` grammar admits only a SINGLE file-name (the 2023 Format-2 multi-file `DELETE FILE
+  [OVERRIDE] {file}…` shape is itself an unimplemented grammar gap), so 1613 is unreachable until that lands;
+  **1609 (XS-RESUME-PLACEMENT) subsumed by COBOLNET0712**. All bands are COMPILER-channel raw codes (the 1542/0808
+  pattern — NOT catalog descriptors; the split-code 0899 staged gate rides `DiagnosticCatalog.ConstructStagedNotImplemented`).
+  **NEXT FREE = 1618** — allocate only after BOTH scans agree: `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src | sort -u`
+  (max = 1617) AND the DiagnosticCatalog descriptor list (the `EveryEmittedCode_IsACatalogDescriptor` drift test forces
   the frontend channel through the catalog; extending it to the compiler's dot-prefixed `Edition.Error` channel is
-  queued — ledger V11 note).
-  ⚠ **RESERVED for PERFORM Format 3 (NEXT): 1597–1617** (21 codes — the SR bans, per
-  `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md` §3; SUPERSEDES the old too-small 1603–1613
-  reservation. ⛔ The design's own synthesis first said "next-free 1585" from a catalog-ONLY scan — WRONG, since
-  1585-1596 are compiler-channel codes not in the catalog; corrected to 1597–1617 after BOTH scans agreed — the classic
-  catalog-only-scan collision, avoided). 1589–1590 stay released mid-band holes; after PERFORM Format 3, NEXT FREE = 1618.
+  queued — ledger V11 note). 1589–1590 · 1598 · 1602/1603 · 1609 · 1613 stay released/reserved mid-band holes.
   A wave that does NOT need its whole reservation must release the remainder in its own §0 edit rather than leaving a hole.
   1550–1552 are unallocated mid-band holes. Intro gates 0900 · new-reserved-word 0901 · obsolete 0903 · §4.2.6
   warning band 1560.
@@ -164,9 +178,15 @@ checkpoint.
      COBOLNET1591-1596; multi-char + floating render = P14 GAP COBOLNET0899) · **VALUE Format 2** (§13.18.63.2,
      COBOL-2002; DEVLOG 938; per-occurrence `ValueInitializer.TableValueInit` GR12-16, D.3.7 dynamic golden lands;
      the glued-multi-literal reject COBOLNET1585; COBOLNET1586-1588 SRs; multi-dim / subordinate-item table VALUE =
-     P14 GAP COBOLNET0899). **REMAINING:** PERFORM Format 3 (§14.9.28; FINALLY/LOCATION new-2023 tokens; the deep
-     exception-checking construct). The design is READY: `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md`
-     (adversarially-verified SSOT — the greedy-safe grammar, all cross-statement SRs at diag 1597-1617, the GR14-22
+     P14 GAP COBOLNET0899) · **PERFORM Format 3** (§14.9.28, COBOL-2023; DEVLOG 940; FINALLY/LOCATION new-2023 tokens;
+     the Formats-2/3 grammar merge + `whenOperandAhead()` predicate, the `EcBinder.ExceptionPerform` binder with all
+     §14.9.28.3 SRs + cross-statement bans COBOLNET1597-1617, the RESUME `AT?` fix + RESUME-in-WHEN relaxation, the
+     GR14 `TurnState.WithImplicitEnable` overlay, the COBOLNET0900 gate — the full recognize/validate/diagnose/gate
+     surface. The **GR17-20 runtime interceptor is STAGED**: the F3 PERFORM is REJECTED at 2023 with COBOLNET0899
+     (`perform-exception-checking-2023` row = `status:pending`) — the NEXT WAVE. Reconciliations in the design SSOT
+     §5.4 + D12; blocker recorded: C# can't `goto` out of a lambda). **GRAMMAR BATCH 7/7 COMPLETE.** The design SSOT
+     stays `docs/rearchitecture/evidence/PHASE-13-c5-perform-format3-DESIGN.md`
+     (adversarially-verified — the greedy-safe grammar, all cross-statement SRs at diag 1597-1617, the GR14-22
      runtime with a landable/staged boundary) + the figure resolution `PHASE-13-c5-perform-format3-pdf-resolution.md`.
      Working designs: `PHASE-13-wave-c-scout.md` + `PHASE-13-remaining-waves-scout.md` (delete both at P13 close).
      **⛔ SPEC-GROUNDED DESIGN SSOT for the remaining four = `docs/rearchitecture/evidence/PHASE-13-grammar-batch-spec-grounding.json`** (2026-07-20, each construct DERIVED from the spec then adversarially verified — supersedes the scouts' inline claims). Verdicts: COLLATING · SUPPRESS WHEN · PICTURE EDITING = **SPEC-FAITHFUL**; VALUE Format 2 = **PARTIALLY-REFUTED** (its "out-of-range table elements default to spaces/zero" claim is UNSPEC — §13.18.63.4 GR4 leaves untouched occurrences undefined; do not assert it). Cross-cutting corrections: **all scouts' inline diag codes are STALE — use the plan's reserved ranges below, not the scout numbers.** **COLLATING↔SUPPRESS WHEN are COUPLED** (both in `IndexedConnector.cs`; suppression equality uses the FILE collating sequence per §14.9.51 GR35 — implement COLLATING first so the weighted-comparison seam `CobolString.Compare(l,r,weights)` exists, then SUPPRESS WHEN reuses it). SUPPRESS WHEN is **4 touch points not one** (ReadRandom/Write/Rewrite don't route through `Ordered`) + the shared `IsSuppressed` (max-length/no-truncate GR35, NOT key-width pre-pad). PICTURE EDITING: the extracted **Table 8 is sign-inverted** and SR12 is a drafting defect — implement from Table 9 + Annex D.24; the multi-char/floating-`es` RENDER is a **P14 GAP** (parse+bind+SR diagnostics land). **Suggested batch order (multiple waves / ONE comprehensive guard, owner 2026-07-20): COLLATING → SUPPRESS WHEN (batch 1, coupled), then PICTURE-EDITING-parse-half + VALUE-Format-2 (batch 2).**

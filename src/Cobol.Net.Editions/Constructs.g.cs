@@ -127,6 +127,8 @@ public static class Constructs
     public const string PictureEditing2023 = "picture-editing-2023";
     public const string UserWordEditing2023 = "user-word-editing-2023";
     public const string ValueTableFormat2002 = "value-table-format-2002";
+    public const string PerformExceptionChecking2023 = "perform-exception-checking-2023";
+    public const string UserWordLocation2023 = "user-word-location-2023";
     public const string FixedFormWordContinuationRemoved2023 = "fixed-form-word-continuation-removed-2023";
     public const string CopyReplacingNonPseudoTextRemoved2023 = "copy-replacing-non-pseudo-text-removed-2023";
     public const string Col7ContinuationObsolete2023 = "col7-continuation-obsolete-2023";

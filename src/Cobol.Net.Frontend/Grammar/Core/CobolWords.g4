@@ -58,6 +58,7 @@ cobolWord
     | INTERFACE
     | INTERMEDIATE
     | LENGTH
+    | LOCATION
     | LOWLIGHT
     | MANUAL
     | MESSAGE

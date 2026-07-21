@@ -53,6 +53,20 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
 
     public void EmitInlinePerform(BoundInlinePerform p) => EmitPerform(p.Control, () => Statements.EmitStatementList(p.Body), inline: true);
 
+    /// <summary>Emit a Format-3 (exception-checking) PERFORM (ISO §14.9.28 Format 3) — STAGED runtime. The
+    /// construct is fully recognized, bound, and syntax-checked (COBOLNET1597-1617, §14.9.28.3), but the WHEN /
+    /// WHEN OTHER / WHEN COMMON handler DISPATCH (GR17-20 — the per-statement interceptor with resume-in-place) is
+    /// a documented next-wave GAP: the binder REJECTS the construct with COBOLNET0899 (the batch-2 staged-form
+    /// precedent — a staged construct is a rejection, not a silent partial compile), so codegen for this node is
+    /// currently unreachable. This body (imperative-statement-1 under the GR14 overlay + the FINALLY phrase, imp-5,
+    /// GR16, as ordinary sequences) is the forward-compatible fallback the interceptor wave will build on; the
+    /// bound WHEN/OTHER/COMMON handler bodies are NOT emitted.</summary>
+    public void EmitExceptionPerform(BoundExceptionPerform p)
+    {
+        Statements.EmitStatementList(p.Imp1);
+        if (p.FinallyBody is { } fb) Statements.EmitStatementList(fb);
+    }
+
     /// <summary>An out-of-line PERFORM is a recursive bounded <c>Dispatch(start, end)</c> over the target pc range
     /// (the C# call stack is the return-address stack, COBOLNET_DESIGN §5.4). X3.23-1985 USE FOR DEBUGGING (VCR 7.17):
     /// the FIRST entry into the range is a plain-PERFORM transfer (DEBUG-CONTENTS SPACES); every subsequent loop

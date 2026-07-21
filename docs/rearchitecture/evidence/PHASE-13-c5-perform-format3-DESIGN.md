@@ -8,6 +8,42 @@ contiguous free block 1597-1617 (batch 2 used 1585-1596). -->
 
 **Status:** Design SSOT for the P13 grammar-batch PERFORM Format-3 construct. Supersedes the C5 derivation and folds in the adversarial verification. Design-doc home for the same change set: `docs/COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` D12.
 
+---
+
+> ## ⚙ IMPLEMENTED 2026-07-20 (DEVLOG 940) — as-built reconciliations & the staged boundary (READ THIS FIRST)
+> The front half LANDED (recognize/validate/diagnose/gate); the runtime interceptor is STAGED. An 8-agent scout of the
+> actual tree surfaced several places this design under-specified reality — each reconciled from the spec, not improvised.
+> The **current-state design home is `COBOLNET_CONDITIONS_EXCEPTIONS_DESIGN.md` D12**; the body below is the original
+> plan, corrected by these notes:
+> 1. **FINALLY is a PURE RESERVED KEYWORD, NOT a `cobolWord`** (contra §2.2's "add to the funnel"). As a trailing phrase
+>    keyword after imperative statements, a name-slot FINALLY is swallowed by a preceding DISPLAY/MOVE operand list
+>    (`DISPLAY "c" FINALLY` → FINALLY becomes a DISPLAY operand; caught by a parse test). It is reserved at every edition
+>    (a documented, negligible continuity deviation — FINALLY was never a COBOL identifier idiom). **LOCATION STAYS a
+>    `cobolWord`** — head-only (never after a statement) ⇒ no swallow, and continuity needs it (`PERFORM LOCATION` /
+>    paragraph named LOCATION below 2023). So the `whenOperandAhead()` stop-set is the 11 statement-leader verbs ONLY
+>    (FINALLY/OTHER/COMMON are not cobolWords ⇒ the grammar element stops the loop at them naturally).
+> 2. **The merged inline `performStatement` arm PRECEDES the out-of-line `PERFORM procedureName`** — `PERFORM LOCATION imp…
+>    END-PERFORM` is genuinely ambiguous (LOCATION is a cobolWord ⇒ a valid target); only the trailing END-PERFORM
+>    disambiguates, so the inline arm is tried first (a period-terminated `PERFORM LOCATION.` falls through).
+> 3. **Diagnostics are COMPILER-CHANNEL raw `Edition.Error` codes** (the 1585–1596 pattern), NOT DiagnosticCatalog
+>    descriptors (§3's "lands in DiagnosticCatalog" line was stale — both scans confirmed).
+> 4. **COBOLNET1598 (operand-form exclusivity) is NOT emitted** — no §14.9.28.3 SR backs it (SR14/15/16 are the only WHEN
+>    operand rules; the figure's `{exception-name-1 | exception-name-2 FILE file-name-2}…` permits interleaving).
+>    Spec-fidelity: implement the NAMED rules, invent no restriction. **XS-RESUME-PLACEMENT is subsumed by COBOLNET0712**.
+>    **XS-POP/XS-PUSH (1602/1603) stay RESERVED** — the >>POP/>>PUSH directives are themselves unimplemented in the
+>    greenfield (grep-confirmed), so their F3 ban rides that directive wave.
+> 5. **`IsLexicallyWithin` and bound `>>POP`/`>>PUSH` checks DO NOT EXIST** (§3.1's premise) — the region bans (A/B/C/D)
+>    are parse-subtree walks that fall out of the F3 node's own sub-lists (simpler than the design implied).
+>    **TurnState is IMMUTABLE** ⇒ GR14 is a `WithImplicitEnable` derived-instance overlay (line-0 synthetic enables),
+>    NOT a push/pop mutator.
+> 6. **THE RUNTIME (GR17–20) IS STAGED via a 0899 REJECTION, not a partial compile.** The design's §5 lambda-based
+>    interceptor has a real blocker: **C# cannot `goto` out of a lambda**, so an `EXIT PERFORM` inside a WHEN handler
+>    (emitted in the matcher closure) cannot jump to the PERFORM end label; plus threading `fatal` through `EcDispatchExpr`
+>    touches many raise sites. Per the batch-2 precedent (PICTURE EDITING/VALUE Format 2 staged their forms as 0899
+>    REJECTIONS), the F3 PERFORM is REJECTED at 2023 with COBOLNET0899 (`perform-exception-checking-2023` row =
+>    `status:pending`) — safe (no silent on-raise divergence) and honest. **The interceptor wave needs a NON-LAMBDA
+>    handler-emission strategy** (or an EXIT-PERFORM-in-handler sub-stage). §5 below is the plan of record for that wave.
+
 **The three mandatory adversarial corrections are applied:**
 1. Next-free diagnostic is **COBOLNET1597**. NEXT-FREE is 1597, NOT 1585: this session's batch 2 consumed 1585-1588 (VALUE Format 2) and 1591-1596 (PICTURE EDITING) as COMPILER-CHANNEL raw codes (in DataBinder/PictureAnalyzer, NOT DiagnosticCatalog.cs), so a catalog-only scan is insufficient — BOTH the `grep -rho 'COBOLNET1[5-6][0-9][0-9]' src` scan (max 1596) AND the catalog must agree. The contiguous free block 1597-1617 fits this feature's 21 codes. The stale "1585"/"1581"/"1578" claims are discarded.
 2. The **Grammar-Shape rules in §1 are authoritative.** The alternate grammar snippet that appeared in the runtime scouting (the greedy `WHEN cobolWord+` form) is discarded — it reintroduced the canonical-body mis-parse and dropped the `file-name-1` operand form.
