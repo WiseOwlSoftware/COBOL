@@ -9,6 +9,7 @@ using CobolNet.Editions.Diagnostics; // DiagnosticCatalog
 using CobolNet.Frontend.Cst;         // DataReferenceCst / SpecialRegister
 using CobolNet.Frontend.Generated;   // CobolParserCore / CobolParserCoreBaseVisitor
 using CobolNet.Frontend.Preprocessor;// FlagDirective / FlagOption / FlagOptions / FlagDirectiveLine
+using CobolNet.Runtime.IO;           // FileOpenMode (the USE-declarative open-mode ordinal, I-O-DECLARATIVE)
 
 namespace CobolNet.Validation;
 
@@ -57,6 +58,11 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     private readonly IReadOnlyDictionary<CobolParserCore.ProgramUnitContext, BoundUnit> _unitByCtx;
     private DataBinder? _currentData;
     private ReferenceResolver? _currentRefs;
+    // The current unit's USE-declarative open modes (FLAG-14 d I-O-DECLARATIVE), read from the bound model: whether
+    // it has ANY open-mode declarative (USE … ON INPUT/OUTPUT/I-O/EXTEND — the INVALID-KEY rule) and whether it has
+    // an INPUT / I-O one (the AT-END rule). Reset per unit in VisitProgramUnit (a nested unit does not inherit).
+    private bool _hasAnyModeDecl;
+    private bool _hasReadModeDecl;
     // A discard EditionContext so the reused PictureAnalyzer (the ONE picture-category mechanism) can classify a
     // parse-tree PICTURE string WITHOUT re-emitting its bind-time diagnostics to the real sink. At 2023 (the
     // superset) so no legal symbol is spuriously rejected; the picture was already validated during binding.
@@ -139,10 +145,20 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     /// restores its container's scope on exit.</summary>
     public override object? VisitProgramUnit(CobolParserCore.ProgramUnitContext ctx)
     {
-        var (prevData, prevRefs) = (_currentData, _currentRefs);
-        if (_unitByCtx.TryGetValue(ctx, out var unit)) { _currentData = unit.Data; _currentRefs = unit.Refs; }
+        var saved = (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl);
+        if (_unitByCtx.TryGetValue(ctx, out var unit))
+        {
+            _currentData = unit.Data;
+            _currentRefs = unit.Refs;
+            // The unit's Format-1 open-mode USE declaratives (BoundDeclarative.ModeIndex = the FileOpenMode ordinal;
+            // null for a file-name-targeted or Format-3/4 declarative — which GR4 d does not consider).
+            var modes = unit.Bound?.Declaratives;
+            _hasAnyModeDecl = modes is not null && modes.Any(d => d.ModeIndex is not null);
+            _hasReadModeDecl = modes is not null && modes.Any(d =>
+                d.ModeIndex == (int)FileOpenMode.Input || d.ModeIndex == (int)FileOpenMode.IO);
+        }
         try { return base.VisitChildren(ctx); }
-        finally { (_currentData, _currentRefs) = (prevData, prevRefs); }
+        finally { (_currentData, _currentRefs, _hasAnyModeDecl, _hasReadModeDecl) = saved; }
     }
 
     /// <summary>Emit the option's Warning if it is flagging at <paramref name="line"/>. The Code is per-directive;
@@ -166,6 +182,20 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
     {
         if (ctx.readDirection()?.PREVIOUS() is not null)
             Flag(FlagOption.Flag14ReadPrevious, ctx.Start.Line, "the READ PREVIOUS statement");
+
+        // d I-O-DECLARATIVE — a READ retrieving SEQUENTIALLY (a NEXT/PREVIOUS direction, or the file's access mode is
+        // sequential) is AT-END-capable: flag it lacking AT END when an INPUT/I-O declarative is present. Otherwise
+        // it is a random (keyed) read → INVALID-KEY-capable: flag it lacking INVALID KEY when any open-mode
+        // declarative is present. A file that does not resolve stays unflagged (no organization ⇒ neither branch fires).
+        var file = FileByName(ctx.fileName()?.GetText());
+        bool sequential = ctx.readDirection() is not null || file?.AccessMode == FileAccessMode.Sequential;
+        if (sequential)
+        {
+            if (ctx.readAtEnd() is null && _hasReadModeDecl)
+                FlagIoDeclarative(ctx.Start.Line, "a READ without an AT END phrase");
+        }
+        else
+            IoDeclarativeInvalidKey(ctx.readInvalidKey() is not null, file, ctx.Start.Line);
         return base.VisitChildren(ctx);
     }
 
@@ -271,7 +301,68 @@ internal sealed class FlagConformancePass : CobolParserCoreBaseVisitor<object?>
                 Flag(FlagOption.Flag14WriteEndOfPage, ctx.Start.Line,
                     "the WRITE without an END-OF-PAGE phrase (the file has a LINAGE clause)");
         }
+        // d I-O-DECLARATIVE — a WRITE to a keyed file (INVALID-KEY-capable) without an INVALID KEY phrase.
+        IoDeclarativeInvalidKey(ctx.writeInvalidKey() is not null,
+            FileByRecordOrName(ctx.recordName()?.GetText(), ctx.fileName()?.GetText()), ctx.Start.Line);
         return base.VisitChildren(ctx);
+    }
+
+    // ── FLAG-14 d I-O-DECLARATIVE (§7.3.15.4 GR4 d; E.2 item 19) — the remaining INVALID-KEY-capable statements
+    //    (REWRITE / DELETE / START on a keyed file). Each is flagged, lacking its INVALID KEY phrase, when the unit
+    //    has an INPUT/OUTPUT/I-O/EXTEND USE declarative (which now executes on the exception at 2023). ──
+    public override object? VisitRewriteStatement(CobolParserCore.RewriteStatementContext ctx)
+    {
+        IoDeclarativeInvalidKey(ctx.rewriteInvalidKeyPhrase() is not null,
+            FileByRecordOrName(ctx.recordName()?.GetText(), ctx.fileName()?.GetText()), ctx.Start.Line);
+        return base.VisitChildren(ctx);
+    }
+
+    public override object? VisitDeleteStatement(CobolParserCore.DeleteStatementContext ctx)
+    {
+        IoDeclarativeInvalidKey(ctx.deleteInvalidKeyPhrase() is not null,
+            FileByName(ctx.fileName()?.GetText()), ctx.Start.Line);
+        return base.VisitChildren(ctx);
+    }
+
+    public override object? VisitStartStatement(CobolParserCore.StartStatementContext ctx)
+    {
+        IoDeclarativeInvalidKey(ctx.startInvalidKeyPhrase() is not null,
+            FileByName(ctx.fileName()?.GetText()), ctx.Start.Line);
+        return base.VisitChildren(ctx);
+    }
+
+    /// <summary>Rule 1 of GR4 d — flag an INVALID-KEY-capable statement (its file is RELATIVE or INDEXED, so an
+    /// invalid-key condition can occur, §14.9 / E.2 item 19a) that lacks its INVALID KEY phrase, when the unit has
+    /// ANY open-mode USE declarative.</summary>
+    private void IoDeclarativeInvalidKey(bool phrasePresent, FileModel? file, int line)
+    {
+        if (!phrasePresent && _hasAnyModeDecl && IsKeyed(file))
+            FlagIoDeclarative(line, "an I-O statement without an INVALID KEY phrase");
+    }
+
+    private void FlagIoDeclarative(int line, string what)
+        => Flag(FlagOption.Flag14IoDeclarative, line,
+            $"{what} while an INPUT/OUTPUT/I-O/EXTEND USE declarative is in effect (it now executes on the exception)");
+
+    /// <summary>Whether the file admits an invalid-key condition (ISO §12.4.5.10 — a RELATIVE or INDEXED, i.e.
+    /// keyed, organization). SEQUENTIAL / LINE SEQUENTIAL files never raise an invalid-key condition.</summary>
+    private static bool IsKeyed(FileModel? file)
+        => file?.Organization is FileOrganization.Relative or FileOrganization.Indexed;
+
+    /// <summary>The current unit's <see cref="FileModel"/> named <paramref name="name"/> (source name; the flag pass
+    /// runs before file-connector renaming), or null.</summary>
+    private FileModel? FileByName(string? name)
+        => name is null || _currentData is null ? null
+            : _currentData.Files.FirstOrDefault(f => string.Equals(f.CobolName, name, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>The <see cref="FileModel"/> a WRITE/REWRITE targets: the explicit <c>FILE file-name</c> when written,
+    /// else the file whose record descriptions include <paramref name="recordName"/>.</summary>
+    private FileModel? FileByRecordOrName(string? recordName, string? fileName)
+    {
+        if (fileName is not null) return FileByName(fileName);
+        if (recordName is null || _currentData is null) return null;
+        return _currentData.Files.FirstOrDefault(f =>
+            f.Records.Any(r => string.Equals(r.CobolName, recordName, StringComparison.OrdinalIgnoreCase)));
     }
 
     // ── FLAG-02 f TERMINATE-WITH-VARYING (§7.3.14.4 GR4 f) — a TERMINATE of a report whose description contains a

@@ -77,7 +77,7 @@ implementation increment. `[F]` = frontend-inline (no bound residue); `[B]` = bo
 | a ALL | fan-out to b–m | directive parse | 0 | sets every FLAG-14 option; `ALL OFF` is the GR2 reset |
 | b COMPILE-TIME-ARITHMETIC-EXPRESSIONS | a compile-time arithmetic expr with a real operator | `[F]` `CompileTimeExpressionEvaluator` EvalArith (Add/Mul arm) | 2 | E.2 item 6. Guard on operator present (sole literal not flagged) |
 | c EVALUATE | a `>>EVALUATE` directive with both a WHEN and a WHEN OTHER | `[F]` `ConditionalCompilationProcessor` Evaluate/When frames | 2 | E.2 item 8. NOT the EVALUATE statement |
-| d I-O-DECLARATIVE | an INVALID-KEY-capable I-O stmt (or AT-END-capable READ) without that phrase while a USE INPUT/OUTPUT/I-O/EXTEND declarative is in effect | `[B]` bound I-O nodes + declaratives model | 4 | E.2 item 19. Needs statement→file→open-mode→declarative join (new analysis) |
+| d I-O-DECLARATIVE | an INVALID-KEY-capable I-O stmt (WRITE/REWRITE/DELETE/START/random-READ on a keyed file) without INVALID KEY, or a sequential READ without AT END, while a USE INPUT/OUTPUT/I-O/EXTEND declarative is present | `[B]` DONE — `VisitRead/Write/Rewrite/Delete/StartStatement` + `unit.Bound.Declaratives` modes + `_currentData.Files` org | 4 | E.2 item 19 |
 | e I-O-STATUS-04 | a reference testing a FILE STATUS item for `'04'` — a relation, or a level-88 whose VALUE is `'04'` | `[B]` DONE — `VisitComparisonExpression` + FILE-STATUS name/88 sets from `unit.Data.Files[]` | 4 | E.2 item 15 |
 | f I-O-STATUS-07 | a reference testing a FILE STATUS item for `'07'` — a relation, or a level-88 whose VALUE is `'07'` | `[B]` DONE — same detector as e (only the literal differs) | 4 | E.2 item 16 |
 | g NUM-ED-ZERO-FIGCONST | figurative ZERO in a VALUE clause of a numeric-edited item | `[B]` `GateData`/`DataItem` (DataBinder.cs:1104 `isZeroWord`) | 1 | E.2 item 28. **Same predicate as l** — one detector serves both |
@@ -247,12 +247,19 @@ rows (98, 100–113) are directive-driven, not edition gates, so they carry `<!-
     role fact, collision-tolerant), NOT the scope-sensitive per-unit resolution d/e use. Operand navigation reuses
     the canonical `ConditionBinder.SoleDataRef` (a lone reference, not an expression) + `valueOperand()
     .nonNumericLiteral().STRINGLIT()` — no bespoke tree walk (`feedback_path_a_leverage_tooling`).
-  * **d I-O-DECLARATIVE, FLAG-02 b EC-PROGRAM-EXCEPTIONS (remaining)** — an I-O statement without its INVALID
-    KEY / AT END phrase while an INPUT/OUTPUT/I-O/EXTEND declarative is in effect (statement→file→open-mode→
-    declarative join); and a `>>TURN` for an EC-PROGRAM-family exception in an element that calls a function or
-    invokes a method (whole-element call/invoke aggregation + TurnState). Each is real cross-cutting analysis
-    designed here to spec, NOT a documented non-conformance. Wave I merges only when every option is landed or an
-    owner decision stages one.
+  * **d I-O-DECLARATIVE (DONE)** — two rules: (1) an INVALID-KEY-capable statement (WRITE/REWRITE/DELETE/START, or a
+    random READ) on a KEYED file (Organization RELATIVE/INDEXED — the only ones that raise an invalid-key condition)
+    lacking its INVALID KEY phrase, when the unit has ANY open-mode USE declarative; (2) an AT-END-capable READ (a
+    sequential retrieval — a NEXT/PREVIOUS direction, or AccessMode Sequential) lacking AT END, when the unit has an
+    INPUT or I-O declarative. Per-unit modes are read from the BOUND model (`unit.Bound.Declaratives` —
+    `BoundDeclarative.ModeIndex` is the `FileOpenMode` ordinal; null for a file-name / Format-3/4 declarative, which
+    GR4 d does not consider), set in `VisitProgramUnit` (order-independent, so it never depends on the declaratives
+    preceding the body). Per-statement file classification is from `_currentData.Files` (WRITE/REWRITE map their
+    record name to its file via `FileModel.Records`). A file that does not resolve stays unflagged.
+  * **FLAG-02 b EC-PROGRAM-EXCEPTIONS (remaining)** — a `>>TURN` for an EC-PROGRAM-family exception (EC-ALL,
+    EC-PROGRAM, EC-PROGRAM-ARG-OMITTED, EC-PROGRAM-NOT-FOUND) in an element that calls a function or invokes a
+    method (whole-element call/invoke aggregation + TurnState). Real cross-cutting analysis designed here to spec,
+    NOT a documented non-conformance. Wave I merges only when every option is landed or an owner decision stages one.
 
 ## 5. Testing
 

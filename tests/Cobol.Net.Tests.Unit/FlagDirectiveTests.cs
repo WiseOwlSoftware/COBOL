@@ -685,4 +685,82 @@ public sealed class FlagDirectiveTests
         var warnings = CompileWarnings(IoStatusProgram(PlainFs, "", If("FS = \"04\"")));
         Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
     }
+
+    // ── Incr 4: FLAG-14 d I-O-DECLARATIVE (§7.3.15.4 GR4 d; E.2 item 19) — an INVALID-KEY-capable I-O statement
+    //    without INVALID KEY (or an AT-END-capable READ without AT END) while an open-mode USE declarative is
+    //    present in the unit (it now executes on the exception at 2023). ──
+
+    private const string IndexedSelect = " ORGANIZATION IS INDEXED\n               ACCESS MODE IS DYNAMIC RECORD KEY IS F-KEY.\n";
+    private const string SequentialSelect = " ORGANIZATION IS SEQUENTIAL.\n";
+
+    private static string IoDeclProgram(string selectTail, string? declMode, string directive, string procStmts) =>
+        "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. FLGIOD.\n       ENVIRONMENT DIVISION.\n" +
+        "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT F ASSIGN TO \"f.dat\"" + selectTail +
+        "       DATA DIVISION.\n       FILE SECTION.\n       FD F.\n       01 F-REC.\n          05 F-KEY PIC X(4).\n" +
+        "       PROCEDURE DIVISION.\n" +
+        (declMode is null ? "" :
+            "       DECLARATIVES.\n       D-SEC SECTION.\n           USE AFTER STANDARD ERROR PROCEDURE ON " + declMode +
+            ".\n       D-PARA.\n           DISPLAY \"E\".\n       END DECLARATIVES.\n") +
+        "       MAIN SECTION.\n       M.\n" + directive + procStmts + "           CLOSE F.\n           STOP RUN.\n";
+
+    [Fact]
+    public void Compile_IoDeclarativeOn_Flags_KeyedWriteWithoutInvalidKey()
+    {
+        var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, "I-O",
+            "       >>FLAG-14 I-O-DECLARATIVE ON\n", "           OPEN I-O F.\n           WRITE F-REC.\n"));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("I-O-DECLARATIVE", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoDeclarativeOn_Flags_SequentialReadWithoutAtEnd()
+    {
+        // A READ NEXT (sequential retrieval, AT-END-capable) without AT END, with an INPUT declarative present.
+        var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, "INPUT",
+            "       >>FLAG-14 I-O-DECLARATIVE ON\n", "           OPEN INPUT F.\n           READ F NEXT RECORD.\n"));
+        Assert.Contains(warnings, w => w.StartsWith("warning COBOLNET1621", StringComparison.Ordinal)
+            && w.Contains("I-O-DECLARATIVE", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoDeclarative_NotFlagged_WhenInvalidKeyPhrasePresent()
+    {
+        var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, "I-O",
+            "       >>FLAG-14 I-O-DECLARATIVE ON\n",
+            "           OPEN I-O F.\n           WRITE F-REC INVALID KEY CONTINUE END-WRITE.\n"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoDeclarative_NotFlagged_WhenNoDeclarativePresent()
+    {
+        var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, declMode: null,
+            "       >>FLAG-14 I-O-DECLARATIVE ON\n", "           OPEN I-O F.\n           WRITE F-REC.\n"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoDeclarative_NotFlagged_OnSequentialFile_WriteHasNoInvalidKeyCondition()
+    {
+        // A SEQUENTIAL-organization file never raises an invalid-key condition, so its WRITE is not INVALID-KEY-capable.
+        var warnings = CompileWarnings(IoDeclProgram(SequentialSelect, "OUTPUT",
+            "       >>FLAG-14 I-O-DECLARATIVE ON\n", "           OPEN OUTPUT F.\n           WRITE F-REC.\n"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoDeclarative_AtEndRule_NotTriggeredByOutputOnlyDeclarative()
+    {
+        // The AT-END rule requires an INPUT or I-O declarative; a USE ON OUTPUT does not trigger it for a READ NEXT.
+        var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, "OUTPUT",
+            "       >>FLAG-14 I-O-DECLARATIVE ON\n", "           OPEN INPUT F.\n           READ F NEXT RECORD.\n"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Compile_IoDeclarative_NotFlagged_WhenDirectiveOff()
+    {
+        var warnings = CompileWarnings(IoDeclProgram(IndexedSelect, "I-O", "", "           OPEN I-O F.\n           WRITE F-REC.\n"));
+        Assert.DoesNotContain(warnings, w => w.Contains("COBOLNET1621", StringComparison.Ordinal));
+    }
 }
